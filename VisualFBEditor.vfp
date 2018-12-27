@@ -1,0 +1,15 @@
+﻿File=Designer.bi
+File=EditControl.bi
+*File=VisualFBEditor.bas
+File=frmProjectProperties.bas
+File=LanguageTemplate.bas
+File=Debug.bas
+File=frmAbout.bas
+File=frmFind.bas
+File=frmFindInFiles.bas
+File=frmGoto.bas
+File=frmOptions.bas
+File=frmReplace.bas
+File=frmSplash.bas
+File=TabWindow.bas
+File=VisualFBEditor.rc

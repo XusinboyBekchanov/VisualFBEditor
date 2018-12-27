@@ -1,0 +1,42 @@
+Version 1.0.2.1389 (December 27, 2018)
+- Added: ToString Export function
+- Fixed: New Form Menu (in Linux version)
+Version 1.0.2.1383 (December 26, 2018)
+- Fixed: ContextMenu showing
+- Fixed: Anchor styles
+Version 1.0.2.1343 (December 23, 2018)
+- Added: GUI compilation option
+- Fixed: Control Hints
+Version 1.0.2.1250 (December 21, 2018)
+- Fixed: Delete Control Popupmenu
+- Fixed: Fill Intellisense functionality
+Version 1.0.2.1230 (December 20, 2018)
+- Added: Cross-platform functionality
+- Added: Sessions functionality
+- Added: ToolPalette control
+- Added: ImageBox control
+Version 1.0.1.688 (August 19, 2018)
+- Added: ColorDialog
+- Improved properties panel (made of wood)
+- Improved event panel
+- Added auto-increment version
+- Added partial intellisense
+- Added the ability to specify the path to the framework
+- Changed the form template
+- Added resource and xml file templates
+- Fixed file select button in settings
+- Fixed bug in specifying the path to the compiler
+Version 1.0.0.0 (July 23, 2018)
+- Added error handling
+- Improved properties panel
+- Fixed crash of the program
+Version 1.0.0.0 (July 14, 2018)
+- Autocompletion of the final constructors
+- Form Designer
+- Multilanguage
+- Error processing
+- Debugging
+- Syntax highlighting
+- Project support
+- Unicode support
+- Collapse / expand functions and procedures
