@@ -1,4 +1,4 @@
-﻿1 24 "./MyFbFramework/mff/xpmanifest.xml"
+﻿1 24 "./xpmanifest.xml"
 1 ICON "./resources/VisualFBEditor.ico"
 B32 Bitmap DISCARDABLE "./resources/B32.bmp"
 B64 Bitmap DISCARDABLE "./resources/B64.bmp"
