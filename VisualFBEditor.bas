@@ -1,9 +1,16 @@
-﻿#IfDef __FB_64bit__
-    '#Compile -s gui -x "VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
+﻿#IfDef __FB_Win32__
+	#IfDef __FB_64bit__
+	    '#Compile -s gui -x "VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
+	#Else
+	    '#Compile -s gui -x "VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
+	#EndIf
 #Else
-    '#Compile -s gui -x "VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
+	#IfDef __FB_64bit__
+	    '#Compile -s gui -x "VisualFBEditor64" -exx
+	#Else
+	    '#Compile -s gui -x "VisualFBEditor32" -exx
+	#EndIf
 #EndIf
-'#Compile -s gui -g -x "/home/xusinboy/programs/VisualFBEditor/VisualFBEditor" -exx
 
 '#Define __USE_GTK__
 

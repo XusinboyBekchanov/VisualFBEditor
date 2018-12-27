@@ -1,6 +1,5 @@
 ﻿File=Designer.bi
 File=EditControl.bi
-*File=VisualFBEditor.bas
 File=frmProjectProperties.bas
 File=LanguageTemplate.bas
 File=Debug.bas
@@ -12,4 +11,5 @@ File=frmOptions.bas
 File=frmReplace.bas
 File=frmSplash.bas
 File=TabWindow.bas
+*File=VisualFBEditor.bas
 File=VisualFBEditor.rc

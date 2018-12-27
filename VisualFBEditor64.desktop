@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=Visual FB Editor
+Comment=Text Editor
+Exec=/home/xusinboy/programs/VisualFBEditor/VisualFBEditor64
+Path=/home/xusinboy/programs/VisualFBEditor/
+Icon=/home/xusinboy/programs/VisualFBEditor/resources/VisualFBEditor.ico
+Categories=Text;Editor;

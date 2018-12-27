@@ -475,32 +475,53 @@ End Function
 Function GetFirstCompileLine(ByRef FileName As WString) ByRef As WString
     If Open(FileName For Input Encoding "utf-8" As #1) = 0 Then
 		Dim sLine As WString Ptr
-	    Dim As Integer i, n
+	    Dim As Integer i, n, l = 0
+	    Dim As Boolean k(10)
+	    k(l) = True
 		WReallocate sLine, LOF(1)
 	    Do Until EOF(1)
 	        Line Input #1, *sLine
-	        If i = 0 Then
-   				If StartsWith(LTrim(LCase(*sLine), " "), "#ifdef __fb_64bit__") Then
-					If tbStandard.Buttons.Item("B64")->Checked Then
-			            n = 1
-			        Else
-			            n = 3
-			        End If
-			    ElseIf StartsWith(LTrim(LCase(*sLine), " "), "#ifndef __fb_64bit__") Then
-			        If tbStandard.Buttons.Item("B32")->Checked Then
-			            n = 1
-			        Else
-			            n = 3
-			        End If   
-			    Else
-			        n = 0
-			    End If
+	        If StartsWith(LTrim(LCase(*sLine), Any !"\t "), "#ifdef __fb_win32__") Then
+				l = l + 1
+				#IfDef __FB_Win32__
+					k(l) = True
+				#Else
+					k(l) = False
+				#EndIf
+			ElseIf StartsWith(LTrim(LCase(*sLine), Any !"\t "), "#ifndef __fb_win32__") Then
+				l = l + 1
+				#IfNDef __FB_Win32__
+					k(l) = True
+				#Else
+					k(l) = False
+				#EndIf
+			ElseIf StartsWith(LTrim(LCase(*sLine), Any !"\t "), "#ifdef __fb_64bit__") Then
+				l = l + 1
+				k(l) = tbStandard.Buttons.Item("B64")->Checked
+			ElseIf StartsWith(LTrim(LCase(*sLine), Any !"\t "), "#ifndef __fb_64bit__") Then
+				l = l + 1
+				k(l) = Not tbStandard.Buttons.Item("B64")->Checked
+			ElseIf StartsWith(LTrim(LCase(*sLine), Any !"\t "), "#else") Then
+				k(l) = Not k(l)
+			ElseIf StartsWith(LTrim(LCase(*sLine), Any !"\t "), "#endif") Then
+				l = l - 1
+				If l < 0 Then 
+					Close #1
+					Return ""
+				End If
+			Else
+				For i = 0 To l
+					If k(i) = False Then Exit For
+				Next
+				If i > l Then
+						Close #1
+						Return *sLine
+					End If
 			End If
-			If i = n Then
-    			Close #1
-    			Return *sLine
+			If l >= 10 Then
+				Close #1
+				Return ""
 			End If
-			i = i + 1
 	    Loop
 	    Close #1
 	End If
@@ -514,7 +535,7 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) ByRef
     Dim As String SearchChar
     Dim s As WString Ptr 
     Dim As Long Pos1, Pos2
-    If Left(LCase(*CompileWith), 10) = "'#compile " Then
+    If Left(LCase(LTrim(*CompileWith, Any !"\t ")), 10) = "'#compile " Then
         Pos1 = Instr(*CompileWith, " -x ")
         If Pos1 > 0 Then
             If Mid(*CompileWith, Pos1 + 4, 1) = """" Then
@@ -3243,8 +3264,8 @@ Function Compile(Parameter As String = "") As Integer
                 'Return 0
             End If
         End If
-        If StartsWith(LTrim(LCase(*FirstLine)), "'#compile ") Then
-            WLet CompileWith, Mid(LTrim(*FirstLine), 10)
+        If StartsWith(LTrim(LCase(*FirstLine), Any !"\t "), "'#compile ") Then
+            WLet CompileWith, Mid(LTrim(*FirstLine, Any !"\t "), 10)
         Else
         	WLet CompileWith, ""
         End If
