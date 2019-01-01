@@ -55,7 +55,7 @@ Using My.Sys.Forms
         #Else
 			lblIcon.Graphic.Icon.LoadFromResourceID(1, 48, 48)
         #EndIf
-        lblIcon.SetBounds 18, 12, 36, 36
+        lblIcon.SetBounds 18, 12, 48, 48
         lblIcon.Parent = @This
         ' lblInfo
         lblInfo.Name = "lblInfo"

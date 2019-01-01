@@ -168,7 +168,9 @@ Namespace My.Sys.Forms
 				Dim As GdkDisplay Ptr pdisplay
 				Dim AS GdkCursor Ptr gdkCursorIBeam
 				Dim AS GdkCursor Ptr gdkCursorHand
-				Dim As GtkStyleContext Ptr scontext
+				#IfDef __USE_GTK3__
+					Dim As GtkStyleContext Ptr scontext
+				#EndIf
 				Dim As GtkWidget Ptr scrollbarv
 				Dim As GtkWidget Ptr scrollbarh
 				Dim As GtkAdjustment Ptr adjustmentv
@@ -354,11 +356,19 @@ gtk_main()
 		Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
 		If ec->InFocus Then
 			ec->CaretOn = Not ec->CaretOn
-			gtk_widget_queue_draw(ec->widget)
+			#IfDef __USE_GTK3__
+				gtk_widget_queue_draw(ec->widget)
+			#Else
+				gtk_widget_queue_draw(ec->widget)
+			#EndIf
 			gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
 		Else
 			ec->CaretOn = False
-			gtk_widget_queue_draw(ec->widget)
+			#IfDef __USE_GTK3__
+				gtk_widget_queue_draw(ec->widget)
+			#Else
+				gtk_widget_queue_draw(ec->widget)
+			#EndIf
 		End If
 		Return False
 	End Function
@@ -1478,7 +1488,11 @@ A:
 		#IfDef __USE_GTK__
 			'PaintControlPriv
 			bChanged = True
-			gtk_widget_queue_draw(widget)
+			#IfDef __USE_GTK3__
+				gtk_widget_queue_draw(widget)
+			#Else
+				gtk_widget_queue_draw(widget)
+			#EndIf
 		#Else
 			PaintControlPriv
 		#EndIf
@@ -1510,7 +1524,11 @@ A:
 		#EndIf
         This.Canvas.Brush.Color = This.BackColor
         #IfDef __USE_GTK__
-			cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), true)
+			#IfDef __USE_GTK3__
+				cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), true)
+			#Else
+				cairo_rectangle (cr, 0.0, 0.0, widget->allocation.width, widget->allocation.height, true)
+			#EndIf
 			cairo_set_source_rgb(cr, 1, 1, 1)
 			cairo_fill (cr)
         #Else
@@ -1680,7 +1698,7 @@ A:
                         'iStart = Max(iMin - j, 0)
                         'iEnd = Min(iMax - j, l)
                         #IfDef __USE_GTK__
-							Dim As GdkRGBA colorHighlightText, colorHighlight 
+							'Dim As GdkRGBA colorHighlightText, colorHighlight 
 							Dim As Integer colHighlightText, colHighlight
 							'gtk_style_context_get_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlightText)
 							'gtk_style_context_get_background_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlight)
@@ -1936,7 +1954,13 @@ A:
 			cairo_set_source_rgb(cr, 1, 1, 1)
 			cairo_fill (cr)
 			If CaretOn Then
-				gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, HCaretPos, VCaretPos, layout, 0, PANGO_DIRECTION_LTR)
+				#IfDef __USE_GTK3__
+					gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, HCaretPos, VCaretPos, layout, 0, PANGO_DIRECTION_LTR)
+				#Else
+					cairo_rectangle (cr, HCaretPos, VCaretPos, HCaretPos + 0.5, VCaretPos + dwCharY, true)
+					cairo_set_source_rgb(cr, 0, 0, 0)
+					cairo_fill (cr)
+				#EndIf
 			End If
 			'cairo_paint(cr)
         #Else
@@ -2174,7 +2198,9 @@ A:
 					dwClientY = ClientHeight
 					'Msg.result = True
 				Case GDK_EXPOSE
-					PaintControl
+					#IfnDef __USE_GTK__
+						PaintControl
+					#EndIf
 			#Else
 				Case WM_SIZE
 					dwClientX = LOWORD(msg.lParam)
@@ -2189,7 +2215,11 @@ A:
 			#EndIf
 				#IfDef __USE_GTK__
 					OldPos = gtk_adjustment_get_value(adjustmentv)
-					scrDirection = e->scroll.delta_y
+					#IfDef __USE_GTK3__
+						scrDirection = e->scroll.delta_y
+					#Else
+						scrDirection = IIF(e->scroll.direction = GDK_SCROLL_UP, -1, 1)
+					#EndIf
 					If scrDirection = 1 Then
 						gtk_adjustment_set_value(adjustmentv, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
 					ElseIf scrDirection = -1 Then
@@ -2199,7 +2229,11 @@ A:
 						VScrollPos = gtk_adjustment_get_value(adjustmentv)
 						ShowCaretPos False
 						'PaintControl
-						gtk_widget_queue_draw(widget)
+						#IfDef __USE_GTK3__
+							gtk_widget_queue_draw(widget)
+						#Else
+							gtk_widget_queue_draw(widget)
+						#EndIf
 					'End If
 				#Else
 					#IfDef __FB_64bit__
@@ -2389,6 +2423,33 @@ A:
 							ChangeText "", 1, "Olddagi belgini o`chirish"
 						End If
 					End If
+			#IfDef __USE_GTK__
+				Case GDK_KEY_BACKSPACE
+					If FSelStartLine = 0 And FSelEndLine = 0 And FSelStartChar = 0 And FSelEndChar = 0 Then
+						Return
+					ElseIf FSelStartLine <> FSelEndLine Or FSelStartChar <> FSelEndChar Then
+						ChangeText "", 0, "Belgilangan matn o`chirildi"
+					ElseIf bCtrl Then
+						WordLeft
+						ChangeText "", 0, "Ortdagi so`z o`chirildi"
+					Else
+						WLet FLine, Lines(FSelEndLine)
+						Var n = Len(*FLine) - Len(LTrim(*FLine))
+						If n > 0 AndAlso n = FSelEndChar AndAlso Mid(*FLine, FSelEndChar + 1, 1) <> " " Then
+							Var d = Min(n, TabWidth - (n Mod TabWidth))
+							bAddText = True
+							ChangeText "", -d
+						Else
+							If FSelEndChar = 0 And FSelStartChar = 0 And FSelStartLine = FSelEndLine Then
+								If CInt(FSelEndLine > 0) AndAlso CInt(Not Cast(EditControlLine Ptr, FLines.Items[FSelEndLine - 1])->Visible) Then
+									ShowLine FSelEndLine - 1
+								End If
+							End If
+							bAddText = True
+							ChangeText "", -1
+						End If
+					End If
+			#EndIf
 			#IfDef __USE_GTK__
 				Case GDK_KEY_Left
 					msg.Result = True
@@ -2625,7 +2686,7 @@ A:
 							Indent
 						Else
 							#IfDef __USE_GTK__
-								ChangeText *e->Key.string
+								ChangeText !"\t" '*e->Key.string
 							#Else
 								ChangeText WChr(msg.wParam)
 							#EndIf
@@ -2638,7 +2699,7 @@ A:
 			#EndIf
 		#IfDef __USE_GTK__
 				Case Else
-			
+					
 				Select Case (Asc(*e->Key.string))
 		#Else
 				End Select
@@ -2877,7 +2938,7 @@ A:
 			Case WM_KEYUP
 		#EndIf
 		#IfDef __USE_GTK__
-			Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
+			Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 		#Else
 			Case WM_LBUTTONDBLCLK
 		#EndIf
@@ -3050,68 +3111,57 @@ A:
 				ec->pdisplay = gtk_widget_get_display(widget)
 				ec->gdkCursorIBeam = gdk_cursor_new_for_display(ec->pdisplay, GDK_XTERM)
 				ec->gdkCursorHand = gdk_cursor_new_from_name(ec->pdisplay, "pointer")
-				ec->win = gtk_layout_get_bin_window(gtk_layout(widget))
+				#IfDef __USE_GTK3__
+					ec->win = gtk_layout_get_bin_window(gtk_layout(widget))
+				#EndIf
 				gdk_window_set_cursor(ec->win, ec->gdkCursorIBeam)
 				
 				ec->ShowCaretPos False
 				ec->HScrollPos = 0
 				ec->VScrollPos = 0
 			End If
+			#IfDef __USE_GTK3__
+			#Else
+				ec->cr = cr
+			#EndIf
 			'If ec->bChanged Then
 				'ec->bChanged = False
-				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+				#IfDef __USE_GTK3__
+					Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+				#Else
+					Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+				#EndIf
 					If AllocatedWidth <> ec->dwClientX Or AllocatedHeight <> ec->dwClientY Then
 						ec->dwClientX = AllocatedWidth
 						ec->dwClientY = AllocatedHeight
 												
-						gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
-						gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
-						gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
-						gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
-
+						#IfDef __USE_GTK3__
+							gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
+							gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
+							gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
+							gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
+						#Else
+							gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth + 2, 0)
+							gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
+							gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight + 2)
+							gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
+						#EndIf
 						'Ctrl->RequestAlign AllocatedWidth, AllocatedHeight
 						ec->SetScrollsInfo
 					End If
 				
 				ec->PaintControlPriv
 				
-				'gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
-				'gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
-				'gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
-				'gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
-			'End If
-			
-			'gtk_widget_set_size_request(ec->wText, ec->dwClientX - ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
-			
-			'Dim As guint width1, height
-			'Dim As GdkRGBA color1
-			'Dim As GtkStyleContext Ptr context
-	
-			  'context = gtk_widget_get_style_context (widget)
-	
-			  'width1 = gtk_widget_get_allocated_width (widget)
-			  'height = gtk_widget_get_allocated_height (widget)
-	
-			  'gtk_render_background (context, cr, 0, 0, width1, height)
-	
-			  'cairo_rectangle (cr, 0.0, 0.0, width1, height)
-			
-			  ''cairo_arc (cr, width1 / 2.0, height / 2.0, MIN (width1, height) / 2.0, 0, 2 * G_PI)
-	
-			  'gtk_style_context_get_color (context, gtk_style_context_get_state (context), @color1)
-			  'gdk_cairo_set_source_rgba (cr, @color1)
-	
-			  'cairo_fill (cr)
-			'cairo_select_font_face(cr, "Courier New", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
-
-  'cairo_set_font_size(cr, 10)
-
-  'cairo_move_to(cr, 20, 30)
-  
-			 'cairo_set_source_rgb(cr, 0.1, 0.1, 0.1)
-			 'cairo_show_text(cr, "Most relationships seem so transitory")  
-		
 			 return FALSE
+	    End Function
+	    
+	    Function EditControl_OnExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+			Dim As EditControl Ptr ec = Cast(Any Ptr, data1)
+			Dim As cairo_t Ptr cr = gdk_cairo_create(event->window)
+			ec->win = event->window
+			EditControl_OnDraw widget, cr, data1
+			cairo_destroy(cr)
+			return FALSE
 	    End Function
 	    
 	    Sub EditControl_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
@@ -3134,8 +3184,10 @@ A:
 			Else
 				ec->HScrollPos = gtk_adjustment_get_value(ec->adjustmenth)
 			End If
-			ec->ShowCaretPos False
-			ec->PaintControl
+			#IfDef __USE_GTK3__
+				ec->ShowCaretPos False
+				ec->PaintControl
+			#EndIf
 		End Sub
 			
 	#EndIf
@@ -3144,7 +3196,9 @@ A:
 		Child       = @This
 		#IfDef __USE_GTK__
 			widget = gtk_layout_new(NULL, NULL)
-			scontext = gtk_widget_get_style_context (widget)
+			#IfDef __USE_GTK3__
+				scontext = gtk_widget_get_style_context (widget)
+			#EndIf
 			'gtk_layout_set_size(gtk_layout(widget), 1000, 1000)
 			'g_object_set (gtk_widget_get_settings(widget), "gtk-keynav-use-caret", true, NULL)
 			'gtk_scrolled_window_set_policy(gtk_scrolled_window(widget), GTK_POLICY_EXTERNAL, GTK_POLICY_EXTERNAL)
@@ -3188,7 +3242,11 @@ A:
 			'g_signal_connect(widget, "event", G_CALLBACK(@EventProc), @This)
 			'g_signal_connect(widget, "event-after", G_CALLBACK(@EventAfterProc), @This)
 			'g_signal_connect(wText, "draw", G_CALLBACK(@EditControl_OnDraw), @This)
-			g_signal_connect(widget, "draw", G_CALLBACK(@EditControl_OnDraw), @This)
+			#IfDef __USE_GTK3__
+				g_signal_connect(widget, "draw", G_CALLBACK(@EditControl_OnDraw), @This)
+			#Else
+				g_signal_connect(widget, "expose-event", G_CALLBACK(@EditControl_OnExposeEvent), @This)
+			#EndIf
 			pcontext = gtk_widget_create_pango_context(widget)
 			layout = pango_layout_new(pcontext)
 			Dim As PangoFontDescription Ptr desc
@@ -3200,28 +3258,40 @@ A:
 			BlinkTime = BlinkTime / 1.75
 			'gdk_threads_add_timeout(BlinkTime, @Blink_cb, @This)
 			adjustmentv = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 201.0, 1.0, 20.0, 20.0))
-			scrollbarv = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT(adjustmentv))
+			#IfDef __USE_GTK3__
+				scrollbarv = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT(adjustmentv))
+			#Else
+				scrollbarv = gtk_vscrollbar_new(GTK_ADJUSTMENT(adjustmentv))
+			#EndIf
 			gtk_widget_set_can_focus(scrollbarv, FALSE)
 			g_signal_connect(adjustmentv, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
 			'gtk_widget_set_parent(scrollbarv, widget)
 			gtk_layout_put(gtk_layout(widget), scrollbarv, 0, 0)
 			gtk_widget_show(scrollbarv)
-
 			adjustmenth = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 101.0, 1.0, 20.0, 20.0))
-			scrollbarh = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT(adjustmenth))
+			#IfDef __USE_GTK3__
+				scrollbarh = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT(adjustmenth))
+			#Else
+				scrollbarh = gtk_hscrollbar_new(GTK_ADJUSTMENT(adjustmenth))
+			#EndIf
 			gtk_widget_set_can_focus(scrollbarh, FALSE)
 			g_signal_connect(adjustmenth, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
 			'gtk_widget_set_parent(scrollbarh, widget)
 			gtk_layout_put(gtk_layout(widget), scrollbarh, 0, 0)
 			gtk_widget_show(scrollbarh)
-			Dim As GtkRequisition minimum, requisition
-			gtk_widget_get_preferred_size(scrollbarv, @minimum, @requisition)
-			Var minVScrollBarHeight = minimum.height
-			verticalScrollBarWidth = requisition.width
-			gtk_widget_get_preferred_size(scrollbarh, @minimum, @requisition)
-			Var minHScrollBarWidth = minimum.width
-			horizontalScrollBarHeight = requisition.height
-			layoutwidget = widget
+			Dim As GtkRequisition vminimum, hminimum, vrequisition, hrequisition
+			#IfDef __USE_GTK3__
+				gtk_widget_get_preferred_size(scrollbarv, @vminimum, @vrequisition)
+				gtk_widget_get_preferred_size(scrollbarh, @hminimum, @hrequisition)
+			#Else
+				gtk_widget_size_request(scrollbarv, @vrequisition)
+				gtk_widget_size_request(scrollbarh, @hrequisition)
+			#EndIf
+			Var minVScrollBarHeight = hminimum.height
+			Var minHScrollBarWidth = vminimum.width
+			verticalScrollBarWidth = vrequisition.width
+			horizontalScrollBarHeight = hrequisition.height
+			'layoutwidget = widget
 			'gtk_widget_grab_focus(wText)
 		#Else
 			OnHandleIsAllocated = @HandleIsAllocated

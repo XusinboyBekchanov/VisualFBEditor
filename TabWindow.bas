@@ -647,9 +647,14 @@ End Sub
 		
 		cairo_select_font_face(cr, "Noto Mono", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
 		cairo_set_font_size(cr, 11)
-			
-		Var width1 = gtk_widget_get_allocated_width (widget)
-		Var height1 = gtk_widget_get_allocated_height (widget)
+		
+		#IfDef __USE_GTK3__
+			Var width1 = gtk_widget_get_allocated_width (widget)
+			Var height1 = gtk_widget_get_allocated_height (widget)
+		#Else
+			Var width1 = widget->allocation.width
+			Var height1 = widget->allocation.height
+		#EndIf
 		
 		If cb->MouseIn Then
 			cairo_rectangle(cr, width1 - 16, (height1 - 16) / 2, 16, 16)
@@ -672,6 +677,13 @@ End Sub
 		pango_cairo_show_layout_line(cr, pl)
 		return FALSE
 	End Function
+	
+	Function CloseButton_OnExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+		Dim As cairo_t Ptr cr = gdk_cairo_create(event->window)
+		CloseButton_OnDraw(widget, cr, data1)
+		cairo_destroy(cr)
+		return FALSE
+	End Function
 #EndIf
 
 Constructor CloseButton
@@ -681,7 +693,11 @@ Constructor CloseButton
     OldBackColor = This.BackColor
     OldForeColor = This.Font.Color
     #IfDef __USE_GTK__
-		g_signal_connect(widget, "draw", G_CALLBACK(@CloseButton_OnDraw), @This)
+    	#IfDef __USE_GTK3__
+			g_signal_connect(widget, "draw", G_CALLBACK(@CloseButton_OnDraw), @This)
+		#Else
+			g_signal_connect(widget, "expose-event", G_CALLBACK(@CloseButton_OnExposeEvent), @This)
+		#EndIf
 		This.Width = 20
 		This.Height = 20
 		Dim As PangoContext Ptr pcontext
@@ -1827,7 +1843,7 @@ Sub cboFunction_Change(ByRef Sender as ComboBoxEdit, ItemIndex As Integer)
     If tb = 0 Then Exit Sub
 	'If frmMain.ActiveControl AndAlso frmMain.ActiveControl->ClassName = "EditControl" Then Exit Sub 
     Dim frmName As String
-    If tb->Des <> 0 AndAlso tb->Des->ReadPropertyFunc <> 0 Then frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+    If tb->Des <> 0 AndAlso tb->Des->ReadPropertyFunc <> 0 AndAlso tb->Des->DesignControl <> 0 Then frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
     Var ii = tb->cboClass.ItemIndex
     Var jj = tb->cboFunction.ItemIndex
     If ii < 0 Then Exit Sub
@@ -2496,9 +2512,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 									Dim As GtkWidget Ptr DCWidget = .ReadPropertyFunc(.DesignControl, "Widget")
 									If DCWidget <> 0 Then
-										Dim As GtkStyleContext Ptr context
-										context = gtk_widget_get_style_context(DCWidget)
-										gtk_style_context_add_class(context,"design_control")
+'										Dim As GtkStyleContext Ptr context
+'										context = gtk_widget_get_style_context(DCWidget)
+'										gtk_style_context_add_class(context,"design_control")
 										.Dialog = DCWidget
 										'gtk_widget_set_can_focus(DCWidget, True)
 									End If
@@ -2816,7 +2832,11 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
     cboClass.Width = 50
     #IfDEF __USE_GTK__
 		cboClass.Top = 0
-		cboClass.Height = 20
+		#IfDef __USE_GTK3__
+			cboClass.Height = 20
+		#Else
+			cboClass.Height = 30
+		#EndIf
     #Else
 		cboClass.Top = 2
 		cboClass.Height = 30 * 22
@@ -2830,7 +2850,11 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
     cboFunction.Width = 50
     #IfDEF __USE_GTK__
 		cboFunction.Top = 0
-		cboFunction.Height = 20
+		#IfDef __USE_GTK3__
+			cboFunction.Height = 20
+		#Else
+			cboFunction.Height = 30
+		#EndIf
     #Else
 		cboFunction.Top = 2
 		cboFunction.Height = 30 * 22
@@ -3073,9 +3097,9 @@ End Sub
 
 Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString)
     If AutoIncrement Then
-        If StartsWith(LTrim(LCase(sFirstLine)), "'#compile ") Then
+        If StartsWith(LTrim(LCase(sFirstLine), Any !"\t "), "'#compile ") Then
             Dim As WString Ptr Buff, File, sLine, sLines
-            WLet Buff, Mid(LTrim(sFirstLine), 11)
+            WLet Buff, Mid(LTrim(sFirstLine, Any !"\t "), 11)
             Var Pos1 = Instr(*Buff, """"), Pos2 = 1
             Dim QavsBoshi As Boolean
             Do While Pos1 > 0
@@ -3391,7 +3415,7 @@ End Function
 		Print #1, ""
 		Print #1, "cd " & Replace(working_dir, "\", "/")
 		Print #1, ""
-		Print #1, IIF(debug, "gdb ", "") & Replace(cmd, "\", "/")
+		Print #1, IIF(debug, """" & WGet(Debugger) & """" & " ", "") & Replace(cmd, "\", "/")
 		Print #1, ""
 		Print #1, !"echo ""\n\n------------------\n(program exited with code: $?)"" \n\n" & IIF(autoclose, "", !"\necho ""Press return to continue""\n#to be more compatible with shells like ""dash\ndummy_var=""""\nread dummy_var") & !"\n"
 		Close #1
@@ -3640,7 +3664,11 @@ Sub run_exit_cb(child_pid As GPid, status As gint, user_data As gpointer)
 	If child_pid > 0 Then g_spawn_close_pid(child_pid)
 	child_pid = 0
 	ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & status & " - " & Err2Description(status))
-	gtk_window_close(gtk_window(user_data))
+	#IfDef __USE_GTK3__
+		gtk_window_close(gtk_window(user_data))
+	#Else
+		gtk_widget_destroy(gtk_widget(user_data))
+	#EndIf
 	
 End Sub
 
@@ -3705,20 +3733,24 @@ Sub RunPr(Debugger As String = "")
 		Dim As GPid pid = 0
 		Dim As GtkWidget Ptr win, vte
 		win = gtk_window_new(gtk_window_toplevel)
-		vte = vf->vte_terminal_new()
-		g_signal_connect(vte, "button-press-event", G_CALLBACK(@vte_button_pressed), NULL)
-		gtk_container_add(gtk_container(win), vte)
-		'Dim As gint i_retcode = 0, i_exitcode = 0
-		Dim As gchar Ptr Ptr argv = g_strsplit(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), " ", -1)
-		gtk_widget_show_all(win)
-		Dim As GError Ptr error1
-		vf->vte_terminal_spawn_sync(vte_terminal(vte), VTE_PTY_DEFAULT, ToUTF8(GetFolderName(*ExeFileName)), argv, NULL, G_SPAWN_SEARCH_PATH Or G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, @pid, NULL, @error1)
-    	If pid > 0 Then 
-    		g_child_watch_add(pid, @run_exit_cb, win)
-    	Else
-			m *error1->message
-    		run_exit_cb(pid, 0, win)
-    	End If
+'		If vf->vte_terminal_new <> 0 Then
+'			vte = vf->vte_terminal_new()
+'			g_signal_connect(vte, "button-press-event", G_CALLBACK(@vte_button_pressed), NULL)
+'			gtk_container_add(gtk_container(win), vte)
+'			'Dim As gint i_retcode = 0, i_exitcode = 0
+'			Dim As gchar Ptr Ptr argv = g_strsplit(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), " ", -1)
+'			gtk_widget_show_all(win)
+'			Dim As GError Ptr error1
+'			vf->vte_terminal_spawn_sync(vte_terminal(vte), VTE_PTY_DEFAULT, ToUTF8(GetFolderName(*ExeFileName)), argv, NULL, G_SPAWN_SEARCH_PATH Or G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, @pid, NULL, @error1)
+'	    	If pid > 0 Then 
+'	    		g_child_watch_add(pid, @run_exit_cb, win)
+'	    	Else
+'				m *error1->message
+'	    		run_exit_cb(pid, 0, win)
+'	    	End If
+'	    Else
+	    	Shell """" & WGet(Terminal) & """ -e """ & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False) & """"
+	    'EndIf
     	'i_retcode = g_spawn_command_line_sync(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), NULL, NULL, @i_exitcode, NULL)
     	'?build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)
     	'Shell "sh " & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)

@@ -25,7 +25,7 @@ Using My.Sys.Forms
         #Else
         	lblImage.Graphic.Bitmap = "Logo"
         #EndIf
-        lblImage.SetBounds 12, 24, 108, 186
+        lblImage.SetBounds 12, 24, 334, 262
         lblImage.Parent = @This
         ' lblSplash
         lblSplash.SetBounds 14, 6, 294, 36

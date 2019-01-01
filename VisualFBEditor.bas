@@ -6,13 +6,12 @@
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
-	    '#Compile -s gui -x "VisualFBEditor64" -exx
+	    '#Compile -s gui -x "VisualFBEditor64_gtk3" -exx
 	#Else
 	    '#Compile -s gui -x "VisualFBEditor32" -exx
 	#EndIf
 #EndIf
-
-'#Define __USE_GTK__
+'#Define __USE_GTK2__
 
 On Error Goto AA
 #Define GetMN
@@ -51,7 +50,7 @@ Dim Shared MFFDll As WString Ptr
 
 Declare Sub PopupClick(ByRef Sender As My.Sys.Object)
 Declare Sub mClick(Sender As My.Sys.Object)
-Dim Shared As WString Ptr Compilator32, Compilator64
+Dim Shared As WString Ptr Compilator32, Compilator64, Debugger, Terminal
 
 Using My.Sys.Forms
 Using My.Sys.Drawing
@@ -2405,9 +2404,13 @@ Sub frmMain_Create(ByRef Sender As Control)
     #IfDef __FB_Win32__
 		WLet Compilator32, iniSettings.ReadString("Options", "Compilator32", "fbc.exe")
 		WLet Compilator64, iniSettings.ReadString("Options", "Compilator64", "fbc.exe")
+		WLet Debugger, iniSettings.ReadString("Options", "Debugger", "")
+		WLet Terminal, iniSettings.ReadString("Options", "Terminal", "")
     #Else
 		WLet Compilator32, iniSettings.ReadString("Options", "Compilator32", "fbc")
 		WLet Compilator64, iniSettings.ReadString("Options", "Compilator64", "fbc")
+		WLet Debugger, iniSettings.ReadString("Options", "Debugger", "gdb")
+		WLet Terminal, iniSettings.ReadString("Options", "Terminal", "gnome-terminal")
     #EndIf
     WLet HelpPath, iniSettings.ReadString("Options", "HelpPath", "")
     AutoIncrement = iniSettings.ReadBool("Options", "AutoIncrement", true)
@@ -2500,22 +2503,22 @@ frmMain.Add @pnlBottom
 frmMain.Add @splBottom
 frmMain.Add @tabCode
 
-#IfDef __USE_GTK__
-	Dim As GtkCssProvider Ptr provider
-	Dim As GdkDisplay Ptr display
-	Dim As GdkScreen Ptr gscreen
-	
-	' ---------------------------------------------------- CSS -----------------------------------------------------------
-	provider = gtk_css_provider_new ()
-	display = gdk_display_get_default ()
-	gscreen = gdk_display_get_default_screen (display)
-	gtk_style_context_add_provider_for_screen (gscreen, GTK_STYLE_PROVIDER (provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
-	Dim As gchar myCssFile = "./main.css"
-	Dim as GError Ptr error1 = 0
-	
-	gtk_css_provider_load_from_file(provider, g_file_new_for_path(myCssFile), @error1)
-	'g_object_unref (provider)
-#EndIf
+'#IfDef __USE_GTK__
+'	Dim As GtkCssProvider Ptr provider
+'	Dim As GdkDisplay Ptr display
+'	Dim As GdkScreen Ptr gscreen
+'	
+'	' ---------------------------------------------------- CSS -----------------------------------------------------------
+'	provider = gtk_css_provider_new ()
+'	display = gdk_display_get_default ()
+'	gscreen = gdk_display_get_default_screen (display)
+'	gtk_style_context_add_provider_for_screen (gscreen, GTK_STYLE_PROVIDER (provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+'	Dim As gchar myCssFile = "./main.css"
+'	Dim as GError Ptr error1 = 0
+'	
+'	gtk_css_provider_load_from_file(provider, g_file_new_for_path(myCssFile), @error1)
+'	'g_object_unref (provider)
+'#EndIf
 
 'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))    
 frmMain.CreateWnd

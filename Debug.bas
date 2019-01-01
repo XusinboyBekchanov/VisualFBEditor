@@ -5858,8 +5858,12 @@ Sub RunWithDebug(Param As Any Ptr)
     '#IfNDef __USE_GTK__
 		exename = GetExeFileName(*MainFile, *FirstLine)
     '#EndIf
-    WLet CmdL, """" & GetFileName(exename) & """ "
-    ShowMessages(Time & ": " & ML("Run") & ": " & exename + " ...")
+    If WGet(Debugger) <> "" Then
+    	WLet CmdL, """" & WGet(Debugger) & """ """ & GetFileName(exename) & """ "
+    Else
+    	WLet CmdL, """" & GetFileName(exename) & """ "
+    End If
+    ShowMessages(Time & ": " & ML("Run") & ": " & WGet(CmdL) + " ...")
     #IfNDef __USE_GTK__
     	exename = Replace(exename, "/", "\")
 		re_ini
@@ -5881,38 +5885,53 @@ Sub RunWithDebug(Param As Any Ptr)
     	Dim As GPid pid = 0
 		Dim As GtkWidget Ptr win, vte
 		win = gtk_window_new(gtk_window_toplevel)
-		vte = vf->vte_terminal_new()
-		g_signal_connect(vte, "button-press-event", G_CALLBACK(@vte_button_pressed), NULL)
-		gtk_container_add(gtk_container(win), vte)
-		'Dim As gint i_retcode = 0, i_exitcode = 0
-		Dim As gchar Ptr Ptr argv = g_strsplit(ToUTF8(build_create_shellscript(GetFolderName(exename), exename, False, True)), " ", -1)
-		gtk_widget_show_all(win)
-		Dim As GError Ptr error1
-		vf->vte_terminal_spawn_sync(vte_terminal(vte), VTE_PTY_DEFAULT, ToUTF8(GetFolderName(exename)), argv, NULL, G_SPAWN_SEARCH_PATH Or G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, @pid, NULL, @error1)
-    	If pid > 0 Then 
-    		g_child_watch_add(pid, @run_exit_cb, win)
-    	Else
-			m *error1->message
-    		run_exit_cb(pid, 0, win)
-    	End If
+'		vte = vf->vte_terminal_new()
+'		g_signal_connect(vte, "button-press-event", G_CALLBACK(@vte_button_pressed), NULL)
+'		gtk_container_add(gtk_container(win), vte)
+'		'Dim As gint i_retcode = 0, i_exitcode = 0
+'		Dim As gchar Ptr Ptr argv = g_strsplit(ToUTF8(build_create_shellscript(GetFolderName(exename), exename, False, True)), " ", -1)
+'		gtk_widget_show_all(win)
+'		Dim As GError Ptr error1
+'		vf->vte_terminal_spawn_sync(vte_terminal(vte), VTE_PTY_DEFAULT, ToUTF8(GetFolderName(exename)), argv, NULL, G_SPAWN_SEARCH_PATH Or G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, @pid, NULL, @error1)
+'    	If pid > 0 Then 
+'    		g_child_watch_add(pid, @run_exit_cb, win)
+'    	Else
+'			m *error1->message
+'    		run_exit_cb(pid, 0, win)
+'    	End If
+		Shell """" & WGet(Terminal) & """ -e """ & build_create_shellscript(GetFolderName(exename), exename, False, True) & """"
   		'Shell "gdb " & CmdL
     #Else
-    	InDebug = True
-    	pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE Or DEBUG_PROCESS Or DEBUG_ONLY_THIS_PROCESS
-		If CreateProcessW(@exename, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-			WaitForSingleObject pinfo.hProcess, 10
-			dbgprocId = pinfo.dwProcessId
-				  dbgthreadID = pinfo.dwThreadId
-				  dbghand = pinfo.hProcess
-				  dbghthread = pinfo.hThread
-			prun=TRUE
-			Wait_Debug
-		End If
-    	InDebug = False
-	    DeleteDebugCursor
-	    Dim As Unsigned Long ExitCode
-      	GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-      	Result = ExitCode
+    	If WGet(Debugger) <> "" Then
+    		Dim As Unsigned Long ExitCode
+    		exename = WGet(Debugger)
+    		pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+			If CreateProcessW(@exename, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject pinfo.hProcess, INFINITE
+				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+				CloseHandle(pinfo.hProcess)
+		    	CloseHandle(pinfo.hThread)
+		    End If
+			Result = ExitCode
+    		'Shell """" & WGet(Debugger) & """ """ & exename & """"
+	    Else
+	    	InDebug = True
+	    	pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE Or DEBUG_PROCESS Or DEBUG_ONLY_THIS_PROCESS
+			If CreateProcessW(@exename, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject pinfo.hProcess, 10
+				dbgprocId = pinfo.dwProcessId
+					  dbgthreadID = pinfo.dwThreadId
+					  dbghand = pinfo.hProcess
+					  dbghthread = pinfo.hThread
+				prun=TRUE
+				Wait_Debug
+			End If
+	    	InDebug = False
+		    DeleteDebugCursor
+		    Dim As Unsigned Long ExitCode
+	      	GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+	      	Result = ExitCode
+	    End If
 		ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
     #EndIf
     If WorkDir Then Deallocate WorkDir

@@ -123,7 +123,7 @@ Sub frmFindInFiles.Find(ByRef Path As WString)
     While f <> ""
     	If (Attr And fbDirectory) <> 0 Then
     		If f <> "." AndAlso f <> ".." Then Folders.Add Path & "/" & f
-        ElseIf EndsWith(f, ".bas") OrElse EndsWith(f, ".bi") OrElse EndsWith(f, ".rc") _
+        ElseIf EndsWith(f, ".bas") OrElse EndsWith(f, ".bi") OrElse EndsWith(f, ".rc") OrElse EndsWith(f, ".inc") _
         	OrElse EndsWith(f, ".txt") OrElse EndsWith(f, ".log") OrElse EndsWith(f, ".lng") _
         	OrElse EndsWith(f, ".vfp") OrElse EndsWith(f, ".vfs") OrElse EndsWith(f, ".xml") _
         	OrElse EndsWith(f, ".c") OrElse EndsWith(f, ".h") OrElse EndsWith(f, ".cpp") Then

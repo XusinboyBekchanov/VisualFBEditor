@@ -9,6 +9,7 @@
 #Include Once "mff\IniFile.bi"
 #Include Once "mff\CheckBox.bi"
 #Include Once "mff\ListControl.bi"
+#Include Once "mff/CommandButton.bi"
 
 Using My.Sys.Forms
 
@@ -31,13 +32,15 @@ Dim Shared As Integer oldIndex, newIndex
         Declare Static Sub TreeView1_SelChange(BYREF Sender As TreeView, BYREF Item As TreeNode)
         Declare Static Sub pnlIncludes_ActiveControlChange(ByRef Sender As Control)
         Declare Static Sub cmdMFFPath_Click(ByRef Sender As Control)
+        Declare Static Sub cmdDebugger_Click(ByRef Sender As Control)
+        Declare Static Sub cmdTerminal_Click(ByRef Sender As Control)
         Declare Constructor
         
         Dim As TreeView tvOptions
-        Dim As CommandButton CommandButton1, CommandButton2, CommandButton3, CommandButton4, CommandButton5, CommandButton6, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary
-        Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblLanguage, lblHelp, lblMFF, lblTabSize, lblMFF1, lblLibraryFiles
-        Dim As Panel pnlGeneral, pnlCodeEditor, pnlCompiler, pnlLocalization, pnlHelp, pnlIncludes
-        Dim As TextBox TextBox1, TextBox2, TextBox3, txtMFFpath, txtTabSize
+        Dim As CommandButton CommandButton1, CommandButton2, CommandButton3, CommandButton4, CommandButton5, CommandButton6, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdDebugger, cmdTerminal
+        Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblLanguage, lblHelp, lblMFF, lblTabSize, lblMFF1, lblLibraryFiles, lblDebugger, lblTerminal
+        Dim As Panel pnlGeneral, pnlCodeEditor, pnlCompiler, pnlDebugger, pnlLocalization, pnlHelp, pnlIncludes
+        Dim As TextBox TextBox1, TextBox2, TextBox3, txtMFFpath, txtTabSize, txtDebugger, txtTerminal
         Dim As ComboBoxEdit ComboBoxEdit1
         Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCompile, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces
         Dim OpenD As OpenFileDialog
@@ -111,6 +114,11 @@ Dim Shared As Integer oldIndex, newIndex
         pnlCompiler.Text = ""
         pnlCompiler.SetBounds 142, 10, 426, 296
         pnlCompiler.Parent = @This
+        ' pnlDebugger
+        pnlDebugger.Name = "pnlCompiler"
+        pnlDebugger.Text = ""
+        pnlDebugger.SetBounds 142, 10, 426, 296
+        pnlDebugger.Parent = @This
         ' pnlLocalization
         pnlLocalization.Name = "pnlLocalization"
         pnlLocalization.Text = ""
@@ -141,6 +149,26 @@ Dim Shared As Integer oldIndex, newIndex
         TextBox2.Text = "fbc.exe"
         TextBox2.SetBounds 10, 60, 386, 18
         TextBox2.Parent = @pnlCompiler
+        ' lblDebugger
+        lblDebugger.Name = "lblDebugger"
+        lblDebugger.Text = ML("Debugger")
+        lblDebugger.SetBounds 10, 0, 276, 18
+        lblDebugger.Parent = @pnlDebugger
+        ' txtDebugger
+        txtDebugger.Name = "txtDebugger"
+        txtDebugger.Text = "gdb"
+        txtDebugger.SetBounds 10, 18, 386, 18
+        txtDebugger.Parent = @pnlDebugger
+        ' lblTerminal
+        lblTerminal.Name = "lblTerminal"
+        lblTerminal.Text = ML("Terminal")
+        lblTerminal.SetBounds 10, 42, 282, 18
+        lblTerminal.Parent = @pnlDebugger
+        ' txtTerminal
+        txtTerminal.Name = "txtTerminal"
+        txtTerminal.Text = "gnome-terminal"
+        txtTerminal.SetBounds 10, 60, 386, 18
+        txtTerminal.Parent = @pnlDebugger
         ' TextBox3
         TextBox3.Name = "TextBox3"
         TextBox3.Text = ""
@@ -303,6 +331,20 @@ Dim Shared As Integer oldIndex, newIndex
         cmdRemoveLibrary.SetBounds 400, 209, 24, 23
         cmdRemoveLibrary.Caption = "-"
         cmdRemoveLibrary.Parent = @pnlIncludes
+        ' cmdDebugger
+        cmdDebugger.Name = "cmdDebugger"
+        cmdDebugger.Text = "..."
+        cmdDebugger.SetBounds 396, 17, 21, 20
+        cmdDebugger.Caption = "..."
+        cmdDebugger.OnClick = @cmdDebugger_Click
+        cmdDebugger.Parent = @pnlDebugger
+        ' cmdTerminal
+        cmdTerminal.Name = "cmdTerminal"
+        cmdTerminal.Text = "..."
+        cmdTerminal.SetBounds 396, 59, 21, 20
+        cmdTerminal.Caption = "..."
+        cmdTerminal.OnClick = @cmdTerminal_Click
+        cmdTerminal.Parent = @pnlDebugger
     End Constructor
     
     Dim Shared fOptions As frmOptions
@@ -337,11 +379,14 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
         .tvOptions.Nodes.Add ML("General"), "General"
         .tvOptions.Nodes.Add ML("Code Editor"), "CodeEditor"
         .tvOptions.Nodes.Add ML("Compiler"), "Compiler"
+        .tvOptions.Nodes.Add ML("Debugger"), "Debugger"
         .tvOptions.Nodes.Add ML("Includes"), "Includes"
         .tvOptions.Nodes.Add ML("Localization"), "Localization"
         .tvOptions.Nodes.Add ML("Help"), "Help"
-        .TextBox1.Text = iniSettings.ReadString("Options", "Compilator32", "fbc.exe")
-        .TextBox2.Text = iniSettings.ReadString("Options", "Compilator64", "fbc.exe")
+        .TextBox1.Text = iniSettings.ReadString("Options", "Compilator32", WGet(Compilator32))
+        .TextBox2.Text = iniSettings.ReadString("Options", "Compilator64", WGet(Compilator64))
+        .txtDebugger.Text = iniSettings.ReadString("Options", "Debugger", WGet(Debugger))
+        .txtTerminal.Text = iniSettings.ReadString("Options", "Terminal", WGet(Terminal))
         .TextBox3.Text = iniSettings.ReadString("Options", "HelpPath", "")
         .txtTabSize.Text = Str(iniSettings.ReadInteger("Options", "TabWidth", 4))
         .txtMFFPath.Text = iniSettings.ReadString("Options", "MFFPath", *MFFPath)
@@ -382,6 +427,8 @@ Private Sub frmOptions.CommandButton3_Click(ByRef Sender As Control)
     With *Cast(frmOptions Ptr, Sender.Parent)
         WLet Compilator32, .TextBox1.Text
         WLet Compilator64, .TextBox2.Text
+        WLet Debugger, .txtDebugger.Text
+        WLet Terminal, .txtTerminal.Text
         WLet HelpPath, .TextBox3.Text
         WLet MFFPath, .txtMFFPath.Text
         #IfDef __FB_64bit__
@@ -399,6 +446,8 @@ Private Sub frmOptions.CommandButton3_Click(ByRef Sender As Control)
         TabAsSpaces = .chkTabAsSpaces.Checked
         iniSettings.WriteString "Options", "Compilator32", *Compilator32
         iniSettings.WriteString "Options", "Compilator64", *Compilator64
+        iniSettings.WriteString "Options", "Debugger", *Debugger
+        iniSettings.WriteString "Options", "Terminal", *Terminal
         iniSettings.WriteString "Options", "HelpPath", *HelpPath
         iniSettings.WriteString "Options", "MFFPath", *MFFPath
         iniSettings.WriteString "Options", "Language", Languages.Item(.ComboBoxEdit1.ItemIndex)
@@ -481,9 +530,10 @@ Private Sub frmOptions.TreeView1_SelChange(BYREF Sender As TreeView, BYREF Item 
         .pnlGeneral.Visible = i = 0
         .pnlCodeEditor.Visible = i = 1
         .pnlCompiler.Visible = i = 2
-        .pnlIncludes.Visible = i = 3
-        .pnlLocalization.Visible = i = 4
-        .pnlHelp.Visible = i = 5
+        .pnlDebugger.Visible = i = 3
+        .pnlIncludes.Visible = i = 4
+        .pnlLocalization.Visible = i = 5
+        .pnlHelp.Visible = i = 6
     End With
 End Sub
 
@@ -495,6 +545,24 @@ Private Sub frmOptions.cmdMFFPath_Click(ByRef Sender As Control)
     With fOptions
         If .BrowsD.Execute Then
             .txtMFFPath.Text = .BrowsD.Directory
+        End If
+    End With
+End Sub
+
+Private Sub frmOptions.cmdDebugger_Click(ByRef Sender As Control)
+    With *Cast(frmOptions Ptr, Sender.GetForm)
+        .OpenD.Filter = ML("All Files") & "|*.*;"
+        If .OpenD.Execute Then
+            .txtDebugger.Text = .OpenD.FileName 
+        End If
+    End With
+End Sub
+
+Private Sub frmOptions.cmdTerminal_Click(ByRef Sender As Control)
+    With *Cast(frmOptions Ptr, Sender.GetForm)
+        .OpenD.Filter = ML("All Files") & "|*.*;"
+        If .OpenD.Execute Then
+            .txtTerminal.Text = .OpenD.FileName 
         End If
     End With
 End Sub

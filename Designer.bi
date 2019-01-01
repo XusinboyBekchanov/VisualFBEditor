@@ -403,6 +403,13 @@ end function
 	    cairo_fill(cr)
 		Return False
 	End Function
+	
+	Function Dot_ExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Dim As cairo_t Ptr cr = gdk_cairo_create(event->window)
+		Dot_Draw(widget, cr, data1)
+		cairo_destroy(cr)
+		Return False
+	End Function
 #EndIf
 
 sub Designer.CreateDots(ParentCtrl As Control Ptr)
@@ -416,7 +423,11 @@ sub Designer.CreateDots(ParentCtrl As Control Ptr)
 			'g_object_ref(FDots(i))
 			gtk_layout_put(gtk_layout(ParentCtrl->layoutwidget), FDots(i), 0, 0)
 			gtk_widget_set_size_request(FDots(i), 6, 6)
-			g_signal_connect(FDots(i), "draw", G_CALLBACK(@Dot_Draw), @This)
+			#IfDef __USE_GTK3__
+				g_signal_connect(FDots(i), "draw", G_CALLBACK(@Dot_Draw), @This)
+			#Else
+				g_signal_connect(FDots(i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
+			#EndIf
 			gtk_widget_realize(FDots(i))
 			pdisplay = gtk_widget_get_display(FDots(i))
 			Select Case i
@@ -425,7 +436,11 @@ sub Designer.CreateDots(ParentCtrl As Control Ptr)
 			case 2, 6 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNESW)
 			case 3, 7 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeWE)
 			End Select
-			gdk_window_set_cursor(gtk_widget_get_window(FDots(i)), gcurs)
+			#IfDef __USE_GTK3__
+				gdk_window_set_cursor(gtk_widget_get_window(FDots(i)), gcurs)
+			#Else
+				gdk_window_set_cursor(gtk_layout_get_bin_window(gtk_layout(FDots(i))), gcurs)
+			#EndIf
 		#Else
 			FDots(i) = CreateWindowEx(0, "DOT", "", WS_CHILD or WS_CLIPSIBLINGS or WS_CLIPCHILDREN, 0, 0, 6, 6, ParentCtrl->Handle, 0, instance, 0)
 			If IsWindow(FDots(i)) Then 
@@ -499,8 +514,13 @@ end sub
 '  	      	gdk_window_get_origin(gtk_widget_get_window(Control), @x, @y)
 '  	      	gdk_window_get_origin(gtk_widget_get_window(FDialogParent), @x1, @y1)
   	      	gtk_widget_realize(Control)
-  	      	iWidth = gtk_widget_get_allocated_width(Control)
-  	      	iHeight = gtk_widget_get_allocated_height(Control)
+  	      	#IfDef __USE_GTK3__
+	  	      	iWidth = gtk_widget_get_allocated_width(Control)
+	  	      	iHeight = gtk_widget_get_allocated_height(Control)
+	  	    #Else
+	  	    	iWidth = Control->allocation.width
+	  	      	iHeight = Control->allocation.height
+  	      	#EndIf
   	      	If Width1 <> -1 Then iWidth = Width1
   	      	If Height1 <> -1 Then iHeight = Height1
 		   	GetPosToClient Control, FDialogParent, @x, @y, Left1, Top1
@@ -525,7 +545,11 @@ end sub
 	                       GDK_POINTER_MOTION_MASK Or _
 	                       GDK_POINTER_MOTION_HINT_MASK)
 				g_signal_connect(FDots(i), "event", G_CALLBACK(@DotWndProc), @This)
-				g_signal_connect(FDots(i), "draw", G_CALLBACK(@Dot_Draw), @This)
+				#IfDef __USE_GTK3__
+					g_signal_connect(FDots(i), "draw", G_CALLBACK(@Dot_Draw), @This)
+				#Else
+					g_signal_connect(FDots(i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
+				#EndIf
 				Select Case i
 				Case 0: gtk_layout_put(gtk_layout(FDialogParent), FDots(0), P.X-6, P.Y-6)
 				Case 1: gtk_layout_put(gtk_layout(FDialogParent), FDots(1), P.X+iWidth/2-3, P.Y-6)
@@ -544,7 +568,11 @@ end sub
 				case 2, 6 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNESW)
 				case 3, 7 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeWE)
 				End Select
-				gdk_window_set_cursor(gtk_widget_get_window(FDots(i)), gcurs)
+				#IfDef __USE_GTK3__
+					gdk_window_set_cursor(gtk_widget_get_window(FDots(i)), gcurs)
+				#Else
+					gdk_window_set_cursor(gtk_layout_get_bin_window(gtk_layout(FDots(i))), gcurs)
+				#EndIf
 				g_object_set_data(G_OBJECT(FDots(i)), "@@@Control", Control)
 				g_object_set_data(G_OBJECT(FDots(i)), "@@@Control2", SelectedControl)
 				'SetParent(FDots(i), GetParent(Control))
@@ -1302,8 +1330,13 @@ end sub
 sub Designer.DrawGrid()
     if FShowGrid = False then Exit Sub
     #IfDef __USE_GTK__
-    	Dim As Integer iWidth = gtk_widget_get_allocated_width(layoutwidget)
-    	Dim As Integer iHeight = gtk_widget_get_allocated_height(layoutwidget)
+    	#IfDef __USE_GTK3__
+	    	Dim As Integer iWidth = gtk_widget_get_allocated_width(layoutwidget)
+	    	Dim As Integer iHeight = gtk_widget_get_allocated_height(layoutwidget)
+    	#Else
+    		Dim As Integer iWidth = layoutwidget->allocation.width
+	    	Dim As Integer iHeight = layoutwidget->allocation.height
+    	#EndIf
     	cairo_set_source_rgb(cr, 0, 0, 0)
     	For i As Integer = 1 To iWidth Step 6
     		For j As Integer = 1 To iHeight Step 6
@@ -1347,7 +1380,7 @@ end sub
 		if Des then
 			with *Des
 				Select Case event->Type
-				Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
+				Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 					Dim As Integer x, y
 					GetPosToClient widget, .layoutwidget, @x, @y
 					.DblClick(event->Motion.x + x, event->Motion.y + y, event->Motion.state)
@@ -1473,7 +1506,7 @@ end sub
 					Case WM_GETDLGCODE: Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
 				#EndIf
 				#IfDef __USE_GTK__
-					Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
+					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 						.DblClick(event->Motion.x, event->Motion.y, event->Motion.state)
 						Return True
 				#Else
@@ -2002,6 +2035,13 @@ End Sub
 		Return False
 	End Function
 	
+	Function Dialog_ExposeEvent(widget As GtkWidget Ptr, event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+		Dim As cairo_t Ptr cr = gdk_cairo_create(event->window)
+		Dialog_Draw(widget, cr, data1)
+		cairo_destroy(cr)
+		Return False
+	End Function
+	
 	property Designer.Dialog(value as GtkWidget Ptr)
 		if value <> FDialog then
 			UnHook
@@ -2021,8 +2061,11 @@ End Sub
 	                       GDK_BUTTON_RELEASE_MASK Or _
 	                       GDK_POINTER_MOTION_MASK Or _
 	                       GDK_POINTER_MOTION_HINT_MASK)
-			
-				g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Dialog_Draw), @This)
+				#IfDef __USE_GTK3__
+					g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Dialog_Draw), @This)
+				#Else
+					g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@Dialog_ExposeEvent), @This)
+				#EndIf
 '				Dim As GdkDisplay Ptr display = gdk_display_get_default ()
 '				Dim As GdkDeviceManager Ptr device_manager = gdk_display_get_device_manager (display)
 '				Dim As GdkDevice Ptr device = gdk_device_manager_get_client_pointer (device_manager)
