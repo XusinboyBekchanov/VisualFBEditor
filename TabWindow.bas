@@ -3424,303 +3424,303 @@ End Function
 	End Function
 #endif
 
-#IfDef __USE_GTK__
-Type VteInfo
-	Dim As gboolean load_vte			'/* this is the preference, NOT the current instance VTE state */
-	Dim As gboolean load_vte_cmdline	'/* this is the command line option */
-	Dim As gboolean have_vte			'/* use this field to check if the current instance has VTE */
-	Dim As gchar Ptr lib_vte
-	Dim As gchar Ptr dir
-End Type
-Dim Shared As VteInfo vte_info
-
-Type VteConfig
-	Dim As GtkWidget Ptr vte
-	Dim As GtkWidget Ptr menu
-	Dim As GtkWidget Ptr im_submenu
-	Dim As gboolean scroll_on_key
-	Dim As gboolean scroll_on_out
-	Dim As gboolean ignore_menu_bar_accel
-	Dim As gboolean follow_path
-	Dim As gboolean run_in_vte
-	Dim As gboolean skip_run_script
-	Dim As gboolean enable_bash_keys
-	Dim As gboolean cursor_blinks
-	Dim As gboolean send_selection_unsafe
-	Dim As gint scrollback_lines
-	Dim As gchar Ptr shell
-	Dim As gchar Ptr font
-	Dim As gchar Ptr send_cmd_prefix
-	Dim As GdkColor colour_fore
-	Dim As GdkColor colour_back
-End Type
-Dim Shared As VteConfig Ptr vc
-
-Enum VteTerminalCursorBlinkMode
-	VTE_CURSOR_BLINK_SYSTEM,
-	VTE_CURSOR_BLINK_ON,
-	VTE_CURSOR_BLINK_OFF
-End Enum
-
-Enum VtePtyFlags
-	/' we don't care for the other possible values '/
-	VTE_PTY_DEFAULT = 0
-End Enum
-
-/' Incomplete VteTerminal struct from vte/vte.h. '/
-Type VteTerminal As _VteTerminal
-Type _VteTerminal
-	Dim As GtkWidget Ptr widget
-	Dim As GtkAdjustment Ptr adjustment
-End Type
-
-#define VTE_TERMINAL(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), VTE_TYPE_TERMINAL, VteTerminal))
-#define VTE_TYPE_TERMINAL (vf->vte_terminal_get_type())
-
-/' Holds function pointers we need to access the VTE API. '/
-Type VteFunctions
-	vte_get_major_version As Function() As guint
-	vte_get_minor_version As Function() As guint
-	vte_terminal_new As Function() As GtkWidget Ptr
-	vte_terminal_fork_command As Function (terminal As VteTerminal Ptr, command1 As const gchar Ptr, argv As gchar Ptr Ptr, _
-										envv As gchar Ptr Ptr, directory As const gchar Ptr, lastlog As gboolean, _
-										utmp As gboolean, wtmp As gboolean) As pid_t
-	vte_terminal_spawn_sync As Function(terminal As VteTerminal Ptr, pty_flags As VtePtyFlags, _
-										 working_directory As const gchar Ptr, argv As gchar Ptr Ptr, envv As gchar Ptr Ptr, _
-										 spawn_flags As GSpawnFlags, child_setup As GSpawnChildSetupFunc, _
-										 child_setup_data As gpointer, child_pid As GPid Ptr, _
-										 cancellable As GCancellable Ptr, error As GError Ptr Ptr) As gboolean
-'	void (*vte_terminal_set_size) (VteTerminal *terminal, glong columns, glong rows);
-'	void (*vte_terminal_set_word_chars) (VteTerminal *terminal, const char *spec);
-'	void (*vte_terminal_set_word_char_exceptions) (VteTerminal *terminal, const char *exceptions);
-'	void (*vte_terminal_set_mouse_autohide) (VteTerminal *terminal, gboolean setting);
-'	void (*vte_terminal_reset) (VteTerminal *terminal, gboolean full, gboolean clear_history);
-	vte_terminal_get_type As Function() As GType
-'	void (*vte_terminal_set_scroll_on_output) (VteTerminal *terminal, gboolean scroll);
-'	void (*vte_terminal_set_scroll_on_keystroke) (VteTerminal *terminal, gboolean scroll);
-'	void (*vte_terminal_set_font) (VteTerminal *terminal, const PangoFontDescription *font_desc);
-'	void (*vte_terminal_set_scrollback_lines) (VteTerminal *terminal, glong lines);
-	vte_terminal_get_has_selection As Function(terminal As VteTerminal Ptr) As gboolean
-	vte_terminal_copy_clipboard As Sub(terminal As VteTerminal Ptr)
-	vte_terminal_paste_clipboard As Sub(terminal As VteTerminal Ptr)
-'	void (*vte_terminal_set_color_foreground) (VteTerminal *terminal, const GdkColor *foreground);
-'	void (*vte_terminal_set_color_bold) (VteTerminal *terminal, const GdkColor *foreground);
-'	void (*vte_terminal_set_color_background) (VteTerminal *terminal, const GdkColor *background);
-'	void (*vte_terminal_feed_child) (VteTerminal *terminal, const char *data, glong length);
-'	void (*vte_terminal_im_append_menuitems) (VteTerminal *terminal, GtkMenuShell *menushell);
-'	void (*vte_terminal_set_cursor_blink_mode) (VteTerminal *terminal,
-'												VteTerminalCursorBlinkMode mode);
-'	void (*vte_terminal_set_cursor_blinks) (VteTerminal *terminal, gboolean blink);
-'	void (*vte_terminal_select_all) (VteTerminal *terminal);
-'	void (*vte_terminal_set_audible_bell) (VteTerminal *terminal, gboolean is_audible);
-'	GtkAdjustment* (*vte_terminal_get_adjustment) (VteTerminal *terminal);
-'#if GTK_CHECK_VERSION(3, 0, 0)
-'	/* hack for the VTE 2.91 API using GdkRGBA: we wrap the API to keep using GdkColor on our side */
-'	void (*vte_terminal_set_color_foreground_rgba) (VteTerminal *terminal, const GdkRGBA *foreground);
-'	void (*vte_terminal_set_color_bold_rgba) (VteTerminal *terminal, const GdkRGBA *foreground);
-'	void (*vte_terminal_set_color_background_rgba) (VteTerminal *terminal, const GdkRGBA *background);
-'#endif
-End Type
-
-'#Inclib "vte-2.91"
-
-'Declare Function vte_terminal_new() As GtkWidget Ptr
-	'pid_t (*vte_terminal_fork_command) (VteTerminal *terminal, const char *command, char **argv,
-	'									char **envv, const char *directory, gboolean lastlog,
-	'									gboolean utmp, gboolean wtmp);
-	'gboolean (*vte_terminal_spawn_sync) (VteTerminal *terminal, VtePtyFlags pty_flags,
-	'									 const char *working_directory, char **argv, char **envv,
-'										 GSpawnFlags spawn_flags, GSpawnChildSetupFunc child_setup,
-	'									 gpointer child_setup_data, GPid *child_pid,
-	'									 GCancellable *cancellable, GError **error);
-	'									 
-	
-Dim Shared As GModule Ptr module = NULL
-Dim Shared As VteFunctions Ptr vf
-Dim Shared As GtkWidget Ptr vte
-Dim Shared As GtkWidget Ptr win
-
-Sub create_vte()
-	'Dim As GtkWidget Ptr vte, scrollbar, hbox
-	vte = vf->vte_terminal_new()
-	win = gtk_window_new(GTK_WINDOW_TOPLEVEL)
-	gtk_container_add(gtk_container(win), vte)
-		
-	'vte = vf->vte_terminal_new()
-	'vc->vte = vte
-	'scrollbar = gtk_vscrollbar_new(vf->vte_terminal_get_adjustment(VTE_TERMINAL(vte)));
-	'gtk_widget_set_can_focus(scrollbar, FALSE);
-
-	'/* create menu now so copy/paste shortcuts work */
-	'vc->menu = vte_create_popup_menu();
-	'g_object_ref_sink(vc->menu);
-
-	'hbox = gtk_hbox_new(FALSE, 0);
-	'gtk_box_pack_start(GTK_BOX(hbox), vte, TRUE, TRUE, 0);
-	'gtk_box_pack_start(GTK_BOX(hbox), scrollbar, FALSE, FALSE, 0);
-
-	'/* set the default widget size first to prevent VTE expanding too much,
-	' * sometimes causing the hscrollbar to be too big or out of view. */
-	'gtk_widget_set_size_request(GTK_WIDGET(vte), 10, 10);
-	'vf->vte_terminal_set_size(VTE_TERMINAL(vte), 30, 1);
-
-	'vf->vte_terminal_set_mouse_autohide(VTE_TERMINAL(vte), TRUE);
-	'if (vf->vte_terminal_set_word_chars)
-	'	vf->vte_terminal_set_word_chars(VTE_TERMINAL(vte), VTE_WORDCHARS);
-	'else if (vf->vte_terminal_set_word_char_exceptions)
-	'	vf->vte_terminal_set_word_char_exceptions(VTE_TERMINAL(vte), VTE_ADDITIONAL_WORDCHARS);
-
-	'gtk_drag_dest_set(vte, GTK_DEST_DEFAULT_ALL,
-	'	dnd_targets, G_N_ELEMENTS(dnd_targets), GDK_ACTION_COPY);
-
-	'g_signal_connect(vte, "child-exited", G_CALLBACK(vte_start), NULL);
-	'g_signal_connect(vte, "button-press-event", G_CALLBACK(vte_button_pressed), NULL);
-	'g_signal_connect(vte, "event", G_CALLBACK(vte_keypress_cb), NULL);
-	'g_signal_connect(vte, "key-release-event", G_CALLBACK(vte_keyrelease_cb), NULL);
-	'g_signal_connect(vte, "commit", G_CALLBACK(vte_commit_cb), NULL);
-	'g_signal_connect(vte, "motion-notify-event", G_CALLBACK(on_motion_event), NULL);
-	'g_signal_connect(vte, "drag-data-received", G_CALLBACK(vte_drag_data_received), NULL);
-
-	'/* start shell on idle otherwise the initial prompt can get corrupted */
-	'g_idle_add(vte_start_idle, NULL);
-
-	'gtk_widget_show_all(hbox);
-	'terminal_label = gtk_label_new(_("Terminal"));
-	'gtk_notebook_insert_page(GTK_NOTEBOOK(msgwindow.notebook), hbox, terminal_label, MSG_VTE);
-
-	'g_signal_connect_after(vte, "realize", G_CALLBACK(on_vte_realize), NULL);
-End Sub
-
-
-Sub vte_close()
-	g_free(vf)
-	/' free the vte widget before unloading vte module
-	 * this prevents a segfault on X close window if the message window is hidden '/
-	gtk_widget_destroy(vc->vte)
-	gtk_widget_destroy(vc->menu)
-	g_object_unref(vc->menu)
-	g_free(vc->shell)
-	g_free(vc->font)
-	g_free(vc->send_cmd_prefix)
-	g_free(vc)
-	'g_free(gtk_menu_key_accel)
-	/' Don't unload the module explicitly because it causes a segfault on FreeBSD. The segfault
-	 * happens when the app really exits, not directly on g_module_close(). This still needs to
-	 * be investigated. '/
-	/'g_module_close(module); '/
-End Sub
-
-Function vte_register_symbols(mod1 As GModule Ptr) As gboolean
-	g_module_symbol(mod1, "vte_get_major_version", @vf->vte_get_major_version)
-	g_module_symbol(mod1, "vte_get_minor_version", @vf->vte_get_minor_version)
-	If Not g_module_symbol(mod1, "vte_terminal_new", @vf->vte_terminal_new) Then
-		'MsgBox "Not loaded vte_terminal_new"
-	End If
-	g_module_symbol(mod1, "vte_terminal_spawn_sync", @vf->vte_terminal_spawn_sync)
-	g_module_symbol(mod1, "vte_terminal_get_type", @vf->vte_terminal_get_type)
-	g_module_symbol(mod1, "vte_terminal_get_has_selection", @vf->vte_terminal_get_has_selection)
-	g_module_symbol(mod1, "vte_terminal_copy_clipboard", @vf->vte_terminal_copy_clipboard)
-	g_module_symbol(mod1, "vte_terminal_paste_clipboard", @vf->vte_terminal_paste_clipboard)
-	return TRUE
-End Function
-
-Sub vte_init()
-	'module = g_module_open(vte_info.lib_vte, G_MODULE_BIND_LAZY)
-	'if (module = NULL) Then
-		Dim As Integer i = 0
-		Dim As Const String sonames(15) = {"libvte-2.91.so", "libvte-2.91.so.0", "libvte2_90.so", "libvte2_90.so.9", "libvte.so", "libvte.so.9", "libvte.so.8", "libvte.so.4", ""}
-		Do While sonames(i) <> "" AndAlso module = NULL
-			module = g_module_open(toutf8(sonames(i)), G_MODULE_BIND_LAZY)
-			i = i + 1
-		Loop
-	'End If
-
-	if (module = NULL) Then
-		vte_info.have_vte = FALSE
-		MsgBox "Could not load libvte.so, embedded terminal support disabled"
-		return
-	else
-		vf = g_new0(VteFunctions, 1)
-		if (vte_register_symbols(module)) Then
-			vte_info.have_vte = TRUE
-		else
-			vte_info.have_vte = FALSE
-			g_free(vf)
-			/' FIXME: is closing the module safe? see vte_close() and test on FreeBSD */
-			/*g_module_close(module);'/
-			module = NULL
-			return
-		End If
-	End If
-	
-	create_vte()
-
-End Sub
-
-vte_init
-
-Sub run_exit_cb(child_pid As GPid, status As gint, user_data As gpointer)
-
-	If child_pid > 0 Then g_spawn_close_pid(child_pid)
-	child_pid = 0
-	ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & status & " - " & Err2Description(status))
-	#IfDef __USE_GTK3__
-		gtk_window_close(gtk_window(user_data))
-	#Else
-		gtk_widget_destroy(gtk_widget(user_data))
-	#EndIf
-	
-End Sub
-
-Enum
-	POPUP_COPY
-	POPUP_PASTE
-End Enum
-
-Sub vte_popup_menu_clicked(menuitem As GtkMenuItem Ptr, user_data As gpointer)
-	Select Case (GPOINTER_TO_INT(user_data))
-		case POPUP_COPY:
-			if (vf->vte_terminal_get_has_selection(VTE_TERMINAL(vte))) Then
-				vf->vte_terminal_copy_clipboard(VTE_TERMINAL(vte))
-			End If
-		case POPUP_PASTE:
-			vf->vte_terminal_paste_clipboard(VTE_TERMINAL(vte))
-	End Select
-End Sub
-
-Function vte_create_popup_menu() As GtkWidget Ptr
-	Dim As GtkWidget Ptr menu, item
-	
-	menu = gtk_menu_new()
-
-	item = gtk_menu_item_new_with_label(ToUTF8(ML("Copy")))
-	gtk_widget_show(item)
-	gtk_container_add(GTK_CONTAINER(menu), item)
-	g_signal_connect(item, "activate", G_CALLBACK(@vte_popup_menu_clicked), GINT_TO_POINTER(POPUP_COPY))
-
-	item = gtk_menu_item_new_with_label(ToUTF8(ML("Paste")))
-	gtk_widget_show(item)
-	gtk_container_add(GTK_CONTAINER(menu), item)
-	g_signal_connect(item, "activate", G_CALLBACK(@vte_popup_menu_clicked), GINT_TO_POINTER(POPUP_PASTE))
-
-	return menu
-End Function
-
-Dim Shared As GtkWidget Ptr vte_menu
-vte_menu = vte_create_popup_menu()
-
-Function vte_button_pressed(widget As GtkWidget Ptr, event1 As GdkEventButton Ptr, user_data As gpointer) As gboolean
-	if (event1->button = 3) Then
-		gtk_widget_grab_focus(widget)
-		vte = widget
-		gtk_menu_popup(gtk_menu(vte_menu), NULL, NULL, NULL, NULL, event1->button, event1->time)
-		return TRUE
-	elseif (event1->button = 2) Then
-		gtk_widget_grab_focus(widget)
-	End If
-	return FALSE
-End Function
-#EndIf
+'#IfDef __USE_GTK__
+'Type VteInfo
+'	Dim As gboolean load_vte			'/* this is the preference, NOT the current instance VTE state */
+'	Dim As gboolean load_vte_cmdline	'/* this is the command line option */
+'	Dim As gboolean have_vte			'/* use this field to check if the current instance has VTE */
+'	Dim As gchar Ptr lib_vte
+'	Dim As gchar Ptr dir
+'End Type
+'Dim Shared As VteInfo vte_info
+'
+'Type VteConfig
+'	Dim As GtkWidget Ptr vte
+'	Dim As GtkWidget Ptr menu
+'	Dim As GtkWidget Ptr im_submenu
+'	Dim As gboolean scroll_on_key
+'	Dim As gboolean scroll_on_out
+'	Dim As gboolean ignore_menu_bar_accel
+'	Dim As gboolean follow_path
+'	Dim As gboolean run_in_vte
+'	Dim As gboolean skip_run_script
+'	Dim As gboolean enable_bash_keys
+'	Dim As gboolean cursor_blinks
+'	Dim As gboolean send_selection_unsafe
+'	Dim As gint scrollback_lines
+'	Dim As gchar Ptr shell
+'	Dim As gchar Ptr font
+'	Dim As gchar Ptr send_cmd_prefix
+'	Dim As GdkColor colour_fore
+'	Dim As GdkColor colour_back
+'End Type
+'Dim Shared As VteConfig Ptr vc
+'
+'Enum VteTerminalCursorBlinkMode
+'	VTE_CURSOR_BLINK_SYSTEM,
+'	VTE_CURSOR_BLINK_ON,
+'	VTE_CURSOR_BLINK_OFF
+'End Enum
+'
+'Enum VtePtyFlags
+'	/' we don't care for the other possible values '/
+'	VTE_PTY_DEFAULT = 0
+'End Enum
+'
+'/' Incomplete VteTerminal struct from vte/vte.h. '/
+'Type VteTerminal As _VteTerminal
+'Type _VteTerminal
+'	Dim As GtkWidget Ptr widget
+'	Dim As GtkAdjustment Ptr adjustment
+'End Type
+'
+'#define VTE_TERMINAL(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), VTE_TYPE_TERMINAL, VteTerminal))
+'#define VTE_TYPE_TERMINAL (vf->vte_terminal_get_type())
+'
+'/' Holds function pointers we need to access the VTE API. '/
+'Type VteFunctions
+'	vte_get_major_version As Function() As guint
+'	vte_get_minor_version As Function() As guint
+'	vte_terminal_new As Function() As GtkWidget Ptr
+'	vte_terminal_fork_command As Function (terminal As VteTerminal Ptr, command1 As const gchar Ptr, argv As gchar Ptr Ptr, _
+'										envv As gchar Ptr Ptr, directory As const gchar Ptr, lastlog As gboolean, _
+'										utmp As gboolean, wtmp As gboolean) As pid_t
+'	vte_terminal_spawn_sync As Function(terminal As VteTerminal Ptr, pty_flags As VtePtyFlags, _
+'										 working_directory As const gchar Ptr, argv As gchar Ptr Ptr, envv As gchar Ptr Ptr, _
+'										 spawn_flags As GSpawnFlags, child_setup As GSpawnChildSetupFunc, _
+'										 child_setup_data As gpointer, child_pid As GPid Ptr, _
+'										 cancellable As GCancellable Ptr, error As GError Ptr Ptr) As gboolean
+''	void (*vte_terminal_set_size) (VteTerminal *terminal, glong columns, glong rows);
+''	void (*vte_terminal_set_word_chars) (VteTerminal *terminal, const char *spec);
+''	void (*vte_terminal_set_word_char_exceptions) (VteTerminal *terminal, const char *exceptions);
+''	void (*vte_terminal_set_mouse_autohide) (VteTerminal *terminal, gboolean setting);
+''	void (*vte_terminal_reset) (VteTerminal *terminal, gboolean full, gboolean clear_history);
+'	vte_terminal_get_type As Function() As GType
+''	void (*vte_terminal_set_scroll_on_output) (VteTerminal *terminal, gboolean scroll);
+''	void (*vte_terminal_set_scroll_on_keystroke) (VteTerminal *terminal, gboolean scroll);
+''	void (*vte_terminal_set_font) (VteTerminal *terminal, const PangoFontDescription *font_desc);
+''	void (*vte_terminal_set_scrollback_lines) (VteTerminal *terminal, glong lines);
+'	vte_terminal_get_has_selection As Function(terminal As VteTerminal Ptr) As gboolean
+'	vte_terminal_copy_clipboard As Sub(terminal As VteTerminal Ptr)
+'	vte_terminal_paste_clipboard As Sub(terminal As VteTerminal Ptr)
+''	void (*vte_terminal_set_color_foreground) (VteTerminal *terminal, const GdkColor *foreground);
+''	void (*vte_terminal_set_color_bold) (VteTerminal *terminal, const GdkColor *foreground);
+''	void (*vte_terminal_set_color_background) (VteTerminal *terminal, const GdkColor *background);
+''	void (*vte_terminal_feed_child) (VteTerminal *terminal, const char *data, glong length);
+''	void (*vte_terminal_im_append_menuitems) (VteTerminal *terminal, GtkMenuShell *menushell);
+''	void (*vte_terminal_set_cursor_blink_mode) (VteTerminal *terminal,
+''												VteTerminalCursorBlinkMode mode);
+''	void (*vte_terminal_set_cursor_blinks) (VteTerminal *terminal, gboolean blink);
+''	void (*vte_terminal_select_all) (VteTerminal *terminal);
+''	void (*vte_terminal_set_audible_bell) (VteTerminal *terminal, gboolean is_audible);
+''	GtkAdjustment* (*vte_terminal_get_adjustment) (VteTerminal *terminal);
+''#if GTK_CHECK_VERSION(3, 0, 0)
+''	/* hack for the VTE 2.91 API using GdkRGBA: we wrap the API to keep using GdkColor on our side */
+''	void (*vte_terminal_set_color_foreground_rgba) (VteTerminal *terminal, const GdkRGBA *foreground);
+''	void (*vte_terminal_set_color_bold_rgba) (VteTerminal *terminal, const GdkRGBA *foreground);
+''	void (*vte_terminal_set_color_background_rgba) (VteTerminal *terminal, const GdkRGBA *background);
+''#endif
+'End Type
+'
+''#Inclib "vte-2.91"
+'
+''Declare Function vte_terminal_new() As GtkWidget Ptr
+'	'pid_t (*vte_terminal_fork_command) (VteTerminal *terminal, const char *command, char **argv,
+'	'									char **envv, const char *directory, gboolean lastlog,
+'	'									gboolean utmp, gboolean wtmp);
+'	'gboolean (*vte_terminal_spawn_sync) (VteTerminal *terminal, VtePtyFlags pty_flags,
+'	'									 const char *working_directory, char **argv, char **envv,
+''										 GSpawnFlags spawn_flags, GSpawnChildSetupFunc child_setup,
+'	'									 gpointer child_setup_data, GPid *child_pid,
+'	'									 GCancellable *cancellable, GError **error);
+'	'									 
+'	
+'Dim Shared As GModule Ptr module = NULL
+'Dim Shared As VteFunctions Ptr vf
+'Dim Shared As GtkWidget Ptr vte
+'Dim Shared As GtkWidget Ptr win
+'
+'Sub create_vte()
+'	'Dim As GtkWidget Ptr vte, scrollbar, hbox
+'	vte = vf->vte_terminal_new()
+'	win = gtk_window_new(GTK_WINDOW_TOPLEVEL)
+'	gtk_container_add(gtk_container(win), vte)
+'		
+'	'vte = vf->vte_terminal_new()
+'	'vc->vte = vte
+'	'scrollbar = gtk_vscrollbar_new(vf->vte_terminal_get_adjustment(VTE_TERMINAL(vte)));
+'	'gtk_widget_set_can_focus(scrollbar, FALSE);
+'
+'	'/* create menu now so copy/paste shortcuts work */
+'	'vc->menu = vte_create_popup_menu();
+'	'g_object_ref_sink(vc->menu);
+'
+'	'hbox = gtk_hbox_new(FALSE, 0);
+'	'gtk_box_pack_start(GTK_BOX(hbox), vte, TRUE, TRUE, 0);
+'	'gtk_box_pack_start(GTK_BOX(hbox), scrollbar, FALSE, FALSE, 0);
+'
+'	'/* set the default widget size first to prevent VTE expanding too much,
+'	' * sometimes causing the hscrollbar to be too big or out of view. */
+'	'gtk_widget_set_size_request(GTK_WIDGET(vte), 10, 10);
+'	'vf->vte_terminal_set_size(VTE_TERMINAL(vte), 30, 1);
+'
+'	'vf->vte_terminal_set_mouse_autohide(VTE_TERMINAL(vte), TRUE);
+'	'if (vf->vte_terminal_set_word_chars)
+'	'	vf->vte_terminal_set_word_chars(VTE_TERMINAL(vte), VTE_WORDCHARS);
+'	'else if (vf->vte_terminal_set_word_char_exceptions)
+'	'	vf->vte_terminal_set_word_char_exceptions(VTE_TERMINAL(vte), VTE_ADDITIONAL_WORDCHARS);
+'
+'	'gtk_drag_dest_set(vte, GTK_DEST_DEFAULT_ALL,
+'	'	dnd_targets, G_N_ELEMENTS(dnd_targets), GDK_ACTION_COPY);
+'
+'	'g_signal_connect(vte, "child-exited", G_CALLBACK(vte_start), NULL);
+'	'g_signal_connect(vte, "button-press-event", G_CALLBACK(vte_button_pressed), NULL);
+'	'g_signal_connect(vte, "event", G_CALLBACK(vte_keypress_cb), NULL);
+'	'g_signal_connect(vte, "key-release-event", G_CALLBACK(vte_keyrelease_cb), NULL);
+'	'g_signal_connect(vte, "commit", G_CALLBACK(vte_commit_cb), NULL);
+'	'g_signal_connect(vte, "motion-notify-event", G_CALLBACK(on_motion_event), NULL);
+'	'g_signal_connect(vte, "drag-data-received", G_CALLBACK(vte_drag_data_received), NULL);
+'
+'	'/* start shell on idle otherwise the initial prompt can get corrupted */
+'	'g_idle_add(vte_start_idle, NULL);
+'
+'	'gtk_widget_show_all(hbox);
+'	'terminal_label = gtk_label_new(_("Terminal"));
+'	'gtk_notebook_insert_page(GTK_NOTEBOOK(msgwindow.notebook), hbox, terminal_label, MSG_VTE);
+'
+'	'g_signal_connect_after(vte, "realize", G_CALLBACK(on_vte_realize), NULL);
+'End Sub
+'
+'
+'Sub vte_close()
+'	g_free(vf)
+'	/' free the vte widget before unloading vte module
+'	 * this prevents a segfault on X close window if the message window is hidden '/
+'	gtk_widget_destroy(vc->vte)
+'	gtk_widget_destroy(vc->menu)
+'	g_object_unref(vc->menu)
+'	g_free(vc->shell)
+'	g_free(vc->font)
+'	g_free(vc->send_cmd_prefix)
+'	g_free(vc)
+'	'g_free(gtk_menu_key_accel)
+'	/' Don't unload the module explicitly because it causes a segfault on FreeBSD. The segfault
+'	 * happens when the app really exits, not directly on g_module_close(). This still needs to
+'	 * be investigated. '/
+'	/'g_module_close(module); '/
+'End Sub
+'
+'Function vte_register_symbols(mod1 As GModule Ptr) As gboolean
+'	g_module_symbol(mod1, "vte_get_major_version", @vf->vte_get_major_version)
+'	g_module_symbol(mod1, "vte_get_minor_version", @vf->vte_get_minor_version)
+'	If Not g_module_symbol(mod1, "vte_terminal_new", @vf->vte_terminal_new) Then
+'		'MsgBox "Not loaded vte_terminal_new"
+'	End If
+'	g_module_symbol(mod1, "vte_terminal_spawn_sync", @vf->vte_terminal_spawn_sync)
+'	g_module_symbol(mod1, "vte_terminal_get_type", @vf->vte_terminal_get_type)
+'	g_module_symbol(mod1, "vte_terminal_get_has_selection", @vf->vte_terminal_get_has_selection)
+'	g_module_symbol(mod1, "vte_terminal_copy_clipboard", @vf->vte_terminal_copy_clipboard)
+'	g_module_symbol(mod1, "vte_terminal_paste_clipboard", @vf->vte_terminal_paste_clipboard)
+'	return TRUE
+'End Function
+'
+'Sub vte_init()
+'	'module = g_module_open(vte_info.lib_vte, G_MODULE_BIND_LAZY)
+'	'if (module = NULL) Then
+'		Dim As Integer i = 0
+'		Dim As Const String sonames(15) = {"libvte-2.91.so", "libvte-2.91.so.0", "libvte2_90.so", "libvte2_90.so.9", "libvte.so", "libvte.so.9", "libvte.so.8", "libvte.so.4", ""}
+'		Do While sonames(i) <> "" AndAlso module = NULL
+'			module = g_module_open(toutf8(sonames(i)), G_MODULE_BIND_LAZY)
+'			i = i + 1
+'		Loop
+'	'End If
+'
+'	if (module = NULL) Then
+'		vte_info.have_vte = FALSE
+'		MsgBox "Could not load libvte.so, embedded terminal support disabled"
+'		return
+'	else
+'		vf = g_new0(VteFunctions, 1)
+'		if (vte_register_symbols(module)) Then
+'			vte_info.have_vte = TRUE
+'		else
+'			vte_info.have_vte = FALSE
+'			g_free(vf)
+'			/' FIXME: is closing the module safe? see vte_close() and test on FreeBSD */
+'			/*g_module_close(module);'/
+'			module = NULL
+'			return
+'		End If
+'	End If
+'	
+'	create_vte()
+'
+'End Sub
+'
+'vte_init
+'
+'Sub run_exit_cb(child_pid As GPid, status As gint, user_data As gpointer)
+'
+'	If child_pid > 0 Then g_spawn_close_pid(child_pid)
+'	child_pid = 0
+'	ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & status & " - " & Err2Description(status))
+'	#IfDef __USE_GTK3__
+'		gtk_window_close(gtk_window(user_data))
+'	#Else
+'		gtk_widget_destroy(gtk_widget(user_data))
+'	#EndIf
+'	
+'End Sub
+'
+'Enum
+'	POPUP_COPY
+'	POPUP_PASTE
+'End Enum
+'
+'Sub vte_popup_menu_clicked(menuitem As GtkMenuItem Ptr, user_data As gpointer)
+'	Select Case (GPOINTER_TO_INT(user_data))
+'		case POPUP_COPY:
+'			if (vf->vte_terminal_get_has_selection(VTE_TERMINAL(vte))) Then
+'				vf->vte_terminal_copy_clipboard(VTE_TERMINAL(vte))
+'			End If
+'		case POPUP_PASTE:
+'			vf->vte_terminal_paste_clipboard(VTE_TERMINAL(vte))
+'	End Select
+'End Sub
+'
+'Function vte_create_popup_menu() As GtkWidget Ptr
+'	Dim As GtkWidget Ptr menu, item
+'	
+'	menu = gtk_menu_new()
+'
+'	item = gtk_menu_item_new_with_label(ToUTF8(ML("Copy")))
+'	gtk_widget_show(item)
+'	gtk_container_add(GTK_CONTAINER(menu), item)
+'	g_signal_connect(item, "activate", G_CALLBACK(@vte_popup_menu_clicked), GINT_TO_POINTER(POPUP_COPY))
+'
+'	item = gtk_menu_item_new_with_label(ToUTF8(ML("Paste")))
+'	gtk_widget_show(item)
+'	gtk_container_add(GTK_CONTAINER(menu), item)
+'	g_signal_connect(item, "activate", G_CALLBACK(@vte_popup_menu_clicked), GINT_TO_POINTER(POPUP_PASTE))
+'
+'	return menu
+'End Function
+'
+'Dim Shared As GtkWidget Ptr vte_menu
+'vte_menu = vte_create_popup_menu()
+'
+'Function vte_button_pressed(widget As GtkWidget Ptr, event1 As GdkEventButton Ptr, user_data As gpointer) As gboolean
+'	if (event1->button = 3) Then
+'		gtk_widget_grab_focus(widget)
+'		vte = widget
+'		gtk_menu_popup(gtk_menu(vte_menu), NULL, NULL, NULL, NULL, event1->button, event1->time)
+'		return TRUE
+'	elseif (event1->button = 2) Then
+'		gtk_widget_grab_focus(widget)
+'	End If
+'	return FALSE
+'End Function
+'#EndIf
 
 Sub RunPr(Debugger As String = "")
     On Error Goto ErrorHandler
@@ -3731,8 +3731,8 @@ Sub RunPr(Debugger As String = "")
     ShowMessages(Time & ": " & ML("Run") & ": " & *ExeFileName + " ...")
     #IfDef __USE_GTK__
 		Dim As GPid pid = 0
-		Dim As GtkWidget Ptr win, vte
-		win = gtk_window_new(gtk_window_toplevel)
+'		Dim As GtkWidget Ptr win, vte
+'		win = gtk_window_new(gtk_window_toplevel)
 '		If vf->vte_terminal_new <> 0 Then
 '			vte = vf->vte_terminal_new()
 '			g_signal_connect(vte, "button-press-event", G_CALLBACK(@vte_button_pressed), NULL)

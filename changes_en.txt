@@ -1,3 +1,6 @@
+Version 1.0.2.1400 (January 02, 2019)
+- Added: Debugger option
+- Added: Gtk2 support
 Version 1.0.2.1398 (December 28, 2018)
 - Added: Compile option #IfDef __Fb_Win32__ And #IfnDef __Fb_Win32__
 Version 1.0.2.1389 (December 27, 2018)

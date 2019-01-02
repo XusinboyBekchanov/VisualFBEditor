@@ -8,7 +8,7 @@
 	#IfDef __FB_64bit__
 	    '#Compile -s gui -x "VisualFBEditor64_gtk3" -exx
 	#Else
-	    '#Compile -s gui -x "VisualFBEditor32" -exx
+	    '#Compile -s gui -x "VisualFBEditor32_gtk3" -exx
 	#EndIf
 #EndIf
 '#Define __USE_GTK2__
@@ -970,10 +970,18 @@ Sub LoadToolBox
 			WLet MFFDll, *MFFPath & "/mff/mff32.dll"
 		#EndIf
 	#Else
-		#IfDef __FB_64bit__
-			WLet MFFDll, *MFFPath & "/mff/libmff64.so"
+		#IfDef __USE_GTK3__
+			#IfDef __FB_64bit__
+				WLet MFFDll, *MFFPath & "/mff/libmff64_gtk3.so"
+			#Else
+				WLet MFFDll, *MFFPath & "/mff/libmff32_gtk3.so"
+			#EndIf
 		#Else
-			WLet MFFDll, *MFFPath & "/mff/libmff32.so"
+			#IfDef __FB_64bit__
+				WLet MFFDll, *MFFPath & "/mff/libmff64_gtk2.so"
+			#Else
+				WLet MFFDll, *MFFPath & "/mff/libmff32_gtk2.so"
+			#EndIf
 		#EndIf
 	#EndIf
 	MFF = DyLibLoad(*MFFDll)
@@ -2028,7 +2036,7 @@ lvProperties.StateImages = @imgListStates
 lvProperties.SmallImages = @imgListStates
 lvProperties.ColumnHeaderHidden = True
 lvProperties.Columns.Add ML("Property"), , 70
-lvProperties.Columns.Add ML("Value"), , 50
+lvProperties.Columns.Add ML("Value"), , 50, , True
 lvProperties.Add @txtPropertyValue
 lvProperties.Add @pnlPropertyValue
 lvProperties.OnSelectedItemChanged = @lvProperties_SelectedItemChanged

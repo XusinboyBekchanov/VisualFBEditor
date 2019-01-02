@@ -1380,6 +1380,8 @@ end sub
 		if Des then
 			with *Des
 				Select Case event->Type
+				Case GDK_EXPOSE
+					Return False
 				Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 					Dim As Integer x, y
 					GetPosToClient widget, .layoutwidget, @x, @y
