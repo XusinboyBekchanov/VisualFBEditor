@@ -23,7 +23,7 @@ Namespace My.Sys.Forms
         Declare Destructor
     End Type
     
-    Type EditControlLine '...'
+    Type EditControlLine
         Text As WString Ptr
         CommentIndex As Integer
         Breakpoint As Boolean
@@ -996,7 +996,7 @@ A:
         If Index <= FSelStartLine Then FSelStartLine += 1
     End Sub
 
-    Sub EditControl.ReplaceLine(Index As Integer, ByRef sLine As WString) '...'
+    Sub EditControl.ReplaceLine(Index As Integer, ByRef sLine As WString)
         Var iC = 0, OldiC = 0
         If Index > 0 AndAlso Index < FLines.Count - 1 Then
             OldiC = Cast(EditControlLine Ptr, FLines.Items[Index])->CommentIndex
@@ -2133,7 +2133,7 @@ A:
 
     Sub EditControl.ShowDropDownAt(iSelEndLine As Integer, iSelEndChar As Integer)
         Var nCaretPosY = GetCaretPosY(iSelEndLine)
-        Var nCaretPosX = TextWidth(Left(Lines(iSelEndLine), iSelEndChar))
+        Var nCaretPosX = TextWidth(GetTabbedText(Left(Lines(iSelEndLine), iSelEndChar)))
         Var HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
         Var VCaretPos = (nCaretPosY - VScrollPos + 1) * dwCharY
         DropDownChar = iSelEndChar
@@ -2794,30 +2794,59 @@ A:
 								Var k = 0
 								Var p = 0
 								Var z = 0
-								If CInt(AutoIndentation) And CINt(i > -1) And CInt(j < 2) Then
-									If TabAsSpaces Then
-										k = TabWidth
-									Else
-										k = 1
+								If CInt(AutoIndentation) And CInt(i > -1) Then
+									If j > 0 Then
+										Dim y As Integer
+										For o As Integer = FSelEndLine - 1 To 0 Step -1
+											With *Cast(EditControlLine Ptr, FLines.Items[o])
+												If .ConstructionIndex = i Then 
+													If .ConstructionPart = 2 Then
+														y = y + 1
+													ElseIf .ConstructionPart = 0 Then
+														If y = 0 Then
+															Var ltt0 = Len(GetTabbedText(*.Text))
+															Var ltt1 = Len(GetTabbedText(*FLine))
+															If ltt0 <> ltt1 Then
+																d = Len(*.Text) - Len(LTrim(*.Text, Any !"\t "))
+																FSelEndChar = FSelEndChar - (Len(*FLineSpace) - d)
+																FSelStartChar = FSelEndChar
+																WLet FLineSpace, Left(*.Text, d)
+																WLet Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, *FLineSpace & LTrim(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, Any !"\t ")
+															End If
+															Exit For
+														Else
+															y = y - 1
+														End If
+													End If
+												End If
+											End With
+										Next
 									End If
-									If j = 0 Then
-										If FSelEndLine < FLines.Count - 1 Then WLet FLineTemp, GetTabbedText(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine + 1])->Text)
-										Dim n As Integer
-										Dim m As Integer = GetConstruction(*FLineTemp, n)
-										Var e = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
-										WLet FLineTemp, GetTabbedText(*FLine)
-										Var r = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
-											If e > r OrElse (e = r And m = i And n > 0) Then
+									If CInt(j < 2) Then
+										If TabAsSpaces Then
+											k = TabWidth
 										Else
-											WLet FLineTemp,  Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1)
-											WLet FLineRight, LTrim(*FLineTemp, Any !"\t ") & Chr(13) & *FLineSpace & Constructions(i).EndName
-											p = Len(*FLineTemp)
+											k = 1
 										End If
-									End If
-									If i = 0 And (j = 0 Or j = 1) Then
-										If (StartsWith(LTrim(LCase(*FLine), Any !"\t "), "if ") Or StartsWith(LTrim(LCase(*FLine), Any !"\t "), "elseif ")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "then")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "_")) Then
-											p = Len(RTrim(*FLine, Any !"\t ")) - Len(*FLine)
-											WLet FLineLeft, " Then"
+										If j = 0 Then
+											If FSelEndLine < FLines.Count - 1 Then WLet FLineTemp, GetTabbedText(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine + 1])->Text)
+											Dim n As Integer
+											Dim m As Integer = GetConstruction(*FLineTemp, n)
+											Var e = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
+											WLet FLineTemp, GetTabbedText(*FLine)
+											Var r = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
+												If e > r OrElse (e = r And m = i And n > 0) Then
+											Else
+												WLet FLineTemp,  Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1)
+												WLet FLineRight, LTrim(*FLineTemp, Any !"\t ") & Chr(13) & *FLineSpace & Constructions(i).EndName
+												p = Len(*FLineTemp)
+											End If
+										End If
+										If i = 0 And (j = 0 Or j = 1) Then
+											If (StartsWith(LTrim(LCase(*FLine), Any !"\t "), "if ") Or StartsWith(LTrim(LCase(*FLine), Any !"\t "), "elseif ")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "then")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "_")) Then
+												p = Len(RTrim(*FLine, Any !"\t ")) - Len(*FLine)
+												WLet FLineLeft, " Then"
+											End If
 										End If
 									End If
 								End If
