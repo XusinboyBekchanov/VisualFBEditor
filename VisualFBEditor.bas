@@ -11,7 +11,7 @@
 	    '#Compile -s gui -x "VisualFBEditor32_gtk3" -exx
 	#EndIf
 #EndIf
-'#Define __USE_GTK2__
+'#Define __USE_GTK3__
 
 On Error Goto AA
 #Define GetMN
@@ -302,6 +302,7 @@ Sub OpenProgram()
             AddTab OpenD.Filename
         End If
     End If
+    TabLeft.Tabs[0]->SelectTab
 End Sub
 
 Function SaveSession() As Boolean
