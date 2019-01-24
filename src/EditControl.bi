@@ -1116,6 +1116,7 @@ A:
         FCurLineCharIdx = FSelEndChar
         nCaretPosX = TextWidth(GetTabbedText(Left(Lines(FSelEndLine), FCurLineCharIdx)))
         If CInt(DropDownShowed) AndAlso CInt(CInt(FSelEndChar < DropDownChar) OrElse CInt(FSelEndChar > GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar))) Then
+            ?FSelEndChar, DropDownChar, GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar)
             #IfDef __USE_GTK__
             	CloseDropDown()
             #Else

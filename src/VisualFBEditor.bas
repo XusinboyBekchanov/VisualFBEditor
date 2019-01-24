@@ -1,14 +1,14 @@
 ﻿#IfDef __FB_Win32__
 	#IfDef __FB_64bit__
-	    '#Compile -s gui -x "VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
 	#Else
-	    '#Compile -s gui -x "VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -w all -s console -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
-	    '#Compile -s gui -x "VisualFBEditor64_gtk3" -exx
+	    '#Compile -s gui -x "../VisualFBEditor64_gtk3" -exx
 	#Else
-	    '#Compile -s gui -x "VisualFBEditor32_gtk3" -exx
+	    '#Compile -s gui -x "../VisualFBEditor32_gtk3" -exx
 	#EndIf
 #EndIf
 '#Define __USE_GTK3__
@@ -966,22 +966,22 @@ Sub LoadToolBox
     WLet MFFPath, iniSettings.ReadString("Options", "MFFPath", "./MyFbFramework")
     #IfNDef __USE_GTK__
 		#IfDef __FB_64bit__
-			WLet MFFDll, *MFFPath & "/mff/mff64.dll"
+			WLet MFFDll, *MFFPath & "/mff64.dll"
 		#Else
-			WLet MFFDll, *MFFPath & "/mff/mff32.dll"
+			WLet MFFDll, *MFFPath & "/mff32.dll"
 		#EndIf
 	#Else
 		#IfDef __USE_GTK3__
 			#IfDef __FB_64bit__
-				WLet MFFDll, *MFFPath & "/mff/libmff64_gtk3.so"
+				WLet MFFDll, *MFFPath & "/libmff64_gtk3.so"
 			#Else
-				WLet MFFDll, *MFFPath & "/mff/libmff32_gtk3.so"
+				WLet MFFDll, *MFFPath & "/libmff32_gtk3.so"
 			#EndIf
 		#Else
 			#IfDef __FB_64bit__
-				WLet MFFDll, *MFFPath & "/mff/libmff64_gtk2.so"
+				WLet MFFDll, *MFFPath & "/libmff64_gtk2.so"
 			#Else
-				WLet MFFDll, *MFFPath & "/mff/libmff32_gtk2.so"
+				WLet MFFDll, *MFFPath & "/libmff32_gtk2.so"
 			#EndIf
 		#EndIf
 	#EndIf
@@ -1007,11 +1007,11 @@ Sub LoadToolBox
     tbToolBox.OnMouseWheel = @tbToolBox_MouseWheel
     tbToolBox.ImagesList = @imgListTools
     tbToolBox.HotImagesList = @imgListTools
-    IncludePath = GetFolderName(*MFFDll)
+    IncludePath = GetFolderName(*MFFDll) & "mff/"
     f = dir(IncludePath & "*.bi")
     Var inType = False
     Var inEnum = False
-			Dim ff As Integer = FreeFile
+	Dim ff As Integer = FreeFile
     Var inPubPriPro = 0
     Dim Comment As WString Ptr
     While f <> ""
@@ -2431,7 +2431,7 @@ Sub frmMain_Create(ByRef Sender As Control)
     TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
     Var file = Command(-1)
     If file = "" Then
-        AddTab ExePath & "/templates/Form.bas", True
+        'AddTab ExePath & "/templates/Form.bas", True
     Else
         AddTab file
     End If

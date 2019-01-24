@@ -618,7 +618,7 @@ Sub CloseButton_MouseUp(BYREF Sender As Control, MouseButton As Integer, x As In
     Dim tb As TabWindow Ptr = Cast(CloseButton Ptr, @Sender)->tbParent
     If tb = 0 Then Exit Sub
     tb->CloseTab
-    'Delete tb
+    Delete tb
 End Sub
             
 Sub CloseButton_MouseMove(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -1681,7 +1681,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
     If TextChanged Then
     	With tb->txtCode
         If Not .Focused Then bNotFunctionChange = False: Exit Sub
-        	tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked
+        	tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or Not EndsWith(tb->cboFunction.Text, " [Constructor]")
     	End With
     	TextChanged = False
     End If
@@ -2933,21 +2933,21 @@ Destructor TabWindow
     If FLine Then DeAllocate FLine
     If FLine1 Then DeAllocate FLine1
     If FLine2 Then DeAllocate FLine2
-    If Des Then
-	    If Des->DeleteComponentFunc Then
-		    For i As Integer = 2 To cboClass.Items.Count - 1
-		    	CurCtrl = 0
-		    	CBItem = cboClass.Items.Item(i)
-		    	If CBItem <> 0 Then CurCtrl = CBItem->Object
-		     	If CurCtrl <> 0 Then
-		      		Des->DeleteComponentFunc(CurCtrl)
-		      	End If
-		    Next i
-		    Des->DeleteComponentFunc(Des->DesignControl)
-		End If
+    If Des <> 0 Then
+'	    If Des->DeleteComponentFunc <> 0 Then
+'		    For i As Integer = 2 To cboClass.Items.Count - 1
+'		    	CurCtrl = 0
+'		    	CBItem = cboClass.Items.Item(i)
+'		    	If CBItem <> 0 Then CurCtrl = CBItem->Object
+'		     	If CurCtrl <> 0 Then
+'		      		Des->DeleteComponentFunc(CurCtrl)
+'		      	End If
+'		    Next i
+'		    Des->DeleteComponentFunc(Des->DesignControl)
+'		End If
 		'Delete Des
 	End If
-	Functions.Clear
+	'Functions.Clear
     If tabRight.Tag = @This Then tabRight.Tag = 0
     'If tn <> 0 Then tvExplorer.RemoveRoot tvExplorer.IndexOfRoot(tn)
 End Destructor
