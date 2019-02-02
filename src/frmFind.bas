@@ -61,7 +61,6 @@ Using My.Sys.Forms
     End Sub
 
     Constructor frmFind
-        LoadLanguageTexts
         This.Width = 415
         Height = 130
         This.Opacity = 140

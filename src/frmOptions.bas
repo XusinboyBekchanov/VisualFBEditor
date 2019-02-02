@@ -49,6 +49,7 @@ Dim Shared As Integer oldIndex, newIndex
     End Type
     
     Constructor frmOptions
+        LoadLanguageTexts
         ' Form1
         This.Name = "frmOptions"
         This.Text = ML("Options")

@@ -50,7 +50,7 @@ Namespace My.Sys.Forms
         Visible = True
     End Constructor
 
-    Destructor EditControlLine '...'
+    Destructor EditControlLine
         If Text Then Deallocate Text
     End Destructor
 
@@ -418,7 +418,7 @@ Namespace My.Sys.Forms
         PaintControl
     End Property
 
-    Sub EditControl._FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString) '...'
+    Sub EditControl._FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString)
         WLet item->Comment, Comment
         Dim ecItem As EditControlLine Ptr
         For i As Integer = 0 To FLines.Count - 1

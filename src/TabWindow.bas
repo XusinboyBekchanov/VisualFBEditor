@@ -2749,7 +2749,7 @@ End Sub
 
 Sub TabWindow_Destroy(ByRef Sender As Control)
 	App.DoEvents
-	Delete Cast(TabWindow Ptr, @Sender)
+	'Delete Cast(TabWindow Ptr, @Sender)
 End Sub
 
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
