@@ -57,8 +57,8 @@ Categorized BITMAP DISCARDABLE "../resources/Categorized.bmp"
 
 #define VER_FILEDESCRIPTION_STR     "VisualFBEditor\0"
 
-#define VER_FILEVERSION             1,0,2,1467
-#define VER_FILEVERSION_STR         "1.0.2.1467\0"
+#define VER_FILEVERSION             1,0,2,1499
+#define VER_FILEVERSION_STR         "1.0.2.1499\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Xusinboy Bekchanov\0"
 

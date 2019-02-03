@@ -34,13 +34,15 @@ Dim Shared As Integer oldIndex, newIndex
         Declare Static Sub cmdMFFPath_Click(ByRef Sender As Control)
         Declare Static Sub cmdDebugger_Click(ByRef Sender As Control)
         Declare Static Sub cmdTerminal_Click(ByRef Sender As Control)
+        Declare Static Sub txtTabSize_Change(BYREF Sender As TextBox)
+        Declare Static Sub lblTabSize1_Click(BYREF Sender As Label)
         Declare Constructor
         
         Dim As TreeView tvOptions
         Dim As CommandButton CommandButton1, CommandButton2, CommandButton3, CommandButton4, CommandButton5, CommandButton6, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdDebugger, cmdTerminal
-        Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblLanguage, lblHelp, lblMFF, lblTabSize, lblMFF1, lblLibraryFiles, lblDebugger, lblTerminal
+        Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblLanguage, lblHelp, lblMFF, lblTabSize, lblMFF1, lblLibraryFiles, lblDebugger, lblTerminal, lblHistoryLimit:
         Dim As Panel pnlGeneral, pnlCodeEditor, pnlCompiler, pnlDebugger, pnlLocalization, pnlHelp, pnlIncludes
-        Dim As TextBox TextBox1, TextBox2, TextBox3, txtMFFpath, txtTabSize, txtDebugger, txtTerminal
+        Dim As TextBox TextBox1, TextBox2, TextBox3, txtMFFpath, txtTabSize, txtDebugger, txtTerminal, txtHistoryLimit
         Dim As ComboBoxEdit ComboBoxEdit1
         Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCompile, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces
         Dim OpenD As OpenFileDialog
@@ -278,7 +280,8 @@ Dim Shared As Integer oldIndex, newIndex
         ' txtTabSize
         txtTabSize.Name = "txtTabSize"
         txtTabSize.Text = ""
-        txtTabSize.SetBounds 63, 178, 72, 18
+        txtTabSize.SetBounds 105, 178, 72, 18
+        txtTabSize.OnChange = @txtTabSize_Change
         txtTabSize.Parent = @pnlCodeEditor
         ' chkShowSpaces
         chkShowSpaces.Name = "chkShowSpaces"
@@ -346,6 +349,17 @@ Dim Shared As Integer oldIndex, newIndex
         cmdTerminal.Caption = "..."
         cmdTerminal.OnClick = @cmdTerminal_Click
         cmdTerminal.Parent = @pnlDebugger
+        ' lblHistoryLimit
+        lblHistoryLimit.Name = "lblHistoryLimit"
+        lblHistoryLimit.Text = "History limit"
+        lblHistoryLimit.SetBounds 12, 202, 90, 18
+        lblHistoryLimit.Caption = "History limit"
+        lblHistoryLimit.OnClick = @lblTabSize1_Click
+        lblHistoryLimit.Parent = @pnlCodeEditor
+        ' txtHistoryLimit
+        txtHistoryLimit.Name = "txtHistoryLimit"
+        txtHistoryLimit.SetBounds 105, 200, 72, 18
+        txtHistoryLimit.Parent = @pnlCodeEditor
     End Constructor
     
     Dim Shared fOptions As frmOptions
@@ -390,6 +404,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
         .txtTerminal.Text = iniSettings.ReadString("Options", "Terminal", WGet(Terminal))
         .TextBox3.Text = iniSettings.ReadString("Options", "HelpPath", "")
         .txtTabSize.Text = Str(iniSettings.ReadInteger("Options", "TabWidth", 4))
+        .txtHistoryLimit.Text = Str(iniSettings.ReadInteger("Options", "HistoryLimit", 20))
         .txtMFFPath.Text = iniSettings.ReadString("Options", "MFFPath", *MFFPath)
         .CheckBox1.Checked = iniSettings.ReadBool("Options", "AutoIncrement", true)
         .chkEnableAutoComplete.Checked = iniSettings.ReadBool("Options", "AutoComplete", true)
@@ -438,6 +453,7 @@ Private Sub frmOptions.CommandButton3_Click(ByRef Sender As Control)
             WLet MFFDll, *MFFPath & "\mff\mff32.dll"
         #EndIf
         TabWidth = Val(.txtTabSize.Text)
+        HistoryLimit = Val(.txtHistoryLimit.Text)
         AutoIncrement = .CheckBox1.Checked
         AutoIndentation = .chkAutoIndentation.Checked
         AutoComplete = .chkEnableAutoComplete.Checked
@@ -453,6 +469,7 @@ Private Sub frmOptions.CommandButton3_Click(ByRef Sender As Control)
         iniSettings.WriteString "Options", "MFFPath", *MFFPath
         iniSettings.WriteString "Options", "Language", Languages.Item(.ComboBoxEdit1.ItemIndex)
         iniSettings.WriteInteger "Options", "TabWidth", TabWidth
+        iniSettings.WriteInteger "Options", "HistoryLimit", HistoryLimit
         iniSettings.WriteBool "Options", "AutoIndentation", AutoIndentation
         iniSettings.WriteBool "Options", "AutoIncrement", AutoIncrement
         iniSettings.WriteBool "Options", "AutoCreateRC", AutoCreateRC
@@ -566,4 +583,12 @@ Private Sub frmOptions.cmdTerminal_Click(ByRef Sender As Control)
             .txtTerminal.Text = .OpenD.FileName 
         End If
     End With
+End Sub
+
+Private Sub frmOptions.txtTabSize_Change(BYREF Sender As TextBox)
+    
+End Sub
+
+Private Sub frmOptions.lblTabSize1_Click(BYREF Sender As Label)
+    
 End Sub

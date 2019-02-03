@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
     #DEFINE QEditControl(__Ptr__) *Cast(EditControl Ptr,__Ptr__)
 
-    Type EditControlHistory '...'
+    Type EditControlHistory
         Comment As WString Ptr
         Lines As List
         OldSelStartLine As Integer
@@ -750,7 +750,11 @@ Namespace My.Sys.Forms
                 item->OldSelStartChar = FSelStartChar
                 item->OldSelEndChar = FSelEndChar
                 FHistory.Add item
-                curHistory = FHistory.Count - 1
+                If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
+	            	Delete Cast(EditControlHistory Ptr, FHistory.Items[0])
+	            	FHistory.Remove 0
+	            End If
+            	curHistory = FHistory.Count - 1
             End If
         ElseIf CInt(Not bOldCommented) AndAlso CInt(FHistory.Count > 0) Then
             item = FHistory.Items[FHistory.Count - 1]
@@ -779,6 +783,10 @@ Namespace My.Sys.Forms
             item->SelEndChar = FSelEndChar
             _ClearHistory curHistory + 1
             FHistory.Add item
+            If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
+            	Delete Cast(EditControlHistory Ptr, FHistory.Items[0])
+            	FHistory.Remove 0
+            End If
             curHistory = FHistory.Count - 1
         End If
         If OnChange Then OnChange(This)

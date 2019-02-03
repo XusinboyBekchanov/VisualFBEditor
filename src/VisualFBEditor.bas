@@ -66,6 +66,7 @@ Dim Shared As Boolean AutoCreateRC
 Dim Shared As Boolean AutoSaveCompile
 Dim Shared As Boolean ShowSpaces
 Dim Shared As Integer TabWidth
+Dim Shared As Integer HistoryLimit
 Dim Shared As Integer TabAsSpaces
 Dim Shared As TreeNode Ptr MainNode
 
@@ -197,6 +198,10 @@ Function AddProject(ByRef FileName As WString = "") As TreeNode Ptr
     End If
     tn->SelectItem
     If FileName <> "" Then
+    	If Not FileExists(FileName) Then
+    		MsgBox ML("File not found") & ": " & FileName
+    		Return tn
+    	End If
         Dim As TreeNode Ptr tn1, tn2
         Dim buff As WString Ptr
         Dim Pos1 As Integer
@@ -2429,6 +2434,7 @@ Sub frmMain_Create(ByRef Sender As Control)
     AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", true)
     ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", true)
     TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
+    HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
     Var file = Command(-1)
     If file = "" Then
         'AddTab ExePath & "/templates/Form.bas", True
