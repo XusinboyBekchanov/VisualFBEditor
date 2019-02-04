@@ -2692,6 +2692,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
                         	If LCase(cboFunction.Items.Item(i)->Text) > LCase(te2->Name) Then
  	                       		cboFunction.Items.Add te2->Name, te2, imgKey, imgKey, , , i
                     			t = True
+					Exit For
                     		End If
                         Next i
                         If Not t Then cboFunction.Items.Add te2->Name, te2, imgKey, imgKey
