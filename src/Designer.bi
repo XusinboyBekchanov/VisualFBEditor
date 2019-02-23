@@ -684,8 +684,10 @@ sub Designer.MouseDown(X as integer, Y as Integer, Shift as integer)
         FCanMove    = false
         FCanSize    = true
         #IfDef __USE_GTK__
-        	FSelControl = g_object_get_data(G_OBJECT(FDots(FDotIndex)), "@@@Control")
-        	SelectedControl = g_object_get_data(G_OBJECT(FDots(FDotIndex)), "@@@Control2")
+        	If g_is_object(FDots(FDotIndex)) Then
+	        	FSelControl = g_object_get_data(G_OBJECT(FDots(FDotIndex)), "@@@Control")
+	        	SelectedControl = g_object_get_data(G_OBJECT(FDots(FDotIndex)), "@@@Control2")
+        	End If
         #Else
 			if not IsWindow(FSelControl) then
 				FSelControl = GetProp(FDots(FDotIndex),"@@@Control")
@@ -1156,11 +1158,11 @@ sub Designer.PasteControl()
 							OnInsertingControl(this, WGet(ReadPropertyFunc(Value, "ClassName")), FName)
 						end if
 						ControlGetBoundsSub(Value, @FLeft, @FTop, @FWidth, @FHeight)
-						CreateControl(WGet(ReadPropertyFunc(Value, "ClassName")), FName, WGet(ReadPropertyFunc(Value, "Text")), ParentCtrl, FLeft + 10, FTop + 10, FWidth, FHeight)
+						CreateControl(WGet(ReadPropertyFunc(Value, "ClassName")), FName, WGet(ReadPropertyFunc(Value, "Text")), ParentCtrl, FLeft + 6, FTop + 6, FWidth, FHeight)
 						if FSelControl then
 							LockWindowUpdate(FSelControl)
 							BringWindowToTop(FSelControl)
-							if OnInsertControl then OnInsertControl(this, WGet(ReadPropertyFunc(Value, "ClassName")), GetControl(FSelControl), FLeft + 10, FTop + 10, FWidth, FHeight)
+							if OnInsertControl then OnInsertControl(this, WGet(ReadPropertyFunc(Value, "ClassName")), GetControl(FSelControl), FLeft + 6, FTop + 6, FWidth, FHeight)
 							MoveDots(FSelControl)
 							LockWindowUpdate(0)
 						end if

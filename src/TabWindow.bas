@@ -15,7 +15,7 @@ Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As ListView lvErrors, lvSearch, lvProperties, lvEvents
 Dim Shared As ImageList imgList, imgListTools, imgListStates
 Dim Shared As ToolButton Ptr SelectedTool
-Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer
+Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
 
 Declare Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 Declare Sub CompleteWord()
@@ -86,6 +86,7 @@ Destructor ToolBoxItem
     WDeAllocate LibraryName
     WDeAllocate LibraryFile
     WDeAllocate IncludeFile
+    Elements.Clear
 End Destructor
 
 Type PTabWindow As TabWindow Ptr
@@ -1673,13 +1674,19 @@ Sub cboClass_Change(ByRef Sender as ComboBoxEdit, ItemIndex As Integer)
 End Sub
 
 Dim Shared bNotDesignForms As Boolean
-Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
+Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     bNotFunctionChange = True
     If TextChanged Then
     	With tb->txtCode
-        If Not .Focused Then bNotFunctionChange = False: Exit Sub
+        	If Not .Focused Then bNotFunctionChange = False: Exit Sub
+        	If OldLine < .FLines.Count Then
+	        	Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .FLines.Items[OldLine])
+	        	If CInt(ecl->CommentIndex = 0) AndAlso CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg2(Trim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2), Any !"\t "))) Then
+	        		WLet ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1"
+	        	End If
+	        End If
         	tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or Not EndsWith(tb->cboFunction.Text, " [Constructor]")
     	End With
     	TextChanged = False
@@ -1688,6 +1695,10 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
 '        tb->cboClass.ItemIndex = 0
 '        cboClass_Change tb->cboClass, 0
 '    End If
+    If tb->cboClass.ItemIndex <> 0 Then
+        tb->cboClass.ItemIndex = 0
+        cboClass_Change tb->cboClass, 0
+    End If
     Dim As TypeElement Ptr te1, te2
     Dim t As Boolean
     For i As Integer = 0 To tb->Functions.Count - 1
@@ -1708,10 +1719,6 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
 '            Next
         End If
     Next
-    If tb->cboClass.ItemIndex <> 0 Then
-        tb->cboClass.ItemIndex = 0
-        cboClass_Change tb->cboClass, 0
-    End If
     tb->cboFunction.ItemIndex = 0
     bNotFunctionChange = False
 End Sub
@@ -1788,7 +1795,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
                                 .SetSelection i + 1, i + 1, n + 4, n + 4
                                 .TopLine = i
                                 .SetFocus
-                                OnLineChangeEdit tb->txtCode, i + 1
+                                OnLineChangeEdit tb->txtCode, i + 1, i + 1
                                 t = True
                                 Exit Sub
                             End If
@@ -1813,7 +1820,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
             End If
             .InsertLine i + q, ""
             .InsertLine i + q + 1, "Private Sub " & frmName & "." & SubName & Mid(te->TypeName, 4)
-            .InsertLine i + q + 2, Space(4)
+            .InsertLine i + q + 2, IIF(TabAsSpaces, WSpace(TabWidth), !"\t")
             .InsertLine i + q + 3, "End Sub"
             bNotDesignForms = True
             .SetSelection i + q + 2, i + q + 2, 4, 4
@@ -1823,7 +1830,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
             If lvEvents.ListItems.Contains(EventName) Then
                 lvEvents.ListItems.Item(lvEvents.ListItems.IndexOf(EventName))->Text(1) = SubName
             End If
-            OnLineChangeEdit tb->txtCode, i + q + 2
+            OnLineChangeEdit tb->txtCode, i + q + 2, i + q + 2
             If tb->tbrTop.Buttons.Item(2)->Checked Then
                 tb->tbrTop.Buttons.Item(1)->Checked = True
             End If
@@ -1863,7 +1870,7 @@ Sub cboFunction_Change(ByRef Sender as ComboBoxEdit, ItemIndex As Integer)
                 If te <> 0 Then
                     i = te->StartLine
                     Var n = Len(.Lines(i)) - Len(LTrim(.Lines(i)))
-                    .SetSelection i + 1, i + 1, n + 4, n + 4
+                    .SetSelection i + 1, i + 1, n, n
                     .TopLine = i
                     .SetFocus
                     t = True
@@ -1918,8 +1925,7 @@ End Sub
 
 Dim Shared As Integer SelLinePos, SelCharPos
 #IfDef __USE_GTK__
-	Sub lvIntellisense_ItemActivate(ByRef Sender as ListView, ByRef Item As ListViewItem)
-	    Dim As Integer ItemIndex = Item.Index
+	Sub lvIntellisense_ItemActivate(ByRef Sender as ListView, ByVal ItemIndex As Integer)
 	    Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
 	    If tb = 0 Then Exit Sub
 	    Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
@@ -2692,7 +2698,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
                         	If LCase(cboFunction.Items.Item(i)->Text) > LCase(te2->Name) Then
  	                       		cboFunction.Items.Add te2->Name, te2, imgKey, imgKey, , , i
                     			t = True
-					Exit For
+                    			Exit For
                     		End If
                         Next i
                         If Not t Then cboFunction.Items.Add te2->Name, te2, imgKey, imgKey

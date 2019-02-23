@@ -175,7 +175,7 @@ Dim Shared As Integer oldIndex, newIndex
         ' TextBox3
         TextBox3.Name = "TextBox3"
         TextBox3.Text = ""
-        TextBox3.SetBounds 10, 18, 379, 18
+        TextBox3.SetBounds 10, 18, 379, 24
         TextBox3.Parent = @pnlHelp
         ' lblHelp
         lblHelp.Name = "lblHelp"
@@ -185,12 +185,12 @@ Dim Shared As Integer oldIndex, newIndex
         ' lblLanguage
         lblLanguage.Name = "lblLanguage"
         lblLanguage.Text = ML("Language") & ":"
-        lblLanguage.SetBounds 10, 0, 96, 18
+        lblLanguage.SetBounds 10, 0, 162, 18
         lblLanguage.Parent = @pnlLocalization
         ' ComboBoxEdit1
         ComboBoxEdit1.Name = "ComboBoxEdit1"
         'ComboBoxEdit1.Text = "russian"
-        ComboBoxEdit1.SetBounds 10, 18, 408, 21
+        ComboBoxEdit1.SetBounds 10, 18, 408, 30
         ComboBoxEdit1.Parent = @pnlLocalization
         ' CommandButton4
         CommandButton4.Name = "CommandButton4"
@@ -210,20 +210,20 @@ Dim Shared As Integer oldIndex, newIndex
         ' CommandButton6
         CommandButton6.Name = "CommandButton6"
         CommandButton6.Text = "..."
-        CommandButton6.SetBounds 390, 18, 24, 18
+        CommandButton6.SetBounds 390, 18, 24, 24
         CommandButton6.Caption = "..."
         CommandButton6.OnClick = @CommandButton6_Click
         CommandButton6.Parent = @pnlHelp
         ' CheckBox1
         CheckBox1.Name = "CheckBox1"
-        CheckBox1.Text = "Auto Increment version"
-        CheckBox1.SetBounds 10, 0, 264, 18
-        CheckBox1.Caption = "Auto Increment version"
+        CheckBox1.Text = ML("Auto Increment version")
+        CheckBox1.SetBounds 10, 0, 318, 18
+        CheckBox1.Caption = ML("Auto Increment version")
         CheckBox1.Parent = @pnlGeneral
         ' chkAutoCreateRC
         chkAutoCreateRC.Name = "chkAutoCreateRC"
-        chkAutoCreateRC.Text = "Auto create resource (.rc, .xml) files"
-        chkAutoCreateRC.SetBounds 10, 20, 252, 18
+        chkAutoCreateRC.Text = ML("Auto create resource (.rc, .xml) files")
+        chkAutoCreateRC.SetBounds 10, 20, 300, 18
         chkAutoCreateRC.Parent = @pnlGeneral
         ' pnlIncludes
         pnlIncludes.Name = "pnlIncludes"
@@ -232,50 +232,50 @@ Dim Shared As Integer oldIndex, newIndex
         pnlIncludes.Parent = @This
         ' lblMFF
         lblMFF.Name = "lblMFF"
-        lblMFF.Text = "MFF path:"
-        lblMFF.SetBounds 10, 0, 96, 18
-        lblMFF.Caption = "MFF path:"
+        lblMFF.Text = ML("MFF path:")
+        lblMFF.SetBounds 10, 0, 138, 18
+        lblMFF.Caption = ML("MFF path:")
         lblMFF.Parent = @pnlIncludes
         ' txtMFFpath
         txtMFFpath.Name = "txtMFFpath"
-        txtMFFpath.SetBounds 10, 16, 390, 18
+        txtMFFpath.SetBounds 10, 16, 390, 24
         txtMFFpath.Parent = @pnlIncludes
         ' cmdMFFPath
         cmdMFFPath.Name = "cmdMFFPath"
         cmdMFFPath.Text = "..."
-        cmdMFFPath.SetBounds 400, 16, 24, 18
+        cmdMFFPath.SetBounds 400, 16, 24, 24
         cmdMFFPath.Caption = "..."
         cmdMFFPath.OnClick = @cmdMFFPath_Click
         cmdMFFPath.Parent = @pnlIncludes
         ' chkAutoSaveCompile
         chkAutoSaveCompile.Name = "chkAutoSaveCompile"
-        chkAutoSaveCompile.Text = "Avto save files before compiling"
-        chkAutoSaveCompile.SetBounds 10, 41, 252, 18
-        chkAutoSaveCompile.Caption = "Avto save files before compiling"
+        chkAutoSaveCompile.Text = ML("Avto save files before compiling")
+        chkAutoSaveCompile.SetBounds 10, 41, 324, 18
+        chkAutoSaveCompile.Caption = ML("Avto save files before compiling")
         chkAutoSaveCompile.Parent = @pnlGeneral
         ' chkEnableAutoComplete
         chkEnableAutoComplete.Name = "chkEnableAutoComplete"
-        chkEnableAutoComplete.Text = "Enable Auto Complete"
+        chkEnableAutoComplete.Text = ML("Enable Auto Complete")
         chkEnableAutoComplete.SetBounds 10, 21, 264, 18
-        chkEnableAutoComplete.Caption = "Enable Auto Complete"
+        chkEnableAutoComplete.Caption = ML("Enable Auto Complete")
         chkEnableAutoComplete.Parent = @pnlCodeEditor
         ' chkTabAsSpaces
         chkTabAsSpaces.Name = "chkTabAsSpaces"
-        chkTabAsSpaces.Text = "Treat Tab as Spaces"
+        chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
         chkTabAsSpaces.SetBounds 10, 42, 264, 18
-        chkTabAsSpaces.Caption = "Treat Tab as Spaces"
+        chkTabAsSpaces.Caption = ML("Treat Tab as Spaces")
         chkTabAsSpaces.Parent = @pnlCodeEditor
         ' chkAutoIndentation
         chkAutoIndentation.Name = "chkAutoIndentation"
-        chkAutoIndentation.Text = "Auto Indentation"
+        chkAutoIndentation.Text = ML("Auto Indentation")
         chkAutoIndentation.SetBounds 10, 0, 264, 18
-        chkAutoIndentation.Caption = "Auto Indentation"
+        chkAutoIndentation.Caption = ML("Auto Indentation")
         chkAutoIndentation.Parent = @pnlCodeEditor
         ' lblTabSize
         lblTabSize.Name = "lblTabSize"
-        lblTabSize.Text = "Tab Size:"
+        lblTabSize.Text = ML("Tab Size:")
         lblTabSize.SetBounds 10, 180, 48, 18
-        lblTabSize.Caption = "Tab Size:"
+        lblTabSize.Caption = ML("Tab Size:")
         lblTabSize.Parent = @pnlCodeEditor
         ' txtTabSize
         txtTabSize.Name = "txtTabSize"
@@ -285,14 +285,14 @@ Dim Shared As Integer oldIndex, newIndex
         txtTabSize.Parent = @pnlCodeEditor
         ' chkShowSpaces
         chkShowSpaces.Name = "chkShowSpaces"
-        chkShowSpaces.Text = "Show Spaces"
+        chkShowSpaces.Text = ML("Show Spaces")
         chkShowSpaces.SetBounds 10, 63, 264, 18
-        chkShowSpaces.Caption = "Show Spaces"
+        chkShowSpaces.Caption = ML("Show Spaces")
         chkShowSpaces.Parent = @pnlCodeEditor
         ' lstIncludePaths
         lstIncludePaths.Name = "lstIncludePaths"
         lstIncludePaths.Text = "ListControl1"
-        lstIncludePaths.SetBounds 10, 57, 390, 108
+        lstIncludePaths.SetBounds 10, 63, 390, 102
         lstIncludePaths.Parent = @pnlIncludes
         ' lstLibraryPaths
         lstLibraryPaths.Name = "lstLibraryPaths"
@@ -301,26 +301,26 @@ Dim Shared As Integer oldIndex, newIndex
         lstLibraryPaths.Parent = @pnlIncludes
         ' lblMFF1
         lblMFF1.Name = "lblMFF1"
-        lblMFF1.Text = "Include paths:"
-        lblMFF1.SetBounds 11, 39, 96, 18
-        lblMFF1.Caption = "Include paths:"
+        lblMFF1.Text = ML("Include paths:")
+        lblMFF1.SetBounds 11, 45, 150, 18
+        lblMFF1.Caption = ML("Include paths:")
         lblMFF1.Parent = @pnlIncludes
         ' lblLibraryFiles
         lblLibraryFiles.Name = "lblLibraryFiles"
-        lblLibraryFiles.Text = "Library paths:"
-        lblLibraryFiles.SetBounds 12, 170, 102, 16
-        lblLibraryFiles.Caption = "Library paths:"
+        lblLibraryFiles.Text = ML("Library paths:")
+        lblLibraryFiles.SetBounds 12, 170, 150, 16
+        lblLibraryFiles.Caption = ML("Library paths:")
         lblLibraryFiles.Parent = @pnlIncludes
         ' cmdAddInclude
         cmdAddInclude.Name = "cmdAddInclude"
         cmdAddInclude.Text = "+"
-        cmdAddInclude.SetBounds 400, 56, 24, 20
+        cmdAddInclude.SetBounds 400, 62, 24, 20
         cmdAddInclude.Caption = "+"
         cmdAddInclude.Parent = @pnlIncludes
         ' cmdRemoveInclude
         cmdRemoveInclude.Name = "cmdRemoveInclude"
         cmdRemoveInclude.Text = "-"
-        cmdRemoveInclude.SetBounds 400, 75, 24, 21
+        cmdRemoveInclude.SetBounds 400, 81, 24, 21
         cmdRemoveInclude.Caption = "-"
         cmdRemoveInclude.Parent = @pnlIncludes
         ' cmdAddLibrary
@@ -351,9 +351,9 @@ Dim Shared As Integer oldIndex, newIndex
         cmdTerminal.Parent = @pnlDebugger
         ' lblHistoryLimit
         lblHistoryLimit.Name = "lblHistoryLimit"
-        lblHistoryLimit.Text = "History limit"
+        lblHistoryLimit.Text = ML("History limit")
         lblHistoryLimit.SetBounds 12, 202, 90, 18
-        lblHistoryLimit.Caption = "History limit"
+        lblHistoryLimit.Caption = ML("History limit")
         lblHistoryLimit.OnClick = @lblTabSize1_Click
         lblHistoryLimit.Parent = @pnlCodeEditor
         ' txtHistoryLimit
@@ -383,11 +383,6 @@ End Sub
 Private Sub frmOptions.Form_Create(ByRef Sender As Control)
     Dim As String f
     Dim s As WString Ptr
-    #IfDef __FB_Win32__
-		iniSettings.Create ExePath & "/VisualFBEditor.ini"
-    #Else
-		iniSettings.Create ExePath & "/VisualFBEditorX.ini"
-    #EndIF
     With fOptions
         .ComboBoxEdit1.Clear
         .tvOptions.Nodes.Clear

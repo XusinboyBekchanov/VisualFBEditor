@@ -12,4 +12,5 @@ File=frmReplace.bas
 File=frmSplash.bas
 File=TabWindow.bas
 *File=VisualFBEditor.bas
+File=frmAddIns.bas
 File=VisualFBEditor.rc

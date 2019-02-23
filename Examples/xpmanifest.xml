@@ -3,7 +3,7 @@
 <assemblyIdentity
     version="1.0.0.0"
     processorArchitecture="*"
-    name="Visual FB Editor"
+    name="Form1"
     type="win32"
 />
 <description></description>

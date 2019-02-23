@@ -32,9 +32,7 @@ Using My.Sys.Forms
         Dim As CheckBox chkRegistr
         Dim As Label lblFind, lblTrack
         Dim As TextBox txtFind
-        Dim As CommandButton btnFind
-        Dim As CommandButton btnFindAll
-        Dim As CommandButton btnCancel
+        Dim As CommandButton btnFind, btnFindAll, btnCancel
         Dim As TrackBar TrackBar1
     End Type
 
@@ -66,27 +64,27 @@ Using My.Sys.Forms
         This.Opacity = 140
         Caption = ML("Find")
         lblFind.Caption = ML("Find What") & ":"
-        lblFind.SetBounds 10, 10, 80, 20
+        lblFind.SetBounds 10, 10, 80, 26
         lblFind.Parent = @This
-        txtFind.SetBounds 90, 10, 300, 20
+        txtFind.SetBounds 90, 10, 300, 26
         txtFind.Anchor.Left = asAnchor
         txtFind.Anchor.Right = asAnchor
         txtFind.Parent = @This
         chkRegistr.Caption = ML("Match Case")
-        chkRegistr.SetBounds 90, 35, 140, 20
+        chkRegistr.SetBounds 90, 41, 140, 20
         chkRegistr.Parent = @This
         btnFind.Caption = ML("&Find Next")
         btnFind.Default = True
-        btnFind.SetBounds 90, 60, 100, 20
+        btnFind.SetBounds 90, 66, 100, 26
         btnFind.Anchor.Right = asAnchor
         btnFind.Parent = @This
         btnFindAll.Caption = ML("Find &All")
-        btnFindAll.SetBounds 190, 60, 100, 20
+        btnFindAll.SetBounds 190, 66, 100, 26
         btnFindAll.Anchor.Right = asAnchor
         btnFindAll.Parent = @This
         btnCancel.Caption = ML("&Cancel")
         btnCancel.Anchor.Right = asAnchor
-        btnCancel.SetBounds 290, 60, 100, 20
+        btnCancel.SetBounds 290, 66, 100, 26
         btnCancel.Parent = @This
         'AddRange 10, @lblFind, @txtFind, @lblReplace, @txtReplace, @chkRegistr, @btnFind, @btnReplace, @btnFindAll, @btnReplaceAll, @btnCancel
         OnShow = @_Form_Show_
@@ -100,7 +98,7 @@ Using My.Sys.Forms
         ' TrackBar1
         TrackBar1.Name = "TrackBar1"
         TrackBar1.Text = "TrackBar1"
-        TrackBar1.SetBounds 276, 36, 114, 18
+        TrackBar1.SetBounds 276, 42, 114, 18
         TrackBar1.OnChange = @TrackBar1_Change
         TrackBar1.Parent = @This
         TrackBar1.MinValue = 50
@@ -120,10 +118,9 @@ Using My.Sys.Forms
 '#End Region
 
 Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False) As Integer
-    If This.FParent = 0 Then Exit Function
-    If Cast(Form Ptr, This.Parent)->ActiveControl = 0 Then Exit Function
-    If Cast(Form Ptr, This.Parent)->ActiveControl->ClassName <> "EditControl" Then Exit Function
-    Dim txt As EditControl Ptr = Cast(EditControl Ptr, Cast(Form Ptr, This.Parent)->ActiveControl)
+    Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
+    if tb = 0 Then Exit Function
+    Dim txt As EditControl Ptr = @tb->txtCode
     Dim Result As Integer
     Dim bRegistr As Boolean = chkRegistr.Checked
     Dim buff As WString Ptr

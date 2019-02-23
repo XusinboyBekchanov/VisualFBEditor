@@ -1,3 +1,12 @@
+Version 1.0.2.1723 (February 23, 2019)
+Added: Add-In support
+Added: History Limit to EditControl (default: 20)
+Fixed: New-Delete statements
+Fixed: Updated all language templates
+Added: Chinese.lng
+Added: "src" folder
+Fixed: AutoIndentation
+Fixed: DropDown position in EditControl
 Version 1.0.2.1400 (January 02, 2019)
 - Added: Debugger option
 - Added: Gtk2 support

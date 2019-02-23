@@ -264,7 +264,7 @@ Namespace My.Sys.Forms
             OnChange As Sub(ByRef Sender As EditControl)
             OnAutoComplete As Sub(ByRef Sender As EditControl)
             OnValidate As Sub(ByRef Sender As EditControl)
-            OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer)
+            OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
     End Type
     
     Dim As EditControl Ptr CurEC
@@ -1056,7 +1056,7 @@ A:
     Function EditControl.GetCaretPosY(LineIndex As Integer) As Integer
         Static As Integer i, j
         j = 0
-        For i = 1 To LineIndex
+        For i = 1 To Min(FLines.Count - 1, LineIndex)
             If Cast(EditControlLine Ptr, FLines.Items[i])->Visible Then j = j + 1
         Next
         Return j
@@ -1067,6 +1067,13 @@ A:
             ChangeCollapseState GetLineIndex(LineIndex, 0), False
         Loop While Not Cast(EditControlLine Ptr, FLines.Items[LineIndex])->Visible
     End Sub
+    
+    Function IsArg2(ByRef sLine As WString) As Boolean
+        For i As Integer = 1 To Len(sLine)
+            If Not IsArg(Asc(Mid(sLine, i, 1))) Then Return False
+        Next
+        Return True
+    End Function
     
     Function GetNextCharIndex(ByRef sLine As WString, iEndChar As Integer) As Integer
         Dim i As Integer
@@ -1133,7 +1140,7 @@ A:
         End If
         If OldLine <> FSelEndLine Then
             If Not bOldCommented Then Changing "Matn kiritildi"
-            If OnLineChange Then OnLineChange(This, FSelEndLine)
+            If OnLineChange Then OnLineChange(This, FSelEndLine, OldLine)
         End If
         
         If CInt(FSelStartLine > -1) AndAlso CInt(FSelStartLine < FLines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, FLines.Items[FSelStartLine])->Visible) Then
@@ -2117,7 +2124,7 @@ A:
         FSelEndLine = i - 1
     End Sub
 
-    Function GetLeftSpace(ByRef Value As WString) As Integer '...'
+    Function GetLeftSpace(ByRef Value As WString) As Integer
         Return Len(Value) - Len(LTrim(Value, " "))
     End Function
     
@@ -2677,7 +2684,7 @@ A:
 					If DropDownShowed Then
 						#IfDef __USE_GTK__
 							CloseDropDown()
-							If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, *lvIntellisense.ListItems.Item(LastItemIndex))
+							If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
 						#Else
 							cboIntellisense.ShowDropDown False
 							If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
@@ -2750,7 +2757,7 @@ A:
 								If DropDownShowed Then
 									#IfDef __USE_GTK__
 										CloseDropDown()
-										If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, *lvIntellisense.ListItems.Item(LastItemIndex))
+										If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
 									#Else
 										cboIntellisense.ShowDropDown False
 										If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
@@ -2779,7 +2786,7 @@ A:
 							If DropDownShowed Then
 								#IfDef __USE_GTK__
 									CloseDropDown()
-									If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, *lvIntellisense.ListItems.Item(LastItemIndex))
+									If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
 								#Else
 									cboIntellisense.ShowDropDown False
 									If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
@@ -2917,7 +2924,7 @@ A:
 								If DropDownShowed Then
 									#IfDef __USE_GTK__
 										CloseDropDown()
-										If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, *lvIntellisense.ListItems.Item(LastItemIndex))
+										If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
 									#Else
 										cboIntellisense.ShowDropDown False
 										If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
