@@ -97,7 +97,11 @@ Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPat
     VFBEditorApp = VisualFBEditorApp
     
 	#IfDef __FB_Win32__
-    	VFBEditorLib = DyLibLoad(AppPath)
+		#IfDef __FB_64Bit__
+    		VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/mff64.dll")
+    	#Else
+    		VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/mff32.dll")
+    	#EndIf
     #Else
     	VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/libmff" & Right(AppPath, 7) & ".so")
 		If s <> 0 Then Deallocate s
@@ -114,7 +118,6 @@ Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPat
 				If tbStandard <> 0 AndAlso mff.ToolBarAddButtonWithImageKey <> 0 Then
 					tbHelpSeparator = mff.ToolBarAddButtonWithImageKey(tbStandard, 1, "HelpSeparator")
 					tbHelp = mff.ToolBarAddButtonWithImageKey(tbStandard, , "Help", , @OnHelpButtonClick, "Help", , "Help", True)
-					
 				End If
 			End If
 			If mff.ReadProperty <> 0 AndAlso mff.MenuFindByName <> 0 Then

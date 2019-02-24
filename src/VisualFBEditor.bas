@@ -1,6 +1,6 @@
 ﻿#IfDef __FB_Win32__
 	#IfDef __FB_64bit__
-	    '#Compile -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -g -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
 	#Else
 	    '#Compile -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
 	#EndIf
@@ -11,10 +11,9 @@
 	    '#Compile -g -s gui -x "../VisualFBEditor32_gtk3" -exx
 	#EndIf
 #EndIf
-#Define __USE_GTK3__
-
+'#Define __USE_GTK3__
 On Error Goto AA
-#Define GetMN
+'#Define GetMN
 Declare Sub m(ByRef msg As WString)
 Declare Function ML(ByRef msg As WString) ByRef As WString
 
@@ -1337,15 +1336,15 @@ End Sub
 Sub LoadLanguageTexts
     #IfDef __FB_Win32__
     	#IfDef __Fb_64Bit__
-			iniSettings.Create ExePath & "/Settings/VisualFBEditor64.ini"
+			iniSettings.Load ExePath & "/Settings/VisualFBEditor64.ini"
 		#Else
-			iniSettings.Create ExePath & "/Settings/VisualFBEditor32.ini"
+			iniSettings.Load ExePath & "/Settings/VisualFBEditor32.ini"
 		#EndIf
     #Else
 		#IfDef __Fb_64Bit__
-			iniSettings.Create ExePath & "/Settings/VisualFBEditorX64.ini"
+			iniSettings.Load ExePath & "/Settings/VisualFBEditorX64.ini"
 		#Else
-			iniSettings.Create ExePath & "/Settings/VisualFBEditorX32.ini"
+			iniSettings.Load ExePath & "/Settings/VisualFBEditorX32.ini"
     	#EndIf
     #EndIf
     CurLanguage = iniSettings.ReadString("Options", "Language", "english")
