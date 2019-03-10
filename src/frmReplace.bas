@@ -69,8 +69,11 @@ Using My.Sys.Forms
     End Sub
 
     Constructor frmReplace
-        This.Width = 415
-        Height = 150
+        This.BorderStyle = FormBorderStyle.FixedDialog
+        This.MaximizeBox = false
+        This.MinimizeBox = false
+        This.Icon.ResName = "Logo"
+        This.SetBounds 0, 0, 405, 140
         Caption = ML("Replace")
         lblFind.Caption = ML("Find What") & ":"
         lblFind.SetBounds 10, 10, 80, 20

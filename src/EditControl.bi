@@ -1131,7 +1131,6 @@ A:
         FCurLineCharIdx = FSelEndChar
         nCaretPosX = TextWidth(GetTabbedText(Left(Lines(FSelEndLine), FCurLineCharIdx)))
         If CInt(DropDownShowed) AndAlso CInt(CInt(FSelEndChar < DropDownChar) OrElse CInt(FSelEndChar > GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar))) Then
-            ?FSelEndChar, DropDownChar, GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar)
             #IfDef __USE_GTK__
             	CloseDropDown()
             #Else
@@ -1626,7 +1625,7 @@ A:
                     LinePrinted = True
                 End If
                 If CurExecutedLine = z AndAlso CurEC <> 0 Then
-                    PaintText i, *s, Len(*s) - Len(LTrim(*s)), Len(*s), IIF(CurEC = @This, clYellow, clBtnFace), clBlack, ""
+                    PaintText i, *s, Len(*s) - Len(LTrim(*s, Any !"\t ")), Len(*s), IIF(CurEC = @This, clYellow, clBtnFace), clBlack, ""
                     LinePrinted = True
                 End If
                 If Not LinePrinted Then

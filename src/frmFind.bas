@@ -59,12 +59,11 @@ Using My.Sys.Forms
     End Sub
 
     Constructor frmFind
-        This.Width = 415
-        Height = 130
+        This.SetBounds 0, 0, 405, 130
         This.Opacity = 140
         Caption = ML("Find")
         lblFind.Caption = ML("Find What") & ":"
-        lblFind.SetBounds 10, 10, 80, 26
+        lblFind.SetBounds 10, 16, 104, 14
         lblFind.Parent = @This
         txtFind.SetBounds 90, 10, 300, 26
         txtFind.Anchor.Left = asAnchor
@@ -93,12 +92,15 @@ Using My.Sys.Forms
         btnFindAll.OnClick = @_btnFindAll_Click_
         btnCancel.OnClick = @_btnCancel_Click_
         This.DefaultButton = @btnFind
+        This.BorderStyle = FormBorderStyle.FixedDialog
+        This.MinimizeBox = false
+        This.MaximizeBox = false
         This.CancelButton = @btnCancel
         'This.BorderStyle = 2
         ' TrackBar1
         TrackBar1.Name = "TrackBar1"
         TrackBar1.Text = "TrackBar1"
-        TrackBar1.SetBounds 276, 42, 114, 18
+        TrackBar1.SetBounds 276, 42, 120, 18
         TrackBar1.OnChange = @TrackBar1_Change
         TrackBar1.Parent = @This
         TrackBar1.MinValue = 50
@@ -107,7 +109,7 @@ Using My.Sys.Forms
         ' lblTrack
         lblTrack.Name = "lblTrack"
         lblTrack.Text = "50"
-        lblTrack.SetBounds 240, 40, 30, 18
+        lblTrack.SetBounds 240, 46, 30, 18
         lblTrack.Caption = "50"
         lblTrack.Parent = @This
     End Constructor

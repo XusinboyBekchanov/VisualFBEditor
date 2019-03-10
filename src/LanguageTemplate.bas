@@ -138,7 +138,6 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
             Else
                 WLet fileName, GetFolderName(Cast(Form1 Ptr, Sender.Parent)->TextBox1.Text) & *buff
             End If
-            ?*fileName
             Open *fileName For Input Encoding "utf-8" As #3
             WReallocate buff1, LOF(3)
             Do Until EOF(3)

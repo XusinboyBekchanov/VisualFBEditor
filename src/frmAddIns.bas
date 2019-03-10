@@ -42,32 +42,36 @@ Using My.Sys.Forms
         This.OnCreate = @Form_Create
         This.OnClose = @Form_Close
         This.OnShow = @Form_Show
-        This.SetBounds 0, 0, 488, 366
+        This.BorderStyle = FormBorderStyle.FixedDialog
+        This.ControlBox = true
+        This.MinimizeBox = false
+        This.MaximizeBox = false
+        This.SetBounds 0, 0, 484, 357
         ' lvAddIns
         lvAddIns.Name = "lvAddIns"
         lvAddIns.Text = "ListView1"
-        lvAddIns.SetBounds 12, 12, 360, 198
+        lvAddIns.SetBounds 12, 12, 366, 198
         lvAddIns.OnSelectedItemChanged = @lvAddIns_SelectedItemChanged
         lvAddIns.OnItemClick = @lvAddIns_ItemClick
         lvAddIns.Parent = @This
         ' cmdOK
         cmdOK.Name = "cmdOK"
         cmdOK.Text = "OK"
-        cmdOK.SetBounds 384, 12, 78, 24
+        cmdOK.SetBounds 390, 12, 78, 24
         cmdOK.Caption = "OK"
         cmdOK.OnClick = @cmdOK_Click
         cmdOK.Parent = @This
         ' cmdCancel
         cmdCancel.Name = "cmdCancel"
         cmdCancel.Text = "Cancel"
-        cmdCancel.SetBounds 384, 40, 78, 24
+        cmdCancel.SetBounds 390, 40, 78, 24
         cmdCancel.Caption = "Cancel"
         cmdCancel.OnClick = @cmdCancel_Click
         cmdCancel.Parent = @This
         ' cmdHelp
         cmdHelp.Name = "cmdHelp"
         cmdHelp.Text = "Help"
-        cmdHelp.SetBounds 384, 180, 78, 24
+        cmdHelp.SetBounds 390, 180, 78, 24
         cmdHelp.Caption = "Help"
         cmdHelp.Parent = @This
         ' lblDescription
@@ -86,7 +90,7 @@ Using My.Sys.Forms
         ' chkLoaded
         chkLoaded.Name = "chkLoaded"
         chkLoaded.Text = "Loaded/Unloaded"
-        chkLoaded.SetBounds 10, 15, 150, 18
+        chkLoaded.SetBounds 20, 35, 140, 18
         chkLoaded.Caption = "Loaded/Unloaded"
         chkLoaded.OnClick = @chkLoaded_Click
         chkLoaded.Enabled = true
@@ -94,7 +98,7 @@ Using My.Sys.Forms
         ' chkLoadOnStartup
         chkLoadOnStartup.Name = "chkLoadOnStartup"
         chkLoadOnStartup.Text = "Load on Startup"
-        chkLoadOnStartup.SetBounds 10, 40, 150, 18
+        chkLoadOnStartup.SetBounds 20, 60, 140, 18
         chkLoadOnStartup.Caption = "Load on Startup"
         chkLoadOnStartup.OnClick = @chkLoadOnStartup_Click
         chkLoadOnStartup.Enabled = true
@@ -102,13 +106,13 @@ Using My.Sys.Forms
         ' grbLoadBehavior
         grbLoadBehavior.Name = "grbLoadBehavior"
         grbLoadBehavior.Text = "Load Behavior"
-        grbLoadBehavior.SetBounds 288, 222, 174, 97
-        grbLoadBehavior.Parent = @This
+        grbLoadBehavior.SetBounds 0, 6, 180, 93
+        grbLoadBehavior.Parent = @Panel1
         ' Panel1
         Panel1.Name = "Panel1"
         Panel1.Text = ""
-        Panel1.SetBounds 11, 16, 158, 74
-        Panel1.Parent = @grbLoadBehavior
+        Panel1.SetBounds 287, 220, 182, 104
+        Panel1.Parent = @This
     End Constructor
     
     Dim Shared fAddIns As frmAddIns
@@ -223,7 +227,7 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 							Dim As String TranslationString
 							If VerQueryValue(_vinfo, $"\VarFileInfo\Translation", @ulTranslation, @iret) Then
 								TranslationString = Hex(ulTranslation[0], 4) & Hex(ulTranslation[1], 4)
-								Dim As Const String FullInfoName = $"\StringFileInfo\" & TranslationString & "\FileDescription"
+								Dim As String FullInfoName = $"\StringFileInfo\" & TranslationString & "\FileDescription"
 								If VerQueryValue(_vinfo, FullInfoName, @Add_In->Description, @iret) Then
 									''~ value = cast( zstring ptr, vqinfo )
 								End If

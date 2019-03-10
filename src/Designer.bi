@@ -114,11 +114,11 @@ type Designer extends My.Sys.Object
 		declare        sub RegisterDotClass(Byref clsName As WString)
 		declare        sub CreateDots(Parent as Control Ptr)
 		declare        sub DestroyDots
-		#IfDef __USE_GTK__
+		'#IfDef __USE_GTK__
 			declare        function ControlAt(Parent as Any Ptr, X as integer, Y as integer) as Any Ptr
-		#Else
-			declare        function ControlAt(Parent as HWND,X as integer,Y as integer) as HWND
-		#EndIf
+		'#Else
+		'	declare        function ControlAt(Parent as HWND,X as integer,Y as integer) as HWND
+		'#EndIf
 		#IfNDef __USE_GTK__
 			declare        sub GetChilds(Parent as HWND = 0)
 		#EndIf
@@ -352,11 +352,11 @@ end function
     'return trim(Left(*s, L))
 'end function   
 '
-#IfDef __USE_GTK__
+'#IfDef __USE_GTK__
 	function Designer.ControlAt(Parent as Any Ptr, X as integer,Y as integer) as Any Ptr
-#Else
-	function Designer.ControlAt(Parent as HWND,X as integer,Y as integer) as HWND
-#EndIf
+'#Else
+'	function Designer.ControlAt(Parent as HWND,X as integer,Y as integer) as HWND
+'#EndIf
 	#IfDEf __USE_GTK__
 		If Parent = 0 Then Return Parent
 		Dim As Integer ALeft, ATop, AWidth, AHeight
@@ -372,28 +372,29 @@ end function
 		Next i
 		Return Parent
 	#Else
-		Dim Result As Hwnd = ChildWindowFromPoint(Parent, Type<Point>(X, Y))
-		If Result = 0 Or Result = Parent Then
+		Dim ParentHwnd As Hwnd = *Cast(HWND Ptr, ReadPropertyFunc(Parent, "Handle"))
+		Dim Result As Hwnd = ChildWindowFromPoint(ParentHwnd, Type<Point>(X, Y))
+		If Result = 0 Or Result = ParentHwnd Then
 			Return Parent
 		Else
 			Dim As Rect R
 			GetWindowRect Result, @R
-			MapWindowPoints 0, Parent, Cast(Point Ptr, @R), 2
-			Return ControlAt(Result, X - R.Left, Y - R.Top)
+			MapWindowPoints 0, ParentHwnd, Cast(Point Ptr, @R), 2
+			Return ControlAt(GetControl(Result), X - R.Left, Y - R.Top)
 		End if
-		dim as RECT R
-		GetChilds(Parent)
-		for i as integer = 0 to FChilds.Count -1
-			if IsWindowVisible(FChilds.Child[i]) then
-			   GetWindowRect(FChilds.Child[i], @R)
-			   MapWindowPoints(0, Parent, cast(POINT ptr, @R) ,2)
-			   if (X > R.Left and X < R.Right) and (Y > R.Top and Y < R.Bottom) then
-				  return FChilds.Child[i]
-			   end If
-			end if
-		next i
+'		dim as RECT R
+'		GetChilds(Parent)
+'		for i as integer = 0 to FChilds.Count -1
+'			if IsWindowVisible(FChilds.Child[i]) then
+'			   GetWindowRect(FChilds.Child[i], @R)
+'			   MapWindowPoints(0, Parent, cast(POINT ptr, @R) ,2)
+'			   if (X > R.Left and X < R.Right) and (Y > R.Top and Y < R.Bottom) then
+'				  return FChilds.Child[i]
+'			   end If
+'			end if
+'		next i
 		#EndIf
-    return Parent
+'    return Parent
 end function
 
 #IfDef __USE_GTK__
@@ -650,13 +651,13 @@ end sub
 #EndIf
 
 sub Designer.DblClick(X as integer, Y as Integer, Shift as integer)
-    #IfDef __USE_GTK__
+    '#IfDef __USE_GTK__
     	SelectedControl = ControlAt(DesignControl, X, Y)
 		If OnDblClickControl Then OnDblClickControl(This, SelectedControl)
-    #Else
-	    FSelControl = ControlAt(FDialog, X, Y)
-		If OnDblClickControl Then OnDblClickControl(This, GetControl(FSelControl))
-	#EndIf
+    '#Else
+	'    FSelControl = ControlAt(FDialog, X, Y)
+	'	If OnDblClickControl Then OnDblClickControl(This, GetControl(FSelControl))
+	'#EndIf
 End Sub
 
 sub Designer.MouseDown(X as integer, Y as Integer, Shift as integer)
@@ -675,8 +676,10 @@ sub Designer.MouseDown(X as integer, Y as Integer, Shift as integer)
     	FSelControl = ReadPropertyFunc(SelectedControl, "Widget")
     #Else
     	ClipCursor(GetParent(FDialog))
-		FSelControl = ControlAt(FDialog, X, Y)
-		SelectedControl = GetControl(FSelControl)
+		SelectedControl = ControlAt(DesignControl, X, Y)
+		'FSelControl = ControlAt(FDialog, X, Y)
+		FSelControl = *Cast(HWND Ptr, ReadPropertyFunc(SelectedControl, "Handle"))
+		'SelectedControl = GetControl(FSelControl)
     #EndIf
     FDotIndex   = IsDot(FOverControl)
     if FDotIndex <> -1 then
@@ -1376,94 +1379,126 @@ end sub
 #Else
 	Function Designer.HookChildProc(hDlg as HWND, uMsg as UINT, wParam as WPARAM, lParam as LPARAM) as LRESULT
 #EndIf
-	#IfDef __USE_GTK__
 		Static As My.Sys.Forms.Designer Ptr Des
-		Des = user_data
+		#IfDef __USE_GTK__
+			Des = user_data
+		#Else
+			Des = GetProp(hDlg, "@@@Designer")
+		#EndIf
 		if Des then
-			with *Des
-				Select Case event->Type
-				Case GDK_EXPOSE
-					Return False
-				Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
-					Dim As Integer x, y
-					GetPosToClient widget, .layoutwidget, @x, @y
-					.DblClick(event->Motion.x + x, event->Motion.y + y, event->Motion.state)
-					Return True
-				Case GDK_BUTTON_PRESS
-					Dim As Integer x, y
-					GetPosToClient widget, .layoutwidget, @x, @y
-					.MouseDown(event->button.x + x, event->button.y + y, event->button.state)
-					Return True
-				Case GDK_BUTTON_RELEASE
-					Dim As Integer x, y
-					GetPosToClient widget, .layoutwidget, @x, @y
-					.MouseUp(event->button.x + x, event->button.y + y, event->button.state)
-					If event->button.button = 3 Then
-						mnuDesigner.Popup(event->button.x, event->button.y, @Type<Message>(Des, widget, event, False))
-					End If
-					Return True
-				Case GDK_MOTION_NOTIFY
-					Dim As Integer x, y
-					GetPosToClient widget, .layoutwidget, @x, @y
-					.FOverControl = Widget
-					.MouseMove(event->button.x + x, event->button.y + y, event->button.state)
-					Return True
-				Case GDK_KEY_PRESS
-					.KeyDown(event->Key.keyval, event->Key.state)
-					'Select Case event->Key.keyval
-'					Case Keys.DeleteKey
-'						If Des->FSelControl <> Des->FDialog Then Des->DeleteControl(Des->SelectedControl)
-'					Case Keys.Left, Keys.Right, Keys.Up, Keys.Down
-'						Dim As Integer FLeft, FTop, FWidth, FHeight
-'						Dim As Integer FStepX = Des->FStepX
-'						Dim As Integer FStepY = Des->FStepY
-'						If bCtrl Then FStepX = 1: FStepY = 1
-'						#IfDef __USE_GTK__
-'						#Else
-'							Dim As POINT P
-'							Dim As RECT R
-'							GetWindowRect(Des->FSelControl, @R)
-'							P.X     = R.Left
-'							P.Y     = R.Top
-'							FWidth  = R.Right - R.Left
-'							FHeight = R.Bottom - R.Top
-'							ScreenToClient(GetParent(Des->FSelControl), @P) 
-'							FLeft   = P.X
-'							FTop    = P.Y
-'							If bShift Then
-'								Select Case wParam
-'								Case Keys.Left: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth - FStepX, FHeight, True)
-'								Case Keys.Right: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth + FStepX, FHeight, True)
-'								Case Keys.Up: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth, FHeight - FStepY, True)
-'								Case Keys.Down: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth, FHeight + FStepY, True)
-'								End Select
-'							ElseIf Des->FSelControl <> Des->Dialog Then
-'								Select Case wParam
-'								Case Keys.Left: MoveWindow(Des->FSelControl, FLeft - FStepX, FTop, FWidth, FHeight, True)
-'								Case Keys.Right: MoveWindow(Des->FSelControl, FLeft + FStepX, FTop, FWidth, FHeight, True)
-'								Case Keys.Up: MoveWindow(Des->FSelControl, FLeft, FTop - FStepY, FWidth, FHeight, True)
-'								Case Keys.Down: MoveWindow(Des->FSelControl, FLeft, FTop + FStepY, FWidth, FHeight, True)
-'								End Select
-'							End If
-'							Des->MoveDots(Des->FSelControl)
-'							If Des->OnModified Then Des->OnModified(*Des, GetControl(Des->FSelControl))
-'						#EndIf
-'					End Select
-				end select
+			Dim As Point P
+			With *Des
+				#IfDef __USE_GTK__
+					Select Case event->Type
+				#Else
+					Select Case uMsg
+					Case WM_NCHitTest
+					Case WM_GETDLGCODE: Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
+				#EndIf
+				#IfDef __USE_GTK__
+					Case GDK_EXPOSE
+						Return False
+					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
+						Dim As Integer x, y
+						GetPosToClient widget, .layoutwidget, @x, @y
+						.DblClick(event->Motion.x + x, event->Motion.y + y, event->Motion.state)
+						Return True
+				#Else
+					Case WM_LBUTTONDBLCLK
+						P = Type<Point>(loWord(lParam), hiWord(lParam))
+						ClientToScreen(hDlg, @P)
+						ScreenToClient(.FDialog, @P)
+						.DblClick(P.X, P.Y, wParam and &HFFFF )
+						Return 0
+				#EndIf
+				#IfDef __USE_GTK__
+					Case GDK_BUTTON_PRESS
+				#Else
+					Case WM_LBUTTONDOWN
+				#EndIf
+					#IfDef __USE_GTK__
+						Dim As Integer x, y
+						GetPosToClient widget, .layoutwidget, @x, @y
+						.MouseDown(event->button.x + x, event->button.y + y, event->button.state)
+						Return True
+					#Else
+						P = Type<Point>(loWord(lParam), hiWord(lParam))
+						ClientToScreen(hDlg, @P)
+						ScreenToClient(.FDialog, @P)
+						.MouseDown(P.X, P.Y, wParam and &HFFFF )
+						'Return 0
+					#EndIf
+				#IfDef __USE_GTK__
+					Case GDK_BUTTON_RELEASE
+				#Else
+					Case WM_LBUTTONUP
+				#EndIf
+					#IfDef __USE_GTK__
+						Dim As Integer x, y
+						GetPosToClient widget, .layoutwidget, @x, @y
+						.MouseUp(event->button.x + x, event->button.y + y, event->button.state)
+						If event->button.button = 3 Then
+							mnuDesigner.Popup(event->button.x, event->button.y, @Type<Message>(Des, widget, event, False))
+						End If
+						Return True
+					#Else
+						P = Type<Point>(loWord(lParam), hiWord(lParam))
+						ClientToScreen(hDlg, @P)
+						ScreenToClient(.FDialog, @P)
+						.MouseUp(P.X, P.Y, wParam and &HFFFF )
+						'Return 0
+					#EndIf
+				#IfDef __USE_GTK__
+					Case GDK_MOTION_NOTIFY
+				#Else
+					Case WM_MOUSEMOVE
+				#EndIf
+					#IfDef __USE_GTK__
+						Dim As Integer x, y
+						GetPosToClient widget, .layoutwidget, @x, @y
+						.FOverControl = Widget
+						.MouseMove(event->button.x + x, event->button.y + y, event->button.state)
+						Return True
+					#Else
+						P = Type<Point>(loWord(lParam), hiWord(lParam))
+						ClientToScreen(hDlg, @P)
+						ScreenToClient(.FDialog, @P)
+						.MouseMove(P.X, P.Y, wParam and &HFFFF )
+						Return 0
+					#EndIf
+				#IfDef __USE_GTK__
+					Case GDK_KEY_PRESS
+				#Else
+					Case WM_KEYDOWN
+				#EndIf
+					#IfDef __USE_GTK__
+						.KeyDown(event->Key.keyval, event->Key.state)
+					#Else
+						.KeyDown(wParam, 0)
+					#EndIf
+				End Select
 		   end with
 		end if
-		Return True
-	#Else
-		Select Case uMsg
-		case WM_MOUSEFIRST to WM_MOUSELAST
-			return true
-		case WM_NCHITTEST
-			return HTTRANSPARENT
-		case WM_KEYFIRST to WM_KEYLAST
-			return 0
-		end select
-		return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
-	#EndIf
+		#IfDef __USE_GTK__
+			Return True
+		#Else
+			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+		#EndIf
+	'#Else
+		'Dim As Any Ptr Ctrl = Cast(Any Ptr, GetWindowLongPtr(hDlg, GWLP_USERDATA))
+		'If Ctrl <> 0 AndAlso Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 AndAlso QWString(Des->ReadPropertyFunc(Ctrl, "ClassAncestor")) = "" Then
+			'Select Case uMsg
+			
+			'case WM_MOUSEFIRST to WM_MOUSELAST
+			'	return true
+			'case WM_NCHITTEST
+			'	return HTTRANSPARENT
+			'case WM_KEYFIRST to WM_KEYLAST
+			'	return 0
+			'end select
+		'End If
+		'return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+	'#EndIf
 	End Function
 				  
 	#IfDef __USE_GTK__

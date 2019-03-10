@@ -2,7 +2,7 @@
 	#IfDef __FB_64bit__
 	    '#Compile -g -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
 	#Else
-	    '#Compile -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -g -s console -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
@@ -109,6 +109,7 @@ Dim Shared AddIns As WStringList
 #Include Once "frmAddIns.bas"
 #Include Once "frmAbout.bas"
 #Include Once "frmOptions.bas"
+#Include Once "frmProjectProperties.bas"
 
 Dim Shared As frmFind fFind
 Dim Shared As frmReplace fReplace
@@ -800,6 +801,7 @@ Sub mClick(Sender As My.Sys.Object)
     Case "AddFileToProject":    AddFileToProject
     Case "RemoveFileFromProject": RemoveFileFromProject
     Case "OpenProjectFolder": OpenProjectFolder
+    Case "ProjectProperties": fProjectProperties.Show frmMain
     Case "SetAsMain": 			SetAsMain
     Case "Folder":              WithFolder
     Case "SyntaxCheck" :    
@@ -837,9 +839,9 @@ Sub mClick(Sender As My.Sys.Object)
 			'but_enable()
 			DeleteDebugCursor
 			thread_rsm()     
-		#EndIf   
-    Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
-         "Start", "Stop", "StepInto", "Find", "Replace", "FindNext", "Goto", "SetNextStatement", _
+		#EndIf
+	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
+         "Start", "Stop", "StepInto", "FindNext", "Goto", "SetNextStatement", _
          "AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks"
         Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
         If tb = 0 Then Exit Sub
@@ -863,8 +865,6 @@ Sub mClick(Sender As My.Sys.Object)
 			Case "RunToCursor":     brk_set(9)
 			Case "AddWatch":        var_tip(2)
         #EndIf
-        Case "Find":            fFind.Show frmMain
-        Case "Replace":         fReplace.Show frmMain
         Case "FindNext":        fFind.Find(True)
         Case "FindPrev":        fFind.Find(False)
         Case "Goto":            fGoto.Show frmMain
@@ -876,7 +876,9 @@ Sub mClick(Sender As My.Sys.Object)
     Case "CloseAll":            CloseAllTabs
     Case "CloseAllWithoutCurrent": CloseAllTabs(True)
     Case "Exit":                frmMain.CloseForm
+    Case "Find":         		fFind.Show frmMain
     Case "FindInFiles":         fFindFile.Show frmMain
+    Case "Replace":         fReplace.Show frmMain
     Case "NewForm":             AddTab ExePath + "/templates/Form.bas", True
     #IfNDef __USE_GTK__
 		Case "ShowString":          string_sh(tviewvar)
