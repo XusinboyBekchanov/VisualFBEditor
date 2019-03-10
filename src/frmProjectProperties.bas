@@ -16,9 +16,6 @@ Using My.Sys.Forms
     Type frmProjectProperties Extends Form
         Declare Static Sub cmdOK_Click(ByRef Sender As Control)
         Declare Static Sub cmdCancel_Click(ByRef Sender As Control)
-        Declare Static Sub pnlVersionNumber_Click(ByRef Sender As Control)
-        Declare Static Sub lblTitle_Click(BYREF Sender As Label)
-        Declare Static Sub grbVersionNumber_Click(BYREF Sender As GroupBox)
         Declare Constructor
         
         Dim As TabControl tabProperties
@@ -132,7 +129,6 @@ Using My.Sys.Forms
         grbVersionNumber.Name = "grbVersionNumber"
         grbVersionNumber.Text = "Version Number"
         grbVersionNumber.SetBounds 10, 8, 189, 102
-        grbVersionNumber.OnClick = @grbVersionNumber_Click
         grbVersionNumber.Parent = @tpMake
         ' lblMajor
         lblMajor.Name = "lblMajor"
@@ -156,7 +152,6 @@ Using My.Sys.Forms
         pnlVersionNumber.Name = "pnlVersionNumber"
         pnlVersionNumber.Text = ""
         pnlVersionNumber.SetBounds 24, 30, 168, 72
-        pnlVersionNumber.OnClick = @pnlVersionNumber_Click
         pnlVersionNumber.Parent = @tpMake
         ' lblBuild
         lblBuild.Name = "lblBuild"
@@ -200,7 +195,6 @@ Using My.Sys.Forms
         lblTitle.Text = "Title:"
         lblTitle.SetBounds 6, 6, 42, 18
         lblTitle.Caption = "Title:"
-        lblTitle.OnClick = @lblTitle_Click
         lblTitle.Parent = @pnlApplication
         ' pnlApplication
         pnlApplication.Name = "pnlApplication"
