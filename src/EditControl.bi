@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
     #DEFINE QEditControl(__Ptr__) *Cast(EditControl Ptr,__Ptr__)
 
-    Type EditControlHistory '...'
+    Type EditControlHistory
         Comment As WString Ptr
         Lines As List
         OldSelStartLine As Integer
@@ -50,7 +50,7 @@ Namespace My.Sys.Forms
         Visible = True
     End Constructor
 
-    Destructor EditControlLine '...'
+    Destructor EditControlLine
         If Text Then Deallocate Text
     End Destructor
 
@@ -264,7 +264,7 @@ Namespace My.Sys.Forms
             OnChange As Sub(ByRef Sender As EditControl)
             OnAutoComplete As Sub(ByRef Sender As EditControl)
             OnValidate As Sub(ByRef Sender As EditControl)
-            OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer)
+            OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
     End Type
     
     Dim As EditControl Ptr CurEC
@@ -418,7 +418,7 @@ Namespace My.Sys.Forms
         PaintControl
     End Property
 
-    Sub EditControl._FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString) '...'
+    Sub EditControl._FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString)
         WLet item->Comment, Comment
         Dim ecItem As EditControlLine Ptr
         For i As Integer = 0 To FLines.Count - 1
@@ -750,7 +750,11 @@ Namespace My.Sys.Forms
                 item->OldSelStartChar = FSelStartChar
                 item->OldSelEndChar = FSelEndChar
                 FHistory.Add item
-                curHistory = FHistory.Count - 1
+                If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
+	            	Delete Cast(EditControlHistory Ptr, FHistory.Items[0])
+	            	FHistory.Remove 0
+	            End If
+            	curHistory = FHistory.Count - 1
             End If
         ElseIf CInt(Not bOldCommented) AndAlso CInt(FHistory.Count > 0) Then
             item = FHistory.Items[FHistory.Count - 1]
@@ -779,6 +783,10 @@ Namespace My.Sys.Forms
             item->SelEndChar = FSelEndChar
             _ClearHistory curHistory + 1
             FHistory.Add item
+            If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
+            	Delete Cast(EditControlHistory Ptr, FHistory.Items[0])
+            	FHistory.Remove 0
+            End If
             curHistory = FHistory.Count - 1
         End If
         If OnChange Then OnChange(This)
@@ -1048,7 +1056,7 @@ A:
     Function EditControl.GetCaretPosY(LineIndex As Integer) As Integer
         Static As Integer i, j
         j = 0
-        For i = 1 To LineIndex
+        For i = 1 To Min(FLines.Count - 1, LineIndex)
             If Cast(EditControlLine Ptr, FLines.Items[i])->Visible Then j = j + 1
         Next
         Return j
@@ -1059,6 +1067,13 @@ A:
             ChangeCollapseState GetLineIndex(LineIndex, 0), False
         Loop While Not Cast(EditControlLine Ptr, FLines.Items[LineIndex])->Visible
     End Sub
+    
+    Function IsArg2(ByRef sLine As WString) As Boolean
+        For i As Integer = 1 To Len(sLine)
+            If Not IsArg(Asc(Mid(sLine, i, 1))) Then Return False
+        Next
+        Return True
+    End Function
     
     Function GetNextCharIndex(ByRef sLine As WString, iEndChar As Integer) As Integer
         Dim i As Integer
@@ -1116,7 +1131,6 @@ A:
         FCurLineCharIdx = FSelEndChar
         nCaretPosX = TextWidth(GetTabbedText(Left(Lines(FSelEndLine), FCurLineCharIdx)))
         If CInt(DropDownShowed) AndAlso CInt(CInt(FSelEndChar < DropDownChar) OrElse CInt(FSelEndChar > GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar))) Then
-            ?FSelEndChar, DropDownChar, GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar)
             #IfDef __USE_GTK__
             	CloseDropDown()
             #Else
@@ -1125,7 +1139,7 @@ A:
         End If
         If OldLine <> FSelEndLine Then
             If Not bOldCommented Then Changing "Matn kiritildi"
-            If OnLineChange Then OnLineChange(This, FSelEndLine)
+            If OnLineChange Then OnLineChange(This, FSelEndLine, OldLine)
         End If
         
         If CInt(FSelStartLine > -1) AndAlso CInt(FSelStartLine < FLines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, FLines.Items[FSelStartLine])->Visible) Then
@@ -1611,7 +1625,7 @@ A:
                     LinePrinted = True
                 End If
                 If CurExecutedLine = z AndAlso CurEC <> 0 Then
-                    PaintText i, *s, Len(*s) - Len(LTrim(*s)), Len(*s), IIF(CurEC = @This, clYellow, clBtnFace), clBlack, ""
+                    PaintText i, *s, Len(*s) - Len(LTrim(*s, Any !"\t ")), Len(*s), IIF(CurEC = @This, clYellow, clBtnFace), clBlack, ""
                     LinePrinted = True
                 End If
                 If Not LinePrinted Then
@@ -2109,7 +2123,7 @@ A:
         FSelEndLine = i - 1
     End Sub
 
-    Function GetLeftSpace(ByRef Value As WString) As Integer '...'
+    Function GetLeftSpace(ByRef Value As WString) As Integer
         Return Len(Value) - Len(LTrim(Value, " "))
     End Function
     
@@ -2669,7 +2683,7 @@ A:
 					If DropDownShowed Then
 						#IfDef __USE_GTK__
 							CloseDropDown()
-							If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, *lvIntellisense.ListItems.Item(LastItemIndex))
+							If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
 						#Else
 							cboIntellisense.ShowDropDown False
 							If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
@@ -2742,7 +2756,7 @@ A:
 								If DropDownShowed Then
 									#IfDef __USE_GTK__
 										CloseDropDown()
-										If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, *lvIntellisense.ListItems.Item(LastItemIndex))
+										If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
 									#Else
 										cboIntellisense.ShowDropDown False
 										If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
@@ -2771,7 +2785,7 @@ A:
 							If DropDownShowed Then
 								#IfDef __USE_GTK__
 									CloseDropDown()
-									If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, *lvIntellisense.ListItems.Item(LastItemIndex))
+									If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
 								#Else
 									cboIntellisense.ShowDropDown False
 									If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
@@ -2909,7 +2923,7 @@ A:
 								If DropDownShowed Then
 									#IfDef __USE_GTK__
 										CloseDropDown()
-										If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, *lvIntellisense.ListItems.Item(LastItemIndex))
+										If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
 									#Else
 										cboIntellisense.ShowDropDown False
 										If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)

@@ -1,4 +1,4 @@
-﻿'#Compile -ex "mff\xpmanifest.rc"
+﻿'#Compile -ex
 #Include Once "mff\Form.bi"
 #Include Once "mff\TextBox.bi"
 #Include Once "mff\Label.bi"
@@ -23,7 +23,7 @@ Using My.Sys.Forms
     Constructor Form1
         ' Form1
         This.Name = "Form1"
-        This.Text = "Form1"
+        This.Text = "Adding new language texts to .lng"
         This.SetBounds 0, 0, 350, 156
         ' TextBox1
         TextBox1.Name = "TextBox1"
@@ -32,15 +32,15 @@ Using My.Sys.Forms
         TextBox1.Parent = @This
         ' Label1
         Label1.Name = "Label1"
-        Label1.Text = "Yo`l"
+        Label1.Text = ".vfp path"
         Label1.SetBounds 12, 24, 78, 18
-        Label1.Caption = "Yo`l"
+        Label1.Caption = "Path to .vfp"
         Label1.Parent = @This
         ' CommandButton1
         CommandButton1.Name = "CommandButton1"
-        CommandButton1.Text = "Bajarish"
+        CommandButton1.Text = "Run"
         CommandButton1.SetBounds 144, 84, 90, 30
-        CommandButton1.Caption = "Bajarish"
+        CommandButton1.Caption = "Run"
         CommandButton1.OnCreate = @CommandButton1_Create
         CommandButton1.OnClick = @CommandButton1_Click
         CommandButton1.Parent = @This
@@ -53,9 +53,9 @@ Using My.Sys.Forms
         CommandButton2.Parent = @This
         ' Label2
         Label2.Name = "Label2"
-        Label2.Text = "Til yo`li"
+        Label2.Text = "Path to .lng"
         Label2.SetBounds 12, 54, 78, 18
-        Label2.Caption = "Til yo`li"
+        Label2.Caption = "Path to .lng"
         Label2.Parent = @This
         ' TextBox2
         TextBox2.Name = "TextBox2"
@@ -82,7 +82,7 @@ Using My.Sys.Forms
 
 Private Sub Form1.CommandButton2_Click(ByRef Sender As Control)
     Dim OpenD As OpenFileDialog
-    OpenD.Filter = "FreeBasic fayllari (.bi, .bas, .vfp)|*.bi;*.bas;*.vfp|"
+    OpenD.Filter = "Visual FB Editor projects (.vfp)|*.vfp|"
     If OpenD.Execute Then
         Cast(Form1 Ptr, Sender.Parent)->TextBox1.Text = OpenD.FileName
     End If
@@ -131,8 +131,8 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
     WReallocate buff, LOF(1)
     Do Until EOF(1)
         Line Input #1, *buff
-        If StartsWith(*buff, "File=") Then
-            *buff = Mid(*buff, 6)
+        If StartsWith(*buff, "File=") OrElse StartsWith(*buff, "*File=") Then
+            *buff = Mid(*buff, Instr(*buff, "=") + 1)
             If Instr(*buff, ":") Then
                 WLet fileName, *buff
             Else
@@ -148,7 +148,7 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
                     If p1 > 0 Then
                         Key = Mid(*buff1, p + 4, p1 - p - 4)
                         If Key <> """" Then
-                            If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
+                            If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key: ?Key
                         End If
                     End If
                     p = Instr(p1 + 1, LCase(*buff1), "ml(""")
@@ -166,12 +166,12 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
         Print #1, Key & " = " & IIF(mlKeys.Contains(Key), mlTexts.Item(mlKeys.IndexOf(Key)), "")
     Next
     Close #1
-    MsgBox "Bajarildi!"
+    MsgBox "Done!"
 End Sub
 
 Private Sub Form1.CommandButton3_Click(ByRef Sender As Control)
     Dim OpenD As OpenFileDialog
-    OpenD.Filter = "Til fayli (.lng)|*.lng|"
+    OpenD.Filter = "Language file (.lng)|*.lng|"
     If OpenD.Execute Then
         Cast(Form1 Ptr, Sender.Parent)->TextBox2.Text = OpenD.FileName
     End If

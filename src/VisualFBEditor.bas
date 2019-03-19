@@ -1,20 +1,19 @@
 ﻿#IfDef __FB_Win32__
 	#IfDef __FB_64bit__
-	    '#Compile -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -g -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
 	#Else
-	    '#Compile -w all -s console -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -g -s console -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
-	    '#Compile -s gui -x "../VisualFBEditor64_gtk3" -exx
+	    '#Compile -g -s gui -x "../VisualFBEditor64_gtk3" -exx
 	#Else
-	    '#Compile -s gui -x "../VisualFBEditor32_gtk3" -exx
+	    '#Compile -g -s gui -x "../VisualFBEditor32_gtk3" -exx
 	#EndIf
 #EndIf
 '#Define __USE_GTK3__
-
 On Error Goto AA
-#Define GetMN
+'#Define GetMN
 Declare Sub m(ByRef msg As WString)
 Declare Function ML(ByRef msg As WString) ByRef As WString
 
@@ -66,6 +65,7 @@ Dim Shared As Boolean AutoCreateRC
 Dim Shared As Boolean AutoSaveCompile
 Dim Shared As Boolean ShowSpaces
 Dim Shared As Integer TabWidth
+Dim Shared As Integer HistoryLimit
 Dim Shared As Integer TabAsSpaces
 Dim Shared As TreeNode Ptr MainNode
 
@@ -96,6 +96,7 @@ Dim Shared As ScrollBarControl scrTool
 Dim Shared As MainMenu mnuMain
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As SaveFileDialog SaveD
+Dim Shared AddIns As WStringList
 
 #Include Once "file.bi"
 #Include Once "Designer.bi"
@@ -105,8 +106,10 @@ Dim Shared As SaveFileDialog SaveD
 #Include Once "frmReplace.bas"
 #Include Once "frmGoto.bas"
 #Include Once "frmFindInFiles.bas"
+#Include Once "frmAddIns.bas"
 #Include Once "frmAbout.bas"
 #Include Once "frmOptions.bas"
+#Include Once "frmProjectProperties.bas"
 
 Dim Shared As frmFind fFind
 Dim Shared As frmReplace fReplace
@@ -197,6 +200,10 @@ Function AddProject(ByRef FileName As WString = "") As TreeNode Ptr
     End If
     tn->SelectItem
     If FileName <> "" Then
+    	If Not FileExists(FileName) Then
+    		MsgBox ML("File not found") & ": " & FileName
+    		Return tn
+    	End If
         Dim As TreeNode Ptr tn1, tn2
         Dim buff As WString Ptr
         Dim Pos1 As Integer
@@ -370,7 +377,7 @@ Function SaveProject(tn As TreeNode Ptr, bWithQuestion As Boolean = False) As Bo
                 ee = tn2->Tag
                 If ee <> 0 Then
                     Zv = IIF(*ee->FileName = *pee->MainFileName, "*", "")
-                    If StartsWith(*ee->FileName, GetFolderName(*pee->FileName)) Then
+                    If StartsWith(Replace(*ee->FileName, "\", "/"), Replace(GetFolderName(*pee->FileName), "\", "/", , , 1)) Then
                         Print #1, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*pee->FileName)) + 1), "\", "/")
                     Else
                         Print #1, Zv & "File=" & *ee->FileName
@@ -398,9 +405,13 @@ Sub SaveAll()
     Next i
 End Sub
 
-Sub CloseAllTabs()
+Sub CloseAllTabs(WithoutCurrent As Boolean = False)
     Dim tb As TabWindow Ptr
+    Dim j As Integer = tabCode.TabIndex
     For i As Long = 0 To tabCode.TabCount - 1
+    	If WithoutCurrent Then
+    		If i = j Then Continue For
+    	End If
         tb = Cast(TabWindow Ptr, tabCode.Tabs[i])
         tb->CloseTab
     Next i
@@ -539,8 +550,24 @@ Sub RemoveFileFromProject
     If tn->ParentNode->Nodes.IndexOf(tn) <> -1 Then tn->ParentNode->Nodes.Remove tn->ParentNode->Nodes.IndexOf(tn)
 End Sub
 
+Sub OpenProjectFolder
+	Dim As TreeNode Ptr ptn = tvExplorer.SelectedNode
+    If ptn = 0 Then Exit Sub
+	ptn = GetParentNode(ptn)
+	Dim As ExplorerElement Ptr ee = ptn->Tag
+	If ee = 0 Then Exit Sub
+    If WGet(ee->FileName) <> "" Then
+    	#IfDef __USE_GTK__
+    		Shell "xdg-open """ & GetFolderName(*ee->FileName) & """"
+    	#Else
+    		Shell "explorer """ & Replace(GetFolderName(*ee->FileName), "/", "\") & """"
+    	#EndIf
+    End If
+End Sub
+
 Sub SetAsMain()
 	Dim As TreeNode Ptr tn = tvExplorer.SelectedNode
+	If CInt(TabCode.Focused) AndAlso CInt(TabCode.SelectedTab <> 0) Then tn = Cast(TabWindow Ptr, TabCode.SelectedTab)->tn
     If tn->ParentNode = 0 Then
     	MainNode = tn
     	lblLeft.Text = ML("Main File") & ": " & MainNode->Text
@@ -733,6 +760,33 @@ Sub WithFolder
     Next
 End Sub
 
+Sub CompileProgram(Param As Any Ptr)
+    Compile
+End Sub
+
+Sub CompileAndRun(Param As Any Ptr)
+    If Compile Then ThreadCreate(@RunProgram)
+End Sub
+
+Sub SyntaxCheck(Param As Any Ptr)
+    Compile("Check")
+End Sub
+
+Sub StartDebugging(Param As Any Ptr)
+    If InDebug Then
+		#IfNDef __USE_GTK__
+			fastrun()
+		#EndIf
+    Else
+		#IfDef __USE_GTK__
+			If Compile("-g") Then RunWithDebug(0)
+		#Else
+			runtype = RTFRUN
+			If Compile("-g") Then SetTimer(0, 0, 1, @TimerProc): ThreadCreate(@RunWithDebug): KillTimer 0, 0
+		#EndIf
+    End If
+End Sub
+
 Sub mClick(Sender As My.Sys.Object)
     Select Case Sender.ToString
     Case "NewProject":          NewProject
@@ -746,30 +800,35 @@ Sub mClick(Sender As My.Sys.Object)
     Case "Save":                Save
     Case "AddFileToProject":    AddFileToProject
     Case "RemoveFileFromProject": RemoveFileFromProject
+    Case "OpenProjectFolder": OpenProjectFolder
+    Case "ProjectProperties": fProjectProperties.Show frmMain
     Case "SetAsMain": 			SetAsMain
     Case "Folder":              WithFolder
-    Case "SyntaxCheck" :    Compile("Check")
-    Case "Compile" :        Compile
+    Case "SyntaxCheck" :    
+    	#IfDef __USE_GTK__
+    		SyntaxCheck(0)
+    	#Else
+    		ThreadCreate(@SyntaxCheck)
+    	#EndIf
+    Case "Compile" :        
+    	#IfDef __USE_GTK__
+    		CompileProgram(0)
+    	#Else
+    		ThreadCreate(@CompileProgram)
+    	#EndIf
     Case "Run":             
 		#IfDef __USE_GTK__
 			RunProgram(0)
 		#Else
 			ThreadCreate(@RunProgram)
 		#EndIf
-    Case "CompileAndRun":   If Compile Then ThreadCreate(@RunProgram)
-    Case "Start":
-        If InDebug Then
-			#IfNDef __USE_GTK__
-				fastrun()
-			#EndIf
-        Else
-			#IfDef __USE_GTK__
-				If Compile("-g") Then RunWithDebug(0)
-			#Else
-				runtype = RTFRUN
-				If Compile("-g") Then SetTimer(0, 0, 1, @TimerProc): ThreadCreate(@RunWithDebug): KillTimer 0, 0
-			#EndIf
-        End If
+    Case "CompileAndRun":   
+    	#IfDef __USE_GTK__
+    		CompileAndRun(0)
+    	#Else
+    		ThreadCreate(@CompileAndRun) 'If Compile Then ThreadCreate(@RunProgram)
+    	#EndIf
+    Case "Start": ThreadCreate(@StartDebugging)
     Case "Pause":           'If tb->Compile("-g") Then ThreadCreate(@RunWithDebug)
     Case "Stop":  
 		#IfNDef __USE_GTK__
@@ -780,9 +839,9 @@ Sub mClick(Sender As My.Sys.Object)
 			'but_enable()
 			DeleteDebugCursor
 			thread_rsm()     
-		#EndIf   
-    Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
-         "Start", "Stop", "StepInto", "Find", "Replace", "FindNext", "Goto", "SetNextStatement", _
+		#EndIf
+	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
+         "Start", "Stop", "StepInto", "FindNext", "Goto", "SetNextStatement", _
          "AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks"
         Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
         If tb = 0 Then Exit Sub
@@ -806,8 +865,6 @@ Sub mClick(Sender As My.Sys.Object)
 			Case "RunToCursor":     brk_set(9)
 			Case "AddWatch":        var_tip(2)
         #EndIf
-        Case "Find":            fFind.Show frmMain
-        Case "Replace":         fReplace.Show frmMain
         Case "FindNext":        fFind.Find(True)
         Case "FindPrev":        fFind.Find(False)
         Case "Goto":            fGoto.Show frmMain
@@ -817,8 +874,11 @@ Sub mClick(Sender As My.Sys.Object)
         End Select
     Case "SaveAll":             SaveAll
     Case "CloseAll":            CloseAllTabs
+    Case "CloseAllWithoutCurrent": CloseAllTabs(True)
     Case "Exit":                frmMain.CloseForm
+    Case "Find":         		fFind.Show frmMain
     Case "FindInFiles":         fFindFile.Show frmMain
+    Case "Replace":         fReplace.Show frmMain
     Case "NewForm":             AddTab ExePath + "/templates/Form.bas", True
     #IfNDef __USE_GTK__
 		Case "ShowString":          string_sh(tviewvar)
@@ -881,6 +941,7 @@ Sub mClick(Sender As My.Sys.Object)
             End Select
         End If
     Case "Options": fOptions.Show frmMain
+    Case "AddIns": fAddIns.Show frmMain
     Case "Content":
     	#IfDef __USE_GTK__
     		RunHelp(0)
@@ -1276,9 +1337,17 @@ End Sub
 
 Sub LoadLanguageTexts
     #IfDef __FB_Win32__
-		iniSettings.Create ExePath & "/VisualFBEditor.ini"
+    	#IfDef __Fb_64Bit__
+			iniSettings.Load ExePath & "/Settings/VisualFBEditor64.ini"
+		#Else
+			iniSettings.Load ExePath & "/Settings/VisualFBEditor32.ini"
+		#EndIf
     #Else
-		iniSettings.Create ExePath & "/VisualFBEditorX.ini"
+		#IfDef __Fb_64Bit__
+			iniSettings.Load ExePath & "/Settings/VisualFBEditorX64.ini"
+		#Else
+			iniSettings.Load ExePath & "/Settings/VisualFBEditorX32.ini"
+    	#EndIf
     #EndIf
     CurLanguage = iniSettings.ReadString("Options", "Language", "english")
     If CurLanguage = "" Then
@@ -1303,6 +1372,7 @@ End Sub
 
 Dim cl As Integer = clSilver
 
+imgList.Name = "imgList"
 	imgList.AddMasked "New", cl, "New"
 	imgList.AddMasked "Open", cl, "Open"
 	imgList.AddMasked "Save", cl, "Save"
@@ -1460,7 +1530,7 @@ miDebug->Add("-")
 miDebug->Add(ML("Step Into") & !"\tF8", "", "StepInto", @mclick)
 
 Var miXizmat = mnuMain.Add(ML("Service"), "", "Service")
-miXizmat->Add(ML("Addins ..."), "", "Addins", @mclick)
+miXizmat->Add(ML("Add-Ins ..."), "", "AddIns", @mclick)
 miXizmat->Add("-")
 miXizmat->Add(ML("Options"), "Tools", "Options", @mclick)
 
@@ -1473,6 +1543,13 @@ mnuForm.ImagesList = @imgList '<m>
 mnuForm.Add(ML("Cut"), "Cut", "Cut", @mclick)
 mnuForm.Add(ML("Copy"), "Copy", "Copy", @mclick)
 mnuForm.Add(ML("Paste"), "Paste", "Paste", @mclick)
+
+mnuTabs.ImagesList = @imgList '<m>
+mnuTabs.Add(ML("Set As Main"), "SetAsMain", "SetAsMain", @mclick)
+mnuTabs.Add("-")
+mnuTabs.Add(ML("Close"), "Close", "Close", @mclick)
+mnuTabs.Add(ML("Close All Without Current"), "CloseAllWithoutCurrent", "CloseAllWithoutCurrent", @mclick)
+mnuTabs.Add(ML("Close All"), "CloseAll", "CloseAll", @mclick)
 
 mnuVars.ImagesList = @imgList '<m>
 mnuVars.Add(ML("Show String"), "", "ShowString", @mclick)
@@ -1495,6 +1572,7 @@ mnuExplorer.Add(ML("Project Properties ..."), "", "ProjectProperties", @mclick)
 'txtCommands.Align = 3
 'txtCommands.Items.Add "fdfd"
 
+tbStandard.Name = "Standard"
 tbStandard.ImagesList = @imgList
 tbStandard.HotImagesList = @imgList
 tbStandard.Align = 3
@@ -1535,23 +1613,28 @@ tbStandard.Buttons.Add , "Start",, @mClick, "Start", , ML("Start"), True
 tbStandard.Buttons.Add , "Pause",, @mClick, "Pause", , ML("Pause"), True
 tbStandard.Buttons.Add , "Stop",, @mClick, "Stop", , ML("Stop"), True
 tbStandard.Buttons.Add tbsSeparator
-tbStandard.Buttons.Add tbsCheck Or tbsAutosize, "Form",, @mClick, "Form", , ML("Console/GUI"), True
+tbStandard.Buttons.Add tbsAutosize Or tbsCheck, "Form",, @mClick, "Form", , ML("Console/GUI"), True
 tbStandard.Buttons.Add tbsSeparator
 #IfDef __USE_GTK__
-	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True
-	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B64",, @mClick, "B64", , ML("64-bit"), True
+	tbStandard.Buttons.Add tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True
+	tbStandard.Buttons.Add tbsCheckGroup, "B64",, @mClick, "B64", , ML("64-bit"), True
 	#IfDef __FB_64bit__
 		tbStandard.Buttons.Item("B64")->Checked = True
 	#Else
 		tbStandard.Buttons.Item("B32")->Checked = True
 	#EndIf
 #Else
-	#IfDef __FB_64bit__
+	'#IfDef __FB_64bit__
 		tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True
-		tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B64",, @mClick, "B64", , ML("64-bit"), True, tstEnabled Or tstChecked
-	#Else
-		tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True, tstEnabled Or tstChecked
+	'	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B64",, @mClick, "B64", , ML("64-bit"), True, tstEnabled Or tstChecked
+	'#Else
+	'	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True, tstEnabled Or tstChecked
 		tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B64",, @mClick, "B64", , ML("64-bit"), True
+	'#EndIf
+	#IfDef __FB_64bit__
+		tbStandard.Buttons.Item("B64")->Checked = True
+	#Else
+		tbStandard.Buttons.Item("B32")->Checked = True
 	#EndIf
 #EndIf
 'tbStandard.AddRange 1, @cboCommands
@@ -1829,15 +1912,16 @@ pnlPropertyValue.Add @cboPropertyValue
 Dim Shared CtrlEdit As Control Ptr
 Dim Shared Cpnt As Component Ptr
 
-Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, BYREF Item As ListViewItem)
+Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
     Dim As Rect lpRect
+    Dim As ListViewItem Ptr Item = lvProperties.ListItems.Item(ItemIndex)
     lvProperties.SetFocus
     txtPropertyValue.Visible = False
     pnlPropertyValue.Visible = False
     #IfNDef __USE_GTK__
-		ListView_GetSubItemRect(lvProperties.Handle, Item.Index, 1, LVIR_BOUNDS, @lpRect)
+		ListView_GetSubItemRect(lvProperties.Handle, ItemIndex, 1, LVIR_BOUNDS, @lpRect)
     #EndIf
     Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), GetItemText(Item))
     If te = 0 Then Exit Sub
@@ -1846,7 +1930,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, BYREF Item As Lis
         cboPropertyValue.Clear
         cboPropertyValue.AddItem " false"
         cboPropertyValue.AddItem " true"
-        cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item.Text(1))
+        cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
     ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(Comps.Contains(te->EnumTypeName)) Then
         CtrlEdit = @pnlPropertyValue
         cboPropertyValue.Clear
@@ -1855,8 +1939,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, BYREF Item As Lis
             For i As Integer = 0 To tbi->Elements.Count - 1
                 cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
             Next i
-            If Val(Item.Text(1)) >= 0 AndAlso Val(Item.Text(1)) <= tbi->Elements.Count - 1 Then
-                cboPropertyValue.ItemIndex = Val(Item.Text(1))
+            If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
+                cboPropertyValue.ItemIndex = Val(Item->Text(1))
             End If
         End If
     ElseIf IsBase(te->TypeName, "Component") Then
@@ -1874,7 +1958,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, BYREF Item As Lis
                 End If
             End If
         Next i
-        cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item.Text(1))
+        cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
     Else
         Dim tbi As ToolBoxItem Ptr
         If Comps.Contains(te->TypeName) Then tbi = Cast(ToolBoxItem Ptr, Comps.Object(Comps.IndexOf(te->TypeName)))
@@ -1884,12 +1968,12 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, BYREF Item As Lis
             For i As Integer = 0 To tbi->Elements.Count - 1
                 cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
             Next i
-            If Val(Item.Text(1)) >= 0 AndAlso Val(Item.Text(1)) <= tbi->Elements.Count - 1 Then
-                cboPropertyValue.ItemIndex = Val(Item.Text(1))
+            If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
+                cboPropertyValue.ItemIndex = Val(Item->Text(1))
             End If
         Else
             CtrlEdit = @txtPropertyValue
-            CtrlEdit->Text = Item.Text(1)
+            CtrlEdit->Text = Item->Text(1)
         End If
     End If
     CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left, lpRect.Bottom - lpRect.Top - 1
@@ -1900,14 +1984,14 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, BYREF Item As Lis
     End If
 End Sub
 
-Sub lvProperties_ItemDblClick(ByRef Sender As ListView, BYREF Item As ListViewItem)
-    ClickProperty Item.Index
+Sub lvProperties_ItemDblClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+    ClickProperty ItemIndex
 End Sub
 
-Sub lvEvents_ItemDblClick(ByRef Sender As ListView, BYREF Item As ListViewItem)
+Sub lvEvents_ItemDblClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
     Dim As TabWindow Ptr tb = tabRight.Tag
     If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
-    FindEvent tb->Des->SelectedControl, Item.Text(0)
+    FindEvent tb->Des->SelectedControl, lvEvents.ListItems.Item(ItemIndex)->Text(0)
 End Sub
 
 Sub lvProperties_EndScroll(ByRef Sender As ListView)
@@ -2003,7 +2087,7 @@ Sub lvProperties_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
   End If   ' (iItem <> LVI_NOITEM)
 End Sub
 
-Sub lvEvents_KeyDown(ByRef Sender As Control, BYREF Item As ListViewItem)
+Sub lvEvents_KeyDown(ByRef Sender As Control, ByVal ItemIndex As Integer)
     
 End Sub
 
@@ -2196,14 +2280,16 @@ tabCode.Images = @imgList
 tabCode.Align = 5
 tabCode.OnPaint = @tabCode_Paint
 tabCode.OnSelChange = @tabCode_SelChange
+tabCode.ContextMenu = @mnuTabs
     
 txtOutput.Align = 5
 txtOutput.Multiline = True
 txtOutput.ScrollBars = 3
 txtOutput.OnDblClick = @txtOutput_DblClick
 
-Sub lvErrors_ItemActivate(ByRef Sender As Control, ByRef item As ListViewItem) '...'
-    SelectError(item.Text(2), Val(item.Text(1)), item.Tag)
+Sub lvErrors_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
+    Dim Item As ListViewItem Ptr = lvErrors.ListItems.Item(itemIndex)
+    SelectError(item->Text(2), Val(item->Text(1)), item->Tag)
 End Sub
 
 'Sub lvErrors_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
@@ -2225,8 +2311,9 @@ lvErrors.Columns.Add ML("File"), , 300, cfLeft
 lvErrors.OnItemActivate = @lvErrors_ItemActivate
 'lvErrors.OnKeyDown = @lvErrors_KeyDown
 
-Sub lvSearch_ItemActivate(ByRef Sender As Control, ByRef item As ListViewItem)
-    SelectSearchResult(item.Text(3), Val(item.Text(1)), Val(item.Text(2)), Len(lvSearch.Text), item.Tag)
+Sub lvSearch_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
+	Dim Item As ListViewItem Ptr = lvSearch.ListItems.Item(itemIndex)
+    SelectSearchResult(item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(lvSearch.Text), item->Tag)
 End Sub
 
 'Sub lvSearch_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
@@ -2398,6 +2485,66 @@ Sub frmMain_DropFile(ByRef sender As My.Sys.Object, ByRef FileName As WString)
     AddTab FileName
 End Sub
 
+Sub ConnectAddIn(AddIn As String)
+	Dim As Sub(VisualFBEditorApp As Any Ptr, ByRef AppPath As WString) OnConnection
+	Dim As Any Ptr AddInDll
+	Dim As String f
+	#IfDef __Fb_Win32__
+    	f = dir(exepath & "/AddIns/" & AddIn & ".dll")
+    #Else
+    	f = dir(exepath & "/AddIns/" & AddIn & ".so")
+    #EndIf
+    AddInDll = DyLibLoad(exepath & "/AddIns/" & f)
+	If AddInDll <> 0 Then
+		OnConnection = DyLibSymbol(AddInDll, "OnConnection")
+		If OnConnection Then
+			OnConnection(@App, App.FileName)
+			AddIns.Add AddIn, AddInDll
+		End If
+	End If
+End Sub
+
+Sub DisConnectAddIn(AddIn As String)
+	Dim As Sub(VisualFBEditorApp As Any Ptr) OnDisconnection
+	Dim As Any Ptr AddInDll
+	Dim i As Integer = AddIns.IndexOf(AddIn)
+	If i <> -1 Then
+		AddInDll = AddIns.Object(i)
+		If AddInDll <> 0 Then
+			OnDisconnection = DyLibSymbol(AddInDll, "OnDisconnection")
+			If OnDisconnection Then
+				OnDisconnection(@App)
+				DyLibFree(AddInDll)
+			End If
+		End If
+		AddIns.Remove i
+	End If
+End Sub
+
+Sub LoadAddIns
+	Dim As String f, AddIn
+	#IfDef __Fb_Win32__
+    	f = dir(exepath & "/AddIns/*.dll")
+    #Else
+    	f = dir(exepath & "/AddIns/*.so")
+    #EndIf
+    While f <> ""
+    	AddIn = Left(f, InStrRev(f, ".") - 1)
+    	If iniSettings.ReadBool("AddInsOnStartup", AddIn, False) Then
+    		ConnectAddIn AddIn
+    	End If
+    	f = Dir()
+    Wend
+End Sub
+
+Sub UnLoadAddins
+	Dim As Any Ptr AddInDll
+	For i As Integer = 0 To AddIns.Count - 1
+		DisconnectAddIn AddIns.Item(i)
+	Next
+	AddIns.Clear
+End Sub
+
 Sub frmMain_Create(ByRef Sender As Control)
 	#IfDef __USE_GTK__
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), "VisualFBEditor1")
@@ -2429,6 +2576,7 @@ Sub frmMain_Create(ByRef Sender As Control)
     AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", true)
     ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", true)
     TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
+    HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
     Var file = Command(-1)
     If file = "" Then
         'AddTab ExePath & "/templates/Form.bas", True
@@ -2444,6 +2592,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		tviewWch = tvWch.Handle
 		DragAcceptFiles(frmMain.Handle, true)
 	#EndIf
+	LoadAddins
 End Sub
 
 Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
@@ -2465,6 +2614,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
     iniSettings.WriteBool("MainWindow", "BottomClosed", GetBottomClosedStyle)
     iniSettings.WriteInteger("MainWindow", "BottomHeight", tabBottomHeight)
     iniSettings.WriteBool("MainWindow", "ProjectFolders", tbExplorer.Buttons.Item(3)->Checked)
+    UnLoadAddins
     Exit Sub
 ErrorHandler:
     MsgBox ErrDescription(Err) & " (" & Err & ") " & _

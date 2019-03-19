@@ -15,7 +15,7 @@ Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As ListView lvErrors, lvSearch, lvProperties, lvEvents
 Dim Shared As ImageList imgList, imgListTools, imgListStates
 Dim Shared As ToolButton Ptr SelectedTool
-Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer
+Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
 
 Declare Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 Declare Sub CompleteWord()
@@ -86,6 +86,7 @@ Destructor ToolBoxItem
     WDeAllocate LibraryName
     WDeAllocate LibraryFile
     WDeAllocate IncludeFile
+    Elements.Clear
 End Destructor
 
 Type PTabWindow As TabWindow Ptr
@@ -617,8 +618,7 @@ End Property
 Sub CloseButton_MouseUp(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
     Dim tb As TabWindow Ptr = Cast(CloseButton Ptr, @Sender)->tbParent
     If tb = 0 Then Exit Sub
-    tb->CloseTab
-    Delete tb
+    If tb->CloseTab Then Delete tb
 End Sub
             
 Sub CloseButton_MouseMove(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -1674,13 +1674,19 @@ Sub cboClass_Change(ByRef Sender as ComboBoxEdit, ItemIndex As Integer)
 End Sub
 
 Dim Shared bNotDesignForms As Boolean
-Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
+Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     bNotFunctionChange = True
     If TextChanged Then
     	With tb->txtCode
-        If Not .Focused Then bNotFunctionChange = False: Exit Sub
+        	If Not .Focused Then bNotFunctionChange = False: Exit Sub
+        	If OldLine < .FLines.Count Then
+	        	Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .FLines.Items[OldLine])
+	        	If CInt(ecl->CommentIndex = 0) AndAlso CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg2(Trim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2), Any !"\t "))) Then
+	        		WLet ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1"
+	        	End If
+	        End If
         	tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or Not EndsWith(tb->cboFunction.Text, " [Constructor]")
     	End With
     	TextChanged = False
@@ -1689,28 +1695,30 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
 '        tb->cboClass.ItemIndex = 0
 '        cboClass_Change tb->cboClass, 0
 '    End If
+    If tb->cboClass.ItemIndex <> 0 Then
+        tb->cboClass.ItemIndex = 0
+        cboClass_Change tb->cboClass, 0
+    End If
     Dim As TypeElement Ptr te1, te2
     Dim t As Boolean
     For i As Integer = 0 To tb->Functions.Count - 1
         te2 = tb->Functions.Object(i)
         If te2 = 0 Then Continue For
         If te2->StartLine <= CurrentLine And te2->EndLine >= CurrentLine Then
-            For j As Integer = 1 To tb->cboFunction.Items.Count - 1
-                te1 = tb->cboFunction.Items.Item(j)->Object
-                If te1 = 0 Then Continue For
-                If te1->StartLine = te2->StartLine Then
-                    tb->cboFunction.ItemIndex = j
-                    t = True
-                    bNotFunctionChange = False
-                    Exit Sub
-                End If
-            Next
+            If tb->cboFunction.ItemIndex <> i + 1 Then tb->cboFunction.ItemIndex = i + 1
+            t = True
+            bNotFunctionChange = False
+            Exit Sub
+            'For j As Integer = 1 To tb->cboFunction.Items.Count - 1
+'                If te2 = tb->cboFunction.Items.Item(j)->Object Then
+'                	tb->cboFunction.ItemIndex = j
+'                    t = True
+'                    bNotFunctionChange = False
+'                    Exit Sub
+'                End If
+'            Next
         End If
     Next
-    If tb->cboClass.ItemIndex <> 0 Then
-        tb->cboClass.ItemIndex = 0
-        cboClass_Change tb->cboClass, 0
-    End If
     tb->cboFunction.ItemIndex = 0
     bNotFunctionChange = False
 End Sub
@@ -1787,7 +1795,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
                                 .SetSelection i + 1, i + 1, n + 4, n + 4
                                 .TopLine = i
                                 .SetFocus
-                                OnLineChangeEdit tb->txtCode, i + 1
+                                OnLineChangeEdit tb->txtCode, i + 1, i + 1
                                 t = True
                                 Exit Sub
                             End If
@@ -1812,7 +1820,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
             End If
             .InsertLine i + q, ""
             .InsertLine i + q + 1, "Private Sub " & frmName & "." & SubName & Mid(te->TypeName, 4)
-            .InsertLine i + q + 2, Space(4)
+            .InsertLine i + q + 2, IIF(TabAsSpaces, WSpace(TabWidth), !"\t")
             .InsertLine i + q + 3, "End Sub"
             bNotDesignForms = True
             .SetSelection i + q + 2, i + q + 2, 4, 4
@@ -1822,7 +1830,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
             If lvEvents.ListItems.Contains(EventName) Then
                 lvEvents.ListItems.Item(lvEvents.ListItems.IndexOf(EventName))->Text(1) = SubName
             End If
-            OnLineChangeEdit tb->txtCode, i + q + 2
+            OnLineChangeEdit tb->txtCode, i + q + 2, i + q + 2
             If tb->tbrTop.Buttons.Item(2)->Checked Then
                 tb->tbrTop.Buttons.Item(1)->Checked = True
             End If
@@ -1862,7 +1870,7 @@ Sub cboFunction_Change(ByRef Sender as ComboBoxEdit, ItemIndex As Integer)
                 If te <> 0 Then
                     i = te->StartLine
                     Var n = Len(.Lines(i)) - Len(LTrim(.Lines(i)))
-                    .SetSelection i + 1, i + 1, n + 4, n + 4
+                    .SetSelection i + 1, i + 1, n, n
                     .TopLine = i
                     .SetFocus
                     t = True
@@ -1917,8 +1925,7 @@ End Sub
 
 Dim Shared As Integer SelLinePos, SelCharPos
 #IfDef __USE_GTK__
-	Sub lvIntellisense_ItemActivate(ByRef Sender as ListView, ByRef Item As ListViewItem)
-	    Dim As Integer ItemIndex = Item.Index
+	Sub lvIntellisense_ItemActivate(ByRef Sender as ListView, ByVal ItemIndex As Integer)
 	    Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
 	    If tb = 0 Then Exit Sub
 	    Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
@@ -2384,9 +2391,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
     'cboFunction.Items.Clear
     'cboFunction.Items.Add "(" & ML("Declarations") & ")" & Chr(0), , "Sub", "Sub"
     'cboFunction.ItemIndex = 0
-'    For i As Integer = 0 To Functions.Count - 1
-'        Delete Cast(TypeElement Ptr, Functions.Object(i))
-'    Next
+    For i As Integer = 0 To Functions.Count - 1
+        Delete Cast(TypeElement Ptr, Functions.Object(i))
+    Next
     Functions.Clear
     'If Instr(LCase(txtCode.Text), " extends form") Then
         With txtCode
@@ -2659,26 +2666,21 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
             End If
             Functions.Sort
             If cboClass.ItemIndex = 0 Then
-                Dim As TypeElement Ptr te1, te2
+                Dim As TypeElement Ptr te2
                 Dim t As Boolean
                 For i As Integer = cboFunction.Items.Count - 1 To 1 Step -1
-                    te1 = cboFunction.Items.Item(i)->Object
                     t = False
-                    If te1 = 0 Then Continue For
                     For j As Integer = 0 To Functions.Count - 1
                         te2 = Functions.Object(j)
                         If te2 = 0 Then Continue For
-                        If CInt(*te1->Parameters = *te2->Parameters) Then 'CInt(Not te1->Find) AndAlso 
-                            te1->StartLine = te2->StartLine
-                            te1->EndLine = te2->EndLine
-                            'te1->Find = True
+                        If CInt(Not te2->Find) AndAlso CInt(te2->Name = cboFunction.Items.Item(i)->Text) Then 'CInt(Not te1->Find) AndAlso 
                             te2->Find = True
+                            cboFunction.Items.Item(i)->Object = te2
                             t = True
                             Exit For
                         End If
                     Next j
                     If Not t Then
-                        Delete te1
                         cboFunction.Items.Remove i
                     End If
                 Next i
@@ -2691,7 +2693,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
                         ElseIf te2->ElementType = "Function" Then
                             imgKey = "Function"
                         End If
-                        cboFunction.Items.Add te2->Name, te2, imgKey, imgKey
+                        t = False
+                        For i As Integer = 1 To cboFunction.Items.Count - 1
+                        	If LCase(cboFunction.Items.Item(i)->Text) > LCase(te2->Name) Then
+ 	                       		cboFunction.Items.Add te2->Name, te2, imgKey, imgKey, , , i
+                    			t = True
+                    			Exit For
+                    		End If
+                        Next i
+                        If Not t Then cboFunction.Items.Add te2->Name, te2, imgKey, imgKey
                     End If
                 Next
                 'cboClass_Change cboClass
@@ -2749,7 +2759,7 @@ End Sub
 
 Sub TabWindow_Destroy(ByRef Sender As Control)
 	App.DoEvents
-	Delete Cast(TabWindow Ptr, @Sender)
+	'Delete Cast(TabWindow Ptr, @Sender)
 End Sub
 
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
@@ -2934,20 +2944,25 @@ Destructor TabWindow
     If FLine1 Then DeAllocate FLine1
     If FLine2 Then DeAllocate FLine2
     If Des <> 0 Then
-'	    If Des->DeleteComponentFunc <> 0 Then
-'		    For i As Integer = 2 To cboClass.Items.Count - 1
-'		    	CurCtrl = 0
-'		    	CBItem = cboClass.Items.Item(i)
-'		    	If CBItem <> 0 Then CurCtrl = CBItem->Object
-'		     	If CurCtrl <> 0 Then
-'		      		Des->DeleteComponentFunc(CurCtrl)
-'		      	End If
-'		    Next i
-'		    Des->DeleteComponentFunc(Des->DesignControl)
-'		End If
-		'Delete Des
-	End If
-	'Functions.Clear
+	    If Des->DeleteComponentFunc <> 0 Then
+		    For i As Integer = 2 To cboClass.Items.Count - 1
+		    	CurCtrl = 0
+		    	CBItem = cboClass.Items.Item(i)
+		    	If CBItem <> 0 Then CurCtrl = CBItem->Object
+		     	If CurCtrl <> 0 Then
+		      		Des->DeleteComponentFunc(CurCtrl)
+		      	End If
+		    Next i
+		    Des->DeleteComponentFunc(Des->DesignControl)
+		End If
+		Delete Des
+    End If
+    cboClass.Items.Clear
+    cboFunction.Items.Clear
+	For i As Integer = 0 To Functions.Count - 1
+        Delete Cast(TypeElement Ptr, Functions.Object(i))
+    Next
+    Functions.Clear
     If tabRight.Tag = @This Then tabRight.Tag = 0
     'If tn <> 0 Then tvExplorer.RemoveRoot tvExplorer.IndexOfRoot(tn)
 End Destructor
@@ -3796,6 +3811,98 @@ End Sub
 Sub RunProgram(Param As Any Ptr)
     RunPr
 End Sub
+
+Dim Shared symbols(0 To 15) As UByte
+For i As Integer = 48 to 57
+    symbols(i - 48) = i
+Next
+For i As Integer = 97 to 102
+    symbols(i - 87) = i
+Next
+
+Const plus  As UByte = 43
+Const minus As Ubyte = 45
+Const dot   As UByte = 46
+ 
+Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
+    If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
+    Err = 0 
+ 
+    If base_ < 2 OrElse base_ > 16 Then
+        Err = 1000
+        Return False
+    End If
+ 
+    Dim t As String = LCase(subject)
+ 
+    If (t[0] = plus) OrElse (t[0] = minus) Then
+        t = Mid(t, 2)
+    End If
+ 
+    If Left(t, 2) = "&h" Then
+        If base_ <> 16 Then Return False
+        t = Mid(t, 3)
+    End if
+ 
+    If Left(t, 2) = "&o" Then
+        If base_ <> 8 Then Return False
+        t = Mid(t, 3)
+    End if
+ 
+    If Left(t, 2) = "&b" Then
+        If base_ <> 2 Then Return False
+        t = Mid(t, 3)
+    End if
+ 
+    If Len(t) = 0 Then Return False
+    Dim As Boolean isValid, hasDot = false
+ 
+    For i As Integer = 0 To Len(t) - 1
+        isValid = False
+ 
+        For j As Integer = 0 To base_ - 1
+            If t[i] = symbols(j) Then
+                isValid = True
+                Exit For
+            End If
+            If t[i] = dot Then
+                If CInt(Not hasDot) AndAlso (base_ = 10) Then
+                    hasDot = True 
+                    IsValid = True
+                    Exit For
+                End If
+                Return False ' either more than one dot or not base 10
+            End If
+        Next j
+ 
+        If Not isValid Then Return False
+    Next i
+ 
+    Return True
+End Function
+
+function utf16BeByte2wchars( ta() as ubyte ) ByRef As Wstring
+    type mstring
+            p as wstring ptr ' pointer to wstring buffer
+            l as uinteger ' length of string
+    end type
+    dim a as uinteger = 0
+    dim tal as uinteger = ubound(ta)
+    dim ms as mstring
+
+'this is never deallocated..
+    ms.p = allocate( 0.25 * (tal + 1) * len(wstring))
+    
+    ' iterate array
+    do while a <= tal
+    (*ms.p)[ms.l] = 256 * ta(a) + ta(a + 1) 
+    a += 2
+    ms.l += 1
+    loop
+    
+    (*ms.p)[ms.l] = 0
+    function = *ms.p
+end function
 
 Sub TabWindow.NumberOn
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)

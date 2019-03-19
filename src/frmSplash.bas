@@ -47,7 +47,7 @@ Using My.Sys.Forms
         'lblIcon.Graphic.Icon = 100
         ' lblInfo
         lblInfo.Name = "lblInfo"
-        lblInfo.Text = "2018"
+        lblInfo.Text = "2018-2019"
         lblInfo.SetBounds 18, 282, 282, 18
         lblInfo.BackColor = 0
         lblInfo.Font.Color = 16777215

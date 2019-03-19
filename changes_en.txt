@@ -1,3 +1,14 @@
+Version 1.0.3.42 (February 24, 2019)
+- Fixed: Delete Export functions from .EXE
+Version 1.0.2.1723 (February 23, 2019)
+- Added: Add-In support
+- Added: History Limit to EditControl (default: 20)
+- Fixed: Fixed New-Delete statements
+- Fixed: Updated all language templates
+- Added: Chinese.lng
+- Added: "src" folder
+- Fixed: AutoIndentation
+- Fixed: DropDown position in EditControl
 Version 1.0.2.1400 (January 02, 2019)
 - Added: Debugger option
 - Added: Gtk2 support

@@ -2,6 +2,7 @@
 #Include Once "mff\Form.bi"
 #Include Once "mff\CheckBox.bi"
 #Include Once "mff\Label.bi"
+#Include Once "mff\LinkLabel.bi"
 #Include Once "mff\CommandButton.bi"
 
 Using My.Sys.Forms
@@ -11,7 +12,8 @@ Using My.Sys.Forms
         Declare Static Sub CommandButton1_Click(ByRef Sender As Control)
         Declare Constructor
         
-        Dim As Label Label1, Label2, Label3, lblInfo
+        Dim As Label Label1, lblInfo
+        Dim As LinkLabel Label2, Label3
         Dim As CommandButton CommandButton1
         Dim As ImageBox lblIcon
     End Type
@@ -22,6 +24,8 @@ Using My.Sys.Forms
         This.Text = ML("About")
         This.SetBounds 0, 0, 350, 300
         This.BorderStyle = FormBorderStyle.FixedDialog
+        This.MaximizeBox = false
+        This.MinimizeBox = false
         This.Center
         Label1.Name = "Label1"
         Label1.Text = "Visual FB Editor " & App.Version
@@ -38,13 +42,13 @@ Using My.Sys.Forms
         CommandButton1.Parent = @This
         ' Label2                                
         Label2.Name = "Label2"
-        Label2.Text = ML("Author") & !": Xusinboy Bekchanov\re-mail: bxusinboy@mail.ru"
-        Label2.SetBounds 12, 108, 216, 30
+        Label2.Text = ML("Author") & !": Xusinboy Bekchanov\re-mail: <A href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</A>"
+        Label2.SetBounds 24, 90, 216, 72
         Label2.Parent = @This
         ' Label3
         Label3.Name = "Label3"
         Label3.Text = ML("For donation") & !": \rWebMoney: WMZ: Z884195021874"
-        Label3.SetBounds 12, 180, 216, 30
+        Label3.SetBounds 24, 162, 216, 30
         Label3.Parent = @This
         ' lblIcon
         lblIcon.Name = "lblIcon"
