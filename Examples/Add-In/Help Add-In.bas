@@ -1,14 +1,14 @@
 ﻿#IfDef __FB_Win32__
 	#IfDef __FB_64bit__
-	    '#Compile -dll -x "../AddIns/Help Add-In (x64).dll" "Help Add-In.rc"
+	    '#Compile -dll -x "../../AddIns/Help Add-In (x64).dll" "Help Add-In.rc"
 	#Else
-	    '#Compile -dll -x "../AddIns/Help Add-In (x32).dll" "Help Add-In.rc"
+	    '#Compile -dll -x "../../AddIns/Help Add-In (x32).dll" "Help Add-In.rc"
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
-	    '#Compile -dll -x "../AddIns/HelpAdd-Inx64.so"
+	    '#Compile -dll -x "../../AddIns/HelpAdd-Inx64.so"
 	#Else
-	    '#Compile -dll -x "../AddIns/HelpAdd-Inx32.so"
+	    '#Compile -dll -x "../../AddIns/HelpAdd-Inx32.so"
 	#EndIf
 #EndIf
 

@@ -39,6 +39,7 @@ type Designer extends My.Sys.Object
 		FActive        as Boolean
 		FStepX         as integer
 		FStepY         as integer
+		FDotSize       as integer
 		FShowGrid      as Boolean
 		FChilds        as WindowList
 		#IfDef __USE_GTK__
@@ -174,7 +175,7 @@ type Designer extends My.Sys.Object
 		#Else
 			FSelControl    as HWND
 		#EndIf
-		declare        sub DrawGrid() 'DC as HDC, R as RECT)
+		declare        sub DrawThis() 'DC as HDC, R as RECT)
 		#IfDef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
 			declare        sub MoveDots(Control as GtkWidget Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)
@@ -423,7 +424,7 @@ sub Designer.CreateDots(ParentCtrl As Control Ptr)
 			FDots(i) = gtk_layout_new(NULL, NULL)
 			'g_object_ref(FDots(i))
 			gtk_layout_put(gtk_layout(ParentCtrl->layoutwidget), FDots(i), 0, 0)
-			gtk_widget_set_size_request(FDots(i), 6, 6)
+			gtk_widget_set_size_request(FDots(i), FDotSize, FDotSize)
 			#IfDef __USE_GTK3__
 				g_signal_connect(FDots(i), "draw", G_CALLBACK(@Dot_Draw), @This)
 			#Else
@@ -443,7 +444,7 @@ sub Designer.CreateDots(ParentCtrl As Control Ptr)
 				gdk_window_set_cursor(gtk_layout_get_bin_window(gtk_layout(FDots(i))), gcurs)
 			#EndIf
 		#Else
-			FDots(i) = CreateWindowEx(0, "DOT", "", WS_CHILD or WS_CLIPSIBLINGS or WS_CLIPCHILDREN, 0, 0, 6, 6, ParentCtrl->Handle, 0, instance, 0)
+			FDots(i) = CreateWindowEx(0, "DOT", "", WS_CHILD or WS_CLIPSIBLINGS or WS_CLIPCHILDREN, 0, 0, FDotSize, FDotSize, ParentCtrl->Handle, 0, instance, 0)
 			If IsWindow(FDots(i)) Then 
 				SetWindowLong(FDots(i), 0, CInt(@This))
 			End If
@@ -507,110 +508,115 @@ end sub
 			FSelControl = Control
 			'if Control <> FDialog then
 			#IfDef __USE_GTK__
-			Dim As Integer x, y ', x1, y1
-'			gtk_widget_set_has_window(Control, True)
-'			gtk_widget_set_has_window(FDialogParent, True)
-'  	      	gtk_widget_realize(Control)
-'  	      	gtk_widget_realize(FDialogParent)
-'  	      	gdk_window_get_origin(gtk_widget_get_window(Control), @x, @y)
-'  	      	gdk_window_get_origin(gtk_widget_get_window(FDialogParent), @x1, @y1)
-  	      	gtk_widget_realize(Control)
-  	      	#IfDef __USE_GTK3__
-	  	      	iWidth = gtk_widget_get_allocated_width(Control)
-	  	      	iHeight = gtk_widget_get_allocated_height(Control)
-	  	    #Else
-	  	    	iWidth = Control->allocation.width
-	  	      	iHeight = Control->allocation.height
-  	      	#EndIf
-  	      	If Width1 <> -1 Then iWidth = Width1
-  	      	If Height1 <> -1 Then iHeight = Height1
-		   	GetPosToClient Control, FDialogParent, @x, @y, Left1, Top1
-		   	P.x     = x
-			P.y     = y
-			Dim As GdkDisplay Ptr pdisplay
-			Dim As GdkCursor Ptr gcurs
-			for i as integer = 0 to 7
-				gtk_container_remove(gtk_container(FDialogParent), FDots(i))
-				FDots(i) = gtk_layout_new(NULL, NULL)
-				gtk_widget_set_size_request(FDots(i), 6, 6)
-				gtk_widget_set_events(FDots(i), _
-	                      GDK_EXPOSURE_MASK Or _
-	                       GDK_SCROLL_MASK Or _
-	                       GDK_STRUCTURE_MASK Or _
-	                       GDK_KEY_PRESS_MASK Or _
-	                       GDK_KEY_RELEASE_MASK Or _
-	                       GDK_FOCUS_CHANGE_MASK Or _
-	                       GDK_LEAVE_NOTIFY_MASK Or _
-	                       GDK_BUTTON_PRESS_MASK Or _
-	                       GDK_BUTTON_RELEASE_MASK Or _
-	                       GDK_POINTER_MOTION_MASK Or _
-	                       GDK_POINTER_MOTION_HINT_MASK)
-				g_signal_connect(FDots(i), "event", G_CALLBACK(@DotWndProc), @This)
-				#IfDef __USE_GTK3__
-					g_signal_connect(FDots(i), "draw", G_CALLBACK(@Dot_Draw), @This)
-				#Else
-					g_signal_connect(FDots(i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
-				#EndIf
-				Select Case i
-				Case 0: gtk_layout_put(gtk_layout(FDialogParent), FDots(0), P.X-6, P.Y-6)
-				Case 1: gtk_layout_put(gtk_layout(FDialogParent), FDots(1), P.X+iWidth/2-3, P.Y-6)
-				Case 2: gtk_layout_put(gtk_layout(FDialogParent), FDots(2), P.X+iWidth, P.Y-6)
-				Case 3: gtk_layout_put(gtk_layout(FDialogParent), FDots(3), P.X+iWidth, P.Y + iHeight/2-3)
-				Case 4: gtk_layout_put(gtk_layout(FDialogParent), FDots(4), P.X+iWidth, P.Y + iHeight)
-				Case 5: gtk_layout_put(gtk_layout(FDialogParent), FDots(5), P.X+iWidth/2-3, P.Y + iHeight)
-				Case 6: gtk_layout_put(gtk_layout(FDialogParent), FDots(6), P.X-6, P.Y + iHeight)
-				Case 7: gtk_layout_put(gtk_layout(FDialogParent), FDots(7), P.X-6, P.Y + iHeight/2-3)
-				End Select
-				gtk_widget_realize(FDots(i))
-				pdisplay = gtk_widget_get_display(FDots(i))
-				Select Case i
-				case 0, 4 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNWSE)
-				case 1, 5 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNS)
-				case 2, 6 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNESW)
-				case 3, 7 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeWE)
-				End Select
-				#IfDef __USE_GTK3__
-					gdk_window_set_cursor(gtk_widget_get_window(FDots(i)), gcurs)
-				#Else
-					gdk_window_set_cursor(gtk_layout_get_bin_window(gtk_layout(FDots(i))), gcurs)
-				#EndIf
-				g_object_set_data(G_OBJECT(FDots(i)), "@@@Control", Control)
-				g_object_set_data(G_OBJECT(FDots(i)), "@@@Control2", SelectedControl)
-				'SetParent(FDots(i), GetParent(Control))
-				'SetProp(FDots(i),"@@@Control", Control)
-				'BringWindowToTop FDots(i)
-				'gdk_window_raise(gtk_widget_get_window(FDots(i)))
-				gtk_widget_show(FDots(i))
-			next i
+				Dim As Integer x, y ', x1, y1
+	'			gtk_widget_set_has_window(Control, True)
+	'			gtk_widget_set_has_window(FDialogParent, True)
+	'  	      	gtk_widget_realize(Control)
+	'  	      	gtk_widget_realize(FDialogParent)
+	'  	      	gdk_window_get_origin(gtk_widget_get_window(Control), @x, @y)
+	'  	      	gdk_window_get_origin(gtk_widget_get_window(FDialogParent), @x1, @y1)
+	  	      	gtk_widget_realize(Control)
+	  	      	#IfDef __USE_GTK3__
+		  	      	iWidth = gtk_widget_get_allocated_width(Control)
+		  	      	iHeight = gtk_widget_get_allocated_height(Control)
+		  	    #Else
+		  	    	iWidth = Control->allocation.width
+		  	      	iHeight = Control->allocation.height
+	  	      	#EndIf
+	  	      	If Width1 <> -1 Then iWidth = Width1
+	  	      	If Height1 <> -1 Then iHeight = Height1
+			   	GetPosToClient Control, FDialogParent, @x, @y, Left1, Top1
+			   	P.x     = x
+				P.y     = y
+				Dim As GdkDisplay Ptr pdisplay
+				Dim As GdkCursor Ptr gcurs
+				for i as integer = 0 to 7
+					gtk_container_remove(gtk_container(FDialogParent), FDots(i))
+					FDots(i) = gtk_layout_new(NULL, NULL)
+					gtk_widget_set_size_request(FDots(i), 6, 6)
+					gtk_widget_set_events(FDots(i), _
+		                      GDK_EXPOSURE_MASK Or _
+		                       GDK_SCROLL_MASK Or _
+		                       GDK_STRUCTURE_MASK Or _
+		                       GDK_KEY_PRESS_MASK Or _
+		                       GDK_KEY_RELEASE_MASK Or _
+		                       GDK_FOCUS_CHANGE_MASK Or _
+		                       GDK_LEAVE_NOTIFY_MASK Or _
+		                       GDK_BUTTON_PRESS_MASK Or _
+		                       GDK_BUTTON_RELEASE_MASK Or _
+		                       GDK_POINTER_MOTION_MASK Or _
+		                       GDK_POINTER_MOTION_HINT_MASK)
+					g_signal_connect(FDots(i), "event", G_CALLBACK(@DotWndProc), @This)
+					#IfDef __USE_GTK3__
+						g_signal_connect(FDots(i), "draw", G_CALLBACK(@Dot_Draw), @This)
+					#Else
+						g_signal_connect(FDots(i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
+					#EndIf
+					Select Case i
+					Case 0: gtk_layout_put(gtk_layout(FDialogParent), FDots(0), P.X-6, P.Y-6)
+					Case 1: gtk_layout_put(gtk_layout(FDialogParent), FDots(1), P.X+iWidth/2-3, P.Y-6)
+					Case 2: gtk_layout_put(gtk_layout(FDialogParent), FDots(2), P.X+iWidth, P.Y-6)
+					Case 3: gtk_layout_put(gtk_layout(FDialogParent), FDots(3), P.X+iWidth, P.Y + iHeight/2-3)
+					Case 4: gtk_layout_put(gtk_layout(FDialogParent), FDots(4), P.X+iWidth, P.Y + iHeight)
+					Case 5: gtk_layout_put(gtk_layout(FDialogParent), FDots(5), P.X+iWidth/2-3, P.Y + iHeight)
+					Case 6: gtk_layout_put(gtk_layout(FDialogParent), FDots(6), P.X-6, P.Y + iHeight)
+					Case 7: gtk_layout_put(gtk_layout(FDialogParent), FDots(7), P.X-6, P.Y + iHeight/2-3)
+					End Select
+					gtk_widget_realize(FDots(i))
+					pdisplay = gtk_widget_get_display(FDots(i))
+					Select Case i
+					case 0, 4 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNWSE)
+					case 1, 5 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNS)
+					case 2, 6 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNESW)
+					case 3, 7 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeWE)
+					End Select
+					#IfDef __USE_GTK3__
+						gdk_window_set_cursor(gtk_widget_get_window(FDots(i)), gcurs)
+					#Else
+						gdk_window_set_cursor(gtk_layout_get_bin_window(gtk_layout(FDots(i))), gcurs)
+					#EndIf
+					g_object_set_data(G_OBJECT(FDots(i)), "@@@Control", Control)
+					g_object_set_data(G_OBJECT(FDots(i)), "@@@Control2", SelectedControl)
+					'SetParent(FDots(i), GetParent(Control))
+					'SetProp(FDots(i),"@@@Control", Control)
+					'BringWindowToTop FDots(i)
+					'gdk_window_raise(gtk_widget_get_window(FDots(i)))
+					gtk_widget_show(FDots(i))
+				next i
 		   #Else
-			GetWindowRect(Control, @R)
-			iWidth  = R.Right  - R.Left
-			iHeight = R.Bottom - R.Top
-			P.x     = R.Left
-			P.y     = R.Top
-			ScreenToClient(GetParent(FDialog), @P)
-			'SetWindowPos(FDots(0), HWND_TOP, P.X-3, P.Y-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
-			'SetWindowPos(FDots(1), HWND_TOP, P.X+iWidth/2-3, P.Y-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
-			'SetWindowPos(FDots(2), HWND_TOP, P.X+iWidth-3, P.Y-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
-			'SetWindowPos(FDots(3), HWND_TOP, P.X+iWidth-3, P.Y + iHeight/2-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
-			'SetWindowPos(FDots(4), HWND_TOP, P.X+iWidth-3, P.Y + iHeight-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
-			'SetWindowPos(FDots(5), HWND_TOP, P.X+iWidth/2-3, P.Y + iHeight-3,0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
-			'SetWindowPos(FDots(6), HWND_TOP, P.X-3, P.Y + iHeight-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
-			'SetWindowPos(FDots(7), HWND_TOP, P.X-3, P.Y + iHeight/2-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
-			MoveWindow FDots(0), P.X-6, P.Y-6, 6, 6, True
-			MoveWindow FDots(1), P.X+iWidth/2-3, P.Y-6, 6, 6, True
-			MoveWindow FDots(2), P.X+iWidth, P.Y-6, 6, 6, True
-			MoveWindow FDots(3), P.X+iWidth, P.Y + iHeight/2-3, 6, 6, True
-			MoveWindow FDots(4), P.X+iWidth, P.Y + iHeight, 6, 6, True
-			MoveWindow FDots(5), P.X+iWidth/2-3, P.Y + iHeight, 6, 6, True
-			MoveWindow FDots(6), P.X-6, P.Y + iHeight, 6, 6, True
-			MoveWindow FDots(7), P.X-6, P.Y + iHeight/2-3, 6, 6, True
-			for i as integer = 0 to 7
-				'SetParent(FDots(i), GetParent(Control))
-				SetProp(FDots(i),"@@@Control", Control)
-				BringWindowToTop FDots(i)
-				ShowWindow(FDots(i), SW_SHOW)
-			next i
+				GetWindowRect(Control, @R)
+				iWidth  = R.Right  - R.Left
+				iHeight = R.Bottom - R.Top
+				P.x     = R.Left
+				P.y     = R.Top
+				ScreenToClient(GetParent(FDialog), @P)
+				'SetWindowPos(FDots(0), HWND_TOP, P.X-3, P.Y-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
+				'SetWindowPos(FDots(1), HWND_TOP, P.X+iWidth/2-3, P.Y-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
+				'SetWindowPos(FDots(2), HWND_TOP, P.X+iWidth-3, P.Y-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
+				'SetWindowPos(FDots(3), HWND_TOP, P.X+iWidth-3, P.Y + iHeight/2-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
+				'SetWindowPos(FDots(4), HWND_TOP, P.X+iWidth-3, P.Y + iHeight-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
+				'SetWindowPos(FDots(5), HWND_TOP, P.X+iWidth/2-3, P.Y + iHeight-3,0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
+				'SetWindowPos(FDots(6), HWND_TOP, P.X-3, P.Y + iHeight-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
+				'SetWindowPos(FDots(7), HWND_TOP, P.X-3, P.Y + iHeight/2-3, 0, 0, SWP_NOSIZE OR SWP_SHOWWINDOW)
+				MoveWindow FDots(0), P.X-6, P.Y-6, 6, 6, True
+				MoveWindow FDots(1), P.X+iWidth/2-3, P.Y-6, 6, 6, True
+				MoveWindow FDots(2), P.X+iWidth, P.Y-6, 6, 6, True
+				MoveWindow FDots(3), P.X+iWidth, P.Y + iHeight/2-3, 6, 6, True
+				MoveWindow FDots(4), P.X+iWidth, P.Y + iHeight, 6, 6, True
+				MoveWindow FDots(5), P.X+iWidth/2-3, P.Y + iHeight, 6, 6, True
+				MoveWindow FDots(6), P.X-6, P.Y + iHeight, 6, 6, True
+				MoveWindow FDots(7), P.X-6, P.Y + iHeight/2-3, 6, 6, True
+				for i as integer = 0 to 7
+					'SetParent(FDots(i), GetParent(Control))
+					SetProp(FDots(i),"@@@Control", Control)
+					BringWindowToTop FDots(i)
+					ShowWindow(FDots(i), SW_SHOW)
+				next i
+				FHDC = GetDC(GetParent(Control))
+				'SetROP2(hdc, R2_NOTXORPEN)
+				RedrawWindow(FDialog, NULL, NULL, RDW_INVALIDATE)
+				'DrawFocusRect(Fhdc, @type<RECT>(R.Left, R.Top, R.Right, R.Bottom + 10))
+				ReleaseDC(Control, Fhdc)
 			#EndIf
 			If bSetFocus Then
 				#IfDef __USE_GTK__
@@ -664,8 +670,10 @@ sub Designer.MouseDown(X as integer, Y as Integer, Shift as integer)
     dim as POINT P
     dim as RECT R
     FDown   = true
-    FBeginX = iif(FSnapToGrid,(X\FStepX)*FStepX,X)
-    FBeginy = iif(FSnapToGrid,(Y\FStepY)*FStepY,y)
+    FStepX = GridSize
+    FStepY = GridSize
+    FBeginX = iif(SnapToGridOption, (X\FStepX)*FStepX,X)
+    FBeginy = iif(SnapToGridOption, (Y\FStepY)*FStepY,y)
     FEndX   = FBeginX
     FEndY   = FBeginY
     FNewX   = FBeginX
@@ -675,7 +683,7 @@ sub Designer.MouseDown(X as integer, Y as Integer, Shift as integer)
     	SelectedControl = ControlAt(DesignControl, X, Y)
     	FSelControl = ReadPropertyFunc(SelectedControl, "Widget")
     #Else
-    	ClipCursor(GetParent(FDialog))
+    	'ClipCursor(GetParent(FDialog))
 		SelectedControl = ControlAt(DesignControl, X, Y)
 		'FSelControl = ControlAt(FDialog, X, Y)
 		FSelControl = *Cast(HWND Ptr, ReadPropertyFunc(SelectedControl, "Handle"))
@@ -780,6 +788,7 @@ sub Designer.MouseDown(X as integer, Y as Integer, Shift as integer)
 				FOldX = FNewX
 				FOldY = FNewY
 				ReleaseDC(FDialog, Fhdc)
+				SetCapture(FDialog)
 				#EndIf
 			End If
 		end if
@@ -788,8 +797,10 @@ end sub
 
 sub Designer.MouseMove(X as integer, Y as Integer, Shift as integer)
     dim as POINT P
-    FNewX = iif(FSnapToGrid,(X\FStepX)*FStepX,X)
-    FNewY = iif(FSnapToGrid,(Y\FStepY)*FStepY,Y)
+    FStepX = GridSize
+    FStepY = GridSize
+    FNewX = iif(SnapToGridOption,(X\FStepX)*FStepX,X)
+    FNewY = iif(SnapToGridOption,(Y\FStepY)*FStepY,Y)
     'dim hdc As HDC = GetDC(FHandle)
     if FDown then
        if FCanInsert then
@@ -831,6 +842,7 @@ sub Designer.MouseMove(X as integer, Y as Integer, Shift as integer)
 				end Select
 				'ControlSetBoundsSub(SelectedControl, FLeftNew, FTopNew, FWidthNew, FHeightNew)
 				MoveWindow(FSelControl, FLeftNew, FTopNew, FWidthNew, FHeightNew, true)
+				RedrawWindow(FDialog, NULL, NULL, RDW_INVALIDATE)
 			#EndIf
        end If
        if FCanMove then
@@ -839,17 +851,18 @@ sub Designer.MouseMove(X as integer, Y as Integer, Shift as integer)
 				ControlSetBoundsSub(SelectedControl, FLeft + (FNewX - FBeginX), FTop + (FNewY - FBeginY), FWidth, FHeight)
 			#Else
                 MoveWindow(FSelControl, FLeft + (FNewX - FBeginX), FTop + (FNewY - FBeginY), FWidth, FHeight, true)
+                RedrawWindow(FDialog, NULL, NULL, RDW_INVALIDATE)
 			#EndIf
           end if
        end if
-        If Not FCanInsert And Not FCanMove Then 'And Not FCanSize
+        If Not FCanInsert And Not FCanMove And Not FCanSize Then
 			#IfDef __USE_GTK__
 				gtk_widget_queue_draw(layoutwidget)
 			#Else
 				FHDC = GetDC(FDialog)
 				'SetROP2(hdc, R2_NOTXORPEN)
-				DrawFocusRect(Fhdc, @type<RECT>(FBeginX, FBeginY, FOldX, FOldY))
-				DrawFocusRect(Fhdc, @type<RECT>(FBeginX, FBeginY, FNewX, FNewY))
+				DrawFocusRect(Fhdc, @type<RECT>(Min(FBeginX, FOldX), Min(FBeginY, FOldY), Max(FBeginX, FOldX), Max(FBeginY, FOldY)))
+				DrawFocusRect(Fhdc, @type<RECT>(Min(FBeginX, FNewX), Min(FBeginY, FNewY), Max(FBeginX, FNewX), Max(FBeginY, FNewY)))
 			#EndIf
             FOldX = FNewX
             FOldY = FNewY
@@ -907,9 +920,21 @@ End Function
 sub Designer.MouseUp(X as integer, Y as Integer, Shift as integer)
     dim as RECT R
     if FDown then
-        FDown = false
+'    	if (FBeginX > FEndX and FBeginY > FEndY) then
+'            swap FBeginX, FNewX
+'            swap FBeginY, FNewY
+'        end if
+'        if (FBeginX > FEndX and FBeginY < FEndY) then
+'            swap FBeginX, FNewX
+'        end if
+'        if (FBeginX < FEndX and FBeginY > FEndY) then
+'            swap FBeginY, FNewY
+'        end if
+		FDown = false
         if Not FCanMove And Not FCanInsert And Not FCanSize Then
-			#IfDef __USE_GTK__
+			If FBeginX > FNewX Then Swap FBeginX, FNewX
+			If FBeginY > FNewY Then Swap FBeginY, FNewY
+        	#IfDef __USE_GTK__
 				gtk_widget_queue_draw(layoutwidget)
 				Dim As Integer ALeft, ATop, AWidth, AHeight
 				Dim As Any Ptr Ctrl
@@ -919,7 +944,7 @@ sub Designer.MouseUp(X as integer, Y as Integer, Shift as integer)
 					Ctrl = ControlByIndexFunc(DesignControl, i)
 					If Ctrl Then
 						ControlGetBoundsSub(Ctrl, @ALeft, @ATop, @AWidth, @AHeight)
-						If (ALeft > FBeginX and ALeft + AWidth < FEndX) and (ATop > FBeginY and ATop + AHeight < FEndY) Then
+						If (ALeft > FBeginX and ALeft + AWidth < FNewX) and (ATop > FBeginY and ATop + AHeight < FNewY) Then
 							SelectedControl = Ctrl
 							FSelControl = ReadPropertyFunc(SelectedControl, "Widget")
 							Exit For
@@ -939,7 +964,7 @@ sub Designer.MouseUp(X as integer, Y as Integer, Shift as integer)
 					if IsWindowVisible(FChilds.Child[i]) then
 						GetWindowRect(FChilds.Child[i], @R)
 						MapWindowPoints(0, FDialog, cast(POINT ptr, @R) ,2)
-						if (R.Left > FBeginX And R.Right < FEndX) and (R.Top > FBeginY and R.Bottom < FEndY) then
+						if (R.Left > FBeginX And R.Right < FNewX) and (R.Top > FBeginY and R.Bottom < FNewY) then
 							FSelControl = FChilds.Child[i]
 							SelectedControl = GetControl(FSelControl)
 							Exit For
@@ -950,17 +975,9 @@ sub Designer.MouseUp(X as integer, Y as Integer, Shift as integer)
 			#EndIf
         end if
         if FCanInsert then
-           if (FBeginX > FEndX and FBeginY > FEndY) then
-               swap FBeginX, FNewX
-               swap FBeginY, FNewY
-           end if
-           if (FBeginX > FEndX and FBeginY < FEndY) then
-               swap FBeginX, FNewX
-           end if
-           if (FBeginX < FEndX and FBeginY > FEndY) then
-               swap FBeginY, FNewY
-           end if
-           DrawBox(Type<RECT>(FBeginX, FBeginY, FNewX, FNewY))
+    		If FBeginX > FNewX Then Swap FBeginX, FNewX
+			If FBeginY > FNewY Then Swap FBeginY, FNewY
+        	DrawBox(Type<RECT>(FBeginX, FBeginY, FNewX, FNewY))
            #IfDef __USE_GTK__
            		gtk_widget_queue_draw(layoutwidget)
            #EndIf
@@ -1030,8 +1047,8 @@ sub Designer.MouseUp(X as integer, Y as Integer, Shift as integer)
         if FCanMove then
 			MoveDots(FSelControl)
 			FCanMove = false
-            If FBeginX <> FNewX OrElse FBeginY <> FNewY Then
-                if OnModified then OnModified(this, GetControl(FSelControl), FLeft + (FNewX - FBeginX), FTop + (FNewY - FBeginY), FWidth, FHeight)
+			If FBeginX <> FEndX OrElse FBeginY <> FEndY Then
+            	if OnModified then OnModified(this, GetControl(FSelControl), FLeft + (FEndX - FBeginX), FTop + (FEndY - FBeginY), FWidth, FHeight)
             End If
         end if
         FBeginX = FEndX
@@ -1161,11 +1178,13 @@ sub Designer.PasteControl()
 							OnInsertingControl(this, WGet(ReadPropertyFunc(Value, "ClassName")), FName)
 						end if
 						ControlGetBoundsSub(Value, @FLeft, @FTop, @FWidth, @FHeight)
-						CreateControl(WGet(ReadPropertyFunc(Value, "ClassName")), FName, WGet(ReadPropertyFunc(Value, "Text")), ParentCtrl, FLeft + 6, FTop + 6, FWidth, FHeight)
+						FStepX = GridSize
+						FStepY = GridSize
+						CreateControl(WGet(ReadPropertyFunc(Value, "ClassName")), FName, WGet(ReadPropertyFunc(Value, "Text")), ParentCtrl, FLeft + FStepX, FTop + FStepY, FWidth, FHeight)
 						if FSelControl then
 							LockWindowUpdate(FSelControl)
 							BringWindowToTop(FSelControl)
-							if OnInsertControl then OnInsertControl(this, WGet(ReadPropertyFunc(Value, "ClassName")), GetControl(FSelControl), FLeft + 6, FTop + 6, FWidth, FHeight)
+							if OnInsertControl then OnInsertControl(this, WGet(ReadPropertyFunc(Value, "ClassName")), GetControl(FSelControl), FLeft + FStepX, FTop + FStepY, FWidth, FHeight)
 							MoveDots(FSelControl)
 							LockWindowUpdate(0)
 						end if
@@ -1332,23 +1351,26 @@ sub Designer.UpdateGrid
 	#EndIf
 end sub
 
-sub Designer.DrawGrid()
-    if FShowGrid = False then Exit Sub
+sub Designer.DrawThis()
+	FStepX = GridSize
+    FStepY = GridSize
     #IfDef __USE_GTK__
-    	#IfDef __USE_GTK3__
-	    	Dim As Integer iWidth = gtk_widget_get_allocated_width(layoutwidget)
-	    	Dim As Integer iHeight = gtk_widget_get_allocated_height(layoutwidget)
-    	#Else
-    		Dim As Integer iWidth = layoutwidget->allocation.width
-	    	Dim As Integer iHeight = layoutwidget->allocation.height
-    	#EndIf
-    	cairo_set_source_rgb(cr, 0, 0, 0)
-    	For i As Integer = 1 To iWidth Step 6
-    		For j As Integer = 1 To iHeight Step 6
-    			cairo_rectangle(cr, i, j, 1, 1)
-    			cairo_fill(cr)
-    		Next j
-    	Next i
+    	If ShowAlignmentGrid Then
+	    	#IfDef __USE_GTK3__
+		    	Dim As Integer iWidth = gtk_widget_get_allocated_width(layoutwidget)
+		    	Dim As Integer iHeight = gtk_widget_get_allocated_height(layoutwidget)
+	    	#Else
+	    		Dim As Integer iWidth = layoutwidget->allocation.width
+		    	Dim As Integer iHeight = layoutwidget->allocation.height
+	    	#EndIf
+	    	cairo_set_source_rgb(cr, 0, 0, 0)
+	    	For i As Integer = 1 To iWidth Step FStepX
+	    		For j As Integer = 1 To iHeight Step FStepY
+	    			cairo_rectangle(cr, i, j, 1, 1)
+	    			cairo_fill(cr)
+	    		Next j
+	    	Next i
+	    End If
     #Else
 		dim as HDC mDc
 		dim as HBITMAP mBMP, pBMP
@@ -1356,20 +1378,29 @@ sub Designer.DrawGrid()
 		Dim As PAINTSTRUCT Ps
 		FHDc = BeginPaint(FDialog,@Ps)
 		GetClientRect(FDialog, @R)
-		if FGridBrush then
-			DeleteObject(FGridBrush)
-		end if   
-		mDc   = CreateCompatibleDc(FHDC)
-		mBMP  = CreateCompatibleBitmap(FHDC, FStepX, FStepY)
-		pBMP  = SelectObject(mDc, mBMP)
-		FillRect(mDc, @BrushRect, cast(HBRUSH, 16))
-		SetPixel(mDc, 1, 1, 0)
-		'for lines use MoveTo and LineTo or Rectangle function or whatever...
-		FGridBrush = CreatePatternBrush(mBMP)
-		FillRect(FHDC, @R, FGridBrush)
-		SelectObject(mDc, pBMP)
-		DeleteObject(mBMP)
-		DeleteDc(mDc)
+		If ShowAlignmentGrid Then
+			If FGridBrush then
+				DeleteObject(FGridBrush)
+			end if   
+			mDc   = CreateCompatibleDc(FHDC)
+			mBMP  = CreateCompatibleBitmap(FHDC, FStepX, FStepY)
+			pBMP  = SelectObject(mDc, mBMP)
+			FillRect(mDc, @BrushRect, cast(HBRUSH, 16))
+			SetPixel(mDc, 0, 0, 0)
+			'for lines use MoveTo and LineTo or Rectangle function or whatever...
+			FGridBrush = CreatePatternBrush(mBMP)
+			FillRect(FHDC, @R, FGridBrush)
+		Else
+			FillRect(Fhdc, @R, Cast(HBRUSH, 16))
+		End If
+		GetWindowRect(FSelControl, @R)
+		MapWindowPoints 0, FDialog, Cast(Point Ptr, @R), 2
+		DrawFocusRect(Fhdc, @type<RECT>(R.Left - 2, R.Top - 2, R.Right + 2, R.Bottom + 2))
+		If ShowAlignmentGrid Then
+			SelectObject(mDc, pBMP)
+			DeleteObject(mBMP)
+			DeleteDc(mDc)
+		End If
 		EndPaint FDialog,@Ps
 	#EndIf
 end sub
@@ -1527,16 +1558,9 @@ end sub
 					select case uMsg
 			  	#EndIf
 				#IfNDef __USE_GTK__
-					'case WM_PAINT
-				  	case WM_PAINT, WM_ERASEBKGND
-					  'dim as RECT R
-					  'GetClientRect(hDlg, @R)
-					  'if .FShowGrid then
-						  .DrawGrid()'GetDC(hDlg), R)
-					  'else
-						'  FillRect(GetDC(hDlg), @R, cast(HBRUSH, 16))
-					  'end if   
-						return 1
+					Case WM_PAINT, WM_ERASEBKGND
+						.DrawThis
+						Return 1
 					Case WM_NCHitTest
 					Case WM_SYSCOMMAND
 						Return 0
@@ -1660,7 +1684,7 @@ end sub
 					 end if
 				  end if '
 				  ''''Call and execute the based commands of dialogue.
-				  return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+				  'return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
 				  '''if don't want to call
 				  'return 0
 				#EndIf
@@ -1837,6 +1861,8 @@ Sub Designer.KeyDown(KeyCode As Integer, Shift As Integer)
 	Case Keys.DeleteKey
 		If FSelControl <> FDialog Then DeleteControl(SelectedControl)
 	Case Keys.Left, Keys.Right, Keys.Up, Keys.Down
+		FStepX = GridSize
+		FStepY = GridSize
 		Dim As Integer FStepX1 = FStepX
 		Dim As Integer FStepY1 = FStepY
 		Dim As Integer FLeft, FTop, FWidth, FHeight
@@ -1915,6 +1941,11 @@ End Sub
 			dim as PAINTSTRUCT Ps
 			Dim as HDC FHDc = BeginPaint(hDlg, @Ps)
 			FillRect(FHDc, @Ps.rcPaint, iif(Des, Des->FDotBrush, cast(HBRUSH, GetStockObject(BLACK_BRUSH))))
+			Dim As HBrush Brush = GetStockObject(WHITE_BRUSH)
+			Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
+			SetROP2(FHDc, R2_NOT)
+			Rectangle(FHDc, Ps.rcPaint.Left + 1, Ps.rcPaint.Top + 1, Ps.rcPaint.Right - 1, Ps.rcPaint.Bottom - 1)
+			SelectObject(FHDc, PrevBrush)
 			EndPaint(hDlg, @Ps)
 			return 0
 			'or use WM_ERASEBKGND message
@@ -2248,11 +2279,13 @@ operator Designer.cast as any ptr
 end operator
 
 constructor Designer(ParentControl As Control Ptr)
-	FStepX      = 6
-	FStepY      = 6
+	FStepX      = 10
+	FStepY      = 10
 	FShowGrid   = true
 	FActive     = true
 	FSnapToGrid = 1
+	FDotSize 	= 10
+	FDotColor 	= clBlack
 	#IfDef __USE_GTK__
 		FDialogParent = ParentControl->Widget
 	#Else

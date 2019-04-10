@@ -29,8 +29,7 @@ Using My.Sys.Forms
         Dim As TextBox txtFind
         Dim As Label lblPath
         Dim As TextBox txtPath
-        Dim As CommandButton btnFind, btnBrowse
-        Dim As CommandButton btnCancel
+        Dim As CommandButton btnFind, btnBrowse, btnCancel
         Dim As FolderBrowserDialog FolderDialog
     End Type
 
@@ -55,8 +54,7 @@ Using My.Sys.Forms
     End Sub
 
     Constructor frmFindInFiles
-        This.Width = 415
-        Height = 200
+        This.SetBounds 0, 0, 415, 180
         Caption = ML("Find In Files")
         lblFind.Caption = ML("Find") & ":"
         lblFind.SetBounds 10, 10, 80, 20

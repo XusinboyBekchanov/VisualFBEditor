@@ -3,6 +3,10 @@
 #Include Once "mff/Canvas.bi"
 #Include Once "mff/WStringList.bi"
 #Include Once "mff/Clipboard.bi"
+#Include Once "crt/stdio.bi"
+' Для функции StrStr
+#include once "win/shlwapi.bi"
+'#include once "OpenFileNoBuffering.bi"
 
 'declare sub gtk_widget_set_focus_on_click(byval widget as GtkWidget ptr, byval focus_on_click as gboolean)
 
@@ -214,6 +218,7 @@ Namespace My.Sys.Forms
             Declare Function GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
             Declare Sub PaintControl()
             Declare Sub PaintControlPriv()
+            Declare Function GetWordAt(LineIndex As Integer, CharIndex As Integer) As String
             Declare Function GetWordAtCursor() As String
             Declare Function GetCaretPosY(LineIndex As Integer) As Integer
             Declare Function CharIndexFromPoint(X As Integer, Y As Integer) As Integer
@@ -944,16 +949,17 @@ A:
         ChangeText Value, 0, "Matn qo`shildi"
     End Property
 
-    Sub EditControl.LoadFromFile(ByRef File As WString)
-        Dim Result As Integer, Buff As WString Ptr
-        Result = Open(File For Input Encoding "utf-32" As #1)
-        If Result <> 0 Then Result = Open(File For Input Encoding "utf-16" As #1)
-        If Result <> 0 Then Result = Open(File For Input Encoding "utf-8" As #1)
-        If Result <> 0 Then Result = Open(File For Input As #1)
+    Sub EditControl.LoadFromFile(ByRef FileName As WString)
+		Dim Buff As WString Ptr
+		Dim Result As Integer
+		Var iC = 0, OldiC = 0, i = 0, Sec = Timer
+        Result = Open(FileName For Input Encoding "utf-32" As #1)
+        If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #1)
+        If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-8" As #1)
+        If Result <> 0 Then Result = Open(FileName For Input As #1)
         If Result = 0 Then
-            FLines.Clear
+        	FLines.Clear
             WReallocate Buff, LOF(1) 
-            Var iC = 0, OldiC = 0, i = 0
             Do Until EOF(1)
                 Line Input #1, *Buff
                 FECLine = New EditControlLine
@@ -1085,19 +1091,22 @@ A:
         Return i - 1
     End Function
     
-    Function EditControl.GetWordAtCursor() As String
-        Dim As Integer i, j
-        Dim As String s, sWord, sLine = Lines(FSelEndLine)
-        j = FSelEndChar
-        For i = j To 1 Step -1
+    Function EditControl.GetWordAt(LineIndex As Integer, CharIndex As Integer) As String
+        Dim As Integer i
+        Dim As String s, sWord, sLine = Lines(LineIndex)
+        For i = CharIndex To 1 Step -1
             s = Mid(sLine, i, 1)
             If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) Then sWord = s & sWord Else Exit For
         Next
-        For i = j + 1 To Len(sLine)
+        For i = CharIndex + 1 To Len(sLine)
             s = Mid(sLine, i, 1)
             If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) Then sWord = sWord & s Else Exit For
         Next
         Return sWord
+    End Function
+    
+    Function EditControl.GetWordAtCursor() As String
+        Return GetWordAt(FSelEndLine, FSelEndChar)
     End Function
     
     Function EditControl.GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
@@ -1739,7 +1748,7 @@ A:
 					#IfDef __USE_GTK__
 						cairo_set_source_rgb(cr, 192 / 255.0, 192 / 255.0, 192 / 255.0)
 					#Else
-						This.Canvas.Brush.Color = rgb(192, 192, 192) 'clLtGray
+						This.Canvas.Brush.Color = clBtnFace 'rgb(100, 100, 100) 'clLtGray
                     #EndIf
                     'WLet FLineLeft, GetTabbedText(*s, 0, True)
                     jj = 1
@@ -2870,7 +2879,7 @@ A:
 								Else
 									WLet FLineSpace, *FLineSpace & !"\t"
 								End If
-								ChangeText *FLineLeft & WChr(13) & *FLineSpace & *FLineRight, p, "Enter bosildi", FSelEndLine + 1, d + k
+								ChangeText *FLineLeft & WChr(13) & *FLineSpace & *FLineRight, p, "Enter bosildi", Min(FSelStartLine, FSelEndLine) + 1, d + k
 								'Var n = Min(FSelStart, FSelEnd)
 								'Var x = Max(FSelStart, FSelEnd)
 								'Var l = LineFromCharIndex(n)

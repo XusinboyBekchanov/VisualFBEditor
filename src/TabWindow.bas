@@ -10,7 +10,7 @@ Dim Shared As Toolbar tbStandard, tbExplorer, tbForm, tbProperties, tbEvents
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
-Dim Shared As TextBox txtOutput
+Dim Shared As TextBox txtOutput, txtImmediate
 Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As ListView lvErrors, lvSearch, lvProperties, lvEvents
 Dim Shared As ImageList imgList, imgListTools, imgListStates
@@ -193,8 +193,8 @@ Type TabWindow Extends TabPage
         Declare Sub Versioning
         Declare Sub Save
         Declare Sub SaveAs
-        Declare Sub NumberOn
-        Declare Sub NumberOff
+        Declare Sub NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+        Declare Sub NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
         Declare Sub ProcedureNumberOn
         Declare Sub ProcedureNumberOff
         Declare Sub Comment
@@ -2149,6 +2149,7 @@ Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Inte
             tb->txtCode.LastItemIndex = -1
         End If
     End With
+    WDeallocate sTempRight
 End Sub
 
 Sub FillIntellisenseByName(sTemp2 As String)
@@ -2297,11 +2298,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
         SelCharPos = iSelEndChar
         FindComboIndex tb, *sLine, iSelEndChar
         tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
-    ElseIf CInt(Key = Asc(" ")) Then
+    ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) Then
         Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
         tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
         Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-        If EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as") Then
+        If Key = Asc(" ") AndAlso EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as") Then
             FillTypeIntellisenses
             SelLinePos = iSelEndLine
             SelCharPos = iSelEndChar
@@ -2310,6 +2311,15 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
  		    	If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 	    	#EndIf
             tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
+        Else
+        	Dim sWord As String = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 1)
+        	If tb->Functions.Contains(sWord) Then
+        		Dim te As TypeElement Ptr = tb->Functions.Object(tb->Functions.Indexof(sWord))
+        		If te <> 0 Then
+	        		tb->txtCode.Hint = WGet(te->Parameters)
+	        		tb->txtCode.ShowHint = True
+	        	End If
+        	End If
         End If
     ElseIf tb->txtCode.DropDownShowed Then
     	#IfDef __USE_GTK__
@@ -3904,18 +3914,22 @@ function utf16BeByte2wchars( ta() as ubyte ) ByRef As Wstring
     function = *ms.p
 end function
 
-Sub TabWindow.NumberOn
+Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     With tb->txtCode
         .UpdateLock
         .Changing("Raqamlash")
-        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        If StartLine = -1 Or EndLine = -1 Then
+	        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        	StartLine = iSelStartLine
+        	EndLine = iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        End If
         Dim As EditControlLine Ptr FECLine
         Dim As Integer n
         Dim As Boolean bNotNumberNext, bNotNumberThis
-        For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        For i As Integer = StartLine To EndLine
             FECLine = .FLines.Items[i]
             bNotNumberThis = bNotNumberNext
             bNotNumberNext = False
@@ -3948,48 +3962,36 @@ Sub TabWindow.NumberOn
     End With
 End Sub
 
-Sub TabWindow.ProcedureNumberOn
-    Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
+	Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     With tb->txtCode
-        .UpdateLock
-        .Changing("Raqamlash")
-        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, i
         .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
         Dim As EditControlLine Ptr FECLine
-        Dim As Integer n
-        Dim As Boolean bNotNumberNext, bNotNumberThis
-        For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        For i = iSelStartLine To 0 Step -1
             FECLine = .FLines.Items[i]
-            bNotNumberThis = bNotNumberNext
-            bNotNumberNext = False
-            If EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") Then
-                bNotNumberNext = True
-            End If
-            If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
-                Continue For
-            ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
-                bNotNumberNext = True
-            ElseIf FECLine->ConstructionIndex >= 7 Then
-                Continue For
-            End If
-            n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-            If StartsWith(LTrim(*FECLine->Text), "?") Then
-                Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-                If IsNumeric(Mid(Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
-                    WLet FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1)
+            If FECLine->ConstructionIndex > 11  Then
+                If FECLine->ConstructionPart = 0 Then 
+                	ehStart = i + 1
+                	Exit For
+            	Else
+            		ehEnd = .FLines.Count - 1
+            		Exit Sub
                 End If
-            ElseIf IsLabel(*FECLine->Text) Then
-                bNotNumberThis = True
-            End If
-            If Not bNotNumberThis Then
-                WLet FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text
             End If
         Next i
-        .Changed("Raqamlash")
-        .UpdateUnLock
-        '.ShowCaretPos True
-    End With
+        Dim As Boolean t
+        For i = iSelStartLine To .FLines.Count - 1
+            FECLine = .FLines.Items[i]
+            If FECLine->ConstructionIndex > 11  Then
+                t = True
+                ehEnd = i - 1
+                Exit For
+            End If
+        Next i
+        If Not t then ehEnd = i - 1
+	End With
 End Sub
 
 Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
@@ -4113,17 +4115,21 @@ End Sub
 Sub TabWindow.FormatBlock
 End Sub
 
-Sub TabWindow.NumberOff
+Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     With tb->txtCode
         .UpdateLock
         .Changing("Raqamlarni olish")
-        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        If StartLine = -1 Or EndLine = -1 Then
+	        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        	StartLine = iSelStartLine
+        	EndLine = iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        End If
         Dim As EditControlLine Ptr FECLine
         Dim As Integer n
-        For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        For i As Integer = StartLine To EndLine
             FECLine = .FLines.Items[i]
             n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
             If StartsWith(LTrim(*FECLine->Text), "?") Then
@@ -4139,30 +4145,16 @@ Sub TabWindow.NumberOff
     End With
 End Sub
 
+Sub TabWindow.ProcedureNumberOn
+    Dim As Integer ehStart, ehEnd
+    GetProcedureLines ehStart, ehEnd
+    NumberOn ehStart, ehEnd
+End Sub
+
 Sub TabWindow.ProcedureNumberOff
-    Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
-    If tb = 0 Then Exit Sub
-    With tb->txtCode
-        .UpdateLock
-        .Changing("Raqamlarni olish")
-        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-        Dim As EditControlLine Ptr FECLine
-        Dim As Integer n
-        For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
-            FECLine = .FLines.Items[i]
-            n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-            If StartsWith(LTrim(*FECLine->Text), "?") Then
-                Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-                If IsNumeric(Mid(Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
-                    WLet FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1)
-                End If
-            End If
-        Next i
-        .Changed("Raqamlarni olish")
-        .UpdateUnLock
-        '.ShowCaretPos True
-    End With
+    Dim As Integer ehStart, ehEnd
+    GetProcedureLines ehStart, ehEnd
+    NumberOff ehStart, ehEnd
 End Sub
 
 Sub TabWindow.Define

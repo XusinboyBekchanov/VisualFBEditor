@@ -5868,7 +5868,7 @@ Sub RunWithDebug(Param As Any Ptr)
     	exename = Replace(exename, "/", "\")
 		re_ini
 	#EndIf
-    tabBottom.Tabs[3]->SelectTab
+    tabBottom.Tabs[4]->SelectTab
     
     Var Pos1 = 0
     While InStr(Pos1 + 1, exename, "\")

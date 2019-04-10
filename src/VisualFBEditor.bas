@@ -54,6 +54,12 @@ Dim Shared As WString Ptr Compilator32, Compilator64, Debugger, Terminal
 Using My.Sys.Forms
 Using My.Sys.Drawing
 
+Enum KeyWordsCase
+	OriginalCase
+	LowerCase
+	UpperCase
+End Enum
+
 Declare Sub LoadLanguageTexts
 Dim Shared As String CurLanguage
 Dim Shared As iniFile iniSettings
@@ -65,8 +71,14 @@ Dim Shared As Boolean AutoCreateRC
 Dim Shared As Boolean AutoSaveCompile
 Dim Shared As Boolean ShowSpaces
 Dim Shared As Integer TabWidth
+Dim Shared As Integer GridSize
+Dim Shared As Boolean ShowAlignmentGrid
+Dim Shared As Boolean SnapToGridOption
 Dim Shared As Integer HistoryLimit
 Dim Shared As Integer TabAsSpaces
+Dim Shared As Boolean ShowGrid
+Dim Shared As Boolean ChangeKeyWordsCase
+Dim Shared As KeyWordsCase ChoosedKeyWordsCase
 Dim Shared As TreeNode Ptr MainNode
 
 Dim Shared As Form frmMain
@@ -144,7 +156,7 @@ Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, iSelStart As
     tb->txtCode.SetSelection iLine - 1, iLine - 1, iSelStart - 1, iSelStart + iSelLength - 1
 End Sub
 
-Sub txtOutput_DblClick(ByRef Sender As Control) '...'
+Sub txtOutput_DblClick(ByRef Sender As Control)
     Dim Buff As WString Ptr = @txtOutput.Lines(txtOutput.GetLineFromCharIndex)
     Dim As WString Ptr FileName, ErrTitle
     Dim As Integer iLine
@@ -1056,8 +1068,8 @@ Sub LoadToolBox
 		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), *MFFPath & "/resources")
 		tbToolBox.Align = 5
     #Else
-		imgListTools.AddMasked "DropDown", cl, "DropDown"
-		imgListTools.AddMasked "Kursor", cl, "Cursor"
+		imgListTools.AddPng "DropDown", "DropDown"
+		imgListTools.AddPng "Kursor", "Cursor"
     #EndIf
     tbToolBox.Top = tbForm.Height
     tbToolBox.Flat = True
@@ -1294,7 +1306,7 @@ Sub LoadToolBox
             'If iNew <> j Then Continue For
             it = Comps.Item(i)
             #IfNDef __USE_GTK__
-				imgListTools.AddMasked it, cl, it, MFF
+				imgListTools.AddPng it, it, MFF
             #EndIf
             Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup,it,,@ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap)
             toolb->Tag = Comps.Object(i)
@@ -1370,57 +1382,55 @@ Sub LoadLanguageTexts
     Close #1
 End Sub
 
-Dim cl As Integer = clSilver
-
 imgList.Name = "imgList"
-	imgList.AddMasked "New", cl, "New"
-	imgList.AddMasked "Open", cl, "Open"
-	imgList.AddMasked "Save", cl, "Save"
-	imgList.AddMasked "SaveAll", cl, "SaveAll"
-	imgList.AddMasked "Close", cl, "Close"
-	imgList.AddMasked "Exit", cl, "Exit"
-	imgList.AddMasked "Undo", cl, "Undo"
-	imgList.AddMasked "Redo", cl, "Redo"
-	imgList.AddMasked "Cut", cl, "Cut"
-	imgList.AddMasked "Copy", cl, "Copy"
-	imgList.AddMasked "Paste", cl, "Paste"
-	imgList.AddMasked "Search", cl, "Find"
-	imgList.AddMasked "Code", cl, "Code"
-	imgList.AddMasked "Form", cl, "Form"
-	imgList.AddMasked "CodeAndForm", cl, "CodeAndForm"
-	imgList.AddMasked "Compile", cl, "Compile"
-	imgList.AddMasked "Run", cl, "Run"
-	imgList.AddMasked "CompileAndRun", cl, "CompileAndRun"
-	imgList.AddMasked "Help", cl, "Help"
-	imgList.AddMasked "About", cl, "About"
-	imgList.AddMasked "List", cl, "Try"
-	imgList.AddMasked "File", cl, "File"
-	imgList.AddMasked "Settings", cl, "Parameters"
-	imgList.AddMasked "SyntaxCheck", cl, "SyntaxCheck"
-	imgList.AddMasked "Folder", cl, "Folder"
-	imgList.AddMasked "Project", cl, "Project"
-	imgList.AddMasked "Add", cl, "Add"
-	imgList.AddMasked "Remove", cl, "Remove"
-	imgList.AddMasked "Start", cl, "Start"
-	imgList.AddMasked "Pause", cl, "Pause"
-	imgList.AddMasked "Stop", cl, "Stop"
-	imgList.AddMasked "Error", cl, "Error"
-	imgList.AddMasked "Warning", cl, "Warning"
-	imgList.AddMasked "Label", cl, "Label"
-	imgList.AddMasked "Component", cl, "Component"
-	imgList.AddMasked "Property", cl, "Property"
-	imgList.AddMasked "Sub", cl, "Sub"
-	imgList.AddMasked "Bookmark", cl, "Bookmark"
-	imgList.AddMasked "Breakpoint", cl, "Breakpoint"
-	imgList.AddMasked "B32", cl, "B32"
-	imgList.AddMasked "B64", cl, "B64"
-	imgList.AddMasked "Opened", cl, "Opened"
-	imgList.AddMasked "Tools", cl, "Tools"
-	imgList.AddMasked "StandartTypes", cl, "StandartTypes"
-	imgList.AddMasked "Enum", cl, "Enum"
-	imgList.AddMasked "Function", cl, "Function"
-	imgList.AddMasked "Collapsed", cl, "Collapsed"
-	imgList.AddMasked "Categorized", cl, "Categorized"
+imgList.AddPng "New", "New"
+imgList.AddPng "Open", "Open"
+imgList.AddPng "Save", "Save"
+imgList.AddPng "SaveAll", "SaveAll"
+imgList.AddPng "Close", "Close"
+imgList.AddPng "Exit", "Exit"
+imgList.AddPng "Undo", "Undo"
+imgList.AddPng "Redo", "Redo"
+imgList.AddPng "Cut", "Cut"
+imgList.AddPng "Copy", "Copy"
+imgList.AddPng "Paste", "Paste"
+imgList.AddPng "Search", "Find"
+imgList.AddPng "Code", "Code"
+imgList.AddPng "Form", "Form"
+imgList.AddPng "CodeAndForm", "CodeAndForm"
+imgList.AddPng "Compile", "Compile"
+imgList.AddPng "Run", "Run"
+imgList.AddPng "CompileAndRun", "CompileAndRun"
+imgList.AddPng "Help", "Help"
+imgList.AddPng "About", "About"
+imgList.AddPng "List", "Try"
+imgList.AddPng "File", "File"
+imgList.AddPng "Settings", "Parameters"
+imgList.AddPng "SyntaxCheck", "SyntaxCheck"
+imgList.AddPng "Folder", "Folder"
+imgList.AddPng "Project", "Project"
+imgList.AddPng "Add", "Add"
+imgList.AddPng "Remove", "Remove"
+imgList.AddPng "Start", "Start"
+imgList.AddPng "Pause", "Pause"
+imgList.AddPng "Stop", "Stop"
+imgList.AddPng "Error", "Error"
+imgList.AddPng "Warning", "Warning"
+imgList.AddPng "Label", "Label"
+imgList.AddPng "Component", "Component"
+imgList.AddPng "Property", "Property"
+imgList.AddPng "Sub", "Sub"
+imgList.AddPng "Bookmark", "Bookmark"
+imgList.AddPng "Breakpoint", "Breakpoint"
+imgList.AddPng "B32", "B32"
+imgList.AddPng "B64", "B64"
+imgList.AddPng "Opened", "Opened"
+imgList.AddPng "Tools", "Tools"
+imgList.AddPng "StandartTypes", "StandartTypes"
+imgList.AddPng "Enum", "Enum"
+imgList.AddPng "Function", "Function"
+imgList.AddPng "Collapsed", "Collapsed"
+imgList.AddPng "Categorized", "Categorized"
 
 mnuMain.ImagesList = @imgList
 
@@ -2109,10 +2119,10 @@ Sub lvProperties_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer
 End Sub
 
 '#IfNDef __USE_GTK__
-	imgListStates.AddMasked "Collapsed", cl, "Collapsed"
-	imgListStates.AddMasked "Expanded", cl, "Expanded"
-	imgListStates.AddMasked "Property", cl, "Property"
-	imgListStates.AddMasked "Run", cl, "Run"
+	imgListStates.AddPng "Collapsed", "Collapsed"
+	imgListStates.AddPng "Expanded", "Expanded"
+	imgListStates.AddPng "Property", "Property"
+	imgListStates.AddPng "Run", "Run"
 '#EndIf
 
 lvProperties.Align = 5
@@ -2188,6 +2198,7 @@ Sub SetRightClosedStyle(Value As Boolean)
         pnlRight.Width = tabRightWidth
         'pnlRight.RequestAlign
         splRight.Visible = True
+
     End If
     frmMain.RequestAlign
 End Sub
@@ -2286,6 +2297,91 @@ txtOutput.Align = 5
 txtOutput.Multiline = True
 txtOutput.ScrollBars = 3
 txtOutput.OnDblClick = @txtOutput_DblClick
+
+Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
+	Dim As Integer iLine = txtImmediate.GetLineFromCharIndex(txtImmediate.SelStart)
+	Dim As WString Ptr sLine = @txtImmediate.Lines(iLine)
+	Dim bCtrl As Boolean
+	#IfDef __USE_GTK__
+		bCtrl = Shift And GDK_Control_MASK
+	#Else
+		bCtrl = GetKeyState(VK_CONTROL) And 8000
+	#EndIf
+	If Not bCtrl AndAlso WGet(sLine) <> "" Then
+		If Key = Keys.Enter Then
+			Open ExePath & "/Temp/FBTemp.bas" For Output Encoding "utf-8" As #1
+			Print #1, WGet(sLine)
+			Close #1
+			Dim As WString Ptr FbcExe, ExeName
+			If tbStandard.Buttons.Item("B32")->Checked Then
+				FbcExe = Compilator32
+			Else
+				FbcExe = Compilator64
+			End If
+			PipeCmd "", """" & *FbcExe & """ -b """ & ExePath & "/Temp/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & ExePath & "/Temp/debug_compil.log"" 2> """ & ExePath & "/Temp/debug_compil2.log"""
+			Dim As WString Ptr Buff, LogText
+			Dim As WString Ptr ErrFileName, ErrTitle
+			Dim As Integer nLen, nLen2
+			If Open(exepath & "/Temp/debug_compil.log" For Input As #1) = 0 Then
+				nLen = LOF(1) + 1
+				WLet LogText, ""
+				WLet Buff, Space(nLen)
+				While Not EOF(1)
+					Line Input #1, *Buff
+					SplitError(*Buff, ErrFileName, ErrTitle, iLine)
+					WLet LogText, *LogText & *ErrTitle & !"\r"
+				Wend
+				Close #1
+			End If
+			If Open(exepath & "/Temp/debug_compil2.log" For Input As #1) = 0 Then
+				nLen2 = LOF(1) + 1
+				WLet Buff, Space(nLen2)
+				While Not EOF(1)
+					Line Input #1, *Buff
+					WLet LogText, *LogText & *Buff & !"\r"
+				Wend
+				Close #1
+			End If
+			Key = 0
+			If WGet(LogText) <> "" Then
+				MsgBox !"Compile error:\r\r" & *LogText, , mtWarning
+			Else
+				#IfDef __USE_GTK__
+					WLet ExeName, ExePath & "/Temp/FBTemp"
+				#Else
+					WLet ExeName, ExePath & "/Temp/FBTemp.exe"
+				#EndIf
+				If Open Pipe(*ExeName For Input As #1) = 0 Then
+					nLen = LOF(1) + 1
+					WReallocate Buff, nLen
+					Dim As Integer i
+					While Not EOF(1)
+						Line Input #1, *Buff
+						i = txtImmediate.GetCharIndexFromLine(iLine) + txtImmediate.GetLineLength(iLine)
+						txtImmediate.SetSel i, i
+						txtImmediate.SelText = wchr(13) & wchr(10) & *Buff
+						tabBottom.Update
+						txtImmediate.Update
+						frmMain.Update
+					Wend
+					Close #1
+				End If
+				Kill *ExeName
+			End If
+			WDeallocate Buff
+			WDeallocate ExeName
+			WDeallocate LogText
+			WDeallocate ErrFileName
+			WDeallocate ErrTitle
+		End If
+	End If
+	If Not EndsWith(txtImmediate.Text, !"\r") Then txtImmediate.Text &= !"\r"
+End Sub
+
+txtImmediate.Align = 5
+txtImmediate.Multiline = True
+txtImmediate.ScrollBars = 3
+txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 
 Sub lvErrors_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
     Dim Item As ListViewItem Ptr = lvErrors.ListItems.Item(itemIndex)
@@ -2415,6 +2511,7 @@ tabBottom.Height = tabBottomHeight
 tabBottom.AddTab(ML("Output"))
 tabBottom.AddTab(ML("Errors"))
 tabBottom.AddTab(ML("Find"))
+tabBottom.AddTab(ML("Immediate"))
 tabBottom.AddTab(ML("Locals"))
 tabBottom.AddTab(ML("Processes"))
 tabBottom.AddTab(ML("Threads"))
@@ -2422,10 +2519,11 @@ tabBottom.AddTab(ML("Watches"))
 tabBottom.Tabs[0]->Add @txtOutput
 tabBottom.Tabs[1]->Add @lvErrors
 tabBottom.Tabs[2]->Add @lvSearch
-tabBottom.Tabs[3]->Add @tvVar
-tabBottom.Tabs[4]->Add @tvPrc
-tabBottom.Tabs[5]->Add @tvThd
-tabBottom.Tabs[6]->Add @tvWch
+tabBottom.Tabs[3]->Add @txtImmediate
+tabBottom.Tabs[4]->Add @tvVar
+tabBottom.Tabs[5]->Add @tvPrc
+tabBottom.Tabs[6]->Add @tvThd
+tabBottom.Tabs[7]->Add @tvWch
 tabBottom.OnClick = @tabBottom_Click
 tabBottom.OnDblClick = @tabBottom_DblClick
 tabBottom.OnSelChange = @tabBottom_SelChange
@@ -2569,6 +2667,9 @@ Sub frmMain_Create(ByRef Sender As Control)
 		WLet Terminal, iniSettings.ReadString("Options", "Terminal", "gnome-terminal")
     #EndIf
     WLet HelpPath, iniSettings.ReadString("Options", "HelpPath", "")
+    GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
+    ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", true)
+    SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", true)
     AutoIncrement = iniSettings.ReadBool("Options", "AutoIncrement", true)
     AutoCreateRC = iniSettings.ReadBool("Options", "AutoCreateRC", true)
     AutoSaveCompile = iniSettings.ReadBool("Options", "AutoSaveCompile", true)
@@ -2577,6 +2678,8 @@ Sub frmMain_Create(ByRef Sender As Control)
     ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", true)
     TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
     HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
+    ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
+    ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
     Var file = Command(-1)
     If file = "" Then
         'AddTab ExePath & "/templates/Form.bas", True

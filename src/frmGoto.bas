@@ -1,5 +1,4 @@
-﻿'Compile with -g -s console "SI FreeBasic.rc"
-#Include Once "mff/Form.bi"
+﻿#Include Once "mff/Form.bi"
 #Include Once "mff/Label.bi"
 #Include Once "mff/TextBox.bi"
 #Include Once "mff/CommandButton.bi"
@@ -74,10 +73,9 @@ Using My.Sys.Forms
 '#End Region
 
 Private Sub frmGoto.btnFind_Click(ByRef Sender As Control)
-    If This.FParent = 0 Then Exit Sub
-    If Cast(Form Ptr, This.Parent)->ActiveControl = 0 Then Exit Sub
-    If Cast(Form Ptr, This.Parent)->ActiveControl->ClassName <> "EditControl" Then Exit Sub
-    Dim txt As EditControl Ptr = Cast(EditControl Ptr, Cast(Form Ptr, This.Parent)->ActiveControl)
+    Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
+    if tb = 0 Then Exit Sub
+    Dim txt As EditControl Ptr = @tb->txtCode
     If Val(txtFind.Text) <= 0 Then Exit Sub
     This.CloseForm
     txt->SetSelection Val(txtFind.Text) - 1, Val(txtFind.Text) - 1, 0, 0
