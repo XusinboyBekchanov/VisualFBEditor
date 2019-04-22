@@ -57,8 +57,8 @@ Categorized PNG "../resources/Categorized.png"
 
 #define VER_FILEDESCRIPTION_STR     "VisualFBEditor\0"
 
-#define VER_FILEVERSION             1,0,3,385
-#define VER_FILEVERSION_STR         "1.0.3.385\0"
+#define VER_FILEVERSION             1,1,0,464
+#define VER_FILEVERSION_STR         "1.1.0.464\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Xusinboy Bekchanov\0"
 
@@ -69,8 +69,8 @@ Categorized PNG "../resources/Categorized.png"
 #define VER_LEGALTRADEMARKS1_STR    ""
 #define VER_LEGALTRADEMARKS2_STR    ""
 
-#define VER_PRODUCTVERSION          1,0,0,0
-#define VER_PRODUCTVERSION_STR      "1.0\0"
+#define VER_PRODUCTVERSION          1,1,0,0
+#define VER_PRODUCTVERSION_STR      "1.1\0"
 #define VER_COMPANYNAME_STR         "Xusinboy Bekchanov\0"
 
 VS_VERSION_INFO VERSIONINFO

@@ -2,7 +2,7 @@
 	#IfDef __FB_64bit__
 	    '#Compile -g -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
 	#Else
-	    '#Compile -g -s console -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -g -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
@@ -11,7 +11,7 @@
 	    '#Compile -g -s gui -x "../VisualFBEditor32_gtk3" -exx
 	#EndIf
 #EndIf
-'#Define __USE_GTK3__
+#Define __USE_GTK3__
 On Error Goto AA
 '#Define GetMN
 Declare Sub m(ByRef msg As WString)
@@ -44,7 +44,7 @@ Dim Shared MFFDll As WString Ptr
 #Include Once "mff/Animate.bi"
 #Include Once "mff/Clipboard.bi"
 #Include Once "mff/TreeView.bi"
-#Include Once "mff/ListView.bi"
+#Include Once "mff/TreeListView.bi"
 #Include Once "mff/IniFile.bi"
 
 Declare Sub PopupClick(ByRef Sender As My.Sys.Object)
@@ -89,7 +89,7 @@ Dim Shared As Form frmMain
 
 Dim Shared As frmSplash fSplash
 #IfDef __USE_GTK__
-	fSplash.Icon.LoadFromFile(exepath & "/resources/VisualFBEditor.ico")
+	fSplash.Icon.LoadFromFile(exepath & "/Resources/VisualFBEditor.ico")
 #EndIf
 fSplash.Show
 Dim Shared As StatusBar stBar
@@ -777,7 +777,7 @@ Sub CompileProgram(Param As Any Ptr)
 End Sub
 
 Sub CompileAndRun(Param As Any Ptr)
-    If Compile Then ThreadCreate(@RunProgram)
+    If Compile Then RunProgram(0)
 End Sub
 
 Sub SyntaxCheck(Param As Any Ptr)
@@ -822,25 +822,32 @@ Sub mClick(Sender As My.Sys.Object)
     	#Else
     		ThreadCreate(@SyntaxCheck)
     	#EndIf
-    Case "Compile" :        
-    	#IfDef __USE_GTK__
-    		CompileProgram(0)
-    	#Else
-    		ThreadCreate(@CompileProgram)
-    	#EndIf
-    Case "Run":             
-		#IfDef __USE_GTK__
-			RunProgram(0)
-		#Else
-			ThreadCreate(@RunProgram)
-		#EndIf
-    Case "CompileAndRun":   
-    	#IfDef __USE_GTK__
-    		CompileAndRun(0)
-    	#Else
-    		ThreadCreate(@CompileAndRun) 'If Compile Then ThreadCreate(@RunProgram)
-    	#EndIf
-    Case "Start": ThreadCreate(@StartDebugging)
+    Case "Compile" : Thread_Create(@CompileProgram)
+'    	#IfDef __USE_GTK__
+'    		Dim As GError Ptr err1
+'  			Dim As gpointer gp
+'			g_thread_create(Cast(GThread Ptr, @CompileProgram), gp, false, @err1)
+'    	#Else
+'    		ThreadCreate(@CompileProgram)
+'    	#EndIf
+    Case "Run": Thread_Create(@RunProgram)
+'		#IfDef __USE_GTK__
+'			RunProgram(0)
+'		#Else
+'			ThreadCreate(@RunProgram)
+'		#EndIf
+    Case "CompileAndRun": Thread_Create(@CompileAndRun)
+'    	#IfDef __USE_GTK__
+'    		CompileAndRun(0)
+'    	#Else
+'    		ThreadCreate(@CompileAndRun) 'If Compile Then ThreadCreate(@RunProgram)
+'    	#EndIf
+    Case "Start": Thread_Create(@StartDebugging)
+'    	#IfDef __USE_GTK__
+'    		StartDebugging(0)
+'    	#Else
+'    		ThreadCreate(@StartDebugging)
+'    	#EndIf
     Case "Pause":           'If tb->Compile("-g") Then ThreadCreate(@RunWithDebug)
     Case "Stop":  
 		#IfNDef __USE_GTK__
@@ -891,7 +898,7 @@ Sub mClick(Sender As My.Sys.Object)
     Case "Find":         		fFind.Show frmMain
     Case "FindInFiles":         fFindFile.Show frmMain
     Case "Replace":         fReplace.Show frmMain
-    Case "NewForm":             AddTab ExePath + "/templates/Form.bas", True
+    Case "NewForm":             AddTab ExePath + "/Templates/Form.bas", True
     #IfNDef __USE_GTK__
 		Case "ShowString":          string_sh(tviewvar)
 		Case "ShowExpandVariable":  shwexp_new(tviewvar)
@@ -954,12 +961,12 @@ Sub mClick(Sender As My.Sys.Object)
         End If
     Case "Options": fOptions.Show frmMain
     Case "AddIns": fAddIns.Show frmMain
-    Case "Content":
-    	#IfDef __USE_GTK__
-    		RunHelp(0)
-    	#Else
-    		ThreadCreate(@RunHelp)
-    	#EndIf
+    Case "Content": Thread_Create(@RunHelp)
+'    	#IfDef __USE_GTK__
+'    		RunHelp(0)
+'    	#Else
+'    		ThreadCreate(@RunHelp)
+'    	#EndIf
     Case "About": fAbout.Show frmMain
     End Select
 End Sub
@@ -1321,25 +1328,25 @@ End Sub
 
 Sub LoadKeyWords
     Dim b As String
-    Open exepath & "/keywords/keywords0" For Input As #1
+    Open exepath & "/Keywords/keywords0" For Input As #1
     Do Until EOF(1)
         Input #1, b
         keywords0.Add b
     Loop
     Close #1
-    Open exepath & "/keywords/keywords1" For Input As #1
+    Open exepath & "/Keywords/keywords1" For Input As #1
     Do Until EOF(1)
         Input #1, b
         keywords1.Add b
     Loop
     Close #1
-    Open exepath & "/keywords/keywords2" For Input As #1
+    Open exepath & "/Keywords/keywords2" For Input As #1
     Do Until EOF(1)
         Input #1, b
         keywords2.Add b
     Loop
     Close #1
-    Open exepath & "/keywords/keywords3" For Input As #1
+    Open exepath & "/Keywords/keywords3" For Input As #1
     Do Until EOF(1)
         Input #1, b
         keywords3.Add b
@@ -1369,7 +1376,7 @@ Sub LoadLanguageTexts
     End If
     Dim b As WString Ptr
     Dim As Integer i, Pos1
-    Open exepath & "/languages/" & CurLanguage & ".lng" For Input Encoding "utf-8" As #1
+    Open exepath & "/Languages/" & CurLanguage & ".lng" For Input Encoding "utf-8" As #1
     WReallocate b, LOF(1)
     Do Until EOF(1)
         Line Input #1, *b
@@ -1922,16 +1929,16 @@ pnlPropertyValue.Add @cboPropertyValue
 Dim Shared CtrlEdit As Control Ptr
 Dim Shared Cpnt As Component Ptr
 
-Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
+Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
     Dim As Rect lpRect
-    Dim As ListViewItem Ptr Item = lvProperties.ListItems.Item(ItemIndex)
+    'Dim As TreeListViewItem Ptr Item = lvProperties.ListItems.Item(ItemIndex)
     lvProperties.SetFocus
     txtPropertyValue.Visible = False
     pnlPropertyValue.Visible = False
     #IfNDef __USE_GTK__
-		ListView_GetSubItemRect(lvProperties.Handle, ItemIndex, 1, LVIR_BOUNDS, @lpRect)
+    	ListView_GetSubItemRect(lvProperties.Handle, Item->GetItemIndex, 1, LVIR_BOUNDS, @lpRect)
     #EndIf
     Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), GetItemText(Item))
     If te = 0 Then Exit Sub
@@ -1994,17 +2001,17 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Inte
     End If
 End Sub
 
-Sub lvProperties_ItemDblClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-    ClickProperty ItemIndex
-End Sub
+'Sub lvProperties_ItemDblClick(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+'    If Item <> 0 Then ClickProperty Item->Index
+'End Sub
 
-Sub lvEvents_ItemDblClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Sub lvEvents_ItemDblClick(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
     Dim As TabWindow Ptr tb = tabRight.Tag
     If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
-    FindEvent tb->Des->SelectedControl, lvEvents.ListItems.Item(ItemIndex)->Text(0)
+    If Item <> 0 Then FindEvent tb->Des->SelectedControl, Item->Text(0)
 End Sub
 
-Sub lvProperties_EndScroll(ByRef Sender As ListView)
+Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
     If CtrlEdit = 0 Then Exit Sub
     If lvProperties.SelectedItem = 0 Then
         CtrlEdit->Visible = False
@@ -2031,7 +2038,7 @@ Sub lvProperties_Resize(ByRef Sender As Control)
     txtPropertyValue.Width = (lvWidth - 32) / 2
     pnlPropertyValue.Width = (lvWidth - 32) / 2
     cboPropertyValue.Width = (lvWidth - 32) / 2 + 2
-    lvProperties_EndScroll(*Cast(ListView Ptr, @Sender))
+    lvProperties_EndScroll(*Cast(TreeListView Ptr, @Sender))
 End Sub
 
 Sub lvEvents_Resize(ByRef Sender As Control)
@@ -2041,63 +2048,63 @@ Sub lvEvents_Resize(ByRef Sender As Control)
     'lvEvents_EndScroll(*Cast(ListView Ptr, @Sender))
 End Sub
 
-Sub lvProperties_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
-    Dim iItem As Integer
-	Dim dwState As Integer
-	Dim iIndent As Integer
-	Dim iIndentChild As Integer
-	' Get the selected item...
-	#IfNDef __USE_GTK__
-		iItem = ListView_GetNextItem(lvProperties.Handle, -1, LVNI_FOCUSED Or LVNI_SELECTED)
-	#EndIf
-	If (iItem <> -1) Then
-    ' Get the item's indent and state values
-	#IfNDef __USE_GTK__
-		dwState = Listview_GetItemStateEx(lvProperties.Handle, iItem, iIndent)
-		Select Case Key
-		  ' ========================================================
-		  ' The right arrow key expands the selected item, then selects the current
-		  ' item's first child
-		  Case VK_RIGHT
-			' If the item is collaped, expanded it, otherwise select
-			' the first child of the selected item (if any)
-			If (dwState = 1) Then
-			  AddChildItems(iItem, iIndent)
-			ElseIf (dwState = 2) Then
-			  If iItem < lvProperties.ListItems.Count - 1 AndAlso lvProperties.ListItems.Item(iItem + 1)->Indent > iIndent Then
-				  ListView_SetItemState(lvProperties.Handle, iItem + 1, LVIS_FOCUSED Or LVIS_SELECTED, LVIS_FOCUSED Or LVIS_SELECTED)
-			  End If
-			  'iItem = ListView_GetRelativeItem(m_hwndLV, iItem, lvriChild)
-			  'If (iItem <> -1) Then Call ListView_SetFocusedItem(lvProperties.Handle, iItem)
-			End If
-		  ' ========================================================
-		  ' The left arrow key collapses the selected item, then selects the current
-		  ' item's parent. The backspace key only selects the current item's parent
-		  Case VK_LEFT, VK_BACK
-			' If vbKeyLeft and the item is expanded, collaped it, otherwise select
-			' the parent of the selected item (if any)
-			If (Key = VK_LEFT) And (dwState = 2) Then
-				RemoveChildItems(iItem, iIndent)
-			Else
-				For i As Integer = iItem To 0 Step -1
-					dwState = Listview_GetItemStateEx(lvProperties.Handle, i, iIndentChild)
-					If iIndentChild < iIndent Then
-						ListView_SetItemState(lvProperties.Handle, i, LVIS_FOCUSED Or LVIS_SELECTED, LVIS_FOCUSED Or LVIS_SELECTED)
-						Exit For
-					End If
-				Next
-	'          iItem = ListView_GetRelativeItem(m_hwndLV, iItem, lvriParent)
-	'          If (iItem <> LVI_NOITEM) Then
-	'            Call ListView_SetFocusedItem(m_hwndLV, iItem)
-	'            Call ListView_EnsureVisible(m_hwndLV, iItem, False)
-	'          End If
-			End If
-		End Select   ' KeyCode
-	#EndIf
-  End If   ' (iItem <> LVI_NOITEM)
-End Sub
+'Sub lvProperties_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
+'    Dim iItem As Integer
+'	Dim dwState As Integer
+'	Dim iIndent As Integer
+'	Dim iIndentChild As Integer
+'	' Get the selected item...
+'	#IfNDef __USE_GTK__
+'		iItem = ListView_GetNextItem(lvProperties.Handle, -1, LVNI_FOCUSED Or LVNI_SELECTED)
+'	#EndIf
+'	If (iItem <> -1) Then
+'    ' Get the item's indent and state values
+'	#IfNDef __USE_GTK__
+'		dwState = Listview_GetItemStateEx(lvProperties.Handle, iItem, iIndent)
+'		Select Case Key
+'		  ' ========================================================
+'		  ' The right arrow key expands the selected item, then selects the current
+'		  ' item's first child
+'		  Case VK_RIGHT
+'			' If the item is collaped, expanded it, otherwise select
+'			' the first child of the selected item (if any)
+'			If (dwState = 1) Then
+'			  AddChildItems(iItem, iIndent)
+'			ElseIf (dwState = 2) Then
+'			  If iItem < lvProperties.ListItems.Count - 1 AndAlso lvProperties.ListItems.Item(iItem + 1)->Indent > iIndent Then
+'				  ListView_SetItemState(lvProperties.Handle, iItem + 1, LVIS_FOCUSED Or LVIS_SELECTED, LVIS_FOCUSED Or LVIS_SELECTED)
+'			  End If
+'			  'iItem = ListView_GetRelativeItem(m_hwndLV, iItem, lvriChild)
+'			  'If (iItem <> -1) Then Call ListView_SetFocusedItem(lvProperties.Handle, iItem)
+'			End If
+'		  ' ========================================================
+'		  ' The left arrow key collapses the selected item, then selects the current
+'		  ' item's parent. The backspace key only selects the current item's parent
+'		  Case VK_LEFT, VK_BACK
+'			' If vbKeyLeft and the item is expanded, collaped it, otherwise select
+'			' the parent of the selected item (if any)
+'			If (Key = VK_LEFT) And (dwState = 2) Then
+'				RemoveChildItems(iItem, iIndent)
+'			Else
+'				For i As Integer = iItem To 0 Step -1
+'					dwState = Listview_GetItemStateEx(lvProperties.Handle, i, iIndentChild)
+'					If iIndentChild < iIndent Then
+'						ListView_SetItemState(lvProperties.Handle, i, LVIS_FOCUSED Or LVIS_SELECTED, LVIS_FOCUSED Or LVIS_SELECTED)
+'						Exit For
+'					End If
+'				Next
+'	'          iItem = ListView_GetRelativeItem(m_hwndLV, iItem, lvriParent)
+'	'          If (iItem <> LVI_NOITEM) Then
+'	'            Call ListView_SetFocusedItem(m_hwndLV, iItem)
+'	'            Call ListView_EnsureVisible(m_hwndLV, iItem, False)
+'	'          End If
+'			End If
+'		End Select   ' KeyCode
+'	#EndIf
+'  End If   ' (iItem <> LVI_NOITEM)
+'End Sub
 
-Sub lvEvents_KeyDown(ByRef Sender As Control, ByVal ItemIndex As Integer)
+Sub lvEvents_KeyDown(ByRef Sender As Control, ByRef Item As TreeListViewItem Ptr)
     
 End Sub
 
@@ -2118,18 +2125,16 @@ Sub lvProperties_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer
     'Key = 0
 End Sub
 
-'#IfNDef __USE_GTK__
-	imgListStates.AddPng "Collapsed", "Collapsed"
-	imgListStates.AddPng "Expanded", "Expanded"
-	imgListStates.AddPng "Property", "Property"
-	imgListStates.AddPng "Run", "Run"
-'#EndIf
+imgListStates.AddPng "Collapsed", "Collapsed"
+imgListStates.AddPng "Expanded", "Expanded"
+imgListStates.AddPng "Property", "Property"
+imgListStates.AddPng "Run", "Run"
 
 lvProperties.Align = 5
 'lvProperties.Sort = ssSortAscending
 lvProperties.StateImages = @imgListStates
 lvProperties.SmallImages = @imgListStates
-lvProperties.ColumnHeaderHidden = True
+'lvProperties.ColumnHeaderHidden = True
 lvProperties.Columns.Add ML("Property"), , 70
 lvProperties.Columns.Add ML("Value"), , 50, , True
 lvProperties.Add @txtPropertyValue
@@ -2137,10 +2142,13 @@ lvProperties.Add @pnlPropertyValue
 lvProperties.OnSelectedItemChanged = @lvProperties_SelectedItemChanged
 lvProperties.OnEndScroll = @lvProperties_EndScroll
 lvProperties.OnResize = @lvProperties_Resize
-lvProperties.OnMouseDown = @lvProperties_MouseDown
-lvProperties.OnKeyDown = @lvProperties_KeyDown
-lvProperties.OnItemDblClick = @lvProperties_ItemDblClick
+'lvProperties.OnMouseDown = @lvProperties_MouseDown
+'lvProperties.OnKeyDown = @lvProperties_KeyDown
+'lvProperties.OnItemDblClick = @lvProperties_ItemDblClick
 lvProperties.OnKeyUp = @lvProperties_KeyUp
+lvProperties.OnCellEditing = @lvProperties_CellEditing
+lvProperties.OnCellEdited = @lvProperties_CellEdited
+lvProperties.OnItemExpanding = @lvProperties_ItemExpanding
 
 lvEvents.Align = 5
 lvEvents.Sort = ssSortAscending
@@ -2307,7 +2315,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 	#Else
 		bCtrl = GetKeyState(VK_CONTROL) And 8000
 	#EndIf
-	If Not bCtrl AndAlso WGet(sLine) <> "" Then
+	If CInt(Not bCtrl) AndAlso CInt(WGet(sLine) <> "") Then
 		If Key = Keys.Enter Then
 			Open ExePath & "/Temp/FBTemp.bas" For Output Encoding "utf-8" As #1
 			Print #1, WGet(sLine)
@@ -2682,7 +2690,7 @@ Sub frmMain_Create(ByRef Sender As Control)
     ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
     Var file = Command(-1)
     If file = "" Then
-        'AddTab ExePath & "/templates/Form.bas", True
+        'AddTab ExePath & "/Templates/Form.bas", True
     Else
         AddTab file
     End If
@@ -2737,7 +2745,7 @@ End Sub
 'Next i
 
 #IfDef __USE_GTK__
-	frmMain.Icon.LoadFromFile(exepath & "/resources/VisualFBEditor.ico")
+	frmMain.Icon.LoadFromFile(exepath & "/Resources/VisualFBEditor.ico")
 #Else
 	frmMain.Icon.LoadFromResourceID(1)
 #EndIf

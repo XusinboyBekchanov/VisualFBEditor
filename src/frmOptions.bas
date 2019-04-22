@@ -464,9 +464,9 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
         .txtGridSize.Text = Str(GridSize)
         .chkShowAlignmentGrid.Checked = ShowAlignmentGrid
         .chkSnapToGrid.Checked = SnapToGridOption
-        f = Dir(exepath & "/languages/*.lng")
+        f = Dir(exepath & "/Languages/*.lng")
         While f <> ""
-            Open exepath & "/languages/" & f For Input Encoding "utf-8" As #1
+            Open exepath & "/Languages/" & f For Input Encoding "utf-8" As #1
             WReallocate s, LOF(1)
             If Not EOF(1) Then
                 Line Input #1, *s

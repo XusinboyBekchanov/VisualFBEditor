@@ -21,7 +21,7 @@ Using My.Sys.Forms
         lblImage.Name = "lblImage"
         'lblImage.Graphic.Bitmap.LoadFromResourceName("Logo")
         #IfDef __USE_GTK__
-        	lblImage.Graphic.Bitmap.LoadFromFile(ExePath & "/resources/Logo.png")
+        	lblImage.Graphic.Bitmap.LoadFromFile(ExePath & "/Resources/Logo.png")
         #Else
         	lblImage.Graphic.Bitmap = "Logo"
         #EndIf

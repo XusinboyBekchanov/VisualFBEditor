@@ -3,10 +3,6 @@
 #Include Once "mff/Canvas.bi"
 #Include Once "mff/WStringList.bi"
 #Include Once "mff/Clipboard.bi"
-#Include Once "crt/stdio.bi"
-' Для функции StrStr
-#include once "win/shlwapi.bi"
-'#include once "OpenFileNoBuffering.bi"
 
 'declare sub gtk_widget_set_focus_on_click(byval widget as GtkWidget ptr, byval focus_on_click as gboolean)
 

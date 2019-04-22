@@ -2100,7 +2100,7 @@ End Sub
 	Function Dialog_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 		Dim As Designer Ptr Des = data1
 		Des->cr = cr
-		Des->DrawGrid
+		Des->DrawThis
 		Des->PaintControl
 		Return False
 	End Function
@@ -2119,29 +2119,19 @@ End Sub
 			If value <> 0 Then
 				gtk_widget_set_can_focus(layoutwidget, true)
 				'CreateDots(gtk_widget_get_parent(FDialog))
-				gtk_widget_set_events(layoutwidget, _
-	                      GDK_EXPOSURE_MASK Or _
-	                       GDK_SCROLL_MASK Or _
-	                       GDK_STRUCTURE_MASK Or _
-	                       GDK_KEY_PRESS_MASK Or _
-	                       GDK_KEY_RELEASE_MASK Or _
-	                       GDK_FOCUS_CHANGE_MASK Or _
-	                       GDK_LEAVE_NOTIFY_MASK Or _
-	                       GDK_BUTTON_PRESS_MASK Or _
-	                       GDK_BUTTON_RELEASE_MASK Or _
-	                       GDK_POINTER_MOTION_MASK Or _
-	                       GDK_POINTER_MOTION_HINT_MASK)
-				#IfDef __USE_GTK3__
-					g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Dialog_Draw), @This)
-				#Else
-					g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@Dialog_ExposeEvent), @This)
-				#EndIf
-'				Dim As GdkDisplay Ptr display = gdk_display_get_default ()
-'				Dim As GdkDeviceManager Ptr device_manager = gdk_display_get_device_manager (display)
-'				Dim As GdkDevice Ptr device = gdk_device_manager_get_client_pointer (device_manager)
-'				gtk_widget_set_device_enabled(layoutwidget, device, false)
-				if FActive then Hook
-				'InvalidateRect(FDialog, 0, true)
+				If layoutwidget Then
+					#IfDef __USE_GTK3__
+						g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Dialog_Draw), @This)
+					#Else
+						g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@Dialog_ExposeEvent), @This)
+					#EndIf
+	'				Dim As GdkDisplay Ptr display = gdk_display_get_default ()
+	'				Dim As GdkDeviceManager Ptr device_manager = gdk_display_get_device_manager (display)
+	'				Dim As GdkDevice Ptr device = gdk_device_manager_get_client_pointer (device_manager)
+	'				gtk_widget_set_device_enabled(layoutwidget, device, false)
+					if FActive then Hook
+					'InvalidateRect(FDialog, 0, true)
+				End If
 			End If
 		end if   
 	end property

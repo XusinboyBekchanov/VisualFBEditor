@@ -44,7 +44,7 @@ Using My.Sys.Forms
         ' Label2                                
         Label2.Name = "Label2"
         Label2.Text = 	ML("Author") & !": Xusinboy Bekchanov\r" & _
-        				!"e-mail: <A href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</A>\r" & _
+        				!"e-mail: <a href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</a>\r" & _
         				ML("For donation") & !": WebMoney: WMZ: Z884195021874\r\r" & _
         				ML("Special thanks to all FreeBasic compiler creators and testers!") & !"\r\r" & _
         				ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit\r\r" & _
@@ -59,7 +59,7 @@ Using My.Sys.Forms
         lblIcon.Text = "lblIcon"
         'lblIcon.RealSizeImage = false
         #IfDef __USE_GTK__
-			lblIcon.Graphic.Icon.LoadFromFile(exepath & "/resources/VisualFBEditor.ico", 48, 48)
+			lblIcon.Graphic.Icon.LoadFromFile(exepath & "/Resources/VisualFBEditor.ico", 48, 48)
         #Else
 			lblIcon.Graphic.Icon.LoadFromResourceID(1, 48, 48)
         #EndIf

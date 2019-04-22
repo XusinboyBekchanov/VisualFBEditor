@@ -12,7 +12,8 @@ Dim Shared As TabControl tabLeft, tabRight, tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
 Dim Shared As TabControl tabCode, tabBottom
-Dim Shared As ListView lvErrors, lvSearch, lvProperties, lvEvents
+Dim Shared As ListView lvErrors, lvSearch
+Dim Shared As TreeListView lvProperties, lvEvents
 Dim Shared As ImageList imgList, imgListTools, imgListStates
 Dim Shared As ToolButton Ptr SelectedTool
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
@@ -120,7 +121,7 @@ Type TabWindow Extends TabPage
         Dim As Any Ptr Ctrl, CurCtrl
         i As Integer
         j As Integer
-        lvItem As ListViewItem Ptr
+        lvItem As TreeListViewItem Ptr
         iTemp As Integer
         pTemp As Any Ptr
         te As TypeElement Ptr
@@ -1117,6 +1118,7 @@ Sub TabWindow.FillAllProperties()
             If Cint(LCase(.Name) <> "handle") AndAlso Cint(LCase(.TypeName) <> "hwnd") AndAlso Cint(LCase(.TypeName) <> "gtkwidget ptr") AndAlso Cint(.ElementType = "Property") Then
                 If lvProperties.ListItems.Count <= lvPropertyCount Then
                     lvItem = lvProperties.ListItems.Add(FPropertyItems.Item(lvPropertyCount), 2, IIF(Comps.Contains(.TypeName), 1, 0))
+                    If Comps.Contains(.TypeName) Then lvItem->Items.Add
                 Else
                     lvItem = lvProperties.ListItems.Item(lvPropertyCount)
                     lvItem->Text(0) = FPropertyItems.Item(lvPropertyCount)
@@ -1472,22 +1474,18 @@ Sub TabWindow.ChangeName(ByRef OldName As String, ByRef NewName As String)
     End With
 End Sub
 
-Function GetItemText(ByRef Item As ListViewItem Ptr) As String
+Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
     Dim As String PropertyName = Item->Text(0)
-    If Item->Indent = 0 Then
+    If Item->ParentItem = 0 Then
         Return PropertyName
     Else
-        For i As Integer = Item->Index - 1 To 0 Step -1
-            If lvProperties.ListItems.Item(i)->Indent < Item->Indent Then
-                Return GetItemText(lvProperties.ListItems.Item(i)) & "." & PropertyName
-            End If
-        Next
+        Return GetItemText(Item->ParentItem) & "." & PropertyName
     End If
 End Function
 
 Dim Shared TempWS As WString Ptr
-Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
-    Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCombo As Boolean)
+	Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     If tb->Des = 0 Then Exit Sub
     If tb->Des->SelectedControl = 0 Then Exit Sub
@@ -1497,19 +1495,23 @@ Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
     'If te = 0 Then Exit Sub
     Dim FLine As WString Ptr
     Dim SenderText As WString Ptr
-    WLet SenderText, IIF(Sender.ClassName = "ComboBoxEdit", Mid(Sender.Text, 2), Sender.Text)
+    WLet SenderText, IIF(IsCombo, Mid(Sender_Text, 2), Sender_Text)
     With tb->txtCode
         If *SenderText <> tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName) Then
             If CInt(PropertyName = "Name") AndAlso CInt(tb->cboClass.Items.Contains(*SenderText)) Then
                 MsgBox ML("This name is exists!"), "VisualFBEditor", mtWarning
-                Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+                #IfNDef __USE_GTK__
+                	Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+                #EndIf
                 Exit Sub
             End If
             frmMain.UpdateLock
             .Changing "Unsurni o`zgartirish"
             If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), *SenderText
-            tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender.Text)
-            Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+            tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
+            #IfNDef __USE_GTK__
+            	Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+            #EndIf
             ChangeControl(tb->Des->SelectedControl, PropertyName)
             'If tb->frmForm Then tb->frmForm->MoveDots Cast(Control Ptr, tb->SelectedControl)->Handle, False
             For i As Integer = 0 To lvProperties.ListItems.Count - 1
@@ -1524,10 +1526,23 @@ Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
             frmMain.UpdateUnLock
         End If
     End With
+    WDeallocate SenderText
+End Sub
+
+Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr)
+	CellEditor = @cboPropertyValue
+End Sub
+
+Sub lvProperties_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString)
+	PropertyChanged Sender, NewText, False
+End Sub
+
+Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
+    PropertyChanged Sender, Sender.Text, False
 End Sub
 
 Sub cboPropertyValue_Change(ByRef Sender As Control)
-    txtPropertyValue_LostFocus Sender
+    PropertyChanged Sender, Sender.Text, True
 End Sub
 
 Sub DesignerModified(ByRef Sender as Designer, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
@@ -1985,21 +2000,33 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 '    End If
 End Sub
 
+Dim Shared As WString Ptr TempString
+Function GetKeyWordCase(ByRef KeyWord As WString) ByRef As WString
+	If ChangeKeyWordsCase Then
+		Select Case ChoosedKeyWordsCase
+		Case KeyWordsCase.OriginalCase
+		Case KeyWordsCase.LowerCase: WLet TempString, LCase(KeyWord): Return *TempString
+		Case KeyWordsCase.UpperCase: WLet TempString, UCase(KeyWord): Return *TempString
+		End Select
+	End If
+	Return KeyWord
+End Function
+
 Sub FillAllIntellisenses()
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     FListItems.Clear
     For i As Integer = 0 To KeyWords0.Count - 1
-        FListItems.Add KeyWords0.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords0.Item(i))
     Next
     For i As Integer = 0 To KeyWords1.Count - 1
-        FListItems.Add KeyWords1.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords1.Item(i))
     Next
     For i As Integer = 0 To KeyWords2.Count - 1
-        FListItems.Add KeyWords2.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords2.Item(i))
     Next
     For i As Integer = 0 To KeyWords3.Count - 1
-        FListItems.Add KeyWords3.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords3.Item(i))
     Next
     For i As Integer = 0 To Comps.Count - 1
         FListItems.Add Comps.Item(i), Comps.Object(i)
@@ -2042,12 +2069,12 @@ Sub FillTypeIntellisenses()
     If tb = 0 Then Exit Sub
     FListItems.Clear
     For i As Integer = 0 To KeyWords1.Count - 1
-        FListItems.Add KeyWords1.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords1.Item(i))
     Next
-    FListItems.Add "Const"
-    FListItems.Add "TypeOf"
-    FListItems.Add "Sub"
-    FListItems.Add "Function"
+    FListItems.Add GetKeyWordCase("Const")
+    FListItems.Add GetKeyWordCase("TypeOf")
+    FListItems.Add GetKeyWordCase("Sub")
+    FListItems.Add GetKeyWordCase("Function")
     For i As Integer = 0 To Comps.Count - 1
         FListItems.Add Comps.Item(i), Comps.Object(i)
     Next
@@ -2302,7 +2329,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
         Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
         tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
         Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-        If Key = Asc(" ") AndAlso EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as") Then
+        If CInt(Key = Asc(" ")) AndAlso CInt(EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as")) Then
             FillTypeIntellisenses
             SelLinePos = iSelEndLine
             SelCharPos = iSelEndChar
@@ -2977,57 +3004,147 @@ Destructor TabWindow
     'If tn <> 0 Then tvExplorer.RemoveRoot tvExplorer.IndexOfRoot(tn)
 End Destructor
 
-Public Function STATEIMAGEMASKTOINDEX(iState As Integer) As Integer
+'Public Function STATEIMAGEMASKTOINDEX(iState As Integer) As Integer
+'
+'  STATEIMAGEMASKTOINDEX = iState / (2 ^ 12)
+'End Function
+'
+'#IfNDef __USE_GTK__
+'	Public Function Listview_GetItemStateEx(hwndLV As HWND, iItem As Integer, ByRef iIndent As Integer) As Integer
+'		Dim lvi As LVITEM
+'
+'	  
+'		lvi.mask = LVIF_STATE Or LVIF_INDENT
+'		lvi.iItem = iItem
+'		lvi.stateMask = LVIS_STATEIMAGEMASK
+'
+'	  
+'		If ListView_GetItem(hwndLV, @lvi) Then
+'			iIndent = lvi.iIndent
+'			Return STATEIMAGEMASKTOINDEX(lvi.state And LVIS_STATEIMAGEMASK)
+'		End If
+'
+'	  
+'	End Function
+'#EndIf
+'
+'#IfNDef __USE_GTK__
+'	Public Function Listview_SetItemStateEx(hwndLV As HWND, iItem As Integer, iIndent As Integer, dwState As Integer) As Boolean
+'		Dim lvi As LVITEM
+'		lvi.mask = LVIF_STATE Or LVIF_INDENT
+'		lvi.iItem = iItem
+'		lvi.iIndent = iIndent
+'		lvi.state = INDEXTOSTATEIMAGEMASK(dwState)
+'		lvi.stateMask = LVIS_STATEIMAGEMASK
+'		Return ListView_SetItem(hwndLV, @lvi)
+'	End Function
+'#EndIF
 
-  STATEIMAGEMASKTOINDEX = iState / (2 ^ 12)
-End Function
+'Sub AddChildItems(iParentItem As Integer, iParentIndent As Integer)
+'    If (iParentItem <> -1) Then
+'		#IfNDef __USE_GTK__
+'			Listview_SetItemStateEx(lvProperties.Handle, iParentItem, iParentIndent, 2)
+'        #EndIf
+'        Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabRight.Tag)
+'        If tb = 0 Then Exit Sub
+'        If tb->Des = 0 Then Exit Sub
+'        If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
+'        If tb->Des->SelectedControl = 0 Then Exit Sub
+'        Dim PropertyName As String = GetItemText(lvProperties.ListItems.Item(iParentItem))
+'        Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
+'        If te = 0 Then Exit Sub
+'        tabRight.UpdateLock
+'        Dim lvItem As TreeListViewItem Ptr
+'        FPropertyItems.Clear
+'        tb->FillProperties te->TypeName
+'        FPropertyItems.Sort
+'        For lvPropertyCount As Integer = FPropertyItems.Count - 1 To 0 Step -1
+'            te = FPropertyItems.Object(lvPropertyCount)
+'            If te = 0 Then Continue For
+'            With *te
+'                If Cint(LCase(.Name) <> "handle") AndAlso Cint(LCase(.TypeName) <> "hwnd") AndAlso Cint(.ElementType = "Property") Then
+'                    lvItem = lvProperties.ListItems.Insert(iParentItem + 1, FPropertyItems.Item(lvPropertyCount), 2, IIF(Comps.Contains(.TypeName), 1, 0), iParentIndent + 1)
+'                    lvItem->Text(1) = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
+'                End If
+'            End With
+'        Next
+'        tabRight.UpdateUnlock
+'    End If
+'End Sub
+'
+'Sub RemoveChildItems(iParentItem As Integer, iParentIndent As Integer)
+'    #IfNDef __USE_GTK__
+'		Listview_SetItemStateEx(lvProperties.Handle, iParentItem, iParentIndent, 1)
+'    #EndIf
+'    Var nItems = lvProperties.ListItems.Count
+'    Dim iChildIndent As Integer
+'    Do
+'		#IfNDef __USE_GTK__
+'			Listview_GetItemStateEx(lvProperties.Handle, iParentItem + 1, iChildIndent)
+'        #EndIf
+'        If (iChildIndent > iParentIndent) Then
+'            
+'            ' Remove the item directly below the collapsing parent (VB ListItems are one-based)
+'            lvProperties.ListItems.Remove (iParentItem + 1)
+'            
+'            ' Keep a count of ListView items so we don't try to remove more
+'            ' items than are in the ListView (when collapsing the last parent).
+'
+'           nItems = nItems - 1
+'        End If
+'
+'  Loop While (iChildIndent > iParentIndent) And (iParentItem + 1 < nItems)
+'End Sub
+'
+'Sub ClickProperty(Item As Integer)
+'    Dim dwState As Integer
+'    Dim iIndent As Integer
+'    #IfNDef __USE_GTK__
+'		Dim lvi As LVITEM
+'		lvi.mask = LVIF_STATE Or LVIF_INDENT
+'		lvi.iItem = Item
+'		lvi.stateMask = LVIS_STATEIMAGEMASK
+'		If ListView_GetItem(lvProperties.Handle, @lvi) Then
+'			iIndent = lvi.iIndent
+'			dwState = STATEIMAGEMASKTOINDEX(lvi.state And LVIS_STATEIMAGEMASK)
+'			If dwState > 0 Then
+'				If (dwState = 1) Then
+'					AddChildItems(Item, iIndent)            
+'				Else
+'					RemoveChildItems(Item, iIndent)
+'				End If
+'			End If
+'		End If
+'	#EndIf
+'End Sub
+'
+'Sub lvProperties_MouseDown(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+'    #IfNDef __USE_GTK__
+'		Dim lvhti As LVHITTESTINFO
+'		If MouseButton = 0 Then
+'			lvhti.pt.x = x
+'			lvhti.pt.y = y
+'			If (ListView_HitTest(Sender.Handle, @lvhti) <> -1) Then
+'				If (lvhti.flags = LVHT_ONITEMSTATEICON) Then
+'					ClickProperty lvhti.iItem
+'				End If
+'			End If
+'		End If
+'	#EndIf
+'End Sub
 
-#IfNDef __USE_GTK__
-	Public Function Listview_GetItemStateEx(hwndLV As HWND, iItem As Integer, ByRef iIndent As Integer) As Integer
-		Dim lvi As LVITEM
-
-	  
-		lvi.mask = LVIF_STATE Or LVIF_INDENT
-		lvi.iItem = iItem
-		lvi.stateMask = LVIS_STATEIMAGEMASK
-
-	  
-		If ListView_GetItem(hwndLV, @lvi) Then
-			iIndent = lvi.iIndent
-			Return STATEIMAGEMASKTOINDEX(lvi.state And LVIS_STATEIMAGEMASK)
-		End If
-
-	  
-	End Function
-#EndIf
-
-#IfNDef __USE_GTK__
-	Public Function Listview_SetItemStateEx(hwndLV As HWND, iItem As Integer, iIndent As Integer, dwState As Integer) As Boolean
-		Dim lvi As LVITEM
-		lvi.mask = LVIF_STATE Or LVIF_INDENT
-		lvi.iItem = iItem
-		lvi.iIndent = iIndent
-		lvi.state = INDEXTOSTATEIMAGEMASK(dwState)
-		lvi.stateMask = LVIS_STATEIMAGEMASK
-		Return ListView_SetItem(hwndLV, @lvi)
-	End Function
-#EndIF
-
-Sub AddChildItems(iParentItem As Integer, iParentIndent As Integer)
-    If (iParentItem <> -1) Then
-		#IfNDef __USE_GTK__
-			Listview_SetItemStateEx(lvProperties.Handle, iParentItem, iParentIndent, 2)
-        #EndIf
-        Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabRight.Tag)
+Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+	If Item AndAlso Item->Items.Count > 0 AndAlso Item->Items.Item(0)->Text(0) = "" Then
+	    Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabRight.Tag)
         If tb = 0 Then Exit Sub
         If tb->Des = 0 Then Exit Sub
         If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
         If tb->Des->SelectedControl = 0 Then Exit Sub
-        Dim PropertyName As String = GetItemText(lvProperties.ListItems.Item(iParentItem))
+        Dim PropertyName As String = GetItemText(Item)
         Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
         If te = 0 Then Exit Sub
         tabRight.UpdateLock
-        Dim lvItem As ListViewItem Ptr
+        Dim lvItem As TreeListViewItem Ptr
         FPropertyItems.Clear
         tb->FillProperties te->TypeName
         FPropertyItems.Sort
@@ -3036,74 +3153,17 @@ Sub AddChildItems(iParentItem As Integer, iParentIndent As Integer)
             If te = 0 Then Continue For
             With *te
                 If Cint(LCase(.Name) <> "handle") AndAlso Cint(LCase(.TypeName) <> "hwnd") AndAlso Cint(.ElementType = "Property") Then
-                    lvItem = lvProperties.ListItems.Insert(iParentItem + 1, FPropertyItems.Item(lvPropertyCount), 2, IIF(Comps.Contains(.TypeName), 1, 0), iParentIndent + 1)
+                    lvItem = Item->Items.Add(FPropertyItems.Item(lvPropertyCount), 2, IIF(Comps.Contains(.TypeName), 1, 0))
                     lvItem->Text(1) = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
+                	If Comps.Contains(.TypeName) Then
+                		lvItem->Items.Add
+                	End If
                 End If
             End With
         Next
+        Item->Items.Remove 0
         tabRight.UpdateUnlock
     End If
-End Sub
-
-Sub RemoveChildItems(iParentItem As Integer, iParentIndent As Integer)
-    #IfNDef __USE_GTK__
-		Listview_SetItemStateEx(lvProperties.Handle, iParentItem, iParentIndent, 1)
-    #EndIf
-    Var nItems = lvProperties.ListItems.Count
-    Dim iChildIndent As Integer
-    Do
-		#IfNDef __USE_GTK__
-			Listview_GetItemStateEx(lvProperties.Handle, iParentItem + 1, iChildIndent)
-        #EndIf
-        If (iChildIndent > iParentIndent) Then
-            
-            ' Remove the item directly below the collapsing parent (VB ListItems are one-based)
-            lvProperties.ListItems.Remove (iParentItem + 1)
-            
-            ' Keep a count of ListView items so we don't try to remove more
-            ' items than are in the ListView (when collapsing the last parent).
-
-           nItems = nItems - 1
-        End If
-
-  Loop While (iChildIndent > iParentIndent) And (iParentItem + 1 < nItems)
-End Sub
-
-Sub ClickProperty(Item As Integer)
-    Dim dwState As Integer
-    Dim iIndent As Integer
-    #IfNDef __USE_GTK__
-		Dim lvi As LVITEM
-		lvi.mask = LVIF_STATE Or LVIF_INDENT
-		lvi.iItem = Item
-		lvi.stateMask = LVIS_STATEIMAGEMASK
-		If ListView_GetItem(lvProperties.Handle, @lvi) Then
-			iIndent = lvi.iIndent
-			dwState = STATEIMAGEMASKTOINDEX(lvi.state And LVIS_STATEIMAGEMASK)
-			If dwState > 0 Then
-				If (dwState = 1) Then
-					AddChildItems(Item, iIndent)            
-				Else
-					RemoveChildItems(Item, iIndent)
-				End If
-			End If
-		End If
-	#EndIf
-End Sub
-
-Sub lvProperties_MouseDown(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-    #IfNDef __USE_GTK__
-		Dim lvhti As LVHITTESTINFO
-		If MouseButton = 0 Then
-			lvhti.pt.x = x
-			lvhti.pt.y = y
-			If (ListView_HitTest(Sender.Handle, @lvhti) <> -1) Then
-				If (lvhti.flags = LVHT_ONITEMSTATEICON) Then
-					ClickProperty lvhti.iItem
-				End If
-			End If
-		End If
-	#EndIf
 End Sub
 
 Sub SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer)
@@ -3138,9 +3198,9 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString)
                         If Not FileExists(*File) Then
                             If AutoCreateRC Then
 								#IfNDef __USE_GTK__
-									FileCopy ExePath & "/templates/Resource.rc", *File
+									FileCopy ExePath & "/Templates/Resource.rc", *File
 									If Not FileExists(GetFolderName(FileName) & "xpmanifest.xml") Then
-										FileCopy ExePath & "/templates/xpmanifest.xml", GetFolderName(FileName) & "xpmanifest.xml"
+										FileCopy ExePath & "/Templates/xpmanifest.xml", GetFolderName(FileName) & "xpmanifest.xml"
 									End If
 								#EndIf
                             End If
@@ -3336,7 +3396,7 @@ Function Compile(Parameter As String = "") As Integer
         'Shell(*fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """")
         'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #1
         'Close #1
-        PipeCmd "", """" & *fbcexe & """ " & *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """"
+        PipeCmd "", """" & *fbcexe & """ " & *fbcCommand  + " > """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """"
         #IfDef __USE_GTK__
         	Yaratilmadi = g_find_program_in_path(*ExeName) = NULL
         #Else
