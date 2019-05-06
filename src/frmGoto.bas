@@ -1,4 +1,10 @@
-﻿#Include Once "mff/Form.bi"
+﻿'#########################################################
+'#  frmGoto.bas                                          #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
+#Include Once "mff/Form.bi"
 #Include Once "mff/Label.bi"
 #Include Once "mff/TextBox.bi"
 #Include Once "mff/CommandButton.bi"

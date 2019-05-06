@@ -1,4 +1,9 @@
-﻿'#Compile -exx "Form1.rc"
+﻿'#########################################################
+'#  frmProjectProperties.bas                             #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
 #Include Once "mff/Form.bi"
 #Include Once "mff/TabControl.bi"
 #Include Once "mff/CommandButton.bi"

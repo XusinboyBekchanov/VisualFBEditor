@@ -1,5 +1,18 @@
-﻿#include once "mff\Form.bi"
-#Include Once "mff\Clipboard.bi"
+﻿/'
+  Designer.bi
+  Authors: Nastase Eodor, Xusinboy Bekchanov
+  Based on:
+  Simple Designer. Educational purposes.
+  (c)2013 Nastase Eodor
+  nastasa.eodor@gmail.com
+  http://rqwork.xhost.ro
+  Updated and added cross-platform
+  by Xusinboy Bekchanov (2018-2019)
+  bxusinboy@mail.ru
+'/
+
+#include once "mff/Form.bi"
+#Include Once "mff/Clipboard.bi"
 
 Dim Shared SelectedClass As String
 Dim Shared SelectedType As Integer
@@ -622,7 +635,7 @@ end sub
 				#IfDef __USE_GTK__
 					gtk_widget_grab_focus(layoutwidget)
 				#Else
-					SetFocus(Dialog)
+					'SetFocus(Dialog)
 				#EndIf
 				'else
 				'   HideDots
@@ -1424,11 +1437,15 @@ end sub
 				#Else
 					Select Case uMsg
 					Case WM_NCHitTest
-					Case WM_GETDLGCODE: Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
+					Case WM_GETDLGCODE: 'Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
 				#EndIf
 				#IfDef __USE_GTK__
 					Case GDK_EXPOSE
 						Return False
+				#Else
+					Case WM_PAINT
+				#EndIf
+				#IfDef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
@@ -1440,7 +1457,7 @@ end sub
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.DblClick(P.X, P.Y, wParam and &HFFFF )
-						Return 0
+						'Return 0
 				#EndIf
 				#IfDef __USE_GTK__
 					Case GDK_BUTTON_PRESS
@@ -1495,7 +1512,7 @@ end sub
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseMove(P.X, P.Y, wParam and &HFFFF )
-						Return 0
+						'Return 0
 					#EndIf
 				#IfDef __USE_GTK__
 					Case GDK_KEY_PRESS
@@ -1559,8 +1576,10 @@ end sub
 			  	#EndIf
 				#IfNDef __USE_GTK__
 					Case WM_PAINT, WM_ERASEBKGND
+						'Function = CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
 						.DrawThis
 						Return 1
+						'Exit Function
 					Case WM_NCHitTest
 					Case WM_SYSCOMMAND
 						Return 0
@@ -1575,7 +1594,7 @@ end sub
 				#Else
 					Case WM_LBUTTONDBLCLK
 						.DblClick(loWord(lParam), hiWord(lParam),wParam and &HFFFF)
-						Return 0
+						'Return 0
 				#EndIf
 				#IfDef __USE_GTK__
 					Case GDK_BUTTON_PRESS
@@ -1606,7 +1625,7 @@ end sub
 				#Else
 					Case WM_MOUSEMOVE
 						.MouseMove(loword(lParam), hiword(lParam),wParam and &HFFFF )
-						Return 0
+						'Return 0
 				#EndIf
 				#IfNDef __USE_GTK__
 					Case WM_RBUTTONUP

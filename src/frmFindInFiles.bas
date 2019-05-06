@@ -1,4 +1,9 @@
-﻿'Compile with -g -s console "SI FreeBasic.rc"
+﻿'#########################################################
+'#  frmFindInFiles.bas                                   #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
 #Include Once "mff/Form.bi"
 #Include Once "mff/Label.bi"
 #Include Once "mff/TextBox.bi"
@@ -157,13 +162,21 @@ Sub frmFindInFiles.Find(ByRef Path As WString)
     Next
 End Sub
 
-Private Sub frmFindInFiles.btnFind_Click(ByRef Sender As Control)
-    Dim As WString Ptr IncludePath
-    WLet IncludePath, GetFolderName(txtPath.Text)
-    lvSearch.ListItems.Clear
+Sub FindSub(Param As Any Ptr)
+	lvSearch.ListItems.Clear
     TabBottom.Tabs[2]->SelectTab
-    Find Replace(txtPath.Text, "\", "/")
+    prProgress.Visible = True
+    With fFindFile
+    	.btnFind.Enabled = False
+    	.Find Replace(.txtPath.Text, "\", "/")
+    	.btnFind.Enabled = True
+    End With
+    prProgress.Visible = False
     tabBottom.Tabs[2]->Caption = ML("Find") & " (" & lvSearch.ListItems.Count & " " & ML("Pos") & ")"
+End Sub
+
+Private Sub frmFindInFiles.btnFind_Click(ByRef Sender As Control)
+    ThreadCreate(@FindSub)
 End Sub
 
 Private Sub frmFindInFiles.btnCancel_Click(ByRef Sender As Control)

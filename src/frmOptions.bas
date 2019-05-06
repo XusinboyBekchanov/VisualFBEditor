@@ -1,14 +1,19 @@
-﻿'#Compile "mff\xpmanifest.rc"
-#Include Once "mff\Form.bi"
-#Include Once "mff\TreeView.bi"
-#Include Once "mff\CommandButton.bi"
-#Include Once "mff\Label.bi"
-#Include Once "mff\Panel.bi"
-#Include Once "mff\TextBox.bi"
-#Include Once "mff\ComboBoxEdit.bi"
-#Include Once "mff\IniFile.bi"
-#Include Once "mff\CheckBox.bi"
-#Include Once "mff\ListControl.bi"
+﻿'#########################################################
+'#  frmOptions.bas                                       #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
+#Include Once "mff/Form.bi"
+#Include Once "mff/TreeView.bi"
+#Include Once "mff/CommandButton.bi"
+#Include Once "mff/Label.bi"
+#Include Once "mff/Panel.bi"
+#Include Once "mff/TextBox.bi"
+#Include Once "mff/ComboBoxEdit.bi"
+#Include Once "mff/IniFile.bi"
+#Include Once "mff/CheckBox.bi"
+#Include Once "mff/ListControl.bi"
 #Include Once "mff/CommandButton.bi"
 #Include Once "mff/CheckBox.bi"
 #Include Once "mff/GroupBox.bi"
@@ -47,14 +52,14 @@ Dim Shared As Integer oldIndex, newIndex
         Dim As TreeView tvOptions
         Dim As CommandButton CommandButton1, CommandButton2, CommandButton3, CommandButton4, CommandButton5, CommandButton6, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdDebugger, cmdTerminal
         Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblLanguage, lblHelp, lblMFF, lblTabSize, lblMFF1, lblLibraryFiles, lblDebugger, lblTerminal, lblHistoryLimit, lblGridSize
-        Dim As Panel pnlGeneral, pnlCodeEditor, pnlCompiler, pnlDebugger, pnlDesigner, pnlLocalization, pnlHelp, pnlIncludes
+        Dim As Panel pnlGeneral, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlDebugger, pnlDesigner, pnlLocalization, pnlHelp, pnlIncludes
         Dim As TextBox TextBox1, TextBox2, TextBox3, txtMFFpath, txtTabSize, txtDebugger, txtTerminal, txtHistoryLimit, txtGridSize
-        Dim As ComboBoxEdit ComboBoxEdit1, cboCase
+        Dim As ComboBoxEdit ComboBoxEdit1, cboCase, cboTabStyle
         Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCompile, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces, chkShowAlignmentGrid, chkSnapToGrid, chkChangeKeywordsCase
         Dim OpenD As OpenFileDialog
         Dim BrowsD As FolderBrowserDialog
         Dim As ListControl lstIncludePaths, lstLibraryPaths
-        Dim As GroupBox grbGrid
+        Dim As GroupBox grbGrid, grbColors, grbFont
     End Type
     
     Constructor frmOptions
@@ -120,6 +125,11 @@ Dim Shared As Integer oldIndex, newIndex
         pnlCodeEditor.Text = ""
         pnlCodeEditor.SetBounds 142, 10, 426, 296
         pnlCodeEditor.Parent = @This
+        ' pnlColorsAndFonts
+        pnlColorsAndFonts.Name = "pnlColorsAndFonts"
+        pnlColorsAndFonts.Text = ""
+        pnlColorsAndFonts.SetBounds 142, 10, 426, 296
+        pnlColorsAndFonts.Parent = @This
         ' pnlCompiler
         pnlCompiler.Name = "pnlCompiler"
         pnlCompiler.Text = ""
@@ -276,7 +286,7 @@ Dim Shared As Integer oldIndex, newIndex
         ' chkTabAsSpaces
         chkTabAsSpaces.Name = "chkTabAsSpaces"
         chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
-        chkTabAsSpaces.SetBounds 10, 42, 264, 18
+        chkTabAsSpaces.SetBounds 10, 63, 264, 18
         chkTabAsSpaces.Caption = ML("Treat Tab as Spaces")
         chkTabAsSpaces.Parent = @pnlCodeEditor
         ' chkAutoIndentation
@@ -288,18 +298,18 @@ Dim Shared As Integer oldIndex, newIndex
         ' lblTabSize
         lblTabSize.Name = "lblTabSize"
         lblTabSize.Text = ML("Tab Size:")
-        lblTabSize.SetBounds 66, 115, 106, 16
+        lblTabSize.SetBounds 66, 111, 138, 16
         lblTabSize.Caption = ML("Tab Size:")
         lblTabSize.Parent = @pnlCodeEditor
         ' txtTabSize
         txtTabSize.Name = "txtTabSize"
         txtTabSize.Text = ""
-        txtTabSize.SetBounds 177, 112, 90, 20
+        txtTabSize.SetBounds 209, 109, 90, 20
         txtTabSize.Parent = @pnlCodeEditor
         ' chkShowSpaces
         chkShowSpaces.Name = "chkShowSpaces"
         chkShowSpaces.Text = ML("Show Spaces")
-        chkShowSpaces.SetBounds 10, 63, 264, 18
+        chkShowSpaces.SetBounds 10, 43, 264, 18
         chkShowSpaces.Caption = ML("Show Spaces")
         chkShowSpaces.Parent = @pnlCodeEditor
         ' lstIncludePaths
@@ -365,11 +375,11 @@ Dim Shared As Integer oldIndex, newIndex
         ' lblHistoryLimit
         lblHistoryLimit.Name = "lblHistoryLimit"
         lblHistoryLimit.Text = ML("History limit:")
-        lblHistoryLimit.SetBounds 66, 141, 102, 17
+        lblHistoryLimit.SetBounds 66, 134, 150, 17
         lblHistoryLimit.Parent = @pnlCodeEditor
         ' txtHistoryLimit
         txtHistoryLimit.Name = "txtHistoryLimit"
-        txtHistoryLimit.SetBounds 177, 139, 90, 20
+        txtHistoryLimit.SetBounds 209, 132, 90, 20
         txtHistoryLimit.OnChange = @txtHistoryLimit_Change
         txtHistoryLimit.Text = ""
         txtHistoryLimit.Parent = @pnlCodeEditor
@@ -401,13 +411,28 @@ Dim Shared As Integer oldIndex, newIndex
         ' cboCase
         cboCase.Name = "cboCase"
         cboCase.Text = "ComboBoxEdit2"
-        cboCase.SetBounds 177, 83, 90, 21
+        cboCase.SetBounds 209, 85, 162, 21
         cboCase.Parent = @pnlCodeEditor
         ' chkChangeKeywordsCase
         chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
         chkChangeKeywordsCase.Text = ML("Change Keywords Case to:")
-        chkChangeKeywordsCase.SetBounds 10, 84, 162, 18
+        chkChangeKeywordsCase.SetBounds 10, 86, 194, 18
         chkChangeKeywordsCase.Parent = @pnlCodeEditor
+        ' cboTabStyle
+        cboTabStyle.Name = "cboTabStyle"
+        cboTabStyle.Text = "cboCase1"
+        cboTabStyle.SetBounds 209, 61, 162, 21
+        cboTabStyle.Parent = @pnlCodeEditor
+        ' grbColors
+        grbColors.Name = "grbColors"
+        grbColors.Text = "Colors"
+        grbColors.SetBounds 10, -2, 416, 224
+        grbColors.Parent = @pnlColorsAndFonts
+        ' grbFont
+        grbFont.Name = "grbFont"
+        grbFont.Text = "Font"
+        grbFont.SetBounds 10, 222, 416, 72
+        grbFont.Parent = @pnlColorsAndFonts
     End Constructor
     
     Dim Shared fOptions As frmOptions
@@ -434,17 +459,23 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
     With fOptions
         .ComboBoxEdit1.Clear
         .tvOptions.Nodes.Clear
-        .tvOptions.Nodes.Add ML("General"), "General"
-        .tvOptions.Nodes.Add ML("Code Editor"), "CodeEditor"
-        .tvOptions.Nodes.Add ML("Compiler"), "Compiler"
-        .tvOptions.Nodes.Add ML("Debugger"), "Debugger"
-        .tvOptions.Nodes.Add ML("Designer"), "Designer"
-        .tvOptions.Nodes.Add ML("Includes"), "Includes"
-        .tvOptions.Nodes.Add ML("Localization"), "Localization"
-        .tvOptions.Nodes.Add ML("Help"), "Help"
+        Var tnGeneral = .tvOptions.Nodes.Add(ML("General"), "General")
+        Var tnEditor = .tvOptions.Nodes.Add(ML("Code Editor"), "CodeEditor")
+        Var tnCompiler = .tvOptions.Nodes.Add(ML("Compiler"), "Compiler")
+        Var tnDebugger = .tvOptions.Nodes.Add(ML("Debugger"), "Debugger")
+        .tvOptions.Nodes.Add(ML("Designer"), "Designer")
+        tnEditor->Nodes.Add(ML("Colors And Fonts"), "ColorsAndFonts")
+        tnCompiler->Nodes.Add(ML("Includes"), "Includes")
+        tnGeneral->Nodes.Add(ML("Localization"), "Localization")
+        tnCompiler->Nodes.Add(ML("Help"), "Help")
+        .tvOptions.ExpandAll
         .cboCase.AddItem ML("Original Case")
         .cboCase.AddItem ML("Lower Case")
         .cboCase.AddItem ML("Upper Case")
+        .cboTabStyle.AddItem ML("Everywhere")
+        .cboTabStyle.AddItem ML("Only after the words")
+        .chkTabAsSpaces.Checked = TabAsSpaces
+        .cboTabStyle.ItemIndex = ChoosedTabStyle
         .cboCase.ItemIndex = ChoosedKeyWordsCase
         .chkChangeKeywordsCase.Checked = ChangeKeywordsCase
         .TextBox1.Text = WGet(Compilator32)
@@ -513,6 +544,7 @@ Private Sub frmOptions.CommandButton3_Click(ByRef Sender As Control)
         AutoSaveCompile = .chkAutoSaveCompile.Checked
         ShowSpaces = .chkShowSpaces.Checked
         TabAsSpaces = .chkTabAsSpaces.Checked
+        ChoosedTabStyle = .cboTabStyle.ItemIndex
         GridSize = Val(.txtGridSize.Text)
         ShowAlignmentGrid = .chkShowAlignmentGrid.Checked
         SnapToGridOption = .chkSnapToGrid.Checked
@@ -609,15 +641,16 @@ End Sub
 
 Private Sub frmOptions.TreeView1_SelChange(BYREF Sender As TreeView, BYREF Item As TreeNode)
     With fOptions
-        Dim i As Integer = Item.Index
-        .pnlGeneral.Visible = i = 0
-        .pnlCodeEditor.Visible = i = 1
-        .pnlCompiler.Visible = i = 2
-        .pnlDebugger.Visible = i = 3
-        .pnlDesigner.Visible = i = 4
-        .pnlIncludes.Visible = i = 5
-        .pnlLocalization.Visible = i = 6
-        .pnlHelp.Visible = i = 7
+        Dim Key As String = Item.Name
+        .pnlGeneral.Visible = Key = "General"
+        .pnlCodeEditor.Visible = Key = "CodeEditor"
+        .pnlColorsAndFonts.Visible = Key = "ColorsAndFonts"
+        .pnlCompiler.Visible = Key = "Compiler"
+        .pnlDebugger.Visible = Key = "Debugger"
+        .pnlDesigner.Visible = Key = "Designer"
+        .pnlIncludes.Visible = Key = "Includes"
+        .pnlLocalization.Visible = Key = "Localization"
+        .pnlHelp.Visible = Key = "Help"
     End With
 End Sub
 

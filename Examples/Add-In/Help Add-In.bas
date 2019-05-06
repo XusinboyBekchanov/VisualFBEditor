@@ -104,8 +104,8 @@ Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPat
     	#EndIf
     #Else
     	VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/libmff" & Right(AppPath, 7) & ".so")
-		If s <> 0 Then Deallocate s
     #EndIf
+    If s <> 0 Then Deallocate s
     If VFBEditorLib = 0 Then Exit Sub
     
     LoadMFFProcs

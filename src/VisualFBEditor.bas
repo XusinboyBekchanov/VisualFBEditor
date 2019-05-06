@@ -2,7 +2,7 @@
 	#IfDef __FB_64bit__
 	    '#Compile -g -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
 	#Else
-	    '#Compile -g -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -g -s console -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
@@ -12,6 +12,7 @@
 	#EndIf
 #EndIf
 #Define __USE_GTK3__
+
 On Error Goto AA
 '#Define GetMN
 Declare Sub m(ByRef msg As WString)
@@ -60,6 +61,16 @@ Enum KeyWordsCase
 	UpperCase
 End Enum
 
+'Enum TabAsSpacesStyle
+'	EveryWhere = 0
+'	OnlyАfterWords = 1
+'End Enum
+
+Type ColorsScheme
+	BGWindow As Integer
+	
+End Type
+
 Declare Sub LoadLanguageTexts
 Dim Shared As String CurLanguage
 Dim Shared As iniFile iniSettings
@@ -76,6 +87,7 @@ Dim Shared As Boolean ShowAlignmentGrid
 Dim Shared As Boolean SnapToGridOption
 Dim Shared As Integer HistoryLimit
 Dim Shared As Integer TabAsSpaces
+Dim Shared As Integer ChoosedTabStyle
 Dim Shared As Boolean ShowGrid
 Dim Shared As Boolean ChangeKeyWordsCase
 Dim Shared As KeyWordsCase ChoosedKeyWordsCase
@@ -97,7 +109,7 @@ Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
 Dim Shared As ListControl lstLeft
 Dim Shared As CheckBox chkLeft
 Dim Shared As RadioButton radButton
-Dim Shared As ProgressBar prLeft
+Dim Shared As ProgressBar prProgress
 Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlPropertyValue
@@ -127,6 +139,14 @@ Dim Shared As frmFind fFind
 Dim Shared As frmReplace fReplace
 Dim Shared As frmGoto fGoto
 Dim Shared As frmAbout fAbout
+
+#IfNDef __USE_GTK__
+	Sub gdk_threads_enter()
+	End Sub
+	
+	Sub gdk_threads_leave()
+	End Sub
+#EndIf
 
 Sub tabCode_Paint(ByRef Sender As Control) '...'
     MoveCloseButtons
@@ -448,7 +468,9 @@ END TYPE
 
 Sub RunHelp(Param As Any Ptr)
     If Not FileExists(*HelpPath) Then
-        ShowMessages ML("File") & " " & *HelpPath & " " & ML("not found")
+    	gdk_threads_enter()
+		ShowMessages ML("File") & " " & *HelpPath & " " & ML("not found")
+    	gdk_threads_leave()
     Else
         Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
         If CInt(tb <> 0) Then 'AndAlso CInt(tb->txtCode.Focused) Then
@@ -816,38 +838,11 @@ Sub mClick(Sender As My.Sys.Object)
     Case "ProjectProperties": fProjectProperties.Show frmMain
     Case "SetAsMain": 			SetAsMain
     Case "Folder":              WithFolder
-    Case "SyntaxCheck" :    
-    	#IfDef __USE_GTK__
-    		SyntaxCheck(0)
-    	#Else
-    		ThreadCreate(@SyntaxCheck)
-    	#EndIf
-    Case "Compile" : Thread_Create(@CompileProgram)
-'    	#IfDef __USE_GTK__
-'    		Dim As GError Ptr err1
-'  			Dim As gpointer gp
-'			g_thread_create(Cast(GThread Ptr, @CompileProgram), gp, false, @err1)
-'    	#Else
-'    		ThreadCreate(@CompileProgram)
-'    	#EndIf
-    Case "Run": Thread_Create(@RunProgram)
-'		#IfDef __USE_GTK__
-'			RunProgram(0)
-'		#Else
-'			ThreadCreate(@RunProgram)
-'		#EndIf
-    Case "CompileAndRun": Thread_Create(@CompileAndRun)
-'    	#IfDef __USE_GTK__
-'    		CompileAndRun(0)
-'    	#Else
-'    		ThreadCreate(@CompileAndRun) 'If Compile Then ThreadCreate(@RunProgram)
-'    	#EndIf
-    Case "Start": Thread_Create(@StartDebugging)
-'    	#IfDef __USE_GTK__
-'    		StartDebugging(0)
-'    	#Else
-'    		ThreadCreate(@StartDebugging)
-'    	#EndIf
+    Case "SyntaxCheck": ThreadCreate(@SyntaxCheck)
+    Case "Compile": ThreadCreate(@CompileProgram)
+    Case "Run": ThreadCreate(@RunProgram)
+    Case "CompileAndRun": ThreadCreate(@CompileAndRun)
+    Case "Start": ThreadCreate(@StartDebugging)
     Case "Pause":           'If tb->Compile("-g") Then ThreadCreate(@RunWithDebug)
     Case "Stop":  
 		#IfNDef __USE_GTK__
@@ -961,12 +956,7 @@ Sub mClick(Sender As My.Sys.Object)
         End If
     Case "Options": fOptions.Show frmMain
     Case "AddIns": fAddIns.Show frmMain
-    Case "Content": Thread_Create(@RunHelp)
-'    	#IfDef __USE_GTK__
-'    		RunHelp(0)
-'    	#Else
-'    		ThreadCreate(@RunHelp)
-'    	#EndIf
+    Case "Content": ThreadCreate(@RunHelp)
     Case "About": fAbout.Show frmMain
     End Select
 End Sub
@@ -1195,28 +1185,29 @@ Sub LoadToolBox
                             If Comment Then WLet te->Comment, *Comment: WLet Comment, ""
                             If tbi Then tbi->Elements.Add te->Name, te
                         ElseIf StartsWith(Trim(LCase(*b)), "declare property ") Then
-                            If Instr(*b, "(") = 0 Then
-                                Var Pos3 = InStr(LCase(LTrim(*b)), " as ")
-                                Var te = New TypeElement
-                                te->Name = Trim(Mid(LTrim(*b), 18, Pos3 - 18 + 1))
-                                If EndsWith(RTrim(lCase(te->Name)), " byref") Then te->Name = Left(te->Name, Len(Trim(te->Name)) - 6)
-                                te->TypeName = Trim(Mid(LTrim(*b), Pos3 + 4))
-                                Var Pos4 = Instr(te->TypeName, "'")
-                                If Pos4 > 0 Then
-                                    Var Pos5 = Instr(Trim(Mid(te->TypeName, Pos4 + 1)), " ")
-                                    If Pos5 > 0 Then
-                                        te->EnumTypeName = Left(Trim(Mid(te->TypeName, Pos4 + 1)), Pos5 - 1)
-                                    Else
-                                        te->EnumTypeName = Trim(Mid(te->TypeName, Pos4 + 1))
-                                    End If
-                                    te->TypeName = Trim(Left(te->TypeName, Pos4 - 1))
+                            Var Pos3 = InStr(LCase(LTrim(*b)), " as ")
+                            Var Pos_ = InStr(LCase(LTrim(*b)), "(")
+                            If Pos_ > 0 AndAlso Pos_ < Pos3 Then Pos3 = Pos_ - 1
+                            Var te = New TypeElement
+                            te->Name = Trim(Mid(LTrim(*b), 18, Pos3 - 18 + 1))
+                            If EndsWith(RTrim(lCase(te->Name)), "()") Then te->Name = Left(te->Name, Len(Trim(te->Name)) - 2)
+                            If EndsWith(RTrim(lCase(te->Name)), " byref") Then te->Name = Left(te->Name, Len(Trim(te->Name)) - 6)
+                            te->TypeName = Trim(Mid(LTrim(*b), Pos3 + 4))
+                            Var Pos4 = Instr(te->TypeName, "'")
+                            If Pos4 > 0 Then
+                                Var Pos5 = Instr(Trim(Mid(te->TypeName, Pos4 + 1)), " ")
+                                If Pos5 > 0 Then
+                                    te->EnumTypeName = Left(Trim(Mid(te->TypeName, Pos4 + 1)), Pos5 - 1)
+                                Else
+                                    te->EnumTypeName = Trim(Mid(te->TypeName, Pos4 + 1))
                                 End If
-                                te->ElementType = "Property"
-                                te->Locals = inPubPriPro
-                                WLet te->Parameters, Mid(Trim(*b), 17)
-                                If Comment Then WLet te->Comment, *Comment: WLet Comment, ""
-                                If tbi Then tbi->Elements.Add te->Name, te
+                                te->TypeName = Trim(Left(te->TypeName, Pos4 - 1))
                             End If
+                            te->ElementType = "Property"
+                            te->Locals = inPubPriPro
+                            WLet te->Parameters, Mid(Trim(*b), 17)
+                            If Comment Then WLet te->Comment, *Comment: WLet Comment, ""
+                            If tbi Then tbi->Elements.Add te->Name, te
                         End If
                     ElseIf StartsWith(Trim(LCase(*b)), "dim ") Then
                     Else
@@ -1658,7 +1649,20 @@ tbStandard.Buttons.Add tbsSeparator
 
 stBar.Align = 4
 stBar.Add ML("Press F1 for get more information")
+Var spProgress = stBar.Add("")
+spProgress->Width = 100
 stBar.Add "NUM"
+
+prProgress.Visible = False
+prProgress.Marquee = True
+prProgress.SetMarquee True, 100
+#IfDef __USE_GTK__
+	gtk_box_pack_end (GTK_BOX (stBar.Widget), prProgress.Widget, TRUE, TRUE, 0)
+	gtk_progress_bar_pulse(gtk_progress_bar(prProgress.Widget))
+#Else
+	prProgress.Top = 3
+	prProgress.Parent = @stBar
+#EndIf
 
 'stBar.Add ""
 'stBar.Panels[1]->Alignment = 1
@@ -2585,6 +2589,7 @@ End Sub
 
 Sub frmMain_Resize(ByRef sender As My.Sys.Object)
     stBar.Panels[0]->Width = frmMain.ClientWidth - 50
+    prProgress.Left = stBar.Width - stBar.Panels[2]->Width - prProgress.Width - 3
 End Sub
 
 Sub frmMain_DropFile(ByRef sender As My.Sys.Object, ByRef FileName As WString)
@@ -2684,6 +2689,8 @@ Sub frmMain_Create(ByRef Sender As Control)
     AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", true)
     AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", true)
     ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", true)
+    TabAsSpaces = iniSettings.ReadBool("Options", "TabAsSpaces", true)
+    ChoosedTabStyle = iniSettings.ReadInteger("Options", "ChoosedTabStyle", 1)
     TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
     HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
     ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)

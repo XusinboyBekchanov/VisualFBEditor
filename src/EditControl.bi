@@ -1,4 +1,10 @@
-﻿#Include Once "mff/Panel.bi"
+﻿/'
+  EditControl.
+  (c)2018-2019 Xusinboy Bekchanov
+  bxusinboy@mail.ru
+'/
+
+#Include Once "mff/Panel.bi"
 #Include Once "mff/ComboBoxEx.bi"
 #Include Once "mff/Canvas.bi"
 #Include Once "mff/WStringList.bi"
@@ -1216,9 +1222,11 @@ A:
 
     Sub EditControl.Indent
         Dim n As Integer
+        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
         If FSelStartLine = FSelEndLine Then
             n = Min(FSelStartChar, FSelEndChar)
-            If TabAsSpaces Then
+            If TabAsSpaces AndAlso (ChoosedTabStyle = 0 OrElse Trim(Left(Lines(iSelStartLine), iSelStartChar), Any !"\t ") <> "") Then
                 SelText = Space(TabWidth - (n Mod TabWidth))
             Else
                 SelText = !"\t"
@@ -1226,11 +1234,9 @@ A:
         Else
             UpdateLock
             Changing("Oldga surish")
-            Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-            GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
             For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
                 FECLine = FLines.Items[i]
-                If TabAsSpaces Then
+                If TabAsSpaces AndAlso ChoosedTabStyle = 0 Then
                     n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
                     n = TabWidth - (n Mod TabWidth)
                     WLet FECLine->Text, Space(n) & *FECLine->Text
@@ -2179,6 +2185,17 @@ A:
         #EndIf
     End Sub
         
+    Function GetKeyWordCase(ByRef KeyWord As String) As String
+    	If ChangeKeyWordsCase Then
+    		Select Case ChoosedKeyWordsCase
+    		Case KeyWordsCase.OriginalCase
+    		Case KeyWordsCase.LowerCase: Return LCase(KeyWord) ': Return *TempString
+    		Case KeyWordsCase.UpperCase: Return UCase(KeyWord) ': Return *TempString
+    		End Select
+    	End If
+    	Return KeyWord
+    End Function
+
     Sub EditControl.ProcessMessage(ByRef msg As Message)
         Static bShifted As Boolean
         Static bCtrl As Boolean
@@ -2843,7 +2860,7 @@ A:
 										Next
 									End If
 									If CInt(j < 2) Then
-										If TabAsSpaces Then
+										If TabAsSpaces AndAlso ChoosedTabStyle = 0 Then
 											k = TabWidth
 										Else
 											k = 1
@@ -2858,19 +2875,19 @@ A:
 												If e > r OrElse (e = r And m = i And n > 0) Then
 											Else
 												WLet FLineTemp,  Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1)
-												WLet FLineRight, LTrim(*FLineTemp, Any !"\t ") & Chr(13) & *FLineSpace & Constructions(i).EndName
+												WLet FLineRight, LTrim(*FLineTemp, Any !"\t ") & Chr(13) & *FLineSpace & GetKeyWordCase(Constructions(i).EndName)
 												p = Len(*FLineTemp)
 											End If
 										End If
 										If i = 0 And (j = 0 Or j = 1) Then
 											If (StartsWith(LTrim(LCase(*FLine), Any !"\t "), "if ") Or StartsWith(LTrim(LCase(*FLine), Any !"\t "), "elseif ")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "then")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "_")) Then
 												p = Len(RTrim(*FLine, Any !"\t ")) - Len(*FLine)
-												WLet FLineLeft, " Then"
+												WLet FLineLeft, GetKeyWordCase(" Then")
 											End If
 										End If
 									End If
 								End If
-								If CInt(TabAsSpaces) OrElse CInt(k = 0) Then
+								If CInt(TabAsSpaces AndAlso ChoosedTabStyle = 0) OrElse CInt(k = 0) Then
 									WLet FLineSpace, *FLineSpace & WSpace(k)
 								Else
 									WLet FLineSpace, *FLineSpace & !"\t"

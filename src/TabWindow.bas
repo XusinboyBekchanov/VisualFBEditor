@@ -1,4 +1,10 @@
-﻿#Include Once "EditControl.bi"
+﻿'#########################################################
+'#  TabWindow.bas                                        #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
+#Include Once "EditControl.bi"
 #Include Once "mff/Dictionary.bi"
 #Include Once "mff/ToolPalette.bi"
 Dim Shared As WStringList mlKeys, mlTexts
@@ -286,6 +292,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
     If Not bFind Then
         tb = New TabWindow(*FileName_, bNew, TreeN)
         With *tb
+        	tb->UseVisualStyleBackColor = True
             '.txtCode.ContextMenu = @mnuCode
             tabCode.AddTab(Cast(TabPage Ptr, tb))
             #IfDef __USE_GTK__
@@ -1698,8 +1705,11 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
         	If Not .Focused Then bNotFunctionChange = False: Exit Sub
         	If OldLine < .FLines.Count Then
 	        	Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .FLines.Items[OldLine])
-	        	If CInt(ecl->CommentIndex = 0) AndAlso CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg2(Trim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2), Any !"\t "))) Then
-	        		WLet ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1"
+	        	If CInt(ecl->CommentIndex = 0) Then
+	        		If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg2(Trim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2), Any !"\t "))) Then
+	        			WLet ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1"
+	        		End If
+	        		
 	        	End If
 	        End If
         	tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or Not EndsWith(tb->cboFunction.Text, " [Constructor]")
@@ -1835,7 +1845,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
             End If
             .InsertLine i + q, ""
             .InsertLine i + q + 1, "Private Sub " & frmName & "." & SubName & Mid(te->TypeName, 4)
-            .InsertLine i + q + 2, IIF(TabAsSpaces, WSpace(TabWidth), !"\t")
+            .InsertLine i + q + 2, IIF(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
             .InsertLine i + q + 3, "End Sub"
             bNotDesignForms = True
             .SetSelection i + q + 2, i + q + 2, 4, 4
@@ -1999,18 +2009,6 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 '        End If
 '    End If
 End Sub
-
-Dim Shared As WString Ptr TempString
-Function GetKeyWordCase(ByRef KeyWord As WString) ByRef As WString
-	If ChangeKeyWordsCase Then
-		Select Case ChoosedKeyWordsCase
-		Case KeyWordsCase.OriginalCase
-		Case KeyWordsCase.LowerCase: WLet TempString, LCase(KeyWord): Return *TempString
-		Case KeyWordsCase.UpperCase: WLet TempString, UCase(KeyWord): Return *TempString
-		End Select
-	End If
-	Return KeyWord
-End Function
 
 Sub FillAllIntellisenses()
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
@@ -2244,7 +2242,7 @@ Sub CompleteWord
                 sTemp = s & sTemp
             End If
             If f Then d = True
-        ElseIf CInt(s = " ") AndAlso CInt(Not d) AndAlso CInt(Not b) Then
+        ElseIf CInt(s = " " OrElse s = !"\t") AndAlso CInt(Not d) AndAlso CInt(Not b) Then
             If Not f Then SelCharPos = i
             f = True
         ElseIf s = "." Then
@@ -3324,7 +3322,9 @@ End Function
 
 Function Compile(Parameter As String = "") As Integer
     On Error Goto ErrorHandler
+    ThreadsEnter()
     Dim MainFile As WString Ptr = @(GetMainFile(AutoSaveCompile))
+    ThreadsLeave()
     Dim FirstLine As WString Ptr = @(GetFirstCompileLine(*MainFile))
     Versioning *MainFile, *FirstLine
     Dim FileOut As Integer
@@ -3348,12 +3348,16 @@ Function Compile(Parameter As String = "") As Integer
     End If
 	#IfDef __USE_GTK__
 		If g_find_program_in_path(*FbcExe) = NULL Then
+			gdk_threads_enter()
 			ShowMessages ML("File") & " """ & *FbcExe & """ " & ML("not found") & "!"
+			gdk_threads_leave()
 		Return 0
 		End If
 	#Else
 	    If Not FileExists(*FbcExe) Then
+	        ThreadsEnter()
 	        ShowMessages ML("File") & " """ & *FbcExe & """ " & ML("not found") & "!"
+	        ThreadsLeave()
 	        Return 0
 	    End If
 	#EndIf
@@ -3387,7 +3391,11 @@ Function Compile(Parameter As String = "") As Integer
         If Parameter <> "" Then
             If Parameter = "Check" Then WLet fbcCommand, *fbcCommand & " -x """ & *ExeName & """" Else WLet fbcCommand, *fbcCommand & " " & Parameter
         End If
-        If Parameter <> "Check" Then ShowMessages(Str(Time) + ": " + ML("Compilation") & ": """ & *fbcexe & """ " & *fbcCommand + " ..." + WChr(13) + WChr(10))
+        If Parameter <> "Check" Then 
+        	ThreadsEnter()
+        	ShowMessages(Str(Time) + ": " + ML("Compilation") & ": """ & *fbcexe & """ " & *fbcCommand + " ..." + WChr(13) + WChr(10))
+        	ThreadsLeave()
+        End If
         'OPEN *BatFileName For Output As #FileOut
         'Print #FileOut, *fbcCommand  + " > """ + *LogFileName + """" + " 2>""" + *LogFileName2 + """"
         'Close #FileOut
@@ -3396,13 +3404,17 @@ Function Compile(Parameter As String = "") As Integer
         'Shell(*fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """")
         'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #1
         'Close #1
+        prProgress.Visible = True
         PipeCmd "", """" & *fbcexe & """ " & *fbcCommand  + " > """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """"
+        prProgress.Visible = False
         #IfDef __USE_GTK__
         	Yaratilmadi = g_find_program_in_path(*ExeName) = NULL
         #Else
         	Yaratilmadi = Dir(*ExeName) = ""
         #EndIf
+        ThreadsEnter()
         lvErrors.ListItems.Clear
+        ThreadsLeave()
         Dim As Long nLen, nLen2
         If Open(*LogFileName For Input As #1) = 0 Then
             nLen = LOF(1) + 1
@@ -3413,9 +3425,11 @@ Function Compile(Parameter As String = "") As Integer
             While Not EOF(1)
                 Line Input #1, *Buff
                 SplitError(*Buff, ErrFileName, ErrTitle, iLine)
+                ThreadsEnter()
                 lvErrors.ListItems.Add *ErrTitle, IIF(Instr(*ErrTitle, "warning"), "Warning", "Error")
                 lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
                 lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+                ThreadsLeave()
                 *LogText = *LogText & *Buff & WChr(13) & WChr(10)
             Wend
             WDeallocate Buff
@@ -3435,13 +3449,14 @@ Function Compile(Parameter As String = "") As Integer
 			Close #1
 			WDeallocate Buff
         End If
-        
+        ThreadsEnter()
         If lvErrors.ListItems.Count <> 0 Then
             tabBottom.Tabs[1]->Caption = ML("Errors") & " (" & lvErrors.ListItems.Count & " " & ML("Pos") & ")"
         Else
             tabBottom.Tabs[1]->Caption = ML("Errors")
         End If
         ShowMessages(*LogText)
+        ThreadsLeave()
         If LogFileName Then Deallocate LogFileName
         If LogFileName2 Then Deallocate LogFileName2
         If BatFileName Then Deallocate BatFileName
@@ -3449,6 +3464,7 @@ Function Compile(Parameter As String = "") As Integer
         WDeallocate CompileWith
         WDeallocate MFFPathC
         If Yaratilmadi Or Band Then
+        	ThreadsEnter()
             If Parameter <> "Check" Then
                 ShowMessages(Str(Time) & ": " & ML("Do not build file."))
                 If lvErrors.ListItems.Count <> 0 Then tabBottom.Tabs[1]->SelectTab
@@ -3458,9 +3474,11 @@ Function Compile(Parameter As String = "") As Integer
             Else
                 ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found."))
             End If
+            ThreadsLeave()
             WDeallocate LogText
             Return 0
         Else
+            ThreadsEnter()
             If Instr(*LogText, "warning") > 0 Then
                 If Parameter <> "Check" Then
                     ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings."))
@@ -3472,6 +3490,7 @@ Function Compile(Parameter As String = "") As Integer
                     ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!"))
                 End If
             End If
+            ThreadsLeave()
             WDeallocate LogText
             return 1
         End If
@@ -3481,10 +3500,12 @@ Function Compile(Parameter As String = "") As Integer
     End If
     Exit Function
 ErrorHandler:
+	ThreadsEnter()
     MsgBox ErrDescription(Err) & " (" & Err & ") " & _
         "in line " & Erl() & " " & _
         "in function " & ZGet(Erfn()) & " " & _
         "in module " & ZGet(Ermn())
+    ThreadsLeave()
 End Function
 
 #IfDef __USE_GTK__
@@ -3813,7 +3834,9 @@ Sub RunPr(Debugger As String = "")
     Dim MainFile As WString Ptr = @(GetMainFile())
     Dim FirstLine As WString Ptr = @(GetFirstCompileLine(*MainFile))
     Dim ExeFileName As WString Ptr = @(GetExeFileName(*MainFile, *FirstLine))
+    ThreadsEnter()
     ShowMessages(Time & ": " & ML("Run") & ": " & *ExeFileName + " ...")
+    ThreadsLeave()
     #IfDef __USE_GTK__
 		Dim As GPid pid = 0
 '		Dim As GtkWidget Ptr win, vte

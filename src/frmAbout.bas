@@ -1,4 +1,9 @@
-﻿'#Compile "mff\xpmanifest.rc"
+﻿'#########################################################
+'#  frmAbout.bas                                         #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
 #Include Once "mff/Form.bi"
 #Include Once "mff/CheckBox.bi"
 #Include Once "mff/Label.bi"
@@ -47,7 +52,7 @@ Using My.Sys.Forms
         				!"e-mail: <a href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</a>\r" & _
         				ML("For donation") & !": WebMoney: WMZ: Z884195021874\r\r" & _
         				ML("Special thanks to all FreeBasic compiler creators and testers!") & !"\r\r" & _
-        				ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit\r\r" & _
+        				ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit and Simple Designer\r\r" & _
         				ML("Thanks to") & !" Laurent GRAS for codes of FBDebugger\r\r" & _
         				ML("Language files by") & !":\r" & _
         				!"Xusinboy Bekchanov (russian, uzbekcyril, uzbeklatin)\r" & _

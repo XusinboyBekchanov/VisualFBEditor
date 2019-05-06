@@ -1,4 +1,10 @@
-﻿1 24 "./xpmanifest.xml"
+﻿/*'#########################################################*/
+/*'#  VisualFBEditor.rc                                    #*/
+/*'#  This file is part of VisualFBEditor                  #*/
+/*'#  Authors: Xusinboy Bekchanov (2018-2019)              #*/
+/*'#########################################################*/
+
+1 24 "./xpmanifest.xml"
 1 ICON "../resources/VisualFBEditor.ico"
 B32 PNG "../resources/B32.png"
 B64 PNG "../resources/B64.png"
@@ -57,8 +63,8 @@ Categorized PNG "../resources/Categorized.png"
 
 #define VER_FILEDESCRIPTION_STR     "VisualFBEditor\0"
 
-#define VER_FILEVERSION             1,1,0,464
-#define VER_FILEVERSION_STR         "1.1.0.464\0"
+#define VER_FILEVERSION             1,1,0,566
+#define VER_FILEVERSION_STR         "1.1.0.566\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Xusinboy Bekchanov\0"
 
