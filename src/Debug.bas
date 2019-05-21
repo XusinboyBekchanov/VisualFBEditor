@@ -1,4 +1,15 @@
-﻿Dim Shared exename As WString *300 'debuggee executable
+﻿'=================================================================
+'===== Debug.bas =================================================
+'===== Authors: Laurent GRAS, Xusinboy Bekchanov =================
+'===== Based on: =================================================
+'=================================================================
+'===== DEBUGGER FOR FREEBASIC === (C) 2006-2018 Laurent GRAS =====
+'=================================================================
+'===== Modified to bundle with VisualFBEditor ====================
+'===== by Xusinboy Bekchanov (2018-2019) =========================
+'=================================================================
+
+Dim Shared exename As WString *300 'debuggee executable
 Dim Shared exedate As Double 'serial date
 
 Dim Shared InDebug As Boolean
@@ -5853,8 +5864,10 @@ Sub RunWithDebug(Param As Any Ptr)
 		Dim SInfo As STARTUPINFO
 		Dim PInfo As PROCESS_INFORMATION
 	#EndIf
+	ThreadsEnter()
     Dim MainFile As WString Ptr = @(GetMainFile)
     Dim FirstLine As WString Ptr = @(GetFirstCompileLine(*MainFile))
+    ThreadsLeave()
     '#IfNDef __USE_GTK__
 		exename = GetExeFileName(*MainFile, *FirstLine)
     '#EndIf
@@ -5863,13 +5876,16 @@ Sub RunWithDebug(Param As Any Ptr)
     Else
     	WLet CmdL, """" & GetFileName(exename) & """ "
     End If
+    ThreadsEnter()
     ShowMessages(Time & ": " & ML("Run") & ": " & WGet(CmdL) + " ...")
+    ThreadsLeave()
     #IfNDef __USE_GTK__
     	exename = Replace(exename, "/", "\")
 		re_ini
 	#EndIf
-    tabBottom.Tabs[3]->SelectTab
-    
+	ThreadsEnter()
+    tabBottom.Tabs[4]->SelectTab
+    ThreadsLeave()
     Var Pos1 = 0
     While InStr(Pos1 + 1, exename, "\")
        Pos1 = InStr(Pos1 + 1, exename, "\")
@@ -5883,8 +5899,8 @@ Sub RunWithDebug(Param As Any Ptr)
     #EndIf
     #IfDef __USE_GTK__
     	Dim As GPid pid = 0
-		Dim As GtkWidget Ptr win, vte
-		win = gtk_window_new(gtk_window_toplevel)
+'		Dim As GtkWidget Ptr win, vte
+'		win = gtk_window_new(gtk_window_toplevel)
 '		vte = vf->vte_terminal_new()
 '		g_signal_connect(vte, "button-press-event", G_CALLBACK(@vte_button_pressed), NULL)
 '		gtk_container_add(gtk_container(win), vte)
@@ -5931,16 +5947,20 @@ Sub RunWithDebug(Param As Any Ptr)
 		    Dim As Unsigned Long ExitCode
 	      	GetExitCodeProcess(pinfo.hProcess, @ExitCode)
 	      	Result = ExitCode
-	    End If
+    	End If
+    	ThreadsEnter()
 		ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+    	ThreadsLeave()
     #EndIf
     If WorkDir Then Deallocate WorkDir
     If CmdL Then Deallocate CmdL
     Exit Sub
 ErrorHandler:
+	ThreadsEnter()
     MsgBox ErrDescription(Err) & " (" & Err & ") " & _
         "in line " & Erl() & " " & _
         "in function " & ZGet(Erfn()) & " " & _
         "in module " & ZGet(Ermn())
+	ThreadsLeave()
 End Sub
 

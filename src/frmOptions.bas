@@ -1,15 +1,26 @@
-﻿'#Compile "mff\xpmanifest.rc"
-#Include Once "mff\Form.bi"
-#Include Once "mff\TreeView.bi"
-#Include Once "mff\CommandButton.bi"
-#Include Once "mff\Label.bi"
-#Include Once "mff\Panel.bi"
-#Include Once "mff\TextBox.bi"
-#Include Once "mff\ComboBoxEdit.bi"
-#Include Once "mff\IniFile.bi"
-#Include Once "mff\CheckBox.bi"
-#Include Once "mff\ListControl.bi"
+﻿'#########################################################
+'#  frmOptions.bas                                       #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
+#Include Once "mff/Form.bi"
+#Include Once "mff/TreeView.bi"
 #Include Once "mff/CommandButton.bi"
+#Include Once "mff/Label.bi"
+#Include Once "mff/Panel.bi"
+#Include Once "mff/TextBox.bi"
+#Include Once "mff/ComboBoxEdit.bi"
+#Include Once "mff/IniFile.bi"
+#Include Once "mff/CheckBox.bi"
+#Include Once "mff/ListControl.bi"
+#Include Once "mff/CommandButton.bi"
+#Include Once "mff/CheckBox.bi"
+#Include Once "mff/GroupBox.bi"
+#Include Once "mff/Label.bi"
+#Include Once "mff/Panel.bi"
+#Include Once "mff/TextBox.bi"
+#Include Once "mff/ComboBoxEdit.bi"
 
 Using My.Sys.Forms
 
@@ -34,20 +45,21 @@ Dim Shared As Integer oldIndex, newIndex
         Declare Static Sub cmdMFFPath_Click(ByRef Sender As Control)
         Declare Static Sub cmdDebugger_Click(ByRef Sender As Control)
         Declare Static Sub cmdTerminal_Click(ByRef Sender As Control)
-        Declare Static Sub txtTabSize_Change(BYREF Sender As TextBox)
-        Declare Static Sub lblTabSize1_Click(BYREF Sender As Label)
+        Declare Static Sub pnlLocalization_Click(ByRef Sender As Control)
+        Declare Static Sub txtHistoryLimit_Change(BYREF Sender As TextBox)
         Declare Constructor
         
         Dim As TreeView tvOptions
         Dim As CommandButton CommandButton1, CommandButton2, CommandButton3, CommandButton4, CommandButton5, CommandButton6, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdDebugger, cmdTerminal
-        Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblLanguage, lblHelp, lblMFF, lblTabSize, lblMFF1, lblLibraryFiles, lblDebugger, lblTerminal, lblHistoryLimit:
-        Dim As Panel pnlGeneral, pnlCodeEditor, pnlCompiler, pnlDebugger, pnlLocalization, pnlHelp, pnlIncludes
-        Dim As TextBox TextBox1, TextBox2, TextBox3, txtMFFpath, txtTabSize, txtDebugger, txtTerminal, txtHistoryLimit
-        Dim As ComboBoxEdit ComboBoxEdit1
-        Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCompile, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces
+        Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblLanguage, lblHelp, lblMFF, lblTabSize, lblMFF1, lblLibraryFiles, lblDebugger, lblTerminal, lblHistoryLimit, lblGridSize
+        Dim As Panel pnlGeneral, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlDebugger, pnlDesigner, pnlLocalization, pnlHelp, pnlIncludes
+        Dim As TextBox TextBox1, TextBox2, TextBox3, txtMFFpath, txtTabSize, txtDebugger, txtTerminal, txtHistoryLimit, txtGridSize
+        Dim As ComboBoxEdit ComboBoxEdit1, cboCase, cboTabStyle
+        Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCompile, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces, chkShowAlignmentGrid, chkSnapToGrid, chkChangeKeywordsCase
         Dim OpenD As OpenFileDialog
         Dim BrowsD As FolderBrowserDialog
         Dim As ListControl lstIncludePaths, lstLibraryPaths
+        Dim As GroupBox grbGrid, grbColors, grbFont
     End Type
     
     Constructor frmOptions
@@ -62,11 +74,12 @@ Dim Shared As Integer oldIndex, newIndex
         This.MaximizeBox = false
         This.SetBounds 0, 0, 582, 384
         This.Center
+        This.Caption = ML("Options")
         This.BorderStyle = FormBorderStyle.FixedDialog
         ' tvOptions
         tvOptions.Name = "tvOptions"
         tvOptions.Text = "TreeView1"
-        tvOptions.SetBounds 10, 10, 132, 296
+        tvOptions.SetBounds 10, 10, 130, 296
         tvOptions.HideSelection = False
         tvOptions.OnSelChange = @TreeView1_SelChange
         tvOptions.Parent = @This
@@ -112,6 +125,11 @@ Dim Shared As Integer oldIndex, newIndex
         pnlCodeEditor.Text = ""
         pnlCodeEditor.SetBounds 142, 10, 426, 296
         pnlCodeEditor.Parent = @This
+        ' pnlColorsAndFonts
+        pnlColorsAndFonts.Name = "pnlColorsAndFonts"
+        pnlColorsAndFonts.Text = ""
+        pnlColorsAndFonts.SetBounds 142, 10, 426, 296
+        pnlColorsAndFonts.Parent = @This
         ' pnlCompiler
         pnlCompiler.Name = "pnlCompiler"
         pnlCompiler.Text = ""
@@ -122,10 +140,16 @@ Dim Shared As Integer oldIndex, newIndex
         pnlDebugger.Text = ""
         pnlDebugger.SetBounds 142, 10, 426, 296
         pnlDebugger.Parent = @This
+        ' pnlDesigner
+        pnlDesigner.Name = "pnlDesigner"
+        pnlDesigner.Text = ""
+        pnlDesigner.SetBounds 142, 10, 426, 296
+        pnlDesigner.Parent = @This
         ' pnlLocalization
         pnlLocalization.Name = "pnlLocalization"
         pnlLocalization.Text = ""
         pnlLocalization.SetBounds 142, 10, 426, 296
+        pnlLocalization.OnClick = @pnlLocalization_Click
         pnlLocalization.Parent = @This
         ' pnlHelp
         pnlHelp.Name = "pnlHelp"
@@ -134,23 +158,23 @@ Dim Shared As Integer oldIndex, newIndex
         pnlHelp.Parent = @This
         ' lblCompiler32
         lblCompiler32.Name = "lblCompiler32"
-        lblCompiler32.Text = ML("Compilator") & " " & ML("32-bit")
+        lblCompiler32.Text = ML("Compiler") & " " & ML("32-bit")
         lblCompiler32.SetBounds 10, 0, 276, 18
         lblCompiler32.Parent = @pnlCompiler
         ' TextBox1
         TextBox1.Name = "TextBox1"
         TextBox1.Text = "fbc.exe"
-        TextBox1.SetBounds 10, 18, 386, 18
+        TextBox1.SetBounds 10, 18, 386, 20
         TextBox1.Parent = @pnlCompiler
         ' lblCompiler64
         lblCompiler64.Name = "lblCompiler64"
-        lblCompiler64.Text = ML("Compilator") & " " & ML("64-bit")
+        lblCompiler64.Text = ML("Compiler") & " " & ML("64-bit")
         lblCompiler64.SetBounds 10, 42, 282, 18
         lblCompiler64.Parent = @pnlCompiler
         ' TextBox2
         TextBox2.Name = "TextBox2"
         TextBox2.Text = "fbc.exe"
-        TextBox2.SetBounds 10, 60, 386, 18
+        TextBox2.SetBounds 10, 60, 386, 20
         TextBox2.Parent = @pnlCompiler
         ' lblDebugger
         lblDebugger.Name = "lblDebugger"
@@ -160,7 +184,7 @@ Dim Shared As Integer oldIndex, newIndex
         ' txtDebugger
         txtDebugger.Name = "txtDebugger"
         txtDebugger.Text = "gdb"
-        txtDebugger.SetBounds 10, 18, 386, 18
+        txtDebugger.SetBounds 10, 18, 386, 20
         txtDebugger.Parent = @pnlDebugger
         ' lblTerminal
         lblTerminal.Name = "lblTerminal"
@@ -170,12 +194,12 @@ Dim Shared As Integer oldIndex, newIndex
         ' txtTerminal
         txtTerminal.Name = "txtTerminal"
         txtTerminal.Text = "gnome-terminal"
-        txtTerminal.SetBounds 10, 60, 386, 18
+        txtTerminal.SetBounds 10, 60, 386, 20
         txtTerminal.Parent = @pnlDebugger
         ' TextBox3
         TextBox3.Name = "TextBox3"
         TextBox3.Text = ""
-        TextBox3.SetBounds 10, 18, 379, 24
+        TextBox3.SetBounds 10, 18, 385, 20
         TextBox3.Parent = @pnlHelp
         ' lblHelp
         lblHelp.Name = "lblHelp"
@@ -195,7 +219,7 @@ Dim Shared As Integer oldIndex, newIndex
         ' CommandButton4
         CommandButton4.Name = "CommandButton4"
         CommandButton4.Text = "..."
-        CommandButton4.SetBounds 396, 18, 24, 18
+        CommandButton4.SetBounds 396, 17, 24, 22
         CommandButton4.Caption = "..."
         CommandButton4.OnClick = @CommandButton4_Click
         CommandButton4.OnMouseUp = @CommandButton4_MouseUp
@@ -203,14 +227,14 @@ Dim Shared As Integer oldIndex, newIndex
         ' CommandButton5
         CommandButton5.Name = "CommandButton5"
         CommandButton5.Text = "..."
-        CommandButton5.SetBounds 396, 60, 24, 18
+        CommandButton5.SetBounds 396, 59, 24, 22
         CommandButton5.Caption = "..."
         CommandButton5.OnClick = @CommandButton5_Click
         CommandButton5.Parent = @pnlCompiler
         ' CommandButton6
         CommandButton6.Name = "CommandButton6"
         CommandButton6.Text = "..."
-        CommandButton6.SetBounds 390, 18, 24, 24
+        CommandButton6.SetBounds 395, 17, 24, 22
         CommandButton6.Caption = "..."
         CommandButton6.OnClick = @CommandButton6_Click
         CommandButton6.Parent = @pnlHelp
@@ -238,12 +262,12 @@ Dim Shared As Integer oldIndex, newIndex
         lblMFF.Parent = @pnlIncludes
         ' txtMFFpath
         txtMFFpath.Name = "txtMFFpath"
-        txtMFFpath.SetBounds 10, 16, 390, 24
+        txtMFFpath.SetBounds 10, 16, 390, 20
         txtMFFpath.Parent = @pnlIncludes
         ' cmdMFFPath
         cmdMFFPath.Name = "cmdMFFPath"
         cmdMFFPath.Text = "..."
-        cmdMFFPath.SetBounds 400, 16, 24, 24
+        cmdMFFPath.SetBounds 400, 15, 24, 22
         cmdMFFPath.Caption = "..."
         cmdMFFPath.OnClick = @cmdMFFPath_Click
         cmdMFFPath.Parent = @pnlIncludes
@@ -262,7 +286,7 @@ Dim Shared As Integer oldIndex, newIndex
         ' chkTabAsSpaces
         chkTabAsSpaces.Name = "chkTabAsSpaces"
         chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
-        chkTabAsSpaces.SetBounds 10, 42, 264, 18
+        chkTabAsSpaces.SetBounds 10, 63, 264, 18
         chkTabAsSpaces.Caption = ML("Treat Tab as Spaces")
         chkTabAsSpaces.Parent = @pnlCodeEditor
         ' chkAutoIndentation
@@ -274,19 +298,18 @@ Dim Shared As Integer oldIndex, newIndex
         ' lblTabSize
         lblTabSize.Name = "lblTabSize"
         lblTabSize.Text = ML("Tab Size:")
-        lblTabSize.SetBounds 10, 180, 48, 18
+        lblTabSize.SetBounds 66, 111, 138, 16
         lblTabSize.Caption = ML("Tab Size:")
         lblTabSize.Parent = @pnlCodeEditor
         ' txtTabSize
         txtTabSize.Name = "txtTabSize"
         txtTabSize.Text = ""
-        txtTabSize.SetBounds 105, 178, 72, 18
-        txtTabSize.OnChange = @txtTabSize_Change
+        txtTabSize.SetBounds 209, 109, 90, 20
         txtTabSize.Parent = @pnlCodeEditor
         ' chkShowSpaces
         chkShowSpaces.Name = "chkShowSpaces"
         chkShowSpaces.Text = ML("Show Spaces")
-        chkShowSpaces.SetBounds 10, 63, 264, 18
+        chkShowSpaces.SetBounds 10, 43, 264, 18
         chkShowSpaces.Caption = ML("Show Spaces")
         chkShowSpaces.Parent = @pnlCodeEditor
         ' lstIncludePaths
@@ -314,52 +337,102 @@ Dim Shared As Integer oldIndex, newIndex
         ' cmdAddInclude
         cmdAddInclude.Name = "cmdAddInclude"
         cmdAddInclude.Text = "+"
-        cmdAddInclude.SetBounds 400, 62, 24, 20
+        cmdAddInclude.SetBounds 400, 62, 24, 22
         cmdAddInclude.Caption = "+"
         cmdAddInclude.Parent = @pnlIncludes
         ' cmdRemoveInclude
         cmdRemoveInclude.Name = "cmdRemoveInclude"
         cmdRemoveInclude.Text = "-"
-        cmdRemoveInclude.SetBounds 400, 81, 24, 21
+        cmdRemoveInclude.SetBounds 400, 83, 24, 22
         cmdRemoveInclude.Caption = "-"
         cmdRemoveInclude.Parent = @pnlIncludes
         ' cmdAddLibrary
         cmdAddLibrary.Name = "cmdAddLibrary"
         cmdAddLibrary.Text = "+"
-        cmdAddLibrary.SetBounds 400, 187, 24, 23
+        cmdAddLibrary.SetBounds 400, 187, 24, 22
         cmdAddLibrary.Caption = "+"
         cmdAddLibrary.Parent = @pnlIncludes
         ' cmdRemoveLibrary
         cmdRemoveLibrary.Name = "cmdRemoveLibrary"
         cmdRemoveLibrary.Text = "-"
-        cmdRemoveLibrary.SetBounds 400, 209, 24, 23
+        cmdRemoveLibrary.SetBounds 400, 208, 24, 22
         cmdRemoveLibrary.Caption = "-"
         cmdRemoveLibrary.Parent = @pnlIncludes
         ' cmdDebugger
         cmdDebugger.Name = "cmdDebugger"
         cmdDebugger.Text = "..."
-        cmdDebugger.SetBounds 396, 17, 21, 20
+        cmdDebugger.SetBounds 396, 17, 24, 22
         cmdDebugger.Caption = "..."
         cmdDebugger.OnClick = @cmdDebugger_Click
         cmdDebugger.Parent = @pnlDebugger
         ' cmdTerminal
         cmdTerminal.Name = "cmdTerminal"
         cmdTerminal.Text = "..."
-        cmdTerminal.SetBounds 396, 59, 21, 20
+        cmdTerminal.SetBounds 396, 59, 24, 22
         cmdTerminal.Caption = "..."
         cmdTerminal.OnClick = @cmdTerminal_Click
         cmdTerminal.Parent = @pnlDebugger
         ' lblHistoryLimit
         lblHistoryLimit.Name = "lblHistoryLimit"
-        lblHistoryLimit.Text = ML("History limit")
-        lblHistoryLimit.SetBounds 12, 202, 90, 18
-        lblHistoryLimit.Caption = ML("History limit")
-        lblHistoryLimit.OnClick = @lblTabSize1_Click
+        lblHistoryLimit.Text = ML("History limit:")
+        lblHistoryLimit.SetBounds 66, 134, 150, 17
         lblHistoryLimit.Parent = @pnlCodeEditor
         ' txtHistoryLimit
         txtHistoryLimit.Name = "txtHistoryLimit"
-        txtHistoryLimit.SetBounds 105, 200, 72, 18
+        txtHistoryLimit.SetBounds 209, 132, 90, 20
+        txtHistoryLimit.OnChange = @txtHistoryLimit_Change
+        txtHistoryLimit.Text = ""
         txtHistoryLimit.Parent = @pnlCodeEditor
+        ' grbGrid
+        grbGrid.Name = "grbGrid"
+        grbGrid.Text = ML("Grid")
+        grbGrid.SetBounds 8, -1, 414, 144
+        grbGrid.Parent = @pnlDesigner
+        ' lblGridSize
+        lblGridSize.Name = "lblGridSize"
+        lblGridSize.Text = ML("Size:")
+        lblGridSize.SetBounds 24, 31, 60, 18
+        lblGridSize.Parent = @pnlDesigner
+        ' txtGridSize
+        txtGridSize.Name = "txtGridSize"
+        txtGridSize.Text = "10"
+        txtGridSize.SetBounds 81, 31, 114, 18
+        txtGridSize.Parent = @pnlDesigner
+        ' chkShowAlignmentGrid
+        chkShowAlignmentGrid.Name = "chkShowAlignmentGrid"
+        chkShowAlignmentGrid.Text = ML("Show Alignment Grid")
+        chkShowAlignmentGrid.SetBounds 80, 51, 138, 30
+        chkShowAlignmentGrid.Parent = @pnlDesigner
+        ' chkSnapToGrid
+        chkSnapToGrid.Name = "chkSnapToGrid"
+        chkSnapToGrid.Text = ML("Snap to Grid")
+        chkSnapToGrid.SetBounds 80, 75, 138, 24
+        chkSnapToGrid.Parent = @pnlDesigner
+        ' cboCase
+        cboCase.Name = "cboCase"
+        cboCase.Text = "ComboBoxEdit2"
+        cboCase.SetBounds 209, 85, 162, 21
+        cboCase.Parent = @pnlCodeEditor
+        ' chkChangeKeywordsCase
+        chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
+        chkChangeKeywordsCase.Text = ML("Change Keywords Case to:")
+        chkChangeKeywordsCase.SetBounds 10, 86, 194, 18
+        chkChangeKeywordsCase.Parent = @pnlCodeEditor
+        ' cboTabStyle
+        cboTabStyle.Name = "cboTabStyle"
+        cboTabStyle.Text = "cboCase1"
+        cboTabStyle.SetBounds 209, 61, 162, 21
+        cboTabStyle.Parent = @pnlCodeEditor
+        ' grbColors
+        grbColors.Name = "grbColors"
+        grbColors.Text = "Colors"
+        grbColors.SetBounds 10, -2, 416, 224
+        grbColors.Parent = @pnlColorsAndFonts
+        ' grbFont
+        grbFont.Name = "grbFont"
+        grbFont.Text = "Font"
+        grbFont.SetBounds 10, 222, 416, 72
+        grbFont.Parent = @pnlColorsAndFonts
     End Constructor
     
     Dim Shared fOptions As frmOptions
@@ -386,30 +459,45 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
     With fOptions
         .ComboBoxEdit1.Clear
         .tvOptions.Nodes.Clear
-        .tvOptions.Nodes.Add ML("General"), "General"
-        .tvOptions.Nodes.Add ML("Code Editor"), "CodeEditor"
-        .tvOptions.Nodes.Add ML("Compiler"), "Compiler"
-        .tvOptions.Nodes.Add ML("Debugger"), "Debugger"
-        .tvOptions.Nodes.Add ML("Includes"), "Includes"
-        .tvOptions.Nodes.Add ML("Localization"), "Localization"
-        .tvOptions.Nodes.Add ML("Help"), "Help"
-        .TextBox1.Text = iniSettings.ReadString("Options", "Compilator32", WGet(Compilator32))
-        .TextBox2.Text = iniSettings.ReadString("Options", "Compilator64", WGet(Compilator64))
-        .txtDebugger.Text = iniSettings.ReadString("Options", "Debugger", WGet(Debugger))
-        .txtTerminal.Text = iniSettings.ReadString("Options", "Terminal", WGet(Terminal))
-        .TextBox3.Text = iniSettings.ReadString("Options", "HelpPath", "")
-        .txtTabSize.Text = Str(iniSettings.ReadInteger("Options", "TabWidth", 4))
-        .txtHistoryLimit.Text = Str(iniSettings.ReadInteger("Options", "HistoryLimit", 20))
-        .txtMFFPath.Text = iniSettings.ReadString("Options", "MFFPath", *MFFPath)
-        .CheckBox1.Checked = iniSettings.ReadBool("Options", "AutoIncrement", true)
-        .chkEnableAutoComplete.Checked = iniSettings.ReadBool("Options", "AutoComplete", true)
-        .chkAutoSaveCompile.Checked = iniSettings.ReadBool("Options", "AutoSaveBeforeCompiling", true)
-        .chkAutoIndentation.Checked = iniSettings.ReadBool("Options", "AutoIndentation", true)
-        .chkAutoCreateRC.Checked = iniSettings.ReadBool("Options", "AutoCreateRC", true)
-        .chkShowSpaces.Checked = iniSettings.ReadBool("Options", "ShowSpaces", true)
-        f = Dir(exepath & "/languages/*.lng")
+        Var tnGeneral = .tvOptions.Nodes.Add(ML("General"), "General")
+        Var tnEditor = .tvOptions.Nodes.Add(ML("Code Editor"), "CodeEditor")
+        Var tnCompiler = .tvOptions.Nodes.Add(ML("Compiler"), "Compiler")
+        Var tnDebugger = .tvOptions.Nodes.Add(ML("Debugger"), "Debugger")
+        .tvOptions.Nodes.Add(ML("Designer"), "Designer")
+        tnEditor->Nodes.Add(ML("Colors And Fonts"), "ColorsAndFonts")
+        tnCompiler->Nodes.Add(ML("Includes"), "Includes")
+        tnGeneral->Nodes.Add(ML("Localization"), "Localization")
+        tnCompiler->Nodes.Add(ML("Help"), "Help")
+        .tvOptions.ExpandAll
+        .cboCase.AddItem ML("Original Case")
+        .cboCase.AddItem ML("Lower Case")
+        .cboCase.AddItem ML("Upper Case")
+        .cboTabStyle.AddItem ML("Everywhere")
+        .cboTabStyle.AddItem ML("Only after the words")
+        .chkTabAsSpaces.Checked = TabAsSpaces
+        .cboTabStyle.ItemIndex = ChoosedTabStyle
+        .cboCase.ItemIndex = ChoosedKeyWordsCase
+        .chkChangeKeywordsCase.Checked = ChangeKeywordsCase
+        .TextBox1.Text = WGet(Compilator32)
+        .TextBox2.Text = WGet(Compilator64)
+        .txtDebugger.Text = WGet(Debugger)
+        .txtTerminal.Text = WGet(Terminal)
+        .TextBox3.Text = WGet(HelpPath)
+        .txtTabSize.Text = Str(TabWidth)
+        .txtHistoryLimit.Text = Str(HistoryLimit)
+        .txtMFFPath.Text = *MFFPath
+        .CheckBox1.Checked = AutoIncrement
+        .chkEnableAutoComplete.Checked = AutoComplete
+        .chkAutoSaveCompile.Checked = AutoSaveCompile
+        .chkAutoIndentation.Checked = AutoIndentation
+        .chkAutoCreateRC.Checked = AutoCreateRC
+        .chkShowSpaces.Checked = ShowSpaces
+        .txtGridSize.Text = Str(GridSize)
+        .chkShowAlignmentGrid.Checked = ShowAlignmentGrid
+        .chkSnapToGrid.Checked = SnapToGridOption
+        f = Dir(exepath & "/Languages/*.lng")
         While f <> ""
-            Open exepath & "/languages/" & f For Input Encoding "utf-8" As #1
+            Open exepath & "/Languages/" & f For Input Encoding "utf-8" As #1
             WReallocate s, LOF(1)
             If Not EOF(1) Then
                 Line Input #1, *s
@@ -419,7 +507,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
             Close #1
             f = dir()
         Wend
-        newIndex = Languages.IndexOf(iniSettings.ReadString("Options", "Language", "english"))
+        newIndex = Languages.IndexOf(CurLanguage)
         .ComboBoxEdit1.ItemIndex = newIndex
         oldIndex = newIndex
         .TreeView1_SelChange .tvOptions, *.tvOptions.Nodes.Item(0)
@@ -443,19 +531,25 @@ Private Sub frmOptions.CommandButton3_Click(ByRef Sender As Control)
         WLet HelpPath, .TextBox3.Text
         WLet MFFPath, .txtMFFPath.Text
         #IfDef __FB_64bit__
-            WLet MFFDll, *MFFPath & "\mff\mff64.dll"
+            WLet MFFDll, *MFFPath & "/mff64.dll"
         #Else
-            WLet MFFDll, *MFFPath & "\mff\mff32.dll"
+            WLet MFFDll, *MFFPath & "/mff32.dll"
         #EndIf
         TabWidth = Val(.txtTabSize.Text)
         HistoryLimit = Val(.txtHistoryLimit.Text)
         AutoIncrement = .CheckBox1.Checked
         AutoIndentation = .chkAutoIndentation.Checked
         AutoComplete = .chkEnableAutoComplete.Checked
-        AutoSaveCompile = .chkAutoSaveCompile.Checked
         AutoCreateRC = .chkAutoCreateRC.Checked
+        AutoSaveCompile = .chkAutoSaveCompile.Checked
         ShowSpaces = .chkShowSpaces.Checked
         TabAsSpaces = .chkTabAsSpaces.Checked
+        ChoosedTabStyle = .cboTabStyle.ItemIndex
+        GridSize = Val(.txtGridSize.Text)
+        ShowAlignmentGrid = .chkShowAlignmentGrid.Checked
+        SnapToGridOption = .chkSnapToGrid.Checked
+        ChangeKeywordsCase = .chkChangeKeywordsCase.Checked
+        ChoosedKeywordsCase = .cboCase.ItemIndex
         iniSettings.WriteString "Options", "Compilator32", *Compilator32
         iniSettings.WriteString "Options", "Compilator64", *Compilator64
         iniSettings.WriteString "Options", "Debugger", *Debugger
@@ -465,11 +559,18 @@ Private Sub frmOptions.CommandButton3_Click(ByRef Sender As Control)
         iniSettings.WriteString "Options", "Language", Languages.Item(.ComboBoxEdit1.ItemIndex)
         iniSettings.WriteInteger "Options", "TabWidth", TabWidth
         iniSettings.WriteInteger "Options", "HistoryLimit", HistoryLimit
-        iniSettings.WriteBool "Options", "AutoIndentation", AutoIndentation
         iniSettings.WriteBool "Options", "AutoIncrement", AutoIncrement
-        iniSettings.WriteBool "Options", "AutoCreateRC", AutoCreateRC
+        iniSettings.WriteBool "Options", "AutoIndentation", AutoIndentation
         iniSettings.WriteBool "Options", "AutoComplete", AutoComplete
+        iniSettings.WriteBool "Options", "AutoCreateRC", AutoCreateRC
         iniSettings.WriteBool "Options", "AutoSaveBeforeCompiling", AutoSaveCompile
+        iniSettings.WriteBool "Options", "ShowSpaces", ShowSpaces
+        iniSettings.WriteBool "Options", "TabAsSpaces", TabAsSpaces
+        iniSettings.WriteInteger "Options", "GridSize", GridSize
+        iniSettings.WriteBool "Options", "ShowAlignmentGrid", ShowAlignmentGrid
+        iniSettings.WriteBool "Options", "SnapToGrid", SnapToGridOption
+        iniSettings.WriteBool "Options", "ChangeKeywordsCase", ChangeKeywordsCase
+        iniSettings.WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeywordsCase
         newIndex = .ComboBoxEdit1.ItemIndex
     End With
     Exit Sub
@@ -490,7 +591,8 @@ End Sub
 
 Private Sub frmOptions.Form_Show(ByRef Sender As Form)
     With fOptions
-        .TreeView1_SelChange .tvOptions, *.tvOptions.Nodes.Item(0)
+    	.tvOptions.Nodes.Item(0)->SelectItem
+        '.TreeView1_SelChange .tvOptions, *.tvOptions.Nodes.Item(0)
     End With
 End Sub
 
@@ -539,14 +641,16 @@ End Sub
 
 Private Sub frmOptions.TreeView1_SelChange(BYREF Sender As TreeView, BYREF Item As TreeNode)
     With fOptions
-        Dim i As Integer = Item.Index
-        .pnlGeneral.Visible = i = 0
-        .pnlCodeEditor.Visible = i = 1
-        .pnlCompiler.Visible = i = 2
-        .pnlDebugger.Visible = i = 3
-        .pnlIncludes.Visible = i = 4
-        .pnlLocalization.Visible = i = 5
-        .pnlHelp.Visible = i = 6
+        Dim Key As String = Item.Name
+        .pnlGeneral.Visible = Key = "General"
+        .pnlCodeEditor.Visible = Key = "CodeEditor"
+        .pnlColorsAndFonts.Visible = Key = "ColorsAndFonts"
+        .pnlCompiler.Visible = Key = "Compiler"
+        .pnlDebugger.Visible = Key = "Debugger"
+        .pnlDesigner.Visible = Key = "Designer"
+        .pnlIncludes.Visible = Key = "Includes"
+        .pnlLocalization.Visible = Key = "Localization"
+        .pnlHelp.Visible = Key = "Help"
     End With
 End Sub
 
@@ -580,10 +684,10 @@ Private Sub frmOptions.cmdTerminal_Click(ByRef Sender As Control)
     End With
 End Sub
 
-Private Sub frmOptions.txtTabSize_Change(BYREF Sender As TextBox)
-    
+Private Sub frmOptions.pnlLocalization_Click(ByRef Sender As Control)
+	
 End Sub
 
-Private Sub frmOptions.lblTabSize1_Click(BYREF Sender As Label)
-    
+Private Sub frmOptions.txtHistoryLimit_Change(BYREF Sender As TextBox)
+	
 End Sub

@@ -1,14 +1,14 @@
 ﻿#IfDef __FB_Win32__
 	#IfDef __FB_64bit__
-	    '#Compile -dll -x "../AddIns/Help Add-In (x64).dll" "Help Add-In.rc"
+	    '#Compile -dll -x "../../AddIns/Help Add-In (x64).dll" "Help Add-In.rc"
 	#Else
-	    '#Compile -dll -x "../AddIns/Help Add-In (x32).dll" "Help Add-In.rc"
+	    '#Compile -dll -x "../../AddIns/Help Add-In (x32).dll" "Help Add-In.rc"
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
-	    '#Compile -dll -x "../AddIns/HelpAdd-Inx64.so"
+	    '#Compile -dll -x "../../AddIns/HelpAdd-Inx64.so"
 	#Else
-	    '#Compile -dll -x "../AddIns/HelpAdd-Inx32.so"
+	    '#Compile -dll -x "../../AddIns/HelpAdd-Inx32.so"
 	#EndIf
 #EndIf
 
@@ -104,8 +104,8 @@ Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPat
     	#EndIf
     #Else
     	VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/libmff" & Right(AppPath, 7) & ".so")
-		If s <> 0 Then Deallocate s
     #EndIf
+    If s <> 0 Then Deallocate s
     If VFBEditorLib = 0 Then Exit Sub
     
     LoadMFFProcs

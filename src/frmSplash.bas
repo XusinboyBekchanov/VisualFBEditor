@@ -1,4 +1,9 @@
-﻿'#Compile "VisualFBEditor.rc"
+﻿'#########################################################
+'#  frmSplash.bas                                        #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
 #Include Once "mff\Form.bi"
 #Include Once "mff\Label.bi"
 #Include Once "mff\ImageBox.bi"
@@ -21,7 +26,7 @@ Using My.Sys.Forms
         lblImage.Name = "lblImage"
         'lblImage.Graphic.Bitmap.LoadFromResourceName("Logo")
         #IfDef __USE_GTK__
-        	lblImage.Graphic.Bitmap.LoadFromFile(ExePath & "/resources/Logo.png")
+        	lblImage.Graphic.Bitmap.LoadFromFile(ExePath & "/Resources/Logo.png")
         #Else
         	lblImage.Graphic.Bitmap = "Logo"
         #EndIf

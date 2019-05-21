@@ -1,4 +1,10 @@
-﻿#Include Once "EditControl.bi"
+﻿'#########################################################
+'#  TabWindow.bas                                        #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
+#Include Once "EditControl.bi"
 #Include Once "mff/Dictionary.bi"
 #Include Once "mff/ToolPalette.bi"
 Dim Shared As WStringList mlKeys, mlTexts
@@ -10,9 +16,10 @@ Dim Shared As Toolbar tbStandard, tbExplorer, tbForm, tbProperties, tbEvents
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
-Dim Shared As TextBox txtOutput
+Dim Shared As TextBox txtOutput, txtImmediate
 Dim Shared As TabControl tabCode, tabBottom
-Dim Shared As ListView lvErrors, lvSearch, lvProperties, lvEvents
+Dim Shared As ListView lvErrors, lvSearch
+Dim Shared As TreeListView lvProperties, lvEvents
 Dim Shared As ImageList imgList, imgListTools, imgListStates
 Dim Shared As ToolButton Ptr SelectedTool
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
@@ -120,7 +127,7 @@ Type TabWindow Extends TabPage
         Dim As Any Ptr Ctrl, CurCtrl
         i As Integer
         j As Integer
-        lvItem As ListViewItem Ptr
+        lvItem As TreeListViewItem Ptr
         iTemp As Integer
         pTemp As Any Ptr
         te As TypeElement Ptr
@@ -193,8 +200,8 @@ Type TabWindow Extends TabPage
         Declare Sub Versioning
         Declare Sub Save
         Declare Sub SaveAs
-        Declare Sub NumberOn
-        Declare Sub NumberOff
+        Declare Sub NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+        Declare Sub NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
         Declare Sub ProcedureNumberOn
         Declare Sub ProcedureNumberOff
         Declare Sub Comment
@@ -285,6 +292,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
     If Not bFind Then
         tb = New TabWindow(*FileName_, bNew, TreeN)
         With *tb
+        	tb->UseVisualStyleBackColor = True
             '.txtCode.ContextMenu = @mnuCode
             tabCode.AddTab(Cast(TabPage Ptr, tb))
             #IfDef __USE_GTK__
@@ -1117,6 +1125,7 @@ Sub TabWindow.FillAllProperties()
             If Cint(LCase(.Name) <> "handle") AndAlso Cint(LCase(.TypeName) <> "hwnd") AndAlso Cint(LCase(.TypeName) <> "gtkwidget ptr") AndAlso Cint(.ElementType = "Property") Then
                 If lvProperties.ListItems.Count <= lvPropertyCount Then
                     lvItem = lvProperties.ListItems.Add(FPropertyItems.Item(lvPropertyCount), 2, IIF(Comps.Contains(.TypeName), 1, 0))
+                    If Comps.Contains(.TypeName) Then lvItem->Items.Add
                 Else
                     lvItem = lvProperties.ListItems.Item(lvPropertyCount)
                     lvItem->Text(0) = FPropertyItems.Item(lvPropertyCount)
@@ -1472,22 +1481,18 @@ Sub TabWindow.ChangeName(ByRef OldName As String, ByRef NewName As String)
     End With
 End Sub
 
-Function GetItemText(ByRef Item As ListViewItem Ptr) As String
+Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
     Dim As String PropertyName = Item->Text(0)
-    If Item->Indent = 0 Then
+    If Item->ParentItem = 0 Then
         Return PropertyName
     Else
-        For i As Integer = Item->Index - 1 To 0 Step -1
-            If lvProperties.ListItems.Item(i)->Indent < Item->Indent Then
-                Return GetItemText(lvProperties.ListItems.Item(i)) & "." & PropertyName
-            End If
-        Next
+        Return GetItemText(Item->ParentItem) & "." & PropertyName
     End If
 End Function
 
 Dim Shared TempWS As WString Ptr
-Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
-    Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCombo As Boolean)
+	Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     If tb->Des = 0 Then Exit Sub
     If tb->Des->SelectedControl = 0 Then Exit Sub
@@ -1497,19 +1502,23 @@ Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
     'If te = 0 Then Exit Sub
     Dim FLine As WString Ptr
     Dim SenderText As WString Ptr
-    WLet SenderText, IIF(Sender.ClassName = "ComboBoxEdit", Mid(Sender.Text, 2), Sender.Text)
+    WLet SenderText, IIF(IsCombo, Mid(Sender_Text, 2), Sender_Text)
     With tb->txtCode
         If *SenderText <> tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName) Then
             If CInt(PropertyName = "Name") AndAlso CInt(tb->cboClass.Items.Contains(*SenderText)) Then
                 MsgBox ML("This name is exists!"), "VisualFBEditor", mtWarning
-                Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+                #IfNDef __USE_GTK__
+                	Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+                #EndIf
                 Exit Sub
             End If
             frmMain.UpdateLock
             .Changing "Unsurni o`zgartirish"
             If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), *SenderText
-            tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender.Text)
-            Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+            tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
+            #IfNDef __USE_GTK__
+            	Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+            #EndIf
             ChangeControl(tb->Des->SelectedControl, PropertyName)
             'If tb->frmForm Then tb->frmForm->MoveDots Cast(Control Ptr, tb->SelectedControl)->Handle, False
             For i As Integer = 0 To lvProperties.ListItems.Count - 1
@@ -1524,10 +1533,23 @@ Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
             frmMain.UpdateUnLock
         End If
     End With
+    WDeallocate SenderText
+End Sub
+
+Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr)
+	CellEditor = @cboPropertyValue
+End Sub
+
+Sub lvProperties_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString)
+	PropertyChanged Sender, NewText, False
+End Sub
+
+Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
+    PropertyChanged Sender, Sender.Text, False
 End Sub
 
 Sub cboPropertyValue_Change(ByRef Sender As Control)
-    txtPropertyValue_LostFocus Sender
+    PropertyChanged Sender, Sender.Text, True
 End Sub
 
 Sub DesignerModified(ByRef Sender as Designer, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
@@ -1683,8 +1705,11 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
         	If Not .Focused Then bNotFunctionChange = False: Exit Sub
         	If OldLine < .FLines.Count Then
 	        	Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .FLines.Items[OldLine])
-	        	If CInt(ecl->CommentIndex = 0) AndAlso CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg2(Trim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2), Any !"\t "))) Then
-	        		WLet ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1"
+	        	If CInt(ecl->CommentIndex = 0) Then
+	        		If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg2(Trim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2), Any !"\t "))) Then
+	        			WLet ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1"
+	        		End If
+	        		
 	        	End If
 	        End If
         	tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or Not EndsWith(tb->cboFunction.Text, " [Constructor]")
@@ -1820,7 +1845,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
             End If
             .InsertLine i + q, ""
             .InsertLine i + q + 1, "Private Sub " & frmName & "." & SubName & Mid(te->TypeName, 4)
-            .InsertLine i + q + 2, IIF(TabAsSpaces, WSpace(TabWidth), !"\t")
+            .InsertLine i + q + 2, IIF(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
             .InsertLine i + q + 3, "End Sub"
             bNotDesignForms = True
             .SetSelection i + q + 2, i + q + 2, 4, 4
@@ -1990,16 +2015,16 @@ Sub FillAllIntellisenses()
     If tb = 0 Then Exit Sub
     FListItems.Clear
     For i As Integer = 0 To KeyWords0.Count - 1
-        FListItems.Add KeyWords0.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords0.Item(i))
     Next
     For i As Integer = 0 To KeyWords1.Count - 1
-        FListItems.Add KeyWords1.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords1.Item(i))
     Next
     For i As Integer = 0 To KeyWords2.Count - 1
-        FListItems.Add KeyWords2.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords2.Item(i))
     Next
     For i As Integer = 0 To KeyWords3.Count - 1
-        FListItems.Add KeyWords3.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords3.Item(i))
     Next
     For i As Integer = 0 To Comps.Count - 1
         FListItems.Add Comps.Item(i), Comps.Object(i)
@@ -2042,12 +2067,12 @@ Sub FillTypeIntellisenses()
     If tb = 0 Then Exit Sub
     FListItems.Clear
     For i As Integer = 0 To KeyWords1.Count - 1
-        FListItems.Add KeyWords1.Item(i)
+        FListItems.Add GetKeyWordCase(KeyWords1.Item(i))
     Next
-    FListItems.Add "Const"
-    FListItems.Add "TypeOf"
-    FListItems.Add "Sub"
-    FListItems.Add "Function"
+    FListItems.Add GetKeyWordCase("Const")
+    FListItems.Add GetKeyWordCase("TypeOf")
+    FListItems.Add GetKeyWordCase("Sub")
+    FListItems.Add GetKeyWordCase("Function")
     For i As Integer = 0 To Comps.Count - 1
         FListItems.Add Comps.Item(i), Comps.Object(i)
     Next
@@ -2149,6 +2174,7 @@ Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Inte
             tb->txtCode.LastItemIndex = -1
         End If
     End With
+    WDeallocate sTempRight
 End Sub
 
 Sub FillIntellisenseByName(sTemp2 As String)
@@ -2216,7 +2242,7 @@ Sub CompleteWord
                 sTemp = s & sTemp
             End If
             If f Then d = True
-        ElseIf CInt(s = " ") AndAlso CInt(Not d) AndAlso CInt(Not b) Then
+        ElseIf CInt(s = " " OrElse s = !"\t") AndAlso CInt(Not d) AndAlso CInt(Not b) Then
             If Not f Then SelCharPos = i
             f = True
         ElseIf s = "." Then
@@ -2297,11 +2323,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
         SelCharPos = iSelEndChar
         FindComboIndex tb, *sLine, iSelEndChar
         tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
-    ElseIf CInt(Key = Asc(" ")) Then
+    ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) Then
         Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
         tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
         Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-        If EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as") Then
+        If CInt(Key = Asc(" ")) AndAlso CInt(EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as")) Then
             FillTypeIntellisenses
             SelLinePos = iSelEndLine
             SelCharPos = iSelEndChar
@@ -2310,6 +2336,15 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
  		    	If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 	    	#EndIf
             tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
+        Else
+        	Dim sWord As String = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 1)
+        	If tb->Functions.Contains(sWord) Then
+        		Dim te As TypeElement Ptr = tb->Functions.Object(tb->Functions.Indexof(sWord))
+        		If te <> 0 Then
+	        		tb->txtCode.Hint = WGet(te->Parameters)
+	        		tb->txtCode.ShowHint = True
+	        	End If
+        	End If
         End If
     ElseIf tb->txtCode.DropDownShowed Then
     	#IfDef __USE_GTK__
@@ -2967,57 +3002,147 @@ Destructor TabWindow
     'If tn <> 0 Then tvExplorer.RemoveRoot tvExplorer.IndexOfRoot(tn)
 End Destructor
 
-Public Function STATEIMAGEMASKTOINDEX(iState As Integer) As Integer
+'Public Function STATEIMAGEMASKTOINDEX(iState As Integer) As Integer
+'
+'  STATEIMAGEMASKTOINDEX = iState / (2 ^ 12)
+'End Function
+'
+'#IfNDef __USE_GTK__
+'	Public Function Listview_GetItemStateEx(hwndLV As HWND, iItem As Integer, ByRef iIndent As Integer) As Integer
+'		Dim lvi As LVITEM
+'
+'	  
+'		lvi.mask = LVIF_STATE Or LVIF_INDENT
+'		lvi.iItem = iItem
+'		lvi.stateMask = LVIS_STATEIMAGEMASK
+'
+'	  
+'		If ListView_GetItem(hwndLV, @lvi) Then
+'			iIndent = lvi.iIndent
+'			Return STATEIMAGEMASKTOINDEX(lvi.state And LVIS_STATEIMAGEMASK)
+'		End If
+'
+'	  
+'	End Function
+'#EndIf
+'
+'#IfNDef __USE_GTK__
+'	Public Function Listview_SetItemStateEx(hwndLV As HWND, iItem As Integer, iIndent As Integer, dwState As Integer) As Boolean
+'		Dim lvi As LVITEM
+'		lvi.mask = LVIF_STATE Or LVIF_INDENT
+'		lvi.iItem = iItem
+'		lvi.iIndent = iIndent
+'		lvi.state = INDEXTOSTATEIMAGEMASK(dwState)
+'		lvi.stateMask = LVIS_STATEIMAGEMASK
+'		Return ListView_SetItem(hwndLV, @lvi)
+'	End Function
+'#EndIF
 
-  STATEIMAGEMASKTOINDEX = iState / (2 ^ 12)
-End Function
+'Sub AddChildItems(iParentItem As Integer, iParentIndent As Integer)
+'    If (iParentItem <> -1) Then
+'		#IfNDef __USE_GTK__
+'			Listview_SetItemStateEx(lvProperties.Handle, iParentItem, iParentIndent, 2)
+'        #EndIf
+'        Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabRight.Tag)
+'        If tb = 0 Then Exit Sub
+'        If tb->Des = 0 Then Exit Sub
+'        If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
+'        If tb->Des->SelectedControl = 0 Then Exit Sub
+'        Dim PropertyName As String = GetItemText(lvProperties.ListItems.Item(iParentItem))
+'        Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
+'        If te = 0 Then Exit Sub
+'        tabRight.UpdateLock
+'        Dim lvItem As TreeListViewItem Ptr
+'        FPropertyItems.Clear
+'        tb->FillProperties te->TypeName
+'        FPropertyItems.Sort
+'        For lvPropertyCount As Integer = FPropertyItems.Count - 1 To 0 Step -1
+'            te = FPropertyItems.Object(lvPropertyCount)
+'            If te = 0 Then Continue For
+'            With *te
+'                If Cint(LCase(.Name) <> "handle") AndAlso Cint(LCase(.TypeName) <> "hwnd") AndAlso Cint(.ElementType = "Property") Then
+'                    lvItem = lvProperties.ListItems.Insert(iParentItem + 1, FPropertyItems.Item(lvPropertyCount), 2, IIF(Comps.Contains(.TypeName), 1, 0), iParentIndent + 1)
+'                    lvItem->Text(1) = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
+'                End If
+'            End With
+'        Next
+'        tabRight.UpdateUnlock
+'    End If
+'End Sub
+'
+'Sub RemoveChildItems(iParentItem As Integer, iParentIndent As Integer)
+'    #IfNDef __USE_GTK__
+'		Listview_SetItemStateEx(lvProperties.Handle, iParentItem, iParentIndent, 1)
+'    #EndIf
+'    Var nItems = lvProperties.ListItems.Count
+'    Dim iChildIndent As Integer
+'    Do
+'		#IfNDef __USE_GTK__
+'			Listview_GetItemStateEx(lvProperties.Handle, iParentItem + 1, iChildIndent)
+'        #EndIf
+'        If (iChildIndent > iParentIndent) Then
+'            
+'            ' Remove the item directly below the collapsing parent (VB ListItems are one-based)
+'            lvProperties.ListItems.Remove (iParentItem + 1)
+'            
+'            ' Keep a count of ListView items so we don't try to remove more
+'            ' items than are in the ListView (when collapsing the last parent).
+'
+'           nItems = nItems - 1
+'        End If
+'
+'  Loop While (iChildIndent > iParentIndent) And (iParentItem + 1 < nItems)
+'End Sub
+'
+'Sub ClickProperty(Item As Integer)
+'    Dim dwState As Integer
+'    Dim iIndent As Integer
+'    #IfNDef __USE_GTK__
+'		Dim lvi As LVITEM
+'		lvi.mask = LVIF_STATE Or LVIF_INDENT
+'		lvi.iItem = Item
+'		lvi.stateMask = LVIS_STATEIMAGEMASK
+'		If ListView_GetItem(lvProperties.Handle, @lvi) Then
+'			iIndent = lvi.iIndent
+'			dwState = STATEIMAGEMASKTOINDEX(lvi.state And LVIS_STATEIMAGEMASK)
+'			If dwState > 0 Then
+'				If (dwState = 1) Then
+'					AddChildItems(Item, iIndent)            
+'				Else
+'					RemoveChildItems(Item, iIndent)
+'				End If
+'			End If
+'		End If
+'	#EndIf
+'End Sub
+'
+'Sub lvProperties_MouseDown(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+'    #IfNDef __USE_GTK__
+'		Dim lvhti As LVHITTESTINFO
+'		If MouseButton = 0 Then
+'			lvhti.pt.x = x
+'			lvhti.pt.y = y
+'			If (ListView_HitTest(Sender.Handle, @lvhti) <> -1) Then
+'				If (lvhti.flags = LVHT_ONITEMSTATEICON) Then
+'					ClickProperty lvhti.iItem
+'				End If
+'			End If
+'		End If
+'	#EndIf
+'End Sub
 
-#IfNDef __USE_GTK__
-	Public Function Listview_GetItemStateEx(hwndLV As HWND, iItem As Integer, ByRef iIndent As Integer) As Integer
-		Dim lvi As LVITEM
-
-	  
-		lvi.mask = LVIF_STATE Or LVIF_INDENT
-		lvi.iItem = iItem
-		lvi.stateMask = LVIS_STATEIMAGEMASK
-
-	  
-		If ListView_GetItem(hwndLV, @lvi) Then
-			iIndent = lvi.iIndent
-			Return STATEIMAGEMASKTOINDEX(lvi.state And LVIS_STATEIMAGEMASK)
-		End If
-
-	  
-	End Function
-#EndIf
-
-#IfNDef __USE_GTK__
-	Public Function Listview_SetItemStateEx(hwndLV As HWND, iItem As Integer, iIndent As Integer, dwState As Integer) As Boolean
-		Dim lvi As LVITEM
-		lvi.mask = LVIF_STATE Or LVIF_INDENT
-		lvi.iItem = iItem
-		lvi.iIndent = iIndent
-		lvi.state = INDEXTOSTATEIMAGEMASK(dwState)
-		lvi.stateMask = LVIS_STATEIMAGEMASK
-		Return ListView_SetItem(hwndLV, @lvi)
-	End Function
-#EndIF
-
-Sub AddChildItems(iParentItem As Integer, iParentIndent As Integer)
-    If (iParentItem <> -1) Then
-		#IfNDef __USE_GTK__
-			Listview_SetItemStateEx(lvProperties.Handle, iParentItem, iParentIndent, 2)
-        #EndIf
-        Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabRight.Tag)
+Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+	If Item AndAlso Item->Items.Count > 0 AndAlso Item->Items.Item(0)->Text(0) = "" Then
+	    Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabRight.Tag)
         If tb = 0 Then Exit Sub
         If tb->Des = 0 Then Exit Sub
         If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
         If tb->Des->SelectedControl = 0 Then Exit Sub
-        Dim PropertyName As String = GetItemText(lvProperties.ListItems.Item(iParentItem))
+        Dim PropertyName As String = GetItemText(Item)
         Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
         If te = 0 Then Exit Sub
         tabRight.UpdateLock
-        Dim lvItem As ListViewItem Ptr
+        Dim lvItem As TreeListViewItem Ptr
         FPropertyItems.Clear
         tb->FillProperties te->TypeName
         FPropertyItems.Sort
@@ -3026,74 +3151,17 @@ Sub AddChildItems(iParentItem As Integer, iParentIndent As Integer)
             If te = 0 Then Continue For
             With *te
                 If Cint(LCase(.Name) <> "handle") AndAlso Cint(LCase(.TypeName) <> "hwnd") AndAlso Cint(.ElementType = "Property") Then
-                    lvItem = lvProperties.ListItems.Insert(iParentItem + 1, FPropertyItems.Item(lvPropertyCount), 2, IIF(Comps.Contains(.TypeName), 1, 0), iParentIndent + 1)
+                    lvItem = Item->Items.Add(FPropertyItems.Item(lvPropertyCount), 2, IIF(Comps.Contains(.TypeName), 1, 0))
                     lvItem->Text(1) = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
+                	If Comps.Contains(.TypeName) Then
+                		lvItem->Items.Add
+                	End If
                 End If
             End With
         Next
+        Item->Items.Remove 0
         tabRight.UpdateUnlock
     End If
-End Sub
-
-Sub RemoveChildItems(iParentItem As Integer, iParentIndent As Integer)
-    #IfNDef __USE_GTK__
-		Listview_SetItemStateEx(lvProperties.Handle, iParentItem, iParentIndent, 1)
-    #EndIf
-    Var nItems = lvProperties.ListItems.Count
-    Dim iChildIndent As Integer
-    Do
-		#IfNDef __USE_GTK__
-			Listview_GetItemStateEx(lvProperties.Handle, iParentItem + 1, iChildIndent)
-        #EndIf
-        If (iChildIndent > iParentIndent) Then
-            
-            ' Remove the item directly below the collapsing parent (VB ListItems are one-based)
-            lvProperties.ListItems.Remove (iParentItem + 1)
-            
-            ' Keep a count of ListView items so we don't try to remove more
-            ' items than are in the ListView (when collapsing the last parent).
-
-           nItems = nItems - 1
-        End If
-
-  Loop While (iChildIndent > iParentIndent) And (iParentItem + 1 < nItems)
-End Sub
-
-Sub ClickProperty(Item As Integer)
-    Dim dwState As Integer
-    Dim iIndent As Integer
-    #IfNDef __USE_GTK__
-		Dim lvi As LVITEM
-		lvi.mask = LVIF_STATE Or LVIF_INDENT
-		lvi.iItem = Item
-		lvi.stateMask = LVIS_STATEIMAGEMASK
-		If ListView_GetItem(lvProperties.Handle, @lvi) Then
-			iIndent = lvi.iIndent
-			dwState = STATEIMAGEMASKTOINDEX(lvi.state And LVIS_STATEIMAGEMASK)
-			If dwState > 0 Then
-				If (dwState = 1) Then
-					AddChildItems(Item, iIndent)            
-				Else
-					RemoveChildItems(Item, iIndent)
-				End If
-			End If
-		End If
-	#EndIf
-End Sub
-
-Sub lvProperties_MouseDown(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-    #IfNDef __USE_GTK__
-		Dim lvhti As LVHITTESTINFO
-		If MouseButton = 0 Then
-			lvhti.pt.x = x
-			lvhti.pt.y = y
-			If (ListView_HitTest(Sender.Handle, @lvhti) <> -1) Then
-				If (lvhti.flags = LVHT_ONITEMSTATEICON) Then
-					ClickProperty lvhti.iItem
-				End If
-			End If
-		End If
-	#EndIf
 End Sub
 
 Sub SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer)
@@ -3128,9 +3196,9 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString)
                         If Not FileExists(*File) Then
                             If AutoCreateRC Then
 								#IfNDef __USE_GTK__
-									FileCopy ExePath & "/templates/Resource.rc", *File
+									FileCopy ExePath & "/Templates/Resource.rc", *File
 									If Not FileExists(GetFolderName(FileName) & "xpmanifest.xml") Then
-										FileCopy ExePath & "/templates/xpmanifest.xml", GetFolderName(FileName) & "xpmanifest.xml"
+										FileCopy ExePath & "/Templates/xpmanifest.xml", GetFolderName(FileName) & "xpmanifest.xml"
 									End If
 								#EndIf
                             End If
@@ -3254,7 +3322,9 @@ End Function
 
 Function Compile(Parameter As String = "") As Integer
     On Error Goto ErrorHandler
+    ThreadsEnter()
     Dim MainFile As WString Ptr = @(GetMainFile(AutoSaveCompile))
+    ThreadsLeave()
     Dim FirstLine As WString Ptr = @(GetFirstCompileLine(*MainFile))
     Versioning *MainFile, *FirstLine
     Dim FileOut As Integer
@@ -3278,12 +3348,16 @@ Function Compile(Parameter As String = "") As Integer
     End If
 	#IfDef __USE_GTK__
 		If g_find_program_in_path(*FbcExe) = NULL Then
+			gdk_threads_enter()
 			ShowMessages ML("File") & " """ & *FbcExe & """ " & ML("not found") & "!"
+			gdk_threads_leave()
 		Return 0
 		End If
 	#Else
 	    If Not FileExists(*FbcExe) Then
+	        ThreadsEnter()
 	        ShowMessages ML("File") & " """ & *FbcExe & """ " & ML("not found") & "!"
+	        ThreadsLeave()
 	        Return 0
 	    End If
 	#EndIf
@@ -3317,7 +3391,11 @@ Function Compile(Parameter As String = "") As Integer
         If Parameter <> "" Then
             If Parameter = "Check" Then WLet fbcCommand, *fbcCommand & " -x """ & *ExeName & """" Else WLet fbcCommand, *fbcCommand & " " & Parameter
         End If
-        If Parameter <> "Check" Then ShowMessages(Str(Time) + ": " + ML("Compilation") & ": """ & *fbcexe & """ " & *fbcCommand + " ..." + WChr(13) + WChr(10))
+        If Parameter <> "Check" Then 
+        	ThreadsEnter()
+        	ShowMessages(Str(Time) + ": " + ML("Compilation") & ": """ & *fbcexe & """ " & *fbcCommand + " ..." + WChr(13) + WChr(10))
+        	ThreadsLeave()
+        End If
         'OPEN *BatFileName For Output As #FileOut
         'Print #FileOut, *fbcCommand  + " > """ + *LogFileName + """" + " 2>""" + *LogFileName2 + """"
         'Close #FileOut
@@ -3326,13 +3404,17 @@ Function Compile(Parameter As String = "") As Integer
         'Shell(*fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """")
         'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #1
         'Close #1
-        PipeCmd "", """" & *fbcexe & """ " & *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """"
+        prProgress.Visible = True
+        PipeCmd "", """" & *fbcexe & """ " & *fbcCommand  + " > """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """"
+        prProgress.Visible = False
         #IfDef __USE_GTK__
         	Yaratilmadi = g_find_program_in_path(*ExeName) = NULL
         #Else
         	Yaratilmadi = Dir(*ExeName) = ""
         #EndIf
+        ThreadsEnter()
         lvErrors.ListItems.Clear
+        ThreadsLeave()
         Dim As Long nLen, nLen2
         If Open(*LogFileName For Input As #1) = 0 Then
             nLen = LOF(1) + 1
@@ -3343,9 +3425,11 @@ Function Compile(Parameter As String = "") As Integer
             While Not EOF(1)
                 Line Input #1, *Buff
                 SplitError(*Buff, ErrFileName, ErrTitle, iLine)
+                ThreadsEnter()
                 lvErrors.ListItems.Add *ErrTitle, IIF(Instr(*ErrTitle, "warning"), "Warning", "Error")
                 lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
                 lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+                ThreadsLeave()
                 *LogText = *LogText & *Buff & WChr(13) & WChr(10)
             Wend
             WDeallocate Buff
@@ -3365,13 +3449,14 @@ Function Compile(Parameter As String = "") As Integer
 			Close #1
 			WDeallocate Buff
         End If
-        
+        ThreadsEnter()
         If lvErrors.ListItems.Count <> 0 Then
             tabBottom.Tabs[1]->Caption = ML("Errors") & " (" & lvErrors.ListItems.Count & " " & ML("Pos") & ")"
         Else
             tabBottom.Tabs[1]->Caption = ML("Errors")
         End If
         ShowMessages(*LogText)
+        ThreadsLeave()
         If LogFileName Then Deallocate LogFileName
         If LogFileName2 Then Deallocate LogFileName2
         If BatFileName Then Deallocate BatFileName
@@ -3379,6 +3464,7 @@ Function Compile(Parameter As String = "") As Integer
         WDeallocate CompileWith
         WDeallocate MFFPathC
         If Yaratilmadi Or Band Then
+        	ThreadsEnter()
             If Parameter <> "Check" Then
                 ShowMessages(Str(Time) & ": " & ML("Do not build file."))
                 If lvErrors.ListItems.Count <> 0 Then tabBottom.Tabs[1]->SelectTab
@@ -3388,9 +3474,11 @@ Function Compile(Parameter As String = "") As Integer
             Else
                 ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found."))
             End If
+            ThreadsLeave()
             WDeallocate LogText
             Return 0
         Else
+            ThreadsEnter()
             If Instr(*LogText, "warning") > 0 Then
                 If Parameter <> "Check" Then
                     ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings."))
@@ -3402,6 +3490,7 @@ Function Compile(Parameter As String = "") As Integer
                     ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!"))
                 End If
             End If
+            ThreadsLeave()
             WDeallocate LogText
             return 1
         End If
@@ -3411,10 +3500,12 @@ Function Compile(Parameter As String = "") As Integer
     End If
     Exit Function
 ErrorHandler:
+	ThreadsEnter()
     MsgBox ErrDescription(Err) & " (" & Err & ") " & _
         "in line " & Erl() & " " & _
         "in function " & ZGet(Erfn()) & " " & _
         "in module " & ZGet(Ermn())
+    ThreadsLeave()
 End Function
 
 #IfDef __USE_GTK__
@@ -3743,7 +3834,9 @@ Sub RunPr(Debugger As String = "")
     Dim MainFile As WString Ptr = @(GetMainFile())
     Dim FirstLine As WString Ptr = @(GetFirstCompileLine(*MainFile))
     Dim ExeFileName As WString Ptr = @(GetExeFileName(*MainFile, *FirstLine))
+    ThreadsEnter()
     ShowMessages(Time & ": " & ML("Run") & ": " & *ExeFileName + " ...")
+    ThreadsLeave()
     #IfDef __USE_GTK__
 		Dim As GPid pid = 0
 '		Dim As GtkWidget Ptr win, vte
@@ -3904,18 +3997,22 @@ function utf16BeByte2wchars( ta() as ubyte ) ByRef As Wstring
     function = *ms.p
 end function
 
-Sub TabWindow.NumberOn
+Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     With tb->txtCode
         .UpdateLock
         .Changing("Raqamlash")
-        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        If StartLine = -1 Or EndLine = -1 Then
+	        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        	StartLine = iSelStartLine
+        	EndLine = iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        End If
         Dim As EditControlLine Ptr FECLine
         Dim As Integer n
         Dim As Boolean bNotNumberNext, bNotNumberThis
-        For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        For i As Integer = StartLine To EndLine
             FECLine = .FLines.Items[i]
             bNotNumberThis = bNotNumberNext
             bNotNumberNext = False
@@ -3948,48 +4045,36 @@ Sub TabWindow.NumberOn
     End With
 End Sub
 
-Sub TabWindow.ProcedureNumberOn
-    Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
+	Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     With tb->txtCode
-        .UpdateLock
-        .Changing("Raqamlash")
-        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, i
         .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
         Dim As EditControlLine Ptr FECLine
-        Dim As Integer n
-        Dim As Boolean bNotNumberNext, bNotNumberThis
-        For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        For i = iSelStartLine To 0 Step -1
             FECLine = .FLines.Items[i]
-            bNotNumberThis = bNotNumberNext
-            bNotNumberNext = False
-            If EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") Then
-                bNotNumberNext = True
-            End If
-            If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
-                Continue For
-            ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
-                bNotNumberNext = True
-            ElseIf FECLine->ConstructionIndex >= 7 Then
-                Continue For
-            End If
-            n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-            If StartsWith(LTrim(*FECLine->Text), "?") Then
-                Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-                If IsNumeric(Mid(Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
-                    WLet FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1)
+            If FECLine->ConstructionIndex > 11  Then
+                If FECLine->ConstructionPart = 0 Then 
+                	ehStart = i + 1
+                	Exit For
+            	Else
+            		ehEnd = .FLines.Count - 1
+            		Exit Sub
                 End If
-            ElseIf IsLabel(*FECLine->Text) Then
-                bNotNumberThis = True
-            End If
-            If Not bNotNumberThis Then
-                WLet FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text
             End If
         Next i
-        .Changed("Raqamlash")
-        .UpdateUnLock
-        '.ShowCaretPos True
-    End With
+        Dim As Boolean t
+        For i = iSelStartLine To .FLines.Count - 1
+            FECLine = .FLines.Items[i]
+            If FECLine->ConstructionIndex > 11  Then
+                t = True
+                ehEnd = i - 1
+                Exit For
+            End If
+        Next i
+        If Not t then ehEnd = i - 1
+	End With
 End Sub
 
 Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
@@ -4113,17 +4198,21 @@ End Sub
 Sub TabWindow.FormatBlock
 End Sub
 
-Sub TabWindow.NumberOff
+Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
     Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
     If tb = 0 Then Exit Sub
     With tb->txtCode
         .UpdateLock
         .Changing("Raqamlarni olish")
-        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        If StartLine = -1 Or EndLine = -1 Then
+	        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+        	StartLine = iSelStartLine
+        	EndLine = iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        End If
         Dim As EditControlLine Ptr FECLine
         Dim As Integer n
-        For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
+        For i As Integer = StartLine To EndLine
             FECLine = .FLines.Items[i]
             n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
             If StartsWith(LTrim(*FECLine->Text), "?") Then
@@ -4139,30 +4228,16 @@ Sub TabWindow.NumberOff
     End With
 End Sub
 
+Sub TabWindow.ProcedureNumberOn
+    Dim As Integer ehStart, ehEnd
+    GetProcedureLines ehStart, ehEnd
+    NumberOn ehStart, ehEnd
+End Sub
+
 Sub TabWindow.ProcedureNumberOff
-    Var tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
-    If tb = 0 Then Exit Sub
-    With tb->txtCode
-        .UpdateLock
-        .Changing("Raqamlarni olish")
-        Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-        .GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-        Dim As EditControlLine Ptr FECLine
-        Dim As Integer n
-        For i As Integer = iSelStartLine To iSelEndLine - IIF(iSelEndChar = 0, 1, 0)
-            FECLine = .FLines.Items[i]
-            n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-            If StartsWith(LTrim(*FECLine->Text), "?") Then
-                Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-                If IsNumeric(Mid(Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
-                    WLet FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1)
-                End If
-            End If
-        Next i
-        .Changed("Raqamlarni olish")
-        .UpdateUnLock
-        '.ShowCaretPos True
-    End With
+    Dim As Integer ehStart, ehEnd
+    GetProcedureLines ehStart, ehEnd
+    NumberOff ehStart, ehEnd
 End Sub
 
 Sub TabWindow.Define

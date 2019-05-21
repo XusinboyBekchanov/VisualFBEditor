@@ -1,9 +1,15 @@
-﻿'#Compile "mff\xpmanifest.rc"
-#Include Once "mff\Form.bi"
-#Include Once "mff\CheckBox.bi"
-#Include Once "mff\Label.bi"
-#Include Once "mff\LinkLabel.bi"
-#Include Once "mff\CommandButton.bi"
+﻿'#########################################################
+'#  frmAbout.bas                                         #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#########################################################
+
+#Include Once "mff/Form.bi"
+#Include Once "mff/CheckBox.bi"
+#Include Once "mff/Label.bi"
+#Include Once "mff/LinkLabel.bi"
+#Include Once "mff/CommandButton.bi"
+#Include Once "mff/RichTextBox.bi"
 
 Using My.Sys.Forms
 
@@ -13,7 +19,7 @@ Using My.Sys.Forms
         Declare Constructor
         
         Dim As Label Label1, lblInfo
-        Dim As LinkLabel Label2, Label3
+        Dim As LinkLabel Label2
         Dim As CommandButton CommandButton1
         Dim As ImageBox lblIcon
     End Type
@@ -22,7 +28,7 @@ Using My.Sys.Forms
         On Error Goto ErrorHandler
         This.Name = "frmAbout"
         This.Text = ML("About")
-        This.SetBounds 0, 0, 350, 300
+        This.SetBounds 0, 0, 352, 338
         This.BorderStyle = FormBorderStyle.FixedDialog
         This.MaximizeBox = false
         This.MinimizeBox = false
@@ -32,39 +38,42 @@ Using My.Sys.Forms
         Label1.Font.Name = "Times New Roman"
         Label1.Font.Bold = True
         Label1.Font.Size = 15
-        Label1.SetBounds 84, 12, 240, 24
+        Label1.SetBounds 84, 12, 252, 24
         Label1.Parent = @This
         CommandButton1.Name = "CommandButton1"
         CommandButton1.Text = "OK"
             '.DefaultButton = True
-        CommandButton1.SetBounds 234, 228, 92, 26
+        CommandButton1.SetBounds 236, 269, 92, 26
         CommandButton1.OnClick = @CommandButton1_Click
         CommandButton1.Parent = @This
         ' Label2                                
         Label2.Name = "Label2"
-        Label2.Text = ML("Author") & !": Xusinboy Bekchanov\re-mail: <A href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</A>"
-        Label2.SetBounds 24, 90, 216, 72
+        Label2.Text = 	ML("Author") & !": Xusinboy Bekchanov\r" & _
+        				!"e-mail: <a href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</a>\r" & _
+        				ML("For donation") & !": WebMoney: WMZ: Z884195021874\r\r" & _
+        				ML("Special thanks to all FreeBasic compiler creators and testers!") & !"\r\r" & _
+        				ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit and Simple Designer\r\r" & _
+        				ML("Thanks to") & !" Laurent GRAS for codes of FBDebugger\r\r" & _
+        				ML("Language files by") & !":\r" & _
+        				!"Xusinboy Bekchanov (russian, uzbekcyril, uzbeklatin)\r" & _
+        				!"skyfish4tb (chinese)"
+        Label2.SetBounds 22, 66, 304, 186
         Label2.Parent = @This
-        ' Label3
-        Label3.Name = "Label3"
-        Label3.Text = ML("For donation") & !": \rWebMoney: WMZ: Z884195021874"
-        Label3.SetBounds 24, 162, 216, 30
-        Label3.Parent = @This
         ' lblIcon
         lblIcon.Name = "lblIcon"
         lblIcon.Text = "lblIcon"
         'lblIcon.RealSizeImage = false
         #IfDef __USE_GTK__
-			lblIcon.Graphic.Icon.LoadFromFile(exepath & "/resources/VisualFBEditor.ico", 48, 48)
+			lblIcon.Graphic.Icon.LoadFromFile(exepath & "/Resources/VisualFBEditor.ico", 48, 48)
         #Else
 			lblIcon.Graphic.Icon.LoadFromResourceID(1, 48, 48)
         #EndIf
-        lblIcon.SetBounds 18, 12, 48, 48
+        lblIcon.SetBounds 18, 10, 48, 48
         lblIcon.Parent = @This
         ' lblInfo
         lblInfo.Name = "lblInfo"
-        lblInfo.Text = ML("Editor for FreeBasic")
-        lblInfo.SetBounds 90, 36, 234, 18
+        lblInfo.Text = ML("IDE for FreeBasic")
+        lblInfo.SetBounds 90, 36, 246, 18
         lblInfo.Font.Name = "Times New Roman"
         lblInfo.Font.Bold = true
         lblInfo.Font.Size = 10
