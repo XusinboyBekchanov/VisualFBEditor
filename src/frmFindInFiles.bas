@@ -59,6 +59,7 @@ Using My.Sys.Forms
     End Sub
 
     Constructor frmFindInFiles
+        LoadLanguageTexts
         This.SetBounds 0, 0, 415, 180
         Caption = ML("Find In Files")
         lblFind.Caption = ML("Find") & ":"

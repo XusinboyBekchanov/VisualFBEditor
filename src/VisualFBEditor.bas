@@ -2,7 +2,7 @@
 	#IfDef __FB_64bit__
 	    '#Compile -g -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
 	#Else
-	    '#Compile -g -s console -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
+	    '#Compile -g -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -exx
 	#EndIf
 #Else
 	#IfDef __FB_64bit__
