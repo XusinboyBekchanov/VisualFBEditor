@@ -74,6 +74,7 @@ Using My.Sys.Forms
     End Sub
 
     Constructor frmReplace
+        LoadLanguageTexts
         This.BorderStyle = FormBorderStyle.FixedDialog
         This.MaximizeBox = false
         This.MinimizeBox = false

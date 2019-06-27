@@ -273,9 +273,9 @@ Dim Shared As Integer oldIndex, newIndex
         cmdMFFPath.Parent = @pnlIncludes
         ' chkAutoSaveCompile
         chkAutoSaveCompile.Name = "chkAutoSaveCompile"
-        chkAutoSaveCompile.Text = ML("Avto save files before compiling")
+        chkAutoSaveCompile.Text = ML("Auto save files before compiling")
         chkAutoSaveCompile.SetBounds 10, 41, 324, 18
-        chkAutoSaveCompile.Caption = ML("Avto save files before compiling")
+        chkAutoSaveCompile.Caption = ML("Auto save files before compiling")
         chkAutoSaveCompile.Parent = @pnlGeneral
         ' chkEnableAutoComplete
         chkEnableAutoComplete.Name = "chkEnableAutoComplete"
@@ -425,12 +425,12 @@ Dim Shared As Integer oldIndex, newIndex
         cboTabStyle.Parent = @pnlCodeEditor
         ' grbColors
         grbColors.Name = "grbColors"
-        grbColors.Text = "Colors"
+        grbColors.Text = ML("Colors")
         grbColors.SetBounds 10, -2, 416, 224
         grbColors.Parent = @pnlColorsAndFonts
         ' grbFont
         grbFont.Name = "grbFont"
-        grbFont.Text = "Font"
+        grbFont.Text = ML("Font")
         grbFont.SetBounds 10, 222, 416, 72
         grbFont.Parent = @pnlColorsAndFonts
     End Constructor

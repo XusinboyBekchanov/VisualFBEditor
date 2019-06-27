@@ -40,10 +40,11 @@ Using My.Sys.Forms
     End Type
     
     Constructor frmAddIns
+        LoadLanguageTexts
         ' frmAddIns
         This.Name = "frmAddIns"
-        This.Text = "Add-Ins"
-        This.Caption = "Add-Ins"
+        This.Text = ML("Add-Ins")
+        This.Caption = ML("Add-Ins")
         This.OnCreate = @Form_Create
         This.OnClose = @Form_Close
         This.OnShow = @Form_Show
@@ -61,29 +62,29 @@ Using My.Sys.Forms
         lvAddIns.Parent = @This
         ' cmdOK
         cmdOK.Name = "cmdOK"
-        cmdOK.Text = "OK"
+        cmdOK.Text = ML("OK")
         cmdOK.SetBounds 390, 12, 78, 24
-        cmdOK.Caption = "OK"
+        cmdOK.Caption = ML("OK")
         cmdOK.OnClick = @cmdOK_Click
         cmdOK.Parent = @This
         ' cmdCancel
         cmdCancel.Name = "cmdCancel"
-        cmdCancel.Text = "Cancel"
+        cmdCancel.Text = ML("Cancel")
         cmdCancel.SetBounds 390, 40, 78, 24
-        cmdCancel.Caption = "Cancel"
+        cmdCancel.Caption = ML("Cancel")
         cmdCancel.OnClick = @cmdCancel_Click
         cmdCancel.Parent = @This
         ' cmdHelp
         cmdHelp.Name = "cmdHelp"
-        cmdHelp.Text = "Help"
+        cmdHelp.Text = ML("Help")
         cmdHelp.SetBounds 390, 180, 78, 24
-        cmdHelp.Caption = "Help"
+        cmdHelp.Caption = ML("Help")
         cmdHelp.Parent = @This
         ' lblDescription
         lblDescription.Name = "lblDescription"
-        lblDescription.Text = "Description:"
+        lblDescription.Text = ML("Description:")
         lblDescription.SetBounds 12, 216, 162, 18
-        lblDescription.Caption = "Description:"
+        lblDescription.Caption = ML("Description:")
         lblDescription.Parent = @This
         ' txtDescription
         txtDescription.Name = "txtDescription"
@@ -94,23 +95,23 @@ Using My.Sys.Forms
         txtDescription.Parent = @This
         ' chkLoaded
         chkLoaded.Name = "chkLoaded"
-        chkLoaded.Text = "Loaded/Unloaded"
+        chkLoaded.Text = ML("Loaded/Unloaded")
         chkLoaded.SetBounds 20, 35, 140, 18
-        chkLoaded.Caption = "Loaded/Unloaded"
+        chkLoaded.Caption = ML("Loaded/Unloaded")
         chkLoaded.OnClick = @chkLoaded_Click
         chkLoaded.Enabled = true
         chkLoaded.Parent = @Panel1
         ' chkLoadOnStartup
         chkLoadOnStartup.Name = "chkLoadOnStartup"
-        chkLoadOnStartup.Text = "Load on Startup"
+        chkLoadOnStartup.Text = ML("Load on Startup")
         chkLoadOnStartup.SetBounds 20, 60, 140, 18
-        chkLoadOnStartup.Caption = "Load on Startup"
+        chkLoadOnStartup.Caption = ML("Load on Startup")
         chkLoadOnStartup.OnClick = @chkLoadOnStartup_Click
         chkLoadOnStartup.Enabled = true
         chkLoadOnStartup.Parent = @Panel1
         ' grbLoadBehavior
         grbLoadBehavior.Name = "grbLoadBehavior"
-        grbLoadBehavior.Text = "Load Behavior"
+        grbLoadBehavior.Text = ML("Load Behavior")
         grbLoadBehavior.SetBounds 0, 6, 180, 93
         grbLoadBehavior.Parent = @Panel1
         ' Panel1
@@ -187,9 +188,9 @@ Sub ChangeItem(ItemIndex As Integer)
 	Item = fAddIns.lvAddIns.ListItems.Item(ItemIndex)
 	Add_In = AvailableAddIns.Item(ItemIndex)
 	If Add_In->LoadOnStartup Then
-		Item->Text(1) = "Startup / " & IIF(Add_In->Loaded, "Loaded", "Unloaded")
+		Item->Text(1) = ML("Startup")& "/" & ML(IIF(Add_In->Loaded, "Loaded", "Unloaded"))
 	Else
-		Item->Text(1) = IIF(Add_In->Loaded, "Loaded", "")
+		Item->Text(1) = IIF(Add_In->Loaded, ML("Loaded"), "")
 	End If
 End Sub
 

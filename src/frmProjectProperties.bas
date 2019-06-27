@@ -40,64 +40,64 @@ Using My.Sys.Forms
     Constructor frmProjectProperties
         ' frmProjectProperties
         This.Name = "frmProjectProperties"
-        This.Text = "Project Properties"
+        This.Text = ML("Project Properties")
         This.BorderStyle = FormBorderStyle.Fixed3D
         This.MaximizeBox = false
         This.MinimizeBox = false
-        This.Caption = "Project Properties"
+        This.Caption = ML("Project Properties")
         This.OnCreate = @Form_Create
         This.OnShow = @Form_Show
         This.SetBounds 0, 0, 428, 306
         ' tabProperties
         tabProperties.Name = "tabProperties"
-        tabProperties.Text = "TabControl1"
-        tabProperties.SetBounds 6, 6, 411, 235
+        tabProperties.Text = ML("TabControl1")
+        tabProperties.SetBounds 6, 6, 403, 235
         tabProperties.Parent = @This
         ' tpGeneral
         tpGeneral.Name = "tpGeneral"
-        tpGeneral.Text = "General"
-        tpGeneral.SetBounds 0, 0, 327, 210
+        tpGeneral.Text = ML("General")
+        tpGeneral.SetBounds 2, 22, 405, 210
         tpGeneral.UseVisualStyleBackColor = True
         tpGeneral.Parent = @tabProperties
         ' tpMake
         tpMake.Name = "tpMake"
-        tpMake.Text = "Make"
-        tpMake.SetBounds 0, 0, 327, 210
+        tpMake.Text = ML("Make")
+        tpMake.SetBounds 2, 22, 405, 210
         tpMake.Visible = true
         tpMake.UseVisualStyleBackColor = True
         tpMake.Parent = @tabProperties
         ' tpCompile
         tpCompile.Name = "tpCompile"
-        tpCompile.Text = "Compile"
-        tpCompile.SetBounds 104, 40, 405, 210
+        tpCompile.Text = ML("Compile")
+        tpCompile.SetBounds 2, 22, 405, 210
         tpCompile.Visible = true
         tpCompile.UseVisualStyleBackColor = True
         tpCompile.Parent = @tabProperties
         ' cmdOK
         cmdOK.Name = "cmdOK"
-        cmdOK.Text = "OK"
+        cmdOK.Text = ML("OK")
         cmdOK.SetBounds 186, 246, 73, 24
-        cmdOK.Caption = "OK"
+        cmdOK.Caption = ML("OK")
         cmdOK.OnClick = @cmdOK_Click
         cmdOK.Parent = @This
         ' cmdCancel
         cmdCancel.Name = "cmdCancel"
-        cmdCancel.Text = "Cancel"
+        cmdCancel.Text = ML("Cancel")
         cmdCancel.SetBounds 264, 246, 73, 24
-        cmdCancel.Caption = "Cancel"
+        cmdCancel.Caption = ML("Cancel")
         cmdCancel.OnClick = @cmdCancel_Click
         cmdCancel.Parent = @This
         ' cmdHelp
         cmdHelp.Name = "cmdHelp"
-        cmdHelp.Text = "Help"
+        cmdHelp.Text = ML("Help")
         cmdHelp.SetBounds 342, 246, 73, 24
-        cmdHelp.Caption = "Help"
+        cmdHelp.Caption = ML("Help")
         cmdHelp.Parent = @This
         ' lblProjectType
         lblProjectType.Name = "lblProjectType"
-        lblProjectType.Text = "Project Type:"
+        lblProjectType.Text = ML("Project Type:")
         lblProjectType.SetBounds 10, 8, 72, 18
-        lblProjectType.Caption = "Project Type:"
+        lblProjectType.Caption = ML("Project Type:")
         lblProjectType.Parent = @tpGeneral
         ' cboProjectType
         cboProjectType.Name = "cboProjectType"
@@ -106,9 +106,9 @@ Using My.Sys.Forms
         cboProjectType.Parent = @tpGeneral
         ' lblMainFile
         lblMainFile.Name = "lblMainFile"
-        lblMainFile.Text = "Main File:"
+        lblMainFile.Text = ML("Main File:")
         lblMainFile.SetBounds 208, 8, 72, 18
-        lblMainFile.Caption = "Main File:"
+        lblMainFile.Caption = ML("Main File:")
         lblMainFile.Parent = @tpGeneral
         ' cboMainFile
         cboMainFile.Name = "cboMainFile"
@@ -118,9 +118,9 @@ Using My.Sys.Forms
         cboMainFile.Parent = @tpGeneral
         ' lblProjectName
         lblProjectName.Name = "lblProjectName"
-        lblProjectName.Text = "Project Name:"
+        lblProjectName.Text = ML("Project Name:")
         lblProjectName.SetBounds 10, 56, 132, 18
-        lblProjectName.Caption = "Project Name:"
+        lblProjectName.Caption = ML("Project Name:")
         lblProjectName.Parent = @tpGeneral
         ' txtProjectName
         txtProjectName.Name = "txtProjectName"
@@ -129,9 +129,9 @@ Using My.Sys.Forms
         txtProjectName.Parent = @tpGeneral
         ' lblProjectDescription
         lblProjectDescription.Name = "lblProjectDescription"
-        lblProjectDescription.Text = "Project Description:"
+        lblProjectDescription.Text = ML("Project Description:")
         lblProjectDescription.SetBounds 10, 104, 132, 18
-        lblProjectDescription.Caption = "Project Description:"
+        lblProjectDescription.Caption = ML("Project Description:")
         lblProjectDescription.Parent = @tpGeneral
         ' txtProjectDescription
         txtProjectDescription.Name = "txtProjectDescription"
@@ -140,24 +140,24 @@ Using My.Sys.Forms
         txtProjectDescription.Parent = @tpGeneral
         ' grbVersionNumber
         grbVersionNumber.Name = "grbVersionNumber"
-        grbVersionNumber.Text = "Version Number"
+        grbVersionNumber.Text = ML("Version Number")
         grbVersionNumber.SetBounds 10, 8, 189, 102
         grbVersionNumber.Parent = @tpMake
         ' grbApplication
         grbApplication.Name = "grbApplication"
-        grbApplication.Text = "Application"
-        grbApplication.SetBounds 208, 8, 187, 102
+        grbApplication.Text = ML("Application")
+        grbApplication.SetBounds 208, 8, 179, 102
         grbApplication.Parent = @tpMake
         ' grbVersionInformation
         grbVersionInformation.Name = "grbVersionInformation"
-        grbVersionInformation.Text = "Version Information"
-        grbVersionInformation.SetBounds 9, 113, 387, 89
+        grbVersionInformation.Text = ML("Version Information")
+        grbVersionInformation.SetBounds 9, 113, 379, 89
         grbVersionInformation.Parent = @tpMake
         ' lblCompilationArguments32
         lblCompilationArguments32.Name = "lblCompilationArguments32"
-        lblCompilationArguments32.Caption = "Compilation Arguments (32-bit)"
+        lblCompilationArguments32.Caption = ML("Compilation Arguments (32-bit)")
         lblCompilationArguments32.SetBounds 13, 14, 168, 18
-        lblCompilationArguments32.Text = "Compilation Arguments (32-bit)"
+        lblCompilationArguments32.Text = ML("Compilation Arguments (32-bit)")
         lblCompilationArguments32.Parent = @tpCompile
         ' txtCompilationArguments32
         txtCompilationArguments32.Name = "txtCompilationArguments32"
@@ -166,9 +166,9 @@ Using My.Sys.Forms
         txtCompilationArguments32.Parent = @tpCompile
         ' lblCompilationArguments64
         lblCompilationArguments64.Name = "lblCompilationArguments64"
-        lblCompilationArguments64.Text = "Compilation Arguments (64-bit)"
+        lblCompilationArguments64.Text = ML("Compilation Arguments (64-bit)")
         lblCompilationArguments64.SetBounds 14, 44, 168, 18
-        lblCompilationArguments64.Caption = "Compilation Arguments (64-bit)"
+        lblCompilationArguments64.Caption = ML("Compilation Arguments (64-bit)")
         lblCompilationArguments64.Parent = @tpCompile
         ' txtCompilationArguments64
         txtCompilationArguments64.Name = "txtCompilationArguments64"
@@ -181,25 +181,25 @@ Using My.Sys.Forms
         txtIcon.Parent = @grbApplication
         ' txtTitle
         txtTitle.Name = "txtTitle"
-        txtTitle.SetBounds 50, 24, 126, 18
+        txtTitle.SetBounds 50, 24, 118, 18
         txtTitle.Parent = @grbApplication
         ' lblIcon
         lblIcon.Name = "lblIcon"
-        lblIcon.Text = "Icon:"
+        lblIcon.Text = ML("Icon:")
         lblIcon.SetBounds 6, 50, 42, 18
-        lblIcon.Caption = "Icon:"
+        lblIcon.Caption = ML("Icon:")
         lblIcon.Parent = @grbApplication
         ' lblTitle
         lblTitle.Name = "lblTitle"
-        lblTitle.Text = "Title:"
+        lblTitle.Text = ML("Title:")
         lblTitle.SetBounds 6, 26, 42, 18
-        lblTitle.Caption = "Title:"
+        lblTitle.Caption = ML("Title:")
         lblTitle.Parent = @grbApplication
         ' chkAutoIncrementVersion
         chkAutoIncrementVersion.Name = "chkAutoIncrementVersion"
-        chkAutoIncrementVersion.Text = "Auto Increment Version"
-        chkAutoIncrementVersion.SetBounds 10, 69, 156, 18
-        chkAutoIncrementVersion.Caption = "Auto Increment Version"
+        chkAutoIncrementVersion.Text = ML("Auto Increment Version")
+        chkAutoIncrementVersion.SetBounds 10, 69, 172, 18
+        chkAutoIncrementVersion.Caption = ML("Auto Increment Version")
         chkAutoIncrementVersion.Parent = @grbVersionNumber
         ' txtMajor
         txtMajor.Name = "txtMajor"
@@ -209,41 +209,41 @@ Using My.Sys.Forms
         ' txtMinor
         txtMinor.Name = "txtMinor"
         txtMinor.Text = "txtMinor"
-        txtMinor.SetBounds 52, 40, 36, 21
+        txtMinor.SetBounds 54, 40, 36, 21
         txtMinor.Parent = @grbVersionNumber
         ' txtRevision
         txtRevision.Name = "txtRevision"
         txtRevision.Text = "txtRevision"
-        txtRevision.SetBounds 94, 40, 36, 21
+        txtRevision.SetBounds 96, 40, 36, 21
         txtRevision.Parent = @grbVersionNumber
         ' txtBuild
         txtBuild.Name = "txtBuild"
         txtBuild.Text = "txtBuild"
-        txtBuild.SetBounds 136, 40, 36, 21
+        txtBuild.SetBounds 140, 40, 36, 21
         txtBuild.Parent = @grbVersionNumber
         ' lblMajor
         lblMajor.Name = "lblMajor"
-        lblMajor.Text = "Major:"
-        lblMajor.SetBounds 10, 20, 42, 18
-        lblMajor.Caption = "Major:"
+        lblMajor.Text = ML("Major:")
+        lblMajor.SetBounds 10, 20, 82, 18
+        lblMajor.Caption = ML("Major:")
         lblMajor.Parent = @grbVersionNumber
         ' lblMinor
         lblMinor.Name = "lblMinor"
-        lblMinor.Text = "Minor:"
+        lblMinor.Text = ML("Minor:")
         lblMinor.SetBounds 52, 20, 42, 18
-        lblMinor.Caption = "Minor:"
+        lblMinor.Caption = ML("Minor:")
         lblMinor.Parent = @grbVersionNumber
         ' lblRevision
         lblRevision.Name = "lblRevision"
-        lblRevision.Text = "Revision:"
+        lblRevision.Text = ML("Revision:")
         lblRevision.SetBounds 94, 20, 48, 18
-        lblRevision.Caption = "Revision:"
+        lblRevision.Caption = ML("Revision:")
         lblRevision.Parent = @grbVersionNumber
         ' lblBuild
         lblBuild.Name = "lblBuild"
-        lblBuild.Text = "Build:"
-        lblBuild.SetBounds 148, 20, 36, 18
-        lblBuild.Caption = "Build:"
+        lblBuild.Text = ML("Build:")
+        lblBuild.SetBounds 140, 20, 44, 18
+        lblBuild.Caption = ML("Build:")
         lblBuild.Parent = @grbVersionNumber
         ' cboResourceFile
         cboResourceFile.Name = "cboResourceFile"
@@ -252,9 +252,9 @@ Using My.Sys.Forms
         cboResourceFile.Parent = @tpGeneral
         ' lblResourceFile
         lblResourceFile.Name = "lblResourceFile"
-        lblResourceFile.Text = "Resource File:"
+        lblResourceFile.Text = ML("Resource File:")
         lblResourceFile.SetBounds 208, 56, 96, 18
-        lblResourceFile.Caption = "Resource File:"
+        lblResourceFile.Caption = ML("Resource File:")
         lblResourceFile.Parent = @tpGeneral
     End Constructor
     
