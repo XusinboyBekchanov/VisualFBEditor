@@ -8,6 +8,13 @@ Version 1.2.0 (December 15, 2019)
 - Added: Project Properties
 - Improved: Search Box
 - Improved: Options Window
+Version 1.1.0 (April 23, 2019)
+- Added Support Designing TabControl And TabPage
+- Added Immediate window
+- Added Procedure numbering
+- Added Designer options
+- Added Changing keywords
+- Fixed Changing Properties panel (in Linux)
 Version 1.0.3.42 (February 24, 2019)
 - Fixed: Delete Export functions from .EXE
 Version 1.0.2.1723 (February 23, 2019)
