@@ -1,16 +1,16 @@
-﻿#IfDef __FB_Win32__
-	#IfDef __FB_64bit__
+﻿#ifdef __FB_WIN32__
+	#ifdef __FB_64BIT__
 	    '#Compile -dll -x "../../AddIns/Help Add-In (x64).dll" "Help Add-In.rc"
-	#Else
+	#else
 	    '#Compile -dll -x "../../AddIns/Help Add-In (x32).dll" "Help Add-In.rc"
-	#EndIf
-#Else
-	#IfDef __FB_64bit__
+	#endif
+#else
+	#ifdef __FB_64BIT__
 	    '#Compile -dll -x "../../AddIns/HelpAdd-Inx64.so"
-	#Else
+	#else
 	    '#Compile -dll -x "../../AddIns/HelpAdd-Inx32.so"
-	#EndIf
-#EndIf
+	#endif
+#endif
 
 Enum MessageType '...'
 	mtInfo
@@ -76,11 +76,11 @@ Dim Shared As Any Ptr mnuService, mnuHelp, mnuHelpSeparator
 
 Dim Shared s As WString Ptr
 Function GetFolderPath(ByRef FileName As WString) ByRef As WString
-    Dim Pos1 As Long = InstrRev(FileName, "\")
-    Dim Pos2 As Long = InstrRev(FileName, "/")
+    Dim Pos1 As Long = InStrRev(FileName, "\")
+    Dim Pos2 As Long = InStrRev(FileName, "/")
     If Pos1 = 0 OrElse Pos2 > Pos1 Then Pos1 = Pos2
-    If Pos1 > 0 then
-    	s = Cast(WString Ptr, Reallocate(s, Pos1 * SizeOf(Wstring)))
+    If Pos1 > 0 Then
+    	s = Cast(WString Ptr, Reallocate(s, Pos1 * SizeOf(WString)))
         *s = Left(FileName, Pos1)
         Return *s
     End If
@@ -96,16 +96,17 @@ End Sub
 Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPath As WString) Export
     VFBEditorApp = VisualFBEditorApp
     
-	#IfDef __FB_Win32__
-		#IfDef __FB_64Bit__
+	#ifdef __FB_WIN32__
+		#ifdef __FB_64BIT__
     		VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/mff64.dll")
-    	#Else
+    	#else
     		VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/mff32.dll")
-    	#EndIf
-    #Else
+    	#endif
+    #else
     	VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/libmff" & Right(AppPath, 7) & ".so")
-    #EndIf
+    #endif
     If s <> 0 Then Deallocate s
+    
     If VFBEditorLib = 0 Then Exit Sub
     
     LoadMFFProcs
