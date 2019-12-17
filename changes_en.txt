@@ -1,3 +1,5 @@
+Version 1.2.1 (December 18, 2019)
+- Fixed: Windows 7 support
 Version 1.2.0 (December 15, 2019)
 - Added: Compilation via make
 - Added: Ability to format code
