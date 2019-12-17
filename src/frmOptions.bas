@@ -1037,8 +1037,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 	On Error Goto ErrorHandler
 	With fOptions
 		pCompilers->Clear
+		Dim As WString Ptr tempStr
 		For i As Integer = 0 To .lvCompilerPaths.ListItems.Count - 1
-			pCompilers->Add .lvCompilerPaths.ListItems.Item(i)->Text(0), .lvCompilerPaths.ListItems.Item(i)->Text(1)
+			WLet tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(0)
+			pCompilers->Add *tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(1)
 		Next
 		WLet DefaultCompiler32, IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text)
 		WLet DefaultCompiler64, IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text)
@@ -1046,20 +1048,24 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WLet Compiler64Path, pCompilers->Get(*DefaultCompiler64)
 		pMakeTools->Clear
 		For i As Integer = 0 To .lvMakeToolPaths.ListItems.Count - 1
-			pMakeTools->Add .lvMakeToolPaths.ListItems.Item(i)->Text(0), .lvMakeToolPaths.ListItems.Item(i)->Text(1)
+			WLet tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(0)
+			pMakeTools->Add *tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(1)
 		Next
 		WLet DefaultMakeTool, IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text)
 		WLet MakeToolPath, pMakeTools->Get(*DefaultMakeTool)
 		pDebuggers->Clear
 		For i As Integer = 0 To .lvDebuggerPaths.ListItems.Count - 1
-			pDebuggers->Add .lvDebuggerPaths.ListItems.Item(i)->Text(0), .lvDebuggerPaths.ListItems.Item(i)->Text(1)
+			WLet tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(0)
+			pDebuggers->Add *tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1)
 		Next
 		WLet DefaultDebugger, IIf(.cboDebugger.ItemIndex = 0, "", .cboDebugger.Text)
 		WLet DebuggerPath, pDebuggers->Get(*DefaultDebugger)
 		pTerminals->Clear
 		For i As Integer = 0 To .lvTerminalPaths.ListItems.Count - 1
-			pTerminals->Add .lvTerminalPaths.ListItems.Item(i)->Text(0), .lvTerminalPaths.ListItems.Item(i)->Text(1)
+			WLet tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(0)
+			pTerminals->Add *tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(1)
 		Next
+		WDeallocate tempStr
 		WLet DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text)
 		WLet TerminalPath, pTerminals->Get(*DefaultTerminal)
 		WLet HelpPath, .TextBox3.Text
@@ -1624,8 +1630,8 @@ Private Sub frmOptions.cmdClearCompilers_Click(ByRef Sender As Control)
 		.lvCompilerPaths.ListItems.Clear
 		.cboCompiler32.Clear
 		.cboCompiler64.Clear
-		.cboCompiler32.AddItem ML("not selected")
-		.cboCompiler64.AddItem ML("not selected")
+		.cboCompiler32.AddItem ML("(not selected)")
+		.cboCompiler64.AddItem ML("(not selected)")
 		.cboCompiler32.ItemIndex = 0
 		.cboCompiler64.ItemIndex = 0
 	End With

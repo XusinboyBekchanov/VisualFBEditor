@@ -123,6 +123,8 @@ Type TabWindow Extends TabPage
 	FLine As WString Ptr
 	FLine1 As WString Ptr
 	FLine2 As WString Ptr
+	FLine3 As WString Ptr
+	FLine4 As WString Ptr
 	tbi As ToolBoxItem Ptr
 	tbi2 As ToolBoxItem Ptr
 	Dim As Any Ptr Ctrl, CurCtrl

@@ -737,13 +737,13 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 	te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 	If te <> 0 Then
 		'?"VFE1:" & Value
-		WLet FLine2, Value
-		#IfNDef __USE_GTK__
+		WLet FLine3, Value
+		#ifndef __USE_GTK__
 			Dim hwnd1 As HWND
 			Dim hTemp As Any Ptr
 			If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Cpnt, "Handle")
 			If hTemp Then hwnd1 = *Cast(HWND Ptr, hTemp)
-		#EndIf
+		#endif
 		Select Case te->ElementType
 		Case "Event"
 			If Des->ReadPropertyFunc(Cpnt, "Tag") = 0 Then Des->WritePropertyFunc(Cpnt, "Tag", New Dictionary)
@@ -757,12 +757,12 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 			Select Case LCase(te->TypeName)
 			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype"
 				'?"VFE2:" & *FLine
-				If StartsWith(*FLine2, """") Then WLet FLine2, Mid(*FLine2, 2)
-				If EndsWith(*FLine2, """") Then WLet FLine2, Left(*FLine2, Len(*FLine2) - 1)
-				WLet FLine2, Replace(*FLine2, """""", """")
+				If StartsWith(*FLine3, """") Then WLet FLine4, Mid(*FLine3, 2): WLet FLine3, *FLine4
+				If EndsWith(*FLine3, """") Then WLet FLine4, Left(*FLine3, Len(*FLine3) - 1): WLet FLine3, *FLine4
+				WLet FLine4, Replace(*FLine3, """""", """")
 				'?"VFE3:" & *FLine
 				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine2))
+					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine4))
 				End If
 				'            Case "control ptr", "control pointer"
 				'                If LCase(*FLine2) = "this" Then
@@ -772,14 +772,14 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				'                    Result = Cpnt->WriteProperty(PropertyName, PropertyCtrl)
 				'                End If
 			Case "integer"
-				iTemp = Val(*FLine2)
+				iTemp = Val(*FLine3)
 				If (te->EnumTypeName <> "") AndAlso CInt(pComps->Contains(te->EnumTypeName)) Then
 					tbi = Cast(ToolBoxItem Ptr, pComps->Object(pComps->IndexOf(te->EnumTypeName)))
 					If tbi Then
-						If tbi->Elements.Contains(*FLine2) Then
-							iTemp = tbi->Elements.IndexOf(*FLine2)
-						ElseIf StartsWith(*FLine2, te->EnumTypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine2, Len(Trim(te->EnumTypeName)) + 2)) Then
-							iTemp = tbi->Elements.IndexOf(Mid(*FLine2, Len(Trim(te->EnumTypeName)) + 2))
+						If tbi->Elements.Contains(*FLine3) Then
+							iTemp = tbi->Elements.IndexOf(*FLine3)
+						ElseIf StartsWith(*FLine3, te->EnumTypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine3, Len(Trim(te->EnumTypeName)) + 2)) Then
+							iTemp = tbi->Elements.IndexOf(Mid(*FLine3, Len(Trim(te->EnumTypeName)) + 2))
 						End If
 					End If
 				End If
@@ -787,25 +787,25 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
 				End If
 			Case "boolean"
-				bTemp = Cast(Boolean, Trim(*FLine2))
+				bTemp = Cast(Boolean, Trim(*FLine3))
 				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
 					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @bTemp))
 				End If
 			Case Else:
-				If Des AndAlso LCase(*FLine2) = "this" Then
+				If Des AndAlso LCase(*FLine3) = "this" Then
 					Dim hTemp As Any Ptr
 					If Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Des->DesignControl, "Name")
-					If hTemp <> 0 Then WLet *FLine2, QWString(hTemp)
+					If hTemp <> 0 Then WLet *FLine3, QWString(hTemp)
 				End If
-				If *FLine2 <> "" AndAlso CInt(cboClass.Items.Contains(Trim(*FLine2))) Then
-					PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(*FLine2)))->Object)
+				If *FLine3 <> "" AndAlso CInt(cboClass.Items.Contains(Trim(*FLine3))) Then
+					PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(*FLine3)))->Object)
 					If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
 						Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
 					End If
 				End If
 			End Select
 		End Select
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			Dim hwnd2 As HWND
 			If hTemp Then hwnd2 = *Cast(HWND Ptr, hTemp)
 			If hwnd1 <> hwnd2 Then
@@ -813,7 +813,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 					Des->Dialog = hwnd2
 				End If
 			End If
-		#EndIf
+		#endif
 	End If
 	If CInt(Pos1 > 0) AndAlso CInt(Result = False) Then
 		te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), Left(PropertyName, Pos1 - 1))
@@ -2568,7 +2568,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								FLin = Trim(FLin, Any !"\t ")
 								If Len(FLin) <> 0 Then
 									WLet FLine2, Trim(Mid(*FLine, p1 + 1), Any !"\t ")
-									If StartsWith(*FLine2, "@") Then WLet FLine2, Trim(Mid(*FLine2, 2), Any !"\t ")
+									If StartsWith(*FLine2, "@") Then WLet FLine3, Trim(Mid(*FLine2, 2), Any !"\t "): WLet FLine2, *FLine3
 									If WriteObjProperty(Ctrl, PropertyName, *FLine2) Then
 										#ifdef __USE_GTK__
 											If LCase(PropertyName) = "parent" AndAlso Des->ReadPropertyFunc(Ctrl, "Widget") Then
@@ -2875,12 +2875,12 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	This.Add @pnlCode
 	#IfDef __USE_GTK__
 		txtCode.lvIntellisense.OnItemActivate = @lvIntellisense_ItemActivate
-	#Else
+	#else
 		txtCode.cboIntellisense.ImagesList = pimgList
 		txtCode.cboIntellisense.OnDropDown = @cboIntellisense_DropDown
 		txtCode.cboIntellisense.OnCloseUp = @cboIntellisense_CloseUp
 		txtCode.cboIntellisense.OnSelected = @cboIntellisense_Selected
-	#EndIf
+	#endif
 	'cboIntellisense.Style = cbDropDown
 	This.ImageIndex = pimgList->IndexOf("File")
 	This.ImageKey = "File"
@@ -2915,11 +2915,13 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 End Constructor
 
 Destructor TabWindow
-	If FCaptionNew Then DeAllocate FCaptionNew
-	If FFileName Then DeAllocate FFileName
-	If FLine Then DeAllocate FLine
-	If FLine1 Then DeAllocate FLine1
-	If FLine2 Then DeAllocate FLine2
+	If FCaptionNew Then Deallocate FCaptionNew
+	If FFileName Then Deallocate FFileName
+	If FLine Then Deallocate FLine
+	If FLine1 Then Deallocate FLine1
+	If FLine2 Then Deallocate FLine2
+	If FLine3 Then Deallocate FLine3
+	If FLine4 Then Deallocate FLine4
 	If Des <> 0 Then
 		If Des->DeleteComponentFunc <> 0 Then
 			For i As Integer = 2 To cboClass.Items.Count - 1

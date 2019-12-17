@@ -180,9 +180,9 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			WLet sTemp2, IIf(Bit32, *Project->CompilationArguments32Windows, WGet(Project->CompilationArguments64Windows))
 		#endif
 		#ifdef __FB_WIN32__
-			If WGet(Project->ResourceFileName) <> "" Then WLet sTemp2, *sTemp2 & " """ & GetShortFileName(WGet(Project->ResourceFileName), FileName) & """"
+			If WGet(Project->ResourceFileName) <> "" Then WAdd sTemp2, " """ & GetShortFileName(WGet(Project->ResourceFileName), FileName) & """"
 		#else
-			If WGet(Project->IconResourceFileName) <> "" Then WLet sTemp2, *sTemp2 & " """ & GetShortFileName(WGet(Project->IconResourceFileName), FileName) & """"
+			If WGet(Project->IconResourceFileName) <> "" Then WAdd sTemp2, " """ & GetShortFileName(WGet(Project->IconResourceFileName), FileName) & """"
 		#endif
 		Select Case Project->ProjectType
 		Case 0
@@ -236,7 +236,10 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 				If i > l Then
 					Close #1
 					If StartsWith(LTrim(LCase(*sLine), Any !"\t "), "'#compile ") Then
-						WLet sTemp2, Mid(LTrim(*sLine, Any !"\t "), 11) & " " & *sTemp2
+						Dim As WString Ptr TempWStr
+						WLet TempWStr, *sTemp2
+						WLet sTemp2, Mid(LTrim(*sLine, Any !"\t "), 11) & " " & *TempWStr
+						WDeallocate TempWStr
 					End If
 					WDeallocate sLine
 					Return *sTemp2
@@ -329,12 +332,12 @@ Function Compile(Parameter As String = "") As Integer
 		End If
 		WLet CompileWith, *FirstLine
 		If CInt(InStr(*CompileWith, " -s ") = 0) AndAlso CInt(tbStandard.Buttons.Item("Form")->Checked) Then
-			WLet CompileWith, *CompileWith & " -s gui"
+			WAdd CompileWith, " -s gui"
 		End If
-		If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WLet CompileWith, *CompileWith & " -g"
+		If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WAdd CompileWith, " -g"
 		If Project Then
 			If Project->CompileToGCC Then 
-				WLet CompileWith, *CompileWith & " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", "")))
+				WAdd CompileWith, " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", "")))
 			End If
 			
 		End If
@@ -342,7 +345,7 @@ Function Compile(Parameter As String = "") As Integer
 		WLet LogFileName2, ExePath & "/Temp/debug_compil2.log"
 		WLet fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith & " -i """ & *MFFPathC & """"
 		If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
-			If Parameter = "Check" Then WLet fbcCommand, *fbcCommand & " -x """ & *ExeName & """" Else WLet fbcCommand, *fbcCommand
+			If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
 		End If
 		Dim As WString Ptr PipeCommand
 		If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile"))) Then

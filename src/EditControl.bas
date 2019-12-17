@@ -650,15 +650,15 @@ Namespace My.Sys.Forms
 			ElseIf i = iSelStartLine Then
 				WLet FLine, Mid(Lines(i), iSelStartChar + 1)
 			ElseIf i = iSelEndLine Then
-				WLet FLine, *FLine & Chr(13) & Chr(10) & Left(Lines(i), iSelEndChar)
+				WAdd FLine, Chr(13) & Chr(10) & Left(Lines(i), iSelEndChar)
 			Else
-				WLet FLine, *FLine & Chr(13) & Chr(10) & Lines(i)
+				WAdd FLine, Chr(13) & Chr(10) & Lines(i)
 			End If
 		Next i
 		Return *FLine
 	End Property
 	
-	Property EditControl.SelText(ByRef Value As WString) '...'
+	Property EditControl.SelText(ByRef Value As WString)
 		ChangeText Value, 0, "Matn qo`shildi"
 	End Property
 	
@@ -760,7 +760,7 @@ Namespace My.Sys.Forms
 					Split(*FECLine->Text, """", LineQuotes())
 					WLet FLine, ""
 					For k As Integer = 0 To UBound(LineQuotes) Step 2
-						WLet FLine, *FLine & *LineQuotes(k)
+						WAdd FLine, *LineQuotes(k)
 					Next
 					#ifndef __USE_MAKE__
 						WDeallocate(LineQuotes())
@@ -2845,9 +2845,9 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				If CInt(TabAsSpaces AndAlso ChoosedTabStyle = 0) OrElse CInt(k = 0) Then
-					WLet FLineSpace, *FLineSpace & WSpace(k)
+					WAdd FLineSpace, WSpace(k)
 				Else
-					WLet FLineSpace, *FLineSpace & !"\t"
+					WAdd FLineSpace, !"\t"
 				End If
 				ChangeText *FLineLeft & WChr(13) & *FLineSpace & *FLineRight, p, "Enter bosildi", Min(FSelStartLine, FSelEndLine) + 1, d + k
 				'Var n = Min(FSelStart, FSelEnd)
