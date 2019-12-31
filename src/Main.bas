@@ -2016,7 +2016,7 @@ miBuild->Add("-")
 miBuild->Add(ML("Compile") & !"\tCtrl+F9", "Compile", "Compile", @mclick)
 miBuild->Add("-")
 miBuild->Add(ML("Make"), "Make", "Make", @mclick)
-miBuild->Add(ML("MakeClean"), "", "MakeClean", @mclick)
+miBuild->Add(ML("Make Clean"), "", "MakeClean", @mclick)
 miBuild->Add("-")
 miBuild->Add(ML("Parameters"), "Parameters", "Parameters", @mclick)
 
@@ -2860,10 +2860,16 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
 	lvProperties.ListItems.Clear
 	tb->FillAllProperties
+	If tb->FileName = "" Then
+		frmMain.Caption = tb->Caption & " - " & pApp->Title
+	Else
+		frmMain.Caption = tb->FileName & " - " & pApp->Title
+	End If
 End Sub
 
 ptabCode->Images = @imgList
 ptabCode->Align = 5
+ptabCode->Reorderable = True
 ptabCode->OnPaint = @tabCode_Paint
 ptabCode->OnSelChange = @tabCode_SelChange
 ptabCode->ContextMenu = @mnuTabs

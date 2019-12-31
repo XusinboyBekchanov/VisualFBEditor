@@ -223,10 +223,10 @@ Function IsLabel(ByRef LeftA As WString) As Boolean
 End Function
 
 Function GetFolderName(ByRef FileName As WString) ByRef As WString
-	Dim Pos1 As Long = InstrRev(FileName, "\")
-	Dim Pos2 As Long = InstrRev(FileName, "/")
+	Dim Pos1 As Long = InStrRev(FileName, "\")
+	Dim Pos2 As Long = InStrRev(FileName, "/")
 	If Pos1 = 0 OrElse Pos2 > Pos1 Then Pos1 = Pos2
-	If Pos1 > 0 then
+	If Pos1 > 0 Then
 		WLet sTemp, Left(FileName, Pos1)
 		Return *sTemp
 	End If
@@ -461,9 +461,9 @@ Property TabWindow.Caption(ByRef Value As WString)
 	*FCaptionNew = Value
 	#IfDef __USE_GTK__
 		Base.Caption = Value
-	#Else
+	#else
 		Base.Caption = Value + Space(5)
-	#EndIf
+	#endif
 End Property
 
 Property TabWindow.FileName ByRef As WString
@@ -475,7 +475,7 @@ Property TabWindow.FileName(ByRef Value As WString) '...'
 	*FFileName = Value
 End Property
 
-Operator TabWindow.Cast As TabPage ptr '...'
+Operator TabWindow.Cast As TabPage Ptr '...'
 	Return Cast(TabPage Ptr, @This)
 End Operator
 
@@ -524,6 +524,7 @@ Function TabWindow.CloseTab As Boolean
 			If MainNode = tn Then MainNode = 0
 		End If
 	End If
+	If ptabCode->TabCount = 0 Then pfrmMain->Caption = pApp->Title
 	MoveCloseButtons
 	FreeWnd
 	Return True
@@ -1539,17 +1540,17 @@ Function TabWindow.GetRelativePath(ByRef Path As WString) ByRef As WString
 	Else
 		WLet FLine, ""
 	End If
-	If FileExists(GetFolderName(FileName) & "/" & Path) Then
-		WLet FLine, GetFolderName(FileName) & "/" & Path
+	If FileExists(GetFolderName(FileName) & Path) Then
+		WLet FLine, GetFolderName(FileName) & Path
 		Return *FLine
 	ElseIf FileExists(*FLine & "/" & *MFFPath & "/" & Path) Then
-		WLet FLine, *FLine & "/" & *MFFPath & "/" & Path
+		WLet FLine, Replace(*FLine & "/" & *MFFPath & "/" & Path, "/./", "/")
 		Return *FLine
-	ElseIf FileExists(GetFolderName(*Compiler32Path) & "/Inc/" & Path) Then
-		WLet FLine, GetFolderName(*Compiler32Path) & "/Inc/" & Path
+	ElseIf FileExists(GetFolderName(*Compiler32Path) & "Inc/" & Path) Then
+		WLet FLine, GetFolderName(*Compiler32Path) & "Inc/" & Path
 		Return *FLine
-	ElseIf FileExists(GetFolderName(*Compiler64Path) & "/Inc/" & Path) Then
-		WLet FLine, GetFolderName(*Compiler64Path) & "/Inc/" & Path
+	ElseIf FileExists(GetFolderName(*Compiler64Path) & "Inc/" & Path) Then
+		WLet FLine, GetFolderName(*Compiler64Path) & "Inc/" & Path
 		Return *FLine
 	Else
 		Return Path
@@ -2754,6 +2755,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'txtCode.tbParent = @This
 	This.Width = 180
 	This.OnDestroy = @TabWindow_Destroy
+	
 	btnClose.tbParent = @This
 	#ifdef __USE_GTK__
 		pnlTop.Height = 33

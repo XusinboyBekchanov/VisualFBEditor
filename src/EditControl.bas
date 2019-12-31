@@ -5,6 +5,9 @@ EditControl.
 '/
 
 #include once "EditControl.bi"
+#ifndef __USE_GTK__
+	#include once "win/mmsystem.bi"
+#endif
 
 Dim Shared As WStringList keywords0, keywords1, keywords2, keywords3
 pkeywords0 = @keywords0
@@ -54,22 +57,119 @@ Constructions(19) = Type<Construction>("Operator",      "",         "",         
 Constructions(20) = Type<Construction>("Constructor",   "",         "",         "End Constructor",  "",         True,   True)
 Constructions(21) = Type<Construction>("Destructor",    "",         "",         "End Destructor",   "",         True,   True)
 
-#ifdef __USE_GTK__
-	Function Blink_cb(user_data As gpointer) As gboolean
-		Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
-		If ec->InFocus Then
-			ec->CaretOn = Not ec->CaretOn
-			gtk_widget_queue_draw(ec->widget)
-			gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
-		Else
-			ec->CaretOn = False
-			gtk_widget_queue_draw(ec->widget)
-		End If
-		Return False
-	End Function
-#endif
-
 Namespace My.Sys.Forms
+	Function EditControl.deltaToScrollAmount(lDelta As Integer) As Integer
+		If Abs(lDelta) < 12 Then
+			deltaToScrollAmount = 0
+		ElseIf Abs(lDelta) < 32 Then
+			deltaToScrollAmount = Sgn(lDelta)
+		ElseIf Abs(lDelta) < 56 Then
+			deltaToScrollAmount = Sgn(lDelta) * 2
+		ElseIf Abs(lDelta) < 80 Then
+			deltaToScrollAmount = Sgn(lDelta) * 4
+		ElseIf Abs(lDelta) < 104 Then
+			deltaToScrollAmount = Sgn(lDelta) * 8
+		ElseIf Abs(lDelta) < 128 Then
+			deltaToScrollAmount = Sgn(lDelta) * 32
+		Else
+			deltaToScrollAmount = Sgn(lDelta) * 80
+		End If
+	End Function
+	
+	Sub EditControl.MiddleScroll()
+		#ifndef __USE_GTK__
+			GetCursorPos @tP
+			lXOffset = tP.X - m_tP.X
+			lYOffset = tP.Y - m_tP.Y
+			Dim As Boolean bChanged, bDoIt
+			si.cbSize = Len(si)
+			si.fMask = SIF_RANGE Or SIF_PAGE Or SIF_POS Or SIF_TRACKPOS
+			GetScrollInfo FHandle, SB_HORZ, @si
+			lHorzOffset = deltaToScrollAmount(lXOffset)
+			If Not (lHorzOffset = 0) Then
+				bDoIt = True
+				If (lHorzOffset < 32) Then
+					If (timeGetTime() - m_lLastHorzTime) < 100 Then
+						bDoIt = False
+					Else
+						m_lLastHorzTime = timeGetTime()
+					End If
+				End If
+				If bDoIt Then
+					si.fMask = SIF_POS Or SIF_TRACKPOS
+					Var lNewPos = si.nPos + lHorzOffset
+					If (lNewPos < 0) Then lNewPos = 0
+					If (lNewPos > si.nMax + si.nPage) Then lNewPos = si.nMax + si.nPage
+					si.nPos = lNewPos
+					si.nTrackPos = lNewPos
+					SetScrollInfo FHandle, SB_HORZ, @si, True
+					GetScrollInfo(FHandle, SB_HORZ, @si)
+					If (Not si.nPos = HScrollPos) Then
+						HScrollPos = si.nPos
+						bChanged = True
+					End If
+				End If
+			End If
+			si.cbSize = Len(si)
+			si.fMask = SIF_RANGE Or SIF_PAGE Or SIF_POS Or SIF_TRACKPOS
+			GetScrollInfo FHandle, SB_VERT, @si
+			lVertOffset = deltaToScrollAmount(lYOffset)
+			If Not (lVertOffset = 0) Then
+				bDoIt = True
+				If (lVertOffset < 32) Then
+					If (timeGetTime() - m_lLastVertTime) < 100 Then
+						bDoIt = False
+					Else
+						m_lLastVertTime = timeGetTime()
+					End If
+				End If
+				If (bDoIt) Then
+					si.fMask = SIF_POS Or SIF_TRACKPOS
+					Var lNewPos = si.nPos + lVertOffset
+					If (lNewPos < 0) Then lNewPos = 0
+					If (lNewPos > si.nMax + si.nPage) Then lNewPos = si.nMax + si.nPage
+					si.nPos = lNewPos
+					si.nTrackPos = lNewPos
+					SetScrollInfo(FHandle, SB_VERT, @si, True)
+					GetScrollInfo(FHandle, SB_VERT, @si)
+					If (Not si.nPos = VScrollPos) Then
+						VScrollPos = si.nPos
+						bChanged = True
+					End If
+				End If
+			End If
+			If bChanged Then
+				ShowCaretPos False
+				PaintControl
+			End If
+		#endif
+	End Sub
+	
+	#ifdef __USE_GTK__
+		Function EditControl.Blink_cb(user_data As gpointer) As gboolean
+			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			If ec->InFocus Then
+				ec->CaretOn = Not ec->CaretOn
+				gtk_widget_queue_draw(ec->widget)
+				gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
+			Else
+				ec->CaretOn = False
+				gtk_widget_queue_draw(ec->widget)
+			End If
+			Return False
+		End Function
+	#else
+		Sub EditControl.EC_TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+			If ScrEC Then
+				If ScrEC->bInMiddleScroll Then
+					ScrEC->MiddleScroll
+				Else
+					KillTimer ScrEC->Handle, 1
+				End If
+			End If
+		End Sub
+	#endif
+	
 	Sub EditControl.Breakpoint
 		FECLine = FLines.Items[FSelEndLine]
 		If CInt(Trim(*FECLine->Text, Any !"\t ") = "") OrElse CInt(StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'")) Then
@@ -1378,8 +1478,8 @@ Namespace My.Sys.Forms
 			cairo_fill (cr)
 		#else
 			
-'			This.Canvas.Font.Name = *EditorFontName
-'			This.Canvas.Font.Size = EditorFontSize
+			'			This.Canvas.Font.Name = *EditorFontName
+			'			This.Canvas.Font.Size = EditorFontSize
 			This.Canvas.Pen.Color = FoldLinesForeground
 			SetRect(@rc, LeftMargin, 0, dwClientX, dwClientY)
 			SelectObject(bufDC, This.Canvas.Brush.Handle)
@@ -1461,9 +1561,9 @@ Namespace My.Sys.Forms
 					LinePrinted = True
 				End If
 				If Not LinePrinted Then
-'					Canvas.Font.Bold = False
-'					Canvas.Font.Italic = False
-'					Canvas.Font.Underline = False
+					'					Canvas.Font.Bold = False
+					'					Canvas.Font.Italic = False
+					'					Canvas.Font.Underline = False
 					#ifndef __USE_GTK__
 						'SelectObject(bufDC, This.Canvas.Font.Handle)
 					#endif
@@ -1474,9 +1574,9 @@ Namespace My.Sys.Forms
 							If bQ Then
 								QavsBoshi = j
 							Else
-'								If StringsBold Then Canvas.Font.Bold = True
-'								If StringsItalic Then Canvas.Font.Italic = True
-'								If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
+								'								If StringsBold Then Canvas.Font.Bold = True
+								'								If StringsItalic Then Canvas.Font.Italic = True
+								'								If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
 								PaintText i, *s, QavsBoshi - 1, j, StringsBackground, StringsForeground, , StringsBold, StringsItalic, StringsUnderline Or bInIncludeFileRect And iCursorLine = z
 								'txtCode.SetSel ss + QavsBoshi - 1, ss + j
 								'txtCode.SelColor = clMaroon
@@ -1568,9 +1668,9 @@ Namespace My.Sys.Forms
 						'txtCode.SelColor = clGreen
 						'If i = EndLine Then k = txtCode.LinesCount
 					ElseIf bQ Then
-'						If StringsBold Then Canvas.Font.Bold = True
-'						If StringsItalic Then Canvas.Font.Italic = True
-'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
+						'						If StringsBold Then Canvas.Font.Bold = True
+						'						If StringsItalic Then Canvas.Font.Italic = True
+						'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
 						PaintText i, *s, QavsBoshi - 1, j, StringsBackground, StringsForeground, , StringsBold, StringsItalic, StringsUnderline Or bInIncludeFileRect And iCursorLine = z
 					End If
 				End If
@@ -1636,7 +1736,7 @@ Namespace My.Sys.Forms
 								cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 3 - 0.5)
 								cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
 								cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) +jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 + 3 - 0.5)
- 								cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+								cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
 								cairo_stroke (cr)
 							#else
 								'GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
@@ -1650,7 +1750,7 @@ Namespace My.Sys.Forms
 							jPos += jPP
 						Else
 							jPos += 1
-					   	End If
+						End If
 						jj += 1
 					Loop
 				End If
@@ -1687,7 +1787,7 @@ Namespace My.Sys.Forms
 				WLet FLineLeft, WStr(z + 1)
 				GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
 				SetTextColor(bufDC, LineNumbersForeground)
-				TextOut(bufDC, LeftMargin - 30 - Sz.cx, (i - VScrollPos) * dwCharY, FLineLeft, Len(*FLineLeft))
+				TextOut(bufDC, LeftMargin - 25 - Sz.cx, (i - VScrollPos) * dwCharY, FLineLeft, Len(*FLineLeft))
 				SetBKMode(bufDC, OPAQUE)
 			#endif
 			This.Canvas.Brush.Color = NormalTextBackground
@@ -1856,6 +1956,29 @@ Namespace My.Sys.Forms
 			SetRect(@rc, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, LeftMargin, dwClientY)
 			This.Canvas.Brush.Color = NormalTextBackground
 			FillRect bufDC, @rc, This.Canvas.Brush.Handle
+			If bInMiddleScroll Then
+				#ifdef __USE_GTK__
+					'					cairo_set_source_rgb(cr, Abs(GetRed(clMaroon) / 255.0), Abs(GetGreen(clMaroon) / 255.0), Abs(GetBlue(clMaroon) / 255.0))
+					'					cairo_arc(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5, 5, 0, 2 * G_PI)
+					'					cairo_fill_preserve(cr)
+					'					cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+					'					cairo_stroke(cr)
+				#else
+					This.Canvas.Pen.Color = SpaceIdentifiersForeground
+					This.Canvas.Brush.Color = SpaceIdentifiersForeground
+					SelectObject(bufDC, This.Canvas.Pen.Handle)
+					SelectObject(bufDC, This.Canvas.Brush.Handle)
+					Ellipse bufDC, MButtonX + 10, MButtonY + 10, MButtonX + 14, MButtonY + 14
+					Dim pPoint1(3) As Point = {(MButtonX + 11, MButtonY + 1), (MButtonX + 7, MButtonY + 5), (MButtonX + 16, MButtonY + 5), (MButtonX + 12, MButtonY + 1)}
+					PolyGon(bufDC, @pPoint1(0), 4)
+					Dim pPoint2(3) As Point = {(MButtonX + 11, MButtonY + 22), (MButtonX + 7, MButtonY + 18), (MButtonX + 16, MButtonY + 18), (MButtonX + 12, MButtonY + 22)}
+					PolyGon(bufDC, @pPoint2(0), 4)
+					Dim pPoint3(3) As Point = {(MButtonX + 1, MButtonY + 11), (MButtonX + 5, MButtonY + 7), (MButtonX + 5, MButtonY + 16), (MButtonX + 1, MButtonY + 12)}
+					PolyGon(bufDC, @pPoint3(0), 4)
+					Dim pPoint4(3) As Point = {(MButtonX + 22, MButtonY + 11), (MButtonX + 18, MButtonY + 7), (MButtonX + 18, MButtonY + 16), (MButtonX + 22, MButtonY + 12)}
+					PolyGon(bufDC, @pPoint4(0), 4)
+				#endif
+			End If
 			BitBlt(hD, 0, 0, dwClientX, dwClientY, bufDC, 0, 0, SRCCOPY)
 			DeleteDc bufDC
 			DeleteObject bufBMP
@@ -2147,7 +2270,7 @@ Namespace My.Sys.Forms
 			dwCharX = tm.tmAveCharWidth
 			dwCharY = tm.tmHeight
 		#endif
-		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30
+		LeftMargin = Len(Str(LinesCount)) * dwCharX + 5 * dwCharX '30
 		
 		dwClientX = ClientWidth
 		dwClientY = ClientHeight
@@ -2156,7 +2279,6 @@ Namespace My.Sys.Forms
 	Sub EditControl.ProcessMessage(ByRef msg As Message)
 		Static bShifted As Boolean
 		Static bCtrl As Boolean
-		Static OldPos As Integer
 		Static scrStyle As Integer, scrDirection As Integer
 		#ifdef __USE_GTK__
 			bShifted = msg.event->Key.state And GDK_Shift_MASK
@@ -2197,6 +2319,7 @@ Namespace My.Sys.Forms
 			#else
 			Case WM_MOUSEWHEEL
 			#endif
+			bInMiddleScroll = False
 			#ifdef __USE_GTK__
 				OldPos = gtk_adjustment_get_value(adjustmentv)
 				#ifdef __USE_GTK3__
@@ -2260,6 +2383,23 @@ Namespace My.Sys.Forms
 				'If p.X < LeftMargin AndAlso p.X > LeftMargin - 15 Then
 				If InCollapseRect(iCursorLine, p.X, p.Y) Then
 					msg.Result = Cast(LResult, SetCursor(crHand.Handle))
+					Return
+				ElseIf bInMiddleScroll Then
+					If Abs(p.X - MButtonX) < 12 AndAlso Abs(p.Y - MButtonY) < 12 Then
+						msg.Result = Cast(LResult, SetCursor(crScroll.Handle))
+					ElseIf p.X < MButtonX AndAlso Abs(p.Y - MButtonY) <= Abs(p.X - MButtonX) Then
+						msg.Result = Cast(LResult, SetCursor(crScrollLeft.Handle))
+					ElseIf p.X > MButtonX AndAlso Abs(p.Y - MButtonY) <= Abs(p.X - MButtonX) Then
+						msg.Result = Cast(LResult, SetCursor(crScrollRight.Handle))
+					ElseIf p.Y < MButtonY AndAlso Abs(p.X - MButtonX) <= Abs(p.Y - MButtonY) Then
+						msg.Result = Cast(LResult, SetCursor(crScrollUp.Handle))
+					ElseIf p.Y > MButtonY AndAlso Abs(p.X - MButtonX) <= Abs(p.Y - MButtonY) Then
+						msg.Result = Cast(LResult, SetCursor(crScrollDown.Handle))
+					End If
+					If bScrollStarted Then
+						bScrollStarted = False
+						PaintControl
+					End If
 					Return
 				Else
 					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, p.X, p.Y)
@@ -2346,9 +2486,11 @@ Namespace My.Sys.Forms
 			#endif
 			#ifdef __USE_GTK__
 			Case GDK_KEY_PRESS
+				'bInMButtonClicked = False
 				Select Case e->Key.keyval
 			#else
 			Case WM_KEYDOWN
+				bInMiddleScroll = False
 				Select Case msg.wParam
 			#endif
 				#ifdef __USE_GTK__
@@ -2959,11 +3101,13 @@ Namespace My.Sys.Forms
 			#else
 			Case WM_KEYUP
 			#endif
+			bInMiddleScroll = False
 			#ifdef __USE_GTK__
 			Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 			#else
 			Case WM_LBUTTONDBLCLK
 			#endif
+			bInMiddleScroll = False
 			#ifdef __USE_GTK__
 				FSelEndLine = LineIndexFromPoint(e->button.x, e->button.y)
 				If InCollapseRect(FSelEndLine, e->button.x, e->button.y) Then
@@ -2998,6 +3142,7 @@ Namespace My.Sys.Forms
 			#else
 			Case WM_LBUTTONDOWN
 			#endif
+			bInMiddleScroll = False
 			DownButton = 0
 			#ifdef __USE_GTK__
 				FSelEndLine = LineIndexFromPoint(e->button.x, e->button.y)
@@ -3054,6 +3199,20 @@ Namespace My.Sys.Forms
 			End If
 			DownButton = -1
 			#ifdef __USE_GTK__
+			Case GDK_BUTTON_PRESS
+				'				gtk_widget_grab_focus(widget)
+				'				If e->button.button - 1 <> 0 Then Exit Select
+			#else
+			Case WM_MBUTTONDOWN
+				bInMiddleScroll = Not bInMiddleScroll
+				bScrollStarted = True
+				ScrEC = @This
+				MButtonX = msg.lParamLo
+				MButtonY = msg.lParamHi
+				GetCursorPos @m_tP
+				SetTimer Handle, 1, 25, @EC_TimerProc
+			#endif
+			#ifdef __USE_GTK__
 			Case GDK_MOTION_NOTIFY
 			#else
 			Case WM_MOUSEMOVE
@@ -3066,13 +3225,13 @@ Namespace My.Sys.Forms
 					gdk_window_set_cursor(win, gdkCursorIBeam)
 				End If
 			#endif
-'			#ifdef __USE_GTK__
-'				bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, e->button.x, e->button.y)
-'			#else
-'				bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, msg.lParamLo, msg.lParamHi)
-'			#endif
-'			If bInIncludeFileRectOld <> bInIncludeFileRect Then PaintControl
-'			bInIncludeFileRectOld = bInIncludeFileRect
+			'			#ifdef __USE_GTK__
+			'				bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, e->button.x, e->button.y)
+			'			#else
+			'				bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, msg.lParamLo, msg.lParamHi)
+			'			#endif
+			'			If bInIncludeFileRectOld <> bInIncludeFileRect Then PaintControl
+			'			bInIncludeFileRectOld = bInIncludeFileRect
 			If DownButton = 0 Then
 				#ifdef __USE_GTK__
 					FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
@@ -3355,6 +3514,13 @@ Namespace My.Sys.Forms
 		Canvas.Ctrl = @This
 		crRArrow.LoadFromResourceName("Select")
 		crHand.LoadFromResourceName("Hand")
+		crScroll.LoadFromResourceName("Scroll")
+		crScrollLeft.LoadFromResourceName("ScrollLeft")
+		crScrollDown.LoadFromResourceName("ScrollDown")
+		crScrollRight.LoadFromResourceName("ScrollRight")
+		crScrollUp.LoadFromResourceName("ScrollUp")
+		crScrollLeftRight.LoadFromResourceName("ScrollLeftRight")
+		crScrollUpDown.LoadFromResourceName("ScrollUpDown")
 		'Text = ""
 		#ifdef __USE_GTK__
 			winIntellisense = gtk_window_new(GTK_WINDOW_POPUP)

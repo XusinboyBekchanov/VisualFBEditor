@@ -46,7 +46,7 @@ Common Shared As Integer StringsForeground, StringsForegroundOption, StringsBack
 Common Shared As Integer EditorFontSize
 Common Shared As WString Ptr EditorFontName
 Common Shared As WString Ptr CurrentTheme
-	
+
 Type Construction
 	Name0 As String * 50
 	Name1 As String * 50
@@ -100,6 +100,13 @@ Namespace My.Sys.Forms
 		Dim curHistory As Integer
 		Dim crRArrow As My.Sys.Drawing.Cursor
 		Dim crHand As My.Sys.Drawing.Cursor
+		Dim crScroll As My.Sys.Drawing.Cursor
+		Dim crScrollLeft As My.Sys.Drawing.Cursor
+		Dim crScrollDown As My.Sys.Drawing.Cursor
+		Dim crScrollRight As My.Sys.Drawing.Cursor
+		Dim crScrollUp As My.Sys.Drawing.Cursor
+		Dim crScrollLeftRight As My.Sys.Drawing.Cursor
+		Dim crScrollUpDown As My.Sys.Drawing.Cursor
 		Dim FLine As WString Ptr
 		Dim FLineLeft As WString Ptr
 		Dim FLineRight As WString Ptr
@@ -177,11 +184,15 @@ Namespace My.Sys.Forms
 		Dim As WString Ptr CurrentFontName
 		Dim As Boolean bInIncludeFileRect
 		Dim As Boolean bInIncludeFileRectOld
+		Dim As Boolean bScrollStarted
+		Dim As Boolean bInMiddleScroll
+		Dim As Integer MButtonX, MButtonY
 		Dim As Integer iCursorLine
 		Dim As Integer iCursorLineOld
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim As String KeyWord, Matn
+		Dim As Integer OldPos
 		Dim pkeywords As WStringList Ptr
 		Dim LinePrinted As Boolean
 		'Dim As Boolean ChangeCase
@@ -207,7 +218,20 @@ Namespace My.Sys.Forms
 		Declare Sub ChangePos(CharTo As Integer)
 		Declare Function InCollapseRect(i As Integer, X As Integer, Y As Integer) As Boolean
 		Declare Function InIncludeFileRect(i As Integer, X As Integer, Y As Integer) As Boolean
-		Declare Sub ProcessMessage(ByRef msg As Message)    
+		Declare Sub ProcessMessage(ByRef msg As Message)
+		#ifdef __USE_GTK__
+			Declare Static Function Blink_cb(user_data As gpointer) As gboolean
+		#else
+			Dim lXOffset As Long
+			Dim lYOffset As Long
+			Dim tP As Point
+			Dim lVertOffset As Long
+			Dim lHorzOffset As Long
+			Dim As Point m_tP
+			Declare Static Sub EC_TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+		#endif
+		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
+		Declare Sub MiddleScroll
 		Public:
 		#ifdef __USE_GTK__
 			Dim As cairo_t Ptr cr
@@ -242,6 +266,7 @@ Namespace My.Sys.Forms
 		CurExecutedLine As Integer = -1
 		FocusedItemIndex As Integer
 		LastItemIndex As Integer
+		Dim As Integer m_lLastVertTime, m_lLastHorzTime
 		Dim As Integer dwCharX
 		Dim As Integer dwCharY
 		Dim As Boolean SyntaxEdit
@@ -330,14 +355,10 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Common Constructions() As Construction
-	Common As EditControl Ptr CurEC
+	Common As EditControl Ptr CurEC, ScrEC
 End Namespace
 
 Declare Sub LoadKeyWords
-
-#ifdef __USE_GTK__
-	Declare Function Blink_cb(user_data As gpointer) As gboolean
-#endif
 
 Namespace My.Sys.Forms
 	Declare Function IsArg(j As Integer) As Boolean

@@ -13,7 +13,7 @@
 '#endif
 
 #ifndef __USE_MAKE__
-	'#define __USE_GTK3__
+	#define __USE_GTK3__
 	#define _NOT_AUTORUN_FORMS_
 #endif
 
