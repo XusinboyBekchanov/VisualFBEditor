@@ -4,7 +4,7 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)              #
 '#########################################################
 
-#Include Once "frmGoto.bi"
+#include once "frmGoto.bi"
 
 Dim Shared As frmGoto fGoto
 pfGoto = @fGoto
@@ -27,29 +27,33 @@ pfGoto = @fGoto
 	Constructor frmGoto
 		This.Width = 320
 		Height = 100
-		Caption = "Oʻtish"
 		This.StartPosition = FormStartPosition.CenterParent
-		lblFind.Caption = "Qator:"
+		lblFind.Caption = "Line:"
 		lblFind.SetBounds 10, 10, 80, 20
+		lblFind.Text = "Line:"
 		lblFind.Parent = @This
 		txtFind.SetBounds 90, 10, 204, 20
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Anchor.Right = asAnchor
 		txtFind.Parent = @This
-		btnFind.Caption = "&Oʻtish"
+		btnFind.Caption = "&Go"
 		btnFind.Default = True
 		btnFind.SetBounds 90, 36, 100, 20
 		btnFind.Anchor.Right = asAnchor
 		btnFind.Parent = @This
-		btnCancel.Caption = "&Bekor"
+		btnCancel.Caption = "&Cancel"
 		btnCancel.Anchor.Right = asAnchor
 		btnCancel.SetBounds 194, 36, 100, 20
 		btnCancel.Parent = @This
 		'AddRange 10, @lblFind, @txtFind, @lblReplace, @txtReplace, @chkRegistr, @btnFind, @btnReplace, @btnFindAll, @btnReplaceAll, @btnCancel
 		OnShow = @_Form_Show_
+		btnFind.Text = "&Go"
 		btnFind.OnClick = @_btnFind_Click_
+		btnCancel.Text = "&Cancel"
 		btnCancel.OnClick = @_btnCancel_Click_
 		This.DefaultButton = @btnFind
+		This.Caption = "Goto"
+		This.Text = "Goto"
 		This.CancelButton = @btnCancel
 		'This.BorderStyle = 2
 	End Constructor
@@ -61,7 +65,7 @@ pfGoto = @fGoto
 
 Private Sub frmGoto.btnFind_Click(ByRef Sender As Control)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	if tb = 0 Then Exit Sub
+	If tb = 0 Then Exit Sub
 	Dim txt As EditControl Ptr = @tb->txtCode
 	If Val(txtFind.Text) <= 0 Then Exit Sub
 	This.CloseForm

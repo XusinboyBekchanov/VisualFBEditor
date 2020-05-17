@@ -2,6 +2,7 @@
 '#  frmFindInFiles.bas                                   #
 '#  This file is part of VisualFBEditor                  #
 '#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
 #include once "frmFindInFiles.bi"
@@ -25,55 +26,127 @@ pfFindFile = @fFindFile
 	End Sub
 	
 	Private Sub frmFindInFiles._Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
-		fFindFile.Form_Close(Sender, Action) 
+		fFindFile.Form_Close(Sender, Action)
 	End Sub
 	
 	Constructor frmFindInFiles
+		This.Name = "frmFindInFiles"
 		This.StartPosition = FormStartPosition.CenterParent
-		This.SetBounds 0, 0, 415, 188
-		Caption = ML("Find In Files")
-		lblFind.Caption = ML("Find") & ":"
-		lblFind.SetBounds 10, 10, 80, 20
+		This.Text = "lblReplace"
+		'		#ifndef __USE_GTK__
+		'			This.BorderStyle = FormBorderStyle.FixedDialog
+		'		#endif
+		'		This.MinimizeBox = False
+		'		 This.MaximizeBox = False
+		This.BorderStyle = FormBorderStyle.Sizable
+		This.Caption = ML("Find In Files")
+		This.ID = 1000
+		'This.IsChild = True
+		This.OnResize = @Form_Resize
+		This.SetBounds 0, 0, 440, 224
+		' Panel1
+		With Panel1
+			.Name = "Panel1"
+			.Text = ""
+			.SetBounds 6, 64, 416, 180
+			.Anchor.Left = asAnchor
+			.Anchor.Right = asAnchor
+			.Parent = @This
+		End With
+		lblFind.Name = "lblFind"
+		lblFind.Caption = ML("Find What") & ":"
+		lblFind.SetBounds 10, 11, 85, 20
 		lblFind.Parent = @This
-		txtFind.SetBounds 90, 10, 300, 20
+		
+		txtFind.Name = "txtFind"
+		txtFind.SetBounds 97, 8, 318, 26
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Anchor.Right = asAnchor
+		txtFind.Masked = True
 		txtFind.Parent = @This
-		lblPath.Caption = ML("Path") & ":"
-		lblPath.SetBounds 10, 35, 80, 20
-		lblPath.Parent = @This
-		txtPath.SetBounds 90, 35, 280, 20
+		
+		lblPath.Name = "lblPath"
+		lblPath.Caption = ML("In Folder") & ":"
+		lblPath.SetBounds 4, 9, 85, 20
+		lblPath.Parent =  @Panel1
+		
+		btnBrowse.Name = "btnBrowse"
+		btnBrowse.Caption = "..."
+		btnBrowse.SetBounds 376, 3, 34, 28
+		btnBrowse.Anchor.Right = asAnchor
+		btnBrowse.Parent =  @Panel1
+		
+		txtPath.Name = "txtPath"
+		txtPath.SetBounds 91, 4, 282, 26
 		txtPath.Anchor.Left = asAnchor
 		txtPath.Anchor.Right = asAnchor
-		txtPath.Parent = @This
-		btnBrowse.Caption = ML("...")
-		btnBrowse.Anchor.Right = asAnchor
-		btnBrowse.SetBounds 370, 35, 20, 20
-		btnBrowse.Parent = @This
-		chkRegistr.Caption = ML("Match Case")
-		chkRegistr.SetBounds 90, 60, 140, 20
-		chkRegistr.Parent = @This
-		chkRecursive.Caption = ML("Recursively in subdirectories")
-		chkRecursive.SetBounds 90, 85, 200, 20
-		chkRecursive.Checked = True
-		chkRecursive.Parent = @This
-		btnFind.Caption = ML("&Find")
-		btnFind.Default = True
-		btnFind.SetBounds 90, 110, 138, 28
-		btnFind.Anchor.Right = asAnchor
-		btnFind.Parent = @This
-		btnCancel.Caption = ML("&Cancel")
-		btnCancel.Anchor.Right = asAnchor
-		btnCancel.SetBounds 252, 110, 138, 28
-		btnCancel.Parent = @This
+		txtPath.Parent =  @Panel1
+		
+		chkMatchCase.Name = "chkMatchCase"
+		chkMatchCase.Caption = ML("Match Case")
+		chkMatchCase.SetBounds 92, 38, 148, 22
+		chkMatchCase.Parent =  @Panel1
+		chkSearchinSub.Name = "chkSearchinSub"
+		chkSearchinSub.Caption = ML("Search Subfolders")
+		chkSearchinSub.SetBounds 92, 63, 200, 22
+		chkSearchinSub.Checked = True
+		chkSearchinSub.Parent =  @Panel1
+		'btnFind
+		With btnFind
+			.Name = "btnFind"
+			.Caption = ML("&Find")
+			.Default = True
+			.SetBounds 90, 92, 106, 30
+			.Anchor.Left = asAnchor
+			.Parent =  @Panel1
+			.OnClick = @_btnFind_Click_
+		End With
+		
+		' btnReplace
+		With btnReplace
+			.Name = "btnReplace"
+			.Text = ML("&Replace")
+			.SetBounds 199, 92, 106, 30
+			.Anchor.Right = asAnchor
+			.OnClick = @btnReplace_Click
+			.Parent = @Panel1
+		End With
+		
+		'btnFind
+		With btnCancel
+			.Name="btnCancel"
+			.Caption = ML("&Cancel")
+			.SetBounds 308, 92, 104, 30
+			.Anchor.Right = asAnchor
+			.Parent = @Panel1
+		End With
+		
 		OnShow = @_Form_Show_
 		OnClose = @_Form_Close_
-		btnFind.OnClick = @_btnFind_Click_
+		
 		btnCancel.OnClick = @_btnCancel_Click_
 		btnBrowse.OnClick = @btnBrowse_Click
 		DefaultButton = @btnFind
 		CancelButton = @btnCancel
 		'This.BorderStyle = 2
+		
+		With lblReplace
+			.Name = "lblReplace"
+			.Text = ML("Replace")+":"
+			.SetBounds 10, 41, 82, 25
+			.Parent =  @This
+		End With
+		
+		' txtReplace
+		With txtReplace
+			.Name = "txtReplace"
+			.Text = ""
+			.SetBounds 97, 38, 318, 26
+			.Anchor.Left = asAnchor
+			.Anchor.Right = asAnchor
+			.Parent = @This
+		End With
+		
 	End Constructor
 	
 	Destructor frmFindInFiles
@@ -81,73 +154,123 @@ pfFindFile = @fFindFile
 	End Destructor
 '#End Region
 
-Sub frmFindInFiles.Find(ByRef Path As WString)
-	Dim As String f
+Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WString = "", ByRef tSearch As WString = "")
+	Dim f As WString * 1024
+	Dim Buffout As WString Ptr
 	Dim As Integer Result, Pos1
-	Dim buff As WString Ptr
-	Dim search As WString Ptr = @txtFind.Text
-	Dim As Integer iLine, iStart
-	Dim As Integer Attr
+	Dim Buff As WString * 1024 'David Change
+	Dim As Integer iLine, iStart, Fn
+	Dim As UInteger Attr
+	ThreadsEnter
+	Dim As Boolean SearchInSub = chkSearchInSub.Checked
+	Dim As Boolean MatchCase = chkMatchCase.Checked
+	ThreadsLeave
 	Dim As WStringList Folders
-	If chkRecursive.Checked Then
-		f = Dir(Path & "/*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
+	If Path = "" OrElse tSearch = "" Then Exit Sub
+	If SearchInSub Then
+		f = Dir(Path & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
 	Else
-		f = Dir(Path & "/*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
+		f = Dir(Path & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
 	End If
+	wLet gSearchSave, tSearch
 	While f <> ""
+		If FormClosing Then Exit Sub
 		If (Attr And fbDirectory) <> 0 Then
-			If f <> "." AndAlso f <> ".." Then Folders.Add Path & "/" & f
-		ElseIf EndsWith(f, ".bas") OrElse EndsWith(f, ".bi") OrElse EndsWith(f, ".rc") OrElse EndsWith(f, ".inc") _
-			OrElse EndsWith(f, ".txt") OrElse EndsWith(f, ".log") OrElse EndsWith(f, ".lng") _
-			OrElse EndsWith(f, ".vfp") OrElse EndsWith(f, ".vfs") OrElse EndsWith(f, ".xml") _
-			OrElse EndsWith(f, ".c") OrElse EndsWith(f, ".h") OrElse EndsWith(f, ".cpp") Then
-			'App.DoEvents
-			Result = Open(Path & "/" & f For Input Encoding "utf-32" As #1)
-			If Result <> 0 Then Result = Open(Path & "/" & f For Input Encoding "utf-16" As #1)
-			If Result <> 0 Then Result = Open(Path & "/" & f For Input Encoding "utf-8" As #1)
-			If Result <> 0 Then Result = Open(Path & "/" & f For Input As #1)
+			If f <> "." AndAlso f <> ".." Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
+		ElseIf EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") OrElse EndsWith(LCase(f), ".inc") _
+			OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".log") OrElse EndsWith(LCase(f), ".lng") _
+			OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".vfs") OrElse EndsWith(LCase(f), ".xml") _
+			OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".cpp") Then
+			Fn = FreeFile
+			Result = Open(Path & Slash & f For Input Encoding "utf-8" As #Fn)
+			If Result <> 0 Then Result = Open(Path & Slash & f For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(Path & Slash & f For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result = Open(Path & Slash & f For Input As #Fn)
 			If Result = 0 Then
-				WReallocate buff, LOF(1)
 				iLine = 0
-				Do Until EOF(1)
-					Line Input #1, *buff
+				Do Until EOF(Fn)
+					Line Input #Fn, Buff
 					iLine += 1
-					Pos1 = InStr(LCase(*buff), LCase(*search))
+					If MatchCase Then
+						Pos1 = InStr(Buff, tSearch)
+					Else
+						Pos1 = InStr(LCase(Buff), LCase(tSearch))
+					End If
+					
 					While Pos1 > 0
 						ThreadsEnter
-						plvSearch->ListItems.Add *buff
-						plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(1) = WStr(iLine)
-						plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(2) = WStr(Pos1)
-						plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(3) = Path & IIf(EndsWith(Path, "/") OrElse EndsWith(Path, "\"), "", "/") & f
+						lvSearchResult->ListItems.Add Buff
+						lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(1) = WStr(iLine)
+						lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(2) = WStr(Pos1)
+						lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(3) = Path & IIf(EndsWith(Path, Slash), "", Slash) & f
 						pfrmMain->Update
 						ThreadsLeave
-						Pos1 = InStr(Pos1 + 1, LCase(*buff), LCase(*search))
+						Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
 					Wend
 				Loop
-				Close #1
+				Close #Fn
+			Else
+				'MsgBox ML("Open file failure!") &  " " & ML("in function") & " frmFindInFiles.Find"  & WChr(13,10) & "  " & Path & f
 			End If
 		End If
 		f = Dir(Attr)
 	Wend
-	For i As Integer = 0 To Folders.Count - 1
-		Find Folders.Item(i)
-	Next
+	If SearchInSub Then
+		For i As Integer = 0 To Folders.Count - 1
+			Find lvSearchResult, Folders.Item(i), tSearch
+		Next
+	End If
+	Folders.Clear
+End Sub
+
+Sub FindToDoSub(Param As Any Ptr)
+	ThreadsEnter
+	plvToDo->ListItems.Clear
+	StartProgress
+	ThreadsLeave
+	fFindFile.Find plvToDo, GetFolderName(*Cast(ExplorerElement Ptr, Param)->FileName), WChr(39) + WChr(84) + "ODO"
+	ThreadsEnter
+	StopProgress
+	ptabBottom->Tabs[3]->Caption = ML("ToDo") & IIf(plvToDo->ListItems.Count = 0, "", " (" & plvToDo->ListItems.Count & " " & ML("Pos") & ")")
+	ThreadsLeave
 End Sub
 
 Sub FindSub(Param As Any Ptr)
 	ThreadsEnter
-	plvSearch->ListItems.Clear
 	pTabBottom->Tabs[2]->SelectTab
+	plvSearch->ListItems.Clear
 	StartProgress
 	With fFindFile
 		.btnFind.Enabled = False
+		.txtPath.Text  = Replace(.txtPath.Text, BackSlash, Slash)
+		If EndsWith(.txtPath.Text, Slash) = False Then .txtPath.Text =.txtPath.Text & Slash
 		ThreadsLeave
-		.Find Replace(.txtPath.Text, "\", "/")
+		.Find plvSearch, .txtPath.Text, .txtFind.Text
 		ThreadsEnter
 		.btnFind.Enabled = True
 	End With
 	StopProgress
 	ptabBottom->Tabs[2]->Caption = ML("Find") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
+	ThreadsLeave
+End Sub
+
+Sub ReplaceSub(Param As Any Ptr)
+	ThreadsEnter
+	plvSearch->ListItems.Clear
+	StartProgress
+	With fFindFile
+		.btnFind.Enabled = False
+		.btnReplace.Enabled = False
+		.txtPath.Text  = Replace(.txtPath.Text,BackSlash,Slash)
+		If EndsWith(.txtPath.Text,Slash) = False Then .txtPath.Text =.txtPath.Text & Slash
+		ThreadsLeave
+		.ReplaceInFile .txtPath.Text, .txtFind.Text,.txtReplace.Text
+		ThreadsEnter
+		.btnFind.Enabled = True
+		.btnReplace.Enabled = True
+	End With
+	StopProgress
+	ptabBottom->Tabs[2]->Caption = ML("Replace") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
 	ThreadsLeave
 End Sub
 
@@ -167,18 +290,159 @@ End Sub
 
 Private Sub frmFindInFiles.Form_Show(ByRef Sender As Form)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	txtFind.Text = pClipboard->GetAsText
+	'David Change for limited the Muilti line
+	Var Posi=InStr(pClipboard->GetAsText,WChr(13))-1
+	If Posi < 1 Then Posi=InStr(pClipboard->GetAsText,WChr(10))-1
+	If Posi < 1 Then Posi= Len(pClipboard->GetAsText)
+	fFindFile.txtFind.Text = Left(pClipboard->GetAsText,Posi)
 	If tb <> 0 AndAlso tb->FileName <> "" Then
-		txtPath.Text = GetFolderName(tb->FileName)
+		fFindFile.txtPath.Text = GetFolderName(tb->FileName)
 	Else
-		txtPath.Text = exepath
+		fFindFile.txtPath.Text = ExePath
 	End If
-	txtFind.SelectAll
-	txtFind.SetFocus
+	fFindFile.txtFind.SelectAll
+	fFindFile.txtFind.SetFocus
+	fFindFile.Panel1.Top =IIf(mFormFindInFile,35,64)
+	fFindFile.Height=IIf(mFormFindInFile,208,236)
+	fFindFile.Caption=IIf(mFormFindInFile,ML("Find In Files"),ML("Replace In Files"))
+	fFindFile.btnReplace.Visible =Not mFormFindInFile
+	fFindFile.lblReplace.Visible =Not mFormFindInFile
+	fFindFile.txtReplace.Visible =Not mFormFindInFile
 End Sub
 
 Private Sub frmFindInFiles.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	if 1 then
+	If 1 Then
 		
 	End If
+End Sub
+Private Sub frmFindInFiles.btnReplace_Click(ByRef Sender As Control)
+	ReplaceInFiles
+End Sub
+Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearch As WString="", ByRef tReplace As WString="")
+	Dim f As WString * 255
+	Dim BuffOut As WString Ptr
+	Dim FNameOpen As WString * 255
+	Dim As Integer Result, Pos1
+	Dim Buff As WString * 1024
+	Dim As Integer iLine, iStart
+	Dim As Integer Attr, Fn
+	Dim As WStringList Folders
+	Dim MLString As WString * 255
+	Dim SubStr() As WString Ptr
+	Dim As WString Ptr Temp
+	Dim As WString * 5 tML = WChr(77) & WChr(76) & WChr(40)& WChr(34)
+	If Path = "" OrElse tSearch="" OrElse (tSearch = tReplace AndAlso LCase(tML) <> LCase(tReplace)) Then Exit Sub
+	If LCase(tSearch) = LCase(tReplace) Then wLet BuffOut, "File"
+	If chkSearchinSub.Checked Then
+		f = Dir(Path & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
+	Else
+		f = Dir(Path & "*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
+	End If
+	wLet gSearchSave, tSearch
+	While f <> ""
+		If (Attr And fbDirectory) <> 0 Then
+			If f <> "." AndAlso f <> ".." Then Folders.Add  Path & f
+		ElseIf EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") OrElse EndsWith(LCase(f), ".inc") _
+			OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".log") OrElse EndsWith(LCase(f), ".lng") _
+			OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".vfs") OrElse EndsWith(LCase(f), ".xml") _
+			OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".cpp") Then
+			If LCase(tML) <> LCase(tReplace) Then
+				FNameOpen = GetBakFileName(Path & f)
+				'David Change https://www.freebasic.net/forum/viewtopic.php?f=2&t=27370&p=257529&hilit=FileCopy#p257529
+				#ifdef __USE_GTK__
+					FileCopy  Path & f, FNameOpen  'Function FileCopy suport unicode file name, But FileExist  is Ok in linux
+				#else
+					CopyFileW Path & f, FNameOpen, False
+				#endif
+			Else
+				FNameOpen = Path & f
+			End If
+			Fn=FreeFile
+			Result = Open(FNameOpen For Input Encoding "utf-8" As #Fn)
+			If Result <> 0 Then Result = Open(FNameOpen For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(FNameOpen For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result = Open(FNameOpen For Input As #Fn)
+			If Result = 0 Then
+				iLine = 0
+				If LCase(tSearch) <> LCase(tReplace) Then wLet BuffOut, ""
+				Do Until EOF(Fn)
+					Line Input #Fn, Buff
+					iLine += 1
+					If chkMatchCase.Checked Then
+						Pos1 = InStr(Buff, tSearch)
+					Else
+						Pos1 = InStr(LCase(Buff), LCase(tSearch))
+					End If
+					If Pos1 > 0 Then
+						If LCase(tSearch) = LCase(tReplace) Then
+							Var NumS = StringSubStringAll(Buff,tML, WChr(34) & ")",SubStr())
+							For i As Integer =0 To NumS-1
+								If InStr(*BuffOut, WChr(13,10) & *SubStr(i))<=0 Then
+									wAdd BuffOut, WChr(13,10) & *SubStr(i)
+									If InStr(*SubStr(i), "&")>0 Then wAdd BuffOut, WChr(13,10) & Replace(*SubStr(i),"&","")
+								End If
+							Next
+							#ifndef __USE_MAKE__
+								WDeallocate(SubStr())
+							#endif
+						Else
+							If *BuffOut="" Then
+								wLet BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked)
+							Else
+								wAdd BuffOut, WChr(13,10) & Replace(Buff, tSearch, tReplace,,, chkMatchCase.Checked)
+							End If
+						End If
+					ElseIf LCase(tSearch) <> LCase(tReplace) Then
+						If *BuffOut="" Then
+							wLet BuffOut, Buff
+						Else
+							wAdd BuffOut, WChr(13,10) & Buff
+						End If
+					End If
+					While Pos1 > 0
+						ThreadsEnter
+						plvSearch->ListItems.Add Buff
+						plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(1) = WStr(iLine)
+						plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(2) = WStr(Pos1)
+						plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(3) =  Path & f
+						pfrmMain->Update
+						ThreadsLeave
+						Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
+					Wend
+				Loop
+				Close #Fn
+				If LCase(tSearch) <> LCase(tReplace) Then
+					Fn=FreeFile
+					If Open(Path & f For Output Encoding "utf-8" As #Fn) = 0 Then
+						Print #Fn, *BuffOut
+						Close #Fn
+					Else
+						MsgBox ML("Open file failure!") & " " & ML("in function") & " frmFindInFiles.ReplaceInFile" & WChr(13,10) & "  " & Path & f
+					End If
+				End If
+			End If
+		End If
+		f = Dir(Attr)
+	Wend
+	If chkSearchinSub.Checked Then
+		For i As Integer = 0 To Folders.Count - 1
+			ReplaceInFile Folders.Item(i), tSearch, tReplace
+		Next
+	End If
+	txtReplace.Text = ""
+	If LCase(tML) = LCase(tReplace) Then
+		Fn = FreeFile
+		If Open(ExePath & "\Languages.txt" For Output Encoding "utf-8" As #Fn) = 0 Then
+			Print #Fn, *BuffOut
+			Close #Fn
+		End If
+	End If
+	wDeallocate BuffOut
+	Folders.Clear
+	WDeallocate Temp
+End Sub
+
+Private Sub frmFindInFiles.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	fFindFile.Panel1.Height =NewHeight - 30
+	fFindFile.Panel1.Width = NewWidth - 25
 End Sub

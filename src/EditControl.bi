@@ -1,8 +1,9 @@
-﻿/'
-EditControl.
-(c)2018-2019 Xusinboy Bekchanov
-bxusinboy@mail.ru
-'/
+﻿'#########################################################
+'#  EditControl.bi                                        #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
+'#########################################################
 
 #include once "mff/Panel.bi"
 #include once "mff/ComboBoxEx.bi"
@@ -29,20 +30,14 @@ Common Shared As Integer ChoosedTabStyle
 Common Shared As Boolean ChangeKeyWordsCase
 Common Shared As WStringList Ptr pkeywords0, pkeywords1, pkeywords2, pkeywords3
 
-Common Shared As Integer BookmarksForeground, BookmarksForegroundOption, BookmarksBackground, BookmarksBackgroundOption, BookmarksIndicator, BookmarksIndicatorOption, BookmarksBold, BookmarksItalic, BookmarksUnderline
-Common Shared As Integer BreakpointsForeground, BreakpointsForegroundOption, BreakpointsBackground, BreakpointsBackgroundOption, BreakpointsIndicator, BreakpointsIndicatorOption, BreakpointsBold, BreakpointsItalic, BreakpointsUnderline
-Common Shared As Integer CommentsForeground, CommentsForegroundOption, CommentsBackground, CommentsBackgroundOption, CommentsBold, CommentsItalic, CommentsUnderline
-Common Shared As Integer CurrentLineForeground, CurrentLineForegroundOption, CurrentLineBackground, CurrentLineBackgroundOption
-Common Shared As Integer ExecutionLineForeground, ExecutionLineForegroundOption, ExecutionLineBackground, ExecutionLineBackgroundOption, ExecutionLineIndicator, ExecutionLineIndicatorOption
-Common Shared As Integer FoldLinesForeground, FoldLinesForegroundOption
-Common Shared As Integer IndicatorLinesForeground, IndicatorLinesForegroundOption
-Common Shared As Integer KeywordsForeground, KeywordsForegroundOption, KeywordsBackground, KeywordsBackgroundOption, KeywordsBold, KeywordsItalic, KeywordsUnderline
-Common Shared As Integer LineNumbersForeground, LineNumbersForegroundOption, LineNumbersBackground, LineNumbersBackgroundOption, LineNumbersBold, LineNumbersItalic, LineNumbersUnderline
-Common Shared As Integer NormalTextForeground, NormalTextForegroundOption, NormalTextBackground, NormalTextBackgroundOption, NormalTextBold, NormalTextItalic, NormalTextUnderline
-Common Shared As Integer PreprocessorsForeground, PreprocessorsForegroundOption, PreprocessorsBackground, PreprocessorsBackgroundOption, PreprocessorsBold, PreprocessorsItalic, PreprocessorsUnderline
-Common Shared As Integer SelectionForeground, SelectionForegroundOption, SelectionBackground, SelectionBackgroundOption
-Common Shared As Integer SpaceIdentifiersForeground, SpaceIdentifiersForegroundOption
-Common Shared As Integer StringsForeground, StringsForegroundOption, StringsBackground, StringsBackgroundOption, StringsBold, StringsItalic, StringsUnderline
+Type ECColorScheme
+	As Long ForegroundOption, BackgroundOption, FrameOption, IndicatorOption
+	As Long Foreground, Background, Frame, Indicator
+	As Double ForegroundRed, ForegroundGreen, ForegroundBlue, BackgroundRed, BackgroundGreen, BackgroundBlue, FrameRed, FrameGreen, FrameBlue, IndicatorRed, IndicatorGreen, IndicatorBlue
+	As Boolean Bold, Italic, Underline
+End Type
+
+Common Shared As ECColorScheme Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, IndicatorLines, Keywords, LineNumbers, NormalText, Preprocessors, Selection, SpaceIdentifiers, Strings
 Common Shared As Integer EditorFontSize
 Common Shared As WString Ptr EditorFontName
 Common Shared As WString Ptr CurrentTheme
@@ -51,6 +46,7 @@ Type Construction
 	Name0 As String * 50
 	Name1 As String * 50
 	Name2 As String * 50
+	Name3 As String * 50
 	EndName As String * 50
 	Exception As String * 50
 	Collapsible As Boolean
@@ -81,6 +77,8 @@ Namespace My.Sys.Forms
 		Bookmark As Boolean
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
+		InConstructionIndex As Integer
+		InConstructionPart As Integer
 		Multiline As Boolean
 		Collapsible As Boolean
 		Collapsed As Boolean
@@ -91,7 +89,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Type EditControl Extends Control
-		Private:
+	Private:
 		Dim FHistory As List
 		Dim FVisibleLinesCount As Integer
 		Dim FECLine As EditControlLine Ptr
@@ -122,6 +120,10 @@ Namespace My.Sys.Forms
 		Dim jPos As Integer
 		Dim jPP As Integer = 0
 		Dim iPPos As Integer
+		Dim As Integer iCount, BracketsStart, BracketsStartLine, BracketsEnd, BracketsEndLine, iStartBS, iStartBE
+		Dim As String BracketsLine, Symb, SymbOpenBrackets, SymbCloseBrackets, OpenBrackets = "([{", CloseBrackets = ")]}"
+		Dim As Boolean bFinded
+		Dim As String CurWord
 		Dim FCurLine As Integer = 0
 		Dim FSelStartLine As Integer = 0
 		Dim FSelEndLine As Integer = 0
@@ -140,7 +142,8 @@ Namespace My.Sys.Forms
 		Dim OldnCaretPosX As Integer
 		Dim OldCharIndex As Integer
 		Dim OldLine As Integer
-		Dim As Integer dwLineHeight   ' высота строки 
+		Dim OldChar As Integer
+		Dim As Integer dwLineHeight   ' высота строки
 		Dim As Integer HCaretPos, VCaretPos
 		#ifdef __USE_GTK__
 			
@@ -156,7 +159,7 @@ Namespace My.Sys.Forms
 			Dim sz As Size
 			Dim As SCROLLINFO si
 		#endif
-		Dim As String Symbols = "!@#$~`'%^&*+-=()/\?<>.,;:[]{}""" & Chr(13) & Chr(10) & Chr(9) 
+		Dim As String Symbols = "!@#$~`'%^&*+-=()/\?<>.,;:[]{}""" & Chr(13) & Chr(10) & Chr(9)
 		Dim As Integer iMin
 		Dim As Integer iMax
 		Dim As Integer iLineIndex
@@ -172,7 +175,7 @@ Namespace My.Sys.Forms
 		Dim z As Integer
 		Dim ii As Integer
 		Dim jj As Integer
-		Dim sc As Integer
+		Dim sc As ECColorScheme Ptr
 		Dim ss As Integer
 		Dim p1 As Integer
 		Dim MaxWidth As Integer
@@ -201,13 +204,13 @@ Namespace My.Sys.Forms
 		Declare Sub FontSettings
 		Declare Function CharType(ByRef ch As WString) As Integer
 		Declare Function MaxLineWidth() As Integer
-		Declare Sub PaintText(iLine As Integer, ByRef s As WString, iStart As Integer, iEnd As Integer, BKColor As Integer = -1, TextColor As Integer = clBlack, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
+		Declare Sub PaintText(iLine As Integer, ByRef s As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
 		Declare Function GetLineIndex(Index As Integer, iTo As Integer = 0) As Integer
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Sub SplitLines
 		Declare Sub WordLeft
 		Declare Sub WordRight
-		Protected:
+	Protected:
 		Declare Function GetOldCharIndex() As Integer
 		Declare Function GetCharIndexFromOld() As Integer
 		Declare Sub ChangeCollapsibility(LineIndex As Integer)
@@ -232,7 +235,7 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
 		Declare Sub MiddleScroll
-		Public:
+	Public:
 		#ifdef __USE_GTK__
 			Dim As cairo_t Ptr cr
 			Dim As GtkWidget Ptr wText
@@ -290,6 +293,7 @@ Namespace My.Sys.Forms
 		Declare Function TextWidth(ByRef sText As WString) As Integer
 		Declare Sub ShowDropDownAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Declare Sub ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
+		Declare Sub UpdateToolTip
 		Declare Sub CloseDropDown()
 		Declare Sub CloseToolTip()
 		Declare Sub FormatCode()
@@ -319,7 +323,7 @@ Namespace My.Sys.Forms
 		Declare Sub ReplaceLine(Index As Integer, ByRef sLine As WString)
 		Declare Sub DeleteLine(Index As Integer)
 		Declare Sub ShowLine(Index As Integer)
-		Declare Sub GetSelection(ByRef iSelStartLine As Integer, ByRef iSelEndLine As Integer, ByRef iSelStartChar As Integer, ByRef iSelEndChar As Integer)
+		Declare Sub GetSelection(ByRef iSelStartLine As Integer, ByRef iSelEndLine As Integer, ByRef iSelStartChar As Integer, ByRef iSelEndChar As Integer, iCurrProcedure As Boolean = False)
 		Declare Sub SetSelection(iSelStartLine As Integer, iSelEndLine As Integer, iSelStartChar As Integer, iSelEndChar As Integer)
 		Declare Sub ChangeText(ByRef Value As WString, CharTo As Integer = 0, ByRef Comment As WString = "", SelStartLine As Integer = -1, SelStartChar As Integer = -1)
 		Declare Sub Changing(ByRef Comment As WString = "")
@@ -350,8 +354,10 @@ Namespace My.Sys.Forms
 		OnChange As Sub(ByRef Sender As EditControl)
 		OnAutoComplete As Sub(ByRef Sender As EditControl)
 		OnValidate As Sub(ByRef Sender As EditControl)
+		OnSelChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
 		OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 		OnLinkClicked As Sub(ByRef Sender As EditControl, ByRef Link As WString)
+		OnToolTipLinkClicked As Sub(ByRef Sender As EditControl, ByRef Link As WString)
 	End Type
 	
 	Common Constructions() As Construction
@@ -367,9 +373,9 @@ Namespace My.Sys.Forms
 	
 	Declare Function IsArg2(ByRef sLine As WString) As Boolean
 	
-	Declare Function GetNextCharIndex(ByRef sLine As WString, iEndChar As Integer) As Integer
+	Declare Function GetNextCharIndex(ByRef sLine As WString, iEndChar As Integer, WithDot As Boolean = False) As Integer
 	
-	Declare Sub GetColor(iColor As Integer, ByRef iRed As Double, ByRef iGreen As Double, ByRef iBlue As Double)
+	Declare Sub GetColor(iColor As Long, ByRef iRed As Double, ByRef iGreen As Double, ByRef iBlue As Double)
 	
 	#ifdef __USE_GTK__
 		Declare Sub cairo_rectangle(cr As cairo_t Ptr, x As Double, y As Double, x1 As Double, y1 As Double, z As Boolean)
@@ -377,6 +383,8 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Declare Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringList Ptr = 0) As String
+	
+	Declare Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True) As String
 	
 	#ifdef __USE_GTK__
 		Declare Function EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean

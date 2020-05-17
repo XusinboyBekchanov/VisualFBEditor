@@ -1,14 +1,15 @@
 ﻿'#########################################################
 '#  LanguageTemplate.bas                                 #
 '#  This file is part of VisualFBEditor                  #
-'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
-#Include Once "mff\Form.bi"
-#Include Once "mff\TextBox.bi"
-#Include Once "mff\Label.bi"
-#Include Once "mff\Dialogs.bi"
-#Include Once "mff\CommandButton.bi"
+#include once "mff\Form.bi"
+#include once "mff\TextBox.bi"
+#include once "mff\Label.bi"
+#include once "mff\Dialogs.bi"
+#include once "mff\CommandButton.bi"
 
 Using My.Sys.Forms
 
@@ -108,7 +109,9 @@ Function GetFolderName(ByRef FileName As WString) ByRef As WString
 End Function
 
 Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
-	Dim As WString Ptr buff, buff1, lang_name, fileName
+	Dim As WString Ptr lang_name, fileName
+	Dim Buff As WString * 1024
+	Dim Buff1 As WString * 1024
 	Dim As String Key
 	Dim As Integer p, p1, n
 	Dim As WStringList mlKeys, mlTexts, mlKeysNew
@@ -116,47 +119,51 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
 	WReallocate buff, LOF(1)
 	n = 0
 	Do Until EOF(1)
-		Line Input #1, *buff
+		Line Input #1, Buff
 		n = n + 1
 		If n = 1 Then
-			WLet lang_name, *buff
+			WLet lang_name, Buff
 		Else
-			p = Instr(LCase(*buff), " = ")
+			p = InStr(LCase(Buff), " = ")
 			If p > 0 Then
-				Key = Trim(Left(*buff, p - 1))
+				Key = Trim(Left(Buff, p - 1))
 				If Not mlKeys.Contains(Key) Then
 					mlKeys.Add Key
-					mlTexts.Add Mid(*buff, p + 3)
+					mlTexts.Add Mid(Buff, p + 3)
 				End If
 			End If
 		End If
 	Loop
 	Close #1
 	Open Cast(Form1 Ptr, Sender.Parent)->TextBox1.Text For Input Encoding "utf-8" As #1
-	WReallocate buff, LOF(1)
 	Do Until EOF(1)
-		Line Input #1, *buff
-		If StartsWith(*buff, "File=") OrElse StartsWith(*buff, "*File=") Then
-			*buff = Mid(*buff, Instr(*buff, "=") + 1)
-			If Instr(*buff, ":") Then
-				WLet fileName, *buff
+		Line Input #1, Buff
+		If StartsWith(Buff, "File=") OrElse StartsWith(Buff, "*File=") Then
+			Buff = Mid(Buff, InStr(Buff, "=") + 1)
+			If InStr(Buff, ":") Then
+				WLet fileName, Buff
 			Else
-				WLet fileName, GetFolderName(Cast(Form1 Ptr, Sender.Parent)->TextBox1.Text) & *buff
+				WLet fileName, GetFolderName(Cast(Form1 Ptr, Sender.Parent)->TextBox1.Text) & Buff
 			End If
 			Open *fileName For Input Encoding "utf-8" As #3
 			WReallocate buff1, LOF(3)
 			Do Until EOF(3)
-				Line Input #3, *buff1
-				p = Instr(LCase(*buff1), "ml(""")
+				Line Input #3, Buff1
+				p = InStr(LCase(Buff1), "ml(""")
 				Do While p > 0
-					p1 = Instr(p + 1, *buff1, """)")
+					p1 = InStr(p + 1, Buff1, """)")
 					If p1 > 0 Then
-						Key = Mid(*buff1, p + 4, p1 - p - 4)
+						Key = Mid(Buff1, p + 4, p1 - p - 4)
 						If Key <> """" Then
 							If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key: ?Key
+							'David Change for surport like "&F" in menuitem
+							If InStr(key,"&") Then
+								Key=replace(key,"&","")
+								If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key: ?Key
+							End If
 						End If
 					End If
-					p = Instr(p1 + 1, LCase(*buff1), "ml(""")
+					p = InStr(p1 + 1, LCase(Buff1), "ml(""")
 				Loop
 			Loop
 			Close #3

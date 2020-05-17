@@ -1,17 +1,11 @@
-﻿'#ifdef __FB_WIN32__
-'	#ifdef __FB_64BIT__
-'		'#Compile -g -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -exx
-'	#else
-'		'#Compile -g -s console -x "../VisualFBEditor321.exe" "VisualFBEditor.rc" -exx
-'	#endif
-'#else
-'	#ifdef __FB_64BIT__
-'		'#Compile -g -s gui -x "../VisualFBEditor641_gtk3" -exx
-'	#else
-'		'#Compile -g -s gui -x "../VisualFBEditor32_gtk3" -exx
-'	#endif
-'#endif
+﻿'#########################################################
+'#  VisualFBEditor.bas                                   #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
+'#########################################################
 
+'#define __USE_GTK__
 #ifndef __USE_MAKE__
 	#define __USE_GTK3__
 	#define _NOT_AUTORUN_FORMS_
@@ -19,11 +13,14 @@
 
 Const VER_MAJOR  = "1"
 Const VER_MINOR  = "2"
-Const VER_PATCH  = "0"
+Const VER_PATCH  = "3"
 Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
 Const SIGN       = "VisualFBEditor " + VERSION
-'#Define GetMN
+
+#define GetMN
+'#define FBMLD_NO_MULTITHREADING
+'#include "fbmld.bi"
 
 #include once "Main.bi"
 #include once "Debug.bi"
@@ -51,39 +48,48 @@ End Sub
 Sub FindInFiles
 	ThreadCreate(@FindSub)
 End Sub
-
+Sub ReplaceInFiles
+	ThreadCreate(@ReplaceSub)
+End Sub
 Sub mClickMRU(Sender As My.Sys.Object)
 	OpenFiles Sender.ToString
 End Sub
 
+Sub mClickHelp(ByRef Sender As My.Sys.Object)
+	ThreadCreate(@RunHelp, @Cast(MenuItem Ptr, @Sender)->ImageKey)
+End Sub
+
 Sub mClick(Sender As My.Sys.Object)
 	Select Case Sender.ToString
-	Case "NewProject":                      NewProject
-	Case "OpenProject":                     OpenProject
-	Case "OpenSession":                     OpenSession
-	Case "SaveProject":                     SaveProject ptvExplorer->SelectedNode
-	Case "SaveSession":                     SaveSession
-	Case "CloseProject":                    CloseProject GetParentNode(ptvExplorer->SelectedNode)
-	Case "New":                             AddTab
-	Case "Open":                            OpenProgram
-	Case "Save":                            Save
-	Case "Print":                           PrintThis
-	Case "PrintPreview":                    PrintPreview
-	Case "PageSetup":                       PageSetup
-	Case "AddFileToProject":                AddFileToProject
-	Case "RemoveFileFromProject":           RemoveFileFromProject
-	Case "OpenProjectFolder":               OpenProjectFolder
-	Case "ProjectProperties":               pfProjectProperties->Show *pfrmMain
-	Case "SetAsMain": 			            SetAsMain
-	Case "TBUseDebugger":                   ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
-	Case "UseDebugger":                     ChangeUseDebugger Not mnuUseDebugger->Checked, 1
-	Case "Folder":                          WithFolder
-	Case "SyntaxCheck":                     ThreadCreate(@SyntaxCheck)
-	Case "Compile":                         ThreadCreate(@CompileProgram)
-	Case "Make":                            ThreadCreate(@MakeExecute)
-	Case "MakeClean":                       ThreadCreate(@MakeClean)
-	Case "Parameters":                      pfParameters->Show *pfrmMain
+	Case "NewProject":                          NewProject
+	Case "OpenProject":                         OpenProject
+	Case "OpenSession":                         OpenSession
+	Case "SaveProject":                         SaveProject ptvExplorer->SelectedNode
+	Case "SaveSession":                         SaveSession
+	Case "CloseProject":                        CloseProject GetParentNode(ptvExplorer->SelectedNode)
+	Case "New":                                 AddTab
+	Case "Open":                                OpenProgram
+	Case "Save":                                Save
+	Case "Print":                               PrintThis
+	Case "PrintPreview":                        PrintPreview
+	Case "PageSetup":                           PageSetup
+	Case "AddFileToProject":                    AddFileToProject
+	Case "RemoveFileFromProject":               RemoveFileFromProject
+	Case "OpenProjectFolder":                   OpenProjectFolder
+	Case "ProjectProperties":                   pfProjectProperties->RefreshProperties: pfProjectProperties->ShowModal *pfrmMain
+	Case "SetAsMain": 			                SetAsMain
+	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
+	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
+	Case "Folder":                              WithFolder
+	Case "SyntaxCheck": SaveAllBeforeCompile:   ThreadCreate(@SyntaxCheck) 'David Change
+	Case "Compile":     SaveAllBeforeCompile:   ThreadCreate(@CompileProgram) 'David Change
+	Case "Make":        SaveAllBeforeCompile:   ThreadCreate(@MakeExecute) 'David Change
+	Case "MakeClean":   SaveAllBeforeCompile:   ThreadCreate(@MakeClean) 'David Change
+	Case "FormatProject":                       ThreadCreate(@FormatProject) 'FormatProject 0
+	Case "UnformatProject":                     ThreadCreate(@FormatProject, Cast(Any Ptr, 1)) 'FormatProject Cast(Any Ptr, 1)
+	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "StartWithCompile"
+		SaveAll 'David Change
 		If UseDebugger Then
 			If InDebug Then
 				#ifndef __USE_GTK__
@@ -118,7 +124,7 @@ Sub mClick(Sender As My.Sys.Object)
 			ThreadCreate(@RunProgram)
 		End If
 	Case "Break":                   'If tb->Compile("Run") Then ThreadCreate(@RunWithDebug)
-	Case "End":  
+	Case "End":
 		#ifndef __USE_GTK__
 			For i As Integer = 1 To linenb 'restore old instructions
 				WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rLine(i).sv, 1, 0)
@@ -129,7 +135,7 @@ Sub mClick(Sender As My.Sys.Object)
 			DeleteDebugCursor
 			ChangeEnabledDebug True, False, False
 		#endif
-	Case "StepInto":        
+	Case "StepInto":
 		If InDebug Then
 			ChangeEnabledDebug False, True, True
 			#ifndef __USE_GTK__
@@ -146,8 +152,8 @@ Sub mClick(Sender As My.Sys.Object)
 			ThreadCreate(@StartDebugging)
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
-		"Start", "Stop", "StepInto", "FindNext", "Goto", "SetNextStatement", _
-		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks"
+		"Start", "Stop", "StepInto", "FindNext","FindPrev", "Goto", "SetNextStatement", _
+		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks","SwitchCodeForm" 'David Change
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
@@ -166,24 +172,41 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "NextBookmark":                NextBookmark 1
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
+		Case "SwitchCodeForm":           'David Change
+			If tb->pnlForm.Visible  Then
+				tb->pnlCode.Visible = True
+				tb->pnlForm.Visible = False
+				tb->splForm.Visible = False
+			Else
+				tb->pnlCode.Visible = False
+				tb->pnlForm.Align = 5
+				tb->pnlForm.Visible = True
+				tb->splForm.Visible = False
+				If tb->bNotDesign = False Then tb->FormDesign
+				
+			End If
+			tb->RequestAlign
 		End Select
 	Case "SaveAll":                         SaveAll
 	Case "CloseAll":                        CloseAllTabs
 	Case "CloseAllWithoutCurrent":          CloseAllTabs(True)
 	Case "Exit":                            pfrmMain->CloseForm
-	Case "Find":         		            mFormFind = True: pfFind->Show *pfrmMain ' DAVID CHANGE
-	Case "FindInFiles":                     pfFindFile->Show *pfrmMain
-	Case "Replace":                         mFormFind = False: pfFind->Show *pfrmMain ' DAVID CHANGE
+	Case "Find":                            mFormFind = True: pfFind->Show *pfrmMain
+	Case "FindInFiles":                     mFormFindInFile = True:  pfFindFile->Show *pfrmMain
+	Case "ReplaceinFiles":                  mFormFindInFile = False:  pfFindFile->Show *pfrmMain
+	Case "Replace":                         mFormFind = False: pfFind->Show *pfrmMain
 	Case "NewForm":                         AddTab ExePath + "/Templates/Form.bas", True
 		#ifndef __USE_GTK__
 		Case "ShowString":                  string_sh(tviewvar)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)
 		#endif
 	Case "Undo", "Redo", "Cut", "Copy", "Paste", "SelectAll", "SingleComment", "BlockComment", "UnComment", _
-		"Indent", "Outdent", "Format", "Unformat", "NumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", _
-		"UnCollapseAll", "CompleteWord", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling"
+		"Indent", "Outdent", "Format", "Unformat", "NumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureNumberOff", _
+		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", _
+		"CompleteWord", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
 		If pfrmMain->ActiveControl = 0 Then Exit Sub
-		If pfrmMain->ActiveControl->ClassName <> "EditControl" And pfrmMain->ActiveControl->ClassName <> "TextBox" Then Exit Sub
+		If pfrmMain->ActiveControl->ClassName <> "EditControl" AndAlso pfrmMain->ActiveControl->ClassName <> "TextBox" AndAlso pfrmMain->ActiveControl->ClassName <> "Panel" Then Exit Sub
+		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If pfrmMain->ActiveControl->ClassName = "TextBox" Then
 			Dim txt As TextBox Ptr = Cast(TextBox Ptr, pfrmMain->ActiveControl)
 			Select Case Sender.ToString
@@ -193,53 +216,59 @@ Sub mClick(Sender As My.Sys.Object)
 			Case "Paste":                   txt->PasteFromClipboard
 			Case "SelectAll":               txt->SelectAll
 			End Select
-		End If
-		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If tb = 0 Then Exit Sub
-		If tb->cboClass.ItemIndex > 0 Then
-			Dim des As Designer Ptr = tb->Des
-			If des = 0 Then Exit Sub
-			Select Case Sender.ToString
-			Case "Cut":                     des->CutControl
-			Case "Copy":                    des->CopyControl
-			Case "Paste":                   des->PasteControl
-			End Select
-		ElseIf pfrmMain->ActiveControl->ClassName = "EditControl" Then
-			Dim ec As EditControl Ptr = @tb->txtCode
-			Select Case Sender.ToString
-			Case "Redo":                    ec->Redo
-			Case "Undo":                    ec->Undo
-			Case "Cut":                     ec->CutToClipboard
-			Case "Copy":                    ec->CopyToClipboard
-			Case "Paste":                   ec->PasteFromClipboard
-			Case "SelectAll":               ec->SelectAll
-			Case "SingleComment":           ec->CommentSingle
-			Case "BlockComment":            ec->CommentBlock
-			Case "UnComment":               ec->UnComment
-			Case "Indent":                  ec->Indent
-			Case "Outdent":                 ec->Outdent
-			Case "Format":                  ec->FormatCode
-			Case "Unformat":                ec->UnformatCode
-			Case "Breakpoint":              ec->BreakPoint
-			Case "CollapseAll":             ec->CollapseAll
-			Case "UnCollapseAll":           ec->UnCollapseAll
-			Case "CompleteWord":            CompleteWord    
-			Case "ToggleBookmark":          ec->Bookmark
-			Case "Define":                  tb->Define
-			Case "Format":                  tb->FormatBlock
-			Case "NumberOn":        	    tb->NumberOn
-			Case "NumberOff":               tb->NumberOff
-			Case "ProcedureNumberOn":       tb->ProcedureNumberOn
-			Case "ProcedureNumberOff":      tb->ProcedureNumberOff
-			Case "OnErrorResumeNext":       tb->SetErrorHandling "On Error Resume Next", ""
-			Case "OnErrorGoto":             tb->SetErrorHandling "On Error Goto ErrorHandler", ""
-			Case "OnErrorGotoResumeNext":   tb->SetErrorHandling "On Error Goto ErrorHandler", "Resume Next"
-			Case "RemoveErrorHandling":     tb->RemoveErrorHandling
-			End Select
+		ElseIf tb <> 0 Then
+			If tb->cboClass.ItemIndex > 0 Then
+				Dim des As Designer Ptr = tb->Des
+				If des = 0 Then Exit Sub
+				Select Case Sender.ToString
+				Case "Cut":                     des->CutControl
+				Case "Copy":                    des->CopyControl
+				Case "Paste":                   des->PasteControl
+				End Select
+			ElseIf pfrmMain->ActiveControl->ClassName = "EditControl" OrElse pfrmMain->ActiveControl->ClassName = "Panel" Then
+				Dim ec As EditControl Ptr = @tb->txtCode
+				Select Case Sender.ToString
+				Case "Redo":                    ec->Redo
+				Case "Undo":                    ec->Undo
+				Case "Cut":                     ec->CutToClipboard
+				Case "Copy":                    ec->CopyToClipboard
+				Case "Paste":                   ec->PasteFromClipboard
+				Case "SelectAll":               ec->SelectAll
+				Case "SingleComment":           ec->CommentSingle
+				Case "BlockComment":            ec->CommentBlock
+				Case "UnComment":               ec->UnComment
+				Case "Indent":                  ec->Indent
+				Case "Outdent":                 ec->Outdent
+				Case "Format":                  ec->FormatCode
+				Case "Unformat":                ec->UnformatCode
+				Case "Breakpoint":              ec->BreakPoint
+				Case "CollapseAll":             ec->CollapseAll
+				Case "UnCollapseAll":           ec->UnCollapseAll
+				Case "CompleteWord":            CompleteWord
+				Case "ToggleBookmark":          ec->Bookmark
+				Case "Define":                  tb->Define
+				Case "NumberOn":        	    tb->NumberOn
+				Case "NumberOff":               tb->NumberOff
+				Case "ProcedureNumberOn":       tb->ProcedureNumberOn
+				Case "ProcedureNumberOff":      tb->ProcedureNumberOff
+				Case "PreprocessorNumberOn":    tb->PreprocessorNumberOn
+				Case "PreprocessorNumberOff":   tb->PreprocessorNumberOff
+				Case "OnErrorResumeNext":       tb->SetErrorHandling "On Error Resume Next", ""
+				Case "OnErrorGoto":             tb->SetErrorHandling "On Error Goto ErrorHandler", ""
+				Case "OnErrorGotoResumeNext":   tb->SetErrorHandling "On Error Goto ErrorHandler", "Resume Next"
+				Case "RemoveErrorHandling":     tb->RemoveErrorHandling
+				End Select
+			End If
 		End If
 	Case "Options":                         pfOptions->Show *pfrmMain
 	Case "AddIns":                          pfAddIns->Show *pfrmMain
 	Case "Content":                         ThreadCreate(@RunHelp)
+	Case "FreeBasicForums":                 OpenUrl "https://www.freebasic.net/forum/index.php"
+	Case "FreeBasicWiKi":                   OpenUrl "https://www.freebasic.net/wiki/wikka.php?wakka=PageIndex"
+	Case "GitHubWebSite":                   OpenUrl "https://github.com"
+	Case "FreeBasicRepository":             OpenUrl "https://github.com/freebasic/fbc"
+	Case "VisualFBEditorRepository":        OpenUrl "https://github.com/XusinboyBekchanov/VisualFBEditor"
+	Case "MyFbFrameworkRepository":         OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework"
 	Case "About":                           pfAbout->Show *pfrmMain
 	End Select
 End Sub

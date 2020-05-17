@@ -1,186 +1,192 @@
-﻿'#Compile -exx "Form1.rc"
+﻿'#########################################################
+'#  frmParameters.bas                                    #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
+'#########################################################
+
 #include once "frmParameters.bi"
 #include once "Main.bi"
 
 '#Region "Form"
-    Constructor frmParameters
-    	' frmParameters
-    	This.Name = "frmParameters"
-    	This.Text = "Parameters"
-    	This.Caption = "Parameters"
-    	This.StartPosition = FormStartPosition.CenterParent
-    	This.CancelButton = @cmdCancel
-    	This.DefaultButton = @cmdOK
-    	This.OnCreate = @Form_Create
-    	This.OnShow = @Form_Show
-    	This.SetBounds 0, 0, 742, 348
-    	' grbCompile
-    	grbCompile.Name = "grbCompile"
-    	grbCompile.Text = "Compile"
-    	grbCompile.SetBounds 8, 8, 712, 88
-    	grbCompile.Parent = @This
-    	' grbMake
-    	grbMake.Name = "grbMake"
-    	grbMake.Text = "Make"
-    	grbMake.SetBounds 8, 96, 712, 88
-    	grbMake.Parent = @This
-    	' grbRun
-    	grbRun.Name = "grbRun"
-    	grbRun.Text = "Run"
-    	grbRun.SetBounds 8, 184, 712, 88
-    	grbRun.Parent = @This
-    	' cmdOK
-    	cmdOK.Name = "cmdOK"
-    	cmdOK.Default = True
-    	cmdOK.Text = "OK"
-    	cmdOK.SetBounds 528, 280, 96, 24
-    	cmdOK.Caption = "OK"
-    	cmdOK.OnClick = @cmdOK_Click
-    	cmdOK.Parent = @This
-    	' cmdCancel
-    	cmdCancel.Name = "cmdCancel"
-    	cmdCancel.Text = "Cancel"
-    	cmdCancel.SetBounds 624, 280, 96, 24
-    	cmdCancel.Caption = "Cancel"
-    	cmdCancel.OnClick = @cmdCancel_Click
-    	cmdCancel.Parent = @This
-    	' txtfbc64
-    	With txtfbc64
-    		.Name = "txtfbc64"
-    		.SetBounds 280, 56, 425, 21
-    		.Parent = @This
-    	End With
-    	' txtfbc32
-    	With txtfbc32
-    		.Name = "txtfbc32"
-    		.SetBounds 280, 32, 425, 21
-    		.Parent = @This
-    	End With
-    	' txtMake1
-    	With txtMake1
-    		.Name = "txtMake1"
-    		.SetBounds 280, 120, 425, 21
-    		.Parent = @This
-    	End With
-    	' txtMake2
-    	With txtMake2
-    		.Name = "txtMake2"
-    		.SetBounds 280, 144, 425, 21
-    		.Parent = @This
-    	End With
-    	' txtRun
-    	With txtRun
-    		.Name = "txtRun"
-    		.SetBounds 280, 208, 425, 21
-    		.Parent = @This
-    	End With
-    	' lblfbc32
-    	With lblfbc32
-    		.Name = "lblfbc32"
-    		.Text = "fbc 32-bit:"
-    		.SetBounds 24, 34, 56, 16
-    		.Caption = "fbc 32-bit:"
-    		.Parent = @This
-    	End With
-    	' lblfbc64
-    	With lblfbc64
-    		.Name = "lblfbc64"
-    		.Text = "fbc 64-bit:"
-    		.SetBounds 24, 59, 56, 16
-    		.Caption = "fbc 64-bit:"
-    		.Parent = @This
-    	End With
-    	' lblMake1
-    	With lblMake1
-    		.Name = "lblMake1"
-    		.Text = "make 1:"
-    		.SetBounds 24, 124, 56, 16
-    		.Caption = "make 1:"
-    		.Parent = @This
-    	End With
-    	' llblMake2
-    	With llblMake2
-    		.Name = "llblMake2"
-    		.Text = "make 2:"
-    		.SetBounds 24, 147, 56, 16
-    		.Caption = "make 2:"
-    		.Parent = @This
-    	End With
-    	' lblRun
-    	With lblRun
-    		.Name = "lblRun"
-    		.Text = "run:"
-    		.SetBounds 24, 212, 56, 16
-    		.Caption = "run:"
-    		.Parent = @This
-    	End With
-    	' lblDebug
-    	With lblDebug
-    		.Name = "lblDebug"
-    		.Text = "debug:"
-    		.SetBounds 24, 235, 56, 17
-    		.Caption = "debug:"
-    		.Parent = @This
-    	End With
-    	' txtDebug
-    	With txtDebug
-    		.Name = "txtDebug"
-    		.Text = ""
-    		.SetBounds 280, 232, 425, 21
-    		.Parent = @This
-    	End With
-    	' cboCompiler32
-    	With cboCompiler32
-    		.Name = "cboCompiler32"
-    		.Text = "ComboBoxEdit1"
-    		.SetBounds 88, 32, 192, 21
-    		.Parent = @This
-    	End With
-    	' cboCompiler64
-    	With cboCompiler64
-    		.Name = "cboCompiler64"
-    		.Text = "ComboBoxEdit11"
-    		.SetBounds 88, 56, 192, 21
-    		.Parent = @This
-    	End With
-    	' cboMake1
-    	With cboMake1
-    		.Name = "cboMake1"
-    		.Text = "ComboBoxEdit12"
-    		.SetBounds 88, 120, 192, 21
-    		.Parent = @This
-    	End With
-    	' cboMake2
-    	With cboMake2
-    		.Name = "cboMake2"
-    		.Text = "ComboBoxEdit111"
-    		.SetBounds 88, 144, 192, 21
-    		.Parent = @This
-    	End With
-    	' cboRun
-    	With cboRun
-    		.Name = "cboRun"
-    		.Text = "ComboBoxEdit13"
-    		.SetBounds 88, 208, 192, 21
-    		.Parent = @This
-    	End With
-    	' cboDebug
-    	With cboDebug
-    		.Name = "cboDebug"
-    		.Text = "ComboBoxEdit112"
-    		.SetBounds 88, 232, 192, 21
-    		.Parent = @This
-    	End With
-    End Constructor
-    
-    Dim Shared fParameters As frmParameters
-    pfParameters = @fParameters
-    
-    #ifndef _NOT_AUTORUN_FORMS_
-        fParameters.Show
-        
-        App.Run
-    #endif
+	Constructor frmParameters
+		' frmParameters
+		This.Name = "frmParameters"
+		This.Text = "Parameters"
+		This.Caption = "Parameters"
+		This.StartPosition = FormStartPosition.CenterParent
+		This.CancelButton = @cmdCancel
+		This.DefaultButton = @cmdOK
+		This.OnCreate = @Form_Create
+		This.OnShow = @Form_Show
+		This.SetBounds 0, 0, 742, 348
+		' grbCompile
+		grbCompile.Name = "grbCompile"
+		grbCompile.Text = "Compile"
+		grbCompile.SetBounds 8, 8, 712, 88
+		grbCompile.Parent = @This
+		' grbMake
+		grbMake.Name = "grbMake"
+		grbMake.Text = "Make"
+		grbMake.SetBounds 8, 96, 712, 88
+		grbMake.Parent = @This
+		' grbRun
+		grbRun.Name = "grbRun"
+		grbRun.Text = "Run"
+		grbRun.SetBounds 8, 184, 712, 88
+		grbRun.Parent = @This
+		' cmdOK
+		cmdOK.Name = "cmdOK"
+		cmdOK.Default = True
+		cmdOK.Text = "OK"
+		cmdOK.SetBounds 528, 280, 96, 24
+		cmdOK.Caption = "OK"
+		cmdOK.OnClick = @cmdOK_Click
+		cmdOK.Parent = @This
+		' cmdCancel
+		cmdCancel.Name = "cmdCancel"
+		cmdCancel.Text = "Cancel"
+		cmdCancel.SetBounds 624, 280, 96, 24
+		cmdCancel.Caption = "Cancel"
+		cmdCancel.OnClick = @cmdCancel_Click
+		cmdCancel.Parent = @This
+		' txtfbc64
+		With txtfbc64
+			.Name = "txtfbc64"
+			.SetBounds 376, 48, 321, 21
+			.Parent = @grbCompile
+		End With
+		' txtfbc32
+		With txtfbc32
+			.Name = "txtfbc32"
+			.SetBounds 376, 24, 321, 21
+			.Parent = @grbCompile
+		End With
+		' txtMake1
+		With txtMake1
+			.Name = "txtMake1"
+			.SetBounds 376, 24, 321, 21
+			.Parent = @grbMake
+		End With
+		' txtMake2
+		With txtMake2
+			.Name = "txtMake2"
+			.SetBounds 376, 48, 321, 21
+			.Parent = @grbMake
+		End With
+		' txtRun
+		With txtRun
+			.Name = "txtRun"
+			.SetBounds 376, 24, 321, 21
+			.Parent = @grbRun
+		End With
+		' lblfbc32
+		With lblfbc32
+			.Name = "lblfbc32"
+			.Text = "fbc 32-bit:"
+			.SetBounds 16, 24, 56, 16
+			.Caption = "fbc 32-bit:"
+			.Parent = @grbCompile
+		End With
+		' lblfbc64
+		With lblfbc64
+			.Name = "lblfbc64"
+			.Text = "fbc 64-bit:"
+			.SetBounds 16, 48, 56, 16
+			.Caption = "fbc 64-bit:"
+			.Parent = @grbCompile
+		End With
+		' lblMake1
+		With lblMake1
+			.Name = "lblMake1"
+			.Text = "make 1:"
+			.SetBounds 16, 24, 56, 16
+			.Caption = "make 1:"
+			.Parent = @grbMake
+		End With
+		' llblMake2
+		With llblMake2
+			.Name = "llblMake2"
+			.Text = "make 2:"
+			.SetBounds 16, 48, 56, 16
+			.Caption = "make 2:"
+			.Parent = @grbMake
+		End With
+		' lblRun
+		With lblRun
+			.Name = "lblRun"
+			.Text = "run:"
+			.SetBounds 16, 24, 56, 16
+			.Caption = "run:"
+			.Parent = @grbRun
+		End With
+		' lblDebug
+		With lblDebug
+			.Name = "lblDebug"
+			.Text = "debug:"
+			.SetBounds 16, 48, 56, 17
+			.Caption = "debug:"
+			.Parent = @grbRun
+		End With
+		' txtDebug
+		With txtDebug
+			.Name = "txtDebug"
+			.Text = ""
+			.SetBounds 376, 48, 321, 21
+			.Parent = @grbRun
+		End With
+		' cboCompiler32
+		With cboCompiler32
+			.Name = "cboCompiler32"
+			.Text = "ComboBoxEdit1"
+			.SetBounds 80, 24, 288, 21
+			.Parent = @grbCompile
+		End With
+		' cboCompiler64
+		With cboCompiler64
+			.Name = "cboCompiler64"
+			.Text = "ComboBoxEdit11"
+			.SetBounds 80, 48, 288, 21
+			.Parent = @grbCompile
+		End With
+		' cboMake1
+		With cboMake1
+			.Name = "cboMake1"
+			.Text = "ComboBoxEdit12"
+			.SetBounds 80, 24, 288, 21
+			.Parent = @grbMake
+		End With
+		' cboMake2
+		With cboMake2
+			.Name = "cboMake2"
+			.Text = "ComboBoxEdit111"
+			.SetBounds 80, 48, 288, 21
+			.Parent = @grbMake
+		End With
+		' cboRun
+		With cboRun
+			.Name = "cboRun"
+			.Text = "ComboBoxEdit13"
+			.SetBounds 80, 24, 288, 21
+			.Parent = @grbRun
+		End With
+		' cboDebug
+		With cboDebug
+			.Name = "cboDebug"
+			.Text = "ComboBoxEdit112"
+			.SetBounds 80, 48, 288, 21
+			.Parent = @grbRun
+		End With
+	End Constructor
+	
+	Dim Shared fParameters As frmParameters
+	pfParameters = @fParameters
+	
+	#ifndef _NOT_AUTORUN_FORMS_
+		fParameters.Show
+		
+		App.Run
+	#endif
 '#End Region
 
 Sub frmParameters.LoadSettings()

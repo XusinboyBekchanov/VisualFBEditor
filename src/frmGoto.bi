@@ -4,13 +4,13 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)              #
 '#########################################################
 
-#Include Once "mff/Form.bi"
-#Include Once "mff/Label.bi"
-#Include Once "mff/TextBox.bi"
-#Include Once "mff/CommandButton.bi"
-#Include Once "TabWindow.bi"
+#include once "mff/Form.bi"
+#include once "mff/Label.bi"
+#include once "mff/TextBox.bi"
+#include once "mff/CommandButton.bi"
+#include once "TabWindow.bi"
 
-#Define Me3 *Cast(frmGoto Ptr, Sender.GetForm)
+#define Me3 *Cast(frmGoto Ptr, Sender.GetForm)
 
 Using My.Sys.Forms
 

@@ -1,15 +1,10 @@
-﻿/'
-Designer.bi
-Authors: Nastase Eodor, Xusinboy Bekchanov
-Based On:
-Simple Designer. Educational purposes.
-(c)2013 Nastase Eodor
-nastasa.eodor@gmail.com
-http://rqwork.xhost.ro
-Updated And added cross-platform
-by Xusinboy Bekchanov (2018-2019)
-bxusinboy@mail.ru
-'/
+﻿'#########################################################
+'#  Designer.bi                                          #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
+'#           Nastase Eodor(nastasa.eodor@gmail.com)      #
+'#########################################################
 
 '#Include Once "mff/Menus.bi"
 '#Include Once "mff/Form.bi"
@@ -46,7 +41,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Type Designer Extends My.Sys.Object
-		Private:
+	Private:
 		#ifdef __USE_GTK__
 			Declare Static Function HookChildProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Function HookDialogProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
@@ -125,7 +120,7 @@ Namespace My.Sys.Forms
 			Brush         As HBRUSH
 			PrevBrush     As HBRUSH
 		#endif
-		Protected:
+	Protected:
 		Declare Sub ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Declare        Function IsDot(hDlg As GtkWidget Ptr) As Integer
@@ -167,7 +162,7 @@ Namespace My.Sys.Forms
 		Declare        Sub MouseUp(X As Integer, Y As Integer, Shift As Integer)
 		Declare        Sub MouseMove(X As Integer, Y As Integer, Shift As Integer)
 		Declare        Sub KeyDown(Key As Integer, Shift As Integer)
-		Public:
+	Public:
 		CreateControlFunc As Function(ByRef ClassName As String, ByRef Name As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As Any Ptr
 		DeleteComponentFunc As Function(Cpnt As Any Ptr) As Boolean
 		ReadPropertyFunc As Function(Cpnt As Any Ptr, ByRef PropertyName As String) As Any Ptr
@@ -217,7 +212,7 @@ Namespace My.Sys.Forms
 			Declare Function GetControl(CtrlHandle As HWND) As Any Ptr
 			Declare        Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
 		#endif
-		Declare        Function CreateControl(AClassName As String, AName As String, ByRef AText As WString, AParent As Any Ptr, x As Integer,y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
+		Declare        Function CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer,y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
 		Declare        Function CreateComponent(AClassName As String, AName As String) As Any Ptr
 		OnChangeSelection  As Sub(ByRef Sender As Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 		OnDeleteControl    As Sub(ByRef Sender As Designer, Control As Any Ptr)

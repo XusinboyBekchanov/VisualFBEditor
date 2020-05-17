@@ -1,8 +1,14 @@
-﻿'#Compile -exx "Form1.rc"
-#Include Once "mff/Form.bi"
-#Include Once "mff/Label.bi"
-#Include Once "mff/TextBox.bi"
-#Include Once "mff/CommandButton.bi"
+﻿'#########################################################
+'#  frmTheme.bi                                          #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
+'#########################################################
+
+#include once "mff/Form.bi"
+#include once "mff/Label.bi"
+#include once "mff/TextBox.bi"
+#include once "mff/CommandButton.bi"
 
 Using My.Sys.Forms
 

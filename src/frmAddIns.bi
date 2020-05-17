@@ -4,15 +4,15 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)              #
 '#########################################################
 
-#Include Once "mff/Form.bi"
-#Include Once "mff/ListView.bi"
-#Include Once "mff/CommandButton.bi"
-#Include Once "mff/Label.bi"
-#Include Once "mff/TextBox.bi"
-#Include Once "mff/GroupBox.bi"
-#Include Once "mff/CheckBox.bi"
-#Include Once "mff/Panel.bi"
-#Include Once "Main.bi"
+#include once "mff/Form.bi"
+#include once "mff/ListView.bi"
+#include once "mff/CommandButton.bi"
+#include once "mff/Label.bi"
+#include once "mff/TextBox.bi"
+#include once "mff/GroupBox.bi"
+#include once "mff/CheckBox.bi"
+#include once "mff/Panel.bi"
+#include once "Main.bi"
 
 Using My.Sys.Forms
 

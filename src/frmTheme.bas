@@ -1,5 +1,11 @@
-﻿'#Compile -exx "Form1.rc"
-#Include Once "frmTheme.bi"
+﻿'#########################################################
+'#  frmTheme.bi                                          #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
+'#########################################################
+
+#include once "frmTheme.bi"
 
 '#Region "Form"
 	Constructor frmTheme
@@ -39,11 +45,11 @@
 	Dim Shared fTheme As frmTheme
 	pfTheme = @fTheme
 	
-	#IfnDef _NOT_AUTORUN_FORMS_
+	#ifndef _NOT_AUTORUN_FORMS_
 		fForm1.Show
 		
 		App.Run
-	#EndIf
+	#endif
 '#End Region
 
 

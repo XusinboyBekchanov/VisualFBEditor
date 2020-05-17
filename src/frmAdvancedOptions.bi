@@ -4,12 +4,12 @@
 Using My.Sys.Forms
 
 '#Region "Form"
-    Type frmAdvancedOptions Extends Form
-    	Declare Constructor
-        
-    End Type
-    
-    Common Shared pfAdvancedOptions As frmAdvancedOptions Ptr
+	Type frmAdvancedOptions Extends Form
+		Declare Constructor
+		
+	End Type
+	
+	Common Shared pfAdvancedOptions As frmAdvancedOptions Ptr
 '#End Region
 
 #ifndef __USE_MAKE__

@@ -1,7 +1,8 @@
 ﻿'#########################################################
-'#  frmProjectProperties.bas                             #
+'#  frmProjectProperties.bi                              #
 '#  This file is part of VisualFBEditor                  #
-'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
 #include once "mff/Form.bi"
@@ -38,7 +39,7 @@ Using My.Sys.Forms
 		Dim As TabPage tpGeneral, tpMake, tpCompile, tpDebugging
 		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions
 		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321
-		Dim As Picture picCompileToGCC
+		Dim As Picture picCompileToGCC, picCompileToGCCCaption, picVersionNumber, picApplication, picVersionInformation, picCompilationArguments
 		Dim As ComboBoxEdit cboProjectType, cboMainFile, cboResourceFile, cboIconResourceFile, cboOptimizationLevel
 		Dim As TextBox txtProjectName, txtProjectDescription, txtCompilationArguments32Windows, txtCompilationArguments64Windows, txtIcon, txtTitle, txtMajor, txtMinor, txtRevision, txtBuild, txtCompilationArguments32Linux, txtValue, txtHelpFileName, txtCommandLineArguments, txtCompilationArguments32Windows1, txtCompilationArguments64Windows1, txtCompilationArguments32Linux1, txtCompilationArguments64Linux
 		Dim As GroupBox grbVersionNumber, grbApplication, grbVersionInformation, grbCompilationArguments, grbCompileToGCC

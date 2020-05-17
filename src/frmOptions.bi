@@ -1,7 +1,8 @@
 ﻿'#########################################################
-'#  frmOptions.bas                                       #
+'#  frmOptions.bi                                        #
 '#  This file is part of VisualFBEditor                  #
-'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
 #include once "mff/Form.bi"
@@ -26,6 +27,7 @@
 #include once "Main.bi"
 #include once "EditControl.bi"
 #include once "frmTheme.bi"
+#include once "frmPath.bi"
 #include once "mff/ListView.bi"
 
 Using My.Sys.Forms
@@ -41,19 +43,11 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Static Sub Form_Destroy(ByRef Sender As Form)
 		Declare Static Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Static Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub CommandButton4_Click(ByRef Sender As Control)
-		Declare Static Sub CommandButton5_Click(ByRef Sender As Control)
-		Declare Static Sub CommandButton6_Click(ByRef Sender As Control)
 		Declare Static Sub cmdForeground_Click(ByRef Sender As Control)
-		Declare Static Sub CommandButton4_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Static Sub cmdInterfaceFont_Click(ByRef Sender As Control)
 		Declare Static Sub TreeView1_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		Declare Static Sub pnlIncludes_ActiveControlChange(ByRef Sender As Control)
 		Declare Static Sub cmdMFFPath_Click(ByRef Sender As Control)
-		Declare Static Sub cmdDebugger_Click(ByRef Sender As Control)
-		Declare Static Sub cmdTerminal_Click(ByRef Sender As Control)
-		Declare Static Sub pnlLocalization_Click(ByRef Sender As Control)
-		Declare Static Sub txtHistoryLimit_Change(ByRef Sender As TextBox)
-		Declare Static Sub CommandButton7_Click(ByRef Sender As Control)
 		Declare Static Sub cmdFont_Click(ByRef Sender As Control)
 		Declare Static Sub lstColorKeys_Change(ByRef Sender As Control)
 		Declare Static Sub cmdBackground_Click(ByRef Sender As Control)
@@ -79,33 +73,59 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Static Sub cmdAddTerminal_Click(ByRef Sender As Control)
 		Declare Static Sub cmdRemoveTerminal_Click(ByRef Sender As Control)
 		Declare Static Sub cmdClearTerminals_Click(ByRef Sender As Control)
+		Declare Static Sub cmdFrame_Click(ByRef Sender As Control)
+		Declare Static Sub chkFrame_Click(ByRef Sender As CheckBox)
+		Declare Static Sub cmdChangeCompiler_Click(ByRef Sender As Control)
+		Declare Static Sub cmdChangeTerminal_Click(ByRef Sender As Control)
+		Declare Static Sub cmdChangeDebugger_Click(ByRef Sender As Control)
+		Declare Static Sub cmdChangeMakeTool_Click(ByRef Sender As Control)
+		Declare Static Sub cmdAddHelp_Click(ByRef Sender As Control)
+		Declare Static Sub cmdChangeHelp_Click(ByRef Sender As Control)
+		Declare Static Sub cmdRemoveHelp_Click(ByRef Sender As Control)
+		Declare Static Sub cmdClearHelps_Click(ByRef Sender As Control)
 		Declare Sub LoadSettings()
 		Declare Constructor
+		Declare Destructor
 		
 		Dim As TreeView tvOptions
-		Dim As CommandButton cmdOK, cmdCancel, cmdApply, CommandButton4, cmdAddCompiler, CommandButton6, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdDebugger, cmdTerminal, CommandButton7, cmdAdd, cmdRemove, cmdForeground, cmdFont, cmdProjectsPath, cmdBackground, cmdIndicator, cmdRemoveCompiler, cmdClearCompilers, cmdAddDebugger, cmdRemoveDebugger, cmdClearDebuggers, cmdAddMakeTool, cmdRemoveMakeTool, cmdClearMakeTools, cmdAddTerminal, cmdRemoveTerminal, cmdClearTerminals
-		Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblLanguage, lblHelp, lblMFF, lblTabSize, lblHistoryLimit, lblGridSize, lblFont, lblProjectsPath, lblForeground, lblBackground, lblIndicator, lblOthers
-		Dim As Panel pnlGeneral, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlLocalization, pnlHelp, pnlIncludes, pnlColor
+		Dim As CommandButton cmdOK, cmdCancel, cmdApply, cmdAddCompiler, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdChangeDebugger, cmdChangeTerminal, cmdChangeMakeTool, cmdAdd, cmdRemove, cmdForeground, cmdFont, cmdProjectsPath, cmdBackground, cmdIndicator, cmdRemoveCompiler, cmdClearCompilers, cmdAddDebugger, cmdRemoveDebugger, cmdClearDebuggers, cmdAddMakeTool, cmdRemoveMakeTool, cmdClearMakeTools, cmdAddTerminal, cmdRemoveTerminal, cmdClearTerminals
+		Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblMFF, lblTabSize, lblHistoryLimit, lblGridSize, lblFont, lblProjectsPath, lblForeground, lblBackground, lblIndicator, lblOthers
+		Dim As Panel pnlGeneral, pnlLocalization, pnlThemes, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlHelp, pnlIncludes
 		Dim As Picture lblColorForeground, lblColorBackground, lblColorIndicator
-		Dim As TextBox TextBox1, TextBox3, txtMFFpath, txtTabSize, txtDebugger, txtTerminal, txtHistoryLimit, txtGridSize, txtMake, txtProjectsPath, TextBox2, txtDebuggerVersion, txtMakeVersion, txtTerminalVersion
-		Dim As ComboBoxEdit ComboBoxEdit1, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger, cboMakeTool, cboTerminal
+		Dim As TextBox txtMFFpath, txtTabSize, txtHistoryLimit, txtGridSize, txtProjectsPath
+		Dim As ComboBoxEdit cboLanguage, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger, cboMakeTool, cboTerminal, cboHelp
 		Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCompile, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces, chkShowAlignmentGrid, chkSnapToGrid, chkChangeKeywordsCase, chkForeground, chkBackground, chkIndicator, chkBold, chkItalic, chkUnderline, chkUseMakeOnStartWithCompile
 		Dim OpenD As OpenFileDialog
 		Dim BrowsD As FolderBrowserDialog
 		Dim ColorD As ColorDialog
 		Dim FontD As FontDialog
-		Dim EditFontName As WString Ptr
-		Dim EditFontSize As Integer
-		Dim Colors(14, 6) As Integer
+		Dim As WString Ptr EditFontName, InterfFontName, oldInterfFontName
+		Dim As Integer EditFontSize, InterfFontSize, oldInterfFontSize
+		Dim Colors(16, 7) As Integer
 		Dim As Integer LibraryPathsCount
 		Dim As ListControl lstIncludePaths, lstLibraryPaths, lstColorKeys
-		Dim As GroupBox grbGrid, grbColors, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebugger, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths
-		Dim As ListView lvCompilerPaths, lvDebuggerPaths, lvMakeToolPaths, lvTerminalPaths
+		Dim As GroupBox grbGrid, grbColors, grbThemes, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebugger, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths, grbLanguage, grbDefaultHelp, grbHelpPaths
+		Dim As ListView lvCompilerPaths, lvDebuggerPaths, lvMakeToolPaths, lvTerminalPaths, lvHelpPaths
+		Dim As Label lblInterfaceFont
+		Dim As CommandButton cmdInterfaceFont
+		Dim As Label lblInterfaceFontLabel
+		Dim As CheckBox chkDisplayIcons
+		Dim As CheckBox chkShowMainToolbar
+		Dim As CheckBox chkAutoReloadLastOpenSources
+		Dim As CheckBox chkAutoCreateBakFiles
+		Dim As Label lblFrame
+		Dim As Picture lblColorFrame
+		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps
+		Dim As CheckBox chkFrame
+		Dim As CheckBox chkHighlightCurrentWord
+		Dim As CheckBox chkHighlightCurrentLine
+		Dim As CheckBox chkHighlightBrackets
+		Dim As Boolean oldDisplayMenuIcons
 	End Type
 '#End Region
 
 Common Shared pfOptions As frmOptions Ptr
 
 #ifndef __USE_MAKE__
-	#Include Once "frmOptions.bas"
-#EndIf
+	#include once "frmOptions.bas"
+#endif

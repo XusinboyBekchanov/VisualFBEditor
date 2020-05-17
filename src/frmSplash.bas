@@ -36,7 +36,6 @@ Using My.Sys.Forms
 		#ifdef __USE_GTK__
 			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 		#endif
-		This.OnCreate = @Form_Create
 		This.BackColor = 0
 		This.SetBounds 0, 0, 370, 346
 		This.BorderStyle = 0
@@ -44,23 +43,29 @@ Using My.Sys.Forms
 		'lblIcon.Graphic.Icon = 100
 		' lblInfo
 		lblInfo.Name = "lblInfo"
-		lblInfo.Text = "2018-2019"
+		lblInfo.Text = "2018-2020"
 		lblInfo.SetBounds 18, 282, 282, 18
 		lblInfo.BackColor = 0
 		lblInfo.Font.Color = 16777215
+		lblInfo.Font.Size = 8
 		lblInfo.Parent = @This
+		' lblProcess
+		With lblProcess
+			.Name = "lblProcess"
+			.Text = ""
+			.SetBounds 18, 306, 330, 18
+			.BackColor = 0
+			.Font.Color = 16777215
+			.Font.Size = 8
+			.Parent = @This
+		End With
 	End Constructor
 	
-	#ifndef _NOT_AUTORUN_FORMS_
-		Dim frm As frmSplash
-		frm.Show
-		
-		App.Run
-	#endif
+	Dim Shared fSplash As frmSplash
+	pfSplash = @fSplash
 '#End Region
 
-Private Sub frmSplash.Form_Create(ByRef Sender As Control)
-	With *Cast(frmSplash Ptr, @Sender)
-		'.Panel1.SetBounds 6, 6, .Width - 12, .Height - 12
-	End With
-End Sub
+#ifndef _NOT_AUTORUN_FORMS_
+	fSplash.Show
+	pApp->Run
+#endif

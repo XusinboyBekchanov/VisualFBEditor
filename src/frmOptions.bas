@@ -1,7 +1,8 @@
 ﻿'#########################################################
 '#  frmOptions.bas                                       #
 '#  This file is part of VisualFBEditor                  #
-'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
 #include once "frmOptions.bi"
@@ -24,17 +25,20 @@ pfOptions = @fOptions
 		This.SetBounds 0, 0, 630, 488
 		This.StartPosition = FormStartPosition.CenterParent
 		This.Caption = ML("Options")
+		This.CancelButton = @cmdCancel
+		This.DefaultButton = @cmdOK
 		This.BorderStyle = FormBorderStyle.FixedDialog
 		' tvOptions
 		tvOptions.Name = "tvOptions"
 		tvOptions.Text = "TreeView1"
-		tvOptions.SetBounds 10, 10, 178, 400
+		tvOptions.SetBounds 10, 6, 178, 400
 		tvOptions.HideSelection = False
 		tvOptions.OnSelChange = @TreeView1_SelChange
 		tvOptions.Parent = @This
 		' cmdOK
 		cmdOK.Name = "cmdOK"
 		cmdOK.Text = ML("OK")
+		cmdOK.Default = True
 		cmdOK.SetBounds 348, 427, 90, 24
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Caption = ML("OK")
@@ -77,7 +81,7 @@ pfOptions = @fOptions
 		' pnlColorsAndFonts
 		pnlColorsAndFonts.Name = "pnlColorsAndFonts"
 		pnlColorsAndFonts.Text = ""
-		pnlColorsAndFonts.SetBounds 190, 10, 426, 400
+		pnlColorsAndFonts.SetBounds 190, 2, 426, 400
 		pnlColorsAndFonts.Parent = @This
 		' pnlCompiler
 		pnlCompiler.Name = "pnlCompiler"
@@ -92,7 +96,7 @@ pfOptions = @fOptions
 		' pnlDebugger
 		pnlDebugger.Name = "pnlDebugger"
 		pnlDebugger.Text = ""
-		pnlDebugger.SetBounds 190, 10, 426, 400
+		pnlDebugger.SetBounds 190, 2, 426, 408
 		pnlDebugger.Parent = @This
 		' pnlTerminal
 		pnlTerminal.Name = "pnlTerminal"
@@ -107,9 +111,13 @@ pfOptions = @fOptions
 		' pnlLocalization
 		pnlLocalization.Name = "pnlLocalization"
 		pnlLocalization.Text = ""
-		pnlLocalization.SetBounds 190, 10, 426, 400
-		pnlLocalization.OnClick = @pnlLocalization_Click
+		pnlLocalization.SetBounds 190, 2, 426, 400
 		pnlLocalization.Parent = @This
+		' pnlThemes
+		pnlThemes.Name = "pnlThemes"
+		pnlThemes.Text = ""
+		pnlThemes.SetBounds 190, 2, 426, 408
+		pnlThemes.Parent = @This
 		' pnlHelp
 		pnlHelp.Name = "pnlHelp"
 		pnlHelp.Text = ""
@@ -132,44 +140,34 @@ pfOptions = @fOptions
 		' lblCompiler32
 		lblCompiler32.Name = "lblCompiler32"
 		lblCompiler32.Text = ML("Compiler") & " " & ML("32-bit")
-		lblCompiler32.SetBounds 26, 16, 260, 18
-		lblCompiler32.Parent = @pnlCompiler
-		' TextBox1
-		TextBox1.Name = "TextBox1"
-		TextBox1.Text = "fbc.exe"
-		TextBox1.SetBounds 26, 314, 362, 20
-		TextBox1.Parent = @pnlCompiler
+		lblCompiler32.SetBounds 18, 24, 260, 18
+		lblCompiler32.Parent = @grbDefaultCompilers
 		' lblCompiler64
 		lblCompiler64.Name = "lblCompiler64"
 		lblCompiler64.Text = ML("Compiler") & " " & ML("64-bit")
-		lblCompiler64.SetBounds 26, 66, 266, 18
-		lblCompiler64.Parent = @pnlCompiler
+		lblCompiler64.SetBounds 18, 74, 266, 18
+		lblCompiler64.Parent = @grbDefaultCompilers
 		' grbDefaultDebugger
 		With grbDefaultDebugger
 			.Name = "grbDefaultDebugger"
 			.Text = "Default Debugger"
-			.SetBounds 10, -2, 416, 64
+			.SetBounds 10, 6, 416, 64
 			.Parent = @pnlDebugger
 		End With
 		' grbDebuggerPaths
 		With grbDebuggerPaths
 			.Name = "grbDebuggerPaths"
 			.Text = "Debugger Paths"
-			.SetBounds 10, 70, 416, 328
+			.SetBounds 10, 78, 416, 328
 			.Parent = @pnlDebugger
 		End With
 		' cboDebugger
 		With cboDebugger
 			.Name = "cboDebugger"
 			.Text = "cboCompiler321"
-			.SetBounds 26, 24, 384, 21
-			.Parent = @pnlDebugger
+			.SetBounds 18, 24, 384, 21
+			.Parent = @grbDefaultDebugger
 		End With
-		' txtDebugger
-		txtDebugger.Name = "txtDebugger"
-		txtDebugger.Text = "gdb"
-		txtDebugger.SetBounds 26, 314, 362, 20
-		txtDebugger.Parent = @pnlDebugger
 		' grbDefaultTerminal
 		With grbDefaultTerminal
 			.Name = "grbDefaultTerminal"
@@ -181,8 +179,8 @@ pfOptions = @fOptions
 		With cboTerminal
 			.Name = "cboTerminal"
 			.Text = "cboTerminal"
-			.SetBounds 26, 24, 384, 21
-			.Parent = @pnlTerminal
+			.SetBounds 18, 24, 384, 21
+			.Parent = @grbDefaultTerminal
 		End With
 		' grbTerminalPaths
 		With grbTerminalPaths
@@ -195,110 +193,79 @@ pfOptions = @fOptions
 		With lvTerminalPaths
 			.Name = "lvTerminalPaths"
 			.Text = "lvTerminalPaths"
-			.SetBounds 26, 94, 384, 216
-			.Parent = @pnlTerminal
-		End With
-		' txtTerminalVersion
-		With txtTerminalVersion
-			.Name = "txtTerminalVersion"
-			.SetBounds 26, 338, 386, 20
-			.Parent = @pnlTerminal
+			.SetBounds 18, 22, 384, 256
+			.Parent = @grbTerminalPaths
 		End With
 		' cmdAddTerminal
 		With cmdAddTerminal
 			.Name = "cmdAddTerminal"
 			.Text = "Add"
-			.SetBounds 25, 361, 128, 24
+			.SetBounds 17, 289, 96, 24
 			.Caption = "Add"
 			.OnClick = @cmdAddTerminal_Click
-			.Parent = @pnlTerminal
+			.Parent = @grbTerminalPaths
 		End With
 		' cmdRemoveTerminal
 		With cmdRemoveTerminal
 			.Name = "cmdRemoveTerminal"
 			.Text = "Remove"
-			.SetBounds 155, 361, 128, 24
+			.SetBounds 211, 289, 96, 24
 			.OnClick = @cmdRemoveTerminal_Click
-			.Parent = @pnlTerminal
+			.Parent = @grbTerminalPaths
 		End With
 		' cmdClearDebuggers1
 		With cmdClearTerminals
 			.Name = "cmdClearTerminals"
 			.Text = "Clear"
-			.SetBounds 285, 361, 128, 24
+			.SetBounds 307, 289, 96, 24
 			.OnClick = @cmdClearTerminals_Click
-			.Parent = @pnlTerminal
+			.Parent = @grbTerminalPaths
 		End With
-		' txtTerminal
-		txtTerminal.Name = "txtTerminal"
-		txtTerminal.Text = "gnome-terminal"
-		txtTerminal.SetBounds 26, 314, 362, 20
-		txtTerminal.Parent = @pnlTerminal
-		' TextBox3
-		TextBox3.Name = "TextBox3"
-		TextBox3.Text = ""
-		TextBox3.SetBounds 10, 18, 385, 20
-		TextBox3.Parent = @pnlHelp
-		' lblHelp
-		lblHelp.Name = "lblHelp"
-		lblHelp.Text = ML("Help") & ":"
-		lblHelp.SetBounds 10, 0, 96, 18
-		lblHelp.Parent = @pnlHelp
-		' lblLanguage
-		lblLanguage.Name = "lblLanguage"
-		lblLanguage.Text = ML("Language") & ":"
-		lblLanguage.SetBounds 10, 0, 162, 18
-		lblLanguage.Parent = @pnlLocalization
-		' ComboBoxEdit1
-		ComboBoxEdit1.Name = "ComboBoxEdit1"
+		' grbLanguage
+		With grbLanguage
+			.Name = "grbLanguage"
+			.Text = "Language"
+			.SetBounds 8, 6, 414, 395
+			.Parent = @pnlLocalization
+		End With
+		' grbThemes
+		With grbThemes
+			.Name = "grbThemes"
+			.Text = "Themes"
+			.SetBounds 8, 7, 414, 394
+			.Parent = @pnlThemes
+		End With
+		' cboLanguage
+		cboLanguage.Name = "cboLanguage"
 		'ComboBoxEdit1.Text = "russian"
-		ComboBoxEdit1.SetBounds 10, 18, 408, 30
-		ComboBoxEdit1.Parent = @pnlLocalization
-		' CommandButton4
-		CommandButton4.Name = "CommandButton4"
-		CommandButton4.Text = "..."
-		CommandButton4.SetBounds 388, 313, 24, 22
-		CommandButton4.Caption = "..."
-		CommandButton4.OnClick = @CommandButton4_Click
-		CommandButton4.OnMouseUp = @CommandButton4_MouseUp
-		CommandButton4.Parent = @pnlCompiler
+		cboLanguage.SetBounds 10, 20, 392, 21
+		cboLanguage.Parent = @grbLanguage
 		' cmdAddCompiler
 		cmdAddCompiler.Name = "cmdAddCompiler"
 		cmdAddCompiler.Text = "Add"
-		cmdAddCompiler.SetBounds 25, 361, 128, 24
-		cmdAddCompiler.Caption = "Add"
-		cmdAddCompiler.OnClick = @CommandButton5_Click
-		cmdAddCompiler.ID = 1007
+		cmdAddCompiler.SetBounds 17, 224, 96, 24
 		cmdAddCompiler.OnClick = @cmdAddCompiler_Click
-		cmdAddCompiler.Parent = @pnlCompiler
-		' CommandButton6
-		CommandButton6.Name = "CommandButton6"
-		CommandButton6.Text = "..."
-		CommandButton6.SetBounds 395, 17, 24, 22
-		CommandButton6.Caption = "..."
-		CommandButton6.OnClick = @CommandButton6_Click
-		CommandButton6.Parent = @pnlHelp
+		cmdAddCompiler.Parent = @grbCompilerPaths
 		' CheckBox1
 		CheckBox1.Name = "CheckBox1"
-		CheckBox1.Text = ML("Auto Increment version")
+		CheckBox1.Text = ML("Auto increment version")
 		CheckBox1.SetBounds 10, 0, 318, 18
-		CheckBox1.Caption = ML("Auto Increment version")
 		CheckBox1.Parent = @pnlGeneral
 		' chkAutoCreateRC
 		chkAutoCreateRC.Name = "chkAutoCreateRC"
-		chkAutoCreateRC.Text = ML("Auto create resource (.rc, .xml) files")
-		chkAutoCreateRC.SetBounds 10, 20, 300, 18
+		chkAutoCreateRC.Text = ML("Auto create resource and manifest files (.rc, .xml)")
+		chkAutoCreateRC.SetBounds 10, 22, 300, 18
 		chkAutoCreateRC.Parent = @pnlGeneral
 		' pnlIncludes
 		pnlIncludes.Name = "pnlIncludes"
-		pnlIncludes.SetBounds 190, 10, 426, 400
+		pnlIncludes.SetBounds 190, 6, 426, 408
 		pnlIncludes.Text = ""
 		pnlIncludes.Parent = @This
 		' grbIncludePaths
 		With grbIncludePaths
 			.Name = "grbIncludePaths"
 			.Text = "Include Paths"
-			.SetBounds 10, -2, 416, 224
+			.SetBounds 10, 3, 416, 216
 			.Parent = @pnlIncludes
 		End With
 		' grbLibraryPaths
@@ -310,125 +277,110 @@ pfOptions = @fOptions
 		End With
 		' lblMFF
 		lblMFF.Name = "lblMFF"
-		lblMFF.Text = ML("MFF path:")
-		lblMFF.SetBounds 26, 24, 138, 18
-		lblMFF.Caption = ML("MFF path:")
-		lblMFF.Parent = @pnlIncludes
+		lblMFF.Text = ML("MFF path") & ":"
+		lblMFF.SetBounds 15, 24, 138, 18
+		lblMFF.Parent = @grbIncludePaths
 		' txtMFFpath
 		txtMFFpath.Name = "txtMFFpath"
-		txtMFFpath.SetBounds 90, 24, 297, 20
-		txtMFFpath.Parent = @pnlIncludes
+		txtMFFpath.SetBounds 96, 21, 281, 20
+		txtMFFpath.Parent = @grbIncludePaths
 		' cmdMFFPath
 		cmdMFFPath.Name = "cmdMFFPath"
 		cmdMFFPath.Text = "..."
-		cmdMFFPath.SetBounds 387, 23, 24, 22
-		cmdMFFPath.Caption = "..."
+		cmdMFFPath.SetBounds 377, 20, 24, 22
 		cmdMFFPath.OnClick = @cmdMFFPath_Click
-		cmdMFFPath.Parent = @pnlIncludes
+		cmdMFFPath.Parent = @grbIncludePaths
 		' chkAutoSaveCompile
 		chkAutoSaveCompile.Name = "chkAutoSaveCompile"
-		chkAutoSaveCompile.Text = ML("Avto save files before compiling")
-		chkAutoSaveCompile.SetBounds 10, 41, 324, 18
-		chkAutoSaveCompile.Caption = ML("Avto save files before compiling")
+		chkAutoSaveCompile.Text = ML("Auto save files before compiling")
+		chkAutoSaveCompile.SetBounds 10, 43, 324, 18
 		chkAutoSaveCompile.Parent = @pnlGeneral
 		' chkEnableAutoComplete
 		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
 		chkEnableAutoComplete.Text = ML("Enable Auto Complete")
 		chkEnableAutoComplete.SetBounds 10, 21, 264, 18
-		chkEnableAutoComplete.Caption = ML("Enable Auto Complete")
 		chkEnableAutoComplete.Parent = @pnlCodeEditor
 		' chkTabAsSpaces
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
 		chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
-		chkTabAsSpaces.SetBounds 10, 63, 264, 18
-		chkTabAsSpaces.Caption = ML("Treat Tab as Spaces")
+		chkTabAsSpaces.SetBounds 10, 135, 264, 18
 		chkTabAsSpaces.Parent = @pnlCodeEditor
 		' chkAutoIndentation
 		chkAutoIndentation.Name = "chkAutoIndentation"
 		chkAutoIndentation.Text = ML("Auto Indentation")
 		chkAutoIndentation.SetBounds 10, 0, 264, 18
-		chkAutoIndentation.Caption = ML("Auto Indentation")
 		chkAutoIndentation.Parent = @pnlCodeEditor
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
-		lblTabSize.Text = ML("Tab Size:")
-		lblTabSize.SetBounds 66, 111, 138, 16
-		lblTabSize.Caption = ML("Tab Size:")
+		lblTabSize.Text = ML("Tab Size") & ":"
+		lblTabSize.SetBounds 66, 183, 138, 16
 		lblTabSize.Parent = @pnlCodeEditor
 		' txtTabSize
 		txtTabSize.Name = "txtTabSize"
 		txtTabSize.Text = ""
-		txtTabSize.SetBounds 209, 109, 90, 20
+		txtTabSize.SetBounds 209, 181, 90, 20
 		txtTabSize.Parent = @pnlCodeEditor
 		' chkShowSpaces
 		chkShowSpaces.Name = "chkShowSpaces"
 		chkShowSpaces.Text = ML("Show Spaces")
 		chkShowSpaces.SetBounds 10, 43, 264, 18
-		chkShowSpaces.Caption = ML("Show Spaces")
 		chkShowSpaces.Parent = @pnlCodeEditor
 		' lstIncludePaths
 		lstIncludePaths.Name = "lstIncludePaths"
 		lstIncludePaths.Text = "ListControl1"
-		lstIncludePaths.SetBounds 26, 71, 360, 134
-		lstIncludePaths.Parent = @pnlIncludes
+		lstIncludePaths.SetBounds 16, 68, 360, 134
+		lstIncludePaths.Parent = @grbIncludePaths
 		' lstLibraryPaths
 		lstLibraryPaths.Name = "lstLibraryPaths"
 		lstLibraryPaths.Text = "ListControl11"
-		lstLibraryPaths.SetBounds 26, 252, 360, 132
-		lstLibraryPaths.Parent = @pnlIncludes
+		lstLibraryPaths.SetBounds 16, 22, 360, 132
+		lstLibraryPaths.Parent = @grbLibraryPaths
 		' lblOthers
 		lblOthers.Name = "lblOthers"
 		lblOthers.Text = "Others:"
-		lblOthers.SetBounds 26, 48, 138, 18
-		lblOthers.Caption = "Others:"
-		lblOthers.Parent = @pnlIncludes
+		lblOthers.SetBounds 16, 48, 138, 18
+		lblOthers.Parent = @grbIncludePaths
 		' cmdAddInclude
 		cmdAddInclude.Name = "cmdAddInclude"
 		cmdAddInclude.Text = "+"
-		cmdAddInclude.SetBounds 386, 70, 24, 22
-		cmdAddInclude.Caption = "+"
-		cmdAddInclude.Parent = @pnlIncludes
+		cmdAddInclude.SetBounds 376, 67, 24, 22
+		cmdAddInclude.Parent = @grbIncludePaths
 		' cmdRemoveInclude
 		cmdRemoveInclude.Name = "cmdRemoveInclude"
 		cmdRemoveInclude.Text = "-"
-		cmdRemoveInclude.SetBounds 386, 91, 24, 22
-		cmdRemoveInclude.Caption = "-"
-		cmdRemoveInclude.Parent = @pnlIncludes
+		cmdRemoveInclude.SetBounds 376, 88, 24, 22
+		cmdRemoveInclude.Parent = @grbIncludePaths
 		' cmdAddLibrary
 		cmdAddLibrary.Name = "cmdAddLibrary"
 		cmdAddLibrary.Text = "+"
-		cmdAddLibrary.SetBounds 386, 251, 24, 22
-		cmdAddLibrary.Caption = "+"
-		cmdAddLibrary.Parent = @pnlIncludes
+		cmdAddLibrary.SetBounds 376, 21, 24, 22
+		cmdAddLibrary.Parent = @grbLibraryPaths
 		' cmdRemoveLibrary
 		cmdRemoveLibrary.Name = "cmdRemoveLibrary"
 		cmdRemoveLibrary.Text = "-"
-		cmdRemoveLibrary.SetBounds 386, 272, 24, 22
-		cmdRemoveLibrary.Caption = "-"
-		cmdRemoveLibrary.Parent = @pnlIncludes
-		' cmdDebugger
-		cmdDebugger.Name = "cmdDebugger"
-		cmdDebugger.Text = "..."
-		cmdDebugger.SetBounds 388, 313, 24, 22
-		cmdDebugger.Caption = "..."
-		cmdDebugger.OnClick = @cmdDebugger_Click
-		cmdDebugger.Parent = @pnlDebugger
-		' cmdTerminal
-		cmdTerminal.Name = "cmdTerminal"
-		cmdTerminal.Text = "..."
-		cmdTerminal.SetBounds 388, 313, 24, 22
-		cmdTerminal.Caption = "..."
-		cmdTerminal.OnClick = @cmdTerminal_Click
-		cmdTerminal.Parent = @pnlTerminal
+		cmdRemoveLibrary.SetBounds 376, 42, 24, 22
+		cmdRemoveLibrary.Parent = @grbLibraryPaths
+		' cmdChangeDebugger
+		cmdChangeDebugger.Name = "cmdChangeDebugger"
+		cmdChangeDebugger.Text = "Change"
+		cmdChangeDebugger.SetBounds 114, 289, 96, 24
+		cmdChangeDebugger.Caption = "Change"
+		cmdChangeDebugger.OnClick = @cmdChangeDebugger_Click
+		cmdChangeDebugger.Parent = @grbDebuggerPaths
+		' cmdChangeTerminal
+		cmdChangeTerminal.Name = "cmdChangeTerminal"
+		cmdChangeTerminal.Text = "Change"
+		cmdChangeTerminal.SetBounds 114, 289, 96, 24
+		cmdChangeTerminal.Caption = "Change"
+		cmdChangeTerminal.Parent = @grbTerminalPaths
 		' lblHistoryLimit
 		lblHistoryLimit.Name = "lblHistoryLimit"
-		lblHistoryLimit.Text = ML("History limit:")
-		lblHistoryLimit.SetBounds 66, 134, 150, 17
+		lblHistoryLimit.Text = ML("History limit") & ":"
+		lblHistoryLimit.SetBounds 66, 206, 150, 17
 		lblHistoryLimit.Parent = @pnlCodeEditor
 		' txtHistoryLimit
 		txtHistoryLimit.Name = "txtHistoryLimit"
-		txtHistoryLimit.SetBounds 209, 132, 90, 20
-		txtHistoryLimit.OnChange = @txtHistoryLimit_Change
+		txtHistoryLimit.SetBounds 209, 204, 90, 20
 		txtHistoryLimit.Text = ""
 		txtHistoryLimit.Parent = @pnlCodeEditor
 		' grbGrid
@@ -438,43 +390,43 @@ pfOptions = @fOptions
 		grbGrid.Parent = @pnlDesigner
 		' lblGridSize
 		lblGridSize.Name = "lblGridSize"
-		lblGridSize.Text = ML("Size:")
-		lblGridSize.SetBounds 24, 31, 60, 18
-		lblGridSize.Parent = @pnlDesigner
+		lblGridSize.Text = ML("Size") & ":"
+		lblGridSize.SetBounds 16, 31, 60, 18
+		lblGridSize.Parent = @grbGrid
 		' txtGridSize
 		txtGridSize.Name = "txtGridSize"
 		txtGridSize.Text = "10"
-		txtGridSize.SetBounds 81, 31, 114, 18
-		txtGridSize.Parent = @pnlDesigner
+		txtGridSize.SetBounds 73, 31, 114, 18
+		txtGridSize.Parent = @grbGrid
 		' chkShowAlignmentGrid
 		chkShowAlignmentGrid.Name = "chkShowAlignmentGrid"
 		chkShowAlignmentGrid.Text = ML("Show Alignment Grid")
-		chkShowAlignmentGrid.SetBounds 80, 51, 138, 30
-		chkShowAlignmentGrid.Parent = @pnlDesigner
+		chkShowAlignmentGrid.SetBounds 72, 51, 138, 30
+		chkShowAlignmentGrid.Parent = @grbGrid
 		' chkSnapToGrid
 		chkSnapToGrid.Name = "chkSnapToGrid"
 		chkSnapToGrid.Text = ML("Snap to Grid")
-		chkSnapToGrid.SetBounds 80, 75, 138, 24
-		chkSnapToGrid.Parent = @pnlDesigner
+		chkSnapToGrid.SetBounds 72, 75, 138, 24
+		chkSnapToGrid.Parent = @grbGrid
 		' cboCase
 		cboCase.Name = "cboCase"
 		cboCase.Text = "ComboBoxEdit2"
-		cboCase.SetBounds 209, 85, 162, 21
+		cboCase.SetBounds 209, 157, 162, 21
 		cboCase.Parent = @pnlCodeEditor
 		' chkChangeKeywordsCase
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
-		chkChangeKeywordsCase.Text = ML("Change Keywords Case to:")
-		chkChangeKeywordsCase.SetBounds 10, 86, 194, 18
+		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
+		chkChangeKeywordsCase.SetBounds 10, 158, 194, 18
 		chkChangeKeywordsCase.Parent = @pnlCodeEditor
 		' cboTabStyle
 		cboTabStyle.Name = "cboTabStyle"
 		cboTabStyle.Text = "cboCase1"
-		cboTabStyle.SetBounds 209, 61, 162, 21
+		cboTabStyle.SetBounds 209, 133, 162, 21
 		cboTabStyle.Parent = @pnlCodeEditor
 		' grbColors
 		grbColors.Name = "grbColors"
 		grbColors.Text = "Colors"
-		grbColors.SetBounds 10, -2, 416, 336
+		grbColors.SetBounds 10, 6, 416, 336
 		grbColors.Parent = @pnlColorsAndFonts
 		' grbFont
 		grbFont.Name = "grbFont"
@@ -492,42 +444,37 @@ pfOptions = @fOptions
 		With lvMakeToolPaths
 			.Name = "lvMakeToolPaths"
 			.Text = "lvMakeToolPaths"
-			.SetBounds 26, 94, 384, 216
-			.Parent = @pnlMake
-		End With
-		' txtMakeVersion
-		With txtMakeVersion
-			.Name = "txtMakeVersion"
-			.SetBounds 26, 338, 386, 20
-			.Text = ""
-			.Parent = @pnlMake
+			.SetBounds 18, 22, 384, 256
+			.Parent = @grbMakeToolPaths
 		End With
 		' cmdAddMakeTool
 		With cmdAddMakeTool
 			.Name = "cmdAddMakeTool"
 			.Text = "Add"
-			.SetBounds 25, 361, 128, 24
+			.SetBounds 17, 289, 96, 24
 			.Caption = "Add"
 			.OnClick = @cmdAddMakeTool_Click
-			.Parent = @pnlMake
+			.IsChild = True
+			.ID = 1010
+			.Parent = @grbMakeToolPaths
 		End With
 		' cmdRemoveMakeTool
 		With cmdRemoveMakeTool
 			.Name = "cmdRemoveMakeTool"
 			.Text = "Remove"
-			.SetBounds 155, 361, 128, 24
+			.SetBounds 211, 289, 96, 24
 			.Caption = "Remove"
 			.OnClick = @cmdRemoveMakeTool_Click
-			.Parent = @pnlMake
+			.Parent = @grbMakeToolPaths
 		End With
 		' cmdClearMakeTool
 		With cmdClearMakeTools
 			.Name = "cmdClearMakeTools"
 			.Text = "Clear"
-			.SetBounds 285, 361, 128, 24
+			.SetBounds 307, 289, 96, 24
 			.Caption = "Clear"
 			.OnClick = @cmdClearMakeTools_Click
-			.Parent = @pnlMake
+			.Parent = @grbMakeToolPaths
 		End With
 		' grbDefaultMakeTool
 		With grbDefaultMakeTool
@@ -540,73 +487,68 @@ pfOptions = @fOptions
 		With cboMakeTool
 			.Name = "cboMakeTool"
 			.Text = "cboMakeTool"
-			.SetBounds 26, 24, 384, 21
-			.Parent = @pnlMake
+			.SetBounds 18, 24, 384, 21
+			.Parent = @grbDefaultMakeTool
 		End With
-		' txtMake
-		txtMake.Name = "txtMake"
-		txtMake.Text = "make"
-		txtMake.SetBounds 26, 314, 362, 20
-		txtMake.Parent = @pnlMake
-		' CommandButton7
-		CommandButton7.Name = "CommandButton7"
-		CommandButton7.Text = "..."
-		CommandButton7.SetBounds 388, 313, 24, 22
-		CommandButton7.Caption = "..."
-		CommandButton7.OnClick = @CommandButton7_Click
-		CommandButton7.Parent = @pnlMake
+		' cmdChangeMakeTool
+		cmdChangeMakeTool.Name = "cmdChangeMakeTool"
+		cmdChangeMakeTool.Text = "Change"
+		cmdChangeMakeTool.SetBounds 114, 289, 96, 24
+		cmdChangeMakeTool.Caption = "Change"
+		cmdChangeMakeTool.OnClick = @cmdChangeMakeTool_Click
+		cmdChangeMakeTool.Parent = @grbMakeToolPaths
 		' cboTheme
 		cboTheme.Name = "cboTheme"
 		cboTheme.Text = "ComboBoxEdit2"
-		cboTheme.SetBounds 24, 24, 224, 21
+		cboTheme.SetBounds 18, 20, 224, 21
 		cboTheme.OnChange = @cboTheme_Change
-		cboTheme.Parent = @pnlColorsAndFonts
+		cboTheme.Parent = @grbColors
 		' lstColorKeys
 		lstColorKeys.Name = "lstColorKeys"
 		lstColorKeys.Text = "ListControl1"
-		lstColorKeys.SetBounds 24, 56, 224, 264
+		lstColorKeys.SetBounds 18, 55, 224, 264
 		lstColorKeys.OnChange = @lstColorKeys_Change
-		lstColorKeys.Parent = @pnlColorsAndFonts
+		lstColorKeys.Parent = @grbColors
 		' cmdAdd
 		cmdAdd.Name = "cmdAdd"
 		cmdAdd.Text = "Add"
-		cmdAdd.SetBounds 264, 23, 71, 23
+		cmdAdd.SetBounds 258, 20, 71, 23
 		cmdAdd.Caption = "Add"
 		cmdAdd.OnClick = @cmdAdd_Click
-		cmdAdd.Parent = @pnlColorsAndFonts
+		cmdAdd.Parent = @grbColors
 		' cmdRemove
 		cmdRemove.Name = "cmdRemove"
 		cmdRemove.Text = "Remove"
-		cmdRemove.SetBounds 336, 23, 71, 23
+		cmdRemove.SetBounds 330, 20, 71, 23
 		cmdRemove.Caption = "Remove"
 		cmdRemove.OnClick = @cmdRemove_Click
-		cmdRemove.Parent = @pnlColorsAndFonts
+		cmdRemove.Parent = @grbColors
 		' lblColorForeground
 		lblColorForeground.Name = "lblColorForeground"
 		lblColorForeground.Text = ""
-		lblColorForeground.SetBounds 9, 16, 72, 20
+		lblColorForeground.SetBounds 258, 71, 72, 20
 		lblColorForeground.BackColor = 0
-		lblColorForeground.Parent = @pnlColor
+		lblColorForeground.Parent = @grbColors
 		' cmdForeground
 		cmdForeground.Name = "cmdForeground"
 		cmdForeground.Text = "..."
-		cmdForeground.SetBounds 79, 15, 24, 22
+		cmdForeground.SetBounds 330, 70, 24, 22
 		cmdForeground.Caption = "..."
 		cmdForeground.OnClick = @cmdForeground_Click
-		cmdForeground.Parent = @pnlColor
+		cmdForeground.Parent = @grbColors
 		' cmdFont
 		cmdFont.Name = "cmdFont"
 		cmdFont.Text = "..."
-		cmdFont.SetBounds 384, 363, 24, 22
+		cmdFont.SetBounds 376, 18, 24, 22
 		cmdFont.Caption = "..."
 		cmdFont.OnClick = @cmdFont_Click
-		cmdFont.Parent = @pnlColorsAndFonts
+		cmdFont.Parent = @grbFont
 		' lblFont
 		lblFont.Name = "lblFont"
 		lblFont.Text = "Font"
-		lblFont.SetBounds 35, 366, 344, 16
+		lblFont.SetBounds 23, 23, 344, 16
 		lblFont.Caption = "Font"
-		lblFont.Parent = @pnlColorsAndFonts
+		lblFont.Parent = @grbFont
 		' txtProjectsPath
 		txtProjectsPath.Name = "txtProjectsPath"
 		txtProjectsPath.Text = "./Projects"
@@ -626,189 +568,360 @@ pfOptions = @fOptions
 		lblProjectsPath.Parent = @pnlGeneral
 		' lblColorBackground
 		lblColorBackground.Name = "lblColorBackground"
-		lblColorBackground.SetBounds 9, 56, 72, 20
+		lblColorBackground.SetBounds 258, 113, 72, 20
 		lblColorBackground.BackColor = 0
 		lblColorBackground.Text = ""
-		lblColorBackground.Parent = @pnlColor
+		lblColorBackground.Parent = @grbColors
 		' cmdBackground
 		cmdBackground.Name = "cmdBackground"
 		cmdBackground.Text = "..."
-		cmdBackground.SetBounds 79, 55, 24, 22
+		cmdBackground.SetBounds 330, 112, 24, 22
 		cmdBackground.Caption = "..."
 		cmdBackground.OnClick = @cmdBackground_Click
-		cmdBackground.Parent = @pnlColor
+		cmdBackground.Parent = @grbColors
 		' lblForeground
 		lblForeground.Name = "lblForeground"
 		lblForeground.Text = "Foreground:"
-		lblForeground.SetBounds 8, 0, 136, 16
+		lblForeground.SetBounds 258, 55, 136, 16
 		lblForeground.Caption = "Foreground:"
-		lblForeground.Parent = @pnlColor
+		lblForeground.Parent = @grbColors
 		' lblBackground
 		lblBackground.Name = "lblBackground"
 		lblBackground.Text = "Background:"
-		lblBackground.SetBounds 8, 40, 136, 16
+		lblBackground.SetBounds 258, 96, 136, 16
 		lblBackground.Caption = "Background:"
-		lblBackground.Parent = @pnlColor
+		lblBackground.Parent = @grbColors
 		' lblIndicator
 		lblIndicator.Name = "lblIndicator"
 		lblIndicator.Text = "Indicator:"
-		lblIndicator.SetBounds 8, 80, 136, 16
+		lblIndicator.SetBounds 258, 176, 136, 16
 		lblIndicator.Caption = "Indicator:"
-		lblIndicator.Parent = @pnlColor
+		lblIndicator.Parent = @grbColors
 		' lblColorIndicator
 		lblColorIndicator.Name = "lblColorIndicator"
 		lblColorIndicator.Text = ""
-		lblColorIndicator.SetBounds 9, 96, 72, 20
+		lblColorIndicator.SetBounds 258, 192, 72, 20
 		lblColorIndicator.BackColor = 0
-		lblColorIndicator.Parent = @pnlColor
+		lblColorIndicator.Parent = @grbColors
 		' cmdIndicator
 		cmdIndicator.Name = "cmdIndicator"
 		cmdIndicator.Text = "..."
-		cmdIndicator.SetBounds 79, 95, 24, 22
+		cmdIndicator.SetBounds 330, 191, 24, 22
 		cmdIndicator.Caption = "..."
 		cmdIndicator.OnClick = @cmdIndicator_Click
-		cmdIndicator.Parent = @pnlColor
-		' 
+		cmdIndicator.Parent = @grbColors
+		'
 		' chkForeground
 		chkForeground.Name = "chkForeground"
 		chkForeground.Text = "Auto"
-		chkForeground.SetBounds 112, 19, 48, 16
+		chkForeground.SetBounds 360, 73, 48, 16
 		chkForeground.Caption = "Auto"
 		chkForeground.OnClick = @chkForeground_Click
-		chkForeground.Parent = @pnlColor
+		chkForeground.Parent = @grbColors
 		' chkBackground
 		chkBackground.Name = "chkBackground"
 		chkBackground.Text = "Auto"
-		chkBackground.SetBounds 112, 59, 48, 16
+		chkBackground.SetBounds 360, 115, 48, 16
 		chkBackground.Caption = "Auto"
 		chkBackground.OnClick = @chkBackground_Click
-		chkBackground.Parent = @pnlColor
+		chkBackground.Parent = @grbColors
 		' chkIndicator
 		chkIndicator.Name = "chkIndicator"
 		chkIndicator.Text = "Auto"
-		chkIndicator.SetBounds 112, 99, 48, 16
+		chkIndicator.SetBounds 360, 194, 48, 16
 		chkIndicator.Caption = "Auto"
 		chkIndicator.OnClick = @chkIndicator_Click
-		chkIndicator.Parent = @pnlColor
+		chkIndicator.Parent = @grbColors
 		' chkBold
 		chkBold.Name = "chkBold"
 		chkBold.Text = "Bold"
-		chkBold.SetBounds 8, 195, 104, 16
+		chkBold.SetBounds 258, 251, 104, 16
 		chkBold.Caption = "Bold"
 		chkBold.OnClick = @chkBold_Click
-		chkBold.Parent = @pnlColor
+		chkBold.Parent = @grbColors
 		' chkItalic
 		chkItalic.Name = "chkItalic"
 		chkItalic.Text = "Italic"
-		chkItalic.SetBounds 8, 219, 72, 16
+		chkItalic.SetBounds 258, 275, 72, 16
 		chkItalic.Caption = "Italic"
 		chkItalic.OnClick = @chkItalic_Click
-		chkItalic.Parent = @pnlColor
+		chkItalic.Parent = @grbColors
 		' chkUnderline
 		chkUnderline.Name = "chkUnderline"
 		chkUnderline.Text = "Underline"
-		chkUnderline.SetBounds 8, 243, 104, 16
+		chkUnderline.SetBounds 258, 299, 104, 16
 		chkUnderline.Caption = "Underline"
 		chkUnderline.OnClick = @chkUnderline_Click
-		chkUnderline.Parent = @pnlColor
-		' pnlColor
-		pnlColor.Name = "pnlColor"
-		pnlColor.Text = ""
-		pnlColor.SetBounds 256, 54, 160, 264
-		pnlColor.Parent = @pnlColorsAndFonts
+		chkUnderline.Parent = @grbColors
 		' chkUseMakeOnStartWithCompile
 		chkUseMakeOnStartWithCompile.Name = "chkUseMakeOnStartWithCompile"
 		chkUseMakeOnStartWithCompile.Text = ML("Use make on start with compile (if exists makefile)")
-		chkUseMakeOnStartWithCompile.SetBounds 10, 64, 400, 16
+		chkUseMakeOnStartWithCompile.SetBounds 10, 114, 400, 16
 		chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
 		chkUseMakeOnStartWithCompile.Parent = @pnlGeneral
 		' lvCompilerPaths
 		With lvCompilerPaths
 			.Name = "lvCompilerPaths"
 			.Text = "ListView1"
-			.SetBounds 26, 158, 384, 152
-			.Parent = @pnlCompiler
+			.SetBounds 18, 24, 384, 192
+			.Parent = @grbCompilerPaths
 		End With
 		' cboCompiler32
 		With cboCompiler32
 			.Name = "cboCompiler32"
 			.Text = "ComboBoxEdit2"
-			.SetBounds 26, 40, 384, 21
-			.Parent = @pnlCompiler
+			.SetBounds 18, 40, 384, 21
+			.Parent = @grbDefaultCompilers
 		End With
 		' cboCompiler64
 		With cboCompiler64
 			.Name = "cboCompiler64"
 			.Text = "ComboBoxEdit21"
-			.SetBounds 26, 88, 384, 21
-			.Parent = @pnlCompiler
+			.SetBounds 18, 90, 384, 21
+			.Parent = @grbDefaultCompilers
 		End With
 		' cmdRemoveCompiler
 		With cmdRemoveCompiler
 			.Name = "cmdRemoveCompiler"
 			.Text = "Remove"
-			.SetBounds 155, 361, 128, 24
+			.SetBounds 211, 224, 96, 24
 			.Caption = "Remove"
 			.OnClick = @cmdRemoveCompiler_Click
-			.Parent = @pnlCompiler
+			.Parent = @grbCompilerPaths
 		End With
 		' cmdClearCompilers
 		With cmdClearCompilers
 			.Name = "cmdClearCompilers"
 			.Text = "Clear"
-			.SetBounds 285, 361, 128, 24
+			.SetBounds 308, 224, 96, 24
 			.Caption = "Clear"
 			.OnClick = @cmdClearCompilers_Click
-			.Parent = @pnlCompiler
-		End With
-		' TextBox2
-		With TextBox2
-			.Name = "TextBox2"
-			.Text = ""
-			.SetBounds 26, 338, 386, 20
-			.Parent = @pnlCompiler
+			.Parent = @grbCompilerPaths
 		End With
 		' lvDebuggerPaths
 		With lvDebuggerPaths
 			.Name = "lvDebuggerPaths"
 			.Text = "lvCompilerPaths1"
-			.SetBounds 26, 94, 384, 216
-			.Parent = @pnlDebugger
-		End With
-		' txtDebuggerVersion
-		With txtDebuggerVersion
-			.Name = "txtDebuggerVersion"
-			.SetBounds 26, 338, 386, 20
-			.Parent = @pnlDebugger
+			.SetBounds 18, 22, 384, 256
+			.Parent = @grbDebuggerPaths
 		End With
 		' cmdAddDebugger
 		With cmdAddDebugger
 			.Name = "cmdAddDebugger"
 			.Text = "Add"
-			.SetBounds 25, 361, 128, 24
+			.SetBounds 17, 289, 96, 24
 			.Caption = "Add"
 			.OnClick = @cmdAddDebugger_Click
-			.Parent = @pnlDebugger
+			.Parent = @grbDebuggerPaths
 		End With
 		' cmdRemoveDebugger
 		With cmdRemoveDebugger
 			.Name = "cmdRemoveDebugger"
 			.Text = "Remove"
-			.SetBounds 155, 361, 128, 24
+			.SetBounds 211, 289, 96, 24
 			.Caption = "Remove"
 			.OnClick = @cmdRemoveDebugger_Click
-			.Parent = @pnlDebugger
+			.Parent = @grbDebuggerPaths
 		End With
 		' cmdClearDebuggers
 		With cmdClearDebuggers
 			.Name = "cmdClearDebuggers"
 			.Text = "Clear"
-			.SetBounds 285, 361, 128, 24
+			.SetBounds 307, 289, 96, 24
 			.Caption = "Clear"
 			.OnClick = @cmdClearDebuggers_Click
-			.Parent = @pnlDebugger
+			.Parent = @grbDebuggerPaths
+		End With
+		' lblInterfaceFont
+		With lblInterfaceFont
+			.Name = "lblInterfaceFont"
+			.Text = "Tahoma, 8 pt"
+			.SetBounds 107, 20, 264, 16
+			.Caption = "Tahoma, 8 pt"
+			.Parent = @grbThemes
+		End With
+		' cmdInterfaceFont
+		With cmdInterfaceFont
+			.Name = "cmdInterfaceFont"
+			.Text = "..."
+			.SetBounds 376, 20, 24, 22
+			.Caption = "..."
+			.OnClick = @cmdInterfaceFont_Click
+			.Parent = @grbThemes
+		End With
+		' lblInterfaceFontLabel
+		With lblInterfaceFontLabel
+			.Name = "lblInterfaceFontLabel"
+			.Text = ML("Interface font") & ":"
+			.SetBounds 10, 20, 80, 16
+			.Parent = @grbThemes
+		End With
+		' chkDisplayIcons
+		With chkDisplayIcons
+			.Name = "chkDisplayIcons"
+			.Text = ML("Display Icons in the Menu")
+			.SetBounds 10, 81, 176, 16
+			.Parent = @grbThemes
+		End With
+		' chkShowMainToolbar
+		With chkShowMainToolbar
+			.Name = "chkShowMainToolbar"
+			.Text = ML("Show main Toolbar")
+			.SetBounds 10, 98, 176, 24
+			.Parent = @grbThemes
+		End With
+		' chkAutoReloadLastOpenSources
+		With chkAutoReloadLastOpenSources
+			.Name = "chkAutoReloadLastOpenSources"
+			.Text = ML("Auto-reload last open sources")
+			.SetBounds 10, 67, 400, 16
+			.Parent = @pnlGeneral
+		End With
+		' chkAutoCreateBakFiles
+		With chkAutoCreateBakFiles
+			.Name = "chkAutoCreateBakFiles"
+			.Text = ML("Auto create bak files before saving")
+			.SetBounds 10, 91, 400, 16
+			.ID = 1009
+			.Parent = @pnlGeneral
+		End With
+		' lblFrame
+		With lblFrame
+			.Name = "lblFrame"
+			.Text = "Frame:"
+			.SetBounds 258, 136, 136, 16
+			.Caption = "Frame:"
+			.Parent = @grbColors
+		End With
+		' lblColorFrame
+		With lblColorFrame
+			.Name = "lblColorFrame"
+			.SetBounds 258, 152, 72, 20
+			.BackColor = 0
+			.Parent = @grbColors
+		End With
+		' cmdFrame
+		With cmdFrame
+			.Name = "cmdFrame"
+			.Text = "..."
+			.SetBounds 330, 151, 24, 22
+			.Caption = "..."
+			.OnClick = @cmdFrame_Click
+			.Parent = @grbColors
+		End With
+		' chkFrame
+		With chkFrame
+			.Name = "chkFrame"
+			.Text = "Auto"
+			.SetBounds 360, 154, 48, 16
+			.Caption = "Auto"
+			.OnClick = @chkFrame_Click
+			.Parent = @grbColors
+		End With
+		' chkHighlightCurrentWord
+		With chkHighlightCurrentWord
+			.Name = "chkHighlightCurrentWord"
+			.Text = "Highlight Current Word"
+			.SetBounds 10, 84, 192, 26
+			.Caption = "Highlight Current Word"
+			.Parent = @pnlCodeEditor
+		End With
+		' chkHighlightCurrentLine
+		With chkHighlightCurrentLine
+			.Name = "chkHighlightCurrentLine"
+			.Text = "Highlight Current Line"
+			.SetBounds 10, 66, 224, 16
+			.Caption = "Highlight Current Line"
+			.Parent = @pnlCodeEditor
+		End With
+		' chkHighlightBrackets
+		With chkHighlightBrackets
+			.Name = "chkHighlightBrackets"
+			.Text = "Highlight Brackets"
+			.SetBounds 10, 111, 154, 18
+			.Caption = "Highlight Brackets"
+			.Parent = @pnlCodeEditor
+		End With
+		' cmdChangeCompiler
+		With cmdChangeCompiler
+			.Name = "cmdChangeCompiler"
+			.Text = "Change"
+			.SetBounds 114, 224, 96, 24
+			.Caption = "Change"
+			.OnClick = @cmdChangeCompiler_Click
+			.Parent = @grbCompilerPaths
+		End With
+		' grbDefaultHelp
+		With grbDefaultHelp
+			.Name = "grbDefaultHelp"
+			.Text = "Default Help"
+			.SetBounds 10, -2, 416, 64
+			.Parent = @pnlHelp
+		End With
+		' cboHelp
+		With cboHelp
+			.Name = "cboHelp"
+			.Text = "cboHelp"
+			.SetBounds 18, 24, 384, 21
+			.Parent = @grbDefaultHelp
+		End With
+		' grbHelpPaths
+		With grbHelpPaths
+			.Name = "grbHelpPaths"
+			.Text = "Help Paths"
+			.SetBounds 10, 70, 416, 328
+			.Parent = @pnlHelp
+		End With
+		' lvHelpPaths
+		With lvHelpPaths
+			.Name = "lvHelpPaths"
+			.Text = "lvTerminalPaths1"
+			.SetBounds 18, 22, 384, 256
+			.Parent = @grbHelpPaths
+		End With
+		' cmdAddHelp
+		With cmdAddHelp
+			.Name = "cmdAddHelp"
+			.Text = "Add"
+			.SetBounds 17, 289, 96, 24
+			.Caption = "Add"
+			.OnClick = @cmdAddHelp_Click
+			.Parent = @grbHelpPaths
+		End With
+		' cmdChangeHelp
+		With cmdChangeHelp
+			.Name = "cmdChangeHelp"
+			.Text = "Change"
+			.SetBounds 114, 289, 96, 24
+			.Caption = "Change"
+			.OnClick = @cmdChangeHelp_Click
+			.Parent = @grbHelpPaths
+		End With
+		' cmdRemoveHelp
+		With cmdRemoveHelp
+			.Name = "cmdRemoveHelp"
+			.Text = "Remove"
+			.SetBounds 211, 289, 96, 24
+			.Caption = "Remove"
+			.OnClick = @cmdRemoveHelp_Click
+			.Parent = @grbHelpPaths
+		End With
+		' cmdClearHelp
+		With cmdClearHelps
+			.Name = "cmdClearHelps"
+			.Text = "Clear"
+			.SetBounds 307, 289, 96, 24
+			.Caption = "Clear"
+			.OnClick = @cmdClearHelps_Click
+			.Parent = @grbHelpPaths
 		End With
 	End Constructor
+	
+	Destructor frmOptions
+		WDeallocate InterfFontName
+		WDeallocate OldInterfFontName
+		WDeallocate EditFontName
+	End Destructor
 	
 	#ifndef _NOT_AUTORUN_FORMS_
 		fOptions.Show
@@ -832,44 +945,49 @@ Sub frmOptions.LoadSettings()
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
 		.chkChangeKeywordsCase.Checked = ChangeKeywordsCase
-		.TextBox1.Text = ""
-		.TextBox2.Text = ""
-		.txtMake.Text = ""
-		.txtDebugger.Text = ""
-		.txtTerminal.Text = ""
 		.chkUseMakeOnStartWithCompile.Checked = UseMakeOnStartWithCompile
-		.TextBox3.Text = WGet(HelpPath)
 		.txtTabSize.Text = Str(TabWidth)
 		.txtHistoryLimit.Text = Str(HistoryLimit)
 		.txtMFFPath.Text = *MFFPath
 		.txtProjectsPath.Text = *ProjectsPath
 		.CheckBox1.Checked = AutoIncrement
 		.chkEnableAutoComplete.Checked = AutoComplete
-		.chkAutoSaveCompile.Checked = AutoSaveCompile
+		.chkAutoSaveCompile.Checked = AutoSaveBeforeCompile
 		.chkAutoIndentation.Checked = AutoIndentation
 		.chkAutoCreateRC.Checked = AutoCreateRC
+		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
+		.chkAutoReloadLastOpenSources.Checked = AutoReloadLastOpenFiles
 		.chkShowSpaces.Checked = ShowSpaces
+		.chkHighlightBrackets.Checked = HighlightBrackets
+		.chkHighlightCurrentLine.Checked = HighlightCurrentLine
+		.chkHighlightCurrentWord.Checked = HighlightCurrentWord
 		.txtGridSize.Text = Str(GridSize)
 		.chkShowAlignmentGrid.Checked = ShowAlignmentGrid
 		.chkSnapToGrid.Checked = SnapToGridOption
-		.ComboBoxEdit1.Clear
+		.cboLanguage.Clear
+		.chkDisplayIcons.Checked = DisplayMenuIcons
+		.chkShowMainToolbar.Checked = ShowMainToolbar
 		Dim As String f
-		Dim As WString Ptr s
+		Dim As Integer Fn = FreeFile
+		Dim Buff As WString * 2048 'David Change
+		'On Error Resume Next
 		f = Dir(ExePath & "/Settings/Languages/*.lng")
 		While f <> ""
-			Open ExePath & "/Settings/Languages/" & f For Input Encoding "utf-8" As #1
-			WReallocate s, LOF(1)
-			If Not EOF(1) Then
-				Line Input #1, *s
-				Languages.Add Left(f, Len(f) - 4)
-				.ComboBoxEdit1.AddItem *s
+			If Open(ExePath & "/Settings/Languages/" & f For Input Encoding "utf-8" As #Fn) = 0 Then
+				'WReallocate s, LOF(Fn) 'David Change
+				If Not EOF(Fn) Then
+					Line Input #Fn, Buff  'David Change
+					Languages.Add Left(f, Len(f) - 4)
+					.cboLanguage.AddItem Buff
+				End If
+				Close #Fn
 			End If
-			Close #1
 			f = Dir()
 		Wend
-		WDeallocate s
+		'On Error Goto 0
+		'WDeallocate s 'David Change
 		newIndex = Languages.IndexOf(CurLanguage)
-		.ComboBoxEdit1.ItemIndex = newIndex
+		.cboLanguage.ItemIndex = newIndex
 		oldIndex = newIndex
 		.cboTheme.Clear
 		f = Dir(ExePath & "/Settings/Themes/*.ini")
@@ -918,69 +1036,107 @@ Sub frmOptions.LoadSettings()
 			.cboTerminal.AddItem pTerminals->Item(i)->Key
 		Next
 		.cboTerminal.ItemIndex = Max(0, .cboTerminal.IndexOf(*DefaultTerminal))
-		For i As Integer = 0 To 13
-			For j As Integer = 0 To 5
+		.cboHelp.Clear
+		.lvHelpPaths.ListItems.Clear
+		.cboHelp.AddItem ML("(not selected)")
+		For i As Integer = 0 To pHelps->Count - 1
+			.lvHelpPaths.ListItems.Add pHelps->Item(i)->Key
+			.lvHelpPaths.ListItems.Item(i)->Text(1) = pHelps->Item(i)->Text
+			.cboHelp.AddItem pHelps->Item(i)->Key
+		Next
+		.cboHelp.ItemIndex = Max(0, .cboHelp.IndexOf(*DefaultHelp))
+		For i As Integer = 0 To 15
+			For j As Integer = 0 To 6
 				.Colors(i, j) = -2
 			Next
 		Next
-		.Colors(0, 0) = BookmarksForeground
-		.Colors(0, 1) = BookmarksBackground
-		.Colors(0, 2) = BookmarksIndicator
-		.Colors(0, 3) = BookmarksBold
-		
-		.Colors(0, 4) = BookmarksItalic
-		.Colors(0, 5) = BookmarksUnderline
-		.Colors(1, 0) = BreakpointsForeground
-		.Colors(1, 1) = BreakpointsBackground
-		.Colors(1, 2) = BreakpointsIndicator
-		.Colors(1, 3) = BreakpointsBold
-		.Colors(1, 4) = BreakpointsItalic
-		.Colors(1, 5) = BreakpointsUnderline
-		.Colors(2, 0) = CommentsForeground
-		.Colors(2, 1) = CommentsBackground
-		.Colors(2, 3) = CommentsBold
-		.Colors(2, 4) = CommentsItalic
-		.Colors(2, 5) = CommentsUnderline
-		.Colors(3, 0) = CurrentLineForeground
-		.Colors(3, 1) = CurrentLineBackground
-		.Colors(4, 0) = ExecutionLineForeground
-		.Colors(4, 1) = ExecutionLineBackground
-		.Colors(4, 2) = ExecutionLineIndicator
-		.Colors(5, 0) = FoldLinesForeground
-		.Colors(6, 0) = IndicatorLinesForeground
-		.Colors(7, 0) = KeywordsForeground
-		.Colors(7, 1) = KeywordsBackground
-		.Colors(7, 3) = KeywordsBold
-		.Colors(7, 4) = KeywordsItalic
-		.Colors(7, 5) = KeywordsUnderline
-		.Colors(8, 0) = LineNumbersForeground
-		.Colors(8, 1) = LineNumbersBackground
-		.Colors(8, 3) = LineNumbersBold
-		.Colors(8, 4) = LineNumbersItalic
-		.Colors(8, 5) = LineNumbersUnderline
-		.Colors(9, 0) = NormalTextForeground
-		.Colors(9, 1) = NormalTextBackground
-		.Colors(9, 3) = NormalTextBold
-		.Colors(9, 4) = NormalTextItalic
-		.Colors(9, 5) = NormalTextUnderline
-		.Colors(10, 0) = PreprocessorsForeground
-		.Colors(10, 1) = PreprocessorsBackground
-		.Colors(10, 3) = PreprocessorsBold
-		.Colors(10, 4) = PreprocessorsItalic
-		.Colors(10, 5) = PreprocessorsUnderline
-		.Colors(11, 0) = SelectionForeground
-		.Colors(11, 1) = SelectionBackground
-		.Colors(12, 0) = SpaceIdentifiersForeground
-		.Colors(13, 0) = StringsForeground
-		.Colors(13, 1) = StringsBackground
-		.Colors(13, 3) = StringsBold
-		.Colors(13, 4) = StringsItalic
-		.Colors(13, 5) = StringsUnderline
+		.Colors(0, 0) = Bookmarks.Foreground
+		.Colors(0, 1) = Bookmarks.Background
+		.Colors(0, 2) = Bookmarks.Frame
+		.Colors(0, 3) = Bookmarks.Indicator
+		.Colors(0, 4) = Bookmarks.Bold
+		.Colors(0, 5) = Bookmarks.Italic
+		.Colors(0, 6) = Bookmarks.Underline
+		.Colors(1, 0) = Breakpoints.Foreground
+		.Colors(1, 1) = Breakpoints.Background
+		.Colors(1, 2) = Breakpoints.Frame
+		.Colors(1, 3) = Breakpoints.Indicator
+		.Colors(1, 4) = Breakpoints.Bold
+		.Colors(1, 5) = Breakpoints.Italic
+		.Colors(1, 6) = Breakpoints.Underline
+		.Colors(2, 0) = Comments.Foreground
+		.Colors(2, 1) = Comments.Background
+		.Colors(2, 2) = Comments.Frame
+		.Colors(2, 4) = Comments.Bold
+		.Colors(2, 5) = Comments.Italic
+		.Colors(2, 6) = Comments.Underline
+		.Colors(3, 0) = CurrentBrackets.Foreground
+		.Colors(3, 1) = CurrentBrackets.Background
+		.Colors(3, 2) = CurrentBrackets.Frame
+		.Colors(3, 4) = CurrentBrackets.Bold
+		.Colors(3, 5) = CurrentBrackets.Italic
+		.Colors(3, 6) = CurrentBrackets.Underline
+		.Colors(4, 0) = CurrentLine.Foreground
+		.Colors(4, 1) = CurrentLine.Background
+		.Colors(4, 2) = CurrentLine.Frame
+		.Colors(5, 0) = CurrentWord.Foreground
+		.Colors(5, 1) = CurrentWord.Background
+		.Colors(5, 2) = CurrentWord.Frame
+		.Colors(5, 4) = CurrentWord.Bold
+		.Colors(5, 5) = CurrentWord.Italic
+		.Colors(5, 6) = CurrentWord.Underline
+		.Colors(6, 0) = ExecutionLine.Foreground
+		.Colors(6, 1) = ExecutionLine.Background
+		.Colors(6, 2) = ExecutionLine.Frame
+		.Colors(6, 3) = ExecutionLine.Indicator
+		.Colors(7, 0) = FoldLines.Foreground
+		.Colors(8, 0) = IndicatorLines.Foreground
+		.Colors(9, 0) = Keywords.Foreground
+		.Colors(9, 1) = Keywords.Background
+		.Colors(9, 2) = Keywords.Frame
+		.Colors(9, 4) = Keywords.Bold
+		.Colors(9, 5) = Keywords.Italic
+		.Colors(9, 6) = Keywords.Underline
+		.Colors(10, 0) = LineNumbers.Foreground
+		.Colors(10, 1) = LineNumbers.Background
+		.Colors(10, 4) = LineNumbers.Bold
+		.Colors(10, 5) = LineNumbers.Italic
+		.Colors(10, 6) = LineNumbers.Underline
+		.Colors(11, 0) = NormalText.Foreground
+		.Colors(11, 1) = NormalText.Background
+		.Colors(11, 2) = NormalText.Frame
+		.Colors(11, 4) = NormalText.Bold
+		.Colors(11, 5) = NormalText.Italic
+		.Colors(11, 6) = NormalText.Underline
+		.Colors(12, 0) = Preprocessors.Foreground
+		.Colors(12, 1) = Preprocessors.Background
+		.Colors(12, 2) = Preprocessors.Frame
+		.Colors(12, 4) = Preprocessors.Bold
+		.Colors(12, 5) = Preprocessors.Italic
+		.Colors(12, 6) = Preprocessors.Underline
+		.Colors(13, 0) = Selection.Foreground
+		.Colors(13, 1) = Selection.Background
+		.Colors(13, 2) = Selection.Frame
+		.Colors(14, 0) = SpaceIdentifiers.Foreground
+		.Colors(15, 0) = Strings.Foreground
+		.Colors(15, 1) = Strings.Background
+		.Colors(15, 2) = Strings.Frame
+		.Colors(15, 4) = Strings.Bold
+		.Colors(15, 5) = Strings.Italic
+		.Colors(15, 6) = Strings.Underline
+		.lstColorKeys.ItemIndex = 0
 		.lstColorKeys_Change(.lstColorKeys)
 		WLet .EditFontName, *EditorFontName
 		.EditFontSize = EditorFontSize
 		.lblFont.Font.Name = *EditorFontName
 		.lblFont.Caption = *.EditFontName & ", " & .EditFontSize & "pt"
+		WLet .InterfFontName, *InterfaceFontName
+		WLet .OldInterfFontName, *InterfaceFontName
+		.InterfFontSize = InterfaceFontSize
+		.oldInterfFontSize = InterfaceFontSize
+		.oldDisplayMenuIcons = DisplayMenuIcons
+		.lblInterfaceFont.Font.Name = *InterfaceFontName
+		.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
 		.tvOptions.SelectedNode = .tvOptions.Nodes.Item(0)
 		.TreeView1_SelChange .tvOptions, *.tvOptions.Nodes.Item(0)
 	End With
@@ -994,10 +1150,11 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		Var tnCompiler = .tvOptions.Nodes.Add(ML("Compiler"), "Compiler")
 		Var tnDebugger = .tvOptions.Nodes.Add(ML("Debugger"), "Debugger")
 		.tvOptions.Nodes.Add(ML("Designer"), "Designer")
+		tnGeneral->Nodes.Add(ML("Localization"), "Localization")
+		tnGeneral->Nodes.Add(ML("Themes"), "Themes")
 		tnEditor->Nodes.Add(ML("Colors And Fonts"), "ColorsAndFonts")
 		tnCompiler->Nodes.Add(ML("Includes"), "Includes")
 		tnCompiler->Nodes.Add(ML("Make Tool"), "MakeTool")
-		tnGeneral->Nodes.Add(ML("Localization"), "Localization")
 		tnDebugger->Nodes.Add(ML("Terminal"), "Terminal")
 		.tvOptions.Nodes.Add(ML("Help"), "Help")
 		.tvOptions.ExpandAll
@@ -1009,6 +1166,8 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lvDebuggerPaths.Columns.Add ML("Path"), , 200
 		.lvTerminalPaths.Columns.Add ML("Version"), , 200
 		.lvTerminalPaths.Columns.Add ML("Path"), , 200
+		.lvHelpPaths.Columns.Add ML("Version"), , 200
+		.lvHelpPaths.Columns.Add ML("Path"), , 200
 		.cboCase.AddItem ML("Original Case")
 		.cboCase.AddItem ML("Lower Case")
 		.cboCase.AddItem ML("Upper Case")
@@ -1017,7 +1176,9 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem "Bookmarks"
 		.lstColorKeys.AddItem "Breakpoints"
 		.lstColorKeys.AddItem "Comments"
+		.lstColorKeys.AddItem "Current Brackets"
 		.lstColorKeys.AddItem "Current Line"
+		.lstColorKeys.AddItem "Current Word"
 		.lstColorKeys.AddItem "Executed Line"
 		.lstColorKeys.AddItem "Fold Lines"
 		.lstColorKeys.AddItem "Indicator Lines"
@@ -1068,7 +1229,16 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WDeallocate tempStr
 		WLet DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text)
 		WLet TerminalPath, pTerminals->Get(*DefaultTerminal)
-		WLet HelpPath, .TextBox3.Text
+		pHelps->Clear
+		miHelps->Clear
+		For i As Integer = 0 To .lvHelpPaths.ListItems.Count - 1
+			WLet tempStr, .lvHelpPaths.ListItems.Item(i)->Text(0)
+			pHelps->Add *tempStr, .lvHelpPaths.ListItems.Item(i)->Text(1)
+			miHelps->Add(*tempStr, .lvHelpPaths.ListItems.Item(i)->Text(1), , @mClickHelp)
+		Next
+		WDeallocate tempStr
+		WLet DefaultHelp, IIf(.cboHelp.ItemIndex = 0, "", .cboHelp.Text)
+		WLet HelpPath, pHelps->Get(*DefaultHelp)
 		WLet MFFPath, .txtMFFPath.Text
 		WLet ProjectsPath, .txtProjectsPath.Text
 		#ifdef __FB_64BIT__
@@ -1083,8 +1253,13 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoIndentation = .chkAutoIndentation.Checked
 		AutoComplete = .chkEnableAutoComplete.Checked
 		AutoCreateRC = .chkAutoCreateRC.Checked
-		AutoSaveCompile = .chkAutoSaveCompile.Checked
+		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
+		AutoReloadLastOpenFiles = .chkAutoReloadLastOpenSources.Checked
+		AutoSaveBeforeCompile = .chkAutoSaveCompile.Checked
 		ShowSpaces = .chkShowSpaces.Checked
+		HighlightBrackets = .chkHighlightBrackets.Checked
+		HighlightCurrentLine = .chkHighlightCurrentLine.Checked
+		HighlightCurrentWord = .chkHighlightCurrentWord.Checked
 		TabAsSpaces = .chkTabAsSpaces.Checked
 		ChoosedTabStyle = .cboTabStyle.ItemIndex
 		GridSize = Val(.txtGridSize.Text)
@@ -1095,85 +1270,135 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WLet CurrentTheme, .cboTheme.Text
 		WLet EditorFontName, *.EditFontName
 		EditorFontSize = .EditFontSize
-		BookmarksForegroundOption = .Colors(0, 0)
-		BookmarksBackgroundOption = .Colors(0, 1)
-		BookmarksIndicatorOption = .Colors(0, 2)
-		BookmarksBold = .Colors(0, 3)
-		BookmarksItalic = .Colors(0, 4)
-		BookmarksUnderline = .Colors(0, 5)
-		BreakpointsForegroundOption = .Colors(1, 0)
-		BreakpointsBackgroundOption = .Colors(1, 1)
-		BreakpointsIndicatorOption = .Colors(1, 2)
-		BreakpointsBold = .Colors(1, 3)
-		BreakpointsItalic = .Colors(1, 4)
-		BreakpointsUnderline = .Colors(1, 5)
-		CommentsForegroundOption = .Colors(2, 0)
-		CommentsBackgroundOption = .Colors(2, 1)
-		CommentsBold = .Colors(2, 3)
-		CommentsItalic = .Colors(2, 4)
-		CommentsUnderline = .Colors(2, 5)
-		CurrentLineForegroundOption = .Colors(3, 0)
-		CurrentLineBackgroundOption = .Colors(3, 1)
-		ExecutionLineForegroundOption = .Colors(4, 0)
-		ExecutionLineBackgroundOption = .Colors(4, 1)
-		ExecutionLineIndicatorOption = .Colors(4, 2)
-		FoldLinesForegroundOption = .Colors(5, 0)
-		IndicatorLinesForegroundOption = .Colors(6, 0)
-		KeywordsForegroundOption = .Colors(7, 0)
-		KeywordsBackgroundOption = .Colors(7, 1)
-		KeywordsBold = .Colors(7, 3)
-		KeywordsItalic = .Colors(7, 4)
-		KeywordsUnderline = .Colors(7, 5)
-		LineNumbersForegroundOption = .Colors(8, 0)
-		LineNumbersBackgroundOption = .Colors(8, 1)
-		LineNumbersBold = .Colors(8, 3)
-		LineNumbersItalic = .Colors(8, 4)
-		LineNumbersUnderline = .Colors(8, 5)
-		NormalTextForegroundOption = .Colors(9, 0)
-		NormalTextBackgroundOption = .Colors(9, 1)
-		NormalTextBold = .Colors(9, 3)
-		NormalTextItalic = .Colors(9, 4)
-		NormalTextUnderline = .Colors(9, 5)
-		PreprocessorsForegroundOption = .Colors(10, 0)
-		PreprocessorsBackgroundOption = .Colors(10, 1)
-		PreprocessorsBold = .Colors(10, 3)
-		PreprocessorsItalic = .Colors(10, 4)
-		PreprocessorsUnderline = .Colors(10, 5)
-		SelectionForegroundOption = .Colors(11, 0)
-		SelectionBackgroundOption = .Colors(11, 1)
-		SpaceIdentifiersForegroundOption = .Colors(12, 0)
-		StringsForegroundOption = .Colors(13, 0)
-		StringsBackgroundOption = .Colors(13, 1)
-		StringsBold = .Colors(13, 3)
-		StringsItalic = .Colors(13, 4)
-		StringsUnderline = .Colors(13, 5)
+		WLet InterfaceFontName, *.InterfFontName
+		InterfaceFontSize = .InterfFontSize
+		DisplayMenuIcons = .chkDisplayIcons.Checked
+		ShowMainToolbar = .chkShowMainToolbar.Checked
+		Bookmarks.ForegroundOption = .Colors(0, 0)
+		Bookmarks.BackgroundOption = .Colors(0, 1)
+		Bookmarks.FrameOption = .Colors(0, 2)
+		Bookmarks.IndicatorOption = .Colors(0, 3)
+		Bookmarks.Bold = .Colors(0, 4)
+		Bookmarks.Italic = .Colors(0, 5)
+		Bookmarks.Underline = .Colors(0, 6)
+		Breakpoints.ForegroundOption = .Colors(1, 0)
+		Breakpoints.BackgroundOption = .Colors(1, 1)
+		Breakpoints.FrameOption = .Colors(1, 2)
+		Breakpoints.IndicatorOption = .Colors(1, 3)
+		Breakpoints.Bold = .Colors(1, 4)
+		Breakpoints.Italic = .Colors(1, 5)
+		Breakpoints.Underline = .Colors(1, 6)
+		Comments.ForegroundOption = .Colors(2, 0)
+		Comments.BackgroundOption = .Colors(2, 1)
+		Comments.FrameOption = .Colors(2, 2)
+		Comments.Bold = .Colors(2, 4)
+		Comments.Italic = .Colors(2, 5)
+		Comments.Underline = .Colors(2, 6)
+		CurrentBrackets.ForegroundOption = .Colors(3, 0)
+		CurrentBrackets.BackgroundOption = .Colors(3, 1)
+		CurrentBrackets.FrameOption = .Colors(3, 2)
+		CurrentBrackets.Bold = .Colors(3, 4)
+		CurrentBrackets.Italic = .Colors(3, 5)
+		CurrentBrackets.Underline = .Colors(3, 6)
+		CurrentLine.ForegroundOption = .Colors(4, 0)
+		CurrentLine.BackgroundOption = .Colors(4, 1)
+		CurrentLine.FrameOption = .Colors(4, 2)
+		CurrentWord.ForegroundOption = .Colors(5, 0)
+		CurrentWord.BackgroundOption = .Colors(5, 1)
+		CurrentWord.FrameOption = .Colors(5, 2)
+		CurrentWord.Bold = .Colors(5, 4)
+		CurrentWord.Italic = .Colors(5, 5)
+		CurrentWord.Underline = .Colors(5, 6)
+		ExecutionLine.ForegroundOption = .Colors(6, 0)
+		ExecutionLine.BackgroundOption = .Colors(6, 1)
+		ExecutionLine.FrameOption = .Colors(6, 2)
+		ExecutionLine.IndicatorOption = .Colors(6, 3)
+		FoldLines.ForegroundOption = .Colors(7, 0)
+		IndicatorLines.ForegroundOption = .Colors(8, 0)
+		Keywords.ForegroundOption = .Colors(9, 0)
+		Keywords.BackgroundOption = .Colors(9, 1)
+		Keywords.FrameOption = .Colors(9, 2)
+		Keywords.Bold = .Colors(9, 4)
+		Keywords.Italic = .Colors(9, 5)
+		Keywords.Underline = .Colors(9, 6)
+		LineNumbers.ForegroundOption = .Colors(10, 0)
+		LineNumbers.BackgroundOption = .Colors(10, 1)
+		LineNumbers.Bold = .Colors(10, 4)
+		LineNumbers.Italic = .Colors(10, 5)
+		LineNumbers.Underline = .Colors(10, 6)
+		NormalText.ForegroundOption = .Colors(11, 0)
+		NormalText.BackgroundOption = .Colors(11, 1)
+		NormalText.FrameOption = .Colors(11, 2)
+		NormalText.Bold = .Colors(11, 4)
+		NormalText.Italic = .Colors(11, 5)
+		NormalText.Underline = .Colors(11, 6)
+		Preprocessors.ForegroundOption = .Colors(12, 0)
+		Preprocessors.BackgroundOption = .Colors(12, 1)
+		Preprocessors.FrameOption = .Colors(12, 2)
+		Preprocessors.Bold = .Colors(12, 4)
+		Preprocessors.Italic = .Colors(12, 5)
+		Preprocessors.Underline = .Colors(12, 6)
+		Selection.ForegroundOption = .Colors(13, 0)
+		Selection.BackgroundOption = .Colors(13, 1)
+		Selection.FrameOption = .Colors(13, 2)
+		SpaceIdentifiers.ForegroundOption = .Colors(14, 0)
+		Strings.ForegroundOption = .Colors(15, 0)
+		Strings.BackgroundOption = .Colors(15, 1)
+		Strings.FrameOption = .Colors(15, 2)
+		Strings.Bold = .Colors(15, 4)
+		Strings.Italic = .Colors(15, 5)
+		Strings.Underline = .Colors(15, 6)
 		SetAutoColors
 		
 		piniSettings->WriteString "Compilers", "DefaultCompiler32", *DefaultCompiler32
 		piniSettings->WriteString "Compilers", "DefaultCompiler64", *DefaultCompiler64
-		For i As Integer = 0 To pCompilers->Count - 1
+		For i As Integer = 0 To Min(9, pCompilers->Count - 1)
 			piniSettings->WriteString "Compilers", "Version_" & WStr(i), pCompilers->Item(i)->Key
 			piniSettings->WriteString "Compilers", "Path_" & WStr(i), pCompilers->Item(i)->Text
 		Next
+		For i As Integer = pCompilers->Count To 9
+			piniSettings->WriteString "Compilers", "Version_" & WStr(i), ""
+			piniSettings->WriteString "Compilers", "Path_" & WStr(i), ""
+		Next
 		piniSettings->WriteString "MakeTools", "DefaultMakeTool", *DefaultMakeTool
-		For i As Integer = 0 To pMakeTools->Count - 1
+		For i As Integer = 0 To Min(9, pMakeTools->Count - 1)
 			piniSettings->WriteString "MakeTools", "Version_" & WStr(i), pMakeTools->Item(i)->Key
 			piniSettings->WriteString "MakeTools", "Path_" & WStr(i), pMakeTools->Item(i)->Text
 		Next
+		For i As Integer = pMakeTools->Count To 9
+			piniSettings->WriteString "MakeTools", "Version_" & WStr(i), ""
+			piniSettings->WriteString "MakeTools", "Path_" & WStr(i), ""
+		Next
 		piniSettings->WriteString "Debuggers", "DefaultDebugger", *DefaultDebugger
-		For i As Integer = 0 To pDebuggers->Count - 1
+		For i As Integer = 0 To Min(9, pDebuggers->Count - 1)
 			piniSettings->WriteString "Debuggers", "Version_" & WStr(i), pDebuggers->Item(i)->Key
 			piniSettings->WriteString "Debuggers", "Path_" & WStr(i), pDebuggers->Item(i)->Text
 		Next
+		For i As Integer = pDebuggers->Count To 9
+			piniSettings->WriteString "Debuggers", "Version_" & WStr(i), ""
+			piniSettings->WriteString "Debuggers", "Path_" & WStr(i), ""
+		Next
 		piniSettings->WriteString "Terminals", "DefaultTerminal", *DefaultTerminal
-		For i As Integer = 0 To pTerminals->Count - 1
+		For i As Integer = 0 To Min(9, pTerminals->Count - 1)
 			piniSettings->WriteString "Terminals", "Version_" & WStr(i), pTerminals->Item(i)->Key
 			piniSettings->WriteString "Terminals", "Path_" & WStr(i), pTerminals->Item(i)->Text
 		Next
-		piniSettings->WriteString "Options", "HelpPath", *HelpPath
+		For i As Integer = pTerminals->Count To 9
+			piniSettings->WriteString "Terminals", "Version_" & WStr(i), ""
+			piniSettings->WriteString "Terminals", "Path_" & WStr(i), ""
+		Next
+		piniSettings->WriteString "Helps", "DefaultHelp", *DefaultHelp
+		For i As Integer = 0 To Min(9, pHelps->Count - 1)
+			piniSettings->WriteString "Helps", "Version_" & WStr(i), pHelps->Item(i)->Key
+			piniSettings->WriteString "Helps", "Path_" & WStr(i), pHelps->Item(i)->Text
+		Next
+		For i As Integer = pHelps->Count To 9
+			piniSettings->WriteString "Helps", "Version_" & WStr(i), ""
+			piniSettings->WriteString "Helps", "Path_" & WStr(i), ""
+		Next
 		piniSettings->WriteString "Options", "MFFPath", *MFFPath
 		piniSettings->WriteString "Options", "ProjectsPath", *ProjectsPath
-		piniSettings->WriteString "Options", "Language", Languages.Item(.ComboBoxEdit1.ItemIndex)
+		piniSettings->WriteString "Options", "Language", Languages.Item(.cboLanguage.ItemIndex)
 		piniSettings->WriteInteger "Options", "TabWidth", TabWidth
 		piniSettings->WriteInteger "Options", "HistoryLimit", HistoryLimit
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
@@ -1181,8 +1406,13 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "AutoIndentation", AutoIndentation
 		piniSettings->WriteBool "Options", "AutoComplete", AutoComplete
 		piniSettings->WriteBool "Options", "AutoCreateRC", AutoCreateRC
-		piniSettings->WriteBool "Options", "AutoSaveBeforeCompiling", AutoSaveCompile
+		piniSettings->WriteBool "Options", "AutoCreateBakFiles", AutoCreateBakFiles
+		piniSettings->WriteBool "Options", "AutoReloadLastOpenFiles", AutoReloadLastOpenFiles
+		piniSettings->WriteBool "Options", "AutoSaveBeforeCompiling", AutoSaveBeforeCompile
 		piniSettings->WriteBool "Options", "ShowSpaces", ShowSpaces
+		piniSettings->WriteBool "Options", "HighlightBrackets", HighlightBrackets
+		piniSettings->WriteBool "Options", "HighlightCurrentLine", HighlightCurrentLine
+		piniSettings->WriteBool "Options", "HighlightCurrentWord", HighlightCurrentWord
 		piniSettings->WriteBool "Options", "TabAsSpaces", TabAsSpaces
 		piniSettings->WriteInteger "Options", "GridSize", GridSize
 		piniSettings->WriteBool "Options", "ShowAlignmentGrid", ShowAlignmentGrid
@@ -1194,60 +1424,89 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		
 		piniSettings->WriteString "Options", "EditorFontName", *EditorFontName
 		piniSettings->WriteInteger "Options", "EditorFontSize", EditorFontSize
+		piniSettings->WriteString "Options", "InterfaceFontName", *InterfaceFontName
+		piniSettings->WriteInteger "Options", "InterfaceFontSize", InterfaceFontSize
+		piniSettings->WriteBool "Options", "DisplayMenuIcons", DisplayMenuIcons
+		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolbar
+		pfrmMain->Menu->ImagesList = IIf(DisplayMenuIcons, pimgList, 0)
+		ptbStandard->Visible = ShowMainToolbar
+		pfrmMain->RequestAlign
 		
 		piniTheme->Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
-		piniTheme->WriteInteger("Colors", "BookmarksForeground", BookmarksForeground)
-		piniTheme->WriteInteger("Colors", "BookmarksBackground", BookmarksBackground)
-		piniTheme->WriteInteger("Colors", "BookmarksIndicator", BookmarksIndicator)
-		piniTheme->WriteInteger("FontStyles", "BookmarksBold", BookmarksBold)
-		piniTheme->WriteInteger("FontStyles", "BookmarksItalic", BookmarksItalic)
-		piniTheme->WriteInteger("FontStyles", "BookmarksUnderline", BookmarksUnderline)
-		piniTheme->WriteInteger("Colors", "BreakpointsForeground", BreakpointsForeground)
-		piniTheme->WriteInteger("Colors", "BreakpointsBackground", BreakpointsBackground)
-		piniTheme->WriteInteger("Colors", "BreakpointsIndicator", BreakpointsIndicator)
-		piniTheme->WriteInteger("FontStyles", "BreakpointsBold", BreakpointsBold)
-		piniTheme->WriteInteger("FontStyles", "BreakpointsItalic", BreakpointsItalic)
-		piniTheme->WriteInteger("FontStyles", "BreakpointsUnderline", BreakpointsUnderline)
-		piniTheme->WriteInteger("Colors", "CommentsForeground", CommentsForeground)
-		piniTheme->WriteInteger("Colors", "CommentsBackground", CommentsBackground)
-		piniTheme->WriteInteger("FontStyles", "CommentsBold", CommentsBold)
-		piniTheme->WriteInteger("FontStyles", "CommentsItalic", CommentsItalic)
-		piniTheme->WriteInteger("FontStyles", "CommentsUnderline", CommentsUnderline)
-		piniTheme->WriteInteger("Colors", "CurrentLineForeground", CurrentLineForeground)
-		piniTheme->WriteInteger("Colors", "CurrentLineBackground", CurrentLineBackground)
-		piniTheme->WriteInteger("Colors", "ExecutionLineForeground", ExecutionLineForeground)
-		piniTheme->WriteInteger("Colors", "ExecutionLineBackground", ExecutionLineBackground)
-		piniTheme->WriteInteger("Colors", "ExecutionLineIndicator", ExecutionLineIndicator)
-		piniTheme->WriteInteger("Colors", "FoldLinesForeground", FoldLinesForeground)
-		piniTheme->WriteInteger("Colors", "IndicatorLinesForeground", IndicatorLinesForeground)
-		piniTheme->WriteInteger("Colors", "KeywordsForeground", KeywordsForeground)
-		piniTheme->WriteInteger("Colors", "KeywordsBackground", KeywordsBackground)
-		piniTheme->WriteInteger("FontStyles", "KeywordsBold", KeywordsBold)
-		piniTheme->WriteInteger("FontStyles", "KeywordsItalic", KeywordsItalic)
-		piniTheme->WriteInteger("FontStyles", "KeywordsUnderline", KeywordsUnderline)
-		piniTheme->WriteInteger("Colors", "LineNumbersForeground", LineNumbersForeground)
-		piniTheme->WriteInteger("Colors", "LineNumbersBackground", LineNumbersBackground)
-		piniTheme->WriteInteger("FontStyles", "LineNumbersBold", LineNumbersBold)
-		piniTheme->WriteInteger("FontStyles", "LineNumbersItalic", LineNumbersItalic)
-		piniTheme->WriteInteger("FontStyles", "LineNumbersUnderline", LineNumbersUnderline)
-		piniTheme->WriteInteger("Colors", "NormalTextForeground", NormalTextForeground)
-		piniTheme->WriteInteger("Colors", "NormalTextBackground", NormalTextBackground)
-		piniTheme->WriteInteger("FontStyles", "NormalTextBold", NormalTextBold)
-		piniTheme->WriteInteger("FontStyles", "NormalTextItalic", NormalTextItalic)
-		piniTheme->WriteInteger("FontStyles", "NormalTextUnderline", NormalTextUnderline)
-		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", PreprocessorsForeground)
-		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", PreprocessorsBackground)
-		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", PreprocessorsBold)
-		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", PreprocessorsItalic)
-		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", PreprocessorsUnderline)
-		piniTheme->WriteInteger("Colors", "SelectionForeground", SelectionForeground)
-		piniTheme->WriteInteger("Colors", "SelectionBackground", SelectionBackground)
-		piniTheme->WriteInteger("Colors", "SpaceIdentifiersForeground", SpaceIdentifiersForeground)
-		piniTheme->WriteInteger("Colors", "StringsForeground", StringsForeground)
-		piniTheme->WriteInteger("Colors", "StringsBackground", StringsBackground)
-		piniTheme->WriteInteger("FontStyles", "StringsBold", StringsBold)
-		piniTheme->WriteInteger("FontStyles", "StringsItalic", StringsItalic)
-		piniTheme->WriteInteger("FontStyles", "StringsUnderline", StringsUnderline)
+		piniTheme->WriteInteger("Colors", "BookmarksForeground", Bookmarks.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "BookmarksBackground", Bookmarks.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "BookmarksFrame", Bookmarks.FrameOption)
+		piniTheme->WriteInteger("Colors", "BookmarksIndicator", Bookmarks.IndicatorOption)
+		piniTheme->WriteInteger("FontStyles", "BookmarksBold", Bookmarks.Bold)
+		piniTheme->WriteInteger("FontStyles", "BookmarksItalic", Bookmarks.Italic)
+		piniTheme->WriteInteger("FontStyles", "BookmarksUnderline", Bookmarks.Underline)
+		piniTheme->WriteInteger("Colors", "BreakpointsForeground", Breakpoints.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "BreakpointsBackground", Breakpoints.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "BreakpointsFrame", Breakpoints.FrameOption)
+		piniTheme->WriteInteger("Colors", "BreakpointsIndicator", Breakpoints.IndicatorOption)
+		piniTheme->WriteInteger("FontStyles", "BreakpointsBold", Breakpoints.Bold)
+		piniTheme->WriteInteger("FontStyles", "BreakpointsItalic", Breakpoints.Italic)
+		piniTheme->WriteInteger("FontStyles", "BreakpointsUnderline", Breakpoints.Underline)
+		piniTheme->WriteInteger("Colors", "CommentsForeground", Comments.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "CommentsBackground", Comments.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "CommentsFrame", Comments.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "CommentsBold", Comments.Bold)
+		piniTheme->WriteInteger("FontStyles", "CommentsItalic", Comments.Italic)
+		piniTheme->WriteInteger("FontStyles", "CommentsUnderline", Comments.Underline)
+		piniTheme->WriteInteger("Colors", "CurrentBracketsForeground", CurrentBrackets.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "CurrentBracketsBackground", CurrentBrackets.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "CurrentBracketsFrame", CurrentBrackets.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "CurrentBracketsBold", CurrentBrackets.Bold)
+		piniTheme->WriteInteger("FontStyles", "CurrentBracketsItalic", CurrentBrackets.Italic)
+		piniTheme->WriteInteger("FontStyles", "CurrentBracketsUnderline", CurrentBrackets.Underline)
+		piniTheme->WriteInteger("Colors", "CurrentLineForeground", CurrentLine.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "CurrentLineBackground", CurrentLine.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "CurrentLineFrame", CurrentLine.FrameOption)
+		piniTheme->WriteInteger("Colors", "CurrentWordForeground", CurrentWord.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "CurrentWordBackground", CurrentWord.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "CurrentWordFrame", CurrentWord.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "CurrentWordBold", CurrentWord.Bold)
+		piniTheme->WriteInteger("FontStyles", "CurrentWordItalic", CurrentWord.Italic)
+		piniTheme->WriteInteger("FontStyles", "CurrentWordUnderline", CurrentWord.Underline)
+		piniTheme->WriteInteger("Colors", "ExecutionLineForeground", ExecutionLine.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "ExecutionLineBackground", ExecutionLine.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "ExecutionLineFrame", ExecutionLine.FrameOption)
+		piniTheme->WriteInteger("Colors", "ExecutionLineIndicator", ExecutionLine.IndicatorOption)
+		piniTheme->WriteInteger("Colors", "FoldLinesForeground", FoldLines.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "IndicatorLinesForeground", IndicatorLines.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "KeywordsForeground", Keywords.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "KeywordsBackground", Keywords.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "KeywordsFrame", Keywords.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "KeywordsBold", Keywords.Bold)
+		piniTheme->WriteInteger("FontStyles", "KeywordsItalic", Keywords.Italic)
+		piniTheme->WriteInteger("FontStyles", "KeywordsUnderline", Keywords.Underline)
+		piniTheme->WriteInteger("Colors", "LineNumbersForeground", LineNumbers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "LineNumbersBackground", LineNumbers.BackgroundOption)
+		piniTheme->WriteInteger("FontStyles", "LineNumbersBold", LineNumbers.Bold)
+		piniTheme->WriteInteger("FontStyles", "LineNumbersItalic", LineNumbers.Italic)
+		piniTheme->WriteInteger("FontStyles", "LineNumbersUnderline", LineNumbers.Underline)
+		piniTheme->WriteInteger("Colors", "NormalTextForeground", NormalText.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "NormalTextBackground", NormalText.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "NormalTextFrame", NormalText.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "NormalTextBold", NormalText.Bold)
+		piniTheme->WriteInteger("FontStyles", "NormalTextItalic", NormalText.Italic)
+		piniTheme->WriteInteger("FontStyles", "NormalTextUnderline", NormalText.Underline)
+		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", Preprocessors.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", Preprocessors.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "PreprocessorsFrame", Preprocessors.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
+		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
+		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
+		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "SelectionBackground", Selection.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "SelectionFrame", Selection.FrameOption)
+		piniTheme->WriteInteger("Colors", "SpaceIdentifiersForeground", SpaceIdentifiers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "StringsForeground", Strings.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "StringsBackground", Strings.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "StringsFrame", Strings.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "StringsBold", Strings.Bold)
+		piniTheme->WriteInteger("FontStyles", "StringsItalic", Strings.Italic)
+		piniTheme->WriteInteger("FontStyles", "StringsUnderline", Strings.Underline)
 		
 		Dim As TabWindow Ptr tb
 		For i As Integer = 0 To ptabCode->TabCount - 1
@@ -1255,7 +1514,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			tb->txtCode.Font.Name = *EditorFontName
 			tb->txtCode.Font.Size = EditorFontSize
 		Next
-		newIndex = .ComboBoxEdit1.ItemIndex
+		newIndex = .cboLanguage.ItemIndex
 	End With
 	Exit Sub
 	ErrorHandler:
@@ -1266,11 +1525,9 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	'Sender.FreeWnd
-	'Sender.Handle = 0
-	#ifndef __USE_GTK__
-		If newIndex <> oldIndex Then MsgBox ML("The language will change after the program is restarted"), "Visual FB Editor", MB_OK Or MB_ICONINFORMATION Or MB_TOPMOST Or MB_TASKMODAL
-	#endif
+	If newIndex <> oldIndex Then MsgBox ML("Localization changes will be applied the next time the application is run.")
+	If *InterfaceFontName <> *fOptions.oldInterfFontName OrElse InterfaceFontSize <> fOptions.oldInterfFontSize Then MsgBox ML("Interface font changes will be applied the next time the application is run.")
+	If DisplayMenuIcons <> fOptions.oldDisplayMenuIcons Then MsgBox ML("Display icons in the menu changes will be applied the next time the application is run.")
 End Sub
 
 Private Sub frmOptions.Form_Show(ByRef Sender As Form)
@@ -1279,55 +1536,12 @@ Private Sub frmOptions.Form_Show(ByRef Sender As Form)
 	End With
 End Sub
 
-Private Sub frmOptions.CommandButton4_Click(ByRef Sender As Control)
-	'    With *Cast(frmOptions Ptr, Sender.GetForm)
-	'        .TextBox1.SetFocus
-	'        ReleaseCapture
-	'        .OpenD.Filter = ML("All Files") & "|*.*;"
-	'        If .OpenD.Execute Then
-	'            .TextBox1.Text = .OpenD.FileName 
-	'        End If
-	'    End With
-End Sub
-
-Private Sub frmOptions.CommandButton5_Click(ByRef Sender As Control)
-	With *Cast(frmOptions Ptr, Sender.GetForm)
-		'.TextBox2.SetFocus
-		.OpenD.Filter = ML("All Files") & "|*.*;"
-		If .OpenD.Execute Then
-			.TextBox2.Text = .OpenD.FileName 
-		End If
-	End With
-End Sub
-
-Private Sub frmOptions.CommandButton6_Click(ByRef Sender As Control)
-	With *Cast(frmOptions Ptr, Sender.GetForm)
-		'.TextBox3.SetFocus
-		.OpenD.Filter = ML("All Files") & "|*.*;"
-		If .OpenD.Execute Then
-			.TextBox3.Text = .OpenD.FileName 
-		End If
-	End With    
-End Sub
-
-
-Private Sub frmOptions.CommandButton4_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-	With *Cast(frmOptions Ptr, Sender.GetForm)
-		'.TextBox1.SetFocus
-		'ReleaseCapture
-		.OpenD.Filter = ML("All Files") & "|*.*;"
-		If .OpenD.Execute Then
-			.TextBox1.Text = .OpenD.FileName
-			.TextBox2.Text = GetFileName(Left(GetFolderName(.OpenD.FileName), Len(GetFolderName(.OpenD.FileName)) - 1))
-		End If
-	End With
-End Sub
-
 Private Sub frmOptions.TreeView1_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	With fOptions
 		Dim Key As String = Item.Name
 		.pnlGeneral.Visible = Key = "General"
 		.pnlCodeEditor.Visible = Key = "CodeEditor"
+		.pnlThemes.Visible = Key = "Themes"
 		.pnlColorsAndFonts.Visible = Key = "ColorsAndFonts"
 		.pnlCompiler.Visible = Key = "Compiler"
 		.pnlMake.Visible = Key = "MakeTool"
@@ -1352,47 +1566,6 @@ Private Sub frmOptions.cmdMFFPath_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdDebugger_Click(ByRef Sender As Control)
-	With *Cast(frmOptions Ptr, Sender.GetForm)
-		.OpenD.Filter = ML("All Files") & "|*.*;"
-		If .OpenD.Execute Then
-			.txtDebugger.Text = .OpenD.FileName
-			.txtDebuggerVersion.Text = GetFileName(.OpenD.FileName)
-			If EndsWith(.txtDebuggerVersion.Text, ".exe") Then .txtDebuggerVersion.Text = Left(.txtDebuggerVersion.Text, Len(.txtDebuggerVersion.Text) - 4)
-		End If
-	End With
-End Sub
-
-Private Sub frmOptions.cmdTerminal_Click(ByRef Sender As Control)
-	With *Cast(frmOptions Ptr, Sender.GetForm)
-		.OpenD.Filter = ML("All Files") & "|*.*;"
-		If .OpenD.Execute Then
-			.txtTerminal.Text = .OpenD.FileName 
-			.txtTerminalVersion.Text = GetFileName(.OpenD.FileName)
-			If EndsWith(.txtTerminalVersion.Text, ".exe") Then .txtTerminalVersion.Text = Left(.txtTerminalVersion.Text, Len(.txtTerminalVersion.Text) - 4)
-		End If
-	End With
-End Sub
-
-Private Sub frmOptions.pnlLocalization_Click(ByRef Sender As Control)
-	
-End Sub
-
-Private Sub frmOptions.txtHistoryLimit_Change(ByRef Sender As TextBox)
-	
-End Sub
-
-Private Sub frmOptions.CommandButton7_Click(ByRef Sender As Control)
-	With *pfOptions
-		.OpenD.Filter = ML("All Files") & "|*.*;"
-		If .OpenD.Execute Then
-			.txtMake.Text = .OpenD.FileName 
-			.txtMakeVersion.Text = GetFileName(.OpenD.FileName)
-			If EndsWith(.txtMakeVersion.Text, ".exe") Then .txtMakeVersion.Text = Left(.txtMakeVersion.Text, Len(.txtMakeVersion.Text) - 4)
-		End If
-	End With
-End Sub
-
 Private Sub frmOptions.cmdFont_Click(ByRef Sender As Control)
 	With fOptions
 		.FontD.Font.Name = *.EditFontName
@@ -1410,29 +1583,36 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 	With fOptions
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.lblColorForeground.BackColor = .Colors(i, 0)
+		.lblColorForeground.BackColor = Max(0, .Colors(i, 0))
 		.chkForeground.Checked = .Colors(i, 0) = -1
 		
+		.lblColorBackground.BackColor = Max(0, .Colors(i, 1))
 		.lblColorBackground.Visible = .Colors(i, 1) <> -2
 		.lblBackground.Visible = .Colors(i, 1) <> -2
 		.cmdBackground.Visible = .Colors(i, 1) <> -2
 		.chkBackground.Visible = .Colors(i, 1) <> -2
-		.lblColorBackground.BackColor = .Colors(i, 1)
 		.chkBackground.Checked = .Colors(i, 1) = -1
 		
-		.lblColorIndicator.Visible = .Colors(i, 2) <> -2
-		.lblIndicator.Visible = .Colors(i, 2) <> -2
-		.cmdIndicator.Visible = .Colors(i, 2) <> -2
-		.chkIndicator.Visible = .Colors(i, 2) <> -2
-		.lblColorIndicator.BackColor = .Colors(i, 2)
-		.chkIndicator.Checked = .Colors(i, 2) = -1
+		.lblColorFrame.BackColor = Max(0, .Colors(i, 2))
+		.lblColorFrame.Visible = .Colors(i, 2) <> -2
+		.lblFrame.Visible = .Colors(i, 2) <> -2
+		.cmdFrame.Visible = .Colors(i, 2) <> -2
+		.chkFrame.Visible = .Colors(i, 2) <> -2
+		.chkFrame.Checked = .Colors(i, 2) = -1
 		
-		.chkBold.Visible = .Colors(i, 3) <> -2
-		.chkBold.Checked = .Colors(i, 3)
-		.chkItalic.Visible = .Colors(i, 3) <> -2
-		.chkItalic.Checked = .Colors(i, 4)
-		.chkUnderline.Visible = .Colors(i, 3) <> -2
-		.chkUnderline.Checked = .Colors(i, 5)
+		.lblColorIndicator.BackColor = Max(0, .Colors(i, 3))
+		.lblColorIndicator.Visible = .Colors(i, 3) <> -2
+		.lblIndicator.Visible = .Colors(i, 3) <> -2
+		.cmdIndicator.Visible = .Colors(i, 3) <> -2
+		.chkIndicator.Visible = .Colors(i, 3) <> -2
+		.chkIndicator.Checked = .Colors(i, 3) = -1
+		
+		.chkBold.Visible = .Colors(i, 4) <> -2
+		.chkBold.Checked = .Colors(i, 4)
+		.chkItalic.Visible = .Colors(i, 4) <> -2
+		.chkItalic.Checked = .Colors(i, 5)
+		.chkUnderline.Visible = .Colors(i, 4) <> -2
+		.chkUnderline.Checked = .Colors(i, 6)
 	End With
 End Sub
 
@@ -1462,15 +1642,28 @@ Private Sub frmOptions.cmdBackground_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdIndicator_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdFrame_Click(ByRef Sender As Control)
 	With fOptions.ColorD
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
 		.Color = fOptions.Colors(i, 2)
 		If .Execute Then
+			fOptions.lblColorFrame.BackColor = .Color
+			fOptions.chkFrame.Checked = False
+			fOptions.Colors(i, 2) = .Color
+		End If
+	End With
+End Sub
+
+Private Sub frmOptions.cmdIndicator_Click(ByRef Sender As Control)
+	With fOptions.ColorD
+		Var i = fOptions.lstColorKeys.ItemIndex
+		If i = -1 Then Exit Sub
+		.Color = fOptions.Colors(i, 3)
+		If .Execute Then
 			fOptions.lblColorIndicator.BackColor = .Color
 			fOptions.chkIndicator.Checked = False
-			fOptions.Colors(i, 2) = .Color
+			fOptions.Colors(i, 3) = .Color
 		End If
 	End With
 End Sub
@@ -1480,56 +1673,80 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 		piniTheme->Load ExePath & "/Settings/Themes/" & fOptions.cboTheme.Text & ".ini"
 		.Colors(0, 0) = piniTheme->ReadInteger("Colors", "BookmarksForeground", -1)
 		.Colors(0, 1) = piniTheme->ReadInteger("Colors", "BookmarksBackground", -1)
-		.Colors(0, 2) = piniTheme->ReadInteger("Colors", "BookmarksIndicator", -1)
-		.Colors(0, 3) = piniTheme->ReadInteger("FontStyles", "BookmarksBold", 0)
-		.Colors(0, 4) = piniTheme->ReadInteger("FontStyles", "BookmarksItalic", 0)
-		.Colors(0, 5) = piniTheme->ReadInteger("FontStyles", "BookmarksUnderline", 0)
+		.Colors(0, 2) = piniTheme->ReadInteger("Colors", "BookmarksFrame", -1)
+		.Colors(0, 3) = piniTheme->ReadInteger("Colors", "BookmarksIndicator", -1)
+		.Colors(0, 4) = piniTheme->ReadInteger("FontStyles", "BookmarksBold", 0)
+		.Colors(0, 5) = piniTheme->ReadInteger("FontStyles", "BookmarksItalic", 0)
+		.Colors(0, 6) = piniTheme->ReadInteger("FontStyles", "BookmarksUnderline", 0)
 		.Colors(1, 0) = piniTheme->ReadInteger("Colors", "BreakpointsForeground", -1)
 		.Colors(1, 1) = piniTheme->ReadInteger("Colors", "BreakpointsBackground", -1)
-		.Colors(1, 2) = piniTheme->ReadInteger("Colors", "BreakpointsIndicator", -1)
-		.Colors(1, 3) = piniTheme->ReadInteger("FontStyles", "BreakpointsBold", 0)
-		.Colors(1, 4) = piniTheme->ReadInteger("FontStyles", "BreakpointsItalic", 0)
-		.Colors(1, 5) = piniTheme->ReadInteger("FontStyles", "BreakpointsUnderline", 0)
+		.Colors(1, 2) = piniTheme->ReadInteger("Colors", "BreakpointsFrame", -1)
+		.Colors(1, 3) = piniTheme->ReadInteger("Colors", "BreakpointsIndicator", -1)
+		.Colors(1, 4) = piniTheme->ReadInteger("FontStyles", "BreakpointsBold", 0)
+		.Colors(1, 5) = piniTheme->ReadInteger("FontStyles", "BreakpointsItalic", 0)
+		.Colors(1, 6) = piniTheme->ReadInteger("FontStyles", "BreakpointsUnderline", 0)
 		.Colors(2, 0) = piniTheme->ReadInteger("Colors", "CommentsForeground", -1)
 		.Colors(2, 1) = piniTheme->ReadInteger("Colors", "CommentsBackground", -1)
-		.Colors(2, 3) = piniTheme->ReadInteger("FontStyles", "CommentsBold", 0)
-		.Colors(2, 4) = piniTheme->ReadInteger("FontStyles", "CommentsItalic", 0)
-		.Colors(2, 5) = piniTheme->ReadInteger("FontStyles", "CommentsUnderline", 0)
-		.Colors(3, 0) = piniTheme->ReadInteger("Colors", "CurrentLineForeground", -1)
-		.Colors(3, 1) = piniTheme->ReadInteger("Colors", "CurrentLineBackground", -1)
-		.Colors(4, 0) = piniTheme->ReadInteger("Colors", "ExecutionLineForeground", -1)
-		.Colors(4, 1) = piniTheme->ReadInteger("Colors", "ExecutionLineBackground", -1)
-		.Colors(4, 2) = piniTheme->ReadInteger("Colors", "ExecutionLineIndicator", -1)
-		.Colors(5, 0) = piniTheme->ReadInteger("Colors", "FoldLinesForeground", -1)
-		.Colors(6, 0) = piniTheme->ReadInteger("Colors", "IndicatorLinesForeground", -1)
-		.Colors(7, 0) = piniTheme->ReadInteger("Colors", "KeywordsForeground", -1)
-		.Colors(7, 1) = piniTheme->ReadInteger("Colors", "KeywordsBackground", -1)
-		.Colors(7, 3) = piniTheme->ReadInteger("FontStyles", "KeywordsBold", 0)
-		.Colors(7, 4) = piniTheme->ReadInteger("FontStyles", "KeywordsItalic", 0)
-		.Colors(7, 5) = piniTheme->ReadInteger("FontStyles", "KeywordsUnderline", 0)
-		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "LineNumbersForeground", -1)
-		.Colors(8, 1) = piniTheme->ReadInteger("Colors", "LineNumbersBackground", -1)
-		.Colors(8, 3) = piniTheme->ReadInteger("FontStyles", "LineNumbersBold", 0)
-		.Colors(8, 4) = piniTheme->ReadInteger("FontStyles", "LineNumbersItalic", 0)
-		.Colors(8, 5) = piniTheme->ReadInteger("FontStyles", "LineNumbersUnderline", 0)
-		.Colors(9, 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", -1)
-		.Colors(9, 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", -1)
-		.Colors(9, 3) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
-		.Colors(9, 4) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
-		.Colors(9, 5) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
-		.Colors(10, 0) = piniTheme->ReadInteger("Colors", "PreprocessorsForeground", -1)
-		.Colors(10, 1) = piniTheme->ReadInteger("Colors", "PreprocessorsBackground", -1)
-		.Colors(10, 3) = piniTheme->ReadInteger("FontStyles", "PreprocessorsBold", 0)
-		.Colors(10, 4) = piniTheme->ReadInteger("FontStyles", "PreprocessorsItalic", 0)
-		.Colors(10, 5) = piniTheme->ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
-		.Colors(11, 0) = piniTheme->ReadInteger("Colors", "SelectionForeground", -1)
-		.Colors(11, 1) = piniTheme->ReadInteger("Colors", "SelectionBackground", -1)
-		.Colors(12, 0) = piniTheme->ReadInteger("Colors", "SpaceIdentifiersForeground", -1)
-		.Colors(13, 0) = piniTheme->ReadInteger("Colors", "StringsForeground", -1)
-		.Colors(13, 1) = piniTheme->ReadInteger("Colors", "StringsBackground", -1)
-		.Colors(13, 3) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
-		.Colors(13, 4) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
-		.Colors(13, 5) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
+		.Colors(2, 2) = piniTheme->ReadInteger("Colors", "CommentsFrame", -1)
+		.Colors(2, 4) = piniTheme->ReadInteger("FontStyles", "CommentsBold", 0)
+		.Colors(2, 5) = piniTheme->ReadInteger("FontStyles", "CommentsItalic", 0)
+		.Colors(2, 6) = piniTheme->ReadInteger("FontStyles", "CommentsUnderline", 0)
+		.Colors(3, 0) = piniTheme->ReadInteger("Colors", "CurrentBracketsForeground", -1)
+		.Colors(3, 1) = piniTheme->ReadInteger("Colors", "CurrentBracketsBackground", -1)
+		.Colors(3, 2) = piniTheme->ReadInteger("Colors", "CurrentBracketsFrame", -1)
+		.Colors(3, 3) = piniTheme->ReadInteger("Colors", "CurrentBracketsIndicator", -1)
+		.Colors(3, 4) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsBold", 0)
+		.Colors(3, 5) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsItalic", 0)
+		.Colors(3, 6) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsUnderline", 0)
+		.Colors(4, 0) = piniTheme->ReadInteger("Colors", "CurrentLineForeground", -1)
+		.Colors(4, 1) = piniTheme->ReadInteger("Colors", "CurrentLineBackground", -1)
+		.Colors(4, 2) = piniTheme->ReadInteger("Colors", "CurrentLineFrame", -1)
+		.Colors(5, 0) = piniTheme->ReadInteger("Colors", "CurrentWordForeground", -1)
+		.Colors(5, 1) = piniTheme->ReadInteger("Colors", "CurrentWordBackground", -1)
+		.Colors(5, 2) = piniTheme->ReadInteger("Colors", "CurrentWordFrame", -1)
+		.Colors(5, 3) = piniTheme->ReadInteger("Colors", "CurrentWordIndicator", -1)
+		.Colors(5, 4) = piniTheme->ReadInteger("FontStyles", "CurrentWordBold", 0)
+		.Colors(5, 5) = piniTheme->ReadInteger("FontStyles", "CurrentWordItalic", 0)
+		.Colors(5, 6) = piniTheme->ReadInteger("FontStyles", "CurrentWordUnderline", 0)
+		.Colors(6, 0) = piniTheme->ReadInteger("Colors", "ExecutionLineForeground", -1)
+		.Colors(6, 1) = piniTheme->ReadInteger("Colors", "ExecutionLineBackground", -1)
+		.Colors(6, 2) = piniTheme->ReadInteger("Colors", "ExecutionLineFrame", -1)
+		.Colors(6, 3) = piniTheme->ReadInteger("Colors", "ExecutionLineIndicator", -1)
+		.Colors(7, 0) = piniTheme->ReadInteger("Colors", "FoldLinesForeground", -1)
+		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "IndicatorLinesForeground", -1)
+		.Colors(9, 0) = piniTheme->ReadInteger("Colors", "KeywordsForeground", -1)
+		.Colors(9, 1) = piniTheme->ReadInteger("Colors", "KeywordsBackground", -1)
+		.Colors(9, 2) = piniTheme->ReadInteger("Colors", "KeywordsFrame", -1)
+		.Colors(9, 4) = piniTheme->ReadInteger("FontStyles", "KeywordsBold", 0)
+		.Colors(9, 5) = piniTheme->ReadInteger("FontStyles", "KeywordsItalic", 0)
+		.Colors(9, 6) = piniTheme->ReadInteger("FontStyles", "KeywordsUnderline", 0)
+		.Colors(10, 0) = piniTheme->ReadInteger("Colors", "LineNumbersForeground", -1)
+		.Colors(10, 1) = piniTheme->ReadInteger("Colors", "LineNumbersBackground", -1)
+		.Colors(10, 4) = piniTheme->ReadInteger("FontStyles", "LineNumbersBold", 0)
+		.Colors(10, 5) = piniTheme->ReadInteger("FontStyles", "LineNumbersItalic", 0)
+		.Colors(10, 6) = piniTheme->ReadInteger("FontStyles", "LineNumbersUnderline", 0)
+		.Colors(11, 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", -1)
+		.Colors(11, 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", -1)
+		.Colors(11, 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", -1)
+		.Colors(11, 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
+		.Colors(11, 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
+		.Colors(11, 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
+		.Colors(12, 0) = piniTheme->ReadInteger("Colors", "PreprocessorsForeground", -1)
+		.Colors(12, 1) = piniTheme->ReadInteger("Colors", "PreprocessorsBackground", -1)
+		.Colors(12, 2) = piniTheme->ReadInteger("Colors", "PreprocessorsFrame", -1)
+		.Colors(12, 4) = piniTheme->ReadInteger("FontStyles", "PreprocessorsBold", 0)
+		.Colors(12, 5) = piniTheme->ReadInteger("FontStyles", "PreprocessorsItalic", 0)
+		.Colors(12, 6) = piniTheme->ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
+		.Colors(13, 0) = piniTheme->ReadInteger("Colors", "SelectionForeground", -1)
+		.Colors(13, 1) = piniTheme->ReadInteger("Colors", "SelectionBackground", -1)
+		.Colors(13, 2) = piniTheme->ReadInteger("Colors", "SelectionFrame", -1)
+		.Colors(14, 0) = piniTheme->ReadInteger("Colors", "SpaceIdentifiersForeground", -1)
+		.Colors(15, 0) = piniTheme->ReadInteger("Colors", "StringsForeground", -1)
+		.Colors(15, 1) = piniTheme->ReadInteger("Colors", "StringsBackground", -1)
+		.Colors(15, 2) = piniTheme->ReadInteger("Colors", "StringsFrame", -1)
+		.Colors(15, 4) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
+		.Colors(15, 5) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
+		.Colors(15, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
 		.lstColorKeys_Change(.lstColorKeys)
 	End With
 End Sub
@@ -1550,11 +1767,19 @@ Private Sub frmOptions.chkBackground_Click(ByRef Sender As CheckBox)
 	End With
 End Sub
 
+Private Sub frmOptions.chkFrame_Click(ByRef Sender As CheckBox)
+	With fOptions
+		Var i = .lstColorKeys.ItemIndex
+		If i = -1 Then Exit Sub
+		.Colors(i, 2) = IIf(.chkFrame.Checked, -1, .lblColorFrame.BackColor)
+	End With
+End Sub
+
 Private Sub frmOptions.chkIndicator_Click(ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.Colors(i, 2) = IIf(.chkIndicator.Checked, -1, .lblColorIndicator.BackColor)
+		.Colors(i, 3) = IIf(.chkIndicator.Checked, -1, .lblColorIndicator.BackColor)
 	End With
 End Sub
 
@@ -1562,7 +1787,7 @@ Private Sub frmOptions.chkBold_Click(ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.Colors(i, 3) = IIf(.chkBold.Checked, -1, 0)
+		.Colors(i, 4) = IIf(.chkBold.Checked, -1, 0)
 	End With
 End Sub
 
@@ -1570,7 +1795,7 @@ Private Sub frmOptions.chkItalic_Click(ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.Colors(i, 4) = IIf(.chkItalic.Checked, -1, 0)
+		.Colors(i, 5) = IIf(.chkItalic.Checked, -1, 0)
 	End With
 End Sub
 
@@ -1578,7 +1803,7 @@ Private Sub frmOptions.chkUnderline_Click(ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.Colors(i, 5) = IIf(.chkUnderline.Checked, -1, 0)
+		.Colors(i, 6) = IIf(.chkUnderline.Checked, -1, 0)
 	End With
 End Sub
 
@@ -1602,13 +1827,38 @@ Private Sub frmOptions.cmdRemove_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdAddCompiler_Click(ByRef Sender As Control)
+	pfPath->txtVersion.Text = ""
+	pfPath->txtPath.Text = ""
+	If pfPath->ShowModal() = ModalResults.OK Then
+		With fOptions
+			If .cboCompiler32.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				.lvCompilerPaths.ListItems.Add pfPath->txtVersion.Text
+				.lvCompilerPaths.ListItems.Item(.lvCompilerPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.cboCompiler32.AddItem pfPath->txtVersion.Text
+				.cboCompiler64.AddItem pfPath->txtVersion.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Sender As Control)
 	With fOptions
-		.lvCompilerPaths.ListItems.Add .TextBox2.Text
-		.lvCompilerPaths.ListItems.Item(.lvCompilerPaths.ListItems.Count - 1)->Text(1) = .TextBox1.Text
-		If .cboCompiler32.IndexOf(.TextBox2.Text) = -1 Then .cboCompiler32.AddItem .TextBox2.Text
-		If .cboCompiler64.IndexOf(.TextBox2.Text) = -1 Then .cboCompiler64.AddItem .TextBox2.Text
-		.TextBox1.Text = ""
-		.TextBox2.Text = ""
+		If .lvCompilerPaths.SelectedItem = 0 Then Exit Sub
+		pfPath->txtVersion.Text = .lvCompilerPaths.SelectedItem->Text(0)
+		pfPath->txtPath.Text = .lvCompilerPaths.SelectedItem->Text(1)
+		If pfPath->ShowModal() = ModalResults.OK Then
+			If .lvCompilerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboCompiler32.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				Var i = .cboCompiler32.IndexOf(.lvCompilerPaths.SelectedItem->Text(0))
+				.cboCompiler32.Item(i) = pfPath->txtVersion.Text
+				.cboCompiler64.Item(i) = pfPath->txtVersion.Text
+				.lvCompilerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
+				.lvCompilerPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End If
 	End With
 End Sub
 
@@ -1638,12 +1888,36 @@ Private Sub frmOptions.cmdClearCompilers_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdAddMakeTool_Click(ByRef Sender As Control)
+	pfPath->txtVersion.Text = ""
+	pfPath->txtPath.Text = ""
+	If pfPath->ShowModal() = ModalResults.OK Then
+		With fOptions
+			If .cboMakeTool.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				.lvMakeToolPaths.ListItems.Add pfPath->txtVersion.Text
+				.lvMakeToolPaths.ListItems.Item(.lvMakeToolPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.cboMakeTool.AddItem pfPath->txtVersion.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdChangeMakeTool_Click(ByRef Sender As Control)
 	With fOptions
-		.lvMakeToolPaths.ListItems.Add .txtMakeVersion.Text
-		.lvMakeToolPaths.ListItems.Item(.lvMakeToolPaths.ListItems.Count - 1)->Text(1) = .txtMake.Text
-		If .cboMakeTool.IndexOf(.txtMakeVersion.Text) = -1 Then .cboMakeTool.AddItem .txtMakeVersion.Text
-		.txtMake.Text = ""
-		.txtMakeVersion.Text = ""
+		If .lvMakeToolPaths.SelectedItem = 0 Then Exit Sub
+		pfPath->txtVersion.Text = .lvMakeToolPaths.SelectedItem->Text(0)
+		pfPath->txtPath.Text = .lvMakeToolPaths.SelectedItem->Text(1)
+		If pfPath->ShowModal() = ModalResults.OK Then
+			If .lvMakeToolPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboMakeTool.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				Var i = .cboTerminal.IndexOf(.lvMakeToolPaths.SelectedItem->Text(0))
+				.cboMakeTool.Item(i) = pfPath->txtVersion.Text
+				.lvMakeToolPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
+				.lvMakeToolPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End If
 	End With
 End Sub
 
@@ -1667,12 +1941,36 @@ Private Sub frmOptions.cmdClearMakeTools_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdAddDebugger_Click(ByRef Sender As Control)
+	pfPath->txtVersion.Text = ""
+	pfPath->txtPath.Text = ""
+	If pfPath->ShowModal() = ModalResults.OK Then
+		With fOptions
+			If .cboDebugger.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				.lvDebuggerPaths.ListItems.Add pfPath->txtVersion.Text
+				.lvDebuggerPaths.ListItems.Item(.lvDebuggerPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.cboDebugger.AddItem pfPath->txtVersion.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Sender As Control)
 	With fOptions
-		.lvDebuggerPaths.ListItems.Add .txtDebuggerVersion.Text
-		.lvDebuggerPaths.ListItems.Item(.lvDebuggerPaths.ListItems.Count - 1)->Text(1) = .txtDebugger.Text
-		If .cboDebugger.IndexOf(.txtDebuggerVersion.Text) = -1 Then .cboDebugger.AddItem .txtDebuggerVersion.Text
-		.txtDebugger.Text = ""
-		.txtDebuggerVersion.Text = ""
+		If .lvDebuggerPaths.SelectedItem = 0 Then Exit Sub
+		pfPath->txtVersion.Text = .lvDebuggerPaths.SelectedItem->Text(0)
+		pfPath->txtPath.Text = .lvDebuggerPaths.SelectedItem->Text(1)
+		If pfPath->ShowModal() = ModalResults.OK Then
+			If .lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboDebugger.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				Var i = .cboDebugger.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
+				.cboDebugger.Item(i) = pfPath->txtVersion.Text
+				.lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
+				.lvDebuggerPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End If
 	End With
 End Sub
 
@@ -1696,12 +1994,36 @@ Private Sub frmOptions.cmdClearDebuggers_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdAddTerminal_Click(ByRef Sender As Control)
+	pfPath->txtVersion.Text = ""
+	pfPath->txtPath.Text = ""
+	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
-		.lvTerminalPaths.ListItems.Add .txtTerminalVersion.Text
-		.lvTerminalPaths.ListItems.Item(.lvTerminalPaths.ListItems.Count - 1)->Text(1) = .txtTerminal.Text
-		If .cboTerminal.IndexOf(.txtTerminalVersion.Text) = -1 Then .cboTerminal.AddItem .txtTerminalVersion.Text
-		.txtTerminal.Text = ""
-		.txtTerminalVersion.Text = ""
+			If .cboTerminal.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				.lvTerminalPaths.ListItems.Add pfPath->txtVersion.Text
+				.lvTerminalPaths.ListItems.Item(.lvTerminalPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.cboTerminal.AddItem pfPath->txtVersion.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdChangeTerminal_Click(ByRef Sender As Control)
+	With fOptions
+		If .lvTerminalPaths.SelectedItem = 0 Then Exit Sub
+		pfPath->txtVersion.Text = .lvTerminalPaths.SelectedItem->Text(0)
+		pfPath->txtPath.Text = .lvTerminalPaths.SelectedItem->Text(1)
+		If pfPath->ShowModal() = ModalResults.OK Then
+			If .lvTerminalPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboTerminal.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				Var i = .cboTerminal.IndexOf(.lvTerminalPaths.SelectedItem->Text(0))
+				.cboTerminal.Item(i) = pfPath->txtVersion.Text
+				.lvTerminalPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
+				.lvTerminalPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End If
 	End With
 End Sub
 
@@ -1721,5 +2043,71 @@ Private Sub frmOptions.cmdClearTerminals_Click(ByRef Sender As Control)
 		.cboTerminal.Clear
 		.cboTerminal.AddItem ML("(not selected)")
 		.cboTerminal.ItemIndex = 0
+	End With
+End Sub
+
+Private Sub frmOptions.cmdAddHelp_Click(ByRef Sender As Control)
+	pfPath->txtVersion.Text = ""
+	pfPath->txtPath.Text = ""
+	If pfPath->ShowModal() = ModalResults.OK Then
+		With fOptions
+			If .cboHelp.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				.lvHelpPaths.ListItems.Add pfPath->txtVersion.Text
+				.lvHelpPaths.ListItems.Item(.lvHelpPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.cboHelp.AddItem pfPath->txtVersion.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdChangeHelp_Click(ByRef Sender As Control)
+	With fOptions
+		If .lvHelpPaths.SelectedItem = 0 Then Exit Sub
+		pfPath->txtVersion.Text = .lvHelpPaths.SelectedItem->Text(0)
+		pfPath->txtPath.Text = .lvHelpPaths.SelectedItem->Text(1)
+		If pfPath->ShowModal() = ModalResults.OK Then
+			If .lvHelpPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboHelp.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				Var i = .cboHelp.IndexOf(.lvHelpPaths.SelectedItem->Text(0))
+				.cboHelp.Item(i) = pfPath->txtVersion.Text
+				.lvHelpPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
+				.lvHelpPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End If
+	End With
+End Sub
+
+Private Sub frmOptions.cmdRemoveHelp_Click(ByRef Sender As Control)
+	With fOptions
+		If .lvHelpPaths.SelectedItem = 0 Then Exit Sub
+		Var iIndex = .cboHelp.IndexOf(.lvHelpPaths.SelectedItem->Text(0))
+		If iIndex > -1 Then .cboHelp.RemoveItem iIndex
+		If .cboHelp.ItemIndex = -1 Then .cboHelp.ItemIndex = 0
+		.lvHelpPaths.ListItems.Remove .lvHelpPaths.SelectedItemIndex
+	End With
+End Sub
+
+Private Sub frmOptions.cmdClearHelps_Click(ByRef Sender As Control)
+	With fOptions
+		.lvHelpPaths.ListItems.Clear
+		.cboHelp.Clear
+		.cboHelp.AddItem ML("(not selected)")
+		.cboHelp.ItemIndex = 0
+	End With
+End Sub
+
+Private Sub frmOptions.cmdInterfaceFont_Click(ByRef Sender As Control)
+	With fOptions
+		.FontD.Font.Name = *.InterfFontName
+		.FontD.Font.Size = .InterfFontSize
+		If .FontD.Execute Then
+			WLet *.InterfFontName, .FontD.Font.Name
+			.InterfFontSize = .FontD.Font.Size
+			.lblInterfaceFont.Font.Name = *.InterfFontName
+			.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
+		End If
 	End With
 End Sub

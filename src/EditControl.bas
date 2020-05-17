@@ -1,8 +1,9 @@
-﻿/'
-EditControl.
-2018-2019 Xusinboy Bekchanov (bxusinboy@mail.ru)
-2019 Liu ZiQI
-'/
+﻿'#########################################################
+'#  EditControl.bas                                      #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
+'#########################################################
 
 #include once "EditControl.bi"
 #ifndef __USE_GTK__
@@ -33,29 +34,32 @@ Namespace My.Sys.Forms
 	End Destructor
 End Namespace
 
-ReDim Constructions(22) As Construction
-Constructions(0) =  Type<Construction>("If",            "ElseIf",   "Else",     "End If",           "Then ",    False,  False)
-Constructions(1) =  Type<Construction>("#If",           "#ElseIf",  "#Else",    "#EndIf",           "",         False,  False)
-Constructions(2) =  Type<Construction>("#IfDef",        "#ElseIf",  "#Else",    "#EndIf",           "",         False,  False)
-Constructions(3) =  Type<Construction>("#IfNDef",       "#ElseIf",  "#Else",    "#EndIf",           "",         False,  False)
-Constructions(4) =  Type<Construction>("Asm",           "",         "",         "End Asm",          " ",        False,  False)
-Constructions(5) =  Type<Construction>("Select Case",   "Case",     "",         "End Select",       "",         False,  False)
-Constructions(6) =  Type<Construction>("For",           "",         "",         "Next",             "",         False,  False)
-Constructions(7) =  Type<Construction>("Do",            "",         "",         "Loop",             "",         False,  False)
-Constructions(8) =  Type<Construction>("While",         "",         "",         "Wend",             "",         False,  False)
-Constructions(9) =  Type<Construction>("With",          "",         "",         "End With",         "",         False,  False)
-Constructions(10) = Type<Construction>("Scope",         "",         "",         "End Scope",        "",         False,  False)
-Constructions(11) = Type<Construction>("'#Region",      "",         "",         "'#End Region",     "",         True,   False)
-Constructions(12) = Type<Construction>("Namespace",     "",         "",         "End Namespace",    "",         True,   False)
-Constructions(13) = Type<Construction>("Enum",          "",         "",         "End Enum",         " As ",     True,   True)
-Constructions(14) = Type<Construction>("Type",          "",         "",         "End Type",         " As ",     True,   True)
-Constructions(15) = Type<Construction>("Union",         "",         "",         "End Union",        " As ",     True,   True)
-Constructions(16) = Type<Construction>("Sub",           "",         "",         "End Sub",          "",         True,   True)
-Constructions(17) = Type<Construction>("Function",      "",         "",         "End Function",     "",         True,   True)
-Constructions(18) = Type<Construction>("Property",      "",         "",         "End Property",     "",         True,   True)
-Constructions(19) = Type<Construction>("Operator",      "",         "",         "End Operator",     "",         True,   True)
-Constructions(20) = Type<Construction>("Constructor",   "",         "",         "End Constructor",  "",         True,   True)
-Constructions(21) = Type<Construction>("Destructor",    "",         "",         "End Destructor",   "",         True,   True)
+'David Change Add Try End_Try
+ReDim Constructions(23) As Construction
+Constructions(0) =  Type<Construction>("If",            "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
+Constructions(1) =  Type<Construction>("#If",           "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
+Constructions(2) =  Type<Construction>("#IfDef",        "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
+Constructions(3) =  Type<Construction>("#IfNDef",       "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
+Constructions(4) =  Type<Construction>("#Macro",        "",         "",             "",         "#EndMacro",        "",         False,  False)
+Constructions(5) =  Type<Construction>("Asm",           "",         "",             "",         "End Asm",          " ",        False,  False)
+Constructions(6) =  Type<Construction>("Select Case",   "Case",     "",             "",         "End Select",       "",         False,  False)
+Constructions(7) =  Type<Construction>("For",           "",         "",             "",         "Next",             "",         False,  False)
+Constructions(8) =  Type<Construction>("Do",            "",         "",             "",         "Loop",             "",         False,  False)
+Constructions(9) =  Type<Construction>("While",         "",         "",             "",         "Wend",             "",         False,  False)
+Constructions(10) = Type<Construction>("With",          "",         "",             "",         "End With",         "",         False,  False)
+Constructions(11) = Type<Construction>("Scope",         "",         "",             "",         "End Scope",        "",         False,  False)
+Constructions(12) = Type<Construction>("'#Region",      "",         "",             "",         "'#End Region",     "",         True,   False)
+Constructions(13) = Type<Construction>("Namespace",     "",         "",             "",         "End Namespace",    "",         True,   False)
+Constructions(14) = Type<Construction>("Enum",          "",         "",             "",         "End Enum",         " As ",     True,   True)
+Constructions(15) = Type<Construction>("Type",          "Private:", "Protected:",   "Public:",  "End Type",         " As ",     True,   True)
+Constructions(16) = Type<Construction>("Union",         "",         "",             "",         "End Union",        "",         True,   True)
+Constructions(17) = Type<Construction>("Sub",           "",         "",             "",         "End Sub",          "",         True,   True)
+Constructions(18) = Type<Construction>("Function",      "",         "",             "",         "End Function",     "",         True,   True)
+Constructions(19) = Type<Construction>("Property",      "",         "",             "",         "End Property",     "",         True,   True)
+Constructions(20) = Type<Construction>("Operator",      "",         "",             "",         "End Operator",     "",         True,   True)
+Constructions(21) = Type<Construction>("Constructor",   "",         "",             "",         "End Constructor",  "",         True,   True)
+Constructions(22) = Type<Construction>("Destructor",    "",         "",             "",         "End Destructor",   "",         True,   True)
+Constructions(23) = Type<Construction>("Try",           "Catch",    "Finally",      "",         "EndTry",          "",         False,  False)
 
 Namespace My.Sys.Forms
 	Function EditControl.deltaToScrollAmount(lDelta As Integer) As Integer
@@ -146,7 +150,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Function EditControl.Blink_cb(user_data As gpointer) As gboolean
+		Function EditControl.Blink_cb(ByVal user_data As gpointer) As gboolean
 			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
 			If ec->InFocus Then
 				ec->CaretOn = Not ec->CaretOn
@@ -172,7 +176,8 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.Breakpoint
 		FECLine = FLines.Items[FSelEndLine]
-		If CInt(Trim(*FECLine->Text, Any !"\t ") = "") OrElse CInt(StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'")) Then
+		If CInt(Trim(*FECLine->Text, Any !"\t ") = "") OrElse CInt(StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'")) OrElse _
+			CInt(StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t ") & " ", "rem ")) Then
 			MsgBox ML("Don't set breakpoint to this line"), "VisualFBEditor", mtWarning
 			This.SetFocus
 		Else
@@ -190,11 +195,11 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
 			If FECLine->Bookmark Then
-				FECLine->Bookmark = False 
+				FECLine->Bookmark = False
 			End If
 		Next
 		PaintControl
-	End Sub 
+	End Sub
 	
 	Property EditControl.TopLine As Integer
 		Return VScrollPos
@@ -225,6 +230,8 @@ Namespace My.Sys.Forms
 				FECLine->CommentIndex = .CommentIndex
 				FECLine->ConstructionIndex = .ConstructionIndex
 				FECLine->ConstructionPart = .ConstructionPart
+				FECLine->InConstructionIndex = .InConstructionIndex
+				FECLine->InConstructionPart = .InConstructionPart
 				FECLine->Multiline = .Multiline
 				FECLine->Collapsed = .Collapsed
 				FECLine->Collapsible = .Collapsible
@@ -243,30 +250,68 @@ Namespace My.Sys.Forms
 		If Index = 0 Then FHistory.Clear
 	End Sub
 	
+	Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True) As String
+		Dim As String result, ch, sLine = subject
+		Dim As Integer cc, iPos = -1
+		Dim As Boolean q, c
+		For i As Integer = 1 To OldCommentIndex
+			iPos = InStr(iPos + 1, sLine, "'/")
+		Next
+		If iPos = 0 Then Return "" Else sLine = Mid(sLine, iPos + 2)
+		For i As Integer = 0 To Len(sLine)
+			ch = Mid(sLine, i, 1)
+			If Not c AndAlso ch = """" Then
+				q = Not q
+				result += """"
+			ElseIf Not q AndAlso ch = "/" AndAlso Mid(sLine, i + 1, 1) = "'" Then
+				c = True
+				cc += 1
+				result += " "
+			ElseIf Not q AndAlso ch = "'" AndAlso Mid(sLine, i + 1, 1) = "/" Then
+				cc -= 1
+				If cc = 0 Then
+					c = False
+				ElseIf cc < 0 Then
+					Exit For
+				End If
+				result += " "
+			ElseIf CInt(WithoutComments) AndAlso CInt(Not q) AndAlso CInt(ch = "'" OrElse LCase(Mid(sLine, i, 4)) = "rem ") Then
+				Exit For
+			ElseIf c OrElse q Then
+				result += " "
+			Else
+				result += ch
+			End If
+		Next
+		Return result
+	End Function
+	
 	Function EditControl.GetConstruction(ByRef wLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0) As Integer
 		On Error Goto ErrorHandler
 		Dim As String sLine = wLine
 		If Trim(sLine, Any !"\t ") = "" Then Return -1
-		iPos = -1
-		For i As Integer = 1 To OldCommentIndex
-			iPos = InStr(iPos + 1, sLine, "'/")
-		Next
-		If iPos = 0 Then Return -1 Else sLine = Mid(sLine, iPos + 2)
-		iPos = InStr(sLine, "/'")
-		If iPos = 0 Then iPos = InStr(sLine, "'")
+		'		iPos = -1
+		'		For i As Integer = 1 To OldCommentIndex
+		'			iPos = InStr(iPos + 1, sLine, "'/")
+		'		Next
+		'		If iPos = 0 Then Return -1 Else sLine = Mid(sLine, iPos + 2)
+		'		iPos = InStr(sLine, "/'")
+		sLine = TextWithoutQuotesAndComments(sLine, OldCommentIndex, False)
+		iPos = InStr(sLine, "'")
 		If iPos = 0 Then iPos = Len(sLine) Else iPos -= 1
 		For i As Integer = 0 To UBound(Constructions)
 			If CInt(CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name0 & " "))) OrElse _
 				CInt(CInt(Constructions(i).Accessible) AndAlso _
 				CInt(CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "public " & LCase(Constructions(i).Name0 & " "))) OrElse _
 				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "private " & LCase(Constructions(i).Name0 & " "))) OrElse _
-				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "protected " & LCase(Constructions(i).Name0 & " ")))))) AndAlso _ 
+				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "protected " & LCase(Constructions(i).Name0 & " ")))))) AndAlso _
 				CInt(CInt(Constructions(i).Exception = "") OrElse CInt(InStr(LCase(Trim(Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(Constructions(i).Exception)) = 0)) AndAlso _
 				CInt(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 1) <> "=") Then
 				iType = 0
 				Return i
-			ElseIf CInt(CInt(CInt(Constructions(i).Name1 <> "") AndAlso CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name1 & " ")))) OrElse _
-				CInt(CInt(Constructions(i).Name2 <> "") AndAlso CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name2 & " "))))) AndAlso _
+			ElseIf CInt(CInt(CInt(Constructions(i).Name1 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(Constructions(i).Name1))))) OrElse _
+				CInt(CInt(Constructions(i).Name2 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(Constructions(i).Name2))))) OrElse _
+				CInt(CInt(Constructions(i).Name3 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(Constructions(i).Name3)))))) AndAlso _
 				CInt(CInt(Constructions(i).Exception = "") OrElse CInt(InStr(LCase(Trim(Left(sLine, iPos), Any !"\t ")), LCase(Constructions(i).Exception)) = 0)) Then
 				iType = 1
 				Return i
@@ -315,7 +360,7 @@ Namespace My.Sys.Forms
 		Return iC
 	End Function
 	
-	Sub EditControl.ChangeCollapseState(LineIndex As Integer, Value As Boolean) '...'
+	Sub EditControl.ChangeCollapseState(LineIndex As Integer, Value As Boolean)
 		If LineIndex < 0 OrElse LineIndex > FLines.Count - 1 Then Exit Sub
 		Dim j As Integer
 		Dim FECLine As EditControlLine Ptr = FLines.Items[LineIndex]
@@ -346,6 +391,7 @@ Namespace My.Sys.Forms
 			Dim As EditControlLine Ptr OldCollapsed
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
 				FECLine2 = FLines.Items[i]
+				If FECLine2->Visible Then Exit For
 				FECLine2->Visible = True
 				If CInt(OldCollapsed = 0) AndAlso CInt(FECLine2->Collapsed) Then
 					OldCollapsed = FECLine2
@@ -367,7 +413,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub EditControl.CollapseAll '...'
+	Sub EditControl.CollapseAll
 		For i As Integer = 0 To FLines.Count - 1
 			With *Cast(EditControlLine Ptr, FLines.Items[i])
 				If .Collapsible AndAlso Not .Collapsed Then ChangeCollapseState i, True
@@ -376,7 +422,7 @@ Namespace My.Sys.Forms
 		PaintControl
 	End Sub
 	
-	Sub EditControl.UnCollapseAll '...'
+	Sub EditControl.UnCollapseAll
 		For i As Integer = 0 To FLines.Count - 1
 			With *Cast(EditControlLine Ptr, FLines.Items[i])
 				If .Collapsible AndAlso .Collapsed Then ChangeCollapseState i, False
@@ -427,7 +473,7 @@ Namespace My.Sys.Forms
 						ElseIf FECLine2->ConstructionPart = 0 Then
 							j += 1
 						End If
-					End If  
+					End If
 				Next
 				ecl->Visible = j = -1
 			ElseIf eclOld->Collapsed Then
@@ -482,22 +528,50 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub EditControl.GetSelection(ByRef iSelStartLine As Integer, ByRef iSelEndLine As Integer, ByRef iSelStartChar As Integer, ByRef iSelEndChar As Integer)
-		If FSelStartLine < FSelEndLine Then
-			iSelStartChar = FSelStartChar
-			iSelEndChar = FSelEndChar
-			iSelStartLine = FSelStartLine
-			iSelEndLine = FSelEndLine
-		ElseIf FSelStartLine > FSelEndLine Then
-			iSelStartChar = FSelEndChar
-			iSelEndChar = FSelStartChar
-			iSelStartLine = FSelEndLine
-			iSelEndLine = FSelStartLine
+	Sub EditControl.GetSelection(ByRef iSelStartLine As Integer, ByRef iSelEndLine As Integer, ByRef iSelStartChar As Integer, ByRef iSelEndChar As Integer, iCurrProcedure As Boolean = False)
+		If FSelStartLine < 0 OrElse FLines.Count<1 OrElse FSelStartLine>FLines.Count - 1 Then Exit Sub
+		If iCurrProcedure  Then 'David Change For get the top line and bottom line of tne current procedure
+			Dim As Integer lLineCount
+			iSelStartLine = 0
+			For lLineCount = FSelStartLine To 1 Step -1
+				FECLine = FLines.Items[lLineCount]
+				If FECLine->ConstructionIndex > 12  Then
+					If FECLine->ConstructionPart = 0 Then
+						iSelStartLine = lLineCount
+						Exit For
+					End If
+				End If
+			Next
+			
+			iSelEndLine = FLines.Count - 1
+			For lLineCount = FSelStartLine To FLines.Count - 1
+				FECLine = FLines.Items[lLineCount]
+				If FECLine->ConstructionIndex > 12  Then
+					If FECLine->ConstructionPart = 0 Then
+						iSelEndLine = lLineCount
+						Exit For
+					End If
+				End If
+			Next
+			iSelStartChar=1
+			iSelEndChar=1
 		Else
-			iSelStartChar = Min(FSelStartChar, FSelEndChar)
-			iSelEndChar = Max(FSelStartChar, FSelEndChar)
-			iSelStartLine = FSelStartLine
-			iSelEndLine = FSelEndLine
+			If FSelStartLine < FSelEndLine Then
+				iSelStartChar = FSelStartChar
+				iSelEndChar = FSelEndChar
+				iSelStartLine = FSelStartLine
+				iSelEndLine = FSelEndLine
+			ElseIf FSelStartLine > FSelEndLine Then
+				iSelStartChar = FSelEndChar
+				iSelEndChar = FSelStartChar
+				iSelStartLine = FSelEndLine
+				iSelEndLine = FSelStartLine
+			Else
+				iSelStartChar = Min(FSelStartChar, FSelEndChar)
+				iSelEndChar = Max(FSelStartChar, FSelEndChar)
+				iSelStartLine = FSelStartLine
+				iSelEndLine = FSelEndLine
+			End If
 		End If
 	End Sub
 	
@@ -512,8 +586,8 @@ Namespace My.Sys.Forms
 	Function EditControl.GetCharIndexFromOld() As Integer
 		If FSelEndLine >= 0 AndAlso FSelEndLine <= FLines.Count - 1 Then
 			WLet FLine, *Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text
-			Dim p As Integer
-			For i As Integer = 1 To Len(*FLine)
+			Dim As Integer p, i
+			For i = 1 To Len(*FLine)
 				If Mid(*FLine, i, 1) = !"\t" Then
 					p += TabWidth
 				Else
@@ -694,8 +768,8 @@ Namespace My.Sys.Forms
 		Dim Value As WString Ptr
 		WLet Value, pClipBoard->GetAsText
 		If Value Then
-			WLet Value, Replace(*Value, Chr(13) & Chr(10), Chr(13))
-			WLet Value, Replace(*Value, Chr(10), Chr(13))
+			WLet Value, Replace(*Value, Chr(13) & Chr(10), Chr(13)), True
+			WLet Value, Replace(*Value, Chr(10), Chr(13)), True
 			ChangeText *Value, 0, "Xotiradan qo`yildi"
 			WDeallocate Value
 		End If
@@ -763,44 +837,45 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub EditControl.LoadFromFile(ByRef FileName As WString)
-		Dim Buff As WString Ptr
-		Dim Result As Integer
-		Var iC = 0, OldiC = 0, i = 0, Sec = Timer
-		Result = Open(FileName For Input Encoding "utf-32" As #1)
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #1)
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-8" As #1)
-		If Result <> 0 Then Result = Open(FileName For Input As #1)
+		Dim Buff As WString * 2048 ' David Change for V1.07 Line Input not working fine
+		Dim As Integer Result = -1, Fn = FreeFile
+		Var iC = 0, OldiC = 0, i = 0
+		Result = Open(FileName For Input Encoding "utf-8" As #Fn) ' David Change
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
 		If Result = 0 Then
 			FLines.Clear
-			WReallocate Buff, LOF(1) 
-			Do Until EOF(1)
-				Line Input #1, *Buff
+			'WReallocate Buff, LOF(1) ' David Change
+			Do Until EOF(Fn)
+				Line Input #Fn, Buff
 				FECLine = New EditControlLine
-				WLet FECLine->Text, *Buff
-				iC = FindCommentIndex(*Buff, OldiC)
+				WLet FECLine->Text, Buff
+				iC = FindCommentIndex(Buff, OldiC)
 				FECLine->CommentIndex = iC
 				FLines.Add(FECLine)
 				ChangeCollapsibility i
 				OldiC = iC
 				i += 1
 			Loop
-			Close #1
 			ScrollToCaret
 			ClearUndo
-			WDeallocate Buff
+			'WDeallocate Buff  ' David Change
+			Close #Fn
 		End If
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef File As WString)
-		If Open(File For Output Encoding "utf-8" As #1) = 0 Then
+		Dim As Integer Fn =FreeFile
+		If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
 			For i As Integer = 0 To FLines.Count - 1
-				Print #1, *Cast(EditControlLine Ptr, FLines.Item(i))->Text
-			Next i
-			Close #1
+				Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text
+			Next
+			Close #Fn
 		End If
 	End Sub
 	
-	Sub EditControl.Clear '...'
+	Sub EditControl.Clear
 		ChangeText "", 0, "Matn tozalandi"
 	End Sub
 	
@@ -812,7 +887,7 @@ Namespace My.Sys.Forms
 		Var iC = 0, OldiC = 0
 		If Index > 0 AndAlso Index < FLines.Count - 1 Then
 			OldiC = Cast(EditControlLine Ptr, FLines.Items[Index])->CommentIndex
-		End If 
+		End If
 		FECLine = New EditControlLine
 		WLet FECLine->Text, sLine
 		iC = FindCommentIndex(sLine, OldiC)
@@ -827,7 +902,7 @@ Namespace My.Sys.Forms
 		Var iC = 0, OldiC = 0
 		If Index > 0 AndAlso Index < FLines.Count - 1 Then
 			OldiC = Cast(EditControlLine Ptr, FLines.Items[Index])->CommentIndex
-		End If 
+		End If
 		FECLine = FLines.Items[Index]
 		WLet FECLine->Text, sLine
 		iC = FindCommentIndex(sLine, OldiC)
@@ -850,25 +925,28 @@ Namespace My.Sys.Forms
 	Sub EditControl.FormatCode
 		Dim As Integer iIndents, CurIndents, iCount, iComment, ConstructionIndex, ConstructionPart
 		Dim As EditControlLine Ptr ECLine2
-		Dim As WString Ptr LineParts(Any), LineQuotes(Any)
+		Dim As UString LineParts(Any), LineQuotes(Any)
+		Dim As Integer iType = -1 'David Change
 		UpdateLock
 		Changing("Format")
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
+			'David Change
+			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet FECLine->Text, Trim(*FECLine->Text, Any !"\t ")
+			'If *FECLine->Text = "" Then Continue For
+			If Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then wLet FECLine->Text,"If (" & Mid(*FECLine->Text,4)
+			'If LCase(*FECLine->Text) = "endif" Then wLet FECLine->Text,"End If"
 			If iComment = 0 Then
 				If FECLine->Multiline Then
 					Split(*FECLine->Text, """", LineQuotes())
 					WLet FLine, ""
 					For k As Integer = 0 To UBound(LineQuotes) Step 2
-						WAdd FLine, *LineQuotes(k)
+						WAdd FLine, LineQuotes(k)
 					Next
-					#ifndef __USE_MAKE__
-						WDeallocate(LineQuotes())
-					#endif
 					iPos = InStr(*FLine, "'") - 1
 					If iPos = -1 Then iPos = Len(*FLine)
 					Split(Left(*FLine, iPos), ":", LineParts())
-					ConstructionIndex = GetConstruction(*LineParts(0), ConstructionPart)
+					ConstructionIndex = GetConstruction(LineParts(0), ConstructionPart)
 					If ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 						iIndents = Max(0, iIndents - 1)
 					End If
@@ -896,7 +974,7 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					Next
-				ElseIf FECLine->ConstructionIndex = 6 AndAlso FECLine->ConstructionPart = 2 Then
+				ElseIf FECLine->ConstructionIndex = 7 AndAlso FECLine->ConstructionPart = 2 Then
 					iPos = InStr(*FECLine->Text, "'") - 1
 					If iPos = -1 Then iPos = Len(*FECLine->Text)
 					iPos = InStrCount(Left(*FECLine->Text, iPos), ",")
@@ -908,7 +986,7 @@ Namespace My.Sys.Forms
 			If iComment = 0 Then
 				If FECLine->Multiline Then
 					For k As Integer = 0 To UBound(LineParts)
-						ConstructionIndex = GetConstruction(*LineParts(k), ConstructionPart)
+						ConstructionIndex = GetConstruction(LineParts(k), ConstructionPart)
 						If k > 0 AndAlso ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 							iIndents = Max(0, iIndents - 1)
 						End If
@@ -916,9 +994,6 @@ Namespace My.Sys.Forms
 							iIndents += 1
 						End If
 					Next k
-					#ifndef __USE_MAKE__
-						WDeallocate(LineParts())
-					#endif
 				Else
 					If FECLine->ConstructionIndex > -1 AndAlso FECLine->ConstructionPart < 2 Then
 						iIndents += 1
@@ -940,7 +1015,7 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.VisibleLinesCount() As Integer
 		Return (dwClientY) / dwCharY
-	End Function    
+	End Function
 	
 	Function EditControl.CharIndexFromPoint(X As Integer, Y As Integer) As Integer
 		WLet FLine, *Cast(EditControlLine Ptr, FLines.Item(LineIndexFromPoint(X, Y)))->Text
@@ -959,10 +1034,10 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControl.LineIndexFromPoint(X As Integer, Y As Integer) As Integer
-		Return GetLineIndex(0, Max(0, Min(Y \ dwCharY + VScrollPos, LinesCount - 1)))
+		Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + VScrollPos, LinesCount - 1)))
 	End Function
 	
-	Function EditControl.Lines(Index As Integer) ByRef As WString '...'
+	Function EditControl.Lines(Index As Integer) ByRef As WString
 		If Index >= 0 And Index < FLines.Count Then Return *Cast(EditControlLine Ptr, FLines.Item(Index))->Text
 	End Function
 	
@@ -992,12 +1067,14 @@ Namespace My.Sys.Forms
 		Return True
 	End Function
 	
-	Function GetNextCharIndex(ByRef sLine As WString, iEndChar As Integer) As Integer
+	Function GetNextCharIndex(ByRef sLine As WString, iEndChar As Integer, WithDot As Boolean = False) As Integer
 		Dim i As Integer
 		Dim s As String
 		For i = iEndChar + 1 To Len(sLine)
 			s = Mid(sLine, i, 1)
-			If Not CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(i = iEndChar + 1) AndAlso CInt(s = "#" OrElse s = "$"))) Then Return i - 1
+			If Not CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(i = iEndChar + 1) AndAlso CInt(s = "#" OrElse s = "$")) OrElse CInt(WithDot AndAlso s = ".")) Then
+				Return i - 1
+			End If
 		Next
 		Return i - 1
 	End Function
@@ -1056,6 +1133,9 @@ Namespace My.Sys.Forms
 		If CInt(ToolTipShowed) AndAlso CInt(CInt(FSelEndChar < ToolTipChar) OrElse CInt(Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1, 1) = ":") OrElse CInt(GetWordAt(FSelEndLine, ToolTipChar) <> HintWord)) Then
 			CloseToolTip()
 		End If
+		If OldLine <> FSelEndLine OrElse OldChar <> FSelEndChar Then
+			If OnSelChange Then OnSelChange(This, FSelEndLine, FSelEndChar)
+		End If
 		If OldLine <> FSelEndLine Then
 			If ToolTipShowed Then CloseToolTip()
 			If Not bOldCommented Then Changing "Matn kiritildi"
@@ -1064,7 +1144,7 @@ Namespace My.Sys.Forms
 		
 		If CInt(FSelStartLine > -1) AndAlso CInt(FSelStartLine < FLines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, FLines.Items[FSelStartLine])->Visible) Then
 			ShowLine FSelStartLine
-		End If    
+		End If
 		If CInt(FSelEndLine > -1) AndAlso CInt(FSelEndLine < FLines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Visible) Then
 			ShowLine FSelEndLine
 		End If
@@ -1126,6 +1206,7 @@ Namespace My.Sys.Forms
 			SetCaretPos(HCaretPos, VCaretPos)
 		#endif
 		OldLine = FSelEndLine
+		OldChar = FSelEndChar
 		
 	End Sub
 	
@@ -1154,7 +1235,7 @@ Namespace My.Sys.Forms
 					WLet FECLine->Text, !"\t" & *FECLine->Text
 				End If
 				If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += n
-				If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += n 
+				If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += n
 			Next i
 			Changed("Oldga surish")
 			UpdateUnLock
@@ -1251,16 +1332,16 @@ Namespace My.Sys.Forms
 		ShowCaretPos True
 	End Sub
 	
-	Function EditControl.MaxLineWidth() As Integer '...'
-		Dim As Integer Pos1 = Instr(*FText, Chr(13)), l = Len(Chr(13)), c = 0, p = 1, MaxLW = 0, lw = 0
+	Function EditControl.MaxLineWidth() As Integer
+		Dim As Integer Pos1 = InStr(FText, Chr(13)), l = Len(Chr(13)), c = 0, p = 1, MaxLW = 0, lw = 0
 		While Pos1 > 0
 			c = c + 1
-			lw = TextWidth(Mid(*FText, p, Pos1 - p))
+			lw = TextWidth(Mid(FText, p, Pos1 - p))
 			If lw > MaxLW Then MaxLW = lw
 			p = Pos1 + l
-			Pos1 = Instr(p, *FText, Chr(13))
+			Pos1 = InStr(p, FText, Chr(13))
 		Wend
-		lw = TextWidth(Mid(*FText, p, Len(*FText) - p + 1))
+		lw = TextWidth(Mid(FText, p, Len(FText) - p + 1))
 		If lw > MaxLW Then MaxLW = lw
 		Return MaxLW
 	End Function
@@ -1273,7 +1354,7 @@ Namespace My.Sys.Forms
 			'gtk_adjustment_configure(adjustmenth, gtk_adjustment_get_value(adjustmenth), 0, HScrollMax, 1, 10, HScrollMax)
 		#else
 			si.cbSize = SizeOf(si)
-			si.fMask  = SIF_RANGE Or SIF_PAGE 
+			si.fMask  = SIF_RANGE Or SIF_PAGE
 			si.nMin   = 0
 			si.nMax   = HScrollMax
 			si.nPage  = 10
@@ -1341,14 +1422,14 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Sub GetColor(iColor As Integer, ByRef iRed As Double, ByRef iGreen As Double, ByRef iBlue As Double)
+	Sub GetColor(iColor As Long, ByRef iRed As Double, ByRef iGreen As Double, ByRef iBlue As Double)
 		Select Case iColor
-		Case clBlack:	iRed = 0: iGreen = 0: iBlue = 0
-		Case clRed:		iRed = 0.8: iGreen = 0: iBlue = 0
-		Case clGreen:	iRed = 0: iGreen = 0.8: iBlue = 0
-		Case clBlue:	iRed = 0: iGreen = 0: iBlue = 1
-		Case clWhite:	iRed = 1: iGreen = 1: iBlue = 1
-		Case clOrange:	iRed = 1: iGreen = 83 / 255.0: iBlue = 0
+			'		Case clBlack:	iRed = 0: iGreen = 0: iBlue = 0
+			'		Case clRed:		iRed = 0.8: iGreen = 0: iBlue = 0
+			'		Case clGreen:	iRed = 0: iGreen = 0.8: iBlue = 0
+			'		Case clBlue:	iRed = 0: iGreen = 0: iBlue = 1
+			'		Case clWhite:	iRed = 1: iGreen = 1: iBlue = 1
+			'		Case clOrange:	iRed = 1: iGreen = 83 / 255.0: iBlue = 0
 		Case Else: iRed = Abs(GetRed(iColor) / 255.0): iGreen = Abs(GetGreen(iColor) / 255.0): iBlue = Abs(GetBlue(iColor) / 255.0)
 		End Select
 	End Sub
@@ -1370,12 +1451,12 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub EditControl.PaintText(iLine As Integer, ByRef sText As WString, iStart As Integer, iEnd As Integer, BKColor As Integer = -1, TextColor As Integer = 0, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
-		Dim s As WString Ptr
-		WLet s, sText 'Mid(sText, 1, HScrollPos + This.Width / dwCharX)
+	Sub EditControl.PaintText(iLine As Integer, ByRef sText As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
+		'Dim s As WString Ptr
+		'WLet s, sText 'Mid(sText, 1, HScrollPos + This.Width / dwCharX)
 		iPPos = 0
-		WLet FLineLeft, GetTabbedText(Left(*s, iStart), iPPos)
-		WLet FLineRight, GetTabbedText(Mid(*s, iStart + 1, iEnd - iStart) & addit, iPPos)
+		WLet FLineLeft, GetTabbedText(Left(sText, iStart), iPPos)
+		WLet FLineRight, GetTabbedText(Mid(sText, iStart + 1, iEnd - iStart) & addit, iPPos)
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend, extend2
 			Dim As Double iRed, iGreen, iBlue
@@ -1387,24 +1468,30 @@ Namespace My.Sys.Forms
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
-			If BKColor <> -1 Then
+			If Colors.Background <> -1 Then
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
-				GetColor BKColor, iRed, iGreen, iBlue
-				cairo_set_source_rgb(cr, iRed, iGreen, iBlue)
+				'GetColor BKColor, iRed, iGreen, iBlue
+				cairo_set_source_rgb(cr, Colors.BackgroundRed, Colors.BackgroundGreen, Colors.BackgroundBlue)
 				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - VScrollPos) * dwCharY, extend2.width, dwCharY)
 				cairo_fill (cr)
 			End If
 			cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + extend.width - 0.5, (iLine - VScrollPos) * dwCharY + dwCharY - 5 - 0.5)
-			GetColor TextColor, iRed, iGreen, iBlue
-			cairo_set_source_rgb(cr, iRed, iGreen, iBlue)
+			'GetColor TextColor, iRed, iGreen, iBlue
+			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
 		#else
-			If BKColor = -1 Then
-				SetBKMode(bufDC, TRANSPARENT)
+			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
+				SetBKColor(bufDC, CurrentWord.Background)
+				'ElseIf @Colors = @NormalText Then
+				'	SetBKMode(bufDC, TRANSPARENT)
 			Else
-				SetBKColor(bufDC, BKColor)
+				If Colors.Background = -1 Then
+					SetBKMode(bufDC, TRANSPARENT)
+				Else
+					SetBKColor(bufDC, Colors.Background)
+				End If
 			End If
-			SetTextColor(bufDC, TextColor)
+			SetTextColor(bufDC, Colors.Foreground)
 			GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
 			If Bold Or Italic Or Underline Then
 				Canvas.Font.Bold = Bold
@@ -1413,7 +1500,7 @@ Namespace My.Sys.Forms
 				SelectObject(bufDC, This.Canvas.Font.Handle)
 			End If
 			TextOut(bufDC, LeftMargin + -HScrollPos * dwCharX + IIf(iStart = 0, 0, Sz.cx), (iLine - VScrollPos) * dwCharY, FLineRight, Len(*FLineRight))
-			If BKColor = -1 Then SetBKMode(bufDC, OPAQUE)
+			If Colors.Background = -1 Then SetBKMode(bufDC, OPAQUE)
 			If Bold Or Italic Or Underline Then
 				Canvas.Font.Bold = False
 				Canvas.Font.Italic = False
@@ -1421,21 +1508,26 @@ Namespace My.Sys.Forms
 				SelectObject(bufDC, This.Canvas.Font.Handle)
 			End If
 		#endif
-		WDeallocate s
+		'WDeallocate s
 	End Sub
 	
-	Sub EditControl.PaintControl
-		#ifdef __USE_GTK__
-			'PaintControlPriv
-			bChanged = True
-			#ifdef __USE_GTK3__
-				gtk_widget_queue_draw(widget)
-			#else
-				gtk_widget_queue_draw(widget)
-			#endif
-		#else
-			PaintControlPriv
+	Sub EditControl.FontSettings()
+		Canvas.Font = This.Font
+		WLet CurrentFontName, *EditorFontName
+		CurrentFontSize = EditorFontSize
+		#ifndef __USE_GTK__
+			'hd = GetDc(FHandle)
+			SelectObject(hd, This.Font.Handle)
+			GetTextMetrics(hd, @tm)
+			'ReleaseDC(FHandle, hd)
+			
+			dwCharX = tm.tmAveCharWidth
+			dwCharY = tm.tmHeight
 		#endif
+		LeftMargin = Len(Str(LinesCount)) * dwCharX + 5 * dwCharX '30
+		
+		dwClientX = ClientWidth
+		dwClientY = ClientHeight
 	End Sub
 	
 	Sub EditControl.PaintControlPriv
@@ -1444,18 +1536,93 @@ Namespace My.Sys.Forms
 			If cr = 0 Then Exit Sub
 		#else
 			hd = GetDC(FHandle)
-			bufDC = CreateCompatibleDC(hD)
-			bufBMP = CreateCompatibleBitmap(hD, dwClientX, dwClientY)
 			If CurrentFontSize <> EditorFontSize OrElse *CurrentFontName <> *EditorFontName Then
 				This.Font.Name = *EditorFontName
 				This.Font.Size = EditorFontSize
 				FontSettings
 			End If
+			bufDC = CreateCompatibleDC(hD)
+			bufBMP = CreateCompatibleBitmap(hD, dwClientX, dwClientY)
 		#endif
 		'iMin = Min(FSelEnd, FSelStart)
 		'iMax = Max(FSelEnd, FSelStart)
 		'iLineIndex = LineFromCharIndex(iMax)
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		iCount = 0
+		BracketsStart = -1
+		BracketsStartLine = -1
+		BracketsEnd = -1
+		BracketsEndLine = -1
+		If HighlightBrackets Then
+			Symb = Mid(Lines(iSelEndLine), iSelEndChar + 1, 1)
+			If InStr(OpenBrackets, Symb) Then
+				iStartBS = iSelEndChar + 1
+				iStartBE = iSelEndChar + 2
+				SymbOpenBrackets = Symb
+				SymbCloseBrackets = Mid(CloseBrackets, InStr(OpenBrackets, Symb), 1)
+			ElseIf InStr(CloseBrackets, Symb) Then
+				iStartBS = iSelEndChar
+				iStartBE = iSelEndChar + 1
+				SymbOpenBrackets = Mid(OpenBrackets, InStr(CloseBrackets, Symb), 1)
+				SymbCloseBrackets = Symb
+			ElseIf InStr(CloseBrackets, Mid(Lines(iSelEndLine), iSelEndChar, 1)) Then
+				iStartBS = iSelEndChar - 1
+				iStartBE = iSelEndChar
+				Symb = Mid(Lines(iSelEndLine), iSelEndChar, 1)
+				SymbOpenBrackets = Mid(OpenBrackets, InStr(CloseBrackets, Symb), 1)
+				SymbCloseBrackets = Symb
+			Else
+				iStartBS = iSelEndChar + 1
+				iStartBE = iSelEndChar + 1
+				SymbOpenBrackets = ""
+				SymbCloseBrackets = ""
+			End If
+			bFinded = False
+			For j As Integer = iSelEndLine To 0 Step -1
+				BracketsLine = TextWithoutQuotesAndComments(Lines(j))
+				For i As Integer = IIf(j = iSelEndLine, iStartBS, Len(BracketsLine)) To 1 Step -1
+					Symb = Mid(BracketsLine, i, 1)
+					If Symb = SymbOpenBrackets OrElse SymbOpenBrackets = "" AndAlso InStr(OpenBrackets, Symb) Then
+						If iCount = 0 Then
+							BracketsStart = i - 1
+							BracketsStartLine = j
+							SymbOpenBrackets = Symb
+							SymbCloseBrackets = Mid(CloseBrackets, InStr(OpenBrackets, Symb), 1)
+							bFinded = True
+							Exit For
+						Else
+							iCount -= 1
+						End If
+					ElseIf Symb = SymbCloseBrackets OrElse SymbCloseBrackets = "" AndAlso InStr(CloseBrackets, Symb) Then
+						iCount += 1
+					End If
+				Next
+				If CInt(bFinded) OrElse CInt(j > 0 AndAlso Not EndsWith(Lines(j - 1), " _")) Then Exit For
+			Next
+			bFinded = False
+			For j As Integer = iSelEndLine To FLines.Count - 1
+				BracketsLine = TextWithoutQuotesAndComments(Lines(j))
+				For i As Integer = IIf(j = iSelEndLine, iStartBE, 1) To Len(BracketsLine)
+					Symb = Mid(BracketsLine, i, 1)
+					If Symb = SymbCloseBrackets OrElse SymbCloseBrackets = "" AndAlso InStr(CloseBrackets, Symb) Then
+						If iCount = 0 Then
+							BracketsEnd = i - 1
+							BracketsEndLine = j
+							SymbOpenBrackets = Mid(OpenBrackets, InStr(CloseBrackets, Symb), 1)
+							SymbCloseBrackets = Symb
+							bFinded = True
+							Exit For
+						Else
+							iCount -= 1
+						End If
+					ElseIf Symb = SymbOpenBrackets OrElse SymbOpenBrackets = "" AndAlso InStr(OpenBrackets, Symb) Then
+						iCount += 1
+					End If
+				Next
+				If bFinded OrElse Not EndsWith(Lines(j), " _") Then Exit For
+			Next
+		End If
+		If CInt(HighlightCurrentWord) AndAlso iSelStartLine = iSelEndLine AndAlso iSelStartChar = iSelEndChar Then CurWord = GetWordAtCursor Else CurWord = ""
 		iC = 0
 		vlc = Min(LinesCount, VScrollPos + VisibleLinesCount + 2)
 		vlc1 = VisibleLinesCount
@@ -1467,20 +1634,21 @@ Namespace My.Sys.Forms
 			SelectObject(bufDC, bufBMP)
 			HideCaret(FHandle)
 		#endif
-		This.Canvas.Brush.Color = NormalTextBackground
+		This.Canvas.Brush.Color = NormalText.Background
+		Dim As Double iRed, iGreen, iBlue
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK3__
 				cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), True)
 			#else
 				cairo_rectangle (cr, 0.0, 0.0, widget->allocation.width, widget->allocation.height, True)
 			#endif
-			cairo_set_source_rgb(cr, 1, 1, 1)
+			cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 			cairo_fill (cr)
 		#else
 			
 			'			This.Canvas.Font.Name = *EditorFontName
 			'			This.Canvas.Font.Size = EditorFontSize
-			This.Canvas.Pen.Color = FoldLinesForeground
+			This.Canvas.Pen.Color = FoldLines.Foreground
 			SetRect(@rc, LeftMargin, 0, dwClientX, dwClientY)
 			SelectObject(bufDC, This.Canvas.Brush.Handle)
 			SelectObject(bufDC, This.Canvas.Font.Handle)
@@ -1536,7 +1704,7 @@ Namespace My.Sys.Forms
 						ElseIf iC > 0 AndAlso Mid(*s, j, 2) = "'/" Then
 							iC = iC - 1
 							j = j + 1
-						ElseIf iC = 0 AndAlso Mid(*s, j, 1) = "'" Then
+						ElseIf iC = 0 AndAlso (Mid(*s, j, 1) = "'" OrElse LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j - 1, 5)) = !"\trem ") Then
 							Exit Do
 						End If
 					End If
@@ -1549,15 +1717,15 @@ Namespace My.Sys.Forms
 				#endif
 				LinePrinted = False
 				If FECLine->BreakPoint Then
-					PaintText i, *s, 0, Len(*s), BreakpointsBackground, BreakpointsForeground, "", BreakpointsBold, BreakpointsItalic, BreakpointsUnderline
+					PaintText i, *s, 0, Len(*s), Breakpoints, "", Breakpoints.Bold, Breakpoints.Italic, Breakpoints.Underline
 					LinePrinted = True
 				End If
 				If CurExecutedLine = z AndAlso CurEC <> 0 Then
-					PaintText i, *s, Len(*s) - Len(LTrim(*s, Any !"\t ")), Len(*s), IIf(CurEC = @This, ExecutionLineBackground, CurrentLineBackground), ExecutionLineForeground, ""
+					PaintText i, *s, Len(*s) - Len(LTrim(*s, Any !"\t ")), Len(*s), IIf(CurEC = @This, ExecutionLine, CurrentLine), ""
 					LinePrinted = True
 				End If
 				If Not SyntaxEdit Then
-					PaintText i, *s, 0, Len(*s), NormalTextBackground, NormalTextForeground, "", NormalTextBold, NormalTextItalic, NormalTextUnderline
+					PaintText i, *s, 0, Len(*s), NormalText, "", NormalText.Bold, NormalText.Italic, NormalText.Underline
 					LinePrinted = True
 				End If
 				If Not LinePrinted Then
@@ -1577,7 +1745,7 @@ Namespace My.Sys.Forms
 								'								If StringsBold Then Canvas.Font.Bold = True
 								'								If StringsItalic Then Canvas.Font.Italic = True
 								'								If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
-								PaintText i, *s, QavsBoshi - 1, j, StringsBackground, StringsForeground, , StringsBold, StringsItalic, StringsUnderline Or bInIncludeFileRect And iCursorLine = z
+								PaintText i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, CBool(Strings.Underline) Or CBool(bInIncludeFileRect) And CBool(iCursorLine = z)
 								'txtCode.SetSel ss + QavsBoshi - 1, ss + j
 								'txtCode.SelColor = clMaroon
 							End If
@@ -1592,78 +1760,77 @@ Namespace My.Sys.Forms
 								iC = iC - 1
 								j = j + 1
 								If iC = 0 Then
-									PaintText i, *s, IzohBoshi - 1, j, CommentsBackground, CommentsForeground, , CommentsBold, CommentsItalic, CommentsUnderline
-									'txtCode.SetSel IzohBoshi - 1, ss + j
-									'txtCode.SelColor = clGreen
-									'If i > EndLine Then Exit Do
+									PaintText i, *s, IzohBoshi - 1, j, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 								End If
 							ElseIf iC = 0 Then
 								t = Asc(Mid(*s, j, 1))
 								u = Asc(Mid(*s, j + 1, 1))
-								If t >= 48 And t <= 57 Or t >= 65 And t <= 90 Or t >= 97 And t <= 122 Or t = Asc("#") Or t = Asc("$") Or t = Asc("_") Then
+								If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
+									If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) Then
+										Keyword = GetKeyWordCase("rem", @keywords2)
+										If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = Keyword
+									End If
+									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+									Exit Do
+								ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse t = Asc("#") OrElse t = Asc("$") OrElse t = Asc("_") Then
 									If MatnBoshi = 0 Then MatnBoshi = j
-									If Not (u >= 48 And u <= 57 Or u >= 65 And u <= 90 Or u >= 97 And u <= 122 Or u = Asc("#") Or u = Asc("$") Or u = Asc("_")) Then
+									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
 										'If j < This.Width / dwCharX Then
 										Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
-										sc = NormalTextForeground
-										ss = NormalTextBackground
+										sc = @NormalText
+										'ss = NormalText.Background
 										If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
 										If r <> 46 AndAlso r <> 62 Then ' . > THEN
 											pkeywords = 0
 											If CStyle Then
 												If LCase(Matn) = "#define" Then
-													sc = PreprocessorsForeground
-													ss = PreprocessorsBackground
+													sc = @Preprocessors
 												End If
 											Else
 												If keywords0.Contains(LCase(Matn)) Then
-													sc = PreprocessorsForeground   'David Change
-													ss = PreprocessorsBackground
+													sc = @Preprocessors 'David Change
 													pkeywords = @keywords0
 												ElseIf keywords1.Contains(LCase(Matn)) Then
-													sc = KeywordsForeground
-													ss = KeywordsBackground
+													sc = @Keywords
 													pkeywords = @keywords1
 												ElseIf keywords2.Contains(LCase(Matn)) Then
-													sc = KeywordsForeground
-													ss = KeywordsBackground
+													sc = @Keywords
 													pkeywords = @keywords2
 												ElseIf keywords3.Contains(LCase(Matn)) Then
-													sc = KeywordsForeground
-													ss = KeywordsBackground
+													sc = @Keywords
 													pkeywords = @keywords3
 												End If
 												If CInt(ChangeKeyWordsCase) AndAlso CInt(pkeywords <> 0) AndAlso CInt(FSelEndLine <> z) Then
 													Keyword = GetKeyWordCase(Matn, pkeywords)
 													If Keyword <> Matn Then
 														'ChangeCase = True
-														Mid(*s, MatnBoshi, j - MatnBoshi + 1) = GetKeyWordCase(keyword)
+														Mid(*s, MatnBoshi, j - MatnBoshi + 1) = Keyword
 													End If
 												End If
 											End If
 										End If
 										'If sc <> 0 Then
-										PaintText i, *s, MatnBoshi - 1, j, ss, sc
+										PaintText i, *s, MatnBoshi - 1, j, *sc
 										'txtCode.SetSel ss + MatnBoshi - 1, ss + j
 										'txtCode.SelColor = sc
 										'End If
 										MatnBoshi = 0
 										'End If
-									End If    
+									End If
 								ElseIf Not CStyle AndAlso Chr(t) = "'" Then
-									PaintText i, *s, j - 1, l, CommentsBackground, CommentsForeground, , CommentsBold, CommentsItalic, CommentsUnderline
+									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 									'txtCode.SetSel ss + j - 1, ss + l
 									'txtCode.SelColor = clGreen
 									Exit Do
 								ElseIf Chr(t) <> " " Then
-									PaintText i, *s, j - 1, j, NormalTextBackground, NormalTextForeground
+									PaintText i, *s, j - 1, j, NormalText
 								End If
 							End If
 						End If
 						j = j + 1
 					Loop
 					If iC > 0 Then
-						PaintText i, *s, Max(0, IzohBoshi - 1), l, CommentsBackground, CommentsForeground, , CommentsBold, CommentsItalic, CommentsUnderline
+						PaintText i, *s, Max(0, IzohBoshi - 1), l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 						'txtCode.SetSel IzohBoshi - 1, ss + l
 						'txtCode.SelColor = clGreen
 						'If i = EndLine Then k = txtCode.LinesCount
@@ -1671,8 +1838,24 @@ Namespace My.Sys.Forms
 						'						If StringsBold Then Canvas.Font.Bold = True
 						'						If StringsItalic Then Canvas.Font.Italic = True
 						'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
-						PaintText i, *s, QavsBoshi - 1, j, StringsBackground, StringsForeground, , StringsBold, StringsItalic, StringsUnderline Or bInIncludeFileRect And iCursorLine = z
+						PaintText i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, Strings.Underline Or bInIncludeFileRect And CBool(iCursorLine = z)
 					End If
+				End If
+				If CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine AndAlso z = FLines.Count - 1)) Then
+					Dim As Rect rec
+					If z = FSelEndLine + 1 Then
+						rec = Type(LeftMargin + -HScrollPos * dwCharX, (i - VScrollPos - 1) * dwCharY, This.Width, (i - VScrollPos - 1) * dwCharY + dwCharY + 1)
+					Else
+						rec = Type(LeftMargin + -HScrollPos * dwCharX, (i - VScrollPos) * dwCharY, This.Width, (i - VScrollPos) * dwCharY + dwCharY + 1)
+					End If
+					#ifdef __USE_GTK__
+						cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
+						cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+						cairo_stroke(cr)
+					#else
+						This.Canvas.Brush.Color = CurrentLine.Frame
+						FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+					#endif
 				End If
 				If FSelStartLine <> FSelEndLine Or FSelStartChar <> FSelEndChar Then
 					'If iMin <> iMax Then
@@ -1680,18 +1863,18 @@ Namespace My.Sys.Forms
 						'    If iMin >= ss And iMin <= ss + l Or iMax >= ss And iMax <= ss + l Or iMin <= ss And iMax >= ss + l Then
 						'iStart = Max(iMin - j, 0)
 						'iEnd = Min(iMax - j, l)
-						#ifdef __USE_GTK__
-							'Dim As GdkRGBA colorHighlightText, colorHighlight 
-							Dim As Integer colHighlightText, colHighlight
-							'gtk_style_context_get_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlightText)
-							'gtk_style_context_get_background_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlight)
-							colHighlight = clOrange 'rgb(colorHighlight.red * 255, colorHighlight.green * 255, colorHighlight.blue * 255)
-							colHighlightText = clWhite 'clWhite 'rgb(colorHighlightText.red * 255, colorHighlightText.green * 255, colorHighlightText.blue * 255)
-							'?clBlue, getred(clBlue), getgreen(clBlue), getblue(clBlue)
-							PaintText i, *s, IIf(iSelStartLine = z, iSelStartChar, 0), IIf(iSelEndLine = z, iSelEndChar, Len(*s)), colHighlight, colHighlightText, IIf(z <> iSelEndLine, " ", "")
-						#else
-							PaintText i, *s, IIf(iSelStartLine = z, iSelStartChar, 0), IIf(iSelEndLine = z, iSelEndChar, Len(*s)), SelectionBackground, SelectionForeground, IIf(z <> iSelEndLine, " ", "")
-						#endif
+						'						#ifdef __USE_GTK__
+						'							Dim As GdkRGBA colorHighlightText, colorHighlight
+						'							Dim As Integer colHighlightText, colHighlight
+						'							gtk_style_context_get_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlightText)
+						'							gtk_style_context_get_background_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlight)
+						'							colHighlight = clOrange 'rgb(colorHighlight.red * 255, colorHighlight.green * 255, colorHighlight.blue * 255)
+						'							colHighlightText = clWhite 'clWhite 'rgb(colorHighlightText.red * 255, colorHighlightText.green * 255, colorHighlightText.blue * 255)
+						'							?clBlue, getred(clBlue), getgreen(clBlue), getblue(clBlue)
+						'							PaintText i, *s, IIf(iSelStartLine = z, iSelStartChar, 0), IIf(iSelEndLine = z, iSelEndChar, Len(*s)), SelectionBackground, SelectionForeground, IIf(z <> iSelEndLine, " ", "")
+						'						#else
+						PaintText i, *s, IIf(iSelStartLine = z, iSelStartChar, 0), IIf(iSelEndLine = z, iSelEndChar, Len(*s)), Selection, IIf(z <> iSelEndLine, " ", "")
+						'						#endif
 						'WLet n, Left(*s, iStart)
 						'WLet h, Mid(*s, iStart + 1, iEnd - iStart) & IIF(iLineIndex <> i, " ", "")
 						'SetBKColor(bufDC, clHighlight)
@@ -1700,14 +1883,38 @@ Namespace My.Sys.Forms
 						'TextOut(bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(iStart = 0, 0, Sz.cx), (i - VScrollPos - 1) * dwCharY, h, Len(*h))
 					End If
 				End If
+				If HighlightBrackets Then
+					If z = BracketsStartLine AndAlso BracketsStart > -1 Then
+						Dim As Rect rec = Type(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(Left(*s, BracketsStart))) * (dwCharX), (i - VScrollPos) * dwCharY + 1, LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(Left(*s, BracketsStart))) * (dwCharX) + dwCharX, (i - VScrollPos) * dwCharY + dwCharY)
+						#ifdef __USE_GTK__
+							cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
+							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+							cairo_stroke(cr)
+						#else
+							This.Canvas.Brush.Color = CurrentBrackets.Frame
+							FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+						#endif
+					End If
+					If z = BracketsEndLine AndAlso BracketsEnd > -1 Then
+						Dim As Rect rec = Type(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(Left(*s, BracketsEnd))) * (dwCharX), (i - VScrollPos) * dwCharY + 1, LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(Left(*s, BracketsEnd))) * (dwCharX) + dwCharX, (i - VScrollPos) * dwCharY + dwCharY)
+						#ifdef __USE_GTK__
+							cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
+							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+							cairo_stroke(cr)
+						#else
+							This.Canvas.Brush.Color = CurrentBrackets.Frame
+							FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+						#endif
+					End If
+				End If
 				#ifdef __USE_GTK__
 					cairo_set_line_width (cr, 1)
 				#endif
 				If ShowSpaces Then
 					#ifdef __USE_GTK__
-						cairo_set_source_rgb(cr, 192 / 255.0, 192 / 255.0, 192 / 255.0)
+						cairo_set_source_rgb(cr, SpaceIdentifiers.ForegroundRed, SpaceIdentifiers.ForegroundGreen, SpaceIdentifiers.ForegroundBlue)
 					#else
-						This.Canvas.Pen.Color = SpaceIdentifiersForeground 'rgb(100, 100, 100) 'clLtGray
+						This.Canvas.Pen.Color = SpaceIdentifiers.Foreground 'rgb(100, 100, 100) 'clLtGray
 						SelectObject(bufDC, This.Canvas.Pen.Handle)
 					#endif
 					'WLet FLineLeft, GetTabbedText(*s, 0, True)
@@ -1725,7 +1932,7 @@ Namespace My.Sys.Forms
 							#else
 								'GetTextExtentPoint32(bufDC, @Wstr(Left(*FLineLeft, jj - 1)), jj - 1, @Sz) 'Len(*FLineLeft)
 								'SetPixel bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(jPos = 0, 0, Sz.cx) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, clBtnShadow
-								SetPixel bufDC, LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2, (i - VScrollPos) * dwCharY + Int(dwCharY / 2), SpaceIdentifiersForeground
+								SetPixel bufDC, LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2, (i - VScrollPos) * dwCharY + Int(dwCharY / 2), SpaceIdentifiers.Foreground
 							#endif
 						ElseIf sChar = !"\t" Then
 							jPP = TabWidth - (jPos + TabWidth) Mod TabWidth
@@ -1761,13 +1968,13 @@ Namespace My.Sys.Forms
 			'Canvas.Font.Bold = False
 			#ifdef __USE_GTK__
 				cairo_rectangle (cr, 0.0, (i - VScrollPos) * dwCharY, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, True)
-				cairo_set_source_rgb(cr, Abs(GetRed(clGray) / 255.0), Abs(GetGreen(clGray) / 255.0), Abs(GetBlue(clGray) / 255.0))
+				cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
 				cairo_fill (cr)
 				WLet FLineLeft, WStr(z + 1)
-				'Dim extend As cairo_text_extents_t 
+				'Dim extend As cairo_text_extents_t
 				'cairo_text_extents (cr, *FLineLeft, @extend)
 				cairo_move_to(cr, LeftMargin - 30 - TextWidth(ToUTF8(*FLineLeft)), (i - VScrollPos) * dwCharY + dwCharY - 5)
-				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
+				cairo_set_source_rgb(cr, LineNumbers.ForegroundRed, LineNumbers.ForegroundGreen, LineNumbers.ForegroundBlue)
 				pango_layout_set_text(layout, ToUTF8(*FLineLeft), Len(ToUTF8(*FLineLeft)))
 				pango_cairo_update_layout(cr, layout)
 				#ifdef PANGO_VERSION
@@ -1779,34 +1986,34 @@ Namespace My.Sys.Forms
 				'cairo_show_text(cr, *FLineLeft)
 			#else
 				'SelectObject(bufDC, This.Canvas.Font.Handle)
-				This.Canvas.Brush.Color = LineNumbersBackground
+				This.Canvas.Brush.Color = LineNumbers.Background
 				SetRect(@rc, 0, (i - VScrollPos) * dwCharY, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY)
 				'SelectObject(bufDC, This.Canvas.Brush.Handle)
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				SetBKMode(bufDC, TRANSPARENT)
 				WLet FLineLeft, WStr(z + 1)
 				GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
-				SetTextColor(bufDC, LineNumbersForeground)
+				SetTextColor(bufDC, LineNumbers.Foreground)
 				TextOut(bufDC, LeftMargin - 25 - Sz.cx, (i - VScrollPos) * dwCharY, FLineLeft, Len(*FLineLeft))
 				SetBKMode(bufDC, OPAQUE)
 			#endif
-			This.Canvas.Brush.Color = NormalTextBackground
+			This.Canvas.Brush.Color = NormalText.Background
 			#ifdef __USE_GTK__
 				cairo_rectangle(cr, LeftMargin - 25, (i - VScrollPos) * dwCharY, LeftMargin, (i - VScrollPos + 1) * dwCharY, True)
-				cairo_set_source_rgb(cr, 1, 1, 1)
+				cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 				cairo_fill (cr)
 			#else
 				SetRect(@rc, LeftMargin - 25, (i - VScrollPos) * dwCharY, LeftMargin, (i - VScrollPos + 1) * dwCharY)
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			#endif
 			If FECLine->BreakPoint Then
-				This.Canvas.Pen.Color = IndicatorLinesForeground
-				This.Canvas.Brush.Color = BreakpointsIndicator
+				This.Canvas.Pen.Color = IndicatorLines.Foreground
+				This.Canvas.Brush.Color = Breakpoints.Indicator
 				#ifdef __USE_GTK__
-					cairo_set_source_rgb(cr, Abs(GetRed(clMaroon) / 255.0), Abs(GetGreen(clMaroon) / 255.0), Abs(GetBlue(clMaroon) / 255.0))
+					cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
 					cairo_arc(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5, 5, 0, 2 * G_PI)
 					cairo_fill_preserve(cr)
-					cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+					cairo_set_source_rgb(cr, Breakpoints.IndicatorRed, Breakpoints.IndicatorGreen, Breakpoints.IndicatorBlue)
 					cairo_stroke(cr)
 				#else
 					SelectObject(bufDC, This.Canvas.Brush.Handle)
@@ -1815,12 +2022,12 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 			If FECLine->Bookmark Then
-				This.Canvas.Pen.Color = IndicatorLinesForeground
-				This.Canvas.Brush.Color = BookmarksIndicator
+				This.Canvas.Pen.Color = IndicatorLines.Foreground
+				This.Canvas.Brush.Color = Bookmarks.Indicator
 				#ifdef __USE_GTK__
 					Var x = LeftMargin - 18, y = (i - VScrollPos) * dwCharY + 3
 					Var width1 = 14, height1 = 10, radius = 2
-					cairo_set_source_rgb(cr, 0.0, 1.0, 1.0)
+					cairo_set_source_rgb(cr, Bookmarks.IndicatorRed, Bookmarks.IndicatorGreen, Bookmarks.IndicatorBlue)
 					cairo_move_to cr, x - 0.5, y + radius - 0.5
 					cairo_arc (cr, x + radius - 0.5, y + radius - 0.5, radius, G_PI, -G_PI / 2)
 					cairo_line_to (cr, x + width1 - radius - 0.5, y - 0.5)
@@ -1831,7 +2038,7 @@ Namespace My.Sys.Forms
 					cairo_arc (cr, x + radius - 0.5, y + height1 - radius - 0.5, radius, G_PI / 2, G_PI)
 					cairo_close_path cr
 					cairo_fill_preserve(cr)
-					cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+					cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
 					cairo_stroke(cr)
 				#else
 					SelectObject(bufDC, This.Canvas.Brush.Handle)
@@ -1840,7 +2047,7 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 			#ifdef __USE_GTK__
-				cairo_set_source_rgb(cr, 192 / 255.0, 192 / 255.0, 192 / 255.0)
+				cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
 			#endif
 			If SyntaxEdit AndAlso Not CStyle Then
 				If FECLine->Collapsible Then
@@ -1853,7 +2060,7 @@ Namespace My.Sys.Forms
 						cairo_line_to(cr, dwClientX - 0.5, (i - VScrollPos) * dwCharY - 0.5)
 						cairo_stroke (cr)
 					#else
-						This.Canvas.Pen.Color = FoldLinesForeground
+						This.Canvas.Pen.Color = FoldLines.Foreground
 						SelectObject(bufDC, This.Canvas.Brush.Handle)
 						SelectObject(bufDC, This.Canvas.Pen.Handle)
 						Rectangle bufDC, LeftMargin - 15, (i - VScrollPos) * dwCharY + 3, LeftMargin - 6, (i - VScrollPos) * dwCharY + 12
@@ -1894,10 +2101,10 @@ Namespace My.Sys.Forms
 					End If
 				ElseIf OldCollapseIndex > 0 Then
 					#ifdef __USE_GTK__
-						cairo_set_source_rgb(cr, 192 / 255.0, 192 / 255.0, 192 / 255.0)
+						cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
 						cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 0 - 0.5)
 					#else
-						This.Canvas.Pen.Color = FoldLinesForeground
+						This.Canvas.Pen.Color = FoldLines.Foreground
 						SelectObject(bufDC, This.Canvas.Brush.Handle)
 						SelectObject(bufDC, This.Canvas.Pen.Handle)
 						MoveToEx bufDC, LeftMargin - 11, (i - VScrollPos) * dwCharY + 0, 0
@@ -1929,32 +2136,32 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-			If i - VScrollPos > vlc1 Then Exit For 'AndAlso Not ChangeCase 
+			If i - VScrollPos > vlc1 Then Exit For 'AndAlso Not ChangeCase
 			OldCollapseIndex = CollapseIndex
 		Next z
 		#ifdef __USE_GTK__
 			cairo_rectangle (cr, 0, (i - VScrollPos + 1) * dwCharY, LeftMargin - 25, dwClientY, True)
-			cairo_set_source_rgb(cr, Abs(GetRed(clGray) / 255.0), Abs(GetGreen(clGray) / 255.0), Abs(GetBlue(clGray) / 255.0))
+			cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
 			cairo_fill (cr)
 			cairo_rectangle (cr, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, LeftMargin, dwClientY, True)
-			cairo_set_source_rgb(cr, 1, 1, 1)
+			cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 			cairo_fill (cr)
 			If CaretOn Then
 				#ifdef __USE_GTK3__
 					gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, HCaretPos, VCaretPos, layout, 0, PANGO_DIRECTION_LTR)
 				#else
 					cairo_rectangle (cr, HCaretPos, VCaretPos, HCaretPos + 0.5, VCaretPos + dwCharY, True)
-					cairo_set_source_rgb(cr, 0, 0, 0)
+					cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
 					cairo_fill (cr)
 				#endif
 			End If
 			'cairo_paint(cr)
 		#else
 			SetRect(@rc, 0, (i - VScrollPos + 1) * dwCharY, LeftMargin - 25, dwClientY)
-			This.Canvas.Brush.Color = LineNumbersBackground
+			This.Canvas.Brush.Color = LineNumbers.Background
 			FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			SetRect(@rc, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, LeftMargin, dwClientY)
-			This.Canvas.Brush.Color = NormalTextBackground
+			This.Canvas.Brush.Color = NormalText.Background
 			FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			If bInMiddleScroll Then
 				#ifdef __USE_GTK__
@@ -1964,8 +2171,8 @@ Namespace My.Sys.Forms
 					'					cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
 					'					cairo_stroke(cr)
 				#else
-					This.Canvas.Pen.Color = SpaceIdentifiersForeground
-					This.Canvas.Brush.Color = SpaceIdentifiersForeground
+					This.Canvas.Pen.Color = SpaceIdentifiers.Foreground
+					This.Canvas.Brush.Color = SpaceIdentifiers.Foreground
 					SelectObject(bufDC, This.Canvas.Pen.Handle)
 					SelectObject(bufDC, This.Canvas.Brush.Handle)
 					Ellipse bufDC, MButtonX + 10, MButtonY + 10, MButtonX + 14, MButtonY + 14
@@ -1994,6 +2201,20 @@ Namespace My.Sys.Forms
 		"in line " & Erl()
 	End Sub
 	
+	Sub EditControl.PaintControl
+		#ifdef __USE_GTK__
+			'PaintControlPriv
+			bChanged = True
+			#ifdef __USE_GTK3__
+				gtk_widget_queue_draw(widget)
+			#else
+				gtk_widget_queue_draw(widget)
+			#endif
+		#else
+			PaintControlPriv
+		#endif
+	End Sub
+	
 	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr)
 		For i As Integer = FLines.Count - 1 To 0 Step -1
 			Delete Cast(EditControlLine Ptr, FLines.Items[i])
@@ -2009,6 +2230,8 @@ Namespace My.Sys.Forms
 				FECLine->CommentIndex = .CommentIndex
 				FECLine->ConstructionIndex = .ConstructionIndex
 				FECLine->ConstructionPart = .ConstructionPart
+				FECLine->InConstructionIndex = .InConstructionIndex
+				FECLine->InConstructionPart = .InConstructionPart
 				FECLine->Multiline = .Multiline
 				FECLine->Collapsible = .Collapsible
 				FECLine->Collapsed = .Collapsed
@@ -2196,24 +2419,44 @@ Namespace My.Sys.Forms
 			If hwndTT = 0 Then
 				hwndTT = CreateWindow(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
 				
-				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE
+				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS
 				ti.hinst  = GetModuleHandle(NULL)
-				ti.lpszText  = FHint
+				ti.lpszText  = FHint.vptr
 				
 				SendMessage(hwndTT, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
 			Else
 				SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
 				
-				ti.lpszText = FHint
+				ti.lpszText = FHint.vptr
 				
 				SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
 			End If
 			
+			SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
 			SendMessage(hwndTT, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
 			
 			Dim As RECT rc
 			GetWindowRect(FHandle, @rc)
 			SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + HCaretPos, rc.Top + VCaretPos + 5))
+		#endif
+	End Sub
+	
+	Sub EditControl.UpdateToolTip()
+		#ifdef __USE_GTK__
+		#else
+			If hwndTT <> 0 Then
+				Dim As TOOLINFO    ti
+				ZeroMemory(@ti, SizeOf(ti))
+				
+				ti.cbSize = SizeOf(ti)
+				ti.hwnd   = FHandle
+				
+				SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
+				
+				ti.lpszText = FHint.vptr
+				
+				SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
+			End If
 		#endif
 	End Sub
 	
@@ -2257,25 +2500,6 @@ Namespace My.Sys.Forms
 		Return KeyWord
 	End Function
 	
-	Sub EditControl.FontSettings()
-		Canvas.Font = This.Font
-		WLet CurrentFontName, *EditorFontName
-		CurrentFontSize = EditorFontSize
-		#ifndef __USE_GTK__
-			hd = GetDc(FHandle)
-			SelectObject(hd, This.Font.Handle)
-			GetTextMetrics(hd, @tm)
-			ReleaseDC(FHandle, hd)
-			
-			dwCharX = tm.tmAveCharWidth
-			dwCharY = tm.tmHeight
-		#endif
-		LeftMargin = Len(Str(LinesCount)) * dwCharX + 5 * dwCharX '30
-		
-		dwClientX = ClientWidth
-		dwClientY = ClientHeight
-	End Sub
-	
 	Sub EditControl.ProcessMessage(ByRef msg As Message)
 		Static bShifted As Boolean
 		Static bCtrl As Boolean
@@ -2294,7 +2518,7 @@ Namespace My.Sys.Forms
 		#else
 			Select Case msg.msg
 			Case CM_CREATE
-				FontSettings()
+				'FontSettings()
 				
 				PaintControl
 		#endif
@@ -2369,6 +2593,16 @@ Namespace My.Sys.Forms
 					ShowCaretPos False
 					PaintControl
 				End If
+			#endif
+			#ifndef __USE_GTK__
+			Case WM_NOTIFY
+				Dim As LPNMHDR lp = Cast(LPNMHDR, msg.LParam)
+				Select Case lp->Code
+				Case TTN_LINKCLICK
+					Dim As PNMLINK pNMLink1 = Cast(PNMLINK, msg.lParam)
+					Dim As LITEM item = pNMLink1->item
+					If OnToolTipLinkClicked Then OnToolTipLinkClicked(This, item.szUrl)
+				End Select
 			#endif
 			#ifndef __USE_GTK__
 			Case WM_SETCURSOR
@@ -2510,7 +2744,9 @@ Namespace My.Sys.Forms
 				#else
 				Case VK_HOME
 				#endif
-				FSelEndChar = 0
+				Dim As WString Ptr sTmpLine = Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text 'David Change
+				Dim As Integer lChar = Len(*sTmpLine) - Len(LTrim(*sTmpLine, Any !"\t ")) 'David Change Skip the space oe TABs.
+				If FSelEndChar = lChar Then FSelEndChar = 0 Else FSelEndChar = lChar
 				If bCtrl Then FSelEndLine = 0
 				If Not bShifted Then
 					FSelStartChar = FSelEndChar
@@ -2557,7 +2793,7 @@ Namespace My.Sys.Forms
 					ElseIf bCtrl Then
 						WordRight
 						ChangeText "", 0, "Olddagi so`zni o`chirish"
-					Else    
+					Else
 						ChangeText "", 1, "Olddagi belgini o`chirish"
 					End If
 				End If
@@ -2665,7 +2901,7 @@ Namespace My.Sys.Forms
 					ElseIf FSelEndLine <> FSelStartLine Or FSelEndChar <> FSelStartChar Then
 						ChangeSelPos True
 						ScrollToCaret
-					End If    
+					End If
 				Else
 					If FSelEndLine > 0 Then
 						FSelEndLine = GetLineIndex(FSelEndLine, -1)
@@ -2715,7 +2951,7 @@ Namespace My.Sys.Forms
 					ElseIf FSelEndLine <> FSelStartLine Or FSelEndChar <> FSelStartChar Then
 						ChangeSelPos False
 						ScrollToCaret
-					End If    
+					End If
 				Else
 					If FSelEndLine < GetLineIndex(FLines.Count - 1) Then
 						FSelEndLine = GetLineIndex(FSelEndLine, +1)
@@ -2935,7 +3171,7 @@ Namespace My.Sys.Forms
 						Dim y As Integer
 						For o As Integer = FSelEndLine - 1 To 0 Step -1
 							With *Cast(EditControlLine Ptr, FLines.Items[o])
-								If .ConstructionIndex = i Then 
+								If .ConstructionIndex = i Then
 									If .ConstructionPart = 2 Then
 										y = y + 1
 									ElseIf .ConstructionPart = 0 Then
@@ -3007,14 +3243,14 @@ Namespace My.Sys.Forms
 				'Var k = 0
 				'WLet FLineLeft, ""
 				'For i As Integer = 0 To Ubound(Constructions)
-				'    If Constructions(i).Name0 <> "" AndAlso Instr(" " & LCase(*FLine), " " & LCase(Constructions(i).Name0) & " ") AndAlso _ 
+				'    If Constructions(i).Name0 <> "" AndAlso Instr(" " & LCase(*FLine), " " & LCase(Constructions(i).Name0) & " ") AndAlso _
 				'    (Constructions(i).Exception = "" OrElse Instr(LCase(*FLine), LCase(Constructions(i).Exception)) = 0) Then
 				'        Var e = GetLeftSpace(*FLineRight)
 				'        If e > d OrElse (e = d AndAlso ((Constructions(i).Name1 <> "" AndAlso Instr(" " & LCase(*FLineRight) & " ", " " & LCase(Constructions(i).Name1) & " ")) OrElse _
 				'           (Constructions(i).Name2 <> "" AndAlso Instr(" " & LCase(*FLineRight) & " ", " " & LCase(Constructions(i).Name2) & " ")) OrElse _
 				'           (Constructions(i).EndName <> "" AndAlso Instr(" " & LCase(*FLineRight) & " ", " " & LCase(Constructions(i).EndName) & " "))) AndAlso _
 				'           (Constructions(i).Exception = "" OrElse Instr(LCase(*FLineRight), LCase(Constructions(i).Exception)) = 0)) Then
-				'            
+				'
 				'        Else
 				'            WLet FLineLeft, Chr(13) & Space(d) & Constructions(i).EndName
 				'        End If
@@ -3158,6 +3394,8 @@ Namespace My.Sys.Forms
 				FECLine = FLines.Items[FSelEndLine]
 				ChangeCollapseState FSelEndLine, Not FECLine->Collapsed
 				ScrollToCaret
+				OldnCaretPosX = nCaretPosX
+				OldCharIndex = GetOldCharIndex
 			Else
 				#ifdef __USE_GTK__
 					FSelEndChar = CharIndexFromPoint(e->button.x, e->button.y)
@@ -3177,6 +3415,8 @@ Namespace My.Sys.Forms
 				End If
 				If Not Focused Then This.SetFocus
 				ScrollToCaret
+				OldnCaretPosX = nCaretPosX
+				OldCharIndex = GetOldCharIndex
 				#ifndef __USE_GTK__
 					SetCapture FHandle
 				#endif
@@ -3300,7 +3540,7 @@ Namespace My.Sys.Forms
 				ec->dwCharX = extend.width
 				ec->dwCharY = extend.height
 				
-				'Dim extend As cairo_text_extents_t 
+				'Dim extend As cairo_text_extents_t
 				'cairo_text_extents (cr, "|", @extend)
 				
 				ec->LeftMargin = Len(Str(ec->LinesCount)) * ec->dwCharX + 30
@@ -3573,9 +3813,6 @@ Namespace My.Sys.Forms
 		WDeallocate FLineSpace
 		WDeallocate FHintWord
 		WDeallocate CurrentFontName
-		#ifndef __USE_GTK__
-			DeleteDc hd
-		#endif
 	End Destructor
 End Namespace
 

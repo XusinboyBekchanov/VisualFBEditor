@@ -4,7 +4,7 @@
 '#  Authors: Xusinboy Bekchanov (2018-2019)              #
 '#########################################################
 
-#Include Once "frmAddIns.bi"
+#include once "frmAddIns.bi"
 
 Dim Shared fAddIns As frmAddIns
 pfAddIns = @fAddIns
@@ -22,9 +22,9 @@ pAvailableAddIns = @AvailableAddIns
 		This.OnClose = @Form_Close
 		This.OnShow = @Form_Show
 		This.BorderStyle = FormBorderStyle.FixedDialog
-		This.ControlBox = true
-		This.MinimizeBox = false
-		This.MaximizeBox = false
+		This.ControlBox = True
+		This.MinimizeBox = False
+		This.MaximizeBox = False
 		This.StartPosition = FormStartPosition.CenterParent
 		This.SetBounds 0, 0, 484, 357
 		' lvAddIns
@@ -89,24 +89,24 @@ pAvailableAddIns = @AvailableAddIns
 		' pnlLoadBehavior
 		pnlLoadBehavior.Name = "pnlLoadBehavior"
 		pnlLoadBehavior.Text = ""
-		pnlLoadBehavior.SetBounds 16, 23, 144, 56
-		pnlLoadBehavior.Parent = @grbLoadBehavior
+		pnlLoadBehavior.SetBounds 304, 247, 144, 56
+		pnlLoadBehavior.Parent = @This
 	End Constructor
 	
-	#IfnDef _NOT_AUTORUN_FORMS_
+	#ifndef _NOT_AUTORUN_FORMS_
 		fAddIns.Show
 		
 		App.Run
-	#EndIf
+	#endif
 '#End Region
 
 Destructor frmAddIns
 	For i As Integer = 0 To AvailableAddIns.Count - 1
-		#IfNDef __USE_GTK__
+		#ifndef __USE_GTK__
 			WDeallocate Cast(AddInType Ptr, AvailableAddIns.Item(i))->Description
 			WDeallocate Cast(AddInType Ptr, AvailableAddIns.Item(i))->Path
 			Delete Cast(AddInType Ptr, AvailableAddIns.Item(i))
-		#EndIf
+		#endif
 	Next
 	AvailableAddIns.Clear
 	
@@ -145,9 +145,9 @@ Sub ChangeItem(ItemIndex As Integer)
 	Item = fAddIns.lvAddIns.ListItems.Item(ItemIndex)
 	Add_In = AvailableAddIns.Item(ItemIndex)
 	If Add_In->LoadOnStartup Then
-		Item->Text(1) = "Startup / " & IIF(Add_In->Loaded, "Loaded", "Unloaded")
+		Item->Text(1) = "Startup / " & IIf(Add_In->Loaded, "Loaded", "Unloaded")
 	Else
-		Item->Text(1) = IIF(Add_In->Loaded, "Loaded", "")
+		Item->Text(1) = IIf(Add_In->Loaded, "Loaded", "")
 	End If
 End Sub
 
@@ -163,11 +163,11 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 				Delete Cast(AddInType Ptr, AvailableAddIns.Item(i))
 			Next
 			AvailableAddIns.Clear
-			#IfDef __Fb_Win32__
-				f = dir(exepath & "/AddIns/*.dll")
-			#Else
-				f = dir(exepath & "/AddIns/*.so")
-			#EndIf
+			#ifdef __FB_WIN32__
+				f = Dir(ExePath & "/AddIns/*.dll")
+			#else
+				f = Dir(ExePath & "/AddIns/*.so")
+			#endif
 			While f <> ""
 				AddIn = Left(f, InStrRev(f, ".") - 1)
 				Add_In = New AddInType
@@ -176,9 +176,9 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 				Add_In->LoadedOriginal = pAddIns->Contains(AddIn)
 				Add_In->Loaded = Add_In->LoadedOriginal
 				WLet Add_In->Path, ExePath & "/AddIns/" & f
-				#IfDef __USE_GTK__
+				#ifdef __USE_GTK__
 					WLet Add_In->Description, ""
-				#Else
+				#else
 					Dim As DWORD ret, discard
 					Dim As Any Ptr _vinfo
 					ret = GetFileVersionInfoSize(Add_In->Path, @discard)
@@ -197,7 +197,7 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 							End If
 						End If
 					End If
-				#EndIf
+				#endif
 				AvailableAddIns.Add Add_In
 				Item = .ListItems.Add(AddIn)
 				ChangeItem(Item->Index)
@@ -223,13 +223,13 @@ Private Sub frmAddIns.chkLoadOnStartup_Click(ByRef Sender As CheckBox)
 	ChangeItem fAddIns.lvAddIns.SelectedItemIndex
 End Sub
 
-Private Sub frmAddIns.Form_Close(ByRef Sender As Form, BYREF Action As Integer)
+Private Sub frmAddIns.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	
 End Sub
 
 Private Sub frmAddIns.lvAddIns_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
 	Dim i As Integer = ItemIndex
-	If i < 0 Then 
+	If i < 0 Then
 		fAddIns.chkLoaded.Checked = False
 		fAddIns.chkLoadOnStartup.Checked = False
 		fAddIns.chkLoaded.Enabled = False
@@ -249,6 +249,6 @@ Private Sub frmAddIns.Form_Show(ByRef Sender As Form)
 	
 End Sub
 
-Private Sub frmAddIns.lvAddIns_ItemClick(BYREF Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmAddIns.lvAddIns_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	fAddIns.lvAddIns_SelectedItemChanged Sender, ItemIndex
 End Sub

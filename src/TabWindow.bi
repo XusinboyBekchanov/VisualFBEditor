@@ -1,11 +1,13 @@
 ﻿'#########################################################
 '#  TabWindow.bi                                         #
 '#  This file is part of VisualFBEditor                  #
-'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
 #include once "EditControl.bi"
 #include once "Designer.bi"
+#include once "frmTrek.bi"
 #include once "mff/Dictionary.bi"
 #include once "mff/ToolPalette.bi"
 #include once "mff/TabControl.bi"
@@ -41,12 +43,12 @@ Type ProjectElement
 	ApplicationTitle As WString Ptr
 	ApplicationIcon As WString Ptr
 	CompanyName As WString Ptr
-    FileDescription As WString Ptr
-    InternalName As WString Ptr
-    LegalCopyright As WString Ptr
-    LegalTrademarks As WString Ptr
-    OriginalFilename As WString Ptr
-    ProductName As WString Ptr
+	FileDescription As WString Ptr
+	InternalName As WString Ptr
+	LegalCopyright As WString Ptr
+	LegalTrademarks As WString Ptr
+	OriginalFilename As WString Ptr
+	ProductName As WString Ptr
 	CompileToGCC As Boolean
 	OptimizationLevel As Integer
 	OptimizationFastCode As Boolean
@@ -67,35 +69,41 @@ Type ExplorerElement
 	Declare Destructor
 End Type
 
-Type TypeElement
-	Private:
-	_typeName As WString Ptr
-	Public:
-	Name As String * 50
-	EnumTypeName As String * 50
-	ElementType As String * 50
-	Locals As Integer
-	Parameters As WString Ptr
-	Comment As WString Ptr
-	StartLine As Integer
-	EndLine As Integer
-	Find As Boolean
-	Declare Destructor
-	Declare Property TypeName ByRef As WString
-	Declare Property TypeName(ByRef Value As WString)
+Type PTabWindow As TabWindow Ptr
+
+Type FileType
+	FileName As UString
+	DateChanged As Double
+	Namespaces As WStringList
+	Types As WStringList
+	Enums As WStringList
+	Procedures As WStringList
+	Args As WStringList
+	InProcess As Boolean
 End Type
 
-Type ToolBoxItem Extends TypeElement
-	BaseName As String * 50
-	LibraryName As WString Ptr
-	LibraryFile As WString Ptr
-	IncludeFile As WString Ptr
+Type TypeElement
+	Name As UString
+	DisplayName As UString
+	EnumTypeName As UString
+	TypeName As UString
+	Value As UString
+	ElementType As UString
+	Parameters As UString
+	Comment As UString
+	FileName As UString
+	IncludeFile As UString
+	TypeIsPointer As Boolean
+	Declaration As Boolean
+	Locals As Integer
+	StartLine As Integer
+	EndLine As Integer
 	ControlType As Integer
+	Find As Boolean
+	TabPtr As PTabWindow
 	Elements As WStringList
 	Declare Destructor
 End Type
-
-Type PTabWindow As TabWindow Ptr
 
 Declare Function Err2Description(Code As Integer) ByRef As WString
 
@@ -104,20 +112,20 @@ Declare Function Err2Description(Code As Integer) ByRef As WString
 #else
 	Type CloseButton Extends Label
 #endif
-	Public:
+Public:
 	OldBackColor As Integer
 	OldForeColor As Integer
 	MouseIn As Boolean
 	tbParent As PTabWindow
 	#ifdef __USE_GTK__
-		layout As PangoLayout Ptr 
+		layout As PangoLayout Ptr
 	#endif
 	Declare Constructor
 	Declare Destructor
 End Type
 
 Type TabWindow Extends TabPage
-	Private:
+Private:
 	FCaptionNew As WString Ptr
 	FFileName As WString Ptr
 	FLine As WString Ptr
@@ -125,8 +133,9 @@ Type TabWindow Extends TabPage
 	FLine2 As WString Ptr
 	FLine3 As WString Ptr
 	FLine4 As WString Ptr
-	tbi As ToolBoxItem Ptr
-	tbi2 As ToolBoxItem Ptr
+	FPath As WString Ptr
+	tbi As TypeElement Ptr
+	tbi2 As TypeElement Ptr
 	Dim As Any Ptr Ctrl, CurCtrl
 	i As Integer
 	j As Integer
@@ -135,7 +144,7 @@ Type TabWindow Extends TabPage
 	pTemp As Any Ptr
 	te As TypeElement Ptr
 	te2 As TypeElement Ptr
-	Dim As EditControlLine Ptr ECLine
+	Dim As EditControlLine Ptr ECLine, ECLine2
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim frmName As String
 	Dim As Boolean b, t, c
@@ -148,12 +157,17 @@ Type TabWindow Extends TabPage
 	Dim bTemp As Boolean
 	Dim As Integer lLeft, lTop, lWidth, lHeight
 	Dim PropertyCtrl As Any Ptr
-	Declare Sub SaveTab
+	Dim txtCodeBi As EditControl
+	Declare Function SaveTab As Boolean
 	Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-	Public:
-	Declare Sub FillProperties(ByRef ClassName As WString)
-	Declare Sub FillIntellisense(ByRef ClassName As WString)
+Public:
+	Types As WStringList
+	Enums As WStringList
+	Procedures As WStringList
 	Functions As WStringList
+	Args As WStringList
+	Declare Sub FillProperties(ByRef ClassName As WString)
+	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
 	mnuCode As PopupMenu
 	Dim bNotDesign As Boolean
 	tn As TreeNode Ptr
@@ -193,27 +207,27 @@ Type TabWindow Extends TabPage
 	Declare Operator Cast As TabPage Ptr
 	Declare Function GetLine(lLine As Long, ByRef strLine As WString = "", lUpLine As Long = 0, lDwLine As Long = 0, sc As Long = 0) ByRef As WString
 	Declare Function CloseTab As Boolean
+	Declare Function Save As Boolean
+	Declare Function SaveAs As Boolean
 	Declare Sub FillAllProperties
-	Declare Function GetRelativePath(ByRef Path As WString) ByRef As WString
-	Declare Sub ChangeName(ByRef OldName As String, ByRef NewName As String)
+	Declare Sub ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 	Declare Function ReadObjProperty(ByRef Ctrl As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	Declare Function WriteObjProperty(ByRef Ctrl As Any Ptr, ByRef PropertyName As String, ByRef Value As WString) As Boolean
 	Declare Function GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	Declare Sub SetErrorHandling(StartLine As String, EndLine As String)
 	Declare Sub RemoveErrorHandling
-	Declare Sub Save
-	Declare Sub SaveAs
 	Declare Sub NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub ProcedureNumberOn
 	Declare Sub ProcedureNumberOff
+	Declare Sub PreprocessorNumberOn
+	Declare Sub PreprocessorNumberOff
 	Declare Sub Comment
 	Declare Sub UnComment
 	Declare Sub Indent
 	Declare Sub Outdent
 	Declare Sub Define
 	Declare Sub FormDesign(NotForms As Boolean = False)
-	Declare Sub FormatBlock
 	Declare Constructor(ByRef wFileName As WString = "", bNewForm As Boolean = False, TreeN As TreeNode Ptr = 0)
 	Declare Destructor
 End Type
@@ -223,6 +237,8 @@ Dim Shared As PopupMenu mnuCode
 Declare Sub MoveCloseButtons()
 
 Declare Function FileNameExists(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
+
+Declare Function GetTab(ByRef FileName As WString) As TabWindow Ptr
 
 Declare Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 
@@ -240,16 +256,6 @@ Declare Sub OnChangeEdit(ByRef Sender As Control)
 Declare Sub OnMouseDownEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 
 Declare Function IsLabel(ByRef LeftA As WString) As Boolean
-
-Declare Function GetFolderName(ByRef FileName As WString) ByRef As WString
-
-Declare Function GetFileName(ByRef FileName As WString) ByRef As WString
-
-Declare Function GetBakFileName(ByRef FileName As WString) ByRef As WString
-
-Declare Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr) ByRef As WString
-
-Declare Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) ByRef As WString
 
 Declare Sub CloseButton_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 
@@ -280,7 +286,6 @@ Declare Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = 
 
 Declare Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
 
-Common Shared TempWS As WString Ptr
 Declare Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCombo As Boolean)
 
 Declare Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr)
@@ -323,9 +328,9 @@ Common Shared As Integer SelLinePos, SelCharPos
 
 Declare Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 
-Declare Sub FillAllIntellisenses()
+Declare Sub FillAllIntellisenses(ByRef Starts As WString = "")
 
-Declare Sub FillTypeIntellisenses()
+Declare Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 
 Declare Function Ekvivalent(ByRef a As WString, ByRef b As WString) As Integer
 
@@ -346,20 +351,21 @@ Declare Sub TabWindow_Destroy(ByRef Sender As Control)
 Declare Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 
 Declare Sub SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer)
-
-Declare Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
+Declare Sub SelectError(ByRef FileName As WString, iLine As Integer, tabw As TabWindow Ptr = 0)
 
 Declare Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
-
-Declare Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
-
-Declare Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0) ByRef As WString
-
-Declare Function Compile(Parameter As String = "") As Integer
 
 #ifdef __USE_GTK__
 	Declare Function build_create_shellscript(ByRef working_dir As WString, ByRef cmd As WString, autoclose As Boolean, debug As Boolean = False, ByRef Arguments As WString = "") As String
 #endif
+
+Declare Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr) As UString
+
+Declare Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
+
+Declare Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0) As UString
+
+Declare Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 
 Declare Sub RunPr(Debugger As String = "")
 
@@ -368,15 +374,16 @@ Declare Sub RunProgram(Param As Any Ptr)
 Dim Shared symbols(0 To 15) As UByte
 
 Const plus  As UByte = 43
-Const minus As Ubyte = 45
+Const minus As UByte = 45
 Const dot   As UByte = 46
 
 Declare Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
 
-Declare function utf16BeByte2wchars( ta() as ubyte ) ByRef As Wstring
+Declare Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 
 Declare Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
+Declare Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, ByVal iSelStart As Integer =-1, ByVal iSelLength As Integer =-1, tabw As TabWindow Ptr = 0, ByRef SearchText As WString = "")
 
-#IfNDef __USE_MAKE__
-	#Include Once "TabWindow.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "TabWindow.bas"
+#endif

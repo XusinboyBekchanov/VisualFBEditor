@@ -1,7 +1,8 @@
 ﻿'#########################################################
 '#  frmProjectProperties.bas                             #
 '#  This file is part of VisualFBEditor                  #
-'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
 #include once "frmProjectProperties.bi"
@@ -13,16 +14,18 @@
 Dim Shared fProjectProperties As frmProjectProperties
 pfProjectProperties = @fProjectProperties
 
-'#Region "Form"    
+'#Region "Form"
 	Constructor frmProjectProperties
 		' frmProjectProperties
 		This.Name = "frmProjectProperties"
-		This.Text = "Project Properties"
+		This.Text = ML("Project Properties")
 		This.BorderStyle = FormBorderStyle.Fixed3D
 		This.MaximizeBox = False
 		This.MinimizeBox = False
 		This.Caption = "Project Properties"
 		This.StartPosition = FormStartPosition.CenterScreen
+		This.DefaultButton = @cmdOK
+		This.CancelButton = @cmdCancel
 		This.SetBounds 0, 0, 460, 378
 		' tabProperties
 		tabProperties.Name = "tabProperties"
@@ -31,20 +34,20 @@ pfProjectProperties = @fProjectProperties
 		tabProperties.Parent = @This
 		' tpGeneral
 		tpGeneral.Name = "tpGeneral"
-		tpGeneral.Text = "General"
+		tpGeneral.Text = ML("General")
 		tpGeneral.SetBounds 2, 22, 445, 282
 		tpGeneral.UseVisualStyleBackColor = True
 		tpGeneral.Parent = @tabProperties
 		' tpMake
 		tpMake.Name = "tpMake"
-		tpMake.Text = "Make"
+		tpMake.Text = ML("Make")
 		tpMake.SetBounds 0, 0, 405, 282
 		tpMake.Visible = True
 		tpMake.UseVisualStyleBackColor = True
 		tpMake.Parent = @tabProperties
 		' tpCompile
 		tpCompile.Name = "tpCompile"
-		tpCompile.Text = "Compile"
+		tpCompile.Text = ML("Compile")
 		tpCompile.SetBounds 0, 0, 405, 282
 		tpCompile.Visible = True
 		tpCompile.UseVisualStyleBackColor = True
@@ -52,29 +55,26 @@ pfProjectProperties = @fProjectProperties
 		tpCompile.Parent = @tabProperties
 		' cmdOK
 		cmdOK.Name = "cmdOK"
-		cmdOK.Text = "OK"
+		cmdOK.Text = ML("OK")
 		cmdOK.SetBounds 218, 319, 73, 24
-		cmdOK.Caption = "OK"
 		cmdOK.OnClick = @cmdOK_Click
+		cmdOK.Default = True
 		cmdOK.Parent = @This
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
-		cmdCancel.Text = "Cancel"
+		cmdCancel.Text = ML("Cancel")
 		cmdCancel.SetBounds 296, 319, 73, 24
-		cmdCancel.Caption = "Cancel"
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
 		' cmdHelp
 		cmdHelp.Name = "cmdHelp"
-		cmdHelp.Text = "Help"
+		cmdHelp.Text = ML("Help")
 		cmdHelp.SetBounds 374, 319, 73, 24
-		cmdHelp.Caption = "Help"
 		cmdHelp.Parent = @This
 		' lblProjectType
 		lblProjectType.Name = "lblProjectType"
-		lblProjectType.Text = "Project Type:"
-		lblProjectType.SetBounds 10, 8, 72, 18
-		lblProjectType.Caption = "Project Type:"
+		lblProjectType.Text = ML("Project Type") & ":"
+		lblProjectType.SetBounds 10, 8, 144, 18
 		lblProjectType.Parent = @tpGeneral
 		' cboProjectType
 		cboProjectType.Name = "cboProjectType"
@@ -83,9 +83,8 @@ pfProjectProperties = @fProjectProperties
 		cboProjectType.Parent = @tpGeneral
 		' lblMainFile
 		lblMainFile.Name = "lblMainFile"
-		lblMainFile.Text = "Main File:"
-		lblMainFile.SetBounds 224, 8, 72, 18
-		lblMainFile.Caption = "Main File:"
+		lblMainFile.Text = ML("Main File") & ":"
+		lblMainFile.SetBounds 224, 8, 192, 18
 		lblMainFile.Parent = @tpGeneral
 		' cboMainFile
 		cboMainFile.Name = "cboMainFile"
@@ -95,9 +94,8 @@ pfProjectProperties = @fProjectProperties
 		cboMainFile.Parent = @tpGeneral
 		' lblProjectName
 		lblProjectName.Name = "lblProjectName"
-		lblProjectName.Text = "Project Name:"
-		lblProjectName.SetBounds 10, 56, 132, 18
-		lblProjectName.Caption = "Project Name:"
+		lblProjectName.Text = ML("Project Name") & ":"
+		lblProjectName.SetBounds 10, 56, 164, 18
 		lblProjectName.Parent = @tpGeneral
 		' txtProjectName
 		txtProjectName.Name = "txtProjectName"
@@ -106,9 +104,8 @@ pfProjectProperties = @fProjectProperties
 		txtProjectName.Parent = @tpGeneral
 		' lblProjectDescription
 		lblProjectDescription.Name = "lblProjectDescription"
-		lblProjectDescription.Text = "Project Description:"
-		lblProjectDescription.SetBounds 10, 152, 132, 18
-		lblProjectDescription.Caption = "Project Description:"
+		lblProjectDescription.Text = ML("Project Description") & ":"
+		lblProjectDescription.SetBounds 10, 152, 220, 18
 		lblProjectDescription.Parent = @tpGeneral
 		' txtProjectDescription
 		txtProjectDescription.Name = "txtProjectDescription"
@@ -117,73 +114,66 @@ pfProjectProperties = @fProjectProperties
 		txtProjectDescription.Parent = @tpGeneral
 		' grbVersionNumber
 		grbVersionNumber.Name = "grbVersionNumber"
-		grbVersionNumber.Text = "Version Number"
+		grbVersionNumber.Text = ML("Version Number")
 		grbVersionNumber.SetBounds 10, 8, 202, 102
 		grbVersionNumber.Parent = @tpMake
 		' grbApplication
 		grbApplication.Name = "grbApplication"
-		grbApplication.Text = "Application"
+		grbApplication.Text = ML("Application")
 		grbApplication.SetBounds 224, 8, 202, 102
 		grbApplication.Parent = @tpMake
 		' grbVersionInformation
 		grbVersionInformation.Name = "grbVersionInformation"
-		grbVersionInformation.Text = "Version Information"
+		grbVersionInformation.Text = ML("Version Information")
 		grbVersionInformation.SetBounds 9, 113, 419, 161
 		grbVersionInformation.Parent = @tpMake
 		' grbCompilationArguments
 		grbCompilationArguments.Name = "grbCompilationArguments"
-		grbCompilationArguments.Text = "Compilation Arguments"
+		grbCompilationArguments.Text = ML("Compilation Arguments")
 		grbCompilationArguments.SetBounds 10, 138, 419, 136
 		grbCompilationArguments.Parent = @tpCompile
 		' lblCompilationArguments64
 		lblCompilationArguments64.Name = "lblCompilationArguments64"
-		lblCompilationArguments64.Text = "For Windows, 64-bit:"
-		lblCompilationArguments64.SetBounds 29, 188, 120, 18
-		lblCompilationArguments64.Caption = "For Windows, 64-bit:"
-		lblCompilationArguments64.Parent = @tpCompile
+		lblCompilationArguments64.Text = ML("For Windows") & ", " & ML("64-bit") & ":"
+		lblCompilationArguments64.SetBounds 5, 30, 152, 18
+		lblCompilationArguments64.Parent = @picCompilationArguments
 		' lblIcon
 		lblIcon.Name = "lblIcon"
 		lblIcon.Text = "Icon:"
-		lblIcon.SetBounds 238, 57, 34, 18
+		lblIcon.SetBounds 0, 41, 34, 18
 		lblIcon.Caption = "Icon:"
-		lblIcon.Parent = @tpMake
+		lblIcon.Parent = @picApplication
 		' lblTitle
 		lblTitle.Name = "lblTitle"
-		lblTitle.Text = "Title:"
-		lblTitle.SetBounds 238, 33, 34, 18
-		lblTitle.Caption = "Title:"
-		lblTitle.Parent = @tpMake
+		lblTitle.Text = ML("Title") & ":"
+		lblTitle.SetBounds 0, 17, 34, 18
+		lblTitle.Parent = @picApplication
 		' chkAutoIncrementVersion
 		chkAutoIncrementVersion.Name = "chkAutoIncrementVersion"
-		chkAutoIncrementVersion.Text = "Auto Increment Version"
-		chkAutoIncrementVersion.SetBounds 21, 77, 156, 18
-		chkAutoIncrementVersion.Caption = "Auto Increment Version"
-		chkAutoIncrementVersion.Parent = @tpMake
+		chkAutoIncrementVersion.Text = ML("Auto Increment Version")
+		chkAutoIncrementVersion.SetBounds 6, 58, 164, 18
+		chkAutoIncrementVersion.Parent = @picVersionNumber
 		' lblMajor
 		lblMajor.Name = "lblMajor"
-		lblMajor.Text = "Major:"
-		lblMajor.SetBounds 23, 28, 42, 18
-		lblMajor.Caption = "Major:"
-		lblMajor.Parent = @tpMake
+		lblMajor.Text = ML("Major") & ":"
+		lblMajor.SetBounds 7, 12, 42, 18
+		lblMajor.Parent = @picVersionNumber
 		' lblMinor
 		lblMinor.Name = "lblMinor"
-		lblMinor.Text = "Minor:"
-		lblMinor.SetBounds 71, 28, 42, 18
-		lblMinor.Caption = "Minor:"
-		lblMinor.Parent = @tpMake
+		lblMinor.Text = ML("Minor") & ":"
+		lblMinor.SetBounds 55, 12, 42, 18
+		lblMinor.Parent = @picVersionNumber
 		' lblRevision
 		lblRevision.Name = "lblRevision"
-		lblRevision.Text = "Revision:"
-		lblRevision.SetBounds 117, 28, 48, 18
-		lblRevision.Caption = "Revision:"
+		lblRevision.Text = ML("Revision") & ":"
+		lblRevision.SetBounds 101, 12, 48, 18
 		lblRevision.BorderStyle = BorderStyles.bsNone
-		lblRevision.Parent = @tpMake
+		lblRevision.Parent = @picVersionNumber
 		' lblBuild
 		lblBuild.Name = "lblBuild"
-		lblBuild.Text = "Build:"
-		lblBuild.SetBounds 174, 28, 36, 18
-		lblBuild.Caption = "Build:"
-		lblBuild.Parent = @tpMake
+		lblBuild.Text = ML("Build") & ":"
+		lblBuild.SetBounds 150, 12, 36, 18
+		lblBuild.Parent = @picVersionNumber
 		' cboResourceFile
 		cboResourceFile.Name = "cboResourceFile"
 		cboResourceFile.Text = "cboMainFile1"
@@ -192,15 +182,13 @@ pfProjectProperties = @fProjectProperties
 		cboResourceFile.Parent = @tpGeneral
 		' lblResourceFile
 		lblResourceFile.Name = "lblResourceFile"
-		lblResourceFile.Text = "Resource File (for Windows):"
-		lblResourceFile.SetBounds 224, 56, 184, 18
-		lblResourceFile.Caption = "Resource File (for Windows):"
+		lblResourceFile.Text = ML("Resource File") & " (" & ML("For Windows") & "):"
+		lblResourceFile.SetBounds 224, 56, 192, 18
 		lblResourceFile.Parent = @tpGeneral
 		' lblIconResourceFile
 		lblIconResourceFile.Name = "lblIconResourceFile"
-		lblIconResourceFile.Text = "Icon Resource File (for *nix/*bsd):"
-		lblIconResourceFile.SetBounds 224, 104, 184, 18
-		lblIconResourceFile.Caption = "Icon Resource File (for *nix/*bsd):"
+		lblIconResourceFile.Text = ML("Icon Resource File") & " (" & ML("For *nix/*bsd") & "):"
+		lblIconResourceFile.SetBounds 224, 104, 192, 18
 		lblIconResourceFile.Parent = @tpGeneral
 		' cboIconResourceFile
 		cboIconResourceFile.Name = "cboIconResourceFile"
@@ -210,34 +198,29 @@ pfProjectProperties = @fProjectProperties
 		cboIconResourceFile.Parent = @tpGeneral
 		' lblCompilationArguments32Linux
 		lblCompilationArguments32Linux.Name = "lblCompilationArguments32Linux"
-		lblCompilationArguments32Linux.Text = "For *nix/*bsd, 32-bit:"
-		lblCompilationArguments32Linux.SetBounds 29, 214, 120, 18
-		lblCompilationArguments32Linux.Caption = "For *nix/*bsd, 32-bit:"
-		lblCompilationArguments32Linux.Parent = @tpCompile
+		lblCompilationArguments32Linux.Text = ML("For *nix/*bsd") & ", " & ML("32-bit") & ":"
+		lblCompilationArguments32Linux.SetBounds 5, 57, 152, 18
+		lblCompilationArguments32Linux.Parent = @picCompilationArguments
 		' lblCompilationArguments64Linux
 		lblCompilationArguments64Linux.Name = "lblCompilationArguments64Linux"
-		lblCompilationArguments64Linux.Text = "For *nix/*bsd, 64-bit:"
-		lblCompilationArguments64Linux.SetBounds 29, 242, 120, 18
-		lblCompilationArguments64Linux.Caption = "For *nix/*bsd, 64-bit:"
-		lblCompilationArguments64Linux.Parent = @tpCompile
+		lblCompilationArguments64Linux.Text = ML("For *nix/*bsd") & ", " & ML("64-bit") & ":"
+		lblCompilationArguments64Linux.SetBounds 5, 85, 152, 18
+		lblCompilationArguments64Linux.Parent = @picCompilationArguments
 		' lblCompilationArguments32
 		lblCompilationArguments32.Name = "lblCompilationArguments32"
-		lblCompilationArguments32.Text = "For Windows, 32-bit:"
-		lblCompilationArguments32.Caption = "For Windows, 32-bit:"
-		lblCompilationArguments32.SetBounds 29, 161, 124, 18
-		lblCompilationArguments32.Parent = @tpCompile
+		lblCompilationArguments32.Text = ML("For Windows") & ", " & ML("32-bit") & ":"
+		lblCompilationArguments32.SetBounds 5, 4, 152, 18
+		lblCompilationArguments32.Parent = @picCompilationArguments
 		' lblType
 		lblType.Name = "lblType"
-		lblType.Text = "Type:"
-		lblType.SetBounds 23, 129, 42, 18
-		lblType.Caption = "Type:"
-		lblType.Parent = @tpMake
+		lblType.Text = ML("Type") & ":"
+		lblType.SetBounds 7, 0, 82, 18
+		lblType.Parent = @picVersionInformation
 		' lblValue
 		lblValue.Name = "lblValue"
-		lblValue.Text = "Value:"
-		lblValue.SetBounds 223, 129, 42, 18
-		lblValue.Caption = "Value:"
-		lblValue.Parent = @tpMake
+		lblValue.Text = ML("Value") & ":"
+		lblValue.SetBounds 207, 0, 106, 18
+		lblValue.Parent = @picVersionInformation
 		' txtHelpFileName
 		txtHelpFileName.Name = "txtHelpFileName"
 		txtHelpFileName.SetBounds 10, 122, 202, 21
@@ -245,9 +228,8 @@ pfProjectProperties = @fProjectProperties
 		txtHelpFileName.Parent = @tpGeneral
 		' lblHelpFileName
 		lblHelpFileName.Name = "lblHelpFileName"
-		lblHelpFileName.Text = "Help File Name:"
-		lblHelpFileName.SetBounds 10, 104, 132, 18
-		lblHelpFileName.Caption = "Help File Name:"
+		lblHelpFileName.Text = ML("Help File") & ":"
+		lblHelpFileName.SetBounds 10, 104, 172, 18
 		lblHelpFileName.Parent = @tpGeneral
 		' grbCompileToGCC
 		grbCompileToGCC.Name = "grbCompileToGCC"
@@ -256,28 +238,25 @@ pfProjectProperties = @fProjectProperties
 		grbCompileToGCC.Parent = @tpCompile
 		' optCompileToGas
 		optCompileToGas.Name = "optCompileToGas"
-		optCompileToGas.Text = "Compile to GAS"
-		optCompileToGas.SetBounds 16, 12, 160, 16
-		optCompileToGas.Caption = "Compile to GAS"
-		optCompileToGas.Parent = @tpCompile
+		optCompileToGas.Text = ML("Compile to GAS")
+		optCompileToGas.SetBounds 0, 5, 160, 16
+		optCompileToGas.Parent = @picCompileToGCCCaption
 		' optCompileToGcc
 		optCompileToGcc.Name = "optCompileToGcc"
-		optCompileToGcc.Text = "Compile to GCC"
-		optCompileToGcc.SetBounds 16, 34, 96, 16
-		optCompileToGcc.Caption = "Compile to GCC"
-		optCompileToGcc.Parent = @tpCompile
+		optCompileToGcc.Text = ML("Compile to GCC")
+		optCompileToGcc.SetBounds 0, 24, 152, 16
+		optCompileToGcc.Parent = @picCompileToGCCCaption
 		' tpDebugging
 		tpDebugging.Name = "tpDebugging"
 		tpDebugging.SetBounds 2, 22, 445, 282
 		tpDebugging.UseVisualStyleBackColor = True
 		tpDebugging.Visible = True
-		tpDebugging.Text = "Debugging"
+		tpDebugging.Text = ML("Debugging")
 		tpDebugging.Parent = @tabProperties
 		' lblCompilationArguments321
 		lblCompilationArguments321.Name = "lblCompilationArguments321"
-		lblCompilationArguments321.Text = "Command Line Arguments:"
+		lblCompilationArguments321.Text = ML("Command Line Arguments") & ":"
 		lblCompilationArguments321.SetBounds 21, 16, 172, 18
-		lblCompilationArguments321.Caption = "Command Line Arguments:"
 		lblCompilationArguments321.Parent = @tpDebugging
 		' txtCommandLineArguments
 		txtCommandLineArguments.Name = "txtCommandLineArguments"
@@ -290,38 +269,34 @@ pfProjectProperties = @fProjectProperties
 		picCompileToGCC.Parent = @tpCompile
 		' optOptimizationFastCode
 		optOptimizationFastCode.Name = "optOptimizationFastCode"
-		optOptimizationFastCode.Text = "Optimize for Fast Code"
-		optOptimizationFastCode.SetBounds 10, 3, 136, 24
-		optOptimizationFastCode.Caption = "Optimize for Fast Code"
+		optOptimizationFastCode.Text = ML("Optimize for Fast Code")
+		optOptimizationFastCode.SetBounds 10, 3, 184, 24
 		optOptimizationFastCode.Parent = @picCompileToGCC
 		' optOptimizationLevel
 		optOptimizationLevel.Name = "optOptimizationLevel"
-		optOptimizationLevel.Text = "Optimization level:"
+		optOptimizationLevel.Text = ML("Optimization level") & ":"
 		optOptimizationLevel.SetBounds 210, 9, 120, 16
-		optOptimizationLevel.Caption = "Optimization level:"
 		optOptimizationLevel.Parent = @picCompileToGCC
 		' optOptimizationSmallCode
 		optOptimizationSmallCode.Name = "optOptimizationSmallCode"
-		optOptimizationSmallCode.Text = "Optimize for Small Code"
-		optOptimizationSmallCode.SetBounds 10, 29, 136, 16
-		optOptimizationSmallCode.Caption = "Optimize for Small Code"
+		optOptimizationSmallCode.Text = ML("Optimize for Small Code")
+		optOptimizationSmallCode.SetBounds 10, 29, 184, 16
 		optOptimizationSmallCode.Parent = @picCompileToGCC
 		' optNoOptimization
 		optNoOptimization.Name = "optNoOptimization"
-		optNoOptimization.Text = "No Optimization"
-		optNoOptimization.SetBounds 10, 52, 128, 16
+		optNoOptimization.Text = ML("No Optimization")
+		optNoOptimization.SetBounds 10, 52, 192, 16
 		optNoOptimization.Caption = "No Optimization"
 		optNoOptimization.Parent = @picCompileToGCC
 		' chkCreateDebugInfo
 		chkCreateDebugInfo.Name = "chkCreateDebugInfo"
-		chkCreateDebugInfo.Text = "Create Symbolic Debug Info"
+		chkCreateDebugInfo.Text = ML("Create Symbolic Debug Info")
 		chkCreateDebugInfo.SetBounds 211, 35, 208, 32
-		chkCreateDebugInfo.Caption = "Create Symbolic Debug Info"
 		chkCreateDebugInfo.Parent = @tpDebugging
 		' Initialization
-		cboProjectType.AddItem "Executable"
-		cboProjectType.AddItem "Dynamic library"
-		cboProjectType.AddItem "Static library"
+		cboProjectType.AddItem ML("Executable")
+		cboProjectType.AddItem ML("Dynamic library")
+		cboProjectType.AddItem ML("Static library")
 		' cboOptimizationLevel
 		cboOptimizationLevel.Name = "cboOptimizationLevel"
 		cboOptimizationLevel.Text = "ComboBoxEdit1"
@@ -333,94 +308,125 @@ pfProjectProperties = @fProjectProperties
 		cboOptimizationLevel.AddItem "3"
 		' cmdAdvancedOptions
 		cmdAdvancedOptions.Name = "cmdAdvancedOptions"
-		cmdAdvancedOptions.Text = "Advanced Options ..."
+		cmdAdvancedOptions.Text = ML("Advanced Options") & " ..."
 		cmdAdvancedOptions.SetBounds 210, 46, 184, 24
-		cmdAdvancedOptions.Caption = "Advanced Options ..."
 		cmdAdvancedOptions.OnClick = @cmdAdvancedOptions_Click
 		cmdAdvancedOptions.Parent = @picCompileToGCC
 		' txtCompilationArguments64Linux
 		With txtCompilationArguments64Linux
 			.Name = "txtCompilationArguments64Linux"
-			.SetBounds 187, 238, 228, 21
-			.Parent = @tpCompile
+			.SetBounds 163, 83, 228, 21
+			.Parent = @picCompilationArguments
 		End With
 		' txtCompilationArguments32Linux
 		With txtCompilationArguments32Linux
 			.Name = "txtCompilationArguments32Linux"
-			.SetBounds 187, 211, 228, 21
-			.Parent = @tpCompile
+			.SetBounds 163, 56, 228, 21
+			.Parent = @picCompilationArguments
 		End With
 		' txtCompilationArguments64Windows
 		With txtCompilationArguments64Windows
 			.Name = "txtCompilationArguments64Windows"
-			.SetBounds 187, 184, 228, 21
-			.Parent = @tpCompile
+			.SetBounds 163, 28, 228, 21
+			.Text = "txtCompilationArguments64Windows"
+			.Parent = @picCompilationArguments
 		End With
 		' txtCompilationArguments32Windows
 		With txtCompilationArguments32Windows
 			.Name = "txtCompilationArguments32Windows"
-			.SetBounds 187, 157, 228, 21
-			.Parent = @tpCompile
+			.SetBounds 163, 0, 228, 21
+			.Text = "txtCompilationArguments32Windows"
+			.Parent = @picCompilationArguments
 		End With
 		' lstType
 		With lstType
 			.Name = "lstType"
 			.Text = "lstType"
-			.SetBounds 23, 147, 184, 112
+			.SetBounds 7, 16, 184, 112
 			.OnChange = @lstType_Change
-			.Parent = @tpMake
+			.Parent = @picVersionInformation
 		End With
 		' txtValue
 		With txtValue
 			.Name = "txtValue"
-			.SetBounds 223, 147, 192, 112
+			.SetBounds 207, 16, 192, 112
 			.OnLostFocus = @txtValue_LostFocus
-			.Parent = @tpMake
+			.Parent = @picVersionInformation
 		End With
 		' txtTitle
 		With txtTitle
 			.Name = "txtTitle"
-			.SetBounds 274, 32, 139, 18
-			.Parent = @tpMake
+			.SetBounds 40, 16, 139, 18
+			.Parent = @picApplication
 		End With
 		' txtIcon
 		With txtIcon
 			.Name = "txtIcon"
-			.SetBounds 274, 56, 72, 18
-			.Parent = @tpMake
+			.SetBounds 40, 40, 72, 18
+			.Parent = @picApplication
 		End With
 		' txtBuild
 		With txtBuild
 			.Name = "txtBuild"
-			.SetBounds 163, 48, 40, 21
-			.Parent = @tpMake
+			.SetBounds 147, 32, 40, 21
+			.Parent = @picVersionNumber
 		End With
 		' txtRevision
 		With txtRevision
 			.Name = "txtRevision"
-			.SetBounds 116, 48, 40, 21
-			.Parent = @tpMake
+			.SetBounds 100, 32, 40, 21
+			.Parent = @picVersionNumber
 		End With
 		' txtMinor
 		With txtMinor
 			.Name = "txtMinor"
-			.SetBounds 69, 48, 40, 21
-			.Parent = @tpMake
+			.SetBounds 53, 32, 40, 21
+			.Parent = @picVersionNumber
 		End With
 		' txtMajor
 		With txtMajor
 			.Name = "txtMajor"
-			.SetBounds 22, 48, 40, 21
-			.Parent = @tpMake
+			.SetBounds 6, 32, 40, 21
+			.Parent = @picVersionNumber
 		End With
 		' Initialization
-		lstType.AddItem "Company Name"
-        lstType.AddItem "File Description"
-        lstType.AddItem "Internal Name"
-        lstType.AddItem "Legal Copyright"
-        lstType.AddItem "Legal Trademarks"
-        lstType.AddItem "Original Filename"
-        lstType.AddItem "Product Name"
+		lstType.AddItem ML("Company Name")
+		lstType.AddItem ML("File Description")
+		lstType.AddItem ML("Internal Name")
+		lstType.AddItem ML("Legal Copyright")
+		lstType.AddItem ML("Legal Trademarks")
+		lstType.AddItem ML("Original Filename")
+		lstType.AddItem ML("Product Name")
+		' pnlVersionNumber
+		With picVersionNumber
+			.Name = "picVersionNumber"
+			.SetBounds 16, 20, 192, 80
+			.Parent = @tpMake
+		End With
+		' picCompileToGCCCaption
+		With picCompileToGCCCaption
+			.Name = "picCompileToGCCCaption"
+			.SetBounds 16, 10, 152, 40
+			.Parent = @tpCompile
+		End With
+		' picVersionInformation
+		With picApplication
+			.Name = "picApplication"
+			.SetBounds 232, 20, 192, 80
+			.Parent = @tpMake
+		End With
+		' picVersionInformation
+		With picVersionInformation
+			.Name = "picVersionInformation"
+			.SetBounds 16, 132, 400, 128
+			.Parent = @tpMake
+		End With
+		' picCompilationArguments
+		With picCompilationArguments
+			.Name = "picCompilationArguments"
+			.SetBounds 24, 156, 400, 112
+			.Parent = @tpCompile
+		End With
 	End Constructor
 	
 	#ifndef _NOT_AUTORUN_FORMS_
@@ -458,13 +464,13 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		ppe->AutoIncrementVersion = .chkAutoIncrementVersion.Checked
 		WLet ppe->ApplicationTitle, .txtTitle.Text
 		WLet ppe->ApplicationIcon, .txtIcon.Text
-		WLet ppe->CompanyName, .Types.Get("Company Name")
-		WLet ppe->FileDescription, .Types.Get("File Description")
-		WLet ppe->InternalName, .Types.Get("Internal Name")
-		WLet ppe->LegalCopyright, .Types.Get("Legal Copyright")
-		WLet ppe->LegalTrademarks, .Types.Get("Legal Trademarks")
-		WLet ppe->OriginalFilename, .Types.Get("Original Filename")
-		WLet ppe->ProductName, .Types.Get("Product Name")
+		WLet ppe->CompanyName, .Types.Get(ML("Company Name"))
+		WLet ppe->FileDescription, .Types.Get(ML("File Description"))
+		WLet ppe->InternalName, .Types.Get(ML("Internal Name"))
+		WLet ppe->LegalCopyright, .Types.Get(ML("Legal Copyright"))
+		WLet ppe->LegalTrademarks, .Types.Get(ML("Legal Trademarks"))
+		WLet ppe->OriginalFilename, .Types.Get(ML("Original Filename"))
+		WLet ppe->ProductName, .Types.Get(ML("Product Name"))
 		ppe->CompileToGCC = .optCompileToGCC.Checked
 		ppe->OptimizationFastCode = .optOptimizationFastCode.Checked
 		ppe->OptimizationSmallCode = .optOptimizationSmallCode.Checked
@@ -487,10 +493,10 @@ End Sub
 Sub AddToCombo(ByRef tn As TreeNode Ptr)
 	With fProjectProperties
 		Dim As ExplorerElement Ptr ee = tn->Tag
-		If EndsWith(tn->Text, ".rc") OrElse EndsWith(tn->Text, ".res") Then
+		If EndsWith(LCase(tn->Text), ".rc") OrElse EndsWith(LCase(tn->Text), ".res") Then
 			.cboResourceFile.AddItem tn->Text
 			.ResourceFiles.Add tn->Text, IIf(ee, *ee->FileName, "")
-		ElseIf EndsWith(tn->Text, ".xpm") Then
+		ElseIf EndsWith(LCase(tn->Text), ".xpm") Then
 			.cboIconResourceFile.AddItem tn->Text
 			.IconResourceFiles.Add tn->Text, IIf(ee, *ee->FileName, "")
 		Else
@@ -548,13 +554,13 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.chkAutoIncrementVersion.Checked = ppe->AutoIncrementVersion
 				.txtTitle.Text = *ppe->ApplicationTitle
 				.txtIcon.Text = *ppe->ApplicationIcon
-				.Types.Set "Company Name", *ppe->CompanyName
-				.Types.Set "File Description", *ppe->FileDescription
-				.Types.Set "Internal Name", *ppe->InternalName
-				.Types.Set "Legal Copyright", *ppe->LegalCopyright
-				.Types.Set "Legal Trademarks", *ppe->LegalTrademarks
-				.Types.Set "Original Filename", *ppe->OriginalFilename
-				.Types.Set "Product Name", *ppe->ProductName
+				.Types.Set ML("Company Name"), *ppe->CompanyName
+				.Types.Set ML("File Description"), *ppe->FileDescription
+				.Types.Set ML("Internal Name"), *ppe->InternalName
+				.Types.Set ML("Legal Copyright"), *ppe->LegalCopyright
+				.Types.Set ML("Legal Trademarks"), *ppe->LegalTrademarks
+				.Types.Set ML("Original Filename"), *ppe->OriginalFilename
+				.Types.Set ML("Product Name"), *ppe->ProductName
 				If ppe->CompileToGCC Then
 					.optCompileToGCC.Checked = True
 					.optCompileToGAS.Checked = False

@@ -4,3 +4,4 @@ MyFbFramework
 *.dll*
 *_gtk*
 *.so
+*.o

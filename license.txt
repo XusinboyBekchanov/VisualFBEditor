@@ -1,4 +1,4 @@
-VisualFBEditor - Visual Code & Form Editor for the FreeBASIC Compiler
+﻿VisualFBEditor - Visual Code & Form Editor for the FreeBASIC Compiler
 Copyright (C) 2018 Xusinboy Bekchanov
 
 The VisualFBEditor is licensed under the GNU GPLv3 or later.

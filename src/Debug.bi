@@ -1,18 +1,15 @@
-﻿'=================================================================
-'===== Debug.bas =================================================
-'===== Authors: Laurent GRAS, Xusinboy Bekchanov =================
-'===== Based on: =================================================
-'=================================================================
-'===== DEBUGGER FOR FREEBASIC === (C) 2006-2018 Laurent GRAS =====
-'=================================================================
-'===== Modified to bundle with VisualFBEditor ====================
-'===== by Xusinboy Bekchanov (2018-2019) =========================
-'=================================================================
+﻿'#########################################################
+'#  Debug.bi                                             #
+'#  This file is part of VisualFBEditor                  #
+'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
+'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
+'#           Laurent GRAS                                #
+'#########################################################
 
-#Include Once "mff/TextBox.bi"
-#Include Once "EditControl.bi"
-#Include Once "TabWindow.bi"
-#Include Once "Main.bi"
+#include once "mff/TextBox.bi"
+#include once "EditControl.bi"
+#include once "TabWindow.bi"
+#include once "Main.bi"
 
 Declare Sub DeleteDebugCursor
 
@@ -28,14 +25,14 @@ End Enum
 
 Common Shared As Byte runtype        'running type 07/12/2014
 
-#IfNDef __USE_GTK__
+#ifndef __USE_GTK__
 	Declare Sub fastrun()
 	Declare Sub thread_rsm()
 	Declare Sub exe_mod()
-	Declare sub var_tip(ope As Integer)
-	Declare sub brk_set(t As Integer)
-	Declare sub string_sh(tv As HWND)
-	Declare sub shwexp_new(tview As HWND)
+	Declare Sub var_tip(ope As Integer)
+	Declare Sub brk_set(t As Integer)
+	Declare Sub string_sh(tv As HWND)
+	Declare Sub shwexp_new(tview As HWND)
 	
 	Common Shared windmain As HWND
 	Common Shared stopcode As Integer
@@ -57,15 +54,15 @@ Common Shared As Byte runtype        'running type 07/12/2014
 		hp As Integer
 		hn As Integer
 	End Type
-	Common Shared As Integer linenbprev 'used for dll 
+	Common Shared As Integer linenbprev 'used for dll
 	Common Shared rline() As tline
 	Common Shared As Integer fntab, fcurlig
 	Common Shared source() As String    'source names
 	Common Shared As HWND htab1, htab2
-#EndIf
+#endif
 
 Declare Sub RunWithDebug(Param As Any Ptr)
 
-#IfNDef __USE_MAKE__
-	#Include Once "Debug.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include Once "Debug.bas"
+#endif

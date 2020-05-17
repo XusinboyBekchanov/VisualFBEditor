@@ -1,5 +1,9 @@
-﻿'#Compile -exx "Form1.rc"
-#Include Once "mff/Form.bi"
+﻿#ifdef __FB_WIN32__
+	'#Compile -exx "Form1.rc"
+#else
+	'#Compile -exx
+#endif
+#include once "mff/Form.bi"
 
 Using My.Sys.Forms
 
@@ -10,10 +14,10 @@ Using My.Sys.Forms
     
     Dim Shared fForm1 As Form1
     
-    #IfnDef _NOT_AUTORUN_FORMS_
+    #ifndef _NOT_AUTORUN_FORMS_
         fForm1.Show
         
         App.Run
-    #EndIf
+    #endif
 '#End Region
 

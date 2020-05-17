@@ -1,3 +1,10 @@
+﻿Version 1.2.3 (May 18, 2020)
+- Added: Dark Theme (in Linux)
+- Added: Define functions, args, types and others
+- Added: ToDo Window
+- Added: Change Log Window
+- Added: Ability to add Multiple Help Paths
+- Added: and others
 Version 1.2.2 (December 31, 2019)
 - Added: Ability to move tabs
 - Added: Ability to scroll using the middle button
