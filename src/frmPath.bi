@@ -17,12 +17,16 @@ Using My.Sys.Forms
 		Declare Static Sub cmdOK_Click(ByRef Sender As Control)
 		Declare Static Sub cmdCancel_Click(ByRef Sender As Control)
 		Declare Static Sub cmdPath_Click(ByRef Sender As Control)
+		Declare Static Sub Form_Show(ByRef Sender As Form)
+		Declare Static Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As CommandButton cmdPath, cmdOK, cmdCancel
 		Dim As TextBox txtVersion, txtPath
 		Dim As Label lblVersion, lblPath
 		Dim As OpenFileDialog OpenD
+		Dim As FolderBrowserDialog BrowseD
+		Dim As Boolean ChooseFolder
 	End Type
 	
 	Common Shared pfPath As frmPath Ptr

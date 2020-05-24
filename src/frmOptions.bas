@@ -275,14 +275,9 @@ pfOptions = @fOptions
 			.SetBounds 10, 230, 416, 168
 			.Parent = @pnlIncludes
 		End With
-		' lblMFF
-		lblMFF.Name = "lblMFF"
-		lblMFF.Text = ML("MFF path") & ":"
-		lblMFF.SetBounds 15, 24, 138, 18
-		lblMFF.Parent = @grbIncludePaths
 		' txtMFFpath
 		txtMFFpath.Name = "txtMFFpath"
-		txtMFFpath.SetBounds 96, 21, 281, 20
+		txtMFFpath.SetBounds 160, 21, 217, 20
 		txtMFFpath.Parent = @grbIncludePaths
 		' cmdMFFPath
 		cmdMFFPath.Name = "cmdMFFPath"
@@ -290,11 +285,6 @@ pfOptions = @fOptions
 		cmdMFFPath.SetBounds 377, 20, 24, 22
 		cmdMFFPath.OnClick = @cmdMFFPath_Click
 		cmdMFFPath.Parent = @grbIncludePaths
-		' chkAutoSaveCompile
-		chkAutoSaveCompile.Name = "chkAutoSaveCompile"
-		chkAutoSaveCompile.Text = ML("Auto save files before compiling")
-		chkAutoSaveCompile.SetBounds 10, 43, 324, 18
-		chkAutoSaveCompile.Parent = @pnlGeneral
 		' chkEnableAutoComplete
 		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
 		chkEnableAutoComplete.Text = ML("Enable Auto Complete")
@@ -344,21 +334,25 @@ pfOptions = @fOptions
 		cmdAddInclude.Name = "cmdAddInclude"
 		cmdAddInclude.Text = "+"
 		cmdAddInclude.SetBounds 376, 67, 24, 22
+		cmdAddInclude.OnClick = @cmdAddInclude_Click
 		cmdAddInclude.Parent = @grbIncludePaths
 		' cmdRemoveInclude
 		cmdRemoveInclude.Name = "cmdRemoveInclude"
 		cmdRemoveInclude.Text = "-"
 		cmdRemoveInclude.SetBounds 376, 88, 24, 22
+		cmdRemoveInclude.OnClick = @cmdRemoveInclude_Click
 		cmdRemoveInclude.Parent = @grbIncludePaths
 		' cmdAddLibrary
 		cmdAddLibrary.Name = "cmdAddLibrary"
 		cmdAddLibrary.Text = "+"
 		cmdAddLibrary.SetBounds 376, 21, 24, 22
+		cmdAddLibrary.OnClick = @cmdAddLibrary_Click
 		cmdAddLibrary.Parent = @grbLibraryPaths
 		' cmdRemoveLibrary
 		cmdRemoveLibrary.Name = "cmdRemoveLibrary"
 		cmdRemoveLibrary.Text = "-"
 		cmdRemoveLibrary.SetBounds 376, 42, 24, 22
+		cmdRemoveLibrary.OnClick = @cmdRemoveLibrary_Click
 		cmdRemoveLibrary.Parent = @grbLibraryPaths
 		' cmdChangeDebugger
 		cmdChangeDebugger.Name = "cmdChangeDebugger"
@@ -656,7 +650,7 @@ pfOptions = @fOptions
 		' chkUseMakeOnStartWithCompile
 		chkUseMakeOnStartWithCompile.Name = "chkUseMakeOnStartWithCompile"
 		chkUseMakeOnStartWithCompile.Text = ML("Use make on start with compile (if exists makefile)")
-		chkUseMakeOnStartWithCompile.SetBounds 10, 114, 400, 16
+		chkUseMakeOnStartWithCompile.SetBounds 10, 93, 400, 16
 		chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
 		chkUseMakeOnStartWithCompile.Parent = @pnlGeneral
 		' lvCompilerPaths
@@ -774,14 +768,14 @@ pfOptions = @fOptions
 		With chkAutoReloadLastOpenSources
 			.Name = "chkAutoReloadLastOpenSources"
 			.Text = ML("Auto-reload last open sources")
-			.SetBounds 10, 67, 400, 16
+			.SetBounds 10, 47, 400, 16
 			.Parent = @pnlGeneral
 		End With
 		' chkAutoCreateBakFiles
 		With chkAutoCreateBakFiles
 			.Name = "chkAutoCreateBakFiles"
 			.Text = ML("Auto create bak files before saving")
-			.SetBounds 10, 91, 400, 16
+			.SetBounds 10, 70, 400, 16
 			.ID = 1009
 			.Parent = @pnlGeneral
 		End With
@@ -915,6 +909,51 @@ pfOptions = @fOptions
 			.OnClick = @cmdClearHelps_Click
 			.Parent = @grbHelpPaths
 		End With
+		' grbWhenCompiling
+		With grbWhenCompiling
+			.Name = "grbWhenCompiling"
+			.Text = "When compiling:"
+			.SetBounds 8, 120, 416, 104
+			.Parent = @pnlGeneral
+		End With
+		' optSaveCurrentFile
+		With optSaveCurrentFile
+			.Name = "optSaveCurrentFile"
+			.Text = "Save Current File"
+			.SetBounds 18, 22, 184, 16
+			.Caption = "Save Current File"
+			.Parent = @grbWhenCompiling
+		End With
+		' optDoNotSave
+		With optDoNotSave
+			.Name = "optDoNotSave"
+			.Text = "Don't Save"
+			.SetBounds 18, 70, 184, 16
+			.Caption = "Don't Save"
+			.Parent = @grbWhenCompiling
+		End With
+		' optSaveAllFiles
+		With optSaveAllFiles
+			.Name = "optSaveAllFiles"
+			.Text = "Save All Files"
+			.SetBounds 18, 46, 184, 16
+			.Caption = "Save All Files"
+			.Parent = @grbWhenCompiling
+		End With
+		' Panel1
+		With Panel1
+			.Name = "Panel1"
+			.Text = "Panel1"
+			.SetBounds 8, 23, 136, 16
+			.Parent = @grbIncludePaths
+		End With
+		' chkIncludeMFFPath
+		With chkIncludeMFFPath
+			.Name = "chkIncludeMFFPath"
+			.Text = ML("Include MFF Path") & ":"
+			.SetBounds 7, 0, 138, 18
+			.Parent = @Panel1
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -949,14 +988,19 @@ Sub frmOptions.LoadSettings()
 		.txtTabSize.Text = Str(TabWidth)
 		.txtHistoryLimit.Text = Str(HistoryLimit)
 		.txtMFFPath.Text = *MFFPath
+		.chkIncludeMFFPath.Checked = IncludeMFFPath
 		.txtProjectsPath.Text = *ProjectsPath
 		.CheckBox1.Checked = AutoIncrement
 		.chkEnableAutoComplete.Checked = AutoComplete
-		.chkAutoSaveCompile.Checked = AutoSaveBeforeCompile
 		.chkAutoIndentation.Checked = AutoIndentation
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
 		.chkAutoReloadLastOpenSources.Checked = AutoReloadLastOpenFiles
+		Select Case AutoSaveBeforeCompiling
+		Case 0: .optDoNotSave.Checked = True
+		Case 1: .optSaveCurrentFile.Checked = True
+		Case 2: .optSaveAllFiles.Checked = True
+		End Select
 		.chkShowSpaces.Checked = ShowSpaces
 		.chkHighlightBrackets.Checked = HighlightBrackets
 		.chkHighlightCurrentLine.Checked = HighlightCurrentLine
@@ -1045,6 +1089,14 @@ Sub frmOptions.LoadSettings()
 			.cboHelp.AddItem pHelps->Item(i)->Key
 		Next
 		.cboHelp.ItemIndex = Max(0, .cboHelp.IndexOf(*DefaultHelp))
+		.lstIncludePaths.Clear
+		For i As Integer = 0 To pIncludePaths->Count - 1
+			.lstIncludePaths.AddItem pIncludePaths->Item(i)
+		Next
+		.lstLibraryPaths.Clear
+		For i As Integer = 0 To pLibraryPaths->Count - 1
+			.lstLibraryPaths.AddItem pLibraryPaths->Item(i)
+		Next
 		For i As Integer = 0 To 15
 			For j As Integer = 0 To 6
 				.Colors(i, j) = -2
@@ -1198,10 +1250,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 	On Error Goto ErrorHandler
 	With fOptions
 		pCompilers->Clear
-		Dim As WString Ptr tempStr
+		Dim As UString tempStr
 		For i As Integer = 0 To .lvCompilerPaths.ListItems.Count - 1
-			WLet tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(0)
-			pCompilers->Add *tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(1)
+			tempStr = .lvCompilerPaths.ListItems.Item(i)->Text(0)
+			pCompilers->Add tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(1)
 		Next
 		WLet DefaultCompiler32, IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text)
 		WLet DefaultCompiler64, IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text)
@@ -1209,36 +1261,43 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WLet Compiler64Path, pCompilers->Get(*DefaultCompiler64)
 		pMakeTools->Clear
 		For i As Integer = 0 To .lvMakeToolPaths.ListItems.Count - 1
-			WLet tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(0)
-			pMakeTools->Add *tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(1)
+			tempStr = .lvMakeToolPaths.ListItems.Item(i)->Text(0)
+			pMakeTools->Add tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(1)
 		Next
 		WLet DefaultMakeTool, IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text)
 		WLet MakeToolPath, pMakeTools->Get(*DefaultMakeTool)
 		pDebuggers->Clear
 		For i As Integer = 0 To .lvDebuggerPaths.ListItems.Count - 1
-			WLet tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(0)
-			pDebuggers->Add *tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1)
+			tempStr = .lvDebuggerPaths.ListItems.Item(i)->Text(0)
+			pDebuggers->Add tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1)
 		Next
 		WLet DefaultDebugger, IIf(.cboDebugger.ItemIndex = 0, "", .cboDebugger.Text)
 		WLet DebuggerPath, pDebuggers->Get(*DefaultDebugger)
 		pTerminals->Clear
 		For i As Integer = 0 To .lvTerminalPaths.ListItems.Count - 1
-			WLet tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(0)
-			pTerminals->Add *tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(1)
+			tempStr = .lvTerminalPaths.ListItems.Item(i)->Text(0)
+			pTerminals->Add tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(1)
 		Next
-		WDeallocate tempStr
 		WLet DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text)
 		WLet TerminalPath, pTerminals->Get(*DefaultTerminal)
 		pHelps->Clear
 		miHelps->Clear
 		For i As Integer = 0 To .lvHelpPaths.ListItems.Count - 1
-			WLet tempStr, .lvHelpPaths.ListItems.Item(i)->Text(0)
-			pHelps->Add *tempStr, .lvHelpPaths.ListItems.Item(i)->Text(1)
-			miHelps->Add(*tempStr, .lvHelpPaths.ListItems.Item(i)->Text(1), , @mClickHelp)
+			tempStr = .lvHelpPaths.ListItems.Item(i)->Text(0)
+			pHelps->Add tempStr, .lvHelpPaths.ListItems.Item(i)->Text(1)
+			miHelps->Add(tempStr, .lvHelpPaths.ListItems.Item(i)->Text(1), , @mClickHelp)
 		Next
-		WDeallocate tempStr
 		WLet DefaultHelp, IIf(.cboHelp.ItemIndex = 0, "", .cboHelp.Text)
 		WLet HelpPath, pHelps->Get(*DefaultHelp)
+		pIncludePaths->Clear
+		For i As Integer = 0 To .lstIncludePaths.ItemCount - 1
+			pIncludePaths->Add .lstIncludePaths.Item(i)
+		Next
+		pLibraryPaths->Clear
+		For i As Integer = 0 To .lstLibraryPaths.ItemCount - 1
+			pLibraryPaths->Add .lstLibraryPaths.Item(i)
+		Next
+		IncludeMFFPath = .chkIncludeMFFPath.Checked
 		WLet MFFPath, .txtMFFPath.Text
 		WLet ProjectsPath, .txtProjectsPath.Text
 		#ifdef __FB_64BIT__
@@ -1255,7 +1314,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		AutoReloadLastOpenFiles = .chkAutoReloadLastOpenSources.Checked
-		AutoSaveBeforeCompile = .chkAutoSaveCompile.Checked
+		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, 0))
 		ShowSpaces = .chkShowSpaces.Checked
 		HighlightBrackets = .chkHighlightBrackets.Checked
 		HighlightCurrentLine = .chkHighlightCurrentLine.Checked
@@ -1396,6 +1455,19 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			piniSettings->WriteString "Helps", "Version_" & WStr(i), ""
 			piniSettings->WriteString "Helps", "Path_" & WStr(i), ""
 		Next
+		For i As Integer = 0 To Min(9, pIncludePaths->Count - 1)
+			piniSettings->WriteString "IncludePaths", "Path_" & WStr(i), pIncludePaths->Item(i)
+		Next
+		For i As Integer = pIncludePaths->Count To 9
+			piniSettings->WriteString "IncludePaths", "Path_" & WStr(i), ""
+		Next
+		For i As Integer = 0 To Min(9, pLibraryPaths->Count - 1)
+			piniSettings->WriteString "LibraryPaths", "Path_" & WStr(i), pLibraryPaths->Item(i)
+		Next
+		For i As Integer = pLibraryPaths->Count To 9
+			piniSettings->WriteString "LibraryPaths", "Path_" & WStr(i), ""
+		Next
+		piniSettings->WriteBool "Options", "IncludeMFFPath", IncludeMFFPath
 		piniSettings->WriteString "Options", "MFFPath", *MFFPath
 		piniSettings->WriteString "Options", "ProjectsPath", *ProjectsPath
 		piniSettings->WriteString "Options", "Language", Languages.Item(.cboLanguage.ItemIndex)
@@ -1408,7 +1480,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "AutoCreateRC", AutoCreateRC
 		piniSettings->WriteBool "Options", "AutoCreateBakFiles", AutoCreateBakFiles
 		piniSettings->WriteBool "Options", "AutoReloadLastOpenFiles", AutoReloadLastOpenFiles
-		piniSettings->WriteBool "Options", "AutoSaveBeforeCompiling", AutoSaveBeforeCompile
+		piniSettings->WriteInteger "Options", "AutoSaveBeforeCompiling", AutoSaveBeforeCompiling
 		piniSettings->WriteBool "Options", "ShowSpaces", ShowSpaces
 		piniSettings->WriteBool "Options", "HighlightBrackets", HighlightBrackets
 		piniSettings->WriteBool "Options", "HighlightCurrentLine", HighlightCurrentLine
@@ -2110,4 +2182,44 @@ Private Sub frmOptions.cmdInterfaceFont_Click(ByRef Sender As Control)
 			.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
 		End If
 	End With
+End Sub
+
+Private Sub frmOptions.cmdAddInclude_Click(ByRef Sender As Control)
+	pfPath->txtPath.Text = ""
+	pfPath->ChooseFolder = True
+	If pfPath->ShowModal() = ModalResults.OK Then
+		With fOptions
+			If Not .lstIncludePaths.Items.Contains(pfPath->txtPath.Text) Then
+				.lstIncludePaths.Items.Add pfPath->txtPath.Text
+				.lstIncludePaths.AddItem pfPath->txtPath.Text
+			Else
+				MsgBox ML("This path is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdAddLibrary_Click(ByRef Sender As Control)
+	pfPath->txtPath.Text = ""
+	pfPath->ChooseFolder = True
+	If pfPath->ShowModal() = ModalResults.OK Then
+		With fOptions
+			If Not .lstLibraryPaths.Items.Contains(pfPath->txtPath.Text) Then
+				.lstLibraryPaths.Items.Add pfPath->txtPath.Text
+				.lstLibraryPaths.AddItem pfPath->txtPath.Text
+			Else
+				MsgBox ML("This path is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdRemoveInclude_Click(ByRef Sender As Control)
+	Var Index = fOptions.lstIncludePaths.ItemIndex
+	If Index <> -1 Then fOptions.lstIncludePaths.RemoveItem Index
+End Sub
+
+Private Sub frmOptions.cmdRemoveLibrary_Click(ByRef Sender As Control)
+	Var Index = fOptions.lstLibraryPaths.ItemIndex
+	If Index <> -1 Then fOptions.lstLibraryPaths.RemoveItem Index
 End Sub

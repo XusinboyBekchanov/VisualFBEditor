@@ -59,7 +59,7 @@ Dim Shared As SaveFileDialog SaveD
 	Dim Shared As PrintPreviewDialog PrintPreviewD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, mlKeys, mlTexts, MRUFiles, MRUProjects, MRUSessions 'David Change add Sessions
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUProjects, MRUSessions 'David Change add Sessions
 Dim Shared As WString Ptr RecentFiles 'David Change
 Dim Shared As Dictionary Compilers, MakeTools, Debuggers, Terminals, Helps
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
@@ -109,6 +109,8 @@ pimgList = @imgList
 pimgListTools = @imgListTools
 pIncludeFiles = @IncludeFiles
 pLoadPaths = @LoadPaths
+pIncludePaths = @IncludePaths
+pLibraryPaths = @LibraryPaths
 iniSettings.Load SettingsPath
 LoadSettings
 LoadLanguageTexts
@@ -150,7 +152,7 @@ Sub ClearMessages()
 	txtOutput.Update
 End Sub
 
-Sub tabCode_Paint(ByRef Sender As Control) '...'
+Sub tabCode_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	MoveCloseButtons
 End Sub
 
@@ -281,7 +283,7 @@ Function Compile(Parameter As String = "") As Integer
 	On Error Goto ErrorHandler
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
-	Dim MainFile As WString Ptr: WLet MainFile, GetMainFile(AutoSaveBeforeCompile, Project, ProjectNode)
+	Dim MainFile As WString Ptr: WLet MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode)
 	If Len(*MainFile) <= 0 Then
 		ThreadsEnter()
 		ShowMessages ML("No Main file specified for the project.") & "!"
@@ -361,11 +363,17 @@ Function Compile(Parameter As String = "") As Integer
 		If Project->CompileToGCC Then
 			WAdd CompileWith, " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", "")))
 		End If
-		
 	End If
+	If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
+	For i As Integer = 0 To pIncludePaths->Count - 1
+		WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
+	Next
+	For i As Integer = 0 To pLibraryPaths->Count - 1
+		WAdd CompileWith, " -p """ & pLibraryPaths->Item(i) & """"
+	Next
 	'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
 	WLet LogFileName2, ExePath & "/Temp/debug_compil2.log"
-	WLet fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith & " -i """ & *MFFPathC & """"
+	WLet fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith 
 	If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
 	End If
@@ -536,6 +544,9 @@ Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, ByVal iSelSt
 		If iSelStart = -1 AndAlso tb->txtCode.LinesCount > iLine - 1 Then iSelStart = InStr(LCase(tb->txtCode.Lines(iLine - 1)), LCase(SearchText))
 		If iSelLength = -1 Then iSelLength = Len(SearchText)
 	End If
+	#ifdef __USE_GTK__
+		pApp->DoEvents
+	#endif
 	tb->txtCode.TopLine = iLine - tb->txtCode.VisibleLinesCount / 2
 	tb->txtCode.SetSelection iLine - 1, iLine - 1, iSelStart - 1, iSelStart + iSelLength - 1
 End Sub
@@ -852,7 +863,11 @@ End Function
 Sub OpenSession()
 	Dim As OpenFileDialog OpenD
 	OpenD.Filter = ML("VisualFBEditor Session") & " (*.vfs)|*.vfs|" & ML("All Files") & "|*.*|"
-	OpenD.InitialDir = GetFullPath(*ProjectsPath)
+	If WGet(LastOpenPath) <> "" Then
+		OpenD.InitialDir = *LastOpenPath
+	Else
+		OpenD.InitialDir = GetFullPath(*ProjectsPath)
+	End If
 	If Not OpenD.Execute Then Exit Sub
 	'David Chang It is not allowed load two Sessions.
 	For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
@@ -860,6 +875,7 @@ Sub OpenSession()
 			CloseProject(tvExplorer.Nodes.Item(i))
 		End If
 	Next i
+	WLet LastOpenPath, GetFolderName(OpenD.FileName)
 	AddSession OpenD.FileName
 	TabLeft.Tabs[0]->SelectTab
 End Sub
@@ -914,12 +930,15 @@ End Sub
 
 Sub OpenProgram()
 	Dim As OpenFileDialog OpenD
-	Dim As WString Ptr Temp
-	OpenD.InitialDir = GetFullPath(*ProjectsPath)
-	WDeallocate Temp
+	If WGet(LastOpenPath) <> "" Then
+		OpenD.InitialDir = *LastOpenPath
+	Else
+		OpenD.InitialDir = GetFullPath(*ProjectsPath)
+	End If
 	'David Change  Add *.inc
 	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs,*.vfp,*.bas,*.bi,*.inc,*.rc)|*.vfs;*.vfp;*.bas;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("FreeBasic Resource Files") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
+		WLet LastOpenPath, GetFolderName(OpenD.FileName)
 		wLet RecentFiles, OpenD.Filename
 		OpenFiles(OpenD.Filename)
 	End If
@@ -930,8 +949,13 @@ Function SaveSession() As Boolean
 	Dim As ExplorerElement Ptr ee
 	SaveD.Filter = ML("VisualFBEditor Session") & " (*.vfs)|*.vfs|"
 	Dim As WString Ptr Temp, Temp2
-	SaveD.InitialDir = GetFullPath(*ProjectsPath)
+	If WGet(LastOpenPath) <> "" Then
+		SaveD.InitialDir = *LastOpenPath
+	Else
+		SaveD.InitialDir = GetFullPath(*ProjectsPath)
+	End If
 	If Not SaveD.Execute Then Return False
+	WLet LastOpenPath, GetFolderName(SaveD.FileName)
 	If FileExists(SaveD.Filename) Then
 		Select Case MsgBox(ML("Are you sure you want to overwrite the session") & "?" & WChr(13,10) & SaveD.Filename, "Visual FB Editor", mtWarning, btYesNo)
 		Case mrYES:
@@ -968,9 +992,14 @@ Function SaveProject(ByRef tn As TreeNode Ptr, bWithQuestion As Boolean = False)
 	pee = tn->Tag
 	If pee = 0 OrElse WGet(pee->FileName) = "" Then
 		SaveD.FileName = Left(tn->Text, Len(tn->Text) - IIf(EndsWith(tn->Text, " *"), 2, 0))
-		SaveD.InitialDir = GetFullPath(*ProjectsPath)
+		If WGet(LastOpenPath) <> "" Then
+			SaveD.InitialDir = *LastOpenPath
+		Else
+			SaveD.InitialDir = GetFullPath(*ProjectsPath)
+		End If
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
+		WLet LastOpenPath, GetFolderName(SaveD.FileName)
 		If FileExists(SaveD.Filename) Then
 			Select Case MsgBox(ML("Are you sure you want to overwrite the project") & "?" & WChr(13,10) & SaveD.Filename, "Visual FB Editor", mtWarning, btYesNo)
 			Case mrYES:
@@ -1060,7 +1089,7 @@ Sub SaveAll()
 End Sub
 
 Sub SaveAllBeforeCompile()
-	If AutoSaveBeforeCompileAll Then SaveAll
+	If AutoSaveBeforeCompiling = 2 Then SaveAll
 End Sub
 
 Sub PrintThis()
@@ -1688,8 +1717,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	'		Exit Sub
 	'	#endif
 	Dim As UString b1, Comment, PathFunction, LoadFunctionPath
-	Dim As String t, e, bt
-	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n
+	Dim As String t, e, tOrig, bt
+	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, Index
 	Dim As TypeElement Ptr te, tbi, typ
 	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace
 	Dim As Boolean bTypeIsPointer
@@ -1760,11 +1789,11 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					Files.Add LoadFunctionPath
 				End If
 			ElseIf LoadParameter <> LoadParam.OnlyIncludeFiles Then
-				If CInt(StartsWith(bTrimLCase, "type ")) Then
+				Pos3 = InStr(bTrimLCase, " as ")
+				If CInt(StartsWith(bTrimLCase, "type ")) AndAlso CInt(IIf(InType, Pos3 = 0, True)) Then
 					Pos1 = InStr(" " & bTrimLCase, " type ")
 					If Pos1 > 0 Then
 						Pos2 = InStr(bTrimLCase, " extends ")
-						Pos3 = InStr(bTrimLCase, " as ")
 						If Pos2 > 0 Then
 							t = Trim(Mid(bTrim, Pos1 + 5, Pos2 - Pos1 - 5))
 							e = Trim(Mid(bTrim, Pos2 + 9))
@@ -1787,6 +1816,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						bTypeIsPointer = EndsWith(LCase(e), " ptr") OrElse EndsWith(LCase(e), " pointer")
 						e = WithoutPointers(e)
 						If Not Comps.Contains(t) Then
+							tOrig = t
 							If t = "Object" And e = "Object" Then
 								t = "My.Sys.Object"
 								e = ""
@@ -1805,6 +1835,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							tbi->Parameters = Trim(Mid(bTrim, 6))
 							Types.Add t, tbi
 							typ = tbi
+							If Namespaces.Count > 0 Then
+								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tOrig, tbi
+							End If
 						End If
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "end type ") Then
@@ -1824,6 +1858,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					tbi->FileName = PathFunction
 					Types.Add t, tbi
 					typ = tbi
+					If Namespaces.Count > 0 Then
+						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+						Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tbi->Name, tbi
+					End If
 					'End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end union")) Then
 					InUnion = False
@@ -1853,7 +1891,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					Functions.Add te->Name, te
-				ElseIf StartsWith(bTrimLCase & " ", "namespace ") Then
+				ElseIf StartsWith(bTrimLCase & " ", "namespace ") AndAlso Pos3 = 0 Then
 					InNamespace = True
 					Pos1 = InStr(11, bTrim, " ")
 					Dim As String Names
@@ -1864,7 +1902,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Names = Trim(Mid(bTrim, 11, Pos1 - 11))
 					End If
 					Split(Names, ".", res1())
-					For n As Integer = 0 To UBound(res1)
+					nc = UBound(res1)
+					For n As Integer = 0 To nc
 						te = New TypeElement
 						te->Name = Trim(res1(n))
 						te->DisplayName = te->Name
@@ -1876,14 +1915,24 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						te->StartLine = i
 						te->EndLine = i
+						te->ControlType = nc
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
 						GlobalNamespaces.Add te->Name, te
+						If Namespaces.Count > 0 Then
+							Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+						End If
 						Namespaces.Add te->Name, te
 					Next
 				ElseIf StartsWith(bTrimLCase & " ", "end namespace ") Then
 					InNamespace = False
-					If Namespaces.Count > 0 Then Namespaces.Remove Namespaces.Count - 1
+					If Namespaces.Count > 0 Then
+						nc = Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->ControlType
+						For i As Integer = 1 To nc
+							If Namespaces.Count > 0 Then Namespaces.Remove Namespaces.Count - 1
+						Next i
+					End If
 				ElseIf StartsWith(bTrimLCase & " ", "declare ") Then
 					Pos1 = InStr(9, bTrim, " ")
 					Pos3 = InStr(9, bTrim, "(")
@@ -2059,6 +2108,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->StartLine = i
 						tbi->FileName = PathFunction
 						Enums.Add t, tbi
+						If Namespaces.Count > 0 Then
+							Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tbi->Name, tbi
+						End If
 					End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end enum")) Then
 					InEnum = False
@@ -2399,6 +2452,7 @@ Sub LoadToolBox
 	Dim As My.Sys.Drawing.Cursor cur
 	Dim As String IncludePath
 	Dim MFF As Any Ptr
+	IncludeMFFPath = iniSettings.ReadBool("Options", "IncludeMFFPath", True)
 	WLet MFFPath, iniSettings.ReadString("Options", "MFFPath", "./MyFbFramework")
 	#ifndef __USE_GTK__
 		#ifdef __FB_64BIT__
@@ -2505,25 +2559,19 @@ Sub LoadSettings
 	Dim As UString Temp
 	For i As Integer = 0 To 9
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Compilers.Add Temp, iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
-		End If
+		If Temp <> "" Then Compilers.Add Temp, iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
 		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			MakeTools.Add Temp, iniSettings.ReadString("MakeTools", "Path_" & WStr(i), "")
-		End If
+		If Temp <> "" Then MakeTools.Add Temp, iniSettings.ReadString("MakeTools", "Path_" & WStr(i), "")
 		Temp = iniSettings.ReadString("Debuggers", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Debuggers.Add Temp, iniSettings.ReadString("Debuggers", "Path_" & WStr(i), "")
-		End If
+		If Temp <> "" Then Debuggers.Add Temp, iniSettings.ReadString("Debuggers", "Path_" & WStr(i), "")
 		Temp = iniSettings.ReadString("Terminals", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Terminals.Add Temp, iniSettings.ReadString("Terminals", "Path_" & WStr(i), "")
-		End If
+		If Temp <> "" Then Terminals.Add Temp, iniSettings.ReadString("Terminals", "Path_" & WStr(i), "")
 		Temp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Helps.Add Temp, iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
-		End If
+		If Temp <> "" Then Helps.Add Temp, iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
+		Temp = iniSettings.ReadString("IncludePaths", "Path_" & WStr(i), "")
+		If Temp <> "" Then IncludePaths.Add Temp
+		Temp = iniSettings.ReadString("LibraryPaths", "Path_" & WStr(i), "")
+		If Temp <> "" Then LibraryPaths.Add Temp
 	Next
 	WLet CurrentCompiler32, ""
 	WLet CurrentCompiler64, ""
@@ -2550,7 +2598,7 @@ Sub LoadSettings
 	SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", True)
 	AutoIncrement = iniSettings.ReadBool("Options", "AutoIncrement", True)
 	AutoCreateRC = iniSettings.ReadBool("Options", "AutoCreateRC", True)
-	AutoSaveBeforeCompile = iniSettings.ReadBool("Options", "AutoSaveCompile", True)
+	AutoSaveBeforeCompiling = iniSettings.ReadInteger("Options", "AutoSaveBeforeCompiling", 1)
 	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
 	AutoReloadLastOpenFiles = iniSettings.ReadBool("Options", "AutoReloadLastOpenFiles", True)
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
@@ -3071,16 +3119,19 @@ CreateMenusAndToolBars
 'tbStandard.AddRange 1, @cboCommands
 
 #ifdef __USE_GTK__
+	Dim Shared progress_bar_timer_id As UInteger
 	Function progress_cb(ByVal user_data As gpointer) As gboolean
 		gtk_progress_bar_pulse(GTK_PROGRESS_BAR(user_data))
 		'?gtk_progress_bar_get_fraction (GTK_PROGRESS_BAR(user_data))
-		Return True
+		If progress_bar_timer_id = 0 Then
+			Return False
+			'Return G_SOURCE_REMOVE
+		Else
+			Return True
+		End If
 	End Function
 #endif
 
-#ifdef __USE_GTK__
-	Dim Shared progress_bar_timer_id As UInteger
-#endif
 Sub StartProgress
 	prProgress.Visible = True
 	#ifdef __USE_GTK__
@@ -3091,7 +3142,7 @@ End Sub
 Sub StopProgress
 	#ifdef __USE_GTK__
 		If progress_bar_timer_id <> 0 Then
-			g_source_remove_ progress_bar_timer_id
+			'g_source_remove_ progress_bar_timer_id
 			progress_bar_timer_id = 0
 		End If
 	#endif
@@ -4467,6 +4518,7 @@ End Sub
 Sub OnProgramQuit() Destructor
 	WDeallocate HelpPath
 	WDeallocate ProjectsPath
+	WDeallocate LastOpenPath
 	WDeallocate DefaultMakeTool
 	WDeallocate CurrentMakeTool1
 	WDeallocate CurrentMakeTool2

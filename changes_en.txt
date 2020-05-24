@@ -1,4 +1,12 @@
-﻿Version 1.2.3 (May 18, 2020)
+﻿Version 1.2.4 (May 24, 2020)
+- Added: Support adding Component in the Designer
+- Added: Tooltips to functions, args and etc. (in Linux)
+- Added: Support Auto save all files before compiling
+- Added: Include paths and Library paths in the Options
+- Added: Namespace definition in the Intellisense
+- Added: Support Last Open Path on Open and Save
+- Fixed: Autoincrement version
+Version 1.2.3 (May 18, 2020)
 - Added: Dark Theme (in Linux)
 - Added: Define functions, args, types and others
 - Added: ToDo Window

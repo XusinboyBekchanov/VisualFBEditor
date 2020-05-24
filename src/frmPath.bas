@@ -17,6 +17,8 @@
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.MaximizeBox = False
 			.MinimizeBox = False
+			.OnShow = @Form_Show
+			.OnClose = @Form_Close
 			.SetBounds 0, 0, 462, 148
 		End With
 		' cmdCancel
@@ -83,7 +85,7 @@
 '#End Region
 
 Private Sub frmPath.cmdOK_Click(ByRef Sender As Control)
-	If Trim(frPath.txtVersion.Text) = "" Then
+	If Not frPath.ChooseFolder AndAlso Trim(frPath.txtVersion.Text) = "" Then
 		MsgBox ML("Enter version of program!")
 		frPath.BringToFront()
 		Exit Sub
@@ -103,18 +105,33 @@ End Sub
 
 Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	With frPath
-		.OpenD.Filter = ML("All Files") & "|*.*;"
-		If .OpenD.Execute Then
-			.txtPath.Text = .OpenD.FileName
-			If EndsWith(.OpenD.FileName, ".chm") Then
-				.txtVersion.Text = Left(GetFileName(.OpenD.FileName), Len(GetFileName(.OpenD.FileName)) - 4)
-			Else
-				.txtVersion.Text = GetFileName(GetFolderName(.OpenD.FileName, False))
-				If .txtVersion.Text = "bin" Then
-					.txtVersion.Text = GetFileName(GetFolderName(GetFolderName(.OpenD.FileName, False), False))
+		If .ChooseFolder Then
+			If .BrowseD.Execute Then
+				.txtPath.Text = .BrowseD.Directory
+			End If
+		Else
+			.OpenD.Filter = ML("All Files") & "|*.*;"
+			If .OpenD.Execute Then
+				.txtPath.Text = .OpenD.FileName
+				If EndsWith(.OpenD.FileName, ".chm") Then
+					.txtVersion.Text = Left(GetFileName(.OpenD.FileName), Len(GetFileName(.OpenD.FileName)) - 4)
+				Else
+					.txtVersion.Text = GetFileName(GetFolderName(.OpenD.FileName, False))
+					If .txtVersion.Text = "bin" Then
+						.txtVersion.Text = GetFileName(GetFolderName(GetFolderName(.OpenD.FileName, False), False))
+					End If
 				End If
 			End If
 		End If
 		.BringToFront()
 	End With
+End Sub
+
+Private Sub frmPath.Form_Show(ByRef Sender As Form)
+	frPath.lblVersion.Visible = Not frPath.ChooseFolder
+	frPath.txtVersion.Visible = Not frPath.ChooseFolder
+End Sub
+
+Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	frPath.ChooseFolder = False
 End Sub

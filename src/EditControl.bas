@@ -155,12 +155,13 @@ Namespace My.Sys.Forms
 			If ec->InFocus Then
 				ec->CaretOn = Not ec->CaretOn
 				gtk_widget_queue_draw(ec->widget)
-				gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
+				'gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
+				Return True
 			Else
 				ec->CaretOn = False
 				gtk_widget_queue_draw(ec->widget)
+				Return False
 			End If
-			Return False
 		End Function
 	#else
 		Sub EditControl.EC_TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
@@ -304,7 +305,8 @@ Namespace My.Sys.Forms
 				CInt(CInt(Constructions(i).Accessible) AndAlso _
 				CInt(CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "public " & LCase(Constructions(i).Name0 & " "))) OrElse _
 				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "private " & LCase(Constructions(i).Name0 & " "))) OrElse _
-				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "protected " & LCase(Constructions(i).Name0 & " ")))))) AndAlso _
+				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "protected " & LCase(Constructions(i).Name0 & " "))) OrElse _
+				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "static " & LCase(Constructions(i).Name0 & " ")))))) AndAlso _
 				CInt(CInt(Constructions(i).Exception = "") OrElse CInt(InStr(LCase(Trim(Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(Constructions(i).Exception)) = 0)) AndAlso _
 				CInt(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 1) <> "=") Then
 				iType = 0
@@ -1468,7 +1470,13 @@ Namespace My.Sys.Forms
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
-			If Colors.Background <> -1 Then
+			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
+				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
+				'GetColor BKColor, iRed, iGreen, iBlue
+				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
+				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - VScrollPos) * dwCharY, extend2.width, dwCharY)
+				cairo_fill (cr)
+			ElseIf Colors.Background <> -1 Then
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, Colors.BackgroundRed, Colors.BackgroundGreen, Colors.BackgroundBlue)
@@ -2148,6 +2156,7 @@ Namespace My.Sys.Forms
 			cairo_fill (cr)
 			If CaretOn Then
 				#ifdef __USE_GTK3__
+					cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
 					gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, HCaretPos, VCaretPos, layout, 0, PANGO_DIRECTION_LTR)
 				#else
 					cairo_rectangle (cr, HCaretPos, VCaretPos, HCaretPos + 0.5, VCaretPos + dwCharY, True)
@@ -2405,9 +2414,11 @@ Namespace My.Sys.Forms
 		ToolTipShowed = True
 		#ifdef __USE_GTK__
 			Dim As gint x, y
-			'        	gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
-			'        	gtk_window_move(gtk_window(winIntellisense), HCaretPos + x, VCaretPos + y)
-			'        	gtk_widget_show_all(winIntellisense)
+			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint.vptr))
+			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
+			gtk_window_move(gtk_window(winTooltip), HCaretPos + x, VCaretPos + y)
+			gtk_window_resize(gtk_window(winTooltip), 100, 25)
+			gtk_widget_show_all(winTooltip)
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
@@ -2443,6 +2454,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.UpdateToolTip()
 		#ifdef __USE_GTK__
+			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint.vptr))
 		#else
 			If hwndTT <> 0 Then
 				Dim As TOOLINFO    ti
@@ -2472,7 +2484,7 @@ Namespace My.Sys.Forms
 	Sub EditControl.CloseToolTip()
 		ToolTipShowed = False
 		#ifdef __USE_GTK__
-			'gtk_widget_hide(gtk_widget(winIntellisense))
+			gtk_widget_hide(gtk_widget(winTooltip))
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
@@ -2499,6 +2511,16 @@ Namespace My.Sys.Forms
 		End If
 		Return KeyWord
 	End Function
+	
+	#ifdef __USE_GTK__
+		Function EditControl.ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
+			Dim As EditControl Ptr ec = user_data
+			If ec <> 0 Then
+				If ec->OnToolTipLinkClicked Then ec->OnToolTipLinkClicked(*ec, *uri)
+			End If
+			Return True
+		End Function
+	#endif
 	
 	Sub EditControl.ProcessMessage(ByRef msg As Message)
 		Static bShifted As Boolean
@@ -3633,6 +3655,7 @@ Namespace My.Sys.Forms
 		Child       = @This
 		#ifdef __USE_GTK__
 			widget = gtk_layout_new(NULL, NULL)
+			'tooltip = gtk_tooltip_new()
 			#ifdef __USE_GTK3__
 				scontext = gtk_widget_get_style_context (widget)
 			#endif
@@ -3692,7 +3715,7 @@ Namespace My.Sys.Forms
 			pango_font_description_free (desc)
 			
 			g_object_get(G_OBJECT(gtk_settings_get_default()), "gtk-cursor-blink-time", @BlinkTime, NULL)
-			BlinkTime = BlinkTime / 1.75
+			'BlinkTime = BlinkTime / 1.75
 			'gdk_threads_add_timeout(BlinkTime, @Blink_cb, @This)
 			adjustmentv = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 201.0, 1.0, 20.0, 20.0))
 			#ifdef __USE_GTK3__
@@ -3771,9 +3794,19 @@ Namespace My.Sys.Forms
 			lvIntellisense.Columns.Add "AutoComplete"
 			lvIntellisense.ColumnHeaderHidden = True
 			lvIntellisense.SingleClickActivate = True
-			'gtk_widget_show(scrollwinIntellisense)
-			'gtk_widget_show(lvIntellisense.widget)
-			'gtk_widget_show_all(winIntellisense)
+			
+			winTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			lblTooltip = gtk_label_new(NULL)
+			#ifdef __USE_GTK3__
+				gtk_widget_set_margin_left(lblTooltip, 1)
+				gtk_widget_set_margin_top(lblTooltip, 1)
+				gtk_widget_set_margin_right(lblTooltip, 1)
+				gtk_widget_set_margin_bottom(lblTooltip, 1)
+			#endif
+			gtk_container_add(gtk_container(winTooltip), lblTooltip)
+			gtk_window_set_transient_for(gtk_window(winTooltip), gtk_window(pfrmMain->widget))
+			g_signal_connect(lblTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
+			'gtk_window_resize(gtk_window(winTooltip), 1000, 21)
 		#else
 			pnlIntellisense.SetBounds 0, -50, 250, 0
 			'cboIntellisense.Visible = False
@@ -3806,12 +3839,12 @@ Namespace My.Sys.Forms
 		#else
 			cboIntellisense.Items.Clear
 		#endif
-		WDeallocate FLine
-		WDeallocate FLineLeft
-		WDeallocate FLineRight
-		WDeallocate FLineTemp
-		WDeallocate FLineSpace
-		WDeallocate FHintWord
+		WDeallocate FLine 
+		WDeallocate FLineLeft 
+		WDeallocate FLineRight 
+		WDeallocate FLineTemp 
+		WDeallocate FLineSpace 
+		WDeallocate FHintWord 
 		WDeallocate CurrentFontName
 	End Destructor
 End Namespace

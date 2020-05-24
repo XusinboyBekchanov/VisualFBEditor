@@ -5847,9 +5847,6 @@ Sub RunWithDebug(Param As Any Ptr)
 		WLet CmdL, """" & GetFileName(exename) & """ " & *RunArguments
 		If Project Then WLet CmdL, *CmdL & " " & WGet(Project->CommandLineArguments)
 	End If
-	ThreadsEnter()
-	ShowMessages(Time & ": " & ML("Run") & ": " & WGet(CmdL) + " ...")
-	ThreadsLeave()
 	#ifndef __USE_GTK__
 		exename = Replace(exename, "/", "\")
 		re_ini
@@ -5890,14 +5887,24 @@ Sub RunWithDebug(Param As Any Ptr)
 		WLet Arguments, *RunArguments
 		If Project Then WLet Arguments, *Arguments & " " & WGet(Project->CommandLineArguments)
 		If 0 Then
-			Shell """" & WGet(TerminalPath) & """ -e """ & build_create_shellscript(GetFolderName(exename), exename, False, True) & """"
+			Shell """" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(exename), exename, False, True) & """"
 		Else
 			ChDir(GetFolderName(exename))
-			Result = Shell("""" & WGet(TerminalPath) & """ -e """ & """" & WGet(DebuggerPath) & """" & " " & Replace(ExeName, "\", "/") & " " & *Arguments & """")
+			Dim As UString CommandLine = """" & WGet(TerminalPath) & """ --wait -- """ & Trim(WGet(DebuggerPath) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
+			ThreadsEnter()
+			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
+			ThreadsLeave()
+			Result = Shell(CommandLine)
+			ThreadsEnter()
+			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			ThreadsLeave()
 		End If
 		WDeallocate Arguments
 		'Shell "gdb " & CmdL
 	#else
+		ThreadsEnter()
+		ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
+		ThreadsLeave()
 		If WGet(DebuggerPath) <> "" Then
 			Dim As Unsigned Long ExitCode
 			exename = WGet(DebuggerPath)

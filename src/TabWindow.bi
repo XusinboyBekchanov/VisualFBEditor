@@ -182,9 +182,7 @@ Public:
 	pnlLeft As Panel
 	lblLeft As Label
 	splCodeForm As Splitter
-	splFormList As Splitter
 	pnlForm As Panel
-	lvComponentsList As ListView
 	tbrLeft As ToolBar
 	tbrTop As ToolBar
 	pnlToolbar As Panel
@@ -302,7 +300,7 @@ Declare Sub ToolGroupsToCursor()
 
 Declare Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
 
-Declare Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr)
+Declare Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 
 Declare Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String, ByRef AName As String)
 
@@ -336,7 +334,7 @@ Declare Function Ekvivalent(ByRef a As WString, ByRef b As WString) As Integer
 
 Declare Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Integer)
 
-Declare Sub FillIntellisenseByName(sTemp2 As String)
+Declare Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False)
 
 Declare Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 
@@ -345,6 +343,10 @@ Declare Sub tbrTop_ButtonClick(ByRef Sender As My.Sys.Object)
 Declare Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
 
 Declare Sub cboIntellisense_CloseUp(ByRef Sender As ComboBoxEdit)
+
+Declare Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "") As String
+
+Declare Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 
 Declare Sub TabWindow_Destroy(ByRef Sender As Control)
 

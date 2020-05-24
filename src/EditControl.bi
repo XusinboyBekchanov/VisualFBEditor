@@ -146,13 +146,13 @@ Namespace My.Sys.Forms
 		Dim As Integer dwLineHeight   ' высота строки
 		Dim As Integer HCaretPos, VCaretPos
 		#ifdef __USE_GTK__
-			
+			Dim As GtkTooltip Ptr tooltip
 		#else
 			Dim As HDC hd
 			Dim As HDC bufDC
 			Dim As HBITMAP bufBMP
 			Dim As TEXTMETRIC tm
-			Dim hwndTT As HWND
+			Dim As HWND hwndTT
 		#endif
 		Dim As RECT rc
 		#ifndef __USE_GTK__
@@ -237,6 +237,7 @@ Namespace My.Sys.Forms
 		Declare Sub MiddleScroll
 	Public:
 		#ifdef __USE_GTK__
+			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As cairo_t Ptr cr
 			Dim As GtkWidget Ptr wText
 			Dim As PangoContext Ptr pcontext
@@ -254,6 +255,7 @@ Namespace My.Sys.Forms
 			Dim As GdkWindow Ptr win
 			Dim As GtkWidget Ptr winIntellisense
 			Dim As GtkWidget Ptr scrollwinIntellisense
+			Dim As GtkWidget Ptr winTooltip
 			Dim As Integer verticalScrollBarWidth
 			Dim As Integer horizontalScrollBarHeight
 			Dim As Boolean CaretOn
@@ -279,6 +281,7 @@ Namespace My.Sys.Forms
 		Dim VScrollPos As Integer
 		#ifdef __USE_GTK__
 			lvIntellisense As ListView
+			lblTooltip As GtkWidget Ptr
 		#else
 			cboIntellisense As ComboBoxEx
 			pnlIntellisense As Panel

@@ -22,8 +22,12 @@ Using My.Sys.Forms
 		lblImage.SetBounds 12, 24, 334, 262
 		lblImage.Parent = @This
 		' lblSplash
-		lblSplash.SetBounds 14, 6, 294, 36
-		lblSplash.Text = "Visual FB Editor " & pApp->GetVerInfo("ProductVersion")
+		lblSplash.SetBounds 14, 6, 342, 36
+		#ifdef __USE_GTK__
+			lblSplash.Text = "Visual FB Editor " & VERSION
+		#else
+			lblSplash.Text = "Visual FB Editor " & pApp->GetVerInfo("ProductVersion")
+		#endif
 		lblSplash.Font.Name = "Times New Roman"
 		lblSplash.Font.Size = 20
 		lblSplash.Font.Bold = True

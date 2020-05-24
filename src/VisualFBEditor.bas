@@ -13,7 +13,7 @@
 
 Const VER_MAJOR  = "1"
 Const VER_MINOR  = "2"
-Const VER_PATCH  = "3"
+Const VER_PATCH  = "4"
 Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
 Const SIGN       = "VisualFBEditor " + VERSION
@@ -81,10 +81,10 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
-	Case "SyntaxCheck": SaveAllBeforeCompile:   ThreadCreate(@SyntaxCheck) 'David Change
-	Case "Compile":     SaveAllBeforeCompile:   ThreadCreate(@CompileProgram) 'David Change
-	Case "Make":        SaveAllBeforeCompile:   ThreadCreate(@MakeExecute) 'David Change
-	Case "MakeClean":   SaveAllBeforeCompile:   ThreadCreate(@MakeClean) 'David Change
+	Case "SyntaxCheck":                         ThreadCreate(@SyntaxCheck) 'David Change
+	Case "Compile":                             ThreadCreate(@CompileProgram) 'David Change
+	Case "Make":                                ThreadCreate(@MakeExecute) 'David Change
+	Case "MakeClean":                           ThreadCreate(@MakeClean) 'David Change
 	Case "FormatProject":                       ThreadCreate(@FormatProject) 'FormatProject 0
 	Case "UnformatProject":                     ThreadCreate(@FormatProject, Cast(Any Ptr, 1)) 'FormatProject Cast(Any Ptr, 1)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
@@ -195,7 +195,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "FindInFiles":                     mFormFindInFile = True:  pfFindFile->Show *pfrmMain
 	Case "ReplaceinFiles":                  mFormFindInFile = False:  pfFindFile->Show *pfrmMain
 	Case "Replace":                         mFormFind = False: pfFind->Show *pfrmMain
-	Case "NewForm":                         AddTab ExePath + "/Templates/Form.bas", True
+	Case "NewForm":                         AddTab ExePath + "/Templates/Files/Form.bas", True
 		#ifndef __USE_GTK__
 		Case "ShowString":                  string_sh(tviewvar)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)

@@ -146,14 +146,13 @@ Namespace My.Sys.Forms
 			If Parent = 0 Then Return Parent
 			Dim As Integer ALeft, ATop, AWidth, AHeight
 			Dim As Any Ptr Ctrl
-			For i As Integer = iGet(ReadPropertyFunc(Parent, "ControlCount")) - 1 To 0 Step -1
-				Ctrl = ControlByIndexFunc(Parent, i)
+			For i As Integer = Objects.Count - 1 To 0 Step -1
+				Ctrl = Objects.Item(i)
 				If Ctrl Then
-					If QBoolean(ReadPropertyFunc(Ctrl, "Visible")) Then
-						ControlGetBoundsSub(Ctrl, @ALeft, @ATop, @AWidth, @AHeight)
-						If (X > ALeft And X < ALeft + AWidth) And (Y > ATop And Y < ATop + AHeight) Then
-							Return ControlAt(Ctrl, X - ALeft, Y - ATop)
-						End If
+					ComponentGetBoundsSub(Q_ComponentFunc(Ctrl), @ALeft, @ATop, @AWidth, @AHeight)
+					If (X > ALeft And X < ALeft + AWidth) And (Y > ATop And Y < ATop + AHeight) Then
+						'ControlAt(Ctrl, X - ALeft, Y - ATop)
+						Return Ctrl
 					End If
 				End If
 			Next i
@@ -161,7 +160,7 @@ Namespace My.Sys.Forms
 		#else
 			Dim ParentHwnd As Hwnd = *Cast(HWND Ptr, ReadPropertyFunc(Parent, "Handle"))
 			Dim Result As Hwnd = ChildWindowFromPoint(ParentHwnd, Type<Point>(X, Y))
-			If Result = 0 Or Result = ParentHwnd Then
+			If Result = 0 OrElse Result = ParentHwnd OrElse GetControl(Result) = 0 Then
 				Return Parent
 			Else
 				Dim As Rect R
@@ -571,7 +570,7 @@ Namespace My.Sys.Forms
 			ReDim As Integer FLeftNew(iCount), FTopNew(iCount), FWidthNew(iCount), FHeightNew(iCount)
 			For j As Integer = 0 To iCount
 				#ifdef __USE_GTK__
-					ControlGetBoundsSub(SelectedControls.Items[j], @FLeft(j), @FTop(j), @FWidth(j), @FHeight(j))
+					ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft(j), @FTop(j), @FWidth(j), @FHeight(j))
 				#else
 					GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 					P.X         = R.Left
@@ -623,7 +622,7 @@ Namespace My.Sys.Forms
 					ReDim As Integer FLeftNew(iCount), FTopNew(iCount), FWidthNew(iCount), FHeightNew(iCount)
 					For j As Integer = 0 To iCount
 						#ifdef __USE_GTK__
-							ControlGetBoundsSub(SelectedControls.Items[j], @FLeft(j), @FTop(j), @FWidth(j), @FHeight(j))
+							ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft(j), @FTop(j), @FWidth(j), @FHeight(j))
 						#else
 							GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 							P.X         = R.Left
@@ -699,7 +698,7 @@ Namespace My.Sys.Forms
 						Case 6: FLeftNew(j) = FLeft(j) + (FNewX - FBeginX): FWidthNew(j) = FWidth(j) - (FNewX - FBeginX): FHeightNew(j) = FHeight(j) + (FNewY - FBeginY)
 						Case 7: FLeftNew(j) = FLeft(j) - (FBeginX - FNewX): FWidthNew(j) = FWidth(j) + (FBeginX - FNewX)
 						End Select
-						ControlSetBoundsSub(SelectedControls.Items[j], FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
+						ComponentSetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
 					#else
 						Select Case FDotIndex
 						Case 0: FLeftNew(j) = FLeft(j) + (FNewX - FBeginX): FTopNew(j) = FTop(j) + (FNewY - FBeginY): FWidthNew(j) = FWidth(j) - (FNewX - FBeginX): FHeightNew(j) = FHeight(j) - (FNewY - FBeginY)
@@ -711,7 +710,7 @@ Namespace My.Sys.Forms
 						Case 6: FLeftNew(j) = FLeft(j) + (FNewX - FBeginX): FWidthNew(j) = FWidth(j) - (FNewX - FBeginX): FHeightNew(j) = FHeight(j) + (FNewY - FBeginY)
 						Case 7: FLeftNew(j) = FLeft(j) - (FBeginX - FNewX): FWidthNew(j) = FWidth(j) + (FBeginX - FNewX)
 						End Select
-						'ControlSetBoundsSub(SelectedControl, FLeftNew, FTopNew, FWidthNew, FHeightNew)
+						'ComponentSetBoundsSub(Q_ComponentFunc(SelectedControl), FLeftNew, FTopNew, FWidthNew, FHeightNew)
 						MoveWindow(GetControlHandle(SelectedControls.Items[j]), FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j), True)
 					#endif
 				Next
@@ -723,7 +722,7 @@ Namespace My.Sys.Forms
 				If FBeginX <> FEndX Or FBeginY <> FEndY Then
 					For j As Integer = 0 To SelectedControls.Count - 1
 						#ifdef __USE_GTK__
-							ControlSetBoundsSub(SelectedControls.Items[j], FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j))
+							ComponentSetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j))
 						#else
 							MoveWindow(GetControlHandle(SelectedControls.Items[j]), FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j), True)
 						#endif
@@ -820,10 +819,13 @@ Namespace My.Sys.Forms
 					Dim As Any Ptr Ctrl
 					SelectedControl = DesignControl
 					FSelControl = FDialog
-					For i As Integer = 0 To iGet(ReadPropertyFunc(DesignControl, "ControlCount")) - 1
-						Ctrl = ControlByIndexFunc(DesignControl, i)
+					For i As Integer = Objects.Count - 1 To 0 Step -1
+						Ctrl = Objects.Item(i)
 						If Ctrl Then
-							ControlGetBoundsSub(Ctrl, @ALeft, @ATop, @AWidth, @AHeight)
+							ALeft = QInteger(ReadPropertyFunc(Ctrl, "Left"))
+							ATop = QInteger(ReadPropertyFunc(Ctrl, "Top"))
+							AWidth = QInteger(ReadPropertyFunc(Ctrl, "Width"))
+							AHeight = QInteger(ReadPropertyFunc(Ctrl, "Height"))
 							If (ALeft > FBeginX And ALeft + AWidth < FNewX) And (ATop > FBeginY And ATop + AHeight < FNewY) Then
 								If SelectedControls.Count = 0 OrElse (ReadPropertyFunc <> 0 AndAlso ReadPropertyFunc(SelectedControls.Items[0], "Parent") = ReadPropertyFunc(Ctrl, "Parent")) Then
 									SelectedControls.Add Ctrl
@@ -880,24 +882,33 @@ Namespace My.Sys.Forms
 					FName = SelectedClass
 					OnInsertingControl(This, SelectedClass, FName)
 				End If
+				SelectedControl = GetContainerControl(SelectedControl)
+				Dim As Rect R
+				If SelectedControl <> DesignControl Then
+					#ifndef __USE_GTK__
+						GetWindowRect FSelControl, @R
+						MapWindowPoints 0, FDialog, Cast(Point Ptr, @R), 2
+					#endif
+				End If
+				Dim ctr As Any Ptr
+				'#IfDef __USE_GTK__
+				ctr = SelectedControl
+				'#Else
+				'	ctr = Cast(Any Ptr, GetWindowLongPtr(FSelControl, GWLP_USERDATA))
+				'#EndIf
 				If SelectedType = 3 Or SelectedType = 4 Then
-					Dim cpnt As Any Ptr = CreateComponent(SelectedClass, FName)
-					If OnInsertComponent Then OnInsertComponent(This, FClass, cpnt)
-				Else
-					SelectedControl = GetContainerControl(SelectedControl)
-					Dim As Rect R
-					If SelectedControl <> DesignControl Then
-						#ifndef __USE_GTK__
-							GetWindowRect FSelControl, @R
-							MapWindowPoints 0, FDialog, Cast(Point Ptr, @R), 2
-						#endif
+					Dim cpnt As Any Ptr = CreateComponent(SelectedClass, FName, ctr, FBeginX - R.Left, FBeginY - R.Top)
+					If OnInsertComponent Then OnInsertComponent(This, FClass, cpnt, FBeginX - R.Left, FBeginY - R.Top)
+					If FSelControl Then
+						SelectedControls.Clear
 					End If
-					Dim ctr As Any Ptr
-					'#IfDef __USE_GTK__
-					ctr = SelectedControl
-					'#Else
-					'	ctr = Cast(Any Ptr, GetWindowLongPtr(FSelControl, GWLP_USERDATA))
-					'#EndIf
+					#ifdef __USE_GTK__
+						MoveDots(cpnt, , FBeginX - R.Left, FBeginY - R.Top, 16, 16)
+					#else
+						MoveDots(cpnt)
+						'LockWindowUpdate(0)
+					#endif
+				Else
 					CreateControl(SelectedClass, FName, FName, ctr, FBeginX - R.Left, FBeginY - R.Top, FNewX -FBeginX, FNewY -FBeginY)
 					If FSelControl Then
 						SelectedControls.Clear
@@ -960,14 +971,19 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub Designer.DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
-		For i As Integer = 0 To iGet(ReadPropertyFunc(Ctrl, "ControlCount")) - 1
-			DeleteControls ControlByIndexFunc(Ctrl, i), EventOnly
-		Next
+		If Controls.Contains(Ctrl) Then
+			For i As Integer = 0 To iGet(ReadPropertyFunc(Ctrl, "ControlCount")) - 1
+				DeleteControls ControlByIndexFunc(Ctrl, i), EventOnly
+			Next
+		End If
 		If OnDeleteControl Then OnDeleteControl(This, Ctrl)
 		If EventOnly Then
 			If ControlFreeWndSub Then ControlFreeWndSub(Ctrl)
 		Else
-			If RemoveControlSub Then RemoveControlSub(DesignControl, Ctrl)
+			If Controls.Contains(Ctrl) Then
+				Dim As Any Ptr AParent = ReadPropertyFunc(Ctrl, "Parent")
+				If RemoveControlSub AndAlso AParent Then RemoveControlSub(AParent, Ctrl)
+			End If
 			If DeleteComponentFunc Then DeleteComponentFunc(Ctrl)
 		End If
 		'if OnModified then OnModified(this, Ctrl, -1, -1, -1, -1)
@@ -1061,7 +1077,7 @@ Namespace My.Sys.Forms
 			OnInsertingControl(This, WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName)
 		End If
 		Dim As Integer FLeft, FTop, FWidth, FHeight
-		ControlGetBoundsSub(Ctrl, @FLeft, @FTop, @FWidth, @FHeight)
+		ComponentGetBoundsSub(Q_ComponentFunc(Ctrl), @FLeft, @FTop, @FWidth, @FHeight)
 		CreateControl(WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName, WGet(ReadPropertyFunc(Ctrl, "Text")), ParentCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
 		If FSelControl Then
 			#ifndef __USE_GTK__
@@ -1071,9 +1087,11 @@ Namespace My.Sys.Forms
 			If OnInsertControl Then OnInsertControl(This, WGet(ReadPropertyFunc(Ctrl, "ClassName")), SelectedControl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
 			If bStart Then SelectedControls.Add SelectedControl
 		End If
-		For i As Integer = 0 To iGet(ReadPropertyFunc(Ctrl, "ControlCount")) - 1
-			AddPasteControls ControlByIndexFunc(Ctrl, i), SelectedControl, False
-		Next
+		If Controls.Contains(Ctrl) Then
+			For i As Integer = 0 To iGet(ReadPropertyFunc(Ctrl, "ControlCount")) - 1
+				AddPasteControls ControlByIndexFunc(Ctrl, i), SelectedControl, False
+			Next
+		End If
 	End Sub
 	
 	Sub Designer.PasteControl()
@@ -1106,7 +1124,7 @@ Namespace My.Sys.Forms
 						CloseClipboard()
 						Dim As List Ptr Value = Cast(Any Ptr, *buffer)
 			#endif
-					If ReadPropertyFunc <> 0 AndAlso ControlGetBoundsSub <> 0 Then
+					If ReadPropertyFunc <> 0 AndAlso ComponentGetBoundsSub <> 0 Then
 						SelectedControls.Clear
 						For j As Integer = 0 To Value->Count - 1
 							AddPasteControls Value->Items[j], ParentCtrl, True
@@ -1130,6 +1148,7 @@ Namespace My.Sys.Forms
 			If IsWindow(Control) Then
 				If GetWindowLongPtr(Control, GWLP_WNDPROC) = @HookChildProc Then
 					SetWindowLongPtr(Control, GWLP_WNDPROC, CInt(GetProp(Control, "@@@Proc")))
+					RemoveProp(Control, "@@@Designer")
 					RemoveProp(Control, "@@@Proc")
 				End If
 			End If
@@ -1147,6 +1166,7 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If IsWindow(Control) Then
+				SetProp(Control, "@@@Designer", This)
 				If GetWindowLongPtr(Control, GWLP_WNDPROC) <> @HookChildProc Then
 					SetProp(Control, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(Control, GWLP_WNDPROC, CInt(@HookChildProc))))
 				End If
@@ -1175,6 +1195,8 @@ Namespace My.Sys.Forms
 				IIf(cy, cy, 50),_
 				AParent)
 				If Ctrl Then
+					Objects.Add Ctrl
+					Controls.Add Ctrl
 					SelectedControl = Ctrl
 					If ReadPropertyFunc Then
 						#ifdef __USE_GTK__
@@ -1232,8 +1254,8 @@ Namespace My.Sys.Forms
 		"in module " & ZGet(Ermn())
 	End Function
 	
-	Function Designer.CreateComponent(AClassName As String, AName As String) As Any Ptr
-		Dim CreateComponentFunc As Function(ClassName As String, ByRef Name As WString) As Any Ptr
+	Function Designer.CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
+		Dim CreateComponentFunc As Function(ClassName As String, ByRef Name As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Any Ptr
 		Dim MFF As Any Ptr
 		If FLibs.Contains(*MFFDll) Then
 			MFF = FLibs.Object(FLibs.IndexOf(*MFFDll))
@@ -1248,15 +1270,71 @@ Namespace My.Sys.Forms
 		If MFF Then
 			CreateComponentFunc = DyLibSymbol(MFF, "CreateComponent")
 			If CreateComponentFunc <> 0 Then
-				Cpnt = CreateComponentFunc(AClassName, AName)
+				Cpnt = CreateComponentFunc(AClassName, AName, x, y, AParent)
 				If Cpnt Then
+					Objects.Add Cpnt
+					SelectedControl = Cpnt
 					If WritePropertyFunc Then
 						Dim As Boolean bTrue = True
 						WritePropertyFunc(Cpnt, "DesignMode", @bTrue)
+						Dim As BitmapType pBitmap
+						#ifdef __USE_GTK__
+							pBitmap.LoadFromFile(*MFFPath & "/resources/" & AClassName &".png")
+							Dim As GtkWidget Ptr Result
+							Dim As Integer FWidth = 16, FHeight = 16
+							If AParent <> 0 Then Result = ReadPropertyFunc(AParent, "layoutwidget")
+							FSelControl = gtk_image_new()
+							WritePropertyFunc(Cpnt, "widget", FSelControl)
+							gtk_image_set_from_pixbuf(gtk_image(FSelControl), pBitmap.Handle)
+							gtk_widget_set_size_request(FSelControl, 16, 16)
+'							ComponentSetBoundsSub()
+'							WritePropertyFunc(Cpnt, "Left", @x)
+'							WritePropertyFunc(Cpnt, "Top", @y)
+'							WritePropertyFunc(Cpnt, "Width", @FWidth)
+'							WritePropertyFunc(Cpnt, "Height", @FHeight)
+							If AParent = 0 OrElse Result = 0 Then
+								gtk_layout_put(GTK_LAYOUT(ReadPropertyFunc(DesignControl, "layoutwidget")), FSelControl, x, y)
+							Else
+								gtk_layout_put(GTK_LAYOUT(Result), FSelControl, x, y)
+							End If
+							gtk_widget_show_all(FSelControl)
+						#else
+							pBitmap.LoadFromPNGResourceName(AClassName, MFF)
+							Dim As HWND Ptr Result
+							If AParent <> 0 Then Result = Cast(HWND Ptr, ReadPropertyFunc(AParent, "Handle"))
+							If AParent = 0 OrElse Result = 0 OrElse *Result = 0 Then
+								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, x, y, 16, 16, *Cast(HWND Ptr, ReadPropertyFunc(DesignControl, "Handle")), Cast(HMENU, 1000), Instance, cpnt)
+							Else
+								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, x, y, 16, 16, *Result, Cast(HMENU, 1000), Instance, cpnt)
+							End If
+							WritePropertyFunc(Cpnt, "Handle", @FSelControl)
+							SetWindowLongPtr(FSelControl, GWLP_USERDATA, CInt(Cpnt))
+							SendMessage(FSelControl, BM_SETIMAGE, 0, Cast(LPARAM, pBitmap.Handle))
+							ShowWindow(FSelControl, SW_SHOWNORMAL)
+						#endif
 					End If
 				End If
 			End If
 		End If
+		#ifdef __USE_GTK__
+			If gtk_is_widget(FSelControl) Then
+				If Not bNotHook Then
+					HookControl(FSelControl)
+					'AName = iif(AName="", AName = AClassName & ...)
+					'SetProp(Control, "Name", ...)
+					'possibly using in propertylist inspector
+				End If
+			End If
+		#else
+			If IsWindow(FSelControl) Then
+				If Not bNotHook Then
+					HookControl(FSelControl)
+					'AName = iif(AName="", AName = AClassName & ...)
+					'SetProp(Control, "Name", ...)
+					'possibly using in propertylist inspector
+				End If
+			End If
+		#endif
 		SelectedClass = ""
 		Return Cpnt
 	End Function
@@ -1341,7 +1419,8 @@ Namespace My.Sys.Forms
 					Select Case Event->Type
 				#else
 					Select Case uMsg
-					Case WM_NCHitTest
+					Case WM_NCHITTEST
+						Return HTTRANSPARENT
 					Case WM_GETDLGCODE: 'Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
 				#endif
 					#ifdef __USE_GTK__
@@ -1504,7 +1583,7 @@ Namespace My.Sys.Forms
 						Return 0
 					Case WM_SETCURSOR
 						Return 0
-					Case WM_GETDLGCODE: Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
+					Case WM_GETDLGCODE: 'Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
@@ -1655,7 +1734,7 @@ Namespace My.Sys.Forms
 				#else
 					Select Case uMsg
 					Case WM_NCHitTest
-					Case WM_GETDLGCODE: Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
+					Case WM_GETDLGCODE: 'Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
 				#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
@@ -1720,6 +1799,16 @@ Namespace My.Sys.Forms
 						ScreenToClient(.FDialog, @P)
 						.MouseMove(P.X, P.Y, wParam And &HFFFF )
 						Return 0
+					#endif
+					#ifdef __USE_GTK__
+					Case GDK_KEY_PRESS
+					#else
+					Case WM_KEYDOWN
+					#endif
+					#ifdef __USE_GTK__
+						.KeyDown(Event->Key.keyval, Event->Key.state)
+					#else
+						.KeyDown(wParam, 0)
 					#endif
 					#ifndef __USE_GTK__
 					Case WM_COMMAND
@@ -1819,7 +1908,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If SelectedControl <> 0 Then
 					For j As Integer = 0 To SelectedControls.Count - 1
-						ControlGetBoundsSub(SelectedControls.Items[j], @FLeft, @FTop, @FWidth, @FHeight)
+						ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft, @FTop, @FWidth, @FHeight)
 						If bShift Then
 							Select Case KeyCode
 							Case Keys.Left: FWidth = FWidth - FStepX1
@@ -1835,7 +1924,7 @@ Namespace My.Sys.Forms
 							Case Keys.Down: FTop = FTop + FStepY1
 							End Select
 						End If
-						ControlSetBoundsSub(SelectedControl, FLeft, FTop, FWidth, FHeight)
+						ComponentSetBoundsSub(Q_ComponentFunc(SelectedControl), FLeft, FTop, FWidth, FHeight)
 						MoveDots(SelectedControl, , FLeft, FTop, FWidth, FHeight)
 						If OnModified Then OnModified(This, SelectedControls.Items[j], FLeft, FTop, FWidth, FHeight)
 					Next

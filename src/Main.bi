@@ -72,8 +72,6 @@ Common Shared As MenuItem Ptr mnuUseDebugger, miHelps
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
 Common Shared As Boolean AutoCreateRC
-Common Shared As Boolean AutoSaveBeforeCompile
-Common Shared As Boolean AutoSaveBeforeCompileAll
 Common Shared As Boolean AutoCreateBakFiles
 Common Shared As Boolean AutoReloadLastOpenFiles
 Common Shared As Boolean UseMakeOnStartWithCompile
@@ -84,19 +82,21 @@ Common Shared As Boolean InDebug, FormClosing
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
 Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar
-Common Shared As String CurLanguage
+Common Shared As Integer AutoSaveBeforeCompiling
+Common Shared As Integer IncludeMFFPath
 Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
+Common Shared As String CurLanguage
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave
-Common Shared As WString Ptr ProjectsPath
+Common Shared As WString Ptr ProjectsPath, LastOpenPath
 Common Shared As WString Ptr DefaultHelp, HelpPath
 Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2, MakeToolPath
 Common Shared As WString Ptr DefaultDebugger, CurrentDebugger, DebuggerPath, DefaultTerminal, CurrentTerminal, TerminalPath
 Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64, Compiler32Path, Compiler64Path
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, DebugArguments
 
-Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths
+Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
 Common Shared As Dictionary Ptr pCompilers, pMakeTools, pDebuggers, pTerminals, pHelps
 
 Enum LoadParam

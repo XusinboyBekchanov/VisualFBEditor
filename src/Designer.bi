@@ -169,8 +169,9 @@ Namespace My.Sys.Forms
 		WritePropertyFunc As Function(Cpnt As Any Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		RemoveControlSub As Sub(Parent As Any Ptr, Ctrl As Any Ptr)
 		ControlByIndexFunc As Function(Parent As Any Ptr, Index As Integer) As Any Ptr
-		ControlGetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
-		ControlSetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
+		Q_ComponentFunc As Function(Cpnt As Any Ptr) As Any Ptr
+		ComponentGetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
+		ComponentSetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		ControlIsContainerFunc As Function(Ctrl As Any Ptr) As Boolean
 		IsControlFunc As Function(Ctrl As Any Ptr) As Boolean
 		ControlSetFocusSub As Sub(Ctrl As Any Ptr)
@@ -197,6 +198,8 @@ Namespace My.Sys.Forms
 		DesignControl As Any Ptr
 		SelectedControl As Any Ptr
 		SelectedControls As List
+		Objects As List
+		Controls As List
 		#ifdef __USE_GTK__
 			cr As cairo_t Ptr
 			layoutwidget As GtkWidget Ptr
@@ -213,12 +216,12 @@ Namespace My.Sys.Forms
 			Declare        Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
 		#endif
 		Declare        Function CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer,y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
-		Declare        Function CreateComponent(AClassName As String, AName As String) As Any Ptr
+		Declare        Function CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
 		OnChangeSelection  As Sub(ByRef Sender As Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 		OnDeleteControl    As Sub(ByRef Sender As Designer, Control As Any Ptr)
 		OnModified         As Sub(ByRef Sender As Designer, Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
 		OnInsertControl    As Sub(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
-		OnInsertComponent  As Sub(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr)
+		OnInsertComponent  As Sub(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 		OnInsertingControl As Sub(ByRef Sender As Designer, ByRef ClassName As String, ByRef sName As String)
 		OnMouseMove        As Sub(ByRef Sender As Designer, X As Integer, Y As Integer, ByRef Over As Any Ptr)
 		OnDblClickControl  As Sub(ByRef Sender As Designer, Control As Any Ptr)
