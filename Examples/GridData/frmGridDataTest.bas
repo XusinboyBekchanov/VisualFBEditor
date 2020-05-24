@@ -56,7 +56,7 @@ Using My.Sys.Forms
         Declare Static Sub CommandButton1_Click(ByRef Sender As Control)
         Declare Static Sub CommandButton2_Click(ByRef Sender As Control)
         Declare Static Sub Form_Create(ByRef Sender As Control)
-        Declare Static Sub Form_Resize(ByRef Sender As Control)
+        Declare Static Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
         Declare Static Sub Form_Click(ByRef Sender As Control)         
         Declare Static Sub Form_Close(ByRef Sender As Control, ByRef Action As Integer)
         Declare Static Sub Form_Show(ByRef Sender As Control)          
@@ -73,7 +73,7 @@ Using My.Sys.Forms
          Declare Static Sub MSHFGridCont_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
          Declare Static Sub MSHFGridCont_KeyPress(ByRef Sender As Control, Key As Byte)
          Declare Static Sub MSHFGridCont_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-         Declare Static Sub MSHFGridCont_Resize(ByRef Sender As Control)
+         Declare Static Sub MSHFGridCont_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
          
   'GRID DATA
          Declare Static Sub MSHFGrid_EndScroll(ByRef Sender As Control)
@@ -85,7 +85,7 @@ Using My.Sys.Forms
          Declare Static Sub MSHFGrid_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
          Declare Static Sub MSHFGrid_KeyPress(ByRef Sender As Control, Key As Byte)
          Declare Static Sub MSHFGrid_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-         Declare Static Sub MSHFGrid_Resize(ByRef Sender As Control)
+         Declare Static Sub MSHFGrid_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	Declare Constructor
 	 
 	
@@ -150,7 +150,7 @@ Constructor frmGridDataTest
 	This.MinimizeBox = True
 	This.MaximizeBox = True
 	This.SetBounds 10, 30, 1080, 800
-	This.Center
+	This.CenterToScreen
 	This.Caption = "GridDataTest"
 	This.BorderStyle = FormBorderStyle.Sizable 'FixedDialog
   
@@ -425,7 +425,7 @@ Private Sub frmGridDataTest.Form_Close(ByRef Sender As Control, ByRef Action As 
 End Sub
 
 Private Sub frmGridDataTest.Form_Show(ByRef Sender As Control)
-   fGridDataTest.Center   
+   fGridDataTest.CenterToScreen   
    'dim as String sSql="SELECT * FROM sqlite_master WHERE TYPE='table'" 'performs a (short) Table- and Index-Analysis, for better optimized queries 
    Dim As String sSql="SELECT NAME FROM sqlite_master WHERE type='table' ORDER BY name" 'performs a (short) Table- and Index-Analysis, for better optimized queries  
    fGridDataTest.MSHFGrid.Init
@@ -438,7 +438,7 @@ Private Sub frmGridDataTest.Form_Show(ByRef Sender As Control)
    
 End Sub
   
-Private Sub frmGridDataTest.Form_Resize(ByRef Sender As Control)    
+Private Sub frmGridDataTest.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)    
     Dim R As Rect            
     fGridDataTest.TreeView1.Left=5
     R.Left=fGridDataTest.TreeView1.Width+10
@@ -637,7 +637,7 @@ Sub frmGridDataTest.MSHFGridCont_KeyUp(ByRef Sender As Control, Key As Integer, 
     'print "MSHFGridCont_KeyUp"
     'Key = 0
 End Sub
- Sub frmGridDataTest.MSHFGridCont_Resize(ByRef Sender As Control)
+ Sub frmGridDataTest.MSHFGridCont_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
     Dim As Integer tWidth = Sender.Width - 22
      'frmGridDataTest.MSHFGridCont.Width = tWidth     
      'print tWidth,fGridDataTest.GridData1.Width  'fGridDataTest.GridData1.RowHeight
@@ -760,7 +760,7 @@ Sub frmGridDataTest.MSHFGrid_KeyUp(ByRef Sender As Control, Key As Integer, Shif
     'print "MSHFGrid_KeyUp"
     'Key = 0
 End Sub
- Sub frmGridDataTest.MSHFGrid_Resize(ByRef Sender As Control)
+ Sub frmGridDataTest.MSHFGrid_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
     Dim As Integer tWidth = Sender.Width - 22
      'frmGridDataTest.MSHFGrid.Width = tWidth     
      'print tWidth,fGridDataTest.GridData1.Width  'fGridDataTest.GridData1.RowHeight

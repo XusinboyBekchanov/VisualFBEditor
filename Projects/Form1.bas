@@ -4,6 +4,7 @@
 	'#Compile -exx
 #endif
 #include once "mff/Form.bi"
+#include once "mff/CommandButton.bi"
 
 Using My.Sys.Forms
 
@@ -12,6 +13,7 @@ Using My.Sys.Forms
        Declare Static Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
        Declare Constructor
        
+    	Dim As CommandButton CommandButton1
     End Type
    
     Constructor Form1
@@ -22,6 +24,13 @@ Using My.Sys.Forms
           .OnPaint = @Form_Paint
           .SetBounds 0, 0, 350, 300
        End With
+    	' CommandButton1
+    	With CommandButton1
+    		.Name = "CommandButton1"
+    		.Text = "CommandButton1"
+    		.SetBounds 80, 72, 120, 80
+    		.Parent = @This
+    	End With
     End Constructor
    
     Dim Shared fForm1 As Form1

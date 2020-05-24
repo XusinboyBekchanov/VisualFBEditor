@@ -51,22 +51,27 @@ Function SQLiteReKey(ByVal db as  SQLite3 Ptr ,ByVal newkey as String ) as Integ
  
 End Function
 
-Function SQLiteSelect(ByVal db as  SQLite3 Ptr ,ByVal sSql as String ,saRecSetZ() as String ) as Integer
+Function SQLiteSelect(ByVal db As  SQLite3 Ptr ,ByVal sSql As String ,saRecSetZ() As String ) As Integer
 '»сИЎКэѕЭЈ¬·µ»ШРРКэЈ¬Из№ы=<0 ОЄіцґнЈ¬їЙТФ¶Б ErrStr АґїґКІГґґн
 '·µ»Ш saRecSetZ() 2О¬КэЧй
 'ЦґРРІйСЇµДЅб№ыФЪ saRecSetZЈЁ РР, БРЈ©ПВ±кОЄБг
 ' Ѕб№ыµЪТ»РР0ОЄБРГыіЖ,ЧЦ¶ОГыЧЦ
 ' КэѕЭґУ1їЄКјБ¬Рш 
-    Dim i as Integer
-    Dim lpTable    as ZString Ptr Ptr ' ·µ»Шёш¶Ё±нµДКэЧйЦёХлЈЁґУБРГыіЖЈ©
-    Dim nRows      as Integer         ' ·µ»ШµДјЗВјјЇµДРРКэ
-    Dim nColumns   as Integer         ' ·µ»ШµДјЗВјјЇµДБРКэ
-    Dim lpErrorSz  as ZString Ptr         ' ґнОуРЕПў
-    Dim zField     as ZString Ptr   ' ·µ»Шёш¶Ё±нµДЧЦ¶ОЈЁФЪlpTableКэЧйФЄЛШЈ©
-    Dim iFields    as Integer         ' ·µ»Ш±н·µ»ШµДЧЦ¶ОКэ
-    Dim iRow       as Integer
-    Dim iCol       as Integer
-    Dim iResult    as Integer         ' РР»тґнОуµДКэБїУЙОТєЇКэ·µ»Ш
+    Dim i As Integer
+    Dim lpTable    As ZString Ptr Ptr ' ·µ»Шёш¶Ё±нµДКэЧйЦёХлЈЁґУБРГыіЖЈ©
+    #ifdef __FB_64BIT__
+	    Dim nRows      As Long         ' ·µ»ШµДјЗВјјЇµДРРКэ
+	    Dim nColumns   As Long         ' ·µ»ШµДјЗВјјЇµДБРКэ
+    #else
+    	Dim nRows      As Integer         ' ·µ»ШµДјЗВјјЇµДРРКэ
+	    Dim nColumns   As Integer         ' ·µ»ШµДјЗВјјЇµДБРКэ
+    #endif
+    Dim lpErrorSz  As ZString Ptr         ' ґнОуРЕПў
+    Dim zField     As ZString Ptr   ' ·µ»Шёш¶Ё±нµДЧЦ¶ОЈЁФЪlpTableКэЧйФЄЛШЈ©
+    Dim iFields    As Integer         ' ·µ»Ш±н·µ»ШµДЧЦ¶ОКэ
+    Dim iRow       As Integer
+    Dim iCol       As Integer
+    Dim iResult    As Integer         ' РР»тґнОуµДКэБїУЙОТєЇКэ·µ»Ш
     ''' ЦґРРІйСЇµДЅб№ыФЪ saRecSetZЈЁ RowNo&, ColNo&Ј©ПВ±кОЄБг
     ''' Ѕб№ыµЪТ»РР0ОЄБРГыіЖ
     ''' КэѕЭґУ1їЄКјБ¬Рш

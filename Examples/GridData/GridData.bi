@@ -1615,7 +1615,7 @@ End Enum
     Property GridData.SelectedColumn(Value As GridDataColumn Ptr)
         #IfNDef __USE_GTK__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
-		#EndIf
+		#endif
     End Property
 
     Property GridData.ShowHint As Boolean
@@ -1626,12 +1626,12 @@ End Enum
         FShowHint = Value
     End Property
 
-	Sub GridData.WndProc(BYREF Message As Message)
+	Sub GridData.WndProc(ByRef Message As Message)
 	End Sub
    
-   Sub GridData.DrawLine(tDC As HDC, x1 As INTEGER, y1 As INTEGER, x2 As INTEGER, y2 As INTEGER, lColor As INTEGER=-1, lWidth As INTEGER = 1,lLineType As INTEGER = PS_SOLID)
+   Sub GridData.DrawLine(tDC As HDC, x1 As Integer, y1 As Integer, x2 As Integer, y2 As Integer, lColor As Integer=-1, lWidth As Integer = 1,lLineType As Integer = PS_SOLID)
        Dim pt As LPPOINT
-    if lColor<>-1 then
+    If lColor<>-1 Then
         Static As  HPEN hPen,hPenSele          
          hPen = CreatePen(lLineType, lWidth, lColor)         
          hPenSele = SelectObject(tDC, hPen)         
@@ -1639,24 +1639,24 @@ End Enum
          LineTo tDC, x2, y2
         SelectObject tDC, hPenSele
         DeleteObject hPen
-    else
+    Else
        MoveToEx tDC, x1, y1, pt
        LineTo tDC, x2, y2
-    end if      
+    End If      
    End Sub
-	Sub GridData.DrawRect(tDc as hDC,R As Rect,FillColor As Integer = -1,tRowSelction As Integer = -1)
-      #IfNDef __USE_GTK__
+	Sub GridData.DrawRect(tDc As hDC,R As Rect,FillColor As Integer = -1,tRowSelction As Integer = -1)
+      #ifndef __USE_GTK__
 			Static As HBRUSH BSelction
          Static As HBRUSH BCellBack			
 			Static As Integer FillColorSave         
-         dim as LPPOINT lppt        			
-         if CInt(tRowSelction=mRow) and CInt(mShowSelection) then
-             If not BSelction Then BSelction=CreateSolidBrush(muGridColorSelected)
+         Dim As LPPOINT lppt        			
+         If CInt(tRowSelction=mRow) And CInt(mShowSelection) Then
+             If BSelction <> 0 Then BSelction=CreateSolidBrush(muGridColorSelected)
              FillRect tDc,@R,BSelction             
-         else
+         Else
             If FillColor<>FillColorSave  Then 
                If BCellBack Then DeleteObject BCellBack
-               if FillColor <> -1 then 
+               If FillColor <> -1 Then 
                 BCellBack = CreateSolidBrush(FillColor)			   
                Else
                 BCellBack = CreateSolidBrush(clWhite)         
@@ -2102,10 +2102,10 @@ End Sub
                        If ComboColOld<>mCol Then
                             GridEditComboBox.Clear
                             If Len(Columns.Column(mCol)->GridEditComboItem)>0 Then
-                               Dim tArray() As WString Ptr                          
+                               Dim tArray() As UString
                                Split(Columns.Column(mCol)->GridEditComboItem,Chr(9),tArray())
                                For ii As Integer =0 To UBound(tArray)
-                                  GridEditComboBox.AddItem  *tArray(ii)                
+                                  GridEditComboBox.AddItem  tArray(ii)                
                                Next
                             End If
                             ComboColOld=mCol

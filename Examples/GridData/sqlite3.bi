@@ -37,7 +37,11 @@
 
 #pragma once
 
-#inclib "sqlite3"
+#ifdef __FB_64bit__
+	#inclib "sqlite3-64"
+#else
+	#inclib "sqlite3-32"
+#endif
 
 #include once "crt/stdarg.bi"
 
