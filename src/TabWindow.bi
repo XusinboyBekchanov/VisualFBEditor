@@ -136,7 +136,7 @@ Private:
 	FPath As WString Ptr
 	tbi As TypeElement Ptr
 	tbi2 As TypeElement Ptr
-	Dim As Any Ptr Ctrl, CurCtrl
+	Dim As Any Ptr Ctrl, CurCtrl, CurCtrlRichedit
 	i As Integer
 	j As Integer
 	lvItem As TreeListViewItem Ptr
