@@ -611,48 +611,48 @@ pfOptions = @fOptions
 		chkForeground.SetBounds 360, 73, 48, 16
 		chkForeground.Caption = "Auto"
 		chkForeground.OnClick = @chkForeground_Click
-		chkForeground.Parent = @grbColors
+		chkForeground.Parent = @pnlColorsAndFonts
 		' chkBackground
 		chkBackground.Name = "chkBackground"
 		chkBackground.Text = "Auto"
 		chkBackground.SetBounds 360, 115, 48, 16
 		chkBackground.Caption = "Auto"
 		chkBackground.OnClick = @chkBackground_Click
-		chkBackground.Parent = @grbColors
+		chkBackground.Parent = @pnlColorsAndFonts
 		' chkIndicator
 		chkIndicator.Name = "chkIndicator"
 		chkIndicator.Text = "Auto"
 		chkIndicator.SetBounds 360, 194, 48, 16
 		chkIndicator.Caption = "Auto"
 		chkIndicator.OnClick = @chkIndicator_Click
-		chkIndicator.Parent = @grbColors
+		chkIndicator.Parent = @pnlColorsAndFonts
 		' chkBold
 		chkBold.Name = "chkBold"
 		chkBold.Text = "Bold"
 		chkBold.SetBounds 258, 251, 104, 16
 		chkBold.Caption = "Bold"
 		chkBold.OnClick = @chkBold_Click
-		chkBold.Parent = @grbColors
+		chkBold.Parent = @pnlColorsAndFonts
 		' chkItalic
 		chkItalic.Name = "chkItalic"
 		chkItalic.Text = "Italic"
 		chkItalic.SetBounds 258, 275, 72, 16
 		chkItalic.Caption = "Italic"
 		chkItalic.OnClick = @chkItalic_Click
-		chkItalic.Parent = @grbColors
+		chkItalic.Parent = @pnlColorsAndFonts
 		' chkUnderline
 		chkUnderline.Name = "chkUnderline"
 		chkUnderline.Text = "Underline"
 		chkUnderline.SetBounds 258, 299, 104, 16
 		chkUnderline.Caption = "Underline"
 		chkUnderline.OnClick = @chkUnderline_Click
-		chkUnderline.Parent = @grbColors
+		chkUnderline.Parent = @pnlColorsAndFonts
 		' chkUseMakeOnStartWithCompile
 		chkUseMakeOnStartWithCompile.Name = "chkUseMakeOnStartWithCompile"
 		chkUseMakeOnStartWithCompile.Text = ML("Use make on start with compile (if exists makefile)")
 		chkUseMakeOnStartWithCompile.SetBounds 10, 93, 400, 16
 		chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
-		chkUseMakeOnStartWithCompile.Parent = @pnlGeneral
+		chkUseMakeOnStartWithCompile.Parent = @pnlColorsAndFonts
 		' lvCompilerPaths
 		With lvCompilerPaths
 			.Name = "lvCompilerPaths"
