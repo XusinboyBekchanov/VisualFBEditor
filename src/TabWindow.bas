@@ -3028,7 +3028,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					CBItem = cboClass.Items.Item(i)
 					If CBItem <> 0 Then CurCtrl = CBItem->Object
 					If CurCtrl <> 0 Then
-						.DeleteComponentFunc(CurCtrl)
+						'TODO Hange here with ctrl RichEdit
+							If WGet(.ReadPropertyFunc(.SelectedControl, "ClassName"))<>"RichTextBox" Then
+								.DeleteComponentFunc(CurCtrl)
+							Else
+								''Delete the last one not current one. But still one more remain exist
+								If CurCtrlRichedit<>0 Then .DeleteComponentFunc(CurCtrlRichedit) 
+								CurCtrlRichedit = CurCtrl
+							End If
 					End If
 				Next i
 				.Hook
