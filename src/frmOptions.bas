@@ -380,7 +380,7 @@ pfOptions = @fOptions
 		' grbGrid
 		grbGrid.Name = "grbGrid"
 		grbGrid.Text = ML("Grid")
-		grbGrid.SetBounds 8, -1, 414, 144
+		grbGrid.SetBounds 8, -1, 414, 192
 		grbGrid.Parent = @pnlDesigner
 		' lblGridSize
 		lblGridSize.Name = "lblGridSize"
@@ -395,13 +395,13 @@ pfOptions = @fOptions
 		' chkShowAlignmentGrid
 		chkShowAlignmentGrid.Name = "chkShowAlignmentGrid"
 		chkShowAlignmentGrid.Text = ML("Show Alignment Grid")
-		chkShowAlignmentGrid.SetBounds 72, 51, 138, 30
-		chkShowAlignmentGrid.Parent = @grbGrid
+		chkShowAlignmentGrid.SetBounds 8, -5, 186, 30
+		chkShowAlignmentGrid.Parent = @pnlGrid
 		' chkSnapToGrid
 		chkSnapToGrid.Name = "chkSnapToGrid"
 		chkSnapToGrid.Text = ML("Snap to Grid")
-		chkSnapToGrid.SetBounds 72, 75, 138, 24
-		chkSnapToGrid.Parent = @grbGrid
+		chkSnapToGrid.SetBounds 8, 19, 138, 24
+		chkSnapToGrid.Parent = @pnlGrid
 		' cboCase
 		cboCase.Name = "cboCase"
 		cboCase.Text = "ComboBoxEdit2"
@@ -608,42 +608,42 @@ pfOptions = @fOptions
 		' chkForeground
 		chkForeground.Name = "chkForeground"
 		chkForeground.Text = "Auto"
-		chkForeground.SetBounds 360, 73, 48, 16
+		chkForeground.SetBounds 0, 9, 48, 16
 		chkForeground.Caption = "Auto"
 		chkForeground.OnClick = @chkForeground_Click
-		chkForeground.Parent = @pnlColorsAndFonts
+		chkForeground.Parent = @pnlColors
 		' chkBackground
 		chkBackground.Name = "chkBackground"
 		chkBackground.Text = "Auto"
-		chkBackground.SetBounds 360, 115, 48, 16
+		chkBackground.SetBounds 0, 51, 48, 16
 		chkBackground.Caption = "Auto"
 		chkBackground.OnClick = @chkBackground_Click
-		chkBackground.Parent = @pnlColorsAndFonts
+		chkBackground.Parent = @pnlColors
 		' chkIndicator
 		chkIndicator.Name = "chkIndicator"
 		chkIndicator.Text = "Auto"
-		chkIndicator.SetBounds 360, 194, 48, 16
+		chkIndicator.SetBounds 0, 130, 48, 16
 		chkIndicator.Caption = "Auto"
 		chkIndicator.OnClick = @chkIndicator_Click
-		chkIndicator.Parent = @pnlColorsAndFonts
+		chkIndicator.Parent = @pnlColors
 		' chkBold
 		chkBold.Name = "chkBold"
 		chkBold.Text = "Bold"
-		chkBold.SetBounds 258, 251, 104, 16
+		chkBold.SetBounds 268, 251, 107, 16
 		chkBold.Caption = "Bold"
 		chkBold.OnClick = @chkBold_Click
 		chkBold.Parent = @pnlColorsAndFonts
 		' chkItalic
 		chkItalic.Name = "chkItalic"
 		chkItalic.Text = "Italic"
-		chkItalic.SetBounds 258, 275, 72, 16
+		chkItalic.SetBounds 268, 275, 99, 16
 		chkItalic.Caption = "Italic"
 		chkItalic.OnClick = @chkItalic_Click
 		chkItalic.Parent = @pnlColorsAndFonts
 		' chkUnderline
 		chkUnderline.Name = "chkUnderline"
 		chkUnderline.Text = "Underline"
-		chkUnderline.SetBounds 258, 299, 104, 16
+		chkUnderline.SetBounds 268, 299, 107, 16
 		chkUnderline.Caption = "Underline"
 		chkUnderline.OnClick = @chkUnderline_Click
 		chkUnderline.Parent = @pnlColorsAndFonts
@@ -652,7 +652,7 @@ pfOptions = @fOptions
 		chkUseMakeOnStartWithCompile.Text = ML("Use make on start with compile (if exists makefile)")
 		chkUseMakeOnStartWithCompile.SetBounds 10, 93, 400, 16
 		chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
-		chkUseMakeOnStartWithCompile.Parent = @pnlColorsAndFonts
+		chkUseMakeOnStartWithCompile.Parent = @pnlGeneral
 		' lvCompilerPaths
 		With lvCompilerPaths
 			.Name = "lvCompilerPaths"
@@ -754,15 +754,15 @@ pfOptions = @fOptions
 		With chkDisplayIcons
 			.Name = "chkDisplayIcons"
 			.Text = ML("Display Icons in the Menu")
-			.SetBounds 10, 81, 176, 16
-			.Parent = @grbThemes
+			.SetBounds 2, 1, 216, 16
+			.Parent = @pnlThemesCheckboxes
 		End With
 		' chkShowMainToolbar
 		With chkShowMainToolbar
 			.Name = "chkShowMainToolbar"
 			.Text = ML("Show main Toolbar")
-			.SetBounds 10, 98, 176, 24
-			.Parent = @grbThemes
+			.SetBounds 2, 18, 224, 24
+			.Parent = @pnlThemesCheckboxes
 		End With
 		' chkAutoReloadLastOpenSources
 		With chkAutoReloadLastOpenSources
@@ -807,10 +807,10 @@ pfOptions = @fOptions
 		With chkFrame
 			.Name = "chkFrame"
 			.Text = "Auto"
-			.SetBounds 360, 154, 48, 16
+			.SetBounds 0, 90, 48, 16
 			.Caption = "Auto"
 			.OnClick = @chkFrame_Click
-			.Parent = @grbColors
+			.Parent = @pnlColors
 		End With
 		' chkHighlightCurrentWord
 		With chkHighlightCurrentWord
@@ -944,7 +944,7 @@ pfOptions = @fOptions
 		With Panel1
 			.Name = "Panel1"
 			.Text = "Panel1"
-			.SetBounds 8, 23, 136, 16
+			.SetBounds 8, 23, 152, 16
 			.Parent = @grbIncludePaths
 		End With
 		' chkIncludeMFFPath
@@ -953,6 +953,27 @@ pfOptions = @fOptions
 			.Text = ML("Include MFF Path") & ":"
 			.SetBounds 7, 0, 138, 18
 			.Parent = @Panel1
+		End With
+		' pnlThemesCheckboxes
+		With pnlThemesCheckboxes
+			.Name = "pnlThemesCheckboxes"
+			.Text = "Panel2"
+			.SetBounds 10, 63, 320, 48
+			.Parent = @grbThemes
+		End With
+		' pnlColors
+		With pnlColors
+			.Name = "pnlColors"
+			.Text = "Panel2"
+			.SetBounds 360, 64, 40, 160
+			.Parent = @grbColors
+		End With
+		' pnlGrid
+		With pnlGrid
+			.Name = "pnlGrid"
+			.Text = "Panel2"
+			.SetBounds 10, 63, 314, 106
+			.Parent = @grbGrid
 		End With
 	End Constructor
 	
