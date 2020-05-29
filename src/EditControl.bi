@@ -267,6 +267,7 @@ Namespace My.Sys.Forms
 		Dim As Integer dwClientY    ' Высота клиентской области
 		Canvas As My.Sys.Drawing.Canvas
 		Modified As Boolean
+		WithHistory As Boolean
 		FLines As List
 		CurExecutedLine As Integer = -1
 		FocusedItemIndex As Integer

@@ -157,7 +157,6 @@ Private:
 	Dim bTemp As Boolean
 	Dim As Integer lLeft, lTop, lWidth, lHeight
 	Dim PropertyCtrl As Any Ptr
-	Dim txtCodeBi As EditControl
 	Declare Function SaveTab As Boolean
 	Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 Public:
@@ -165,6 +164,7 @@ Public:
 	Enums As WStringList
 	Procedures As WStringList
 	Functions As WStringList
+	FunctionsOthers As WStringList
 	Args As WStringList
 	Declare Sub FillProperties(ByRef ClassName As WString)
 	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean

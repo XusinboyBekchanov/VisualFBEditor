@@ -11,6 +11,8 @@
 
 Dim Shared FPropertyItems As WStringList
 Dim Shared FListItems As WStringList
+Dim Shared txtCodeBi As EditControl
+txtCodeBi.WithHistory = False
 
 Destructor ExplorerElement
 	If FileName Then Deallocate FileName
@@ -303,29 +305,29 @@ End Property
 '  Next i
 'End Function
 '
-Sub CloseButton_MouseUp(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+Sub CloseButton_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Dim tb As TabWindow Ptr = Cast(CloseButton Ptr, @Sender)->tbParent
 	If tb = 0 Then Exit Sub
 	If tb->CloseTab Then Delete tb
 End Sub
 
-Sub CloseButton_MouseMove(BYREF Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Dim btn As CloseButton Ptr = Cast(CloseButton Ptr, @Sender)
 	If btn->BackColor = clRed Then Exit Sub
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		btn->BackColor = clRed
 		btn->Font.Color = clWhite
-	#EndIf
+	#endif
 	btn->MouseIn = True
 	'DeAllocate btn
 End Sub
 
-Sub CloseButton_MouseLeave(BYREF Sender As Control)
+Sub CloseButton_MouseLeave(ByRef Sender As Control)
 	Dim btn As CloseButton Ptr = Cast(CloseButton Ptr, @Sender)
-	#IfNDef __USE_GTK__
+	#ifndef __USE_GTK__
 		btn->BackColor = btn->OldBackColor
 		btn->Font.Color = btn->OldForeColor
-	#EndIf
+	#endif
 	btn->MouseIn = False
 End Sub
 
@@ -3049,10 +3051,20 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	End If
 	Dim As TypeElement Ptr te, func
 	For i As Integer = Functions.Count - 1 To 0 Step -1
-		te = Cast(TypeElement Ptr, Functions.Object(i))
+		te = Functions.Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+		Next
 		Delete Cast(TypeElement Ptr, Functions.Object(i))
 	Next
+	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1
+		Delete Cast(TypeElement Ptr, FunctionsOthers.Object(i))
+	Next
+	For i As Integer = Args.Count - 1 To 0 Step -1
+		Delete Cast(TypeElement Ptr, Args.Object(i))
+	Next
 	Functions.Clear
+	FunctionsOthers.Clear
 	Types.Clear
 	Procedures.Clear
 	Args.Clear
@@ -3281,6 +3293,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->EndLine = i
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
 				te->FileName = FileName
+				FunctionsOthers.Add te->DisplayName, te
 				Procedures.Add te->Name, te
 			ElseIf StartsWith(bTrimLCase, "declare ") Then
 				Pos1 = InStr(9, bTrim, " ")
@@ -3341,10 +3354,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->TabPtr = @This
 				te->FileName = FileName
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
-				'Functions.Add te->DisplayName, te
 				If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 					func->Elements.Add te->Name, te
 				Else
+					FunctionsOthers.Add te->DisplayName, te
 					Procedures.Add te->Name, te
 				End If
 			Else
@@ -3956,6 +3969,9 @@ Destructor TabWindow
 	If FLine4 Then Deallocate FLine4
 	If FPath Then Deallocate FPath
 	If Des <> 0 Then
+		If Des->DesignControl Then
+			Des->UnHook
+		End If
 		If Des->DeleteComponentFunc <> 0 Then
 			For i As Integer = 2 To cboClass.Items.Count - 1
 				CurCtrl = 0
@@ -3971,10 +3987,25 @@ Destructor TabWindow
 	End If
 	cboClass.Items.Clear
 	cboFunction.Items.Clear
-	'	For i As Integer = 0 To Functions.Count - 1
-	'		Delete Cast(TypeElement Ptr, Functions.Object(i))
-	'	Next
-	'Functions.Clear
+	Dim As TypeElement Ptr te
+	For i As Integer = Functions.Count - 1 To 0 Step -1
+		te = Functions.Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+		Next
+		Delete Cast(TypeElement Ptr, Functions.Object(i))
+	Next
+	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1
+		Delete Cast(TypeElement Ptr, FunctionsOthers.Object(i))
+	Next
+	For i As Integer = Args.Count - 1 To 0 Step -1
+		Delete Cast(TypeElement Ptr, Args.Object(i))
+	Next
+	Functions.Clear
+	FunctionsOthers.Clear
+	Types.Clear
+	Procedures.Clear
+	Args.Clear
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0
 	'If tn <> 0 Then ptvExplorer->RemoveRoot ptvExplorer->IndexOfRoot(tn)
 End Destructor

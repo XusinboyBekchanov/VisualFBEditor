@@ -654,24 +654,26 @@ Namespace My.Sys.Forms
 	Sub EditControl.Changed(ByRef Comment As WString = "")
 		OldnCaretPosX = nCaretPosX
 		OldCharIndex = GetOldCharIndex
-		If Comment <> "" Then
-			Var item = New EditControlHistory
-			_FillHistory item, Comment
-			item->OldSelStartLine = FOldSelStartLine
-			item->OldSelEndLine = FOldSelEndLine
-			item->OldSelStartChar = FOldSelStartChar
-			item->OldSelEndChar = FOldSelEndChar
-			item->SelStartLine = FSelStartLine
-			item->SelEndLine = FSelEndLine
-			item->SelStartChar = FSelStartChar
-			item->SelEndChar = FSelEndChar
-			_ClearHistory curHistory + 1
-			FHistory.Add item
-			If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
-				Delete Cast(EditControlHistory Ptr, FHistory.Items[0])
-				FHistory.Remove 0
+		If WithHistory Then
+			If Comment <> "" Then
+				Var item = New EditControlHistory
+				_FillHistory item, Comment
+				item->OldSelStartLine = FOldSelStartLine
+				item->OldSelEndLine = FOldSelEndLine
+				item->OldSelStartChar = FOldSelStartChar
+				item->OldSelEndChar = FOldSelEndChar
+				item->SelStartLine = FSelStartLine
+				item->SelEndLine = FSelEndLine
+				item->SelStartChar = FSelStartChar
+				item->SelEndChar = FSelEndChar
+				_ClearHistory curHistory + 1
+				FHistory.Add item
+				If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
+					Delete Cast(EditControlHistory Ptr, FHistory.Items[0])
+					FHistory.Remove 0
+				End If
+				curHistory = FHistory.Count - 1
 			End If
-			curHistory = FHistory.Count - 1
 		End If
 		If OnChange Then OnChange(This)
 		Modified = True
@@ -3824,6 +3826,7 @@ Namespace My.Sys.Forms
 		bOldCommented = True
 		ChangeText "", 0, "Bo`sh"
 		ShowHint = False
+		WithHistory = True
 		'ClearUndo
 		'Brush.Color = clWindowColor
 	End Constructor
