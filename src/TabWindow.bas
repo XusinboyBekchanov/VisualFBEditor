@@ -446,6 +446,59 @@ Function TabWindow.SaveTab As Boolean
 	End If
 	txtCode.SaveToFile(*FFileName) ', False
 	Modified = False
+	Var FileIndex = IncludeFiles.IndexOf(FileName)
+	If FileIndex <> 0 Then
+		MutexLock tlockSave
+		Dim As TypeElement Ptr te, te1
+		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
+			te = pGlobalNamespaces->Object(i)
+			For j As Integer = te->Elements.Count - 1 To 0 Step -1
+				te1 = te->Elements.Object(j)
+				If te1->FileName = FileName Then te->Elements.Remove j
+			Next
+		Next
+		For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
+			te = pGlobalTypes->Object(i)
+			If te->FileName = FileName Then
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+				Next
+				te->Elements.Clear
+				Delete Cast(TypeElement Ptr, pGlobalTypes->Object(i))
+				pGlobalTypes->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
+			te = pGlobalEnums->Object(i)
+			If te->FileName = FileName Then
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+				Next
+				te->Elements.Clear
+				Delete Cast(TypeElement Ptr, pGlobalEnums->Object(i))
+				pGlobalEnums->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
+			te = pGlobalFunctions->Object(i)
+			If te->FileName = FileName Then
+				Delete Cast(TypeElement Ptr, pGlobalFunctions->Object(i))
+				pGlobalFunctions->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
+			te = pGlobalArgs->Object(i)
+			If te->FileName = FileName Then
+				Delete Cast(TypeElement Ptr, pGlobalArgs->Object(i))
+				pGlobalArgs->Remove i
+			End If
+		Next
+		MutexUnlock tlockSave
+		If Not pLoadPaths->Contains(FileName) Then
+			pLoadPaths->Add FileName
+		End If
+		ThreadCreate(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName)))
+	End If
 	Return True
 End Function
 
@@ -3055,6 +3108,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
 		Next
+		te->Elements.Clear
 		Delete Cast(TypeElement Ptr, Functions.Object(i))
 	Next
 	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1

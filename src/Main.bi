@@ -95,12 +95,14 @@ Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2
 Common Shared As WString Ptr DefaultDebugger, CurrentDebugger, DebuggerPath, DefaultTerminal, CurrentTerminal, TerminalPath
 Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64, Compiler32Path, Compiler64Path
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, DebugArguments
+Common Shared As Any Ptr tlock, tlockSave
 
 Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
 Common Shared As Dictionary Ptr pCompilers, pMakeTools, pDebuggers, pTerminals, pHelps
 
 Enum LoadParam
 	OnlyFilePath
+	OnlyFilePathOverwrite
 	OnlyIncludeFiles
 	FilePathAndIncludeFiles
 End Enum
@@ -162,6 +164,7 @@ Declare Function Compile(Parameter As String = "") As Integer
 Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0)
 Declare Sub LoadFunctionsSub(Param As Any Ptr)
 Declare Sub LoadOnlyFilePath(Param As Any Ptr)
+Declare Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 Declare Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 Declare Sub LoadFromTabWindow(Param As Any Ptr)
 Declare Sub CloseAllTabs(WithoutCurrent As Boolean = False)

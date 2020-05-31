@@ -1698,9 +1698,12 @@ Function WithoutPointers(ByRef e As String) As String
 End Function
 
 Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0)
-	If LoadParameter <> LoadParam.OnlyIncludeFiles Then
+	If FormClosing Then Exit Sub
+	MutexLock tlockSave
+	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 		If ec = 0 Then
 			If IncludeFiles.Contains(Path) Then
+				MutexUnlock tlockSave
 				Exit Sub
 			Else
 				IncludeFiles.Add Path
@@ -1781,7 +1784,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			bTrim = Trim(b)
 			bTrimLCase = LCase(bTrim)
 			k = k + Len(res(j)) + 1
-			If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(StartsWith(LTrim(LCase(b)), "#include ")) Then
+			If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) AndAlso CInt(StartsWith(LTrim(LCase(b)), "#include ")) Then
 				Pos1 = InStr(b, """")
 				If Pos1 > 0 Then
 					Pos2 = InStr(Pos1 + 1, b, """")
@@ -2412,16 +2415,17 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				End If
 			End If
 		Next
-		If FormClosing Then Exit Sub
+		If FormClosing Then MutexUnlock tlockSave: Exit Sub
 	Next
+	MutexUnlock tlockSave
 	For i As Integer = 0 To Files.Count - 1
 		LoadFunctions Files.Item(i), , Types, Enums, Functions, Args
 		If FormClosing Then Exit Sub
 	Next
 End Sub
 
-Dim Shared tlock As Any Ptr
 tlock = MutexCreate()
+tlockSave = MutexCreate()
 Sub LoadFunctionsSub(Param As Any Ptr)
 	MutexLock tlock
 	If Not FormClosing Then
@@ -2434,6 +2438,14 @@ Sub LoadOnlyFilePath(Param As Any Ptr)
 	MutexLock tlock
 	If Not FormClosing Then
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
+	End If
+	MutexUnlock tlock
+End Sub
+
+Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
+	MutexLock tlock
+	If Not FormClosing Then
+		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
 	End If
 	MutexUnlock tlock
 End Sub

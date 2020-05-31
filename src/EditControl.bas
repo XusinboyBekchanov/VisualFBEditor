@@ -782,7 +782,9 @@ Namespace My.Sys.Forms
 	Sub EditControl.ClearUndo
 		On Error Goto A
 		For i As Integer = curHistory To 0 Step -1
-			Delete Cast(EditControlHistory Ptr, FHistory.Items[i])
+			If FHistory.Count > curHistory Then
+				Delete Cast(EditControlHistory Ptr, FHistory.Items[i])
+			End If
 			'FHistory.Remove i
 		Next i
 		FHistory.Clear
