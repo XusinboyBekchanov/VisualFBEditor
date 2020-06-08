@@ -1669,7 +1669,7 @@ Namespace My.Sys.Forms
 			FillRect bufDC, @rc, This.Canvas.Brush.Handle
 		#endif
 		i = -1
-		If VScrollPos > 0 Then iC = Cast(EditControlLine Ptr, FLines.Items[VScrollPos - 1])->CommentIndex
+		If VScrollPos > 0 AndAlso VScrollPos <= FLines.Count Then iC = Cast(EditControlLine Ptr, FLines.Items[VScrollPos - 1])->CommentIndex
 		CollapseIndex = 0
 		OldCollapseIndex = 0
 		'ChangeCase = False
