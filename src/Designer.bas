@@ -1420,7 +1420,7 @@ Namespace My.Sys.Forms
 				#else
 					Select Case uMsg
 					Case WM_NCHITTEST
-						Return HTTRANSPARENT
+						'Return HTTRANSPARENT
 					Case WM_GETDLGCODE: 'Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
 				#endif
 					#ifdef __USE_GTK__
