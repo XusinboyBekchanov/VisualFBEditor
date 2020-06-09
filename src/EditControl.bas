@@ -3296,7 +3296,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					If CInt(Not bCtrl) AndAlso CInt(*e->Key.string <> "") Then
 				#else
-					If GetKeyState(VK_CONTROL) >= 0 Then
+					If GetKeyState(VK_CONTROL) >= 0 OrElse GetKeyState(VK_RMENU) < 0 Then
 				#endif
 					#ifdef __USE_GTK__
 						If *e->Key.string = " " Then
