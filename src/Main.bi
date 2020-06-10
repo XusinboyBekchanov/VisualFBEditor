@@ -115,6 +115,7 @@ Declare Sub AddMRUSession(ByRef FileName As WString) 'David Change
 Declare Sub AddFileToProject
 Declare Sub RemoveFileFromProject
 Declare Sub OpenUrl(ByVal url As String)
+Declare Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0) As TreeNode Ptr
 Declare Function SaveProject(ByRef tn As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
 Declare Function CloseProject(tn As TreeNode Ptr) As Boolean
 Declare Sub SetMainNode(tn As TreeNode Ptr)

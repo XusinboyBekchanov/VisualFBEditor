@@ -223,16 +223,26 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 	Folders.Clear
 End Sub
 
+Dim Shared ToDoLock As Any Ptr
+ToDoLock = MutexCreate()
 Sub FindToDoSub(Param As Any Ptr)
+	MutexLock ToDoLock
 	ThreadsEnter
 	plvToDo->ListItems.Clear
 	StartProgress
 	ThreadsLeave
-	fFindFile.Find plvToDo, GetFolderName(*Cast(ExplorerElement Ptr, Param)->FileName), WChr(39) + WChr(84) + "ODO"
+	Dim As TreeNode Ptr ptn = Param
+	Dim As ExplorerElement Ptr ee = Cast(ExplorerElement Ptr, ptn->Tag)
+	If ptn->ImageKey = "Opened" Then
+		fFindFile.Find plvToDo, *ee->FileName, WChr(39) + WChr(84) + "ODO"
+	Else
+		fFindFile.Find plvToDo, GetFolderName(*ee->FileName), WChr(39) + WChr(84) + "ODO"
+	End If
 	ThreadsEnter
 	StopProgress
 	ptabBottom->Tabs[3]->Caption = ML("ToDo") & IIf(plvToDo->ListItems.Count = 0, "", " (" & plvToDo->ListItems.Count & " " & ML("Pos") & ")")
 	ThreadsLeave
+	MutexUnlock ToDoLock
 End Sub
 
 Sub FindSub(Param As Any Ptr)

@@ -6,7 +6,7 @@
 '#########################################################
 
 #include once "TabWindow.bi"
-#include "vbcompat.bi"  'David Change for could using format function
+#include once "vbcompat.bi"  'David Change for could using format function
 #define TabSpace IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
 
 Dim Shared FPropertyItems As WStringList
@@ -44,6 +44,7 @@ Destructor ProjectElement
 	WDeallocate CompilationArguments32Linux
 	WDeallocate CompilationArguments64Linux
 	WDeallocate CommandLineArguments
+	Files.Clear
 End Destructor
 
 Destructor TypeElement
@@ -504,8 +505,10 @@ End Function
 
 Function TabWindow.SaveAs As Boolean
 	pSaveD->Filter = ML("Module FreeBasic") & " (*.bas)|*.bas|" & ML("Include File FreeBasic") & " (*.bi)|*.bi|" & ML("All Files") & "|*.*|"
-	If WGet(LastOpenPath) <> "" Then
-		pSaveD->InitialDir = *LastOpenPath
+	If FileName <> "" Then
+		pSaveD->InitialDir = GetFolderName(FileName)
+'	ElseIf WGet(LastOpenPath) <> "" Then
+'		pSaveD->InitialDir = *LastOpenPath
 	Else
 		pSaveD->InitialDir = GetFullPath(*ProjectsPath)
 	End If
@@ -714,7 +717,7 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 		If te = 0 Then Return *FLine
 		With *te
 			Select Case LCase(.TypeName)
-			Case "wstring", "string", "zstring": WLet FLine, """" & QWString(pTemp) & """"
+			Case "wstring", "string", "zstring": WLet FLine, QWString(pTemp): If InStr(*FLine, """") = 0 Then WLet FLine, """" & *FLine & """", True
 			Case "icon", "bitmaptype", "cursor": If Des->ToStringFunc <> 0 Then WLet FLine, """" & Des->ToStringFunc(pTemp) & """"
 			Case "integer": iTemp = QInteger(pTemp)
 				WLet FLine, WStr(iTemp)
@@ -3084,11 +3087,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					If CBItem <> 0 Then CurCtrl = CBItem->Object
 					If CurCtrl <> 0 Then
 						'TODO Hange here with ctrl RichEdit
-							If WGet(.ReadPropertyFunc(.SelectedControl, "ClassName"))<>"RichTextBox" Then
+							If WGet(.ReadPropertyFunc(CurCtrl, "ClassName"))<>"RichTextBox" Then
 								.DeleteComponentFunc(CurCtrl)
 							Else
 								''Delete the last one not current one. But still one more remain exist
-								If CurCtrlRichedit<>0 Then .DeleteComponentFunc(CurCtrlRichedit) 
+								If CurCtrlRichedit <> 0 Then .DeleteComponentFunc(CurCtrlRichedit) 
 								CurCtrlRichedit = CurCtrl
 							End If
 					End If
@@ -3507,9 +3510,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->OnModified = @DesignerModified
 					Des->MFF = DyLibLoad(*MFFDll)
 					Des->CreateControlFunc = DyLibSymbol(Des->MFF, "CreateControl")
+					Des->CreateComponentFunc = DyLibSymbol(Des->MFF, "CreateComponent")
 					Des->ReadPropertyFunc = DyLibSymbol(Des->MFF, "ReadProperty")
 					Des->WritePropertyFunc = DyLibSymbol(Des->MFF, "WriteProperty")
 					Des->DeleteComponentFunc = DyLibSymbol(Des->MFF, "DeleteComponent")
+					Des->DeleteAllObjectsFunc = DyLibSymbol(Des->MFF, "DeleteAllObjects")
 					Des->RemoveControlSub = DyLibSymbol(Des->MFF, "RemoveControl")
 					Des->ControlByIndexFunc = DyLibSymbol(Des->MFF, "ControlByIndex")
 					Des->Q_ComponentFunc = DyLibSymbol(Des->MFF, "Q_Component")
@@ -3785,6 +3790,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		'cboClass_Change cboClass
 		'OnLineChangeEdit txtCode, iSelEndLine
 	End If
+	WithArgs.Clear
+	ConstructionBlocks.Clear
+	SelControlNames.Clear
 	bNotDesign = False
 	pfrmMain->UpdateUnLock
 	Exit Sub
@@ -3884,6 +3892,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	mnuCode.Add(ML("Set Next Statement"), "", "SetNextStatement", @mclick)
 	mnuCode.Add("-")
 	mnuCode.Add(ML("Define"), "", "Define", @mclick)
+	mnuCode.Add("-")
+	mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mclick)
 	txtCode.ContextMenu = @mnuCode
 	pnlTopCombo.Align = 5
 	pnlTopCombo.Width = 101
@@ -4022,23 +4032,7 @@ Destructor TabWindow
 	If FLine3 Then Deallocate FLine3
 	If FLine4 Then Deallocate FLine4
 	If FPath Then Deallocate FPath
-	If Des <> 0 Then
-		If Des->DesignControl Then
-			Des->UnHook
-		End If
-		If Des->DeleteComponentFunc <> 0 Then
-			For i As Integer = 2 To cboClass.Items.Count - 1
-				CurCtrl = 0
-				CBItem = cboClass.Items.Item(i)
-				If CBItem <> 0 Then CurCtrl = CBItem->Object
-				If CurCtrl <> 0 Then
-					Des->DeleteComponentFunc(CurCtrl)
-				End If
-			Next i
-			Des->DeleteComponentFunc(Des->DesignControl)
-		End If
-		Delete Des
-	End If
+	If Des <> 0 Then Delete Des
 	cboClass.Items.Clear
 	cboFunction.Items.Clear
 	Dim As TypeElement Ptr te
@@ -4626,7 +4620,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 	If MainNode Then
 		Dim ee As ExplorerElement Ptr
 		ee = MainNode->Tag
-		If MainNode->ImageKey = "Project" Then
+		If MainNode->ImageKey = "Project" OrElse ee AndAlso ee->Project <> 0 Then
 			ProjectNode = MainNode
 			If ee Then Project = ee->Project
 			If ee AndAlso ee->Project AndAlso WGet(ee->Project->MainFileName) <> "" Then
@@ -4654,7 +4648,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 			If tb->Modified Then tb->Save
 		End If
 		Var tn = GetParentNode(tb->tn)
-		If tn->ImageKey = "Project" Then
+		If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso Cast(ExplorerElement Ptr, tn->Tag)->Project <> 0 Then
 			ProjectNode = tn
 			Dim As ExplorerElement Ptr ee = tn->Tag
 			If ee Then Project = ee->Project
@@ -5368,6 +5362,36 @@ Sub TabWindow.PreprocessorNumberOff()
 			End If
 		Next i
 		.Changed("Remove Preprocessor Numbering")
+		.UpdateUnLock
+		'.ShowCaretPos True
+	End With
+End Sub
+
+Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("Sort Lines")
+		If StartLine = -1 Or EndLine = -1 Then
+			Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			StartLine = iSelStartLine
+			EndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		End If
+		Dim As EditControlLine Ptr FECLine
+		Dim As Integer n
+		Dim As WStringList Lines
+		For i As Integer = StartLine To EndLine
+			FECLine = .FLines.Items[i]
+			Lines.Add *FECLine->Text
+		Next i
+		Lines.Sort
+		For i As Integer = StartLine To EndLine
+			FECLine = .FLines.Items[i]
+			WLet FECLine->Text, Lines.Item(i)
+		Next i
+		.Changed("Sort Lines")
 		.UpdateUnLock
 		'.ShowCaretPos True
 	End With

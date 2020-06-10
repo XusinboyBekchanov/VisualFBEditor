@@ -506,6 +506,22 @@ Sub AddToCombo(ByRef tn As TreeNode Ptr)
 	End With
 End Sub
 
+Sub AddToComboFileName(ByRef FileName As WString)
+	With fProjectProperties
+		Dim As UString Text = GetFileName(FileName)
+		If EndsWith(LCase(Text), ".rc") OrElse EndsWith(LCase(Text), ".res") Then
+			.cboResourceFile.AddItem Text
+			.ResourceFiles.Add Text, FileName
+		ElseIf EndsWith(LCase(Text), ".xpm") Then
+			.cboIconResourceFile.AddItem Text
+			.IconResourceFiles.Add Text, FileName
+		Else
+			.cboMainFile.AddItem Text
+			.MainFiles.Add Text, FileName
+		End If
+	End With
+End Sub
+
 Public Sub frmProjectProperties.RefreshProperties()
 	With fProjectProperties
 		Dim As TreeNode Ptr ptn = ptvExplorer->SelectedNode
@@ -524,19 +540,25 @@ Public Sub frmProjectProperties.RefreshProperties()
 		.cboResourceFile.AddItem ML("(not selected)")
 		.cboIconResourceFile.AddItem ML("(not selected)")
 		Dim As Boolean bSetted = False
-		If ptn->ImageKey = "Project" Then
+		If ptn->ImageKey = "Project" OrElse ee AndAlso ee->Project <> 0 Then
 			.ProjectTreeNode = ptn
-			For i As Integer = 0 To ptn->Nodes.Count - 1
-				tn1 = ptn->Nodes.Item(i)
-				If tn1->Tag <> 0 Then
-					AddToCombo tn1
-				ElseIf tn1->Nodes.Count > 0 Then
-					For j As Integer = 0 To tn1->Nodes.Count - 1
-						tn2 = tn1->Nodes.Item(j)
-						AddToCombo tn2
-					Next
-				End If
-			Next
+			If ptn->ImageKey = "Project" Then
+				For i As Integer = 0 To ptn->Nodes.Count - 1
+					tn1 = ptn->Nodes.Item(i)
+					If tn1->Tag <> 0 Then
+						AddToCombo tn1
+					ElseIf tn1->Nodes.Count > 0 Then
+						For j As Integer = 0 To tn1->Nodes.Count - 1
+							tn2 = tn1->Nodes.Item(j)
+							AddToCombo tn2
+						Next
+					End If
+				Next
+			Else
+				For i As Integer = 0 To ee->Project->Files.Count - 1
+					AddToComboFileName ee->Project->Files.Item(i)
+				Next
+			End If
 			If ee AndAlso ee->Project Then
 				ppe = ee->Project
 				bSetted = True

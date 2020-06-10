@@ -5407,7 +5407,7 @@ Dim Shared exedate As Double 'serial date
 			var_sh			'updating information about variables
 			runtype=RTSTEP:dsp_change(i)
 		Else 'RTSTEP or RTAUTO
-			If flagattach Then proc_newfast:flagattach=FALSE
+			If flagattach Then proc_newfast:flagattach=False
 			'NOTA If rline(i).nu=-1 Then
 			'fb_message("No line for this proc","Code added by compiler (constructor,...)")
 			'Else
@@ -5841,7 +5841,7 @@ Sub RunWithDebug(Param As Any Ptr)
 	'#IfNDef __USE_GTK__
 	exename = GetExeFileName(MainFile, FirstLine)
 	'#EndIf
-	If WGet(DebuggerPath) <> "" Then
+	If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP Then
 		WLet CmdL, """" & WGet(DebuggerPath) & """ """ & GetFileName(exename) & """ "
 	Else
 		WLet CmdL, """" & GetFileName(exename) & """ " & *RunArguments
@@ -5905,7 +5905,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		ThreadsEnter()
 		ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
 		ThreadsLeave()
-		If WGet(DebuggerPath) <> "" Then
+		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP Then
 			Dim As Unsigned Long ExitCode
 			exename = WGet(DebuggerPath)
 			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE

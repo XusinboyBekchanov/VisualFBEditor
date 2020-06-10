@@ -155,11 +155,11 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
 					If p1 > 0 Then
 						Key = Mid(Buff1, p + 4, p1 - p - 4)
 						If Key <> """" Then
-							If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key: ?Key
+							If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
 							'David Change for surport like "&F" in menuitem
 							If InStr(key,"&") Then
 								Key=replace(key,"&","")
-								If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key: ?Key
+								If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
 							End If
 						End If
 					End If
@@ -175,7 +175,7 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
 	mlKeysNew.Sort
 	For i As Integer = 0 To mlKeysNew.Count - 1
 		Key = mlKeysNew.Item(i)
-		Print #1, Key & " = " & IIF(mlKeys.Contains(Key), mlTexts.Item(mlKeys.IndexOf(Key)), "")
+		Print #1, Key & " = " & IIf(mlKeys.Contains(Key), mlTexts.Item(mlKeys.IndexOf(Key)), "")
 	Next
 	Close #1
 	MsgBox "Done!"

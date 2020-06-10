@@ -164,7 +164,9 @@ Namespace My.Sys.Forms
 		Declare        Sub KeyDown(Key As Integer, Shift As Integer)
 	Public:
 		CreateControlFunc As Function(ByRef ClassName As String, ByRef Name As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As Any Ptr
+		CreateComponentFunc As Function(ClassName As String, ByRef Name As WString, lLeft As Integer, lTop As Integer, Parent As Any Ptr) As Any Ptr
 		DeleteComponentFunc As Function(Cpnt As Any Ptr) As Boolean
+		DeleteAllObjectsFunc As Function() As Boolean
 		ReadPropertyFunc As Function(Cpnt As Any Ptr, ByRef PropertyName As String) As Any Ptr
 		WritePropertyFunc As Function(Cpnt As Any Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		RemoveControlSub As Sub(Parent As Any Ptr, Ctrl As Any Ptr)

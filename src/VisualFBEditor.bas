@@ -45,6 +45,12 @@ Sub StartDebugging(Param As Any Ptr)
 	RunWithDebug(0)
 End Sub
 
+Sub RunCmd(Param As Any Ptr)
+	Dim As UString MainFile = GetMainFile()
+	Dim As UString cmd = Environ("COMSPEC") & " /K cd /D """ & GetFolderName(MainFile) & """"
+	Shell(cmd)
+End Sub
+
 Sub FindInFiles
 	ThreadCreate(@FindSub)
 End Sub
@@ -63,9 +69,12 @@ Sub mClick(Sender As My.Sys.Object)
 	Select Case Sender.ToString
 	Case "NewProject":                          NewProject
 	Case "OpenProject":                         OpenProject
+	Case "OpenFolder":                          OpenFolder
 	Case "OpenSession":                         OpenSession
 	Case "SaveProject":                         SaveProject ptvExplorer->SelectedNode
+	Case "SaveProjectAs":                       SaveProject ptvExplorer->SelectedNode, True
 	Case "SaveSession":                         SaveSession
+	Case "CloseFolder":                         CloseFolder GetParentNode(ptvExplorer->SelectedNode)
 	Case "CloseProject":                        CloseProject GetParentNode(ptvExplorer->SelectedNode)
 	Case "New":                                 AddTab
 	Case "Open":                                OpenProgram
@@ -73,6 +82,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Print":                               PrintThis
 	Case "PrintPreview":                        PrintPreview
 	Case "PageSetup":                           PageSetup
+	Case "CommandPrompt":                       ThreadCreate(@RunCmd)
 	Case "AddFileToProject":                    AddFileToProject
 	Case "RemoveFileFromProject":               RemoveFileFromProject
 	Case "OpenProjectFolder":                   OpenProjectFolder
@@ -81,45 +91,41 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
-	Case "SyntaxCheck":                         ThreadCreate(@SyntaxCheck) 'David Change
-	Case "Compile":                             ThreadCreate(@CompileProgram) 'David Change
-	Case "Make":                                ThreadCreate(@MakeExecute) 'David Change
-	Case "MakeClean":                           ThreadCreate(@MakeClean) 'David Change
+	Case "SyntaxCheck":                         ThreadCreate(@SyntaxCheck)
+	Case "Compile":                             ThreadCreate(@CompileProgram)
+	Case "Make":                                ThreadCreate(@MakeExecute)
+	Case "MakeClean":                           ThreadCreate(@MakeClean)
 	Case "FormatProject":                       ThreadCreate(@FormatProject) 'FormatProject 0
 	Case "UnformatProject":                     ThreadCreate(@FormatProject, Cast(Any Ptr, 1)) 'FormatProject Cast(Any Ptr, 1)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "StartWithCompile"
-		SaveAll 'David Change
-		If UseDebugger Then
-			If InDebug Then
-				#ifndef __USE_GTK__
-					ChangeEnabledDebug False, True, True
-					fastrun()
-				#endif
-			Else
-				#ifndef __USE_GTK__
-					runtype = RTFRUN
-					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
-				#endif
-				ThreadCreate(@StartDebuggingWithCompile)
-			EndIf
+		'SaveAll 'David Change
+		If InDebug Then
+			#ifndef __USE_GTK__
+				ChangeEnabledDebug False, True, True
+				fastrun()
+			#endif
+		ElseIf UseDebugger Then
+			#ifndef __USE_GTK__
+				runtype = RTFRUN
+				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+			#endif
+			ThreadCreate(@StartDebuggingWithCompile)
 		Else
 			ThreadCreate(@CompileAndRun)
 		End If
 	Case "Start"
-		If UseDebugger Then
-			If InDebug Then
-				#ifndef __USE_GTK__
-					ChangeEnabledDebug False, True, True
-					fastrun()
-				#endif
-			Else
-				#ifndef __USE_GTK__
-					runtype = RTFRUN
-					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
-				#endif
-				ThreadCreate(@StartDebugging)
-			EndIf
+		If InDebug Then
+			#ifndef __USE_GTK__
+				ChangeEnabledDebug False, True, True
+				fastrun()
+			#endif
+		ElseIf UseDebugger Then
+			#ifndef __USE_GTK__
+				runtype = RTFRUN
+				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+			#endif
+			ThreadCreate(@StartDebugging)
 		Else
 			ThreadCreate(@RunProgram)
 		End If
@@ -152,14 +158,15 @@ Sub mClick(Sender As My.Sys.Object)
 			ThreadCreate(@StartDebugging)
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
-		"Start", "Stop", "StepInto", "FindNext","FindPrev", "Goto", "SetNextStatement", _
-		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks","SwitchCodeForm" 'David Change
+		"Start", "Stop", "StepInto", "FindNext","FindPrev", "Goto", "SetNextStatement", "SortLines", _
+		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "SwitchCodeForm" 'David Change
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
 		Case "Save":                        tb->Save
 		Case "SaveAs":                      tb->SaveAs
 		Case "Close":                       tb->CloseTab
+		Case "SortLines":                   tb->SortLines
 			#ifndef __USE_GTK__
 			Case "SetNextStatement":        exe_mod()
 			Case "ShowVar":                 var_tip(1)
@@ -272,3 +279,5 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "About":                           pfAbout->Show *pfrmMain
 	End Select
 End Sub
+
+

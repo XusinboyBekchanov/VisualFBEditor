@@ -89,6 +89,7 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Static Sub cmdAddLibrary_Click(ByRef Sender As Control)
 		Declare Static Sub cmdRemoveInclude_Click(ByRef Sender As Control)
 		Declare Static Sub cmdRemoveLibrary_Click(ByRef Sender As Control)
+		Declare Static Sub cmdProjectsPath_Click(ByRef Sender As Control)
 		Declare Constructor
 		Declare Destructor
 		

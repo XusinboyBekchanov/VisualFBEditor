@@ -51,7 +51,7 @@ Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlPropertyValue
 Dim Shared As Trackbar trLeft
 Dim Shared As ScrollBarControl scrTool
 Dim Shared As MainMenu mnuMain
-Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentSessions
+Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions
 Dim Shared As SaveFileDialog SaveD
 #ifndef __USE_GTK__
 	Dim Shared As PageSetupDialog PageSetupD
@@ -59,7 +59,7 @@ Dim Shared As SaveFileDialog SaveD
 	Dim Shared As PrintPreviewDialog PrintPreviewD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUProjects, MRUSessions 'David Change add Sessions
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions 'David Change add Sessions
 Dim Shared As WString Ptr RecentFiles 'David Change
 Dim Shared As Dictionary Compilers, MakeTools, Debuggers, Terminals, Helps
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
@@ -597,6 +597,21 @@ Sub AddMRUProject(ByRef FileName As WString)
 	End If
 End Sub
 
+Sub AddMRUFolder(ByRef FolderName As WString)
+	Var i = MRUFolders.IndexOf(FolderName)
+	If i <> 0 Then
+		If i > 0 Then MRUFolders.Remove i
+		MRUFolders.Insert 0, FolderName
+		For i = 0 To Min(miRecentFolders->Count - 1, MRUFolders.Count - 1)
+			miRecentFolders->Item(i)->Caption = MRUFolders.Item(i)
+			miRecentFolders->Item(i)->Name = MRUFolders.Item(i)
+		Next
+		For i = i To Min(9, MRUFolders.Count - 1)
+			miRecentFolders->Add(MRUFolders.Item(i), "", MRUFolders.Item(i), @mClickMRU)
+		Next
+	End If
+End Sub
+
 'Extern "rtlib"
 '   Declare Function LineInputWstr Alias "fb_FileLineInputWstr"_
 '      ( _
@@ -606,43 +621,132 @@ End Sub
 '      ) As Long
 'End Extern
 
-Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0) As TreeNode Ptr
-	Dim As ExplorerElement Ptr ee, pee
-	Dim As TreeNode Ptr tn, tn3
-	If FileName <> "" Then
-		'David Change
-		If Not FileExists(FileName) Then
-			MsgBox ML("File not found") & ": " & FileName
-			Return tn
+Sub ClearTreeNode(ByRef tn As TreeNode Ptr)
+	If tn = 0 Then Exit Sub
+	For i As Integer = 0 To tn->Nodes.Count - 1
+		Delete Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag)
+	Next
+	tn->Nodes.Clear
+End Sub
+
+Sub ExpandFolder(ByRef tn As TreeNode Ptr)
+	If tn = 0 Then Exit Sub
+	Dim As ExplorerElement Ptr ee = tn->Tag, ee1
+	If ee = 0 OrElse ee->FileName = 0 Then Exit Sub
+	ClearTreeNode tn
+	Dim As TreeNode Ptr tn1
+	Dim As String f, IconName
+	Dim As UInteger Attr
+	Dim As WStringList Files
+	f = Dir(*ee->FileName & "/*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
+	While f <> ""
+		If (Attr And fbDirectory) <> 0 Then
+			If f <> "." AndAlso f <> ".." Then
+				IconName = "Opened"
+				tn1 = tn->Nodes.Add(GetFileName(f), , f, IconName, IconName)
+				If FileExists(f & Slash & f & ".vfp") Then
+					AddProject f & Slash & f & ".vfp", , tn1
+					WLet Cast(ExplorerElement Ptr, tn1->Tag)->FileName, *ee->FileName & "/" & f
+				Else
+					ee1 = New ExplorerElement
+					WLet ee1->FileName, *ee->FileName & "/" & f
+					tn1->Tag = ee1
+				End If
+				tn1->Nodes.Add ""
+			End If
+		Else
+			Files.Add *ee->FileName & "/" & f
 		End If
-		AddMRUProject FileName
-		'Dim As WString Ptr buff 'David Change
+		f = Dir(Attr)
+	Wend
+	For i As Integer = 0 To Files.Count - 1
+		If EndsWith(LCase(Files.Item(i)), ".vfp") Then
+			IconName = "Project"
+		ElseIf EndsWith(LCase(Files.Item(i)), ".rc") OrElse EndsWith(LCase(Files.Item(i)), ".res") OrElse EndsWith(LCase(Files.Item(i)), ".xpm") Then
+			IconName = "Res"
+		Else
+			IconName = "File"
+		End If
+		tn1 = tn->Nodes.Add(GetFileName(*ee->FileName & "/" & Files.Item(i)), , Files.Item(i), IconName, IconName)
+		ee1 = New ExplorerElement
+		WLet ee1->FileName, Files.Item(i)
+		tn1->Tag = ee1
+	Next i
+End Sub
+
+Sub CloseFolder(ByRef tn As TreeNode Ptr)
+	ClearTreeNode tn
+	Delete tn
+End Sub
+
+Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
+	Dim As TreeNode Ptr tn
+	If FolderName <> "" Then
+		AddMRUFolder FolderName
 		Dim As Integer Pos1
 		For i As Integer = 0 To tvExplorer.Nodes.Count - 1
-			If tvExplorer.Nodes.Item(i)->Tag <> 0 AndAlso EqualPaths(*Cast(ExplorerElement Ptr, tvExplorer.Nodes.Item(i)->Tag)->FileName, FileName) Then
+			If tvExplorer.Nodes.Item(i)->Tag <> 0 AndAlso EqualPaths(*Cast(ExplorerElement Ptr, tvExplorer.Nodes.Item(i)->Tag)->FileName, FolderName) Then
 				tvExplorer.Nodes.Item(i)->SelectItem
 				Return tvExplorer.Nodes.Item(i)
 			End If
 		Next
-		tn = tvExplorer.Nodes.Add(GetFileName(FileName), , FileName, "Project", "Project")
-	Else
-		Var n = 0
-		Dim NewName As String
-		Do
-			n = n + 1
-			NewName = "Project" & Str(n)
-		Loop While tvExplorer.Nodes.Contains(NewName)
-		tn = tvExplorer.Nodes.Add(NewName & " *", , , "Project", "Project")
+		Dim As String IconName = "Opened"
+		tn = tvExplorer.Nodes.Add(GetFileName(FolderName), , FolderName, IconName, IconName)
+		If FileExists(FolderName & Slash & GetFileName(FolderName) & ".vfp") Then
+			AddProject FolderName & Slash & GetFileName(FolderName) & ".vfp", , tn
+			WLet Cast(ExplorerElement Ptr, tn->Tag)->FileName, FolderName
+		Else
+			Dim As ExplorerElement Ptr ee
+			ee = New ExplorerElement
+			WLet ee->FileName, FolderName
+			tn->Tag = ee
+		End If
+		ExpandFolder tn
+		tn->Expand
 	End If
-	'If tn <> 0 Then
-	If tbExplorer.Buttons.Item(3)->Checked Then
-		tn->Nodes.Add ML("Includes"), "Includes", , "Opened", "Opened"
-		tn->Nodes.Add ML("Modules"), "Modules", , "Opened", "Opened"  'David Change.  Using "Modules" is better than "Sources"
-		tn->Nodes.Add ML("Resources"), "Resources", , "Opened", "Opened"
-		tn->Nodes.Add ML("Others"), "Others", , "Opened", "Opened"
-		'End if
+	Return tn
+End Function
+
+Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0) As TreeNode Ptr
+	Dim As ExplorerElement Ptr ee, pee
+	Dim As TreeNode Ptr tn3
+	Dim As Boolean inFolder = tn <> 0
+	If Not inFolder Then
+		If FileName <> "" Then
+			'David Change
+			If Not FileExists(FileName) Then
+				MsgBox ML("File not found") & ": " & FileName
+				Return tn
+			End If
+			AddMRUProject FileName
+			'Dim As WString Ptr buff 'David Change
+			Dim As Integer Pos1
+			For i As Integer = 0 To tvExplorer.Nodes.Count - 1
+				If tvExplorer.Nodes.Item(i)->Tag <> 0 AndAlso EqualPaths(*Cast(ExplorerElement Ptr, tvExplorer.Nodes.Item(i)->Tag)->FileName, FileName) Then
+					tvExplorer.Nodes.Item(i)->SelectItem
+					Return tvExplorer.Nodes.Item(i)
+				End If
+			Next
+			tn = tvExplorer.Nodes.Add(GetFileName(FileName), , FileName, "Project", "Project")
+		Else
+			Var n = 0
+			Dim NewName As String
+			Do
+				n = n + 1
+				NewName = "Project" & Str(n)
+			Loop While tvExplorer.Nodes.Contains(NewName)
+			tn = tvExplorer.Nodes.Add(NewName & " *", , , "Project", "Project")
+		End If
+		'If tn <> 0 Then
+		If tbExplorer.Buttons.Item(3)->Checked Then
+			tn->Nodes.Add ML("Includes"), "Includes", , "Opened", "Opened"
+			tn->Nodes.Add ML("Modules"), "Modules", , "Opened", "Opened"  'David Change.  Using "Modules" is better than "Sources"
+			tn->Nodes.Add ML("Resources"), "Resources", , "Opened", "Opened"
+			tn->Nodes.Add ML("Others"), "Others", , "Opened", "Opened"
+			'End if
+		End If
+		tn->SelectItem
 	End If
-	tn->SelectItem
 	If FileName <> "" Then
 		Dim As TreeNode Ptr tn1, tn2
 		'Dim buff As WString Ptr 'David Change
@@ -661,7 +765,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		Dim As String IconName
 		Dim Buff As WString * 2048 'David Change for V1.07 Line Input not working fine
 		Dim As Integer Fn = FreeFile
-		Dim Result As Integer=-1 'David Change
+		Dim Result As Integer = -1 'David Change
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
@@ -688,7 +792,9 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					Else
 						WLet ee->FileName, Buff
 					End If
-					tn1 = GetTreeNodeChild(tn, Buff)
+					If Not inFolder Then
+						tn1 = GetTreeNodeChild(tn, Buff)
+					End If
 					'David Change
 					If bMain Then
 						IconName = "MainRes"
@@ -700,22 +806,31 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							WLet ppe->MainFileName, *ee->FileName
 							IconName = "MainFile"
 						End If
-						tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
-						If MainNode = 0 Then SetMainNode GetParentNode(tn1)  'David Change
+						If Not inFolder Then
+							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
+							If MainNode = 0 Then SetMainNode GetParentNode(tn1)  'David Change
+						End If
 					Else
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") OrElse EndsWith(LCase(*ee->FileName), ".xpm") Then
 							IconName = "Res"
 						Else
 							IconName = "File"
 						End If
-						tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , *ee->FileName, IconName, IconName, True)
+						If Not inFolder Then
+							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , *ee->FileName, IconName, IconName, True)
+						End If
 					End If
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
 						pFiles->Add *ee->FileName
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
 						ThreadCreate(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName)))
 					End If
-					tn2->Tag = ee
+					If inFolder Then
+						ppe->Files.Add *ee->FileName
+						Delete ee
+					Else
+						tn2->Tag = ee
+					End If
 					' tn1->Expand
 				ElseIf Parameter = "ProjectType" Then
 					ppe->ProjectType = Val(Mid(Buff, Pos1 + 1))
@@ -783,10 +898,19 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 			Next
 		End If
 	End If
-	tn->Expand
+	If Not inFolder Then
+		tn->Expand
+	End If
 	'pfProjectProperties->RefreshProperties
 	Return tn
 End Function
+
+Sub OpenFolder()
+	Dim As FolderBrowserDialog BrowseD
+	If Not BrowseD.Execute Then Exit Sub
+	AddFolder BrowseD.Directory
+	TabLeft.Tabs[0]->SelectTab
+End Sub
 
 Sub OpenProject()
 	Dim As OpenFileDialog OpenD
@@ -834,10 +958,14 @@ Function AddSession(ByRef FileName As WString) As Boolean
 					WLet filn, Mid(Buff, Pos1 + 1)
 					If CInt(InStr(*filn, ":") = 0) OrElse CInt(StartsWith(*filn, "/")) Then
 						WLet filn, CurrentPath & Replace(*filn, BackSlash, Slash)
+						If EndsWith(*filn, Slash) Then WLet filn, Left(*filn, Len(*filn) - 1), True
 					End If
 					Dim tn As TreeNode Ptr
 					If EndsWith(LCase(*filn), ".vfp") Then
 						tn = AddProject(*filn, @Files)
+						If tn = 0 Then Continue Do
+					ElseIf Len(Dir(*filn, fbDirectory)) Then
+						tn = AddFolder(*filn)
 						If tn = 0 Then Continue Do
 					Else
 						Var tb = AddTab(*filn)
@@ -915,6 +1043,10 @@ Sub AddMRUSession(ByRef FileName As WString)
 	Next
 End Sub
 
+Function FolderExists(ByRef FolderName As WString) As Boolean
+	Return Len(Dir(FolderName, fbDirectory))
+End Function
+
 Sub OpenFiles(ByRef FileName As WString)
 	If EndsWith(FileName, ".vfs") Then
 		AddMRUSession FileName  'David Change
@@ -922,6 +1054,9 @@ Sub OpenFiles(ByRef FileName As WString)
 	ElseIf EndsWith(FileName, ".vfp") Then
 		AddMRUProject FileName    'David Change
 		AddProject FileName
+	ElseIf FolderExists(FileName) Then
+		AddMRUFolder FileName
+		AddFolder FileName
 	ElseIf Trim(FileName)<>"" Then 'David Change
 		AddMRUFile FileName
 		AddTab FileName
@@ -930,11 +1065,11 @@ End Sub
 
 Sub OpenProgram()
 	Dim As OpenFileDialog OpenD
-	If WGet(LastOpenPath) <> "" Then
-		OpenD.InitialDir = *LastOpenPath
-	Else
+'	If WGet(LastOpenPath) <> "" Then
+'		OpenD.InitialDir = *LastOpenPath
+'	Else
 		OpenD.InitialDir = GetFullPath(*ProjectsPath)
-	End If
+'   End If
 	'David Change  Add *.inc
 	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs,*.vfp,*.bas,*.bi,*.inc,*.rc)|*.vfs;*.vfp;*.bas;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("FreeBasic Resource Files") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
@@ -972,7 +1107,7 @@ Function SaveSession() As Boolean
 			ee = tn1->Tag
 			If ee = 0 Then Continue For
 			Zv = IIf(tn1 = MainNode, "*", "")
-			If StartsWith(*ee->FileName, GetFolderName(SaveD.Filename)) Then
+			If StartsWith(*ee->FileName & Slash, GetFolderName(SaveD.Filename)) Then
 				Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(SaveD.Filename)) + 1), "\", "/")
 			Else
 				Print #Fn, Zv & "File=" & *ee->FileName
@@ -985,18 +1120,19 @@ Function SaveSession() As Boolean
 	Return True
 End Function
 
-Function SaveProject(ByRef tn As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
-	If tn = 0 Then Return True
-	If tn->ImageKey <> "Project" Then Return True
+Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
+	If tnP = 0 Then Return True
+	Dim As TreeNode Ptr tn = GetParentNode(tnP)
 	Dim As ExplorerElement Ptr pee, ee
 	pee = tn->Tag
-	If pee = 0 OrElse WGet(pee->FileName) = "" Then
+	If tn->ImageKey <> "Project" AndAlso pee = 0 Then Return True
+	If CInt(pee = 0) OrElse CInt(WGet(pee->FileName) = "") OrElse CInt(bWithQuestion) Then
 		SaveD.FileName = Left(tn->Text, Len(tn->Text) - IIf(EndsWith(tn->Text, " *"), 2, 0))
-		If WGet(LastOpenPath) <> "" Then
-			SaveD.InitialDir = *LastOpenPath
-		Else
+'		If WGet(LastOpenPath) <> "" Then
+'			SaveD.InitialDir = *LastOpenPath
+'		Else
 			SaveD.InitialDir = GetFullPath(*ProjectsPath)
-		End If
+'		End If
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
 		WLet LastOpenPath, GetFolderName(SaveD.FileName)
@@ -1313,7 +1449,8 @@ End Sub
 Sub SetAsMain()
 	Dim As TreeNode Ptr tn = tvExplorer.SelectedNode
 	If CInt(pTabCode->Focused) AndAlso CInt(pTabCode->SelectedTab <> 0) Then tn = Cast(TabWindow Ptr, pTabCode->SelectedTab)->tn
-	If tn->ParentNode = 0 Then
+	If tn = 0 Then Exit Sub
+	If tn->ParentNode = 0 OrElse (tn->Tag <> 0 AndAlso Cast(ExplorerElement Ptr, tn->Tag)->Project <> 0) Then
 		SetMainNode tn
 		lblLeft.Text = ML("Main File") & ": " & MainNode->Text
 	Else
@@ -1462,7 +1599,10 @@ End Sub
 	Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 		If FnTab < 0 Or Fcurlig < 1 Then Exit Sub
 		If source(Fntab) = "" Then Exit Sub
-		Var tb = AddTab(LCase(source(Fntab)))
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+		If tb = 0 OrElse Not EqualPaths(tb->FileName, source(Fntab)) Then
+			tb = AddTab(LCase(source(Fntab)))
+		End If
 		If tb = 0 Then Exit Sub
 		ChangeEnabledDebug True, False, True
 		tb->txtCode.CurExecutedLine = Fcurlig - 1
@@ -2825,37 +2965,28 @@ Sub CreateMenusAndToolBars
 	'mnuMain.ImagesList = @imgList
 	
 	Var miFile = mnuMain.Add(ML("&File"), "", "File")
-	miFile->Add(ML("New Project") & !"\tCtrl+Shift+N", "Project", "NewProject", @mclick)
-	miFile->Add(ML("Open Project") & !"\tCtrl+Shift+O", "", "OpenProject", @mclick)
-	miFile->Add(ML("Close Project") & !"\tCtrl+Shift+Q", "", "CloseProject", @mclick)
-	miFile->Add("-")
 	miFile->Add(ML("&New") & !"\tCtrl+N", "New", "New", @mclick)
 	miFile->Add(ML("&Open") & "..."  & !"\tCtrl+O", "Open", "Open", @mclick)
+	miFile->Add("-")
+	miFile->Add(ML("Open Folder") & " (Beta)" & !"\tAlt+O", "", "OpenFolder", @mclick)
+	miFile->Add(ML("Close Folder") & " (Beta)" & !"\tAlt+F4", "", "CloseFolder", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("Open Session") & !"\tCtrl+Alt+O", "", "OpenSession", @mclick)
 	miFile->Add(ML("Save Session") & !"\tCtrl+Alt+S", "", "SaveSession", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Save") & "..." & !"\tCtrl+S", "Save", "Save", @mclick)
 	miFile->Add(ML("Save &As") & "...", "", "SaveAs", @mclick)
-	miFile->Add(ML("Save All") & !"\tCtrl+Shift+S", "SaveAll", "SaveAll", @mclick)
+	miFile->Add(ML("Save All") & !"\tCtrl+Alt+Shift+S", "SaveAll", "SaveAll", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Close") & !"\tCtrl+F4", "Close", "Close", @mclick)
-	miFile->Add(ML("Close All") & !"\tCtrl+Shift+F4", "", "CloseAll", @mclick)
+	miFile->Add(ML("Close All") & !"\tCtrl+Alt+Shift+F4", "", "CloseAll", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Print") & !"\tCtrl+P", "Print", "Print", @mclick)
 	miFile->Add(ML("Print P&review"), "PrintPreview", "PrintPreview", @mclick)
 	miFile->Add(ML("Page Set&up") & "...", "", "PageSetup", @mclick)
 	miFile->Add("-")
-	miRecentProjects = miFile->Add(ML("Recent Projects"), "", "RecentProjects", @mclick)
-	Dim sTmp As UString
-	For i As Integer = 0 To 9
-		sTmp = iniSettings.ReadString("MRUProjects", "MRUProject_0" & WStr(i), "")
-		If Trim(sTmp) <> "" Then
-			MRUProjects.Add sTmp
-			miRecentProjects->Add(sTmp, "", sTmp, @mClickMRU)
-		End If
-	Next
 	'David Change  Add Recent Sessions
+	Dim sTmp As UString
 	miRecentSessions = miFile->Add(ML("Recent Sessions"), "", "RecentSessions", @mclick)
 	For i As Integer = 0 To 9
 		sTmp = iniSettings.ReadString("MRUSessions", "MRUSession_0" & WStr(i), "")
@@ -2864,7 +2995,14 @@ Sub CreateMenusAndToolBars
 			miRecentSessions->Add(sTmp, "", sTmp, @mClickMRU)
 		End If
 	Next
-	
+	miRecentFolders = miFile->Add(ML("Recent Folders") & " (Beta)", "", "RecentFolders", @mclick)
+	For i As Integer = 0 To 9
+		sTmp = iniSettings.ReadString("MRUFolders", "MRUFolder_0" & WStr(i), "")
+		If Trim(sTmp) <> "" Then
+			MRUFolders.Add sTmp
+			miRecentFolders->Add(sTmp, "", sTmp, @mClickMRU)
+		End If
+	Next
 	miRecentFiles = miFile->Add(ML("Recent Files"), "", "RecentFiles", @mclick)
 	For i As Integer = 0 To 9
 		sTmp = iniSettings.ReadString("MRUFiles", "MRUFile_0" & WStr(i), "")
@@ -2873,7 +3011,8 @@ Sub CreateMenusAndToolBars
 			miRecentFiles->Add(sTmp, "", sTmp, @mClickMRU)
 		End If
 	Next
-	
+	miFile->Add("-")
+	miFile->Add(ML("&Command Prompt") & !"\tAlt+C", "Console", "CommandPrompt", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Exit") & !"\tAlt+F4", "Exit", "Exit", @mclick)
 	
@@ -2935,6 +3074,20 @@ Sub CreateMenusAndToolBars
 	miBookmark->Add(ML("Clear All Bookmarks"), "", "ClearAllBookmarks", @mclick)
 	
 	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
+	miProject->Add(ML("New Project") & !"\tCtrl+Shift+N", "Project", "NewProject", @mclick)
+	miProject->Add(ML("Open Project") & !"\tCtrl+Shift+O", "", "OpenProject", @mclick)
+	miRecentProjects = miProject->Add(ML("Recent Projects"), "", "RecentProjects", @mclick)
+	For i As Integer = 0 To 9
+		sTmp = iniSettings.ReadString("MRUProjects", "MRUProject_0" & WStr(i), "")
+		If Trim(sTmp) <> "" Then
+			MRUProjects.Add sTmp
+			miRecentProjects->Add(sTmp, "", sTmp, @mClickMRU)
+		End If
+	Next
+	miProject->Add(ML("&Save Project") & "..." & !"\tCtrl+Shift+S", "SaveAll", "SaveAll", @mclick)
+	miProject->Add(ML("Save Project &As") & "...", "", "SaveProjectAs", @mclick)
+	miProject->Add(ML("Close Project") & !"\tCtrl+Shift+F4", "", "CloseProject", @mclick)
+	miProject->Add("-")
 	miProject->Add(ML("Add Files to Project"), "Add", "AddFileToProject", @mclick)
 	miProject->Add(ML("&Remove Files from Project"), "Remove", "RemoveFileFromProject", @mclick)
 	miProject->Add("-")
@@ -3272,7 +3425,16 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 			End If
 		End If
 	#endif
-	If Item.ImageKey = "Project" Then Exit Sub
+	If Item.ImageKey = "Opened" Then Exit Sub
+	If Item.ImageKey = "Project" AndAlso Item.ParentNode = 0 Then Exit Sub
+	Dim As ExplorerElement Ptr ee = Item.Tag
+	If ee <> 0 AndAlso _
+		(EndsWith(*ee->FileName, ".exe") OrElse EndsWith(*ee->FileName, ".dll") OrElse EndsWith(*ee->FileName, ".dll.a") OrElse EndsWith(*ee->FileName, ".so") OrElse _
+		EndsWith(*ee->FileName, ".png") OrElse EndsWith(*ee->FileName, ".jpg") OrElse EndsWith(*ee->FileName, ".bmp") OrElse EndsWith(*ee->FileName, ".ico") OrElse _
+		EndsWith(*ee->FileName, ".chm") OrElse EndsWith(*ee->FileName, ".zip") OrElse EndsWith(*ee->FileName, ".7z") OrElse EndsWith(*ee->FileName, ".rar")) Then
+		Shell *ee->FileName
+		Exit Sub
+	End If
 	Dim t As Boolean
 	For i As Integer = 0 To ptabCode->TabCount - 1
 		If Cast(TabWindow Ptr, ptabCode->Tabs[i])->tn = @Item Then
@@ -3282,27 +3444,33 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 		End If
 	Next i
 	If Not t Then
-		If Item.Tag <> 0 Then AddTab *Cast(ExplorerElement Ptr, Item.Tag)->FileName, , @Item
+		If ee <> 0 Then AddTab *ee->FileName, , @Item
 	End If
+End Sub
+
+Sub tvExplorer_NodeExpanding(ByRef Sender As Control, ByRef Item As TreeNode)
+	If Item.ImageKey <> "Opened" Then Exit Sub
+	ExpandFolder @Item
 End Sub
 
 Sub tvExplorer_DblClick(ByRef Sender As Control)
 	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
 	If tn = 0 Then Exit Sub
-	If tn->ImageKey = "Project" Then Exit Sub
-	Dim t As Boolean
-	For i As Integer = 0 To ptabCode->TabCount - 1
-		If Cast(TabWindow Ptr, ptabCode->Tabs[i])->tn = tn Then
-			ptabCode->TabIndex = ptabCode->Tabs[i]->Index
-			t = True
-			Exit For
-		End If
-	Next i
-	If Not t Then
-		If tn->Tag <> 0 Then AddTab *Cast(ExplorerElement Ptr, tn->Tag)->FileName, , tn
-	End If
-	'David change, Why the tvExplorer.SelectedNode changed after add tab
-	tvExplorer.SelectedNode = tn
+	tvExplorer_NodeActivate Sender, *tn
+'	If tn->ImageKey = "Project" Then Exit Sub
+'	Dim t As Boolean
+'	For i As Integer = 0 To ptabCode->TabCount - 1
+'		If Cast(TabWindow Ptr, ptabCode->Tabs[i])->tn = tn Then
+'			ptabCode->TabIndex = ptabCode->Tabs[i]->Index
+'			t = True
+'			Exit For
+'		End If
+'	Next i
+'	If Not t Then
+'		If tn->Tag <> 0 Then AddTab *Cast(ExplorerElement Ptr, tn->Tag)->FileName, , tn
+'	End If
+'	'David change, Why the tvExplorer.SelectedNode changed after add tab
+'	tvExplorer.SelectedNode = tn
 End Sub
 
 Sub tvExplorer_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
@@ -3318,6 +3486,8 @@ End Sub
 
 Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
 	If tn = 0 OrElse tn->ParentNode = 0 Then
+		Return tn
+	ElseIf tn->Tag <> 0 AndAlso Cast(ExplorerElement Ptr, tn->Tag)->Project <> 0 Then
 		Return tn
 	Else
 		Return GetParentNode(tn->ParentNode)
@@ -3358,7 +3528,9 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 			If ee AndAlso *ee->FileName <> "" Then
 				'pfFindFile->txtPath.Text = GetFolderName(*ee->FileName)
 				'pfFindFile->txtFind.Text = WChr(39) + WChr(84)+"ODO" 'DO NOT confuse itself.
-				ThreadCreate(@FindToDoSub, ee)
+				If ptn->ImageKey <> "Opened" Then
+					ThreadCreate(@FindToDoSub, ptn)
+				End If
 			End If
 		End If
 		'End If
@@ -3372,8 +3544,9 @@ tvExplorer.HideSelection = False
 'tvExplorer.Sorted = True
 'tvExplorer.OnDblClick = @tvExplorer_DblClick
 tvExplorer.OnNodeActivate = @tvExplorer_NodeActivate
+tvExplorer.OnNodeExpanding = @tvExplorer_NodeExpanding
 tvExplorer.OnKeyDown = @tvExplorer_KeyDown
-tvExplorer.OnSelChange = @tvExplorer_SelChange
+tvExplorer.OnSelChanged = @tvExplorer_SelChange
 tvExplorer.ContextMenu = @mnuExplorer
 
 Sub tabLeft_SelChange(ByRef Sender As Control, NewIndex As Integer)

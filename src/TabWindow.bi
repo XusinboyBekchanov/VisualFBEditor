@@ -59,6 +59,7 @@ Type ProjectElement
 	CompilationArguments64Linux As WString Ptr
 	CommandLineArguments As WString Ptr
 	CreateDebugInfo As Boolean
+	Files As WStringList
 	Declare Constructor
 	Declare Destructor
 End Type
@@ -220,6 +221,7 @@ Public:
 	Declare Sub ProcedureNumberOff
 	Declare Sub PreprocessorNumberOn
 	Declare Sub PreprocessorNumberOff
+	Declare Sub SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub Comment
 	Declare Sub UnComment
 	Declare Sub Indent

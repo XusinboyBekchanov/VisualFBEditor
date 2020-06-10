@@ -33,7 +33,7 @@ pfOptions = @fOptions
 		tvOptions.Text = "TreeView1"
 		tvOptions.SetBounds 10, 6, 178, 400
 		tvOptions.HideSelection = False
-		tvOptions.OnSelChange = @TreeView1_SelChange
+		tvOptions.OnSelChanged = @TreeView1_SelChange
 		tvOptions.Parent = @This
 		' cmdOK
 		cmdOK.Name = "cmdOK"
@@ -121,7 +121,7 @@ pfOptions = @fOptions
 		' pnlHelp
 		pnlHelp.Name = "pnlHelp"
 		pnlHelp.Text = ""
-		pnlHelp.SetBounds 190, 10, 426, 400
+		pnlHelp.SetBounds 190, 2, 426, 400
 		pnlHelp.Parent = @This
 		' grbDefaultCompilers
 		With grbDefaultCompilers
@@ -553,6 +553,7 @@ pfOptions = @fOptions
 		cmdProjectsPath.Text = "..."
 		cmdProjectsPath.SetBounds 400, 367, 24, 22
 		cmdProjectsPath.Caption = "..."
+		cmdProjectsPath.OnClick = @cmdProjectsPath_Click
 		cmdProjectsPath.Parent = @pnlGeneral
 		' lblProjectsPath
 		lblProjectsPath.Name = "lblProjectsPath"
@@ -2243,4 +2244,12 @@ End Sub
 Private Sub frmOptions.cmdRemoveLibrary_Click(ByRef Sender As Control)
 	Var Index = fOptions.lstLibraryPaths.ItemIndex
 	If Index <> -1 Then fOptions.lstLibraryPaths.RemoveItem Index
+End Sub
+
+Private Sub frmOptions.cmdProjectsPath_Click(ByRef Sender As Control)
+	With fOptions
+		If .BrowsD.Execute Then
+			.txtProjectsPath.Text = .BrowsD.Directory
+		End If
+	End With
 End Sub
