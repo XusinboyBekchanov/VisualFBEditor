@@ -5380,7 +5380,7 @@ Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 			EndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 		End If
 		Dim As EditControlLine Ptr FECLine
-		Dim As Integer n
+		Dim As Integer n = 0
 		Dim As WStringList Lines
 		For i As Integer = StartLine To EndLine
 			FECLine = .FLines.Items[i]
@@ -5389,7 +5389,8 @@ Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 		Lines.Sort
 		For i As Integer = StartLine To EndLine
 			FECLine = .FLines.Items[i]
-			WLet FECLine->Text, Lines.Item(i)
+			WLet FECLine->Text, Lines.Item(n)
+			n = n + 1
 		Next i
 		.Changed("Sort Lines")
 		.UpdateUnLock
