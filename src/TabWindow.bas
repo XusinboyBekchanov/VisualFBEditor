@@ -100,9 +100,10 @@ Sub FormatProject(UnFormat As Any Ptr)
 	Dim As ExplorerElement Ptr ee
 	Dim As EditControl txt
 	Dim As EditControl Ptr ptxt
-	Dim As TabWindow Ptr tb
+	Dim As TabWindow Ptr tb, tbCurrent = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tn2 <> 0 Then tn2 = GetParentNode(tn2)
 	If tn2 = 0 OrElse tn2->ImageKey <> "Project" Then Exit Sub
+	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateLock
 	pfrmMain->Enabled = False
 	StartProgress
 	For i As Integer = 0 To tn2->Nodes.Count - 1
@@ -121,7 +122,7 @@ Sub FormatProject(UnFormat As Any Ptr)
 						Else
 							ptxt = @tb->txtCode
 						End If
-						If UnFormat Then ptxt->UnFormatCode Else ptxt->FormatCode
+						If UnFormat Then ptxt->UnFormatCode(True) Else ptxt->FormatCode(True)
 						If tb = 0 Then ptxt->SaveToFile(*ee->FileName)
 					End If
 				End If
@@ -134,12 +135,13 @@ Sub FormatProject(UnFormat As Any Ptr)
 			Else
 				ptxt = @tb->txtCode
 			End If
-			If UnFormat Then ptxt->UnFormatCode Else ptxt->FormatCode
+			If UnFormat Then ptxt->UnFormatCode(True) Else ptxt->FormatCode(True)
 			If tb = 0 Then ptxt->SaveToFile(*ee->FileName)
 		End If
 	Next
 	StopProgress
 	pfrmMain->Enabled = True
+	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateUnLock
 	MsgBox ML("Done") & "!"
 End Sub
 

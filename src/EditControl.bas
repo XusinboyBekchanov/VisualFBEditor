@@ -916,24 +916,26 @@ Namespace My.Sys.Forms
 		ChangeCollapsibility Index
 	End Sub
 	
-	Sub EditControl.UnFormatCode()
-		UpdateLock
+	Sub EditControl.UnFormatCode(WithoutUpdate As Boolean = False)
+		If Not WithoutUpdate Then UpdateLock
 		Changing("UnFormat")
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
 			WLet FECLine->Text, LTrim(*FECLine->Text, Any !"\t ")
 		Next i
 		Changed("UnFormat")
-		UpdateUnLock
-		ShowCaretPos True
+		If Not WithoutUpdate Then 
+			UpdateUnLock
+			ShowCaretPos True
+		End If
 	End Sub
 	
-	Sub EditControl.FormatCode
+	Sub EditControl.FormatCode(WithoutUpdate As Boolean = False)
 		Dim As Integer iIndents, CurIndents, iCount, iComment, ConstructionIndex, ConstructionPart
 		Dim As EditControlLine Ptr ECLine2
 		Dim As UString LineParts(Any), LineQuotes(Any)
 		Dim As Integer iType = -1 'David Change
-		UpdateLock
+		If Not WithoutUpdate Then UpdateLock
 		Changing("Format")
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
@@ -1010,8 +1012,10 @@ Namespace My.Sys.Forms
 			iComment = FECLine->CommentIndex
 		Next i
 		Changed("Format")
-		UpdateUnLock
-		ShowCaretPos True
+		If Not WithoutUpdate Then
+			UpdateUnLock
+			ShowCaretPos True
+		End If
 	End Sub
 	
 	Sub EditControl.DeleteLine(Index As Integer)

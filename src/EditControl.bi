@@ -300,8 +300,8 @@ Namespace My.Sys.Forms
 		Declare Sub UpdateToolTip
 		Declare Sub CloseDropDown()
 		Declare Sub CloseToolTip()
-		Declare Sub FormatCode()
-		Declare Sub UnformatCode()
+		Declare Sub FormatCode(WithoutUpdate As Boolean = False)
+		Declare Sub UnformatCode(WithoutUpdate As Boolean = False)
 		Declare Function GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
 		Declare Sub PaintControl()
 		Declare Sub PaintControlPriv()
