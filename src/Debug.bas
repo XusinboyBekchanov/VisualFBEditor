@@ -3728,14 +3728,14 @@ Dim Shared exedate As Double 'serial date
 			While 1
 				If ReadProcessMemory(dbghand,Cast(LPCVOID,basestab),@recupstab,12,0)=0 Then
 					#ifdef fulldbg_prt
-						dbg_prt ("error reading memory "+Str(GetLastError))
+						dbg_prt ("error reading memory "+GetErrorString(GetLastError))
 					#endif
 					msgbox ("Loading stabs: ERROR When reading memory", "VisualFBEditor"):Exit Sub
 				End If
 				
-				#Ifdef fulldbg_prt
+				#ifdef fulldbg_prt
 					dbg_prt (Str(recupstab.stabs)+" "+Str(recupstab.code)+" "+Str(recupstab.nline)+" "+Str(recupstab.ad))
-				#EndIf
+				#endif
 				
 				If recupstab.code=0 Then Exit While
 				If recupstab.stabs Then
@@ -3747,20 +3747,20 @@ Dim Shared exedate As Double 'serial date
 					End If
 					
 					If ReadProcessMemory(dbghand,Cast(LPCVOID,recupstab.stabs+basestabs),@recup,sizemax,0)=0 Then
-						Msgbox ("Loading stabs: ERROR When reading memory : "+Str(GetLastError)+Chr(10)+"Exit loading", "VisualFBEditor"):Exit Sub
+						Msgbox ("Loading stabs: ERROR When reading memory : "+GetErrorString(GetLastError)+Chr(10)+"Exit loading", "VisualFBEditor"):Exit Sub
 					End If
 					
 					'?recup
-					#Ifdef fulldbg_prt
+					#ifdef fulldbg_prt
 						dbg_prt (recup)
-					#EndIf
+					#endif
 					
 					Select Case recupstab.code
 					Case 36 'proc
-						procnodll=FALSE
+						procnodll=False
 						' procnmt=cutup_proc(Left(recup,InStr(recup,":")-1))
 						procnmt=cutup_proc(recup) '02/11/2014
-						If procnmt="main" Then flagstabd=TRUE ' + A FAIRE supp l'йquivalent cidessous
+						If procnmt="main" Then flagstabd=True ' + A FAIRE supp l'йquivalent cidessous
 						'If procnmt<>"" And procnmt<>"{MODLEVEL}" And(flagmain=TRUE Or procnmt<>"main") Then '' mike's bug 02/12/2015
 						If procnmt<>"" And(flagmain=True Or procnmt<>"main") Then  '' mike's bug 02/12/2015
 							'If InStr(procnmt,"structor : IRHLCCTX")=0 And InStr(procnmt,".LT")=0 Then
@@ -4064,7 +4064,7 @@ Dim Shared exedate As Double 'serial date
 			retcode=terminateprocess(dbghand,999)
 			lasterr=GetLastError
 			#ifdef fulldbg_prt
-				dbg_prt ("return code terminate process ="+Str(retcode)+" lasterror="+Str(lasterr))
+				dbg_prt ("return code terminate process ="+Str(retcode)+" lasterror="+GetErrorString(lasterr))
 			#endif
 			thread_rsm()
 			While prun:Sleep 500:Wend
