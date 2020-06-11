@@ -1506,15 +1506,25 @@ Function CloseProject(tn As TreeNode Ptr) As Boolean
 	If tn->ImageKey <> "Project" Then Return True
 	Dim tb As TabWindow Ptr
 	For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
-		For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 'David Change
+		If tn->Nodes.Item(j)->Nodes.Count = 0 Then
 			For i As Integer = 0 To ptabCode->TabCount - 1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-				If tn->Nodes.Item(j)->Nodes.Item(k)->Text = tb->tn->Text Then 'David Change
+				If tn->Nodes.Item(j)->Text = tb->tn->Text Then
 					If CInt(tb) AndAlso CInt(Not tb->CloseTab) Then Return False
 					Exit For
 				End If
 			Next i
-		Next k
+		Else
+			For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 'David Change
+				For i As Integer = 0 To ptabCode->TabCount - 1
+					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+					If tn->Nodes.Item(j)->Nodes.Item(k)->Text = tb->tn->Text Then 'David Change
+						If CInt(tb) AndAlso CInt(Not tb->CloseTab) Then Return False
+						Exit For
+					End If
+				Next i
+			Next k
+		End If
 	Next
 	If EndsWith(tn->Text, " *") Then
 		Select Case MsgBox(ML("Want to save the project") & " """ & tn->Text & """?", "Visual FB Editor", mtWarning, btYesNoCancel)
