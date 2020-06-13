@@ -5842,7 +5842,24 @@ Sub RunWithDebug(Param As Any Ptr)
 	exename = GetExeFileName(MainFile, FirstLine)
 	'#EndIf
 	If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP Then
-		WLet CmdL, """" & WGet(DebuggerPath) & """ """ & GetFileName(exename) & """ "
+		If InStr(LCase(WGet(DebuggerPath)), "gdb") Then
+			Dim As Integer Fn = FreeFile
+			Open ExePath & "/Temp/GDBCommands.txt" For Output As #Fn
+			Print #Fn, "file """ & Replace(exename, "\", "/") & """"
+			Dim As TabWindow Ptr tb
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+				For j As Integer = 0 To tb->txtCode.FLines.Count - 1
+					If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
+					Print #Fn, "b """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1)
+				Next
+			Next i
+			Print #Fn, "r"
+			Close #Fn
+			WLet CmdL, """" & WGet(DebuggerPath) & """ -x """ & ExePath & "/Temp/GDBCommands.txt"""
+		Else
+			WLet CmdL, """" & WGet(DebuggerPath) & """ """ & GetFileName(exename) & """ "
+		End If
 	Else
 		WLet CmdL, """" & GetFileName(exename) & """ " & *RunArguments
 		If Project Then WLet CmdL, *CmdL & " " & WGet(Project->CommandLineArguments)
