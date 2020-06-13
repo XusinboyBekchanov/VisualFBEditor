@@ -55,7 +55,8 @@
 		!"QQ Forums 1032313876 78458582, <a href=""1"">WeChat group QR-code</a>\r\r" & _
 		ML("Language files by") & !":\r" & _
 		!"Xusinboy Bekchanov (Russian, Uzbekcyril, Uzbeklatin)\r" & _
-		!"Liu XiaLin (Chinese, Arabic, Czech, Dutch, French, Ukrainian)\r\r" & _
+		!"Liu XiaLin (Chinese, Arabic, Czech, Dutch, French, Ukrainian)\r" & _
+		!"Thomas Frank Ludewig (Deutsch)\r\r" & _
 		ML("For donation") & !":\rPatreon: <a href=""https://www.patreon.com/xusinboy"">patreon.com/xusinboy</a>, WebMoney: <a href=""https://www.webmoney.ru""> WMZ: Z884195021874</a>\r\r" & _
 		ML("Thanks to") & !":\r" & _
 		!"Nastase Eodor for codes of FreeBasic Windows GUI ToolKit and Simple Designer\r" & _

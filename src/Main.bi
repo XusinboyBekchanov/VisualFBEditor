@@ -64,7 +64,7 @@ Common Shared As ProgressBar Ptr pprProgress
 Common Shared As TextBox Ptr ptxtPropertyValue
 Common Shared As ToolBar Ptr ptbStandard
 Common Shared As ToolButton Ptr SelectedTool
-Common Shared As TabControl Ptr ptabCode, ptabBottom, ptabRight
+Common Shared As TabControl Ptr ptabCode, ptabLeft, ptabBottom, ptabRight
 Common Shared As TreeView Ptr ptvExplorer
 Common Shared As IniFile Ptr piniSettings, piniTheme
 Common Shared As MenuItem Ptr mnuUseDebugger, miHelps

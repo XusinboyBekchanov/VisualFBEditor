@@ -103,6 +103,7 @@ pprProgress = @prProgress
 ptxtPropertyValue = @txtPropertyValue
 ptvExplorer = @tvExplorer
 ptabCode = @tabCode
+ptabLeft = @tabLeft
 ptabBottom = @tabBottom
 ptabRight = @tabRight
 pimgList = @imgList

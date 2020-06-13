@@ -3813,12 +3813,14 @@ Sub tbrTop_ButtonClick(ByRef Sender As My.Sys.Object)
 			.pnlCode.Visible = True
 			.pnlForm.Visible = False
 			.splForm.Visible = False
+			ptabLeft->TabIndex = 0
 		Case "Form"
 			.pnlCode.Visible = False
 			.pnlForm.Align = 5
 			.pnlForm.Visible = True
 			.splForm.Visible = False
 			If .bNotDesign = False Then .FormDesign
+			ptabLeft->TabIndex = 1
 		Case "CodeAndForm"
 			.pnlForm.Align = 2
 			.pnlForm.Width = 350
@@ -3826,6 +3828,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As My.Sys.Object)
 			.splForm.Visible = True
 			.pnlCode.Visible = True
 			If .bNotDesign = False Then .FormDesign
+			ptabLeft->TabIndex = 1
 		End Select
 		.RequestAlign
 	End With
