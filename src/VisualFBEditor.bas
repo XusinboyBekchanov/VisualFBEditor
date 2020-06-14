@@ -200,7 +200,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Exit":                            pfrmMain->CloseForm
 	Case "Find":                            mFormFind = True: pfFind->Show *pfrmMain
 	Case "FindInFiles":                     mFormFindInFile = True:  pfFindFile->Show *pfrmMain
-	Case "ReplaceinFiles":                  mFormFindInFile = False:  pfFindFile->Show *pfrmMain
+	Case "ReplaceInFiles":                  mFormFindInFile = False:  pfFindFile->Show *pfrmMain
 	Case "Replace":                         mFormFind = False: pfFind->Show *pfrmMain
 	Case "NewForm":                         AddTab ExePath + "/Templates/Files/Form.bas", True
 		#ifndef __USE_GTK__

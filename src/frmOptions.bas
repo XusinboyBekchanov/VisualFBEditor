@@ -162,12 +162,14 @@ pfOptions = @fOptions
 		cmdSetShortcut.Name = "cmdSetShortcut"
 		cmdSetShortcut.Text = ML("Set")
 		cmdSetShortcut.SetBounds 354, 366, 52, 21
+		cmdSetShortcut.OnClick = @cmdSetShortcut_Click
 		cmdSetShortcut.Parent = @grbShortcuts
 		' lvShortcuts
 		With lvShortcuts
 			.Name = "lvShortcuts"
 			.Text = "lvShortcuts"
 			.SetBounds 18, 22, 384, 333
+			.OnSelectedItemChanged = @lvShortcuts_SelectedItemChanged
 			.Parent = @grbShortcuts
 		End With
 		' lblCompiler32
@@ -1054,6 +1056,7 @@ Sub frmOptions.LoadSettings()
 			End If
 			f = Dir()
 		Wend
+		HotKeysChanged = False 
 		'On Error Goto 0
 		'WDeallocate s 'David Change
 		newIndex = Languages.IndexOf(CurLanguage)
@@ -1220,6 +1223,28 @@ Sub frmOptions.LoadSettings()
 	End With
 End Sub
 
+Sub AddShortcuts(item As MenuItem Ptr, ByRef Prefix As WString = "")
+	With fOptions
+		If StartsWith(item->Name, "Recent") OrElse item->Caption = "-" Then Exit Sub
+		Dim As UString itemCaption = Replace(IIf(Prefix = "", "", Prefix & " -> ") & item->Caption, "&", "")
+		Dim As UString itemHotKey
+		Dim As Integer Pos1 = InStr(itemCaption, !"\t")
+		If Pos1 > 0 Then
+			itemHotKey = Mid(itemCaption, Pos1 + 1)
+			itemCaption = Left(itemCaption, Pos1 - 1)
+		End If
+		If item->Count = 0 Then
+			.HotKeysPriv.Add item->Name
+			.lvShortcuts.ListItems.Add itemCaption
+			.lvShortcuts.ListItems.Item(.lvShortcuts.ListItems.Count - 1)->Text(1) = itemHotKey
+		Else
+			For i As Integer = 0 To item->Count - 1
+				AddShortcuts item->Item(i), itemCaption
+			Next
+		End If
+	End With
+End Sub
+
 Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 	With fOptions
 		.tvOptions.Nodes.Clear
@@ -1271,6 +1296,9 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem "Space Identifiers"
 		.lstColorKeys.AddItem "Strings"
 		.lstColorKeys.ItemIndex = 0
+		For i As Integer = 0 To pfrmMain->Menu->Count - 1
+			AddShortcuts(pfrmMain->Menu->Item(i))
+		Next
 		.LoadSettings
 	End With
 End Sub
@@ -1437,7 +1465,15 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		Strings.Italic = .Colors(15, 5)
 		Strings.Underline = .Colors(15, 6)
 		SetAutoColors
-		
+		If .HotKeysChanged Then
+			Dim As Integer Fn = FreeFile
+			Open ExePath & "/Settings/Others/HotKeys.txt" For Output As #Fn
+			For i As Integer = 0 To .lvShortcuts.ListItems.Count - 1
+				If .HotKeysPriv.Item(i) = "" Then Continue For
+				Print #Fn, .HotKeysPriv.Item(i) & "=" & .lvShortcuts.ListItems.Item(i)->Text(1)
+			Next
+			Close #Fn
+		End If
 		piniSettings->WriteString "Compilers", "DefaultCompiler32", *DefaultCompiler32
 		piniSettings->WriteString "Compilers", "DefaultCompiler64", *DefaultCompiler64
 		For i As Integer = 0 To Min(9, pCompilers->Count - 1)
@@ -1629,6 +1665,7 @@ Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	If newIndex <> oldIndex Then MsgBox ML("Localization changes will be applied the next time the application is run.")
 	If *InterfaceFontName <> *fOptions.oldInterfFontName OrElse InterfaceFontSize <> fOptions.oldInterfFontSize Then MsgBox ML("Interface font changes will be applied the next time the application is run.")
 	If DisplayMenuIcons <> fOptions.oldDisplayMenuIcons Then MsgBox ML("Display icons in the menu changes will be applied the next time the application is run.")
+	If fOptions.HotKeysChanged Then MsgBox ML("Hotkey changes will be applied the next time the application is run.")
 End Sub
 
 Private Sub frmOptions.Form_Show(ByRef Sender As Form)
@@ -2258,6 +2295,25 @@ Private Sub frmOptions.cmdProjectsPath_Click(ByRef Sender As Control)
 	With fOptions
 		If .BrowsD.Execute Then
 			.txtProjectsPath.Text = .BrowsD.Directory
+		End If
+	End With
+End Sub
+
+Private Sub frmOptions.lvShortcuts_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	With fOptions
+		Var Index = .lvShortcuts.SelectedItemIndex
+		If Index > -1 Then
+			.hkShortcut.Text = .lvShortcuts.SelectedItem->Text(1)
+		End If
+	End With
+End Sub
+
+Private Sub frmOptions.cmdSetShortcut_Click(ByRef Sender As Control)
+	With fOptions
+		Var Index = .lvShortcuts.SelectedItemIndex
+		If Index > -1 Then
+			.lvShortcuts.SelectedItem->Text(1) = .hkShortcut.Text
+			.HotKeysChanged = True
 		End If
 	End With
 End Sub

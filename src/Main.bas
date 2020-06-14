@@ -61,7 +61,7 @@ Dim Shared As SaveFileDialog SaveD
 #endif
 Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions 'David Change add Sessions
 Dim Shared As WString Ptr RecentFiles 'David Change
-Dim Shared As Dictionary Compilers, MakeTools, Debuggers, Terminals, Helps
+Dim Shared As Dictionary Compilers, MakeTools, Debuggers, Terminals, Helps, HotKeys
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
 Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
@@ -2909,6 +2909,29 @@ Sub LoadLanguageTexts
 	End If
 End Sub
 
+Sub LoadHotKeys
+	Dim As Integer Fn = FreeFile, Pos1
+	Dim As String Buff
+	Open ExePath & "/Settings/Others/HotKeys.txt" For Input As #Fn
+	While Not EOF(Fn)
+		Line Input #Fn, Buff
+		Pos1 = InStr(Buff, "=")
+		If Pos1 > 0 Then
+			HotKeys.Add Left(Buff, Pos1 - 1), Mid(Buff, Pos1 + 1)
+		End If
+	Wend
+	Close #Fn
+End Sub
+
+Function HK(Key As String, Default As String = "") As String
+	Dim As String HotKey = HotKeys.Get(Key, Default)
+	If HotKey = "" Then
+		Return ""
+	Else
+		Return !"\t" & HotKey
+	End If
+End Function
+
 Sub CreateMenusAndToolBars
 	imgList.Name = "imgList"
 	imgList.AddPng "StartWithCompile", "StartWithCompile"
@@ -2980,26 +3003,28 @@ Sub CreateMenusAndToolBars
 	
 	'mnuMain.ImagesList = @imgList
 	
+	LoadHotKeys
+	
 	Var miFile = mnuMain.Add(ML("&File"), "", "File")
-	miFile->Add(ML("&New") & !"\tCtrl+N", "New", "New", @mclick)
-	miFile->Add(ML("&Open") & "..."  & !"\tCtrl+O", "Open", "Open", @mclick)
+	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "New", @mclick)
+	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mclick)
 	miFile->Add("-")
-	miFile->Add(ML("Open Folder") & " (Beta)" & !"\tAlt+O", "", "OpenFolder", @mclick)
-	miFile->Add(ML("Close Folder") & " (Beta)" & !"\tAlt+F4", "", "CloseFolder", @mclick)
+	miFile->Add(ML("Open Folder") & " (Beta)" & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mclick)
+	miFile->Add(ML("Close Folder") & " (Beta)" & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mclick)
 	miFile->Add("-")
-	miFile->Add(ML("Open Session") & !"\tCtrl+Alt+O", "", "OpenSession", @mclick)
-	miFile->Add(ML("Save Session") & !"\tCtrl+Alt+S", "", "SaveSession", @mclick)
+	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mclick)
+	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mclick)
 	miFile->Add("-")
-	miFile->Add(ML("&Save") & "..." & !"\tCtrl+S", "Save", "Save", @mclick)
-	miFile->Add(ML("Save &As") & "...", "", "SaveAs", @mclick)
-	miFile->Add(ML("Save All") & !"\tCtrl+Alt+Shift+S", "SaveAll", "SaveAll", @mclick)
+	miFile->Add(ML("&Save") & "..." & HK("Save", "Ctrl+S"), "Save", "Save", @mclick)
+	miFile->Add(ML("Save &As") & "..." & HK("SaveAs"), "", "SaveAs", @mclick)
+	miFile->Add(ML("Save All") & HK("SaveAll", "Ctrl+Alt+Shift+S"), "SaveAll", "SaveAll", @mclick)
 	miFile->Add("-")
-	miFile->Add(ML("&Close") & !"\tCtrl+F4", "Close", "Close", @mclick)
-	miFile->Add(ML("Close All") & !"\tCtrl+Alt+Shift+F4", "", "CloseAll", @mclick)
+	miFile->Add(ML("&Close") & HK("Close", "Ctrl+F4"), "Close", "Close", @mclick)
+	miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Alt+Shift+F4"), "", "CloseAll", @mclick)
 	miFile->Add("-")
-	miFile->Add(ML("&Print") & !"\tCtrl+P", "Print", "Print", @mclick)
-	miFile->Add(ML("Print P&review"), "PrintPreview", "PrintPreview", @mclick)
-	miFile->Add(ML("Page Set&up") & "...", "", "PageSetup", @mclick)
+	miFile->Add(ML("&Print") & HK("Print", "Ctrl+P"), "Print", "Print", @mclick)
+	miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mclick)
+	miFile->Add(ML("Page Set&up") & "..." & HK("PageSetup"), "", "PageSetup", @mclick)
 	miFile->Add("-")
 	'David Change  Add Recent Sessions
 	Dim sTmp As UString
@@ -3028,70 +3053,70 @@ Sub CreateMenusAndToolBars
 		End If
 	Next
 	miFile->Add("-")
-	miFile->Add(ML("&Command Prompt") & !"\tAlt+C", "Console", "CommandPrompt", @mclick)
+	miFile->Add(ML("&Command Prompt") & HK("CommandPrompt", "Alt+C"), "Console", "CommandPrompt", @mclick)
 	miFile->Add("-")
-	miFile->Add(ML("&Exit") & !"\tAlt+F4", "Exit", "Exit", @mclick)
+	miFile->Add(ML("&Exit") & HK("Exit", "Alt+F4"), "Exit", "Exit", @mclick)
 	
 	Var miEdit = mnuMain.Add(ML("&Edit"), "", "Tahrir")
-	miEdit->Add(ML("Undo") & !"\tCtrl+Z", "Undo", "Undo", @mclick)
-	miEdit->Add(ML("Redo") & !"\tCtrl+Y", "Redo", "Redo", @mclick)
+	miEdit->Add(ML("Undo") & HK("Undo", "Ctrl+Z"), "Undo", "Undo", @mclick)
+	miEdit->Add(ML("Redo") & HK("Redo", "Ctrl+Y"), "Redo", "Redo", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("Cu&t") & !"\tCtrl+X", "Cut", "Cut", @mclick)
-	miEdit->Add(ML("&Copy") & !"\tCtrl+C", "Copy", "Copy", @mclick)
-	miEdit->Add(ML("&Paste") & !"\tCtrl+V", "Paste", "Paste", @mclick)
+	miEdit->Add(ML("Cu&t") & HK("Cut", "Ctrl+X"), "Cut", "Cut", @mclick)
+	miEdit->Add(ML("&Copy") & HK("Copy", "Ctrl+C"), "Copy", "Copy", @mclick)
+	miEdit->Add(ML("&Paste") & HK("Paste", "Ctrl+V"), "Paste", "Paste", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("&Single Comment") & !"\tCtrl+I", "Comment", "SingleComment", @mclick)
-	miEdit->Add(ML("&Block Comment") & !"\tCtrl+Alt+I", "", "BlockComment", @mclick)
-	miEdit->Add(ML("&Uncomment Block") & !"\tCtrl+Shift+I", "UnComment", "UnComment", @mclick)
+	miEdit->Add(ML("&Single Comment") & HK("SingleComment", "Ctrl+I"), "Comment", "SingleComment", @mclick)
+	miEdit->Add(ML("&Block Comment") & HK("BlockComment", "Ctrl+Alt+I"), "", "BlockComment", @mclick)
+	miEdit->Add(ML("&Uncomment Block") & HK("UnComment", "Ctrl+Shift+I"), "UnComment", "UnComment", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("Select &All") & !"\tCtrl+A", "", "SelectAll", @mclick)
+	miEdit->Add(ML("Select &All") & HK("SelectAll", "Ctrl+A"), "", "SelectAll", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("&Indent") & !"\tTab", "", "Indent", @mclick)
-	miEdit->Add(ML("&Outdent") & !"\tShift+Tab", "", "Outdent", @mclick)
+	miEdit->Add(ML("&Indent") & HK("Indent", "Tab"), "", "Indent", @mclick)
+	miEdit->Add(ML("&Outdent") & HK("Outdent", "Shift+Tab"), "", "Outdent", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("&Format") & !"\tCtrl+Tab", "Format", "Format", @mclick)
-	miEdit->Add(ML("&Unformat") & !"\tCtrl+Shift+Tab", "Unformat", "Unformat", @mclick)
-	miEdit->Add(ML("&Format Project"), "FormatProject", "FormatProject", @mclick)
-	miEdit->Add(ML("&Unformat Project"), "UnformatProject", "UnformatProject", @mclick)
+	miEdit->Add(ML("&Format") & HK("Format", "Ctrl+Tab"), "Format", "Format", @mclick)
+	miEdit->Add(ML("&Unformat") & HK("Unformat", "Ctrl+Shift+Tab"), "Unformat", "Unformat", @mclick)
+	miEdit->Add(ML("&Format Project") & HK("FormatProject"), "FormatProject", "FormatProject", @mclick)
+	miEdit->Add(ML("&Unformat Project") & HK("UnformatProject"), "UnformatProject", "UnformatProject", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("Collapse All"), "", "CollapseAll", @mclick)
-	miEdit->Add(ML("Uncollapse All"), "", "UnCollapseAll", @mclick)
+	miEdit->Add(ML("Collapse All") & HK("CollapseAll"), "", "CollapseAll", @mclick)
+	miEdit->Add(ML("Uncollapse All") & HK("UnCollapseAll"), "", "UnCollapseAll", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("Complete Word") & !"\tCtrl+Space", "", "CompleteWord", @mclick)
+	miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+Space"), "", "CompleteWord", @mclick)
 	miEdit->Add("-")
 	Var miTry = miEdit->Add(ML("Error Handling"), "", "Try")
-	miTry->Add(ML("Numbering"), "", "NumberOn", @mclick)
-	miTry->Add(ML("Remove Numbering"), "", "NumberOff", @mclick)
+	miTry->Add(ML("Numbering") & HK("NumberOn"), "", "NumberOn", @mclick)
+	miTry->Add(ML("Remove Numbering") & HK("NumberOff"), "", "NumberOff", @mclick)
 	miTry->Add("-")
-	miTry->Add(ML("Procedure numbering"), "", "ProcedureNumberOn", @mclick)
-	miTry->Add(ML("Remove Procedure numbering"), "", "ProcedureNumberOff", @mclick)
+	miTry->Add(ML("Procedure numbering") & HK("ProcedureNumberOn"), "", "ProcedureNumberOn", @mclick)
+	miTry->Add(ML("Remove Procedure numbering") & HK("ProcedureNumberOff"), "", "ProcedureNumberOff", @mclick)
 	miTry->Add("-")
-	miTry->Add("On Error Resume Next", "", "OnErrorResumeNext", @mclick)
-	miTry->Add("On Error Goto ...", "", "OnErrorGoto", @mclick)
-	miTry->Add("On Error Goto ... Resume Next", "", "OnErrorGotoResumeNext", @mclick)
-	miTry->Add(ML("Remove Error Handling"), "", "RemoveErrorHandling", @mclick)
+	miTry->Add("On Error Resume Next" & HK("OnErrorResumeNext"), "", "OnErrorResumeNext", @mclick)
+	miTry->Add("On Error Goto ..." & HK("OnErrorGoto"), "", "OnErrorGoto", @mclick)
+	miTry->Add("On Error Goto ... Resume Next" & HK("OnErrorGotoResumeNext"), "", "OnErrorGotoResumeNext", @mclick)
+	miTry->Add(ML("Remove Error Handling") & HK("RemoveErrorHandling"), "", "RemoveErrorHandling", @mclick)
 	
 	Var miSearch = mnuMain.Add(ML("&Search"), "", "Search")
-	miSearch->Add(ML("&Find") & "..." & !"\tCtrl+F", "Find", "Find", @mclick)
-	miSearch->Add(ML("&Replace") & "..."  & !"\tCtrl+H", "", "Replace", @mclick)
-	miSearch->Add(ML("Find &Next") & !"\tF3", "", "FindNext", @mclick)
-	miSearch->Add(ML("Find &Previous") & !"\tShift+F3", "", "FindPrev", @mclick)
+	miSearch->Add(ML("&Find") & "..." & HK("Find", "Ctrl+F"), "Find", "Find", @mclick)
+	miSearch->Add(ML("&Replace") & "..."  & HK("Replace", "Ctrl+H"), "", "Replace", @mclick)
+	miSearch->Add(ML("Find &Next") & HK("FindNext", "F3"), "", "FindNext", @mclick)
+	miSearch->Add(ML("Find &Previous") & HK("FindPrev", "Shift+F3"), "", "FindPrev", @mclick)
 	miSearch->Add("-")
-	miSearch->Add(ML("Find In Files") & "..." & !"\tCtrl+Shift+F", "", "FindInFiles", @mclick)
-	miSearch->Add(ML("Replace In Files") & "..." & !"\tCtrl+Shift+H", "", "ReplaceinFiles", @mclick)
+	miSearch->Add(ML("Find In Files") & "..." & HK("FindInFiles", "Ctrl+Shift+F"), "", "FindInFiles", @mclick)
+	miSearch->Add(ML("Replace In Files") & "..." & HK("ReplaceInFiles", "Ctrl+Shift+H"), "", "ReplaceInFiles", @mclick)
 	miSearch->Add("-")
-	miSearch->Add(ML("&Goto") & !"\tCtrl+G", "", "Goto", @mclick)
+	miSearch->Add(ML("&Goto") & HK("Goto", "Ctrl+G"), "", "Goto", @mclick)
 	miSearch->Add("-")
-	miSearch->Add(ML("&Define") & !"\tF2", "", "Define", @mclick)
+	miSearch->Add(ML("&Define") & HK("Define", "F2"), "", "Define", @mclick)
 	Var miBookmark = miSearch->Add(ML("Bookmarks"), "", "Bookmarks")
-	miBookmark->Add(ML("Toggle Bookmark") & !"\tF6", "Bookmark", "ToggleBookmark", @mclick)
-	miBookmark->Add(ML("Next Bookmark") & !"\tCtrl+F6", "", "NextBookmark", @mclick)
-	miBookmark->Add(ML("Previous Bookmark") & !"\tCtrl+Shift+F6", "", "PreviousBookmark", @mclick)
-	miBookmark->Add(ML("Clear All Bookmarks"), "", "ClearAllBookmarks", @mclick)
+	miBookmark->Add(ML("Toggle Bookmark") & HK("ToggleBookmark", "F6"), "Bookmark", "ToggleBookmark", @mclick)
+	miBookmark->Add(ML("Next Bookmark") & HK("NextBookmark", "Ctrl+F6"), "", "NextBookmark", @mclick)
+	miBookmark->Add(ML("Previous Bookmark") & HK("PreviousBookmark", "Ctrl+Shift+F6"), "", "PreviousBookmark", @mclick)
+	miBookmark->Add(ML("Clear All Bookmarks") & HK("ClearAllBookmarks"), "", "ClearAllBookmarks", @mclick)
 	
 	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
-	miProject->Add(ML("New Project") & !"\tCtrl+Shift+N", "Project", "NewProject", @mclick)
-	miProject->Add(ML("Open Project") & !"\tCtrl+Shift+O", "", "OpenProject", @mclick)
+	miProject->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mclick)
+	miProject->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mclick)
 	miRecentProjects = miProject->Add(ML("Recent Projects"), "", "RecentProjects", @mclick)
 	For i As Integer = 0 To 9
 		sTmp = iniSettings.ReadString("MRUProjects", "MRUProject_0" & WStr(i), "")
@@ -3100,86 +3125,86 @@ Sub CreateMenusAndToolBars
 			miRecentProjects->Add(sTmp, "", sTmp, @mClickMRU)
 		End If
 	Next
-	miProject->Add(ML("&Save Project") & "..." & !"\tCtrl+Shift+S", "SaveAll", "SaveAll", @mclick)
-	miProject->Add(ML("Save Project &As") & "...", "", "SaveProjectAs", @mclick)
-	miProject->Add(ML("Close Project") & !"\tCtrl+Shift+F4", "", "CloseProject", @mclick)
+	miProject->Add(ML("&Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mclick)
+	miProject->Add(ML("Save Project &As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mclick)
+	miProject->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mclick)
 	miProject->Add("-")
-	miProject->Add(ML("Add Files to Project"), "Add", "AddFileToProject", @mclick)
-	miProject->Add(ML("&Remove Files from Project"), "Remove", "RemoveFileFromProject", @mclick)
+	miProject->Add(ML("Add Files to Project") & HK("AddFileToProject"), "Add", "AddFileToProject", @mclick)
+	miProject->Add(ML("&Remove Files from Project") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mclick)
 	miProject->Add("-")
-	miProject->Add(ML("&Open Project Folder"), "", "OpenProjectFolder", @mclick)
+	miProject->Add(ML("&Open Project Folder") & HK("OpenProjectFolder"), "", "OpenProjectFolder", @mclick)
 	miProject->Add("-")
-	miProject->Add(ML("&Project Properties") & "...", "", "ProjectProperties", @mclick)
+	miProject->Add(ML("&Project Properties") & "..." & HK("ProjectProperties"), "", "ProjectProperties", @mclick)
 	
 	Var miForm = mnuMain.Add(ML("&Form"), "", "Form")
-	miForm->Add(ML("&New Form"), "Form", "NewForm", @mclick)
+	miForm->Add(ML("&New Form") & HK("NewForm"), "Form", "NewForm", @mclick)
 	miForm->Add("-")
-	miForm->Add(ML("&Switch Code/Form"), "Code", "SwitchCodeForm", @mclick)
+	miForm->Add(ML("&Switch Code/Form") & HK("SwitchCodeForm"), "Code", "SwitchCodeForm", @mclick)
 	
 	Var miBuild = mnuMain.Add(ML("&Build"), "", "Build")
-	miBuild->Add(ML("&Syntax Check"), "SyntaxCheck", "SyntaxCheck", @mclick)
+	miBuild->Add(ML("&Syntax Check") & HK("SyntaxCheck"), "SyntaxCheck", "SyntaxCheck", @mclick)
 	miBuild->Add("-")
-	miBuild->Add(ML("&Compile") & !"\tCtrl+F9", "Compile", "Compile", @mclick)
+	miBuild->Add(ML("&Compile") & HK("Compile", "Ctrl+F9"), "Compile", "Compile", @mclick)
 	miBuild->Add("-")
-	miBuild->Add(ML("&Make"), "Make", "Make", @mclick)
-	miBuild->Add(ML("Make Clea&n"), "", "MakeClean", @mclick)
+	miBuild->Add(ML("&Make") & HK("Make"), "Make", "Make", @mclick)
+	miBuild->Add(ML("Make Clea&n") & HK("MakeClean"), "", "MakeClean", @mclick)
 	miBuild->Add("-")
-	miBuild->Add(ML("&Parameters"), "Parameters", "Parameters", @mclick)
+	miBuild->Add(ML("&Parameters") & HK("Parameters"), "Parameters", "Parameters", @mclick)
 	
 	Var miDebug = mnuMain.Add(ML("&Debug"), "", "Debug")
-	mnuUseDebugger = miDebug->Add(ML("&Use Debugger"), "", "UseDebugger", @mclick, True)
+	mnuUseDebugger = miDebug->Add(ML("&Use Debugger") & HK("UseDebugger"), "", "UseDebugger", @mclick, True)
 	miDebug->Add("-")
-	miDebug->Add(ML("Step &Into")& !"\tF8", "", "StepInto", @mclick)
-	miDebug->Add(ML("Step &Over") & !"\tShift+F8", "", "StepOver", @mclick)
-	miDebug->Add(ML("Step O&ut") & !"\tCtrl+Shift+F8", "", "StepOut", @mclick)
-	miDebug->Add(ML("&Run To Cursor") & !"\tCtrl+F8", "", "RunTuCursor", @mclick)
+	miDebug->Add(ML("Step &Into")& HK("StepInto", "F8"), "", "StepInto", @mclick)
+	miDebug->Add(ML("Step &Over") & HK("StepOver", "Shift+F8"), "", "StepOver", @mclick)
+	miDebug->Add(ML("Step O&ut") & HK("StepOut", "Ctrl+Shift+F8"), "", "StepOut", @mclick)
+	miDebug->Add(ML("&Run To Cursor") & HK("RunToCursor", "Ctrl+F8"), "", "RunToCursor", @mclick)
 	miDebug->Add("-")
-	miDebug->Add(ML("&Add Watch"), "", "AddWatch", @mclick)
+	miDebug->Add(ML("&Add Watch") & HK("AddWatch"), "", "AddWatch", @mclick)
 	miDebug->Add("-")
-	miDebug->Add(ML("&Toggle Breakpoint") & !"\tF9", "Breakpoint", "Breakpoint", @mclick)
-	miDebug->Add(ML("&Clear All Breakpoints") & !"\tCtrl+Shift+F9", "", "ClearAllBreakpoints", @mclick)
+	miDebug->Add(ML("&Toggle Breakpoint") & HK("Breakpoint", "F9"), "Breakpoint", "Breakpoint", @mclick)
+	miDebug->Add(ML("&Clear All Breakpoints") & HK("ClearAllBreakpoints", "Ctrl+Shift+F9"), "", "ClearAllBreakpoints", @mclick)
 	miDebug->Add("-")
-	miDebug->Add(ML("Set &Next Statement"), "", "SetNextStatement", @mclick)
-	miDebug->Add(ML("Show Ne&xt Statement") & !"\t", "", "ShowNextStatement", @mclick)
+	miDebug->Add(ML("Set &Next Statement") & HK("SetNextStatement"), "", "SetNextStatement", @mclick)
+	miDebug->Add(ML("Show Ne&xt Statement") & HK("ShowNextStatement"), "", "ShowNextStatement", @mclick)
 	
 	Var miRun = mnuMain.Add(ML("&Run"), "", "Run")
-	mnuStartWithCompile = miRun->Add(ML("Start With &Compile") & !"\tF5", "StartWithCompile", "StartWithCompile", @mclick)
-	mnuStart = miRun->Add(ML("&Start") & !"\tCtrl+F5", "Start", "Start", @mclick)
-	mnuBreak = miRun->Add(ML("&Break") & !"\tCtrl+Pause", "Break", "Break", @mclick)
-	mnuEnd = miRun->Add(ML("&End"), "End", "End", @mclick)
-	mnuRestart = miRun->Add(ML("&Restart") & !"\tShift+F5", "", "Restart", @mclick)
+	mnuStartWithCompile = miRun->Add(ML("Start With &Compile") & HK("StartWithCompile", "F5"), "StartWithCompile", "StartWithCompile", @mclick)
+	mnuStart = miRun->Add(ML("&Start") & HK("Start", "Ctrl+F5"), "Start", "Start", @mclick)
+	mnuBreak = miRun->Add(ML("&Break") & HK("Break", "Ctrl+Break"), "Break", "Break", @mclick)
+	mnuEnd = miRun->Add(ML("&End") & HK("End"), "End", "End", @mclick)
+	mnuRestart = miRun->Add(ML("&Restart") & HK("Restart", "Shift+F5"), "", "Restart", @mclick)
 	mnuBreak->Enabled = False
 	mnuEnd->Enabled = False
 	mnuRestart->Enabled = False
 	
 	Var miXizmat = mnuMain.Add(ML("Service"), "", "Service")
-	miXizmat->Add(ML("&Add-Ins") & "...", "", "AddIns", @mclick)
+	miXizmat->Add(ML("&Add-Ins") & "..." & HK("AddIns"), "", "AddIns", @mclick)
 	miXizmat->Add("-")
-	miXizmat->Add(ML("&Options"), "Tools", "Options", @mclick)
+	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mclick)
 	
 	Var miHelp = mnuMain.Add(ML("&Help"), "", "Help")
-	miHelp->Add(ML("&Content") & !"\tF1", "Help", "Content", @mclick)
+	miHelp->Add(ML("&Content") & HK("Content", "F1"), "Help", "Content", @mclick)
 	miHelps = miHelp->Add(ML("&Others"), "", "Others")
 	Dim As UString sTmp2
 	For i As Integer = 0 To 9
 		sTmp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
 		sTmp2 = iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
-			miHelps->Add(sTmp, sTmp2, "", @mClickHelp)
+			miHelps->Add(sTmp & HK(sTmp), sTmp2, sTmp, @mClickHelp)
 		End If
 	Next
 	miHelp->Add("-")
-	miHelp->Add(ML("FreeBasic WiKi"), "Help", "FreeBasicWiKi", @mclick)
-	miHelp->Add(ML("FreeBasic Forums"), "", "FreeBasicForums", @mclick)
+	miHelp->Add(ML("FreeBasic WiKi") & HK("FreeBasicWiKi"), "Help", "FreeBasicWiKi", @mclick)
+	miHelp->Add(ML("FreeBasic Forums") & HK("FreeBasicForums"), "", "FreeBasicForums", @mclick)
 	Var miGitHub = miHelp->Add(ML("GitHub"))
-	miGitHub->Add(ML("GitHub WebSite"), "", "GitHubWebSite", @mclick)
+	miGitHub->Add(ML("GitHub WebSite") & HK("GitHubWebSite"), "", "GitHubWebSite", @mclick)
 	miGitHub->Add("-")
-	miGitHub->Add(ML("FreeBasic Repository"), "", "FreeBasicRepository", @mclick)
+	miGitHub->Add(ML("FreeBasic Repository") & HK("FreeBasicRepository"), "", "FreeBasicRepository", @mclick)
 	miGitHub->Add("-")
-	miGitHub->Add(ML("VisualFBEditor Repository"), "", "VisualFBEditorRepository", @mclick)
-	miGitHub->Add(ML("MyFbFramework Repository"), "", "MyFbFrameworkRepository", @mclick)
+	miGitHub->Add(ML("VisualFBEditor Repository") & HK("VisualFBEditorRepository"), "", "VisualFBEditorRepository", @mclick)
+	miGitHub->Add(ML("MyFbFramework Repository") & HK("MyFbFrameworkRepository"), "", "MyFbFrameworkRepository", @mclick)
 	miHelp->Add("-")
-	miHelp->Add(ML("&About"), "About", "About", @mclick)
+	miHelp->Add(ML("&About") & HK("About"), "About", "About", @mclick)
 	
 	mnuForm.ImagesList = @imgList '<m>
 	mnuForm.Add(ML("Cu&t"), "Cut", "Cut", @mclick)

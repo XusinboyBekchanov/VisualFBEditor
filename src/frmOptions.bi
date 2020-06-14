@@ -91,6 +91,8 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Static Sub cmdRemoveInclude_Click(ByRef Sender As Control)
 		Declare Static Sub cmdRemoveLibrary_Click(ByRef Sender As Control)
 		Declare Static Sub cmdProjectsPath_Click(ByRef Sender As Control)
+		Declare Static Sub lvShortcuts_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub cmdSetShortcut_Click(ByRef Sender As Control)
 		Declare Constructor
 		Declare Destructor
 		
@@ -110,6 +112,8 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As WString Ptr EditFontName, InterfFontName, oldInterfFontName
 		Dim As Integer EditFontSize, InterfFontSize, oldInterfFontSize
 		Dim Colors(16, 7) As Integer
+		Dim As WStringList HotKeysPriv
+		Dim As Boolean HotKeysChanged
 		Dim As Integer LibraryPathsCount
 		Dim As ListControl lstIncludePaths, lstLibraryPaths, lstColorKeys
 		Dim As GroupBox grbGrid, grbColors, grbThemes, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebugger, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths, grbLanguage, grbDefaultHelp, grbHelpPaths, grbWhenCompiling, grbShortcuts
