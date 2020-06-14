@@ -2,13 +2,13 @@
 
 '#Region "Form"
 	Constructor frmTrek
+		LoadLanguageTexts
 		' frmTrek
 		With This
 			.Name = "frmTrek"
-			.Text = "Trek"
+			.Text = ML("Trek")
 			.MinimizeBox = False
 			.BorderStyle = FormBorderStyle.Sizable
-			.Caption = "Trek"
 			.StartPosition = FormStartPosition.CenterParent
 			.OnShow = @Form_Show
 			.DefaultButton = @cmdOK
@@ -35,10 +35,9 @@
 		' cmdOK
 		With cmdOK
 			.Name = "cmdOK"
-			.Text = "OK"
+			.Text = ML("OK")
 			.SetBounds 650, 208, 80, 24
 			.Default = True
-			.Caption = "OK"
 			.OnClick = @cmdOK_Click
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
@@ -47,9 +46,8 @@
 		' cmdCancel
 		With cmdCancel
 			.Name = "cmdCancel"
-			.Text = "Cancel"
+			.Text = ML("Cancel")
 			.SetBounds 736, 208, 80, 24
-			.Caption = "Cancel"
 			.OnClick = @cmdCancel_Click
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
@@ -69,9 +67,8 @@
 		' lblLabelComment
 		With lblLabelComment
 			.Name = "lblLabelComment"
-			.Text = "Comment:"
+			.Text = ML("Comment") & ":"
 			.SetBounds 8, 184, 64, 16
-			.Caption = "Comment:"
 			.Anchor.Top = AnchorStyle.asNone
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.Parent = @This

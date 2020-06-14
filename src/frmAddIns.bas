@@ -16,8 +16,7 @@ pAvailableAddIns = @AvailableAddIns
 	Constructor frmAddIns
 		' frmAddIns
 		This.Name = "frmAddIns"
-		This.Text = "Add-Ins"
-		This.Caption = "Add-Ins"
+		This.Text = ML("Add-Ins")
 		This.OnCreate = @Form_Create
 		This.OnClose = @Form_Close
 		This.OnShow = @Form_Show
@@ -36,29 +35,25 @@ pAvailableAddIns = @AvailableAddIns
 		lvAddIns.Parent = @This
 		' cmdOK
 		cmdOK.Name = "cmdOK"
-		cmdOK.Text = "OK"
+		cmdOK.Text = ML("OK")
 		cmdOK.SetBounds 390, 12, 78, 24
-		cmdOK.Caption = "OK"
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @This
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
-		cmdCancel.Text = "Cancel"
+		cmdCancel.Text = ML("Cancel")
 		cmdCancel.SetBounds 390, 40, 78, 24
-		cmdCancel.Caption = "Cancel"
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
 		' cmdHelp
 		cmdHelp.Name = "cmdHelp"
-		cmdHelp.Text = "Help"
+		cmdHelp.Text = ML("Help")
 		cmdHelp.SetBounds 390, 180, 78, 24
-		cmdHelp.Caption = "Help"
 		cmdHelp.Parent = @This
 		' lblDescription
 		lblDescription.Name = "lblDescription"
-		lblDescription.Text = "Description:"
+		lblDescription.Text = ML("Description") & ":"
 		lblDescription.SetBounds 12, 216, 162, 18
-		lblDescription.Caption = "Description:"
 		lblDescription.Parent = @This
 		' txtDescription
 		txtDescription.Name = "txtDescription"
@@ -69,21 +64,19 @@ pAvailableAddIns = @AvailableAddIns
 		txtDescription.Parent = @This
 		' grbLoadBehavior
 		grbLoadBehavior.Name = "grbLoadBehavior"
-		grbLoadBehavior.Text = "Load Behavior"
+		grbLoadBehavior.Text = ML("Load Behavior")
 		grbLoadBehavior.SetBounds 288, 225, 180, 93
 		grbLoadBehavior.Parent = @This
 		' chkLoaded
 		chkLoaded.Name = "chkLoaded"
-		chkLoaded.Text = "Loaded"
+		chkLoaded.Text = ML("Loaded")
 		chkLoaded.SetBounds 4, 3, 140, 18
-		chkLoaded.Caption = "Loaded"
 		chkLoaded.OnClick = @chkLoaded_Click
 		chkLoaded.Parent = @pnlLoadBehavior
 		' chkLoadOnStartup
 		chkLoadOnStartup.Name = "chkLoadOnStartup"
-		chkLoadOnStartup.Text = "Load On Startup"
+		chkLoadOnStartup.Text = ML("Load On Startup")
 		chkLoadOnStartup.SetBounds 4, 28, 156, 18
-		chkLoadOnStartup.Caption = "Load On Startup"
 		chkLoadOnStartup.OnClick = @chkLoadOnStartup_Click
 		chkLoadOnStartup.Parent = @pnlLoadBehavior
 		' pnlLoadBehavior
@@ -100,16 +93,18 @@ pAvailableAddIns = @AvailableAddIns
 	#endif
 '#End Region
 
+Destructor AddInType
+	WDeallocate Description
+	WDeallocate Path
+End Destructor
+
 Destructor frmAddIns
-	For i As Integer = 0 To AvailableAddIns.Count - 1
-		#ifndef __USE_GTK__
-			WDeallocate Cast(AddInType Ptr, AvailableAddIns.Item(i))->Description
-			WDeallocate Cast(AddInType Ptr, AvailableAddIns.Item(i))->Path
-			Delete Cast(AddInType Ptr, AvailableAddIns.Item(i))
-		#endif
-	Next
-	AvailableAddIns.Clear
-	
+'	For i As Integer = 0 To AvailableAddIns.Count - 1
+'		#ifndef __USE_GTK__
+'			Delete Cast(AddInType Ptr, AvailableAddIns.Item(i))
+'		#endif
+'	Next
+'	AvailableAddIns.Clear
 End Destructor
 
 Private Sub frmAddIns.cmdOK_Click(ByRef Sender As Control)

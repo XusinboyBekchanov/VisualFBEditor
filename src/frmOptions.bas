@@ -118,6 +118,11 @@ pfOptions = @fOptions
 		pnlThemes.Text = ""
 		pnlThemes.SetBounds 190, 2, 426, 408
 		pnlThemes.Parent = @This
+		' pnlShortcuts
+		pnlShortcuts.Name = "pnlShortcuts"
+		pnlShortcuts.Text = ""
+		pnlShortcuts.SetBounds 190, 2, 426, 408
+		pnlShortcuts.Parent = @This
 		' pnlHelp
 		pnlHelp.Name = "pnlHelp"
 		pnlHelp.Text = ""
@@ -126,16 +131,44 @@ pfOptions = @fOptions
 		' grbDefaultCompilers
 		With grbDefaultCompilers
 			.Name = "grbDefaultCompilers"
-			.Text = "Default Compilers"
+			.Text = ML("Default Compilers")
 			.SetBounds 10, -2, 416, 128
 			.Parent = @pnlCompiler
+		End With
+		' grbShortcuts
+		With grbShortcuts
+			.Name = "grbShortcuts"
+			.Text = ML("Shortcuts")
+			.SetBounds 10, 6, 416, 400
+			.Parent = @pnlShortcuts
 		End With
 		' grbCompilerPaths
 		With grbCompilerPaths
 			.Name = "grbCompilerPaths"
-			.Text = "Compiler Paths"
+			.Text = ML("Compiler Paths")
 			.SetBounds 10, 134, 416, 264
 			.Parent = @pnlCompiler
+		End With
+		' lblShortcut
+		lblShortcut.Name = "lblShortcut"
+		lblShortcut.Text = ML("Select shortcut") & ":"
+		lblShortcut.SetBounds 18, 369, 132, 18
+		lblShortcut.Parent = @grbShortcuts
+		' hkShortcut
+		hkShortcut.Name = "hkShortcut"
+		hkShortcut.SetBounds 146, 367, 199, 19
+		hkShortcut.Parent = @grbShortcuts
+		' cmdSetShortcut
+		cmdSetShortcut.Name = "cmdSetShortcut"
+		cmdSetShortcut.Text = ML("Set")
+		cmdSetShortcut.SetBounds 354, 366, 52, 21
+		cmdSetShortcut.Parent = @grbShortcuts
+		' lvShortcuts
+		With lvShortcuts
+			.Name = "lvShortcuts"
+			.Text = "lvShortcuts"
+			.SetBounds 18, 22, 384, 333
+			.Parent = @grbShortcuts
 		End With
 		' lblCompiler32
 		lblCompiler32.Name = "lblCompiler32"
@@ -150,14 +183,14 @@ pfOptions = @fOptions
 		' grbDefaultDebugger
 		With grbDefaultDebugger
 			.Name = "grbDefaultDebugger"
-			.Text = "Default Debugger"
+			.Text = ML("Default Debugger")
 			.SetBounds 10, 6, 416, 64
 			.Parent = @pnlDebugger
 		End With
 		' grbDebuggerPaths
 		With grbDebuggerPaths
 			.Name = "grbDebuggerPaths"
-			.Text = "Debugger Paths"
+			.Text = ML("Debugger Paths")
 			.SetBounds 10, 78, 416, 328
 			.Parent = @pnlDebugger
 		End With
@@ -171,7 +204,7 @@ pfOptions = @fOptions
 		' grbDefaultTerminal
 		With grbDefaultTerminal
 			.Name = "grbDefaultTerminal"
-			.Text = "Default Terminal"
+			.Text = ML("Default Terminal")
 			.SetBounds 10, -2, 416, 64
 			.Parent = @pnlTerminal
 		End With
@@ -185,11 +218,11 @@ pfOptions = @fOptions
 		' grbTerminalPaths
 		With grbTerminalPaths
 			.Name = "grbTerminalPaths"
-			.Text = "Terminal Paths"
+			.Text = ML("Terminal Paths")
 			.SetBounds 10, 70, 416, 328
 			.Parent = @pnlTerminal
 		End With
-		' lvTerminalPaths
+		' lvTerminalPath
 		With lvTerminalPaths
 			.Name = "lvTerminalPaths"
 			.Text = "lvTerminalPaths"
@@ -199,16 +232,15 @@ pfOptions = @fOptions
 		' cmdAddTerminal
 		With cmdAddTerminal
 			.Name = "cmdAddTerminal"
-			.Text = "Add"
+			.Text = ML("Add")
 			.SetBounds 17, 289, 96, 24
-			.Caption = "Add"
 			.OnClick = @cmdAddTerminal_Click
 			.Parent = @grbTerminalPaths
 		End With
 		' cmdRemoveTerminal
 		With cmdRemoveTerminal
 			.Name = "cmdRemoveTerminal"
-			.Text = "Remove"
+			.Text = ML("Remove")
 			.SetBounds 211, 289, 96, 24
 			.OnClick = @cmdRemoveTerminal_Click
 			.Parent = @grbTerminalPaths
@@ -216,7 +248,7 @@ pfOptions = @fOptions
 		' cmdClearDebuggers1
 		With cmdClearTerminals
 			.Name = "cmdClearTerminals"
-			.Text = "Clear"
+			.Text = ML("Clear")
 			.SetBounds 307, 289, 96, 24
 			.OnClick = @cmdClearTerminals_Click
 			.Parent = @grbTerminalPaths
@@ -224,14 +256,14 @@ pfOptions = @fOptions
 		' grbLanguage
 		With grbLanguage
 			.Name = "grbLanguage"
-			.Text = "Language"
+			.Text = ML("Language")
 			.SetBounds 8, 6, 414, 395
 			.Parent = @pnlLocalization
 		End With
 		' grbThemes
 		With grbThemes
 			.Name = "grbThemes"
-			.Text = "Themes"
+			.Text = ML("Themes")
 			.SetBounds 8, 7, 414, 394
 			.Parent = @pnlThemes
 		End With
@@ -242,7 +274,7 @@ pfOptions = @fOptions
 		cboLanguage.Parent = @grbLanguage
 		' cmdAddCompiler
 		cmdAddCompiler.Name = "cmdAddCompiler"
-		cmdAddCompiler.Text = "Add"
+		cmdAddCompiler.Text = ML("Add")
 		cmdAddCompiler.SetBounds 17, 224, 96, 24
 		cmdAddCompiler.OnClick = @cmdAddCompiler_Click
 		cmdAddCompiler.Parent = @grbCompilerPaths
@@ -264,14 +296,14 @@ pfOptions = @fOptions
 		' grbIncludePaths
 		With grbIncludePaths
 			.Name = "grbIncludePaths"
-			.Text = "Include Paths"
+			.Text = ML("Include Paths")
 			.SetBounds 10, 3, 416, 216
 			.Parent = @pnlIncludes
 		End With
 		' grbLibraryPaths
 		With grbLibraryPaths
 			.Name = "grbLibraryPaths"
-			.Text = "Library Paths"
+			.Text = ML("Library Paths")
 			.SetBounds 10, 230, 416, 168
 			.Parent = @pnlIncludes
 		End With
@@ -327,7 +359,7 @@ pfOptions = @fOptions
 		lstLibraryPaths.Parent = @grbLibraryPaths
 		' lblOthers
 		lblOthers.Name = "lblOthers"
-		lblOthers.Text = "Others:"
+		lblOthers.Text = ML("Others") & ":"
 		lblOthers.SetBounds 16, 48, 138, 18
 		lblOthers.Parent = @grbIncludePaths
 		' cmdAddInclude
@@ -356,16 +388,14 @@ pfOptions = @fOptions
 		cmdRemoveLibrary.Parent = @grbLibraryPaths
 		' cmdChangeDebugger
 		cmdChangeDebugger.Name = "cmdChangeDebugger"
-		cmdChangeDebugger.Text = "Change"
+		cmdChangeDebugger.Text = ML("Change")
 		cmdChangeDebugger.SetBounds 114, 289, 96, 24
-		cmdChangeDebugger.Caption = "Change"
 		cmdChangeDebugger.OnClick = @cmdChangeDebugger_Click
 		cmdChangeDebugger.Parent = @grbDebuggerPaths
 		' cmdChangeTerminal
 		cmdChangeTerminal.Name = "cmdChangeTerminal"
-		cmdChangeTerminal.Text = "Change"
+		cmdChangeTerminal.Text = ML("Change")
 		cmdChangeTerminal.SetBounds 114, 289, 96, 24
-		cmdChangeTerminal.Caption = "Change"
 		cmdChangeTerminal.Parent = @grbTerminalPaths
 		' lblHistoryLimit
 		lblHistoryLimit.Name = "lblHistoryLimit"
@@ -419,18 +449,18 @@ pfOptions = @fOptions
 		cboTabStyle.Parent = @pnlCodeEditor
 		' grbColors
 		grbColors.Name = "grbColors"
-		grbColors.Text = "Colors"
+		grbColors.Text = ML("Colors")
 		grbColors.SetBounds 10, 6, 416, 336
 		grbColors.Parent = @pnlColorsAndFonts
 		' grbFont
 		grbFont.Name = "grbFont"
-		grbFont.Text = "Font (applies to all styles)"
+		grbFont.Text = ML("Font (applies to all styles)")
 		grbFont.SetBounds 10, 342, 416, 56
 		grbFont.Parent = @pnlColorsAndFonts
 		' grbMakeToolPaths
 		With grbMakeToolPaths
 			.Name = "grbMakeToolPaths"
-			.Text = "Make Tool Paths"
+			.Text = ML("Make Tool Paths")
 			.SetBounds 10, 70, 416, 328
 			.Parent = @pnlMake
 		End With
@@ -444,9 +474,8 @@ pfOptions = @fOptions
 		' cmdAddMakeTool
 		With cmdAddMakeTool
 			.Name = "cmdAddMakeTool"
-			.Text = "Add"
+			.Text = ML("Add")
 			.SetBounds 17, 289, 96, 24
-			.Caption = "Add"
 			.OnClick = @cmdAddMakeTool_Click
 			.IsChild = True
 			.ID = 1010
@@ -455,25 +484,23 @@ pfOptions = @fOptions
 		' cmdRemoveMakeTool
 		With cmdRemoveMakeTool
 			.Name = "cmdRemoveMakeTool"
-			.Text = "Remove"
+			.Text = ML("Remove")
 			.SetBounds 211, 289, 96, 24
-			.Caption = "Remove"
 			.OnClick = @cmdRemoveMakeTool_Click
 			.Parent = @grbMakeToolPaths
 		End With
 		' cmdClearMakeTool
 		With cmdClearMakeTools
 			.Name = "cmdClearMakeTools"
-			.Text = "Clear"
+			.Text = ML("Clear")
 			.SetBounds 307, 289, 96, 24
-			.Caption = "Clear"
 			.OnClick = @cmdClearMakeTools_Click
 			.Parent = @grbMakeToolPaths
 		End With
 		' grbDefaultMakeTool
 		With grbDefaultMakeTool
 			.Name = "grbDefaultMakeTool"
-			.Text = "Default Make Tool"
+			.Text = ML("Default Make Tool")
 			.SetBounds 10, -2, 416, 64
 			.Parent = @pnlMake
 		End With
@@ -486,9 +513,8 @@ pfOptions = @fOptions
 		End With
 		' cmdChangeMakeTool
 		cmdChangeMakeTool.Name = "cmdChangeMakeTool"
-		cmdChangeMakeTool.Text = "Change"
+		cmdChangeMakeTool.Text = ML("Change")
 		cmdChangeMakeTool.SetBounds 114, 289, 96, 24
-		cmdChangeMakeTool.Caption = "Change"
 		cmdChangeMakeTool.OnClick = @cmdChangeMakeTool_Click
 		cmdChangeMakeTool.Parent = @grbMakeToolPaths
 		' cboTheme
@@ -505,16 +531,14 @@ pfOptions = @fOptions
 		lstColorKeys.Parent = @grbColors
 		' cmdAdd
 		cmdAdd.Name = "cmdAdd"
-		cmdAdd.Text = "Add"
+		cmdAdd.Text = ML("Add")
 		cmdAdd.SetBounds 258, 20, 71, 23
-		cmdAdd.Caption = "Add"
 		cmdAdd.OnClick = @cmdAdd_Click
 		cmdAdd.Parent = @grbColors
 		' cmdRemove
 		cmdRemove.Name = "cmdRemove"
-		cmdRemove.Text = "Remove"
+		cmdRemove.Text = ML("Remove")
 		cmdRemove.SetBounds 330, 20, 71, 23
-		cmdRemove.Caption = "Remove"
 		cmdRemove.OnClick = @cmdRemove_Click
 		cmdRemove.Parent = @grbColors
 		' lblColorForeground
@@ -539,9 +563,8 @@ pfOptions = @fOptions
 		cmdFont.Parent = @grbFont
 		' lblFont
 		lblFont.Name = "lblFont"
-		lblFont.Text = "Font"
+		lblFont.Text = ML("Font")
 		lblFont.SetBounds 23, 23, 344, 16
-		lblFont.Caption = "Font"
 		lblFont.Parent = @grbFont
 		' txtProjectsPath
 		txtProjectsPath.Name = "txtProjectsPath"
@@ -557,9 +580,8 @@ pfOptions = @fOptions
 		cmdProjectsPath.Parent = @pnlGeneral
 		' lblProjectsPath
 		lblProjectsPath.Name = "lblProjectsPath"
-		lblProjectsPath.Text = "Projects path:"
+		lblProjectsPath.Text = ML("Projects path") & ":"
 		lblProjectsPath.SetBounds 13, 350, 96, 16
-		lblProjectsPath.Caption = "Projects path:"
 		lblProjectsPath.Parent = @pnlGeneral
 		' lblColorBackground
 		lblColorBackground.Name = "lblColorBackground"
@@ -576,21 +598,18 @@ pfOptions = @fOptions
 		cmdBackground.Parent = @grbColors
 		' lblForeground
 		lblForeground.Name = "lblForeground"
-		lblForeground.Text = "Foreground:"
+		lblForeground.Text = ML("Foreground") & ":"
 		lblForeground.SetBounds 258, 55, 136, 16
-		lblForeground.Caption = "Foreground:"
 		lblForeground.Parent = @grbColors
 		' lblBackground
 		lblBackground.Name = "lblBackground"
-		lblBackground.Text = "Background:"
+		lblBackground.Text = ML("Background") & ":"
 		lblBackground.SetBounds 258, 96, 136, 16
-		lblBackground.Caption = "Background:"
 		lblBackground.Parent = @grbColors
 		' lblIndicator
 		lblIndicator.Name = "lblIndicator"
-		lblIndicator.Text = "Indicator:"
+		lblIndicator.Text = ML("Indicator") & ":"
 		lblIndicator.SetBounds 258, 176, 136, 16
-		lblIndicator.Caption = "Indicator:"
 		lblIndicator.Parent = @grbColors
 		' lblColorIndicator
 		lblColorIndicator.Name = "lblColorIndicator"
@@ -608,44 +627,38 @@ pfOptions = @fOptions
 		'
 		' chkForeground
 		chkForeground.Name = "chkForeground"
-		chkForeground.Text = "Auto"
+		chkForeground.Text = ML("Auto")
 		chkForeground.SetBounds 0, 9, 48, 16
-		chkForeground.Caption = "Auto"
 		chkForeground.OnClick = @chkForeground_Click
 		chkForeground.Parent = @pnlColors
 		' chkBackground
 		chkBackground.Name = "chkBackground"
-		chkBackground.Text = "Auto"
+		chkBackground.Text = ML("Auto")
 		chkBackground.SetBounds 0, 51, 48, 16
-		chkBackground.Caption = "Auto"
 		chkBackground.OnClick = @chkBackground_Click
 		chkBackground.Parent = @pnlColors
 		' chkIndicator
 		chkIndicator.Name = "chkIndicator"
-		chkIndicator.Text = "Auto"
+		chkIndicator.Text = ML("Auto")
 		chkIndicator.SetBounds 0, 130, 48, 16
-		chkIndicator.Caption = "Auto"
 		chkIndicator.OnClick = @chkIndicator_Click
 		chkIndicator.Parent = @pnlColors
 		' chkBold
 		chkBold.Name = "chkBold"
-		chkBold.Text = "Bold"
+		chkBold.Text = ML("Bold")
 		chkBold.SetBounds 268, 251, 107, 16
-		chkBold.Caption = "Bold"
 		chkBold.OnClick = @chkBold_Click
 		chkBold.Parent = @pnlColorsAndFonts
 		' chkItalic
 		chkItalic.Name = "chkItalic"
-		chkItalic.Text = "Italic"
+		chkItalic.Text = ML("Italic")
 		chkItalic.SetBounds 268, 275, 99, 16
-		chkItalic.Caption = "Italic"
 		chkItalic.OnClick = @chkItalic_Click
 		chkItalic.Parent = @pnlColorsAndFonts
 		' chkUnderline
 		chkUnderline.Name = "chkUnderline"
-		chkUnderline.Text = "Underline"
+		chkUnderline.Text = ML("Underline")
 		chkUnderline.SetBounds 268, 299, 107, 16
-		chkUnderline.Caption = "Underline"
 		chkUnderline.OnClick = @chkUnderline_Click
 		chkUnderline.Parent = @pnlColorsAndFonts
 		' chkUseMakeOnStartWithCompile
@@ -678,18 +691,16 @@ pfOptions = @fOptions
 		' cmdRemoveCompiler
 		With cmdRemoveCompiler
 			.Name = "cmdRemoveCompiler"
-			.Text = "Remove"
+			.Text = ML("Remove")
 			.SetBounds 211, 224, 96, 24
-			.Caption = "Remove"
 			.OnClick = @cmdRemoveCompiler_Click
 			.Parent = @grbCompilerPaths
 		End With
 		' cmdClearCompilers
 		With cmdClearCompilers
 			.Name = "cmdClearCompilers"
-			.Text = "Clear"
+			.Text = ML("Clear")
 			.SetBounds 308, 224, 96, 24
-			.Caption = "Clear"
 			.OnClick = @cmdClearCompilers_Click
 			.Parent = @grbCompilerPaths
 		End With
@@ -703,27 +714,24 @@ pfOptions = @fOptions
 		' cmdAddDebugger
 		With cmdAddDebugger
 			.Name = "cmdAddDebugger"
-			.Text = "Add"
+			.Text = ML("Add")
 			.SetBounds 17, 289, 96, 24
-			.Caption = "Add"
 			.OnClick = @cmdAddDebugger_Click
 			.Parent = @grbDebuggerPaths
 		End With
 		' cmdRemoveDebugger
 		With cmdRemoveDebugger
 			.Name = "cmdRemoveDebugger"
-			.Text = "Remove"
+			.Text = ML("Remove")
 			.SetBounds 211, 289, 96, 24
-			.Caption = "Remove"
 			.OnClick = @cmdRemoveDebugger_Click
 			.Parent = @grbDebuggerPaths
 		End With
 		' cmdClearDebuggers
 		With cmdClearDebuggers
 			.Name = "cmdClearDebuggers"
-			.Text = "Clear"
+			.Text = ML("Clear")
 			.SetBounds 307, 289, 96, 24
-			.Caption = "Clear"
 			.OnClick = @cmdClearDebuggers_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -783,9 +791,8 @@ pfOptions = @fOptions
 		' lblFrame
 		With lblFrame
 			.Name = "lblFrame"
-			.Text = "Frame:"
+			.Text = ML("Frame") & ":"
 			.SetBounds 258, 136, 136, 16
-			.Caption = "Frame:"
 			.Parent = @grbColors
 		End With
 		' lblColorFrame
@@ -807,50 +814,45 @@ pfOptions = @fOptions
 		' chkFrame
 		With chkFrame
 			.Name = "chkFrame"
-			.Text = "Auto"
+			.Text = ML("Auto")
 			.SetBounds 0, 90, 48, 16
-			.Caption = "Auto"
 			.OnClick = @chkFrame_Click
 			.Parent = @pnlColors
 		End With
 		' chkHighlightCurrentWord
 		With chkHighlightCurrentWord
 			.Name = "chkHighlightCurrentWord"
-			.Text = "Highlight Current Word"
+			.Text = ML("Highlight Current Word")
 			.SetBounds 10, 84, 192, 26
-			.Caption = "Highlight Current Word"
 			.Parent = @pnlCodeEditor
 		End With
 		' chkHighlightCurrentLine
 		With chkHighlightCurrentLine
 			.Name = "chkHighlightCurrentLine"
-			.Text = "Highlight Current Line"
+			.Text = ML("Highlight Current Line")
 			.SetBounds 10, 66, 224, 16
-			.Caption = "Highlight Current Line"
 			.Parent = @pnlCodeEditor
 		End With
 		' chkHighlightBrackets
 		With chkHighlightBrackets
 			.Name = "chkHighlightBrackets"
-			.Text = "Highlight Brackets"
+			.Text = ML("Highlight Brackets")
 			.SetBounds 10, 111, 154, 18
-			.Caption = "Highlight Brackets"
 			.Parent = @pnlCodeEditor
 		End With
 		' cmdChangeCompiler
 		With cmdChangeCompiler
 			.Name = "cmdChangeCompiler"
-			.Text = "Change"
+			.Text = ML("Change")
 			.SetBounds 114, 224, 96, 24
-			.Caption = "Change"
 			.OnClick = @cmdChangeCompiler_Click
 			.Parent = @grbCompilerPaths
 		End With
 		' grbDefaultHelp
 		With grbDefaultHelp
 			.Name = "grbDefaultHelp"
-			.Text = "Default Help"
-			.SetBounds 10, -2, 416, 64
+			.Text = ML("Default Help")
+			.SetBounds 10, 6, 416, 64
 			.Parent = @pnlHelp
 		End With
 		' cboHelp
@@ -863,8 +865,8 @@ pfOptions = @fOptions
 		' grbHelpPaths
 		With grbHelpPaths
 			.Name = "grbHelpPaths"
-			.Text = "Help Paths"
-			.SetBounds 10, 70, 416, 328
+			.Text = ML("Help Paths")
+			.SetBounds 10, 78, 416, 323
 			.Parent = @pnlHelp
 		End With
 		' lvHelpPaths
@@ -877,68 +879,61 @@ pfOptions = @fOptions
 		' cmdAddHelp
 		With cmdAddHelp
 			.Name = "cmdAddHelp"
-			.Text = "Add"
-			.SetBounds 17, 289, 96, 24
-			.Caption = "Add"
+			.Text = ML("Add")
+			.SetBounds 17, 288, 96, 24
 			.OnClick = @cmdAddHelp_Click
 			.Parent = @grbHelpPaths
 		End With
 		' cmdChangeHelp
 		With cmdChangeHelp
 			.Name = "cmdChangeHelp"
-			.Text = "Change"
-			.SetBounds 114, 289, 96, 24
-			.Caption = "Change"
+			.Text = ML("Change")
+			.SetBounds 114, 288, 96, 24
 			.OnClick = @cmdChangeHelp_Click
 			.Parent = @grbHelpPaths
 		End With
 		' cmdRemoveHelp
 		With cmdRemoveHelp
 			.Name = "cmdRemoveHelp"
-			.Text = "Remove"
-			.SetBounds 211, 289, 96, 24
-			.Caption = "Remove"
+			.Text = ML("Remove")
+			.SetBounds 211, 288, 96, 24
 			.OnClick = @cmdRemoveHelp_Click
 			.Parent = @grbHelpPaths
 		End With
 		' cmdClearHelp
 		With cmdClearHelps
 			.Name = "cmdClearHelps"
-			.Text = "Clear"
+			.Text = ML("Clear")
 			.SetBounds 307, 289, 96, 24
-			.Caption = "Clear"
 			.OnClick = @cmdClearHelps_Click
 			.Parent = @grbHelpPaths
 		End With
 		' grbWhenCompiling
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
-			.Text = "When compiling:"
+			.Text = ML("When compiling") & ":"
 			.SetBounds 8, 120, 416, 104
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
 		With optSaveCurrentFile
 			.Name = "optSaveCurrentFile"
-			.Text = "Save Current File"
+			.Text = ML("Save Current File")
 			.SetBounds 18, 22, 184, 16
-			.Caption = "Save Current File"
 			.Parent = @grbWhenCompiling
 		End With
 		' optDoNotSave
 		With optDoNotSave
 			.Name = "optDoNotSave"
-			.Text = "Don't Save"
+			.Text = ML("Don't Save")
 			.SetBounds 18, 70, 184, 16
-			.Caption = "Don't Save"
 			.Parent = @grbWhenCompiling
 		End With
 		' optSaveAllFiles
 		With optSaveAllFiles
 			.Name = "optSaveAllFiles"
-			.Text = "Save All Files"
+			.Text = ML("Save All Files")
 			.SetBounds 18, 46, 184, 16
-			.Caption = "Save All Files"
 			.Parent = @grbWhenCompiling
 		End With
 		' Panel1
@@ -1034,19 +1029,28 @@ Sub frmOptions.LoadSettings()
 		.chkDisplayIcons.Checked = DisplayMenuIcons
 		.chkShowMainToolbar.Checked = ShowMainToolbar
 		Dim As String f
-		Dim As Integer Fn = FreeFile
+		Dim As Integer Fn = FreeFile, Result
 		Dim Buff As WString * 2048 'David Change
+		Dim As UString FileName
 		'On Error Resume Next
 		f = Dir(ExePath & "/Settings/Languages/*.lng")
 		While f <> ""
-			If Open(ExePath & "/Settings/Languages/" & f For Input Encoding "utf-8" As #Fn) = 0 Then
+			FileName = ExePath & "/Settings/Languages/" & f
+			Result = Open(FileName For Input Encoding "utf-8" As #Fn)
+			If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result = Open(FileName For Input As #Fn)
+			If Result = 0 Then
 				'WReallocate s, LOF(Fn) 'David Change
 				If Not EOF(Fn) Then
 					Line Input #Fn, Buff  'David Change
 					Languages.Add Left(f, Len(f) - 4)
-					.cboLanguage.AddItem Buff
+					.cboLanguage.AddItem Buff & " - " & Left(f, Len(f) - 4)
 				End If
 				Close #Fn
+			Else
+				Languages.Add Left(f, Len(f) - 4)
+				.cboLanguage.AddItem Left(f, Len(f) - 4) & " (" & ML("format does not match") & ")"
 			End If
 			f = Dir()
 		Wend
@@ -1225,6 +1229,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		Var tnDebugger = .tvOptions.Nodes.Add(ML("Debugger"), "Debugger")
 		.tvOptions.Nodes.Add(ML("Designer"), "Designer")
 		tnGeneral->Nodes.Add(ML("Localization"), "Localization")
+		tnGeneral->Nodes.Add(ML("Shortcuts"), "Shortcuts")
 		tnGeneral->Nodes.Add(ML("Themes"), "Themes")
 		tnEditor->Nodes.Add(ML("Colors And Fonts"), "ColorsAndFonts")
 		tnCompiler->Nodes.Add(ML("Includes"), "Includes")
@@ -1232,6 +1237,8 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		tnDebugger->Nodes.Add(ML("Terminal"), "Terminal")
 		.tvOptions.Nodes.Add(ML("Help"), "Help")
 		.tvOptions.ExpandAll
+		.lvShortcuts.Columns.Add ML("Action"), , 250
+		.lvShortcuts.Columns.Add ML("Shortcut"), , 100
 		.lvCompilerPaths.Columns.Add ML("Version"), , 200
 		.lvCompilerPaths.Columns.Add ML("Path"), , 200
 		.lvMakeToolPaths.Columns.Add ML("Version"), , 200
@@ -1635,6 +1642,7 @@ Private Sub frmOptions.TreeView1_SelChange(ByRef Sender As TreeView, ByRef Item 
 		Dim Key As String = Item.Name
 		.pnlGeneral.Visible = Key = "General"
 		.pnlCodeEditor.Visible = Key = "CodeEditor"
+		.pnlShortcuts.Visible = Key = "Shortcuts"
 		.pnlThemes.Visible = Key = "Themes"
 		.pnlColorsAndFonts.Visible = Key = "ColorsAndFonts"
 		.pnlCompiler.Visible = Key = "Compiler"

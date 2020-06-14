@@ -24,7 +24,7 @@ Using My.Sys.Forms
 		Declare Static Sub Form_Create(ByRef Sender As Control)
 		Declare Static Sub chkLoaded_Click(ByRef Sender As CheckBox)
 		Declare Static Sub chkLoadOnStartup_Click(ByRef Sender As CheckBox)
-		Declare Static Sub Form_Close(ByRef Sender As Form, BYREF Action As Integer)
+		Declare Static Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Static Sub lvAddIns_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
 		Declare Static Sub Form_Show(ByRef Sender As Form)
 		Declare Static Sub lvAddIns_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
@@ -50,12 +50,13 @@ Type AddInType
 	LoadOnStartupINI As Boolean
 	Description As WString Ptr
 	Path As WString Ptr
+	Declare Destructor
 End Type
 Common Shared pAvailableAddIns As List Ptr
 
 Declare Sub ConnectAddIn(AddIn As String)
 Declare Sub DisconnectAddIn(AddIn As String)
 
-#IfNDef __USE_MAKE__
-	#Include Once "frmAddIns.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "frmAddIns.bas"
+#endif

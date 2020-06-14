@@ -28,32 +28,30 @@ pfGoto = @fGoto
 		This.Width = 320
 		Height = 100
 		This.StartPosition = FormStartPosition.CenterParent
-		lblFind.Caption = "Line:"
+		lblFind.Caption = ML("Line") & ":"
 		lblFind.SetBounds 10, 10, 80, 20
-		lblFind.Text = "Line:"
 		lblFind.Parent = @This
 		txtFind.SetBounds 90, 10, 204, 20
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Anchor.Right = asAnchor
 		txtFind.Parent = @This
-		btnFind.Caption = "&Go"
+		btnFind.Caption = ML("&Go")
 		btnFind.Default = True
 		btnFind.SetBounds 90, 36, 100, 20
 		btnFind.Anchor.Right = asAnchor
 		btnFind.Parent = @This
-		btnCancel.Caption = "&Cancel"
+		btnCancel.Caption = ML("&Cancel")
 		btnCancel.Anchor.Right = asAnchor
 		btnCancel.SetBounds 194, 36, 100, 20
 		btnCancel.Parent = @This
 		'AddRange 10, @lblFind, @txtFind, @lblReplace, @txtReplace, @chkRegistr, @btnFind, @btnReplace, @btnFindAll, @btnReplaceAll, @btnCancel
 		OnShow = @_Form_Show_
-		btnFind.Text = "&Go"
+		btnFind.Text = ML("&Go")
 		btnFind.OnClick = @_btnFind_Click_
-		btnCancel.Text = "&Cancel"
+		btnCancel.Text = ML("&Cancel")
 		btnCancel.OnClick = @_btnCancel_Click_
 		This.DefaultButton = @btnFind
-		This.Caption = "Goto"
-		This.Text = "Goto"
+		This.Caption = ML("Goto")
 		This.CancelButton = @btnCancel
 		'This.BorderStyle = 2
 	End Constructor

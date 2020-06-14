@@ -11,8 +11,7 @@
 		' frmPath
 		With This
 			.Name = "frmPath"
-			.Text = "Path"
-			.Caption = "Path"
+			.Text = ML("Path")
 			.StartPosition = FormStartPosition.CenterParent
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.MaximizeBox = False
@@ -24,9 +23,8 @@
 		' cmdCancel
 		With cmdCancel
 			.Name = "cmdCancel"
-			.Text = "Cancel"
+			.Text = ML("Cancel")
 			.SetBounds 336, 88, 112, 24
-			.Caption = "Cancel"
 			.OnClick = @cmdCancel_Click
 			.Parent = @This
 		End With
@@ -40,17 +38,15 @@
 		' lblVersion
 		With lblVersion
 			.Name = "lblVersion"
-			.Text = "Version:"
+			.Text = ML("Version") & ":"
 			.SetBounds 8, 48, 64, 24
-			.Caption = "Version:"
 			.Parent = @This
 		End With
 		' lblPath
 		With lblPath
 			.Name = "lblPath"
-			.Text = "Path:"
+			.Text = ML("Path") & ":"
 			.SetBounds 8, 16, 64, 24
-			.Caption = "Path:"
 			.Parent = @This
 		End With
 		' txtPath
@@ -72,9 +68,8 @@
 		' cmdOK
 		With cmdOK
 			.Name = "cmdOK"
-			.Text = "OK"
+			.Text = ML("OK")
 			.SetBounds 216, 88, 112, 24
-			.Caption = "OK"
 			.OnClick = @cmdOK_Click
 			.Parent = @This
 		End With

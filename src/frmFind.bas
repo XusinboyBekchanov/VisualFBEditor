@@ -68,13 +68,13 @@ pfFind = @fFind
 		txtFind.Style = cbDropDown
 		txtFind.SetBounds 82, 9, 164, 21
 		txtFind.Anchor.Left = asAnchor
-		txtFind.Text = "Find"
+		txtFind.Text = ""
 		txtFind.Parent = @This
 		
 		' txtReplace
 		txtReplace.Name = "txtReplace"
 		txtReplace.Style = cbDropDown
-		txtReplace.Text = "Replace"
+		txtReplace.Text = ""
 		txtReplace.SetBounds 82, 41, 164, 21
 		txtReplace.Anchor.Left = asAnchor
 		txtReplace.Parent = @This
@@ -82,7 +82,6 @@ pfFind = @fFind
 		chkMatchCase.Name = "chkMatchCase"
 		chkMatchCase.Caption = ML("Match Case")
 		chkMatchCase.SetBounds 253, 1, 85, 20
-		chkMatchCase.Text = ML("Match Case")
 		chkMatchCase.Parent = @This
 		
 		' btnFind
@@ -157,7 +156,7 @@ pfFind = @fFind
 		
 		' btnFindAll
 		btnFindAll.Name = "btnFindAll"
-		btnFindAll.Text = "All"
+		btnFindAll.Text = ML("All")
 		btnFindAll.SetBounds 472, 4, 28, 26
 		btnFindAll.OnClick = @btnFindAll_Click
 		btnFindAll.Parent = @This

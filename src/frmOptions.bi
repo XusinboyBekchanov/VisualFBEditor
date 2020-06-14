@@ -30,6 +30,7 @@
 #include once "frmPath.bi"
 #include once "mff/ListView.bi"
 #include once "mff/RadioButton.bi"
+#include once "mff/HotKey.bi"
 
 Using My.Sys.Forms
 
@@ -94,13 +95,14 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Destructor
 		
 		Dim As TreeView tvOptions
-		Dim As CommandButton cmdOK, cmdCancel, cmdApply, cmdAddCompiler, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdChangeDebugger, cmdChangeTerminal, cmdChangeMakeTool, cmdAdd, cmdRemove, cmdForeground, cmdFont, cmdProjectsPath, cmdBackground, cmdIndicator, cmdRemoveCompiler, cmdClearCompilers, cmdAddDebugger, cmdRemoveDebugger, cmdClearDebuggers, cmdAddMakeTool, cmdRemoveMakeTool, cmdClearMakeTools, cmdAddTerminal, cmdRemoveTerminal, cmdClearTerminals
-		Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblTabSize, lblHistoryLimit, lblGridSize, lblFont, lblProjectsPath, lblForeground, lblBackground, lblIndicator, lblOthers
-		Dim As Panel pnlGeneral, pnlLocalization, pnlThemes, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlHelp, pnlIncludes, Panel1, pnlThemesCheckboxes, pnlColors, pnlGrid
+		Dim As CommandButton cmdOK, cmdCancel, cmdApply, cmdAddCompiler, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdChangeDebugger, cmdChangeTerminal, cmdChangeMakeTool, cmdAdd, cmdRemove, cmdForeground, cmdFont, cmdProjectsPath, cmdBackground, cmdIndicator, cmdRemoveCompiler, cmdClearCompilers, cmdAddDebugger, cmdRemoveDebugger, cmdClearDebuggers, cmdAddMakeTool, cmdRemoveMakeTool, cmdClearMakeTools, cmdAddTerminal, cmdRemoveTerminal, cmdClearTerminals, cmdSetShortcut
+		Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblTabSize, lblHistoryLimit, lblGridSize, lblFont, lblProjectsPath, lblForeground, lblBackground, lblIndicator, lblOthers, lblShortcut
+		Dim As Panel pnlGeneral, pnlLocalization, pnlShortcuts, pnlThemes, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlHelp, pnlIncludes, Panel1, pnlThemesCheckboxes, pnlColors, pnlGrid
 		Dim As Picture lblColorForeground, lblColorBackground, lblColorIndicator
 		Dim As TextBox txtMFFpath, txtTabSize, txtHistoryLimit, txtGridSize, txtProjectsPath
 		Dim As ComboBoxEdit cboLanguage, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger, cboMakeTool, cboTerminal, cboHelp
 		Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCurrentFileBeforeCompiling, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces, chkShowAlignmentGrid, chkSnapToGrid, chkChangeKeywordsCase, chkForeground, chkBackground, chkIndicator, chkBold, chkItalic, chkUnderline, chkUseMakeOnStartWithCompile
+		Dim As HotKey hkShortcut
 		Dim OpenD As OpenFileDialog
 		Dim BrowsD As FolderBrowserDialog
 		Dim ColorD As ColorDialog
@@ -110,8 +112,8 @@ Common Shared As Integer oldIndex, newIndex
 		Dim Colors(16, 7) As Integer
 		Dim As Integer LibraryPathsCount
 		Dim As ListControl lstIncludePaths, lstLibraryPaths, lstColorKeys
-		Dim As GroupBox grbGrid, grbColors, grbThemes, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebugger, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths, grbLanguage, grbDefaultHelp, grbHelpPaths, grbWhenCompiling
-		Dim As ListView lvCompilerPaths, lvDebuggerPaths, lvMakeToolPaths, lvTerminalPaths, lvHelpPaths
+		Dim As GroupBox grbGrid, grbColors, grbThemes, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebugger, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths, grbLanguage, grbDefaultHelp, grbHelpPaths, grbWhenCompiling, grbShortcuts
+		Dim As ListView lvCompilerPaths, lvDebuggerPaths, lvMakeToolPaths, lvTerminalPaths, lvHelpPaths, lvShortcuts
 		Dim As Label lblInterfaceFont
 		Dim As CommandButton cmdInterfaceFont
 		Dim As Label lblInterfaceFontLabel

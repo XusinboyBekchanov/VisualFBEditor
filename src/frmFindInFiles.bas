@@ -32,7 +32,6 @@ pfFindFile = @fFindFile
 	Constructor frmFindInFiles
 		This.Name = "frmFindInFiles"
 		This.StartPosition = FormStartPosition.CenterParent
-		This.Text = "lblReplace"
 		'		#ifndef __USE_GTK__
 		'			This.BorderStyle = FormBorderStyle.FixedDialog
 		'		#endif

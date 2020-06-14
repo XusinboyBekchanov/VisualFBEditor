@@ -740,7 +740,7 @@ Dim Shared exedate As Double 'serial date
 	Private Function cutup_array(gv As String,d As Integer,f As Byte) As Integer
 		Dim As Integer p=d,q,c
 		
-		If arrnb>ARRMAX Then Msgbox("Max array reached: can't store"):Exit Function
+		If arrnb>ARRMAX Then Msgbox(ML("Max array reached: can't store")):Exit Function
 		arrnb+=1
 		
 		'While gv[p-1]=Asc("a")
@@ -892,7 +892,7 @@ Dim Shared exedate As Double 'serial date
 		udtidx=Val(Mid(readl,p,q-p))
 		If tnm="OBJECT" OrElse tnm="$fb_Object" Then udt(15).index=udtidx:Exit Sub
 		udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
-		If udtmax > TYPEMAX-1 Then Msgbox("Storing UDT: Max limit reached "+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX-1 Then Msgbox(ML("Storing UDT: Max limit reached")+" "+Str(TYPEMAX)):Exit Sub
 		udt(udtidx).nm=tnm
 		If Left(tnm,4)="TMP$" Then Exit Sub 'gcc redim
 		p=q+2
@@ -906,7 +906,7 @@ Dim Shared exedate As Double 'serial date
 		udt(udtidx).lb=cudtnb+1
 		While readl[p-1]<>Asc(";")
 			'dbg_prt("STORING CUDT "+readl)
-			If cudtnb = CTYPEMAX Then Msgbox ("Storing CUDT: Max limit reached "+Str(CTYPEMAX)):Exit Sub
+			If cudtnb = CTYPEMAX Then Msgbox (ML("Storing CUDT: Max limit reached")+" "+Str(CTYPEMAX)):Exit Sub
 			cudtnb+=1
 			
 			
@@ -979,7 +979,7 @@ Dim Shared exedate As Double 'serial date
 		Select Case gv
 		Case Asc("S"),Asc("G")     'shared/common
 			If gv=Asc("G") Then If Common_exist(ad) Then Return 0 'to indicate that no needed to continue
-			If vrbgbl=VGBLMAX Then Msgbox ("Init Globals: Reached limit "+Str(VGBLMAX)):Exit Function
+			If vrbgbl=VGBLMAX Then Msgbox (ML("Init Globals: Reached limit")+" "+Str(VGBLMAX)):Exit Function
 			vrbgbl+=1
 			vrb(vrbgbl).adr=ad
 			vrbptr=@vrbgbl
@@ -992,7 +992,7 @@ Dim Shared exedate As Double 'serial date
 			End Select
 			Return 2
 		Case Else
-			If vrbloc=VARMAX Then MsgBox("Init locals: Reached limit "+Str(VARMAX-3000)):Exit Function
+			If vrbloc=VARMAX Then MsgBox(ML("Init locals: Reached limit")+" "+Str(VARMAX-3000)):Exit Function
 			vrbloc+=1
 			vrb(vrbloc).adr=ad
 			vrbptr=@vrbloc
@@ -1099,7 +1099,7 @@ Dim Shared exedate As Double 'serial date
 		q=InStr(readl,"=")
 		udtidx=Val(Mid(readl,p,q-p))
 		udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
-		If udtmax > TYPEMAX Then msgbox("Storing ENUM="+tnm & ": Max limit reached "+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX Then msgbox(ML("Storing ENUM") & "="+tnm & ": " & ML("Max limit reached")+" "+Str(TYPEMAX)):Exit Sub
 		udt(udtidx).nm=tnm 'enum name
 		
 		udt(udtidx).en=udtidx 'flag enum, in case of already treated use same previous cudt
@@ -1112,11 +1112,11 @@ Dim Shared exedate As Double 'serial date
 			cudtnb+=1
 			cudt(cudtnb).nm="DUMMY"
 			cudt(cudtnb).val=0
-			msgbox("Storing ENUM="+tnm &": Data not correctly formated "):Exit Sub '28/04/2014
+			msgbox(ML("Storing ENUM") & "="+tnm &": " & ML("Data not correctly formated")):Exit Sub '28/04/2014
 		Else
 			While readl[p-1]<>Asc(";")
 				q=InStr(p,readl,":") 'text
-				If cudtnb>=CTYPEMAX Then MsgBox("Storing ENUM="+tnm & ": Max limit reached "+Str(CTYPEMAX)):Exit Sub '28/04/2014
+				If cudtnb>=CTYPEMAX Then MsgBox(ML("Storing ENUM") & "="+tnm & ": " & ML("Max limit reached")+" "+Str(CTYPEMAX)):Exit Sub '28/04/2014
 				cudtnb+=1
 				cudt(cudtnb).nm=Mid(readl,p,q-p)
 				
@@ -1669,7 +1669,7 @@ Dim Shared exedate As Double 'serial date
 				Else
 					adr=.adr
 				End If
-				If vrrnb=VRRMAX Then msgbox("Too many variables: --> lost"):Exit Sub
+				If vrrnb=VRRMAX Then msgbox(ML("Too many variables: --> lost")):Exit Sub
 				vrrnb+=1:vrr(vrrnb).vr=i
 				vrr(vrrnb).ad=adr
 				If .arr Then
@@ -1796,7 +1796,7 @@ Dim Shared exedate As Double 'serial date
 	
 	Dim Shared As tvrp vrp(SHWEXPMAX,VRPMAX)
 	
-	private function watch_find() As Integer
+	Private Function watch_find() As Integer
 		Dim hitem As Integer
 		'get current hitem in tree
 		hitem=sendmessage(tviewwch,TVM_GETNEXTITEM,TVGN_CARET,0)
@@ -1812,12 +1812,12 @@ Dim Shared exedate As Double 'serial date
 			hitem=Cast(HTREEITEM,sendmessage(tviewvar,TVM_GETNEXTITEM,TVGN_CARET,0))
 			For i As Integer = 1 To vrrnb 'search index variable
 				If vrr(i).tv=hitem Then
-					If vrr(i).ad=0 Then msgbox("Variable selection error: Dynamic array not yet sized !!"):Return -1
+					If vrr(i).ad=0 Then msgbox(ML("Variable selection error: Dynamic array not yet sized!")):Return -1
 					var_fill(i)
 					Return i
 				End If
 			Next
-			msgbox("Variable selection error2: Select only a variable")
+			msgbox(ML("Variable selection error2: Select only a variable"))
 			Return -1
 		ElseIf tv=tviewwch Then
 			idx=watch_find()
@@ -1934,7 +1934,7 @@ Dim Shared exedate As Double 'serial date
 			#ifdef dbg_prt2
 				dbg_prt2("show ret="+proc(temp).nm+" "+Str(typ)+" "+Str(pt))
 			#endif
-			If typ=7 AndAlso pt=0 Then msgbox("Return value: Select a function not a sub !!"):Exit Sub
+			If typ=7 AndAlso pt=0 Then msgbox(ML("Return value: Select a function not a sub!")):Exit Sub
 			If rvadr<>0 Then 'gcc/dwarf 19/08/2015
 				'addr+=rvadr
 				#ifdef dbg_prt2
@@ -1981,7 +1981,7 @@ Dim Shared exedate As Double 'serial date
 			'fb_Dialog(@shwexp_box,"Show/expand : "+varfind.nm,windmain,283,25,350,200)
 		Else
 			'no free slot
-			msgbox("Show/Expand variable or memory: Max number of windows reached ("+Str(SHWEXPMAX)+Chr(13)+"Close one window and try again")
+			msgbox(ML("Show/Expand variable or memory: Max number of windows reached") & " ("+Str(SHWEXPMAX)+Chr(13)+ML("Close one window and try again"))
 		End If
 	End Sub
 	
@@ -2352,7 +2352,7 @@ Dim Shared exedate As Double 'serial date
 		wtchnew=t
 	End Sub
 	
-	private sub watch_set()
+	Private Sub watch_set()
 		If wtchcpt>WTCHMAX Then ' free slot not found
 			' change focus
 			ShowWindow(tviewcur,SW_HIDE)
@@ -2360,7 +2360,7 @@ Dim Shared exedate As Double 'serial date
 			ShowWindow(tviewcur,SW_SHOW)
 			SetFocus(tviewcur)
 			SendMessage(htab2,TCM_SETCURSEL,3,0)
-			msgbox("Add watched variable: No free slot, delete one")
+			msgbox(ML("Add watched variable: No free slot, delete one"))
 			Exit Sub
 		End If
 		'Already set ?
@@ -2419,7 +2419,7 @@ Dim Shared exedate As Double 'serial date
 		End If
 		
 		If text="" Or Left(text,1)="." Then
-			msgbox("Selection variable error: """+text+""" : Empty string or incomplete name (udt components)")
+			msgbox(ML("Selection variable error") & ": """+text+""" : " & ML("Empty string or incomplete name (udt components)"))
 			Exit Sub
 		End If
 		
@@ -2474,7 +2474,7 @@ Dim Shared exedate As Double 'serial date
 					Next
 					idx=var_search(1,vname(),vnb,varray)
 				End If
-				If idx=-1 Then	msgbox("Selection variable error: """+Left(text,Len(text)-1)+""" is not a running variable"):Exit Sub
+				If idx=-1 Then	msgbox(ML("Selection variable error") & ": """+Left(text,Len(text)-1)+""" " & ML("is not a running variable")):Exit Sub
 			End If
 		End If
 		'============== end of mod ==============
@@ -2542,7 +2542,7 @@ Dim Shared exedate As Double 'serial date
 						ElseIf wtch(i).psk=-4 Then 'session watch
 							If wtch(i).idx=0 Then 'shared dll
 								vridx=var_search(procrnb,wtch(i).vnm(),wtch(i).vnb,wtch(i).var,wtch(i).pnt)
-								If vridx=-1 Then msgbox("Proc watch: Running var not found"):Continue For
+								If vridx=-1 Then msgbox(ML("Proc watch: Running var not found")):Continue For
 								var_fill(vridx)
 								watch_add(wtch(i).tad,i)
 							End If
@@ -2582,7 +2582,7 @@ Dim Shared exedate As Double 'serial date
 			vtype=Mid(wname(index),q,p-q)
 			
 			If pidx=-1 Then
-				msgbox("Watched variables: Proc <"+pname+"> for <"+vname+"> removed, canceled",, MB_SYSTEMMODAL)
+				msgbox(ML("Watched variables") & ": Proc <"+pname+"> for <"+vname+"> " & ML("removed, canceled"),, MB_SYSTEMMODAL)
 				index+=1
 				Continue While 'proc has been removed
 			End If
@@ -2631,7 +2631,7 @@ Dim Shared exedate As Double 'serial date
 			End If
 			If vidx=-1 Then
 				'var has been removed
-				msgbox("Applying watched variables: <"+vname+"> removed, canceled",, MB_SYSTEMMODAL)
+				msgbox(ML("Applying watched variables") & ": <"+vname+"> "& ML("removed, canceled"),, MB_SYSTEMMODAL)
 				index+=1
 				Continue While
 			End If
@@ -2660,7 +2660,7 @@ Dim Shared exedate As Double 'serial date
 				Next
 				If vidx=-1 Then
 					'udt has been removed
-					msgbox("Applying watched variables: udt <"+vname+"> removed, canceled")
+					msgbox(ML("Applying watched variables") & ": udt <"+vname+"> " & ML("removed, canceled"))
 					index+=1
 					Continue While,While
 				End If
@@ -2675,13 +2675,13 @@ Dim Shared exedate As Double 'serial date
 			q+=2
 			If ispnt<>ValInt(Mid(wname(index),q,1)) Then 'pnt
 				'pointer doesn't match
-				msgbox("Applying watched variables: " & Left(wname(index),Len(wname(index))-2)+" not a pointer or pointer, canceled")
+				msgbox(ML("Applying watched variables") & ": " & Left(wname(index),Len(wname(index))-2)+" " & ML("not a pointer or pointer, canceled"))
 				index+=1
 				Continue While
 			End If
 			
 			wtch(index).tvl=Tree_AddItem(NULL,"", 0, tviewwch)
-			wtch(index).lbl=proc(pidx).nm+"/"+vname+" <"+String(ispnt,Str("*"))+" "+udt(tidx).nm+">=LOCAL NON-EXISTENT"
+			wtch(index).lbl=proc(pidx).nm+"/"+vname+" <"+String(ispnt,Str("*"))+" "+udt(tidx).nm+">=" & ML("LOCAL NON-EXISTENT")
 			wtch(index).typ=tidx
 			wtch(index).psk=-4
 			wtch(index).vnb=vnb
@@ -2839,10 +2839,10 @@ Dim Shared exedate As Double 'serial date
 	'   <2845>   DW_AT_decl_line   : 91
 	'   <2846>   DW_AT_sibling     : <0x2874>
 	Private Sub dw_type_parse 'DW_TAG_structure_type '09/01/2014
-		If udtmax > TYPEMAX-1 Then msgbox("Storing UDT: Max limit reached "+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX-1 Then msgbox(ML("Storing UDT: Max limit reached ")+Str(TYPEMAX)):Exit Sub
 		udtmax+=1
 		udt(udtmax).what=1
-		udt(udtmax).index=Valint("&h"+Mid(dwln,6))
+		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
 		Line Input #dwff, dwln
 		udt(udtmax).nm=RTrim(Mid(dwln,InStr(dwln,":")+2),Any" "+Chr(9))
 		If udt(udtmax).nm<>"12" Then 'no name so take lenght as name.....
@@ -2890,7 +2890,7 @@ Dim Shared exedate As Double 'serial date
 	
 	Private Sub dw_member_parse 'structure or union
 		Dim As Long p
-		If cudtnb = CTYPEMAX Then msgbox("Storing CUDT: Max limit reached "+Str(CTYPEMAX)):Exit Sub
+		If cudtnb = CTYPEMAX Then msgbox(ML("Storing CUDT: Max limit reached") & " "+Str(CTYPEMAX)):Exit Sub
 		cudtnb+=1
 		Line Input #dwff, dwln
 		p=InStr(dwln,"):") 'case indirect string
@@ -2954,7 +2954,7 @@ Dim Shared exedate As Double 'serial date
 		Case "signed char","unsigned char","short unsigned int","unsigned int","int","long unsigned int","long long int","long long unsigned int","float","short int"
 			Exit Sub
 		Case Else
-			If udtmax > TYPEMAX-1 Then msgbox("Storing UDT basictype: Max limit reached "+Str(TYPEMAX)):Exit Sub
+			If udtmax > TYPEMAX-1 Then msgbox(ML("Storing UDT basictype: Max limit reached") & " "+Str(TYPEMAX)):Exit Sub
 			udtmax+=1
 			udt(udtmax).what=5 'typedef
 			udt(udtmax).nm=nm
@@ -2998,7 +2998,7 @@ Dim Shared exedate As Double 'serial date
 	'   <2787>   DW_AT_byte_size   : 4
 	'   <2788>   DW_AT_type        : <0x26dc>   NOT ALWAYS : inexisting if void
 	Private Function dw_pointer_parse() As Long
-		If udtmax > TYPEMAX-1 Then msgbox("Storing UDT pointer: Max limit reached "+Str(TYPEMAX)):Exit Function
+		If udtmax > TYPEMAX-1 Then msgbox(ML("Storing UDT pointer: Max limit reached") & " "+Str(TYPEMAX)):Exit Function
 		udtmax+=1
 		udt(udtmax).what=2
 		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
@@ -3029,7 +3029,7 @@ Dim Shared exedate As Double 'serial date
 	Private Sub dw_bound_parse
 		Line Input #dwff, dwln 'skip type uinteger
 		Line Input #dwff, dwln
-		If udt(udtmax).dimnb=5 Then msgbox("Dwarf Parsing: Number of dim reached (5) for "+udt(udtmax).nm):Exit Sub
+		If udt(udtmax).dimnb=5 Then msgbox(ML("Dwarf Parsing: Number of dim reached (5) for") & " "+udt(udtmax).nm):Exit Sub
 		udt(udtmax).dimnb+=1
 		udt(udtmax).bounds(udt(udtmax).dimnb)=ValInt( Mid(dwln,InStr(dwln,":")+2) )
 	End Sub
@@ -3079,7 +3079,7 @@ Dim Shared exedate As Double 'serial date
 			ElseIf InStr(dwln,"OP_breg5") Then 'EBP/RBP
 				vradr=0 'local direct adr
 			Else
-				msgbox("Unknown DW_OP " & dwln)
+				msgbox(ML("Unknown") & " DW_OP " & dwln)
 			End If
 		End If
 		vradr+=ValInt(pref+Mid(dwln,InStr(InStr(dwln,"DW_OP_"),dwln,":")+2))
@@ -3098,14 +3098,14 @@ Dim Shared exedate As Double 'serial date
 				vrb(vrbloc).typ=vrtyp
 			Else
 				
-				If vrbloc=VARMAX Then msgbox("Init locals: Reached limit "+Str(VARMAX-3000)):Exit Sub
+				If vrbloc=VARMAX Then msgbox(ML("Init locals: Reached limit") & " "+Str(VARMAX-3000)):Exit Sub
 				vrbloc+=1
 				proc(procnb+1).vr=vrbloc+1 'just to have the next beginning
 				vrb(vrbloc).nm=vrnm:vrb(vrbloc).typ=vrtyp:vrb(vrbloc).adr=vradr:vrb(vrbloc).mem=vrmem
 				local_exist ''2016/08/12
 			End If
 		Else
-			If vrbgbl=VGBLMAX Then msgbox("Init Globals: Reached limit "+Str(VGBLMAX)):Exit Sub
+			If vrbgbl=VGBLMAX Then msgbox(ML("Init Globals: Reached limit") & " "+Str(VGBLMAX)):Exit Sub
 			vrbgbl+=1
 			vrb(vrbgbl).nm=vrnm:vrb(vrbgbl).typ=vrtyp:vrb(vrbgbl).adr=vradr:vrb(vrbgbl).mem=vrmem
 		End If
@@ -3155,7 +3155,7 @@ Dim Shared exedate As Double 'serial date
 				Line Input #dwff, dwln
 			Loop Until InStr(dwln,"<1>")
 			If excldnb=EXCLDMAX Then
-				msgbox("Excluding lines (Dll case): Limit reached EXCLDMAX="+Str(EXCLDMAX)+Chr(10)+"No problem to continue but the error message below could be displayed several times."+Chr(10)+"""Line adr doesn't match proc""")
+				msgbox(ML("Excluding lines (Dll case): Limit reached") & " EXCLDMAX="+Str(EXCLDMAX)+Chr(10)+ML("No problem to continue but the error message below could be displayed several times") & "."+Chr(10)+"""" & ML("Line adr doesn't match proc") & """")
 			Else
 				excldnb+=1
 				excldlines(excldnb).db=proc(procnb).db
@@ -3177,7 +3177,7 @@ Dim Shared exedate As Double 'serial date
 	'   <2c7>   DW_AT_location    : 2 byte block: 91 5c         (DW_OP_fbreg: -36)
 	Private Sub dw_prm_parse
 		Dim As Long p
-		If vrbloc=VARMAX Then msgbox("Init locals: Reached limit "+Str(VARMAX-3000)):Exit Sub
+		If vrbloc=VARMAX Then msgbox(ML("Init locals: Reached limit") & " "+Str(VARMAX-3000)):Exit Sub
 		vrbloc+=1
 		proc(procnb+1).vr=vrbloc+1 'just to have the next beginning
 		Line Input #dwff, dwln
@@ -3344,22 +3344,22 @@ Dim Shared exedate As Double 'serial date
 		End If
 	End Sub
 	'<1><4796>: Abbrev Number: 34 (DW_TAG_const_type)
-	private sub dw_const_parse
-		If udtmax > TYPEMAX-1 Then msgbox("Storing UDT const: Max limit reached "+Str(TYPEMAX)):Exit Sub
+	Private Sub dw_const_parse
+		If udtmax > TYPEMAX-1 Then msgbox(ML("Storing UDT const: Max limit reached") & " "+Str(TYPEMAX)):Exit Sub
 		udtmax+=1
 		udt(udtmax).what=5
-		udt(udtmax).index=Valint("&h"+Mid(dwln,6))
+		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
 		udt(udtmax).lg=4
 		udt(udtmax).nm="CONST"
 	End Sub
 	'<1><288f>: Abbrev Number: 17 (DW_TAG_subroutine_type)
 	'   <2890>   DW_AT_prototyped  : 1
 	'   <2891>   DW_AT_type        : <0x2720>            warning NOT ALWAYS
-	private function dw_prctyp_parse() As Long 'sub or function return datatype void or type
-		If udtmax > TYPEMAX-1 Then msgbox("Storing UDT prctype: Max limit reached "+Str(TYPEMAX)):Exit function
+	Private Function dw_prctyp_parse() As Long 'sub or function return datatype void or type
+		If udtmax > TYPEMAX-1 Then msgbox(ML("Storing UDT prctype: Max limit reached") & " "+Str(TYPEMAX)):Exit Function
 		udtmax+=1
 		udt(udtmax).what=4
-		udt(udtmax).index=Valint("&h"+Mid(dwln,6))
+		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
 		Line Input #dwff, dwln 'skip proto
 		Line Input #dwff, dwln
 		If InStr(dwln,"DW_AT_type") Then
@@ -3622,7 +3622,7 @@ Dim Shared exedate As Double 'serial date
 			If InStr(dwln,"(DW_TAG_form") Then dw_prm_parse:Continue Do     '(DW_TAG_formal_parameter)
 			If InStr(dwln,"(DW_TAG_cons") Then dw_const_parse:Continue Do
 			If InStr(dwln,": Abbrev Number: 0") Then Continue Do 'I don't what that is
-			If InStr(dwln,"><") Then msgbox("Dwarf parsing: Not managed "+dwln+Chr(10)+Chr(13)+"Please report")
+			If InStr(dwln,"><") Then msgbox(ML("Dwarf parsing: Not managed") & " "+dwln+Chr(10)+Chr(13)+ML("Please report"))
 		Loop
 		Close #dwff
 		'lines
@@ -3730,7 +3730,7 @@ Dim Shared exedate As Double 'serial date
 					#ifdef fulldbg_prt
 						dbg_prt ("error reading memory "+GetErrorString(GetLastError))
 					#endif
-					msgbox ("Loading stabs: ERROR When reading memory", "VisualFBEditor"):Exit Sub
+					msgbox (ML("Loading stabs: ERROR When reading memory"), "VisualFBEditor"):Exit Sub
 				End If
 				
 				#ifdef fulldbg_prt
@@ -3747,7 +3747,7 @@ Dim Shared exedate As Double 'serial date
 					End If
 					
 					If ReadProcessMemory(dbghand,Cast(LPCVOID,recupstab.stabs+basestabs),@recup,sizemax,0)=0 Then
-						Msgbox ("Loading stabs: ERROR When reading memory : "+GetErrorString(GetLastError)+Chr(10)+"Exit loading", "VisualFBEditor"):Exit Sub
+						Msgbox (ML("Loading stabs: ERROR When reading memory") & ": "+GetErrorString(GetLastError)+Chr(10)+ML("Exit loading"), "VisualFBEditor"):Exit Sub
 					End If
 					
 					'?recup
@@ -4057,9 +4057,9 @@ Dim Shared exedate As Double 'serial date
 	
 	Private Function kill_process(text As String) As Integer
 		Dim As Long retcode,lasterr
-		If msgbox("Kill current running Program ?" & text+Chr(10)+Chr(10) _
-			+"USE CARREFULLY SYSTEM CAN BECOME UNSTABLE, LOSS OF DATA, MEMORY LEAK"+Chr(10)+ _
-			"Try to close your program first", ,MB_ICONWARNING Or MB_YESNO Or MB_APPLMODAL) = IDYES Then
+		If msgbox(ML("Kill current running Program?") & text+Chr(10)+Chr(10) + _
+			ML("USE CARREFULLY SYSTEM CAN BECOME UNSTABLE, LOSS OF DATA, MEMORY LEAK")+Chr(10)+ _
+			ML("Try to close your program first"), ,MB_ICONWARNING Or MB_YESNO Or MB_APPLMODAL) = IDYES Then
 			flagkill=True
 			retcode=terminateprocess(dbghand,999)
 			lasterr=GetLastError
@@ -4138,7 +4138,7 @@ Dim Shared exedate As Double 'serial date
 			#endif
 			'If p Then t=8
 			If t>8 AndAlso p=0 AndAlso t<>4 AndAlso t<>13 AndAlso t<>14 Then
-				msgbox("Break on var selection error: Only [unsigned] Byte, Short, integer or z/f/string")
+				msgbox(ML("Break on var selection error: Only [unsigned] Byte, Short, integer or z/f/string"))
 				Exit Sub
 			End If
 			
@@ -4238,7 +4238,7 @@ Dim Shared exedate As Double 'serial date
 		Dim As String text
 		' delete procr in treeview
 		If SendMessage(tviewvar,TVM_DELETEITEM,0,Cast(LPARAM,procr(j).tv))=0 Then
-			msgbox("DELETE TREEVIEW ITEM: Not ok (not blocking) for proc "+proc(procr(j).idx).nm)
+			msgbox(ML("DELETE TREEVIEW ITEM") & ": " & ML("Not ok (not blocking) for proc") & " "+proc(procr(j).idx).nm)
 		End If
 		
 		'delete watch
@@ -4824,15 +4824,15 @@ Dim Shared exedate As Double 'serial date
 			End If
 		Next
 		
-		If i>linenb Then msgbox("Execution on cursor: Inaccessible line (not executable)") :Exit Sub
+		If i>linenb Then msgbox(ML("Execution on cursor: Inaccessible line (not executable)")) :Exit Sub
 		
 		If curlig=l+1 And shwtab=curtab Then
-			If msgbox("Execution on cursor: Same line, continue ?",,MB_YESNO Or MB_ICONQUESTION)=IDNO Then Exit Sub
+			If msgbox(ML("Execution on cursor: Same line, continue?"),,MB_YESNO Or MB_ICONQUESTION)=IDNO Then Exit Sub
 		End If
 		
 		'check inside same proc if not msg
 		If rLine(i).ad>proc(procsv).fn Or rLine(i).ad<=proc(procsv).db Then
-			msgbox("Execution on cursor: Only inside current proc !!!") :Exit Sub
+			msgbox(ML("Execution on cursor: Only inside current proc!")) :Exit Sub
 		End If
 		If rLine(i).ad=proc(procsv).fn Then
 			thread(threadcur).pe=True        'is last instruction
@@ -4866,7 +4866,7 @@ Dim Shared exedate As Double 'serial date
 			ElseIf wtch(i).psk=-4 Then 'session watch
 				If wtch(i).idx=prcidx Then
 					vridx=var_search(procridx,wtch(i).vnm(),wtch(i).vnb,wtch(i).var,wtch(i).pnt)
-					If vridx=-1 Then msgbox("Proc watch: Running var not found"):Continue For
+					If vridx=-1 Then msgbox(ML("Proc watch: Running var not found")):Continue For
 					var_fill(vridx)
 					watch_add(wtch(i).tad,i)
 				End If
@@ -4876,7 +4876,7 @@ Dim Shared exedate As Double 'serial date
 	Private Sub proc_new()
 		Dim libel As String
 		Dim tv As HTREEITEM
-		If procrnb=PROCRMAX Then MsgBox("CLOSING DEBUGGER: Max number of sub/func reached"):DestroyWindow (windmain):Exit Sub
+		If procrnb=PROCRMAX Then MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): DestroyWindow (windmain):Exit Sub
 		procrnb+=1'new proc ADD A POSSIBILITY TO INCREASE THIS ARRAY
 		procr(procrnb).sk=procsk
 		procr(procrnb).thid=thread(threadcur).id
@@ -4965,15 +4965,15 @@ Dim Shared exedate As Double 'serial date
 			'?rline(i).nu, l+1, proc(rline(i).pr).sr, shwtab
 			If rline(i).nu=l+1 And rline(i).sx=shwtab Then Exit For 'check nline
 		Next
-		If i>linenb Then msgbox("Break point Not possible: Inaccessible line (not executable)") :Exit Sub
+		If i>linenb Then msgbox(ML("Break point Not possible: Inaccessible line (not executable)")) :Exit Sub
 		For j As Integer =1 To procnb
-			If rline(i).ad=proc(j).db Then msgbox("Break point Not possible: Inaccessible line (not executable)") :Exit Sub
+			If rline(i).ad=proc(j).db Then msgbox(ML("Break point Not possible: Inaccessible line (not executable)")) :Exit Sub
 		Next
 		ln=i
 		If t=9 Then 'run to cursor
 			'l N°line/by 0
 			If curlig=l+1 And shwtab=curtab Then
-				If msgbox("Run to cursor: Same line, continue ?",, MB_YESNO Or MB_ICONQUESTION)=IDNO Then Exit Sub
+				If msgbox(ML("Run to cursor: Same line, continue?"),, MB_YESNO Or MB_ICONQUESTION)=IDNO Then Exit Sub
 			End If
 			brkol(0).ad=rline(ln).ad
 			brkol(0).typ=2 'to clear when reached
@@ -4985,7 +4985,7 @@ Dim Shared exedate As Double 'serial date
 				If brkol(i).nline=l+1 And brkol(i).isrc=shwtab Then Exit For
 			Next
 			If i>brknb Then 'not put
-				If brknb=BRKMAX Then msgbox("Max of brk reached ("+Str(BRKMAX)+"): Delete one and retry"):Exit Sub
+				If brknb=BRKMAX Then msgbox(ML("Max of brk reached") & " ("+Str(BRKMAX)+"): " & ML("Delete one and retry")): Exit Sub
 				brknb+=1
 				brkol(brknb).nline=l+1
 				brkol(brknb).typ=t
@@ -5014,7 +5014,7 @@ Dim Shared exedate As Double 'serial date
 					If brkol(i).cntrsav Then
 						brkol(i).counter=brkol(i).cntrsav
 					Else
-						msgbox("Reset counter: No counter for this breakpoint")
+						msgbox(ML("Reset counter: No counter for this breakpoint"))
 					End If
 				ElseIf t=4 Then 'toggle enabled/disabled 03/09/2015
 					If brkol(i).typ>2 Then
@@ -5253,7 +5253,7 @@ Dim Shared exedate As Double 'serial date
 			Wend
 			'create new procrs
 			For k As Integer =j To 1 Step -1
-				If procrnb=PROCRMAX Then msgbox("CLOSING DEBUGGER: Max number of sub/func reached"):DestroyWindow (windmain):Exit Sub
+				If procrnb=PROCRMAX Then msgbox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): DestroyWindow (windmain):Exit Sub
 				If proc(pridx(k)).st=2 Then Continue For 'proc state don't follow
 				procrnb+=1
 				procr(procrnb).sk=regbpp(k)
@@ -5425,8 +5425,8 @@ Dim Shared exedate As Double 'serial date
 				End If
 				thread_rsm
 			End If
-			If threadsel<>threadcur AndAlso msgbox("New Thread: Previous thread "+Str(thread(threadsel).id)+" changed by "+Str(thread(threadcur).id) _
-				+Chr(10)+Chr(13)+" Keep new one ?",, MB_SYSTEMMODAL Or MB_YESNO Or MB_ICONQUESTION)=IDNO Then
+			If threadsel<>threadcur AndAlso msgbox(ML("New Thread: Previous thread") & " "+Str(thread(threadsel).id)+" " & ML("changed by") & " "+Str(thread(threadcur).id) _
+				+Chr(10)+Chr(13)+" " & ML("Keep new one?"),, MB_SYSTEMMODAL Or MB_YESNO Or MB_ICONQUESTION)=IDNO Then
 				thread_change(threadsel)
 			Else
 				threadsel=threadcur
@@ -5435,7 +5435,7 @@ Dim Shared exedate As Double 'serial date
 		
 	End Sub
 	
-	sub fastrun() 'running until cursor or breakpoint !!! Be carefull
+	Sub fastrun() 'running until cursor or breakpoint !!! Be carefull
 		Dim i As Integer, b As Integer
 		For j As Integer = 0 To linenb 'restore all instructions
 			WriteProcessMemory(dbghand,Cast(LPVOID,rline(j).ad),@rLine(j).sv,1,0)
@@ -5589,16 +5589,16 @@ Dim Shared exedate As Double 'serial date
 							If adr>rline(thread(threadcur).sv).ad And _
 								adr<rline(thread(threadcur).sv+1).ad And _
 								rline(thread(threadcur).sv+1).nu=rline(thread(threadcur).sv).nu Then
-								libel+="ERROR AT BEGINNING OF PROC NOT REALLY ON THIS LINE"+Chr(13)+ _
-								"CHECK DIM (e.g. width array to big), Preferably don't continue"+Chr(13)+Chr(13)
+								libel+=ML("ERROR AT BEGINNING OF PROC NOT REALLY ON THIS LINE")+Chr(13)+ _
+								ML("CHECK DIM (e.g. width array to big), Preferably don't continue")+Chr(13)+Chr(13)
 							Else
-								libel+="Possible error on this line but not SURE"+Chr(13)+Chr(13)
+								libel+=ML("Possible error on this line but not SURE")+Chr(13)+Chr(13)
 							End If
 							
-							libel+="File  : "+source(rline(thread(threadcur).sv).sx)+Chr(13)+ _
-							"Proc  : "+proc(rline(thread(threadcur).sv).px).nm+Chr(13)+ _
-							"Line  : "+Str(rline(thread(threadcur).sv).nu)+" (selected and put in red)"+Chr(13)+ _
-							recup+Chr(13)+Chr(13)+"Try To continue ? (if yes change values and/or use [M]odify execution)"
+							libel+=ML("File") & " : "+source(rline(thread(threadcur).sv).sx)+Chr(13)+ _
+							ML("Proc") & " : "+proc(rline(thread(threadcur).sv).px).nm+Chr(13)+ _
+							ML("Line") & " : "+Str(rline(thread(threadcur).sv).nu)+" " & ML("(selected and put in red)")+Chr(13)+ _
+							recup+Chr(13)+Chr(13)+ML("Try To continue? (if yes change values and/or use [M]odify execution)")
 							If msgbox(libel, , MB_SYSTEMMODAL Or MB_ICONSTOP Or MB_YESNO) = IDYES Then
 								suspendthread(threadcontext)
 								ContinueDebugEvent(DebugEv.dwProcessId,DebugEv.dwThreadId, dwContinueStatus)
@@ -5632,7 +5632,7 @@ Dim Shared exedate As Double 'serial date
 						thread(threadnb).tv=0
 						thread(threadnb).exc=0 'no exec auto
 					Else
-						MsgBox "Threads limit: " & WStr(threadnb) & " > " & WStr(THREADMAX)
+						MsgBox ML("Threads limit") & ": " & WStr(threadnb) & " > " & WStr(THREADMAX)
 						Exit Do
 					End If
 				End With
@@ -5679,7 +5679,7 @@ Dim Shared exedate As Double 'serial date
 				
 				If d = 0 Then 'not found
 					If dllnb >= DLLMAX Then 'limit reached
-						MsgBox "1111"
+						MsgBox ML("Dll limit reached")
 						Exit Do
 					End If
 					dllnb += 1

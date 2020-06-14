@@ -13,7 +13,7 @@
 		' frmParameters
 		This.Name = "frmParameters"
 		This.Text = "Parameters"
-		This.Caption = "Parameters"
+		This.Caption = ML("Parameters")
 		This.StartPosition = FormStartPosition.CenterParent
 		This.CancelButton = @cmdCancel
 		This.DefaultButton = @cmdOK
@@ -22,32 +22,30 @@
 		This.SetBounds 0, 0, 742, 348
 		' grbCompile
 		grbCompile.Name = "grbCompile"
-		grbCompile.Text = "Compile"
+		grbCompile.Text = ML("Compile")
 		grbCompile.SetBounds 8, 8, 712, 88
 		grbCompile.Parent = @This
 		' grbMake
 		grbMake.Name = "grbMake"
-		grbMake.Text = "Make"
+		grbMake.Text = ML("Make")
 		grbMake.SetBounds 8, 96, 712, 88
 		grbMake.Parent = @This
 		' grbRun
 		grbRun.Name = "grbRun"
-		grbRun.Text = "Run"
+		grbRun.Text = ML("Run")
 		grbRun.SetBounds 8, 184, 712, 88
 		grbRun.Parent = @This
 		' cmdOK
 		cmdOK.Name = "cmdOK"
 		cmdOK.Default = True
-		cmdOK.Text = "OK"
+		cmdOK.Text = ML("OK")
 		cmdOK.SetBounds 528, 280, 96, 24
-		cmdOK.Caption = "OK"
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @This
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
-		cmdCancel.Text = "Cancel"
+		cmdCancel.Text = ML("Cancel")
 		cmdCancel.SetBounds 624, 280, 96, 24
-		cmdCancel.Caption = "Cancel"
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
 		' txtfbc64
@@ -83,49 +81,43 @@
 		' lblfbc32
 		With lblfbc32
 			.Name = "lblfbc32"
-			.Text = "fbc 32-bit:"
+			.Text = ML("fbc 32-bit") & ":"
 			.SetBounds 16, 24, 56, 16
-			.Caption = "fbc 32-bit:"
 			.Parent = @grbCompile
 		End With
 		' lblfbc64
 		With lblfbc64
 			.Name = "lblfbc64"
-			.Text = "fbc 64-bit:"
+			.Text = ML("fbc 64-bit") & ":"
 			.SetBounds 16, 48, 56, 16
-			.Caption = "fbc 64-bit:"
 			.Parent = @grbCompile
 		End With
 		' lblMake1
 		With lblMake1
 			.Name = "lblMake1"
-			.Text = "make 1:"
+			.Text = ML("make") & " 1:"
 			.SetBounds 16, 24, 56, 16
-			.Caption = "make 1:"
 			.Parent = @grbMake
 		End With
 		' llblMake2
 		With llblMake2
 			.Name = "llblMake2"
-			.Text = "make 2:"
+			.Text = ML("make") & " 2:"
 			.SetBounds 16, 48, 56, 16
-			.Caption = "make 2:"
 			.Parent = @grbMake
 		End With
 		' lblRun
 		With lblRun
 			.Name = "lblRun"
-			.Text = "run:"
+			.Text = ML("run") & ":"
 			.SetBounds 16, 24, 56, 16
-			.Caption = "run:"
 			.Parent = @grbRun
 		End With
 		' lblDebug
 		With lblDebug
 			.Name = "lblDebug"
-			.Text = "debug:"
+			.Text = ML("debug") & ":"
 			.SetBounds 16, 48, 56, 17
-			.Caption = "debug:"
 			.Parent = @grbRun
 		End With
 		' txtDebug

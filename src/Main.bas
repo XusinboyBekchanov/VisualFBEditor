@@ -112,9 +112,8 @@ pIncludeFiles = @IncludeFiles
 pLoadPaths = @LoadPaths
 pIncludePaths = @IncludePaths
 pLibraryPaths = @LibraryPaths
-iniSettings.Load SettingsPath
-LoadSettings
 LoadLanguageTexts
+LoadSettings
 
 #include once "file.bi"
 #include once "Designer.bi"
@@ -2880,27 +2879,33 @@ Sub LoadSettings
 End Sub
 
 Sub LoadLanguageTexts
-	
+	iniSettings.Load SettingsPath
 	CurLanguage = iniSettings.ReadString("Options", "Language", "english")
 	
-	If CurLanguage = "" OrElse LCase(CurLanguage) = "english" Then
+	If CurLanguage = "" Then
 		mlKeys.Add "#Til"
 		mlTexts.Add "English"
 		CurLanguage = "English"
 	Else
 		Dim As Integer i, Pos1
-		Dim As Integer Fn= FreeFile
+		Dim As Integer Fn = FreeFile, Result
 		Dim Buff As WString * 2048 'David Change
-		Open ExePath & "/Settings/Languages/" & CurLanguage & ".lng" For Input Encoding "utf-8" As #Fn
-		Do Until EOF(Fn)
-			Line Input #Fn, Buff
-			Pos1 = InStr(Buff, "=")
-			If Pos1 > 0 Then
-				mlKeys.Add Trim(Left(Buff, Pos1 - 1), " ")
-				mlTexts.Add Trim(Mid(Buff, Pos1 + 1), " ")
-			End If
-		Loop
-		Close #Fn
+		Dim As UString FileName = ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
+		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
+		If Result = 0 Then
+			Do Until EOF(Fn)
+				Line Input #Fn, Buff
+				Pos1 = InStr(Buff, "=")
+				If Pos1 > 0 Then
+					mlKeys.Add Trim(Left(Buff, Pos1 - 1), " ")
+					mlTexts.Add Trim(Mid(Buff, Pos1 + 1), " ")
+				End If
+			Loop
+			Close #Fn
+		End If
 	End If
 End Sub
 

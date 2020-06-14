@@ -22,7 +22,6 @@ pfProjectProperties = @fProjectProperties
 		This.BorderStyle = FormBorderStyle.Fixed3D
 		This.MaximizeBox = False
 		This.MinimizeBox = False
-		This.Caption = "Project Properties"
 		This.StartPosition = FormStartPosition.CenterScreen
 		This.DefaultButton = @cmdOK
 		This.CancelButton = @cmdCancel
@@ -139,9 +138,8 @@ pfProjectProperties = @fProjectProperties
 		lblCompilationArguments64.Parent = @picCompilationArguments
 		' lblIcon
 		lblIcon.Name = "lblIcon"
-		lblIcon.Text = "Icon:"
+		lblIcon.Text = ML("Icon") & ":"
 		lblIcon.SetBounds 0, 41, 34, 18
-		lblIcon.Caption = "Icon:"
 		lblIcon.Parent = @picApplication
 		' lblTitle
 		lblTitle.Name = "lblTitle"
@@ -286,7 +284,6 @@ pfProjectProperties = @fProjectProperties
 		optNoOptimization.Name = "optNoOptimization"
 		optNoOptimization.Text = ML("No Optimization")
 		optNoOptimization.SetBounds 10, 52, 192, 16
-		optNoOptimization.Caption = "No Optimization"
 		optNoOptimization.Parent = @picCompileToGCC
 		' chkCreateDebugInfo
 		chkCreateDebugInfo.Name = "chkCreateDebugInfo"

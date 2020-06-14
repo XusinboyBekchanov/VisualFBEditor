@@ -5,10 +5,9 @@
 		' frmAdvancedOptions
 		With This
 			.Name = "frmAdvancedOptions"
-			.Text = "Advanced Options"
+			.Text = ML("Advanced Options")
 			.Name = "frmAdvancedOptions"
 			.StartPosition = FormStartPosition.CenterScreen
-			.Caption = "Advanced Options"
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.SetBounds 0, 0, 350, 468
 		End With

@@ -10,6 +10,7 @@
 #include once "mff\Label.bi"
 #include once "mff\Dialogs.bi"
 #include once "mff\CommandButton.bi"
+#include once "mff\RadioButton.bi"
 
 Using My.Sys.Forms
 
@@ -22,7 +23,8 @@ Using My.Sys.Forms
 		Declare Constructor
 		
 		Dim As TextBox TextBox1, TextBox2
-		Dim As Label Label1, Label2
+		Dim As Label Label1
+		Dim As RadioButton optLNGPath, optAllLNG
 		Dim As CommandButton CommandButton1, CommandButton2, CommandButton3
 	End Type
 	
@@ -30,7 +32,7 @@ Using My.Sys.Forms
 		' Form1
 		This.Name = "Form1"
 		This.Text = "Adding new language texts to .lng"
-		This.SetBounds 0, 0, 350, 156
+		This.SetBounds 0, 0, 350, 196
 		' TextBox1
 		TextBox1.Name = "TextBox1"
 		TextBox1.Text = ""
@@ -45,7 +47,7 @@ Using My.Sys.Forms
 		' CommandButton1
 		CommandButton1.Name = "CommandButton1"
 		CommandButton1.Text = "Run"
-		CommandButton1.SetBounds 144, 84, 90, 30
+		CommandButton1.SetBounds 136, 116, 90, 30
 		CommandButton1.Caption = "Run"
 		CommandButton1.OnCreate = @CommandButton1_Create
 		CommandButton1.OnClick = @CommandButton1_Click
@@ -57,12 +59,19 @@ Using My.Sys.Forms
 		CommandButton2.Caption = "..."
 		CommandButton2.OnClick = @CommandButton2_Click
 		CommandButton2.Parent = @This
-		' Label2
-		Label2.Name = "Label2"
-		Label2.Text = "Path to .lng"
-		Label2.SetBounds 12, 54, 78, 18
-		Label2.Caption = "Path to .lng"
-		Label2.Parent = @This
+		' optLNGPath
+		optLNGPath.Name = "optLNGPath"
+		optLNGPath.Text = "Path to .lng"
+		optLNGPath.SetBounds 12, 54, 78, 18
+		optLNGPath.Caption = "Path to .lng"
+		optLNGPath.Parent = @This
+		' optAllLNG
+		optAllLNG.Name = "optAllLNG"
+		optAllLNG.Text = "All .lng"
+		optAllLNG.SetBounds 12, 86, 78, 18
+		optAllLNG.Caption = "All .lng"
+		optAllLNG.Checked = True
+		optAllLNG.Parent = @This
 		' TextBox2
 		TextBox2.Name = "TextBox2"
 		TextBox2.Text = ""
@@ -77,12 +86,12 @@ Using My.Sys.Forms
 		CommandButton3.Parent = @This
 	End Constructor
 	
-	#IfnDef _NOT_AUTORUN_FORMS_
+	#ifndef _NOT_AUTORUN_FORMS_
 		Dim frm As Form1
 		frm.Show
 		
 		App.Run
-	#EndIf
+	#endif
 '#End Region
 
 
@@ -99,9 +108,9 @@ Private Sub Form1.CommandButton1_Create(ByRef Sender As Control)
 End Sub
 
 Function GetFolderName(ByRef FileName As WString) ByRef As WString
-	Dim Pos1 As Long = InstrRev(FileName, "\")
+	Dim Pos1 As Long = InStrRev(FileName, "\")
 	Dim s  As WString Ptr = CAllocate((Pos1 + 1) * SizeOf(WString))
-	If Pos1 > 0 then
+	If Pos1 > 0 Then
 		*s = Left(FileName, Pos1)
 		Return *s
 	End If
@@ -112,72 +121,92 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
 	Dim As WString Ptr lang_name, fileName
 	Dim Buff As WString * 1024
 	Dim Buff1 As WString * 1024
-	Dim As String Key
-	Dim As Integer p, p1, n
-	Dim As WStringList mlKeys, mlTexts, mlKeysNew
-	Open Cast(Form1 Ptr, Sender.Parent)->TextBox2.Text For Input Encoding "utf-8" As #1
-	WReallocate buff, LOF(1)
-	n = 0
-	Do Until EOF(1)
-		Line Input #1, Buff
-		n = n + 1
-		If n = 1 Then
-			WLet lang_name, Buff
+	Dim As String Key, f
+	Dim As Integer p, p1, n, Result, Fn1 = FreeFile, Fn2
+	Dim As UString FileName1
+	With *Cast(Form1 Ptr, Sender.Parent)
+		If .optAllLNG.Checked Then
+			f = Dir(ExePath & "/Settings/Languages/*.lng")
 		Else
-			p = InStr(LCase(Buff), " = ")
-			If p > 0 Then
-				Key = Trim(Left(Buff, p - 1))
-				If Not mlKeys.Contains(Key) Then
-					mlKeys.Add Key
-					mlTexts.Add Mid(Buff, p + 3)
-				End If
-			End If
+			f = Dir(.TextBox2.Text)
 		End If
-	Loop
-	Close #1
-	Open Cast(Form1 Ptr, Sender.Parent)->TextBox1.Text For Input Encoding "utf-8" As #1
-	Do Until EOF(1)
-		Line Input #1, Buff
-		If StartsWith(Buff, "File=") OrElse StartsWith(Buff, "*File=") Then
-			Buff = Mid(Buff, InStr(Buff, "=") + 1)
-			If InStr(Buff, ":") Then
-				WLet fileName, Buff
-			Else
-				WLet fileName, GetFolderName(Cast(Form1 Ptr, Sender.Parent)->TextBox1.Text) & Buff
-			End If
-			Open *fileName For Input Encoding "utf-8" As #3
-			WReallocate buff1, LOF(3)
-			Do Until EOF(3)
-				Line Input #3, Buff1
-				p = InStr(LCase(Buff1), "ml(""")
-				Do While p > 0
-					p1 = InStr(p + 1, Buff1, """)")
-					If p1 > 0 Then
-						Key = Mid(Buff1, p + 4, p1 - p - 4)
-						If Key <> """" Then
-							If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
-							'David Change for surport like "&F" in menuitem
-							If InStr(key,"&") Then
-								Key=replace(key,"&","")
-								If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
+		While f <> ""
+			FileName1 = ExePath & "/Settings/Languages/" & f
+			Result = Open(FileName1 For Input Encoding "utf-8" As #Fn1)
+			If Result <> 0 Then Result = Open(FileName1 For Input Encoding "utf-16" As #Fn1)
+			If Result <> 0 Then Result = Open(FileName1 For Input Encoding "utf-32" As #Fn1)
+			If Result <> 0 Then Result = Open(FileName1 For Input As #Fn1)
+			If Result = 0 Then
+				Dim As WStringList mlKeys, mlTexts, mlKeysNew
+				n = 0
+				Do Until EOF(Fn1)
+					Line Input #Fn1, Buff
+					n = n + 1
+					If n = 1 Then
+						WLet lang_name, Buff
+					Else
+						p = InStr(LCase(Buff), "=")
+						If p > 0 Then
+							Key = Trim(Left(Buff, p - 1))
+							If Not mlKeys.Contains(Key) Then
+								mlKeys.Add Key
+								mlTexts.Add Mid(Buff, p + 1)
 							End If
 						End If
 					End If
-					p = InStr(p1 + 1, LCase(Buff1), "ml(""")
 				Loop
-			Loop
-			Close #3
-		End If
-	Loop
-	Close #1
-	Open Cast(Form1 Ptr, Sender.Parent)->TextBox2.Text For Output Encoding "utf-8" As #1
-	Print #1, *lang_name
-	mlKeysNew.Sort
-	For i As Integer = 0 To mlKeysNew.Count - 1
-		Key = mlKeysNew.Item(i)
-		Print #1, Key & " = " & IIf(mlKeys.Contains(Key), mlTexts.Item(mlKeys.IndexOf(Key)), "")
-	Next
-	Close #1
+				Close #Fn1
+				Open .TextBox1.Text For Input Encoding "utf-8" As #Fn1
+				Do Until EOF(Fn1)
+					Line Input #Fn1, Buff
+					If StartsWith(Buff, "File=") OrElse StartsWith(Buff, "*File=") Then
+						Buff = Mid(Buff, InStr(Buff, "=") + 1)
+						If InStr(Buff, ":") Then
+							WLet fileName, Buff
+						Else
+							WLet fileName, GetFolderName(.TextBox1.Text) & Buff
+						End If
+						Fn2 = FreeFile
+						Open *fileName For Input Encoding "utf-8" As #Fn2
+						Do Until EOF(Fn2)
+							Line Input #Fn2, Buff1
+							p = InStr(LCase(Buff1), "ml(""")
+							Do While p > 0
+								p1 = InStr(p + 1, Buff1, """)")
+								If p1 > 0 Then
+									Key = Mid(Buff1, p + 4, p1 - p - 4)
+									If Key <> """" Then
+										If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
+										'David Change for surport like "&F" in menuitem
+										If InStr(key,"&") Then
+											Key=replace(key,"&","")
+											If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
+										End If
+									End If
+								End If
+								p = InStr(p1 + 1, LCase(Buff1), "ml(""")
+							Loop
+						Loop
+						Close #Fn2
+					End If
+				Loop
+				Close #Fn1
+				Open FileName1 For Output Encoding "utf-8" As #Fn1
+				Print #Fn1, *lang_name
+				mlKeysNew.Sort
+				For i As Integer = 0 To mlKeysNew.Count - 1
+					Key = mlKeysNew.Item(i)
+					If *lang_name = "tester" Then
+						Print #Fn1, Key & " = #" & Key
+					Else
+						Print #Fn1, Key & " = " & IIf(mlKeys.Contains(Key), mlTexts.Item(mlKeys.IndexOf(Key)), "")
+					End If
+				Next
+				Close #Fn1
+			End If
+			f = Dir()
+		Wend
+	End With
 	MsgBox "Done!"
 End Sub
 
