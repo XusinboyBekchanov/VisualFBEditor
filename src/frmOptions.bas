@@ -1279,22 +1279,22 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.cboCase.AddItem ML("Upper Case")
 		.cboTabStyle.AddItem ML("Everywhere")
 		.cboTabStyle.AddItem ML("Only after the words")
-		.lstColorKeys.AddItem "Bookmarks"
-		.lstColorKeys.AddItem "Breakpoints"
-		.lstColorKeys.AddItem "Comments"
-		.lstColorKeys.AddItem "Current Brackets"
-		.lstColorKeys.AddItem "Current Line"
-		.lstColorKeys.AddItem "Current Word"
-		.lstColorKeys.AddItem "Executed Line"
-		.lstColorKeys.AddItem "Fold Lines"
-		.lstColorKeys.AddItem "Indicator Lines"
-		.lstColorKeys.AddItem "Keywords"
-		.lstColorKeys.AddItem "Line Numbers"
-		.lstColorKeys.AddItem "Normal Text"
-		.lstColorKeys.AddItem "Preprocessors"
-		.lstColorKeys.AddItem "Selection"
-		.lstColorKeys.AddItem "Space Identifiers"
-		.lstColorKeys.AddItem "Strings"
+		.lstColorKeys.AddItem ML("Bookmarks")
+		.lstColorKeys.AddItem ML("Breakpoints")
+		.lstColorKeys.AddItem ML("Comments")
+		.lstColorKeys.AddItem ML("Current Brackets")
+		.lstColorKeys.AddItem ML("Current Line")
+		.lstColorKeys.AddItem ML("Current Word")
+		.lstColorKeys.AddItem ML("Executed Line")
+		.lstColorKeys.AddItem ML("Fold Lines")
+		.lstColorKeys.AddItem ML("Indicator Lines")
+		.lstColorKeys.AddItem ML("Keywords")
+		.lstColorKeys.AddItem ML("Line Numbers")
+		.lstColorKeys.AddItem ML("Normal Text")
+		.lstColorKeys.AddItem ML("Preprocessors")
+		.lstColorKeys.AddItem ML("Selection")
+		.lstColorKeys.AddItem ML("Space Identifiers")
+		.lstColorKeys.AddItem ML("Strings")
 		.lstColorKeys.ItemIndex = 0
 		For i As Integer = 0 To pfrmMain->Menu->Count - 1
 			AddShortcuts(pfrmMain->Menu->Item(i))
