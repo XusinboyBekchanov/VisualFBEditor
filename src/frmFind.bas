@@ -707,6 +707,9 @@ Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 End Sub
 Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
 	This.CloseForm
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	tb->txtCode.SetFocus
 End Sub
 
 Private Sub frmFind.Form_Show(ByRef Sender As Form)
