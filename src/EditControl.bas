@@ -2621,6 +2621,31 @@ Namespace My.Sys.Forms
 				If (Not si.nPos = OldPos) Then
 					VScrollPos = si.nPos
 					ShowCaretPos False
+					If DownButton = 0 Then
+						#ifdef __USE_GTK__
+							FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+							FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+							If e->button.x < LeftMargin Then
+						#else
+							Var d = GetMessagePos
+							Dim As Points ps = MAKEPOINTS(d)
+							Dim As Point p
+							p.X = ps.X
+							p.Y = ps.Y
+							ScreenToClient(Handle, @p)
+							FSelEndLine = LineIndexFromPoint(p.X, p.Y)
+							FSelEndChar = CharIndexFromPoint(p.X, p.Y)
+							If p.X < LeftMargin Then
+						#endif
+							If FSelEndLine < FSelStartLine Then
+								'FSelStart = LineFromCharIndex(FSelStart)
+								'FSelStart = CharIndexFromLine(FSelStart) + LineLength(FSelStart)
+								FSelStartChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text)
+							Else
+								FSelEndChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text)
+							End If
+						End If
+					End If
 					PaintControl
 				End If
 			#endif
