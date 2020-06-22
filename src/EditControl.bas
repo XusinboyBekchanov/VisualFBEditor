@@ -3504,17 +3504,16 @@ Namespace My.Sys.Forms
 			'			bInIncludeFileRectOld = bInIncludeFileRect
 			If DownButton = 0 Then
 				#ifdef __USE_GTK__
-					FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-					FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-					If e->button.x < LeftMargin Then
+					Var lParamLo = IIf(e->button.x > 60000, e->button.x - 65535, e->button.x)
+					Var lParamHi = IIf(e->button.y > 60000, e->button.y - 65535, e->button.y)
 				#else
-					FSelEndLine = LineIndexFromPoint(IIf(msg.lParamLo > 60000, 0, msg.lParamLo), IIf(msg.lParamHi > 60000, 0, msg.lParamHi))
-					FSelEndChar = CharIndexFromPoint(IIf(msg.lParamLo > 60000, 0, msg.lParamLo), IIf(msg.lParamHi > 60000, 0, msg.lParamHi))
-					If msg.lParamLo < LeftMargin Then
+					Var lParamLo = IIf(msg.lParamLo > 60000, msg.lParamLo - 65535, msg.lParamLo)
+					Var lParamHi = IIf(msg.lParamHi > 60000, msg.lParamHi - 65535, msg.lParamHi)
 				#endif
+				FSelEndLine = LineIndexFromPoint(lParamLo, lParamHi)
+				FSelEndChar = CharIndexFromPoint(lParamLo, lParamHi)
+				If lParamLo < LeftMargin Then
 					If FSelEndLine < FSelStartLine Then
-						'FSelStart = LineFromCharIndex(FSelStart)
-						'FSelStart = CharIndexFromLine(FSelStart) + LineLength(FSelStart)
 						FSelStartChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text)
 					Else
 						FSelEndChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text)
