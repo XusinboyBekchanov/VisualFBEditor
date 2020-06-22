@@ -707,18 +707,21 @@ Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 End Sub
 Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
 	This.CloseForm
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	tb->txtCode.SetFocus
 End Sub
 
 Private Sub frmFind.Form_Show(ByRef Sender As Form)
-	If mFormFind=True Then
-		This.Caption=ML("Find")
+	If mFormFind = True Then
+		This.Caption = ML("Find")
 		#ifdef __USE_GTK__
 			fFind.SetBounds fFind.Parent->Left + fFind.Parent->WIDTH-fFind.WIDTH - 5, fFind.Parent->TOP+20,fFind.WIDTH, 58
 		#else
 			fFind.SetBounds fFind.Parent->Left + fFind.Parent->WIDTH-fFind.WIDTH - 5, fFind.Parent->TOP+20,fFind.WIDTH, 70
 		#endif
 	Else
-		This.Caption=ML("Replace")
+		This.Caption = ML("Replace")
 		fFind.SetBounds fFind.Parent->Left + fFind.Parent->WIDTH-fFind.WIDTH - 5, fFind.Parent->TOP+20, fFind.WIDTH, 102
 	End If
 	'TODO David Change for couldn't minimize width of the command button
@@ -735,15 +738,13 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	fFind.OptFindInProject.Checked = False
 	fFind.OptFindinCurrFile.Checked = True
 	fFind.lblTrack.Text = WStr(CUInt(TrackBar1.Position/2.55))
-	If txtFind.Contains(pClipboard->GetAsText)=False Then
-		'David Change for limited the Muilti line
-		Var Posi=InStr(pClipboard->GetAsText,WChr(13))-1
-		If Posi < 1 Then Posi=InStr(pClipboard->GetAsText,WChr(10))-1
-		If Posi < 1 Then Posi= Len(pClipboard->GetAsText)
-		txtFind.AddItem Left(pClipboard->GetAsText,Posi)
-		txtFind.Text = Left(pClipboard->GetAsText,Posi)
-		txtFind.SetFocus
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb <> 0 Then
+		Dim As String FindText = tb->txtCode.GetWordAtCursor
+		If txtFind.Contains(FindText) = False Then txtFind.AddItem FindText
+		txtFind.Text = FindText
 	End If
+	txtFind.SetFocus
 End Sub
 
 Private Sub frmFind.Form_Close(ByRef Sender As Form, ByRef Action As Integer)

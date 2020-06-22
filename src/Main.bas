@@ -914,6 +914,7 @@ End Sub
 
 Sub OpenProject()
 	Dim As OpenFileDialog OpenD
+	OpenD.InitialDir = GetFullPath(*ProjectsPath)
 	OpenD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("All Files") & "|*.*|"
 	If Not OpenD.Execute Then Exit Sub
 	AddProject OpenD.FileName
