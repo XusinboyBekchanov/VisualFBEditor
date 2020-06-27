@@ -59,7 +59,7 @@ Dim Shared As SaveFileDialog SaveD
 	Dim Shared As PrintPreviewDialog PrintPreviewD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions 'David Change add Sessions
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, Tools, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions 'David Change add Sessions
 Dim Shared As WString Ptr RecentFiles 'David Change
 Dim Shared As Dictionary Compilers, MakeTools, Debuggers, Terminals, Helps, HotKeys
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
@@ -89,6 +89,7 @@ pGlobalEnums = @GlobalEnums
 pGlobalFunctions = @GlobalFunctions
 pGlobalArgs = @GlobalArgs
 pAddIns = @AddIns
+pTools = @Tools
 pCompilers = @Compilers
 pMakeTools = @MakeTools
 pDebuggers = @Debuggers
@@ -123,6 +124,7 @@ LoadSettings
 #include once "frmGoto.bi"
 #include once "frmFindInFiles.bi"
 #include once "frmAddIns.bi"
+#include once "frmTools.bi"
 #include once "frmAbout.bi"
 #include once "frmOptions.bi"
 #include once "frmParameters.bi"
@@ -807,6 +809,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							IconName = "MainFile"
 						End If
 						If Not inFolder Then
+							If Not FileExists(*ee->FileName) Then IconName = "New"
 							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
 							If MainNode = 0 Then SetMainNode GetParentNode(tn1)  'David Change
 						End If
@@ -817,6 +820,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							IconName = "File"
 						End If
 						If Not inFolder Then
+							If Not FileExists(*ee->FileName) Then IconName = "New"
 							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , *ee->FileName, IconName, IconName, True)
 						End If
 					End If
@@ -1403,23 +1407,23 @@ Sub AddFileToProject
 End Sub
 
 Sub RemoveFileFromProject
-	If tvExplorer.SelectedNode = 0 Then Exit Sub
-	If tvExplorer.SelectedNode->Tag = 0 Then Exit Sub
-	If tvExplorer.SelectedNode->ParentNode = 0 Then Exit Sub
-	Dim As TreeNode Ptr ptn
-	ptn = GetParentNode(tvExplorer.SelectedNode)
-	If ptn->ImageKey <> "Project" Then Exit Sub
-	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
-	Dim tb As TabWindow Ptr
-	For i As Integer = 0 To ptabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-		If tb->tn = tn Then
-			If tb->CloseTab = False Then Exit Sub
-			Exit For
-		End If
-	Next i
-	If Not EndsWith(tn->ParentNode->Text, " *") Then tn->ParentNode->Text &= " *"
-	If tn->ParentNode->Nodes.IndexOf(tn) <> -1 Then tn->ParentNode->Nodes.Remove tn->ParentNode->Nodes.IndexOf(tn)
+?1410:	If tvExplorer.SelectedNode = 0 Then Exit Sub
+?1411:	If tvExplorer.SelectedNode->Tag = 0 Then Exit Sub
+?1412:	If tvExplorer.SelectedNode->ParentNode = 0 Then Exit Sub
+?1413:	Dim As TreeNode Ptr ptn
+?1414:	ptn = GetParentNode(tvExplorer.SelectedNode)
+?1415:	If ptn->ImageKey <> "Project" Then Exit Sub
+?1416:	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
+?1417:	Dim tb As TabWindow Ptr
+?1418:	For i As Integer = 0 To ptabCode->TabCount - 1
+?1419:		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+?1420:		If tb->tn = tn Then
+?1421:			If tb->CloseTab = False Then Exit Sub
+?1422:			Exit For
+?1423:		End If
+?1424:	Next i
+?1425:	If Not EndsWith(tn->ParentNode->Text, " *") Then tn->ParentNode->Text &= " *"
+?1426, 1:	If tn->ParentNode->Nodes.IndexOf(tn) <> -1 Then ?1426, 2: tn->ParentNode->Nodes.Remove tn->ParentNode->Nodes.IndexOf(tn)
 	'pfProjectProperties->RefreshProperties
 End Sub
 
@@ -2720,6 +2724,8 @@ Sub LoadSettings
 	frmMain.Width = MainWidth
 	frmMain.Height = MainHeight
 	Dim As UString Temp
+	Dim As Integer Fn
+	Dim As WString * 1024 Buff
 	For i As Integer = 0 To 9
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
 		If Temp <> "" Then Compilers.Add Temp, iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
@@ -2754,6 +2760,7 @@ Sub LoadSettings
 	WLet TerminalPath, Terminals.Get(*DefaultTerminal, "")
 	WLet DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", "")
 	WLet HelpPath, Helps.Get(*DefaultHelp, "")
+
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	WLet ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects")
 	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
@@ -3009,18 +3016,16 @@ Sub CreateMenusAndToolBars
 	Var miFile = mnuMain.Add(ML("&File"), "", "File")
 	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "New", @mclick)
 	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mclick)
-	miFile->Add("-")
-	miFile->Add(ML("Open Folder") & " (Beta)" & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mclick)
-	miFile->Add(ML("Close Folder") & " (Beta)" & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mclick)
-	miFile->Add("-")
+	miFile->Add(ML("Open Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mclick)
 	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mclick)
-	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Save") & "..." & HK("Save", "Ctrl+S"), "Save", "Save", @mclick)
 	miFile->Add(ML("Save &As") & "..." & HK("SaveAs"), "", "SaveAs", @mclick)
 	miFile->Add(ML("Save All") & HK("SaveAll", "Ctrl+Alt+Shift+S"), "SaveAll", "SaveAll", @mclick)
+	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Close") & HK("Close", "Ctrl+F4"), "Close", "Close", @mclick)
+	miFile->Add(ML("Close Folder") & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mclick)
 	miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Alt+Shift+F4"), "", "CloseAll", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Print") & HK("Print", "Ctrl+P"), "Print", "Print", @mclick)
@@ -3029,15 +3034,15 @@ Sub CreateMenusAndToolBars
 	miFile->Add("-")
 	'David Change  Add Recent Sessions
 	Dim sTmp As UString
-	miRecentSessions = miFile->Add(ML("Recent Sessions"), "", "RecentSessions", @mclick)
+	miRecentFiles = miFile->Add(ML("Recent Files"), "", "RecentFiles", @mclick)
 	For i As Integer = 0 To 9
-		sTmp = iniSettings.ReadString("MRUSessions", "MRUSession_0" & WStr(i), "")
+		sTmp = iniSettings.ReadString("MRUFiles", "MRUFile_0" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
-			MRUSessions.Add sTmp
-			miRecentSessions->Add(sTmp, "", sTmp, @mClickMRU)
+			MRUFiles.Add sTmp
+			miRecentFiles->Add(sTmp, "", sTmp, @mClickMRU)
 		End If
 	Next
-	miRecentFolders = miFile->Add(ML("Recent Folders") & " (Beta)", "", "RecentFolders", @mclick)
+	miRecentFolders = miFile->Add(ML("Recent Folders"), "", "RecentFolders", @mclick)
 	For i As Integer = 0 To 9
 		sTmp = iniSettings.ReadString("MRUFolders", "MRUFolder_0" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
@@ -3045,12 +3050,12 @@ Sub CreateMenusAndToolBars
 			miRecentFolders->Add(sTmp, "", sTmp, @mClickMRU)
 		End If
 	Next
-	miRecentFiles = miFile->Add(ML("Recent Files"), "", "RecentFiles", @mclick)
+	miRecentSessions = miFile->Add(ML("Recent Sessions"), "", "RecentSessions", @mclick)
 	For i As Integer = 0 To 9
-		sTmp = iniSettings.ReadString("MRUFiles", "MRUFile_0" & WStr(i), "")
+		sTmp = iniSettings.ReadString("MRUSessions", "MRUSession_0" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
-			MRUFiles.Add sTmp
-			miRecentFiles->Add(sTmp, "", sTmp, @mClickMRU)
+			MRUSessions.Add sTmp
+			miRecentSessions->Add(sTmp, "", sTmp, @mClickMRU)
 		End If
 	Next
 	miFile->Add("-")
@@ -3180,6 +3185,38 @@ Sub CreateMenusAndToolBars
 	
 	Var miXizmat = mnuMain.Add(ML("Service"), "", "Service")
 	miXizmat->Add(ML("&Add-Ins") & "..." & HK("AddIns"), "", "AddIns", @mclick)
+	miXizmat->Add("-")
+	miXizmat->Add(ML("&Tools") & "..." & HK("Tools"), "", "Tools", @mclick)
+	Dim As Integer Fn = FreeFile
+	Dim As WString * 1024 Buff
+	Dim As MenuItem Ptr mi
+	Dim As ToolType Ptr tt
+	Open ExePath & "/Tools/Tools.ini" For Input As #Fn
+	Do Until EOF(Fn)
+		Line Input #Fn, Buff
+		If StartsWith(Buff, "Path=") Then
+			tt = New ToolType
+			tt->Path = Mid(Buff, 5)
+			Tools.Add tt->Path, tt
+		ElseIf tt <> 0 Then
+			If StartsWith(Buff, "Name=") Then
+				tt->Name = Mid(Buff, 5)
+			ElseIf StartsWith(Buff, "Parameters=") Then
+				tt->Parameters = Mid(Buff, 12)
+			ElseIf StartsWith(Buff, "WorkingFolder=") Then
+				tt->WorkingFolder = Mid(Buff, 15)
+			ElseIf StartsWith(Buff, "Accelerator=") Then
+				tt->Accelerator = Mid(Buff, 13)
+				mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, "", "Tools", @mClickTool)
+				mi->Tag = tt
+			ElseIf StartsWith(Buff, "LoadType=") Then
+				tt->LoadType = Cast(LoadTypes, Val(Mid(Buff, 10)))
+			ElseIf StartsWith(Buff, "WaitComplete=") Then
+				tt->WaitComplete = CDbl(Mid(Buff, 14))
+			End If
+		End If
+	Loop
+	Close #Fn
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mclick)
 	
@@ -4734,9 +4771,6 @@ frmMain.CreateWnd
 frmMain.Show
 frmMain.CenterToScreen 'David Change
 
-pApp->MainForm = @frmMain
-pApp->Run
-
 Sub OnProgramStart() Constructor
 	'	pfSplash = @fSplash
 	'	pfSplash->Show
@@ -4770,10 +4804,3 @@ Sub OnProgramQuit() Destructor
 	WDeallocate DebugArguments
 	WDeallocate RecentFiles 'David Change
 End Sub
-
-End
-AA:
-MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-"in function " & ZGet(Erfn()) & " " & _
-"in module " & ZGet(Ermn()) ' & " " & _
-'"in line " & Erl()

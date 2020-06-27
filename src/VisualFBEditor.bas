@@ -18,6 +18,8 @@ Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
 Const SIGN       = "VisualFBEditor " + VERSION
 
+On Error Goto AA
+
 #define GetMN
 '#define FBMLD_NO_MULTITHREADING
 '#include "fbmld.bi"
@@ -32,6 +34,7 @@ Const SIGN       = "VisualFBEditor " + VERSION
 #include once "frmProjectProperties.bi"
 #include once "frmParameters.bi"
 #include once "frmAddIns.bi"
+#include once "frmTools.bi"
 #include once "frmAbout.bi"
 #include once "TabWindow.bi"
 
@@ -63,6 +66,13 @@ End Sub
 
 Sub mClickHelp(ByRef Sender As My.Sys.Object)
 	ThreadCreate(@RunHelp, @Cast(MenuItem Ptr, @Sender)->ImageKey)
+End Sub
+
+Sub mClickTool(ByRef Sender As My.Sys.Object)
+	Dim As MenuItem Ptr mi = Cast(MenuItem Ptr, @Sender)
+	If mi = 0 Then Exit Sub
+	Dim As ToolType Ptr tt = mi->Tag
+	If tt <> 0 Then tt->Execute
 End Sub
 
 Sub mClick(Sender As My.Sys.Object)
@@ -269,6 +279,7 @@ Sub mClick(Sender As My.Sys.Object)
 		End If
 	Case "Options":                         pfOptions->Show *pfrmMain
 	Case "AddIns":                          pfAddIns->Show *pfrmMain
+	Case "Tools":                           pfTools->Show *pfrmMain
 	Case "Content":                         ThreadCreate(@RunHelp)
 	Case "FreeBasicForums":                 OpenUrl "https://www.freebasic.net/forum/index.php"
 	Case "FreeBasicWiKi":                   OpenUrl "https://www.freebasic.net/wiki/wikka.php?wakka=PageIndex"
@@ -280,4 +291,12 @@ Sub mClick(Sender As My.Sys.Object)
 	End Select
 End Sub
 
+pApp->MainForm = @frmMain
+pApp->Run
 
+End
+AA:
+MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+"in function " & ZGet(Erfn()) & " " & _
+"in module " & ZGet(Ermn()) ' & " " & _
+'"in line " & Erl()

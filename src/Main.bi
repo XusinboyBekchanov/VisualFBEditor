@@ -52,6 +52,7 @@ Declare Sub PopupClick(ByRef Sender As My.Sys.Object)
 Declare Sub mClick(Sender As My.Sys.Object)
 Declare Sub mClickMRU(Sender As My.Sys.Object)
 Declare Sub mClickHelp(Sender As My.Sys.Object)
+Declare Sub mClickTool(Sender As My.Sys.Object)
 Declare Sub LoadSettings
 Declare Sub LoadLanguageTexts
 
@@ -97,7 +98,7 @@ Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompil
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, DebugArguments
 Common Shared As Any Ptr tlock, tlockSave
 
-Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
+Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pTools, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
 Common Shared As Dictionary Ptr pCompilers, pMakeTools, pDebuggers, pTerminals, pHelps
 
 Enum LoadParam
