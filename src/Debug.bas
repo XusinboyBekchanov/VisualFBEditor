@@ -1620,7 +1620,9 @@ Dim Shared exedate As Double 'serial date
 			vadr=adr
 			With cudt(i)
 				'dbg_prt2("var ini="+.nm+" "+Str(.ofs)+" "+Str(voffset)+" "+Str(adr))
-				vrrnb+=1:vrr(vrrnb).vr=-i
+				vrrnb+=1
+				If vrrnb > vrrmax Then MsgBox ML("Max number of vars reached"): vrrnb = vrrmax: Exit Sub
+				vrr(vrrnb).vr=-i
 				ad=.ofs+voffset 'offset of current element + offset all levels above
 				vrr(vrrnb).gofs=ad 'however keep (global) offset
 				
@@ -2030,7 +2032,7 @@ Dim Shared exedate As Double 'serial date
 			
 			If flagverbose Then varlib+="[sz"+Str(SizeOf(Integer))+" / "+sOffset+Str(pany)+"]" '25/07/2015
 			If pany Then
-				ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),sizeof(Integer),0) '25/07/2015
+				ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),SizeOf(Integer),0) '25/07/2015
 				If p>200 Then
 					varlib+="="+proc_name(*ptrs.puinteger) 'proc name
 				Else
@@ -2108,7 +2110,7 @@ Dim Shared exedate As Double 'serial date
 		Return varlib
 	End Function
 	
-	private function Val_string(strg As String)As String
+	Private Function Val_string(strg As String)As String
 		Dim strg2 As String,vl As Integer
 		For i As Integer=1 To Len(strg) Step 2
 			vl=ValInt("&h"+Mid(strg,i,2))
@@ -2120,7 +2122,7 @@ Dim Shared exedate As Double 'serial date
 		Next
 		Return strg2
 	End Function
-	private function Val_byte(strg As String)As String
+	Private Function Val_byte(strg As String)As String
 		Dim strg2 As String,vl As Integer
 		For i As Integer=1 To Len(strg) Step 2
 			vl=ValInt("&h"+Mid(strg,i,2))
@@ -2195,7 +2197,7 @@ Dim Shared exedate As Double 'serial date
 		End Select
 	End Function
 	
-	private function Tree_upditem(hitem As HTREEITEM,ByRef text As WString,hTV As HWND) As Integer ' UPDATE TEXT ITEM
+	Private Function Tree_upditem(hitem As HTREEITEM,ByRef text As WString,hTV As HWND) As Integer ' UPDATE TEXT ITEM
 		Dim tvI As TVITEM
 		tvI.mask = TVIF_TEXT
 		tvI.pszText         =  @Text
@@ -2271,9 +2273,9 @@ Dim Shared exedate As Double 'serial date
 				ReadProcessMemory(dbghand,Cast(LPCVOID,vrr(varfind.iv).ini),@wtch(t).arr,4,0)
 			End If
 			
-			If varfind.iv<procr(1).vr then'shared 04/02/2014
+			If varfind.iv<procr(1).vr Then'shared 04/02/2014
 				wtch(t).psk=0
-				For j As long =1 To procnb
+				For j As Long =1 To procnb
 					If proc(j).nm="main" Then
 						wtch(t).idx=j 'data for reactivating watch
 						Exit For
@@ -2922,7 +2924,7 @@ Dim Shared exedate As Double 'serial date
 	'   <24cc>   DW_AT_decl_file   : 3
 	'   <24cd>   DW_AT_decl_line   : 7
 	'   <24ce>   DW_AT_type        : <0x24d2>
-	private sub dw_basic_type(nm As String,index As integer,typ As integer=-1)
+	Private Sub dw_basic_type(nm As String,index As Integer,typ As Integer=-1)
 		Select Case nm
 		Case "integer","int32"
 			udt(1).index=index:udt(1).typ=typ
