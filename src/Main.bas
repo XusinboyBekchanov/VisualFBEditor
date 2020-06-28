@@ -59,7 +59,8 @@ Dim Shared As SaveFileDialog SaveD
 	Dim Shared As PrintPreviewDialog PrintPreviewD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, Tools, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions 'David Change add Sessions
+Dim Shared As List Tools
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions 'David Change add Sessions
 Dim Shared As WString Ptr RecentFiles 'David Change
 Dim Shared As Dictionary Compilers, MakeTools, Debuggers, Terminals, Helps, HotKeys
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
@@ -320,6 +321,11 @@ Function Compile(Parameter As String = "") As Integer
 			Return 0
 		End If
 	End If
+	Dim As ToolType Ptr Tool
+	For i As Integer = 0 To Tools.Count - 1
+		Tool = Tools.Item(i)
+		If Tool->LoadType = LoadTypes.BeforeCompile Then Tool->Execute
+	Next
 	Dim LogFileName As WString Ptr 'David Change
 	Dim LogFileName2 As WString Ptr
 	Dim BatFileName As WString Ptr
@@ -490,6 +496,10 @@ Function Compile(Parameter As String = "") As Integer
 	ShowMessages("")
 	StopProgress
 	ThreadsLeave()
+	For i As Integer = 0 To Tools.Count - 1
+		Tool = Tools.Item(i)
+		If Tool->LoadType = LoadTypes.AfterCompile Then Tool->Execute
+	Next
 	If Yaratilmadi Or Band Then
 		ThreadsEnter()
 		If Parameter <> "Check" Then
@@ -798,6 +808,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						tn1 = GetTreeNodeChild(tn, Buff)
 					End If
 					'David Change
+					Dim As Boolean FileEx = FileExists(*ee->FileName)
 					If bMain Then
 						IconName = "MainRes"
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  'David Change
@@ -808,8 +819,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							WLet ppe->MainFileName, *ee->FileName
 							IconName = "MainFile"
 						End If
+						If Not FileEx Then IconName = "New"
 						If Not inFolder Then
-							If Not FileExists(*ee->FileName) Then IconName = "New"
 							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
 							If MainNode = 0 Then SetMainNode GetParentNode(tn1)  'David Change
 						End If
@@ -819,8 +830,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						Else
 							IconName = "File"
 						End If
+						If Not FileEx Then IconName = "New"
 						If Not inFolder Then
-							If Not FileExists(*ee->FileName) Then IconName = "New"
 							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , *ee->FileName, IconName, IconName, True)
 						End If
 					End If
@@ -1407,23 +1418,23 @@ Sub AddFileToProject
 End Sub
 
 Sub RemoveFileFromProject
-?1410:	If tvExplorer.SelectedNode = 0 Then Exit Sub
-?1411:	If tvExplorer.SelectedNode->Tag = 0 Then Exit Sub
-?1412:	If tvExplorer.SelectedNode->ParentNode = 0 Then Exit Sub
-?1413:	Dim As TreeNode Ptr ptn
-?1414:	ptn = GetParentNode(tvExplorer.SelectedNode)
-?1415:	If ptn->ImageKey <> "Project" Then Exit Sub
-?1416:	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
-?1417:	Dim tb As TabWindow Ptr
-?1418:	For i As Integer = 0 To ptabCode->TabCount - 1
-?1419:		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-?1420:		If tb->tn = tn Then
-?1421:			If tb->CloseTab = False Then Exit Sub
-?1422:			Exit For
-?1423:		End If
-?1424:	Next i
-?1425:	If Not EndsWith(tn->ParentNode->Text, " *") Then tn->ParentNode->Text &= " *"
-?1426, 1:	If tn->ParentNode->Nodes.IndexOf(tn) <> -1 Then ?1426, 2: tn->ParentNode->Nodes.Remove tn->ParentNode->Nodes.IndexOf(tn)
+	If tvExplorer.SelectedNode = 0 Then Exit Sub
+	If tvExplorer.SelectedNode->Tag = 0 Then Exit Sub
+	If tvExplorer.SelectedNode->ParentNode = 0 Then Exit Sub
+	Dim As TreeNode Ptr ptn
+	ptn = GetParentNode(tvExplorer.SelectedNode)
+	If ptn->ImageKey <> "Project" Then Exit Sub
+	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
+	Dim tb As TabWindow Ptr
+	For i As Integer = 0 To ptabCode->TabCount - 1
+		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+		If tb->tn = tn Then
+			If tb->CloseTab = False Then Exit Sub
+			Exit For
+		End If
+	Next i
+	If Not EndsWith(tn->ParentNode->Text, " *") Then tn->ParentNode->Text &= " *"
+	If tn->ParentNode->Nodes.IndexOf(tn) <> -1 Then tn->ParentNode->Nodes.Remove tn->ParentNode->Nodes.IndexOf(tn)
 	'pfProjectProperties->RefreshProperties
 End Sub
 
@@ -3183,31 +3194,43 @@ Sub CreateMenusAndToolBars
 	mnuEnd->Enabled = False
 	mnuRestart->Enabled = False
 	
-	Var miXizmat = mnuMain.Add(ML("Service"), "", "Service")
+	miXizmat = mnuMain.Add(ML("Service"), "", "Service")
 	miXizmat->Add(ML("&Add-Ins") & "..." & HK("AddIns"), "", "AddIns", @mclick)
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Tools") & "..." & HK("Tools"), "", "Tools", @mclick)
+	miXizmat->Add("-")
+	Dim As My.Sys.Drawing.BitmapType Bitm
+	Dim As My.Sys.Drawing.Icon Ico
 	Dim As Integer Fn = FreeFile
 	Dim As WString * 1024 Buff
 	Dim As MenuItem Ptr mi
 	Dim As ToolType Ptr tt
-	Open ExePath & "/Tools/Tools.ini" For Input As #Fn
+	#ifdef __USE_GTK__
+		Open ExePath & "/Tools/ToolsX.ini" For Input Encoding "utf8" As #Fn
+	#else
+		Open ExePath & "/Tools/Tools.ini" For Input Encoding "utf8" As #Fn
+	#endif
 	Do Until EOF(Fn)
 		Line Input #Fn, Buff
 		If StartsWith(Buff, "Path=") Then
 			tt = New ToolType
-			tt->Path = Mid(Buff, 5)
-			Tools.Add tt->Path, tt
+			tt->Path = Mid(Buff, 6)
+			Tools.Add tt
 		ElseIf tt <> 0 Then
 			If StartsWith(Buff, "Name=") Then
-				tt->Name = Mid(Buff, 5)
+				tt->Name = Mid(Buff, 6)
 			ElseIf StartsWith(Buff, "Parameters=") Then
 				tt->Parameters = Mid(Buff, 12)
 			ElseIf StartsWith(Buff, "WorkingFolder=") Then
 				tt->WorkingFolder = Mid(Buff, 15)
 			ElseIf StartsWith(Buff, "Accelerator=") Then
 				tt->Accelerator = Mid(Buff, 13)
-				mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, "", "Tools", @mClickTool)
+				#ifdef __USE_GTK__
+				#else
+					Ico.Handle = ExtractIconW(Instance, tt->Path, NULL)
+					Bitm.Handle = Ico.ToBitmap
+				#endif
+				mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool)
 				mi->Tag = tt
 			ElseIf StartsWith(Buff, "LoadType=") Then
 				tt->LoadType = Cast(LoadTypes, Val(Mid(Buff, 10)))
@@ -4602,6 +4625,14 @@ Sub UnLoadAddins
 	AddIns.Clear
 End Sub
 
+Sub LoadTools
+	Dim As ToolType Ptr Tool
+	For i As Integer = 0 To Tools.Count - 1
+		Tool = Tools.Item(i)
+		If Tool->LoadType = LoadTypes.OnEditorStartup Then Tool->Execute
+	Next
+End Sub
+
 Sub GetColors(ByRef cs As ECColorScheme, DefaultForeground As Integer = -1, DefaultBackground As Integer = -1, DefaultFrame As Integer = -1, DefaultIndicator As Integer = -1)
 	cs.Foreground = IIf(cs.ForegroundOption = -1, DefaultForeground, cs.ForegroundOption)
 	cs.Background = IIf(cs.BackgroundOption = -1, DefaultBackground, cs.BackgroundOption)
@@ -4685,6 +4716,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		End If
 	End If
 	LoadAddins
+	LoadTools
 End Sub
 
 Sub frmMain_Show(ByRef Sender As Control)

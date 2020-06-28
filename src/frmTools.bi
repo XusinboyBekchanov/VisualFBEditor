@@ -13,6 +13,8 @@
 #include once "mff/CheckBox.bi"
 #include once "mff/Panel.bi"
 #include once "Main.bi"
+#include once "mff/ComboBoxEdit.bi"
+#include once "mff/HotKey.bi"
 
 Using My.Sys.Forms
 
@@ -20,24 +22,39 @@ Using My.Sys.Forms
 	Type frmTools Extends Form
 		Declare Static Sub cmdOK_Click(ByRef Sender As Control)
 		Declare Static Sub cmdCancel_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Click(ByRef Sender As Control)
+		Declare Static Sub lvTools_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
+		Declare Static Sub lvTools_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub cmdAdd_Click(ByRef Sender As Control)
+		Declare Static Sub cmdChange_Click(ByRef Sender As Control)
+		Declare Static Sub cmdRemove_Click(ByRef Sender As Control)
 		Declare Static Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub lvAddIns_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
-		Declare Static Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub lvAddIns_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub txtParameters_Change(ByRef Sender As TextBox)
+		Declare Static Sub txtWorkingFolder_Change(ByRef Sender As TextBox)
+		Declare Static Sub cboEvent_Change(ByRef Sender As Control)
+		Declare Static Sub hkShortcut_Change(ByRef Sender As Control)
+		Declare Static Sub chkWaitComplete_Click(ByRef Sender As CheckBox)
+		Declare Static Sub cmdMoveUp_Click(ByRef Sender As Control)
+		Declare Static Sub cmdMoveDown_Click(ByRef Sender As Control)
 		Declare Constructor
 		Declare Destructor
 		
 		Dim As ListView lvTools
-		Dim As CommandButton cmdOK, cmdCancel, cmdHelp
+		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdd, cmdChange, cmdRemove, cmdWorkingFolder, cmdMoveUp, cmdMoveDown
+		Dim As Label lblParameters, lblInfo, lblWorkingFolder, lblTrigger, lblShortcut
+		Dim As TextBox txtParameters, txtWorkingFolder
+		Dim As ComboBoxEdit cboEvent
+		Dim As HotKey hkShortcut
+		Dim As CheckBox chkWaitComplete
 	End Type
 	
 	Common Shared pfTools As frmTools Ptr
 '#End Region
 
 Enum LoadTypes
-	UserSelectOnly
+	OnlyOnUserSelected
+	OnEditorStartup
+	BeforeCompile
+	AfterCompile
 End Enum
 
 Type ToolType
@@ -49,7 +66,6 @@ Type ToolType
 	LoadType As LoadTypes
 	WaitComplete As Boolean
 	Declare Sub Execute()
-	Declare Destructor
 End Type
 
 #ifndef __USE_MAKE__

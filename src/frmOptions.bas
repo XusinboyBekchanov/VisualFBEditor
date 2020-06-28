@@ -1237,6 +1237,7 @@ Sub AddShortcuts(item As MenuItem Ptr, ByRef Prefix As WString = "")
 			.HotKeysPriv.Add item->Name
 			.lvShortcuts.ListItems.Add itemCaption
 			.lvShortcuts.ListItems.Item(.lvShortcuts.ListItems.Count - 1)->Text(1) = itemHotKey
+			.lvShortcuts.ListItems.Item(.lvShortcuts.ListItems.Count - 1)->Tag = item
 		Else
 			For i As Integer = 0 To item->Count - 1
 				AddShortcuts item->Item(i), itemCaption
@@ -1472,13 +1473,21 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		ShowMainToolbar = .chkShowMainToolbar.Checked
 		SetColors
 		If .HotKeysChanged Then
-			Dim As Integer Fn = FreeFile
+			Dim As Integer Pos1, Fn = FreeFile
+			Dim As MenuItem Ptr Item
+			Dim As String Key
 			Open ExePath & "/Settings/Others/HotKeys.txt" For Output As #Fn
 			For i As Integer = 0 To .lvShortcuts.ListItems.Count - 1
 				If .HotKeysPriv.Item(i) = "" Then Continue For
-				Print #Fn, .HotKeysPriv.Item(i) & "=" & .lvShortcuts.ListItems.Item(i)->Text(1)
+				Item = .lvShortcuts.ListItems.Item(i)->Tag
+				Pos1 = InStr(Item->Caption, !"\t")
+				If Pos1 = 0 Then Pos1 = Len(Item->Caption) + 1
+				Key = .lvShortcuts.ListItems.Item(i)->Text(1)
+				Item->Caption = Left(Item->Caption, Pos1 - 1) & !"\t" & Key
+				Print #Fn, .HotKeysPriv.Item(i) & "=" & Key
 			Next
 			Close #Fn
+			pfrmMain->Menu->ParentWindow = pfrmMain
 		End If
 		piniSettings->WriteString "Compilers", "DefaultCompiler32", *DefaultCompiler32
 		piniSettings->WriteString "Compilers", "DefaultCompiler64", *DefaultCompiler64
@@ -1671,7 +1680,7 @@ Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	If newIndex <> oldIndex Then MsgBox ML("Localization changes will be applied the next time the application is run.")
 	If *InterfaceFontName <> *fOptions.oldInterfFontName OrElse InterfaceFontSize <> fOptions.oldInterfFontSize Then MsgBox ML("Interface font changes will be applied the next time the application is run.")
 	If DisplayMenuIcons <> fOptions.oldDisplayMenuIcons Then MsgBox ML("Display icons in the menu changes will be applied the next time the application is run.")
-	If fOptions.HotKeysChanged Then MsgBox ML("Hotkey changes will be applied the next time the application is run.")
+	'If fOptions.HotKeysChanged Then MsgBox ML("Hotkey changes will be applied the next time the application is run.")
 End Sub
 
 Private Sub frmOptions.Form_Show(ByRef Sender As Form)

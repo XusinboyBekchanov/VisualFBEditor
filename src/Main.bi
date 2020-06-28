@@ -68,7 +68,7 @@ Common Shared As ToolButton Ptr SelectedTool
 Common Shared As TabControl Ptr ptabCode, ptabLeft, ptabBottom, ptabRight
 Common Shared As TreeView Ptr ptvExplorer
 Common Shared As IniFile Ptr piniSettings, piniTheme
-Common Shared As MenuItem Ptr mnuUseDebugger, miHelps
+Common Shared As MenuItem Ptr mnuUseDebugger, miHelps, miXizmat
 
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
@@ -98,7 +98,8 @@ Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompil
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, DebugArguments
 Common Shared As Any Ptr tlock, tlockSave
 
-Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pTools, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
+Common Shared As List Ptr pTools
+Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
 Common Shared As Dictionary Ptr pCompilers, pMakeTools, pDebuggers, pTerminals, pHelps
 
 Enum LoadParam
