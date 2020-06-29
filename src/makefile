@@ -13,9 +13,6 @@ endif
 VisualFBEditor: VisualFBEditor.bas Main.o Debug.o Designer.o EditControl.o frmAbout.o frmAddIns.o frmAdvancedOptions.o frmFind.o frmFindInFiles.o frmGoto.o frmOptions.o frmProjectProperties.o frmTheme.o frmTrek.o frmParameters.o frmSplash.o TabWindow.o $(MFF)/mff/Application.o $(MFF)/mff/Bitmap.o $(MFF)/mff/Brush.o $(MFF)/mff/Canvas.o $(MFF)/mff/CheckBox.o $(MFF)/mff/Clipboard.o $(MFF)/mff/ComboBoxEdit.o $(MFF)/mff/ComboBoxEx.o $(MFF)/mff/CommandButton.o $(MFF)/mff/Component.o $(MFF)/mff/ContainerControl.o $(MFF)/mff/Control.o $(MFF)/mff/Cursor.o $(MFF)/mff/Dialogs.o $(MFF)/mff/Dictionary.o $(MFF)/mff/Font.o $(MFF)/mff/Form.o $(MFF)/mff/Graphic.o $(MFF)/mff/Graphics.o $(MFF)/mff/GroupBox.o $(MFF)/mff/Icon.o $(MFF)/mff/ImageBox.o $(MFF)/mff/ImageList.o $(MFF)/mff/IniFile.o $(MFF)/mff/IntegerList.o $(MFF)/mff/Label.o $(MFF)/mff/LinkLabel.o $(MFF)/mff/List.o $(MFF)/mff/ListControl.o $(MFF)/mff/ListItems.o $(MFF)/mff/ListView.o $(MFF)/mff/Menus.o $(MFF)/mff/Object.o $(MFF)/mff/PageSetupDialog.o $(MFF)/mff/Panel.o $(MFF)/mff/Pen.o $(MFF)/mff/Picture.o $(MFF)/mff/PrintDialog.o  $(MFF)/mff/Printer.o $(MFF)/mff/PrintPreviewDialog.o $(MFF)/mff/ProgressBar.o $(MFF)/mff/RadioButton.o $(MFF)/mff/RichTextBox.o $(MFF)/mff/ScrollBarControl.o $(MFF)/mff/Splitter.o $(MFF)/mff/StatusBar.o $(MFF)/mff/SysUtils.o $(MFF)/mff/TabControl.o $(MFF)/mff/TextBox.o $(MFF)/mff/TimerComponent.o $(MFF)/mff/ToolBar.o $(MFF)/mff/ToolPalette.o $(MFF)/mff/TrackBar.o $(MFF)/mff/TreeListView.o $(MFF)/mff/TreeView.o $(MFF)/mff/UString.o $(MFF)/mff/WStringList.o
 	$(FBC) -C VisualFBEditor.bas $(RESF) Main.o Debug.o Designer.o EditControl.o frmAbout.o frmAddIns.o frmAdvancedOptions.o frmFind.o frmFindInFiles.o frmGoto.o frmOptions.o frmProjectProperties.o frmParameters.o frmTheme.o frmTrek.o frmSplash.o TabWindow.o  $(MFF)/mff/Application.o $(MFF)/mff/Bitmap.o $(MFF)/mff/Brush.o $(MFF)/mff/Canvas.o $(MFF)/mff/CheckBox.o $(MFF)/mff/Clipboard.o $(MFF)/mff/ComboBoxEdit.o $(MFF)/mff/ComboBoxEx.o $(MFF)/mff/CommandButton.o $(MFF)/mff/Component.o $(MFF)/mff/ContainerControl.o $(MFF)/mff/Control.o $(MFF)/mff/Cursor.o $(MFF)/mff/Dialogs.o $(MFF)/mff/Dictionary.o $(MFF)/mff/Font.o $(MFF)/mff/Form.o $(MFF)/mff/Graphic.o $(MFF)/mff/Graphics.o $(MFF)/mff/GroupBox.o $(MFF)/mff/Icon.o $(MFF)/mff/ImageBox.o $(MFF)/mff/ImageList.o $(MFF)/mff/IniFile.o $(MFF)/mff/IntegerList.o $(MFF)/mff/Label.o $(MFF)/mff/LinkLabel.o $(MFF)/mff/List.o $(MFF)/mff/ListControl.o $(MFF)/mff/ListItems.o $(MFF)/mff/ListView.o $(MFF)/mff/Menus.o $(MFF)/mff/Object.o $(MFF)/mff/PageSetupDialog.o $(MFF)/mff/Panel.o $(MFF)/mff/Pen.o $(MFF)/mff/Picture.o $(MFF)/mff/PrintDialog.o  $(MFF)/mff/Printer.o $(MFF)/mff/PrintPreviewDialog.o $(MFF)/mff/ProgressBar.o $(MFF)/mff/RadioButton.o $(MFF)/mff/RichTextBox.o $(MFF)/mff/ScrollBarControl.o $(MFF)/mff/Splitter.o $(MFF)/mff/StatusBar.o $(MFF)/mff/SysUtils.o $(MFF)/mff/TabControl.o $(MFF)/mff/TextBox.o $(MFF)/mff/TimerComponent.o $(MFF)/mff/ToolBar.o $(MFF)/mff/ToolPalette.o $(MFF)/mff/TrackBar.o $(MFF)/mff/TreeListView.o $(MFF)/mff/TreeView.o $(MFF)/mff/UString.o $(MFF)/mff/WStringList.o $(CFLAGS) $(XFLAG) -s console
 
-LanguageTemplate: LanguageTemplate.o
-	$(FBC) -C LanguageTemplate.o -x LanguageTemplate.exe $(CFLAGS) $(XFLAG)
-
 clean:
 	rm -f *.exe *.o $(MFF)/mff/*.exe $(MFF)/mff/*.o
 
@@ -70,9 +67,6 @@ frmTrek.o: frmTrek.bas
 frmParameters.o: frmParameters.bas
 	$(FBC) -c frmParameters.bas $(CFLAGS)
 
-LanguageTemplate.o: LanguageTemplate.bas
-	$(FBC) -C LanguageTemplate.bas $(CFLAGS)
-	
 $(MFF)/mff/Application.o: $(MFF)/mff/Application.bas
 	$(FBC) -c $(MFF)/mff/Application.bas $(CFLAGS)
 

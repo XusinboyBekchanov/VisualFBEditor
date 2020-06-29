@@ -914,7 +914,7 @@ pfOptions = @fOptions
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
 			.Text = ML("When compiling") & ":"
-			.SetBounds 8, 120, 416, 104
+			.SetBounds 8, 144, 416, 104
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
@@ -973,6 +973,14 @@ pfOptions = @fOptions
 			.SetBounds 10, 63, 314, 106
 			.Parent = @grbGrid
 		End With
+		' chkLimitDebug
+		With chkLimitDebug
+			.Name = "chkLimitDebug"
+			.Text = ML("Limit debug to the directory of the main file")
+			.SetBounds 10, 116, 400, 16
+			.Caption = ML("Limit debug to the directory of the main file")
+			.Parent = @pnlGeneral
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1004,6 +1012,7 @@ Sub frmOptions.LoadSettings()
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
 		.chkChangeKeywordsCase.Checked = ChangeKeywordsCase
 		.chkUseMakeOnStartWithCompile.Checked = UseMakeOnStartWithCompile
+		.chkLimitDebug.Checked = LimitDebug
 		.txtTabSize.Text = Str(TabWidth)
 		.txtHistoryLimit.Text = Str(HistoryLimit)
 		.txtMFFPath.Text = *MFFPath
@@ -1446,6 +1455,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		TabWidth = Val(.txtTabSize.Text)
 		HistoryLimit = Val(.txtHistoryLimit.Text)
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
+		LimitDebug = .chkLimitDebug.Checked
 		AutoIncrement = .CheckBox1.Checked
 		AutoIndentation = .chkAutoIndentation.Checked
 		AutoComplete = .chkEnableAutoComplete.Checked
@@ -1554,6 +1564,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "TabWidth", TabWidth
 		piniSettings->WriteInteger "Options", "HistoryLimit", HistoryLimit
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
+		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
 		piniSettings->WriteBool "Options", "AutoIncrement", AutoIncrement
 		piniSettings->WriteBool "Options", "AutoIndentation", AutoIndentation
 		piniSettings->WriteBool "Options", "AutoComplete", AutoComplete

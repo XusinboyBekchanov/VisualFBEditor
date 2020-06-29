@@ -1,9 +1,4 @@
-﻿'#########################################################
-'#  LanguageTemplate.bas                                 #
-'#  This file is part of VisualFBEditor                  #
-'#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
-'#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
-'#########################################################
+﻿'#Compile "LNGCreator.rc" -x "LNGCreator.exe"
 
 #include once "mff\Form.bi"
 #include once "mff\TextBox.bi"
@@ -20,6 +15,7 @@ Using My.Sys.Forms
 		Declare Static Sub CommandButton1_Create(ByRef Sender As Control)
 		Declare Static Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Static Sub CommandButton3_Click(ByRef Sender As Control)
+		Declare Static Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As TextBox TextBox1, TextBox2
@@ -31,7 +27,8 @@ Using My.Sys.Forms
 	Constructor Form1
 		' Form1
 		This.Name = "Form1"
-		This.Text = "Adding new language texts to .lng"
+		This.Text = "Update language texts in .lng"
+		This.OnCreate = @Form_Create
 		This.SetBounds 0, 0, 350, 196
 		' TextBox1
 		TextBox1.Name = "TextBox1"
@@ -86,8 +83,9 @@ Using My.Sys.Forms
 		CommandButton3.Parent = @This
 	End Constructor
 	
+	Dim Shared frm As Form1
+	
 	#ifndef _NOT_AUTORUN_FORMS_
-		Dim frm As Form1
 		frm.Show
 		
 		App.Run
@@ -215,5 +213,11 @@ Private Sub Form1.CommandButton3_Click(ByRef Sender As Control)
 	OpenD.Filter = "Language file (.lng)|*.lng|"
 	If OpenD.Execute Then
 		Cast(Form1 Ptr, Sender.Parent)->TextBox2.Text = OpenD.FileName
+	End If
+End Sub
+
+Private Sub Form1.Form_Create(ByRef Sender As Control)
+	If Command <> "" Then
+		frm.TextBox1.Text = Command
 	End If
 End Sub

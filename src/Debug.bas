@@ -9,6 +9,7 @@
 #include once "Debug.bi"
 
 Dim Shared exename As WString *300 'debuggee executable
+Dim Shared mainfolder As WString * 300 'debuggee main folder
 Dim Shared exedate As Double 'serial date
 
 #ifndef __USE_GTK__
@@ -3567,6 +3568,25 @@ Dim Shared exedate As Double 'serial date
 			End If
 		Next
 	End Sub
+	
+	Function GetDWFileName(ByRef dwln As WString) As UString
+		Dim As WString * 300 fullname
+		Dim As Integer p = InStr(dwln, ".b"), ladr, linenu
+		If p = 0 Then p = InStr(dwln, ".B")
+		fullname=Left(dwln,p+3)'remove ':' or :[++] at the end
+		If Left(fullname,6)="CU: ./" Then
+			fullname=Mid(fullname,7)
+		ElseIf Left(fullname,3)="CU:" Then
+			fullname=Mid(fullname,5)
+		ElseIf Left(fullname,2)="./" Then
+			fullname=Mid(fullname,3)
+		End If
+		If InStr(fullname,":/")=0 Then
+			fullname=compdir+fullname 'add current dir
+		End If
+		Return fullname
+	End Function
+	
 	Private Function dw_extract(nfile As String,adrdiff As UInteger) As Long 'return 1 if dwarf data for debuggee is found, if not return 0
 		Dim As Integer counter
 		Dim As String dissas_command
@@ -3633,12 +3653,19 @@ Dim Shared exedate As Double 'serial date
 		dissas_command=""""""+ExePath+"\objdump.exe"" --dwarf=decodedline """+nfile+"""""" '19/04/2015  (by marpon)
 		dwff=FreeFile
 		counter=Open Pipe( dissas_command For Input As #dwff)
+		Dim As UString LastPath, LastFolder
 		Do Until EOF(dwff)
 			Line Input #dwff, dwln
 			If flagline=0 Then
 				If InStr(dwln,"Starting address") Then flagline=1
 				Continue Do
 			End If
+			If Trim(dwln) = "" Then Continue Do
+			If EndsWith(dwln, ":") OrElse EndsWith(dwln, ":[++]") Then 
+				LastPath = GetDWFileName(dwln)
+				LastFolder = GetFolderName(LastPath)
+			End If
+			If CInt(LimitDebug) AndAlso CInt(LastFolder <> "./") AndAlso CInt(Not EqualPaths(LastFolder, mainfolder)) Then Continue Do
 			If InStr(dwln,".bas") OrElse InStr(dwln,".BAS") OrElse InStr(dwln,".bi") OrElse InStr(dwln,".BI") Then dw_lastline_procs()
 		Loop
 		Close #dwff
@@ -3651,6 +3678,12 @@ Dim Shared exedate As Double 'serial date
 		dw_lines_parse(adrdiff,1) 'reset some values 14/08/2015
 		Do Until EOF(dwff)
 			Line Input #dwff, dwln
+			If Trim(dwln) = "" Then Continue Do
+			If EndsWith(dwln, ":") OrElse EndsWith(dwln, ":[++]") Then 
+				LastPath = GetDWFileName(dwln)
+				LastFolder = GetFolderName(LastPath)
+			End If
+			If CInt(LimitDebug) AndAlso CInt(LastFolder <> "./") AndAlso CInt(Not EqualPaths(LastFolder, mainfolder)) Then Continue Do
 			If InStr(dwln,".bas") OrElse InStr(dwln,".BAS") OrElse InStr(dwln,".bi") OrElse InStr(dwln,".BI") Then dw_lines_parse(adrdiff)
 		Loop
 		Close #dwff
@@ -3661,12 +3694,12 @@ Dim Shared exedate As Double 'serial date
 		Return 1
 	End Function
 	
-	private sub debug_extract(exebase As UInteger,nfile As String,dllflag As Long=NODLL) '19/09/2014
+	Private Sub debug_extract(exebase As UInteger,nfile As String,dllflag As Long=NODLL) '19/09/2014
 		Dim recup As ZString *MAX_STAB_SZ '20/07/2014
 		Dim recupstab As udtstab,secnb As UShort,secnm As String *8,lastline As UShort=0,firstline As Integer=0
 		Dim As UInteger basestab=0,basestabs=0,pe,baseimg,sizemax,sizestabs,proc1,proc2
 		Dim sourceix As Integer,sourceixs As Integer
-		Dim As Byte procfg,flag=0,procnodll=TRUE,flagstabd=TRUE 'flags  (flagstabd to skip stabd 68,0,1)
+		Dim As Byte procfg,flag=0,procnodll=True,flagstabd=True 'flags  (flagstabd to skip stabd 68,0,1)
 		Dim As Integer n=sourcenb+1,temp
 		Dim procnmt As String
 		Dim As Long flagdll,flagdwarf=-1
@@ -3821,7 +3854,7 @@ Dim Shared exedate As Double 'serial date
 							End If
 							dbgmaster=sourcenb 'master bas not the include files
 							'reinit when new module (main, lib or dll)
-							gengcc=0:procnodll=TRUE
+							gengcc=0:procnodll=True
 							srccomp(sourcenb)=gengcc 'could be changed after by case60 10/01/2014
 						Else
 							flag=0 'case path then full name or path then name
@@ -3841,7 +3874,7 @@ Dim Shared exedate As Double 'serial date
 						End If
 					Case 130 'include RAS
 					Case 132 'include
-						#Ifdef fulldbg_prt
+						#ifdef fulldbg_prt
 							dbg_prt ("Include : "+recup)
 						#endif
 						'GCC
@@ -3911,7 +3944,10 @@ Dim Shared exedate As Double 'serial date
 									Else
 										rLine(linenb).nu=recupstab.nline:rLine(linenb).px=procnb:rline(linenb).sx=sourceix
 										If runtype = RTSTEP Then
-											WriteProcessMemory(dbghand,Cast(LPVOID,rline(linenb).ad),@breakcpu,1,0)
+											If LimitDebug AndAlso Not EqualPaths(GetFolderName(source(sourceix)), mainfolder) Then
+											Else
+												WriteProcessMemory(dbghand,Cast(LPVOID,rline(linenb).ad),@breakcpu,1,0)
+											End If
 										End If
 										#ifdef fulldbg_prt
 											dbg_prt("Line / adr : "+Str(recupstab.nline)+" "+Hex(rline(linenb).ad))
@@ -5842,6 +5878,7 @@ Sub RunWithDebug(Param As Any Ptr)
 	ThreadsLeave()
 	'#IfNDef __USE_GTK__
 	exename = GetExeFileName(MainFile, FirstLine)
+	mainfolder = GetFolderName(MainFile)
 	'#EndIf
 	If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP Then
 		If InStr(LCase(WGet(DebuggerPath)), "gdb") Then

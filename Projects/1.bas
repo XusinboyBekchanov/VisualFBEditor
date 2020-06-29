@@ -5,19 +5,14 @@
 #endif
 #include once "mff/Form.bi"
 #include once "mff/CheckBox.bi"
-#include once "mff/CommandButton.bi"
-#include once "mff/GroupBox.bi"
 
 Using My.Sys.Forms
 
 '#Region "Form"
     Type Form1 Extends Form
-    	Declare Static Sub CommandButton1_Click(ByRef Sender As Control)
     	Declare Constructor
         
     	Dim As CheckBox CheckBox1
-    	Dim As CommandButton CommandButton1
-    	Dim As GroupBox GroupBox1
     End Type
     
     Constructor Form1
@@ -31,22 +26,7 @@ Using My.Sys.Forms
     	With CheckBox1
     		.Name = "CheckBox1"
     		.Text = "CheckBox1"
-    		.SetBounds 80, 200, 128, 72
-    		.Parent = @This
-    	End With
-    	' CommandButton1
-    	With CommandButton1
-    		.Name = "CommandButton1"
-    		.Text = "CommandButton1"
-    		.SetBounds 72, 144, 144, 40
-    		.OnClick = @CommandButton1_Click
-    		.Parent = @This
-    	End With
-    	' GroupBox1
-    	With GroupBox1
-    		.Name = "GroupBox1"
-    		.Text = "GroupBox1"
-    		.SetBounds 32, 8, 256, 128
+    		.SetBounds 136, 40, 96, 64
     		.Parent = @This
     	End With
     End Constructor
@@ -60,7 +40,3 @@ Using My.Sys.Forms
     #endif
 '#End Region
 
-
-Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
-	MsgBox "fdfdd"
-End Sub

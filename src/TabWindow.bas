@@ -4625,11 +4625,11 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 	If MainNode Then
 		Dim ee As ExplorerElement Ptr
 		ee = MainNode->Tag
-		If MainNode->ImageKey = "Project" OrElse ee AndAlso ee->Project <> 0 Then
+		If MainNode->ImageKey = "Project" OrElse ee AndAlso *ee Is ProjectElement Then
 			ProjectNode = MainNode
-			If ee Then Project = ee->Project
-			If ee AndAlso ee->Project AndAlso WGet(ee->Project->MainFileName) <> "" Then
-				Return *ee->Project->MainFileName
+			If ee Then Project = Cast(ProjectElement Ptr, ee)
+			If ee AndAlso Project AndAlso WGet(Project->MainFileName) <> "" Then
+				Return WGet(Project->MainFileName)
 			Else
 				MsgBox ML("Project Main File don't set")
 			End If
@@ -4653,11 +4653,11 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 			If tb->Modified Then tb->Save
 		End If
 		Var tn = GetParentNode(tb->tn)
-		If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso Cast(ExplorerElement Ptr, tn->Tag)->Project <> 0 Then
+		If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
 			ProjectNode = tn
 			Dim As ExplorerElement Ptr ee = tn->Tag
-			If ee Then Project = ee->Project
-			If ee AndAlso ee->Project AndAlso ee->Project->MainFileName <> 0 AndAlso *ee->Project->MainFileName <> "" Then Return *ee->Project->MainFileName
+			If ee Then Project = Cast(ProjectElement Ptr, ee)
+			If ee AndAlso Project AndAlso Project->MainFileName <> 0 AndAlso *Project->MainFileName <> "" Then Return *Project->MainFileName
 		End If
 		Return tb->FileName
 	End If

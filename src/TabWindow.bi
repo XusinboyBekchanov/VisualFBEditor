@@ -27,7 +27,12 @@ Using My.Sys.Forms
 
 Declare Sub CompleteWord()
 
-Type ProjectElement
+Type ExplorerElement Extends Object
+	FileName As WString Ptr
+	Declare Destructor
+End Type
+
+Type ProjectElement Extends ExplorerElement
 	MainFileName As WString Ptr
 	ResourceFileName As WString Ptr
 	IconResourceFileName As WString Ptr
@@ -61,12 +66,6 @@ Type ProjectElement
 	CreateDebugInfo As Boolean
 	Files As WStringList
 	Declare Constructor
-	Declare Destructor
-End Type
-
-Type ExplorerElement
-	FileName As WString Ptr
-	Project As ProjectElement Ptr
 	Declare Destructor
 End Type
 

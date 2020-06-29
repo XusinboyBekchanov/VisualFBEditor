@@ -437,15 +437,10 @@ pfProjectProperties = @fProjectProperties
 Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 	With fProjectProperties
 		If .ProjectTreeNode = 0 Then Exit Sub
-		Dim As ExplorerElement Ptr pee = .ProjectTreeNode->Tag
-		If pee = 0 Then
-			pee = New ExplorerElement
-			WLet pee->FileName, ""
-		End If
-		Dim As ProjectElement Ptr ppe = pee->Project
+		Dim As ProjectElement Ptr ppe = .ProjectTreeNode->Tag
 		If ppe = 0 Then
 			ppe = New ProjectElement
-			pee->Project = ppe
+			WLet ppe->FileName, ""
 		End If
 		WLet ppe->MainFileName, .MainFiles.Get(.cboMainFile.Text)
 		WLet ppe->ResourceFileName, .ResourceFiles.Get(.cboResourceFile.Text)
@@ -537,8 +532,9 @@ Public Sub frmProjectProperties.RefreshProperties()
 		.cboResourceFile.AddItem ML("(not selected)")
 		.cboIconResourceFile.AddItem ML("(not selected)")
 		Dim As Boolean bSetted = False
-		If ptn->ImageKey = "Project" OrElse ee AndAlso ee->Project <> 0 Then
+		If ptn->ImageKey = "Project" OrElse ee AndAlso *ee Is ProjectElement Then
 			.ProjectTreeNode = ptn
+			ppe = Cast(ProjectElement Ptr, ee)
 			If ptn->ImageKey = "Project" Then
 				For i As Integer = 0 To ptn->Nodes.Count - 1
 					tn1 = ptn->Nodes.Item(i)
@@ -552,12 +548,11 @@ Public Sub frmProjectProperties.RefreshProperties()
 					End If
 				Next
 			Else
-				For i As Integer = 0 To ee->Project->Files.Count - 1
-					AddToComboFileName ee->Project->Files.Item(i)
+				For i As Integer = 0 To ppe->Files.Count - 1
+					AddToComboFileName ppe->Files.Item(i)
 				Next
 			End If
-			If ee AndAlso ee->Project Then
-				ppe = ee->Project
+			If ppe Then
 				bSetted = True
 				.cboProjectType.ItemIndex = ppe->ProjectType
 				If .MainFiles.IndexOf(*ppe->MainFileName) > -1 Then .cboMainFile.Text = .MainFiles.Item(.MainFiles.IndexOf(*ppe->MainFileName))->Key Else .cboMainFile.ItemIndex = 0
