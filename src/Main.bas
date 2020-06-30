@@ -4663,7 +4663,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
 	#endif
 	
-	'LoadToolBox
+	LoadToolBox
 	
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", True)
