@@ -100,15 +100,25 @@ End Sub
 
 Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	With frPath
+		Dim As UString FolderName = GetFolderName(pApp->FileName)
 		If .ChooseFolder Then
 			If .BrowseD.Execute Then
-				.txtPath.Text = .BrowseD.Directory
+				If StartsWith(.BrowseD.Directory, FolderName) Then
+					.txtPath.Text = "." & Slash & Mid(.BrowseD.Directory, Len(FolderName) + 1)
+				Else
+					.txtPath.Text = .BrowseD.Directory
+				End If
 			End If
 		Else
 			.OpenD.Filter = ML("All Files") & "|*.*;"
 			If .OpenD.Execute Then
-				.txtPath.Text = .OpenD.FileName
-				If EndsWith(.OpenD.FileName, ".chm") Then
+				?.OpenD.FileName, FolderName
+				If StartsWith(.OpenD.FileName, FolderName) Then
+					.txtPath.Text = "." & Slash & Mid(.OpenD.FileName, Len(FolderName) + 1)
+				Else
+					.txtPath.Text = .OpenD.FileName
+				End If
+				If EndsWith(.OpenD.FileName, ".chm") OrElse .SetFileNameToVersion Then
 					.txtVersion.Text = Left(GetFileName(.OpenD.FileName), Len(GetFileName(.OpenD.FileName)) - 4)
 				Else
 					.txtVersion.Text = GetFileName(GetFolderName(.OpenD.FileName, False))

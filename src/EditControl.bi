@@ -124,6 +124,12 @@ Namespace My.Sys.Forms
 		Dim As String BracketsLine, Symb, SymbOpenBrackets, SymbCloseBrackets, OpenBrackets = "([{", CloseBrackets = ")]}"
 		Dim As Boolean bFinded
 		Dim As String CurWord
+		Dim As Integer iTemp
+		#ifndef __USE_GTK__
+			Dim As Points psPoints
+			Dim As Point poPoint
+		#endif
+		Dim As Integer lParamLo, lParamHi
 		Dim FCurLine As Integer = 0
 		Dim FSelStartLine As Integer = 0
 		Dim FSelEndLine As Integer = 0

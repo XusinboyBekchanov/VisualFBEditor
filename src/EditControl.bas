@@ -1651,8 +1651,8 @@ Namespace My.Sys.Forms
 			HideCaret(FHandle)
 		#endif
 		This.Canvas.Brush.Color = NormalText.Background
-		Dim As Double iRed, iGreen, iBlue
 		#ifdef __USE_GTK__
+			Dim As Double iRed, iGreen, iBlue
 			#ifdef __USE_GTK3__
 				cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), True)
 			#else
@@ -1661,7 +1661,6 @@ Namespace My.Sys.Forms
 			cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 			cairo_fill (cr)
 		#else
-			
 			'			This.Canvas.Font.Name = *EditorFontName
 			'			This.Canvas.Font.Size = EditorFontSize
 			This.Canvas.Pen.Color = FoldLines.Foreground
@@ -2661,28 +2660,27 @@ Namespace My.Sys.Forms
 			#endif
 			#ifndef __USE_GTK__
 			Case WM_SETCURSOR
-				Var d = GetMessagePos
-				Dim As Points ps = MAKEPOINTS(d)
-				Dim As Point p
-				p.X = ps.X
-				p.Y = ps.Y
-				ScreenToClient(Handle, @p)
-				iCursorLine = LineIndexFromPoint(p.X, p.Y)
+				iTemp = GetMessagePos
+				psPoints = MAKEPOINTS(iTemp)
+				poPoint.X = psPoints.X
+				poPoint.Y = psPoints.Y
+				ScreenToClient(Handle, @poPoint)
+				iCursorLine = LineIndexFromPoint(poPoint.X, poPoint.Y)
 				'If Cast(EditControlLine Ptr, FLines.Items[i])->Collapsible Then
 				'If p.X < LeftMargin AndAlso p.X > LeftMargin - 15 Then
-				If InCollapseRect(iCursorLine, p.X, p.Y) Then
+				If InCollapseRect(iCursorLine, poPoint.X, poPoint.Y) Then
 					msg.Result = Cast(LResult, SetCursor(crHand.Handle))
 					Return
 				ElseIf bInMiddleScroll Then
-					If Abs(p.X - MButtonX) < 12 AndAlso Abs(p.Y - MButtonY) < 12 Then
+					If Abs(poPoint.X - MButtonX) < 12 AndAlso Abs(poPoint.Y - MButtonY) < 12 Then
 						msg.Result = Cast(LResult, SetCursor(crScroll.Handle))
-					ElseIf p.X < MButtonX AndAlso Abs(p.Y - MButtonY) <= Abs(p.X - MButtonX) Then
+					ElseIf poPoint.X < MButtonX AndAlso Abs(poPoint.Y - MButtonY) <= Abs(poPoint.X - MButtonX) Then
 						msg.Result = Cast(LResult, SetCursor(crScrollLeft.Handle))
-					ElseIf p.X > MButtonX AndAlso Abs(p.Y - MButtonY) <= Abs(p.X - MButtonX) Then
+					ElseIf poPoint.X > MButtonX AndAlso Abs(poPoint.Y - MButtonY) <= Abs(poPoint.X - MButtonX) Then
 						msg.Result = Cast(LResult, SetCursor(crScrollRight.Handle))
-					ElseIf p.Y < MButtonY AndAlso Abs(p.X - MButtonX) <= Abs(p.Y - MButtonY) Then
+					ElseIf poPoint.Y < MButtonY AndAlso Abs(poPoint.X - MButtonX) <= Abs(poPoint.Y - MButtonY) Then
 						msg.Result = Cast(LResult, SetCursor(crScrollUp.Handle))
-					ElseIf p.Y > MButtonY AndAlso Abs(p.X - MButtonX) <= Abs(p.Y - MButtonY) Then
+					ElseIf poPoint.Y > MButtonY AndAlso Abs(poPoint.X - MButtonX) <= Abs(poPoint.Y - MButtonY) Then
 						msg.Result = Cast(LResult, SetCursor(crScrollDown.Handle))
 					End If
 					If bScrollStarted Then
@@ -2691,7 +2689,7 @@ Namespace My.Sys.Forms
 					End If
 					Return
 				Else
-					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, p.X, p.Y)
+					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, poPoint.X, poPoint.Y)
 					If bInIncludeFileRectOld <> bInIncludeFileRect OrElse iCursorLineOld <> iCursorLine Then PaintControl
 					iCursorLineOld = iCursorLine
 					bInIncludeFileRectOld = bInIncludeFileRect
@@ -3513,8 +3511,8 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEMOVE
 			#endif
 			#ifdef __USE_GTK__
-				Dim As Integer i = LineIndexFromPoint(e->button.x, e->button.y)
-				If InCollapseRect(i, e->button.x, e->button.y) Then
+				iTemp = LineIndexFromPoint(e->button.x, e->button.y)
+				If InCollapseRect(iTemp, e->button.x, e->button.y) Then
 					gdk_window_set_cursor(win, gdkCursorHand)
 				Else
 					gdk_window_set_cursor(win, gdkCursorIBeam)
@@ -3529,11 +3527,11 @@ Namespace My.Sys.Forms
 			'			bInIncludeFileRectOld = bInIncludeFileRect
 			If DownButton = 0 Then
 				#ifdef __USE_GTK__
-					Var lParamLo = IIf(e->button.x > 60000, e->button.x - 65535, e->button.x)
-					Var lParamHi = IIf(e->button.y > 60000, e->button.y - 65535, e->button.y)
+					lParamLo = IIf(e->button.x > 60000, e->button.x - 65535, e->button.x)
+					lParamHi = IIf(e->button.y > 60000, e->button.y - 65535, e->button.y)
 				#else
-					Var lParamLo = IIf(msg.lParamLo > 60000, msg.lParamLo - 65535, msg.lParamLo)
-					Var lParamHi = IIf(msg.lParamHi > 60000, msg.lParamHi - 65535, msg.lParamHi)
+					lParamLo = IIf(msg.lParamLo > 60000, msg.lParamLo - 65535, msg.lParamLo)
+					lParamHi = IIf(msg.lParamHi > 60000, msg.lParamHi - 65535, msg.lParamHi)
 				#endif
 				FSelEndLine = LineIndexFromPoint(lParamLo, lParamHi)
 				FSelEndChar = CharIndexFromPoint(lParamLo, lParamHi)

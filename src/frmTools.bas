@@ -188,61 +188,61 @@ Destructor frmTools
 End Destructor
 
 Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
-	Var Fn = FreeFile
-	Dim As ToolType Ptr Tool, tt
-	Dim As MenuItem Ptr mi
-	Dim As Integer ToolsIndex
+?191:	Var Fn = FreeFile
+?192:	Dim As ToolType Ptr Tool, tt
+?193:	Dim As MenuItem Ptr mi
+?194:	Dim As Integer ToolsIndex
 	#ifdef __USE_GTK__
-		Open ExePath & "/Tools/ToolsX.ini" For Output Encoding "utf8" As #Fn
+?196:		Open ExePath & "/Tools/ToolsX.ini" For Output Encoding "utf8" As #Fn
 	#else
-		Open ExePath & "/Tools/Tools.ini" For Output Encoding "utf8" As #Fn
+?198:		Open ExePath & "/Tools/Tools.ini" For Output Encoding "utf8" As #Fn
 	#endif
-	With fTools
-		For i As Integer = 0 To Tools.Count - 1
-			Delete Cast(ToolType Ptr, pTools->Item(i))
-		Next
-		pTools->Clear
-		For i As Integer = miXizmat->Count - 1 To 0 Step -1
-			mi = miXizmat->Item(i)
-			If mi->Name = "Tools" Then ToolsIndex = i
-			If mi->OnClick = @mClickTool Then
-				miXizmat->Remove mi
-				Delete mi
-			End If
-		Next
-		Dim As My.Sys.Drawing.BitmapType Bitm
-		Dim As My.Sys.Drawing.Icon Ico
-		For i As Integer = 0 To .lvTools.ListItems.Count - 1
-			tt = .lvTools.ListItems.Item(i)->Tag
-			If tt = 0 Then Continue For
-			Tool = New ToolType
-			Tool->Name = tt->Name
-			Tool->Path = tt->Path
-			Tool->Parameters = tt->Parameters
-			Tool->WorkingFolder = tt->WorkingFolder
-			Tool->Accelerator = tt->Accelerator
-			Tool->LoadType = tt->LoadType
-			Tool->WaitComplete = tt->WaitComplete
-			pTools->Add Tool
+?200:	With fTools
+?201:		For i As Integer = 0 To Tools.Count - 1
+?202:			Delete Cast(ToolType Ptr, pTools->Item(i))
+?203:		Next
+?204:		pTools->Clear
+?205:		For i As Integer = miXizmat->Count - 1 To 0 Step -1
+?206:			mi = miXizmat->Item(i)
+?207:			If mi->Name = "Tools" Then ToolsIndex = i
+?208:			If mi->OnClick = @mClickTool Then
+				'miXizmat->Remove mi
+?210:				Delete mi
+?211:			End If
+?212:		Next
+?213:		Dim As My.Sys.Drawing.BitmapType Bitm
+?214:		Dim As My.Sys.Drawing.Icon Ico
+?215:		For i As Integer = 0 To .lvTools.ListItems.Count - 1
+?216:			tt = .lvTools.ListItems.Item(i)->Tag
+?217:			If tt = 0 Then Continue For
+?218:			Tool = New ToolType
+?219:			Tool->Name = tt->Name
+?220:			Tool->Path = tt->Path
+?221:			Tool->Parameters = tt->Parameters
+?222:			Tool->WorkingFolder = tt->WorkingFolder
+?223:			Tool->Accelerator = tt->Accelerator
+?224:			Tool->LoadType = tt->LoadType
+?225:			Tool->WaitComplete = tt->WaitComplete
+?226:			pTools->Add Tool
 			#ifdef __USE_GTK__
 			#else
-				Ico.Handle = ExtractIconW(Instance, tt->Path, NULL)
-				Bitm.Handle = Ico.ToBitmap
+?229:				Ico.Handle = ExtractIconW(Instance, tt->Path, NULL)
+?230:				Bitm.Handle = Ico.ToBitmap
 			#endif
-			mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool, , i + ToolsIndex + 2)
-			mi->Tag = tt
-			Print #Fn, "Path=" & tt->Path
-			Print #Fn, "Name=" & tt->Name
-			Print #Fn, "Parameters=" & tt->Parameters
-			Print #Fn, "WorkingFolder=" & tt->WorkingFolder
-			Print #Fn, "Accelerator=" & tt->Accelerator
-			Print #Fn, "LoadType=" & tt->LoadType
-			Print #Fn, "WaitComplete=" & tt->WaitComplete
-		Next
-	End With
-	Close #Fn
-	fTools.CloseForm
-	pfrmMain->Menu->ParentWindow = pfrmMain
+?232:			mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool, , i + ToolsIndex + 2)
+?233:			mi->Tag = tt
+?234:			Print #Fn, "Path=" & tt->Path
+?235:			Print #Fn, "Name=" & tt->Name
+?236:			Print #Fn, "Parameters=" & tt->Parameters
+?237:			Print #Fn, "WorkingFolder=" & tt->WorkingFolder
+?238:			Print #Fn, "Accelerator=" & tt->Accelerator
+?239:			Print #Fn, "LoadType=" & tt->LoadType
+?240:			Print #Fn, "WaitComplete=" & tt->WaitComplete
+?241:		Next
+?242:	End With
+?243:	Close #Fn
+?244:	fTools.CloseForm
+?245:	pfrmMain->Menu->ParentWindow = pfrmMain
 End Sub
 
 Private Sub frmTools.cmdCancel_Click(ByRef Sender As Control)
@@ -253,6 +253,7 @@ Private Sub frmTools.cmdAdd_Click(ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->lblVersion.Caption = ML("Tool Name")
+	pfPath->SetFileNameToVersion = True
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fTools
 			Dim As ToolType Ptr Tool = New ToolType
@@ -263,6 +264,7 @@ Private Sub frmTools.cmdAdd_Click(ByRef Sender As Control)
 			.lvTools.ListItems.Item(.lvTools.ListItems.Count - 1)->Tag = Tool
 		End With
 	End If
+	pfPath->SetFileNameToVersion = False
 End Sub
 
 Private Sub frmTools.cmdChange_Click(ByRef Sender As Control)
@@ -270,14 +272,18 @@ Private Sub frmTools.cmdChange_Click(ByRef Sender As Control)
 		If .lvTools.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvTools.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvTools.SelectedItem->Text(1)
+		Dim As ToolType Ptr Tool = .lvTools.SelectedItem->Tag
 		pfPath->lblVersion.Caption = ML("Tool Name")
+		pfPath->SetFileNameToVersion = True
 		If pfPath->ShowModal() = ModalResults.OK Then
-			Dim As ToolType Ptr Tool = .lvTools.SelectedItem->Tag
-			Tool->Name = pfPath->txtVersion.Text
-			Tool->Path = pfPath->txtPath.Text
+			If Tool <> 0 Then
+				Tool->Name = pfPath->txtVersion.Text
+				Tool->Path = pfPath->txtPath.Text
+			End If
 			.lvTools.SelectedItem->Text(0) = pfPath->txtVersion.Text
 			.lvTools.SelectedItem->Text(1) = pfPath->txtPath.Text
 		End If
+		pfPath->SetFileNameToVersion = False
 	End With
 End Sub
 

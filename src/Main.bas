@@ -1887,7 +1887,6 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Dim As Integer ff = FreeFile
 	Dim As Integer inPubPriPro = 0
 	Dim As Integer Result
-	Dim As UString res(Any)
 	Dim As WString * 2048 bTrim, bTrimLCase
 	Dim b As WString * 2048 'David Change for V1.07 Line Input not working fine
 	Dim As WStringList Lines, Files, Namespaces
@@ -1924,6 +1923,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			Comment = ""
 			Continue For
 		End If
+		Dim As UString res(Any)
 		Split(b1, """", res())
 		b = ""
 		For j As Integer = 0 To UBound(res)
@@ -4663,7 +4663,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
 	#endif
 	
-	LoadToolBox
+	'LoadToolBox
 	
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", True)
