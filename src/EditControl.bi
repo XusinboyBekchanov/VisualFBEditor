@@ -126,6 +126,7 @@ Namespace My.Sys.Forms
 		Dim As String CurWord
 		Dim As Integer iTemp
 		#ifndef __USE_GTK__
+			Dim As DWORD dwTemp
 			Dim As Points psPoints
 			Dim As Point poPoint
 		#endif

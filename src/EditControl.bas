@@ -2627,15 +2627,14 @@ Namespace My.Sys.Forms
 							FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
 							If e->button.x < LeftMargin Then
 						#else
-							Var d = GetMessagePos
-							Dim As Points ps = MAKEPOINTS(d)
-							Dim As Point p
-							p.X = ps.X
-							p.Y = ps.Y
-							ScreenToClient(Handle, @p)
-							FSelEndLine = LineIndexFromPoint(p.X, p.Y)
-							FSelEndChar = CharIndexFromPoint(p.X, p.Y)
-							If p.X < LeftMargin Then
+							dwTemp = GetMessagePos
+							psPoints = MAKEPOINTS(dwTemp)
+							poPoint.X = psPoints.X
+							poPoint.Y = psPoints.Y
+							ScreenToClient(Handle, @poPoint)
+							FSelEndLine = LineIndexFromPoint(poPoint.X, poPoint.Y)
+							FSelEndChar = CharIndexFromPoint(poPoint.X, poPoint.Y)
+							If poPoint.X < LeftMargin Then
 						#endif
 							If FSelEndLine < FSelStartLine Then
 								'FSelStart = LineFromCharIndex(FSelStart)
@@ -2661,8 +2660,8 @@ Namespace My.Sys.Forms
 			#endif
 			#ifndef __USE_GTK__
 			Case WM_SETCURSOR
-				iTemp = GetMessagePos
-				psPoints = MAKEPOINTS(iTemp)
+				dwTemp = GetMessagePos
+				psPoints = MAKEPOINTS(dwTemp)
 				poPoint.X = psPoints.X
 				poPoint.Y = psPoints.Y
 				ScreenToClient(Handle, @poPoint)
