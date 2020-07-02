@@ -50,8 +50,8 @@ Constructions(10) = Type<Construction>("With",          "",         "",         
 Constructions(11) = Type<Construction>("Scope",         "",         "",             "",         "End Scope",        "",         False,  False)
 Constructions(12) = Type<Construction>("'#Region",      "",         "",             "",         "'#End Region",     "",         True,   False)
 Constructions(13) = Type<Construction>("Namespace",     "",         "",             "",         "End Namespace",    "",         True,   False)
-Constructions(14) = Type<Construction>("Enum",          "",         "",             "",         "End Enum",         " As ",     True,   True)
-Constructions(15) = Type<Construction>("Type",          "Private:", "Protected:",   "Public:",  "End Type",         " As ",     True,   True)
+Constructions(14) = Type<Construction>("Enum",          "",         "",             "",         "End Enum",         "",         True,   True)
+Constructions(15) = Type<Construction>("Type",          "Private:", "Protected:",   "Public:",  "End Type",         "",         True,   True)
 Constructions(16) = Type<Construction>("Union",         "",         "",             "",         "End Union",        "",         True,   True)
 Constructions(17) = Type<Construction>("Sub",           "",         "",             "",         "End Sub",          "",         True,   True)
 Constructions(18) = Type<Construction>("Function",      "",         "",             "",         "End Function",     "",         True,   True)
@@ -59,7 +59,7 @@ Constructions(19) = Type<Construction>("Property",      "",         "",         
 Constructions(20) = Type<Construction>("Operator",      "",         "",             "",         "End Operator",     "",         True,   True)
 Constructions(21) = Type<Construction>("Constructor",   "",         "",             "",         "End Constructor",  "",         True,   True)
 Constructions(22) = Type<Construction>("Destructor",    "",         "",             "",         "End Destructor",   "",         True,   True)
-Constructions(23) = Type<Construction>("Try",           "Catch",    "Finally",      "",         "EndTry",          "",         False,  False)
+Constructions(23) = Type<Construction>("Try",           "Catch",    "Finally",      "",         "EndTry",           "",         False,  False)
 
 Namespace My.Sys.Forms
 	Function EditControl.deltaToScrollAmount(lDelta As Integer) As Integer
@@ -308,7 +308,8 @@ Namespace My.Sys.Forms
 				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "protected " & LCase(Constructions(i).Name0 & " "))) OrElse _
 				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "static " & LCase(Constructions(i).Name0 & " ")))))) AndAlso _
 				CInt(CInt(Constructions(i).Exception = "") OrElse CInt(InStr(LCase(Trim(Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(Constructions(i).Exception)) = 0)) AndAlso _
-				CInt(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 1) <> "=") Then
+				CInt(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
+				CInt(LCase(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 3)) <> "as ") Then
 				iType = 0
 				Return i
 			ElseIf CInt(CInt(CInt(Constructions(i).Name1 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(Constructions(i).Name1))))) OrElse _
