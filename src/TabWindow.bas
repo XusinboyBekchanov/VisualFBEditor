@@ -187,7 +187,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 		With *tb
 			tb->UseVisualStyleBackColor = True
 			tb->txtCode.CStyle = CInt(EndsWith(LCase(FileName), ".rc")) OrElse CInt(EndsWith(LCase(FileName), ".c")) OrElse CInt(EndsWith(LCase(FileName), ".cpp")) OrElse CInt(EndsWith(LCase(FileName), ".h")) OrElse CInt(EndsWith(LCase(FileName), ".xml"))
-			tb->txtCode.SyntaxEdit = tb->txtCode.CStyle OrElse CInt(FileName = "") OrElse CInt(EndsWith(LCase(FileName), ".bas")) OrElse CInt(EndsWith(LCase(FileName), ".bi")) OrElse CInt(EndsWith(LCase(FileName), ".inc"))
+			tb->txtCode.SyntaxEdit = tb->txtCode.CStyle OrElse CInt(FileName = "") OrElse CInt(EndsWith(LCase(FileName), ".bas")) OrElse CInt(EndsWith(LCase(FileName), ".frm")) OrElse CInt(EndsWith(LCase(FileName), ".bi")) OrElse CInt(EndsWith(LCase(FileName), ".inc"))
 			'.txtCode.ContextMenu = @mnuCode
 			pTabCode->AddTab(Cast(TabPage Ptr, tb))
 			#ifdef __USE_GTK__
@@ -989,7 +989,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Var s = 0
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As EditControl txtCodeBi
-	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas")
+	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	Dim As Integer iStart, iEnd, i = 0, k
 	tb->txtCode.Changing "Unsurni o`chirish"
 	Do While i < tb->txtCode.LinesCount - 1
@@ -1113,7 +1113,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	Dim As Integer iLeft1, iTop1, iWidth1, iHeight1
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As EditControl txtCodeBi
-	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas")
+	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	Dim As Integer iStart, iEnd, i, k, dj
 	WLet FLine1, ""
 	For i = 0 To tb->txtCode.LinesCount - 1
@@ -1382,7 +1382,7 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 	Dim As EditControl txtCodeBi
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As Integer iStart, iEnd
-	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas")
+	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	For i As Integer = 0 To tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		For k As Integer = iStart To iEnd
@@ -1540,7 +1540,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	Dim As EditControl txtCodeBi
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As Integer iStart, iEnd, j
-	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas")
+	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	If SelectedTool <> 0 Then
 		SelectedTool->Checked = False
 		Var tbi = Cast(TypeElement Ptr, SelectedTool->Tag)
@@ -1757,7 +1757,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	If ii < 0 Then Exit Sub
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi, ptxtCodeType, ptxtCodeConstructor
 	Dim As EditControl txtCodeBi
-	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas")
+	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	Dim As Integer iStart, iEnd, i, k
 	Dim As WString Ptr FLine1
 	Dim As WStringList WithArgs
@@ -3139,7 +3139,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim WithArgs As WStringList
 	Dim ConstructionBlocks As List
 	Dim As UString Comments, b, bTrim, bTrimLCase
-	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas"), inFunc
+	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
 	If IsBas Then
 		WLet FLine1, LCase(Left(FileName, Len(FileName) - 4)) & ".bi"
 		WLet FLine2, GetFileName(*FLine1), True
@@ -3170,35 +3170,35 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			b = *ECLine->Text
 			bTrim = Trim(b, Any !"\t ")
 			bTrimLCase = LCase(bTrim)
-			ECLine->InConstructionIndex = ConstructionIndex
-			ECLine->InConstructionPart = ConstructionPart
-			If ECLine->ConstructionIndex > 0 AndAlso ECLine->ConstructionIndex <> 1 AndAlso ECLine->ConstructionIndex <> 2 AndAlso ECLine->ConstructionIndex <> 3 Then
-				If ECLine->ConstructionPart = 0 Then
-					ConstructionIndex = ECLine->ConstructionIndex
-					ConstructionBlocks.Add ECLine
-				ElseIf ECLine->ConstructionPart = 1 Then
-					ConstructionPart = ECLine->ConstructionPart
-				ElseIf ECLine->ConstructionPart = 2 Then
-					If ConstructionBlocks.Count > 0 Then
-						ECLIne2 = ConstructionBlocks.Items[ConstructionBlocks.Count - 1]
-						If ECLine2->ConstructionIndex <> ECLine->ConstructionIndex AndAlso ECLine2->ConstructionIndex <> 3 AndAlso ECLine2->ConstructionIndex <> 2 Then
-							' Does not match construction blocks
-						Else
-							ConstructionBlocks.Remove ConstructionBlocks.Count - 1
-							If ConstructionBlocks.Count > 0 Then
-								ECLIne2 = ConstructionBlocks.Items[ConstructionBlocks.Count - 1]
-								ConstructionIndex = ECLIne2->ConstructionIndex
-								ConstructionPart = 0
-							Else
-								ConstructionIndex = -1
-								ConstructionPart = 0
-							End If
-						End If
-					Else
-						' Do not found construction index
-					End If
-				End If
-			End If
+'			ECLine->InConstructionIndex = ConstructionIndex
+'			ECLine->InConstructionPart = ConstructionPart
+'			If ECLine->ConstructionIndex > 0 AndAlso ECLine->ConstructionIndex <> 1 AndAlso ECLine->ConstructionIndex <> 2 AndAlso ECLine->ConstructionIndex <> 3 Then
+'				If ECLine->ConstructionPart = 0 Then
+'					ConstructionIndex = ECLine->ConstructionIndex
+'					ConstructionBlocks.Add ECLine
+'				ElseIf ECLine->ConstructionPart = 1 Then
+'					ConstructionPart = ECLine->ConstructionPart
+'				ElseIf ECLine->ConstructionPart = 2 Then
+'					If ConstructionBlocks.Count > 0 Then
+'						ECLIne2 = ConstructionBlocks.Items[ConstructionBlocks.Count - 1]
+'						If ECLine2->ConstructionIndex <> ECLine->ConstructionIndex AndAlso ECLine2->ConstructionIndex <> 3 AndAlso ECLine2->ConstructionIndex <> 2 Then
+'							' Does not match construction blocks
+'						Else
+'							ConstructionBlocks.Remove ConstructionBlocks.Count - 1
+'							If ConstructionBlocks.Count > 0 Then
+'								ECLIne2 = ConstructionBlocks.Items[ConstructionBlocks.Count - 1]
+'								ConstructionIndex = ECLIne2->ConstructionIndex
+'								ConstructionPart = 0
+'							Else
+'								ConstructionIndex = -1
+'								ConstructionPart = 0
+'							End If
+'						End If
+'					Else
+'						' Do not found construction index
+'					End If
+'				End If
+'			End If
 			If StartsWith(Trim(bTrim), "'") Then
 				Comments &= Mid(Trim(bTrim), 2) & Chr(13) & Chr(10)
 				Continue For

@@ -286,11 +286,12 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 				f = *Cast(ExplorerElement Ptr, tn1->Nodes.Item(j)->Tag)->FileName
 				'If EndsWith(LCase(tn1->Nodes.Item(j)->Text), ".bi") Then
 				'End If
-				If EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") OrElse EndsWith(LCase(f), ".inc") _
+				If EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") _
+					OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".inc") _
 					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".log") OrElse EndsWith(LCase(f), ".lng") _
 					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".vfs") OrElse EndsWith(LCase(f), ".xml") _
 					OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".cpp") Then
-					Fn=FreeFile
+					Fn = FreeFile
 					Result = Open(f For Input Encoding "utf-8" As #Fn)
 					If Result <> 0 Then Result = Open(f For Input Encoding "utf-16" As #Fn)
 					If Result <> 0 Then Result = Open(f For Input Encoding "utf-32" As #Fn)
@@ -351,7 +352,8 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 				f = *Cast(ExplorerElement Ptr, tn1->Nodes.Item(j)->Tag)->FileName
 				'If EndsWith(LCase(tn1->Nodes.Item(j)->Text), ".bi") Then
 				'End If
-				If EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") OrElse EndsWith(LCase(f), ".inc") _
+				If EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") _
+					OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".inc") _
 					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".log") OrElse EndsWith(LCase(f), ".lng") _
 					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".vfs") OrElse EndsWith(LCase(f), ".xml") _
 					OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".cpp") Then

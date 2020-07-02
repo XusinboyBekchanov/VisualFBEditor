@@ -69,5 +69,5 @@ Type ToolType
 End Type
 
 #ifndef __USE_MAKE__
-	#include once "frmTools.bas"
+	#include once "frmTools.frm"
 #endif

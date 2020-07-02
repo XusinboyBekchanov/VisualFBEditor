@@ -580,14 +580,16 @@ End Sub
 
 Function GetTreeNodeChild(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
 	If tbExplorer.Buttons.Item(3)->Checked Then
-		If EndsWith(FileName, ".bi") Then
+		If EndsWith(FileName, ".frm") Then
 			Return tn->Nodes.Item(0)
-		ElseIf EndsWith(FileName, ".bas") OrElse EndsWith(FileName, ".inc") Then
+		ElseIf EndsWith(FileName, ".bi") Then
 			Return tn->Nodes.Item(1)
-		ElseIf EndsWith(FileName, ".rc") Then
+		ElseIf EndsWith(FileName, ".bas") OrElse EndsWith(FileName, ".inc") Then
 			Return tn->Nodes.Item(2)
-		Else
+		ElseIf EndsWith(FileName, ".rc") Then
 			Return tn->Nodes.Item(3)
+		Else
+			Return tn->Nodes.Item(4)
 		End If
 	Else
 		Return tn
@@ -751,6 +753,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		End If
 		'If tn <> 0 Then
 		If tbExplorer.Buttons.Item(3)->Checked Then
+			tn->Nodes.Add ML("Forms"), "Forms", , "Opened", "Opened"
 			tn->Nodes.Add ML("Includes"), "Includes", , "Opened", "Opened"
 			tn->Nodes.Add ML("Modules"), "Modules", , "Opened", "Opened"  'David Change.  Using "Modules" is better than "Sources"
 			tn->Nodes.Add ML("Resources"), "Resources", , "Opened", "Opened"
@@ -825,6 +828,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					Else
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") OrElse EndsWith(LCase(*ee->FileName), ".xpm") Then
 							IconName = "Res"
+						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
+							IconName = "Form"
 						Else
 							IconName = "File"
 						End If
@@ -833,7 +838,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , *ee->FileName, IconName, IconName, True)
 						End If
 					End If
-					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
+					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
 						pFiles->Add *ee->FileName
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
 						ThreadCreate(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName)))
@@ -1658,11 +1663,12 @@ Sub ChangeTabsTn(TnPrev As TreeNode Ptr, Tn As TreeNode Ptr)
 End Sub
 
 Sub WithFolder
-	Dim As TreeNode Ptr tn, tnI, tnS, tnR, tnO
+	Dim As TreeNode Ptr tn, tnF, tnI, tnS, tnR, tnO
 	For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 		If tvExplorer.Nodes.Item(i)->ImageKey = "Project" Then
 			tn = tvExplorer.Nodes.Item(i)
 			If tbExplorer.Buttons.Item(3)->Checked Then
+				tnF = tn->Nodes.Add(ML("Forms"), "Forms", , "Opened", "Opened")
 				tnI = tn->Nodes.Add(ML("Includes"), "Includes", , "Opened", "Opened")
 				tnS = tn->Nodes.Add(ML("Modules"), "Modules",, "Opened", "Opened") 'David Change "Modules" is better than "Sources"
 				tnR = tn->Nodes.Add(ML("Resources"), "Resources", , "Opened", "Opened")
@@ -1676,6 +1682,8 @@ Sub WithFolder
 							tn1 = tnI
 						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bas") Then  'David CHange
 							tn1 = tnS
+						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".frm") Then  'David CHange
+							tn1 = tnF
 						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".rc") Then 'David CHange
 							tn1 = tnR
 						Else
