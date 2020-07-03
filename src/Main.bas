@@ -2775,6 +2775,7 @@ Sub LoadSettings
 
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
+	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
 	WLet ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects")
 	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
 	ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", True)

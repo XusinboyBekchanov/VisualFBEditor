@@ -914,7 +914,7 @@ pfOptions = @fOptions
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
 			.Text = ML("When compiling") & ":"
-			.SetBounds 8, 144, 416, 104
+			.SetBounds 8, 160, 416, 104
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
@@ -979,6 +979,14 @@ pfOptions = @fOptions
 			.Text = ML("Limit debug to the directory of the main file")
 			.SetBounds 10, 116, 400, 16
 			.Caption = ML("Limit debug to the directory of the main file")
+			.Parent = @pnlGeneral
+		End With
+		' chkDisplayWarningsInDebug
+		With chkDisplayWarningsInDebug
+			.Name = "chkDisplayWarningsInDebug"
+			.Text = ML("Display warnings in debug")
+			.SetBounds 10, 138, 400, 16
+			.Caption = ML("Display warnings in debug")
 			.Parent = @pnlGeneral
 		End With
 	End Constructor
@@ -1456,6 +1464,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		HistoryLimit = Val(.txtHistoryLimit.Text)
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
 		LimitDebug = .chkLimitDebug.Checked
+		DisplayWarningsInDebug = .chkDisplayWarningsInDebug.Checked
 		AutoIncrement = .CheckBox1.Checked
 		AutoIndentation = .chkAutoIndentation.Checked
 		AutoComplete = .chkEnableAutoComplete.Checked
@@ -1565,6 +1574,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "HistoryLimit", HistoryLimit
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
 		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
+		piniSettings->WriteBool "Options", "DisplayWarningsInDebug", DisplayWarningsInDebug
 		piniSettings->WriteBool "Options", "AutoIncrement", AutoIncrement
 		piniSettings->WriteBool "Options", "AutoIndentation", AutoIndentation
 		piniSettings->WriteBool "Options", "AutoComplete", AutoComplete

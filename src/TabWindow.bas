@@ -220,7 +220,8 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	"in module " & ZGet(Ermn())
 End Function
 
-Sub m(ByRef msg As WString) '...'
+Sub m(ByRef msg As WString, Debug As Boolean = False)
+	If Debug AndAlso Not DisplayWarningsInDebug Then Exit Sub
 	ShowMessages msg
 End Sub
 

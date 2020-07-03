@@ -76,7 +76,7 @@ Common Shared As Boolean AutoCreateRC
 Common Shared As Boolean AutoCreateBakFiles
 Common Shared As Boolean AutoReloadLastOpenFiles
 Common Shared As Boolean UseMakeOnStartWithCompile
-Common Shared As Boolean LimitDebug
+Common Shared As Boolean LimitDebug, DisplayWarningsInDebug
 Common Shared As Boolean UseDebugger
 Common Shared As Boolean CompileGUI
 Common Shared As Boolean mFormFind, mFormFindInFile

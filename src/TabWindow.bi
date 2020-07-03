@@ -247,7 +247,7 @@ Declare Sub ClearMessages() '...'
 
 Declare Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 
-Declare Sub m(ByRef msg As WString) '...'
+Declare Sub m(ByRef msg As WString, Debug As Boolean = False) '...'
 
 Common Shared TextChanged As Boolean
 Declare Sub OnChangeEdit(ByRef Sender As Control)

@@ -3397,7 +3397,7 @@ Dim Shared exedate As Double 'serial date
 					'dbg_prt2("replace udt ok "+Str(i)+" "+Str(udt(i).what)+" "+Hex(udt(i).index)+" "+Str(udt(i).typ)+" "+udt(udt(i).typ).nm)
 				Else
 					'dbg_prt2("Replace Udt nok "+Str(i)+" "+Str(udt(i).what)+" "+Hex(udt(i).index)+" "+Hex(udt(i).typ))
-					m("Replace dwarf: Udt nok "+Str(i)+" "+Str(udt(i).what)+" "+Hex(udt(i).index)+" "+Hex(udt(i).typ))
+					m("Replace dwarf: Udt nok "+Str(i)+" "+Str(udt(i).what)+" "+Hex(udt(i).index)+" "+Hex(udt(i).typ), True)
 				End If
 			End If
 		Next
@@ -3416,7 +3416,7 @@ Dim Shared exedate As Double 'serial date
 			If idx Then
 				cudt(i).typ=idx
 			Else
-				m("Replace dwarf: Cudt not ok "+cudt(i).nm)
+				m("Replace dwarf: Cudt not ok "+cudt(i).nm, True)
 			End If
 		Next
 		
@@ -3435,7 +3435,7 @@ Dim Shared exedate As Double 'serial date
 			If idx Then
 				vrb(i).typ=idx
 			Else
-				m("Replace dwarf: Vrbloc not ok "+vrb(i).nm)
+				m("Replace dwarf: Vrbloc not ok "+vrb(i).nm, True)
 			End If
 		Next
 		
@@ -3453,7 +3453,7 @@ Dim Shared exedate As Double 'serial date
 			If idx Then
 				vrb(i).typ=idx
 			Else
-				m("Replace dwarf: Vrbgbl not ok "+vrb(i).nm)
+				m("Replace dwarf: Vrbgbl not ok "+vrb(i).nm, True)
 			End If
 		Next
 		
@@ -3473,7 +3473,7 @@ Dim Shared exedate As Double 'serial date
 				If idx Then
 					proc(i).rv=idx
 				Else
-					m("Replace dwarf: Prc not ok "+proc(i).nm+" "+Hex(proc(i).rv))
+					m("Replace dwarf: Prc not ok "+proc(i).nm+" "+Hex(proc(i).rv), True)
 				End If
 			End If
 		Next
@@ -3483,7 +3483,7 @@ Dim Shared exedate As Double 'serial date
 		Dim As Integer typ=t
 		While 1
 			If typ=0 Then Return typ
-			If Typ>udtmax Then m("Dwarf parsing error: No reference for index ="+Str(typ)):Return 0
+			If Typ>udtmax Then m("Dwarf parsing error: No reference for index ="+Str(typ), True):Return 0
 			If udt(typ).what=1 Then 'udt
 				*ptrptr=ptrcpt
 				Return typ
@@ -3491,7 +3491,7 @@ Dim Shared exedate As Double 'serial date
 				ptrcpt+=1
 				typ=udt(typ).typ
 			ElseIf udt(typ).what=3 Then
-				If arrnb>ARRMAX Then m("Dwarf parsing error: Max array reached "+Str(arrnb)+" can't store"):Exit Function
+				If arrnb>ARRMAX Then m("Dwarf parsing error: Max array reached "+Str(arrnb)+" can't store", True):Exit Function
 				arrnb+=1
 				arr(arrnb).dm=udt(typ).dimnb 'nb dim
 				For i As Integer=1 To udt(typ).dimnb
@@ -3514,13 +3514,13 @@ Dim Shared exedate As Double 'serial date
 			End If
 		Wend
 	End Function
-	private sub dw_load_fbdebug
+	Private Sub dw_load_fbdebug
 		For i As Integer =udtbeg To udtmax
 			If udt(i).what=1 Then
 				If udt(i).ub Then
 					For j As Integer=udt(i).lb To udt(i).ub
 						cudt(j).typ=dw_udt_loop(cudt(j).typ,@cudt(J).arr,@cudt(j).pt)
-						if InStr(udt(cudt(j).typ).nm,"FBARRAY") Then '20/05/2014
+						If InStr(udt(cudt(j).typ).nm,"FBARRAY") Then '20/05/2014
 							cudt(j).pt=cudt(udt(cudt(j).typ).lb).pt-1
 							cudt(j).typ=cudt(udt(cudt(j).typ).lb).typ
 							cudt(j).arr=Cast(tarr Ptr,-1) 'redim array not yet filled
