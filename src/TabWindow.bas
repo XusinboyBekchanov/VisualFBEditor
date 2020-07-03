@@ -506,7 +506,7 @@ Function TabWindow.SaveTab As Boolean
 End Function
 
 Function TabWindow.SaveAs As Boolean
-	pSaveD->Filter = ML("Module FreeBasic") & " (*.bas)|*.bas|" & ML("Include File FreeBasic") & " (*.bi)|*.bi|" & ML("All Files") & "|*.*|"
+	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If FileName <> "" Then
 		pSaveD->InitialDir = GetFolderName(FileName)
 '	ElseIf WGet(LastOpenPath) <> "" Then

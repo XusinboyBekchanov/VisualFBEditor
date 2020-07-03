@@ -582,9 +582,9 @@ Function GetTreeNodeChild(tn As TreeNode Ptr, ByRef FileName As WString) As Tree
 	If tbExplorer.Buttons.Item(3)->Checked Then
 		If EndsWith(FileName, ".frm") Then
 			Return tn->Nodes.Item(0)
-		ElseIf EndsWith(FileName, ".bi") Then
+		ElseIf EndsWith(FileName, ".bi") OrElse EndsWith(FileName, ".inc") Then
 			Return tn->Nodes.Item(1)
-		ElseIf EndsWith(FileName, ".bas") OrElse EndsWith(FileName, ".inc") Then
+		ElseIf EndsWith(FileName, ".bas") Then
 			Return tn->Nodes.Item(2)
 		ElseIf EndsWith(FileName, ".rc") Then
 			Return tn->Nodes.Item(3)
@@ -1092,7 +1092,7 @@ Sub OpenProgram()
 		OpenD.InitialDir = GetFullPath(*ProjectsPath)
 '   End If
 	'David Change  Add *.inc
-	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs,*.vfp,*.bas,*.bi,*.inc,*.rc)|*.vfs;*.vfp;*.bas;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("FreeBasic Resource Files") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	OpenD.Filter = ML("FreeBasic Files") & "|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
 		OpenFiles(OpenD.Filename)
 	End If
