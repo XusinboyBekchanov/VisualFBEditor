@@ -60,8 +60,8 @@ Dim Shared As SaveFileDialog SaveD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions 'David Change add Sessions
-Dim Shared As WString Ptr RecentFiles 'David Change
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
+Dim Shared As WString Ptr RecentFiles '
 Dim Shared As Dictionary Compilers, MakeTools, Debuggers, Terminals, Helps, HotKeys
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
@@ -73,12 +73,12 @@ Dim Shared As TreeListView lvProperties, lvEvents
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
-Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog 'David Change Add Change Log
+Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
 Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As Form frmMain
-Dim Shared As Integer MainHeight =600
-Dim Shared As Integer MainWidth = 800
-Dim Shared As Boolean mChangeLogEdited 'David Change Add Change Log
+Dim Shared As Integer MainHeight =600, MainWidth = 800
+Dim Shared As Integer miRecentMax =20 'David Changed
+Dim Shared As Boolean mChangeLogEdited ' Add Change Log
 pfrmMain = @frmMain
 pSaveD = @SaveD
 piniSettings = @iniSettings
@@ -97,7 +97,7 @@ pDebuggers = @Debuggers
 pTerminals = @Terminals
 pHelps = @Helps
 plvSearch = @lvSearch
-plvToDo = @lvToDo 'David Change
+plvToDo = @lvToDo '
 ptbStandard = @tbStandard
 plvProperties = @lvProperties
 plvEvents = @lvEvents
@@ -133,11 +133,11 @@ LoadSettings
 
 Function ML(ByRef V As WString) ByRef As WString
 	If LCase(CurLanguage) = "english" Then Return V
-	Dim As Integer tIndex = mlKeys.IndexOf(V) 'David Change For improve the speed
-	If tIndex >= 0 Then  'David Change
+	Dim As Integer tIndex = mlKeys.IndexOf(V) ' For improve the speed
+	If tIndex >= 0 Then  '
 		If mlTexts.Item(tIndex) <> "" Then Return mlTexts.Item(tIndex)
 	Else
-		tIndex = mlKeys.IndexOf(Replace(V, "&", "")) 'David Change
+		tIndex = mlKeys.IndexOf(Replace(V, "&", "")) '
 		If mlTexts.Item(tIndex) <> "" Then Return mlTexts.Item(tIndex)
 	End If
 	Return V
@@ -244,7 +244,7 @@ Function GetBakFileName(ByRef FileName As WString) As UString
 	Dim Pos1 As Long = InStrRev(FileName, ".")
 	If Pos1 = 0 Then Pos1 = Len(FileName)
 	If Pos1 > 0 Then
-		Return Left(FileName, Pos1 - 1) & "_bak" & Mid(FileName, Pos1)
+		Return FileName & ".bak" 'Left(FileName, Pos1 - 1) & "_bak" & Mid(FileName, Pos1)
 	End If
 End Function
 
@@ -326,7 +326,7 @@ Function Compile(Parameter As String = "") As Integer
 		Tool = Tools.Item(i)
 		If Tool->LoadType = LoadTypes.BeforeCompile Then Tool->Execute
 	Next
-	Dim LogFileName As WString Ptr 'David Change
+	Dim LogFileName As WString Ptr '
 	Dim LogFileName2 As WString Ptr
 	Dim BatFileName As WString Ptr
 	Dim fbcCommand As WString Ptr
@@ -349,10 +349,10 @@ Function Compile(Parameter As String = "") As Integer
 	If Dir(*ExeName) <> "" Then 'delete exe if exist
 		If Kill(*ExeName) <> 0 Then
 			ThreadsEnter()
-			ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *ExeName) 'David Change
+			ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *ExeName) '
 			ThreadsLeave()
 			Band = True
-			WDeallocate fbcCommand  'David Change
+			WDeallocate fbcCommand  '
 			WDeallocate CompileWith
 			WDeallocate MFFPathC
 			WDeallocate MainFile
@@ -381,7 +381,7 @@ Function Compile(Parameter As String = "") As Integer
 	Next
 	'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
 	WLet LogFileName2, ExePath & "/Temp/debug_compil2.log"
-	WLet fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith 
+	WLet fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith
 	If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
 	End If
@@ -397,7 +397,7 @@ Function Compile(Parameter As String = "") As Integer
 	Else
 		WLet PipeCommand, """" & *fbcexe & """ " & *fbcCommand
 	End If
-	'	'David Change for better showing
+	'	' for better showing
 	'	#ifdef __USE_GTK__
 	'		*PipeCommand=Replace(Replace(*PipeCommand,"\","/"),"/./","/")
 	'	#else
@@ -420,13 +420,13 @@ Function Compile(Parameter As String = "") As Integer
 	ThreadsEnter()
 	StartProgress
 	lvErrors.ListItems.Clear
-	ptabBottom->Tabs[1]->Caption = ML("Errors") 'David Change    'Inits
+	ptabBottom->Tabs[1]->Caption = ML("Errors") '    'Inits
 	ThreadsLeave()
 	Dim As Long nLen, nLen2
 	Dim As Boolean Log2_
 	
 	Dim As Integer Result = -1, Fn =FreeFile
-	Dim Buff As WString * 2048 'David Change for V1.07 Line Input not working fine
+	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 	#ifdef __USE_GTK__
 		If Open Pipe(*PipeCommand & " 2> """ + *LogFileName2 + """" For Input As #Fn) = 0 Then
 	#else
@@ -580,11 +580,11 @@ End Sub
 
 Function GetTreeNodeChild(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
 	If tbExplorer.Buttons.Item(3)->Checked Then
-		If EndsWith(FileName, ".frm") Then
+		If EndsWith(FileName, ".bi") Then
 			Return tn->Nodes.Item(0)
-		ElseIf EndsWith(FileName, ".bi") OrElse EndsWith(FileName, ".inc") Then
+		ElseIf EndsWith(FileName, ".frm") Then
 			Return tn->Nodes.Item(1)
-		ElseIf EndsWith(FileName, ".bas") Then
+		ElseIf EndsWith(FileName, ".bas") OrElse EndsWith(FileName, ".inc") Then
 			Return tn->Nodes.Item(2)
 		ElseIf EndsWith(FileName, ".rc") Then
 			Return tn->Nodes.Item(3)
@@ -598,16 +598,17 @@ End Function
 
 Sub AddMRUProject(ByRef FileName As WString)
 	Var i = MRUProjects.IndexOf(FileName)
-	If i <> 0 Then
-		If i > 0 Then MRUProjects.Remove i
-		MRUProjects.Insert 0, FileName
-		For i = 0 To Min(miRecentProjects->Count - 1, MRUProjects.Count - 1)
-			miRecentProjects->Item(i)->Caption = MRUProjects.Item(i)
-			miRecentProjects->Item(i)->Name = MRUProjects.Item(i)
-		Next
-		For i = i To Min(9, MRUProjects.Count - 1)
-			miRecentProjects->Add(MRUProjects.Item(i), "", MRUProjects.Item(i), @mClickMRU)
-		Next
+	If i >= 0 Then
+		If i > 0 Then
+			MRUProjects.Remove i
+			MRUProjects.Add FileName
+		End If
+	Else
+		MRUProjects.Add FileName
+		i= miRecentProjects->Count -1
+		miRecentProjects->Item(i)->Caption = FileName
+		miRecentProjects->Item(i)->Name = FileName
+		miRecentProjects->Add(ML("Clear Recently Opened"),"","ClearProjects", @mClickMRU)
 	End If
 End Sub
 
@@ -727,13 +728,12 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 	Dim As Boolean inFolder = tn <> 0
 	If Not inFolder Then
 		If FileName <> "" Then
-			'David Change
 			If Not FileExists(FileName) Then
 				MsgBox ML("File not found") & ": " & FileName
 				Return tn
 			End If
 			AddMRUProject FileName
-			'Dim As WString Ptr buff 'David Change
+			'Dim As WString Ptr buff '
 			Dim As Integer Pos1
 			For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 				If tvExplorer.Nodes.Item(i)->Tag <> 0 AndAlso EqualPaths(*Cast(ExplorerElement Ptr, tvExplorer.Nodes.Item(i)->Tag)->FileName, FileName) Then
@@ -753,9 +753,9 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		End If
 		'If tn <> 0 Then
 		If tbExplorer.Buttons.Item(3)->Checked Then
-			tn->Nodes.Add ML("Forms"), "Forms", , "Opened", "Opened"
 			tn->Nodes.Add ML("Includes"), "Includes", , "Opened", "Opened"
-			tn->Nodes.Add ML("Modules"), "Modules", , "Opened", "Opened"  'David Change.  Using "Modules" is better than "Sources"
+			tn->Nodes.Add ML("Forms"), "Forms", , "Opened", "Opened"
+			tn->Nodes.Add ML("Modules"), "Modules", , "Opened", "Opened"  '.  Using "Modules" is better than "Sources"
 			tn->Nodes.Add ML("Resources"), "Resources", , "Opened", "Opened"
 			tn->Nodes.Add ML("Others"), "Others", , "Opened", "Opened"
 			'End if
@@ -764,7 +764,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 	End If
 	If FileName <> "" Then
 		Dim As TreeNode Ptr tn1, tn2
-		'Dim buff As WString Ptr 'David Change
+		'Dim buff As WString Ptr '
 		Dim Pos1 As Integer
 		Dim bMain As Boolean
 		Dim As ProjectElement Ptr ppe
@@ -776,9 +776,9 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		If pFilesList = 0 Then pFiles = @Files Else pFiles = pFilesList
 		Dim As String Parameter
 		Dim As String IconName
-		Dim Buff As WString * 2048 'David Change for V1.07 Line Input not working fine
+		Dim Buff As WString * 1024 ' for V1.07 Line Input not working fine
 		Dim As Integer Fn = FreeFile
-		Dim Result As Integer = -1 'David Change
+		Dim Result As Integer = -1 '
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
@@ -808,13 +808,13 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					If Not inFolder Then
 						tn1 = GetTreeNodeChild(tn, Buff)
 					End If
-					'David Change
-					Dim As Boolean FileEx = FileExists(*ee->FileName)
+					'
+					Dim As Boolean FileEx = Dir(*ee->FileName)<>""
 					If bMain Then
 						IconName = "MainRes"
-						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  'David Change
+						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  '
 							WLet ppe->ResourceFileName, *ee->FileName
-						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then  'David Change
+						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then  '
 							WLet ppe->IconResourceFileName, *ee->FileName
 						Else
 							WLet ppe->MainFileName, *ee->FileName
@@ -823,7 +823,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						If Not FileEx Then IconName = "New"
 						If Not inFolder Then
 							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
-							If MainNode = 0 Then SetMainNode GetParentNode(tn1)  'David Change
+							If MainNode = 0 Then SetMainNode GetParentNode(tn1)  '
 						End If
 					Else
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") OrElse EndsWith(LCase(*ee->FileName), ".xpm") Then
@@ -953,10 +953,10 @@ Function AddSession(ByRef FileName As WString) As Boolean
 	'Dim As ExplorerElement Ptr ee
 	Dim As TreeNode Ptr tn
 	AddMRUSession FileName
-	Dim Buff As WString * 2048 'David Change for V1.07 Line Input not working fine
+	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 	Dim As WStringList Files
 	Dim As Integer Fn = FreeFile
-	Dim Result As Integer = -1 'David Change
+	Dim Result As Integer = -1 '
 	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
@@ -965,7 +965,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		Dim As WString Ptr filn
 		Dim As Boolean bMain
 		Dim As Integer Pos1
-		MainNode = 0 'David Change
+		MainNode = 0 '
 		Dim CurrentPath As WString * 255
 		CurrentPath = GetFolderName(FileName)
 		Do Until EOF(Fn)
@@ -997,7 +997,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 			End If
 		Loop
 		WDeallocate filn
-		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn 'David Change For No MainFIle
+		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn ' For No MainFIle
 		Close #Fn
 		For i As Integer = 0 To Files.Count - 1
 			ThreadCreate(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i))))
@@ -1029,37 +1029,35 @@ End Sub
 
 Sub AddMRUFile(ByRef FileName As WString)
 	Var i = MRUFiles.IndexOf(FileName)
-	If i <> 0 Then
-		If i > 0 Then MRUFiles.Remove i
-		MRUFiles.Insert 0, FileName
-		For i = 0 To Min(miRecentFiles->Count - 1, MRUFiles.Count - 1)
-			miRecentFiles->Item(i)->Caption = MRUFiles.Item(i)
-			miRecentFiles->Item(i)->Name = MRUFiles.Item(i)
-		Next
-		For i = i To Min(9, MRUFiles.Count - 1)
-			miRecentFiles->Add(MRUFiles.Item(i), "", MRUFiles.Item(i), @mClickMRU)
-		Next
+	If i >= 0 Then ' David Change
+		If i > 0 Then
+			MRUFiles.Remove i
+			MRUFiles.Add FileName
+		End If
+	Else
+		MRUFiles.Add FileName
+		i= miRecentFiles->Count -1
+		miRecentFiles->Item(i)->Caption = FileName
+		miRecentFiles->Item(i)->Name = FileName
+		miRecentFiles->Add(ML("Clear Recently Opened"),"","ClearFiles", @mClickMRU)
 	End If
 End Sub
 
-' David Change
+'
 Sub AddMRUSession(ByRef FileName As WString)
 	Var i = MRUSessions.IndexOf(FileName)
 	If i >= 0 Then
 		If i > 0 Then
 			MRUSessions.Remove i
-			MRUSessions.Insert 0, FileName
+			MRUSessions.Add FileName
 		End If
 	Else
 		MRUSessions.Add FileName
+		i = miRecentSessions->Count -1
+		miRecentSessions->Item(i)->Caption = FileName
+		miRecentSessions->Item(i)->Name = FileName
+		miRecentSessions->Add(ML("Clear Recently Opened"),"","ClearSessions", @mClickMRU)
 	End If
-	For i = 0 To Min(miRecentSessions->Count - 1, MRUSessions.Count - 1)
-		miRecentSessions->Item(i)->Caption = MRUSessions.Item(i)
-		miRecentSessions->Item(i)->Name = MRUSessions.Item(i)
-	Next
-	For i = i To Min(9, MRUSessions.Count - 1)
-		miRecentSessions->Add(MRUSessions.Item(i), "", MRUSessions.Item(i), @mClickMRU)
-	Next
 End Sub
 
 Function FolderExists(ByRef FolderName As WString) As Boolean
@@ -1068,15 +1066,15 @@ End Function
 
 Sub OpenFiles(ByRef FileName As WString)
 	If EndsWith(FileName, ".vfs") Then
-		AddMRUSession FileName  'David Change
+		AddMRUSession FileName  '
 		AddSession FileName
 	ElseIf EndsWith(FileName, ".vfp") Then
-		AddMRUProject FileName    'David Change
+		AddMRUProject FileName    '
 		AddProject FileName
 	ElseIf FolderExists(FileName) Then
 		AddMRUFolder FileName
 		AddFolder FileName
-	ElseIf Trim(FileName)<>"" Then 'David Change
+	ElseIf Trim(FileName)<>"" Then '
 		AddMRUFile FileName
 		AddTab FileName
 	End If
@@ -1086,13 +1084,13 @@ End Sub
 
 Sub OpenProgram()
 	Dim As OpenFileDialog OpenD
-'	If WGet(LastOpenPath) <> "" Then
-'		OpenD.InitialDir = *LastOpenPath
-'	Else
-		OpenD.InitialDir = GetFullPath(*ProjectsPath)
-'   End If
-	'David Change  Add *.inc
-	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	'	If WGet(LastOpenPath) <> "" Then
+	'		OpenD.InitialDir = *LastOpenPath
+	'	Else
+	OpenD.InitialDir = GetFullPath(*ProjectsPath)
+	'   End If
+	'  Add *.inc
+	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs,*.vfp,*.bas,*.bi,*.inc,*.rc)|*.vfs;*.vfp;*.bas;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("FreeBasic Resource Files") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
 		OpenFiles(OpenD.Filename)
 	End If
@@ -1148,11 +1146,11 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	If tn->ImageKey <> "Project" AndAlso ppe = 0 Then Return True
 	If CInt(ppe = 0) OrElse CInt(WGet(ppe->FileName) = "") OrElse CInt(bWithQuestion) Then
 		SaveD.FileName = Left(tn->Text, Len(tn->Text) - IIf(EndsWith(tn->Text, " *"), 2, 0))
-'		If WGet(LastOpenPath) <> "" Then
-'			SaveD.InitialDir = *LastOpenPath
-'		Else
-			SaveD.InitialDir = GetFullPath(*ProjectsPath)
-'		End If
+		'		If WGet(LastOpenPath) <> "" Then
+		'			SaveD.InitialDir = *LastOpenPath
+		'		Else
+		SaveD.InitialDir = GetFullPath(*ProjectsPath)
+		'		End If
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
 		WLet LastOpenPath, GetFolderName(SaveD.FileName)
@@ -1377,7 +1375,7 @@ Function ContainsFileName(tn As TreeNode Ptr, ByRef FileName As WString) As Bool
 	For i As Integer = 0 To tn->Nodes.Count - 1
 		ee = tn->Nodes.Item(i)->Tag
 		If ee <> 0 Then
-			'David Change
+			'
 			If LCase(*ee->FileName) = LCase(Replace(FileName,"\","/")) OrElse LCase(*ee->FileName) = LCase(Replace(FileName,"/","\")) Then
 				Return True
 			End If
@@ -1475,6 +1473,7 @@ Sub SetAsMain()
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
 		Dim As ProjectElement Ptr ppe
+		Dim As WString * MAX_PATH tMainNode
 		If ptn <> 0 Then
 			ppe = ptn->Tag
 			If ppe = 0 Then
@@ -1482,12 +1481,47 @@ Sub SetAsMain()
 				WLet ppe->FileName, ""
 			End If
 			If ee <> 0 AndAlso ppe <> 0 Then
-				WLet ppe->MainFileName, *ee->FileName
-				If Not EndsWith(ptn->Text, " *") Then ptn->Text &= " *"
-				If ptn->Tag = 0 Then ptn->Tag = ppe
-				'pfProjectProperties->RefreshProperties
+				'David Change
+				'If *ee->FileName = *pee->Project->MainFileName OrElse *ee->FileName = *pee->Project->ResourceFileName Then Exit Sub
+				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".bas") Then
+					Dim tn1 As TreeNode Ptr = tn->ParentNode
+					Dim As Integer tIndex
+					Dim As String IconName
+					If Not EndsWith(ptn->Text, " *") Then ptn->Text &= " *"
+					If Not EndsWith(LCase(*ee->FileName), ".rc") Then
+						WLet ppe->MainFileName, *ee->FileName
+						IconName = "MainFile"
+					Else
+						WLet ppe->ResourceFileName, *ee->FileName
+						IconName = "MainRes"
+					End If
+					MainNode = ptn 'MainNode must be root node
+					tMainNode = *ee->FileName
+					For j As Integer = tn1->Nodes.Count - 1 To 0 Step -1
+						ee = New ExplorerElement
+						ee = tn1->Nodes.Item(j)->Tag
+						tIndex = tn1->Nodes.Item(j)->Index
+						If IconName = tn1->Nodes.Item(j)->ImageKey Then
+							If *ee->FileName <> *ppe->MainFileName Then
+								tn1->Nodes.Remove(tIndex)
+								tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, Mid(IconName,5), Mid(IconName,5), True)
+								tn->Tag = ee
+							End If
+						ElseIf *ee->FileName = tMainNode Then ' *.rc you can set As MainMenu in RC node also
+							tn1->Nodes.Remove(tIndex)
+							tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
+							tn->Tag = ee
+						End If
+					Next
+					If tn1->Nodes.Count=1 Then 'Only one file
+						tn1->Nodes.Remove(0)
+						tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
+						tn->Tag = ee
+					End If
+				End If
 			End If
 		End If
+		'SaveProject ptn
 	End If
 End Sub
 
@@ -1529,10 +1563,10 @@ Function CloseProject(tn As TreeNode Ptr) As Boolean
 				End If
 			Next i
 		Else
-			For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 'David Change
+			For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 '
 				For i As Integer = 0 To ptabCode->TabCount - 1
 					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-					If tn->Nodes.Item(j)->Nodes.Item(k)->Text = tb->tn->Text Then 'David Change
+					If tn->Nodes.Item(j)->Nodes.Item(k)->Text = tb->tn->Text Then '
 						If CInt(tb) AndAlso CInt(Not tb->CloseTab) Then Return False
 						Exit For
 					End If
@@ -1668,9 +1702,9 @@ Sub WithFolder
 		If tvExplorer.Nodes.Item(i)->ImageKey = "Project" Then
 			tn = tvExplorer.Nodes.Item(i)
 			If tbExplorer.Buttons.Item(3)->Checked Then
-				tnF = tn->Nodes.Add(ML("Forms"), "Forms", , "Opened", "Opened")
 				tnI = tn->Nodes.Add(ML("Includes"), "Includes", , "Opened", "Opened")
-				tnS = tn->Nodes.Add(ML("Modules"), "Modules",, "Opened", "Opened") 'David Change "Modules" is better than "Sources"
+				tnF = tn->Nodes.Add(ML("Forms"), "Forms", , "Opened", "Opened")
+				tnS = tn->Nodes.Add(ML("Modules"), "Modules",, "Opened", "Opened") ' "Modules" is better than "Sources"
 				tnR = tn->Nodes.Add(ML("Resources"), "Resources", , "Opened", "Opened")
 				tnO = tn->Nodes.Add(ML("Others"), "Others", , "Opened", "Opened")
 			End If
@@ -1678,13 +1712,13 @@ Sub WithFolder
 			For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
 				If tbExplorer.Buttons.Item(3)->Checked Then
 					If tn->Nodes.Item(j)->Tag <> 0 Then
-						If EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bi") Then 'David CHange
+						If EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bi") Then '
 							tn1 = tnI
-						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bas") Then  'David CHange
+						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bas") Then  '
 							tn1 = tnS
-						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".frm") Then  'David CHange
+						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".frm") Then  '
 							tn1 = tnF
-						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".rc") Then 'David CHange
+						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".rc") Then '
 							tn1 = tnR
 						Else
 							tn1 = tnO
@@ -1713,7 +1747,7 @@ Sub WithFolder
 End Sub
 
 Sub CompileProgram(Param As Any Ptr)
-	'If Compile Then RunProgram(0) 'David Change, Run Program after compiled with FBC.exe only here.
+	'If Compile Then RunProgram(0) ', Run Program after compiled with FBC.exe only here.
 	Compile
 End Sub
 
@@ -1892,11 +1926,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Dim As TypeElement Ptr te, tbi, typ
 	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace
 	Dim As Boolean bTypeIsPointer
-	Dim As Integer ff = FreeFile
 	Dim As Integer inPubPriPro = 0
 	Dim As Integer Result
 	Dim As WString * 2048 bTrim, bTrimLCase
-	Dim b As WString * 2048 'David Change for V1.07 Line Input not working fine
+	Dim b As WString * 2048 ' for V1.07 Line Input not working fine
 	Dim As WStringList Lines, Files, Namespaces
 	PathFunction = Path
 	If ec <> 0 Then
@@ -1906,6 +1939,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			Next
 		End With
 	Else
+		Dim As Integer ff = FreeFile
 		Result = Open(PathFunction For Input Encoding "utf-32" As #ff)
 		If Result <> 0 Then Result = Open(PathFunction For Input Encoding "utf-16" As #ff)
 		If Result <> 0 Then Result = Open(PathFunction For Input Encoding "utf-8" As #ff)
@@ -1916,10 +1950,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				Line Input #ff, b
 				Lines.Add b
 			Loop
-			On Error Goto ErrorHandler
 			Close #ff
-			ErrorHandler:
-			On Error Goto 0
 		End If
 	End If
 	For i As Integer = 0 To Lines.Count - 1
@@ -2654,7 +2685,7 @@ Sub LoadToolBox
 			#endif
 		#endif
 	#endif
-	If Not FileExists(*MFFDll) Then 'David Change
+	If Not FileExists(*MFFDll) Then '
 		MsgBox ML("File not found") & ": " & WChr(13,10) & WChr(13,10) & *MFFDll & WChr(13,10) & WChr(13,10) & ML("Can not load control to toolbox")
 	End If
 	MFF = DyLibLoad(*MFFDll)
@@ -2733,8 +2764,8 @@ End Sub
 Sub LoadSettings
 	MainWidth = iniSettings.ReadInteger("MainWindow", "MainWidth", MainWidth)
 	MainHeight = iniSettings.ReadInteger("MainWindow", "MainHeight", MainHeight)
-	frmMain.Width = MainWidth
-	frmMain.Height = MainHeight
+	frmMain.Width= Max(MainWidth,600)
+	frmMain.Height= Max(MainHeight,400)
 	Dim As UString Temp
 	Dim As Integer Fn
 	Dim As WString * 1024 Buff
@@ -2772,7 +2803,7 @@ Sub LoadSettings
 	WLet TerminalPath, Terminals.Get(*DefaultTerminal, "")
 	WLet DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", "")
 	WLet HelpPath, Helps.Get(*DefaultHelp, "")
-
+	
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
@@ -2911,7 +2942,7 @@ Sub LoadLanguageTexts
 	Else
 		Dim As Integer i, Pos1
 		Dim As Integer Fn = FreeFile, Result
-		Dim Buff As WString * 2048 'David Change
+		Dim Buff As WString * 2048 '
 		Dim As UString FileName = ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
@@ -3027,51 +3058,72 @@ Sub CreateMenusAndToolBars
 	
 	LoadHotKeys
 	
-	Var miFile = mnuMain.Add(ML("&File"), "", "File")
+	#ifdef __USE_GTK__
+		Var miFile = mnuMain.Add(ML("&File") & !"\tAlt+F", "", "File")
+	#else
+		Var miFile = mnuMain.Add(ML("&File"), "", "File")
+	#endif
+	miFile->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mclick)
+	miFile->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mclick)
+	miFile->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mclick)
+	miFile->Add(ML("Import from Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mclick)
+	miFile->Add("-")
+	miFile->Add(ML("Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mclick)
+	miFile->Add(ML("Save Project As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mclick)
+	miFile->Add("-")
+	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mclick)
+	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mclick)
+	miFile->Add("-")
 	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "New", @mclick)
 	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mclick)
-	miFile->Add(ML("Open Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mclick)
-	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Save") & "..." & HK("Save", "Ctrl+S"), "Save", "Save", @mclick)
 	miFile->Add(ML("Save &As") & "..." & HK("SaveAs"), "", "SaveAs", @mclick)
 	miFile->Add(ML("Save All") & HK("SaveAll", "Ctrl+Alt+Shift+S"), "SaveAll", "SaveAll", @mclick)
-	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Close") & HK("Close", "Ctrl+F4"), "Close", "Close", @mclick)
-	miFile->Add(ML("Close Folder") & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mclick)
 	miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Alt+Shift+F4"), "", "CloseAll", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&Print") & HK("Print", "Ctrl+P"), "Print", "Print", @mclick)
 	miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mclick)
 	miFile->Add(ML("Page Set&up") & "..." & HK("PageSetup"), "", "PageSetup", @mclick)
 	miFile->Add("-")
+	' Add Recent Sessions
+	miRecentProjects = miFile->Add(ML("Recent Projects"), "", "RecentProjects", @mclick)
+	Dim sTmp As WString * 1024
+	For i As Integer = 0 To miRecentMax
+		sTmp = iniSettings.ReadString("MRUProjects", "MRUProject_0" & WStr(i), "")
+		If Trim(sTmp) <> "" Then
+			MRUProjects.Add sTmp
+			miRecentProjects->Add(sTmp, "", sTmp, @mClickMRU)
+		End If
+	Next
+	miRecentProjects->Add("-")
+	miRecentProjects->Add(ML("Clear Recently Opened"),"","ClearProjects", @mClickMRU)
+	
 	'David Change  Add Recent Sessions
-	Dim sTmp As UString
-	miRecentFiles = miFile->Add(ML("Recent Files"), "", "RecentFiles", @mclick)
-	For i As Integer = 0 To 9
-		sTmp = iniSettings.ReadString("MRUFiles", "MRUFile_0" & WStr(i), "")
-		If Trim(sTmp) <> "" Then
-			MRUFiles.Add sTmp
-			miRecentFiles->Add(sTmp, "", sTmp, @mClickMRU)
-		End If
-	Next
-	miRecentFolders = miFile->Add(ML("Recent Folders"), "", "RecentFolders", @mclick)
-	For i As Integer = 0 To 9
-		sTmp = iniSettings.ReadString("MRUFolders", "MRUFolder_0" & WStr(i), "")
-		If Trim(sTmp) <> "" Then
-			MRUFolders.Add sTmp
-			miRecentFolders->Add(sTmp, "", sTmp, @mClickMRU)
-		End If
-	Next
 	miRecentSessions = miFile->Add(ML("Recent Sessions"), "", "RecentSessions", @mclick)
-	For i As Integer = 0 To 9
+	For i As Integer = 0 To miRecentMax
 		sTmp = iniSettings.ReadString("MRUSessions", "MRUSession_0" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
 			MRUSessions.Add sTmp
 			miRecentSessions->Add(sTmp, "", sTmp, @mClickMRU)
 		End If
 	Next
+	miRecentSessions->Add("-")
+	miRecentSessions->Add(ML("Clear Recently Opened"),"","ClearSessions", @mClickMRU)
+	
+	miRecentFiles = miFile->Add(ML("Recent Files"), "", "RecentFiles", @mclick)
+	For i As Integer = 0 To miRecentMax
+		sTmp =iniSettings.ReadString("MRUFiles", "MRUFile_0" & WStr(i), "")
+		If Trim(sTmp) <> "" Then
+			MRUFiles.Add sTmp
+			miRecentFiles->Add(sTmp, "", sTmp, @mClickMRU)
+		End If
+	Next
+	miRecentFiles->Add("-")
+	miRecentFiles->Add(ML("Clear Recently Opened"),"","ClearFiles", @mClickMRU)
+	
 	miFile->Add("-")
 	miFile->Add(ML("&Command Prompt") & HK("CommandPrompt", "Alt+C"), "Console", "CommandPrompt", @mclick)
 	miFile->Add("-")
@@ -3102,7 +3154,7 @@ Sub CreateMenusAndToolBars
 	miEdit->Add(ML("Collapse All") & HK("CollapseAll"), "", "CollapseAll", @mclick)
 	miEdit->Add(ML("Uncollapse All") & HK("UnCollapseAll"), "", "UnCollapseAll", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+Space"), "", "CompleteWord", @mclick)
+	miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+J"), "", "CompleteWord", @mclick)
 	miEdit->Add("-")
 	Var miTry = miEdit->Add(ML("Error Handling"), "", "Try")
 	miTry->Add(ML("Numbering") & HK("NumberOn"), "", "NumberOn", @mclick)
@@ -3134,20 +3186,16 @@ Sub CreateMenusAndToolBars
 	miBookmark->Add(ML("Previous Bookmark") & HK("PreviousBookmark", "Ctrl+Shift+F6"), "", "PreviousBookmark", @mclick)
 	miBookmark->Add(ML("Clear All Bookmarks") & HK("ClearAllBookmarks"), "", "ClearAllBookmarks", @mclick)
 	
-	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
-	miProject->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mclick)
-	miProject->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mclick)
-	miRecentProjects = miProject->Add(ML("Recent Projects"), "", "RecentProjects", @mclick)
-	For i As Integer = 0 To 9
-		sTmp = iniSettings.ReadString("MRUProjects", "MRUProject_0" & WStr(i), "")
-		If Trim(sTmp) <> "" Then
-			MRUProjects.Add sTmp
-			miRecentProjects->Add(sTmp, "", sTmp, @mClickMRU)
-		End If
-	Next
-	miProject->Add(ML("&Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mclick)
-	miProject->Add(ML("Save Project &As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mclick)
-	miProject->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mclick)
+	#ifdef __USE_GTK__
+		Var miProject = mnuMain.Add(ML("&Project") & !"\tAlt+P", "", "Project")
+	#else
+		Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
+	#endif
+	miProject->Add(ML("&New Form") & HK("NewForm", "Ctrl+Alt+N"), "Form", "NewForm", @mclick)
+	miProject->Add(ML("New &Module") & HK("NewModule","Ctrl+Alt+M"), "File", "NewModule", @mclick)
+	miProject->Add(ML("New Resources File") & HK("NewModule"), "File", "NewModule", @mclick)
+	miProject->Add("-")
+	miProject->Add(ML("&Switch Code/Form") & HK("SwitchCodeForm"), "Code", "SwitchCodeForm", @mclick)
 	miProject->Add("-")
 	miProject->Add(ML("Add Files to Project") & HK("AddFileToProject"), "Add", "AddFileToProject", @mclick)
 	miProject->Add(ML("&Remove Files from Project") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mclick)
@@ -3155,11 +3203,6 @@ Sub CreateMenusAndToolBars
 	miProject->Add(ML("&Open Project Folder") & HK("OpenProjectFolder"), "", "OpenProjectFolder", @mclick)
 	miProject->Add("-")
 	miProject->Add(ML("&Project Properties") & "..." & HK("ProjectProperties"), "", "ProjectProperties", @mclick)
-	
-	Var miForm = mnuMain.Add(ML("&Form"), "", "Form")
-	miForm->Add(ML("&New Form") & HK("NewForm"), "Form", "NewForm", @mclick)
-	miForm->Add("-")
-	miForm->Add(ML("&Switch Code/Form") & HK("SwitchCodeForm"), "Code", "SwitchCodeForm", @mclick)
 	
 	Var miBuild = mnuMain.Add(ML("&Build"), "", "Build")
 	miBuild->Add(ML("&Syntax Check") & HK("SyntaxCheck"), "SyntaxCheck", "SyntaxCheck", @mclick)
@@ -3197,7 +3240,7 @@ Sub CreateMenusAndToolBars
 	mnuEnd->Enabled = False
 	mnuRestart->Enabled = False
 	
-	miXizmat = mnuMain.Add(ML("Service"), "", "Service")
+	miXizmat = mnuMain.Add(ML("Servi&ce"), "", "Service")
 	miXizmat->Add(ML("&Add-Ins") & "..." & HK("AddIns"), "", "AddIns", @mclick)
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Tools") & "..." & HK("Tools"), "", "Tools", @mclick)
@@ -3249,7 +3292,7 @@ Sub CreateMenusAndToolBars
 	Var miHelp = mnuMain.Add(ML("&Help"), "", "Help")
 	miHelp->Add(ML("&Content") & HK("Content", "F1"), "Help", "Content", @mclick)
 	miHelps = miHelp->Add(ML("&Others"), "", "Others")
-	Dim As UString sTmp2
+	Dim As WString * 1024 sTmp2
 	For i As Integer = 0 To 9
 		sTmp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
 		sTmp2 = iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
@@ -3562,20 +3605,20 @@ Sub tvExplorer_DblClick(ByRef Sender As Control)
 	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
 	If tn = 0 Then Exit Sub
 	tvExplorer_NodeActivate Sender, *tn
-'	If tn->ImageKey = "Project" Then Exit Sub
-'	Dim t As Boolean
-'	For i As Integer = 0 To ptabCode->TabCount - 1
-'		If Cast(TabWindow Ptr, ptabCode->Tabs[i])->tn = tn Then
-'			ptabCode->TabIndex = ptabCode->Tabs[i]->Index
-'			t = True
-'			Exit For
-'		End If
-'	Next i
-'	If Not t Then
-'		If tn->Tag <> 0 Then AddTab *Cast(ExplorerElement Ptr, tn->Tag)->FileName, , tn
-'	End If
-'	'David change, Why the tvExplorer.SelectedNode changed after add tab
-'	tvExplorer.SelectedNode = tn
+	'	If tn->ImageKey = "Project" Then Exit Sub
+	'	Dim t As Boolean
+	'	For i As Integer = 0 To ptabCode->TabCount - 1
+	'		If Cast(TabWindow Ptr, ptabCode->Tabs[i])->tn = tn Then
+	'			ptabCode->TabIndex = ptabCode->Tabs[i]->Index
+	'			t = True
+	'			Exit For
+	'		End If
+	'	Next i
+	'	If Not t Then
+	'		If tn->Tag <> 0 Then AddTab *Cast(ExplorerElement Ptr, tn->Tag)->FileName, , tn
+	'	End If
+	'	', Why the tvExplorer.SelectedNode changed after add tab
+	'	tvExplorer.SelectedNode = tn
 End Sub
 
 Sub tvExplorer_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
@@ -3602,43 +3645,39 @@ End Function
 Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	Static OldParentNode As TreeNode Ptr
 	Dim As TreeNode Ptr ptn = tvExplorer.SelectedNode
-	If ptn = 0 Then Exit Sub
+	If ptn = 0 Then Exit Sub 'David Change For Safty
 	ptn = GetParentNode(ptn)
 	If Not OldParentNode = ptn Then
-		'If pfProjectProperties <> 0 Then pfProjectProperties->RefreshProperties
+		'pfProjectProperties->RefreshProperties
 		OldParentNode = ptn
-		'	If ptn->ImageKey <> "Project" Then  'David Change for compile single .bas file
-		'		MainNode = 0
-		'		lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
-		'	Else
-		If MainNode <> 0 AndAlso ptn <> 0 Then 'AndAlso MainNode <> ptn
-			'			MainNode = ptn
-			'			lblLeft.Text = ML("Main File") & ": " & MainNode->Text
+		MainNode = ptn
+		lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
+	End If
+	If ptn->ImageKey <> "Project" Then  'David Change For compile Single .bas file
+		MainNode = 0
+		lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
+	Else
+		If ptn <> 0 AndAlso MainNode <> ptn Then
 			Dim As WString Ptr Changelog
 			WLet Changelog, ExePath & Slash & StringExtract(ptn->Text, ".") & "_Change.log", True
 			If mChangeLogEdited Then
-				txtChangeLog.SaveToFile(*Changelog) ' David Change
+				txtChangeLog.SaveToFile(*Changelog)  ' David Change
 				mChangeLogEdited = False
 			End If
-			If FileExists(*Changelog) Then
-				txtChangeLog.LoadFromFile(*Changelog) ' David Change
-			Else
-				txtChangeLog.Text = ""
-			End If
-			wDeallocate Changelog
-			
-			'David Change  MainNode>0 AndAlso ptabBottom->TabIndex = 4 AndAlso
-			'Updated the LIST
-			Dim As ExplorerElement Ptr ee = ptn->Tag
-			If ee AndAlso *ee->FileName <> "" Then
-				'pfFindFile->txtPath.Text = GetFolderName(*ee->FileName)
-				'pfFindFile->txtFind.Text = WChr(39) + WChr(84)+"ODO" 'DO NOT confuse itself.
-				If ptn->ImageKey <> "Opened" Then
-					ThreadCreate(@FindToDoSub, ptn)
+			MainNode = ptn
+			lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
+			If ptabBottom->TabIndex = 4 Then
+				txtChangeLog.Text = "Waiting...... "
+				If Dir(*Changelog)<>"" Then
+					txtChangeLog.LoadFromFile(*Changelog) ' David Change
+				Else
+					txtChangeLog.Text = ""
 				End If
+				wDeallocate Changelog
+			ElseIf ptabBottom->TabIndex = 3 Then
+				ThreadCreate(@FindToDoSub, ptn)
 			End If
 		End If
-		'End If
 	End If
 End Sub
 
@@ -3704,7 +3743,7 @@ pnlLeft.Add @tabLeft
 
 Var tpLoyiha = tabLeft.AddTab(ML("Project"))
 
-tpShakl = tabLeft.AddTab(ML("Toolbox")) 'David Change ToolBox is better than "Form"
+tpShakl = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
 tpShakl->Name = "tpShakl"
 
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
@@ -4190,18 +4229,18 @@ txtOutput.OnDblClick = @txtOutput_DblClick
 
 Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Dim As Integer iLine = txtImmediate.GetLineFromCharIndex(txtImmediate.SelStart)
-	Dim As WString Ptr sLine ' = @txtImmediate.Lines(iLine) 'David Change  for got wrong value
+	Dim As WString Ptr sLine ' = @txtImmediate.Lines(iLine) '  for got wrong value
 	Dim bCtrl As Boolean
 	#ifdef __USE_GTK__
 		bCtrl = Shift And GDK_Control_MASK
 	#else
 		bCtrl = GetKeyState(VK_CONTROL) And 8000
 	#endif
-	'David Change
+	'
 	wLet sLine, txtImmediate.Lines(iLine)
 	If CInt(Not bCtrl) AndAlso CInt(WGet(sLine) <> "") AndAlso CInt(Not StartsWith(Trim(WGet(sLine)),"'")) Then
 		If Key = Keys.Enter Then
-			'David Change
+			'
 			SaveAll
 			Dim As Integer Fn =FreeFile
 			Open ExePath & "/Temp/FBTemp.bas" For Output Encoding "utf-8" As #Fn
@@ -4209,8 +4248,8 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			For i As Integer =0 To iLine
 				If StartsWith(Trim(LCase(txtImmediate.Lines(i))),"import ") Then Print #Fn, Mid(Trim(txtImmediate.Lines(i)),7)
 			Next
-			If CInt(StartsWith(Trim(*sLine),"?")) Then  'David Change
-				Print #Fn, "Print Str(" & Trim(Mid(*sLine,2)) & " & Space(1024))" 'David Change space for wstring
+			If CInt(StartsWith(Trim(*sLine),"?")) Then  '
+				Print #Fn, "Print Str(" & Trim(Mid(*sLine,2)) & " & Space(1024))" ' space for wstring
 			ElseIf CInt(StartsWith(Trim(LCase(*sLine)),"print ")) Then
 				Print #Fn, "Print Str(" & Trim(Mid(*sLine,6)) & " & Space(1024))" 'space for wstring
 			Else
@@ -4225,12 +4264,12 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			End If
 			PipeCmd "", """" & *FbcExe & """ -b """ & ExePath & "/Temp/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & ExePath & "/Temp/debug_compil.log"" 2> """ & ExePath & "/Temp/debug_compil2.log"""
 			Dim As WString Ptr LogText
-			Dim Buff As WString * 2048 'David Change for V1.07 Line Input not working fine
+			Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 			Dim As WString Ptr ErrFileName, ErrTitle
 			Dim As Integer nLen, nLen2
 			WLet LogText, ""
 			Fn =FreeFile
-			Dim Result As Integer=-1 'David Change
+			Dim Result As Integer=-1 '
 			Result = Open(ExePath & "/Temp/debug_compil.log" For Input As #Fn)
 			If Result <> 0 Then Result = Open(ExePath & "/Temp/debug_compil.log" For Input Encoding "utf-16" As #Fn)
 			If Result <> 0 Then Result = Open(ExePath & "/Temp/debug_compil.log" For Input Encoding "utf-32" As #Fn)
@@ -4267,7 +4306,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 				#endif
 				PipeCmd "",  *ExeName
 				Fn =FreeFile
-				If Open Pipe(*ExeName For Input Encoding "utf-8" As #Fn) = 0 Then 'David Change
+				If Open Pipe(*ExeName For Input Encoding "utf-8" As #Fn) = 0 Then '
 					Dim As Integer i
 					While Not EOF(Fn)
 						Line Input #Fn, Buff
@@ -4288,7 +4327,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			WDeallocate ErrTitle
 		End If
 	End If
-	WDeallocate sLine 'David Change
+	WDeallocate sLine '
 	If Not EndsWith(txtImmediate.Text, !"\r") Then txtImmediate.Text &= !"\r"
 End Sub
 
@@ -4296,7 +4335,7 @@ txtImmediate.Align = 5
 txtImmediate.Multiline = True
 txtImmediate.ScrollBars = 3
 txtImmediate.OnKeyDown = @txtImmediate_KeyDown
-'David Change
+'
 txtImmediate.BackColor=cLBlack
 txtImmediate.Font.Color=cLWhite
 txtImmediate.Text = "import #Include Once " + Chr(34) + "mff/SysUtils.bas"+Chr(34) & WChr(13,10) & WChr(13,10)
@@ -4689,7 +4728,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	Var file = Command(-1)
 	wLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
 	If file = "" Then
-		'David Change , Auto Load the last one.
+		' , Auto Load the last one.
 		If AutoReloadLastOpenFiles Then OpenFiles *RecentFiles
 	Else
 		OpenFiles file
@@ -4704,11 +4743,11 @@ Sub frmMain_Create(ByRef Sender As Control)
 		DragAcceptFiles(frmMain.Handle, True)
 	#endif
 	If MainNode <> 0 Then
-		'David Change Should have changelog file for every project
+		' Should have changelog file for every project
 		If MainNode->Text<>"" AndAlso InStr(MainNode->Text,".") Then
 			Dim As WString Ptr Changelog
 			wlet Changelog, ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log", True
-			If FileExists(*Changelog) Then txtChangeLog.LoadFromFile(*Changelog) ' David Change
+			If Dir(*Changelog)<>"" Then txtChangeLog.LoadFromFile(*Changelog) '
 			wDeallocate Changelog
 			Dim As ExplorerElement Ptr ee = MainNode->Tag
 			If ee AndAlso *ee->FileName <> "" Then
@@ -4739,8 +4778,8 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 		tn = tvExplorer.Nodes.Item(i)
 		If CInt(tn->ImageKey = "Project") AndAlso CInt(EndsWith(tn->Text, " *")) AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
 	Next i
-	iniSettings.WriteInteger("MainWindow", "MainWidth", frmMain.ClientWidth)
-	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.ClientHeight)
+	iniSettings.WriteInteger("MainWindow", "MainWidth", frmMain.Width)
+	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)
 	iniSettings.WriteBool("MainWindow", "LeftClosed", GetLeftClosedStyle)
 	iniSettings.WriteInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	iniSettings.WriteBool("MainWindow", "RightClosed", GetRightClosedStyle)
@@ -4752,18 +4791,46 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteBool("MainWindow", "UseDebugger", UseDebugger)
 	iniSettings.WriteBool("MainWindow", "CompileGUI", tbStandard.Buttons.Item("Form")->Checked)
 	
-	For i As Integer = 0 To Min(9, MRUFiles.Count - 1)
-		iniSettings.WriteString("MRUFiles", "MRUFile_0" & WStr(i), MRUFiles.Item(i))
-	Next
-	For i As Integer = 0 To Min(9, MRUProjects.Count - 1)
-		iniSettings.WriteString("MRUProjects", "MRUProject_0" & WStr(i), MRUProjects.Item(i))
-	Next
+	Dim As Integer MRUFilesCount, kk=-1
+	MRUFilesCount = MRUFiles.Count
+	If MRUFilesCount<1 Then
+		For i As Integer = 0 To miRecentMax
+			iniSettings.KeyRemove("MRUFiles", "MRUFile_0" & WStr(i))
+		Next
+	Else
+		For i As Integer = Max(MRUFilesCount - miRecentMax, 0) To MRUFilesCount - 1
+			kk += 1
+			iniSettings.WriteString("MRUFiles", "MRUFile_0" & WStr(kk), MRUFiles.Item(i))
+		Next
+	End If
+	
+	MRUFilesCount = MRUProjects.Count
+	kk=-1
+	If MRUFilesCount<1 Then
+		For i As Integer = 0 To miRecentMax
+			iniSettings.KeyRemove("MRUProjects", "MRUProject_0" & WStr(i))
+		Next
+	Else
+		For i As Integer = Max(MRUFilesCount - miRecentMax, 0) To MRUFilesCount - 1
+			kk += 1
+			iniSettings.WriteString("MRUProjects", "MRUProject_0" & WStr(kk), MRUProjects.Item(i))
+		Next
+	End If
 	' David Change
-	For i As Integer = 0 To Min(9, MRUSessions.Count - 1)
-		iniSettings.WriteString("MRUSessions", "MRUSession_0" & WStr(i), MRUSessions.Item(i))
-	Next
+	MRUFilesCount = MRUSessions.Count
+	kk=-1
+	If MRUFilesCount<1 Then
+		For i As Integer = 0 To miRecentMax
+			iniSettings.KeyRemove("MRUSessions", "MRUSession_0" & WStr(i))
+		Next
+	Else
+		For i As Integer = Max(MRUFilesCount - miRecentMax, 0) To MRUFilesCount - 1
+			kk += 1
+			iniSettings.WriteString("MRUSessions", "MRUSession_0" & WStr(kk), MRUSessions.Item(i))
+		Next
+	End If
 	iniSettings.WriteString("MainWindow", "RecentFiles", *RecentFiles)
-	If mChangeLogEdited Then txtChangeLog.SaveToFile(ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log") ' David Change
+	If mChangeLogEdited Then txtChangeLog.SaveToFile(ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log") '
 	UnLoadAddins
 	Exit Sub
 	ErrorHandler:
@@ -4804,7 +4871,7 @@ frmMain.Add ptabCode
 
 frmMain.CreateWnd
 frmMain.Show
-frmMain.CenterToScreen 'David Change
+frmMain.CenterToScreen '
 
 Sub OnProgramStart() Constructor
 	'	pfSplash = @fSplash
@@ -4837,5 +4904,5 @@ Sub OnProgramQuit() Destructor
 	WDeallocate Make2Arguments
 	WDeallocate RunArguments
 	WDeallocate DebugArguments
-	WDeallocate RecentFiles 'David Change
+	WDeallocate RecentFiles '
 End Sub

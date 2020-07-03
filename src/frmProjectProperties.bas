@@ -23,6 +23,7 @@ pfProjectProperties = @fProjectProperties
 		This.MaximizeBox = False
 		This.MinimizeBox = False
 		This.StartPosition = FormStartPosition.CenterScreen
+		This.OnShow       = @Form_Show
 		This.DefaultButton = @cmdOK
 		This.CancelButton = @cmdCancel
 		This.SetBounds 0, 0, 460, 378
@@ -238,11 +239,13 @@ pfProjectProperties = @fProjectProperties
 		optCompileToGas.Name = "optCompileToGas"
 		optCompileToGas.Text = ML("Compile to GAS")
 		optCompileToGas.SetBounds 0, 5, 160, 16
+		optCompileToGas.OnClick = @optCompileToGas_Click
 		optCompileToGas.Parent = @picCompileToGCCCaption
 		' optCompileToGcc
 		optCompileToGcc.Name = "optCompileToGcc"
 		optCompileToGcc.Text = ML("Compile to GCC")
 		optCompileToGcc.SetBounds 0, 24, 152, 16
+		optCompileToGcc.OnClick = @optCompileToGcc_Click
 		optCompileToGcc.Parent = @picCompileToGCCCaption
 		' tpDebugging
 		tpDebugging.Name = "tpDebugging"
@@ -264,6 +267,7 @@ pfProjectProperties = @fProjectProperties
 		' picCompileToGCC
 		picCompileToGCC.Name = "picCompileToGCC"
 		picCompileToGCC.SetBounds 22, 51, 402, 80
+		picCompileToGCC.Text = ""
 		picCompileToGCC.Parent = @tpCompile
 		' optOptimizationFastCode
 		optOptimizationFastCode.Name = "optOptimizationFastCode"
@@ -404,6 +408,7 @@ pfProjectProperties = @fProjectProperties
 		With picCompileToGCCCaption
 			.Name = "picCompileToGCCCaption"
 			.SetBounds 16, 10, 152, 40
+			.Text = ""
 			.Parent = @tpCompile
 		End With
 		' picVersionInformation
@@ -422,6 +427,7 @@ pfProjectProperties = @fProjectProperties
 		With picCompilationArguments
 			.Name = "picCompilationArguments"
 			.SetBounds 24, 156, 400, 112
+			.Text = ""
 			.Parent = @tpCompile
 		End With
 	End Constructor
@@ -639,3 +645,30 @@ End Sub
 Private Sub frmProjectProperties.cmdAdvancedOptions_Click(ByRef Sender As Control)
 	pfAdvancedOptions->Show *pfrmMain
 End Sub
+
+Private Sub frmProjectProperties.Form_Show(ByRef Sender As Form)
+	fProjectProperties.RefreshProperties
+End Sub
+
+Private Sub frmProjectProperties.optCompileToGas_Click(ByRef Sender As RadioButton)
+	With fProjectProperties
+		.grbCompileToGCC.Enabled = .optCompileToGcc.Checked
+		.optOptimizationLevel.Enabled = .optCompileToGcc.Checked
+		.optOptimizationSmallCode.Enabled = .optCompileToGcc.Checked
+		.optNoOptimization.Enabled = .optCompileToGcc.Checked
+		.optOptimizationFastCode.Enabled = .optCompileToGcc.Checked
+		.cboOptimizationLevel.Enabled = .optCompileToGcc.Checked
+	End With
+End Sub
+
+Private Sub frmProjectProperties.optCompileToGcc_Click(ByRef Sender As RadioButton)
+	With fProjectProperties
+		.grbCompileToGCC.Enabled = .optCompileToGcc.Checked
+		.optOptimizationLevel.Enabled = .optCompileToGcc.Checked
+		.optOptimizationSmallCode.Enabled = .optCompileToGcc.Checked
+		.optNoOptimization.Enabled = .optCompileToGcc.Checked
+		.optOptimizationFastCode.Enabled = .optCompileToGcc.Checked
+		.cboOptimizationLevel.Enabled = .optCompileToGcc.Checked
+	End With
+End Sub
+

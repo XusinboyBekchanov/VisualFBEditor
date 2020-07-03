@@ -1049,7 +1049,7 @@ Sub frmOptions.LoadSettings()
 		.chkShowMainToolbar.Checked = ShowMainToolbar
 		Dim As String f
 		Dim As Integer Fn = FreeFile, Result
-		Dim Buff As WString * 2048 'David Change
+		Dim Buff As WString * 2048 '
 		Dim As UString FileName
 		'On Error Resume Next
 		f = Dir(ExePath & "/Settings/Languages/*.lng")
@@ -1060,9 +1060,9 @@ Sub frmOptions.LoadSettings()
 			If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
 			If Result <> 0 Then Result = Open(FileName For Input As #Fn)
 			If Result = 0 Then
-				'WReallocate s, LOF(Fn) 'David Change
+				'WReallocate s, LOF(Fn) '
 				If Not EOF(Fn) Then
-					Line Input #Fn, Buff  'David Change
+					Line Input #Fn, Buff  '
 					Languages.Add Left(f, Len(f) - 4)
 					.cboLanguage.AddItem Buff & " - " & Left(f, Len(f) - 4)
 				End If
@@ -1075,7 +1075,7 @@ Sub frmOptions.LoadSettings()
 		Wend
 		HotKeysChanged = False 
 		'On Error Goto 0
-		'WDeallocate s 'David Change
+		'WDeallocate s '
 		newIndex = Languages.IndexOf(CurLanguage)
 		.cboLanguage.ItemIndex = newIndex
 		oldIndex = newIndex

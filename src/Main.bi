@@ -58,7 +58,7 @@ Declare Sub LoadLanguageTexts
 
 Common Shared As Form Ptr pfrmMain
 Common Shared As SaveFileDialog Ptr pSaveD
-Common Shared As ListView Ptr plvSearch, plvToDo 'David Change
+Common Shared As ListView Ptr plvSearch, plvToDo '
 Common Shared As TreeListView Ptr plvProperties, plvEvents
 Common Shared As ImageList Ptr pimgList, pimgListTools
 Common Shared As ProgressBar Ptr pprProgress
@@ -113,8 +113,8 @@ End Enum
 Declare Sub NewProject
 Declare Sub OpenProject
 Declare Sub AddMRUFile(ByRef FileName As WString)
-Declare Sub AddMRUProject(ByRef FileName As WString) 'David Change
-Declare Sub AddMRUSession(ByRef FileName As WString) 'David Change
+Declare Sub AddMRUProject(ByRef FileName As WString) '
+Declare Sub AddMRUSession(ByRef FileName As WString) '
 Declare Sub AddFileToProject
 Declare Sub RemoveFileFromProject
 Declare Sub OpenUrl(ByVal url As String)

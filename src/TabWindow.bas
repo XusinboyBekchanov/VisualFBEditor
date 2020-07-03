@@ -6,7 +6,7 @@
 '#########################################################
 
 #include once "TabWindow.bi"
-#include once "vbcompat.bi"  'David Change for could using format function
+#include once "vbcompat.bi"  ' for could using format function
 #define TabSpace IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
 
 Dim Shared FPropertyItems As WStringList
@@ -76,7 +76,7 @@ Sub PopupClick(ByRef Sender As My.Sys.Object)
 	End Select
 End Sub
 
-'David Change Could not find in the child node
+' Could not find in the child node
 Function FileNameInTreeNode(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
 	If tn = 0 Then Return 0
 	Dim As ExplorerElement Ptr ee
@@ -443,7 +443,7 @@ Operator TabWindow.Cast As TabPage Ptr
 End Operator
 
 Function TabWindow.SaveTab As Boolean
-	'David Change  It is important to creat a backup file by time.
+	'  It is important to creat a backup file by time.
 	'If txtCode.Modified = True Then
 	If AutoCreateBakFiles Then
 		FileCopy *FFileName, Str(GetBakFileName(*FFileName)) '
@@ -507,7 +507,7 @@ Function TabWindow.SaveTab As Boolean
 End Function
 
 Function TabWindow.SaveAs As Boolean
-	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	pSaveD->Filter = ML("Module FreeBasic") & " (*.bas)|*.bas|" & ML("Include File FreeBasic") & " (*.bi)|*.bi|" & ML("All Files") & "|*.*|"
 	If FileName <> "" Then
 		pSaveD->InitialDir = GetFolderName(FileName)
 '	ElseIf WGet(LastOpenPath) <> "" Then
@@ -547,7 +547,7 @@ Function TabWindow.CloseTab As Boolean
 	pTabCode->Remove(@btnClose)
 	btnClose.FreeWnd
 	pTabCode->DeleteTab(This.Index)
-	If tn <> 0 AndAlso tn->ImageKey <> "Project" Then 'David Change, Will remove all project from tree
+	If tn <> 0 AndAlso tn->ImageKey <> "Project" Then ', Will remove all project from tree
 		If ptvExplorer->Nodes.IndexOf(tn) <> -1 Then
 			ptvExplorer->Nodes.Remove ptvExplorer->Nodes.IndexOf(tn)
 			If MainNode = tn Then
@@ -975,7 +975,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	If tb->Des->DesignControl = 0 Then Exit Sub
 	If tb->Des->ControlByIndexFunc = 0 Then Exit Sub
 	If Ctrl = 0 Then Exit Sub
-	' David Change
+	' 
 	Dim FLine As WString Ptr
 	Dim frmName As WString * 100
 	Dim CtrlName As WString * 100
@@ -1006,13 +1006,13 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 			ElseIf b AndAlso StartsWith(*FLine, "dim as ") Then
 				If StartsWith(*FLine, "dim as " & LCase(WGet(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))) & " ") Then
 					Var p = InStr(LCase(RTrim(ptxtCode->Lines(k), Any !"\t ")) & ",", " " & LCase(CtrlName) & ",")
-					' David Change,  No Space after ","
+					' ,  No Space after ","
 					If p = 0 Then p = InStr(LCase(RTrim(ptxtCode->Lines(k), Any !"\t ")) & ",", "," & LCase(CtrlName) & ",")
-					If p > 0 Then 'David Change
-						If InStr(CtrlName,"(")>0 AndAlso InStr(CtrlName,"(0)")<1 Then 'David Change it is Control Array
+					If p > 0 Then '
+						If InStr(CtrlName,"(")>0 AndAlso InStr(CtrlName,"(0)")<1 Then ' it is Control Array
 							Dim As WString Ptr Temp
 							CtrlNameNew = StringExtract(CtrlName,"(")
-							'David Change, Change the ubound only
+							', Change the ubound only
 							CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 							CtrlNameNew = CtrlNameNew & "(" & WStr(Val(StringExtract(CtrlName,"(",")"))-1) & ")"
 							ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p) & " " & CtrlNameNew &  Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 1)
@@ -1029,7 +1029,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 								Else
 									ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p - 1) & Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 2)
 								End If
-								'David Change for No Space after ","
+								' for No Space after ","
 							ElseIf InStr(*FLine & ",", "," & LCase(CtrlName) & ",") Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 								ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p - 1) & Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 1)
@@ -1132,7 +1132,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 				If StartsWith(*FLine2 & " ", "end type ") Then
 					j = k
 					Exit For, For
-					'David Change Ctrl Array
+					' Ctrl Array
 				ElseIf StartsWith(*FLine2, "dim as " & LCase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName"))) & " ") Then
 					d = True
 					If InStr(CtrlName, "(")  Then
@@ -1301,7 +1301,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			End If
 			If PropertyName <> "" AndAlso PropertyName <> "Text" Then
 				WLet FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName)
-				'David Change  Confuse the formatcode function
+				'  Confuse the formatcode function
 				If *FLine <> "" Then
 					ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q += 1
 				End If
@@ -1333,7 +1333,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
 			ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 			ptxtCode->InsertLine se + 4, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName
-			'David Change  Confuse the formatcode function
+			'  Confuse the formatcode function
 			If PropertyName <> "" AndAlso PropertyName <> "Name" Then
 				ptxtCode->InsertLine se + 5, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
 			End If
@@ -1358,7 +1358,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed ""
 	WDeallocate FLine
 	WDeallocate FLine1
-	WDeallocate FLine2 'David Change
+	WDeallocate FLine2 '
 	Return InsLineCount
 	Exit Function
 	ErrorHandler:
@@ -1398,7 +1398,7 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 					c = False
 				ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "dim as ") Then
 					Var Pos1 = InStr(LCase(RTrim(ptxtCode->Lines(k))) & ",", " " & LCase(OldName) & ",")
-					'David Change for Ctrl Array
+					' for Ctrl Array
 					If Pos1=0 Then Pos1 = InStr(LCase(RTrim(ptxtCode->Lines(k))) & ",", "," & LCase(OldName) & ",")
 					If Pos1 > 0 Then
 						CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
@@ -1600,7 +1600,7 @@ Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String
 	If CInt(PrevName <> ClassName) AndAlso CInt(PrevName <> "") AndAlso CInt(Not tb->cboClass.Items.Contains(PrevName)) Then
 		NewName = PrevName
 	Else
-		' David Change for Control Array
+		'  for Control Array
 		Dim As Integer CtrlArrayNum = -1
 		If InStr(PrevName,"(") < 1 Then
 			Var n = 0
@@ -1743,7 +1743,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	Dim EventNameStatic As String = EventName
 	If EndsWith(EventNameStatic, "NS") Then EventNameStatic = Left(EventNameStatic, Len(EventNameStatic) - 2)
 	Dim As String CtrlName2 = CtrlName
-	'David Change
+	'
 	If InStr(CtrlName,"(")Then
 		CtrlName2 = StringExtract(CtrlName2,"(")
 	ElseIf CtrlName = "This" Then
@@ -3599,7 +3599,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							p = InStr(sText, ",")
 							Do While p > 0
 								ArgName = Trim(Left(sText, p - 1), Any !"\t ")
-								If InStr(ArgName,"(") > 0 Then  'David Change It is Ctrl Array Then
+								If InStr(ArgName,"(") > 0 Then  ' It is Ctrl Array Then
 									CtrlArrayNum = Val(StringExtract(ArgName,"(",")"))
 									Dim As String tCtrlName = StringExtract(ArgName,"(")
 									For i As Integer =0 To CtrlArrayNum
@@ -3620,7 +3620,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								sText = Trim(Mid(sText, p + 1), Any !"\t ")
 								p = InStr(sText, ",")
 							Loop
-							If InStr(sText,"(") > 0 Then  'David Change It is Ctrl Array
+							If InStr(sText,"(") > 0 Then  ' It is Ctrl Array
 								CtrlArrayNum = Val(StringExtract(sText,"(",")"))
 								Dim As String tCtrlName = StringExtract(sText,"(")
 								For i As Integer =0 To CtrlArrayNum
@@ -3926,9 +3926,9 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#endif
 	tbrTop.Align = 2
 	tbrTop.Buttons.Add tbsSeparator
-	tbrTop.Buttons.Add tbsCheckGroup, "Code", , @tbrTop_ButtonClick, "Code", , ML("Show Code"), True 'David Change Show the toollips
-	tbrTop.Buttons.Add tbsCheckGroup, "Form", , @tbrTop_ButtonClick, "Form", , ML("Show Form"), True 'David Change Show the toollips
-	tbrTop.Buttons.Add tbsCheckGroup, "CodeAndForm", , @tbrTop_ButtonClick, "CodeAndForm", , ML("Show Code And Form"), True 'David Change
+	tbrTop.Buttons.Add tbsCheckGroup, "Code", , @tbrTop_ButtonClick, "Code", , ML("Show Code"), True ' Show the toollips
+	tbrTop.Buttons.Add tbsCheckGroup, "Form", , @tbrTop_ButtonClick, "Form", , ML("Show Form"), True ' Show the toollips
+	tbrTop.Buttons.Add tbsCheckGroup, "CodeAndForm", , @tbrTop_ButtonClick, "CodeAndForm", , ML("Show Code And Form"), True '
 	tbrTop.Flat = True
 	cboClass.Width = 50
 	#ifdef __USE_GTK__

@@ -31,6 +31,9 @@ Using My.Sys.Forms
 		Declare Static Sub tpCompile_Click(ByRef Sender As Control)
 		Declare Static Sub lstType_Change(ByRef Sender As ListControl)
 		Declare Static Sub txtValue_LostFocus(ByRef Sender As TextBox)
+		Declare Static Sub Form_Show      (ByRef Sender As Form)
+		Declare Static Sub optCompileToGas_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optCompileToGcc_Click(ByRef Sender As RadioButton)
 		Declare Sub RefreshProperties()
 		Declare Static Sub cmdAdvancedOptions_Click(ByRef Sender As Control)
 		Declare Constructor

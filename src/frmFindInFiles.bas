@@ -157,7 +157,7 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 	Dim f As WString * 1024
 	Dim Buffout As WString Ptr
 	Dim As Integer Result, Pos1
-	Dim Buff As WString * 1024 'David Change
+	Dim Buff As WString * 1024 '
 	Dim As Integer iLine, iStart, Fn
 	Dim As UInteger Attr
 	ThreadsEnter
@@ -300,7 +300,7 @@ End Sub
 
 Private Sub frmFindInFiles.Form_Show(ByRef Sender As Form)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	'David Change for limited the Muilti line
+	' for limited the Muilti line
 	Var Posi=InStr(pClipboard->GetAsText,WChr(13))-1
 	If Posi < 1 Then Posi=InStr(pClipboard->GetAsText,WChr(10))-1
 	If Posi < 1 Then Posi= Len(pClipboard->GetAsText)
@@ -359,7 +359,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 			OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".cpp") Then
 			If LCase(tML) <> LCase(tReplace) Then
 				FNameOpen = GetBakFileName(Path & f)
-				'David Change https://www.freebasic.net/forum/viewtopic.php?f=2&t=27370&p=257529&hilit=FileCopy#p257529
+				' https://www.freebasic.net/forum/viewtopic.php?f=2&t=27370&p=257529&hilit=FileCopy#p257529
 				#ifdef __USE_GTK__
 					FileCopy  Path & f, FNameOpen  'Function FileCopy suport unicode file name, But FileExist  is Ok in linux
 				#else

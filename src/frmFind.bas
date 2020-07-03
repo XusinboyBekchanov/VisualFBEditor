@@ -258,7 +258,7 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 		End If
 		'End If
 	End If
-	'txtFind.SetFocus 'David Change
+	'txtFind.SetFocus '
 	Return Result
 End Function
 
@@ -266,7 +266,7 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 	Dim f As WString * 1024
 	Dim Buffout As WString Ptr
 	Dim As Integer Result, Pos1
-	Dim Buff As WString * 1024 'David Change
+	Dim Buff As WString * 1024 '
 	Dim As Integer iLine, iStart, Fn
 	If tSearch="" OrElse MainNode < 1 Then Exit Sub
 	ThreadsEnter
@@ -360,7 +360,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 					If LCase(tML) <> LCase(tReplace) Then
 						
 						FNameOpen = GetBakFileName(f)
-						'David Change https://www.freebasic.net/forum/viewtopic.php?f=2&t=27370&p=257529&hilit=FileCopy#p257529
+						' https://www.freebasic.net/forum/viewtopic.php?f=2&t=27370&p=257529&hilit=FileCopy#p257529
 						#ifdef __USE_GTK__
 							FileCopy  f, FNameOpen  'Function FileCopy suport unicode file name in Linux, but and FileExist do not working properly.
 						#else
@@ -472,7 +472,7 @@ Sub FindSubProj(Param As Any Ptr)
 		wLet gSearchSave, fFind.txtFind.Text
 		ptabBottom->Tabs[2]->Caption = ML("Find") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
 	End If
-	If pfFind->Visible Then 'David Change
+	If pfFind->Visible Then '
 		pfFind->Caption = ML("Find")+": " + WStr(gSearchItemIndex+1) + " of " + WStr(plvSearch->ListItems.Count)
 	End If
 	ThreadsLeave
@@ -632,7 +632,7 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	Dim Temp As WString Ptr
 	This.Caption = Replace(This.Caption, ML("Find"), ML("Replace"))
 	WDeallocate Temp
-	btnFind.SetFocus  'David Change
+	btnFind.SetFocus  '
 End Sub
 
 Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
@@ -689,7 +689,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 	wLet gSearchSave, *Search
 	If Not txtFind.Contains(*Search) Then txtFind.AddItem *Search
 	If Not txtReplace.Contains(*tReplace) Then txtReplace.AddItem *tReplace
-	btnFind.SetFocus  'David Change
+	btnFind.SetFocus  '
 End Sub
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 	'Sender.Center
@@ -705,7 +705,7 @@ Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 		fFind.Height = 102
 	End If
 	fFind.btnReplaceShow.Caption=IIf(mFormFind,">","<")
-	btnFind.SetFocus  'David Change
+	btnFind.SetFocus  '
 End Sub
 Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
 	This.CloseForm
@@ -726,7 +726,7 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 		This.Caption = ML("Replace")
 		fFind.SetBounds fFind.Parent->Left + fFind.Parent->WIDTH-fFind.WIDTH - 5, fFind.Parent->TOP+20, fFind.WIDTH, 102
 	End If
-	'TODO David Change for couldn't minimize width of the command button
+	'TODO  for couldn't minimize width of the command button
 	#ifdef __USE_GTK__
 		fFind.btnReplaceShow.Visible = False
 		fFind.TrackBar1.Visible = False
@@ -766,11 +766,11 @@ Private Sub frmFind.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 			If iCount>=9 Then Exit For
 		Next
 	End If
-	btnFind.SetFocus  'David Change
+	btnFind.SetFocus  '
 End Sub
 
 Private Sub frmFind.TrackBar1_Change(ByRef Sender As TrackBar,Position As Integer)
-	If Sender.Position<100 Then	Sender.Position =100 'David Change for limitation
+	If Sender.Position<100 Then	Sender.Position =100 ' for limitation
 	fFind.Opacity = Sender.Position
 	fFind.lblTrack.Text = WStr(CUInt(Sender.Position/2.55))
 End Sub

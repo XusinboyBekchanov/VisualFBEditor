@@ -34,7 +34,7 @@ Namespace My.Sys.Forms
 	End Destructor
 End Namespace
 
-'David Change Add Try End_Try
+' Add Try End_Try
 ReDim Constructions(23) As Construction
 Constructions(0) =  Type<Construction>("If",            "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
 Constructions(1) =  Type<Construction>("#If",           "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
@@ -533,7 +533,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.GetSelection(ByRef iSelStartLine As Integer, ByRef iSelEndLine As Integer, ByRef iSelStartChar As Integer, ByRef iSelEndChar As Integer, iCurrProcedure As Boolean = False)
 		If FSelStartLine < 0 OrElse FLines.Count<1 OrElse FSelStartLine>FLines.Count - 1 Then Exit Sub
-		If iCurrProcedure  Then 'David Change For get the top line and bottom line of tne current procedure
+		If iCurrProcedure  Then ' For get the top line and bottom line of tne current procedure
 			Dim As Integer lLineCount
 			iSelStartLine = 0
 			For lLineCount = FSelStartLine To 1 Step -1
@@ -844,16 +844,16 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub EditControl.LoadFromFile(ByRef FileName As WString)
-		Dim Buff As WString * 2048 ' David Change for V1.07 Line Input not working fine
+		Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
 		Dim As Integer Result = -1, Fn = FreeFile
 		Var iC = 0, OldiC = 0, i = 0
-		Result = Open(FileName For Input Encoding "utf-8" As #Fn) ' David Change
+		Result = Open(FileName For Input Encoding "utf-8" As #Fn) ' 
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
 		If Result = 0 Then
 			FLines.Clear
-			'WReallocate Buff, LOF(1) ' David Change
+			'WReallocate Buff, LOF(1) ' 
 			Do Until EOF(Fn)
 				Line Input #Fn, Buff
 				FECLine = New EditControlLine
@@ -867,7 +867,7 @@ Namespace My.Sys.Forms
 			Loop
 			ScrollToCaret
 			ClearUndo
-			'WDeallocate Buff  ' David Change
+			'WDeallocate Buff  ' 
 			Close #Fn
 		End If
 	End Sub
@@ -935,12 +935,12 @@ Namespace My.Sys.Forms
 		Dim As Integer iIndents, CurIndents, iCount, iComment, ConstructionIndex, ConstructionPart
 		Dim As EditControlLine Ptr ECLine2
 		Dim As UString LineParts(Any), LineQuotes(Any)
-		Dim As Integer iType = -1 'David Change
+		Dim As Integer iType = -1 '
 		If Not WithoutUpdate Then UpdateLock
 		Changing("Format")
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
-			'David Change
+			'
 			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet FECLine->Text, Trim(*FECLine->Text, Any !"\t ")
 			'If *FECLine->Text = "" Then Continue For
 			If Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then wLet FECLine->Text,"If (" & Mid(*FECLine->Text,4)
@@ -1804,7 +1804,7 @@ Namespace My.Sys.Forms
 												End If
 											Else
 												If keywords0.Contains(LCase(Matn)) Then
-													sc = @Preprocessors 'David Change
+													sc = @Preprocessors '
 													pkeywords = @keywords0
 												ElseIf keywords1.Contains(LCase(Matn)) Then
 													sc = @Keywords
@@ -2797,8 +2797,8 @@ Namespace My.Sys.Forms
 				#else
 				Case VK_HOME
 				#endif
-				Dim As WString Ptr sTmpLine = Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text 'David Change
-				Dim As Integer lChar = Len(*sTmpLine) - Len(LTrim(*sTmpLine, Any !"\t ")) 'David Change Skip the space oe TABs.
+				Dim As WString Ptr sTmpLine = Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text '
+				Dim As Integer lChar = Len(*sTmpLine) - Len(LTrim(*sTmpLine, Any !"\t ")) ' Skip the space oe TABs.
 				If FSelEndChar = lChar Then FSelEndChar = 0 Else FSelEndChar = lChar
 				If bCtrl Then FSelEndLine = 0
 				If Not bShifted Then

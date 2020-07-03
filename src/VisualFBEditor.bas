@@ -60,10 +60,24 @@ End Sub
 Sub ReplaceInFiles
 	ThreadCreate(@ReplaceSub)
 End Sub
-Sub mClickMRU(Sender As My.Sys.Object)
-	OpenFiles Sender.ToString
-End Sub
 
+Sub mClickMRU(Sender As My.Sys.Object) 
+	If Sender.ToString ="ClearFiles" Then 
+		miRecentFiles->Clear 
+		miRecentFiles->Enabled = False 
+		MRUFiles.Clear 
+	ElseIf Sender.ToString ="ClearProjects" Then 
+		miRecentProjects->Clear 
+		miRecentProjects->Enabled = False 
+		MRUProjects.Clear 
+	ElseIf Sender.ToString ="ClearSessions" Then 
+		miRecentSessions->Clear 
+		miRecentSessions->Enabled = False 
+		MRUSessions.Clear 
+	Else 
+		OpenFiles Sender.ToString 
+	End If 
+End Sub 
 Sub mClickHelp(ByRef Sender As My.Sys.Object)
 	ThreadCreate(@RunHelp, @Cast(MenuItem Ptr, @Sender)->ImageKey)
 End Sub
@@ -109,7 +123,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "UnformatProject":                     ThreadCreate(@FormatProject, Cast(Any Ptr, 1)) 'FormatProject Cast(Any Ptr, 1)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "StartWithCompile"
-		'SaveAll 'David Change
+		'SaveAll '
 		If InDebug Then
 			#ifndef __USE_GTK__
 				ChangeEnabledDebug False, True, True
@@ -169,7 +183,7 @@ Sub mClick(Sender As My.Sys.Object)
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
 		"Start", "Stop", "StepInto", "FindNext","FindPrev", "Goto", "SetNextStatement", "SortLines", _
-		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "SwitchCodeForm" 'David Change
+		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "SwitchCodeForm" '
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
@@ -189,7 +203,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "NextBookmark":                NextBookmark 1
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
-		Case "SwitchCodeForm":           'David Change
+		Case "SwitchCodeForm":           '
 			If tb->pnlForm.Visible  Then
 				tb->pnlCode.Visible = True
 				tb->pnlForm.Visible = False
