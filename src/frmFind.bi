@@ -45,6 +45,8 @@ Using My.Sys.Forms
 		Declare Static Sub TrackBar1_Change(ByRef Sender As TrackBar,Position As Integer)
 		Declare Static Sub btnFindAll_Click(ByRef Sender As Control)
 		Declare Static Sub Form_Create(ByRef Sender As Control)
+		Declare Static Sub OptFindinCurrFile_Click(ByRef Sender As RadioButton)
+		Declare Static Sub OptFindInProject_Click(ByRef Sender As RadioButton)
 		Declare Constructor
 		Declare Destructor
 		

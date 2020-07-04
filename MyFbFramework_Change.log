@@ -1,0 +1,41 @@
+2019/10/01 07:44:56		 Ctrl+Enter  insert current date and time Ctrl+Shift+L insert current Line number in the textBox of "Change log"
+Version 1.2.4 (May 24, 2020)
+- Added: Canvas Example (in Windows and Linux)
+- Added: Canvas Support (in Linux)
+- Added: FullTypeName function in Object type (Thanks to fxm)
+- Fixed: ComboBoxEx Text property (in Linux)
+- Fixed: ShowModal (in gtk2)
+- Fixed: Scroll in widgets without native scrolling capabilities (in gtk2)
+- Fixed: TimerComponent properties (in ReadProperty and WriteProperty function)
+Version 1.2.3 (May 17, 2020)
+- Added: UString
+- Added: FontDialog (in Linux)
+- Added: ColorDialog (in Linux)
+Version 1.2.2 (December 31, 2019)
+- Added: Reorderable property in TabControl
+Version 1.2.1 (December 18, 2019)
+- Fixed: Windows 7 support
+Version 1.2.0 (December 15, 2019)
+- Added: Picture
+- Added: Printer
+- Added: PageSetupDialog
+- Added: PrintDialog
+Version 1.1.0 (April 23, 2019)
+- Added: PNG Support
+- Added: TreeListView Control
+- Fixed: Setting Font Property of Controls (in Linux)
+Version 1.0.3.40 (February 24, 2019)
+- Added: __EXPORT_PROCS__ definition
+Version 1.0.2.1 (January 02, 2019)
+- Added: Gtk2 Support
+Version 1.0.2 (December 20, 2018)
+- Added: Cross-platform functionality
+- Added: ToolPalette control
+- Added: ImageBox control
+Version 1.0.1 (August 19, 2018)
+- Added: ColorDialog
+- Fixed: CommandButton OnClick event.
+Version 1.0.0 (July 14, 2018)
+- Added: GUI elements
+- Added: Drawing classes
+and others.

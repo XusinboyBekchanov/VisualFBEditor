@@ -234,7 +234,7 @@ pfOptions = @fOptions
 		' cmdAddTerminal
 		With cmdAddTerminal
 			.Name = "cmdAddTerminal"
-			.Text = ML("Add")
+			.Text = ML("&Add")
 			.SetBounds 17, 289, 96, 24
 			.OnClick = @cmdAddTerminal_Click
 			.Parent = @grbTerminalPaths
@@ -242,7 +242,7 @@ pfOptions = @fOptions
 		' cmdRemoveTerminal
 		With cmdRemoveTerminal
 			.Name = "cmdRemoveTerminal"
-			.Text = ML("Remove")
+			.Text = ML("&Remove")
 			.SetBounds 211, 289, 96, 24
 			.OnClick = @cmdRemoveTerminal_Click
 			.Parent = @grbTerminalPaths
@@ -250,7 +250,7 @@ pfOptions = @fOptions
 		' cmdClearDebuggers1
 		With cmdClearTerminals
 			.Name = "cmdClearTerminals"
-			.Text = ML("Clear")
+			.Text = ML("&Clear")
 			.SetBounds 307, 289, 96, 24
 			.OnClick = @cmdClearTerminals_Click
 			.Parent = @grbTerminalPaths
@@ -276,7 +276,7 @@ pfOptions = @fOptions
 		cboLanguage.Parent = @grbLanguage
 		' cmdAddCompiler
 		cmdAddCompiler.Name = "cmdAddCompiler"
-		cmdAddCompiler.Text = ML("Add")
+		cmdAddCompiler.Text = ML("&Add")
 		cmdAddCompiler.SetBounds 17, 224, 96, 24
 		cmdAddCompiler.OnClick = @cmdAddCompiler_Click
 		cmdAddCompiler.Parent = @grbCompilerPaths
@@ -390,13 +390,13 @@ pfOptions = @fOptions
 		cmdRemoveLibrary.Parent = @grbLibraryPaths
 		' cmdChangeDebugger
 		cmdChangeDebugger.Name = "cmdChangeDebugger"
-		cmdChangeDebugger.Text = ML("Change")
+		cmdChangeDebugger.Text = ML("Chan&ge")
 		cmdChangeDebugger.SetBounds 114, 289, 96, 24
 		cmdChangeDebugger.OnClick = @cmdChangeDebugger_Click
 		cmdChangeDebugger.Parent = @grbDebuggerPaths
 		' cmdChangeTerminal
 		cmdChangeTerminal.Name = "cmdChangeTerminal"
-		cmdChangeTerminal.Text = ML("Change")
+		cmdChangeTerminal.Text = ML("Chan&ge")
 		cmdChangeTerminal.SetBounds 114, 289, 96, 24
 		cmdChangeTerminal.Parent = @grbTerminalPaths
 		' lblHistoryLimit
@@ -476,7 +476,7 @@ pfOptions = @fOptions
 		' cmdAddMakeTool
 		With cmdAddMakeTool
 			.Name = "cmdAddMakeTool"
-			.Text = ML("Add")
+			.Text = ML("&Add")
 			.SetBounds 17, 289, 96, 24
 			.OnClick = @cmdAddMakeTool_Click
 			.IsChild = True
@@ -486,7 +486,7 @@ pfOptions = @fOptions
 		' cmdRemoveMakeTool
 		With cmdRemoveMakeTool
 			.Name = "cmdRemoveMakeTool"
-			.Text = ML("Remove")
+			.Text = ML("&Remove")
 			.SetBounds 211, 289, 96, 24
 			.OnClick = @cmdRemoveMakeTool_Click
 			.Parent = @grbMakeToolPaths
@@ -494,7 +494,7 @@ pfOptions = @fOptions
 		' cmdClearMakeTool
 		With cmdClearMakeTools
 			.Name = "cmdClearMakeTools"
-			.Text = ML("Clear")
+			.Text = ML("&Clear")
 			.SetBounds 307, 289, 96, 24
 			.OnClick = @cmdClearMakeTools_Click
 			.Parent = @grbMakeToolPaths
@@ -515,7 +515,7 @@ pfOptions = @fOptions
 		End With
 		' cmdChangeMakeTool
 		cmdChangeMakeTool.Name = "cmdChangeMakeTool"
-		cmdChangeMakeTool.Text = ML("Change")
+		cmdChangeMakeTool.Text = ML("Chan&ge")
 		cmdChangeMakeTool.SetBounds 114, 289, 96, 24
 		cmdChangeMakeTool.OnClick = @cmdChangeMakeTool_Click
 		cmdChangeMakeTool.Parent = @grbMakeToolPaths
@@ -533,13 +533,13 @@ pfOptions = @fOptions
 		lstColorKeys.Parent = @grbColors
 		' cmdAdd
 		cmdAdd.Name = "cmdAdd"
-		cmdAdd.Text = ML("Add")
+		cmdAdd.Text = ML("&Add")
 		cmdAdd.SetBounds 258, 20, 71, 23
 		cmdAdd.OnClick = @cmdAdd_Click
 		cmdAdd.Parent = @grbColors
 		' cmdRemove
 		cmdRemove.Name = "cmdRemove"
-		cmdRemove.Text = ML("Remove")
+		cmdRemove.Text = ML("&Remove")
 		cmdRemove.SetBounds 330, 20, 71, 23
 		cmdRemove.OnClick = @cmdRemove_Click
 		cmdRemove.Parent = @grbColors
@@ -693,7 +693,7 @@ pfOptions = @fOptions
 		' cmdRemoveCompiler
 		With cmdRemoveCompiler
 			.Name = "cmdRemoveCompiler"
-			.Text = ML("Remove")
+			.Text = ML("&Remove")
 			.SetBounds 211, 224, 96, 24
 			.OnClick = @cmdRemoveCompiler_Click
 			.Parent = @grbCompilerPaths
@@ -701,7 +701,7 @@ pfOptions = @fOptions
 		' cmdClearCompilers
 		With cmdClearCompilers
 			.Name = "cmdClearCompilers"
-			.Text = ML("Clear")
+			.Text = ML("&Clear")
 			.SetBounds 308, 224, 96, 24
 			.OnClick = @cmdClearCompilers_Click
 			.Parent = @grbCompilerPaths
@@ -716,7 +716,7 @@ pfOptions = @fOptions
 		' cmdAddDebugger
 		With cmdAddDebugger
 			.Name = "cmdAddDebugger"
-			.Text = ML("Add")
+			.Text = ML("&Add")
 			.SetBounds 17, 289, 96, 24
 			.OnClick = @cmdAddDebugger_Click
 			.Parent = @grbDebuggerPaths
@@ -724,7 +724,7 @@ pfOptions = @fOptions
 		' cmdRemoveDebugger
 		With cmdRemoveDebugger
 			.Name = "cmdRemoveDebugger"
-			.Text = ML("Remove")
+			.Text = ML("&Remove")
 			.SetBounds 211, 289, 96, 24
 			.OnClick = @cmdRemoveDebugger_Click
 			.Parent = @grbDebuggerPaths
@@ -732,7 +732,7 @@ pfOptions = @fOptions
 		' cmdClearDebuggers
 		With cmdClearDebuggers
 			.Name = "cmdClearDebuggers"
-			.Text = ML("Clear")
+			.Text = ML("&Clear")
 			.SetBounds 307, 289, 96, 24
 			.OnClick = @cmdClearDebuggers_Click
 			.Parent = @grbDebuggerPaths
@@ -845,7 +845,7 @@ pfOptions = @fOptions
 		' cmdChangeCompiler
 		With cmdChangeCompiler
 			.Name = "cmdChangeCompiler"
-			.Text = ML("Change")
+			.Text = ML("Chan&ge")
 			.SetBounds 114, 224, 96, 24
 			.OnClick = @cmdChangeCompiler_Click
 			.Parent = @grbCompilerPaths
@@ -881,7 +881,7 @@ pfOptions = @fOptions
 		' cmdAddHelp
 		With cmdAddHelp
 			.Name = "cmdAddHelp"
-			.Text = ML("Add")
+			.Text = ML("&Add")
 			.SetBounds 17, 288, 96, 24
 			.OnClick = @cmdAddHelp_Click
 			.Parent = @grbHelpPaths
@@ -889,7 +889,7 @@ pfOptions = @fOptions
 		' cmdChangeHelp
 		With cmdChangeHelp
 			.Name = "cmdChangeHelp"
-			.Text = ML("Change")
+			.Text = ML("Chan&ge")
 			.SetBounds 114, 288, 96, 24
 			.OnClick = @cmdChangeHelp_Click
 			.Parent = @grbHelpPaths
@@ -897,7 +897,7 @@ pfOptions = @fOptions
 		' cmdRemoveHelp
 		With cmdRemoveHelp
 			.Name = "cmdRemoveHelp"
-			.Text = ML("Remove")
+			.Text = ML("&Remove")
 			.SetBounds 211, 288, 96, 24
 			.OnClick = @cmdRemoveHelp_Click
 			.Parent = @grbHelpPaths
@@ -905,7 +905,7 @@ pfOptions = @fOptions
 		' cmdClearHelp
 		With cmdClearHelps
 			.Name = "cmdClearHelps"
-			.Text = ML("Clear")
+			.Text = ML("&Clear")
 			.SetBounds 307, 289, 96, 24
 			.OnClick = @cmdClearHelps_Click
 			.Parent = @grbHelpPaths
@@ -949,7 +949,7 @@ pfOptions = @fOptions
 		With chkIncludeMFFPath
 			.Name = "chkIncludeMFFPath"
 			.Text = ML("Include MFF Path") & ":"
-			.SetBounds 7, 0, 138, 18
+			.SetBounds 7, 0, 150, 18
 			.Parent = @Panel1
 		End With
 		' pnlThemesCheckboxes
@@ -978,7 +978,6 @@ pfOptions = @fOptions
 			.Name = "chkLimitDebug"
 			.Text = ML("Limit debug to the directory of the main file")
 			.SetBounds 10, 116, 400, 16
-			.Caption = ML("Limit debug to the directory of the main file")
 			.Parent = @pnlGeneral
 		End With
 		' chkDisplayWarningsInDebug
@@ -986,7 +985,6 @@ pfOptions = @fOptions
 			.Name = "chkDisplayWarningsInDebug"
 			.Text = ML("Display warnings in debug")
 			.SetBounds 10, 138, 400, 16
-			.Caption = ML("Display warnings in debug")
 			.Parent = @pnlGeneral
 		End With
 	End Constructor
