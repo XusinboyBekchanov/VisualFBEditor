@@ -3253,41 +3253,45 @@ Sub CreateMenusAndToolBars
 	Dim As WString * 1024 Buff
 	Dim As MenuItem Ptr mi
 	Dim As ToolType Ptr tt
+	Dim As WString * 260 ToolsINI
 	#ifdef __USE_GTK__
-		Open ExePath & "/Tools/ToolsX.ini" For Input Encoding "utf8" As #Fn
+		ToolsINI = ExePath & "/Tools/ToolsX.ini"
 	#else
-		Open ExePath & "/Tools/Tools.ini" For Input Encoding "utf8" As #Fn
+		ToolsINI = ExePath & "/Tools/Tools.ini"
 	#endif
-	Do Until EOF(Fn)
-		Line Input #Fn, Buff
-		If StartsWith(Buff, "Path=") Then
-			tt = New ToolType
-			tt->Path = Mid(Buff, 6)
-			Tools.Add tt
-		ElseIf tt <> 0 Then
-			If StartsWith(Buff, "Name=") Then
-				tt->Name = Mid(Buff, 6)
-			ElseIf StartsWith(Buff, "Parameters=") Then
-				tt->Parameters = Mid(Buff, 12)
-			ElseIf StartsWith(Buff, "WorkingFolder=") Then
-				tt->WorkingFolder = Mid(Buff, 15)
-			ElseIf StartsWith(Buff, "Accelerator=") Then
-				tt->Accelerator = Mid(Buff, 13)
-				#ifdef __USE_GTK__
-				#else
-					Ico.Handle = ExtractIconW(Instance, tt->Path, NULL)
-					Bitm.Handle = Ico.ToBitmap
-				#endif
-				mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool)
-				mi->Tag = tt
-			ElseIf StartsWith(Buff, "LoadType=") Then
-				tt->LoadType = Cast(LoadTypes, Val(Mid(Buff, 10)))
-			ElseIf StartsWith(Buff, "WaitComplete=") Then
-				tt->WaitComplete = CDbl(Mid(Buff, 14))
+	If FileExists(ToolsINI) Then
+		Open ToolsINI For Input Encoding "utf8" As #Fn
+		Do Until EOF(Fn)
+			Line Input #Fn, Buff
+			If StartsWith(Buff, "Path=") Then
+				tt = New ToolType
+				tt->Path = Mid(Buff, 6)
+				Tools.Add tt
+			ElseIf tt <> 0 Then
+				If StartsWith(Buff, "Name=") Then
+					tt->Name = Mid(Buff, 6)
+				ElseIf StartsWith(Buff, "Parameters=") Then
+					tt->Parameters = Mid(Buff, 12)
+				ElseIf StartsWith(Buff, "WorkingFolder=") Then
+					tt->WorkingFolder = Mid(Buff, 15)
+				ElseIf StartsWith(Buff, "Accelerator=") Then
+					tt->Accelerator = Mid(Buff, 13)
+					#ifdef __USE_GTK__
+					#else
+						Ico.Handle = ExtractIconW(Instance, tt->Path, NULL)
+						Bitm.Handle = Ico.ToBitmap
+					#endif
+					mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool)
+					mi->Tag = tt
+				ElseIf StartsWith(Buff, "LoadType=") Then
+					tt->LoadType = Cast(LoadTypes, Val(Mid(Buff, 10)))
+				ElseIf StartsWith(Buff, "WaitComplete=") Then
+					tt->WaitComplete = CDbl(Mid(Buff, 14))
+				End If
 			End If
-		End If
-	Loop
-	Close #Fn
+		Loop
+		Close #Fn
+	End If
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mclick)
 	

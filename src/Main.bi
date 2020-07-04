@@ -15,7 +15,7 @@
 #include once "mff/TabControl.bi"
 #include once "mff/ToolPalette.bi"
 #include once "mff/TextBox.bi"
-#include Once "mff/StatusBar.bi" 'David Change
+#include once "mff/StatusBar.bi" 'David Change
 #include once "mff/IniFile.bi"
 #ifndef __USE_GTK__
 	#include once "mff/PageSetupDialog.bi"
@@ -44,6 +44,7 @@
 #else
 	#define Slash "/"
 	#define BackSlash "\"
+	#define MAX_PATH 260
 #endif
 
 Using My.Sys.Forms

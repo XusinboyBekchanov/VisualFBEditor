@@ -3611,6 +3611,10 @@ Namespace My.Sys.Forms
 				ec->ShowCaretPos False
 				ec->HScrollPos = 0
 				ec->VScrollPos = 0
+				
+				gtk_window_set_transient_for(gtk_window(ec->winIntellisense), gtk_window(pfrmMain->widget))
+				gtk_window_set_transient_for(gtk_window(ec->winTooltip), gtk_window(pfrmMain->widget))
+			
 			End If
 			#ifdef __USE_GTK3__
 			#else
@@ -3822,7 +3826,7 @@ Namespace My.Sys.Forms
 			winIntellisense = gtk_window_new(GTK_WINDOW_POPUP)
 			gtk_scrolled_window_set_policy(gtk_scrolled_window(lvIntellisense.scrolledwidget), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC)
 			gtk_container_add(gtk_container(winIntellisense), lvIntellisense.scrolledwidget)
-			gtk_window_set_transient_for(gtk_window(winIntellisense), gtk_window(pfrmMain->widget))
+			'gtk_window_set_transient_for(gtk_window(winIntellisense), gtk_window(pfrmMain->widget))
 			gtk_window_resize(gtk_window(winIntellisense), 250, 7 * 22)
 			lvIntellisense.Columns.Add "AutoComplete"
 			lvIntellisense.ColumnHeaderHidden = True
@@ -3837,7 +3841,7 @@ Namespace My.Sys.Forms
 				gtk_widget_set_margin_bottom(lblTooltip, 1)
 			#endif
 			gtk_container_add(gtk_container(winTooltip), lblTooltip)
-			gtk_window_set_transient_for(gtk_window(winTooltip), gtk_window(pfrmMain->widget))
+			'gtk_window_set_transient_for(gtk_window(winTooltip), gtk_window(pfrmMain->widget))
 			g_signal_connect(lblTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
 			'gtk_window_resize(gtk_window(winTooltip), 1000, 21)
 		#else
