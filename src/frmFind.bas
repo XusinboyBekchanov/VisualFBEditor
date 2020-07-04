@@ -88,13 +88,13 @@ pfFind = @fFind
 		btnFind.Name = "btnFind"
 		btnFind.Caption = ">"
 		btnFind.Default = True
-		btnFind.SetBounds 444, 4, 28, 26
+		btnFind.SetBounds 436, 4, 36, 26
 		btnFind.Parent = @This
 		
 		' btnFindPrev
 		btnFindPrev.NAME = "btnFindPrev"
 		btnFindPrev.Text = "<"
-		btnFindPrev.SetBounds 416, 4, 28, 26
+		btnFindPrev.SetBounds 400, 4, 36, 26
 		btnFindPrev.Caption = "<"
 		btnFindPrev.Parent = @This
 		
@@ -113,7 +113,7 @@ pfFind = @fFind
 		
 		' lblTrack
 		lblTrack.NAME = "lblTrack"
-		lblTrack.SetBounds 389, 3, 20, 18
+		lblTrack.SetBounds 381, 3, 12, 18
 		lblTrack.Parent = @This
 		
 		' TrackBar1
@@ -122,7 +122,7 @@ pfFind = @fFind
 		TrackBar1.OnChange = @TrackBar1_Change
 		TrackBar1.MinValue = 150
 		TrackBar1.MaxValue = 255
-		TrackBar1.SetBounds 344, 2, 44, 14
+		TrackBar1.SetBounds 344, 2, 36, 14
 		TrackBar1.Position = 210 ' This.Opacity
 		TrackBar1.Parent = @This
 		lblTrack.Text = WStr(CUInt(TrackBar1.Position/2.55))
@@ -164,9 +164,10 @@ pfFind = @fFind
 		' OptFindinCurrFile
 		With OptFindinCurrFile
 			.Name = "OptFindinCurrFile"
-			.Text = ML("Module")
+			.Text = ML("Modules")
 			.SetBounds 253, 20, 82, 21
 			'.Font.Size = 9
+			.OnClick = @OptFindinCurrFile_Click
 			.Parent = @This
 		End With
 		
@@ -174,8 +175,9 @@ pfFind = @fFind
 		With OptFindInProject
 			.Name = "OptFindInProject"
 			.Text = ML("Project")
-			.SetBounds 345, 20, 66, 21
+			.SetBounds 329, 20, 66, 21
 			'.Font.Size = 9
+			.OnClick = @OptFindInProject_Click
 			.Parent = @This
 		End With
 		
@@ -319,7 +321,7 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 						Loop
 						Close #Fn
 					Else
-						'MsgBox ML("Open file failure!") &  " " & ML("in function") & " frmFindInFiles.Find"  & WChr(13,10) & "  " & Path & f
+						MsgBox ML("Open file failure!") &  " " & ML("in function") & " frmFindInFiles.Find"  & WChr(13,10) & "  " & f
 					End If
 				End If
 			End If
@@ -794,4 +796,12 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 		.OptFindInProject.Checked = False
 		WDeallocate tmpstr
 	End With
+End Sub
+
+Private Sub frmFind.OptFindinCurrFile_Click(ByRef Sender As RadioButton)
+	    wLet gSearchSave, ""
+End Sub
+
+Private Sub frmFind.OptFindInProject_Click(ByRef Sender As RadioButton)
+	    wLet gSearchSave, ""
 End Sub

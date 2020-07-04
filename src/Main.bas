@@ -78,7 +78,8 @@ Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As Form frmMain
 Dim Shared As Integer MainHeight =600, MainWidth = 800
 Dim Shared As Integer miRecentMax =20 'David Changed
-Dim Shared As Boolean mChangeLogEdited ' Add Change Log
+Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True ' Add Change Log
+Dim Shared As WString * MAX_PATH mChangelogName  'David Changed
 pfrmMain = @frmMain
 pSaveD = @SaveD
 piniSettings = @iniSettings
@@ -102,6 +103,7 @@ ptbStandard = @tbStandard
 plvProperties = @lvProperties
 plvEvents = @lvEvents
 pprProgress = @prProgress
+pstBar = @stBar   'David Change
 ptxtPropertyValue = @txtPropertyValue
 ptvExplorer = @tvExplorer
 ptabCode = @tabCode
@@ -3464,9 +3466,18 @@ End Sub
 
 stBar.Align = 4
 stBar.Add ML("Press F1 for get more information")
+stBar.Panels[0]->Width = frmMain.ClientWidth - 560
+stBar.Add Space(20)
+stBar.Panels[1]->Width = 240
+stBar.Add Space(20)
+stBar.Panels[2]->Width = 160
+stBar.Add "UTF-8"
+stBar.Panels[3]->Width = 50
+stBar.Add "CR+LF"
+stBar.Panels[4]->Width = 50
+stBar.Add "NUM"
 Var spProgress = stBar.Add("")
 spProgress->Width = 100
-stBar.Add "NUM"
 
 prProgress.Visible = False
 prProgress.Marquee = True
@@ -3647,35 +3658,37 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	Dim As TreeNode Ptr ptn = tvExplorer.SelectedNode
 	If ptn = 0 Then Exit Sub 'David Change For Safty
 	ptn = GetParentNode(ptn)
-	If Not OldParentNode = ptn Then
-		'pfProjectProperties->RefreshProperties
+	If OldParentNode <> ptn Then
 		OldParentNode = ptn
 		MainNode = ptn
 		lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
-	End If
-	If ptn->ImageKey <> "Project" Then  'David Change For compile Single .bas file
-		MainNode = 0
-		lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
-	Else
-		If ptn <> 0 AndAlso MainNode <> ptn Then
-			Dim As WString Ptr Changelog
-			WLet Changelog, ExePath & Slash & StringExtract(ptn->Text, ".") & "_Change.log", True
-			If mChangeLogEdited Then
-				txtChangeLog.SaveToFile(*Changelog)  ' David Change
-				mChangeLogEdited = False
-			End If
-			MainNode = ptn
-			lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
-			If ptabBottom->TabIndex = 4 Then
-				txtChangeLog.Text = "Waiting...... "
-				If Dir(*Changelog)<>"" Then
-					txtChangeLog.LoadFromFile(*Changelog) ' David Change
-				Else
-					txtChangeLog.Text = ""
+		mLoadLog = False
+		mLoadToDO = False
+		If ptn->ImageKey <> "Project" Then  'David Change For compile Single .bas file
+			MainNode = 0
+			lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
+		Else
+			If mStartLoadSession = False Then
+				If ptabBottom->TabIndex = 4 AndAlso Not mLoadLog Then
+					If mChangeLogEdited AndAlso mChangelogName<> "" Then
+						txtChangeLog.SaveToFile(mChangelogName)  ' David Change
+						mChangeLogEdited = False
+					End If
+					mChangelogName = ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log"
+					txtChangeLog.Text = "Waiting...... "
+					If Dir(mChangelogName)<>"" AndAlso mChangelogName<> "" Then
+						txtChangeLog.LoadFromFile(mChangelogName) ' David Change
+						#ifndef __USE_GTK__
+							If InStr(txtChangeLog.Text,Chr(13,10)) < 1 Then txtChangeLog.Text = Replace(txtChangeLog.Text,Chr(10),Chr(13,10))
+						#endif
+					Else
+						txtChangeLog.Text = ""
+					End If
+					mLoadLog = True
+				ElseIf ptabBottom->TabIndex = 3  AndAlso Not mLoadToDO Then
+					ThreadCreate(@FindToDoSub, MainNode)
+					mLoadToDo = True
 				End If
-				wDeallocate Changelog
-			ElseIf ptabBottom->TabIndex = 3 Then
-				ThreadCreate(@FindToDoSub, ptn)
 			End If
 		End If
 	End If
@@ -4203,6 +4216,13 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
 	tb->tn->SelectItem
+	Static OldIndex As Integer
+	If OldIndex <> NewIndex Then
+		If pfFind->Visible = True AndAlso pfFind->OptFindinCurrFile.Checked Then
+			wLet gSearchSave,""
+			pfFind->FindAll plvSearch, 2,, False
+		End If
+	End If
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
 	lvProperties.ListItems.Clear
 	'tb->FillAllProperties
@@ -4354,8 +4374,10 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 	ElseIf CInt(bCtrl) And Shift And (key =108 Or key =76) Then
 		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, pTabCode->SelectedTab)
 		If tb <> 0 Then
-			txtChangeLog.SelText = " {in Function " & tb->cboFunction.text & " of module " & StringExtract(tb->Caption,"*") & "}"
+			'txtChangeLog.SelText =" {" & Replace(tb->Caption,"*","") & "|" & tb->cboFunction.Text & " Ln" & Val(Trim(Replace(pstBar->Panels[1]->Caption,ML("Row"),""))) & "}"
+			txtChangeLog.SelText =" {" & tb->Caption & "|" & tb->cboFunction.Text & " Ln" & Val( pstBar->Panels[1]->Caption)
 			mChangeLogEdited = True
+			
 		End If
 	End If
 End Sub
@@ -4468,6 +4490,28 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 		pnlBottom.RequestAlign
 		splBottom.Visible = True
 		frmMain.RequestAlign '<bp>
+	End If
+	If MainNode <>0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text,".") Then
+		If ptabBottom->TabIndex = 4 AndAlso Not mLoadLog Then
+			If mChangeLogEdited AndAlso mChangelogName<> "" Then
+				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
+				mChangeLogEdited = False
+			End If
+			mChangelogName = ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log"
+			txtChangeLog.Text = "Waiting...... "
+			If Dir(mChangelogName)<>"" AndAlso mChangelogName<> "" Then
+				txtChangeLog.LoadFromFile(mChangelogName) ' David Change
+				#ifndef __USE_GTK__
+					If InStr(txtChangeLog.Text,Chr(13,10)) < 1 Then txtChangeLog.Text = Replace(txtChangeLog.Text,Chr(10),Chr(13,10))
+				#endif
+			Else
+				txtChangeLog.Text = ""
+			End If
+			mLoadLog = True
+		ElseIf ptabBottom->TabIndex = 3  AndAlso Not mLoadToDO Then
+			ThreadCreate(@FindToDoSub, MainNode)
+			mLoadToDo = True
+		End If
 	End If
 End Sub
 
@@ -4598,8 +4642,8 @@ End Sub
 
 Sub frmMain_Resize(ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifndef __USE_GTK__
-		stBar.Panels[0]->Width = frmMain.ClientWidth - 50
-		prProgress.Left = stBar.Width - stBar.Panels[2]->Width - prProgress.Width - 3
+		stBar.Panels[0]->Width = NewWidth - 570
+		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width +3
 	#endif
 End Sub
 
@@ -4742,23 +4786,18 @@ Sub frmMain_Create(ByRef Sender As Control)
 		tviewWch = tvWch.Handle
 		DragAcceptFiles(frmMain.Handle, True)
 	#endif
-	If MainNode <> 0 Then
-		' Should have changelog file for every project
-		If MainNode->Text<>"" AndAlso InStr(MainNode->Text,".") Then
-			Dim As WString Ptr Changelog
-			wlet Changelog, ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log", True
-			If Dir(*Changelog)<>"" Then txtChangeLog.LoadFromFile(*Changelog) '
-			wDeallocate Changelog
-			Dim As ExplorerElement Ptr ee = MainNode->Tag
-			If ee AndAlso *ee->FileName <> "" Then
-				'				pfFindFile->txtPath.Text=GetFolderName(*ee->FileName)
-				'				pfFindFile->txtFind.Text=WChr(39)+ WChr(84)+"ODO" 'DO NOT confuse itself.
-				'				FindInFiles
-			End If
-		End If
-	End If
+	'	If MainNode <> 0 Then
+	'		' Should have changelog file for every project
+	'		If MainNode->Text<>"" AndAlso InStr(MainNode->Text,".") Then
+	'			Dim As WString Ptr Changelog
+	'			wlet Changelog, ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log", True
+	'			If Dir(*Changelog)<>"" Then txtChangeLog.LoadFromFile(*Changelog) '
+	'			wDeallocate Changelog
+	'		End If
+	'	End If
 	LoadAddins
 	LoadTools
+	mStartLoadSession = False
 End Sub
 
 Sub frmMain_Show(ByRef Sender As Control)

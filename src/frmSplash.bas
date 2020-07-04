@@ -57,7 +57,7 @@ Using My.Sys.Forms
 		With lblProcess
 			.Name = "lblProcess"
 			.Text = ""
-			.SetBounds 18, 306, 330, 18
+			.SetBounds 18, 306, 330, 34
 			.BackColor = 0
 			.Font.Color = 16777215
 			.Font.Size = 8

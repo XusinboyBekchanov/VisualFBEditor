@@ -587,6 +587,12 @@ Public Sub frmProjectProperties.RefreshProperties()
 				Else
 					.optCompileToGAS.Checked = True
 					.optCompileToGCC.Checked = False
+					.grbCompileToGCC.Enabled = .optCompileToGcc.Checked
+					.optOptimizationLevel.Enabled = .optCompileToGcc.Checked
+					.optOptimizationSmallCode.Enabled = .optCompileToGcc.Checked
+					.optNoOptimization.Enabled = .optCompileToGcc.Checked
+					.optOptimizationFastCode.Enabled = .optCompileToGcc.Checked
+					.cboOptimizationLevel.Enabled = .optCompileToGcc.Checked
 				End If
 				.optNoOptimization.Checked = ppe->OptimizationLevel = 0
 				.optOptimizationLevel.Checked = ppe->OptimizationLevel > 0

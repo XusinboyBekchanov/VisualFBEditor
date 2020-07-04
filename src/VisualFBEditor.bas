@@ -100,7 +100,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "SaveSession":                         SaveSession
 	Case "CloseFolder":                         CloseFolder GetParentNode(ptvExplorer->SelectedNode)
 	Case "CloseProject":                        CloseProject GetParentNode(ptvExplorer->SelectedNode)
-	Case "New":                                 AddTab
+	Case "New", "NewModule":                    AddTab
 	Case "Open":                                OpenProgram
 	Case "Save":                                Save
 	Case "Print":                               PrintThis

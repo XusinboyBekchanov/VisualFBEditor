@@ -15,6 +15,7 @@
 #include once "mff/TabControl.bi"
 #include once "mff/ToolPalette.bi"
 #include once "mff/TextBox.bi"
+#include Once "mff/StatusBar.bi" 'David Change
 #include once "mff/IniFile.bi"
 #ifndef __USE_GTK__
 	#include once "mff/PageSetupDialog.bi"
@@ -58,7 +59,8 @@ Declare Sub LoadLanguageTexts
 
 Common Shared As Form Ptr pfrmMain
 Common Shared As SaveFileDialog Ptr pSaveD
-Common Shared As ListView Ptr plvSearch, plvToDo '
+Common Shared As ListView Ptr plvSearch, plvToDo 
+Common Shared As StatusBar Ptr pstBar 'David Changed
 Common Shared As TreeListView Ptr plvProperties, plvEvents
 Common Shared As ImageList Ptr pimgList, pimgListTools
 Common Shared As ProgressBar Ptr pprProgress

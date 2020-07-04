@@ -853,7 +853,6 @@ Namespace My.Sys.Forms
 		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
 		If Result = 0 Then
 			FLines.Clear
-			'WReallocate Buff, LOF(1) ' 
 			Do Until EOF(Fn)
 				Line Input #Fn, Buff
 				FECLine = New EditControlLine
@@ -867,8 +866,9 @@ Namespace My.Sys.Forms
 			Loop
 			ScrollToCaret
 			ClearUndo
-			'WDeallocate Buff  ' 
 			Close #Fn
+		Else
+			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13,10) & " " & FileName
 		End If
 	End Sub
 	
@@ -879,6 +879,8 @@ Namespace My.Sys.Forms
 				Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text
 			Next
 			Close #Fn
+		Else
+			MsgBox ML("Save file failure!") & Chr(13,10) & File
 		End If
 	End Sub
 	
@@ -1216,6 +1218,7 @@ Namespace My.Sys.Forms
 		#else
 			SetCaretPos(HCaretPos, VCaretPos)
 		#endif
+		pstBar->Panels[1]->Caption = ML("Row") + " " + WStr(Int(VCaretPos/dwCharY+VScrollPos+1)) + " : " + WStr(FLines.Count+1) + WSpace(2)+ML("Column") + " " + WStr(Int(HCaretPos/dwCharX+HScrollPos-6)) + " : " + WStr(Int(dwClientX/dwCharX-6))+ WSpace(2)+ML("Selection") + " " + WStr(Len(SelText))
 		OldLine = FSelEndLine
 		OldChar = FSelEndChar
 		
