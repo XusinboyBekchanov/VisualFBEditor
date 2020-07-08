@@ -382,7 +382,7 @@ Function Compile(Parameter As String = "") As Integer
 		WAdd CompileWith, " -p """ & pLibraryPaths->Item(i) & """"
 	Next
 	'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
-	WLet LogFileName2, ExePath & "/Temp/debug_compil2.log"
+	WLet LogFileName2, ExePath & "/Temp/Compile.log"
 	WLet fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith
 	If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
@@ -405,11 +405,6 @@ Function Compile(Parameter As String = "") As Integer
 	'	#else
 	'		*PipeCommand=Replace(Replace(*PipeCommand,"/","\"),"\.\","\")
 	'	#endif
-	If Parameter <> "Check" Then
-		ThreadsEnter()
-		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand & " ..." + WChr(13) + WChr(10))
-		ThreadsLeave()
-	End If
 	'OPEN *BatFileName For Output As #FileOut
 	'Print #FileOut, *fbcCommand  + " > """ + *LogFileName + """" + " 2>""" + *LogFileName2 + """"
 	'Close #FileOut
@@ -430,11 +425,17 @@ Function Compile(Parameter As String = "") As Integer
 	Dim As Integer Result = -1, Fn =FreeFile
 	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 	#ifdef __USE_GTK__
-		If Open Pipe(*PipeCommand & " 2> """ + *LogFileName2 + """" For Input As #Fn) = 0 Then
+		WLet PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True
 	#else
-		If Open Pipe("""" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """" For Input As #Fn) = 0 Then
-			'ShowWindow(getconsolewindow,SW_HIDE)
+		WLet PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
+		'ShowWindow(getconsolewindow,SW_HIDE)
 	#endif
+	If Parameter <> "Check" Then
+		ThreadsEnter()
+		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
+		ThreadsLeave()
+	End If
+	If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 		While Not EOF(Fn)
 			Line Input #Fn, Buff
 			SplitError(Buff, ErrFileName, ErrTitle, iLine)
@@ -1092,7 +1093,7 @@ Sub OpenProgram()
 	OpenD.InitialDir = GetFullPath(*ProjectsPath)
 	'   End If
 	'  Add *.inc
-	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs,*.vfp,*.bas,*.bi,*.inc,*.rc)|*.vfs;*.vfp;*.bas;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("FreeBasic Resource Files") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
 		OpenFiles(OpenD.Filename)
 	End If

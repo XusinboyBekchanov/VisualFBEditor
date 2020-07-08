@@ -26,7 +26,7 @@ Using My.Sys.Forms
     	With CheckBox1
     		.Name = "CheckBox1"
     		.Text = "CheckBox1"
-    		.SetBounds 136, 40, 96, 64
+    		.SetBounds 40, 80, 120, 56
     		.Parent = @This
     	End With
     End Constructor
