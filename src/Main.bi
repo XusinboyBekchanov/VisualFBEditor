@@ -178,9 +178,9 @@ Declare Sub CloseAllTabs(WithoutCurrent As Boolean = False)
 Declare Sub RunHelp(Param As Any Ptr)
 
 Common Shared As Integer tabLeftWidth, tabRightWidth, tabBottomHeight
-Declare Sub SetLeftClosedStyle(Value As Boolean)
-Declare Sub SetRightClosedStyle(Value As Boolean)
-Declare Sub SetBottomClosedStyle(Value As Boolean)
+Declare Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
+Declare Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
+Declare Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
 
 #ifndef __USE_MAKE__
 	#include once "Main.bas"

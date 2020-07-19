@@ -64,5 +64,5 @@ Declare Sub FindSubProj(Param As Any Ptr)
 Declare Sub ReplaceSubProj(Param As Any Ptr)
 
 #ifndef __USE_MAKE__
-	#include once "frmFind.bas"
+	#include once "frmFind.frm"
 #endif

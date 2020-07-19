@@ -7,7 +7,7 @@
 
 '#define __USE_GTK__
 #ifndef __USE_MAKE__
-	#define __USE_GTK3__
+	'#define __USE_GTK3__
 	#define _NOT_AUTORUN_FORMS_
 #endif
 
@@ -226,7 +226,13 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "FindInFiles":                     mFormFindInFile = True:  pfFindFile->Show *pfrmMain
 	Case "ReplaceInFiles":                  mFormFindInFile = False:  pfFindFile->Show *pfrmMain
 	Case "Replace":                         mFormFind = False: pfFind->Show *pfrmMain
-	Case "NewForm":                         AddTab ExePath + "/Templates/Files/Form.bas", True
+	Case "PinLeft":                         SetLeftClosedStyle Not tbLeft.Buttons.Item("PinLeft")->Checked, False
+	Case "PinRight":                        SetRightClosedStyle Not tbRight.Buttons.Item("PinRight")->Checked, False
+	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
+	Case "EraseOutputWindow":               txtOutput.Text = ""
+	Case "NewForm":                         AddTab ExePath + "/Templates/Files/Form.frm", True
+	Case "NewResource":                     AddTab ExePath + "/Templates/Files/Resource.rc", True
+	Case "NewManifest":                     AddTab ExePath + "/Templates/Files/Manifest.xml", True
 		#ifndef __USE_GTK__
 		Case "ShowString":                  string_sh(tviewvar)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)

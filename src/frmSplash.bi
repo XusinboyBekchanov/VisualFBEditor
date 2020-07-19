@@ -22,5 +22,5 @@ Using My.Sys.Forms
 '#End Region
 
 #ifndef __USE_MAKE__
-	#include once "frmSplash.bas"
+	#include once "frmSplash.frm"
 #endif

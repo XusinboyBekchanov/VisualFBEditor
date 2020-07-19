@@ -33,5 +33,5 @@ Using My.Sys.Forms
 '#End Region
 
 #ifndef __USE_MAKE__
-	#include once "frmPath.bas"
+	#include once "frmPath.frm"
 #endif

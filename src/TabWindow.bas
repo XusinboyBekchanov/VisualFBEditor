@@ -312,7 +312,9 @@ End Property
 Sub CloseButton_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Dim tb As TabWindow Ptr = Cast(CloseButton Ptr, @Sender)->tbParent
 	If tb = 0 Then Exit Sub
-	If tb->CloseTab Then Delete tb
+	If tb->CloseTab Then 
+		'Delete tb
+	End If
 End Sub
 
 Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)

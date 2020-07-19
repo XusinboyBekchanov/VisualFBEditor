@@ -39,7 +39,7 @@ pfSplash->Show
 pApp->DoEvents
 
 Dim Shared As iniFile iniSettings, iniTheme
-Dim Shared As Toolbar tbStandard, tbExplorer, tbForm, tbProperties, tbEvents
+Dim Shared As Toolbar tbStandard, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
 Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
 Dim Shared As ListControl lstLeft
@@ -725,6 +725,18 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 	Return tn
 End Function
 
+Function GetIconName(ByRef FileName As WString) As String
+	If EndsWith(LCase(FileName), ".rc") OrElse EndsWith(LCase(FileName), ".res") OrElse EndsWith(LCase(FileName), ".xpm") Then
+		Return "Res"
+	ElseIf EndsWith(LCase(FileName), ".frm") Then
+		Return "Form"
+	ElseIf EndsWith(LCase(FileName), ".bas") Then
+		Return "Module"
+	Else
+		Return "File"
+	End If
+End Function
+
 Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0) As TreeNode Ptr
 	Dim As ExplorerElement Ptr ee
 	Dim As TreeNode Ptr tn3
@@ -812,13 +824,19 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						tn1 = GetTreeNodeChild(tn, Buff)
 					End If
 					'
-					Dim As Boolean FileEx = Dir(*ee->FileName)<>""
+					Dim As Boolean FileEx = Dir(*ee->FileName) <> ""
 					If bMain Then
 						IconName = "MainRes"
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  '
 							WLet ppe->ResourceFileName, *ee->FileName
 						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then  '
 							WLet ppe->IconResourceFileName, *ee->FileName
+'						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
+'							WLet ppe->MainFileName, *ee->FileName
+'							IconName = "MainForm"
+'						ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
+'							WLet ppe->MainFileName, *ee->FileName
+'							IconName = "MainModule"
 						Else
 							WLet ppe->MainFileName, *ee->FileName
 							IconName = "MainFile"
@@ -829,13 +847,16 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							If MainNode = 0 Then SetMainNode GetParentNode(tn1)  '
 						End If
 					Else
-						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") OrElse EndsWith(LCase(*ee->FileName), ".xpm") Then
-							IconName = "Res"
-						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
-							IconName = "Form"
-						Else
-							IconName = "File"
-						End If
+						IconName = GetIconName(*ee->FileName)
+'						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") OrElse EndsWith(LCase(*ee->FileName), ".xpm") Then
+'							IconName = "Res"
+'						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
+'							IconName = "Form"
+'						ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
+'							IconName = "Module"
+'						Else
+'							IconName = "File"
+'						End If
 						If Not FileEx Then IconName = "New"
 						If Not inFolder Then
 							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , *ee->FileName, IconName, IconName, True)
@@ -1457,11 +1478,13 @@ Sub OpenProjectFolder
 End Sub
 
 Sub SetMainNode(tn As TreeNode Ptr)
+	If MainNode <> 0 Then MainNode->Bold = False
 	MainNode = tn
 	If tn = 0 Then
-		lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
+		lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
 	Else
-		lblLeft.Text = ML("Main File") & ": " & MainNode->Text
+		MainNode->Bold = True
+		lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 	End If
 End Sub
 
@@ -1471,7 +1494,7 @@ Sub SetAsMain()
 	If tn = 0 Then Exit Sub
 	If tn->ParentNode = 0 OrElse (tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement) Then
 		SetMainNode tn
-		lblLeft.Text = ML("Main File") & ": " & MainNode->Text
+		lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 	Else
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
@@ -1486,8 +1509,9 @@ Sub SetAsMain()
 			If ee <> 0 AndAlso ppe <> 0 Then
 				'David Change
 				'If *ee->FileName = *pee->Project->MainFileName OrElse *ee->FileName = *pee->Project->ResourceFileName Then Exit Sub
-				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".bas") Then
-					Dim tn1 As TreeNode Ptr = tn->ParentNode
+				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") _
+					OrElse EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".inc") Then
+					Dim tn1 As TreeNode Ptr
 					Dim As Integer tIndex
 					Dim As String IconName
 					If Not EndsWith(ptn->Text, " *") Then ptn->Text &= " *"
@@ -1498,29 +1522,37 @@ Sub SetAsMain()
 						WLet ppe->ResourceFileName, *ee->FileName
 						IconName = "MainRes"
 					End If
+					If MainNode <> 0 Then MainNode->Bold = False 
 					MainNode = ptn 'MainNode must be root node
+					MainNode->Bold = True
+					tn->ImageKey = IconName
+					tn->SelectedImageKey = IconName
 					tMainNode = *ee->FileName
-					For j As Integer = tn1->Nodes.Count - 1 To 0 Step -1
-						ee = New ExplorerElement
-						ee = tn1->Nodes.Item(j)->Tag
-						tIndex = tn1->Nodes.Item(j)->Index
-						If IconName = tn1->Nodes.Item(j)->ImageKey Then
-							If *ee->FileName <> *ppe->MainFileName Then
-								tn1->Nodes.Remove(tIndex)
-								tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, Mid(IconName,5), Mid(IconName,5), True)
-								tn->Tag = ee
+					For i As Integer = 0 To ptn->Nodes.Count - 1
+						tn1 = ptn->Nodes.Item(i)
+						If tn1->Nodes.Count = 0 Then
+							ee = tn1->Tag
+							If IconName = tn1->ImageKey AndAlso *ee->FileName <> *ppe->MainFileName Then
+								tn = tn1
+								tn->ImageKey = GetIconName(*ee->FileName)
+								tn->SelectedImageKey = tn1->ImageKey
 							End If
-						ElseIf *ee->FileName = tMainNode Then ' *.rc you can set As MainMenu in RC node also
-							tn1->Nodes.Remove(tIndex)
-							tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
-							tn->Tag = ee
+						Else
+							For j As Integer = tn1->Nodes.Count - 1 To 0 Step -1
+								ee = tn1->Nodes.Item(j)->Tag
+								If IconName = tn1->Nodes.Item(j)->ImageKey AndAlso *ee->FileName <> *ppe->MainFileName Then
+									tn = tn1->Nodes.Item(j)
+									tn->ImageKey = GetIconName(*ee->FileName)
+									tn->SelectedImageKey = tn->ImageKey
+								End If
+							Next
 						End If
 					Next
-					If tn1->Nodes.Count=1 Then 'Only one file
-						tn1->Nodes.Remove(0)
-						tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
-						tn->Tag = ee
-					End If
+'					If tn1->Nodes.Count=1 Then 'Only one file
+'						tn1->Nodes.Remove(0)
+'						tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
+'						tn->Tag = ee
+'					End If
 				End If
 			End If
 		End If
@@ -3011,6 +3043,7 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "Form", "Form"
 	imgList.AddPng "Format", "Format"
 	imgList.AddPng "Unformat", "Unformat"
+	imgList.AddPng "Numbering", "Numbering"
 	imgList.AddPng "CodeAndForm", "CodeAndForm"
 	imgList.AddPng "SyntaxCheck", "SyntaxCheck"
 	imgList.AddPng "List", "Try"
@@ -3023,8 +3056,14 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "MainFile", "MainFile"
 	imgList.AddPng "Res", "Res"
 	imgList.AddPng "MainRes", "MainRes"
+	imgList.AddPng "Module", "Module"
+	imgList.AddPng "MainModule", "MainModule"
+	imgList.AddPng "Eraser", "Eraser"
+	imgList.AddPng "Pin", "Pin"
+	imgList.AddPng "Pinned", "Pinned"
 	imgList.AddPng "Settings", "Parameters"
 	imgList.AddPng "Folder", "Folder"
+	imgList.AddPng "MainProject", "MainProject"
 	imgList.AddPng "Project", "Project"
 	imgList.AddPng "Add", "Add"
 	imgList.AddPng "Remove", "Remove"
@@ -3042,7 +3081,7 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "Opened", "Opened"
 	imgList.AddPng "Tools", "Tools"
 	imgList.AddPng "StandartTypes", "StandartTypes"
-	imgList.AddPng "Enum", "Enum"
+	imgList.AddPng "Enum", "Enu"
 	imgList.AddPng "Type", "Type"
 	imgList.AddPng "Function", "Function"
 	imgList.AddPng "Event", "Event"
@@ -3160,10 +3199,10 @@ Sub CreateMenusAndToolBars
 	miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+J"), "", "CompleteWord", @mclick)
 	miEdit->Add("-")
 	Var miTry = miEdit->Add(ML("Error Handling"), "", "Try")
-	miTry->Add(ML("Numbering") & HK("NumberOn"), "", "NumberOn", @mclick)
+	miTry->Add(ML("Numbering") & HK("NumberOn"), "Numbering", "NumberOn", @mclick)
 	miTry->Add(ML("Remove Numbering") & HK("NumberOff"), "", "NumberOff", @mclick)
 	miTry->Add("-")
-	miTry->Add(ML("Procedure numbering") & HK("ProcedureNumberOn"), "", "ProcedureNumberOn", @mclick)
+	miTry->Add(ML("Procedure numbering") & HK("ProcedureNumberOn"), "Numbering", "ProcedureNumberOn", @mclick)
 	miTry->Add(ML("Remove Procedure numbering") & HK("ProcedureNumberOff"), "", "ProcedureNumberOff", @mclick)
 	miTry->Add("-")
 	miTry->Add("On Error Resume Next" & HK("OnErrorResumeNext"), "", "OnErrorResumeNext", @mclick)
@@ -3195,8 +3234,9 @@ Sub CreateMenusAndToolBars
 		Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
 	#endif
 	miProject->Add(ML("&New Form") & HK("NewForm", "Ctrl+Alt+N"), "Form", "NewForm", @mclick)
-	miProject->Add(ML("New &Module") & HK("NewModule","Ctrl+Alt+M"), "File", "NewModule", @mclick)
-	miProject->Add(ML("New Resources File") & HK("NewModule"), "File", "NewModule", @mclick)
+	miProject->Add(ML("New &Module") & HK("NewModule","Ctrl+Alt+M"), "Module", "NewModule", @mclick)
+	miProject->Add(ML("New Resource File") & HK("NewModule"), "Res", "NewResource", @mclick)
+	miProject->Add(ML("New Manifest File") & HK("NewManifest"), "File", "NewManifest", @mclick)
 	miProject->Add("-")
 	miProject->Add(ML("&Switch Code/Form") & HK("SwitchCodeForm"), "Code", "SwitchCodeForm", @mclick)
 	miProject->Add("-")
@@ -3304,7 +3344,7 @@ Sub CreateMenusAndToolBars
 		sTmp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
 		sTmp2 = iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
-			miHelps->Add(sTmp & HK(sTmp), sTmp2, sTmp, @mClickHelp)
+			miHelps->Add(Trim(sTmp) & HK(sTmp), sTmp2, sTmp, @mClickHelp)
 		End If
 	Next
 	miHelp->Add("-")
@@ -3382,13 +3422,14 @@ Sub CreateMenusAndToolBars
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add , "SyntaxCheck",, @mClick, "SyntaxCheck", , ML("Syntax Check"), True
 	Var tbButton = tbStandard.Buttons.Add(tbsWholeDropdown, "Try",, @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
-	tbButton->DropDownMenu.Add ML("Numbering"), "", "NumberOn", @mclick
+	tbButton->DropDownMenu.ImagesList = @imgList
+	tbButton->DropDownMenu.Add ML("Numbering"), "Numbering", "NumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Numbering"), "", "NumberOff", @mclick
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Procedure numbering"), "", "ProcedureNumberOn", @mclick
+	tbButton->DropDownMenu.Add ML("Procedure numbering"), "Numbering", "ProcedureNumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Procedure numbering"), "", "ProcedureNumberOff", @mclick
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Preprocessor Numbering"), "", "PreprocessorNumberOn", @mclick
+	tbButton->DropDownMenu.Add ML("Preprocessor Numbering"), "Numbering", "PreprocessorNumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Preprocessor Numbering"), "", "PreprocessorNumberOff", @mclick
 	tbButton->DropDownMenu.Add "-"
 	tbButton->DropDownMenu.Add "On Error Resume Next", "", "OnErrorResumeNext", @mclick
@@ -3536,31 +3577,102 @@ splLeft.Align = 1
 splRight.Align = 2
 splBottom.Align = 4
 
+Sub CloseLeft()
+	splLeft.Visible = False
+	#ifdef __USE_GTK__
+		pnlLeft.Width = 30
+	#else
+		tabLeft.TabIndex = -1
+		pnlLeft.Width = tabLeft.ItemWidth(0) + 2
+	#endif
+	tbLeft.Visible = False 
+	frmMain.RequestAlign
+End Sub
+
+Sub ShowLeft()
+	tabLeft.SetFocus
+	pnlLeft.Width = tabLeftWidth
+	pnlLeft.RequestAlign
+	splLeft.Visible = True
+	tbLeft.Left = tabLeftWidth - tbLeft.Width - 4
+	tbLeft.Visible = True
+	'#IfNDef __USE_GTK__
+	frmMain.RequestAlign
+	'#EndIf
+End Sub
+
+Sub CloseRight()
+	splRight.Visible = False
+	#ifdef __USE_GTK__
+		pnlRight.Width = 30
+	#else
+		tabRight.TabIndex = -1
+		pnlRight.Width = tabRight.ItemWidth(0) + 2
+	#endif
+	tbRight.Visible = False
+	frmMain.RequestAlign
+End Sub
+
+Sub ShowRight()
+	tabRight.SetFocus
+	pnlRight.Width = tabRightWidth
+	pnlRight.RequestAlign
+	splRight.Visible = True
+	tbRight.Left = tabRightWidth - tbRight.Width - 22
+	tbRight.Visible = True
+	frmMain.RequestAlign
+End Sub
+
+Sub CloseBottom()
+	splBottom.Visible = False
+	#ifdef __USE_GTK__
+		pnlBottom.Height = 25
+	#else
+		ptabBottom->TabIndex = -1
+		pnlBottom.Height = ptabBottom->ItemHeight(0) + 2
+	#endif
+	tbBottom.Visible = False
+	frmMain.RequestAlign
+End Sub
+
+Sub ShowBottom()
+	ptabBottom->SetFocus
+	pnlBottom.Height = tabBottomHeight
+	pnlBottom.RequestAlign
+	splBottom.Visible = True
+	tbBottom.Visible = True
+	frmMain.RequestAlign '<bp>
+End Sub
+
 Function GetLeftClosedStyle As Boolean
 	Return Not tabLeft.TabPosition = tpTop
 End Function
 
-Sub SetLeftClosedStyle(Value As Boolean)
-	If Value Then
-		'tabLeft.Align = 1
-		tabLeft.TabPosition = tpLeft
-		tabLeft.TabIndex = -1
-		#ifdef __USE_GTK__
-			pnlLeft.Width = 30
-		#else
-			pnlLeft.Width = tabLeft.ItemWidth(0) + 2
-		#endif
-		splLeft.Visible = False
-	Else
-		pnlLeft.Width = tabLeftWidth
-		'tabLeft.Width = tabLeftWidth
-		tabLeft.TabPosition = tpTop
-		'tabLeft.Align = 5
-		splLeft.Visible = True
-	End If
+Dim Shared bClosing As Boolean
+Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
+	If bClosing Then Exit Sub
+	bClosing = True
+	With *tbLeft.Buttons.Item("PinLeft")
+		If Value Then
+			tabLeft.TabPosition = tpLeft
+			.ImageKey = "Pin"
+			.Checked = False
+			tbLeft.Top = 2
+			If WithClose Then CloseLeft
+		Else
+			pnlLeft.Width = tabLeftWidth
+			tabLeft.TabPosition = tpTop
+			splLeft.Visible = True
+			tbLeft.Visible = True
+			.ImageKey = "Pinned"
+			.Checked = True
+			tbLeft.Top = 22
+		End If
+	End With
 	'#IfNDef __USE_GTK__
 	frmMain.RequestAlign
 	'#EndIf
+	bClosing = False
 End Sub
 
 Sub tabLeft_DblClick(ByRef Sender As Control)
@@ -3665,14 +3777,17 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	ptn = GetParentNode(ptn)
 	If OldParentNode <> ptn Then
 		OldParentNode = ptn
-		MainNode = ptn
-		lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
+		'If MainNode <> 0 Then MainNode->Bold = False
+		'MainNode = ptn
+		'lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 		mLoadLog = False
 		mLoadToDO = False
-		If ptn->ImageKey <> "Project" Then  'David Change For compile Single .bas file
-			MainNode = 0
-			lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
+		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" Then  'David Change For compile Single .bas file
+'			MainNode = 0
+'			lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
 		Else
+'			MainNode->ImageKey = "MainProject"
+'			MainNode->Bold = True
 			If mStartLoadSession = False Then
 				If ptabBottom->TabIndex = 4 AndAlso Not mLoadLog Then
 					If mChangeLogEdited AndAlso mChangelogName<> "" Then
@@ -3717,23 +3832,27 @@ Sub tabLeft_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	#else
 		If tabLeft.TabPosition = tpLeft And tabLeft.TabIndex <> -1 Then
 	#endif
-		tabLeft.SetFocus
-		pnlLeft.Width = tabLeftWidth
-		pnlLeft.RequestAlign
-		splLeft.Visible = True
-		'#IfNDef __USE_GTK__
-		frmMain.RequestAlign
-		'#EndIf
+		ShowLeft
+'		tabLeft.SetFocus
+'		pnlLeft.Width = tabLeftWidth
+'		pnlLeft.RequestAlign
+'		splLeft.Visible = True
+'		tbLeft.Visible = True
+'		'#IfNDef __USE_GTK__
+'		frmMain.RequestAlign
+'		'#EndIf
 	End If
 End Sub
 
 Sub tabLeft_Click(ByRef Sender As Control)
 	If tabLeft.TabPosition = tpLeft And pnlLeft.Width = 30 Then
-		tabLeft.SetFocus
-		pnlLeft.Width = tabLeftWidth
-		pnlLeft.RequestAlign
-		splLeft.Visible = True
-		frmMain.RequestAlign
+		ShowLeft
+'		tabLeft.SetFocus
+'		pnlLeft.Width = tabLeftWidth
+'		pnlLeft.RequestAlign
+'		splLeft.Visible = True
+'		tbLeft.Visible = True
+'		frmMain.RequestAlign
 	End If
 End Sub
 
@@ -3758,6 +3877,15 @@ tabLeft.OnDblClick = @tabLeft_DblClick
 tabLeft.OnSelChange = @tabLeft_SelChange
 pnlLeft.Add @tabLeft
 'tabLeft.TabPosition = tpLeft
+
+tbLeft.ImagesList = @imgList
+tbLeft.Anchor.Right = AnchorStyle.asAnchor
+tbLeft.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinLeft", "", ML("Pin"), , tstEnabled Or tstChecked
+tbLeft.Flat = True
+tbLeft.Width = 23
+tbLeft.Top = 22
+tbLeft.Left = tabLeftWidth - tbLeft.Width - 4
+tbLeft.Parent = @pnlLeft
 
 Var tpLoyiha = tabLeft.AddTab(ML("Project"))
 
@@ -4118,26 +4246,32 @@ Function GetRightClosedStyle As Boolean
 	Return Not tabRight.TabPosition = tpTop
 End Function
 
-Sub SetRightClosedStyle(Value As Boolean)
-	If Value Then
-		tabRight.TabPosition = tpRight
-		tabRight.TabIndex = -1
-		#ifdef __USE_GTK__
-			pnlRight.Width = 30
-		#else
-			pnlRight.Width = tabRight.ItemWidth(0) + 2
-		#endif
-		splRight.Visible = False
-		pnlRight.RequestAlign
-	Else
-		tabRight.TabPosition = tpTop
-		tabRight.Width = tabRightWidth
-		pnlRight.Width = tabRightWidth
-		'pnlRight.RequestAlign
-		splRight.Visible = True
-		
-	End If
+Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
+	If bClosing Then Exit Sub
+	bClosing = True
+	With *tbRight.Buttons.Item("PinRight")
+		If Value Then
+			tabRight.TabPosition = tpRight
+			.ImageKey = "Pin"
+			.Checked = False
+			tbRight.Top = 2
+			tbRight.Left = tabRightWidth - tbRight.Width - 22
+			If WithClose Then CloseRight
+		Else
+			tabRight.TabPosition = tpTop
+			tabRight.Width = tabRightWidth
+			pnlRight.Width = tabRightWidth
+			'pnlRight.RequestAlign
+			splRight.Visible = True
+			tbRight.Visible = True
+			.ImageKey = "Pinned"
+			.Checked = True
+			tbRight.Top = 22
+			tbRight.Left = tabRightWidth - tbRight.Width - 4
+		End If
+	End With
 	frmMain.RequestAlign
+	bClosing = False
 End Sub
 
 Sub tabRight_DblClick(ByRef Sender As Control)
@@ -4150,11 +4284,12 @@ Sub tabRight_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	#else
 		If tabRight.TabPosition = tpRight And tabRight.TabIndex <> -1 Then
 	#endif
-		tabRight.SetFocus
-		pnlRight.Width = tabRightWidth
-		pnlRight.RequestAlign
-		splRight.Visible = True
-		frmMain.RequestAlign
+		ShowRight
+'		tabRight.SetFocus
+'		pnlRight.Width = tabRightWidth
+'		pnlRight.RequestAlign
+'		splRight.Visible = True
+'		frmMain.RequestAlign
 	End If
 End Sub
 
@@ -4167,11 +4302,12 @@ tvVar.ContextMenu = @mnuVars
 
 Sub tabRight_Click(ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
-		tabRight.SetFocus
-		pnlRight.Width = tabRightWidth
-		pnlRight.RequestAlign
-		splRight.Visible = True
-		frmMain.RequestAlign
+		ShowRight
+'		tabRight.SetFocus
+'		pnlRight.Width = tabRightWidth
+'		pnlRight.RequestAlign
+'		splRight.Visible = True
+'		frmMain.RequestAlign
 	End If
 End Sub
 
@@ -4179,7 +4315,7 @@ Sub pnlRight_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight
 	#ifdef __USE_GTK__
 		If pnlRight.Width <> 30 Then tabRightWidth = NewWidth: tabRight.SetBounds(0, 0, tabRightWidth, NewHeight)
 	#else
-		If tabRight.TabIndex <> -1 Then tabRightWidth = tabRight.Width
+		If tabRight.TabIndex <> -1 Then tabRightWidth = tabRight.Width: If GetRightClosedStyle Then tbRight.Left = tabRightWidth - tbRight.Width - 22
 	#endif
 End Sub
 
@@ -4208,6 +4344,15 @@ tabRight.Tabs[1]->Add @txtLabelEvent
 tabRight.Tabs[1]->Add @splEvents
 tabRight.Tabs[1]->Add @lvEvents
 pnlRight.Add @tabRight
+
+tbRight.ImagesList = @imgList
+tbRight.Anchor.Right = AnchorStyle.asAnchor
+tbRight.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinRight", "", ML("Pin"), , tstEnabled Or tstChecked
+tbRight.Flat = True
+tbRight.Width = 23
+tbRight.Top = 22
+tbRight.Left = tabRightWidth - tbRight.Width - 4
+tbRight.Parent = @pnlRight
 
 'pnlRight.Width = 153
 'pnlRight.Align = 2
@@ -4457,30 +4602,43 @@ Function GetBottomClosedStyle As Boolean
 	Return Not ptabBottom->TabPosition = tpTop
 End Function
 
-Sub SetBottomClosedStyle(Value As Boolean)
-	If Value Then
-		ptabBottom->TabPosition = tpBottom
-		ptabBottom->TabIndex = -1
-		#ifdef __USE_GTK__
-			pnlBottom.Height = 25
-		#else
-			pnlBottom.Height = ptabBottom->ItemHeight(0) + 2
-		#endif
-		splBottom.Visible = False
-		'pnlBottom.RequestAlign
-	Else
-		ptabBottom->TabPosition = tpTop
-		ptabBottom->Height = tabBottomHeight
-		pnlBottom.Height = tabBottomHeight
-		pnlBottom.RequestAlign
-		splBottom.Visible = True
-	End If
+Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
+	If bClosing Then Exit Sub
+	bClosing = True
+	With *tbBottom.Buttons.Item("PinBottom")
+		If Value Then
+			ptabBottom->TabPosition = tpBottom
+'			ptabBottom->TabIndex = -1
+'			#ifdef __USE_GTK__
+'				pnlBottom.Height = 25
+'			#else
+'				pnlBottom.Height = ptabBottom->ItemHeight(0) + 2
+'			#endif
+'			splBottom.Visible = False
+			.ImageKey = "Pin"
+			.Checked = False
+			'tbBottom.Top = 2
+			If WithClose Then CloseBottom
+			'pnlBottom.RequestAlign
+		Else
+			ptabBottom->TabPosition = tpTop
+			ptabBottom->Height = tabBottomHeight
+			pnlBottom.Height = tabBottomHeight
+			pnlBottom.RequestAlign
+			splBottom.Visible = True
+			tbBottom.Visible = True
+			.ImageKey = "Pinned"
+			.Checked = True
+			'tbBottom.Top = 2
+		End If
+	End With
 	'#IfNDef __USE_GTK__
 	frmMain.RequestAlign
 	'#EndIf
+	bClosing = False
 End Sub
 
-Sub tabBottom_DblClick(ByRef Sender As Control) '...'
+Sub tabBottom_DblClick(ByRef Sender As Control)
 	SetBottomClosedStyle Not GetBottomClosedStyle
 End Sub
 
@@ -4490,12 +4648,16 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	#else
 		If ptabBottom->TabPosition = tpBottom And ptabBottom->TabIndex <> -1 Then
 	#endif
-		ptabBottom->SetFocus
-		pnlBottom.Height = tabBottomHeight
-		pnlBottom.RequestAlign
-		splBottom.Visible = True
-		frmMain.RequestAlign '<bp>
+		ShowBottom
+'		ptabBottom->SetFocus
+'		pnlBottom.Height = tabBottomHeight
+'		pnlBottom.RequestAlign
+'		splBottom.Visible = True
+'		frmMain.RequestAlign '<bp>
 	End If
+	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = ptabBottom->TabIndex = 0
+	tbBottom.Buttons.Item("AddWatch")->Visible = ptabBottom->TabIndex = 9
+	tbBottom.Buttons.Item("RemoveWatch")->Visible = ptabBottom->TabIndex = 9
 	If MainNode <>0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text,".") Then
 		If ptabBottom->TabIndex = 4 AndAlso Not mLoadLog Then
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
@@ -4526,11 +4688,12 @@ Sub tabBottom_Click(ByRef Sender As Control) '<...>
 	#else
 		If ptabBottom->TabPosition = tpBottom And ptabBottom->TabIndex <> -1 Then
 	#endif
-		ptabBottom->SetFocus
-		pnlBottom.Height = tabBottomHeight
-		pnlBottom.RequestAlign
-		splBottom.Visible = True
-		frmMain.RequestAlign '<bp>
+	ShowBottom
+'		ptabBottom->SetFocus
+'		pnlBottom.Height = tabBottomHeight
+'		pnlBottom.RequestAlign
+'		splBottom.Visible = True
+'		frmMain.RequestAlign '<bp>
 	End If
 End Sub
 
@@ -4564,6 +4727,20 @@ pnlBottom.Name = "pnlBottom"
 pnlBottom.Align = 4
 pnlBottom.Height = tabBottomHeight
 pnlBottom.OnResize = @pnlBottom_Resize
+
+tbBottom.ImagesList = @imgList
+tbBottom.Align = DockStyle.alRight
+tbBottom.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinBottom", "", ML("Pin"), , tstEnabled Or tstChecked
+tbBottom.Buttons.Add tbsSeparator
+tbBottom.Buttons.Add , "Eraser", , @mClick, "EraseOutputWindow", "", ML("Erase output window"), , tstEnabled
+tbBottom.Buttons.Add , "Add", , @mClick, "AddWatch", "", ML("Add Watch"), , tstEnabled
+tbBottom.Buttons.Add , "Remove", , @mClick, "RemoveWatch", "", ML("Remove Watch"), , tstEnabled
+'tbBottom.Buttons.Item("AddWatch")->Visible = False
+'tbBottom.Buttons.Item("RemoveWatch")->Visible = False
+tbBottom.Flat = True
+tbBottom.Wrapable = True 
+tbBottom.Width = tbBottom.Height
+tbBottom.Parent = @pnlBottom
 
 'ptabBottom->Images.AddIcon bmp
 ptabBottom->Name = "tabBottom"
@@ -4608,39 +4785,18 @@ Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 	If frmMain.ActiveControl = 0 Then Exit Sub
 	If tabLeft.TabPosition = tpLeft And tabLeft.TabIndex <> -1 Then
 		If frmMain.ActiveControl->Parent <> tabLeft.SelectedTab AndAlso frmMain.ActiveControl <> @tabLeft Then
-			splLeft.Visible = False
-			#ifdef __USE_GTK__
-				pnlLeft.Width = 30
-			#else
-				tabLeft.TabIndex = -1
-				pnlLeft.Width = tabLeft.ItemWidth(0) + 2
-			#endif
-			frmMain.RequestAlign
+			CloseLeft
 		End If
 	End If
 	If tabRight.TabPosition = tpRight And tabRight.TabIndex <> -1 Then
 		If frmMain.ActiveControl->Parent <> tabRight.SelectedTab AndAlso frmMain.ActiveControl <> @tabRight _
 			AndAlso frmMain.ActiveControl <> @txtPropertyValue AndAlso frmMain.ActiveControl <> @cboPropertyValue Then
-			splRight.Visible = False
-			#ifdef __USE_GTK__
-				pnlRight.Width = 30
-			#else
-				tabRight.TabIndex = -1
-				pnlRight.Width = tabRight.ItemWidth(0) + 2
-			#endif
-			frmMain.RequestAlign
+			CloseRight()
 		End If
 	End If
 	If ptabBottom->TabPosition = tpBottom And ptabBottom->TabIndex <> -1 Then
 		If frmMain.ActiveControl->Parent <> ptabBottom->SelectedTab AndAlso frmMain.ActiveControl <> ptabBottom Then
-			splBottom.Visible = False
-			#ifdef __USE_GTK__
-				pnlBottom.Height = 25
-			#else
-				ptabBottom->TabIndex = -1
-				pnlBottom.Height = ptabBottom->ItemHeight(0) + 2
-			#endif
-			frmMain.RequestAlign
+			CloseBottom
 		End If
 	End If
 End Sub

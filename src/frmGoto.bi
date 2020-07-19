@@ -34,6 +34,6 @@ Using My.Sys.Forms
 	Common Shared As frmGoto Ptr pfGoto
 '#End Region
 
-#IfNDef __USE_MAKE__
-	#Include Once "frmGoto.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "frmGoto.frm"
+#endif

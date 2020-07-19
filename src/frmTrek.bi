@@ -25,5 +25,5 @@ Using My.Sys.Forms
 '#End Region
 
 #ifndef __USE_MAKE__
-	#include once "frmTrek.bas"
+	#include once "frmTrek.frm"
 #endif

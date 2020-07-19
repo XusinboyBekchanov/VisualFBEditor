@@ -57,5 +57,5 @@ Declare Sub ReplaceSub(Param As Any Ptr)
 Declare Sub ReplaceInFiles()
 
 #ifndef __USE_MAKE__
-	#include once "frmFindInFiles.bas"
+	#include once "frmFindInFiles.frm"
 #endif

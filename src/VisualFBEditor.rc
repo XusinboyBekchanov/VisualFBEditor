@@ -57,10 +57,18 @@ FILE PNG "../resources/File.png"
 MainFile PNG "../resources/MainFile.png"
 Res PNG "../resources/Res.png"
 MainRes PNG "../resources/MainRes.png"
+Module PNG "../resources/Module.png"
+MainModule PNG "../resources/Module.png"
+ModuleRes PNG "../resources/MainModule.png"
 SETTINGS PNG "../resources/Parameters.png"
 SyntaxCheck PNG "../resources/SyntaxCheck.png"
 Folder PNG "../resources/Folder.png"
+Numbering PNG "../resources/Numbering.png"
 Project PNG "../resources/Project.png"
+MainProject PNG "../resources/MainProject.png"
+Pin PNG "../resources/Pin.png"
+Pinned PNG "../resources/Pinned.png"
+Eraser PNG "../resources/Eraser.png"
 Add PNG "../resources/Add.png"
 Remove PNG "../resources/Remove.png"
 Error PNG "../resources/Error.png"
@@ -90,8 +98,8 @@ weChat PNG "../resources/weChat.png"
 
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,4,923
-#define VER_FILEVERSION_STR         "1.2.4.923\0"
+#define VER_FILEVERSION             1,2,4,1087
+#define VER_FILEVERSION_STR         "1.2.4.1087\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

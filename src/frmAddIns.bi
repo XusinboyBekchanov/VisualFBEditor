@@ -58,5 +58,5 @@ Declare Sub ConnectAddIn(AddIn As String)
 Declare Sub DisconnectAddIn(AddIn As String)
 
 #ifndef __USE_MAKE__
-	#include once "frmAddIns.bas"
+	#include once "frmAddIns.frm"
 #endif

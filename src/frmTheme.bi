@@ -26,6 +26,6 @@ Using My.Sys.Forms
 	Common Shared pfTheme As frmTheme Ptr
 '#End Region
 
-#IfNDef __USE_MAKE__
-	#Include Once "frmTheme.bas"
-#EndIf
+#ifndef __USE_MAKE__
+	#include once "frmTheme.frm"
+#endif

@@ -365,7 +365,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.ChangeCollapseState(LineIndex As Integer, Value As Boolean)
 		If LineIndex < 0 OrElse LineIndex > FLines.Count - 1 Then Exit Sub
-		Dim j As Integer
+		Dim As Integer j, Idx
 		Dim FECLine As EditControlLine Ptr = FLines.Items[LineIndex]
 		Dim As EditControlLine Ptr FECLine2
 		FECLine->Collapsed = Value
@@ -376,6 +376,8 @@ Namespace My.Sys.Forms
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
 				FECLine2 = FLines.Items[i]
 				FECLine2->Visible = False
+				Idx = VisibleLines.IndexOf(FECLine2)
+				If Idx > -1 Then VisibleLines.Remove Idx
 				If FECLine2->ConstructionIndex = FECLine->ConstructionIndex Then
 					If FECLine2->ConstructionPart = 2 Then
 						j -= 1
@@ -412,6 +414,11 @@ Namespace My.Sys.Forms
 					End If
 					FECLine2->Visible = False
 				End If
+				If FECLine2->Visible Then
+					Idx = VisibleLines.IndexOf(FECLine2)
+					If Idx = -1 Then VisibleLines.Insert VisibleLines.IndexOf(FECLine) + 1, FECLine2
+					FECLine = FECLine2
+				End If
 			Next i
 		End If
 	End Sub
@@ -435,7 +442,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.ChangeCollapsibility(LineIndex As Integer)
-		Dim As Integer i, j, k
+		Dim As Integer i, j, k, Idx
 		Dim OldCollapsed As Boolean, OldLineIndex As Integer = LineIndex - 1
 		If LineIndex < 0 OrElse LineIndex > FLines.Count - 1 Then Exit Sub
 		Dim ecl As EditControlLine Ptr = FLines.Items[LineIndex]
@@ -481,6 +488,12 @@ Namespace My.Sys.Forms
 				ecl->Visible = j = -1
 			ElseIf eclOld->Collapsed Then
 				ecl->Visible = False
+			End If
+			Idx = VisibleLines.IndexOf(ecl)
+			If ecl->Visible AndAlso Idx = -1 Then
+				If eclOld->Visible Then VisibleLines.Insert VisibleLines.IndexOf(eclOld) + 1, ecl
+			ElseIf (Not ecl->Visible) AndAlso Idx > -1 Then
+				VisibleLines.Remove Idx
 			End If
 		End If
 	End Sub
@@ -853,6 +866,7 @@ Namespace My.Sys.Forms
 		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
 		If Result = 0 Then
 			FLines.Clear
+			VisibleLines.Clear
 			Do Until EOF(Fn)
 				Line Input #Fn, Buff
 				FECLine = New EditControlLine
@@ -861,6 +875,7 @@ Namespace My.Sys.Forms
 				FECLine->CommentIndex = iC
 				FLines.Add(FECLine)
 				ChangeCollapsibility i
+				If FECLine->Visible Then VisibleLines.Add(FECLine)
 				OldiC = iC
 				i += 1
 			Loop
@@ -1147,12 +1162,12 @@ Namespace My.Sys.Forms
 			CloseToolTip()
 		End If
 		If OldLine <> FSelEndLine OrElse OldChar <> FSelEndChar Then
-			If OnSelChange Then OnSelChange(This, FSelEndLine, FSelEndChar)
+			If This.OnSelChange Then This.OnSelChange(This, FSelEndLine, FSelEndChar)
 		End If
 		If OldLine <> FSelEndLine Then
 			If ToolTipShowed Then CloseToolTip()
 			If Not bOldCommented Then Changing "Matn kiritildi"
-			If OnLineChange Then OnLineChange(This, FSelEndLine, OldLine)
+			If This.OnLineChange Then This.OnLineChange(This, FSelEndLine, OldLine)
 		End If
 		
 		If CInt(FSelStartLine > -1) AndAlso CInt(FSelStartLine < FLines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, FLines.Items[FSelStartLine])->Visible) Then
@@ -1836,7 +1851,7 @@ Namespace My.Sys.Forms
 										MatnBoshi = 0
 										'End If
 									End If
-								ElseIf Not CStyle AndAlso Chr(t) = "'" Then
+								ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", Chr(t) = "'") Then
 									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 									'txtCode.SetSel ss + j - 1, ss + l
 									'txtCode.SelColor = clGreen

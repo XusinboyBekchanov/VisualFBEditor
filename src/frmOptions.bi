@@ -140,5 +140,5 @@ Common Shared As Integer oldIndex, newIndex
 Common Shared pfOptions As frmOptions Ptr
 
 #ifndef __USE_MAKE__
-	#include once "frmOptions.bas"
+	#include once "frmOptions.frm"
 #endif

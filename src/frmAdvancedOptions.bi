@@ -13,5 +13,5 @@ Using My.Sys.Forms
 '#End Region
 
 #ifndef __USE_MAKE__
-	#include once "frmAdvancedOptions.bas"
+	#include once "frmAdvancedOptions.frm"
 #endif

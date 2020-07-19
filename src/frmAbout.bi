@@ -5,15 +5,15 @@
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
-#include Once "mff/Form.bi"
-#include Once "mff/CheckBox.bi"
-#include Once "mff/Label.bi"
-#include Once "mff/LinkLabel.bi"
-#include Once "mff/CommandButton.bi"
-#include Once "mff/RichTextBox.bi"
-#include Once "mff/ImageBox.bi"
-#include Once "Main.bi"
-#include Once "mff/Picture.bi"
+#include once "mff/Form.bi"
+#include once "mff/CheckBox.bi"
+#include once "mff/Label.bi"
+#include once "mff/LinkLabel.bi"
+#include once "mff/CommandButton.bi"
+#include once "mff/RichTextBox.bi"
+#include once "mff/ImageBox.bi"
+#include once "Main.bi"
+#include once "mff/Picture.bi"
 
 Using My.Sys.Forms
 
@@ -34,5 +34,5 @@ Using My.Sys.Forms
 '#End Region
 
 #ifndef __USE_MAKE__
-	#include Once "frmAbout.bas"
+	#include once "frmAbout.frm"
 #endif
