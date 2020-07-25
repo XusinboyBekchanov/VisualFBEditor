@@ -3327,7 +3327,7 @@ Sub CreateMenusAndToolBars
 				ElseIf StartsWith(Buff, "LoadType=") Then
 					tt->LoadType = Cast(LoadTypes, Val(Mid(Buff, 10)))
 				ElseIf StartsWith(Buff, "WaitComplete=") Then
-					tt->WaitComplete = CDbl(Mid(Buff, 14))
+					tt->WaitComplete = Cast(Boolean, Mid(Buff, 14))
 				End If
 			End If
 		Loop
