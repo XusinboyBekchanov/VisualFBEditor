@@ -551,6 +551,7 @@ Function TabWindow.CloseTab As Boolean
 		If ptvExplorer->Nodes.IndexOf(tn) <> -1 Then
 			ptvExplorer->Nodes.Remove ptvExplorer->Nodes.IndexOf(tn)
 			If MainNode = tn Then
+				MainNode = 0
 				SetMainNode 0
 			End If
 		End If

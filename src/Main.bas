@@ -1102,20 +1102,20 @@ Sub OpenFiles(ByRef FileName As WString)
 		AddMRUFile FileName
 		AddTab FileName
 	End If
-	WLet LastOpenPath, GetFolderName(FileName)
 	wLet RecentFiles, FileName
 End Sub
 
 Sub OpenProgram()
 	Dim As OpenFileDialog OpenD
-	'	If WGet(LastOpenPath) <> "" Then
-	'		OpenD.InitialDir = *LastOpenPath
-	'	Else
-	OpenD.InitialDir = GetFullPath(*ProjectsPath)
-	'   End If
+	If WGet(LastOpenPath) <> "" Then
+		OpenD.InitialDir = *LastOpenPath
+	Else
+		OpenD.InitialDir = GetFullPath(*ProjectsPath)
+	End If
 	'  Add *.inc
 	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
+		WLet LastOpenPath, GetFolderName(OpenD.Filename)
 		OpenFiles(OpenD.Filename)
 	End If
 	TabLeft.Tabs[0]->SelectTab
