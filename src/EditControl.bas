@@ -1233,7 +1233,6 @@ Namespace My.Sys.Forms
 		#else
 			SetCaretPos(HCaretPos, VCaretPos)
 		#endif
-		pstBar->Panels[1]->Caption = ML("Row") + " " + WStr(Int(VCaretPos/dwCharY+VScrollPos+1)) + " : " + WStr(FLines.Count+1) + WSpace(2)+ML("Column") + " " + WStr(Int(HCaretPos/dwCharX+HScrollPos-6)) + " : " + WStr(Int(dwClientX/dwCharX-6))+ WSpace(2)+ML("Selection") + " " + WStr(Len(SelText))
 		OldLine = FSelEndLine
 		OldChar = FSelEndChar
 		

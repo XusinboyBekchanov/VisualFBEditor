@@ -3513,9 +3513,9 @@ End Sub
 stBar.Align = 4
 stBar.Add ML("Press F1 for get more information")
 stBar.Panels[0]->Width = frmMain.ClientWidth - 560
-stBar.Add Space(20)
+stBar.Add "" 'Space(20)
 stBar.Panels[1]->Width = 240
-stBar.Add Space(20)
+stBar.Add "" 'Space(20)
 stBar.Panels[2]->Width = 160
 stBar.Add "UTF-8"
 stBar.Panels[3]->Width = 50
@@ -5106,3 +5106,4 @@ Sub OnProgramQuit() Destructor
 	WDeallocate DebugArguments
 	WDeallocate RecentFiles '
 End Sub
+
