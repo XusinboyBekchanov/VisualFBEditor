@@ -857,21 +857,25 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub EditControl.LoadFromFile(ByRef FileName As WString)
-		Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
-		Dim As Integer Result = -1, Fn = FreeFile
+		'Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
+		Dim pBuff As WString Ptr
+		Dim As Integer Result = -1, Fn = FreeFile, FileSize
 		Var iC = 0, OldiC = 0, i = 0
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn) ' 
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
 		If Result = 0 Then
+			FileSize = LOF(Fn)
+			WReallocate pBuff, FileSize
 			FLines.Clear
 			VisibleLines.Clear
 			Do Until EOF(Fn)
-				Line Input #Fn, Buff
+				'Line Input #Fn, Buff
+				LineInputWstr Fn, pBuff, FileSize
 				FECLine = New EditControlLine
-				WLet FECLine->Text, Buff
-				iC = FindCommentIndex(Buff, OldiC)
+				WLet FECLine->Text, *pBuff
+				iC = FindCommentIndex(*pBuff, OldiC)
 				FECLine->CommentIndex = iC
 				FLines.Add(FECLine)
 				ChangeCollapsibility i

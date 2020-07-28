@@ -47,6 +47,10 @@
 	#define MAX_PATH 260
 #endif
 
+Extern "rtlib"
+   Declare Function LineInputWstr Alias "fb_FileLineInputWstr"(ByVal filenumber As Long, ByVal dst As WString Ptr, ByVal maxchars As Integer) As Long
+End Extern
+
 Using My.Sys.Forms
 
 Declare Function ML(ByRef msg As WString) ByRef As WString
