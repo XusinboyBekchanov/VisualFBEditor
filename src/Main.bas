@@ -630,15 +630,6 @@ Sub AddMRUFolder(ByRef FolderName As WString)
 	End If
 End Sub
 
-'Extern "rtlib"
-'   Declare Function LineInputWstr Alias "fb_FileLineInputWstr"_
-'      ( _
-'         ByVal filenumber As Long, _
-'         ByVal dst As WString Ptr, _
-'         ByVal maxchars As Integer _
-'      ) As Long
-'End Extern
-
 Sub ClearTreeNode(ByRef tn As TreeNode Ptr)
 	If tn = 0 Then Exit Sub
 	For i As Integer = 0 To tn->Nodes.Count - 1
@@ -831,12 +822,12 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							WLet ppe->ResourceFileName, *ee->FileName
 						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then  '
 							WLet ppe->IconResourceFileName, *ee->FileName
-'						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
-'							WLet ppe->MainFileName, *ee->FileName
-'							IconName = "MainForm"
-'						ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
-'							WLet ppe->MainFileName, *ee->FileName
-'							IconName = "MainModule"
+							'						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
+							'							WLet ppe->MainFileName, *ee->FileName
+							'							IconName = "MainForm"
+							'						ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
+							'							WLet ppe->MainFileName, *ee->FileName
+							'							IconName = "MainModule"
 						Else
 							WLet ppe->MainFileName, *ee->FileName
 							IconName = "MainFile"
@@ -848,15 +839,15 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						End If
 					Else
 						IconName = GetIconName(*ee->FileName)
-'						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") OrElse EndsWith(LCase(*ee->FileName), ".xpm") Then
-'							IconName = "Res"
-'						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
-'							IconName = "Form"
-'						ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
-'							IconName = "Module"
-'						Else
-'							IconName = "File"
-'						End If
+						'						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") OrElse EndsWith(LCase(*ee->FileName), ".xpm") Then
+						'							IconName = "Res"
+						'						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
+						'							IconName = "Form"
+						'						ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
+						'							IconName = "Module"
+						'						Else
+						'							IconName = "File"
+						'						End If
 						If Not FileEx Then IconName = "New"
 						If Not inFolder Then
 							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , *ee->FileName, IconName, IconName, True)
@@ -1522,7 +1513,7 @@ Sub SetAsMain()
 						WLet ppe->ResourceFileName, *ee->FileName
 						IconName = "MainRes"
 					End If
-					If MainNode <> 0 Then MainNode->Bold = False 
+					If MainNode <> 0 Then MainNode->Bold = False
 					MainNode = ptn 'MainNode must be root node
 					MainNode->Bold = True
 					tn->ImageKey = IconName
@@ -1548,11 +1539,11 @@ Sub SetAsMain()
 							Next
 						End If
 					Next
-'					If tn1->Nodes.Count=1 Then 'Only one file
-'						tn1->Nodes.Remove(0)
-'						tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
-'						tn->Tag = ee
-'					End If
+					'					If tn1->Nodes.Count=1 Then 'Only one file
+					'						tn1->Nodes.Remove(0)
+					'						tn = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
+					'						tn->Tag = ee
+					'					End If
 				End If
 			End If
 		End If
@@ -3585,7 +3576,7 @@ Sub CloseLeft()
 		tabLeft.TabIndex = -1
 		pnlLeft.Width = tabLeft.ItemWidth(0) + 2
 	#endif
-	tbLeft.Visible = False 
+	tbLeft.Visible = False
 	frmMain.RequestAlign
 End Sub
 
@@ -3783,11 +3774,11 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		mLoadLog = False
 		mLoadToDO = False
 		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" Then  'David Change For compile Single .bas file
-'			MainNode = 0
-'			lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
+			'			MainNode = 0
+			'			lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
 		Else
-'			MainNode->ImageKey = "MainProject"
-'			MainNode->Bold = True
+			'			MainNode->ImageKey = "MainProject"
+			'			MainNode->Bold = True
 			If mStartLoadSession = False Then
 				If ptabBottom->TabIndex = 4 AndAlso Not mLoadLog Then
 					If mChangeLogEdited AndAlso mChangelogName<> "" Then
@@ -3833,26 +3824,26 @@ Sub tabLeft_SelChange(ByRef Sender As Control, NewIndex As Integer)
 		If tabLeft.TabPosition = tpLeft And tabLeft.TabIndex <> -1 Then
 	#endif
 		ShowLeft
-'		tabLeft.SetFocus
-'		pnlLeft.Width = tabLeftWidth
-'		pnlLeft.RequestAlign
-'		splLeft.Visible = True
-'		tbLeft.Visible = True
-'		'#IfNDef __USE_GTK__
-'		frmMain.RequestAlign
-'		'#EndIf
+		'		tabLeft.SetFocus
+		'		pnlLeft.Width = tabLeftWidth
+		'		pnlLeft.RequestAlign
+		'		splLeft.Visible = True
+		'		tbLeft.Visible = True
+		'		'#IfNDef __USE_GTK__
+		'		frmMain.RequestAlign
+		'		'#EndIf
 	End If
 End Sub
 
 Sub tabLeft_Click(ByRef Sender As Control)
 	If tabLeft.TabPosition = tpLeft And pnlLeft.Width = 30 Then
 		ShowLeft
-'		tabLeft.SetFocus
-'		pnlLeft.Width = tabLeftWidth
-'		pnlLeft.RequestAlign
-'		splLeft.Visible = True
-'		tbLeft.Visible = True
-'		frmMain.RequestAlign
+		'		tabLeft.SetFocus
+		'		pnlLeft.Width = tabLeftWidth
+		'		pnlLeft.RequestAlign
+		'		splLeft.Visible = True
+		'		tbLeft.Visible = True
+		'		frmMain.RequestAlign
 	End If
 End Sub
 
@@ -4285,11 +4276,11 @@ Sub tabRight_SelChange(ByRef Sender As Control, NewIndex As Integer)
 		If tabRight.TabPosition = tpRight And tabRight.TabIndex <> -1 Then
 	#endif
 		ShowRight
-'		tabRight.SetFocus
-'		pnlRight.Width = tabRightWidth
-'		pnlRight.RequestAlign
-'		splRight.Visible = True
-'		frmMain.RequestAlign
+		'		tabRight.SetFocus
+		'		pnlRight.Width = tabRightWidth
+		'		pnlRight.RequestAlign
+		'		splRight.Visible = True
+		'		frmMain.RequestAlign
 	End If
 End Sub
 
@@ -4303,11 +4294,11 @@ tvVar.ContextMenu = @mnuVars
 Sub tabRight_Click(ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
 		ShowRight
-'		tabRight.SetFocus
-'		pnlRight.Width = tabRightWidth
-'		pnlRight.RequestAlign
-'		splRight.Visible = True
-'		frmMain.RequestAlign
+		'		tabRight.SetFocus
+		'		pnlRight.Width = tabRightWidth
+		'		pnlRight.RequestAlign
+		'		splRight.Visible = True
+		'		frmMain.RequestAlign
 	End If
 End Sub
 
@@ -4608,13 +4599,13 @@ Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
 	With *tbBottom.Buttons.Item("PinBottom")
 		If Value Then
 			ptabBottom->TabPosition = tpBottom
-'			ptabBottom->TabIndex = -1
-'			#ifdef __USE_GTK__
-'				pnlBottom.Height = 25
-'			#else
-'				pnlBottom.Height = ptabBottom->ItemHeight(0) + 2
-'			#endif
-'			splBottom.Visible = False
+			'			ptabBottom->TabIndex = -1
+			'			#ifdef __USE_GTK__
+			'				pnlBottom.Height = 25
+			'			#else
+			'				pnlBottom.Height = ptabBottom->ItemHeight(0) + 2
+			'			#endif
+			'			splBottom.Visible = False
 			.ImageKey = "Pin"
 			.Checked = False
 			'tbBottom.Top = 2
@@ -4649,11 +4640,11 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 		If ptabBottom->TabPosition = tpBottom And ptabBottom->TabIndex <> -1 Then
 	#endif
 		ShowBottom
-'		ptabBottom->SetFocus
-'		pnlBottom.Height = tabBottomHeight
-'		pnlBottom.RequestAlign
-'		splBottom.Visible = True
-'		frmMain.RequestAlign '<bp>
+		'		ptabBottom->SetFocus
+		'		pnlBottom.Height = tabBottomHeight
+		'		pnlBottom.RequestAlign
+		'		splBottom.Visible = True
+		'		frmMain.RequestAlign '<bp>
 	End If
 	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = ptabBottom->TabIndex = 0
 	tbBottom.Buttons.Item("AddWatch")->Visible = ptabBottom->TabIndex = 9
@@ -4688,12 +4679,12 @@ Sub tabBottom_Click(ByRef Sender As Control) '<...>
 	#else
 		If ptabBottom->TabPosition = tpBottom And ptabBottom->TabIndex <> -1 Then
 	#endif
-	ShowBottom
-'		ptabBottom->SetFocus
-'		pnlBottom.Height = tabBottomHeight
-'		pnlBottom.RequestAlign
-'		splBottom.Visible = True
-'		frmMain.RequestAlign '<bp>
+		ShowBottom
+		'		ptabBottom->SetFocus
+		'		pnlBottom.Height = tabBottomHeight
+		'		pnlBottom.RequestAlign
+		'		splBottom.Visible = True
+		'		frmMain.RequestAlign '<bp>
 	End If
 End Sub
 
@@ -4738,7 +4729,7 @@ tbBottom.Buttons.Add , "Remove", , @mClick, "RemoveWatch", "", ML("Remove Watch"
 'tbBottom.Buttons.Item("AddWatch")->Visible = False
 'tbBottom.Buttons.Item("RemoveWatch")->Visible = False
 tbBottom.Flat = True
-tbBottom.Wrapable = True 
+tbBottom.Wrapable = True
 tbBottom.Width = tbBottom.Height
 tbBottom.Parent = @pnlBottom
 
@@ -4965,6 +4956,43 @@ Sub frmMain_Show(ByRef Sender As Control)
 	pfSplash->CloseForm
 End Sub
 
+#ifndef __USE_GTK__
+	Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
+		Dim dt As DATE_, ST As SYSTEMTIME
+		FileTimeToSystemTime(@FT, @ST)
+		SystemTimeToVariantTime @ST, @dt
+		Return dt
+	End Function
+	
+	Function GetFileLastWriteTime(ByRef FileName As WString) As FILETIME
+		Dim fd As WIN32_FIND_DATAW
+		Dim hFind As HANDLE = FindFirstFile(FileName, @fd)
+		If hFind <> INVALID_HANDLE_VALUE Then
+			FindClose hFind
+			Return fd.ftLastWriteTime
+		End If
+	End Function
+#endif
+
+Sub frmMain_ActivateApp(ByRef Sender As Form)
+	Static bInActivateApp As Boolean
+	If bInActivateApp Then Exit Sub
+	bInActivateApp = True
+	Dim tb As TabWindow Ptr
+	For i As Integer = 0 To ptabCode->TabCount - 1
+		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+		If tb->FileName <> "" Then
+			If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
+				If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
+					tb->txtCode.LoadFromFile(tb->FileName)
+				End If
+			End If
+			tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
+		End If
+	Next i
+	bInActivateApp = False
+End Sub
+
 Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
 	FormClosing = True
@@ -5053,6 +5081,7 @@ frmMain.MainForm = True
 	frmMain.Text = "Visual FB Editor (x32)"
 #endif
 frmMain.OnActiveControlChange = @frmMain_ActiveControlChanged
+frmMain.OnActivAteApp = @frmMain_ActivateApp
 frmMain.OnResize = @frmMain_Resize
 frmMain.OnCreate = @frmMain_Create
 frmMain.OnShow = @frmMain_Show

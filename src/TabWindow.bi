@@ -195,6 +195,8 @@ Public:
 	#ifdef __USE_GTK__
 		overlay As GtkWidget Ptr
 		layout As GtkWidget Ptr
+	#else
+		DateFileTime As FILETIME
 	#endif
 	Declare Property FileName ByRef As WString
 	Declare Property FileName(ByRef Value As WString)
