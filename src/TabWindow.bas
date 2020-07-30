@@ -203,6 +203,9 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			.tbrTop.Buttons.Item(1)->Checked = True
 			If FileName <> "" Then
 				.txtCode.LoadFromFile(FileNameNew)
+				#ifndef __USE_GTK__
+					.DateFileTime = GetFileLastWriteTime(FileNameNew)
+				#endif
 				.Modified = bNew
 			End If
 			.FormDesign(bNoActivate)
