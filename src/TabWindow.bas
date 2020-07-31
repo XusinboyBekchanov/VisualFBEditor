@@ -455,6 +455,9 @@ Function TabWindow.SaveTab As Boolean
 	End If
 	txtCode.SaveToFile(*FFileName) ', False
 	Modified = False
+	#ifndef __USE_GTK__
+		DateFileTime = GetFileLastWriteTime(*FFileName)
+	#endif
 	Var FileIndex = IncludeFiles.IndexOf(FileName)
 	If FileIndex <> 0 Then
 		MutexLock tlockSave
