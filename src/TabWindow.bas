@@ -3152,7 +3152,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As UString Comments, b, bTrim, bTrimLCase
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
 	If IsBas Then
-		WLet FLine1, LCase(Left(FileName, Len(FileName) - 4)) & ".bi"
+		WLet FLine1, Left(FileName, Len(FileName) - 4) & ".bi"
 		WLet FLine2, GetFileName(*FLine1), True
 	Else
 		WLet FLine1, ""
@@ -4682,7 +4682,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 		Project->BuildVersion += 1
 		If AutoSaveBeforeCompiling AndAlso ProjectNode <> 0 Then
 			If AutoSaveBeforeCompiling = 1 Then
-				SaveProject ProjectNode
+				If ProjectNode->ImageKey <> "Opened" Then SaveProject ProjectNode
 			ElseIf AutoSaveBeforeCompiling = 2 Then
 				SaveAll
 			End If

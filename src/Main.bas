@@ -621,11 +621,12 @@ Sub AddMRUFolder(ByRef FolderName As WString)
 		If i > 0 Then MRUFolders.Remove i
 		MRUFolders.Insert 0, FolderName
 		For i = 0 To Min(miRecentFolders->Count - 1, MRUFolders.Count - 1)
+			If miRecentFolders->Item(i)->Caption = "-" Then Exit For
 			miRecentFolders->Item(i)->Caption = MRUFolders.Item(i)
 			miRecentFolders->Item(i)->Name = MRUFolders.Item(i)
 		Next
 		For i = i To Min(9, MRUFolders.Count - 1)
-			miRecentFolders->Add(MRUFolders.Item(i), "", MRUFolders.Item(i), @mClickMRU)
+			miRecentFolders->Add(MRUFolders.Item(i), "", MRUFolders.Item(i), @mClickMRU, , i)
 		Next
 	End If
 End Sub
@@ -685,7 +686,9 @@ End Sub
 
 Sub CloseFolder(ByRef tn As TreeNode Ptr)
 	ClearTreeNode tn
-	Delete tn
+	Var Index = tvExplorer.Nodes.IndexOf(tn)
+	If Index <> -1 Then tvExplorer.Nodes.Remove Index
+	'Delete tn
 End Sub
 
 Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
@@ -815,7 +818,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						tn1 = GetTreeNodeChild(tn, Buff)
 					End If
 					'
-					Dim As Boolean FileEx = Dir(*ee->FileName) <> ""
+					Dim As Boolean FileEx = FileExists(*ee->FileName)
 					If bMain Then
 						IconName = "MainRes"
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  '
@@ -1313,6 +1316,7 @@ Sub RunHelp(Param As Any Ptr)
 		IndexDefault = Helps.IndexOfKey(*DefaultHelp)
 		CurrentHelpPath = *HelpPath
 	End If
+	CurrentHelpPath = GetFullPath(CurrentHelpPath)
 	If Not FileExists(CurrentHelpPath) Then
 		ThreadsEnter()
 		ShowMessages ML("File") & " " & CurrentHelpPath & " " & ML("not found")
@@ -1345,9 +1349,9 @@ Sub RunHelp(Param As Any Ptr)
 					For i As Integer = -1 To Helps.Count - 1
 						If i = IndexDefault Then Continue For
 						If i = -1 Then
-							CurrentHelpPath = *HelpPath
+							CurrentHelpPath = GetFullPath(*HelpPath)
 						Else
-							CurrentHelpPath = Helps.Item(i)->Text
+							CurrentHelpPath = GetFullPath(Helps.Item(i)->Text)
 						End If
 						If FileExists(CurrentHelpPath) Then
 							Dim li As HH_AKLINK
@@ -3091,21 +3095,19 @@ Sub CreateMenusAndToolBars
 	
 	LoadHotKeys
 	
-	#ifdef __USE_GTK__
-		Var miFile = mnuMain.Add(ML("&File") & !"\tAlt+F", "", "File")
-	#else
-		Var miFile = mnuMain.Add(ML("&File"), "", "File")
-	#endif
+	Var miFile = mnuMain.Add(ML("&File"), "", "File")
 	miFile->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mclick)
 	miFile->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mclick)
 	miFile->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mclick)
-	miFile->Add(ML("Import from Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mclick)
 	miFile->Add(ML("Save Project As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mclick)
 	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mclick)
+	miFile->Add("-")
+	miFile->Add(ML("Open Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mclick)
+	miFile->Add(ML("Close Folder") & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mclick)
 	miFile->Add("-")
 	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "New", @mclick)
 	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mclick)
@@ -3121,21 +3123,10 @@ Sub CreateMenusAndToolBars
 	miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mclick)
 	miFile->Add(ML("Page Set&up") & "..." & HK("PageSetup"), "", "PageSetup", @mclick)
 	miFile->Add("-")
-	' Add Recent Sessions
-	miRecentProjects = miFile->Add(ML("Recent Projects"), "", "RecentProjects", @mclick)
-	Dim sTmp As WString * 1024
-	For i As Integer = 0 To miRecentMax
-		sTmp = iniSettings.ReadString("MRUProjects", "MRUProject_0" & WStr(i), "")
-		If Trim(sTmp) <> "" Then
-			MRUProjects.Add sTmp
-			miRecentProjects->Add(sTmp, "", sTmp, @mClickMRU)
-		End If
-	Next
-	miRecentProjects->Add("-")
-	miRecentProjects->Add(ML("Clear Recently Opened"),"","ClearProjects", @mClickMRU)
 	
 	'David Change  Add Recent Sessions
 	miRecentSessions = miFile->Add(ML("Recent Sessions"), "", "RecentSessions", @mclick)
+	Dim sTmp As WString * 1024
 	For i As Integer = 0 To miRecentMax
 		sTmp = iniSettings.ReadString("MRUSessions", "MRUSession_0" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
@@ -3145,6 +3136,29 @@ Sub CreateMenusAndToolBars
 	Next
 	miRecentSessions->Add("-")
 	miRecentSessions->Add(ML("Clear Recently Opened"),"","ClearSessions", @mClickMRU)
+	
+	miRecentFolders = miFile->Add(ML("Recent Folders"), "", "RecentFolders", @mclick)
+	For i As Integer = 0 To miRecentMax
+		sTmp = iniSettings.ReadString("MRUFolders", "MRUFolder_0" & WStr(i), "")
+		If Trim(sTmp) <> "" Then
+			MRUFolders.Add sTmp
+			miRecentFolders->Add(sTmp, "", sTmp, @mClickMRU)
+		End If
+	Next
+	miRecentFolders->Add("-")
+	miRecentFolders->Add(ML("Clear Recently Opened"),"","ClearFolders", @mClickMRU)
+	
+	' Add Recent Sessions
+	miRecentProjects = miFile->Add(ML("Recent Projects"), "", "RecentProjects", @mclick)
+	For i As Integer = 0 To miRecentMax
+		sTmp = iniSettings.ReadString("MRUProjects", "MRUProject_0" & WStr(i), "")
+		If Trim(sTmp) <> "" Then
+			MRUProjects.Add sTmp
+			miRecentProjects->Add(sTmp, "", sTmp, @mClickMRU)
+		End If
+	Next
+	miRecentProjects->Add("-")
+	miRecentProjects->Add(ML("Clear Recently Opened"),"","ClearProjects", @mClickMRU)
 	
 	miRecentFiles = miFile->Add(ML("Recent Files"), "", "RecentFiles", @mclick)
 	For i As Integer = 0 To miRecentMax
@@ -3219,11 +3233,7 @@ Sub CreateMenusAndToolBars
 	miBookmark->Add(ML("Previous Bookmark") & HK("PreviousBookmark", "Ctrl+Shift+F6"), "", "PreviousBookmark", @mclick)
 	miBookmark->Add(ML("Clear All Bookmarks") & HK("ClearAllBookmarks"), "", "ClearAllBookmarks", @mclick)
 	
-	#ifdef __USE_GTK__
-		Var miProject = mnuMain.Add(ML("&Project") & !"\tAlt+P", "", "Project")
-	#else
-		Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
-	#endif
+	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
 	miProject->Add(ML("&New Form") & HK("NewForm", "Ctrl+Alt+N"), "Form", "NewForm", @mclick)
 	miProject->Add(ML("New &Module") & HK("NewModule","Ctrl+Alt+M"), "Module", "NewModule", @mclick)
 	miProject->Add(ML("New Resource File") & HK("NewModule"), "Res", "NewResource", @mclick)
@@ -4975,22 +4985,24 @@ End Sub
 #endif
 
 Sub frmMain_ActivateApp(ByRef Sender As Form)
-	Static bInActivateApp As Boolean
-	If bInActivateApp Then Exit Sub
-	bInActivateApp = True
-	Dim tb As TabWindow Ptr
-	For i As Integer = 0 To ptabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-		If tb->FileName <> "" Then
-			If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
-				If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
-					tb->txtCode.LoadFromFile(tb->FileName)
+	#ifndef __USE_GTK__
+		Static bInActivateApp As Boolean
+		If bInActivateApp Then Exit Sub
+		bInActivateApp = True
+		Dim tb As TabWindow Ptr
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			If tb->FileName <> "" Then
+				If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
+					If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
+						tb->txtCode.LoadFromFile(tb->FileName)
+					End If
 				End If
+				tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
 			End If
-			tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
-		End If
-	Next i
-	bInActivateApp = False
+		Next i
+		bInActivateApp = False
+	#endif
 End Sub
 
 Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
@@ -5032,6 +5044,18 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Next
 	End If
 	
+	MRUFilesCount = MRUFolders.Count
+	kk=-1
+	If MRUFilesCount<1 Then
+		For i As Integer = 0 To miRecentMax
+			iniSettings.KeyRemove("MRUFolders", "MRUFolder_0" & WStr(i))
+		Next
+	Else
+		For i As Integer = Max(MRUFilesCount - miRecentMax, 0) To MRUFilesCount - 1
+			kk += 1
+			iniSettings.WriteString("MRUFolders", "MRUFolder_0" & WStr(kk), MRUFolders.Item(i))
+		Next
+	End If
 	MRUFilesCount = MRUProjects.Count
 	kk=-1
 	If MRUFilesCount<1 Then

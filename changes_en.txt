@@ -1,4 +1,43 @@
-﻿Version 1.2.4 (May 24, 2020)
+﻿Version 1.2.5 (August 2, 2020)
+- Added: COMWrapperBuilder tool
+- Added: Prompt to reload file after changes by external program
+- Added: Current row, column and etc. to Statusbar
+- Added: Pin to ToolWindows
+- Added: Clear menu items to Recent Files, Projects, Sessions, Folders
+- Added: Option "Display Warnings in debug"
+- Added: .frm extension to Form module
+- Added: Option Limit debug to the directory of the main file
+- Added: Tools function
+- Added: Changed icon for not exist files in Project Explorer
+- Added: Select with left mouse on Mousewheel
+- Added: A lot of color themes (thanks to: Thomas Frank Ludewig)
+- Added: Shortcuts changeable in Options Window
+- Added: gdb command line arguments in Debug
+- Added: When switching Form/Code, the Toolbox appears/hides
+- Added: German language
+- Added: GetErrorString function to GetLastError's
+- Added: Pressing F8 will start the Integrated IDE Debugger
+- Added: Open and Close Folder
+- Added: Command Prompt on File Menu
+- Added: Save Project and Save Project As ...
+- Added: Sort Lines function
+- Added: Overwrite changes in Intellisense
+- Added: Project Path initial dir on Open Project
+- Fixed: EditControl.LoadFromFile to load long lines
+- Fixed: Save new file to Projects path
+- Fixed: Changelogging and ToDo List
+- Fixed: Slowness on Paint in 64-bit EditControl
+- Fixed: Code Indent
+- Fixed: Up scroll selection with mouse down pressed
+- Fixed: Find Dialog gets the current text by default
+- Fixed: Format Project function
+- Fixed: Close Project closes tabs too.
+- Fixed: Use Projects Path
+- Fixed: Choosing Projects Path in Options Window
+- Fixed: Typing with <ALT+GR> in EditControl
+- Fixed: Crash in Cut from EditControl
+- Fixed: Set activity TabPage in design mode
+Version 1.2.4 (May 24, 2020)
 - Added: Support adding Component in the Designer
 - Added: Tooltips to functions, args and etc. (in Linux)
 - Added: Support Auto save all files before compiling

@@ -348,6 +348,7 @@ Sub ExecuteTool(Param As Any Ptr)
 	If ee <> 0 Then ProjectFile = *ee->FileName
 	If tb <> 0 Then CurrentWord = tb->txtCode.GetWordAtCursor
 	Parameters = Replace(Parameters, "{P}", ProjectFile)
+	Parameters = Replace(Parameters, "{P|S}", IIf(ProjectFile = "", MainFile, ProjectFile))
 	Parameters = Replace(Parameters, "{S}", MainFile)
 	Parameters = Replace(Parameters, "{W}", CurrentWord)
 	Parameters = Replace(Parameters, "{E}", ExeFile)

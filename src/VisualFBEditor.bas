@@ -7,13 +7,13 @@
 
 '#define __USE_GTK__
 #ifndef __USE_MAKE__
-	'#define __USE_GTK3__
+	#define __USE_GTK3__
 	#define _NOT_AUTORUN_FORMS_
 #endif
 
 Const VER_MAJOR  = "1"
 Const VER_MINOR  = "2"
-Const VER_PATCH  = "4"
+Const VER_PATCH  = "5"
 Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
 Const SIGN       = "VisualFBEditor " + VERSION

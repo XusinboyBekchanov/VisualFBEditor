@@ -112,7 +112,6 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 		Else
 			.OpenD.Filter = ML("All Files") & "|*.*;"
 			If .OpenD.Execute Then
-				?.OpenD.FileName, FolderName
 				If StartsWith(.OpenD.FileName, FolderName) Then
 					.txtPath.Text = "." & Slash & Mid(.OpenD.FileName, Len(FolderName) + 1)
 				Else

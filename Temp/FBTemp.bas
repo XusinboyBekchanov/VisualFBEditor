@@ -1,2 +1,2 @@
 ﻿ #Include Once "mff/SysUtils.bas"
-Print Str(MAX_PATH & Space(1024))
+Print Str(Cast(Boolean, "false") & Space(1024))
