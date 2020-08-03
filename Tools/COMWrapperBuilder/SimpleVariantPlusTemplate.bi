@@ -146,87 +146,173 @@ End Function
 
 'well, this is the workhorse for all the Dispatch-Calls (IDispatch::Invoke)... there's easier Wrapper-Methods around this at the end of this module)
 Dim Shared LastDispID As Long = 0, UseDispId As Long = 0
-Function CallByName cdecl (vDisp As tagVariant, ByVal MethodName As LPOLESTR, ByVal CallFlag As Word, TypeChars As String = "", ByVal Args As Any Ptr) As tagVariant
-	Static DispParams As DISPPARAMS, DispidNamed As DISPID = DISPID_PROPERTYPUT
-	Static VParams(31) As tagVariant, SArr(31) As BSTR, ArgsArr(31) As Any Ptr
-	Const As UByte l=108,i=105,b=98,d=100,f=102,t=116,v=118,w=119,s=115,c=99,u=117,sR=83,wR=87 'to make the Type-Selects more readable
-	Dim TypeChar As UByte, IsByRef As Boolean, VRes As tagVariant, DispId As DISPID
-	
-	If UseDispID Then DispID = UseDispID: UseDispID = 0
-	COMErr.Number = 0
-	If DispID = 0 Then
-		LastDispID = 0
-		If HandleCOMErr(vDisp.pDispVal->lpVtbl->GetIDsOfNames(vDisp.pDispVal, @IID_NULL, @MethodName, 1, LOCALE_USER_DEFAULT, @DispId), MethodName) Then Return VRes
-		LastDispID = DispId
-	End If
-	
-	DispParams.cArgs = Len(TypeChars)
-	DispParams.rgVarg = @VParams(0)
-	DispParams.cNamedArgs = IIf(CallFlag >= DISPATCH_PROPERTYPUT, 1, 0)
-	DispParams.rgdispidNamedArgs = IIf(CallFlag >= DISPATCH_PROPERTYPUT, @DispidNamed, 0)
-	
-	For j As Integer = DispParams.cArgs - 1 To 0 Step -1
-		TypeChar = TypeChars[DispParams.cArgs - j - 1]
-		IsByRef  = TypeChar < 97
-		If IsByRef Then TypeChar += 32 'since the ByRef-Info is now retrieved, we work further with just the lower-case letter
-		
-		'in a first pass, we set only the proper Variant-Type-Members
-		Select Case TypeChar
-		Case s,w: VParams(j).VT = VT_BSTR    Or VT_BYREF
-		Case u:   VParams(j).VT = VT_UI1     Or VT_BYREF
-		Case i:   VParams(j).VT = VT_I2      Or VT_BYREF
-		Case l:   VParams(j).VT = VT_I4      Or VT_BYREF
-		Case c:   VParams(j).VT = VT_CY      Or IIf(IsByRef, VT_BYREF, 0)
-		Case b:   VParams(j).VT = VT_BOOL    Or IIf(IsByRef, VT_BYREF, 0)
-		Case f:   VParams(j).VT = VT_R4      Or IIf(IsByRef, VT_BYREF, 0)
-		Case d:   VParams(j).VT = VT_R8      Or VT_BYREF
-		Case t:   VParams(j).VT = VT_DATE    Or VT_BYREF
-		Case v:   VParams(j).VT = VT_VARIANT Or VT_BYREF
-		End Select
-		
-		'in a second pass, we set the Variant-Value-Members of our (static) VParams-Array
-		Select Case TypeChar
-		Case s,w:  If IsByRef Then ArgsArr(j) = Args
-			If SArr(j) Then SysFreeString SArr(j): SArr(j) = 0 'destroy the previous allocation from our static BSTR-Cache
-			Select Case TypeChar
-			Case s: If IsByRef Then SArr(j) = S2BSTR(*va_arg(Args, String Ptr))      Else SArr(j) = S2BSTR(*va_arg(Args, ZString Ptr))
-			Case w: If IsByRef Then SArr(j) = W2BSTR(*va_arg(Args, WString Ptr Ptr)) Else SArr(j) = W2BSTR(*va_arg(Args, WString Ptr))
-			End Select
-			VParams(j).pbstrVal = @SArr(j)
-		Case v:    VParams(j) = *va_arg(Args, tagVARIANT Ptr)
-		Case f:    If IsByRef Then VParams(j).pbVal = va_arg(Args, Any Ptr) Else VParams(j).fltVal = CSng(va_arg(Args, Double))
-		Case b:    If IsByRef Then VParams(j).pbVal = va_arg(Args, Any Ptr) Else VParams(j).boolVal = CShort(va_arg(Args, Boolean))
-		Case c:    If IsByRef Then VParams(j).pbVal = va_arg(Args, Any Ptr) Else VParams(j).llVal = va_arg(Args, LongInt) * 10000
-		Case Else: If IsByRef Then VParams(j).pbVal = va_arg(Args, Any Ptr) Else VParams(j).pbVal  = Args
-		End Select
-		
-		'what remains is the type-based Args-Shift
-		Select Case TypeChar
-		Case s,w,v: Args = va_next(Args, Any Ptr)
-		Case f,d,t: If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Double)
-		Case i:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Short)
-		Case l:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Long)
-		Case b:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Boolean)
-		Case u:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, UByte)
-		Case c:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, LongInt)
-		End Select
-	Next
-	
-	HandleCOMErr vDisp.pDispVal->lpVtbl->Invoke(VDisp.pDispVal, DispId, @IID_NULL, LOCALE_USER_DEFAULT, CallFlag, @DispParams, @VRes, @EInfo, NULL), MethodName
-	
-	'this is needed, to pass back any StringValues from our SArr-BSTR-Cache into the FB-StringVariables (in the ByRef-case)
-	For j As Integer = DispParams.cArgs - 1 To 0 Step -1
-		If VParams(j).VT = (VT_BSTR Or VT_BYREF) Then
-			Select Case TypeChars[DispParams.cArgs - j - 1]
-			Case sR: *va_arg(ArgsArr(j), String Ptr)      = BSTR2S(SArr(j)) 'pass back, in case it was a FB-ByRef-String
-			Case wR: *va_arg(ArgsArr(j), WString Ptr Ptr) = BSTR2W(SArr(j)) 'pass back, in case it was a FB-ByRef-WString
-			End Select
-		End If
-	Next
-	
-	Return VRes
-End Function
+#ifdef __FB_64BIT__
+	Function CallByName cdecl (vDisp As tagVariant, ByVal MethodName As LPOLESTR, ByVal CallFlag As Word, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As tagVariant
+		Static DispParams As DISPPARAMS, DispidNamed As DISPID = DISPID_PROPERTYPUT
+		Static VParams(31) As tagVariant, SArr(31) As BSTR, ArgsArr(31) As Any Ptr
+		Const As UByte l=108,i=105,b=98,d=100,f=102,t=116,v=118,w=119,s=115,c=99,u=117,sR=83,wR=87 'to make the Type-Selects more readable
+		Dim TypeChar As UByte, IsByRef As Boolean, VRes As tagVariant, DispId As DISPID
+		Dim Args(31) As Any Ptr => {Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31}
+		Dim k As Integer
 
+		If UseDispID Then DispID = UseDispID: UseDispID = 0
+		COMErr.Number = 0
+		If DispID = 0 Then
+			LastDispID = 0
+			If HandleCOMErr(vDisp.pDispVal->lpVtbl->GetIDsOfNames(vDisp.pDispVal, @IID_NULL, @MethodName, 1, LOCALE_USER_DEFAULT, @DispId), MethodName) Then Return VRes
+			LastDispID = DispId
+		End If
+		
+		DispParams.cArgs = Len(TypeChars)
+		DispParams.rgVarg = @VParams(0)
+		DispParams.cNamedArgs = IIf(CallFlag >= DISPATCH_PROPERTYPUT, 1, 0)
+		DispParams.rgdispidNamedArgs = IIf(CallFlag >= DISPATCH_PROPERTYPUT, @DispidNamed, 0)
+		
+		k = -1
+		For j As Integer = DispParams.cArgs - 1 To 0 Step -1
+			k = k + 1
+			TypeChar = TypeChars[DispParams.cArgs - j - 1]
+			IsByRef  = TypeChar < 97
+			If IsByRef Then TypeChar += 32 'since the ByRef-Info is now retrieved, we work further with just the lower-case letter
+			
+			'in a first pass, we set only the proper Variant-Type-Members
+			Select Case TypeChar
+			Case s,w: VParams(j).VT = VT_BSTR    Or VT_BYREF
+			Case u:   VParams(j).VT = VT_UI1     Or VT_BYREF
+			Case i:   VParams(j).VT = VT_I2      Or VT_BYREF
+			Case l:   VParams(j).VT = VT_I4      Or VT_BYREF
+			Case c:   VParams(j).VT = VT_CY      Or IIf(IsByRef, VT_BYREF, 0)
+			Case b:   VParams(j).VT = VT_BOOL    Or IIf(IsByRef, VT_BYREF, 0)
+			Case f:   VParams(j).VT = VT_R4      Or IIf(IsByRef, VT_BYREF, 0)
+			Case d:   VParams(j).VT = VT_R8      Or VT_BYREF
+			Case t:   VParams(j).VT = VT_DATE    Or VT_BYREF
+			Case v:   VParams(j).VT = VT_VARIANT Or VT_BYREF
+			End Select
+			
+			'in a second pass, we set the Variant-Value-Members of our (static) VParams-Array
+			Select Case TypeChar
+			Case s,w:  If IsByRef Then ArgsArr(j) = Args(k)
+				If SArr(j) Then SysFreeString SArr(j): SArr(j) = 0 'destroy the previous allocation from our static BSTR-Cache
+				Select Case TypeChar
+				Case s: If IsByRef Then SArr(j) = S2BSTR(*Cast(String Ptr, Args(k)))      Else SArr(j) = S2BSTR(*Cast(ZString Ptr, Args(k)))
+				Case w: If IsByRef Then SArr(j) = W2BSTR(*Cast(WString Ptr Ptr, Args(k))) Else SArr(j) = W2BSTR(*Cast(WString Ptr, Args(k)))
+				End Select
+				VParams(j).pbstrVal = @SArr(j)
+			Case v:    VParams(j) = *Cast(tagVARIANT Ptr, Args(k))
+			Case f:    If IsByRef Then VParams(j).pbVal = Args(k) Else VParams(j).fltVal = CSng(*Cast(Double Ptr, Args(k)))
+			Case b:    If IsByRef Then VParams(j).pbVal = Args(k) Else VParams(j).boolVal = CShort(*Cast(Boolean Ptr, Args(k)))
+			Case c:    If IsByRef Then VParams(j).pbVal = Args(k) Else VParams(j).llVal = *Cast(LongInt Ptr, Args(k)) * 10000
+			Case Else: If IsByRef Then VParams(j).pbVal = Args(k) Else VParams(j).pbVal  = Args(k)
+			End Select
+			
+			'		'what remains is the type-based Args-Shift
+			'		Select Case TypeChar
+			'		Case s,w,v: Args = va_next(Args, Any Ptr)
+			'		Case f,d,t: If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Double)
+			'		Case i:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Short)
+			'		Case l:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Long)
+			'		Case b:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Boolean)
+			'		Case u:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, UByte)
+			'		Case c:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, LongInt)
+			'		End Select
+		Next
+		
+		HandleCOMErr vDisp.pDispVal->lpVtbl->Invoke(VDisp.pDispVal, DispId, @IID_NULL, LOCALE_USER_DEFAULT, CallFlag, @DispParams, @VRes, @EInfo, NULL), MethodName
+		
+		'this is needed, to pass back any StringValues from our SArr-BSTR-Cache into the FB-StringVariables (in the ByRef-case)
+		For j As Integer = DispParams.cArgs - 1 To 0 Step -1
+			If VParams(j).VT = (VT_BSTR Or VT_BYREF) Then
+				Select Case TypeChars[DispParams.cArgs - j - 1]
+				Case sR: *Cast(String Ptr, ArgsArr(j))      = BSTR2S(SArr(j)) 'pass back, in case it was a FB-ByRef-String
+				Case wR: *Cast(WString Ptr Ptr, ArgsArr(j)) = BSTR2W(SArr(j)) 'pass back, in case it was a FB-ByRef-WString
+				End Select
+			End If
+		Next
+		
+		Return VRes
+	End Function
+#else
+	Function CallByName cdecl (vDisp As tagVariant, ByVal MethodName As LPOLESTR, ByVal CallFlag As Word, TypeChars As String = "", ByVal Args As Any Ptr) As tagVariant
+		Static DispParams As DISPPARAMS, DispidNamed As DISPID = DISPID_PROPERTYPUT
+		Static VParams(31) As tagVariant, SArr(31) As BSTR, ArgsArr(31) As Any Ptr
+		Const As UByte l=108,i=105,b=98,d=100,f=102,t=116,v=118,w=119,s=115,c=99,u=117,sR=83,wR=87 'to make the Type-Selects more readable
+		Dim TypeChar As UByte, IsByRef As Boolean, VRes As tagVariant, DispId As DISPID
+		
+		If UseDispID Then DispID = UseDispID: UseDispID = 0
+		COMErr.Number = 0
+		If DispID = 0 Then
+			LastDispID = 0
+			If HandleCOMErr(vDisp.pDispVal->lpVtbl->GetIDsOfNames(vDisp.pDispVal, @IID_NULL, @MethodName, 1, LOCALE_USER_DEFAULT, @DispId), MethodName) Then Return VRes
+			LastDispID = DispId
+		End If
+		
+		DispParams.cArgs = Len(TypeChars)
+		DispParams.rgVarg = @VParams(0)
+		DispParams.cNamedArgs = IIf(CallFlag >= DISPATCH_PROPERTYPUT, 1, 0)
+		DispParams.rgdispidNamedArgs = IIf(CallFlag >= DISPATCH_PROPERTYPUT, @DispidNamed, 0)
+		
+		For j As Integer = DispParams.cArgs - 1 To 0 Step -1
+			TypeChar = TypeChars[DispParams.cArgs - j - 1]
+			IsByRef  = TypeChar < 97
+			If IsByRef Then TypeChar += 32 'since the ByRef-Info is now retrieved, we work further with just the lower-case letter
+			
+			'in a first pass, we set only the proper Variant-Type-Members
+			Select Case TypeChar
+			Case s,w: VParams(j).VT = VT_BSTR    Or VT_BYREF
+			Case u:   VParams(j).VT = VT_UI1     Or VT_BYREF
+			Case i:   VParams(j).VT = VT_I2      Or VT_BYREF
+			Case l:   VParams(j).VT = VT_I4      Or VT_BYREF
+			Case c:   VParams(j).VT = VT_CY      Or IIf(IsByRef, VT_BYREF, 0)
+			Case b:   VParams(j).VT = VT_BOOL    Or IIf(IsByRef, VT_BYREF, 0)
+			Case f:   VParams(j).VT = VT_R4      Or IIf(IsByRef, VT_BYREF, 0)
+			Case d:   VParams(j).VT = VT_R8      Or VT_BYREF
+			Case t:   VParams(j).VT = VT_DATE    Or VT_BYREF
+			Case v:   VParams(j).VT = VT_VARIANT Or VT_BYREF
+			End Select
+			
+			'in a second pass, we set the Variant-Value-Members of our (static) VParams-Array
+			Select Case TypeChar
+			Case s,w:  If IsByRef Then ArgsArr(j) = Args
+				If SArr(j) Then SysFreeString SArr(j): SArr(j) = 0 'destroy the previous allocation from our static BSTR-Cache
+				Select Case TypeChar
+				Case s: If IsByRef Then SArr(j) = S2BSTR(*va_arg(Args, String Ptr))      Else SArr(j) = S2BSTR(*va_arg(Args, ZString Ptr))
+				Case w: If IsByRef Then SArr(j) = W2BSTR(*va_arg(Args, WString Ptr Ptr)) Else SArr(j) = W2BSTR(*va_arg(Args, WString Ptr))
+				End Select
+				VParams(j).pbstrVal = @SArr(j)
+			Case v:    VParams(j) = *va_arg(Args, tagVARIANT Ptr)
+			Case f:    If IsByRef Then VParams(j).pbVal = va_arg(Args, Any Ptr) Else VParams(j).fltVal = CSng(va_arg(Args, Double))
+			Case b:    If IsByRef Then VParams(j).pbVal = va_arg(Args, Any Ptr) Else VParams(j).boolVal = CShort(va_arg(Args, Boolean))
+			Case c:    If IsByRef Then VParams(j).pbVal = va_arg(Args, Any Ptr) Else VParams(j).llVal = va_arg(Args, LongInt) * 10000
+			Case Else: If IsByRef Then VParams(j).pbVal = va_arg(Args, Any Ptr) Else VParams(j).pbVal  = Args
+			End Select
+			
+			'what remains is the type-based Args-Shift
+			Select Case TypeChar
+			Case s,w,v: Args = va_next(Args, Any Ptr)
+			Case f,d,t: If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Double)
+			Case i:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Short)
+			Case l:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Long)
+			Case b:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, Boolean)
+			Case u:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, UByte)
+			Case c:     If IsByRef Then Args = va_next(Args, Any Ptr) Else Args = va_next(Args, LongInt)
+			End Select
+		Next
+		
+		HandleCOMErr vDisp.pDispVal->lpVtbl->Invoke(VDisp.pDispVal, DispId, @IID_NULL, LOCALE_USER_DEFAULT, CallFlag, @DispParams, @VRes, @EInfo, NULL), MethodName
+		
+		'this is needed, to pass back any StringValues from our SArr-BSTR-Cache into the FB-StringVariables (in the ByRef-case)
+		For j As Integer = DispParams.cArgs - 1 To 0 Step -1
+			If VParams(j).VT = (VT_BSTR Or VT_BYREF) Then
+				Select Case TypeChars[DispParams.cArgs - j - 1]
+				Case sR: *va_arg(ArgsArr(j), String Ptr)      = BSTR2S(SArr(j)) 'pass back, in case it was a FB-ByRef-String
+				Case wR: *va_arg(ArgsArr(j), WString Ptr Ptr) = BSTR2W(SArr(j)) 'pass back, in case it was a FB-ByRef-WString
+				End Select
+			End If
+		Next
+		
+		Return VRes
+	End Function
+#endif
 '*************************** Begin of the Variant-Wrapper-Section *******************************
 
 Enum vbVarType
@@ -304,10 +390,17 @@ Type vbVariant
 	Declare Constructor (RHS As vbVariant)
 	Declare Operator Let(RHS As vbVariant)
 	
-	Declare Function Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
-	Declare Function  Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
-	Declare Sub       Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
-	Declare Sub       Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
+	#ifdef __FB_64BIT__
+		Declare Function Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As vbVariant
+		Declare Function  Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As vbVariant
+		Declare Sub       Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
+		Declare Sub       Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
+	#else
+		Declare Function Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
+		Declare Function  Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
+		Declare Sub       Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
+		Declare Sub       Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
+	#endif
 	Declare Function  vbV() As vbVariant
 	'Declares
 End Type
@@ -570,22 +663,37 @@ Operator vbVariant.Let(RHS As vbVariant)
 	VariantCopy @V, @RHS.V
 End Operator
 
-
-Function vbVariant.Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
-	Dim tv As tagVariant
-	tv = CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, va_first)
-	Function = tv
-End Function
-Function vbVariant.Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
-	Return CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, va_first)
-End Function
-Sub vbVariant.Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
-	CallByName(V, MethodName, DISPATCH_PROPERTYPUT, TypeChars, va_first)
-End Sub
-Sub vbVariant.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
-	CallByName(V, MethodName, DISPATCH_PROPERTYPUTREF,  TypeChars, va_first)
-End Sub
-
+#ifdef __FB_64BIT__
+	Function vbVariant.Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As vbVariant
+		Dim tv As tagVariant
+		tv = CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
+		Function = tv
+	End Function
+	Function vbVariant.Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As vbVariant
+		Return CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
+	End Function
+	Sub vbVariant.Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
+		CallByName(V, MethodName, DISPATCH_PROPERTYPUT, TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
+	End Sub
+	Sub vbVariant.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
+		CallByName(V, MethodName, DISPATCH_PROPERTYPUTREF,  TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
+	End Sub
+#Else
+	Function vbVariant.Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
+		Dim tv As tagVariant
+		tv = CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, va_first)
+		Function = tv
+	End Function
+	Function vbVariant.Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
+		Return CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, va_first)
+	End Function
+	Sub vbVariant.Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
+		CallByName(V, MethodName, DISPATCH_PROPERTYPUT, TypeChars, va_first)
+	End Sub
+	Sub vbVariant.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
+		CallByName(V, MethodName, DISPATCH_PROPERTYPUTREF,  TypeChars, va_first)
+	End Sub
+#Endif
 'finally a MsgBox-OverLoad, which accepts a vbVariant as the Msg-Parameter
 Function MsgBox cdecl (ByVal Msg As vbVariant, ByVal Flags As Long = MB_ICONINFORMATION) As Long
 	If Msg.V.VT = vbString Then

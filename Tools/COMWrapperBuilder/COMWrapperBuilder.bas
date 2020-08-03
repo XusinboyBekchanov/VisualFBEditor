@@ -293,7 +293,7 @@ End Function
 
 Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 	Dim As String f, ComArg
-	Dim As WString * 1024 Buff
+	Dim As WString * 2048 Buff
 	Dim As WString Ptr fileName, FLine
 	Dim As UString SLine, FirstArg, DeclaresText, FunctionsText
 	Dim As WStringList Files, Lines, Lines2, Args, WithArgs, Functions, Properties

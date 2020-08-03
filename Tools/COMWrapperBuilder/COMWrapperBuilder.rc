@@ -3,8 +3,8 @@
 
 #define VER_FILEDESCRIPTION_STR     "Form1\0"
 
-#define VER_FILEVERSION             1,0,0,158
-#define VER_FILEVERSION_STR         "1.0.0.158\0"
+#define VER_FILEVERSION             1,0,0,159
+#define VER_FILEVERSION_STR         "1.0.0.159\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

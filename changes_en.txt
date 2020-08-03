@@ -28,6 +28,7 @@
 - Fixed: Changelogging and ToDo List
 - Fixed: Slowness on Paint in 64-bit EditControl
 - Fixed: Code Indent
+- Fixed: Integrated IDE Debugger on 64-bit
 - Fixed: Up scroll selection with mouse down pressed
 - Fixed: Find Dialog gets the current text by default
 - Fixed: Format Project function
