@@ -1,5 +1,6 @@
-﻿'SimpleVariant.bi: a "lean and mean" (not library-dependent) LateBound-Helper-Module for FreeBasic
+﻿'SimpleVariantPlus.bi: a "lean and mean" (not library-dependent) LateBound-Helper-Module for FreeBasic
 'Author:      Olaf Schmidt (June 2016)
+'Updated by Xusinboy Bekchanov to support 64-bit
 'The Vartype-Letters, as used for the ByName...-Methods are as follows:
 '    u: 8BitU-Integer(FB UByte)
 '    i: 16Bit-Integer(FB Short)
