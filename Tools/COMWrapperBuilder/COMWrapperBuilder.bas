@@ -297,30 +297,39 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 	Dim As WString Ptr fileName, FLine
 	Dim As UString SLine, FirstArg, DeclaresText, FunctionsText
 	Dim As WStringList Files, Lines, Lines2, Args, WithArgs, Functions, Properties
-	Dim As Integer Fn1 = FreeFile, Fn2, Pos1, t
+	Dim As Integer Fn1 = FreeFile, Fn2, Pos1, t, Result = -1
 	Dim As Boolean bFlag, bNext, bWith, bComArg, bFirst
 	With frm
 		If .txtPath.Text <> "" Then
-			Open .txtPath.Text For Input Encoding "utf-8" As #Fn1
-			Do Until EOF(Fn1)
-				Line Input #Fn1, Buff
-				If StartsWith(Buff, "File=") OrElse StartsWith(Buff, "*File=") Then
-					Buff = Mid(Buff, InStr(Buff, "=") + 1)
-					If InStr(Buff, ":") Then
-						WLet fileName, Buff
-					Else
-						WLet fileName, GetFolderName(.txtPath.Text) & Buff
+			Result = Open(.txtPath.Text For Input Encoding "utf-8" As #Fn1)
+			If Result <> 0 Then Result = Open(.txtPath.Text For Input Encoding "utf-16" As #Fn1)
+			If Result <> 0 Then Result = Open(.txtPath.Text For Input Encoding "utf-32" As #Fn1)
+			If Result <> 0 Then Result = Open(.txtPath.Text For Input As #Fn1)
+			If Result = 0 Then
+				Do Until EOF(Fn1)
+					Line Input #Fn1, Buff
+					If StartsWith(Buff, "File=") OrElse StartsWith(Buff, "*File=") Then
+						Buff = Mid(Buff, InStr(Buff, "=") + 1)
+						If InStr(Buff, ":") Then
+							WLet fileName, Buff
+						Else
+							WLet fileName, GetFolderName(.txtPath.Text) & Buff
+						End If
+						Files.Add *fileName
 					End If
-					Files.Add *fileName
-				End If
-			Loop
-			Close #Fn1
+				Loop
+				Close #Fn1
+			End If
 		ElseIf .txtPathSource.Text <> "" Then
 			Files.Add .txtPathSource.Text
 		End If
 		For i As Integer = 0 To Files.Count - 1
 			Fn1 = FreeFile
-			If Open(Files.Item(i) For Input Encoding "utf-8" As #Fn1) = 0 Then
+			Result = Open(Files.Item(i) For Input Encoding "utf-8" As #Fn1)
+			If Result <> 0 Then Result = Open(Files.Item(i) For Input Encoding "utf-16" As #Fn1)
+			If Result <> 0 Then Result = Open(Files.Item(i) For Input Encoding "utf-32" As #Fn1)
+			If Result <> 0 Then Result = Open(Files.Item(i) For Input As #Fn1)
+			If Result = 0 Then
 				Do Until EOF(Fn1)
 					Line Input #Fn1, Buff
 					If bNext Then
@@ -458,12 +467,17 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 				End If
 			Next
 			Fn1 = FreeFile
-			Open ExePath & "\SimpleVariantPlusTemplate.bi" For Input As #Fn1
-			Do Until EOF(Fn1)
-				Line Input #Fn1, Buff
-				Lines2.Add Buff
-			Loop
-			Close #Fn1
+			Result = Open(ExePath & "\SimpleVariantPlusTemplate.bi" For Input Encoding "utf-8" As #Fn1)
+			If Result <> 0 Then Result = Open(ExePath & "\SimpleVariantPlusTemplate.bi" For Input Encoding "utf-16" As #Fn1)
+			If Result <> 0 Then Result = Open(ExePath & "\SimpleVariantPlusTemplate.bi" For Input Encoding "utf-32" As #Fn1)
+			If Result <> 0 Then Result = Open(ExePath & "\SimpleVariantPlusTemplate.bi" For Input As #Fn1)
+			If Result = 0 Then
+				Do Until EOF(Fn1)
+					Line Input #Fn1, Buff
+					Lines2.Add Buff
+				Loop
+				Close #Fn1
+			End If
 			Fn1 = FreeFile
 			WLet fileName, GetFolderName(*fileName) & "SimpleVariantPlus.bi", True
 			Dim As Boolean FileEx

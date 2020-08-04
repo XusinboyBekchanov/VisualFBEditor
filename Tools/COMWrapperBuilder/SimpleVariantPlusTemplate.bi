@@ -1,6 +1,6 @@
 ﻿'SimpleVariantPlus.bi: a "lean and mean" (not library-dependent) LateBound-Helper-Module for FreeBasic
 'Author:      Olaf Schmidt (June 2016)
-'Updated by Xusinboy Bekchanov to support 64-bit
+'Updated by Xusinboy Bekchanov to support 64-bit (August 2020)
 'The Vartype-Letters, as used for the ByName...-Methods are as follows:
 '    u: 8BitU-Integer(FB UByte)
 '    i: 16Bit-Integer(FB Short)
@@ -679,7 +679,7 @@ End Operator
 	Sub vbVariant.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
 		CallByName(V, MethodName, DISPATCH_PROPERTYPUTREF,  TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
 	End Sub
-#Else
+#else
 	Function vbVariant.Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As vbVariant
 		Dim tv As tagVariant
 		tv = CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, va_first)
@@ -694,7 +694,7 @@ End Operator
 	Sub vbVariant.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
 		CallByName(V, MethodName, DISPATCH_PROPERTYPUTREF,  TypeChars, va_first)
 	End Sub
-#Endif
+#endif
 'finally a MsgBox-OverLoad, which accepts a vbVariant as the Msg-Parameter
 Function MsgBox cdecl (ByVal Msg As vbVariant, ByVal Flags As Long = MB_ICONINFORMATION) As Long
 	If Msg.V.VT = vbString Then
