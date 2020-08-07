@@ -322,6 +322,9 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 			End If
 		ElseIf .txtPathSource.Text <> "" Then
 			Files.Add .txtPathSource.Text
+		Else
+			MsgBox "File not selected!"
+			Exit Sub
 		End If
 		For i As Integer = 0 To Files.Count - 1
 			Fn1 = FreeFile
@@ -348,6 +351,8 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 					End If
 				Loop
 				Close #Fn1
+			Else
+				MsgBox "File """ & Files.Item(i) & """ not opened!"
 			End If
 		Next
 		If bFlag Then
@@ -477,6 +482,9 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 					Lines2.Add Buff
 				Loop
 				Close #Fn1
+			Else
+				MsgBox "File """ & ExePath & "\SimpleVariantPlusTemplate.bi"" not opened!"
+				Exit Sub
 			End If
 			Fn1 = FreeFile
 			WLet fileName, GetFolderName(*fileName) & "SimpleVariantPlus.bi", True
