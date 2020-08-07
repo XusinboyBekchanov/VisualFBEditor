@@ -131,6 +131,7 @@ Private Sub frmCOMWrapperBuilder.Form_Create(ByRef Sender As Control)
 		Var PosP = InStr(Command, "-p ")
 		Var PosS = InStr(Command, "-s ")
 		If PosP > 0 Then
+			If EndsWith(Command, "-s") Then PosS = Len(Command) - 1
 			If PosS > PosP Then
 				frm.txtPath.Text = WithoutQuotes(Mid(Command, PosP + 3, PosS - PosP - 3))
 			Else
