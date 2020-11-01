@@ -2912,7 +2912,9 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-		If CInt(Key = Asc(" ")) AndAlso CInt(EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as")) Then
+		If CInt(Key = Asc(" ")) AndAlso (CInt(EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as")) OrElse _
+				CInt(EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), !"\tas"))OrElse _
+				CInt(RTrim(LCase(Left(*sLine, iSelEndChar))) = "as")) Then
 			FillTypeIntellisenses
 			SelLinePos = iSelEndLine
 			SelCharPos = iSelEndChar

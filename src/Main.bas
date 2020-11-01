@@ -2696,22 +2696,22 @@ Sub LoadToolBox
 	WLet MFFPath, iniSettings.ReadString("Options", "MFFPath", "./MyFbFramework")
 	#ifndef __USE_GTK__
 		#ifdef __FB_64BIT__
-			WLet MFFDll, *MFFPath & "/mff64.dll"
+			WLet MFFDll, GetFullPath(*MFFPath) & "/mff64.dll"
 		#else
-			WLet MFFDll, *MFFPath & "/mff32.dll"
+			WLet MFFDll, GetFullPath(*MFFPath) & "/mff32.dll"
 		#endif
 	#else
 		#ifdef __USE_GTK3__
 			#ifdef __FB_64BIT__
-				WLet MFFDll, *MFFPath & "/libmff64_gtk3.so"
+				WLet MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk3.so"
 			#else
-				WLet MFFDll, *MFFPath & "/libmff32_gtk3.so"
+				WLet MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk3.so"
 			#endif
 		#else
 			#ifdef __FB_64BIT__
-				WLet MFFDll, *MFFPath & "/libmff64_gtk2.so"
+				WLet MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk2.so"
 			#else
-				WLet MFFDll, *MFFPath & "/libmff32_gtk2.so"
+				WLet MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk2.so"
 			#endif
 		#endif
 	#endif
@@ -3076,7 +3076,7 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "Opened", "Opened"
 	imgList.AddPng "Tools", "Tools"
 	imgList.AddPng "StandartTypes", "StandartTypes"
-	imgList.AddPng "Enum", "Enu"
+	imgList.AddPng "Enum", "Enum"
 	imgList.AddPng "Type", "Type"
 	imgList.AddPng "Function", "Function"
 	imgList.AddPng "Event", "Event"
