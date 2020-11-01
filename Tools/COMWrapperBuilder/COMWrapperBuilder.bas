@@ -131,6 +131,7 @@ Private Sub frmCOMWrapperBuilder.Form_Create(ByRef Sender As Control)
 		Var PosP = InStr(Command, "-p ")
 		Var PosS = InStr(Command, "-s ")
 		If PosP > 0 Then
+			If EndsWith(Command, "-s") Then PosS = Len(Command) - 1
 			If PosS > PosP Then
 				frm.txtPath.Text = WithoutQuotes(Mid(Command, PosP + 3, PosS - PosP - 3))
 			Else
@@ -322,6 +323,9 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 			End If
 		ElseIf .txtPathSource.Text <> "" Then
 			Files.Add .txtPathSource.Text
+		Else
+			MsgBox "File not selected!"
+			Exit Sub
 		End If
 		For i As Integer = 0 To Files.Count - 1
 			Fn1 = FreeFile
@@ -348,6 +352,8 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 					End If
 				Loop
 				Close #Fn1
+			Else
+				MsgBox "File """ & Files.Item(i) & """ not opened!"
 			End If
 		Next
 		If bFlag Then
@@ -477,6 +483,9 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 					Lines2.Add Buff
 				Loop
 				Close #Fn1
+			Else
+				MsgBox "File """ & ExePath & "\SimpleVariantPlusTemplate.bi"" not opened!"
+				Exit Sub
 			End If
 			Fn1 = FreeFile
 			WLet fileName, GetFolderName(*fileName) & "SimpleVariantPlus.bi", True
