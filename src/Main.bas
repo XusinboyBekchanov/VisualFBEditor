@@ -3053,6 +3053,7 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "MainRes", "MainRes"
 	imgList.AddPng "Module", "Module"
 	imgList.AddPng "MainModule", "MainModule"
+	imgList.AddPng "UserControl", "UserControl"
 	imgList.AddPng "Eraser", "Eraser"
 	imgList.AddPng "Pin", "Pin"
 	imgList.AddPng "Pinned", "Pinned"
@@ -3236,6 +3237,7 @@ Sub CreateMenusAndToolBars
 	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
 	miProject->Add(ML("&New Form") & HK("NewForm", "Ctrl+Alt+N"), "Form", "NewForm", @mclick)
 	miProject->Add(ML("New &Module") & HK("NewModule","Ctrl+Alt+M"), "Module", "NewModule", @mclick)
+	miProject->Add(ML("New &UserControl") & HK("NewUserControl","Ctrl+Alt+U"), "UserControl", "NewUserControl", @mclick)
 	miProject->Add(ML("New Resource File") & HK("NewModule"), "Res", "NewResource", @mclick)
 	miProject->Add(ML("New Manifest File") & HK("NewManifest"), "File", "NewManifest", @mclick)
 	miProject->Add("-")

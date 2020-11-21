@@ -231,6 +231,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
 	Case "EraseOutputWindow":               txtOutput.Text = ""
 	Case "NewForm":                         AddTab ExePath + "/Templates/Files/Form.frm", True
+	Case "NewUserControl":                  AddTab ExePath + "/Templates/Files/UserControl.bas", True
 	Case "NewResource":                     AddTab ExePath + "/Templates/Files/Resource.rc", True
 	Case "NewManifest":                     AddTab ExePath + "/Templates/Files/Manifest.xml", True
 		#ifndef __USE_GTK__

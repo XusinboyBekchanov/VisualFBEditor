@@ -1129,6 +1129,23 @@ Namespace My.Sys.Forms
 		Return GetWordAt(FSelEndLine, FSelEndChar)
 	End Function
 	
+	Function EditControl.GetTabbedLength(ByRef SourceText As WString) As Integer
+		lText = Len(SourceText)
+		iPos = 0
+		ii = 1
+		Do While ii <= lText
+			sChar = Mid(SourceText, ii, 1)
+			If sChar = !"\t" Then
+				iPP = TabWidth - (iPos + TabWidth) Mod TabWidth
+				iPos += iPP
+			Else
+				iPos += 1
+			End If
+			ii += 1
+		Loop
+		Return iPos
+	End Function
+	
 	Function EditControl.GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
 		lText = Len(SourceText)
 		WReallocate FLineTemp, lText * TabWidth + 1
@@ -1486,6 +1503,12 @@ Namespace My.Sys.Forms
 	Sub EditControl.PaintText(iLine As Integer, ByRef sText As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
 		'Dim s As WString Ptr
 		'WLet s, sText 'Mid(sText, 1, HScrollPos + This.Width / dwCharX)
+		If LeftMargin + (-HScrollPos + iStart) * dwCharX > dwClientX Then
+			Exit Sub
+		'ElseIf LeftMargin + (-HScrollPos + InStrCount(Left(sText, iEnd), !"\t") * TabWidth) * dwCharX < 0 Then
+		ElseIf LeftMargin + (-HScrollPos + iEnd) * dwCharX < 0 Then
+			Exit Sub
+		End If
 		iPPos = 0
 		WLet FLineLeft, GetTabbedText(Left(sText, iStart), iPPos)
 		WLet FLineRight, GetTabbedText(Mid(sText, iStart + 1, iEnd - iStart) & addit, iPPos)

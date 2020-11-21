@@ -3503,7 +3503,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Next
 				End If
 			End If
-			If CInt(NotForms = False) AndAlso CInt(Not b) AndAlso CInt(ECLine->ConstructionIndex = 15) AndAlso CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends form") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends form '...'")))) Then
+			If CInt(NotForms = False) AndAlso CInt(Not b) AndAlso CInt(ECLine->ConstructionIndex = 15) AndAlso _
+				CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends form") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends form '...'")))) OrElse _
+				CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends usercontrol") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends usercontrol '...'")))) Then
 				If Des = 0 Then
 					Visible = True
 					pnlForm.Visible = True
@@ -3546,7 +3548,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				frmName = Mid(Trim(*FLine, Any !"\t "), 6, Pos1 - 6)
 				If Des AndAlso Des->DesignControl = 0 Then
 					With *Des
-						.DesignControl = .CreateControl("Form", frmName, frmName, 0, 0, 0, 350, 300, True)
+						If EndsWith(Trim(LCase(*FLine), Any !"\t "), " usercontrol") Then
+							.DesignControl = .CreateControl("UserControl", frmName, frmName, 0, 0, 0, 350, 300, True)
+						Else
+							.DesignControl = .CreateControl("Form", frmName, frmName, 0, 0, 0, 350, 300, True)
+						End If
 						If .DesignControl = 0 Then bNotDesign = False: pfrmMain->UpdateUnLock: Exit Sub
 						'MFF = DyLibLoad(*MFFDll)
 						'.FLibs.Add *MFFDll, MFF
@@ -4859,7 +4865,9 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		Result = ""
 	End If
 	Result += " " & IIf(Bit32, *Compiler32Arguments, *Compiler64Arguments)
-	If Open(FileName For Input Encoding "utf-8" As #1) = 0 Then
+	Var FileOpenResult = Open(FileName For Input Encoding "utf-8" As #1)
+	If FileOpenResult <> 0 Then FileOpenResult = Open(FileName For Input As #1)
+	If FileOpenResult = 0 Then
 		Dim As WString * 1024 sLine
 		Dim As Integer i, n, l = 0
 		Dim As Boolean k(10)
