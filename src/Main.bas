@@ -71,6 +71,7 @@ Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
 Dim Shared As TreeListView lvProperties, lvEvents
 Dim Shared As ToolPalette tbToolBox
+Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
@@ -1847,12 +1848,12 @@ End Function
 
 Dim Shared tpShakl As TabPage Ptr
 
-Sub tpShakl_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifdef __USE_GTK__
-		tbToolBox.SetBounds 0, tbForm.Height, NewWidth, NewHeight
+		tbToolBox.SetBounds 0, 0, NewWidth, NewHeight
 	#else
-		tbToolBox.SetBounds 0, tbForm.Height, NewWidth - IIf(scrTool.Visible, scrTool.Width, 0), NewHeight
-		scrTool.MaxValue = Max(0, tbToolBox.Height - (NewHeight - tbForm.Height))
+		tbToolBox.SetBounds 0, 0, NewWidth - IIf(scrTool.Visible, scrTool.Width, 0), NewHeight
+		scrTool.MaxValue = Max(0, tbToolBox.Height - NewHeight)
 		scrTool.Visible = scrTool.MaxValue <> 0
 	#endif
 End Sub
@@ -3561,7 +3562,7 @@ Sub tbFormClick(ByRef Sender As My.Sys.Object)
 		End If
 		'tbToolBox.RecreateWnd
 	End Select
-	tpShakl_Resize *tpShakl, tpShakl->Width, tpShakl->Height
+	pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
 End Sub
 
 tbForm.ImagesList = @imgList
@@ -3683,7 +3684,7 @@ Sub tabLeft_DblClick(ByRef Sender As Control)
 End Sub
 
 Sub scrTool_Scroll(ByRef Sender As Control, ByRef NewPos As Integer)
-	tbToolBox.Top = tbForm.Height - NewPos
+	tbToolBox.Top = -NewPos
 End Sub
 
 scrTool.Style = sbVertical
@@ -3692,7 +3693,7 @@ scrTool.ArrowChangeSize = tbToolBox.ButtonHeight
 scrTool.PageSize = 3 * scrTool.ArrowChangeSize
 scrTool.OnScroll = @scrTool_Scroll
 scrTool.OnMouseWheel = @scrTool_MouseWheel
-scrTool.OnResize = @tpShakl_Resize
+'scrTool.OnResize = @pnlToolBox_Resize
 
 Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	#ifdef __USE_GTK__
@@ -3901,12 +3902,16 @@ lblLeft.Align = 4
 tpLoyiha->Add @tbExplorer
 tpLoyiha->Add @lblLeft
 tpLoyiha->Add @tvExplorer
+
+pnlToolBox.Align = DockStyle.alClient
+pnlToolBox.Add @tbToolBox
 #ifndef __USE_GTK__
-	tpShakl->Add @scrTool
+	pnlToolBox.Add @scrTool
 #endif
-tpShakl->Add @tbToolBox
+pnlToolBox.OnReSize = @pnlToolBox_Resize
+
+tpShakl->Add @pnlToolBox 'tbToolBox
 tpShakl->Add @tbForm
-tpShakl->OnReSize = @tpShakl_Resize
 'tabLeft.Tabs[1]->Style = tabLeft.Tabs[1]->Style Or ES_AUTOVSCROLL or WS_VSCROLL
 
 'pnlLeft.Width = 153
