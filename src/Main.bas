@@ -4999,7 +4999,7 @@ Sub frmMain_ActivateApp(ByRef Sender As Form)
 		Dim tb As TabWindow Ptr
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-			If tb->FileName <> "" Then
+			If tb->FileName <> ML("Untitled") & "*" Then
 				If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
 					If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
 						tb->txtCode.LoadFromFile(tb->FileName)
