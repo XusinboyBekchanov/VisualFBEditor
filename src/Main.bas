@@ -2800,7 +2800,11 @@ Sub LoadSettings
 	Dim As UString Temp
 	Dim As Integer Fn
 	Dim As WString * 1024 Buff
-	For i As Integer = 0 To 9
+	Dim i As Integer = 0
+	Do Until iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
+			 iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
+			 iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + _
+			 iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -7
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
 		If Temp <> "" Then Compilers.Add Temp, iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
 		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
@@ -2815,7 +2819,8 @@ Sub LoadSettings
 		If Temp <> "" Then IncludePaths.Add Temp
 		Temp = iniSettings.ReadString("LibraryPaths", "Path_" & WStr(i), "")
 		If Temp <> "" Then LibraryPaths.Add Temp
-	Next
+		i += 1
+	Loop
 	WLet CurrentCompiler32, ""
 	WLet CurrentCompiler64, ""
 	WLet CurrentMakeTool1, ""
@@ -3344,9 +3349,9 @@ Sub CreateMenusAndToolBars
 	miHelp->Add(ML("&Content") & HK("Content", "F1"), "Help", "Content", @mclick)
 	miHelps = miHelp->Add(ML("&Others"), "", "Others")
 	Dim As WString * 1024 sTmp2
-	For i As Integer = 0 To 9
-		sTmp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
-		sTmp2 = iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
+	For i As Integer = 0 To pHelps->Count - 1
+		sTmp = pHelps->Item(i)->Key 'iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
+		sTmp2 = pHelps->Item(i)->Text 'iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
 			miHelps->Add(Trim(sTmp) & HK(sTmp), sTmp2, sTmp, @mClickHelp)
 		End If

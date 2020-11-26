@@ -1508,62 +1508,77 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		End If
 		piniSettings->WriteString "Compilers", "DefaultCompiler32", *DefaultCompiler32
 		piniSettings->WriteString "Compilers", "DefaultCompiler64", *DefaultCompiler64
-		For i As Integer = 0 To Min(9, pCompilers->Count - 1)
+		Dim i As Integer = 0
+		For i As Integer = 0 To pCompilers->Count - 1
 			piniSettings->WriteString "Compilers", "Version_" & WStr(i), pCompilers->Item(i)->Key
 			piniSettings->WriteString "Compilers", "Path_" & WStr(i), pCompilers->Item(i)->Text
 		Next
-		For i As Integer = pCompilers->Count To 9
-			piniSettings->WriteString "Compilers", "Version_" & WStr(i), ""
-			piniSettings->WriteString "Compilers", "Path_" & WStr(i), ""
-		Next
+		i = pCompilers->Count
+		Do Until piniSettings->KeyExists("Compilers", "Version_" & WStr(i)) = -1
+			piniSettings->KeyRemove "Compilers", "Version_" & WStr(i)
+			piniSettings->KeyRemove "Compilers", "Path_" & WStr(i)
+			i += 1
+		Loop
 		piniSettings->WriteString "MakeTools", "DefaultMakeTool", *DefaultMakeTool
-		For i As Integer = 0 To Min(9, pMakeTools->Count - 1)
+		For i As Integer = 0 To pMakeTools->Count - 1
 			piniSettings->WriteString "MakeTools", "Version_" & WStr(i), pMakeTools->Item(i)->Key
 			piniSettings->WriteString "MakeTools", "Path_" & WStr(i), pMakeTools->Item(i)->Text
 		Next
-		For i As Integer = pMakeTools->Count To 9
-			piniSettings->WriteString "MakeTools", "Version_" & WStr(i), ""
-			piniSettings->WriteString "MakeTools", "Path_" & WStr(i), ""
-		Next
+		i = pMakeTools->Count
+		Do Until piniSettings->KeyExists("MakeTools", "Version_" & WStr(i)) = -1
+			piniSettings->KeyRemove "MakeTools", "Version_" & WStr(i)
+			piniSettings->KeyRemove "MakeTools", "Path_" & WStr(i)
+			i += 1
+		Loop
 		piniSettings->WriteString "Debuggers", "DefaultDebugger", *DefaultDebugger
-		For i As Integer = 0 To Min(9, pDebuggers->Count - 1)
+		For i As Integer = 0 To pDebuggers->Count - 1
 			piniSettings->WriteString "Debuggers", "Version_" & WStr(i), pDebuggers->Item(i)->Key
 			piniSettings->WriteString "Debuggers", "Path_" & WStr(i), pDebuggers->Item(i)->Text
 		Next
-		For i As Integer = pDebuggers->Count To 9
-			piniSettings->WriteString "Debuggers", "Version_" & WStr(i), ""
-			piniSettings->WriteString "Debuggers", "Path_" & WStr(i), ""
-		Next
+		i = pDebuggers->Count
+		Do Until piniSettings->KeyExists("Debuggers", "Version_" & WStr(i)) = -1
+			piniSettings->KeyRemove "Debuggers", "Version_" & WStr(i)
+			piniSettings->KeyRemove "Debuggers", "Path_" & WStr(i)
+			i += 1
+		Loop
 		piniSettings->WriteString "Terminals", "DefaultTerminal", *DefaultTerminal
-		For i As Integer = 0 To Min(9, pTerminals->Count - 1)
+		For i As Integer = 0 To pTerminals->Count - 1
 			piniSettings->WriteString "Terminals", "Version_" & WStr(i), pTerminals->Item(i)->Key
 			piniSettings->WriteString "Terminals", "Path_" & WStr(i), pTerminals->Item(i)->Text
 		Next
-		For i As Integer = pTerminals->Count To 9
-			piniSettings->WriteString "Terminals", "Version_" & WStr(i), ""
-			piniSettings->WriteString "Terminals", "Path_" & WStr(i), ""
-		Next
+		i = pTerminals->Count
+		Do Until piniSettings->KeyExists("Terminals", "Version_" & WStr(i)) = -1
+			piniSettings->KeyRemove "Terminals", "Version_" & WStr(i)
+			piniSettings->KeyRemove "Terminals", "Path_" & WStr(i)
+			i += 1
+		Loop
 		piniSettings->WriteString "Helps", "DefaultHelp", *DefaultHelp
-		For i As Integer = 0 To Min(9, pHelps->Count - 1)
+		For i As Integer = 0 To pHelps->Count - 1
 			piniSettings->WriteString "Helps", "Version_" & WStr(i), pHelps->Item(i)->Key
 			piniSettings->WriteString "Helps", "Path_" & WStr(i), pHelps->Item(i)->Text
 		Next
-		For i As Integer = pHelps->Count To 9
-			piniSettings->WriteString "Helps", "Version_" & WStr(i), ""
-			piniSettings->WriteString "Helps", "Path_" & WStr(i), ""
-		Next
-		For i As Integer = 0 To Min(9, pIncludePaths->Count - 1)
+		i = pHelps->Count
+		Do Until piniSettings->KeyExists("Helps", "Version_" & WStr(i)) = -1
+			piniSettings->KeyRemove "Helps", "Version_" & WStr(i)
+			piniSettings->KeyRemove "Helps", "Path_" & WStr(i)
+			i += 1
+		Loop
+		For i As Integer = 0 To pIncludePaths->Count - 1
 			piniSettings->WriteString "IncludePaths", "Path_" & WStr(i), pIncludePaths->Item(i)
 		Next
-		For i As Integer = pIncludePaths->Count To 9
-			piniSettings->WriteString "IncludePaths", "Path_" & WStr(i), ""
-		Next
-		For i As Integer = 0 To Min(9, pLibraryPaths->Count - 1)
+		i = pIncludePaths->Count
+		Do Until piniSettings->KeyExists("IncludePaths", "Path_" & WStr(i)) = -1
+			piniSettings->KeyRemove "IncludePaths", "Path_" & WStr(i)
+			i += 1
+		Loop
+		For i As Integer = 0 To pLibraryPaths->Count - 1
 			piniSettings->WriteString "LibraryPaths", "Path_" & WStr(i), pLibraryPaths->Item(i)
 		Next
-		For i As Integer = pLibraryPaths->Count To 9
-			piniSettings->WriteString "LibraryPaths", "Path_" & WStr(i), ""
-		Next
+		i = pLibraryPaths->Count
+		Do Until piniSettings->KeyExists("LibraryPaths", "Path_" & WStr(i)) = -1
+			piniSettings->KeyRemove "LibraryPaths", "Path_" & WStr(i)
+			i += 1
+		Loop
 		piniSettings->WriteBool "Options", "IncludeMFFPath", IncludeMFFPath
 		piniSettings->WriteString "Options", "MFFPath", *MFFPath
 		piniSettings->WriteString "Options", "ProjectsPath", *ProjectsPath
