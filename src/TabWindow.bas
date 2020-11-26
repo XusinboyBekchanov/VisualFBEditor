@@ -1577,7 +1577,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 		Var InsLineCount = 0
 		If Not t Then
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-			ptxtCode->InsertLine j, "#Include Once """ & tbi->IncludeFile & """"
+			ptxtCode->InsertLine j, Left(ptxtCode->Lines(j - 1), Len(ptxtCode->Lines(j - 1)) - Len(LTrim(ptxtCode->Lines(j - 1), Any !"\t "))) & "#include once """ & tbi->IncludeFile & """"
 			InsLineCount += 1
 		End If
 	End If
