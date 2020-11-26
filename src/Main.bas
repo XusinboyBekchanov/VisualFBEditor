@@ -423,7 +423,7 @@ Function Compile(Parameter As String = "") As Integer
 	Dim As Long nLen, nLen2
 	Dim As Boolean Log2_
 	
-	Dim As Integer Result = -1, Fn =FreeFile
+	Dim As Integer Result = -1, Fn = FreeFile
 	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 	#ifdef __USE_GTK__
 		WLet PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True
@@ -4445,18 +4445,18 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			Else
 				FbcExe = Compiler32Path
 			End If
-			PipeCmd "", """" & *FbcExe & """ -b """ & ExePath & "/Temp/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & ExePath & "/Temp/debug_compil.log"" 2> """ & ExePath & "/Temp/debug_compil2.log"""
+			PipeCmd "", """" & *FbcExe & """ -b """ & ExePath & "/Temp/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & ExePath & "/Temp/Compile1.log"" 2> """ & ExePath & "/Temp/Compile2.log"""
 			Dim As WString Ptr LogText
 			Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 			Dim As WString Ptr ErrFileName, ErrTitle
 			Dim As Integer nLen, nLen2
 			WLet LogText, ""
-			Fn =FreeFile
+			Fn = FreeFile
 			Dim Result As Integer=-1 '
-			Result = Open(ExePath & "/Temp/debug_compil.log" For Input As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/debug_compil.log" For Input Encoding "utf-16" As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/debug_compil.log" For Input Encoding "utf-32" As #Fn)
-			If Result <> 0 Then Result =  Open(ExePath & "/Temp/debug_compil.log" For Input Encoding "utf-8" As #Fn)
+			Result = Open(ExePath & "/Temp/Compile1.log" For Input As #Fn)
+			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile1.log" For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile1.log" For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result =  Open(ExePath & "/Temp/Compile1.log" For Input Encoding "utf-8" As #Fn)
 			If Result = 0 Then
 				While Not EOF(Fn)
 					Line Input #Fn, Buff
@@ -4465,12 +4465,12 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 				Wend
 			End If
 			Close #Fn
-			Fn =FreeFile
+			Fn = FreeFile
 			Result =-1
-			Result = Open(ExePath & "/Temp/debug_compil2.log" For Input Encoding "utf-8" As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/debug_compil2.log" For Input Encoding "utf-16" As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/debug_compil2.log" For Input Encoding "utf-32" As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/debug_compil2.log" For Input As #Fn)
+			Result = Open(ExePath & "/Temp/Compile2.log" For Input Encoding "utf-8" As #Fn)
+			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile2.log" For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile2.log" For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile2.log" For Input As #Fn)
 			If Result = 0 Then
 				While Not EOF(Fn)
 					Line Input #Fn, buff
@@ -4519,8 +4519,8 @@ txtImmediate.Multiline = True
 txtImmediate.ScrollBars = 3
 txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
-txtImmediate.BackColor=cLBlack
-txtImmediate.Font.Color=cLWhite
+txtImmediate.BackColor = NormalText.Background
+txtImmediate.Font.Color = NormalText.Foreground
 txtImmediate.Text = "import #Include Once " + Chr(34) + "mff/SysUtils.bas"+Chr(34) & WChr(13,10) & WChr(13,10)
 
 Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -4672,7 +4672,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	tbBottom.Buttons.Item("AddWatch")->Visible = ptabBottom->TabIndex = 9
 	tbBottom.Buttons.Item("RemoveWatch")->Visible = ptabBottom->TabIndex = 9
 	If MainNode <>0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text,".") Then
-		If ptabBottom->TabIndex = 4 AndAlso Not mLoadLog Then
+		If ptabBottom->TabIndex = 4 AndAlso CInt(Not mLoadLog) AndAlso CInt(Not mLoadToDo) Then
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
 				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 				mChangeLogEdited = False
@@ -4689,8 +4689,8 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 			End If
 			mLoadLog = True
 		ElseIf ptabBottom->TabIndex = 3  AndAlso Not mLoadToDO Then
-			ThreadCreate(@FindToDoSub, MainNode)
 			mLoadToDo = True
+			ThreadCreate(@FindToDoSub, MainNode)
 		End If
 	End If
 End Sub

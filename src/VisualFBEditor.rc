@@ -99,8 +99,8 @@ weChat PNG "../resources/weChat.png"
 
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,5,1186
-#define VER_FILEVERSION_STR         "1.2.5.1186\0"
+#define VER_FILEVERSION             1,2,5,1205
+#define VER_FILEVERSION_STR         "1.2.5.1205\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
