@@ -683,7 +683,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 				Select Case LCase(.TypeName)
 				Case "wstring", "wstring ptr": WLet FLine, QWString(pTemp)
 				Case "string", "zstring": WLet FLine, QZString(pTemp)
-				Case "control ptr", "control": WLet FLine, QControl(pTemp).Name
+				Case "control ptr", "control": WLet FLine, QWString(Des->ReadPropertyFunc(pTemp, "Name"))
 				Case "integer": iTemp = QInteger(pTemp)
 					WLet FLine, WStr(iTemp)
 					If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
@@ -5170,8 +5170,8 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 			End If
 			If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
 				Continue For
-'			ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
-'				bNotNumberNext = True
+			ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
+				bNotNumberNext = True
 			ElseIf FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
 				Continue For
 			End If

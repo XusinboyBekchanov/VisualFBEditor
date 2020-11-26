@@ -69,15 +69,17 @@ pAvailableAddIns = @AvailableAddIns
 		grbLoadBehavior.Parent = @This
 		' chkLoaded
 		chkLoaded.Name = "chkLoaded"
-		chkLoaded.Text = ML("Loaded")
+		chkLoaded.Text = ML("Loaded/Unloaded")
 		chkLoaded.SetBounds 4, 3, 140, 18
 		chkLoaded.OnClick = @chkLoaded_Click
+		chkLoaded.Caption = ML("Loaded/Unloaded")
 		chkLoaded.Parent = @pnlLoadBehavior
 		' chkLoadOnStartup
 		chkLoadOnStartup.Name = "chkLoadOnStartup"
-		chkLoadOnStartup.Text = ML("Load On Startup")
+		chkLoadOnStartup.Text = ML("Load on Startup")
 		chkLoadOnStartup.SetBounds 4, 28, 156, 18
 		chkLoadOnStartup.OnClick = @chkLoadOnStartup_Click
+		chkLoadOnStartup.Caption = ML("Load on Startup")
 		chkLoadOnStartup.Parent = @pnlLoadBehavior
 		' pnlLoadBehavior
 		pnlLoadBehavior.Name = "pnlLoadBehavior"
