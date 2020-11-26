@@ -1441,6 +1441,9 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "public sub " & LCase(OldName) & ".") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 11) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 12)
+				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "*cast(" & LCase(OldName) & " ") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 7)
 				End If
 			End If
 			If iIndex = 1 Then
