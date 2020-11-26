@@ -2841,6 +2841,7 @@ Sub LoadSettings
 	WLet HelpPath, Helps.Get(*DefaultHelp, "")
 	
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
+	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
 	WLet ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects")

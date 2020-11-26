@@ -16,7 +16,6 @@
 #include once "mff/RadioButton.bi"
 #include once "TabWindow.bi"
 
-#define Me *Cast(frmFind Ptr, Sender.GetForm)
 Using My.Sys.Forms
 
 '#Region "Form"

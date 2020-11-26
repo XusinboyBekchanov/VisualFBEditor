@@ -12,33 +12,33 @@ Dim Shared As frmFind fFind
 pfFind = @fFind
 '#Region "Form"
 	Private Sub frmFind._btnFind_Click_(ByRef Sender As Control)
-		Me.btnFind_Click(Sender)
+		fFind.btnFind_Click(Sender)
 	End Sub
 	
 	Private Sub frmFind._btnFindPrev_Click_(ByRef Sender As Control)
-		Me.btnFindPrev_Click(Sender)
+		fFind.btnFindPrev_Click(Sender)
 	End Sub
 	
 	Private Sub frmFind._btnReplace_Click_(ByRef Sender As Control)
-		Me.btnReplace_Click(Sender)
+		fFind.btnReplace_Click(Sender)
 	End Sub
 	
 	Private Sub frmFind._btnReplaceAll_Click_(ByRef Sender As Control)
-		Me.btnReplaceAll_Click(Sender)
+		fFind.btnReplaceAll_Click(Sender)
 	End Sub
 	Private Sub frmFind._btnReplaceShow_Click_(ByRef Sender As Control)
-		Me.btnReplaceShow_Click(Sender)
+		fFind.btnReplaceShow_Click(Sender)
 	End Sub
 	Private Sub frmFind._btnCancel_Click_(ByRef Sender As Control)
-		Me.btnCancel_Click(Sender)
+		fFind.btnCancel_Click(Sender)
 	End Sub
 	
 	Private Sub frmFind._Form_Show_(ByRef Sender As Form)
-		Me.Form_Show(Sender)
+		fFind.Form_Show(Sender)
 	End Sub
 	
 	Private Sub frmFind._Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
-		Me.Form_Close(Sender, Action)
+		fFind.Form_Close(Sender, Action)
 	End Sub
 	
 	Constructor frmFind

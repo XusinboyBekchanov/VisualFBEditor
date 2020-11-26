@@ -987,6 +987,14 @@ pfOptions = @fOptions
 			.SetBounds 10, 138, 400, 16
 			.Parent = @pnlGeneral
 		End With
+		' chkCreateNonStaticEventHandlers
+		With chkCreateNonStaticEventHandlers
+			.Name = "chkCreateNonStaticEventHandlers"
+			.Text = ML("Create non-static event handlers")
+			.SetBounds 8, 41, 288, 24
+			.Caption = ML("Create non-static event handlers")
+			.Parent = @pnlGrid
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1030,6 +1038,7 @@ Sub frmOptions.LoadSettings()
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
 		.chkAutoReloadLastOpenSources.Checked = AutoReloadLastOpenFiles
+		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
 		Select Case AutoSaveBeforeCompiling
 		Case 0: .optDoNotSave.Checked = True
 		Case 1: .optSaveCurrentFile.Checked = True
@@ -1468,6 +1477,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoComplete = .chkEnableAutoComplete.Checked
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
+		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
 		AutoReloadLastOpenFiles = .chkAutoReloadLastOpenSources.Checked
 		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, 0))
 		ShowSpaces = .chkShowSpaces.Checked
@@ -1603,6 +1613,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "GridSize", GridSize
 		piniSettings->WriteBool "Options", "ShowAlignmentGrid", ShowAlignmentGrid
 		piniSettings->WriteBool "Options", "SnapToGrid", SnapToGridOption
+		piniSettings->WriteBool "Options", "CreateNonStaticEventHandlers", CreateNonStaticEventHandlers
 		piniSettings->WriteBool "Options", "ChangeKeywordsCase", ChangeKeywordsCase
 		piniSettings->WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeywordsCase
 		

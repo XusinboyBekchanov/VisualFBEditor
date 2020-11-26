@@ -924,9 +924,9 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	'tb->Des->SelectedControl = Ctrl
 	SelectedCtrl = Ctrl
 	bNotFunctionChange = True
-	#ifndef __USE_GTK__
-		If tb->Des->ControlSetFocusSub <> 0 AndAlso tb->Des->DesignControl <> 0 Then tb->Des->ControlSetFocusSub(tb->Des->DesignControl)
-	#endif
+'	#ifndef __USE_GTK__
+'		If tb->Des->ControlSetFocusSub <> 0 AndAlso tb->Des->DesignControl <> 0 Then tb->Des->ControlSetFocusSub(tb->Des->DesignControl)
+'	#endif
 	If tb->Des->ReadPropertyFunc <> 0 Then tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(WGet(tb->Des->ReadPropertyFunc(Ctrl, "Name")))
 	tb->FillAllProperties
 	bNotFunctionChange = False
@@ -1654,9 +1654,10 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 				'tb->Des->SelectedControl = Ctrl
 				'tb->Des->MoveDots(tb->Des->ReadPropertyFunc(Ctrl, "Widget"))
 			#else
+				tb->Des->SelectedControls.Clear
 				tb->Des->SelectedControl = Ctrl
 				Dim As HWND Ptr hw = tb->Des->ReadPropertyFunc(Ctrl, "Handle")
-				If hw <> 0 Then tb->Des->MoveDots(Ctrl) Else tb->Des->MoveDots(0): DesignerChangeSelection *tb->Des, Ctrl
+				If hw <> 0 Then tb->Des->MoveDots(Ctrl, False) Else tb->Des->MoveDots(0, False): DesignerChangeSelection *tb->Des, Ctrl
 			#endif
 		End If
 	End If
@@ -1735,6 +1736,28 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 	bNotFunctionChange = False
 End Sub
 
+Function GetOnlyArguments(ArgumentsLine As String) As String
+	Dim As UString res(Any)
+	Dim As Integer Pos1
+	Dim As String Result
+	Split(Mid(Left(ArgumentsLine, Len(ArgumentsLine) - 1), 2), ",", res())
+	For i As Integer = 0 To UBound(res)
+		If StartsWith(res(i), "ByRef ") OrElse StartsWith(res(i), "ByVal ") Then
+			res(i) = Mid(res(i), 7)
+		End If
+		Pos1 = InStr(LCase(res(i)), " as ")
+		If Pos1 > 0 Then
+			res(i) = Left(res(i), Pos1 - 1)
+		End If
+		If Result = "" Then
+			Result = Trim(res(i))
+		Else
+			Result &= ", " & Trim(res(i))
+		End If
+	Next
+	Return "(" & Result & ")"
+End Function
+
 Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	On Error Goto ErrorHandler
 	Dim As TabWindow Ptr tb = ptabRight->Tag
@@ -1747,19 +1770,14 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	If Cpnt = 0 Then Exit Sub
 	Dim CtrlName As String = WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 	If Cpnt = tb->Des->DesignControl Then CtrlName = "This"
-	Dim EventNameStatic As String = EventName
-	If EndsWith(EventNameStatic, "NS") Then EventNameStatic = Left(EventNameStatic, Len(EventNameStatic) - 2)
 	Dim As String CtrlName2 = CtrlName
-	'
-	If InStr(CtrlName,"(")Then
-		CtrlName2 = StringExtract(CtrlName2,"(")
+	If InStr(CtrlName, "(") Then
+		CtrlName2 = StringExtract(CtrlName2, "(")
 	ElseIf CtrlName = "This" Then
 		CtrlName2 = "Form"
 	End If
 	Var EventName2 = Mid(EventName, IIf(StartsWith(LCase(EventName), "on"), 3, 1))
-	If EndsWith(EventName2, "NS") Then EventName2 = Left(EventName2, Len(EventName2) - 2)
 	Dim As String SubName = CtrlName2 & "_" & EventName2
-	Dim As String SubNameNS = CtrlName2 & "_" & EventName2 & "NS"
 	Var ii = tb->cboClass.ItemIndex
 	Var jj = tb->cboFunction.ItemIndex
 	If ii < 0 Then Exit Sub
@@ -1769,11 +1787,12 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	Dim As Integer iStart, iEnd, i, k
 	Dim As WString Ptr FLine1
 	Dim As WStringList WithArgs
+	Dim As String WithCtrlName
 	Var bWith = False
 	WLet FLine1, ""
 	tb->txtCode.Changing "Hodisa qo`shish"
 	ChangeControl Cpnt
-	Dim As Boolean b, c, e, f, t, td, tdns, tt
+	Dim As Boolean b, c, e, f, t, td, tdns, tt, tdes
 	Dim As Integer j, l, p
 	For i = 0 To tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
@@ -1792,8 +1811,6 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 						If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare static sub " & LCase(SubName)) Then
 							td = True
 						End If
-					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare sub " & LCase(SubNameNS)) Then
-						tdns = True
 					End If
 				ElseIf e Then
 					If (Not c) AndAlso StartsWith(LCase(Trim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & " ") Then
@@ -1810,14 +1827,17 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 								bWith = WithArgs.Count > 0 AndAlso WithArgs.Item(WithArgs.Count - 1) = CtrlName
 								Var p1 = InStr(ptxtCode->Lines(k), ".")
 								If p1 Then
-									If CInt(EventNameStatic <> "") AndAlso CInt(StartsWith(Mid(LCase(ptxtCode->Lines(k)), p1 + 1), LCase(EventNameStatic & "="))) OrElse _
-										CInt(StartsWith(Mid(LCase(ptxtCode->Lines(k)), p1 + 1), LCase(EventNameStatic & " "))) Then
+									If CInt(EventName <> "") AndAlso CInt(StartsWith(Mid(LCase(ptxtCode->Lines(k)), p1 + 1), LCase(EventName & "="))) OrElse _
+										CInt(StartsWith(Mid(LCase(ptxtCode->Lines(k)), p1 + 1), LCase(EventName & " "))) Then
 										Var Pos1 = InStr(ptxtCode->Lines(k), "=")
 										If Pos1 > 0 Then
 											SubName = Trim(Mid(ptxtCode->Lines(k), Pos1 + 1))
 											tt = True
 											If StartsWith(SubName, "@") Then SubName = Mid(SubName, 2)
 										End If
+									ElseIf CInt(StartsWith(Mid(LCase(ptxtCode->Lines(k)), p1 + 1), "designer=")) OrElse _
+										CInt(StartsWith(Mid(LCase(ptxtCode->Lines(k)), p1 + 1), "designer ")) Then
+										tdes = True
 									End If
 								End If
 							ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "end constructor") Then
@@ -1852,23 +1872,33 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		If Not td Then
 			ptxtCode = ptxtCodeType
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-			ptxtCode->InsertLine j, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & Mid(te->TypeName, 4)
-			If ptxtCode = @tb->txtCode Then q1 = 1 Else q2 = 1
+			If CreateNonStaticEventHandlers Then
+				ptxtCode->InsertLine j, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & "_" & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine j + 1, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Sub " & SubName & Mid(te->TypeName, 4)
+				If ptxtCode = @tb->txtCode Then q1 = 1 Else q2 = 1
+			Else
+				ptxtCode->InsertLine j, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & Mid(te->TypeName, 4)
+			End If
+			If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 		End If
 		If Not tt Then
 			ptxtCode = ptxtCodeConstructor
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			q = IIf(ptxtCode = @tb->txtCode, q1, q2)
-			If bWith Then
-				ptxtCode->InsertLine p + q, Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & "." & EventName & " = @" & SubName
-			Else
-				ptxtCode->InsertLine p + q, Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & CtrlName & "." & EventName & " = @" & SubName
-			End If
+			If bWith Then WithCtrlName = "" Else WithCtrlName = CtrlName
+			If CreateNonStaticEventHandlers AndAlso Not tdes Then ptxtCode->InsertLine p + q, Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & ".Designer = @This": q += 1: If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
+			ptxtCode->InsertLine p + q, Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & "." & EventName & " = @" & SubName & IIf(CreateNonStaticEventHandlers, "_", "")
 			If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 		End If
 		ptxtCode = @tb->txtCode
 		q = q1
 		ptxtCode->InsertLine i + q, ""
+		If CreateNonStaticEventHandlers Then
+			ptxtCode->InsertLine i + q + 1, "Private Sub " & frmName & "." & SubName & "_" & Mid(te->TypeName, 4)
+			ptxtCode->InsertLine i + q + 2, TabSpace & "*Cast(" & frmName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
+			ptxtCode->InsertLine i + q + 3, "End Sub"
+			q += 3
+		End If
 		ptxtCode->InsertLine i + q + 1, "Private Sub " & frmName & "." & SubName & Mid(te->TypeName, 4)
 		ptxtCode->InsertLine i + q + 2, TabSpace
 		ptxtCode->InsertLine i + q + 3, "End Sub"

@@ -517,6 +517,7 @@ Namespace My.Sys.Forms
 			Dim As Boolean bCtrl = GetKeyState(VK_CONTROL) And 8000
 			Dim As Boolean bShift = GetKeyState(VK_SHIFT) And 8000
 		#endif
+		pfrmMain->ActiveControl = GetControl(FDialogParent)
 		Dim As Point P
 		Dim As RECT R
 		FDown   = True
@@ -796,7 +797,6 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.MouseUp(X As Integer, Y As Integer, Shift As Integer)
 		Dim As RECT R
-		pfrmMain->ActiveControl = GetControl(FDialogParent)
 		If FDown Then
 			'    	if (FBeginX > FEndX and FBeginY > FEndY) then
 			'            swap FBeginX, FNewX

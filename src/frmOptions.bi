@@ -131,7 +131,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CheckBox chkFrame
 		Dim As CheckBox chkHighlightCurrentWord
 		Dim As CheckBox chkHighlightCurrentLine
-		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug
+		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug, chkCreateNonStaticEventHandlers
 		Dim As Boolean oldDisplayMenuIcons
 		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles
 	End Type
