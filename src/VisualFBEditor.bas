@@ -51,7 +51,26 @@ End Sub
 Sub RunCmd(Param As Any Ptr)
 	Dim As UString MainFile = GetMainFile()
 	Dim As UString cmd = Environ("COMSPEC") & " /K cd /D """ & GetFolderName(MainFile) & """"
-	Shell(cmd)
+	#ifdef __USE_GTK__
+		Shell(cmd)
+	#else
+		Dim As Integer pClass
+		Dim As WString Ptr Workdir, CmdL
+		Dim SInfo As STARTUPINFO
+		Dim PInfo As PROCESS_INFORMATION
+		WLet CmdL, cmd
+		WLet Workdir, GetFolderName(MainFile)
+		SInfo.cb = Len(SInfo)
+		SInfo.dwFlags = STARTF_USESHOWWINDOW
+		SInfo.wShowWindow = SW_NORMAL
+		pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+		If CreateProcessW(Null, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+			CloseHandle(pinfo.hProcess)
+			CloseHandle(pinfo.hThread)
+		End If
+		If WorkDir Then Deallocate WorkDir
+		If CmdL Then Deallocate CmdL
+	#endif
 End Sub
 
 Sub FindInFiles

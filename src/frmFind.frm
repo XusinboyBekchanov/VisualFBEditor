@@ -626,10 +626,10 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	Dim txt As EditControl Ptr = @tb->txtCode
 	If LCase(txt->SelText) = LCase(txtFind.Text) Then
 		txt->SelText = txtReplace.Text
-		Me.btnFind_Click(Sender)
+		fFind.btnFind_Click(Sender)
 		If txtReplace.Contains(txtReplace.Text)=False Then txtReplace.AddItem txtReplace.Text
 	Else
-		Me.btnFind_Click(Sender)
+		fFind.btnFind_Click(Sender)
 	End If
 	Dim Temp As WString Ptr
 	This.Caption = Replace(This.Caption, ML("Find"), ML("Replace"))
