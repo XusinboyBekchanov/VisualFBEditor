@@ -340,20 +340,20 @@ Sub CloseButton_MouseLeave(ByRef Sender As Control)
 	btn->MouseIn = False
 End Sub
 
-#IfDef __USE_GTK__
+#ifdef __USE_GTK__
 	Function CloseButton_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 		Dim As CloseButton Ptr cb = Cast(Any Ptr, data1)
 		
 		cairo_select_font_face(cr, "Noto Mono", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
 		cairo_set_font_size(cr, 11)
 		
-		#IfDef __USE_GTK3__
+		#ifdef __USE_GTK3__
 			Var width1 = gtk_widget_get_allocated_width (widget)
 			Var height1 = gtk_widget_get_allocated_height (widget)
-		#Else
+		#else
 			Var width1 = widget->allocation.width
 			Var height1 = widget->allocation.height
-		#EndIf
+		#endif
 		
 		If cb->MouseIn Then
 			cairo_rectangle(cr, width1 - 16, (height1 - 16) / 2, 16, 16)
@@ -2064,6 +2064,7 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 End Sub
 
 Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0) As Boolean
+    On Error Goto ErrorHandler
 	If Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	c += 1
 	If c > 100 Then Return False
@@ -2099,6 +2100,12 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 		End With
 	#endif
 	Return True
+    Exit Function
+ErrorHandler:
+    MsgBox Text & " " & ErrDescription(Err) & " (" & Err & ") " & _
+        "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+        "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+        "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Function
 
 Sub FillAllIntellisenses(ByRef Starts As WString = "")

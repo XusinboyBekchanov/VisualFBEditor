@@ -83,12 +83,12 @@ Type FileType
 End Type
 
 Type TypeElement
-	Name As UString
-	DisplayName As UString
-	EnumTypeName As UString
-	TypeName As UString
+	Name As String
+	DisplayName As String
+	EnumTypeName As String
+	TypeName As String
 	Value As UString
-	ElementType As UString
+	ElementType As String
 	Parameters As UString
 	Comment As UString
 	FileName As UString

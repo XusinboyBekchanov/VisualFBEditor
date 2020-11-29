@@ -5880,6 +5880,10 @@ Sub RunWithDebug(Param As Any Ptr)
 	exename = GetExeFileName(MainFile, FirstLine)
 	mainfolder = GetFolderName(MainFile)
 	'#EndIf
+	ThreadsEnter()
+	Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
+	Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
+	ThreadsLeave()
 	If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP Then
 		If InStr(LCase(WGet(DebuggerPath)), "gdb") Then
 			Dim As Integer Fn = FreeFile

@@ -102,9 +102,9 @@ Common Shared As WString Ptr gSearchSave
 Common Shared As WString Ptr ProjectsPath, LastOpenPath
 Common Shared As WString Ptr DefaultHelp, HelpPath
 Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2, MakeToolPath
-Common Shared As WString Ptr DefaultDebugger, CurrentDebugger, DebuggerPath, DefaultTerminal, CurrentTerminal, TerminalPath
+Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, CurrentDebugger32, CurrentDebugger64, Debugger32Path, Debugger64Path, DefaultTerminal, CurrentTerminal, TerminalPath
 Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64, Compiler32Path, Compiler64Path
-Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, DebugArguments
+Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, Debug32Arguments, Debug64Arguments
 Common Shared As Any Ptr tlock, tlockSave
 
 Common Shared As List Ptr pTools

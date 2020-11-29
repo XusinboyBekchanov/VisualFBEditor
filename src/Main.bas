@@ -2826,15 +2826,18 @@ Sub LoadSettings
 	WLet CurrentMakeTool1, ""
 	WLet CurrentMakeTool2, ""
 	WLet CurrentTerminal, ""
-	WLet CurrentDebugger, ""
+	WLet CurrentDebugger32, ""
+	WLet CurrentDebugger64, ""
 	WLet DefaultCompiler32, iniSettings.ReadString("Compilers", "DefaultCompiler32", "")
 	WLet DefaultCompiler64, iniSettings.ReadString("Compilers", "DefaultCompiler64", "")
 	WLet Compiler32Path, Compilers.Get(*DefaultCompiler32, "fbc")
 	WLet Compiler64Path, Compilers.Get(*DefaultCompiler64, "fbc")
 	WLet DefaultMakeTool, iniSettings.ReadString("MakeTools", "DefaultMakeTool", "make")
 	WLet MakeToolPath, MakeTools.Get(*DefaultMakeTool, "make")
-	WLet DefaultDebugger, iniSettings.ReadString("Debuggers", "DefaultDebugger", "")
-	WLet DebuggerPath, Debuggers.Get(*DefaultDebugger, "")
+	WLet DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "")
+	WLet DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", "")
+	WLet Debugger32Path, Debuggers.Get(*DefaultDebugger32, "")
+	WLet Debugger64Path, Debuggers.Get(*DefaultDebugger64, "")
 	WLet DefaultTerminal, iniSettings.ReadString("Terminals", "DefaultTerminal", "")
 	WLet TerminalPath, Terminals.Get(*DefaultTerminal, "")
 	WLet DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", "")
@@ -2888,6 +2891,8 @@ Sub LoadSettings
 	WLet Make1Arguments, iniSettings.ReadString("Parameters", "Make1Arguments", "")
 	WLet Make2Arguments, iniSettings.ReadString("Parameters", "Make2Arguments", "clean")
 	WLet RunArguments, iniSettings.ReadString("Parameters", "RunArguments", "")
+	WLet Debug32Arguments, iniSettings.ReadString("Parameters", "Debug32Arguments", "")
+	WLet Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", "")
 	
 	iniTheme.Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
 	Bookmarks.ForegroundOption = iniTheme.ReadInteger("Colors", "BookmarksForeground", -1)
@@ -5152,9 +5157,12 @@ Sub OnProgramQuit() Destructor
 	WDeallocate CurrentMakeTool1
 	WDeallocate CurrentMakeTool2
 	WDeallocate MakeToolPath
-	WDeallocate DefaultDebugger
-	WDeallocate CurrentDebugger
-	WDeallocate DebuggerPath
+	WDeallocate DefaultDebugger32
+	WDeallocate DefaultDebugger64
+	WDeallocate CurrentDebugger32
+	WDeallocate CurrentDebugger64
+	WDeallocate Debugger32Path
+	WDeallocate Debugger64Path
 	WDeallocate DefaultTerminal
 	WDeallocate CurrentTerminal
 	WDeallocate TerminalPath
@@ -5169,7 +5177,8 @@ Sub OnProgramQuit() Destructor
 	WDeallocate Make1Arguments
 	WDeallocate Make2Arguments
 	WDeallocate RunArguments
-	WDeallocate DebugArguments
+	WDeallocate Debug32Arguments
+	WDeallocate Debug64Arguments
 	WDeallocate RecentFiles '
 End Sub
 

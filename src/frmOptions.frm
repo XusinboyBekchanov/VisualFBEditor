@@ -96,7 +96,7 @@ pfOptions = @fOptions
 		' pnlDebugger
 		pnlDebugger.Name = "pnlDebugger"
 		pnlDebugger.Text = ""
-		pnlDebugger.SetBounds 190, 2, 426, 408
+		pnlDebugger.SetBounds 190, 10, 426, 400
 		pnlDebugger.Parent = @This
 		' pnlTerminal
 		pnlTerminal.Name = "pnlTerminal"
@@ -182,26 +182,26 @@ pfOptions = @fOptions
 		lblCompiler64.Text = ML("Compiler") & " " & ML("64-bit")
 		lblCompiler64.SetBounds 18, 74, 266, 18
 		lblCompiler64.Parent = @grbDefaultCompilers
-		' grbDefaultDebugger
-		With grbDefaultDebugger
-			.Name = "grbDefaultDebugger"
-			.Text = ML("Default Debugger")
-			.SetBounds 10, 6, 416, 64
+		' grbDefaultDebuggers
+		With grbDefaultDebuggers
+			.Name = "grbDefaultDebuggers"
+			.Text = ML("Default Debuggers")
+			.SetBounds 10, -2, 416, 128
 			.Parent = @pnlDebugger
 		End With
 		' grbDebuggerPaths
 		With grbDebuggerPaths
 			.Name = "grbDebuggerPaths"
 			.Text = ML("Debugger Paths")
-			.SetBounds 10, 78, 416, 328
+			.SetBounds 10, 134, 416, 264
 			.Parent = @pnlDebugger
 		End With
-		' cboDebugger
-		With cboDebugger
-			.Name = "cboDebugger"
+		' cboDebugger32
+		With cboDebugger32
+			.Name = "cboDebugger32"
 			.Text = "cboCompiler321"
-			.SetBounds 18, 24, 384, 21
-			.Parent = @grbDefaultDebugger
+			.SetBounds 18, 39, 384, 21
+			.Parent = @grbDefaultDebuggers
 		End With
 		' grbDefaultTerminal
 		With grbDefaultTerminal
@@ -391,7 +391,7 @@ pfOptions = @fOptions
 		' cmdChangeDebugger
 		cmdChangeDebugger.Name = "cmdChangeDebugger"
 		cmdChangeDebugger.Text = ML("Chan&ge")
-		cmdChangeDebugger.SetBounds 114, 289, 96, 24
+		cmdChangeDebugger.SetBounds 114, 223, 96, 24
 		cmdChangeDebugger.OnClick = @cmdChangeDebugger_Click
 		cmdChangeDebugger.Parent = @grbDebuggerPaths
 		' cmdChangeTerminal
@@ -412,7 +412,7 @@ pfOptions = @fOptions
 		' grbGrid
 		grbGrid.Name = "grbGrid"
 		grbGrid.Text = ML("Grid")
-		grbGrid.SetBounds 8, -1, 414, 192
+		grbGrid.SetBounds 8, -1, 414, 122
 		grbGrid.Parent = @pnlDesigner
 		' lblGridSize
 		lblGridSize.Name = "lblGridSize"
@@ -710,14 +710,14 @@ pfOptions = @fOptions
 		With lvDebuggerPaths
 			.Name = "lvDebuggerPaths"
 			.Text = "lvCompilerPaths1"
-			.SetBounds 18, 22, 384, 256
+			.SetBounds 18, 22, 384, 192
 			.Parent = @grbDebuggerPaths
 		End With
 		' cmdAddDebugger
 		With cmdAddDebugger
 			.Name = "cmdAddDebugger"
 			.Text = ML("&Add")
-			.SetBounds 17, 289, 96, 24
+			.SetBounds 17, 223, 96, 24
 			.OnClick = @cmdAddDebugger_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -725,7 +725,7 @@ pfOptions = @fOptions
 		With cmdRemoveDebugger
 			.Name = "cmdRemoveDebugger"
 			.Text = ML("&Remove")
-			.SetBounds 211, 289, 96, 24
+			.SetBounds 211, 223, 96, 24
 			.OnClick = @cmdRemoveDebugger_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -733,7 +733,7 @@ pfOptions = @fOptions
 		With cmdClearDebuggers
 			.Name = "cmdClearDebuggers"
 			.Text = ML("&Clear")
-			.SetBounds 307, 289, 96, 24
+			.SetBounds 307, 223, 96, 24
 			.OnClick = @cmdClearDebuggers_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -970,7 +970,7 @@ pfOptions = @fOptions
 		With pnlGrid
 			.Name = "pnlGrid"
 			.Text = "Panel2"
-			.SetBounds 10, 63, 314, 106
+			.SetBounds 10, 63, 314, 56
 			.Parent = @grbGrid
 		End With
 		' chkLimitDebug
@@ -991,9 +991,29 @@ pfOptions = @fOptions
 		With chkCreateNonStaticEventHandlers
 			.Name = "chkCreateNonStaticEventHandlers"
 			.Text = ML("Create non-static event handlers")
-			.SetBounds 8, 41, 288, 24
+			.SetBounds 12, 127, 288, 24
 			.Caption = ML("Create non-static event handlers")
-			.Parent = @pnlGrid
+			.Parent = @pnlDesigner
+		End With
+		' lblDebugger32
+		With lblDebugger32
+			.Name = "lblDebugger32"
+			.Text = ML("Debugger") & " " & ML("32-bit")
+			.SetBounds 22, 21, 260, 18
+			.Parent = @grbDefaultDebuggers
+		End With
+		' cboDebugger1
+		With cboDebugger64
+			.Name = "cboDebugger64"
+			.SetBounds 18, 89, 384, 21
+			.Parent = @grbDefaultDebuggers
+		End With
+		' lblDebugger64
+		With lblDebugger64
+			.Name = "lblDebugger64"
+			.Text = ML("Debugger") & " " & ML("64-bit")
+			.SetBounds 22, 71, 260, 18
+			.Parent = @grbDefaultDebuggers
 		End With
 	End Constructor
 	
@@ -1115,15 +1135,19 @@ Sub frmOptions.LoadSettings()
 			.cboMakeTool.AddItem pMakeTools->Item(i)->Key
 		Next
 		.cboMakeTool.ItemIndex = Max(0, .cboMakeTool.IndexOf(*DefaultMakeTool))
-		.cboDebugger.Clear
+		.cboDebugger32.Clear
+		.cboDebugger64.Clear
 		.lvDebuggerPaths.ListItems.Clear
-		.cboDebugger.AddItem ML("Integrated IDE Debugger")
+		.cboDebugger32.AddItem ML("Integrated IDE Debugger")
+		.cboDebugger64.AddItem ML("Integrated IDE Debugger")
 		For i As Integer = 0 To pDebuggers->Count - 1
 			.lvDebuggerPaths.ListItems.Add pDebuggers->Item(i)->Key
 			.lvDebuggerPaths.ListItems.Item(i)->Text(1) = pDebuggers->Item(i)->Text
-			.cboDebugger.AddItem pDebuggers->Item(i)->Key
+			.cboDebugger32.AddItem pDebuggers->Item(i)->Key
+			.cboDebugger64.AddItem pDebuggers->Item(i)->Key
 		Next
-		.cboDebugger.ItemIndex = Max(0, .cboDebugger.IndexOf(*DefaultDebugger))
+		.cboDebugger32.ItemIndex = Max(0, .cboDebugger32.IndexOf(*DefaultDebugger32))
+		.cboDebugger64.ItemIndex = Max(0, .cboDebugger64.IndexOf(*DefaultDebugger64))
 		.cboTerminal.Clear
 		.lvTerminalPaths.ListItems.Clear
 		.cboTerminal.AddItem ML("(not selected)")
@@ -1246,7 +1270,6 @@ Sub frmOptions.LoadSettings()
 		.TreeView1_SelChange .tvOptions, *.tvOptions.Nodes.Item(0)
 	End With
 End Sub
-
 Sub AddShortcuts(item As MenuItem Ptr, ByRef Prefix As WString = "")
 	With fOptions
 		If StartsWith(item->Name, "Recent") OrElse item->Caption = "-" Then Exit Sub
@@ -1433,8 +1456,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			tempStr = .lvDebuggerPaths.ListItems.Item(i)->Text(0)
 			pDebuggers->Add tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1)
 		Next
-		WLet DefaultDebugger, IIf(.cboDebugger.ItemIndex = 0, "", .cboDebugger.Text)
-		WLet DebuggerPath, pDebuggers->Get(*DefaultDebugger)
+		WLet DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text)
+		WLet DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text)
+		WLet Debugger32Path, pDebuggers->Get(*DefaultDebugger32)
+		WLet Debugger64Path, pDebuggers->Get(*DefaultDebugger64)
 		pTerminals->Clear
 		For i As Integer = 0 To .lvTerminalPaths.ListItems.Count - 1
 			tempStr = .lvTerminalPaths.ListItems.Item(i)->Text(0)
@@ -1540,7 +1565,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			piniSettings->KeyRemove "MakeTools", "Path_" & WStr(i)
 			i += 1
 		Loop
-		piniSettings->WriteString "Debuggers", "DefaultDebugger", *DefaultDebugger
+		piniSettings->WriteString "Debuggers", "DefaultDebugger32", *DefaultDebugger32
+		piniSettings->WriteString "Debuggers", "DefaultDebugger64", *DefaultDebugger64
 		For i As Integer = 0 To pDebuggers->Count - 1
 			piniSettings->WriteString "Debuggers", "Version_" & WStr(i), pDebuggers->Item(i)->Key
 			piniSettings->WriteString "Debuggers", "Path_" & WStr(i), pDebuggers->Item(i)->Text
@@ -2153,10 +2179,11 @@ Private Sub frmOptions.cmdAddDebugger_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
-			If .cboDebugger.IndexOf(pfPath->txtVersion.Text) = -1 Then
+			If .cboDebugger32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvDebuggerPaths.ListItems.Add pfPath->txtVersion.Text
 				.lvDebuggerPaths.ListItems.Item(.lvDebuggerPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
-				.cboDebugger.AddItem pfPath->txtVersion.Text
+				.cboDebugger32.AddItem pfPath->txtVersion.Text
+				.cboDebugger64.AddItem pfPath->txtVersion.Text
 			Else
 				MsgBox ML("This version is exists!")
 			End If
@@ -2170,9 +2197,10 @@ Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Sender As Control)
 		pfPath->txtVersion.Text = .lvDebuggerPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvDebuggerPaths.SelectedItem->Text(1)
 		If pfPath->ShowModal() = ModalResults.OK Then
-			If .lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboDebugger.IndexOf(pfPath->txtVersion.Text) = -1 Then
-				Var i = .cboDebugger.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
-				.cboDebugger.Item(i) = pfPath->txtVersion.Text
+			If .lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboDebugger32.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				Var i = .cboDebugger32.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
+				.cboDebugger32.Item(i) = pfPath->txtVersion.Text
+				.cboDebugger64.Item(i) = pfPath->txtVersion.Text
 				.lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
 				.lvDebuggerPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
 			Else
@@ -2185,9 +2213,10 @@ End Sub
 Private Sub frmOptions.cmdRemoveDebugger_Click(ByRef Sender As Control)
 	With fOptions
 		If .lvDebuggerPaths.SelectedItem = 0 Then Exit Sub
-		Var iIndex = .cboDebugger.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
-		If iIndex > -1 Then .cboDebugger.RemoveItem iIndex
-		If .cboDebugger.ItemIndex = -1 Then .cboDebugger.ItemIndex = 0
+		Var iIndex = .cboDebugger32.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
+		If iIndex > -1 Then .cboDebugger32.RemoveItem iIndex: .cboDebugger64.RemoveItem iIndex
+		If .cboDebugger32.ItemIndex = -1 Then .cboDebugger32.ItemIndex = 0
+		If .cboDebugger64.ItemIndex = -1 Then .cboDebugger64.ItemIndex = 0
 		.lvDebuggerPaths.ListItems.Remove .lvDebuggerPaths.SelectedItemIndex
 	End With
 End Sub
@@ -2195,9 +2224,12 @@ End Sub
 Private Sub frmOptions.cmdClearDebuggers_Click(ByRef Sender As Control)
 	With fOptions
 		.lvDebuggerPaths.ListItems.Clear
-		.cboDebugger.Clear
-		.cboDebugger.AddItem ML("Integrated IDE Debugger")
-		.cboDebugger.ItemIndex = 0
+		.cboDebugger32.Clear
+		.cboDebugger32.AddItem ML("Integrated IDE Debugger")
+		.cboDebugger32.ItemIndex = 0
+		.cboDebugger64.Clear
+		.cboDebugger64.AddItem ML("Integrated IDE Debugger")
+		.cboDebugger64.ItemIndex = 0
 	End With
 End Sub
 

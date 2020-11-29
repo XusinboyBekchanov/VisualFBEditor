@@ -19,7 +19,7 @@
 		This.DefaultButton = @cmdOK
 		This.OnCreate = @Form_Create
 		This.OnShow = @Form_Show
-		This.SetBounds 0, 0, 742, 348
+		This.SetBounds 0, 0, 742, 411
 		' grbCompile
 		grbCompile.Name = "grbCompile"
 		grbCompile.Text = ML("Compile")
@@ -33,19 +33,19 @@
 		' grbRun
 		grbRun.Name = "grbRun"
 		grbRun.Text = ML("Run")
-		grbRun.SetBounds 8, 184, 712, 88
+		grbRun.SetBounds 8, 184, 712, 58
 		grbRun.Parent = @This
 		' cmdOK
 		cmdOK.Name = "cmdOK"
 		cmdOK.Default = True
 		cmdOK.Text = ML("OK")
-		cmdOK.SetBounds 528, 280, 96, 24
+		cmdOK.SetBounds 528, 340, 96, 24
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @This
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
 		cmdCancel.Text = ML("Cancel")
-		cmdCancel.SetBounds 624, 280, 96, 24
+		cmdCancel.SetBounds 624, 340, 96, 24
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
 		' txtfbc64
@@ -81,93 +81,121 @@
 		' lblfbc32
 		With lblfbc32
 			.Name = "lblfbc32"
-			.Text = ML("fbc 32-bit") & ":"
-			.SetBounds 16, 24, 56, 16
+			.Text = "fbc" & " " & ML("32-bit") & ":"
+			.SetBounds 16, 24, 66, 16
+			.Caption = "fbc" & " " & ML("32-bit") & ":"
 			.Parent = @grbCompile
 		End With
 		' lblfbc64
 		With lblfbc64
 			.Name = "lblfbc64"
-			.Text = ML("fbc 64-bit") & ":"
-			.SetBounds 16, 48, 56, 16
+			.Text = "fbc" & " " & ML("64-bit") & ":"
+			.SetBounds 16, 48, 66, 16
+			.Caption = "fbc" & " " & ML("64-bit") & ":"
 			.Parent = @grbCompile
 		End With
 		' lblMake1
 		With lblMake1
 			.Name = "lblMake1"
 			.Text = ML("make") & " 1:"
-			.SetBounds 16, 24, 56, 16
+			.SetBounds 16, 24, 76, 16
 			.Parent = @grbMake
 		End With
 		' llblMake2
 		With llblMake2
 			.Name = "llblMake2"
 			.Text = ML("make") & " 2:"
-			.SetBounds 16, 48, 56, 16
+			.SetBounds 16, 48, 76, 16
 			.Parent = @grbMake
 		End With
 		' lblRun
 		With lblRun
 			.Name = "lblRun"
 			.Text = ML("run") & ":"
-			.SetBounds 16, 24, 56, 16
-			.Parent = @grbRun
-		End With
-		' lblDebug
-		With lblDebug
-			.Name = "lblDebug"
-			.Text = ML("debug") & ":"
-			.SetBounds 16, 48, 56, 17
-			.Parent = @grbRun
-		End With
-		' txtDebug
-		With txtDebug
-			.Name = "txtDebug"
-			.Text = ""
-			.SetBounds 376, 48, 321, 21
+			.SetBounds 16, 24, 66, 16
 			.Parent = @grbRun
 		End With
 		' cboCompiler32
 		With cboCompiler32
 			.Name = "cboCompiler32"
 			.Text = "ComboBoxEdit1"
-			.SetBounds 80, 24, 288, 21
+			.SetBounds 90, 24, 278, 21
 			.Parent = @grbCompile
 		End With
 		' cboCompiler64
 		With cboCompiler64
 			.Name = "cboCompiler64"
 			.Text = "ComboBoxEdit11"
-			.SetBounds 80, 48, 288, 21
+			.SetBounds 90, 48, 278, 21
 			.Parent = @grbCompile
 		End With
 		' cboMake1
 		With cboMake1
 			.Name = "cboMake1"
 			.Text = "ComboBoxEdit12"
-			.SetBounds 80, 24, 288, 21
+			.SetBounds 90, 24, 278, 21
 			.Parent = @grbMake
 		End With
 		' cboMake2
 		With cboMake2
 			.Name = "cboMake2"
 			.Text = "ComboBoxEdit111"
-			.SetBounds 80, 48, 288, 21
+			.SetBounds 90, 48, 278, 21
 			.Parent = @grbMake
 		End With
 		' cboRun
 		With cboRun
 			.Name = "cboRun"
 			.Text = "ComboBoxEdit13"
-			.SetBounds 80, 24, 288, 21
+			.SetBounds 90, 24, 278, 21
 			.Parent = @grbRun
 		End With
 		' cboDebug
-		With cboDebug
-			.Name = "cboDebug"
+		With cboDebug32
+			.Name = "cboDebug32"
 			.Text = "ComboBoxEdit112"
-			.SetBounds 80, 48, 288, 21
-			.Parent = @grbRun
+			.SetBounds 90, 24, 278, 21
+			.Parent = @grbDebug
+		End With
+		' grbDebug
+		With grbDebug
+			.Name = "grbDebug"
+			.Text = ML("Debug")
+			.SetBounds 8, 244, 712, 88
+			.Parent = @This
+		End With
+		' txtRun1
+		With txtDebug32
+			.Name = "txtDebug32"
+			.Text = ""
+			.SetBounds 376, 24, 321, 21
+			.Parent = @grbDebug
+		End With
+		' lblDebug32
+		With lblDebug32
+			.Name = "lblDebug32"
+			.Text = ML("debug") & " " & ML("32-bit") & ":"
+			.SetBounds 16, 28, 66, 16
+			.Parent = @grbDebug
+		End With
+		' lblDebug1
+		With lblDebug64
+			.Name = "lblDebug64"
+			.Text = ML("debug") & " " & ML("64-bit") & ":"
+			.SetBounds 16, 51, 66, 17
+			.Parent = @grbDebug
+		End With
+		' txtDebug64
+		With txtDebug64
+			.Name = "txtDebug64"
+			.SetBounds 376, 48, 321, 21
+			.Parent = @grbDebug
+		End With
+		' cboDebug64
+		With cboDebug64
+			.Name = "cboDebug64"
+			.SetBounds 90, 48, 278, 21
+			.Parent = @grbDebug
 		End With
 	End Constructor
 	
@@ -188,7 +216,8 @@ Sub frmParameters.LoadSettings()
 		.txtMake1.Text = *Make1Arguments
 		.txtMake2.Text = *Make2Arguments
 		.txtRun.Text = *RunArguments
-		.txtDebug.Text = *DebugArguments
+		.txtDebug32.Text = *Debug32Arguments
+		.txtDebug64.Text = *Debug64Arguments
 		.cboCompiler32.Clear
 		.cboCompiler32.AddItem ML("Default")
 		.cboCompiler64.Clear
@@ -215,13 +244,18 @@ Sub frmParameters.LoadSettings()
 			.cboRun.AddItem pTerminals->Item(i)->Key
 		Next
 		.cboRun.ItemIndex = Max(0, .cboRun.IndexOf(*CurrentTerminal))
-		.cboDebug.Clear
-		.cboDebug.AddItem ML("Default")
-		.cboDebug.AddItem ML("Integrated IDE Debugger")
+		.cboDebug32.Clear
+		.cboDebug32.AddItem ML("Default")
+		.cboDebug32.AddItem ML("Integrated IDE Debugger")
+		.cboDebug64.Clear
+		.cboDebug64.AddItem ML("Default")
+		.cboDebug64.AddItem ML("Integrated IDE Debugger")
 		For i As Integer = 0 To pDebuggers->Count - 1
-			.cboDebug.AddItem pDebuggers->Item(i)->Key
+			.cboDebug32.AddItem pDebuggers->Item(i)->Key
+			.cboDebug64.AddItem pDebuggers->Item(i)->Key
 		Next
-		.cboDebug.ItemIndex = Max(0, .cboDebug.IndexOf(*CurrentDebugger))
+		.cboDebug32.ItemIndex = Max(0, .cboDebug32.IndexOf(*CurrentDebugger32))
+		.cboDebug64.ItemIndex = Max(0, .cboDebug64.IndexOf(*CurrentDebugger64))
 	End With
 End Sub
 
@@ -252,13 +286,17 @@ Private Sub frmParameters.cmdOK_Click(ByRef Sender As Control)
 		WLet MakeToolPath, pMakeTools->Get(*CurrentMakeTool2, pMakeTools->Get(*DefaultMakeTool))
 		WLet CurrentTerminal, .cboRun.Text
 		WLet TerminalPath, IIf(.cboRun.ItemIndex = 0, pTerminals->Get(*DefaultTerminal), pTerminals->Get(*CurrentTerminal))
-		WLet CurrentDebugger, .cboDebug.Text
-		WLet DebuggerPath, IIf(.cboDebug.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger), pDebuggers->Get(*CurrentDebugger))
+		WLet CurrentDebugger32, .cboDebug32.Text
+		WLet CurrentDebugger64, .cboDebug64.Text
+		WLet Debugger32Path, IIf(.cboDebug32.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger32), pDebuggers->Get(*CurrentDebugger32))
+		WLet Debugger64Path, IIf(.cboDebug64.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger64), pDebuggers->Get(*CurrentDebugger64))
 		piniSettings->WriteString "Parameters", "Compiler32Arguments", *Compiler32Arguments
 		piniSettings->WriteString "Parameters", "Compiler64Arguments", *Compiler64Arguments
 		piniSettings->WriteString "Parameters", "Make1Arguments", *Make1Arguments
 		piniSettings->WriteString "Parameters", "Make2Arguments", *Make2Arguments
 		piniSettings->WriteString "Parameters", "RunArguments", *RunArguments
+		piniSettings->WriteString "Parameters", "Debug32Arguments", *Debug32Arguments
+		piniSettings->WriteString "Parameters", "Debug64Arguments", *Debug64Arguments
 		.CloseForm
 	End With
 End Sub

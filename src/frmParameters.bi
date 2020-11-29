@@ -23,11 +23,11 @@ Using My.Sys.Forms
 		Declare Static Sub Form_Show(ByRef Sender As Form)
 		Declare Constructor
 		
-		Dim As GroupBox grbCompile, grbMake, grbRun
+		Dim As GroupBox grbCompile, grbMake, grbRun, grbDebug
 		Dim As CommandButton cmdOK, cmdCancel
-		Dim As Label lblfbc32, lblfbc64, lblMake1, llblMake2, lblRun, lblDebug
-		Dim As TextBox txtfbc64, txtfbc32, txtMake1, txtMake2, txtRun, txtDebug
-		Dim As ComboBoxEdit cboCompiler32, cboCompiler64, cboMake1, cboMake2, cboRun, cboDebug
+		Dim As Label lblfbc32, lblfbc64, lblMake1, llblMake2, lblRun, lblDebug32, lblDebug64
+		Dim As TextBox txtfbc64, txtfbc32, txtMake1, txtMake2, txtRun, txtDebug32, txtDebug64
+		Dim As ComboBoxEdit cboCompiler32, cboCompiler64, cboMake1, cboMake2, cboRun, cboDebug32, cboDebug64
 	End Type
 	
 	Common Shared pfParameters As frmParameters Ptr
