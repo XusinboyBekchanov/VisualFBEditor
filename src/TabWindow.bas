@@ -1491,7 +1491,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
 			tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
 			#ifndef __USE_GTK__
-				Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+				'Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
 				plvProperties->SelectedItem->Text(1) = SenderText
 			#endif
 			ChangeControl(tb->Des->SelectedControl, PropertyName)

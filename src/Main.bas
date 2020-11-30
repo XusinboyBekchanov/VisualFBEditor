@@ -183,11 +183,11 @@ Sub lvProperties_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeList
 End Sub
 
 Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
-	PropertyChanged Sender, Sender.Text, False
+	PropertyChanged Sender, txtPropertyValue.Text, False
 End Sub
 
 Sub cboPropertyValue_Change(ByRef Sender As Control)
-	PropertyChanged Sender, Sender.Text, True
+	PropertyChanged Sender, cboPropertyValue.Text, True
 End Sub
 
 Function GetShortFileName(ByRef FileName As WString, ByRef FilePath As WString) As UString
@@ -4023,11 +4023,11 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				Cpnt = tb->cboClass.Items.Item(i)->Object
 				If Cpnt <> 0 Then
 					If CInt(te->EnumTypeName <> "") Then
-						If (CInt(Cpnt->ClassName = Trim(te->EnumTypeName)) OrElse CInt(IsBase(Cpnt->ClassName, Trim(te->EnumTypeName)))) Then
-							cboPropertyValue.AddItem " " & Cpnt->Name
+						If (CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = Trim(te->EnumTypeName)) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)))) Then
+							cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 						End If
-					ElseIf CInt(Cpnt->ClassName = WithoutPtr(Trim(te->TypeName))) OrElse CInt(IsBase(Cpnt->ClassName, WithoutPtr(Trim(te->TypeName)))) Then
-						cboPropertyValue.AddItem " " & Cpnt->Name
+					ElseIf CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = WithoutPtr(Trim(te->TypeName))) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), WithoutPtr(Trim(te->TypeName)))) Then
+						cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 					End If
 				End If
 			Next i
