@@ -309,7 +309,7 @@ Namespace My.Sys.Forms
 				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "static " & LCase(Constructions(i).Name0 & " ")))))) AndAlso _
 				CInt(CInt(Constructions(i).Exception = "") OrElse CInt(InStr(LCase(Trim(Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(Constructions(i).Exception)) = 0)) AndAlso _
 				CInt(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
-				CInt(LCase(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 3)) <> "as ") Then
+				CInt(LCase(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(Constructions(i).Name0), " ") > 0) Then
 				iType = 0
 				Return i
 			ElseIf CInt(CInt(CInt(Constructions(i).Name1 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(Constructions(i).Name1))))) OrElse _
