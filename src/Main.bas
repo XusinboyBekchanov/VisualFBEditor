@@ -4033,13 +4033,13 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 			Next i
 			cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
 		Else
-			Dim tbi As TypeElement Ptr
+			Dim tbi As TypeElement Ptr = 0
 			If Comps.Contains(te->TypeName) Then
 				tbi = Cast(TypeElement Ptr, Comps.Object(Comps.IndexOf(te->TypeName)))
 			ElseIf GlobalEnums.Contains(te->TypeName) Then
 				tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->TypeName)))
 			End If
-			If tbi AndAlso tbi->ElementType = "Enum" Then
+			If tbi <> 0 AndAlso tbi->ElementType = "Enum" Then
 				CtrlEdit = @pnlPropertyValue
 				cboPropertyValue.Clear
 				For i As Integer = 0 To tbi->Elements.Count - 1
