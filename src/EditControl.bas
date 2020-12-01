@@ -2991,6 +2991,28 @@ Namespace My.Sys.Forms
 							cboIntellisense.ItemIndex = LastItemIndex
 						End If
 					#endif
+				ElseIf bCtrl Then
+					Dim bFind As Boolean
+					For i As Integer = FSelEndLine - 1 To 1 Step -1
+						With *Cast(EditControlLine Ptr, FLines.Item(i - 1))
+							If .ConstructionIndex > 13 AndAlso .ConstructionPart = 0 Then
+								FSelEndLine = i
+								'FSelEndChar = Len(*.Text)
+								bFind = True
+								Exit For
+							End If
+						End With
+					Next
+					If Not bFind Then
+						FSelEndLine = 0
+						'FSelEndChar = 0
+					End If
+					If Not bShifted Then
+						FSelStartLine = FSelEndLine
+						FSelStartChar = FSelEndChar
+					End If
+					This.TopLine = FSelEndLine - 1
+					ScrollToCaret
 				ElseIf FSelEndLine = 0 Then
 					If bShifted Then
 						FSelEndChar = 0
@@ -3040,6 +3062,28 @@ Namespace My.Sys.Forms
 							cboIntellisense.ItemIndex = LastItemIndex
 						End If
 					#endif
+				ElseIf bCtrl Then
+					Dim bFind As Boolean
+					For i As Integer = FSelEndLine + 1 To GetLineIndex(FLines.Count - 1) - 1
+						With *Cast(EditControlLine Ptr, FLines.Item(i))
+							If .ConstructionIndex > 13 AndAlso .ConstructionPart = 0 Then
+								FSelEndLine = i + 1
+								'FSelEndChar = Len(*.Text)
+								bFind = True
+								Exit For
+							End If
+						End With
+					Next
+					If Not bFind Then
+						FSelEndLine = GetLineIndex(FLines.Count - 1)
+						'FSelEndChar = 0
+					End If
+					If Not bShifted Then
+						FSelStartLine = FSelEndLine
+						FSelStartChar = FSelEndChar
+					End If
+					This.TopLine = FSelEndLine - 1
+					ScrollToCaret
 				ElseIf FSelEndLine = GetLineIndex(FLines.Count - 1) Then
 					If bShifted Then
 						Var LengthOf = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text)
@@ -3073,6 +3117,26 @@ Namespace My.Sys.Forms
 					#else
 						If cboIntellisense.ItemIndex > 1 Then LastItemIndex = Max(0, cboIntellisense.ItemIndex - 6): cboIntellisense.ItemIndex = LastItemIndex
 					#endif
+				ElseIf bCtrl Then
+					Dim bFind As Boolean
+					For i As Integer = FSelEndLine - 1 To 0 Step -1
+						With *Cast(EditControlLine Ptr, FLines.Item(i))
+							If .ConstructionIndex > 13 AndAlso .ConstructionPart = 0 Then
+								FSelEndLine = i
+								bFind = True
+								Exit For
+							End If
+						End With
+					Next
+					If Not bFind Then
+						FSelEndLine = 0
+					End If
+					If Not bShifted Then
+						FSelStartLine = FSelEndLine
+						FSelStartChar = FSelEndChar
+					End If
+					This.TopLine = FSelEndLine
+					ScrollToCaret
 				ElseIf FSelEndLine < GetLineIndex(0, +VisibleLinesCount) Then
 					FSelEndLine = 0
 					FSelEndChar = 0
@@ -3098,6 +3162,26 @@ Namespace My.Sys.Forms
 					#else
 						If cboIntellisense.ItemIndex < cboIntellisense.Items.Count - 1 Then LastItemIndex = Min(cboIntellisense.ItemIndex + 6, cboIntellisense.Items.Count - 1): cboIntellisense.ItemIndex = LastItemIndex
 					#endif
+				ElseIf bCtrl Then
+					Dim bFind As Boolean
+					For i As Integer = FSelEndLine + 1 To GetLineIndex(FLines.Count - 1)
+						With *Cast(EditControlLine Ptr, FLines.Item(i))
+							If .ConstructionIndex > 13 AndAlso .ConstructionPart = 0 Then
+								FSelEndLine = i
+								bFind = True
+								Exit For
+							End If
+						End With
+					Next
+					If Not bFind Then
+						FSelEndLine = GetLineIndex(FLines.Count - 1)
+					End If
+					If Not bShifted Then
+						FSelStartLine = FSelEndLine
+						FSelStartChar = FSelEndChar
+					End If
+					This.TopLine = FSelEndLine
+					ScrollToCaret
 				ElseIf FSelEndLine > GetLineIndex(FLines.Count - 1, -VisibleLinesCount) Then
 					FSelEndLine = GetLineIndex(FLines.Count - 1)
 					FSelEndChar = LineLength(FSelEndLine)
