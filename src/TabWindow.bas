@@ -1300,8 +1300,8 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			InsLineCount += 3
 			q = 0
 			If WGet(tb->Des->ReadPropertyFunc(Cpnt, "Text")) <> "" Then
-				WLet FLine, CtrlName
-				If tb->Des->WritePropertyFunc <> 0 Then tb->Des->WritePropertyFunc(Cpnt, "Text", FLine)
+'				WLet FLine, CtrlName
+'				If tb->Des->WritePropertyFunc <> 0 Then tb->Des->WritePropertyFunc(Cpnt, "Text", FLine)
 				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Text")) & """"
 				InsLineCount += 1
 				q = 1

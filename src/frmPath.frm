@@ -18,13 +18,13 @@
 			.MinimizeBox = False
 			.OnShow = @Form_Show
 			.OnClose = @Form_Close
-			.SetBounds 0, 0, 462, 148
+			.SetBounds 0, 0, 462, 177
 		End With
 		' cmdCancel
 		With cmdCancel
 			.Name = "cmdCancel"
 			.Text = ML("Cancel")
-			.SetBounds 336, 88, 112, 24
+			.SetBounds 336, 116, 112, 24
 			.OnClick = @cmdCancel_Click
 			.Parent = @This
 		End With
@@ -32,28 +32,28 @@
 		With txtVersion
 			.Name = "txtVersion"
 			.Text = ""
-			.SetBounds 80, 48, 368, 24
+			.SetBounds 100, 48, 348, 24
 			.Parent = @This
 		End With
 		' lblVersion
 		With lblVersion
 			.Name = "lblVersion"
 			.Text = ML("Version") & ":"
-			.SetBounds 8, 48, 64, 24
+			.SetBounds 8, 50, 84, 24
 			.Parent = @This
 		End With
 		' lblPath
 		With lblPath
 			.Name = "lblPath"
 			.Text = ML("Path") & ":"
-			.SetBounds 8, 16, 64, 24
+			.SetBounds 8, 18, 84, 24
 			.Parent = @This
 		End With
 		' txtPath
 		With txtPath
 			.Name = "txtPath"
 			.Text = ""
-			.SetBounds 80, 16, 336, 24
+			.SetBounds 100, 16, 316, 24
 			.Parent = @This
 		End With
 		' cmdPath
@@ -69,8 +69,22 @@
 		With cmdOK
 			.Name = "cmdOK"
 			.Text = ML("OK")
-			.SetBounds 216, 88, 112, 24
+			.SetBounds 216, 116, 112, 24
 			.OnClick = @cmdOK_Click
+			.Parent = @This
+		End With
+		' lblCommandLine
+		With lblCommandLine
+			.Name = "lblCommandLine"
+			.Text = ML("Command line") & ":"
+			.SetBounds 8, 82, 88, 24
+			.Parent = @This
+		End With
+		' txtCommandLine
+		With txtCommandLine
+			.Name = "txtCommandLine"
+			.SetBounds 100, 80, 348, 24
+			.Text = ""
 			.Parent = @This
 		End With
 	End Constructor

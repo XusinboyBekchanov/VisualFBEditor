@@ -22,8 +22,8 @@ Using My.Sys.Forms
 		Declare Constructor
 		
 		Dim As CommandButton cmdPath, cmdOK, cmdCancel
-		Dim As TextBox txtVersion, txtPath
-		Dim As Label lblVersion, lblPath
+		Dim As TextBox txtVersion, txtPath, txtCommandLine
+		Dim As Label lblVersion, lblPath, lblCommandLine
 		Dim As OpenFileDialog OpenD
 		Dim As FolderBrowserDialog BrowseD
 		Dim As Boolean ChooseFolder, SetFileNameToVersion

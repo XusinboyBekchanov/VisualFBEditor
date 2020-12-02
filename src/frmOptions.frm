@@ -128,6 +128,11 @@ pfOptions = @fOptions
 		pnlHelp.Text = ""
 		pnlHelp.SetBounds 190, 2, 426, 400
 		pnlHelp.Parent = @This
+		' pnlOtherEditors
+		pnlOtherEditors.Name = "pnlOtherEditors"
+		pnlOtherEditors.Text = ""
+		pnlOtherEditors.SetBounds 190, 2, 426, 410
+		pnlOtherEditors.Parent = @This
 		' grbDefaultCompilers
 		With grbDefaultCompilers
 			.Name = "grbDefaultCompilers"
@@ -1015,6 +1020,52 @@ pfOptions = @fOptions
 			.SetBounds 22, 71, 260, 18
 			.Parent = @grbDefaultDebuggers
 		End With
+		' grbOtherEditors
+		With grbOtherEditors
+			.Name = "grbOtherEditors"
+			.Text = "Other Editors"
+			.SetBounds 10, 3, 416, 401
+			.Parent = @pnlOtherEditors
+		End With
+		' lvOtherEditors
+		With lvOtherEditors
+			.Name = "lvOtherEditors"
+			.Text = "lvHelpPaths1"
+			.SetBounds 18, 22, 384, 326
+			.Parent = @grbOtherEditors
+		End With
+		' cmdAddEditor
+		With cmdAddEditor
+			.Name = "cmdAddEditor"
+			.Text = "Add"
+			.SetBounds 17, 361, 96, 24
+			.Caption = "Add"
+			.Parent = @grbOtherEditors
+		End With
+		' cmdChangeEditor
+		With cmdChangeEditor
+			.Name = "cmdChangeEditor"
+			.Text = "Change"
+			.SetBounds 114, 361, 96, 24
+			.Caption = "Change"
+			.Parent = @grbOtherEditors
+		End With
+		' cmdRemoveEditor
+		With cmdRemoveEditor
+			.Name = "cmdRemoveEditor"
+			.Text = "Remove"
+			.SetBounds 211, 361, 96, 24
+			.Caption = "Remove"
+			.Parent = @grbOtherEditors
+		End With
+		' cmdClearEditor
+		With cmdClearEditor
+			.Name = "cmdClearEditor"
+			.Text = "Clear"
+			.SetBounds 307, 361, 96, 24
+			.Caption = "Clear"
+			.Parent = @grbOtherEditors
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1305,6 +1356,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		tnGeneral->Nodes.Add(ML("Shortcuts"), "Shortcuts")
 		tnGeneral->Nodes.Add(ML("Themes"), "Themes")
 		tnEditor->Nodes.Add(ML("Colors And Fonts"), "ColorsAndFonts")
+		tnEditor->Nodes.Add(ML("Other Editors"), "OtherEditors")
 		tnCompiler->Nodes.Add(ML("Includes"), "Includes")
 		tnCompiler->Nodes.Add(ML("Make Tool"), "MakeTool")
 		tnDebugger->Nodes.Add(ML("Terminal"), "Terminal")
@@ -1322,6 +1374,9 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lvTerminalPaths.Columns.Add ML("Path"), , 200
 		.lvHelpPaths.Columns.Add ML("Version"), , 200
 		.lvHelpPaths.Columns.Add ML("Path"), , 200
+		.lvOtherEditors.Columns.Add ML("Version"), , 130
+		.lvOtherEditors.Columns.Add ML("Extensions"), , 130
+		.lvOtherEditors.Columns.Add ML("Path"), , 140
 		.cboCase.AddItem ML("Original Case")
 		.cboCase.AddItem ML("Lower Case")
 		.cboCase.AddItem ML("Upper Case")
@@ -1775,6 +1830,7 @@ Private Sub frmOptions.TreeView1_SelChange(ByRef Sender As TreeView, ByRef Item 
 		.pnlDesigner.Visible = Key = "Designer"
 		.pnlIncludes.Visible = Key = "Includes"
 		.pnlLocalization.Visible = Key = "Localization"
+		.pnlOtherEditors.Visible = Key = "OtherEditors"
 		.pnlHelp.Visible = Key = "Help"
 	End With
 End Sub
@@ -2355,6 +2411,8 @@ End Sub
 Private Sub frmOptions.cmdAddInclude_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
+	pfPath->lblCommandLine.Visible = False
+	pfPath->txtCommandLine.Visible = False
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If Not .lstIncludePaths.Items.Contains(pfPath->txtPath.Text) Then
@@ -2370,6 +2428,8 @@ End Sub
 Private Sub frmOptions.cmdAddLibrary_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
+	pfPath->lblCommandLine.Visible = False
+	pfPath->txtCommandLine.Visible = False
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If Not .lstLibraryPaths.Items.Contains(pfPath->txtPath.Text) Then
@@ -2380,6 +2440,8 @@ Private Sub frmOptions.cmdAddLibrary_Click(ByRef Sender As Control)
 			End If
 		End With
 	End If
+	pfPath->lblCommandLine.Visible = True
+	pfPath->txtCommandLine.Visible = True
 End Sub
 
 Private Sub frmOptions.cmdRemoveInclude_Click(ByRef Sender As Control)

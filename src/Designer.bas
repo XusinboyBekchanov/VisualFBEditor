@@ -1066,11 +1066,12 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub Designer.AddPasteControls(Ctrl As Any Ptr, ParentCtrl As Any Ptr, bStart As Boolean)
+	Sub Designer.AddPasteControls(Ctrl As Any Ptr, ByVal ParentCtrl As Any Ptr, bStart As Boolean)
 		Dim As Integer iStepX, iStepY
 		If bStart Then
 			iStepX = GridSize
 			iStepY = GridSize
+			If Ctrl = ParentCtrl Then ParentCtrl = ReadPropertyFunc(Ctrl, "Parent")
 		End If
 		If OnInsertingControl Then
 			FName = WGet(ReadPropertyFunc(Ctrl, "Name"))
@@ -1078,18 +1079,18 @@ Namespace My.Sys.Forms
 		End If
 		Dim As Integer FLeft, FTop, FWidth, FHeight
 		ComponentGetBoundsSub(Q_ComponentFunc(Ctrl), @FLeft, @FTop, @FWidth, @FHeight)
-		CreateControl(WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName, WGet(ReadPropertyFunc(Ctrl, "Text")), ParentCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
+		Dim As Any Ptr NewCtrl = This.CreateControl(WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName, WGet(ReadPropertyFunc(Ctrl, "Text")), ParentCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
 		If FSelControl Then
 			#ifndef __USE_GTK__
 				LockWindowUpdate(FSelControl)
 				BringWindowToTop(FSelControl)
 			#endif
-			If OnInsertControl Then OnInsertControl(This, WGet(ReadPropertyFunc(Ctrl, "ClassName")), SelectedControl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
-			If bStart Then SelectedControls.Add SelectedControl
+			If OnInsertControl Then OnInsertControl(This, WGet(ReadPropertyFunc(Ctrl, "ClassName")), NewCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
+			If bStart Then SelectedControls.Add NewCtrl
 		End If
 		If Controls.Contains(Ctrl) Then
 			For i As Integer = 0 To iGet(ReadPropertyFunc(Ctrl, "ControlCount")) - 1
-				AddPasteControls ControlByIndexFunc(Ctrl, i), SelectedControl, False
+				AddPasteControls ControlByIndexFunc(Ctrl, i), NewCtrl, False
 			Next
 		End If
 	End Sub

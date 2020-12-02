@@ -99,7 +99,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As TreeView tvOptions
 		Dim As CommandButton cmdOK, cmdCancel, cmdApply, cmdAddCompiler, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdChangeDebugger, cmdChangeTerminal, cmdChangeMakeTool, cmdAdd, cmdRemove, cmdForeground, cmdFont, cmdProjectsPath, cmdBackground, cmdIndicator, cmdRemoveCompiler, cmdClearCompilers, cmdAddDebugger, cmdRemoveDebugger, cmdClearDebuggers, cmdAddMakeTool, cmdRemoveMakeTool, cmdClearMakeTools, cmdAddTerminal, cmdRemoveTerminal, cmdClearTerminals, cmdSetShortcut
 		Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblTabSize, lblHistoryLimit, lblGridSize, lblFont, lblProjectsPath, lblForeground, lblBackground, lblIndicator, lblOthers, lblShortcut
-		Dim As Panel pnlGeneral, pnlLocalization, pnlShortcuts, pnlThemes, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlHelp, pnlIncludes, Panel1, pnlThemesCheckboxes, pnlColors, pnlGrid
+		Dim As Panel pnlGeneral, pnlLocalization, pnlShortcuts, pnlThemes, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlHelp, pnlIncludes, Panel1, pnlThemesCheckboxes, pnlColors, pnlGrid, pnlOtherEditors
 		Dim As Picture lblColorForeground, lblColorBackground, lblColorIndicator
 		Dim As TextBox txtMFFpath, txtTabSize, txtHistoryLimit, txtGridSize, txtProjectsPath
 		Dim As ComboBoxEdit cboLanguage, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger32, cboMakeTool, cboTerminal, cboHelp, cboDebugger64
@@ -116,8 +116,8 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Boolean HotKeysChanged
 		Dim As Integer LibraryPathsCount
 		Dim As ListControl lstIncludePaths, lstLibraryPaths, lstColorKeys
-		Dim As GroupBox grbGrid, grbColors, grbThemes, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebuggers, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths, grbLanguage, grbDefaultHelp, grbHelpPaths, grbWhenCompiling, grbShortcuts
-		Dim As ListView lvCompilerPaths, lvDebuggerPaths, lvMakeToolPaths, lvTerminalPaths, lvHelpPaths, lvShortcuts
+		Dim As GroupBox grbGrid, grbColors, grbThemes, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebuggers, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths, grbLanguage, grbDefaultHelp, grbHelpPaths, grbWhenCompiling, grbShortcuts, grbOtherEditors
+		Dim As ListView lvCompilerPaths, lvDebuggerPaths, lvMakeToolPaths, lvTerminalPaths, lvHelpPaths, lvShortcuts, lvOtherEditors
 		Dim As Label lblInterfaceFont
 		Dim As CommandButton cmdInterfaceFont
 		Dim As Label lblInterfaceFontLabel
@@ -127,7 +127,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CheckBox chkAutoCreateBakFiles
 		Dim As Label lblFrame, lblDebugger32, lblDebugger64
 		Dim As Picture lblColorFrame
-		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps
+		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps, cmdAddEditor, cmdChangeEditor, cmdRemoveEditor, cmdClearEditor
 		Dim As CheckBox chkFrame
 		Dim As CheckBox chkHighlightCurrentWord
 		Dim As CheckBox chkHighlightCurrentLine
