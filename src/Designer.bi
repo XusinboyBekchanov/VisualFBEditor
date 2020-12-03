@@ -196,6 +196,7 @@ Namespace My.Sys.Forms
 		Declare        Sub PasteControl()
 		Declare        Sub DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
 		Declare        Sub DeleteControl()
+		Declare        Sub BringToFront()
 		Declare        Sub SendToBack()
 		DesignControl As Any Ptr
 		SelectedControl As Any Ptr

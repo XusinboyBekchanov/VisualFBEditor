@@ -1542,6 +1542,12 @@ Namespace My.Sys.Forms
 		'#EndIf
 	End Function
 	
+	Sub Designer.BringToFront
+		#ifndef __USE_GTK__
+			SetWindowPos FSelControl, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+		#endif
+	End Sub
+	
 	Sub Designer.SendToBack
 		#ifndef __USE_GTK__
 			SetWindowPos FSelControl, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
@@ -1696,8 +1702,9 @@ Namespace My.Sys.Forms
 								Case 12: .CopyControl()
 								Case 13: .CutControl()
 								Case 14: .PasteControl()
-								Case 16: .SendToBack()
-								Case 18: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
+								Case 16: .BringToFront()
+								Case 17: .SendToBack()
+								Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
 								End Select
 							End If
 						End If '
@@ -2315,9 +2322,10 @@ Namespace My.Sys.Forms
 			AppendMenu(FPopupMenu, MF_STRING, 13, @"Cut")
 			AppendMenu(FPopupMenu, MF_STRING, 14, @"Paste")
 			AppendMenu(FPopupMenu, MF_SEPARATOR, -1, @"-")
-			AppendMenu(FPopupMenu, MF_STRING, 16, @"Send To Back")
+			AppendMenu(FPopupMenu, MF_STRING, 16, @"Bring to Front")
+			AppendMenu(FPopupMenu, MF_STRING, 17, @"Send to Back")
 			AppendMenu(FPopupMenu, MF_SEPARATOR, -1, @"-")
-			AppendMenu(FPopupMenu, MF_STRING, 18, @"Properties")
+			AppendMenu(FPopupMenu, MF_STRING, 19, @"Properties")
 		#endif
 	End Constructor
 	
@@ -2328,7 +2336,8 @@ Namespace My.Sys.Forms
 	mnuDesigner.Add(ML("Cut"), "Cut", "Cut", @PopupClick)
 	mnuDesigner.Add(ML("Paste"), "Paste", "Paste", @PopupClick)
 	mnuDesigner.Add("-")
-	mnuDesigner.Add(ML("Send To Back"), "", "SendToBack", @PopupClick)
+	mnuDesigner.Add(ML("Bring to Front"), "", "BrinToFront", @PopupClick)
+	mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
 	mnuDesigner.Add("-")
 	mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)
 	

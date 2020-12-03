@@ -71,6 +71,7 @@ Sub PopupClick(ByRef Sender As My.Sys.Object)
 	Case "Copy":   tb->Des->CopyControl()
 	Case "Cut":    tb->Des->CutControl()
 	Case "Paste":  tb->Des->PasteControl()
+	Case "BringToFront": tb->Des->BringToFront()
 	Case "SendToBack": tb->Des->SendToBack()
 	Case "Properties": If tb->Des->OnClickProperties Then tb->Des->OnClickProperties(*tb->Des, tb->Des->GetControl(tb->Des->FSelControl))
 	End Select
