@@ -26,7 +26,7 @@ Using My.Sys.Forms
 		Dim As Label lblVersion, lblPath, lblCommandLine
 		Dim As OpenFileDialog OpenD
 		Dim As FolderBrowserDialog BrowseD
-		Dim As Boolean ChooseFolder, SetFileNameToVersion
+		Dim As Boolean ChooseFolder, SetFileNameToVersion, WithoutCommandLine
 	End Type
 	
 	Common Shared pfPath As frmPath Ptr

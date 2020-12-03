@@ -2345,6 +2345,7 @@ End Sub
 Private Sub frmOptions.cmdAddHelp_Click(ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
+	pfPath->WithoutCommandLine = True
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If .cboHelp.IndexOf(pfPath->txtVersion.Text) = -1 Then
@@ -2363,6 +2364,7 @@ Private Sub frmOptions.cmdChangeHelp_Click(ByRef Sender As Control)
 		If .lvHelpPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvHelpPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvHelpPaths.SelectedItem->Text(1)
+		pfPath->WithoutCommandLine = True
 		If pfPath->ShowModal() = ModalResults.OK Then
 			If .lvHelpPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboHelp.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboHelp.IndexOf(.lvHelpPaths.SelectedItem->Text(0))
@@ -2411,8 +2413,6 @@ End Sub
 Private Sub frmOptions.cmdAddInclude_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
-	pfPath->lblCommandLine.Visible = False
-	pfPath->txtCommandLine.Visible = False
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If Not .lstIncludePaths.Items.Contains(pfPath->txtPath.Text) Then
@@ -2428,8 +2428,6 @@ End Sub
 Private Sub frmOptions.cmdAddLibrary_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
-	pfPath->lblCommandLine.Visible = False
-	pfPath->txtCommandLine.Visible = False
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If Not .lstLibraryPaths.Items.Contains(pfPath->txtPath.Text) Then
@@ -2440,8 +2438,6 @@ Private Sub frmOptions.cmdAddLibrary_Click(ByRef Sender As Control)
 			End If
 		End With
 	End If
-	pfPath->lblCommandLine.Visible = True
-	pfPath->txtCommandLine.Visible = True
 End Sub
 
 Private Sub frmOptions.cmdRemoveInclude_Click(ByRef Sender As Control)

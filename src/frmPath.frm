@@ -148,8 +148,11 @@ End Sub
 Private Sub frmPath.Form_Show(ByRef Sender As Form)
 	frPath.lblVersion.Visible = Not frPath.ChooseFolder
 	frPath.txtVersion.Visible = Not frPath.ChooseFolder
+	frPath.lblCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder)
+	frPath.txtCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder)
 End Sub
 
 Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	frPath.ChooseFolder = False
+	frPath.WithoutCommandLine = False
 End Sub
