@@ -108,7 +108,7 @@ Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Argu
 Common Shared As Any Ptr tlock, tlockSave
 
 Common Shared As List Ptr pTools
-Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths, 
+Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths, pOtherEditors
 Common Shared As Dictionary Ptr pHelps, pCompilers, pMakeTools, pDebuggers, pTerminals
 
 Enum LoadParam
