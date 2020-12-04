@@ -919,7 +919,7 @@ pfOptions = @fOptions
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
 			.Text = ML("When compiling") & ":"
-			.SetBounds 8, 245, 416, 99
+			.SetBounds 8, 235, 416, 99
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
@@ -1078,47 +1078,54 @@ pfOptions = @fOptions
 		With grbWhenVFBEStarts
 			.Name = "grbWhenVFBEStarts"
 			.Text = ML("When VisualFBEditor starts") & ":"
-			.SetBounds 8, 94, 416, 145
+			.SetBounds 8, 104, 416, 120
 			.Parent = @pnlGeneral
 		End With
-		' optPromptForProjectAndFiles
-		With optPromptForProjectAndFiles
-			.Name = "optPromptForProjectAndFiles"
-			.Text = ML("Prompt for Project / Files")
+		' optPromptForProjectAndFile
+		With optPromptForProjectAndFile
+			.Name = "optPromptForProjectAndFile"
+			.Text = ML("Prompt for Project / File")
 			.SetBounds 18, 22, 184, 16
-			.Caption = ML("Prompt for Project / Files")
+			.Caption = ML("Prompt for Project / File")
+			.Designer = @This
+			.OnClick = @optPromptForProjectAndFiles_Click
 			.Parent = @grbWhenVFBEStarts
 		End With
-		' optCreateEmptyFile
-		With optCreateEmptyFile
-			.Name = "optCreateEmptyFile"
-			.Text = ML("Create empty file")
-			.SetBounds 18, 67, 184, 16
-			.Caption = ML("Create empty file")
-			.Parent = @grbWhenVFBEStarts
-		End With
-		' optCreateEmptyProject
-		With optCreateEmptyProject
-			.Name = "optCreateEmptyProject"
-			.Text = ML("Create empty project")
-			.SetBounds 18, 44, 184, 16
-			.Caption = ML("Create empty project")
+		' optCreateProjectFile
+		With optCreateProjectFile
+			.Name = "optCreateProjectFile"
+			.Text = ML("Create Project / File")
+			.SetBounds 18, 45, 184, 16
+			.Caption = ML("Create Project / File")
+			.Designer = @This
+			.OnClick = @optCreateProjectFile_Click
 			.Parent = @grbWhenVFBEStarts
 		End With
 		' optOpenLastSession
 		With optOpenLastSession
 			.Name = "optOpenLastSession"
 			.Text = ML("Open Last Session")
-			.SetBounds 18, 91, 184, 16
+			.SetBounds 19, 67, 184, 16
 			.Caption = ML("Open Last Session")
+			.Designer = @This
+			.OnClick = @optOpenLastSession_Click
 			.Parent = @grbWhenVFBEStarts
 		End With
 		' optDoNotNothing
 		With optDoNotNothing
 			.Name = "optDoNotNothing"
 			.Text = ML("Don't Nothing")
-			.SetBounds 18, 114, 184, 16
+			.SetBounds 19, 90, 184, 16
 			.Caption = ML("Don't Nothing")
+			.Designer = @This
+			.OnClick = @optDoNotNothing_Click
+			.Parent = @grbWhenVFBEStarts
+		End With
+		' cboDefaultProjectFile
+		With cboDefaultProjectFile
+			.Name = "cboDefaultProjectFile"
+			.Text = "ComboBoxEdit1"
+			.SetBounds 222, 41, 175, 21
 			.Parent = @grbWhenVFBEStarts
 		End With
 	End Constructor
@@ -1145,6 +1152,14 @@ Private Sub frmOptions.cmdCancel_Click(ByRef Sender As Control)
 	Cast(frmOptions Ptr, Sender.Parent)->CloseForm
 End Sub
 
+Function IfNegative(Value As Integer, NonNegative As Integer) As Integer
+	If Value < 0 Then
+		Return NonNegative
+	Else
+		Return Value
+	End If
+End Function
+
 Sub frmOptions.LoadSettings()
 	With fOptions
 		.chkTabAsSpaces.Checked = TabAsSpaces
@@ -1163,8 +1178,14 @@ Sub frmOptions.LoadSettings()
 		.chkAutoIndentation.Checked = AutoIndentation
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
-		.chkAutoReloadLastOpenSources.Checked = AutoReloadLastOpenFiles
 		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
+		.cboDefaultProjectFile.ItemIndex = .cboDefaultProjectFile.IndexOf(WGet(DefaultProjectFile))
+		Select Case WhenVisualFBEditorStarts
+		Case 0: .optDoNotNothing.Checked = True
+		Case 1: .optPromptForProjectAndFile.Checked = True
+		Case 2: .optCreateProjectFile.Checked = True
+		Case 3: .optOpenLastSession.Checked = True
+		End Select
 		Select Case AutoSaveBeforeCompiling
 		Case 0: .optDoNotSave.Checked = True
 		Case 1: .optSaveCurrentFile.Checked = True
@@ -1185,6 +1206,21 @@ Sub frmOptions.LoadSettings()
 		Dim Buff As WString * 2048 '
 		Dim As UString FileName
 		'On Error Resume Next
+		.cboDefaultProjectFile.Clear
+		f = Dir(ExePath & "/Templates/Projects/*")
+		While f <> ""
+			FileName = ExePath & "/Templates/Projects/" & f
+			.cboDefaultProjectFile.AddItem Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
+			Templates.Add "Projects/" & f
+			f = Dir()
+		Wend
+		f = Dir(ExePath & "/Templates/Files/*")
+		While f <> ""
+			FileName = ExePath & "/Templates/Files/" & f
+			.cboDefaultProjectFile.AddItem Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
+			Templates.Add "Files/" & f
+			f = Dir()
+		Wend
 		f = Dir(ExePath & "/Settings/Languages/*.lng")
 		While f <> ""
 			FileName = ExePath & "/Settings/Languages/" & f
@@ -1618,7 +1654,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
-		AutoReloadLastOpenFiles = .chkAutoReloadLastOpenSources.Checked
+		If .cboDefaultProjectFile.ItemIndex = -1 Then
+			WLet DefaultProjectFile, ""
+		Else
+			WLet DefaultProjectFile, .Templates.Item(.cboDefaultProjectFile.ItemIndex)
+		End If
+		WhenVisualFBEditorStarts = IIf(.optPromptForProjectAndFile.Checked, 1, IIf(.optCreateProjectFile.Checked, 2, IIf(.optOpenLastSession.Checked, 3, 0)))
 		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, 0))
 		ShowSpaces = .chkShowSpaces.Checked
 		HighlightBrackets = .chkHighlightBrackets.Checked
@@ -1744,7 +1785,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "AutoComplete", AutoComplete
 		piniSettings->WriteBool "Options", "AutoCreateRC", AutoCreateRC
 		piniSettings->WriteBool "Options", "AutoCreateBakFiles", AutoCreateBakFiles
-		piniSettings->WriteBool "Options", "AutoReloadLastOpenFiles", AutoReloadLastOpenFiles
+		piniSettings->WriteString "Options", "DefaultProjectFile", WGet(DefaultProjectFile)
+		piniSettings->WriteInteger "Options", "WhenVisualFBEditorStarts", WhenVisualFBEditorStarts
 		piniSettings->WriteInteger "Options", "AutoSaveBeforeCompiling", AutoSaveBeforeCompiling
 		piniSettings->WriteBool "Options", "ShowSpaces", ShowSpaces
 		piniSettings->WriteBool "Options", "HighlightBrackets", HighlightBrackets
@@ -2599,4 +2641,24 @@ Private Sub frmOptions.cmdClearEditor_Click_(ByRef Sender As Control)
 End Sub
 Private Sub frmOptions.cmdClearEditor_Click(ByRef Sender As Control)
 	lvOtherEditors.ListItems.Clear
+End Sub
+
+Sub cboDefaultProjectFileCheckEnable
+	fOptions.cboDefaultProjectFile.Enabled = fOptions.optCreateProjectFile.Checked
+End Sub
+
+Private Sub frmOptions.optPromptForProjectAndFiles_Click(ByRef Sender As RadioButton)
+	cboDefaultProjectFileCheckEnable
+End Sub
+
+Private Sub frmOptions.optCreateProjectFile_Click(ByRef Sender As RadioButton)
+	cboDefaultProjectFileCheckEnable
+End Sub
+
+Private Sub frmOptions.optOpenLastSession_Click(ByRef Sender As RadioButton)
+	cboDefaultProjectFileCheckEnable
+End Sub
+
+Private Sub frmOptions.optDoNotNothing_Click(ByRef Sender As RadioButton)
+	cboDefaultProjectFileCheckEnable
 End Sub

@@ -2856,7 +2856,8 @@ Sub LoadSettings
 	AutoCreateRC = iniSettings.ReadBool("Options", "AutoCreateRC", True)
 	AutoSaveBeforeCompiling = iniSettings.ReadInteger("Options", "AutoSaveBeforeCompiling", 1)
 	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
-	AutoReloadLastOpenFiles = iniSettings.ReadBool("Options", "AutoReloadLastOpenFiles", True)
+	WhenVisualFBEditorStarts = iniSettings.ReadInteger("Options", "WhenVisualFBEditorStarts", 2)
+	WLet DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.bas")
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
 	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
@@ -4951,10 +4952,14 @@ Sub frmMain_Create(ByRef Sender As Control)
 	tbStandard.Buttons.Item("Form")->Checked = bGUI
 	tbStandard.Buttons.Item("Console")->Checked = Not bGUI
 	Var file = Command(-1)
-	wLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
 	If file = "" Then
-		' , Auto Load the last one.
-		If AutoReloadLastOpenFiles Then OpenFiles *RecentFiles
+		Select Case WhenVisualFBEditorStarts
+		Case 1: ' pfTemplates->ShowModal
+		Case 2: OpenFiles ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
+		Case 3: wLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+			' , Auto Load the last one.
+			OpenFiles *RecentFiles
+		End Select
 	Else
 		OpenFiles file
 	End If

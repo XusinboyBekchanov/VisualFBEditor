@@ -101,6 +101,10 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Sub cmdRemoveEditor_Click(ByRef Sender As Control)
 		Declare Static Sub cmdClearEditor_Click_(ByRef Sender As Control)
 		Declare Sub cmdClearEditor_Click(ByRef Sender As Control)
+		Declare Static Sub optPromptForProjectAndFiles_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optCreateProjectFile_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optOpenLastSession_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optDoNotNothing_Click(ByRef Sender As RadioButton)
 		Declare Constructor
 		Declare Destructor
 		
@@ -110,7 +114,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Panel pnlGeneral, pnlLocalization, pnlShortcuts, pnlThemes, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlHelp, pnlIncludes, pnlIncludeMFFPath, pnlThemesCheckboxes, pnlColors, pnlGrid, pnlOtherEditors
 		Dim As Picture lblColorForeground, lblColorBackground, lblColorIndicator
 		Dim As TextBox txtMFFpath, txtTabSize, txtHistoryLimit, txtGridSize, txtProjectsPath
-		Dim As ComboBoxEdit cboLanguage, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger32, cboMakeTool, cboTerminal, cboHelp, cboDebugger64
+		Dim As ComboBoxEdit cboLanguage, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger32, cboMakeTool, cboTerminal, cboHelp, cboDebugger64, cboDefaultProjectFile
 		Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCurrentFileBeforeCompiling, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces, chkShowAlignmentGrid, chkSnapToGrid, chkChangeKeywordsCase, chkForeground, chkBackground, chkIndicator, chkBold, chkItalic, chkUnderline, chkUseMakeOnStartWithCompile
 		Dim As HotKey hkShortcut
 		Dim OpenD As OpenFileDialog
@@ -120,7 +124,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As WString Ptr EditFontName, InterfFontName, oldInterfFontName
 		Dim As Integer EditFontSize, InterfFontSize, oldInterfFontSize
 		Dim Colors(16, 7) As Integer
-		Dim As WStringList HotKeysPriv
+		Dim As WStringList HotKeysPriv, Templates
 		Dim As Boolean HotKeysChanged
 		Dim As Integer LibraryPathsCount
 		Dim As ListControl lstIncludePaths, lstLibraryPaths, lstColorKeys
@@ -141,7 +145,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CheckBox chkHighlightCurrentLine
 		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug, chkCreateNonStaticEventHandlers
 		Dim As Boolean oldDisplayMenuIcons
-		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFiles, optCreateEmptyFile, optCreateEmptyProject, optOpenLastSession, optDoNotNothing
+		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFile, optCreateProjectFile, optOpenLastSession, optDoNotNothing
 	End Type
 '#End Region
 

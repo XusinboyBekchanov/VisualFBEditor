@@ -81,7 +81,6 @@ Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
 Common Shared As Boolean AutoCreateRC
 Common Shared As Boolean AutoCreateBakFiles
-Common Shared As Boolean AutoReloadLastOpenFiles
 Common Shared As Boolean UseMakeOnStartWithCompile
 Common Shared As Boolean CreateNonStaticEventHandlers
 Common Shared As Boolean LimitDebug, DisplayWarningsInDebug
@@ -92,11 +91,13 @@ Common Shared As Boolean InDebug, FormClosing
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
 Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar
+Common Shared As Integer WhenVisualFBEditorStarts
 Common Shared As Integer AutoSaveBeforeCompiling
 Common Shared As Integer IncludeMFFPath
 Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
 Common Shared As String CurLanguage
+Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave
 Common Shared As WString Ptr ProjectsPath, LastOpenPath
