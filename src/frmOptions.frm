@@ -198,7 +198,7 @@ pfOptions = @fOptions
 		With grbDebuggerPaths
 			.Name = "grbDebuggerPaths"
 			.Text = ML("Debugger Paths")
-			.SetBounds 10, 134, 416, 264
+			.SetBounds 10, 184, 416, 214
 			.Parent = @pnlDebugger
 		End With
 		' cboDebugger32
@@ -396,7 +396,7 @@ pfOptions = @fOptions
 		' cmdChangeDebugger
 		cmdChangeDebugger.Name = "cmdChangeDebugger"
 		cmdChangeDebugger.Text = ML("Chan&ge")
-		cmdChangeDebugger.SetBounds 114, 223, 96, 24
+		cmdChangeDebugger.SetBounds 114, 173, 96, 24
 		cmdChangeDebugger.OnClick = @cmdChangeDebugger_Click
 		cmdChangeDebugger.Parent = @grbDebuggerPaths
 		' cmdChangeTerminal
@@ -468,21 +468,21 @@ pfOptions = @fOptions
 		With grbMakeToolPaths
 			.Name = "grbMakeToolPaths"
 			.Text = ML("Make Tool Paths")
-			.SetBounds 10, 70, 416, 328
+			.SetBounds 10, 100, 416, 298
 			.Parent = @pnlMake
 		End With
 		' lvMakeToolPaths
 		With lvMakeToolPaths
 			.Name = "lvMakeToolPaths"
 			.Text = "lvMakeToolPaths"
-			.SetBounds 18, 22, 384, 256
+			.SetBounds 18, 22, 384, 226
 			.Parent = @grbMakeToolPaths
 		End With
 		' cmdAddMakeTool
 		With cmdAddMakeTool
 			.Name = "cmdAddMakeTool"
 			.Text = ML("&Add")
-			.SetBounds 17, 289, 96, 24
+			.SetBounds 17, 259, 96, 24
 			.OnClick = @cmdAddMakeTool_Click
 			.IsChild = True
 			.ID = 1010
@@ -492,7 +492,7 @@ pfOptions = @fOptions
 		With cmdRemoveMakeTool
 			.Name = "cmdRemoveMakeTool"
 			.Text = ML("&Remove")
-			.SetBounds 211, 289, 96, 24
+			.SetBounds 211, 259, 96, 24
 			.OnClick = @cmdRemoveMakeTool_Click
 			.Parent = @grbMakeToolPaths
 		End With
@@ -500,7 +500,7 @@ pfOptions = @fOptions
 		With cmdClearMakeTools
 			.Name = "cmdClearMakeTools"
 			.Text = ML("&Clear")
-			.SetBounds 307, 289, 96, 24
+			.SetBounds 307, 259, 96, 24
 			.OnClick = @cmdClearMakeTools_Click
 			.Parent = @grbMakeToolPaths
 		End With
@@ -521,7 +521,7 @@ pfOptions = @fOptions
 		' cmdChangeMakeTool
 		cmdChangeMakeTool.Name = "cmdChangeMakeTool"
 		cmdChangeMakeTool.Text = ML("Chan&ge")
-		cmdChangeMakeTool.SetBounds 114, 289, 96, 24
+		cmdChangeMakeTool.SetBounds 114, 259, 96, 24
 		cmdChangeMakeTool.OnClick = @cmdChangeMakeTool_Click
 		cmdChangeMakeTool.Parent = @grbMakeToolPaths
 		' cboTheme
@@ -671,9 +671,9 @@ pfOptions = @fOptions
 		' chkUseMakeOnStartWithCompile
 		chkUseMakeOnStartWithCompile.Name = "chkUseMakeOnStartWithCompile"
 		chkUseMakeOnStartWithCompile.Text = ML("Use make on start with compile (if exists makefile)")
-		chkUseMakeOnStartWithCompile.SetBounds 10, 93, 400, 16
+		chkUseMakeOnStartWithCompile.SetBounds 15, 73, 390, 16
 		chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
-		chkUseMakeOnStartWithCompile.Parent = @pnlGeneral
+		chkUseMakeOnStartWithCompile.Parent = @pnlMake
 		' lvCompilerPaths
 		With lvCompilerPaths
 			.Name = "lvCompilerPaths"
@@ -715,14 +715,14 @@ pfOptions = @fOptions
 		With lvDebuggerPaths
 			.Name = "lvDebuggerPaths"
 			.Text = "lvCompilerPaths1"
-			.SetBounds 18, 22, 384, 192
+			.SetBounds 18, 22, 384, 142
 			.Parent = @grbDebuggerPaths
 		End With
 		' cmdAddDebugger
 		With cmdAddDebugger
 			.Name = "cmdAddDebugger"
 			.Text = ML("&Add")
-			.SetBounds 17, 223, 96, 24
+			.SetBounds 17, 173, 96, 24
 			.OnClick = @cmdAddDebugger_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -730,7 +730,7 @@ pfOptions = @fOptions
 		With cmdRemoveDebugger
 			.Name = "cmdRemoveDebugger"
 			.Text = ML("&Remove")
-			.SetBounds 211, 223, 96, 24
+			.SetBounds 211, 173, 96, 24
 			.OnClick = @cmdRemoveDebugger_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -738,7 +738,7 @@ pfOptions = @fOptions
 		With cmdClearDebuggers
 			.Name = "cmdClearDebuggers"
 			.Text = ML("&Clear")
-			.SetBounds 307, 223, 96, 24
+			.SetBounds 307, 173, 96, 24
 			.OnClick = @cmdClearDebuggers_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -911,7 +911,7 @@ pfOptions = @fOptions
 		With cmdClearHelps
 			.Name = "cmdClearHelps"
 			.Text = ML("&Clear")
-			.SetBounds 307, 289, 96, 24
+			.SetBounds 307, 288, 96, 24
 			.OnClick = @cmdClearHelps_Click
 			.Parent = @grbHelpPaths
 		End With
@@ -919,7 +919,7 @@ pfOptions = @fOptions
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
 			.Text = ML("When compiling") & ":"
-			.SetBounds 8, 160, 416, 104
+			.SetBounds 8, 245, 416, 99
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
@@ -943,10 +943,10 @@ pfOptions = @fOptions
 			.SetBounds 18, 46, 184, 16
 			.Parent = @grbWhenCompiling
 		End With
-		' Panel1
-		With Panel1
-			.Name = "Panel1"
-			.Text = "Panel1"
+		' pnlIncludeMFFPath
+		With pnlIncludeMFFPath
+			.Name = "pnlIncludeMFFPath"
+			.Text = ""
 			.SetBounds 8, 23, 152, 16
 			.Parent = @grbIncludePaths
 		End With
@@ -955,7 +955,7 @@ pfOptions = @fOptions
 			.Name = "chkIncludeMFFPath"
 			.Text = ML("Include MFF Path") & ":"
 			.SetBounds 7, 0, 150, 18
-			.Parent = @Panel1
+			.Parent = @pnlIncludeMFFPath
 		End With
 		' pnlThemesCheckboxes
 		With pnlThemesCheckboxes
@@ -982,15 +982,15 @@ pfOptions = @fOptions
 		With chkLimitDebug
 			.Name = "chkLimitDebug"
 			.Text = ML("Limit debug to the directory of the main file")
-			.SetBounds 10, 116, 400, 16
-			.Parent = @pnlGeneral
+			.SetBounds 15, 136, 390, 16
+			.Parent = @pnlDebugger
 		End With
 		' chkDisplayWarningsInDebug
 		With chkDisplayWarningsInDebug
 			.Name = "chkDisplayWarningsInDebug"
 			.Text = ML("Display warnings in debug")
-			.SetBounds 10, 138, 400, 16
-			.Parent = @pnlGeneral
+			.SetBounds 15, 158, 390, 16
+			.Parent = @pnlDebugger
 		End With
 		' chkCreateNonStaticEventHandlers
 		With chkCreateNonStaticEventHandlers
@@ -1040,6 +1040,8 @@ pfOptions = @fOptions
 			.Text = "Add"
 			.SetBounds 17, 361, 96, 24
 			.Caption = "Add"
+			.Designer = @This
+			.OnClick = @cmdAddEditor_Click_
 			.Parent = @grbOtherEditors
 		End With
 		' cmdChangeEditor
@@ -1048,6 +1050,8 @@ pfOptions = @fOptions
 			.Text = "Change"
 			.SetBounds 114, 361, 96, 24
 			.Caption = "Change"
+			.Designer = @This
+			.OnClick = @cmdChangeEditor_Click_
 			.Parent = @grbOtherEditors
 		End With
 		' cmdRemoveEditor
@@ -1056,6 +1060,8 @@ pfOptions = @fOptions
 			.Text = "Remove"
 			.SetBounds 211, 361, 96, 24
 			.Caption = "Remove"
+			.Designer = @This
+			.OnClick = @cmdRemoveEditor_Click_
 			.Parent = @grbOtherEditors
 		End With
 		' cmdClearEditor
@@ -1064,7 +1070,56 @@ pfOptions = @fOptions
 			.Text = "Clear"
 			.SetBounds 307, 361, 96, 24
 			.Caption = "Clear"
+			.Designer = @This
+			.OnClick = @cmdClearEditor_Click_
 			.Parent = @grbOtherEditors
+		End With
+		' grbWhenVFBEStarts
+		With grbWhenVFBEStarts
+			.Name = "grbWhenVFBEStarts"
+			.Text = ML("When VisualFBEditor starts") & ":"
+			.SetBounds 8, 94, 416, 145
+			.Parent = @pnlGeneral
+		End With
+		' optPromptForProjectAndFiles
+		With optPromptForProjectAndFiles
+			.Name = "optPromptForProjectAndFiles"
+			.Text = ML("Prompt for Project / Files")
+			.SetBounds 18, 22, 184, 16
+			.Caption = ML("Prompt for Project / Files")
+			.Parent = @grbWhenVFBEStarts
+		End With
+		' optCreateEmptyFile
+		With optCreateEmptyFile
+			.Name = "optCreateEmptyFile"
+			.Text = ML("Create empty file")
+			.SetBounds 18, 67, 184, 16
+			.Caption = ML("Create empty file")
+			.Parent = @grbWhenVFBEStarts
+		End With
+		' optCreateEmptyProject
+		With optCreateEmptyProject
+			.Name = "optCreateEmptyProject"
+			.Text = ML("Create empty project")
+			.SetBounds 18, 44, 184, 16
+			.Caption = ML("Create empty project")
+			.Parent = @grbWhenVFBEStarts
+		End With
+		' optOpenLastSession
+		With optOpenLastSession
+			.Name = "optOpenLastSession"
+			.Text = ML("Open Last Session")
+			.SetBounds 18, 91, 184, 16
+			.Caption = ML("Open Last Session")
+			.Parent = @grbWhenVFBEStarts
+		End With
+		' optDoNotNothing
+		With optDoNotNothing
+			.Name = "optDoNotNothing"
+			.Text = ML("Don't Nothing")
+			.SetBounds 18, 114, 184, 16
+			.Caption = ML("Don't Nothing")
+			.Parent = @grbWhenVFBEStarts
 		End With
 	End Constructor
 	
@@ -1364,19 +1419,24 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.tvOptions.ExpandAll
 		.lvShortcuts.Columns.Add ML("Action"), , 250
 		.lvShortcuts.Columns.Add ML("Shortcut"), , 100
-		.lvCompilerPaths.Columns.Add ML("Version"), , 200
-		.lvCompilerPaths.Columns.Add ML("Path"), , 200
-		.lvMakeToolPaths.Columns.Add ML("Version"), , 200
-		.lvMakeToolPaths.Columns.Add ML("Path"), , 200
-		.lvDebuggerPaths.Columns.Add ML("Version"), , 200
-		.lvDebuggerPaths.Columns.Add ML("Path"), , 200
-		.lvTerminalPaths.Columns.Add ML("Version"), , 200
-		.lvTerminalPaths.Columns.Add ML("Path"), , 200
-		.lvHelpPaths.Columns.Add ML("Version"), , 200
-		.lvHelpPaths.Columns.Add ML("Path"), , 200
-		.lvOtherEditors.Columns.Add ML("Version"), , 130
-		.lvOtherEditors.Columns.Add ML("Extensions"), , 130
-		.lvOtherEditors.Columns.Add ML("Path"), , 140
+		.lvOtherEditors.Columns.Add ML("Version"), , 126
+		.lvOtherEditors.Columns.Add ML("Extensions"), , 126
+		.lvOtherEditors.Columns.Add ML("Path"), , 126
+		.lvOtherEditors.Columns.Add ML("Commad line"), , 80
+		.lvCompilerPaths.Columns.Add ML("Version"), , 190
+		.lvCompilerPaths.Columns.Add ML("Path"), , 190
+		.lvCompilerPaths.Columns.Add ML("Command line"), , 80
+		.lvMakeToolPaths.Columns.Add ML("Version"), , 190
+		.lvMakeToolPaths.Columns.Add ML("Path"), , 190
+		.lvMakeToolPaths.Columns.Add ML("Command line"), , 80
+		.lvDebuggerPaths.Columns.Add ML("Version"), , 190
+		.lvDebuggerPaths.Columns.Add ML("Path"), , 190
+		.lvDebuggerPaths.Columns.Add ML("Command line"), , 80
+		.lvTerminalPaths.Columns.Add ML("Version"), , 190
+		.lvTerminalPaths.Columns.Add ML("Path"), , 190
+		.lvTerminalPaths.Columns.Add ML("Command line"), , 80
+		.lvHelpPaths.Columns.Add ML("Version"), , 190
+		.lvHelpPaths.Columns.Add ML("Path"), , 190
 		.cboCase.AddItem ML("Original Case")
 		.cboCase.AddItem ML("Lower Case")
 		.cboCase.AddItem ML("Upper Case")
@@ -2475,4 +2535,68 @@ Private Sub frmOptions.cmdSetShortcut_Click(ByRef Sender As Control)
 			.HotKeysChanged = True
 		End If
 	End With
+End Sub
+
+Private Sub frmOptions.cmdAddEditor_Click_(ByRef Sender As Control)
+	*Cast(frmOptions Ptr, Sender.Designer).cmdAddEditor_Click(Sender)
+End Sub
+Private Sub frmOptions.cmdAddEditor_Click(ByRef Sender As Control)
+	pfPath->txtVersion.Text = ""
+	pfPath->txtPath.Text = ""
+	pfPath->WithExtensions = True
+	If pfPath->ShowModal() = ModalResults.OK Then
+		With lvOtherEditors.ListItems
+			Var ItemsCount = .Count
+			If .IndexOf(pfPath->txtVersion.Text) = -1 Then
+				.Add pfPath->txtVersion.Text
+				.Item(ItemsCount)->Text(1) = pfPath->txtExtensions.Text
+				.Item(ItemsCount)->Text(2) = pfPath->txtPath.Text
+				.Item(ItemsCount)->Text(3) = pfPath->txtCommandLine.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdChangeEditor_Click_(ByRef Sender As Control)
+	*Cast(frmOptions Ptr, Sender.Designer).cmdChangeEditor_Click(Sender)
+End Sub
+Private Sub frmOptions.cmdChangeEditor_Click(ByRef Sender As Control)
+	With lvOtherEditors
+		If .SelectedItem = 0 Then Exit Sub
+		pfPath->txtVersion.Text = .SelectedItem->Text(0)
+		pfPath->txtExtensions.Text = .SelectedItem->Text(1)
+		pfPath->txtPath.Text = .SelectedItem->Text(2)
+		pfPath->txtCommandLine.Text = .SelectedItem->Text(3)
+		pfPath->WithExtensions = True
+		If pfPath->ShowModal() = ModalResults.OK Then
+			If .SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .ListItems.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				Var i = .ListItems.IndexOf(.SelectedItem->Text(0))
+				.SelectedItem->Text(0) = pfPath->txtVersion.Text
+				.SelectedItem->Text(1) = pfPath->txtExtensions.Text
+				.SelectedItem->Text(2) = pfPath->txtPath.Text
+				.SelectedItem->Text(3) = pfPath->txtCommandLine.Text
+			Else
+				MsgBox ML("This version is exists!")
+			End If
+		End If
+	End With
+End Sub
+
+Private Sub frmOptions.cmdRemoveEditor_Click_(ByRef Sender As Control)
+	*Cast(frmOptions Ptr, Sender.Designer).cmdRemoveEditor_Click(Sender)
+End Sub
+Private Sub frmOptions.cmdRemoveEditor_Click(ByRef Sender As Control)
+	With lvOtherEditors
+		If .SelectedItem = 0 Then Exit Sub
+		.ListItems.Remove .SelectedItemIndex
+	End With
+End Sub
+
+Private Sub frmOptions.cmdClearEditor_Click_(ByRef Sender As Control)
+	*Cast(frmOptions Ptr, Sender.Designer).cmdClearEditor_Click(Sender)
+End Sub
+Private Sub frmOptions.cmdClearEditor_Click(ByRef Sender As Control)
+	lvOtherEditors.ListItems.Clear
 End Sub

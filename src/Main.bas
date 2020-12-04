@@ -60,9 +60,9 @@ Dim Shared As SaveFileDialog SaveD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions, OtherEditors ' add Sessions
 Dim Shared As WString Ptr RecentFiles '
-Dim Shared As Dictionary Compilers, MakeTools, Debuggers, Terminals, Helps, HotKeys
+Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
 Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
@@ -97,6 +97,7 @@ pCompilers = @Compilers
 pMakeTools = @MakeTools
 pDebuggers = @Debuggers
 pTerminals = @Terminals
+pOtherEditors = @OtherEditors
 pHelps = @Helps
 plvSearch = @lvSearch
 plvToDo = @lvToDo '

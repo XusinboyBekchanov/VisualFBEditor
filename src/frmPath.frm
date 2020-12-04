@@ -83,7 +83,22 @@
 		' txtCommandLine
 		With txtCommandLine
 			.Name = "txtCommandLine"
-			.SetBounds 100, 80, 348, 24
+			.SetBounds 100, 80, 128, 24
+			.Text = ""
+			.Parent = @This
+		End With
+		' lblExtensions
+		With lblExtensions
+			.Name = "lblExtensions"
+			.Text = ML("Extensions") & ":"
+			.SetBounds 238, 82, 88, 24
+			.Caption = ML("Extensions") & ":"
+			.Parent = @This
+		End With
+		' txtExtensions
+		With txtExtensions
+			.Name = "txtExtensions"
+			.SetBounds 320, 80, 128, 24
 			.Text = ""
 			.Parent = @This
 		End With
@@ -150,9 +165,12 @@ Private Sub frmPath.Form_Show(ByRef Sender As Form)
 	frPath.txtVersion.Visible = Not frPath.ChooseFolder
 	frPath.lblCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder)
 	frPath.txtCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder)
+	frPath.lblExtensions.Visible = frPath.WithExtensions
+	frPath.txtExtensions.Visible = frPath.WithExtensions
 End Sub
 
 Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	frPath.ChooseFolder = False
 	frPath.WithoutCommandLine = False
+	frPath.WithExtensions = False
 End Sub

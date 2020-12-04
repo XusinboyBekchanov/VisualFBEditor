@@ -93,13 +93,21 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Static Sub cmdProjectsPath_Click(ByRef Sender As Control)
 		Declare Static Sub lvShortcuts_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Static Sub cmdSetShortcut_Click(ByRef Sender As Control)
+		Declare Static Sub cmdAddEditor_Click_(ByRef Sender As Control)
+		Declare Sub cmdAddEditor_Click(ByRef Sender As Control)
+		Declare Static Sub cmdChangeEditor_Click_(ByRef Sender As Control)
+		Declare Sub cmdChangeEditor_Click(ByRef Sender As Control)
+		Declare Static Sub cmdRemoveEditor_Click_(ByRef Sender As Control)
+		Declare Sub cmdRemoveEditor_Click(ByRef Sender As Control)
+		Declare Static Sub cmdClearEditor_Click_(ByRef Sender As Control)
+		Declare Sub cmdClearEditor_Click(ByRef Sender As Control)
 		Declare Constructor
 		Declare Destructor
 		
 		Dim As TreeView tvOptions
 		Dim As CommandButton cmdOK, cmdCancel, cmdApply, cmdAddCompiler, cmdMFFPath, cmdAddInclude, cmdRemoveInclude, cmdAddLibrary, cmdRemoveLibrary, cmdChangeDebugger, cmdChangeTerminal, cmdChangeMakeTool, cmdAdd, cmdRemove, cmdForeground, cmdFont, cmdProjectsPath, cmdBackground, cmdIndicator, cmdRemoveCompiler, cmdClearCompilers, cmdAddDebugger, cmdRemoveDebugger, cmdClearDebuggers, cmdAddMakeTool, cmdRemoveMakeTool, cmdClearMakeTools, cmdAddTerminal, cmdRemoveTerminal, cmdClearTerminals, cmdSetShortcut
 		Dim As Label lblBlack, lblWhite, lblCompiler32, lblCompiler64, lblTabSize, lblHistoryLimit, lblGridSize, lblFont, lblProjectsPath, lblForeground, lblBackground, lblIndicator, lblOthers, lblShortcut
-		Dim As Panel pnlGeneral, pnlLocalization, pnlShortcuts, pnlThemes, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlHelp, pnlIncludes, Panel1, pnlThemesCheckboxes, pnlColors, pnlGrid, pnlOtherEditors
+		Dim As Panel pnlGeneral, pnlLocalization, pnlShortcuts, pnlThemes, pnlCodeEditor, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlDesigner, pnlHelp, pnlIncludes, pnlIncludeMFFPath, pnlThemesCheckboxes, pnlColors, pnlGrid, pnlOtherEditors
 		Dim As Picture lblColorForeground, lblColorBackground, lblColorIndicator
 		Dim As TextBox txtMFFpath, txtTabSize, txtHistoryLimit, txtGridSize, txtProjectsPath
 		Dim As ComboBoxEdit cboLanguage, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger32, cboMakeTool, cboTerminal, cboHelp, cboDebugger64
@@ -116,7 +124,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Boolean HotKeysChanged
 		Dim As Integer LibraryPathsCount
 		Dim As ListControl lstIncludePaths, lstLibraryPaths, lstColorKeys
-		Dim As GroupBox grbGrid, grbColors, grbThemes, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebuggers, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths, grbLanguage, grbDefaultHelp, grbHelpPaths, grbWhenCompiling, grbShortcuts, grbOtherEditors
+		Dim As GroupBox grbGrid, grbColors, grbThemes, grbFont, grbDefaultCompilers, grbCompilerPaths, grbDefaultDebuggers, grbDebuggerPaths, grbMakeToolPaths, grbDefaultMakeTool, grbDefaultTerminal, grbTerminalPaths, grbIncludePaths, grbLibraryPaths, grbLanguage, grbDefaultHelp, grbHelpPaths, grbWhenCompiling, grbShortcuts, grbOtherEditors, grbWhenVFBEStarts
 		Dim As ListView lvCompilerPaths, lvDebuggerPaths, lvMakeToolPaths, lvTerminalPaths, lvHelpPaths, lvShortcuts, lvOtherEditors
 		Dim As Label lblInterfaceFont
 		Dim As CommandButton cmdInterfaceFont
@@ -133,7 +141,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CheckBox chkHighlightCurrentLine
 		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug, chkCreateNonStaticEventHandlers
 		Dim As Boolean oldDisplayMenuIcons
-		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles
+		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFiles, optCreateEmptyFile, optCreateEmptyProject, optOpenLastSession, optDoNotNothing
 	End Type
 '#End Region
 

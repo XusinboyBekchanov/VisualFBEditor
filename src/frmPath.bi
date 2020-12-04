@@ -22,11 +22,11 @@ Using My.Sys.Forms
 		Declare Constructor
 		
 		Dim As CommandButton cmdPath, cmdOK, cmdCancel
-		Dim As TextBox txtVersion, txtPath, txtCommandLine
-		Dim As Label lblVersion, lblPath, lblCommandLine
+		Dim As TextBox txtVersion, txtPath, txtCommandLine, txtExtensions
+		Dim As Label lblVersion, lblPath, lblCommandLine, lblExtensions
 		Dim As OpenFileDialog OpenD
 		Dim As FolderBrowserDialog BrowseD
-		Dim As Boolean ChooseFolder, SetFileNameToVersion, WithoutCommandLine
+		Dim As Boolean ChooseFolder, SetFileNameToVersion, WithoutCommandLine, WithExtensions
 	End Type
 	
 	Common Shared pfPath As frmPath Ptr
