@@ -29,6 +29,7 @@ Declare Sub CompleteWord()
 
 Type ExplorerElement Extends Object
 	FileName As WString Ptr
+	TemplateFileName As WString Ptr
 	Declare Destructor
 End Type
 
@@ -240,6 +241,8 @@ Declare Sub MoveCloseButtons()
 Declare Function FileNameExists(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
 
 Declare Function GetTab(ByRef FileName As WString) As TabWindow Ptr
+
+Declare Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 
 Declare Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 

@@ -733,7 +733,15 @@ Function GetIconName(ByRef FileName As WString) As String
 	End If
 End Function
 
-Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean) As TreeNode Ptr
+Function IfNegative(Value As Integer, NonNegative As Integer) As Integer
+	If Value < 0 Then
+		Return NonNegative
+	Else
+		Return Value
+	End If
+End Function
+
+Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean = False) As TreeNode Ptr
 	Dim As ExplorerElement Ptr ee
 	Dim As TreeNode Ptr tn3
 	Dim As Boolean inFolder = tn <> 0
@@ -755,12 +763,13 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 			tn = tvExplorer.Nodes.Add(GetFileName(FileName), , FileName, "Project", "Project")
 		Else
 			Var n = 0
+			Dim As String ProjectName = "Project"
 			Dim NewName As String
 			Do
 				n = n + 1
-				NewName = "Project" & Str(n)
+				NewName = ProjectName & Str(n)
 			Loop While tvExplorer.Nodes.Contains(NewName)
-			tn = tvExplorer.Nodes.Add(NewName & " *", , , "Project", "Project")
+			tn = tvExplorer.Nodes.Add(NewName & "*", , , "Project", "Project")
 		End If
 		'If tn <> 0 Then
 		If tbExplorer.Buttons.Item(3)->Checked Then
@@ -782,14 +791,21 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		Dim As WStringList Files
 		Dim As WStringList Ptr pFiles
 		ppe = New ProjectElement
-		WLet ppe->FileName, FileName
+		If bNew Then
+			WLet ppe->FileName, Left(tn->Text, Len(tn->Text) - 1)
+			WLet ppe->TemplateFileName, FileName
+		Else
+			WLet ppe->FileName, FileName
+		End If
 		tn->Tag = ppe
 		If pFilesList = 0 Then pFiles = @Files Else pFiles = pFilesList
 		Dim As String Parameter
 		Dim As String IconName
+		Dim As String ZvFile
 		Dim Buff As WString * 1024 ' for V1.07 Line Input not working fine
 		Dim As Integer Fn = FreeFile
-		Dim Result As Integer = -1 '
+		Dim Result As Integer = -1
+		If bNew Then ZvFile = "*" Else ZvFile = ""
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
@@ -816,14 +832,17 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					Else
 						WLet ee->FileName, Buff
 					End If
+					If bNew Then
+						WLet ee->TemplateFileName, WGet(ee->FileName)
+						WLet ee->FileName, GetFileName(Buff)
+					End If
 					If Not inFolder Then
 						tn1 = GetTreeNodeChild(tn, Buff)
 					End If
-					'
-					Dim As Boolean FileEx = FileExists(*ee->FileName)
+					Dim As Boolean FileEx = CInt(FileExists(*ee->FileName)) OrElse CInt(bNew)
 					If bMain Then
 						IconName = "MainRes"
-						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  '
+						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  ' Then
 							WLet ppe->ResourceFileName, *ee->FileName
 						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then  '
 							WLet ppe->IconResourceFileName, *ee->FileName
@@ -839,8 +858,9 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						End If
 						If Not FileEx Then IconName = "New"
 						If Not inFolder Then
-							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName),, *ee->FileName, IconName, IconName, True)
+							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName) & ZvFile,, *ee->FileName, IconName, IconName, True)
 							If MainNode = 0 Then SetMainNode GetParentNode(tn1)  '
+							If bNew AndAlso IconName = "MainFile" Then AddTab *ee->TemplateFileName, bNew, tn2
 						End If
 					Else
 						IconName = GetIconName(*ee->FileName)
@@ -855,7 +875,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						'						End If
 						If Not FileEx Then IconName = "New"
 						If Not inFolder Then
-							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , *ee->FileName, IconName, IconName, True)
+							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName) & ZvFile, , *ee->FileName, IconName, IconName, True)
 						End If
 					End If
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
@@ -869,7 +889,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					Else
 						tn2->Tag = ee
 					End If
-					' tn1->Expand
+					If bNew Then tn1->Expand
 				ElseIf Parameter = "ProjectType" Then
 					ppe->ProjectType = Val(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "ProjectName" Then
@@ -1085,14 +1105,14 @@ Function FolderExists(ByRef FolderName As WString) As Boolean
 End Function
 
 Sub AddNew(ByRef Template As WString = "")
-	If EndsWith(FileName, ".vfp") Then
-		AddProject FileName, , , True
+	If EndsWith(Template, ".vfp") Then
+		AddProject Template, , , True
 	Else
-		AddTab FileName, True
+		AddTab Template, True
 	End If
 End Sub
 
-Sub OpenFiles(ByRef FileName As WString, bNew As Boolean = False)
+Sub OpenFiles(ByRef FileName As WString)
 	If EndsWith(FileName, ".vfs") Then
 		AddMRUSession FileName  '
 		AddSession FileName
@@ -1165,6 +1185,64 @@ Function SaveSession() As Boolean
 	Return True
 End Function
 
+Sub SetSaveDialogParameters(ByRef FileName As WString)
+	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	If InStr(FileName, "/") = 0 AndAlso InStr(FileName, "\") = 0 Then
+		pSaveD->InitialDir = *LastOpenPath
+	Else
+		pSaveD->InitialDir = GetFolderName(FileName)
+	End If
+	pSaveD->FileName = FileName
+	If FileName = ML("Untitled") Then
+		pSaveD->InitialDir = GetFullPath(*ProjectsPath)
+		pSaveD->FilterIndex = 1
+	ElseIf EndsWith(FileName, ".bi") Then
+		pSaveD->FilterIndex = 2
+	ElseIf EndsWith(FileName, ".inc") Then
+		pSaveD->FilterIndex = 3
+	ElseIf EndsWith(FileName, ".frm") Then
+		pSaveD->FilterIndex = 4
+	ElseIf EndsWith(FileName, ".rc") Then
+		pSaveD->FilterIndex = 5
+	Else
+		pSaveD->FileName = FileName & "."
+		pSaveD->FilterIndex = 6
+	End If
+End Sub
+
+Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, tn As TreeNode Ptr) As Boolean
+	If ppe = 0 OrElse ee = 0 OrElse tn = 0 Then Return False
+	Dim As TabWindow Ptr tb = GetTabFromTn(tn)
+	If tb <> 0 Then
+		If tb->Modified Then Return tb->Save
+	ElseIf InStr(WGet(ee->FileName), "\") = 0 AndAlso InStr(WGet(ee->FileName), "/") = 0 Then
+		SetSaveDialogParameters(WGet(ee->FileName))
+		Do
+			If pSaveD->Execute Then
+				WLet LastOpenPath, GetFolderName(pSaveD->FileName)
+				If FileExists(pSaveD->FileName) Then
+					Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", pApp->Title, mtWarning, btYesNoCancel)
+					Case mrYes: Exit Do
+					Case mrCancel: Return False
+					Case mrNo:
+					End Select
+				Else
+					Exit Do
+				End If
+			Else
+				Return False
+			End If
+		Loop
+		If WGet(ppe->MainFileName) = WGet(ee->FileName) Then WLet ppe->MainFileName, pSaveD->Filename
+		If WGet(ppe->ResourceFileName) = WGet(ee->FileName) Then WLet ppe->ResourceFileName, pSaveD->Filename
+		If WGet(ppe->IconResourceFileName) = WGet(ee->FileName) Then WLet ppe->IconResourceFileName, pSaveD->Filename
+		WLet ee->FileName, pSaveD->FileName
+		tn->Text = GetFileName(*ee->FileName)
+		If WGet(ee->TemplateFileName) <> "" Then FileCopy WGet(ee->TemplateFileName), WGet(ee->FileName)
+	End If
+	Return True
+End Function
+
 Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
 	If tnP = 0 Then Return True
 	Dim As TreeNode Ptr tn = GetParentNode(tnP)
@@ -1172,13 +1250,9 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Dim As ProjectElement Ptr ppe
 	ppe = tn->Tag
 	If tn->ImageKey <> "Project" AndAlso ppe = 0 Then Return True
-	If CInt(ppe = 0) OrElse CInt(WGet(ppe->FileName) = "") OrElse CInt(bWithQuestion) Then
-		SaveD.FileName = Left(tn->Text, Len(tn->Text) - IIf(EndsWith(tn->Text, " *"), 2, 0))
-		'		If WGet(LastOpenPath) <> "" Then
-		'			SaveD.InitialDir = *LastOpenPath
-		'		Else
+	If CInt(ppe = 0) OrElse CInt(InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "/") = 0) OrElse CInt(bWithQuestion) Then
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
-		'		End If
+		If ppe <> 0 Then SaveD.FileName = WGet(ppe->FileName)
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
 		WLet LastOpenPath, GetFolderName(SaveD.FileName)
@@ -1188,18 +1262,23 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 			Case mrNO: Return SaveProject(tn, bWithQuestion)
 			End Select
 		End If
-		ppe = New ProjectElement
+		If ppe = 0 Then ppe = New ProjectElement
 		WLet ppe->FileName, SaveD.FileName
 		AddMRUProject SaveD.FileName
 	End If
 	Dim As TreeNode Ptr tn1, tn2
 	Dim As String Zv = "*"
-	Dim As Integer Fn =FreeFile
+	Dim As Integer Fn = FreeFile
 	Open *ppe->FileName For Output Encoding "utf-8" As #Fn
 	For i As Integer = 0 To tn->Nodes.Count - 1
 		tn1 = tn->Nodes.Item(i)
 		ee = tn1->Tag
 		If ee <> 0 Then
+			If Not SaveProjectFile(ppe, ee, tn1) Then
+				Close #Fn
+				WLet ppe->FileName, GetFileName(*ppe->FileName), True
+				Return False
+			End If
 			Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
 			If StartsWith(*ee->FileName, GetFolderName(*ppe->FileName)) Then
 				Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
@@ -1211,6 +1290,11 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 				tn2 = tn1->Nodes.Item(j)
 				ee = tn2->Tag
 				If ee <> 0 Then
+					If Not SaveProjectFile(ppe, ee, tn2) Then
+						Close #Fn
+						WLet ppe->FileName, GetFileName(*ppe->FileName), True
+						Return False
+					End If
 					Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
 					If StartsWith(Replace(*ee->FileName, "\", "/"), Replace(GetFolderName(*ppe->FileName), "\", "/")) Then
 						Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
@@ -1435,7 +1519,7 @@ Sub AddFileToProject
 			tn3->Tag = ee
 			'tn1->Expand
 		Next
-		If Not EndsWith(ptn->Text, " *") Then ptn->Text &= " *"
+		If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
 		If ptn->Nodes.Count > 0 Then
 			If Not ptn->IsExpanded Then ptn->Expand
 			For i As Integer = 0 To ptn->Nodes.Count - 1
@@ -1462,7 +1546,7 @@ Sub RemoveFileFromProject
 			Exit For
 		End If
 	Next i
-	If Not EndsWith(tn->ParentNode->Text, " *") Then tn->ParentNode->Text &= " *"
+	If Not EndsWith(tn->ParentNode->Text, "*") Then tn->ParentNode->Text &= "*"
 	If tn->ParentNode->Nodes.IndexOf(tn) <> -1 Then tn->ParentNode->Nodes.Remove tn->ParentNode->Nodes.IndexOf(tn)
 	'pfProjectProperties->RefreshProperties
 End Sub
@@ -1519,7 +1603,7 @@ Sub SetAsMain()
 					Dim tn1 As TreeNode Ptr
 					Dim As Integer tIndex
 					Dim As String IconName
-					If Not EndsWith(ptn->Text, " *") Then ptn->Text &= " *"
+					If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
 					If Not EndsWith(LCase(*ee->FileName), ".rc") Then
 						WLet ppe->MainFileName, *ee->FileName
 						IconName = "MainFile"
@@ -1614,7 +1698,7 @@ Function CloseProject(tn As TreeNode Ptr) As Boolean
 			Next k
 		End If
 	Next
-	If EndsWith(tn->Text, " *") Then
+	If EndsWith(tn->Text, "*") Then
 		Select Case MsgBox(ML("Want to save the project") & " """ & tn->Text & """?", "Visual FB Editor", mtWarning, btYesNoCancel)
 		Case mrYES: If Not SaveProject(tn) Then Return False
 		Case mrNO:
@@ -3745,7 +3829,13 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 		End If
 	Next i
 	If Not t Then
-		If ee <> 0 Then AddTab *ee->FileName, , @Item
+		If ee <> 0 Then
+			If Not FileExists(WGet(ee->FileName)) AndAlso WGet(ee->TemplateFileName) <> "" Then
+				AddTab WGet(ee->TemplateFileName), True, @Item
+			Else
+				AddTab WGet(ee->FileName), , @Item
+			End If
+		End If
 	End If
 End Sub
 
@@ -5024,7 +5114,7 @@ Sub frmMain_ActivateApp(ByRef Sender As Form)
 		Dim tb As TabWindow Ptr
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-			If tb->FileName <> ML("Untitled") & "*" Then
+			If InStr(tb->FileName, "/") > 0 OrElse InStr(tb->FileName, "\") > 0 Then
 				If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
 					If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
 						tb->txtCode.LoadFromFile(tb->FileName)
@@ -5048,7 +5138,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	Next i
 	For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
 		tn = tvExplorer.Nodes.Item(i)
-		If CInt(tn->ImageKey = "Project") AndAlso CInt(EndsWith(tn->Text, " *")) AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
+		If CInt(tn->ImageKey = "Project") AndAlso CInt(EndsWith(tn->Text, "*")) AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
 	Next i
 	iniSettings.WriteInteger("MainWindow", "MainWidth", frmMain.Width)
 	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)

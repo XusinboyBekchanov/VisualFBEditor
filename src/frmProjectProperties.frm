@@ -479,7 +479,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet ppe->CompilationArguments64Linux, .txtCompilationArguments64Linux.Text
 		WLet ppe->CommandLineArguments, .txtCommandLineArguments.Text
 		ppe->CreateDebugInfo = .chkCreateDebugInfo.Checked
-		If Not EndsWith(.ProjectTreeNode->Text, " *") Then .ProjectTreeNode->Text &= " *"
+		If Not EndsWith(.ProjectTreeNode->Text, "*") Then .ProjectTreeNode->Text &= "*"
 		.CloseForm
 	End With
 End Sub

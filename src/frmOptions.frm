@@ -918,7 +918,7 @@ pfOptions = @fOptions
 		' optSaveCurrentFile
 		With optSaveCurrentFile
 			.Name = "optSaveCurrentFile"
-			.Text = ML("Save Current File")
+			.Text = ML("Save Current Project / File")
 			.SetBounds 18, 22, 184, 16
 			.Parent = @grbWhenCompiling
 		End With
@@ -1145,14 +1145,6 @@ Private Sub frmOptions.cmdCancel_Click(ByRef Sender As Control)
 	Cast(frmOptions Ptr, Sender.Parent)->CloseForm
 End Sub
 
-Function IfNegative(Value As Integer, NonNegative As Integer) As Integer
-	If Value < 0 Then
-		Return NonNegative
-	Else
-		Return Value
-	End If
-End Function
-
 Sub frmOptions.LoadSettings()
 	With fOptions
 		.chkTabAsSpaces.Checked = TabAsSpaces
@@ -1199,7 +1191,7 @@ Sub frmOptions.LoadSettings()
 		Dim As UString FileName
 		'On Error Resume Next
 		.cboDefaultProjectFile.Clear
-		f = Dir(ExePath & "/Templates/Projects/*")
+		f = Dir(ExePath & "/Templates/Projects/*.vfp")
 		While f <> ""
 			.cboDefaultProjectFile.AddItem Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			Templates.Add "Projects/" & f

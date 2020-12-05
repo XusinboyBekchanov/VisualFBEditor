@@ -127,7 +127,7 @@ Declare Sub AddMRUSession(ByRef FileName As WString) '
 Declare Sub AddFileToProject
 Declare Sub RemoveFileFromProject
 Declare Sub OpenUrl(ByVal url As String)
-Declare Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0) As TreeNode Ptr
+Declare Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean = False) As TreeNode Ptr
 Declare Function SaveProject(ByRef tn As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
 Declare Function CloseProject(tn As TreeNode Ptr) As Boolean
 Declare Sub SetMainNode(tn As TreeNode Ptr)
@@ -164,6 +164,8 @@ Declare Sub NextBookmark(iTo As Integer = 1)
 Declare Sub ClearAllBookmarks
 Declare Sub SaveAll()
 Declare Sub FormatProject(UnFormat As Any Ptr)
+Declare Sub SetSaveDialogParameters(ByRef FileName As WString)
+Declare Function IfNegative(Value As Integer, NonNegative As Integer) As Integer
 Declare Function GetChangedCommas(Value As String) As String
 Declare Function GetFileName(ByRef FileName As WString) As UString
 Declare Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As UString

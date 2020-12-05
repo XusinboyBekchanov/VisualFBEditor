@@ -155,6 +155,15 @@ Function GetTab(ByRef FileName As WString) As TabWindow Ptr
 	Return 0
 End Function
 
+Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
+	Dim As TabWindow Ptr tb
+	For i As Integer = 0 To pTabCode->TabCount - 1
+		tb = Cast(TabWindow Ptr, pTabCode->Tabs[i])
+		If tb->tn = tn Then Return tb
+	Next i
+	Return 0
+End Function
+
 Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 	On Error Goto ErrorHandler
 	Dim bFind As Boolean
@@ -434,7 +443,7 @@ End Property
 
 Property TabWindow.FileName ByRef As WString
 	If WGet(FFileName) = "" Then
-		Return Caption
+		Return ML("Untitled")
 	Else
 		Return WGet(FFileName)
 	End If
@@ -516,12 +525,7 @@ Function TabWindow.SaveTab As Boolean
 End Function
 
 Function TabWindow.SaveAs As Boolean
-	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
-	If FileName = ML("Untitled") & "*" Then
-		pSaveD->InitialDir = GetFullPath(*ProjectsPath)
-	Else
-		pSaveD->InitialDir = GetFolderName(FileName)
-	End If
+	SetSaveDialogParameters(FileName)
 	If pSaveD->Execute Then
 		WLet LastOpenPath, GetFolderName(pSaveD->FileName)
 		If FileExists(pSaveD->FileName) Then
@@ -533,6 +537,22 @@ Function TabWindow.SaveAs As Boolean
 		Caption = GetFileName(pSaveD->Filename)
 		tn->Text = Caption
 		Wlet FFileName, pSaveD->Filename
+		Dim As ExplorerElement Ptr ee = tn->Tag
+		Dim As TreeNode Ptr ptn = GetParentNode(tn)
+		If ee = 0 Then
+			ee = New ExplorerElement
+			tn->Tag = ee
+		End If
+		If ptn <> 0 AndAlso ptn->ImageKey = "Project" Then
+			Dim As ProjectElement Ptr pee = ptn->Tag
+			If pee <> 0 Then
+				If WGet(pee->MainFileName) = WGet(ee->FileName) Then WLet pee->MainFileName, pSaveD->Filename
+				If WGet(pee->ResourceFileName) = WGet(ee->FileName) Then WLet pee->ResourceFileName, pSaveD->Filename
+				If WGet(pee->IconResourceFileName) = WGet(ee->FileName) Then WLet pee->IconResourceFileName, pSaveD->Filename
+				If Not EndsWith(ptn->Text, "*") Then ptn->Text & = "*"
+			End If
+		End If
+		WLet ee->FileName, pSaveD->Filename
 		AddMRUFile pSaveD->Filename
 		Return SaveTab
 	End If
@@ -540,7 +560,7 @@ Function TabWindow.SaveAs As Boolean
 End Function
 
 Function TabWindow.Save As Boolean
-	If *FFileName <> "" Then Return SaveTab Else Return SaveAs
+	If InStr(*FFileName, "/") > 0 OrElse InStr(*FFileName, "\") > 0 Then Return SaveTab Else Return SaveAs
 End Function
 
 Function TabWindow.CloseTab As Boolean
@@ -4031,12 +4051,14 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlTop.Add @pnlTopCombo
 	pnlTopCombo.Add @cboClass
 	pnlTopCombo.Add @cboFunction
-	If CInt(wFileName <> "") And CInt(bNew = False) Then
-		FileName = wFileName
+	If CInt(wFileName <> "") And CInt(bNew = False OrElse TreeN <> 0) Then
+		If bNew Then
+			FileName = GetFileName(wFileName)
+		Else
+			FileName = wFileName
+		End If
 		'txtCode.LoadFromFile(wFileName, False)
-		Dim As WString Ptr Temp
 		This.Caption = GetFileName(wFileName)
-		WDeallocate Temp
 	Else
 		This.Caption = ML("Untitled") & "*"
 	End If
@@ -4775,7 +4797,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion
 									bChanged = True
 									'									ThreadsEnter()
-									'									If CInt(ProjectNode) AndAlso CInt(Not EndsWith(ProjectNode->Text, " *")) Then ProjectNode->Text &= " *"
+									'									If CInt(ProjectNode) AndAlso CInt(Not EndsWith(ProjectNode->Text, "*")) Then ProjectNode->Text &= "*"
 									'									ThreadsLeave()
 								End If
 							Else
