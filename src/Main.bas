@@ -721,15 +721,19 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 	Return tn
 End Function
 
-Function GetIconName(ByRef FileName As WString) As String
+Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr) As String
+	Dim As String sMain = ""
+	If FileName = WGet(ppe->MainFileName) OrElse FileName = WGet(ppe->ResourceFileName) OrElse FileName = WGet(ppe->IconResourceFileName) Then
+		sMain = "Main"
+	End If
 	If EndsWith(LCase(FileName), ".rc") OrElse EndsWith(LCase(FileName), ".res") OrElse EndsWith(LCase(FileName), ".xpm") Then
-		Return "Res"
+		Return sMain & "Res"
 	ElseIf EndsWith(LCase(FileName), ".frm") Then
-		Return "Form"
+		Return sMain & "Form"
 	ElseIf EndsWith(LCase(FileName), ".bas") Then
-		Return "Module"
+		Return sMain & "Module"
 	Else
-		Return "File"
+		Return sMain & "File"
 	End If
 End Function
 
@@ -841,41 +845,21 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					End If
 					Dim As Boolean FileEx = CInt(FileExists(*ee->FileName)) OrElse CInt(bNew)
 					If bMain Then
-						IconName = "MainRes"
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  ' Then
 							WLet ppe->ResourceFileName, *ee->FileName
 						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then  '
 							WLet ppe->IconResourceFileName, *ee->FileName
-							'						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
-							'							WLet ppe->MainFileName, *ee->FileName
-							'							IconName = "MainForm"
-							'						ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
-							'							WLet ppe->MainFileName, *ee->FileName
-							'							IconName = "MainModule"
 						Else
 							WLet ppe->MainFileName, *ee->FileName
-							IconName = "MainFile"
 						End If
-						If Not FileEx Then IconName = "New"
-						If Not inFolder Then
-							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName) & ZvFile,, *ee->FileName, IconName, IconName, True)
-							If MainNode = 0 Then SetMainNode GetParentNode(tn1)  '
-							If bNew AndAlso IconName = "MainFile" Then AddTab *ee->TemplateFileName, bNew, tn2
-						End If
-					Else
-						IconName = GetIconName(*ee->FileName)
-						'						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") OrElse EndsWith(LCase(*ee->FileName), ".xpm") Then
-						'							IconName = "Res"
-						'						ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
-						'							IconName = "Form"
-						'						ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
-						'							IconName = "Module"
-						'						Else
-						'							IconName = "File"
-						'						End If
-						If Not FileEx Then IconName = "New"
-						If Not inFolder Then
-							tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName) & ZvFile, , *ee->FileName, IconName, IconName, True)
+					End If
+					IconName = GetIconName(*ee->FileName, ppe)
+					If Not FileEx Then IconName = "New"
+					If Not inFolder Then
+						tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName) & ZvFile,, *ee->FileName, IconName, IconName, True)
+						If bMain Then 
+							If MainNode = 0 Then SetMainNode GetParentNode(tn1)
+							If bNew AndAlso IconName <> "MainRes" Then AddTab *ee->TemplateFileName, bNew, tn2
 						End If
 					End If
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
@@ -1207,7 +1191,7 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 	ElseIf EndsWith(FileName, ".rc") Then
 		pSaveD->FilterIndex = 5
 	Else
-		pSaveD->FileName = FileName & "."
+		pSaveD->FileName = FileName
 		pSaveD->FilterIndex = 6
 	End If
 End Sub
@@ -1602,17 +1586,16 @@ Sub SetAsMain()
 				'If *ee->FileName = *pee->Project->MainFileName OrElse *ee->FileName = *pee->Project->ResourceFileName Then Exit Sub
 				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") _
 					OrElse EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".inc") Then
-					Dim tn1 As TreeNode Ptr
+					Dim As TreeNode Ptr tn1, tn2
 					Dim As Integer tIndex
 					Dim As String IconName
 					If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
-					If Not EndsWith(LCase(*ee->FileName), ".rc") Then
-						WLet ppe->MainFileName, *ee->FileName
-						IconName = "MainFile"
-					Else
+					If EndsWith(LCase(*ee->FileName), ".rc") Then
 						WLet ppe->ResourceFileName, *ee->FileName
-						IconName = "MainRes"
+					Else
+						WLet ppe->MainFileName, *ee->FileName
 					End If
+					IconName = GetIconName(WGet(ee->FileName), ppe)
 					If MainNode <> 0 Then MainNode->Bold = False
 					MainNode = ptn 'MainNode must be root node
 					MainNode->Bold = True
@@ -1623,18 +1606,17 @@ Sub SetAsMain()
 						tn1 = ptn->Nodes.Item(i)
 						If tn1->Nodes.Count = 0 Then
 							ee = tn1->Tag
-							If IconName = tn1->ImageKey AndAlso *ee->FileName <> *ppe->MainFileName Then
-								tn = tn1
-								tn->ImageKey = GetIconName(*ee->FileName)
-								tn->SelectedImageKey = tn1->ImageKey
+							If ee <> 0 Then
+								tn1->ImageKey = GetIconName(WGet(ee->FileName), ppe)
+								tn1->SelectedImageKey = tn1->ImageKey
 							End If
 						Else
 							For j As Integer = tn1->Nodes.Count - 1 To 0 Step -1
-								ee = tn1->Nodes.Item(j)->Tag
-								If IconName = tn1->Nodes.Item(j)->ImageKey AndAlso *ee->FileName <> *ppe->MainFileName Then
-									tn = tn1->Nodes.Item(j)
-									tn->ImageKey = GetIconName(*ee->FileName)
-									tn->SelectedImageKey = tn->ImageKey
+								tn2 = tn1->Nodes.Item(j)
+								ee = tn2->Tag
+								If ee <> 0 Then
+									tn2->ImageKey = GetIconName(WGet(ee->FileName), ppe)
+									tn2->SelectedImageKey = tn2->ImageKey
 								End If
 							Next
 						End If
@@ -3144,6 +3126,7 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "Code", "Code"
 	imgList.AddPng "Console", "Console"
 	imgList.AddPng "Form", "Form"
+	imgList.AddPng "MainForm", "MainForm"
 	imgList.AddPng "Format", "Format"
 	imgList.AddPng "Unformat", "Unformat"
 	imgList.AddPng "Numbering", "Numbering"
