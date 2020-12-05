@@ -733,12 +733,12 @@ Function GetIconName(ByRef FileName As WString) As String
 	End If
 End Function
 
-Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0) As TreeNode Ptr
+Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean) As TreeNode Ptr
 	Dim As ExplorerElement Ptr ee
 	Dim As TreeNode Ptr tn3
 	Dim As Boolean inFolder = tn <> 0
 	If Not inFolder Then
-		If FileName <> "" Then
+		If FileName <> "" AndAlso Not bNew Then
 			If Not FileExists(FileName) Then
 				MsgBox ML("File not found") & ": " & FileName
 				Return tn
@@ -1084,7 +1084,15 @@ Function FolderExists(ByRef FolderName As WString) As Boolean
 	Return Len(Dir(FolderName, fbDirectory))
 End Function
 
-Sub OpenFiles(ByRef FileName As WString)
+Sub AddNew(ByRef Template As WString = "")
+	If EndsWith(FileName, ".vfp") Then
+		AddProject FileName, , , True
+	Else
+		AddTab FileName, True
+	End If
+End Sub
+
+Sub OpenFiles(ByRef FileName As WString, bNew As Boolean = False)
 	If EndsWith(FileName, ".vfs") Then
 		AddMRUSession FileName  '
 		AddSession FileName
@@ -1388,7 +1396,7 @@ Sub RunHelp(Param As Any Ptr)
 End Sub
 
 Sub NewProject()
-	AddProject
+	AddProject , , , True
 End Sub
 
 Function ContainsFileName(tn As TreeNode Ptr, ByRef FileName As WString) As Boolean
@@ -4955,7 +4963,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	If file = "" Then
 		Select Case WhenVisualFBEditorStarts
 		Case 1: ' pfTemplates->ShowModal
-		Case 2: OpenFiles ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
+		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
 		Case 3: wLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
 			' , Auto Load the last one.
 			OpenFiles *RecentFiles
