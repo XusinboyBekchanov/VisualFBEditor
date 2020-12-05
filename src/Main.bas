@@ -1196,6 +1196,8 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 	If FileName = ML("Untitled") Then
 		pSaveD->InitialDir = GetFullPath(*ProjectsPath)
 		pSaveD->FilterIndex = 1
+	ElseIf EndsWith(FileName, ".bas") Then
+		pSaveD->FilterIndex = 1
 	ElseIf EndsWith(FileName, ".bi") Then
 		pSaveD->FilterIndex = 2
 	ElseIf EndsWith(FileName, ".inc") Then

@@ -1,14 +1,14 @@
 ﻿#ifdef __FB_WIN32__
 	#ifdef __FB_64BIT__
-		'#Compile -dll -x ".../AddIns/MyAddin (x64).dll" "MyAddin.rc"
+		'#Compile -dll -x "../AddIns/MyAddin (x64).dll" "MyAddin.rc"
 	#else
-		'#Compile -dll -x ".../AddIns/MyAddin (x32).dll" "MyAddin.rc"
+		'#Compile -dll -x "../AddIns/MyAddin (x32).dll" "MyAddin.rc"
 	#endif
 #else
 	#ifdef __FB_64BIT__
-		'#Compile -dll -x ".../AddIns/MyAddinx64.so"
+		'#Compile -dll -x "../AddIns/MyAddinx64.so"
 	#else
-		'#Compile -dll -x ".../AddIns/MyAddinx32.so"
+		'#Compile -dll -x "../AddIns/MyAddinx32.so"
 	#endif
 #endif
 
@@ -89,7 +89,7 @@ End Function
 
 Sub OnMyAddinButtonClick(ByRef Sender As Object)
 	If mff.MsgBox <> 0 Then
-		mff.MsgBox("MyAddin Click")
+		mff.MsgBox("MyAddin Click", "MyAddin")
 	End If
 End Sub
 
@@ -118,7 +118,7 @@ Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPat
 				tbStandard = mff.ControlByName(MainForm, "Standard")
 				If tbStandard <> 0 AndAlso mff.ToolBarAddButtonWithImageKey <> 0 Then
 					tbMyAddinSeparator = mff.ToolBarAddButtonWithImageKey(tbStandard, 1, "MyAddinSeparator")
-					tbMyAddin = mff.ToolBarAddButtonWithImageKey(tbStandard, , "My Addin", , @OnMyAddinButtonClick, "MyAddin", , "MyAddin", True)
+					tbMyAddin = mff.ToolBarAddButtonWithImageKey(tbStandard, , "Info", , @OnMyAddinButtonClick, "MyAddin", , "My Addin Hint", True)
 				End If
 			End If
 			If mff.ReadProperty <> 0 AndAlso mff.MenuFindByName <> 0 Then
@@ -126,7 +126,7 @@ Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPat
 				mnuService = mff.MenuFindByName(mnuMenu, "Service")
 				If mnuService <> 0 AndAlso mff.MenuItemAdd <> 0 Then
 					mnuMyAddinSeparator = mff.MenuItemAdd(mnuService, "-", "", "", , 1)
-					mnuMyAddin = mff.MenuItemAdd(mnuService, "My Addin", "My Addin", , @OnMyAddinButtonClick, 2)
+					mnuMyAddin = mff.MenuItemAdd(mnuService, "My Addin", "Info", , @OnMyAddinButtonClick, 2)
 				End If
 			End If
 		End If
