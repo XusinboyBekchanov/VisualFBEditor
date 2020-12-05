@@ -2857,7 +2857,7 @@ Sub LoadSettings
 	AutoSaveBeforeCompiling = iniSettings.ReadInteger("Options", "AutoSaveBeforeCompiling", 1)
 	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
 	WhenVisualFBEditorStarts = iniSettings.ReadInteger("Options", "WhenVisualFBEditorStarts", 2)
-	WLet DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.bas")
+	WLet DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm")
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
 	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)

@@ -135,7 +135,6 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Label lblInterfaceFontLabel
 		Dim As CheckBox chkDisplayIcons
 		Dim As CheckBox chkShowMainToolbar
-		Dim As CheckBox chkAutoReloadLastOpenSources
 		Dim As CheckBox chkAutoCreateBakFiles
 		Dim As Label lblFrame, lblDebugger32, lblDebugger64
 		Dim As Picture lblColorFrame

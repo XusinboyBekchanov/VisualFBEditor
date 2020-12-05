@@ -780,18 +780,11 @@ pfOptions = @fOptions
 			.SetBounds 2, 18, 224, 24
 			.Parent = @pnlThemesCheckboxes
 		End With
-		' chkAutoReloadLastOpenSources
-		With chkAutoReloadLastOpenSources
-			.Name = "chkAutoReloadLastOpenSources"
-			.Text = ML("Auto-reload last open sources")
-			.SetBounds 10, 47, 400, 16
-			.Parent = @pnlGeneral
-		End With
 		' chkAutoCreateBakFiles
 		With chkAutoCreateBakFiles
 			.Name = "chkAutoCreateBakFiles"
 			.Text = ML("Auto create bak files before saving")
-			.SetBounds 10, 70, 400, 16
+			.SetBounds 10, 46, 400, 16
 			.ID = 1009
 			.Parent = @pnlGeneral
 		End With
@@ -919,7 +912,7 @@ pfOptions = @fOptions
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
 			.Text = ML("When compiling") & ":"
-			.SetBounds 8, 235, 416, 99
+			.SetBounds 8, 201, 416, 99
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
@@ -1078,7 +1071,7 @@ pfOptions = @fOptions
 		With grbWhenVFBEStarts
 			.Name = "grbWhenVFBEStarts"
 			.Text = ML("When VisualFBEditor starts") & ":"
-			.SetBounds 8, 104, 416, 120
+			.SetBounds 8, 74, 416, 120
 			.Parent = @pnlGeneral
 		End With
 		' optPromptForProjectAndFile
@@ -1179,7 +1172,6 @@ Sub frmOptions.LoadSettings()
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
 		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
-		.cboDefaultProjectFile.ItemIndex = .cboDefaultProjectFile.IndexOf(WGet(DefaultProjectFile))
 		Select Case WhenVisualFBEditorStarts
 		Case 0: .optDoNotNothing.Checked = True
 		Case 1: .optPromptForProjectAndFile.Checked = True
@@ -1209,18 +1201,17 @@ Sub frmOptions.LoadSettings()
 		.cboDefaultProjectFile.Clear
 		f = Dir(ExePath & "/Templates/Projects/*")
 		While f <> ""
-			FileName = ExePath & "/Templates/Projects/" & f
 			.cboDefaultProjectFile.AddItem Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			Templates.Add "Projects/" & f
 			f = Dir()
 		Wend
 		f = Dir(ExePath & "/Templates/Files/*")
 		While f <> ""
-			FileName = ExePath & "/Templates/Files/" & f
 			.cboDefaultProjectFile.AddItem Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			Templates.Add "Files/" & f
 			f = Dir()
 		Wend
+		.cboDefaultProjectFile.ItemIndex = Templates.IndexOf(WGet(DefaultProjectFile))
 		f = Dir(ExePath & "/Settings/Languages/*.lng")
 		While f <> ""
 			FileName = ExePath & "/Settings/Languages/" & f
