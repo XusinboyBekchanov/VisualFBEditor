@@ -1097,9 +1097,8 @@ pfOptions = @fOptions
 		' optOpenLastSession
 		With optOpenLastSession
 			.Name = "optOpenLastSession"
-			.Text = ML("Open Last Session")
+			.Text = ML("Open Last Opened File")
 			.SetBounds 19, 67, 184, 16
-			.Caption = ML("Open Last Session")
 			.Designer = @This
 			.OnClick = @optOpenLastSession_Click
 			.Parent = @grbWhenVFBEStarts

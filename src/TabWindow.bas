@@ -713,7 +713,14 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 					End If
 				Case "boolean": WLet FLine, WStr(QBoolean(pTemp))
 				Case "any ptr", "any": WLet FLine, WStr("")
-				Case Else: If CInt(IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(Des->ToStringFunc <> 0) Then WLet FLine, Des->ToStringFunc(pTemp)
+				Case Else: 
+					If CInt(IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(Des->ToStringFunc <> 0) Then 
+						WLet FLine, Des->ToStringFunc(pTemp)
+					ElseIf pGlobalEnums->Contains(.TypeName) Then
+						iTemp = QInteger(pTemp)
+						tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(.TypeName))
+						If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp)
+					End If
 				End Select
 			ElseIf Pos1 > 0 Then
 				te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), Left(PropertyName, Pos1 - 1))
@@ -759,7 +766,11 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 			Case "boolean": WLet FLine, WStr(QBoolean(pTemp))
 			Case "any ptr", "any": WLet FLine, WStr("")
 			Case Else
-				If CInt(IsBase(.TypeName, "Component")) Then
+				If pGlobalEnums->Contains(.TypeName) Then
+					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName))
+					iTemp = QInteger(pTemp)
+					If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet FLine, te->TypeName & "." & tbi->Elements.Item(iTemp)
+				ElseIf CInt(IsBase(.TypeName, "Component")) Then
 					Dim As String pTempName = WGet(Des->ReadPropertyFunc(pTemp, "Name"))
 					If pTempName <> "" Then
 						If cboClass.Items.Contains(pTempName) Then
@@ -853,15 +864,30 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @bTemp))
 				End If
 			Case Else:
-				If Des AndAlso LCase(*FLine3) = "this" Then
-					Dim hTemp As Any Ptr
-					If Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Des->DesignControl, "Name")
-					If hTemp <> 0 Then WLet *FLine3, QWString(hTemp)
-				End If
-				If *FLine3 <> "" AndAlso CInt(cboClass.Items.Contains(Trim(*FLine3))) Then
-					PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(*FLine3)))->Object)
-					If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-						Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
+				If pGlobalEnums->Contains(te->TypeName) Then
+					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName))
+					If tbi Then
+						iTemp = Val(*FLine3)
+						If tbi->Elements.Contains(*FLine3) Then
+							iTemp = tbi->Elements.IndexOf(*FLine3)
+						ElseIf StartsWith(*FLine3, te->TypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine3, Len(Trim(te->TypeName)) + 2)) Then
+							iTemp = tbi->Elements.IndexOf(Mid(*FLine3, Len(Trim(te->TypeName)) + 2))
+						End If
+						If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 AndAlso iTemp > -1 Then
+							Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						End If
+					End If
+				Else
+					If Des AndAlso LCase(*FLine3) = "this" Then
+						Dim hTemp As Any Ptr
+						If Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Des->DesignControl, "Name")
+						If hTemp <> 0 Then WLet *FLine3, QWString(hTemp)
+					End If
+					If *FLine3 <> "" AndAlso CInt(cboClass.Items.Contains(Trim(*FLine3))) Then
+						PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(*FLine3)))->Object)
+						If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
+							Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
+						End If
 					End If
 				End If
 			End Select
@@ -1766,7 +1792,7 @@ Function GetOnlyArguments(ArgumentsLine As String) As String
 	Dim As String Result
 	Split(Mid(Left(ArgumentsLine, Len(ArgumentsLine) - 1), 2), ",", res())
 	For i As Integer = 0 To UBound(res)
-		If StartsWith(res(i), "ByRef ") OrElse StartsWith(res(i), "ByVal ") Then
+		If StartsWith(LTrim(LCase(res(i))), "byref ") OrElse StartsWith(LTrim(LCase(res(i))), "byval ") Then
 			res(i) = Mid(res(i), 7)
 		End If
 		Pos1 = InStr(LCase(res(i)), " as ")
@@ -3222,7 +3248,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		WLet FLine2, ""
 	End If
 	For j As Integer = 0 To txtCode.LinesCount - 1
-		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LCase(txtCode.Lines(j)), "#include once """ & LCase(*FLine2) & """") Then
+		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
 			Var tb = GetTab(*FLine1)
 			If tb = 0 Then
 				txtCodeBi.LoadFromFile *FLine1

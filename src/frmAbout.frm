@@ -5,7 +5,6 @@
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
-
 #include once "frmAbout.bi"
 
 '#Region "Form"

@@ -121,6 +121,7 @@ End Enum
 
 Declare Sub NewProject
 Declare Sub OpenProject
+Declare Sub AddNew(ByRef Template As WString = "")
 Declare Sub AddMRUFile(ByRef FileName As WString)
 Declare Sub AddMRUProject(ByRef FileName As WString) '
 Declare Sub AddMRUSession(ByRef FileName As WString) '

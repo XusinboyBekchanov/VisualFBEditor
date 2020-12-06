@@ -37,6 +37,7 @@ CODE PNG "../resources/Code.png"
 Type PNG "../resources/Type.png"
 Console PNG "../resources/Console.png"
 FORM PNG "../resources/Form.png"
+MainForm PNG "../resources/MainForm.png"
 Format PNG "../resources/Format.png"
 CODEANDFORM PNG "../resources/CodeAndForm.png"
 COMPILE PNG "../resources/Compile.png"
@@ -55,11 +56,10 @@ HELP PNG "../resources/Help.png"
 ABOUT PNG "../resources/About.png"
 FILE PNG "../resources/File.png"
 MainFile PNG "../resources/MainFile.png"
-Res PNG "../resources/Res.png"
-MainRes PNG "../resources/MainRes.png"
+Resource PNG "../resources/Resource.png"
+MainResource PNG "../resources/MainResource.png"
 Module PNG "../resources/Module.png"
-MainModule PNG "../resources/Module.png"
-ModuleRes PNG "../resources/MainModule.png"
+MainModule PNG "../resources/MainModule.png"
 SETTINGS PNG "../resources/Parameters.png"
 SyntaxCheck PNG "../resources/SyntaxCheck.png"
 Folder PNG "../resources/Folder.png"
@@ -99,8 +99,8 @@ weChat PNG "../resources/weChat.png"
 
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,5,1245
-#define VER_FILEVERSION_STR         "1.2.5.1245\0"
+#define VER_FILEVERSION             1,2,5,1522
+#define VER_FILEVERSION_STR         "1.2.5.1522\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

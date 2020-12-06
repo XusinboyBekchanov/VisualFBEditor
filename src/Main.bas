@@ -132,6 +132,7 @@ LoadSettings
 #include once "frmTools.bi"
 #include once "frmAbout.bi"
 #include once "frmOptions.bi"
+#include once "frmTemplates.bi"
 #include once "frmParameters.bi"
 #include once "frmProjectProperties.bi"
 
@@ -675,7 +676,7 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 		If EndsWith(LCase(Files.Item(i)), ".vfp") Then
 			IconName = "Project"
 		ElseIf EndsWith(LCase(Files.Item(i)), ".rc") OrElse EndsWith(LCase(Files.Item(i)), ".res") OrElse EndsWith(LCase(Files.Item(i)), ".xpm") Then
-			IconName = "Res"
+			IconName = "Resource"
 		Else
 			IconName = "File"
 		End If
@@ -721,13 +722,15 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 	Return tn
 End Function
 
-Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr) As String
+Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) As String
 	Dim As String sMain = ""
-	If FileName = WGet(ppe->MainFileName) OrElse FileName = WGet(ppe->ResourceFileName) OrElse FileName = WGet(ppe->IconResourceFileName) Then
-		sMain = "Main"
+	If ppe <> 0 Then
+		If FileName = WGet(ppe->MainFileName) OrElse FileName = WGet(ppe->ResourceFileName) OrElse FileName = WGet(ppe->IconResourceFileName) Then
+			sMain = "Main"
+		End If
 	End If
 	If EndsWith(LCase(FileName), ".rc") OrElse EndsWith(LCase(FileName), ".res") OrElse EndsWith(LCase(FileName), ".xpm") Then
-		Return sMain & "Res"
+		Return sMain & "Resource"
 	ElseIf EndsWith(LCase(FileName), ".frm") Then
 		Return sMain & "Form"
 	ElseIf EndsWith(LCase(FileName), ".bas") Then
@@ -772,7 +775,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 			Do
 				n = n + 1
 				NewName = ProjectName & Str(n)
-			Loop While tvExplorer.Nodes.Contains(NewName)
+			Loop While tvExplorer.Nodes.Contains(NewName) OrElse tvExplorer.Nodes.Contains(NewName & "*")
 			tn = tvExplorer.Nodes.Add(NewName & "*", , , "Project", "Project")
 		End If
 		'If tn <> 0 Then
@@ -932,8 +935,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					ppe->CreateDebugInfo = CBool(Mid(Buff, Pos1 + 1))
 				End If
 			Loop
+			Close #Fn
 		End If
-		Close #Fn
 		If pFilesList = 0 Then
 			For i As Integer = 0 To pFiles->Count - 1
 				ThreadCreate(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i))))
@@ -1466,7 +1469,7 @@ Sub RunHelp(Param As Any Ptr)
 End Sub
 
 Sub NewProject()
-	AddProject , , , True
+	pfTemplates->ShowModal
 End Sub
 
 Function ContainsFileName(tn As TreeNode Ptr, ByRef FileName As WString) As Boolean
@@ -1492,14 +1495,14 @@ Sub AddFileToProject
 	Dim OpenD As OpenFileDialog
 	OpenD.Options.Include ofOldStyleDialog
 	OpenD.MultiSelect = True
-	OpenD.Filter = ML("FreeBasic Files") & " (*.vfp, *.bas, *.bi, *.rc)|*.vfp;*.bas;*.bi;*.rc|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("FreeBasic Resource Files") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	OpenD.Filter = ML("FreeBasic Files") & " (*.vfp, *.bas, *.frm, *.bi, *.inc; *.rc)|*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
 		Dim tn1 As TreeNode Ptr
 		For i As Integer = 0 To OpenD.FileNames.Count - 1
 			tn1 = GetTreeNodeChild(ptn, OpenD.FileNames.Item(i))
 			If ContainsFileName(tn1, OpenD.FileNames.Item(i)) Then Continue For
-			Dim As WString Ptr Temp
-			tn3 = tn1->Nodes.Add(GetFileName(OpenD.FileNames.Item(i)), , , "File", "File", True)
+			Dim As String IconName = GetIconName(OpenD.FileNames.Item(i))
+			tn3 = tn1->Nodes.Add(GetFileName(OpenD.FileNames.Item(i)), , , IconName, IconName, True)
 			ee = New ExplorerElement
 			WLet ee->FileName, OpenD.FileNames.Item(i)
 			tn3->Tag = ee
@@ -3140,8 +3143,8 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "About", "About"
 	imgList.AddPng "File", "File"
 	imgList.AddPng "MainFile", "MainFile"
-	imgList.AddPng "Res", "Res"
-	imgList.AddPng "MainRes", "MainRes"
+	imgList.AddPng "Resource", "Resource"
+	imgList.AddPng "MainResource", "MainResource"
 	imgList.AddPng "Module", "Module"
 	imgList.AddPng "MainModule", "MainModule"
 	imgList.AddPng "UserControl", "UserControl"
@@ -3329,7 +3332,7 @@ Sub CreateMenusAndToolBars
 	miProject->Add(ML("&New Form") & HK("NewForm", "Ctrl+Alt+N"), "Form", "NewForm", @mclick)
 	miProject->Add(ML("New &Module") & HK("NewModule","Ctrl+Alt+M"), "Module", "NewModule", @mclick)
 	miProject->Add(ML("New &UserControl") & HK("NewUserControl","Ctrl+Alt+U"), "UserControl", "NewUserControl", @mclick)
-	miProject->Add(ML("New Resource File") & HK("NewModule"), "Res", "NewResource", @mclick)
+	miProject->Add(ML("New Resource File") & HK("NewModule"), "Resource", "NewResource", @mclick)
 	miProject->Add(ML("New Manifest File") & HK("NewManifest"), "File", "NewManifest", @mclick)
 	miProject->Add("-")
 	miProject->Add(ML("&Switch Code/Form") & HK("SwitchCodeForm"), "Code", "SwitchCodeForm", @mclick)
@@ -5037,7 +5040,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	Var file = Command(-1)
 	If file = "" Then
 		Select Case WhenVisualFBEditorStarts
-		Case 1: ' pfTemplates->ShowModal
+		Case 1: 'pfTemplates->ShowModal
 		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
 		Case 3: wLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
 			' , Auto Load the last one.
@@ -5071,6 +5074,9 @@ End Sub
 
 Sub frmMain_Show(ByRef Sender As Control)
 	pfSplash->CloseForm
+	Select Case WhenVisualFBEditorStarts
+	Case 1: pfTemplates->ShowModal
+	End Select
 End Sub
 
 #ifndef __USE_GTK__
