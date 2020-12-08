@@ -53,6 +53,13 @@ End Extern
 
 Using My.Sys.Forms
 
+Namespace VisualFBEditor
+	Type Application Extends My.Application
+		Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+	End Type
+End Namespace
+
 Declare Function ML(ByRef msg As WString) ByRef As WString
 Declare Sub PopupClick(ByRef Sender As My.Sys.Object)
 Declare Sub mClick(Sender As My.Sys.Object)

@@ -35,9 +35,11 @@ Using My.Sys.Forms
 Using My.Sys.Drawing
 
 #include once "frmSplash.bi"
+pfSplash->MainForm = False
 pfSplash->Show
 pApp->DoEvents
 
+Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As iniFile iniSettings, iniTheme
 Dim Shared As Toolbar tbStandard, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
@@ -81,6 +83,7 @@ Dim Shared As Integer MainHeight =600, MainWidth = 800
 Dim Shared As Integer miRecentMax =20 'David Changed
 Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True ' Add Change Log
 Dim Shared As WString * MAX_PATH mChangelogName  'David Changed
+pApp = @VisualFBEditorApp
 pfrmMain = @frmMain
 pSaveD = @SaveD
 piniSettings = @iniSettings
@@ -135,6 +138,48 @@ LoadSettings
 #include once "frmTemplates.bi"
 #include once "frmParameters.bi"
 #include once "frmProjectProperties.bi"
+
+Namespace VisualFBEditor
+	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
+		Select Case LCase(PropertyName)
+		Case "mainprojectfile", "mainfile", "exefile"
+			Dim As ProjectElement Ptr Project
+			Dim As ExplorerElement Ptr ee
+			Dim As TreeNode Ptr ProjectNode
+			Dim As UString ProjectFile = ""
+			Dim As UString MainFile = GetMainFile(, Project, ProjectNode)
+			Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project)
+			Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine)
+			If ProjectNode <> 0 Then ee = ProjectNode->Tag
+			If ee <> 0 Then ProjectFile = *ee->FileName
+			Select Case LCase(PropertyName)
+			Case "mainprojectfile": Return ProjectFile.vptr
+			Case "mainfile": Return MainFile.vptr
+			Case "exefile": Return ExeFile.vptr
+			End Select
+		Case "currentword"
+			Dim As UString CurrentWord = ""
+			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+			If tb <> 0 Then CurrentWord = tb->txtCode.GetWordAtCursor
+			Return CurrentWord.vptr
+		Case Else: Return Base.ReadProperty(PropertyName)
+		End Select
+		Return 0
+	End Function
+	
+	Function Application.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		If Value = 0 Then
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		Else
+			Select Case LCase(PropertyName)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+		End If
+		Return True
+	End Function
+End Namespace
 
 Function ML(ByRef V As WString) ByRef As WString
 	If LCase(CurLanguage) = "english" Then Return V
@@ -5050,7 +5095,7 @@ Sub ConnectAddIn(AddIn As String)
 	If AddInDll <> 0 Then
 		OnConnection = DyLibSymbol(AddInDll, "OnConnection")
 		If OnConnection Then
-			OnConnection(pApp, pApp->FileName)
+			OnConnection(@VisualFBEditorApp, VisualFBEditorApp.FileName)
 			AddIns.Add AddIn, AddInDll
 		End If
 	End If
@@ -5065,7 +5110,7 @@ Sub DisConnectAddIn(AddIn As String)
 		If AddInDll <> 0 Then
 			OnDisconnection = DyLibSymbol(AddInDll, "OnDisconnection")
 			If OnDisconnection Then
-				OnDisconnection(pApp)
+				OnDisconnection(@VisualFBEditorApp)
 				DyLibFree(AddInDll)
 			End If
 		End If
