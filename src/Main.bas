@@ -51,7 +51,7 @@ Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlPropertyValue
 Dim Shared As Trackbar trLeft
 Dim Shared As ScrollBarControl scrTool
 Dim Shared As MainMenu mnuMain
-Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions
+Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
 Dim Shared As SaveFileDialog SaveD
 #ifndef __USE_GTK__
 	Dim Shared As PageSetupDialog PageSetupD
@@ -1257,17 +1257,27 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	End If
 	Dim As TreeNode Ptr tn1, tn2
 	Dim As String Zv = "*"
+	For i As Integer = 0 To tn->Nodes.Count - 1
+		tn1 = tn->Nodes.Item(i)
+		ee = tn1->Tag
+		If ee <> 0 Then
+			If Not SaveProjectFile(ppe, ee, tn1) Then Return False
+		ElseIf tn1->Nodes.Count > 0 Then
+			For j As Integer = 0 To tn1->Nodes.Count - 1
+				tn2 = tn1->Nodes.Item(j)
+				ee = tn2->Tag
+				If ee <> 0 Then
+					If Not SaveProjectFile(ppe, ee, tn2) Then Return False
+				End If
+			Next
+		End If
+	Next
 	Dim As Integer Fn = FreeFile
 	Open *ppe->FileName For Output Encoding "utf-8" As #Fn
 	For i As Integer = 0 To tn->Nodes.Count - 1
 		tn1 = tn->Nodes.Item(i)
 		ee = tn1->Tag
 		If ee <> 0 Then
-			If Not SaveProjectFile(ppe, ee, tn1) Then
-				Close #Fn
-				WLet ppe->FileName, GetFileName(*ppe->FileName), True
-				Return False
-			End If
 			Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
 			If StartsWith(*ee->FileName, GetFolderName(*ppe->FileName)) Then
 				Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
@@ -1279,11 +1289,6 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 				tn2 = tn1->Nodes.Item(j)
 				ee = tn2->Tag
 				If ee <> 0 Then
-					If Not SaveProjectFile(ppe, ee, tn2) Then
-						Close #Fn
-						WLet ppe->FileName, GetFileName(*ppe->FileName), True
-						Return False
-					End If
 					Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
 					If StartsWith(Replace(*ee->FileName, "\", "/"), Replace(GetFolderName(*ppe->FileName), "\", "/")) Then
 						Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
@@ -1469,7 +1474,9 @@ Sub RunHelp(Param As Any Ptr)
 End Sub
 
 Sub NewProject()
-	pfTemplates->ShowModal
+	If pfTemplates->ShowModal(frmMain) = ModalResults.OK Then
+		AddNew pfTemplates->SelectedTemplate
+	End If
 End Sub
 
 Function ContainsFileName(tn As TreeNode Ptr, ByRef FileName As WString) As Boolean
@@ -1486,12 +1493,55 @@ Function ContainsFileName(tn As TreeNode Ptr, ByRef FileName As WString) As Bool
 	Return False
 End Function
 
-Sub AddFileToProject
-	If tvExplorer.SelectedNode = 0 Then Exit Sub
+Sub AddFromTemplate(ByRef Template As WString)
+	Dim As TreeNode Ptr ptn, tn1, tn3
+	If tvExplorer.SelectedNode <> 0 Then
+		ptn = GetParentNode(tvExplorer.SelectedNode)
+		If ptn->ImageKey = "Project" Then
+			tn1 = GetTreeNodeChild(ptn, Template)
+			Dim As String IconName = GetIconName(Template)
+			Dim As UString FileName = Replace(GetFileName(Template), " ", "")
+			Dim As UString FileExt
+			Dim As ExplorerElement Ptr ee
+			Dim Pos1 As Integer = InStrRev(FileName, ".")
+			If Pos1 > 0 Then
+				FileExt = Mid(FileName, Pos1)
+				FileName = Left(FileName, Pos1 - 1)
+			End If
+			Dim NewName As UString
+			Dim As Integer n = 0
+			Do
+				n = n + 1
+				NewName = FileName & Str(n) & FileExt
+			Loop While tn1->Nodes.Contains(*NewName.vptr) OrElse tn1->Nodes.Contains(WStr(NewName & "*"))
+			tn3 = tn1->Nodes.Add(NewName & "*", , , IconName, IconName, True)
+			ee = New ExplorerElement
+			WLet ee->FileName, NewName
+			WLet ee->TemplateFileName, Template
+			tn3->Tag = ee
+			If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
+			If Not ptn->IsExpanded Then ptn->Expand
+			If Not tn1->IsExpanded Then tn1->Expand
+			tn3->SelectItem
+		End If
+	End If
+	If tn3 = 0 Then AddNew Template
+End Sub
+
+Sub AddFromTemplates
+	pfTemplates->OnlyFiles = True
+	If pfTemplates->ShowModal(frmMain) = ModalResults.OK Then
+		AddFromTemplate pfTemplates->SelectedTemplate
+	End If
+End Sub
+
+Sub AddFilesToProject
 	Dim As TreeNode Ptr ptn, tn3
 	Dim As ExplorerElement Ptr ee
-	ptn = GetParentNode(tvExplorer.SelectedNode)
-	If ptn->ImageKey <> "Project" Then Exit Sub
+	If tvExplorer.SelectedNode <> 0 Then
+		ptn = GetParentNode(tvExplorer.SelectedNode)
+		If ptn->ImageKey <> "Project" Then ptn = 0
+	End If
 	Dim OpenD As OpenFileDialog
 	OpenD.Options.Include ofOldStyleDialog
 	OpenD.MultiSelect = True
@@ -1499,34 +1549,40 @@ Sub AddFileToProject
 	If OpenD.Execute Then
 		Dim tn1 As TreeNode Ptr
 		For i As Integer = 0 To OpenD.FileNames.Count - 1
-			tn1 = GetTreeNodeChild(ptn, OpenD.FileNames.Item(i))
-			If ContainsFileName(tn1, OpenD.FileNames.Item(i)) Then Continue For
-			Dim As String IconName = GetIconName(OpenD.FileNames.Item(i))
-			tn3 = tn1->Nodes.Add(GetFileName(OpenD.FileNames.Item(i)), , , IconName, IconName, True)
-			ee = New ExplorerElement
-			WLet ee->FileName, OpenD.FileNames.Item(i)
-			tn3->Tag = ee
-			'tn1->Expand
+			If ptn <> 0 Then
+				tn1 = GetTreeNodeChild(ptn, OpenD.FileNames.Item(i))
+				If ContainsFileName(tn1, OpenD.FileNames.Item(i)) Then Continue For
+				Dim As String IconName = GetIconName(OpenD.FileNames.Item(i))
+				tn3 = tn1->Nodes.Add(GetFileName(OpenD.FileNames.Item(i)), , , IconName, IconName, True)
+				ee = New ExplorerElement
+				WLet ee->FileName, OpenD.FileNames.Item(i)
+				tn3->Tag = ee
+				'tn1->Expand
+			Else
+				OpenFiles OpenD.FileNames.Item(i)
+			End If
 		Next
-		If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
-		If ptn->Nodes.Count > 0 Then
-			If Not ptn->IsExpanded Then ptn->Expand
-			For i As Integer = 0 To ptn->Nodes.Count - 1
-				If CInt(ptn->Nodes.Item(i)->Nodes.Count > 0) Then ptn->Nodes.Item(i)->Expand
-			Next
-			'pfProjectProperties->RefreshProperties
+		If ptn <> 0 Then
+			If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
+			If ptn->Nodes.Count > 0 Then
+				If Not ptn->IsExpanded Then ptn->Expand
+				For i As Integer = 0 To ptn->Nodes.Count - 1
+					If CInt(ptn->Nodes.Item(i)->Nodes.Count > 0) Then ptn->Nodes.Item(i)->Expand
+				Next
+				'pfProjectProperties->RefreshProperties
+			End If
 		End If
 	End If
 End Sub
 
 Sub RemoveFileFromProject
 	If tvExplorer.SelectedNode = 0 Then Exit Sub
-	If tvExplorer.SelectedNode->Tag = 0 Then Exit Sub
-	If tvExplorer.SelectedNode->ParentNode = 0 Then Exit Sub
-	Dim As TreeNode Ptr ptn
-	ptn = GetParentNode(tvExplorer.SelectedNode)
-	If ptn->ImageKey <> "Project" Then Exit Sub
+'	If tvExplorer.SelectedNode->Tag = 0 Then Exit Sub
+'	If tvExplorer.SelectedNode->ParentNode = 0 Then Exit Sub
 	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
+	Dim As TreeNode Ptr ptn
+	ptn = GetParentNode(tn)
+	If ptn->ImageKey <> "Project" Then ptn = 0
 	Dim tb As TabWindow Ptr
 	For i As Integer = 0 To ptabCode->TabCount - 1
 		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
@@ -1535,8 +1591,14 @@ Sub RemoveFileFromProject
 			Exit For
 		End If
 	Next i
-	If Not EndsWith(tn->ParentNode->Text, "*") Then tn->ParentNode->Text &= "*"
-	If tn->ParentNode->Nodes.IndexOf(tn) <> -1 Then tn->ParentNode->Nodes.Remove tn->ParentNode->Nodes.IndexOf(tn)
+	If ptn <> 0 Then
+		If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
+	End If
+	If tn->ParentNode <> 0 Then
+		If tn->ParentNode->Nodes.IndexOf(tn) <> -1 Then tn->ParentNode->Nodes.Remove tn->ParentNode->Nodes.IndexOf(tn)
+	ElseIf tn->ImageKey = "Project" Then
+		CloseProject tn
+	End If
 	'pfProjectProperties->RefreshProperties
 End Sub
 
@@ -3328,17 +3390,24 @@ Sub CreateMenusAndToolBars
 	miBookmark->Add(ML("Previous Bookmark") & HK("PreviousBookmark", "Ctrl+Shift+F6"), "", "PreviousBookmark", @mclick)
 	miBookmark->Add(ML("Clear All Bookmarks") & HK("ClearAllBookmarks"), "", "ClearAllBookmarks", @mclick)
 	
+	Var miView = mnuMain.Add(ML("&View"), "", "View")
+	miView->Add(ML("&Code") & HK("Code"), "Code", "Code", @mclick)
+	miView->Add(ML("&Form") & HK("Form"), "Form", "Form", @mclick)
+	miView->Add(ML("Code &And Form") & HK("CodeAndForm"), "CodeAndForm", "CodeAndForm", @mclick)
+	miView->Add("-")
+	miView->Add(ML("Toolbars") & HK("Toolbars"), "Toolbars", "Toolbars", @mclick, True)
+	
 	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
-	miProject->Add(ML("&New Form") & HK("NewForm", "Ctrl+Alt+N"), "Form", "NewForm", @mclick)
-	miProject->Add(ML("New &Module") & HK("NewModule","Ctrl+Alt+M"), "Module", "NewModule", @mclick)
-	miProject->Add(ML("New &UserControl") & HK("NewUserControl","Ctrl+Alt+U"), "UserControl", "NewUserControl", @mclick)
-	miProject->Add(ML("New Resource File") & HK("NewModule"), "Resource", "NewResource", @mclick)
-	miProject->Add(ML("New Manifest File") & HK("NewManifest"), "File", "NewManifest", @mclick)
+	miProject->Add(ML("Add &Form") & HK("AddForm", "Ctrl+Alt+N"), "Form", "AddForm", @mclick)
+	miProject->Add(ML("Add &Module") & HK("AddModule","Ctrl+Alt+M"), "Module", "AddModule", @mclick)
+	miProject->Add(ML("Add &Include File") & HK("AddIncludeFile",""), "File", "AddIncludeFile", @mclick)
+	miProject->Add(ML("Add &User Control") & HK("AddUserControl","Ctrl+Alt+U"), "UserControl", "AddUserControl", @mclick)
+	miProject->Add(ML("Add &Resource File") & HK("AddResoureFile",""), "Resource", "AddResourceFile", @mclick)
+	miProject->Add(ML("Add Ma&nifest File") & HK("AddManifestFile",""), "File", "AddManifestFile", @mclick)
+	miProject->Add(ML("Add From Templates ...") & HK("AddFromTemplates"), "Add", "AddFromTemplates", @mclick)
+	miProject->Add(ML("Add Files ...") & HK("AddFilesToProject"), "Add", "AddFilesToProject", @mclick)
 	miProject->Add("-")
-	miProject->Add(ML("&Switch Code/Form") & HK("SwitchCodeForm"), "Code", "SwitchCodeForm", @mclick)
-	miProject->Add("-")
-	miProject->Add(ML("Add Files to Project") & HK("AddFileToProject"), "Add", "AddFileToProject", @mclick)
-	miProject->Add(ML("&Remove Files from Project") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mclick)
+	miProject->Add(ML("&Remove") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mclick)
 	miProject->Add("-")
 	miProject->Add(ML("&Open Project Folder") & HK("OpenProjectFolder"), "", "OpenProjectFolder", @mclick)
 	miProject->Add("-")
@@ -3463,7 +3532,7 @@ Sub CreateMenusAndToolBars
 	mnuForm.Add(ML("&Paste"), "Paste", "Paste", @mclick)
 	
 	mnuTabs.ImagesList = @imgList '<m>
-	mnuTabs.Add(ML("&Set As Main"), "SetAsMain", "SetAsMain", @mclick)
+	miTabSetAsMain = mnuTabs.Add(ML("&Set as Main"), "SetAsMain", "SetAsMain", @mclick)
 	mnuTabs.Add("-")
 	mnuTabs.Add(ML("&Close"), "Close", "Close", @mclick)
 	mnuTabs.Add(ML("Close All Without Current"), "CloseAllWithoutCurrent", "CloseAllWithoutCurrent", @mclick)
@@ -3474,10 +3543,18 @@ Sub CreateMenusAndToolBars
 	mnuVars.Add(ML("Show/Expand Variable"), "", "ShowExpandVariable", @mclick)
 	
 	mnuExplorer.ImagesList = @imgList '<m>
-	mnuExplorer.Add(ML("&Add Files To Project"), "Add", "AddFileToProject", @mclick)
-	mnuExplorer.Add(ML("&Remove Files From Project"), "Remove", "RemoveFileFromProject", @mclick)
+	miSetAsMain = mnuExplorer.Add(ML("&Set As Main"), "", "SetAsMain", @mclick)
 	mnuExplorer.Add("-")
-	mnuExplorer.Add(ML("&Set As Main"), "", "SetAsMain", @mclick)
+	Var miAdd = mnuExplorer.Add(ML("&Add"), "Add", "Add", @mclick)
+	miAdd->Add(ML("Add &Form"), "Form", "AddForm", @mclick)
+	miAdd->Add(ML("Add &Module"), "Module", "AddModule", @mclick)
+	miAdd->Add(ML("Add &Include File"), "File", "AddIncludeFile", @mclick)
+	miAdd->Add(ML("Add &User Control"), "UserControl", "AddUserControl", @mclick)
+	miAdd->Add(ML("Add &Resource File"), "Resource", "AddResourceFile", @mclick)
+	miAdd->Add(ML("Add Ma&nifest File"), "File", "AddManifestFile", @mclick)
+	miAdd->Add(ML("Add From &Templates ..."), "", "AddFromTemplates", @mclick)
+	miAdd->Add(ML("Add &Files ..."), "", "AddFilesToProject", @mclick)
+	miRemoveFiles = mnuExplorer.Add(ML("&Remove"), "Remove", "RemoveFileFromProject", @mclick)
 	mnuExplorer.Add("-")
 	mnuExplorer.Add(ML("Open Project Folder"), "", "OpenProjectFolder", @mclick)
 	mnuExplorer.Add("-")
@@ -3638,8 +3715,8 @@ prProgress.SetMarquee True, 100
 
 tbExplorer.ImagesList = @imgList
 tbExplorer.Align = 3
-tbExplorer.Buttons.Add , "Add",, @mClick, "AddFileToProject", , ML("Add Files To Project"), True
-tbExplorer.Buttons.Add , "Remove",, @mClick, "RemoveFileFromProject", , ML("Remove Files From Project"), True
+tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
+tbExplorer.Buttons.Add , "Remove",, @mClick, "RemoveFileFromProject", , ML("Remove"), True
 tbExplorer.Buttons.Add tbsSeparator
 tbExplorer.Buttons.Add tbsCheck, "Folder",, @mClick, "Folder", , ML("Show Folders"), True
 tbExplorer.Flat = True
@@ -3818,7 +3895,7 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	Next i
 	If Not t Then
 		If ee <> 0 Then
-			If Not FileExists(WGet(ee->FileName)) AndAlso WGet(ee->TemplateFileName) <> "" Then
+			If InStr(WGet(ee->FileName), "\") = 0 AndAlso InStr(WGet(ee->FileName), "/") = 0 AndAlso WGet(ee->TemplateFileName) <> "" Then
 				AddTab WGet(ee->TemplateFileName), True, @Item
 			Else
 				AddTab WGet(ee->FileName), , @Item
@@ -3917,6 +3994,33 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	End If
 End Sub
 
+Sub tvExplorer_MouseUp(ByRef Sender As TreeView, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 1 Then Exit Sub
+	Dim tn As TreeNode Ptr = tvExplorer.DraggedNode
+	If tn = 0 Then
+		tn = tvExplorer.SelectedNode
+	Else
+		tvExplorer.SelectedNode = tn
+	End If
+	If tn <> 0 AndAlso tn->ParentNode <> 0 Then
+		miSetAsMain->Caption = ML("Set as Main")
+		If tn->ImageKey = "Opened" Then
+			miSetAsMain->Enabled = False 
+		End If
+	Else
+		miSetAsMain->Caption = ML("Set as Start Up")
+	End If
+	If CInt(tn = 0) OrElse CInt(tn <> 0 AndAlso tn->ImageKey = "Opened") Then
+		miSetAsMain->Enabled = False
+		miRemoveFiles->Enabled = False
+		miRemoveFiles->Caption = ML("Remove")
+	Else
+		miSetAsMain->Enabled = True
+		miRemoveFiles->Enabled = True
+		miRemoveFiles->Caption = ML("Remove") & " " & tn->Text
+	End If
+End Sub
+
 tvExplorer.Images = @imgList
 tvExplorer.SelectedImages = @imgList
 tvExplorer.Align = 5
@@ -3925,6 +4029,7 @@ tvExplorer.HideSelection = False
 'tvExplorer.OnDblClick = @tvExplorer_DblClick
 tvExplorer.OnNodeActivate = @tvExplorer_NodeActivate
 tvExplorer.OnNodeExpanding = @tvExplorer_NodeExpanding
+tvExplorer.OnMouseUp = @tvExplorer_MouseUp
 tvExplorer.OnKeyDown = @tvExplorer_KeyDown
 tvExplorer.OnSelChanged = @tvExplorer_SelChange
 tvExplorer.ContextMenu = @mnuExplorer
@@ -4491,11 +4596,24 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	tbOld = tb
 End Sub
 
+Sub tabCode_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 1 Then Exit Sub
+	If tabCode.SelectedTab = 0 Then Exit Sub
+	Dim tn As TreeNode Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)->tn
+	If tn = 0 Then Exit Sub
+	If tn->ParentNode <> 0 Then
+		miTabSetAsMain->Caption = ML("Set as Main")
+	Else
+		miTabSetAsMain->Caption = ML("Set as Start Up")
+	End If
+End Sub
+
 ptabCode->Images = @imgList
 ptabCode->Align = 5
 ptabCode->Reorderable = True
 ptabCode->OnPaint = @tabCode_Paint
 ptabCode->OnSelChange = @tabCode_SelChange
+ptabCode->OnMouseUp = @tabCode_MouseUp
 ptabCode->ContextMenu = @mnuTabs
 
 txtOutput.Name = "txtOutput"
@@ -5075,7 +5193,7 @@ End Sub
 Sub frmMain_Show(ByRef Sender As Control)
 	pfSplash->CloseForm
 	Select Case WhenVisualFBEditorStarts
-	Case 1: pfTemplates->ShowModal
+	Case 1: NewProject
 	End Select
 End Sub
 

@@ -18,6 +18,10 @@
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Static Sub lvTemplates_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Sub lvTemplates_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub Form_Show_(ByRef Sender As Form)
+		Declare Sub Form_Show(ByRef Sender As Form)
+		Declare Static Sub Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As TabControl TabControl1
@@ -26,6 +30,8 @@
 		Dim As ListView lvTemplates
 		Dim As CommandButton cmdOK, cmdCancel
 		Dim As WStringList Templates
+		Dim As Boolean OnlyFiles
+		Dim As UString SelectedTemplate
 	End Type
 	
 	Common Shared pfTemplates As frmTemplates Ptr

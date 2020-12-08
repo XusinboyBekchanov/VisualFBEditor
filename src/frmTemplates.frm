@@ -15,8 +15,10 @@
 			.Designer = @This
 			.OnCreate = @Form_Create_
 			.BorderStyle = FormBorderStyle.FixedDialog
-			.MinimizeBox = false
-			.MaximizeBox = false
+			.MinimizeBox = False
+			.MaximizeBox = False
+			.OnShow = @Form_Show_
+			.OnClose = @Form_Close_
 			.SetBounds 0, 0, 527, 370
 		End With
 		' TabControl1
@@ -39,8 +41,6 @@
 			.Name = "tvTemplates"
 			.Text = "TreeView1"
 			.SetBounds 8, 8, 180, 260
-			.Nodes.Add ML("Projects"), "Projects"
-			.Nodes.Add ML("Files"), "Files"
 			.Designer = @This
 			.OnSelChanged = @tvTemplates_SelChanged_
 			.Parent = @tpNew
@@ -91,6 +91,7 @@ Private Sub frmTemplates.cmdCancel_Click_(ByRef Sender As Control)
 	*Cast(frmTemplates Ptr, Sender.Designer).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmTemplates.cmdCancel_Click(ByRef Sender As Control)
+	ModalResult = ModalResults.Cancel
 	Me.CloseForm
 End Sub
 
@@ -99,7 +100,8 @@ Private Sub frmTemplates.cmdOK_Click_(ByRef Sender As Control)
 End Sub
 Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
 	If lvTemplates.SelectedItemIndex > -1 Then
-		AddNew ExePath & Slash & "Templates" & Slash & Templates.Item(lvTemplates.SelectedItemIndex)
+		SelectedTemplate = ExePath & Slash & "Templates" & Slash & Templates.Item(lvTemplates.SelectedItemIndex)
+		ModalResult = ModalResults.OK
 		Me.CloseForm
 	Else
 		MsgBox ML("Select template!")
@@ -111,6 +113,7 @@ Private Sub frmTemplates.tvTemplates_SelChanged_(ByRef Sender As TreeView, ByRef
 	*Cast(frmTemplates Ptr, Sender.Designer).tvTemplates_SelChanged(Sender, Item)
 End Sub
 Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef Item As TreeNode)
+	If FormClosing Then Exit Sub
 	lvTemplates.ListItems.Clear
 	Templates.Clear
 	Dim As String f, TemplateName
@@ -123,10 +126,22 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 			f = Dir()
 		Wend
 	Else
+		Dim As String IconName
 		f = Dir(ExePath & "/Templates/Files/*")
 		While f <> ""
 			TemplateName = Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
-			lvTemplates.ListItems.Add TemplateName, TemplateName
+			If EndsWith(f, ".frm") Then
+				IconName = "Form"
+			ElseIf f = "User Control.bas" Then
+				IconName = "UserControl"
+			ElseIf EndsWith(f, ".bas") Then
+				IconName = "Module"
+			ElseIf EndsWith(f, ".rc") Then
+				IconName = "Resource"
+			Else
+				IconName = "File"
+			End If
+			lvTemplates.ListItems.Add TemplateName, IconName
 			Templates.Add "Files/" & f
 			f = Dir()
 		Wend
@@ -137,7 +152,7 @@ Private Sub frmTemplates.Form_Create_(ByRef Sender As Control)
 	*Cast(frmTemplates Ptr, Sender.Designer).Form_Create(Sender)
 End Sub
 Private Sub frmTemplates.Form_Create(ByRef Sender As Control)
-	tvTemplates_SelChanged tvTemplates, *tvTemplates.Nodes.Item(0)
+	
 End Sub
 
 Private Sub frmTemplates.lvTemplates_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
@@ -145,4 +160,24 @@ Private Sub frmTemplates.lvTemplates_ItemActivate_(ByRef Sender As ListView, ByV
 End Sub
 Private Sub frmTemplates.lvTemplates_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdOK_Click cmdOK
+End Sub
+
+Private Sub frmTemplates.Form_Show_(ByRef Sender As Form)
+	*Cast(frmTemplates Ptr, Sender.Designer).Form_Show(Sender)
+End Sub
+Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
+	ModalResult = ModalResults.Cancel
+	tvTemplates.Nodes.Clear
+	If OnlyFiles = False Then
+		tvTemplates.Nodes.Add ML("Projects"), "Projects"
+	End If
+	tvTemplates.Nodes.Add ML("Files"), "Files"
+	tvTemplates_SelChanged tvTemplates, *tvTemplates.Nodes.Item(0)
+End Sub
+
+Private Sub frmTemplates.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+	*Cast(frmTemplates Ptr, Sender.Designer).Form_Close(Sender, Action)
+End Sub
+Private Sub frmTemplates.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	OnlyFiles = False
 End Sub

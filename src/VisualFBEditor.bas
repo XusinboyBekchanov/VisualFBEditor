@@ -119,18 +119,20 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "SaveSession":                         SaveSession
 	Case "CloseFolder":                         CloseFolder GetParentNode(ptvExplorer->SelectedNode)
 	Case "CloseProject":                        CloseProject GetParentNode(ptvExplorer->SelectedNode)
-	Case "New", "NewModule":                    AddTab
+	Case "New":                                 AddTab
 	Case "Open":                                OpenProgram
 	Case "Save":                                Save
 	Case "Print":                               PrintThis
 	Case "PrintPreview":                        PrintPreview
 	Case "PageSetup":                           PageSetup
 	Case "CommandPrompt":                       ThreadCreate(@RunCmd)
-	Case "AddFileToProject":                    AddFileToProject
+	Case "AddFromTemplates":                    AddFromTemplates
+	Case "AddFilesToProject":                   AddFilesToProject
 	Case "RemoveFileFromProject":               RemoveFileFromProject
 	Case "OpenProjectFolder":                   OpenProjectFolder
 	Case "ProjectProperties":                   pfProjectProperties->RefreshProperties: pfProjectProperties->ShowModal *pfrmMain
 	Case "SetAsMain": 			                SetAsMain
+	Case "Toolbars":                            ShowMainToolbar = Not ShowMainToolbar: ptbStandard->Visible = ShowMainToolbar: pfrmMain->RequestAlign
 	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
@@ -202,7 +204,7 @@ Sub mClick(Sender As My.Sys.Object)
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
 		"Start", "Stop", "StepInto", "FindNext","FindPrev", "Goto", "SetNextStatement", "SortLines", _
-		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "SwitchCodeForm" '
+		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm" '
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
@@ -222,19 +224,28 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "NextBookmark":                NextBookmark 1
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
-		Case "SwitchCodeForm":           '
-			If tb->pnlForm.Visible  Then
-				tb->pnlCode.Visible = True
-				tb->pnlForm.Visible = False
-				tb->splForm.Visible = False
-			Else
-				tb->pnlCode.Visible = False
-				tb->pnlForm.Align = 5
-				tb->pnlForm.Visible = True
-				tb->splForm.Visible = False
-				If tb->bNotDesign = False Then tb->FormDesign
-				
-			End If
+		Case "Code":
+			tb->pnlCode.Visible = True
+			tb->pnlForm.Visible = False
+			tb->splForm.Visible = False
+			ptabLeft->TabIndex = 0
+			tb->RequestAlign
+		Case "Form":
+			tb->pnlCode.Visible = False
+			tb->pnlForm.Align = 5
+			tb->pnlForm.Visible = True
+			tb->splForm.Visible = False
+			If tb->bNotDesign = False Then tb->FormDesign
+			ptabLeft->TabIndex = 1
+			tb->RequestAlign
+		Case "CodeAndForm":
+			tb->pnlForm.Align = 2
+			tb->pnlForm.Width = 350
+			tb->pnlForm.Visible = True
+			tb->splForm.Visible = True
+			tb->pnlCode.Visible = True
+			If tb->bNotDesign = False Then tb->FormDesign
+			ptabLeft->TabIndex = 1
 			tb->RequestAlign
 		End Select
 	Case "SaveAll":                         SaveAll
@@ -249,10 +260,12 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "PinRight":                        SetRightClosedStyle Not tbRight.Buttons.Item("PinRight")->Checked, False
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
 	Case "EraseOutputWindow":               txtOutput.Text = ""
-	Case "NewForm":                         AddTab ExePath + "/Templates/Files/Form.frm", True
-	Case "NewUserControl":                  AddTab ExePath + "/Templates/Files/UserControl.bas", True
-	Case "NewResource":                     AddTab ExePath + "/Templates/Files/Resource.rc", True
-	Case "NewManifest":                     AddTab ExePath + "/Templates/Files/Manifest.xml", True
+	Case "AddForm":                         AddFromTemplate ExePath + "/Templates/Files/Form.frm"
+	Case "AddModule":                       AddFromTemplate ExePath + "/Templates/Files/Module.bas"
+	Case "AddIncludeFile":                  AddFromTemplate ExePath + "/Templates/Files/Include File.bi"
+	Case "AddUserControl":                  AddFromTemplate ExePath + "/Templates/Files/User Control.bas"
+	Case "AddResource":                     AddFromTemplate ExePath + "/Templates/Files/Resource.rc"
+	Case "AddManifest":                     AddFromTemplate ExePath + "/Templates/Files/Manifest.xml"
 		#ifndef __USE_GTK__
 		Case "ShowString":                  string_sh(tviewvar)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)

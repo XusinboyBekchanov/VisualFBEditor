@@ -3911,34 +3911,34 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	"in module " & ZGet(Ermn())
 End Sub
 
-Sub tbrTop_ButtonClick(ByRef Sender As My.Sys.Object)
-	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Sender)->Ctrl->Parent->Parent)
-	With *tb
-		Select Case Sender.ToString
-		Case "Code"
-			.pnlCode.Visible = True
-			.pnlForm.Visible = False
-			.splForm.Visible = False
-			ptabLeft->TabIndex = 0
-		Case "Form"
-			.pnlCode.Visible = False
-			.pnlForm.Align = 5
-			.pnlForm.Visible = True
-			.splForm.Visible = False
-			If .bNotDesign = False Then .FormDesign
-			ptabLeft->TabIndex = 1
-		Case "CodeAndForm"
-			.pnlForm.Align = 2
-			.pnlForm.Width = 350
-			.pnlForm.Visible = True
-			.splForm.Visible = True
-			.pnlCode.Visible = True
-			If .bNotDesign = False Then .FormDesign
-			ptabLeft->TabIndex = 1
-		End Select
-		.RequestAlign
-	End With
-End Sub
+'Sub tbrTop_ButtonClick(ByRef Sender As My.Sys.Object)
+'	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Sender)->Ctrl->Parent->Parent)
+'	With *tb
+'		Select Case Sender.ToString
+'		Case "Code"
+'			.pnlCode.Visible = True
+'			.pnlForm.Visible = False
+'			.splForm.Visible = False
+'			ptabLeft->TabIndex = 0
+'		Case "Form"
+'			.pnlCode.Visible = False
+'			.pnlForm.Align = 5
+'			.pnlForm.Visible = True
+'			.splForm.Visible = False
+'			If .bNotDesign = False Then .FormDesign
+'			ptabLeft->TabIndex = 1
+'		Case "CodeAndForm"
+'			.pnlForm.Align = 2
+'			.pnlForm.Width = 350
+'			.pnlForm.Visible = True
+'			.splForm.Visible = True
+'			.pnlCode.Visible = True
+'			If .bNotDesign = False Then .FormDesign
+'			ptabLeft->TabIndex = 1
+'		End Select
+'		.RequestAlign
+'	End With
+'End Sub
 
 Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
@@ -4031,9 +4031,9 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#endif
 	tbrTop.Align = 2
 	tbrTop.Buttons.Add tbsSeparator
-	tbrTop.Buttons.Add tbsCheckGroup, "Code", , @tbrTop_ButtonClick, "Code", , ML("Show Code"), True ' Show the toollips
-	tbrTop.Buttons.Add tbsCheckGroup, "Form", , @tbrTop_ButtonClick, "Form", , ML("Show Form"), True ' Show the toollips
-	tbrTop.Buttons.Add tbsCheckGroup, "CodeAndForm", , @tbrTop_ButtonClick, "CodeAndForm", , ML("Show Code And Form"), True '
+	tbrTop.Buttons.Add tbsCheckGroup, "Code", , @mClick, "Code", , ML("Show Code"), True ' Show the toollips
+	tbrTop.Buttons.Add tbsCheckGroup, "Form", , @mClick, "Form", , ML("Show Form"), True ' Show the toollips
+	tbrTop.Buttons.Add tbsCheckGroup, "CodeAndForm", , @mClick, "CodeAndForm", , ML("Show Code And Form"), True '
 	tbrTop.Flat = True
 	cboClass.Width = 50
 	#ifdef __USE_GTK__
@@ -4079,12 +4079,13 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlTopCombo.Add @cboFunction
 	If CInt(wFileName <> "") And CInt(bNew = False OrElse TreeN <> 0) Then
 		If bNew Then
-			FileName = GetFileName(wFileName)
+			FileName = TreeN->Text
+			If EndsWith(FileName, "*") Then FileName = Left(FileName, Len(FileName) - 1)
 		Else
 			FileName = wFileName
 		End If
 		'txtCode.LoadFromFile(wFileName, False)
-		This.Caption = GetFileName(wFileName)
+		This.Caption = GetFileName(FileName)
 	Else
 		This.Caption = ML("Untitled") & "*"
 	End If
