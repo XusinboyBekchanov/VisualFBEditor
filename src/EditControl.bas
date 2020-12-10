@@ -35,7 +35,7 @@ Namespace My.Sys.Forms
 End Namespace
 
 ' Add Try End_Try
-ReDim Constructions(23) As Construction
+ReDim Constructions(24) As Construction
 Constructions(0) =  Type<Construction>("If",            "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
 Constructions(1) =  Type<Construction>("#If",           "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
 Constructions(2) =  Type<Construction>("#IfDef",        "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
@@ -59,7 +59,8 @@ Constructions(19) = Type<Construction>("Property",      "",         "",         
 Constructions(20) = Type<Construction>("Operator",      "",         "",             "",         "End Operator",     "",         True,   True)
 Constructions(21) = Type<Construction>("Constructor",   "",         "",             "",         "End Constructor",  "",         True,   True)
 Constructions(22) = Type<Construction>("Destructor",    "",         "",             "",         "End Destructor",   "",         True,   True)
-Constructions(23) = Type<Construction>("Try",           "Catch",    "Finally",      "",         "EndTry",           "",         False,  False)
+Constructions(23) = Type<Construction>("Extern",        "",         "",             "",         "End Extern",       "",         False,  False)
+Constructions(24) = Type<Construction>("Try",           "Catch",    "Finally",      "",         "EndTry",           "",         False,  False)
 
 Namespace My.Sys.Forms
 	Function EditControl.deltaToScrollAmount(lDelta As Integer) As Integer
@@ -1505,10 +1506,11 @@ Namespace My.Sys.Forms
 		'WLet s, sText 'Mid(sText, 1, HScrollPos + This.Width / dwCharX)
 		If LeftMargin + (-HScrollPos + iStart) * dwCharX > dwClientX Then
 			Exit Sub
-		'ElseIf LeftMargin + (-HScrollPos + InStrCount(Left(sText, iEnd), !"\t") * TabWidth) * dwCharX < 0 Then
-		ElseIf LeftMargin + (-HScrollPos + iEnd) * dwCharX < 0 Then
-			Exit Sub
 		End If
+'		'ElseIf LeftMargin + (-HScrollPos + InStrCount(Left(sText, iEnd), !"\t") * TabWidth) * dwCharX < 0 Then
+'		If LeftMargin + (-HScrollPos + iEnd) * dwCharX < 0 Then
+'			Exit Sub
+'		End If
 		iPPos = 0
 		WLet FLineLeft, GetTabbedText(Left(sText, iStart), iPPos)
 		WLet FLineRight, GetTabbedText(Mid(sText, iStart + 1, iEnd - iStart) & addit, iPPos)

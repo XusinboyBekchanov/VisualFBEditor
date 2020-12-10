@@ -905,7 +905,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					If Not FileEx Then IconName = "New"
 					If Not inFolder Then
 						tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName) & ZvFile,, *ee->FileName, IconName, IconName, True)
-						If bMain Then 
+						If bMain Then
 							If MainNode = 0 Then SetMainNode GetParentNode(tn1)
 							If bNew AndAlso IconName <> "MainRes" Then AddTab *ee->TemplateFileName, bNew, tn2
 						End If
@@ -1622,8 +1622,8 @@ End Sub
 
 Sub RemoveFileFromProject
 	If tvExplorer.SelectedNode = 0 Then Exit Sub
-'	If tvExplorer.SelectedNode->Tag = 0 Then Exit Sub
-'	If tvExplorer.SelectedNode->ParentNode = 0 Then Exit Sub
+	'	If tvExplorer.SelectedNode->Tag = 0 Then Exit Sub
+	'	If tvExplorer.SelectedNode->ParentNode = 0 Then Exit Sub
 	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
 	Dim As TreeNode Ptr ptn
 	ptn = GetParentNode(tn)
@@ -2989,9 +2989,9 @@ Sub LoadSettings
 	Dim As WString * 1024 Buff
 	Dim i As Integer = 0
 	Do Until iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
-			 iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
-			 iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + _
-			 iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -7
+		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
+		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + _
+		iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -7
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
 		If Temp <> "" Then Compilers.Add Temp, iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
 		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
@@ -4050,7 +4050,7 @@ Sub tvExplorer_MouseUp(ByRef Sender As TreeView, MouseButton As Integer, x As In
 	If tn <> 0 AndAlso tn->ParentNode <> 0 Then
 		miSetAsMain->Caption = ML("Set as Main")
 		If tn->ImageKey = "Opened" Then
-			miSetAsMain->Enabled = False 
+			miSetAsMain->Enabled = False
 		End If
 	Else
 		miSetAsMain->Caption = ML("Set as Start Up")
@@ -5438,5 +5438,41 @@ Sub OnProgramQuit() Destructor
 	WDeallocate Debug32Arguments
 	WDeallocate Debug64Arguments
 	WDeallocate RecentFiles '
+	Dim As TypeElement Ptr te, te1
+	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
+		te = pGlobalNamespaces->Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			te1 = te->Elements.Object(j)
+			te->Elements.Remove j
+		Next
+	Next
+	For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
+		te = pGlobalTypes->Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+		Next
+		te->Elements.Clear
+		Delete Cast(TypeElement Ptr, pGlobalTypes->Object(i))
+		pGlobalTypes->Remove i
+	Next
+	For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
+		te = pGlobalEnums->Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+		Next
+		te->Elements.Clear
+		Delete Cast(TypeElement Ptr, pGlobalEnums->Object(i))
+		pGlobalEnums->Remove i
+	Next
+	For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
+		te = pGlobalFunctions->Object(i)
+		Delete Cast(TypeElement Ptr, pGlobalFunctions->Object(i))
+		pGlobalFunctions->Remove i
+	Next
+	For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
+		te = pGlobalArgs->Object(i)
+		Delete Cast(TypeElement Ptr, pGlobalArgs->Object(i))
+		pGlobalArgs->Remove i
+	Next
 End Sub
 
