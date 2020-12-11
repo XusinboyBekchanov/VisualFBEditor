@@ -536,8 +536,8 @@ Function Compile(Parameter As String = "") As Integer
 	End If
 	ThreadsLeave()
 	'If LogFileName Then Deallocate LogFileName
-	If LogFileName2 Then Deallocate LogFileName2
-	If BatFileName Then Deallocate BatFileName
+	If LogFileName2 Then Deallocate_( LogFileName2)
+	If BatFileName Then Deallocate_( BatFileName)
 	WDeallocate fbcCommand
 	WDeallocate CompileWith
 	WDeallocate MFFPathC
@@ -682,7 +682,7 @@ End Sub
 Sub ClearTreeNode(ByRef tn As TreeNode Ptr)
 	If tn = 0 Then Exit Sub
 	For i As Integer = 0 To tn->Nodes.Count - 1
-		Delete Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag)
+		Delete_( Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag))
 	Next
 	tn->Nodes.Clear
 End Sub
@@ -706,7 +706,7 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 					AddProject f & Slash & f & ".vfp", , tn1
 					WLet Cast(ExplorerElement Ptr, tn1->Tag)->FileName, *ee->FileName & "/" & f
 				Else
-					ee1 = New ExplorerElement
+					ee1 = New_( ExplorerElement)
 					WLet ee1->FileName, *ee->FileName & "/" & f
 					tn1->Tag = ee1
 				End If
@@ -726,7 +726,7 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 			IconName = "File"
 		End If
 		tn1 = tn->Nodes.Add(GetFileName(*ee->FileName & "/" & Files.Item(i)), , Files.Item(i), IconName, IconName)
-		ee1 = New ExplorerElement
+		ee1 = New_( ExplorerElement)
 		WLet ee1->FileName, Files.Item(i)
 		tn1->Tag = ee1
 	Next i
@@ -757,7 +757,7 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 			WLet Cast(ExplorerElement Ptr, tn->Tag)->FileName, FolderName
 		Else
 			Dim As ExplorerElement Ptr ee
-			ee = New ExplorerElement
+			ee = New_( ExplorerElement)
 			WLet ee->FileName, FolderName
 			tn->Tag = ee
 		End If
@@ -842,7 +842,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		Dim As ProjectElement Ptr ppe
 		Dim As WStringList Files
 		Dim As WStringList Ptr pFiles
-		ppe = New ProjectElement
+		ppe = New_( ProjectElement)
 		If bNew Then
 			WLet ppe->FileName, Left(tn->Text, Len(tn->Text) - 1)
 			WLet ppe->TemplateFileName, FileName
@@ -874,7 +874,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 				If Parameter = "File" OrElse Parameter = "*File" Then
 					bMain = StartsWith(Buff, "*")
 					Buff = Trim(Mid(Buff, Pos1+1 ))
-					ee = New ExplorerElement
+					ee = New_( ExplorerElement)
 					If CInt(InStr(Buff, ":") = 0) OrElse CInt(StartsWith(Buff, "/")) Then
 						#ifdef __USE_GTK__
 							WLet ee->FileName, GetFolderName(FileName) & Buff
@@ -917,7 +917,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					End If
 					If inFolder Then
 						ppe->Files.Add *ee->FileName
-						Delete ee
+						Delete_( ee)
 					Else
 						tn2->Tag = ee
 					End If
@@ -1296,7 +1296,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 			Case mrNO: Return SaveProject(tn, bWithQuestion)
 			End Select
 		End If
-		If ppe = 0 Then ppe = New ProjectElement
+		If ppe = 0 Then ppe = New_( ProjectElement)
 		WLet ppe->FileName, SaveD.FileName
 		AddMRUProject SaveD.FileName
 	End If
@@ -1560,7 +1560,7 @@ Sub AddFromTemplate(ByRef Template As WString)
 				NewName = FileName & Str(n) & FileExt
 			Loop While tn1->Nodes.Contains(*NewName.vptr) OrElse tn1->Nodes.Contains(WStr(NewName & "*"))
 			tn3 = tn1->Nodes.Add(NewName & "*", , , IconName, IconName, True)
-			ee = New ExplorerElement
+			ee = New_( ExplorerElement)
 			WLet ee->FileName, NewName
 			WLet ee->TemplateFileName, Template
 			tn3->Tag = ee
@@ -1599,7 +1599,7 @@ Sub AddFilesToProject
 				If ContainsFileName(tn1, OpenD.FileNames.Item(i)) Then Continue For
 				Dim As String IconName = GetIconName(OpenD.FileNames.Item(i))
 				tn3 = tn1->Nodes.Add(GetFileName(OpenD.FileNames.Item(i)), , , IconName, IconName, True)
-				ee = New ExplorerElement
+				ee = New_( ExplorerElement)
 				WLet ee->FileName, OpenD.FileNames.Item(i)
 				tn3->Tag = ee
 				'tn1->Expand
@@ -1688,7 +1688,7 @@ Sub SetAsMain()
 		If ptn <> 0 Then
 			ppe = ptn->Tag
 			If ppe = 0 Then
-				ppe = New ProjectElement
+				ppe = New_( ProjectElement)
 				WLet ppe->FileName, ""
 			End If
 			If ee <> 0 AndAlso ppe <> 0 Then
@@ -2242,7 +2242,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							inType = Pos3 = 0
 							inPubPriPro = 0
-							tbi = New TypeElement
+							tbi = New_( TypeElement)
 							tbi->Name = t
 							tbi->DisplayName = t & " [Type]"
 							tbi->TypeIsPointer = bTypeIsPointer
@@ -2268,7 +2268,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					Pos2 = InStr(t, "'")
 					If Pos2 > 0 Then t = Trim(Left(t, Pos2 - 1))
 					'If Not Types.Contains(t) Then
-					tbi = New TypeElement
+					tbi = New_( TypeElement)
 					tbi->Name = t
 					tbi->DisplayName = t & " [Union]"
 					tbi->TypeName = ""
@@ -2289,7 +2289,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					Pos2 = InStr(9, bTrim, "(")
 					Pos3 = InStr(9, bTrim, ")")
 					If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
-					te = New TypeElement
+					te = New_( TypeElement)
 					If Pos1 = 0 Then
 						te->Name = Trim(Mid(bTrim, 9))
 					Else
@@ -2323,7 +2323,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					Split(Names, ".", res1())
 					nc = UBound(res1)
 					For n As Integer = 0 To nc
-						te = New TypeElement
+						te = New_( TypeElement)
 						te->Name = Trim(res1(n))
 						te->DisplayName = te->Name
 						te->ElementType = "Namespace"
@@ -2362,7 +2362,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
 					Pos4 = InStr(bTrim, "(")
 					If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
-					te = New TypeElement
+					te = New_( TypeElement)
 					te->Declaration = True
 					If Pos1 = 0 Then
 						te->ElementType = Trim(Mid(bTrim, 9))
@@ -2487,7 +2487,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								Pos1 = InStrRev(CurType, ".")
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 							End If
-							Var te = New TypeElement
+							Var te = New_( TypeElement)
 							te->Name = res1(n)
 							te->DisplayName = te->Name
 							te->TypeName = CurType
@@ -2519,7 +2519,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					Pos2 = InStr(t, "'")
 					If Pos2 > 0 Then t = Trim(Left(t, Pos2 - 1))
 					If Not Comps.Contains(t) Then
-						tbi = New TypeElement
+						tbi = New_( TypeElement)
 						tbi->Name = t
 						tbi->DisplayName = t & " [Enum]"
 						tbi->TypeName = ""
@@ -2552,7 +2552,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							t = Trim(res1(i))
 						End If
-						Var te = New TypeElement
+						Var te = New_( TypeElement)
 						te->Name = t
 						te->DisplayName = te->Name
 						te->ElementType = "Enum"
@@ -2583,7 +2583,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
 						Pos4 = InStr(n + 1, bTrim, " ")
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
-						te = New TypeElement
+						te = New_( TypeElement)
 						If Pos3 = 0 Then
 							te->Name = Trim(Mid(bTrim, Pos5))
 						Else
@@ -2607,7 +2607,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5), Any !"\t "))
 						Pos4 = InStr(n + 1, bTrim, " ")
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
-						te = New TypeElement
+						te = New_( TypeElement)
 						If Pos3 = 0 Then
 							te->Name = Trim(Mid(bTrim, Pos5))
 						Else
@@ -2631,7 +2631,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
 						Pos4 = InStr(n + 1, bTrim, " ")
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
-						te = New TypeElement
+						te = New_( TypeElement)
 						If Pos3 = 0 Then
 							te->Name = Trim(Mid(bTrim, Pos5))
 						Else
@@ -2675,7 +2675,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
 						Pos4 = InStr(n + 1, bTrim, " ")
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
-						te = New TypeElement
+						te = New_( TypeElement)
 						If Pos3 = 0 Then
 							te->Name = Trim(Mid(bTrim, Pos5))
 						Else
@@ -2724,7 +2724,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
 						Pos4 = InStr(n + 1, bTrim, " ")
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
-						te = New TypeElement
+						te = New_( TypeElement)
 						If Pos3 = 0 Then
 							te->Name = Trim(Mid(bTrim, Pos5))
 						Else
@@ -2812,7 +2812,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							res1(n) = res1(n).TrimAll
 							Pos1 = InStrRev(CurType, ".")
 							If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-							Var te = New TypeElement
+							Var te = New_( TypeElement)
 							te->Name = res1(n)
 							te->DisplayName = te->Name
 							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
@@ -3516,7 +3516,7 @@ Sub CreateMenusAndToolBars
 		Do Until EOF(Fn)
 			Line Input #Fn, Buff
 			If StartsWith(Buff, "Path=") Then
-				tt = New ToolType
+				tt = New_( ToolType)
 				tt->Path = Mid(Buff, 6)
 				Tools.Add tt
 			ElseIf tt <> 0 Then
@@ -5186,7 +5186,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
 	#endif
 	
-	LoadToolBox
+	'LoadToolBox
 	
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", True)
@@ -5271,7 +5271,9 @@ Sub frmMain_ActivateApp(ByRef Sender As Form)
 			If InStr(tb->FileName, "/") > 0 OrElse InStr(tb->FileName, "\") > 0 Then
 				If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
 					If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
+						tb->txtCode.Changing "Reload"
 						tb->txtCode.LoadFromFile(tb->FileName)
+						tb->txtCode.Changed "Reload"
 					End If
 				End If
 				tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
@@ -5438,6 +5440,7 @@ Sub OnProgramQuit() Destructor
 	WDeallocate Debug32Arguments
 	WDeallocate Debug64Arguments
 	WDeallocate RecentFiles '
+	
 	Dim As TypeElement Ptr te, te1
 	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 		te = pGlobalNamespaces->Object(i)
@@ -5449,29 +5452,29 @@ Sub OnProgramQuit() Destructor
 	For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
 		te = pGlobalTypes->Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete Cast(TypeElement Ptr, pGlobalTypes->Object(i))
+		Delete_( Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
 		pGlobalTypes->Remove i
 	Next
 	For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
 		te = pGlobalEnums->Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete Cast(TypeElement Ptr, pGlobalEnums->Object(i))
+		Delete_( Cast(TypeElement Ptr, pGlobalEnums->Object(i)))
 		pGlobalEnums->Remove i
 	Next
 	For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
 		te = pGlobalFunctions->Object(i)
-		Delete Cast(TypeElement Ptr, pGlobalFunctions->Object(i))
+		Delete_( Cast(TypeElement Ptr, pGlobalFunctions->Object(i)))
 		pGlobalFunctions->Remove i
 	Next
 	For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
 		te = pGlobalArgs->Object(i)
-		Delete Cast(TypeElement Ptr, pGlobalArgs->Object(i))
+		Delete_( Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
 		pGlobalArgs->Remove i
 	Next
 End Sub

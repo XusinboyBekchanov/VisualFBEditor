@@ -5999,8 +5999,8 @@ Sub RunWithDebug(Param As Any Ptr)
 		ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 		ThreadsLeave()
 	#endif
-	If WorkDir Then Deallocate WorkDir
-	If CmdL Then Deallocate CmdL
+	If WorkDir Then Deallocate_( WorkDir)
+	If CmdL Then Deallocate_( CmdL)
 	ChangeEnabledDebug True, False, False
 	#ifndef __USE_GTK__
 		If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer

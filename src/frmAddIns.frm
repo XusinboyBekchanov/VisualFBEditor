@@ -157,7 +157,7 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 			Dim As ListViewItem Ptr Item
 			Dim As String f, AddIn
 			For i As Integer = 0 To AvailableAddIns.Count - 1
-				Delete Cast(AddInType Ptr, AvailableAddIns.Item(i))
+				Delete_( Cast(AddInType Ptr, AvailableAddIns.Item(i)))
 			Next
 			AvailableAddIns.Clear
 			#ifdef __FB_WIN32__
@@ -167,7 +167,7 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 			#endif
 			While f <> ""
 				AddIn = Left(f, InStrRev(f, ".") - 1)
-				Add_In = New AddInType
+				Add_In = New_( AddInType)
 				Add_In->LoadOnStartupINI = piniSettings->ReadBool("AddInsOnStartup", AddIn, False)
 				Add_In->LoadOnStartup = Add_In->LoadOnStartupINI
 				Add_In->LoadedOriginal = pAddIns->Contains(AddIn)
@@ -180,7 +180,7 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 					Dim As Any Ptr _vinfo
 					ret = GetFileVersionInfoSize(Add_In->Path, @discard)
 					If ret <> 0 Then
-						_vinfo = Allocate(ret)
+						_vinfo = Allocate_(ret)
 						If GetFileVersionInfo(Add_In->Path, 0, ret, _vinfo) Then
 							Dim As Unsigned Short Ptr ulTranslation
 							Dim As ULong iret

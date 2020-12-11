@@ -18,9 +18,9 @@ pkeywords3 = @keywords3
 
 Namespace My.Sys.Forms
 	Destructor EditControlHistory
-		If Comment Then Deallocate Comment
+		If Comment Then Deallocate_( Comment)
 		For i As Integer = Lines.Count - 1 To 0 Step -1
-			Delete Cast(EditControlLine Ptr, Lines.Items[i])
+			Delete_( Cast(EditControlLine Ptr, Lines.Items[i]))
 		Next i
 		Lines.Clear
 	End Destructor
@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor EditControlLine
-		If Text Then Deallocate Text
+		If This.Text <> 0 Then Deallocate_( This.Text)
 	End Destructor
 End Namespace
 
@@ -225,7 +225,7 @@ Namespace My.Sys.Forms
 		Dim ecItem As EditControlLine Ptr
 		For i As Integer = 0 To FLines.Count - 1
 			With *Cast(EditControlLine Ptr, FLines.Items[i])
-				FECLine = New EditControlLine
+				FECLine = New_( EditControlLine)
 				WLet FECLine->Text, *.Text
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
@@ -246,7 +246,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl._ClearHistory(Index As Integer = 0)
 		For i As Integer = FHistory.Count - 1 To Index Step -1
-			Delete Cast(EditControlHistory Ptr, FHistory.Items[i])
+			Delete_( Cast(EditControlHistory Ptr, FHistory.Items[i]))
 			FHistory.Remove i
 		Next i
 		If Index = 0 Then FHistory.Clear
@@ -643,14 +643,14 @@ Namespace My.Sys.Forms
 		If Comment = "" Then
 			If bOldCommented Then
 				_ClearHistory curHistory + 1
-				item = New EditControlHistory
+				item = New_( EditControlHistory)
 				item->OldSelStartLine = FSelStartLine
 				item->OldSelEndLine = FSelEndLine
 				item->OldSelStartChar = FSelStartChar
 				item->OldSelEndChar = FSelEndChar
 				FHistory.Add item
 				If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
-					Delete Cast(EditControlHistory Ptr, FHistory.Items[0])
+					Delete_( Cast(EditControlHistory Ptr, FHistory.Items[0]))
 					FHistory.Remove 0
 				End If
 				curHistory = FHistory.Count - 1
@@ -671,7 +671,7 @@ Namespace My.Sys.Forms
 		OldCharIndex = GetOldCharIndex
 		If WithHistory Then
 			If Comment <> "" Then
-				Var item = New EditControlHistory
+				Var item = New_( EditControlHistory)
 				_FillHistory item, Comment
 				item->OldSelStartLine = FOldSelStartLine
 				item->OldSelEndLine = FOldSelEndLine
@@ -684,7 +684,7 @@ Namespace My.Sys.Forms
 				_ClearHistory curHistory + 1
 				FHistory.Add item
 				If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
-					Delete Cast(EditControlHistory Ptr, FHistory.Items[0])
+					Delete_( Cast(EditControlHistory Ptr, FHistory.Items[0]))
 					FHistory.Remove 0
 				End If
 				curHistory = FHistory.Count - 1
@@ -712,7 +712,7 @@ Namespace My.Sys.Forms
 		WLet FLine, Mid(*ecEndLine->Text, iSelEndChar + 1)
 		WLet FECLine->Text, Left(*ecStartLine->Text, iSelStartChar)
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
-			Delete Cast(EditControlLine Ptr, FLines.Items[i])
+			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			FLines.Remove i
 		Next i
 		Var iC = 0, OldiC = ecEndLine->CommentIndex, Pos1 = 0, p = 1, c = 0, l = 0
@@ -729,7 +729,7 @@ Namespace My.Sys.Forms
 				WLet FECLine->Text, *FECLine->Text & Mid(Value, p, l)
 				ChangeCollapsibility iSelStartLine
 			Else
-				FECLine = New EditControlLine
+				FECLine = New_( EditControlLine)
 				WLet FECLine->Text, Mid(Value, p, l)
 				'ecItem->CharIndex = p - 1
 				'ecItem->LineIndex = c - 1
@@ -798,7 +798,7 @@ Namespace My.Sys.Forms
 		On Error Goto A
 		For i As Integer = curHistory To 0 Step -1
 			If FHistory.Count > curHistory Then
-				Delete Cast(EditControlHistory Ptr, FHistory.Items[i])
+				Delete_( Cast(EditControlHistory Ptr, FHistory.Items[i]))
 			End If
 			'FHistory.Remove i
 		Next i
@@ -806,7 +806,7 @@ Namespace My.Sys.Forms
 		curHistory = 0
 		'Changed "Matn almashtirildi"
 		If FLines.Count = 0 Then
-			FECLine = New EditControlLine
+			FECLine = New_( EditControlLine)
 			WLet FECLine->Text, ""
 			FLines.Add(FECLine)
 		End If
@@ -874,7 +874,7 @@ Namespace My.Sys.Forms
 			Do Until EOF(Fn)
 				'Line Input #Fn, Buff
 				LineInputWstr Fn, pBuff, FileSize
-				FECLine = New EditControlLine
+				FECLine = New_( EditControlLine)
 				WLet FECLine->Text, *pBuff
 				iC = FindCommentIndex(*pBuff, OldiC)
 				FECLine->CommentIndex = iC
@@ -885,7 +885,6 @@ Namespace My.Sys.Forms
 				i += 1
 			Loop
 			ScrollToCaret
-			ClearUndo
 			Close #Fn
 		Else
 			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13,10) & " " & FileName
@@ -893,7 +892,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef File As WString)
-		Dim As Integer Fn =FreeFile
+		Dim As Integer Fn = FreeFile
 		If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
 			For i As Integer = 0 To FLines.Count - 1
 				Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text
@@ -917,7 +916,7 @@ Namespace My.Sys.Forms
 		If Index > 0 AndAlso Index < FLines.Count - 1 Then
 			OldiC = Cast(EditControlLine Ptr, FLines.Items[Index])->CommentIndex
 		End If
-		FECLine = New EditControlLine
+		FECLine = New_( EditControlLine)
 		WLet FECLine->Text, sLine
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
@@ -1042,7 +1041,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.DeleteLine(Index As Integer)
-		Delete Cast(EditControlLine Ptr, FLines.Items[Index])
+		Delete_( Cast(EditControlLine Ptr, FLines.Items[Index]))
 		FLines.Remove Index
 	End Sub
 	
@@ -2280,12 +2279,12 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr)
 		For i As Integer = FLines.Count - 1 To 0 Step -1
-			Delete Cast(EditControlLine Ptr, FLines.Items[i])
+			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			'FLines.Remove i
 		Next i
 		FLines.Clear
 		For i As Integer = 0 To HistoryItem->Lines.Count - 1
-			FECLine = New EditControlLine
+			FECLine = New_( EditControlLine)
 			With *Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
 				WLet FECLine->Text, *.Text
 				FECLine->Breakpoint = .Breakpoint
@@ -2303,7 +2302,7 @@ Namespace My.Sys.Forms
 			FLines.Add FECLine
 		Next i
 		If FLines.Count = 0 Then
-			FECLine = New EditControlLine
+			FECLine = New_( EditControlLine)
 			WLet FECLine->Text, ""
 			FLines.Add FECLine
 		End If
@@ -3930,7 +3929,7 @@ Namespace My.Sys.Forms
 		This.Width       = 121
 		Height          = 121
 		#ifndef __USE_GTK__
-			This.Cursor = New My.Sys.Drawing.Cursor
+			This.Cursor = New_( My.Sys.Drawing.Cursor)
 			*This.Cursor = LoadCursor(NULL, IDC_IBEAM)
 		#endif
 		This.BackColor       = clWhite
@@ -3982,7 +3981,7 @@ Namespace My.Sys.Forms
 			pnlIntellisense.Add @cboIntellisense
 			This.Add @pnlIntellisense
 		#endif
-		Var item = New EditControlLine
+		Var item = New_( EditControlLine)
 		WLet item->Text, ""
 		FLines.Add item
 		bOldCommented = True
@@ -3997,7 +3996,7 @@ Namespace My.Sys.Forms
 		'If FText Then Deallocate FText
 		_ClearHistory
 		For i As Integer = FLines.Count - 1 To 0 Step -1
-			Delete Cast(EditControlLine Ptr, FLines.Items[i])
+			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 		Next i
 		#ifdef __USE_GTK__
 			lvIntellisense.ListItems.Clear

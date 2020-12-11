@@ -15,7 +15,7 @@ Dim Shared txtCodeBi As EditControl
 txtCodeBi.WithHistory = False
 
 Destructor ExplorerElement
-	If FileName Then Deallocate FileName
+	If FileName Then Deallocate_( FileName)
 End Destructor
 
 Constructor ProjectElement
@@ -193,7 +193,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	End If
 	pTabCode->UpdateLock
 	If Not bFind Then
-		tb = New TabWindow(FileNameNew, bNew, TreeN)
+		tb = New_( TabWindow(FileNameNew, bNew, TreeN))
 		With *tb
 			tb->UseVisualStyleBackColor = True
 			tb->txtCode.CStyle = CInt(EndsWith(LCase(FileName), ".rc")) OrElse CInt(EndsWith(LCase(FileName), ".c")) OrElse CInt(EndsWith(LCase(FileName), ".cpp")) OrElse CInt(EndsWith(LCase(FileName), ".h")) OrElse CInt(EndsWith(LCase(FileName), ".xml"))
@@ -213,6 +213,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			.tbrTop.Buttons.Item(1)->Checked = True
 			If FileName <> "" Then
 				.txtCode.LoadFromFile(FileNameNew)
+				.txtCode.ClearUndo
 				#ifndef __USE_GTK__
 					.DateFileTime = GetFileLastWriteTime(FileNameNew)
 				#endif
@@ -432,7 +433,7 @@ Property TabWindow.Caption ByRef As WString
 End Property
 
 Property TabWindow.Caption(ByRef Value As WString)
-	FCaptionNew = Reallocate(FCaptionNew, (Len(Value) + 1) * SizeOf(WString))
+	FCaptionNew = Reallocate_(FCaptionNew, (Len(Value) + 1) * SizeOf(WString))
 	*FCaptionNew = Value
 	#ifdef __USE_GTK__
 		Base.Caption = Value
@@ -540,7 +541,7 @@ Function TabWindow.SaveAs As Boolean
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
 		If ee = 0 Then
-			ee = New ExplorerElement
+			ee = New_( ExplorerElement)
 			tn->Tag = ee
 		End If
 		If ptn <> 0 AndAlso ptn->ImageKey = "Project" Then
@@ -818,7 +819,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 		#endif
 		Select Case te->ElementType
 		Case "Event"
-			If Des->ReadPropertyFunc(Cpnt, "Tag") = 0 Then Des->WritePropertyFunc(Cpnt, "Tag", New Dictionary)
+			If Des->ReadPropertyFunc(Cpnt, "Tag") = 0 Then Des->WritePropertyFunc(Cpnt, "Tag", New_( Dictionary))
 			Dim As Dictionary Ptr Dict = Des->ReadPropertyFunc(Cpnt, "Tag")
 			If Dict->ContainsKey(PropertyName) Then
 				Dict->Item(PropertyName)->Text = Value
@@ -3211,16 +3212,16 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	For i As Integer = Functions.Count - 1 To 0 Step -1
 		te = Functions.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete Cast(TypeElement Ptr, Functions.Object(i))
+		Delete_( Cast(TypeElement Ptr, Functions.Object(i)))
 	Next
 	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1
-		Delete Cast(TypeElement Ptr, FunctionsOthers.Object(i))
+		Delete_( Cast(TypeElement Ptr, FunctionsOthers.Object(i)))
 	Next
 	For i As Integer = Args.Count - 1 To 0 Step -1
-		Delete Cast(TypeElement Ptr, Args.Object(i))
+		Delete_( Cast(TypeElement Ptr, Args.Object(i)))
 	Next
 	Functions.Clear
 	FunctionsOthers.Clear
@@ -3332,7 +3333,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos2 = InStr(Pos1 + l, bTrim, "(")
 						Pos5 = Pos2
 						If Pos2 = 0 Then Pos2 = InStr(Pos1 + l, bTrim, " ")
-						te = New TypeElement
+						te = New_( TypeElement)
 						If Pos2 > 0 Then
 							te->Name = Trim(Mid(bTrim, Pos1 + l, Pos2 - Pos1 - l))
 						Else
@@ -3405,7 +3406,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								Pos1 = InStrRev(CurType, ".")
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-								Var te = New TypeElement
+								Var te = New_( TypeElement)
 								te->Name = res1(n)
 								te->DisplayName = res1(n)
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
@@ -3435,7 +3436,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				Pos1 = InStr(9, bTrim, " ")
 				Pos2 = InStr(9, bTrim, "(")
 				If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
-				te = New TypeElement
+				te = New_( TypeElement)
 				If Pos1 = 0 Then
 					te->Name = Trim(Mid(bTrim, 9))
 				Else
@@ -3465,7 +3466,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
 				Pos4 = InStr(bTrim, "(")
 				If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
-				te = New TypeElement
+				te = New_( TypeElement)
 				te->Declaration = True
 				If Pos1 = 0 Then
 					te->ElementType = Trim(Mid(bTrim, 9))
@@ -3568,7 +3569,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						res1(n) = res1(n).TrimAll
 						Pos1 = InStrRev(CurType, ".")
 						If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-						Var te = New TypeElement
+						Var te = New_( TypeElement)
 						te->Name = res1(n)
 						te->DisplayName = res1(n)
 						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
@@ -3602,7 +3603,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If pnlForm.Handle = 0 Then pnlForm.CreateWnd
 					#endif
 					
-					Des = New My.Sys.Forms.Designer(pnlForm)
+					Des = New_( My.Sys.Forms.Designer(pnlForm))
 					If Des = 0 Then bNotDesign = False: pfrmMain->UpdateUnLock: Exit Sub
 					Des->OnInsertingControl = @DesignerInsertingControl
 					Des->OnInsertControl = @DesignerInsertControl
@@ -4137,30 +4138,30 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 End Constructor
 
 Destructor TabWindow
-	If FCaptionNew Then Deallocate FCaptionNew
-	If FFileName Then Deallocate FFileName
-	If FLine Then Deallocate FLine
-	If FLine1 Then Deallocate FLine1
-	If FLine2 Then Deallocate FLine2
-	If FLine3 Then Deallocate FLine3
-	If FLine4 Then Deallocate FLine4
-	If FPath Then Deallocate FPath
-	If Des <> 0 Then Delete Des
+	If FCaptionNew Then Deallocate_( FCaptionNew)
+	If FFileName Then Deallocate_( FFileName)
+	If FLine Then Deallocate_( FLine)
+	If FLine1 Then Deallocate_( FLine1)
+	If FLine2 Then Deallocate_( FLine2)
+	If FLine3 Then Deallocate_( FLine3)
+	If FLine4 Then Deallocate_( FLine4)
+	If FPath Then Deallocate_( FPath)
+	If Des <> 0 Then Delete_( Des)
 	cboClass.Items.Clear
 	cboFunction.Items.Clear
 	Dim As TypeElement Ptr te
 	For i As Integer = Functions.Count - 1 To 0 Step -1
 		te = Functions.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
-		Delete Cast(TypeElement Ptr, Functions.Object(i))
+		Delete_( Cast(TypeElement Ptr, Functions.Object(i)))
 	Next
 	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1
-		Delete Cast(TypeElement Ptr, FunctionsOthers.Object(i))
+		Delete_( Cast(TypeElement Ptr, FunctionsOthers.Object(i)))
 	Next
 	For i As Integer = Args.Count - 1 To 0 Step -1
-		Delete Cast(TypeElement Ptr, Args.Object(i))
+		Delete_( Cast(TypeElement Ptr, Args.Object(i)))
 	Next
 	Functions.Clear
 	FunctionsOthers.Clear
@@ -4926,9 +4927,9 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 		End If
 		Pos1 = InStr(Pos1 + 1, *Buff, """")
 	Loop
-	If Buff Then Deallocate Buff
-	If File Then Deallocate File
-	If sLines Then Deallocate sLines
+	If Buff Then Deallocate_( Buff)
+	If File Then Deallocate_( File)
+	If sLines Then Deallocate_( sLines)
 	'End If
 End Sub
 
@@ -5068,40 +5069,48 @@ Sub RunPr(Debugger As String = "")
 		Dim As Integer pClass
 		Dim As WString Ptr Workdir, CmdL
 		Dim As Unsigned Long ExitCode
-		Dim SInfo As STARTUPINFO
-		Dim PInfo As PROCESS_INFORMATION
 		WLet CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments
-		If Project Then WLet CmdL, *CmdL & " " & WGet(Project->CommandLineArguments)
+		If Project Then WLet CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
 		WLet ExeFileName, Replace(*ExeFileName, "/", "\")
 		Var Pos1 = 0
 		While InStr(Pos1 + 1, *ExeFileName, "\")
 			Pos1 = InStr(Pos1 + 1, *ExeFileName, "\")
 		Wend
 		If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
-		ThreadsEnter()
-		ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
-		ThreadsLeave()
 		WLet Workdir, Left(*ExeFileName, Pos1)
-		SInfo.cb = Len(SInfo)
-		SInfo.dwFlags = STARTF_USESHOWWINDOW
-		SInfo.wShowWindow = SW_NORMAL
-		pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
-		If CreateProcessW(ExeFileName, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-			WaitForSingleObject pinfo.hProcess, INFINITE
-			GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-			CloseHandle(pinfo.hProcess)
-			CloseHandle(pinfo.hThread)
-			Result = ExitCode
-			'Result = Shell(Debugger & """" & *ExeFileName + """")
-			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-		Else
-			Result = GetLastError()
-			ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+		If WGet(TerminalPath) <> "" Then
+			WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
+			WLet ExeFileName, Replace(WGet(TerminalPath), "/", "\")
 		End If
-		If WorkDir Then Deallocate WorkDir
-		If CmdL Then Deallocate CmdL
+			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
+			Dim SInfo As STARTUPINFO
+			Dim PInfo As PROCESS_INFORMATION
+			SInfo.cb = Len(SInfo)
+			SInfo.dwFlags = STARTF_USESHOWWINDOW
+			SInfo.wShowWindow = SW_NORMAL
+			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+			If CreateProcessW(ExeFileName, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject pinfo.hProcess, INFINITE
+				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+				CloseHandle(pinfo.hProcess)
+				CloseHandle(pinfo.hThread)
+				Result = ExitCode
+				'Result = Shell(Debugger & """" & *ExeFileName + """")
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			Else
+				Result = GetLastError()
+				ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+			End If
+'		Else
+'			WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
+'			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL & " ...")
+'			Result = Shell(*CmdL)
+'			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+'		End If
+		If WorkDir Then Deallocate_( WorkDir)
+		If CmdL Then Deallocate_( CmdL)
 	#endif
-	If ExeFileName Then Deallocate ExeFileName
+	If ExeFileName Then Deallocate_( ExeFileName)
 	Exit Sub
 	ErrorHandler:
 	ThreadsEnter()
@@ -5190,7 +5199,7 @@ Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 	Dim ms As mstring
 	
 	'this is never deallocated..
-	ms.p = Allocate( 0.25 * (tal + 1) * Len(WString))
+	ms.p = Allocate_( 0.25 * (tal + 1) * Len(WString))
 	
 	' iterate array
 	Do While a <= tal

@@ -219,43 +219,43 @@ Sub frmParameters.LoadSettings()
 		.txtDebug32.Text = *Debug32Arguments
 		.txtDebug64.Text = *Debug64Arguments
 		.cboCompiler32.Clear
-		.cboCompiler32.AddItem ML("Default")
 		.cboCompiler64.Clear
-		.cboCompiler64.AddItem ML("Default")
 		For i As Integer = 0 To pCompilers->Count - 1
 			.cboCompiler32.AddItem pCompilers->Item(i)->Key
 			.cboCompiler64.AddItem pCompilers->Item(i)->Key
 		Next
-		.cboCompiler32.ItemIndex = Max(0, .cboCompiler32.IndexOf(*CurrentCompiler32))
-		.cboCompiler64.ItemIndex = Max(0, .cboCompiler64.IndexOf(*CurrentCompiler64))
+		.cboCompiler32.ItemIndex = .cboCompiler32.IndexOf(*CurrentCompiler32)
+		.cboCompiler64.ItemIndex = .cboCompiler64.IndexOf(*CurrentCompiler64)
+		If .cboCompiler32.ItemIndex = -1 Then .cboCompiler32.ItemIndex = .cboCompiler32.IndexOf(*DefaultCompiler32)
+		If .cboCompiler64.ItemIndex = -1 Then .cboCompiler64.ItemIndex = .cboCompiler64.IndexOf(*DefaultCompiler64)
 		.cboMake1.Clear
-		.cboMake1.AddItem ML("Default")
 		.cboMake2.Clear
-		.cboMake2.AddItem ML("Default")
 		For i As Integer = 0 To pMakeTools->Count - 1
 			.cboMake1.AddItem pMakeTools->Item(i)->Key
 			.cboMake2.AddItem pMakeTools->Item(i)->Key
 		Next
-		.cboMake1.ItemIndex = Max(0, .cboMake1.IndexOf(*CurrentMakeTool1))
-		.cboMake2.ItemIndex = Max(0, .cboMake2.IndexOf(*CurrentMakeTool2))
+		.cboMake1.ItemIndex = .cboMake1.IndexOf(*CurrentMakeTool1)
+		.cboMake2.ItemIndex = .cboMake2.IndexOf(*CurrentMakeTool2)
+		If .cboMake1.ItemIndex = -1 Then .cboMake1.ItemIndex = .cboMake1.IndexOf(*DefaultMakeTool)
+		If .cboMake2.ItemIndex = -1 Then .cboMake2.ItemIndex = .cboMake2.IndexOf(*DefaultMakeTool)
 		.cboRun.Clear
-		.cboRun.AddItem ML("Default")
 		For i As Integer = 0 To pTerminals->Count - 1
 			.cboRun.AddItem pTerminals->Item(i)->Key
 		Next
-		.cboRun.ItemIndex = Max(0, .cboRun.IndexOf(*CurrentTerminal))
+		.cboRun.ItemIndex = .cboRun.IndexOf(*CurrentTerminal)
+		If .cboRun.ItemIndex = -1 Then .cboRun.ItemIndex = .cboRun.IndexOf(*DefaultTerminal)
 		.cboDebug32.Clear
-		.cboDebug32.AddItem ML("Default")
 		.cboDebug32.AddItem ML("Integrated IDE Debugger")
 		.cboDebug64.Clear
-		.cboDebug64.AddItem ML("Default")
 		.cboDebug64.AddItem ML("Integrated IDE Debugger")
 		For i As Integer = 0 To pDebuggers->Count - 1
 			.cboDebug32.AddItem pDebuggers->Item(i)->Key
 			.cboDebug64.AddItem pDebuggers->Item(i)->Key
 		Next
-		.cboDebug32.ItemIndex = Max(0, .cboDebug32.IndexOf(*CurrentDebugger32))
-		.cboDebug64.ItemIndex = Max(0, .cboDebug64.IndexOf(*CurrentDebugger64))
+		.cboDebug32.ItemIndex = .cboDebug32.IndexOf(*CurrentDebugger32)
+		.cboDebug64.ItemIndex = .cboDebug64.IndexOf(*CurrentDebugger64)
+		If .cboDebug32.ItemIndex = -1 Then .cboDebug32.ItemIndex = 0
+		If .cboDebug64.ItemIndex = -1 Then .cboDebug64.ItemIndex = 0
 	End With
 End Sub
 

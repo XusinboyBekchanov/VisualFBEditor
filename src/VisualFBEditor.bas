@@ -22,7 +22,8 @@ On Error Goto AA
 
 #define GetMN
 '#define FBMLD_NO_MULTITHREADING
-'#include "fbmld.bi"
+'#include once "fbmld.bi"
+#include once "../../FBMemCheck/fbmemcheck.bi"
 
 #include once "Main.bi"
 #include once "Debug.bi"
@@ -68,8 +69,8 @@ Sub RunCmd(Param As Any Ptr)
 			CloseHandle(pinfo.hProcess)
 			CloseHandle(pinfo.hThread)
 		End If
-		If WorkDir Then Deallocate WorkDir
-		If CmdL Then Deallocate CmdL
+		If WorkDir Then Deallocate_( WorkDir)
+		If CmdL Then Deallocate_( CmdL)
 	#endif
 End Sub
 

@@ -57,7 +57,7 @@ Namespace My.Sys.Forms
 			If lParam Then
 				With *Cast(WindowList Ptr, lParam)
 					.Count = .Count + 1
-					.Child = Reallocate(.Child, .Count * SizeOf(HWND))
+					.Child = Reallocate_(.Child, .Count * SizeOf(HWND))
 					.Child[.Count-1] = hDlg
 				End With
 			End If
@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
 		Sub Designer.GetChilds(Parent As HWND = 0)
 			FChilds.Count = 0
-			FChilds.Child = CAllocate(0)
+			FChilds.Child = CAllocate_(0)
 			EnumChildWindows(IIf(Parent, Parent, FDialog), Cast(WNDENUMPROC, @EnumChildsProc), CInt(@FChilds))
 		End Sub
 	#endif

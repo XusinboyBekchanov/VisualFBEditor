@@ -199,7 +199,7 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 	#endif
 	With fTools
 		For i As Integer = 0 To Tools.Count - 1
-			Delete Cast(ToolType Ptr, pTools->Item(i))
+			Delete_( Cast(ToolType Ptr, pTools->Item(i)))
 		Next
 		pTools->Clear
 		For i As Integer = miXizmat->Count - 1 To 0 Step -1
@@ -215,7 +215,7 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 		For i As Integer = 0 To .lvTools.ListItems.Count - 1
 			tt = .lvTools.ListItems.Item(i)->Tag
 			If tt = 0 Then Continue For
-			Tool = New ToolType
+			Tool = New_( ToolType)
 			Tool->Name = tt->Name
 			Tool->Path = tt->Path
 			Tool->Parameters = tt->Parameters
@@ -256,7 +256,7 @@ Private Sub frmTools.cmdAdd_Click(ByRef Sender As Control)
 	pfPath->SetFileNameToVersion = True
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fTools
-			Dim As ToolType Ptr Tool = New ToolType
+			Dim As ToolType Ptr Tool = New_( ToolType)
 			Tool->Name = pfPath->txtVersion.Text
 			Tool->Path = pfPath->txtPath.Text
 			.lvTools.ListItems.Add pfPath->txtVersion.Text
@@ -290,7 +290,7 @@ End Sub
 Private Sub frmTools.cmdRemove_Click(ByRef Sender As Control)
 	With fTools
 		If .lvTools.SelectedItem = 0 Then Exit Sub
-		Delete Cast(ToolType Ptr, .lvTools.SelectedItem->Tag)
+		Delete_( Cast(ToolType Ptr, .lvTools.SelectedItem->Tag))
 		.lvTools.ListItems.Remove .lvTools.SelectedItemIndex
 	End With
 End Sub
@@ -370,12 +370,12 @@ Private Sub frmTools.Form_Create(ByRef Sender As Control)
 			Dim As ToolType Ptr Tool, tt
 			Dim As ListViewItem Ptr Item
 			For i As Integer = 0 To .ListItems.Count - 1
-				Delete Cast(ToolType Ptr, .ListItems.Item(i)->Tag)
+				Delete_( Cast(ToolType Ptr, .ListItems.Item(i)->Tag))
 			Next
 			.ListItems.Clear
 			For i As Integer = 0 To Tools.Count - 1
 				Tool = Tools.Item(i)
-				tt = New ToolType
+				tt = New_( ToolType)
 				tt->Name = Tool->Name
 				tt->Path = Tool->Path
 				tt->Parameters = Tool->Parameters

@@ -71,7 +71,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Type EditControlLine
-		Text As WString Ptr
+		Text As WString Ptr = 0
 		CommentIndex As Integer
 		Breakpoint As Boolean
 		Bookmark As Boolean
