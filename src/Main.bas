@@ -3364,7 +3364,7 @@ Sub CreateMenusAndToolBars
 	
 	miRecentFiles = miFile->Add(ML("Recent Files"), "", "RecentFiles", @mclick)
 	For i As Integer = 0 To miRecentMax
-		sTmp =iniSettings.ReadString("MRUFiles", "MRUFile_0" & WStr(i), "")
+		sTmp = iniSettings.ReadString("MRUFiles", "MRUFile_0" & WStr(i), "")
 		If Trim(sTmp) <> "" Then
 			MRUFiles.Add sTmp
 			miRecentFiles->Add(sTmp, "", sTmp, @mClickMRU)
@@ -5440,7 +5440,15 @@ Sub OnProgramQuit() Destructor
 	WDeallocate Debug32Arguments
 	WDeallocate Debug64Arguments
 	WDeallocate RecentFiles '
-	
+	WDeallocate DefaultHelp
+	WDeallocate CurrentTheme
+	WDeallocate DefaultProjectFile
+	WDeallocate EditorFontName
+	WDeallocate InterfaceFontName
+	Dim As ToolType Ptr tt
+	For i As Integer = 0 To Tools.Count - 1
+		Delete_(Cast(ToolType Ptr, Tools.Item(i)))
+	Next
 	Dim As TypeElement Ptr te, te1
 	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 		te = pGlobalNamespaces->Object(i)

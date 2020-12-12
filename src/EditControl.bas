@@ -4010,6 +4010,7 @@ Namespace My.Sys.Forms
 		WDeallocate FLineSpace 
 		WDeallocate FHintWord 
 		WDeallocate CurrentFontName
+		If This.Cursor <> 0 Then Delete_(This.Cursor)
 	End Destructor
 End Namespace
 

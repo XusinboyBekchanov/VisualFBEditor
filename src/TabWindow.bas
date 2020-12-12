@@ -16,6 +16,7 @@ txtCodeBi.WithHistory = False
 
 Destructor ExplorerElement
 	If FileName Then Deallocate_( FileName)
+	If TemplateFileName Then Deallocate_( TemplateFileName)
 End Destructor
 
 Constructor ProjectElement
@@ -326,8 +327,8 @@ End Property
 Sub CloseButton_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Dim tb As TabWindow Ptr = Cast(CloseButton Ptr, @Sender)->tbParent
 	If tb = 0 Then Exit Sub
-	If tb->CloseTab Then 
-		'Delete tb
+	If tb->CloseTab Then
+		Delete_(tb)
 	End If
 End Sub
 
@@ -577,6 +578,7 @@ Function TabWindow.CloseTab As Boolean
 	pTabCode->DeleteTab(This.Index)
 	If tn <> 0 AndAlso tn->ImageKey <> "Project" Then ', Will remove all project from tree
 		If ptvExplorer->Nodes.IndexOf(tn) <> -1 Then
+			If tn->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Tag))
 			ptvExplorer->Nodes.Remove ptvExplorer->Nodes.IndexOf(tn)
 			If MainNode = tn Then
 				MainNode = 0
