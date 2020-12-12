@@ -1,2 +1,2 @@
-file "D:/GitHub/VisualFBEditor/src/../VisualFBEditor32.exe"
+file "F:/Install/Install2/VisualFBEditor/src/../VisualFBEditor32.exe"
 r

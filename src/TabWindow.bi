@@ -267,6 +267,8 @@ Declare Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Intege
 
 Declare Sub CloseButton_MouseLeave(ByRef Sender As Control)
 
+Declare Function CloseTab(ByRef tb As TabWindow Ptr) As Boolean
+
 #ifdef __USE_GTK__
 	Declare Function CloseButton_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 	

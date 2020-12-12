@@ -211,7 +211,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Select Case Sender.ToString
 		Case "Save":                        tb->Save
 		Case "SaveAs":                      tb->SaveAs
-		Case "Close":                       tb->CloseTab
+		Case "Close":                       CloseTab(tb)
 		Case "SortLines":                   tb->SortLines
 			#ifndef __USE_GTK__
 			Case "SetNextStatement":        exe_mod()

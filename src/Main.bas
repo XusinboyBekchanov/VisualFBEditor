@@ -1420,8 +1420,7 @@ Sub CloseAllTabs(WithoutCurrent As Boolean = False)
 		If WithoutCurrent Then
 			If i = j Then Continue For
 		End If
-		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-		tb->CloseTab
+		CloseTab(Cast(TabWindow Ptr, ptabCode->Tabs[i]))
 	Next i
 End Sub
 
@@ -1632,7 +1631,7 @@ Sub RemoveFileFromProject
 	For i As Integer = 0 To ptabCode->TabCount - 1
 		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 		If tb->tn = tn Then
-			If tb->CloseTab = False Then Exit Sub
+			If Not CloseTab(tb) Then Exit Sub
 			Exit For
 		End If
 	Next i
@@ -1776,19 +1775,21 @@ Function CloseProject(tn As TreeNode Ptr) As Boolean
 			For i As Integer = 0 To ptabCode->TabCount - 1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 				If tn->Nodes.Item(j)->Text = tb->tn->Text Then
-					If CInt(tb) AndAlso CInt(Not tb->CloseTab) Then Return False
+					If Not CloseTab(tb) Then Return False
 					Exit For
 				End If
 			Next i
+			If tn->Nodes.Item(j)->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Tag))
 		Else
 			For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 '
 				For i As Integer = 0 To ptabCode->TabCount - 1
 					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 					If tn->Nodes.Item(j)->Nodes.Item(k)->Text = tb->tn->Text Then '
-						If CInt(tb) AndAlso CInt(Not tb->CloseTab) Then Return False
+						If Not CloseTab(tb) Then Return False
 						Exit For
 					End If
 				Next i
+				If tn->Nodes.Item(j)->Nodes.Item(k)->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Nodes.Item(k)->Tag))
 			Next k
 		End If
 	Next
@@ -1800,6 +1801,7 @@ Function CloseProject(tn As TreeNode Ptr) As Boolean
 		End Select
 	End If
 	If tn = MainNode Then SetMainNode 0
+	If tn->Tag <> 0 Then Delete_(Cast(ProjectElement Ptr, tn->Tag))
 	If tvExplorer.Nodes.IndexOf(tn) <> -1 Then tvExplorer.Nodes.Remove tvExplorer.Nodes.IndexOf(tn)
 	Return True
 End Function
@@ -5186,7 +5188,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
 	#endif
 	
-	'LoadToolBox
+	LoadToolBox
 	
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", True)
@@ -5290,11 +5292,11 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	Dim tn As TreeNode Ptr
 	For i As Integer = 0 To ptabCode->TabCount - 1
 		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-		If CInt(tb) AndAlso CInt(tb->Modified) AndAlso CInt(Not tb->CloseTab) Then Action = 0: Return
+		If Not CloseTab(tb) Then Action = 0: Return
 	Next i
 	For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
 		tn = tvExplorer.Nodes.Item(i)
-		If CInt(tn->ImageKey = "Project") AndAlso CInt(EndsWith(tn->Text, "*")) AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
+		If CInt(tn->ImageKey = "Project") AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
 	Next i
 	iniSettings.WriteInteger("MainWindow", "MainWidth", frmMain.Width)
 	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)
@@ -5445,6 +5447,8 @@ Sub OnProgramQuit() Destructor
 	WDeallocate DefaultProjectFile
 	WDeallocate EditorFontName
 	WDeallocate InterfaceFontName
+	WDeallocate MFFPath
+	WDeallocate MFFDll
 	Dim As ToolType Ptr tt
 	For i As Integer = 0 To Tools.Count - 1
 		Delete_(Cast(ToolType Ptr, Tools.Item(i)))
@@ -5456,6 +5460,7 @@ Sub OnProgramQuit() Destructor
 			te1 = te->Elements.Object(j)
 			te->Elements.Remove j
 		Next
+		Delete_( Cast(TypeElement Ptr, pGlobalNamespaces->Object(i)))
 	Next
 	For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
 		te = pGlobalTypes->Object(i)

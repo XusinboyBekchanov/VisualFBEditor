@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 	#ifndef __USE_GTK__
 		Sub Designer.GetChilds(Parent As HWND = 0)
 			FChilds.Count = 0
-			FChilds.Child = CAllocate_(0)
+			'FChilds.Child = CAllocate_(0)
 			EnumChildWindows(IIf(Parent, Parent, FDialog), Cast(WNDENUMPROC, @EnumChildsProc), CInt(@FChilds))
 		End Sub
 	#endif
@@ -2350,12 +2350,14 @@ Namespace My.Sys.Forms
 			DestroyMenu(FPopupMenu)
 		#endif
 		DestroyDots
-		'Delete DesignControl
+		If FChilds.Child Then Deallocate_( FChilds.Child)
 		#ifndef __USE_GTK__
 			UnregisterClass("DOT", instance)
 		#endif
 		For i As Integer = 0 To FLibs.Count - 1
 			If FLibs.Object(i) <> 0 Then DyLibFree(FLibs.Object(i))
 		Next
+		WDeallocate FClassName
+		WDeallocate FTemp
 	End Destructor
 End Namespace

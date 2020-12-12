@@ -327,9 +327,7 @@ End Property
 Sub CloseButton_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Dim tb As TabWindow Ptr = Cast(CloseButton Ptr, @Sender)->tbParent
 	If tb = 0 Then Exit Sub
-	If tb->CloseTab Then
-		Delete_(tb)
-	End If
+	CloseTab(tb)
 End Sub
 
 Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -563,6 +561,10 @@ End Function
 
 Function TabWindow.Save As Boolean
 	If InStr(*FFileName, "/") > 0 OrElse InStr(*FFileName, "\") > 0 Then Return SaveTab Else Return SaveAs
+End Function
+
+Function CloseTab(ByRef tb As TabWindow Ptr) As Boolean
+	If tb <> 0 AndAlso tb->CloseTab Then Delete_(tb): Return True Else Return False
 End Function
 
 Function TabWindow.CloseTab As Boolean

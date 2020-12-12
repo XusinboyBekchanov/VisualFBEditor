@@ -819,7 +819,7 @@ Namespace My.Sys.Forms
 		'"in line " & Erl()
 	End Sub
 	
-	Property EditControl.Text ByRef As WString '...'
+	Property EditControl.Text ByRef As WString
 		Return WStr("")
 	End Property
 	
@@ -868,7 +868,10 @@ Namespace My.Sys.Forms
 		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
 		If Result = 0 Then
 			FileSize = LOF(Fn)
-			WReallocate pBuff, FileSize
+			WReallocate(pBuff, FileSize)
+			For i As Integer = FLines.Count - 1 To 0 Step -1
+				Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
+			Next i
 			FLines.Clear
 			VisibleLines.Clear
 			Do Until EOF(Fn)
@@ -889,6 +892,7 @@ Namespace My.Sys.Forms
 		Else
 			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13,10) & " " & FileName
 		End If
+		WDeallocate pBuff
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef File As WString)
@@ -1148,7 +1152,7 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
 		lText = Len(SourceText)
-		WReallocate FLineTemp, lText * TabWidth + 1
+		WReallocate(FLineTemp, lText * TabWidth + 1)
 		*FLineTemp = ""
 		iPos = PosText
 		ii = 1
@@ -2280,7 +2284,6 @@ Namespace My.Sys.Forms
 	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr)
 		For i As Integer = FLines.Count - 1 To 0 Step -1
 			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
-			'FLines.Remove i
 		Next i
 		FLines.Clear
 		For i As Integer = 0 To HistoryItem->Lines.Count - 1
@@ -4003,7 +4006,7 @@ Namespace My.Sys.Forms
 		#else
 			cboIntellisense.Items.Clear
 		#endif
-		WDeallocate FLine 
+		WDeallocate FLine
 		WDeallocate FLineLeft 
 		WDeallocate FLineRight 
 		WDeallocate FLineTemp 
