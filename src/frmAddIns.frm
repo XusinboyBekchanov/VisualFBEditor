@@ -172,9 +172,9 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 				Add_In->LoadOnStartup = Add_In->LoadOnStartupINI
 				Add_In->LoadedOriginal = pAddIns->Contains(AddIn)
 				Add_In->Loaded = Add_In->LoadedOriginal
-				WLet Add_In->Path, ExePath & "/AddIns/" & f
+				WLet(Add_In->Path, ExePath & "/AddIns/" & f)
 				#ifdef __USE_GTK__
-					WLet Add_In->Description, ""
+					WLet(Add_In->Description, "")
 				#else
 					Dim As DWORD ret, discard
 					Dim As Any Ptr _vinfo

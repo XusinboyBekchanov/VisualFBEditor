@@ -7,13 +7,13 @@
 
 '#define __USE_GTK__
 #ifndef __USE_MAKE__
-	#define __USE_GTK3__
+	#define __USE_GTK2__
 	#define _NOT_AUTORUN_FORMS_
 #endif
 
 Const VER_MAJOR  = "1"
 Const VER_MINOR  = "2"
-Const VER_PATCH  = "5"
+Const VER_PATCH  = "6"
 Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
 Const SIGN       = "VisualFBEditor " + VERSION
@@ -21,9 +21,8 @@ Const SIGN       = "VisualFBEditor " + VERSION
 On Error Goto AA
 
 #define GetMN
-'#define FBMLD_NO_MULTITHREADING
-'#include once "fbmld.bi"
-#include once "../../FBMemCheck/fbmemcheck.bi"
+
+#define MEMCHECK 0
 
 #include once "Main.bi"
 #include once "Debug.bi"
@@ -59,8 +58,8 @@ Sub RunCmd(Param As Any Ptr)
 		Dim As WString Ptr Workdir, CmdL
 		Dim SInfo As STARTUPINFO
 		Dim PInfo As PROCESS_INFORMATION
-		WLet CmdL, cmd
-		WLet Workdir, GetFolderName(MainFile)
+		WLet(CmdL, cmd)
+		WLet(Workdir, GetFolderName(MainFile))
 		SInfo.cb = Len(SInfo)
 		SInfo.dwFlags = STARTF_USESHOWWINDOW
 		SInfo.wShowWindow = SW_NORMAL
@@ -137,14 +136,14 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
-	Case "SyntaxCheck":                         ThreadCreate(@SyntaxCheck)
-	Case "Compile":                             ThreadCreate(@CompileProgram)
-	Case "Make":                                ThreadCreate(@MakeExecute)
+	Case "SyntaxCheck":                         SaveAllBeforeCompile: ThreadCreate(@SyntaxCheck)
+	Case "Compile":                             SaveAllBeforeCompile: ThreadCreate(@CompileProgram)
+	Case "Make":                                SaveAllBeforeCompile: ThreadCreate(@MakeExecute)
 	Case "MakeClean":                           ThreadCreate(@MakeClean)
 	Case "FormatProject":                       ThreadCreate(@FormatProject) 'FormatProject 0
 	Case "UnformatProject":                     ThreadCreate(@FormatProject, Cast(Any Ptr, 1)) 'FormatProject Cast(Any Ptr, 1)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
-	Case "StartWithCompile"
+	Case "StartWithCompile":                    SaveAllBeforeCompile
 		'SaveAll '
 		If InDebug Then
 			#ifndef __USE_GTK__
@@ -272,7 +271,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)
 		#endif
 	Case "Undo", "Redo", "Cut", "Copy", "Paste", "SelectAll", "SingleComment", "BlockComment", "UnComment", _
-		"Indent", "Outdent", "Format", "Unformat", "NumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureNumberOff", _
+		"Indent", "Outdent", "Format", "Unformat", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", _
 		"CompleteWord", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
 		If pfrmMain->ActiveControl = 0 Then Exit Sub
@@ -319,8 +318,10 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "ToggleBookmark":          ec->Bookmark
 				Case "Define":                  tb->Define
 				Case "NumberOn":        	    tb->NumberOn
+				Case "MacroNumberOn":        	tb->NumberOn , , True
 				Case "NumberOff":               tb->NumberOff
 				Case "ProcedureNumberOn":       tb->ProcedureNumberOn
+				Case "ProcedureMacroNumberOn":  tb->ProcedureNumberOn True
 				Case "ProcedureNumberOff":      tb->ProcedureNumberOff
 				Case "PreprocessorNumberOn":    tb->PreprocessorNumberOn
 				Case "PreprocessorNumberOff":   tb->PreprocessorNumberOff

@@ -28,7 +28,7 @@ your programs, too.
 price.  Our General Public Licenses are designed to make sure that you
 have the freedom to distribute copies of free software (and charge for
 them if you wish), that you receive source code or can get it if you
-want it, that you can change the software or use pieces of it in new
+want it, that you can change the software or use pieces of it in New
 free programs, and that you know you can do these things.
 
   To protect your rights, we need to prevent others from denying you
@@ -434,7 +434,7 @@ your receipt of the notice.
   Termination of your rights under this section does not terminate the
 licenses of parties who have received copies or rights from you under
 this License.  If your rights have been terminated and not permanently
-reinstated, you do not qualify to receive new licenses for the same
+reinstated, you do not qualify to receive New licenses for the same))
 material under section 10.
 
   9. Acceptance Not Required for Having Copies.
@@ -567,10 +567,10 @@ combination as such.
 
   14. Revised Versions of this License.
 
-  The Free Software Foundation may publish revised and/or new versions of
-the GNU General Public License from time to time.  Such new versions will
+  The Free Software Foundation may publish revised and/or New versions of))
+the GNU General Public License from time to time.  Such New versions will))
 be similar in spirit to the present version, but may differ in detail to
-address new problems or concerns.
+address New problems or concerns.))
 
   Each version is given a distinguishing version number.  If the
 Program specifies that a certain numbered version of the GNU General
@@ -625,9 +625,9 @@ copy of the Program in return for a fee.
 
                      END OF TERMS AND CONDITIONS
 
-            How to Apply These Terms to Your New Programs
+            How to Apply These Terms to Your New Programs))
 
-  If you develop a new program, and you want it to be of the greatest
+  If you develop a New program, and you want it to be of the greatest))
 possible use to the public, the best way to achieve this is to make it
 free software which everyone can redistribute and change under these terms.
 

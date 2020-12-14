@@ -984,7 +984,10 @@ Namespace My.Sys.Forms
 				Dim As Any Ptr AParent = ReadPropertyFunc(Ctrl, "Parent")
 				If RemoveControlSub AndAlso AParent Then RemoveControlSub(AParent, Ctrl)
 			End If
-			If DeleteComponentFunc Then DeleteComponentFunc(Ctrl)
+			If DeleteComponentFunc Then
+				If ReadPropertyFunc(Ctrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, ReadPropertyFunc(Ctrl, "Tag")))
+				DeleteComponentFunc(Ctrl)
+			End If
 		End If
 		'if OnModified then OnModified(this, Ctrl, -1, -1, -1, -1)
 	End Sub
@@ -1192,8 +1195,8 @@ Namespace My.Sys.Forms
 				AText, _
 				x, _
 				y, _
-				IIf(cx, cx, 50),_
-				IIf(cy, cy, 50),_
+				IIf(cx, cx, 50), _
+				IIf(cy, cy, 50), _
 				AParent)
 				If Ctrl Then
 					Objects.Add Ctrl
@@ -2306,7 +2309,7 @@ Namespace My.Sys.Forms
 		#endif
 		'FIsChild = True
 		RegisterDotClass "DOT"
-		WLet FClassName, "Designer"
+		WLet(FClassName, "Designer")
 		'OnHandleIsAllocated = @HandleIsAllocated
 		'ChangeStyle WS_CHILD, True
 		'FDesignMode = True
@@ -2348,12 +2351,13 @@ Namespace My.Sys.Forms
 			DeleteObject(FSelDotBrush)
 			DeleteObject(FGridBrush)
 			DestroyMenu(FPopupMenu)
+			If FChilds.Child Then Deallocate_( FChilds.Child)
 		#endif
 		DestroyDots
-		If FChilds.Child Then Deallocate_( FChilds.Child)
 		#ifndef __USE_GTK__
 			UnregisterClass("DOT", instance)
 		#endif
+		If DeleteAllObjectsFunc <> 0 Then DeleteAllObjectsFunc()
 		For i As Integer = 0 To FLibs.Count - 1
 			If FLibs.Object(i) <> 0 Then DyLibFree(FLibs.Object(i))
 		Next

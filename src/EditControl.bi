@@ -109,6 +109,7 @@ Namespace My.Sys.Forms
 		Dim FLineLeft As WString Ptr
 		Dim FLineRight As WString Ptr
 		Dim FLineTemp As WString Ptr
+		Dim FLineTab As WString Ptr
 		Dim FLineSpace As WString Ptr
 		Dim FHintWord As WString Ptr
 		Dim HScrollMax As Integer

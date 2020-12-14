@@ -217,9 +217,9 @@ Public:
 	Declare Function GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	Declare Sub SetErrorHandling(StartLine As String, EndLine As String)
 	Declare Sub RemoveErrorHandling
-	Declare Sub NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Declare Sub NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False)
 	Declare Sub NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
-	Declare Sub ProcedureNumberOn
+	Declare Sub ProcedureNumberOn(bMacro As Boolean = False)
 	Declare Sub ProcedureNumberOff
 	Declare Sub PreprocessorNumberOn
 	Declare Sub PreprocessorNumberOff

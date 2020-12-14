@@ -1,4 +1,27 @@
-﻿Version 1.2.5 (August 2, 2020)
+﻿Version 1.2.6 (December 14, 2020)
+- Added: UserControl file template
+- Added: UserControl Design functionality
+- Added: Paths Count in Options unlimited
+- Added: Create non-static event handlers option
+- Added: Default Debugger 64-bit option
+- Added: Ctrl+Up, Ctrl+Down, Ctrl+PageUp, Ctrl+PageDown for EditControl
+- Added: Bring to Front function to Designer
+- Added: Option to Choosing templates when VisualFBEditor starts
+- Added: Project Templates
+- Added: Addin Template
+- Added: Read & Write Enum types in Properties Window
+- Added: New Project dialog to choose templates
+- Added: Extern ... End Extern to FormatCode
+- Added: FBMemCheck Assist Addin
+- Fixed: MemLeaks
+- Fixed: Copy and Paste Hierarchy of Controls
+- Fixed: FormatCode function
+- Fixed: Command Prompt function
+- Fixed: Designer ChangeName function
+- Fixed: Switch From ToDo to Change log
+- Fixed: Reload function
+- Fixed: ToolBox top position on scroll.
+Version 1.2.5 (August 2, 2020)
 - Added: COMWrapperBuilder tool
 - Added: Prompt to reload file after changes by external program
 - Added: Current row, column and etc. to Statusbar
@@ -24,7 +47,7 @@
 - Added: Overwrite changes in Intellisense
 - Added: Project Path initial dir on Open Project
 - Fixed: EditControl.LoadFromFile to load long lines
-- Fixed: Save new file to Projects path
+- Fixed: Save New file to Projects path
 - Fixed: Changelogging and ToDo List
 - Fixed: Slowness on Paint in 64-bit EditControl
 - Fixed: Code Indent

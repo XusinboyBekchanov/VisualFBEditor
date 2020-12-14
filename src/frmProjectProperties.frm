@@ -446,38 +446,38 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		Dim As ProjectElement Ptr ppe = .ProjectTreeNode->Tag
 		If ppe = 0 Then
 			ppe = New_( ProjectElement)
-			WLet ppe->FileName, ""
+			WLet(ppe->FileName, "")
 		End If
-		WLet ppe->MainFileName, .MainFiles.Get(.cboMainFile.Text)
-		WLet ppe->ResourceFileName, .ResourceFiles.Get(.cboResourceFile.Text)
-		WLet ppe->IconResourceFileName, .IconResourceFiles.Get(.cboIconResourceFile.Text)
+		WLet(ppe->MainFileName, .MainFiles.Get(.cboMainFile.Text))
+		WLet(ppe->ResourceFileName, .ResourceFiles.Get(.cboResourceFile.Text))
+		WLet(ppe->IconResourceFileName, .IconResourceFiles.Get(.cboIconResourceFile.Text))
 		ppe->ProjectType = .cboProjectType.ItemIndex
-		WLet ppe->ProjectName, .txtProjectName.Text
-		WLet ppe->HelpFileName, .txtHelpFileName.Text
-		WLet ppe->ProjectDescription, .txtProjectDescription.Text
+		WLet(ppe->ProjectName, .txtProjectName.Text)
+		WLet(ppe->HelpFileName, .txtHelpFileName.Text)
+		WLet(ppe->ProjectDescription, .txtProjectDescription.Text)
 		ppe->MajorVersion = Val(.txtMajor.Text)
 		ppe->MinorVersion = Val(.txtMinor.Text)
 		ppe->RevisionVersion = Val(.txtRevision.Text)
 		ppe->BuildVersion = Val(.txtBuild.Text)
 		ppe->AutoIncrementVersion = .chkAutoIncrementVersion.Checked
-		WLet ppe->ApplicationTitle, .txtTitle.Text
-		WLet ppe->ApplicationIcon, .txtIcon.Text
-		WLet ppe->CompanyName, .Types.Get(ML("Company Name"))
-		WLet ppe->FileDescription, .Types.Get(ML("File Description"))
-		WLet ppe->InternalName, .Types.Get(ML("Internal Name"))
-		WLet ppe->LegalCopyright, .Types.Get(ML("Legal Copyright"))
-		WLet ppe->LegalTrademarks, .Types.Get(ML("Legal Trademarks"))
-		WLet ppe->OriginalFilename, .Types.Get(ML("Original Filename"))
-		WLet ppe->ProductName, .Types.Get(ML("Product Name"))
+		WLet(ppe->ApplicationTitle, .txtTitle.Text)
+		WLet(ppe->ApplicationIcon, .txtIcon.Text)
+		WLet(ppe->CompanyName, .Types.Get(ML("Company Name")))
+		WLet(ppe->FileDescription, .Types.Get(ML("File Description")))
+		WLet(ppe->InternalName, .Types.Get(ML("Internal Name")))
+		WLet(ppe->LegalCopyright, .Types.Get(ML("Legal Copyright")))
+		WLet(ppe->LegalTrademarks, .Types.Get(ML("Legal Trademarks")))
+		WLet(ppe->OriginalFilename, .Types.Get(ML("Original Filename")))
+		WLet(ppe->ProductName, .Types.Get(ML("Product Name")))
 		ppe->CompileToGCC = .optCompileToGCC.Checked
 		ppe->OptimizationFastCode = .optOptimizationFastCode.Checked
 		ppe->OptimizationSmallCode = .optOptimizationSmallCode.Checked
 		ppe->OptimizationLevel = IIf(.optOptimizationLevel.Checked, Val(.cboOptimizationLevel.Text), 0)
-		WLet ppe->CompilationArguments32Windows, .txtCompilationArguments32Windows.Text
-		WLet ppe->CompilationArguments64Windows, .txtCompilationArguments64Windows.Text
-		WLet ppe->CompilationArguments32Linux, .txtCompilationArguments32Linux.Text
-		WLet ppe->CompilationArguments64Linux, .txtCompilationArguments64Linux.Text
-		WLet ppe->CommandLineArguments, .txtCommandLineArguments.Text
+		WLet(ppe->CompilationArguments32Windows, .txtCompilationArguments32Windows.Text)
+		WLet(ppe->CompilationArguments64Windows, .txtCompilationArguments64Windows.Text)
+		WLet(ppe->CompilationArguments32Linux, .txtCompilationArguments32Linux.Text)
+		WLet(ppe->CompilationArguments64Linux, .txtCompilationArguments64Linux.Text)
+		WLet(ppe->CommandLineArguments, .txtCommandLineArguments.Text)
 		ppe->CreateDebugInfo = .chkCreateDebugInfo.Checked
 		If Not EndsWith(.ProjectTreeNode->Text, "*") Then .ProjectTreeNode->Text &= "*"
 		.CloseForm

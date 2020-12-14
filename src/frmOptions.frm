@@ -1379,12 +1379,12 @@ Sub frmOptions.LoadSettings()
 		.Colors(15, 6) = Strings.Underline
 		.lstColorKeys.ItemIndex = 0
 		.lstColorKeys_Change(.lstColorKeys)
-		WLet .EditFontName, *EditorFontName
+		WLet(.EditFontName, *EditorFontName)
 		.EditFontSize = EditorFontSize
 		.lblFont.Font.Name = *EditorFontName
 		.lblFont.Caption = *.EditFontName & ", " & .EditFontSize & "pt"
-		WLet .InterfFontName, *InterfaceFontName
-		WLet .OldInterfFontName, *InterfaceFontName
+		WLet(.InterfFontName, *InterfaceFontName)
+		WLet(.OldInterfFontName, *InterfaceFontName)
 		.InterfFontSize = InterfaceFontSize
 		.oldInterfFontSize = InterfaceFontSize
 		.oldDisplayMenuIcons = DisplayMenuIcons
@@ -1573,33 +1573,33 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			tempStr = .lvCompilerPaths.ListItems.Item(i)->Text(0)
 			pCompilers->Add tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(1)
 		Next
-		WLet DefaultCompiler32, IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text)
-		WLet DefaultCompiler64, IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text)
-		WLet Compiler32Path, pCompilers->Get(*DefaultCompiler32)
-		WLet Compiler64Path, pCompilers->Get(*DefaultCompiler64)
+		WLet(DefaultCompiler32, IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text))
+		WLet(DefaultCompiler64, IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text))
+		WLet(Compiler32Path, pCompilers->Get(*DefaultCompiler32))
+		WLet(Compiler64Path, pCompilers->Get(*DefaultCompiler64))
 		pMakeTools->Clear
 		For i As Integer = 0 To .lvMakeToolPaths.ListItems.Count - 1
 			tempStr = .lvMakeToolPaths.ListItems.Item(i)->Text(0)
 			pMakeTools->Add tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(1)
 		Next
-		WLet DefaultMakeTool, IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text)
-		WLet MakeToolPath, pMakeTools->Get(*DefaultMakeTool)
+		WLet(DefaultMakeTool, IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text))
+		WLet(MakeToolPath, pMakeTools->Get(*DefaultMakeTool))
 		pDebuggers->Clear
 		For i As Integer = 0 To .lvDebuggerPaths.ListItems.Count - 1
 			tempStr = .lvDebuggerPaths.ListItems.Item(i)->Text(0)
 			pDebuggers->Add tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1)
 		Next
-		WLet DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text)
-		WLet DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text)
-		WLet Debugger32Path, pDebuggers->Get(*DefaultDebugger32)
-		WLet Debugger64Path, pDebuggers->Get(*DefaultDebugger64)
+		WLet(DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text))
+		WLet(DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text))
+		WLet(Debugger32Path, pDebuggers->Get(*DefaultDebugger32))
+		WLet(Debugger64Path, pDebuggers->Get(*DefaultDebugger64))
 		pTerminals->Clear
 		For i As Integer = 0 To .lvTerminalPaths.ListItems.Count - 1
 			tempStr = .lvTerminalPaths.ListItems.Item(i)->Text(0)
 			pTerminals->Add tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(1)
 		Next
-		WLet DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text)
-		WLet TerminalPath, pTerminals->Get(*DefaultTerminal)
+		WLet(DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text))
+		WLet(TerminalPath, pTerminals->Get(*DefaultTerminal))
 		pHelps->Clear
 		miHelps->Clear
 		For i As Integer = 0 To .lvHelpPaths.ListItems.Count - 1
@@ -1607,8 +1607,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			pHelps->Add tempStr, .lvHelpPaths.ListItems.Item(i)->Text(1)
 			miHelps->Add(tempStr, .lvHelpPaths.ListItems.Item(i)->Text(1), , @mClickHelp)
 		Next
-		WLet DefaultHelp, IIf(.cboHelp.ItemIndex = 0, "", .cboHelp.Text)
-		WLet HelpPath, pHelps->Get(*DefaultHelp)
+		WLet(DefaultHelp, IIf(.cboHelp.ItemIndex = 0, "", .cboHelp.Text))
+		WLet(HelpPath, pHelps->Get(*DefaultHelp))
 		pIncludePaths->Clear
 		For i As Integer = 0 To .lstIncludePaths.ItemCount - 1
 			pIncludePaths->Add .lstIncludePaths.Item(i)
@@ -1618,12 +1618,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			pLibraryPaths->Add .lstLibraryPaths.Item(i)
 		Next
 		IncludeMFFPath = .chkIncludeMFFPath.Checked
-		WLet MFFPath, .txtMFFPath.Text
-		WLet ProjectsPath, .txtProjectsPath.Text
+		WLet(MFFPath, .txtMFFPath.Text)
+		WLet(ProjectsPath, .txtProjectsPath.Text)
 		#ifdef __FB_64BIT__
-			WLet MFFDll, *MFFPath & "/mff64.dll"
+			WLet(MFFDll, *MFFPath & "/mff64.dll")
 		#else
-			WLet MFFDll, *MFFPath & "/mff32.dll"
+			WLet(MFFDll, *MFFPath & "/mff32.dll")
 		#endif
 		TabWidth = Val(.txtTabSize.Text)
 		HistoryLimit = Val(.txtHistoryLimit.Text)
@@ -1637,9 +1637,9 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
 		If .cboDefaultProjectFile.ItemIndex = -1 Then
-			WLet DefaultProjectFile, ""
+			WLet(DefaultProjectFile, "")
 		Else
-			WLet DefaultProjectFile, .Templates.Item(.cboDefaultProjectFile.ItemIndex)
+			WLet(DefaultProjectFile, .Templates.Item(.cboDefaultProjectFile.ItemIndex))
 		End If
 		WhenVisualFBEditorStarts = IIf(.optPromptForProjectAndFile.Checked, 1, IIf(.optCreateProjectFile.Checked, 2, IIf(.optOpenLastSession.Checked, 3, 0)))
 		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, 0))
@@ -1654,10 +1654,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		SnapToGridOption = .chkSnapToGrid.Checked
 		ChangeKeywordsCase = .chkChangeKeywordsCase.Checked
 		ChoosedKeywordsCase = .cboCase.ItemIndex
-		WLet CurrentTheme, .cboTheme.Text
-		WLet EditorFontName, *.EditFontName
+		WLet(CurrentTheme, .cboTheme.Text)
+		WLet(EditorFontName, *.EditFontName)
 		EditorFontSize = .EditFontSize
-		WLet InterfaceFontName, *.InterfFontName
+		WLet(InterfaceFontName, *.InterfFontName)
 		InterfaceFontSize = .InterfFontSize
 		DisplayMenuIcons = .chkDisplayIcons.Checked
 		ShowMainToolbar = .chkShowMainToolbar.Checked
@@ -1936,7 +1936,7 @@ Private Sub frmOptions.cmdFont_Click(ByRef Sender As Control)
 		.FontD.Font.Name = *.EditFontName
 		.FontD.Font.Size = .EditFontSize
 		If .FontD.Execute Then
-			WLet *.EditFontName, .FontD.Font.Name
+			WLet(.EditFontName, .FontD.Font.Name)
 			.EditFontSize = .FontD.Font.Size
 			.lblFont.Font.Name = *.EditFontName
 			.lblFont.Caption = *.EditFontName & ", " & .EditFontSize & "pt"
@@ -2486,7 +2486,7 @@ Private Sub frmOptions.cmdInterfaceFont_Click(ByRef Sender As Control)
 		.FontD.Font.Name = *.InterfFontName
 		.FontD.Font.Size = .InterfFontSize
 		If .FontD.Execute Then
-			WLet *.InterfFontName, .FontD.Font.Name
+			WLet(.InterfFontName, .FontD.Font.Name)
 			.InterfFontSize = .FontD.Font.Size
 			.lblInterfaceFont.Font.Name = *.InterfFontName
 			.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"

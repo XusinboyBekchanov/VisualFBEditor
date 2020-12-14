@@ -221,12 +221,12 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub EditControl._FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString)
-		WLet item->Comment, Comment
+		WLet(item->Comment, Comment)
 		Dim ecItem As EditControlLine Ptr
 		For i As Integer = 0 To FLines.Count - 1
 			With *Cast(EditControlLine Ptr, FLines.Items[i])
 				FECLine = New_( EditControlLine)
-				WLet FECLine->Text, *.Text
+				WLet(FECLine->Text, *.Text)
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
 				FECLine->CommentIndex = .CommentIndex
@@ -372,7 +372,7 @@ Namespace My.Sys.Forms
 		FECLine->Collapsed = Value
 		If FECLine->Collapsed Then
 			If Not EndsWith(*FECLine->Text, "'...'") Then
-				WLet FECLine->Text, *FECLine->Text & " '...'"
+				WLet(FECLine->Text, *FECLine->Text & " '...'")
 			End If
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
 				FECLine2 = FLines.Items[i]
@@ -392,7 +392,7 @@ Namespace My.Sys.Forms
 			Next i
 		Else
 			If EndsWith(*FECLine->Text, "'...'") Then
-				WLet FECLine->Text, RTrim(Left(*FECLine->Text, Len(*FECLine->Text) - 5))
+				WLet(FECLine->Text, RTrim(Left(*FECLine->Text, Len(*FECLine->Text) - 5)))
 			End If
 			Dim As EditControlLine Ptr OldCollapsed
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
@@ -602,7 +602,7 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.GetCharIndexFromOld() As Integer
 		If FSelEndLine >= 0 AndAlso FSelEndLine <= FLines.Count - 1 Then
-			WLet FLine, *Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text
+			WLet(FLine, *Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text)
 			Dim As Integer p, i
 			For i = 1 To Len(*FLine)
 				If Mid(*FLine, i, 1) = !"\t" Then
@@ -709,8 +709,8 @@ Namespace My.Sys.Forms
 		Var ecStartLine = Cast(EditControlLine Ptr, FLines.Item(iSelStartLine)), ecEndLine = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine))
 		FECLine = ecStartLine
 		'If iSelStartLine <> iSelEndLine Or iSelStartChar <> iSelEndChar Then AddHistory
-		WLet FLine, Mid(*ecEndLine->Text, iSelEndChar + 1)
-		WLet FECLine->Text, Left(*ecStartLine->Text, iSelStartChar)
+		WLet(FLine, Mid(*ecEndLine->Text, iSelEndChar + 1))
+		WLet(FECLine->Text, Left(*ecStartLine->Text, iSelStartChar))
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
 			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			FLines.Remove i
@@ -726,11 +726,11 @@ Namespace My.Sys.Forms
 				l = Pos1 - p
 			End If
 			If c = 1 Then
-				WLet FECLine->Text, *FECLine->Text & Mid(Value, p, l)
+				WLet(FECLine->Text, *FECLine->Text & Mid(Value, p, l))
 				ChangeCollapsibility iSelStartLine
 			Else
 				FECLine = New_( EditControlLine)
-				WLet FECLine->Text, Mid(Value, p, l)
+				WLet(FECLine->Text, Mid(Value, p, l))
 				'ecItem->CharIndex = p - 1
 				'ecItem->LineIndex = c - 1
 			End If
@@ -745,7 +745,7 @@ Namespace My.Sys.Forms
 		Loop While Pos1 > 0
 		FSelStartLine = iSelStartLine + c - 1
 		FSelStartChar = Len(*FECLine->Text)
-		WLet Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text, *FECLine->Text & *FLine
+		WLet(Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text, *FECLine->Text & *FLine)
 		ChangeCollapsibility FSelStartLine
 		'item->Length = Len(*item->Text)
 		'p = item->CharIndex + item->Length + 1
@@ -785,10 +785,10 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.PasteFromClipboard
 		Dim Value As WString Ptr
-		WLet Value, pClipBoard->GetAsText
+		WLet(Value, pClipBoard->GetAsText)
 		If Value Then
-			WLet Value, Replace(*Value, Chr(13) & Chr(10), Chr(13)), True
-			WLet Value, Replace(*Value, Chr(10), Chr(13)), True
+			WLetEx Value, Replace(*Value, Chr(13) & Chr(10), Chr(13)), True
+			WLetEx Value, Replace(*Value, Chr(10), Chr(13)), True
 			ChangeText *Value, 0, "Xotiradan qo`yildi"
 			WDeallocate Value
 		End If
@@ -807,7 +807,7 @@ Namespace My.Sys.Forms
 		'Changed "Matn almashtirildi"
 		If FLines.Count = 0 Then
 			FECLine = New_( EditControlLine)
-			WLet FECLine->Text, ""
+			WLet(FECLine->Text, "")
 			FLines.Add(FECLine)
 		End If
 		ChangeText "", 0, "Matn almashtirildi"
@@ -832,18 +832,18 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property EditControl.HintWord(ByRef Value As WString)
-		WLet FHintWord, Value
+		WLet(FHintWord, Value)
 	End Property
 	
 	Property EditControl.SelText ByRef As WString
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		WLet FLine, ""
+		WLet(FLine, "")
 		For i As Integer = iSelStartLine To iSelEndLine
 			If i = iSelStartLine And i = iSelEndLine Then
-				WLet FLine, Mid(Lines(i), iSelStartChar + 1, iSelEndChar - iSelStartChar)
+				WLet(FLine, Mid(Lines(i), iSelStartChar + 1, iSelEndChar - iSelStartChar))
 			ElseIf i = iSelStartLine Then
-				WLet FLine, Mid(Lines(i), iSelStartChar + 1)
+				WLet(FLine, Mid(Lines(i), iSelStartChar + 1))
 			ElseIf i = iSelEndLine Then
 				WAdd FLine, Chr(13) & Chr(10) & Left(Lines(i), iSelEndChar)
 			Else
@@ -878,7 +878,7 @@ Namespace My.Sys.Forms
 				'Line Input #Fn, Buff
 				LineInputWstr Fn, pBuff, FileSize
 				FECLine = New_( EditControlLine)
-				WLet FECLine->Text, *pBuff
+				WLet(FECLine->Text, *pBuff)
 				iC = FindCommentIndex(*pBuff, OldiC)
 				FECLine->CommentIndex = iC
 				FLines.Add(FECLine)
@@ -921,7 +921,7 @@ Namespace My.Sys.Forms
 			OldiC = Cast(EditControlLine Ptr, FLines.Items[Index])->CommentIndex
 		End If
 		FECLine = New_( EditControlLine)
-		WLet FECLine->Text, sLine
+		WLet(FECLine->Text, sLine)
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
 		FLines.Insert Index, FECLine
@@ -936,7 +936,7 @@ Namespace My.Sys.Forms
 			OldiC = Cast(EditControlLine Ptr, FLines.Items[Index])->CommentIndex
 		End If
 		FECLine = FLines.Items[Index]
-		WLet FECLine->Text, sLine
+		WLet(FECLine->Text, sLine)
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
 		ChangeCollapsibility Index
@@ -947,7 +947,7 @@ Namespace My.Sys.Forms
 		Changing("UnFormat")
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
-			WLet FECLine->Text, LTrim(*FECLine->Text, Any !"\t ")
+			WLet(FECLine->Text, LTrim(*FECLine->Text, Any !"\t "))
 		Next i
 		Changed("UnFormat")
 		If Not WithoutUpdate Then 
@@ -966,14 +966,14 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
 			'
-			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet FECLine->Text, Trim(*FECLine->Text, Any !"\t ")
+			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet(FECLine->Text, Trim(*FECLine->Text, Any !"\t "))
 			'If *FECLine->Text = "" Then Continue For
-			If Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then wLet FECLine->Text,"If (" & Mid(*FECLine->Text,4)
+			If Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then wLet(FECLine->Text,"If (" & Mid(*FECLine->Text,4))
 			'If LCase(*FECLine->Text) = "endif" Then wLet FECLine->Text,"End If"
 			If iComment = 0 Then
 				If FECLine->Multiline Then
 					Split(*FECLine->Text, """", LineQuotes())
-					WLet FLine, ""
+					WLet(FLine, "")
 					For k As Integer = 0 To UBound(LineQuotes) Step 2
 						WAdd FLine, LineQuotes(k)
 					Next
@@ -1016,7 +1016,7 @@ Namespace My.Sys.Forms
 					CurIndents = iIndents
 				End If
 			End If
-			WLet FECLine->Text, IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(CurIndents * TabWidth), WString(CurIndents, !"\t")) & LTrim(*FECLine->Text, Any !"\t ")
+			WLet(FECLine->Text, IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(CurIndents * TabWidth), WString(CurIndents, !"\t")) & LTrim(*FECLine->Text, Any !"\t "))
 			If iComment = 0 Then
 				If FECLine->Multiline Then
 					For k As Integer = 0 To UBound(LineParts)
@@ -1054,7 +1054,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControl.CharIndexFromPoint(X As Integer, Y As Integer) As Integer
-		WLet FLine, *Cast(EditControlLine Ptr, FLines.Item(LineIndexFromPoint(X, Y)))->Text
+		WLet(FLine, *Cast(EditControlLine Ptr, FLines.Item(LineIndexFromPoint(X, Y)))->Text)
 		Dim As Integer nCaretPosX = X - LeftMargin + HScrollPos * dwCharX
 		Dim As Integer w = TextWidth(GetTabbedText(*FLine))
 		Dim As Integer Idx = Len(*FLine)
@@ -1152,28 +1152,28 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
 		lText = Len(SourceText)
-		WReallocate(FLineTemp, lText * TabWidth + 1)
-		*FLineTemp = ""
+		WReallocate(FLineTab, lText * TabWidth + 1)
+		*FLineTab = ""
 		iPos = PosText
 		ii = 1
 		Do While ii <= lText
 			sChar = Mid(SourceText, ii, 1)
 			If sChar = !"\t" Then
-				iPP = TabWidth - (iPos + TabWidth) Mod TabWidth
+				iPP = TabWidth - ((iPos + TabWidth) Mod TabWidth)
 				If ForPrint Then
-					*FLineTemp &= String(iPP - 1, 1) & Chr(2)
+					*FLineTab &= String(iPP - 1, 1) & Chr(2)
 				Else
-					*FLineTemp &= Space(iPP)
+					*FLineTab &= Space(iPP)
 				End If
 				iPos += iPP
 			Else
-				*FLineTemp &= sChar
+				*FLineTab &= sChar
 				iPos += 1
 			End If
 			ii += 1
 		Loop
 		PosText = iPos
-		Return *FLineTemp
+		Return *FLineTab
 	End Function
 	
 	Sub EditControl.ShowCaretPos(Scroll As Boolean = False)
@@ -1282,10 +1282,10 @@ Namespace My.Sys.Forms
 				If TabAsSpaces AndAlso ChoosedTabStyle = 0 Then
 					n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 					n = TabWidth - (n Mod TabWidth)
-					WLet FECLine->Text, Space(n) & *FECLine->Text
+					WLet(FECLine->Text, Space(n) & *FECLine->Text)
 				Else
 					n = 1
-					WLet FECLine->Text, !"\t" & *FECLine->Text
+					WLet(FECLine->Text, !"\t" & *FECLine->Text)
 				End If
 				If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += n
 				If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += n
@@ -1307,7 +1307,7 @@ Namespace My.Sys.Forms
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			n = Min(n, TabWidth - (n Mod TabWidth))
 			If n = 0 AndAlso Left(*FECLine->Text, 1) = !"\t" Then n = 1
-			WLet FECLine->Text, Mid(*FECLine->Text, n + 1)
+			WLet(FECLine->Text, Mid(*FECLine->Text, n + 1))
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar -= n
 			If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar -= n
 		Next i
@@ -1324,7 +1324,7 @@ Namespace My.Sys.Forms
 		Changing("Izoh qilish")
 		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 			FECLine = FLines.Items[i]
-			WLet FECLine->Text, "'" & *FECLine->Text
+			WLet(FECLine->Text, "'" & *FECLine->Text)
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += 1
 			If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += 1
 		Next i
@@ -1344,12 +1344,12 @@ Namespace My.Sys.Forms
 			FECLine = FLines.Items[i]
 			If i = iSelStartLine Or i = iSelEndLine Then
 				If i = iSelStartLine Then
-					WLet FECLine->Text, "/'" & *FECLine->Text
+					WLet(FECLine->Text, "/'" & *FECLine->Text)
 					FECLine->CommentIndex += 1
 					If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += 2
 					If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += 2
 				ElseIf i = iSelEndLine Then
-					WLet FECLine->Text, *FECLine->Text & "'/"
+					WLet(FECLine->Text, *FECLine->Text & "'/")
 				End If
 			Else
 				FECLine->CommentIndex += 1
@@ -1370,8 +1370,8 @@ Namespace My.Sys.Forms
 			FECLine = FLines.Items[i]
 			If Left(Trim(*FECLine->Text, Any !"\t "), 1) = "'" Then
 				n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
-				WLet FLineTemp, Left(*FECLine->Text, n)
-				WLet FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 2)
+				WLet(FLineTemp, Left(*FECLine->Text, n))
+				WLet(FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 2))
 				If i = FSelEndLine And FSelEndChar > n Then FSelEndChar -= 1
 				If i = FSelStartLine And FSelStartChar > n Then FSelStartChar -= 1
 			End If
@@ -1507,16 +1507,16 @@ Namespace My.Sys.Forms
 	Sub EditControl.PaintText(iLine As Integer, ByRef sText As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
 		'Dim s As WString Ptr
 		'WLet s, sText 'Mid(sText, 1, HScrollPos + This.Width / dwCharX)
-		If LeftMargin + (-HScrollPos + iStart) * dwCharX > dwClientX Then
-			Exit Sub
-		End If
+'		If LeftMargin + (-HScrollPos + iStart) * dwCharX > dwClientX Then
+'			Exit Sub
+'		End If
 '		'ElseIf LeftMargin + (-HScrollPos + InStrCount(Left(sText, iEnd), !"\t") * TabWidth) * dwCharX < 0 Then
 '		If LeftMargin + (-HScrollPos + iEnd) * dwCharX < 0 Then
 '			Exit Sub
 '		End If
 		iPPos = 0
-		WLet FLineLeft, GetTabbedText(Left(sText, iStart), iPPos)
-		WLet FLineRight, GetTabbedText(Mid(sText, iStart + 1, iEnd - iStart) & addit, iPPos)
+		WLet(FLineLeft, GetTabbedText(Left(sText, iStart), iPPos))
+		WLet(FLineRight, GetTabbedText(Mid(sText, iStart + 1, iEnd - iStart) & addit, iPPos))
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend, extend2
 			Dim As Double iRed, iGreen, iBlue
@@ -1579,7 +1579,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.FontSettings()
 		Canvas.Font = This.Font
-		WLet CurrentFontName, *EditorFontName
+		WLet(CurrentFontName, *EditorFontName)
 		CurrentFontSize = EditorFontSize
 		#ifndef __USE_GTK__
 			'hd = GetDc(FHandle)
@@ -2035,7 +2035,7 @@ Namespace My.Sys.Forms
 				cairo_rectangle (cr, 0.0, (i - VScrollPos) * dwCharY, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, True)
 				cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
 				cairo_fill (cr)
-				WLet FLineLeft, WStr(z + 1)
+				WLet(FLineLeft, WStr(z + 1))
 				'Dim extend As cairo_text_extents_t
 				'cairo_text_extents (cr, *FLineLeft, @extend)
 				cairo_move_to(cr, LeftMargin - 30 - TextWidth(ToUTF8(*FLineLeft)), (i - VScrollPos) * dwCharY + dwCharY - 5)
@@ -2056,7 +2056,7 @@ Namespace My.Sys.Forms
 				'SelectObject(bufDC, This.Canvas.Brush.Handle)
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				SetBKMode(bufDC, TRANSPARENT)
-				WLet FLineLeft, WStr(z + 1)
+				WLet(FLineLeft, WStr(z + 1))
 				GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
 				SetTextColor(bufDC, LineNumbers.Foreground)
 				TextOut(bufDC, LeftMargin - 25 - Sz.cx, (i - VScrollPos) * dwCharY, FLineLeft, Len(*FLineLeft))
@@ -2289,7 +2289,7 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To HistoryItem->Lines.Count - 1
 			FECLine = New_( EditControlLine)
 			With *Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
-				WLet FECLine->Text, *.Text
+				WLet(FECLine->Text, *.Text)
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
 				FECLine->CommentIndex = .CommentIndex
@@ -2306,7 +2306,7 @@ Namespace My.Sys.Forms
 		Next i
 		If FLines.Count = 0 Then
 			FECLine = New_( EditControlLine)
-			WLet FECLine->Text, ""
+			WLet(FECLine->Text, "")
 			FLines.Add FECLine
 		End If
 		If bToBack Then
@@ -2908,7 +2908,7 @@ Namespace My.Sys.Forms
 						WordLeft
 						ChangeText "", 0, "Ortdagi so`z o`chirildi"
 					Else
-						WLet FLine, Lines(FSelEndLine)
+						WLet(FLine, Lines(FSelEndLine))
 						Var n = Len(*FLine) - Len(LTrim(*FLine))
 						If n > 0 AndAlso n = FSelEndChar AndAlso Mid(*FLine, FSelEndChar + 1, 1) <> " " Then
 							Var d = Min(n, TabWidth - (n Mod TabWidth))
@@ -3273,7 +3273,7 @@ Namespace My.Sys.Forms
 					WordLeft
 					ChangeText "", 0, "Ortdagi so`z o`chirildi"
 				Else
-					WLet FLine, Lines(FSelEndLine)
+					WLet(FLine, Lines(FSelEndLine))
 					Var n = Len(*FLine) - Len(LTrim(*FLine))
 					If n > 0 AndAlso n = FSelEndChar AndAlso Mid(*FLine, FSelEndChar + 1, 1) <> " " Then
 						Var d = Min(n, TabWidth - (n Mod TabWidth))
@@ -3340,14 +3340,14 @@ Namespace My.Sys.Forms
 					FSelStartLine = FSelEndLine
 					FSelStartChar = FSelEndChar
 				End If
-				WLet FLine, Left(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar)
-				WLet FLineLeft, ""
-				WLet FLineRight, ""
-				WLet FLineTemp, ""
+				WLet(FLine, Left(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar))
+				WLet(FLineLeft, "")
+				WLet(FLineRight, "")
+				WLet(FLineTemp, "")
 				Dim j As Integer = 0
 				Dim i As Integer = GetConstruction(RTrim(*FLine, Any !"\t "), j)
 				Var d = Len(*FLine) - Len(LTrim(*FLine, Any !"\t "))
-				WLet FLineSpace, Left(*FLine, d)
+				WLet(FLineSpace, Left(*FLine, d))
 				Var k = 0
 				Var p = 0
 				Var z = 0
@@ -3367,8 +3367,8 @@ Namespace My.Sys.Forms
 												d = Len(*.Text) - Len(LTrim(*.Text, Any !"\t "))
 												FSelEndChar = FSelEndChar - (Len(*FLineSpace) - d)
 												FSelStartChar = FSelEndChar
-												WLet FLineSpace, Left(*.Text, d)
-												WLet Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, *FLineSpace & LTrim(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, Any !"\t ")
+												WLet(FLineSpace, Left(*.Text, d))
+												WLet(Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, *FLineSpace & LTrim(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, Any !"\t "))
 											End If
 											Exit For
 										Else
@@ -3386,23 +3386,23 @@ Namespace My.Sys.Forms
 							k = 1
 						End If
 						If j = 0 Then
-							If FSelEndLine < FLines.Count - 1 Then WLet FLineTemp, GetTabbedText(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine + 1])->Text)
+							If FSelEndLine < FLines.Count - 1 Then WLetEx(FLineTemp, GetTabbedText(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine + 1])->Text), True)
 							Dim n As Integer
 							Dim m As Integer = GetConstruction(*FLineTemp, n)
 							Var e = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
-							WLet FLineTemp, GetTabbedText(*FLine)
+							WLetEx(FLineTemp, GetTabbedText(*FLine), True)
 							Var r = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
 							If e > r OrElse (e = r And m = i And n > 0) Then
 							Else
-								WLet FLineTemp,  Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1)
-								WLet FLineRight, LTrim(*FLineTemp, Any !"\t ") & Chr(13) & *FLineSpace & GetKeyWordCase(Constructions(i).EndName)
+								WLet(FLineTemp,  Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1))
+								WLet(FLineRight, LTrim(*FLineTemp, Any !"\t ") & Chr(13) & *FLineSpace & GetKeyWordCase(Constructions(i).EndName))
 								p = Len(*FLineTemp)
 							End If
 						End If
 						If i = 0 And (j = 0 Or j = 1) Then
 							If (StartsWith(LTrim(LCase(*FLine), Any !"\t "), "if ") Or StartsWith(LTrim(LCase(*FLine), Any !"\t "), "elseif ")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "then")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "_")) Then
 								p = Len(RTrim(*FLine, Any !"\t ")) - Len(*FLine)
-								WLet FLineLeft, GetKeyWordCase(" Then")
+								WLet(FLineLeft, GetKeyWordCase(" Then"))
 							End If
 						End If
 					End If
@@ -3936,7 +3936,7 @@ Namespace My.Sys.Forms
 			*This.Cursor = LoadCursor(NULL, IDC_IBEAM)
 		#endif
 		This.BackColor       = clWhite
-		WLet FClassName, "EditControl"
+		WLet(FClassName, "EditControl")
 		#ifndef __USE_GTK__
 			This.RegisterClass "EditControl", ""
 		#endif
@@ -3985,7 +3985,7 @@ Namespace My.Sys.Forms
 			This.Add @pnlIntellisense
 		#endif
 		Var item = New_( EditControlLine)
-		WLet item->Text, ""
+		WLet(item->Text, "")
 		FLines.Add item
 		bOldCommented = True
 		ChangeText "", 0, "Bo`sh"
@@ -4010,6 +4010,7 @@ Namespace My.Sys.Forms
 		WDeallocate FLineLeft 
 		WDeallocate FLineRight 
 		WDeallocate FLineTemp 
+		WDeallocate FLineTab
 		WDeallocate FLineSpace 
 		WDeallocate FHintWord 
 		WDeallocate CurrentFontName

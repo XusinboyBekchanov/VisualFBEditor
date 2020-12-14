@@ -271,25 +271,25 @@ End Sub
 
 Private Sub frmParameters.cmdOK_Click(ByRef Sender As Control)
 	With fParameters
-		WLet Compiler32Arguments, .txtfbc32.Text
-		WLet Compiler64Arguments, .txtfbc64.Text
-		WLet Make1Arguments, .txtMake1.Text
-		WLet Make2Arguments, .txtMake2.Text
-		WLet RunArguments, .txtRun.Text
-		WLet CurrentCompiler32, .cboCompiler32.Text
-		WLet Compiler32Path, pCompilers->Get(*CurrentCompiler32, pCompilers->Get(*DefaultCompiler32))
-		WLet CurrentCompiler64, .cboCompiler64.Text
-		WLet Compiler64Path, pCompilers->Get(*CurrentCompiler64, pCompilers->Get(*DefaultCompiler64))
-		WLet CurrentMakeTool1, .cboMake1.Text
-		WLet MakeToolPath, pMakeTools->Get(*CurrentMakeTool1, pMakeTools->Get(*DefaultMakeTool))
-		WLet CurrentMakeTool2, .cboMake2.Text
-		WLet MakeToolPath, pMakeTools->Get(*CurrentMakeTool2, pMakeTools->Get(*DefaultMakeTool))
-		WLet CurrentTerminal, .cboRun.Text
-		WLet TerminalPath, IIf(.cboRun.ItemIndex = 0, pTerminals->Get(*DefaultTerminal), pTerminals->Get(*CurrentTerminal))
-		WLet CurrentDebugger32, .cboDebug32.Text
-		WLet CurrentDebugger64, .cboDebug64.Text
-		WLet Debugger32Path, IIf(.cboDebug32.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger32), pDebuggers->Get(*CurrentDebugger32))
-		WLet Debugger64Path, IIf(.cboDebug64.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger64), pDebuggers->Get(*CurrentDebugger64))
+		WLet(Compiler32Arguments, .txtfbc32.Text)
+		WLet(Compiler64Arguments, .txtfbc64.Text)
+		WLet(Make1Arguments, .txtMake1.Text)
+		WLet(Make2Arguments, .txtMake2.Text)
+		WLet(RunArguments, .txtRun.Text)
+		WLet(CurrentCompiler32, .cboCompiler32.Text)
+		WLet(Compiler32Path, pCompilers->Get(*CurrentCompiler32, pCompilers->Get(*DefaultCompiler32)))
+		WLet(CurrentCompiler64, .cboCompiler64.Text)
+		WLet(Compiler64Path, pCompilers->Get(*CurrentCompiler64, pCompilers->Get(*DefaultCompiler64)))
+		WLet(CurrentMakeTool1, .cboMake1.Text)
+		WLet(MakeToolPath, pMakeTools->Get(*CurrentMakeTool1, pMakeTools->Get(*DefaultMakeTool)))
+		WLet(CurrentMakeTool2, .cboMake2.Text)
+		WLet(MakeToolPath, pMakeTools->Get(*CurrentMakeTool2, pMakeTools->Get(*DefaultMakeTool)))
+		WLet(CurrentTerminal, .cboRun.Text)
+		WLet(TerminalPath, IIf(.cboRun.ItemIndex = 0, pTerminals->Get(*DefaultTerminal), pTerminals->Get(*CurrentTerminal)))
+		WLet(CurrentDebugger32, .cboDebug32.Text)
+		WLet(CurrentDebugger64, .cboDebug64.Text)
+		WLet(Debugger32Path, IIf(.cboDebug32.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger32), pDebuggers->Get(*CurrentDebugger32)))
+		WLet(Debugger64Path, IIf(.cboDebug64.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger64), pDebuggers->Get(*CurrentDebugger64)))
 		piniSettings->WriteString "Parameters", "Compiler32Arguments", *Compiler32Arguments
 		piniSettings->WriteString "Parameters", "Compiler64Arguments", *Compiler64Arguments
 		piniSettings->WriteString "Parameters", "Make1Arguments", *Make1Arguments

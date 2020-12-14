@@ -336,7 +336,7 @@ Function Compile(Parameter As String = "") As Integer
 	On Error Goto ErrorHandler
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
-	Dim MainFile As WString Ptr: WLet MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode)
+	Dim MainFile As WString Ptr: WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
 	If Len(*MainFile) <= 0 Then
 		ThreadsEnter()
 		ShowMessages ML("No Main file specified for the project.") & "!"
@@ -344,13 +344,13 @@ Function Compile(Parameter As String = "") As Integer
 		WDeallocate MainFile
 		Return 0
 	End If
-	Dim FirstLine As WString Ptr: WLet FirstLine, GetFirstCompileLine(*MainFile, Project)
+	Dim FirstLine As WString Ptr: WLet(FirstLine, GetFirstCompileLine(*MainFile, Project))
 	Versioning *MainFile, *FirstLine, Project, ProjectNode
 	Dim FileOut As Integer
 	ThreadsEnter()
 	Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
 	ThreadsLeave()
-	Dim ExeName As WString Ptr: WLet ExeName, GetExeFileName(*MainFile, *FirstLine)
+	Dim ExeName As WString Ptr: WLet(ExeName, GetExeFileName(*MainFile, *FirstLine))
 	Dim FbcExe As WString Ptr = IIf(Bit32, Compiler32Path, Compiler64Path)
 	If *FbcExe = "" Then
 		WDeallocate MainFile
@@ -386,13 +386,13 @@ Function Compile(Parameter As String = "") As Integer
 	Dim As Integer iLine
 	Dim LogText As WString Ptr
 	
-	WLet MFFPathC, *MFFPath
-	If CInt(InStr(*MFFPathC, ":") = 0) AndAlso CInt(Not StartsWith(*MFFPathC, "/")) Then WLet MFFPathC, ExePath & "/" & *MFFPath
-	WLet BatFileName, ExePath + "/debug.bat"
+	WLet(MFFPathC, *MFFPath)
+	If CInt(InStr(*MFFPathC, ":") = 0) AndAlso CInt(Not StartsWith(*MFFPathC, "/")) Then WLet(MFFPathC, ExePath & "/" & *MFFPath)
+	WLet(BatFileName, ExePath + "/debug.bat")
 	Dim As Boolean Band, Yaratilmadi
 	ChDir(GetFolderName(*MainFile))
 	If Parameter = "Check" Then
-		WLet ExeName, "chk.dll"
+		WLet(ExeName, "chk.dll")
 	End If
 	ClearMessages
 	FileOut = FreeFile
@@ -412,7 +412,7 @@ Function Compile(Parameter As String = "") As Integer
 			Return 0
 		End If
 	End If
-	WLet CompileWith, *FirstLine
+	WLet(CompileWith, *FirstLine)
 	If CInt(InStr(*CompileWith, " -s ") = 0) AndAlso CInt(tbStandard.Buttons.Item("Form")->Checked) Then
 		WAdd CompileWith, " -s gui"
 	End If
@@ -430,8 +430,8 @@ Function Compile(Parameter As String = "") As Integer
 		WAdd CompileWith, " -p """ & pLibraryPaths->Item(i) & """"
 	Next
 	'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
-	WLet LogFileName2, ExePath & "/Temp/Compile.log"
-	WLet fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith
+	WLet(LogFileName2, ExePath & "/Temp/Compile.log")
+	WLet(fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith)
 	If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
 	End If
@@ -441,11 +441,11 @@ Function Compile(Parameter As String = "") As Integer
 		#ifdef __USE_GTK__
 			Colon = ":"
 		#endif
-		WLet PipeCommand, """" & *MakeToolPath & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *ExeName & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments
+		WLet(PipeCommand, """" & *MakeToolPath & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *ExeName & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
 	ElseIf Parameter = "MakeClean" Then
-		WLet PipeCommand, """" & *MakeToolPath & """ " & *Make2Arguments
+		WLet(PipeCommand, """" & *MakeToolPath & """ " & *Make2Arguments)
 	Else
-		WLet PipeCommand, """" & *fbcexe & """ " & *fbcCommand
+		WLet(PipeCommand, """" & *fbcexe & """ " & *fbcCommand)
 	End If
 	'	' for better showing
 	'	#ifdef __USE_GTK__
@@ -473,9 +473,9 @@ Function Compile(Parameter As String = "") As Integer
 	Dim As Integer Result = -1, Fn = FreeFile
 	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 	#ifdef __USE_GTK__
-		WLet PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True
+		WLetEx(PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True)
 	#else
-		WLet PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
+		WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
 		'ShowWindow(getconsolewindow,SW_HIDE)
 	#endif
 	If Parameter <> "Check" Then
@@ -488,7 +488,7 @@ Function Compile(Parameter As String = "") As Integer
 			Line Input #Fn, Buff
 			SplitError(Buff, ErrFileName, ErrTitle, iLine)
 			ThreadsEnter()
-			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
+			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 			lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
 			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
@@ -517,7 +517,7 @@ Function Compile(Parameter As String = "") As Integer
 			'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
 			SplitError(Buff, ErrFileName, ErrTitle, iLine)
 			ThreadsEnter()
-			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
+			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 			lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
 			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
@@ -622,8 +622,8 @@ Sub txtOutput_DblClick(ByRef Sender As Control)
 	Dim As Integer iLine
 	Dim As WString Ptr Temp
 	SplitError(*Buff, ErrFileName, ErrTitle, iLine)
-	Dim MainFile As WString Ptr: WLet MainFile, GetMainFile(False, Project, ProjectNode)
-	If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
+	Dim MainFile As WString Ptr: WLet(MainFile, GetMainFile(False, Project, ProjectNode))
+	If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 	WDeallocate Temp
 	WDeallocate MainFile
 	SelectError(*ErrFileName, iLine)
@@ -704,10 +704,10 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 				tn1 = tn->Nodes.Add(GetFileName(f), , f, IconName, IconName)
 				If FileExists(f & Slash & f & ".vfp") Then
 					AddProject f & Slash & f & ".vfp", , tn1
-					WLet Cast(ExplorerElement Ptr, tn1->Tag)->FileName, *ee->FileName & "/" & f
+					WLet(Cast(ExplorerElement Ptr, tn1->Tag)->FileName, *ee->FileName & "/" & f)
 				Else
 					ee1 = New_( ExplorerElement)
-					WLet ee1->FileName, *ee->FileName & "/" & f
+					WLet(ee1->FileName, *ee->FileName & "/" & f)
 					tn1->Tag = ee1
 				End If
 				tn1->Nodes.Add ""
@@ -727,7 +727,7 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 		End If
 		tn1 = tn->Nodes.Add(GetFileName(*ee->FileName & "/" & Files.Item(i)), , Files.Item(i), IconName, IconName)
 		ee1 = New_( ExplorerElement)
-		WLet ee1->FileName, Files.Item(i)
+		WLet(ee1->FileName, Files.Item(i))
 		tn1->Tag = ee1
 	Next i
 End Sub
@@ -754,11 +754,11 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 		tn = tvExplorer.Nodes.Add(GetFileName(FolderName), , FolderName, IconName, IconName)
 		If FileExists(FolderName & Slash & GetFileName(FolderName) & ".vfp") Then
 			AddProject FolderName & Slash & GetFileName(FolderName) & ".vfp", , tn
-			WLet Cast(ExplorerElement Ptr, tn->Tag)->FileName, FolderName
+			WLet(Cast(ExplorerElement Ptr, tn->Tag)->FileName, FolderName)
 		Else
 			Dim As ExplorerElement Ptr ee
 			ee = New_( ExplorerElement)
-			WLet ee->FileName, FolderName
+			WLet(ee->FileName, FolderName)
 			tn->Tag = ee
 		End If
 		ExpandFolder tn
@@ -844,10 +844,10 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		Dim As WStringList Ptr pFiles
 		ppe = New_( ProjectElement)
 		If bNew Then
-			WLet ppe->FileName, Left(tn->Text, Len(tn->Text) - 1)
-			WLet ppe->TemplateFileName, FileName
+			WLet(ppe->FileName, Left(tn->Text, Len(tn->Text) - 1))
+			WLet(ppe->TemplateFileName, FileName)
 		Else
-			WLet ppe->FileName, FileName
+			WLet(ppe->FileName, FileName)
 		End If
 		tn->Tag = ppe
 		If pFilesList = 0 Then pFiles = @Files Else pFiles = pFilesList
@@ -877,16 +877,16 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					ee = New_( ExplorerElement)
 					If CInt(InStr(Buff, ":") = 0) OrElse CInt(StartsWith(Buff, "/")) Then
 						#ifdef __USE_GTK__
-							WLet ee->FileName, GetFolderName(FileName) & Buff
+							WLet(ee->FileName, GetFolderName(FileName) & Buff)
 						#else
-							WLet ee->FileName, GetFolderName(FileName) & Replace(Buff, "/", "\")
+							WLet(ee->FileName, GetFolderName(FileName) & Replace(Buff, "/", "\"))
 						#endif
 					Else
-						WLet ee->FileName, Buff
+						WLet(ee->FileName, Buff)
 					End If
 					If bNew Then
-						WLet ee->TemplateFileName, WGet(ee->FileName)
-						WLet ee->FileName, GetFileName(Buff)
+						WLet(ee->TemplateFileName, WGet(ee->FileName))
+						WLet(ee->FileName, GetFileName(Buff))
 					End If
 					If Not inFolder Then
 						tn1 = GetTreeNodeChild(tn, Buff)
@@ -894,11 +894,11 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					Dim As Boolean FileEx = CInt(FileExists(*ee->FileName)) OrElse CInt(bNew)
 					If bMain Then
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  ' Then
-							WLet ppe->ResourceFileName, *ee->FileName
+							WLet(ppe->ResourceFileName, *ee->FileName)
 						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then  '
-							WLet ppe->IconResourceFileName, *ee->FileName
+							WLet(ppe->IconResourceFileName, *ee->FileName)
 						Else
-							WLet ppe->MainFileName, *ee->FileName
+							WLet(ppe->MainFileName, *ee->FileName)
 						End If
 					End If
 					IconName = GetIconName(*ee->FileName, ppe)
@@ -925,11 +925,11 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 				ElseIf Parameter = "ProjectType" Then
 					ppe->ProjectType = Val(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "ProjectName" Then
-					WLet ppe->ProjectName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->ProjectName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "HelpFileName" Then
-					WLet ppe->HelpFileName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->HelpFileName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "ProjectDescription" Then
-					WLet ppe->ProjectDescription, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->ProjectDescription, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "MajorVersion" Then
 					ppe->MajorVersion = Val(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "MinorVersion" Then
@@ -941,23 +941,23 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 				ElseIf Parameter = "AutoIncrementVersion" Then
 					ppe->AutoIncrementVersion = CBool(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "ApplicationTitle" Then
-					WLet ppe->ApplicationTitle, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->ApplicationTitle, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "ApplicationIcon" Then
-					WLet ppe->ApplicationIcon, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->ApplicationIcon, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CompanyName" Then
-					WLet ppe->CompanyName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->CompanyName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "FileDescription" Then
-					WLet ppe->FileDescription, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->FileDescription, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "InternalName" Then
-					WLet ppe->InternalName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->InternalName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "LegalCopyright" Then
-					WLet ppe->LegalCopyright, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->LegalCopyright, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "LegalTrademarks" Then
-					WLet ppe->LegalTrademarks, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->LegalTrademarks, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "OriginalFilename" Then
-					WLet ppe->OriginalFilename, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->OriginalFilename, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "ProductName" Then
-					WLet ppe->ProductName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->ProductName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CompileToGCC" Then
 					ppe->CompileToGCC = CBool(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "OptimizationLevel" Then
@@ -967,15 +967,15 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 				ElseIf Parameter = "OptimizationSmallCode" Then
 					ppe->OptimizationFastCode = CBool(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "CompilationArguments32Windows" Then
-					WLet ppe->CompilationArguments32Windows, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->CompilationArguments32Windows, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CompilationArguments64Windows" Then
-					WLet ppe->CompilationArguments64Windows, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->CompilationArguments64Windows, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CompilationArguments32Linux" Then
-					WLet ppe->CompilationArguments32Linux, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->CompilationArguments32Linux, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CompilationArguments64Linux" Then
-					WLet ppe->CompilationArguments64Linux, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->CompilationArguments64Linux, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CommandLineArguments" Then
-					WLet ppe->CommandLineArguments, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					WLet(ppe->CommandLineArguments, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CreateDebugInfo" Then
 					ppe->CreateDebugInfo = CBool(Mid(Buff, Pos1 + 1))
 				End If
@@ -1046,10 +1046,10 @@ Function AddSession(ByRef FileName As WString) As Boolean
 				Pos1 = InStr(Buff, "=")
 				If Pos1 <> 0 Then
 					bMain = StartsWith(Buff, "*")
-					WLet filn, Mid(Buff, Pos1 + 1)
+					WLet(filn, Mid(Buff, Pos1 + 1))
 					If CInt(InStr(*filn, ":") = 0) OrElse CInt(StartsWith(*filn, "/")) Then
-						WLet filn, CurrentPath & Replace(*filn, BackSlash, Slash)
-						If EndsWith(*filn, Slash) Then WLet filn, Left(*filn, Len(*filn) - 1), True
+						WLet(filn, CurrentPath & Replace(*filn, BackSlash, Slash))
+						If EndsWith(*filn, Slash) Then WLetEx filn, Left(*filn, Len(*filn) - 1), True
 					End If
 					Dim tn As TreeNode Ptr
 					If EndsWith(LCase(*filn), ".vfp") Then
@@ -1094,7 +1094,7 @@ Sub OpenSession()
 			CloseProject(tvExplorer.Nodes.Item(i))
 		End If
 	Next i
-	WLet LastOpenPath, GetFolderName(OpenD.FileName)
+	WLet(LastOpenPath, GetFolderName(OpenD.FileName))
 	AddSession OpenD.FileName
 	TabLeft.Tabs[0]->SelectTab
 End Sub
@@ -1158,7 +1158,7 @@ Sub OpenFiles(ByRef FileName As WString)
 		AddMRUFile FileName
 		AddTab FileName
 	End If
-	wLet RecentFiles, FileName
+	wLet(RecentFiles, FileName)
 End Sub
 
 Sub OpenProgram()
@@ -1171,7 +1171,7 @@ Sub OpenProgram()
 	'  Add *.inc
 	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
-		WLet LastOpenPath, GetFolderName(OpenD.Filename)
+		WLet(LastOpenPath, GetFolderName(OpenD.Filename))
 		OpenFiles(OpenD.Filename)
 	End If
 	TabLeft.Tabs[0]->SelectTab
@@ -1187,7 +1187,7 @@ Function SaveSession() As Boolean
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
 	End If
 	If Not SaveD.Execute Then Return False
-	WLet LastOpenPath, GetFolderName(SaveD.FileName)
+	WLet(LastOpenPath, GetFolderName(SaveD.FileName))
 	If FileExists(SaveD.Filename) Then
 		Select Case MsgBox(ML("Are you sure you want to overwrite the session") & "?" & WChr(13,10) & SaveD.Filename, "Visual FB Editor", mtWarning, btYesNo)
 		Case mrYES:
@@ -1253,7 +1253,7 @@ Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, t
 		SetSaveDialogParameters(WGet(ee->FileName))
 		Do
 			If pSaveD->Execute Then
-				WLet LastOpenPath, GetFolderName(pSaveD->FileName)
+				WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
 				If FileExists(pSaveD->FileName) Then
 					Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", pApp->Title, mtWarning, btYesNoCancel)
 					Case mrYes: Exit Do
@@ -1267,10 +1267,10 @@ Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, t
 				Return False
 			End If
 		Loop
-		If WGet(ppe->MainFileName) = WGet(ee->FileName) Then WLet ppe->MainFileName, pSaveD->Filename
-		If WGet(ppe->ResourceFileName) = WGet(ee->FileName) Then WLet ppe->ResourceFileName, pSaveD->Filename
-		If WGet(ppe->IconResourceFileName) = WGet(ee->FileName) Then WLet ppe->IconResourceFileName, pSaveD->Filename
-		WLet ee->FileName, pSaveD->FileName
+		If WGet(ppe->MainFileName) = WGet(ee->FileName) Then WLet(ppe->MainFileName, pSaveD->Filename)
+		If WGet(ppe->ResourceFileName) = WGet(ee->FileName) Then WLet(ppe->ResourceFileName, pSaveD->Filename)
+		If WGet(ppe->IconResourceFileName) = WGet(ee->FileName) Then WLet(ppe->IconResourceFileName, pSaveD->Filename)
+		WLet(ee->FileName, pSaveD->FileName)
 		tn->Text = GetFileName(*ee->FileName)
 		If WGet(ee->TemplateFileName) <> "" Then FileCopy WGet(ee->TemplateFileName), WGet(ee->FileName)
 	End If
@@ -1289,7 +1289,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		If ppe <> 0 Then SaveD.FileName = WGet(ppe->FileName)
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
-		WLet LastOpenPath, GetFolderName(SaveD.FileName)
+		WLet(LastOpenPath, GetFolderName(SaveD.FileName))
 		If FileExists(SaveD.Filename) Then
 			Select Case MsgBox(ML("Are you sure you want to overwrite the project") & "?" & WChr(13,10) & SaveD.Filename, "Visual FB Editor", mtWarning, btYesNo)
 			Case mrYES:
@@ -1297,7 +1297,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 			End Select
 		End If
 		If ppe = 0 Then ppe = New_( ProjectElement)
-		WLet ppe->FileName, SaveD.FileName
+		WLet(ppe->FileName, SaveD.FileName)
 		AddMRUProject SaveD.FileName
 	End If
 	Dim As TreeNode Ptr tn1, tn2
@@ -1392,7 +1392,14 @@ Sub SaveAll()
 End Sub
 
 Sub SaveAllBeforeCompile()
-	If AutoSaveBeforeCompiling = 2 Then SaveAll
+	If AutoSaveBeforeCompiling = 1 Then
+		Dim As ProjectElement Ptr Project
+		Dim As TreeNode Ptr ProjectNode
+		GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode)
+		If ProjectNode <> 0 Then SaveProject ProjectNode
+	ElseIf AutoSaveBeforeCompiling = 2 Then
+		SaveAll
+	End If
 End Sub
 
 Sub PrintThis()
@@ -1560,8 +1567,8 @@ Sub AddFromTemplate(ByRef Template As WString)
 			Loop While tn1->Nodes.Contains(*NewName.vptr) OrElse tn1->Nodes.Contains(WStr(NewName & "*"))
 			tn3 = tn1->Nodes.Add(NewName & "*", , , IconName, IconName, True)
 			ee = New_( ExplorerElement)
-			WLet ee->FileName, NewName
-			WLet ee->TemplateFileName, Template
+			WLet(ee->FileName, NewName)
+			WLet(ee->TemplateFileName, Template)
 			tn3->Tag = ee
 			If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
 			If Not ptn->IsExpanded Then ptn->Expand
@@ -1599,7 +1606,7 @@ Sub AddFilesToProject
 				Dim As String IconName = GetIconName(OpenD.FileNames.Item(i))
 				tn3 = tn1->Nodes.Add(GetFileName(OpenD.FileNames.Item(i)), , , IconName, IconName, True)
 				ee = New_( ExplorerElement)
-				WLet ee->FileName, OpenD.FileNames.Item(i)
+				WLet(ee->FileName, OpenD.FileNames.Item(i))
 				tn3->Tag = ee
 				'tn1->Expand
 			Else
@@ -1688,7 +1695,7 @@ Sub SetAsMain()
 			ppe = ptn->Tag
 			If ppe = 0 Then
 				ppe = New_( ProjectElement)
-				WLet ppe->FileName, ""
+				WLet(ppe->FileName, "")
 			End If
 			If ee <> 0 AndAlso ppe <> 0 Then
 				'David Change
@@ -1700,9 +1707,9 @@ Sub SetAsMain()
 					Dim As String IconName
 					If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
 					If EndsWith(LCase(*ee->FileName), ".rc") Then
-						WLet ppe->ResourceFileName, *ee->FileName
+						WLet(ppe->ResourceFileName, *ee->FileName)
 					Else
-						WLet ppe->MainFileName, *ee->FileName
+						WLet(ppe->MainFileName, *ee->FileName)
 					End If
 					IconName = GetIconName(WGet(ee->FileName), ppe)
 					If MainNode <> 0 Then MainNode->Bold = False
@@ -1896,9 +1903,9 @@ End Sub
 Function EqualPaths(ByRef a As WString, ByRef b As WString) As Boolean
 	Dim FileNameLeft As WString Ptr
 	Dim FileNameRight As WString Ptr
-	WLet FileNameLeft, Replace(a, "\", "/"), True
+	WLetEx FileNameLeft, Replace(a, "\", "/"), True
 	If EndsWith(*FileNameLeft, ":") Then *FileNameLeft = Left(*FileNameLeft, Len(*FileNameLeft) - 1)
-	WLet FileNameRight, Replace(b, "\", "/"), True
+	WLetEx FileNameRight, Replace(b, "\", "/"), True
 	EqualPaths = LCase(*FileNameLeft) = LCase(*FileNameRight)
 	WDeallocate FileNameLeft
 	WDeallocate FileNameRight
@@ -2660,10 +2667,19 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							n = Types.IndexOf(bt)
-							If n > -1 Then Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
-							If n = -1 Then
-								n = Comps.IndexOf(bt)
-								If n > -1 AndAlso Comps.Object(n) <> 0 Then Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
+							If n > -1 Then
+								Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
+							ElseIf n = -1 Then
+								If bt = "Object" Then
+									n = Comps.IndexOf("My.Sys.Object")
+								Else
+									n = Comps.IndexOf(bt)
+								End If
+								If n > -1 AndAlso Comps.Object(n) <> 0 Then 
+									Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
+								Else
+									'?bTrim
+								End If
 							End If
 						Else
 							Functions.Add te->Name, te
@@ -2709,10 +2725,19 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							n = Types.IndexOf(bt)
-							If n > -1 Then Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
-							If n = -1 Then
-								n = Comps.IndexOf(bt)
-								If n > -1 AndAlso Comps.Object(n) <> 0 Then Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
+							If n > -1 Then 
+								Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
+							ElseIf n = -1 Then
+								If bt = "Object" Then
+									n = Comps.IndexOf("My.Sys.Object")
+								Else
+									n = Comps.IndexOf(bt)
+								End If
+								If n > -1 AndAlso Comps.Object(n) <> 0 Then 
+									Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
+								Else
+									'?bTrim
+								End If
 							End If
 						Else
 							Functions.Add te->Name, te
@@ -2883,25 +2908,25 @@ Sub LoadToolBox
 	Dim As String IncludePath
 	Dim MFF As Any Ptr
 	IncludeMFFPath = iniSettings.ReadBool("Options", "IncludeMFFPath", True)
-	WLet MFFPath, iniSettings.ReadString("Options", "MFFPath", "./MyFbFramework")
+	WLet(MFFPath, iniSettings.ReadString("Options", "MFFPath", "./MyFbFramework"))
 	#ifndef __USE_GTK__
 		#ifdef __FB_64BIT__
-			WLet MFFDll, GetFullPath(*MFFPath) & "/mff64.dll"
+			WLet(MFFDll, GetFullPath(*MFFPath) & "/mff64.dll")
 		#else
-			WLet MFFDll, GetFullPath(*MFFPath) & "/mff32.dll"
+			WLet(MFFDll, GetFullPath(*MFFPath) & "/mff32.dll")
 		#endif
 	#else
 		#ifdef __USE_GTK3__
 			#ifdef __FB_64BIT__
-				WLet MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk3.so"
+				WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk3.so")
 			#else
-				WLet MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk3.so"
+				WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk3.so")
 			#endif
 		#else
 			#ifdef __FB_64BIT__
-				WLet MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk2.so"
+				WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk2.so")
 			#else
-				WLet MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk2.so"
+				WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk2.so")
 			#endif
 		#endif
 	#endif
@@ -3010,33 +3035,33 @@ Sub LoadSettings
 		If Temp <> "" Then LibraryPaths.Add Temp
 		i += 1
 	Loop
-	WLet CurrentCompiler32, ""
-	WLet CurrentCompiler64, ""
-	WLet CurrentMakeTool1, ""
-	WLet CurrentMakeTool2, ""
-	WLet CurrentTerminal, ""
-	WLet CurrentDebugger32, ""
-	WLet CurrentDebugger64, ""
-	WLet DefaultCompiler32, iniSettings.ReadString("Compilers", "DefaultCompiler32", "")
-	WLet DefaultCompiler64, iniSettings.ReadString("Compilers", "DefaultCompiler64", "")
-	WLet Compiler32Path, Compilers.Get(*DefaultCompiler32, "fbc")
-	WLet Compiler64Path, Compilers.Get(*DefaultCompiler64, "fbc")
-	WLet DefaultMakeTool, iniSettings.ReadString("MakeTools", "DefaultMakeTool", "make")
-	WLet MakeToolPath, MakeTools.Get(*DefaultMakeTool, "make")
-	WLet DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "")
-	WLet DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", "")
-	WLet Debugger32Path, Debuggers.Get(*DefaultDebugger32, "")
-	WLet Debugger64Path, Debuggers.Get(*DefaultDebugger64, "")
-	WLet DefaultTerminal, iniSettings.ReadString("Terminals", "DefaultTerminal", "")
-	WLet TerminalPath, Terminals.Get(*DefaultTerminal, "")
-	WLet DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", "")
-	WLet HelpPath, Helps.Get(*DefaultHelp, "")
+	WLet(CurrentCompiler32, "")
+	WLet(CurrentCompiler64, "")
+	WLet(CurrentMakeTool1, "")
+	WLet(CurrentMakeTool2, "")
+	WLet(CurrentTerminal, "")
+	WLet(CurrentDebugger32, "")
+	WLet(CurrentDebugger64, "")
+	WLet(DefaultCompiler32, iniSettings.ReadString("Compilers", "DefaultCompiler32", ""))
+	WLet(DefaultCompiler64, iniSettings.ReadString("Compilers", "DefaultCompiler64", ""))
+	WLet(Compiler32Path, Compilers.Get(*DefaultCompiler32, "fbc"))
+	WLet(Compiler64Path, Compilers.Get(*DefaultCompiler64, "fbc"))
+	WLet(DefaultMakeTool, iniSettings.ReadString("MakeTools", "DefaultMakeTool", "make"))
+	WLet(MakeToolPath, MakeTools.Get(*DefaultMakeTool, "make"))
+	WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", ""))
+	WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", ""))
+	WLet(Debugger32Path, Debuggers.Get(*DefaultDebugger32, ""))
+	WLet(Debugger64Path, Debuggers.Get(*DefaultDebugger64, ""))
+	WLet(DefaultTerminal, iniSettings.ReadString("Terminals", "DefaultTerminal", ""))
+	WLet(TerminalPath, Terminals.Get(*DefaultTerminal, ""))
+	WLet(DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", ""))
+	WLet(HelpPath, Helps.Get(*DefaultHelp, ""))
 	
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
-	WLet ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects")
+	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects"))
 	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
 	ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", True)
 	SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", True)
@@ -3045,7 +3070,7 @@ Sub LoadSettings
 	AutoSaveBeforeCompiling = iniSettings.ReadInteger("Options", "AutoSaveBeforeCompiling", 1)
 	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
 	WhenVisualFBEditorStarts = iniSettings.ReadInteger("Options", "WhenVisualFBEditorStarts", 2)
-	WLet DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm")
+	WLet(DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm"))
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
 	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
@@ -3058,14 +3083,14 @@ Sub LoadSettings
 	HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
 	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
 	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
-	WLet CurrentTheme, iniSettings.ReadString("Options", "CurrentTheme", "Default Theme")
-	WLet EditorFontName, iniSettings.ReadString("Options", "EditorFontName", "Courier New")
+	WLet(CurrentTheme, iniSettings.ReadString("Options", "CurrentTheme", "Default Theme"))
+	WLet(EditorFontName, iniSettings.ReadString("Options", "EditorFontName", "Courier New"))
 	EditorFontSize = iniSettings.ReadInteger("Options", "EditorFontSize", 10)
 	#ifdef __USE_GTK__
-		WLet InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Ubuntu")
+		WLet(InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Ubuntu"))
 		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 11)
 	#else
-		WLet InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Tahoma")
+		WLet(InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Tahoma"))
 		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 8)
 	#endif
 	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
@@ -3076,13 +3101,13 @@ Sub LoadSettings
 	mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
 	tbStandard.Visible = ShowMainToolbar
 	
-	WLet Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-exx")
-	WLet Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-exx")
-	WLet Make1Arguments, iniSettings.ReadString("Parameters", "Make1Arguments", "")
-	WLet Make2Arguments, iniSettings.ReadString("Parameters", "Make2Arguments", "clean")
-	WLet RunArguments, iniSettings.ReadString("Parameters", "RunArguments", "")
-	WLet Debug32Arguments, iniSettings.ReadString("Parameters", "Debug32Arguments", "")
-	WLet Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", "")
+	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-exx"))
+	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-exx"))
+	WLet(Make1Arguments, iniSettings.ReadString("Parameters", "Make1Arguments", ""))
+	WLet(Make2Arguments, iniSettings.ReadString("Parameters", "Make2Arguments", "clean"))
+	WLet(RunArguments, iniSettings.ReadString("Parameters", "RunArguments", ""))
+	WLet(Debug32Arguments, iniSettings.ReadString("Parameters", "Debug32Arguments", ""))
+	WLet(Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", ""))
 	
 	iniTheme.Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
 	Bookmarks.ForegroundOption = iniTheme.ReadInteger("Colors", "BookmarksForeground", -1)
@@ -3645,9 +3670,11 @@ Sub CreateMenusAndToolBars
 	Var tbButton = tbStandard.Buttons.Add(tbsWholeDropdown, "Try",, @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
 	tbButton->DropDownMenu.ImagesList = @imgList
 	tbButton->DropDownMenu.Add ML("Numbering"), "Numbering", "NumberOn", @mclick
+	tbButton->DropDownMenu.Add ML("Macro numbering"), "", "MacroNumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Numbering"), "", "NumberOff", @mclick
 	tbButton->DropDownMenu.Add "-"
 	tbButton->DropDownMenu.Add ML("Procedure numbering"), "Numbering", "ProcedureNumberOn", @mclick
+	tbButton->DropDownMenu.Add ML("Procedure macro numbering"), "", "ProcedureMacroNumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Procedure numbering"), "", "ProcedureNumberOff", @mclick
 	tbButton->DropDownMenu.Add "-"
 	tbButton->DropDownMenu.Add ML("Preprocessor Numbering"), "Numbering", "PreprocessorNumberOn", @mclick
@@ -3990,7 +4017,7 @@ End Sub
 Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
 	If tn = 0 OrElse tn->ParentNode = 0 Then
 		Return tn
-	ElseIf tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
+	ElseIf tn->ImageKey = "Project" Then 'tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
 		Return tn
 	Else
 		Return GetParentNode(tn->ParentNode)
@@ -4628,7 +4655,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	Static OldIndex As Integer
 	If OldIndex <> NewIndex Then
 		If pfFind->Visible = True AndAlso pfFind->OptFindinCurrFile.Checked Then
-			wLet gSearchSave,""
+			wLet(gSearchSave,"")
 			pfFind->FindAll plvSearch, 2,, False
 		End If
 	End If
@@ -4679,7 +4706,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 		bCtrl = GetKeyState(VK_CONTROL) And 8000
 	#endif
 	'
-	wLet sLine, txtImmediate.Lines(iLine)
+	wLet(sLine, txtImmediate.Lines(iLine))
 	If CInt(Not bCtrl) AndAlso CInt(WGet(sLine) <> "") AndAlso CInt(Not StartsWith(Trim(WGet(sLine)),"'")) Then
 		If Key = Keys.Enter Then
 			'
@@ -4709,7 +4736,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 			Dim As WString Ptr ErrFileName, ErrTitle
 			Dim As Integer nLen, nLen2
-			WLet LogText, ""
+			WLet(LogText, "")
 			Fn = FreeFile
 			Dim Result As Integer=-1 '
 			Result = Open(ExePath & "/Temp/Compile1.log" For Input As #Fn)
@@ -4742,9 +4769,9 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 				MsgBox !"Compile error:\r\r" & *LogText, , mtWarning
 			Else
 				#ifdef __USE_GTK__
-					WLet ExeName, ExePath & "/Temp/FBTemp"
+					WLet(ExeName, ExePath & "/Temp/FBTemp")
 				#else
-					WLet ExeName, ExePath & "\Temp\FBTemp.exe" ' > output.txt
+					WLet(ExeName, ExePath & "\Temp\FBTemp.exe") ' > output.txt
 				#endif
 				PipeCmd "",  *ExeName
 				Fn =FreeFile
@@ -5207,7 +5234,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		Select Case WhenVisualFBEditorStarts
 		Case 1: 'pfTemplates->ShowModal
 		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
-		Case 3: wLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+		Case 3: wLet(RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", ""))
 			' , Auto Load the last one.
 			OpenFiles *RecentFiles
 		End Select
@@ -5449,6 +5476,7 @@ Sub OnProgramQuit() Destructor
 	WDeallocate InterfaceFontName
 	WDeallocate MFFPath
 	WDeallocate MFFDll
+	WDeallocate gSearchSave
 	Dim As ToolType Ptr tt
 	For i As Integer = 0 To Tools.Count - 1
 		Delete_(Cast(ToolType Ptr, Tools.Item(i)))
@@ -5462,6 +5490,15 @@ Sub OnProgramQuit() Destructor
 		Next
 		Delete_( Cast(TypeElement Ptr, pGlobalNamespaces->Object(i)))
 	Next
+	For i As Integer = pComps->Count - 1 To 0 Step -1
+		te = pComps->Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		Next
+		te->Elements.Clear
+		Delete_( Cast(TypeElement Ptr, pComps->Object(i)))
+		'pComps->Remove i
+	Next
 	For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
 		te = pGlobalTypes->Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
@@ -5469,7 +5506,7 @@ Sub OnProgramQuit() Destructor
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
-		pGlobalTypes->Remove i
+		'pGlobalTypes->Remove i
 	Next
 	For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
 		te = pGlobalEnums->Object(i)
@@ -5478,17 +5515,17 @@ Sub OnProgramQuit() Destructor
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, pGlobalEnums->Object(i)))
-		pGlobalEnums->Remove i
+		'pGlobalEnums->Remove i
 	Next
 	For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
 		te = pGlobalFunctions->Object(i)
 		Delete_( Cast(TypeElement Ptr, pGlobalFunctions->Object(i)))
-		pGlobalFunctions->Remove i
+		'pGlobalFunctions->Remove i
 	Next
 	For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
 		te = pGlobalArgs->Object(i)
 		Delete_( Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
-		pGlobalArgs->Remove i
+		'pGlobalArgs->Remove i
 	Next
 End Sub
 

@@ -20,8 +20,8 @@ Destructor ExplorerElement
 End Destructor
 
 Constructor ProjectElement
-	WLet FileDescription, "{ProjectDescription}"
-	WLet ProductName, "{ProjectName}"
+	WLet(FileDescription, "{ProjectDescription}")
+	WLet(ProductName, "{ProjectName}")
 End Constructor
 
 Destructor ProjectElement
@@ -450,7 +450,7 @@ Property TabWindow.FileName ByRef As WString
 End Property
 
 Property TabWindow.FileName(ByRef Value As WString)
-	wLet FFileName,  Value
+	wLet(FFileName,  Value)
 End Property
 
 Operator TabWindow.Cast As TabPage Ptr
@@ -470,56 +470,56 @@ Function TabWindow.SaveTab As Boolean
 	#endif
 	Var FileIndex = IncludeFiles.IndexOf(FileName)
 	If FileIndex <> 0 Then
-'		MutexLock tlockSave
-'		Dim As TypeElement Ptr te, te1
-'		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
-'			te = pGlobalNamespaces->Object(i)
-'			For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'				te1 = te->Elements.Object(j)
-'				If te1->FileName = FileName Then te->Elements.Remove j
-'			Next
-'		Next
-'		For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
-'			te = pGlobalTypes->Object(i)
-'			If te->FileName = FileName Then
-'				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'					Delete Cast(TypeElement Ptr, te->Elements.Object(j))
-'				Next
-'				te->Elements.Clear
-'				Delete Cast(TypeElement Ptr, pGlobalTypes->Object(i))
-'				pGlobalTypes->Remove i
-'			End If
-'		Next
-'		For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
-'			te = pGlobalEnums->Object(i)
-'			If te->FileName = FileName Then
-'				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'					Delete Cast(TypeElement Ptr, te->Elements.Object(j))
-'				Next
-'				te->Elements.Clear
-'				Delete Cast(TypeElement Ptr, pGlobalEnums->Object(i))
-'				pGlobalEnums->Remove i
-'			End If
-'		Next
-'		For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
-'			te = pGlobalFunctions->Object(i)
-'			If te->FileName = FileName Then
-'				Delete Cast(TypeElement Ptr, pGlobalFunctions->Object(i))
-'				pGlobalFunctions->Remove i
-'			End If
-'		Next
-'		For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
-'			te = pGlobalArgs->Object(i)
-'			If te->FileName = FileName Then
-'				Delete Cast(TypeElement Ptr, pGlobalArgs->Object(i))
-'				pGlobalArgs->Remove i
-'			End If
-'		Next
-'		MutexUnlock tlockSave
-'		If Not pLoadPaths->Contains(FileName) Then
-'			pLoadPaths->Add FileName
-'		End If
-'		ThreadCreate(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName)))
+		MutexLock tlockSave
+		Dim As TypeElement Ptr te, te1
+		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
+			te = pGlobalNamespaces->Object(i)
+			For j As Integer = te->Elements.Count - 1 To 0 Step -1
+				te1 = te->Elements.Object(j)
+				If te1->FileName = FileName Then te->Elements.Remove j
+			Next
+		Next
+		For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
+			te = pGlobalTypes->Object(i)
+			If te->FileName = FileName Then
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+				Next
+				te->Elements.Clear
+				Delete Cast(TypeElement Ptr, pGlobalTypes->Object(i))
+				pGlobalTypes->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
+			te = pGlobalEnums->Object(i)
+			If te->FileName = FileName Then
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+				Next
+				te->Elements.Clear
+				Delete Cast(TypeElement Ptr, pGlobalEnums->Object(i))
+				pGlobalEnums->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
+			te = pGlobalFunctions->Object(i)
+			If te->FileName = FileName Then
+				Delete Cast(TypeElement Ptr, pGlobalFunctions->Object(i))
+				pGlobalFunctions->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
+			te = pGlobalArgs->Object(i)
+			If te->FileName = FileName Then
+				Delete Cast(TypeElement Ptr, pGlobalArgs->Object(i))
+				pGlobalArgs->Remove i
+			End If
+		Next
+		MutexUnlock tlockSave
+		If Not pLoadPaths->Contains(FileName) Then
+			pLoadPaths->Add FileName
+		End If
+		ThreadCreate(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName)))
 	End If
 	Return True
 End Function
@@ -527,7 +527,7 @@ End Function
 Function TabWindow.SaveAs As Boolean
 	SetSaveDialogParameters(FileName)
 	If pSaveD->Execute Then
-		WLet LastOpenPath, GetFolderName(pSaveD->FileName)
+		WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
 		If FileExists(pSaveD->FileName) Then
 			Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", pApp->Title, mtWarning, btYesNoCancel)
 			Case mrCANCEL: Return False
@@ -536,7 +536,7 @@ Function TabWindow.SaveAs As Boolean
 		End If
 		Caption = GetFileName(pSaveD->Filename)
 		tn->Text = Caption
-		Wlet FFileName, pSaveD->Filename
+		Wlet(FFileName, pSaveD->Filename)
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
 		If ee = 0 Then
@@ -546,13 +546,13 @@ Function TabWindow.SaveAs As Boolean
 		If ptn <> 0 AndAlso ptn->ImageKey = "Project" Then
 			Dim As ProjectElement Ptr pee = ptn->Tag
 			If pee <> 0 Then
-				If WGet(pee->MainFileName) = WGet(ee->FileName) Then WLet pee->MainFileName, pSaveD->Filename
-				If WGet(pee->ResourceFileName) = WGet(ee->FileName) Then WLet pee->ResourceFileName, pSaveD->Filename
-				If WGet(pee->IconResourceFileName) = WGet(ee->FileName) Then WLet pee->IconResourceFileName, pSaveD->Filename
+				If WGet(pee->MainFileName) = WGet(ee->FileName) Then WLet(pee->MainFileName, pSaveD->Filename)
+				If WGet(pee->ResourceFileName) = WGet(ee->FileName) Then WLet(pee->ResourceFileName, pSaveD->Filename)
+				If WGet(pee->IconResourceFileName) = WGet(ee->FileName) Then WLet(pee->IconResourceFileName, pSaveD->Filename)
 				If Not EndsWith(ptn->Text, "*") Then ptn->Text & = "*"
 			End If
 		End If
-		WLet ee->FileName, pSaveD->Filename
+		WLet(ee->FileName, pSaveD->Filename)
 		AddMRUFile pSaveD->Filename
 		Return SaveTab
 	End If
@@ -683,7 +683,7 @@ End Function
 
 Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	On Error Goto ErrorHandler
-	WLet FLine, ""
+	WLet(FLine, "")
 	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return ""
 	Dim Cpnt As Any Ptr = Obj
 	If Cpnt = 0 Then Return *FLine
@@ -695,7 +695,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 			Dim As Dictionary Ptr Dict = Des->ReadPropertyFunc(Cpnt, "Tag")
 			If Dict <> 0 Then
 				If Dict->ContainsKey(PropertyName) Then
-					WLet FLine, Dict->Item(PropertyName)->Text
+					WLet(FLine, Dict->Item(PropertyName)->Text)
 				End If
 			End If
 		Case "Property"
@@ -707,24 +707,24 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 			End If
 			If pTemp <> 0 Then
 				Select Case LCase(.TypeName)
-				Case "wstring", "wstring ptr": WLet FLine, QWString(pTemp)
-				Case "string", "zstring": WLet FLine, QZString(pTemp)
-				Case "control ptr", "control": WLet FLine, QWString(Des->ReadPropertyFunc(pTemp, "Name"))
+				Case "wstring", "wstring ptr": WLet(FLine, QWString(pTemp))
+				Case "string", "zstring": WLet(FLine, QZString(pTemp))
+				Case "control ptr", "control": WLet(FLine, QWString(Des->ReadPropertyFunc(pTemp, "Name")))
 				Case "integer": iTemp = QInteger(pTemp)
-					WLet FLine, WStr(iTemp)
+					WLet(FLine, WStr(iTemp))
 					If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
 						tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
-						If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp)
+						If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
 					End If
-				Case "boolean": WLet FLine, WStr(QBoolean(pTemp))
-				Case "any ptr", "any": WLet FLine, WStr("")
+				Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
+				Case "any ptr", "any": WLet(FLine, WStr(""))
 				Case Else: 
 					If CInt(IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(Des->ToStringFunc <> 0) Then 
-						WLet FLine, Des->ToStringFunc(pTemp)
+						WLet(FLine, Des->ToStringFunc(pTemp))
 					ElseIf pGlobalEnums->Contains(.TypeName) Then
 						iTemp = QInteger(pTemp)
 						tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(.TypeName))
-						If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp)
+						If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
 					End If
 				End Select
 			ElseIf Pos1 > 0 Then
@@ -750,7 +750,7 @@ End Function
 
 Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	On Error Goto ErrorHandler
-	WLet FLine, ""
+	WLet(FLine, "")
 	If Cpnt = 0 Then Return *FLine
 	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return *FLine
 	Pos1 = InStr(PropertyName, ".")
@@ -760,28 +760,28 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 		If te = 0 Then Return *FLine
 		With *te
 			Select Case LCase(.TypeName)
-			Case "wstring", "string", "zstring": WLet FLine, QWString(pTemp): If InStr(*FLine, """") = 0 Then WLet FLine, """" & *FLine & """", True
-			Case "icon", "bitmaptype", "cursor": If Des->ToStringFunc <> 0 Then WLet FLine, """" & Des->ToStringFunc(pTemp) & """"
+			Case "wstring", "string", "zstring": WLet(FLine, QWString(pTemp)): If InStr(*FLine, """") = 0 Then WLetEx FLine, """" & *FLine & """", True
+			Case "icon", "bitmaptype", "cursor": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
 			Case "integer": iTemp = QInteger(pTemp)
-				WLet FLine, WStr(iTemp)
+				WLet(FLine, WStr(iTemp))
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
 					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
-					If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet FLine, te->EnumTypeName & "." & tbi->Elements.Item(iTemp)
+					If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, te->EnumTypeName & "." & tbi->Elements.Item(iTemp))
 				End If
-			Case "boolean": WLet FLine, WStr(QBoolean(pTemp))
-			Case "any ptr", "any": WLet FLine, WStr("")
+			Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
+			Case "any ptr", "any": WLet(FLine, WStr(""))
 			Case Else
 				If pGlobalEnums->Contains(.TypeName) Then
 					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName))
 					iTemp = QInteger(pTemp)
-					If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet FLine, te->TypeName & "." & tbi->Elements.Item(iTemp)
+					If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, te->TypeName & "." & tbi->Elements.Item(iTemp))
 				ElseIf CInt(IsBase(.TypeName, "Component")) Then
 					Dim As String pTempName = WGet(Des->ReadPropertyFunc(pTemp, "Name"))
 					If pTempName <> "" Then
 						If cboClass.Items.Contains(pTempName) Then
-							WLet FLine, "@" & pTempName
+							WLet(FLine, "@" & pTempName)
 							If cboClass.Items.IndexOf(pTempName) = 1 Then
-								WLet FLine, "@This"
+								WLet(FLine, "@This")
 							End If
 						End If
 					End If
@@ -814,7 +814,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 	te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 	If te <> 0 Then
 		'?"VFE1:" & Value
-		WLet FLine3, Value
+		WLet(FLine3, Value)
 		#ifndef __USE_GTK__
 			Dim hwnd1 As HWND
 			Dim hTemp As Any Ptr
@@ -834,9 +834,9 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 			Select Case LCase(te->TypeName)
 			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype"
 				'?"VFE2:" & *FLine
-				If StartsWith(*FLine3, """") Then WLet FLine4, Mid(*FLine3, 2): WLet FLine3, *FLine4
-				If EndsWith(*FLine3, """") Then WLet FLine4, Left(*FLine3, Len(*FLine3) - 1): WLet FLine3, *FLine4
-				WLet FLine4, Replace(*FLine3, """""", """"), True
+				If StartsWith(*FLine3, """") Then WLet(FLine4, Mid(*FLine3, 2)): WLet(FLine3, *FLine4)
+				If EndsWith(*FLine3, """") Then WLet(FLine4, Left(*FLine3, Len(*FLine3) - 1)): WLet(FLine3, *FLine4)
+				WLetEx FLine4, Replace(*FLine3, """""", """"), True
 				'?"VFE3:" & *FLine
 				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
 					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine4))
@@ -886,7 +886,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 					If Des AndAlso LCase(*FLine3) = "this" Then
 						Dim hTemp As Any Ptr
 						If Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Des->DesignControl, "Name")
-						If hTemp <> 0 Then WLet *FLine3, QWString(hTemp)
+						If hTemp <> 0 Then WLet(FLine3, QWString(hTemp))
 					End If
 					If *FLine3 <> "" AndAlso CInt(cboClass.Items.Contains(Trim(*FLine3))) Then
 						PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(*FLine3)))->Object)
@@ -1056,7 +1056,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		k = iStart
 		Do While k <= iEnd
-			wLet FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t ")
+			wLet(FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
 			If Not b AndAlso StartsWith(*FLine, "type " & LCase(frmName) & " ") Then
 				b = True
 			ElseIf b AndAlso StartsWith(*FLine & " ", "end type ") Then
@@ -1107,7 +1107,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Do While i < tb->txtCode.LinesCount - 1
 		k = iStart
 		Do While k <= IIf(ptxtCode = @tb->txtCode, i, ptxtCode->LinesCount - 1)
-			wLet FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t ")
+			wLet(FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
 			If Not b AndAlso StartsWith(*FLine & " ", "constructor " & LCase(frmName) & " ") Then
 				b = True
 			ElseIf b AndAlso StartsWith(*FLine & " ", "end constructor ") Then
@@ -1175,16 +1175,16 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	Dim As EditControl txtCodeBi
 	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	Dim As Integer iStart, iEnd, i, k, dj
-	WLet FLine1, ""
+	WLet(FLine1, "")
 	For i = 0 To tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		For k As Integer = iStart To iEnd
 			If ptxtCode->Lines(k) = "" Then Continue For
 			' for Muilt line for the same control, sometimes No Space after ","
-			WLet FLine2, Trim(LCase(ptxtCode->Lines(k)), Any !"\t ")
+			WLet(FLine2, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
 			If StartsWith(*FLine2, "type " & LCase(frmName) & " ") Then
 				sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
-				WLet FLine1, Left(ptxtCode->Lines(k), sl)
+				WLet(FLine1, Left(ptxtCode->Lines(k), sl))
 				tp = k
 				b = True
 			ElseIf b Then
@@ -1322,7 +1322,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			ptxtCode->InsertLine ep + 7, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Text")) & """"
 		End If
 		If PropertyName <> "" AndAlso PropertyName <> "Text" Then
-			WLet FLine, tb->GetFormattedPropertyValue(tb->Des->DesignControl, PropertyName)
+			WLet(FLine, tb->GetFormattedPropertyValue(tb->Des->DesignControl, PropertyName))
 			If *FLine <> "" Then ptxtCode->InsertLine ep + 8, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q = 1
 		End If
 		If tb->Des->ComponentGetBoundsSub <> 0 Then tb->Des->ComponentGetBoundsSub(tb->Des->Q_ComponentFunc(tb->Des->DesignControl), @iLeft1, @iTop1, @iWidth1, @iHeight1)
@@ -1359,7 +1359,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 				q = 1
 			End If
 			If PropertyName <> "" AndAlso PropertyName <> "Text" Then
-				WLet FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName)
+				WLet(FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName))
 				'  Confuse the formatcode function
 				If *FLine <> "" Then
 					ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q += 1
@@ -1402,7 +1402,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	ElseIf Not t Then
 		If PropertyName <> "" Then
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-			WLet FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName)
+			WLet(FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName))
 			If *FLine <> "" Then
 				If bWith Then
 					ptxtCode->InsertLine j, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q += 1
@@ -1748,7 +1748,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 				Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .FLines.Items[OldLine])
 				If CInt(ecl->CommentIndex = 0) Then
 					If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg2(Trim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2), Any !"\t "))) Then
-						WLet ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1"
+						WLet(ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1")
 					End If
 					If ChangeKeyWordsCase Then
 						
@@ -1844,7 +1844,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	Dim As WStringList WithArgs
 	Dim As String WithCtrlName
 	Var bWith = False
-	WLet FLine1, ""
+	WLet(FLine1, "")
 	tb->txtCode.Changing "Hodisa qo`shish"
 	ChangeControl Cpnt
 	Dim As Boolean b, c, e, f, t, td, tdns, tt, tdes
@@ -2115,16 +2115,13 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	'    End If
 End Sub
 
-Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0) As Boolean
+Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As String = "Type") As Boolean
     On Error Goto ErrorHandler
 	If Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	c += 1
 	If c > 100 Then Return False
-	Dim As String imgKey = "Type"
 	If te = 0 Then
 		imgKey = "StandartTypes"
-	ElseIf te->ElementType = "Enum" Then
-		imgKey = "Enum"
 	End If
 	#ifdef __USE_GTK__
 		Dim iIndex As Integer = -1
@@ -2250,7 +2247,7 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, tb->Types.Item(i), tb->Types.Object(i), Starts) Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->Enums.Count - 1
-		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts) Then Exit Sub
+		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts, , "Enum") Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
 	For i As Integer = 0 To pComps->Count - 1
@@ -2310,7 +2307,7 @@ End Function
 Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Integer)
 	Dim As WString Ptr sTempRight
 	For i As Integer = iEndChar + 1 To Len(sLine)
-		If CInt(IsArg(Asc(Mid(sLine, i, 1)))) OrElse CInt(Mid(sLine, i, 1) = "#") Then WLet sTempRight, *sTempRight & Mid(sLine, i, 1) Else Exit For
+		If CInt(IsArg(Asc(Mid(sLine, i, 1)))) OrElse CInt(Mid(sLine, i, 1) = "#") Then WLetEx(sTempRight, *sTempRight & Mid(sLine, i, 1), True) Else Exit For
 	Next
 	#ifdef __USE_GTK__
 		With tb->txtCode.lvIntellisense
@@ -3195,10 +3192,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					If CurCtrl <> 0 Then
 						'TODO Hange here with ctrl RichEdit
 							If WGet(.ReadPropertyFunc(CurCtrl, "ClassName"))<>"RichTextBox" Then
+								If .ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrl, "Tag")))
 								.DeleteComponentFunc(CurCtrl)
 							Else
 								''Delete the last one not current one. But still one more remain exist
-								If CurCtrlRichedit <> 0 Then .DeleteComponentFunc(CurCtrlRichedit) 
+								If CurCtrlRichedit <> 0 Then 
+									If .ReadPropertyFunc(CurCtrlRichedit, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrlRichedit, "Tag")))
+									.DeleteComponentFunc(CurCtrlRichedit) 
+								End If
 								CurCtrlRichedit = CurCtrl
 							End If
 					End If
@@ -3246,11 +3247,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As UString Comments, b, bTrim, bTrimLCase
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
 	If IsBas Then
-		WLet FLine1, Left(FileName, Len(FileName) - 4) & ".bi"
-		WLet FLine2, GetFileName(*FLine1), True
+		WLet(FLine1, Left(FileName, Len(FileName) - 4) & ".bi")
+		WLetEx FLine2, GetFileName(*FLine1), True
 	Else
-		WLet FLine1, ""
-		WLet FLine2, ""
+		WLet(FLine1, "")
+		WLet(FLine2, "")
 	End If
 	For j As Integer = 0 To txtCode.LinesCount - 1
 		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
@@ -3271,7 +3272,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		End If
 		For i As Integer = iStart To iEnd
 			ECLine = ptxtCode->FLines.Items[i]
-			WLet FLine, *ECLine->Text
+			WLet(FLine, *ECLine->Text)
 			b = *ECLine->Text
 			bTrim = Trim(b, Any !"\t ")
 			bTrimLCase = LCase(bTrim)
@@ -3316,7 +3317,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Pos1 = InStr(b, """")
 					If Pos1 > 0 Then
 						Pos2 = InStr(Pos1 + 1, b, """")
-						WLet FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
 						If Not pLoadPaths->Contains(*FPath) Then
 							pLoadPaths->Add *FPath
 							ThreadCreate(@LoadFunctionsSub, @pLoadPaths->Item(pLoadPaths->Count - 1))
@@ -3782,8 +3783,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								FLin = Mid(*FLine, p1 + 1)
 								FLin = Trim(FLin, Any !"\t ")
 								If Len(FLin) <> 0 Then
-									WLet FLine2, Trim(Mid(*FLine, p1 + 1), Any !"\t ")
-									If StartsWith(*FLine2, "@") Then WLet FLine3, Trim(Mid(*FLine2, 2), Any !"\t "): WLet FLine2, *FLine3
+									WLet(FLine2, Trim(Mid(*FLine, p1 + 1), Any !"\t "))
+									If StartsWith(*FLine2, "@") Then WLet(FLine3, Trim(Mid(*FLine2, 2), Any !"\t ")): WLet(FLine2, *FLine3)
 									If WriteObjProperty(Ctrl, PropertyName, *FLine2) Then
 										#ifdef __USE_GTK__
 											If LCase(PropertyName) = "parent" AndAlso Des->ReadPropertyFunc(Ctrl, "Widget") Then
@@ -3962,8 +3963,8 @@ Sub TabWindow_Destroy(ByRef Sender As Control)
 End Sub
 
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
-	WLEt FCaption, ""
-	WLet FFileName, ""
+	WLEt(FCaption, "")
+	WLet(FFileName, "")
 	txtCode.Font.Name = *EditorFontName
 	txtCode.Font.Size = EditorFontSize
 	txtCode.Align = 5
@@ -4150,7 +4151,18 @@ Destructor TabWindow
 	If FLine3 Then Deallocate_( FLine3)
 	If FLine4 Then Deallocate_( FLine4)
 	If FPath Then Deallocate_( FPath)
-	If Des <> 0 Then Delete_( Des)
+	If Des <> 0 Then 
+		For i As Integer = cboClass.Items.Count - 1 To 1 Step -1
+			CurCtrl = 0
+			CBItem = cboClass.Items.Item(i)
+			If CBItem <> 0 Then CurCtrl = CBItem->Object
+			If CurCtrl <> 0 Then
+				If Des->ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, Des->ReadPropertyFunc(CurCtrl, "Tag")))
+				Des->DeleteComponentFunc(CurCtrl)
+			End If
+		Next i
+		Delete_( Des)
+	End If
 	cboClass.Items.Clear
 	cboFunction.Items.Clear
 	Dim As TypeElement Ptr te
@@ -4341,8 +4353,8 @@ End Sub
 Sub SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer)
 	Dim As Integer Pos1, Pos2
 	Dim As Boolean bFlag
-	WLet ErrFileName, ""
-	WLet ErrTitle, sLine
+	WLet(ErrFileName, "")
+	WLet(ErrTitle, sLine)
 	ErrorLine = 0
 	Pos1 = InStr(sLine, ") error ")
 	If Pos1 = 0 Then Pos1 = InStr(sLine, ") warning ")
@@ -4360,8 +4372,8 @@ Sub SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef E
 	End If
 	ErrorLine = Val(Mid(sLine, Pos2 + 1, Pos1 - Pos2 - 1))
 	If ErrorLine = 0 Then Return
-	WLet ErrFileName, Left(sLine, Pos2 - 1)
-	WLet ErrTitle, Mid(sLine, Pos1 + 1)
+	WLet(ErrFileName, Left(sLine, Pos2 - 1))
+	WLet(ErrTitle, Mid(sLine, Pos1 + 1))
 	'If bFlag AndAlso  Then
 End Sub
 
@@ -4398,7 +4410,7 @@ Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 		'Dim As gint i_retcode = 0, i_exitcode = 0
 		'i_retcode = g_spawn_command_line_sync(ToUTF8(cmd), NULL, NULL, @i_exitcode, NULL)
 	#else
-		WLet cmdW, "cmd /c """ + cmd + """|clip"
+		WLet(cmdW, "cmd /c """ + cmd + """|clip")
 		Dim PI As PROCESS_INFORMATION
 		Dim SI As STARTUPINFO
 		SI.wShowWindow = SW_HIDE
@@ -4417,6 +4429,8 @@ End Sub
 	Function build_create_shellscript(ByRef working_dir As WString, ByRef cmd As WString, autoclose As Boolean, debug As Boolean = False, ByRef Arguments As WString = "") As String
 		'?Replace(cmd, "\", "/")
 		'?!"#!/bin/sh\n\nrm $0\n\ncd " & Replace(working_dir, "\", "/") & !"\n\n" & Replace(cmd, "\", "/") & !"\n\necho ""\n\n------------------\n(program exited with code: $?)"" \n\n" & IIF(autoclose, "", !"\necho ""Press return to continue""\n#to be more compatible with shells like ""dash\ndummy_var=""""\nread dummy_var") & !"\n"
+		Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
+		Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 		Dim As String ScriptPath
 		ScriptPath = *g_get_tmp_dir() & "/vfb_run_script.sh"
 		Open ScriptPath For Output As #1
@@ -4791,7 +4805,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 			End If
 		End If
 	End If
-	WLet Buff, LTrim(sFirstLine, Any !"\t ")
+	WLet(Buff, LTrim(sFirstLine, Any !"\t "))
 	Var Pos1 = InStr(*Buff, """"), Pos2 = 1
 	Dim QavsBoshi As Boolean
 	Do While Pos1 > 0
@@ -4799,9 +4813,9 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 		If QavsBoshi Then
 			Pos2 = Pos1
 		Else
-			WLet File, Mid(*Buff, Pos2 + 1, Pos1 - Pos2 - 1)
+			WLet(File, Mid(*Buff, Pos2 + 1, Pos1 - Pos2 - 1))
 			If EndsWith(LCase(*File), ".rc") Then
-				WLet File, GetFolderName(FileName) & *File
+				WLet(File, GetFolderName(FileName) & *File)
 				If Not FileExists(*File) Then
 					If AutoCreateRC Then
 						#ifndef __USE_GTK__
@@ -4826,7 +4840,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							If Project Then
 								Var Pos3 = InStrRev(sLine, " ")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion)
 									bChanged = True
 									'									ThreadsEnter()
 									'									If CInt(ProjectNode) AndAlso CInt(Not EndsWith(ProjectNode->Text, "*")) Then ProjectNode->Text &= "*"
@@ -4835,7 +4849,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							Else
 								Var Pos3 = InStrRev(sLine, ",")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1)
 									bChanged = True
 								End If
 							End If
@@ -4843,13 +4857,13 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							If Project Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0""")
 									bChanged = True
 								End If
 							Else
 								Var Pos3 = InStrRev(sLine, ".")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0""")
 									bChanged = True
 								End If
 							End If
@@ -4857,55 +4871,55 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							If StartsWith(LCase(sLine), "#define ver_companyname_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_filedescription_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Replace(WGet(Project->FileDescription), "{ProjectDescription}", WGet(Project->ProjectDescription)) & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Replace(WGet(Project->FileDescription), "{ProjectDescription}", WGet(Project->ProjectDescription)) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_internalname_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->InternalName) & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->InternalName) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_legalcopyright_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->LegalCopyright) & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->LegalCopyright) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_legaltrademarks_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->LegalTrademarks) & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->LegalTrademarks) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_originalfilename_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->OriginalFileName) & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->OriginalFileName) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_productname_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Replace(WGet(Project->ProductName), "{ProjectName}", WGet(Project->ProjectName)) & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Replace(WGet(Project->ProductName), "{ProjectName}", WGet(Project->ProjectName)) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_productversion ") Then
 								Var Pos3 = InStrRev(sLine, " ")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & ",0"
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & ",0")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_productversion_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0"""
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0""")
 									bChanged = True
 								End If
 							End If
@@ -4913,7 +4927,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 						If bChanged Then
 							bFinded = True
 						Else
-							WLet sLines, *sLines & NewLine & sLine
+							WLet(sLines, *sLines & NewLine & sLine)
 						End If
 						If n = 1 Then NewLine = WChr(13) & WChr(10)
 					Loop
@@ -5027,7 +5041,7 @@ Sub RunPr(Debugger As String = "")
 	Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
 	Dim FirstLine As UString = GetFirstCompileLine(MainFile, Project)
 	Dim ExeFileName As WString Ptr
-	WLet ExeFileName, (GetExeFileName(MainFile, FirstLine))
+	WLet(ExeFileName, (GetExeFileName(MainFile, FirstLine)))
 	#ifdef __USE_GTK__
 		Dim As GPid pid = 0
 		'		Dim As GtkWidget Ptr win, vte
@@ -5049,8 +5063,8 @@ Sub RunPr(Debugger As String = "")
 		'	    	End If
 		'	    Else
 		Dim As WString Ptr Arguments
-		WLet Arguments, *RunArguments
-		If Project Then WLet Arguments, *Arguments & " " & WGet(Project->CommandLineArguments)
+		WLet(Arguments, *RunArguments)
+		If Project Then WLet(Arguments, *Arguments & " " & WGet(Project->CommandLineArguments))
 		If 0 Then
 			Result = Shell("""" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False, , *Arguments) & """")
 		Else
@@ -5073,18 +5087,18 @@ Sub RunPr(Debugger As String = "")
 		Dim As Integer pClass
 		Dim As WString Ptr Workdir, CmdL
 		Dim As Unsigned Long ExitCode
-		WLet CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments
-		If Project Then WLet CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
-		WLet ExeFileName, Replace(*ExeFileName, "/", "\")
+		WLet(CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments)
+		If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
+		WLet(ExeFileName, Replace(*ExeFileName, "/", "\"))
 		Var Pos1 = 0
 		While InStr(Pos1 + 1, *ExeFileName, "\")
 			Pos1 = InStr(Pos1 + 1, *ExeFileName, "\")
 		Wend
 		If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
-		WLet Workdir, Left(*ExeFileName, Pos1)
+		WLet(Workdir, Left(*ExeFileName, Pos1))
 		If WGet(TerminalPath) <> "" Then
-			WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-			WLet ExeFileName, Replace(WGet(TerminalPath), "/", "\")
+			WLetEx CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
+			WLet(ExeFileName, Replace(WGet(TerminalPath), "/", "\"))
 		End If
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
 			Dim SInfo As STARTUPINFO
@@ -5216,7 +5230,7 @@ Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 	Function = *ms.p
 End Function
 
-Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	With tb->txtCode
@@ -5249,8 +5263,10 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 			If StartsWith(LTrim(*FECLine->Text), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
 				If IsNumeric(Mid(Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
-					WLet FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1)
+					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
+			ElseIf StartsWith(LTrim(*FECLine->Text), "_L_") Then
+				bNotNumberThis = True
 			ElseIf IsLabel(*FECLine->Text) Then
 				bNotNumberThis = True
 			ElseIf FECLine->InConstructionIndex = 5 OrElse FECLine->InConstructionIndex = 6 AndAlso FECLine->InConstructionPart = 0 OrElse _
@@ -5258,7 +5274,11 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 				bNotNumberThis = True
 			End If
 			If Not bNotNumberThis Then
-				WLet FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text
+				If bMacro Then
+					WLet(FECLine->Text, "_L_" & IIf(StartsWith(*FECLine->Text, " ") OrElse StartsWith(*FECLine->Text, !"\t"), "", " ") & *FECLine->Text)
+				Else
+					WLet(FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text)
+				End If
 			End If
 		Next i
 		.Changed("Raqamlash")
@@ -5271,7 +5291,7 @@ Sub TabWindow.PreprocessorNumberOn()
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As WString Ptr tempStr
-	WLet tempStr, GetFileName(tb->Filename), True
+	WLetEx tempStr, GetFileName(tb->Filename), True
 	With tb->txtCode
 		.UpdateLock
 		.Changing("Preprocessor Numbering")
@@ -5465,8 +5485,10 @@ Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 			If StartsWith(LTrim(*FECLine->Text), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
 				If IsNumeric(Mid(Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
-					WLet FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1)
+					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
+			ElseIf StartsWith(LTrim(*FECLine->Text), "_L_") Then
+				WLet(FECLine->Text, Mid(LTrim(*FECLine->Text), 4))
 			End If
 		Next i
 		.Changed("Raqamlarni olish")
@@ -5517,7 +5539,7 @@ Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 		Lines.Sort
 		For i As Integer = StartLine To EndLine
 			FECLine = .FLines.Items[i]
-			WLet FECLine->Text, Lines.Item(n)
+			WLet(FECLine->Text, Lines.Item(n))
 			n = n + 1
 		Next i
 		.Changed("Sort Lines")
@@ -5526,10 +5548,10 @@ Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 	End With
 End Sub
 
-Sub TabWindow.ProcedureNumberOn
+Sub TabWindow.ProcedureNumberOn(bMacro As Boolean = False)
 	Dim As Integer ehStart, ehEnd
 	GetProcedureLines ehStart, ehEnd
-	NumberOn ehStart, ehEnd
+	NumberOn ehStart, ehEnd, bMacro
 End Sub
 
 Sub TabWindow.ProcedureNumberOff

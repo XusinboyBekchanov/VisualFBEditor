@@ -1589,7 +1589,7 @@ Dim Shared exedate As Double 'serial date
 	Dim Shared brkv2 As tbrkv 'copie for use inside brkv_box
 	Dim Shared brkvhnd As HWND   'handle
 	
-	Const VRRMAX=100000
+	Const VRRMAX=200000
 	Type tvrr
 		ad    As UInteger 'address
 		tv    As HTREEITEM 'tview handle
@@ -5899,13 +5899,13 @@ Sub RunWithDebug(Param As Any Ptr)
 			Next i
 			Print #Fn, "r"
 			Close #Fn
-			WLet CmdL, """" & WGet(DebuggerPath) & """ -x """ & ExePath & "/Temp/GDBCommands.txt"""
+			WLet(CmdL, """" & WGet(DebuggerPath) & """ -x """ & ExePath & "/Temp/GDBCommands.txt""")
 		Else
-			WLet CmdL, """" & WGet(DebuggerPath) & """ """ & GetFileName(exename) & """ "
+			WLet(CmdL, """" & WGet(DebuggerPath) & """ """ & GetFileName(exename) & """ ")
 		End If
 	Else
-		WLet CmdL, """" & GetFileName(exename) & """ " & *RunArguments
-		If Project Then WLet CmdL, *CmdL & " " & WGet(Project->CommandLineArguments)
+		WLet(CmdL, """" & GetFileName(exename) & """ " & *RunArguments)
+		If Project Then WLetEx(CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True)
 	End If
 	#ifndef __USE_GTK__
 		exename = Replace(exename, "/", "\")
@@ -5919,7 +5919,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		Pos1 = InStr(Pos1 + 1, exename, "\")
 	Wend
 	If Pos1 = 0 Then Pos1 = Len(exename)
-	WLet Workdir, Left(exename, Pos1)
+	WLet(Workdir, Left(exename, Pos1))
 	#ifndef __USE_GTK__
 		SInfo.cb = Len(SInfo)
 		SInfo.dwFlags = STARTF_USESHOWWINDOW
@@ -5944,8 +5944,8 @@ Sub RunWithDebug(Param As Any Ptr)
 		'    		run_exit_cb(pid, 0, win)
 		'    	End If
 		Dim As WString Ptr Arguments
-		WLet Arguments, *RunArguments
-		If Project Then WLet Arguments, *Arguments & " " & WGet(Project->CommandLineArguments)
+		WLet(Arguments, *RunArguments)
+		If Project Then WLet(Arguments, *Arguments & " " & WGet(Project->CommandLineArguments))
 		If 0 Then
 			Shell """" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(exename), exename, False, True) & """"
 		Else
@@ -5999,8 +5999,8 @@ Sub RunWithDebug(Param As Any Ptr)
 		ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 		ThreadsLeave()
 	#endif
-	If WorkDir Then Deallocate_( WorkDir)
-	If CmdL Then Deallocate_( CmdL)
+	If WorkDir <> 0 Then Deallocate_( WorkDir)
+	If CmdL <> 0 Then Deallocate_( CmdL)
 	ChangeEnabledDebug True, False, False
 	#ifndef __USE_GTK__
 		If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer

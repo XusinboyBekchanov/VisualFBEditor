@@ -171,7 +171,7 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 	Else
 		f = Dir(Path & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
 	End If
-	wLet gSearchSave, tSearch
+	wLet(gSearchSave, tSearch)
 	While f <> ""
 		If FormClosing Then Exit Sub
 		If (Attr And fbDirectory) <> 0 Then
@@ -342,13 +342,13 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 	Dim As WString Ptr Temp
 	Dim As WString * 5 tML = WChr(77) & WChr(76) & WChr(40)& WChr(34)
 	If Path = "" OrElse tSearch="" OrElse (tSearch = tReplace AndAlso LCase(tML) <> LCase(tReplace)) Then Exit Sub
-	If LCase(tSearch) = LCase(tReplace) Then wLet BuffOut, "File"
+	If LCase(tSearch) = LCase(tReplace) Then wLet(BuffOut, "File")
 	If chkSearchinSub.Checked Then
 		f = Dir(Path & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
 	Else
 		f = Dir(Path & "*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
 	End If
-	wLet gSearchSave, tSearch
+	wLet(gSearchSave, tSearch)
 	While f <> ""
 		If (Attr And fbDirectory) <> 0 Then
 			If f <> "." AndAlso f <> ".." Then Folders.Add  Path & f
@@ -375,7 +375,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 			If Result <> 0 Then Result = Open(FNameOpen For Input As #Fn)
 			If Result = 0 Then
 				iLine = 0
-				If LCase(tSearch) <> LCase(tReplace) Then wLet BuffOut, ""
+				If LCase(tSearch) <> LCase(tReplace) Then wLet(BuffOut, "")
 				Do Until EOF(Fn)
 					Line Input #Fn, Buff
 					iLine += 1
@@ -398,14 +398,14 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 							#endif
 						Else
 							If *BuffOut="" Then
-								wLet BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked)
+								wLet(BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked))
 							Else
 								wAdd BuffOut, WChr(13,10) & Replace(Buff, tSearch, tReplace,,, chkMatchCase.Checked)
 							End If
 						End If
 					ElseIf LCase(tSearch) <> LCase(tReplace) Then
 						If *BuffOut="" Then
-							wLet BuffOut, Buff
+							wLet(BuffOut, Buff)
 						Else
 							wAdd BuffOut, WChr(13,10) & Buff
 						End If
