@@ -483,10 +483,10 @@ Function TabWindow.SaveTab As Boolean
 			te = pGlobalTypes->Object(i)
 			If te->FileName = FileName Then
 				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-					Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
 				Next
 				te->Elements.Clear
-				Delete Cast(TypeElement Ptr, pGlobalTypes->Object(i))
+				Delete_(Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
 				pGlobalTypes->Remove i
 			End If
 		Next
@@ -494,24 +494,24 @@ Function TabWindow.SaveTab As Boolean
 			te = pGlobalEnums->Object(i)
 			If te->FileName = FileName Then
 				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-					Delete Cast(TypeElement Ptr, te->Elements.Object(j))
+					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
 				Next
 				te->Elements.Clear
-				Delete Cast(TypeElement Ptr, pGlobalEnums->Object(i))
+				Delete_(Cast(TypeElement Ptr, pGlobalEnums->Object(i)))
 				pGlobalEnums->Remove i
 			End If
 		Next
 		For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
 			te = pGlobalFunctions->Object(i)
 			If te->FileName = FileName Then
-				Delete Cast(TypeElement Ptr, pGlobalFunctions->Object(i))
+				Delete_(Cast(TypeElement Ptr, pGlobalFunctions->Object(i)))
 				pGlobalFunctions->Remove i
 			End If
 		Next
 		For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
 			te = pGlobalArgs->Object(i)
 			If te->FileName = FileName Then
-				Delete Cast(TypeElement Ptr, pGlobalArgs->Object(i))
+				Delete_(Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
 				pGlobalArgs->Remove i
 			End If
 		Next
