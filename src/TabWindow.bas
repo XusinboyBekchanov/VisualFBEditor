@@ -536,7 +536,7 @@ Function TabWindow.SaveAs As Boolean
 		End If
 		Caption = GetFileName(pSaveD->Filename)
 		tn->Text = Caption
-		Wlet(FFileName, pSaveD->Filename)
+		WLet(FFileName, pSaveD->Filename)
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
 		If ee = 0 Then

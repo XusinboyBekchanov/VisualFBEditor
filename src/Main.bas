@@ -1279,12 +1279,12 @@ Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, t
 End Function
 
 Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
-	If tnP = 0 Then Return True
+	If tnP = 0 Then MsgBox(ML("Project not selected!")): Return True
 	Dim As TreeNode Ptr tn = GetParentNode(tnP)
 	Dim As ExplorerElement Ptr ee
 	Dim As ProjectElement Ptr ppe
 	ppe = tn->Tag
-	If tn->ImageKey <> "Project" AndAlso ppe = 0 Then Return True
+	If tn->ImageKey <> "Project" Then MsgBox(ML("Project not selected!")): Return True
 	If CInt(ppe = 0) OrElse CInt(InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "/") = 0) OrElse CInt(bWithQuestion) Then
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
 		If ppe <> 0 Then
