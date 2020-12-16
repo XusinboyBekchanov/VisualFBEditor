@@ -1226,7 +1226,7 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 	End If
 	pSaveD->FileName = FileName
 	If FileName = ML("Untitled") Then
-		pSaveD->FileName = FileName & ".bas"
+		'pSaveD->FileName = FileName & ".bas"
 		pSaveD->InitialDir = GetFullPath(*ProjectsPath)
 		pSaveD->FilterIndex = 1
 	ElseIf EndsWith(FileName, ".bas") Then
@@ -1288,11 +1288,12 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	If CInt(ppe = 0) OrElse CInt(InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "/") = 0) OrElse CInt(bWithQuestion) Then
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
 		If ppe <> 0 Then
-			If InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "\") = 0 Then
-				SaveD.FileName = WGet(ppe->FileName) & ".vfp"
-			Else
-				SaveD.FileName = WGet(ppe->FileName)
-			End If
+			SaveD.FileName = WGet(ppe->FileName)
+'			If InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "\") = 0 Then
+'				SaveD.FileName = WGet(ppe->FileName) & ".vfp"
+'			Else
+'				SaveD.FileName = WGet(ppe->FileName)
+'			End If
 		End If
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
@@ -1429,7 +1430,7 @@ End Sub
 
 Sub CloseAllTabs(WithoutCurrent As Boolean = False)
 	Dim tb As TabWindow Ptr
-	Dim j As Integer = ptabCode->TabIndex
+	Dim j As Integer = ptabCode->SelectedTabIndex
 	For i As Long = 0 To ptabCode->TabCount - 1
 		If WithoutCurrent Then
 			If i = j Then Continue For
@@ -3837,7 +3838,7 @@ Sub CloseLeft()
 	#ifdef __USE_GTK__
 		pnlLeft.Width = 30
 	#else
-		tabLeft.TabIndex = -1
+		tabLeft.SelectedTabIndex = -1
 		pnlLeft.Width = tabLeft.ItemWidth(0) + 2
 	#endif
 	tbLeft.Visible = False
@@ -3861,7 +3862,7 @@ Sub CloseRight()
 	#ifdef __USE_GTK__
 		pnlRight.Width = 30
 	#else
-		tabRight.TabIndex = -1
+		tabRight.SelectedTabIndex = -1
 		pnlRight.Width = tabRight.ItemWidth(0) + 2
 	#endif
 	tbRight.Visible = False
@@ -3883,7 +3884,7 @@ Sub CloseBottom()
 	#ifdef __USE_GTK__
 		pnlBottom.Height = 25
 	#else
-		ptabBottom->TabIndex = -1
+		ptabBottom->SelectedTabIndex = -1
 		pnlBottom.Height = ptabBottom->ItemHeight(0) + 2
 	#endif
 	tbBottom.Visible = False
@@ -3969,7 +3970,7 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	Dim t As Boolean
 	For i As Integer = 0 To ptabCode->TabCount - 1
 		If Cast(TabWindow Ptr, ptabCode->Tabs[i])->tn = @Item Then
-			ptabCode->TabIndex = ptabCode->Tabs[i]->Index
+			ptabCode->SelectedTabIndex = ptabCode->Tabs[i]->Index
 			t = True
 			Exit For
 		End If
@@ -3998,7 +3999,7 @@ Sub tvExplorer_DblClick(ByRef Sender As Control)
 	'	Dim t As Boolean
 	'	For i As Integer = 0 To ptabCode->TabCount - 1
 	'		If Cast(TabWindow Ptr, ptabCode->Tabs[i])->tn = tn Then
-	'			ptabCode->TabIndex = ptabCode->Tabs[i]->Index
+	'			ptabCode->SelectedTabIndex = ptabCode->Tabs[i]->Index
 	'			t = True
 	'			Exit For
 	'		End If
@@ -4050,7 +4051,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 			'			MainNode->ImageKey = "MainProject"
 			'			MainNode->Bold = True
 			If mStartLoadSession = False Then
-				If ptabBottom->TabIndex = 4 AndAlso Not mLoadLog Then
+				If ptabBottom->SelectedTabIndex = 4 AndAlso Not mLoadLog Then
 					If mChangeLogEdited AndAlso mChangelogName<> "" Then
 						txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 						mChangeLogEdited = False
@@ -4066,7 +4067,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 						txtChangeLog.Text = ""
 					End If
 					mLoadLog = True
-				ElseIf ptabBottom->TabIndex = 3  AndAlso Not mLoadToDO Then
+				ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
 					ThreadCreate(@FindToDoSub, MainNode)
 					mLoadToDo = True
 				End If
@@ -4119,7 +4120,7 @@ Sub tabLeft_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	#ifdef __USE_GTK__
 		If tabLeft.TabPosition = tpLeft And pnlLeft.Width = 30 Then
 	#else
-		If tabLeft.TabPosition = tpLeft And tabLeft.TabIndex <> -1 Then
+		If tabLeft.TabPosition = tpLeft And tabLeft.SelectedTabIndex <> -1 Then
 	#endif
 		ShowLeft
 		'		tabLeft.SetFocus
@@ -4149,7 +4150,7 @@ Sub pnlLeft_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight 
 	#ifdef __USE_GTK__
 		If pnlLeft.Width <> 30 Then tabLeftWidth = NewWidth ': tabLeft.Width = pnlLeft.Width
 	#else
-		If tabLeft.TabIndex <> -1 Then tabLeftWidth = pnlLeft.Width
+		If tabLeft.SelectedTabIndex <> -1 Then tabLeftWidth = pnlLeft.Width
 	#endif
 End Sub
 
@@ -4575,7 +4576,7 @@ Sub tabRight_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	#ifdef __USE_GTK__
 		If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
 	#else
-		If tabRight.TabPosition = tpRight And tabRight.TabIndex <> -1 Then
+		If tabRight.TabPosition = tpRight And tabRight.SelectedTabIndex <> -1 Then
 	#endif
 		ShowRight
 		'		tabRight.SetFocus
@@ -4608,7 +4609,7 @@ Sub pnlRight_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight
 	#ifdef __USE_GTK__
 		If pnlRight.Width <> 30 Then tabRightWidth = NewWidth: tabRight.SetBounds(0, 0, tabRightWidth, NewHeight)
 	#else
-		If tabRight.TabIndex <> -1 Then tabRightWidth = tabRight.Width: If GetRightClosedStyle Then tbRight.Left = tabRightWidth - tbRight.Width - 22
+		If tabRight.SelectedTabIndex <> -1 Then tabRightWidth = tabRight.Width: If GetRightClosedStyle Then tbRight.Left = tabRightWidth - tbRight.Width - 22
 	#endif
 End Sub
 
@@ -4914,7 +4915,7 @@ Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
 	With *tbBottom.Buttons.Item("PinBottom")
 		If Value Then
 			ptabBottom->TabPosition = tpBottom
-			'			ptabBottom->TabIndex = -1
+			'			ptabBottom->SelectedTabIndex = -1
 			'			#ifdef __USE_GTK__
 			'				pnlBottom.Height = 25
 			'			#else
@@ -4952,7 +4953,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	#ifdef __USE_GTK__
 		If ptabBottom->TabPosition = tpBottom And pnlBottom.Height = 25 Then
 	#else
-		If ptabBottom->TabPosition = tpBottom And ptabBottom->TabIndex <> -1 Then
+		If ptabBottom->TabPosition = tpBottom And ptabBottom->SelectedTabIndex <> -1 Then
 	#endif
 		ShowBottom
 		'		ptabBottom->SetFocus
@@ -4961,11 +4962,11 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 		'		splBottom.Visible = True
 		'		frmMain.RequestAlign '<bp>
 	End If
-	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = ptabBottom->TabIndex = 0
-	tbBottom.Buttons.Item("AddWatch")->Visible = ptabBottom->TabIndex = 9
-	tbBottom.Buttons.Item("RemoveWatch")->Visible = ptabBottom->TabIndex = 9
+	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = ptabBottom->SelectedTabIndex = 0
+	tbBottom.Buttons.Item("AddWatch")->Visible = ptabBottom->SelectedTabIndex = 9
+	tbBottom.Buttons.Item("RemoveWatch")->Visible = ptabBottom->SelectedTabIndex = 9
 	If MainNode <>0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text,".") Then
-		If ptabBottom->TabIndex = 4 AndAlso CInt(Not mLoadLog) AndAlso CInt(Not mLoadToDo) Then
+		If ptabBottom->SelectedTabIndex = 4 AndAlso CInt(Not mLoadLog) AndAlso CInt(Not mLoadToDo) Then
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
 				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 				mChangeLogEdited = False
@@ -4981,7 +4982,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 				txtChangeLog.Text = ""
 			End If
 			mLoadLog = True
-		ElseIf ptabBottom->TabIndex = 3  AndAlso Not mLoadToDO Then
+		ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
 			mLoadToDo = True
 			ThreadCreate(@FindToDoSub, MainNode)
 		End If
@@ -4992,7 +4993,7 @@ Sub tabBottom_Click(ByRef Sender As Control) '<...>
 	#ifdef __USE_GTK__
 		If ptabBottom->TabPosition = tpBottom And pnlBottom.Height = 25 Then
 	#else
-		If ptabBottom->TabPosition = tpBottom And ptabBottom->TabIndex <> -1 Then
+		If ptabBottom->TabPosition = tpBottom And ptabBottom->SelectedTabIndex <> -1 Then
 	#endif
 		ShowBottom
 		'		ptabBottom->SetFocus
@@ -5006,7 +5007,7 @@ End Sub
 Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 	If ChangeTab Then
 		tabBottom_SelChange(*ptabBottom, 0)
-		tabBottom.TabIndex = 0
+		tabBottom.SelectedTabIndex = 0
 	End If
 	txtOutput.SetSel txtOutput.GetTextLength, txtOutput.GetTextLength
 	txtOutput.SelText = msg & WChr(13) & WChr(10)
@@ -5025,7 +5026,7 @@ Sub pnlBottom_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeigh
 	#ifdef __USE_GTK__
 		If pnlBottom.Height <> 25 Then tabBottomHeight = NewHeight: ptabBottom->SetBounds 0, 0, NewWidth, tabBottomHeight
 	#else
-		If ptabBottom->TabIndex <> -1 Then tabBottomHeight = ptabBottom->Height
+		If ptabBottom->SelectedTabIndex <> -1 Then tabBottomHeight = ptabBottom->Height
 	#endif
 End Sub
 
@@ -5089,18 +5090,18 @@ LoadKeyWords '<bm>
 
 Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 	If frmMain.ActiveControl = 0 Then Exit Sub
-	If tabLeft.TabPosition = tpLeft And tabLeft.TabIndex <> -1 Then
+	If tabLeft.TabPosition = tpLeft And tabLeft.SelectedTabIndex <> -1 Then
 		If frmMain.ActiveControl->Parent <> tabLeft.SelectedTab AndAlso frmMain.ActiveControl <> @tabLeft Then
 			CloseLeft
 		End If
 	End If
-	If tabRight.TabPosition = tpRight And tabRight.TabIndex <> -1 Then
+	If tabRight.TabPosition = tpRight And tabRight.SelectedTabIndex <> -1 Then
 		If frmMain.ActiveControl->Parent <> tabRight.SelectedTab AndAlso frmMain.ActiveControl <> @tabRight _
 			AndAlso frmMain.ActiveControl <> @txtPropertyValue AndAlso frmMain.ActiveControl <> @cboPropertyValue Then
 			CloseRight()
 		End If
 	End If
-	If ptabBottom->TabPosition = tpBottom And ptabBottom->TabIndex <> -1 Then
+	If ptabBottom->TabPosition = tpBottom And ptabBottom->SelectedTabIndex <> -1 Then
 		If frmMain.ActiveControl->Parent <> ptabBottom->SelectedTab AndAlso frmMain.ActiveControl <> ptabBottom Then
 			CloseBottom
 		End If

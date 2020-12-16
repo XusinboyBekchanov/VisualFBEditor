@@ -3925,14 +3925,14 @@ End Sub
 '			.pnlCode.Visible = True
 '			.pnlForm.Visible = False
 '			.splForm.Visible = False
-'			ptabLeft->TabIndex = 0
+'			ptabLeft->SelectedTabIndex = 0
 '		Case "Form"
 '			.pnlCode.Visible = False
 '			.pnlForm.Align = 5
 '			.pnlForm.Visible = True
 '			.splForm.Visible = False
 '			If .bNotDesign = False Then .FormDesign
-'			ptabLeft->TabIndex = 1
+'			ptabLeft->SelectedTabIndex = 1
 '		Case "CodeAndForm"
 '			.pnlForm.Align = 2
 '			.pnlForm.Width = 350
@@ -3940,7 +3940,7 @@ End Sub
 '			.splForm.Visible = True
 '			.pnlCode.Visible = True
 '			If .bNotDesign = False Then .FormDesign
-'			ptabLeft->TabIndex = 1
+'			ptabLeft->SelectedTabIndex = 1
 '		End Select
 '		.RequestAlign
 '	End With

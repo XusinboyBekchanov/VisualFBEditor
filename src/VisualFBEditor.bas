@@ -228,7 +228,7 @@ Sub mClick(Sender As My.Sys.Object)
 			tb->pnlCode.Visible = True
 			tb->pnlForm.Visible = False
 			tb->splForm.Visible = False
-			ptabLeft->TabIndex = 0
+			ptabLeft->SelectedTabIndex = 0
 			tb->RequestAlign
 		Case "Form":
 			tb->pnlCode.Visible = False
@@ -236,7 +236,7 @@ Sub mClick(Sender As My.Sys.Object)
 			tb->pnlForm.Visible = True
 			tb->splForm.Visible = False
 			If tb->bNotDesign = False Then tb->FormDesign
-			ptabLeft->TabIndex = 1
+			ptabLeft->SelectedTabIndex = 1
 			tb->RequestAlign
 		Case "CodeAndForm":
 			tb->pnlForm.Align = 2
@@ -245,7 +245,7 @@ Sub mClick(Sender As My.Sys.Object)
 			tb->splForm.Visible = True
 			tb->pnlCode.Visible = True
 			If tb->bNotDesign = False Then tb->FormDesign
-			ptabLeft->TabIndex = 1
+			ptabLeft->SelectedTabIndex = 1
 			tb->RequestAlign
 		End Select
 	Case "SaveAll":                         SaveAll

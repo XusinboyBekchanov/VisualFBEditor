@@ -594,7 +594,7 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex
 	End If
 	
 	If Not bNotShowResults Then
-		ptabBottom->TabIndex = tTabIndex
+		ptabBottom->SelectedTabIndex = tTabIndex
 		Dim i As Integer
 		If lvSearchResult->ListItems.Count=0 Then
 			This.Caption=ML("Find: No Results")
