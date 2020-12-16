@@ -1286,7 +1286,13 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	If tn->ImageKey <> "Project" AndAlso ppe = 0 Then Return True
 	If CInt(ppe = 0) OrElse CInt(InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "/") = 0) OrElse CInt(bWithQuestion) Then
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
-		If ppe <> 0 Then SaveD.FileName = WGet(ppe->FileName)
+		If ppe <> 0 Then
+			If InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "\") = 0 Then
+				SaveD.FileName = WGet(ppe->FileName) & ".vfp"
+			Else
+				SaveD.FileName = WGet(ppe->FileName)
+			End If
+		End If
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
 		WLet(LastOpenPath, GetFolderName(SaveD.FileName))

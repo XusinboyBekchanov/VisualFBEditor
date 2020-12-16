@@ -1,7 +1,7 @@
 ﻿'#########################################################
 '#  frmSplash.bas                                        #
 '#  This file is part of VisualFBEditor                  #
-'#  Authors: Xusinboy Bekchanov (2018-2019)              #
+'#  Authors: Xusinboy Bekchanov (2018-2020)              #
 '#########################################################
 
 #include once "frmSplash.bi"
@@ -11,6 +11,15 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Constructor frmSplash
+		This.Text = "Visual FB Editor"
+		#ifdef __USE_GTK__
+			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+		#endif
+		This.BackColor = 0
+		This.SetBounds 0, 0, 370, 346
+		This.BorderStyle = 0
+		This.StartPosition = FormStartPosition.CenterScreen
+		
 		' lblImage
 		lblImage.Name = "lblImage"
 		'lblImage.Graphic.Bitmap.LoadFromResourceName("Logo")
@@ -36,14 +45,6 @@ Using My.Sys.Forms
 		lblSplash.Font.Color = 16777215
 		lblSplash.Parent = @This
 		
-		This.Text = "Visual FB Editor"
-		#ifdef __USE_GTK__
-			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
-		#endif
-		This.BackColor = 0
-		This.SetBounds 0, 0, 370, 346
-		This.BorderStyle = 0
-		This.StartPosition = FormStartPosition.CenterScreen
 		'lblIcon.Graphic.Icon = 100
 		' lblInfo
 		lblInfo.Name = "lblInfo"
