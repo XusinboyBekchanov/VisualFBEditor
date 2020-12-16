@@ -1226,6 +1226,7 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 	End If
 	pSaveD->FileName = FileName
 	If FileName = ML("Untitled") Then
+		pSaveD->FileName = FileName & ".bas"
 		pSaveD->InitialDir = GetFullPath(*ProjectsPath)
 		pSaveD->FilterIndex = 1
 	ElseIf EndsWith(FileName, ".bas") Then
