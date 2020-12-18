@@ -687,6 +687,26 @@ Sub ClearTreeNode(ByRef tn As TreeNode Ptr)
 	tn->Nodes.Clear
 End Sub
 
+Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) As String
+	Dim As String sMain = ""
+	If ppe <> 0 Then
+		If FileName = WGet(ppe->MainFileName) OrElse FileName = WGet(ppe->ResourceFileName) OrElse FileName = WGet(ppe->IconResourceFileName) Then
+			sMain = "Main"
+		End If
+	End If
+	If EndsWith(LCase(FileName), ".rc") OrElse EndsWith(LCase(FileName), ".res") OrElse EndsWith(LCase(FileName), ".xpm") Then
+		Return sMain & "Resource"
+	ElseIf EndsWith(LCase(FileName), ".vfp") Then
+		Return sMain & "Project"
+	ElseIf EndsWith(LCase(FileName), ".frm") Then
+		Return sMain & "Form"
+	ElseIf EndsWith(LCase(FileName), ".bas") Then
+		Return sMain & "Module"
+	Else
+		Return sMain & "File"
+	End If
+End Function
+
 Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 	If tn = 0 Then Exit Sub
 	Dim As ExplorerElement Ptr ee = tn->Tag, ee1
@@ -700,12 +720,14 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 	While f <> ""
 		If (Attr And fbDirectory) <> 0 Then
 			If f <> "." AndAlso f <> ".." Then
-				IconName = "Opened"
-				tn1 = tn->Nodes.Add(GetFileName(f), , f, IconName, IconName)
 				If FileExists(f & Slash & f & ".vfp") Then
+					IconName = "Project"
+					tn1 = tn->Nodes.Add(GetFileName(f), , f, IconName, IconName)
 					AddProject f & Slash & f & ".vfp", , tn1
 					WLet(Cast(ExplorerElement Ptr, tn1->Tag)->FileName, *ee->FileName & "/" & f)
 				Else
+					IconName = "Opened"
+					tn1 = tn->Nodes.Add(GetFileName(f), , f, IconName, IconName)
 					ee1 = New_( ExplorerElement)
 					WLet(ee1->FileName, *ee->FileName & "/" & f)
 					tn1->Tag = ee1
@@ -718,13 +740,18 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 		f = Dir(Attr)
 	Wend
 	For i As Integer = 0 To Files.Count - 1
-		If EndsWith(LCase(Files.Item(i)), ".vfp") Then
-			IconName = "Project"
-		ElseIf EndsWith(LCase(Files.Item(i)), ".rc") OrElse EndsWith(LCase(Files.Item(i)), ".res") OrElse EndsWith(LCase(Files.Item(i)), ".xpm") Then
-			IconName = "Resource"
+		If tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
+			IconName = GetIconName(Files.Item(i), tn->Tag)
 		Else
-			IconName = "File"
+			IconName = GetIconName(Files.Item(i))
 		End If
+'		If EndsWith(LCase(Files.Item(i)), ".vfp") Then
+'			IconName = "Project"
+'		ElseIf EndsWith(LCase(Files.Item(i)), ".rc") OrElse EndsWith(LCase(Files.Item(i)), ".res") OrElse EndsWith(LCase(Files.Item(i)), ".xpm") Then
+'			IconName = "Resource"
+'		Else
+'			IconName = "File"
+'		End If
 		tn1 = tn->Nodes.Add(GetFileName(*ee->FileName & "/" & Files.Item(i)), , Files.Item(i), IconName, IconName)
 		ee1 = New_( ExplorerElement)
 		WLet(ee1->FileName, Files.Item(i))
@@ -750,12 +777,15 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 				Return tvExplorer.Nodes.Item(i)
 			End If
 		Next
-		Dim As String IconName = "Opened"
-		tn = tvExplorer.Nodes.Add(GetFileName(FolderName), , FolderName, IconName, IconName)
+		Dim As String IconName
 		If FileExists(FolderName & Slash & GetFileName(FolderName) & ".vfp") Then
+			IconName = "Project"
+			tn = tvExplorer.Nodes.Add(GetFileName(FolderName), , FolderName, IconName, IconName)
 			AddProject FolderName & Slash & GetFileName(FolderName) & ".vfp", , tn
 			WLet(Cast(ExplorerElement Ptr, tn->Tag)->FileName, FolderName)
 		Else
+			IconName = "Opened"
+			tn = tvExplorer.Nodes.Add(GetFileName(FolderName), , FolderName, IconName, IconName)
 			Dim As ExplorerElement Ptr ee
 			ee = New_( ExplorerElement)
 			WLet(ee->FileName, FolderName)
@@ -765,24 +795,6 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 		tn->Expand
 	End If
 	Return tn
-End Function
-
-Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) As String
-	Dim As String sMain = ""
-	If ppe <> 0 Then
-		If FileName = WGet(ppe->MainFileName) OrElse FileName = WGet(ppe->ResourceFileName) OrElse FileName = WGet(ppe->IconResourceFileName) Then
-			sMain = "Main"
-		End If
-	End If
-	If EndsWith(LCase(FileName), ".rc") OrElse EndsWith(LCase(FileName), ".res") OrElse EndsWith(LCase(FileName), ".xpm") Then
-		Return sMain & "Resource"
-	ElseIf EndsWith(LCase(FileName), ".frm") Then
-		Return sMain & "Form"
-	ElseIf EndsWith(LCase(FileName), ".bas") Then
-		Return sMain & "Module"
-	Else
-		Return sMain & "File"
-	End If
 End Function
 
 Function IfNegative(Value As Integer, NonNegative As Integer) As Integer
