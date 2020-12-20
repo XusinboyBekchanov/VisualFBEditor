@@ -413,7 +413,7 @@ Function Compile(Parameter As String = "") As Integer
 		End If
 	End If
 	WLet(CompileWith, *FirstLine)
-	If CInt(InStr(*CompileWith, " -s ") = 0) AndAlso CInt(tbStandard.Buttons.Item("Form")->Checked) Then
+	If CInt(InStr(*CompileWith, " -s ") = 0) AndAlso CInt(tbStandard.Buttons.Item("GUI")->Checked) Then
 		WAdd CompileWith, " -s gui"
 	End If
 	If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WAdd CompileWith, " -g"
@@ -3718,7 +3718,7 @@ Sub CreateMenusAndToolBars
 	tbStandard.Buttons.Add , "End",, @mClick, "End", , ML("End"), True, 0
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Console",, @mClick, "Console", , ML("Console"), True
-	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Form",, @mClick, "Form", , ML("GUI"), True
+	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "GUI",, @mClick, "Form", , ML("GUI"), True
 	tbStandard.Buttons.Add tbsSeparator
 	#ifdef __USE_GTK__
 		tbStandard.Buttons.Add tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True
@@ -5247,7 +5247,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	tbForm.Buttons.Item(0)->Checked = iniSettings.ReadBool("MainWindow", "ToolLabels", True)
 	ChangeUseDebugger iniSettings.ReadBool("MainWindow", "UseDebugger", True)
 	Var bGUI = iniSettings.ReadBool("MainWindow", "CompileGUI", True)
-	tbStandard.Buttons.Item("Form")->Checked = bGUI
+	tbStandard.Buttons.Item("GUI")->Checked = bGUI
 	tbStandard.Buttons.Item("Console")->Checked = Not bGUI
 	Var file = Command(-1)
 	If file = "" Then
@@ -5356,7 +5356,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteBool("MainWindow", "ProjectFolders", tbExplorer.Buttons.Item(3)->Checked)
 	iniSettings.WriteBool("MainWindow", "ToolLabels", tbForm.Buttons.Item(0)->Checked)
 	iniSettings.WriteBool("MainWindow", "UseDebugger", UseDebugger)
-	iniSettings.WriteBool("MainWindow", "CompileGUI", tbStandard.Buttons.Item("Form")->Checked)
+	iniSettings.WriteBool("MainWindow", "CompileGUI", tbStandard.Buttons.Item("GUI")->Checked)
 	
 	Dim As Integer MRUFilesCount, kk=-1
 	MRUFilesCount = MRUFiles.Count
