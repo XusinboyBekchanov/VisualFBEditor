@@ -3718,7 +3718,7 @@ Sub CreateMenusAndToolBars
 	tbStandard.Buttons.Add , "End",, @mClick, "End", , ML("End"), True, 0
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Console",, @mClick, "Console", , ML("Console"), True
-	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "GUI",, @mClick, "Form", , ML("GUI"), True
+	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Form",, @mClick, "GUI", , ML("GUI"), True
 	tbStandard.Buttons.Add tbsSeparator
 	#ifdef __USE_GTK__
 		tbStandard.Buttons.Add tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True
