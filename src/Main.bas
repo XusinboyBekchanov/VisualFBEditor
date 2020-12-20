@@ -3118,7 +3118,8 @@ Sub LoadSettings
 	pDefaultFont->Name = WGet(InterfaceFontName)
 	pDefaultFont->Size  = InterfaceFontSize
 	
-	mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
+	mnuMain.DisplayIcons = DisplayMenuIcons
+	'mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
 	tbStandard.Visible = ShowMainToolbar
 	
 	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-exx"))
@@ -3279,7 +3280,7 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "Cut", "Cut"
 	imgList.AddPng "Copy", "Copy"
 	imgList.AddPng "Paste", "Paste"
-	imgList.AddPng "Search", "Find"
+	imgList.AddPng "Find", "Find"
 	imgList.AddPng "Code", "Code"
 	imgList.AddPng "Console", "Console"
 	imgList.AddPng "Form", "Form"
@@ -3305,7 +3306,7 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "Eraser", "Eraser"
 	imgList.AddPng "Pin", "Pin"
 	imgList.AddPng "Pinned", "Pinned"
-	imgList.AddPng "Settings", "Parameters"
+	imgList.AddPng "Parameters", "Parameters"
 	imgList.AddPng "Folder", "Folder"
 	imgList.AddPng "MainProject", "MainProject"
 	imgList.AddPng "Project", "Project"
@@ -3535,7 +3536,7 @@ Sub CreateMenusAndToolBars
 	mnuStartWithCompile = miRun->Add(ML("Start With &Compile") & HK("StartWithCompile", "F5"), "StartWithCompile", "StartWithCompile", @mclick)
 	mnuStart = miRun->Add(ML("&Start") & HK("Start", "Ctrl+F5"), "Start", "Start", @mclick)
 	mnuBreak = miRun->Add(ML("&Break") & HK("Break", "Ctrl+Break"), "Break", "Break", @mclick)
-	mnuEnd = miRun->Add(ML("&End") & HK("End"), "End", "End", @mclick)
+	mnuEnd = miRun->Add(ML("&End") & HK("End"), "EndProgram", "End", @mclick)
 	mnuRestart = miRun->Add(ML("&Restart") & HK("Restart", "Shift+F5"), "", "Restart", @mclick)
 	mnuBreak->Enabled = False
 	mnuEnd->Enabled = False
@@ -3618,23 +3619,23 @@ Sub CreateMenusAndToolBars
 	miHelp->Add("-")
 	miHelp->Add(ML("&About") & HK("About"), "About", "About", @mclick)
 	
-	mnuForm.ImagesList = @imgList '<m>
+	'mnuForm.ImagesList = @imgList '<m>
 	mnuForm.Add(ML("Cu&t"), "Cut", "Cut", @mclick)
 	mnuForm.Add(ML("&Copy"), "Copy", "Copy", @mclick)
 	mnuForm.Add(ML("&Paste"), "Paste", "Paste", @mclick)
 	
-	mnuTabs.ImagesList = @imgList '<m>
+	'mnuTabs.ImagesList = @imgList '<m>
 	miTabSetAsMain = mnuTabs.Add(ML("&Set as Main"), "SetAsMain", "SetAsMain", @mclick)
 	mnuTabs.Add("-")
 	mnuTabs.Add(ML("&Close"), "Close", "Close", @mclick)
 	mnuTabs.Add(ML("Close All Without Current"), "CloseAllWithoutCurrent", "CloseAllWithoutCurrent", @mclick)
 	mnuTabs.Add(ML("Close &All"), "CloseAll", "CloseAll", @mclick)
 	
-	mnuVars.ImagesList = @imgList '<m>
+	'mnuVars.ImagesList = @imgList '<m>
 	mnuVars.Add(ML("Show String"), "", "ShowString", @mclick)
 	mnuVars.Add(ML("Show/Expand Variable"), "", "ShowExpandVariable", @mclick)
 	
-	mnuExplorer.ImagesList = @imgList '<m>
+	'mnuExplorer.ImagesList = @imgList '<m>
 	miSetAsMain = mnuExplorer.Add(ML("&Set As Main"), "", "SetAsMain", @mclick)
 	mnuExplorer.Add("-")
 	Var miAdd = mnuExplorer.Add(ML("&Add"), "Add", "Add", @mclick)
@@ -3688,7 +3689,7 @@ Sub CreateMenusAndToolBars
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add , "SyntaxCheck",, @mClick, "SyntaxCheck", , ML("Syntax Check"), True
 	Var tbButton = tbStandard.Buttons.Add(tbsWholeDropdown, "Try",, @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
-	tbButton->DropDownMenu.ImagesList = @imgList
+	'tbButton->DropDownMenu.ImagesList = @imgList
 	tbButton->DropDownMenu.Add ML("Numbering"), "Numbering", "NumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Macro numbering"), "", "MacroNumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Numbering"), "", "NumberOff", @mclick

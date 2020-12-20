@@ -4043,7 +4043,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#else
 		pnlTopCombo.Height = 25
 	#endif
-	mnuCode.ImagesList = pimgList '<m>
+	'mnuCode.ImagesList = pimgList '<m>
 	mnuCode.Add(ML("Cut"), "Cut", "Cut", @mclick)
 	mnuCode.Add(ML("Copy"), "Copy", "Copy", @mclick)
 	mnuCode.Add(ML("Paste"), "Paste", "Paste", @mclick)
