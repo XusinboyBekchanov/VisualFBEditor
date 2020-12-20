@@ -470,91 +470,94 @@ Function TabWindow.SaveTab As Boolean
 	#endif
 	Var FileIndex = IncludeFiles.IndexOf(FileName)
 	If FileIndex <> 0 Then
-'		MutexLock tlockSave
-'		Dim As TypeElement Ptr te, te1
-'		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
-'			te = pGlobalNamespaces->Object(i)
-'			If te->FileName = FileName Then
-'				te->Elements.Clear
-'				Delete_(Cast(TypeElement Ptr, pGlobalNamespaces->Object(i)))
-'				pGlobalNamespaces->Remove i
-'			Else
-'				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'					te1 = te->Elements.Object(j)
-'					If te1->FileName = FileName Then 
-'						te->Elements.Remove j
-'					End If
-'				Next
-'			End If
-'		Next
-'		For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
-'			te = pGlobalTypes->Object(i)
-'			If te->FileName = FileName Then
-'				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
-'				Next
-'				te->Elements.Clear
-'				Delete_(Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
-'				pGlobalTypes->Remove i
-'			Else
-'				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'					te1 = te->Elements.Object(j)
-'					If te1->FileName = FileName Then 
-'						Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
-'						te->Elements.Remove j
-'					End If
-'				Next
-'			End If
-'		Next
-'		For i As Integer = pComps->Count - 1 To 0 Step -1
-'			te = pComps->Object(i)
-'			If te->FileName = FileName Then
-'				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
-'				Next
-'				te->Elements.Clear
-'				Delete_(Cast(TypeElement Ptr, pComps->Object(i)))
-'				pComps->Remove i
-'			Else
-'				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'					te1 = te->Elements.Object(j)
-'					If te1->FileName = FileName Then 
-'						Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
-'						te->Elements.Remove j
-'					End If
-'				Next
-'			End If
-'		Next
-'		For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
-'			te = pGlobalEnums->Object(i)
-'			If te->FileName = FileName Then
-'				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
-'				Next
-'				te->Elements.Clear
-'				Delete_(Cast(TypeElement Ptr, pGlobalEnums->Object(i)))
-'				pGlobalEnums->Remove i
-'			End If
-'		Next
-'		For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
-'			te = pGlobalFunctions->Object(i)
-'			If te->FileName = FileName Then
-'				Delete_(Cast(TypeElement Ptr, pGlobalFunctions->Object(i)))
-'				pGlobalFunctions->Remove i
-'			End If
-'		Next
-'		For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
-'			te = pGlobalArgs->Object(i)
-'			If te->FileName = FileName Then
-'				Delete_(Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
-'				pGlobalArgs->Remove i
-'			End If
-'		Next
-'		MutexUnlock tlockSave
-'		If Not pLoadPaths->Contains(FileName) Then
-'			pLoadPaths->Add FileName
-'		End If
-'		ThreadCreate(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName)))
+		MutexLock tlockSave
+		Dim As TypeElement Ptr te, te1
+		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
+			te = pGlobalNamespaces->Object(i)
+			For j As Integer = te->Elements.Count - 1 To 0 Step -1
+				te1 = te->Elements.Object(j)
+				If te1->FileName = *FFileName Then 
+					te->Elements.Remove j
+				End If
+			Next
+		Next
+		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
+			te = pGlobalNamespaces->Object(i)
+			If te->FileName = FileName Then
+				te->Elements.Clear
+				Delete_(Cast(TypeElement Ptr, pGlobalNamespaces->Object(i)))
+				pGlobalNamespaces->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
+			te = pGlobalTypes->Object(i)
+			If te->FileName = FileName Then
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+				Next
+				te->Elements.Clear
+				Delete_(Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
+				pGlobalTypes->Remove i
+			Else
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					te1 = te->Elements.Object(j)
+					If te1->FileName = FileName Then 
+						Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+						te->Elements.Remove j
+					End If
+				Next
+			End If
+		Next
+		For i As Integer = pComps->Count - 1 To 0 Step -1
+			te = pComps->Object(i)
+			If te->FileName = FileName Then
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+				Next
+				te->Elements.Clear
+				Delete_(Cast(TypeElement Ptr, pComps->Object(i)))
+				pComps->Remove i
+			Else
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					te1 = te->Elements.Object(j)
+					If te1->FileName = FileName Then 
+						Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+						te->Elements.Remove j
+					End If
+				Next
+			End If
+		Next
+		For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
+			te = pGlobalEnums->Object(i)
+			If te->FileName = FileName Then
+				For j As Integer = te->Elements.Count - 1 To 0 Step -1
+					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+				Next
+				te->Elements.Clear
+				Delete_(Cast(TypeElement Ptr, pGlobalEnums->Object(i)))
+				pGlobalEnums->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
+			te = pGlobalFunctions->Object(i)
+			If te->FileName = FileName Then
+				Delete_(Cast(TypeElement Ptr, pGlobalFunctions->Object(i)))
+				pGlobalFunctions->Remove i
+			End If
+		Next
+		For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
+			te = pGlobalArgs->Object(i)
+			If te->FileName = FileName Then
+				Delete_(Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
+				pGlobalArgs->Remove i
+			End If
+		Next
+		If Not pLoadPaths->Contains(FileName) Then
+			pLoadPaths->Add FileName
+		End If
+		'LoadFunctions FileName, LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
+		MutexUnlock tlockSave
+		ThreadCreate(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName)))
 	End If
 	Return True
 End Function
@@ -5745,7 +5748,7 @@ Sub TabWindow.Define
 				End If
 			Next
 			For i As Integer = 0 To pGlobalArgs->Count - 1
-				te = pGlobalArgs->Object(i)
+				te = Cast(TypeElement Ptr, pGlobalArgs->Object(i))
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->FileName = FileName Then Continue For
 					If te = te2 Then Continue For
