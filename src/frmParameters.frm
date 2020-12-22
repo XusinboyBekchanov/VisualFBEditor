@@ -254,6 +254,8 @@ Sub frmParameters.LoadSettings()
 		Next
 		.cboDebug32.ItemIndex = .cboDebug32.IndexOf(*CurrentDebugger32)
 		.cboDebug64.ItemIndex = .cboDebug64.IndexOf(*CurrentDebugger64)
+		If .cboDebug32.ItemIndex = -1 Then .cboDebug32.ItemIndex = .cboDebug32.IndexOf(*DefaultDebugger32)
+		If .cboDebug64.ItemIndex = -1 Then .cboDebug64.ItemIndex = .cboDebug64.IndexOf(*DefaultDebugger64)
 		If .cboDebug32.ItemIndex = -1 Then .cboDebug32.ItemIndex = 0
 		If .cboDebug64.ItemIndex = -1 Then .cboDebug64.ItemIndex = 0
 	End With
