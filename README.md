@@ -29,18 +29,28 @@ To compile use the following command lines:
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "Path_to_MyFbFramework"
 
 #### Sample bat file:
+
 REM Sample Windows 64 bit Build
+
 REM CHANGE ACC. YOUR SETUP / PATHS
+
 REM Change path to the VisualFBEditor source
+
 c:
+
 cd "C:\FreeBasic\Projects\VisualFBEditor-master\src"
 
+
 REM A Copy of the MyFbFramework was also placed to
+
 REM "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework"
 
 REM the 64 bit FreeBasic compiler is located in
+
 REM "C:\FreeBasic\X64\fbc.exe"
+
 REM "Version 1.08.0 64 bit Windows build"
 
 REM BUILD COMMAND
+
 "C:\FreeBasic\X64\fbc.exe" "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework"
