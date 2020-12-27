@@ -17,19 +17,19 @@ To compile use the following command lines:
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "Path_to_MyFbFramework"
 ```
 #### For Windows 64-bit:
-
+```shell
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "Path_to_MyFbFramework"
-
+```
 #### For Linux 32-bit:
-
+```shell
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "Path_to_MyFbFramework"
-
+```
 #### For Linux 64-bit:
-
+```shell
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "Path_to_MyFbFramework"
-
+```
 #### Sample bat file:
-
+```shell
 REM Sample Windows 64 bit Build
 
 REM CHANGE ACC. YOUR SETUP / PATHS
@@ -56,3 +56,4 @@ REM BUILD COMMAND
 "C:\FreeBasic\X64\fbc.exe" "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework"
 
 "C:\FreeBasic\X64\fbc.exe" "..\MyFbFramework\mff\mff.bi" -dll -x "..\MyFbFramework\mff64.dll" "..\MyFbFramework\mff\mff.rc"
+```
