@@ -13,9 +13,9 @@ VisualFBEditor is the IDE for FreeBasic with visul designer, debugger, project s
 To compile use the following command lines:
 
 #### For Windows 32-bit:
-
+```shell
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "Path_to_MyFbFramework"
-
+```
 #### For Windows 64-bit:
 
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "Path_to_MyFbFramework"
