@@ -368,7 +368,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 			Else
 				FNameOpen = Path & f
 			End If
-			Fn=FreeFile
+			Fn = FreeFile
 			Result = Open(FNameOpen For Input Encoding "utf-8" As #Fn)
 			If Result <> 0 Then Result = Open(FNameOpen For Input Encoding "utf-16" As #Fn)
 			If Result <> 0 Then Result = Open(FNameOpen For Input Encoding "utf-32" As #Fn)

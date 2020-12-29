@@ -459,8 +459,8 @@ Function Compile(Parameter As String = "") As Integer
 	'Shell("""" + BatFileName + """")
 	ChDir(GetFolderName(*MainFile))
 	'Shell(*fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """")
-	'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #1
-	'Close #1
+	'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #Fn
+	'Close #Fn
 	'PipeCmd "", *PipeCommand & " > """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """"
 	ThreadsEnter()
 	StartProgress
@@ -3029,11 +3029,9 @@ End Sub
 Sub LoadSettings
 	MainWidth = iniSettings.ReadInteger("MainWindow", "MainWidth", MainWidth)
 	MainHeight = iniSettings.ReadInteger("MainWindow", "MainHeight", MainHeight)
-	frmMain.Width= Max(MainWidth,600)
-	frmMain.Height= Max(MainHeight,400)
+	frmMain.Width = Max(MainWidth, 600)
+	frmMain.Height = Max(MainHeight, 400)
 	Dim As UString Temp
-	Dim As Integer Fn
-	Dim As WString * 1024 Buff
 	Dim i As Integer = 0
 	Do Until iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
@@ -4069,7 +4067,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 						txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 						mChangeLogEdited = False
 					End If
-					mChangelogName = ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log"
+					mChangelogName = ExePath & Slash & StringExtract(ptn->Text, ".") & "_Change.log"
 					txtChangeLog.Text = "Waiting...... "
 					If Dir(mChangelogName)<>"" AndAlso mChangelogName<> "" Then
 						txtChangeLog.LoadFromFile(mChangelogName) ' David Change
@@ -4081,7 +4079,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 					End If
 					mLoadLog = True
 				ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
-					ThreadCreate(@FindToDoSub, MainNode)
+					ThreadCreate(@FindToDoSub, ptn)
 					mLoadToDo = True
 				End If
 			End If
@@ -4979,7 +4977,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	tbBottom.Buttons.Item("AddWatch")->Visible = ptabBottom->SelectedTabIndex = 9
 	tbBottom.Buttons.Item("RemoveWatch")->Visible = ptabBottom->SelectedTabIndex = 9
 	If MainNode <>0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text,".") Then
-		If ptabBottom->SelectedTabIndex = 4 AndAlso CInt(Not mLoadLog) AndAlso CInt(Not mLoadToDo) Then
+		If ptabBottom->SelectedTabIndex = 4 AndAlso CInt(Not mLoadLog) Then ' AndAlso CInt(Not mLoadToDo)
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
 				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 				mChangeLogEdited = False

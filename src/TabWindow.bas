@@ -4481,18 +4481,19 @@ End Sub
 		Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
 		Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 		Dim As String ScriptPath
+		Dim As Integer Fn = FreeFile
 		ScriptPath = *g_get_tmp_dir() & "/vfb_run_script.sh"
-		Open ScriptPath For Output As #1
-		Print #1, "#!/bin/sh"
-		Print #1, ""
-		Print #1, "rm $0"
-		Print #1, ""
-		Print #1, "cd " & Replace(working_dir, "\", "/")
-		Print #1, ""
-		Print #1, IIf(debug, """" & WGet(DebuggerPath) & """" & " ", "") & Replace(cmd, "\", "/") & " " & Arguments
-		Print #1, ""
-		Print #1, !"echo ""\n\n------------------\n(program exited with code: $?)"" \n\n" & IIf(autoclose, "", !"\necho ""Press return to continue""\n#to be more compatible with shells like ""dash\ndummy_var=""""\nread dummy_var") & !"\n"
-		Close #1
+		Open ScriptPath For Output As #Fn
+		Print #Fn, "#!/bin/sh"
+		Print #Fn, ""
+		Print #Fn, "rm $0"
+		Print #Fn, ""
+		Print #Fn, "cd " & Replace(working_dir, "\", "/")
+		Print #Fn, ""
+		Print #Fn, IIf(debug, """" & WGet(DebuggerPath) & """" & " ", "") & Replace(cmd, "\", "/") & " " & Arguments
+		Print #Fn, ""
+		Print #Fn, !"echo ""\n\n------------------\n(program exited with code: $?)"" \n\n" & IIf(autoclose, "", !"\necho ""Press return to continue""\n#to be more compatible with shells like ""dash\ndummy_var=""""\nread dummy_var") & !"\n"
+		Close #Fn
 		ScriptPath = "sh " & ScriptPath
 		Return ScriptPath
 	End Function
@@ -5023,15 +5024,16 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		Result = ""
 	End If
 	Result += " " & IIf(Bit32, *Compiler32Arguments, *Compiler64Arguments)
-	Var FileOpenResult = Open(FileName For Input Encoding "utf-8" As #1)
-	If FileOpenResult <> 0 Then FileOpenResult = Open(FileName For Input As #1)
+	Dim As Integer Fn = FreeFile
+	Var FileOpenResult = Open(FileName For Input Encoding "utf-8" As #Fn)
+	If FileOpenResult <> 0 Then FileOpenResult = Open(FileName For Input As #Fn)
 	If FileOpenResult = 0 Then
 		Dim As WString * 1024 sLine
 		Dim As Integer i, n, l = 0
 		Dim As Boolean k(10)
 		k(l) = True
-		Do Until EOF(1)
-			Line Input #1, sLine
+		Do Until EOF(Fn)
+			Line Input #Fn, sLine
 			If StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_win32__") Then
 				l = l + 1
 				#ifdef __FB_WIN32__
@@ -5057,7 +5059,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#endif") Then
 				l = l - 1
 				If l < 0 Then
-					Close #1
+					Close #Fn
 					Return Result
 				End If
 			Else
@@ -5065,7 +5067,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 					If k(i) = False Then Exit For
 				Next
 				If i > l Then
-					Close #1
+					Close #Fn
 					If StartsWith(LTrim(LCase(sLine), Any !"\t "), "'#compile ") Then
 						Result = Mid(LTrim(sLine, Any !"\t "), 11) & " " & Result
 					End If
@@ -5073,11 +5075,11 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 				End If
 			End If
 			If l >= 10 Then
-				Close #1
+				Close #Fn
 				Return Result
 			End If
 		Loop
-		Close #1
+		Close #Fn
 	End If
 	Return Result
 End Function

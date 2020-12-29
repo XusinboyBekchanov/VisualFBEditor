@@ -4020,28 +4020,32 @@ End Namespace
 
 Sub LoadKeyWords
 	Dim b As String
-	Open ExePath & "/Settings/Keywords/keywords0" For Input As #1
-	Do Until EOF(1)
-		Input #1, b
+	Dim Fn As Integer = FreeFile
+	Open ExePath & "/Settings/Keywords/keywords0" For Input As #Fn
+	Do Until EOF(Fn)
+		Input #Fn, b
 		keywords0.Add b
 	Loop
-	Close #1
-	Open ExePath & "/Settings/Keywords/keywords1" For Input As #1
-	Do Until EOF(1)
-		Input #1, b
+	Close #Fn
+	Fn = FreeFile
+	Open ExePath & "/Settings/Keywords/keywords1" For Input As #Fn
+	Do Until EOF(Fn)
+		Input #Fn, b
 		keywords1.Add b
 	Loop
-	Close #1
-	Open ExePath & "/Settings/Keywords/keywords2" For Input As #1
-	Do Until EOF(1)
-		Input #1, b
+	Close #Fn
+	Fn = FreeFile
+	Open ExePath & "/Settings/Keywords/keywords2" For Input As #Fn
+	Do Until EOF(Fn)
+		Input #Fn, b
 		keywords2.Add b
 	Loop
-	Close #1
-	Open ExePath & "/Settings/Keywords/keywords3" For Input As #1
-	Do Until EOF(1)
-		Input #1, b
+	Close #Fn
+	Fn = FreeFile
+	Open ExePath & "/Settings/Keywords/keywords3" For Input As #Fn
+	Do Until EOF(Fn)
+		Input #Fn, b
 		keywords3.Add b
 	Loop
-	Close #1
+	Close #Fn
 End Sub

@@ -371,7 +371,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 					Else
 						FNameOpen = f
 					End If
-					Fn=FreeFile
+					Fn = FreeFile
 					Result = Open(FNameOpen For Input Encoding "utf-8" As #Fn)
 					If Result <> 0 Then Result = Open(FNameOpen For Input Encoding "utf-16" As #Fn)
 					If Result <> 0 Then Result = Open(FNameOpen For Input Encoding "utf-32" As #Fn)
