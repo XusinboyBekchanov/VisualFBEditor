@@ -55,5 +55,5 @@ REM BUILD COMMAND
 
 "C:\FreeBasic\X64\fbc.exe" "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework"
 
-"C:\FreeBasic\X64\fbc.exe" "..\MyFbFramework\mff\mff.bi" -dll -x "..\MyFbFramework\mff64.dll" "..\MyFbFramework\mff\mff.rc"
+"C:\FreeBasic\X64\fbc.exe" -b "..\MyFbFramework\mff\mff.bi" -dll -x "..\MyFbFramework\mff64.dll" "..\MyFbFramework\mff\mff.rc"
 ```
