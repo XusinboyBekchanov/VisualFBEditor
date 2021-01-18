@@ -336,7 +336,9 @@ Function Compile(Parameter As String = "") As Integer
 	On Error Goto ErrorHandler
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
+	ThreadsEnter()
 	Dim MainFile As WString Ptr: WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
+	ThreadsLeave()
 	If Len(*MainFile) <= 0 Then
 		ThreadsEnter()
 		ShowMessages ML("No Main file specified for the project.") & "!"
