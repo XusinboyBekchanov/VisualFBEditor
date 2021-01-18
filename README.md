@@ -9,7 +9,8 @@ VisualFBEditor is the IDE for FreeBasic with visul designer, debugger, project s
 * FreeBASIC Compiler: http://www.freebasic.net/
 
 #### Screenshots
-![ScreenShot](https://www.cyberforum.ru/blog_attachment.php?attachmentid=5144&d=1545153885)
+![ScreenShot](https://www.cyberforum.ru/blog_attachment.php?attachmentid=4921&d=1531765249)
+(https://www.cyberforum.ru/blog_attachment.php?attachmentid=5144&d=1545153885)
 
 #### Compilation:
 
