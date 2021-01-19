@@ -51,11 +51,11 @@ Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlPropertyValue
 Dim Shared As Trackbar trLeft
-Dim Shared As ScrollBarControl scrTool
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
 Dim Shared As SaveFileDialog SaveD
 #ifndef __USE_GTK__
+	Dim Shared As ScrollBarControl scrTool
 	Dim Shared As PageSetupDialog PageSetupD
 	Dim Shared As PrintDialog PrintD
 	Dim Shared As PrintPreviewDialog PrintPreviewD
@@ -2031,7 +2031,9 @@ Sub ToolBoxClick(ByRef Sender As My.Sys.Object)
 			'For i As Integer = 0 To tbToolBox.Buttons.Count - 1
 			'    If tbToolBox.Buttons.Item(i)->Visible Then c = c + 1
 			'Next
-			scrTool.MaxValue = c
+			#ifndef __USE_GTK__
+				scrTool.MaxValue = c
+			#endif
 			tbToolBox.UpdateUnLock
 		ElseIf .Name = "Cursor" Then
 			SelectedClass = ""
@@ -2076,6 +2078,7 @@ Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeig
 	#endif
 End Sub
 
+#ifndef __USE_GTK__
 Sub tbToolBox_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
 	scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
 End Sub
@@ -2083,6 +2086,7 @@ End Sub
 Sub scrTool_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
 	scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
 End Sub
+#endif
 
 Function DirExists(ByRef DirPath As WString) As Integer
 	Const InAttr = fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive
@@ -2974,7 +2978,9 @@ Sub LoadToolBox
 	tbToolBox.BorderStyle = 0
 	tbToolBox.List = True
 	tbToolBox.Style = tpsBothHorizontal
-	tbToolBox.OnMouseWheel = @tbToolBox_MouseWheel
+	#ifndef __USE_GTK__
+		tbToolBox.OnMouseWheel = @tbToolBox_MouseWheel
+	#endif
 	tbToolBox.ImagesList = @imgListTools
 	tbToolBox.HotImagesList = @imgListTools
 	IncludePath = GetFolderName(*MFFDll) & "mff/"
@@ -3948,17 +3954,19 @@ Sub tabLeft_DblClick(ByRef Sender As Control)
 	SetLeftClosedStyle Not GetLeftClosedStyle
 End Sub
 
-Sub scrTool_Scroll(ByRef Sender As Control, ByRef NewPos As Integer)
-	tbToolBox.Top = -NewPos
-End Sub
-
-scrTool.Style = sbVertical
-scrTool.Align = 2
-scrTool.ArrowChangeSize = tbToolBox.ButtonHeight
-scrTool.PageSize = 3 * scrTool.ArrowChangeSize
-scrTool.OnScroll = @scrTool_Scroll
-scrTool.OnMouseWheel = @scrTool_MouseWheel
-'scrTool.OnResize = @pnlToolBox_Resize
+#ifndef __USE_GTK__
+	Sub scrTool_Scroll(ByRef Sender As Control, ByRef NewPos As Integer)
+		tbToolBox.Top = -NewPos
+	End Sub
+	
+	scrTool.Style = sbVertical
+	scrTool.Align = 2
+	scrTool.ArrowChangeSize = tbToolBox.ButtonHeight
+	scrTool.PageSize = 3 * scrTool.ArrowChangeSize
+	scrTool.OnScroll = @scrTool_Scroll
+	scrTool.OnMouseWheel = @scrTool_MouseWheel
+	'scrTool.OnResize = @pnlToolBox_Resize
+#endif
 
 Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	#ifdef __USE_GTK__
