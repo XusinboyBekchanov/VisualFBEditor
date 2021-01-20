@@ -362,7 +362,7 @@ Function Compile(Parameter As String = "") As Integer
 		Return 0
 	Else
 		#ifdef __USE_GTK__
-			If g_find_program_in_path(*FbcExe) = NULL Then
+			If g_find_program_in_path(ToUTF8(*FbcExe)) = NULL Then
 		#else
 			If Not FileExists(*FbcExe) Then
 		#endif
@@ -502,7 +502,7 @@ Function Compile(Parameter As String = "") As Integer
 	End If
 	WDeallocate PipeCommand
 	#ifdef __USE_GTK__
-		Yaratilmadi = g_find_program_in_path(*ExeName) = NULL
+		Yaratilmadi = g_find_program_in_path(ToUTF8(*ExeName)) = NULL
 	#else
 		Yaratilmadi = Dir(*ExeName) = ""
 	#endif
@@ -2966,7 +2966,7 @@ Sub LoadToolBox
 	#endif
 	Dim cl As Integer = clSilver
 	#ifdef __USE_GTK__
-		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), *MFFPath & "/resources")
+		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(*MFFPath & "/resources"))
 		tbToolBox.Align = 5
 	#else
 		imgListTools.AddPng "DropDown", "DropDown"
