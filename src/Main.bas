@@ -49,7 +49,7 @@ Dim Shared As CheckBox chkLeft
 Dim Shared As RadioButton radButton
 Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
-Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlPropertyValue
+Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue
 Dim Shared As Trackbar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
@@ -79,7 +79,7 @@ Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
 Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As Form frmMain
-Dim Shared As Integer MainHeight =600, MainWidth = 800
+Dim Shared As Integer MainHeight =600, MainWidth = 800, tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
 Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True ' Add Change Log
 Dim Shared As WString * MAX_PATH mChangelogName  'David Changed
@@ -3815,12 +3815,14 @@ prProgress.SetMarquee True, 100
 'stBar.Panels[1]->Alignment = 1
 
 tbExplorer.ImagesList = @imgList
+tbExplorer.HotImagesList = @imgList
+tbExplorer.DisabledImagesList = @imgList
+tbExplorer.Flat = True
 tbExplorer.Align = 3
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
 tbExplorer.Buttons.Add , "Remove",, @mClick, "RemoveFileFromProject", , ML("Remove"), True
 tbExplorer.Buttons.Add tbsSeparator
 tbExplorer.Buttons.Add tbsCheck, "Folder",, @mClick, "Folder", , ML("Show Folders"), True
-tbExplorer.Flat = True
 
 Sub tbFormClick(ByRef Sender As My.Sys.Object)
 	Var bFlag = Cast(ToolButton Ptr, @Sender)->Checked
@@ -3837,12 +3839,13 @@ Sub tbFormClick(ByRef Sender As My.Sys.Object)
 End Sub
 
 tbForm.ImagesList = @imgList
+tbForm.HotImagesList = @imgList
+tbForm.DisabledImagesList = @imgListD
 tbForm.Align = 3
-tbForm.List = True
+tbForm.Flat = True
 tbForm.Buttons.Add tbsCheck, "Label", , @tbFormClick, "Text", "", ML("Text"), , tstChecked Or tstEnabled
 tbForm.Buttons.Add tbsSeparator
 tbForm.Buttons.Add , "Component", , ,"", "", ML("Add Components")
-tbForm.Flat = True
 
 tabLeftWidth = 150
 tabRightWidth = 150
@@ -3860,7 +3863,7 @@ Sub CloseLeft()
 		tabLeft.SelectedTabIndex = -1
 		pnlLeft.Width = tabLeft.ItemWidth(0) + 2
 	#endif
-	tbLeft.Visible = False
+	pnlLeftPin.Visible = False
 	frmMain.RequestAlign
 End Sub
 
@@ -3869,8 +3872,8 @@ Sub ShowLeft()
 	pnlLeft.Width = tabLeftWidth
 	pnlLeft.RequestAlign
 	splLeft.Visible = True
-	tbLeft.Left = tabLeftWidth - tbLeft.Width - 4
-	tbLeft.Visible = True
+	pnlLeftPin.Left = tabLeftWidth - pnlLeftPin.Width - 4
+	pnlLeftPin.Visible = True
 	'#IfNDef __USE_GTK__
 	frmMain.RequestAlign
 	'#EndIf
@@ -3884,7 +3887,7 @@ Sub CloseRight()
 		tabRight.SelectedTabIndex = -1
 		pnlRight.Width = tabRight.ItemWidth(0) + 2
 	#endif
-	tbRight.Visible = False
+	pnlRightPin.Visible = False
 	frmMain.RequestAlign
 End Sub
 
@@ -3893,8 +3896,8 @@ Sub ShowRight()
 	pnlRight.Width = tabRightWidth
 	pnlRight.RequestAlign
 	splRight.Visible = True
-	tbRight.Left = tabRightWidth - tbRight.Width - 22
-	tbRight.Visible = True
+	pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - tabRight.ItemWidth(0) - 4
+	pnlRightPin.Visible = True
 	frmMain.RequestAlign
 End Sub
 
@@ -3906,7 +3909,7 @@ Sub CloseBottom()
 		ptabBottom->SelectedTabIndex = -1
 		pnlBottom.Height = ptabBottom->ItemHeight(0) + 2
 	#endif
-	tbBottom.Visible = False
+	pnlBottomPin.Visible = False
 	frmMain.RequestAlign
 End Sub
 
@@ -3915,7 +3918,7 @@ Sub ShowBottom()
 	pnlBottom.Height = tabBottomHeight
 	pnlBottom.RequestAlign
 	splBottom.Visible = True
-	tbBottom.Visible = True
+	pnlBottomPin.Visible = True
 	frmMain.RequestAlign '<bp>
 End Sub
 
@@ -3932,16 +3935,16 @@ Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 			tabLeft.TabPosition = tpLeft
 			.ImageKey = "Pin"
 			.Checked = False
-			tbLeft.Top = 2
+			pnlLeftPin.Top = 2
 			If WithClose Then CloseLeft
 		Else
 			pnlLeft.Width = tabLeftWidth
 			tabLeft.TabPosition = tpTop
 			splLeft.Visible = True
-			tbLeft.Visible = True
+			pnlLeftPin.Visible = True
 			.ImageKey = "Pinned"
 			.Checked = True
-			tbLeft.Top = 22
+			pnlLeftPin.Top = tabItemHeight
 		End If
 	End With
 	'#IfNDef __USE_GTK__
@@ -4190,18 +4193,22 @@ pnlLeft.Add @tabLeft
 'tabLeft.TabPosition = tpLeft
 
 tbLeft.ImagesList = @imgList
-tbLeft.Anchor.Right = AnchorStyle.asAnchor
 tbLeft.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinLeft", "", ML("Pin"), , tstEnabled Or tstChecked
 tbLeft.Flat = True
 tbLeft.Width = 23
-tbLeft.Top = 22
-tbLeft.Left = tabLeftWidth - tbLeft.Width - 4
-tbLeft.Parent = @pnlLeft
+tbLeft.Parent = @pnlLeftPin
 
 Var tpLoyiha = tabLeft.AddTab(ML("Project"))
 
 tpShakl = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
 tpShakl->Name = "tpShakl"
+
+pnlLeftPin.Anchor.Right = AnchorStyle.asAnchor
+pnlLeftPin.Top = tabItemHeight
+pnlLeftPin.Width = 23
+pnlLeftPin.Left = tabLeftWidth - pnlLeftPin.Width - 4
+pnlLeftPin.Height = tbLeft.Height
+pnlLeftPin.Parent = @pnlLeft
 
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
 lblLeft.Align = 4
@@ -4569,8 +4576,8 @@ Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 			tabRight.TabPosition = tpRight
 			.ImageKey = "Pin"
 			.Checked = False
-			tbRight.Top = 2
-			tbRight.Left = tabRightWidth - tbRight.Width - 22
+			pnlRightPin.Top = 2
+			pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - tabItemHeight
 			If WithClose Then CloseRight
 		Else
 			tabRight.TabPosition = tpTop
@@ -4578,11 +4585,11 @@ Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 			pnlRight.Width = tabRightWidth
 			'pnlRight.RequestAlign
 			splRight.Visible = True
-			tbRight.Visible = True
+			pnlRightPin.Visible = True
 			.ImageKey = "Pinned"
 			.Checked = True
-			tbRight.Top = 22
-			tbRight.Left = tabRightWidth - tbRight.Width - 4
+			pnlRightPin.Top = tabItemHeight
+			pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - 4
 		End If
 	End With
 	frmMain.RequestAlign
@@ -4630,7 +4637,7 @@ Sub pnlRight_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight
 	#ifdef __USE_GTK__
 		If pnlRight.Width <> 30 Then tabRightWidth = NewWidth: tabRight.SetBounds(0, 0, tabRightWidth, NewHeight)
 	#else
-		If tabRight.SelectedTabIndex <> -1 Then tabRightWidth = tabRight.Width: If GetRightClosedStyle Then tbRight.Left = tabRightWidth - tbRight.Width - 22
+		If tabRight.SelectedTabIndex <> -1 Then tabRightWidth = tabRight.Width: If GetRightClosedStyle Then pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - tabItemHeight
 	#endif
 End Sub
 
@@ -4661,13 +4668,17 @@ tabRight.Tabs[1]->Add @lvEvents
 pnlRight.Add @tabRight
 
 tbRight.ImagesList = @imgList
-tbRight.Anchor.Right = AnchorStyle.asAnchor
 tbRight.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinRight", "", ML("Pin"), , tstEnabled Or tstChecked
 tbRight.Flat = True
 tbRight.Width = 23
-tbRight.Top = 22
-tbRight.Left = tabRightWidth - tbRight.Width - 4
-tbRight.Parent = @pnlRight
+tbRight.Parent = @pnlRightPin
+
+pnlRightPin.Anchor.Right = AnchorStyle.asAnchor
+pnlRightPin.Top = tabItemHeight
+pnlRightPin.Width = 23
+pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - 4
+pnlRightPin.Height = tbRight.Height
+pnlRightPin.Parent = @pnlRight
 
 'pnlRight.Width = 153
 'pnlRight.Align = 2
@@ -4954,7 +4965,7 @@ Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
 			pnlBottom.Height = tabBottomHeight
 			pnlBottom.RequestAlign
 			splBottom.Visible = True
-			tbBottom.Visible = True
+			pnlBottomPin.Visible = True
 			.ImageKey = "Pinned"
 			.Checked = True
 			'tbBottom.Top = 2
@@ -5068,7 +5079,7 @@ tbBottom.Buttons.Add , "Remove", , @mClick, "RemoveWatch", "", ML("Remove Watch"
 tbBottom.Flat = True
 tbBottom.Wrapable = True
 tbBottom.Width = tbBottom.Height
-tbBottom.Parent = @pnlBottom
+tbBottom.Parent = @pnlBottomPin
 
 'ptabBottom->Images.AddIcon bmp
 ptabBottom->Name = "tabBottom"
@@ -5106,6 +5117,10 @@ ptabBottom->OnSelChange = @tabBottom_SelChange
 'pnlBottom.Align = 4
 'pnlBottom.AddRange 1, @tabBottom
 pnlBottom.Add ptabBottom
+
+pnlBottomPin.Align = DockStyle.alRight
+pnlBottomPin.Width = tbLeft.Height
+pnlBottomPin.Parent = @pnlBottom
 
 LoadKeyWords '<bm>
 
@@ -5243,6 +5258,8 @@ Sub frmMain_Create(ByRef Sender As Control)
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), "VisualFBEditor1")
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
 	#endif
+	
+	tabItemHeight = tabLeft.ItemHeight(0) + 4
 	
 	LoadToolBox
 	
