@@ -54,7 +54,8 @@
 		ML("Language files by") & !":\r" & _
 		!"Xusinboy Bekchanov (Russian, Uzbekcyril, Uzbeklatin)\r" & _
 		!"Liu XiaLin (Chinese)\r"  & _
-		!"Thomas Frank Ludewig (Deutsch)\r"
+		!"Thomas Frank Ludewig (Deutsch)\r"  & _
+		!"Juan Sánchez (Spanish)\r"
 		Label2.BorderStyle = 0
 		Label2.SetBounds 10, 66, 432, 403
 		Label2.Parent = @This
