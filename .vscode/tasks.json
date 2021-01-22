@@ -6,19 +6,32 @@
         {
             "label": "FreeBASIC Build",
             "type": "shell",
-            "command": "D:/FreeBasic/FreeBASIC-1.07.1-win32/fbc.exe",
+            "windows": {
+                "command": "D:/FreeBasic/FreeBASIC-1.07.1-win32/fbc.exe",
+                "args": [
+                    "-g",
+                    "VisualFBEditor.bas",
+                    "VisualFBEditor.rc",
+                    "-x",
+                    "../VisualFBEditor32.exe",
+                    "-i",
+                    "../MyFbFramework"
+                ],
+            },
+            "linux": {
+                "command": "/media/FreeBasic/FreeBASIC-1.07.2-linux-x86_64/bin/fbc",
+                "args": [
+                    "-g",
+                    "VisualFBEditor.bas",
+                    "-x",
+                    "../VisualFBEditor64_gtk3",
+                    "-i",
+                    "../MyFbFramework"
+                ], 
+            },
             "options": {
                 "cwd": "${workspaceFolder}/src"
             },
-            "args": [
-                "-g",
-                "${fileBasenameNoExtension}.bas",
-                "${fileBasenameNoExtension}.rc",
-                "-x",
-                "../VisualFBEditor32.exe",
-                "-i",
-                "../MyFbFramework"
-            ],
             "problemMatcher": [],
             "group": {
                 "kind": "build",

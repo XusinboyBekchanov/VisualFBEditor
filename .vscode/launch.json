@@ -8,14 +8,20 @@
             "name": "FreeBASIC Run",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/${fileBasenameNoExtension}32.exe",
+            "windows": {
+                "program": "${workspaceFolder}/VisualFBEditor32.exe",
+                "miDebuggerPath": "D:/FreeBasic/FreeBASIC-1.07.1-win32/bin/win32/gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/VisualFBEditor64_gtk3",
+                "miDebuggerPath": "gdb",
+            },
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "D:/FreeBasic/FreeBASIC-1.07.1-win32/bin/win32/gdb.exe",
             "setupCommands": [
                 {
                     "description": "gdb",
