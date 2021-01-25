@@ -10,10 +10,8 @@
                 "command": "D:/FreeBasic/FreeBASIC-1.07.1-win32/fbc.exe",
                 "args": [
                     "-g",
-                    "VisualFBEditor.bas",
-                    "VisualFBEditor.rc",
-                    "-x",
-                    "../VisualFBEditor32.exe",
+                    "${fileBasenameNoExtension}.bas",
+                    "${fileBasenameNoExtension}.rc",
                     "-i",
                     "../MyFbFramework"
                 ],
@@ -22,15 +20,13 @@
                 "command": "/media/FreeBasic/FreeBASIC-1.07.1-linux-x86_64/bin/fbc",
                 "args": [
                     "-g",
-                    "VisualFBEditor.bas",
-                    "-x",
-                    "../VisualFBEditor64_gtk3",
+                    "${fileBasenameNoExtension}.bas",
                     "-i",
                     "../MyFbFramework"
                 ], 
             },
             "options": {
-                "cwd": "${workspaceFolder}/src"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [],
             "group": {

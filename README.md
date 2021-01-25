@@ -1,4 +1,4 @@
-# VisualFBEditor
+﻿# VisualFBEditor
 ## IDE for FreeBasic
 
 #### Introduction
@@ -43,7 +43,6 @@ REM Change path to the VisualFBEditor source
 c:
 
 cd "C:\FreeBasic\Projects\VisualFBEditor-master\src"
-
 
 REM A Copy of the MyFbFramework was also placed to
 

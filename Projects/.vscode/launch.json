@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "FreeBASIC Run",
+            "type": "cppdbg",
+            "request": "launch",
+            "windows": {
+                "program": "${workspaceFolder}/${fileBasenameNoExtension}.exe",
+                "miDebuggerPath": "D:/FreeBasic/FreeBASIC-1.07.1-win32/bin/win32/gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/${fileBasenameNoExtension}",
+                "miDebuggerPath": "gdb",
+            },
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "FreeBASIC Build"
+        }
+    ]
+}

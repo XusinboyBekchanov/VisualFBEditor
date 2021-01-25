@@ -341,7 +341,9 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "GitHubWebSite":                   OpenUrl "https://github.com"
 	Case "FreeBasicRepository":             OpenUrl "https://github.com/freebasic/fbc"
 	Case "VisualFBEditorRepository":        OpenUrl "https://github.com/XusinboyBekchanov/VisualFBEditor"
+	Case "VisualFBEditorWiKi":              OpenUrl "https://github.com/XusinboyBekchanov/VisualFBEditor/wiki"
 	Case "MyFbFrameworkRepository":         OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework"
+	Case "MyFbFrameworkWiKi":               OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework/wiki"
 	Case "About":                           pfAbout->Show *pfrmMain
 	End Select
 End Sub

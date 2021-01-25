@@ -1,2 +1,2 @@
-file "D:/GitHub/VisualFBEditor/src/../VisualFBEditor32.exe"
+file "/media/GitHub/VisualFBEditor/Projects/Form1"
 r

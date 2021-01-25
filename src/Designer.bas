@@ -1369,6 +1369,17 @@ Namespace My.Sys.Forms
 					Next j
 				Next i
 			End If
+			Dim As Integer FLeft, FTop, FWidth, FHeight
+			Dim As Const Double dashed = 0.85
+			cairo_set_source_rgb(cr, 0, 0, 0)
+			cairo_set_line_width (cr, 0.1)
+			cairo_set_dash(cr, @dashed, 0.5, 1.5)
+			For j As Integer = 0 To SelectedControls.Count - 1
+				ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft, @FTop, @FWidth, @FHeight)
+				'GetPosToClient ReadPropertyFunc(SelectedControls.Items[j], "widget"), layoutwidget, @FLeft, @FTop
+				cairo_rectangle(cr, FLeft - 2, FTop - 2, FWidth + 4, FHeight + 4)
+				cairo_stroke(cr)
+			Next j
 		#else
 			Dim As HDC mDc
 			Dim As HBITMAP mBMP, pBMP

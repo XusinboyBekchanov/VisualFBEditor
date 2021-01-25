@@ -49,7 +49,7 @@ Dim Shared As CheckBox chkLeft
 Dim Shared As RadioButton radButton
 Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
-Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue
+Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue
 Dim Shared As Trackbar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
@@ -2966,7 +2966,7 @@ Sub LoadToolBox
 	#endif
 	Dim cl As Integer = clSilver
 	#ifdef __USE_GTK__
-		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(*MFFPath & "/resources"))
+		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(GetFullPath(*MFFPath) & "/resources"))
 		tbToolBox.Align = 5
 	#else
 		imgListTools.AddPng "DropDown", "DropDown"
@@ -3621,7 +3621,10 @@ Sub CreateMenusAndToolBars
 	miGitHub->Add(ML("FreeBasic Repository") & HK("FreeBasicRepository"), "", "FreeBasicRepository", @mclick)
 	miGitHub->Add("-")
 	miGitHub->Add(ML("VisualFBEditor Repository") & HK("VisualFBEditorRepository"), "", "VisualFBEditorRepository", @mclick)
+	miGitHub->Add(ML("VisualFBEditor WiKi") & HK("VisualFBEditorWiKi"), "", "VisualFBEditorWiKi", @mclick)
+	miGitHub->Add("-")
 	miGitHub->Add(ML("MyFbFramework Repository") & HK("MyFbFrameworkRepository"), "", "MyFbFrameworkRepository", @mclick)
+	miGitHub->Add(ML("MyFbFramework WiKi") & HK("MyFbFrameworkWiKi"), "", "MyFbFrameworkWiKi", @mclick)
 	miHelp->Add("-")
 	miHelp->Add(ML("&About") & HK("About"), "About", "About", @mclick)
 	
@@ -4205,7 +4208,7 @@ tpShakl->Name = "tpShakl"
 
 pnlLeftPin.Anchor.Right = AnchorStyle.asAnchor
 pnlLeftPin.Top = tabItemHeight
-pnlLeftPin.Width = 23
+pnlLeftPin.Width = tbLeft.Width
 pnlLeftPin.Left = tabLeftWidth - pnlLeftPin.Width - 4
 pnlLeftPin.Height = tbLeft.Height
 pnlLeftPin.Parent = @pnlLeft
@@ -5113,14 +5116,19 @@ ptabBottom->Tabs[9]->Add @tvWch
 ptabBottom->OnClick = @tabBottom_Click
 ptabBottom->OnDblClick = @tabBottom_DblClick
 ptabBottom->OnSelChange = @tabBottom_SelChange
+ptabBottom->Parent = @pnlBottomTab
+
+pnlBottomTab.Align = 5
+pnlBottomTab.Parent = @pnlBottom
+
 'pnlBottom.Height = 153
 'pnlBottom.Align = 4
 'pnlBottom.AddRange 1, @tabBottom
-pnlBottom.Add ptabBottom
-
 pnlBottomPin.Align = DockStyle.alRight
 pnlBottomPin.Width = tbLeft.Height
 pnlBottomPin.Parent = @pnlBottom
+
+'pnlBottom.Add ptabBottom
 
 LoadKeyWords '<bm>
 
@@ -5257,9 +5265,9 @@ Sub frmMain_Create(ByRef Sender As Control)
 	#ifdef __USE_GTK__
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), "VisualFBEditor1")
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
+	#else
+		tabItemHeight = tabLeft.ItemHeight(0) + 4
 	#endif
-	
-	tabItemHeight = tabLeft.ItemHeight(0) + 4
 	
 	LoadToolBox
 	
@@ -5276,6 +5284,8 @@ Sub frmMain_Create(ByRef Sender As Control)
 	tbStandard.Buttons.Item("GUI")->Checked = bGUI
 	tbStandard.Buttons.Item("Console")->Checked = Not bGUI
 	Var file = Command(-1)
+	Var Pos1 = Instr(file, "2>CON")
+	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
 	If file = "" Then
 		Select Case WhenVisualFBEditorStarts
 		Case 1: 'pfTemplates->ShowModal
@@ -5311,6 +5321,12 @@ Sub frmMain_Create(ByRef Sender As Control)
 End Sub
 
 Sub frmMain_Show(ByRef Sender As Control)
+	#ifdef __USE_GTK__
+		tabItemHeight = tabLeft.ItemHeight(0) + 4 + 5
+		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabItemHeight
+		If Not GetRightClosedStyle Then pnlRightPin.Top = tabItemHeight
+		pnlBottomPin.Width = tabItemHeight
+	#endif
 	pfSplash->CloseForm
 	Select Case WhenVisualFBEditorStarts
 	Case 1: NewProject
@@ -5525,7 +5541,7 @@ Sub OnProgramQuit() Destructor
 	WDeallocate gSearchSave
 	Dim As ToolType Ptr tt
 	For i As Integer = 0 To Tools.Count - 1
-		Delete_(Cast(ToolType Ptr, Tools.Item(i)))
+		Delete_(Cast(ToolType Ptr, Tools.Items[i]))
 	Next
 	Dim As TypeElement Ptr te, te1
 	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
