@@ -150,6 +150,8 @@ Common Shared As Integer oldIndex, newIndex
 	End Type
 '#End Region
 
+Declare Sub FindCompilersSub(Param As Any Ptr)
+
 Common Shared pfOptions As frmOptions Ptr
 
 #ifndef __USE_MAKE__

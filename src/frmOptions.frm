@@ -1139,7 +1139,7 @@ pfOptions = @fOptions
 			.Name = "lblFindCompilersFromComputer"
 			.Text = ML("Find Compilers from Computer:")
 			.TabIndex = 168
-			.SetBounds 20, 19, 180, 20
+			.SetBounds 20, 19, 280, 20
 			.Caption = ML("Find Compilers from Computer:")
 			.Parent = @grbCompilerPaths
 		End With
@@ -1169,6 +1169,8 @@ End Sub
 
 Sub frmOptions.LoadSettings()
 	With fOptions
+		.tvOptions.SelectedNode = .tvOptions.Nodes.Item(0)
+		.TreeView1_SelChange .tvOptions, *.tvOptions.Nodes.Item(0)
 		.chkTabAsSpaces.Checked = TabAsSpaces
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
@@ -1413,8 +1415,6 @@ Sub frmOptions.LoadSettings()
 		.oldDisplayMenuIcons = DisplayMenuIcons
 		.lblInterfaceFont.Font.Name = *InterfaceFontName
 		.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
-		.tvOptions.SelectedNode = .tvOptions.Nodes.Item(0)
-		.TreeView1_SelChange .tvOptions, *.tvOptions.Nodes.Item(0)
 	End With
 End Sub
 Sub AddShortcuts(item As MenuItem Ptr, ByRef Prefix As WString = "")
@@ -2671,42 +2671,100 @@ Private Sub frmOptions.optDoNotNothing_Click(ByRef Sender As RadioButton)
 End Sub
 
 Dim Shared As Boolean bStop
-Sub FindCompilers(Param As Amy Ptr)
-	
+Dim Shared As Integer FindedCompilersCount
+Dim Shared As UString FolderName = GetFolderName(pApp->FileName)
+Sub FindCompilers(ByRef Path As WString)
+	Dim As WString * 1024 f, f1, f2, f3
+	Dim As UInteger Attr, NameCount
+	Dim As WStringList Folders
+	If Path = "" Then Exit Sub
+	If FormClosing OrElse bStop Then Exit Sub
+	If EndsWith(Path, "\Windows") Then Exit Sub
+	ThreadsEnter
+	'fOptions.lblFindCompilersFromComputer.Text = Path
+	pstBar->Panels[0]->Caption = Path
+	ThreadsLeave
+	f = Dir(Path & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
+	While f <> ""
+		If FormClosing OrElse bStop Then Exit Sub
+		If (Attr And fbDirectory) <> 0 Then
+			If f <> "." AndAlso f <> ".." Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
+		#ifdef __FB_WIN32__
+			ElseIf LCase(f) = "fbc.exe" OrElse LCase(f) = "fbc32.exe" OrElse LCase(f) = "fbc64.exe" Then
+		#else
+			ElseIf LCase(f) = "fbc" Then
+		#endif
+			f1 = Path & IIf(EndsWith(Path, Slash), "", Slash) & f
+			ThreadsEnter
+			With fOptions.lvCompilerPaths.ListItems
+				For i As Integer = 0 To .Count - 1
+					If EqualPaths(.Item(i)->Text(1), f1) Then f = Dir(Attr): Continue While
+				Next
+				If StartsWith(f1, FolderName) Then f1 = "." & Slash & Mid(f1, Len(FolderName) + 1)
+				f2 = GetFileName(GetFolderName(f1, False))
+				If f2 = "bin" Then f2 = GetFileName(GetFolderName(GetFolderName(f1, False), False))
+				If EndsWith(f, "32.exe") Then: f2 = f2 & " 32": ElseIf EndsWith(f, "64.exe") Then: f2 = f2 & " 64": End If
+				NameCount = 0
+				f3 = f2
+				While .Contains(f3)
+					NameCount += 1
+					f3 = f2 & " " & NameCount
+				Wend
+				.Add f3
+				.Item(.Count - 1)->Text(1) = f1
+			End With
+			ThreadsLeave
+			FindedCompilersCount += 1
+		End If
+		f = Dir(Attr)
+	Wend
+	For i As Integer = 0 To Folders.Count - 1
+		FindCompilers Folders.Item(i)
+	Next
+	Folders.Clear
+End Sub
+
+Sub FindProcessStartStop()
+	With fOptions
+		If bStop Then
+			StopProgress
+			.cmdFindCompilers.Text = ML("&Find")
+			'fOptions.lblFindCompilersFromComputer.Text = ML("Find Compilers from Computer:")
+			pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
+		Else
+			StartProgress
+			.cmdFindCompilers.Text = ML("Stop")
+			ThreadCreate(@FindCompilersSub)
+		End If
+		.cmdAddCompiler.Enabled = bStop
+		.cmdChangeCompiler.Enabled = bStop
+		.cmdRemoveCompiler.Enabled = bStop
+		.cmdClearCompilers.Enabled = bStop
+	End With
 End Sub
 
 Sub FindCompilersSub(Param As Any Ptr)
-'	plvSearch->ListItems.Clear
-'	StartProgress
-'	With fFindFile
-'		.btnFind.Enabled = False
-'		.txtPath.Text  = Replace(.txtPath.Text, BackSlash, Slash)
-'		If EndsWith(.txtPath.Text, Slash) = False Then .txtPath.Text =.txtPath.Text & Slash
-'		ThreadsLeave
-'		.Find plvSearch, .txtPath.Text, .txtFind.Text
-'		ThreadsEnter
-'		.btnFind.Enabled = True
-'	End With
-'	StopProgress
-'	ptabBottom->Tabs[2]->Caption = ML("Find") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
-'	ThreadsLeave
+	Dim As String disk0 = CurDir
+	For i As Integer = 65 To 90
+		If FormClosing OrElse bStop Then Exit For
+		If ChDir(Chr(i) & ":") = 0 Then FindCompilers Chr(i) & ":"
+	Next
+	ChDir(disk0)
+	ThreadsEnter
+	bStop = True: FindProcessStartStop
+	If FindedCompilersCount = 0 Then
+		MsgBox ML("Compilers not found")
+	Else
+		MsgBox ML("Finded Compilers count") & ": " & Str(FindedCompilersCount)
+	End If
+	ThreadsLeave
 End Sub
 
 Private Sub frmOptions.cmdFindCompilers_Click_(ByRef Sender As Control)
 	*Cast(frmOptions Ptr, Sender.Designer).cmdFindCompilers_Click(Sender)
 End Sub
+
 Private Sub frmOptions.cmdFindCompilers_Click(ByRef Sender As Control)
 	bStop = cmdFindCompilers.Text = ML("Stop")
-	If bStop Then
-		StopProgress
-		cmdFindCompilers.Text = ML("&Find")
-	Else
-		StartProgress
-		cmdFindCompilers.Text = ML("Stop")
-		ThreadCreate(@FindCompilersSub)
-	End If
-	cmdAddCompiler.Enabled = bStop
-	cmdChangeCompiler.Enabled = bStop
-	cmdRemoveCompiler.Enabled = bStop
-	cmdClearCompilers.Enabled = bStop
+	FindProcessStartStop()
 End Sub
