@@ -105,6 +105,8 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Static Sub optCreateProjectFile_Click(ByRef Sender As RadioButton)
 		Declare Static Sub optOpenLastSession_Click(ByRef Sender As RadioButton)
 		Declare Static Sub optDoNotNothing_Click(ByRef Sender As RadioButton)
+		Declare Static Sub cmdFindCompilers_Click_(ByRef Sender As Control)
+		Declare Sub cmdFindCompilers_Click(ByRef Sender As Control)
 		Declare Constructor
 		Declare Destructor
 		
@@ -136,9 +138,9 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CheckBox chkDisplayIcons
 		Dim As CheckBox chkShowMainToolbar
 		Dim As CheckBox chkAutoCreateBakFiles
-		Dim As Label lblFrame, lblDebugger32, lblDebugger64
+		Dim As Label lblFrame, lblDebugger32, lblDebugger64, lblFindCompilersFromComputer
 		Dim As Picture lblColorFrame
-		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps, cmdAddEditor, cmdChangeEditor, cmdRemoveEditor, cmdClearEditor
+		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps, cmdAddEditor, cmdChangeEditor, cmdRemoveEditor, cmdClearEditor, cmdFindCompilers
 		Dim As CheckBox chkFrame
 		Dim As CheckBox chkHighlightCurrentWord
 		Dim As CheckBox chkHighlightCurrentLine

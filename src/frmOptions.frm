@@ -131,7 +131,7 @@ pfOptions = @fOptions
 		' pnlOtherEditors
 		pnlOtherEditors.Name = "pnlOtherEditors"
 		pnlOtherEditors.Text = ""
-		pnlOtherEditors.SetBounds 190, 2, 426, 410
+		pnlOtherEditors.SetBounds 200, 2, 426, 410
 		pnlOtherEditors.Parent = @This
 		' grbDefaultCompilers
 		With grbDefaultCompilers
@@ -678,7 +678,10 @@ pfOptions = @fOptions
 		With lvCompilerPaths
 			.Name = "lvCompilerPaths"
 			.Text = "ListView1"
-			.SetBounds 18, 24, 384, 192
+			.SetBounds 18, 44, 384, 172
+			.Images = @imgList
+			'.StateImages = @imgList
+			.SmallImages = @imgList
 			.Parent = @grbCompilerPaths
 		End With
 		' cboCompiler32
@@ -1120,6 +1123,26 @@ pfOptions = @fOptions
 			.SetBounds 222, 41, 175, 21
 			.Parent = @grbWhenVFBEStarts
 		End With
+		' cmdFindCompilers
+		With cmdFindCompilers
+			.Name = "cmdFindCompilers"
+			.Text = ML("&Find")
+			.TabIndex = 167
+			.SetBounds 307, 14, 96, 24
+			.Caption = ML("&Find")
+			.Designer = @This
+			.OnClick = @cmdFindCompilers_Click_
+			.Parent = @grbCompilerPaths
+		End With
+		' lblFindCompilersFromComputer
+		With lblFindCompilersFromComputer
+			.Name = "lblFindCompilersFromComputer"
+			.Text = ML("Find Compilers from Computer:")
+			.TabIndex = 168
+			.SetBounds 20, 19, 180, 20
+			.Caption = ML("Find Compilers from Computer:")
+			.Parent = @grbCompilerPaths
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1243,7 +1266,7 @@ Sub frmOptions.LoadSettings()
 		.cboCompiler32.AddItem ML("(not selected)")
 		.cboCompiler64.AddItem ML("(not selected)")
 		For i As Integer = 0 To pCompilers->Count - 1
-			.lvCompilerPaths.ListItems.Add pCompilers->Item(i)->Key
+			.lvCompilerPaths.ListItems.Add pCompilers->Item(i)->Key, IIf(FileExists(pCompilers->Item(i)->Text), "", "FileError")
 			.lvCompilerPaths.ListItems.Item(i)->Text(1) = pCompilers->Item(i)->Text
 			.cboCompiler32.AddItem pCompilers->Item(i)->Key
 			.cboCompiler64.AddItem pCompilers->Item(i)->Key
@@ -2206,7 +2229,7 @@ Private Sub frmOptions.cmdAddCompiler_Click(ByRef Sender As Control)
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If .cboCompiler32.IndexOf(pfPath->txtVersion.Text) = -1 Then
-				.lvCompilerPaths.ListItems.Add pfPath->txtVersion.Text
+				.lvCompilerPaths.ListItems.Add pfPath->txtVersion.Text, IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
 				.lvCompilerPaths.ListItems.Item(.lvCompilerPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
 				.cboCompiler32.AddItem pfPath->txtVersion.Text
 				.cboCompiler64.AddItem pfPath->txtVersion.Text
@@ -2229,6 +2252,8 @@ Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Sender As Control)
 				.cboCompiler64.Item(i) = pfPath->txtVersion.Text
 				.lvCompilerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
 				.lvCompilerPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+				.lvCompilerPaths.SelectedItem->ImageKey = IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
+				.lvCompilerPaths.SelectedItem->SelectedImageKey = IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
 			Else
 				MsgBox ML("This version is exists!")
 			End If
@@ -2643,4 +2668,45 @@ End Sub
 
 Private Sub frmOptions.optDoNotNothing_Click(ByRef Sender As RadioButton)
 	cboDefaultProjectFileCheckEnable
+End Sub
+
+Dim Shared As Boolean bStop
+Sub FindCompilers(Param As Amy Ptr)
+	
+End Sub
+
+Sub FindCompilersSub(Param As Any Ptr)
+'	plvSearch->ListItems.Clear
+'	StartProgress
+'	With fFindFile
+'		.btnFind.Enabled = False
+'		.txtPath.Text  = Replace(.txtPath.Text, BackSlash, Slash)
+'		If EndsWith(.txtPath.Text, Slash) = False Then .txtPath.Text =.txtPath.Text & Slash
+'		ThreadsLeave
+'		.Find plvSearch, .txtPath.Text, .txtFind.Text
+'		ThreadsEnter
+'		.btnFind.Enabled = True
+'	End With
+'	StopProgress
+'	ptabBottom->Tabs[2]->Caption = ML("Find") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
+'	ThreadsLeave
+End Sub
+
+Private Sub frmOptions.cmdFindCompilers_Click_(ByRef Sender As Control)
+	*Cast(frmOptions Ptr, Sender.Designer).cmdFindCompilers_Click(Sender)
+End Sub
+Private Sub frmOptions.cmdFindCompilers_Click(ByRef Sender As Control)
+	bStop = cmdFindCompilers.Text = ML("Stop")
+	If bStop Then
+		StopProgress
+		cmdFindCompilers.Text = ML("&Find")
+	Else
+		StartProgress
+		cmdFindCompilers.Text = ML("Stop")
+		ThreadCreate(@FindCompilersSub)
+	End If
+	cmdAddCompiler.Enabled = bStop
+	cmdChangeCompiler.Enabled = bStop
+	cmdRemoveCompiler.Enabled = bStop
+	cmdClearCompilers.Enabled = bStop
 End Sub

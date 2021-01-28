@@ -3342,6 +3342,7 @@ Sub CreateMenusAndToolBars
 	imgList.AddPng "UnComment", "UnComment"
 	imgList.AddPng "Print", "Print"
 	imgList.AddPng "PrintPreview", "PrintPreview"
+	imgList.AddPng "FileError", "FileError"
 	imgListD.AddPng "StartWithCompileD", "StartWithCompile"
 	imgListD.AddPng "StartD", "Start"
 	imgListD.AddPng "BreakD", "Break"
@@ -5284,7 +5285,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	tbStandard.Buttons.Item("GUI")->Checked = bGUI
 	tbStandard.Buttons.Item("Console")->Checked = Not bGUI
 	Var file = Command(-1)
-	Var Pos1 = Instr(file, "2>CON")
+	Var Pos1 = InStr(file, "2>CON")
 	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
 	If file = "" Then
 		Select Case WhenVisualFBEditorStarts
@@ -5320,6 +5321,45 @@ Sub frmMain_Create(ByRef Sender As Control)
 	mStartLoadSession = False
 End Sub
 
+Sub CheckCompilerPaths
+	Dim As Boolean bFind
+	For i As Integer = 0 To pCompilers->Count - 1
+		If FileExists(pCompilers->Item(i)->Text) Then
+			bFind = True
+			Exit For
+		End If
+	Next
+	Dim As WString Ptr CompilerPath
+	#ifdef __FB_64BIT__
+		CompilerPath = Compiler64Path
+	#else
+		CompilerPath = Compiler32Path
+	#endif
+	If Not bFind Then
+		If MsgBox(ML("Invalid defined compiler path.") & !"\r" & ML("Find Compilers from Computer?"), , mtQuestion, btYesNo) = mrYes Then
+			pfOptions->Show *pfrmMain
+			pfOptions->tvOptions.Nodes.Item(2)->SelectItem
+			pfOptions->cmdFindCompilers_Click(pfOptions->cmdFindCompilers)
+		End If
+	Else
+		If *CompilerPath = "" Then
+			If MsgBox(ML("Invalid defined compiler path.") & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
+				pfOptions->Show *pfrmMain
+				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
+			End If
+		#ifdef __USE_GTK__
+			ElseIf g_find_program_in_path(ToUTF8(*CompilerPath)) = NULL Then
+		#else
+			ElseIf Not FileExists(*CompilerPath) Then
+		#endif
+			If MsgBox(ML("File") & " """ & *CompilerPath & """ " & ML("not found") & "." & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
+				pfOptions->Show *pfrmMain
+				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
+			End If
+		End If
+	End If
+End Sub
+
 Sub frmMain_Show(ByRef Sender As Control)
 	#ifdef __USE_GTK__
 		tabItemHeight = tabLeft.ItemHeight(0) + 4 + 5
@@ -5328,6 +5368,7 @@ Sub frmMain_Show(ByRef Sender As Control)
 		pnlBottomPin.Width = tabItemHeight
 	#endif
 	pfSplash->CloseForm
+	CheckCompilerPaths
 	Select Case WhenVisualFBEditorStarts
 	Case 1: NewProject
 	End Select

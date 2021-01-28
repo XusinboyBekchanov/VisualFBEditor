@@ -96,11 +96,12 @@ PrintPreview PNG "../resources/PrintPreview.png"
 UseDebugger PNG "../resources/UseDebugger.png"
 UserControl PNG "../resources/UserControl.png"
 weChat PNG "../resources/weChat.png"
+FileError PNG "../resources/FileError.png"
 
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,6,2157
-#define VER_FILEVERSION_STR         "1.2.6.2157\0"
+#define VER_FILEVERSION             1,2,6,2191
+#define VER_FILEVERSION_STR         "1.2.6.2191\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
