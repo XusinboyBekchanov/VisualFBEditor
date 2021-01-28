@@ -2684,15 +2684,21 @@ Sub FindCompilers(ByRef Path As WString)
 	'fOptions.lblFindCompilersFromComputer.Text = Path
 	pstBar->Panels[0]->Caption = Path
 	ThreadsLeave
-	f = Dir(Path & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
+	f = Dir(Path & Slash & "*", fbDirectory, Attr)
 	While f <> ""
 		If FormClosing OrElse bStop Then Exit Sub
-		If (Attr And fbDirectory) <> 0 Then
-			If f <> "." AndAlso f <> ".." Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
+		If f <> "." AndAlso f <> ".." Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
+		f = Dir(Attr)
+	Wend
+	f = Dir(Path & Slash & "fbc*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
+	While f <> ""
+		If FormClosing OrElse bStop Then Exit Sub
+'		If (Attr And fbDirectory) <> 0 Then
+'			If f <> "." AndAlso f <> ".." Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
 		#ifdef __FB_WIN32__
-			ElseIf LCase(f) = "fbc.exe" OrElse LCase(f) = "fbc32.exe" OrElse LCase(f) = "fbc64.exe" Then
+			If LCase(f) = "fbc.exe" OrElse LCase(f) = "fbc32.exe" OrElse LCase(f) = "fbc64.exe" Then
 		#else
-			ElseIf LCase(f) = "fbc" Then
+			If LCase(f) = "fbc" Then
 		#endif
 			f1 = Path & IIf(EndsWith(Path, Slash), "", Slash) & f
 			ThreadsEnter
@@ -2712,6 +2718,8 @@ Sub FindCompilers(ByRef Path As WString)
 				Wend
 				.Add f3
 				.Item(.Count - 1)->Text(1) = f1
+				fOptions.cboCompiler32.AddItem f3
+				fOptions.cboCompiler64.AddItem f3
 			End With
 			ThreadsLeave
 			FindedCompilersCount += 1
@@ -2753,9 +2761,9 @@ Sub FindCompilersSub(Param As Any Ptr)
 	ThreadsEnter
 	bStop = True: FindProcessStartStop
 	If FindedCompilersCount = 0 Then
-		MsgBox ML("Compilers not found")
+		MsgBox ML("No сompilers found"), pApp->Title
 	Else
-		MsgBox ML("Finded Compilers count") & ": " & Str(FindedCompilersCount)
+		MsgBox ML("Number of compilers found") & ": " & Str(FindedCompilersCount), pApp->Title
 	End If
 	ThreadsLeave
 End Sub
