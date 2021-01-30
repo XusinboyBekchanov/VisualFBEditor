@@ -56,7 +56,11 @@ REM "Version 1.08.0 64 bit Windows build"
 
 REM BUILD COMMAND
 
-"C:\FreeBasic\X64\fbc.exe" "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework"
+"C:\FreeBasic\X64\fbc.exe" "VisualFBEditor.bas" "VisualFBEditor.rc" -x "../VisualFBEditor64.exe" -i "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework"
 
-"C:\FreeBasic\X64\fbc.exe" -b "..\MyFbFramework\mff\mff.bi" -dll -x "..\MyFbFramework\mff64.dll" "..\MyFbFramework\mff\mff.rc"
+REM Change path to the MyFbFramework source
+
+cd "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework\mff"
+
+"C:\FreeBasic\X64\fbc.exe" -b "mff.bi" "mff.rc" -dll -x "..\mff64.dll"
 ```
