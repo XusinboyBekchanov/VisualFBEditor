@@ -305,7 +305,7 @@ Dim Shared exedate As Double 'serial date
 		End Select
 	End Function
 	
-	private sub str_replace(strg As String,srch As String, repl As String)
+	Private Sub str_replace(strg As String,srch As String, repl As String)
 		Dim As Integer p,lgr=Len(repl),lgs=Len(srch)
 		p=InStr(strg,srch)
 		While p
@@ -1502,14 +1502,14 @@ Dim Shared exedate As Double 'serial date
 	udt(16).nm="Boolean": '20/082015 boolean
 	For i As Integer =0 To TYPESTD:udt(i).what=1:Next '(dwarf) 20/08/2015 boolean
 	
-	Private Function Tree_AddItem(hParent As HTREEITEM, ByRef Text As WString,hInsAfter As HTREEITEM,hTV As HWND) As HTREEITEM
-		
+	Private Function Tree_AddItem(hParent As HTREEITEM, ByRef Text As WString,hInsAfter As HTREEITEM,hTV As HWND, Param As Integer) As HTREEITEM
 		Dim hItem As HTREEITEM
 		Dim tvIns As TVINSERTSTRUCT
 		Dim tvI   As TV_ITEM
 		tvI.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE Or TVIF_PARAM
 		tvI.pszText         =  @Text
 		tvI.cchTextMax      =  Len(Text)
+		tvI.lParam          =  Param
 		tvIns.item          =  tvI
 		tvIns.hinsertAfter  =  hInsAfter
 		tvIns.hParent       =  hParent
@@ -1655,7 +1655,7 @@ Dim Shared exedate As Double 'serial date
 					End If
 				End If
 				'dbg_prt2("variniudt final ="+.nm+" "+Str(vrr(vrrnb).ad)+" "+Str(vrr(vrrnb).gofs)+" "+Str(.ofs)+" "+Str(vrr(vrrnb).ini)+" "+Str(1))
-				vrr(vrrnb).tv=Tree_AddItem(tv,"L", TVI_LAST, tviewvar)
+				vrr(vrrnb).tv=Tree_AddItem(tv,"L", TVI_LAST, tviewvar, vrrnb)
 				If .pt=0 AndAlso .typ>TYPESTD AndAlso .typ<>TYPEMAX  AndAlso udt(.typ).en=0 Then 'show components for bitfield 20/08/2015
 					var_iniudt(.typ,vadr,vrr(vrrnb).tv,ad,mem)'09/07/2015 scope added
 				End If
@@ -1692,7 +1692,7 @@ Dim Shared exedate As Double 'serial date
 					ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,SizeOf(Integer),0)'05/05/2014 25/07/2015 64bit
 					If Cast(Integer,.arr)=-1 Then vrr(vrrnb).ini=adr Else vrr(vrrnb).ad=adr
 				End If
-				vrr(vrrnb).tv=Tree_AddItem(procr(j).tv,"Not filled", TVI_LAST, tviewvar)
+				vrr(vrrnb).tv=Tree_AddItem(procr(j).tv,"Not filled", TVI_LAST, tviewvar, vrrnb)
 				If .pt=0 And .typ>TYPESTD AndAlso .typ<>TYPEMAX AndAlso udt(.typ).en=0 Then 'show components for bitfield 20/08/2015
 					var_iniudt(.typ,adr,vrr(vrrnb).tv,0,.mem) '09/07/2015 scope added
 				End If
@@ -2350,7 +2350,7 @@ Dim Shared exedate As Double 'serial date
 			wtch(t).vnb=c
 			
 		End If
-		If r=-1 Then wtch(t).tvl=Tree_AddItem(NULL,"To fill", 0, tviewwch) 'create an empty line in treeview
+		If r=-1 Then wtch(t).tvl=Tree_AddItem(NULL,"To fill", 0, tviewwch, 0) 'create an empty line in treeview
 		watch_sh(t)
 		wtchnew=t
 	End Sub
@@ -2510,7 +2510,7 @@ Dim Shared exedate As Double 'serial date
 		Dim As Integer vridx
 		If vrbgblprev<>vrbgbl Then 'need to do ?
 			If vrbgblprev=0 Then
-				procr(procrnb).tv= Tree_AddItem(NULL,"Globals (shared/common) in : main ", 0, tviewvar) 'only first time
+				procr(procrnb).tv= Tree_AddItem(NULL,"Globals (shared/common) in : main ", 0, tviewvar, 0) 'only first time
 				var_ini(procrnb,1,vrbgbl)'add vrbgblprev instead 1
 				'dbg_prt2("procrnb="+Str(procrnb))
 				'procr(procrnb+1).vr=vrrnb+1 'to avoid removal of global vars when the first executed proc is not the main one reactivate line 08/06/2014
@@ -2528,7 +2528,7 @@ Dim Shared exedate As Double 'serial date
 					vb=dlldata(d).gblb
 					ve=dlldata(d).gblb+dlldata(d).gbln-1
 				End If
-				procr(procrnb).tv= Tree_AddItem(NULL,"Globals in : "+dll_name(dlldata(d).hdl,2),temp, tviewvar)
+				procr(procrnb).tv= Tree_AddItem(NULL,"Globals in : "+dll_name(dlldata(d).hdl,2),temp, tviewvar, 0)
 				procr(procrnb).sk=dlldata(d).bse
 				dlldata(d).tv=procr(procrnb).tv
 				var_ini(procrnb,vb,ve)
@@ -2614,7 +2614,7 @@ Dim Shared exedate As Double 'serial date
 					wtch(index).vnm(vnb)=vname
 					wtch(index).var=0 'not an array
 					wtch(index).vty(vnb)=vtype
-					wtch(index).tvl=Tree_AddItem(NULL,"", 0, tviewwch)
+					wtch(index).tvl=Tree_AddItem(NULL,"", 0, tviewwch, 0)
 					wtch(index).lbl=pname+"/"+vname+" <"+String(wtch(index).pnt, Str("*"))+" "+udt(tidx).nm+">=Dll not loaded"
 					wtchcpt+=1
 					index+=1
@@ -2683,7 +2683,7 @@ Dim Shared exedate As Double 'serial date
 				Continue While
 			End If
 			
-			wtch(index).tvl=Tree_AddItem(NULL,"", 0, tviewwch)
+			wtch(index).tvl=Tree_AddItem(NULL,"", 0, tviewwch, 0)
 			wtch(index).lbl=proc(pidx).nm+"/"+vname+" <"+String(ispnt,Str("*"))+" "+udt(tidx).nm+">=" & ML("LOCAL NON-EXISTENT")
 			wtch(index).typ=tidx
 			wtch(index).psk=-4
@@ -4597,10 +4597,24 @@ Dim Shared exedate As Double 'serial date
 		End If
 	End Function
 	
+	Sub UpdateItems(root As HTREEITEM)
+		Dim As HTREEITEM node = root
+		While node <> NULL
+			Dim tvi As TVITEM
+			tvi.mask = TVIF_PARAM Or TVIF_STATE
+			tvi.hItem = node
+			TreeView_GetItem(tviewvar, @tvi)
+			If tvi.lParam <> 0 Then Tree_upditem(node, var_sh1(tvi.lParam), tviewvar)
+			If tvi.State = 96 OrElse tvi.State = 98 Then UpdateItems(TreeView_GetNextItem(tviewvar, node, TVGN_CHILD))
+			node = TreeView_GetNextItem(tviewvar, node, TVGN_NEXT)
+    	Wend
+	End Sub
+	
 	Private Sub var_sh() 'show master var
-		For i As Integer =1 To vrrnb
-			Tree_upditem(vrr(i).tv,var_sh1(i),tviewvar)
-		Next
+		UpdateItems(TreeView_GetNextItem(tviewvar, NULL, TVGN_ROOT))
+'		For i As Integer =1 To vrrnb
+'			Tree_upditem(vrr(i).tv,var_sh1(i),tviewvar)
+'		Next
 		watch_array()
 		watch_sh
 	End Sub
@@ -4735,7 +4749,7 @@ Dim Shared exedate As Double 'serial date
 					libel=.nm+":"+proc_retval(j)+"   << "+name_extract(source(.sr))
 				End If
 				If flagverbose Then libel+=" ["+Str(.db)+"]"
-				.tv=Tree_AddItem(NULL,libel, 0, tviewprc)
+				.tv=Tree_AddItem(NULL,libel, 0, tviewprc, 0)
 				tvI.hitem= .tv
 				tvI.state= INDEXTOSTATEIMAGEMASK(.st)
 				sendmessage(tviewprc,TVM_SETITEM,0,Cast(LPARAM,@tvi))
@@ -4925,7 +4939,7 @@ Dim Shared exedate As Double 'serial date
 			procr(procrnb).cl=-1  ' no real calling line
 			libel="ThID="+Str(procr(procrnb).thid)+" "
 			tv=TVI_LAST 'insert in last position
-			thread(threadcur).tv= Tree_AddItem(NULL,"Not filled", 0, tviewthd)'create item
+			thread(threadcur).tv= Tree_AddItem(NULL,"Not filled", 0, tviewthd, 0)'create item
 			thread(threadcur).ptv=thread(threadcur).tv 'last proc
 			thread_text()'put text not only current but all to reset previous thread text
 		Else
@@ -4937,11 +4951,11 @@ Dim Shared exedate As Double 'serial date
 		libel+=proc(procsv).nm+":"+proc_retval(procsv)
 		If flagverbose Then libel+=" ["+Str(proc(procsv).db)+"]"
 		
-		procr(procrnb).tv=Tree_AddItem(0,libel,tv,tviewvar)
+		procr(procrnb).tv=Tree_AddItem(0,libel,tv,tviewvar, 0)
 		thread(threadcur).plt=procr(procrnb).tv 'keep handle last item
 		
 		'add new proc to thread treeview
-		thread(threadcur).ptv=Tree_AddItem(thread(threadcur).ptv,"Proc : "+proc(procsv).nm,TVI_FIRST,tviewthd)
+		thread(threadcur).ptv=Tree_AddItem(thread(threadcur).ptv,"Proc : "+proc(procsv).nm,TVI_FIRST,tviewthd, 0)
 		thread_text(threadcur)
 		RedrawWindow tviewthd, 0, 0, 1
 		var_ini(procrnb,proc(procr(procrnb).idx).vr,proc(procr(procrnb).idx+1).vr-1)
@@ -5300,7 +5314,7 @@ Dim Shared exedate As Double 'serial date
 				
 				'test if first proc of thread
 				If thread(i).plt=0 Then
-					thread(i).tv= Tree_AddItem(NULL,"", 0, tviewthd)'create item
+					thread(i).tv= Tree_AddItem(NULL,"", 0, tviewthd, 0)'create item
 					thread(i).ptv=thread(i).tv 'last proc
 					thread_text(i)'put text
 					thread(i).st=0 'with fast no starting line could be gotten
@@ -5317,10 +5331,10 @@ Dim Shared exedate As Double 'serial date
 				libel+=proc(pridx(k)).nm+":"+proc_retval(pridx(k))
 				If flagverbose Then libel+=" ["+Str(proc(pridx(k)).db)+"]"
 				
-				procr(procrnb).tv=Tree_AddItem(0,libel,tv,tviewvar)
+				procr(procrnb).tv=Tree_AddItem(0,libel,tv,tviewvar, 0)
 				thread(i).plt=procr(procrnb).tv 'keep handle last item
 				
-				thread(i).ptv=Tree_AddItem(thread(i).ptv,proc(pridx(k)).nm,TVI_FIRST,tviewthd)
+				thread(i).ptv=Tree_AddItem(thread(i).ptv,proc(pridx(k)).nm,TVI_FIRST,tviewthd, 0)
 				var_ini(procrnb,proc(procr(procrnb).idx).vr,proc(procr(procrnb).idx+1).vr-1)
 				procr(procrnb+1).vr=vrrnb+1
 				If proc(procsv).nm="main" Then procr(procrnb).vr=1 'constructors for shared they are executed before main so reset index for first variable of main 04/02/2014

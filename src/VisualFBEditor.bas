@@ -311,7 +311,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "Outdent":                 ec->Outdent
 				Case "Format":                  ec->FormatCode
 				Case "Unformat":                ec->UnformatCode
-				Case "Breakpoint":              ec->BreakPoint
+				Case "Breakpoint":              If InDebug Then: brk_set(1): End If: ec->BreakPoint
 				Case "CollapseAll":             ec->CollapseAll
 				Case "UnCollapseAll":           ec->UnCollapseAll
 				Case "CompleteWord":            CompleteWord

@@ -196,6 +196,11 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	If Not bFind Then
 		tb = New_( TabWindow(FileNameNew, bNew, TreeN))
 		With *tb
+			If FileName <> "" Then
+				#ifndef __USE_GTK__
+					.DateFileTime = GetFileLastWriteTime(FileNameNew)
+				#endif
+			End If
 			tb->UseVisualStyleBackColor = True
 			tb->txtCode.CStyle = CInt(EndsWith(LCase(FileName), ".rc")) OrElse CInt(EndsWith(LCase(FileName), ".c")) OrElse CInt(EndsWith(LCase(FileName), ".cpp")) OrElse CInt(EndsWith(LCase(FileName), ".h")) OrElse CInt(EndsWith(LCase(FileName), ".xml"))
 			tb->txtCode.SyntaxEdit = tb->txtCode.CStyle OrElse CInt(FileName = "") OrElse CInt(EndsWith(LCase(FileName), ".bas")) OrElse CInt(EndsWith(LCase(FileName), ".frm")) OrElse CInt(EndsWith(LCase(FileName), ".bi")) OrElse CInt(EndsWith(LCase(FileName), ".inc"))
@@ -215,9 +220,6 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			If FileName <> "" Then
 				.txtCode.LoadFromFile(FileNameNew)
 				.txtCode.ClearUndo
-				#ifndef __USE_GTK__
-					.DateFileTime = GetFileLastWriteTime(FileNameNew)
-				#endif
 				.Modified = bNew
 			End If
 			.FormDesign(bNoActivate)

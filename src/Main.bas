@@ -1906,16 +1906,17 @@ End Sub
 	Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 		If FnTab < 0 Or Fcurlig < 1 Then Exit Sub
 		If source(Fntab) = "" Then Exit Sub
+		shwtab = Fntab
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
 		If tb = 0 OrElse Not EqualPaths(tb->FileName, source(Fntab)) Then
 			tb = AddTab(LCase(source(Fntab)))
 		End If
 		If tb = 0 Then Exit Sub
 		ChangeEnabledDebug True, False, True
+		CurEC = @tb->txtCode
 		tb->txtCode.CurExecutedLine = Fcurlig - 1
 		tb->txtCode.SetSelection Fcurlig - 1, Fcurlig - 1, 0, 0
 		tb->txtCode.PaintControl
-		CurEC = @tb->txtCode
 		SetForegroundWindow frmMain.Handle
 		FnTab = 0
 		Fcurlig = -1
@@ -4624,7 +4625,20 @@ tvPrc.Align = 5
 tvThd.Align = 5
 tvWch.Align = 5
 
+Sub tvVar_Message(ByRef Sender As Control, ByRef message As Message)
+	Select Case message.Msg
+	Case CM_NOTIFY
+		Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lparam)
+		If tvp <> 0 Then
+			Select Case tvp->hdr.code
+			Case TVN_ITEMEXPANDING: UpdateItems(TreeView_GetNextItem(tviewvar, tvp->itemNew.hItem, TVGN_CHILD))
+			End Select
+		End If
+	End Select
+End Sub
+
 tvVar.ContextMenu = @mnuVars
+tvVar.OnMessage = @tvVar_Message
 
 Sub tabRight_Click(ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
