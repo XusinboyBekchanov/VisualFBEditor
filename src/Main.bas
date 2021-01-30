@@ -4717,6 +4717,9 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 			pfFind->FindAll plvSearch, 2,, False
 		End If
 	End If
+	For i As Integer = 1 To sourcenb
+		If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
+	Next
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
 	lvProperties.ListItems.Clear
 	'tb->FillAllProperties

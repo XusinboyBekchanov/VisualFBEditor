@@ -1672,8 +1672,9 @@ Dim Shared exedate As Double 'serial date
 				Else
 					adr=.adr
 				End If
-				If vrrnb=VRRMAX Then msgbox(ML("Too many variables: --> lost")):Exit Sub
-				vrrnb+=1:vrr(vrrnb).vr=i
+				vrrnb+=1
+				If vrrnb >= VRRMAX Then msgbox(ML("Too many variables: --> lost")):Exit Sub
+				vrr(vrrnb).vr=i
 				vrr(vrrnb).ad=adr
 				If .arr Then
 					vrr(vrrnb).ini=adr 'keep adr for [0] or structure for dyn
@@ -2702,7 +2703,7 @@ Dim Shared exedate As Double 'serial date
 		Dim f As Boolean
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-			For j As Integer = 0 To sourcenb
+			For j As Integer = 1 To sourcenb
 				If EqualPaths(source(j), tb->FileName) Then
 					For s As Integer = 0 To tb->txtCode.FLines.Count - 1
 						If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[s])->BreakPoint Then Continue For
@@ -4089,8 +4090,12 @@ Dim Shared exedate As Double 'serial date
 	End Sub
 	
 	Sub thread_rsm()
+		Dim As Integer ad = rLine(thread(threadcur).sv).ad
 		WriteProcessMemory(dbghand,Cast(LPVOID,rLine(thread(threadcur).sv).ad),@rLine(thread(threadcur).sv).sv,1,0) 'restore old value for execution
 		resumethread(threadhs)
+		For j As Integer = 1 To brknb 'breakpoint
+			If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0): Exit For 'only enabled
+		Next
 	End Sub
 	
 	Private Function kill_process(text As String) As Integer
@@ -5488,7 +5493,7 @@ Dim Shared exedate As Double 'serial date
 	End Sub
 	
 	Sub fastrun() 'running until cursor or breakpoint !!! Be carefull
-		Dim i As Integer, b As Integer
+		Dim l As Integer, i As Integer, b As Integer
 		For j As Integer = 0 To linenb 'restore all instructions
 			WriteProcessMemory(dbghand,Cast(LPVOID,rline(j).ad),@rLine(j).sv,1,0)
 		Next
