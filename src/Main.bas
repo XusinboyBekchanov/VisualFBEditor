@@ -1085,12 +1085,12 @@ Sub OpenSession()
 	TabLeft.Tabs[0]->SelectTab
 End Sub
 
-Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList, miRecentFilesFolders As MenuItem Ptr)
+Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList, miRecentFilesFolders As MenuItem Ptr, ByRef MRUType As String)
 	Var i = MRUFilesFolders.IndexOf(FileFolderName)
 	If i <> 0 Then
 		If i > 0 Then MRUFilesFolders.Remove i
 		MRUFilesFolders.Insert 0, FileFolderName
-		For i = 0 To Min(miRecentFolders->Count - 1, MRUFilesFolders.Count - 1)
+		For i = 0 To Min(miRecentFilesFolders->Count - 1, MRUFilesFolders.Count - 1)
 			If miRecentFilesFolders->Item(i)->Caption = "-" Then Exit For
 			miRecentFilesFolders->Item(i)->Caption = MRUFilesFolders.Item(i)
 			miRecentFilesFolders->Item(i)->Name = MRUFilesFolders.Item(i)
@@ -1098,23 +1098,28 @@ Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList
 		For i = i To Min(9, MRUFilesFolders.Count - 1)
 			miRecentFilesFolders->Add(MRUFilesFolders.Item(i), "", MRUFilesFolders.Item(i), @mClickMRU, , i)
 		Next
+		If Not miRecentFilesFolders->Enabled Then
+			miRecentFilesFolders->Enabled = True
+			miRecentFilesFolders->Add("-")
+			miRecentFilesFolders->Add(ML("Clear Recently Opened"),"","Clear" & MRUType, @mClickMRU)
+		End If
 	End If
 End Sub
 
 Sub AddMRUFile(ByRef FileName As WString)
-	AddMRU FileName, MRUFiles, miRecentFiles
+	AddMRU FileName, MRUFiles, miRecentFiles, "Files"
 End Sub
 
 Sub AddMRUProject(ByRef FileName As WString)
-	AddMRU FileName, MRUProjects, miRecentProjects
+	AddMRU FileName, MRUProjects, miRecentProjects, "Projects"
 End Sub
 
 Sub AddMRUFolder(ByRef FolderName As WString)
-	AddMRU FolderName, MRUFolders, miRecentFolders
+	AddMRU FolderName, MRUFolders, miRecentFolders, "Folders"
 End Sub
 
 Sub AddMRUSession(ByRef FileName As WString)
-	AddMRU FileName, MRUSessions, miRecentSessions
+	AddMRU FileName, MRUSessions, miRecentSessions, "Sessions"
 End Sub
 
 Function FolderExists(ByRef FolderName As WString) As Boolean

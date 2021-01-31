@@ -81,15 +81,19 @@ Sub ReplaceInFiles
 End Sub
 
 Sub mClickMRU(Sender As My.Sys.Object)
-	If Sender.ToString ="ClearFiles" Then
+	If Sender.ToString = "ClearFiles" Then
 		miRecentFiles->Clear
 		miRecentFiles->Enabled = False
 		MRUFiles.Clear
-	ElseIf Sender.ToString ="ClearProjects" Then
+	ElseIf Sender.ToString = "ClearProjects" Then
 		miRecentProjects->Clear
 		miRecentProjects->Enabled = False
 		MRUProjects.Clear
-	ElseIf Sender.ToString ="ClearSessions" Then
+	ElseIf Sender.ToString = "ClearFolders" Then
+		miRecentFolders->Clear
+		miRecentFolders->Enabled = False
+		MRUFolders.Clear
+	ElseIf Sender.ToString = "ClearSessions" Then
 		miRecentSessions->Clear
 		miRecentSessions->Enabled = False
 		MRUSessions.Clear
