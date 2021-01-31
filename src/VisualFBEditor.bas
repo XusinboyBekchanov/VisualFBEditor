@@ -214,8 +214,8 @@ Sub mClick(Sender As My.Sys.Object)
 			If prun AndAlso kill_process("Trying to launch but debuggee still running")=False Then
 				Exit Sub
 			End If
-			'runtype = RTFRUN
-			runtype = RTRUN
+			runtype = RTFRUN
+			'runtype = RTRUN
 			CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 			Restarting = True 
 			ThreadCreate(@StartDebugging)
@@ -249,7 +249,16 @@ Sub mClick(Sender As My.Sys.Object)
 			#ifndef __USE_GTK__
 			Case "SetNextStatement":        exe_mod()
 			Case "ShowVar":                 var_tip(1)
-			Case "RunToCursor":             brk_set(9)
+			Case "RunToCursor":             
+				If InDebug Then
+					ChangeEnabledDebug False, True, True
+					brk_set(9)
+				Else
+					RunningToCursor = True 
+					runtype = RTFRUN
+					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+					ThreadCreate(@StartDebugging)
+				End If
 			Case "AddWatch":                var_tip(2)
 			#endif
 		Case "FindNext":                    pfFind->Find(True)

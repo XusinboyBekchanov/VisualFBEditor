@@ -94,7 +94,7 @@ Common Shared As Boolean LimitDebug, DisplayWarningsInDebug
 Common Shared As Boolean UseDebugger
 Common Shared As Boolean CompileGUI
 Common Shared As Boolean mFormFind, mFormFindInFile
-Common Shared As Boolean InDebug, FormClosing, Restarting
+Common Shared As Boolean InDebug, FormClosing, Restarting, FastRunning, RunningToCursor
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
 Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar

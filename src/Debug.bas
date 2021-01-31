@@ -2516,6 +2516,7 @@ Dim Shared exedate As Double 'serial date
 				'dbg_prt2("procrnb="+Str(procrnb))
 				'procr(procrnb+1).vr=vrrnb+1 'to avoid removal of global vars when the first executed proc is not the main one reactivate line 08/06/2014
 			Else
+				If procrnb=PROCRMAX Then MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): DestroyWindow (windmain):Exit Sub
 				procrnb+=1
 				temp=Cast(HTREEITEM,SendMessage(tviewvar,TVM_GETNEXTITEM,TVGN_PREVIOUS,Cast(LPARAM,procr(1).tv)))
 				If temp=0 Then 'no item before main
@@ -2700,21 +2701,35 @@ Dim Shared exedate As Double 'serial date
 	
 	Sub brk_apply
 		Dim tb As TabWindow Ptr
-		Dim f As Boolean
+		Dim curtb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		Dim As Integer FSelStartLine, FSelEndLine, FSelStartChar, FSelEndChar
+		If RunningToCursor Then
+			If curtb <> 0 Then
+				curtb->txtCode.GetSelection FSelStartLine, FSelEndLine, FSelStartChar, FSelEndChar
+			End If
+		End If
+		Dim f As Boolean, brknumber As UInteger
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 			For j As Integer = 1 To sourcenb
 				If EqualPaths(source(j), tb->FileName) Then
 					For s As Integer = 0 To tb->txtCode.FLines.Count - 1
-						If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[s])->BreakPoint Then Continue For
+						If Not (CInt(RunningToCursor AndAlso curtb = tb AndAlso s = FSelEndLine) OrElse CInt(Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[s])->BreakPoint)) Then Continue For
 						For k As Integer = 1 To linenb
-							If rline(k).nu=s+1 AndAlso rline(k).sx=j Then 'searching index in rline
-								brknb += 1
-								brkol(brknb).isrc =j
-								brkol(brknb).nline=s + 1
-								brkol(brknb).index=k
-								brkol(brknb).ad   =rline(k).ad
-								brkol(brknb).typ  =1
+							If rline(k).nu=s+1 AndAlso rline(k).sx=j Then 'searching index in rline Then
+								If RunningToCursor Then
+									brknumber = 0
+									RunningToCursor = False
+								Else
+									If brknb = BRKMAX Then MsgBox ML("Max number of breakpoints reached"): Exit Sub
+									brknb += 1
+									brknumber = brknb
+								End If
+								brkol(brknumber).isrc =j
+								brkol(brknumber).nline=s + 1
+								brkol(brknumber).index=k
+								brkol(brknumber).ad   =rline(k).ad
+								brkol(brknumber).typ  =1
 								'brkol(brknb).cntrsav=cntr
 								'brkol(brknb).counter=cntr
 								'brk_color(brknb)
@@ -4090,18 +4105,8 @@ Dim Shared exedate As Double 'serial date
 	End Sub
 	
 	Sub thread_rsm()
-		Dim As Integer ad = rLine(thread(threadcur).sv).ad
 		WriteProcessMemory(dbghand,Cast(LPVOID,rLine(thread(threadcur).sv).ad),@rLine(thread(threadcur).sv).sv,1,0) 'restore old value for execution
 		resumethread(threadhs)
-'		For j As Integer = 1 To brknb 'breakpoint
-'			If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then 
-'				'WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0): Exit For 'only enabled
-'				brkol(0).ad = ad
-'				brkol(0).typ = 1
-'				WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0)
-'				Exit For
-'			End If
-'		Next
 	End Sub
 	
 	Private Function kill_process(text As String) As Integer
@@ -4354,7 +4359,7 @@ Dim Shared exedate As Double 'serial date
 			End If
 		Next
 		''delete all elements (treeview, varr, ) until the limit
-		For j As Long =procrnb To limit Step -1
+		For j As Long =procrnb To max(0, limit) Step -1
 			If procr(j).thid = thid Then
 				proc_del(j)
 			End If
@@ -5036,11 +5041,11 @@ Dim Shared exedate As Double 'serial date
 		If t=9 Then 'run to cursor
 			'l N°line/by 0
 			If curlig=l+1 And shwtab=curtab Then
-				If msgbox(ML("Run to cursor: Same line, continue?"),, MB_YESNO Or MB_ICONQUESTION)=IDNO Then Exit Sub
+				If msgbox(ML("Run to cursor: Same line, continue?"),, mtQuestion, btYesNo) = mrNo Then Exit Sub
 			End If
 			brkol(0).ad=rline(ln).ad
 			brkol(0).typ=2 'to clear when reached
-			runtype=RTRUN
+			runtype=RTFRUN
 			'but_enable()
 			thread_rsm()
 		Else
@@ -5171,7 +5176,7 @@ Dim Shared exedate As Double 'serial date
 			dsp_change(thread(0).sv)
 		End If
 	End Sub
-	private function brkv_test() As Byte
+	Private Function brkv_test() As Byte
 		Dim recup(20) As Integer,ptrs As pointeurs,flag As Integer=0
 		Dim As Integer adr,temp2,temp3
 		Dim As String strg
@@ -5361,7 +5366,6 @@ Dim Shared exedate As Double 'serial date
 		Dim vcontext As CONTEXT
 		'egality added in case attach (example access violation) without -g option, ad=procfn=0....
 		If ad>=procfn Then thread_rsm():Exit Sub 'out of normal area, the first exception breakpoint is dummy or in case of use of debugbreak
-		
 		i=thread(threadcur).sv+1
 		proccurad=ad
 		If rline(i).ad<>ad Then 'hope next source line is next executed line (optimization)
@@ -5430,6 +5434,29 @@ Dim Shared exedate As Double 'serial date
 		vcontext.regip=ad
 		
 		setThreadContext(threadcontext,@vcontext)
+		
+		If FastRunning Then
+			FastRunning = False
+			Dim As Integer ad = rLine(thread(threadcur).sv).ad
+			Dim As Boolean bInBreakPoint
+			For j As Integer = 0 To brknb 'breakpoint
+				If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then 
+					bInBreakPoint = True 
+					Exit For
+				End If
+			Next
+			If Not bInBreakPoint Then
+				For j As Integer = 0 To linenb 'restore all instructions
+					WriteProcessMemory(dbghand, Cast(LPVOID, rline(j).ad), @rLine(j).sv, 1, 0)
+				Next
+				For j As Integer = 0 To brknb 'breakpoint
+					If brkol(j).typ < 3 Then WriteProcessMemory(dbghand, Cast(LPVOID, brkol(j).ad), @breakcpu, 1, 0) 'only enabled
+				Next
+				thread_rsm()
+				Exit Sub
+			End If
+		End If
+		
 		'dbg_prt2("PE"+Str(thread(threadcur).pe)+" "+Str(proccurad)+" "+Str(proc(procsv).fn))'07/07/2015
 		If thread(threadcur).pe Then 'if previous instruction was the last of proc
 			If proccurad<>proc(procsv).db Then procsk=vcontext.regbp 'reload procsk with rbp/ebp 04/02/2014 test added for case constructor on shared
@@ -5499,14 +5526,26 @@ Dim Shared exedate As Double 'serial date
 	End Sub
 	
 	Sub fastrun() 'running until cursor or breakpoint !!! Be carefull
-		Dim l As Integer, i As Integer, b As Integer
-		For j As Integer = 0 To linenb 'restore all instructions
-			WriteProcessMemory(dbghand,Cast(LPVOID,rline(j).ad),@rLine(j).sv,1,0)
+		Dim As Integer ad = rLine(thread(threadcur).sv).ad
+		Dim As Boolean bInBreakPoint
+		For j As Integer = 0 To brknb 'breakpoint
+			If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then 
+				bInBreakPoint = True 
+				Exit For
+			End If
 		Next
 		DeleteDebugCursor
-		For j As Integer = 0 To brknb 'breakpoint
-			If brkol(j).typ<3 Then WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0) 'only enabled
-		Next
+		If bInBreakPoint Then
+			FastRunning = True
+		Else
+			Dim i As Integer, b As Integer
+			For j As Integer = 0 To linenb 'restore all instructions
+				WriteProcessMemory(dbghand,Cast(LPVOID,rline(j).ad),@rLine(j).sv,1,0)
+			Next
+			For j As Integer = 0 To brknb 'breakpoint
+				If brkol(j).typ<3 Then WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0) 'only enabled
+			Next
+		End If
 		runtype=RTFRUN
 		fasttimer=Timer
 		thread_rsm()
