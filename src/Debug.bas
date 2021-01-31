@@ -5045,9 +5045,7 @@ Dim Shared exedate As Double 'serial date
 			End If
 			brkol(0).ad=rline(ln).ad
 			brkol(0).typ=2 'to clear when reached
-			runtype=RTFRUN
-			'but_enable()
-			thread_rsm()
+			fastrun
 		Else
 			For i=1 To brknb 'search if still put on this line
 				If brkol(i).nline=l+1 And brkol(i).isrc=shwtab Then Exit For
