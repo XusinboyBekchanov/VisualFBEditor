@@ -94,7 +94,7 @@ Common Shared As Boolean LimitDebug, DisplayWarningsInDebug
 Common Shared As Boolean UseDebugger
 Common Shared As Boolean CompileGUI
 Common Shared As Boolean mFormFind, mFormFindInFile
-Common Shared As Boolean InDebug, FormClosing
+Common Shared As Boolean InDebug, FormClosing, Restarting
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
 Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar
@@ -131,6 +131,7 @@ Declare Sub OpenProject
 Declare Sub AddNew(ByRef Template As WString = "")
 Declare Sub AddMRUFile(ByRef FileName As WString)
 Declare Sub AddMRUProject(ByRef FileName As WString) '
+Declare Sub AddMRUFolder(ByRef FolderName As WString)
 Declare Sub AddMRUSession(ByRef FileName As WString) '
 Declare Sub AddFromTemplates
 Declare Sub AddFilesToProject

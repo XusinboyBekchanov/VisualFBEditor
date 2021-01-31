@@ -13,7 +13,7 @@
 
 Const VER_MAJOR  = "1"
 Const VER_MINOR  = "2"
-Const VER_PATCH  = "6"
+Const VER_PATCH  = "7"
 Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
 Const SIGN       = "VisualFBEditor " + VERSION
@@ -80,23 +80,23 @@ Sub ReplaceInFiles
 	ThreadCreate(@ReplaceSub)
 End Sub
 
-Sub mClickMRU(Sender As My.Sys.Object) 
-	If Sender.ToString ="ClearFiles" Then 
-		miRecentFiles->Clear 
-		miRecentFiles->Enabled = False 
-		MRUFiles.Clear 
-	ElseIf Sender.ToString ="ClearProjects" Then 
-		miRecentProjects->Clear 
-		miRecentProjects->Enabled = False 
-		MRUProjects.Clear 
-	ElseIf Sender.ToString ="ClearSessions" Then 
-		miRecentSessions->Clear 
-		miRecentSessions->Enabled = False 
-		MRUSessions.Clear 
-	Else 
-		OpenFiles Sender.ToString 
-	End If 
-End Sub 
+Sub mClickMRU(Sender As My.Sys.Object)
+	If Sender.ToString ="ClearFiles" Then
+		miRecentFiles->Clear
+		miRecentFiles->Enabled = False
+		MRUFiles.Clear
+	ElseIf Sender.ToString ="ClearProjects" Then
+		miRecentProjects->Clear
+		miRecentProjects->Enabled = False
+		MRUProjects.Clear
+	ElseIf Sender.ToString ="ClearSessions" Then
+		miRecentSessions->Clear
+		miRecentSessions->Enabled = False
+		MRUSessions.Clear
+	Else
+		OpenFiles Sender.ToString
+	End If
+End Sub
 Sub mClickHelp(ByRef Sender As My.Sys.Object)
 	ThreadCreate(@RunHelp, @Cast(MenuItem Ptr, @Sender)->ImageKey)
 End Sub
@@ -149,10 +149,13 @@ Sub mClick(Sender As My.Sys.Object)
 			#ifndef __USE_GTK__
 				ChangeEnabledDebug False, True, True
 				fastrun()
+				'runtype = RTRUN
+				'thread_rsm()
 			#endif
 		ElseIf UseDebugger Then
 			#ifndef __USE_GTK__
 				runtype = RTFRUN
+				'runtype = RTRUN
 				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 			#endif
 			ThreadCreate(@StartDebuggingWithCompile)
@@ -164,19 +167,35 @@ Sub mClick(Sender As My.Sys.Object)
 			#ifndef __USE_GTK__
 				ChangeEnabledDebug False, True, True
 				fastrun()
+				'runtype = RTRUN
+				'thread_rsm()
 			#endif
 		ElseIf UseDebugger Then
 			#ifndef __USE_GTK__
 				runtype = RTFRUN
+				'runtype = RTRUN
 				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 			#endif
 			ThreadCreate(@StartDebugging)
 		Else
 			ThreadCreate(@RunProgram)
 		End If
-	Case "Break":                   'If tb->Compile("Run") Then ThreadCreate(@RunWithDebug)
+	Case "Break":
+		#ifndef __USE_GTK__
+			If runtype=RTFREE Or runtype=RTFRUN Then
+				runtype=RTFRUN 'to treat free as fast
+				For i As Integer = 1 To linenb 'restore every breakpoint
+					WriteProcessMemory(dbghand,Cast(LPVOID,rline(i).ad),@breakcpu,1,0)
+				Next
+			Else
+				runtype=RTSTEP:procad=0:procin=0:proctop=False:procbot=0
+			EndIf
+			Stopcode=CSHALTBU
+			'SetFocus(richeditcur)
+		#endif
 	Case "End":
 		#ifndef __USE_GTK__
+			'kill_process("Terminate immediatly no saved data, other option Release")
 			For i As Integer = 1 To linenb 'restore old instructions
 				WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rLine(i).sv, 1, 0)
 			Next
@@ -185,6 +204,17 @@ Sub mClick(Sender As My.Sys.Object)
 			thread_rsm()
 			DeleteDebugCursor
 			ChangeEnabledDebug True, False, False
+		#endif
+	Case "Restart"
+		#ifndef __USE_GTK__
+			If prun AndAlso kill_process("Trying to launch but debuggee still running")=False Then
+				Exit Sub
+			End If
+			'runtype = RTFRUN
+			runtype = RTRUN
+			CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+			Restarting = True 
+			ThreadCreate(@StartDebugging)
 		#endif
 	Case "StepInto":
 		If InDebug Then
@@ -311,7 +341,11 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "Outdent":                 ec->Outdent
 				Case "Format":                  ec->FormatCode
 				Case "Unformat":                ec->UnformatCode
-				Case "Breakpoint":              If InDebug Then: brk_set(1): End If: ec->BreakPoint
+				Case "Breakpoint":
+					#ifndef __USE_GTK__              
+						If InDebug Then: brk_set(1): End If
+					#endif
+					ec->BreakPoint
 				Case "CollapseAll":             ec->CollapseAll
 				Case "UnCollapseAll":           ec->UnCollapseAll
 				Case "CompleteWord":            CompleteWord

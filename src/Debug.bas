@@ -4093,16 +4093,22 @@ Dim Shared exedate As Double 'serial date
 		Dim As Integer ad = rLine(thread(threadcur).sv).ad
 		WriteProcessMemory(dbghand,Cast(LPVOID,rLine(thread(threadcur).sv).ad),@rLine(thread(threadcur).sv).sv,1,0) 'restore old value for execution
 		resumethread(threadhs)
-		For j As Integer = 1 To brknb 'breakpoint
-			If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0): Exit For 'only enabled
-		Next
+'		For j As Integer = 1 To brknb 'breakpoint
+'			If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then 
+'				'WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0): Exit For 'only enabled
+'				brkol(0).ad = ad
+'				brkol(0).typ = 1
+'				WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0)
+'				Exit For
+'			End If
+'		Next
 	End Sub
 	
 	Private Function kill_process(text As String) As Integer
 		Dim As Long retcode,lasterr
-		If msgbox(ML("Kill current running Program?") & text+Chr(10)+Chr(10) + _
+		If msgbox(ML("Kill current running Program?") & text + Chr(10)+Chr(10) + _
 			ML("USE CARREFULLY SYSTEM CAN BECOME UNSTABLE, LOSS OF DATA, MEMORY LEAK")+Chr(10)+ _
-			ML("Try to close your program first"), ,MB_ICONWARNING Or MB_YESNO Or MB_APPLMODAL) = IDYES Then
+			ML("Try to close your program first"), , mtWarning, btYesNo) = mrYes Then
 			flagkill=True
 			retcode=terminateprocess(dbghand,999)
 			lasterr=GetLastError
@@ -5895,10 +5901,14 @@ Sub RunWithDebug(Param As Any Ptr)
 	Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
 	Dim FirstLine As UString = GetFirstCompileLine(MainFile, Project)
 	ThreadsLeave()
-	'#IfNDef __USE_GTK__
-	exename = GetExeFileName(MainFile, FirstLine)
-	mainfolder = GetFolderName(MainFile)
-	'#EndIf
+	If Not Restarting Then
+		'#IfNDef __USE_GTK__
+		exename = GetExeFileName(MainFile, FirstLine)
+		mainfolder = GetFolderName(MainFile)
+		'#EndIf
+	Else
+		Restarting = False 
+	End If
 	ThreadsEnter()
 	Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
 	Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
@@ -5998,6 +6008,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			'Shell """" & WGet(Debugger) & """ """ & exename & """"
 		Else
 			InDebug = True
+			ptabBottom->Tab(6)->SelectTab
 			pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE Or DEBUG_PROCESS Or DEBUG_ONLY_THIS_PROCESS
 			If CreateProcessW(@exename, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
 				WaitForSingleObject pinfo.hProcess, 10
@@ -6008,6 +6019,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				prun=True
 				Wait_Debug
 			End If
+			KillTimer 0, 0
 			InDebug = False
 			DeleteDebugCursor
 			Dim As Unsigned Long ExitCode

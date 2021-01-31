@@ -649,38 +649,6 @@ Function GetTreeNodeChild(tn As TreeNode Ptr, ByRef FileName As WString) As Tree
 	End If
 End Function
 
-Sub AddMRUProject(ByRef FileName As WString)
-	Var i = MRUProjects.IndexOf(FileName)
-	If i >= 0 Then
-		If i > 0 Then
-			MRUProjects.Remove i
-			MRUProjects.Add FileName
-		End If
-	Else
-		MRUProjects.Add FileName
-		i= miRecentProjects->Count -1
-		miRecentProjects->Item(i)->Caption = FileName
-		miRecentProjects->Item(i)->Name = FileName
-		miRecentProjects->Add(ML("Clear Recently Opened"),"","ClearProjects", @mClickMRU)
-	End If
-End Sub
-
-Sub AddMRUFolder(ByRef FolderName As WString)
-	Var i = MRUFolders.IndexOf(FolderName)
-	If i <> 0 Then
-		If i > 0 Then MRUFolders.Remove i
-		MRUFolders.Insert 0, FolderName
-		For i = 0 To Min(miRecentFolders->Count - 1, MRUFolders.Count - 1)
-			If miRecentFolders->Item(i)->Caption = "-" Then Exit For
-			miRecentFolders->Item(i)->Caption = MRUFolders.Item(i)
-			miRecentFolders->Item(i)->Name = MRUFolders.Item(i)
-		Next
-		For i = i To Min(9, MRUFolders.Count - 1)
-			miRecentFolders->Add(MRUFolders.Item(i), "", MRUFolders.Item(i), @mClickMRU, , i)
-		Next
-	End If
-End Sub
-
 Sub ClearTreeNode(ByRef tn As TreeNode Ptr)
 	If tn = 0 Then Exit Sub
 	For i As Integer = 0 To tn->Nodes.Count - 1
@@ -1037,6 +1005,10 @@ End Sub
 
 Function AddSession(ByRef FileName As WString) As Boolean
 	'Dim As ExplorerElement Ptr ee
+	If Not FileExists(FileName) Then
+		MsgBox ML("File not found") & ": " & FileName
+		Return False
+	End If
 	Dim As TreeNode Ptr tn
 	AddMRUSession FileName
 	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
@@ -1113,37 +1085,36 @@ Sub OpenSession()
 	TabLeft.Tabs[0]->SelectTab
 End Sub
 
-Sub AddMRUFile(ByRef FileName As WString)
-	Var i = MRUFiles.IndexOf(FileName)
-	If i >= 0 Then ' David Change
-		If i > 0 Then
-			MRUFiles.Remove i
-			MRUFiles.Add FileName
-		End If
-	Else
-		MRUFiles.Add FileName
-		i= miRecentFiles->Count -1
-		miRecentFiles->Item(i)->Caption = FileName
-		miRecentFiles->Item(i)->Name = FileName
-		miRecentFiles->Add(ML("Clear Recently Opened"),"","ClearFiles", @mClickMRU)
+Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList, miRecentFilesFolders As MenuItem Ptr)
+	Var i = MRUFilesFolders.IndexOf(FileFolderName)
+	If i <> 0 Then
+		If i > 0 Then MRUFilesFolders.Remove i
+		MRUFilesFolders.Insert 0, FileFolderName
+		For i = 0 To Min(miRecentFolders->Count - 1, MRUFilesFolders.Count - 1)
+			If miRecentFilesFolders->Item(i)->Caption = "-" Then Exit For
+			miRecentFilesFolders->Item(i)->Caption = MRUFilesFolders.Item(i)
+			miRecentFilesFolders->Item(i)->Name = MRUFilesFolders.Item(i)
+		Next
+		For i = i To Min(9, MRUFilesFolders.Count - 1)
+			miRecentFilesFolders->Add(MRUFilesFolders.Item(i), "", MRUFilesFolders.Item(i), @mClickMRU, , i)
+		Next
 	End If
 End Sub
 
-'
+Sub AddMRUFile(ByRef FileName As WString)
+	AddMRU FileName, MRUFiles, miRecentFiles
+End Sub
+
+Sub AddMRUProject(ByRef FileName As WString)
+	AddMRU FileName, MRUProjects, miRecentProjects
+End Sub
+
+Sub AddMRUFolder(ByRef FolderName As WString)
+	AddMRU FolderName, MRUFolders, miRecentFolders
+End Sub
+
 Sub AddMRUSession(ByRef FileName As WString)
-	Var i = MRUSessions.IndexOf(FileName)
-	If i >= 0 Then
-		If i > 0 Then
-			MRUSessions.Remove i
-			MRUSessions.Add FileName
-		End If
-	Else
-		MRUSessions.Add FileName
-		i = miRecentSessions->Count -1
-		miRecentSessions->Item(i)->Caption = FileName
-		miRecentSessions->Item(i)->Name = FileName
-		miRecentSessions->Add(ML("Clear Recently Opened"),"","ClearSessions", @mClickMRU)
-	End If
+	AddMRU FileName, MRUSessions, miRecentSessions
 End Sub
 
 Function FolderExists(ByRef FolderName As WString) As Boolean
@@ -1160,16 +1131,13 @@ End Sub
 
 Sub OpenFiles(ByRef FileName As WString)
 	If EndsWith(FileName, ".vfs") Then
-		AddMRUSession FileName  '
 		AddSession FileName
 	ElseIf EndsWith(FileName, ".vfp") Then
-		AddMRUProject FileName    '
 		AddProject FileName
 	ElseIf FolderExists(FileName) Then
-		AddMRUFolder FileName
 		AddFolder FileName
 	ElseIf Trim(FileName)<>"" Then '
-		AddMRUFile FileName
+		If FileExists(FileName) Then AddMRUFile FileName
 		AddTab FileName
 	End If
 	wLet(RecentFiles, FileName)
@@ -1899,6 +1867,7 @@ Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	mnuStart->Enabled = bStart
 	mnuBreak->Enabled = bBreak
 	mnuEnd->Enabled = bEnd
+	mnuRestart->Enabled = bStart
 	ThreadsLeave()
 End Sub
 
@@ -4626,15 +4595,17 @@ tvThd.Align = 5
 tvWch.Align = 5
 
 Sub tvVar_Message(ByRef Sender As Control, ByRef message As Message)
-	Select Case message.Msg
-	Case CM_NOTIFY
-		Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lparam)
-		If tvp <> 0 Then
-			Select Case tvp->hdr.code
-			Case TVN_ITEMEXPANDING: UpdateItems(TreeView_GetNextItem(tviewvar, tvp->itemNew.hItem, TVGN_CHILD))
-			End Select
-		End If
-	End Select
+	#ifndef __USE_GTK__
+		Select Case message.Msg
+		Case CM_NOTIFY
+			Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lparam)
+			If tvp <> 0 Then
+				Select Case tvp->hdr.code
+				Case TVN_ITEMEXPANDING: UpdateItems(TreeView_GetNextItem(tviewvar, tvp->itemNew.hItem, TVGN_CHILD))
+				End Select
+			End If
+		End Select
+	#endif
 End Sub
 
 tvVar.ContextMenu = @mnuVars
@@ -4710,16 +4681,18 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
 	tb->tn->SelectItem
-	Static OldIndex As Integer
-	If OldIndex <> NewIndex Then
-		If pfFind->Visible = True AndAlso pfFind->OptFindinCurrFile.Checked Then
-			wLet(gSearchSave,"")
-			pfFind->FindAll plvSearch, 2,, False
-		End If
-	End If
-	For i As Integer = 1 To sourcenb
-		If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
-	Next
+'	Static OldIndex As Integer
+'	If OldIndex <> NewIndex Then
+'		If pfFind->Visible = True AndAlso pfFind->OptFindinCurrFile.Checked Then
+'			wLet(gSearchSave,"")
+'			pfFind->FindAll plvSearch, 2,, False
+'		End If
+'	End If
+	#ifndef __USE_GTK__
+		For i As Integer = 1 To sourcenb
+			If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
+		Next
+	#endif
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
 	lvProperties.ListItems.Clear
 	'tb->FillAllProperties
