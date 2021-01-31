@@ -1441,7 +1441,7 @@ Dim Shared exedate As Double 'serial date
 	
 	Private Function check_source(sourcenm As String) As Integer ' check if source yet stored
 		For i As Integer=0 To sourcenb
-			If source(i)=sourcenm Then Return i 'found
+			If EqualPaths(source(i), sourcenm) Then Return i 'found
 		Next
 		Return -1 'not found
 	End Function
@@ -2711,7 +2711,7 @@ Dim Shared exedate As Double 'serial date
 		Dim f As Boolean, brknumber As UInteger
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-			For j As Integer = 1 To sourcenb
+			For j As Integer = 0 To sourcenb
 				If EqualPaths(source(j), tb->FileName) Then
 					For s As Integer = 0 To tb->txtCode.FLines.Count - 1
 						If Not (CInt(RunningToCursor AndAlso curtb = tb AndAlso s = FSelEndLine) OrElse CInt(Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[s])->BreakPoint)) Then Continue For
@@ -3279,7 +3279,7 @@ Dim Shared exedate As Double 'serial date
 			sourceidx=-1
 			fullname=LCase(fullname)'warning for linux sensitive cas
 			For i As Integer=0 To sourcenb
-				If source(i)=fullname Then sourceidx=i:Exit For
+				If EqualPaths(source(i), fullname) Then sourceidx=i:Exit For
 			Next
 			If sourceidx=-1 Then
 				sourcenb+=1:source(sourcenb)=fullname:srccomp(sourcenb)=2 '2=gencc+dwarf
@@ -3729,7 +3729,8 @@ Dim Shared exedate As Double 'serial date
 		vrbgblprev=vrbgbl
 		linenbprev=linenb
 		
-		'SendMessage(dbgstatus,SB_SETTEXT,0,Cast(LPARAM,@"Loading debug data"))
+		pstBar->Panels[0]->Caption = ML("Loading debug data ...")
+		
 		ReadProcessMemory(dbghand,Cast(LPCVOID,exebase+&h3C),@pe,4,0)
 		pe+=exebase+6 'adr nb section
 		ReadProcessMemory(dbghand,Cast(LPCVOID,pe),@secnb,2,0)
@@ -4102,6 +4103,9 @@ Dim Shared exedate As Double 'serial date
 				If brkol(j).typ<3 Then WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0) 'only enabled
 			Next
 		End If
+		
+		RestoreStatusText
+		
 	End Sub
 	
 	Sub thread_rsm()

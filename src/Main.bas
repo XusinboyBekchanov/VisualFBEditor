@@ -4694,7 +4694,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 '		End If
 '	End If
 	#ifndef __USE_GTK__
-		For i As Integer = 1 To sourcenb
+		For i As Integer = 0 To sourcenb
 			If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
 		Next
 	#endif
@@ -4935,6 +4935,10 @@ lvSearch.Columns.Add ML("Column"), , 50, cfRight
 lvSearch.Columns.Add ML("File"), , 300, cfLeft
 lvSearch.OnItemActivate = @lvSearch_ItemActivate
 'lvSearch.OnKeyDown = @lvSearch_KeyDown
+
+Sub RestoreStatusText
+	pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
+End Sub
 
 Function GetBottomClosedStyle As Boolean
 	Return Not ptabBottom->TabPosition = tpTop

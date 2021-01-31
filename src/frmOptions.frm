@@ -2738,7 +2738,7 @@ Sub FindProcessStartStop()
 			StopProgress
 			.cmdFindCompilers.Text = ML("&Find")
 			'fOptions.lblFindCompilersFromComputer.Text = ML("Find Compilers from Computer:")
-			pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
+			RestoreStatusText
 		Else
 			StartProgress
 			.cmdFindCompilers.Text = ML("Stop")
