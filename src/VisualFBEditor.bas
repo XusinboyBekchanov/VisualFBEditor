@@ -217,7 +217,7 @@ Sub mClick(Sender As My.Sys.Object)
 			runtype = RTFRUN
 			'runtype = RTRUN
 			CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
-			Restarting = True 
+			Restarting = True
 			ThreadCreate(@StartDebugging)
 		#endif
 	Case "StepInto":
@@ -236,8 +236,25 @@ Sub mClick(Sender As My.Sys.Object)
 			#endif
 			ThreadCreate(@StartDebugging)
 		End If
+	Case "StepOver":
+		If InDebug Then
+			ChangeEnabledDebug False, True, True
+			#ifndef __USE_GTK__
+				procin = procsk
+				runtype = RTRUN
+				SetFocus(windmain)
+				thread_rsm()
+			#endif
+		Else
+			#ifndef __USE_GTK__
+				procin = procsk
+				runtype = RTFRUN
+				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+			#endif
+			ThreadCreate(@StartDebugging)
+		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
-		"Start", "Stop", "StepInto", "FindNext","FindPrev", "Goto", "SetNextStatement", "SortLines", _
+		"Start", "Stop", "StepOut", "FindNext","FindPrev", "Goto", "SetNextStatement", "SortLines", _
 		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm" '
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
@@ -249,12 +266,23 @@ Sub mClick(Sender As My.Sys.Object)
 			#ifndef __USE_GTK__
 			Case "SetNextStatement":        exe_mod()
 			Case "ShowVar":                 var_tip(1)
-			Case "RunToCursor":             
+			Case "StepOut":
+				If InDebug Then
+					ChangeEnabledDebug False, True, True
+					If (threadcur<>0 AndAlso proc_find(thread(threadcur).id,KLAST)<>proc_find(thread(threadcur).id,KFIRST)) _
+						OrElse (threadcur=0 AndAlso proc(procr(proc_find(thread(0).id,KLAST)).idx).nm<>"main") Then 'impossible to go out first proc of thread, constructore for shared 22/12/2015
+						procad = procsv
+						runtype = RTFRUN
+					End If
+					SetFocus(windmain)
+					thread_rsm()
+				End If
+			Case "RunToCursor":
 				If InDebug Then
 					ChangeEnabledDebug False, True, True
 					brk_set(9)
 				Else
-					RunningToCursor = True 
+					RunningToCursor = True
 					runtype = RTFRUN
 					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 					ThreadCreate(@StartDebugging)
@@ -355,7 +383,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "Format":                  ec->FormatCode
 				Case "Unformat":                ec->UnformatCode
 				Case "Breakpoint":
-					#ifndef __USE_GTK__              
+					#ifndef __USE_GTK__
 						If InDebug Then: brk_set(1): End If
 					#endif
 					ec->BreakPoint
