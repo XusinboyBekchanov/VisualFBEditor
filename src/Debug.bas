@@ -722,21 +722,45 @@ Dim Shared exedate As Double 'serial date
 			End If
 		End If
 	End Sub
+	
+	Function String_to_ZString_Ptr(ByRef s_ZString_Ptr As ZString Ptr) As ZString Ptr
+	  Return s_ZString_Ptr
+	End Function
+	
 	Private Function cutup_names(strg As String) As String
 		'"__ZN9TESTNAMES2XXE:S1
-		Dim As Integer p,d
-		Dim As String nm,strg2,nm2
-		p=InStr(strg,"_ZN")
-		strg2=Mid(strg,p+3,999)
-		p=Val(strg2)
-		If p>9 Then d=3 Else d=2
-		nm=Mid(strg2,d,p)
-		strg2=Mid(strg2,d+p)
-		p=Val(strg2)
-		If p>9 Then d=3 Else d=2
-		nm2=Mid(strg2,d,p)
-		'Return "NS : "+nm+"."+nm2
-		Return nm+"."+nm2 '17/01/2015
+		Dim As Integer Pos1 = InStr(strg, ":")
+		Dim As String s, strg1 = strg
+		Dim As ZString Ptr pz
+		If Pos1 > 0 Then strg1 = Left(strg, Pos1 - 2)
+		pz = String_to_ZString_Ptr(strg1)
+		Do
+			Do While (*pz)[0] > Asc("9") OrElse (*pz)[0] < Asc("0")
+				If (*pz)[0] = 0 Then Return s
+				pz += 1
+			Loop
+			Dim As Integer N = Val(*pz)
+			Do
+				pz += 1
+			Loop Until (*pz)[0] > Asc("9") OrElse (*pz)[0] < Asc("0")
+			If s <> "" Then s &= "."
+			s &= Left(*pz, N)
+			pz += N
+		Loop
+		Return s
+'		Dim As Integer p,d
+'		Dim As String nm,strg2,nm2
+'		p=InStr(strg,"_ZN")
+'		strg2=Mid(strg,p+3,999)
+'		p=Val(strg2)
+'		If p>9 Then d=3 Else d=2
+'		nm=Mid(strg2,d,p)
+'		strg2=Mid(strg2,d+p)
+'		p=Val(strg2)
+'		If p>9 Then d=3 Else d=2
+'		nm2=Mid(strg2,d,p)
+'		'Return "NS : "+nm+"."+nm2
+'		Return nm+"."+nm2 '17/01/2015
 	End Function
 	Private Function cutup_array(gv As String,d As Integer,f As Byte) As Integer
 		Dim As Integer p=d,q,c
@@ -1199,6 +1223,7 @@ Dim Shared exedate As Double 'serial date
 				'REDIM
 				If cutup_scp(gv[InStr(gv,":")],ad,dlldelta)=0 Then Exit Sub 'Scope / increase number and put adr
 				'if common exists return 0 so exit sub
+				?gv
 				vrb(*vrbptr).nm=Left(gv,InStr(gv,":")-1) 'var or parameter
 				
 				'.stabs "VTEST:22=s32DATA:25=*23=24=*1,0,32;PTR:26=*23=24=*1,32,32;SIZE:1,64,32;ELEMENT_LEN:1,96,32;DIMENSIONS:1,128,32;dim1_ELEMENTS:1,160,32;dim1_LBOUND:1,192,32;
@@ -1234,7 +1259,7 @@ Dim Shared exedate As Double 'serial date
 					Exit Sub
 				End If
 				If vrb(*vrbptr).mem=1 Then ''local var ''2016/08/12
-					If local_exist Then Exit sub'' check if same adr and name exist (case several for loops repeated with the same iterator)
+					If local_exist Then Exit Sub'' check if same adr and name exist (case several for loops repeated with the same iterator)
 				End If
 			End If
 			cutup_2(Mid(gv,InStr(gv,":")+p),TYDIM)
