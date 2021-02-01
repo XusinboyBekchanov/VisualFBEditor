@@ -3892,7 +3892,7 @@ Namespace My.Sys.Forms
 			gtk_widget_set_can_focus(scrollbarv, False)
 			g_signal_connect(adjustmentv, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
 			'gtk_widget_set_parent(scrollbarv, widget)
-			gtk_layout_put(gtk_layout(widget), scrollbarv, 0, 0)
+			If gtk_is_widget(scrollbarv) Then gtk_layout_put(gtk_layout(widget), scrollbarv, 0, 0)
 			gtk_widget_show(scrollbarv)
 			adjustmenth = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 101.0, 1.0, 20.0, 20.0))
 			#ifdef __USE_GTK3__
@@ -3903,7 +3903,7 @@ Namespace My.Sys.Forms
 			gtk_widget_set_can_focus(scrollbarh, False)
 			g_signal_connect(adjustmenth, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
 			'gtk_widget_set_parent(scrollbarh, widget)
-			gtk_layout_put(gtk_layout(widget), scrollbarh, 0, 0)
+			If gtk_is_widget(scrollbarh) Then gtk_layout_put(gtk_layout(widget), scrollbarh, 0, 0)
 			gtk_widget_show(scrollbarh)
 			Dim As GtkRequisition vminimum, hminimum, vrequisition, hrequisition
 			#ifdef __USE_GTK3__

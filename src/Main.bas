@@ -5580,9 +5580,11 @@ Sub OnProgramQuit() Destructor
 	WDeallocate MFFDll
 	WDeallocate gSearchSave
 	Dim As ToolType Ptr tt
-	For i As Integer = 0 To Tools.Count - 1
-		Delete_(Cast(ToolType Ptr, Tools.Items[i]))
-	Next
+	#ifndef __USE_GTK__
+		For i As Integer = 0 To Tools.Count - 1
+			Delete_(Cast(ToolType Ptr, Tools.Item(i)))
+		Next
+	#endif
 	Dim As TypeElement Ptr te, te1
 	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 		te = pGlobalNamespaces->Object(i)

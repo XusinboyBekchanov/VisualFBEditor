@@ -219,7 +219,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FDots(0, i) = gtk_layout_new(NULL, NULL)
 				'g_object_ref(FDots(i))
-				gtk_layout_put(gtk_layout(ParentCtrl->layoutwidget), FDots(0, i), 0, 0)
+				If gtk_is_widget(FDots(0, i)) Then gtk_layout_put(gtk_layout(ParentCtrl->layoutwidget), FDots(0, i), 0, 0)
 				gtk_widget_set_size_request(FDots(0, i), FDotSize, FDotSize)
 				#ifdef __USE_GTK3__
 					g_signal_connect(FDots(0, i), "draw", G_CALLBACK(@Dot_Draw), @This)
@@ -252,7 +252,7 @@ Namespace My.Sys.Forms
 		For j As Integer = UBound(FDots) To 0 Step -1
 			For i As Integer = 7 To 0 Step -1
 				#ifdef __USE_GTK__
-					gtk_widget_destroy(FDots(j, i))
+					If gtk_is_widget(FDots(j, i)) Then gtk_widget_destroy(FDots(j, i))
 				#else
 					DestroyWindow(FDots(j, i))
 				#endif
@@ -380,14 +380,14 @@ Namespace My.Sys.Forms
 							g_signal_connect(FDots(j, i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
 						#endif
 						Select Case i
-						Case 0: gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 0), P.X-6, P.Y-6)
-						Case 1: gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 1), P.X+iWidth/2-3, P.Y-6)
-						Case 2: gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 2), P.X+iWidth, P.Y-6)
-						Case 3: gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 3), P.X+iWidth, P.Y + iHeight/2-3)
-						Case 4: gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 4), P.X+iWidth, P.Y + iHeight)
-						Case 5: gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 5), P.X+iWidth/2-3, P.Y + iHeight)
-						Case 6: gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 6), P.X-6, P.Y + iHeight)
-						Case 7: gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 7), P.X-6, P.Y + iHeight/2-3)
+						Case 0: If gtk_is_widget(FDots(j, 0)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 0), P.X-6, P.Y-6)
+						Case 1: If gtk_is_widget(FDots(j, 1)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 1), P.X+iWidth/2-3, P.Y-6)
+						Case 2: If gtk_is_widget(FDots(j, 2)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 2), P.X+iWidth, P.Y-6)
+						Case 3: If gtk_is_widget(FDots(j, 3)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 3), P.X+iWidth, P.Y + iHeight/2-3)
+						Case 4: If gtk_is_widget(FDots(j, 4)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 4), P.X+iWidth, P.Y + iHeight)
+						Case 5: If gtk_is_widget(FDots(j, 5)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 5), P.X+iWidth/2-3, P.Y + iHeight)
+						Case 6: If gtk_is_widget(FDots(j, 6)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 6), P.X-6, P.Y + iHeight)
+						Case 7: If gtk_is_widget(FDots(j, 7)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 7), P.X-6, P.Y + iHeight/2-3)
 						End Select
 						gtk_widget_realize(FDots(j, i))
 						pdisplay = gtk_widget_get_display(FDots(j, i))
@@ -1296,10 +1296,12 @@ Namespace My.Sys.Forms
 '							WritePropertyFunc(Cpnt, "Top", @y)
 '							WritePropertyFunc(Cpnt, "Width", @FWidth)
 '							WritePropertyFunc(Cpnt, "Height", @FHeight)
-							If AParent = 0 OrElse Result = 0 Then
-								gtk_layout_put(GTK_LAYOUT(ReadPropertyFunc(DesignControl, "layoutwidget")), FSelControl, x, y)
-							Else
-								gtk_layout_put(GTK_LAYOUT(Result), FSelControl, x, y)
+							If gtk_is_widget(FSelControl) Then
+								If AParent = 0 OrElse Result = 0 Then
+									gtk_layout_put(GTK_LAYOUT(ReadPropertyFunc(DesignControl, "layoutwidget")), FSelControl, x, y)
+								Else
+									gtk_layout_put(GTK_LAYOUT(Result), FSelControl, x, y)
+								End If
 							End If
 							gtk_widget_show_all(FSelControl)
 						#else
