@@ -35,20 +35,20 @@ To compile use the following command lines:
   cd Path_to_VisualFBEditor/src
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "Path_to_VisualFBEditor/MyFbFramework"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
-  fbc -b "mff.bi" "mff.rc" -dll -x "../libmff32_gtk3.so"
+  fbc -b "mff.bi" -dll -x "../libmff32_gtk3.so"
 ```
 #### For Linux 64-bit:
 ```shell
   cd Path_to_VisualFBEditor/src
   fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "Path_to_VisualFBEditor/MyFbFramework"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
-  fbc -b "mff.bi" "mff.rc" -dll -x "../libmff64_gtk3.so"
+  fbc -b "mff.bi" -dll -x "../libmff64_gtk3.so"
 ```
 #### Sample bat file:
 ```shell
 REM Sample Windows 64 bit Build
 
-REM CHANGE ACC. YOUR SETUP / PATHS
+REM CHANGE YOUR SETUP / PATHS
 
 REM Change path to the VisualFBEditor source
 
