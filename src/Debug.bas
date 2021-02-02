@@ -5786,6 +5786,7 @@ Dim Shared exedate As Double 'serial date
 				If flagkill=False Then thread_del(DebugEv.dwThreadId)
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 			Case EXIT_PROCESS_DEBUG_EVENT:
+				MsgBox("END OF DEBUGGED PROCESS", "Visual FB Editor")
 				CloseHandle(dbghand)
 				CloseHandle(dbghfile)
 				CloseHandle(dbghthread)
