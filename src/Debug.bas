@@ -5728,7 +5728,7 @@ Dim Shared exedate As Double 'serial date
 							ML("Proc") & " : "+proc(rline(thread(threadcur).sv).px).nm+Chr(13)+ _
 							ML("Line") & " : "+Str(rline(thread(threadcur).sv).nu)+" " & ML("(selected and put in red)")+Chr(13)+ _
 							recup+Chr(13)+Chr(13)+ML("Try To continue? (if yes change values and/or use [M]odify execution)")
-							If msgbox(libel, , MB_SYSTEMMODAL Or MB_ICONSTOP Or MB_YESNO) = IDYES Then
+							If msgbox(libel, "Visual FB Editor", mtError, btYesNo) = mrYes Then
 								suspendthread(threadcontext)
 								ContinueDebugEvent(DebugEv.dwProcessId,DebugEv.dwThreadId, dwContinueStatus)
 							Else
