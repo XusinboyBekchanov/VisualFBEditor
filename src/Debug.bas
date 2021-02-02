@@ -3059,7 +3059,7 @@ Dim Shared exedate As Double 'serial date
 	'   <28c>   DW_AT_type        : <0x1a6>
 	'   <290>   DW_AT_sibling     : <0x29b>
 	Private Sub dw_array_parse
-		If udtmax > TYPEMAX-1 Then msgbox("Storing UDT array: Max limit reached "+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX-1 Then msgbox(ML("Storing UDT array: Max limit reached ")+Str(TYPEMAX)):Exit Sub
 		udtmax+=1
 		udt(udtmax).what=3
 		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
@@ -5786,7 +5786,7 @@ Dim Shared exedate As Double 'serial date
 				If flagkill=False Then thread_del(DebugEv.dwThreadId)
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 			Case EXIT_PROCESS_DEBUG_EVENT:
-				MsgBox("END OF DEBUGGED PROCESS", "Visual FB Editor")
+				MsgBox(ML("END OF DEBUGGED PROCESS"), "Visual FB Editor")
 				CloseHandle(dbghand)
 				CloseHandle(dbghfile)
 				CloseHandle(dbghthread)
