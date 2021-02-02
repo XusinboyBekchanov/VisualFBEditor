@@ -18,19 +18,31 @@ To compile use the following command lines:
 
 #### For Windows 32-bit:
 ```shell
-  fbc "VisualFBEditor.bas" -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "Path_to_MyFbFramework"
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff32.dll"
 ```
 #### For Windows 64-bit:
 ```shell
-  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "Path_to_MyFbFramework"
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff64.dll"
 ```
 #### For Linux 32-bit:
 ```shell
-  fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "Path_to_MyFbFramework"
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" "mff.rc" -dll -x "../libmff32_gtk3.so"
 ```
 #### For Linux 64-bit:
 ```shell
-  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "Path_to_MyFbFramework"
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" "mff.rc" -dll -x "../libmff64_gtk3.so"
 ```
 #### Sample bat file:
 ```shell
