@@ -234,11 +234,7 @@ Namespace My.Sys.Forms
 				Case 2, 6 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNESW)
 				Case 3, 7 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeWE)
 				End Select
-				#ifdef __USE_GTK3__
-					gdk_window_set_cursor(gtk_widget_get_window(FDots(0, i)), gcurs)
-				#else
-					gdk_window_set_cursor(gtk_layout_get_bin_window(gtk_layout(FDots(0, i))), gcurs)
-				#endif
+				gdk_window_set_cursor(gtk_widget_get_window(FDots(0, i)), gcurs)
 			#else
 				FDots(0, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, FDotSize, FDotSize, ParentCtrl->Handle, 0, instance, 0)
 				If IsWindow(FDots(0, i)) Then
@@ -397,11 +393,7 @@ Namespace My.Sys.Forms
 						Case 2, 6 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNESW)
 						Case 3, 7 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeWE)
 						End Select
-						#ifdef __USE_GTK3__
-							gdk_window_set_cursor(gtk_widget_get_window(FDots(j, i)), gcurs)
-						#else
-							gdk_window_set_cursor(gtk_layout_get_bin_window(gtk_layout(FDots(j, i))), gcurs)
-						#endif
+						gdk_window_set_cursor(gtk_widget_get_window(FDots(j, i)), gcurs)
 						g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Control", ControlHandle2)
 						g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Control2", SelectedControls.Items[j])
 						'SetParent(FDots(i), GetParent(Control))
