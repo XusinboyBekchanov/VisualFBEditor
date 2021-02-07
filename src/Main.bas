@@ -53,6 +53,7 @@ Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlR
 Dim Shared As Trackbar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
+Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd
 Dim Shared As SaveFileDialog SaveD
 #ifndef __USE_GTK__
 	Dim Shared As ScrollBarControl scrTool
@@ -1864,10 +1865,10 @@ End Sub
 
 Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	ThreadsEnter()
-	tbStandard.Buttons.Item("StartWithCompile")->Enabled = bStart
-	tbStandard.Buttons.Item("Start")->Enabled = bStart
-	tbStandard.Buttons.Item("Break")->Enabled = bBreak
-	tbStandard.Buttons.Item("End")->Enabled = bEnd
+	tbtStartWithCompile->Enabled = bStart
+	tbtStart->Enabled = bStart
+	tbtBreak->Enabled = bBreak
+	tbtEnd->Enabled = bEnd
 	mnuStartWithCompile->Enabled = bStart
 	mnuStart->Enabled = bStart
 	mnuBreak->Enabled = bBreak
@@ -2490,7 +2491,14 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							Pos1 = InStr(LCase(res1(n)), " as ")
 							If Pos1 > 0 Then
 								CurType = Trim(Mid(res1(n), Pos1 + 4))
-								res1(n) = Left(res1(n), Pos1 - 1)
+								res1(n) = Trim(Left(res1(n), Pos1 - 1))
+							End If
+							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+								res1(n) = Trim(Mid(res1(n), 6))
+							End If
+							Pos1 = InStr(res1(n), "(")
+							If Pos1 > 0 Then
+								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							res1(n) = res1(n).TrimAll
 							If Not CurType.ToLower.StartsWith("sub") Then
@@ -2835,7 +2843,14 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							Pos1 = InStr(LCase(res1(n)), " as ")
 							If Pos1 > 0 Then
 								CurType = Trim(Mid(res1(n), Pos1 + 4))
-								res1(n) = Left(res1(n), Pos1 - 1)
+								res1(n) = Trim(Left(res1(n), Pos1 - 1))
+							End If
+							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+								res1(n) = Trim(Mid(res1(n), 6))
+							End If
+							Pos1 = InStr(res1(n), "(")
+							If Pos1 > 0 Then
+								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							res1(n) = res1(n).TrimAll
 							Pos1 = InStrRev(CurType, ".")
@@ -3698,10 +3713,10 @@ Sub CreateMenusAndToolBars
 	tbMake->DropDownMenu.Add "Make clean", "", "MakeClean", @mclick
 	tbStandard.Buttons.Add , "Parameters",, @mClick, "Parameters", , ML("Parameters"), True
 	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "StartWithCompile",, @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True
-	tbStandard.Buttons.Add , "Start",, @mClick, "Start", , ML("Start") & " (Ctrl+F5)", True
-	tbStandard.Buttons.Add , "Break",, @mClick, "Break", , ML("Break") & " (Ctrl+Pause)", True, 0
-	tbStandard.Buttons.Add , "End",, @mClick, "End", , ML("End"), True, 0
+	tbtStartWithCompile = tbStandard.Buttons.Add( , "StartWithCompile",, @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True)
+	tbtStart = tbStandard.Buttons.Add( , "Start",, @mClick, "Start", , ML("Start") & " (Ctrl+F5)", True)
+	tbtBreak = tbStandard.Buttons.Add( , "Break",, @mClick, "Break", , ML("Break") & " (Ctrl+Pause)", True, 0)
+	tbtEnd = tbStandard.Buttons.Add( , "End",, @mClick, "End", , ML("End"), True, 0)
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Console",, @mClick, "Console", , ML("Console"), True
 	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Form",, @mClick, "GUI", , ML("GUI"), True

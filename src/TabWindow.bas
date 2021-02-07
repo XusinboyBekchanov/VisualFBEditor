@@ -3454,12 +3454,16 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Pos1 = InStr(LCase(res1(n)), " as ")
 								If Pos1 > 0 Then
 									CurType = Trim(Mid(res1(n), Pos1 + 4))
-									res1(n) = Left(res1(n), Pos1 - 1)
+									res1(n) = Trim(Left(res1(n), Pos1 - 1))
 								End If
-								res1(n) = res1(n).TrimAll
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
+								Pos1 = InStr(res1(n), "(")
+								If Pos1 > 0 Then
+									res1(n) = Trim(Left(res1(n), Pos1 - 1))
+								End If
+								res1(n) = res1(n).TrimAll
 								Pos1 = InStrRev(CurType, ".")
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 								Var te = New_( TypeElement)
@@ -3620,7 +3624,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos1 = InStr(LCase(res1(n)), " as ")
 						If Pos1 > 0 Then
 							CurType = Trim(Mid(res1(n), Pos1 + 4))
-							res1(n) = Left(res1(n), Pos1 - 1)
+							res1(n) = Trim(Left(res1(n), Pos1 - 1))
+						End If
+						If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+							res1(n) = Trim(Mid(res1(n), 6))
+						End If
+						Pos1 = InStr(res1(n), "(")
+						If Pos1 > 0 Then
+							res1(n) = Trim(Left(res1(n), Pos1 - 1))
 						End If
 						res1(n) = res1(n).TrimAll
 						Pos1 = InStrRev(CurType, ".")
