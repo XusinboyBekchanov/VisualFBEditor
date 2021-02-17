@@ -5403,6 +5403,7 @@ Dim Shared exedate As Double 'serial date
 					For j As Integer =1 To linenb
 						If rline(j).ad=ad Then i=j:Exit While
 					Next
+					Exit While
 				End If
 				If ad>rLine(i).ad Then
 					debut=i
