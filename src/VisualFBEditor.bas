@@ -20,7 +20,7 @@ Const SIGN       = "VisualFBEditor " + VERSION
 
 On Error Goto AA
 
-#define GetMN
+'#define GetMN
 
 #define MEMCHECK 0
 

@@ -1223,7 +1223,6 @@ Dim Shared exedate As Double 'serial date
 				'REDIM
 				If cutup_scp(gv[InStr(gv,":")],ad,dlldelta)=0 Then Exit Sub 'Scope / increase number and put adr
 				'if common exists return 0 so exit sub
-				?gv
 				vrb(*vrbptr).nm=Left(gv,InStr(gv,":")-1) 'var or parameter
 				
 				'.stabs "VTEST:22=s32DATA:25=*23=24=*1,0,32;PTR:26=*23=24=*1,32,32;SIZE:1,64,32;ELEMENT_LEN:1,96,32;DIMENSIONS:1,128,32;dim1_ELEMENTS:1,160,32;dim1_LBOUND:1,192,32;
@@ -1492,7 +1491,7 @@ Dim Shared exedate As Double 'serial date
 		udt(1).nm="long":udt(1).lg=Len(Long)
 	#else
 		udt(1).nm="Integer":udt(1).lg=Len(Integer)
-	#EndIf
+	#endif
 	udt(2).nm="Byte":udt(2).lg=Len(Byte)
 	udt(3).nm="Ubyte":udt(3).lg=Len(UByte)
 	udt(4).nm="Zstring":udt(4).lg=Len(Integer)'4 12/07/2015
@@ -4924,7 +4923,7 @@ Dim Shared exedate As Double 'serial date
 		If i>linenb Then msgbox(ML("Execution on cursor: Inaccessible line (not executable)")) :Exit Sub
 		
 		If curlig=l+1 And shwtab=curtab Then
-			If msgbox(ML("Execution on cursor: Same line, continue?"),,MB_YESNO Or MB_ICONQUESTION)=IDNO Then Exit Sub
+			If msgbox(ML("Execution on cursor: Same line, continue?"),,mtQuestion, btYesNo) = mrNo Then Exit Sub
 		End If
 		
 		'check inside same proc if not msg
@@ -5463,6 +5462,18 @@ Dim Shared exedate As Double 'serial date
 		
 		setThreadContext(threadcontext,@vcontext)
 		
+'		If runtype = RTRUN Then
+'			For i As Integer = 1 To linenb 'restore CC
+'				If proc(rline(i).px).nu = i Then
+'					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @breakcpu, 1, 0)
+'				Else
+'					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rLine(i).sv, 1, 0)
+'				End If
+'			Next
+'			thread_rsm
+'			Exit Sub
+'		End If
+		
 		If FastRunning Then
 			FastRunning = False
 			Dim As Integer ad = rLine(thread(threadcur).sv).ad
@@ -5543,12 +5554,12 @@ Dim Shared exedate As Double 'serial date
 				End If
 				thread_rsm
 			End If
-			If threadsel<>threadcur AndAlso msgbox(ML("New Thread: Previous thread") & " "+Str(thread(threadsel).id)+" " & ML("changed by") & " "+Str(thread(threadcur).id) _
-				+Chr(10)+Chr(13)+" " & ML("Keep new one?"),, MB_SYSTEMMODAL Or MB_YESNO Or MB_ICONQUESTION)=IDNO Then
-				thread_change(threadsel)
-			Else
+'			If threadsel<>threadcur AndAlso msgbox(ML("New Thread: Previous thread") & " "+Str(thread(threadsel).id)+" " & ML("changed by") & " "+Str(thread(threadcur).id) _
+'				+Chr(10)+Chr(13)+" " & ML("Keep new one?"),, mtQuestion, btYesNo) = mrNo Then
+'				thread_change(threadsel)
+'			Else
 				threadsel=threadcur
-			End If
+'			End If
 		End If
 		
 	End Sub
@@ -5645,10 +5656,10 @@ Dim Shared exedate As Double 'serial date
 					Select Case (DebugEv.u.Exception.ExceptionRecord.ExceptionCode)
 					Case EXCEPTION_BREAKPOINT:
 						For i As Integer = 0 To threadnb 'if msg from thread then flag off
-							If DebugEv.dwThreadId=thread(i).id Then
-								threadcontext=thread(i).hd:threadhs=threadcontext
+							If DebugEv.dwThreadId = thread(i).id Then
+								threadcur = i
+								threadcontext = thread(i).hd: threadhs = threadcontext
 								suspendthread(threadcontext)
-								threadcur=i
 								Exit For
 							End If
 						Next

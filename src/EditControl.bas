@@ -3998,6 +3998,7 @@ Namespace My.Sys.Forms
 	Destructor EditControl
 		'If FText Then Deallocate FText
 		_ClearHistory
+		If CurEC = @This Then CurEC = 0
 		For i As Integer = FLines.Count - 1 To 0 Step -1
 			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 		Next i
