@@ -1525,6 +1525,10 @@ Namespace My.Sys.Forms
 					#else
 						.KeyDown(wParam, 0)
 					#endif
+					#ifndef __USE_GTK__
+					Case WM_NCDESTROY
+						Return 0
+					#endif
 				End Select
 			End With
 		End If

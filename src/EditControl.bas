@@ -1528,8 +1528,8 @@ Namespace My.Sys.Forms
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
+			pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
-				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
 				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - VScrollPos) * dwCharY, extend2.width, dwCharY)

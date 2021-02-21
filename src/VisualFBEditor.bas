@@ -171,8 +171,8 @@ Sub mClick(Sender As My.Sys.Object)
 			#ifndef __USE_GTK__
 				ChangeEnabledDebug False, True, True
 				fastrun()
-				'runtype = RTRUN
-				'thread_rsm()
+'				runtype = RTRUN
+'				thread_rsm()
 			#endif
 		ElseIf UseDebugger Then
 			#ifndef __USE_GTK__

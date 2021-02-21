@@ -49,6 +49,7 @@
 		ML("For donation") & !":\r Patreon: <a href=""https://www.patreon.com/xusinboy"">patreon.com/xusinboy</a>,\r WebMoney: <a href=""https://www.webmoney.ru""> WMZ: Z884195021874</a>\r\r\r\r" & _
 		ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit and Simple Designer\r" & _
 		ML("Thanks to") & !" Aloberoger for codes of GUITK-S Windows GUI FB Wrapper Library\r" & _
+		ML("Thanks to") & !" Stanislav Budinov for codes of GUI Library Window9\r" & _
 		ML("Thanks to") & !" Laurent GRAS for codes of FBDebugger\r" & _
 		ML("Thanks to") & !" José Roca for codes of Afx\r" & _
 		ML("Language files by") & !":\r" & _
