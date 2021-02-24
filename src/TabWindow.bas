@@ -103,6 +103,7 @@ Sub FormatProject(UnFormat As Any Ptr)
 	Dim As EditControl txt
 	Dim As EditControl Ptr ptxt
 	Dim As TabWindow Ptr tb, tbCurrent = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 	If tn2 <> 0 Then tn2 = GetParentNode(tn2)
 	If tn2 = 0 OrElse tn2->ImageKey <> "Project" Then Exit Sub
 	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateLock
@@ -119,26 +120,26 @@ Sub FormatProject(UnFormat As Any Ptr)
 					If ee <> 0 AndAlso (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc")) Then
 						tb = GetTab(*ee->FileName)
 						If tb = 0 Then
-							txt.LoadFromFile(*ee->FileName)
+							txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
 							ptxt = @txt
 						Else
 							ptxt = @tb->txtCode
 						End If
 						If UnFormat Then ptxt->UnFormatCode(True) Else ptxt->FormatCode(True)
-						If tb = 0 Then ptxt->SaveToFile(*ee->FileName)
+						If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 					End If
 				End If
 			Next
 		ElseIf (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc")) Then
 			tb = GetTab(*ee->FileName)
 			If tb = 0 Then
-				txt.LoadFromFile(*ee->FileName)
+				txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
 				ptxt = @txt
 			Else
 				ptxt = @tb->txtCode
 			End If
 			If UnFormat Then ptxt->UnFormatCode(True) Else ptxt->FormatCode(True)
-			If tb = 0 Then ptxt->SaveToFile(*ee->FileName)
+			If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 		End If
 	Next
 	StopProgress
@@ -218,10 +219,19 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			If Not bNoActivate Then .SelectTab Else .Visible = True: pTabCode->RequestAlign: .Visible = False
 			.tbrTop.Buttons.Item(1)->Checked = True
 			If FileName <> "" Then
-				.txtCode.LoadFromFile(FileNameNew)
+				.txtCode.LoadFromFile(FileNameNew, tb->FileEncoding, tb->NewLineType)
 				.txtCode.ClearUndo
 				.Modified = bNew
+			Else
+				#ifdef __FB_WIN32__
+					tb->NewLineType = NewLineTypes.WindowsCRLF
+				#else
+					tb->NewLineType = NewLineTypes.LinuxLF
+				#endif
+				tb->FileEncoding = FileEncodings.Utf8
 			End If
+			ChangeFileEncoding tb->FileEncoding
+			ChangeNewLineType tb->NewLineType
 			.FormDesign(bNoActivate)
 		End With
 		MoveCloseButtons
@@ -465,7 +475,7 @@ Function TabWindow.SaveTab As Boolean
 	If AutoCreateBakFiles Then
 		FileCopy *FFileName, Str(GetBakFileName(*FFileName)) '
 	End If
-	txtCode.SaveToFile(*FFileName) ', False
+	txtCode.SaveToFile(*FFileName, FileEncoding, NewLineType) ', False
 	Modified = False
 	#ifndef __USE_GTK__
 		DateFileTime = GetFileLastWriteTime(*FFileName)
@@ -1049,12 +1059,13 @@ End Sub
 Sub GetBiFile(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, ByRef ptxtCodeBi As EditControl Ptr, tb As TabWindow Ptr, IsBas As Boolean, ByRef bFind As Boolean, i As Integer, ByRef iStart As Integer, ByRef iEnd As Integer)
 	If CInt(IsBas) AndAlso CInt(Not bFind) AndAlso CInt(StartsWith(Trim(LCase(tb->txtCode.Lines(i)), Any !"\t "), "#include once """ & LCase(GetFileName(Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")) & """")) Then
 		Var tbBi = GetTab(Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")
+		Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 		bFind = True
 		If tbBi Then
 			ptxtCode = @tbBi->txtCode
 			ptxtCodeBi = ptxtCode
 		Else
-			txtCodeBi.LoadFromFile(Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")
+			txtCodeBi.LoadFromFile(Left(tb->FileName, Len(tb->FileName) - 4) & ".bi", FileEncoding, NewLineType)
 			ptxtCode = @txtCodeBi
 		End If
 		iStart = 0
@@ -3297,6 +3308,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim ConstructionBlocks As List
 	Dim As UString Comments, b, bTrim, bTrimLCase
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
+	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 	If IsBas Then
 		WLet(FLine1, Left(FileName, Len(FileName) - 4) & ".bi")
 		WLetEx FLine2, GetFileName(*FLine1), True
@@ -3308,7 +3320,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
 			Var tb = GetTab(*FLine1)
 			If tb = 0 Then
-				txtCodeBi.LoadFromFile *FLine1
+				txtCodeBi.LoadFromFile *FLine1, FileEncoding, NewLineType
 				ptxtCode = @txtCodeBi
 			Else
 				ptxtCode = @tb->txtCode

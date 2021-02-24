@@ -857,15 +857,15 @@ Namespace My.Sys.Forms
 		ChangeText Value, 0, "Matn qo`shildi"
 	End Property
 	
-	Sub EditControl.LoadFromFile(ByRef FileName As WString)
+	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes)
 		'Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
 		Dim pBuff As WString Ptr
 		Dim As Integer Result = -1, Fn = FreeFile, FileSize
 		Var iC = 0, OldiC = 0, i = 0
-		Result = Open(FileName For Input Encoding "utf-8" As #Fn) ' 
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
-		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
+		Result = Open(FileName For Input Encoding "utf-8" As #Fn): FileEncoding = FileEncodings.Utf8
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn): FileEncoding = FileEncodings.Utf32
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn): FileEncoding = FileEncodings.Utf16
+		If Result <> 0 Then Result = Open(FileName For Input As #Fn): FileEncoding = FileEncodings.PlainText
 		If Result = 0 Then
 			FileSize = LOF(Fn)
 			WReallocate(pBuff, FileSize)
@@ -874,6 +874,7 @@ Namespace My.Sys.Forms
 			Next i
 			FLines.Clear
 			VisibleLines.Clear
+			i = 0
 			Do Until EOF(Fn)
 				'Line Input #Fn, Buff
 				LineInputWstr Fn, pBuff, FileSize
@@ -887,6 +888,14 @@ Namespace My.Sys.Forms
 				OldiC = iC
 				i += 1
 			Loop
+			NewLineType = NewLineTypes.WindowsCRLF
+			If i = 1 Then
+				If InStr(*pBuff, Chr(10)) > 0 Then
+					NewLineType = NewLineTypes.LinuxLF
+				ElseIf InStr(*pBuff, Chr(13)) > 0 Then
+					NewLineType = NewLineTypes.MacOSCR
+				End If
+			End If
 			ScrollToCaret
 			Close #Fn
 		Else
@@ -895,11 +904,29 @@ Namespace My.Sys.Forms
 		WDeallocate pBuff
 	End Sub
 	
-	Sub EditControl.SaveToFile(ByRef File As WString)
+	Sub EditControl.SaveToFile(ByRef File As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
 		Dim As Integer Fn = FreeFile
-		If Open(File For Output Encoding "utf-8" As #Fn) = 0 Then
+		Dim As Integer Result
+		Dim As String FileEncodingText, NewLine
+		If FileEncoding = FileEncodings.Utf8 Then
+			FileEncodingText = "utf-8"
+		ElseIf FileEncoding = FileEncodings.Utf16 Then
+			FileEncodingText = "utf-16"
+		ElseIf FileEncoding = FileEncodings.Utf32 Then
+			FileEncodingText = "utf-32"
+		Else
+			FileEncodingText = "ascii"
+		End If
+		If FileEncoding = NewLineTypes.LinuxLF Then
+			NewLine = Chr(10)
+		ElseIf FileEncoding = NewLineTypes.MacOSCR Then
+			NewLine = Chr(13)
+		Else
+			NewLine = Chr(13, 10)
+		End If
+		If Open(File For Output Encoding FileEncodingText As #Fn) = 0 Then
 			For i As Integer = 0 To FLines.Count - 1
-				Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text
+				Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
 			Next
 			Close #Fn
 		Else

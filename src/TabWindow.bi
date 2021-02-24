@@ -199,6 +199,8 @@ Public:
 	#else
 		DateFileTime As FILETIME
 	#endif
+	NewLineType As NewLineTypes
+	FileEncoding As FileEncodings
 	Declare Property FileName ByRef As WString
 	Declare Property FileName(ByRef Value As WString)
 	Declare Property Modified As Boolean

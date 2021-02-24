@@ -83,6 +83,7 @@ Common Shared As TabControl Ptr ptabCode, ptabLeft, ptabBottom, ptabRight
 Common Shared As TreeView Ptr ptvExplorer
 Common Shared As IniFile Ptr piniSettings, piniTheme
 Common Shared As MenuItem Ptr mnuUseDebugger, miHelps, miXizmat
+Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf16, miUtf32, miWindowsCRLF, miLinuxLF, miMacOSCR
 
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
@@ -126,6 +127,19 @@ Enum LoadParam
 	FilePathAndIncludeFiles
 End Enum
 
+Enum FileEncodings
+	PlainText
+	Utf8
+	Utf16
+	Utf32
+End Enum
+
+Enum NewLineTypes
+	WindowsCRLF
+	LinuxLF
+	MacOSCR
+End Enum
+
 Declare Sub NewProject
 Declare Sub OpenProject
 Declare Sub AddNew(ByRef Template As WString = "")
@@ -156,6 +170,8 @@ Declare Sub StopProgress()
 Declare Function EqualPaths(ByRef a As WString, ByRef b As WString) As Boolean
 Declare Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 Declare Sub ChangeUseDebugger(bUseDebugger As Boolean, ChangeObject As Integer = -1)
+Declare Sub ChangeFileEncoding(FileEncoding As FileEncodings)
+Declare Sub ChangeNewLineType(NewLineType As NewLineTypes)
 #ifndef __USE_GTK__
 	Common Shared As UINT_PTR CurrentTimer
 	Declare Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)

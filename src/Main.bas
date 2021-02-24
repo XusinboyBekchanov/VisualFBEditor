@@ -1863,6 +1863,34 @@ Sub ChangeUseDebugger(bUseDebugger As Boolean, ChangeObject As Integer = -1)
 	If ChangeObject <> 1 AndAlso mnuUseDebugger->Checked <> UseDebugger Then mnuUseDebugger->Checked = bUseDebugger
 End Sub
 
+Sub ChangeFileEncoding(FileEncoding As FileEncodings)
+	miPlainText->Checked = FileEncoding = FileEncodings.PlainText
+	miUtf8->Checked = FileEncoding = FileEncodings.Utf8
+	miUtf16->Checked = FileEncoding = FileEncodings.Utf16
+	miUtf32->Checked = FileEncoding = FileEncodings.Utf32
+	With *stBar.Panels[3]
+		Select Case FileEncoding
+		Case FileEncodings.PlainText: .Caption = "ASCII"
+		Case FileEncodings.Utf8: .Caption = "UTF-8"
+		Case FileEncodings.Utf16: .Caption = "UTF-16"
+		Case FileEncodings.Utf32: .Caption = "UTF-32"
+		End Select
+	End With
+End Sub
+
+Sub ChangeNewLineType(NewLineType As NewLineTypes)
+	miWindowsCRLF->Checked = NewLineType = NewLineTypes.WindowsCRLF
+	miLinuxLF->Checked = NewLineType = NewLineTypes.LinuxLF
+	miMacOSCR->Checked = NewLineType = NewLineTypes.MacOSCR
+	With *stBar.Panels[4]
+		Select Case NewLineType
+		Case NewLineTypes.WindowsCRLF: .Caption = "CR+LF"
+		Case NewLineTypes.LinuxLF: .Caption = "LF"
+		Case NewLineTypes.MacOSCR: .Caption = "CR"
+		End Select
+	End With
+End Sub
+
 Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	ThreadsEnter()
 	tbtStartWithCompile->Enabled = bStart
@@ -3370,6 +3398,22 @@ Sub CreateMenusAndToolBars
 	miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mclick)
 	miFile->Add(ML("Page Set&up") & "..." & HK("PageSetup"), "", "PageSetup", @mclick)
 	miFile->Add("-")
+	Var miFileFormat = miFile->Add(ML("File format"))
+	miPlainText = miFileFormat->Add(ML("Encoding") & ": " & ML("Plain text") & HK("PlainText"), "", "PlainText", @mclick, True)
+	miUtf8 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf8") & HK("Utf8"), "", "Utf8", @mclick, True)
+	miUtf16 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf16") & HK("Utf16"), "", "Utf16", @mclick, True)
+	miUtf32 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf32") & HK("Utf32"), "", "Utf32", @mclick, True)
+	miFileFormat->Add("-")
+	miWindowsCRLF = miFileFormat->Add(ML("Newline") & ": " & ML("Windows (CRLF)") & HK("WindowsCRLF"), "", "WindowsCRLF", @mclick, True)
+	miLinuxLF = miFileFormat->Add(ML("Newline") & ": " & ML("Linux (LF)") & HK("LinuxLF"), "", "LinuxLF", @mclick, True)
+	miMacOSCR = miFileFormat->Add(ML("Newline") & ": " & ML("MacOS (CR)") & HK("MacOSCR"), "", "MacOSCR", @mclick, True)
+	miUtf8->Checked = True
+	#ifdef __FB_WIN32__
+		miWindowsCRLF->Checked = True
+	#else
+		miLinuxLF->Checked = True
+	#endif
+	miFile->Add("-")
 	
 	'David Change  Add Recent Sessions
 	miRecentSessions = miFile->Add(ML("Recent Sessions"), "", "RecentSessions", @mclick)
@@ -4721,6 +4765,8 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	Else
 		frmMain.Caption = tb->FileName & " - " & pApp->Title
 	End If
+	ChangeFileEncoding tb->FileEncoding
+	ChangeFileEncoding tb->NewLineType
 	tbOld = tb
 End Sub
 
@@ -5417,8 +5463,9 @@ Sub frmMain_ActivateApp(ByRef Sender As Form)
 			If InStr(tb->FileName, "/") > 0 OrElse InStr(tb->FileName, "\") > 0 Then
 				If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
 					If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
+						Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 						tb->txtCode.Changing "Reload"
-						tb->txtCode.LoadFromFile(tb->FileName)
+						tb->txtCode.LoadFromFile(tb->FileName, FileEncoding, NewLineType)
 						tb->txtCode.Changed "Reload"
 					End If
 				End If

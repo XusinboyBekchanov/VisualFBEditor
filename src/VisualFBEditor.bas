@@ -337,6 +337,33 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "AddUserControl":                  AddFromTemplate ExePath + "/Templates/Files/User Control.bas"
 	Case "AddResource":                     AddFromTemplate ExePath + "/Templates/Files/Resource.rc"
 	Case "AddManifest":                     AddFromTemplate ExePath + "/Templates/Files/Manifest.xml"
+	Case "PlainText", "Utf8", "Utf16", "Utf32"
+		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		Dim FileEncoding As FileEncodings
+		Select Case Sender.ToString
+		Case "PlainText": FileEncoding = FileEncodings.PlainText
+		Case "Utf8": FileEncoding = FileEncodings.Utf8
+		Case "Utf16": FileEncoding = FileEncodings.Utf16
+		Case "Utf32": FileEncoding = FileEncodings.Utf32
+		End Select
+		ChangeFileEncoding FileEncoding
+		If tb <> 0 Then
+			tb->FileEncoding = FileEncoding
+			tb->Modified = True
+		End If
+	Case "WindowsCRLF", "LinuxLF", "MacOSCR"
+		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		Dim NewLineType As NewLineTypes
+		Select Case Sender.ToString
+		Case "WindowsCRLF": NewLineType = NewLineTypes.WindowsCRLF
+		Case "LinuxLF": NewLineType = NewLineTypes.LinuxLF
+		Case "MacOSCR": NewLineType = NewLineTypes.MacOSCR
+		End Select
+		ChangeNewLineType NewLineType
+		If tb <> 0 Then
+			tb->NewLineType = NewLineType
+			tb->Modified = True
+		End If
 		#ifndef __USE_GTK__
 		Case "ShowString":                  string_sh(tviewvar)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)
