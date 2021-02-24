@@ -5463,9 +5463,8 @@ Sub frmMain_ActivateApp(ByRef Sender As Form)
 			If InStr(tb->FileName, "/") > 0 OrElse InStr(tb->FileName, "\") > 0 Then
 				If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
 					If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
-						Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 						tb->txtCode.Changing "Reload"
-						tb->txtCode.LoadFromFile(tb->FileName, FileEncoding, NewLineType)
+						tb->txtCode.LoadFromFile(tb->FileName, tb->FileEncoding, tb->NewLineType)
 						tb->txtCode.Changed "Reload"
 					End If
 				End If
