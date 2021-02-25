@@ -5480,7 +5480,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	FormClosing = True
 	Dim tb As TabWindow Ptr
 	Dim tn As TreeNode Ptr
-	For i As Integer = 0 To ptabCode->TabCount - 1
+	For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 		If Not CloseTab(tb) Then Action = 0: Return
 	Next i
