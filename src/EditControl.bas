@@ -372,13 +372,13 @@ Namespace My.Sys.Forms
 		FECLine->Collapsed = Value
 		If FECLine->Collapsed Then
 			If Not EndsWith(*FECLine->Text, "'...'") Then
-				WLet(FECLine->Text, *FECLine->Text & " '...'")
+				WLetEx(FECLine->Text, *FECLine->Text & " '...'", True)
 			End If
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
 				FECLine2 = FLines.Items[i]
 				FECLine2->Visible = False
-				Idx = VisibleLines.IndexOf(FECLine2)
-				If Idx > -1 Then VisibleLines.Remove Idx
+'				Idx = VisibleLines.IndexOf(FECLine2)
+'				If Idx > -1 Then VisibleLines.Remove Idx
 				If FECLine2->ConstructionIndex = FECLine->ConstructionIndex Then
 					If FECLine2->ConstructionPart = 2 Then
 						j -= 1
@@ -392,7 +392,7 @@ Namespace My.Sys.Forms
 			Next i
 		Else
 			If EndsWith(*FECLine->Text, "'...'") Then
-				WLet(FECLine->Text, RTrim(Left(*FECLine->Text, Len(*FECLine->Text) - 5)))
+				WLetEx(FECLine->Text, RTrim(Left(*FECLine->Text, Len(*FECLine->Text) - 5)), True)
 			End If
 			Dim As EditControlLine Ptr OldCollapsed
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
@@ -416,8 +416,8 @@ Namespace My.Sys.Forms
 					FECLine2->Visible = False
 				End If
 				If FECLine2->Visible Then
-					Idx = VisibleLines.IndexOf(FECLine2)
-					If Idx = -1 Then VisibleLines.Insert VisibleLines.IndexOf(FECLine) + 1, FECLine2
+'					Idx = VisibleLines.IndexOf(FECLine2)
+'					If Idx = -1 Then VisibleLines.Insert VisibleLines.IndexOf(FECLine) + 1, FECLine2
 					FECLine = FECLine2
 				End If
 			Next i
@@ -490,12 +490,12 @@ Namespace My.Sys.Forms
 			ElseIf eclOld->Collapsed Then
 				ecl->Visible = False
 			End If
-			Idx = VisibleLines.IndexOf(ecl)
-			If ecl->Visible AndAlso Idx = -1 Then
-				If eclOld->Visible Then VisibleLines.Insert VisibleLines.IndexOf(eclOld) + 1, ecl
-			ElseIf (Not ecl->Visible) AndAlso Idx > -1 Then
-				VisibleLines.Remove Idx
-			End If
+'			Idx = VisibleLines.IndexOf(ecl)
+'			If ecl->Visible AndAlso Idx = -1 Then
+'				If eclOld->Visible Then VisibleLines.Insert VisibleLines.IndexOf(eclOld) + 1, ecl
+'			ElseIf (Not ecl->Visible) AndAlso Idx > -1 Then
+'				VisibleLines.Remove Idx
+'			End If
 		End If
 	End Sub
 	
@@ -873,18 +873,22 @@ Namespace My.Sys.Forms
 				Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			Next i
 			FLines.Clear
-			VisibleLines.Clear
+			'VisibleLines.Clear
 			i = 0
 			Do Until EOF(Fn)
 				'Line Input #Fn, Buff
 				LineInputWstr Fn, pBuff, FileSize
 				FECLine = New_( EditControlLine)
+				If FECLine = 0 Then
+					Close #Fn
+					Return
+				End If
 				WLet(FECLine->Text, *pBuff)
 				iC = FindCommentIndex(*pBuff, OldiC)
 				FECLine->CommentIndex = iC
 				FLines.Add(FECLine)
 				ChangeCollapsibility i
-				If FECLine->Visible Then VisibleLines.Add(FECLine)
+				'If FECLine->Visible Then VisibleLines.Add(FECLine)
 				OldiC = iC
 				i += 1
 			Loop

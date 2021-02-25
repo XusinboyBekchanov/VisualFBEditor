@@ -277,7 +277,7 @@ Namespace My.Sys.Forms
 		Modified As Boolean
 		WithHistory As Boolean
 		FLines As List
-		VisibleLines As List
+		'VisibleLines As List
 		CurExecutedLine As Integer = -1
 		FocusedItemIndex As Integer
 		LastItemIndex As Integer
