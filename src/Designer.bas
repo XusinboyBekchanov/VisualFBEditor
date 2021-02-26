@@ -1494,7 +1494,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseUp(P.X, P.Y, wParam And &HFFFF )
+						.MouseUp(GetXY(P.X), GetXY(P.Y), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -1512,7 +1512,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseMove(P.X, P.Y, wParam And &HFFFF )
+						.MouseMove(GetXY(P.X), GetXY(P.Y), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__

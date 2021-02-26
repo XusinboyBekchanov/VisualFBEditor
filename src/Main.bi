@@ -202,6 +202,7 @@ Declare Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean =
 Declare Function GetOSPath(ByRef Path As WString) As UString
 Declare Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 Declare Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
+Declare Function GetXY(XorY As Integer) As Integer
 #ifndef __USE_GTK__
 	Declare Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
 	Declare Function GetFileLastWriteTime(ByRef FileName As WString) As FILETIME

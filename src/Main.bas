@@ -2145,6 +2145,10 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 	End If
 End Function
 
+Function GetXY(XorY As Integer) As Integer
+	Return IIf(XorY > 60000, XorY - 65535, XorY)
+End Function
+
 Function WithoutPointers(ByRef e As String) As String
 	If EndsWith(LCase(e), " ptr") Then
 		Return WithoutPointers(Trim(Left(e, Len(e) - 4)))
