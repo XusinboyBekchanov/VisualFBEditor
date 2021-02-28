@@ -33,6 +33,7 @@ Common Shared As Byte runtype        'running type 07/12/2014
 	Declare Sub brk_set(t As Integer)
 	Declare Sub string_sh(tv As HWND)
 	Declare Sub shwexp_new(tview As HWND)
+	Declare Function var_sh1(i As Integer) As String
 	
 	Common Shared windmain As HWND
 	Common Shared stopcode As Integer
@@ -64,5 +65,5 @@ Common Shared As Byte runtype        'running type 07/12/2014
 Declare Sub RunWithDebug(Param As Any Ptr)
 
 #ifndef __USE_MAKE__
-	#include Once "Debug.bas"
+	#include once "Debug.bas"
 #endif

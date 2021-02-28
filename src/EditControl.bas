@@ -1146,22 +1146,47 @@ Namespace My.Sys.Forms
 		Return i - 1
 	End Function
 	
-	Function EditControl.GetWordAt(LineIndex As Integer, CharIndex As Integer) As String
+	Function EditControl.GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False) As String
 		Dim As Integer i
 		Dim As String s, sWord, sLine = Lines(LineIndex)
 		For i = CharIndex To 1 Step -1
 			s = Mid(sLine, i, 1)
-			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) Then sWord = s & sWord Else Exit For
+			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) Then sWord = s & sWord Else Exit For
 		Next
 		For i = CharIndex + 1 To Len(sLine)
 			s = Mid(sLine, i, 1)
-			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) Then sWord = sWord & s Else Exit For
+			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) Then sWord = sWord & s Else Exit For
 		Next
 		Return sWord
 	End Function
 	
-	Function EditControl.GetWordAtCursor() As String
-		Return GetWordAt(FSelEndLine, FSelEndChar)
+	Function EditControl.GetWordAtCursor(WithDot As Boolean = False) As String
+		Return GetWordAt(FSelEndLine, FSelEndChar, WithDot)
+	End Function
+	
+	Function EditControl.GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
+		If X <= LeftMargin Then Return ""
+		Var LineIndex = Fix(Y / dwCharY) + VScrollPos
+		Var j = -1, k = -1
+		For i As Integer = 0 To FLines.Count - 1
+			If Cast(EditControlLine Ptr, FLines.Items[i])->Visible Then
+				j = j + 1
+				If j = LineIndex Then k = j: Exit For
+			End If
+		Next
+		If k = -1 Then Return ""
+		WLet(FLine, *Cast(EditControlLine Ptr, FLines.Item(k))->Text)
+		Dim As Integer nCaretPosX = X - LeftMargin + HScrollPos * dwCharX
+		Dim As Integer w = TextWidth(GetTabbedText(*FLine))
+		Dim As Integer Idx = Len(*FLine)
+		If w - 2 <= nCaretPosX Then Return ""
+		Idx = 0
+		For i As Integer = 0 To Len(*FLine)
+			w = TextWidth(GetTabbedText(Mid(*FLine, 1, i)))
+			If w - 2 > nCaretPosX Then Exit For
+			Idx = i
+		Next i
+		Return GetWordAt(k, Idx, WithDot)
 	End Function
 	
 	Function EditControl.GetTabbedLength(ByRef SourceText As WString) As Integer
@@ -2517,7 +2542,7 @@ Namespace My.Sys.Forms
 			If hwndTT = 0 Then
 				hwndTT = CreateWindow(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
 				
-				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS
+				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
 				ti.hinst  = GetModuleHandle(NULL)
 				ti.lpszText  = FHint.vptr
 				

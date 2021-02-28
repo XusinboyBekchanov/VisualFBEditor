@@ -265,10 +265,77 @@ Sub OnChangeEdit(ByRef Sender As Control)
 	'    End With
 End Sub
 
-Sub OnMouseDownEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-	If MouseButton = 0 And Shift = 9 Then
-		
-	End If
+Declare Function get_var_value(VarName As String, LineIndex As Integer) As String
+
+Sub OnMouseMoveEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+'	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+'	If tb = 0 Then Exit Sub
+'	#ifndef __USE_GTK__
+'		Dim ByRef As HWND hwndTT = tb->txtCode.ToolTipHandle
+'		If hwndTT <> 0 Then
+'			Dim As TOOLINFO    ti
+'			ZeroMemory(@ti, SizeOf(ti))
+'			ti.cbSize = SizeOf(ti)
+'			ti.hwnd   = tb->txtCode.Handle
+'			SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
+'			SendMessage(hwndTT, TTM_TRACKACTIVATE, False, Cast(LPARAM, @ti))
+'		End If
+'	#endif
+End Sub
+
+Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	#ifndef __USE_GTK__
+		If Not InDebug Then Exit Sub
+		Var tb = Cast(TabWindow Ptr, Sender.Tag)
+		If tb = 0 Then Exit Sub
+		Dim As String Word = tb->txtCode.GetWordAtPoint(X, Y, True)
+		If Word <> "" Then
+			Dim As UString Value
+			Value = get_var_value(Word, tb->txtCode.LineIndexFromPoint(X, Y))
+			If Value <> "" Then
+				Dim ByRef As HWND hwndTT = tb->txtCode.ToolTipHandle
+				Dim As TOOLINFO    ti
+				ZeroMemory(@ti, SizeOf(ti))
+				ti.cbSize = SizeOf(ti)
+				ti.hwnd   = tb->txtCode.Handle
+				'ti.uId    = Cast(UINT, FHandle)
+				If hwndTT = 0 Then
+					hwndTT = CreateWindow(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
+					
+					ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
+					ti.hinst  = GetModuleHandle(NULL)
+					ti.lpszText  = Value.vptr
+					'SendMessage(hwndTT, TTM_SETDELAYTIME, TTDT_INITIAL, 100)
+					SendMessage(hwndTT, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
+				Else
+					SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
+					
+					ti.lpszText = Value.vptr
+					
+					SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
+				End If
+				Dim As Point Pt
+				Pt.X = X
+				Pt.Y = Y
+				ClientToScreen tb->txtCode.Handle, @Pt
+				SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(Pt.X, Pt.Y + 10))
+				SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
+				SendMessage(hwndTT, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
+				tb->txtCode.ToolTipHandle = hwndTT
+				'tb->txtCode.ShowHint = True
+				Exit Sub
+			End If
+		End If
+		Dim ByRef As HWND hwndTT = tb->txtCode.ToolTipHandle
+		If hwndTT <> 0 Then
+			Dim As TOOLINFO    ti
+			ZeroMemory(@ti, SizeOf(ti))
+			ti.cbSize = SizeOf(ti)
+			ti.hwnd   = tb->txtCode.Handle
+			SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
+			SendMessage(hwndTT, TTM_TRACKACTIVATE, False, Cast(LPARAM, @ti))
+		End If
+	#endif
 End Sub
 
 Function IsLabel(ByRef LeftA As WString) As Boolean
@@ -4051,7 +4118,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnKeyPress = @OnKeyPressEdit
 	txtCode.Tag = @This
 	'OnPaste = @OnPasteEdit
-	txtCode.OnMouseDown = @OnMouseDownEdit
+	txtCode.OnMouseMove = @OnMouseMoveEdit
+	txtCode.OnMouseHover = @OnMouseHoverEdit
 	'txtCode.tbParent = @This
 	This.Width = 180
 	This.OnDestroy = @TabWindow_Destroy

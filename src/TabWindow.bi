@@ -259,8 +259,6 @@ Declare Sub m(ByRef msg As WString, Debug As Boolean = False)
 Common Shared TextChanged As Boolean
 Declare Sub OnChangeEdit(ByRef Sender As Control)
 
-Declare Sub OnMouseDownEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-
 Declare Function IsLabel(ByRef LeftA As WString) As Boolean
 
 Declare Sub CloseButton_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)

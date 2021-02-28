@@ -4640,7 +4640,70 @@ Dim Shared exedate As Double 'serial date
 			End With
 		End If
 	End Function
-	
+
+	Function get_var_value(VarName As String, LineIndex As Integer) As String
+		Dim As Integer nline, lclproc, lclprocr, p, n, i, j, d, l, idx = -1
+		Dim text As ZString * 200
+		nline = LineIndex 'sendmessage(dbgrichedit,EM_EXLINEFROMCHAR,0,-1)
+		text = UCase(VarName)
+		If text="" Or Left(text, 1) = "." Then
+			Return ""
+		End If
+		
+		'parsing
+		Dim vname(10) As String, varray As Integer, vnb As Integer = 0
+		text += ".": l = Len(text): d = 1
+		While d < l
+			vnb += 1
+			p = InStr(d, text, ".")
+			vname(vnb) = Mid(text, d, p - d)
+			If Right(vname(vnb), 1) = "(" Then
+				varray = 1: vname(vnb) = Mid(text, d, p - d -1): d = p + 2 'array
+			Else
+				varray = 0: d = p + 1
+			End If
+		Wend
+		
+		nline += 1 'in source 1 to n <> inside richedit 0 to n-1
+		lclproc = 0
+		For i As Integer = 1 To linenb
+			If rline(i).nu = nline AndAlso rline(i).sx = shwtab Then 'is executable (known) line ?
+				lclproc = rline(i).px: Exit For ' with known line we know also the proc...
+			End If
+		Next
+		
+		'search inside
+		'if no lclproc --> should be in main
+		If lclproc Then
+			For i As Integer = procrnb To 1 Step -1
+				If procr(i).idx = lclproc Then lclprocr = i: Exit For ' proc running
+			Next
+			
+			'search the variable taking in account name and array or not
+			
+			If lclprocr Then idx = var_search(lclprocr, vname(), vnb, varray) 'inside proc ?
+		End If
+		If idx = -1 Then
+			idx = var_search(1, vname(), vnb, varray) 'inside main ?
+			'=========== mod begin ================
+			If idx = -1 Then '18/01/2015
+				'namespace ?
+				If vnb > 1 Then
+					vname(1) += "." + vname(2)
+					vnb-=1
+					For i As Long = 2 To vnb
+						vname(i) = vname(i+1)
+					Next
+					idx = var_search(1, vname(), vnb, varray)
+				End If
+				If idx = -1 Then Return ""
+			End If
+		End If
+		'============== end of mod ==============
+		Return var_sh1(idx)
+		
+	End Function
+		
 	Sub UpdateItems(root As HTREEITEM)
 		Dim As HTREEITEM node = root
 		While node <> NULL
