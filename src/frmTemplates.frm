@@ -53,6 +53,7 @@
 			.Images = @imgList
 			.SetBounds 198, 8, 290, 260
 			.Designer = @This
+			.Columns.Add ML("Template"), , 500, cfLeft
 			.OnItemActivate = @lvTemplates_ItemActivate_
 			.Parent = @tpNew
 		End With
