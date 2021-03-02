@@ -2454,6 +2454,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 						te->TypeName = WithoutPointers(te->TypeName)
+						Pos4 = InStrRev(te->TypeName, ".")
+						If Pos4 > 0 Then
+							te->TypeName = Mid(te->TypeName, Pos4 + 1)
+						End If
 					End If
 					If inType Then
 						te->Locals = inPubPriPro

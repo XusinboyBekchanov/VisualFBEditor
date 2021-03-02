@@ -34,7 +34,10 @@
 			.OnCreate = @Chart1_Create_
 			.Align = DockStyle.alClient
 			.ChartOrientation = ChartOrientations.CO_Vertical
-			.ChartStyle = ChartStyles.CS_StackedBars
+			.ChartStyle = ChartStyles.CS_Pie
+			.Border = true
+			.FillOpacity = 100
+			.LabelsFormats = "{P}%"
 			.Parent = @This
 		End With
 	End Constructor
@@ -53,6 +56,10 @@ Private Sub Form1.Chart1_Create_(ByRef Sender As Control)
 End Sub
 Private Sub Form1.Chart1_Create(ByRef Sender As Control)
 	'Chart1.LabelsPosition = LabelsPositions.LP_Outside
+	
+	Chart1.AddItem "Juan", 70, clRed
+	Chart1.AddItem "Adan", 20, clGreen
+	Chart1.AddItem "Pedro", 10, clBlue
 	
 	Dim StringValue As WStringList Ptr
 	StringValue = New WStringList
