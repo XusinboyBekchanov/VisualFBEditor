@@ -33,6 +33,8 @@
 			.Designer = @This
 			.OnCreate = @Chart1_Create_
 			.Align = DockStyle.alClient
+			.ChartOrientation = ChartOrientations.CO_Vertical
+			.ChartStyle = ChartStyles.CS_StackedBars
 			.Parent = @This
 		End With
 	End Constructor
@@ -50,7 +52,29 @@ Private Sub Form1.Chart1_Create_(ByRef Sender As Control)
 	*Cast(Form1 Ptr, Sender.Designer).Chart1_Create(Sender)
 End Sub
 Private Sub Form1.Chart1_Create(ByRef Sender As Control)
-	Chart1.AddItem "20001", 10, clRed
-	Chart1.AddItem "20002", 10, clGreen
-	Chart1.AddItem "20003", 10, clBlue
+	'Chart1.LabelsPosition = LabelsPositions.LP_Outside
+	
+	Dim StringValue As WStringList Ptr
+	StringValue = New WStringList
+	
+	StringValue->Add "2018"
+	StringValue->Add "2019"
+	StringValue->Add "2020"
+	Chart1.AddAxisItems StringValue
+	
+	Dim Value As DoubleList Ptr
+	Value = New DoubleList
+	With *Value
+		.Add 10
+		.Add 15
+		.Add 5
+	End With
+	Chart1.AddSerie "Juan", clRed, Value
+	Value = New DoubleList
+	With *Value
+		.Add 8
+		.Add 4
+		.Add 12
+	End With
+	Chart1.AddSerie "Pedro", clBlue, Value
 End Sub

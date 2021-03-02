@@ -50,6 +50,7 @@
 		ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit and Simple Designer\r" & _
 		ML("Thanks to") & !" Aloberoger for codes of GUITK-S Windows GUI FB Wrapper Library\r" & _
 		ML("Thanks to") & !" Stanislav Budinov for codes of GUI Library Window9\r" & _
+		ML("Thanks to") & !" Leandro Ascierto for codes of Chart control\r" & _
 		ML("Thanks to") & !" Laurent GRAS for codes of FBDebugger\r" & _
 		ML("Thanks to") & !" José Roca for codes of Afx\r" & _
 		ML("Language files by") & !":\r" & _

@@ -2563,9 +2563,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If tbi Then tbi->Elements.Add te->Name, te
 						Next
 					End If
-				ElseIf CInt(StartsWith(Trim(LCase(b)), "enum ")) Then
+				ElseIf CInt(StartsWith(Trim(LCase(b)), "enum ")) OrElse CInt(StartsWith(Trim(LCase(b)), "public enum ")) OrElse CInt(StartsWith(Trim(LCase(b)), "private enum ")) Then
 					InEnum = True
-					t = Trim(Mid(bTrim, 6))
+					Pos2 = InStr(" " & bTrimLCase, " enum")
+					t = Trim(Mid(" " & bTrim, Pos2 + 5))
 					Pos2 = InStr(t, "'")
 					If Pos2 > 0 Then t = Trim(Left(t, Pos2 - 1))
 					If Not Comps.Contains(t) Then

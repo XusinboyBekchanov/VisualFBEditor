@@ -833,6 +833,10 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 						tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
 						If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
 					End If
+				Case "long": iTemp = QLong(pTemp): WLet(FLine, WStr(iTemp))
+				Case "ulong": iTemp = QULong(pTemp): WLet(FLine, WStr(iTemp))
+				Case "single": iTemp = QSingle(pTemp): WLet(FLine, WStr(iTemp))
+				Case "double": iTemp = QDouble(pTemp): WLet(FLine, WStr(iTemp))
 				Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
 				Case "any ptr", "any": WLet(FLine, WStr(""))
 				Case Else: 
@@ -885,6 +889,10 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
 					If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, te->EnumTypeName & "." & tbi->Elements.Item(iTemp))
 				End If
+			Case "long": iTemp = QLong(pTemp): WLet(FLine, WStr(iTemp))
+			Case "ulong": iTemp = QULong(pTemp): WLet(FLine, WStr(iTemp))
+			Case "single": iTemp = QSingle(pTemp): WLet(FLine, WStr(iTemp))
+			Case "double": iTemp = QDouble(pTemp): WLet(FLine, WStr(iTemp))
 			Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
 			Case "any ptr", "any": WLet(FLine, WStr(""))
 			Case Else
@@ -965,7 +973,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				'                    PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(*FLine2))->Object)
 				'                    Result = Cpnt->WriteProperty(PropertyName, PropertyCtrl)
 				'                End If
-			Case "integer"
+			Case "integer", "long", "ulong", "single", "double"
 				iTemp = Val(*FLine3)
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
 					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))

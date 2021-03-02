@@ -141,7 +141,7 @@ Private:
 	i As Integer
 	j As Integer
 	lvItem As TreeListViewItem Ptr
-	iTemp As Integer
+	iTemp As Long
 	pTemp As Any Ptr
 	te As TypeElement Ptr
 	te2 As TypeElement Ptr
