@@ -1,4 +1,48 @@
-﻿Version 1.2.6 (December 14, 2020)
+﻿Version 1.2.7 (March 6, 2021)
+- Added: Chart Example
+- Improved: TabWindow
+- Fixed: Templates in Linux
+- Added: ToolTip for variables in Debug
+- Fixed: Move Components in Designer
+- Improved: EditControl
+- Fixed: Close tabs on quit IDE
+- Added: File Encoding and New line types
+- Added: WebBrowser Example
+- Fixed: Debug on SIGSEGV
+- Fixed: Instellisense with arrays
+- Added: Multi language (ML) function to some messages
+- Added: End of debugged process
+- Fixed: Debug Access violation message buttons
+- Fixed: GTK2 dots cursors in Designer
+- Fixed: Variable names in Debug
+- Added: Debug StepOver and StepOut
+- Fixed: Debug main file
+- Fixed: Fast Run from breakpoint
+- Fixed: Run to Cursor
+- Fixed: Clear Recently Opened
+- Added: Break, Restart in Debug (Windows)
+- Fixed: Breakpoint on main file
+- Fixed: Slow move to the next line when debugging
+- Fixed: Set Breakpoint. Update breakpoint line.
+- Fixed: Filling Default Compilers
+- Added: Find Compiler Paths from Computer
+- Added: Focus Rect in Designer on Linux
+- Added: VSCode debugging json files
+- Fixed: Hiding Toolbar buttons in Classic Windows theme
+- Updated: About form
+- Added: spanish.lng
+- Fixed: Compilation result in Linux
+- Fixed: MouseWheel in Toolbox (gtk2)
+- Fixed: Fall of the program when cancel Save Compilation File
+- Fixed: ToDo and ChangeLog
+- Fixed: Default debugger option in Parameters
+- Fixed: Menu icons without background
+- Fixed: Define (F2) functionality
+- Added: TabIndex property to Controls 
+- Fixed: Save Project
+- Fixed: Save Untitled with extension
+- Fixed: Save New Project (with extension .vfp)
+Version 1.2.6 (December 14, 2020)
 - Added: UserControl file template
 - Added: UserControl Design functionality
 - Added: Paths Count in Options unlimited
