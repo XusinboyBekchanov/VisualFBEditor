@@ -28,7 +28,9 @@ Using My.Sys.Forms
 		#else
 			lblImage.Graphic.Bitmap = "Logo"
 		#endif
-		lblImage.SetBounds 12, 24, 334, 262
+		lblImage.SetBounds 12, 24, 343, 270
+		lblImage.Designer = @This
+		lblImage.OnClick = @lblImage_Click_
 		lblImage.Parent = @This
 		' lblSplash
 		lblSplash.SetBounds 14, 6, 342, 36
@@ -74,3 +76,10 @@ Using My.Sys.Forms
 	fSplash.Show
 	pApp->Run
 #endif
+
+Private Sub frmSplash.lblImage_Click_(ByRef Sender As ImageBox)
+	*Cast(frmSplash Ptr, Sender.Designer).lblImage_Click(Sender)
+End Sub
+Private Sub frmSplash.lblImage_Click(ByRef Sender As ImageBox)
+	Me.CloseForm
+End Sub
