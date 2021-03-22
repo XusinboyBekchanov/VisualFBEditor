@@ -187,7 +187,9 @@ Sub mClick(Sender As My.Sys.Object)
 			ThreadCreate(@RunProgram)
 		End If
 	Case "Break":
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			ChangeEnabledDebug True, False, True
+		#else
 			If runtype=RTFREE Or runtype=RTFRUN Then
 				runtype=RTFRUN 'to treat free as fast
 				For i As Integer = 1 To linenb 'restore every breakpoint
@@ -200,7 +202,9 @@ Sub mClick(Sender As My.Sys.Object)
 			'SetFocus(richeditcur)
 		#endif
 	Case "End":
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			ChangeEnabledDebug True, False, False
+		#else
 			'kill_process("Terminate immediatly no saved data, other option Release")
 			For i As Integer = 1 To linenb 'restore old instructions
 				WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rLine(i).sv, 1, 0)

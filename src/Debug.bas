@@ -5,7 +5,7 @@
 '#           Xusinboy Bekchanov (bxusinboy@mail.ru)      #
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
- 
+
 #include once "Debug.bi"
 
 Dim Shared exename As WString *300 'debuggee executable
@@ -724,7 +724,7 @@ Dim Shared exedate As Double 'serial date
 	End Sub
 	
 	Function String_to_ZString_Ptr(ByRef s_ZString_Ptr As ZString Ptr) As ZString Ptr
-	  Return s_ZString_Ptr
+		Return s_ZString_Ptr
 	End Function
 	
 	Private Function cutup_names(strg As String) As String
@@ -748,19 +748,19 @@ Dim Shared exedate As Double 'serial date
 			pz += N
 		Loop
 		Return s
-'		Dim As Integer p,d
-'		Dim As String nm,strg2,nm2
-'		p=InStr(strg,"_ZN")
-'		strg2=Mid(strg,p+3,999)
-'		p=Val(strg2)
-'		If p>9 Then d=3 Else d=2
-'		nm=Mid(strg2,d,p)
-'		strg2=Mid(strg2,d+p)
-'		p=Val(strg2)
-'		If p>9 Then d=3 Else d=2
-'		nm2=Mid(strg2,d,p)
-'		'Return "NS : "+nm+"."+nm2
-'		Return nm+"."+nm2 '17/01/2015
+		'		Dim As Integer p,d
+		'		Dim As String nm,strg2,nm2
+		'		p=InStr(strg,"_ZN")
+		'		strg2=Mid(strg,p+3,999)
+		'		p=Val(strg2)
+		'		If p>9 Then d=3 Else d=2
+		'		nm=Mid(strg2,d,p)
+		'		strg2=Mid(strg2,d+p)
+		'		p=Val(strg2)
+		'		If p>9 Then d=3 Else d=2
+		'		nm2=Mid(strg2,d,p)
+		'		'Return "NS : "+nm+"."+nm2
+		'		Return nm+"."+nm2 '17/01/2015
 	End Function
 	Private Function cutup_array(gv As String,d As Integer,f As Byte) As Integer
 		Dim As Integer p=d,q,c
@@ -3701,7 +3701,7 @@ Dim Shared exedate As Double 'serial date
 				Continue Do
 			End If
 			If Trim(dwln) = "" Then Continue Do
-			If EndsWith(dwln, ":") OrElse EndsWith(dwln, ":[++]") Then 
+			If EndsWith(dwln, ":") OrElse EndsWith(dwln, ":[++]") Then
 				LastPath = GetDWFileName(dwln)
 				LastFolder = GetFolderName(LastPath)
 			End If
@@ -3719,7 +3719,7 @@ Dim Shared exedate As Double 'serial date
 		Do Until EOF(dwff)
 			Line Input #dwff, dwln
 			If Trim(dwln) = "" Then Continue Do
-			If EndsWith(dwln, ":") OrElse EndsWith(dwln, ":[++]") Then 
+			If EndsWith(dwln, ":") OrElse EndsWith(dwln, ":[++]") Then
 				LastPath = GetDWFileName(dwln)
 				LastFolder = GetFolderName(LastPath)
 			End If
@@ -4640,7 +4640,7 @@ Dim Shared exedate As Double 'serial date
 			End With
 		End If
 	End Function
-
+	
 	Function get_var_value(VarName As String, LineIndex As Integer) As String
 		Dim As Integer nline, lclproc, lclprocr, p, n, i, j, d, l, idx = -1
 		Dim text As ZString * 200
@@ -4703,7 +4703,7 @@ Dim Shared exedate As Double 'serial date
 		Return var_sh1(idx)
 		
 	End Function
-		
+	
 	Sub UpdateItems(root As HTREEITEM)
 		Dim As HTREEITEM node = root
 		While node <> NULL
@@ -4714,14 +4714,14 @@ Dim Shared exedate As Double 'serial date
 			If tvi.lParam <> 0 Then Tree_upditem(node, var_sh1(tvi.lParam), tviewvar)
 			If tvi.State = 96 OrElse tvi.State = 98 Then UpdateItems(TreeView_GetNextItem(tviewvar, node, TVGN_CHILD))
 			node = TreeView_GetNextItem(tviewvar, node, TVGN_NEXT)
-    	Wend
+		Wend
 	End Sub
 	
 	Private Sub var_sh() 'show master var
 		UpdateItems(TreeView_GetNextItem(tviewvar, NULL, TVGN_ROOT))
-'		For i As Integer =1 To vrrnb
-'			Tree_upditem(vrr(i).tv,var_sh1(i),tviewvar)
-'		Next
+		'		For i As Integer =1 To vrrnb
+		'			Tree_upditem(vrr(i).tv,var_sh1(i),tviewvar)
+		'		Next
 		watch_array()
 		watch_sh
 	End Sub
@@ -5525,25 +5525,25 @@ Dim Shared exedate As Double 'serial date
 		
 		setThreadContext(threadcontext,@vcontext)
 		
-'		If runtype = RTRUN Then
-'			For i As Integer = 1 To linenb 'restore CC
-'				If proc(rline(i).px).nu = i Then
-'					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @breakcpu, 1, 0)
-'				Else
-'					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rLine(i).sv, 1, 0)
-'				End If
-'			Next
-'			thread_rsm
-'			Exit Sub
-'		End If
+		'		If runtype = RTRUN Then
+		'			For i As Integer = 1 To linenb 'restore CC
+		'				If proc(rline(i).px).nu = i Then
+		'					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @breakcpu, 1, 0)
+		'				Else
+		'					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rLine(i).sv, 1, 0)
+		'				End If
+		'			Next
+		'			thread_rsm
+		'			Exit Sub
+		'		End If
 		
 		If FastRunning Then
 			FastRunning = False
 			Dim As Integer ad = rLine(thread(threadcur).sv).ad
 			Dim As Boolean bInBreakPoint
 			For j As Integer = 0 To brknb 'breakpoint
-				If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then 
-					bInBreakPoint = True 
+				If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then
+					bInBreakPoint = True
 					Exit For
 				End If
 			Next
@@ -5617,12 +5617,12 @@ Dim Shared exedate As Double 'serial date
 				End If
 				thread_rsm
 			End If
-'			If threadsel<>threadcur AndAlso msgbox(ML("New Thread: Previous thread") & " "+Str(thread(threadsel).id)+" " & ML("changed by") & " "+Str(thread(threadcur).id) _
-'				+Chr(10)+Chr(13)+" " & ML("Keep new one?"),, mtQuestion, btYesNo) = mrNo Then
-'				thread_change(threadsel)
-'			Else
-				threadsel=threadcur
-'			End If
+			'			If threadsel<>threadcur AndAlso msgbox(ML("New Thread: Previous thread") & " "+Str(thread(threadsel).id)+" " & ML("changed by") & " "+Str(thread(threadcur).id) _
+			'				+Chr(10)+Chr(13)+" " & ML("Keep new one?"),, mtQuestion, btYesNo) = mrNo Then
+			'				thread_change(threadsel)
+			'			Else
+			threadsel=threadcur
+			'			End If
 		End If
 		
 	End Sub
@@ -5631,8 +5631,8 @@ Dim Shared exedate As Double 'serial date
 		Dim As Integer ad = rLine(thread(threadcur).sv).ad
 		Dim As Boolean bInBreakPoint
 		For j As Integer = 0 To brknb 'breakpoint
-			If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then 
-				bInBreakPoint = True 
+			If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then
+				bInBreakPoint = True
 				Exit For
 			End If
 		Next
@@ -6049,33 +6049,33 @@ Sub RunWithDebug(Param As Any Ptr)
 		mainfolder = GetFolderName(MainFile)
 		'#EndIf
 	Else
-		Restarting = False 
+		Restarting = False
 	End If
 	ThreadsEnter()
 	Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
 	Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 	ThreadsLeave()
-	If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP Then
-		If InStr(LCase(WGet(DebuggerPath)), "gdb") Then
-			Dim As Integer Fn = FreeFile
-			Open ExePath & "/Temp/GDBCommands.txt" For Output As #Fn
-			Print #Fn, "file """ & Replace(exename, "\", "/") & """"
-			Dim As TabWindow Ptr tb
-			For i As Integer = 0 To ptabCode->TabCount - 1
-				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-				For j As Integer = 0 To tb->txtCode.FLines.Count - 1
-					If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
-					Print #Fn, "b """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1)
-				Next
-			Next i
-			Print #Fn, "r"
-			Close #Fn
-			WLet(CmdL, """" & WGet(DebuggerPath) & """ -x """ & ExePath & "/Temp/GDBCommands.txt""")
-		Else
-			WLet(CmdL, """" & WGet(DebuggerPath) & """ """ & GetFileName(exename) & """ ")
-		End If
+	#ifdef __USE_GTK__
+		If WGet(DebuggerPath) = "" OrElse InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
+	#else
+		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP AndAlso InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
+	#endif
+		Dim As Integer Fn = FreeFile
+		Open ExePath & "/Temp/GDBCommands.txt" For Output As #Fn
+		Print #Fn, "file """ & Replace(exename, "\", "/") & """"
+		Dim As TabWindow Ptr tb
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			For j As Integer = 0 To tb->txtCode.FLines.Count - 1
+				If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
+				Print #Fn, "b """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1)
+			Next
+		Next i
+		Print #Fn, "r"
+		Close #Fn
+		WLet(CmdL, """" & IIf(WGet(DebuggerPath) = "", "gdb", WGet(DebuggerPath)) & """ -x """ & ExePath & "/Temp/GDBCommands.txt""")
 	Else
-		WLet(CmdL, """" & GetFileName(exename) & """ " & *RunArguments)
+		WLet(CmdL, IIf(WGet(DebuggerPath) = "", "", """" & WGet(DebuggerPath) & """ ") & """" & GetFileName(exename) & """ " & *RunArguments)
 		If Project Then WLetEx(CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True)
 	End If
 	#ifndef __USE_GTK__
@@ -6121,7 +6121,8 @@ Sub RunWithDebug(Param As Any Ptr)
 			Shell """" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(exename), exename, False, True) & """"
 		Else
 			ChDir(GetFolderName(exename))
-			Dim As UString CommandLine = """" & WGet(TerminalPath) & """ --wait -- """ & Trim(WGet(DebuggerPath) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
+			Dim As UString CommandLine = """" & WGet(TerminalPath) & """ --wait -- " & *CmdL
+			'IIf(WGet(DebuggerPath) = "", "gdb", Trim(WGet(DebuggerPath)) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
 			ThreadsLeave()
