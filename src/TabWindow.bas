@@ -4307,8 +4307,10 @@ Destructor TabWindow
 			CBItem = cboClass.Items.Item(i)
 			If CBItem <> 0 Then CurCtrl = CBItem->Object
 			If CurCtrl <> 0 Then
-				If Des->ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, Des->ReadPropertyFunc(CurCtrl, "Tag")))
-				Des->DeleteComponentFunc(CurCtrl)
+				#ifndef __USE_GTK__
+					If Des->ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, Des->ReadPropertyFunc(CurCtrl, "Tag")))
+					Des->DeleteComponentFunc(CurCtrl)
+				#endif
 			End If
 		Next i
 		Delete_( Des)

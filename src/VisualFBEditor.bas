@@ -50,10 +50,12 @@ End Sub
 
 Sub RunCmd(Param As Any Ptr)
 	Dim As UString MainFile = GetMainFile()
-	Dim As UString cmd = Environ("COMSPEC") & " /K cd /D """ & GetFolderName(MainFile) & """"
+	Dim As UString cmd
 	#ifdef __USE_GTK__
+		cmd = WGet(TerminalPath) & " --working-directory=""" & GetFolderName(MainFile) & """"
 		Shell(cmd)
 	#else
+		cmd = Environ("COMSPEC") & " /K cd /D """ & GetFolderName(MainFile) & """"
 		Dim As Integer pClass
 		Dim As WString Ptr Workdir, CmdL
 		Dim SInfo As STARTUPINFO
