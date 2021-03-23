@@ -70,6 +70,7 @@
 			.Anchor.Right = AnchorStyle.asAnchorProportional
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
+			.Border = false
 			.Parent = @This
 		End With
 		' Chart4
@@ -119,6 +120,7 @@
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
 			.ChartStyle = ChartStyles.CS_Donut
 			.LabelsPosition = LabelsPositions.LP_TwoColumns
+			.Border = false
 			.Parent = @This
 		End With
 	End Constructor
@@ -238,3 +240,5 @@ Private Sub Form1.Chart1_Create(ByRef Sender As Control)
 	Chart6.AddItem "Pedro", 10, clBlue
 	
 End Sub
+
+
