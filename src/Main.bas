@@ -63,9 +63,9 @@ Dim Shared As SaveFileDialog SaveD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions, OtherEditors ' add Sessions
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles '
-Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals
+Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
 Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
@@ -374,7 +374,7 @@ Function Compile(Parameter As String = "") As Integer
 			Return 0
 		End If
 	End If
-	Dim As ToolType Ptr Tool
+	Dim As UserToolType Ptr Tool
 	For i As Integer = 0 To Tools.Count - 1
 		Tool = Tools.Item(i)
 		If Tool->LoadType = LoadTypes.BeforeCompile Then Tool->Execute
@@ -3067,19 +3067,53 @@ Sub LoadSettings
 	frmMain.Width = Max(MainWidth, 600)
 	frmMain.Height = Max(MainHeight, 400)
 	Dim As UString Temp
+	Dim As ToolType Ptr Tool
 	Dim i As Integer = 0
 	Do Until iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
-		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + _
-		iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -7
+		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("OtherEditors", "Version_" & WStr(i)) + _
+		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -8
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
-		If Temp <> "" Then Compilers.Add Temp, iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
+		If Temp <> "" Then 
+			Tool = New ToolType
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("Compilers", "Command_" & WStr(i), "")
+			Compilers.Add Temp, Tool->Path, Tool
+		End If
 		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
-		If Temp <> "" Then MakeTools.Add Temp, iniSettings.ReadString("MakeTools", "Path_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = New ToolType
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("MakeTools", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("MakeTools", "Command_" & WStr(i), "")
+			MakeTools.Add Temp, Tool->Path, Tool
+		End If
 		Temp = iniSettings.ReadString("Debuggers", "Version_" & WStr(i), "")
-		If Temp <> "" Then Debuggers.Add Temp, iniSettings.ReadString("Debuggers", "Path_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = New ToolType
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("Debuggers", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("Debuggers", "Command_" & WStr(i), "")
+			Debuggers.Add Temp, Tool->Path, Tool
+		End If
 		Temp = iniSettings.ReadString("Terminals", "Version_" & WStr(i), "")
-		If Temp <> "" Then Terminals.Add Temp, iniSettings.ReadString("Terminals", "Path_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = New ToolType
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("Terminals", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("Terminals", "Command_" & WStr(i), "")
+			Terminals.Add Temp, Tool->Path, Tool
+		End If
+		Temp = iniSettings.ReadString("OtherEditors", "Version_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = New ToolType
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("OtherEditors", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("OtherEditors", "Command_" & WStr(i), "")
+			Tool->Extensions = iniSettings.ReadString("OtherEditors", "Extensions_" & WStr(i), "")
+			OtherEditors.Add Temp, Tool->Path, Tool
+		End If
 		Temp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
 		If Temp <> "" Then Helps.Add Temp, iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
 		Temp = iniSettings.ReadString("IncludePaths", "Path_" & WStr(i), "")
@@ -3602,7 +3636,7 @@ Sub CreateMenusAndToolBars
 	Dim As Integer Fn = FreeFile
 	Dim As WString * 1024 Buff
 	Dim As MenuItem Ptr mi
-	Dim As ToolType Ptr tt
+	Dim As UserToolType Ptr tt
 	Dim As WString * 260 ToolsINI
 	#ifdef __USE_GTK__
 		ToolsINI = ExePath & "/Tools/ToolsX.ini"
@@ -3614,7 +3648,7 @@ Sub CreateMenusAndToolBars
 		Do Until EOF(Fn)
 			Line Input #Fn, Buff
 			If StartsWith(Buff, "Path=") Then
-				tt = New_( ToolType)
+				tt = New_( UserToolType)
 				tt->Path = Mid(Buff, 6)
 				Tools.Add tt
 			ElseIf tt <> 0 Then
@@ -5294,7 +5328,7 @@ Sub UnLoadAddins
 End Sub
 
 Sub LoadTools
-	Dim As ToolType Ptr Tool
+	Dim As UserToolType Ptr Tool
 	For i As Integer = 0 To Tools.Count - 1
 		Tool = Tools.Item(i)
 		If Tool->LoadType = LoadTypes.OnEditorStartup Then Tool->Execute
@@ -5649,10 +5683,10 @@ Sub OnProgramQuit() Destructor
 	WDeallocate MFFPath
 	WDeallocate MFFDll
 	WDeallocate gSearchSave
-	Dim As ToolType Ptr tt
+	Dim As UserToolType Ptr tt
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To Tools.Count - 1
-			Delete_(Cast(ToolType Ptr, Tools.Item(i)))
+			Delete_(Cast(UserToolType Ptr, Tools.Item(i)))
 		Next
 	#endif
 	Dim As TypeElement Ptr te, te1

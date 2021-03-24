@@ -189,7 +189,7 @@ End Destructor
 
 Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 	Var Fn = FreeFile
-	Dim As ToolType Ptr Tool, tt
+	Dim As UserToolType Ptr Tool, tt
 	Dim As MenuItem Ptr mi
 	Dim As Integer ToolsIndex
 	#ifdef __USE_GTK__
@@ -199,7 +199,7 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 	#endif
 	With fTools
 		For i As Integer = 0 To Tools.Count - 1
-			Delete_( Cast(ToolType Ptr, pTools->Item(i)))
+			Delete_( Cast(UserToolType Ptr, pTools->Item(i)))
 		Next
 		pTools->Clear
 		For i As Integer = miXizmat->Count - 1 To 0 Step -1
@@ -215,7 +215,7 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 		For i As Integer = 0 To .lvTools.ListItems.Count - 1
 			tt = .lvTools.ListItems.Item(i)->Tag
 			If tt = 0 Then Continue For
-			Tool = New_( ToolType)
+			Tool = New_( UserToolType)
 			Tool->Name = tt->Name
 			Tool->Path = tt->Path
 			Tool->Parameters = tt->Parameters
@@ -256,7 +256,7 @@ Private Sub frmTools.cmdAdd_Click(ByRef Sender As Control)
 	pfPath->SetFileNameToVersion = True
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fTools
-			Dim As ToolType Ptr Tool = New_( ToolType)
+			Dim As UserToolType Ptr Tool = New_( UserToolType)
 			Tool->Name = pfPath->txtVersion.Text
 			Tool->Path = pfPath->txtPath.Text
 			.lvTools.ListItems.Add pfPath->txtVersion.Text
@@ -272,7 +272,7 @@ Private Sub frmTools.cmdChange_Click(ByRef Sender As Control)
 		If .lvTools.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvTools.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvTools.SelectedItem->Text(1)
-		Dim As ToolType Ptr Tool = .lvTools.SelectedItem->Tag
+		Dim As UserToolType Ptr Tool = .lvTools.SelectedItem->Tag
 		pfPath->lblVersion.Caption = ML("Tool Name")
 		pfPath->SetFileNameToVersion = True
 		If pfPath->ShowModal() = ModalResults.OK Then
@@ -290,7 +290,7 @@ End Sub
 Private Sub frmTools.cmdRemove_Click(ByRef Sender As Control)
 	With fTools
 		If .lvTools.SelectedItem = 0 Then Exit Sub
-		Delete_( Cast(ToolType Ptr, .lvTools.SelectedItem->Tag))
+		Delete_( Cast(UserToolType Ptr, .lvTools.SelectedItem->Tag))
 		.lvTools.ListItems.Remove .lvTools.SelectedItemIndex
 	End With
 End Sub
@@ -311,7 +311,7 @@ Private Sub frmTools.lvTools_SelectedItemChanged(ByRef Sender As ListView, ItemI
 			.chkWaitComplete.Checked = False
 			.chkWaitComplete.Enabled = False
 		Else
-			Dim As ToolType Ptr tt = Sender.ListItems.Item(i)->Tag
+			Dim As UserToolType Ptr tt = Sender.ListItems.Item(i)->Tag
 			.txtParameters.Text = tt->Parameters
 			.txtParameters.Enabled = True
 			.txtWorkingFolder.Text = tt->WorkingFolder
@@ -332,7 +332,7 @@ Private Sub frmTools.lvTools_ItemClick(ByRef Sender As ListView, ByVal ItemIndex
 End Sub
 
 Sub ExecuteTool(Param As Any Ptr)
-	Dim As ToolType Ptr tt = Param
+	Dim As UserToolType Ptr tt = Param
 	If tt = 0 Then Exit Sub
 	Dim As ProjectElement Ptr Project
 	Dim As ExplorerElement Ptr ee
@@ -355,7 +355,7 @@ Sub ExecuteTool(Param As Any Ptr)
 	Shell """" & GetRelativePath(tt->Path, pApp->FileName) & """ " & Parameters
 End Sub
 
-Sub ToolType.Execute()
+Sub UserToolType.Execute()
 	If WaitComplete Then
 		ExecuteTool @This
 	Else
@@ -367,15 +367,15 @@ End Sub
 Private Sub frmTools.Form_Create(ByRef Sender As Control)
 	With fTools
 		With .lvTools
-			Dim As ToolType Ptr Tool, tt
+			Dim As UserToolType Ptr Tool, tt
 			Dim As ListViewItem Ptr Item
 			For i As Integer = 0 To .ListItems.Count - 1
-				Delete_( Cast(ToolType Ptr, .ListItems.Item(i)->Tag))
+				Delete_( Cast(UserToolType Ptr, .ListItems.Item(i)->Tag))
 			Next
 			.ListItems.Clear
 			For i As Integer = 0 To Tools.Count - 1
 				Tool = Tools.Item(i)
-				tt = New_( ToolType)
+				tt = New_( UserToolType)
 				tt->Name = Tool->Name
 				tt->Path = Tool->Path
 				tt->Parameters = Tool->Parameters
@@ -395,35 +395,35 @@ End Sub
 Private Sub frmTools.txtParameters_Change(ByRef Sender As TextBox)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
-	Dim Tool As ToolType Ptr = Item->Tag
+	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->Parameters = Sender.Text
 End Sub
 
 Private Sub frmTools.txtWorkingFolder_Change(ByRef Sender As TextBox)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
-	Dim Tool As ToolType Ptr = Item->Tag
+	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->WorkingFolder = Sender.Text
 End Sub
 
 Private Sub frmTools.cboEvent_Change(ByRef Sender As Control)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
-	Dim Tool As ToolType Ptr = Item->Tag
+	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->LoadType = fTools.cboEvent.ItemIndex
 End Sub
 
 Private Sub frmTools.hkShortcut_Change(ByRef Sender As Control)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
-	Dim Tool As ToolType Ptr = Item->Tag
+	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->Accelerator = fTools.hkShortcut.Text
 End Sub
 
 Private Sub frmTools.chkWaitComplete_Click(ByRef Sender As CheckBox)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
-	Dim Tool As ToolType Ptr = Item->Tag
+	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->WaitComplete = Sender.Checked
 End Sub
 
@@ -432,7 +432,7 @@ Private Sub frmTools.cmdMoveUp_Click(ByRef Sender As Control)
 		Dim i As Integer = .SelectedItemIndex
 		If i < 1 Then Exit Sub
 		Dim As ListViewItem Ptr ItemCurr = .SelectedItem, ItemPrev = .ListItems.Item(i - 1)
-		Dim As ToolType Ptr ToolCurr = ItemCurr->Tag, ToolPrev = ItemPrev->Tag
+		Dim As UserToolType Ptr ToolCurr = ItemCurr->Tag, ToolPrev = ItemPrev->Tag
 		ItemPrev->Text(0) = ToolCurr->Name
 		ItemPrev->Text(1) = ToolCurr->Path
 		ItemPrev->Tag = ToolCurr
@@ -448,7 +448,7 @@ Private Sub frmTools.cmdMoveDown_Click(ByRef Sender As Control)
 		Dim i As Integer = .SelectedItemIndex
 		If i < 0 OrElse i >= .ListItems.Count - 1 Then Exit Sub
 		Dim As ListViewItem Ptr ItemCurr = .SelectedItem, ItemNext = .ListItems.Item(i + 1)
-		Dim As ToolType Ptr ToolCurr = ItemCurr->Tag, ToolNext = ItemNext->Tag
+		Dim As UserToolType Ptr ToolCurr = ItemCurr->Tag, ToolNext = ItemNext->Tag
 		ItemNext->Text(0) = ToolCurr->Name
 		ItemNext->Text(1) = ToolCurr->Path
 		ItemNext->Tag = ToolCurr

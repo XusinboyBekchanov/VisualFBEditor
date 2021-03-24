@@ -1270,6 +1270,7 @@ Sub frmOptions.LoadSettings()
 		For i As Integer = 0 To pCompilers->Count - 1
 			.lvCompilerPaths.ListItems.Add pCompilers->Item(i)->Key, IIf(FileExists(pCompilers->Item(i)->Text), "", "FileError")
 			.lvCompilerPaths.ListItems.Item(i)->Text(1) = pCompilers->Item(i)->Text
+			.lvCompilerPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, pCompilers->Item(i)->Object)->Parameters
 			.cboCompiler32.AddItem pCompilers->Item(i)->Key
 			.cboCompiler64.AddItem pCompilers->Item(i)->Key
 		Next
@@ -1281,6 +1282,7 @@ Sub frmOptions.LoadSettings()
 		For i As Integer = 0 To pMakeTools->Count - 1
 			.lvMakeToolPaths.ListItems.Add pMakeTools->Item(i)->Key
 			.lvMakeToolPaths.ListItems.Item(i)->Text(1) = pMakeTools->Item(i)->Text
+			.lvMakeToolPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, pMakeTools->Item(i)->Object)->Parameters
 			.cboMakeTool.AddItem pMakeTools->Item(i)->Key
 		Next
 		.cboMakeTool.ItemIndex = Max(0, .cboMakeTool.IndexOf(*DefaultMakeTool))
@@ -1292,6 +1294,7 @@ Sub frmOptions.LoadSettings()
 		For i As Integer = 0 To pDebuggers->Count - 1
 			.lvDebuggerPaths.ListItems.Add pDebuggers->Item(i)->Key
 			.lvDebuggerPaths.ListItems.Item(i)->Text(1) = pDebuggers->Item(i)->Text
+			.lvDebuggerPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, lvDebuggerPaths->Item(i)->Object)->Parameters
 			.cboDebugger32.AddItem pDebuggers->Item(i)->Key
 			.cboDebugger64.AddItem pDebuggers->Item(i)->Key
 		Next
@@ -1303,9 +1306,17 @@ Sub frmOptions.LoadSettings()
 		For i As Integer = 0 To pTerminals->Count - 1
 			.lvTerminalPaths.ListItems.Add pTerminals->Item(i)->Key
 			.lvTerminalPaths.ListItems.Item(i)->Text(1) = pTerminals->Item(i)->Text
+			.lvTerminalPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, lvTerminalPaths->Item(i)->Object)->Parameters
 			.cboTerminal.AddItem pTerminals->Item(i)->Key
 		Next
 		.cboTerminal.ItemIndex = Max(0, .cboTerminal.IndexOf(*DefaultTerminal))
+		.lvOtherEditors.ListItems.Clear
+		For i As Integer = 0 To pOtherEditors->Count - 1
+			.lvOtherEditors.ListItems.Add lvOtherEditors->Item(i)->Key
+			.lvOtherEditors.ListItems.Item(i)->Text(1) = Cast(ToolType Ptr, lvOtherEditors->Item(i)->Object)->Extensions
+			.lvOtherEditors.ListItems.Item(i)->Text(2) = lvOtherEditors->Item(i)->Text
+			.lvOtherEditors.ListItems.Item(i)->Text(3) = Cast(ToolType Ptr, lvOtherEditors->Item(i)->Object)->Parameters
+		Next
 		.cboHelp.Clear
 		.lvHelpPaths.ListItems.Clear
 		.cboHelp.AddItem ML("(not selected)")
@@ -1589,40 +1600,82 @@ End Sub
 
 Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 	On Error Goto ErrorHandler
+	Dim As ToolType Ptr Tool
 	With fOptions
+		For i As Integer = 0 To pCompilers->Count - 1
+			Delete_(Cast(ToolType Ptr, pCompilers->Item(i)->Object))
+		Next
 		pCompilers->Clear
 		Dim As UString tempStr
 		For i As Integer = 0 To .lvCompilerPaths.ListItems.Count - 1
 			tempStr = .lvCompilerPaths.ListItems.Item(i)->Text(0)
-			pCompilers->Add tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(1)
+			Tool = New_(ToolType)
+			Tool->Name = tempStr
+			Tool->Path = .lvCompilerPaths.ListItems.Item(i)->Text(1)
+			Tool->Parameters = .lvCompilerPaths.ListItems.Item(i)->Text(2)
+			pCompilers->Add tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(1), Tool
 		Next
 		WLet(DefaultCompiler32, IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text))
 		WLet(DefaultCompiler64, IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text))
 		WLet(Compiler32Path, pCompilers->Get(*DefaultCompiler32))
 		WLet(Compiler64Path, pCompilers->Get(*DefaultCompiler64))
+		For i As Integer = 0 To pMakeTools->Count - 1
+			Delete_(Cast(ToolType Ptr, pMakeTools->Item(i)->Object))
+		Next
 		pMakeTools->Clear
 		For i As Integer = 0 To .lvMakeToolPaths.ListItems.Count - 1
 			tempStr = .lvMakeToolPaths.ListItems.Item(i)->Text(0)
-			pMakeTools->Add tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(1)
+			Tool = New_(ToolType)
+			Tool->Name = tempStr
+			Tool->Path = .lvMakeToolPaths.ListItems.Item(i)->Text(1)
+			Tool->Parameters = .lvMakeToolPaths.ListItems.Item(i)->Text(2)
+			pMakeTools->Add tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(1), Tool
 		Next
 		WLet(DefaultMakeTool, IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text))
 		WLet(MakeToolPath, pMakeTools->Get(*DefaultMakeTool))
+		For i As Integer = 0 To pDebuggers->Count - 1
+			Delete_(Cast(ToolType Ptr, pDebuggers->Item(i)->Object))
+		Next
 		pDebuggers->Clear
 		For i As Integer = 0 To .lvDebuggerPaths.ListItems.Count - 1
 			tempStr = .lvDebuggerPaths.ListItems.Item(i)->Text(0)
-			pDebuggers->Add tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1)
+			Tool = New_(ToolType)
+			Tool->Name = tempStr
+			Tool->Path = .lvDebuggerPaths.ListItems.Item(i)->Text(1)
+			Tool->Parameters = .lvDebuggerPaths.ListItems.Item(i)->Text(2)
+			pDebuggers->Add tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1), Tool
 		Next
 		WLet(DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text))
 		WLet(DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text))
 		WLet(Debugger32Path, pDebuggers->Get(*DefaultDebugger32))
 		WLet(Debugger64Path, pDebuggers->Get(*DefaultDebugger64))
+		For i As Integer = 0 To pTerminals->Count - 1
+			Delete_(Cast(ToolType Ptr, pTerminals->Item(i)->Object))
+		Next
 		pTerminals->Clear
 		For i As Integer = 0 To .lvTerminalPaths.ListItems.Count - 1
 			tempStr = .lvTerminalPaths.ListItems.Item(i)->Text(0)
-			pTerminals->Add tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(1)
+			Tool = New_(ToolType)
+			Tool->Name = tempStr
+			Tool->Path = .lvTerminalPaths.ListItems.Item(i)->Text(1)
+			Tool->Parameters = .lvTerminalPaths.ListItems.Item(i)->Text(2)
+			pTerminals->Add tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(1), Tool
 		Next
 		WLet(DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text))
 		WLet(TerminalPath, pTerminals->Get(*DefaultTerminal))
+		For i As Integer = 0 To pOtherEditors->Count - 1
+			Delete_(Cast(ToolType Ptr, pOtherEditors->Item(i)->Object))
+		Next
+		pOtherEditors->Clear
+		For i As Integer = 0 To .lvOtherEditors.ListItems.Count - 1
+			tempStr = .lvOtherEditors.ListItems.Item(i)->Text(0)
+			Tool = New_(ToolType)
+			Tool->Name = tempStr
+			Tool->Extensions = .lvOtherEditors.ListItems.Item(i)->Text(1)
+			Tool->Path = .lvOtherEditors.ListItems.Item(i)->Text(2)
+			Tool->Parameters = .lvOtherEditors.ListItems.Item(i)->Text(3)
+			pOtherEditors->Add tempStr, .lvOtherEditors.ListItems.Item(i)->Text(1), Tool
+		Next
 		pHelps->Clear
 		miHelps->Clear
 		For i As Integer = 0 To .lvHelpPaths.ListItems.Count - 1

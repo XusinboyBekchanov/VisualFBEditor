@@ -110,7 +110,7 @@ End Sub
 Sub mClickTool(ByRef Sender As My.Sys.Object)
 	Dim As MenuItem Ptr mi = Cast(MenuItem Ptr, @Sender)
 	If mi = 0 Then Exit Sub
-	Dim As ToolType Ptr tt = mi->Tag
+	Dim As UserToolType Ptr tt = mi->Tag
 	If tt <> 0 Then tt->Execute
 End Sub
 

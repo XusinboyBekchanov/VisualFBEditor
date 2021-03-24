@@ -57,10 +57,7 @@ Enum LoadTypes
 	AfterCompile
 End Enum
 
-Type ToolType
-	Name As UString
-	Path As UString
-	Parameters As UString
+Type UserToolType Extends ToolType
 	WorkingFolder As UString
 	Accelerator As String
 	LoadType As LoadTypes

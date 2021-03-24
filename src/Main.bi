@@ -116,9 +116,16 @@ Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompil
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, Debug32Arguments, Debug64Arguments
 Common Shared As Any Ptr tlock, tlockSave
 
+Type ToolType
+	Name As UString
+	Path As UString
+	Parameters As UString
+	Extensions As UString
+End Type
+
 Common Shared As List Ptr pTools
-Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths, pOtherEditors
-Common Shared As Dictionary Ptr pHelps, pCompilers, pMakeTools, pDebuggers, pTerminals
+Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
+Common Shared As Dictionary Ptr pHelps, pCompilers, pMakeTools, pDebuggers, pTerminals, pOtherEditors
 
 Enum LoadParam
 	OnlyFilePath
