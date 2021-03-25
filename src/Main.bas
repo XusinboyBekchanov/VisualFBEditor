@@ -4121,7 +4121,9 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 	Params = Replace(Params, "{W}", CurrentWord)
 	Params = Replace(Params, "{E}", ExeFile)
 	Params = Replace(Params, "{D}", GetFolderName(ExeFile))
-	If InStr(Params, "{F}") > 0 Then
+	If InStr(Params, "{|F}") > 0 Then
+		Params = Replace(Params, "{|F}", "")
+	ElseIf InStr(Params, "{F}") > 0 Then
 		Params = Replace(Params, "{F}", FileName)
 	ElseIf FileName <> "" Then
 		Params &= " """ & FileName & """"

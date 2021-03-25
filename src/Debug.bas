@@ -6078,7 +6078,7 @@ Sub RunWithDebug(Param As Any Ptr)
 	Else
 		Dim As Integer Idx = -1
 		If WGet(DebuggerPath) <> "" Then
-			Dim As Integer Idx = pDebuggers->IndexOfKey(*CurrentDebugger)
+			Idx = pDebuggers->IndexOfKey(*CurrentDebugger)
 			If Idx <> -1 Then 
 				Dim As ToolType Ptr Tool = pDebuggers->Item(Idx)->Object
 				WLet(CmdL, Tool->GetCommand(GetFileName(exename)))

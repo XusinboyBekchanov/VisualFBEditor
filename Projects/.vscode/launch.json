@@ -10,7 +10,7 @@
             "request": "launch",
             "windows": {
                 "program": "${workspaceFolder}/${fileBasenameNoExtension}.exe",
-                "miDebuggerPath": "D:/FreeBasic/FreeBASIC-1.07.1-win32/bin/win32/gdb.exe",
+                "miDebuggerPath": "F:/Install/Install2/FreeBASIC-1.07.1-win32/bin/win32/gdb.exe",
             },
             "linux": {
                 "program": "${workspaceFolder}/${fileBasenameNoExtension}",

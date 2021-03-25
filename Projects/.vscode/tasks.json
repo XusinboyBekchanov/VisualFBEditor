@@ -7,11 +7,11 @@
             "label": "FreeBASIC Build",
             "type": "shell",
             "windows": {
-                "command": "D:/FreeBasic/FreeBASIC-1.07.1-win32/fbc.exe",
+                "command": "F:/Install/Install2/FreeBASIC-1.07.1-win32/fbc.exe",
                 "args": [
                     "-g",
                     "${fileBasenameNoExtension}.bas",
-                    "${fileBasenameNoExtension}.rc",
+                    //"${fileBasenameNoExtension}.rc",
                     "-i",
                     "../MyFbFramework"
                 ],
