@@ -6053,6 +6053,7 @@ Sub RunWithDebug(Param As Any Ptr)
 	End If
 	ThreadsEnter()
 	Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
+	Dim As WString Ptr CurrentDebugger = IIf(Bit32, CurrentDebugger32, CurrentDebugger64)
 	Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 	ThreadsLeave()
 	#ifdef __USE_GTK__
@@ -6075,7 +6076,19 @@ Sub RunWithDebug(Param As Any Ptr)
 		Close #Fn
 		WLet(CmdL, """" & IIf(WGet(DebuggerPath) = "", "gdb", WGet(DebuggerPath)) & """ -x """ & ExePath & "/Temp/GDBCommands.txt""")
 	Else
-		WLet(CmdL, IIf(WGet(DebuggerPath) = "", "", """" & WGet(DebuggerPath) & """ ") & """" & GetFileName(exename) & """ " & *RunArguments)
+		Dim As Integer Idx = -1
+		If WGet(DebuggerPath) <> "" Then
+			Dim As Integer Idx = pDebuggers->IndexOfKey(*CurrentDebugger)
+			If Idx <> -1 Then 
+				Dim As ToolType Ptr Tool = pDebuggers->Item(Idx)->Object
+				WLet(CmdL, Tool->GetCommand(GetFileName(exename)))
+			End If
+		End If
+		If Idx = -1 Then
+			WAdd(CmdL, " """ & GetFileName(exename) & """ " & *RunArguments)
+		Else
+			WAdd(CmdL, " " & *RunArguments)
+		End If
 		If Project Then WLetEx(CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True)
 	End If
 	#ifndef __USE_GTK__
@@ -6121,7 +6134,16 @@ Sub RunWithDebug(Param As Any Ptr)
 			Shell """" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(exename), exename, False, True) & """"
 		Else
 			ChDir(GetFolderName(exename))
-			Dim As UString CommandLine = """" & WGet(TerminalPath) & """ --wait -- " & *CmdL
+			Dim As UString CommandLine
+			Dim As ToolType Tool
+			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
+			If Idx <> - 1 Then
+				Tool = pTerminals->Item(Idx)->Object
+				CommandLine = Tool->GetCommand(*CmdL)
+				If Tool->Parameters = "" Then CommandLine &= " --wait -- "
+			Else
+				CommandLine &= *CmdL
+			End If
 			'IIf(WGet(DebuggerPath) = "", "gdb", Trim(WGet(DebuggerPath)) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")

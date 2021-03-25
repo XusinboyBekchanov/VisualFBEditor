@@ -131,7 +131,7 @@ pfOptions = @fOptions
 		' pnlOtherEditors
 		pnlOtherEditors.Name = "pnlOtherEditors"
 		pnlOtherEditors.Text = ""
-		pnlOtherEditors.SetBounds 200, 2, 426, 410
+		pnlOtherEditors.SetBounds 190, 2, 436, 410
 		pnlOtherEditors.Parent = @This
 		' grbDefaultCompilers
 		With grbDefaultCompilers
@@ -234,6 +234,8 @@ pfOptions = @fOptions
 			.Name = "lvTerminalPaths"
 			.Text = "lvTerminalPaths"
 			.SetBounds 18, 22, 384, 256
+			.Designer = @This
+			.OnItemActivate = @lvTerminalPaths_ItemActivate_
 			.Parent = @grbTerminalPaths
 		End With
 		' cmdAddTerminal
@@ -403,6 +405,7 @@ pfOptions = @fOptions
 		cmdChangeTerminal.Name = "cmdChangeTerminal"
 		cmdChangeTerminal.Text = ML("Chan&ge")
 		cmdChangeTerminal.SetBounds 114, 289, 96, 24
+		cmdChangeTerminal.OnClick = @cmdChangeTerminal_Click
 		cmdChangeTerminal.Parent = @grbTerminalPaths
 		' lblHistoryLimit
 		lblHistoryLimit.Name = "lblHistoryLimit"
@@ -476,6 +479,8 @@ pfOptions = @fOptions
 			.Name = "lvMakeToolPaths"
 			.Text = "lvMakeToolPaths"
 			.SetBounds 18, 22, 384, 226
+			.Designer = @This
+			.OnItemActivate = @lvMakeToolPaths_ItemActivate_
 			.Parent = @grbMakeToolPaths
 		End With
 		' cmdAddMakeTool
@@ -682,6 +687,8 @@ pfOptions = @fOptions
 			.Images = @imgList
 			'.StateImages = @imgList
 			.SmallImages = @imgList
+			.Designer = @This
+			.OnItemActivate = @lvCompilerPaths_ItemActivate_
 			.Parent = @grbCompilerPaths
 		End With
 		' cboCompiler32
@@ -719,6 +726,8 @@ pfOptions = @fOptions
 			.Name = "lvDebuggerPaths"
 			.Text = "lvCompilerPaths1"
 			.SetBounds 18, 22, 384, 142
+			.Designer = @This
+			.OnItemActivate = @lvDebuggerPaths_ItemActivate_
 			.Parent = @grbDebuggerPaths
 		End With
 		' cmdAddDebugger
@@ -877,6 +886,8 @@ pfOptions = @fOptions
 			.Name = "lvHelpPaths"
 			.Text = "lvTerminalPaths1"
 			.SetBounds 18, 22, 384, 256
+			.Designer = @This
+			.OnItemActivate = @lvHelpPaths_ItemActivate_
 			.Parent = @grbHelpPaths
 		End With
 		' cmdAddHelp
@@ -1028,6 +1039,8 @@ pfOptions = @fOptions
 			.Name = "lvOtherEditors"
 			.Text = "lvHelpPaths1"
 			.SetBounds 18, 22, 384, 326
+			.Designer = @This
+			.OnItemActivate = @lvOtherEditors_ItemActivate_
 			.Parent = @grbOtherEditors
 		End With
 		' cmdAddEditor
@@ -1294,7 +1307,7 @@ Sub frmOptions.LoadSettings()
 		For i As Integer = 0 To pDebuggers->Count - 1
 			.lvDebuggerPaths.ListItems.Add pDebuggers->Item(i)->Key
 			.lvDebuggerPaths.ListItems.Item(i)->Text(1) = pDebuggers->Item(i)->Text
-			.lvDebuggerPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, lvDebuggerPaths->Item(i)->Object)->Parameters
+			.lvDebuggerPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, pDebuggers->Item(i)->Object)->Parameters
 			.cboDebugger32.AddItem pDebuggers->Item(i)->Key
 			.cboDebugger64.AddItem pDebuggers->Item(i)->Key
 		Next
@@ -1306,16 +1319,16 @@ Sub frmOptions.LoadSettings()
 		For i As Integer = 0 To pTerminals->Count - 1
 			.lvTerminalPaths.ListItems.Add pTerminals->Item(i)->Key
 			.lvTerminalPaths.ListItems.Item(i)->Text(1) = pTerminals->Item(i)->Text
-			.lvTerminalPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, lvTerminalPaths->Item(i)->Object)->Parameters
+			.lvTerminalPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, pTerminals->Item(i)->Object)->Parameters
 			.cboTerminal.AddItem pTerminals->Item(i)->Key
 		Next
 		.cboTerminal.ItemIndex = Max(0, .cboTerminal.IndexOf(*DefaultTerminal))
 		.lvOtherEditors.ListItems.Clear
 		For i As Integer = 0 To pOtherEditors->Count - 1
-			.lvOtherEditors.ListItems.Add lvOtherEditors->Item(i)->Key
-			.lvOtherEditors.ListItems.Item(i)->Text(1) = Cast(ToolType Ptr, lvOtherEditors->Item(i)->Object)->Extensions
-			.lvOtherEditors.ListItems.Item(i)->Text(2) = lvOtherEditors->Item(i)->Text
-			.lvOtherEditors.ListItems.Item(i)->Text(3) = Cast(ToolType Ptr, lvOtherEditors->Item(i)->Object)->Parameters
+			.lvOtherEditors.ListItems.Add pOtherEditors->Item(i)->Key
+			.lvOtherEditors.ListItems.Item(i)->Text(1) = Cast(ToolType Ptr, pOtherEditors->Item(i)->Object)->Extensions
+			.lvOtherEditors.ListItems.Item(i)->Text(2) = pOtherEditors->Item(i)->Text
+			.lvOtherEditors.ListItems.Item(i)->Text(3) = Cast(ToolType Ptr, pOtherEditors->Item(i)->Object)->Parameters
 		Next
 		.cboHelp.Clear
 		.lvHelpPaths.ListItems.Clear
@@ -1617,8 +1630,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		Next
 		WLet(DefaultCompiler32, IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text))
 		WLet(DefaultCompiler64, IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text))
-		WLet(Compiler32Path, pCompilers->Get(*DefaultCompiler32))
-		WLet(Compiler64Path, pCompilers->Get(*DefaultCompiler64))
+		If Not pCompilers->ContainsKey(*CurrentCompiler32) Then WLet(CurrentCompiler32, *DefaultCompiler32)
+		If Not pCompilers->ContainsKey(*CurrentCompiler64) Then WLet(CurrentCompiler64, *DefaultCompiler64)
+		WLet(Compiler32Path, pCompilers->Get(*CurrentCompiler32))
+		WLet(Compiler64Path, pCompilers->Get(*CurrentCompiler64))
 		For i As Integer = 0 To pMakeTools->Count - 1
 			Delete_(Cast(ToolType Ptr, pMakeTools->Item(i)->Object))
 		Next
@@ -1632,7 +1647,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			pMakeTools->Add tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(1), Tool
 		Next
 		WLet(DefaultMakeTool, IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text))
-		WLet(MakeToolPath, pMakeTools->Get(*DefaultMakeTool))
+		If Not pMakeTools->ContainsKey(*CurrentMakeTool1) Then WLet(CurrentMakeTool1, *DefaultMakeTool)
+		If Not pMakeTools->ContainsKey(*CurrentMakeTool2) Then WLet(CurrentMakeTool2, *DefaultMakeTool)
+		WLet(MakeToolPath1, pMakeTools->Get(*CurrentMakeTool1))
+		WLet(MakeToolPath2, pMakeTools->Get(*CurrentMakeTool2))
 		For i As Integer = 0 To pDebuggers->Count - 1
 			Delete_(Cast(ToolType Ptr, pDebuggers->Item(i)->Object))
 		Next
@@ -1647,8 +1665,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		Next
 		WLet(DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text))
 		WLet(DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text))
-		WLet(Debugger32Path, pDebuggers->Get(*DefaultDebugger32))
-		WLet(Debugger64Path, pDebuggers->Get(*DefaultDebugger64))
+		If Not pDebuggers->ContainsKey(*CurrentDebugger32) Then WLet(CurrentDebugger32, *DefaultDebugger32)
+		If Not pDebuggers->ContainsKey(*CurrentDebugger64) Then WLet(CurrentDebugger64, *DefaultDebugger64)
+		WLet(Debugger32Path, pDebuggers->Get(*CurrentDebugger32))
+		WLet(Debugger64Path, pDebuggers->Get(*CurrentDebugger64))
 		For i As Integer = 0 To pTerminals->Count - 1
 			Delete_(Cast(ToolType Ptr, pTerminals->Item(i)->Object))
 		Next
@@ -1662,7 +1682,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			pTerminals->Add tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(1), Tool
 		Next
 		WLet(DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text))
-		WLet(TerminalPath, pTerminals->Get(*DefaultTerminal))
+		If Not pTerminals->ContainsKey(*CurrentTerminal) Then WLet(CurrentTerminal, *DefaultTerminal)
+		WLet(TerminalPath, pTerminals->Get(*CurrentTerminal))
 		For i As Integer = 0 To pOtherEditors->Count - 1
 			Delete_(Cast(ToolType Ptr, pOtherEditors->Item(i)->Object))
 		Next
@@ -1674,7 +1695,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			Tool->Extensions = .lvOtherEditors.ListItems.Item(i)->Text(1)
 			Tool->Path = .lvOtherEditors.ListItems.Item(i)->Text(2)
 			Tool->Parameters = .lvOtherEditors.ListItems.Item(i)->Text(3)
-			pOtherEditors->Add tempStr, .lvOtherEditors.ListItems.Item(i)->Text(1), Tool
+			pOtherEditors->Add tempStr, .lvOtherEditors.ListItems.Item(i)->Text(2), Tool
 		Next
 		pHelps->Clear
 		miHelps->Clear
@@ -1761,22 +1782,26 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		For i As Integer = 0 To pCompilers->Count - 1
 			piniSettings->WriteString "Compilers", "Version_" & WStr(i), pCompilers->Item(i)->Key
 			piniSettings->WriteString "Compilers", "Path_" & WStr(i), pCompilers->Item(i)->Text
+			piniSettings->WriteString "Compilers", "Command_" & WStr(i), Cast(ToolType Ptr, pCompilers->Item(i)->Object)->Parameters
 		Next
 		i = pCompilers->Count
 		Do Until piniSettings->KeyExists("Compilers", "Version_" & WStr(i)) = -1
 			piniSettings->KeyRemove "Compilers", "Version_" & WStr(i)
 			piniSettings->KeyRemove "Compilers", "Path_" & WStr(i)
+			piniSettings->KeyRemove "Compilers", "Command_" & WStr(i)
 			i += 1
 		Loop
 		piniSettings->WriteString "MakeTools", "DefaultMakeTool", *DefaultMakeTool
 		For i As Integer = 0 To pMakeTools->Count - 1
 			piniSettings->WriteString "MakeTools", "Version_" & WStr(i), pMakeTools->Item(i)->Key
 			piniSettings->WriteString "MakeTools", "Path_" & WStr(i), pMakeTools->Item(i)->Text
+			piniSettings->WriteString "MakeTools", "Command_" & WStr(i), Cast(ToolType Ptr, pMakeTools->Item(i)->Object)->Parameters
 		Next
 		i = pMakeTools->Count
 		Do Until piniSettings->KeyExists("MakeTools", "Version_" & WStr(i)) = -1
 			piniSettings->KeyRemove "MakeTools", "Version_" & WStr(i)
 			piniSettings->KeyRemove "MakeTools", "Path_" & WStr(i)
+			piniSettings->KeyRemove "MakeTools", "Command_" & WStr(i)
 			i += 1
 		Loop
 		piniSettings->WriteString "Debuggers", "DefaultDebugger32", *DefaultDebugger32
@@ -1784,22 +1809,39 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		For i As Integer = 0 To pDebuggers->Count - 1
 			piniSettings->WriteString "Debuggers", "Version_" & WStr(i), pDebuggers->Item(i)->Key
 			piniSettings->WriteString "Debuggers", "Path_" & WStr(i), pDebuggers->Item(i)->Text
+			piniSettings->WriteString "Debuggers", "Command_" & WStr(i), Cast(ToolType Ptr, pDebuggers->Item(i)->Object)->Parameters
 		Next
 		i = pDebuggers->Count
 		Do Until piniSettings->KeyExists("Debuggers", "Version_" & WStr(i)) = -1
 			piniSettings->KeyRemove "Debuggers", "Version_" & WStr(i)
 			piniSettings->KeyRemove "Debuggers", "Path_" & WStr(i)
+			piniSettings->KeyRemove "Debuggers", "Command_" & WStr(i)
 			i += 1
 		Loop
 		piniSettings->WriteString "Terminals", "DefaultTerminal", *DefaultTerminal
 		For i As Integer = 0 To pTerminals->Count - 1
 			piniSettings->WriteString "Terminals", "Version_" & WStr(i), pTerminals->Item(i)->Key
 			piniSettings->WriteString "Terminals", "Path_" & WStr(i), pTerminals->Item(i)->Text
+			piniSettings->WriteString "Terminals", "Command_" & WStr(i), Cast(ToolType Ptr, pTerminals->Item(i)->Object)->Parameters
 		Next
 		i = pTerminals->Count
 		Do Until piniSettings->KeyExists("Terminals", "Version_" & WStr(i)) = -1
 			piniSettings->KeyRemove "Terminals", "Version_" & WStr(i)
 			piniSettings->KeyRemove "Terminals", "Path_" & WStr(i)
+			piniSettings->KeyRemove "Terminals", "Command_" & WStr(i)
+			i += 1
+		Loop
+		For i As Integer = 0 To pOtherEditors->Count - 1
+			piniSettings->WriteString "OtherEditors", "Version_" & WStr(i), pOtherEditors->Item(i)->Key
+			piniSettings->WriteString "OtherEditors", "Extensions_" & WStr(i), Cast(ToolType Ptr, pOtherEditors->Item(i)->Object)->Extensions
+			piniSettings->WriteString "OtherEditors", "Path_" & WStr(i), pOtherEditors->Item(i)->Text
+			piniSettings->WriteString "OtherEditors", "Command_" & WStr(i), Cast(ToolType Ptr, pOtherEditors->Item(i)->Object)->Parameters
+		Next
+		Do Until piniSettings->KeyExists("OtherEditors", "Version_" & WStr(i)) = -1
+			piniSettings->KeyRemove "OtherEditors", "Version_" & WStr(i)
+			piniSettings->KeyRemove "OtherEditors", "Extensions_" & WStr(i)
+			piniSettings->KeyRemove "OtherEditors", "Path_" & WStr(i)
+			piniSettings->KeyRemove "OtherEditors", "Command_" & WStr(i)
 			i += 1
 		Loop
 		piniSettings->WriteString "Helps", "DefaultHelp", *DefaultHelp
@@ -2279,11 +2321,13 @@ End Sub
 Private Sub frmOptions.cmdAddCompiler_Click(ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
+	pfPath->txtCommandLine.Text = ""
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If .cboCompiler32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvCompilerPaths.ListItems.Add pfPath->txtVersion.Text, IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
 				.lvCompilerPaths.ListItems.Item(.lvCompilerPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.lvCompilerPaths.ListItems.Item(.lvCompilerPaths.ListItems.Count - 1)->Text(2) = pfPath->txtCommandLine.Text
 				.cboCompiler32.AddItem pfPath->txtVersion.Text
 				.cboCompiler64.AddItem pfPath->txtVersion.Text
 			Else
@@ -2298,6 +2342,7 @@ Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Sender As Control)
 		If .lvCompilerPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvCompilerPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvCompilerPaths.SelectedItem->Text(1)
+		pfPath->txtCommandLine.Text = .lvCompilerPaths.SelectedItem->Text(2)
 		If pfPath->ShowModal() = ModalResults.OK Then
 			If .lvCompilerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboCompiler32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboCompiler32.IndexOf(.lvCompilerPaths.SelectedItem->Text(0))
@@ -2305,6 +2350,7 @@ Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Sender As Control)
 				.cboCompiler64.Item(i) = pfPath->txtVersion.Text
 				.lvCompilerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
 				.lvCompilerPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+				.lvCompilerPaths.SelectedItem->Text(2) = pfPath->txtCommandLine.Text
 				.lvCompilerPaths.SelectedItem->ImageKey = IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
 				.lvCompilerPaths.SelectedItem->SelectedImageKey = IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
 			Else
@@ -2342,11 +2388,13 @@ End Sub
 Private Sub frmOptions.cmdAddMakeTool_Click(ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
+	pfPath->txtCommandLine.Text = ""
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If .cboMakeTool.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvMakeToolPaths.ListItems.Add pfPath->txtVersion.Text
 				.lvMakeToolPaths.ListItems.Item(.lvMakeToolPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.lvMakeToolPaths.ListItems.Item(.lvMakeToolPaths.ListItems.Count - 1)->Text(2) = pfPath->txtCommandLine.Text
 				.cboMakeTool.AddItem pfPath->txtVersion.Text
 			Else
 				MsgBox ML("This version is exists!")
@@ -2360,12 +2408,14 @@ Private Sub frmOptions.cmdChangeMakeTool_Click(ByRef Sender As Control)
 		If .lvMakeToolPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvMakeToolPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvMakeToolPaths.SelectedItem->Text(1)
+		pfPath->txtCommandLine.Text = .lvMakeToolPaths.SelectedItem->Text(2)
 		If pfPath->ShowModal() = ModalResults.OK Then
 			If .lvMakeToolPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboMakeTool.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboTerminal.IndexOf(.lvMakeToolPaths.SelectedItem->Text(0))
 				.cboMakeTool.Item(i) = pfPath->txtVersion.Text
 				.lvMakeToolPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
 				.lvMakeToolPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+				.lvMakeToolPaths.SelectedItem->Text(2) = pfPath->txtCommandLine.Text
 			Else
 				MsgBox ML("This version is exists!")
 			End If
@@ -2395,11 +2445,13 @@ End Sub
 Private Sub frmOptions.cmdAddDebugger_Click(ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
+	pfPath->txtCommandLine.Text = ""
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If .cboDebugger32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvDebuggerPaths.ListItems.Add pfPath->txtVersion.Text
 				.lvDebuggerPaths.ListItems.Item(.lvDebuggerPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.lvDebuggerPaths.ListItems.Item(.lvDebuggerPaths.ListItems.Count - 1)->Text(2) = pfPath->txtCommandLine.Text
 				.cboDebugger32.AddItem pfPath->txtVersion.Text
 				.cboDebugger64.AddItem pfPath->txtVersion.Text
 			Else
@@ -2414,6 +2466,7 @@ Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Sender As Control)
 		If .lvDebuggerPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvDebuggerPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvDebuggerPaths.SelectedItem->Text(1)
+		pfPath->txtCommandLine.Text = .lvDebuggerPaths.SelectedItem->Text(2)
 		If pfPath->ShowModal() = ModalResults.OK Then
 			If .lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboDebugger32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboDebugger32.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
@@ -2421,6 +2474,7 @@ Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Sender As Control)
 				.cboDebugger64.Item(i) = pfPath->txtVersion.Text
 				.lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
 				.lvDebuggerPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+				.lvDebuggerPaths.SelectedItem->Text(2) = pfPath->txtCommandLine.Text
 			Else
 				MsgBox ML("This version is exists!")
 			End If
@@ -2454,11 +2508,13 @@ End Sub
 Private Sub frmOptions.cmdAddTerminal_Click(ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
+	pfPath->txtCommandLine.Text = ""
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If .cboTerminal.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvTerminalPaths.ListItems.Add pfPath->txtVersion.Text
 				.lvTerminalPaths.ListItems.Item(.lvTerminalPaths.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.lvTerminalPaths.ListItems.Item(.lvTerminalPaths.ListItems.Count - 1)->Text(2) = pfPath->txtCommandLine.Text
 				.cboTerminal.AddItem pfPath->txtVersion.Text
 			Else
 				MsgBox ML("This version is exists!")
@@ -2472,12 +2528,14 @@ Private Sub frmOptions.cmdChangeTerminal_Click(ByRef Sender As Control)
 		If .lvTerminalPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvTerminalPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvTerminalPaths.SelectedItem->Text(1)
+		pfPath->txtCommandLine.Text = .lvTerminalPaths.SelectedItem->Text(2)
 		If pfPath->ShowModal() = ModalResults.OK Then
 			If .lvTerminalPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboTerminal.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboTerminal.IndexOf(.lvTerminalPaths.SelectedItem->Text(0))
 				.cboTerminal.Item(i) = pfPath->txtVersion.Text
 				.lvTerminalPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
 				.lvTerminalPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
+				.lvTerminalPaths.SelectedItem->Text(2) = pfPath->txtCommandLine.Text
 			Else
 				MsgBox ML("This version is exists!")
 			End If
@@ -2644,7 +2702,9 @@ Private Sub frmOptions.cmdAddEditor_Click_(ByRef Sender As Control)
 End Sub
 Private Sub frmOptions.cmdAddEditor_Click(ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
+	pfPath->txtExtensions.Text = ""
 	pfPath->txtPath.Text = ""
+	pfPath->txtCommandLine.Text = ""
 	pfPath->WithExtensions = True
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With lvOtherEditors.ListItems
@@ -2828,4 +2888,46 @@ End Sub
 Private Sub frmOptions.cmdFindCompilers_Click(ByRef Sender As Control)
 	bStop = cmdFindCompilers.Text = ML("Stop")
 	FindProcessStartStop()
+End Sub
+
+Private Sub frmOptions.lvOtherEditors_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	*Cast(frmOptions Ptr, Sender.Designer).lvOtherEditors_ItemActivate(Sender, ItemIndex)
+End Sub
+Private Sub frmOptions.lvOtherEditors_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	cmdChangeEditor_Click cmdChangeEditor
+End Sub
+
+Private Sub frmOptions.lvTerminalPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	*Cast(frmOptions Ptr, Sender.Designer).lvTerminalPaths_ItemActivate(Sender, ItemIndex)
+End Sub
+Private Sub frmOptions.lvTerminalPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	cmdChangeTerminal_Click cmdChangeTerminal
+End Sub
+
+Private Sub frmOptions.lvDebuggerPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	*Cast(frmOptions Ptr, Sender.Designer).lvDebuggerPaths_ItemActivate(Sender, ItemIndex)
+End Sub
+Private Sub frmOptions.lvDebuggerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	cmdChangeDebugger_Click cmdChangeDebugger
+End Sub
+
+Private Sub frmOptions.lvHelpPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	*Cast(frmOptions Ptr, Sender.Designer).lvHelpPaths_ItemActivate(Sender, ItemIndex)
+End Sub
+Private Sub frmOptions.lvHelpPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	cmdChangeHelp_Click cmdChangeHelp
+End Sub
+
+Private Sub frmOptions.lvMakeToolPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	*Cast(frmOptions Ptr, Sender.Designer).lvMakeToolPaths_ItemActivate(Sender, ItemIndex)
+End Sub
+Private Sub frmOptions.lvMakeToolPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	cmdChangeMakeTool_Click cmdChangeMakeTool
+End Sub
+
+Private Sub frmOptions.lvCompilerPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	*Cast(frmOptions Ptr, Sender.Designer).lvCompilerPaths_ItemActivate(Sender, ItemIndex)
+End Sub
+Private Sub frmOptions.lvCompilerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	cmdChangeCompiler_Click cmdChangeCompiler
 End Sub

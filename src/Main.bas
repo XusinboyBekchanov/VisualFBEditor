@@ -270,6 +270,21 @@ Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As U
 	End If
 End Function
 
+Function GetFullPathInSystem(ByRef Path As WString) As UString
+	If InStr(Path, ":") > 0 Then
+		Return Path
+	Else
+		Dim As WString * MAX_PATH fullPath
+		#ifndef __USE_GTK__
+			Dim As WString Ptr lpFilePart
+			If SearchPath(null, Path, ".exe", MAX_PATH, @fullPath, @lpFilePart) = 0 Then
+				Print GetErrorString(GetLastError)
+			End If
+		#endif
+		Return fullPath
+	End If
+End Function
+
 Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) As UString
 	Dim Pos1 As Long = InStrRev(FileName, "\", Len(FileName) - 1)
 	Dim Pos2 As Long = InStrRev(FileName, "/", Len(FileName) - 1)
@@ -354,6 +369,7 @@ Function Compile(Parameter As String = "") As Integer
 	Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
 	ThreadsLeave()
 	Dim ExeName As WString Ptr: WLet(ExeName, GetExeFileName(*MainFile, *FirstLine))
+	Dim CurrentCompiler As WString Ptr = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
 	Dim FbcExe As WString Ptr = IIf(Bit32, Compiler32Path, Compiler64Path)
 	If *FbcExe = "" Then
 		WDeallocate MainFile
@@ -415,7 +431,22 @@ Function Compile(Parameter As String = "") As Integer
 			Return 0
 		End If
 	End If
-	WLet(CompileWith, *FirstLine)
+	Dim As Integer Idx
+	Dim As ToolType Ptr CompilerTool
+	If Parameter = "Make" Then
+		Idx = pMakeTools->IndexOfKey(*CurrentMakeTool1)
+		If Idx <> -1 Then CompilerTool = pMakeTools->Item(Idx)->Object
+	ElseIf Parameter = "MakeClean" Then
+		Idx = pMakeTools->IndexOfKey(*CurrentMakeTool2)
+		If Idx <> -1 Then CompilerTool = pMakeTools->Item(Idx)->Object
+	Else
+		Idx = pCompilers->IndexOfKey(*CurrentCompiler)
+		If Idx <> -1 Then CompilerTool = pCompilers->Item(Idx)->Object
+	End If
+	If CompilerTool <> 0 Then
+		WLet(CompileWith, CompilerTool->GetCommand(, True))
+	End If
+	WAdd(CompileWith, " " & *FirstLine)
 	If CInt(InStr(*CompileWith, " -s ") = 0) AndAlso CInt(tbStandard.Buttons.Item("GUI")->Checked) Then
 		WAdd CompileWith, " -s gui"
 	End If
@@ -434,7 +465,11 @@ Function Compile(Parameter As String = "") As Integer
 	Next
 	'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
 	WLet(LogFileName2, ExePath & "/Temp/Compile.log")
-	WLet(fbcCommand, " -b """ & GetFileName(*MainFile) & """ " & *CompileWith)
+	If InStr(*CompileWith, "{S}") > 0 Then
+		WLet(fbcCommand, Replace(*CompileWith, "{S}", """" & GetFileName(*MainFile) & """"))
+	Else
+		WLet(fbcCommand, """" & GetFileName(*MainFile) & """ " & *CompileWith)
+	End If
 	If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
 	End If
@@ -444,9 +479,9 @@ Function Compile(Parameter As String = "") As Integer
 		#ifdef __USE_GTK__
 			Colon = ":"
 		#endif
-		WLet(PipeCommand, """" & *MakeToolPath & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *ExeName & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
+		WLet(PipeCommand, """" & *MakeToolPath1 & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *ExeName & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
 	ElseIf Parameter = "MakeClean" Then
-		WLet(PipeCommand, """" & *MakeToolPath & """ " & *Make2Arguments)
+		WLet(PipeCommand, """" & *MakeToolPath2 & """ " & *Make2Arguments)
 	Else
 		WLet(PipeCommand, """" & *fbcexe & """ " & *fbcCommand)
 	End If
@@ -716,13 +751,13 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 		Else
 			IconName = GetIconName(Files.Item(i))
 		End If
-'		If EndsWith(LCase(Files.Item(i)), ".vfp") Then
-'			IconName = "Project"
-'		ElseIf EndsWith(LCase(Files.Item(i)), ".rc") OrElse EndsWith(LCase(Files.Item(i)), ".res") OrElse EndsWith(LCase(Files.Item(i)), ".xpm") Then
-'			IconName = "Resource"
-'		Else
-'			IconName = "File"
-'		End If
+		'		If EndsWith(LCase(Files.Item(i)), ".vfp") Then
+		'			IconName = "Project"
+		'		ElseIf EndsWith(LCase(Files.Item(i)), ".rc") OrElse EndsWith(LCase(Files.Item(i)), ".res") OrElse EndsWith(LCase(Files.Item(i)), ".xpm") Then
+		'			IconName = "Resource"
+		'		Else
+		'			IconName = "File"
+		'		End If
 		tn1 = tn->Nodes.Add(GetFileName(*ee->FileName & "/" & Files.Item(i)), , Files.Item(i), IconName, IconName)
 		ee1 = New_( ExplorerElement)
 		WLet(ee1->FileName, Files.Item(i))
@@ -1277,11 +1312,11 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
 		If ppe <> 0 Then
 			SaveD.FileName = WGet(ppe->FileName)
-'			If InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "\") = 0 Then
-'				SaveD.FileName = WGet(ppe->FileName) & ".vfp"
-'			Else
-'				SaveD.FileName = WGet(ppe->FileName)
-'			End If
+			'			If InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "\") = 0 Then
+			'				SaveD.FileName = WGet(ppe->FileName) & ".vfp"
+			'			Else
+			'				SaveD.FileName = WGet(ppe->FileName)
+			'			End If
 		End If
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
@@ -2083,13 +2118,13 @@ Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeig
 End Sub
 
 #ifndef __USE_GTK__
-Sub tbToolBox_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
-	scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
-End Sub
-
-Sub scrTool_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
-	scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
-End Sub
+	Sub tbToolBox_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
+		scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
+	End Sub
+	
+	Sub scrTool_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
+		scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
+	End Sub
 #endif
 
 Function DirExists(ByRef DirPath As WString) As Integer
@@ -2721,7 +2756,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								Else
 									n = Comps.IndexOf(bt)
 								End If
-								If n > -1 AndAlso Comps.Object(n) <> 0 Then 
+								If n > -1 AndAlso Comps.Object(n) <> 0 Then
 									Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
 								Else
 									'?bTrim
@@ -2771,7 +2806,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							n = Types.IndexOf(bt)
-							If n > -1 Then 
+							If n > -1 Then
 								Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
 							ElseIf n = -1 Then
 								If bt = "Object" Then
@@ -2779,7 +2814,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								Else
 									n = Comps.IndexOf(bt)
 								End If
-								If n > -1 AndAlso Comps.Object(n) <> 0 Then 
+								If n > -1 AndAlso Comps.Object(n) <> 0 Then
 									Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
 								Else
 									'?bTrim
@@ -3074,7 +3109,7 @@ Sub LoadSettings
 		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("OtherEditors", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -8
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
-		If Temp <> "" Then 
+		If Temp <> "" Then
 			Tool = New ToolType
 			Tool->Name = Temp
 			Tool->Path = iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
@@ -3122,25 +3157,27 @@ Sub LoadSettings
 		If Temp <> "" Then LibraryPaths.Add Temp
 		i += 1
 	Loop
-	WLet(CurrentCompiler32, "")
-	WLet(CurrentCompiler64, "")
-	WLet(CurrentMakeTool1, "")
-	WLet(CurrentMakeTool2, "")
-	WLet(CurrentTerminal, "")
-	WLet(CurrentDebugger32, "")
-	WLet(CurrentDebugger64, "")
+	
 	WLet(DefaultCompiler32, iniSettings.ReadString("Compilers", "DefaultCompiler32", ""))
+	WLet(CurrentCompiler32, *DefaultCompiler32)
 	WLet(DefaultCompiler64, iniSettings.ReadString("Compilers", "DefaultCompiler64", ""))
-	WLet(Compiler32Path, Compilers.Get(*DefaultCompiler32, "fbc"))
-	WLet(Compiler64Path, Compilers.Get(*DefaultCompiler64, "fbc"))
+	WLet(CurrentCompiler64, *DefaultCompiler64)
+	WLet(Compiler32Path, Compilers.Get(*CurrentCompiler32, "fbc"))
+	WLet(Compiler64Path, Compilers.Get(*CurrentCompiler64, "fbc"))
 	WLet(DefaultMakeTool, iniSettings.ReadString("MakeTools", "DefaultMakeTool", "make"))
-	WLet(MakeToolPath, MakeTools.Get(*DefaultMakeTool, "make"))
+	WLet(CurrentMakeTool1, *DefaultMakeTool)
+	WLet(MakeToolPath1, MakeTools.Get(*CurrentMakeTool1, "make"))
+	WLet(CurrentMakeTool2, *DefaultMakeTool)
+	WLet(MakeToolPath2, MakeTools.Get(*CurrentMakeTool2, "make"))
 	WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", ""))
+	WLet(CurrentDebugger32, *DefaultDebugger32)
+	WLet(Debugger32Path, Debuggers.Get(*CurrentDebugger32, ""))
 	WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", ""))
-	WLet(Debugger32Path, Debuggers.Get(*DefaultDebugger32, ""))
-	WLet(Debugger64Path, Debuggers.Get(*DefaultDebugger64, ""))
+	WLet(CurrentDebugger64, *DefaultDebugger64)
+	WLet(Debugger64Path, Debuggers.Get(*CurrentDebugger64, ""))
 	WLet(DefaultTerminal, iniSettings.ReadString("Terminals", "DefaultTerminal", ""))
-	WLet(TerminalPath, Terminals.Get(*DefaultTerminal, ""))
+	WLet(CurrentTerminal, *DefaultTerminal)
+	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
 	WLet(DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", ""))
 	WLet(HelpPath, Helps.Get(*DefaultHelp, ""))
 	
@@ -4052,6 +4089,46 @@ End Sub
 	'scrTool.OnResize = @pnlToolBox_Resize
 #endif
 
+Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As Boolean = False) As UString
+	Dim As ProjectElement Ptr Project
+	Dim As ExplorerElement Ptr ee
+	Dim As TreeNode Ptr ProjectNode
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim As UString ProjectFile = ""
+	Dim As UString MainFile = GetMainFile(, Project, ProjectNode)
+	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project)
+	Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine)
+	Dim As UString CurrentWord = ""
+	Dim As UString Params
+	If Not WithoutProgram Then
+		#ifdef __USE_GTK__
+			If Not g_find_program_in_path(ToUTF8(This.Path)) = NULL Then
+		#else
+			If Not FileExists(This.Path) Then
+		#endif
+			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
+		Else
+			Params = """" & This.Path & """ "
+		End If
+	End If
+	Params &= This.Parameters
+	If ProjectNode <> 0 Then ee = ProjectNode->Tag
+	If ee <> 0 Then ProjectFile = *ee->FileName
+	If tb <> 0 Then CurrentWord = tb->txtCode.GetWordAtCursor
+	Params = Replace(Params, "{P}", ProjectFile)
+	Params = Replace(Params, "{P|S}", IIf(ProjectFile = "", MainFile, ProjectFile))
+	Params = Replace(Params, "{S}", MainFile)
+	Params = Replace(Params, "{W}", CurrentWord)
+	Params = Replace(Params, "{E}", ExeFile)
+	Params = Replace(Params, "{D}", GetFolderName(ExeFile))
+	If InStr(Params, "{F}") > 0 Then
+		Params = Replace(Params, "{F}", FileName)
+	ElseIf FileName <> "" Then
+		Params &= " """ & FileName & """"
+	End If
+	Return Params
+End Function
+
 Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	#ifdef __USE_GTK__
 		If Item.Nodes.Count > 0 Then
@@ -4065,12 +4142,24 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	If Item.ImageKey = "Opened" Then Exit Sub
 	If Item.ImageKey = "Project" AndAlso Item.ParentNode = 0 Then Exit Sub
 	Dim As ExplorerElement Ptr ee = Item.Tag
-	If ee <> 0 AndAlso _
-		(EndsWith(*ee->FileName, ".exe") OrElse EndsWith(*ee->FileName, ".dll") OrElse EndsWith(*ee->FileName, ".dll.a") OrElse EndsWith(*ee->FileName, ".so") OrElse _
-		EndsWith(*ee->FileName, ".png") OrElse EndsWith(*ee->FileName, ".jpg") OrElse EndsWith(*ee->FileName, ".bmp") OrElse EndsWith(*ee->FileName, ".ico") OrElse EndsWith(*ee->FileName, ".cur") OrElse _
-		EndsWith(*ee->FileName, ".chm") OrElse EndsWith(*ee->FileName, ".zip") OrElse EndsWith(*ee->FileName, ".7z") OrElse EndsWith(*ee->FileName, ".rar")) Then
-		Shell *ee->FileName
-		Exit Sub
+	If ee <> 0 Then
+		Dim As Integer Pos1 = InStrRev(*ee->FileName, ".")
+		If Pos1 > 0 Then
+			Dim As UString Extension = Mid(*ee->FileName, Pos1)
+			For i As Integer = 0 To pOtherEditors->Count - 1
+				Dim As ToolType Ptr Tool = pOtherEditors->Item(i)->Object
+				If InStr(" " & LCase(Tool->Extensions) & ",", " " & LCase(Extension) & ",") > 0 Then
+					Shell Tool->GetCommand(*ee->FileName)
+					Exit Sub
+				End If
+			Next
+		End If
+		If (EndsWith(*ee->FileName, ".exe") OrElse EndsWith(*ee->FileName, ".dll") OrElse EndsWith(*ee->FileName, ".dll.a") OrElse EndsWith(*ee->FileName, ".so") OrElse _
+			EndsWith(*ee->FileName, ".png") OrElse EndsWith(*ee->FileName, ".jpg") OrElse EndsWith(*ee->FileName, ".bmp") OrElse EndsWith(*ee->FileName, ".ico") OrElse EndsWith(*ee->FileName, ".cur") OrElse _
+			EndsWith(*ee->FileName, ".chm") OrElse EndsWith(*ee->FileName, ".zip") OrElse EndsWith(*ee->FileName, ".7z") OrElse EndsWith(*ee->FileName, ".rar")) Then
+			Shell *ee->FileName
+			Exit Sub
+		End If
 	End If
 	Dim t As Boolean
 	For i As Integer = 0 To ptabCode->TabCount - 1
@@ -4788,13 +4877,13 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
 	tb->tn->SelectItem
-'	Static OldIndex As Integer
-'	If OldIndex <> NewIndex Then
-'		If pfFind->Visible = True AndAlso pfFind->OptFindinCurrFile.Checked Then
-'			wLet(gSearchSave,"")
-'			pfFind->FindAll plvSearch, 2,, False
-'		End If
-'	End If
+	'	Static OldIndex As Integer
+	'	If OldIndex <> NewIndex Then
+	'		If pfFind->Visible = True AndAlso pfFind->OptFindinCurrFile.Checked Then
+	'			wLet(gSearchSave,"")
+	'			pfFind->FindAll plvSearch, 2,, False
+	'		End If
+	'	End If
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To sourcenb
 			If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
@@ -5450,11 +5539,11 @@ Sub CheckCompilerPaths
 				pfOptions->Show *pfrmMain
 				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
 			End If
-		#ifdef __USE_GTK__
+			#ifdef __USE_GTK__
 			ElseIf g_find_program_in_path(ToUTF8(*CompilerPath)) = NULL Then
-		#else
+			#else
 			ElseIf Not FileExists(*CompilerPath) Then
-		#endif
+			#endif
 			If MsgBox(ML("File") & " """ & *CompilerPath & """ " & ML("not found") & "." & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
 				pfOptions->Show *pfrmMain
 				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
@@ -5651,7 +5740,8 @@ Sub OnProgramQuit() Destructor
 	WDeallocate DefaultMakeTool
 	WDeallocate CurrentMakeTool1
 	WDeallocate CurrentMakeTool2
-	WDeallocate MakeToolPath
+	WDeallocate MakeToolPath1
+	WDeallocate MakeToolPath2
 	WDeallocate DefaultDebugger32
 	WDeallocate DefaultDebugger64
 	WDeallocate CurrentDebugger32

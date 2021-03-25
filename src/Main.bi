@@ -110,9 +110,10 @@ Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave
 Common Shared As WString Ptr ProjectsPath, LastOpenPath
 Common Shared As WString Ptr DefaultHelp, HelpPath
-Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2, MakeToolPath
-Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, CurrentDebugger32, CurrentDebugger64, Debugger32Path, Debugger64Path, DefaultTerminal, CurrentTerminal, TerminalPath
-Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64, Compiler32Path, Compiler64Path
+Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2
+Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, CurrentDebugger32, CurrentDebugger64, DefaultTerminal, CurrentTerminal
+Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64
+Common Shared As WString Ptr MakeToolPath1, MakeToolPath2, Debugger32Path, Debugger64Path, TerminalPath, Compiler32Path, Compiler64Path
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, Debug32Arguments, Debug64Arguments
 Common Shared As Any Ptr tlock, tlockSave
 
@@ -121,6 +122,7 @@ Type ToolType
 	Path As UString
 	Parameters As UString
 	Extensions As UString
+	Declare Function GetCommand(ByRef FileName As WString = "", WithoutProgram As Boolean = False) As UString
 End Type
 
 Common Shared As List Ptr pTools
@@ -207,6 +209,7 @@ Declare Function GetBakFileName(ByRef FileName As WString) As UString
 Declare Function GetShortFileName(ByRef FileName As WString, ByRef FilePath As WString) As UString
 Declare Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) As UString
 Declare Function GetOSPath(ByRef Path As WString) As UString
+Declare Function GetFullPathInSystem(ByRef Path As WString) As UString
 Declare Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 Declare Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 Declare Function GetXY(XorY As Integer) As Integer

@@ -91,7 +91,7 @@ pfTools = @fTools
 		' lblInfo
 		With lblInfo
 			.Name = "lblInfo"
-			.Text = "{P} " & ML("Project Name") & " {S} " & ML("Main Source File") & " {W} " & ML("Current Word") & " {E} " & ML("EXE/DLL Name")
+			.Text = "{F} " & ML("Current File") & " {P} " & ML("Project Name") & " {S} " & ML("Main Source File") & " {W} " & ML("Current Word") & " {E} " & ML("EXE/DLL Name")
 			.SetBounds 136, 248, 240, 29
 			.Parent = @This
 		End With
@@ -334,25 +334,12 @@ End Sub
 Sub ExecuteTool(Param As Any Ptr)
 	Dim As UserToolType Ptr tt = Param
 	If tt = 0 Then Exit Sub
-	Dim As ProjectElement Ptr Project
-	Dim As ExplorerElement Ptr ee
-	Dim As TreeNode Ptr ProjectNode
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	Dim As UString ProjectFile = ""
-	Dim As UString MainFile = GetMainFile(, Project, ProjectNode)
-	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project)
-	Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine)
-	Dim As UString CurrentWord = ""
-	Dim As UString Parameters = tt->Parameters
-	If ProjectNode <> 0 Then ee = ProjectNode->Tag
-	If ee <> 0 Then ProjectFile = *ee->FileName
-	If tb <> 0 Then CurrentWord = tb->txtCode.GetWordAtCursor
-	Parameters = Replace(Parameters, "{P}", ProjectFile)
-	Parameters = Replace(Parameters, "{P|S}", IIf(ProjectFile = "", MainFile, ProjectFile))
-	Parameters = Replace(Parameters, "{S}", MainFile)
-	Parameters = Replace(Parameters, "{W}", CurrentWord)
-	Parameters = Replace(Parameters, "{E}", ExeFile)
-	Shell """" & GetRelativePath(tt->Path, pApp->FileName) & """ " & Parameters
+	If tb = 0 Then 
+		Shell tt->GetCommand()
+	Else
+		Shell tt->GetCommand(tb->FileName)
+	End If
 End Sub
 
 Sub UserToolType.Execute()

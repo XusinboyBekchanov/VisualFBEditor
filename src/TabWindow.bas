@@ -5107,11 +5107,12 @@ End Sub
 Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr) As UString
 	Dim As Boolean Bit32 = ptbStandard->Buttons.Item("B32")->Checked
 	Dim As UString Result
+	Result = IIf(Bit32, *Compiler32Arguments, *Compiler64Arguments)
 	If Project Then
 		#ifdef __USE_GTK__
-			Result = IIf(Bit32, *Project->CompilationArguments32Linux, WGet(Project->CompilationArguments64Linux))
+			Result += " " & IIf(Bit32, *Project->CompilationArguments32Linux, WGet(Project->CompilationArguments64Linux))
 		#else
-			Result = IIf(Bit32, *Project->CompilationArguments32Windows, WGet(Project->CompilationArguments64Windows))
+			Result += " " & IIf(Bit32, *Project->CompilationArguments32Windows, WGet(Project->CompilationArguments64Windows))
 		#endif
 		#ifdef __FB_WIN32__
 			If WGet(Project->ResourceFileName) <> "" Then Result += " """ & GetShortFileName(WGet(Project->ResourceFileName), FileName) & """"
@@ -5123,10 +5124,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		Case 1: Result += " -dll"
 		Case 2: Result += " -lib"
 		End Select
-	Else
-		Result = ""
 	End If
-	Result += " " & IIf(Bit32, *Compiler32Arguments, *Compiler64Arguments)
 	Dim As Integer Fn = FreeFile
 	Var FileOpenResult = Open(FileName For Input Encoding "utf-8" As #Fn)
 	If FileOpenResult <> 0 Then FileOpenResult = Open(FileName For Input As #Fn)
@@ -5172,7 +5170,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 				If i > l Then
 					Close #Fn
 					If StartsWith(LTrim(LCase(sLine), Any !"\t "), "'#compile ") Then
-						Result = Mid(LTrim(sLine, Any !"\t "), 11) & " " & Result
+						Result = Result & " " & Mid(LTrim(sLine, Any !"\t "), 11)
 					End If
 					Return Result
 				End If
@@ -5223,7 +5221,16 @@ Sub RunPr(Debugger As String = "")
 			Result = Shell("""" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False, , *Arguments) & """")
 		Else
 			ChDir(GetFolderName(*ExeFileName))
-			Dim As UString CommandLine = """" & WGet(TerminalPath) & """ --wait -- """ & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
+			Dim As UString CommandLine
+			Dim As ToolType Tool
+			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
+			If Idx <> - 1 Then
+				Tool = pTerminals->Item(Idx)->Object
+				CommandLine = Tool->GetCommand("""" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """")
+				If Tool->Parameters = "" Then CommandLine &= " --wait -- "
+			Else
+				CommandLine &= """" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
+			End If
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
 			ThreadsLeave()
@@ -5251,8 +5258,14 @@ Sub RunPr(Debugger As String = "")
 		If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
 		WLet(Workdir, Left(*ExeFileName, Pos1))
 		If WGet(TerminalPath) <> "" Then
-			WLetEx CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-			WLet(ExeFileName, Replace(WGet(TerminalPath), "/", "\"))
+			Dim As ToolType Ptr Tool
+			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
+			If Idx <> - 1 Then
+				Tool = pTerminals->Item(Idx)->Object
+				WLetEx CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments, True
+			End If
+			'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
+			WLet(ExeFileName, Replace(GetFullPathInSystem(WGet(TerminalPath)), "/", "\"))
 		End If
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
 			Dim SInfo As STARTUPINFO

@@ -107,6 +107,18 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Static Sub optDoNotNothing_Click(ByRef Sender As RadioButton)
 		Declare Static Sub cmdFindCompilers_Click_(ByRef Sender As Control)
 		Declare Sub cmdFindCompilers_Click(ByRef Sender As Control)
+		Declare Static Sub lvOtherEditors_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Sub lvOtherEditors_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub lvTerminalPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Sub lvTerminalPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub lvDebuggerPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Sub lvDebuggerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub lvHelpPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Sub lvHelpPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub lvMakeToolPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Sub lvMakeToolPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub lvCompilerPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Sub lvCompilerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Constructor
 		Declare Destructor
 		
