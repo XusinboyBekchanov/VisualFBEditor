@@ -1628,10 +1628,14 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			Tool->Parameters = .lvCompilerPaths.ListItems.Item(i)->Text(2)
 			pCompilers->Add tempStr, .lvCompilerPaths.ListItems.Item(i)->Text(1), Tool
 		Next
-		WLet(DefaultCompiler32, IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text))
-		WLet(DefaultCompiler64, IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text))
-		If Not pCompilers->ContainsKey(*CurrentCompiler32) Then WLet(CurrentCompiler32, *DefaultCompiler32)
-		If Not pCompilers->ContainsKey(*CurrentCompiler64) Then WLet(CurrentCompiler64, *DefaultCompiler64)
+		If *DefaultCompiler32 <> IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text) OrElse Not pCompilers->ContainsKey(*CurrentCompiler32) Then
+			WLet(DefaultCompiler32, IIf(.cboCompiler32.ItemIndex = 0, "", .cboCompiler32.Text))
+			WLet(CurrentCompiler32, *DefaultCompiler32)
+		End If
+		If *DefaultCompiler64 <> IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text) OrElse Not pCompilers->ContainsKey(*CurrentCompiler64) Then
+			WLet(DefaultCompiler64, IIf(.cboCompiler64.ItemIndex = 0, "", .cboCompiler64.Text))
+			WLet(CurrentCompiler64, *DefaultCompiler64)
+		End If
 		WLet(Compiler32Path, pCompilers->Get(*CurrentCompiler32))
 		WLet(Compiler64Path, pCompilers->Get(*CurrentCompiler64))
 		For i As Integer = 0 To pMakeTools->Count - 1
@@ -1646,9 +1650,11 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			Tool->Parameters = .lvMakeToolPaths.ListItems.Item(i)->Text(2)
 			pMakeTools->Add tempStr, .lvMakeToolPaths.ListItems.Item(i)->Text(1), Tool
 		Next
-		WLet(DefaultMakeTool, IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text))
-		If Not pMakeTools->ContainsKey(*CurrentMakeTool1) Then WLet(CurrentMakeTool1, *DefaultMakeTool)
-		If Not pMakeTools->ContainsKey(*CurrentMakeTool2) Then WLet(CurrentMakeTool2, *DefaultMakeTool)
+		If CInt(*DefaultMakeTool <> IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text)) OrElse CInt(Not pMakeTools->ContainsKey(*CurrentMakeTool1)) OrElse CInt(Not pMakeTools->ContainsKey(*CurrentMakeTool2)) Then
+			WLet(DefaultMakeTool, IIf(.cboMakeTool.ItemIndex = 0, "", .cboMakeTool.Text))
+			WLet(CurrentMakeTool1, *DefaultMakeTool)
+			WLet(CurrentMakeTool2, *DefaultMakeTool)
+		End If
 		WLet(MakeToolPath1, pMakeTools->Get(*CurrentMakeTool1))
 		WLet(MakeToolPath2, pMakeTools->Get(*CurrentMakeTool2))
 		For i As Integer = 0 To pDebuggers->Count - 1
@@ -1663,10 +1669,14 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			Tool->Parameters = .lvDebuggerPaths.ListItems.Item(i)->Text(2)
 			pDebuggers->Add tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1), Tool
 		Next
-		WLet(DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text))
-		WLet(DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text))
-		If Not pDebuggers->ContainsKey(*CurrentDebugger32) Then WLet(CurrentDebugger32, *DefaultDebugger32)
-		If Not pDebuggers->ContainsKey(*CurrentDebugger64) Then WLet(CurrentDebugger64, *DefaultDebugger64)
+		If *DefaultDebugger32 <> IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text) OrElse Not pDebuggers->ContainsKey(*CurrentDebugger32) Then
+			WLet(DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text))
+			WLet(CurrentDebugger32, *DefaultDebugger32)
+		End If
+		If *DefaultDebugger64 <> IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text) OrElse Not pDebuggers->ContainsKey(*CurrentDebugger64) Then
+			WLet(DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text))
+			WLet(CurrentDebugger64, *DefaultDebugger64)
+		End If
 		WLet(Debugger32Path, pDebuggers->Get(*CurrentDebugger32))
 		WLet(Debugger64Path, pDebuggers->Get(*CurrentDebugger64))
 		For i As Integer = 0 To pTerminals->Count - 1
@@ -1681,8 +1691,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			Tool->Parameters = .lvTerminalPaths.ListItems.Item(i)->Text(2)
 			pTerminals->Add tempStr, .lvTerminalPaths.ListItems.Item(i)->Text(1), Tool
 		Next
-		WLet(DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text))
-		If Not pTerminals->ContainsKey(*CurrentTerminal) Then WLet(CurrentTerminal, *DefaultTerminal)
+		If *DefaultTerminal <> IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text) OrElse Not pTerminals->ContainsKey(*CurrentTerminal) Then
+			WLet(DefaultTerminal, IIf(.cboTerminal.ItemIndex = 0, "", .cboTerminal.Text))
+			WLet(CurrentTerminal, *DefaultTerminal)
+		End If
 		WLet(TerminalPath, pTerminals->Get(*CurrentTerminal))
 		For i As Integer = 0 To pOtherEditors->Count - 1
 			Delete_(Cast(ToolType Ptr, pOtherEditors->Item(i)->Object))

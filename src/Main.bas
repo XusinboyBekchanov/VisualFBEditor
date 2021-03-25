@@ -5539,11 +5539,11 @@ Sub CheckCompilerPaths
 				pfOptions->Show *pfrmMain
 				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
 			End If
-			#ifdef __USE_GTK__
-			ElseIf g_find_program_in_path(ToUTF8(*CompilerPath)) = NULL Then
-			#else
-			ElseIf Not FileExists(*CompilerPath) Then
-			#endif
+		#ifdef __USE_GTK__
+		ElseIf g_find_program_in_path(ToUTF8(*CompilerPath)) = NULL Then
+		#else
+		ElseIf Not FileExists(*CompilerPath) Then
+		#endif
 			If MsgBox(ML("File") & " """ & *CompilerPath & """ " & ML("not found") & "." & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
 				pfOptions->Show *pfrmMain
 				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
