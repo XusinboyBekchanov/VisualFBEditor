@@ -970,7 +970,17 @@ Namespace My.Sys.Forms
 		End If
 		If OnDeleteControl Then OnDeleteControl(This, Ctrl)
 		If EventOnly Then
-			If ControlFreeWndSub Then ControlFreeWndSub(Ctrl)
+			If CInt(IsControlFunc) AndAlso CInt(IsControlFunc(Ctrl)) Then
+				If ControlFreeWndSub Then ControlFreeWndSub(Ctrl)
+			Else
+				#ifdef __USE_GTK__
+					Dim As GtkWidget Ptr widget = ReadPropertyFunc(Ctrl, "widget")
+					If widget <> 0 Then gtk_widget_destroy(Widget)
+				#else
+					Dim As HWND Ptr phWnd = ReadPropertyFunc(Ctrl, "Handle")
+					If phWnd <> 0 AndAlso *phWnd <> 0 Then DestroyWindow *phWnd
+				#endif
+			End If
 		Else
 			If Controls.Contains(Ctrl) Then
 				Dim As Any Ptr AParent = ReadPropertyFunc(Ctrl, "Parent")
@@ -1074,7 +1084,12 @@ Namespace My.Sys.Forms
 		End If
 		Dim As Integer FLeft, FTop, FWidth, FHeight
 		ComponentGetBoundsSub(Q_ComponentFunc(Ctrl), @FLeft, @FTop, @FWidth, @FHeight)
-		Dim As Any Ptr NewCtrl = This.CreateControl(WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName, WGet(ReadPropertyFunc(Ctrl, "Text")), ParentCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
+		Dim As Any Ptr NewCtrl
+		If IsControlFunc(Ctrl) Then
+		 	NewCtrl = This.CreateControl(WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName, WGet(ReadPropertyFunc(Ctrl, "Text")), ParentCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
+		Else
+			NewCtrl = This.CreateComponent(WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName, ParentCtrl, FLeft + iStepX, FTop + iStepY)
+		 End If
 		If FSelControl Then
 			#ifndef __USE_GTK__
 				LockWindowUpdate(FSelControl)
@@ -1515,6 +1530,17 @@ Namespace My.Sys.Forms
 						.MouseMove(GetXY(P.X), GetXY(P.Y), wParam And &HFFFF )
 						'Return 0
 					#endif
+					#ifndef __USE_GTK__
+					Case WM_RBUTTONUP
+						'if .FSelControl <> .FDialog then
+						Dim As Point P
+						P.x = LoWord(lParam)
+						P.y = HiWord(lParam)
+						ClientToScreen(hDlg, @P)
+						TrackPopupMenu(.FPopupMenu, 0, P.x, P.y, 0, hDlg, 0)
+						'end if
+						Return 0
+					#endif
 					#ifdef __USE_GTK__
 					Case GDK_KEY_PRESS
 					#else
@@ -1524,6 +1550,28 @@ Namespace My.Sys.Forms
 						.KeyDown(Event->Key.keyval, Event->Key.state)
 					#else
 						.KeyDown(wParam, 0)
+					#endif
+					#ifndef __USE_GTK__
+					Case WM_COMMAND
+						If IsWindow(Cast(HWND, lParam)) Then
+						Else
+							If HiWord(wParam) = 0 Then
+								Select Case LoWord(wParam)
+								Case 10: .DeleteControl()
+								Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)
+								Case 12: .CopyControl()
+								Case 13: .CutControl()
+								Case 14: .PasteControl()
+								Case 16: .BringToFront()
+								Case 17: .SendToBack()
+								Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
+								End Select
+							End If
+						End If '
+						''''Call and execute the based commands of dialogue.
+						'return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+						'''if don't want to call
+						'return 0
 					#endif
 					#ifndef __USE_GTK__
 					Case WM_NCDESTROY
