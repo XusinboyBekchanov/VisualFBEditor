@@ -52,8 +52,9 @@ Namespace My.Sys.Forms
 			Declare Static Function HookDialogProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Function HookDialogParentProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Function DotWndProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			FPopupMenu     As HMENU
+			'FPopupMenu     As HMENU
 		#endif
+		mnuDesigner    As PopupMenu
 		FActive        As Boolean
 		FStepX         As Integer
 		FStepY         As Integer
@@ -122,6 +123,9 @@ Namespace My.Sys.Forms
 		#endif
 	Protected:
 		Declare Sub ProcessMessage(ByRef Message As Message)
+		FPopupMenuItems    As List
+		Declare Function EnumPopupMenuItems(ByRef Item As MenuItem) As Boolean
+		Declare Sub GetPopupMenuItems
 		#ifdef __USE_GTK__
 			Declare        Function IsDot(hDlg As GtkWidget Ptr) As Integer
 		#else
@@ -181,6 +185,7 @@ Namespace My.Sys.Forms
 		ToStringFunc As Function(Obj As Any Ptr) ByRef As WString
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
+		Parent As Control Ptr
 		#ifdef __USE_GTK__
 			FOverControl   As GtkWidget Ptr
 		#else

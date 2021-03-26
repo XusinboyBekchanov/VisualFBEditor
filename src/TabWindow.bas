@@ -68,13 +68,14 @@ Sub PopupClick(ByRef Sender As My.Sys.Object)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 Then Exit Sub
 	Select Case Sender.ToString
-	Case "Delete": tb->Des->DeleteControl()
-	Case "Copy":   tb->Des->CopyControl()
-	Case "Cut":    tb->Des->CutControl()
-	Case "Paste":  tb->Des->PasteControl()
-	Case "BringToFront": tb->Des->BringToFront()
-	Case "SendToBack": tb->Des->SendToBack()
-	Case "Properties": If tb->Des->OnClickProperties Then tb->Des->OnClickProperties(*tb->Des, tb->Des->GetControl(tb->Des->FSelControl))
+	Case "Default":         DesignerDblClickControl(*tb->Des, tb->Des->GetControl(tb->Des->FSelControl))
+	Case "Copy":            tb->Des->CopyControl()
+	Case "Cut":             tb->Des->CutControl()
+	Case "Paste":           tb->Des->PasteControl()
+	Case "Delete":          tb->Des->DeleteControl()
+	Case "BringToFront":    tb->Des->BringToFront()
+	Case "SendToBack":      tb->Des->SendToBack()
+	Case "Properties":      If tb->Des->OnClickProperties Then tb->Des->OnClickProperties(*tb->Des, tb->Des->GetControl(tb->Des->FSelControl))
 	End Select
 End Sub
 
@@ -2174,14 +2175,19 @@ End Sub
 Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
-	If tb->cboFunction.Items.Count > 1 Then
-		FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, tb->cboFunction.Items.Item(1)->Text
-		'tb->cboFunction.ItemIndex = 1
-		'cboFunction_Change tb->cboFunction
-		If tb->tbrTop.Buttons.Item(2)->Checked Then
-			tb->tbrTop.Buttons.Item(1)->Checked = True
+	Select Case QWString(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))
+	Case "MainMenu", "PopupMenu"
+		pfMenuEditor->Show *pfrmMain
+	Case Else
+		If tb->cboFunction.Items.Count > 1 Then
+			FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, tb->cboFunction.Items.Item(1)->Text
+			'tb->cboFunction.ItemIndex = 1
+			'cboFunction_Change tb->cboFunction
+			If tb->tbrTop.Buttons.Item(2)->Checked Then
+				tb->tbrTop.Buttons.Item(1)->Checked = True
+			End If
 		End If
-	End If
+	End Select
 	'    With tb->txtCode
 	'        frmMain.UpdateLock
 	'        .Changing "Unsurni o`zgartirish"

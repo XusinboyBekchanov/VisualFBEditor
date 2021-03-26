@@ -8,6 +8,7 @@
 #include once "EditControl.bi"
 #include once "Designer.bi"
 #include once "frmTrek.bi"
+#include once "frmMenuEditor.bi"
 #include once "mff/Dictionary.bi"
 #include once "mff/ToolPalette.bi"
 #include once "mff/TabControl.bi"

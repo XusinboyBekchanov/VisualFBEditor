@@ -14,8 +14,6 @@
 	#define CtrlHandle HWND
 #endif
 
-Dim Shared mnuDesigner As PopupMenu
-
 Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Function Designer.GetControl(ControlHandle As GtkWidget Ptr) As Any Ptr
@@ -1537,7 +1535,14 @@ Namespace My.Sys.Forms
 						P.x = LoWord(lParam)
 						P.y = HiWord(lParam)
 						ClientToScreen(hDlg, @P)
-						TrackPopupMenu(.FPopupMenu, 0, P.x, P.y, 0, hDlg, 0)
+						'mnuDesigner.Popup(P.x, P.y)
+						Select Case QWString(.ReadPropertyFunc(.SelectedControl, "ClassName"))
+						Case "MainMenu", "PopupMenu"
+							.mnuDesigner.Item(0)->Caption = ML("Menu Editor")
+						Case Else
+							.mnuDesigner.Item(0)->Caption = ML("Default event")
+						End Select
+						TrackPopupMenu(.mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
 						'end if
 						Return 0
 					#endif
@@ -1555,23 +1560,32 @@ Namespace My.Sys.Forms
 					Case WM_COMMAND
 						If IsWindow(Cast(HWND, lParam)) Then
 						Else
-							If HiWord(wParam) = 0 Then
-								Select Case LoWord(wParam)
-								Case 10: .DeleteControl()
-								Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)
-								Case 12: .CopyControl()
-								Case 13: .CutControl()
-								Case 14: .PasteControl()
-								Case 16: .BringToFront()
-								Case 17: .SendToBack()
-								Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
-								End Select
-							End If
+							.GetPopupMenuItems
+							Dim As MenuItem Ptr mi
+							For i As Integer = 0 To .FPopupMenuItems.Count -1
+								mi = .FPopupMenuItems.Items[i]
+								If mi->Command = LoWord(wParam) Then
+									If mi->OnClick Then mi->OnClick(*mi)
+									Exit For
+								End If
+							Next i
+'							If HiWord(wParam) = 0 Then
+'								Select Case LoWord(wParam)
+'								Case 10: .DeleteControl()
+'								Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)
+'								Case 12: .CopyControl()
+'								Case 13: .CutControl()
+'								Case 14: .PasteControl()
+'								Case 16: .BringToFront()
+'								Case 17: .SendToBack()
+'								Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
+'								End Select
+'							End If
 						End If '
-						''''Call and execute the based commands of dialogue.
-						'return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
-						'''if don't want to call
-						'return 0
+'						''''Call and execute the based commands of dialogue.
+'						'return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+'						'''if don't want to call
+'						'return 0
 					#endif
 					#ifndef __USE_GTK__
 					Case WM_NCDESTROY
@@ -1612,6 +1626,23 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			SetWindowPos FSelControl, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 		#endif
+	End Sub
+	
+	Function Designer.EnumPopupMenuItems(ByRef Item As MenuItem) As Boolean
+		FPopupMenuItems.Add Item
+		For i As Integer = 0 To Item.Count -1
+			EnumPopupMenuItems *Item.Item(i)
+		Next i
+		Return True
+	End Function
+	
+	Sub Designer.GetPopupMenuItems
+		FPopupMenuItems.Clear
+		If Parent->ContextMenu Then
+			For i As Integer = 0 To Parent->ContextMenu->Count -1
+				EnumPopupMenuItems *Parent->ContextMenu->Item(i)
+			Next i
+		End If
 	End Sub
 	
 	#ifdef __USE_GTK__
@@ -1699,7 +1730,13 @@ Namespace My.Sys.Forms
 						P.x = LoWord(lParam)
 						P.y = HiWord(lParam)
 						ClientToScreen(hDlg, @P)
-						TrackPopupMenu(.FPopupMenu, 0, P.x, P.y, 0, hDlg, 0)
+						Select Case QWString(.ReadPropertyFunc(.SelectedControl, "ClassName"))
+						Case "MainMenu", "PopupMenu"
+							.mnuDesigner.Item(0)->Caption = ML("Menu Editor")
+						Case Else
+							.mnuDesigner.Item(0)->Caption = ML("Default event")
+						End Select
+						TrackPopupMenu(.mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
 						'end if
 						Return 0
 					#endif
@@ -1755,21 +1792,32 @@ Namespace My.Sys.Forms
 					Case WM_COMMAND
 						If IsWindow(Cast(HWND, lParam)) Then
 						Else
-							If HiWord(wParam) = 0 Then
-								Select Case LoWord(wParam)
-								Case 10: .DeleteControl()
-								Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)
-								Case 12: .CopyControl()
-								Case 13: .CutControl()
-								Case 14: .PasteControl()
-								Case 16: .BringToFront()
-								Case 17: .SendToBack()
-								Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
-								End Select
-							End If
+							.GetPopupMenuItems
+							Dim As MenuItem Ptr mi
+							For i As Integer = 0 To .FPopupMenuItems.Count -1
+								mi = .FPopupMenuItems.Items[i]
+								If mi->Command = LoWord(wParam) Then
+									If mi->OnClick Then mi->OnClick(*mi)
+									Exit For
+								End If
+							Next i
+							'.Parent->ProcessMessage(Type(Ctrl, FWindow, Msg, wParam, lParam, 0, LoWord(wParam), HiWord(wParam), LoWord(lParam), HiWord(lParam), False))
+'							?LoWord(wParam)
+'							If HiWord(wParam) = 0 Then
+'								Select Case LoWord(wParam)
+'								Case 10: .DeleteControl()
+'								Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)
+'								Case 12: .CopyControl()
+'								Case 13: .CutControl()
+'								Case 14: .PasteControl()
+'								Case 16: .BringToFront()
+'								Case 17: .SendToBack()
+'								Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
+'								End Select
+'							End If
 						End If '
 						''''Call and execute the based commands of dialogue.
-						'return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+						'Return CallWindowProc(GetProp(GetParent(hDlg), "@@@Proc"), hDlg, uMsg, wParam, lParam)
 						'''if don't want to call
 						'return 0
 					#endif
@@ -1880,6 +1928,21 @@ Namespace My.Sys.Forms
 					#endif
 					#ifndef __USE_GTK__
 					Case WM_COMMAND
+						If IsWindow(Cast(HWND, lParam)) Then
+						Else
+							If HiWord(wParam) = 0 Then
+								Select Case LoWord(wParam)
+								Case 10: .DeleteControl()
+								Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)
+								Case 12: .CopyControl()
+								Case 13: .CutControl()
+								Case 14: .PasteControl()
+								Case 16: .BringToFront()
+								Case 17: .SendToBack()
+								Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
+								End Select
+							End If
+						End If '
 						
 						''''Call and execute the based commands of dialogue.
 						Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
@@ -2357,6 +2420,7 @@ Namespace My.Sys.Forms
 		FDotSize 	= 10
 		FDotColor 	= clBlack
 		FSelDotColor = clBlue
+		Parent = ParentControl
 		#ifdef __USE_GTK__
 			FDialogParent = ParentControl->Widget
 		#else
@@ -2372,34 +2436,36 @@ Namespace My.Sys.Forms
 		'FDesignMode = True
 		'Base.Child             = Cast(Control Ptr, @This)
 		CreateDots(ParentControl)
-		#ifdef __USE_GTK__
-			
-		#else
-			FPopupMenu  = CreatePopupMenu
-			AppendMenu(FPopupMenu, MF_STRING, 10, @"Delete")
-			AppendMenu(FPopupMenu, MF_SEPARATOR, -1, @"-")
-			AppendMenu(FPopupMenu, MF_STRING, 12, @"Copy")
-			AppendMenu(FPopupMenu, MF_STRING, 13, @"Cut")
-			AppendMenu(FPopupMenu, MF_STRING, 14, @"Paste")
-			AppendMenu(FPopupMenu, MF_SEPARATOR, -1, @"-")
-			AppendMenu(FPopupMenu, MF_STRING, 16, @"Bring to Front")
-			AppendMenu(FPopupMenu, MF_STRING, 17, @"Send to Back")
-			AppendMenu(FPopupMenu, MF_SEPARATOR, -1, @"-")
-			AppendMenu(FPopupMenu, MF_STRING, 19, @"Properties")
-		#endif
+		
+		'mnuDesigner.ImagesList = @imgList '<m>
+		ParentControl->ContextMenu = @mnuDesigner
+		mnuDesigner.Add(ML("Default event"), "", "Default", @PopupClick)
+		mnuDesigner.Add("-")
+		mnuDesigner.Add(ML("Copy"), "Copy", "Copy", @PopupClick)
+		mnuDesigner.Add(ML("Cut"), "Cut", "Cut", @PopupClick)
+		mnuDesigner.Add(ML("Paste"), "Paste", "Paste", @PopupClick)
+		mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
+		mnuDesigner.Add("-")
+		mnuDesigner.Add(ML("Bring to Front"), "", "BrinToFront", @PopupClick)
+		mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
+		mnuDesigner.Add("-")
+		mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)
+'		#ifdef __USE_GTK__
+'			
+'		#else
+'			FPopupMenu  = CreatePopupMenu
+'			AppendMenu(FPopupMenu, MF_STRING, 10, @"Delete")
+'			AppendMenu(FPopupMenu, MF_SEPARATOR, -1, @"-")
+'			AppendMenu(FPopupMenu, MF_STRING, 12, @"Copy")
+'			AppendMenu(FPopupMenu, MF_STRING, 13, @"Cut")
+'			AppendMenu(FPopupMenu, MF_STRING, 14, @"Paste")
+'			AppendMenu(FPopupMenu, MF_SEPARATOR, -1, @"-")
+'			AppendMenu(FPopupMenu, MF_STRING, 16, @"Bring to Front")
+'			AppendMenu(FPopupMenu, MF_STRING, 17, @"Send to Back")
+'			AppendMenu(FPopupMenu, MF_SEPARATOR, -1, @"-")
+'			AppendMenu(FPopupMenu, MF_STRING, 19, @"Properties")
+'		#endif
 	End Constructor
-	
-	'mnuDesigner.ImagesList = @imgList '<m>
-	mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
-	mnuDesigner.Add("-")
-	mnuDesigner.Add(ML("Copy"), "Copy", "Copy", @PopupClick)
-	mnuDesigner.Add(ML("Cut"), "Cut", "Cut", @PopupClick)
-	mnuDesigner.Add(ML("Paste"), "Paste", "Paste", @PopupClick)
-	mnuDesigner.Add("-")
-	mnuDesigner.Add(ML("Bring to Front"), "", "BrinToFront", @PopupClick)
-	mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
-	mnuDesigner.Add("-")
-	mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)
 	
 	Destructor Designer
 		UnHook
@@ -2407,7 +2473,7 @@ Namespace My.Sys.Forms
 			DeleteObject(FDotBrush)
 			DeleteObject(FSelDotBrush)
 			DeleteObject(FGridBrush)
-			DestroyMenu(FPopupMenu)
+			'DestroyMenu(FPopupMenu)
 			If FChilds.Child Then Deallocate_( FChilds.Child)
 		#endif
 		DestroyDots
