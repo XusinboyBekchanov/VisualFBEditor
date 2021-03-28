@@ -3110,7 +3110,7 @@ Sub LoadSettings
 		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -8
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
 		If Temp <> "" Then
-			Tool = New ToolType
+			Tool = New_(ToolType)
 			Tool->Name = Temp
 			Tool->Path = iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
 			Tool->Parameters = iniSettings.ReadString("Compilers", "Command_" & WStr(i), "")
@@ -3118,7 +3118,7 @@ Sub LoadSettings
 		End If
 		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
 		If Temp <> "" Then
-			Tool = New ToolType
+			Tool = New_(ToolType)
 			Tool->Name = Temp
 			Tool->Path = iniSettings.ReadString("MakeTools", "Path_" & WStr(i), "")
 			Tool->Parameters = iniSettings.ReadString("MakeTools", "Command_" & WStr(i), "")
@@ -3126,7 +3126,7 @@ Sub LoadSettings
 		End If
 		Temp = iniSettings.ReadString("Debuggers", "Version_" & WStr(i), "")
 		If Temp <> "" Then
-			Tool = New ToolType
+			Tool = New_(ToolType)
 			Tool->Name = Temp
 			Tool->Path = iniSettings.ReadString("Debuggers", "Path_" & WStr(i), "")
 			Tool->Parameters = iniSettings.ReadString("Debuggers", "Command_" & WStr(i), "")
@@ -3134,7 +3134,7 @@ Sub LoadSettings
 		End If
 		Temp = iniSettings.ReadString("Terminals", "Version_" & WStr(i), "")
 		If Temp <> "" Then
-			Tool = New ToolType
+			Tool = New_(ToolType)
 			Tool->Name = Temp
 			Tool->Path = iniSettings.ReadString("Terminals", "Path_" & WStr(i), "")
 			Tool->Parameters = iniSettings.ReadString("Terminals", "Command_" & WStr(i), "")
@@ -3142,7 +3142,7 @@ Sub LoadSettings
 		End If
 		Temp = iniSettings.ReadString("OtherEditors", "Version_" & WStr(i), "")
 		If Temp <> "" Then
-			Tool = New ToolType
+			Tool = New_(ToolType)
 			Tool->Name = Temp
 			Tool->Path = iniSettings.ReadString("OtherEditors", "Path_" & WStr(i), "")
 			Tool->Parameters = iniSettings.ReadString("OtherEditors", "Command_" & WStr(i), "")
@@ -5781,6 +5781,27 @@ Sub OnProgramQuit() Destructor
 			Delete_(Cast(UserToolType Ptr, Tools.Item(i)))
 		Next
 	#endif
+	Dim As ToolType Ptr Tool
+	For i As Integer = 0 To pCompilers->Count - 1
+		Tool = pCompilers->Item(i)->Object
+		Delete_(Tool)
+	Next i
+	For i As Integer = 0 To pMakeTools->Count - 1
+		Tool = pMakeTools->Item(i)->Object
+		Delete_(Tool)
+	Next i
+	For i As Integer = 0 To pDebuggers->Count - 1
+		Tool = pDebuggers->Item(i)->Object
+		Delete_(Tool)
+	Next i
+	For i As Integer = 0 To pTerminals->Count - 1
+		Tool = pTerminals->Item(i)->Object
+		Delete_(Tool)
+	Next i
+	For i As Integer = 0 To pOtherEditors->Count - 1
+		Tool = pOtherEditors->Item(i)->Object
+		Delete_(Tool)
+	Next i
 	Dim As TypeElement Ptr te, te1
 	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 		te = pGlobalNamespaces->Object(i)

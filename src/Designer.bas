@@ -63,6 +63,15 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	Sub Designer.ChangeFirstMenuItem()
+		Select Case QWString(ReadPropertyFunc(SelectedControl, "ClassName"))
+		Case "MainMenu", "PopupMenu"
+			mnuDesigner.Item(0)->Caption = ML("Menu Editor")
+		Case Else
+			mnuDesigner.Item(0)->Caption = ML("Default event")
+		End Select
+	End Sub
+	
 	#ifndef __USE_GTK__
 		Sub Designer.GetChilds(Parent As HWND = 0)
 			FChilds.Count = 0
@@ -185,16 +194,16 @@ Namespace My.Sys.Forms
 		Function Dot_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Designer Ptr Des = data1
 			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") Then
-				cairo_set_source_rgb(cr, 255.0, 255.0, 255.0)
+				cairo_set_source_rgb(cr, 0.0, 0.0, 1.0)
 			Else
-				cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
 			End If
-			cairo_rectangle(cr, 0, 0, 6, 6)
+			cairo_rectangle(cr, 0, 0, Des->DotSize, Des->DotSize)
 			cairo_fill_preserve(cr)
 			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") Then
-				cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
+				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
 			Else
-				cairo_set_source_rgb(cr, 255.0, 255.0, 255.0)
+				cairo_set_source_rgb(cr, 0.0, 0.0, 1.0)
 			End If
 			cairo_stroke(cr)
 			Return False
@@ -354,7 +363,7 @@ Namespace My.Sys.Forms
 					For i As Integer = 0 To 7
 						If gtk_is_widget(FDots(j, i)) Then gtk_container_remove(gtk_container(FDialogParent), FDots(j, i))
 						FDots(j, i) = gtk_layout_new(NULL, NULL)
-						gtk_widget_set_size_request(FDots(j, i), 6, 6)
+						gtk_widget_set_size_request(FDots(j, i), FDotSize, FDotSize)
 						gtk_widget_set_events(FDots(j, i), _
 						GDK_EXPOSURE_MASK Or _
 						GDK_SCROLL_MASK Or _
@@ -374,14 +383,14 @@ Namespace My.Sys.Forms
 							g_signal_connect(FDots(j, i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
 						#endif
 						Select Case i
-						Case 0: If gtk_is_widget(FDots(j, 0)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 0), P.X-6, P.Y-6)
-						Case 1: If gtk_is_widget(FDots(j, 1)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 1), P.X+iWidth/2-3, P.Y-6)
-						Case 2: If gtk_is_widget(FDots(j, 2)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 2), P.X+iWidth, P.Y-6)
+						Case 0: If gtk_is_widget(FDots(j, 0)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 0), P.X-FDotSize, P.Y-FDotSize)
+						Case 1: If gtk_is_widget(FDots(j, 1)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 1), P.X+iWidth/2-3, P.Y-FDotSize)
+						Case 2: If gtk_is_widget(FDots(j, 2)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 2), P.X+iWidth, P.Y-FDotSize)
 						Case 3: If gtk_is_widget(FDots(j, 3)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 3), P.X+iWidth, P.Y + iHeight/2-3)
 						Case 4: If gtk_is_widget(FDots(j, 4)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 4), P.X+iWidth, P.Y + iHeight)
 						Case 5: If gtk_is_widget(FDots(j, 5)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 5), P.X+iWidth/2-3, P.Y + iHeight)
-						Case 6: If gtk_is_widget(FDots(j, 6)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 6), P.X-6, P.Y + iHeight)
-						Case 7: If gtk_is_widget(FDots(j, 7)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 7), P.X-6, P.Y + iHeight/2-3)
+						Case 6: If gtk_is_widget(FDots(j, 6)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 6), P.X-FDotSize, P.Y + iHeight)
+						Case 7: If gtk_is_widget(FDots(j, 7)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 7), P.X-FDotSize, P.Y + iHeight/2-3)
 						End Select
 						gtk_widget_realize(FDots(j, i))
 						pdisplay = gtk_widget_get_display(FDots(j, i))
@@ -415,14 +424,14 @@ Namespace My.Sys.Forms
 					P.x     = R.Left
 					P.y     = R.Top
 					ScreenToClient(GetParent(FDialog), @P)
-					MoveWindow FDots(j, 0), P.X-6, P.Y-6, 6, 6, True
-					MoveWindow FDots(j, 1), P.X+iWidth/2-3, P.Y-6, 6, 6, True
-					MoveWindow FDots(j, 2), P.X+iWidth, P.Y-6, 6, 6, True
-					MoveWindow FDots(j, 3), P.X+iWidth, P.Y + iHeight/2-3, 6, 6, True
-					MoveWindow FDots(j, 4), P.X+iWidth, P.Y + iHeight, 6, 6, True
-					MoveWindow FDots(j, 5), P.X+iWidth/2-3, P.Y + iHeight, 6, 6, True
-					MoveWindow FDots(j, 6), P.X-6, P.Y + iHeight, 6, 6, True
-					MoveWindow FDots(j, 7), P.X-6, P.Y + iHeight/2-3, 6, 6, True
+					MoveWindow FDots(j, 0), P.X-FDotSize, P.Y-FDotSize, FDotSize, FDotSize, True
+					MoveWindow FDots(j, 1), P.X+iWidth/2-3, P.Y-FDotSize, FDotSize, FDotSize, True
+					MoveWindow FDots(j, 2), P.X+iWidth, P.Y-FDotSize, FDotSize, FDotSize, True
+					MoveWindow FDots(j, 3), P.X+iWidth, P.Y + iHeight/2-3, FDotSize, FDotSize, True
+					MoveWindow FDots(j, 4), P.X+iWidth, P.Y + iHeight, FDotSize, FDotSize, True
+					MoveWindow FDots(j, 5), P.X+iWidth/2-3, P.Y + iHeight, FDotSize, FDotSize, True
+					MoveWindow FDots(j, 6), P.X-FDotSize, P.Y + iHeight, FDotSize, FDotSize, True
+					MoveWindow FDots(j, 7), P.X-FDotSize, P.Y + iHeight/2-3, FDotSize, FDotSize, True
 					For i As Integer = 0 To 7
 						'SetParent(FDots(i), GetParent(Control))
 						SetProp(FDots(j, i),"@@@Control", GetControlHandle(SelectedControls.Items[j]))
@@ -1496,7 +1505,8 @@ Namespace My.Sys.Forms
 						GetPosToClient widget, .layoutwidget, @x, @y
 						.MouseUp(Event->button.x + x, Event->button.y + y, Event->button.state)
 						If Event->button.button = 3 Then
-							mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
+							.ChangeFirstMenuItem
+							.mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
 						End If
 						If gtk_is_notebook(widget) AndAlso Event->button.y < 20 Then
 							Return False
@@ -1536,12 +1546,7 @@ Namespace My.Sys.Forms
 						P.y = HiWord(lParam)
 						ClientToScreen(hDlg, @P)
 						'mnuDesigner.Popup(P.x, P.y)
-						Select Case QWString(.ReadPropertyFunc(.SelectedControl, "ClassName"))
-						Case "MainMenu", "PopupMenu"
-							.mnuDesigner.Item(0)->Caption = ML("Menu Editor")
-						Case Else
-							.mnuDesigner.Item(0)->Caption = ML("Default event")
-						End Select
+						.ChangeFirstMenuItem
 						TrackPopupMenu(.mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
 						'end if
 						Return 0
@@ -1705,7 +1710,8 @@ Namespace My.Sys.Forms
 					Case GDK_BUTTON_RELEASE
 						.MouseUp(Event->button.x, Event->button.y, Event->button.state)
 						If Event->button.button = 3 Then
-							mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
+							.ChangeFirstMenuItem
+							.mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
 						End If
 						Return True
 					#else
@@ -1730,12 +1736,7 @@ Namespace My.Sys.Forms
 						P.x = LoWord(lParam)
 						P.y = HiWord(lParam)
 						ClientToScreen(hDlg, @P)
-						Select Case QWString(.ReadPropertyFunc(.SelectedControl, "ClassName"))
-						Case "MainMenu", "PopupMenu"
-							.mnuDesigner.Item(0)->Caption = ML("Menu Editor")
-						Case Else
-							.mnuDesigner.Item(0)->Caption = ML("Default event")
-						End Select
+						.ChangeFirstMenuItem
 						TrackPopupMenu(.mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
 						'end if
 						Return 0
@@ -2117,13 +2118,16 @@ Namespace My.Sys.Forms
 					Case WM_PAINT
 						Dim As PAINTSTRUCT Ps
 						Dim As HDC FHDc = BeginPaint(hDlg, @Ps)
-						FillRect(FHDc, @Ps.rcPaint, IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)), Cast(HBRUSH, GetStockObject(WHITE_BRUSH))))
-						Dim As HBrush Brush = IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetStockObject(BLACK_BRUSH), GetStockObject(BLACK_BRUSH))
+						Dim As HPen Pen = CreatePen(PS_SOLID, 0, IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetSysColor(COLOR_HIGHLIGHTTEXT), GetSysColor(COLOR_HIGHLIGHT)))
+						Dim As HPen PrevPen = SelectObject(FHDc, Pen)
+						Dim As HBrush Brush = CreateSolidBrush(IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetSysColor(COLOR_HIGHLIGHT), GetSysColor(COLOR_HIGHLIGHTTEXT)))
 						Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
-						SetROP2(FHDc, R2_NOT)
-						Rectangle(FHDc, Ps.rcPaint.Left + 1, Ps.rcPaint.Top + 1, Ps.rcPaint.Right - 1, Ps.rcPaint.Bottom - 1)
+						Rectangle(FHDc, Ps.rcPaint.Left, Ps.rcPaint.Top, Ps.rcPaint.Right, Ps.rcPaint.Bottom)
 						SelectObject(FHDc, PrevBrush)
+						SelectObject(FHDc, PrevPen)
 						EndPaint(hDlg, @Ps)
+						DeleteObject(Pen)
+						DeleteObject(Brush)
 						Return 0
 						'or use WM_ERASEBKGND message
 				#endif
@@ -2380,6 +2384,14 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
+	Property Designer.DotSize As Integer
+		Return FDotSize
+	End Property
+	
+	Property Designer.DotSize(value As Integer)
+		FDotSize = Value
+	End Property
+	
 	Property Designer.SnapToGrid As Boolean
 		Return FSnapToGrid
 	End Property
@@ -2417,7 +2429,7 @@ Namespace My.Sys.Forms
 		FShowGrid   = True
 		FActive     = True
 		FSnapToGrid = 1
-		FDotSize 	= 10
+		FDotSize 	= 7
 		FDotColor 	= clBlack
 		FSelDotColor = clBlue
 		Parent = ParentControl

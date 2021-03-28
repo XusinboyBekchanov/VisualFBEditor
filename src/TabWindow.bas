@@ -5228,7 +5228,7 @@ Sub RunPr(Debugger As String = "")
 		Else
 			ChDir(GetFolderName(*ExeFileName))
 			Dim As UString CommandLine
-			Dim As ToolType Tool
+			Dim As ToolType Ptr Tool
 			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
 			If Idx <> - 1 Then
 				Tool = pTerminals->Item(Idx)->Object

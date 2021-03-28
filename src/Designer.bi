@@ -191,6 +191,7 @@ Namespace My.Sys.Forms
 		#else
 			FOverControl   As HWND
 		#endif
+		Declare        Sub ChangeFirstMenuItem()
 		Declare        Sub Hook
 		Declare        Sub UnHook
 		Declare        Sub HideDots
@@ -261,6 +262,8 @@ Namespace My.Sys.Forms
 		Declare Property StepY(value As Integer)
 		Declare Property DotColor As Integer
 		Declare Property DotColor(value As Integer)
+		Declare Property DotSize As Integer
+		Declare Property DotSize(value As Integer)
 		Declare Property SnapToGrid As Boolean
 		Declare Property SnapToGrid(value As Boolean)
 		Declare Property ShowGrid As Boolean

@@ -6135,12 +6135,13 @@ Sub RunWithDebug(Param As Any Ptr)
 		Else
 			ChDir(GetFolderName(exename))
 			Dim As UString CommandLine
-			Dim As ToolType Tool
+			Dim As ToolType Ptr Tool
 			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
 			If Idx <> - 1 Then
 				Tool = pTerminals->Item(Idx)->Object
-				CommandLine = Tool->GetCommand(*CmdL)
+				CommandLine = Tool->GetCommand()
 				If Tool->Parameters = "" Then CommandLine &= " --wait -- "
+				CommandLine &= " " & *CmdL
 			Else
 				CommandLine &= *CmdL
 			End If
