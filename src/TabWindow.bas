@@ -1509,7 +1509,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			InsLineCount += 1
 			If Cpnt <> tb->Des->DesignControl Then ptxtCode->InsertLine se + q + 4, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: InsLineCount += 1: q += 1
 			ptxtCode->InsertLine se + q + 4, *FLine1 & TabSpace & "End With": InsLineCount += 1
-		Else
+		ElseIf tb->Des->IsComponentFunc <> 0 AndAlso CInt(tb->Des->IsComponentFunc(Cpnt)) Then
 			q = 0
 			If iLeft <> -1 AndAlso iTop <> -1 AndAlso iWidth <> -1 AndAlso iHeight <> - 1 Then
 				iLeft1 = iLeft
@@ -1530,6 +1530,17 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			End If
 			ptxtCode->InsertLine se + q + 5, *FLine1 & TabSpace & "End With"
 			InsLineCount += q + 5
+		Else
+			q = 0
+			ptxtCode->InsertLine se, *FLine1 & TabSpace & "' " & CtrlName
+			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
+			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
+			'  Confuse the formatcode function
+			If PropertyName <> "" AndAlso PropertyName <> "Name" Then
+				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
+			End If
+			ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & "End With"
+			InsLineCount += q + 3
 		End If
 	ElseIf Not t Then
 		If PropertyName <> "" Then
@@ -1790,6 +1801,10 @@ End Sub
 
 Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 	DesignerInsertControl(Sender, ClassName, Cpnt, iLeft2, iTop2, 16, 16)
+End Sub
+
+Sub DesignerInsertObject(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr)
+	DesignerInsertControl(Sender, ClassName, Obj, -1, -1, -1, -1)
 End Sub
 
 Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String, ByRef AName As String)
@@ -2177,6 +2192,8 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	If tb = 0 Then Exit Sub
 	Select Case QWString(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))
 	Case "MainMenu", "PopupMenu"
+		pfMenuEditor->Des = @Sender
+		pfMenuEditor->CurrentMenu = Ctrl
 		pfMenuEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
@@ -3768,6 +3785,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->OnInsertingControl = @DesignerInsertingControl
 					Des->OnInsertControl = @DesignerInsertControl
 					Des->OnInsertComponent = @DesignerInsertComponent
+					Des->OnInsertObject = @DesignerInsertObject
 					Des->OnChangeSelection = @DesignerChangeSelection
 					Des->OnDeleteControl = @DesignerDeleteControl
 					Des->OnDblClickControl = @DesignerDblClickControl
@@ -3787,9 +3805,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->ComponentSetBoundsSub = DyLibSymbol(Des->MFF, "ComponentSetBounds")
 					Des->ControlIsContainerFunc = DyLibSymbol(Des->MFF, "ControlIsContainer")
 					Des->IsControlFunc = DyLibSymbol(Des->MFF, "IsControl")
+					Des->IsComponentFunc = DyLibSymbol(Des->MFF, "IsComponent")
 					Des->ControlSetFocusSub = DyLibSymbol(Des->MFF, "ControlSetFocus")
 					Des->ControlFreeWndSub = DyLibSymbol(Des->MFF, "ControlFreeWnd")
 					Des->ToStringFunc = DyLibSymbol(Des->MFF, "ToString")
+					Des->CreateObjectFunc = DyLibSymbol(Des->MFF, "CreateObject")
+					Des->ObjectDeleteFunc = DyLibSymbol(Des->MFF, "ObjectDelete")
+					Des->MenuByIndexFunc = DyLibSymbol(Des->MFF, "MenuByIndex")
+					Des->MenuItemByIndexFunc = DyLibSymbol(Des->MFF, "MenuItemByIndex")
 					'Des->ContextMenu = @mnuForm
 				End If
 				Pos1 = InStr(Trim(LCase(*FLine), Any !"\t "), " extends ")

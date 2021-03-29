@@ -180,9 +180,14 @@ Namespace My.Sys.Forms
 		ComponentSetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		ControlIsContainerFunc As Function(Ctrl As Any Ptr) As Boolean
 		IsControlFunc As Function(Ctrl As Any Ptr) As Boolean
+		IsComponentFunc As Function(Ctrl As Any Ptr) As Boolean
 		ControlSetFocusSub As Sub(Ctrl As Any Ptr)
 		ControlFreeWndSub As Sub(Ctrl As Any Ptr)
 		ToStringFunc As Function(Obj As Any Ptr) ByRef As WString
+		CreateObjectFunc As Function(ByRef ClassName As String) As Any Ptr
+		ObjectDeleteFunc As Function(Obj As Any Ptr) As Boolean
+		MenuByIndexFunc As Function(ParentMenu As Any Ptr, Index As Integer) As Any Ptr
+		MenuItemByIndexFunc As Function(ParentMenuItem As Any Ptr, Index As Integer) As Any Ptr
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr
@@ -231,6 +236,7 @@ Namespace My.Sys.Forms
 		OnModified         As Sub(ByRef Sender As Designer, Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
 		OnInsertControl    As Sub(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
 		OnInsertComponent  As Sub(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
+		OnInsertObject     As Sub(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr)
 		OnInsertingControl As Sub(ByRef Sender As Designer, ByRef ClassName As String, ByRef sName As String)
 		OnMouseMove        As Sub(ByRef Sender As Designer, X As Integer, Y As Integer, ByRef Over As Any Ptr)
 		OnDblClickControl  As Sub(ByRef Sender As Designer, Control As Any Ptr)
