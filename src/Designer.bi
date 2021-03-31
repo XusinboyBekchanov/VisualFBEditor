@@ -68,6 +68,7 @@ Namespace My.Sys.Forms
 			FDialog        As HWND
 			FDialogParent  As HWND
 		#endif
+		FTopMenuHeight     As Integer
 		FClass         As String
 		FClassName     As WString Ptr
 		#ifndef __USE_GTK__
@@ -221,6 +222,10 @@ Namespace My.Sys.Forms
 		#else
 			FSelControl    As HWND
 		#endif
+		Dim Rects(Any) As Rect
+		Dim Ctrls(Any) As Any Ptr
+		Dim RectsCount As Integer
+		Dim ActiveRect As Integer
 		Declare        Sub DrawThis() 'DC as HDC, R as RECT)
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
@@ -229,6 +234,8 @@ Namespace My.Sys.Forms
 			Declare Function GetControl(CtrlHandle As HWND) As Any Ptr
 			Declare        Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
 		#endif
+		Declare        Sub MoveControl(Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+		Declare        Sub GetControlBounds(Control As Any Ptr, iLeft As Integer Ptr, iTop As Integer Ptr, iWidth As Integer Ptr, iHeight As Integer Ptr)
 		Declare        Function CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer,y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
 		Declare        Function CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
 		OnChangeSelection  As Sub(ByRef Sender As Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
@@ -253,6 +260,8 @@ Namespace My.Sys.Forms
 			Declare            Sub UnHookControl(Control As HWND)
 			Declare Property Dialog As HWND
 			Declare Property Dialog(value As HWND)
+			Declare Property TopMenuHeight As Integer
+			Declare Property TopMenuHeight(value As Integer)
 		#endif
 		Declare Property Active As Boolean
 		Declare Property Active(value As Boolean)

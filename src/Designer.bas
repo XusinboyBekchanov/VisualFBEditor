@@ -462,6 +462,19 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
+	Sub Designer.MoveControl(Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+		If ComponentSetBoundsSub <> 0 AndAlso Q_ComponentFunc <> 0 Then
+			ComponentSetBoundsSub(Q_ComponentFunc(Control), iLeft, iTop + FTopMenuHeight, iWidth, iHeight)
+		End If
+	End Sub
+	
+	Sub Designer.GetControlBounds(Control As Any Ptr, iLeft As Integer Ptr, iTop As Integer Ptr, iWidth As Integer Ptr, iHeight As Integer Ptr)
+		If ComponentGetBoundsSub <> 0 Then
+			ComponentGetBoundsSub(Q_ComponentFunc(Control), iLeft, iTop, iWidth, iHeight)
+			*iTop = *iTop - FTopMenuHeight
+		End If
+	End Sub
+	
 	#ifdef __USE_GTK__
 		Function Designer.IsDot(hDlg As GtkWidget Ptr) As Integer
 			Dim As String s
@@ -1401,8 +1414,50 @@ Namespace My.Sys.Forms
 			Dim As HBITMAP mBMP, pBMP
 			Dim As RECT R, BrushRect = Type(0, 0, FStepX, FStepY)
 			Dim As PAINTSTRUCT Ps
+			Dim As Any Ptr CurrentMenu
 			FHDc = BeginPaint(FDialog,@Ps)
 			GetClientRect(FDialog, @R)
+			If DesignControl <> 0 AndAlso ReadPropertyFunc <> 0 Then
+				CurrentMenu = ReadPropertyFunc(DesignControl, "Menu")
+				If CurrentMenu <> 0 AndAlso QInteger(ReadPropertyFunc(CurrentMenu, "Count")) <> 0 Then
+					Dim ncm As NONCLIENTMETRICS
+					ncm.cbSize = SizeOf(ncm)
+					SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(ncm), @ncm, 0)
+					If ncm.iMenuHeight <> TopMenuHeight Then TopMenuHeight = ncm.iMenuHeight
+					R.Top = R.Top + TopMenuHeight
+					RectsCount = 0
+					Dim i As Integer
+					Dim As HPen Pen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_MENUBAR))
+					Dim As HPen PrevPen = SelectObject(FHDc, Pen)
+					Dim As HBrush Brush = CreateSolidBrush(GetSysColor(COLOR_MENUBAR))
+					Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
+					Rectangle(FHDc, Ps.rcPaint.Left, Ps.rcPaint.Top, Ps.rcPaint.Right, Ps.rcPaint.Top + TopMenuHeight)
+					SelectObject(FHDc, PrevBrush)
+					SelectObject(FHDc, PrevPen)
+					DeleteObject(Pen)
+					DeleteObject(Brush)
+'						For i = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) - 1
+'							RectsCount += 1
+'							ReDim Preserve Ctrls(RectsCount)
+'							ReDim Preserve Rects(RectsCount)
+'							Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
+'							If RectsCount = 1 Then
+'								Rects(RectsCount).Left = 1
+'							Else
+'								Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
+'							End If
+'							Rects(RectsCount).Top = 1
+'							Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
+'							Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
+'							If RectsCount = ActiveRect Then
+'								.Pen.Color = BGR(0, 120, 215)
+'								.Brush.Color = BGR(174, 215, 247)
+'								.Rectangle Rects(RectsCount)
+'							End If
+'							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+'						Next i
+				End If
+			End If
 			If ShowAlignmentGrid Then
 				If FGridBrush Then
 					DeleteObject(FGridBrush)
@@ -1682,6 +1737,7 @@ Namespace My.Sys.Forms
 						Return 1
 						'Exit Function
 					Case WM_NCHitTest
+						Return HTTRANSPARENT
 					Case WM_SYSCOMMAND
 						Return 0
 					Case WM_SETCURSOR
@@ -1821,6 +1877,12 @@ Namespace My.Sys.Forms
 						'Return CallWindowProc(GetProp(GetParent(hDlg), "@@@Proc"), hDlg, uMsg, wParam, lParam)
 						'''if don't want to call
 						'return 0
+					Case WM_ACTIVATE
+						SendMessage frmMain.Handle, WM_NCACTIVATE, 0, 0
+						Return 0
+					Case WM_ACTIVATEAPP
+						'SendMessage *pfrmMain->Handle, WM_NCACTIVATE, 0, 0
+						Return 0
 					#endif
 				End Select
 			End With
@@ -2295,6 +2357,30 @@ Namespace My.Sys.Forms
 			End If
 		End Property
 	#endif
+	
+	Property Designer.TopMenuHeight As Integer
+		Return FTopMenuHeight
+	End Property
+	
+	Property Designer.TopMenuHeight(Value As Integer)
+		#ifndef __USE_GTK__
+			If iGet(ReadPropertyFunc(DesignControl, "ControlCount")) > 0 Then
+				For i As Integer = iGet(ReadPropertyFunc(DesignControl, "ControlCount")) - 1 To 0 Step -1
+					If WritePropertyFunc AndAlso ReadPropertyFunc AndAlso ControlByIndexFunc Then
+						Dim As Integer iTop
+						If Value <> 0 AndAlso TopMenuHeight = 0 Then
+							iTop = iGet(ReadPropertyFunc(ControlByIndexFunc(DesignControl, i), "Top")) + Value
+							WritePropertyFunc(ControlByIndexFunc(DesignControl, i), "Top", @iTop)
+						ElseIf Value = 0 AndAlso TopMenuHeight <> 0 Then
+							iTop = iGet(ReadPropertyFunc(ControlByIndexFunc(DesignControl, i), "Top")) - FTopMenuHeight
+							WritePropertyFunc(ControlByIndexFunc(DesignControl, i), "Top", @iTop)
+						End If
+					End If
+				Next i
+			End If
+		#endif
+		FTopMenuHeight = Value
+	End Property
 	
 	Property Designer.Active As Boolean
 		Return FActive
