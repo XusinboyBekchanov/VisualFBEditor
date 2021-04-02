@@ -192,7 +192,7 @@ Namespace My.Sys.Forms
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr
-		TopMenu As Control Ptr
+		TopMenu As Panel Ptr
 		#ifdef __USE_GTK__
 			FOverControl   As GtkWidget Ptr
 		#else
@@ -227,13 +227,15 @@ Namespace My.Sys.Forms
 		Dim Ctrls(Any) As Any Ptr
 		Dim RectsCount As Integer
 		Dim ActiveRect As Integer
+		Declare Static Sub TopMenu_Paint(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
+		Declare        Sub DrawTopMenu(ByRef Canvas As Canvas)
 		Declare        Sub DrawThis() 'DC as HDC, R as RECT)
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
-			Declare        Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)
+			Declare    Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)
 		#else
 			Declare Function GetControl(CtrlHandle As HWND) As Any Ptr
-			Declare        Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
+			Declare    Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
 		#endif
 		Declare        Sub MoveControl(Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
 		Declare        Sub GetControlBounds(Control As Any Ptr, iLeft As Integer Ptr, iTop As Integer Ptr, iWidth As Integer Ptr, iHeight As Integer Ptr)

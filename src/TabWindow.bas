@@ -1673,11 +1673,12 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 	Dim SenderText As UString
 	SenderText = IIf(IsCombo, Mid(Sender_Text, 2), Sender_Text)
 	With tb->txtCode
-		If SenderText <> tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName) Then
+		Dim As UString OldText = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+		If SenderText <> OldText Then
 			If CInt(PropertyName = "Name") AndAlso CInt(tb->cboClass.Items.Contains(SenderText)) Then
 				MsgBox ML("This name is exists!"), "VisualFBEditor", mtWarning
 				#ifndef __USE_GTK__
-					Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
+					Sender.Text = OldText
 				#endif
 				Exit Sub
 			End If
@@ -1686,6 +1687,30 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
 			tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
 			#ifndef __USE_GTK__
+				If PropertyName = "Menu" AndAlso tb->Des->DesignControl <> 0 AndAlso tb->Des->ReadPropertyFunc <> 0 Then
+					Var CurrentMenu = tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Menu")
+					If CurrentMenu <> 0 AndAlso QInteger(tb->Des->ReadPropertyFunc(CurrentMenu, "Count")) <> 0 Then
+						Dim ncm As NONCLIENTMETRICS
+						ncm.cbSize = SizeOf(ncm)
+						SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(ncm), @ncm, 0)
+						If ncm.iMenuHeight <> tb->Des->TopMenuHeight Then 
+							Dim As Integer NewHeight = QInteger(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Height")) + ncm.iMenuHeight - tb->Des->TopMenuHeight
+							tb->Des->TopMenuHeight = ncm.iMenuHeight
+							tb->Des->TopMenu->Tag = tb->Des
+							tb->Des->TopMenu->OnPaint = @TopMenu_Paint
+							tb->Des->WritePropertyFunc(tb->Des->DesignControl, "Height", @NewHeight)
+							tb->Des->MoveDots tb->Des->DesignControl, False
+							tb->Des->TopMenu->Visible = True
+							tb->Des->TopMenu->BringToFront
+						End If
+					ElseIf tb->Des->TopMenuHeight <> 0 Then
+						Dim As Integer NewHeight = QInteger(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Height")) - tb->Des->TopMenuHeight
+						tb->Des->TopMenuHeight = 0
+						tb->Des->TopMenu->Visible = False
+						tb->Des->WritePropertyFunc(tb->Des->DesignControl, "Height", @NewHeight)
+						tb->Des->MoveDots tb->Des->DesignControl, False
+					End If
+				End If
 				'Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
 				plvProperties->SelectedItem->Text(1) = SenderText
 			#endif

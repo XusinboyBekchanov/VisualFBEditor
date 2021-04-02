@@ -130,6 +130,24 @@ Private Sub frmMenuEditor.Form_MouseDown(ByRef Sender As Control, MouseButton As
 						Ctrls(i) = Obj
 						txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
 						picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
+						If i = 1 Then
+							Var CurrentMenu = Des->ReadPropertyFunc(Des->DesignControl, "Menu")
+							If CurrentMenu <> 0 Then
+								Dim ncm As NONCLIENTMETRICS
+								ncm.cbSize = SizeOf(ncm)
+								SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(ncm), @ncm, 0)
+								If ncm.iMenuHeight <> Des->TopMenuHeight Then 
+									Dim As Integer NewHeight = QInteger(Des->ReadPropertyFunc(Des->DesignControl, "Height")) + ncm.iMenuHeight - Des->TopMenuHeight
+									Des->TopMenuHeight = ncm.iMenuHeight
+									Des->TopMenu->Tag = Des
+									Des->TopMenu->OnPaint = @TopMenu_Paint
+									Des->WritePropertyFunc(Des->DesignControl, "Height", @NewHeight)
+									Des->MoveDots Des->DesignControl, False
+									Des->TopMenu->Visible = True
+									Des->TopMenu->BringToFront
+								End If
+							End If
+						End If
 					Else
 						txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
 						picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
@@ -160,6 +178,7 @@ Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 	If ActiveRect <> 0 AndAlso Ctrls(ActiveRect) <> 0 AndAlso QWString(Des->ReadPropertyFunc(Ctrls(ActiveRect), "Caption")) <> txtActive.Text Then
 		Des->WritePropertyFunc(Ctrls(ActiveRect), "Caption", @txtActive.Text)
 		ChangeControl Ctrls(ActiveRect), "Caption"
+		Des->TopMenu->Repaint
 	End If
 	Repaint
 End Sub
