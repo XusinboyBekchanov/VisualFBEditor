@@ -192,6 +192,7 @@ Public:
 	cboClass As ComboBoxEx
 	cboFunction As ComboBoxEx
 	btnClose As CloseButton
+	pnlTopMenu As Panel
 	Des As My.Sys.Forms.Designer Ptr
 	splForm As Splitter
 	#ifdef __USE_GTK__

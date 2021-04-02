@@ -3813,7 +3813,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->ObjectDeleteFunc = DyLibSymbol(Des->MFF, "ObjectDelete")
 					Des->MenuByIndexFunc = DyLibSymbol(Des->MFF, "MenuByIndex")
 					Des->MenuItemByIndexFunc = DyLibSymbol(Des->MFF, "MenuItemByIndex")
+					Des->TopMenu = @pnlTopMenu
 					'Des->ContextMenu = @mnuForm
+					pnlTopMenu.Visible = False
 				End If
 				Pos1 = InStr(Trim(LCase(*FLine), Any !"\t "), " extends ")
 				frmName = Mid(Trim(*FLine, Any !"\t "), 6, Pos1 - 6)
@@ -4197,6 +4199,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlForm.Align = 2
 	pnlCode.Align = 5
 	pnlEdit.Align = 5
+	pnlTopMenu.Parent = @pnlForm
 	'lvComponentsList.Images = @imgListTools
 	'lvComponentsList.StateImages = @imgListTools
 	'lvComponentsList.SmallImages = @imgListTools

@@ -192,6 +192,7 @@ Namespace My.Sys.Forms
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr
+		TopMenu As Control Ptr
 		#ifdef __USE_GTK__
 			FOverControl   As GtkWidget Ptr
 		#else

@@ -1436,26 +1436,28 @@ Namespace My.Sys.Forms
 					SelectObject(FHDc, PrevPen)
 					DeleteObject(Pen)
 					DeleteObject(Brush)
-'						For i = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) - 1
-'							RectsCount += 1
-'							ReDim Preserve Ctrls(RectsCount)
-'							ReDim Preserve Rects(RectsCount)
-'							Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
-'							If RectsCount = 1 Then
-'								Rects(RectsCount).Left = 1
-'							Else
-'								Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
-'							End If
-'							Rects(RectsCount).Top = 1
-'							Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
-'							Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
+						For i = 0 To QInteger(ReadPropertyFunc(CurrentMenu, "Count")) - 1
+							RectsCount += 1
+							ReDim Preserve Ctrls(RectsCount)
+							ReDim Preserve Rects(RectsCount)
+							Ctrls(RectsCount) = MenuByIndexFunc(CurrentMenu, i)
+							Dim Sz As SIZE
+							GetTextExtentPoint32(FHDc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
+							If RectsCount = 1 Then
+								Rects(RectsCount).Left = 1
+							Else
+								Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
+							End If
+							Rects(RectsCount).Top = 1
+							Rects(RectsCount).Right = Rects(RectsCount).Left + Sz.cx + 10
+							Rects(RectsCount).Bottom = Rects(RectsCount).Top + TopMenuHeight
 '							If RectsCount = ActiveRect Then
 '								.Pen.Color = BGR(0, 120, 215)
 '								.Brush.Color = BGR(174, 215, 247)
 '								.Rectangle Rects(RectsCount)
 '							End If
-'							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
-'						Next i
+							.TextOut FHDc, Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption")))
+						Next i
 				End If
 			End If
 			If ShowAlignmentGrid Then
@@ -1738,6 +1740,15 @@ Namespace My.Sys.Forms
 						'Exit Function
 					Case WM_NCHitTest
 						Return HTTRANSPARENT
+					Case WM_NCCALCSIZE
+						Dim As LPNCCALCSIZE_PARAMS pncc = Cast(LPNCCALCSIZE_PARAMS, lParam)
+						'pncc->rgrc[0] Is the New rectangle
+						'pncc->rgrc[1] Is the old rectangle
+						'pncc->rgrc[2] Is the client rectangle
+						'Var lRet = DefWindowProc(hDlg, WM_NCCALCSIZE, wParam, lParam)
+						.TopMenu->SetBounds(pncc->rgrc(2).Left, pncc->rgrc(2).Top, pncc->rgrc(2).Right - pncc->rgrc(2).Left, 20)
+						.TopMenu->BringToFront
+						'pncc->rgrc[0].top += ExtraCaptionHeight;
 					Case WM_SYSCOMMAND
 						Return 0
 					Case WM_SETCURSOR
