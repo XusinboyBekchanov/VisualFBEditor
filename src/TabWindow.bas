@@ -1687,30 +1687,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
 			tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
 			#ifndef __USE_GTK__
-				If PropertyName = "Menu" AndAlso tb->Des->DesignControl <> 0 AndAlso tb->Des->ReadPropertyFunc <> 0 Then
-					Var CurrentMenu = tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Menu")
-					If CurrentMenu <> 0 AndAlso QInteger(tb->Des->ReadPropertyFunc(CurrentMenu, "Count")) <> 0 Then
-						Dim ncm As NONCLIENTMETRICS
-						ncm.cbSize = SizeOf(ncm)
-						SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(ncm), @ncm, 0)
-						If ncm.iMenuHeight <> tb->Des->TopMenuHeight Then 
-							Dim As Integer NewHeight = QInteger(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Height")) + ncm.iMenuHeight - tb->Des->TopMenuHeight
-							tb->Des->TopMenuHeight = ncm.iMenuHeight
-							tb->Des->TopMenu->Tag = tb->Des
-							tb->Des->TopMenu->OnPaint = @TopMenu_Paint
-							tb->Des->WritePropertyFunc(tb->Des->DesignControl, "Height", @NewHeight)
-							tb->Des->MoveDots tb->Des->DesignControl, False
-							tb->Des->TopMenu->Visible = True
-							tb->Des->TopMenu->BringToFront
-						End If
-					ElseIf tb->Des->TopMenuHeight <> 0 Then
-						Dim As Integer NewHeight = QInteger(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Height")) - tb->Des->TopMenuHeight
-						tb->Des->TopMenuHeight = 0
-						tb->Des->TopMenu->Visible = False
-						tb->Des->WritePropertyFunc(tb->Des->DesignControl, "Height", @NewHeight)
-						tb->Des->MoveDots tb->Des->DesignControl, False
-					End If
-				End If
+				If PropertyName = "Menu" Then tb->Des->CheckTopMenuVisible
 				'Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
 				plvProperties->SelectedItem->Text(1) = SenderText
 			#endif
@@ -3370,8 +3347,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If .RemoveControlSub AndAlso .ControlByIndexFunc Then .RemoveControlSub(.DesignControl, .ControlByIndexFunc(.DesignControl, i))
 					Next i
 				End If
-				Dim As Any Ptr Value = 0
-				Des->WritePropertyFunc(Des->DesignControl, "Menu", @Value)
+				Des->WritePropertyFunc(Des->DesignControl, "Menu", 0)
 				For i As Integer = 2 To cboClass.Items.Count - 1
 					CurCtrl = 0
 					CBItem = cboClass.Items.Item(i)
@@ -4062,34 +4038,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			End If
 		Next
 	Next
-	#ifndef __USE_GTK__
-		If Des <> 0 AndAlso Des->DesignControl <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-			Var CurrentMenu = Des->ReadPropertyFunc(Des->DesignControl, "Menu")
-			If CurrentMenu <> 0 AndAlso QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) <> 0 Then
-				Dim ncm As NONCLIENTMETRICS
-				ncm.cbSize = SizeOf(ncm)
-				SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(ncm), @ncm, 0)
-				If ncm.iMenuHeight <> Des->TopMenuHeight Then 
-					Dim As Integer OldHeight = QInteger(Des->ReadPropertyFunc(Des->DesignControl, "Height"))
-					Dim As Integer NewHeight = OldHeight + ncm.iMenuHeight - Des->TopMenuHeight
-					Des->TopMenuHeight = ncm.iMenuHeight
-					Des->TopMenu->Tag = Des
-					Des->TopMenu->OnPaint = @TopMenu_Paint
-					Des->WritePropertyFunc(Des->DesignControl, "Height", @NewHeight)
-					Des->WritePropertyFunc(Des->DesignControl, "Height", @OldHeight)
-					Des->TopMenu->Visible = True
-					Des->TopMenu->BringToFront
-				End If
-			ElseIf Des->TopMenuHeight <> 0 Then
-				Dim As Integer OldHeight = QInteger(Des->ReadPropertyFunc(Des->DesignControl, "Height"))
-				Dim As Integer NewHeight = OldHeight - Des->TopMenuHeight
-				Des->TopMenuHeight = 0
-				Des->TopMenu->Visible = False
-				Des->WritePropertyFunc(Des->DesignControl, "Height", @NewHeight)
-				Des->WritePropertyFunc(Des->DesignControl, "Height", @OldHeight)
-			End If
-		End If
-	#endif
+	If Des <> 0 Then Des->CheckTopMenuVisible False, True
 	If CInt(NotForms = False) AndAlso CInt(Des) AndAlso CInt(Des->DesignControl) AndAlso CInt(Not bSelControlFind) Then
 		Des->SelectedControl = Des->DesignControl
 		#ifdef __USE_GTK__

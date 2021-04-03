@@ -72,6 +72,39 @@ Namespace My.Sys.Forms
 		End Select
 	End Sub
 	
+	Sub Designer.CheckTopMenuVisible(ChangeHeight As Boolean = True, bMoveDots As Boolean = True)
+		#ifndef __USE_GTK__
+			If DesignControl = 0 Then Exit Sub
+			Var CurrentMenu = ReadPropertyFunc(DesignControl, "Menu")
+			If CurrentMenu <> 0 AndAlso QInteger(ReadPropertyFunc(CurrentMenu, "Count")) <> 0 Then
+				Dim ncm As NONCLIENTMETRICS
+				ncm.cbSize = SizeOf(ncm)
+				SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(ncm), @ncm, 0)
+				If ncm.iMenuHeight <> TopMenuHeight Then
+					Dim As Integer OldHeight = QInteger(ReadPropertyFunc(DesignControl, "Height"))
+					Dim As Integer NewHeight = OldHeight + ncm.iMenuHeight - TopMenuHeight
+					TopMenuHeight = ncm.iMenuHeight
+					TopMenu->Tag = @This
+					TopMenu->OnPaint = @TopMenu_Paint
+					WritePropertyFunc(DesignControl, "Height", @NewHeight)
+					If Not ChangeHeight Then WritePropertyFunc(DesignControl, "Height", @OldHeight)
+					If bMoveDots Then MoveDots DesignControl, False
+					TopMenu->Visible = True
+					TopMenu->BringToFront
+					TopMenu->Repaint
+				End If
+			ElseIf TopMenuHeight <> 0 Then
+				Dim As Integer OldHeight = QInteger(ReadPropertyFunc(DesignControl, "Height"))
+				Dim As Integer NewHeight = OldHeight - TopMenuHeight
+				TopMenuHeight = 0
+				TopMenu->Visible = False
+				WritePropertyFunc(DesignControl, "Height", @NewHeight)
+				If Not ChangeHeight Then WritePropertyFunc(DesignControl, "Height", @OldHeight)
+				If bMoveDots Then MoveDots DesignControl, False
+			End If
+		#endif
+	End Sub
+	
 	#ifndef __USE_GTK__
 		Sub Designer.GetChilds(Parent As HWND = 0)
 			FChilds.Count = 0
@@ -1387,6 +1420,7 @@ Namespace My.Sys.Forms
 			.Pen.Color = BGR(255, 255, 255)
 			.Brush.Color = BGR(255, 255, 255)
 			.Rectangle 0, 0, Canvas.Width, Des->TopMenuHeight
+			?QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count"))
 			For i = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) - 1
 				RectsCount += 1
 				ReDim Preserve Ctrls(RectsCount)
@@ -1414,7 +1448,7 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
-	Sub TopMenu_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Sub Designer.TopMenu_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Dim As Designer Ptr Des = Sender.Tag
 		Des->DrawTopMenu Canvas
 	End Sub

@@ -198,6 +198,7 @@ Namespace My.Sys.Forms
 		#else
 			FOverControl   As HWND
 		#endif
+		Declare        Sub CheckTopMenuVisible(ChangeHeight As Boolean = True, bMoveDots As Boolean = True)
 		Declare        Sub ChangeFirstMenuItem()
 		Declare        Sub Hook
 		Declare        Sub UnHook
