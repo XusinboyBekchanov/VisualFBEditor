@@ -1387,7 +1387,6 @@ Namespace My.Sys.Forms
 			.Pen.Color = BGR(255, 255, 255)
 			.Brush.Color = BGR(255, 255, 255)
 			.Rectangle 0, 0, Canvas.Width, Des->TopMenuHeight
-			?Des->ReadPropertyFunc(CurrentMenu, "Count")
 			For i = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) - 1
 				RectsCount += 1
 				ReDim Preserve Ctrls(RectsCount)
@@ -1415,7 +1414,7 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
-	Sub TopMenu_Paint(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
+	Sub TopMenu_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Dim As Designer Ptr Des = Sender.Tag
 		Des->DrawTopMenu Canvas
 	End Sub

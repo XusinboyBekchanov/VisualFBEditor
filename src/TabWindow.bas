@@ -3370,6 +3370,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If .RemoveControlSub AndAlso .ControlByIndexFunc Then .RemoveControlSub(.DesignControl, .ControlByIndexFunc(.DesignControl, i))
 					Next i
 				End If
+				Dim As Any Ptr Value = 0
+				Des->WritePropertyFunc(Des->DesignControl, "Menu", @Value)
 				For i As Integer = 2 To cboClass.Items.Count - 1
 					CurCtrl = 0
 					CBItem = cboClass.Items.Item(i)
@@ -3926,12 +3928,18 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										If Ctrl = 0 Then
 											Ctrl = Des->CreateComponent(TypeName, ArgName, 0, 0, 0)
 										End If
+										If Ctrl = 0 Then
+											Ctrl = Des->CreateObjectFunc(TypeName)
+										End If
 										cboClass.Items.Add ArgName, Ctrl, TypeName, TypeName, , 1
 									Next
 								Else
 									Ctrl = Des->CreateControl(TypeName, ArgName, ArgName, 0, 0, 0, 0, 0)
 									If Ctrl = 0 Then
 										Ctrl = Des->CreateComponent(TypeName, ArgName, 0, 0, 0)
+									End If
+									If Ctrl = 0 Then
+										Ctrl = Des->CreateObjectFunc(TypeName)
 									End If
 									cboClass.Items.Add ArgName, Ctrl, TypeName, TypeName, , 1
 								End If
@@ -3946,12 +3954,18 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If Ctrl = 0 Then
 										Ctrl = Des->CreateComponent(TypeName, tCtrlName & "(" & Str(i) & ")", 0, 0, 0)
 									End If
+									If Ctrl = 0 Then
+										Ctrl = Des->CreateObjectFunc(TypeName)
+									End If
 									cboClass.Items.Add tCtrlName & "(" & Str(i) & ")", Ctrl, TypeName, TypeName,, 1
 								Next
 							Else
 								Ctrl = Des->CreateControl(TypeName, sText, sText, 0, 0, 0, 0, 0)
 								If Ctrl = 0 Then
 									Ctrl = Des->CreateComponent(TypeName, sText, 0, 0, 0)
+								End If
+								If Ctrl = 0 Then
+									Ctrl = Des->CreateObjectFunc(TypeName)
 								End If
 								cboClass.Items.Add sText, Ctrl, TypeName, TypeName, , 1
 							End If
@@ -4048,6 +4062,34 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			End If
 		Next
 	Next
+	#ifndef __USE_GTK__
+		If Des <> 0 AndAlso Des->DesignControl <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
+			Var CurrentMenu = Des->ReadPropertyFunc(Des->DesignControl, "Menu")
+			If CurrentMenu <> 0 AndAlso QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) <> 0 Then
+				Dim ncm As NONCLIENTMETRICS
+				ncm.cbSize = SizeOf(ncm)
+				SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(ncm), @ncm, 0)
+				If ncm.iMenuHeight <> Des->TopMenuHeight Then 
+					Dim As Integer OldHeight = QInteger(Des->ReadPropertyFunc(Des->DesignControl, "Height"))
+					Dim As Integer NewHeight = OldHeight + ncm.iMenuHeight - Des->TopMenuHeight
+					Des->TopMenuHeight = ncm.iMenuHeight
+					Des->TopMenu->Tag = Des
+					Des->TopMenu->OnPaint = @TopMenu_Paint
+					Des->WritePropertyFunc(Des->DesignControl, "Height", @NewHeight)
+					Des->WritePropertyFunc(Des->DesignControl, "Height", @OldHeight)
+					Des->TopMenu->Visible = True
+					Des->TopMenu->BringToFront
+				End If
+			ElseIf Des->TopMenuHeight <> 0 Then
+				Dim As Integer OldHeight = QInteger(Des->ReadPropertyFunc(Des->DesignControl, "Height"))
+				Dim As Integer NewHeight = OldHeight - Des->TopMenuHeight
+				Des->TopMenuHeight = 0
+				Des->TopMenu->Visible = False
+				Des->WritePropertyFunc(Des->DesignControl, "Height", @NewHeight)
+				Des->WritePropertyFunc(Des->DesignControl, "Height", @OldHeight)
+			End If
+		End If
+	#endif
 	If CInt(NotForms = False) AndAlso CInt(Des) AndAlso CInt(Des->DesignControl) AndAlso CInt(Not bSelControlFind) Then
 		Des->SelectedControl = Des->DesignControl
 		#ifdef __USE_GTK__

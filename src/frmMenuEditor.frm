@@ -147,6 +147,8 @@ Private Sub frmMenuEditor.Form_MouseDown(ByRef Sender As Control, MouseButton As
 									Des->TopMenu->BringToFront
 								End If
 							End If
+						Else
+							Des->TopMenu->Repaint
 						End If
 					Else
 						txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
