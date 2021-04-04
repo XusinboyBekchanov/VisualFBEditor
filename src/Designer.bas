@@ -85,7 +85,7 @@ Namespace My.Sys.Forms
 					Dim As Integer NewHeight = OldHeight + ncm.iMenuHeight - TopMenuHeight
 					TopMenuHeight = ncm.iMenuHeight
 					TopMenu->Tag = @This
-					TopMenu->OnPaint = @TopMenu_Paint
+					'TopMenu->OnPaint = @TopMenu_Paint
 					WritePropertyFunc(DesignControl, "Height", @NewHeight)
 					If Not ChangeHeight Then WritePropertyFunc(DesignControl, "Height", @OldHeight)
 					If bMoveDots Then MoveDots DesignControl, False
@@ -1410,47 +1410,67 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub Designer.DrawTopMenu(ByRef Canvas As Canvas)
-		Dim As Designer Ptr Des = @This
-		Dim As Any Ptr CurrentMenu = ReadPropertyFunc(DesignControl, "Menu")
-		If CurrentMenu = 0 Then Exit Sub
-		RectsCount = 0
-		Dim i As Integer
-		With Canvas
-			.Pen.Color = BGR(255, 255, 255)
-			.Brush.Color = BGR(255, 255, 255)
-			.Rectangle 0, 0, Canvas.Width, Des->TopMenuHeight
-			?QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count"))
-			For i = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) - 1
-				RectsCount += 1
-				ReDim Preserve Ctrls(RectsCount)
-				ReDim Preserve Rects(RectsCount)
-				Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
-				If RectsCount = 1 Then
-					Rects(RectsCount).Left = 0
-				Else
-					Rects(RectsCount).Left = Rects(RectsCount - 1).Right
-				End If
-				Rects(RectsCount).Top = 0
-				Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
-				Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
-				If RectsCount = ActiveRect Then
-					.Pen.Color = BGR(0, 120, 215)
-					.Brush.Color = BGR(174, 215, 247)
-					.Rectangle Rects(RectsCount)
-					
-					For j As Integer = 0 To QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Count")) - 1
-						
-					Next
-				End If
-				.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
-			Next i
-		End With
-	End Sub
-	
-	Sub Designer.TopMenu_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Dim As Designer Ptr Des = Sender.Tag
-		Des->DrawTopMenu Canvas
+	Sub Designer.DrawTopMenu()
+		#ifndef __USE_GTK__
+			Dim As HDC FHDc
+			Dim As RECT R
+			Dim As PAINTSTRUCT Ps
+			FHDc = BeginPaint(TopMenu->Handle, @Ps)
+			Dim As HPen Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
+			Dim As HPen PrevPen = SelectObject(FHDc, Pen)
+			Dim As HBrush Brush = CreateSolidBrush(BGR(255, 255, 255))
+			Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
+			Dim Sz As SIZE
+			GetClientRect(TopMenu->Handle, @R)
+			Dim As Any Ptr CurrentMenu = ReadPropertyFunc(DesignControl, "Menu")
+			If CurrentMenu <> 0 Then
+				RectsCount = 0
+				SelectObject(FHdc, TopMenu->Font.Handle)
+				Rectangle FHdc, 0, 0, TopMenu->Width, TopMenu->Height
+				DeleteObject(Pen)
+				DeleteObject(Brush)
+				For i As Integer = 0 To QInteger(ReadPropertyFunc(CurrentMenu, "Count")) - 1
+					RectsCount += 1
+					ReDim Preserve Ctrls(RectsCount)
+					ReDim Preserve Rects(RectsCount)
+					Ctrls(RectsCount) = MenuByIndexFunc(CurrentMenu, i)
+					If RectsCount = 1 Then
+						Rects(RectsCount).Left = 0
+					Else
+						Rects(RectsCount).Left = Rects(RectsCount - 1).Right
+					End If
+					Rects(RectsCount).Top = 0
+					GetTextExtentPoint32(FHdc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
+					Rects(RectsCount).Right = Rects(RectsCount).Left + Sz.cx + 16
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + Sz.cy + 6
+					If RectsCount = ActiveRect Then
+						Pen = CreatePen(PS_SOLID, 0, BGR(153, 209, 255))
+						Brush = CreateSolidBrush(BGR(204, 232, 255))
+						SelectObject(FHDc, Pen)
+						SelectObject(FHDc, Brush)
+						Rectangle FHdc, Rects(RectsCount).Left, 0, Rects(RectsCount).Right, TopMenu->Height
+						DeleteObject(Pen)
+						DeleteObject(Brush)
+					ElseIf RectsCount = MouseRect Then
+						Pen = CreatePen(PS_SOLID, 0, BGR(204, 232, 255))
+						Brush = CreateSolidBrush(BGR(229, 243, 255))
+						SelectObject(FHDc, Pen)
+						SelectObject(FHDc, Brush)
+						Rectangle FHdc, Rects(RectsCount).Left, 0, Rects(RectsCount).Right, TopMenu->Height
+						DeleteObject(Pen)
+						DeleteObject(Brush)
+					End If
+					SetBKMode(FHdc, TRANSPARENT)
+					SetTextColor(FHdc, BGR(0, 0, 0))
+					.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+					SetBKMode(FHdc, OPAQUE)
+					'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+				Next i
+			End If
+			SelectObject(FHdc, PrevPen)
+			SelectObject(FHdc, PrevBrush)
+			EndPaint TopMenu->Handle, @Ps
+		#endif
 	End Sub
 	
 	Sub Designer.DrawThis()
@@ -1937,6 +1957,115 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
+	#ifndef __USE_GTK__
+		Function Designer.HookTopMenuProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Static As Designer Ptr Des
+			Des = GetProp(hDlg, "@@@Designer")
+			If Des Then
+				With *Des
+					Static Tracked As Boolean
+					Select Case uMsg
+					Case WM_PAINT, WM_ERASEBKGND
+						.DrawTopMenu
+						Return 1
+					Case WM_LBUTTONDOWN
+						Dim As Integer X = LoWord(lParam), Y = HiWord(lParam), i, CurRect
+						For i = 1 To .RectsCount
+							With .Rects(i)
+								If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
+									CurRect = i
+									Exit For
+								End If
+							End With
+						Next i
+						If .ActiveRect <> 0 Then
+							.ActiveRect = 0
+							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+							UpdateWindow hDlg
+						ElseIf CurRect <> 0 Then
+							If QInteger(.ReadPropertyFunc(.Ctrls(CurRect), "Count")) = 0 Then
+								If .OnClickMenuItem Then .OnClickMenuItem(*Des, .Ctrls(CurRect))
+							Else
+								.ActiveRect = CurRect
+								RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+								UpdateWindow hDlg
+								Dim As HMENU Ptr pHandle = Cast(HMENU Ptr, .ReadPropertyFunc(.Ctrls(.ActiveRect), "Handle"))
+								If pHandle <> 0 Then
+									Dim As Point P
+									P.x = .Rects(.ActiveRect).Left
+									P.y = .Rects(.ActiveRect).Bottom
+									ClientToScreen(hDlg, @P)
+									Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.x, P.y, 0, hDlg, 0)
+									Dim As Any Ptr CurrentMenu = .ReadPropertyFunc(.DesignControl, "Menu")
+									If CurrentMenu <> 0 Then
+										Dim As Any Ptr mi = .MenuFindByCommand(CurrentMenu, b)
+										If mi <> 0 Then
+											If .OnClickMenuItem Then .OnClickMenuItem(*Des, mi)
+										End If
+									End If
+									.ActiveRect = 0
+									RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+									UpdateWindow hDlg
+								End If
+							End If
+						End If
+					Case WM_COMMAND
+					Case WM_LBUTTONUP
+					Case WM_MOUSEMOVE
+						Dim As Integer X = LoWord(lParam), Y = HiWord(lParam), i, CurRect
+						For i = 1 To .RectsCount
+							With .Rects(i)
+								If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
+									CurRect = i
+									Exit For
+								End If
+							End With
+						Next i
+						If .ActiveRect <> 0 AndAlso CurRect <> 0 AndAlso CurRect <> .ActiveRect AndAlso .Ctrls(CurRect) <> 0 Then
+							Dim As HMENU Ptr pHandle = Cast(HMENU Ptr, .ReadPropertyFunc(.Ctrls(CurRect), "Handle"))
+							.ActiveRect = CurRect
+							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+							UpdateWindow hDlg
+							If pHandle <> 0 Then
+								Dim As Point P
+								P.x = .Rects(CurRect).Left
+								P.y = .Rects(CurRect).Bottom
+								ClientToScreen(hDlg, @P)
+								Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.x, P.y, 0, hDlg, 0)
+								.ActiveRect = 0
+								RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+								UpdateWindow hDlg
+							End If
+						ElseIf CurRect <> 0 OrElse .MouseRect <> 0 Then
+							If CurRect <> .MouseRect Then
+								.MouseRect = CurRect
+								RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+								UpdateWindow hDlg
+							End If
+						End If
+						If Tracked = False Then
+							Dim As TRACKMOUSEEVENT event_
+							event_.cbSize = SizeOf(TRACKMOUSEEVENT)
+							event_.dwFlags = TME_LEAVE
+							event_.hwndTrack = hDlg
+							'event_.dwHoverTime = 10
+							TrackMouseEvent(@event_)
+							Tracked = True
+						End If
+					Case WM_MOUSELEAVE
+						If .MouseRect <> 0 Then
+							.MouseRect = 0
+							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+							UpdateWindow hDlg
+						End If
+						Tracked = False
+					End Select
+				End With
+			End If
+			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+		End Function
+	#endif
+	
 	#ifdef __USE_GTK__
 		Function Designer.HookDialogParentProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 	#else
@@ -2110,6 +2239,10 @@ Namespace My.Sys.Forms
 				SetProp(GetParent(FDialog), "@@@Designer", This)
 				If GetWindowLongPtr(GetParent(FDialog), GWLP_WNDPROC) <> @HookDialogParentProc Then
 					SetProp(GetParent(FDialog), "@@@Proc", Cast(Any Ptr, SetWindowLongPtr(GetParent(FDialog), GWLP_WNDPROC, CInt(@HookDialogParentProc))))
+				End If
+				SetProp(TopMenu->Handle, "@@@Designer", This)
+				If GetWindowLongPtr(TopMenu->Handle, GWLP_WNDPROC) <> @HookTopMenuProc Then
+					SetProp(TopMenu->Handle, "@@@Proc", Cast(Any Ptr, SetWindowLongPtr(TopMenu->Handle, GWLP_WNDPROC, CInt(@HookTopMenuProc))))
 				End If
 			End If
 		#endif
@@ -2399,15 +2532,15 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		End Property
+
+		Property Designer.TopMenuHeight As Integer
+			Return FTopMenuHeight
+		End Property
+		
+		Property Designer.TopMenuHeight(Value As Integer)
+			FTopMenuHeight = Value
+		End Property
 	#endif
-	
-	Property Designer.TopMenuHeight As Integer
-		Return FTopMenuHeight
-	End Property
-	
-	Property Designer.TopMenuHeight(Value As Integer)
-		FTopMenuHeight = Value
-	End Property
 	
 	Property Designer.Active As Boolean
 		Return FActive

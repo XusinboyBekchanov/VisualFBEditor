@@ -1279,7 +1279,7 @@ Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, t
 			If pSaveD->Execute Then
 				WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
 				If FileExists(pSaveD->FileName) Then
-					Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", pApp->Title, mtWarning, btYesNoCancel)
+					Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", App.Title, mtWarning, btYesNoCancel)
 					Case mrYes: Exit Do
 					Case mrCancel: Return False
 					Case mrNo:
@@ -4896,9 +4896,9 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	lvProperties.ListItems.Clear
 	'tb->FillAllProperties
 	If tb->FileName = "" Then
-		frmMain.Caption = tb->Caption & " - " & pApp->Title
+		frmMain.Caption = tb->Caption & " - " & App.Title
 	Else
-		frmMain.Caption = tb->FileName & " - " & pApp->Title
+		frmMain.Caption = tb->FileName & " - " & App.Title
 	End If
 	ChangeFileEncoding tb->FileEncoding
 	ChangeFileEncoding tb->NewLineType

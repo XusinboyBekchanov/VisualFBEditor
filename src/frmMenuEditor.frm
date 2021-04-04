@@ -13,6 +13,8 @@
 			.Canvas.Font.Name = "Tahoma"
 			.Canvas.Font.Size = 8
 			.OnMouseDown = @Form_MouseDown_
+			.OnKeyDown = @Form_KeyDown_
+			.OnKeyPress = @Form_KeyPress_
 			.SetBounds 0, 0, 850, 460
 		End With
 		' picActive
@@ -46,6 +48,16 @@
 	#define BGR(r, g, b) RGB(r, g, b)
 #endif
 
+Sub frmMenuEditor.GetDropdowns(mi As Any Ptr)
+	Dim As Any Ptr miParent = Des->ReadPropertyFunc(mi, "Parent")
+	If miParent <> 0 Then
+		DropdownsCount += 1
+		ReDim Preserve Dropdowns(DropdownsCount)
+		Dropdowns(DropdownsCount) = miParent
+		GetDropdowns miParent
+	End If
+End Sub
+
 Private Sub frmMenuEditor.Form_Paint_(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
 	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_Paint(Sender, Canvas)
 End Sub
@@ -60,6 +72,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 			RectsCount += 1
 			ReDim Preserve Ctrls(RectsCount)
 			ReDim Preserve Rects(RectsCount)
+			ReDim Preserve Parents(RectsCount)
 			Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
 			If RectsCount = 1 Then
 				Rects(RectsCount).Left = 1
@@ -73,16 +86,13 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 				.Pen.Color = BGR(0, 120, 215)
 				.Brush.Color = BGR(174, 215, 247)
 				.Rectangle Rects(RectsCount)
-				
-				For j As Integer = 0 To QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Count")) - 1
-					
-				Next
 			End If
 			.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
 		Next i
 		RectsCount += 1
 		ReDim Preserve Ctrls(RectsCount)
 		ReDim Preserve Rects(RectsCount)
+		ReDim Preserve Parents(RectsCount)
 		If RectsCount = 1 Then
 			Rects(RectsCount).Left = 1
 		Else
@@ -100,6 +110,105 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 		Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight(ML("Type here")) + 6
 		.Rectangle Rects(RectsCount)
 		.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
+		If ActiveCtrl <> 0 Then 'ActiveRect <> RectsCount AndAlso 
+			DropdownsCount = 0
+			ReDim Dropdowns(0)
+			Dropdowns(0) = ActiveCtrl
+			GetDropdowns Dropdowns(0)
+			For j As Integer = DropdownsCount To 0 Step -1
+				Dim As Any Ptr mi, CurrentMenuItem = Dropdowns(j)
+				Dim As Integer CurRect, iSubMenuHeight = .TextHeight("A") + 6 + 4, MaxWidth = 100, CurWidth
+				For i As Integer = 1 To RectsCount
+					If Ctrls(i) = CurrentMenuItem Then
+						CurRect = i
+						Exit For
+					End If
+				Next
+				If CurRect <> 0 Then
+					For i As Integer = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenuItem, "Count")) - 1
+						mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
+						If mi <> 0 Then
+							If QWString(Des->ReadPropertyFunc(mi, "Caption")) = "-" Then
+								iSubMenuHeight += 3
+							Else
+								iSubMenuHeight += .TextHeight("A") + 6
+							End If
+							CurWidth = .TextWidth(QWString(Des->ReadPropertyFunc(mi, "Caption"))) + 50
+							If CurWidth > MaxWidth Then MaxWidth = CurWidth
+						End If
+					Next
+					Dim As Rect rct
+					If Des->ReadPropertyFunc(CurrentMenuItem, "Parent") = 0 Then
+						rct.Left = Rects(CurRect).Left
+						rct.Top = Rects(CurRect).Bottom
+					Else
+						rct.Left = Rects(CurRect).Right + 1
+						rct.Top = Rects(CurRect).Top - 2
+					End If
+					rct.Right = rct.Left + 25
+					rct.Bottom = rct.Top + iSubMenuHeight
+					.Pen.Color = BGR(197, 194, 184)
+					.Brush.Color = BGR(241, 241, 241)
+					.Rectangle rct
+					rct.Left = rct.Left + 24
+					rct.Right = rct.Left + MaxWidth
+					.Brush.Color = BGR(252, 252, 249)
+					.Rectangle rct
+					iSubMenuHeight = 2
+					Dim As Integer iMenuHeight = .TextHeight("A") + 6
+					For i As Integer = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenuItem, "Count")) - 1
+						mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
+						If mi <> 0 Then
+							If QWString(Des->ReadPropertyFunc(mi, "Caption")) = "-" Then
+								iMenuHeight = 3
+							Else
+								iMenuHeight = .TextHeight("A") + 6
+							End If
+							RectsCount += 1
+							ReDim Preserve Ctrls(RectsCount)
+							ReDim Preserve Rects(RectsCount)
+							ReDim Preserve Parents(RectsCount)
+							Ctrls(RectsCount) = mi
+							Parents(RectsCount) = CurrentMenuItem
+							Rects(RectsCount).Left = rct.Left + 2
+							Rects(RectsCount).Top = rct.Top + iSubMenuHeight
+							Rects(RectsCount).Right = Rects(RectsCount).Left + MaxWidth - 4
+							Rects(RectsCount).Bottom = Rects(RectsCount).Top + iMenuHeight
+							If RectsCount = ActiveRect Then
+								.Pen.Color = BGR(0, 120, 215)
+								.Brush.Color = BGR(174, 215, 247)
+								.Rectangle Rects(RectsCount)
+							End If
+							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+							If QInteger(Des->ReadPropertyFunc(mi, "Count")) > 0 Then
+								.Pen.Color = BGR(0, 0, 0)
+								.Line Rects(RectsCount).Right - 10, Rects(RectsCount).Top + 6, Rects(RectsCount).Right - 10 + 3, Rects(RectsCount).Top + 6 + 3
+								.Line Rects(RectsCount).Right - 10 + 3, Rects(RectsCount).Top + 6 + 3, Rects(RectsCount).Right - 10 - 1, Rects(RectsCount).Top + 6 + 7
+							End If
+							iSubMenuHeight += iMenuHeight
+						End If
+					Next
+					RectsCount += 1
+					ReDim Preserve Ctrls(RectsCount)
+					ReDim Preserve Rects(RectsCount)
+					ReDim Preserve Parents(RectsCount)
+					Parents(RectsCount) = CurrentMenuItem
+					Rects(RectsCount).Left = rct.Left + 2
+					Rects(RectsCount).Top = rct.Top + iSubMenuHeight
+					If RectsCount = ActiveRect Then
+						.Pen.Color = BGR(0, 120, 215)
+						.Brush.Color = BGR(174, 215, 247)
+					Else
+						.Pen.Color = BGR(109, 109, 109)
+						.Brush.Color = BGR(255, 255, 255)
+					End If
+					Rects(RectsCount).Right = Rects(RectsCount).Left + MaxWidth - 4
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + iMenuHeight
+					.Rectangle Rects(RectsCount)
+					.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
+				End If
+			Next
+		End If
 	End With
 End Sub
 
@@ -112,49 +221,75 @@ Private Sub frmMenuEditor.Form_MouseDown(ByRef Sender As Control, MouseButton As
 		With Rects(i)
 			If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
 				If i = ActiveRect Then
-					picActive.Left = .Left + 1
-					picActive.Top = .Top + 2
-					If Ctrls(i) = 0 Then
-						Dim As String FName = "MenuItem"
-						If Des->OnInsertingControl Then
-							Des->OnInsertingControl(*Des, FName, FName)
-						End If
-						Dim As UString FCaption = FName
-						Dim Obj As Any Ptr = Des->CreateObjectFunc("MenuItem")
-						Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
-						Des->WritePropertyFunc(Obj, "ParentMenu", CurrentMenu)
-						Des->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
-						ChangeControl Obj, "ParentMenu"
-						ChangeControl Obj, "Caption"
-						If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj)
-						Ctrls(i) = Obj
-						txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-						picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
-						If i = 1 Then
-							Des->CheckTopMenuVisible , False
-						Else
-							Des->TopMenu->Repaint
-						End If
-					Else
-						txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-						picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
-					End If
-					picActive.Height = .Bottom - .Top - 3
-					picActive.Visible = True
-					Repaint
+					EditRect i
+					txtActive.SelStart = (X - .Left) / This.Canvas.TextWidth("A")
+					txtActive.SelEnd = txtActive.SelStart
 				Else
-					ActiveRect = i
-					If Ctrls(i) = 0 Then
-						txtActive.Text = ML("Type here")
-					Else
-						txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-					End If
-					Repaint
+					SelectRect i
 				End If
 				Exit Sub
 			End If
 		End With
 	Next i
+End Sub
+
+Sub frmMenuEditor.EditRect(i As Integer)
+	With Rects(i)
+		ActiveRect = i
+		picActive.Left = .Left + 1
+		picActive.Top = .Top + 2
+		If Ctrls(i) = 0 Then
+			Dim As String FName = "MenuItem"
+			If Des->OnInsertingControl Then
+				Des->OnInsertingControl(*Des, FName, FName)
+			End If
+			Dim As UString FCaption = FName
+			Dim Obj As Any Ptr = Des->CreateObjectFunc("MenuItem")
+			Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
+			If Parents(i) = 0 Then
+				Des->WritePropertyFunc(Obj, "ParentMenu", CurrentMenu)
+			Else
+				Des->WritePropertyFunc(Obj, "Parent", Parents(i))
+			End If
+			Des->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
+			If Parents(i) = 0 Then
+				ChangeControl Obj, "ParentMenu"
+			Else
+				ChangeControl Obj, "Parent"
+			End If
+			ChangeControl Obj, "Caption"
+			If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj)
+			Ctrls(i) = Obj
+			ActiveCtrl = Obj
+			txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
+			picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
+			If i = 1 Then
+				Des->CheckTopMenuVisible , False
+			Else
+				Des->TopMenu->Repaint
+			End If
+		Else
+			txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
+			picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
+		End If
+		picActive.Height = .Bottom - .Top - 3
+		picActive.Visible = True
+		Repaint
+		txtActive.SetFocus
+	End With
+End Sub
+
+Sub frmMenuEditor.SelectRect(Index As Integer)
+	ActiveRect = Index
+	If Ctrls(Index) = 0 Then
+		txtActive.Text = ML("Type here")
+	Else
+		txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(Index), "Caption"))
+		ActiveCtrl = Ctrls(Index)
+		Des->SelectedControl = Ctrls(Index)
+		If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, Ctrls(Index))
+	End If
+	Repaint
 End Sub
 
 Private Sub frmMenuEditor.txtActive_Change_(ByRef Sender As TextBox)
@@ -165,7 +300,106 @@ Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 	If ActiveRect <> 0 AndAlso Ctrls(ActiveRect) <> 0 AndAlso QWString(Des->ReadPropertyFunc(Ctrls(ActiveRect), "Caption")) <> txtActive.Text Then
 		Des->WritePropertyFunc(Ctrls(ActiveRect), "Caption", @txtActive.Text)
 		ChangeControl Ctrls(ActiveRect), "Caption"
-		Des->TopMenu->Repaint
+		If Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent") = 0 Then Des->TopMenu->Repaint
 	End If
 	Repaint
+End Sub
+
+Private Sub frmMenuEditor.Form_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
+	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_KeyDown(Sender, Key, Shift)
+End Sub
+Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
+	Select Case Key
+	Case Keys.Left
+		If Parents(ActiveRect) = 0 Then
+			If ActiveRect = 1 Then
+				Dim As Integer Last
+				For i As Integer = 1 To RectsCount
+					If Parents(i) = 0 Then
+						Last = i
+					End If
+				Next
+				SelectRect Last
+			Else
+				SelectRect ActiveRect - 1
+			End If
+		Else
+			For i As Integer = 1 To RectsCount
+				If Parents(ActiveRect) = Ctrls(i) Then
+					SelectRect i
+					Exit For
+				End If
+			Next
+		End If
+	Case Keys.Right
+		If Parents(ActiveRect) = 0 Then
+			Dim As Integer Last
+			For i As Integer = 1 To RectsCount
+				If Parents(i) = 0 Then
+					Last = i
+				End If
+			Next
+			If ActiveRect = Last Then
+				SelectRect 1
+			Else
+				SelectRect ActiveRect + 1
+			End If
+		Else
+			For i As Integer = 1 To RectsCount
+				If Parents(i) = Ctrls(ActiveRect) Then
+					SelectRect i
+					Exit For
+				End If
+			Next
+		End If
+	Case Keys.Down
+		If Parents(ActiveRect) = 0 Then
+			For i As Integer = 1 To RectsCount
+				If Parents(i) = Ctrls(ActiveRect) Then
+					SelectRect i
+					Exit For
+				End If
+			Next
+		Else
+			Dim As Integer First, Last
+			For i As Integer = 1 To RectsCount
+				If Parents(i) = Parents(ActiveRect) Then
+					If First = 0 Then First = i
+					Last = i
+				End If
+			Next
+			If ActiveRect = Last Then
+				SelectRect First
+			Else
+				SelectRect ActiveRect + 1
+			End If
+		End If
+	Case Keys.Up
+		If Parents(ActiveRect) <> 0 Then
+			Dim As Integer First, Last
+			For i As Integer = 1 To RectsCount
+				If Parents(i) = Parents(ActiveRect) Then
+					If First = 0 Then First = i
+					Last = i
+				End If
+			Next
+			If ActiveRect = First Then
+				SelectRect Last
+			Else
+				SelectRect ActiveRect - 1
+			End If
+		End If
+	End Select
+End Sub
+
+Private Sub frmMenuEditor.Form_KeyPress_(ByRef Sender As Control, Key As Byte)
+	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_KeyPress(Sender, Key)
+End Sub
+Private Sub frmMenuEditor.Form_KeyPress(ByRef Sender As Control, Key As Byte)
+	If ActiveRect <> 0 Then
+		EditRect ActiveRect
+		txtActive.Text = WChr(Key)
+		txtActive.SelStart = 1
+		txtActive.SelEnd = 1
+	End If
 End Sub

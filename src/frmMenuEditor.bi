@@ -14,6 +14,13 @@
 		Declare Sub Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Static Sub txtActive_Change_(ByRef Sender As TextBox)
 		Declare Sub txtActive_Change(ByRef Sender As TextBox)
+		Declare Sub GetDropdowns(mi As Any Ptr)
+		Declare Sub SelectRect(Index As Integer)
+		Declare Sub EditRect(i As Integer)
+		Declare Static Sub Form_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
+		Declare Sub Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
+		Declare Static Sub Form_KeyPress_(ByRef Sender As Control, Key As Byte)
+		Declare Sub Form_KeyPress(ByRef Sender As Control, Key As Byte)
 		Declare Constructor
 		
 		Dim As Picture picActive
@@ -22,8 +29,12 @@
 		Dim Des As My.Sys.Forms.Designer Ptr
 		Dim Rects(Any) As Rect
 		Dim Ctrls(Any) As Any Ptr
+		Dim Parents(Any) As Any Ptr
 		Dim RectsCount As Integer
 		Dim ActiveRect As Integer
+		Dim ActiveCtrl As Any Ptr
+		Dim Dropdowns(Any) As Any Ptr
+		Dim DropdownsCount As Integer
 	End Type
 	
 	Common Shared pfMenuEditor As frmMenuEditor Ptr

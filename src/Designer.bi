@@ -52,6 +52,7 @@ Namespace My.Sys.Forms
 			Declare Static Function HookDialogProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Function HookDialogParentProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Function DotWndProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookTopMenuProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			'FPopupMenu     As HMENU
 		#endif
 		mnuDesigner    As PopupMenu
@@ -189,6 +190,7 @@ Namespace My.Sys.Forms
 		ObjectDeleteFunc As Function(Obj As Any Ptr) As Boolean
 		MenuByIndexFunc As Function(ParentMenu As Any Ptr, Index As Integer) As Any Ptr
 		MenuItemByIndexFunc As Function(ParentMenuItem As Any Ptr, Index As Integer) As Any Ptr
+		MenuFindByCommand As Function(PMenu As Any Ptr, FCommand As Integer) As Any Ptr
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr
@@ -228,8 +230,8 @@ Namespace My.Sys.Forms
 		Dim Ctrls(Any) As Any Ptr
 		Dim RectsCount As Integer
 		Dim ActiveRect As Integer
-		Declare Static Sub TopMenu_Paint(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
-		Declare        Sub DrawTopMenu(ByRef Canvas As Canvas)
+		Dim MouseRect  As Integer
+		Declare        Sub DrawTopMenu
 		Declare        Sub DrawThis() 'DC as HDC, R as RECT)
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
@@ -251,6 +253,7 @@ Namespace My.Sys.Forms
 		OnInsertingControl As Sub(ByRef Sender As Designer, ByRef ClassName As String, ByRef sName As String)
 		OnMouseMove        As Sub(ByRef Sender As Designer, X As Integer, Y As Integer, ByRef Over As Any Ptr)
 		OnDblClickControl  As Sub(ByRef Sender As Designer, Control As Any Ptr)
+		OnClickMenuItem    As Sub(ByRef Sender As Designer, MenuItem As Any Ptr)
 		OnClickProperties  As Sub(ByRef Sender As Designer, Control As Any Ptr)
 		Declare            Function ClassExists() As Boolean
 		'declare static     function GetClassName(hDlg as HWND) as string

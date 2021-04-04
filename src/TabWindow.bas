@@ -647,7 +647,7 @@ Function TabWindow.SaveAs As Boolean
 	If pSaveD->Execute Then
 		WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
 		If FileExists(pSaveD->FileName) Then
-			Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", pApp->Title, mtWarning, btYesNoCancel)
+			Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", App.Title, mtWarning, btYesNoCancel)
 			Case mrCANCEL: Return False
 			Case mrNO: Return SaveAs
 			End Select
@@ -706,7 +706,7 @@ Function TabWindow.CloseTab As Boolean
 			End If
 		End If
 	End If
-	If ptabCode->TabCount = 0 Then pfrmMain->Caption = pApp->Title
+	If ptabCode->TabCount = 0 Then pfrmMain->Caption = App.Title
 	MoveCloseButtons
 	FreeWnd
 	Return True
@@ -1536,7 +1536,9 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
 			'  Confuse the formatcode function
-			If PropertyName <> "" AndAlso PropertyName <> "Name" Then
+			If PropertyName = "Parent" Then
+				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: q += 1
+			ElseIf PropertyName <> "" AndAlso PropertyName <> "Name" Then
 				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
 			End If
 			ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & "End With"
@@ -1708,6 +1710,12 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 					ChangeControl(tb->Des->SelectedControl, PropertyName)
 				End If
 			Next i
+			#ifndef __USE_GTK__
+				If QWString(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")) = "MenuItem" Then
+					tb->Des->TopMenu->Repaint
+					If pfMenuEditor->Visible Then pfMenuEditor->Repaint
+				End If
+			#endif
 			.Changed "Unsurni o`zgartirish"
 			pfrmMain->UpdateUnLock
 		End If
@@ -1971,6 +1979,9 @@ End Function
 Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	On Error Goto ErrorHandler
 	Dim As TabWindow Ptr tb = ptabRight->Tag
+	If tb = 0 Then
+		tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	End If
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
 	If tb->Des->DesignControl = 0 Then Exit Sub
@@ -2214,6 +2225,15 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	'        .Changed "Unsurni o`zgartirish"
 	'        frmMain.UpdateUnLock
 	'    End With
+End Sub
+
+Sub DesignerClickMenuItem(ByRef Sender As Designer, MenuItem As Any Ptr)
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	FindEvent MenuItem, "OnClick"
+	If tb->tbrTop.Buttons.Item(2)->Checked Then
+		tb->tbrTop.Buttons.Item(1)->Checked = True
+	End If
 End Sub
 
 Sub DesignerClickProperties(ByRef Sender As Designer, Ctrl As Any Ptr)
@@ -3792,6 +3812,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->OnChangeSelection = @DesignerChangeSelection
 					Des->OnDeleteControl = @DesignerDeleteControl
 					Des->OnDblClickControl = @DesignerDblClickControl
+					Des->OnClickMenuItem = @DesignerClickMenuItem
 					Des->OnClickProperties = @DesignerClickProperties
 					Des->OnModified = @DesignerModified
 					Des->MFF = DyLibLoad(*MFFDll)
@@ -3816,6 +3837,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->ObjectDeleteFunc = DyLibSymbol(Des->MFF, "ObjectDelete")
 					Des->MenuByIndexFunc = DyLibSymbol(Des->MFF, "MenuByIndex")
 					Des->MenuItemByIndexFunc = DyLibSymbol(Des->MFF, "MenuItemByIndex")
+					Des->MenuFindByCommand = DyLibSymbol(Des->MFF, "MenuFindByCommand")
 					Des->TopMenu = @pnlTopMenu
 					'Des->ContextMenu = @mnuForm
 					pnlTopMenu.Visible = False
@@ -4216,6 +4238,10 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlCode.Align = 5
 	pnlEdit.Align = 5
 	pnlTopMenu.Parent = @pnlForm
+	#ifndef __USE_GTK__
+		pnlTopMenu.Font.Name = "Tahoma"
+		pnlTopMenu.Font.Size = 8
+	#endif
 	'lvComponentsList.Images = @imgListTools
 	'lvComponentsList.StateImages = @imgListTools
 	'lvComponentsList.SmallImages = @imgListTools

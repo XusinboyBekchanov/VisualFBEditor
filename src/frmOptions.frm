@@ -2886,9 +2886,9 @@ Sub FindCompilersSub(Param As Any Ptr)
 	ThreadsEnter
 	bStop = True: FindProcessStartStop
 	If FindedCompilersCount = 0 Then
-		MsgBox ML("No сompilers found"), pApp->Title
+		MsgBox ML("No сompilers found"), App.Title
 	Else
-		MsgBox ML("Number of compilers found") & ": " & Str(FindedCompilersCount), pApp->Title
+		MsgBox ML("Number of compilers found") & ": " & Str(FindedCompilersCount), App.Title
 	End If
 	ThreadsLeave
 End Sub

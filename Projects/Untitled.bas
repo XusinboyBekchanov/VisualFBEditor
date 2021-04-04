@@ -13,7 +13,7 @@
 		Declare Constructor
 		
 		Dim As MainMenu MainMenu1
-		Dim As MenuItem MenuItem1, MenuItem2, MenuItem3
+		Dim As MenuItem MenuItem1, MenuItem2, MenuItem3, MenuItem4, MenuItem5
 	End Type
 	
 	Constructor Form1
@@ -48,6 +48,18 @@
 			.Caption = "MenuItem3"
 			.ParentMenu = @MainMenu1
 			
+		End With
+		' MenuItem4
+		With MenuItem4
+			.Name = "MenuItem4"
+			.Caption = "MenuItem4"
+			.Parent = @MenuItem1
+		End With
+		' MenuItem5
+		With MenuItem5
+			.Name = "MenuItem5"
+			.Caption = "MenuItem5"
+			.Parent = @MenuItem2
 		End With
 	End Constructor
 	
