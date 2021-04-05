@@ -36,6 +36,7 @@
 			.Visible = True
 			.Designer = @This
 			.OnChange = @txtActive_Change_
+			.OnKeyDown = @txtActive_KeyDown_
 			.Parent = @picActive
 		End With
 	End Constructor
@@ -289,7 +290,9 @@ Sub frmMenuEditor.SelectRect(Index As Integer)
 		Des->SelectedControl = Ctrls(Index)
 		If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, Ctrls(Index))
 	End If
+	If picActive.Visible Then picActive.Visible = False 
 	Repaint
+	This.SetFocus
 End Sub
 
 Private Sub frmMenuEditor.txtActive_Change_(ByRef Sender As TextBox)
@@ -401,5 +404,14 @@ Private Sub frmMenuEditor.Form_KeyPress(ByRef Sender As Control, Key As Byte)
 		txtActive.Text = WChr(Key)
 		txtActive.SelStart = 1
 		txtActive.SelEnd = 1
+	End If
+End Sub
+
+Private Sub frmMenuEditor.txtActive_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
+	*Cast(frmMenuEditor Ptr, Sender.Designer).txtActive_KeyDown(Sender, Key, Shift)
+End Sub
+Private Sub frmMenuEditor.txtActive_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
+	If Key = Keys.Enter Then
+		SelectRect ActiveRect
 	End If
 End Sub

@@ -21,6 +21,8 @@
 		Declare Sub Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Static Sub Form_KeyPress_(ByRef Sender As Control, Key As Byte)
 		Declare Sub Form_KeyPress(ByRef Sender As Control, Key As Byte)
+		Declare Static Sub txtActive_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
+		Declare Sub txtActive_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Constructor
 		
 		Dim As Picture picActive
