@@ -118,6 +118,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 			GetDropdowns Dropdowns(0)
 			For j As Integer = DropdownsCount To 0 Step -1
 				Dim As Any Ptr mi, CurrentMenuItem = Dropdowns(j)
+				If QWString(Des->ReadPropertyFunc(CurrentMenuItem, "Caption")) = "-" Then Exit For
 				Dim As Integer CurRect, iSubMenuHeight = .TextHeight("A") + 6 + 4, MaxWidth = 100, CurWidth
 				For i As Integer = 1 To RectsCount
 					If Ctrls(i) = CurrentMenuItem Then
@@ -130,7 +131,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 						mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
 						If mi <> 0 Then
 							If QWString(Des->ReadPropertyFunc(mi, "Caption")) = "-" Then
-								iSubMenuHeight += 3
+								iSubMenuHeight += 5
 							Else
 								iSubMenuHeight += .TextHeight("A") + 6
 							End If
@@ -161,7 +162,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 						mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
 						If mi <> 0 Then
 							If QWString(Des->ReadPropertyFunc(mi, "Caption")) = "-" Then
-								iMenuHeight = 3
+								iMenuHeight = 5
 							Else
 								iMenuHeight = .TextHeight("A") + 6
 							End If
@@ -180,7 +181,12 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 								.Brush.Color = BGR(174, 215, 247)
 								.Rectangle Rects(RectsCount)
 							End If
-							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+							If iMenuHeight = 5 Then
+								.Pen.Color = BGR(197, 194, 184)
+								.Line Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 2, Rects(RectsCount).Right - 1, Rects(RectsCount).Top + 2
+							Else
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+							End If
 							If QInteger(Des->ReadPropertyFunc(mi, "Count")) > 0 Then
 								.Pen.Color = BGR(0, 0, 0)
 								.Line Rects(RectsCount).Right - 10, Rects(RectsCount).Top + 6, Rects(RectsCount).Right - 10 + 3, Rects(RectsCount).Top + 6 + 3
@@ -204,7 +210,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 						.Brush.Color = BGR(255, 255, 255)
 					End If
 					Rects(RectsCount).Right = Rects(RectsCount).Left + MaxWidth - 4
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + iMenuHeight
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
 					.Rectangle Rects(RectsCount)
 					.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
 				End If
