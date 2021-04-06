@@ -111,7 +111,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 		Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight(ML("Type here")) + 6
 		.Rectangle Rects(RectsCount)
 		.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
-		If ActiveCtrl <> 0 Then 'ActiveRect <> RectsCount AndAlso 
+		If ActiveCtrl <> 0 Then
 			DropdownsCount = 0
 			ReDim Dropdowns(0)
 			Dropdowns(0) = ActiveCtrl
@@ -302,6 +302,7 @@ End Sub
 Sub frmMenuEditor.SelectRect(Index As Integer)
 	ActiveRect = Index
 	If Ctrls(Index) = 0 Then
+		ActiveCtrl = Parents(Index)
 		txtActive.Text = ML("Type here")
 	Else
 		ActiveCtrl = Ctrls(Index)
