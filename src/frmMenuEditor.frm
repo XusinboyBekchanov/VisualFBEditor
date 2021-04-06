@@ -286,21 +286,6 @@ Sub frmMenuEditor.EditRect(i As Integer)
 	End With
 End Sub
 
-Sub frmMenuEditor.SelectRect(Index As Integer)
-	ActiveRect = Index
-	If Ctrls(Index) = 0 Then
-		txtActive.Text = ML("Type here")
-	Else
-		txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(Index), "Caption"))
-		ActiveCtrl = Ctrls(Index)
-		Des->SelectedControl = Ctrls(Index)
-		If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, Ctrls(Index))
-	End If
-	If picActive.Visible Then picActive.Visible = False 
-	Repaint
-	This.SetFocus
-End Sub
-
 Private Sub frmMenuEditor.txtActive_Change_(ByRef Sender As TextBox)
 	*Cast(frmMenuEditor Ptr, Sender.Designer).txtActive_Change(Sender)
 End Sub
@@ -312,6 +297,20 @@ Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 		If Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent") = 0 Then Des->TopMenu->Repaint
 	End If
 	Repaint
+End Sub
+
+Sub frmMenuEditor.SelectRect(Index As Integer)
+	ActiveRect = Index
+	If Ctrls(Index) = 0 Then
+		txtActive.Text = ML("Type here")
+	Else
+		ActiveCtrl = Ctrls(Index)
+		txtActive.Text = QWString(Des->ReadPropertyFunc(ActiveCtrl, "Caption"))
+		Des->SelectedControl = ActiveCtrl
+		If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, ActiveCtrl)
+	End If
+	If picActive.Visible Then picActive.Visible = False 
+	This.SetFocus
 End Sub
 
 Private Sub frmMenuEditor.Form_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -397,6 +396,39 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 			Else
 				SelectRect ActiveRect - 1
 			End If
+		End If
+	Case Keys.DeleteKey
+		If ActiveRect > 0 AndAlso Ctrls(ActiveRect) <> 0 Then
+			Dim As Any Ptr ParentMenu = Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent")
+			Des->DeleteMenuItems(CurrentMenu, Ctrls(ActiveRect))
+			Dim As Integer First, Last, ParentRect
+			For i As Integer = 1 To RectsCount
+				If Parents(i) = Parents(ActiveRect) Then
+					If First = 0 Then First = i
+					Last = i
+				End If
+				If Parents(ActiveRect) = Ctrls(i) Then ParentRect = i
+			Next
+			If ActiveRect <= Last - 1 Then
+				Ctrls(ActiveRect) = Ctrls(ActiveRect + 1)
+				If Ctrls(ActiveRect) = 0 Then 
+					ActiveCtrl = Ctrls(ParentRect)
+					Des->SelectedControl = CurrentMenu
+					If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, CurrentMenu)
+				End If
+				SelectRect ActiveRect
+			ElseIf ActiveRect > First Then
+				SelectRect ActiveRect - 1
+			ElseIf Parents(ActiveRect) <> 0 Then
+				SelectRect ParentRect
+			Else
+				ActiveCtrl = 0
+				ActiveRect = 0
+				Des->SelectedControl = CurrentMenu
+				If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, CurrentMenu)
+				Repaint
+			End If
+			If ParentMenu = 0 Then Des->TopMenu->Repaint
 		End If
 	End Select
 End Sub

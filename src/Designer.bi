@@ -190,7 +190,9 @@ Namespace My.Sys.Forms
 		ObjectDeleteFunc As Function(Obj As Any Ptr) As Boolean
 		MenuByIndexFunc As Function(ParentMenu As Any Ptr, Index As Integer) As Any Ptr
 		MenuItemByIndexFunc As Function(ParentMenuItem As Any Ptr, Index As Integer) As Any Ptr
-		MenuFindByCommand As Function(PMenu As Any Ptr, FCommand As Integer) As Any Ptr
+		MenuFindByCommandFunc As Function(PMenu As Any Ptr, FCommand As Integer) As Any Ptr
+		MenuRemoveSub As Sub(ParentMenu As Any Ptr, PMenuItem As Any Ptr)
+		MenuItemRemoveSub As Sub(ParentMenuItem As Any Ptr, PMenuItem As Any Ptr)
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr
@@ -211,6 +213,7 @@ Namespace My.Sys.Forms
 		Declare        Sub AddPasteControls(Ctrl As Any Ptr, ParentCtrl As Any Ptr, bStart As Boolean)
 		Declare        Sub PasteControl()
 		Declare        Sub DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
+		Declare        Sub DeleteMenuItems(pMenu As Any Ptr, mi As Any Ptr)
 		Declare        Sub DeleteControl()
 		Declare        Sub BringToFront()
 		Declare        Sub SendToBack()

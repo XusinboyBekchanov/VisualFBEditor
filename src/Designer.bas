@@ -1060,6 +1060,23 @@ Namespace My.Sys.Forms
 			End If
 		End If
 	End Sub
+	
+	Sub Designer.DeleteMenuItems(pMenu As Any Ptr, mi As Any Ptr)
+		For i As Integer = iGet(ReadPropertyFunc(mi, "Count")) - 1 To 0 Step -1
+			DeleteMenuItems pMenu, MenuItemByIndexFunc(mi, i)
+		Next
+		If OnDeleteControl Then OnDeleteControl(This, mi)
+		Dim As Any Ptr AParent = ReadPropertyFunc(mi, "Parent")
+		If AParent Then
+			MenuItemRemoveSub(AParent, mi)
+		Else
+			MenuRemoveSub(pMenu, mi)
+		End If
+		If ObjectDeleteFunc Then
+			ObjectDeleteFunc(mi)
+		End If
+	End Sub
+	
 	'sub Designer.DeleteControl(hDlg as HWND)
 	'	if IsWindow(hDlg) then
 	'		if hDlg <> FDialog then
@@ -1998,7 +2015,7 @@ Namespace My.Sys.Forms
 									Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.x, P.y, 0, hDlg, 0)
 									Dim As Any Ptr CurrentMenu = .ReadPropertyFunc(.DesignControl, "Menu")
 									If CurrentMenu <> 0 Then
-										Dim As Any Ptr mi = .MenuFindByCommand(CurrentMenu, b)
+										Dim As Any Ptr mi = .MenuFindByCommandFunc(CurrentMenu, b)
 										If mi <> 0 Then
 											If .OnClickMenuItem Then .OnClickMenuItem(*Des, mi)
 										End If
