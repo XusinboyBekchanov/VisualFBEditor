@@ -34,6 +34,7 @@
 			.SetBounds -2, -2, 780, 24
 			.BackColor = 16242606
 			.Visible = True
+			.WantTab = True
 			.Designer = @This
 			.OnChange = @txtActive_Change_
 			.OnKeyDown = @txtActive_KeyDown_
@@ -135,7 +136,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 							Else
 								iSubMenuHeight += .TextHeight("A") + 6
 							End If
-							CurWidth = .TextWidth(QWString(Des->ReadPropertyFunc(mi, "Caption"))) + 50
+							CurWidth = .TextWidth(Replace(QWString(Des->ReadPropertyFunc(mi, "Caption")), !"\t", Space(6))) + 50
 							If CurWidth > MaxWidth Then MaxWidth = CurWidth
 						End If
 					Next
@@ -185,7 +186,14 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 								.Pen.Color = BGR(197, 194, 184)
 								.Line Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 2, Rects(RectsCount).Right - 1, Rects(RectsCount).Top + 2
 							Else
-								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+								Dim As WString Ptr pCaption = Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")
+								Dim As Integer Pos1 = InStr(*pCaption, !"\t")
+								If Pos1 > 0 Then
+									.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, Left(*pCaption, Pos1 - 1), BGR(0, 0, 0), -1
+									.TextOut Rects(RectsCount).Right - 10 - 5 - .TextWidth(Mid(*pCaption, Pos1 + 1)), Rects(RectsCount).Top + 3, Mid(*pCaption, Pos1 + 1), BGR(0, 0, 0), -1
+								Else
+									.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, *pCaption, BGR(0, 0, 0), -1
+								End If
 							End If
 							If QInteger(Des->ReadPropertyFunc(mi, "Count")) > 0 Then
 								.Pen.Color = BGR(0, 0, 0)
@@ -269,7 +277,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 			Ctrls(i) = Obj
 			ActiveCtrl = Obj
 			txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-			picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
+			'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
 			If i = 1 Then
 				Des->CheckTopMenuVisible , False
 			Else
@@ -277,7 +285,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 			End If
 		Else
 			txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-			picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
+			'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
 		End If
 		picActive.Height = .Bottom - .Top - 3
 		picActive.Visible = True
@@ -290,13 +298,15 @@ Private Sub frmMenuEditor.txtActive_Change_(ByRef Sender As TextBox)
 	*Cast(frmMenuEditor Ptr, Sender.Designer).txtActive_Change(Sender)
 End Sub
 Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
-	picActive.Width = This.Canvas.TextWidth(txtActive.Text) + 5
-	If ActiveRect <> 0 AndAlso Ctrls(ActiveRect) <> 0 AndAlso QWString(Des->ReadPropertyFunc(Ctrls(ActiveRect), "Caption")) <> txtActive.Text Then
-		Des->WritePropertyFunc(Ctrls(ActiveRect), "Caption", @txtActive.Text)
-		ChangeControl Ctrls(ActiveRect), "Caption"
-		If Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent") = 0 Then Des->TopMenu->Repaint
+	If ActiveRect <> 0 Then
+		If Ctrls(ActiveRect) <> 0 AndAlso QWString(Des->ReadPropertyFunc(Ctrls(ActiveRect), "Caption")) <> txtActive.Text Then
+			Des->WritePropertyFunc(Ctrls(ActiveRect), "Caption", @txtActive.Text)
+			ChangeControl Ctrls(ActiveRect), "Caption"
+			If Parents(ActiveRect) = 0 Then Des->TopMenu->Repaint
+		End If
+		Repaint
+		picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2
 	End If
-	Repaint
 End Sub
 
 Sub frmMenuEditor.SelectRect(Index As Integer)
@@ -319,6 +329,8 @@ Private Sub frmMenuEditor.Form_KeyDown_(ByRef Sender As Control, Key As Integer,
 End Sub
 Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Select Case Key
+	Case Keys.F2
+		If ActiveRect <> 0 Then EditRect ActiveRect
 	Case Keys.Left
 		If Parents(ActiveRect) = 0 Then
 			If ActiveRect = 1 Then
