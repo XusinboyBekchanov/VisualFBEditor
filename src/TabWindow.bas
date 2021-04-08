@@ -5055,7 +5055,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 						#endif
 					End If
 				End If
-					Var Fn = FreeFile
+				Var Fn = FreeFile
 				If Open(*File For Input Encoding "utf-8" As #Fn) = 0 Then
 					Var n = 0
 					Var bFinded = False, bChanged = False

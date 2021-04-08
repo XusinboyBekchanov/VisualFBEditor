@@ -32,6 +32,7 @@ On Error Goto AA
 #include once "frmFind.bi"
 #include once "frmFindInFiles.bi"
 #include once "frmProjectProperties.bi"
+#include once "frmImageManager.bi"
 #include once "frmParameters.bi"
 #include once "frmAddIns.bi"
 #include once "frmTools.bi"
@@ -137,7 +138,22 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "RemoveFileFromProject":               RemoveFileFromProject
 	Case "OpenProjectFolder":                   OpenProjectFolder
 	Case "ProjectProperties":                   pfProjectProperties->RefreshProperties: pfProjectProperties->ShowModal *pfrmMain
-	Case "SetAsMain": 			                SetAsMain
+	Case "SetAsMain":                           SetAsMain
+	Case "ProjectExplorer":                     ptabLeft->Tab(0)->SelectTab
+	Case "PropertiesWindow":                    ptabRight->Tab(0)->SelectTab
+	Case "EventsWindow":                        ptabRight->Tab(1)->SelectTab
+	Case "ToolBox":                             ptabLeft->Tab(1)->SelectTab
+	Case "OutputWindow":                        ptabBottom->Tab(0)->SelectTab
+	Case "ErrorsWindow":                        ptabBottom->Tab(1)->SelectTab
+	Case "FindWindow":                          ptabBottom->Tab(2)->SelectTab
+	Case "ToDoWindow":                          ptabBottom->Tab(3)->SelectTab
+	Case "ChangeLogWindow":                     ptabBottom->Tab(4)->SelectTab
+	Case "ImmediateWindow":                     ptabBottom->Tab(5)->SelectTab
+	Case "LocalsWindow":                        ptabBottom->Tab(6)->SelectTab
+	Case "ProcessesWindow":                     ptabBottom->Tab(7)->SelectTab
+	Case "ThreadsWindow":                       ptabBottom->Tab(8)->SelectTab
+	Case "WatchWindow":                         ptabBottom->Tab(9)->SelectTab
+	Case "ImageManager":                        pfImageManager->Show *pfrmMain
 	Case "Toolbars":                            ShowMainToolbar = Not ShowMainToolbar: ptbStandard->Visible = ShowMainToolbar: pfrmMain->RequestAlign
 	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
