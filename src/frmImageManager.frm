@@ -31,7 +31,7 @@
 			.ImagesList = @imgList
 			.HotImagesList = @imgList
 			.Buttons.Add , "Add"
-			.Buttons.Add , "Change"
+			.Buttons.Add , "Project"
 			.Buttons.Add , "Remove"
 			.Buttons.Add tbsSeparator
 			.Buttons.Add , "Up"
@@ -93,7 +93,7 @@
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
-			'.CenterImage = True
+			.CenterImage = True
 			.Parent = @gbImagePreview
 		End With
 		' pnlCommands
@@ -174,7 +174,7 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	If ResourceFile <> "" Then
 		Var Fn = FreeFile
 		If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
-			Dim As UString FilePath
+			Dim As WString * 1024 FilePath
 			Dim As WString * 1024 sLine
 			Dim As String Image
 			Do Until EOF(Fn)
@@ -185,12 +185,8 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 				If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
 				If Pos1 > 0 Then
 					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
+					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
 					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
-					If EndsWith(FilePath, """") Then
-						?11
-						FilePath = Left(FilePath, Len(FilePath) - 1)
-					End If
-					?FilePath
 					lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
 					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
 					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
@@ -229,9 +225,9 @@ Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListVie
 	If ItemIndex < 0 Then Exit Sub
 	Dim As UString Path = GetRelativePath(lvImages.ListItems.Item(ItemIndex)->Text(2), ResourceFile)
 	Select Case lvImages.ListItems.Item(ItemIndex)->Text(1)
-	Case "BITMAP", "PNG": imgImage.Graphic.Bitmap.LoadFromFile(Path)
+	Case "BITMAP": imgImage.Graphic.Bitmap.LoadFromFile(Path)
+	Case "PNG": imgImage.Graphic.Bitmap.LoadFromPNGFile(Path)
 	Case "ICON": imgImage.Graphic.Icon.LoadFromFile(Path)
 	Case "CURSOR": imgImage.Graphic.Cursor.LoadFromFile(Path)
 	End Select
-	?imgImage.Width, imgImage.Height
 End Sub
