@@ -21,6 +21,10 @@
 		Declare Sub lvImages_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Static Sub lvImages_SelectedItemChanged_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Sub lvImages_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub tbToolbar_ButtonClick_(ByRef Sender As ToolBar,ByRef Button As ToolButton)
+		Declare Sub tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
+		Declare Static Sub Form_Create_(ByRef Sender As Control)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As ToolBar tbToolbar

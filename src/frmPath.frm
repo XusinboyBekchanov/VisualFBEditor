@@ -102,6 +102,15 @@
 			.Text = ""
 			.Parent = @This
 		End With
+		' cboType
+		With cboType
+			.Name = "cboType"
+			.Text = ""
+			.TabIndex = 11
+			.SetBounds 100, 80, 130, 21
+			.Visible = false
+			.Parent = @This
+		End With
 	End Constructor
 	
 	Dim Shared frPath As frmPath

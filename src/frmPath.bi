@@ -9,6 +9,7 @@
 #include once "mff/TextBox.bi"
 #include once "mff/Label.bi"
 #include once "Main.bi"
+#include once "mff/ComboBoxEdit.bi"
 
 Using My.Sys.Forms
 
@@ -27,6 +28,7 @@ Using My.Sys.Forms
 		Dim As OpenFileDialog OpenD
 		Dim As FolderBrowserDialog BrowseD
 		Dim As Boolean ChooseFolder, SetFileNameToVersion, WithoutCommandLine, WithExtensions
+		Dim As ComboBoxEdit cboType
 	End Type
 	
 	Common Shared pfPath As frmPath Ptr

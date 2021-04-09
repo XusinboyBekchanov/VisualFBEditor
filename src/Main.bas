@@ -3619,7 +3619,6 @@ Sub CreateMenusAndToolBars
 	Var miOtherWindows = miView->Add(ML("Other Windows"))
 	miOtherWindows->Add(ML("Output Window") & HK("OutputWindow"), "OutputWindow", "OutputWindow", @mclick, True)
 	miOtherWindows->Add(ML("Errors Window") & HK("ErrorsWindow"), "ErrorsWindow", "ErrorsWindow", @mclick, True)
-	miOtherWindows->Add(ML("Output Window") & HK("OutputWindow"), "OutputWindow", "OutputWindow", @mclick, True)
 	miOtherWindows->Add(ML("Find Window") & HK("FindWindow"), "FindWindow", "FindWindow", @mclick, True)
 	miOtherWindows->Add(ML("ToDo Window") & HK("ToDoWindow"), "ToDoWindow", "ToDoWindow", @mclick, True)
 	miOtherWindows->Add(ML("Change Log Window") & HK("ChangeLogWindow"), "ChangeLogWindow", "ChangeLogWindow", @mclick, True)
