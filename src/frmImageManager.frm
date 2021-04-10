@@ -269,6 +269,13 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 			Print #Fn, Lines.Item(i)
 		End If
 	Next
+	If Not bFinded Then
+		With lvImages.ListItems
+			For j As Integer = 0 To lvImages.ListItems.Count - 1
+				Print #Fn, .Item(j)->Text(0) & " " & .Item(j)->Text(1) & " """ & .Item(j)->Text(2) & """"
+			Next
+		End With
+	End If
 	Close #Fn
 	Me.CloseForm
 End Sub
@@ -282,8 +289,7 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 	pfPath->txtPath.Text = lvImages.SelectedItem->Text(2)
 	pfPath->lblCommandLine.Text = ML("Type") & ":"
 	pfPath->cboType.ItemIndex = pfPath->cboType.IndexOf(lvImages.SelectedItem->Text(1))
-	pfPath->cboType.Visible = True
-	pfPath->txtCommandLine.Visible = False
+	pfPath->WithType = True
 	If pfPath->ShowModal() = ModalResults.OK Then
 		If lvImages.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfPath->txtVersion.Text) = -1 Then
 			lvImages.SelectedItem->Text(0) = pfPath->txtVersion.Text
@@ -319,8 +325,7 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 		pfPath->txtPath.Text = ""
 		pfPath->lblCommandLine.Text = ML("Type") & ":"
 		pfPath->cboType.ItemIndex = 0
-		pfPath->cboType.Visible = True
-		pfPath->txtCommandLine.Visible = False
+		pfPath->WithType = True
 		If pfPath->ShowModal() = ModalResults.OK Then
 			If lvImages.ListItems.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				lvImages.ListItems.Add pfPath->txtVersion.Text

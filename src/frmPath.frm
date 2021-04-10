@@ -173,13 +173,16 @@ Private Sub frmPath.Form_Show(ByRef Sender As Form)
 	frPath.lblVersion.Visible = Not frPath.ChooseFolder
 	frPath.txtVersion.Visible = Not frPath.ChooseFolder
 	frPath.lblCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder)
-	frPath.txtCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder)
+	frPath.txtCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder OrElse frPath.WithType)
 	frPath.lblExtensions.Visible = frPath.WithExtensions
 	frPath.txtExtensions.Visible = frPath.WithExtensions
+	frPath.cboType.Visible = frPath.WithType
+	frPath.lblCommandLine.Text = IIf(frPath.WithType, ML("Type") & ":", ML("Command line") & ":")
 End Sub
 
 Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	frPath.ChooseFolder = False
 	frPath.WithoutCommandLine = False
 	frPath.WithExtensions = False
+	frPath.WithType = False
 End Sub
