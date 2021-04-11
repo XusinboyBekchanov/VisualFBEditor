@@ -103,8 +103,8 @@ weChat PNG "../resources/weChat.png"
 
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,7,3019
-#define VER_FILEVERSION_STR         "1.2.7.3019\0"
+#define VER_FILEVERSION             1,2,8,3139
+#define VER_FILEVERSION_STR         "1.2.8.3139\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
@@ -115,8 +115,8 @@ weChat PNG "../resources/weChat.png"
 #define VER_LEGALTRADEMARKS1_STR    ""
 #define VER_LEGALTRADEMARKS2_STR    ""
 
-#define VER_PRODUCTVERSION          1,2,7,0
-#define VER_PRODUCTVERSION_STR      "1.2.7\0"
+#define VER_PRODUCTVERSION          1,2,8,0
+#define VER_PRODUCTVERSION_STR      "1.2.8\0"
 #define VER_COMPANYNAME_STR         "\0"
 
 VS_VERSION_INFO VERSIONINFO

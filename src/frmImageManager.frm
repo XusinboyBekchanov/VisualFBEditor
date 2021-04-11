@@ -139,6 +139,20 @@
 			.OnClick = @cmdOK_Click_
 			.Parent = @pnlCommands
 		End With
+		' lblResourceFile
+		With lblResourceFile
+			.Name = "lblResourceFile"
+			.Text = ML("File") & ":"
+			.TabIndex = 5
+			.SetBounds 10, 10, 411, 22
+			.ExtraMargins.Top = 10
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Left = 10
+			.ExtraMargins.Bottom = 10
+			.Align = DockStyle.alClient
+			.CenterImage = True
+			.Parent = @pnlCommands
+		End With
 	End Constructor
 	
 	Dim Shared fImageManager As frmImageManager
@@ -152,67 +166,44 @@ End Sub
 Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
-	Dim FileName As UString = GetMainFile(, Project, ProjectNode)
-	Dim sFirstLine As UString = GetFirstCompileLine(FileName, Project)
-	Dim As WString Ptr Buff, File, sLines
-	ResourceFile = ""
-	WLet(Buff, LTrim(sFirstLine, Any !"\t "))
-	Var Pos1 = InStr(*Buff, """"), Pos2 = 1
-	Dim QavsBoshi As Boolean
-	Do While Pos1 > 0
-		QavsBoshi = Not QavsBoshi
-		If QavsBoshi Then
-			Pos2 = Pos1
-		Else
-			WLet(File, Mid(*Buff, Pos2 + 1, Pos1 - Pos2 - 1))
-			If EndsWith(LCase(*File), ".rc") Then
-				ResourceFile = GetFolderName(FileName) & *File
-				Exit Do
-			End If
-		End If
-		Pos1 = InStr(Pos1 + 1, *Buff, """")
-	Loop
-	WDeallocate Buff
-	WDeallocate File
+	Dim As UString MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode), FolderName
+	Dim sFirstLine As UString = GetFirstCompileLine(MainFile, Project)
 	lvImages.ListItems.Clear
-	If ResourceFile = "" Then
-		Pos1 = InStrRev(FileName, ".")
-		If Pos1 > 0 Then
-			ResourceFile = Left(FileName, Pos1 - 1) & ".rc"
-		Else
-			ResourceFile = FileName & ".rc"
-		End If
-	Else
-		Var Fn = FreeFile
-		If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
-			Dim As WString * 1024 FilePath
-			Dim As WString * 1024 sLine
-			Dim As String Image
-			Do Until EOF(Fn)
-				Line Input #Fn, sLine
-				Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
-				If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
-				If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
-				If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
-				If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
-				If Pos1 > 0 Then
-					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
-					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
-					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
-					lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
-					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
-					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
-				End If
-			Loop
-			Close #Fn
-		End If
+	ResourceFile = GetResourceFile(WithoutMainNode)
+	ExeFileName = GetFullPath(GetExeFileName(MainFile, sFirstLine), MainFile)
+	FolderName = GetFolderName(ExeFileName)
+	If FolderName = "" Then ExeFileName = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ExeFileName
+	Var Fn = FreeFile, Pos1 = 0
+	If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
+		Dim As WString * 1024 FilePath
+		Dim As WString * 1024 sLine
+		Dim As String Image
+		Do Until EOF(Fn)
+			Line Input #Fn, sLine
+			Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
+			If Pos1 > 0 Then
+				FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
+				If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
+				If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
+				lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
+				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
+				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
+			End If
+		Loop
+		Close #Fn
 	End If
+	lblResourceFile.Text = ML("File") & ": " & ResourceFile
 End Sub
 
 Private Sub frmImageManager.cmdCancel_Click_(ByRef Sender As Control)
 	*Cast(frmImageManager Ptr, Sender.Designer).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmImageManager.cmdCancel_Click(ByRef Sender As Control)
+	ModalResult = ModalResults.Cancel
 	Me.CloseForm
 End Sub
 
@@ -220,12 +211,16 @@ Private Sub frmImageManager.cmdOK_Click_(ByRef Sender As Control)
 	*Cast(frmImageManager Ptr, Sender.Designer).cmdOK_Click(Sender)
 End Sub
 Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
+	If WithoutMainNode AndAlso lvImages.SelectedItemIndex = -1 Then
+		MsgBox ML("Nothing has been chosen"), pApp->Title
+		Exit Sub
+	End If
 	Dim As WStringList Lines
 	Dim As Integer Result
 	Var Fn = FreeFile
 	If Not FileExists(ResourceFile) Then
 		If AutoCreateRC Then
-			FileCopy ExePath & "/Templates/Files/Resource.rc", ResourceFile
+			FileCopy ExePath & "/Templates/Files/Resource.rc", *ResourceFile.vptr
 			If Not FileExists(GetFolderName(ResourceFile) & "Manifest.xml") Then
 				FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(ResourceFile).vptr & "Manifest.xml"
 			End If
@@ -277,6 +272,17 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 		End With
 	End If
 	Close #Fn
+'	If tb = 0 AndAlso MainFile <> ML("Untitled") Then tb = AddTab(MainFile)
+'	If tb <> 0 AndAlso ptabCode->IndexOfTab(tb) > -1 Then
+'		tb->txtCode.Changing "Adding #Compile"
+'		tb->txtCode.InsertLine 0, "#ifdef __FB_WIN32__"
+'		tb->txtCode.InsertLine 1, !"\t'#Compile -exx """ & ResourceFileName & """"
+'		tb->txtCode.InsertLine 2, "#else"
+'		tb->txtCode.InsertLine 3, !"\t'#Compile -exx"
+'		tb->txtCode.InsertLine 4, "#endif"
+'		tb->txtCode.Changed "Adding #Compile"
+'	End If
+	ModalResult = ModalResults.OK
 	Me.CloseForm
 End Sub
 
@@ -290,6 +296,8 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 	pfPath->lblCommandLine.Text = ML("Type") & ":"
 	pfPath->cboType.ItemIndex = pfPath->cboType.IndexOf(lvImages.SelectedItem->Text(1))
 	pfPath->WithType = True
+	pfPath->SetFileNameToVersion = True
+	pfPath->ExeFileName = ExeFileName
 	If pfPath->ShowModal() = ModalResults.OK Then
 		If lvImages.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfPath->txtVersion.Text) = -1 Then
 			lvImages.SelectedItem->Text(0) = pfPath->txtVersion.Text
@@ -326,6 +334,8 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 		pfPath->lblCommandLine.Text = ML("Type") & ":"
 		pfPath->cboType.ItemIndex = 0
 		pfPath->WithType = True
+		pfPath->SetFileNameToVersion = True
+		pfPath->ExeFileName = ExeFileName
 		If pfPath->ShowModal() = ModalResults.OK Then
 			If lvImages.ListItems.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				lvImages.ListItems.Add pfPath->txtVersion.Text

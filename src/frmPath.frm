@@ -108,7 +108,7 @@
 			.Text = ""
 			.TabIndex = 11
 			.SetBounds 100, 80, 130, 21
-			.Visible = false
+			.Visible = False
 			.Parent = @This
 		End With
 	End Constructor
@@ -138,7 +138,12 @@ End Sub
 
 Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	With frPath
-		Dim As UString FolderName = GetFolderName(pApp->FileName)
+		Dim As UString FolderName
+		If .WithType Then
+			FolderName = GetFolderName(.ExeFileName)
+		Else
+			FolderName = GetFolderName(pApp->FileName)
+		End If
 		If .ChooseFolder Then
 			If .BrowseD.Execute Then
 				If StartsWith(.BrowseD.Directory, FolderName) Then
@@ -161,6 +166,19 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 					.txtVersion.Text = GetFileName(GetFolderName(.OpenD.FileName, False))
 					If .txtVersion.Text = "bin" Then
 						.txtVersion.Text = GetFileName(GetFolderName(GetFolderName(.OpenD.FileName, False), False))
+					End If
+				End If
+				If .WithType Then
+					If EndsWith(LCase(.OpenD.FileName), ".bmp") Then
+						.cboType.ItemIndex = 0
+					ElseIf EndsWith(LCase(.OpenD.FileName), ".cur") Then
+						.cboType.ItemIndex = 1
+					ElseIf EndsWith(LCase(.OpenD.FileName), ".ico") Then
+						.cboType.ItemIndex = 2
+					ElseIf EndsWith(LCase(.OpenD.FileName), ".png") Then
+						.cboType.ItemIndex = 3
+					Else
+						.cboType.ItemIndex = 4
 					End If
 				End If
 			End If

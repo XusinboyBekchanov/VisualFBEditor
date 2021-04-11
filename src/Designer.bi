@@ -6,8 +6,6 @@
 '#           Nastase Eodor(nastasa.eodor@gmail.com)      #
 '#########################################################
 
-'#Include Once "mff/Menus.bi"
-'#Include Once "mff/Form.bi"
 #include once "mff/Clipboard.bi"
 #include once "Main.bi"
 
@@ -193,6 +191,10 @@ Namespace My.Sys.Forms
 		MenuFindByCommandFunc As Function(PMenu As Any Ptr, FCommand As Integer) As Any Ptr
 		MenuRemoveSub As Sub(ParentMenu As Any Ptr, PMenuItem As Any Ptr)
 		MenuItemRemoveSub As Sub(ParentMenuItem As Any Ptr, PMenuItem As Any Ptr)
+		GraphicTypeLoadFromFileSub As Sub(Graphic As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
+		BitmapTypeLoadFromFileSub As Sub(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
+		IconLoadFromFileSub As Sub(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0)
+		CursorLoadFromFileSub As Sub(Cur As Any Ptr, ByRef File As WString)
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr
@@ -228,6 +230,7 @@ Namespace My.Sys.Forms
 			FSelControl    As GtkWidget Ptr
 		#else
 			FSelControl    As HWND
+			BitmapHandle   As HBitmap
 		#endif
 		Dim Rects(Any) As Rect
 		Dim Ctrls(Any) As Any Ptr

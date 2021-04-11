@@ -68,6 +68,7 @@ Dim Shared As WString Ptr RecentFiles '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
+Dim Shared As CommandButton btnPropertyValue
 Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
@@ -111,6 +112,7 @@ plvEvents = @lvEvents
 pprProgress = @prProgress
 pstBar = @stBar   'David Change
 ptxtPropertyValue = @txtPropertyValue
+pbtnPropertyValue = @btnPropertyValue
 ptvExplorer = @tvExplorer
 ptabCode = @tabCode
 ptabLeft = @tabLeft
@@ -135,6 +137,7 @@ LoadSettings
 #include once "frmAddIns.bi"
 #include once "frmTools.bi"
 #include once "frmAbout.bi"
+#include once "frmImageManager.bi"
 #include once "frmOptions.bi"
 #include once "frmTemplates.bi"
 #include once "frmParameters.bi"
@@ -4462,6 +4465,16 @@ Sub txtPropertyValue_KeyPress(ByRef Sender As Control, Key As Byte)
 	
 End Sub
 
+Sub btnPropertyValue_Click(ByRef Sender As Control)
+	pfImageManager->WithoutMainNode = True 
+	If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
+		If pfImageManager->lvImages.SelectedItem = 0 Then Exit Sub
+		txtPropertyValue.Text = pfImageManager->lvImages.SelectedItem->Text(0)
+		PropertyChanged txtPropertyValue, txtPropertyValue.Text, False
+	End If
+	pfImageManager->WithoutMainNode = False
+End Sub
+
 'txtPropertyValue.BorderStyle = 0
 txtPropertyValue.Visible = False
 txtPropertyValue.WantReturn = True
@@ -4469,6 +4482,10 @@ txtPropertyValue.OnKeyDown = @txtPropertyValue_KeyDown
 txtPropertyValue.OnKeyUp = @txtPropertyValue_KeyUp
 txtPropertyValue.OnKeyPress = @txtPropertyValue_KeyPress
 txtPropertyValue.OnLostFocus = @txtPropertyValue_LostFocus
+
+btnPropertyValue.Visible = False
+btnPropertyValue.Text = "..."
+btnPropertyValue.OnClick = @btnPropertyValue_Click
 
 cboPropertyValue.OnKeyUp = @txtPropertyValue_KeyUp
 cboPropertyValue.OnChange = @cboPropertyValue_Change
@@ -4485,14 +4502,16 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
 	Dim As Rect lpRect
+	Dim As String PropertyName = GetItemText(Item)
 	'Dim As TreeListViewItem Ptr Item = lvProperties.ListItems.Item(ItemIndex)
 	lvProperties.SetFocus
 	txtPropertyValue.Visible = False
+	btnPropertyValue.Visible = False
 	pnlPropertyValue.Visible = False
 	#ifndef __USE_GTK__
 		ListView_GetSubItemRect(lvProperties.Handle, Item->GetItemIndex, 1, LVIR_BOUNDS, @lpRect)
 	#endif
-	Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), GetItemText(Item))
+	Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
 	If te = 0 Then Exit Sub
 	#ifndef __USE_GTK__
 		If LCase(te->TypeName) = "boolean" Then
@@ -4550,7 +4569,14 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				CtrlEdit->Text = Item->Text(1)
 			End If
 		End If
-		CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left, lpRect.Bottom - lpRect.Top - 1
+		Select Case LCase(te->TypeName)
+		Case "icon", "cursor", "bitmaptype", "graphictype"
+			btnPropertyValue.SetBounds lpRect.Left + lpRect.Right - lpRect.Left - (lpRect.Bottom - lpRect.Top), lpRect.Top - 1, lpRect.Bottom - lpRect.Top + 1, lpRect.Bottom - lpRect.Top + 1
+			CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left - btnPropertyValue.Width + 2, lpRect.Bottom - lpRect.Top - 1
+			btnPropertyValue.Visible = True
+		Case Else
+			CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left, lpRect.Bottom - lpRect.Top - 1
+		End Select
 		If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = lpRect.Right - lpRect.Left + 2
 		CtrlEdit->Visible = True
 	#endif
@@ -4710,6 +4736,7 @@ lvProperties.SmallImages = @imgListStates
 lvProperties.Columns.Add ML("Property"), , 70
 lvProperties.Columns.Add ML("Value"), , 50, , True
 lvProperties.Add @txtPropertyValue
+lvProperties.Add @btnPropertyValue
 lvProperties.Add @pnlPropertyValue
 lvProperties.OnSelectedItemChanged = @lvProperties_SelectedItemChanged
 lvProperties.OnEndScroll = @lvProperties_EndScroll

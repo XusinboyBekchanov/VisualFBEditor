@@ -7,6 +7,7 @@
 	#include once "mff/Splitter.bi"
 	#include once "mff/Panel.bi"
 	#include once "mff/CommandButton.bi"
+	#include once "mff/Label.bi"
 	
 	Using My.Sys.Forms
 	
@@ -31,10 +32,12 @@
 		Dim As ListView lvImages
 		Dim As GroupBox gbImagePreview
 		Dim As ImageBox imgImage
-		Dim ResourceFile As UString
 		Dim As Splitter Splitter1
 		Dim As Panel pnlCommands
 		Dim As CommandButton cmdOK, cmdCancel
+		Dim As Label lblResourceFile
+		Dim As UString ResourceFile, ExeFileName
+		Dim As Boolean WithoutMainNode
 	End Type
 	
 	Dim Shared pfImageManager As frmImageManager Ptr

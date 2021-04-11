@@ -8,6 +8,7 @@
 #include once "mff/WStringList.bi"
 #include once "mff/Dictionary.bi"
 #include once "mff/Form.bi"
+#include once "mff/CommandButton.bi"
 #include once "mff/Dialogs.bi"
 #include once "mff/TreeView.bi"
 #include once "mff/TreeListView.bi"
@@ -76,6 +77,7 @@ Common Shared As StatusBar Ptr pstBar 'David Changed
 Common Shared As TreeListView Ptr plvProperties, plvEvents
 Common Shared As ImageList Ptr pimgList, pimgListTools
 Common Shared As ProgressBar Ptr pprProgress
+Common Shared As CommandButton Ptr pbtnPropertyValue
 Common Shared As TextBox Ptr ptxtPropertyValue
 Common Shared As ToolBar Ptr ptbStandard
 Common Shared As ToolButton Ptr SelectedTool

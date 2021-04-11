@@ -186,6 +186,18 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 								.Pen.Color = BGR(197, 194, 184)
 								.Line Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 2, Rects(RectsCount).Right - 1, Rects(RectsCount).Top + 2
 							Else
+								Dim As Any Ptr pBitmap = Des->ReadPropertyFunc(Ctrls(RectsCount), "Image")
+								Dim As Any Ptr BitmapHandle
+								If pBitmap <> 0 Then
+									BitmapHandle = Des->ReadPropertyFunc(pBitmap, "Handle")
+									If BitmapHandle <> 0 Then
+										#ifdef __USE_GTK__
+											
+										#else
+											.Draw Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, *Cast(HBitmap Ptr, BitmapHandle)
+										#endif
+									End If
+								End If
 								Dim As WString Ptr pCaption = Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")
 								Dim As Integer Pos1 = InStr(*pCaption, !"\t")
 								If Pos1 > 0 Then

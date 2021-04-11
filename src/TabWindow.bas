@@ -883,7 +883,7 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 		With *te
 			Select Case LCase(.TypeName)
 			Case "wstring", "string", "zstring": WLet(FLine, QWString(pTemp)): If InStr(*FLine, """") = 0 Then WLetEx FLine, """" & *FLine & """", True
-			Case "icon", "bitmaptype", "cursor": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
+			Case "icon", "bitmaptype", "cursor", "graphictype": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
 			Case "integer": iTemp = QInteger(pTemp)
 				WLet(FLine, WStr(iTemp))
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
@@ -958,7 +958,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 			End If
 		Case "Property"
 			Select Case LCase(te->TypeName)
-			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype"
+			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype", "graphictype"
 				'?"VFE2:" & *FLine
 				If StartsWith(*FLine3, """") Then WLet(FLine4, Mid(*FLine3, 2)): WLet(FLine3, *FLine4)
 				If EndsWith(*FLine3, """") Then WLet(FLine4, Left(*FLine3, Len(*FLine3) - 1)): WLet(FLine3, *FLine4)
@@ -974,6 +974,9 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				'                    PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(*FLine2))->Object)
 				'                    Result = Cpnt->WriteProperty(PropertyName, PropertyCtrl)
 				'                End If
+				Select Case LCase(te->TypeName)
+				Case "icon", "cursor", "bitmaptype", "graphictype": SetGraphicProperty Cpnt, PropertyName, te->TypeName, *FLine4
+				End Select
 			Case "integer", "long", "ulong", "single", "double"
 				iTemp = Val(*FLine3)
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
@@ -1098,7 +1101,7 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
-	If SelectedCtrl = Ctrl AndAlso tb->cboClass.ItemIndex <> 0 Then Exit Sub
+	If SelectedCtrl = Ctrl AndAlso tb->cboClass.ItemIndex <> 0 AndAlso lvProperties.ListItems.Count <> 0 Then Exit Sub
 	'tb->Des->SelectedControl = Ctrl
 	SelectedCtrl = Ctrl
 	bNotFunctionChange = True
@@ -3343,6 +3346,76 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 	End If
 End Sub
 
+Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
+	If Des = 0 OrElse Des->GraphicTypeLoadFromFileSub = 0 Then Exit Sub
+	Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Ctrl, PropertyName)
+	If Graphic = 0 Then Exit Sub
+	If ResName = "" Then
+		Select Case LCase(TypeName)
+		Case "graphictype"
+			Des->GraphicTypeLoadFromFileSub(Graphic, "")
+			#ifndef __USE_GTK__
+				Des->BitmapHandle = 0
+			#endif
+		Case "bitmaptype"
+			Des->BitmapTypeLoadFromFileSub(Graphic, "")
+		Case "icon"
+			Des->IconLoadFromFileSub(Graphic, "")
+		Case "cursor"
+			Des->CursorLoadFromFileSub(Graphic, "")
+		End Select
+		Exit Sub
+	End If
+	Dim As UString ResourceFile = GetResourceFile(True)
+	Var Fn = FreeFile
+	If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
+		Dim As WString * 1024 FilePath
+		Dim As WString * 1024 sLine
+		Dim As String Image
+		Do Until EOF(Fn)
+			Line Input #Fn, sLine
+			Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
+			If Pos1 > 0 Then
+				If Trim(LCase(Left(sLine, Pos1 - 1))) = Trim(LCase(ResName)) Then
+					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
+					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
+					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
+					Select Case LCase(TypeName)
+					Case "graphictype"
+						Des->GraphicTypeLoadFromFileSub(Graphic, FilePath)
+					Case "bitmaptype"
+						Des->BitmapTypeLoadFromFileSub(Graphic, FilePath)
+					Case "icon"
+						Des->IconLoadFromFileSub(Graphic, FilePath)
+					Case "cursor"
+						Des->CursorLoadFromFileSub(Graphic, FilePath)
+					End Select
+					#ifndef __USE_GTK__
+						If Ctrl = Des->DesignControl AndAlso StartsWith(PropertyName, "Graphic") Then
+							Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Des->DesignControl, "Graphic")
+							If Graphic <> 0 Then
+								Dim As Any Ptr Bitm = Des->ReadPropertyFunc(Graphic, "Bitmap")
+								If Bitm <> 0 Then
+									Dim As HBitmap Ptr pHBitmap = Des->ReadPropertyFunc(Bitm, "Handle")
+									If pHBitmap <> 0 Then
+										Des->BitmapHandle = *pHBitmap
+									End If
+								End If
+							End If
+						End If
+					#endif
+					Exit Do
+				End If
+			End If
+		Loop
+		Close #Fn
+	End If
+End Sub
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	pfrmMain->UpdateLock
@@ -3840,6 +3913,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->MenuFindByCommandFunc = DyLibSymbol(Des->MFF, "MenuFindByCommand")
 					Des->MenuRemoveSub = DyLibSymbol(Des->MFF, "MenuRemove")
 					Des->MenuItemRemoveSub = DyLibSymbol(Des->MFF, "MenuItemRemove")
+					Des->GraphicTypeLoadFromFileSub = DyLibSymbol(Des->MFF, "GraphicTypeLoadFromFile")
+					Des->BitmapTypeLoadFromFileSub = DyLibSymbol(Des->MFF, "BitmapTypeLoadFromFile")
+					Des->IconLoadFromFileSub = DyLibSymbol(Des->MFF, "IconLoadFromFile")
+					Des->CursorLoadFromFileSub = DyLibSymbol(Des->MFF, "CursorLoadFromFile")
 					Des->TopMenu = @pnlTopMenu
 					'Des->ContextMenu = @mnuForm
 					pnlTopMenu.Visible = False
@@ -4034,6 +4111,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 												End If
 											End If
 										#endif
+										'If LCase(PropertyName) = "graphic" Then SetGraphic(Ctrl, *FLine2)
 									End If
 								End If
 							ElseIf LCase(Mid(*FLine, p + 1, 10)) = "setbounds " Then
@@ -4976,9 +5054,9 @@ End Sub
 'End Function
 '#EndIf
 
-Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0) As UString
+Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False) As UString
 	Dim As TabWindow Ptr tb
-	If MainNode Then
+	If MainNode <> 0 AndAlso Not WithoutMainNode Then
 		Dim ee As ExplorerElement Ptr
 		ee = MainNode->Tag
 		If MainNode->ImageKey = "Project" OrElse ee AndAlso *ee Is ProjectElement Then
@@ -5018,6 +5096,44 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 		Return tb->FileName
 	End If
 	Return ""
+End Function
+
+Function GetResourceFile(WithoutMainNode As Boolean = False) ByRef As WString
+	Dim As UString ResourceFile
+	Dim As ProjectElement Ptr Project
+	Dim As TreeNode Ptr ProjectNode
+	Dim As UString MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode)
+	Dim sFirstLine As UString = GetFirstCompileLine(MainFile, Project)
+	Dim As WString Ptr Buff, File, sLines
+	ResourceFile = ""
+	WLet(Buff, LTrim(sFirstLine, Any !"\t "))
+	Var Pos1 = InStr(*Buff, """"), Pos2 = 1
+	Dim As UString FolderName = GetFolderName(MainFile), FolderNameRes
+	Dim QavsBoshi As Boolean
+	Do While Pos1 > 0
+		QavsBoshi = Not QavsBoshi
+		If QavsBoshi Then
+			Pos2 = Pos1
+		Else
+			WLet(File, Mid(*Buff, Pos2 + 1, Pos1 - Pos2 - 1))
+			If EndsWith(LCase(*File), ".rc") Then
+				ResourceFile = *File
+				FolderNameRes = GetFolderName(ResourceFile)
+				If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ResourceFile
+				Exit Do
+			End If
+		End If
+		Pos1 = InStr(Pos1 + 1, *Buff, """")
+	Loop
+	WDeallocate Buff
+	WDeallocate File
+	If ResourceFile = "" Then
+		Pos1 = InStrRev(MainFile, ".")
+		ResourceFile = IIf(Pos1 = 0, MainFile & ".rc", Left(MainFile, Pos1 - 1) & ".rc")
+		FolderNameRes = GetFolderName(ResourceFile)
+		If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ResourceFile
+	End If
+	Return *ResourceFile.vptr
 End Function
 
 Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
@@ -5201,16 +5317,31 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		Case 2: Result += " -lib"
 		End Select
 	End If
-	Dim As Integer Fn = FreeFile
+	Dim As Integer LinesCount, d, Fn = FreeFile
+	Dim As Boolean bFromTab
+	Dim As TabWindow Ptr tb
 	Var FileOpenResult = Open(FileName For Input Encoding "utf-8" As #Fn)
 	If FileOpenResult <> 0 Then FileOpenResult = Open(FileName For Input As #Fn)
+	If FileName = ML("Untitled") Then
+		tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb <> 0 Then
+			FileOpenResult = 0
+			bFromTab = True
+			LinesCount = tb->txtCode.LinesCount
+		End If
+	End If
 	If FileOpenResult = 0 Then
 		Dim As WString * 1024 sLine
 		Dim As Integer i, n, l = 0
 		Dim As Boolean k(10)
 		k(l) = True
-		Do Until EOF(Fn)
-			Line Input #Fn, sLine
+		Do Until IIf(bFromTab, d = LinesCount, EOF(Fn))
+			If bFromTab Then
+				sLine = tb->txtCode.Lines(d)
+				d = d + 1
+			Else
+				Line Input #Fn, sLine
+			End If
 			If StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_win32__") Then
 				l = l + 1
 				#ifdef __FB_WIN32__
@@ -5235,28 +5366,23 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 				k(l) = Not k(l)
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#endif") Then
 				l = l - 1
-				If l < 0 Then
-					Close #Fn
-					Return Result
-				End If
+				If l < 0 Then Exit Do
 			Else
 				For i = 0 To l
 					If k(i) = False Then Exit For
 				Next
 				If i > l Then
-					Close #Fn
 					If StartsWith(LTrim(LCase(sLine), Any !"\t "), "'#compile ") Then
 						Result = Result & " " & Mid(LTrim(sLine, Any !"\t "), 11)
 					End If
-					Return Result
+					Exit Do
 				End If
 			End If
-			If l >= 10 Then
-				Close #Fn
-				Return Result
-			End If
+			If l >= 10 Then Exit Do
 		Loop
-		Close #Fn
+		If Not bFromTab Then 
+			Close #Fn
+		End If
 	End If
 	Return Result
 End Function

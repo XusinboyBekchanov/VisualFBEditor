@@ -28,6 +28,7 @@ Using My.Sys.Forms
 		Dim As OpenFileDialog OpenD
 		Dim As FolderBrowserDialog BrowseD
 		Dim As Boolean ChooseFolder, SetFileNameToVersion, WithoutCommandLine, WithExtensions, WithType
+		Dim As UString ExeFileName
 		Dim As ComboBoxEdit cboType
 	End Type
 	

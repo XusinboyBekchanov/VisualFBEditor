@@ -1526,22 +1526,40 @@ Namespace My.Sys.Forms
 			Dim As HBITMAP mBMP, pBMP
 			Dim As RECT R, BrushRect = Type(0, 0, FStepX, FStepY)
 			Dim As PAINTSTRUCT Ps
-			Dim As Any Ptr CurrentMenu
+			Dim As Boolean WithGraphic
 			FHDc = BeginPaint(FDialog,@Ps)
 			GetClientRect(FDialog, @R)
+			If BitmapHandle <> 0 Then
+				FillRect(Fhdc, @R, Cast(HBRUSH, 16))
+				With Parent->Canvas
+					.HandleSetted = True
+					.Handle = Fhdc
+					.Draw 0, 0, BitmapHandle
+					.HandleSetted = False
+					WithGraphic = True 
+				End With
+			End If
 			If ShowAlignmentGrid Then
-				If FGridBrush Then
-					DeleteObject(FGridBrush)
+				If WithGraphic Then
+					For i As Integer = R.Left To R.Right Step FStepX
+						For j As Integer = R.Top To R.Bottom Step FStepX
+							SetPixel(FHDc, i, j, 0)
+						Next
+					Next
+				Else
+					If FGridBrush Then
+						DeleteObject(FGridBrush)
+					End If
+					mDc   = CreateCompatibleDc(FHDC)
+					mBMP  = CreateCompatibleBitmap(FHDC, FStepX, FStepY)
+					pBMP  = SelectObject(mDc, mBMP)
+					FillRect(mDc, @BrushRect, Cast(HBRUSH, 16))
+					SetPixel(mDc, 0, 0, 0)
+					'for lines use MoveTo and LineTo or Rectangle function or whatever...
+					FGridBrush = CreatePatternBrush(mBMP)
+					FillRect(FHDC, @R, FGridBrush)
 				End If
-				mDc   = CreateCompatibleDc(FHDC)
-				mBMP  = CreateCompatibleBitmap(FHDC, FStepX, FStepY)
-				pBMP  = SelectObject(mDc, mBMP)
-				FillRect(mDc, @BrushRect, Cast(HBRUSH, 16))
-				SetPixel(mDc, 0, 0, 0)
-				'for lines use MoveTo and LineTo or Rectangle function or whatever...
-				FGridBrush = CreatePatternBrush(mBMP)
-				FillRect(FHDC, @R, FGridBrush)
-			Else
+			ElseIf Not WithGraphic Then
 				FillRect(Fhdc, @R, Cast(HBRUSH, 16))
 			End If
 			For j As Integer = 0 To SelectedControls.Count - 1

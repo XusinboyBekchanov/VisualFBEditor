@@ -3988,8 +3988,7 @@ Namespace My.Sys.Forms
 		This.Width       = 121
 		Height          = 121
 		#ifndef __USE_GTK__
-			This.Cursor = New_( My.Sys.Drawing.Cursor)
-			*This.Cursor = LoadCursor(NULL, IDC_IBEAM)
+			This.Cursor = LoadCursor(NULL, IDC_IBEAM)
 		#endif
 		This.BackColor       = clWhite
 		WLet(FClassName, "EditControl")
@@ -4071,7 +4070,6 @@ Namespace My.Sys.Forms
 		WDeallocate FLineSpace 
 		WDeallocate FHintWord 
 		WDeallocate CurrentFontName
-		If This.Cursor <> 0 Then Delete_(This.Cursor)
 	End Destructor
 End Namespace
 
