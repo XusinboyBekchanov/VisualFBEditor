@@ -197,6 +197,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	pTabCode->UpdateLock
 	If Not bFind Then
 		tb = New_( TabWindow(FileNameNew, bNew, TreeN))
+		If tb = 0 Then
+			MsgBox ML("Memory was not allocated")
+			Return 0
+		End If
 		With *tb
 			If FileName <> "" Then
 				#ifndef __USE_GTK__
@@ -4260,6 +4264,23 @@ Sub TabWindow_Destroy(ByRef Sender As Control)
 	pApp->DoEvents
 End Sub
 
+'mnuCode.ImagesList = pimgList '<m>
+mnuCode.Add(ML("Cut"), "Cut", "Cut", @mclick)
+mnuCode.Add(ML("Copy"), "Copy", "Copy", @mclick)
+mnuCode.Add(ML("Paste"), "Paste", "Paste", @mclick)
+mnuCode.Add("-")
+Var miToogle = mnuCode.Add(ML("Toggle"), "", "Toggle")
+miToogle->Add(ML("Breakpoint"), "Breakpoint", "Breakpoint", @mclick)
+miToogle->Add(ML("Bookmark"), "Bookmark", "ToggleBookmark", @mclick)
+mnuCode.Add("-")
+mnuCode.Add(ML("Add Watch"), "", "AddWatch", @mclick)
+mnuCode.Add(ML("Run To Cursor"), "", "RunToCursor", @mclick)
+mnuCode.Add(ML("Set Next Statement"), "", "SetNextStatement", @mclick)
+mnuCode.Add("-")
+mnuCode.Add(ML("Define"), "", "Define", @mclick)
+mnuCode.Add("-")
+mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mclick)
+	
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
 	WLEt(FCaption, "")
 	WLet(FFileName, "")
@@ -4293,22 +4314,6 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#else
 		pnlTopCombo.Height = 25
 	#endif
-	'mnuCode.ImagesList = pimgList '<m>
-	mnuCode.Add(ML("Cut"), "Cut", "Cut", @mclick)
-	mnuCode.Add(ML("Copy"), "Copy", "Copy", @mclick)
-	mnuCode.Add(ML("Paste"), "Paste", "Paste", @mclick)
-	mnuCode.Add("-")
-	Var miToogle = mnuCode.Add(ML("Toggle"), "", "Toggle")
-	miToogle->Add(ML("Breakpoint"), "Breakpoint", "Breakpoint", @mclick)
-	miToogle->Add(ML("Bookmark"), "Bookmark", "ToggleBookmark", @mclick)
-	mnuCode.Add("-")
-	mnuCode.Add(ML("Add Watch"), "", "AddWatch", @mclick)
-	mnuCode.Add(ML("Run To Cursor"), "", "RunToCursor", @mclick)
-	mnuCode.Add(ML("Set Next Statement"), "", "SetNextStatement", @mclick)
-	mnuCode.Add("-")
-	mnuCode.Add(ML("Define"), "", "Define", @mclick)
-	mnuCode.Add("-")
-	mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mclick)
 	txtCode.ContextMenu = @mnuCode
 	pnlTopCombo.Align = 5
 	pnlTopCombo.Width = 101

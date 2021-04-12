@@ -38,6 +38,8 @@ Namespace My.Sys.Forms
 		Dim Shared As GtkWidget Ptr designer_menu
 	#endif
 	
+	Dim Shared mnuDesigner As PopupMenu
+	
 	Type Designer Extends My.Sys.Object
 	Private:
 		#ifdef __USE_GTK__
@@ -53,7 +55,6 @@ Namespace My.Sys.Forms
 			Declare Static Function HookTopMenuProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			'FPopupMenu     As HMENU
 		#endif
-		mnuDesigner    As PopupMenu
 		FActive        As Boolean
 		FStepX         As Integer
 		FStepY         As Integer

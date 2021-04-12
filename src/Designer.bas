@@ -1691,7 +1691,7 @@ Namespace My.Sys.Forms
 						ClientToScreen(hDlg, @P)
 						'mnuDesigner.Popup(P.x, P.y)
 						.ChangeFirstMenuItem
-						TrackPopupMenu(.mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
+						TrackPopupMenu(mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
 						'end if
 						Return 0
 					#endif
@@ -1891,7 +1891,7 @@ Namespace My.Sys.Forms
 						P.y = HiWord(lParam)
 						ClientToScreen(hDlg, @P)
 						.ChangeFirstMenuItem
-						TrackPopupMenu(.mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
+						TrackPopupMenu(mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
 						'end if
 						Return 0
 					#endif
@@ -2703,6 +2703,18 @@ Namespace My.Sys.Forms
 	Operator Designer.cast As Any Ptr
 		Return @This
 	End Operator
+
+	mnuDesigner.Add(ML("Default event"), "", "Default", @PopupClick)
+	mnuDesigner.Add("-")
+	mnuDesigner.Add(ML("Copy"), "Copy", "Copy", @PopupClick)
+	mnuDesigner.Add(ML("Cut"), "Cut", "Cut", @PopupClick)
+	mnuDesigner.Add(ML("Paste"), "Paste", "Paste", @PopupClick)
+	mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
+	mnuDesigner.Add("-")
+	mnuDesigner.Add(ML("Bring to Front"), "", "BrinToFront", @PopupClick)
+	mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
+	mnuDesigner.Add("-")
+	mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)
 	
 	Constructor Designer(ParentControl As Control Ptr)
 		FStepX      = 10
@@ -2732,17 +2744,6 @@ Namespace My.Sys.Forms
 		
 		'mnuDesigner.ImagesList = @imgList '<m>
 		ParentControl->ContextMenu = @mnuDesigner
-		mnuDesigner.Add(ML("Default event"), "", "Default", @PopupClick)
-		mnuDesigner.Add("-")
-		mnuDesigner.Add(ML("Copy"), "Copy", "Copy", @PopupClick)
-		mnuDesigner.Add(ML("Cut"), "Cut", "Cut", @PopupClick)
-		mnuDesigner.Add(ML("Paste"), "Paste", "Paste", @PopupClick)
-		mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
-		mnuDesigner.Add("-")
-		mnuDesigner.Add(ML("Bring to Front"), "", "BrinToFront", @PopupClick)
-		mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
-		mnuDesigner.Add("-")
-		mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)
 '		#ifdef __USE_GTK__
 '			
 '		#else
