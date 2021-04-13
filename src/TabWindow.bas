@@ -3351,22 +3351,22 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 End Sub
 
 Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
-	If Des = 0 OrElse Des->GraphicTypeLoadFromFileSub = 0 Then Exit Sub
+	If Des = 0 OrElse Des->GraphicTypeLoadFromFileFunc = 0 Then Exit Sub
 	Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Ctrl, PropertyName)
 	If Graphic = 0 Then Exit Sub
 	If ResName = "" Then
 		Select Case LCase(TypeName)
 		Case "graphictype"
-			Des->GraphicTypeLoadFromFileSub(Graphic, "")
+			Des->GraphicTypeLoadFromFileFunc(Graphic, "")
 			#ifndef __USE_GTK__
 				Des->BitmapHandle = 0
 			#endif
 		Case "bitmaptype"
-			Des->BitmapTypeLoadFromFileSub(Graphic, "")
+			Des->BitmapTypeLoadFromFileFunc(Graphic, "")
 		Case "icon"
-			Des->IconLoadFromFileSub(Graphic, "")
+			Des->IconLoadFromFileFunc(Graphic, "")
 		Case "cursor"
-			Des->CursorLoadFromFileSub(Graphic, "")
+			Des->CursorLoadFromFileFunc(Graphic, "")
 		End Select
 		Exit Sub
 	End If
@@ -3390,13 +3390,13 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
 					Select Case LCase(TypeName)
 					Case "graphictype"
-						Des->GraphicTypeLoadFromFileSub(Graphic, FilePath)
+						Des->GraphicTypeLoadFromFileFunc(Graphic, FilePath)
 					Case "bitmaptype"
-						Des->BitmapTypeLoadFromFileSub(Graphic, FilePath)
+						Des->BitmapTypeLoadFromFileFunc(Graphic, FilePath)
 					Case "icon"
-						Des->IconLoadFromFileSub(Graphic, FilePath)
+						Des->IconLoadFromFileFunc(Graphic, FilePath)
 					Case "cursor"
-						Des->CursorLoadFromFileSub(Graphic, FilePath)
+						Des->CursorLoadFromFileFunc(Graphic, FilePath)
 					End Select
 					#ifndef __USE_GTK__
 						If Ctrl = Des->DesignControl AndAlso StartsWith(PropertyName, "Graphic") Then
@@ -3917,10 +3917,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->MenuFindByCommandFunc = DyLibSymbol(Des->MFF, "MenuFindByCommand")
 					Des->MenuRemoveSub = DyLibSymbol(Des->MFF, "MenuRemove")
 					Des->MenuItemRemoveSub = DyLibSymbol(Des->MFF, "MenuItemRemove")
-					Des->GraphicTypeLoadFromFileSub = DyLibSymbol(Des->MFF, "GraphicTypeLoadFromFile")
-					Des->BitmapTypeLoadFromFileSub = DyLibSymbol(Des->MFF, "BitmapTypeLoadFromFile")
-					Des->IconLoadFromFileSub = DyLibSymbol(Des->MFF, "IconLoadFromFile")
-					Des->CursorLoadFromFileSub = DyLibSymbol(Des->MFF, "CursorLoadFromFile")
+					Des->GraphicTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "GraphicTypeLoadFromFile")
+					Des->BitmapTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "BitmapTypeLoadFromFile")
+					Des->IconLoadFromFileFunc = DyLibSymbol(Des->MFF, "IconLoadFromFile")
+					Des->CursorLoadFromFileFunc = DyLibSymbol(Des->MFF, "CursorLoadFromFile")
 					Des->TopMenu = @pnlTopMenu
 					'Des->ContextMenu = @mnuForm
 					pnlTopMenu.Visible = False

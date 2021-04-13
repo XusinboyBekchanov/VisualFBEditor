@@ -318,7 +318,7 @@ Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListVie
 	Dim As UString Path = GetRelativePath(lvImages.ListItems.Item(ItemIndex)->Text(2), ResourceFile)
 	Select Case lvImages.ListItems.Item(ItemIndex)->Text(1)
 	Case "BITMAP": imgImage.Graphic.Bitmap.LoadFromFile(Path)
-	Case "PNG", "RCDATA": imgImage.Graphic.Bitmap.LoadFromPNGFile(Path)
+	Case "PNG", "RCDATA": imgImage.Graphic.Bitmap.LoadFromFile(Path)
 	Case "ICON": imgImage.Graphic.Icon.LoadFromFile(Path)
 	Case "CURSOR": imgImage.Graphic.Cursor.LoadFromFile(Path)
 	End Select

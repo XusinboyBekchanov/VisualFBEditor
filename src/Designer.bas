@@ -1381,7 +1381,7 @@ Namespace My.Sys.Forms
 							End If
 							gtk_widget_show_all(FSelControl)
 						#else
-							pBitmap.LoadFromPNGResourceName(AClassName, MFF)
+							pBitmap.LoadFromResourceName(AClassName, MFF)
 							Dim As HWND Ptr Result
 							If AParent <> 0 Then Result = Cast(HWND Ptr, ReadPropertyFunc(AParent, "Handle"))
 							If AParent = 0 OrElse Result = 0 OrElse *Result = 0 Then

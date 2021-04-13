@@ -192,10 +192,10 @@ Namespace My.Sys.Forms
 		MenuFindByCommandFunc As Function(PMenu As Any Ptr, FCommand As Integer) As Any Ptr
 		MenuRemoveSub As Sub(ParentMenu As Any Ptr, PMenuItem As Any Ptr)
 		MenuItemRemoveSub As Sub(ParentMenuItem As Any Ptr, PMenuItem As Any Ptr)
-		GraphicTypeLoadFromFileSub As Sub(Graphic As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
-		BitmapTypeLoadFromFileSub As Sub(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0)
-		IconLoadFromFileSub As Sub(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0)
-		CursorLoadFromFileSub As Sub(Cur As Any Ptr, ByRef File As WString)
+		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef File As WString) As Boolean
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr
