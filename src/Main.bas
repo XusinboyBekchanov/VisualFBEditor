@@ -3693,7 +3693,6 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add(ML("&Tools") & "..." & HK("Tools"), "", "Tools", @mclick)
 	miXizmat->Add("-")
 	Dim As My.Sys.Drawing.BitmapType Bitm
-	Dim As My.Sys.Drawing.Icon Ico
 	Dim As Integer Fn = FreeFile
 	Dim As WString * 1024 Buff
 	Dim As MenuItem Ptr mi
@@ -3723,8 +3722,10 @@ Sub CreateMenusAndToolBars
 					tt->Accelerator = Mid(Buff, 13)
 					#ifdef __USE_GTK__
 					#else
-						Ico.Handle = ExtractIconW(Instance, tt->Path, NULL)
-						Bitm.Handle = Ico.ToBitmap
+						Dim As HICON IcoHandle
+						ExtractIconEx(tt->Path, NULL, NULL, @IcoHandle, 1)
+						Bitm = IcoHandle
+						DeleteObject IcoHandle
 					#endif
 					mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool)
 					mi->Tag = tt
@@ -4466,13 +4467,61 @@ Sub txtPropertyValue_KeyPress(ByRef Sender As Control, Key As Byte)
 End Sub
 
 Sub btnPropertyValue_Click(ByRef Sender As Control)
-	pfImageManager->WithoutMainNode = True 
-	If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
-		If pfImageManager->lvImages.SelectedItem = 0 Then Exit Sub
-		txtPropertyValue.Text = pfImageManager->lvImages.SelectedItem->Text(0)
-		PropertyChanged txtPropertyValue, txtPropertyValue.Text, False
-	End If
-	pfImageManager->WithoutMainNode = False
+	Dim As TypeElement Ptr te = Sender.Tag
+	Select Case LCase(te->TypeName)
+	Case "icon", "cursor", "bitmaptype", "graphictype"
+		pfImageManager->WithoutMainNode = True 
+		If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
+			If pfImageManager->lvImages.SelectedItem = 0 Then Exit Sub
+			txtPropertyValue.Text = pfImageManager->lvImages.SelectedItem->Text(0)
+			PropertyChanged txtPropertyValue, txtPropertyValue.Text, False
+		End If
+		pfImageManager->WithoutMainNode = False
+	Case "font"
+		Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
+		Dim As Any Ptr SelFont = txtPropertyValue.Tag
+		If SelFont = 0 Then Exit Sub
+		Dim As FontDialog fd
+		Dim As UString FontName = QWString(tb->Des->ReadPropertyFunc(SelFont, "Name"))
+		Dim As Integer FontColor = QInteger(tb->Des->ReadPropertyFunc(SelFont, "Color"))
+		Dim As Integer FontSize = QInteger(tb->Des->ReadPropertyFunc(SelFont, "Size"))
+		Dim As Integer FontCharset_ = QInteger(tb->Des->ReadPropertyFunc(SelFont, "Charset"))
+		Dim As Boolean FontBold = QBoolean(tb->Des->ReadPropertyFunc(SelFont, "Bold"))
+		Dim As Boolean FontItalic = QBoolean(tb->Des->ReadPropertyFunc(SelFont, "Italic"))
+		Dim As Boolean FontUnderline = QBoolean(tb->Des->ReadPropertyFunc(SelFont, "Underline"))
+		Dim As Boolean FontStrikeout = QBoolean(tb->Des->ReadPropertyFunc(SelFont, "Strikeout"))
+		Dim As Integer FontOrientation = QInteger(tb->Des->ReadPropertyFunc(SelFont, "Orientation"))
+		fd.Font.Name = FontName
+		fd.Font.Color = FontColor
+		fd.Font.Size = FontSize
+		fd.Font.Charset = FontCharset_
+		fd.Font.Bold = FontBold
+		fd.Font.Italic = FontItalic
+		fd.Font.Underline = FontUnderline
+		fd.Font.Strikeout = FontStrikeout
+		fd.Font.Orientation = FontOrientation
+		If fd.Execute Then
+			If fd.Font.Name <> FontName Then FontName = fd.Font.Name: tb->Des->WritePropertyFunc(SelFont, "Name", FontName.vptr): ChangeControl(tb->Des->SelectedControl, te->Name & ".Name")
+			If fd.Font.Color <> FontColor Then FontColor = fd.Font.Color: tb->Des->WritePropertyFunc(SelFont, "Color", @FontColor): ChangeControl(tb->Des->SelectedControl, te->Name & ".Color")
+			If fd.Font.Size <> FontSize Then FontSize = fd.Font.Size: tb->Des->WritePropertyFunc(SelFont, "Size", @FontSize): ChangeControl(tb->Des->SelectedControl, te->Name & ".Size")
+			If fd.Font.Charset <> FontCharset_ Then FontCharset_ = fd.Font.Charset: tb->Des->WritePropertyFunc(SelFont, "Charset", @FontCharset_): ChangeControl(tb->Des->SelectedControl, te->Name & ".Charset")
+			If fd.Font.Bold <> FontBold Then FontBold = fd.Font.Bold: tb->Des->WritePropertyFunc(SelFont, "Bold", @FontBold): ChangeControl(tb->Des->SelectedControl, te->Name & ".Bold")
+			If fd.Font.Italic <> FontItalic Then FontItalic = fd.Font.Italic: tb->Des->WritePropertyFunc(SelFont, "Italic", @FontItalic): ChangeControl(tb->Des->SelectedControl, te->Name & ".Italic")
+			If fd.Font.Underline <> FontUnderline Then FontUnderline = fd.Font.Underline: tb->Des->WritePropertyFunc(SelFont, "Underline", @FontUnderline): ChangeControl(tb->Des->SelectedControl, te->Name & ".Underline")
+			If fd.Font.Strikeout <> FontStrikeout Then FontStrikeout = fd.Font.Strikeout: tb->Des->WritePropertyFunc(SelFont, "Strikeout", @FontStrikeout): ChangeControl(tb->Des->SelectedControl, te->Name & ".Strikeout")
+			If fd.Font.Orientation <> FontOrientation Then FontOrientation = fd.Font.Orientation: tb->Des->WritePropertyFunc(SelFont, "Orientation", @FontOrientation): ChangeControl(tb->Des->SelectedControl, te->Name & ".Orientation")
+			txtPropertyValue.Text = tb->Des->ToStringFunc(SelFont)
+			If lvProperties.SelectedItem <> 0 Then lvProperties.SelectedItem->Text(1) = txtPropertyValue.Text
+		End If
+	Case Else
+		Dim As ColorDialog cd
+		cd.Color = Val(txtPropertyValue.Text)
+		If cd.Execute Then
+			txtPropertyValue.Text = Str(cd.Color)
+			PropertyChanged(txtPropertyValue, txtPropertyValue.Text, False)
+		End If
+	End Select
 End Sub
 
 'txtPropertyValue.BorderStyle = 0
@@ -4569,14 +4618,16 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				CtrlEdit->Text = Item->Text(1)
 			End If
 		End If
-		Select Case LCase(te->TypeName)
-		Case "icon", "cursor", "bitmaptype", "graphictype"
+		Dim As String teTypeName = LCase(te->TypeName)
+		If CInt(teTypeName = "icon") OrElse CInt(teTypeName = "cursor") OrElse CInt(teTypeName = "bitmaptype") OrElse CInt(teTypeName = "graphictype") OrElse CInt(teTypeName = "font") OrElse CInt(EndsWith(LCase(PropertyName), "color")) Then
 			btnPropertyValue.SetBounds lpRect.Left + lpRect.Right - lpRect.Left - (lpRect.Bottom - lpRect.Top), lpRect.Top - 1, lpRect.Bottom - lpRect.Top + 1, lpRect.Bottom - lpRect.Top + 1
 			CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left - btnPropertyValue.Width + 2, lpRect.Bottom - lpRect.Top - 1
 			btnPropertyValue.Visible = True
-		Case Else
+			btnPropertyValue.Tag = te
+			CtrlEdit->Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
+		Else
 			CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left, lpRect.Bottom - lpRect.Top - 1
-		End Select
+		End If
 		If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = lpRect.Right - lpRect.Left + 2
 		CtrlEdit->Visible = True
 	#endif

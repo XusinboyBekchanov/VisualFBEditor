@@ -1527,10 +1527,12 @@ Namespace My.Sys.Forms
 			Dim As RECT R, BrushRect = Type(0, 0, FStepX, FStepY)
 			Dim As PAINTSTRUCT Ps
 			Dim As Boolean WithGraphic
+			Dim As Integer BackColor = QInteger(ReadPropertyFunc(DesignControl, "BackColor"))
+			Dim As HBRUSH Brush = CreateSolidBrush(BackColor)
 			FHDc = BeginPaint(FDialog,@Ps)
 			GetClientRect(FDialog, @R)
 			If BitmapHandle <> 0 Then
-				FillRect(Fhdc, @R, Cast(HBRUSH, 16))
+				FillRect(Fhdc, @R, Brush) 'Cast(HBRUSH, 16))
 				With Parent->Canvas
 					.HandleSetted = True
 					.Handle = Fhdc
@@ -1553,15 +1555,16 @@ Namespace My.Sys.Forms
 					mDc   = CreateCompatibleDc(FHDC)
 					mBMP  = CreateCompatibleBitmap(FHDC, FStepX, FStepY)
 					pBMP  = SelectObject(mDc, mBMP)
-					FillRect(mDc, @BrushRect, Cast(HBRUSH, 16))
+					FillRect(mDc, @BrushRect, Brush) 'Cast(HBRUSH, 16))
 					SetPixel(mDc, 0, 0, 0)
 					'for lines use MoveTo and LineTo or Rectangle function or whatever...
 					FGridBrush = CreatePatternBrush(mBMP)
 					FillRect(FHDC, @R, FGridBrush)
 				End If
 			ElseIf Not WithGraphic Then
-				FillRect(Fhdc, @R, Cast(HBRUSH, 16))
+				FillRect(Fhdc, @R, Brush) 'Cast(HBRUSH, 16))
 			End If
+			DeleteObject(Brush)
 			For j As Integer = 0 To SelectedControls.Count - 1
 				GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 				MapWindowPoints 0, FDialog, Cast(Point Ptr, @R), 2
