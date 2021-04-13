@@ -113,7 +113,7 @@
 			.Name = "cmdCancel"
 			.Text = ML("Cancel")
 			.TabIndex = 3
-			.SetBounds 431, 10, 80, 22
+			.SetBounds 521, 10, 80, 22
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 10
 			.ExtraMargins.Right = 10
@@ -121,7 +121,7 @@
 			.ExtraMargins.Top = 10
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
-			.Default = True
+			.Default = false
 			.Parent = @pnlCommands
 		End With
 		' cmdOK
@@ -129,7 +129,7 @@
 			.Name = "cmdOK"
 			.Text = ML("OK")
 			.TabIndex = 2
-			.SetBounds 521, 10, 80, 22
+			.SetBounds 431, 10, 80, 22
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 10
 			.ExtraMargins.Right = 10
@@ -137,6 +137,7 @@
 			.ExtraMargins.Top = 10
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
+			.Default = true
 			.Parent = @pnlCommands
 		End With
 		' lblResourceFile
