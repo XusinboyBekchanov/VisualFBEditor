@@ -587,13 +587,13 @@ Public Sub frmProjectProperties.RefreshProperties()
 				Else
 					.optCompileToGAS.Checked = True
 					.optCompileToGCC.Checked = False
-					.grbCompileToGCC.Enabled = .optCompileToGcc.Checked
 					.optOptimizationLevel.Enabled = .optCompileToGcc.Checked
 					.optOptimizationSmallCode.Enabled = .optCompileToGcc.Checked
 					.optNoOptimization.Enabled = .optCompileToGcc.Checked
 					.optOptimizationFastCode.Enabled = .optCompileToGcc.Checked
 					.cboOptimizationLevel.Enabled = .optCompileToGcc.Checked
 				End If
+				.optCompileToGas_Click(.optCompileToGas)
 				.optNoOptimization.Checked = ppe->OptimizationLevel = 0
 				.optOptimizationLevel.Checked = ppe->OptimizationLevel > 0
 				.cboOptimizationLevel.ItemIndex = ppe->OptimizationLevel
@@ -649,7 +649,25 @@ Private Sub frmProjectProperties.txtValue_LostFocus(ByRef Sender As TextBox)
 End Sub
 
 Private Sub frmProjectProperties.cmdAdvancedOptions_Click(ByRef Sender As Control)
-	pfAdvancedOptions->Show *pfrmMain
+	With *pfAdvancedOptions
+		.ProjectTreeNode = fProjectProperties.ProjectTreeNode
+		.chkShowUnusedLabelWarnings.Checked = False
+		.chkShowUnusedFunctionWarnings.Checked = False
+		.chkShowUnusedVariableWarnings.Checked = False
+		.chkShowUnusedButSetVariableWarnings.Checked = False
+		.chkShowMainWarnings.Checked = False
+		If .ProjectTreeNode <> 0 Then
+			Dim As ProjectElement Ptr ppe = .ProjectTreeNode->Tag
+			If ppe <> 0 Then
+				.chkShowUnusedLabelWarnings.Checked = ppe->ShowUnusedLabelWarnings
+				.chkShowUnusedFunctionWarnings.Checked = ppe->ShowUnusedFunctionWarnings
+				.chkShowUnusedVariableWarnings.Checked = ppe->ShowUnusedVariableWarnings
+				.chkShowUnusedButSetVariableWarnings.Checked = ppe->ShowUnusedButSetVariableWarnings
+				.chkShowMainWarnings.Checked = ppe->ShowMainWarnings
+			End If
+		End If
+		.ShowModal *pfrmMain
+	End With
 End Sub
 
 Private Sub frmProjectProperties.Form_Show(ByRef Sender As Form)
@@ -664,17 +682,11 @@ Private Sub frmProjectProperties.optCompileToGas_Click(ByRef Sender As RadioButt
 		.optNoOptimization.Enabled = .optCompileToGcc.Checked
 		.optOptimizationFastCode.Enabled = .optCompileToGcc.Checked
 		.cboOptimizationLevel.Enabled = .optCompileToGcc.Checked
+		.cmdAdvancedOptions.Enabled = .optCompileToGcc.Checked
 	End With
 End Sub
 
 Private Sub frmProjectProperties.optCompileToGcc_Click(ByRef Sender As RadioButton)
-	With fProjectProperties
-		.grbCompileToGCC.Enabled = .optCompileToGcc.Checked
-		.optOptimizationLevel.Enabled = .optCompileToGcc.Checked
-		.optOptimizationSmallCode.Enabled = .optCompileToGcc.Checked
-		.optNoOptimization.Enabled = .optCompileToGcc.Checked
-		.optOptimizationFastCode.Enabled = .optCompileToGcc.Checked
-		.cboOptimizationLevel.Enabled = .optCompileToGcc.Checked
-	End With
+	frmProjectProperties.optCompileToGas_Click Sender
 End Sub
 

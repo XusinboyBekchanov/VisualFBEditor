@@ -60,6 +60,11 @@ Type ProjectElement Extends ExplorerElement
 	OptimizationLevel As Integer
 	OptimizationFastCode As Boolean
 	OptimizationSmallCode As Boolean
+	ShowUnusedLabelWarnings As Boolean
+	ShowUnusedFunctionWarnings As Boolean
+	ShowUnusedVariableWarnings As Boolean
+	ShowUnusedButSetVariableWarnings As Boolean
+	ShowMainWarnings As Boolean
 	CompilationArguments32Windows As WString Ptr
 	CompilationArguments64Windows As WString Ptr
 	CompilationArguments32Linux As WString Ptr
