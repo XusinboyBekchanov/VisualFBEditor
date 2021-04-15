@@ -926,7 +926,7 @@ pfOptions = @fOptions
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
 			.Text = ML("When compiling") & ":"
-			.SetBounds 8, 201, 416, 99
+			.SetBounds 8, 201, 416, 120
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
@@ -940,14 +940,14 @@ pfOptions = @fOptions
 		With optDoNotSave
 			.Name = "optDoNotSave"
 			.Text = ML("Don't Save")
-			.SetBounds 18, 70, 184, 16
+			.SetBounds 18, 90, 184, 16
 			.Parent = @grbWhenCompiling
 		End With
 		' optSaveAllFiles
 		With optSaveAllFiles
 			.Name = "optSaveAllFiles"
 			.Text = ML("Save All Files")
-			.SetBounds 18, 46, 184, 16
+			.SetBounds 18, 45, 184, 16
 			.Parent = @grbWhenCompiling
 		End With
 		' pnlIncludeMFFPath
@@ -1156,6 +1156,15 @@ pfOptions = @fOptions
 			.Caption = ML("Find Compilers from Computer:")
 			.Parent = @grbCompilerPaths
 		End With
+		' optPromptToSave
+		With optPromptToSave
+			.Name = "optPromptToSave"
+			.Text = ML("Prompt To Save")
+			.TabIndex = 166
+			.SetBounds 18, 68, 184, 16
+			.Caption = ML("Prompt To Save")
+			.Parent = @grbWhenCompiling
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1211,6 +1220,7 @@ Sub frmOptions.LoadSettings()
 		Case 0: .optDoNotSave.Checked = True
 		Case 1: .optSaveCurrentFile.Checked = True
 		Case 2: .optSaveAllFiles.Checked = True
+		Case 3: .optPromptToSave.Checked = True
 		End Select
 		.chkShowSpaces.Checked = ShowSpaces
 		.chkHighlightBrackets.Checked = HighlightBrackets
@@ -1751,7 +1761,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 			WLet(DefaultProjectFile, .Templates.Item(.cboDefaultProjectFile.ItemIndex))
 		End If
 		WhenVisualFBEditorStarts = IIf(.optPromptForProjectAndFile.Checked, 1, IIf(.optCreateProjectFile.Checked, 2, IIf(.optOpenLastSession.Checked, 3, 0)))
-		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, 0))
+		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, IIf(.optPromptToSave.Checked, 3, 0)))
 		ShowSpaces = .chkShowSpaces.Checked
 		HighlightBrackets = .chkHighlightBrackets.Checked
 		HighlightCurrentLine = .chkHighlightCurrentLine.Checked

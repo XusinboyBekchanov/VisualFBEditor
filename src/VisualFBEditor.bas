@@ -158,31 +158,33 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
-	Case "SyntaxCheck":                         SaveAllBeforeCompile: ThreadCreate(@SyntaxCheck)
-	Case "Compile":                             SaveAllBeforeCompile: ThreadCreate(@CompileProgram)
-	Case "Make":                                SaveAllBeforeCompile: ThreadCreate(@MakeExecute)
+	Case "SyntaxCheck":                         If SaveAllBeforeCompile Then ThreadCreate(@SyntaxCheck)
+	Case "Compile":                             If SaveAllBeforeCompile Then ThreadCreate(@CompileProgram)
+	Case "Make":                                If SaveAllBeforeCompile Then ThreadCreate(@MakeExecute)
 	Case "MakeClean":                           ThreadCreate(@MakeClean)
 	Case "FormatProject":                       ThreadCreate(@FormatProject) 'FormatProject 0
 	Case "UnformatProject":                     ThreadCreate(@FormatProject, Cast(Any Ptr, 1)) 'FormatProject Cast(Any Ptr, 1)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
-	Case "StartWithCompile":                    SaveAllBeforeCompile
-		'SaveAll '
-		If InDebug Then
-			#ifndef __USE_GTK__
-				ChangeEnabledDebug False, True, True
-				fastrun()
-				'runtype = RTRUN
-				'thread_rsm()
-			#endif
-		ElseIf UseDebugger Then
-			#ifndef __USE_GTK__
-				runtype = RTFRUN
-				'runtype = RTRUN
-				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
-			#endif
-			ThreadCreate(@StartDebuggingWithCompile)
-		Else
-			ThreadCreate(@CompileAndRun)
+	Case "StartWithCompile"
+		If SaveAllBeforeCompile Then
+			'SaveAll '
+			If InDebug Then
+				#ifndef __USE_GTK__
+					ChangeEnabledDebug False, True, True
+					fastrun()
+					'runtype = RTRUN
+					'thread_rsm()
+				#endif
+			ElseIf UseDebugger Then
+				#ifndef __USE_GTK__
+					runtype = RTFRUN
+					'runtype = RTRUN
+					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+				#endif
+				ThreadCreate(@StartDebuggingWithCompile)
+			Else
+				ThreadCreate(@CompileAndRun)
+			End If
 		End If
 	Case "Start"
 		If InDebug Then

@@ -216,7 +216,7 @@ Public:
 	Declare Property Caption(ByRef Value As WString)
 	Declare Operator Cast As TabPage Ptr
 	Declare Function GetLine(lLine As Long, ByRef strLine As WString = "", lUpLine As Long = 0, lDwLine As Long = 0, sc As Long = 0) ByRef As WString
-	Declare Function CloseTab As Boolean
+	Declare Function CloseTab(WithoutMessage As Boolean = False) As Boolean
 	Declare Function Save As Boolean
 	Declare Function SaveAs As Boolean
 	Declare Sub FillAllProperties
@@ -274,7 +274,7 @@ Declare Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Intege
 
 Declare Sub CloseButton_MouseLeave(ByRef Sender As Control)
 
-Declare Function CloseTab(ByRef tb As TabWindow Ptr) As Boolean
+Declare Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
 
 #ifdef __USE_GTK__
 	Declare Function CloseButton_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean

@@ -685,12 +685,12 @@ Function TabWindow.Save As Boolean
 	If InStr(*FFileName, "/") > 0 OrElse InStr(*FFileName, "\") > 0 Then Return SaveTab Else Return SaveAs
 End Function
 
-Function CloseTab(ByRef tb As TabWindow Ptr) As Boolean
-	If tb <> 0 AndAlso tb->CloseTab Then Delete_(tb): Return True Else Return False
+Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
+	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then Delete_(tb): Return True Else Return False
 End Function
 
-Function TabWindow.CloseTab As Boolean
-	If txtCode.Modified Then
+Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
+	If txtCode.Modified AndAlso Not WithoutMessage Then
 		Select Case MsgBox(ML("Want to save the file") & " """ & Caption & """?", "Visual FB Editor", mtWarning, btYesNoCancel)
 		Case mrYes: Save
 		Case mrNo:

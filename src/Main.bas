@@ -142,6 +142,7 @@ LoadSettings
 #include once "frmTemplates.bi"
 #include once "frmParameters.bi"
 #include once "frmProjectProperties.bi"
+#include once "frmSave.bi"
 
 Namespace VisualFBEditor
 	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -1427,16 +1428,59 @@ Sub SaveAll()
 	Next i
 End Sub
 
-Sub SaveAllBeforeCompile()
+Function SaveAllBeforeCompile() As Boolean
 	If AutoSaveBeforeCompiling = 1 Then
 		Dim As ProjectElement Ptr Project
 		Dim As TreeNode Ptr ProjectNode
 		GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode)
-		If ProjectNode <> 0 Then SaveProject ProjectNode
+		If ProjectNode <> 0 Then SaveProject(ProjectNode)
 	ElseIf AutoSaveBeforeCompiling = 2 Then
 		SaveAll
+	ElseIf AutoSaveBeforeCompiling = 3 Then
+		Dim tnP As TreeNode Ptr
+		Dim As TreeNode Ptr tn
+		Dim As TabWindow Ptr tb
+		Dim Index As Integer
+		With *pfSave
+			.lstFiles.Clear
+			For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
+				tn = tvExplorer.Nodes.Item(i)
+				If CInt(tn->ImageKey = "Project") AndAlso EndsWith(tn->Text, "*") Then
+					.lstFiles.AddObject tn->Text, tn
+				End If
+			Next i
+			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+				If tb->Modified Then
+					tnP = GetParentNode(tb->tn)
+					Index = .lstFiles.IndexOfObject(tnP)
+					If Index <> -1 Then
+						.lstFiles.InsertObject Index + 1, WSpace(2) & tb->Caption, tb
+					Else
+						.lstFiles.AddObject tb->Caption, tb
+					End If
+				End If
+			Next i
+			If .lstFiles.ItemCount > 0 Then
+				Select Case .ShowModal(*pfrmMain)
+				Case ModalResults.Yes
+					For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1
+						If .lstFiles.Selected(i) Then
+							If tvExplorer.Nodes.Contains(.lstFiles.Object(i)) Then
+								If Not SaveProject(.lstFiles.Object(i)) Then Return False
+							Else
+								If Not Cast(TabWindow Ptr, .lstFiles.Object(i))->Save Then Return False
+							End If
+						End If
+					Next
+				Case ModalResults.No
+				Case ModalResults.Cancel: Return False
+				End Select
+			End If
+		End With
 	End If
-End Sub
+	Return True
+End Function
 
 Sub PrintThis()
 	#ifndef __USE_GTK__
@@ -1809,16 +1853,50 @@ Sub Save()
 	End If
 End Sub
 
-Function CloseProject(tn As TreeNode Ptr) As Boolean
+Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As Boolean
 	If tn = 0 Then Return True
 	If tn->ImageKey <> "Project" Then Return True
 	Dim tb As TabWindow Ptr
+	Dim As Boolean bProjectModified = EndsWith(tn->Text, "*")
+	If Not WithoutMessage Then
+		Dim tnP As TreeNode Ptr
+		Dim Index As Integer
+		With *pfSave
+			.lstFiles.Clear
+			If bProjectModified Then .lstFiles.AddObject tn->Text, tn
+			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+				If tb->Modified Then
+					tnP = GetParentNode(tb->tn)
+					If tnP = tn Then
+						.lstFiles.AddObject IIf(bProjectModified, WSpace(2), "") & tb->Caption, tb
+					End If
+				End If
+			Next i
+			If .lstFiles.ItemCount > 0 Then
+				Select Case .ShowModal(*pfrmMain)
+				Case ModalResults.Yes
+					For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1
+						If .lstFiles.Selected(i) Then
+							If tvExplorer.Nodes.Contains(.lstFiles.Object(i)) Then
+								If Not SaveProject(.lstFiles.Object(i)) Then Return False
+							Else
+								If Not Cast(TabWindow Ptr, .lstFiles.Object(i))->Save Then Return False
+							End If
+						End If
+					Next
+				Case ModalResults.No
+				Case ModalResults.Cancel: Return False
+				End Select
+			End If
+		End With
+	End If
 	For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
 		If tn->Nodes.Item(j)->Nodes.Count = 0 Then
 			For i As Integer = 0 To ptabCode->TabCount - 1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-				If tn->Nodes.Item(j)->Text = tb->tn->Text Then
-					If Not CloseTab(tb) Then Return False
+				If tn->Nodes.Item(j) = tb->tn Then
+					If Not CloseTab(tb, True) Then Return False
 					Exit For
 				End If
 			Next i
@@ -1827,8 +1905,8 @@ Function CloseProject(tn As TreeNode Ptr) As Boolean
 			For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 '
 				For i As Integer = 0 To ptabCode->TabCount - 1
 					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-					If tn->Nodes.Item(j)->Nodes.Item(k)->Text = tb->tn->Text Then '
-						If Not CloseTab(tb) Then Return False
+					If tn->Nodes.Item(j)->Nodes.Item(k) = tb->tn Then
+						If Not CloseTab(tb, True) Then Return False
 						Exit For
 					End If
 				Next i
@@ -1836,13 +1914,13 @@ Function CloseProject(tn As TreeNode Ptr) As Boolean
 			Next k
 		End If
 	Next
-	If EndsWith(tn->Text, "*") Then
-		Select Case MsgBox(ML("Want to save the project") & " """ & tn->Text & """?", "Visual FB Editor", mtWarning, btYesNoCancel)
-		Case mrYES: If Not SaveProject(tn) Then Return False
-		Case mrNO:
-		Case mrCANCEL: Return False
-		End Select
-	End If
+'	If bProjectModified AndAlso Not WithoutMessage Then
+'		Select Case MsgBox(ML("Want to save the project") & " """ & tn->Text & """?", "Visual FB Editor", mtWarning, btYesNoCancel)
+'		Case mrYES: If Not SaveProject(tn) Then Return False
+'		Case mrNO:
+'		Case mrCANCEL: Return False
+'		End Select
+'	End If
 	If tn = MainNode Then SetMainNode 0
 	If tn->Tag <> 0 Then Delete_(Cast(ProjectElement Ptr, tn->Tag))
 	If tvExplorer.Nodes.IndexOf(tn) <> -1 Then tvExplorer.Nodes.Remove tvExplorer.Nodes.IndexOf(tn)
@@ -5716,13 +5794,54 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	FormClosing = True
 	Dim tb As TabWindow Ptr
 	Dim tn As TreeNode Ptr
+	Dim tnP As TreeNode Ptr
+	Dim Index As Integer
+	With *pfSave
+		.lstFiles.Clear
+		For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
+			tn = tvExplorer.Nodes.Item(i)
+			If CInt(tn->ImageKey = "Project") AndAlso EndsWith(tn->Text, "*") Then
+				.lstFiles.AddObject tn->Text, tn
+			End If
+			'If CInt(tn->ImageKey = "Project") AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
+		Next i
+		For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			If tb->Modified Then
+				tnP = GetParentNode(tb->tn)
+				Index = .lstFiles.IndexOfObject(tnP)
+				If Index <> -1 Then
+					.lstFiles.InsertObject Index + 1, WSpace(2) & tb->Caption, tb
+				Else
+					.lstFiles.AddObject tb->Caption, tb
+				End If
+			End If
+			'If Not CloseTab(tb) Then Action = 0: Return
+		Next i
+		If .lstFiles.ItemCount > 0 Then
+			Select Case .ShowModal(*pfrmMain)
+			Case ModalResults.Yes
+				For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1
+					If .lstFiles.Selected(i) Then
+						If tvExplorer.Nodes.Contains(.lstFiles.Object(i)) Then
+							If Not SaveProject(.lstFiles.Object(i)) Then Action = 0: Return
+						Else
+							If Not Cast(TabWindow Ptr, .lstFiles.Object(i))->Save Then Action = 0: Return
+						End If
+					End If
+				Next
+			Case ModalResults.No
+			Case ModalResults.Cancel: Action = 0: Return
+			End Select
+		End If
+	End With
 	For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-		If Not CloseTab(tb) Then Action = 0: Return
+		CloseTab(tb, True)
 	Next i
 	For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
 		tn = tvExplorer.Nodes.Item(i)
-		If CInt(tn->ImageKey = "Project") AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
+		If CInt(tn->ImageKey = "Project") Then CloseProject(tn, True)
 	Next i
 	iniSettings.WriteInteger("MainWindow", "MainWidth", frmMain.Width)
 	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)

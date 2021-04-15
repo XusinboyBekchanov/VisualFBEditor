@@ -158,7 +158,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CheckBox chkHighlightCurrentLine
 		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug, chkCreateNonStaticEventHandlers
 		Dim As Boolean oldDisplayMenuIcons
-		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFile, optCreateProjectFile, optOpenLastSession, optDoNotNothing
+		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFile, optCreateProjectFile, optOpenLastSession, optDoNotNothing, optPromptToSave
 	End Type
 '#End Region
 

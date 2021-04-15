@@ -165,7 +165,7 @@ Declare Sub RestoreStatusText
 Declare Sub OpenUrl(ByVal url As String)
 Declare Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean = False) As TreeNode Ptr
 Declare Function SaveProject(ByRef tn As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
-Declare Function CloseProject(tn As TreeNode Ptr) As Boolean
+Declare Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As Boolean
 Declare Sub SetMainNode(tn As TreeNode Ptr)
 Declare Sub OpenProjectFolder
 Declare Sub OpenFiles(ByRef FileName As WString)
@@ -190,7 +190,7 @@ Declare Sub ChangeNewLineType(NewLineType As NewLineTypes)
 Declare Function WithoutPointers(ByRef e As String) As String
 Declare Sub WithFolder
 Declare Sub Save
-Declare Sub SaveAllBeforeCompile()
+Declare Function SaveAllBeforeCompile() As Boolean
 Declare Function SaveSession() As Boolean
 Declare Sub CompileProgram(Param As Any Ptr)
 Declare Sub CompileWithDebugger(Param As Any Ptr)
