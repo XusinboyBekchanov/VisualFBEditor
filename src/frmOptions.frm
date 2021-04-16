@@ -1189,6 +1189,20 @@ Private Sub frmOptions.cmdCancel_Click(ByRef Sender As Control)
 	Cast(frmOptions Ptr, Sender.Parent)->CloseForm
 End Sub
 
+Sub AddColors(ByRef cs As ECColorScheme, Foreground As Boolean = True, Background As Boolean = True, Frame As Boolean = True, Indicator As Boolean = True, Bold As Boolean = True, Italic As Boolean = True, Underline As Boolean = True)
+	With fOptions
+		ReDim Preserve Colors(ColorsCount, 7)
+		.Colors(ColorsCount, 0) = IIf(Foreground, cs.Foreground, -2)
+		.Colors(ColorsCount, 1) = IIf(Background, cs.Background, -2)
+		.Colors(ColorsCount, 2) = IIf(Frame, cs.Frame, -2)
+		.Colors(ColorsCount, 3) = IIf(Indicator, cs.Indicator, -2)
+		.Colors(ColorsCount, 4) = IIf(Bold, cs.Bold, -2)
+		.Colors(ColorsCount, 5) = IIf(Italic, cs.Italic, -2)
+		.Colors(ColorsCount, 6) = IIf(Underline, cs.Underline, -2)
+		.ColorsCount += 1
+	End With
+End Sub
+
 Sub frmOptions.LoadSettings()
 	With fOptions
 		.tvOptions.SelectedNode = .tvOptions.Nodes.Item(0)
@@ -1357,85 +1371,104 @@ Sub frmOptions.LoadSettings()
 		For i As Integer = 0 To pLibraryPaths->Count - 1
 			.lstLibraryPaths.AddItem pLibraryPaths->Item(i)
 		Next
-		For i As Integer = 0 To 15
-			For j As Integer = 0 To 6
-				.Colors(i, j) = -2
-			Next
+'		For i As Integer = 0 To 15
+'			For j As Integer = 0 To 6
+'				.Colors(i, j) = -2
+'			Next
+'		Next
+		.ColorsCount = 0
+		AddColors Bookmarks
+'		.Colors(0, 0) = Bookmarks.Foreground
+'		.Colors(0, 1) = Bookmarks.Background
+'		.Colors(0, 2) = Bookmarks.Frame
+'		.Colors(0, 3) = Bookmarks.Indicator
+'		.Colors(0, 4) = Bookmarks.Bold
+'		.Colors(0, 5) = Bookmarks.Italic
+'		.Colors(0, 6) = Bookmarks.Underline
+		AddColors Breakpoints
+'		.Colors(1, 0) = Breakpoints.Foreground
+'		.Colors(1, 1) = Breakpoints.Background
+'		.Colors(1, 2) = Breakpoints.Frame
+'		.Colors(1, 3) = Breakpoints.Indicator
+'		.Colors(1, 4) = Breakpoints.Bold
+'		.Colors(1, 5) = Breakpoints.Italic
+'		.Colors(1, 6) = Breakpoints.Underline
+		AddColors Comments, , , , False
+'		.Colors(2, 0) = Comments.Foreground
+'		.Colors(2, 1) = Comments.Background
+'		.Colors(2, 2) = Comments.Frame
+'		.Colors(2, 4) = Comments.Bold
+'		.Colors(2, 5) = Comments.Italic
+'		.Colors(2, 6) = Comments.Underline
+		AddColors CurrentBrackets, , , , False
+'		.Colors(3, 0) = CurrentBrackets.Foreground
+'		.Colors(3, 1) = CurrentBrackets.Background
+'		.Colors(3, 2) = CurrentBrackets.Frame
+'		.Colors(3, 4) = CurrentBrackets.Bold
+'		.Colors(3, 5) = CurrentBrackets.Italic
+'		.Colors(3, 6) = CurrentBrackets.Underline
+		AddColors CurrentLine, , , , False, False, False, False
+'		.Colors(4, 0) = CurrentLine.Foreground
+'		.Colors(4, 1) = CurrentLine.Background
+'		.Colors(4, 2) = CurrentLine.Frame
+		AddColors CurrentWord, , , , False
+'		.Colors(5, 0) = CurrentWord.Foreground
+'		.Colors(5, 1) = CurrentWord.Background
+'		.Colors(5, 2) = CurrentWord.Frame
+'		.Colors(5, 4) = CurrentWord.Bold
+'		.Colors(5, 5) = CurrentWord.Italic
+'		.Colors(5, 6) = CurrentWord.Underline
+		AddColors ExecutionLine, , , , , False, False, False
+'		.Colors(6, 0) = ExecutionLine.Foreground
+'		.Colors(6, 1) = ExecutionLine.Background
+'		.Colors(6, 2) = ExecutionLine.Frame
+'		.Colors(6, 3) = ExecutionLine.Indicator
+		AddColors FoldLines, , False, False, False, False, False, False
+'		.Colors(7, 0) = FoldLines.Foreground
+		AddColors IndicatorLines, , False, False, False, False, False, False
+'		.Colors(8, 0) = IndicatorLines.Foreground
+		For k As Integer = 0 To UBound(KeywordLists)
+			ReDim Preserve Keywords(k)
+			AddColors Keywords(k), , , , False
 		Next
-		.Colors(0, 0) = Bookmarks.Foreground
-		.Colors(0, 1) = Bookmarks.Background
-		.Colors(0, 2) = Bookmarks.Frame
-		.Colors(0, 3) = Bookmarks.Indicator
-		.Colors(0, 4) = Bookmarks.Bold
-		.Colors(0, 5) = Bookmarks.Italic
-		.Colors(0, 6) = Bookmarks.Underline
-		.Colors(1, 0) = Breakpoints.Foreground
-		.Colors(1, 1) = Breakpoints.Background
-		.Colors(1, 2) = Breakpoints.Frame
-		.Colors(1, 3) = Breakpoints.Indicator
-		.Colors(1, 4) = Breakpoints.Bold
-		.Colors(1, 5) = Breakpoints.Italic
-		.Colors(1, 6) = Breakpoints.Underline
-		.Colors(2, 0) = Comments.Foreground
-		.Colors(2, 1) = Comments.Background
-		.Colors(2, 2) = Comments.Frame
-		.Colors(2, 4) = Comments.Bold
-		.Colors(2, 5) = Comments.Italic
-		.Colors(2, 6) = Comments.Underline
-		.Colors(3, 0) = CurrentBrackets.Foreground
-		.Colors(3, 1) = CurrentBrackets.Background
-		.Colors(3, 2) = CurrentBrackets.Frame
-		.Colors(3, 4) = CurrentBrackets.Bold
-		.Colors(3, 5) = CurrentBrackets.Italic
-		.Colors(3, 6) = CurrentBrackets.Underline
-		.Colors(4, 0) = CurrentLine.Foreground
-		.Colors(4, 1) = CurrentLine.Background
-		.Colors(4, 2) = CurrentLine.Frame
-		.Colors(5, 0) = CurrentWord.Foreground
-		.Colors(5, 1) = CurrentWord.Background
-		.Colors(5, 2) = CurrentWord.Frame
-		.Colors(5, 4) = CurrentWord.Bold
-		.Colors(5, 5) = CurrentWord.Italic
-		.Colors(5, 6) = CurrentWord.Underline
-		.Colors(6, 0) = ExecutionLine.Foreground
-		.Colors(6, 1) = ExecutionLine.Background
-		.Colors(6, 2) = ExecutionLine.Frame
-		.Colors(6, 3) = ExecutionLine.Indicator
-		.Colors(7, 0) = FoldLines.Foreground
-		.Colors(8, 0) = IndicatorLines.Foreground
-		.Colors(9, 0) = Keywords.Foreground
-		.Colors(9, 1) = Keywords.Background
-		.Colors(9, 2) = Keywords.Frame
-		.Colors(9, 4) = Keywords.Bold
-		.Colors(9, 5) = Keywords.Italic
-		.Colors(9, 6) = Keywords.Underline
-		.Colors(10, 0) = LineNumbers.Foreground
-		.Colors(10, 1) = LineNumbers.Background
-		.Colors(10, 4) = LineNumbers.Bold
-		.Colors(10, 5) = LineNumbers.Italic
-		.Colors(10, 6) = LineNumbers.Underline
-		.Colors(11, 0) = NormalText.Foreground
-		.Colors(11, 1) = NormalText.Background
-		.Colors(11, 2) = NormalText.Frame
-		.Colors(11, 4) = NormalText.Bold
-		.Colors(11, 5) = NormalText.Italic
-		.Colors(11, 6) = NormalText.Underline
-		.Colors(12, 0) = Preprocessors.Foreground
-		.Colors(12, 1) = Preprocessors.Background
-		.Colors(12, 2) = Preprocessors.Frame
-		.Colors(12, 4) = Preprocessors.Bold
-		.Colors(12, 5) = Preprocessors.Italic
-		.Colors(12, 6) = Preprocessors.Underline
-		.Colors(13, 0) = Selection.Foreground
-		.Colors(13, 1) = Selection.Background
-		.Colors(13, 2) = Selection.Frame
-		.Colors(14, 0) = SpaceIdentifiers.Foreground
-		.Colors(15, 0) = Strings.Foreground
-		.Colors(15, 1) = Strings.Background
-		.Colors(15, 2) = Strings.Frame
-		.Colors(15, 4) = Strings.Bold
-		.Colors(15, 5) = Strings.Italic
-		.Colors(15, 6) = Strings.Underline
+'		.Colors(9, 0) = Keywords.Foreground
+'		.Colors(9, 1) = Keywords.Background
+'		.Colors(9, 2) = Keywords.Frame
+'		.Colors(9, 4) = Keywords.Bold
+'		.Colors(9, 5) = Keywords.Italic
+'		.Colors(9, 6) = Keywords.Underline
+		AddColors LineNumbers, , , False, False
+'		.Colors(10, 0) = LineNumbers.Foreground
+'		.Colors(10, 1) = LineNumbers.Background
+'		.Colors(10, 4) = LineNumbers.Bold
+'		.Colors(10, 5) = LineNumbers.Italic
+'		.Colors(10, 6) = LineNumbers.Underline
+		AddColors NormalText, , , , False
+'		.Colors(11, 0) = NormalText.Foreground
+'		.Colors(11, 1) = NormalText.Background
+'		.Colors(11, 2) = NormalText.Frame
+'		.Colors(11, 4) = NormalText.Bold
+'		.Colors(11, 5) = NormalText.Italic
+'		.Colors(11, 6) = NormalText.Underline
+'		.Colors(12, 0) = Preprocessors.Foreground
+'		.Colors(12, 1) = Preprocessors.Background
+'		.Colors(12, 2) = Preprocessors.Frame
+'		.Colors(12, 4) = Preprocessors.Bold
+'		.Colors(12, 5) = Preprocessors.Italic
+'		.Colors(12, 6) = Preprocessors.Underline
+		AddColors Selection, , , , False, False, False, False
+'		.Colors(13, 0) = Selection.Foreground
+'		.Colors(13, 1) = Selection.Background
+'		.Colors(13, 2) = Selection.Frame
+		AddColors SpaceIdentifiers, , False, False, False, False, False, False
+'		.Colors(14, 0) = SpaceIdentifiers.Foreground
+		AddColors Strings, , , , False
+'		.Colors(15, 0) = Strings.Foreground
+'		.Colors(15, 1) = Strings.Background
+'		.Colors(15, 2) = Strings.Frame
+'		.Colors(15, 4) = Strings.Bold
+'		.Colors(15, 5) = Strings.Italic
+'		.Colors(15, 6) = Strings.Underline
 		.lstColorKeys.ItemIndex = 0
 		.lstColorKeys_Change(.lstColorKeys)
 		WLet(.EditFontName, *EditorFontName)
@@ -1451,6 +1484,7 @@ Sub frmOptions.LoadSettings()
 		.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
 	End With
 End Sub
+
 Sub AddShortcuts(item As MenuItem Ptr, ByRef Prefix As WString = "")
 	With fOptions
 		If StartsWith(item->Name, "Recent") OrElse item->Caption = "-" Then Exit Sub
@@ -1526,10 +1560,12 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Executed Line")
 		.lstColorKeys.AddItem ML("Fold Lines")
 		.lstColorKeys.AddItem ML("Indicator Lines")
-		.lstColorKeys.AddItem ML("Keywords")
+		For k As Integer = 0 To UBound(KeywordListNames)
+			.lstColorKeys.AddItem ML("Keywords") & ": " & KeywordListNames(k)
+		Next k
 		.lstColorKeys.AddItem ML("Line Numbers")
 		.lstColorKeys.AddItem ML("Normal Text")
-		.lstColorKeys.AddItem ML("Preprocessors")
+'		.lstColorKeys.AddItem ML("Preprocessors")
 		.lstColorKeys.AddItem ML("Selection")
 		.lstColorKeys.AddItem ML("Space Identifiers")
 		.lstColorKeys.AddItem ML("Strings")
@@ -1541,82 +1577,111 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 	End With
 End Sub
 
+Sub SetColor(ByRef cs As ECColorScheme)
+	cs.ForegroundOption = .Colors(ColorsCount, 0)
+	cs.BackgroundOption = .Colors(ColorsCount, 1)
+	cs.FrameOption = .Colors(ColorsCount, 2)
+	cs.IndicatorOption = .Colors(ColorsCount, 3)
+	cs.Bold = .Colors(ColorsCount, 4)
+	cs.Italic = .Colors(ColorsCount, 5)
+	cs.Underline = .Colors(ColorsCount, 6)
+	ColorsCount += 1
+End Sub
+
 Sub SetColors
 	With fOptions
-		Bookmarks.ForegroundOption = .Colors(0, 0)
-		Bookmarks.BackgroundOption = .Colors(0, 1)
-		Bookmarks.FrameOption = .Colors(0, 2)
-		Bookmarks.IndicatorOption = .Colors(0, 3)
-		Bookmarks.Bold = .Colors(0, 4)
-		Bookmarks.Italic = .Colors(0, 5)
-		Bookmarks.Underline = .Colors(0, 6)
-		Breakpoints.ForegroundOption = .Colors(1, 0)
-		Breakpoints.BackgroundOption = .Colors(1, 1)
-		Breakpoints.FrameOption = .Colors(1, 2)
-		Breakpoints.IndicatorOption = .Colors(1, 3)
-		Breakpoints.Bold = .Colors(1, 4)
-		Breakpoints.Italic = .Colors(1, 5)
-		Breakpoints.Underline = .Colors(1, 6)
-		Comments.ForegroundOption = .Colors(2, 0)
-		Comments.BackgroundOption = .Colors(2, 1)
-		Comments.FrameOption = .Colors(2, 2)
-		Comments.Bold = .Colors(2, 4)
-		Comments.Italic = .Colors(2, 5)
-		Comments.Underline = .Colors(2, 6)
-		CurrentBrackets.ForegroundOption = .Colors(3, 0)
-		CurrentBrackets.BackgroundOption = .Colors(3, 1)
-		CurrentBrackets.FrameOption = .Colors(3, 2)
-		CurrentBrackets.Bold = .Colors(3, 4)
-		CurrentBrackets.Italic = .Colors(3, 5)
-		CurrentBrackets.Underline = .Colors(3, 6)
-		CurrentLine.ForegroundOption = .Colors(4, 0)
-		CurrentLine.BackgroundOption = .Colors(4, 1)
-		CurrentLine.FrameOption = .Colors(4, 2)
-		CurrentWord.ForegroundOption = .Colors(5, 0)
-		CurrentWord.BackgroundOption = .Colors(5, 1)
-		CurrentWord.FrameOption = .Colors(5, 2)
-		CurrentWord.Bold = .Colors(5, 4)
-		CurrentWord.Italic = .Colors(5, 5)
-		CurrentWord.Underline = .Colors(5, 6)
-		ExecutionLine.ForegroundOption = .Colors(6, 0)
-		ExecutionLine.BackgroundOption = .Colors(6, 1)
-		ExecutionLine.FrameOption = .Colors(6, 2)
-		ExecutionLine.IndicatorOption = .Colors(6, 3)
-		FoldLines.ForegroundOption = .Colors(7, 0)
-		IndicatorLines.ForegroundOption = .Colors(8, 0)
-		Keywords.ForegroundOption = .Colors(9, 0)
-		Keywords.BackgroundOption = .Colors(9, 1)
-		Keywords.FrameOption = .Colors(9, 2)
-		Keywords.Bold = .Colors(9, 4)
-		Keywords.Italic = .Colors(9, 5)
-		Keywords.Underline = .Colors(9, 6)
-		LineNumbers.ForegroundOption = .Colors(10, 0)
-		LineNumbers.BackgroundOption = .Colors(10, 1)
-		LineNumbers.Bold = .Colors(10, 4)
-		LineNumbers.Italic = .Colors(10, 5)
-		LineNumbers.Underline = .Colors(10, 6)
-		NormalText.ForegroundOption = .Colors(11, 0)
-		NormalText.BackgroundOption = .Colors(11, 1)
-		NormalText.FrameOption = .Colors(11, 2)
-		NormalText.Bold = .Colors(11, 4)
-		NormalText.Italic = .Colors(11, 5)
-		NormalText.Underline = .Colors(11, 6)
-		Preprocessors.ForegroundOption = .Colors(12, 0)
-		Preprocessors.BackgroundOption = .Colors(12, 1)
-		Preprocessors.FrameOption = .Colors(12, 2)
-		Preprocessors.Bold = .Colors(12, 4)
-		Preprocessors.Italic = .Colors(12, 5)
-		Preprocessors.Underline = .Colors(12, 6)
-		Selection.ForegroundOption = .Colors(13, 0)
-		Selection.BackgroundOption = .Colors(13, 1)
-		Selection.FrameOption = .Colors(13, 2)
-		SpaceIdentifiers.ForegroundOption = .Colors(14, 0)
-		Strings.ForegroundOption = .Colors(15, 0)
-		Strings.BackgroundOption = .Colors(15, 1)
-		Strings.FrameOption = .Colors(15, 2)
-		Strings.Bold = .Colors(15, 4)
-		Strings.Italic = .Colors(15, 5)
-		Strings.Underline = .Colors(15, 6)
+		ColorsCount = 0
+		SetColor Bookmarks
+'		Bookmarks.ForegroundOption = .Colors(0, 0)
+'		Bookmarks.BackgroundOption = .Colors(0, 1)
+'		Bookmarks.FrameOption = .Colors(0, 2)
+'		Bookmarks.IndicatorOption = .Colors(0, 3)
+'		Bookmarks.Bold = .Colors(0, 4)
+'		Bookmarks.Italic = .Colors(0, 5)
+'		Bookmarks.Underline = .Colors(0, 6)
+		SetColor Breakpoints
+'		Breakpoints.ForegroundOption = .Colors(1, 0)
+'		Breakpoints.BackgroundOption = .Colors(1, 1)
+'		Breakpoints.FrameOption = .Colors(1, 2)
+'		Breakpoints.IndicatorOption = .Colors(1, 3)
+'		Breakpoints.Bold = .Colors(1, 4)
+'		Breakpoints.Italic = .Colors(1, 5)
+'		Breakpoints.Underline = .Colors(1, 6)
+		SetColor Comments
+'		Comments.ForegroundOption = .Colors(2, 0)
+'		Comments.BackgroundOption = .Colors(2, 1)
+'		Comments.FrameOption = .Colors(2, 2)
+'		Comments.Bold = .Colors(2, 4)
+'		Comments.Italic = .Colors(2, 5)
+'		Comments.Underline = .Colors(2, 6)
+		SetColor CurrentBrackets
+'		CurrentBrackets.ForegroundOption = .Colors(3, 0)
+'		CurrentBrackets.BackgroundOption = .Colors(3, 1)
+'		CurrentBrackets.FrameOption = .Colors(3, 2)
+'		CurrentBrackets.Bold = .Colors(3, 4)
+'		CurrentBrackets.Italic = .Colors(3, 5)
+'		CurrentBrackets.Underline = .Colors(3, 6)
+		SetColor CurrentLine
+'		CurrentLine.ForegroundOption = .Colors(4, 0)
+'		CurrentLine.BackgroundOption = .Colors(4, 1)
+'		CurrentLine.FrameOption = .Colors(4, 2)
+		SetColor CurrentWord
+'		CurrentWord.ForegroundOption = .Colors(5, 0)
+'		CurrentWord.BackgroundOption = .Colors(5, 1)
+'		CurrentWord.FrameOption = .Colors(5, 2)
+'		CurrentWord.Bold = .Colors(5, 4)
+'		CurrentWord.Italic = .Colors(5, 5)
+'		CurrentWord.Underline = .Colors(5, 6)
+		SetColor ExecutionLine
+'		ExecutionLine.ForegroundOption = .Colors(6, 0)
+'		ExecutionLine.BackgroundOption = .Colors(6, 1)
+'		ExecutionLine.FrameOption = .Colors(6, 2)
+'		ExecutionLine.IndicatorOption = .Colors(6, 3)
+		SetColor FoldLines
+'		FoldLines.ForegroundOption = .Colors(7, 0)
+		SetColor IndicatorLines
+'		IndicatorLines.ForegroundOption = .Colors(8, 0)
+		For k As Integer = 0 To UBound(Keywords)
+			SetColor Keywords(k)
+		Next k
+'		Keywords.ForegroundOption = .Colors(9, 0)
+'		Keywords.BackgroundOption = .Colors(9, 1)
+'		Keywords.FrameOption = .Colors(9, 2)
+'		Keywords.Bold = .Colors(9, 4)
+'		Keywords.Italic = .Colors(9, 5)
+'		Keywords.Underline = .Colors(9, 6)
+		SetColor LineNumbers
+'		LineNumbers.ForegroundOption = .Colors(10, 0)
+'		LineNumbers.BackgroundOption = .Colors(10, 1)
+'		LineNumbers.Bold = .Colors(10, 4)
+'		LineNumbers.Italic = .Colors(10, 5)
+'		LineNumbers.Underline = .Colors(10, 6)
+		SetColor NormalText
+'		NormalText.ForegroundOption = .Colors(11, 0)
+'		NormalText.BackgroundOption = .Colors(11, 1)
+'		NormalText.FrameOption = .Colors(11, 2)
+'		NormalText.Bold = .Colors(11, 4)
+'		NormalText.Italic = .Colors(11, 5)
+'		NormalText.Underline = .Colors(11, 6)
+'		Preprocessors.ForegroundOption = .Colors(12, 0)
+'		Preprocessors.BackgroundOption = .Colors(12, 1)
+'		Preprocessors.FrameOption = .Colors(12, 2)
+'		Preprocessors.Bold = .Colors(12, 4)
+'		Preprocessors.Italic = .Colors(12, 5)
+'		Preprocessors.Underline = .Colors(12, 6)
+		SetColor Selection
+'		Selection.ForegroundOption = .Colors(13, 0)
+'		Selection.BackgroundOption = .Colors(13, 1)
+'		Selection.FrameOption = .Colors(13, 2)
+		SetColor SpaceIdentifiers
+'		SpaceIdentifiers.ForegroundOption = .Colors(14, 0)
+		SetColor Strings
+'		Strings.ForegroundOption = .Colors(15, 0)
+'		Strings.BackgroundOption = .Colors(15, 1)
+'		Strings.FrameOption = .Colors(15, 2)
+'		Strings.Bold = .Colors(15, 4)
+'		Strings.Italic = .Colors(15, 5)
+'		Strings.Underline = .Colors(15, 6)
 		SetAutoColors
 	End With
 End Sub

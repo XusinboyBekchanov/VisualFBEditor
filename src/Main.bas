@@ -5627,7 +5627,9 @@ Sub SetAutoColors
 	GetColors ExecutionLine, clBlack, clYellow, , clYellow
 	GetColors FoldLines, clBtnShadow
 	GetColors IndicatorLines, clBlack
-	GetColors Keywords, clBlue
+	For k As Integer = 0 To UBound(Keywords)
+		GetColors Keywords(k), clBlue
+	Next k
 	GetColors LineNumbers, clBlack, clBtnFace
 	GetColors NormalText, clBlack, clWhite
 	GetColors Preprocessors, clPurple

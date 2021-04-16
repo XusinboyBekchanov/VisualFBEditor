@@ -2355,18 +2355,23 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		tb->txtCode.cboIntellisense.Items.Clear
 	#endif
 	Dim c As Integer
-	For i As Integer = 0 To pKeyWords0->Count - 1
-		If Not AddSorted(tb, GetKeyWordCase(pKeyWords0->Item(i)), , Starts) Then Exit Sub
+	For k As Integer = 0 To UBound(Keywords)
+		For i As Integer = 0 To KeyWords(k)->Count - 1
+			If Not AddSorted(tb, GetKeyWordCase(KeyWords(k)->Item(i)), , Starts) Then Exit Sub
+		Next
 	Next
-	For i As Integer = 0 To pKeyWords1->Count - 1
-		If Not AddSorted(tb, GetKeyWordCase(pKeyWords1->Item(i)), , Starts) Then Exit Sub
-	Next
-	For i As Integer = 0 To pKeyWords2->Count - 1
-		If Not AddSorted(tb, GetKeyWordCase(pKeyWords2->Item(i)), , Starts) Then Exit Sub
-	Next
-	For i As Integer = 0 To pKeyWords3->Count - 1
-		If Not AddSorted(tb, GetKeyWordCase(pKeyWords3->Item(i)), , Starts) Then Exit Sub
-	Next
+'	For i As Integer = 0 To pKeyWords0->Count - 1
+'		If Not AddSorted(tb, GetKeyWordCase(pKeyWords0->Item(i)), , Starts) Then Exit Sub
+'	Next
+'	For i As Integer = 0 To pKeyWords1->Count - 1
+'		If Not AddSorted(tb, GetKeyWordCase(pKeyWords1->Item(i)), , Starts) Then Exit Sub
+'	Next
+'	For i As Integer = 0 To pKeyWords2->Count - 1
+'		If Not AddSorted(tb, GetKeyWordCase(pKeyWords2->Item(i)), , Starts) Then Exit Sub
+'	Next
+'	For i As Integer = 0 To pKeyWords3->Count - 1
+'		If Not AddSorted(tb, GetKeyWordCase(pKeyWords3->Item(i)), , Starts) Then Exit Sub
+'	Next
 	For i As Integer = 0 To tb->Types.Count - 1
 		If Not AddSorted(tb, tb->Types.Item(i), tb->Types.Object(i), Starts) Then Exit Sub
 	Next
@@ -2425,9 +2430,11 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		tb->txtCode.cboIntellisense.Items.Clear
 	#endif
 	Dim c As Integer
-	For i As Integer = 0 To pKeyWords1->Count - 1
-		AddSorted tb, GetKeyWordCase(pKeyWords1->Item(i)), , Starts
-	Next
+	If UBound(Keywords) >= 1 Then
+		For i As Integer = 0 To KeyWords(1).Count - 1
+			AddSorted tb, GetKeyWordCase(KeyWords(1).Item(i)), , Starts
+		Next
+	End If
 	AddSorted tb, GetKeyWordCase("Const"), , Starts
 	AddSorted tb, GetKeyWordCase("TypeOf"), , Starts
 	AddSorted tb, GetKeyWordCase("Sub"), , Starts
