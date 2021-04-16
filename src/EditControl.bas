@@ -11,14 +11,14 @@
 #endif
 
 Dim Shared As WStringList KeywordLists(Any) 'keywords0, keywords1, keywords2, keywords3
-Dim Shared As UString KeywordListNames(Any) 'keywords0, keywords1, keywords2, keywords3
+Dim Shared As WStringList KeywordListNames
 'pkeywords0 = @keywords0
 'pkeywords1 = @keywords1
 'pkeywords2 = @keywords2
 'pkeywords3 = @keywords3
 
 Namespace My.Sys.Forms
-	Destructor EditControlHistoryo
+	Destructor EditControlHistory
 		If Comment Then Deallocate_( Comment)
 		For i As Integer = Lines.Count - 1 To 0 Step -1
 			Delete_( Cast(EditControlLine Ptr, Lines.Items[i]))
@@ -1888,8 +1888,8 @@ Namespace My.Sys.Forms
 								t = Asc(Mid(*s, j, 1))
 								u = Asc(Mid(*s, j + 1, 1))
 								If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
-									If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) Then
-										Keyword = GetKeyWordCase("rem", @keywords2)
+									If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) AndAlso pkeywords2 <> 0 Then
+										Keyword = GetKeyWordCase("rem", pkeywords2)
 										If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = Keyword
 									End If
 									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
@@ -1906,13 +1906,15 @@ Namespace My.Sys.Forms
 											pkeywords = 0
 											If CStyle Then
 												If LCase(Matn) = "#define" Then
-													sc = @Preprocessors
+													If pkeywords0 <> 0 Then
+														sc = @Keywords(KeywordListNames.IndexOf("Preprocessors")) '@Preprocessors
+													End If
 												End If
 											Else
 												For k As Integer = 0 To UBound(Keywords)
-													If Keywords(k).Contains(LCase(Matn)) Then
-														sc = @Preprocessors '
-														pkeywords = @Keywords(k)
+													If KeywordLists(k).Contains(LCase(Matn)) Then
+														sc = @Keywords(k)
+														pkeywords = @KeywordLists(k)
 														Exit For
 													End If
 '													If keywords0.Contains(LCase(Matn)) Then
@@ -1928,7 +1930,7 @@ Namespace My.Sys.Forms
 '														sc = @Keywords
 '														pkeywords = @keywords3
 '													End If
-												Next i
+												Next k
 												If CInt(ChangeKeyWordsCase) AndAlso CInt(pkeywords <> 0) AndAlso CInt(FSelEndLine <> z) Then
 													Keyword = GetKeyWordCase(Matn, pkeywords)
 													If Keyword <> Matn Then
@@ -2618,18 +2620,18 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringList Ptr = 0) As String
-		If ChangeKeyWordsCase Then
-			Select Case ChoosedKeyWordsCase
+?2623:		If ChangeKeyWordsCase Then
+?2624:			Select Case ChoosedKeyWordsCase
 			Case KeyWordsCase.OriginalCase
-				If KeyWordsList <> 0 Then
-					Var Idx = KeyWordsList->IndexOf(LCase(KeyWord))
-					If Idx <> -1 Then Return KeyWordsList->Item(Idx)
-				End If
-			Case KeyWordsCase.LowerCase: Return LCase(KeyWord) ': Return *TempString
-			Case KeyWordsCase.UpperCase: Return UCase(KeyWord) ': Return *TempString
-			End Select
-		End If
-		Return KeyWord
+?2626:				If KeyWordsList <> 0 Then
+?2627:					Var Idx = KeyWordsList->IndexOf(LCase(KeyWord))
+?2628:					If Idx <> -1 Then Return KeyWordsList->Item(Idx)
+?2629:				End If
+?2630:			Case KeyWordsCase.LowerCase: Return LCase(KeyWord) ': Return *TempString
+?2631:			Case KeyWordsCase.UpperCase: Return UCase(KeyWord) ': Return *TempString
+?2632:			End Select
+?2633:		End If
+?2634:		Return KeyWord
 	End Function
 	
 	#ifdef __USE_GTK__
@@ -4086,16 +4088,24 @@ Sub LoadKeyWords
 	Dim As UString file
 	Dim As Integer k = -1
 	file = Dir(ExePath & "/Settings/Keywords/*")
-	Do Until file <> ""
+	Do Until file = ""
 		k += 1
 		ReDim Preserve KeywordLists(k)
-		ReDim Preserve KeywordListNames(k)
+		ReDim Preserve Keywords(k)
+		pkeywords = @KeywordLists(0)
+		KeywordListNames.Add file
+		If Trim(file) = "Preprocessors" Then
+			pkeywords0 = @pkeywords[k]
+		ElseIf Trim(file) = "Standard Data Types" Then
+			pkeywords1 = @pkeywords[k]
+		ElseIf Trim(file) = "Statements And Operators" Then
+			pkeywords2 = @pkeywords[k]
+		End If
 		Dim Fn As Integer = FreeFile
 		Open ExePath & "/Settings/Keywords/" & file For Input As #Fn
 		Do Until EOF(Fn)
 			Input #Fn, b
 			KeywordLists(k).Add b
-			KeywordListNames(k).Add file
 		Loop
 		Close #Fn
 		file = Dir()

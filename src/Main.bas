@@ -3317,6 +3317,7 @@ Sub LoadSettings
 	WLet(Debug32Arguments, iniSettings.ReadString("Parameters", "Debug32Arguments", ""))
 	WLet(Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", ""))
 	
+	LoadKeyWords
 	iniTheme.Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
 	Bookmarks.ForegroundOption = iniTheme.ReadInteger("Colors", "BookmarksForeground", -1)
 	Bookmarks.BackgroundOption = iniTheme.ReadInteger("Colors", "BookmarksBackground", -1)
@@ -3359,12 +3360,14 @@ Sub LoadSettings
 	ExecutionLine.IndicatorOption = iniTheme.ReadInteger("Colors", "ExecutionLineIndicator", -1)
 	FoldLines.ForegroundOption = iniTheme.ReadInteger("Colors", "FoldLinesForeground", -1)
 	IndicatorLines.ForegroundOption = iniTheme.ReadInteger("Colors", "IndicatorLinesForeground", -1)
-	Keywords.ForegroundOption = iniTheme.ReadInteger("Colors", "KeywordsForeground", -1)
-	Keywords.BackgroundOption = iniTheme.ReadInteger("Colors", "KeywordsBackground", -1)
-	Keywords.FrameOption = iniTheme.ReadInteger("Colors", "KeywordsFrame", -1)
-	Keywords.Bold = iniTheme.ReadInteger("FontStyles", "KeywordsBold", 0)
-	Keywords.Italic = iniTheme.ReadInteger("FontStyles", "KeywordsItalic", 0)
-	Keywords.Underline = iniTheme.ReadInteger("FontStyles", "KeywordsUnderline", 0)
+	For k As Integer = 0 To UBound(Keywords)
+		Keywords(k).ForegroundOption = iniTheme.ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Foreground", iniTheme.ReadInteger("Colors", "KeywordsForeground", -1))
+		Keywords(k).BackgroundOption = iniTheme.ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Background", iniTheme.ReadInteger("Colors", "KeywordsBackground", -1))
+		Keywords(k).FrameOption = iniTheme.ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Frame", iniTheme.ReadInteger("Colors", "KeywordsFrame", -1))
+		Keywords(k).Bold = iniTheme.ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Bold", iniTheme.ReadInteger("Colors", "KeywordsForeground", 0))
+		Keywords(k).Italic = iniTheme.ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Italic", iniTheme.ReadInteger("Colors", "KeywordsForeground", 0))
+		Keywords(k).Underline = iniTheme.ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Underline", iniTheme.ReadInteger("Colors", "KeywordsForeground", 0))
+	Next k
 	LineNumbers.ForegroundOption = iniTheme.ReadInteger("Colors", "LineNumbersForeground", -1)
 	LineNumbers.BackgroundOption = iniTheme.ReadInteger("Colors", "LineNumbersBackground", -1)
 	LineNumbers.Bold = iniTheme.ReadInteger("FontStyles", "LineNumbersBold", 0)
@@ -3376,12 +3379,12 @@ Sub LoadSettings
 	NormalText.Bold = iniTheme.ReadInteger("FontStyles", "NormalTextBold", 0)
 	NormalText.Italic = iniTheme.ReadInteger("FontStyles", "NormalTextItalic", 0)
 	NormalText.Underline = iniTheme.ReadInteger("FontStyles", "NormalTextUnderline", 0)
-	Preprocessors.ForegroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsForeground", -1)
-	Preprocessors.BackgroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsBackground", -1)
-	Preprocessors.FrameOption = iniTheme.ReadInteger("Colors", "PreprocessorsFrame", -1)
-	Preprocessors.Bold = iniTheme.ReadInteger("FontStyles", "PreprocessorsBold", 0)
-	Preprocessors.Italic = iniTheme.ReadInteger("FontStyles", "PreprocessorsItalic", 0)
-	Preprocessors.Underline = iniTheme.ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
+'	Preprocessors.ForegroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsForeground", -1)
+'	Preprocessors.BackgroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsBackground", -1)
+'	Preprocessors.FrameOption = iniTheme.ReadInteger("Colors", "PreprocessorsFrame", -1)
+'	Preprocessors.Bold = iniTheme.ReadInteger("FontStyles", "PreprocessorsBold", 0)
+'	Preprocessors.Italic = iniTheme.ReadInteger("FontStyles", "PreprocessorsItalic", 0)
+'	Preprocessors.Underline = iniTheme.ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
 	Selection.ForegroundOption = iniTheme.ReadInteger("Colors", "SelectionForeground", -1)
 	Selection.BackgroundOption = iniTheme.ReadInteger("Colors", "SelectionBackground", -1)
 	Selection.FrameOption = iniTheme.ReadInteger("Colors", "SelectionFrame", -1)
@@ -5505,8 +5508,6 @@ pnlBottomPin.Parent = @pnlBottom
 
 'pnlBottom.Add ptabBottom
 
-LoadKeyWords '<bm>
-
 Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 	If frmMain.ActiveControl = 0 Then Exit Sub
 	If tabLeft.TabPosition = tpLeft And tabLeft.SelectedTabIndex <> -1 Then
@@ -5632,7 +5633,7 @@ Sub SetAutoColors
 	Next k
 	GetColors LineNumbers, clBlack, clBtnFace
 	GetColors NormalText, clBlack, clWhite
-	GetColors Preprocessors, clPurple
+	'GetColors Preprocessors, clPurple
 	GetColors Selection, clHighlightText, clHighlight
 	GetColors SpaceIdentifiers, clLtGray
 	GetColors Strings, clMaroon
