@@ -3128,6 +3128,7 @@ Sub LoadToolBox
 	#endif
 	tbToolBox.ImagesList = @imgListTools
 	tbToolBox.HotImagesList = @imgListTools
+	LoadFunctions ExePath & "/Settings/Others/Keyword definitions.bi", LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs
 	IncludePath = GetFolderName(*MFFDll) & "mff/"
 	f = Dir(IncludePath & "*.bi")
 	While f <> ""
