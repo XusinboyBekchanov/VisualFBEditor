@@ -44,6 +44,9 @@ Common Shared As WString Ptr CurrentTheme
 
 Type Construction
 	Name0 As String * 50
+	Name01 As String * 50
+	Name02 As String * 50
+	Name03 As String * 50
 	Name1 As String * 50
 	Name2 As String * 50
 	Name3 As String * 50

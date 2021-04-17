@@ -36,31 +36,29 @@ End Namespace
 
 ' Add Try End_Try
 ReDim Constructions(24) As Construction
-Constructions(0) =  Type<Construction>("If",            "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
-Constructions(1) =  Type<Construction>("#If",           "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
-Constructions(2) =  Type<Construction>("#IfDef",        "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
-Constructions(3) =  Type<Construction>("#IfNDef",       "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
-Constructions(4) =  Type<Construction>("#Macro",        "",         "",             "",         "#EndMacro",        "",         False,  False)
-Constructions(5) =  Type<Construction>("Asm",           "",         "",             "",         "End Asm",          " ",        False,  False)
-Constructions(6) =  Type<Construction>("Select Case",   "Case",     "",             "",         "End Select",       "",         False,  False)
-Constructions(7) =  Type<Construction>("For",           "",         "",             "",         "Next",             "",         False,  False)
-Constructions(8) =  Type<Construction>("Do",            "",         "",             "",         "Loop",             "",         False,  False)
-Constructions(9) =  Type<Construction>("While",         "",         "",             "",         "Wend",             "",         False,  False)
-Constructions(10) = Type<Construction>("With",          "",         "",             "",         "End With",         "",         False,  False)
-Constructions(11) = Type<Construction>("Scope",         "",         "",             "",         "End Scope",        "",         False,  False)
-Constructions(12) = Type<Construction>("'#Region",      "",         "",             "",         "'#End Region",     "",         True,   False)
-Constructions(13) = Type<Construction>("Namespace",     "",         "",             "",         "End Namespace",    "",         True,   False)
-Constructions(14) = Type<Construction>("Enum",          "",         "",             "",         "End Enum",         "",         True,   True)
-Constructions(15) = Type<Construction>("Type",          "Private:", "Protected:",   "Public:",  "End Type",         "",         True,   True)
-Constructions(16) = Type<Construction>("Union",         "",         "",             "",         "End Union",        "",         True,   True)
-Constructions(17) = Type<Construction>("Sub",           "",         "",             "",         "End Sub",          "",         True,   True)
-Constructions(18) = Type<Construction>("Function",      "",         "",             "",         "End Function",     "",         True,   True)
-Constructions(19) = Type<Construction>("Property",      "",         "",             "",         "End Property",     "",         True,   True)
-Constructions(20) = Type<Construction>("Operator",      "",         "",             "",         "End Operator",     "",         True,   True)
-Constructions(21) = Type<Construction>("Constructor",   "",         "",             "",         "End Constructor",  "",         True,   True)
-Constructions(22) = Type<Construction>("Destructor",    "",         "",             "",         "End Destructor",   "",         True,   True)
-Constructions(23) = Type<Construction>("Extern",        "",         "",             "",         "End Extern",       "",         False,  False)
-Constructions(24) = Type<Construction>("Try",           "Catch",    "Finally",      "",         "EndTry",           "",         False,  False)
+Constructions(0)  = Type<Construction>("If",            "",                     "",                     "",                 "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
+Constructions(1)  = Type<Construction>("#If",           "#IfDef",               "#IfNDef",              "",                 "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
+Constructions(2)  = Type<Construction>("#Macro",        "",                     "",                     "",                 "",         "",             "",         "#EndMacro",        "",         False,  False)
+Constructions(3)  = Type<Construction>("Extern",        "",                     "",                     "",                 "",         "",             "",         "End Extern",       "",         False,  False)
+Constructions(4)  = Type<Construction>("Try",           "",                     "",                     "",                 "Catch",    "Finally",      "",         "EndTry",           "",         False,  False)
+Constructions(5)  = Type<Construction>("Asm",           "",                     "",                     "",                 "",         "",             "",         "End Asm",          " ",        False,  False)
+Constructions(6)  = Type<Construction>("Select Case",   "",                     "",                     "",                 "Case",     "",             "",         "End Select",       "",         False,  False)
+Constructions(7)  = Type<Construction>("For",           "",                     "",                     "",                 "",         "",             "",         "Next",             "",         False,  False)
+Constructions(8)  = Type<Construction>("Do",            "",                     "",                     "",                 "",         "",             "",         "Loop",             "",         False,  False)
+Constructions(9)  = Type<Construction>("While",         "",                     "",                     "",                 "",         "",             "",         "Wend",             "",         False,  False)
+Constructions(10) = Type<Construction>("With",          "",                     "",                     "",                 "",         "",             "",         "End With",         "",         False,  False)
+Constructions(11) = Type<Construction>("Scope",         "",                     "",                     "",                 "",         "",             "",         "End Scope",        "",         False,  False)
+Constructions(12) = Type<Construction>("'#Region",      "",                     "",                     "",                 "",         "",             "",         "'#End Region",     "",         True,   False)
+Constructions(13) = Type<Construction>("Namespace",     "",                     "",                     "",                 "",         "",             "",         "End Namespace",    "",         True,   False)
+Constructions(14) = Type<Construction>("Enum",          "Public Enum",          "Private Enum",         "",                 "",         "",             "",         "End Enum",         "",         True,   True)
+Constructions(15) = Type<Construction>("Type",          "Public Type",          "Private Type",         "",                 "Private:", "Protected:",   "Public:",  "End Type",         "",         True,   True)
+Constructions(16) = Type<Construction>("Union",         "Public Union",         "Private Union",        "",                 "",         "",             "",         "End Union",        "",         True,   True)
+Constructions(17) = Type<Construction>("Sub",           "Public Sub",           "Private Sub",          "Static Sub",       "",         "",             "",         "End Sub",          "",         True,   True)
+Constructions(18) = Type<Construction>("Function",      "Public Function",      "Private Function",     "Static Function",  "",         "",             "",         "End Function",     "",         True,   True)
+Constructions(19) = Type<Construction>("Property",      "Public Property",      "Private Property",     "",                 "",         "",             "",         "End Property",     "",         True,   True)
+Constructions(20) = Type<Construction>("Operator",      "Public Operator",      "Private Operator",     "",                 "",         "",             "",         "End Operator",     "",         True,   True)
+Constructions(21) = Type<Construction>("Constructor",   "Public Constructor",   "Private Constructor",  "",                 "",         "",             "",         "End Constructor",  "",         True,   True)
+Constructions(22) = Type<Construction>("Destructor",    "Public Destructor",    "Private Destructor",   "",                 "",         "",             "",         "End Destructor",   "",         True,   True)
 
 Namespace My.Sys.Forms
 	Function EditControl.deltaToScrollAmount(lDelta As Integer) As Integer
@@ -302,28 +300,28 @@ Namespace My.Sys.Forms
 		iPos = InStr(sLine, "'")
 		If iPos = 0 Then iPos = Len(sLine) Else iPos -= 1
 		For i As Integer = 0 To UBound(Constructions)
-			If CInt(CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name0 & " "))) OrElse _
-				CInt(CInt(Constructions(i).Accessible) AndAlso _
-				CInt(CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "public " & LCase(Constructions(i).Name0 & " "))) OrElse _
-				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "private " & LCase(Constructions(i).Name0 & " "))) OrElse _
-				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "protected " & LCase(Constructions(i).Name0 & " "))) OrElse _
-				CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "static " & LCase(Constructions(i).Name0 & " ")))))) AndAlso _
-				CInt(CInt(Constructions(i).Exception = "") OrElse CInt(InStr(LCase(Trim(Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(Constructions(i).Exception)) = 0)) AndAlso _
-				CInt(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
-				CInt(LCase(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(Constructions(i).Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(Constructions(i).Name0), " ") > 0) Then
-				iType = 0
-				Return i
-			ElseIf CInt(CInt(CInt(Constructions(i).Name1 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(Constructions(i).Name1))))) OrElse _
-				CInt(CInt(Constructions(i).Name2 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(Constructions(i).Name2))))) OrElse _
-				CInt(CInt(Constructions(i).Name3 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(Constructions(i).Name3)))))) AndAlso _
-				CInt(CInt(Constructions(i).Exception = "") OrElse CInt(InStr(LCase(Trim(Left(sLine, iPos), Any !"\t ")), LCase(Constructions(i).Exception)) = 0)) Then
-				iType = 1
-				Return i
-			ElseIf CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(Constructions(i).EndName & " "))) OrElse _
-				CInt(CInt(i = 0) AndAlso CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "endif "))) Then
-				iType = 2
-				Return i
-			End If
+			With Constructions(i)
+				If CInt(CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name0 & " "))) OrElse _
+					CInt(CInt(CInt(.Name01 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name01 & " "))) OrElse _
+					CInt(.Name02 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name02 & " "))) OrElse _
+					CInt(.Name03 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name03 & " ")))))) AndAlso _
+					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(.Exception)) = 0)) AndAlso _
+					CInt(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
+					CInt(LCase(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(.Name0), " ") > 0) Then
+					iType = 0
+					Return i
+				ElseIf CInt(CInt(CInt(.Name1 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name1))))) OrElse _
+					CInt(CInt(.Name2 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name2))))) OrElse _
+					CInt(CInt(.Name3 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name3)))))) AndAlso _
+					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(Left(sLine, iPos), Any !"\t ")), LCase(.Exception)) = 0)) Then
+					iType = 1
+					Return i
+				ElseIf CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.EndName & " "))) OrElse _
+					CInt(CInt(i = 0) AndAlso CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "endif "))) Then
+					iType = 2
+					Return i
+				End If
+			End With
 		Next i
 		Return -1
 		Exit Function
