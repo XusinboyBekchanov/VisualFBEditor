@@ -10,8 +10,7 @@
 	#include once "win/mmsystem.bi"
 #endif
 
-Dim Shared As WStringList KeywordLists(Any) 'keywords0, keywords1, keywords2, keywords3
-Dim Shared As WStringList KeywordListNames
+Dim Shared As WStringList KeywordLists 'keywords0, keywords1, keywords2, keywords3
 'pkeywords0 = @keywords0
 'pkeywords1 = @keywords1
 'pkeywords2 = @keywords2
@@ -1907,16 +1906,17 @@ Namespace My.Sys.Forms
 											If CStyle Then
 												If LCase(Matn) = "#define" Then
 													If pkeywords0 <> 0 Then
-														sc = @Keywords(KeywordListNames.IndexOf("Preprocessors")) '@Preprocessors
+														sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
 													End If
 												End If
 											Else
-												For k As Integer = 0 To UBound(Keywords)
-													If KeywordLists(k).Contains(LCase(Matn)) Then
+												For k As Integer = 0 To KeywordLists.Count - 1
+													pkeywords = KeywordLists.Object(k)
+													If pkeywords->Contains(LCase(Matn)) Then
 														sc = @Keywords(k)
-														pkeywords = @KeywordLists(k)
 														Exit For
 													End If
+													pkeywords = 0
 '													If keywords0.Contains(LCase(Matn)) Then
 '														sc = @Preprocessors '
 '														pkeywords = @keywords0
@@ -2620,18 +2620,18 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringList Ptr = 0) As String
-?2623:		If ChangeKeyWordsCase Then
-?2624:			Select Case ChoosedKeyWordsCase
+		If ChangeKeyWordsCase Then
+			Select Case ChoosedKeyWordsCase
 			Case KeyWordsCase.OriginalCase
-?2626:				If KeyWordsList <> 0 Then
-?2627:					Var Idx = KeyWordsList->IndexOf(LCase(KeyWord))
-?2628:					If Idx <> -1 Then Return KeyWordsList->Item(Idx)
-?2629:				End If
-?2630:			Case KeyWordsCase.LowerCase: Return LCase(KeyWord) ': Return *TempString
-?2631:			Case KeyWordsCase.UpperCase: Return UCase(KeyWord) ': Return *TempString
-?2632:			End Select
-?2633:		End If
-?2634:		Return KeyWord
+				If KeyWordsList <> 0 Then
+					Var Idx = KeyWordsList->IndexOf(LCase(KeyWord))
+					If Idx <> -1 Then Return KeyWordsList->Item(Idx)
+				End If
+			Case KeyWordsCase.LowerCase: Return LCase(KeyWord) ': Return *TempString
+			Case KeyWordsCase.UpperCase: Return UCase(KeyWord) ': Return *TempString
+			End Select
+		End If
+		Return KeyWord
 	End Function
 	
 	#ifdef __USE_GTK__
@@ -4086,26 +4086,26 @@ End Namespace
 Sub LoadKeyWords
 	Dim b As String
 	Dim As UString file
+	Dim As WStringList Ptr keywordlist
 	Dim As Integer k = -1
 	file = Dir(ExePath & "/Settings/Keywords/*")
 	Do Until file = ""
 		k += 1
-		ReDim Preserve KeywordLists(k)
 		ReDim Preserve Keywords(k)
-		pkeywords = @KeywordLists(0)
-		KeywordListNames.Add file
+		keywordlist = New WStringList
+		KeywordLists.Add file, keywordlist
 		If Trim(file) = "Preprocessors" Then
-			pkeywords0 = @pkeywords[k]
+			pkeywords0 = keywordlist
 		ElseIf Trim(file) = "Standard Data Types" Then
-			pkeywords1 = @pkeywords[k]
+			pkeywords1 = keywordlist
 		ElseIf Trim(file) = "Statements And Operators" Then
-			pkeywords2 = @pkeywords[k]
+			pkeywords2 = keywordlist
 		End If
 		Dim Fn As Integer = FreeFile
 		Open ExePath & "/Settings/Keywords/" & file For Input As #Fn
 		Do Until EOF(Fn)
 			Input #Fn, b
-			KeywordLists(k).Add b
+			keywordlist->Add b
 		Loop
 		Close #Fn
 		file = Dir()

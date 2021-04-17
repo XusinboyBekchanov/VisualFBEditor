@@ -1427,7 +1427,7 @@ Sub frmOptions.LoadSettings()
 '		.Colors(7, 0) = FoldLines.Foreground
 		AddColors IndicatorLines, , False, False, False, False, False, False
 '		.Colors(8, 0) = IndicatorLines.Foreground
-		For k As Integer = 0 To UBound(KeywordLists)
+		For k As Integer = 0 To UBound(Keywords)
 			'ReDim Preserve Keywords(k)
 			AddColors Keywords(k), , , , False
 		Next
@@ -1560,8 +1560,8 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Executed Line")
 		.lstColorKeys.AddItem ML("Fold Lines")
 		.lstColorKeys.AddItem ML("Indicator Lines")
-		For k As Integer = 0 To KeywordListNames.Count - 1
-			.lstColorKeys.AddItem ML("Keywords") & ": " & KeywordListNames.Item(k)
+		For k As Integer = 0 To KeywordLists.Count - 1
+			.lstColorKeys.AddItem ML("Keywords") & ": " & KeywordLists.Item(k)
 		Next k
 		.lstColorKeys.AddItem ML("Line Numbers")
 		.lstColorKeys.AddItem ML("Normal Text")
@@ -2044,12 +2044,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("Colors", "FoldLinesForeground", FoldLines.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "IndicatorLinesForeground", IndicatorLines.ForegroundOption)
 		For k As Integer = 0 To UBound(Keywords)
-			piniTheme->WriteInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Foreground", Keywords(k).ForegroundOption)
-			piniTheme->WriteInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Background", Keywords(k).BackgroundOption)
-			piniTheme->WriteInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Frame", Keywords(k).FrameOption)
-			piniTheme->WriteInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Bold", Keywords(k).Bold)
-			piniTheme->WriteInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Italic", Keywords(k).Italic)
-			piniTheme->WriteInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Underline", Keywords(k).Underline)
+			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", Keywords(k).ForegroundOption)
+			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", Keywords(k).BackgroundOption)
+			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", Keywords(k).FrameOption)
+			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", Keywords(k).Bold)
+			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", Keywords(k).Italic)
+			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", Keywords(k).Underline)
 		Next k
 		piniTheme->WriteInteger("Colors", "LineNumbersForeground", LineNumbers.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "LineNumbersBackground", LineNumbers.BackgroundOption)
@@ -2290,12 +2290,12 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "IndicatorLinesForeground", -1)
 		Dim As Integer k
 		For k = 0 To UBound(Keywords)
-			.Colors(9 + k, 0) = piniTheme->ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Foreground", -1)
-			.Colors(9 + k, 1) = piniTheme->ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Background", -1)
-			.Colors(9 + k, 2) = piniTheme->ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Frame", -1)
-			.Colors(9 + k, 4) = piniTheme->ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Bold", 0)
-			.Colors(9 + k, 5) = piniTheme->ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Italic", 0)
-			.Colors(9 + k, 6) = piniTheme->ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Underline", 0)
+			.Colors(9 + k, 0) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", -1)
+			.Colors(9 + k, 1) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", -1)
+			.Colors(9 + k, 2) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", -1)
+			.Colors(9 + k, 4) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", 0)
+			.Colors(9 + k, 5) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", 0)
+			.Colors(9 + k, 6) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", 0)
 		Next k
 		k = UBound(Keywords)
 		.Colors(10 + k, 0) = piniTheme->ReadInteger("Colors", "LineNumbersForeground", -1)

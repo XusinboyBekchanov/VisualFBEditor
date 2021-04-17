@@ -2355,9 +2355,11 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		tb->txtCode.cboIntellisense.Items.Clear
 	#endif
 	Dim c As Integer
-	For k As Integer = 0 To UBound(KeywordLists)
-		For i As Integer = 0 To KeywordLists(k).Count - 1
-			If Not AddSorted(tb, GetKeyWordCase(KeywordLists(k).Item(i)), , Starts) Then Exit Sub
+	Dim As WStringList Ptr keywordlist
+	For k As Integer = 0 To KeywordLists.Count - 1
+		keywordlist = KeywordLists.Object(k)
+		For i As Integer = 0 To keywordlist->Count - 1
+			If Not AddSorted(tb, GetKeyWordCase(keywordlist->Item(i)), , Starts) Then Exit Sub
 		Next
 	Next
 '	For i As Integer = 0 To pKeyWords0->Count - 1
@@ -2430,10 +2432,10 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		tb->txtCode.cboIntellisense.Items.Clear
 	#endif
 	Dim c As Integer
-?2433:	If pKeywords1 <> 0 Then
-?2434:		For i As Integer = 0 To pKeywords1->Count - 1
-?2435:			AddSorted tb, GetKeyWordCase(pKeywords1->Item(i)), , Starts
-?2436:		Next
+	If pKeywords1 <> 0 Then
+		For i As Integer = 0 To pKeywords1->Count - 1
+			AddSorted tb, GetKeyWordCase(pKeywords1->Item(i)), , Starts
+		Next
 	End If
 	AddSorted tb, GetKeyWordCase("Const"), , Starts
 	AddSorted tb, GetKeyWordCase("TypeOf"), , Starts

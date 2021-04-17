@@ -28,7 +28,7 @@ Common Shared As Integer TabAsSpaces
 Common Shared As KeyWordsCase ChoosedKeyWordsCase
 Common Shared As Integer ChoosedTabStyle
 Common Shared As Boolean ChangeKeyWordsCase
-Common Shared As WStringList Ptr pkeywords, pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
+Common Shared As WStringList Ptr pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
 
 Type ECColorScheme
 	As Long ForegroundOption, BackgroundOption, FrameOption, IndicatorOption

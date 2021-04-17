@@ -3361,12 +3361,12 @@ Sub LoadSettings
 	FoldLines.ForegroundOption = iniTheme.ReadInteger("Colors", "FoldLinesForeground", -1)
 	IndicatorLines.ForegroundOption = iniTheme.ReadInteger("Colors", "IndicatorLinesForeground", -1)
 	For k As Integer = 0 To UBound(Keywords)
-		Keywords(k).ForegroundOption = iniTheme.ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Foreground", iniTheme.ReadInteger("Colors", "KeywordsForeground", -1))
-		Keywords(k).BackgroundOption = iniTheme.ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Background", iniTheme.ReadInteger("Colors", "KeywordsBackground", -1))
-		Keywords(k).FrameOption = iniTheme.ReadInteger("Colors", Replace(KeywordListNames.Item(k), " ", "") & "Frame", iniTheme.ReadInteger("Colors", "KeywordsFrame", -1))
-		Keywords(k).Bold = iniTheme.ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Bold", iniTheme.ReadInteger("Colors", "KeywordsForeground", 0))
-		Keywords(k).Italic = iniTheme.ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Italic", iniTheme.ReadInteger("Colors", "KeywordsForeground", 0))
-		Keywords(k).Underline = iniTheme.ReadInteger("FontStyles", Replace(KeywordListNames.Item(k), " ", "") & "Underline", iniTheme.ReadInteger("Colors", "KeywordsForeground", 0))
+		Keywords(k).ForegroundOption = iniTheme.ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", iniTheme.ReadInteger("Colors", "KeywordsForeground", -1))
+		Keywords(k).BackgroundOption = iniTheme.ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", iniTheme.ReadInteger("Colors", "KeywordsBackground", -1))
+		Keywords(k).FrameOption = iniTheme.ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", iniTheme.ReadInteger("Colors", "KeywordsFrame", -1))
+		Keywords(k).Bold = iniTheme.ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", iniTheme.ReadInteger("Colors", "KeywordsBold", 0))
+		Keywords(k).Italic = iniTheme.ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", iniTheme.ReadInteger("Colors", "KeywordsItalic", 0))
+		Keywords(k).Underline = iniTheme.ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", iniTheme.ReadInteger("Colors", "KeywordsUnderline", 0))
 	Next k
 	LineNumbers.ForegroundOption = iniTheme.ReadInteger("Colors", "LineNumbersForeground", -1)
 	LineNumbers.BackgroundOption = iniTheme.ReadInteger("Colors", "LineNumbersBackground", -1)
@@ -6025,6 +6025,11 @@ Sub OnProgramQuit() Destructor
 	For i As Integer = 0 To pOtherEditors->Count - 1
 		Tool = pOtherEditors->Item(i)->Object
 		Delete_(Tool)
+	Next i
+	Dim As WStringList Ptr keywordlist
+	For i As Integer = 0 To KeywordLists.Count - 1
+		keywordlist = KeywordLists.Object(i)
+		Delete_(keywordlist)
 	Next i
 	Dim As TypeElement Ptr te, te1
 	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
