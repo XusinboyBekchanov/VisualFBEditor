@@ -2668,29 +2668,31 @@ Sub CompleteWord
 			f = True
 		ElseIf s = "." Then
 			b = True
-			GetLeftArgTypeName tb, iSelEndLine, i - 1, te, teOld
+			TypeName = GetLeftArgTypeName(tb, iSelEndLine, i - 1, te, teOld)
 			SelCharPos = i
 			Exit For
 		ElseIf s = ">" Then
 			c = True
 			SelCharPos = i
 		ElseIf CInt(c) AndAlso CInt(s = "-") Then
-			GetLeftArgTypeName tb, iSelEndLine, i - 1, te, teOld, OldTypeName
+			TypeName = GetLeftArgTypeName(tb, iSelEndLine, i - 1, te, teOld, OldTypeName)
 			b = True
 			Exit For
 		Else
+			If SelCharPos = 0 Then SelCharPos = i
 			Exit For
 		End If
 	Next
-	If teOld <> 0 OrElse OldTypeName <> "" Then
-		If OldTypeName <> "" Then
-			TypeName = OldTypeName
-		Else
-			TypeName = teOld->TypeName
-		End If
+	'If teOld <> 0 OrElse OldTypeName <> "" Then
+'		If OldTypeName <> "" Then
+'			TypeName = OldTypeName
+'		Else
+'			TypeName = teOld->TypeName
+'		End If
 		If TypeName = "" AndAlso teOld <> 0 AndAlso teOld->Value <> "" Then
 			TypeName = GetTypeFromValue(tb, teOld->Value)
 		End If
+	If TypeName <> "" Then
 		FillIntellisenseByName TypeName
 	Else
 		If LCase(sTemp2) = "as" Then
