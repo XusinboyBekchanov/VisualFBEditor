@@ -61,6 +61,12 @@ Namespace VisualFBEditor
 	End Type
 End Namespace
 
+Type HelpOptions
+	CurrentPath As WString * MAX_PATH
+	CurrentWord As WString * MAX_PATH
+End Type
+Common Shared As HelpOptions HelpOption
+
 Declare Function ML(ByRef msg As WString) ByRef As WString
 Declare Sub PopupClick(ByRef Sender As My.Sys.Object)
 Declare Sub mClick(Sender As My.Sys.Object)
@@ -111,7 +117,7 @@ Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave
 Common Shared As WString Ptr ProjectsPath, LastOpenPath
-Common Shared As WString Ptr DefaultHelp, HelpPath
+Common Shared As WString Ptr DefaultHelp, HelpPath, KeywordsHelpPath
 Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2
 Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, CurrentDebugger32, CurrentDebugger64, DefaultTerminal, CurrentTerminal
 Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64

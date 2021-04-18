@@ -1529,9 +1529,8 @@ Sub RunHelp(Param As Any Ptr)
 	Dim As UString CurrentHelpPath
 	Dim As Integer IndexDefault
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If Param <> 0 Then
-		CurrentHelpPath = QWString(Param)
-	Else
+	If Param <> 0 Then CurrentHelpPath = Cast(HelpOptions Ptr, Param)->CurrentPath
+	If CurrentHelpPath = "" Then
 		IndexDefault = Helps.IndexOfKey(*DefaultHelp)
 		CurrentHelpPath = *HelpPath
 	End If
@@ -1557,47 +1556,44 @@ Sub RunHelp(Param As Any Ptr)
 		gpHelpLib = DyLibLoad( "hhctrl.ocx" )
 		HtmlHelpW = DyLibSymbol( gpHelpLib, "HtmlHelpW")
 		If HtmlHelpW <> 0 Then
-			If Param <> 0 OrElse tb = 0 Then
+			If Param <> 0 Then wszKeyword = Cast(HelpOptions Ptr, Param)->CurrentWord
+			If wszKeyword = "" AndAlso Param = 0 AndAlso tb <> 0 Then wszKeyword = tb->txtCode.GetWordAtCursor
+			If wszKeyword = "" Then 
 				HtmlHelpW(0, CurrentHelpPath, HH_DISPLAY_TOC, Null)
 			Else
-				wszKeyword = tb->txtCode.GetWordAtCursor
-				If wszKeyword = "" Then
-					HtmlHelpW(0, CurrentHelpPath, HH_DISPLAY_TOC, NULL)
-				Else
-					wszKeywordUpper = UCase(wszKeyword)
-					For i As Integer = -1 To Helps.Count - 1
-						If i = IndexDefault Then Continue For
-						If i = -1 Then
-							CurrentHelpPath = GetFullPath(*HelpPath)
-						Else
-							CurrentHelpPath = GetFullPath(Helps.Item(i)->Text)
-						End If
-						If FileExists(CurrentHelpPath) Then
-							Dim li As HH_AKLINK
-							For j As Integer = 1 To 2
-								With li
-									.cbStruct     = SizeOf(HH_AKLINK)
-									.fReserved    = False
-									If j = 1 Then
-										.pszKeywords  = @wszKeyword
-									Else
-										.pszKeywords  = @wszKeywordUpper
-									End If
-									.pszUrl       = Null
-									.pszMsgText   = Null
-									.pszMsgTitle  = Null
-									.pszWindow    = Null
-									.fIndexOnFail = False
-								End With
-								If HtmlHelpW(0, CurrentHelpPath, HH_KEYWORD_LOOKUP, Cast(DWORD_PTR, @li)) <> 0 Then
-									bFind = True
-									Exit For, For
+				wszKeywordUpper = UCase(wszKeyword)
+				For i As Integer = -1 To Helps.Count - 1
+					If i = IndexDefault Then Continue For
+					If i = -1 Then
+						CurrentHelpPath = GetFullPath(*HelpPath)
+					Else
+						CurrentHelpPath = GetFullPath(Helps.Item(i)->Text)
+					End If
+					If FileExists(CurrentHelpPath) Then
+						Dim li As HH_AKLINK
+						For j As Integer = 1 To 2
+							With li
+								.cbStruct     = SizeOf(HH_AKLINK)
+								.fReserved    = False
+								If j = 1 Then
+									.pszKeywords  = @wszKeyword
+								Else
+									.pszKeywords  = @wszKeywordUpper
 								End If
-							Next
-						End If
-					Next
-					If Not bFind Then MsgBox ML("Keyword") & " """ & wszKeyword & """ " & ML("not found in Help") & "!"
-				End If
+								.pszUrl       = Null
+								.pszMsgText   = Null
+								.pszMsgTitle  = Null
+								.pszWindow    = Null
+								.fIndexOnFail = False
+							End With
+							If HtmlHelpW(0, CurrentHelpPath, HH_KEYWORD_LOOKUP, Cast(DWORD_PTR, @li)) <> 0 Then
+								bFind = True
+								Exit For, For
+							End If
+						Next
+					End If
+				Next
+				If Not bFind Then HtmlHelpW(0, *HelpPath, HH_DISPLAY_TOC, Null) 'MsgBox ML("Keyword") & " """ & wszKeyword & """ " & ML("not found in Help") & "!"
 			End If
 			'DyLibFree(gpHelpLib)
 		End If
@@ -3072,6 +3068,136 @@ Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 	MutexUnlock tlock
 End Sub
 
+Sub LoadHelp
+	Enum Paragraph
+		parStart
+		parSyntax
+		parUsage
+		parParameters
+		parReturnValue
+		parDescription
+		parExample
+		parDifferencesFromQB
+		parSeeAlso
+	End Enum
+	Dim As Integer Fn = FreeFile
+	WLet KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt"
+	Open *KeywordsHelpPath For Input As #Fn
+	Dim As TypeElement Ptr te
+	Dim As String Buff, StartBuff, bTrim
+	Dim As Boolean bStart, bDescriptionEnd, bExampleStart
+	Dim As Paragraph Parag
+	Dim As Integer Pos1, LineNumber
+	Do Until EOF(Fn)
+		LineNumber += 1
+		Line Input #Fn, Buff
+		If StartsWith(Buff, "---") Then
+			bStart = True
+			Parag = parStart
+		ElseIf Buff = "Syntax" Then
+			Parag = parSyntax
+		ElseIf Buff = "Usage" Then
+			Parag = parUsage
+		ElseIf Buff = "Parameters" Then
+			Parag = parParameters
+		ElseIf Buff = "Return Value" Then
+			Parag = parReturnValue
+		ElseIf Buff = "Description" Then
+			Parag = parDescription
+		ElseIf Buff = "Example" Then
+			Parag = parExample
+		ElseIf Buff = "Differences from QB" Then
+			Parag = parDifferencesFromQB
+		ElseIf Buff = "See also" Then
+			Parag = parSeeAlso
+		Else
+			If bStart Then
+				StartBuff = Buff
+				bTrim = Trim(Buff)
+				If StartsWith(bTrim, "Operator ") Then bTrim = Trim(Mid(bTrim, 10))
+				Pos1 = InStr(bTrim, " ")
+				If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
+				Pos1 = InStr(bTrim, "...")
+				If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
+				Pos1 = InStr(bTrim, "(")
+				If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
+				te = New_( TypeElement)
+				te->Name = bTrim
+				te->DisplayName = te->Name
+				te->ElementType = "#Define"
+				te->FileName = *KeywordsHelpPath
+				GlobalFunctions.Add te->Name, te
+				bDescriptionEnd = False
+				bExampleStart = False
+			ElseIf Parag = parStart Then
+				If Buff <> "" AndAlso te <> 0 Then
+					If te->Comment = "" Then
+						te->Comment = Buff
+					Else
+						te->Comment &= " " & Buff
+					End If
+				End If
+			ElseIf Parag = parSyntax Then
+				If te <> 0 AndAlso Not EndsWith(te->Comment, "." & !"\r") Then te->Comment &= "." & !"\r"
+				If Buff <> "" AndAlso te <> 0 Then
+					If StartsWith(Trim(Buff), "Declare ") Then
+						Buff = Trim(Mid(Trim(Buff), 9))
+						If StartsWith(Buff, "Function ") Then
+							Buff = Trim(Mid(Trim(Buff), 10))
+						ElseIf StartsWith(Buff, "Sub ") Then
+							Buff = Trim(Mid(Trim(Buff), 5))
+						End If
+						If te->Parameters = "" Then
+							te->Parameters = Trim(Buff)
+						Else
+							te->Parameters &= !"\r" & Trim(Buff)
+						End If
+					Else
+						If te->Parameters = "" Then
+							te->Parameters = Trim(Buff)
+						Else
+							te->Parameters &= " " & Trim(Buff)
+						End If
+					End If
+				End If
+			ElseIf Parag = parUsage Then
+				
+			ElseIf Parag = parParameters Then
+				
+			ElseIf Parag = parReturnValue Then
+				
+			ElseIf Parag = parDescription Then
+				If Not bDescriptionEnd Then
+					Pos1 = InStr(Buff, ".")
+					If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ".")
+					If Pos1 > 0 Then
+						Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & "</a>"
+						bDescriptionEnd = True
+					End If
+					If Buff <> "" AndAlso te <> 0 Then
+						If te->Comment = "" Then
+							te->Comment = Trim(Buff)
+						Else
+							te->Comment &= " " & Trim(Buff)
+						End If
+					End If
+				End If
+			ElseIf Parag = parExample Then
+				If te <> 0 And Not bExampleStart Then
+					'?te->Comment
+				End If
+				bExampleStart = True
+			ElseIf Parag = parDifferencesFromQB Then
+				
+			ElseIf Parag = parSeeAlso Then
+				
+			End If
+			bStart = False
+		End If
+	Loop
+	Close #Fn
+End Sub
+
 Sub LoadToolBox
 	Dim As String f
 	Dim As Integer i, j
@@ -3128,7 +3254,7 @@ Sub LoadToolBox
 	#endif
 	tbToolBox.ImagesList = @imgListTools
 	tbToolBox.HotImagesList = @imgListTools
-	LoadFunctions ExePath & "/Settings/Others/Keyword definitions.bi", LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs
+	LoadHelp
 	IncludePath = GetFolderName(*MFFDll) & "mff/"
 	f = Dir(IncludePath & "*.bi")
 	While f <> ""
@@ -5961,7 +6087,6 @@ Sub OnProgramStart() Constructor
 End Sub
 
 Sub OnProgramQuit() Destructor
-	WDeallocate HelpPath
 	WDeallocate ProjectsPath
 	WDeallocate LastOpenPath
 	WDeallocate DefaultMakeTool
@@ -5993,6 +6118,8 @@ Sub OnProgramQuit() Destructor
 	WDeallocate Debug64Arguments
 	WDeallocate RecentFiles '
 	WDeallocate DefaultHelp
+	WDeallocate HelpPath
+	WDeallocate KeywordsHelpPath
 	WDeallocate CurrentTheme
 	WDeallocate DefaultProjectFile
 	WDeallocate EditorFontName

@@ -105,7 +105,9 @@ Sub mClickMRU(Sender As My.Sys.Object)
 	End If
 End Sub
 Sub mClickHelp(ByRef Sender As My.Sys.Object)
-	ThreadCreate(@RunHelp, @Cast(MenuItem Ptr, @Sender)->ImageKey)
+	HelpOption.CurrentPath = Cast(MenuItem Ptr, @Sender)->ImageKey
+	HelpOption.CurrentWord = ""
+	ThreadCreate(@RunHelp, @HelpOption)
 End Sub
 
 Sub mClickTool(ByRef Sender As My.Sys.Object)

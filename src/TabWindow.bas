@@ -1897,13 +1897,25 @@ End Sub
 Sub OnToolTipLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
 	Dim As UString res(Any)
 	Split(Link1, "#", res())
-	If UBound(res) <= 2 Then SelectSearchResult res(0), Val(res(1)) + 1, , , , res(2)
+	If UBound(res) >= 3 Then
+		If res(0) = *KeywordsHelpPath Then
+			HelpOption.CurrentPath = ""
+			If InStr(Link1, "##") > 0 Then
+				HelpOption.CurrentWord = "#" & res(4)
+			Else
+				HelpOption.CurrentWord = res(3)
+			End If
+			ThreadCreate(@RunHelp, @HelpOption)
+		Else
+			SelectSearchResult res(0), Val(res(1)) + 1, , , , res(2)
+		End If
+	End If
 End Sub
 
 Function GetCorrectParam(ByVal Param As String) As String
-	Param = Trim(Param)
-	If EndsWith(Param, """""") Then Param = Trim(Left(Param, Len(Param) - 2))
-	If EndsWith(Param, "=") Then Param = Trim(Left(Param, Len(Param) - 1))
+	'Param = Trim(Param)
+	If EndsWith(Param, """""") Then Param = Left(Param, Len(Param) - 2)
+	If EndsWith(Param, "=") Then Param = Left(Param, Len(Param) - 1)
 	Return Param
 End Function
 
@@ -3084,6 +3096,7 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 	sWord = tb->txtCode.HintWord
 	If tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - 2) <> sWord Then Exit Sub
 	For i As Integer = 0 To UBound(Lines)
+		If Lines(i) = "_________________" Then Exit For
 		iPos = InStr(Lines(i), "<a href=""")
 		iPos1 = InStr(Lines(i), """>")
 		iPos2 = InStr(Lines(i), "</a>")
@@ -3091,7 +3104,7 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		Split Link1, "#", LinkParse()
 		If UBound(LinkParse) < 2 Then Continue For
 		Lines(i) = Left(Lines(i), iPos - 1) & LinkParse(2) & Mid(Lines(i), iPos2 + 4)
-		Split Lines(i), ",", Params()
+		Split Replace(Lines(i), """", "'"), ",", Params()
 		For j As Integer = 0 To UBound(Params)
 			iPos = InStr(Params(j), "(")
 			iPos1 = InStr(Params(j), ")")
@@ -3099,20 +3112,20 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 				iPos = InStr(LCase(Params(j)), LCase(sWord))
 				If iPos > 0 Then
 					sWord = Mid(Params(j), iPos, Len(sWord))
-					Params(j) = Left(Params(j), iPos - 1) & "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & sWord & """>" & sWord & "</a>" & Mid(Params(j), iPos + Len(sWord))
+					Params(j) = Left(Params(j), iPos - 1) & "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & sWord & "#" & sWord & """>" & sWord & "</a>" & Mid(Params(j), iPos + Len(sWord))
 				End If
 			ElseIf iParamCount = j Then
 				n = Len(Params(j)) - Len(LTrim(Params(j)))
 				If iPos1 = 0 Then iPos1 = Len(Params(j)) + 1
 				If j = 0 AndAlso iPos > 0 Then
 					Param = Mid(Params(j), iPos + 1, iPos1 - iPos - 1)
-					Params(j) = Left(Params(j), iPos) & "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Param) & """>" &  Param & "</a>" & Mid(Params(j), iPos1)
+					Params(j) = Left(Params(j), iPos) & "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Param) & "#" & sWord & """>" &  Param & "</a>" & Mid(Params(j), iPos1)
 				ElseIf iParamCount = UBound(Params) Then
 					If iPos1 = 0 Then iPos1 = Len(Params(j)) + 1
 					Param = Left(Params(j), iPos1 - 1)
-					Params(j) = WString(n, " ") & "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Param) & """>" & LTrim(Param) & "</a>" & Mid(Params(j), iPos1)
+					Params(j) = "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Param) & "#" & sWord & """>" & Param & "</a>" & Mid(Params(j), iPos1) 'WString(n, " ") & 
 				ElseIf iParamCount < UBound(Params) Then
-					Params(j) = WString(n, " ") & "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Params(j)) & """>" &  LTrim(Params(j)) & "</a>"
+					Params(j) = "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Params(j)) & "#" & sWord & """>" &  Params(j) & "</a>" 'WString(n, " ") & 
 				End If
 			End If
 		Next
@@ -3277,7 +3290,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 							Parameter = te->Parameters
 							iPos = InStr(LCase(Parameter), LCase(sWord))
 							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName
+							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
 							ParametersList.Add te->Parameters
 							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 							If te->Comment <> "" Then Comments &= te->Comment
@@ -3289,7 +3302,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 					Parameter = te->Parameters
 					iPos = InStr(LCase(Parameter), LCase(sWord))
 					FuncName = Mid(Parameter, iPos, Len(sWord))
-					Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName
+					Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
 					ParametersList.Add te->Parameters
 					Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 					If te->Comment <> "" Then Comments &= te->Comment
@@ -3302,7 +3315,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 							Parameter = te->Parameters
 							iPos = InStr(LCase(Parameter), LCase(sWord))
 							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName
+							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
 							ParametersList.Add te->Parameters
 							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 							If te->Comment <> "" Then Comments &= te->Comment
@@ -3317,7 +3330,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 							Parameter = te->Parameters
 							iPos = InStr(LCase(Parameter), LCase(sWord))
 							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName
+							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
 							ParametersList.Add te->Parameters
 							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
 							If te->Comment <> "" Then Comments &= te->Comment
