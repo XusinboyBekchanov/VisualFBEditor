@@ -2642,7 +2642,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Pos1 > 0 Then
 								CurType = Trim(Mid(res1(n), Pos1 + 4))
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
-							End If
+							End If 
 							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
 								res1(n) = Trim(Mid(res1(n), 6))
 							End If
@@ -2709,28 +2709,45 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					Pos2 = InStr(b2, "'")
 					If Pos2 > 0 Then b2 = Trim(Left(b2, Pos2 - 1))
 					Split b2, ",", res1()
-					For i As Integer = 0 To UBound(res1)
-						Pos3 = InStr(res1(i), "=")
+					For n As Integer = 0 To UBound(res1)
+						Pos3 = InStr(res1(n), "=")
 						If Pos3 > 0 Then
-							ElementValue = Trim(Mid(res1(i), Pos3 + 1))
+							ElementValue = Trim(Mid(res1(n), Pos3 + 1))
 						Else
 							ElementValue = ""
 						End If
 						If Pos3 > 0 Then
-							t = Trim(Left(res1(i), Pos3 - 1))
+							t = Trim(Left(res1(n), Pos3 - 1))
 						Else
-							t = Trim(res1(i))
+							t = Trim(res1(n))
 						End If
 						Var te = New_( TypeElement)
 						te->Name = t
-						te->DisplayName = te->Name
+						If tbi AndAlso tbi->Name <> "" Then
+							te->DisplayName = tbi->Name & "." & te->Name
+						Else
+							te->DisplayName = te->Name
+						End If
 						te->ElementType = "Enum"
 						te->Value = ElementValue
 						te->StartLine = i
-						te->Parameters = Trim(res1(i))
+						te->Parameters = Trim(res1(n))
 						te->FileName = PathFunction
 						If tbi Then tbi->Elements.Add te->Name, te
-					Next i
+						te = New_( TypeElement)
+						te->Name = t
+						If tbi AndAlso tbi->Name <> "" Then
+							te->DisplayName = tbi->Name & "." & te->Name
+						Else
+							te->DisplayName = te->Name
+						End If
+						te->ElementType = "Enum"
+						te->Value = ElementValue
+						te->StartLine = i
+						te->Parameters = Trim(res1(n))
+						te->FileName = PathFunction
+						Args.Add te->Name, te
+					Next n
 				Else 'If LoadParameter <> LoadParam.OnlyTypes Then
 					If CInt(StartsWith(bTrimLCase & " ", "end sub ")) OrElse _
 						CInt(StartsWith(bTrimLCase & " ", "end function ")) OrElse _
@@ -3188,7 +3205,10 @@ Sub LoadHelp
 				End If
 				bExampleStart = True
 			ElseIf Parag = parDifferencesFromQB Then
-				
+				If bDescriptionEnd = False Then
+					te->Comment &= " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & "</a>"
+					bDescriptionEnd = True
+				End If
 			ElseIf Parag = parSeeAlso Then
 				
 			End If
@@ -3825,23 +3845,23 @@ Sub CreateMenusAndToolBars
 	miView->Add(ML("Collapse All") & HK("CollapseAll"), "", "CollapseAll", @mclick)
 	miView->Add(ML("Uncollapse All") & HK("UnCollapseAll"), "", "UnCollapseAll", @mclick)
 	miView->Add("-")
-	miView->Add(ML("Project Explorer") & HK("ProjectExplorer", "Ctrl+R"), "Project", "ProjectExplorer", @mclick, True)
-	miView->Add(ML("Properties Window") & HK("PropertiesWindow", "F4"), "Property", "PropertiesWindow", @mclick, True)
-	miView->Add(ML("Events Window") & HK("EventsWindow"), "Event", "EventsWindow", @mclick, True)
-	miView->Add(ML("ToolBox") & HK("ToolBox"), "Tools", "ToolBox", @mclick, True)
+	miView->Add(ML("Project Explorer") & HK("ProjectExplorer", "Ctrl+R"), "Project", "ProjectExplorer", @mclick)
+	miView->Add(ML("Properties Window") & HK("PropertiesWindow", "F4"), "Property", "PropertiesWindow", @mclick)
+	miView->Add(ML("Events Window") & HK("EventsWindow"), "Event", "EventsWindow", @mclick)
+	miView->Add(ML("ToolBox") & HK("ToolBox"), "Tools", "ToolBox", @mclick)
 	Var miOtherWindows = miView->Add(ML("Other Windows"))
-	miOtherWindows->Add(ML("Output Window") & HK("OutputWindow"), "OutputWindow", "OutputWindow", @mclick, True)
-	miOtherWindows->Add(ML("Errors Window") & HK("ErrorsWindow"), "ErrorsWindow", "ErrorsWindow", @mclick, True)
-	miOtherWindows->Add(ML("Find Window") & HK("FindWindow"), "FindWindow", "FindWindow", @mclick, True)
-	miOtherWindows->Add(ML("ToDo Window") & HK("ToDoWindow"), "ToDoWindow", "ToDoWindow", @mclick, True)
-	miOtherWindows->Add(ML("Change Log Window") & HK("ChangeLogWindow"), "ChangeLogWindow", "ChangeLogWindow", @mclick, True)
-	miOtherWindows->Add(ML("Immediate Window") & HK("ImmediateWindow"), "ImmediateWindow", "ImmediateWindow", @mclick, True)
-	miOtherWindows->Add(ML("Locals Window") & HK("LocalsWindow"), "LocalsWindow", "LocalsWindow", @mclick, True)
-	miOtherWindows->Add(ML("Processes Window") & HK("ProcessesWindow"), "ProcessesWindow", "ProcessesWindow", @mclick, True)
-	miOtherWindows->Add(ML("Threads Window") & HK("ThreadsWindow"), "ThreadsWindow", "ThreadsWindow", @mclick, True)
-	miOtherWindows->Add(ML("Watch Window") & HK("WatchWindow"), "Watch", "WatchWindow", @mclick, True)
+	miOtherWindows->Add(ML("Output Window") & HK("OutputWindow"), "OutputWindow", "OutputWindow", @mclick)
+	miOtherWindows->Add(ML("Errors Window") & HK("ErrorsWindow"), "ErrorsWindow", "ErrorsWindow", @mclick)
+	miOtherWindows->Add(ML("Find Window") & HK("FindWindow"), "FindWindow", "FindWindow", @mclick)
+	miOtherWindows->Add(ML("ToDo Window") & HK("ToDoWindow"), "ToDoWindow", "ToDoWindow", @mclick)
+	miOtherWindows->Add(ML("Change Log Window") & HK("ChangeLogWindow"), "ChangeLogWindow", "ChangeLogWindow", @mclick)
+	miOtherWindows->Add(ML("Immediate Window") & HK("ImmediateWindow"), "ImmediateWindow", "ImmediateWindow", @mclick)
+	miOtherWindows->Add(ML("Locals Window") & HK("LocalsWindow"), "LocalsWindow", "LocalsWindow", @mclick)
+	miOtherWindows->Add(ML("Processes Window") & HK("ProcessesWindow"), "ProcessesWindow", "ProcessesWindow", @mclick)
+	miOtherWindows->Add(ML("Threads Window") & HK("ThreadsWindow"), "ThreadsWindow", "ThreadsWindow", @mclick)
+	miOtherWindows->Add(ML("Watch Window") & HK("WatchWindow"), "Watch", "WatchWindow", @mclick)
 	miView->Add("-")
-	miView->Add(ML("Image Manager") & HK("ImageManager"), "ImageManager", "ImageManager", @mclick, True)
+	miView->Add(ML("Image Manager") & HK("ImageManager"), "ImageManager", "ImageManager", @mclick)
 	miView->Add("-")
 	miView->Add(ML("Toolbars") & HK("Toolbars"), "Toolbars", "Toolbars", @mclick, True)
 	

@@ -382,7 +382,7 @@ Declare Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
 
 Declare Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False) As UString
 
-Declare Function GetResourceFile(WithoutMainNode As Boolean = False) ByRef As WString
+Declare Function GetResourceFile(WithoutMainNode As Boolean = False) As UString
 
 Declare Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 

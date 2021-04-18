@@ -1653,7 +1653,7 @@ Namespace My.Sys.Forms
 						.MouseUp(Event->button.x + x, Event->button.y + y, Event->button.state)
 						If Event->button.button = 3 Then
 							.ChangeFirstMenuItem
-							.mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
+							mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
 						End If
 						If gtk_is_notebook(widget) AndAlso Event->button.y < 20 Then
 							Return False
@@ -1868,7 +1868,7 @@ Namespace My.Sys.Forms
 						.MouseUp(Event->button.x, Event->button.y, Event->button.state)
 						If Event->button.button = 3 Then
 							.ChangeFirstMenuItem
-							.mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
+							mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
 						End If
 						Return True
 					#else

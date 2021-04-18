@@ -5127,7 +5127,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 	Return ""
 End Function
 
-Function GetResourceFile(WithoutMainNode As Boolean = False) ByRef As WString
+Function GetResourceFile(WithoutMainNode As Boolean = False) As UString
 	Dim As UString ResourceFile
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
