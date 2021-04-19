@@ -3300,6 +3300,9 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 				End If
 			Else
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+					If Not ShowKeywordsToolTip Then
+						If te->ElementType = "Keyword" Then Exit Sub
+					End If
 					Dim As UString res(Any)
 					Split te->Parameters, !"\r", res()
 					For n As Integer = 0 To UBound(res)

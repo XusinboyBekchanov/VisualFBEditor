@@ -3145,7 +3145,7 @@ Sub LoadHelp
 				te = New_( TypeElement)
 				te->Name = bTrim
 				te->DisplayName = te->Name
-				te->ElementType = "#Define"
+				te->ElementType = "Keyword"
 				te->FileName = *KeywordsHelpPath
 				GlobalFunctions.Add te->Name, te
 				bStartEnd = False 
@@ -3164,14 +3164,17 @@ Sub LoadHelp
 					bStartEnd = True
 				End If
 				If te <> 0 Then
-					If StartsWith(Trim(Buff), "Declare ") AndAlso InStr(Buff, "[") = 0 Then
+					If StartsWith(Trim(Buff), "Declare ") AndAlso te->Name <> "Declare" Then
 						bTrim = LTrim(Mid(LTrim(Buff), 9))
 						If StartsWith(bTrim, "Function ") Then
 							Buff = LTrim(Mid(LTrim(bTrim), 10))
+							te->ElementType = "KeywordFunction"
 						ElseIf StartsWith(bTrim, "Sub ") Then
 							Buff = LTrim(Mid(LTrim(bTrim), 5))
+							te->ElementType = "KeywordSub"
 						ElseIf StartsWith(bTrim, "Operator ") Then
 							Buff = LTrim(Mid(LTrim(bTrim), 10))
+							te->ElementType = "KeywordOperator"
 						End If
 					End If
 					If te->Parameters = "" Then
@@ -3431,6 +3434,7 @@ Sub LoadSettings
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
 	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
+	ShowKeywordsToolTip = iniSettings.ReadInteger("Options", "ShowKeywordsTooltip", True)
 	HighlightBrackets = iniSettings.ReadBool("Options", "HighlightBrackets", True)
 	HighlightCurrentLine = iniSettings.ReadBool("Options", "HighlightCurrentLine", True)
 	HighlightCurrentWord = iniSettings.ReadBool("Options", "HighlightCurrentWord", True)

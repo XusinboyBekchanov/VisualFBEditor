@@ -334,7 +334,7 @@ pfOptions = @fOptions
 		' chkTabAsSpaces
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
 		chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
-		chkTabAsSpaces.SetBounds 10, 135, 264, 18
+		chkTabAsSpaces.SetBounds 10, 155, 264, 18
 		chkTabAsSpaces.Parent = @pnlCodeEditor
 		' chkAutoIndentation
 		chkAutoIndentation.Name = "chkAutoIndentation"
@@ -344,12 +344,12 @@ pfOptions = @fOptions
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
 		lblTabSize.Text = ML("Tab Size") & ":"
-		lblTabSize.SetBounds 66, 183, 138, 16
+		lblTabSize.SetBounds 66, 203, 138, 16
 		lblTabSize.Parent = @pnlCodeEditor
 		' txtTabSize
 		txtTabSize.Name = "txtTabSize"
 		txtTabSize.Text = ""
-		txtTabSize.SetBounds 209, 181, 90, 20
+		txtTabSize.SetBounds 209, 201, 90, 20
 		txtTabSize.Parent = @pnlCodeEditor
 		' chkShowSpaces
 		chkShowSpaces.Name = "chkShowSpaces"
@@ -410,11 +410,11 @@ pfOptions = @fOptions
 		' lblHistoryLimit
 		lblHistoryLimit.Name = "lblHistoryLimit"
 		lblHistoryLimit.Text = ML("History limit") & ":"
-		lblHistoryLimit.SetBounds 66, 206, 150, 17
+		lblHistoryLimit.SetBounds 66, 226, 150, 17
 		lblHistoryLimit.Parent = @pnlCodeEditor
 		' txtHistoryLimit
 		txtHistoryLimit.Name = "txtHistoryLimit"
-		txtHistoryLimit.SetBounds 209, 204, 90, 20
+		txtHistoryLimit.SetBounds 209, 224, 90, 20
 		txtHistoryLimit.Text = ""
 		txtHistoryLimit.Parent = @pnlCodeEditor
 		' grbGrid
@@ -445,17 +445,17 @@ pfOptions = @fOptions
 		' cboCase
 		cboCase.Name = "cboCase"
 		cboCase.Text = "ComboBoxEdit2"
-		cboCase.SetBounds 209, 157, 162, 21
+		cboCase.SetBounds 209, 177, 162, 21
 		cboCase.Parent = @pnlCodeEditor
 		' chkChangeKeywordsCase
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
 		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
-		chkChangeKeywordsCase.SetBounds 10, 158, 194, 18
+		chkChangeKeywordsCase.SetBounds 10, 178, 194, 18
 		chkChangeKeywordsCase.Parent = @pnlCodeEditor
 		' cboTabStyle
 		cboTabStyle.Name = "cboTabStyle"
 		cboTabStyle.Text = "cboCase1"
-		cboTabStyle.SetBounds 209, 133, 162, 21
+		cboTabStyle.SetBounds 209, 153, 162, 21
 		cboTabStyle.Parent = @pnlCodeEditor
 		' grbColors
 		grbColors.Name = "grbColors"
@@ -835,21 +835,21 @@ pfOptions = @fOptions
 		With chkHighlightCurrentWord
 			.Name = "chkHighlightCurrentWord"
 			.Text = ML("Highlight Current Word")
-			.SetBounds 10, 84, 192, 26
+			.SetBounds 10, 104, 192, 26
 			.Parent = @pnlCodeEditor
 		End With
 		' chkHighlightCurrentLine
 		With chkHighlightCurrentLine
 			.Name = "chkHighlightCurrentLine"
 			.Text = ML("Highlight Current Line")
-			.SetBounds 10, 66, 224, 16
+			.SetBounds 10, 86, 224, 16
 			.Parent = @pnlCodeEditor
 		End With
 		' chkHighlightBrackets
 		With chkHighlightBrackets
 			.Name = "chkHighlightBrackets"
 			.Text = ML("Highlight Brackets")
-			.SetBounds 10, 111, 154, 18
+			.SetBounds 10, 131, 154, 18
 			.Parent = @pnlCodeEditor
 		End With
 		' cmdChangeCompiler
@@ -1165,6 +1165,15 @@ pfOptions = @fOptions
 			.Caption = ML("Prompt To Save")
 			.Parent = @grbWhenCompiling
 		End With
+		' chkShowKeywordsTooltip
+		With chkShowKeywordsTooltip
+			.Name = "chkShowKeywordsTooltip"
+			.Text = ML("Show Keywords Tooltip")
+			.TabIndex = 170
+			.SetBounds 10, 63, 264, 18
+			.Caption = ML("Show Keywords Tooltip")
+			.Parent = @pnlCodeEditor
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1236,6 +1245,7 @@ Sub frmOptions.LoadSettings()
 		Case 3: .optPromptToSave.Checked = True
 		End Select
 		.chkShowSpaces.Checked = ShowSpaces
+		.chkShowKeywordsTooltip.Checked = ShowKeywordsToolTip
 		.chkHighlightBrackets.Checked = HighlightBrackets
 		.chkHighlightCurrentLine.Checked = HighlightCurrentLine
 		.chkHighlightCurrentWord.Checked = HighlightCurrentWord
@@ -1830,6 +1840,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WhenVisualFBEditorStarts = IIf(.optPromptForProjectAndFile.Checked, 1, IIf(.optCreateProjectFile.Checked, 2, IIf(.optOpenLastSession.Checked, 3, 0)))
 		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, IIf(.optPromptToSave.Checked, 3, 0)))
 		ShowSpaces = .chkShowSpaces.Checked
+		ShowKeywordsToolTip = .chkShowKeywordsTooltip.Checked
 		HighlightBrackets = .chkHighlightBrackets.Checked
 		HighlightCurrentLine = .chkHighlightCurrentLine.Checked
 		HighlightCurrentWord = .chkHighlightCurrentWord.Checked
@@ -1978,6 +1989,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "WhenVisualFBEditorStarts", WhenVisualFBEditorStarts
 		piniSettings->WriteInteger "Options", "AutoSaveBeforeCompiling", AutoSaveBeforeCompiling
 		piniSettings->WriteBool "Options", "ShowSpaces", ShowSpaces
+		piniSettings->WriteBool "Options", "ShowKeywordsTooltip", ShowKeywordsTooltip
 		piniSettings->WriteBool "Options", "HighlightBrackets", HighlightBrackets
 		piniSettings->WriteBool "Options", "HighlightCurrentLine", HighlightCurrentLine
 		piniSettings->WriteBool "Options", "HighlightCurrentWord", HighlightCurrentWord
