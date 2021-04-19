@@ -2516,7 +2516,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				ElseIf StartsWith(bTrimLCase & " ", "declare ") Then
 					Pos1 = InStr(9, bTrim, " ")
 					Pos3 = InStr(9, bTrim, "(")
-					If StartsWith(Trim(Mid(bTrimLCase, 9)), "static ") Then
+					If StartsWith(Trim(Mid(bTrimLCase, 9)), "static ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "virtual ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "abstract ") Then
 						Pos1 = InStr(Pos1 + 1, bTrim, " ")
 					End If
 					Pos4 = InStr(Pos1 + 1, bTrim, " ")
@@ -3106,7 +3106,7 @@ Sub LoadHelp
 	Open *KeywordsHelpPath For Input As #Fn
 	Dim As TypeElement Ptr te
 	Dim As String Buff, StartBuff, bTrim
-	Dim As Boolean bStart, bStartEnd, bDescriptionEnd, bDeclareStart, bDeclare, bExampleStart
+	Dim As Boolean bStart, bStartEnd, bDescriptionEnd
 	Dim As Paragraph Parag
 	Dim As Integer Pos1, LineNumber
 	Do Until EOF(Fn)
@@ -3141,7 +3141,7 @@ Sub LoadHelp
 				Pos1 = InStr(bTrim, "...")
 				If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
 				Pos1 = InStr(bTrim, "(")
-				If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
+				If Pos1 = 1 Then bTrim = Mid(bTrim, Pos1 + 1) Else If Pos1 > 1 Then bTrim = Left(bTrim, Pos1 - 1)
 				te = New_( TypeElement)
 				te->Name = bTrim
 				te->DisplayName = te->Name
@@ -3150,8 +3150,6 @@ Sub LoadHelp
 				GlobalFunctions.Add te->Name, te
 				bStartEnd = False 
 				bDescriptionEnd = False
-				bDeclareStart = False
-				bExampleStart = False
 			ElseIf Parag = parStart Then
 				If Buff <> "" AndAlso te <> 0 Then
 					If te->Comment = "" Then
@@ -3162,31 +3160,24 @@ Sub LoadHelp
 				End If
 			ElseIf Parag = parSyntax Then
 				If Not bStartEnd Then
-					If te <> 0 AndAlso Not EndsWith(te->Comment, ".") Then te->Comment &= "." & !"\r"
+					If te <> 0 AndAlso Not EndsWith(te->Comment, ".") Then te->Comment &= "."
 					bStartEnd = True
 				End If
-				If Buff <> "" AndAlso te <> 0 Then
-					bDeclare = False
-					If StartsWith(Trim(Buff), "Declare ") Then
-						bTrim = Trim(Mid(Trim(Buff), 9))
+				If te <> 0 Then
+					If StartsWith(Trim(Buff), "Declare ") AndAlso InStr(Buff, "[") = 0 Then
+						bTrim = LTrim(Mid(LTrim(Buff), 9))
 						If StartsWith(bTrim, "Function ") Then
-							Buff = Trim(Mid(Trim(bTrim), 10))
-							bDeclare = True
-							bDeclareStart = True
+							Buff = LTrim(Mid(LTrim(bTrim), 10))
 						ElseIf StartsWith(bTrim, "Sub ") Then
-							Buff = Trim(Mid(Trim(bTrim), 5))
-							bDeclare = True
-							bDeclareStart = True
+							Buff = LTrim(Mid(LTrim(bTrim), 5))
 						ElseIf StartsWith(bTrim, "Operator ") Then
-							Buff = Trim(Mid(Trim(bTrim), 10))
-							bDeclare = True
-							bDeclareStart = True
+							Buff = LTrim(Mid(LTrim(bTrim), 10))
 						End If
 					End If
 					If te->Parameters = "" Then
 						te->Parameters = Buff
-					ElseIf bDeclareStart AndAlso Not bDeclare Then
-						te->Parameters &= " " & Trim(Buff)
+					ElseIf EndsWith(te->Parameters, " ") Then
+						te->Parameters &= LTrim(Buff)
 					Else
 						te->Parameters &= !"\r" & Buff
 					End If
@@ -3202,7 +3193,7 @@ Sub LoadHelp
 					Pos1 = InStr(Buff, ".")
 					If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ".")
 					If Pos1 > 0 Then
-						Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & "</a>"
+						Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
 						bDescriptionEnd = True
 					End If
 					If Buff <> "" AndAlso te <> 0 Then
@@ -3214,15 +3205,13 @@ Sub LoadHelp
 					End If
 				End If
 			ElseIf Parag = parExample Then
-				If te <> 0 And Not bExampleStart Then
-					'?te->Comment
-				End If
-				bExampleStart = True
+				
 			ElseIf Parag = parDifferencesFromQB Then
 				
 			ElseIf Parag = parSeeAlso Then
+				If te <> 0 AndAlso EndsWith(te->Parameters, !"\r") Then te->Parameters = Left(te->Parameters, Len(te->Parameters) - 1)
 				If bDescriptionEnd = False Then
-					te->Comment &= " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & "</a>"
+					te->Comment &= " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
 					bDescriptionEnd = True
 				End If
 			End If

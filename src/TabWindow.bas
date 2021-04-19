@@ -3210,7 +3210,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 		#endif
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
-	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) Then
+	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) OrElse CInt(Key = Asc("?")) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
@@ -3263,6 +3263,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 				Next
 			End If
 			sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 2)
+			If Key = Asc("?") Then sWord = "Print"
 			Dim As TypeElement Ptr te, teOld
 			Dim As Integer Index
 			Dim As String TypeName
@@ -3305,7 +3306,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 						Parameter = res(n) 'te->Parameters
 						Parameters &= IIf(Parameters = "", "", !"\r")
 						iPos = InStr(LCase(Parameter), LCase(sWord))
-						If iPos = 1 Then
+						If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
 							FuncName = Mid(Parameter, iPos, Len(sWord))
 							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
 							Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
@@ -3342,7 +3343,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 								Parameter = res(n) 'te->Parameters
 								Parameters &= IIf(Parameters = "", "", !"\r")
 								iPos = InStr(LCase(Parameter), LCase(sWord))
-								If iPos = 1 Then
+								If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
 									FuncName = Mid(Parameter, iPos, Len(sWord))
 									Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
 									Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
