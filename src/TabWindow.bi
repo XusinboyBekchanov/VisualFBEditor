@@ -34,6 +34,13 @@ Type ExplorerElement Extends Object
 	Declare Destructor
 End Type
 
+Enum CompileToVariants
+	ByDefault
+	ToGAS
+	ToLLVM
+	ToGCC
+End Enum
+
 Type ProjectElement Extends ExplorerElement
 	MainFileName As WString Ptr
 	ResourceFileName As WString Ptr
@@ -56,7 +63,7 @@ Type ProjectElement Extends ExplorerElement
 	LegalTrademarks As WString Ptr
 	OriginalFilename As WString Ptr
 	ProductName As WString Ptr
-	CompileToGCC As Boolean
+	CompileTo As CompileToVariants
 	OptimizationLevel As Integer
 	OptimizationFastCode As Boolean
 	OptimizationSmallCode As Boolean

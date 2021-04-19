@@ -456,7 +456,11 @@ Function Compile(Parameter As String = "") As Integer
 	End If
 	If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WAdd CompileWith, " -g"
 	If Project Then
-		If Project->CompileToGCC Then
+		If Project->CompileTo = ToGAS Then
+			WAdd CompileWith, " -gen gas" & IIf(Not Bit32, "64", "")
+		ElseIf Project->CompileTo = ToLLVM Then
+			WAdd CompileWith, " -gen llvm"
+		ElseIf Project->CompileTo = ToGCC Then
 			WAdd CompileWith, " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", ""))) & _
 			IIf(Project->ShowUnusedLabelWarnings, " -Wc -Wunused-label", "") & IIf(Project->ShowUnusedFunctionWarnings, " -Wc -Wunused-function", "") & IIf(Project->ShowUnusedVariableWarnings, " -Wc -Wunused-variable", "") & _
 			IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
@@ -982,8 +986,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					WLet(ppe->OriginalFilename, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "ProductName" Then
 					WLet(ppe->ProductName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
-				ElseIf Parameter = "CompileToGCC" Then
-					ppe->CompileToGCC = CBool(Mid(Buff, Pos1 + 1))
+				ElseIf Parameter = "CompileTo" Then
+					ppe->CompileTo = Cast(CompileToVariants, Val(Mid(Buff, Pos1 + 1)))
 				ElseIf Parameter = "OptimizationLevel" Then
 					ppe->OptimizationLevel = Val(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "OptimizationFastCode" Then
@@ -1399,7 +1403,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "LegalTrademarks=""" & *ppe->LegalTrademarks & """"
 	Print #Fn, "OriginalFilename=""" & *ppe->OriginalFilename & """"
 	Print #Fn, "ProductName=""" & *ppe->ProductName & """"
-	Print #Fn, "CompileToGCC=" & ppe->CompileToGCC
+	Print #Fn, "CompileTo=" & ppe->CompileTo
 	Print #Fn, "OptimizationLevel=" & ppe->OptimizationLevel
 	Print #Fn, "OptimizationFastCode=" & ppe->OptimizationFastCode
 	Print #Fn, "OptimizationSmallCode=" & ppe->OptimizationSmallCode

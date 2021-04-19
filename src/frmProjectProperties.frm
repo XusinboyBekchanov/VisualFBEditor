@@ -238,15 +238,15 @@ pfProjectProperties = @fProjectProperties
 		' optCompileToGas
 		optCompileToGas.Name = "optCompileToGas"
 		optCompileToGas.Text = ML("Compile to GAS")
-		optCompileToGas.SetBounds 0, 5, 160, 16
+		optCompileToGas.SetBounds 170, 15, 120, 16
 		optCompileToGas.OnClick = @optCompileToGas_Click
-		optCompileToGas.Parent = @picCompileToGCCCaption
+		optCompileToGas.Parent = @tpCompile
 		' optCompileToGcc
 		optCompileToGcc.Name = "optCompileToGcc"
 		optCompileToGcc.Text = ML("Compile to GCC")
-		optCompileToGcc.SetBounds 0, 24, 152, 16
+		optCompileToGcc.SetBounds 16, 34, 132, 16
 		optCompileToGcc.OnClick = @optCompileToGcc_Click
-		optCompileToGcc.Parent = @picCompileToGCCCaption
+		optCompileToGcc.Parent = @tpCompile
 		' tpDebugging
 		tpDebugging.Name = "tpDebugging"
 		tpDebugging.SetBounds 2, 22, 445, 282
@@ -404,13 +404,6 @@ pfProjectProperties = @fProjectProperties
 			.SetBounds 16, 20, 192, 80
 			.Parent = @tpMake
 		End With
-		' picCompileToGCCCaption
-		With picCompileToGCCCaption
-			.Name = "picCompileToGCCCaption"
-			.SetBounds 16, 10, 152, 40
-			.Text = ""
-			.Parent = @tpCompile
-		End With
 		' picVersionInformation
 		With picApplication
 			.Name = "picApplication"
@@ -428,6 +421,28 @@ pfProjectProperties = @fProjectProperties
 			.Name = "picCompilationArguments"
 			.SetBounds 24, 156, 400, 112
 			.Text = ""
+			.Parent = @tpCompile
+		End With
+		' optCompileByDefault
+		With optCompileByDefault
+			.Name = "optCompileByDefault"
+			.Text = ML("Compile by default")
+			.TabIndex = 69
+			.SetBounds 16, 15, 130, 16
+			.Caption = ML("Compile by default")
+			.Designer = @This
+			.OnClick = @optCompileByDefault_Click_
+			.Parent = @tpCompile
+		End With
+		' optCompileToLLVM
+		With optCompileToLLVM
+			.Name = "optCompileToLLVM"
+			.Text = ML("Compile to LLVM")
+			.TabIndex = 70
+			.SetBounds 300, 15, 130, 16
+			.Caption = ML("Compile to LLVM")
+			.Designer = @This
+			.OnClick = @optCompileToLLVM_Click_
 			.Parent = @tpCompile
 		End With
 	End Constructor
@@ -469,7 +484,12 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->LegalTrademarks, .Types.Get(ML("Legal Trademarks")))
 		WLet(ppe->OriginalFilename, .Types.Get(ML("Original Filename")))
 		WLet(ppe->ProductName, .Types.Get(ML("Product Name")))
-		ppe->CompileToGCC = .optCompileToGCC.Checked
+		Select Case True
+		Case .optCompileByDefault.Checked: ppe->CompileTo = ByDefault
+		Case .optCompileToGAS.Checked: ppe->CompileTo = ToGAS
+		Case .optCompileToLLVM.Checked: ppe->CompileTo = ToLLVM
+		Case .optCompileToGCC.Checked: ppe->CompileTo = ToGCC
+		End Select
 		ppe->OptimizationFastCode = .optOptimizationFastCode.Checked
 		ppe->OptimizationSmallCode = .optOptimizationSmallCode.Checked
 		ppe->OptimizationLevel = IIf(.optOptimizationLevel.Checked, Val(.cboOptimizationLevel.Text), 0)
@@ -581,18 +601,16 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.Types.Set ML("Legal Trademarks"), *ppe->LegalTrademarks
 				.Types.Set ML("Original Filename"), *ppe->OriginalFilename
 				.Types.Set ML("Product Name"), *ppe->ProductName
-				If ppe->CompileToGCC Then
-					.optCompileToGCC.Checked = True
-					.optCompileToGAS.Checked = False
-				Else
-					.optCompileToGAS.Checked = True
-					.optCompileToGCC.Checked = False
-					.optOptimizationLevel.Enabled = .optCompileToGcc.Checked
-					.optOptimizationSmallCode.Enabled = .optCompileToGcc.Checked
-					.optNoOptimization.Enabled = .optCompileToGcc.Checked
-					.optOptimizationFastCode.Enabled = .optCompileToGcc.Checked
-					.cboOptimizationLevel.Enabled = .optCompileToGcc.Checked
-				End If
+				.optCompileByDefault.Checked = False
+				.optCompileToGAS.Checked = False
+				.optCompileToLLVM.Checked = False
+				.optCompileToGCC.Checked = False
+				Select Case ppe->CompileTo
+				Case ByDefault: .optCompileByDefault.Checked = True
+				Case ToGAS: .optCompileToGAS.Checked = True
+				Case ToLLVM: .optCompileToLLVM.Checked = True
+				Case ToGCC: .optCompileToGCC.Checked = True
+				End Select
 				.optCompileToGas_Click(.optCompileToGas)
 				.optNoOptimization.Checked = ppe->OptimizationLevel = 0
 				.optOptimizationLevel.Checked = ppe->OptimizationLevel > 0
@@ -690,3 +708,17 @@ Private Sub frmProjectProperties.optCompileToGcc_Click(ByRef Sender As RadioButt
 	frmProjectProperties.optCompileToGas_Click Sender
 End Sub
 
+
+Private Sub frmProjectProperties.optCompileByDefault_Click_(ByRef Sender As RadioButton)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).optCompileByDefault_Click(Sender)
+End Sub
+Private Sub frmProjectProperties.optCompileByDefault_Click(ByRef Sender As RadioButton)
+	frmProjectProperties.optCompileToGas_Click Sender
+End Sub
+
+Private Sub frmProjectProperties.optCompileToLLVM_Click_(ByRef Sender As RadioButton)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).optCompileToLLVM_Click(Sender)
+End Sub
+Private Sub frmProjectProperties.optCompileToLLVM_Click(ByRef Sender As RadioButton)
+	frmProjectProperties.optCompileToGas_Click Sender
+End Sub

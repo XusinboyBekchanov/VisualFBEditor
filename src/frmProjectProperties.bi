@@ -36,19 +36,23 @@ Using My.Sys.Forms
 		Declare Static Sub optCompileToGcc_Click(ByRef Sender As RadioButton)
 		Declare Sub RefreshProperties()
 		Declare Static Sub cmdAdvancedOptions_Click(ByRef Sender As Control)
+		Declare Static Sub optCompileByDefault_Click_(ByRef Sender As RadioButton)
+		Declare Sub optCompileByDefault_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optCompileToLLVM_Click_(ByRef Sender As RadioButton)
+		Declare Sub optCompileToLLVM_Click(ByRef Sender As RadioButton)
 		Declare Constructor
 		
 		Dim As TabControl tabProperties
 		Dim As TabPage tpGeneral, tpMake, tpCompile, tpDebugging
 		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions
 		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321
-		Dim As Picture picCompileToGCC, picCompileToGCCCaption, picVersionNumber, picApplication, picVersionInformation, picCompilationArguments
+		Dim As Picture picCompileToGCC, picVersionNumber, picApplication, picVersionInformation, picCompilationArguments
 		Dim As ComboBoxEdit cboProjectType, cboMainFile, cboResourceFile, cboIconResourceFile, cboOptimizationLevel
 		Dim As TextBox txtProjectName, txtProjectDescription, txtCompilationArguments32Windows, txtCompilationArguments64Windows, txtIcon, txtTitle, txtMajor, txtMinor, txtRevision, txtBuild, txtCompilationArguments32Linux, txtValue, txtHelpFileName, txtCommandLineArguments, txtCompilationArguments32Windows1, txtCompilationArguments64Windows1, txtCompilationArguments32Linux1, txtCompilationArguments64Linux
 		Dim As GroupBox grbVersionNumber, grbApplication, grbVersionInformation, grbCompilationArguments, grbCompileToGCC
 		Dim As CheckBox chkAutoIncrementVersion, chkCreateDebugInfo
 		Dim As ListControl lstType
-		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization
+		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization, optCompileByDefault, optCompileToLLVM
 		Dim As Dictionary Types, MainFiles, ResourceFiles, IconResourceFiles
 		Dim As TreeNode Ptr ProjectTreeNode
 	End Type
