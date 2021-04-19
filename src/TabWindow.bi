@@ -360,7 +360,7 @@ Declare Sub FillIntellisenseByName(Value As String, Starts As String = "", bLoca
 
 Declare Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 
-Declare Sub tbrTop_ButtonClick(ByRef Sender As My.Sys.Object)
+Declare Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 
 Declare Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
 

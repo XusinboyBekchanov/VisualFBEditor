@@ -4265,34 +4265,34 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	"in module " & ZGet(Ermn())
 End Sub
 
-'Sub tbrTop_ButtonClick(ByRef Sender As My.Sys.Object)
-'	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Sender)->Ctrl->Parent->Parent)
-'	With *tb
-'		Select Case Sender.ToString
-'		Case "Code"
-'			.pnlCode.Visible = True
-'			.pnlForm.Visible = False
-'			.splForm.Visible = False
-'			ptabLeft->SelectedTabIndex = 0
-'		Case "Form"
-'			.pnlCode.Visible = False
-'			.pnlForm.Align = 5
-'			.pnlForm.Visible = True
-'			.splForm.Visible = False
-'			If .bNotDesign = False Then .FormDesign
-'			ptabLeft->SelectedTabIndex = 1
-'		Case "CodeAndForm"
-'			.pnlForm.Align = 2
-'			.pnlForm.Width = 350
-'			.pnlForm.Visible = True
-'			.splForm.Visible = True
-'			.pnlCode.Visible = True
-'			If .bNotDesign = False Then .FormDesign
-'			ptabLeft->SelectedTabIndex = 1
-'		End Select
-'		.RequestAlign
-'	End With
-'End Sub
+Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
+	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Button)->Ctrl->Parent->Parent)
+	With *tb
+		Select Case Button.Name
+		Case "Code"
+			.pnlCode.Visible = True
+			.pnlForm.Visible = False
+			.splForm.Visible = False
+			ptabLeft->SelectedTabIndex = 0
+		Case "Form"
+			.pnlCode.Visible = False
+			.pnlForm.Align = 5
+			.pnlForm.Visible = True
+			.splForm.Visible = False
+			If .bNotDesign = False Then .FormDesign
+			ptabLeft->SelectedTabIndex = 1
+		Case "CodeAndForm"
+			.pnlForm.Align = 2
+			.pnlForm.Width = 350
+			.pnlForm.Visible = True
+			.splForm.Visible = True
+			.pnlCode.Visible = True
+			If .bNotDesign = False Then .FormDesign
+			ptabLeft->SelectedTabIndex = 1
+		End Select
+		.RequestAlign
+	End With
+End Sub
 
 Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
@@ -4392,9 +4392,10 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#endif
 	tbrTop.Align = 2
 	tbrTop.Buttons.Add tbsSeparator
-	tbrTop.Buttons.Add tbsCheckGroup, "Code", , @mClick, "Code", , ML("Show Code"), True ' Show the toollips
-	tbrTop.Buttons.Add tbsCheckGroup, "Form", , @mClick, "Form", , ML("Show Form"), True ' Show the toollips
-	tbrTop.Buttons.Add tbsCheckGroup, "CodeAndForm", , @mClick, "CodeAndForm", , ML("Show Code And Form"), True '
+	tbrTop.Buttons.Add tbsCheckGroup, "Code", , , "Code", , ML("Show Code"), True ' Show the toollips
+	tbrTop.Buttons.Add tbsCheckGroup, "Form", , , "Form", , ML("Show Form"), True ' Show the toollips
+	tbrTop.Buttons.Add tbsCheckGroup, "CodeAndForm", , , "CodeAndForm", , ML("Show Code And Form"), True '
+	tbrTop.OnButtonClick = @tbrTop_ButtonClick
 	tbrTop.Flat = True
 	cboClass.Width = 50
 	#ifdef __USE_GTK__

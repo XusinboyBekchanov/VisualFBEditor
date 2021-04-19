@@ -321,29 +321,9 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "NextBookmark":                NextBookmark 1
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
-		Case "Code":
-			tb->pnlCode.Visible = True
-			tb->pnlForm.Visible = False
-			tb->splForm.Visible = False
-			ptabLeft->SelectedTabIndex = 0
-			tb->RequestAlign
-		Case "Form":
-			tb->pnlCode.Visible = False
-			tb->pnlForm.Align = 5
-			tb->pnlForm.Visible = True
-			tb->splForm.Visible = False
-			If tb->bNotDesign = False Then tb->FormDesign
-			ptabLeft->SelectedTabIndex = 1
-			tb->RequestAlign
-		Case "CodeAndForm":
-			tb->pnlForm.Align = 2
-			tb->pnlForm.Width = 350
-			tb->pnlForm.Visible = True
-			tb->splForm.Visible = True
-			tb->pnlCode.Visible = True
-			If tb->bNotDesign = False Then tb->FormDesign
-			ptabLeft->SelectedTabIndex = 1
-			tb->RequestAlign
+		Case "Code":                        tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code") 
+		Case "Form":                        tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
+		Case "CodeAndForm":                 tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
 		End Select
 	Case "SaveAll":                         SaveAll
 	Case "CloseAll":                        CloseAllTabs
