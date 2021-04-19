@@ -3106,7 +3106,7 @@ Sub LoadHelp
 	Open *KeywordsHelpPath For Input As #Fn
 	Dim As TypeElement Ptr te
 	Dim As String Buff, StartBuff, bTrim
-	Dim As Boolean bStart, bStartEnd, bDescriptionEnd, bExampleStart
+	Dim As Boolean bStart, bStartEnd, bDescriptionEnd, bDeclareStart, bDeclare, bExampleStart
 	Dim As Paragraph Parag
 	Dim As Integer Pos1, LineNumber
 	Do Until EOF(Fn)
@@ -3150,6 +3150,7 @@ Sub LoadHelp
 				GlobalFunctions.Add te->Name, te
 				bStartEnd = False 
 				bDescriptionEnd = False
+				bDeclareStart = False
 				bExampleStart = False
 			ElseIf Parag = parStart Then
 				If Buff <> "" AndAlso te <> 0 Then
@@ -3165,29 +3166,27 @@ Sub LoadHelp
 					bStartEnd = True
 				End If
 				If Buff <> "" AndAlso te <> 0 Then
+					bDeclare = False
 					If StartsWith(Trim(Buff), "Declare ") Then
 						bTrim = Trim(Mid(Trim(Buff), 9))
 						If StartsWith(bTrim, "Function ") Then
 							Buff = Trim(Mid(Trim(bTrim), 10))
+							bDeclare = True
+							bDeclareStart = True
 						ElseIf StartsWith(bTrim, "Sub ") Then
 							Buff = Trim(Mid(Trim(bTrim), 5))
+							bDeclare = True
+							bDeclareStart = True
 						ElseIf StartsWith(bTrim, "Operator ") Then
 							Buff = Trim(Mid(Trim(bTrim), 10))
+							bDeclare = True
+							bDeclareStart = True
 						End If
-'						If te->Parameters = "" Then
-'							te->Parameters = Buff
-'						Else
-'							te->Parameters &= !"\r" & Buff
-'						End If
-'					Else
-'						If te->Parameters = "" Then
-'							te->Parameters = Buff
-'						Else
-'							te->Parameters &= " " & Buff
-'						End If
 					End If
 					If te->Parameters = "" Then
 						te->Parameters = Buff
+					ElseIf bDeclareStart AndAlso Not bDeclare Then
+						te->Parameters &= " " & Trim(Buff)
 					Else
 						te->Parameters &= !"\r" & Buff
 					End If
