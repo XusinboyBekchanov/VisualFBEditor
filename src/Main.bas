@@ -3106,7 +3106,7 @@ Sub LoadHelp
 	Open *KeywordsHelpPath For Input As #Fn
 	Dim As TypeElement Ptr te
 	Dim As String Buff, StartBuff, bTrim
-	Dim As Boolean bStart, bDescriptionEnd, bExampleStart
+	Dim As Boolean bStart, bStartEnd, bDescriptionEnd, bExampleStart
 	Dim As Paragraph Parag
 	Dim As Integer Pos1, LineNumber
 	Do Until EOF(Fn)
@@ -3148,6 +3148,7 @@ Sub LoadHelp
 				te->ElementType = "#Define"
 				te->FileName = *KeywordsHelpPath
 				GlobalFunctions.Add te->Name, te
+				bStartEnd = False 
 				bDescriptionEnd = False
 				bExampleStart = False
 			ElseIf Parag = parStart Then
@@ -3159,7 +3160,10 @@ Sub LoadHelp
 					End If
 				End If
 			ElseIf Parag = parSyntax Then
-				If te <> 0 AndAlso Not EndsWith(te->Comment, "." & !"\r") Then te->Comment &= "." & !"\r"
+				If Not bStartEnd Then
+					If te <> 0 AndAlso Not EndsWith(te->Comment, ".") Then te->Comment &= "." & !"\r"
+					bStartEnd = True
+				End If
 				If Buff <> "" AndAlso te <> 0 Then
 					If StartsWith(Trim(Buff), "Declare ") Then
 						Buff = Trim(Mid(Trim(Buff), 9))
