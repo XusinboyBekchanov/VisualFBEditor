@@ -3299,12 +3299,16 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 				End If
 			Else
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-					Parameter = te->Parameters
-					iPos = InStr(LCase(Parameter), LCase(sWord))
-					FuncName = Mid(Parameter, iPos, Len(sWord))
-					Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+					Dim As UString res(Any)
+					Split te->Parameters, !"\r", res()
+					For n As Integer = 0 To UBound(res)
+						Parameter = res(n) 'te->Parameters
+						iPos = InStr(LCase(Parameter), LCase(sWord))
+						FuncName = Mid(Parameter, iPos, Len(sWord))
+						Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+						Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+					Next n
 					ParametersList.Add te->Parameters
-					Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 					If te->Comment <> "" Then Comments &= te->Comment
 				End If
 				Index = tb->Functions.IndexOf(sWord)
@@ -3316,8 +3320,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 							iPos = InStr(LCase(Parameter), LCase(sWord))
 							FuncName = Mid(Parameter, iPos, Len(sWord))
 							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
-							ParametersList.Add te->Parameters
 							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+							ParametersList.Add te->Parameters
 							If te->Comment <> "" Then Comments &= te->Comment
 						End If
 					Next
@@ -3327,12 +3331,16 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 					For i As Integer = Index To pGlobalFunctions->Count - 1
 						te = pGlobalFunctions->Object(i)
 						If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-							Parameter = te->Parameters
-							iPos = InStr(LCase(Parameter), LCase(sWord))
-							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+							Dim As UString res(Any)
+							Split te->Parameters, !"\r", res()
+							For n As Integer = 0 To UBound(res)
+								Parameter = res(n) 'te->Parameters
+								iPos = InStr(LCase(Parameter), LCase(sWord))
+								FuncName = Mid(Parameter, iPos, Len(sWord))
+								Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+								Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
+							Next n
 							ParametersList.Add te->Parameters
-							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
 							If te->Comment <> "" Then Comments &= te->Comment
 						End If
 					Next
