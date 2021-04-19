@@ -1541,7 +1541,7 @@ Sub RunHelp(Param As Any Ptr)
 		ThreadsLeave()
 	Else
 		#ifdef __USE_GTK__
-			PipeCmd "", CurrentHelpPath
+			PipeCmd "", "xchm " & CurrentHelpPath
 		#endif
 	End If
 	#ifndef __USE_GTK__
