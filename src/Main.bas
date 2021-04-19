@@ -3166,23 +3166,30 @@ Sub LoadHelp
 				End If
 				If Buff <> "" AndAlso te <> 0 Then
 					If StartsWith(Trim(Buff), "Declare ") Then
-						Buff = Trim(Mid(Trim(Buff), 9))
-						If StartsWith(Buff, "Function ") Then
-							Buff = Trim(Mid(Trim(Buff), 10))
-						ElseIf StartsWith(Buff, "Sub ") Then
-							Buff = Trim(Mid(Trim(Buff), 5))
+						bTrim = Trim(Mid(Trim(Buff), 9))
+						If StartsWith(bTrim, "Function ") Then
+							Buff = Trim(Mid(Trim(bTrim), 10))
+						ElseIf StartsWith(bTrim, "Sub ") Then
+							Buff = Trim(Mid(Trim(bTrim), 5))
+						ElseIf StartsWith(bTrim, "Operator ") Then
+							Buff = Trim(Mid(Trim(bTrim), 10))
 						End If
-						If te->Parameters = "" Then
-							te->Parameters = Trim(Buff)
-						Else
-							te->Parameters &= !"\r" & Trim(Buff)
-						End If
+'						If te->Parameters = "" Then
+'							te->Parameters = Buff
+'						Else
+'							te->Parameters &= !"\r" & Buff
+'						End If
+'					Else
+'						If te->Parameters = "" Then
+'							te->Parameters = Buff
+'						Else
+'							te->Parameters &= " " & Buff
+'						End If
+					End If
+					If te->Parameters = "" Then
+						te->Parameters = Buff
 					Else
-						If te->Parameters = "" Then
-							te->Parameters = Trim(Buff)
-						Else
-							te->Parameters &= " " & Trim(Buff)
-						End If
+						te->Parameters &= !"\r" & Buff
 					End If
 				End If
 			ElseIf Parag = parUsage Then
@@ -3213,12 +3220,12 @@ Sub LoadHelp
 				End If
 				bExampleStart = True
 			ElseIf Parag = parDifferencesFromQB Then
+				
+			ElseIf Parag = parSeeAlso Then
 				If bDescriptionEnd = False Then
 					te->Comment &= " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & "</a>"
 					bDescriptionEnd = True
 				End If
-			ElseIf Parag = parSeeAlso Then
-				
 			End If
 			bStart = False
 		End If

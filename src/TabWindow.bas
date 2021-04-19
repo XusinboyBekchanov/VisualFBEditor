@@ -3303,10 +3303,15 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 					Split te->Parameters, !"\r", res()
 					For n As Integer = 0 To UBound(res)
 						Parameter = res(n) 'te->Parameters
+						Parameters &= IIf(Parameters = "", "", !"\r")
 						iPos = InStr(LCase(Parameter), LCase(sWord))
-						FuncName = Mid(Parameter, iPos, Len(sWord))
-						Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
-						Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+						If iPos = 1 Then
+							FuncName = Mid(Parameter, iPos, Len(sWord))
+							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+							Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+						Else
+							Parameters &= Parameter
+						End If
 					Next n
 					ParametersList.Add te->Parameters
 					If te->Comment <> "" Then Comments &= " " & te->Comment
@@ -3335,10 +3340,15 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 							Split te->Parameters, !"\r", res()
 							For n As Integer = 0 To UBound(res)
 								Parameter = res(n) 'te->Parameters
+								Parameters &= IIf(Parameters = "", "", !"\r")
 								iPos = InStr(LCase(Parameter), LCase(sWord))
-								FuncName = Mid(Parameter, iPos, Len(sWord))
-								Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
-								Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
+								If iPos = 1 Then
+									FuncName = Mid(Parameter, iPos, Len(sWord))
+									Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+									Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
+								Else
+									Parameters &= Parameter
+								End If
 							Next n
 							ParametersList.Add te->Parameters
 							If te->Comment <> "" Then Comments &= " " & te->Comment
