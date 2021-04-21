@@ -1490,6 +1490,70 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	Sub Designer.DrawToolBar(Handle As Any Ptr)
+		#ifndef __USE_GTK__
+			Dim As HDC FHDc
+			Dim As RECT R
+			Dim As PAINTSTRUCT Ps
+			FHDc = BeginPaint(Handle, @Ps)
+			Dim As HPen Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
+			Dim As HPen PrevPen = SelectObject(FHDc, Pen)
+			Dim As HBrush Brush = CreateSolidBrush(BGR(255, 255, 255))
+			Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
+			Dim Sz As SIZE
+			GetClientRect(Handle, @R)
+			Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
+'			Dim As Any Ptr CurrentMenu = ReadPropertyFunc(DesignControl, "Menu")
+'			If CurrentMenu <> 0 Then
+'				RectsCount = 0
+'				'SelectObject(FHdc, TopMenu->Font.Handle)
+'				Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
+'				DeleteObject(Pen)
+'				DeleteObject(Brush)
+'				For i As Integer = 0 To QInteger(ReadPropertyFunc(CurrentMenu, "Count")) - 1
+'					RectsCount += 1
+'					ReDim Preserve Ctrls(RectsCount)
+'					ReDim Preserve Rects(RectsCount)
+'					Ctrls(RectsCount) = MenuByIndexFunc(CurrentMenu, i)
+'					If RectsCount = 1 Then
+'						Rects(RectsCount).Left = 0
+'					Else
+'						Rects(RectsCount).Left = Rects(RectsCount - 1).Right
+'					End If
+'					Rects(RectsCount).Top = 0
+'					GetTextExtentPoint32(FHdc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
+'					Rects(RectsCount).Right = Rects(RectsCount).Left + Sz.cx + 16
+'					Rects(RectsCount).Bottom = Rects(RectsCount).Top + Sz.cy + 6
+'					If RectsCount = ActiveRect Then
+'						Pen = CreatePen(PS_SOLID, 0, BGR(153, 209, 255))
+'						Brush = CreateSolidBrush(BGR(204, 232, 255))
+'						SelectObject(FHDc, Pen)
+'						SelectObject(FHDc, Brush)
+'						Rectangle FHdc, Rects(RectsCount).Left, 0, Rects(RectsCount).Right, TopMenu->Height
+'						DeleteObject(Pen)
+'						DeleteObject(Brush)
+'					ElseIf RectsCount = MouseRect Then
+'						Pen = CreatePen(PS_SOLID, 0, BGR(204, 232, 255))
+'						Brush = CreateSolidBrush(BGR(229, 243, 255))
+'						SelectObject(FHDc, Pen)
+'						SelectObject(FHDc, Brush)
+'						Rectangle FHdc, Rects(RectsCount).Left, 0, Rects(RectsCount).Right, TopMenu->Height
+'						DeleteObject(Pen)
+'						DeleteObject(Brush)
+'					End If
+'					SetBKMode(FHdc, TRANSPARENT)
+'					SetTextColor(FHdc, BGR(0, 0, 0))
+'					.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+'					SetBKMode(FHdc, OPAQUE)
+'					'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+'				Next i
+'			End If
+			SelectObject(FHdc, PrevPen)
+			SelectObject(FHdc, PrevBrush)
+			EndPaint Handle, @Ps
+		#endif
+	End Sub
+	
 	Sub Designer.DrawThis()
 		FStepX = GridSize
 		FStepY = GridSize
@@ -1605,7 +1669,11 @@ Namespace My.Sys.Forms
 					Case GDK_EXPOSE
 						Return False
 					#else
-					Case WM_PAINT
+					Case WM_PAINT, WM_ERASEBKGND
+						If GetClassNameOf(hDlg) = "ToolBar" Then
+							.DrawToolBar hDlg
+							Return 1
+						End If
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS

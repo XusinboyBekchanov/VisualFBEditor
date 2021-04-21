@@ -239,6 +239,7 @@ Namespace My.Sys.Forms
 		Dim ActiveRect As Integer
 		Dim MouseRect  As Integer
 		Declare        Sub DrawTopMenu
+		Declare        Sub DrawToolBar(Handle As Any Ptr)
 		Declare        Sub DrawThis() 'DC as HDC, R as RECT)
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
