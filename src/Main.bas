@@ -3434,7 +3434,7 @@ Sub LoadSettings
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
 	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
-	ShowKeywordsToolTip = iniSettings.ReadInteger("Options", "ShowKeywordsTooltip", True)
+	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "ShowKeywordsTooltip", True)
 	HighlightBrackets = iniSettings.ReadBool("Options", "HighlightBrackets", True)
 	HighlightCurrentLine = iniSettings.ReadBool("Options", "HighlightCurrentLine", True)
 	HighlightCurrentWord = iniSettings.ReadBool("Options", "HighlightCurrentWord", True)
