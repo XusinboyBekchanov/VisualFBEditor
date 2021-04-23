@@ -5,8 +5,6 @@
 		' frmMenuEditor
 		With This
 			.Name = "frmMenuEditor"
-			.Text = ML("Menu Editor")
-			.Name = "frmMenuEditor"
 			.Caption = ML("Menu Editor")
 			.Designer = @This
 			.OnPaint = @Form_Paint_

@@ -1496,25 +1496,24 @@ Namespace My.Sys.Forms
 			Dim As RECT R
 			Dim As PAINTSTRUCT Ps
 			FHDc = BeginPaint(Handle, @Ps)
-			Dim As HPen Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
+			Dim As HPen Pen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNFACE))
 			Dim As HPen PrevPen = SelectObject(FHDc, Pen)
-			Dim As HBrush Brush = CreateSolidBrush(BGR(255, 255, 255))
+			Dim As HBrush Brush = CreateSolidBrush(GetSysColor(COLOR_BTNFACE))
 			Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
 			Dim Sz As SIZE
 			GetClientRect(Handle, @R)
-			Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
-'			Dim As Any Ptr CurrentMenu = ReadPropertyFunc(DesignControl, "Menu")
-'			If CurrentMenu <> 0 Then
-'				RectsCount = 0
-'				'SelectObject(FHdc, TopMenu->Font.Handle)
-'				Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
-'				DeleteObject(Pen)
-'				DeleteObject(Brush)
-'				For i As Integer = 0 To QInteger(ReadPropertyFunc(CurrentMenu, "Count")) - 1
-'					RectsCount += 1
-'					ReDim Preserve Ctrls(RectsCount)
-'					ReDim Preserve Rects(RectsCount)
-'					Ctrls(RectsCount) = MenuByIndexFunc(CurrentMenu, i)
+			Dim As Any Ptr Ctrl = GetControl(Handle)
+			If Ctrl <> 0 Then
+				'RectsCount = 0
+				'SelectObject(FHdc, TopMenu->Font.Handle)
+				Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
+				DeleteObject(Pen)
+				DeleteObject(Brush)
+				For i As Integer = 0 To QInteger(ReadPropertyFunc(Ctrl, "ButtonsCount")) - 1
+					'RectsCount += 1
+					'ReDim Preserve Ctrls(RectsCount)
+					'ReDim Preserve Rects(RectsCount)
+					'Ctrls(RectsCount) = MenuByIndexFunc(CurrentMenu, i)
 '					If RectsCount = 1 Then
 '						Rects(RectsCount).Left = 0
 '					Else
@@ -1546,8 +1545,8 @@ Namespace My.Sys.Forms
 '					.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
 '					SetBKMode(FHdc, OPAQUE)
 '					'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
-'				Next i
-'			End If
+				Next i
+			End If
 			SelectObject(FHdc, PrevPen)
 			SelectObject(FHdc, PrevBrush)
 			EndPaint Handle, @Ps
