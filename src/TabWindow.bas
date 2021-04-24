@@ -686,7 +686,7 @@ Function TabWindow.Save As Boolean
 End Function
 
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
-	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then Delete_(tb): ptabCode->Repaint: Return True Else Return False
+	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then Delete_(tb): Return True Else Return False
 End Function
 
 Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
@@ -711,7 +711,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		End If
 	End If
 	If ptabCode->TabCount = 0 Then pfrmMain->Caption = App.Title
-	'MoveCloseButtons
+	MoveCloseButtons
 	FreeWnd
 	Return True
 End Function
@@ -3253,7 +3253,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 					ElseIf Not bQuotation AndAlso iCount = 0 Then
 						If Symb = " " OrElse Symb = !"\t" Then
 							bStarted = True
-						ElseIf Not IsArg(Asc(Symb)) Then
+						ElseIf (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
 							bStarted = False
 						ElseIf i > 4 AndAlso (LCase(Mid(*sLine, i - 5, 6)) = " byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = " byref") Then
 							bStarted = False
@@ -3264,7 +3264,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 					End If
 				Next
 			End If
-			If Key = Asc("?") Then 
+			If Key = Asc("?") OrElse Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar - 1, 1) = "?" Then
 				sWord = "?"
 			Else
 				sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 2)
@@ -3367,7 +3367,6 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 					Next
 				End If
 			End If
-			?Parameters
 			If Parameters <> "" Then
 				tb->txtCode.HintWord = sWord
 				tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
