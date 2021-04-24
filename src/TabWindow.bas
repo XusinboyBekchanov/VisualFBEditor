@@ -686,7 +686,7 @@ Function TabWindow.Save As Boolean
 End Function
 
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
-	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then Delete_(tb): Return True Else Return False
+	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then Delete_(tb): ptabCode->Repaint: Return True Else Return False
 End Function
 
 Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
@@ -711,7 +711,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		End If
 	End If
 	If ptabCode->TabCount = 0 Then pfrmMain->Caption = App.Title
-	MoveCloseButtons
+	'MoveCloseButtons
 	FreeWnd
 	Return True
 End Function
@@ -1896,15 +1896,15 @@ End Sub
 
 Sub OnToolTipLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
 	Dim As UString res(Any)
-	Split(Link1, "#", res())
+	Split(Link1, "~", res())
 	If UBound(res) >= 3 Then
 		If res(0) = *KeywordsHelpPath Then
 			HelpOption.CurrentPath = ""
-			If InStr(Link1, "##") > 0 Then
-				HelpOption.CurrentWord = "#" & res(4)
-			Else
+			'If InStr(Link1, "##") > 0 Then
+			'	HelpOption.CurrentWord = "#" & res(4)
+			'Else
 				HelpOption.CurrentWord = res(3)
-			End If
+			'End If
 			ThreadCreate(@RunHelp, @HelpOption)
 		Else
 			SelectSearchResult res(0), Val(res(1)) + 1, , , , res(2)
@@ -3101,31 +3101,33 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		iPos1 = InStr(Lines(i), """>")
 		iPos2 = InStr(Lines(i), "</a>")
 		Link1 = Mid(Lines(i), iPos + 9, iPos1 - iPos - 9)
-		Split Link1, "#", LinkParse()
+		Split Link1, "~", LinkParse()
 		If UBound(LinkParse) < 2 Then Continue For
 		Lines(i) = Left(Lines(i), iPos - 1) & LinkParse(2) & Mid(Lines(i), iPos2 + 4)
 		Split Replace(Lines(i), """", "'"), ",", Params()
 		For j As Integer = 0 To UBound(Params)
 			iPos = InStr(Params(j), "(")
 			iPos1 = InStr(Params(j), ")")
-			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0) OrElse (iParamCount - 1 >= UBound(Params))) Then
+			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso Left(Params(0), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then
 				iPos = InStr(LCase(Params(j)), LCase(sWord))
 				If iPos > 0 Then
 					sWord = Mid(Params(j), iPos, Len(sWord))
-					Params(j) = Left(Params(j), iPos - 1) & "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & sWord & "#" & sWord & """>" & sWord & "</a>" & Mid(Params(j), iPos + Len(sWord))
+					Params(j) = Left(Params(j), iPos - 1) & "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & sWord & "~" & sWord & """>" & sWord & "</a>" & Mid(Params(j), iPos + Len(sWord))
 				End If
 			ElseIf iParamCount = j Then
 				n = Len(Params(j)) - Len(LTrim(Params(j)))
+				If j = 0 AndAlso Left(Params(0), 1) = " " Then iPos = InStr(InStr(LCase(Params(j)), LCase(sWord)) + 1, Params(j), " ")
+				If Left(Params(0), 1) = " " Then iPos1 = Len(Params(j)) + 1
 				If iPos1 = 0 Then iPos1 = Len(Params(j)) + 1
 				If j = 0 AndAlso iPos > 0 Then
 					Param = Mid(Params(j), iPos + 1, iPos1 - iPos - 1)
-					Params(j) = Left(Params(j), iPos) & "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Param) & "#" & sWord & """>" &  Param & "</a>" & Mid(Params(j), iPos1)
+					Params(j) = Left(Params(j), iPos) & "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" &  Param & "</a>" & Mid(Params(j), iPos1)
 				ElseIf iParamCount = UBound(Params) Then
 					If iPos1 = 0 Then iPos1 = Len(Params(j)) + 1
 					Param = Left(Params(j), iPos1 - 1)
-					Params(j) = "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Param) & "#" & sWord & """>" & Param & "</a>" & Mid(Params(j), iPos1) 'WString(n, " ") & 
+					Params(j) = "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" & Param & "</a>" & Mid(Params(j), iPos1) 'WString(n, " ") & 
 				ElseIf iParamCount < UBound(Params) Then
-					Params(j) = "<a href=""" & LinkParse(0) & "#" & LinkParse(1) & "#" & GetCorrectParam(Params(j)) & "#" & sWord & """>" &  Params(j) & "</a>" 'WString(n, " ") & 
+					Params(j) = "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Params(j)) & "~" & sWord & """>" &  Params(j) & "</a>" 'WString(n, " ") & 
 				End If
 			End If
 		Next
@@ -3262,8 +3264,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 					End If
 				Next
 			End If
-			sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 2)
-			If Key = Asc("?") Then sWord = "Print"
+			If Key = Asc("?") Then 
+				sWord = "?"
+			Else
+				sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 2)
+			End If
 			Dim As TypeElement Ptr te, teOld
 			Dim As Integer Index
 			Dim As String TypeName
@@ -3291,7 +3296,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 							Parameter = te->Parameters
 							iPos = InStr(LCase(Parameter), LCase(sWord))
 							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 							ParametersList.Add te->Parameters
 							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 							If te->Comment <> "" Then Comments &= " " & te->Comment
@@ -3309,9 +3314,10 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 						Parameter = res(n) 'te->Parameters
 						Parameters &= IIf(Parameters = "", "", !"\r")
 						iPos = InStr(LCase(Parameter), LCase(sWord))
-						If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
+						'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
+						If iPos > 0 Then
 							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 							Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 						Else
 							Parameters &= Parameter
@@ -3328,7 +3334,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 							Parameter = te->Parameters
 							iPos = InStr(LCase(Parameter), LCase(sWord))
 							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 							ParametersList.Add te->Parameters
 							If te->Comment <> "" Then Comments &= " " & te->Comment
@@ -3346,9 +3352,10 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 								Parameter = res(n) 'te->Parameters
 								Parameters &= IIf(Parameters = "", "", !"\r")
 								iPos = InStr(LCase(Parameter), LCase(sWord))
-								If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
+								'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
+								If iPos > 0 Then
 									FuncName = Mid(Parameter, iPos, Len(sWord))
-									Link1 = te->FileName & "#" & te->StartLine & "#" & FuncName & "#" & FuncName
+									Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 									Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
 								Else
 									Parameters &= Parameter
@@ -3360,6 +3367,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 					Next
 				End If
 			End If
+			?Parameters
 			If Parameters <> "" Then
 				tb->txtCode.HintWord = sWord
 				tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
@@ -3644,7 +3652,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos4 = Pos1 + l
 						Pos2 = InStr(Pos1 + l, bTrim, "(")
 						Pos5 = Pos2
-						If Pos2 = 0 Then Pos2 = InStr(Pos1 + l, bTrim, " ")
+						Pos3 = InStr(Pos1 + l, bTrim, " ")
+						If Pos2 = 0 OrElse Pos3 < Pos2 Then Pos2 = Pos3
 						te = New_( TypeElement)
 						If Pos2 > 0 Then
 							te->Name = Trim(Mid(bTrim, Pos1 + l, Pos2 - Pos1 - l))

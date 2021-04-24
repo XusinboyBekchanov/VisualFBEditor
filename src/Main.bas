@@ -3104,7 +3104,7 @@ Sub LoadHelp
 	Dim As Integer Fn = FreeFile
 	WLet KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt"
 	Open *KeywordsHelpPath For Input As #Fn
-	Dim As TypeElement Ptr te
+	Dim As TypeElement Ptr te, te1
 	Dim As String Buff, StartBuff, bTrim
 	Dim As Boolean bStart, bStartEnd, bDescriptionEnd
 	Dim As Paragraph Parag
@@ -3196,7 +3196,7 @@ Sub LoadHelp
 					Pos1 = InStr(Buff, ".")
 					If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ".")
 					If Pos1 > 0 Then
-						Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
+						Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
 						bDescriptionEnd = True
 					End If
 					If Buff <> "" AndAlso te <> 0 Then
@@ -3214,8 +3214,18 @@ Sub LoadHelp
 			ElseIf Parag = parSeeAlso Then
 				If te <> 0 AndAlso EndsWith(te->Parameters, !"\r") Then te->Parameters = Left(te->Parameters, Len(te->Parameters) - 1)
 				If bDescriptionEnd = False Then
-					te->Comment &= " <a href=""" & *KeywordsHelpPath & "#" & Str(LineNumber) & "#" & ML("More details ...") & "#" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
+					te->Comment &= " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
 					bDescriptionEnd = True
+				End If
+				If te->Name = "Print" Then
+					te1 = New_( TypeElement)
+					te1->Name = "?"
+					te1->DisplayName = te->DisplayName
+					te1->ElementType = te->ElementType
+					te1->FileName = te->FileName
+					te1->Parameters = te->Parameters
+					te1->Comment = te->Comment
+					GlobalFunctions.Add te1->Name, te1
 				End If
 			End If
 			bStart = False
