@@ -1,22 +1,9 @@
-﻿#ifdef __FB_WIN32__
-	'#Compile -exx "Form1.rc"
-#else
-	'#Compile -exx
-#endif
-'#Region "Form" '...'
-	#include once "mff/Form.bi"
+﻿Type c
+	a As String
 	
-	Using My.Sys.Forms
-	
-	Type Form1 Extends Form
-		
-	End Type
-	
-	Dim Shared fForm1 As Form1
-	
-	#ifndef _NOT_AUTORUN_FORMS_
-		fForm1.Show
-		
-		App.Run
-	#endif
-'#End Region
+End Type
+
+Dim d As c Ptr = New c[100]
+d[1].a = "fdfd"
+?d[1].a
+Sleep

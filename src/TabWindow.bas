@@ -2912,10 +2912,10 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine), " _") Then Exit For
 		For i As Integer = IIf(j = iSelEndLine, iSelEndChar, Len(*sLine)) To 1 Step -1
 			ch = Mid(*sLine, i, 1)
-			If ch = ")" Then
+			If ch = ")" OrElse ch = "]" Then
 				iCount += 1
 				b = True
-			ElseIf b AndAlso ch = "(" Then
+			ElseIf CInt(b) AndAlso CInt(ch = "(" OrElse ch = "[") Then
 				iCount -= 1
 				If iCount = 0 Then b = False
 			ElseIf Not b Then
