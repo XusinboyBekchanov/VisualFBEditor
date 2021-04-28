@@ -1929,23 +1929,41 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 			If OldLine < .FLines.Count Then
 				Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .FLines.Items[OldLine])
 				If CInt(ecl->CommentIndex = 0) Then
-					If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg2(Trim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2), Any !"\t "))) Then
-						WLet(ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & " " & Right(RTrim(*ecl->Text), 1) & "= 1")
+					If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg(Asc(Mid(RTrim(*ecl->Text), Len(RTrim(*ecl->Text)) - 2, 1)))) Then
+						Dim As UString res(Any), b
+						Split(*ecl->Text, """", res())
+						For j As Integer = 0 To UBound(res)
+							If j = 0 Then
+								b = res(0)
+							ElseIf j Mod 2 = 0 Then
+								b &= """" & res(j)
+							Else
+								b &= """" & WSpace(Len(res(j)))
+							End If
+						Next
+						WLet(ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & Right(RTrim(*ecl->Text), 1) & "=1")
+						b &= "1"
 					End If
 					If ChangeKeyWordsCase Then
 						
 					End If
 					If AddSpacesToOperators Then
-'						For i As Integer = Len(*ecl->Text) To 1 Step -1
-'							If InStr("+-*/\<>,&=", Mid(*ecl->Text, i, 1)) Then
-'								If CInt(IsArg(Asc(Mid(*ecl->Text, i + 1, 1))) OrElse InStr("{[("")]}", Mid(*ecl->Text, i + 1, 1)) > 0) AndAlso CInt(Mid(*ecl->Text, i, 2) <> "&H") AndAlso CInt(Mid(*ecl->Text, i, 1) <> "-" OrElse InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) = 0) AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") Then
+						tb->AddSpaces OldLine, OldLine
+'						Dim As UString c, cn, cp
+'						For i As Integer = Len(b) To 1 Step -1
+'							c = Mid(b, i, 1)
+'							cn = Mid(b, i + 1, 1)
+'							cp = Mid(b, i - 1, 1)
+'							If InStr("+-*/\<>&=',:;", c) Then
+'								If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(Mid(*ecl->Text, i, 2) <> "&H" AndAlso CInt(c <> "'")) AndAlso CInt(c <> "-" OrElse InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(Left(*ecl->Text, i - 1)), 6)) <> "return") AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse CInt(InStr(",:;", c) > 0 AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") Then
 '									WLetEx ecl->Text, Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
 '								End If
-'								If CInt(CInt(IsArg(Asc(Mid(*ecl->Text, i - 1, 1))) OrElse InStr("{[("")]}", Mid(*ecl->Text, i + 1, 1)) > 0) AndAlso CInt(Mid(*ecl->Text, i, 1) <> ",") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->")) OrElse CInt(Mid(*ecl->Text, i, 1) = "-" AndAlso IsArg(Asc(Mid(*ecl->Text, i + 1, 1))) AndAlso InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) > 0) Then
+'								If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso CInt(c <> ";") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn))))) OrElse CInt(CInt(c = "-") AndAlso CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) > 0)) Then
 '									WLetEx ecl->Text, Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
 '								End If
 '							End If
 '						Next
+						WLetEx ecl->Text, RTrim(*ecl->Text, Any !"\t "), True
 					End If
 				End If
 			End If
@@ -5582,6 +5600,48 @@ End Sub
 
 Sub RunProgram(Param As Any Ptr)
 	RunPr
+End Sub
+
+Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	With txtCode
+		If StartLine = -1 Or EndLine = -1 Then
+			StartLine = 0
+			EndLine = .LinesCount - 1
+		End If
+		Dim As EditControlLine Ptr ecl
+		Dim As UString res(Any), b
+		Dim As UString c, cn, cp
+		For l As Integer = StartLine To EndLine
+			ecl = .FLines.Items[l]
+			If CInt(ecl->CommentIndex = 0) Then
+				Split(*ecl->Text, """", res())
+				For j As Integer = 0 To UBound(res)
+					If j = 0 Then
+						b = res(0)
+					ElseIf j Mod 2 = 0 Then
+						b &= """" & res(j)
+					Else
+						b &= """" & WSpace(Len(res(j)))
+					End If
+				Next
+				Dim As Integer Pos1 = InStr(b, "'")
+				If Pos1 > 0 Then b = Left(b, Pos1 - 1)
+				For i As Integer = Len(b) To 1 Step -1
+					c = Mid(b, i, 1)
+					cn = Mid(b, i + 1, 1)
+					cp = Mid(b, i - 1, 1)
+					If InStr("+-*/\<>&=',:;", c) Then
+						If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(LCase(Mid(*ecl->Text, i, 2)) <> "&h" AndAlso CInt(c <> "'")) AndAlso CInt(c <> "-" OrElse InStr("([{,;:+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(Left(*ecl->Text, i - 1)), 6)) <> "return" AndAlso LCase(Right(RTrim(Left(*ecl->Text, i - 1)), 4)) <> "step") AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse CInt(InStr(",:;", c) > 0 AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") Then
+							WLetEx ecl->Text, Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
+						End If
+						If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso CInt(c <> ";") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn))))) AndAlso CInt(CInt(c <> "-") OrElse CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) > 0) AndAlso CInt(InStr("({[", cp) = 0) OrElse CInt(IsArg(Asc(cp))) OrElse CInt(InStr(""")]}", cp) > 0)) Then
+							WLetEx ecl->Text, Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
+						End If
+					End If
+				Next
+			End If
+		Next l
+	End With
 End Sub
 
 Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False)

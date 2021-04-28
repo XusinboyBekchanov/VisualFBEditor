@@ -375,7 +375,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)
 		#endif
 	Case "Undo", "Redo", "Cut", "Copy", "Paste", "SelectAll", "SingleComment", "BlockComment", "UnComment", _
-		"Indent", "Outdent", "Format", "Unformat", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
+		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", _
 		"CompleteWord", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
 		If pfrmMain->ActiveControl = 0 Then Exit Sub
@@ -415,6 +415,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "Outdent":                 ec->Outdent
 				Case "Format":                  ec->FormatCode
 				Case "Unformat":                ec->UnformatCode
+				Case "AddSpaces":               tb->AddSpaces
 				Case "Breakpoint":
 					#ifndef __USE_GTK__
 						If InDebug Then: brk_set(1): End If

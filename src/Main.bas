@@ -3834,6 +3834,7 @@ Sub CreateMenusAndToolBars
 	miEdit->Add(ML("&Unformat") & HK("Unformat", "Ctrl+Shift+Tab"), "Unformat", "Unformat", @mclick)
 	miEdit->Add(ML("&Format Project") & HK("FormatProject"), "FormatProject", "FormatProject", @mclick)
 	miEdit->Add(ML("&Unformat Project") & HK("UnformatProject"), "UnformatProject", "UnformatProject", @mclick)
+	miEdit->Add(ML("Add &Spaces") & HK("AddSpaces"), "AddSpaces", "AddSpaces", @mclick)
 	miEdit->Add("-")
 	miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+J"), "", "CompleteWord", @mclick)
 	miEdit->Add("-")
