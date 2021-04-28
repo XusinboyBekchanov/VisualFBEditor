@@ -28,6 +28,7 @@ Common Shared As Integer TabAsSpaces
 Common Shared As KeyWordsCase ChoosedKeyWordsCase
 Common Shared As Integer ChoosedTabStyle
 Common Shared As Boolean ChangeKeyWordsCase
+Common Shared As Boolean AddSpacesToOperators
 Common Shared As WStringList Ptr pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
 
 Type ECColorScheme
@@ -37,7 +38,7 @@ Type ECColorScheme
 	As Boolean Bold, Italic, Underline
 End Type
 
-Common Shared As ECColorScheme Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Selection, SpaceIdentifiers, Strings
+Common Shared As ECColorScheme Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, Selection, SpaceIdentifiers, Strings
 Common Shared As Integer EditorFontSize
 Common Shared As WString Ptr EditorFontName
 Common Shared As WString Ptr CurrentTheme

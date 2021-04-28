@@ -397,16 +397,6 @@ Declare Sub RunPr(Debugger As String = "")
 
 Declare Sub RunProgram(Param As Any Ptr)
 
-Dim Shared symbols(0 To 15) As UByte
-
-Const plus  As UByte = 43
-Const minus As UByte = 45
-Const dot   As UByte = 46
-
-Declare Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
-
-Declare Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
-
 Declare Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
 Declare Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, ByVal iSelStart As Integer =-1, ByVal iSelLength As Integer =-1, tabw As TabWindow Ptr = 0, ByRef SearchText As WString = "")
 

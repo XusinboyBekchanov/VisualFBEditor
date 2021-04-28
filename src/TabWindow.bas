@@ -1935,6 +1935,18 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 					If ChangeKeyWordsCase Then
 						
 					End If
+					If AddSpacesToOperators Then
+'						For i As Integer = Len(*ecl->Text) To 1 Step -1
+'							If InStr("+-*/\<>,&=", Mid(*ecl->Text, i, 1)) Then
+'								If CInt(IsArg(Asc(Mid(*ecl->Text, i + 1, 1))) OrElse InStr("{[("")]}", Mid(*ecl->Text, i + 1, 1)) > 0) AndAlso CInt(Mid(*ecl->Text, i, 2) <> "&H") AndAlso CInt(Mid(*ecl->Text, i, 1) <> "-" OrElse InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) = 0) AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") Then
+'									WLetEx ecl->Text, Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
+'								End If
+'								If CInt(CInt(IsArg(Asc(Mid(*ecl->Text, i - 1, 1))) OrElse InStr("{[("")]}", Mid(*ecl->Text, i + 1, 1)) > 0) AndAlso CInt(Mid(*ecl->Text, i, 1) <> ",") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->")) OrElse CInt(Mid(*ecl->Text, i, 1) = "-" AndAlso IsArg(Asc(Mid(*ecl->Text, i + 1, 1))) AndAlso InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) > 0) Then
+'									WLetEx ecl->Text, Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
+'								End If
+'							End If
+'						Next
+					End If
 				End If
 			End If
 			tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or Not EndsWith(tb->cboFunction.Text, " [Constructor]")
@@ -5571,93 +5583,6 @@ End Sub
 Sub RunProgram(Param As Any Ptr)
 	RunPr
 End Sub
-
-For i As Integer = 48 To 57
-	symbols(i - 48) = i
-Next
-For i As Integer = 97 To 102
-	symbols(i - 87) = i
-Next
-
-Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
-	If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
-	Err = 0
-	
-	If base_ < 2 OrElse base_ > 16 Then
-		Err = 1000
-		Return False
-	End If
-	
-	Dim t As String = LCase(subject)
-	
-	If (t[0] = plus) OrElse (t[0] = minus) Then
-		t = Mid(t, 2)
-	End If
-	
-	If Left(t, 2) = "&h" Then
-		If base_ <> 16 Then Return False
-		t = Mid(t, 3)
-	End If
-	
-	If Left(t, 2) = "&o" Then
-		If base_ <> 8 Then Return False
-		t = Mid(t, 3)
-	End If
-	
-	If Left(t, 2) = "&b" Then
-		If base_ <> 2 Then Return False
-		t = Mid(t, 3)
-	End If
-	
-	If Len(t) = 0 Then Return False
-	Dim As Boolean isValid, hasDot = False
-	
-	For i As Integer = 0 To Len(t) - 1
-		isValid = False
-		
-		For j As Integer = 0 To base_ - 1
-			If t[i] = symbols(j) Then
-				isValid = True
-				Exit For
-			End If
-			If t[i] = dot Then
-				If CInt(Not hasDot) AndAlso (base_ = 10) Then
-					hasDot = True
-					IsValid = True
-					Exit For
-				End If
-				Return False ' either more than one dot or not base 10
-			End If
-		Next j
-		
-		If Not isValid Then Return False
-	Next i
-	
-	Return True
-End Function
-
-Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
-	Type mstring
-		p As WString Ptr ' pointer to wstring buffer
-		l As UInteger ' length of string
-	End Type
-	Dim a As UInteger = 0
-	Dim tal As UInteger = UBound(ta)
-	Dim ms As mstring
-	
-	'this is never deallocated..
-	ms.p = Allocate_( 0.25 * (tal + 1) * Len(WString))
-	
-	' iterate array
-	Do While a <= tal
-		(*ms.p)[ms.l] = 256 * ta(a) + ta(a + 1)
-		a += 2
-		ms.l += 1
-	Loop
-	
-	(*ms.p)[ms.l] = 0
-	Function = *ms.p
-End Function
 
 Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)

@@ -334,7 +334,7 @@ pfOptions = @fOptions
 		' chkTabAsSpaces
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
 		chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
-		chkTabAsSpaces.SetBounds 10, 155, 264, 18
+		chkTabAsSpaces.SetBounds 10, 175, 264, 18
 		chkTabAsSpaces.Parent = @pnlCodeEditor
 		' chkAutoIndentation
 		chkAutoIndentation.Name = "chkAutoIndentation"
@@ -344,12 +344,12 @@ pfOptions = @fOptions
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
 		lblTabSize.Text = ML("Tab Size") & ":"
-		lblTabSize.SetBounds 66, 203, 138, 16
+		lblTabSize.SetBounds 66, 223, 138, 16
 		lblTabSize.Parent = @pnlCodeEditor
 		' txtTabSize
 		txtTabSize.Name = "txtTabSize"
 		txtTabSize.Text = ""
-		txtTabSize.SetBounds 209, 201, 90, 20
+		txtTabSize.SetBounds 209, 221, 90, 20
 		txtTabSize.Parent = @pnlCodeEditor
 		' chkShowSpaces
 		chkShowSpaces.Name = "chkShowSpaces"
@@ -410,11 +410,11 @@ pfOptions = @fOptions
 		' lblHistoryLimit
 		lblHistoryLimit.Name = "lblHistoryLimit"
 		lblHistoryLimit.Text = ML("History limit") & ":"
-		lblHistoryLimit.SetBounds 66, 226, 150, 17
+		lblHistoryLimit.SetBounds 66, 246, 150, 17
 		lblHistoryLimit.Parent = @pnlCodeEditor
 		' txtHistoryLimit
 		txtHistoryLimit.Name = "txtHistoryLimit"
-		txtHistoryLimit.SetBounds 209, 224, 90, 20
+		txtHistoryLimit.SetBounds 209, 244, 90, 20
 		txtHistoryLimit.Text = ""
 		txtHistoryLimit.Parent = @pnlCodeEditor
 		' grbGrid
@@ -445,17 +445,17 @@ pfOptions = @fOptions
 		' cboCase
 		cboCase.Name = "cboCase"
 		cboCase.Text = "ComboBoxEdit2"
-		cboCase.SetBounds 209, 177, 162, 21
+		cboCase.SetBounds 209, 197, 162, 21
 		cboCase.Parent = @pnlCodeEditor
 		' chkChangeKeywordsCase
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
 		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
-		chkChangeKeywordsCase.SetBounds 10, 178, 194, 18
+		chkChangeKeywordsCase.SetBounds 10, 198, 194, 18
 		chkChangeKeywordsCase.Parent = @pnlCodeEditor
 		' cboTabStyle
 		cboTabStyle.Name = "cboTabStyle"
 		cboTabStyle.Text = "cboCase1"
-		cboTabStyle.SetBounds 209, 153, 162, 21
+		cboTabStyle.SetBounds 209, 173, 162, 21
 		cboTabStyle.Parent = @pnlCodeEditor
 		' grbColors
 		grbColors.Name = "grbColors"
@@ -1174,6 +1174,15 @@ pfOptions = @fOptions
 			.Caption = ML("Show Keywords Tooltip")
 			.Parent = @pnlCodeEditor
 		End With
+		' chkAddSpacesToOperators
+		With chkAddSpacesToOperators
+			.Name = "chkAddSpacesToOperators"
+			.Text = ML("Add Spaces To Operators")
+			.TabIndex = 171
+			.SetBounds 10, 153, 194, 18
+			.Caption = ML("Add Spaces To Operators")
+			.Parent = @pnlCodeEditor
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1219,6 +1228,7 @@ Sub frmOptions.LoadSettings()
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
 		.chkChangeKeywordsCase.Checked = ChangeKeywordsCase
+		.chkAddSpacesToOperators.Checked = AddSpacesToOperators
 		.chkUseMakeOnStartWithCompile.Checked = UseMakeOnStartWithCompile
 		.chkLimitDebug.Checked = LimitDebug
 		.txtTabSize.Text = Str(TabWidth)
@@ -1434,6 +1444,7 @@ Sub frmOptions.LoadSettings()
 '		.Colors(6, 3) = ExecutionLine.Indicator
 		AddColors FoldLines, , False, False, False, False, False, False
 '		.Colors(7, 0) = FoldLines.Foreground
+		AddColors Identifiers, , , , False
 		AddColors IndicatorLines, , False, False, False, False, False, False
 '		.Colors(8, 0) = IndicatorLines.Foreground
 		For k As Integer = 0 To UBound(Keywords)
@@ -1465,6 +1476,7 @@ Sub frmOptions.LoadSettings()
 '		.Colors(12, 4) = Preprocessors.Bold
 '		.Colors(12, 5) = Preprocessors.Italic
 '		.Colors(12, 6) = Preprocessors.Underline
+		AddColors Numbers, , , , False
 		AddColors Selection, , , , False, False, False, False
 '		.Colors(13, 0) = Selection.Foreground
 '		.Colors(13, 1) = Selection.Background
@@ -1568,12 +1580,14 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Current Word")
 		.lstColorKeys.AddItem ML("Executed Line")
 		.lstColorKeys.AddItem ML("Fold Lines")
+		.lstColorKeys.AddItem ML("Identifiers")
 		.lstColorKeys.AddItem ML("Indicator Lines")
 		For k As Integer = 0 To KeywordLists.Count - 1
 			.lstColorKeys.AddItem ML("Keywords") & ": " & KeywordLists.Item(k)
 		Next k
 		.lstColorKeys.AddItem ML("Line Numbers")
 		.lstColorKeys.AddItem ML("Normal Text")
+		.lstColorKeys.AddItem ML("Numbers")
 '		.lstColorKeys.AddItem ML("Preprocessors")
 		.lstColorKeys.AddItem ML("Selection")
 		.lstColorKeys.AddItem ML("Space Identifiers")
@@ -1582,7 +1596,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		For i As Integer = 0 To pfrmMain->Menu->Count - 1
 			AddShortcuts(pfrmMain->Menu->Item(i))
 		Next
-		ReDim .Colors(14 + KeywordLists.Count - 1, 7)
+		ReDim .Colors(16 + KeywordLists.Count - 1, 7)
 		.LoadSettings
 	End With
 End Sub
@@ -1651,6 +1665,7 @@ Sub SetColors
 '		ExecutionLine.IndicatorOption = .Colors(6, 3)
 		SetColor FoldLines
 '		FoldLines.ForegroundOption = .Colors(7, 0)
+		SetColor Identifiers
 		SetColor IndicatorLines
 '		IndicatorLines.ForegroundOption = .Colors(8, 0)
 		For k As Integer = 0 To UBound(Keywords)
@@ -1669,6 +1684,7 @@ Sub SetColors
 '		LineNumbers.Italic = .Colors(10, 5)
 '		LineNumbers.Underline = .Colors(10, 6)
 		SetColor NormalText
+		SetColor Numbers
 '		NormalText.ForegroundOption = .Colors(11, 0)
 '		NormalText.BackgroundOption = .Colors(11, 1)
 '		NormalText.FrameOption = .Colors(11, 2)
@@ -1851,6 +1867,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		SnapToGridOption = .chkSnapToGrid.Checked
 		ChangeKeywordsCase = .chkChangeKeywordsCase.Checked
 		ChoosedKeywordsCase = .cboCase.ItemIndex
+		AddSpacesToOperators = .chkAddSpacesToOperators.Checked
 		WLet(CurrentTheme, .cboTheme.Text)
 		WLet(EditorFontName, *.EditFontName)
 		EditorFontSize = .EditFontSize
@@ -2000,6 +2017,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "CreateNonStaticEventHandlers", CreateNonStaticEventHandlers
 		piniSettings->WriteBool "Options", "ChangeKeywordsCase", ChangeKeywordsCase
 		piniSettings->WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeywordsCase
+		piniSettings->WriteBool "Options", "AddSpacesToOperators", AddSpacesToOperators
 		
 		piniSettings->WriteString "Options", "CurrentTheme", *CurrentTheme
 		
@@ -2054,6 +2072,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("Colors", "ExecutionLineFrame", ExecutionLine.FrameOption)
 		piniTheme->WriteInteger("Colors", "ExecutionLineIndicator", ExecutionLine.IndicatorOption)
 		piniTheme->WriteInteger("Colors", "FoldLinesForeground", FoldLines.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "IdentifiersForeground", Identifiers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "IdentifiersBackground", Identifiers.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "IdentifiersFrame", Identifiers.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "IdentifiersBold", Identifiers.Bold)
+		piniTheme->WriteInteger("FontStyles", "IdentifiersItalic", Identifiers.Italic)
+		piniTheme->WriteInteger("FontStyles", "IdentifiersUnderline", Identifiers.Underline)
 		piniTheme->WriteInteger("Colors", "IndicatorLinesForeground", IndicatorLines.ForegroundOption)
 		For k As Integer = 0 To UBound(Keywords)
 			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", Keywords(k).ForegroundOption)
@@ -2080,7 +2104,13 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 '		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
 '		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
 '		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
-		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "NumbersForeground", Numbers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "NumbersBackground", Numbers.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "NumbersFrame", Numbers.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "NumbersBold", Numbers.Bold)
+		piniTheme->WriteInteger("FontStyles", "NumbersItalic", Numbers.Italic)
+		piniTheme->WriteInteger("FontStyles", "NumbersUnderline", Numbers.Underline)
+'		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "SelectionBackground", Selection.BackgroundOption)
 		piniTheme->WriteInteger("Colors", "SelectionFrame", Selection.FrameOption)
 		piniTheme->WriteInteger("Colors", "SpaceIdentifiersForeground", SpaceIdentifiers.ForegroundOption)
@@ -2299,44 +2329,56 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 		.Colors(6, 2) = piniTheme->ReadInteger("Colors", "ExecutionLineFrame", -1)
 		.Colors(6, 3) = piniTheme->ReadInteger("Colors", "ExecutionLineIndicator", -1)
 		.Colors(7, 0) = piniTheme->ReadInteger("Colors", "FoldLinesForeground", -1)
-		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "IndicatorLinesForeground", -1)
+		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "IdentifiersForeground", piniTheme->ReadInteger("Colors", "NormalTextForeground", -1))
+		.Colors(8, 1) = piniTheme->ReadInteger("Colors", "IdentifiersBackground", piniTheme->ReadInteger("Colors", "NormalTextBackground", -1))
+		.Colors(8, 2) = piniTheme->ReadInteger("Colors", "IdentifiersFrame", piniTheme->ReadInteger("Colors", "NormalTextFrame", -1))
+		.Colors(8, 4) = piniTheme->ReadInteger("FontStyles", "IdentifiersBold", piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0))
+		.Colors(8, 5) = piniTheme->ReadInteger("FontStyles", "IdentifiersItalic", piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0))
+		.Colors(8, 6) = piniTheme->ReadInteger("FontStyles", "IdentifiersUnderline", piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0))
+		.Colors(9, 0) = piniTheme->ReadInteger("Colors", "IndicatorLinesForeground", -1)
 		Dim As Integer k
 		For k = 0 To UBound(Keywords)
-			.Colors(9 + k, 0) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", piniTheme->ReadInteger("Colors", "KeywordsForeground", -1))
-			.Colors(9 + k, 1) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", piniTheme->ReadInteger("Colors", "KeywordsBackground", -1))
-			.Colors(9 + k, 2) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", piniTheme->ReadInteger("Colors", "KeywordsFrame", -1))
-			.Colors(9 + k, 4) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", piniTheme->ReadInteger("Colors", "KeywordsBold", 0))
-			.Colors(9 + k, 5) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", piniTheme->ReadInteger("Colors", "KeywordsItalic", 0))
-			.Colors(9 + k, 6) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", piniTheme->ReadInteger("Colors", "KeywordsUnderline", 0))
+			.Colors(10 + k, 0) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", piniTheme->ReadInteger("Colors", "KeywordsForeground", -1))
+			.Colors(10 + k, 1) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", piniTheme->ReadInteger("Colors", "KeywordsBackground", -1))
+			.Colors(10 + k, 2) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", piniTheme->ReadInteger("Colors", "KeywordsFrame", -1))
+			.Colors(10 + k, 4) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", piniTheme->ReadInteger("Colors", "KeywordsBold", 0))
+			.Colors(10 + k, 5) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", piniTheme->ReadInteger("Colors", "KeywordsItalic", 0))
+			.Colors(10 + k, 6) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", piniTheme->ReadInteger("Colors", "KeywordsUnderline", 0))
 		Next k
 		k = UBound(Keywords)
-		.Colors(10 + k, 0) = piniTheme->ReadInteger("Colors", "LineNumbersForeground", -1)
-		.Colors(10 + k, 1) = piniTheme->ReadInteger("Colors", "LineNumbersBackground", -1)
-		.Colors(10 + k, 4) = piniTheme->ReadInteger("FontStyles", "LineNumbersBold", 0)
-		.Colors(10 + k, 5) = piniTheme->ReadInteger("FontStyles", "LineNumbersItalic", 0)
-		.Colors(10 + k, 6) = piniTheme->ReadInteger("FontStyles", "LineNumbersUnderline", 0)
-		.Colors(11 + k, 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", -1)
-		.Colors(11 + k, 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", -1)
-		.Colors(11 + k, 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", -1)
-		.Colors(11 + k, 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
-		.Colors(11 + k, 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
-		.Colors(11 + k, 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
+		.Colors(11 + k, 0) = piniTheme->ReadInteger("Colors", "LineNumbersForeground", -1)
+		.Colors(11 + k, 1) = piniTheme->ReadInteger("Colors", "LineNumbersBackground", -1)
+		.Colors(11 + k, 4) = piniTheme->ReadInteger("FontStyles", "LineNumbersBold", 0)
+		.Colors(11 + k, 5) = piniTheme->ReadInteger("FontStyles", "LineNumbersItalic", 0)
+		.Colors(11 + k, 6) = piniTheme->ReadInteger("FontStyles", "LineNumbersUnderline", 0)
+		.Colors(12 + k, 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", -1)
+		.Colors(12 + k, 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", -1)
+		.Colors(12 + k, 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", -1)
+		.Colors(12 + k, 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
+		.Colors(12 + k, 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
+		.Colors(12 + k, 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
 '		.Colors(12 + k, 0) = piniTheme->ReadInteger("Colors", "PreprocessorsForeground", -1)
 '		.Colors(12 + k, 1) = piniTheme->ReadInteger("Colors", "PreprocessorsBackground", -1)
 '		.Colors(12 + k, 2) = piniTheme->ReadInteger("Colors", "PreprocessorsFrame", -1)
 '		.Colors(12 + k, 4) = piniTheme->ReadInteger("FontStyles", "PreprocessorsBold", 0)
 '		.Colors(12 + k, 5) = piniTheme->ReadInteger("FontStyles", "PreprocessorsItalic", 0)
 '		.Colors(12 + k, 6) = piniTheme->ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
-		.Colors(12 + k, 0) = piniTheme->ReadInteger("Colors", "SelectionForeground", -1)
-		.Colors(12 + k, 1) = piniTheme->ReadInteger("Colors", "SelectionBackground", -1)
-		.Colors(12 + k, 2) = piniTheme->ReadInteger("Colors", "SelectionFrame", -1)
-		.Colors(13 + k, 0) = piniTheme->ReadInteger("Colors", "SpaceIdentifiersForeground", -1)
-		.Colors(14 + k, 0) = piniTheme->ReadInteger("Colors", "StringsForeground", -1)
-		.Colors(14 + k, 1) = piniTheme->ReadInteger("Colors", "StringsBackground", -1)
-		.Colors(14 + k, 2) = piniTheme->ReadInteger("Colors", "StringsFrame", -1)
-		.Colors(14 + k, 4) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
-		.Colors(14 + k, 5) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
-		.Colors(14 + k, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
+		.Colors(13 + k, 0) = piniTheme->ReadInteger("Colors", "NumbersForeground", piniTheme->ReadInteger("Colors", "NormalTextForeground", -1))
+		.Colors(13 + k, 1) = piniTheme->ReadInteger("Colors", "NumbersBackground", piniTheme->ReadInteger("Colors", "NormalTextBackground", -1))
+		.Colors(13 + k, 2) = piniTheme->ReadInteger("Colors", "NumbersFrame", piniTheme->ReadInteger("Colors", "NormalTextFrame", -1))
+		.Colors(13 + k, 4) = piniTheme->ReadInteger("FontStyles", "NumbersBold", piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0))
+		.Colors(13 + k, 5) = piniTheme->ReadInteger("FontStyles", "NumbersItalic", piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0))
+		.Colors(13 + k, 6) = piniTheme->ReadInteger("FontStyles", "NumbersUnderline", piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0))
+		.Colors(14 + k, 0) = piniTheme->ReadInteger("Colors", "SelectionForeground", -1)
+		.Colors(14 + k, 1) = piniTheme->ReadInteger("Colors", "SelectionBackground", -1)
+		.Colors(14 + k, 2) = piniTheme->ReadInteger("Colors", "SelectionFrame", -1)
+		.Colors(15 + k, 0) = piniTheme->ReadInteger("Colors", "SpaceIdentifiersForeground", -1)
+		.Colors(16 + k, 0) = piniTheme->ReadInteger("Colors", "StringsForeground", -1)
+		.Colors(16 + k, 1) = piniTheme->ReadInteger("Colors", "StringsBackground", -1)
+		.Colors(16 + k, 2) = piniTheme->ReadInteger("Colors", "StringsFrame", -1)
+		.Colors(16 + k, 4) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
+		.Colors(16 + k, 5) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
+		.Colors(16 + k, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
 		.lstColorKeys_Change(.lstColorKeys)
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then

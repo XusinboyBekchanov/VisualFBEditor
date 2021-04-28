@@ -1896,7 +1896,7 @@ Namespace My.Sys.Forms
 									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
 										'If j < This.Width / dwCharX Then
 										Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
-										sc = @NormalText
+										sc = @Identifiers
 										'ss = NormalText.Background
 										If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
 										If r <> 46 AndAlso r <> 62 Then ' . > THEN
@@ -1934,6 +1934,12 @@ Namespace My.Sys.Forms
 													If Keyword <> Matn Then
 														'ChangeCase = True
 														Mid(*s, MatnBoshi, j - MatnBoshi + 1) = Keyword
+													End If
+												ElseIf pkeywords = 0 Then
+													If IsNumeric(Matn) Then
+														sc = @Numbers
+													Else
+														sc = @Identifiers
 													End If
 												End If
 											End If

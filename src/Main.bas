@@ -3454,6 +3454,7 @@ Sub LoadSettings
 	HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
 	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
 	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
+	AddSpacesToOperators = iniSettings.ReadBool("Options", "AddSpacesToOperators", True)
 	WLet(CurrentTheme, iniSettings.ReadString("Options", "CurrentTheme", "Default Theme"))
 	WLet(EditorFontName, iniSettings.ReadString("Options", "EditorFontName", "Courier New"))
 	EditorFontSize = iniSettings.ReadInteger("Options", "EditorFontSize", 10)
@@ -3523,6 +3524,12 @@ Sub LoadSettings
 	ExecutionLine.FrameOption = iniTheme.ReadInteger("Colors", "ExecutionLineFrame", -1)
 	ExecutionLine.IndicatorOption = iniTheme.ReadInteger("Colors", "ExecutionLineIndicator", -1)
 	FoldLines.ForegroundOption = iniTheme.ReadInteger("Colors", "FoldLinesForeground", -1)
+	Identifiers.ForegroundOption = iniTheme.ReadInteger("Colors", "IdentifiersForeground", iniTheme.ReadInteger("Colors", "NormalTextForeground", -1))
+	Identifiers.BackgroundOption = iniTheme.ReadInteger("Colors", "IdentifiersBackground", iniTheme.ReadInteger("Colors", "NormalTextBackground", -1))
+	Identifiers.FrameOption = iniTheme.ReadInteger("Colors", "IdentifiersFrame", iniTheme.ReadInteger("Colors", "NormalTextFrame", -1))
+	Identifiers.Bold = iniTheme.ReadInteger("FontStyles", "IdentifiersBold", iniTheme.ReadInteger("FontStyles", "NormalTextBold", 0))
+	Identifiers.Italic = iniTheme.ReadInteger("FontStyles", "IdentifiersItalic", iniTheme.ReadInteger("FontStyles", "NormalTextItalic", 0))
+	Identifiers.Underline = iniTheme.ReadInteger("FontStyles", "IdentifiersUnderline", iniTheme.ReadInteger("FontStyles", "NormalTextUnderline", 0))
 	IndicatorLines.ForegroundOption = iniTheme.ReadInteger("Colors", "IndicatorLinesForeground", -1)
 	For k As Integer = 0 To UBound(Keywords)
 		Keywords(k).ForegroundOption = iniTheme.ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", iniTheme.ReadInteger("Colors", "KeywordsForeground", -1))
@@ -3543,6 +3550,12 @@ Sub LoadSettings
 	NormalText.Bold = iniTheme.ReadInteger("FontStyles", "NormalTextBold", 0)
 	NormalText.Italic = iniTheme.ReadInteger("FontStyles", "NormalTextItalic", 0)
 	NormalText.Underline = iniTheme.ReadInteger("FontStyles", "NormalTextUnderline", 0)
+	Numbers.ForegroundOption = iniTheme.ReadInteger("Colors", "NumbersForeground", iniTheme.ReadInteger("Colors", "NormalTextForeground", -1))
+	Numbers.BackgroundOption = iniTheme.ReadInteger("Colors", "NumbersBackground", iniTheme.ReadInteger("Colors", "NormalTextBackground", -1))
+	Numbers.FrameOption = iniTheme.ReadInteger("Colors", "NumbersFrame", iniTheme.ReadInteger("Colors", "NormalTextFrame", -1))
+	Numbers.Bold = iniTheme.ReadInteger("FontStyles", "NumbersBold", iniTheme.ReadInteger("FontStyles", "NormalTextBold", 0))
+	Numbers.Italic = iniTheme.ReadInteger("FontStyles", "NumbersItalic", iniTheme.ReadInteger("FontStyles", "NormalTextItalic", 0))
+	Numbers.Underline = iniTheme.ReadInteger("FontStyles", "NumbersUnderline", iniTheme.ReadInteger("FontStyles", "NormalTextUnderline", 0))
 '	Preprocessors.ForegroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsForeground", -1)
 '	Preprocessors.BackgroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsBackground", -1)
 '	Preprocessors.FrameOption = iniTheme.ReadInteger("Colors", "PreprocessorsFrame", -1)
@@ -5791,12 +5804,14 @@ Sub SetAutoColors
 	GetColors CurrentWord, , clBtnFace
 	GetColors ExecutionLine, clBlack, clYellow, , clYellow
 	GetColors FoldLines, clBtnShadow
+	GetColors Identifiers, clBlack, clWhite
 	GetColors IndicatorLines, clBlack
 	For k As Integer = 0 To UBound(Keywords)
 		GetColors Keywords(k), clBlue
 	Next k
 	GetColors LineNumbers, clBlack, clBtnFace
 	GetColors NormalText, clBlack, clWhite
+	GetColors Numbers, clBlack, clWhite
 	'GetColors Preprocessors, clPurple
 	GetColors Selection, clHighlightText, clHighlight
 	GetColors SpaceIdentifiers, clLtGray
@@ -5900,6 +5915,93 @@ Sub CheckCompilerPaths
 		End If
 	End If
 End Sub
+
+For i As Integer = 48 To 57
+	symbols(i - 48) = i
+Next
+For i As Integer = 97 To 102
+	symbols(i - 87) = i
+Next
+
+Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
+	If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
+	Err = 0
+	
+	If base_ < 2 OrElse base_ > 16 Then
+		Err = 1000
+		Return False
+	End If
+	
+	Dim t As String = LCase(subject)
+	
+	If (t[0] = plus) OrElse (t[0] = minus) Then
+		t = Mid(t, 2)
+	End If
+	
+	If Left(t, 2) = "&h" Then
+		If base_ <> 16 Then Return False
+		t = Mid(t, 3)
+	End If
+	
+	If Left(t, 2) = "&o" Then
+		If base_ <> 8 Then Return False
+		t = Mid(t, 3)
+	End If
+	
+	If Left(t, 2) = "&b" Then
+		If base_ <> 2 Then Return False
+		t = Mid(t, 3)
+	End If
+	
+	If Len(t) = 0 Then Return False
+	Dim As Boolean isValid, hasDot = False
+	
+	For i As Integer = 0 To Len(t) - 1
+		isValid = False
+		
+		For j As Integer = 0 To base_ - 1
+			If t[i] = symbols(j) Then
+				isValid = True
+				Exit For
+			End If
+			If t[i] = dot Then
+				If CInt(Not hasDot) AndAlso (base_ = 10) Then
+					hasDot = True
+					IsValid = True
+					Exit For
+				End If
+				Return False ' either more than one dot or not base 10
+			End If
+		Next j
+		
+		If Not isValid Then Return False
+	Next i
+	
+	Return True
+End Function
+
+Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
+	Type mstring
+		p As WString Ptr ' pointer to wstring buffer
+		l As UInteger ' length of string
+	End Type
+	Dim a As UInteger = 0
+	Dim tal As UInteger = UBound(ta)
+	Dim ms As mstring
+	
+	'this is never deallocated..
+	ms.p = Allocate_( 0.25 * (tal + 1) * Len(WString))
+	
+	' iterate array
+	Do While a <= tal
+		(*ms.p)[ms.l] = 256 * ta(a) + ta(a + 1)
+		a += 2
+		ms.l += 1
+	Loop
+	
+	(*ms.p)[ms.l] = 0
+	Function = *ms.p
+End Function
 
 Sub frmMain_Show(ByRef Sender As Control)
 	#ifdef __USE_GTK__
