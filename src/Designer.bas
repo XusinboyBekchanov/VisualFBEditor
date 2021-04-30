@@ -2087,7 +2087,7 @@ Namespace My.Sys.Forms
 								End If
 							End With
 						Next i
-						If QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
+						If CurRect <> 0 AndAlso .Ctrls(CurRect) <> 0 AndAlso QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
 							CurRect = 0
 						ElseIf .ActiveRect <> 0 Then
 							.ActiveRect = 0
@@ -2132,7 +2132,7 @@ Namespace My.Sys.Forms
 								End If
 							End With
 						Next i
-						If QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
+						If CurRect <> 0 AndALso .Ctrls(CurRect) <> 0 AndAlso QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
 							CurRect = 0
 							.ActiveRect = 0
 							.MouseRect = 0
