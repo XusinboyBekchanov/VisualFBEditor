@@ -87,7 +87,11 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 				.Brush.Color = BGR(174, 215, 247)
 				.Rectangle Rects(RectsCount)
 			End If
-			.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+			If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+				.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
+			Else
+				.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+			End If
 		Next i
 		RectsCount += 1
 		ReDim Preserve Ctrls(RectsCount)

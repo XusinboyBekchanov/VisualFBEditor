@@ -1479,7 +1479,11 @@ Namespace My.Sys.Forms
 					End If
 					SetBKMode(FHdc, TRANSPARENT)
 					SetTextColor(FHdc, BGR(0, 0, 0))
-					.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+					If QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+						.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, @"|", 1)
+					Else
+						.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+					End If
 					SetBKMode(FHdc, OPAQUE)
 					'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
 				Next i
@@ -2083,7 +2087,9 @@ Namespace My.Sys.Forms
 								End If
 							End With
 						Next i
-						If .ActiveRect <> 0 Then
+						If QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
+							CurRect = 0
+						ElseIf .ActiveRect <> 0 Then
 							.ActiveRect = 0
 							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
 							UpdateWindow hDlg
@@ -2126,7 +2132,13 @@ Namespace My.Sys.Forms
 								End If
 							End With
 						Next i
-						If .ActiveRect <> 0 AndAlso CurRect <> 0 AndAlso CurRect <> .ActiveRect AndAlso .Ctrls(CurRect) <> 0 Then
+						If QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
+							CurRect = 0
+							.ActiveRect = 0
+							.MouseRect = 0
+							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+							UpdateWindow hDlg
+						ElseIf .ActiveRect <> 0 AndAlso CurRect <> 0 AndAlso CurRect <> .ActiveRect AndAlso .Ctrls(CurRect) <> 0 Then
 							Dim As HMENU Ptr pHandle = Cast(HMENU Ptr, .ReadPropertyFunc(.Ctrls(CurRect), "Handle"))
 							.ActiveRect = CurRect
 							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
