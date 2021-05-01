@@ -2257,6 +2257,10 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfMenuEditor->Des = @Sender
 		pfMenuEditor->CurrentMenu = Ctrl
 		pfMenuEditor->Show *pfrmMain
+	Case "ToolBar"
+		pfMenuEditor->Des = @Sender
+		pfMenuEditor->CurrentMenu = Ctrl
+		pfMenuEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
 			FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, tb->cboFunction.Items.Item(1)->Text

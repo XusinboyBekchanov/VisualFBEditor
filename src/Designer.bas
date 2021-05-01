@@ -67,6 +67,8 @@ Namespace My.Sys.Forms
 		Select Case QWString(ReadPropertyFunc(SelectedControl, "ClassName"))
 		Case "MainMenu", "PopupMenu"
 			mnuDesigner.Item(0)->Caption = ML("Menu Editor")
+		Case "ToolBar"
+			mnuDesigner.Item(0)->Caption = ML("ToolBar Editor")
 		Case Else
 			mnuDesigner.Item(0)->Caption = ML("Default event")
 		End Select
@@ -2132,7 +2134,7 @@ Namespace My.Sys.Forms
 								End If
 							End With
 						Next i
-						If CurRect <> 0 AndALso .Ctrls(CurRect) <> 0 AndAlso QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
+						If CurRect <> 0 AndAlso .Ctrls(CurRect) <> 0 AndAlso QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
 							CurRect = 0
 							.ActiveRect = 0
 							.MouseRect = 0
@@ -2248,6 +2250,19 @@ Namespace My.Sys.Forms
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseUp(P.X, P.Y, wParam And &HFFFF )
+						Return 0
+					#endif
+					#ifndef __USE_GTK__
+					Case WM_RBUTTONUP
+						'if .FSelControl <> .FDialog then
+						Dim As Point P
+						P.x = LoWord(lParam)
+						P.y = HiWord(lParam)
+						ClientToScreen(hDlg, @P)
+						'mnuDesigner.Popup(P.x, P.y)
+						.ChangeFirstMenuItem
+						TrackPopupMenu(mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
+						'end if
 						Return 0
 					#endif
 					#ifdef __USE_GTK__

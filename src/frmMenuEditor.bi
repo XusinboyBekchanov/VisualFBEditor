@@ -28,6 +28,7 @@
 		Dim As Picture picActive
 		Dim As TextBox txtActive
 		Dim CurrentMenu As Any Ptr
+		Dim CurrentToolBar As Any Ptr
 		Dim Des As My.Sys.Forms.Designer Ptr
 		Dim Rects(Any) As Rect
 		Dim Ctrls(Any) As Any Ptr
