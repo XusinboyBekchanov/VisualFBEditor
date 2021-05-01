@@ -64,74 +64,89 @@ End Sub
 Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
 	RectsCount = 0
 	Dim i As Integer
+	Dim As Boolean IsPopup
 	With Canvas
-		.Pen.Color = BGR(255, 255, 255)
-		.Brush.Color = BGR(255, 255, 255)
-		.Rectangle 0, .TextHeight("A") + 9, Canvas.Width, Canvas.Height
-		For i = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) - 1
+		If CurrentMenu <> 0 AndAlso QWString(Des->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
+		If Not IsPopup Then
+			.Pen.Color = BGR(255, 255, 255)
+			.Brush.Color = BGR(255, 255, 255)
+			.Rectangle 0, .TextHeight("A") + 9, Canvas.Width, Canvas.Height
+			For i = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) - 1
+				RectsCount += 1
+				ReDim Preserve Ctrls(RectsCount)
+				ReDim Preserve Rects(RectsCount)
+				ReDim Preserve Parents(RectsCount)
+				Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
+				If RectsCount = 1 Then
+					Rects(RectsCount).Left = 1
+				Else
+					Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
+				End If
+				Rects(RectsCount).Top = 1
+				Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
+				Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
+				If RectsCount = ActiveRect Then
+					.Pen.Color = BGR(0, 120, 215)
+					.Brush.Color = BGR(174, 215, 247)
+					.Rectangle Rects(RectsCount)
+				End If
+				If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+					.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
+				Else
+					.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+				End If
+			Next i
 			RectsCount += 1
 			ReDim Preserve Ctrls(RectsCount)
 			ReDim Preserve Rects(RectsCount)
 			ReDim Preserve Parents(RectsCount)
-			Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
 			If RectsCount = 1 Then
 				Rects(RectsCount).Left = 1
 			Else
 				Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
 			End If
 			Rects(RectsCount).Top = 1
-			Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
-			Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
 			If RectsCount = ActiveRect Then
 				.Pen.Color = BGR(0, 120, 215)
 				.Brush.Color = BGR(174, 215, 247)
-				.Rectangle Rects(RectsCount)
-			End If
-			If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-				.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
 			Else
-				.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+				.Pen.Color = BGR(109, 109, 109)
+				.Brush.Color = BGR(255, 255, 255)
 			End If
-		Next i
-		RectsCount += 1
-		ReDim Preserve Ctrls(RectsCount)
-		ReDim Preserve Rects(RectsCount)
-		ReDim Preserve Parents(RectsCount)
-		If RectsCount = 1 Then
-			Rects(RectsCount).Left = 1
-		Else
-			Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
+			Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(ML("Type here")) + 10
+			Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight(ML("Type here")) + 6
+			.Rectangle Rects(RectsCount)
+			.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
 		End If
-		Rects(RectsCount).Top = 1
-		If RectsCount = ActiveRect Then
-			.Pen.Color = BGR(0, 120, 215)
-			.Brush.Color = BGR(174, 215, 247)
-		Else
-			.Pen.Color = BGR(109, 109, 109)
-			.Brush.Color = BGR(255, 255, 255)
-		End If
-		Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(ML("Type here")) + 10
-		Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight(ML("Type here")) + 6
-		.Rectangle Rects(RectsCount)
-		.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
-		If ActiveCtrl <> 0 Then
+		If ActiveCtrl <> 0 OrElse IsPopup Then
 			DropdownsCount = 0
-			ReDim Dropdowns(0)
-			Dropdowns(0) = ActiveCtrl
-			GetDropdowns Dropdowns(0)
+			ReDim Dropdowns(DropdownsCount)
+			Dropdowns(DropdownsCount) = ActiveCtrl
+			If ActiveCtrl <> 0 Then GetDropdowns Dropdowns(DropdownsCount)
+			If IsPopup AndAlso ActiveCtrl <> 0 Then
+				DropdownsCount += 1
+				ReDim Preserve Dropdowns(DropdownsCount)
+				Dropdowns(DropdownsCount) = 0
+			End If
 			For j As Integer = DropdownsCount To 0 Step -1
 				Dim As Any Ptr mi, CurrentMenuItem = Dropdowns(j)
-				If QWString(Des->ReadPropertyFunc(CurrentMenuItem, "Caption")) = "-" Then Exit For
 				Dim As Integer CurRect, iSubMenuHeight = .TextHeight("A") + 6 + 4, MaxWidth = 100, CurWidth
-				For i As Integer = 1 To RectsCount
-					If Ctrls(i) = CurrentMenuItem Then
-						CurRect = i
-						Exit For
-					End If
-				Next
-				If CurRect <> 0 Then
-					For i As Integer = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenuItem, "Count")) - 1
-						mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
+				If CurrentMenuItem <> 0 Then
+					If QWString(Des->ReadPropertyFunc(CurrentMenuItem, "Caption")) = "-" Then Exit For
+					For i As Integer = 1 To RectsCount
+						If Ctrls(i) = CurrentMenuItem Then
+							CurRect = i
+							Exit For
+						End If
+					Next
+				End If
+				If CurRect <> 0 OrElse IsPopup Then
+					For i As Integer = 0 To QInteger(Des->ReadPropertyFunc(IIf(CurrentMenuItem = 0, CurrentMenu, CurrentMenuItem), "Count")) - 1
+						If CurrentMenuItem = 0 Then
+							mi = Des->MenuByIndexFunc(CurrentMenu, i)
+						Else
+							mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
+						End If
 						If mi <> 0 Then
 							If QWString(Des->ReadPropertyFunc(mi, "Caption")) = "-" Then
 								iSubMenuHeight += 5
@@ -143,12 +158,17 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 						End If
 					Next
 					Dim As Rect rct
-					If Des->ReadPropertyFunc(CurrentMenuItem, "Parent") = 0 Then
-						rct.Left = Rects(CurRect).Left
-						rct.Top = Rects(CurRect).Bottom
+					If CurrentMenuItem = 0 Then
+						rct.Left = 1
+						rct.Top = 0
 					Else
-						rct.Left = Rects(CurRect).Right + 1
-						rct.Top = Rects(CurRect).Top - 2
+						If Des->ReadPropertyFunc(CurrentMenuItem, "Parent") = 0 AndAlso Not IsPopup Then
+							rct.Left = Rects(CurRect).Left
+							rct.Top = Rects(CurRect).Bottom
+						Else
+							rct.Left = Rects(CurRect).Right + 1
+							rct.Top = Rects(CurRect).Top - 2
+						End If
 					End If
 					rct.Right = rct.Left + 25
 					rct.Bottom = rct.Top + iSubMenuHeight
@@ -161,8 +181,12 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 					.Rectangle rct
 					iSubMenuHeight = 2
 					Dim As Integer iMenuHeight = .TextHeight("A") + 6
-					For i As Integer = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenuItem, "Count")) - 1
-						mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
+					For i As Integer = 0 To QInteger(Des->ReadPropertyFunc(IIf(CurrentMenuItem = 0, CurrentMenu, CurrentMenuItem), "Count")) - 1
+						If CurrentMenuItem = 0 Then
+							mi = Des->MenuByIndexFunc(CurrentMenu, i)
+						Else
+							mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
+						End If
 						If mi <> 0 Then
 							If QWString(Des->ReadPropertyFunc(mi, "Caption")) = "-" Then
 								iMenuHeight = 5
