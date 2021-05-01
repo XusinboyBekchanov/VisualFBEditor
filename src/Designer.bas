@@ -69,6 +69,8 @@ Namespace My.Sys.Forms
 			mnuDesigner.Item(0)->Caption = ML("Menu Editor")
 		Case "ToolBar"
 			mnuDesigner.Item(0)->Caption = ML("ToolBar Editor")
+		Case "ImageList"
+			mnuDesigner.Item(0)->Caption = ML("Image Manager")
 		Case Else
 			mnuDesigner.Item(0)->Caption = ML("Default event")
 		End Select
@@ -1078,7 +1080,7 @@ Namespace My.Sys.Forms
 			ObjectDeleteFunc(mi)
 		End If
 	End Sub
-	
+
 	'sub Designer.DeleteControl(hDlg as HWND)
 	'	if IsWindow(hDlg) then
 	'		if hDlg <> FDialog then
@@ -1510,47 +1512,56 @@ Namespace My.Sys.Forms
 			GetClientRect(Handle, @R)
 			Dim As Any Ptr Ctrl = GetControl(Handle)
 			If Ctrl <> 0 Then
-				'RectsCount = 0
-				'SelectObject(FHdc, TopMenu->Font.Handle)
+				Dim Rects(Any) As Rect
+				Dim Ctrls(Any) As Any Ptr
+				Dim As Integer RectsCount
+				RectsCount = 0
+				SelectObject(FHdc, TopMenu->Font.Handle)
 				Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
 				DeleteObject(Pen)
 				DeleteObject(Brush)
 				For i As Integer = 0 To QInteger(ReadPropertyFunc(Ctrl, "ButtonsCount")) - 1
-					'RectsCount += 1
-					'ReDim Preserve Ctrls(RectsCount)
-					'ReDim Preserve Rects(RectsCount)
-					'Ctrls(RectsCount) = MenuByIndexFunc(CurrentMenu, i)
-'					If RectsCount = 1 Then
-'						Rects(RectsCount).Left = 0
-'					Else
-'						Rects(RectsCount).Left = Rects(RectsCount - 1).Right
-'					End If
-'					Rects(RectsCount).Top = 0
-'					GetTextExtentPoint32(FHdc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
-'					Rects(RectsCount).Right = Rects(RectsCount).Left + Sz.cx + 16
-'					Rects(RectsCount).Bottom = Rects(RectsCount).Top + Sz.cy + 6
+					RectsCount += 1
+					ReDim Preserve Rects(RectsCount)
+					ReDim Preserve Ctrls(RectsCount)
+					Ctrls(RectsCount) = ToolBarButtonByIndexFunc(Ctrl, i)
+					If RectsCount = 1 Then
+						Rects(RectsCount).Left = 1
+					Else
+						Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
+					End If
+					Rects(RectsCount).Top = 1
+					Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Width"))
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Height"))
 '					If RectsCount = ActiveRect Then
-'						Pen = CreatePen(PS_SOLID, 0, BGR(153, 209, 255))
-'						Brush = CreateSolidBrush(BGR(204, 232, 255))
-'						SelectObject(FHDc, Pen)
-'						SelectObject(FHDc, Brush)
-'						Rectangle FHdc, Rects(RectsCount).Left, 0, Rects(RectsCount).Right, TopMenu->Height
-'						DeleteObject(Pen)
-'						DeleteObject(Brush)
-'					ElseIf RectsCount = MouseRect Then
-'						Pen = CreatePen(PS_SOLID, 0, BGR(204, 232, 255))
-'						Brush = CreateSolidBrush(BGR(229, 243, 255))
-'						SelectObject(FHDc, Pen)
-'						SelectObject(FHDc, Brush)
-'						Rectangle FHdc, Rects(RectsCount).Left, 0, Rects(RectsCount).Right, TopMenu->Height
-'						DeleteObject(Pen)
-'						DeleteObject(Brush)
+'						.Pen.Color = BGR(0, 120, 215)
+'						.Brush.Color = BGR(174, 215, 247)
+'						.Rectangle Rects(RectsCount)
 '					End If
-'					SetBKMode(FHdc, TRANSPARENT)
-'					SetTextColor(FHdc, BGR(0, 0, 0))
-'					.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
-'					SetBKMode(FHdc, OPAQUE)
-'					'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+'					Dim As BitmapType AddButton
+'					AddButton.LoadFromResourceName("UserControl")
+'					#ifdef __USE_GTK__
+'						
+'					#else
+'						.DrawTransparent Rects(RectsCount).Left + 3, Rects(RectsCount).Top + 3, AddButton.Handle
+'					#endif
+					GetTextExtentPoint32(FHdc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
+					SetBKMode(FHdc, TRANSPARENT)
+					SetTextColor(FHdc, BGR(0, 0, 0))
+					If QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = 7 Then
+						Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
+						SelectObject(FHDc, Pen)
+						.MoveToEx FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Top + 5, 0
+						.LineTo FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Bottom
+						DeleteObject(Pen)
+						Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
+						SelectObject(FHDc, Pen)
+						.MoveToEx FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Top + 5, 0
+						.LineTo FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom
+						DeleteObject(Pen)
+					Else
+						.TextOut(FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left - Sz.cx) / 2, Rects(RectsCount).Bottom - Sz.cy, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+					End If
 				Next i
 			End If
 			SelectObject(FHdc, PrevPen)
@@ -1558,7 +1569,7 @@ Namespace My.Sys.Forms
 			EndPaint Handle, @Ps
 		#endif
 	End Sub
-	
+
 	Sub Designer.DrawThis()
 		FStepX = GridSize
 		FStepY = GridSize

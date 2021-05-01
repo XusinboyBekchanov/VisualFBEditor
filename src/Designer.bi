@@ -192,6 +192,8 @@ Namespace My.Sys.Forms
 		MenuFindByCommandFunc As Function(PMenu As Any Ptr, FCommand As Integer) As Any Ptr
 		MenuRemoveSub As Sub(ParentMenu As Any Ptr, PMenuItem As Any Ptr)
 		MenuItemRemoveSub As Sub(ParentMenuItem As Any Ptr, PMenuItem As Any Ptr)
+		ToolBarButtonByIndexFunc As Function(tb As Any Ptr, Index As Integer) As Any Ptr
+		ToolBarRemoveButtonSub As Sub(tb As Any Ptr, Index As Integer)
 		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean

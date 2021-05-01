@@ -5,6 +5,7 @@
 #endif
 '#Region "Form"
 	#include once "frmImageManager.bi"
+	#include once "frmPath.bi"
 	
 	Constructor frmImageManager
 		' frmImageManager

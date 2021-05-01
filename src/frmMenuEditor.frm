@@ -64,36 +64,71 @@ End Sub
 Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
 	RectsCount = 0
 	Dim i As Integer
-	Dim As Boolean IsPopup
+	Dim As Boolean IsPopup, IsToolBar = CurrentToolBar <> 0
 	With Canvas
 		If CurrentMenu <> 0 AndAlso QWString(Des->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
-		If Not IsPopup Then
+		If IsPopup Then
 			.Pen.Color = BGR(255, 255, 255)
 			.Brush.Color = BGR(255, 255, 255)
-			.Rectangle 0, .TextHeight("A") + 9, Canvas.Width, Canvas.Height
-			For i = 0 To QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count")) - 1
+			.Rectangle 0, 0, Canvas.Width, Canvas.Height
+		Else
+			.Pen.Color = BGR(255, 255, 255)
+			.Brush.Color = BGR(255, 255, 255)
+			If IsToolBar Then
+				.Rectangle 0, QInteger(Des->ReadPropertyFunc(CurrentToolBar, "ButtonHeight")), Canvas.Width, Canvas.Height
+			Else
+				.Rectangle 0, .TextHeight("A") + 9, Canvas.Width, Canvas.Height
+			End If
+			For i = 0 To QInteger(IIf(IsToolBar, Des->ReadPropertyFunc(CurrentToolBar, "ButtonsCount"), Des->ReadPropertyFunc(CurrentMenu, "Count"))) - 1
 				RectsCount += 1
 				ReDim Preserve Ctrls(RectsCount)
 				ReDim Preserve Rects(RectsCount)
 				ReDim Preserve Parents(RectsCount)
-				Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
+				If IsToolBar Then
+					Ctrls(RectsCount) = Des->ToolBarButtonByIndexFunc(CurrentToolBar, i)
+				Else
+					Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
+				End If
 				If RectsCount = 1 Then
 					Rects(RectsCount).Left = 1
 				Else
 					Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
 				End If
 				Rects(RectsCount).Top = 1
-				Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
-				Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
+				If IsToolBar Then
+					Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Width"))
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Height"))
+				Else
+					Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
+				End If
 				If RectsCount = ActiveRect Then
 					.Pen.Color = BGR(0, 120, 215)
 					.Brush.Color = BGR(174, 215, 247)
 					.Rectangle Rects(RectsCount)
 				End If
-				If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-					.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
+				If IsToolBar Then
+'					Dim As BitmapType AddButton
+'					AddButton.LoadFromResourceName("UserControl")
+'					#ifdef __USE_GTK__
+'						
+'					#else
+'						.DrawTransparent Rects(RectsCount).Left + 3, Rects(RectsCount).Top + 3, AddButton.Handle
+'					#endif
+					If QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = 7 Then
+						.Pen.Color = BGR(0, 0, 0)
+						.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Bottom - 5
+						.Pen.Color = BGR(255, 255, 255)
+						.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom - 5
+					Else
+						.TextOut Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")))) / 2, Rects(RectsCount).Bottom - .TextHeight("A"), QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+					End If
 				Else
-					.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+					If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
+					Else
+						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+					End If
 				End If
 			Next i
 			RectsCount += 1
@@ -113,12 +148,27 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 				.Pen.Color = BGR(109, 109, 109)
 				.Brush.Color = BGR(255, 255, 255)
 			End If
-			Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(ML("Type here")) + 10
-			Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight(ML("Type here")) + 6
+			If IsToolBar Then
+				Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(Des->ReadPropertyFunc(CurrentToolBar, "ButtonWidth"))
+				Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(Des->ReadPropertyFunc(CurrentToolBar, "ButtonHeight"))
+			Else
+				Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(ML("Type here")) + 10
+				Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight(ML("Type here")) + 6
+			End If
 			.Rectangle Rects(RectsCount)
-			.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
+			If IsToolBar Then
+				Dim As BitmapType AddButton
+				AddButton.LoadFromResourceName("UserControl")
+				#ifdef __USE_GTK__
+					
+				#else
+					.DrawTransparent Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left - AddButton.Width) / 2, Rects(RectsCount).Top + 3, AddButton.Handle
+				#endif
+			Else
+				.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
+			End If
 		End If
-		If ActiveCtrl <> 0 OrElse IsPopup Then
+		If CInt(ActiveCtrl <> 0 OrElse IsPopup) AndAlso CInt(Not IsToolBar) Then
 			DropdownsCount = 0
 			ReDim Dropdowns(DropdownsCount)
 			Dropdowns(DropdownsCount) = ActiveCtrl
@@ -220,7 +270,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 										#ifdef __USE_GTK__
 											
 										#else
-											.Draw Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, *Cast(HBitmap Ptr, BitmapHandle)
+											.DrawTransparent Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, *Cast(HBitmap Ptr, BitmapHandle)
 										#endif
 									End If
 								End If
@@ -289,46 +339,75 @@ End Sub
 Sub frmMenuEditor.EditRect(i As Integer)
 	With Rects(i)
 		ActiveRect = i
-		picActive.Left = .Left + 1
-		picActive.Top = .Top + 2
-		If Ctrls(i) = 0 Then
-			Dim As String FName = "MenuItem"
-			If Des->OnInsertingControl Then
-				Des->OnInsertingControl(*Des, FName, FName)
-			End If
-			Dim As UString FCaption = FName
-			Dim Obj As Any Ptr = Des->CreateObjectFunc("MenuItem")
-			Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
-			If Parents(i) = 0 Then
-				Des->WritePropertyFunc(Obj, "ParentMenu", CurrentMenu)
-			Else
-				Des->WritePropertyFunc(Obj, "Parent", Parents(i))
-			End If
-			Des->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
-			If Parents(i) = 0 Then
-				ChangeControl Obj, "ParentMenu"
-			Else
+		If CurrentToolBar <> 0 Then
+			picActive.Left = .Left + 1
+			picActive.Top = .Bottom - This.Canvas.TextHeight("A") - 1
+			If Ctrls(i) = 0 Then
+				Dim As String FName = "ToolButton"
+				If Des->OnInsertingControl Then
+					Des->OnInsertingControl(*Des, FName, FName)
+				End If
+				Dim As UString FCaption = FName
+				Dim Obj As Any Ptr = Des->CreateObjectFunc("ToolButton")
+				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
+				Des->WritePropertyFunc(Obj, "Parent", CurrentToolBar)
+				Des->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
 				ChangeControl Obj, "Parent"
-			End If
-			ChangeControl Obj, "Caption"
-			If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj)
-			Ctrls(i) = Obj
-			ActiveCtrl = Obj
-			txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-			'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
-			If i = 1 Then
-				Des->CheckTopMenuVisible , False
+				ChangeControl Obj, "Caption"
+				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj)
+				Ctrls(i) = Obj
+				ActiveCtrl = Obj
+				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
+				'Des->TopMenu->Repaint
 			Else
-				Des->TopMenu->Repaint
+				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
 			End If
+			picActive.Height = This.Canvas.TextHeight("A")
+			picActive.Visible = True
+			Repaint
+			txtActive.SetFocus
 		Else
-			txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-			'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
+			picActive.Left = .Left + 1
+			picActive.Top = .Top + 2
+			If Ctrls(i) = 0 Then
+				Dim As String FName = "MenuItem"
+				If Des->OnInsertingControl Then
+					Des->OnInsertingControl(*Des, FName, FName)
+				End If
+				Dim As UString FCaption = FName
+				Dim Obj As Any Ptr = Des->CreateObjectFunc("MenuItem")
+				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
+				If Parents(i) = 0 Then
+					Des->WritePropertyFunc(Obj, "ParentMenu", CurrentMenu)
+				Else
+					Des->WritePropertyFunc(Obj, "Parent", Parents(i))
+				End If
+				Des->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
+				If Parents(i) = 0 Then
+					ChangeControl Obj, "ParentMenu"
+				Else
+					ChangeControl Obj, "Parent"
+				End If
+				ChangeControl Obj, "Caption"
+				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj)
+				Ctrls(i) = Obj
+				ActiveCtrl = Obj
+				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
+				'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
+				If i = 1 Then
+					Des->CheckTopMenuVisible , False
+				Else
+					Des->TopMenu->Repaint
+				End If
+			Else
+				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
+				'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
+			End If
+			picActive.Height = .Bottom - .Top - 3
+			picActive.Visible = True
+			Repaint
+			txtActive.SetFocus
 		End If
-		picActive.Height = .Bottom - .Top - 3
-		picActive.Visible = True
-		Repaint
-		txtActive.SetFocus
 	End With
 End Sub
 
@@ -343,6 +422,7 @@ Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 			If Parents(ActiveRect) = 0 Then Des->TopMenu->Repaint
 		End If
 		Repaint
+		picActive.Left = Rects(ActiveRect).Left + 1
 		picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2
 	End If
 End Sub
@@ -451,7 +531,14 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 	Case Keys.DeleteKey
 		If ActiveRect > 0 AndAlso Ctrls(ActiveRect) <> 0 Then
 			Dim As Any Ptr ParentMenu = Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent")
-			Des->DeleteMenuItems(CurrentMenu, Ctrls(ActiveRect))
+			If CurrentToolBar Then
+				'Des->DeleteMenuItems(Des->ReadPropertyFunc(Ctrls(ActiveRect), "DropdownMenu"))
+				If Des->OnDeleteControl Then Des->OnDeleteControl(*Des, Ctrls(ActiveRect))
+				Des->ToolBarRemoveButtonSub(CurrentToolBar, ActiveRect - 1)
+				Des->DeleteComponentFunc(Ctrls(ActiveRect))
+			Else
+				Des->DeleteMenuItems(CurrentMenu, Ctrls(ActiveRect))
+			End If
 			Dim As Integer First, Last, ParentRect
 			For i As Integer = 1 To RectsCount
 				If Parents(i) = Parents(ActiveRect) Then

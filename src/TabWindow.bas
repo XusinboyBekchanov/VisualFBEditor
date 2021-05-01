@@ -6,6 +6,7 @@
 '#########################################################
 
 #include once "TabWindow.bi"
+#include once "frmImageManager.bi"
 #include once "vbcompat.bi"  ' for could using format function
 #define TabSpace IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
 
@@ -1721,6 +1722,8 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 				If QWString(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")) = "MenuItem" Then
 					tb->Des->TopMenu->Repaint
 					If pfMenuEditor->Visible Then pfMenuEditor->Repaint
+				ElseIf QWString(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")) = "ToolButton" Then
+					If pfMenuEditor->Visible Then pfMenuEditor->Repaint
 				End If
 			#endif
 			.Changed "Unsurni o`zgartirish"
@@ -1963,7 +1966,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 '								End If
 '							End If
 '						Next
-						WLetEx ecl->Text, RTrim(*ecl->Text, Any !"\t "), True
+						If Trim(*ecl->Text, Any !"\t ") <> "" Then WLetEx ecl->Text, RTrim(*ecl->Text, Any !"\t "), True
 					End If
 				End If
 			End If
@@ -2256,11 +2259,19 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Case "MainMenu", "PopupMenu"
 		pfMenuEditor->Des = @Sender
 		pfMenuEditor->CurrentMenu = Ctrl
+		pfMenuEditor->CurrentToolBar = 0
+		pfMenuEditor->Caption = ML("Menu Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "ToolBar"
 		pfMenuEditor->Des = @Sender
-		pfMenuEditor->CurrentMenu = Ctrl
+		pfMenuEditor->CurrentMenu = 0
+		pfMenuEditor->CurrentToolBar = Ctrl
+		pfMenuEditor->Caption = ML("ToolBar Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
+	Case "ImageList"
+		pfImageManager->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
 			FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, tb->cboFunction.Items.Item(1)->Text
@@ -4005,6 +4016,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->MenuFindByCommandFunc = DyLibSymbol(Des->MFF, "MenuFindByCommand")
 					Des->MenuRemoveSub = DyLibSymbol(Des->MFF, "MenuRemove")
 					Des->MenuItemRemoveSub = DyLibSymbol(Des->MFF, "MenuItemRemove")
+					Des->ToolBarButtonByIndexFunc = DyLibSymbol(Des->MFF, "ToolBarButtonByIndex")
+					Des->ToolBarRemoveButtonSub = DyLibSymbol(Des->MFF, "ToolBarRemoveButton")
 					Des->GraphicTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "GraphicTypeLoadFromFile")
 					Des->BitmapTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "BitmapTypeLoadFromFile")
 					Des->IconLoadFromFileFunc = DyLibSymbol(Des->MFF, "IconLoadFromFile")
