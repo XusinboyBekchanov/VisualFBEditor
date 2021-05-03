@@ -14,6 +14,8 @@
 Dim Shared FPropertyItems As WStringList
 Dim Shared FListItems As WStringList
 Dim Shared txtCodeBi As EditControl
+Dim Shared mnuCode As PopupMenu
+pmnuCode = @mnuCode
 txtCodeBi.WithHistory = False
 
 Destructor ExplorerElement
@@ -688,7 +690,12 @@ Function TabWindow.Save As Boolean
 End Function
 
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
-	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then Delete_(tb): Return True Else Return False
+	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then
+		Delete_(tb)
+		Return True
+	Else
+		Return False
+	End If
 End Function
 
 Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean

@@ -251,7 +251,7 @@ Public:
 	Declare Destructor
 End Type
 
-Dim Shared As PopupMenu mnuCode
+Common Shared As PopupMenu Ptr pmnuCode
 
 Declare Sub MoveCloseButtons()
 
