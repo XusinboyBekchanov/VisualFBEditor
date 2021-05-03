@@ -34,8 +34,10 @@
 		Dim Ctrls(Any) As Any Ptr
 		Dim Parents(Any) As Any Ptr
 		Dim RectsCount As Integer
+		Dim TopCount As Integer
 		Dim ActiveRect As Integer
 		Dim ActiveCtrl As Any Ptr
+		Dim ParentRect As Integer
 		Dim Dropdowns(Any) As Any Ptr
 		Dim DropdownsCount As Integer
 	End Type

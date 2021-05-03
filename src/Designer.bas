@@ -70,7 +70,7 @@ Namespace My.Sys.Forms
 		Case "ToolBar"
 			mnuDesigner.Item(0)->Caption = ML("ToolBar Editor")
 		Case "ImageList"
-			mnuDesigner.Item(0)->Caption = ML("Image Manager")
+			mnuDesigner.Item(0)->Caption = ML("ImageList Editor")
 		Case Else
 			mnuDesigner.Item(0)->Caption = ML("Default event")
 		End Select
@@ -553,7 +553,9 @@ Namespace My.Sys.Forms
 	#else
 		Function Designer.GetControlHandle(Control As Any Ptr) As HWND
 			If Control = 0 Then Return 0
-			Return *Cast(HWND Ptr, ReadPropertyFunc(Control, "Handle"))
+			Var Handle = ReadPropertyFunc(Control, "Handle")
+			If Handle = 0 Then Return 0
+			Return *Cast(HWND Ptr, Handle)
 	#endif
 	End Function
 	
@@ -1514,7 +1516,11 @@ Namespace My.Sys.Forms
 			If Ctrl <> 0 Then
 				Dim Rects(Any) As Rect
 				Dim Ctrls(Any) As Any Ptr
-				Dim As Integer RectsCount
+				Dim As Integer RectsCount, BitmapWidth, BitmapHeight
+				Dim As Boolean IsToolBarList
+				BitmapWidth = QInteger(ReadPropertyFunc(Ctrl, "BitmapWidth"))
+				BitmapHeight = QInteger(ReadPropertyFunc(Ctrl, "BitmapHeight"))
+				IsToolBarList = QBoolean(ReadPropertyFunc(Ctrl, "List"))
 				RectsCount = 0
 				SelectObject(FHdc, TopMenu->Font.Handle)
 				Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
@@ -1532,7 +1538,7 @@ Namespace My.Sys.Forms
 					End If
 					Rects(RectsCount).Top = 1
 					Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Width"))
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Height"))
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Height")) - 1
 '					If RectsCount = ActiveRect Then
 '						.Pen.Color = BGR(0, 120, 215)
 '						.Brush.Color = BGR(174, 215, 247)
@@ -1545,6 +1551,20 @@ Namespace My.Sys.Forms
 '					#else
 '						.DrawTransparent Rects(RectsCount).Left + 3, Rects(RectsCount).Top + 3, AddButton.Handle
 '					#endif
+					Select Case QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style"))
+					Case ToolButtonStyle.tbsDropDown, ToolButtonStyle.tbsWholeDropdown
+						Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
+						SelectObject(FHDc, Pen)
+						Brush = CreateSolidBrush(BGR(0, 0, 0))
+						SelectObject(FHDc, Brush)
+						.MoveToEx FHdc, Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1, 0
+						.LineTo FHdc, Rects(RectsCount).Right - 5, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
+						.LineTo FHdc, Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2
+						.LineTo FHdc, Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
+						.ExtFloodFill FHdc, Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2), 0, FLOODFILLBORDER
+						DeleteObject(Pen)
+						DeleteObject(Brush)
+					End Select
 					GetTextExtentPoint32(FHdc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
 					SetBKMode(FHdc, TRANSPARENT)
 					SetTextColor(FHdc, BGR(0, 0, 0))
@@ -1560,7 +1580,8 @@ Namespace My.Sys.Forms
 						.LineTo FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom
 						DeleteObject(Pen)
 					Else
-						.TextOut(FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left - Sz.cx) / 2, Rects(RectsCount).Bottom - Sz.cy, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+						.TextOut(FHdc, Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 11, (Rects(RectsCount).Right - Rects(RectsCount).Left - Sz.cx - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
+							IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - Sz.cy) / 2, Rects(RectsCount).Bottom - Sz.cy - 6), ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
 					End If
 				Next i
 			End If

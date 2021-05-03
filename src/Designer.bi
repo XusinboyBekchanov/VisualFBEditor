@@ -198,6 +198,7 @@ Namespace My.Sys.Forms
 		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
 		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef File As WString) As Boolean
+		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef File As WString, ByRef Key As WString = "")
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr

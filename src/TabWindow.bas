@@ -7,6 +7,7 @@
 
 #include once "TabWindow.bi"
 #include once "frmImageManager.bi"
+#include once "frmImageListEditor.bi"
 #include once "vbcompat.bi"  ' for could using format function
 #define TabSpace IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
 
@@ -837,7 +838,14 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 					WLet(FLine, WStr(iTemp))
 					If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
 						tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
-						If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
+						If tbi Then
+							Dim As TypeElement Ptr te1
+							For i As Integer = 0 To tbi->Elements.Count - 1
+								te1 = tbi->Elements.Object(i)
+								If te1 <> 0 AndAlso te1->Value = Str(iTemp) Then iTemp = i: Exit For
+							Next
+							If iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
+						End If
 					End If
 				Case "long": iTemp = QLong(pTemp): WLet(FLine, WStr(iTemp))
 				Case "ulong": iTemp = QULong(pTemp): WLet(FLine, WStr(iTemp))
@@ -851,7 +859,14 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 					ElseIf pGlobalEnums->Contains(.TypeName) Then
 						iTemp = QInteger(pTemp)
 						tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(.TypeName))
-						If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
+						If tbi Then
+							Dim As TypeElement Ptr te1
+							For i As Integer = 0 To tbi->Elements.Count - 1
+								te1 = tbi->Elements.Object(i)
+								If te1 <> 0 AndAlso te1->Value = Str(iTemp) Then iTemp = i: Exit For
+							Next
+							If iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
+						End If
 					End If
 				End Select
 			ElseIf Pos1 > 0 Then
@@ -893,7 +908,14 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 				WLet(FLine, WStr(iTemp))
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
 					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
-					If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, te->EnumTypeName & "." & tbi->Elements.Item(iTemp))
+					If tbi Then
+						Dim As TypeElement Ptr te1
+						For i As Integer = 0 To tbi->Elements.Count - 1
+							te1 = tbi->Elements.Object(i)
+							If te1 <> 0 AndAlso te1->Value = Str(iTemp) Then iTemp = i: Exit For
+						Next
+						If iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, te->EnumTypeName & "." & tbi->Elements.Item(iTemp))
+					End If
 				End If
 			Case "long": iTemp = QLong(pTemp): WLet(FLine, WStr(iTemp))
 			Case "ulong": iTemp = QULong(pTemp): WLet(FLine, WStr(iTemp))
@@ -905,11 +927,18 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 				If pGlobalEnums->Contains(.TypeName) Then
 					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName))
 					iTemp = QInteger(pTemp)
-					If tbi AndAlso iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, te->TypeName & "." & tbi->Elements.Item(iTemp))
+					If tbi Then
+						Dim As TypeElement Ptr te1
+						For i As Integer = 0 To tbi->Elements.Count - 1
+							te1 = tbi->Elements.Object(i)
+							If te1 <> 0 AndAlso te1->Value = Str(iTemp) Then iTemp = i: Exit For
+						Next
+						If iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, te->TypeName & "." & tbi->Elements.Item(iTemp))
+					End If
 				ElseIf CInt(IsBase(.TypeName, "Component")) Then
 					Dim As String pTempName = WGet(Des->ReadPropertyFunc(pTemp, "Name"))
 					If pTempName <> "" Then
-						If cboClass.Items.Contains(pTempName) Then
+						If cboClass.Items.Contains(pTempName) OrElse PropertyName = "ParentMenu" Then
 							WLet(FLine, "@" & pTempName)
 							If cboClass.Items.IndexOf(pTempName) = 1 Then
 								WLet(FLine, "@This")
@@ -992,6 +1021,12 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 						ElseIf StartsWith(*FLine3, te->EnumTypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine3, Len(Trim(te->EnumTypeName)) + 2)) Then
 							iTemp = tbi->Elements.IndexOf(Mid(*FLine3, Len(Trim(te->EnumTypeName)) + 2))
 						End If
+						If iTemp > -1 Then
+							Dim As TypeElement Ptr te1 = tbi->Elements.Object(iTemp)
+							If te1 <> 0 AndAlso te1->Value <> "" Then
+								iTemp = Val(te1->Value)
+							End If
+						End If
 					End If
 				End If
 				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
@@ -1012,6 +1047,12 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 						ElseIf StartsWith(*FLine3, te->TypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine3, Len(Trim(te->TypeName)) + 2)) Then
 							iTemp = tbi->Elements.IndexOf(Mid(*FLine3, Len(Trim(te->TypeName)) + 2))
 						End If
+						If iTemp > -1 Then
+							Dim As TypeElement Ptr te1 = tbi->Elements.Object(iTemp)
+							If te1 <> 0 AndAlso te1->Value <> "" Then
+								iTemp = Val(te1->Value)
+							End If
+						End If
 						If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 AndAlso iTemp > -1 Then
 							Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
 						End If
@@ -1022,10 +1063,21 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 						If Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Des->DesignControl, "Name")
 						If hTemp <> 0 Then WLet(FLine3, QWString(hTemp))
 					End If
-					If *FLine3 <> "" AndAlso CInt(cboClass.Items.Contains(Trim(*FLine3))) Then
-						PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(*FLine3)))->Object)
-						If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-							Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
+					If *FLine3 <> "" Then
+						If CInt(cboClass.Items.Contains(Trim(*FLine3))) Then
+							PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(*FLine3)))->Object)
+							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
+								Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
+							End If
+						Else
+							Dim Pos1 As Integer = InStr(*FLine3, ".")
+							If Pos1 > 0 AndAlso cboClass.Items.Contains(Trim(Left(*FLine3, Pos1 - 1))) Then
+								PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(Left(*FLine3, Pos1 - 1))))->Object)
+								Dim As Any Ptr Ctrl2 = Des->ReadPropertyFunc(PropertyCtrl, Trim(Mid(*FLine3, Pos1 + 1)))
+								If Ctrl2 <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
+									Result = Des->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
+								End If
+							End If
 						End If
 					End If
 				End If
@@ -1966,7 +2018,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 '								End If
 '							End If
 '						Next
-						If Trim(*ecl->Text, Any !"\t ") <> "" Then WLetEx ecl->Text, RTrim(*ecl->Text, Any !"\t "), True
+						'If Trim(*ecl->Text, Any !"\t ") <> "" Then WLetEx ecl->Text, RTrim(*ecl->Text, Any !"\t "), True
 					End If
 				End If
 			End If
@@ -2260,6 +2312,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfMenuEditor->Des = @Sender
 		pfMenuEditor->CurrentMenu = Ctrl
 		pfMenuEditor->CurrentToolBar = 0
+		pfMenuEditor->ParentRect = 0
 		pfMenuEditor->Caption = ML("Menu Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
@@ -2271,7 +2324,10 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "ImageList"
-		pfImageManager->Show *pfrmMain
+		pfImageListEditor->Des = @Sender
+		pfImageListEditor->CurrentImageList = Ctrl
+		pfImageListEditor->Caption = ML("ImageList Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+		pfImageListEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
 			FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, tb->cboFunction.Items.Item(1)->Text
@@ -4022,6 +4078,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->BitmapTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "BitmapTypeLoadFromFile")
 					Des->IconLoadFromFileFunc = DyLibSymbol(Des->MFF, "IconLoadFromFile")
 					Des->CursorLoadFromFileFunc = DyLibSymbol(Des->MFF, "CursorLoadFromFile")
+					Des->ImageListAddFromFileSub = DyLibSymbol(Des->MFF, "ImageListAddFromFile")
 					Des->TopMenu = @pnlTopMenu
 					'Des->ContextMenu = @mnuForm
 					pnlTopMenu.Visible = False
