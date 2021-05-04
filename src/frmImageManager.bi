@@ -8,6 +8,7 @@
 	#include once "mff/Panel.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Label.bi"
+	#include once "mff/ImageList.bi"
 	
 	Using My.Sys.Forms
 	
@@ -38,10 +39,13 @@
 		Dim As Label lblResourceFile
 		Dim As UString ResourceFile, ExeFileName
 		Dim As Boolean WithoutMainNode
+		Dim As ImageList ImageList1
+		Dim As ImageList Ptr CurrentImageList
+		Dim As My.Sys.Forms.Designer Ptr Des
 	End Type
 	
 	Dim Shared pfImageManager As frmImageManager Ptr
-	
+	Dim Shared pfImageListEditor As frmImageManager Ptr
 '#End Region
 
 #ifndef __USE_MAKE__

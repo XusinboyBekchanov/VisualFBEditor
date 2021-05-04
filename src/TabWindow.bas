@@ -7,7 +7,6 @@
 
 #include once "TabWindow.bi"
 #include once "frmImageManager.bi"
-#include once "frmImageListEditor.bi"
 #include once "vbcompat.bi"  ' for could using format function
 #define TabSpace IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
 

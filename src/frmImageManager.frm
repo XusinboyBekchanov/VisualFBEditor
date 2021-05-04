@@ -59,6 +59,8 @@
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 0
+			.Images = @ImageList1
+			.SmallImages = @ImageList1
 			.Designer = @This
 			.OnItemActivate = @lvImages_ItemActivate_
 			.OnSelectedItemChanged = @lvImages_SelectedItemChanged_
@@ -122,7 +124,7 @@
 			.ExtraMargins.Top = 10
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
-			.Default = false
+			.Default = False
 			.Parent = @pnlCommands
 		End With
 		' cmdOK
@@ -138,7 +140,7 @@
 			.ExtraMargins.Top = 10
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
-			.Default = true
+			.Default = True
 			.Parent = @pnlCommands
 		End With
 		' lblResourceFile
@@ -155,11 +157,18 @@
 			.CenterImage = True
 			.Parent = @pnlCommands
 		End With
+		' ImageList1
+		With ImageList1
+			.Name = "ImageList1"
+			.SetBounds 110, 11, 16, 16
+			.Parent = @pnlCommands
+		End With
 	End Constructor
 	
 	Dim Shared fImageManager As frmImageManager
+	Dim Shared fImageListEditor As frmImageManager
 	pfImageManager = @fImageManager
-	
+	pfImageListEditor = @fImageListEditor
 '#End Region
 
 Private Sub frmImageManager.Form_Show_(ByRef Sender As Form)
@@ -191,7 +200,9 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 				FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
 				If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
 				If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
+				ImageList1.AddFromFile GetRelativePath(FilePath, ResourceFile), Trim(Left(sLine, Pos1 - 1))
 				lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
+				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
 				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
 				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
 			End If
