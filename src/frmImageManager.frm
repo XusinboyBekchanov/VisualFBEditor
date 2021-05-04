@@ -102,6 +102,18 @@
 			.CenterImage = True
 			.Parent = @gbImagePreview
 		End With
+		' pnlOptions
+		With pnlOptions
+			.Name = "pnlOptions"
+			.Align = DockStyle.alClient
+			.ExtraMargins.Top = 15
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Left = 10
+			.ExtraMargins.Bottom = 10
+			.TabIndex = 6
+			.SetBounds -1, 9, 20, 20
+			.Parent = @gbImagePreview
+		End With
 		' pnlCommands
 		With pnlCommands
 			.Name = "pnlCommands"
@@ -163,6 +175,92 @@
 			.SetBounds 110, 11, 16, 16
 			.Parent = @pnlCommands
 		End With
+		' lblSize
+		With lblSize
+			.Name = "lblSize"
+			.Text = ML("Size") & ":"
+			.TabIndex = 8
+			.SetBounds 9, 9, 120, 18
+			.Parent = @pnlOptions
+		End With
+		' opt16x16
+		With opt16x16
+			.Name = "opt16x16"
+			.Text = "16 x 16"
+			.TabIndex = 7
+			.SetBounds 19, 27, 90, 20
+			.Caption = "16 x 16"
+			.Designer = @This
+			.OnClick = @opt16x16_Click_
+			.Parent = @pnlOptions
+		End With
+		' opt32x32
+		With opt32x32
+			.Name = "opt32x32"
+			.Text = "32 x 32"
+			.TabIndex = 9
+			.SetBounds 19, 47, 90, 20
+			.Caption = "32 x 32"
+			.Designer = @This
+			.OnClick = @opt32x32_Click_
+			.Parent = @pnlOptions
+		End With
+		' opt48x48
+		With opt48x48
+			.Name = "opt48x48"
+			.Text = "48 x 48"
+			.TabIndex = 10
+			.SetBounds 19, 67, 90, 20
+			.Caption = "48 x 48"
+			.Designer = @This
+			.OnClick = @opt48x48_Click_
+			.Parent = @pnlOptions
+		End With
+		' optCustom
+		With optCustom
+			.Name = "optCustom"
+			.Text = ML("Custom")
+			.TabIndex = 11
+			.SetBounds 19, 87, 110, 20
+			.Caption = ML("Custom")
+			.Designer = @This
+			.OnClick = @optCustom_Click_
+			.Parent = @pnlOptions
+		End With
+		' lblWidth
+		With lblWidth
+			.Name = "lblWidth"
+			.Text = ML("Width") & ":"
+			.TabIndex = 12
+			.SetBounds 39, 110, 80, 18
+			.Caption = ML("Width") & ":"
+			.Parent = @pnlOptions
+		End With
+		' lblHeight
+		With lblHeight
+			.Name = "lblHeight"
+			.Text = ML("Height") & ":"
+			.TabIndex = 13
+			.SetBounds 39, 134, 80, 18
+			.Caption = ML("Height") & ":"
+			.Parent = @pnlOptions
+		End With
+		' txtWidth
+		With txtWidth
+			.Name = "txtWidth"
+			.Text = ""
+			.TabIndex = 14
+			.SetBounds 119, 107, 90, 20
+			.Parent = @pnlOptions
+		End With
+		' txtHeight
+		With txtHeight
+			.Name = "txtHeight"
+			.TabIndex = 15
+			.SetBounds 119, 132, 90, 20
+			.Text = ""
+			.Parent = @pnlOptions
+		End With
 	End Constructor
 	
 	Dim Shared fImageManager As frmImageManager
@@ -210,6 +308,24 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 		Close #Fn
 	End If
 	lblResourceFile.Text = ML("File") & ": " & ResourceFile
+	If CurrentImageList Then
+		txtWidth.Text = Str(QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageWidth")))
+		txtHeight.Text = Str(QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageHeight")))
+		opt16x16.Checked = False
+		opt32x32.Checked = False
+		opt48x48.Checked = False
+		optCustom.Checked = False
+		If Val(txtWidth.Text) = 16 AndAlso Val(txtHeight.Text) = 16 Then
+			opt16x16.Checked = True
+		ElseIf Val(txtWidth.Text) = 32 AndAlso Val(txtHeight.Text) = 32 Then
+			opt32x32.Checked = True
+		ElseIf Val(txtWidth.Text) = 48 AndAlso Val(txtHeight.Text) = 48 Then
+			opt48x48.Checked = True
+		Else
+			optCustom.Checked = True
+		End If
+		optCustom_Click(optCustom)
+	End If
 End Sub
 
 Private Sub frmImageManager.cmdCancel_Click_(ByRef Sender As Control)
@@ -227,6 +343,18 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 	If WithoutMainNode AndAlso lvImages.SelectedItemIndex = -1 Then
 		MsgBox ML("Nothing has been chosen"), pApp->Title
 		Exit Sub
+	End If
+	If CurrentImageList Then
+		Dim As Integer iWidth = Val(txtWidth.Text), iHeight = Val(txtHeight.Text)
+		If QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageWidth")) <> iWidth Then
+			Des->WritePropertyFunc(CurrentImageList, "ImageWidth", @iWidth)
+			ChangeControl CurrentImageList, "ImageWidth"
+		End If
+		If QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageHeight")) <> iHeight Then
+			Des->WritePropertyFunc(CurrentImageList, "ImageHeight", @iHeight)
+			ChangeControl CurrentImageList, "ImageHeight"
+		End If
+		
 	End If
 	Dim As WStringList Lines
 	Dim As Integer Result
@@ -393,10 +521,55 @@ Private Sub frmImageManager.Form_Create_(ByRef Sender As Control)
 	*Cast(frmImageManager Ptr, Sender.Designer).Form_Create(Sender)
 End Sub
 Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
-	pfPath->cboType.Clear
-	pfPath->cboType.AddItem "BITMAP"
-	pfPath->cboType.AddItem "CURSOR"
-	pfPath->cboType.AddItem "ICON"
-	pfPath->cboType.AddItem "PNG"
-	pfPath->cboType.AddItem "RCDATA"
+	If CurrentImageList Then
+		gbImagePreview.Caption = ML("ImageList Properties")
+		pnlOptions.Visible = True
+		imgImage.Visible = False
+	Else
+		pnlOptions.Visible = False
+		imgImage.Visible = True
+		pfPath->cboType.Clear
+		pfPath->cboType.AddItem "BITMAP"
+		pfPath->cboType.AddItem "CURSOR"
+		pfPath->cboType.AddItem "ICON"
+		pfPath->cboType.AddItem "PNG"
+		pfPath->cboType.AddItem "RCDATA"
+	End If
+End Sub
+
+Private Sub frmImageManager.optCustom_Click_(ByRef Sender As RadioButton)
+	*Cast(frmImageManager Ptr, Sender.Designer).optCustom_Click(Sender)
+End Sub
+Private Sub frmImageManager.optCustom_Click(ByRef Sender As RadioButton)
+	txtWidth.Enabled = optCustom.Checked
+	txtHeight.Enabled = optCustom.Checked
+	lblWidth.Enabled = optCustom.Checked
+	lblHeight.Enabled = optCustom.Checked
+End Sub
+
+Private Sub frmImageManager.opt16x16_Click_(ByRef Sender As RadioButton)
+	*Cast(frmImageManager Ptr, Sender.Designer).opt16x16_Click(Sender)
+End Sub
+Private Sub frmImageManager.opt16x16_Click(ByRef Sender As RadioButton)
+	txtWidth.Text = "16"
+	txtHeight.Text = "16"
+	optCustom_Click(Sender)
+End Sub
+
+Private Sub frmImageManager.opt32x32_Click_(ByRef Sender As RadioButton)
+	*Cast(frmImageManager Ptr, Sender.Designer).opt32x32_Click(Sender)
+End Sub
+Private Sub frmImageManager.opt32x32_Click(ByRef Sender As RadioButton)
+	txtWidth.Text = "32"
+	txtHeight.Text = "32"
+	optCustom_Click(Sender)
+End Sub
+
+Private Sub frmImageManager.opt48x48_Click_(ByRef Sender As RadioButton)
+	*Cast(frmImageManager Ptr, Sender.Designer).opt48x48_Click(Sender)
+End Sub
+Private Sub frmImageManager.opt48x48_Click(ByRef Sender As RadioButton)
+	txtWidth.Text = "48"
+	txtHeight.Text = "48"
+	optCustom_Click(Sender)
 End Sub

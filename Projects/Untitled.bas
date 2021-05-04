@@ -23,7 +23,7 @@
 		Dim As MenuItem MenuItem1, MenuItem2, MenuItem3, MenuItem4, MenuItem5, MenuItem6, MenuItem7, MenuItem8, MenuItem9, MenuItem10, MenuItem11, MenuItem12, MenuItem13
 		Dim As MainMenu MainMenu1
 		Dim As PopupMenu PopupMenu1
-		Dim As ImageList ImageList1
+		Dim As ImageList ImageList1, ImageList2
 	End Type
 	
 	Constructor Form1
@@ -175,7 +175,14 @@
 			.SetBounds 170, 100, 16, 16
 			.Items = "Start: Start" & NewLine & _
 			"Key: Key" & Chr(13, 10) & _
-			
+			.ImageWidth = 48
+			.ImageHeight = 48
+			.Parent = @This
+		End With
+		' ImageList2
+		With ImageList2
+			.Name = "ImageList2"
+			.SetBounds 160, 150, 16, 16
 			.Parent = @This
 		End With
 	End Constructor
