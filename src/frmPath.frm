@@ -5,6 +5,7 @@
 '#########################################################
 
 #include once "frmPath.bi"
+#include once "frmImageManager.bi"
 
 '#Region "Form"
 	Constructor frmPath
@@ -16,8 +17,9 @@
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.MaximizeBox = False
 			.MinimizeBox = False
-			.OnShow = @Form_Show
-			.OnClose = @Form_Close
+			.Designer = @This
+			.OnShow = @Form_Show_
+			.OnClose = @Form_Close_
 			.SetBounds 0, 0, 462, 177
 		End With
 		' cmdCancel
@@ -25,7 +27,8 @@
 			.Name = "cmdCancel"
 			.Text = ML("Cancel")
 			.SetBounds 336, 116, 112, 24
-			.OnClick = @cmdCancel_Click
+			.Designer = @This
+			.OnClick = @cmdCancel_Click_
 			.Parent = @This
 		End With
 		' txtVersion
@@ -62,7 +65,8 @@
 			.Text = "..."
 			.SetBounds 416, 16, 32, 24
 			.Caption = "..."
-			.OnClick = @cmdPath_Click
+			.Designer = @This
+			.OnClick = @cmdPath_Click_
 			.Parent = @This
 		End With
 		' cmdOK
@@ -70,7 +74,8 @@
 			.Name = "cmdOK"
 			.Text = ML("OK")
 			.SetBounds 216, 116, 112, 24
-			.OnClick = @cmdOK_Click
+			.Designer = @This
+			.OnClick = @cmdOK_Click_
 			.Parent = @This
 		End With
 		' lblCommandLine
@@ -114,9 +119,14 @@
 	End Constructor
 	
 	Dim Shared frPath As frmPath
+	Dim Shared frPathImageList As frmPath
 	pfPath = @frPath
+	pfPathImageList = @frPathImageList
 '#End Region
 
+Private Sub frmPath.cmdOK_Click_(ByRef Sender As Control)
+	*Cast(frmPath Ptr, Sender.Designer).cmdOK_Click(Sender)
+End Sub
 Private Sub frmPath.cmdOK_Click(ByRef Sender As Control)
 	If Not frPath.ChooseFolder AndAlso Trim(frPath.txtVersion.Text) = "" Then
 		MsgBox ML("Enter version of program!")
@@ -131,54 +141,69 @@ Private Sub frmPath.cmdOK_Click(ByRef Sender As Control)
 	frPath.CloseForm
 End Sub
 
+Private Sub frmPath.cmdCancel_Click_(ByRef Sender As Control)
+	*Cast(frmPath Ptr, Sender.Designer).cmdCancel_Click(Sender)
+End Sub
 Private Sub frmPath.cmdCancel_Click(ByRef Sender As Control)
 	frPath.ModalResult = ModalResults.Cancel
 	frPath.CloseForm
 End Sub
 
+Private Sub frmPath.cmdPath_Click_(ByRef Sender As Control)
+	*Cast(frmPath Ptr, Sender.Designer).cmdPath_Click(Sender)
+End Sub
 Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	With frPath
-		Dim As UString FolderName
-		If .WithType Then
-			FolderName = GetFolderName(.ExeFileName)
-		Else
-			FolderName = GetFolderName(pApp->FileName)
-		End If
-		If .ChooseFolder Then
-			If .BrowseD.Execute Then
-				If StartsWith(.BrowseD.Directory, FolderName) Then
-					.txtPath.Text = "." & Slash & Mid(.BrowseD.Directory, Len(FolderName) + 1)
-				Else
-					.txtPath.Text = .BrowseD.Directory
+		If .WithKey AndAlso .cboType.ItemIndex = 0 Then
+			If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
+				If pfImageManager->lvImages.SelectedItem <> 0 Then
+					.txtPath.Text = pfImageManager->lvImages.SelectedItem->Text(0)
+					.txtVersion.Text = .txtPath.Text
 				End If
 			End If
 		Else
-			.OpenD.Filter = ML("All Files") & "|*.*;"
-			If .OpenD.Execute Then
-				If StartsWith(.OpenD.FileName, FolderName) Then
-					.txtPath.Text = "." & Slash & Mid(.OpenD.FileName, Len(FolderName) + 1)
-				Else
-					.txtPath.Text = .OpenD.FileName
-				End If
-				If EndsWith(.OpenD.FileName, ".chm") OrElse .SetFileNameToVersion Then
-					.txtVersion.Text = Left(GetFileName(.OpenD.FileName), Len(GetFileName(.OpenD.FileName)) - 4)
-				Else
-					.txtVersion.Text = GetFileName(GetFolderName(.OpenD.FileName, False))
-					If .txtVersion.Text = "bin" Then
-						.txtVersion.Text = GetFileName(GetFolderName(GetFolderName(.OpenD.FileName, False), False))
+			Dim As UString FolderName
+			If .WithType Then
+				FolderName = GetFolderName(.ExeFileName)
+			Else
+				FolderName = GetFolderName(pApp->FileName)
+			End If
+			If .ChooseFolder Then
+				If .BrowseD.Execute Then
+					If StartsWith(.BrowseD.Directory, FolderName) Then
+						.txtPath.Text = "." & Slash & Mid(.BrowseD.Directory, Len(FolderName) + 1)
+					Else
+						.txtPath.Text = .BrowseD.Directory
 					End If
 				End If
-				If .WithType Then
-					If EndsWith(LCase(.OpenD.FileName), ".bmp") Then
-						.cboType.ItemIndex = 0
-					ElseIf EndsWith(LCase(.OpenD.FileName), ".cur") Then
-						.cboType.ItemIndex = 1
-					ElseIf EndsWith(LCase(.OpenD.FileName), ".ico") Then
-						.cboType.ItemIndex = 2
-					ElseIf EndsWith(LCase(.OpenD.FileName), ".png") Then
-						.cboType.ItemIndex = 3
+			Else
+				.OpenD.Filter = ML("All Files") & "|*.*;"
+				If .OpenD.Execute Then
+					If StartsWith(.OpenD.FileName, FolderName) Then
+						.txtPath.Text = "." & Slash & Mid(.OpenD.FileName, Len(FolderName) + 1)
 					Else
-						.cboType.ItemIndex = 4
+						.txtPath.Text = .OpenD.FileName
+					End If
+					If EndsWith(.OpenD.FileName, ".chm") OrElse .SetFileNameToVersion Then
+						.txtVersion.Text = Left(GetFileName(.OpenD.FileName), Len(GetFileName(.OpenD.FileName)) - 4)
+					Else
+						.txtVersion.Text = GetFileName(GetFolderName(.OpenD.FileName, False))
+						If .txtVersion.Text = "bin" Then
+							.txtVersion.Text = GetFileName(GetFolderName(GetFolderName(.OpenD.FileName, False), False))
+						End If
+					End If
+					If .WithType Then
+						If EndsWith(LCase(.OpenD.FileName), ".bmp") Then
+							.cboType.ItemIndex = 0
+						ElseIf EndsWith(LCase(.OpenD.FileName), ".cur") Then
+							.cboType.ItemIndex = 1
+						ElseIf EndsWith(LCase(.OpenD.FileName), ".ico") Then
+							.cboType.ItemIndex = 2
+						ElseIf EndsWith(LCase(.OpenD.FileName), ".png") Then
+							.cboType.ItemIndex = 3
+						Else
+							.cboType.ItemIndex = 4
+						End If
 					End If
 				End If
 			End If
@@ -187,6 +212,9 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	End With
 End Sub
 
+Private Sub frmPath.Form_Show_(ByRef Sender As Form)
+	*Cast(frmPath Ptr, Sender.Designer).Form_Show(Sender)
+End Sub
 Private Sub frmPath.Form_Show(ByRef Sender As Form)
 	frPath.lblVersion.Visible = Not frPath.ChooseFolder
 	frPath.txtVersion.Visible = Not frPath.ChooseFolder
@@ -195,9 +223,14 @@ Private Sub frmPath.Form_Show(ByRef Sender As Form)
 	frPath.lblExtensions.Visible = frPath.WithExtensions
 	frPath.txtExtensions.Visible = frPath.WithExtensions
 	frPath.cboType.Visible = frPath.WithType
+	frPath.lblPath.Text = IIf(frPath.WithKey, ML("Resource Name / Path") & ":", ML("Path") & ":")
+	frPath.lblVersion.Text = IIf(frPath.WithType, IIf(frPath.WithKey, ML("Key") & ":", ML("Resource Name") & ":"), ML("Version") & ":")
 	frPath.lblCommandLine.Text = IIf(frPath.WithType, ML("Type") & ":", ML("Command line") & ":")
 End Sub
 
+Private Sub frmPath.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+	*Cast(frmPath Ptr, Sender.Designer).Form_Close(Sender, Action)
+End Sub
 Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	frPath.ChooseFolder = False
 	frPath.WithoutCommandLine = False

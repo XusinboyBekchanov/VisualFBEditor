@@ -10,8 +10,10 @@
 	#include once "mff/Label.bi"
 	#include once "mff/ImageList.bi"
 	#include once "mff/TextBox.bi"
-	
+
 	Using My.Sys.Forms
+	
+	Type frmPathP As frmPath Ptr
 	
 	Type frmImageManager Extends Form
 		Declare Static Sub Form_Show_(ByRef Sender As Form)
@@ -52,6 +54,7 @@
 		Dim As ImageList ImageList1
 		Dim As ImageList Ptr CurrentImageList
 		Dim As My.Sys.Forms.Designer Ptr Des
+		Dim As frmPathP pfrmPath
 		Dim As TextBox txtWidth, txtHeight
 	End Type
 	

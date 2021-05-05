@@ -1511,6 +1511,8 @@ Namespace My.Sys.Forms
 			Dim As HBrush Brush = CreateSolidBrush(GetSysColor(COLOR_BTNFACE))
 			Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
 			Dim Sz As SIZE
+			Dim As Any Ptr ImagesList
+			Dim As Any Ptr ImagesListHandle
 			GetClientRect(Handle, @R)
 			Dim As Any Ptr Ctrl = GetControl(Handle)
 			If Ctrl <> 0 Then
@@ -1521,6 +1523,8 @@ Namespace My.Sys.Forms
 				BitmapWidth = QInteger(ReadPropertyFunc(Ctrl, "BitmapWidth"))
 				BitmapHeight = QInteger(ReadPropertyFunc(Ctrl, "BitmapHeight"))
 				IsToolBarList = QBoolean(ReadPropertyFunc(Ctrl, "List"))
+				ImagesList = ReadPropertyFunc(Ctrl, "ImagesList")
+				If ImagesList <> 0 Then ImagesListHandle = ReadPropertyFunc(ImagesList, "ImageListHandle")
 				RectsCount = 0
 				SelectObject(FHdc, TopMenu->Font.Handle)
 				Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
@@ -1532,11 +1536,11 @@ Namespace My.Sys.Forms
 					ReDim Preserve Ctrls(RectsCount)
 					Ctrls(RectsCount) = ToolBarButtonByIndexFunc(Ctrl, i)
 					If RectsCount = 1 Then
-						Rects(RectsCount).Left = 1
+						Rects(RectsCount).Left = 0
 					Else
-						Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 2
+						Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 1
 					End If
-					Rects(RectsCount).Top = 1
+					Rects(RectsCount).Top = 0
 					Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Width"))
 					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Height")) - 1
 '					If RectsCount = ActiveRect Then
@@ -1544,13 +1548,17 @@ Namespace My.Sys.Forms
 '						.Brush.Color = BGR(174, 215, 247)
 '						.Rectangle Rects(RectsCount)
 '					End If
-'					Dim As BitmapType AddButton
-'					AddButton.LoadFromResourceName("UserControl")
-'					#ifdef __USE_GTK__
-'						
-'					#else
-'						.DrawTransparent Rects(RectsCount).Left + 3, Rects(RectsCount).Top + 3, AddButton.Handle
-'					#endif
+					If ImagesListHandle <> 0 Then
+						Dim As UString ImageKey = WGet(ReadPropertyFunc(Ctrls(RectsCount), "ImageKey"))
+						Dim As Integer ImageIndex = QInteger(ReadPropertyFunc(Ctrls(RectsCount), "ImageIndex"))
+						If ImageKey <> "" Then ImageIndex = ImageListIndexOfFunc(ImagesList, ImageKey)
+						If ImageIndex > -1 Then
+							#ifdef __USE_GTK__
+							#else
+								ImageList_Draw(ImagesListHandle, ImageIndex, FHDc, Rects(RectsCount).Left + 3, Rects(RectsCount).Top + IIf(IsToolBarList, 7, 3), ILD_TRANSPARENT)
+							#endif
+						End If
+					End If
 					Select Case QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style"))
 					Case ToolButtonStyle.tbsDropDown, ToolButtonStyle.tbsWholeDropdown
 						Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
@@ -1580,7 +1588,7 @@ Namespace My.Sys.Forms
 						.LineTo FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom
 						DeleteObject(Pen)
 					Else
-						.TextOut(FHdc, Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 11, (Rects(RectsCount).Right - Rects(RectsCount).Left - Sz.cx - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
+						.TextOut(FHdc, Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - Sz.cx - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
 							IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - Sz.cy) / 2, Rects(RectsCount).Bottom - Sz.cy - 6), ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
 					End If
 				Next i

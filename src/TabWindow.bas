@@ -3510,6 +3510,35 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 	End If
 End Sub
 
+Function TabWindow.GetResNamePath(ByRef ResName As WString) As UString
+	Dim As UString ResourceFile = GetResourceFile(True)
+	Var Fn = FreeFile
+	If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
+		Dim As WString * 1024 FilePath
+		Dim As WString * 1024 sLine
+		Dim As String Image
+		Do Until EOF(Fn)
+			Line Input #Fn, sLine
+			Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
+			If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
+			If Pos1 > 0 Then
+				If Trim(LCase(Left(sLine, Pos1 - 1))) = Trim(LCase(ResName)) Then
+					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
+					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
+					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
+					Close #Fn
+					Return FilePath
+				End If
+			End If
+		Loop
+		Close #Fn
+	End If
+	Return ""
+End Function
+
 Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
 	If Des = 0 OrElse Des->GraphicTypeLoadFromFileFunc = 0 Then Exit Sub
 	Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Ctrl, PropertyName)
@@ -3532,52 +3561,31 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 	End If
 	Dim As UString ResourceFile = GetResourceFile(True)
 	Var Fn = FreeFile
-	If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
-		Dim As WString * 1024 FilePath
-		Dim As WString * 1024 sLine
-		Dim As String Image
-		Do Until EOF(Fn)
-			Line Input #Fn, sLine
-			Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
-			If Pos1 > 0 Then
-				If Trim(LCase(Left(sLine, Pos1 - 1))) = Trim(LCase(ResName)) Then
-					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
-					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
-					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
-					Select Case LCase(TypeName)
-					Case "graphictype"
-						Des->GraphicTypeLoadFromFileFunc(Graphic, FilePath)
-					Case "bitmaptype"
-						Des->BitmapTypeLoadFromFileFunc(Graphic, FilePath)
-					Case "icon"
-						Des->IconLoadFromFileFunc(Graphic, FilePath)
-					Case "cursor"
-						Des->CursorLoadFromFileFunc(Graphic, FilePath)
-					End Select
-					#ifndef __USE_GTK__
-						If Ctrl = Des->DesignControl AndAlso StartsWith(PropertyName, "Graphic") Then
-							Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Des->DesignControl, "Graphic")
-							If Graphic <> 0 Then
-								Dim As Any Ptr Bitm = Des->ReadPropertyFunc(Graphic, "Bitmap")
-								If Bitm <> 0 Then
-									Dim As HBitmap Ptr pHBitmap = Des->ReadPropertyFunc(Bitm, "Handle")
-									If pHBitmap <> 0 Then
-										Des->BitmapHandle = *pHBitmap
-									End If
-								End If
-							End If
-						End If
-					#endif
-					Exit Do
+	Dim As WString * 1024 FilePath = GetResNamePath(ResName)
+	Select Case LCase(TypeName)
+	Case "graphictype"
+		Des->GraphicTypeLoadFromFileFunc(Graphic, FilePath)
+	Case "bitmaptype"
+		Des->BitmapTypeLoadFromFileFunc(Graphic, FilePath)
+	Case "icon"
+		Des->IconLoadFromFileFunc(Graphic, FilePath)
+	Case "cursor"
+		Des->CursorLoadFromFileFunc(Graphic, FilePath)
+	End Select
+	#ifndef __USE_GTK__
+		If Ctrl = Des->DesignControl AndAlso StartsWith(PropertyName, "Graphic") Then
+			Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Des->DesignControl, "Graphic")
+			If Graphic <> 0 Then
+				Dim As Any Ptr Bitm = Des->ReadPropertyFunc(Graphic, "Bitmap")
+				If Bitm <> 0 Then
+					Dim As HBitmap Ptr pHBitmap = Des->ReadPropertyFunc(Bitm, "Handle")
+					If pHBitmap <> 0 Then
+						Des->BitmapHandle = *pHBitmap
+					End If
 				End If
 			End If
-		Loop
-		Close #Fn
-	End If
+		End If
+	#endif
 End Sub
 
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
@@ -4085,6 +4093,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->IconLoadFromFileFunc = DyLibSymbol(Des->MFF, "IconLoadFromFile")
 					Des->CursorLoadFromFileFunc = DyLibSymbol(Des->MFF, "CursorLoadFromFile")
 					Des->ImageListAddFromFileSub = DyLibSymbol(Des->MFF, "ImageListAddFromFile")
+					Des->ImageListIndexOfFunc = DyLibSymbol(Des->MFF, "ImageListIndexOf")
 					Des->TopMenu = @pnlTopMenu
 					'Des->ContextMenu = @mnuForm
 					pnlTopMenu.Visible = False
@@ -4301,6 +4310,24 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								End If
 								Des->MoveControl(Ctrl, lLeft, lTop, lWidth, lHeight)
+							ElseIf (LCase(Mid(*FLine, p + 1, 4)) = "add " OrElse LCase(Mid(*FLine, p + 1, 12)) = "addfromfile ") AndAlso WGet(Des->ReadPropertyFunc(Ctrl, "ClassName")) = "ImageList" Then
+								p1 = InStr(p + 1, *FLine, " ")
+								sRight = ""
+								sText = Mid(*FLine, p1 + 1)
+								p1 = InStr(sText, ",")
+								If p1 > 0 Then
+									sRight = Trim(Mid(sText, p1 + 1))
+									sText = Trim(Left(sText, p1 - 1))
+								End If
+								If StartsWith(sRight, """") Then sRight = Mid(sRight, 2)
+								If EndsWith(sRight, """") Then sRight = Left(sRight, Len(sRight) - 1)
+								If StartsWith(sText, """") Then sText = Mid(sText, 2)
+								If EndsWith(sText, """") Then sText = Left(sText, Len(sText) - 1)
+								If LCase(Mid(*FLine, p + 1, 4)) = "add " Then
+									Des->ImageListAddFromFileSub(Ctrl, GetResNamePath(sText), sRight)
+								Else
+									Des->ImageListAddFromFileSub(Ctrl, sText, sRight)
+								End If
 							End If
 						End If
 					End If

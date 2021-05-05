@@ -199,6 +199,7 @@ Namespace My.Sys.Forms
 		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
 		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef File As WString) As Boolean
 		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef File As WString, ByRef Key As WString = "")
+		ImageListIndexOfFunc As Function(imgList As Any Ptr, ByRef Key As WString) As Integer
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr
@@ -241,6 +242,8 @@ Namespace My.Sys.Forms
 		Dim RectsCount As Integer
 		Dim ActiveRect As Integer
 		Dim MouseRect  As Integer
+		Dim imgList As ImageList
+		Dim Canvas As Canvas
 		Declare        Sub DrawTopMenu
 		Declare        Sub DrawToolBar(Handle As Any Ptr)
 		Declare        Sub DrawThis() 'DC as HDC, R as RECT)

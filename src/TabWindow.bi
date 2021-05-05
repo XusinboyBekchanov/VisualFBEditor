@@ -166,6 +166,7 @@ Private:
 	Dim As Integer lvPropertyCount, lvEventCount
 	Dim As String ArgName, PropertyName, FLin
 	Dim sText As String
+	Dim sRight As String
 	Dim TypeName As String
 	Dim As ComboBoxItem Ptr CBItem
 	Dim bTemp As Boolean
@@ -182,6 +183,7 @@ Public:
 	Args As WStringList
 	Declare Sub FillProperties(ByRef ClassName As WString)
 	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
+	Declare Function GetResNamePath(ByRef ResName As WString) As UString
 	Declare Sub SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
 	Dim bNotDesign As Boolean
 	tn As TreeNode Ptr

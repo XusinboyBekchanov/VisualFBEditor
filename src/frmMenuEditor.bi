@@ -8,8 +8,8 @@
 	Using My.Sys.Forms
 	
 	Type frmMenuEditor Extends Form
-		Declare Static Sub Form_Paint_(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
-		Declare Sub Form_Paint(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
+		Declare Static Sub Form_Paint_(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Static Sub Form_MouseDown_(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Static Sub txtActive_Change_(ByRef Sender As TextBox)
@@ -27,6 +27,7 @@
 		
 		Dim As Picture picActive
 		Dim As TextBox txtActive
+		Dim As ImageList imgList
 		Dim CurrentMenu As Any Ptr
 		Dim CurrentToolBar As Any Ptr
 		Dim Des As My.Sys.Forms.Designer Ptr

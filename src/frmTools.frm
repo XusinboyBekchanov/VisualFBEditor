@@ -210,8 +210,6 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 				'Delete mi
 			End If
 		Next
-		Dim As My.Sys.Drawing.BitmapType Bitm
-		Dim As My.Sys.Drawing.Icon Ico
 		For i As Integer = 0 To .lvTools.ListItems.Count - 1
 			tt = .lvTools.ListItems.Item(i)->Tag
 			If tt = 0 Then Continue For
@@ -224,6 +222,8 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 			Tool->LoadType = tt->LoadType
 			Tool->WaitComplete = tt->WaitComplete
 			pTools->Add Tool
+			Dim As My.Sys.Drawing.BitmapType Bitm
+			Dim As My.Sys.Drawing.Icon Ico
 			#ifdef __USE_GTK__
 			#else
 				Ico.Handle = ExtractIconW(Instance, tt->Path, NULL)

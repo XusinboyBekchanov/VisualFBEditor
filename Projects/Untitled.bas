@@ -38,10 +38,11 @@
 		With ToolBar1
 			.Name = "ToolBar1"
 			.Text = "ToolBar1"
-			.SetBounds 0, 0, 334, 16
+			.SetBounds 0, 0, 334, 18
 			.Align = DockStyle.alTop
 			.List = True
 			.Divider = True
+			.ImagesList = @ImageList1
 			.Parent = @This
 		End With
 		' ToolButton2
@@ -50,6 +51,7 @@
 			.Caption = "dd"
 			.Style = ToolButtonStyle.tbsAutosize
 			.Width = 43
+			.ImageIndex = 0
 			.Parent = @ToolBar1
 		End With
 		' ToolButton3
@@ -58,6 +60,7 @@
 			.Style = ToolButtonStyle.tbsDropDown
 			.Width = 38
 			.Caption = "fdsfdfdfdffff"
+			.ImageIndex = 1
 			.Parent = @ToolBar1
 		End With
 		' MenuItem1
@@ -73,6 +76,8 @@
 			.Style = ToolButtonStyle.tbsWholeDropdown
 			.Left = 152
 			.Width = 58
+			.ImageIndex = 0
+			.ImageKey = "Bookmark"
 			.Parent = @ToolBar1
 		End With
 		' MenuItem2
@@ -167,16 +172,17 @@
 		With ToolButton1
 			.Name = "ToolButton1"
 			.Caption = "154545"
+			.ImageIndex = 0
 			.Parent = @ToolBar1
 		End With
 		' ImageList1
 		With ImageList1
 			.Name = "ImageList1"
 			.SetBounds 170, 100, 16, 16
-			.Add "Start", "Start"
+			.ImageWidth = 16
+			.ImageHeight = 16
 			.Add "Bookmark", "Bookmark"
-			.ImageWidth = 48
-			.ImageHeight = 48
+			.Add "Logo", "Logo"
 			.Parent = @This
 		End With
 		' ImageList2

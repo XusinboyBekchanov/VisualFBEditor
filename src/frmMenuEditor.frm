@@ -58,13 +58,15 @@ Sub frmMenuEditor.GetDropdowns(mi As Any Ptr)
 	End If
 End Sub
 
-Private Sub frmMenuEditor.Form_Paint_(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
+Private Sub frmMenuEditor.Form_Paint_(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_Paint(Sender, Canvas)
 End Sub
-Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.Drawing.Canvas)
+Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	RectsCount = 0
 	Dim As Integer i, BitmapWidth, BitmapHeight
 	Dim As Boolean IsPopup, IsToolBarList
+	Dim As Any Ptr ImagesList
+	Dim As Any Ptr ImagesListHandle
 	With Canvas
 		If CurrentMenu <> 0 AndAlso QWString(Des->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
 		If IsPopup AndAlso CurrentToolBar = 0 Then
@@ -75,6 +77,8 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 			.Pen.Color = BGR(255, 255, 255)
 			.Brush.Color = BGR(255, 255, 255)
 			If CurrentToolBar Then
+				ImagesList = Des->ReadPropertyFunc(CurrentToolBar, "ImagesList")
+				If ImagesList <> 0 Then ImagesListHandle = Des->ReadPropertyFunc(ImagesList, "ImageListHandle")
 				BitmapWidth = QInteger(Des->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
 				BitmapHeight = QInteger(Des->ReadPropertyFunc(CurrentToolBar, "BitmapHeight"))
 				IsToolBarList = QBoolean(Des->ReadPropertyFunc(CurrentToolBar, "List"))
@@ -124,20 +128,26 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, Canvas As My.Sys.D
 						.Line Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2, Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
 						.FloodFill Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2), 0, fsBorder
 					End Select
-'					Dim As BitmapType AddButton
-'					AddButton.LoadFromResourceName("UserControl")
-'					#ifdef __USE_GTK__
-'						
-'					#else
-'						.DrawTransparent Rects(RectsCount).Left + 3, Rects(RectsCount).Top + 3, AddButton.Handle
-'					#endif
+					If ImagesListHandle <> 0 Then
+						Dim As Any Ptr Image
+						Dim As UString ImageKey = WGet(Des->ReadPropertyFunc(Ctrls(RectsCount), "ImageKey"))
+						Dim As Integer ImageIndex = QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "ImageIndex"))
+						If ImageKey <> "" Then ImageIndex = Des->ImageListIndexOfFunc(ImagesList, ImageKey)
+						If ImageIndex > -1 Then
+							#ifdef __USE_GTK__
+								
+							#else
+								ImageList_Draw(ImagesListHandle, ImageIndex, .Handle, Rects(RectsCount).Left + 3, Rects(RectsCount).Top + IIf(IsToolBarList, 7, 3), ILD_TRANSPARENT)
+							#endif
+						End If
+					End If
 					If QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsSeparator Then
 						.Pen.Color = BGR(0, 0, 0)
 						.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Bottom - 5
 						.Pen.Color = BGR(255, 255, 255)
 						.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom - 5
 					Else
-						.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 11, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
+						.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
 							IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
 					End If
 				Else
@@ -455,11 +465,11 @@ Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 		Repaint
 		If CBool(CurrentToolBar <> 0) AndAlso CBool(ActiveRect < TopCount) AndAlso QBoolean(Des->ReadPropertyFunc(CurrentToolBar, "List")) Then
 			Dim As Integer BitmapWidth = QInteger(Des->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
-			picActive.Left = Rects(ActiveRect).Left + 7 + BitmapWidth
+			picActive.Left = Rects(ActiveRect).Left + 3 + BitmapWidth
 			If ActiveCtrl <> 0 AndAlso QInteger(Des->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(Des->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown Then
-				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - 15 - BitmapWidth - 7
+				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - 15 - BitmapWidth - 3
 			Else
-				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - BitmapWidth - 7
+				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - BitmapWidth - 3
 			End If
 		Else
 			picActive.Left = Rects(ActiveRect).Left + 1

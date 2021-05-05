@@ -283,6 +283,7 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	ExeFileName = GetFullPath(GetExeFileName(MainFile, sFirstLine), MainFile)
 	FolderName = GetFolderName(ExeFileName)
 	If FolderName = "" Then ExeFileName = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ExeFileName
+	Dim As Dictionary ResNamePaths
 	Var Fn = FreeFile, Pos1 = 0
 	If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
 		Dim As WString * 1024 FilePath
@@ -299,11 +300,15 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 				FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
 				If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
 				If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
-				ImageList1.AddFromFile GetRelativePath(FilePath, ResourceFile), Trim(Left(sLine, Pos1 - 1))
-				lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
-				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
-				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
-				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
+				If CurrentImageList Then
+					ResNamePaths.Add Trim(Left(sLine, Pos1 - 1)), GetRelativePath(FilePath, ResourceFile)
+				Else
+					ImageList1.AddFromFile GetRelativePath(FilePath, ResourceFile), Trim(Left(sLine, Pos1 - 1))
+					lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
+					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
+					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
+					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
+				End If
 			End If
 		Loop
 		Close #Fn
@@ -312,7 +317,8 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 		lblResourceFile.Text = ML("File") & ": " & ResourceFile
 	Else
 		lblResourceFile.Text = ""
-		'?1, QWString(Des->ReadPropertyFunc(CurrentImageList, "Items"))
+		lvImages.Columns.Column(0)->Text = ML("Key")
+		lvImages.Columns.Column(2)->Text = ML("Resource Name / Path")
 		txtWidth.Text = Str(QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageWidth")))
 		txtHeight.Text = Str(QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageHeight")))
 		opt16x16.Checked = False
@@ -329,6 +335,7 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 			optCustom.Checked = True
 		End If
 		optCustom_Click(optCustom)
+		?1, WGet(Des->ReadPropertyFunc(CurrentImageList, "Items"))
 	End If
 End Sub
 
@@ -436,18 +443,26 @@ Private Sub frmImageManager.lvImages_ItemActivate_(ByRef Sender As ListView, ByV
 End Sub
 Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	If lvImages.SelectedItem = 0 Then Exit Sub
-	pfPath->txtVersion.Text = lvImages.SelectedItem->Text(0)
-	pfPath->txtPath.Text = lvImages.SelectedItem->Text(2)
-	pfPath->lblCommandLine.Text = ML("Type") & ":"
-	pfPath->cboType.ItemIndex = pfPath->cboType.IndexOf(lvImages.SelectedItem->Text(1))
-	pfPath->WithType = True
-	pfPath->SetFileNameToVersion = True
-	pfPath->ExeFileName = ExeFileName
-	If pfPath->ShowModal() = ModalResults.OK Then
-		If lvImages.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfPath->txtVersion.Text) = -1 Then
-			lvImages.SelectedItem->Text(0) = pfPath->txtVersion.Text
-			lvImages.SelectedItem->Text(1) = pfPath->cboType.Text
-			lvImages.SelectedItem->Text(2) = pfPath->txtPath.Text
+	pfrmPath->txtVersion.Text = lvImages.SelectedItem->Text(0)
+	pfrmPath->txtPath.Text = lvImages.SelectedItem->Text(2)
+	pfrmPath->lblCommandLine.Text = ML("Type") & ":"
+	pfrmPath->cboType.ItemIndex = pfrmPath->cboType.IndexOf(lvImages.SelectedItem->Text(1))
+	pfrmPath->WithType = True
+	pfrmPath->WithKey = CurrentImageList <> 0
+	pfrmPath->SetFileNameToVersion = True
+	pfrmPath->ExeFileName = ExeFileName
+	If pfrmPath->ShowModal() = ModalResults.OK Then
+		If lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
+			Var ImageIndex = ImageList1.IndexOf(pfrmPath->txtVersion.Text)
+			If ImageIndex = -1 Then
+				ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+				lvImages.SelectedItem->ImageIndex = lvImages.ListItems.Count - 1
+			Else
+				lvImages.SelectedItem->ImageIndex = ImageIndex
+			End If
+			lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text
+			lvImages.SelectedItem->Text(1) = pfrmPath->cboType.Text
+			lvImages.SelectedItem->Text(2) = pfrmPath->txtPath.Text
 		Else
 			MsgBox ML("This version is exists!")
 		End If
@@ -474,18 +489,21 @@ End Sub
 Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
 	Select Case Button.Name
 	Case "Add"
-		pfPath->txtVersion.Text = ""
-		pfPath->txtPath.Text = ""
-		pfPath->lblCommandLine.Text = ML("Type") & ":"
-		pfPath->cboType.ItemIndex = 0
-		pfPath->WithType = True
-		pfPath->SetFileNameToVersion = True
-		pfPath->ExeFileName = ExeFileName
-		If pfPath->ShowModal() = ModalResults.OK Then
-			If lvImages.ListItems.IndexOf(pfPath->txtVersion.Text) = -1 Then
-				lvImages.ListItems.Add pfPath->txtVersion.Text
-				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = pfPath->cboType.Text
-				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = pfPath->txtPath.Text
+		pfrmPath->txtVersion.Text = ""
+		pfrmPath->txtPath.Text = ""
+		pfrmPath->lblCommandLine.Text = ML("Type") & ":"
+		pfrmPath->cboType.ItemIndex = 0
+		pfrmPath->WithType = True
+		pfrmPath->WithKey = CurrentImageList <> 0
+		pfrmPath->SetFileNameToVersion = True
+		pfrmPath->ExeFileName = ExeFileName
+		If pfrmPath->ShowModal() = ModalResults.OK Then
+			If lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
+				ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+				lvImages.ListItems.Add pfrmPath->txtVersion.Text
+				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
+				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = pfrmPath->cboType.Text
+				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = pfrmPath->txtPath.Text
 				lvImages.SelectedItemIndex = lvImages.ListItems.Count - 1
 			Else
 				MsgBox ML("This version is exists!")
@@ -532,21 +550,23 @@ Private Sub frmImageManager.Form_Create_(ByRef Sender As Control)
 End Sub
 Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 	If CurrentImageList Then
+		pfrmPath = pfPathImageList
 		gbImagePreview.Caption = ML("ImageList Properties")
 		pnlOptions.Visible = True
 		imgImage.Visible = False
-		pfPath->cboType.Clear
-		pfPath->cboType.AddItem "Resource"
-		pfPath->cboType.AddItem "File"
+		pfrmPath->cboType.Clear
+		pfrmPath->cboType.AddItem "Resource"
+		pfrmPath->cboType.AddItem "File"
 	Else
+		pfrmPath = pfPath
 		pnlOptions.Visible = False
 		imgImage.Visible = True
-		pfPath->cboType.Clear
-		pfPath->cboType.AddItem "BITMAP"
-		pfPath->cboType.AddItem "CURSOR"
-		pfPath->cboType.AddItem "ICON"
-		pfPath->cboType.AddItem "PNG"
-		pfPath->cboType.AddItem "RCDATA"
+		pfrmPath->cboType.Clear
+		pfrmPath->cboType.AddItem "BITMAP"
+		pfrmPath->cboType.AddItem "CURSOR"
+		pfrmPath->cboType.AddItem "ICON"
+		pfrmPath->cboType.AddItem "PNG"
+		pfrmPath->cboType.AddItem "RCDATA"
 	End If
 End Sub
 
