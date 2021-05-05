@@ -68,7 +68,7 @@
 		#ifdef __USE_GTK__
 			If Dir(ExePath & "/Resources/VisualFBEditor.ico")<>"" Then lblIcon.Graphic.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico", 48, 48)
 		#else
-			lblIcon.Graphic.Icon.LoadFromResourceID(1, 48, 48)
+			lblIcon.Graphic.Icon.LoadFromResourceID(1, , 48, 48)
 		#endif
 		lblIcon.SetBounds 18, 10, 48, 48
 		lblIcon.Parent = @This

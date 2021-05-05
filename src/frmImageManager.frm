@@ -278,6 +278,7 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	Dim As UString MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode), FolderName
 	Dim sFirstLine As UString = GetFirstCompileLine(MainFile, Project)
 	lvImages.ListItems.Clear
+	ImageList1.Clear
 	ResourceFile = GetResourceFile(WithoutMainNode)
 	ExeFileName = GetFullPath(GetExeFileName(MainFile, sFirstLine), MainFile)
 	FolderName = GetFolderName(ExeFileName)
@@ -307,8 +308,11 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 		Loop
 		Close #Fn
 	End If
-	lblResourceFile.Text = ML("File") & ": " & ResourceFile
-	If CurrentImageList Then
+	If CurrentImageList = 0 Then
+		lblResourceFile.Text = ML("File") & ": " & ResourceFile
+	Else
+		lblResourceFile.Text = ""
+		'?1, QWString(Des->ReadPropertyFunc(CurrentImageList, "Items"))
 		txtWidth.Text = Str(QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageWidth")))
 		txtHeight.Text = Str(QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageHeight")))
 		opt16x16.Checked = False
@@ -493,10 +497,13 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 		Dim i As Integer = lvImages.SelectedItemIndex
 		If i < 1 Then Exit Sub
 		Dim As ListViewItem Ptr ItemCurr = lvImages.SelectedItem, ItemPrev = lvImages.ListItems.Item(i - 1)
+		Dim As Integer TempIndex = ItemPrev->ImageIndex
 		Dim As UString Temp0 = ItemPrev->Text(0), Temp1 = ItemPrev->Text(1), Temp2 = ItemPrev->Text(2)
+		ItemPrev->ImageIndex = ItemCurr->ImageIndex
 		ItemPrev->Text(0) = ItemCurr->Text(0)
 		ItemPrev->Text(1) = ItemCurr->Text(1)
 		ItemPrev->Text(2) = ItemCurr->Text(2)
+		ItemCurr->ImageIndex = TempIndex
 		ItemCurr->Text(0) = Temp0
 		ItemCurr->Text(1) = Temp1
 		ItemCurr->Text(2) = Temp2
@@ -505,10 +512,13 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 		Dim i As Integer = lvImages.SelectedItemIndex
 		If i < 0 OrElse i >= lvImages.ListItems.Count - 1 Then Exit Sub
 		Dim As ListViewItem Ptr ItemCurr = lvImages.SelectedItem, ItemNext = lvImages.ListItems.Item(i + 1)
+		Dim As Integer TempIndex = ItemNext->ImageIndex
 		Dim As UString Temp0 = ItemNext->Text(0), Temp1 = ItemNext->Text(1), Temp2 = ItemNext->Text(2)
+		ItemNext->ImageIndex = ItemCurr->ImageIndex
 		ItemNext->Text(0) = ItemCurr->Text(0)
 		ItemNext->Text(1) = ItemCurr->Text(1)
 		ItemNext->Text(2) = ItemCurr->Text(2)
+		ItemCurr->ImageIndex = TempIndex
 		ItemCurr->Text(0) = Temp0
 		ItemCurr->Text(1) = Temp1
 		ItemCurr->Text(2) = Temp2
@@ -525,6 +535,9 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 		gbImagePreview.Caption = ML("ImageList Properties")
 		pnlOptions.Visible = True
 		imgImage.Visible = False
+		pfPath->cboType.Clear
+		pfPath->cboType.AddItem "Resource"
+		pfPath->cboType.AddItem "File"
 	Else
 		pnlOptions.Visible = False
 		imgImage.Visible = True

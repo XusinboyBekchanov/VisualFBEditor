@@ -837,7 +837,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 			End If
 			If pTemp <> 0 Then
 				Select Case LCase(.TypeName)
-				Case "wstring", "wstring ptr": WLet(FLine, QWString(pTemp))
+				Case "wstring", "wstring ptr", "wstringlist", "dictionary": WLet(FLine, QWString(pTemp))
 				Case "string", "zstring": WLet(FLine, QZString(pTemp))
 				Case "control ptr", "control": WLet(FLine, QWString(Des->ReadPropertyFunc(pTemp, "Name")))
 				Case "integer": iTemp = QInteger(pTemp)
@@ -908,7 +908,7 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 		If te = 0 Then Return *FLine
 		With *te
 			Select Case LCase(.TypeName)
-			Case "wstring", "string", "zstring": WLet(FLine, QWString(pTemp)): If InStr(*FLine, """") = 0 Then WLetEx FLine, """" & *FLine & """", True
+			Case "wstring", "string", "zstring", "wstringlist", "dictionary": WLet(FLine, QWString(pTemp)): If InStr(*FLine, """") = 0 Then WLetEx FLine, """" & *FLine & """", True
 			Case "icon", "bitmaptype", "cursor", "graphictype": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
 			Case "integer": iTemp = QInteger(pTemp)
 				WLet(FLine, WStr(iTemp))
@@ -998,7 +998,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 			End If
 		Case "Property"
 			Select Case LCase(te->TypeName)
-			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype", "graphictype"
+			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype", "graphictype", "wstringlist", "dictionary"
 				'?"VFE2:" & *FLine
 				If StartsWith(*FLine3, """") Then WLet(FLine4, Mid(*FLine3, 2)): WLet(FLine3, *FLine4)
 				If EndsWith(*FLine3, """") Then WLet(FLine4, Left(*FLine3, Len(*FLine3) - 1)): WLet(FLine3, *FLine4)
@@ -4549,7 +4549,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	cboFunction.Anchor.Right = asAnchor
 	cboFunction.OnSelected = @cboFunction_Change
 	cboFunction.Sort = True
-	cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub"
+	cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
 	cboFunction.ItemIndex = 0
 	pnlForm.Visible = False
 	splForm.Visible = False

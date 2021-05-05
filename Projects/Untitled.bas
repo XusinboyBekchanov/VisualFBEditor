@@ -173,8 +173,8 @@
 		With ImageList1
 			.Name = "ImageList1"
 			.SetBounds 170, 100, 16, 16
-			.Items = "Start: Start" & NewLine & _
-			"Key: Key" & Chr(13, 10) & _
+			.Add "Start", "Start"
+			.Add "Bookmark", "Bookmark"
 			.ImageWidth = 48
 			.ImageHeight = 48
 			.Parent = @This
