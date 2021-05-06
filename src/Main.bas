@@ -2594,13 +2594,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Functions.Add te->Name, te
 					End If
 				ElseIf inType OrElse inUnion Then
-					If StartsWith(bTrimLCase & " ", "public: ") Then
+					If bTrimLCase = "public" Then
 						inPubPriPro = 0
 						Comment = ""
-					ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
+					ElseIf bTrimLCase = "private" Then
 						inPubPriPro = 1
 						Comment = ""
-					ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
+					ElseIf bTrimLCase = "protected" Then
 						inPubPriPro = 2
 						Comment = ""
 					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse _

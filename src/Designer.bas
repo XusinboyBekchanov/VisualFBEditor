@@ -1555,7 +1555,7 @@ Namespace My.Sys.Forms
 						If ImageIndex > -1 Then
 							#ifdef __USE_GTK__
 							#else
-								ImageList_Draw(ImagesListHandle, ImageIndex, FHDc, Rects(RectsCount).Left + 3, Rects(RectsCount).Top + IIf(IsToolBarList, 7, 3), ILD_TRANSPARENT)
+								ImageList_Draw(ImagesListHandle, ImageIndex, FHDc, Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 7), ILD_TRANSPARENT)
 							#endif
 						End If
 					End If

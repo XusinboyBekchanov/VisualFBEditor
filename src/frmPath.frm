@@ -128,32 +128,32 @@ Private Sub frmPath.cmdOK_Click_(ByRef Sender As Control)
 	*Cast(frmPath Ptr, Sender.Designer).cmdOK_Click(Sender)
 End Sub
 Private Sub frmPath.cmdOK_Click(ByRef Sender As Control)
-	If Not frPath.ChooseFolder AndAlso Trim(frPath.txtVersion.Text) = "" Then
+	If Not ChooseFolder AndAlso Trim(txtVersion.Text) = "" Then
 		MsgBox ML("Enter version of program!")
-		frPath.BringToFront()
+		This.BringToFront()
 		Exit Sub
-	ElseIf Trim(frPath.txtPath.Text) = "" Then
+	ElseIf Trim(This.txtPath.Text) = "" Then
 		MsgBox ML("Select path of program!")
-		frPath.BringToFront()
+		This.BringToFront()
 		Exit Sub
 	End If
-	frPath.ModalResult = ModalResults.OK
-	frPath.CloseForm
+	This.ModalResult = ModalResults.OK
+	This.CloseForm
 End Sub
 
 Private Sub frmPath.cmdCancel_Click_(ByRef Sender As Control)
 	*Cast(frmPath Ptr, Sender.Designer).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmPath.cmdCancel_Click(ByRef Sender As Control)
-	frPath.ModalResult = ModalResults.Cancel
-	frPath.CloseForm
+	This.ModalResult = ModalResults.Cancel
+	This.CloseForm
 End Sub
 
 Private Sub frmPath.cmdPath_Click_(ByRef Sender As Control)
 	*Cast(frmPath Ptr, Sender.Designer).cmdPath_Click(Sender)
 End Sub
 Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
-	With frPath
+	With This
 		If .WithKey AndAlso .cboType.ItemIndex = 0 Then
 			If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
 				If pfImageManager->lvImages.SelectedItem <> 0 Then
@@ -216,24 +216,24 @@ Private Sub frmPath.Form_Show_(ByRef Sender As Form)
 	*Cast(frmPath Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub frmPath.Form_Show(ByRef Sender As Form)
-	frPath.lblVersion.Visible = Not frPath.ChooseFolder
-	frPath.txtVersion.Visible = Not frPath.ChooseFolder
-	frPath.lblCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder)
-	frPath.txtCommandLine.Visible = Not (frPath.WithoutCommandLine OrElse frPath.ChooseFolder OrElse frPath.WithType)
-	frPath.lblExtensions.Visible = frPath.WithExtensions
-	frPath.txtExtensions.Visible = frPath.WithExtensions
-	frPath.cboType.Visible = frPath.WithType
-	frPath.lblPath.Text = IIf(frPath.WithKey, ML("Resource Name / Path") & ":", ML("Path") & ":")
-	frPath.lblVersion.Text = IIf(frPath.WithType, IIf(frPath.WithKey, ML("Key") & ":", ML("Resource Name") & ":"), ML("Version") & ":")
-	frPath.lblCommandLine.Text = IIf(frPath.WithType, ML("Type") & ":", ML("Command line") & ":")
+	lblVersion.Visible = Not ChooseFolder
+	txtVersion.Visible = Not ChooseFolder
+	lblCommandLine.Visible = Not (WithoutCommandLine OrElse ChooseFolder)
+	txtCommandLine.Visible = Not (WithoutCommandLine OrElse ChooseFolder OrElse WithType)
+	lblExtensions.Visible = WithExtensions
+	txtExtensions.Visible = WithExtensions
+	cboType.Visible = WithType
+	lblPath.Text = IIf(WithKey, ML("Resource Name / Path") & ":", ML("Path") & ":")
+	lblVersion.Text = IIf(WithType, IIf(WithKey, ML("Key") & ":", ML("Resource Name") & ":"), ML("Version") & ":")
+	lblCommandLine.Text = IIf(WithType, ML("Type") & ":", ML("Command line") & ":")
 End Sub
 
 Private Sub frmPath.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
 	*Cast(frmPath Ptr, Sender.Designer).Form_Close(Sender, Action)
 End Sub
 Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	frPath.ChooseFolder = False
-	frPath.WithoutCommandLine = False
-	frPath.WithExtensions = False
-	frPath.WithType = False
+	ChooseFolder = False
+	WithoutCommandLine = False
+	WithExtensions = False
+	WithType = False
 End Sub

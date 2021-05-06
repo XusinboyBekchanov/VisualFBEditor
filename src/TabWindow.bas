@@ -2331,6 +2331,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfMenuEditor->Show *pfrmMain
 	Case "ImageList"
 		pfImageListEditor->Des = @Sender
+		pfImageListEditor->tb = tb
 		pfImageListEditor->CurrentImageList = Ctrl
 		pfImageListEditor->Caption = ML("ImageList Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
 		pfImageListEditor->Show *pfrmMain
@@ -3510,12 +3511,13 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 	End If
 End Sub
 
-Function TabWindow.GetResNamePath(ByRef ResName As WString) As UString
-	Dim As UString ResourceFile = GetResourceFile(True)
+Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString) As UString
+	'Dim As UString ResourceFile = GetResourceFile(True)
 	Var Fn = FreeFile
 	If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
 		Dim As WString * 1024 FilePath
 		Dim As WString * 1024 sLine
+		Dim As Integer Pos1
 		Dim As String Image
 		Do Until EOF(Fn)
 			Line Input #Fn, sLine
@@ -3529,6 +3531,7 @@ Function TabWindow.GetResNamePath(ByRef ResName As WString) As UString
 					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
 					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
 					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
+					FilePath = GetRelativePath(FilePath, ResourceFile)
 					Close #Fn
 					Return FilePath
 				End If
@@ -3561,7 +3564,7 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 	End If
 	Dim As UString ResourceFile = GetResourceFile(True)
 	Var Fn = FreeFile
-	Dim As WString * 1024 FilePath = GetResNamePath(ResName)
+	Dim As WString * 1024 FilePath = GetResNamePath(ResName, ResourceFile)
 	Select Case LCase(TypeName)
 	Case "graphictype"
 		Des->GraphicTypeLoadFromFileFunc(Graphic, FilePath)
@@ -3595,6 +3598,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim SelControlName As String
 	Dim SelControlNames As WStringList
 	Dim bSelControlFind As Boolean
+	Dim As UString ResourceFile = GetResourceFile(True)
 	If CInt(NotForms = False) AndAlso CInt(Des) Then
 		With *Des
 			If .SelectedControl <> 0 Then SelControlName = WGet(.ReadPropertyFunc(.SelectedControl, "Name"))
@@ -4094,6 +4098,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->CursorLoadFromFileFunc = DyLibSymbol(Des->MFF, "CursorLoadFromFile")
 					Des->ImageListAddFromFileSub = DyLibSymbol(Des->MFF, "ImageListAddFromFile")
 					Des->ImageListIndexOfFunc = DyLibSymbol(Des->MFF, "ImageListIndexOf")
+					Des->ImageListClearSub = DyLibSymbol(Des->MFF, "ImageListClear")
 					Des->TopMenu = @pnlTopMenu
 					'Des->ContextMenu = @mnuForm
 					pnlTopMenu.Visible = False
@@ -4324,9 +4329,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If StartsWith(sText, """") Then sText = Mid(sText, 2)
 								If EndsWith(sText, """") Then sText = Left(sText, Len(sText) - 1)
 								If LCase(Mid(*FLine, p + 1, 4)) = "add " Then
-									Des->ImageListAddFromFileSub(Ctrl, GetResNamePath(sText), sRight)
+									Des->ImageListAddFromFileSub(Ctrl, GetResNamePath(sText, ResourceFile), sRight)
 								Else
-									Des->ImageListAddFromFileSub(Ctrl, sText, sRight)
+									Des->ImageListAddFromFileSub(Ctrl, GetRelativePath(sText, ResourceFile), sRight)
 								End If
 							End If
 						End If

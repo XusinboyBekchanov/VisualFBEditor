@@ -16,6 +16,8 @@
 		Declare Sub MenuItem9_Click(ByRef Sender As MenuItem)
 		Declare Static Sub MenuItem10_Click_(ByRef Sender As MenuItem)
 		Declare Sub MenuItem10_Click(ByRef Sender As MenuItem)
+		Declare Static Sub ToolBar1_ButtonClick_(ByRef Sender As ToolBar,ByRef Button As ToolButton)
+		Declare Sub ToolBar1_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
 		Declare Constructor
 		
 		Dim As ToolBar ToolBar1
@@ -38,17 +40,20 @@
 		With ToolBar1
 			.Name = "ToolBar1"
 			.Text = "ToolBar1"
-			.SetBounds 0, 0, 334, 18
+			.SetBounds 0, 0, 334, 28
 			.Align = DockStyle.alTop
-			.List = True
+			.List = false
 			.Divider = True
 			.ImagesList = @ImageList1
+			.BackColor = 15790320
+			.Designer = @This
+			.OnButtonClick = @ToolBar1_ButtonClick_
 			.Parent = @This
 		End With
 		' ToolButton2
 		With ToolButton2
 			.Name = "ToolButton2"
-			.Caption = "dd"
+			.Caption = "1"
 			.Style = ToolButtonStyle.tbsAutosize
 			.Width = 43
 			.ImageIndex = 0
@@ -59,7 +64,7 @@
 			.Name = "ToolButton3"
 			.Style = ToolButtonStyle.tbsDropDown
 			.Width = 38
-			.Caption = "fdsfdfdfdffff"
+			.Caption = "2"
 			.ImageIndex = 1
 			.Parent = @ToolBar1
 		End With
@@ -72,12 +77,12 @@
 		' ToolButton4
 		With ToolButton4
 			.Name = "ToolButton4"
-			.Caption = "dsdsdff"
-			.Style = ToolButtonStyle.tbsWholeDropdown
-			.Left = 152
-			.Width = 58
-			.ImageIndex = 0
-			.ImageKey = "Bookmark"
+			.Caption = ""
+			.Style = ToolButtonStyle.tbsAutosize
+			.Left = 87
+			.Width = 67
+			.ImageIndex = 3
+			.ImageKey = "Breakpoint"
 			.Parent = @ToolBar1
 		End With
 		' MenuItem2
@@ -171,24 +176,29 @@
 		' ToolButton1
 		With ToolButton1
 			.Name = "ToolButton1"
-			.Caption = "154545"
-			.ImageIndex = 0
+			.Caption = ""
+			.ImageIndex = 2
+			.ImageKey = "Categorized"
 			.Parent = @ToolBar1
 		End With
 		' ImageList1
 		With ImageList1
 			.Name = "ImageList1"
-			.SetBounds 170, 100, 16, 16
+			.SetBounds 160, 100, 16, 16
 			.ImageWidth = 16
 			.ImageHeight = 16
 			.Add "Bookmark", "Bookmark"
 			.Add "Logo", "Logo"
+			.AddFromFile "..\Resources\Categorized.png", "Categorized"
+			.Add "Breakpoint", "Breakpoint"
+			.Add "Close", "Close"
 			.Parent = @This
 		End With
 		' ImageList2
 		With ImageList2
 			.Name = "ImageList2"
 			.SetBounds 160, 150, 16, 16
+			.Add "Bookmark", "Bookmark"
 			.Parent = @This
 		End With
 	End Constructor
@@ -213,5 +223,12 @@ Private Sub Form1.MenuItem10_Click_(ByRef Sender As MenuItem)
 	*Cast(Form1 Ptr, Sender.Designer).MenuItem10_Click(Sender)
 End Sub
 Private Sub Form1.MenuItem10_Click(ByRef Sender As MenuItem)
+	
+End Sub
+
+Private Sub Form1.ToolBar1_ButtonClick_(ByRef Sender As ToolBar,ByRef Button As ToolButton)
+	*Cast(Form1 Ptr, Sender.Designer).ToolBar1_ButtonClick(Sender, Button)
+End Sub
+Private Sub Form1.ToolBar1_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
 	
 End Sub

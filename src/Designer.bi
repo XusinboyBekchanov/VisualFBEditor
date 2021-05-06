@@ -200,6 +200,7 @@ Namespace My.Sys.Forms
 		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef File As WString) As Boolean
 		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef File As WString, ByRef Key As WString = "")
 		ImageListIndexOfFunc As Function(imgList As Any Ptr, ByRef Key As WString) As Integer
+		ImageListClearSub As Sub(imgList As Any Ptr)
 		FLibs          As WStringList
 		Dim MFF As Any Ptr
 		Parent As Control Ptr

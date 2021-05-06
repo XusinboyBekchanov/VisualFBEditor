@@ -2,8 +2,8 @@
 
 #define VER_FILEDESCRIPTION_STR     "Form1\0"
 
-#define VER_FILEVERSION             1,0,0,110
-#define VER_FILEVERSION_STR         "1.0.0.110\0"
+#define VER_FILEVERSION             1,0,0,127
+#define VER_FILEVERSION_STR         "1.0.0.127\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
@@ -49,3 +49,6 @@ BEGIN
 END
 Bookmark PNG "..\Resources\Bookmark.png"
 Logo PNG "..\Resources\Logo.png"
+Breakpoint PNG "..\Resources\Breakpoint.png"
+File PNG "..\Resources\File.png"
+Close PNG "..\Resources\Close.png"

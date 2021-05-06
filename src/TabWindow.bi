@@ -183,7 +183,6 @@ Public:
 	Args As WStringList
 	Declare Sub FillProperties(ByRef ClassName As WString)
 	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
-	Declare Function GetResNamePath(ByRef ResName As WString) As UString
 	Declare Sub SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
 	Dim bNotDesign As Boolean
 	tn As TreeNode Ptr
@@ -257,6 +256,8 @@ Common Shared As PopupMenu Ptr pmnuCode
 
 Declare Sub MoveCloseButtons()
 
+Declare Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString) As UString
+	
 Declare Function FileNameExists(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
 
 Declare Function GetTab(ByRef FileName As WString) As TabWindow Ptr

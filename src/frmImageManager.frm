@@ -284,36 +284,36 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	FolderName = GetFolderName(ExeFileName)
 	If FolderName = "" Then ExeFileName = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ExeFileName
 	Dim As Dictionary ResNamePaths
-	Var Fn = FreeFile, Pos1 = 0
-	If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
-		Dim As WString * 1024 FilePath
-		Dim As WString * 1024 sLine
-		Dim As String Image
-		Do Until EOF(Fn)
-			Line Input #Fn, sLine
-			Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
-			If Pos1 > 0 Then
-				FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
-				If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
-				If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
-				If CurrentImageList Then
-					ResNamePaths.Add Trim(Left(sLine, Pos1 - 1)), GetRelativePath(FilePath, ResourceFile)
-				Else
-					ImageList1.AddFromFile GetRelativePath(FilePath, ResourceFile), Trim(Left(sLine, Pos1 - 1))
-					lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
-					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
-					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
-					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
-				End If
-			End If
-		Loop
-		Close #Fn
-	End If
 	If CurrentImageList = 0 Then
+		Var Fn = FreeFile, Pos1 = 0
+		If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
+			Dim As WString * 1024 FilePath
+			Dim As WString * 1024 sLine
+			Dim As String Image
+			Do Until EOF(Fn)
+				Line Input #Fn, sLine
+				Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
+				If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
+				If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
+				If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
+				If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
+				If Pos1 > 0 Then
+					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
+					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
+					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
+					If CurrentImageList Then
+						ResNamePaths.Add Trim(Left(sLine, Pos1 - 1)), GetRelativePath(FilePath, ResourceFile)
+					Else
+						ImageList1.AddFromFile GetRelativePath(FilePath, ResourceFile), Trim(Left(sLine, Pos1 - 1))
+						lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
+						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
+						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
+						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
+					End If
+				End If
+			Loop
+			Close #Fn
+		End If
 		lblResourceFile.Text = ML("File") & ": " & ResourceFile
 	Else
 		lblResourceFile.Text = ""
@@ -335,7 +335,54 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 			optCustom.Checked = True
 		End If
 		optCustom_Click(optCustom)
-		?1, WGet(Des->ReadPropertyFunc(CurrentImageList, "Items"))
+		If tb Then
+			Dim As EditControlLine Ptr ECLine
+			Dim As Boolean bStarted, bInWith
+			Dim As Integer p1
+			Dim As String sRight, sText
+			Dim As UString DesignControlName = QWString(Des->ReadPropertyFunc(Des->DesignControl, "Name"))
+			Dim As UString ImageListName = QWString(Des->ReadPropertyFunc(CurrentImageList, "Name"))
+			Dim As UString b, bOrig
+			For i As Integer = 0 To tb->txtCode.FLines.Count - 1
+				ECLine = tb->txtCode.FLines.Items[i]
+				b = LTrim(LCase(*ECLine->Text), Any !"\t ")
+				bOrig = LTrim(*ECLine->Text, Any !"\t ")
+				If StartsWith(b, LCase("Constructor " & DesignControlName)) Then
+					bStarted = True
+				ElseIf bStarted Then
+					If StartsWith(b, LCase("End Constructor")) Then
+						Exit For
+					ElseIf StartsWith(b & " ", LCase("With " & ImageListName & " ")) Then
+						bInWith = True
+					ElseIf bInWith AndAlso StartsWith(b, LCase("End With")) Then
+						bInWith = False
+					ElseIf StartsWith(b, LCase(ImageListName & ".Add ")) OrElse StartsWith(b, LCase(ImageListName & ".AddFromFile ")) OrElse bInWith AndAlso (StartsWith(b, LCase(".Add ")) OrElse StartsWith(b, LCase(".AddFromFile "))) Then
+						p1 = InStr(bOrig, " ")
+						sRight = ""
+						sText = Mid(bOrig, p1 + 1)
+						p1 = InStr(sText, ",")
+						If p1 > 0 Then
+							sRight = Trim(Mid(sText, p1 + 1))
+							sText = Trim(Left(sText, p1 - 1))
+						End If
+						If StartsWith(sRight, """") Then sRight = Mid(sRight, 2)
+						If EndsWith(sRight, """") Then sRight = Left(sRight, Len(sRight) - 1)
+						If StartsWith(sText, """") Then sText = Mid(sText, 2)
+						If EndsWith(sText, """") Then sText = Left(sText, Len(sText) - 1)
+						lvImages.ListItems.Add sRight
+						If InStr(b, LCase(".AddFromFile ")) Then
+							ImageList1.AddFromFile GetRelativePath(sText, ResourceFile), sRight
+							lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = "File"
+						Else
+							ImageList1.AddFromFile GetResNamePath(sText, ResourceFile), sRight
+							lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = "Resource"
+						End If
+						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
+						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = sText
+					End If
+				End If
+			Next i
+		End If
 	End If
 End Sub
 
@@ -365,75 +412,135 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 			Des->WritePropertyFunc(CurrentImageList, "ImageHeight", @iHeight)
 			ChangeControl CurrentImageList, "ImageHeight"
 		End If
-		
-	End If
-	Dim As WStringList Lines
-	Dim As Integer Result
-	Var Fn = FreeFile
-	If Not FileExists(ResourceFile) Then
-		If AutoCreateRC Then
-			FileCopy ExePath & "/Templates/Files/Resource.rc", *ResourceFile.vptr
-			If Not FileExists(GetFolderName(ResourceFile) & "Manifest.xml") Then
-				FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(ResourceFile).vptr & "Manifest.xml"
-			End If
-		End If
-	End If
-	Result = Open(ResourceFile For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(ResourceFile For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(ResourceFile For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(ResourceFile For Input As #Fn)
-	If Result = 0 Then
-		Dim As WString * 1024 sLine
-		Dim As String Image
-		Do Until EOF(Fn)
-			Line Input #Fn, sLine
-			Lines.Add sLine
-		Loop
-		Close #Fn
-	End If
-	Fn = FreeFile
-	Dim As Boolean bFinded
-	Dim As Integer Pos1
-	Open ResourceFile For Output Encoding "utf-8" As #Fn
-	For i As Integer = 0 To Lines.Count - 1
-		Pos1 = InStr(Lines.Item(i), " BITMAP ")
-		If Pos1 = 0 Then Pos1 = InStr(Lines.Item(i), " PNG ")
-		If Pos1 = 0 Then Pos1 = InStr(Lines.Item(i), " RCDATA ")
-		If Pos1 = 0 Then Pos1 = InStr(Lines.Item(i), " ICON ")
-		If Pos1 = 0 Then Pos1 = InStr(Lines.Item(i), " CURSOR ")
-		If Pos1 > 0 Then
-			If bFinded Then
-				Continue For
-			Else
-				With lvImages.ListItems
-					For j As Integer = 0 To lvImages.ListItems.Count - 1
-						Print #Fn, .Item(j)->Text(0) & " " & .Item(j)->Text(1) & " """ & .Item(j)->Text(2) & """"
-					Next
-				End With
-				bFinded = True
-			End If
-		Else
-			Print #Fn, Lines.Item(i)
-		End If
-	Next
-	If Not bFinded Then
-		With lvImages.ListItems
-			For j As Integer = 0 To lvImages.ListItems.Count - 1
-				Print #Fn, .Item(j)->Text(0) & " " & .Item(j)->Text(1) & " """ & .Item(j)->Text(2) & """"
+		If tb Then
+			Dim As EditControlLine Ptr ECLine
+			Dim As Boolean bStarted, bInWith, bFirstAddPosInWith, bLastPropertyPosInWith
+			Dim As Integer p1, EndConstructorPos, LastPropertyPos, FirstAddPos, PosForAdd
+			Dim As String sLeft, sText, sRight, sLeftEndConstructorPos, sLeftFirstAddPos, sLeftLastPropertyPos
+			Dim As UString DesignControlName = QWString(Des->ReadPropertyFunc(Des->DesignControl, "Name"))
+			Dim As UString ImageListName = QWString(Des->ReadPropertyFunc(CurrentImageList, "Name"))
+			Dim As UString b, bOrig
+			Dim As IntegerList iList
+			tb->txtCode.Changing("ImageList")
+			For i As Integer = 0 To tb->txtCode.FLines.Count - 1
+				ECLine = tb->txtCode.FLines.Items[i]
+				b = LTrim(LCase(*ECLine->Text), Any !"\t ")
+				bOrig = LTrim(*ECLine->Text, Any !"\t ")
+				If StartsWith(b, LCase("Constructor " & DesignControlName)) Then
+					bStarted = True
+				ElseIf bStarted Then
+					If StartsWith(b, LCase("End Constructor")) Then
+						EndConstructorPos = i
+						sLeftEndConstructorPos = Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
+						Exit For
+					ElseIf StartsWith(b & " ", LCase("With " & ImageListName & " ")) Then
+						bInWith = True
+					ElseIf bInWith AndAlso StartsWith(b, LCase("End With")) Then
+						bInWith = False
+					ElseIf StartsWith(b, LCase(ImageListName & ".Add ")) OrElse StartsWith(b, LCase(ImageListName & ".AddFromFile ")) OrElse bInWith AndAlso (StartsWith(b, LCase(".Add ")) OrElse StartsWith(b, LCase(".AddFromFile "))) Then
+						If FirstAddPos = 0 Then FirstAddPos = i: bFirstAddPosInWith = bInWith: sLeftFirstAddPos = Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
+						iList.Add i
+					ElseIf StartsWith(b, LCase(ImageListName & ".")) OrElse bInWith AndAlso StartsWith(b, LCase(".")) Then
+						LastPropertyPos = i: bLastPropertyPosInWith = bInWith: sLeftLastPropertyPos = Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
+					End If
+				End If
+			Next i
+			For i As Integer = iList.Count - 1 To 0 Step -1
+				tb->txtCode.DeleteLine iList.Item(i)
 			Next
-		End With
+			If FirstAddPos > 0 Then
+				PosForAdd = FirstAddPos
+				bInWith = bFirstAddPosInWith
+				sLeft = sLeftFirstAddPos
+			ElseIf LastPropertyPos > 0 Then
+				PosForAdd = LastPropertyPos - iList.Count
+				bInWith = bLastPropertyPosInWith
+				sLeft = sLeftLastPropertyPos
+			Else
+				PosForAdd = EndConstructorPos
+				bInWith = False
+				sLeft = sLeftEndConstructorPos
+			End If
+			Des->ImageListClearSub(CurrentImageList)
+			For i As Integer = 0 To lvImages.ListItems.Count - 1
+				tb->txtCode.InsertLine PosForAdd + i, sLeft & IIf(bInWith, "", ImageListName) & ".Add" & IIf(lvImages.ListItems.Item(i)->Text(1) = "File", "FromFile", "") & " """ & lvImages.ListItems.Item(i)->Text(2) & """, """ & lvImages.ListItems.Item(i)->Text(0) & """"
+				If lvImages.ListItems.Item(i)->Text(1) = "File" Then
+					Des->ImageListAddFromFileSub(CurrentImageList, GetRelativePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
+				Else
+					Des->ImageListAddFromFileSub(CurrentImageList, GetResNamePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
+				End If
+			Next i
+			tb->txtCode.Changed("ImageList")
+		End If
+	Else
+		Dim As WStringList Lines
+		Dim As Integer Result
+		Var Fn = FreeFile
+		If Not FileExists(ResourceFile) Then
+			If AutoCreateRC Then
+				FileCopy ExePath & "/Templates/Files/Resource.rc", *ResourceFile.vptr
+				If Not FileExists(GetFolderName(ResourceFile) & "Manifest.xml") Then
+					FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(ResourceFile).vptr & "Manifest.xml"
+				End If
+			End If
+		End If
+		Result = Open(ResourceFile For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input As #Fn)
+		If Result = 0 Then
+			Dim As WString * 1024 sLine
+			Dim As String Image
+			Do Until EOF(Fn)
+				Line Input #Fn, sLine
+				Lines.Add sLine
+			Loop
+			Close #Fn
+		End If
+		Fn = FreeFile
+		Dim As Boolean bFinded
+		Dim As Integer Pos1
+		Open ResourceFile For Output Encoding "utf-8" As #Fn
+		For i As Integer = 0 To Lines.Count - 1
+			Pos1 = InStr(Lines.Item(i), " BITMAP ")
+			If Pos1 = 0 Then Pos1 = InStr(Lines.Item(i), " PNG ")
+			If Pos1 = 0 Then Pos1 = InStr(Lines.Item(i), " RCDATA ")
+			If Pos1 = 0 Then Pos1 = InStr(Lines.Item(i), " ICON ")
+			If Pos1 = 0 Then Pos1 = InStr(Lines.Item(i), " CURSOR ")
+			If Pos1 > 0 Then
+				If bFinded Then
+					Continue For
+				Else
+					With lvImages.ListItems
+						For j As Integer = 0 To lvImages.ListItems.Count - 1
+							Print #Fn, .Item(j)->Text(0) & " " & .Item(j)->Text(1) & " """ & .Item(j)->Text(2) & """"
+						Next
+					End With
+					bFinded = True
+				End If
+			Else
+				Print #Fn, Lines.Item(i)
+			End If
+		Next
+		If Not bFinded Then
+			With lvImages.ListItems
+				For j As Integer = 0 To lvImages.ListItems.Count - 1
+					Print #Fn, .Item(j)->Text(0) & " " & .Item(j)->Text(1) & " """ & .Item(j)->Text(2) & """"
+				Next
+			End With
+		End If
+		Close #Fn
+		'	If tb = 0 AndAlso MainFile <> ML("Untitled") Then tb = AddTab(MainFile)
+		'	If tb <> 0 AndAlso ptabCode->IndexOfTab(tb) > -1 Then
+		'		tb->txtCode.Changing "Adding #Compile"
+		'		tb->txtCode.InsertLine 0, "#ifdef __FB_WIN32__"
+		'		tb->txtCode.InsertLine 1, !"\t'#Compile -exx """ & ResourceFileName & """"
+		'		tb->txtCode.InsertLine 2, "#else"
+		'		tb->txtCode.InsertLine 3, !"\t'#Compile -exx"
+		'		tb->txtCode.InsertLine 4, "#endif"
+		'		tb->txtCode.Changed "Adding #Compile"
+		'	End If
 	End If
-	Close #Fn
-'	If tb = 0 AndAlso MainFile <> ML("Untitled") Then tb = AddTab(MainFile)
-'	If tb <> 0 AndAlso ptabCode->IndexOfTab(tb) > -1 Then
-'		tb->txtCode.Changing "Adding #Compile"
-'		tb->txtCode.InsertLine 0, "#ifdef __FB_WIN32__"
-'		tb->txtCode.InsertLine 1, !"\t'#Compile -exx """ & ResourceFileName & """"
-'		tb->txtCode.InsertLine 2, "#else"
-'		tb->txtCode.InsertLine 3, !"\t'#Compile -exx"
-'		tb->txtCode.InsertLine 4, "#endif"
-'		tb->txtCode.Changed "Adding #Compile"
-'	End If
 	ModalResult = ModalResults.OK
 	Me.CloseForm
 End Sub
@@ -455,7 +562,11 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 		If lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
 			Var ImageIndex = ImageList1.IndexOf(pfrmPath->txtVersion.Text)
 			If ImageIndex = -1 Then
-				ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+				If pfrmPath->cboType.Text = ML("Resource") Then
+					ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+				Else
+					ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+				End If
 				lvImages.SelectedItem->ImageIndex = lvImages.ListItems.Count - 1
 			Else
 				lvImages.SelectedItem->ImageIndex = ImageIndex
@@ -464,7 +575,7 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 			lvImages.SelectedItem->Text(1) = pfrmPath->cboType.Text
 			lvImages.SelectedItem->Text(2) = pfrmPath->txtPath.Text
 		Else
-			MsgBox ML("This version is exists!")
+			MsgBox ML("This name is exists!")
 		End If
 	End If
 End Sub
@@ -473,14 +584,16 @@ Private Sub frmImageManager.lvImages_SelectedItemChanged_(ByRef Sender As ListVi
 	*Cast(frmImageManager Ptr, Sender.Designer).lvImages_SelectedItemChanged(Sender, ItemIndex)
 End Sub
 Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	If ItemIndex < 0 Then Exit Sub
-	Dim As UString Path = GetRelativePath(lvImages.ListItems.Item(ItemIndex)->Text(2), ResourceFile)
-	Select Case lvImages.ListItems.Item(ItemIndex)->Text(1)
-	Case "BITMAP": imgImage.Graphic.Bitmap.LoadFromFile(Path)
-	Case "PNG", "RCDATA": imgImage.Graphic.Bitmap.LoadFromFile(Path)
-	Case "ICON": imgImage.Graphic.Icon.LoadFromFile(Path)
-	Case "CURSOR": imgImage.Graphic.Cursor.LoadFromFile(Path)
-	End Select
+	If CurrentImageList = 0 Then
+		If ItemIndex < 0 Then Exit Sub
+		Dim As UString Path = GetRelativePath(lvImages.ListItems.Item(ItemIndex)->Text(2), ResourceFile)
+		Select Case lvImages.ListItems.Item(ItemIndex)->Text(1)
+		Case "BITMAP": imgImage.Graphic.Bitmap.LoadFromFile(Path)
+		Case "PNG", "RCDATA": imgImage.Graphic.Bitmap.LoadFromFile(Path)
+		Case "ICON": imgImage.Graphic.Icon.LoadFromFile(Path)
+		Case "CURSOR": imgImage.Graphic.Cursor.LoadFromFile(Path)
+		End Select
+	End If
 End Sub
 
 Private Sub frmImageManager.tbToolbar_ButtonClick_(ByRef Sender As ToolBar,ByRef Button As ToolButton)
@@ -499,14 +612,18 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 		pfrmPath->ExeFileName = ExeFileName
 		If pfrmPath->ShowModal() = ModalResults.OK Then
 			If lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
-				ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+				If pfrmPath->cboType.Text = ML("Resource") Then
+					ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+				Else
+					ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+				End If
 				lvImages.ListItems.Add pfrmPath->txtVersion.Text
 				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
 				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = pfrmPath->cboType.Text
 				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = pfrmPath->txtPath.Text
 				lvImages.SelectedItemIndex = lvImages.ListItems.Count - 1
 			Else
-				MsgBox ML("This version is exists!")
+				MsgBox ML("This name is exists!")
 			End If
 		End If
 	Case "Change": lvImages_ItemActivate(lvImages, lvImages.SelectedItemIndex)

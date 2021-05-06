@@ -53,6 +53,7 @@
 		Dim As Boolean WithoutMainNode
 		Dim As ImageList ImageList1
 		Dim As ImageList Ptr CurrentImageList
+		Dim As TabWindow Ptr tb
 		Dim As My.Sys.Forms.Designer Ptr Des
 		Dim As frmPathP pfrmPath
 		Dim As TextBox txtWidth, txtHeight
