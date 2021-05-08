@@ -5715,6 +5715,7 @@ Sub RunProgram(Param As Any Ptr)
 End Sub
 
 Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	If txtCode.CStyle Then Exit Sub
 	With txtCode
 		If StartLine = -1 Or EndLine = -1 Then
 			StartLine = 0
