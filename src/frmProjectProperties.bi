@@ -40,11 +40,13 @@ Using My.Sys.Forms
 		Declare Sub optCompileByDefault_Click(ByRef Sender As RadioButton)
 		Declare Static Sub optCompileToLLVM_Click_(ByRef Sender As RadioButton)
 		Declare Sub optCompileToLLVM_Click(ByRef Sender As RadioButton)
+		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
+		Declare Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As TabControl tabProperties
 		Dim As TabPage tpGeneral, tpMake, tpCompile, tpDebugging
-		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions
+		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions, CommandButton1
 		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321
 		Dim As Picture picCompileToGCC, picVersionNumber, picApplication, picVersionInformation, picCompilationArguments
 		Dim As ComboBoxEdit cboProjectType, cboMainFile, cboResourceFile, cboIconResourceFile, cboOptimizationLevel
@@ -55,6 +57,7 @@ Using My.Sys.Forms
 		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization, optCompileByDefault, optCompileToLLVM
 		Dim As Dictionary Types, MainFiles, ResourceFiles, IconResourceFiles
 		Dim As TreeNode Ptr ProjectTreeNode
+		Dim As ImageBox imgIcon
 	End Type
 	
 	Common Shared pfProjectProperties As frmProjectProperties Ptr

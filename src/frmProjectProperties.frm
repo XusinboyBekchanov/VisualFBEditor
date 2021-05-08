@@ -9,6 +9,7 @@
 #include once "frmAdvancedOptions.bi"
 #include once "TabWindow.bi"
 #include once "Main.bi"
+#include once "frmImageManager.bi"
 #include once "mff/Dictionary.bi"
 
 Dim Shared fProjectProperties As frmProjectProperties
@@ -140,12 +141,12 @@ pfProjectProperties = @fProjectProperties
 		' lblIcon
 		lblIcon.Name = "lblIcon"
 		lblIcon.Text = ML("Icon") & ":"
-		lblIcon.SetBounds 0, 41, 34, 18
+		lblIcon.SetBounds 0, 37, 34, 18
 		lblIcon.Parent = @picApplication
 		' lblTitle
 		lblTitle.Name = "lblTitle"
 		lblTitle.Text = ML("Title") & ":"
-		lblTitle.SetBounds 0, 17, 34, 18
+		lblTitle.SetBounds 0, 9, 34, 18
 		lblTitle.Parent = @picApplication
 		' chkAutoIncrementVersion
 		chkAutoIncrementVersion.Name = "chkAutoIncrementVersion"
@@ -357,13 +358,14 @@ pfProjectProperties = @fProjectProperties
 		' txtTitle
 		With txtTitle
 			.Name = "txtTitle"
-			.SetBounds 40, 16, 139, 18
+			.SetBounds 40, 9, 139, 18
 			.Parent = @picApplication
 		End With
 		' txtIcon
 		With txtIcon
 			.Name = "txtIcon"
-			.SetBounds 40, 40, 72, 18
+			.SetBounds 40, 35, 74, 18
+			.ReadOnly = False
 			.Parent = @picApplication
 		End With
 		' txtBuild
@@ -444,6 +446,24 @@ pfProjectProperties = @fProjectProperties
 			.Designer = @This
 			.OnClick = @optCompileToLLVM_Click_
 			.Parent = @tpCompile
+		End With
+		' CommandButton1
+		With CommandButton1
+			.Name = "CommandButton1"
+			.Text = "..."
+			.TabIndex = 70
+			.SetBounds 114, 34, 20, 20
+			.Caption = "..."
+			.Designer = @This
+			.OnClick = @CommandButton1_Click_
+			.Parent = @picApplication
+		End With
+		' imgIcon
+		With imgIcon
+			.Name = "imgIcon"
+			.Text = "lblIcon"
+			.SetBounds 146, 41, 32, 32
+			.Parent = @picApplication
 		End With
 	End Constructor
 	
@@ -721,4 +741,17 @@ Private Sub frmProjectProperties.optCompileToLLVM_Click_(ByRef Sender As RadioBu
 End Sub
 Private Sub frmProjectProperties.optCompileToLLVM_Click(ByRef Sender As RadioButton)
 	frmProjectProperties.optCompileToGas_Click Sender
+End Sub
+
+Private Sub frmProjectProperties.CommandButton1_Click_(ByRef Sender As Control)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).CommandButton1_Click(Sender)
+End Sub
+Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
+	pfImageManager->OnlyIcons = True
+	If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
+		If pfImageManager->lvImages.SelectedItem <> 0 Then
+			txtIcon.Text = pfImageManager->lvImages.SelectedItem->Text(0)
+			imgIcon.Graphic.Icon.LoadFromFile(GetRelativePath(pfImageManager->lvImages.SelectedItem->Text(2), pfImageManager->ResourceFile), 32, 32)
+		End If
+	End If
 End Sub

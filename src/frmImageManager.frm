@@ -309,6 +309,11 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
+						If OnlyIcons AndAlso Image <> "ICON" Then
+							#ifndef __USE_GTK__
+								lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->State = LVIS_CUT
+							#endif
+						End If
 					End If
 				End If
 			Loop

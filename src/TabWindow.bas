@@ -5375,8 +5375,11 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 				End If
 				Var Fn = FreeFile
 				If Open(*File For Input Encoding "utf-8" As #Fn) = 0 Then
+					Dim As Integer iStartImages, MinResID
+					Dim As String MinResName
+					Dim As UString ResPath
 					Var n = 0
-					Var bFinded = False, bChanged = False
+					Var bFinded = False, bChanged = False, bChangeIcon = False
 					Dim As String NewLine = ""
 					Dim As WString * 1024 sLine
 					Do Until EOF(Fn)
@@ -5469,6 +5472,26 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0""")
 									bChanged = True
 								End If
+							ElseIf Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" AndAlso (InStr(LCase(sLine), " icon ") OrElse InStr(LCase(sLine), " bitmap ") OrElse InStr(LCase(sLine), " png ") OrElse InStr(LCase(sLine), " cursor ") OrElse InStr(LCase(sLine), " rcdata ")) Then
+								If iStartImages = 0 Then iStartImages = n
+								If InStr(LCase(sLine), " icon ") Then
+									Dim As Integer Pos1
+									Dim As String ResNameOrID
+									Pos1 = InStr(LTrim(sLine, Any !"\t "), " ")
+									If Pos1 > 0 Then
+										ResNameOrID = Trim(Left(LTrim(sLine, Any !"\t "), Pos1 - 1), Any !"\t ")
+										If IsNumeric(ResNameOrID) Then
+											If MinResID = 0 OrElse MinResID > Val(ResNameOrID) Then MinResID = Val(ResNameOrID)
+										Else
+											If MinResName = "" OrElse LCase(MinResName) > LCase(ResNameOrID) Then MinResName = ResNameOrID
+										End If
+										If LCase(ResNameOrID) = Trim(LCase(*Project->ApplicationIcon)) Then ResPath = Mid(LTrim(sLine, Any !"\t "), Pos1)
+										If LCase(ResNameOrID) = "a" Then 
+											bChanged = True
+											n -= 1
+										End If
+									End If
+								End If
 							End If
 						End If
 						If bChanged Then
@@ -5478,11 +5501,23 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 						End If
 						If n = 1 Then NewLine = WChr(13) & WChr(10)
 					Loop
+					If Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" Then
+						If IsNumeric(*Project->ApplicationIcon) Then
+							If MinResName <> "" OrElse (MinResID <> 0 AndAlso Val(*Project->ApplicationIcon) > MinResID) Then
+								bChangeIcon = True
+								bFinded = True
+							End If
+						ElseIf LCase(*Project->ApplicationIcon) > LCase(MinResName) Then
+							bChangeIcon = True
+							bFinded = True
+						End If
+					End If
 					Close #Fn
 					If bFinded Then
 						Var Fn2 = FreeFile
 						If Open(*File For Output Encoding "utf-8" As #Fn2) = 0 Then
 							Print #Fn2, *sLines;
+							If bChangeIcon AndAlso ResPath <> "" Then Print #Fn2, Chr(13, 10) & "A" & ResPath
 							Close #Fn2
 						End If
 					End If

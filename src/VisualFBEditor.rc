@@ -101,10 +101,12 @@ UserControl PNG "../resources/UserControl.png"
 WARNING PNG "../resources/Warning.png"
 weChat PNG "../resources/weChat.png"
 
+#define APP_TITLE_STR               "Visual FB Editor\0"
+
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,8,3812
-#define VER_FILEVERSION_STR         "1.2.8.3812\0"
+#define VER_FILEVERSION             1,2,8,3850
+#define VER_FILEVERSION_STR         "1.2.8.3850\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

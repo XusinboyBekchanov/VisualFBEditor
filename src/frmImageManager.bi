@@ -50,7 +50,7 @@
 		Dim As Label lblResourceFile, lblSize, lblWidth, lblHeight
 		Dim As RadioButton opt16x16, opt32x32, opt48x48, optCustom
 		Dim As UString ResourceFile, ExeFileName
-		Dim As Boolean WithoutMainNode
+		Dim As Boolean WithoutMainNode, OnlyIcons
 		Dim As ImageList ImageList1
 		Dim As ImageList Ptr CurrentImageList
 		Dim As TabWindow Ptr tb
