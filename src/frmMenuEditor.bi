@@ -5,6 +5,8 @@
 	#include once "mff/Menus.bi"
 	#include once "Designer.bi"
 	
+	Type TabWindowPtr As TabWindow Ptr
+	
 	Using My.Sys.Forms
 	
 	Type frmMenuEditor Extends Form
@@ -30,6 +32,8 @@
 		Dim As ImageList imgList
 		Dim CurrentMenu As Any Ptr
 		Dim CurrentToolBar As Any Ptr
+		Dim CurrentStatusBar As Any Ptr
+		Dim tb As TabWindowPtr
 		Dim Des As My.Sys.Forms.Designer Ptr
 		Dim Rects(Any) As Rect
 		Dim Ctrls(Any) As Any Ptr

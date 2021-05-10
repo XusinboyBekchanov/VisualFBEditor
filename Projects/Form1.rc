@@ -1,9 +1,10 @@
 ﻿1 24 "Manifest.xml"
 
+#define APP_TITLE_STR     "154545\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,13
-#define VER_FILEVERSION_STR         "0.0.0.13\0"
+#define VER_FILEVERSION             0,0,0,52
+#define VER_FILEVERSION_STR         "0.0.0.52\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
@@ -26,7 +27,7 @@ BEGIN
     BEGIN
         BLOCK "040904E4"
         BEGIN
-            VALUE "CompanyName",      VER_COMPANYNAME_STR
+        	VALUE "ApplicationTitle", APP_TITLE_STR
             VALUE "FileDescription",  VER_FILEDESCRIPTION_STR
             VALUE "FileVersion",      VER_FILEVERSION_STR
             VALUE "InternalName",     VER_INTERNALNAME_STR
@@ -34,6 +35,7 @@ BEGIN
             VALUE "OriginalFilename", VER_ORIGINALFILENAME_STR
             VALUE "ProductName",      VER_PRODUCTNAME_STR
             VALUE "ProductVersion",   VER_PRODUCTVERSION_STR
+            VALUE "CompanyName",      VER_COMPANYNAME_STR
         END
     END
     BLOCK "VarFileInfo"
@@ -48,10 +50,10 @@ BEGIN
     END
 END
 ZZ ICON ".\home_32.ico"
-1 ICON "F:\Install\Install2\VisualFBEditor\Resources\VisualFBEditor.ico"
+1 ICON "..\Resources\VisualFBEditor.ico"
 Bookmark PNG "..\Resources\Bookmark.png"
 Logo PNG "..\Resources\Logo.png"
 Breakpoint PNG "..\Resources\Breakpoint.png"
 File PNG "..\Resources\File.png"
 Close PNG "..\Resources\Close.png"
-A ICON "F:\Install\Install2\VisualFBEditor\Resources\VisualFBEditor.ico"
+A ICON "..\Resources\VisualFBEditor.ico"

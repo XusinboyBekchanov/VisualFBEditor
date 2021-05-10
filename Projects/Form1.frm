@@ -3,7 +3,7 @@
 #else
 	'#Compile -exx
 #endif
-'#Region "Form" '...'
+'#Region "Form"
 	#include once "mff/Form.bi"
 	#include once "mff/CommandButton.bi"
 	
@@ -36,7 +36,8 @@
 	
 	#ifndef _NOT_AUTORUN_FORMS_
 		fForm1.Show
-		
+		?App.Title
 		App.Run
 	#endif
 '#End Region
+

@@ -1,9 +1,9 @@
 ﻿#ifdef __FB_WIN32__
-	'#Compile -exx "Form1.rc" -x 21.exe
+	'#Compile -exx "Form1.rc"
 #else
 	'#Compile -exx
 #endif
-'#Region "Form"
+'#Region "Form" '...'
 	#include once "mff/Form.bi"
 	
 	Using My.Sys.Forms
@@ -18,7 +18,7 @@
 		With This
 			.Name = "Form1"
 			.Text = "Form1"
-			'.Icon = "home_32"
+			.Icon = "1"
 			.SetBounds 0, 0, 350, 300
 		End With
 	End Constructor

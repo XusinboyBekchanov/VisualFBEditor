@@ -194,6 +194,8 @@ Namespace My.Sys.Forms
 		MenuItemRemoveSub As Sub(ParentMenuItem As Any Ptr, PMenuItem As Any Ptr)
 		ToolBarButtonByIndexFunc As Function(tb As Any Ptr, Index As Integer) As Any Ptr
 		ToolBarRemoveButtonSub As Sub(tb As Any Ptr, Index As Integer)
+		StatusBarPanelByIndexFunc As Function(sb As Any Ptr, Index As Integer) As Any Ptr
+		StatusBarRemovePanelSub As Sub(sb As Any Ptr, Index As Integer)
 		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
@@ -210,21 +212,21 @@ Namespace My.Sys.Forms
 		#else
 			FOverControl   As HWND
 		#endif
-		Declare        Sub CheckTopMenuVisible(ChangeHeight As Boolean = True, bMoveDots As Boolean = True)
-		Declare        Sub ChangeFirstMenuItem()
-		Declare        Sub Hook
-		Declare        Sub UnHook
-		Declare        Sub HideDots
-		Declare        Sub PaintControl()
-		Declare        Sub CopyControl()
-		Declare        Sub CutControl()
-		Declare        Sub AddPasteControls(Ctrl As Any Ptr, ParentCtrl As Any Ptr, bStart As Boolean)
-		Declare        Sub PasteControl()
-		Declare        Sub DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
-		Declare        Sub DeleteMenuItems(pMenu As Any Ptr, mi As Any Ptr)
-		Declare        Sub DeleteControl()
-		Declare        Sub BringToFront()
-		Declare        Sub SendToBack()
+		Declare Sub CheckTopMenuVisible(ChangeHeight As Boolean = True, bMoveDots As Boolean = True)
+		Declare Sub ChangeFirstMenuItem()
+		Declare Sub Hook
+		Declare Sub UnHook
+		Declare Sub HideDots
+		Declare Sub PaintControl()
+		Declare Sub CopyControl()
+		Declare Sub CutControl()
+		Declare Sub AddPasteControls(Ctrl As Any Ptr, ParentCtrl As Any Ptr, bStart As Boolean)
+		Declare Sub PasteControl()
+		Declare Sub DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
+		Declare Sub DeleteMenuItems(pMenu As Any Ptr, mi As Any Ptr)
+		Declare Sub DeleteControl()
+		Declare Sub BringToFront()
+		Declare Sub SendToBack()
 		DesignControl As Any Ptr
 		SelectedControl As Any Ptr
 		SelectedControls As List

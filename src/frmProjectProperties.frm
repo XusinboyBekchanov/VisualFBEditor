@@ -141,12 +141,12 @@ pfProjectProperties = @fProjectProperties
 		' lblIcon
 		lblIcon.Name = "lblIcon"
 		lblIcon.Text = ML("Icon") & ":"
-		lblIcon.SetBounds 0, 37, 34, 18
+		lblIcon.SetBounds 0, 39, 34, 18
 		lblIcon.Parent = @picApplication
 		' lblTitle
 		lblTitle.Name = "lblTitle"
 		lblTitle.Text = ML("Title") & ":"
-		lblTitle.SetBounds 0, 9, 34, 18
+		lblTitle.SetBounds 0, 11, 34, 18
 		lblTitle.Parent = @picApplication
 		' chkAutoIncrementVersion
 		chkAutoIncrementVersion.Name = "chkAutoIncrementVersion"
@@ -358,13 +358,13 @@ pfProjectProperties = @fProjectProperties
 		' txtTitle
 		With txtTitle
 			.Name = "txtTitle"
-			.SetBounds 40, 9, 139, 18
+			.SetBounds 40, 11, 139, 18
 			.Parent = @picApplication
 		End With
 		' txtIcon
 		With txtIcon
 			.Name = "txtIcon"
-			.SetBounds 40, 35, 74, 18
+			.SetBounds 40, 37, 74, 18
 			.ReadOnly = False
 			.Parent = @picApplication
 		End With
@@ -452,7 +452,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "CommandButton1"
 			.Text = "..."
 			.TabIndex = 70
-			.SetBounds 114, 34, 20, 20
+			.SetBounds 114, 36, 20, 20
 			.Caption = "..."
 			.Designer = @This
 			.OnClick = @CommandButton1_Click_
@@ -614,6 +614,13 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.chkAutoIncrementVersion.Checked = ppe->AutoIncrementVersion
 				.txtTitle.Text = *ppe->ApplicationTitle
 				.txtIcon.Text = *ppe->ApplicationIcon
+				If Trim(*ppe->ApplicationIcon) <> "" Then
+					'#ifdef __USE_GTK__
+						imgIcon.Graphic.Icon.LoadFromFile(GetResNamePath(*ppe->ApplicationIcon, GetResourceFile(True)), 32, 32)
+					'#else
+					'	DrawIconEx GetDC(picApplication.Handle), 0, 0, imgIcon.Graphic.Icon.Handle, 32, 32, 0, 0, DI_NORMAL
+					'#endif
+				End If
 				.Types.Set ML("Company Name"), *ppe->CompanyName
 				.Types.Set ML("File Description"), *ppe->FileDescription
 				.Types.Set ML("Internal Name"), *ppe->InternalName
@@ -748,10 +755,16 @@ Private Sub frmProjectProperties.CommandButton1_Click_(ByRef Sender As Control)
 End Sub
 Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
 	pfImageManager->OnlyIcons = True
+	pfImageManager->WithoutMainNode = True
 	If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
 		If pfImageManager->lvImages.SelectedItem <> 0 Then
 			txtIcon.Text = pfImageManager->lvImages.SelectedItem->Text(0)
-			imgIcon.Graphic.Icon.LoadFromFile(GetRelativePath(pfImageManager->lvImages.SelectedItem->Text(2), pfImageManager->ResourceFile), 32, 32)
+			'#ifdef __USE_GTK__
+				imgIcon.Graphic.Icon.LoadFromFile(GetRelativePath(pfImageManager->lvImages.SelectedItem->Text(2), pfImageManager->ResourceFile), 32, 32)
+			'#else
+			'	DrawIconEx GetDC(picApplication.Handle), 0, 0, imgIcon.Graphic.Icon.Handle, 32, 32, 0, 0, DI_NORMAL
+			'#endif
 		End If
 	End If
+	pfImageManager->WithoutMainNode = False
 End Sub

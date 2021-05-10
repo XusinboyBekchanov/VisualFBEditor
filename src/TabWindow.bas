@@ -690,6 +690,8 @@ End Function
 
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
 	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then
+		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
+		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
 		Delete_(tb)
 		Return True
 	Else
@@ -2315,23 +2317,36 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	If tb = 0 Then Exit Sub
 	Select Case QWString(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))
 	Case "MainMenu", "PopupMenu"
+		pfMenuEditor->tb = tb
 		pfMenuEditor->Des = @Sender
 		pfMenuEditor->CurrentMenu = Ctrl
 		pfMenuEditor->CurrentToolBar = 0
+		pfMenuEditor->CurrentStatusBar = 0
 		pfMenuEditor->ParentRect = 0
 		pfMenuEditor->Caption = ML("Menu Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "ToolBar"
+		pfMenuEditor->tb = tb
 		pfMenuEditor->Des = @Sender
 		pfMenuEditor->CurrentMenu = 0
 		pfMenuEditor->CurrentToolBar = Ctrl
+		pfMenuEditor->CurrentStatusBar = 0
 		pfMenuEditor->Caption = ML("ToolBar Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
+	Case "StatusBar"
+		pfMenuEditor->tb = tb
+		pfMenuEditor->Des = @Sender
+		pfMenuEditor->CurrentMenu = 0
+		pfMenuEditor->CurrentToolBar = 0
+		pfMenuEditor->CurrentStatusBar = Ctrl
+		pfMenuEditor->Caption = ML("StatusBar Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->Repaint
+		pfMenuEditor->Show *pfrmMain
 	Case "ImageList"
-		pfImageListEditor->Des = @Sender
 		pfImageListEditor->tb = tb
+		pfImageListEditor->Des = @Sender
 		pfImageListEditor->CurrentImageList = Ctrl
 		pfImageListEditor->Caption = ML("ImageList Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
 		pfImageListEditor->Show *pfrmMain
@@ -3595,12 +3610,21 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	pfrmMain->UpdateLock
 	bNotDesign = True
+	Dim CtrlName As String
 	Dim SelControlName As String
+	Dim CurrentMenuName As String
+	Dim CurrentToolBarName As String
+	Dim CurrentStatusBarName As String
+	Dim CurrentImageListName As String
 	Dim SelControlNames As WStringList
 	Dim bSelControlFind As Boolean
 	Dim As UString ResourceFile = GetResourceFile(True)
 	If CInt(NotForms = False) AndAlso CInt(Des) Then
 		With *Des
+			If pfImageListEditor->CurrentImageList <> 0 Then CurrentImageListName = WGet(.ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
+			If pfMenuEditor->CurrentMenu <> 0 Then CurrentMenuName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentMenu, "Name"))
+			If pfMenuEditor->CurrentToolBar <> 0 Then CurrentToolBarName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentToolBar, "Name"))
+			If pfMenuEditor->CurrentStatusBar <> 0 Then CurrentStatusBarName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentStatusBar, "Name"))
 			If .SelectedControl <> 0 Then SelControlName = WGet(.ReadPropertyFunc(.SelectedControl, "Name"))
 			For j As Integer = 0 To .SelectedControls.Count - 1
 				If .SelectedControls.Items[j] <> 0 Then SelControlNames.Add WGet(.ReadPropertyFunc(.SelectedControls.Items[j], "Name"))
@@ -4092,6 +4116,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->MenuItemRemoveSub = DyLibSymbol(Des->MFF, "MenuItemRemove")
 					Des->ToolBarButtonByIndexFunc = DyLibSymbol(Des->MFF, "ToolBarButtonByIndex")
 					Des->ToolBarRemoveButtonSub = DyLibSymbol(Des->MFF, "ToolBarRemoveButton")
+					Des->StatusBarPanelByIndexFunc = DyLibSymbol(Des->MFF, "StatusBarPanelByIndex")
+					Des->StatusBarRemovePanelSub = DyLibSymbol(Des->MFF, "StatusBarRemovePanel")
 					Des->GraphicTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "GraphicTypeLoadFromFile")
 					Des->BitmapTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "BitmapTypeLoadFromFile")
 					Des->IconLoadFromFileFunc = DyLibSymbol(Des->MFF, "IconLoadFromFile")
@@ -4269,31 +4295,28 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										#ifdef __USE_GTK__
 											If LCase(PropertyName) = "parent" AndAlso Des->ReadPropertyFunc(Ctrl, "Widget") Then
 												Des->HookControl(Des->ReadPropertyFunc(Ctrl, "Widget"))
-												If SelControlNames.Contains(QWString(Des->ReadPropertyFunc(Ctrl, "Name"))) Then
-													Des->SelectedControls.Add Ctrl
-												End If
-												If SelControlName = QWString(Des->ReadPropertyFunc(Ctrl, "Name")) Then
-													Des->SelectedControl = Ctrl
-													Des->MoveDots Des->SelectedControl, False
-													bSelControlFind = True
-												End If
-											End If
-											gtk_widget_show(Des->ReadPropertyFunc(Ctrl, "Widget"))
 										#else
 											Dim hwnd1 As HWND Ptr = Des->ReadPropertyFunc(Ctrl, "Handle")
 											If LCase(PropertyName) = "parent" AndAlso hwnd1 AndAlso *hwnd1 Then
 												Des->HookControl(*hwnd1)
-												If SelControlNames.Contains(QWString(Des->ReadPropertyFunc(Ctrl, "Name"))) Then
-													Des->SelectedControls.Add Ctrl
-												End If
-												If SelControlName = WGet(Des->ReadPropertyFunc(Ctrl, "Name")) Then
-													Des->SelectedControl = Ctrl
-													Des->MoveDots Des->SelectedControl, False
-													bSelControlFind = True
-												End If
-											End If
 										#endif
-										'If LCase(PropertyName) = "graphic" Then SetGraphic(Ctrl, *FLine2)
+											If SelControlNames.Contains(QWString(Des->ReadPropertyFunc(Ctrl, "Name"))) Then
+												Des->SelectedControls.Add Ctrl
+											End If
+											CtrlName = QWString(Des->ReadPropertyFunc(Ctrl, "Name"))
+											If SelControlName = CtrlName Then
+												Des->SelectedControl = Ctrl
+												Des->MoveDots Des->SelectedControl, False
+												bSelControlFind = True
+											End If
+											If CurrentImageListName = CtrlName Then pfImageManager->CurrentImageList = Ctrl
+											If CurrentMenuName = CtrlName Then pfMenuEditor->CurrentMenu = Ctrl
+											If CurrentToolBarName = CtrlName Then pfMenuEditor->CurrentToolBar = Ctrl
+											If CurrentStatusBarName = CtrlName Then pfMenuEditor->CurrentStatusBar = Ctrl
+										End If
+										#ifdef __USE_GTK__
+											gtk_widget_show(Des->ReadPropertyFunc(Ctrl, "Widget"))
+										#endif
 									End If
 								End If
 							ElseIf LCase(Mid(*FLine, p + 1, 10)) = "setbounds " Then
@@ -5284,18 +5307,32 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 		End If
 	Else
 		tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
-		If tb = 0 OrElse tb->tn = 0 Then Return ""
-		If bSaveTab Then
-			If tb->Modified Then tb->Save
+		If tb = 0 OrElse tb->tn = 0 Then 
+			If tvExplorer.SelectedNode = 0 Then
+				Return ""
+			Else
+				Var tn = GetParentNode(tvExplorer.SelectedNode)
+				If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
+					ProjectNode = tn
+					Dim As ExplorerElement Ptr ee = tn->Tag
+					If ee Then Project = Cast(ProjectElement Ptr, ee)
+					If ee AndAlso Project AndAlso Project->MainFileName <> 0 AndAlso *Project->MainFileName <> "" Then Return *Project->MainFileName
+				End If
+				Return ""
+			End If
+		Else
+			If bSaveTab Then
+				If tb->Modified Then tb->Save
+			End If
+			Var tn = GetParentNode(tb->tn)
+			If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
+				ProjectNode = tn
+				Dim As ExplorerElement Ptr ee = tn->Tag
+				If ee Then Project = Cast(ProjectElement Ptr, ee)
+				If ee AndAlso Project AndAlso Project->MainFileName <> 0 AndAlso *Project->MainFileName <> "" Then Return *Project->MainFileName
+			End If
+			Return tb->FileName
 		End If
-		Var tn = GetParentNode(tb->tn)
-		If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
-			ProjectNode = tn
-			Dim As ExplorerElement Ptr ee = tn->Tag
-			If ee Then Project = Cast(ProjectElement Ptr, ee)
-			If ee AndAlso Project AndAlso Project->MainFileName <> 0 AndAlso *Project->MainFileName <> "" Then Return *Project->MainFileName
-		End If
-		Return tb->FileName
 	End If
 	Return ""
 End Function
@@ -5418,7 +5455,13 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 								End If
 							End If
 						ElseIf Project Then
-							If StartsWith(LCase(sLine), "#define ver_companyname_str ") Then
+							If StartsWith(LCase(sLine), "#define app_title_str ") Then
+								Var Pos3 = InStr(sLine, """")
+								If Pos3 > 0 Then
+									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->ApplicationTitle) & "\0""")
+									bChanged = True
+								End If
+							ElseIf StartsWith(LCase(sLine), "#define ver_companyname_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
 									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0""")

@@ -69,6 +69,8 @@ Namespace My.Sys.Forms
 			mnuDesigner.Item(0)->Caption = ML("Menu Editor")
 		Case "ToolBar"
 			mnuDesigner.Item(0)->Caption = ML("ToolBar Editor")
+		Case "StatusBar"
+			mnuDesigner.Item(0)->Caption = ML("StatusBar Editor")
 		Case "ImageList"
 			mnuDesigner.Item(0)->Caption = ML("ImageList Editor")
 		Case Else

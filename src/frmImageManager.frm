@@ -403,9 +403,14 @@ Private Sub frmImageManager.cmdOK_Click_(ByRef Sender As Control)
 	*Cast(frmImageManager Ptr, Sender.Designer).cmdOK_Click(Sender)
 End Sub
 Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
-	If WithoutMainNode AndAlso lvImages.SelectedItemIndex = -1 Then
-		MsgBox ML("Nothing has been chosen"), pApp->Title
-		Exit Sub
+	If WithoutMainNode Then
+		If lvImages.SelectedItemIndex = -1 Then
+			MsgBox ML("Nothing has been chosen"), pApp->Title
+			Exit Sub
+		ElseIf OnlyIcons AndAlso lvImages.SelectedItem <> 0 AndAlso lvImages.SelectedItem->Text(1) <> "ICON" Then
+			MsgBox ML("Select only icon"), pApp->Title
+			Exit Sub
+		End If
 	End If
 	If CurrentImageList Then
 		Dim As Integer iWidth = Val(txtWidth.Text), iHeight = Val(txtHeight.Text)
@@ -554,33 +559,37 @@ Private Sub frmImageManager.lvImages_ItemActivate_(ByRef Sender As ListView, ByV
 	*Cast(frmImageManager Ptr, Sender.Designer).lvImages_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	If lvImages.SelectedItem = 0 Then Exit Sub
-	pfrmPath->txtVersion.Text = lvImages.SelectedItem->Text(0)
-	pfrmPath->txtPath.Text = lvImages.SelectedItem->Text(2)
-	pfrmPath->lblCommandLine.Text = ML("Type") & ":"
-	pfrmPath->cboType.ItemIndex = pfrmPath->cboType.IndexOf(lvImages.SelectedItem->Text(1))
-	pfrmPath->WithType = True
-	pfrmPath->WithKey = CurrentImageList <> 0
-	pfrmPath->SetFileNameToVersion = True
-	pfrmPath->ExeFileName = ExeFileName
-	If pfrmPath->ShowModal() = ModalResults.OK Then
-		If lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
-			Var ImageIndex = ImageList1.IndexOf(pfrmPath->txtVersion.Text)
-			If ImageIndex = -1 Then
-				If pfrmPath->cboType.Text = ML("Resource") Then
-					ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+	If WithoutMainNode Then
+		cmdOK_Click cmdOK
+	Else
+		If lvImages.SelectedItem = 0 Then Exit Sub
+		pfrmPath->txtVersion.Text = lvImages.SelectedItem->Text(0)
+		pfrmPath->txtPath.Text = lvImages.SelectedItem->Text(2)
+		pfrmPath->lblCommandLine.Text = ML("Type") & ":"
+		pfrmPath->cboType.ItemIndex = pfrmPath->cboType.IndexOf(lvImages.SelectedItem->Text(1))
+		pfrmPath->WithType = True
+		pfrmPath->WithKey = CurrentImageList <> 0
+		pfrmPath->SetFileNameToVersion = True
+		pfrmPath->ExeFileName = ExeFileName
+		If pfrmPath->ShowModal() = ModalResults.OK Then
+			If lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
+				Var ImageIndex = ImageList1.IndexOf(pfrmPath->txtVersion.Text)
+				If ImageIndex = -1 Then
+					If pfrmPath->cboType.Text = ML("Resource") Then
+						ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+					Else
+						ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+					End If
+					lvImages.SelectedItem->ImageIndex = lvImages.ListItems.Count - 1
 				Else
-					ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+					lvImages.SelectedItem->ImageIndex = ImageIndex
 				End If
-				lvImages.SelectedItem->ImageIndex = lvImages.ListItems.Count - 1
+				lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text
+				lvImages.SelectedItem->Text(1) = pfrmPath->cboType.Text
+				lvImages.SelectedItem->Text(2) = pfrmPath->txtPath.Text
 			Else
-				lvImages.SelectedItem->ImageIndex = ImageIndex
+				MsgBox ML("This name is exists!")
 			End If
-			lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text
-			lvImages.SelectedItem->Text(1) = pfrmPath->cboType.Text
-			lvImages.SelectedItem->Text(2) = pfrmPath->txtPath.Text
-		Else
-			MsgBox ML("This name is exists!")
 		End If
 	End If
 End Sub

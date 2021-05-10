@@ -102,11 +102,10 @@ WARNING PNG "../resources/Warning.png"
 weChat PNG "../resources/weChat.png"
 
 #define APP_TITLE_STR               "Visual FB Editor\0"
-
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,8,3850
-#define VER_FILEVERSION_STR         "1.2.8.3850\0"
+#define VER_FILEVERSION             1,2,8,3927
+#define VER_FILEVERSION_STR         "1.2.8.3927\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
@@ -134,7 +133,7 @@ BEGIN
     BEGIN
         BLOCK "040904E4"
         BEGIN
-            VALUE "CompanyName",      VER_COMPANYNAME_STR
+            VALUE "ApplicationTitle", APP_TITLE_STR
             VALUE "FileDescription",  VER_FILEDESCRIPTION_STR
             VALUE "FileVersion",      VER_FILEVERSION_STR
             VALUE "InternalName",     VER_INTERNALNAME_STR
@@ -144,6 +143,7 @@ BEGIN
             VALUE "OriginalFilename", VER_ORIGINALFILENAME_STR
             VALUE "ProductName",      VER_PRODUCTNAME_STR
             VALUE "ProductVersion",   VER_PRODUCTVERSION_STR
+            VALUE "CompanyName",      VER_COMPANYNAME_STR
         END
     END
     BLOCK "VarFileInfo"
