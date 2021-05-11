@@ -3122,7 +3122,7 @@ Dim Shared exedate As Double 'serial date
 			ElseIf InStr(dwln,"OP_breg5") Then 'EBP/RBP
 				vradr=0 'local direct adr
 			Else
-				msgbox(ML("Unknown") & " DW_OP " & dwln)
+				m(ML("Unknown") & " DW_OP " & dwln)
 			End If
 		End If
 		vradr+=ValInt(pref+Mid(dwln,InStr(InStr(dwln,"DW_OP_"),dwln,":")+2))
