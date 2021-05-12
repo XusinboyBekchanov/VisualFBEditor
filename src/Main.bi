@@ -113,6 +113,7 @@ Common Shared As Integer AutoSaveBeforeCompiling
 Common Shared As Integer IncludeMFFPath
 Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
+Common Shared As Integer LastOpenedFileType
 Common Shared As String CurLanguage
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName

@@ -64,7 +64,7 @@ Dim Shared As SaveFileDialog SaveD
 #endif
 Dim Shared As List Tools
 Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
-Dim Shared As WString Ptr RecentFiles '
+Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
@@ -1183,13 +1183,17 @@ End Sub
 Sub OpenFiles(ByRef FileName As WString)
 	If EndsWith(FileName, ".vfs") Then
 		AddSession FileName
+		WLet(RecentSession, FileName)
 	ElseIf EndsWith(FileName, ".vfp") Then
 		AddProject FileName
+		WLet(RecentProject, FileName)
 	ElseIf FolderExists(FileName) Then
 		AddFolder FileName
+		WLet(RecentFolder, FileName)
 	ElseIf Trim(FileName)<>"" Then '
 		If FileExists(FileName) Then AddMRUFile FileName
 		AddTab FileName
+		WLet(RecentFile, FileName)
 	End If
 	wLet(RecentFiles, FileName)
 End Sub
@@ -3441,6 +3445,7 @@ Sub LoadSettings
 	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
 	WhenVisualFBEditorStarts = iniSettings.ReadInteger("Options", "WhenVisualFBEditorStarts", 2)
 	WLet(DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm"))
+	LastOpenedFileType = iniSettings.ReadInteger("Options", "LastOpenedFileType", 0)
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
 	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
@@ -5845,6 +5850,11 @@ Sub frmMain_Create(ByRef Sender As Control)
 	tbExplorer.Buttons.Item(3)->Checked = iniSettings.ReadBool("MainWindow", "ProjectFolders", True)
 	tbForm.Buttons.Item(0)->Checked = iniSettings.ReadBool("MainWindow", "ToolLabels", True)
 	ChangeUseDebugger iniSettings.ReadBool("MainWindow", "UseDebugger", True)
+	WLet(RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", ""))
+	WLet(RecentFile, iniSettings.ReadString("MainWindow", "RecentFile", ""))
+	WLet(RecentProject, iniSettings.ReadString("MainWindow", "RecentProject", ""))
+	WLet(RecentFolder, iniSettings.ReadString("MainWindow", "RecentFolder", ""))
+	WLet(RecentSession, iniSettings.ReadString("MainWindow", "RecentSession", ""))
 	Var bGUI = iniSettings.ReadBool("MainWindow", "CompileGUI", True)
 	tbStandard.Buttons.Item("GUI")->Checked = bGUI
 	tbStandard.Buttons.Item("Console")->Checked = Not bGUI
@@ -5855,9 +5865,15 @@ Sub frmMain_Create(ByRef Sender As Control)
 		Select Case WhenVisualFBEditorStarts
 		Case 1: 'pfTemplates->ShowModal
 		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
-		Case 3: wLet(RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", ""))
+		Case 3: 
 			' , Auto Load the last one.
-			OpenFiles *RecentFiles
+			Select Case LastOpenedFileType
+			Case 0: OpenFiles *RecentFiles
+			Case 1: OpenFiles *RecentSession
+			Case 2: OpenFiles *RecentFolder
+			Case 3: OpenFiles *RecentProject
+			Case 4: OpenFiles *RecentFile
+			End Select
 		End Select
 	Else
 		OpenFiles file
@@ -6184,6 +6200,10 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Next
 	End If
 	iniSettings.WriteString("MainWindow", "RecentFiles", *RecentFiles)
+	iniSettings.WriteString("MainWindow", "RecentFile", *RecentFile)
+	iniSettings.WriteString("MainWindow", "RecentProject", *RecentProject)
+	iniSettings.WriteString("MainWindow", "RecentFolder", *RecentFolder)
+	iniSettings.WriteString("MainWindow", "RecentSession", *RecentSession)
 	If mChangeLogEdited Then txtChangeLog.SaveToFile(ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log") '
 	UnLoadAddins
 	Exit Sub
@@ -6264,6 +6284,10 @@ Sub OnProgramQuit() Destructor
 	WDeallocate Debug32Arguments
 	WDeallocate Debug64Arguments
 	WDeallocate RecentFiles '
+	WDeallocate RecentFile '
+	WDeallocate RecentProject '
+	WDeallocate RecentFolder '
+	WDeallocate RecentSession '
 	WDeallocate DefaultHelp
 	WDeallocate HelpPath
 	WDeallocate KeywordsHelpPath

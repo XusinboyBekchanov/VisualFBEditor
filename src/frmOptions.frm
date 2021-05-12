@@ -1183,6 +1183,14 @@ pfOptions = @fOptions
 			.Caption = ML("Add Spaces To Operators")
 			.Parent = @pnlCodeEditor
 		End With
+		' cboOpenedFile
+		With cboOpenedFile
+			.Name = "cboOpenedFile"
+			.Text = "ComboBoxEdit1"
+			.TabIndex = 172
+			.SetBounds 222, 65, 175, 21
+			.Parent = @grbWhenVFBEStarts
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1284,6 +1292,7 @@ Sub frmOptions.LoadSettings()
 			f = Dir()
 		Wend
 		.cboDefaultProjectFile.ItemIndex = Templates.IndexOf(WGet(DefaultProjectFile))
+		.cboOpenedFile.ItemIndex = LastOpenedFileType
 		f = Dir(ExePath & "/Settings/Languages/*.lng")
 		While f <> ""
 			FileName = ExePath & "/Settings/Languages/" & f
@@ -1595,6 +1604,11 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Space Identifiers")
 		.lstColorKeys.AddItem ML("Strings")
 		.lstColorKeys.ItemIndex = 0
+		.cboOpenedFile.AddItem ML("All file types")
+		.cboOpenedFile.AddItem ML("Session file")
+		.cboOpenedFile.AddItem ML("Folder")
+		.cboOpenedFile.AddItem ML("Project file")
+		.cboOpenedFile.AddItem ML("Other file types")
 		For i As Integer = 0 To pfrmMain->Menu->Count - 1
 			AddShortcuts(pfrmMain->Menu->Item(i))
 		Next
@@ -1856,6 +1870,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		Else
 			WLet(DefaultProjectFile, .Templates.Item(.cboDefaultProjectFile.ItemIndex))
 		End If
+		LastOpenedFileType = .cboOpenedFile.ItemIndex
 		WhenVisualFBEditorStarts = IIf(.optPromptForProjectAndFile.Checked, 1, IIf(.optCreateProjectFile.Checked, 2, IIf(.optOpenLastSession.Checked, 3, 0)))
 		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, IIf(.optPromptToSave.Checked, 3, 0)))
 		ShowSpaces = .chkShowSpaces.Checked
@@ -2006,6 +2021,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "AutoCreateRC", AutoCreateRC
 		piniSettings->WriteBool "Options", "AutoCreateBakFiles", AutoCreateBakFiles
 		piniSettings->WriteString "Options", "DefaultProjectFile", WGet(DefaultProjectFile)
+		piniSettings->WriteInteger "Options", "LastOpenedFileType", LastOpenedFileType
 		piniSettings->WriteInteger "Options", "WhenVisualFBEditorStarts", WhenVisualFBEditorStarts
 		piniSettings->WriteInteger "Options", "AutoSaveBeforeCompiling", AutoSaveBeforeCompiling
 		piniSettings->WriteBool "Options", "ShowSpaces", ShowSpaces
@@ -2156,6 +2172,7 @@ End Sub
 Private Sub frmOptions.Form_Show(ByRef Sender As Form)
 	With fOptions
 		.LoadSettings
+		cboDefaultProjectFileCheckEnable
 	End With
 End Sub
 
@@ -2929,6 +2946,7 @@ End Sub
 
 Sub cboDefaultProjectFileCheckEnable
 	fOptions.cboDefaultProjectFile.Enabled = fOptions.optCreateProjectFile.Checked
+	fOptions.cboOpenedFile.Enabled = fOptions.optOpenLastSession.Checked
 End Sub
 
 Private Sub frmOptions.optPromptForProjectAndFiles_Click(ByRef Sender As RadioButton)
