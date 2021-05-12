@@ -1891,9 +1891,9 @@ Namespace My.Sys.Forms
 									End If
 									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 									Exit Do
-								ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse t = Asc("#") OrElse t = Asc("$") OrElse t = Asc("_") Then
+								ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse t = Asc("#") OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
 									If MatnBoshi = 0 Then MatnBoshi = j
-									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
+									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse u = Asc(".")) Then
 										'If j < This.Width / dwCharX Then
 										Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 										sc = @Identifiers
