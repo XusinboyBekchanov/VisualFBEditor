@@ -1477,6 +1477,7 @@ Sub frmOptions.LoadSettings()
 '		.Colors(12, 5) = Preprocessors.Italic
 '		.Colors(12, 6) = Preprocessors.Underline
 		AddColors Numbers, , , , False
+		AddColors RealNumbers, , , , False
 		AddColors Selection, , , , False, False, False, False
 '		.Colors(13, 0) = Selection.Foreground
 '		.Colors(13, 1) = Selection.Background
@@ -1588,6 +1589,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Line Numbers")
 		.lstColorKeys.AddItem ML("Normal Text")
 		.lstColorKeys.AddItem ML("Numbers")
+		.lstColorKeys.AddItem ML("Real Numbers")
 '		.lstColorKeys.AddItem ML("Preprocessors")
 		.lstColorKeys.AddItem ML("Selection")
 		.lstColorKeys.AddItem ML("Space Identifiers")
@@ -1596,7 +1598,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		For i As Integer = 0 To pfrmMain->Menu->Count - 1
 			AddShortcuts(pfrmMain->Menu->Item(i))
 		Next
-		ReDim .Colors(16 + KeywordLists.Count - 1, 7)
+		ReDim .Colors(17 + KeywordLists.Count - 1, 7)
 		.LoadSettings
 	End With
 End Sub
@@ -1685,6 +1687,7 @@ Sub SetColors
 '		LineNumbers.Underline = .Colors(10, 6)
 		SetColor NormalText
 		SetColor Numbers
+		SetColor RealNumbers
 '		NormalText.ForegroundOption = .Colors(11, 0)
 '		NormalText.BackgroundOption = .Colors(11, 1)
 '		NormalText.FrameOption = .Colors(11, 2)
@@ -2110,6 +2113,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "NumbersBold", Numbers.Bold)
 		piniTheme->WriteInteger("FontStyles", "NumbersItalic", Numbers.Italic)
 		piniTheme->WriteInteger("FontStyles", "NumbersUnderline", Numbers.Underline)
+		piniTheme->WriteInteger("Colors", "RealNumbersForeground", RealNumbers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "RealNumbersBackground", RealNumbers.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "RealNumbersFrame", RealNumbers.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "RealNumbersBold", RealNumbers.Bold)
+		piniTheme->WriteInteger("FontStyles", "RealNumbersItalic", RealNumbers.Italic)
+		piniTheme->WriteInteger("FontStyles", "RealNumbersUnderline", RealNumbers.Underline)
 '		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "SelectionBackground", Selection.BackgroundOption)
 		piniTheme->WriteInteger("Colors", "SelectionFrame", Selection.FrameOption)
@@ -2369,16 +2378,22 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 		.Colors(13 + k, 4) = piniTheme->ReadInteger("FontStyles", "NumbersBold", piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0))
 		.Colors(13 + k, 5) = piniTheme->ReadInteger("FontStyles", "NumbersItalic", piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0))
 		.Colors(13 + k, 6) = piniTheme->ReadInteger("FontStyles", "NumbersUnderline", piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0))
-		.Colors(14 + k, 0) = piniTheme->ReadInteger("Colors", "SelectionForeground", -1)
-		.Colors(14 + k, 1) = piniTheme->ReadInteger("Colors", "SelectionBackground", -1)
-		.Colors(14 + k, 2) = piniTheme->ReadInteger("Colors", "SelectionFrame", -1)
-		.Colors(15 + k, 0) = piniTheme->ReadInteger("Colors", "SpaceIdentifiersForeground", -1)
-		.Colors(16 + k, 0) = piniTheme->ReadInteger("Colors", "StringsForeground", -1)
-		.Colors(16 + k, 1) = piniTheme->ReadInteger("Colors", "StringsBackground", -1)
-		.Colors(16 + k, 2) = piniTheme->ReadInteger("Colors", "StringsFrame", -1)
-		.Colors(16 + k, 4) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
-		.Colors(16 + k, 5) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
-		.Colors(16 + k, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
+		.Colors(14 + k, 0) = piniTheme->ReadInteger("Colors", "RealNumbersForeground", piniTheme->ReadInteger("Colors", "NumbersForeground", -1))
+		.Colors(14 + k, 1) = piniTheme->ReadInteger("Colors", "RealNumbersBackground", piniTheme->ReadInteger("Colors", "NumbersBackground", -1))
+		.Colors(14 + k, 2) = piniTheme->ReadInteger("Colors", "RealNumbersFrame", piniTheme->ReadInteger("Colors", "NumbersFrame", -1))
+		.Colors(14 + k, 4) = piniTheme->ReadInteger("FontStyles", "RealNumbersBold", piniTheme->ReadInteger("FontStyles", "NumbersBold", 0))
+		.Colors(14 + k, 5) = piniTheme->ReadInteger("FontStyles", "RealNumbersItalic", piniTheme->ReadInteger("FontStyles", "NumbersItalic", 0))
+		.Colors(14 + k, 6) = piniTheme->ReadInteger("FontStyles", "RealNumbersUnderline", piniTheme->ReadInteger("FontStyles", "NumbersUnderline", 0))
+		.Colors(15 + k, 0) = piniTheme->ReadInteger("Colors", "SelectionForeground", -1)
+		.Colors(15 + k, 1) = piniTheme->ReadInteger("Colors", "SelectionBackground", -1)
+		.Colors(15 + k, 2) = piniTheme->ReadInteger("Colors", "SelectionFrame", -1)
+		.Colors(16 + k, 0) = piniTheme->ReadInteger("Colors", "SpaceIdentifiersForeground", -1)
+		.Colors(17 + k, 0) = piniTheme->ReadInteger("Colors", "StringsForeground", -1)
+		.Colors(17 + k, 1) = piniTheme->ReadInteger("Colors", "StringsBackground", -1)
+		.Colors(17 + k, 2) = piniTheme->ReadInteger("Colors", "StringsFrame", -1)
+		.Colors(17 + k, 4) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
+		.Colors(17 + k, 5) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
+		.Colors(17 + k, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
 		.lstColorKeys_Change(.lstColorKeys)
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then

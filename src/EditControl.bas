@@ -1893,7 +1893,7 @@ Namespace My.Sys.Forms
 									Exit Do
 								ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse t = Asc("#") OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
 									If MatnBoshi = 0 Then MatnBoshi = j
-									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse u = Asc(".")) Then
+									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso t >= 48 AndAlso t <= 57)) Then
 										'If j < This.Width / dwCharX Then
 										Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 										sc = @Identifiers
@@ -1937,7 +1937,11 @@ Namespace My.Sys.Forms
 													End If
 												ElseIf pkeywords = 0 Then
 													If IsNumeric(Matn) Then
-														sc = @Numbers
+														If InStr(Matn, ".") Then
+															sc = @RealNumbers
+														Else
+															sc = @Numbers
+														End If
 													Else
 														sc = @Identifiers
 													End If

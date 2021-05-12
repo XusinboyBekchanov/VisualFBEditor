@@ -3556,6 +3556,12 @@ Sub LoadSettings
 	Numbers.Bold = iniTheme.ReadInteger("FontStyles", "NumbersBold", iniTheme.ReadInteger("FontStyles", "NormalTextBold", 0))
 	Numbers.Italic = iniTheme.ReadInteger("FontStyles", "NumbersItalic", iniTheme.ReadInteger("FontStyles", "NormalTextItalic", 0))
 	Numbers.Underline = iniTheme.ReadInteger("FontStyles", "NumbersUnderline", iniTheme.ReadInteger("FontStyles", "NormalTextUnderline", 0))
+	RealNumbers.ForegroundOption = iniTheme.ReadInteger("Colors", "RealNumbersForeground", iniTheme.ReadInteger("Colors", "NumbersForeground", -1))
+	RealNumbers.BackgroundOption = iniTheme.ReadInteger("Colors", "RealNumbersBackground", iniTheme.ReadInteger("Colors", "NumbersBackground", -1))
+	RealNumbers.FrameOption = iniTheme.ReadInteger("Colors", "RealNumbersFrame", iniTheme.ReadInteger("Colors", "NumbersFrame", -1))
+	RealNumbers.Bold = iniTheme.ReadInteger("FontStyles", "RealNumbersBold", iniTheme.ReadInteger("FontStyles", "NumbersBold", 0))
+	RealNumbers.Italic = iniTheme.ReadInteger("FontStyles", "RealNumbersItalic", iniTheme.ReadInteger("FontStyles", "NumbersItalic", 0))
+	RealNumbers.Underline = iniTheme.ReadInteger("FontStyles", "RealNumbersUnderline", iniTheme.ReadInteger("FontStyles", "NumbersUnderline", 0))
 '	Preprocessors.ForegroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsForeground", -1)
 '	Preprocessors.BackgroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsBackground", -1)
 '	Preprocessors.FrameOption = iniTheme.ReadInteger("Colors", "PreprocessorsFrame", -1)
@@ -5813,6 +5819,7 @@ Sub SetAutoColors
 	GetColors LineNumbers, clBlack, clBtnFace
 	GetColors NormalText, clBlack, clWhite
 	GetColors Numbers, clBlack, clWhite
+	GetColors RealNumbers, clBlack, clWhite
 	'GetColors Preprocessors, clPurple
 	GetColors Selection, clHighlightText, clHighlight
 	GetColors SpaceIdentifiers, clLtGray

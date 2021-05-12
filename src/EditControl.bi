@@ -38,7 +38,7 @@ Type ECColorScheme
 	As Boolean Bold, Italic, Underline
 End Type
 
-Common Shared As ECColorScheme Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, Selection, SpaceIdentifiers, Strings
+Common Shared As ECColorScheme Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, RealNumbers, Selection, SpaceIdentifiers, Strings
 Common Shared As Integer EditorFontSize
 Common Shared As WString Ptr EditorFontName
 Common Shared As WString Ptr CurrentTheme
