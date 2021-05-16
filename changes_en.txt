@@ -1,4 +1,38 @@
-﻿Version 1.2.7 (March 6, 2021)
+﻿Version 1.2.8 (May 16, 2021)
+- Added: Open Last Opened File Type to Options
+- Added: Real Numbers option to Code Editor Colors
+- Fixed: Show message in Debug
+- Added: StatusBar Editor
+- Added: Project Properties: Change Appilcation Icon
+- Added: ImageList Editor
+- Added: ToolBar Editor
+- Added: Add Spaces function
+- Added: Identifiers and Numbers syntax higlighting
+- Fixed: Define variables (F2) with square brackets
+- Added: Show Keywords Tooltip option
+- Added: LLVM and GAS64 compile variants to Project Properties
+- Added: Open Help with xCHM in Linux
+- Added: FreeBasic keywords tooltip
+- Fixed: Complete word
+- Fixed: Add end construction to #Ifdef, #ifndef
+- Improved: Keywords
+- Added: Save Prompt Dialog
+- Added: Advanced options to Project Properties
+- Added: Change Font and Color in Properties Window
+- Fixed: Reduced number of GDI objects
+- Added: Work with image files in Designer
+- Added: Image Manager
+- Added: TopMenu to Designer form
+- Added: Menu Editor
+- Added: Default event menu item to Designer Popup menu
+- Fixed: Cut, Copy, Paste components
+- Fixed: Current and Default compiler option
+- Fixed: Linux compile arguments
+- Added: Command option to External Tools
+- Added: Other Editors option
+- Fixed: Debug on Linux (by default gdb console)
+- Fixed: Fixed: Command Prompt in Linux
+Version 1.2.7 (March 6, 2021)
 - Added: Chart Example
 - Improved: TabWindow
 - Fixed: Templates in Linux

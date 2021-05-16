@@ -19,7 +19,7 @@
                 ],
             },
             "linux": {
-                "command": "/media/FreeBasic/FreeBASIC-1.07.1-linux-x86_64/bin/fbc",
+                "command": "/mnt/media/FreeBasic/FreeBASIC-1.07.3-linux-x86_64/bin/fbc",
                 "args": [
                     "-g",
                     "VisualFBEditor.bas",

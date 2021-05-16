@@ -420,7 +420,7 @@ Function Compile(Parameter As String = "") As Integer
 	ClearMessages
 	FileOut = FreeFile
 	If Dir(*ExeName) <> "" Then 'delete exe if exist
-		If Kill(*ExeName) <> 0 Then
+		If *ExeName = ExePath OrElse Kill(*ExeName) <> 0 Then
 			ThreadsEnter()
 			ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *ExeName) '
 			ThreadsLeave()
@@ -524,14 +524,19 @@ Function Compile(Parameter As String = "") As Integer
 		WLetEx(PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True)
 	#else
 		WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
-		'ShowWindow(getconsolewindow,SW_HIDE)
 	#endif
 	If Parameter <> "Check" Then
 		ThreadsEnter()
 		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
 		ThreadsLeave()
 	End If
+	'#ifdef __USE_GTK__
 	If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
+		'#ifndef __USE_GTK__
+		'#if __FB_GUI__ <> 0
+		'ShowWindow(FindWindow(, SW_MINIMIZE)
+		'#endif
+		'#endif
 		While Not EOF(Fn)
 			Line Input #Fn, Buff
 			SplitError(Buff, ErrFileName, ErrTitle, iLine)
@@ -546,100 +551,184 @@ Function Compile(Parameter As String = "") As Integer
 		Wend
 		Close #Fn
 	End If
-	WDeallocate PipeCommand
-	#ifdef __USE_GTK__
-		Yaratilmadi = g_find_program_in_path(ToUTF8(*ExeName)) = NULL
-	#else
-		Yaratilmadi = Dir(*ExeName) = ""
-	#endif
-	
-	Fn =FreeFile
-	Result=-1
-	Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(*LogFileName2 For Input As #Fn)
-	If Result = 0 Then
-		While Not EOF(Fn)
-			Line Input #Fn, Buff
-			'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
-			SplitError(Buff, ErrFileName, ErrTitle, iLine)
-			ThreadsEnter()
-			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-			lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
-			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-			ShowMessages(Buff, False)
-			ThreadsLeave()
-			'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
-			Log2_ = True
-		Wend
-		Close #Fn
-	End If
-	ThreadsEnter()
-	If lvErrors.ListItems.Count <> 0 Then
-		ptabBottom->Tabs[1]->Caption = ML("Errors") & " (" & lvErrors.ListItems.Count & " " & ML("Pos") & ")"
-	Else
-		ptabBottom->Tabs[1]->Caption = ML("Errors")
-	End If
-	ThreadsLeave()
-	'If LogFileName Then Deallocate LogFileName
-	If LogFileName2 Then Deallocate_( LogFileName2)
-	If BatFileName Then Deallocate_( BatFileName)
-	WDeallocate fbcCommand
-	WDeallocate CompileWith
-	WDeallocate MFFPathC
-	WDeallocate MainFile
-	WDeallocate FirstLine
-	ThreadsEnter()
-	ShowMessages("")
-	StopProgress
-	ThreadsLeave()
-	For i As Integer = 0 To Tools.Count - 1
-		Tool = Tools.Item(i)
-		If Tool->LoadType = LoadTypes.AfterCompile Then Tool->Execute
-	Next
-	If Yaratilmadi Or Band Then
+'	#else
+	'		Dim As Integer pclass
+	'		Dim As Long flagnoread, flagline = 0
+	'		Dim As Boolean veof
+	'		Dim As HANDLE ReadHandle
+	'		Dim As HANDLE WriteHandle
+	'		Dim As PROCESS_INFORMATION pinfo
+	'		Dim As STARTUPINFO sinfo
+	'		 set up security attributes to allow pipes to be inherited
+	'		Dim As SECURITY_ATTRIBUTES sa = Type(SizeOf(SECURITY_ATTRIBUTES), NULL, True)
+	'		 create the pipe
+	'		If (CreatePipe(@ReadHandle, @WriteHandle, @sa, 0)) = 0 Then
+		'			ShowMessages(ML("Compiler data can't be retrieved"))
+		'			veof = True
+		'			Return False
+	'		End If
+	'		 establishing the START INFO structure for the child process
+	'		sinfo.cb = Len(sinfo)
+	'		sinfo.hStdinput = GetStdHandle(STD_INPUT_HANDLE)
+	'		 redirecting standard input to the write end of the pipe */
+	'		sinfo.hStdoutput = WriteHandle
+	'		sinfo.hStdError = WriteHandle
+	'		sinfo.dwFlags = STARTF_USESTDHANDLES
+	'		 don’t allow the child inheriting the read end of pipe */
+	'		SetHandleInformation(ReadHandle, HANDLE_FLAG_INHERIT, 0)
+	'		Set the priority class NO_window is important to avoid a cmd window
+	'		pclass = NORMAL_PRIORITY_CLASS Or CREATE_NO_WINDOW
+	'		veof = False
+	'		Dim As WString Ptr Workdir
+	'		WLet Workdir, GetFolderName(*MainFile)
+	'		create the child process inherit handles
+	'		WLetEx PipeCommand, Mid(Replace(*PipeCommand, "/", "\"), 2, Len(*PipeCommand) - 2), True
+	'		If CreateProcess(null, PipeCommand, ByVal NULL, ByVal NULL, True, pclass, null, null, @sinfo, @pinfo) = 0 Then
+		'			ShowMessages(ML("Not Compiler process created"))
+		'			veof = True
+	'		End If
+	'		CloseHandle(WriteHandle)  'close the unused end of the pipe
+	'		While veof = False
+		'			Dim As UString fullstrg
+		'			If flagnoread = 0 Then
+			'				Dim As Integer p, result
+			'				Dim As Long vread
+			'				Dim As ZString * BUFFER_SIZE buffer
+			'				While 1
+				'					p = InStr(fullstrg, Chr(10))
+				'					While p
+					'						dwln = Left(fullstrg, p - 2)
+					'						fullstrg = Mid(fullstrg, p + 1)
+					'						p = InStr(fullstrg, Chr(10))
+					'						If p = 0 Then
+						'							result = ReadFile(ReadHandle, @buffer, BUFFER_SIZE - 1, @vread, NULL)
+						'							If result = 0 Then
+							'								veof = True
+						'							Else
+							'								buffer[vread + 1] = 0
+							'								fullstrg += buffer
+						'							End If
+					'						End If
+					'						Exit While, While
+				'					Wend
+				'					result = ReadFile(ReadHandle, @buffer, BUFFER_SIZE, @vread, NULL)
+				'					If result = 0 Then
+					'						veof = True
+					'						Exit While
+				'					End If
+				'					buffer[vread + 1] = 0
+				'					fullstrg += buffer
+			'				Wend
+		'			Else
+			'				flagnoread = 0
+		'			EndIf
+		'			SplitError(fullstrg, ErrFileName, ErrTitle, iLine)
+		'			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+		'			lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
+		'			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+		'			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+		'			ShowMessages(fullstrg, False)
+	'		Wend
+	'		CloseHandle(ReadHandle) 'close the read end of the pipe */
+	'		WaitForSingleObject(pinfo.hProcess, INFINITE) 'wait for the child to exit */
+	'		CloseHandle(pinfo.hProcess)
+	'		CloseHandle(pinfo.hThread)
+	'		If WorkDir Then Deallocate_(WorkDir)
+'	#endif
+WDeallocate PipeCommand
+#ifdef __USE_GTK__
+	Yaratilmadi = g_find_program_in_path(ToUTF8(*ExeName)) = NULL
+#else
+	Yaratilmadi = Dir(*ExeName) = ""
+#endif
+
+Fn =FreeFile
+Result=-1
+Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
+If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
+If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-32" As #Fn)
+If Result <> 0 Then Result = Open(*LogFileName2 For Input As #Fn)
+If Result = 0 Then
+	While Not EOF(Fn)
+		Line Input #Fn, Buff
+		'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
+		SplitError(Buff, ErrFileName, ErrTitle, iLine)
 		ThreadsEnter()
+		If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+		lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
+		lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+		lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+		ShowMessages(Buff, False)
+		ThreadsLeave()
+		'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
+		Log2_ = True
+	Wend
+	Close #Fn
+End If
+ThreadsEnter()
+If lvErrors.ListItems.Count <> 0 Then
+	ptabBottom->Tabs[1]->Caption = ML("Errors") & " (" & lvErrors.ListItems.Count & " " & ML("Pos") & ")"
+Else
+	ptabBottom->Tabs[1]->Caption = ML("Errors")
+End If
+ThreadsLeave()
+'If LogFileName Then Deallocate LogFileName
+If LogFileName2 Then Deallocate_( LogFileName2)
+If BatFileName Then Deallocate_( BatFileName)
+WDeallocate fbcCommand
+WDeallocate CompileWith
+WDeallocate MFFPathC
+WDeallocate MainFile
+WDeallocate FirstLine
+ThreadsEnter()
+ShowMessages("")
+StopProgress
+ThreadsLeave()
+For i As Integer = 0 To Tools.Count - 1
+	Tool = Tools.Item(i)
+	If Tool->LoadType = LoadTypes.AfterCompile Then Tool->Execute
+Next
+If Yaratilmadi Or Band Then
+	ThreadsEnter()
+	If Parameter <> "Check" Then
+		ShowMessages(Str(Time) & ": " & ML("Do not build file."))
+		If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then ptabBottom->Tabs[1]->SelectTab
+	ElseIf lvErrors.ListItems.Count <> 0 Then
+		ShowMessages(Str(Time) & ": " & ML("Checking ended."))
+		ptabBottom->Tabs[1]->SelectTab
+	Else
+		ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found."))
+	End If
+	ThreadsLeave()
+	WDeallocate LogText
+	Return 0
+Else
+	ThreadsEnter()
+	If InStr(*LogText, "warning") > 0 Then
 		If Parameter <> "Check" Then
-			ShowMessages(Str(Time) & ": " & ML("Do not build file."))
-			If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then ptabBottom->Tabs[1]->SelectTab
-		ElseIf lvErrors.ListItems.Count <> 0 Then
-			ShowMessages(Str(Time) & ": " & ML("Checking ended."))
-			ptabBottom->Tabs[1]->SelectTab
-		Else
-			ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found."))
+			ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings."))
 		End If
-		ThreadsLeave()
-		WDeallocate LogText
-		Return 0
 	Else
-		ThreadsEnter()
-		If InStr(*LogText, "warning") > 0 Then
-			If Parameter <> "Check" Then
-				ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings."))
-			End If
+		If Parameter <> "Check" Then
+			ShowMessages(Str(Time) & ": " & ML("Layout succeeded!"))
 		Else
-			If Parameter <> "Check" Then
-				ShowMessages(Str(Time) & ": " & ML("Layout succeeded!"))
-			Else
-				ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!"))
-			End If
+			ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!"))
 		End If
-		ThreadsLeave()
-		WDeallocate LogText
-		WDeallocate ExeName
-		Return 1
 	End If
-	
-	Exit Function
-	ErrorHandler:
-	ThreadsEnter()
-	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
 	ThreadsLeave()
+	WDeallocate LogText
+	WDeallocate ExeName
+	Return 1
+End If
+
+Exit Function
+ErrorHandler:
+ThreadsEnter()
+MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+"in line " & Erl() & " " & _
+"in function " & ZGet(Erfn()) & " " & _
+"in module " & ZGet(Ermn())
+ThreadsLeave()
 End Function
 
 Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, ByVal iSelStart As Integer =-1, ByVal iSelLength As Integer =-1, tabw As TabWindow Ptr = 0, ByRef SearchText As WString = "")
@@ -1169,7 +1258,9 @@ Sub AddMRUSession(ByRef FileName As WString)
 End Sub
 
 Function FolderExists(ByRef FolderName As WString) As Boolean
-	Return Len(Dir(FolderName, fbDirectory))
+	Dim AttrTester As Integer, DirString As String
+	DirString = Dir(FolderName, fbDirectory, AttrTester)
+	Return AttrTester = fbDirectory
 End Function
 
 Sub AddNew(ByRef Template As WString = "")
@@ -1566,7 +1657,7 @@ Sub RunHelp(Param As Any Ptr)
 		If HtmlHelpW <> 0 Then
 			If Param <> 0 Then wszKeyword = Cast(HelpOptions Ptr, Param)->CurrentWord
 			If wszKeyword = "" AndAlso Param = 0 AndAlso tb <> 0 Then wszKeyword = tb->txtCode.GetWordAtCursor
-			If wszKeyword = "" Then 
+			If wszKeyword = "" Then
 				HtmlHelpW(0, CurrentHelpPath, HH_DISPLAY_TOC, Null)
 			Else
 				wszKeywordUpper = UCase(wszKeyword)
@@ -1918,13 +2009,13 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 			Next k
 		End If
 	Next
-'	If bProjectModified AndAlso Not WithoutMessage Then
-'		Select Case MsgBox(ML("Want to save the project") & " """ & tn->Text & """?", "Visual FB Editor", mtWarning, btYesNoCancel)
-'		Case mrYES: If Not SaveProject(tn) Then Return False
-'		Case mrNO:
-'		Case mrCANCEL: Return False
-'		End Select
-'	End If
+	'	If bProjectModified AndAlso Not WithoutMessage Then
+	'		Select Case MsgBox(ML("Want to save the project") & " """ & tn->Text & """?", "Visual FB Editor", mtWarning, btYesNoCancel)
+	'		Case mrYES: If Not SaveProject(tn) Then Return False
+	'		Case mrNO:
+	'		Case mrCANCEL: Return False
+	'		End Select
+	'	End If
 	If tn = MainNode Then SetMainNode 0
 	If tn->Tag <> 0 Then Delete_(Cast(ProjectElement Ptr, tn->Tag))
 	If tvExplorer.Nodes.IndexOf(tn) <> -1 Then tvExplorer.Nodes.Remove tvExplorer.Nodes.IndexOf(tn)
@@ -2650,7 +2741,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Pos1 > 0 Then
 								CurType = Trim(Mid(res1(n), Pos1 + 4))
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
-							End If 
+							End If
 							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
 								res1(n) = Trim(Mid(res1(n), 6))
 							End If
@@ -3152,7 +3243,7 @@ Sub LoadHelp
 				te->ElementType = "Keyword"
 				te->FileName = *KeywordsHelpPath
 				GlobalFunctions.Add te->Name, te
-				bStartEnd = False 
+				bStartEnd = False
 				bDescriptionEnd = False
 			ElseIf Parag = parStart Then
 				If Buff <> "" AndAlso te <> 0 Then
@@ -3567,12 +3658,12 @@ Sub LoadSettings
 	RealNumbers.Bold = iniTheme.ReadInteger("FontStyles", "RealNumbersBold", iniTheme.ReadInteger("FontStyles", "NumbersBold", 0))
 	RealNumbers.Italic = iniTheme.ReadInteger("FontStyles", "RealNumbersItalic", iniTheme.ReadInteger("FontStyles", "NumbersItalic", 0))
 	RealNumbers.Underline = iniTheme.ReadInteger("FontStyles", "RealNumbersUnderline", iniTheme.ReadInteger("FontStyles", "NumbersUnderline", 0))
-'	Preprocessors.ForegroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsForeground", -1)
-'	Preprocessors.BackgroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsBackground", -1)
-'	Preprocessors.FrameOption = iniTheme.ReadInteger("Colors", "PreprocessorsFrame", -1)
-'	Preprocessors.Bold = iniTheme.ReadInteger("FontStyles", "PreprocessorsBold", 0)
-'	Preprocessors.Italic = iniTheme.ReadInteger("FontStyles", "PreprocessorsItalic", 0)
-'	Preprocessors.Underline = iniTheme.ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
+	'	Preprocessors.ForegroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsForeground", -1)
+	'	Preprocessors.BackgroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsBackground", -1)
+	'	Preprocessors.FrameOption = iniTheme.ReadInteger("Colors", "PreprocessorsFrame", -1)
+	'	Preprocessors.Bold = iniTheme.ReadInteger("FontStyles", "PreprocessorsBold", 0)
+	'	Preprocessors.Italic = iniTheme.ReadInteger("FontStyles", "PreprocessorsItalic", 0)
+	'	Preprocessors.Underline = iniTheme.ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
 	Selection.ForegroundOption = iniTheme.ReadInteger("Colors", "SelectionForeground", -1)
 	Selection.BackgroundOption = iniTheme.ReadInteger("Colors", "SelectionBackground", -1)
 	Selection.FrameOption = iniTheme.ReadInteger("Colors", "SelectionFrame", -1)
@@ -3660,7 +3751,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Paste", "Paste"
 	imgList.Add "Find", "Find"
 	imgList.Add "Code", "Code"
-	imgList.Items.Add "Console", "Console"
+	imgList.Add "Console", "Console"
 	imgList.Add "Form", "Form"
 	imgList.Add "MainForm", "MainForm"
 	imgList.Add "Format", "Format"
@@ -4405,7 +4496,7 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 		#endif
 			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
 		Else
-			Params = """" & This.Path & """ "
+			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
 		End If
 	End If
 	Params &= This.Parameters
@@ -4742,7 +4833,7 @@ Sub btnPropertyValue_Click(ByRef Sender As Control)
 	Dim As TypeElement Ptr te = Sender.Tag
 	Select Case LCase(te->TypeName)
 	Case "icon", "cursor", "bitmaptype", "graphictype"
-		pfImageManager->WithoutMainNode = True 
+		pfImageManager->WithoutMainNode = True
 		If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
 			If pfImageManager->lvImages.SelectedItem = 0 Then Exit Sub
 			txtPropertyValue.Text = pfImageManager->lvImages.SelectedItem->Text(0)
@@ -5865,7 +5956,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		Select Case WhenVisualFBEditorStarts
 		Case 1: 'pfTemplates->ShowModal
 		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
-		Case 3: 
+		Case 3:
 			' , Auto Load the last one.
 			Select Case LastOpenedFileType
 			Case 0: OpenFiles *RecentFiles
@@ -5927,11 +6018,11 @@ Sub CheckCompilerPaths
 				pfOptions->Show *pfrmMain
 				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
 			End If
-		#ifdef __USE_GTK__
-		ElseIf g_find_program_in_path(ToUTF8(*CompilerPath)) = NULL Then
-		#else
-		ElseIf Not FileExists(*CompilerPath) Then
-		#endif
+			#ifdef __USE_GTK__
+			ElseIf g_find_program_in_path(ToUTF8(*CompilerPath)) = NULL Then
+			#else
+			ElseIf Not FileExists(*CompilerPath) Then
+			#endif
 			If MsgBox(ML("File") & " """ & *CompilerPath & """ " & ML("not found") & "." & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
 				pfOptions->Show *pfrmMain
 				pfOptions->tvOptions.Nodes.Item(2)->SelectItem

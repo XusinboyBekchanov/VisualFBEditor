@@ -334,12 +334,13 @@ End Sub
 Sub ExecuteTool(Param As Any Ptr)
 	Dim As UserToolType Ptr tt = Param
 	If tt = 0 Then Exit Sub
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If tb = 0 Then 
+	'Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	'If tb = 0 Then 
 		Shell tt->GetCommand()
-	Else
-		Shell tt->GetCommand(tb->FileName)
-	End If
+	'Else
+	'	?tt->GetCommand(tb->FileName)
+	'	Shell tt->GetCommand(tb->FileName)
+	'End If
 End Sub
 
 Sub UserToolType.Execute()

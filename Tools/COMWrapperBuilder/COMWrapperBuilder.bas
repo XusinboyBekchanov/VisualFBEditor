@@ -488,7 +488,7 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 				Exit Sub
 			End If
 			Fn1 = FreeFile
-			WLet fileName, GetFolderName(*fileName) & "SimpleVariantPlus.bi", True
+			WLetEx fileName, GetFolderName(*fileName) & "SimpleVariantPlus.bi", True
 			Dim As Boolean FileEx
 			If Dir(*fileName) <> "" Then FileEx = True 
 			Open *fileName For Output As #Fn1

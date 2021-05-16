@@ -1,2 +1,2 @@
 ﻿ #Include Once "mff/SysUtils.bas"
-Print Str(Environ("COMSPEC") & Space(1024))
+Print Str(asc("1") & Space(1024))

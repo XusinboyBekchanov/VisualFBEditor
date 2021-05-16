@@ -36,29 +36,29 @@ End Namespace
 
 ' Add Try End_Try
 ReDim Constructions(24) As Construction
-Constructions(0)  = Type<Construction>("If",            "",                     "",                     "",                 "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
-Constructions(1)  = Type<Construction>("#If",           "#IfDef",               "#IfNDef",              "",                 "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
-Constructions(2)  = Type<Construction>("#Macro",        "",                     "",                     "",                 "",         "",             "",         "#EndMacro",        "",         False,  False)
-Constructions(3)  = Type<Construction>("Extern",        "",                     "",                     "",                 "",         "",             "",         "End Extern",       "",         False,  False)
-Constructions(4)  = Type<Construction>("Try",           "",                     "",                     "",                 "Catch",    "Finally",      "",         "EndTry",           "",         False,  False)
-Constructions(5)  = Type<Construction>("Asm",           "",                     "",                     "",                 "",         "",             "",         "End Asm",          " ",        False,  False)
-Constructions(6)  = Type<Construction>("Select Case",   "",                     "",                     "",                 "Case",     "",             "",         "End Select",       "",         False,  False)
-Constructions(7)  = Type<Construction>("For",           "",                     "",                     "",                 "",         "",             "",         "Next",             "",         False,  False)
-Constructions(8)  = Type<Construction>("Do",            "",                     "",                     "",                 "",         "",             "",         "Loop",             "",         False,  False)
-Constructions(9)  = Type<Construction>("While",         "",                     "",                     "",                 "",         "",             "",         "Wend",             "",         False,  False)
-Constructions(10) = Type<Construction>("With",          "",                     "",                     "",                 "",         "",             "",         "End With",         "",         False,  False)
-Constructions(11) = Type<Construction>("Scope",         "",                     "",                     "",                 "",         "",             "",         "End Scope",        "",         False,  False)
-Constructions(12) = Type<Construction>("'#Region",      "",                     "",                     "",                 "",         "",             "",         "'#End Region",     "",         True,   False)
-Constructions(13) = Type<Construction>("Namespace",     "",                     "",                     "",                 "",         "",             "",         "End Namespace",    "",         True,   False)
-Constructions(14) = Type<Construction>("Enum",          "Public Enum",          "Private Enum",         "",                 "",         "",             "",         "End Enum",         "",         True,   True)
-Constructions(15) = Type<Construction>("Type",          "Public Type",          "Private Type",         "",                 "Private:", "Protected:",   "Public:",  "End Type",         "",         True,   True)
-Constructions(16) = Type<Construction>("Union",         "Public Union",         "Private Union",        "",                 "",         "",             "",         "End Union",        "",         True,   True)
-Constructions(17) = Type<Construction>("Sub",           "Public Sub",           "Private Sub",          "Static Sub",       "",         "",             "",         "End Sub",          "",         True,   True)
-Constructions(18) = Type<Construction>("Function",      "Public Function",      "Private Function",     "Static Function",  "",         "",             "",         "End Function",     "",         True,   True)
-Constructions(19) = Type<Construction>("Property",      "Public Property",      "Private Property",     "",                 "",         "",             "",         "End Property",     "",         True,   True)
-Constructions(20) = Type<Construction>("Operator",      "Public Operator",      "Private Operator",     "",                 "",         "",             "",         "End Operator",     "",         True,   True)
-Constructions(21) = Type<Construction>("Constructor",   "Public Constructor",   "Private Constructor",  "",                 "",         "",             "",         "End Constructor",  "",         True,   True)
-Constructions(22) = Type<Construction>("Destructor",    "Public Destructor",    "Private Destructor",   "",                 "",         "",             "",         "End Destructor",   "",         True,   True)
+Constructions(0)  = Type < Construction > ("If",            "",                     "",                     "",                 "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
+Constructions(1)  = Type < Construction > ("#If",           "#IfDef",               "#IfNDef",              "",                 "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
+Constructions(2)  = Type < Construction > ("#Macro",        "",                     "",                     "",                 "",         "",             "",         "#EndMacro",        "",         False,  False)
+Constructions(3)  = Type < Construction > ("Extern",        "",                     "",                     "",                 "",         "",             "",         "End Extern",       "",         False,  False)
+Constructions(4)  = Type < Construction > ("Try",           "",                     "",                     "",                 "Catch",    "Finally",      "",         "EndTry",           "",         False,  False)
+Constructions(5)  = Type < Construction > ("Asm",           "",                     "",                     "",                 "",         "",             "",         "End Asm",          " ",        False,  False)
+Constructions(6)  = Type < Construction > ("Select Case",   "",                     "",                     "",                 "Case",     "",             "",         "End Select",       "",         False,  False)
+Constructions(7)  = Type < Construction > ("For",           "",                     "",                     "",                 "",         "",             "",         "Next",             "",         False,  False)
+Constructions(8)  = Type < Construction > ("Do",            "",                     "",                     "",                 "",         "",             "",         "Loop",             "",         False,  False)
+Constructions(9)  = Type < Construction > ("While",         "",                     "",                     "",                 "",         "",             "",         "Wend",             "",         False,  False)
+Constructions(10) = Type < Construction > ("With",          "",                     "",                     "",                 "",         "",             "",         "End With",         "",         False,  False)
+Constructions(11) = Type < Construction > ("Scope",         "",                     "",                     "",                 "",         "",             "",         "End Scope",        "",         False,  False)
+Constructions(12) = Type < Construction > ("'#Region",      "",                     "",                     "",                 "",         "",             "",         "'#End Region",     "",         True,   False)
+Constructions(13) = Type < Construction > ("Namespace",     "",                     "",                     "",                 "",         "",             "",         "End Namespace",    "",         True,   False)
+Constructions(14) = Type < Construction > ("Enum",          "Public Enum",          "Private Enum",         "",                 "",         "",             "",         "End Enum",         "",         True,   True)
+Constructions(15) = Type < Construction > ("Type",          "Public Type",          "Private Type",         "",                 "Private:", "Protected:",   "Public:",  "End Type",         "As ",         True,   True)
+Constructions(16) = Type < Construction > ("Union",         "Public Union",         "Private Union",        "",                 "",         "",             "",         "End Union",        "",         True,   True)
+Constructions(17) = Type < Construction > ("Sub",           "Public Sub",           "Private Sub",          "Static Sub",       "",         "",             "",         "End Sub",          "",         True,   True)
+Constructions(18) = Type < Construction > ("Function",      "Public Function",      "Private Function",     "Static Function",  "",         "",             "",         "End Function",     "",         True,   True)
+Constructions(19) = Type < Construction > ("Property",      "Public Property",      "Private Property",     "",                 "",         "",             "",         "End Property",     "",         True,   True)
+Constructions(20) = Type < Construction > ("Operator",      "Public Operator",      "Private Operator",     "",                 "",         "",             "",         "End Operator",     "",         True,   True)
+Constructions(21) = Type < Construction > ("Constructor",   "Public Constructor",   "Private Constructor",  "",                 "",         "",             "",         "End Constructor",  "",         True,   True)
+Constructions(22) = Type < Construction > ("Destructor",    "Public Destructor",    "Private Destructor",   "",                 "",         "",             "",         "End Destructor",   "",         True,   True)
 
 Namespace My.Sys.Forms
 	Function EditControl.deltaToScrollAmount(lDelta As Integer) As Integer
@@ -709,11 +709,12 @@ Namespace My.Sys.Forms
 		'If iSelStartLine <> iSelEndLine Or iSelStartChar <> iSelEndChar Then AddHistory
 		WLet(FLine, Mid(*ecEndLine->Text, iSelEndChar + 1))
 		WLet(FECLine->Text, Left(*ecStartLine->Text, iSelStartChar))
+		Var iC = 0, OldiC = ecEndLine->CommentIndex, OldPreviC = 0, PreviC = 0, Pos1 = 0, p = 1, c = 0, l = 0
+		If iSelEndLine > 0 Then PreviC = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine - 1))->CommentIndex: OldPreviC = PreviC
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
 			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			FLines.Remove i
 		Next i
-		Var iC = 0, OldiC = ecEndLine->CommentIndex, Pos1 = 0, p = 1, c = 0, l = 0
 		If iSelStartLine > 0 Then iC = Cast(EditControlLine Ptr, FLines.Item(iSelStartLine - 1))->CommentIndex
 		Do
 			Pos1 = InStr(p, Value, Chr(13))
@@ -733,13 +734,14 @@ Namespace My.Sys.Forms
 				'ecItem->LineIndex = c - 1
 			End If
 			'item->Length = Len(*item->Text)
-			iC = FindCommentIndex(*FECLine->Text, OldiC)
+			iC = FindCommentIndex(*FECLine->Text, PreviC)
 			FECLine->CommentIndex = iC
 			If c > 1 Then
 				FLines.Insert iSelStartLine + c - 1, FECLine
 				ChangeCollapsibility iSelStartLine + c - 1
 			End If
 			p = Pos1 + 1
+			PreviC = iC
 		Loop While Pos1 > 0
 		FSelStartLine = iSelStartLine + c - 1
 		FSelStartChar = Len(*FECLine->Text)
@@ -748,7 +750,8 @@ Namespace My.Sys.Forms
 		'item->Length = Len(*item->Text)
 		'p = item->CharIndex + item->Length + 1
 		If OldiC <> iC Then
-			For i As Integer = iSelStartLine + c + 1 To FLines.Count - 1
+			iC = OldPreviC
+			For i As Integer = iSelStartLine To FLines.Count - 1 ' + 1
 				FECLine = Cast(EditControlLine Ptr, FLines.Item(i))
 				'Item->CharIndex = p - 1
 				'Item->LineIndex = i
@@ -1565,7 +1568,7 @@ Namespace My.Sys.Forms
 '			Exit Sub
 '		End If
 '		'ElseIf LeftMargin + (-HScrollPos + InStrCount(Left(sText, iEnd), !"\t") * TabWidth) * dwCharX < 0 Then
-'		If LeftMargin + (-HScrollPos + iEnd) * dwCharX < 0 Then
+'		If LeftMargin + (-HScrollPos + iEnd + InStrCount(Left(sText, iEnd), !"\t") * (TabWidth - 1)) * dwCharX < 0 Then
 '			Exit Sub
 '		End If
 		iPPos = 0
@@ -1792,6 +1795,7 @@ Namespace My.Sys.Forms
 			If Not FECLine->Visible Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
 			i = i + 1
 			If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
+			If z > 0 Then iC = Cast(EditControlLine Ptr, FLines.Items[z - 1])->CommentIndex
 			'If FECLine->Visible = False Then Continue For
 			'SelectObject(bufDC, This.Canvas.Brush.Handle)
 			'Pos1 = Instr(p, *FText, Chr(13))
@@ -1809,6 +1813,9 @@ Namespace My.Sys.Forms
 			bQ = False
 			j = 1
 			IzohBoshi = 0
+			QavsBoshi = 0
+			MatnBoshi = 0
+			Matn = ""
 			If i < VScrollPos Then
 				Do While j <= l
 					If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
@@ -1856,6 +1863,10 @@ Namespace My.Sys.Forms
 					#endif
 					IzohBoshi = 1
 					Do While j <= l
+						If LeftMargin + (-HScrollPos + j) * dwCharX > dwClientX Then
+							If iC = 0 AndAlso FECLine->CommentIndex > 0 Then IzohBoshi = j + 1
+							OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Exit Do
+						End If
 						If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
 							bQ = Not bQ
 							If bQ Then
@@ -1894,67 +1905,67 @@ Namespace My.Sys.Forms
 								ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse t = Asc("#") OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
 									If MatnBoshi = 0 Then MatnBoshi = j
 									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso t >= 48 AndAlso t <= 57)) Then
-										'If j < This.Width / dwCharX Then
-										Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
-										sc = @Identifiers
-										'ss = NormalText.Background
-										If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
-										If r <> 46 AndAlso r <> 62 Then ' . > THEN
-											pkeywords = 0
-											If CStyle Then
-												If LCase(Matn) = "#define" Then
-													If pkeywords0 <> 0 Then
-														sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
-													End If
-												End If
-											Else
-												For k As Integer = 0 To KeywordLists.Count - 1
-													pkeywords = KeywordLists.Object(k)
-													If pkeywords->Contains(LCase(Matn)) Then
-														sc = @Keywords(k)
-														Exit For
-													End If
-													pkeywords = 0
-'													If keywords0.Contains(LCase(Matn)) Then
-'														sc = @Preprocessors '
-'														pkeywords = @keywords0
-'													ElseIf keywords1.Contains(LCase(Matn)) Then
-'														sc = @Keywords
-'														pkeywords = @keywords1
-'													ElseIf keywords2.Contains(LCase(Matn)) Then
-'														sc = @Keywords
-'														pkeywords = @keywords2
-'													ElseIf keywords3.Contains(LCase(Matn)) Then
-'														sc = @Keywords
-'														pkeywords = @keywords3
-'													End If
-												Next k
-												If CInt(ChangeKeyWordsCase) AndAlso CInt(pkeywords <> 0) AndAlso CInt(FSelEndLine <> z) Then
-													Keyword = GetKeyWordCase(Matn, pkeywords)
-													If Keyword <> Matn Then
-														'ChangeCase = True
-														Mid(*s, MatnBoshi, j - MatnBoshi + 1) = Keyword
-													End If
-												ElseIf pkeywords = 0 Then
-													If IsNumeric(Matn) Then
-														If InStr(Matn, ".") Then
-															sc = @RealNumbers
-														Else
-															sc = @Numbers
+										If LeftMargin + (-HScrollPos + j + InStrCount(Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
+											Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
+											sc = @Identifiers
+											'ss = NormalText.Background
+											If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
+											If r <> 46 AndAlso r <> 62 Then ' . > THEN
+												pkeywords = 0
+												If CStyle Then
+													If LCase(Matn) = "#define" Then
+														If pkeywords0 <> 0 Then
+															sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
 														End If
-													Else
-														sc = @Identifiers
+													End If
+												Else
+													For k As Integer = 0 To KeywordLists.Count - 1
+														pkeywords = KeywordLists.Object(k)
+														If pkeywords->Contains(LCase(Matn)) Then
+															sc = @Keywords(k)
+															Exit For
+														End If
+														pkeywords = 0
+	'													If keywords0.Contains(LCase(Matn)) Then
+	'														sc = @Preprocessors '
+	'														pkeywords = @keywords0
+	'													ElseIf keywords1.Contains(LCase(Matn)) Then
+	'														sc = @Keywords
+	'														pkeywords = @keywords1
+	'													ElseIf keywords2.Contains(LCase(Matn)) Then
+	'														sc = @Keywords
+	'														pkeywords = @keywords2
+	'													ElseIf keywords3.Contains(LCase(Matn)) Then
+	'														sc = @Keywords
+	'														pkeywords = @keywords3
+	'													End If
+													Next k
+													If CInt(ChangeKeyWordsCase) AndAlso CInt(pkeywords <> 0) AndAlso CInt(FSelEndLine <> z) Then
+														Keyword = GetKeyWordCase(Matn, pkeywords)
+														If Keyword <> Matn Then
+															'ChangeCase = True
+															Mid(*s, MatnBoshi, j - MatnBoshi + 1) = Keyword
+														End If
+													ElseIf pkeywords = 0 Then
+														If IsNumeric(Matn) Then
+															If InStr(Matn, ".") Then
+																sc = @RealNumbers
+															Else
+																sc = @Numbers
+															End If
+														Else
+															sc = @Identifiers
+														End If
 													End If
 												End If
 											End If
+											'If sc <> 0 Then
+											PaintText i, *s, MatnBoshi - 1, j, *sc
+											'txtCode.SetSel ss + MatnBoshi - 1, ss + j
+											'txtCode.SelColor = sc
+											'End If
 										End If
-										'If sc <> 0 Then
-										PaintText i, *s, MatnBoshi - 1, j, *sc
-										'txtCode.SetSel ss + MatnBoshi - 1, ss + j
-										'txtCode.SelColor = sc
-										'End If
 										MatnBoshi = 0
-										'End If
 									End If
 								ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", Chr(t) = "'") Then
 									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
