@@ -56,6 +56,7 @@ Sub RunCmd(Param As Any Ptr)
 		cmd = WGet(TerminalPath) & " --working-directory=""" & GetFolderName(MainFile) & """"
 		Shell(cmd)
 	#else
+		If Trim(MainFile) = "" Then MainFile = GetFullPath(*ProjectsPath & "\1", pApp->FileName)
 		cmd = Environ("COMSPEC") & " /K cd /D """ & GetFolderName(MainFile) & """"
 		Dim As Integer pClass
 		Dim As WString Ptr Workdir, CmdL
