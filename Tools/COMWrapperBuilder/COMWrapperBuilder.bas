@@ -192,7 +192,7 @@ Function GetParams(ByRef Functions As WStringList, ByRef FLine As WString, ByRef
 	Dim As UString Params
 	Dim As Integer t, bCount
 	pCount = 0
-	bSet = False 
+	bSet = False
 	For i As Integer = 1 To Len(FLine) + 1
 		t = Asc(Mid(FLine, i, 1))
 		If t = Asc("""") Then
@@ -209,6 +209,9 @@ Function GetParams(ByRef Functions As WStringList, ByRef FLine As WString, ByRef
 						If Trim(Mid(FLine, 2, i - 2), Any !"\t ") <> "" Then
 							pCount += 1
 							Params &= IIf(pCount = 1, "", ", ") & "ByRef Param" & Trim(WStr(pCount)) & " As vbVariant"
+						End If
+						If StartsWith(Trim(Mid(FLine, i + 1), Any !"\t "), "=") Then
+							bSet = True
 						End If
 						Exit For
 					End If
