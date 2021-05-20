@@ -3339,9 +3339,9 @@ Sub LoadToolBox
 	WLet(MFFPath, iniSettings.ReadString("Options", "MFFPath", "./MyFbFramework"))
 	#ifndef __USE_GTK__
 		#ifdef __FB_64BIT__
-			WLet(MFFDll, GetFullPath(*MFFPath) & "/mff64.dll")
+			WLet(MFFDll, GetFullPath(*MFFPath) & "\mff64.dll")
 		#else
-			WLet(MFFDll, GetFullPath(*MFFPath) & "/mff32.dll")
+			WLet(MFFDll, GetFullPath(*MFFPath) & "\mff32.dll")
 		#endif
 	#else
 		#ifdef __USE_GTK3__
