@@ -6127,9 +6127,14 @@ Sub frmMain_Show(ByRef Sender As Control)
 	#endif
 	pfSplash->CloseForm
 	CheckCompilerPaths
-	Select Case WhenVisualFBEditorStarts
-	Case 1: NewProject
-	End Select
+	Var file = Command(-1)
+	Var Pos1 = InStr(file, "2>CON")
+	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
+	If file = "" Then
+		Select Case WhenVisualFBEditorStarts
+		Case 1: NewProject
+		End Select
+	End If
 End Sub
 
 #ifndef __USE_GTK__
