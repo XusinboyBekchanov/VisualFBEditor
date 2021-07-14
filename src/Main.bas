@@ -352,6 +352,228 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	End If
 End Function
 
+#ifndef __USE_GTK__
+'	#define BUFSIZE 4096 
+' 
+'Dim As HANDLE g_hChildStd_IN_Rd = NULL
+'Dim As HANDLE g_hChildStd_IN_Wr = NULL
+'Dim As HANDLE g_hChildStd_OUT_Rd = NULL
+'Dim As HANDLE g_hChildStd_OUT_Wr = NULL
+'
+'Dim As HANDLE g_hInputFile = NULL
+' 
+'Declare Sub CreateChildProcess()
+'Declare Sub WriteToPipe()
+'Declare Sub ReadFromPipe()
+'Declare Sub ErrorExit(PTSTR As String)
+' 
+'Function _tmain(argc As Integer, argv() As TCHAR Ptr) As Integer
+'   Dim As SECURITY_ATTRIBUTES saAttr 
+' 
+'   'printf("\n->Start of parent execution.\n");
+'
+'	' Set the bInheritHandle flag so pipe handles are inherited. 
+' 
+'   saAttr.nLength = SizeOf(SECURITY_ATTRIBUTES)
+'   saAttr.bInheritHandle = True
+'   saAttr.lpSecurityDescriptor = NULL
+'
+'	' Create a pipe for the child process's STDOUT. 
+' 
+'   If ( ! CreatePipe(& g_hChildStd_OUT_Rd, & g_hChildStd_OUT_Wr, & saAttr, 0) ) 
+'      ErrorExit(TEXT("StdoutRd CreatePipe")); 
+'
+'// Ensure the Read handle To the pipe For STDOUT Is Not inherited.
+'
+'   If ( ! SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0) )
+'      ErrorExit(TEXT("Stdout SetHandleInformation")); 
+'
+'// Create a pipe For the child process's STDIN. 
+' 
+'   If (! CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0)) 
+'      ErrorExit(TEXT("Stdin CreatePipe")); 
+'
+'// Ensure the Write handle To the pipe For STDIN Is Not inherited. 
+' 
+'   If ( ! SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0) )
+'      ErrorExit(TEXT("Stdin SetHandleInformation")); 
+' 
+'// Create the child process. 
+'   
+'   CreateChildProcess();
+'
+'// Get a handle To an Input file For the parent. 
+'// This example assumes a plain text file And uses String Output To verify Data flow. 
+' 
+'   If (argc == 1) 
+'      ErrorExit(TEXT("Please specify an input file.\n")); 
+'
+'   g_hInputFile = CreateFile(
+'       argv[1], 
+'       GENERIC_READ, 
+'       0, 
+'       NULL, 
+'       OPEN_EXISTING, 
+'       FILE_ATTRIBUTE_READONLY, 
+'       NULL); 
+'
+'   If ( g_hInputFile == INVALID_HANDLE_VALUE ) 
+'      ErrorExit(TEXT("CreateFile")); 
+' 
+'// Write To the pipe that Is the standard Input For a child process. 
+'// Data Is written To the pipe's buffers, so it is not necessary to wait
+'// Until the child process Is running before writing Data.
+' 
+'   WriteToPipe(); 
+'   printf( "\n->Contents of %S written to child STDIN pipe.\n", argv[1]);
+' 
+'// Read from pipe that Is the standard Output For child process. 
+' 
+'   printf( "\n->Contents of child process STDOUT:\n\n");
+'   ReadFromPipe(); 
+'
+'   printf("\n->End of parent execution.\n");
+'
+'// The remaining Open handles are cleaned up when This process terminates. 
+'// To avoid resource leaks in a larger application, Close handles explicitly. 
+'
+'   Return 0; 
+'} 
+' 
+'void CreateChildProcess()
+'// Create a child process that uses the previously created pipes For STDIN And STDOUT.
+'{ 
+'   TCHAR szCmdline[]=TEXT("child");
+'   PROCESS_INFORMATION piProcInfo; 
+'   STARTUPINFO siStartInfo;
+'   BOOL bSuccess = False; 
+' 
+'// Set up members of the PROCESS_INFORMATION structure. 
+' 
+'   ZeroMemory( &piProcInfo, SizeOf(PROCESS_INFORMATION) );
+' 
+'// Set up members of the STARTUPINFO structure. 
+'// This structure specifies the STDIN And STDOUT handles For redirection.
+' 
+'   ZeroMemory( &siStartInfo, SizeOf(STARTUPINFO) );
+'   siStartInfo.cb = SizeOf(STARTUPINFO); 
+'   siStartInfo.hStdError = g_hChildStd_OUT_Wr;
+'   siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
+'   siStartInfo.hStdInput = g_hChildStd_IN_Rd;
+'   siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+' 
+'// Create the child process. 
+'    
+'   bSuccess = CreateProcess(NULL, 
+'      szCmdline,     // Command Line 
+'      NULL,          // process security attributes 
+'      NULL,          // primary thread security attributes 
+'      True,          // handles are inherited 
+'      0,             // creation flags 
+'      NULL,          // use parent's environment 
+'      NULL,          // use parent's current directory 
+'      &siStartInfo,  // STARTUPINFO Pointer 
+'      &piProcInfo);  // receives PROCESS_INFORMATION 
+'   
+'   // If an Error occurs, Exit the application. 
+'   If ( ! bSuccess ) 
+'      ErrorExit(TEXT("CreateProcess"));
+'   Else 
+'   {
+'      // Close handles To the child process And its primary thread.
+'      // Some applications might keep these handles To monitor the status
+'      // of the child process, For example. 
+'
+'      CloseHandle(piProcInfo.hProcess);
+'      CloseHandle(piProcInfo.hThread);
+'      
+'      // Close handles To the stdin And stdout pipes no longer needed by the child process.
+'      // If they are Not explicitly closed, there Is no way To recognize that the child process has ended.
+'      
+'      CloseHandle(g_hChildStd_OUT_Wr);
+'      CloseHandle(g_hChildStd_IN_Rd);
+'   }
+'}
+' 
+'void WriteToPipe(void) 
+'
+'// Read from a file And Write its contents To the pipe For the child's STDIN.
+'// Stop when there Is no more Data. 
+'{ 
+'   DWORD dwRead, dwWritten; 
+'   CHAR chBuf[BUFSIZE];
+'   BOOL bSuccess = False;
+' 
+'   For (;;) 
+'   { 
+'      bSuccess = ReadFile(g_hInputFile, chBuf, BUFSIZE, &dwRead, NULL);
+'      If ( ! bSuccess || dwRead == 0 ) break; 
+'      
+'      bSuccess = WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, &dwWritten, NULL);
+'      If ( ! bSuccess ) break; 
+'   } 
+' 
+'// Close the pipe handle so the child process stops reading. 
+' 
+'   If ( ! CloseHandle(g_hChildStd_IN_Wr) ) 
+'      ErrorExit(TEXT("StdInWr CloseHandle")); 
+'} 
+' 
+'void ReadFromPipe(void) 
+'
+'// Read Output from the child process's pipe for STDOUT
+'// And Write To the parent process's pipe for STDOUT. 
+'// Stop when there Is no more Data. 
+'{ 
+'   DWORD dwRead, dwWritten; 
+'   CHAR chBuf[BUFSIZE]; 
+'   BOOL bSuccess = False;
+'   HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+'
+'   For (;;) 
+'   { 
+'      bSuccess = ReadFile( g_hChildStd_OUT_Rd, chBuf, BUFSIZE, &dwRead, NULL);
+'      If( ! bSuccess || dwRead == 0 ) break; 
+'
+'      bSuccess = WriteFile(hParentStdOut, chBuf, 
+'                           dwRead, &dwWritten, NULL);
+'      If (! bSuccess ) break; 
+'   } 
+'} 
+' 
+'void ErrorExit(PTSTR lpszFunction) 
+'
+'// Format a readable Error message, display a message box, 
+'// And Exit from the application.
+'{ 
+'    LPVOID lpMsgBuf;
+'    LPVOID lpDisplayBuf;
+'    DWORD dw = GetLastError(); 
+'
+'    FormatMessage(
+'        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+'        FORMAT_MESSAGE_FROM_SYSTEM |
+'        FORMAT_MESSAGE_IGNORE_INSERTS,
+'        NULL,
+'        dw,
+'        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+'        (LPTSTR) &lpMsgBuf,
+'        0, NULL );
+'
+'    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
+'        (lstrlen((LPCTSTR)lpMsgBuf)+lstrlen((LPCTSTR)lpszFunction)+40)*SizeOf(TCHAR)); 
+'    StringCchPrintf((LPTSTR)lpDisplayBuf, 
+'        LocalSize(lpDisplayBuf) / SizeOf(TCHAR),
+'        TEXT("%s failed with error %d: %s"), 
+'        lpszFunction, dw, lpMsgBuf); 
+'    MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
+'
+'    LocalFree(lpMsgBuf);
+'    LocalFree(lpDisplayBuf);
+'    ExitProcess(1);
+'}
+#endif
+
 Function Compile(Parameter As String = "") As Integer
 	On Error Goto ErrorHandler
 	Dim As ProjectElement Ptr Project

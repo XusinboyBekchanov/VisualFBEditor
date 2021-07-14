@@ -124,12 +124,12 @@ Private Sub Form1.CommandButton1_Click(ByRef Sender As Control)
 	Dim As UString FileName1
 	With *Cast(Form1 Ptr, Sender.Parent)
 		If .optAllLNG.Checked Then
-			f = Dir(ExePath & "/Settings/Languages/*.lng")
+			f = Dir(ExePath & "/../../Settings/Languages/*.lng")
 		Else
 			f = Dir(.TextBox2.Text)
 		End If
 		While f <> ""
-			FileName1 = ExePath & "/Settings/Languages/" & f
+			FileName1 = ExePath & "/../../Settings/Languages/" & f
 			Result = Open(FileName1 For Input Encoding "utf-8" As #Fn1)
 			If Result <> 0 Then Result = Open(FileName1 For Input Encoding "utf-16" As #Fn1)
 			If Result <> 0 Then Result = Open(FileName1 For Input Encoding "utf-32" As #Fn1)

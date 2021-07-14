@@ -1,2 +1,2 @@
-﻿ #Include Once "mff/SysUtils.bas"
-Print Str(asc("1") & Space(1024))
+﻿ #Include Once "windows.bi"
+Print Str(TYPE_E_UNKNOWNLCID & Space(1024))

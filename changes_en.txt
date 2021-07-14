@@ -1,4 +1,12 @@
-﻿Version 1.2.8 (May 16, 2021)
+﻿Version 1.2.9 (July 14, 2021)
+- Fixed: Show windows on DPI sets
+- Added: Polish language
+- Fixed: Showing lines in Code Editor
+- Fixed: IDE on exists command line not shows New Project dialog
+- Fixed: COMWrapperBuilder
+- Fixed: mff dll path on Load Toolbox
+- Fixed: Open Command Prompt, if main file is empty
+Version 1.2.8 (May 16, 2021)
 - Added: Open Last Opened File Type to Options
 - Added: Real Numbers option to Code Editor Colors
 - Fixed: Show message in Debug
