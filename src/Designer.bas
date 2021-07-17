@@ -2913,7 +2913,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			UnregisterClass("DOT", instance)
 		#endif
-		If DeleteAllObjectsFunc <> 0 Then DeleteAllObjectsFunc()
+		'If DeleteAllObjectsFunc <> 0 Then DeleteAllObjectsFunc()
 		For i As Integer = 0 To FLibs.Count - 1
 			If FLibs.Object(i) <> 0 Then DyLibFree(FLibs.Object(i))
 		Next
