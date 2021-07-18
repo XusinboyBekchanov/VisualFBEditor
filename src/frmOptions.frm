@@ -2817,7 +2817,7 @@ Private Sub frmOptions.cmdAddInclude_Click(ByRef Sender As Control)
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If Not .lstIncludePaths.Items.Contains(pfPath->txtPath.Text) Then
-				.lstIncludePaths.Items.Add pfPath->txtPath.Text
+				'.lstIncludePaths.Items.Add pfPath->txtPath.Text
 				.lstIncludePaths.AddItem pfPath->txtPath.Text
 			Else
 				MsgBox ML("This path is exists!")
@@ -2832,7 +2832,7 @@ Private Sub frmOptions.cmdAddLibrary_Click(ByRef Sender As Control)
 	If pfPath->ShowModal() = ModalResults.OK Then
 		With fOptions
 			If Not .lstLibraryPaths.Items.Contains(pfPath->txtPath.Text) Then
-				.lstLibraryPaths.Items.Add pfPath->txtPath.Text
+				'.lstLibraryPaths.Items.Add pfPath->txtPath.Text
 				.lstLibraryPaths.AddItem pfPath->txtPath.Text
 			Else
 				MsgBox ML("This path is exists!")
