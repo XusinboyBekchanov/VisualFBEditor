@@ -697,10 +697,28 @@ Function Compile(Parameter As String = "") As Integer
 	Next
 	'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
 	WLet(LogFileName2, ExePath & "/Temp/Compile.log")
+	Dim As UString OtherModuleFiles
+	If CInt(ProjectNode <> 0) AndAlso CInt(Project <> 0) AndAlso CInt(Project->PassAllModuleFilesToCompiler) Then
+		For i As Integer = 0 To ProjectNode->Nodes.Count - 1
+			If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Text), ".bas") Then
+				If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Text) Then
+					OtherModuleFiles &= " """ & ProjectNode->Nodes.Item(i)->Text & """"
+				End If
+			Else
+				For j As Integer = 0 To ProjectNode->Nodes.Item(i)->Nodes.Count - 1
+					If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text), ".bas") Then
+						If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text) Then
+							OtherModuleFiles &= " """ & ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text & """"
+						End If
+					End If
+				Next
+			End If
+		Next
+	End If
 	If InStr(*CompileWith, "{S}") > 0 Then
-		WLet(fbcCommand, Replace(*CompileWith, "{S}", """" & GetFileName(*MainFile) & """"))
+		WLet(fbcCommand, Replace(*CompileWith, "{S}", """" & GetFileName(*MainFile) & """" & OtherModuleFiles))
 	Else
-		WLet(fbcCommand, """" & GetFileName(*MainFile) & """ " & *CompileWith)
+		WLet(fbcCommand, """" & GetFileName(*MainFile) & """" & OtherModuleFiles & " " & *CompileWith)
 	End If
 	If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
@@ -1269,6 +1287,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					WLet(ppe->HelpFileName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "ProjectDescription" Then
 					WLet(ppe->ProjectDescription, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
+				ElseIf Parameter = "PassAllModuleFilesToCompiler" Then
+					ppe->PassAllModuleFilesToCompiler = CBool(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "MajorVersion" Then
 					ppe->MajorVersion = Val(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "MinorVersion" Then
@@ -1706,6 +1726,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "ProjectName=""" & *ppe->ProjectName & """"
 	Print #Fn, "HelpFileName=""" & *ppe->HelpFileName & """"
 	Print #Fn, "ProjectDescription=""" & *ppe->ProjectDescription & """"
+	Print #Fn, "PassAllModuleFilesToCompiler=" & ppe->PassAllModuleFilesToCompiler
 	Print #Fn, "MajorVersion=" & ppe->MajorVersion
 	Print #Fn, "MinorVersion=" & ppe->MinorVersion
 	Print #Fn, "RevisionVersion=" & ppe->RevisionVersion

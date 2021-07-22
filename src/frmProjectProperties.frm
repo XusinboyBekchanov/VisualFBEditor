@@ -465,6 +465,15 @@ pfProjectProperties = @fProjectProperties
 			.SetBounds 146, 41, 32, 32
 			.Parent = @picApplication
 		End With
+		' chkPassAllModuleFilesToCompiler
+		With chkPassAllModuleFilesToCompiler
+			.Name = "chkPassAllModuleFilesToCompiler"
+			.Text = "Pass All Module Files To Compiler"
+			.TabIndex = 71
+			.SetBounds 225, 148, 200, 20
+			.Caption = "Pass All Module Files To Compiler"
+			.Parent = @tpGeneral
+		End With
 	End Constructor
 	
 	#ifndef _NOT_AUTORUN_FORMS_
@@ -490,6 +499,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->ProjectName, .txtProjectName.Text)
 		WLet(ppe->HelpFileName, .txtHelpFileName.Text)
 		WLet(ppe->ProjectDescription, .txtProjectDescription.Text)
+		ppe->PassAllModuleFilesToCompiler = .chkPassAllModuleFilesToCompiler.Checked
 		ppe->MajorVersion = Val(.txtMajor.Text)
 		ppe->MinorVersion = Val(.txtMinor.Text)
 		ppe->RevisionVersion = Val(.txtRevision.Text)
@@ -607,6 +617,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.txtProjectName.Text = *ppe->ProjectName
 				.txtHelpFileName.Text = *ppe->HelpFileName
 				.txtProjectDescription.Text = *ppe->ProjectDescription
+				.chkPassAllModuleFilesToCompiler.Checked = ppe->PassAllModuleFilesToCompiler
 				.txtMajor.Text = WStr(ppe->MajorVersion)
 				.txtMinor.Text = WStr(ppe->MinorVersion)
 				.txtRevision.Text = WStr(ppe->RevisionVersion)
@@ -662,6 +673,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 			.txtProjectName.Text = ""
 			.txtHelpFileName.Text = ""
 			.txtProjectDescription.Text = ""
+			.chkPassAllModuleFilesToCompiler.Checked = False
 			.txtMajor.Text = ""
 			.txtMinor.Text = ""
 			.txtRevision.Text = ""
