@@ -19,4 +19,5 @@ jobs:
       run: git clone https://github.com/XusinboyBekchanov/MyFbFramework.git
       
     - name: Compile x86 VisualFB
+      working-directory: src
       run: cmd.exe /c "%CD%/.././FreeBASIC-1.08.1-win32/fbc.exe" "VisualFBEditor.bas" -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "MyFbFramework/MyFbFramework"
