@@ -20,5 +20,5 @@ jobs:
     - name: Upload 
       uses: actions/upload-artifact@v2
       with:
-         name: VisualFBEditor32_gtk3
-         path: VisualFBEditor32_gtk3
+         name: libmff32_gtk3
+         path: libmff32_gtk3.so
