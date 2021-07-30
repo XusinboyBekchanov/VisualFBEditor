@@ -7,6 +7,6 @@ wget -O FreeBASIC-1.08.1-ubuntu-18.04-x86_64.tar.xz https://versaweb.dl.sourcefo
 tar xf FreeBASIC-1.08.1-ubuntu-18.04-x86_64.tar.xz
 cd FreeBASIC-1.08.1-ubuntu-18.04-x86_64
 ./install.sh -i
-cd..
+cd ..
 cd VisualFBEditor/src
 fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "$PWD/../../MyFbFramework"
