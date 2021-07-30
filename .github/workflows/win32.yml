@@ -1,0 +1,22 @@
+name: win32
+
+on: [push,pull_request]
+
+jobs:
+  build:
+    runs-on: windows-2016
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download x86  bit fbc
+      run: certutil.exe -urlcache -split -f https://nav.dl.sourceforge.net/project/fbc/FreeBASIC-1.08.1/Binaries-Windows/FreeBASIC-1.08.1-win32.7z FreeBASIC-1.08.1-win32.7z
+
+    - name: Extract x86  bit fbc
+      run: 7z x FreeBASIC-1.08.1-win32.7z
+      
+    - name: Download MyFbFramework
+      run: git clone https://github.com/XusinboyBekchanov/MyFbFramework.git
+      
+    - name: Compile x86 VisualFB
+      run: cmd.exe /c "%CD%/.././FreeBASIC-1.08.1-win32/fbc.exe" "VisualFBEditor.bas" -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "MyFbFramework/MyFbFramework"
