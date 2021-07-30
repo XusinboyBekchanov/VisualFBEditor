@@ -13,7 +13,7 @@ fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "$PWD/../../MyFbFramew
 cd ..
 cd ..
 cd MyFbFramework/mff
-fbc -b "mff.bi" -dll -x "../../libmff32_gtk3.so"
+fbc -b "mff.bi" -dll -x "../libmff32_gtk3.so"
 cd ..
 cd ..
 ls
