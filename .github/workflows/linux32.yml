@@ -1,0 +1,23 @@
+name: linux32
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Grant permission 
+      working-directory: .github/workflows
+      run: sudo chmod +x linux32.sh
+      
+    - name: Build
+      working-directory: .github/workflows
+      run: sudo linux32.sh
