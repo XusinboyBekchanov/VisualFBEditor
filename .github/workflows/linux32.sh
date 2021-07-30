@@ -15,5 +15,4 @@ cd ..
 cd MyFbFramework/mff
 fbc -b "mff.bi" -dll -x "../libmff32_gtk3.so"
 cd ..
-cd ..
 ls
