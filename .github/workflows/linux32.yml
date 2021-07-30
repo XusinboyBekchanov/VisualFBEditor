@@ -16,3 +16,9 @@ jobs:
     - name: Build
       working-directory: .github/workflows
       run: sudo bash linux32.sh
+
+    - name: Upload 
+      uses: actions/upload-artifact@v2
+      with:
+         name: VisualFBEditor32_gtk3
+         path: VisualFBEditor32_gtk3
