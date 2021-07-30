@@ -10,3 +10,5 @@ cd FreeBASIC-1.08.1-ubuntu-18.04-x86_64
 cd ..
 cd VisualFBEditor/src
 fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "$PWD/../../MyFbFramework"
+cd ..
+ls
