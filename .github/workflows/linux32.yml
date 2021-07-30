@@ -20,4 +20,4 @@ jobs:
       
     - name: Build
       working-directory: .github/workflows
-      run: sudo linux32.sh
+      run: sudo bash linux32.sh
