@@ -15,10 +15,14 @@ jobs:
       
     - name: Build
       working-directory: .github/workflows
-      run: sudo bash linux32.sh && ls
+      run: sudo bash linux32.sh
 
+         
     - name: Upload 
       uses: actions/upload-artifact@v2
       with:
-         name: libmff32_gtk3
-         path: libmff32_gtk3.so
+        name: release32
+        path: |
+          libmff32_gtk3.so
+          VisualFBEditor32_gtk3
+    
