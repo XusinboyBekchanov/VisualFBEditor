@@ -1,4 +1,4 @@
-name: linux32
+name: linux
 
 on:
   [push, pull_request]
@@ -17,11 +17,10 @@ jobs:
       working-directory: .github/workflows
       run: sudo bash linux32.sh
 
-         
     - name: Upload 
       uses: actions/upload-artifact@v2
       with:
-        name: release32
+        name: linux32_release
         path: |
           libmff32_gtk3.so
           VisualFBEditor32_gtk3
