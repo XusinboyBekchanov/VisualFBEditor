@@ -1,0 +1,27 @@
+name: linux
+
+on:
+  [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Grant permission 
+      working-directory: .github/workflows
+      run: sudo chmod +x linux32.sh
+      
+    - name: Build
+      working-directory: .github/workflows
+      run: sudo bash linux32.sh
+
+    - name: Upload 
+      uses: actions/upload-artifact@v2
+      with:
+        name: linux32_release
+        path: |
+          libmff32_gtk3.so
+          VisualFBEditor32_gtk3
+    
