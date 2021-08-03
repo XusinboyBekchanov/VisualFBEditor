@@ -1945,7 +1945,8 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 				tb->Des->SelectedControls.Clear
 				tb->Des->SelectedControl = Ctrl
 				Dim As HWND Ptr hw = tb->Des->ReadPropertyFunc(Ctrl, "Handle")
-				If hw <> 0 Then tb->Des->MoveDots(Ctrl, False) Else tb->Des->MoveDots(0, False): DesignerChangeSelection *tb->Des, Ctrl
+				If hw <> 0 Then tb->Des->MoveDots(Ctrl, False) Else tb->Des->MoveDots(0, False)
+				DesignerChangeSelection *tb->Des, Ctrl
 			#endif
 		End If
 	End If
