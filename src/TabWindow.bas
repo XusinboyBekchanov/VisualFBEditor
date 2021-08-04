@@ -4500,7 +4500,125 @@ mnuCode.Add("-")
 mnuCode.Add(ML("Define"), "", "Define", @mclick)
 mnuCode.Add("-")
 mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mclick)
-	
+
+Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
+	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pnl->Parent)
+	#ifndef __USE_GTK__
+		Select Case Msg.Msg
+		Case WM_SIZE
+			Dim As Integer dwClientX = LoWord(msg.lParam)
+			Dim As Integer dwClientY = HiWord(msg.lParam)
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			Dim si As SCROLLINFO
+			If tb->Des AndAlso tb->Des->DesignControl Then
+				tb->Des->GetControlBounds(tb->Des->DesignControl, @iLeft, @iTop, @iWidth, @iHeight)
+			End If
+			
+			' Set the vertical scrolling range and page size
+			si.cbSize = SizeOf(si)
+			si.fMask  = SIF_RANGE Or SIF_PAGE
+			si.nMin   = 0
+			If dwClientX - iWidth < 0 Then
+				si.nMax   = iWidth - dwClientX
+			Else
+				si.nMax   = 0
+			End If
+			si.nPage  = 3
+			SetScrollInfo(msg.hwnd, SB_HORZ, @si, True)
+			If si.nMax = 0 Then
+				ScrollWindowEx msg.hWnd, -tb->Des->OffsetX, 0, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
+				tb->Des->OffsetX = 0
+			End If
+			
+			si.cbSize = SizeOf(si)
+			si.fMask  = SIF_RANGE Or SIF_PAGE
+			si.nMin   = 0
+			If dwClientY - iHeight < 0 Then
+				si.nMax   = iHeight - dwClientY
+			Else
+				si.nMax   = 0
+			End If
+			si.nPage  = 3
+			SetScrollInfo(msg.hwnd, SB_VERT, @si, True)
+			If si.nMax = 0 Then
+				ScrollWindowEx msg.hWnd, 0, -tb->Des->OffsetY, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
+				tb->Des->OffsetY = 0
+			End If
+		Case WM_MOUSEWHEEL
+			Dim As Byte scrDirection
+			Dim si As SCROLLINFO
+			Dim As Integer OldPos
+			#ifdef __FB_64BIT__
+				If msg.wParam < 4000000000 Then
+					scrDirection = 1
+				Else
+					scrDirection = -1
+				End If
+			#else
+				scrDirection = Sgn(msg.wParam)
+			#endif
+			si.cbSize = SizeOf (si)
+			si.fMask  = SIF_ALL
+			GetScrollInfo (msg.hwnd, SB_VERT, @si)
+			OldPos = si.nPos
+			If scrDirection = -1 Then
+				si.nPos = Min(si.nPos + 3, si.nMax)
+			Else
+				si.nPos = Max(si.nPos - 3, si.nMin)
+			End If
+			si.fMask = SIF_POS
+			SetScrollInfo(msg.hwnd, SB_VERT, @si, True)
+			GetScrollInfo(msg.hwnd, SB_VERT, @si)
+			If (Not si.nPos = OldPos) Then
+				tb->Des->OffsetY += OldPos - si.nPos
+				ScrollWindowEx msg.hWnd, 0, OldPos - si.nPos, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
+			End If
+		Case WM_HSCROLL, WM_VSCROLL
+			Dim scrStyle As Byte
+			Dim si As SCROLLINFO
+			Dim As Integer OldPos
+			If msg.msg = WM_HSCROLL Then
+				scrStyle = SB_HORZ
+			Else
+				scrStyle = SB_VERT
+			End If
+			si.cbSize = SizeOf (si)
+			si.fMask  = SIF_ALL
+			GetScrollInfo (msg.hwnd, scrStyle, @si)
+			OldPos = si.nPos
+			Select Case msg.wParamLo
+			Case SB_TOP, SB_LEFT
+				si.nPos = si.nMin
+			Case SB_BOTTOM, SB_RIGHT
+				si.nPos = si.nMax
+			Case SB_LINEUP, SB_LINELEFT
+				si.nPos -= 3
+			Case SB_LINEDOWN, SB_LINERIGHT
+				si.nPos += 3
+			Case SB_PAGEUP, SB_PAGELEFT
+				si.nPos -= si.nPage
+			Case SB_PAGEDOWN, SB_PAGERIGHT
+				si.nPos += si.nPage
+			Case SB_THUMBPOSITION, SB_THUMBTRACK
+				si.nPos = si.nTrackPos
+			End Select
+			si.fMask = SIF_POS
+			SetScrollInfo(msg.hwnd, scrStyle, @si, True)
+			GetScrollInfo(msg.hwnd, scrStyle, @si)
+			If (Not si.nPos = OldPos) Then
+				If scrStyle = SB_HORZ Then
+					tb->Des->OffsetX += OldPos - si.nPos
+					ScrollWindowEx msg.hWnd, OldPos - si.nPos, 0, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
+				Else
+					tb->Des->OffsetY += OldPos - si.nPos
+					ScrollWindowEx msg.hWnd, 0, OldPos - si.nPos, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
+				End If
+			End If
+		End Select
+	#endif
+End Sub
+
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
 	WLEt(FCaption, "")
 	WLet(FFileName, "")
@@ -4608,6 +4726,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
 	cboFunction.ItemIndex = 0
 	pnlForm.Visible = False
+	pnlForm.OnMessage = @pnlForm_Message
 	splForm.Visible = False
 	pnlTop.Add @tbrTop
 	pnlTop.Add @pnlTopCombo
@@ -4626,6 +4745,9 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		This.Caption = ML("Untitled") & "*"
 	End If
 	pnlForm.Top = -500
+	#ifndef __USE_GTK__
+		pnlForm.Style = pnlForm.Style Or WS_HSCROLL Or WS_VSCROLL 
+	#endif
 	pnlCode.Add @txtCode
 	This.Add @pnlTop
 	This.Add @pnlForm

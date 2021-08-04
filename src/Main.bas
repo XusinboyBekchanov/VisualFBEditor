@@ -5633,7 +5633,7 @@ ptabCode->ContextMenu = @mnuTabs
 txtOutput.Name = "txtOutput"
 txtOutput.Align = 5
 txtOutput.Multiline = True
-txtOutput.ScrollBars = 3
+txtOutput.ScrollBars = ScrollBarsType.Both
 txtOutput.OnDblClick = @txtOutput_DblClick
 
 Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -5742,7 +5742,7 @@ End Sub
 
 txtImmediate.Align = 5
 txtImmediate.Multiline = True
-txtImmediate.ScrollBars = 3
+txtImmediate.ScrollBars = ScrollBarsType.Both
 txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
 txtImmediate.BackColor = NormalText.Background
@@ -5773,7 +5773,7 @@ End Sub
 'mChangeLogEdited
 txtChangeLog.Align = 5
 txtChangeLog.Multiline = True
-txtChangeLog.ScrollBars = 3
+txtChangeLog.ScrollBars = ScrollBarsType.Both
 txtChangeLog.OnKeyDown = @txtChangeLog_KeyDown
 
 Sub lvToDo_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
