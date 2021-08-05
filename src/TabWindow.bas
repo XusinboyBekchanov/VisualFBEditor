@@ -4484,6 +4484,14 @@ Sub TabWindow_Destroy(ByRef Sender As Control)
 	pApp->DoEvents
 End Sub
 
+Sub TabWindow_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	If tb->pnlForm.Visible AndAlso tb->pnlForm.Align = 2 AndAlso tb->pnlForm.Width > tb->Width Then
+		tb->pnlForm.Width = tb->Width - tb->splForm.Width
+	End If
+End Sub
+
 'mnuCode.ImagesList = pimgList '<m>
 mnuCode.Add(ML("Cut"), "Cut", "Cut", @mclick)
 mnuCode.Add(ML("Copy"), "Copy", "Copy", @mclick)
@@ -4639,6 +4647,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'txtCode.tbParent = @This
 	This.Width = 180
 	This.OnDestroy = @TabWindow_Destroy
+	This.OnResize = @TabWindow_Resize
 	
 	btnClose.tbParent = @This
 	#ifdef __USE_GTK__
@@ -4672,7 +4681,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'Dim As My.Sys.Drawing.Cursor crRArrow, crHand
 	'crRArrow.LoadFromResourceName("Select")
 	'crHand.LoadFromResourceName("Hand")
-	splForm.Align = 2
+	splForm.Align = SplitterAlignmentConstants.alRight
 	cboClass.ImagesList = pimgListTools
 	'cboClass.ItemIndex = 0
 	'cboClass.SetBounds 0, 2, 60, 20

@@ -4600,9 +4600,9 @@ tabLeftWidth = 150
 tabRightWidth = 150
 tabBottomHeight = 150
 
-splLeft.Align = 1
-splRight.Align = 2
-splBottom.Align = 4
+splLeft.Align = SplitterAlignmentConstants.alLeft
+splRight.Align = SplitterAlignmentConstants.alRight
+splBottom.Align = SplitterAlignmentConstants.alBottom
 
 Sub CloseLeft()
 	splLeft.Visible = False
@@ -5420,9 +5420,9 @@ lvEvents.OnItemKeyDown = @lvEvents_KeyDown
 lvEvents.OnResize = @lvEvents_Resize
 lvEvents.SmallImages = @imgListStates
 
-splProperties.Align = 4
+splProperties.Align = SplitterAlignmentConstants.alBottom
 
-splEvents.Align = 4
+splEvents.Align = SplitterAlignmentConstants.alBottom
 
 txtLabelProperty.Height = 50
 txtLabelProperty.Align = 4

@@ -70,7 +70,7 @@
 		With Splitter1
 			.Name = "Splitter1"
 			.Text = "Splitter1"
-			.Align = 1
+			.Align = SplitterAlignmentConstants.alLeft
 			.SetBounds 271, 26, 10, 403
 			.Parent = @This
 		End With
