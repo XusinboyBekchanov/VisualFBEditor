@@ -322,9 +322,9 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "NextBookmark":                NextBookmark 1
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
-		Case "Code":                        tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code") 
-		Case "Form":                        tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
-		Case "CodeAndForm":                 tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
+		Case "Code":                        tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+		Case "Form":                        tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
+		Case "CodeAndForm":                 tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
 		End Select
 	Case "SaveAll":                         SaveAll
 	Case "CloseAll":                        CloseAllTabs
