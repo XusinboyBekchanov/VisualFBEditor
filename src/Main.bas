@@ -5226,15 +5226,15 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		End If
 		Dim As String teTypeName = LCase(te->TypeName)
 		If CInt(teTypeName = "icon") OrElse CInt(teTypeName = "cursor") OrElse CInt(teTypeName = "bitmaptype") OrElse CInt(teTypeName = "graphictype") OrElse CInt(teTypeName = "font") OrElse CInt(EndsWith(LCase(PropertyName), "color")) Then
-			btnPropertyValue.SetBounds lpRect.Left + lpRect.Right - lpRect.Left - (lpRect.Bottom - lpRect.Top), lpRect.Top - 1, lpRect.Bottom - lpRect.Top + 1, lpRect.Bottom - lpRect.Top + 1
-			CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left - btnPropertyValue.Width + 2, lpRect.Bottom - lpRect.Top - 1
+			btnPropertyValue.SetBounds UnScaleX(lpRect.Left + lpRect.Right - lpRect.Left - (lpRect.Bottom - lpRect.Top)), UnScaleY(lpRect.Top - 1), UnScaleX(lpRect.Bottom - lpRect.Top + 1), UnScaleY(lpRect.Bottom - lpRect.Top + 1)
+			CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 			btnPropertyValue.Visible = True
 			btnPropertyValue.Tag = te
 			CtrlEdit->Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		Else
-			CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left, lpRect.Bottom - lpRect.Top - 1
+			CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		End If
-		If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = lpRect.Right - lpRect.Left + 2
+		If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
 		CtrlEdit->Visible = True
 	#endif
 	If te->Comment <> 0 Then
@@ -5278,7 +5278,7 @@ Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
 		'If lpRect.Top < lpRect.Bottom - lpRect.Top Then
 		'    txtPropertyValue.Visible = False
 		'Else
-		CtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left, lpRect.Bottom - lpRect.Top - 1
+		CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		CtrlEdit->Visible = True
 		'End If
 	End If

@@ -28,9 +28,11 @@ Using My.Sys.Forms
 		#else
 			lblImage.Graphic.Bitmap = "Logo"
 		#endif
+		lblImage.CenterImage = True
 		lblImage.SetBounds 12, 24, 343, 270
 		lblImage.Designer = @This
 		lblImage.OnClick = @lblImage_Click_
+		lblImage.BackColor = 0
 		lblImage.Parent = @This
 		' lblSplash
 		lblSplash.SetBounds 14, 6, 342, 36

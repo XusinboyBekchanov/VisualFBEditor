@@ -62,7 +62,7 @@ Public Sub MoveCloseButtons()
 		If tb = 0 Then Continue For
 		#ifndef __USE_GTK__
 			pTabCode->Perform(TCM_GETITEMRECT, tb->Index, CInt(@RR))
-			MoveWindow tb->btnClose.Handle, RR.Right - 18, 4, 14, 14, True
+			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
 		#endif
 	Next i
 End Sub
@@ -4515,8 +4515,8 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	#ifndef __USE_GTK__
 		Select Case Msg.Msg
 		Case WM_SIZE
-			Dim As Integer dwClientX = LoWord(msg.lParam)
-			Dim As Integer dwClientY = HiWord(msg.lParam)
+			Dim As Integer dwClientX = UnScaleX(LoWord(msg.lParam))
+			Dim As Integer dwClientY = UnScaleY(HiWord(msg.lParam))
 			Dim As Integer iLeft, iTop, iWidth, iHeight
 			Dim si As SCROLLINFO
 			If tb->Des AndAlso tb->Des->DesignControl Then

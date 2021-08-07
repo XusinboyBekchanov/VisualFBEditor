@@ -19,6 +19,7 @@
 		This.StartPosition = FormStartPosition.CenterScreen
 		#ifndef __USE_GTK__
 			This.DefaultButton = @CommandButton1
+			This.Designer = @This
 			This.CancelButton = @CommandButton1
 		#endif
 		Label1.Name = "Label1"
@@ -101,5 +102,5 @@ Private Sub frmAbout.CommandButton1_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmAbout.lblImage_Click(ByRef Sender As ImageBox)
-
+	
 End Sub

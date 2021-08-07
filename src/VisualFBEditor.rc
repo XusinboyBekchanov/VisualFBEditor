@@ -104,8 +104,8 @@ weChat PNG "../resources/weChat.png"
 #define APP_TITLE_STR               "Visual FB Editor\0"
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,9,4056
-#define VER_FILEVERSION_STR         "1.2.9.4056\0"
+#define VER_FILEVERSION             1,2,9,4111
+#define VER_FILEVERSION_STR         "1.2.9.4111\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

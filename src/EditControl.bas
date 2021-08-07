@@ -1994,9 +1994,9 @@ Namespace My.Sys.Forms
 				If CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine AndAlso z = FLines.Count - 1)) Then
 					Dim As Rect rec
 					If z = FSelEndLine + 1 Then
-						rec = Type(LeftMargin + -HScrollPos * dwCharX, (i - VScrollPos - 1) * dwCharY, This.Width, (i - VScrollPos - 1) * dwCharY + dwCharY + 1)
+						rec = Type(LeftMargin + -HScrollPos * dwCharX, (i - VScrollPos - 1) * dwCharY, ScaleX(This.Width), (i - VScrollPos - 1) * dwCharY + dwCharY + 1)
 					Else
-						rec = Type(LeftMargin + -HScrollPos * dwCharX, (i - VScrollPos) * dwCharY, This.Width, (i - VScrollPos) * dwCharY + dwCharY + 1)
+						rec = Type(LeftMargin + -HScrollPos * dwCharX, (i - VScrollPos) * dwCharY, ScaleX(This.Width), (i - VScrollPos) * dwCharY + dwCharY + 1)
 					End If
 					#ifdef __USE_GTK__
 						cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
