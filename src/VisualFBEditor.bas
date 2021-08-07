@@ -21,7 +21,7 @@ Const SIGN       = "VisualFBEditor " + VERSION
 On Error Goto AA
 
 '#define GetMN
-
+#define __USE_DPI__
 #define MEMCHECK 0
 
 #include once "Main.bi"
