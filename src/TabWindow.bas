@@ -4515,13 +4515,15 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	#ifndef __USE_GTK__
 		Select Case Msg.Msg
 		Case WM_SIZE
-			Dim As Integer dwClientX = UnScaleX(LoWord(msg.lParam))
-			Dim As Integer dwClientY = UnScaleY(HiWord(msg.lParam))
+			Dim As Integer dwClientX = pnl->ClientWidth 'UnScaleX(LoWord(msg.lParam))
+			Dim As Integer dwClientY = pnl->ClientHeight 'UnScaleY(HiWord(msg.lParam))
 			Dim As Integer iLeft, iTop, iWidth, iHeight
 			Dim si As SCROLLINFO
 			If tb->Des AndAlso tb->Des->DesignControl Then
 				tb->Des->GetControlBounds(tb->Des->DesignControl, @iLeft, @iTop, @iWidth, @iHeight)
 			End If
+			iWidth += 2 * tb->Des->DotSize
+			iHeight += 2 * tb->Des->DotSize
 			
 			' Set the vertical scrolling range and page size
 			si.cbSize = SizeOf(si)

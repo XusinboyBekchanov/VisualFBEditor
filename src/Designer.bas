@@ -86,10 +86,10 @@ Namespace My.Sys.Forms
 				Dim ncm As NONCLIENTMETRICS
 				ncm.cbSize = SizeOf(ncm)
 				SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(ncm), @ncm, 0)
-				If ncm.iMenuHeight <> TopMenuHeight Then
+				If UnScaleY(ncm.iMenuHeight) <> TopMenuHeight Then
 					Dim As Integer OldHeight = QInteger(ReadPropertyFunc(DesignControl, "Height"))
-					Dim As Integer NewHeight = OldHeight + ncm.iMenuHeight - TopMenuHeight
-					TopMenuHeight = ncm.iMenuHeight
+					Dim As Integer NewHeight = OldHeight + UnScaleY(ncm.iMenuHeight) - TopMenuHeight
+					TopMenuHeight = UnScaleY(ncm.iMenuHeight)
 					TopMenu->Tag = @This
 					'TopMenu->OnPaint = @TopMenu_Paint
 					WritePropertyFunc(DesignControl, "Height", @NewHeight)
@@ -138,7 +138,7 @@ Namespace My.Sys.Forms
 			Brush = GetStockObject(NULL_BRUSH)
 			PrevBrush = SelectObject(FHDc, Brush)
 			SetROP2(FHDc, R2_NOT)
-			Rectangle(FHDc, R.Left, R.Top, R.Right, R.Bottom)
+			Rectangle(FHDc, ScaleX(R.Left), ScaleY(R.Top), ScaleX(R.Right), ScaleY(R.Bottom))
 			SelectObject(FHDc, PrevBrush)
 			ReleaseDc(FDialog, FHDc)
 		#endif
@@ -205,14 +205,14 @@ Namespace My.Sys.Forms
 			Return Parent
 		#else
 			Dim ParentHwnd As Hwnd = *Cast(HWND Ptr, ReadPropertyFunc(Parent, "Handle"))
-			Dim Result As Hwnd = ChildWindowFromPoint(ParentHwnd, Type<Point>(X, Y))
+			Dim Result As Hwnd = ChildWindowFromPoint(ParentHwnd, Type < Point > (ScaleX(X), ScaleY(Y)))
 			If Result = 0 OrElse Result = ParentHwnd OrElse GetControl(Result) = 0 Then
 				Return Parent
 			Else
 				Dim As Rect R
 				GetWindowRect Result, @R
 				MapWindowPoints 0, ParentHwnd, Cast(Point Ptr, @R), 2
-				Return ControlAt(GetControl(Result), X - R.Left, Y - R.Top)
+				Return ControlAt(GetControl(Result), UnScaleX(X - R.Left), UnScaleY(Y - R.Top))
 			End If
 			'		dim as RECT R
 			'		GetChilds(Parent)
@@ -282,7 +282,7 @@ Namespace My.Sys.Forms
 				End Select
 				gdk_window_set_cursor(gtk_widget_get_window(FDots(0, i)), gcurs)
 			#else
-				FDots(0, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, FDotSize, FDotSize, ParentCtrl->Handle, 0, instance, 0)
+				FDots(0, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), ParentCtrl->Handle, 0, instance, 0)
 				If IsWindow(FDots(0, i)) Then
 					SetWindowLongPtr(FDots(0, i), GWLP_USERDATA, CInt(@This))
 				End If
@@ -452,7 +452,7 @@ Namespace My.Sys.Forms
 			#else
 				For j As Integer = DotsCount + 1 To SelectedControls.Count - 1
 					For i As Integer = 0 To 7
-						FDots(j, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, FDotSize, FDotSize, GetParent(FDialog), 0, instance, 0)
+						FDots(j, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), GetParent(FDialog), 0, instance, 0)
 						SetWindowLongPtr(FDots(j, i), GWLP_USERDATA, CInt(@This))
 					Next
 				Next
@@ -463,14 +463,14 @@ Namespace My.Sys.Forms
 					P.x     = R.Left
 					P.y     = R.Top
 					ScreenToClient(GetParent(FDialog), @P)
-					MoveWindow FDots(j, 0), P.X-FDotSize, P.Y-FDotSize, FDotSize, FDotSize, True
-					MoveWindow FDots(j, 1), P.X+iWidth/2-3, P.Y-FDotSize, FDotSize, FDotSize, True
-					MoveWindow FDots(j, 2), P.X+iWidth, P.Y-FDotSize, FDotSize, FDotSize, True
-					MoveWindow FDots(j, 3), P.X+iWidth, P.Y + iHeight/2-3, FDotSize, FDotSize, True
-					MoveWindow FDots(j, 4), P.X+iWidth, P.Y + iHeight, FDotSize, FDotSize, True
-					MoveWindow FDots(j, 5), P.X+iWidth/2-3, P.Y + iHeight, FDotSize, FDotSize, True
-					MoveWindow FDots(j, 6), P.X-FDotSize, P.Y + iHeight, FDotSize, FDotSize, True
-					MoveWindow FDots(j, 7), P.X-FDotSize, P.Y + iHeight/2-3, FDotSize, FDotSize, True
+					MoveWindow FDots(j, 0), P.X - ScaleX(FDotSize), P.Y - ScaleY(FDotSize), ScaleX(FDotSize), ScaleY(FDotSize), True
+					MoveWindow FDots(j, 1), P.X + iWidth / 2 - 3, P.Y - ScaleY(FDotSize), ScaleX(FDotSize), ScaleY(FDotSize), True
+					MoveWindow FDots(j, 2), P.X + iWidth, P.Y - ScaleY(FDotSize), ScaleX(FDotSize), ScaleY(FDotSize), True
+					MoveWindow FDots(j, 3), P.X + iWidth, P.Y + iHeight / 2 - 3, ScaleX(FDotSize), ScaleY(FDotSize), True
+					MoveWindow FDots(j, 4), P.X + iWidth, P.Y + iHeight, ScaleX(FDotSize), ScaleY(FDotSize), True
+					MoveWindow FDots(j, 5), P.X + iWidth / 2 - 3, P.Y + iHeight, ScaleX(FDotSize), ScaleY(FDotSize), True
+					MoveWindow FDots(j, 6), P.X - ScaleX(FDotSize), P.Y + iHeight, ScaleX(FDotSize), ScaleY(FDotSize), True
+					MoveWindow FDots(j, 7), P.X - ScaleX(FDotSize), P.Y + iHeight / 2 - 3, ScaleX(FDotSize), ScaleY(FDotSize), True
 					For i As Integer = 0 To 7
 						'SetParent(FDots(i), GetParent(Control))
 						SetProp(FDots(j, i),"@@@Control", GetControlHandle(SelectedControls.Items[j]))
@@ -494,7 +494,7 @@ Namespace My.Sys.Forms
 				'else
 				'   HideDots
 				'end If
-				If OnChangeSelection Then OnChangeSelection(This, SelectedControl, p.x, p.y, iWidth, iHeight)
+				If OnChangeSelection Then OnChangeSelection(This, SelectedControl, UnScaleX(p.x), UnScaleY(p.y), UnScaleX(iWidth), UnScaleY(iHeight))
 			End If
 		Else
 			HideDots
@@ -628,11 +628,11 @@ Namespace My.Sys.Forms
 					GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 					P.X         = R.Left
 					P.Y         = R.Top
-					FWidth(j)   = R.Right - R.Left
-					FHeight(j)  = R.Bottom - R.Top
+					FWidth(j)   = UnScaleX(R.Right - R.Left)
+					FHeight(j)  = UnScaleY(R.Bottom - R.Top)
 					ScreenToClient(GetParent(FSelControl), @P)
-					FLeft(j)    = P.X
-					FTop(j)     = P.Y
+					FLeft(j)    = UnScaleX(P.X)
+					FTop(j)     = UnScaleY(P.Y)
 				#endif
 			Next
 			#ifndef __USE_GTK__
@@ -680,11 +680,11 @@ Namespace My.Sys.Forms
 							GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 							P.X         = R.Left
 							P.Y         = R.Top
-							FWidth(j)   = R.Right - R.Left
-							FHeight(j)  = R.Bottom - R.Top
+							FWidth(j)   = UnScaleX(R.Right - R.Left)
+							FHeight(j)  = UnScaleY(R.Bottom - R.Top)
 							ScreenToClient(GetParent(FSelControl), @P)
-							FLeft(j)    = P.X
-							FTop(j)     = P.Y
+							FLeft(j)    = UnScaleX(P.X)
+							FTop(j)     = UnScaleY(P.Y)
 						#endif
 					Next
 				End If
@@ -706,7 +706,7 @@ Namespace My.Sys.Forms
 					#ifndef __USE_GTK__
 						FHDC = GetDC(FDialog)
 						'SetROP2(hdc, R2_NOTXORPEN)
-						DrawFocusRect(Fhdc, @Type<RECT>(FBeginX, FBeginY, FNewX, FNewY))
+						DrawFocusRect(Fhdc, @Type < RECT > (ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
 						FOldX = FNewX
 						FOldY = FNewY
 						ReleaseDC(FDialog, Fhdc)
@@ -764,7 +764,7 @@ Namespace My.Sys.Forms
 						Case 7: FLeftNew(j) = FLeft(j) - (FBeginX - FNewX): FWidthNew(j) = FWidth(j) + (FBeginX - FNewX)
 						End Select
 						'ComponentSetBoundsSub(Q_ComponentFunc(SelectedControl), FLeftNew, FTopNew, FWidthNew, FHeightNew)
-						MoveWindow(GetControlHandle(SelectedControls.Items[j]), FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j), True)
+						MoveWindow(GetControlHandle(SelectedControls.Items[j]), ScaleX(FLeftNew(j)), ScaleY(FTopNew(j)), ScaleX(FWidthNew(j)), ScaleY(FHeightNew(j)), True)
 					#endif
 				Next
 				#ifndef __USE_GTK__
@@ -777,7 +777,7 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK__
 							ComponentSetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j))
 						#else
-							MoveWindow(GetControlHandle(SelectedControls.Items[j]), FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j), True)
+							MoveWindow(GetControlHandle(SelectedControls.Items[j]), ScaleX(FLeft(j) + (FNewX - FBeginX)), ScaleY(FTop(j) + (FNewY - FBeginY)), ScaleX(FWidth(j)), ScaleY(FHeight(j)), True)
 						#endif
 					Next j
 					#ifndef __USE_GTK__
@@ -791,8 +791,8 @@ Namespace My.Sys.Forms
 				#else
 					FHDC = GetDC(FDialog)
 					'SetROP2(hdc, R2_NOTXORPEN)
-					DrawFocusRect(Fhdc, @Type<RECT>(Min(FBeginX, FOldX), Min(FBeginY, FOldY), Max(FBeginX, FOldX), Max(FBeginY, FOldY)))
-					DrawFocusRect(Fhdc, @Type<RECT>(Min(FBeginX, FNewX), Min(FBeginY, FNewY), Max(FBeginX, FNewX), Max(FBeginY, FNewY)))
+					DrawFocusRect(Fhdc, @Type < RECT > (ScaleX(Min(FBeginX, FOldX)), ScaleY(Min(FBeginY, FOldY)), ScaleX(Max(FBeginX, FOldX)), ScaleY(Max(FBeginY, FOldY))))
+					DrawFocusRect(Fhdc, @Type < RECT > (ScaleX(Min(FBeginX, FNewX)), ScaleX(Min(FBeginY, FNewY)), ScaleX(Max(FBeginX, FNewX)), ScaleY(Max(FBeginY, FNewY))))
 				#endif
 				FOldX = FNewX
 				FOldY = FNewY
@@ -801,7 +801,7 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 		Else
-			P = Type(X, Y)
+			P = Type(ScaleX(X), ScaleY(Y))
 			#ifdef __USE_GTK__
 				
 			#else
@@ -887,7 +887,7 @@ Namespace My.Sys.Forms
 					Next i
 				#else
 					FHDC = GetDC(FDialog)
-					DrawFocusRect(Fhdc, @Type<RECT>(FBeginX, FBeginY, FNewX, FNewY))
+					DrawFocusRect(Fhdc, @Type < RECT > (ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
 					ReleaseDC(FDialog, Fhdc)
 					SelectedControl = DesignControl
 					FSelControl = FDialog
@@ -897,7 +897,7 @@ Namespace My.Sys.Forms
 						If IsWindowVisible(FChilds.Child[i]) Then
 							GetWindowRect(FChilds.Child[i], @R)
 							MapWindowPoints(0, FDialog, Cast(Point Ptr, @R) ,2)
-							If (R.Left > FBeginX And R.Right < FNewX) And (R.Top > FBeginY And R.Bottom < FNewY) Then
+							If (UnScaleX(R.Left) > FBeginX And UnScaleX(R.Right) < FNewX) And (UnScaleY(R.Top) > FBeginY And UnScaleY(R.Bottom) < FNewY) Then
 								If SelectedControls.Count = 0 OrElse (ReadPropertyFunc <> 0 AndAlso GetControl(FChilds.Child[i]) <> 0 AndAlso ReadPropertyFunc(SelectedControls.Items[0], "Parent") = ReadPropertyFunc(GetControl(FChilds.Child[i]), "Parent")) Then
 									SelectedControls.Add GetControl(FChilds.Child[i])
 								End If
@@ -949,19 +949,19 @@ Namespace My.Sys.Forms
 				'	ctr = Cast(Any Ptr, GetWindowLongPtr(FSelControl, GWLP_USERDATA))
 				'#EndIf
 				If SelectedType = 3 Or SelectedType = 4 Then
-					Dim cpnt As Any Ptr = CreateComponent(SelectedClass, FName, ctr, FBeginX - R.Left, FBeginY - R.Top)
-					If OnInsertComponent Then OnInsertComponent(This, FClass, cpnt, FBeginX - R.Left, FBeginY - R.Top)
+					Dim cpnt As Any Ptr = CreateComponent(SelectedClass, FName, ctr, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top))
+					If OnInsertComponent Then OnInsertComponent(This, FClass, cpnt, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top))
 					If FSelControl Then
 						SelectedControls.Clear
 					End If
 					#ifdef __USE_GTK__
-						MoveDots(cpnt, , FBeginX - R.Left, FBeginY - R.Top, 16, 16)
+						MoveDots(cpnt, , FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), 16, 16)
 					#else
 						MoveDots(cpnt)
 						'LockWindowUpdate(0)
 					#endif
 				Else
-					CreateControl(SelectedClass, FName, FName, ctr, FBeginX - R.Left, FBeginY - R.Top, FNewX -FBeginX, FNewY -FBeginY)
+					CreateControl(SelectedClass, FName, FName, ctr, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
 					If FSelControl Then
 						SelectedControls.Clear
 						#ifdef __USE_GTK__
@@ -971,9 +971,9 @@ Namespace My.Sys.Forms
 							LockWindowUpdate(FSelControl)
 							BringWindowToTop(FSelControl)
 						#endif
-						If OnInsertControl Then OnInsertControl(This, FClass, SelectedControl, FBeginX - R.Left, FBeginY - R.Top, FNewX -FBeginX, FNewY -FBeginY)
+						If OnInsertControl Then OnInsertControl(This, FClass, SelectedControl, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
 						#ifdef __USE_GTK__
-							MoveDots(SelectedControl, , FBeginX - R.Left, FBeginY - R.Top, FNewX -FBeginX, FNewY -FBeginY)
+							MoveDots(SelectedControl, , FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
 						#else
 							MoveDots(SelectedControl)
 							LockWindowUpdate(0)
@@ -1393,9 +1393,9 @@ Namespace My.Sys.Forms
 							Dim As HWND Ptr Result
 							If AParent <> 0 Then Result = Cast(HWND Ptr, ReadPropertyFunc(AParent, "Handle"))
 							If AParent = 0 OrElse Result = 0 OrElse *Result = 0 Then
-								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, x, y, 16, 16, *Cast(HWND Ptr, ReadPropertyFunc(DesignControl, "Handle")), Cast(HMENU, 1000), Instance, cpnt)
+								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, ScaleX(x), ScaleY(y), ScaleX(16), ScaleY(16), *Cast(HWND Ptr, ReadPropertyFunc(DesignControl, "Handle")), Cast(HMENU, 1000), Instance, cpnt)
 							Else
-								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, x, y, 16, 16, *Result, Cast(HMENU, 1000), Instance, cpnt)
+								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, ScaleX(x), ScaleY(y), ScaleX(16), ScaleY(16), *Result, Cast(HMENU, 1000), Instance, cpnt)
 							End If
 							WritePropertyFunc(Cpnt, "Handle", @FSelControl)
 							SetWindowLongPtr(FSelControl, GWLP_USERDATA, CInt(Cpnt))
@@ -1451,7 +1451,7 @@ Namespace My.Sys.Forms
 			If CurrentMenu <> 0 Then
 				RectsCount = 0
 				SelectObject(FHdc, TopMenu->Font.Handle)
-				Rectangle FHdc, 0, 0, TopMenu->Width, TopMenu->Height
+				Rectangle FHdc, 0, 0, ScaleX(TopMenu->Width), ScaleY(TopMenu->Height)
 				DeleteObject(Pen)
 				DeleteObject(Brush)
 				For i As Integer = 0 To QInteger(ReadPropertyFunc(CurrentMenu, "Count")) - 1
@@ -1466,14 +1466,14 @@ Namespace My.Sys.Forms
 					End If
 					Rects(RectsCount).Top = 0
 					GetTextExtentPoint32(FHdc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
-					Rects(RectsCount).Right = Rects(RectsCount).Left + Sz.cx + 16
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + Sz.cy + 6
+					Rects(RectsCount).Right = Rects(RectsCount).Left + UnScaleX(Sz.cx) + 16
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + UnScaleY(Sz.cy) + 6
 					If RectsCount = ActiveRect Then
 						Pen = CreatePen(PS_SOLID, 0, BGR(153, 209, 255))
 						Brush = CreateSolidBrush(BGR(204, 232, 255))
 						SelectObject(FHDc, Pen)
 						SelectObject(FHDc, Brush)
-						Rectangle FHdc, Rects(RectsCount).Left, 0, Rects(RectsCount).Right, TopMenu->Height
+						Rectangle FHdc, ScaleX(Rects(RectsCount).Left), 0, ScaleX(Rects(RectsCount).Right), ScaleY(TopMenu->Height)
 						DeleteObject(Pen)
 						DeleteObject(Brush)
 					ElseIf RectsCount = MouseRect Then
@@ -1481,16 +1481,16 @@ Namespace My.Sys.Forms
 						Brush = CreateSolidBrush(BGR(229, 243, 255))
 						SelectObject(FHDc, Pen)
 						SelectObject(FHDc, Brush)
-						Rectangle FHdc, Rects(RectsCount).Left, 0, Rects(RectsCount).Right, TopMenu->Height
+						Rectangle FHdc, ScaleX(Rects(RectsCount).Left), 0, ScaleX(Rects(RectsCount).Right), ScaleY(TopMenu->Height)
 						DeleteObject(Pen)
 						DeleteObject(Brush)
 					End If
 					SetBKMode(FHdc, TRANSPARENT)
 					SetTextColor(FHdc, BGR(0, 0, 0))
 					If QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-						.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, @"|", 1)
+						.TextOut(FHdc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), @"|", 1)
 					Else
-						.TextOut(FHdc, Rects(RectsCount).Left + 8, Rects(RectsCount).Top + 3, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+						.TextOut(FHdc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
 					End If
 					SetBKMode(FHdc, OPAQUE)
 					'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
@@ -1557,7 +1557,7 @@ Namespace My.Sys.Forms
 						If ImageIndex > -1 Then
 							#ifdef __USE_GTK__
 							#else
-								ImageList_Draw(ImagesListHandle, ImageIndex, FHDc, Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0) - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsWholeDropdown, 10, 0)) / 2), Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3), ILD_TRANSPARENT)
+								ImageList_Draw(ImagesListHandle, ImageIndex, FHDc, ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0) - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsWholeDropdown, 10, 0)) / 2)), ScaleY(Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3)), ILD_TRANSPARENT)
 							#endif
 						End If
 					End If
@@ -1567,11 +1567,11 @@ Namespace My.Sys.Forms
 						SelectObject(FHDc, Pen)
 						Brush = CreateSolidBrush(BGR(0, 0, 0))
 						SelectObject(FHDc, Brush)
-						.MoveToEx FHdc, Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1, 0
-						.LineTo FHdc, Rects(RectsCount).Right - 5, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
-						.LineTo FHdc, Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2
-						.LineTo FHdc, Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
-						.ExtFloodFill FHdc, Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2), 0, FLOODFILLBORDER
+						.MoveToEx FHdc, ScaleX(Rects(RectsCount).Right - 11), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1), 0
+						.LineTo FHdc, ScaleX(Rects(RectsCount).Right - 5), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1)
+						.LineTo FHdc, ScaleX(Rects(RectsCount).Right - 8), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2)
+						.LineTo FHdc, ScaleX(Rects(RectsCount).Right - 11), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1)
+						.ExtFloodFill FHdc, ScaleX(Rects(RectsCount).Right - 8), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2)), 0, FLOODFILLBORDER
 						DeleteObject(Pen)
 						DeleteObject(Brush)
 					End Select
@@ -1581,17 +1581,17 @@ Namespace My.Sys.Forms
 					If QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = 7 Then
 						Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
 						SelectObject(FHDc, Pen)
-						.MoveToEx FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Top + 5, 0
-						.LineTo FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Bottom
+						.MoveToEx FHdc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2), ScaleY(Rects(RectsCount).Top + 5), 0
+						.LineTo FHdc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2), ScaleY(Rects(RectsCount).Bottom)
 						DeleteObject(Pen)
 						Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
 						SelectObject(FHDc, Pen)
-						.MoveToEx FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Top + 5, 0
-						.LineTo FHdc, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom
+						.MoveToEx FHdc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1), ScaleY(Rects(RectsCount).Top + 5), 0
+						.LineTo FHdc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1), ScaleY(Rects(RectsCount).Bottom)
 						DeleteObject(Pen)
 					Else
-						.TextOut(FHdc, Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - Sz.cx - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
-							IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - Sz.cy) / 2, Rects(RectsCount).Bottom - Sz.cy - 6), ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+						.TextOut(FHdc, ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - UnScaleX(Sz.cx) - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2)), _
+							ScaleY(IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - UnScaleY(Sz.cy)) / 2, Rects(RectsCount).Bottom - UnScaleY(Sz.cy) - 6)), ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
 					End If
 				Next i
 			End If
@@ -1635,7 +1635,7 @@ Namespace My.Sys.Forms
 		#else
 			Dim As HDC mDc
 			Dim As HBITMAP mBMP, pBMP
-			Dim As RECT R, BrushRect = Type(0, 0, FStepX, FStepY)
+			Dim As RECT R, BrushRect = Type(0, 0, ScaleX(FStepX), ScaleY(FStepY))
 			Dim As PAINTSTRUCT Ps
 			Dim As Boolean WithGraphic
 			Dim As Integer BackColor = QInteger(ReadPropertyFunc(DesignControl, "BackColor"))
@@ -1654,8 +1654,8 @@ Namespace My.Sys.Forms
 			End If
 			If ShowAlignmentGrid Then
 				If WithGraphic Then
-					For i As Integer = R.Left To R.Right Step FStepX
-						For j As Integer = R.Top To R.Bottom Step FStepX
+					For i As Integer = R.Left To R.Right Step ScaleX(FStepX)
+						For j As Integer = R.Top To R.Bottom Step ScaleY(FStepX)
 							SetPixel(FHDc, i, j, 0)
 						Next
 					Next
@@ -1664,7 +1664,7 @@ Namespace My.Sys.Forms
 						DeleteObject(FGridBrush)
 					End If
 					mDc   = CreateCompatibleDc(FHDC)
-					mBMP  = CreateCompatibleBitmap(FHDC, FStepX, FStepY)
+					mBMP  = CreateCompatibleBitmap(FHDC, ScaleX(FStepX), ScaleY(FStepY))
 					pBMP  = SelectObject(mDc, mBMP)
 					FillRect(mDc, @BrushRect, Brush) 'Cast(HBRUSH, 16))
 					SetPixel(mDc, 0, 0, 0)
@@ -1733,7 +1733,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.DblClick(P.X, P.Y, wParam And &HFFFF )
+						.DblClick(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -1754,7 +1754,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseDown(P.X, P.Y, wParam And &HFFFF )
+						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -1779,7 +1779,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseUp(GetXY(P.X), GetXY(P.Y), wParam And &HFFFF )
+						.MouseUp(GetXY(UnScaleX(P.X)), GetXY(UnScaleY(P.Y)), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -1797,7 +1797,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseMove(GetXY(P.X), GetXY(P.Y), wParam And &HFFFF )
+						.MouseMove(GetXY(UnScaleX(P.X)), GetXY(UnScaleY(P.Y)), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifndef __USE_GTK__
@@ -1951,9 +1951,11 @@ Namespace My.Sys.Forms
 							'pncc->rgrc[0] Is the New rectangle
 							'pncc->rgrc[1] Is the old rectangle
 							'pncc->rgrc[2] Is the client rectangle
-							Des->TopMenu->SetBounds(pncc->rgrc(2).Left, pncc->rgrc(2).Top - .TopMenuHeight, pncc->rgrc(2).Right - pncc->rgrc(2).Left, .TopMenuHeight)
-							pncc->rgrc(0).Top += .TopMenuHeight
+							Des->TopMenu->SetBounds(UnScaleX(pncc->rgrc(2).Left), UnScaleY(pncc->rgrc(2).Top) - .TopMenuHeight, UnScaleX(pncc->rgrc(2).Right - pncc->rgrc(2).Left), .TopMenuHeight)
+							pncc->rgrc(0).Top += ScaleY(.TopMenuHeight)
 						End If
+					Case WM_SIZE
+						SendMessage GetParent(hDlg), WM_SIZE, 0, 0
 					Case WM_SYSCOMMAND
 						Return 0
 					Case WM_SETCURSOR
@@ -1966,7 +1968,7 @@ Namespace My.Sys.Forms
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
-						.DblClick(LoWord(lParam), HiWord(lParam),wParam And &HFFFF)
+						.DblClick(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF)
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -1975,7 +1977,7 @@ Namespace My.Sys.Forms
 						Return True
 					#else
 					Case WM_LBUTTONDOWN
-						.MouseDown(LoWord(lParam), HiWord(lParam),wParam And &HFFFF )
+						.MouseDown(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -1988,7 +1990,7 @@ Namespace My.Sys.Forms
 						Return True
 					#else
 					Case WM_LBUTTONUP
-						.MouseUp(LoWord(lParam), HiWord(lParam),wParam And &HFFFF )
+						.MouseUp(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -1998,7 +2000,7 @@ Namespace My.Sys.Forms
 						Return True
 					#else
 					Case WM_MOUSEMOVE
-						.MouseMove(LoWord(lParam), HiWord(lParam),wParam And &HFFFF )
+						.MouseMove(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifndef __USE_GTK__
@@ -2122,7 +2124,7 @@ Namespace My.Sys.Forms
 						.DrawTopMenu
 						Return 1
 					Case WM_LBUTTONDOWN
-						Dim As Integer X = LoWord(lParam), Y = HiWord(lParam), i, CurRect
+						Dim As Integer X = UnScaleX(LoWord(lParam)), Y = UnScaleY(HiWord(lParam)), i, CurRect
 						For i = 1 To .RectsCount
 							With .Rects(i)
 								If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
@@ -2147,8 +2149,8 @@ Namespace My.Sys.Forms
 								Dim As HMENU Ptr pHandle = Cast(HMENU Ptr, .ReadPropertyFunc(.Ctrls(.ActiveRect), "Handle"))
 								If pHandle <> 0 Then
 									Dim As Point P
-									P.x = .Rects(.ActiveRect).Left
-									P.y = .Rects(.ActiveRect).Bottom
+									P.x = ScaleX(.Rects(.ActiveRect).Left)
+									P.y = ScaleY(.Rects(.ActiveRect).Bottom)
 									ClientToScreen(hDlg, @P)
 									Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.x, P.y, 0, hDlg, 0)
 									Dim As Any Ptr CurrentMenu = .ReadPropertyFunc(.DesignControl, "Menu")
@@ -2167,7 +2169,7 @@ Namespace My.Sys.Forms
 					Case WM_COMMAND
 					Case WM_LBUTTONUP
 					Case WM_MOUSEMOVE
-						Dim As Integer X = LoWord(lParam), Y = HiWord(lParam), i, CurRect
+						Dim As Integer X = UnScaleX(LoWord(lParam)), Y = UnScaleY(HiWord(lParam)), i, CurRect
 						For i = 1 To .RectsCount
 							With .Rects(i)
 								If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
@@ -2189,8 +2191,8 @@ Namespace My.Sys.Forms
 							UpdateWindow hDlg
 							If pHandle <> 0 Then
 								Dim As Point P
-								P.x = .Rects(CurRect).Left
-								P.y = .Rects(CurRect).Bottom
+								P.x = ScaleX(.Rects(CurRect).Left)
+								P.y = ScaleY(.Rects(CurRect).Bottom)
 								ClientToScreen(hDlg, @P)
 								Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.x, P.y, 0, hDlg, 0)
 								.ActiveRect = 0
@@ -2257,7 +2259,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.DblClick(P.X, P.Y, wParam And &HFFFF)
+						.DblClick(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF)
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2274,7 +2276,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseDown(P.X, P.Y, wParam And &HFFFF )
+						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2291,7 +2293,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseUp(P.X, P.Y, wParam And &HFFFF )
+						.MouseUp(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifndef __USE_GTK__
@@ -2322,7 +2324,7 @@ Namespace My.Sys.Forms
 						P = Type<Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseMove(P.X, P.Y, wParam And &HFFFF )
+						.MouseMove(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2482,11 +2484,11 @@ Namespace My.Sys.Forms
 					GetWindowRect(ControlHandle, @R)
 					P.X     = R.Left
 					P.Y     = R.Top
-					FWidth  = R.Right - R.Left
-					FHeight = R.Bottom - R.Top
+					FWidth  = UnScaleX(R.Right - R.Left)
+					FHeight = UnScaleY(R.Bottom - R.Top)
 					ScreenToClient(GetParent(ControlHandle), @P)
-					FLeft   = P.X
-					FTop    = P.Y
+					FLeft   = UnScaleX(P.X)
+					FTop    = UnScaleY(P.Y)
 					If bShift Then
 						Select Case KeyCode
 						Case Keys.Left: FWidth = FWidth - FStepX1
@@ -2502,7 +2504,7 @@ Namespace My.Sys.Forms
 						Case Keys.Down: FTop = FTop + FStepY1
 						End Select
 					End If
-					MoveWindow(ControlHandle, FLeft, FTop, FWidth, FHeight, True)
+					MoveWindow(ControlHandle, ScaleX(FLeft), ScaleY(FTop), ScaleX(FWidth), ScaleY(FHeight), True)
 					If OnModified Then OnModified(This, SelectedControls.Items[j], FLeft, FTop, FWidth, FHeight)
 				Next
 				MoveDots(SelectedControl)
@@ -2577,7 +2579,7 @@ Namespace My.Sys.Forms
 						P.X = LoWord(lParam)
 						P.Y = HiWord(lParam)
 						ScreenToClient .FDialog, @P
-						.MouseDown(P.X, P.Y, wParam And &HFFFF )
+						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2592,7 +2594,7 @@ Namespace My.Sys.Forms
 						.MouseUp(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state)
 						Return True
 					#else
-						.MouseUp(LoWord(lParam), HiWord(lParam),wParam And &HFFFF )
+						.MouseUp(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
 						Return 0
 						
 					Case WM_NCHITTEST
