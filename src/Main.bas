@@ -6175,6 +6175,9 @@ Sub frmMain_Create(ByRef Sender As Control)
 	
 	LoadToolBox
 	
+	pnlRightPin.Height = tbRight.Height
+	pnlLeftPin.Height = tbLeft.Height
+	
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", True)
 	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
