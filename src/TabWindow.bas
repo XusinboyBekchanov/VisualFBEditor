@@ -5842,7 +5842,7 @@ Sub RunPr(Debugger As String = "")
 			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
 			If Idx <> - 1 Then
 				Tool = pTerminals->Item(Idx)->Object
-				CommandLine = Tool->GetCommand("""" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """")
+				CommandLine = Tool->GetCommand(Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)))
 				If Tool->Parameters = "" Then CommandLine &= " --wait -- "
 			Else
 				CommandLine &= """" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
