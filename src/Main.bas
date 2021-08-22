@@ -1549,6 +1549,7 @@ End Sub
 
 Function SaveSession() As Boolean
 	Dim As ExplorerElement Ptr ee
+	SaveD.Caption = ML("Save Session As")
 	SaveD.Filter = ML("VisualFBEditor Session") & " (*.vfs)|*.vfs|"
 	Dim As WString Ptr Temp, Temp2
 	If WGet(LastOpenPath) <> "" Then
@@ -1588,6 +1589,7 @@ Function SaveSession() As Boolean
 End Function
 
 Sub SetSaveDialogParameters(ByRef FileName As WString)
+	pSaveD->Caption = ML("Save File As")
 	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If InStr(FileName, "/") = 0 AndAlso InStr(FileName, "\") = 0 Then
 		pSaveD->InitialDir = *LastOpenPath
@@ -1656,6 +1658,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	ppe = tn->Tag
 	If tn->ImageKey <> "Project" Then MsgBox(ML("Project not selected!")): Return True
 	If CInt(ppe = 0) OrElse CInt(InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "/") = 0) OrElse CInt(bWithQuestion) Then
+		SaveD.Caption = ML("Save Project As")
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
 		If ppe <> 0 Then
 			SaveD.FileName = WGet(ppe->FileName)
