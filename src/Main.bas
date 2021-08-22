@@ -1592,7 +1592,11 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 	pSaveD->Caption = ML("Save File As")
 	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If InStr(FileName, "/") = 0 AndAlso InStr(FileName, "\") = 0 Then
-		pSaveD->InitialDir = *LastOpenPath
+		If *LastOpenPath = "" Then
+			pSaveD->InitialDir = *ProjectsPath
+		Else
+			pSaveD->InitialDir = *LastOpenPath
+		End If
 	Else
 		pSaveD->InitialDir = GetFolderName(FileName)
 	End If
