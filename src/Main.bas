@@ -1377,7 +1377,8 @@ Sub OpenUrl(ByVal url As String)
 	#else
 		cmd =  "start /b " & url
 	#endif
-	Shell cmd
+	'Shell cmd
+	PipeCmd "", cmd
 End Sub
 
 Function AddSession(ByRef FileName As WString) As Boolean
@@ -2088,7 +2089,8 @@ Sub OpenProjectFolder
 		#ifdef __USE_GTK__
 			Shell "xdg-open """ & GetFolderName(*ee->FileName) & """"
 		#else
-			Shell "explorer """ & Replace(GetFolderName(*ee->FileName), "/", "\") & """"
+			PipeCmd "", "explorer """ & Replace(GetFolderName(*ee->FileName), "/", "\") & """"
+			'Shell "explorer """ & Replace(GetFolderName(*ee->FileName), "/", "\") & """"
 		#endif
 	End If
 End Sub
@@ -4790,7 +4792,8 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 				Dim As ToolType Ptr Tool = pOtherEditors->Item(i)->Object
 				If InStr(" " & LCase(Tool->Extensions) & ",", " " & LCase(Extension) & ",") > 0 Then
 					If Not FileExists(Tool->Path) Then Continue For
-					Shell """" & Tool->GetCommand(*ee->FileName) & """"
+					'Shell """" & Tool->GetCommand(*ee->FileName) & """"
+					PipeCmd "", """" & Tool->GetCommand(*ee->FileName) & """"
 					Exit Sub
 				End If
 			Next
@@ -4798,7 +4801,8 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 		If (EndsWith(*ee->FileName, ".exe") OrElse EndsWith(*ee->FileName, ".dll") OrElse EndsWith(*ee->FileName, ".dll.a") OrElse EndsWith(*ee->FileName, ".so") OrElse _
 			EndsWith(*ee->FileName, ".png") OrElse EndsWith(*ee->FileName, ".jpg") OrElse EndsWith(*ee->FileName, ".bmp") OrElse EndsWith(*ee->FileName, ".ico") OrElse EndsWith(*ee->FileName, ".cur") OrElse _
 			EndsWith(*ee->FileName, ".chm") OrElse EndsWith(*ee->FileName, ".zip") OrElse EndsWith(*ee->FileName, ".7z") OrElse EndsWith(*ee->FileName, ".rar")) Then
-			Shell *ee->FileName
+			'Shell *ee->FileName
+			PipeCmd "", *ee->FileName
 			Exit Sub
 		End If
 	End If

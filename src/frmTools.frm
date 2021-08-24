@@ -336,7 +336,8 @@ Sub ExecuteTool(Param As Any Ptr)
 	If tt = 0 Then Exit Sub
 	'Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	'If tb = 0 Then 
-		Shell tt->GetCommand()
+		PipeCmd "", tt->GetCommand()
+		'Shell tt->GetCommand()
 	'Else
 	'	?tt->GetCommand(tb->FileName)
 	'	Shell tt->GetCommand(tb->FileName)
