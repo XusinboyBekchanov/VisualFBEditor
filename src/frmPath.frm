@@ -170,7 +170,7 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 			End If
 			If .ChooseFolder Then
 				If .BrowseD.Execute Then
-					If StartsWith(.BrowseD.Directory, FolderName) Then
+					If FolderName <> "" AndAlso StartsWith(.BrowseD.Directory, FolderName) Then
 						.txtPath.Text = "." & Slash & Mid(.BrowseD.Directory, Len(FolderName) + 1)
 					Else
 						.txtPath.Text = .BrowseD.Directory
@@ -179,7 +179,7 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 			Else
 				.OpenD.Filter = ML("All Files") & "|*.*;"
 				If .OpenD.Execute Then
-					If StartsWith(.OpenD.FileName, FolderName) Then
+					If FolderName <> "" AndAlso StartsWith(.OpenD.FileName, FolderName) Then
 						.txtPath.Text = "." & Slash & Mid(.OpenD.FileName, Len(FolderName) + 1)
 					Else
 						.txtPath.Text = .OpenD.FileName
