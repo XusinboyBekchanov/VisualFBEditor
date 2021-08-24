@@ -239,6 +239,11 @@ Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
 End Sub
 
 Sub cboPropertyValue_Change(ByRef Sender As Control)
+	#ifdef __USE_GTK__
+		If Trim(cboPropertyValue.Text) = "" Then
+			Exit Sub
+		End If
+	#endif
 	PropertyChanged Sender, cboPropertyValue.Text, True
 End Sub
 
@@ -5074,7 +5079,7 @@ Sub txtPropertyValue_KeyDown(ByRef Sender As Control, Key As Integer, Shift As I
 End Sub
 
 Sub txtPropertyValue_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	If Key = 13 Then
+	If Key = Keys.Enter Then
 		lvProperties.SetFocus
 	End If
 End Sub
@@ -5161,7 +5166,7 @@ cboPropertyValue.Top = -2
 pnlPropertyValue.Visible = False
 pnlPropertyValue.Add @cboPropertyValue
 
-Dim Shared CtrlEdit As Control Ptr
+'Dim Shared CtrlEdit As Control Ptr
 Dim Shared Cpnt As Component Ptr
 
 Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
@@ -5171,23 +5176,32 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	Dim As String PropertyName = GetItemText(Item)
 	'Dim As TreeListViewItem Ptr Item = lvProperties.ListItems.Item(ItemIndex)
 	lvProperties.SetFocus
+	pnlPropertyValue.Visible = False
 	txtPropertyValue.Visible = False
 	btnPropertyValue.Visible = False
-	pnlPropertyValue.Visible = False
-	#ifndef __USE_GTK__
+	cboPropertyValue.Visible = False
+	#ifdef __USE_GTK__
+		Dim As GdkRectangle gdkRect
+		Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(lvProperties.TreeStore), @Item->TreeIter))
+		gtk_tree_view_get_cell_area(gtk_tree_view(lvProperties.widget), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
+		gtk_tree_path_free(TreePath)
+		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
+	#else
 		ListView_GetSubItemRect(lvProperties.Handle, Item->GetItemIndex, 1, LVIR_BOUNDS, @lpRect)
 	#endif
 	Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
 	If te = 0 Then Exit Sub
-	#ifndef __USE_GTK__
+	'#ifndef __USE_GTK__
 		If LCase(te->TypeName) = "boolean" Then
-			CtrlEdit = @pnlPropertyValue
+			'CtrlEdit = @pnlPropertyValue
+			cboPropertyValue.Visible = True
 			cboPropertyValue.Clear
 			cboPropertyValue.AddItem " false"
 			cboPropertyValue.AddItem " true"
 			cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
 		ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(GlobalEnums.Contains(te->EnumTypeName)) Then
-			CtrlEdit = @pnlPropertyValue
+			'CtrlEdit = @pnlPropertyValue
+			cboPropertyValue.Visible = True
 			cboPropertyValue.Clear
 			Var tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->EnumTypeName)))
 			If tbi Then
@@ -5199,7 +5213,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				End If
 			End If
 		ElseIf IsBase(te->TypeName, "Component") Then
-			CtrlEdit = @pnlPropertyValue
+			'CtrlEdit = @pnlPropertyValue
+			cboPropertyValue.Visible = True
 			cboPropertyValue.Clear
 			For i As Integer = 1 To tb->cboClass.Items.Count - 1
 				Cpnt = tb->cboClass.Items.Item(i)->Object
@@ -5222,7 +5237,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->TypeName)))
 			End If
 			If tbi <> 0 AndAlso tbi->ElementType = "Enum" Then
-				CtrlEdit = @pnlPropertyValue
+				'CtrlEdit = @pnlPropertyValue
+				cboPropertyValue.Visible = True
 				cboPropertyValue.Clear
 				For i As Integer = 0 To tbi->Elements.Count - 1
 					cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
@@ -5231,23 +5247,30 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 					cboPropertyValue.ItemIndex = Val(Item->Text(1))
 				End If
 			Else
-				CtrlEdit = @txtPropertyValue
-				CtrlEdit->Text = Item->Text(1)
+				'CtrlEdit = @txtPropertyValue
+				'CtrlEdit->Text = Item->Text(1)
+				txtPropertyValue.Text = Item->Text(1)
+				txtPropertyValue.Visible = True 
 			End If
 		End If
 		Dim As String teTypeName = LCase(te->TypeName)
+		pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		If CInt(teTypeName = "icon") OrElse CInt(teTypeName = "cursor") OrElse CInt(teTypeName = "bitmaptype") OrElse CInt(teTypeName = "graphictype") OrElse CInt(teTypeName = "font") OrElse CInt(EndsWith(LCase(PropertyName), "color")) Then
-			btnPropertyValue.SetBounds UnScaleX(lpRect.Left + lpRect.Right - lpRect.Left - (lpRect.Bottom - lpRect.Top)), UnScaleY(lpRect.Top - 1), UnScaleX(lpRect.Bottom - lpRect.Top + 1), UnScaleY(lpRect.Bottom - lpRect.Top + 1)
-			CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+			btnPropertyValue.SetBounds pnlPropertyValue.Width - pnlPropertyValue.Height - 1, -1, pnlPropertyValue.Height + 2, pnlPropertyValue.Height + 2
+			txtPropertyValue.SetBounds 0, 0, pnlPropertyValue.Width - pnlPropertyValue.Height, pnlPropertyValue.Height
+			'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 			btnPropertyValue.Visible = True
 			btnPropertyValue.Tag = te
-			CtrlEdit->Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
+			'CtrlEdit->Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		Else
-			CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+			txtPropertyValue.SetBounds 0, 0, pnlPropertyValue.Width, pnlPropertyValue.Height
+			cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
+			'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		End If
-		If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
-		CtrlEdit->Visible = True
-	#endif
+		'If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
+		'CtrlEdit->Visible = True
+		pnlPropertyValue.Visible = True
+	'#endif
 	If te->Comment <> 0 Then
 		txtLabelProperty.Text = te->Comment
 	Else
@@ -5278,9 +5301,10 @@ Sub lvEvents_ItemDblClick(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 End Sub
 
 Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
-	If CtrlEdit = 0 Then Exit Sub
+	'If CtrlEdit = 0 Then Exit Sub
 	If lvProperties.SelectedItem = 0 Then
-		CtrlEdit->Visible = False
+		'CtrlEdit->Visible = False
+		pnlPropertyValue.Visible = False
 	Else
 		Dim As Rect lpRect
 		#ifndef __USE_GTK__
@@ -5289,8 +5313,10 @@ Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
 		'If lpRect.Top < lpRect.Bottom - lpRect.Top Then
 		'    txtPropertyValue.Visible = False
 		'Else
-		CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
-		CtrlEdit->Visible = True
+		pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+		pnlPropertyValue.Visible = True
+		'CtrlEdit->Visible = True
 		'End If
 	End If
 End Sub
@@ -5403,9 +5429,13 @@ lvProperties.SmallImages = @imgListStates
 'lvProperties.ColumnHeaderHidden = True
 lvProperties.Columns.Add ML("Property"), , 70
 lvProperties.Columns.Add ML("Value"), , 50, , True
-lvProperties.Add @txtPropertyValue
-lvProperties.Add @btnPropertyValue
-lvProperties.Add @pnlPropertyValue
+pnlPropertyValue.Add @btnPropertyValue
+pnlPropertyValue.Add @txtPropertyValue
+#ifndef __USE_GTK__
+	'lvProperties.Add @txtPropertyValue
+	'lvProperties.Add @btnPropertyValue
+	lvProperties.Add @pnlPropertyValue
+#endif
 lvProperties.OnSelectedItemChanged = @lvProperties_SelectedItemChanged
 lvProperties.OnEndScroll = @lvProperties_EndScroll
 lvProperties.OnResize = @lvProperties_Resize
@@ -5570,6 +5600,9 @@ tabRight.Tabs[1]->Add @txtLabelEvent
 tabRight.Tabs[1]->Add @splEvents
 tabRight.Tabs[1]->Add @lvEvents
 pnlRight.Add @tabRight
+#ifdef __USE_GTK__
+	tabRight.Tabs[0]->Add @pnlPropertyValue
+#endif
 
 tbRight.ImagesList = @imgList
 tbRight.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinRight", "", ML("Pin"), , tstEnabled Or tstChecked
@@ -6381,6 +6414,7 @@ Sub frmMain_Show(ByRef Sender As Control)
 		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabItemHeight
 		If Not GetRightClosedStyle Then pnlRightPin.Top = tabItemHeight
 		pnlBottomPin.Width = tabItemHeight
+		pnlPropertyValue.Visible = False 
 	#endif
 	pfSplash->CloseForm
 	CheckCompilerPaths
