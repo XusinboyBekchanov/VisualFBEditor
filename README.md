@@ -20,14 +20,14 @@ To compile use the following command lines:
 #### For Windows 32-bit:
 ```shell
   cd Path_to_VisualFBEditor/src
-  fbc "VisualFBEditor.bas" -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
+  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
   fbc -b "mff.bi" "mff.rc" -dll -x "../mff32.dll"
 ```
 #### For Windows 64-bit:
 ```shell
   cd Path_to_VisualFBEditor/src
-  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
+  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
   fbc -b "mff.bi" "mff.rc" -dll -x "../mff64.dll"
 ```
@@ -69,7 +69,7 @@ REM "Version 1.08.0 64 bit Windows build"
 
 REM BUILD COMMAND
 
-"C:\FreeBasic\X64\fbc.exe" "VisualFBEditor.bas" "VisualFBEditor.rc" -x "../VisualFBEditor64.exe" -i "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework"
+"C:\FreeBasic\X64\fbc.exe" "VisualFBEditor.bas" "VisualFBEditor.rc" -s gui -x "../VisualFBEditor64.exe" -i "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework"
 
 REM Change path to the MyFbFramework source
 
