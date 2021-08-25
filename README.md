@@ -31,19 +31,33 @@ To compile use the following command lines:
   cd Path_to_VisualFBEditor/MyFbFramework/mff
   fbc -b "mff.bi" "mff.rc" -dll -x "../mff64.dll"
 ```
-#### For Linux 32-bit:
+#### For Linux 32-bit (for gtk2):
 ```shell
   cd Path_to_VisualFBEditor/src
-  fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "Path_to_VisualFBEditor/MyFbFramework"
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk2" -i "Path_to_VisualFBEditor/MyFbFramework"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
-  fbc -b "mff.bi" -dll -x "../libmff32_gtk3.so"
+  fbc -b "mff.bi" -dll -x "../libmff32_gtk2.so"
 ```
-#### For Linux 64-bit:
+#### For Linux 32-bit (for gtk3):
 ```shell
   cd Path_to_VisualFBEditor/src
-  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "Path_to_VisualFBEditor/MyFbFramework"
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "Path_to_VisualFBEditor/MyFbFramework" -d __USE_GTK3__
   cd Path_to_VisualFBEditor/MyFbFramework/mff
-  fbc -b "mff.bi" -dll -x "../libmff64_gtk3.so"
+  fbc -b "mff.bi" -dll -x "../libmff32_gtk3.so" -d __USE_GTK3__
+```
+#### For Linux 64-bit (for gtk2):
+```shell
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk2" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" -dll -x "../libmff64_gtk2.so"
+```
+#### For Linux 64-bit (for gtk3):
+```shell
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "Path_to_VisualFBEditor/MyFbFramework" -d __USE_GTK3__
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" -dll -x "../libmff64_gtk3.so" -d __USE_GTK3__
 ```
 #### Sample bat file:
 ```shell
@@ -77,3 +91,4 @@ cd "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework\mff"
 
 "C:\FreeBasic\X64\fbc.exe" -b "mff.bi" "mff.rc" -dll -x "..\mff64.dll"
 ```
+__
