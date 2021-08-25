@@ -1,7 +1,5 @@
 ﻿#ifdef __FB_WIN32__
-	'#Compile -exx "Form1.rc"
-#else
-	'#Compile -exx
+	'#Compile "Form1.rc"
 #endif
 '#Region "Form" '...'
 	#include once "mff/Form.bi"

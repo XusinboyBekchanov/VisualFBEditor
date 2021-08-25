@@ -1,4 +1,4 @@
-﻿'#Compile -exx "Form1.rc"
+﻿'#Compile "Form1.rc"
 #include once "windows.bi"
 #include once "win\commctrl.bi"
 
