@@ -768,22 +768,113 @@ Function Compile(Parameter As String = "") As Integer
 	#ifdef __USE_GTK__
 		WLetEx(PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True)
 	#else
-		WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
+		'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
 	#endif
 	If Parameter <> "Check" Then
 		ThreadsEnter()
 		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
 		ThreadsLeave()
 	End If
-	'#ifdef __USE_GTK__
-	If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
-		'#ifndef __USE_GTK__
-		'#if __FB_GUI__ <> 0
-		'ShowWindow(FindWindow(, SW_MINIMIZE)
-		'#endif
-		'#endif
+	#ifdef __USE_GTK__
+		If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
+			'#ifndef __USE_GTK__
+			'#if __FB_GUI__ <> 0
+			'ShowWindow(FindWindow(, SW_MINIMIZE)
+			'#endif
+			'#endif
+			While Not EOF(Fn)
+				Line Input #Fn, Buff
+				SplitError(Buff, ErrFileName, ErrTitle, iLine)
+				ThreadsEnter()
+				If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+				lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error") > 0 AndAlso Not StartsWith(*ErrTitle, "compiling C:"), "Error", "Info"))
+				lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+				lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+				ShowMessages(Buff, False)
+				ThreadsLeave()
+				'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
+			Wend
+			Close #Fn
+		End If
+	#else
+		#define BufferSize 2048
+		Dim si As STARTUPINFO
+	    Dim pi As PROCESS_INFORMATION
+	    Dim sa As SECURITY_ATTRIBUTES
+	    Dim hReadPipe As HANDLE
+	    Dim hWritePipe As HANDLE
+	    Dim sBuffer As ZString * BufferSize
+	    Dim sOutput As UString
+	    Dim bytesRead As DWORD
+	    Dim result_ As Integer
+	   
+	    sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+		sa.lpSecurityDescriptor = Null
+	    sa.bInheritHandle = True
+	   
+	    If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+			ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+			Return 0
+	    End If
+	   
+	    si.cb = Len(STARTUPINFO)
+	    si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+	    si.hStdOutput = hWritePipe
+	    si.hStdError = hWritePipe
+	    si.wShowWindow = 0
+	   
+	    If CreateProcess(0, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+			ShowMessages(ML("Error: Couldn't Create Process"), False)
+			Return 0
+		End If
+	   
+	    CloseHandle hWritePipe
+	   
+	   Dim As Integer Pos1
+	    Do
+	        result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+	        sBuffer = Left(sBuffer, bytesRead)
+	        Pos1 = InStrRev(sBuffer, Chr(10))
+	        If Pos1 > 0 Then
+	        	Dim res() As UString
+	        	sOutput += Left(sBuffer, Pos1 - 1)
+	        	Split sOutput, Chr(10), res()
+	        	For i As Integer = 0 To UBound(res)
+	        		Buff = res(i)
+		        	SplitError(Buff, ErrFileName, ErrTitle, iLine)
+					If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+					lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error") > 0 AndAlso Not StartsWith(*ErrTitle, "compiling C:"), "Error", "Info"))
+					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+					ShowMessages(Buff, False)
+				Next i
+				sOutput = Mid(sBuffer, Pos1 + 1)
+	        Else
+	        	sOutput += sBuffer
+	        End If
+	    Loop While result_
+	   
+	    CloseHandle pi.hProcess
+	    CloseHandle pi.hThread
+	    CloseHandle hReadPipe
+	#endif
+	WDeallocate PipeCommand
+	#ifdef __USE_GTK__
+		Yaratilmadi = g_find_program_in_path(ToUTF8(*ExeName)) = NULL
+	#else
+		Yaratilmadi = Dir(*ExeName) = ""
+	#endif
+	
+	Fn =FreeFile
+	Result=-1
+	Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
+	If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
+	If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-32" As #Fn)
+	If Result <> 0 Then Result = Open(*LogFileName2 For Input As #Fn)
+	If Result = 0 Then
 		While Not EOF(Fn)
 			Line Input #Fn, Buff
+			'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
 			SplitError(Buff, ErrFileName, ErrTitle, iLine)
 			ThreadsEnter()
 			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
@@ -793,187 +884,74 @@ Function Compile(Parameter As String = "") As Integer
 			ShowMessages(Buff, False)
 			ThreadsLeave()
 			'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
+			Log2_ = True
 		Wend
 		Close #Fn
 	End If
-'	#else
-	'		Dim As Integer pclass
-	'		Dim As Long flagnoread, flagline = 0
-	'		Dim As Boolean veof
-	'		Dim As HANDLE ReadHandle
-	'		Dim As HANDLE WriteHandle
-	'		Dim As PROCESS_INFORMATION pinfo
-	'		Dim As STARTUPINFO sinfo
-	'		 set up security attributes to allow pipes to be inherited
-	'		Dim As SECURITY_ATTRIBUTES sa = Type(SizeOf(SECURITY_ATTRIBUTES), NULL, True)
-	'		 create the pipe
-	'		If (CreatePipe(@ReadHandle, @WriteHandle, @sa, 0)) = 0 Then
-		'			ShowMessages(ML("Compiler data can't be retrieved"))
-		'			veof = True
-		'			Return False
-	'		End If
-	'		 establishing the START INFO structure for the child process
-	'		sinfo.cb = Len(sinfo)
-	'		sinfo.hStdinput = GetStdHandle(STD_INPUT_HANDLE)
-	'		 redirecting standard input to the write end of the pipe */
-	'		sinfo.hStdoutput = WriteHandle
-	'		sinfo.hStdError = WriteHandle
-	'		sinfo.dwFlags = STARTF_USESTDHANDLES
-	'		 don’t allow the child inheriting the read end of pipe */
-	'		SetHandleInformation(ReadHandle, HANDLE_FLAG_INHERIT, 0)
-	'		Set the priority class NO_window is important to avoid a cmd window
-	'		pclass = NORMAL_PRIORITY_CLASS Or CREATE_NO_WINDOW
-	'		veof = False
-	'		Dim As WString Ptr Workdir
-	'		WLet Workdir, GetFolderName(*MainFile)
-	'		create the child process inherit handles
-	'		WLetEx PipeCommand, Mid(Replace(*PipeCommand, "/", "\"), 2, Len(*PipeCommand) - 2), True
-	'		If CreateProcess(null, PipeCommand, ByVal NULL, ByVal NULL, True, pclass, null, null, @sinfo, @pinfo) = 0 Then
-		'			ShowMessages(ML("Not Compiler process created"))
-		'			veof = True
-	'		End If
-	'		CloseHandle(WriteHandle)  'close the unused end of the pipe
-	'		While veof = False
-		'			Dim As UString fullstrg
-		'			If flagnoread = 0 Then
-			'				Dim As Integer p, result
-			'				Dim As Long vread
-			'				Dim As ZString * BUFFER_SIZE buffer
-			'				While 1
-				'					p = InStr(fullstrg, Chr(10))
-				'					While p
-					'						dwln = Left(fullstrg, p - 2)
-					'						fullstrg = Mid(fullstrg, p + 1)
-					'						p = InStr(fullstrg, Chr(10))
-					'						If p = 0 Then
-						'							result = ReadFile(ReadHandle, @buffer, BUFFER_SIZE - 1, @vread, NULL)
-						'							If result = 0 Then
-							'								veof = True
-						'							Else
-							'								buffer[vread + 1] = 0
-							'								fullstrg += buffer
-						'							End If
-					'						End If
-					'						Exit While, While
-				'					Wend
-				'					result = ReadFile(ReadHandle, @buffer, BUFFER_SIZE, @vread, NULL)
-				'					If result = 0 Then
-					'						veof = True
-					'						Exit While
-				'					End If
-				'					buffer[vread + 1] = 0
-				'					fullstrg += buffer
-			'				Wend
-		'			Else
-			'				flagnoread = 0
-		'			EndIf
-		'			SplitError(fullstrg, ErrFileName, ErrTitle, iLine)
-		'			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-		'			lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
-		'			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-		'			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-		'			ShowMessages(fullstrg, False)
-	'		Wend
-	'		CloseHandle(ReadHandle) 'close the read end of the pipe */
-	'		WaitForSingleObject(pinfo.hProcess, INFINITE) 'wait for the child to exit */
-	'		CloseHandle(pinfo.hProcess)
-	'		CloseHandle(pinfo.hThread)
-	'		If WorkDir Then Deallocate_(WorkDir)
-'	#endif
-WDeallocate PipeCommand
-#ifdef __USE_GTK__
-	Yaratilmadi = g_find_program_in_path(ToUTF8(*ExeName)) = NULL
-#else
-	Yaratilmadi = Dir(*ExeName) = ""
-#endif
-
-Fn =FreeFile
-Result=-1
-Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
-If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
-If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-32" As #Fn)
-If Result <> 0 Then Result = Open(*LogFileName2 For Input As #Fn)
-If Result = 0 Then
-	While Not EOF(Fn)
-		Line Input #Fn, Buff
-		'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
-		SplitError(Buff, ErrFileName, ErrTitle, iLine)
+	ThreadsEnter()
+	If lvErrors.ListItems.Count <> 0 Then
+		ptabBottom->Tabs[1]->Caption = ML("Errors") & " (" & lvErrors.ListItems.Count & " " & ML("Pos") & ")"
+	Else
+		ptabBottom->Tabs[1]->Caption = ML("Errors")
+	End If
+	ThreadsLeave()
+	'If LogFileName Then Deallocate LogFileName
+	If LogFileName2 Then Deallocate_( LogFileName2)
+	If BatFileName Then Deallocate_( BatFileName)
+	WDeallocate fbcCommand
+	WDeallocate CompileWith
+	WDeallocate MFFPathC
+	WDeallocate MainFile
+	WDeallocate FirstLine
+	ThreadsEnter()
+	ShowMessages("")
+	StopProgress
+	ThreadsLeave()
+	For i As Integer = 0 To Tools.Count - 1
+		Tool = Tools.Item(i)
+		If Tool->LoadType = LoadTypes.AfterCompile Then Tool->Execute
+	Next
+	If Yaratilmadi Or Band Then
 		ThreadsEnter()
-		If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-		lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
-		lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-		lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-		ShowMessages(Buff, False)
-		ThreadsLeave()
-		'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
-		Log2_ = True
-	Wend
-	Close #Fn
-End If
-ThreadsEnter()
-If lvErrors.ListItems.Count <> 0 Then
-	ptabBottom->Tabs[1]->Caption = ML("Errors") & " (" & lvErrors.ListItems.Count & " " & ML("Pos") & ")"
-Else
-	ptabBottom->Tabs[1]->Caption = ML("Errors")
-End If
-ThreadsLeave()
-'If LogFileName Then Deallocate LogFileName
-If LogFileName2 Then Deallocate_( LogFileName2)
-If BatFileName Then Deallocate_( BatFileName)
-WDeallocate fbcCommand
-WDeallocate CompileWith
-WDeallocate MFFPathC
-WDeallocate MainFile
-WDeallocate FirstLine
-ThreadsEnter()
-ShowMessages("")
-StopProgress
-ThreadsLeave()
-For i As Integer = 0 To Tools.Count - 1
-	Tool = Tools.Item(i)
-	If Tool->LoadType = LoadTypes.AfterCompile Then Tool->Execute
-Next
-If Yaratilmadi Or Band Then
-	ThreadsEnter()
-	If Parameter <> "Check" Then
-		ShowMessages(Str(Time) & ": " & ML("Do not build file."))
-		If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then ptabBottom->Tabs[1]->SelectTab
-	ElseIf lvErrors.ListItems.Count <> 0 Then
-		ShowMessages(Str(Time) & ": " & ML("Checking ended."))
-		ptabBottom->Tabs[1]->SelectTab
-	Else
-		ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found."))
-	End If
-	ThreadsLeave()
-	WDeallocate LogText
-	Return 0
-Else
-	ThreadsEnter()
-	If InStr(*LogText, "warning") > 0 Then
 		If Parameter <> "Check" Then
-			ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings."))
-		End If
-	Else
-		If Parameter <> "Check" Then
-			ShowMessages(Str(Time) & ": " & ML("Layout succeeded!"))
+			ShowMessages(Str(Time) & ": " & ML("Do not build file."))
+			If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then ptabBottom->Tabs[1]->SelectTab
+		ElseIf lvErrors.ListItems.Count <> 0 Then
+			ShowMessages(Str(Time) & ": " & ML("Checking ended."))
+			ptabBottom->Tabs[1]->SelectTab
 		Else
-			ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!"))
+			ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found."))
 		End If
+		ThreadsLeave()
+		WDeallocate LogText
+		Return 0
+	Else
+		ThreadsEnter()
+		If InStr(*LogText, "warning") > 0 Then
+			If Parameter <> "Check" Then
+				ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings."))
+			End If
+		Else
+			If Parameter <> "Check" Then
+				ShowMessages(Str(Time) & ": " & ML("Layout succeeded!"))
+			Else
+				ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!"))
+			End If
+		End If
+		ThreadsLeave()
+		WDeallocate LogText
+		WDeallocate ExeName
+		Return 1
 	End If
+	
+	Exit Function
+	ErrorHandler:
+	ThreadsEnter()
+	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+	"in line " & Erl() & " " & _
+	"in function " & ZGet(Erfn()) & " " & _
+	"in module " & ZGet(Ermn())
 	ThreadsLeave()
-	WDeallocate LogText
-	WDeallocate ExeName
-	Return 1
-End If
-
-Exit Function
-ErrorHandler:
-ThreadsEnter()
-MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-"in line " & Erl() & " " & _
-"in function " & ZGet(Erfn()) & " " & _
-"in module " & ZGet(Ermn())
-ThreadsLeave()
 End Function
 
 Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, ByVal iSelStart As Integer =-1, ByVal iSelLength As Integer =-1, tabw As TabWindow Ptr = 0, ByRef SearchText As WString = "")
