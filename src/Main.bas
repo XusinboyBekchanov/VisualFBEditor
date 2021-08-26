@@ -5235,14 +5235,14 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		Dim As String teTypeName = LCase(te->TypeName)
 		pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		If CInt(teTypeName = "icon") OrElse CInt(teTypeName = "cursor") OrElse CInt(teTypeName = "bitmaptype") OrElse CInt(teTypeName = "graphictype") OrElse CInt(teTypeName = "font") OrElse CInt(EndsWith(LCase(PropertyName), "color")) Then
-			btnPropertyValue.SetBounds pnlPropertyValue.Width - pnlPropertyValue.Height - 1, -1, pnlPropertyValue.Height + 2, pnlPropertyValue.Height + 2
-			txtPropertyValue.SetBounds 0, 0, pnlPropertyValue.Width - pnlPropertyValue.Height, pnlPropertyValue.Height
+			btnPropertyValue.SetBounds UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top - 1) - 1, -1, UnScaleY(lpRect.Bottom - lpRect.Top - 1) + 2, UnScaleY(lpRect.Bottom - lpRect.Top - 1) + 2
+			txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top - 1), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 			'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 			btnPropertyValue.Visible = True
 			btnPropertyValue.Tag = te
 			'CtrlEdit->Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		Else
-			txtPropertyValue.SetBounds 0, 0, pnlPropertyValue.Width, pnlPropertyValue.Height
+			txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 			cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
 			'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		End If
