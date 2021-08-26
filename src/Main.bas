@@ -1836,11 +1836,12 @@ End Sub
 Sub CloseAllTabs(WithoutCurrent As Boolean = False)
 	Dim tb As TabWindow Ptr
 	Dim j As Integer = ptabCode->SelectedTabIndex
-	For i As Long = 0 To ptabCode->TabCount - 1
+	For i As Long = ptabCode->TabCount - 1 To 0 Step -1
 		If WithoutCurrent Then
 			If i = j Then Continue For
 		End If
-		CloseTab(Cast(TabWindow Ptr, ptabCode->Tabs[i]))
+		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+		CloseTab(tb)
 	Next i
 End Sub
 
