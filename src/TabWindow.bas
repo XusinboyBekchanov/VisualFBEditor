@@ -720,6 +720,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 			End If
 		End If
 	End If
+	If ptabCode->SelectedTabIndex = This.Index Then plvProperties->ListItems.Clear
 	If ptabCode->TabCount = 0 Then pfrmMain->Caption = App.Title
 	MoveCloseButtons
 	FreeWnd
