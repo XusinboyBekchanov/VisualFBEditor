@@ -5195,7 +5195,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 			'CtrlEdit = @pnlPropertyValue
 			cboPropertyValue.Visible = True
 			cboPropertyValue.Clear
-			cboPropertyValue.AddItem " (None)"
+			cboPropertyValue.AddItem " " & ML("(None)")
 			For i As Integer = 1 To tb->cboClass.Items.Count - 1
 				Cpnt = tb->cboClass.Items.Item(i)->Object
 				If Cpnt <> 0 Then
