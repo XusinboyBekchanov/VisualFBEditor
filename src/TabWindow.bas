@@ -886,6 +886,8 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 						Return ReadObjProperty(Des->ReadPropertyFunc(Cpnt, Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
 					End If
 				End If
+			ElseIf IsBase(.TypeName, "Component") Then
+				WLet(FLine, ML("(None)"))
 			End If
 		End Select
 	End With
@@ -906,10 +908,10 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return *FLine
 	Pos1 = InStr(PropertyName, ".")
 	pTemp = Des->ReadPropertyFunc(Cpnt, PropertyName)
-	If pTemp <> 0 Then
-		te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
-		If te = 0 Then Return *FLine
-		With *te
+	te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	If te = 0 Then Return *FLine
+	With *te
+		If pTemp <> 0 Then
 			Select Case LCase(.TypeName)
 			Case "wstring", "string", "zstring", "wstringlist", "dictionary": WLet(FLine, QWString(pTemp)): If InStr(*FLine, """") = 0 Then WLetEx FLine, """" & *FLine & """", True
 			Case "icon", "bitmaptype", "cursor", "graphictype": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
@@ -956,16 +958,18 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 					End If
 				End If
 			End Select
-		End With
-	ElseIf Pos1 > 0 Then
-		te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), Left(PropertyName, Pos1 - 1))
-		If te = 0 Then Return *FLine
-		If IsBase(te->TypeName, "My.Sys.Object") Then
-			If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-				Return GetFormattedPropertyValue(Des->ReadPropertyFunc(Cpnt, Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
+		ElseIf Pos1 > 0 Then
+			te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), Left(PropertyName, Pos1 - 1))
+			If te = 0 Then Return *FLine
+			If IsBase(te->TypeName, "My.Sys.Object") Then
+				If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
+					Return GetFormattedPropertyValue(Des->ReadPropertyFunc(Cpnt, Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
+				End If
 			End If
+		ElseIf IsBase(.TypeName, "Component") Then
+			WLet(FLine, "0")
 		End If
-	End If
+	End With
 	Return *FLine
 	Exit Function
 	ErrorHandler:
@@ -1078,6 +1082,8 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
 								Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
 							End If
+						ElseIf Trim(*FLine3) = ML("(None)") Then
+							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then Result = Des->WritePropertyFunc(Cpnt, PropertyName, 0)
 						Else
 							Dim Pos1 As Integer = InStr(*FLine3, ".")
 							If Pos1 > 0 AndAlso cboClass.Items.Contains(Trim(Left(*FLine3, Pos1 - 1))) Then
