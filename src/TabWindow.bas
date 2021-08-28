@@ -4372,18 +4372,44 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 	Next
 	If Des <> 0 Then Des->CheckTopMenuVisible False, True
-	If CInt(NotForms = False) AndAlso CInt(Des) AndAlso CInt(Des->DesignControl) AndAlso CInt(Not bSelControlFind) Then
-		Des->SelectedControl = Des->DesignControl
-		#ifdef __USE_GTK__
-			Dim As GtkWidget Ptr Widget
-			If Des->ReadPropertyFunc <> 0 Then Widget = Des->ReadPropertyFunc(Des->SelectedControl, "Widget")
-			If Widget <> 0 Then gtk_widget_show_all(widget)
-		#else
-			Dim As HWND Ptr DesCtrlHandle
-			If Des->ReadPropertyFunc <> 0 Then DesCtrlHandle = Des->ReadPropertyFunc(Des->DesignControl, "Handle")
-			Des->MoveDots Des->DesignControl, False
-		#endif
-		If Des->SelectedControls.Count > 1 Then Des->MoveDots Des->SelectedControl, False
+	If CInt(NotForms = False) AndAlso CInt(Des) AndAlso CInt(Des->DesignControl) Then
+		If Not bSelControlFind Then
+			Des->SelectedControl = Des->DesignControl
+			#ifdef __USE_GTK__
+				Dim As GtkWidget Ptr Widget
+				If Des->ReadPropertyFunc <> 0 Then Widget = Des->ReadPropertyFunc(Des->SelectedControl, "Widget")
+				If Widget <> 0 Then gtk_widget_show_all(widget)
+			#else
+				Dim As HWND Ptr DesCtrlHandle
+				If Des->ReadPropertyFunc <> 0 Then DesCtrlHandle = Des->ReadPropertyFunc(Des->DesignControl, "Handle")
+				Des->MoveDots Des->DesignControl, False
+			#endif
+			If Des->SelectedControls.Count > 1 Then Des->MoveDots Des->SelectedControl, False
+		End If
+		Dim PropertyName As String
+		For i As Integer = 0 To plvProperties->ListItems.Count - 1
+			PropertyName = GetItemText(plvProperties->ListItems.Item(i))
+			Dim TempWS As UString
+			TempWS = ReadObjProperty(Des->SelectedControl, PropertyName)
+			If TempWS <> plvProperties->ListItems.Item(i)->Text(1) Then
+				plvProperties->ListItems.Item(i)->Text(1) = TempWS
+				If plvProperties->SelectedItem = plvProperties->ListItems.Item(i) AndAlso pnlPropertyValue.Visible Then
+					If cboPropertyValue.Visible Then
+						cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & TempWS)
+					Else
+						txtPropertyValue.Text = TempWS
+					End If
+				End If
+			End If
+		Next i
+		For i As Integer = 0 To plvEvents->ListItems.Count - 1
+			PropertyName = GetItemText(plvEvents->ListItems.Item(i))
+			Dim TempWS As UString
+			TempWS = ReadObjProperty(Des->SelectedControl, PropertyName)
+			If TempWS <> plvEvents->ListItems.Item(i)->Text(1) Then
+				plvEvents->ListItems.Item(i)->Text(1) = TempWS
+			End If
+		Next i
 		'FillAllProperties
 	End If
 	Functions.Sort
