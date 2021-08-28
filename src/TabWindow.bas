@@ -3640,7 +3640,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			.SelectedControls.Clear
 			.Objects.Clear
 			.Controls.Clear
-			If .SelectedControl = .DesignControl Then bSelControlFind = True
+			'If .SelectedControl = .DesignControl Then bSelControlFind = True
 			If .DesignControl Then
 				.UnHook
 				If iGet(.ReadPropertyFunc(.DesignControl, "ControlCount")) > 0 Then
