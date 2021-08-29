@@ -186,6 +186,7 @@ Public:
 	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
 	Declare Sub SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
 	Dim bNotDesign As Boolean
+	Dim As Integer ConstructorStart, ConstructorEnd
 	tn As TreeNode Ptr
 	DownLine As Integer
 	DownLineSelStart As Integer

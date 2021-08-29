@@ -1516,7 +1516,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	If sc = 0 Then
 		CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 		ptxtCode->InsertLine ep + 2, *FLine1
-		ptxtCode->InsertLine ep + 3, *FLine1 & "Constructor " & frmName
+		ptxtCode->InsertLine ep + 3, *FLine1 & "Constructor " & frmName: tb->ConstructorStart = ep + 3
 		ptxtCode->InsertLine ep + 4, *FLine1 & TabSpace & "' " & frmName
 		ptxtCode->InsertLine ep + 5, *FLine1 & TabSpace & "With This"
 		ptxtCode->InsertLine ep + 6, *FLine1 & TabSpace & TabSpace & ".Name = """ & frmName & """"
@@ -1530,7 +1530,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 		tb->Des->GetControlBounds(tb->Des->DesignControl, @iLeft1, @iTop1, @iWidth1, @iHeight1)
 		ptxtCode->InsertLine ep + q + 8, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 		ptxtCode->InsertLine ep + q + 9, *FLine1 & TabSpace & "End With"
-		ptxtCode->InsertLine ep + q + 10, *FLine1 & "End Constructor"
+		ptxtCode->InsertLine ep + q + 10, *FLine1 & "End Constructor": tb->ConstructorEnd = ep + q + 10
 		InsLineCount += q + 9
 		If Cpnt = tb->Des->DesignControl Then j = ep + q + 10: t = True
 		se = ep + q + 10
@@ -2040,7 +2040,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 					End If
 				End If
 			End If
-			tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or Not EndsWith(tb->cboFunction.Text, " [Constructor]")
+			tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or OldLine < tb->ConstructorStart Or OldLine > tb->ConstructorEnd 'Not EndsWith(tb->cboFunction.Text, " [Constructor]")
 		End With
 		TextChanged = False
 	End If
@@ -4267,8 +4267,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					End If
 				ElseIf CInt(Not c) AndAlso CInt(StartsWith(LTrim(LCase(*FLine), Any !"\t ") & " ", "constructor " & LCase(frmName) & " ")) Then
+					ConstructorStart = j
 					c = True
 				ElseIf CInt(c) AndAlso Trim(LCase(*FLine), Any !"\t ") = "end constructor" Then
+					ConstructorEnd = j
 					c = False
 					'Exit For
 				ElseIf c Then
