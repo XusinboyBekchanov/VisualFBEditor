@@ -720,13 +720,13 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	If mFormFind = True Then
 		This.Caption = ML("Find")
 		#ifdef __USE_GTK__
-			fFind.SetBounds fFind.Parent->Left + fFind.Parent->WIDTH-fFind.WIDTH - 5, fFind.Parent->TOP+20,fFind.WIDTH, 58
+			fFind.SetBounds pfrmMain->Left + pfrmMain->WIDTH - fFind.WIDTH - 5, pfrmMain->TOP + 20, fFind.WIDTH, 58
 		#else
-			fFind.SetBounds fFind.Parent->Left + fFind.Parent->WIDTH-fFind.WIDTH - 5, fFind.Parent->TOP+20,fFind.WIDTH, 70
+			fFind.SetBounds pfrmMain->Left + pfrmMain->WIDTH - fFind.WIDTH - 5, pfrmMain->TOP + 20, fFind.WIDTH, 70
 		#endif
 	Else
 		This.Caption = ML("Replace")
-		fFind.SetBounds fFind.Parent->Left + fFind.Parent->WIDTH-fFind.WIDTH - 5, fFind.Parent->TOP+20, fFind.WIDTH, 102
+		fFind.SetBounds pfrmMain->Left + pfrmMain->WIDTH - fFind.WIDTH - 5, pfrmMain->TOP + 20, fFind.WIDTH, 102
 	End If
 	'TODO  for couldn't minimize width of the command button
 	#ifdef __USE_GTK__

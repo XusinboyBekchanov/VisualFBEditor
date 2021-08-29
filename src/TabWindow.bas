@@ -1799,27 +1799,29 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 	End With
 End Sub
 
-Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	With tb->txtCode
 		pfrmMain->UpdateLock
-		Dim PropertyName As String
-		Dim TempWS As UString
-		For i As Integer = 0 To plvProperties->ListItems.Count - 1
-			PropertyName = GetItemText(plvProperties->ListItems.Item(i))
-			If PropertyName = "Left" OrElse PropertyName = "Top" OrElse PropertyName = "Width" OrElse PropertyName = "Height" Then
-				TempWS = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
-				If TempWS <> plvProperties->ListItems.Item(i)->Text(1) Then
-					plvProperties->ListItems.Item(i)->Text(1) = TempWS
-					If CInt(plvProperties->ListItems.Item(i) = plvProperties->SelectedItem) AndAlso CInt(ptxtPropertyValue->Visible) Then
-						ptxtPropertyValue->Text = plvProperties->ListItems.Item(i)->Text(1)
+		If PropertyName = "" Then
+			Dim GridPropertyName As String
+			Dim TempWS As UString
+			For i As Integer = 0 To plvProperties->ListItems.Count - 1
+				GridPropertyName = GetItemText(plvProperties->ListItems.Item(i))
+				If GridPropertyName = "Left" OrElse GridPropertyName = "Top" OrElse GridPropertyName = "Width" OrElse GridPropertyName = "Height" Then
+					TempWS = tb->ReadObjProperty(tb->Des->SelectedControl, GridPropertyName)
+					If TempWS <> plvProperties->ListItems.Item(i)->Text(1) Then
+						plvProperties->ListItems.Item(i)->Text(1) = TempWS
+						If CInt(plvProperties->ListItems.Item(i) = plvProperties->SelectedItem) AndAlso CInt(ptxtPropertyValue->Visible) Then
+							ptxtPropertyValue->Text = plvProperties->ListItems.Item(i)->Text(1)
+						End If
 					End If
 				End If
-			End If
-		Next i
+			Next i
+		End If
 		.Changing "Unsurni o`zgartirish"
-		ChangeControl(Ctrl, , iLeft, iTop, iWidth, iHeight)
+		ChangeControl(Ctrl, PropertyName, iLeft, iTop, iWidth, iHeight)
 		.Changed "Unsurni o`zgartirish"
 		tb->FormDesign True
 		pfrmMain->UpdateUnLock

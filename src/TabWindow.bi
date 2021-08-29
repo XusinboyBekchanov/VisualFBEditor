@@ -321,7 +321,7 @@ Declare Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
 
 Declare Sub cboPropertyValue_Change(ByRef Sender As Control)
 
-Declare Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+Declare Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 
 Declare Sub ToolGroupsToCursor()
 

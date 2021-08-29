@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 		Declare        Function CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
 		OnChangeSelection  As Sub(ByRef Sender As Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 		OnDeleteControl    As Sub(ByRef Sender As Designer, Control As Any Ptr)
-		OnModified         As Sub(ByRef Sender As Designer, Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+		OnModified         As Sub(ByRef Sender As Designer, Control As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 		OnInsertControl    As Sub(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
 		OnInsertComponent  As Sub(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 		OnInsertObject     As Sub(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr)

@@ -989,7 +989,7 @@ Namespace My.Sys.Forms
 				FCanSize = False
 				If FBeginX <> FNewX OrElse FBeginY <> FNewY Then
 					For j As Integer = 0 To SelectedControls.Count - 1
-						If OnModified Then OnModified(This, SelectedControls.Items[j], FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
+						If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
 					Next j
 				End If
 				MoveDots(SelectedControl)
@@ -998,7 +998,7 @@ Namespace My.Sys.Forms
 				FCanMove = False
 				If FBeginX <> FEndX OrElse FBeginY <> FEndY Then
 					For j As Integer = 0 To SelectedControls.Count - 1
-						If OnModified Then OnModified(This, SelectedControls.Items[j], FLeft(j) + (FEndX - FBeginX), FTop(j) + (FEndY - FBeginY), FWidth(j), FHeight(j))
+						If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeft(j) + (FEndX - FBeginX), FTop(j) + (FEndY - FBeginY), FWidth(j), FHeight(j))
 					Next
 				End If
 				MoveDots(SelectedControl)
@@ -1045,13 +1045,23 @@ Namespace My.Sys.Forms
 			If Controls.Contains(Ctrl) Then
 				Dim As Any Ptr AParent = ReadPropertyFunc(Ctrl, "Parent")
 				If RemoveControlSub AndAlso AParent Then RemoveControlSub(AParent, Ctrl)
+					If ReadPropertyFunc(DesignControl, "CancelButton") = Ctrl Then
+					WritePropertyFunc(DesignControl, "CancelButton", 0)
+					If OnModified Then OnModified(This, DesignControl, "CancelButton")
+				End If
+				If ReadPropertyFunc(DesignControl, "DefaultButton") = Ctrl Then
+					WritePropertyFunc(DesignControl, "DefaultButton", 0)
+					If OnModified Then OnModified(This, DesignControl, "DefaultButton")
+				End If
+				Controls.Remove Controls.IndexOf(Ctrl)
 			End If
+			If Objects.Contains(Ctrl) Then Objects.Remove Objects.IndexOf(Ctrl)
 			If DeleteComponentFunc Then
 				If ReadPropertyFunc(Ctrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, ReadPropertyFunc(Ctrl, "Tag")))
 				DeleteComponentFunc(Ctrl)
 			End If
 		End If
-		'if OnModified then OnModified(this, Ctrl, -1, -1, -1, -1)
+		'if OnModified then OnModified(this, Ctrl, , -1, -1, -1, -1)
 	End Sub
 	
 	Sub Designer.DeleteControl()
@@ -2472,7 +2482,7 @@ Namespace My.Sys.Forms
 						End If
 						ComponentSetBoundsSub(Q_ComponentFunc(SelectedControl), FLeft, FTop, FWidth, FHeight)
 						MoveDots(SelectedControl, , FLeft, FTop, FWidth, FHeight)
-						If OnModified Then OnModified(This, SelectedControls.Items[j], FLeft, FTop, FWidth, FHeight)
+						If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeft, FTop, FWidth, FHeight)
 					Next
 				EndIf
 			#else
@@ -2505,7 +2515,7 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 					MoveWindow(ControlHandle, ScaleX(FLeft), ScaleY(FTop), ScaleX(FWidth), ScaleY(FHeight), True)
-					If OnModified Then OnModified(This, SelectedControls.Items[j], FLeft, FTop, FWidth, FHeight)
+					If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeft, FTop, FWidth, FHeight)
 				Next
 				MoveDots(SelectedControl)
 			#endif
