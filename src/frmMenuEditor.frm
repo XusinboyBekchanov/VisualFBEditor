@@ -44,10 +44,6 @@
 	pfMenuEditor = @fMenuEditor
 '#End Region
 
-#ifdef __USE_GTK__
-	#define BGR(r, g, b) RGB(r, g, b)
-#endif
-
 Sub frmMenuEditor.GetDropdowns(mi As Any Ptr)
 	Dim As Any Ptr miParent = Des->ReadPropertyFunc(mi, "Parent")
 	If miParent <> 0 Then
