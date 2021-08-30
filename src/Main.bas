@@ -5287,7 +5287,13 @@ Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
 		pnlPropertyValue.Visible = False
 	Else
 		Dim As Rect lpRect
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Dim As GdkRectangle gdkRect
+			Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(lvProperties.TreeStore), @lvProperties.SelectedItem->TreeIter))
+			gtk_tree_view_get_cell_area(gtk_tree_view(lvProperties.widget), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
+			gtk_tree_path_free(TreePath)
+			lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
+		#else
 			ListView_GetSubItemRect(lvProperties.Handle, lvProperties.SelectedItem->Index, 1, LVIR_BOUNDS, @lpRect)
 		#endif
 		'If lpRect.Top < lpRect.Bottom - lpRect.Top Then
@@ -5295,7 +5301,15 @@ Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
 		'Else
 		pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
-		pnlPropertyValue.Visible = True
+		#ifdef __USE_GTK__
+			If pnlPropertyValue.Top < lvProperties.Top + gdkRect.height OrElse pnlPropertyValue.Top + pnlPropertyValue.Height > lvProperties.Top + lvProperties.Height Then
+				pnlPropertyValue.Visible = False
+			Else
+				pnlPropertyValue.Visible = True
+			End If
+		#else
+			pnlPropertyValue.Visible = True
+		#endif
 		'CtrlEdit->Visible = True
 		'End If
 	End If
