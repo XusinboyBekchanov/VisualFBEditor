@@ -2555,7 +2555,7 @@ Namespace My.Sys.Forms
 		ToolTipShowed = True
 		#ifdef __USE_GTK__
 			Dim As gint x, y
-			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint.vptr))
+			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint)
 			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
 			gtk_window_move(gtk_window(winTooltip), HCaretPos + x, VCaretPos + y)
 			gtk_window_resize(gtk_window(winTooltip), 100, 25)
@@ -2573,13 +2573,13 @@ Namespace My.Sys.Forms
 				
 				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
 				ti.hinst  = GetModuleHandle(NULL)
-				ti.lpszText  = FHint.vptr
+				ti.lpszText  = FHint
 				
 				SendMessage(hwndTT, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
 			Else
 				SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
 				
-				ti.lpszText = FHint.vptr
+				ti.lpszText = FHint
 				
 				SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
 			End If
@@ -2595,7 +2595,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.UpdateToolTip()
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint.vptr))
+			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint))
 		#else
 			If hwndTT <> 0 Then
 				Dim As TOOLINFO    ti
@@ -2606,7 +2606,7 @@ Namespace My.Sys.Forms
 				
 				SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
 				
-				ti.lpszText = FHint.vptr
+				ti.lpszText = FHint
 				
 				SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
 			End If
