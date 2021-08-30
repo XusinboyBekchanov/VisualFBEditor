@@ -238,9 +238,14 @@ Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
 	PropertyChanged Sender, txtPropertyValue.Text, False
 End Sub
 
+Dim Shared bNotChange As Boolean
 Sub cboPropertyValue_Change(ByRef Sender As Control)
 	#ifdef __USE_GTK__
 		If Trim(cboPropertyValue.Text) = "" Then
+			Exit Sub
+		End If
+		If bNotChange Then
+			bNotChange = False
 			Exit Sub
 		End If
 	#endif
@@ -5147,7 +5152,6 @@ pnlPropertyValue.Add @cboPropertyValue
 
 'Dim Shared CtrlEdit As Control Ptr
 Dim Shared Cpnt As Component Ptr
-
 Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
@@ -5177,6 +5181,9 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 			cboPropertyValue.Clear
 			cboPropertyValue.AddItem " false"
 			cboPropertyValue.AddItem " true"
+			#ifdef __USE_GTK__
+				bNotChange = True
+			#endif
 			cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
 		ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(GlobalEnums.Contains(te->EnumTypeName)) Then
 			'CtrlEdit = @pnlPropertyValue
@@ -5188,6 +5195,9 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 					cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
 				Next i
 				If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
+					#ifdef __USE_GTK__
+						bNotChange = True
+					#endif
 					cboPropertyValue.ItemIndex = Val(Item->Text(1))
 				End If
 			End If
@@ -5208,6 +5218,9 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 					End If
 				End If
 			Next i
+			#ifdef __USE_GTK__
+				bNotChange = True
+			#endif
 			cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
 		Else
 			Dim tbi As TypeElement Ptr = 0
@@ -5224,6 +5237,9 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 					cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
 				Next i
 				If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
+					#ifdef __USE_GTK__
+						bNotChange = True
+					#endif
 					cboPropertyValue.ItemIndex = Val(Item->Text(1))
 				End If
 			Else

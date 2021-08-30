@@ -5513,7 +5513,7 @@ Function GetResourceFile(WithoutMainNode As Boolean = False) As UString
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
 	Dim As UString MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode)
-	Dim sFirstLine As UString = GetFirstCompileLine(MainFile, Project)
+	Dim sFirstLine As UString = GetFirstCompileLine(MainFile, Project, True)
 	Dim As WString Ptr Buff, File, sLines
 	ResourceFile = ""
 	WLet(Buff, LTrim(sFirstLine, Any !"\t "))
@@ -5747,21 +5747,29 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	'End If
 End Sub
 
-Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr) As UString
+Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ForWindows As Boolean = False) As UString
 	Dim As Boolean Bit32 = ptbStandard->Buttons.Item("B32")->Checked
 	Dim As UString Result
 	Result = IIf(Bit32, *Compiler32Arguments, *Compiler64Arguments)
 	If Project Then
-		#ifdef __USE_GTK__
-			Result += " " & IIf(Bit32, *Project->CompilationArguments32Linux, WGet(Project->CompilationArguments64Linux))
-		#else
+		If ForWindows Then
 			Result += " " & IIf(Bit32, *Project->CompilationArguments32Windows, WGet(Project->CompilationArguments64Windows))
-		#endif
-		#ifdef __FB_WIN32__
+		Else
+			#ifdef __USE_GTK__
+				Result += " " & IIf(Bit32, *Project->CompilationArguments32Linux, WGet(Project->CompilationArguments64Linux))
+			#else
+				Result += " " & IIf(Bit32, *Project->CompilationArguments32Windows, WGet(Project->CompilationArguments64Windows))
+			#endif
+		End If
+		If ForWindows Then
 			If WGet(Project->ResourceFileName) <> "" Then Result += " """ & GetShortFileName(WGet(Project->ResourceFileName), FileName) & """"
-		#else
-			If WGet(Project->IconResourceFileName) <> "" Then Result += " """ & GetShortFileName(WGet(Project->IconResourceFileName), FileName) & """"
-		#endif
+		Else
+			#ifdef __FB_WIN32__
+				If WGet(Project->ResourceFileName) <> "" Then Result += " """ & GetShortFileName(WGet(Project->ResourceFileName), FileName) & """"
+			#else
+				If WGet(Project->IconResourceFileName) <> "" Then Result += " """ & GetShortFileName(WGet(Project->IconResourceFileName), FileName) & """"
+			#endif
+		End If
 		Select Case Project->ProjectType
 		Case 0
 		Case 1: Result += " -dll"
@@ -5795,18 +5803,26 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			End If
 			If StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_win32__") Then
 				l = l + 1
-				#ifdef __FB_WIN32__
+				If ForWindows Then
 					k(l) = True
-				#else
-					k(l) = False
-				#endif
+				Else
+					#ifdef __FB_WIN32__
+						k(l) = True
+					#else
+						k(l) = False
+					#endif
+				End If
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifndef __fb_win32__") Then
 				l = l + 1
-				#ifndef __FB_WIN32__
+				If ForWindows Then
 					k(l) = True
-				#else
-					k(l) = False
-				#endif
+				Else
+					#ifndef __FB_WIN32__
+						k(l) = True
+					#else
+						k(l) = False
+					#endif
+				End If
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_64bit__") Then
 				l = l + 1
 				k(l) = ptbStandard->Buttons.Item("B64")->Checked
