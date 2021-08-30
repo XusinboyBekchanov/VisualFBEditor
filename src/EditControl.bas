@@ -2555,7 +2555,7 @@ Namespace My.Sys.Forms
 		ToolTipShowed = True
 		#ifdef __USE_GTK__
 			Dim As gint x, y
-			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint)
+			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint))
 			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
 			gtk_window_move(gtk_window(winTooltip), HCaretPos + x, VCaretPos + y)
 			gtk_window_resize(gtk_window(winTooltip), 100, 25)
