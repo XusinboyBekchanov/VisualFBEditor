@@ -4168,7 +4168,7 @@ Sub CreateMenusAndToolBars
 	miEdit->Add(ML("&Block Comment") & HK("BlockComment", "Ctrl+Alt+I"), "", "BlockComment", @mclick)
 	miEdit->Add(ML("&Uncomment Block") & HK("UnComment", "Ctrl+Shift+I"), "UnComment", "UnComment", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("&Dublicate") & HK("Dublicate", "Ctrl+D"), "", "Dublicate", @mclick)
+	miEdit->Add(ML("&Duplicate") & HK("Duplicate", "Ctrl+D"), "", "Duplicate", @mclick)
 	miEdit->Add("-")
 	miEdit->Add(ML("Select &All") & HK("SelectAll", "Ctrl+A"), "", "SelectAll", @mclick)
 	miEdit->Add("-")

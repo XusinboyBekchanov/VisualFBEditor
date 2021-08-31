@@ -341,7 +341,7 @@ Namespace My.Sys.Forms
 		Declare Sub InsertLine(Index As Integer, ByRef sLine As WString)
 		Declare Sub ReplaceLine(Index As Integer, ByRef sLine As WString)
 		Declare Sub DeleteLine(Index As Integer = -1)
-		Declare Sub DublicateLine(Index As Integer = -1)
+		Declare Sub DuplicateLine(Index As Integer = -1)
 		Declare Sub ShowLine(Index As Integer)
 		Declare Sub GetSelection(ByRef iSelStartLine As Integer, ByRef iSelEndLine As Integer, ByRef iSelStartChar As Integer, ByRef iSelEndChar As Integer, iCurrProcedure As Boolean = False)
 		Declare Sub SetSelection(iSelStartLine As Integer, iSelEndLine As Integer, iSelStartChar As Integer, iSelEndChar As Integer)

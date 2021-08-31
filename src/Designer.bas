@@ -1254,7 +1254,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub Designer.DublicateControl()
+	Sub Designer.DuplicateControl()
 		CopyControl
 		PasteControl
 	End Sub

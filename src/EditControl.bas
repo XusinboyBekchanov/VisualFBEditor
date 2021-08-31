@@ -974,8 +974,8 @@ Namespace My.Sys.Forms
 		ChangeCollapsibility Index
 	End Sub
 	
-	Sub EditControl.DublicateLine(Index As Integer = -1)
-		Changing "Dublicate line"
+	Sub EditControl.DuplicateLine(Index As Integer = -1)
+		Changing "Duplicate line"
 		Var iC = 0, OldiC = 0
 		Var Idx = IIf(Index = -1, FSelEndLine, Index)
 		If Idx > 0 AndAlso Idx < FLines.Count - 1 Then
@@ -989,7 +989,7 @@ Namespace My.Sys.Forms
 		ChangeCollapsibility Idx + 1
 		If FSelStartLine = FSelEndLine Then FSelStartLine += 1
 		FSelEndLine += 1
-		Changed "Dublicate line"
+		Changed "Duplicate line"
 	End Sub
 	
 	Sub EditControl.DeleteLine(Index As Integer = -1)

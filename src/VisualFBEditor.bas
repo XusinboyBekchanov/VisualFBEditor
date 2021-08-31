@@ -375,7 +375,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "ShowString":                  string_sh(tviewvar)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)
 		#endif
-	Case "Undo", "Redo", "Cut", "Copy", "Paste", "SelectAll", "Dublicate", "SingleComment", "BlockComment", "UnComment", _
+	Case "Undo", "Redo", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", _
 		"CompleteWord", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
@@ -400,7 +400,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "Copy":                    des->CopyControl
 				Case "Paste":                   des->PasteControl
 				Case "Delete":                  des->DeleteControl
-				Case "Dublicate":               des->DublicateControl
+				Case "Duplicate":               des->DuplicateControl
 				Case "SelectAll":               des->SelectAllControls
 				End Select
 			ElseIf pfrmMain->ActiveControl->ClassName = "EditControl" OrElse pfrmMain->ActiveControl->ClassName = "Panel" Then
@@ -411,7 +411,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "Cut":                     ec->CutToClipboard
 				Case "Copy":                    ec->CopyToClipboard
 				Case "Paste":                   ec->PasteFromClipboard
-				Case "Dublicate":               ec->DublicateLine
+				Case "Duplicate":               ec->DuplicateLine
 				Case "SelectAll":               ec->SelectAll
 				Case "SingleComment":           ec->CommentSingle
 				Case "BlockComment":            ec->CommentBlock
