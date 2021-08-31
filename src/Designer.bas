@@ -1022,6 +1022,19 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
+	Sub Designer.SelectAllControls()
+		If DesignControl Then
+			SelectedControls.Clear
+			Dim As Any Ptr Ctrl
+			For i As Integer = 0 To iGet(ReadPropertyFunc(DesignControl, "ControlCount")) - 1
+				Ctrl = ControlByIndexFunc(DesignControl, i)
+				SelectedControls.Add Ctrl
+			Next
+			If Ctrl = 0 Then SelectedControl = DesignControl Else SelectedControl = Ctrl
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
 	Sub Designer.DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
 		If Controls.Contains(Ctrl) Then
 			For i As Integer = 0 To iGet(ReadPropertyFunc(Ctrl, "ControlCount")) - 1
@@ -1239,6 +1252,11 @@ Namespace My.Sys.Forms
 			'if OnModified then OnModified(this, GetControl(hDlg))
 			'FSelControl = FDialog
 		End If
+	End Sub
+	
+	Sub Designer.DublicateControl()
+		CopyControl
+		PasteControl
 	End Sub
 	
 	#ifndef __USE_GTK__

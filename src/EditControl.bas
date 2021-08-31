@@ -974,6 +974,29 @@ Namespace My.Sys.Forms
 		ChangeCollapsibility Index
 	End Sub
 	
+	Sub EditControl.DublicateLine(Index As Integer = -1)
+		Changing "Dublicate line"
+		Var iC = 0, OldiC = 0
+		Var Idx = IIf(Index = -1, FSelEndLine, Index)
+		If Idx > 0 AndAlso Idx < FLines.Count - 1 Then
+			OldiC = Cast(EditControlLine Ptr, FLines.Items[Idx])->CommentIndex
+		End If
+		FECLine = New_( EditControlLine)
+		WLet(FECLine->Text, *Cast(EditControlLine Ptr, FLines.Items[Idx])->Text)
+		iC = FindCommentIndex(*FECLine->Text, OldiC)
+		FECLine->CommentIndex = iC
+		FLines.Insert Idx + 1, FECLine
+		ChangeCollapsibility Idx + 1
+		If FSelStartLine = FSelEndLine Then FSelStartLine += 1
+		FSelEndLine += 1
+		Changed "Dublicate line"
+	End Sub
+	
+	Sub EditControl.DeleteLine(Index As Integer = -1)
+		Delete_( Cast(EditControlLine Ptr, FLines.Items[IIf(Index = -1, FSelEndLine, Index)]))
+		FLines.Remove Index
+	End Sub
+	
 	Sub EditControl.UnFormatCode(WithoutUpdate As Boolean = False)
 		If Not WithoutUpdate Then UpdateLock
 		Changing("UnFormat")
@@ -1074,11 +1097,6 @@ Namespace My.Sys.Forms
 			UpdateUnLock
 			ShowCaretPos True
 		End If
-	End Sub
-	
-	Sub EditControl.DeleteLine(Index As Integer)
-		Delete_( Cast(EditControlLine Ptr, FLines.Items[Index]))
-		FLines.Remove Index
 	End Sub
 	
 	Function EditControl.VisibleLinesCount() As Integer

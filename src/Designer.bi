@@ -225,6 +225,8 @@ Namespace My.Sys.Forms
 		Declare Sub AddPasteControls(Ctrl As Any Ptr, ParentCtrl As Any Ptr, bStart As Boolean)
 		Declare Sub PasteControl()
 		Declare Sub DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
+		Declare Sub DublicateControl()
+		Declare Sub SelectAllControls()
 		Declare Sub DeleteMenuItems(pMenu As Any Ptr, mi As Any Ptr)
 		Declare Sub DeleteControl()
 		Declare Sub BringToFront()
