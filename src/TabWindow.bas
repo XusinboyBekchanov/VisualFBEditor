@@ -1768,8 +1768,14 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			pfrmMain->UpdateLock
 			.Changing "Unsurni o`zgartirish"
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
+			#ifdef __USE_GTK__
+				Dim As GtkWidget Ptr tmpWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
+			#endif
 			tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
-			#ifndef __USE_GTK__
+			#ifdef __USE_GTK__
+				Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
+				If tmpWidget <> tmpChangedWidget Then tb->Des->HookControl(tmpChangedWidget)
+			#else
 				If PropertyName = "Menu" Then tb->Des->CheckTopMenuVisible
 				'Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
 				plvProperties->SelectedItem->Text(1) = SenderText
