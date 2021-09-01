@@ -43,7 +43,7 @@ pfFind = @fFind
 	
 	Constructor frmFind
 		This.Name = "frmFind"
-		This.SetBounds 0, 0, 511, 102
+		This.SetBounds 0, 0, 713, 124
 		This.Opacity = 210
 		This.Caption = ML("Find")
 		This.DefaultButton = @btnFind
@@ -55,6 +55,7 @@ pfFind = @fFind
 		This.OnCreate = @Form_Create
 		This.CancelButton = @btnCancel
 		This.OnShow = @_Form_Show_
+		This.Designer = @This
 		This.OnClose = @_Form_Close_
 		
 		' lblFind
@@ -66,7 +67,7 @@ pfFind = @fFind
 		' txtFind
 		txtFind.Name = "txtFind"
 		txtFind.Style = cbDropDown
-		txtFind.SetBounds 82, 9, 164, 21
+		txtFind.SetBounds 82, 9, 194, 34
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Text = ""
 		txtFind.Parent = @This
@@ -75,26 +76,26 @@ pfFind = @fFind
 		txtReplace.Name = "txtReplace"
 		txtReplace.Style = cbDropDown
 		txtReplace.Text = ""
-		txtReplace.SetBounds 82, 41, 164, 21
+		txtReplace.SetBounds 82, 47, 194, 21
 		txtReplace.Anchor.Left = asAnchor
 		txtReplace.Parent = @This
 		
 		chkMatchCase.Name = "chkMatchCase"
 		chkMatchCase.Caption = ML("Match Case")
-		chkMatchCase.SetBounds 253, 1, 85, 20
+		chkMatchCase.SetBounds 295, 1, 147, 22
 		chkMatchCase.Parent = @This
 		
 		' btnFind
 		btnFind.Name = "btnFind"
 		btnFind.Caption = ">"
 		btnFind.Default = True
-		btnFind.SetBounds 436, 4, 36, 26
+		btnFind.SetBounds 566, 4, 50, 34
 		btnFind.Parent = @This
 		
 		' btnFindPrev
 		btnFindPrev.NAME = "btnFindPrev"
 		btnFindPrev.Text = "<"
-		btnFindPrev.SetBounds 400, 4, 36, 26
+		btnFindPrev.SetBounds 517, 4, 50, 34
 		btnFindPrev.Caption = "<"
 		btnFindPrev.Parent = @This
 		
@@ -113,7 +114,7 @@ pfFind = @fFind
 		
 		' lblTrack
 		lblTrack.NAME = "lblTrack"
-		lblTrack.SetBounds 381, 3, 12, 18
+		lblTrack.SetBounds 483, 3, 22, 18
 		lblTrack.Parent = @This
 		
 		' TrackBar1
@@ -122,26 +123,26 @@ pfFind = @fFind
 		TrackBar1.OnChange = @TrackBar1_Change
 		TrackBar1.MinValue = 150
 		TrackBar1.MaxValue = 255
-		TrackBar1.SetBounds 344, 2, 36, 14
+		TrackBar1.SetBounds 406, 2, 76, 14
 		TrackBar1.Position = 210 ' This.Opacity
 		TrackBar1.Parent = @This
 		lblTrack.Text = WStr(CUInt(TrackBar1.Position/2.55))
 		' lblReplace
 		lblReplace.NAME = "lblReplace"
 		lblReplace.Text = ML("Replace") & ":"
-		lblReplace.SetBounds 24, 43, 54, 18
+		lblReplace.SetBounds 24, 49, 54, 18
 		lblReplace.Parent = @This
 		
 		' btnReplace
 		btnReplace.NAME = "btnReplace"
 		btnReplace.Text = ML("&Replace")
-		btnReplace.SetBounds 254, 40, 121, 30
+		btnReplace.SetBounds 294, 47, 194, 34
 		btnReplace.Parent = @This
 		
 		' btnReplaceAll
 		btnReplaceAll.NAME = "btnReplaceAll"
 		btnReplaceAll.Text = ML("Replace &All")
-		btnReplaceAll.SetBounds 380, 40, 122, 30
+		btnReplaceAll.SetBounds 500, 47, 194, 34
 		btnReplaceAll.Parent = @This
 		
 		' btnReplaceShow
@@ -157,7 +158,7 @@ pfFind = @fFind
 		' btnFindAll
 		btnFindAll.Name = "btnFindAll"
 		btnFindAll.Text = ML("All")
-		btnFindAll.SetBounds 472, 4, 28, 26
+		btnFindAll.SetBounds 615, 4, 79, 34
 		btnFindAll.OnClick = @btnFindAll_Click
 		btnFindAll.Parent = @This
 		
@@ -165,7 +166,7 @@ pfFind = @fFind
 		With OptFindinCurrFile
 			.Name = "OptFindinCurrFile"
 			.Text = ML("Modules")
-			.SetBounds 253, 20, 82, 21
+			.SetBounds 295, 20, 108, 22
 			'.Font.Size = 9
 			.OnClick = @OptFindinCurrFile_Click
 			.Parent = @This
@@ -175,7 +176,7 @@ pfFind = @fFind
 		With OptFindInProject
 			.Name = "OptFindInProject"
 			.Text = ML("Project")
-			.SetBounds 329, 20, 66, 21
+			.SetBounds 411, 20, 99, 22
 			'.Font.Size = 9
 			.OnClick = @OptFindInProject_Click
 			.Parent = @This
@@ -695,18 +696,14 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 End Sub
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 	'Sender.Center
-	mFormFind=Not mFormFind
-	If mFormFind=True Then
+	mFormFind = Not mFormFind
+	If mFormFind = True Then
 		'fFind.SetBounds fFind.LEFT,fFind.TOP,fFind.WIDTH,65
-		#ifdef __USE_GTK__
-			fFind.Height = 60
-		#else
-			fFind.Height = 70
-		#endif
+		fFind.Height = 74
 	Else
-		fFind.Height = 102
+		fFind.Height = 121
 	End If
-	fFind.btnReplaceShow.Caption=IIf(mFormFind,">","<")
+	fFind.btnReplaceShow.Caption = IIf(mFormFind, ">", "<")
 	btnFind.SetFocus  '
 End Sub
 Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
@@ -719,14 +716,15 @@ End Sub
 Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	If mFormFind = True Then
 		This.Caption = ML("Find")
+		fFind.SetBounds pfrmMain->Left + pfrmMain->Width - fFind.Width - 5, pfrmMain->Top + 20, fFind.Width, fFind.Height - fFind.ClientHeight + fFind.txtReplace.Top
 		#ifdef __USE_GTK__
-			fFind.SetBounds pfrmMain->Left + pfrmMain->WIDTH - fFind.WIDTH - 5, pfrmMain->TOP + 20, fFind.WIDTH, 58
-		#else
-			fFind.SetBounds pfrmMain->Left + pfrmMain->WIDTH - fFind.WIDTH - 5, pfrmMain->TOP + 20, fFind.WIDTH, 70
+'			Dim As GdkRectangle rect
+'			gdk_window_get_frame_extents(gtk_widget_get_window(fFind.widget), @rect)
+			fFind.Height = fFind.txtReplace.Top + 20
 		#endif
 	Else
 		This.Caption = ML("Replace")
-		fFind.SetBounds pfrmMain->Left + pfrmMain->WIDTH - fFind.WIDTH - 5, pfrmMain->TOP + 20, fFind.WIDTH, 102
+		fFind.SetBounds pfrmMain->Left + pfrmMain->Width - fFind.Width - 5, pfrmMain->Top + 20, fFind.Width, 121
 	End If
 	'TODO  for couldn't minimize width of the command button
 	#ifdef __USE_GTK__
