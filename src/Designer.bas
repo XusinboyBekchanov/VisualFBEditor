@@ -1649,8 +1649,8 @@ Namespace My.Sys.Forms
 					Dim As Integer iHeight = layoutwidget->allocation.height
 				#endif
 				cairo_set_source_rgb(cr, 0, 0, 0)
-				For i As Integer = 1 To iWidth Step FStepX
-					For j As Integer = 1 To iHeight Step FStepY
+				For i As Integer = 0 To iWidth Step FStepX
+					For j As Integer = 0 To iHeight Step FStepY
 						cairo_rectangle(cr, i, j, 1, 1)
 						cairo_fill(cr)
 					Next j
