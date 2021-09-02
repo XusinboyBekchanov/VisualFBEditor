@@ -3427,6 +3427,7 @@ Namespace My.Sys.Forms
 				'End If
 				msg.Result = True
 			Case 13:  ' возврат каретки
+				If ToolTipShowed Then CloseToolTip
 				If DropDownShowed Then
 					CloseDropDown()
 					#ifdef __USE_GTK__
@@ -3434,8 +3435,8 @@ Namespace My.Sys.Forms
 					#else
 						If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
 					#endif
+					Exit Sub
 				End If
-				If ToolTipShowed Then CloseToolTip
 				If CInt(FSelEndLine = FSelStartLine) AndAlso CInt(FSelEndChar = FSelStartChar) AndAlso CInt(FSelEndChar = Len(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text)) Then
 					Var iEndLine = GetLineIndex(FSelEndLine, 1)
 					If iEndLine = FSelEndLine Then FSelEndLine = FLines.Count - 1 Else FSelEndLine = iEndLine - 1
