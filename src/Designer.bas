@@ -1300,6 +1300,9 @@ Namespace My.Sys.Forms
 		End If
 		Ctrl = 0
 		FSelControl = 0
+		#ifdef __USE_GTK__
+			Dim As GtkWidget Ptr EventBox
+		#endif
 		If MFF Then
 			If CreateControlFunc <> 0 Then
 				Ctrl = CreateControlFunc(AClassName, _
@@ -1318,6 +1321,7 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK__
 							'g_signal_connect(layoutwidget, "event", G_CALLBACK(@HookChildProc), Ctrl)
 							Dim As GtkWidget Ptr hHandle = ReadPropertyFunc(Ctrl, "Widget")
+							EventBox = ReadPropertyFunc(Ctrl, "EventBoxWidget")
 							If hHandle <> 0 Then FSelControl = hHandle
 						#else
 							Dim As HWND Ptr hHandle = ReadPropertyFunc(Ctrl, "Handle")
@@ -1340,11 +1344,14 @@ Namespace My.Sys.Forms
 			End If
 		End If
 		SelectedClass = ""
-		
 		#ifdef __USE_GTK__
 			If gtk_is_widget(FSelControl) Then
 				If Not bNotHook Then
-					HookControl(FSelControl)
+					If EventBox Then
+						HookControl(EventBox)
+					Else
+						HookControl(FSelControl)
+					End If
 					'AName = iif(AName="", AName = AClassName & ...)
 					'SetProp(Control, "Name", ...)
 					'possibly using in propertylist inspector
