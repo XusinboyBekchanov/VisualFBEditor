@@ -5655,6 +5655,10 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	#endif
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
 	lvProperties.ListItems.Clear
+	lvEvents.ListItems.Clear
+	txtLabelProperty.Text = ""
+	txtLabelEvent.Text = ""
+	pnlPropertyValue.Visible = False
 	'tb->FillAllProperties
 	If tb->FileName = "" Then
 		frmMain.Caption = tb->Caption & " - " & App.Title
