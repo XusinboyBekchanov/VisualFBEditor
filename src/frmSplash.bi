@@ -12,8 +12,8 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmSplash Extends Form
-		Declare Static Sub lblImage_Click_(ByRef Sender As ImageBox)
-		Declare Sub lblImage_Click(ByRef Sender As ImageBox)
+		Declare Static Sub lblImage_Click_(ByRef Sender As Control)
+		Declare Sub lblImage_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As ImageBox lblImage

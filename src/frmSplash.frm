@@ -79,9 +79,9 @@ Using My.Sys.Forms
 	pApp->Run
 #endif
 
-Private Sub frmSplash.lblImage_Click_(ByRef Sender As ImageBox)
+Private Sub frmSplash.lblImage_Click_(ByRef Sender As Control)
 	*Cast(frmSplash Ptr, Sender.Designer).lblImage_Click(Sender)
 End Sub
-Private Sub frmSplash.lblImage_Click(ByRef Sender As ImageBox)
+Private Sub frmSplash.lblImage_Click(ByRef Sender As Control)
 	Me.CloseForm
 End Sub
