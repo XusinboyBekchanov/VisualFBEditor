@@ -1774,7 +1774,11 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
-				If tmpWidget <> tmpChangedWidget Then tb->Des->HookControl(tmpChangedWidget)
+				If tmpWidget <> tmpChangedWidget Then 
+					tb->Des->HookControl(tmpChangedWidget)
+					tb->Des->FSelControl = tmpChangedWidget
+					If g_object_get_data(G_OBJECT(tmpChangedWidget), "drawed") = tb->Des Then tb->Des->MoveDots tb->Des->SelectedControl
+				End If
 			#else
 				If PropertyName = "Menu" Then tb->Des->CheckTopMenuVisible
 				'Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)

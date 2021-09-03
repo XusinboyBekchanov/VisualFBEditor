@@ -1279,6 +1279,9 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_is_widget(Control) Then
 				g_signal_connect(Control, "event", G_CALLBACK(@HookChildProc), @This)
+				#ifdef __USE_GTK3__
+					g_signal_connect(Control, "draw", G_CALLBACK(@HookChildDraw), @This)
+				#endif
 			End If
 		#else
 			If IsWindow(Control) Then
@@ -1726,6 +1729,24 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
+		Function Designer.HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			#ifdef __USE_GTK3__
+				Static As My.Sys.Forms.Designer Ptr Des
+				Des = data1
+				If Des Then
+					With *Des
+						If g_object_get_data(G_OBJECT(widget), "drawed") <> Des Then
+							If .FSelControl = widget Then
+								.MoveDots .SelectedControl
+							End If
+							g_object_set_data(G_OBJECT(widget), "drawed", Des)
+						End If
+					End With
+				End If
+				Return False
+			#endif
+		End Function
+		
 		Function Designer.HookChildProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 	#else
 		Function Designer.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
@@ -1750,6 +1771,12 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 					Case GDK_EXPOSE
 						Return False
+'					Case GDK_VISIBILITY_NOTIFY
+'						If Event->visibility.state = GDK_VISIBILITY_UNOBSCURED OrElse Event->visibility.state = GDK_VISIBILITY_PARTIAL Then
+'							If .FSelControl = widget Then
+'								.MoveDots .SelectedControl
+'							End If
+'						End If
 					#else
 					Case WM_PAINT, WM_ERASEBKGND
 						If GetClassNameOf(hDlg) = "ToolBar" Then

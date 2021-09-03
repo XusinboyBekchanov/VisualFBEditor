@@ -15,6 +15,8 @@
 		Declare Sub cmdCancel_Click(ByRef Sender As Control)
 		Declare Static Sub Form_Show_(ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
+		Declare Static Sub Form_Create_(ByRef Sender As Control)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As ListControl lstFiles

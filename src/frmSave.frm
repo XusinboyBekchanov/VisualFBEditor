@@ -16,6 +16,7 @@
 			.StartPosition = FormStartPosition.CenterScreen
 			.Designer = @This
 			.OnShow = @Form_Show_
+			.OnCreate = @Form_Create_
 			.SetBounds 0, 0, 400, 300
 		End With
 		' lstFiles
@@ -102,5 +103,12 @@ Private Sub frmSave.Form_Show_(ByRef Sender As Form)
 	*Cast(frmSave Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub frmSave.Form_Show(ByRef Sender As Form)
-	lstFiles.Selected(-1) = True
+	
+End Sub
+
+Private Sub frmSave.Form_Create_(ByRef Sender As Control)
+	*Cast(frmSave Ptr, Sender.Designer).Form_Create(Sender)
+End Sub
+Private Sub frmSave.Form_Create(ByRef Sender As Control)
+	lstFiles.SelectAll
 End Sub

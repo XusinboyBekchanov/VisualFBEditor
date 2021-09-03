@@ -43,6 +43,7 @@ Namespace My.Sys.Forms
 	Type Designer Extends My.Sys.Object
 	Private:
 		#ifdef __USE_GTK__
+			Declare Static Function HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Declare Static Function HookChildProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Function HookDialogProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Function HookDialogParentProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
