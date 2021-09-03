@@ -3550,33 +3550,38 @@ End Sub
 
 Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString) As UString
 	'Dim As UString ResourceFile = GetResourceFile(True)
-	Var Fn = FreeFile
-	If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
-		Dim As WString * 1024 FilePath
-		Dim As WString * 1024 sLine
-		Dim As Integer Pos1
-		Dim As String Image
-		Do Until EOF(Fn)
-			Line Input #Fn, sLine
-			Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
-			If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
-			If Pos1 > 0 Then
-				If Trim(LCase(Left(sLine, Pos1 - 1))) = Trim(LCase(ResName)) Then
-					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
-					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
-					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
-					FilePath = GetRelativePath(FilePath, ResourceFile)
-					Close #Fn
-					Return FilePath
+	Dim As WString * 1024 FilePath
+	If InStr(ResName, ".") Then
+		FilePath = GetRelativePath(ResName, ResourceFile)
+		Return FilePath
+	Else
+		Var Fn = FreeFile
+		If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
+			Dim As WString * 1024 sLine
+			Dim As Integer Pos1
+			Dim As String Image
+			Do Until EOF(Fn)
+				Line Input #Fn, sLine
+				Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
+				If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
+				If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
+				If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
+				If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
+				If Pos1 > 0 Then
+					If Trim(LCase(Left(sLine, Pos1 - 1))) = Trim(LCase(ResName)) Then
+						FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
+						If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
+						If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
+						FilePath = GetRelativePath(FilePath, ResourceFile)
+						Close #Fn
+						Return FilePath
+					End If
 				End If
-			End If
-		Loop
-		Close #Fn
+			Loop
+			Close #Fn
+		End If
+		Return ""
 	End If
-	Return ""
 End Function
 
 Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
