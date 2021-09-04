@@ -332,14 +332,12 @@ pfProjectProperties = @fProjectProperties
 		With txtCompilationArguments64Windows
 			.Name = "txtCompilationArguments64Windows"
 			.SetBounds 213, 28, 228, 21
-			.Text = "txtCompilationArguments64Windows"
 			.Parent = @picCompilationArguments
 		End With
 		' txtCompilationArguments32Windows
 		With txtCompilationArguments32Windows
 			.Name = "txtCompilationArguments32Windows"
 			.SetBounds 213, 0, 228, 21
-			.Text = "txtCompilationArguments32Windows"
 			.Parent = @picCompilationArguments
 		End With
 		' lstType
