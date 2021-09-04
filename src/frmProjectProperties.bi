@@ -42,6 +42,8 @@ Using My.Sys.Forms
 		Declare Sub optCompileToLLVM_Click(ByRef Sender As RadioButton)
 		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
+		Declare Static Sub tpDebugging_Click_(ByRef Sender As Control)
+		Declare Sub tpDebugging_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As TabControl tabProperties

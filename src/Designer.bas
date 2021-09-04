@@ -17,8 +17,8 @@
 Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Function Designer.GetControl(ControlHandle As GtkWidget Ptr) As Any Ptr
-			'Return Cast(Any Ptr, GetWindowLongPtr(CtrlHandle, GWLP_USERDATA))
-			Return SelectedControl
+			Return Cast(Any Ptr, g_object_get_data(G_OBJECT(ControlHandle), "@@@Control2"))
+			'Return SelectedControl
 		End Function
 	#else
 		Function Designer.GetControl(ControlHandle As HWND) As Any Ptr
@@ -184,12 +184,13 @@ Namespace My.Sys.Forms
 	'end function
 	'
 	'#IfDef __USE_GTK__
-	Function Designer.ControlAt(Parent As Any Ptr, X As Integer,Y As Integer) As Any Ptr
+	Function Designer.ControlAt(Parent As Any Ptr, X As Integer, Y As Integer, CtrlPressed As Any Ptr = 0) As Any Ptr
 		'#Else
 		'	function Designer.ControlAt(Parent as HWND,X as integer,Y as integer) as HWND
 		'#EndIf
 		#ifdef __USE_GTK__
 			If Parent = 0 Then Return Parent
+			If CtrlPressed Then Return CtrlPressed
 			Dim As Integer ALeft, ATop, AWidth, AHeight
 			Dim As Any Ptr Ctrl
 			For i As Integer = Objects.Count - 1 To 0 Step -1
@@ -539,9 +540,9 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	Sub Designer.DblClick(X As Integer, Y As Integer, Shift As Integer)
+	Sub Designer.DblClick(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 		'#IfDef __USE_GTK__
-		SelectedControl = ControlAt(DesignControl, X, Y)
+		SelectedControl = ControlAt(DesignControl, X, Y, Ctrl)
 		If OnDblClickControl Then OnDblClickControl(This, SelectedControl)
 		'#Else
 		'    FSelControl = ControlAt(FDialog, X, Y)
@@ -561,7 +562,7 @@ Namespace My.Sys.Forms
 	#endif
 	End Function
 	
-	Sub Designer.MouseDown(X As Integer, Y As Integer, Shift As Integer)
+	Sub Designer.MouseDown(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 		#ifdef __USE_GTK__
 			Dim As Boolean bCtrl = Shift And GDK_Control_MASK
 			Dim As Boolean bShift = Shift And GDK_Shift_MASK
@@ -582,7 +583,7 @@ Namespace My.Sys.Forms
 		FNewX   = FBeginX
 		FNewY   = FBeginY
 		HideDots
-		Dim As Any Ptr SelCtrl = ControlAt(DesignControl, X, Y)
+		Dim As Any Ptr SelCtrl = ControlAt(DesignControl, X, Y, Ctrl)
 		FDotIndex   = IsDot(FOverControl)
 		If FDotIndex = -1 Then
 			If bCtrl Or bShift Then
@@ -1788,7 +1789,7 @@ Namespace My.Sys.Forms
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.DblClick(Event->Motion.x + x, Event->Motion.y + y, Event->Motion.state)
+						.DblClick(Event->Motion.x + x, Event->Motion.y + y, Event->Motion.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
@@ -1806,7 +1807,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.MouseDown(Event->button.x + x, Event->button.y + y, Event->button.state)
+						.MouseDown(Event->button.x + x, Event->button.y + y, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 						If gtk_is_notebook(widget) AndAlso Event->button.y < 20 Then
 							Return False
 						Else
@@ -2634,7 +2635,7 @@ Namespace My.Sys.Forms
 						Dim As Integer x, y, x1, y1
 						GetPosToClient(widget, .FDialogParent, @x, @y)
 						GetPosToClient(.layoutwidget, .FDialogParent, @x1, @y1)
-						.MouseDown(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state)
+						.MouseDown(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 						Return True
 					#else
 						Dim P As Point

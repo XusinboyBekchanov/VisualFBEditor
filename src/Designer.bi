@@ -147,7 +147,7 @@ Namespace My.Sys.Forms
 			Declare Function GetControlHandle(Control As Any Ptr) As HWND
 		#endif
 		'#IfDef __USE_GTK__
-		Declare        Function ControlAt(Parent As Any Ptr, X As Integer, Y As Integer) As Any Ptr
+		Declare        Function ControlAt(Parent As Any Ptr, X As Integer, Y As Integer, Ctrl As Any Ptr = 0) As Any Ptr
 		'#Else
 		'	declare        function ControlAt(Parent as HWND,X as integer,Y as integer) as HWND
 		'#EndIf
@@ -163,8 +163,8 @@ Namespace My.Sys.Forms
 		Declare        Sub DrawBoxs(R() As RECT)
 		Declare        Sub Clear
 		Declare        Function GetClassAcceptControls(AClassName As String) As Boolean
-		Declare        Sub DblClick(X As Integer, Y As Integer, Shift As Integer)
-		Declare        Sub MouseDown(X As Integer, Y As Integer, Shift As Integer)
+		Declare        Sub DblClick(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
+		Declare        Sub MouseDown(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 		Declare        Sub MouseUp(X As Integer, Y As Integer, Shift As Integer)
 		Declare        Sub MouseMove(X As Integer, Y As Integer, Shift As Integer)
 		Declare        Sub KeyDown(Key As Integer, Shift As Integer)
