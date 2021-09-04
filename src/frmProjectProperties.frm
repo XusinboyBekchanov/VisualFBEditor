@@ -131,7 +131,7 @@ pfProjectProperties = @fProjectProperties
 		' grbCompilationArguments
 		grbCompilationArguments.Name = "grbCompilationArguments"
 		grbCompilationArguments.Text = ML("Compilation Arguments")
-		grbCompilationArguments.SetBounds 10, 138, 469, 142
+		grbCompilationArguments.SetBounds 10, 138, 469, 152
 		grbCompilationArguments.Parent = @tpCompile
 		' lblCompilationArguments64
 		lblCompilationArguments64.Name = "lblCompilationArguments64"
@@ -172,7 +172,7 @@ pfProjectProperties = @fProjectProperties
 		' lblBuild
 		lblBuild.Name = "lblBuild"
 		lblBuild.Text = ML("Build") & ":"
-		lblBuild.SetBounds 161, 12, 46, 18
+		lblBuild.SetBounds 171, 12, 36, 18
 		lblBuild.Parent = @picVersionNumber
 		' cboResourceFile
 		cboResourceFile.Name = "cboResourceFile"
@@ -411,7 +411,7 @@ pfProjectProperties = @fProjectProperties
 		' picVersionInformation
 		With picApplication
 			.Name = "picApplication"
-			.SetBounds 262, 20, 202, 80
+			.SetBounds 262, 20, 202, 90
 			.Parent = @tpMake
 		End With
 		' picVersionInformation
@@ -423,7 +423,7 @@ pfProjectProperties = @fProjectProperties
 		' picCompilationArguments
 		With picCompilationArguments
 			.Name = "picCompilationArguments"
-			.SetBounds 24, 156, 445, 112
+			.SetBounds 24, 156, 445, 123
 			.Text = ""
 			.Parent = @tpCompile
 		End With
