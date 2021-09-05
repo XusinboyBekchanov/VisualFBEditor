@@ -176,6 +176,7 @@ Private:
 	Declare Function SaveTab As Boolean
 	Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 Public:
+	ToolTipHandle As HWND
 	Types As WStringList
 	Enums As WStringList
 	Procedures As WStringList

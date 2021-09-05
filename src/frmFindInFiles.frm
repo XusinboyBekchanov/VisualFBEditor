@@ -61,7 +61,6 @@ pfFindFile = @fFindFile
 		txtFind.SetBounds 97, 8, 318, 26
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Anchor.Right = asAnchor
-		txtFind.Masked = True
 		txtFind.Parent = @This
 		
 		lblPath.Name = "lblPath"

@@ -2931,7 +2931,7 @@ Namespace My.Sys.Forms
 		FSelDotColor = clBlue
 		Parent = ParentControl
 		#ifdef __USE_GTK__
-			FDialogParent = ParentControl->Widget
+			FDialogParent = ParentControl->Handle
 		#else
 			FDialogParent = ParentControl->Handle
 			FDotBrush   = CreateSolidBrush(FDotColor)

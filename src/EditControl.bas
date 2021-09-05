@@ -3845,8 +3845,8 @@ Namespace My.Sys.Forms
 				ec->HScrollPos = 0
 				ec->VScrollPos = 0
 				
-				gtk_window_set_transient_for(gtk_window(ec->winIntellisense), gtk_window(pfrmMain->widget))
-				gtk_window_set_transient_for(gtk_window(ec->winTooltip), gtk_window(pfrmMain->widget))
+				gtk_window_set_transient_for(gtk_window(ec->winIntellisense), gtk_window(pfrmMain->Handle))
+				gtk_window_set_transient_for(gtk_window(ec->winTooltip), gtk_window(pfrmMain->Handle))
 			
 			End If
 			#ifdef __USE_GTK3__
@@ -3865,9 +3865,9 @@ Namespace My.Sys.Forms
 				ec->dwClientY = AllocatedHeight
 				
 				#ifdef __USE_GTK3__
-					gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
+					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
 					gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
-					gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
+					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
 					gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
 				#else
 					gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth + 2, 0)

@@ -219,7 +219,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				'.layout = gtk_layout_new(NULL, NULL)
 				'gtk_widget_set_size_request(.layout, 16, 16)
 				'gtk_layout_put(gtk_layout(.layout), .btnClose.widget, 0, 0)
-				gtk_box_pack_end (GTK_BOX (._box), .btnClose.widget, False, False, 0)
+				gtk_box_pack_end (GTK_BOX (._box), .btnClose.Handle, False, False, 0)
 				gtk_widget_show_all(._box)
 			#else
 				pTabCode->Add(@.btnClose)
@@ -314,7 +314,7 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 			Dim As UString Value
 			Value = get_var_value(Word, tb->txtCode.LineIndexFromPoint(X, Y))
 			If Value <> "" Then
-				Dim ByRef As HWND hwndTT = tb->txtCode.ToolTipHandle
+				Dim ByRef As HWND hwndTT = tb->ToolTipHandle
 				Dim As TOOLINFO    ti
 				ZeroMemory(@ti, SizeOf(ti))
 				ti.cbSize = SizeOf(ti)
@@ -342,12 +342,12 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 				SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(Pt.X, Pt.Y + 10))
 				SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
 				SendMessage(hwndTT, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
-				tb->txtCode.ToolTipHandle = hwndTT
+				tb->ToolTipHandle = hwndTT
 				'tb->txtCode.ShowHint = True
 				Exit Sub
 			End If
 		End If
-		Dim ByRef As HWND hwndTT = tb->txtCode.ToolTipHandle
+		Dim ByRef As HWND hwndTT = tb->ToolTipHandle
 		If hwndTT <> 0 Then
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))

@@ -3168,12 +3168,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Pos1 > 0 Then
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
+							te->Locals = 1
 						Else
 							bt = ""
+							te->Locals = 0 'IIf(StartsWith(bTrimLCase, "private sub "), 1, 0)
 						End If
 						te->TypeName = ""
 						te->ElementType = "Sub"
-						te->Locals = IIf(StartsWith(bTrimLCase, "private sub "), 1, 0)
 						te->StartLine = i
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If EndsWith(LCase(te->Parameters), " __export__") Then
@@ -3221,8 +3222,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Pos1 > 0 Then
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
+							te->Locals = 1
 						Else
 							bt = ""
+							te->Locals = 0 'IIf(StartsWith(bTrimLCase, "private function "), 1, 0)
 						End If
 						Pos4 = InStr(bTrim, ")")
 						Pos3 = InStr(Pos4, bTrimLCase, ")as ")
@@ -3231,7 +3234,6 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 						te->TypeName = WithoutPointers(te->TypeName)
 						te->ElementType = "Function"
-						te->Locals = IIf(StartsWith(bTrimLCase, "private function "), 1, 0)
 						te->StartLine = i
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If EndsWith(LCase(te->Parameters), " __export__") Then
@@ -3283,8 +3285,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Pos1 > 0 Then
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
+							te->Locals = 1
 						Else
 							bt = ""
+							te->Locals = 0 'IIf(StartsWith(bTrimLCase, "private property "), 1, 0)
 						End If
 						Pos4 = InStr(bTrim, ")")
 						Pos3 = InStr(Pos4, bTrimLCase, ")as ")
@@ -3293,7 +3297,6 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 						te->TypeName = WithoutPointers(te->TypeName)
 						te->ElementType = "property"
-						te->Locals = IIf(StartsWith(bTrimLCase, "private property "), 1, 0)
 						te->StartLine = i
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
@@ -4520,7 +4523,7 @@ CreateMenusAndToolBars
 Sub StartProgress
 	prProgress.Visible = True
 	#ifdef __USE_GTK__
-		progress_bar_timer_id = g_timeout_add(100, @progress_cb, prProgress.Widget)
+		progress_bar_timer_id = g_timeout_add(100, @progress_cb, prProgress.Handle)
 	#endif
 End Sub
 
@@ -4554,7 +4557,7 @@ prProgress.Marquee = True
 prProgress.SetMarquee True, 100
 #ifdef __USE_GTK__
 	prProgress.Height = 30
-	gtk_box_pack_end (GTK_BOX (gtk_statusbar_get_message_area (gtk_statusbar(stBar.Widget))), prProgress.Widget, False, True, 10)
+	gtk_box_pack_end (GTK_BOX (gtk_statusbar_get_message_area (gtk_statusbar(stBar.Handle))), prProgress.Handle, False, True, 10)
 #else
 	prProgress.Top = 3
 	prProgress.Parent = @stBar
@@ -5168,7 +5171,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	#ifdef __USE_GTK__
 		Dim As GdkRectangle gdkRect
 		Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(lvProperties.TreeStore), @Item->TreeIter))
-		gtk_tree_view_get_cell_area(gtk_tree_view(lvProperties.widget), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
+		gtk_tree_view_get_cell_area(gtk_tree_view(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 		gtk_tree_path_free(TreePath)
 		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
 	#else
@@ -5308,7 +5311,7 @@ Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
 		#ifdef __USE_GTK__
 			Dim As GdkRectangle gdkRect
 			Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(lvProperties.TreeStore), @lvProperties.SelectedItem->TreeIter))
-			gtk_tree_view_get_cell_area(gtk_tree_view(lvProperties.widget), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
+			gtk_tree_view_get_cell_area(gtk_tree_view(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 			gtk_tree_path_free(TreePath)
 			lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
 		#else
