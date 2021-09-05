@@ -61,7 +61,7 @@ Public Sub MoveCloseButtons()
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->Tabs[i])
 		If tb = 0 Then Continue For
 		#ifndef __USE_GTK__
-			pTabCode->Perform(TCM_GETITEMRECT, tb->Index, CInt(@RR))
+			SendMessage(pTabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
 			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
 		#endif
 	Next i
