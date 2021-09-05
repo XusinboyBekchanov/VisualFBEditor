@@ -2916,6 +2916,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If inType Then
 						te->Locals = inPubPriPro
 					End If
+					If LCase(te->ElementType) = "operator" Then
+						te->Locals = 1
+					End If
 					Pos4 = InStr(te->Parameters, "'")
 					If Pos4 > 0 Then
 						te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
