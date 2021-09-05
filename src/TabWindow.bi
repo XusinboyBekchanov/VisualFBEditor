@@ -176,7 +176,6 @@ Private:
 	Declare Function SaveTab As Boolean
 	Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 Public:
-	ToolTipHandle As HWND
 	Types As WStringList
 	Enums As WStringList
 	Procedures As WStringList
@@ -215,6 +214,7 @@ Public:
 		overlay As GtkWidget Ptr
 		layout As GtkWidget Ptr
 	#else
+		ToolTipHandle As HWND
 		DateFileTime As FILETIME
 	#endif
 	NewLineType As NewLineTypes
