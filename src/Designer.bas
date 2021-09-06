@@ -1736,9 +1736,10 @@ Namespace My.Sys.Forms
 				Des = data1
 				If Des Then
 					With *Des
+						If .SelectedControl = .DesignControl Then Exit Function
 						If g_object_get_data(G_OBJECT(widget), "drawed") <> Des Then
 							If .FSelControl = widget Then
-								.MoveDots .SelectedControl
+								.MoveDots .SelectedControl, False
 							End If
 							g_object_set_data(G_OBJECT(widget), "drawed", Des)
 						End If
