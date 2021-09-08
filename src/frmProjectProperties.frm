@@ -106,12 +106,12 @@ pfProjectProperties = @fProjectProperties
 		' lblProjectDescription
 		lblProjectDescription.Name = "lblProjectDescription"
 		lblProjectDescription.Text = ML("Project Description") & ":"
-		lblProjectDescription.SetBounds 10, 256, 220, 18
+		lblProjectDescription.SetBounds 10, 240, 220, 18
 		lblProjectDescription.Parent = @tpGeneral
 		' txtProjectDescription
 		txtProjectDescription.Name = "txtProjectDescription"
 		txtProjectDescription.Text = ""
-		txtProjectDescription.SetBounds 10, 274, 466, 24
+		txtProjectDescription.SetBounds 10, 258, 466, 24
 		txtProjectDescription.Parent = @tpGeneral
 		' grbVersionNumber
 		grbVersionNumber.Name = "grbVersionNumber"
@@ -223,13 +223,13 @@ pfProjectProperties = @fProjectProperties
 		lblValue.Parent = @picVersionInformation
 		' txtHelpFileName
 		txtHelpFileName.Name = "txtHelpFileName"
-		txtHelpFileName.SetBounds 10, 208, 202, 21
+		txtHelpFileName.SetBounds 10, 200, 202, 21
 		txtHelpFileName.Text = ""
 		txtHelpFileName.Parent = @tpGeneral
 		' lblHelpFileName
 		lblHelpFileName.Name = "lblHelpFileName"
 		lblHelpFileName.Text = ML("Help File") & ":"
-		lblHelpFileName.SetBounds 10, 190, 172, 18
+		lblHelpFileName.SetBounds 10, 182, 172, 18
 		lblHelpFileName.Parent = @tpGeneral
 		' grbCompileToGCC
 		grbCompileToGCC.Name = "grbCompileToGCC"
@@ -473,7 +473,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "chkPassAllModuleFilesToCompiler"
 			.Text = "Pass All Module Files To Compiler"
 			.TabIndex = 71
-			.SetBounds 225, 207, 252, 22
+			.SetBounds 225, 200, 252, 22
 			.Caption = "Pass All Module Files To Compiler"
 			.Parent = @tpGeneral
 		End With

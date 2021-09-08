@@ -4714,6 +4714,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnKeyDown = @OnKeyDownEdit
 	txtCode.OnKeyPress = @OnKeyPressEdit
 	txtCode.Tag = @This
+	txtCode.ShowHint = False
 	'OnPaste = @OnPasteEdit
 	txtCode.OnMouseMove = @OnMouseMoveEdit
 	txtCode.OnMouseHover = @OnMouseHoverEdit
