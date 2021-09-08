@@ -46,6 +46,7 @@ Type ProjectElement Extends ExplorerElement
 	ResourceFileName As WString Ptr
 	IconResourceFileName As WString Ptr
 	ProjectType As Integer
+	Subsystem As Integer
 	ProjectName As WString Ptr
 	HelpFileName As WString Ptr
 	ProjectDescription As WString Ptr

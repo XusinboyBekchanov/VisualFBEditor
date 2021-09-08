@@ -683,11 +683,22 @@ Function Compile(Parameter As String = "") As Integer
 		WLet(CompileWith, CompilerTool->GetCommand(, True))
 	End If
 	WAdd(CompileWith, " " & *FirstLine)
-	If CInt(InStr(*CompileWith, " -s ") = 0) AndAlso CInt(tbStandard.Buttons.Item("GUI")->Checked) Then
-		WAdd CompileWith, " -s gui"
+	If InStr(*CompileWith, " -s ") = 0 Then
+		If CInt(tbStandard.Buttons.Item("Console")->Checked) Then
+			WAdd CompileWith, " -s console"
+		ElseIf CInt(tbStandard.Buttons.Item("GUI")->Checked) Then
+			WAdd CompileWith, " -s gui"
+		End If
 	End If
 	If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WAdd CompileWith, " -g"
 	If Project Then
+		If InStr(*CompileWith, " -s ") = 0 Then
+			Select Case Project->Subsystem
+			Case 0
+			Case 1: WAdd CompileWith, " -s console"
+			Case 2: WAdd CompileWith, " -s gui"
+			End Select
+		End If
 		If Project->CompileTo = ToGAS Then
 			WAdd CompileWith, " -gen gas" & IIf(Not Bit32, "64", "")
 		ElseIf Project->CompileTo = ToLLVM Then
@@ -1269,6 +1280,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					If bNew Then tn1->Expand
 				ElseIf Parameter = "ProjectType" Then
 					ppe->ProjectType = Val(Mid(Buff, Pos1 + 1))
+				ElseIf Parameter = "Subsystem" Then
+					ppe->Subsystem = Val(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "ProjectName" Then
 					WLet(ppe->ProjectName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "HelpFileName" Then
@@ -1719,6 +1732,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		End If
 	Next
 	Print #Fn, "ProjectType=" & ppe->ProjectType
+	Print #Fn, "Subsystem=" & ppe->Subsystem
 	Print #Fn, "ProjectName=""" & *ppe->ProjectName & """"
 	Print #Fn, "HelpFileName=""" & *ppe->HelpFileName & """"
 	Print #Fn, "ProjectDescription=""" & *ppe->ProjectDescription & """"
@@ -4018,6 +4032,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "MainResource", "MainResource"
 	imgList.Add "Module", "Module"
 	imgList.Add "MainModule", "MainModule"
+	imgList.Add "NotSetted", "NotSetted"
 	imgList.Add "UserControl", "UserControl"
 	imgList.Add "Eraser", "Eraser"
 	imgList.Add "Pin", "Pin"
@@ -4479,6 +4494,7 @@ Sub CreateMenusAndToolBars
 	tbtBreak = tbStandard.Buttons.Add( , "Break",, @mClick, "Break", , ML("Break") & " (Ctrl+Pause)", True, 0)
 	tbtEnd = tbStandard.Buttons.Add( , "End",, @mClick, "End", , ML("End"), True, 0)
 	tbStandard.Buttons.Add tbsSeparator
+	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "NotSetted", , @mClick, "NotSetted", , ML("Not Setted"), True
 	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Console",, @mClick, "Console", , ML("Console"), True
 	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Form",, @mClick, "GUI", , ML("GUI"), True
 	tbStandard.Buttons.Add tbsSeparator
@@ -6258,9 +6274,12 @@ Sub frmMain_Create(ByRef Sender As Control)
 	WLet(RecentProject, iniSettings.ReadString("MainWindow", "RecentProject", ""))
 	WLet(RecentFolder, iniSettings.ReadString("MainWindow", "RecentFolder", ""))
 	WLet(RecentSession, iniSettings.ReadString("MainWindow", "RecentSession", ""))
-	Var bGUI = iniSettings.ReadBool("MainWindow", "CompileGUI", True)
-	tbStandard.Buttons.Item("GUI")->Checked = bGUI
-	tbStandard.Buttons.Item("Console")->Checked = Not bGUI
+	Dim As Integer Subsystem = iniSettings.ReadInteger("MainWindow", "Subsystem", 0)
+	Select Case Subsystem
+	Case 0: tbStandard.Buttons.Item("NotSetted")->Checked = True
+	Case 1: tbStandard.Buttons.Item("Console")->Checked = True
+	Case 2: tbStandard.Buttons.Item("GUI")->Checked = True
+	End Select
 	Var file = Command(-1)
 	Var Pos1 = InStr(file, "2>CON")
 	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
@@ -6556,7 +6575,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteBool("MainWindow", "ProjectFolders", tbExplorer.Buttons.Item(3)->Checked)
 	iniSettings.WriteBool("MainWindow", "ToolLabels", tbForm.Buttons.Item(0)->Checked)
 	iniSettings.WriteBool("MainWindow", "UseDebugger", UseDebugger)
-	iniSettings.WriteBool("MainWindow", "CompileGUI", tbStandard.Buttons.Item("GUI")->Checked)
+	iniSettings.WriteInteger("MainWindow", "Subsystem", IIf(tbStandard.Buttons.Item("Console")->Checked, 1, IIf(tbStandard.Buttons.Item("GUI")->Checked, 2, 0)))
 	
 	Dim As Integer MRUFilesCount, kk=-1
 	MRUFilesCount = MRUFiles.Count

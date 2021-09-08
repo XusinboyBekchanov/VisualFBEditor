@@ -96,22 +96,22 @@ pfProjectProperties = @fProjectProperties
 		' lblProjectName
 		lblProjectName.Name = "lblProjectName"
 		lblProjectName.Text = ML("Project Name") & ":"
-		lblProjectName.SetBounds 10, 66, 204, 18
+		lblProjectName.SetBounds 10, 124, 204, 18
 		lblProjectName.Parent = @tpGeneral
 		' txtProjectName
 		txtProjectName.Name = "txtProjectName"
 		txtProjectName.Text = ""
-		txtProjectName.SetBounds 10, 84, 202, 21
+		txtProjectName.SetBounds 10, 142, 202, 21
 		txtProjectName.Parent = @tpGeneral
 		' lblProjectDescription
 		lblProjectDescription.Name = "lblProjectDescription"
 		lblProjectDescription.Text = ML("Project Description") & ":"
-		lblProjectDescription.SetBounds 10, 192, 220, 18
+		lblProjectDescription.SetBounds 10, 256, 220, 18
 		lblProjectDescription.Parent = @tpGeneral
 		' txtProjectDescription
 		txtProjectDescription.Name = "txtProjectDescription"
 		txtProjectDescription.Text = ""
-		txtProjectDescription.SetBounds 10, 210, 466, 24
+		txtProjectDescription.SetBounds 10, 274, 466, 24
 		txtProjectDescription.Parent = @tpGeneral
 		' grbVersionNumber
 		grbVersionNumber.Name = "grbVersionNumber"
@@ -223,13 +223,13 @@ pfProjectProperties = @fProjectProperties
 		lblValue.Parent = @picVersionInformation
 		' txtHelpFileName
 		txtHelpFileName.Name = "txtHelpFileName"
-		txtHelpFileName.SetBounds 10, 142, 202, 21
+		txtHelpFileName.SetBounds 10, 208, 202, 21
 		txtHelpFileName.Text = ""
 		txtHelpFileName.Parent = @tpGeneral
 		' lblHelpFileName
 		lblHelpFileName.Name = "lblHelpFileName"
 		lblHelpFileName.Text = ML("Help File") & ":"
-		lblHelpFileName.SetBounds 10, 124, 172, 18
+		lblHelpFileName.SetBounds 10, 190, 172, 18
 		lblHelpFileName.Parent = @tpGeneral
 		' grbCompileToGCC
 		grbCompileToGCC.Name = "grbCompileToGCC"
@@ -301,6 +301,9 @@ pfProjectProperties = @fProjectProperties
 		cboProjectType.AddItem ML("Executable")
 		cboProjectType.AddItem ML("Dynamic library")
 		cboProjectType.AddItem ML("Static library")
+		cboSubsystem.AddItem ML("(not selected)")
+		cboSubsystem.AddItem ML("Console")
+		cboSubsystem.AddItem ML("GUI")
 		' cboOptimizationLevel
 		cboOptimizationLevel.Name = "cboOptimizationLevel"
 		cboOptimizationLevel.Text = "ComboBoxEdit1"
@@ -470,8 +473,25 @@ pfProjectProperties = @fProjectProperties
 			.Name = "chkPassAllModuleFilesToCompiler"
 			.Text = "Pass All Module Files To Compiler"
 			.TabIndex = 71
-			.SetBounds 225, 181, 252, 22
+			.SetBounds 225, 207, 252, 22
 			.Caption = "Pass All Module Files To Compiler"
+			.Parent = @tpGeneral
+		End With
+		' cboSubsystem
+		With cboSubsystem
+			.Name = "cboSubsystem"
+			.Text = "cboSubsystem"
+			.TabIndex = 72
+			.SetBounds 10, 84, 202, 21
+			.Parent = @tpGeneral
+		End With
+		' lblSubsystem
+		With lblSubsystem
+			.Name = "lblSubsystem"
+			.Text = ML("Subsystem") & " (" & ML("For Windows") & "):"
+			.TabIndex = 73
+			.SetBounds 10, 66, 202, 18
+			.Caption = ML("Subsystem") & " (" & ML("For Windows") & "):"
 			.Parent = @tpGeneral
 		End With
 	End Constructor
@@ -496,6 +516,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->ResourceFileName, .ResourceFiles.Get(.cboResourceFile.Text))
 		WLet(ppe->IconResourceFileName, .IconResourceFiles.Get(.cboIconResourceFile.Text))
 		ppe->ProjectType = .cboProjectType.ItemIndex
+		ppe->Subsystem = .cboSubsystem.ItemIndex
 		WLet(ppe->ProjectName, .txtProjectName.Text)
 		WLet(ppe->HelpFileName, .txtHelpFileName.Text)
 		WLet(ppe->ProjectDescription, .txtProjectDescription.Text)
@@ -611,6 +632,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 			If ppe Then
 				bSetted = True
 				.cboProjectType.ItemIndex = ppe->ProjectType
+				.cboSubsystem.ItemIndex = ppe->Subsystem
 				If .MainFiles.IndexOf(*ppe->MainFileName) > -1 Then .cboMainFile.Text = .MainFiles.Item(.MainFiles.IndexOf(*ppe->MainFileName))->Key Else .cboMainFile.ItemIndex = 0
 				If .ResourceFiles.IndexOf(*ppe->ResourceFileName) > -1 Then .cboResourceFile.Text = .ResourceFiles.Item(.ResourceFiles.IndexOf(*ppe->ResourceFileName))->Key Else .cboResourceFile.ItemIndex = 0
 				If .IconResourceFiles.IndexOf(*ppe->IconResourceFileName) > -1 Then .cboIconResourceFile.Text = .IconResourceFiles.Item(.IconResourceFiles.IndexOf(*ppe->IconResourceFileName))->Key Else .cboIconResourceFile.ItemIndex = 0
@@ -667,6 +689,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 		End If
 		If Not bSetted Then
 			.cboProjectType.ItemIndex = -1
+			.cboSubsystem.ItemIndex = -1
 			.cboMainFile.ItemIndex = -1
 			.cboResourceFile.ItemIndex = -1
 			.cboIconResourceFile.ItemIndex = -1

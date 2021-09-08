@@ -4804,7 +4804,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	cboFunction.Anchor.Left = asAnchorProportional
 	cboFunction.Anchor.Right = asAnchor
 	cboFunction.OnSelected = @cboFunction_Change
-	cboFunction.Sort = True
+	'cboFunction.Sort = True
 	cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
 	cboFunction.ItemIndex = 0
 	pnlForm.Visible = False
