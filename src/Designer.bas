@@ -1280,6 +1280,9 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_is_widget(Control) Then
 				g_signal_connect(Control, "event", G_CALLBACK(@HookChildProc), @This)
+				If gtk_is_bin(Control) AndAlso gtk_bin_get_child(gtk_bin(Control)) <> 0 Then 
+					g_signal_connect(gtk_bin_get_child(gtk_bin(Control)), "event", G_CALLBACK(@HookChildProc), @This)
+				End If
 				#ifdef __USE_GTK3__
 					g_signal_connect(Control, "draw", G_CALLBACK(@HookChildDraw), @This)
 				#endif
@@ -1763,7 +1766,18 @@ Namespace My.Sys.Forms
 			Dim As Point P
 			With *Des
 				#ifdef __USE_GTK__
+					Static LeavesCount As Integer
 					Select Case Event->Type
+					Case GDK_ENTER_NOTIFY
+						If gtk_is_event_box(widget) Then
+							LeavesCount += 1
+							If LeavesCount = 2 Then
+								.MouseDown(0, 0, 0, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+								.MouseUp(0, 0, 0)
+							End If
+						End If
+					Case GDK_LEAVE_NOTIFY
+						LeavesCount = 0
 				#else
 					Select Case uMsg
 					Case WM_NCHITTEST
