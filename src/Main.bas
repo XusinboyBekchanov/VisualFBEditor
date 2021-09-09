@@ -1798,18 +1798,18 @@ Function SaveAllBeforeCompile() As Boolean
 			For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
 				tn = tvExplorer.Nodes.Item(i)
 				If CInt(tn->ImageKey = "Project") AndAlso EndsWith(tn->Text, "*") Then
-					.lstFiles.AddObject tn->Text, tn
+					.lstFiles.AddItem tn->Text, tn
 				End If
 			Next i
 			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 				If tb->Modified Then
 					tnP = GetParentNode(tb->tn)
-					Index = .lstFiles.IndexOfObject(tnP)
+					Index = .lstFiles.IndexOfData(tnP)
 					If Index <> -1 Then
-						.lstFiles.InsertObject Index + 1, WSpace(2) & tb->Caption, tb
+						.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
 					Else
-						.lstFiles.AddObject tb->Caption, tb
+						.lstFiles.AddItem tb->Caption, tb
 					End If
 				End If
 			Next i
@@ -1818,10 +1818,10 @@ Function SaveAllBeforeCompile() As Boolean
 				Case ModalResults.Yes
 					For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1
 						If .lstFiles.Selected(i) Then
-							If tvExplorer.Nodes.Contains(.lstFiles.Object(i)) Then
-								If Not SaveProject(.lstFiles.Object(i)) Then Return False
+							If tvExplorer.Nodes.Contains(.lstFiles.ItemData(i)) Then
+								If Not SaveProject(.lstFiles.ItemData(i)) Then Return False
 							Else
-								If Not Cast(TabWindow Ptr, .lstFiles.Object(i))->Save Then Return False
+								If Not Cast(TabWindow Ptr, .lstFiles.ItemData(i))->Save Then Return False
 							End If
 						End If
 					Next
@@ -2213,13 +2213,13 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 		Dim Index As Integer
 		With *pfSave
 			.lstFiles.Clear
-			If bProjectModified Then .lstFiles.AddObject tn->Text, tn
+			If bProjectModified Then .lstFiles.AddItem tn->Text, tn
 			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 				If tb->Modified Then
 					tnP = GetParentNode(tb->tn)
 					If tnP = tn Then
-						.lstFiles.AddObject IIf(bProjectModified, WSpace(2), "") & tb->Caption, tb
+						.lstFiles.AddItem IIf(bProjectModified, WSpace(2), "") & tb->Caption, tb
 					End If
 				End If
 			Next i
@@ -2228,10 +2228,10 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 				Case ModalResults.Yes
 					For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1
 						If .lstFiles.Selected(i) Then
-							If tvExplorer.Nodes.Contains(.lstFiles.Object(i)) Then
-								If Not SaveProject(.lstFiles.Object(i)) Then Return False
+							If tvExplorer.Nodes.Contains(.lstFiles.ItemData(i)) Then
+								If Not SaveProject(.lstFiles.ItemData(i)) Then Return False
 							Else
-								If Not Cast(TabWindow Ptr, .lstFiles.Object(i))->Save Then Return False
+								If Not Cast(TabWindow Ptr, .lstFiles.ItemData(i))->Save Then Return False
 							End If
 						End If
 					Next
@@ -6523,7 +6523,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 		For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
 			tn = tvExplorer.Nodes.Item(i)
 			If CInt(tn->ImageKey = "Project") AndAlso EndsWith(tn->Text, "*") Then
-				.lstFiles.AddObject tn->Text, tn
+				.lstFiles.AddItem tn->Text, tn
 			End If
 			'If CInt(tn->ImageKey = "Project") AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
 		Next i
@@ -6531,11 +6531,11 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 			If tb->Modified Then
 				tnP = GetParentNode(tb->tn)
-				Index = .lstFiles.IndexOfObject(tnP)
+				Index = .lstFiles.IndexOfData(tnP)
 				If Index <> -1 Then
-					.lstFiles.InsertObject Index + 1, WSpace(2) & tb->Caption, tb
+					.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
 				Else
-					.lstFiles.AddObject tb->Caption, tb
+					.lstFiles.AddItem tb->Caption, tb
 				End If
 			End If
 			'If Not CloseTab(tb) Then Action = 0: Return
@@ -6545,10 +6545,10 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 			Case ModalResults.Yes
 				For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1
 					If .lstFiles.Selected(i) Then
-						If tvExplorer.Nodes.Contains(.lstFiles.Object(i)) Then
-							If Not SaveProject(.lstFiles.Object(i)) Then Action = 0: Return
+						If tvExplorer.Nodes.Contains(.lstFiles.ItemData(i)) Then
+							If Not SaveProject(.lstFiles.ItemData(i)) Then Action = 0: Return
 						Else
-							If Not Cast(TabWindow Ptr, .lstFiles.Object(i))->Save Then Action = 0: Return
+							If Not Cast(TabWindow Ptr, .lstFiles.ItemData(i))->Save Then Action = 0: Return
 						End If
 					End If
 				Next
