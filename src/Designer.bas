@@ -333,6 +333,7 @@ Namespace My.Sys.Forms
 			*y = *y + allocation.y
 			If x1 <> -1 Then *x = x1
 			If y1 <> -1 Then *y = y1
+			'?widget, *x, *y
 			GetPosToClient gtk_widget_get_parent(widget), Client, x, y
 		End Sub
 		
@@ -1384,6 +1385,27 @@ Namespace My.Sys.Forms
 		"in module " & ZGet(Ermn())
 	End Function
 	
+	#ifdef __USE_GTK__
+		Function DrawComponentBorder(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			#ifdef __USE_GTK3__
+				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+			#else
+				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+			#endif
+			cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
+			cairo_set_source_rgb(cr, 173 / 255.0, 173 / 255.0, 173 / 255.0)
+			cairo_stroke(cr)
+			Return False
+		End Function
+		
+		Function ComponentExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			DrawComponentBorder(widget, cr, data1)
+			cairo_destroy(cr)
+			Return False
+		End Function
+	#endif
+	
 	Function Designer.CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
 		Dim CreateComponentFunc As Function(ClassName As String, ByRef Name As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Any Ptr
 		Dim MFF As Any Ptr
@@ -1417,6 +1439,11 @@ Namespace My.Sys.Forms
 							WritePropertyFunc(Cpnt, "widget", FSelControl)
 							gtk_image_set_from_pixbuf(gtk_image(FSelControl), pBitmap.Handle)
 							gtk_widget_set_size_request(FSelControl, 16, 16)
+							#ifdef __USE_GTK3__
+								g_signal_connect(FSelControl, "draw", G_CALLBACK(@DrawComponentBorder), @This)
+							#else
+								g_signal_connect(FSelControl, "expose-event", G_CALLBACK(@ComponentExposeEvent), @This)
+							#endif
 '							ComponentSetBoundsSub()
 '							WritePropertyFunc(Cpnt, "Left", @x)
 '							WritePropertyFunc(Cpnt, "Top", @y)
@@ -1897,7 +1924,7 @@ Namespace My.Sys.Forms
 					Case WM_KEYDOWN
 					#endif
 					#ifdef __USE_GTK__
-						.KeyDown(Event->Key.keyval, Event->Key.state)
+						.KeyDown(Event->Key.keyval, Event->Key.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 					#else
 						.KeyDown(wParam, 0)
 					#endif
@@ -2510,7 +2537,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub Designer.KeyDown(KeyCode As Integer, Shift As Integer)
+	Sub Designer.KeyDown(KeyCode As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 		Static bShift As Boolean
 		Static bCtrl As Boolean
 		#ifdef __USE_GTK__
