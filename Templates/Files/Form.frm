@@ -13,6 +13,8 @@
 	Dim Shared Form1 As Form1Type
 	
 	#ifndef _NOT_AUTORUN_FORMS_
+		#define _NOT_AUTORUN_FORMS_
+		
 		Form1.Show
 		
 		App.Run
