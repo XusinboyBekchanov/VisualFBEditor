@@ -325,16 +325,17 @@ Namespace My.Sys.Forms
 	#endif
 	
 	#ifdef __USE_GTK__
-		Sub GetPosToClient(widget As GtkWidget Ptr, Client As GtkWidget Ptr, x As Integer Ptr, y As Integer Ptr, x1 As Integer = -1, y1 As Integer = -1)
+		Sub GetPosToClient(widget As GtkWidget Ptr, Client As GtkWidget Ptr, x As Integer Ptr, y As Integer Ptr, x1 As Integer = -1, y1 As Integer = -1, ParentWidget As GtkWidget Ptr = 0)
 			If widget = 0 Or widget = Client Then Return
 			Dim allocation As GtkAllocation
 			gtk_widget_get_allocation(widget, @allocation)
 			*x = *x + allocation.x
 			*y = *y + allocation.y
-			If x1 <> -1 Then *x = x1
-			If y1 <> -1 Then *y = y1
-			'?widget, *x, *y
-			GetPosToClient gtk_widget_get_parent(widget), Client, x, y
+			If ParentWidget = gtk_widget_get_parent(widget) Then
+				If x1 <> -1 Then *x = x1
+				If y1 <> -1 Then *y = y1
+			End If
+			GetPosToClient gtk_widget_get_parent(widget), Client, x, y, x1, y1, ParentWidget
 		End Sub
 		
 		Sub Designer.MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top1 As Integer = -1, Width1 As Integer = -1, Height1 As Integer = -1)
@@ -393,7 +394,7 @@ Namespace My.Sys.Forms
 					If ControlHandle2 = ControlHandle Then
 						If Width1 <> -1 Then iWidth = Width1
 						If Height1 <> -1 Then iHeight = Height1
-						GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1
+						GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(DesignControl, "layoutwidget")
 					Else
 						GetPosToClient ControlHandle2, FDialogParent, @x, @y
 					End If
