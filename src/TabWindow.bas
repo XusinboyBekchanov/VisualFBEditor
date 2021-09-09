@@ -1571,7 +1571,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 		If tb->Des->ReadPropertyFunc <> 0 Then
 			ptxtCode->InsertLine ep + 7, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Text")) & """"
 		End If
-		If PropertyName <> "" AndAlso PropertyName <> "Text" Then
+		If PropertyName <> "" AndAlso PropertyName <> "Text" AndAlso PropertyName <> "Name" Then
 			WLet(FLine, tb->GetFormattedPropertyValue(tb->Des->DesignControl, PropertyName))
 			If *FLine <> "" Then ptxtCode->InsertLine ep + 8, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q = 1
 		End If
