@@ -228,16 +228,37 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			.tbrTop.Buttons.Item(1)->Checked = True
 			If FileName <> "" Then
 				.txtCode.LoadFromFile(FileNameNew, tb->FileEncoding, tb->NewLineType)
-				If bNew AndAlso TreeN <> 0 Then
-					Dim As String NewFormName = Left(TreeN->Text, Len(TreeN->Text) - 5)
+				If bNew Then
+					Dim As String NewFormName
+					If TreeN <> 0 Then
+						NewFormName = Left(TreeN->Text, Len(TreeN->Text) - 5)
+					End If
 					For i As Integer = 0 To .txtCode.LinesCount - 1
-						If .txtCode.Lines(i) = Chr(9) & "Type Form1 Extends Form" Then
-							.txtCode.ReplaceLine(i, Chr(9) & "Type " & NewFormName & " Extends Form")
-						ElseIf .txtCode.Lines(i) = Chr(9) & "Dim Shared fForm1 As Form1" Then
-							.txtCode.ReplaceLine(i, Chr(9) & "Dim Shared f" & NewFormName & " As " & NewFormName)
-						ElseIf .txtCode.Lines(i) = Chr(9) & Chr(9) & "fForm1.Show" Then
-							.txtCode.ReplaceLine(i, Chr(9) & Chr(9) & "f" & NewFormName & ".Show")
-							Exit For
+						If CreateFormTypesWithoutTypeWord Then
+							If .txtCode.Lines(i) = Chr(9) & "Type Form1Type Extends Form" Then
+								.txtCode.ReplaceLine(i, Chr(9) & "Type Form1 Extends Form")
+							ElseIf .txtCode.Lines(i) = Chr(9) & "Dim Shared Form1 As Form1Type" Then
+								.txtCode.ReplaceLine(i, Chr(9) & "Dim Shared fForm1 As Form1")
+							ElseIf .txtCode.Lines(i) = Chr(9) & Chr(9) & "Form1.Show" Then
+								.txtCode.ReplaceLine(i, Chr(9) & Chr(9) & "fForm1.Show")
+							End If
+						End If
+						If TreeN Then
+							If .txtCode.Lines(i) = Chr(9) & "Type Form1 Extends Form" Then
+								.txtCode.ReplaceLine(i, Chr(9) & "Type " & NewFormName & " Extends Form")
+							ElseIf .txtCode.Lines(i) = Chr(9) & "Type Form1Type Extends Form" Then
+								.txtCode.ReplaceLine(i, Chr(9) & "Type " & NewFormName & "Type Extends Form")
+							ElseIf .txtCode.Lines(i) = Chr(9) & "Dim Shared fForm1 As Form1" Then
+								.txtCode.ReplaceLine(i, Chr(9) & "Dim Shared f" & NewFormName & " As " & NewFormName)
+							ElseIf .txtCode.Lines(i) = Chr(9) & "Dim Shared Form1 As Form1Type" Then
+								.txtCode.ReplaceLine(i, Chr(9) & "Dim Shared " & NewFormName & " As " & NewFormName & "Type")
+							ElseIf .txtCode.Lines(i) = Chr(9) & Chr(9) & "fForm1.Show" Then
+								.txtCode.ReplaceLine(i, Chr(9) & Chr(9) & "f" & NewFormName & ".Show")
+								Exit For
+							ElseIf .txtCode.Lines(i) = Chr(9) & Chr(9) & "Form1.Show" Then
+								.txtCode.ReplaceLine(i, Chr(9) & Chr(9) & NewFormName & ".Show")
+								Exit For
+							End If
 						End If
 					Next
 				End If

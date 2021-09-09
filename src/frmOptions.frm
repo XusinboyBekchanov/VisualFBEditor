@@ -1191,6 +1191,15 @@ pfOptions = @fOptions
 			.SetBounds 222, 65, 175, 21
 			.Parent = @grbWhenVFBEStarts
 		End With
+		' chkCreateFormTypesWithoutTypeWord
+		With chkCreateFormTypesWithoutTypeWord
+			.Name = "chkCreateFormTypesWithoutTypeWord"
+			.Text = ML("Create Form types without Type word")
+			.TabIndex = 173
+			.SetBounds 12, 148, 288, 24
+			.Caption = ML("Create Form types without Type word")
+			.Parent = @pnlDesigner
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1250,6 +1259,7 @@ Sub frmOptions.LoadSettings()
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
 		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
+		.chkCreateFormTypesWithoutTypeWord.Checked = CreateFormTypesWithoutTypeWord
 		Select Case WhenVisualFBEditorStarts
 		Case 0: .optDoNotNothing.Checked = True
 		Case 1: .optPromptForProjectAndFile.Checked = True
@@ -1865,6 +1875,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
+		CreateFormTypesWithoutTypeWord = .chkCreateFormTypesWithoutTypeWord.Checked
 		If .cboDefaultProjectFile.ItemIndex = -1 Then
 			WLet(DefaultProjectFile, "")
 		Else
@@ -2034,6 +2045,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "ShowAlignmentGrid", ShowAlignmentGrid
 		piniSettings->WriteBool "Options", "SnapToGrid", SnapToGridOption
 		piniSettings->WriteBool "Options", "CreateNonStaticEventHandlers", CreateNonStaticEventHandlers
+		piniSettings->WriteBool "Options", "CreateFormTypesWithoutTypeWord", CreateFormTypesWithoutTypeWord
 		piniSettings->WriteBool "Options", "ChangeKeywordsCase", ChangeKeywordsCase
 		piniSettings->WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeywordsCase
 		piniSettings->WriteBool "Options", "AddSpacesToOperators", AddSpacesToOperators

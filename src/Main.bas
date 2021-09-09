@@ -3785,6 +3785,7 @@ Sub LoadSettings
 	
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
+	CreateFormTypesWithoutTypeWord = iniSettings.ReadBool("Options", "CreateFormTypesWithoutTypeWord", False)
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
 	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects"))
