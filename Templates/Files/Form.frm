@@ -6,14 +6,14 @@
 	
 	Using My.Sys.Forms
 	
-	Type Form1 Extends Form
+	Type Form1Type Extends Form
 		
 	End Type
 	
-	Dim Shared fForm1 As Form1
+	Dim Shared Form1 As Form1Type
 	
 	#ifndef _NOT_AUTORUN_FORMS_
-		fForm1.Show
+		Form1.Show
 		
 		App.Run
 	#endif

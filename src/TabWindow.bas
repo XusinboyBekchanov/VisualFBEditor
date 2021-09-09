@@ -1381,6 +1381,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	If tb->Des->DesignControl = 0 Then Return 0
 	'Dim As Integer iLeft, iTop, iWidth, iHeight
 	Dim frmName As WString * 100
+	Dim frmTypeName As WString * 100
 	Dim CtrlName As WString * 100
 	Dim CtrlNameBase As WString * 100
 	frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
@@ -1408,6 +1409,13 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 				WLet(FLine1, Left(ptxtCode->Lines(k), sl))
 				tp = k
 				b = True
+				frmTypeName = frmName
+			ElseIf StartsWith(*FLine2, "type " & LCase(frmName) & "type ") Then
+				sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
+				WLet(FLine1, Left(ptxtCode->Lines(k), sl))
+				tp = k
+				b = True
+				frmTypeName = frmName & "Type"
 			ElseIf b Then
 				If StartsWith(*FLine2 & " ", "end type ") Then
 					j = k
@@ -1471,7 +1479,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	t = False
 	For i = i To tb->txtCode.LinesCount - 1
 		For k = iStart To IIf(ptxtCode = @tb->txtCode, i, ptxtCode->LinesCount - 1)
-			If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & " ") Then
+			If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & " ") Or StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & "type ") Then
 				sc = k
 				b = True
 			ElseIf b Then
@@ -1535,7 +1543,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	If sc = 0 Then
 		CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 		ptxtCode->InsertLine ep + 2, *FLine1
-		ptxtCode->InsertLine ep + 3, *FLine1 & "Constructor " & frmName: tb->ConstructorStart = ep + 3
+		ptxtCode->InsertLine ep + 3, *FLine1 & "Constructor " & frmTypeName: tb->ConstructorStart = ep + 3
 		ptxtCode->InsertLine ep + 4, *FLine1 & TabSpace & "' " & frmName
 		ptxtCode->InsertLine ep + 5, *FLine1 & TabSpace & "With This"
 		ptxtCode->InsertLine ep + 6, *FLine1 & TabSpace & TabSpace & ".Name = """ & frmName & """"
@@ -1691,6 +1699,12 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName) + 6)
 				End If
+			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "type " & LCase(frmName) & "type ") Then
+				c = True
+				If iIndex = 1 Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName & "Type") + 6)
+				End If
 			ElseIf c Then
 				If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "end type ") Then
 					c = False
@@ -1707,6 +1721,12 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName) + 13)
+				End If
+				b = True
+			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & "type ") Then
+				If iIndex = 1 Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName & "Type") + 13)
 				End If
 				b = True
 			ElseIf b Then
@@ -1729,18 +1749,36 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 				If StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "private sub " & LCase(OldName) & ".") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 13)
+				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "private sub " & LCase(OldName) & "type.") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 13)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "public sub " & LCase(OldName) & ".") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 11) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 12)
+				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "public sub " & LCase(OldName) & "type.") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 11) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 12)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "*cast(" & LCase(OldName) & " ") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 7)
+				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "*cast(" & LCase(OldName) & "type ") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 7)
 				End If
 			End If
 			If iIndex = 1 Then
-				If EndsWith(RTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), " as " & LCase(OldName)) Then
+				If EndsWith(RTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(OldName) & " as " & LCase(OldName) & "type") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) * 2 - 8) & NewName & " As " & NewName & "Type"
+				ElseIf EndsWith(RTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), " as " & LCase(OldName) & "type") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) - 4) & NewName & "Type"
+				ElseIf EndsWith(RTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), " as " & LCase(OldName)) Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName)) & NewName
+				ElseIf EndsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(OldName) & ".show") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) - 5) & NewName & ".Show"
 				End If
 			End If
 		Next
@@ -2138,6 +2176,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	If tb->Des->DesignControl = 0 Then Exit Sub
 	If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
 	Dim frmName As String
+	Dim frmTypeName As String
 	frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 	If Cpnt = 0 Then Exit Sub
 	Dim CtrlName As String = WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
@@ -2172,6 +2211,11 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			If (Not b) AndAlso StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "type " & LCase(frmName) & " ") Then
 				b = True
 				ptxtCodeType = ptxtCode
+				frmTypeName = frmName
+			ElseIf (Not b) AndAlso StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "type " & LCase(frmName) & "type ") Then
+				b = True
+				ptxtCodeType = ptxtCode
+				frmTypeName = frmName & "Type"
 			ElseIf b Then
 				If Not e Then
 					If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end type ") Then
@@ -2185,7 +2229,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 						End If
 					End If
 				ElseIf e Then
-					If (Not c) AndAlso StartsWith(LCase(Trim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & " ") Then
+					If (Not c) AndAlso StartsWith(LCase(Trim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmTypeName) & " ") Then
 						c = True
 						ptxtCodeConstructor = ptxtCode
 					ElseIf c Then
@@ -2216,9 +2260,9 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 								f = True
 							End If
 						ElseIf f Then
-							If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Sub " & frmName & "." & SubName)) OrElse _
-								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Private Sub " & frmName & "." & SubName)) OrElse _
-								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Sub " & frmName & "." & SubName)) Then
+							If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Sub " & frmTypeName & "." & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Private Sub " & frmTypeName & "." & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Sub " & frmTypeName & "." & SubName)) Then
 								Var n = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
 								ptxtCode->SetSelection k + 1, k + 1, n + Len(TabSpace), n + Len(TabSpace)
 								ptxtCode->TopLine = k
@@ -2266,12 +2310,12 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		q = q1
 		ptxtCode->InsertLine i + q, ""
 		If CreateNonStaticEventHandlers Then
-			ptxtCode->InsertLine i + q + 1, "Private Sub " & frmName & "." & SubName & "_" & Mid(te->TypeName, 4)
-			ptxtCode->InsertLine i + q + 2, TabSpace & "*Cast(" & frmName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
+			ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & "_" & Mid(te->TypeName, 4)
+			ptxtCode->InsertLine i + q + 2, TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
 			ptxtCode->InsertLine i + q + 3, "End Sub"
 			q += 3
 		End If
-		ptxtCode->InsertLine i + q + 1, "Private Sub " & frmName & "." & SubName & Mid(te->TypeName, 4)
+		ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & Mid(te->TypeName, 4)
 		ptxtCode->InsertLine i + q + 2, TabSpace
 		ptxtCode->InsertLine i + q + 3, "End Sub"
 		bNotDesignForms = True
@@ -4174,7 +4218,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					pnlTopMenu.Visible = False
 				End If
 				Pos1 = InStr(Trim(LCase(*FLine), Any !"\t "), " extends ")
-				frmName = Mid(Trim(*FLine, Any !"\t "), 6, Pos1 - 6)
+				frmTypeName = Mid(Trim(*FLine, Any !"\t "), 6, Pos1 - 6)
+				If EndsWith(LCase(frmTypeName), "type") Then
+					frmName = Left(frmTypeName, Len(frmTypeName) - 4)
+				Else
+					frmName = frmTypeName
+				End If
 				If Des AndAlso Des->DesignControl = 0 Then
 					With *Des
 						If EndsWith(Trim(LCase(*FLine), Any !"\t "), " usercontrol") Then
@@ -4300,7 +4349,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							End If
 						End If
 					End If
-				ElseIf CInt(Not c) AndAlso CInt(StartsWith(LTrim(LCase(*FLine), Any !"\t ") & " ", "constructor " & LCase(frmName) & " ")) Then
+				ElseIf CInt(Not c) AndAlso CInt(StartsWith(LTrim(LCase(*FLine), Any !"\t ") & " ", "constructor " & LCase(frmTypeName) & " ")) Then
 					ConstructorStart = j
 					c = True
 				ElseIf CInt(c) AndAlso Trim(LCase(*FLine), Any !"\t ") = "end constructor" Then

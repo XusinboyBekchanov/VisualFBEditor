@@ -163,6 +163,7 @@ Private:
 	Dim As EditControlLine Ptr ECLine, ECLine2
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim frmName As String
+	Dim frmTypeName As String
 	Dim As Boolean b, t, c
 	Dim As Integer Pos1, Pos2, l, p, p1
 	Dim As Integer lvPropertyCount, lvEventCount
