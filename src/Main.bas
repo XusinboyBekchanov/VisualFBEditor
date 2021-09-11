@@ -4359,7 +4359,7 @@ Sub CreateMenusAndToolBars
 						Dim As HICON IcoHandle
 						ExtractIconEx(tt->Path, NULL, NULL, @IcoHandle, 1)
 						Bitm = IcoHandle
-						DeleteObject IcoHandle
+						DestroyIcon IcoHandle
 					#endif
 					mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool)
 					mi->Tag = tt
@@ -4453,14 +4453,14 @@ Sub CreateMenusAndToolBars
 	tbStandard.Buttons.Add tbsAutosize, "New",,@mClick, "New", , ML("New") & " (Ctrl+N)", True
 	tbStandard.Buttons.Add , "Open",, @mClick, "Open", , ML("Open") & " (Ctrl+O)", True
 	tbStandard.Buttons.Add , "Save",, @mClick, "Save", , ML("Save") & "..." & " (Ctrl+S)", True
-	tbStandard.Buttons.Add , "SaveAll",, @mClick, "SaveAll", , ML("Save &All") & " (Shift+Ctrl+S)", True
+	tbStandard.Buttons.Add , "SaveAll", , @mClick, "SaveAll", , ML("Save &All") & " (Shift+Ctrl+S)", True
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add , "Undo",, @mClick, "Undo", , ML("Undo") & " (Ctrl+Z)", True
 	tbStandard.Buttons.Add , "Redo",, @mClick, "Redo", , ML("Redo") & " (Ctrl+Y)", True
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add , "Cut",, @mClick, "Cut", , ML("Cut") & " (Ctrl+X)", True
 	tbStandard.Buttons.Add , "Copy",, @mClick, "Copy", , ML("Copy") & " (Ctrl+C)", True
-	tbStandard.Buttons.Add , "Paste",, @mClick, "Paste", , ML("Paste") & " (Ctrl+V)", True
+	tbStandard.Buttons.Add , "Paste", , @mClick, "Paste", , ML("Paste") & " (Ctrl+V)", True
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add , "Find",, @mClick, "Find", , ML("Find") & " (Ctrl+F)", True
 	tbStandard.Buttons.Add tbsSeparator

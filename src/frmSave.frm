@@ -22,7 +22,7 @@
 		' lstFiles
 		With lstFiles
 			.Name = "lstFiles"
-			.MultiSelect = True
+			.SelectionMode = SelectionModes.smMultiExtended
 			.TabIndex = 0
 			.SetBounds 10, 30, 290, 230
 			.Parent = @This

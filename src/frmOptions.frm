@@ -2237,6 +2237,7 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 	With fOptions
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
+		If UBound(.Colors, 1) < 0 Then Exit Sub
 		.lblColorForeground.BackColor = Max(0, .Colors(i, 0))
 		.chkForeground.Checked = .Colors(i, 0) = -1
 		
