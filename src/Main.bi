@@ -186,6 +186,7 @@ Declare Sub SetAsMain()
 Declare Sub SetAutoColors
 Declare Sub StartProgress()
 Declare Sub StopProgress()
+Declare Sub ThreadCounter(Id As Any Ptr)
 Declare Function EqualPaths(ByRef a As WString, ByRef b As WString) As Boolean
 Declare Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 Declare Sub ChangeUseDebugger(bUseDebugger As Boolean, ChangeObject As Integer = -1)

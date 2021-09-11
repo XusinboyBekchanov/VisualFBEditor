@@ -78,10 +78,10 @@ Sub RunCmd(Param As Any Ptr)
 End Sub
 
 Sub FindInFiles
-	ThreadCreate(@FindSub)
+	ThreadCounter(ThreadCreate(@FindSub))
 End Sub
 Sub ReplaceInFiles
-	ThreadCreate(@ReplaceSub)
+	ThreadCounter(ThreadCreate(@ReplaceSub))
 End Sub
 
 Sub mClickMRU(Sender As My.Sys.Object)
@@ -108,7 +108,7 @@ End Sub
 Sub mClickHelp(ByRef Sender As My.Sys.Object)
 	HelpOption.CurrentPath = Cast(MenuItem Ptr, @Sender)->ImageKey
 	HelpOption.CurrentWord = ""
-	ThreadCreate(@RunHelp, @HelpOption)
+	ThreadCounter(ThreadCreate(@RunHelp, @HelpOption))
 End Sub
 
 Sub mClickTool(ByRef Sender As My.Sys.Object)
@@ -135,7 +135,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Print":                               PrintThis
 	Case "PrintPreview":                        PrintPreview
 	Case "PageSetup":                           PageSetup
-	Case "CommandPrompt":                       ThreadCreate(@RunCmd)
+	Case "CommandPrompt":                       ThreadCounter(ThreadCreate(@RunCmd))
 	Case "AddFromTemplates":                    AddFromTemplates
 	Case "AddFilesToProject":                   AddFilesToProject
 	Case "RemoveFileFromProject":               RemoveFileFromProject
@@ -161,12 +161,12 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
-	Case "SyntaxCheck":                         If SaveAllBeforeCompile Then ThreadCreate(@SyntaxCheck)
-	Case "Compile":                             If SaveAllBeforeCompile Then ThreadCreate(@CompileProgram)
-	Case "Make":                                If SaveAllBeforeCompile Then ThreadCreate(@MakeExecute)
-	Case "MakeClean":                           ThreadCreate(@MakeClean)
-	Case "FormatProject":                       ThreadCreate(@FormatProject) 'FormatProject 0
-	Case "UnformatProject":                     ThreadCreate(@FormatProject, Cast(Any Ptr, 1)) 'FormatProject Cast(Any Ptr, 1)
+	Case "SyntaxCheck":                         If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@SyntaxCheck))
+	Case "Compile":                             If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@CompileProgram))
+	Case "Make":                                If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@MakeExecute))
+	Case "MakeClean":                           ThreadCounter(ThreadCreate(@MakeClean))
+	Case "FormatProject":                       ThreadCounter(ThreadCreate(@FormatProject)) 'FormatProject 0
+	Case "UnformatProject":                     ThreadCounter(ThreadCreate(@FormatProject, Cast(Any Ptr, 1))) 'FormatProject Cast(Any Ptr, 1)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "StartWithCompile"
 		If SaveAllBeforeCompile Then
@@ -184,9 +184,9 @@ Sub mClick(Sender As My.Sys.Object)
 					'runtype = RTRUN
 					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 				#endif
-				ThreadCreate(@StartDebuggingWithCompile)
+				ThreadCounter(ThreadCreate(@StartDebuggingWithCompile))
 			Else
-				ThreadCreate(@CompileAndRun)
+				ThreadCounter(ThreadCreate(@CompileAndRun))
 			End If
 		End If
 	Case "Start"
@@ -203,9 +203,9 @@ Sub mClick(Sender As My.Sys.Object)
 				'runtype = RTRUN
 				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 			#endif
-			ThreadCreate(@StartDebugging)
+			ThreadCounter(ThreadCreate(@StartDebugging))
 		Else
-			ThreadCreate(@RunProgram)
+			ThreadCounter(ThreadCreate(@RunProgram))
 		End If
 	Case "Break":
 		#ifdef __USE_GTK__
@@ -245,7 +245,7 @@ Sub mClick(Sender As My.Sys.Object)
 			'runtype = RTRUN
 			CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 			Restarting = True
-			ThreadCreate(@StartDebugging)
+			ThreadCounter(ThreadCreate(@StartDebugging))
 		#endif
 	Case "StepInto":
 		If InDebug Then
@@ -261,7 +261,7 @@ Sub mClick(Sender As My.Sys.Object)
 				runtype = RTSTEP
 				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 			#endif
-			ThreadCreate(@StartDebugging)
+			ThreadCounter(ThreadCreate(@StartDebugging))
 		End If
 	Case "StepOver":
 		If InDebug Then
@@ -278,7 +278,7 @@ Sub mClick(Sender As My.Sys.Object)
 				runtype = RTFRUN
 				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
 			#endif
-			ThreadCreate(@StartDebugging)
+			ThreadCounter(ThreadCreate(@StartDebugging))
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
 		"Start", "Stop", "StepOut", "FindNext","FindPrev", "Goto", "SetNextStatement", "SortLines", _
@@ -312,7 +312,7 @@ Sub mClick(Sender As My.Sys.Object)
 					RunningToCursor = True
 					runtype = RTFRUN
 					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
-					ThreadCreate(@StartDebugging)
+					ThreadCounter(ThreadCreate(@StartDebugging))
 				End If
 			Case "AddWatch":                var_tip(2)
 			#endif
@@ -449,7 +449,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Options":                         pfOptions->Show *pfrmMain
 	Case "AddIns":                          pfAddIns->Show *pfrmMain
 	Case "Tools":                           pfTools->Show *pfrmMain
-	Case "Content":                         ThreadCreate(@RunHelp)
+	Case "Content":                         ThreadCounter(ThreadCreate(@RunHelp))
 	Case "FreeBasicForums":                 OpenUrl "https://www.freebasic.net/forum/index.php"
 	Case "FreeBasicWiKi":                   OpenUrl "https://www.freebasic.net/wiki/wikka.php?wakka=PageIndex"
 	Case "GitHubWebSite":                   OpenUrl "https://github.com"

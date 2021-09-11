@@ -3049,7 +3049,7 @@ Sub FindProcessStartStop()
 		Else
 			StartProgress
 			.cmdFindCompilers.Text = ML("Stop")
-			ThreadCreate(@FindCompilersSub)
+			ThreadCounter(ThreadCreate(@FindCompilersSub))
 		End If
 		.cmdAddCompiler.Enabled = bStop
 		.cmdChangeCompiler.Enabled = bStop

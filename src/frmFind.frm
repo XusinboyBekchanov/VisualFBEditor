@@ -558,7 +558,7 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex
 					lvSearchResult->ListItems.Clear
 				End If
 				gSearchItemIndex = 0
-				ThreadCreate(@FindSubProj)
+				ThreadCounter(ThreadCreate(@FindSubProj))
 				wLet(gSearchSave, *Search)
 			End If
 		End If
@@ -649,7 +649,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 	If OptFindinProject.Checked Then
 		Dim As ExplorerElement Ptr ee = MainNode->Tag
 		If ee AndAlso *ee->FileName <> "" Then
-			ThreadCreate(@ReplaceSubProj)
+			ThreadCounter(ThreadCreate(@ReplaceSubProj))
 		End If
 	Else
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)

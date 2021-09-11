@@ -678,7 +678,7 @@ Function TabWindow.SaveTab As Boolean
 		End If
 		'LoadFunctions FileName, LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
 		MutexUnlock tlockSave
-		ThreadCreate(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName)))
+		ThreadCounter(ThreadCreate(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
 	End If
 	Return True
 End Function
@@ -2071,7 +2071,7 @@ Sub OnToolTipLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
 			'Else
 			HelpOption.CurrentWord = res(3)
 			'End If
-			ThreadCreate(@RunHelp, @HelpOption)
+			ThreadCounter(ThreadCreate(@RunHelp, @HelpOption))
 		Else
 			SelectSearchResult res(0), Val(res(1)) + 1, , , , res(2)
 		End If
@@ -3891,7 +3891,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
 						If Not pLoadPaths->Contains(*FPath) Then
 							pLoadPaths->Add *FPath
-							ThreadCreate(@LoadFunctionsSub, @pLoadPaths->Item(pLoadPaths->Count - 1))
+							ThreadCounter(ThreadCreate(@LoadFunctionsSub, @pLoadPaths->Item(pLoadPaths->Count - 1)))
 						End If
 					End If
 				#endif
