@@ -29,6 +29,7 @@
 #include once "mff/TreeView.bi"
 #include once "mff/TreeListView.bi"
 #include once "mff/IniFile.bi"
+#include once "mff/PointerList.bi"
 #include once "vbcompat.bi"
 
 Using My.Sys.Forms
@@ -1149,6 +1150,11 @@ Function IfNegative(Value As Integer, NonNegative As Integer) As Integer
 	End If
 End Function
 
+Dim Shared As PointerList Threads
+Sub ThreadCounter(Id As Any Ptr)
+	Threads.Add Id
+End Sub
+
 Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean = False) As TreeNode Ptr
 	Dim As ExplorerElement Ptr ee
 	Dim As TreeNode Ptr tn3
@@ -1269,7 +1275,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
 						pFiles->Add *ee->FileName
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
-						ThreadCreate(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName)))
+						ThreadCounter(ThreadCreate(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
 					End If
 					If inFolder Then
 						ppe->Files.Add *ee->FileName
@@ -1344,7 +1350,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		End If
 		If pFilesList = 0 Then
 			For i As Integer = 0 To pFiles->Count - 1
-				ThreadCreate(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i))))
+				ThreadCounter(ThreadCreate(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i)))))
 			Next
 		End If
 	End If
@@ -1437,7 +1443,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn ' For No MainFIle
 		Close #Fn
 		For i As Integer = 0 To Files.Count - 1
-			ThreadCreate(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i))))
+			ThreadCounter(ThreadCreate(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
 		Next
 		Return True
 	End If
@@ -4921,7 +4927,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 					End If
 					mLoadLog = True
 				ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
-					ThreadCreate(@FindToDoSub, ptn)
+					ThreadCounter(ThreadCreate(@FindToDoSub, ptn))
 					mLoadToDo = True
 				End If
 			End If
@@ -6003,7 +6009,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 			mLoadLog = True
 		ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
 			mLoadToDo = True
-			ThreadCreate(@FindToDoSub, MainNode)
+			ThreadCounter(ThreadCreate(@FindToDoSub, MainNode))
 		End If
 	End If
 End Sub
@@ -6727,6 +6733,12 @@ Sub OnProgramQuit() Destructor
 	WDeallocate MFFPath
 	WDeallocate MFFDll
 	WDeallocate gSearchSave
+	For i As Integer = 0 To Threads.Count - 1
+		ThreadWait Threads.Item(i)
+	Next
+	MutexDestroy ToDoLock
+	MutexDestroy tlock
+	MutexDestroy tlockSave
 	Dim As UserToolType Ptr tt
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To Tools.Count - 1
