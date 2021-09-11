@@ -1279,6 +1279,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	'
 	Dim FLine As WString Ptr
 	Dim frmName As WString * 100
+	Dim frmTypeName As WString * 100
 	Dim CtrlName As WString * 100
 	Dim CtrlNameNew As WString * 100
 	If tb->Des->ReadPropertyFunc <> 0 Then
@@ -1301,6 +1302,10 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 			wLet(FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
 			If Not b AndAlso StartsWith(*FLine, "type " & LCase(frmName) & " ") Then
 				b = True
+				frmTypeName = frmName
+			ElseIf Not b AndAlso StartsWith(*FLine, "type " & LCase(frmName & "Type ")) Then
+				b = True
+				frmTypeName = frmName & "Type"
 			ElseIf b AndAlso StartsWith(*FLine & " ", "end type ") Then
 				s = k
 				Exit Do, Do
@@ -1350,7 +1355,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		k = iStart
 		Do While k <= IIf(ptxtCode = @tb->txtCode, i, ptxtCode->LinesCount - 1)
 			wLet(FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
-			If Not b AndAlso StartsWith(*FLine & " ", "constructor " & LCase(frmName) & " ") Then
+			If Not b AndAlso StartsWith(*FLine & " ", "constructor " & LCase(frmTypeName) & " ") Then
 				b = True
 			ElseIf b AndAlso StartsWith(*FLine & " ", "end constructor ") Then
 				Exit Do, Do
