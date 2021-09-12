@@ -331,6 +331,11 @@ Namespace My.Sys.Forms
 			gtk_widget_get_allocation(widget, @allocation)
 			*x = *x + allocation.x
 			*y = *y + allocation.y
+			If gtk_is_frame(gtk_widget_get_parent(widget)) Then
+				gtk_widget_get_allocation(gtk_widget_get_parent(widget), @allocation)
+				*x = *x - allocation.x
+				*y = *y - allocation.y
+			End If
 			If ParentWidget = gtk_widget_get_parent(widget) Then
 				If x1 <> -1 Then *x = x1
 				If y1 <> -1 Then *y = y1
@@ -394,7 +399,7 @@ Namespace My.Sys.Forms
 					If ControlHandle2 = ControlHandle Then
 						If Width1 <> -1 Then iWidth = Width1
 						If Height1 <> -1 Then iHeight = Height1
-						GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(DesignControl, "layoutwidget")
+						GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
 					Else
 						GetPosToClient ControlHandle2, FDialogParent, @x, @y
 					End If
@@ -1697,10 +1702,12 @@ Namespace My.Sys.Forms
 			cairo_set_line_width (cr, 0.1)
 			cairo_set_dash(cr, @dashed, 0.5, 1.5)
 			For j As Integer = 0 To SelectedControls.Count - 1
-				ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft, @FTop, @FWidth, @FHeight)
-				'GetPosToClient ReadPropertyFunc(SelectedControls.Items[j], "widget"), layoutwidget, @FLeft, @FTop
-				cairo_rectangle(cr, FLeft - 2, FTop - 2, FWidth + 4, FHeight + 4)
-				cairo_stroke(cr)
+				If ReadPropertyFunc(SelectedControls.Items[j], "Parent") = DesignControl Then
+					ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft, @FTop, @FWidth, @FHeight)
+					'GetPosToClient ReadPropertyFunc(SelectedControls.Items[j], "widget"), layoutwidget, @FLeft, @FTop
+					cairo_rectangle(cr, FLeft - 2, FTop - 2, FWidth + 4, FHeight + 4)
+					cairo_stroke(cr)
+				End If
 			Next j
 		#else
 			Dim As HDC mDc
@@ -2576,8 +2583,11 @@ Namespace My.Sys.Forms
 							Case Keys.Down: FTop = FTop + FStepY1
 							End Select
 						End If
-						ComponentSetBoundsSub(Q_ComponentFunc(SelectedControl), FLeft, FTop, FWidth, FHeight)
-						MoveDots(SelectedControl, , FLeft, FTop, FWidth, FHeight)
+						ComponentSetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft, FTop, FWidth, FHeight)
+						Dim As Integer FrameTop
+						Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControls.Items[j], "Parent")
+						If CInt(ParentCtrl) AndAlso CInt(QWString(ReadPropertyFunc(ParentCtrl, "ClassName")) = "GroupBox") Then FrameTop = 20
+						MoveDots(SelectedControls.Items[j], , FLeft, FTop - FrameTop, FWidth, FHeight)
 						If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeft, FTop, FWidth, FHeight)
 					Next
 				EndIf
