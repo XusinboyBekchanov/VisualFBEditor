@@ -399,7 +399,11 @@ Namespace My.Sys.Forms
 					If ControlHandle2 = ControlHandle Then
 						If Width1 <> -1 Then iWidth = Width1
 						If Height1 <> -1 Then iHeight = Height1
-						GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
+						If ReadPropertyFunc(SelectedControls.Items[j], "Parent") Then
+							GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
+						Else
+							GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, 0
+						End If
 					Else
 						GetPosToClient ControlHandle2, FDialogParent, @x, @y
 					End If
