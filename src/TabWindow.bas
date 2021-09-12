@@ -2796,8 +2796,13 @@ Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boo
 	If tb = 0 Then Exit Sub
 	Dim As String sTemp2 = Value
 	If tb->Des AndAlso tb->Des->ReadPropertyFunc <> 0 Then
-		If CInt(LCase(sTemp2) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) AndAlso CInt(StartsWith(tb->cboFunction.Text, WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & " ") OrElse StartsWith(tb->cboFunction.Text, WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & ".")) Then
-			sTemp2 = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+		If CInt(LCase(sTemp2) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) Then
+			Dim As String frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+			If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
+				sTemp2 = frmName
+			ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
+				sTemp2 = frmName & "Type"
+			End If
 		End If
 	End If
 	FListItems.Clear
@@ -3194,8 +3199,13 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		Next
 	End If
 	If tb->Des AndAlso tb->Des->ReadPropertyFunc <> 0 Then
-		If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) AndAlso CInt(StartsWith(tb->cboFunction.Text, WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & " ") OrElse StartsWith(tb->cboFunction.Text, WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & ".")) Then
-			sTemp = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+		If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) Then
+			Dim As String frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+			If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
+				sTemp = frmName
+			ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
+				sTemp = frmName & "Type"
+			End If
 		End If
 	End If
 	Dim As TypeElement Ptr te, te1
