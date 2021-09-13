@@ -742,7 +742,12 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	fFind.lblTrack.Text = WStr(CUInt(TrackBar1.Position/2.55))
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb <> 0 Then
-		Dim As String FindText = tb->txtCode.GetWordAtCursor
+		Dim As String FindText
+		If tb->txtCode.SelText = "" Then
+			FindText = tb->txtCode.GetWordAtCursor
+		Else
+			FindText = tb->txtCode.SelText
+		End If
 		If txtFind.Contains(FindText) = False Then txtFind.AddItem FindText
 		txtFind.Text = FindText
 	End If
