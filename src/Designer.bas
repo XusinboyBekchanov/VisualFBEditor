@@ -396,23 +396,29 @@ Namespace My.Sys.Forms
 					#endif
 					x = 0
 					y = 0
+					Dim As gint NewX, NewY
 					If ControlHandle2 = ControlHandle Then
 						If Width1 <> -1 Then iWidth = Width1
 						If Height1 <> -1 Then iHeight = Height1
 						If ReadPropertyFunc(SelectedControls.Items[j], "Parent") Then
-							GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
+							'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
+							gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
 						Else
-							GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, 0
+							'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, 0
+							gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
 						End If
 					Else
-						GetPosToClient ControlHandle2, FDialogParent, @x, @y
+						gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						'GetPosToClient ControlHandle2, FDialogParent, @x, @y
 					End If
-					P.x     = x
-					P.y     = y
+					P.x     = NewX
+					P.y     = NewY
 					Dim As GdkDisplay Ptr pdisplay
 					Dim As GdkCursor Ptr gcurs
 					For i As Integer = 0 To 7
 						If gtk_is_widget(FDots(j, i)) Then gtk_container_remove(gtk_container(FDialogParent), FDots(j, i))
+					Next i
+					For i As Integer = 0 To 7
 						FDots(j, i) = gtk_layout_new(NULL, NULL)
 						gtk_widget_set_size_request(FDots(j, i), FDotSize, FDotSize)
 						gtk_widget_set_events(FDots(j, i), _
@@ -2591,6 +2597,7 @@ Namespace My.Sys.Forms
 						Dim As Integer FrameTop
 						Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControls.Items[j], "Parent")
 						If CInt(ParentCtrl) AndAlso CInt(QWString(ReadPropertyFunc(ParentCtrl, "ClassName")) = "GroupBox") Then FrameTop = 20
+						pApp->DoEvents
 						MoveDots(SelectedControls.Items[j], , FLeft, FTop - FrameTop, FWidth, FHeight)
 						If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeft, FTop, FWidth, FHeight)
 					Next
