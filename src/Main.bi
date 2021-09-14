@@ -108,6 +108,7 @@ Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBr
 Common Shared As Boolean mTabSelChangeByError
 Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar
 Common Shared As Boolean ShowKeywordsToolTip
+Common Shared As Boolean OpenCommandPromptInMainFileFolder
 Common Shared As Integer WhenVisualFBEditorStarts
 Common Shared As Integer AutoSaveBeforeCompiling
 Common Shared As Integer IncludeMFFPath
@@ -118,7 +119,7 @@ Common Shared As String CurLanguage
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave
-Common Shared As WString Ptr ProjectsPath, LastOpenPath
+Common Shared As WString Ptr ProjectsPath, LastOpenPath, CommandPromptFolder
 Common Shared As WString Ptr DefaultHelp, HelpPath, KeywordsHelpPath
 Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2
 Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, CurrentDebugger32, CurrentDebugger64, DefaultTerminal, CurrentTerminal

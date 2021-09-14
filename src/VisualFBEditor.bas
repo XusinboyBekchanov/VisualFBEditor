@@ -52,18 +52,22 @@ End Sub
 Sub RunCmd(Param As Any Ptr)
 	Dim As UString MainFile = GetMainFile()
 	Dim As UString cmd
+	Dim As WString Ptr Workdir, CmdL
+	If Trim(MainFile) = "" OrElse Trim(MainFile) = ML("Untitled") Then MainFile = GetFullPath(*ProjectsPath & "\1", pApp->FileName)
+	If OpenCommandPromptInMainFileFolder Then
+		WLet(Workdir, GetFolderName(MainFile))
+	Else
+		WLet(Workdir, *CommandPromptFolder)
+	End If
 	#ifdef __USE_GTK__
-		cmd = WGet(TerminalPath) & " --working-directory=""" & GetFolderName(MainFile) & """"
+		cmd = WGet(TerminalPath) & " --working-directory=""" & *Workdir & """"
 		Shell(cmd)
 	#else
-		If Trim(MainFile) = "" Then MainFile = GetFullPath(*ProjectsPath & "\1", pApp->FileName)
-		cmd = Environ("COMSPEC") & " /K cd /D """ & GetFolderName(MainFile) & """"
+		cmd = Environ("COMSPEC") & " /K cd /D """ & *Workdir & """"
 		Dim As Integer pClass
-		Dim As WString Ptr Workdir, CmdL
 		Dim SInfo As STARTUPINFO
 		Dim PInfo As PROCESS_INFORMATION
 		WLet(CmdL, cmd)
-		WLet(Workdir, GetFolderName(MainFile))
 		SInfo.cb = Len(SInfo)
 		SInfo.dwFlags = STARTF_USESHOWWINDOW
 		SInfo.wShowWindow = SW_NORMAL
@@ -72,9 +76,9 @@ Sub RunCmd(Param As Any Ptr)
 			CloseHandle(pinfo.hProcess)
 			CloseHandle(pinfo.hThread)
 		End If
-		If WorkDir Then Deallocate_( WorkDir)
 		If CmdL Then Deallocate_( CmdL)
 	#endif
+	If WorkDir Then Deallocate_( WorkDir)
 End Sub
 
 Sub FindInFiles

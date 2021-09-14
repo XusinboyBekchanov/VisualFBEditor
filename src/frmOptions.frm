@@ -226,14 +226,14 @@ pfOptions = @fOptions
 		With grbTerminalPaths
 			.Name = "grbTerminalPaths"
 			.Text = ML("Terminal Paths")
-			.SetBounds 10, 70, 416, 328
+			.SetBounds 10, 170, 416, 228
 			.Parent = @pnlTerminal
 		End With
 		' lvTerminalPath
 		With lvTerminalPaths
 			.Name = "lvTerminalPaths"
 			.Text = "lvTerminalPaths"
-			.SetBounds 18, 22, 384, 256
+			.SetBounds 18, 22, 384, 156
 			.Designer = @This
 			.OnItemActivate = @lvTerminalPaths_ItemActivate_
 			.Parent = @grbTerminalPaths
@@ -242,7 +242,7 @@ pfOptions = @fOptions
 		With cmdAddTerminal
 			.Name = "cmdAddTerminal"
 			.Text = ML("&Add")
-			.SetBounds 17, 289, 96, 24
+			.SetBounds 17, 188, 96, 24
 			.OnClick = @cmdAddTerminal_Click
 			.Parent = @grbTerminalPaths
 		End With
@@ -250,7 +250,7 @@ pfOptions = @fOptions
 		With cmdRemoveTerminal
 			.Name = "cmdRemoveTerminal"
 			.Text = ML("&Remove")
-			.SetBounds 211, 289, 96, 24
+			.SetBounds 211, 188, 96, 24
 			.OnClick = @cmdRemoveTerminal_Click
 			.Parent = @grbTerminalPaths
 		End With
@@ -258,7 +258,7 @@ pfOptions = @fOptions
 		With cmdClearTerminals
 			.Name = "cmdClearTerminals"
 			.Text = ML("&Clear")
-			.SetBounds 307, 289, 96, 24
+			.SetBounds 307, 188, 96, 24
 			.OnClick = @cmdClearTerminals_Click
 			.Parent = @grbTerminalPaths
 		End With
@@ -404,7 +404,7 @@ pfOptions = @fOptions
 		' cmdChangeTerminal
 		cmdChangeTerminal.Name = "cmdChangeTerminal"
 		cmdChangeTerminal.Text = ML("Chan&ge")
-		cmdChangeTerminal.SetBounds 114, 289, 96, 24
+		cmdChangeTerminal.SetBounds 114, 188, 96, 24
 		cmdChangeTerminal.OnClick = @cmdChangeTerminal_Click
 		cmdChangeTerminal.Parent = @grbTerminalPaths
 		' lblHistoryLimit
@@ -878,7 +878,7 @@ pfOptions = @fOptions
 		With grbHelpPaths
 			.Name = "grbHelpPaths"
 			.Text = ML("Help Paths")
-			.SetBounds 10, 78, 416, 323
+			.SetBounds 10, 78, 416, 324
 			.Parent = @pnlHelp
 		End With
 		' lvHelpPaths
@@ -1200,6 +1200,60 @@ pfOptions = @fOptions
 			.Caption = ML("Create Form types without Type word")
 			.Parent = @pnlDesigner
 		End With
+		' grbCommandPromptOptions
+		With grbCommandPromptOptions
+			.Name = "grbCommandPromptOptions"
+			.Text = ML("Command Prompt options")
+			.TabIndex = 174
+			.SetBounds 10, 68, 416, 94
+			.Caption = ML("Command Prompt options")
+			.Parent = @pnlTerminal
+		End With
+		' optMainFileFolder
+		With optMainFileFolder
+			.Name = "optMainFileFolder"
+			.Text = ML("Main File folder")
+			.TabIndex = 175
+			.SetBounds 20, 39, 220, 20
+			.Caption = ML("Main File folder")
+			.Parent = @grbCommandPromptOptions
+		End With
+		' lblOpenCommandPromptIn
+		With lblOpenCommandPromptIn
+			.Name = "lblOpenCommandPromptIn"
+			.Text = ML("Open command prompt in:")
+			.TabIndex = 176
+			.SetBounds 20, 19, 160, 20
+			.Caption = ML("Open command prompt in:")
+			.Parent = @grbCommandPromptOptions
+		End With
+		' optInFolder
+		With optInFolder
+			.Name = "optInFolder"
+			.Text = ML("Folder:")
+			.TabIndex = 177
+			.SetBounds 20, 59, 120, 20
+			.Caption = ML("Folder:")
+			.Parent = @grbCommandPromptOptions
+		End With
+		' txtInFolder
+		With txtInFolder
+			.Name = "txtInFolder"
+			.Text = "./Projects"
+			.TabIndex = 178
+			.SetBounds 140, 58, 240, 20
+			.Parent = @grbCommandPromptOptions
+		End With
+		' cmdInFolder
+		With cmdInFolder
+			.Name = "cmdInFolder"
+			.Text = "..."
+			.TabIndex = 179
+			.SetBounds 380, 57, 24, 22
+			.Designer = @This
+			.OnClick = @cmdInFolder_Click_
+			.Parent = @grbCommandPromptOptions
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1260,6 +1314,9 @@ Sub frmOptions.LoadSettings()
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
 		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
 		.chkCreateFormTypesWithoutTypeWord.Checked = CreateFormTypesWithoutTypeWord
+		.optMainFileFolder.Checked = OpenCommandPromptInMainFileFolder
+		.optInFolder.Checked = Not OpenCommandPromptInMainFileFolder
+		.txtInFolder.Text = *CommandPromptFolder
 		Select Case WhenVisualFBEditorStarts
 		Case 0: .optDoNotNothing.Checked = True
 		Case 1: .optPromptForProjectAndFile.Checked = True
@@ -1876,6 +1933,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
 		CreateFormTypesWithoutTypeWord = .chkCreateFormTypesWithoutTypeWord.Checked
+		OpenCommandPromptInMainFileFolder = .optMainFileFolder.Checked
+		WLet(CommandPromptFolder, .txtInFolder.Text)
 		If .cboDefaultProjectFile.ItemIndex = -1 Then
 			WLet(DefaultProjectFile, "")
 		Else
@@ -2046,6 +2105,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "SnapToGrid", SnapToGridOption
 		piniSettings->WriteBool "Options", "CreateNonStaticEventHandlers", CreateNonStaticEventHandlers
 		piniSettings->WriteBool "Options", "CreateFormTypesWithoutTypeWord", CreateFormTypesWithoutTypeWord
+		piniSettings->WriteBool "Options", "OpenCommandPromptInMainFileFolder", OpenCommandPromptInMainFileFolder
+		piniSettings->WriteString "Options", "CommandPromptFolder", *CommandPromptFolder
 		piniSettings->WriteBool "Options", "ChangeKeywordsCase", ChangeKeywordsCase
 		piniSettings->WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeywordsCase
 		piniSettings->WriteBool "Options", "AddSpacesToOperators", AddSpacesToOperators
@@ -3125,4 +3186,13 @@ Private Sub frmOptions.lvCompilerPaths_ItemActivate_(ByRef Sender As ListView, B
 End Sub
 Private Sub frmOptions.lvCompilerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeCompiler_Click cmdChangeCompiler
+End Sub
+
+Private Sub frmOptions.cmdInFolder_Click_(ByRef Sender As Control)
+	*Cast(frmOptions Ptr, Sender.Designer).cmdInFolder_Click(Sender)
+End Sub
+Private Sub frmOptions.cmdInFolder_Click(ByRef Sender As Control)
+	If BrowsD.Execute Then
+		txtInFolder.Text = BrowsD.Directory
+	End If
 End Sub
