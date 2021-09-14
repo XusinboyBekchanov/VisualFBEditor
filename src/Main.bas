@@ -1820,6 +1820,7 @@ Function SaveAllBeforeCompile() As Boolean
 				End If
 			Next i
 			If .lstFiles.ItemCount > 0 Then
+				.lstFiles.SelectAll
 				Select Case .ShowModal(*pfrmMain)
 				Case ModalResults.Yes
 					For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1
@@ -5091,18 +5092,8 @@ tbEvents.Buttons.Add tbsCheck, "Categorized", , @tbProperties_ButtonClick, "Even
 tbEvents.Buttons.Add tbsSeparator
 tbEvents.Flat = True
 
-Sub txtPropertyValue_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	
-End Sub
-
-Sub txtPropertyValue_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	If Key = Keys.Enter Then
-		lvProperties.SetFocus
-	End If
-End Sub
-
-Sub txtPropertyValue_KeyPress(ByRef Sender As Control, Key As Byte)
-	
+Sub txtPropertyValue_Activate(ByRef Sender As Control)
+	lvProperties.SetFocus
 End Sub
 
 Sub btnPropertyValue_Click(ByRef Sender As Control)
@@ -5166,16 +5157,14 @@ End Sub
 'txtPropertyValue.BorderStyle = 0
 txtPropertyValue.Visible = False
 txtPropertyValue.WantReturn = True
-txtPropertyValue.OnKeyDown = @txtPropertyValue_KeyDown
-txtPropertyValue.OnKeyUp = @txtPropertyValue_KeyUp
-txtPropertyValue.OnKeyPress = @txtPropertyValue_KeyPress
+txtPropertyValue.OnActivate = @txtPropertyValue_Activate
 txtPropertyValue.OnLostFocus = @txtPropertyValue_LostFocus
 
 btnPropertyValue.Visible = False
 btnPropertyValue.Text = "..."
 btnPropertyValue.OnClick = @btnPropertyValue_Click
 
-cboPropertyValue.OnKeyUp = @txtPropertyValue_KeyUp
+cboPropertyValue.OnActivate = @txtPropertyValue_Activate
 cboPropertyValue.OnChange = @cboPropertyValue_Change
 cboPropertyValue.Left = -1
 cboPropertyValue.Top = -2
@@ -6549,6 +6538,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 			'If Not CloseTab(tb) Then Action = 0: Return
 		Next i
 		If .lstFiles.ItemCount > 0 Then
+			.lstFiles.SelectAll
 			Select Case .ShowModal(*pfrmMain)
 			Case ModalResults.Yes
 				For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1

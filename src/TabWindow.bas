@@ -1417,7 +1417,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	Dim As WStringList WithArgs
 	Dim As WString Ptr FLine, FLine1,FLine2
 	Var b = False, t = False
-	Var d = False, sl = 0, tp = 0, ep = 0, j = 0
+	Var d = False, sl = 0, tp = 0, ep = 0, j = 0, n = 0
 	Dim As Integer iLeft1, iTop1, iWidth1, iHeight1
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As EditControl txtCodeBi
@@ -1501,7 +1501,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	End If
 	Var sc = 0, se = 0
 	Var bWith = False
-	j = 0
+	j = 0: n = 0
 	t = False
 	For i = i To tb->txtCode.LinesCount - 1
 		For k = iStart To IIf(ptxtCode = @tb->txtCode, i, ptxtCode->LinesCount - 1)
@@ -1522,6 +1522,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 					Var p = InStr(ptxtCode->Lines(k), ".")
 					If p Then
 						If StartsWith(Trim(LCase(Mid(ptxtCode->Lines(k), p + 1)), Any !"\t "), "setbounds ") Then
+							n = k
 							If iLeft <> -1 AndAlso iTop <> -1 AndAlso iWidth <> -1 AndAlso iHeight <> - 1 Then
 								iLeft1 = iLeft
 								iTop1 = iTop
@@ -1565,6 +1566,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 		iStart = i + 1
 		iEnd = i + 1
 	Next
+	If n > 0 Then j = n
 	Dim q As Integer = 0
 	If sc = 0 Then
 		CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
@@ -1845,10 +1847,18 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			pfrmMain->UpdateLock
 			.Changing "Unsurni o`zgartirish"
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, @iLeft, @iTop, @iWidth, @iHeight)
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr tmpWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
 			#endif
 			tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
+			#ifdef __USE_GTK__
+				pApp->DoEvents
+			#endif
+			Dim As Integer iLeft2, iTop2, iWidth2, iHeight2
+			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, @iLeft2, @iTop2, @iWidth2, @iHeight2)
+			If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots tb->Des->SelectedControl
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
 				If tmpWidget <> tmpChangedWidget Then
