@@ -1223,7 +1223,7 @@ pfOptions = @fOptions
 			.Name = "lblOpenCommandPromptIn"
 			.Text = ML("Open command prompt in:")
 			.TabIndex = 176
-			.SetBounds 20, 19, 160, 20
+			.SetBounds 20, 19, 380, 20
 			.Caption = ML("Open command prompt in:")
 			.Parent = @grbCommandPromptOptions
 		End With
