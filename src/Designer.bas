@@ -2031,7 +2031,7 @@ Namespace My.Sys.Forms
 				Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), Ctrl
 				Dim As GtkWidget Ptr CtrlWidget, CurrentWidget = ReadPropertyFunc(SelectedControl, "widget")
 				Dim As GtkWidget Ptr LayoutWidget = ReadPropertyFunc(ParentCtrl, "layoutwidget")
-				For i As Integer = 0 To ReadPropertyFunc(ReadPropertyFunc(ParentCtrl, "ControlCount") - 1
+				For i As Integer = 0 To QInteger(ReadPropertyFunc(ParentCtrl, "ControlCount")) - 1
 					Ctrl = ControlByIndexFunc(ParentCtrl, i)
 					CtrlWidget = ReadPropertyFunc(Ctrl, "widget")
 					If CurrentWidget <> CtrlWidget Then
@@ -3012,7 +3012,7 @@ Namespace My.Sys.Forms
 	mnuDesigner.Add(ML("Paste"), "Paste", "Paste", @PopupClick)
 	mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
 	mnuDesigner.Add("-")
-	mnuDesigner.Add(ML("Bring to Front"), "", "BrinToFront", @PopupClick)
+	mnuDesigner.Add(ML("Bring to Front"), "", "BringToFront", @PopupClick)
 	mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
 	mnuDesigner.Add("-")
 	mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)

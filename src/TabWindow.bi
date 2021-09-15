@@ -311,6 +311,10 @@ Declare Sub GetControls(Des As Designer Ptr, ByRef lst As List, Ctrl As Any Ptr)
 
 Declare Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 
+Declare Sub DesignerBringToFront(ByRef Sender As Designer, Ctrl As Any Ptr)
+
+Declare Sub DesignerSendToBack(ByRef Sender As Designer, Ctrl As Any Ptr)
+
 'Declare Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
 
 Declare Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
