@@ -1375,27 +1375,31 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 				If StartsWith(*FLine & " ", "' " & LCase(CtrlName) & " ") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->DeleteLine k
+					tb->ConstructorEnd -= 1
 					k = k - 1
 				ElseIf StartsWith(*FLine & " ", "with " & LCase(CtrlName) & " ") Then
 					w = True
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->DeleteLine k
+					tb->ConstructorEnd -= 1
 					k = k - 1
 				ElseIf w AndAlso StartsWith(*FLine & " ", "end with ") Then
 					w = False
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->DeleteLine k
+					tb->ConstructorEnd -= 1
 					k = k - 1
 				ElseIf w AndAlso StartsWith(*FLine, ".") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->DeleteLine k
+					tb->ConstructorEnd -= 1
 					k = k - 1
 				ElseIf StartsWith(*FLine, LCase(CtrlName) & ".") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->DeleteLine k
+					tb->ConstructorEnd -= 1
 					k = k - 1
 				End If
-				
 			End If
 			k = k + 1
 		Loop
@@ -1618,6 +1622,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			ptxtCode->InsertLine se, *FLine1 & TabSpace & "' " & CtrlName
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
+			tb->ConstructorEnd += 3
 			InsLineCount += 3
 			q = 0
 			If WGet(tb->Des->ReadPropertyFunc(Cpnt, "Text")) <> "" Then
@@ -1625,11 +1630,13 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 				'				If tb->Des->WritePropertyFunc <> 0 Then tb->Des->WritePropertyFunc(Cpnt, "Text", FLine)
 				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Text")) & """"
 				InsLineCount += 1
+				tb->ConstructorEnd += 1
 				q = 1
 			End If
 			If tb->Des->ReadPropertyFunc(Cpnt, "TabIndex") <> 0 Then
 				ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & ".TabIndex = " & QInteger(tb->Des->ReadPropertyFunc(Cpnt, "TabIndex"))
 				InsLineCount += 1
+				tb->ConstructorEnd += 1
 				q += 1
 			End If
 			If PropertyName <> "" AndAlso PropertyName <> "Text" AndAlso PropertyName <> "TabIndex" Then
@@ -1637,6 +1644,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 				'  Confuse the formatcode function
 				If *FLine <> "" Then
 					ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q += 1
+					tb->ConstructorEnd += 1
 				End If
 			End If
 			If iLeft <> -1 AndAlso iTop <> -1 AndAlso iWidth <> -1 AndAlso iHeight <> - 1 Then
@@ -1649,8 +1657,10 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			End If
 			ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 			InsLineCount += 1
+			tb->ConstructorEnd += 1
 			If Cpnt <> tb->Des->DesignControl Then ptxtCode->InsertLine se + q + 4, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: InsLineCount += 1: q += 1
 			ptxtCode->InsertLine se + q + 4, *FLine1 & TabSpace & "End With": InsLineCount += 1
+			tb->ConstructorEnd += 1
 		ElseIf tb->Des->IsComponentFunc <> 0 AndAlso CInt(tb->Des->IsComponentFunc(Cpnt)) Then
 			q = 0
 			If iLeft <> -1 AndAlso iTop <> -1 AndAlso iWidth <> -1 AndAlso iHeight <> - 1 Then
@@ -1666,25 +1676,32 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
 			ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 			ptxtCode->InsertLine se + 4, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName
+			tb->ConstructorEnd += 5
 			'  Confuse the formatcode function
 			If PropertyName <> "" AndAlso PropertyName <> "Name" Then
 				ptxtCode->InsertLine se + 5, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
+				tb->ConstructorEnd += 1
 			End If
 			ptxtCode->InsertLine se + q + 5, *FLine1 & TabSpace & "End With"
 			InsLineCount += q + 5
+			tb->ConstructorEnd += 1
 		Else
 			q = 0
 			ptxtCode->InsertLine se, *FLine1 & TabSpace & "' " & CtrlName
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
+			tb->ConstructorEnd += 3
 			'  Confuse the formatcode function
 			If PropertyName = "Parent" Then
 				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: q += 1
+				tb->ConstructorEnd += 1
 			ElseIf PropertyName <> "" AndAlso PropertyName <> "Name" Then
 				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
+				tb->ConstructorEnd += 1
 			End If
 			ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & "End With"
 			InsLineCount += q + 3
+			tb->ConstructorEnd += 1
 		End If
 	ElseIf Not t Then
 		If PropertyName <> "" Then
@@ -1693,8 +1710,10 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			If *FLine <> "" Then
 				If bWith Then
 					ptxtCode->InsertLine j, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q += 1
+					tb->ConstructorEnd += 1
 				Else
 					ptxtCode->InsertLine j, *FLine1 & TabSpace & CtrlName & "." & PropertyName & " = " & *FLine: q += 1
+					tb->ConstructorEnd += 1
 				End If
 			End If
 		End If
