@@ -71,14 +71,14 @@ Sub PopupClick(ByRef Sender As My.Sys.Object)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 Then Exit Sub
 	Select Case Sender.ToString
-	Case "Default":         DesignerDblClickControl(*tb->Des, tb->Des->GetControl(tb->Des->FSelControl))
+	Case "Default":         DesignerDblClickControl(*tb->Des, tb->Des->SelectedControl)
 	Case "Copy":            tb->Des->CopyControl()
 	Case "Cut":             tb->Des->CutControl()
 	Case "Paste":           tb->Des->PasteControl()
 	Case "Delete":          tb->Des->DeleteControl()
-	Case "BringToFront":    tb->Des->BringToFront()
-	Case "SendToBack":      tb->Des->SendToBack()
-	Case "Properties":      If tb->Des->OnClickProperties Then tb->Des->OnClickProperties(*tb->Des, tb->Des->GetControl(tb->Des->FSelControl))
+	Case "BringToFront":    DesignerBringToFront(*tb->Des, tb->Des->SelectedControl)
+	Case "SendToBack":      DesignerSendToBack(*tb->Des, tb->Des->SelectedControl)
+	Case "Properties":      If tb->Des->OnClickProperties Then tb->Des->OnClickProperties(*tb->Des, tb->Des->SelectedControl)
 	End Select
 End Sub
 
@@ -1266,6 +1266,18 @@ Sub GetBiFile(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl,
 		iStart = i
 		iEnd = i
 	End If
+End Sub
+
+Sub DesignerBringToFront(ByRef Sender As Designer, Ctrl As Any Ptr)
+	Sender.BringToFront
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	If tb = 0 OrElse Ctrl = 0 OrElse tb->Des = 0 Then Exit Sub
+	
+End Sub
+
+Sub DesignerSendToBack(ByRef Sender As Designer, Ctrl As Any Ptr)
+	Sender.SendToBack
+	
 End Sub
 
 Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)

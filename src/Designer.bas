@@ -2007,13 +2007,46 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub Designer.BringToFront
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If CInt(ReadPropertyFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) AndAlso CInt(ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")) Then
+				Dim As Integer iLeft = QInteger(ReadPropertyFunc(SelectedControl, "Left")), iTop = QInteger(ReadPropertyFunc(SelectedControl, "Top"))
+				Dim As GtkWidget Ptr CtrlWidget = ReadPropertyFunc(SelectedControl, "widget")
+				Dim As GtkWidget Ptr LayoutWidget = ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")
+				If gtk_is_scrolled_window(gtk_widget_get_parent(CtrlWidget)) OrElse gtk_is_event_box(gtk_widget_get_parent(CtrlWidget)) Then
+					CtrlWidget = gtk_widget_get_parent(CtrlWidget)
+				End If
+				g_object_ref(CtrlWidget)
+				gtk_container_remove(gtk_container(LayoutWidget), CtrlWidget)
+				gtk_layout_put(gtk_layout(LayoutWidget), CtrlWidget, iLeft, iTop)
+			End If
+		#else
 			SetWindowPos FSelControl, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 		#endif
 	End Sub
 	
 	Sub Designer.SendToBack
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			If CInt(ReadPropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) AndAlso CInt(ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")) Then
+				Dim As Integer iLeft, iTop
+				Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), Ctrl
+				Dim As GtkWidget Ptr CtrlWidget, CurrentWidget = ReadPropertyFunc(SelectedControl, "widget")
+				Dim As GtkWidget Ptr LayoutWidget = ReadPropertyFunc(ParentCtrl, "layoutwidget")
+				For i As Integer = 0 To ReadPropertyFunc(ReadPropertyFunc(ParentCtrl, "ControlCount") - 1
+					Ctrl = ControlByIndexFunc(ParentCtrl, i)
+					CtrlWidget = ReadPropertyFunc(Ctrl, "widget")
+					If CurrentWidget <> CtrlWidget Then
+						If gtk_is_scrolled_window(gtk_widget_get_parent(CtrlWidget)) OrElse gtk_is_event_box(gtk_widget_get_parent(CtrlWidget)) Then
+							CtrlWidget = gtk_widget_get_parent(CtrlWidget)
+						End If
+						iLeft = QInteger(ReadPropertyFunc(Ctrl, "Left"))
+						iTop = QInteger(ReadPropertyFunc(Ctrl, "Top"))
+						g_object_ref(CtrlWidget)
+						gtk_container_remove(gtk_container(LayoutWidget), CtrlWidget)
+						gtk_layout_put(gtk_layout(LayoutWidget), CtrlWidget, iLeft, iTop)
+					End If
+				Next
+			End If
+		#else
 			SetWindowPos FSelControl, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 		#endif
 	End Sub
