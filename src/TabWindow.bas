@@ -2602,7 +2602,7 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 	On Error Goto ErrorHandler
 	If Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	c += 1
-	If c > 100 Then Return False
+	If c > IntellisenseLimit Then Return False
 	If te = 0 Then
 		imgKey = "StandartTypes"
 	End If

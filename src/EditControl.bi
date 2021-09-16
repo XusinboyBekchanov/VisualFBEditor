@@ -24,6 +24,7 @@ Common Shared As Boolean AutoIndentation
 Common Shared As Boolean ShowSpaces
 Common Shared As Integer TabWidth
 Common Shared As Integer HistoryLimit
+Common Shared As Integer IntellisenseLimit
 Common Shared As Integer TabAsSpaces
 Common Shared As KeyWordsCase ChoosedKeyWordsCase
 Common Shared As Integer ChoosedTabStyle

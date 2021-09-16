@@ -3819,6 +3819,7 @@ Sub LoadSettings
 	ChoosedTabStyle = iniSettings.ReadInteger("Options", "ChoosedTabStyle", 1)
 	TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
 	HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
+	IntellisenseLimit = iniSettings.ReadInteger("Options", "IntellisenseLimit", 100)
 	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
 	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
 	AddSpacesToOperators = iniSettings.ReadBool("Options", "AddSpacesToOperators", True)

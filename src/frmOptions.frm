@@ -1254,6 +1254,22 @@ pfOptions = @fOptions
 			.OnClick = @cmdInFolder_Click_
 			.Parent = @grbCommandPromptOptions
 		End With
+		' lblIntellisenseLimit
+		With lblIntellisenseLimit
+			.Name = "lblIntellisenseLimit"
+			.Text = ML("Intellisense limit") & ":"
+			.TabIndex = 180
+			.Caption = ML("Intellisense limit") & ":"
+			.SetBounds 66, 269, 150, 17
+			.Parent = @pnlCodeEditor
+		End With
+		' txtIntellisenseLimit
+		With txtIntellisenseLimit
+			.Name = "txtIntellisenseLimit"
+			.TabIndex = 181
+			.SetBounds 209, 267, 90, 20
+			.Parent = @pnlCodeEditor
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1304,6 +1320,7 @@ Sub frmOptions.LoadSettings()
 		.chkLimitDebug.Checked = LimitDebug
 		.txtTabSize.Text = Str(TabWidth)
 		.txtHistoryLimit.Text = Str(HistoryLimit)
+		.txtIntellisenseLimit.Text = Str(IntellisenseLimit)
 		.txtMFFPath.Text = *MFFPath
 		.chkIncludeMFFPath.Checked = IncludeMFFPath
 		.txtProjectsPath.Text = *ProjectsPath
@@ -1923,6 +1940,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		#endif
 		TabWidth = Val(.txtTabSize.Text)
 		HistoryLimit = Val(.txtHistoryLimit.Text)
+		IntellisenseLimit = Val(.txtIntellisenseLimit.Text)
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
 		LimitDebug = .chkLimitDebug.Checked
 		DisplayWarningsInDebug = .chkDisplayWarningsInDebug.Checked
@@ -2082,6 +2100,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteString "Options", "Language", Languages.Item(.cboLanguage.ItemIndex)
 		piniSettings->WriteInteger "Options", "TabWidth", TabWidth
 		piniSettings->WriteInteger "Options", "HistoryLimit", HistoryLimit
+		piniSettings->WriteInteger "Options", "IntellisenseLimit", IntellisenseLimit
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
 		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
 		piniSettings->WriteBool "Options", "DisplayWarningsInDebug", DisplayWarningsInDebug
