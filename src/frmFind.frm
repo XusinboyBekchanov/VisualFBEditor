@@ -121,8 +121,8 @@ pfFind = @fFind
 		TrackBar1.NAME = "TrackBar1"
 		TrackBar1.Text = "TrackBar1"
 		TrackBar1.OnChange = @TrackBar1_Change
-		TrackBar1.MinValue = 150
 		TrackBar1.MaxValue = 255
+		TrackBar1.MinValue = 150
 		TrackBar1.SetBounds 406, 2, 76, 14
 		TrackBar1.Position = 210 ' This.Opacity
 		TrackBar1.Parent = @This
