@@ -3092,7 +3092,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							te->DisplayName = te->Name
 						End If
-						te->ElementType = "Enum"
+						te->ElementType = "EnumItem"
 						te->Value = ElementValue
 						te->StartLine = i
 						te->Parameters = Trim(res1(n))
@@ -3105,7 +3105,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							te->DisplayName = te->Name
 						End If
-						te->ElementType = "Enum"
+						te->ElementType = "EnumItem"
 						te->Value = ElementValue
 						te->StartLine = i
 						te->Parameters = Trim(res1(n))
@@ -3232,6 +3232,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						inFunc = True
 						Pos3 = InStr(bTrim, "(")
 						Pos5 = InStr(bTrimLCase, " function") + 9
+						If StartsWith(Trim(Mid(bTrim, Pos5)), "=") Then Continue For
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
 						Pos4 = InStr(n + 1, bTrim, " ")
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
@@ -4069,6 +4070,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Tools", "Tools"
 	imgList.Add "StandartTypes", "StandartTypes"
 	imgList.Add "Enum", "Enum"
+	imgList.Add "EnumItem", "EnumItem"
 	imgList.Add "Type", "Type"
 	imgList.Add "Function", "Function"
 	imgList.Add "Event", "Event"

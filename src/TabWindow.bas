@@ -2603,8 +2603,23 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 	If Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	c += 1
 	If c > IntellisenseLimit Then Return False
+	Dim As String imgKeyNew = imgKey
 	If te = 0 Then
-		imgKey = "StandartTypes"
+		imgKeyNew = "StandartTypes"
+	ElseIf te->ElementType = "Sub" Then
+		imgKeyNew = "Sub"
+	ElseIf te->ElementType = "Function" Then
+		imgKeyNew = "Function"
+	ElseIf te->ElementType = "Namespace" Then
+		imgKeyNew = "Sub"
+	ElseIf te->ElementType = "Enum" Then
+		imgKeyNew = "Enum"
+	ElseIf te->ElementType = "EnumItem" Then
+		imgKeyNew = "EnumItem"
+	ElseIf te->ElementType = "Property" Then
+		imgKeyNew = "Property"
+	ElseIf te->ElementType = "Event" Then
+		imgKeyNew = "Event"
 	End If
 	#ifdef __USE_GTK__
 		Dim iIndex As Integer = -1
@@ -2616,7 +2631,7 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 					iIndex = i: Exit For
 				End If
 			Next i
-			.Add Text, imgKey, , , iIndex
+			.Add Text, imgKeyNew, , , iIndex
 		End With
 	#else
 		Dim iIndex As Integer = -1
@@ -2628,7 +2643,7 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 					iIndex = i: Exit For
 				End If
 			Next i
-			.Add Text, te, imgKey, imgKey, , , iIndex
+			.Add Text, te, imgKeyNew, imgKeyNew, , , iIndex
 		End With
 	#endif
 	Return True
@@ -2672,10 +2687,10 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, tb->Types.Item(i), tb->Types.Object(i), Starts) Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->Enums.Count - 1
-		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts) Then Exit Sub
+		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts, , "Enum") Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->Procedures.Count - 1
-		If Not AddSorted(tb, tb->Procedures.Item(i), tb->Procedures.Object(i), Starts) Then Exit Sub
+		If Not AddSorted(tb, tb->Procedures.Item(i), tb->Procedures.Object(i), Starts, , "Sub") Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->Args.Count - 1
 		If Not AddSorted(tb, tb->Args.Item(i), tb->Args.Object(i), Starts) Then Exit Sub
@@ -2697,7 +2712,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		Next
 	End If
 	For i As Integer = 0 To pGlobalNamespaces->Count - 1
-		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, "Sub") Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
 	For i As Integer = 0 To pComps->Count - 1
@@ -2710,7 +2725,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalFunctions->Count - 1
-		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub") Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalArgs->Count - 1
 		If Not AddSorted(tb, pGlobalArgs->Item(i), pGlobalArgs->Object(i), Starts, c) Then Exit Sub
@@ -2739,7 +2754,7 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, tb->Types.Item(i), tb->Types.Object(i), Starts) Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->Enums.Count - 1
-		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts, , "Enum") Then Exit Sub
+		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts) Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
 	For i As Integer = 0 To pComps->Count - 1
