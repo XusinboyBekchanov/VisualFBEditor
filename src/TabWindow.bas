@@ -1498,6 +1498,8 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			Else
 				ptxtCode->InsertLine j, *FLine1 & TabSpace & "Dim As " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) & " " & CtrlName
 				InsLineCount += 1
+				tb->ConstructorStart += 1
+				tb->ConstructorEnd += 1
 			End If
 		End If
 	End If
@@ -2006,6 +2008,8 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			ptxtCode->InsertLine j, Left(ptxtCode->Lines(j - 1), Len(ptxtCode->Lines(j - 1)) - Len(LTrim(ptxtCode->Lines(j - 1), Any !"\t "))) & "#include once """ & tbi->IncludeFile & """"
 			InsLineCount += 1
+			tb->ConstructorStart += 1
+			tb->ConstructorEnd += 1
 		End If
 	End If
 	ChangeControl(Ctrl, , iLeft2, iTop2, iWidth2, iHeight2)
@@ -2358,9 +2362,13 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			If CreateNonStaticEventHandlers Then
 				ptxtCode->InsertLine j, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & "_" & Mid(te->TypeName, 4)
 				ptxtCode->InsertLine j + 1, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Sub " & SubName & Mid(te->TypeName, 4)
+				tb->ConstructorStart += 2
+				tb->ConstructorEnd += 2
 				If ptxtCode = @tb->txtCode Then q1 = 1 Else q2 = 1
 			Else
 				ptxtCode->InsertLine j, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & Mid(te->TypeName, 4)
+				tb->ConstructorStart += 1
+				tb->ConstructorEnd += 1
 			End If
 			If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 		End If
@@ -2371,6 +2379,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			If bWith Then WithCtrlName = "" Else WithCtrlName = CtrlName
 			If CreateNonStaticEventHandlers AndAlso Not tdes Then ptxtCode->InsertLine p + q, Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & ".Designer = @This": q += 1: If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 			ptxtCode->InsertLine p + q, Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & "." & EventName & " = @" & SubName & IIf(CreateNonStaticEventHandlers, "_", "")
+			tb->ConstructorEnd += 1
 			If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 		End If
 		ptxtCode = @tb->txtCode
