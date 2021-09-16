@@ -650,7 +650,9 @@ Function Compile(Parameter As String = "") As Integer
 	If Parameter = "Check" Then
 		WLet(ExeName, "chk.dll")
 	End If
+	ThreadsEnter()
 	ClearMessages
+	ThreadsLeave()
 	FileOut = FreeFile
 	If Dir(*ExeName) <> "" Then 'delete exe if exist
 		If *ExeName = ExePath OrElse Kill(*ExeName) <> 0 Then
