@@ -3525,9 +3525,9 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		If j = 0 Then
 			b = res(0)
 		ElseIf j Mod 2 = 0 Then
-			b &= "'" & res(j)
+			b &= """" & res(j)
 		Else
-			b &= "'" & WSpace(Len(res(j)))
+			b &= """" & WSpace(Len(res(j)))
 		End If
 	Next
 	Parameters = tb->txtCode.Hint
@@ -3546,8 +3546,8 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		ElseIf Symb = ")" Then
 			iCount += 1
 			bStarted = False
-		ElseIf Symb = """" Then
-			bQuotation = Not bQuotation
+'		ElseIf Symb = """" Then
+'			bQuotation = Not bQuotation
 		ElseIf Not bQuotation AndAlso iCount = 0 Then
 			If Symb = " " OrElse Symb = !"\t" Then
 				bStarted = True
@@ -3575,7 +3575,7 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		Split Link1, "~", LinkParse()
 		If UBound(LinkParse) < 2 Then Continue For
 		Lines(i) = Left(Lines(i), iPos - 1) & LinkParse(2) & Mid(Lines(i), iPos2 + 4)
-		Split Replace(Lines(i), """", "'"), ",", Params()
+		Split Replace(Lines(i), """", "”"), ",", Params()
 		For j As Integer = 0 To UBound(Params)
 			iPos = InStr(Params(j), "(")
 			iPos1 = InStr(Params(j), ")")
