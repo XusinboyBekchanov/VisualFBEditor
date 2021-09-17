@@ -3047,6 +3047,159 @@ Sub CompleteWord
 	End With
 End Sub
 
+Sub ParameterInfo(Key As Byte = Asc(","))
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
+	If tb = 0 Then Exit Sub
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+	Dim As WStringList ParametersList
+	Dim As String sWord, Symb, FuncName, Parameters, Parameter, Link1
+	Dim As UString Comments
+	Dim As Integer iCount, iPos
+	Dim As Boolean bStarted, bQuotation
+	If Key = Asc(",") Then
+		If tb->txtCode.ToolTipShowed Then Exit Sub
+		For i As Integer = iSelEndChar To 1 Step -1
+			Symb = Mid(*sLine, i, 1)
+			If Symb = "(" Then
+				If iCount = 0 Then
+					iSelEndChar = i + 1
+					Exit For
+				Else
+					iCount -= 1
+					bStarted = False
+				End If
+			ElseIf Symb = ")" Then
+				iCount += 1
+				bStarted = False
+			ElseIf Symb = """" Then
+				bQuotation = Not bQuotation
+			ElseIf Not bQuotation AndAlso iCount = 0 Then
+				If Symb = " " OrElse Symb = !"\t" Then
+					bStarted = True
+				ElseIf (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
+					bStarted = False
+				ElseIf i > 4 AndAlso (LCase(Mid(*sLine, i - 5, 6)) = " byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = " byref") Then
+					bStarted = False
+				ElseIf bStarted Then
+					iSelEndChar = i + 1
+					Exit For
+				End If
+			End If
+		Next
+	End If
+	If Key = Asc("?") OrElse Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar - 1, 1) = "?" Then
+		sWord = "?"
+	Else
+		sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 2)
+	End If
+	Dim As TypeElement Ptr te, teOld
+	Dim As Integer Index
+	Dim As String TypeName
+	If sWord = "" Then Exit Sub
+	TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - 1, te, teOld)
+	If teOld <> 0 AndAlso teOld->TypeName <> "" Then
+		TypeName = teOld->TypeName
+		FListItems.Clear
+		If tb->Types.Contains(TypeName) Then
+			tb->FillIntellisense TypeName, @tb->Types, True, True
+		ElseIf tb->Enums.Contains(TypeName) Then
+			tb->FillIntellisense TypeName, @tb->Enums, True, True
+		ElseIf pComps->Contains(TypeName) Then
+			tb->FillIntellisense TypeName, pComps, True, True
+		ElseIf pGlobalTypes->Contains(TypeName) Then
+			tb->FillIntellisense TypeName, pGlobalTypes, True, True
+		ElseIf pGlobalEnums->Contains(TypeName) Then
+			tb->FillIntellisense TypeName, pGlobalEnums, True, True
+		End If
+		Index = FListItems.IndexOf(sWord)
+		If Index > -1 Then
+			For i As Integer = Index To FListItems.Count - 1
+				te = FListItems.Object(i)
+				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+					Parameter = te->Parameters
+					iPos = InStr(LCase(Parameter), LCase(sWord))
+					FuncName = Mid(Parameter, iPos, Len(sWord))
+					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
+					ParametersList.Add te->Parameters
+					Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+					If te->Comment <> "" Then Comments &= " " & te->Comment
+				End If
+			Next
+		End If
+	Else
+		If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+			If Not ShowKeywordsToolTip Then
+				If te->ElementType = "Keyword" Then Exit Sub
+			End If
+			Dim As UString res(Any)
+			Split te->Parameters, !"\r", res()
+			For n As Integer = 0 To UBound(res)
+				Parameter = res(n) 'te->Parameters
+				Parameters &= IIf(Parameters = "", "", !"\r")
+				iPos = InStr(LCase(Parameter), LCase(sWord))
+				'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
+				If iPos > 0 Then
+					FuncName = Mid(Parameter, iPos, Len(sWord))
+					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
+					Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+				Else
+					Parameters &= Parameter
+				End If
+			Next n
+			ParametersList.Add te->Parameters
+			If te->Comment <> "" Then Comments &= " " & te->Comment
+		End If
+		Index = tb->Functions.IndexOf(sWord)
+		If Index > -1 Then
+			For i As Integer = Index To tb->Procedures.Count - 1
+				te = tb->Procedures.Object(i)
+				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+					Parameter = te->Parameters
+					iPos = InStr(LCase(Parameter), LCase(sWord))
+					FuncName = Mid(Parameter, iPos, Len(sWord))
+					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
+					Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+					ParametersList.Add te->Parameters
+					If te->Comment <> "" Then Comments &= " " & te->Comment
+				End If
+			Next
+		End If
+		Index = pGlobalFunctions->IndexOf(sWord)
+		If Index > -1 Then
+			For i As Integer = Index To pGlobalFunctions->Count - 1
+				te = pGlobalFunctions->Object(i)
+				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+					Dim As UString res(Any)
+					Split te->Parameters, !"\r", res()
+					For n As Integer = 0 To UBound(res)
+						Parameter = res(n) 'te->Parameters
+						Parameters &= IIf(Parameters = "", "", !"\r")
+						iPos = InStr(LCase(Parameter), LCase(sWord))
+						'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
+						If iPos > 0 Then
+							FuncName = Mid(Parameter, iPos, Len(sWord))
+							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
+							Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
+						Else
+							Parameters &= Parameter
+						End If
+					Next n
+					ParametersList.Add te->Parameters
+					If te->Comment <> "" Then Comments &= " " & te->Comment
+				End If
+			Next
+		End If
+	End If
+	If Parameters <> "" Then
+		tb->txtCode.HintWord = sWord
+		tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
+		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelEndChar - Len(sWord) - 1)
+		OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
+	End If
+End Sub
+
 Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer) As String
 	Dim As String sTemp
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
@@ -3546,151 +3699,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 			#endif
 			tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 		Else
-			Dim As WStringList ParametersList
-			Dim As String sWord, Symb, FuncName, Parameters, Parameter, Link1
-			Dim As UString Comments
-			Dim As Integer iCount, iPos
-			Dim As Boolean bStarted, bQuotation
-			If Key = Asc(",") Then
-				If tb->txtCode.ToolTipShowed Then Exit Sub
-				For i As Integer = iSelEndChar To 1 Step -1
-					Symb = Mid(*sLine, i, 1)
-					If Symb = "(" Then
-						If iCount = 0 Then
-							iSelEndChar = i + 1
-							Exit For
-						Else
-							iCount -= 1
-							bStarted = False
-						End If
-					ElseIf Symb = ")" Then
-						iCount += 1
-						bStarted = False
-					ElseIf Symb = """" Then
-						bQuotation = Not bQuotation
-					ElseIf Not bQuotation AndAlso iCount = 0 Then
-						If Symb = " " OrElse Symb = !"\t" Then
-							bStarted = True
-						ElseIf (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
-							bStarted = False
-						ElseIf i > 4 AndAlso (LCase(Mid(*sLine, i - 5, 6)) = " byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = " byref") Then
-							bStarted = False
-						ElseIf bStarted Then
-							iSelEndChar = i + 1
-							Exit For
-						End If
-					End If
-				Next
-			End If
-			If Key = Asc("?") OrElse Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar - 1, 1) = "?" Then
-				sWord = "?"
-			Else
-				sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 2)
-			End If
-			Dim As TypeElement Ptr te, teOld
-			Dim As Integer Index
-			Dim As String TypeName
-			If sWord = "" Then Exit Sub
-			TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - 1, te, teOld)
-			If teOld <> 0 AndAlso teOld->TypeName <> "" Then
-				TypeName = teOld->TypeName
-				FListItems.Clear
-				If tb->Types.Contains(TypeName) Then
-					tb->FillIntellisense TypeName, @tb->Types, True, True
-				ElseIf tb->Enums.Contains(TypeName) Then
-					tb->FillIntellisense TypeName, @tb->Enums, True, True
-				ElseIf pComps->Contains(TypeName) Then
-					tb->FillIntellisense TypeName, pComps, True, True
-				ElseIf pGlobalTypes->Contains(TypeName) Then
-					tb->FillIntellisense TypeName, pGlobalTypes, True, True
-				ElseIf pGlobalEnums->Contains(TypeName) Then
-					tb->FillIntellisense TypeName, pGlobalEnums, True, True
-				End If
-				Index = FListItems.IndexOf(sWord)
-				If Index > -1 Then
-					For i As Integer = Index To FListItems.Count - 1
-						te = FListItems.Object(i)
-						If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-							Parameter = te->Parameters
-							iPos = InStr(LCase(Parameter), LCase(sWord))
-							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
-							ParametersList.Add te->Parameters
-							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-							If te->Comment <> "" Then Comments &= " " & te->Comment
-						End If
-					Next
-				End If
-			Else
-				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-					If Not ShowKeywordsToolTip Then
-						If te->ElementType = "Keyword" Then Exit Sub
-					End If
-					Dim As UString res(Any)
-					Split te->Parameters, !"\r", res()
-					For n As Integer = 0 To UBound(res)
-						Parameter = res(n) 'te->Parameters
-						Parameters &= IIf(Parameters = "", "", !"\r")
-						iPos = InStr(LCase(Parameter), LCase(sWord))
-						'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
-						If iPos > 0 Then
-							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
-							Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-						Else
-							Parameters &= Parameter
-						End If
-					Next n
-					ParametersList.Add te->Parameters
-					If te->Comment <> "" Then Comments &= " " & te->Comment
-				End If
-				Index = tb->Functions.IndexOf(sWord)
-				If Index > -1 Then
-					For i As Integer = Index To tb->Procedures.Count - 1
-						te = tb->Procedures.Object(i)
-						If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-							Parameter = te->Parameters
-							iPos = InStr(LCase(Parameter), LCase(sWord))
-							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
-							Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-							ParametersList.Add te->Parameters
-							If te->Comment <> "" Then Comments &= " " & te->Comment
-						End If
-					Next
-				End If
-				Index = pGlobalFunctions->IndexOf(sWord)
-				If Index > -1 Then
-					For i As Integer = Index To pGlobalFunctions->Count - 1
-						te = pGlobalFunctions->Object(i)
-						If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-							Dim As UString res(Any)
-							Split te->Parameters, !"\r", res()
-							For n As Integer = 0 To UBound(res)
-								Parameter = res(n) 'te->Parameters
-								Parameters &= IIf(Parameters = "", "", !"\r")
-								iPos = InStr(LCase(Parameter), LCase(sWord))
-								'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
-								If iPos > 0 Then
-									FuncName = Mid(Parameter, iPos, Len(sWord))
-									Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
-									Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
-								Else
-									Parameters &= Parameter
-								End If
-							Next n
-							ParametersList.Add te->Parameters
-							If te->Comment <> "" Then Comments &= " " & te->Comment
-						End If
-					Next
-				End If
-			End If
-			If Parameters <> "" Then
-				tb->txtCode.HintWord = sWord
-				tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
-				tb->txtCode.ShowToolTipAt(iSelEndLine, iSelEndChar - Len(sWord) - 1)
-				OnSelChangeEdit(Sender, iSelEndLine, iSelEndChar)
-			End If
+			ParameterInfo Key
 		End If
 	ElseIf tb->txtCode.DropDownShowed Then
 		#ifdef __USE_GTK__

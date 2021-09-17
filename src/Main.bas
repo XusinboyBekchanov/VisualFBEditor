@@ -2636,6 +2636,18 @@ Function WithoutPointers(ByRef e As String) As String
 	End If
 End Function
 
+Function DeleteSpaces(b As String) As String
+	Dim iCount As Integer
+	Dim bNew As String = b
+'	Do
+'		?bNew
+'		bNew = Replace(bNew, "  ", " ", , iCount)
+'		?bNew
+'		?iCount
+'	Loop While iCount > 0
+	Return bNew
+End Function
+
 Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0)
 	If FormClosing Then Exit Sub
 	If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then MutexLock tlockSave
@@ -2717,7 +2729,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		For j As Integer = 0 To UBound(res)
 			l = Len(res(j))
 			b = Mid(b1, k, l)
-			bTrim = Trim(b)
+			bTrim = DeleteSpaces(Trim(b))
 			bTrimLCase = LCase(bTrim)
 			k = k + Len(res(j)) + 1
 			If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) AndAlso CInt(StartsWith(LTrim(LCase(b)), "#include ")) Then
@@ -2882,6 +2894,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
 					Pos4 = InStr(bTrim, "(")
 					If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
+					If StartsWith(LCase(Trim(Mid(bTrim, 9))), "operator") Then Continue For
 					te = New_( TypeElement)
 					te->Declaration = True
 					If Pos1 = 0 Then
@@ -4026,6 +4039,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Paste", "Paste"
 	imgList.Add "Find", "Find"
 	imgList.Add "Code", "Code"
+	imgList.Add "CompleteWord", "CompleteWord"
 	imgList.Add "Console", "Console"
 	imgList.Add "Form", "Form"
 	imgList.Add "MainForm", "MainForm"
@@ -4051,6 +4065,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Eraser", "Eraser"
 	imgList.Add "Pin", "Pin"
 	imgList.Add "Pinned", "Pinned"
+	imgList.Add "ParameterInfo", "ParameterInfo"
 	imgList.Add "Parameters", "Parameters"
 	imgList.Add "Folder", "Folder"
 	imgList.Add "MainProject", "MainProject"
@@ -4072,7 +4087,6 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Tools", "Tools"
 	imgList.Add "StandartTypes", "StandartTypes"
 	imgList.Add "Enum", "Enum"
-	imgList.Add "EnumItem", "EnumItem"
 	imgList.Add "Type", "Type"
 	imgList.Add "Function", "Function"
 	imgList.Add "Event", "Event"
@@ -4086,6 +4100,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Up", "Up"
 	imgList.Add "Down", "Down"
 	imgList.Add "Sort", "Sort"
+	imgList.Add "EnumItem", "EnumItem"
 	imgListD.Add "StartWithCompileD", "StartWithCompile"
 	imgListD.Add "StartD", "Start"
 	imgListD.Add "BreakD", "Break"
@@ -4217,7 +4232,8 @@ Sub CreateMenusAndToolBars
 	miEdit->Add(ML("&Unformat Project") & HK("UnformatProject"), "UnformatProject", "UnformatProject", @mclick)
 	miEdit->Add(ML("Add &Spaces") & HK("AddSpaces"), "AddSpaces", "AddSpaces", @mclick)
 	miEdit->Add("-")
-	miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+J"), "", "CompleteWord", @mclick)
+	miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+Space"), "CompleteWord", "CompleteWord", @mclick)
+	miEdit->Add(ML("Parameter Info") & HK("ParameterInfo", "Ctrl+J"), "ParameterInfo", "ParameterInfo", @mclick)
 	miEdit->Add("-")
 	Var miTry = miEdit->Add(ML("Error Handling"), "", "Try")
 	miTry->Add(ML("Numbering") & HK("NumberOn"), "Numbering", "NumberOn", @mclick)
@@ -4477,6 +4493,9 @@ Sub CreateMenusAndToolBars
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add , "Comment",, @mClick, "SingleComment", , ML("Single comment") & " (Ctrl+I)", True
 	tbStandard.Buttons.Add , "UnComment",, @mClick, "UnComment", , ML("UnComment") & " (Shift+Ctrl+I)", True
+	tbStandard.Buttons.Add tbsSeparator
+	tbStandard.Buttons.Add , "CompleteWord", , @mClick, "CompleteWord", , ML("Complete Word") & " (Ctrl+Space)", True
+	tbStandard.Buttons.Add , "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & " (Ctrl+J)", True
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add , "SyntaxCheck",, @mClick, "SyntaxCheck", , ML("Syntax Check"), True
 	Var tbButton = tbStandard.Buttons.Add(tbsWholeDropdown, "Try",, @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)

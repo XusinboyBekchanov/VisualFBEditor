@@ -382,7 +382,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Undo", "Redo", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", _
-		"CompleteWord", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
+		"CompleteWord", "ParameterInfo", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
 		If pfrmMain->ActiveControl = 0 Then Exit Sub
 		If pfrmMain->ActiveControl->ClassName <> "EditControl" AndAlso pfrmMain->ActiveControl->ClassName <> "TextBox" AndAlso pfrmMain->ActiveControl->ClassName <> "Panel" Then Exit Sub
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -433,6 +433,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "CollapseAll":             ec->CollapseAll
 				Case "UnCollapseAll":           ec->UnCollapseAll
 				Case "CompleteWord":            CompleteWord
+				Case "ParameterInfo":           ParameterInfo
 				Case "ToggleBookmark":          ec->Bookmark
 				Case "Define":                  tb->Define
 				Case "NumberOn":        	    tb->NumberOn
