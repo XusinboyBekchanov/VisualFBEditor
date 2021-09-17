@@ -398,6 +398,8 @@ Declare Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 	Declare Function build_create_shellscript(ByRef working_dir As WString, ByRef cmd As WString, autoclose As Boolean, debug As Boolean = False, ByRef Arguments As WString = "") As String
 #endif
 
+Declare Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) As String
+
 Declare Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ForWindows As Boolean = False) As UString
 
 Declare Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr

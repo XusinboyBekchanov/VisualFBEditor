@@ -224,6 +224,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			#else
 				pTabCode->Add(@.btnClose)
 			#endif
+			tb->ImageKey = GetIconName(FileNameNew)
 			If Not bNoActivate Then .SelectTab Else .Visible = True: pTabCode->RequestAlign: .Visible = False
 			.tbrTop.Buttons.Item(1)->Checked = True
 			If FileName <> "" Then
@@ -5015,8 +5016,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		txtCode.cboIntellisense.OnSelected = @cboIntellisense_Selected
 	#endif
 	'cboIntellisense.Style = cbDropDown
-	This.ImageIndex = pimgList->IndexOf("File")
-	This.ImageKey = "File"
+	'This.ImageIndex = pimgList->IndexOf("File")
+	'This.ImageKey = "File"
 	'    OnHandleIsAllocated = @HandleIsAllocated
 	If TreeN <> 0 Then
 		tn = TreeN
