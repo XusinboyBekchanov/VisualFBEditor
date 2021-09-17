@@ -3363,14 +3363,25 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 	Dim As WStringList ParametersList
 	Dim As String sWord, Symb, FuncName, Parameters, Parameter, Link1, Param
-	Dim As UString Lines(Any), Params(Any), LinkParse(Any)
+	Dim As UString Lines(Any), Params(Any), LinkParse(Any), res(Any), b
 	Dim As Integer iCount, iPos, iPos1, iPos2, n, iParamCount, iSelEndCharFunc
 	Dim As Boolean bStarted, bQuotation
+	Split *sLine, """", res()
+	b = ""
+	For j As Integer = 0 To UBound(res)
+		If j = 0 Then
+			b = res(0)
+		ElseIf j Mod 2 = 0 Then
+			b &= "'" & res(j)
+		Else
+			b &= "'" & WSpace(Len(res(j)))
+		End If
+	Next
 	Parameters = tb->txtCode.Hint
 	Split Parameters, !"\r", Lines()
 	iSelEndCharFunc = iSelEndChar
 	For i As Integer = iSelEndChar To 1 Step -1
-		Symb = Mid(*sLine, i, 1)
+		Symb = Mid(b, i, 1)
 		If Symb = "(" Then
 			If iCount = 0 Then
 				iSelEndCharFunc = i - 1
