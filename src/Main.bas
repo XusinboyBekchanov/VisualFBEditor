@@ -4610,11 +4610,11 @@ spProgress->Width = 100
 
 prProgress.Visible = False
 prProgress.Marquee = True
-prProgress.SetMarquee True, 100
 #ifdef __USE_GTK__
 	prProgress.Height = 30
 	gtk_box_pack_end (GTK_BOX (gtk_statusbar_get_message_area (gtk_statusbar(stBar.Handle))), prProgress.Handle, False, True, 10)
 #else
+	prProgress.SetMarquee True, 100
 	prProgress.Top = 3
 	prProgress.Parent = @stBar
 #endif
