@@ -1367,6 +1367,7 @@ Sub OpenFolder()
 	Dim As FolderBrowserDialog BrowseD
 	If Not BrowseD.Execute Then Exit Sub
 	AddFolder BrowseD.Directory
+	WLet(RecentFolder, BrowseD.Directory)
 	TabLeft.Tabs[0]->SelectTab
 End Sub
 
@@ -1376,6 +1377,7 @@ Sub OpenProject()
 	OpenD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("All Files") & "|*.*|"
 	If Not OpenD.Execute Then Exit Sub
 	AddProject OpenD.FileName
+	WLet(RecentProject, OpenD.FileName)
 	TabLeft.Tabs[0]->SelectTab
 End Sub
 
@@ -1469,6 +1471,7 @@ Sub OpenSession()
 	Next i
 	WLet(LastOpenPath, GetFolderName(OpenD.FileName))
 	AddSession OpenD.FileName
+	WLet(RecentSession, OpenD.FileName)
 	TabLeft.Tabs[0]->SelectTab
 End Sub
 
@@ -6698,7 +6701,7 @@ frmMain.Add @pnlBottom
 frmMain.Add @splBottom
 frmMain.Add ptabCode
 
-frmMain.CreateWnd
+'frmMain.CreateWnd
 frmMain.Show
 frmMain.CenterToScreen '
 
