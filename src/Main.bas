@@ -4878,7 +4878,7 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	End If
 End Sub
 
-Sub tvExplorer_NodeExpanding(ByRef Sender As Control, ByRef Item As TreeNode)
+Sub tvExplorer_NodeExpanding(ByRef Sender As Control, ByRef Item As TreeNode, ByRef Cancel As Boolean)
 	If Item.ImageKey <> "Opened" Then Exit Sub
 	ExpandFolder @Item
 End Sub
@@ -4968,7 +4968,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	End If
 End Sub
 
-Sub tvExplorer_MouseUp(ByRef Sender As TreeView, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+Sub tvExplorer_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 1 Then Exit Sub
 	Dim tn As TreeNode Ptr = tvExplorer.DraggedNode
 	If tn = 0 Then
