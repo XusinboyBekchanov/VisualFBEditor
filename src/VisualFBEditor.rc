@@ -29,6 +29,7 @@ CompleteWord PNG "../resources/CompleteWord.png"
 Console PNG "../resources/Console.png"
 DOWN PNG "../resources/Down.png"
 DropDown PNG "../resources/DropDown.png"
+DropRight PNG "../resources/DropRight.png"
 EndD PNG "../resources/EndD.png"
 EndProgram PNG "../resources/End.png"
 Enum PNG "../resources/Enum.png"
@@ -108,8 +109,8 @@ weChat PNG "../resources/weChat.png"
 #define APP_TITLE_STR               "Visual FB Editor\0"
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,9,4584
-#define VER_FILEVERSION_STR         "1.2.9.4584\0"
+#define VER_FILEVERSION             1,2,9,4655
+#define VER_FILEVERSION_STR         "1.2.9.4655\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

@@ -3659,6 +3659,7 @@ Sub LoadToolBox
 		tbToolBox.Align = 5
 	#else
 		imgListTools.Add "DropDown", "DropDown"
+		imgListTools.Add "DropRight", "DropRight"
 		imgListTools.Add "Kursor", "Cursor"
 	#endif
 	tbToolBox.Top = tbForm.Height
@@ -5487,7 +5488,7 @@ imgListStates.Add "Event", "Event"
 lvProperties.Align = 5
 'lvProperties.Sort = ssSortAscending
 lvProperties.StateImages = @imgListStates
-lvProperties.SmallImages = @imgListStates
+lvProperties.Images = @imgListStates
 'lvProperties.ColumnHeaderHidden = True
 lvProperties.Columns.Add ML("Property"), , 70
 lvProperties.Columns.Add ML("Value"), , 50, , True
@@ -5521,7 +5522,7 @@ lvEvents.OnItemKeyDown = @lvEvents_KeyDown
 	lvEvents.OnItemDblClick = @lvEvents_ItemDblClick
 #endif
 lvEvents.OnResize = @lvEvents_Resize
-lvEvents.SmallImages = @imgListStates
+lvEvents.Images = @imgListStates
 
 splProperties.Align = SplitterAlignmentConstants.alBottom
 
