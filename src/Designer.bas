@@ -745,7 +745,7 @@ Namespace My.Sys.Forms
 		If FDown Then
 			If FCanInsert Then
 				#ifdef __USE_GTK__
-					gtk_widget_queue_draw(layoutwidget)
+					If gtk_is_widget(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
 				#else
 					SetCursor(crCross)
 				#endif
@@ -805,7 +805,7 @@ Namespace My.Sys.Forms
 			End If
 			If Not FCanInsert And Not FCanMove And Not FCanSize Then
 				#ifdef __USE_GTK__
-					gtk_widget_queue_draw(layoutwidget)
+					If gtk_is_widget(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
 				#else
 					FHDC = GetDC(FDialog)
 					'SetROP2(hdc, R2_NOTXORPEN)
@@ -884,7 +884,7 @@ Namespace My.Sys.Forms
 				If FBeginY > FNewY Then Swap FBeginY, FNewY
 				SelectedControls.Clear
 				#ifdef __USE_GTK__
-					gtk_widget_queue_draw(layoutwidget)
+					If gtk_is_widget(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
 					Dim As Integer ALeft, ATop, AWidth, AHeight
 					Dim As Any Ptr Ctrl
 					SelectedControl = DesignControl
@@ -934,7 +934,7 @@ Namespace My.Sys.Forms
 				If FBeginY > FNewY Then Swap FBeginY, FNewY
 				DrawBox(Type<RECT>(FBeginX, FBeginY, FNewX, FNewY))
 				#ifdef __USE_GTK__
-					gtk_widget_queue_draw(layoutwidget)
+					If gtk_is_widget(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
 				#endif
 				'if GetClassAcceptControls(GetClassName(FSelControl)) Then
 				'R.Left   = FBeginX
