@@ -756,8 +756,8 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		End If
 	End If
 	If ptabCode->SelectedTabIndex = This.Index Then
-		plvProperties->ListItems.Clear
-		plvEvents->ListItems.Clear
+		plvProperties->Nodes.Clear
+		plvEvents->Nodes.Clear
 		txtLabelProperty.Text = ""
 		txtLabelEvent.Text = ""
 		pnlPropertyValue.Visible = False
@@ -1170,8 +1170,8 @@ Sub TabWindow.FillAllProperties()
 	cboFunction.Items.Clear
 	cboFunction.Items.Add "(" & ML("Events") & ")", , "Event", "Event"
 	cboFunction.ItemIndex = 0
-	plvProperties->ListItems.Clear
-	plvEvents->ListItems.Clear
+	plvProperties->Nodes.Clear
+	plvEvents->Nodes.Clear
 	FPropertyItems.Clear
 	If Des->ReadPropertyFunc <> 0 Then
 		FillProperties WGet(Des->ReadPropertyFunc(Des->SelectedControl, "ClassName"))
@@ -1183,18 +1183,18 @@ Sub TabWindow.FillAllProperties()
 		If te = 0 Then Continue For
 		With *te
 			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso CInt(.ElementType = "Property") Then
-				If plvProperties->ListItems.Count <= lvPropertyCount Then
-					lvItem = plvProperties->ListItems.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(.TypeIsPointer = False AndAlso pComps->Contains(.TypeName), 1, 0))
-					If .TypeIsPointer = False AndAlso pComps->Contains(.TypeName) Then lvItem->Items.Add
+				If plvProperties->Nodes.Count <= lvPropertyCount Then
+					lvItem = plvProperties->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(.TypeIsPointer = False AndAlso pComps->Contains(.TypeName), 1, 0))
+					If .TypeIsPointer = False AndAlso pComps->Contains(.TypeName) Then lvItem->Nodes.Add
 				Else
-					lvItem = plvProperties->ListItems.Item(lvPropertyCount)
+					lvItem = plvProperties->Nodes.Item(lvPropertyCount)
 					lvItem->Text(0) = FPropertyItems.Item(lvPropertyCount)
 					lvItem->Text(1) = ""
 				End If
 				lvItem->Text(1) = ReadObjProperty(Des->SelectedControl, FPropertyItems.Item(lvPropertyCount))
 			ElseIf .ElementType = "Event" Then
 				cboFunction.Items.Add .Name, , "Event", "Event"
-				lvItem = plvEvents->ListItems.Add(.Name, 3)
+				lvItem = plvEvents->Nodes.Add(.Name, 3)
 				lvItem->Text(1) = ReadObjProperty(Des->SelectedControl, .Name)
 				'If *Ctrl Is Control Then
 				'    cboFunction.Items.Add .Name & "NS", , "Sub", "Sub", , 1
@@ -1214,7 +1214,7 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
-	If SelectedCtrl = Ctrl AndAlso tb->cboClass.ItemIndex <> 0 AndAlso lvProperties.ListItems.Count <> 0 Then Exit Sub
+	If SelectedCtrl = Ctrl AndAlso tb->cboClass.ItemIndex <> 0 AndAlso lvProperties.Nodes.Count <> 0 Then Exit Sub
 	'tb->Des->SelectedControl = Ctrl
 	SelectedCtrl = Ctrl
 	bNotFunctionChange = True
@@ -1913,12 +1913,12 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 				ChangeControl(tb->Des->SelectedControl, PropertyName)
 			End If
 			'If tb->frmForm Then tb->frmForm->MoveDots Cast(Control Ptr, tb->SelectedControl)->Handle, False
-			For i As Integer = 0 To plvProperties->ListItems.Count - 1
-				PropertyName = GetItemText(plvProperties->ListItems.Item(i))
+			For i As Integer = 0 To plvProperties->Nodes.Count - 1
+				PropertyName = GetItemText(plvProperties->Nodes.Item(i))
 				Dim TempWS As UString
 				TempWS = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
-				If TempWS <> plvProperties->ListItems.Item(i)->Text(1) Then
-					plvProperties->ListItems.Item(i)->Text(1) = TempWS
+				If TempWS <> plvProperties->Nodes.Item(i)->Text(1) Then
+					plvProperties->Nodes.Item(i)->Text(1) = TempWS
 					ChangeControl(tb->Des->SelectedControl, PropertyName)
 				End If
 			Next i
@@ -1944,14 +1944,14 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 		If PropertyName = "" Then
 			Dim GridPropertyName As String
 			Dim TempWS As UString
-			For i As Integer = 0 To plvProperties->ListItems.Count - 1
-				GridPropertyName = GetItemText(plvProperties->ListItems.Item(i))
+			For i As Integer = 0 To plvProperties->Nodes.Count - 1
+				GridPropertyName = GetItemText(plvProperties->Nodes.Item(i))
 				If GridPropertyName = "Left" OrElse GridPropertyName = "Top" OrElse GridPropertyName = "Width" OrElse GridPropertyName = "Height" Then
 					TempWS = tb->ReadObjProperty(tb->Des->SelectedControl, GridPropertyName)
-					If TempWS <> plvProperties->ListItems.Item(i)->Text(1) Then
-						plvProperties->ListItems.Item(i)->Text(1) = TempWS
-						If CInt(plvProperties->ListItems.Item(i) = plvProperties->SelectedItem) AndAlso CInt(ptxtPropertyValue->Visible) Then
-							ptxtPropertyValue->Text = plvProperties->ListItems.Item(i)->Text(1)
+					If TempWS <> plvProperties->Nodes.Item(i)->Text(1) Then
+						plvProperties->Nodes.Item(i)->Text(1) = TempWS
+						If CInt(plvProperties->Nodes.Item(i) = plvProperties->SelectedItem) AndAlso CInt(ptxtPropertyValue->Visible) Then
+							ptxtPropertyValue->Text = plvProperties->Nodes.Item(i)->Text(1)
 						End If
 					End If
 				End If
@@ -2400,8 +2400,8 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		ptxtCode->TopLine = i + q + 1
 		ptxtCode->Changed "Hodisa qo`shish"
 		ptxtCode->SetFocus
-		If plvEvents->ListItems.Contains(EventName) Then
-			plvEvents->ListItems.Item(plvEvents->ListItems.IndexOf(EventName))->Text(1) = SubName
+		If plvEvents->Nodes.Contains(EventName) Then
+			plvEvents->Nodes.Item(plvEvents->Nodes.IndexOf(EventName))->Text(1) = SubName
 		End If
 		OnLineChangeEdit tb->txtCode, i + q + 2, i + q + 2
 		If tb->tbrTop.Buttons.Item(2)->Checked Then tb->tbrTop.Buttons.Item(1)->Checked = True
@@ -4596,13 +4596,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			If Des->SelectedControls.Count > 1 Then Des->MoveDots Des->SelectedControl, False
 		End If
 		Dim PropertyName As String
-		For i As Integer = 0 To plvProperties->ListItems.Count - 1
-			PropertyName = GetItemText(plvProperties->ListItems.Item(i))
+		For i As Integer = 0 To plvProperties->Nodes.Count - 1
+			PropertyName = GetItemText(plvProperties->Nodes.Item(i))
 			Dim TempWS As UString
 			TempWS = ReadObjProperty(Des->SelectedControl, PropertyName)
-			If TempWS <> plvProperties->ListItems.Item(i)->Text(1) Then
-				plvProperties->ListItems.Item(i)->Text(1) = TempWS
-				If plvProperties->SelectedItem = plvProperties->ListItems.Item(i) AndAlso pnlPropertyValue.Visible Then
+			If TempWS <> plvProperties->Nodes.Item(i)->Text(1) Then
+				plvProperties->Nodes.Item(i)->Text(1) = TempWS
+				If plvProperties->SelectedItem = plvProperties->Nodes.Item(i) AndAlso pnlPropertyValue.Visible Then
 					If cboPropertyValue.Visible Then
 						cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & TempWS)
 					Else
@@ -4611,12 +4611,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				End If
 			End If
 		Next i
-		For i As Integer = 0 To plvEvents->ListItems.Count - 1
-			PropertyName = GetItemText(plvEvents->ListItems.Item(i))
+		For i As Integer = 0 To plvEvents->Nodes.Count - 1
+			PropertyName = GetItemText(plvEvents->Nodes.Item(i))
 			Dim TempWS As UString
 			TempWS = ReadObjProperty(Des->SelectedControl, PropertyName)
-			If TempWS <> plvEvents->ListItems.Item(i)->Text(1) Then
-				plvEvents->ListItems.Item(i)->Text(1) = TempWS
+			If TempWS <> plvEvents->Nodes.Item(i)->Text(1) Then
+				plvEvents->Nodes.Item(i)->Text(1) = TempWS
 			End If
 		Next i
 		'FillAllProperties
@@ -5226,7 +5226,7 @@ End Destructor
 'End Sub
 
 Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-	If Item AndAlso Item->Items.Count > 0 AndAlso Item->Items.Item(0)->Text(0) = "" Then
+	If Item AndAlso Item->Nodes.Count > 0 AndAlso Item->Nodes.Item(0)->Text(0) = "" Then
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabRight->Tag)
 		If tb = 0 Then Exit Sub
 		If tb->Des = 0 Then Exit Sub
@@ -5245,15 +5245,15 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 			If te = 0 Then Continue For
 			With *te
 				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(.ElementType = "Property") Then
-					lvItem = Item->Items.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(pComps->Contains(.TypeName), 1, 0))
+					lvItem = Item->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(pComps->Contains(.TypeName), 1, 0))
 					lvItem->Text(1) = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
 					If pComps->Contains(.TypeName) Then
-						lvItem->Items.Add
+						lvItem->Nodes.Add
 					End If
 				End If
 			End With
 		Next
-		Item->Items.Remove 0
+		Item->Nodes.Remove 0
 		ptabRight->UpdateUnlock
 	End If
 End Sub

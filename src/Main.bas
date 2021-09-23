@@ -4428,10 +4428,10 @@ Sub CreateMenusAndToolBars
 	miGitHub->Add(ML("FreeBasic Repository") & HK("FreeBasicRepository"), "", "FreeBasicRepository", @mclick)
 	miGitHub->Add("-")
 	miGitHub->Add(ML("VisualFBEditor Repository") & HK("VisualFBEditorRepository"), "", "VisualFBEditorRepository", @mclick)
-	miGitHub->Add(ML("VisualFBEditor WiKi") & HK("VisualFBEditorWiKi"), "", "VisualFBEditorWiKi", @mclick)
+	miGitHub->Add(ML("VisualFBEditor WiKi") & HK("VisualFBEditorWiKi"), "Help", "VisualFBEditorWiKi", @mclick)
 	miGitHub->Add("-")
 	miGitHub->Add(ML("MyFbFramework Repository") & HK("MyFbFrameworkRepository"), "", "MyFbFrameworkRepository", @mclick)
-	miGitHub->Add(ML("MyFbFramework WiKi") & HK("MyFbFrameworkWiKi"), "", "MyFbFrameworkWiKi", @mclick)
+	miGitHub->Add(ML("MyFbFramework WiKi") & HK("MyFbFrameworkWiKi"), "Help", "MyFbFrameworkWiKi", @mclick)
 	miHelp->Add("-")
 	miHelp->Add(ML("&About") & HK("About"), "About", "About", @mclick)
 	
@@ -5707,8 +5707,8 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 		Next
 	#endif
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
-	lvProperties.ListItems.Clear
-	lvEvents.ListItems.Clear
+	lvProperties.Nodes.Clear
+	lvEvents.Nodes.Clear
 	txtLabelProperty.Text = ""
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
