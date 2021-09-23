@@ -222,10 +222,8 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 	Folders.Clear
 End Sub
 
-Dim Shared ToDoLock As Any Ptr
-ToDoLock = MutexCreate()
 Sub FindToDoSub(Param As Any Ptr)
-	MutexLock ToDoLock
+	MutexLock tlockToDo
 	ThreadsEnter
 	plvToDo->ListItems.Clear
 	StartProgress
@@ -241,7 +239,7 @@ Sub FindToDoSub(Param As Any Ptr)
 	StopProgress
 	ptabBottom->Tabs[3]->Caption = ML("ToDo") & IIf(plvToDo->ListItems.Count = 0, "", " (" & plvToDo->ListItems.Count & " " & ML("Pos") & ")")
 	ThreadsLeave
-	MutexUnlock ToDoLock
+	MutexUnlock tlockToDo
 End Sub
 
 Sub FindSub(Param As Any Ptr)

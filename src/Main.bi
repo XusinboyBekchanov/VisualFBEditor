@@ -126,7 +126,7 @@ Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, CurrentDebugg
 Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64
 Common Shared As WString Ptr MakeToolPath1, MakeToolPath2, Debugger32Path, Debugger64Path, TerminalPath, Compiler32Path, Compiler64Path
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, Debug32Arguments, Debug64Arguments
-Common Shared As Any Ptr tlock, tlockSave
+Common Shared As Any Ptr tlock, tlockSave, tlockToDo
 
 Type ToolType
 	Name As UString
