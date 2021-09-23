@@ -118,7 +118,7 @@ Common Shared As Integer LastOpenedFileType
 Common Shared As String CurLanguage
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
-Common Shared As WString Ptr gSearchSave
+Common Shared As WString Ptr gSearchSave, EnvironmentVariables
 Common Shared As WString Ptr ProjectsPath, LastOpenPath, CommandPromptFolder
 Common Shared As WString Ptr DefaultHelp, HelpPath, KeywordsHelpPath
 Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2

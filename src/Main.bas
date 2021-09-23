@@ -1157,10 +1157,10 @@ Sub ThreadCounter(Id As Any Ptr)
 	Threads.Add Id
 End Sub
 
-Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean = False) As TreeNode Ptr
+Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn1 As TreeNode Ptr = 0, bNew As Boolean = False) As TreeNode Ptr
 	Dim As ExplorerElement Ptr ee
-	Dim As TreeNode Ptr tn3
-	Dim As Boolean inFolder = tn <> 0
+	Dim As TreeNode Ptr tn, tn3
+	Dim As Boolean inFolder = tn1 <> 0
 	If Not inFolder Then
 		If FileName <> "" AndAlso Not bNew Then
 			If Not FileExists(FileName) Then
@@ -1177,6 +1177,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 				End If
 			Next
 			tn = tvExplorer.Nodes.Add(GetFileName(FileName), , FileName, "Project", "Project")
+			?tn, tn->Text
 		Else
 			Var n = 0
 			Dim As String ProjectName = "Project"
@@ -3817,6 +3818,7 @@ Sub LoadSettings
 	WLet(CommandPromptFolder, iniSettings.ReadString("Options", "CommandPromptFolder", "./Projects"))
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
+	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
 	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects"))
 	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
 	ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", True)

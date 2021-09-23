@@ -198,7 +198,7 @@ pfOptions = @fOptions
 		With grbDebuggerPaths
 			.Name = "grbDebuggerPaths"
 			.Text = ML("Debugger Paths")
-			.SetBounds 10, 184, 416, 214
+			.SetBounds 10, 204, 416, 194
 			.Parent = @pnlDebugger
 		End With
 		' cboDebugger32
@@ -398,7 +398,7 @@ pfOptions = @fOptions
 		' cmdChangeDebugger
 		cmdChangeDebugger.Name = "cmdChangeDebugger"
 		cmdChangeDebugger.Text = ML("Chan&ge")
-		cmdChangeDebugger.SetBounds 114, 173, 96, 24
+		cmdChangeDebugger.SetBounds 114, 153, 96, 24
 		cmdChangeDebugger.OnClick = @cmdChangeDebugger_Click
 		cmdChangeDebugger.Parent = @grbDebuggerPaths
 		' cmdChangeTerminal
@@ -725,7 +725,7 @@ pfOptions = @fOptions
 		With lvDebuggerPaths
 			.Name = "lvDebuggerPaths"
 			.Text = "lvCompilerPaths1"
-			.SetBounds 18, 22, 384, 142
+			.SetBounds 18, 22, 384, 122
 			.Designer = @This
 			.OnItemActivate = @lvDebuggerPaths_ItemActivate_
 			.Parent = @grbDebuggerPaths
@@ -734,7 +734,7 @@ pfOptions = @fOptions
 		With cmdAddDebugger
 			.Name = "cmdAddDebugger"
 			.Text = ML("&Add")
-			.SetBounds 17, 173, 96, 24
+			.SetBounds 17, 153, 96, 24
 			.OnClick = @cmdAddDebugger_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -742,7 +742,7 @@ pfOptions = @fOptions
 		With cmdRemoveDebugger
 			.Name = "cmdRemoveDebugger"
 			.Text = ML("&Remove")
-			.SetBounds 211, 173, 96, 24
+			.SetBounds 211, 153, 96, 24
 			.OnClick = @cmdRemoveDebugger_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -750,7 +750,7 @@ pfOptions = @fOptions
 		With cmdClearDebuggers
 			.Name = "cmdClearDebuggers"
 			.Text = ML("&Clear")
-			.SetBounds 307, 173, 96, 24
+			.SetBounds 307, 153, 96, 24
 			.OnClick = @cmdClearDebuggers_Click
 			.Parent = @grbDebuggerPaths
 		End With
@@ -1270,6 +1270,23 @@ pfOptions = @fOptions
 			.SetBounds 209, 267, 90, 20
 			.Parent = @pnlCodeEditor
 		End With
+		' lblEnvironmentVariables
+		With lblEnvironmentVariables
+			.Name = "lblEnvironmentVariables"
+			.Text = ML("Environment variables") & ":"
+			.TabIndex = 181
+			.Caption = ML("Environment variables") & ":"
+			.SetBounds 20, 181, 170, 17
+			.Parent = @pnlDebugger
+		End With
+		' txtEnvironmentVariables
+		With txtEnvironmentVariables
+			.Name = "txtEnvironmentVariables"
+			.Text = ""
+			.TabIndex = 182
+			.SetBounds 192, 180, 220, 20
+			.Parent = @pnlDebugger
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1318,6 +1335,7 @@ Sub frmOptions.LoadSettings()
 		.chkAddSpacesToOperators.Checked = AddSpacesToOperators
 		.chkUseMakeOnStartWithCompile.Checked = UseMakeOnStartWithCompile
 		.chkLimitDebug.Checked = LimitDebug
+		.txtEnvironmentVariables.Text = *EnvironmentVariables
 		.txtTabSize.Text = Str(TabWidth)
 		.txtHistoryLimit.Text = Str(HistoryLimit)
 		.txtIntellisenseLimit.Text = Str(IntellisenseLimit)
@@ -1944,6 +1962,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
 		LimitDebug = .chkLimitDebug.Checked
 		DisplayWarningsInDebug = .chkDisplayWarningsInDebug.Checked
+		WLet(EnvironmentVariables, .txtEnvironmentVariables.Text)
 		AutoIncrement = .CheckBox1.Checked
 		AutoIndentation = .chkAutoIndentation.Checked
 		AutoComplete = .chkEnableAutoComplete.Checked
@@ -2104,6 +2123,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
 		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
 		piniSettings->WriteBool "Options", "DisplayWarningsInDebug", DisplayWarningsInDebug
+		piniSettings->WriteString "Options", "EnvironmentVariables", *EnvironmentVariables
 		piniSettings->WriteBool "Options", "AutoIncrement", AutoIncrement
 		piniSettings->WriteBool "Options", "AutoIndentation", AutoIndentation
 		piniSettings->WriteBool "Options", "AutoComplete", AutoComplete

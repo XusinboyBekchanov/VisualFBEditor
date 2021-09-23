@@ -6074,7 +6074,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		Next i
 		Print #Fn, "r"
 		Close #Fn
-		WLet(CmdL, """" & IIf(WGet(DebuggerPath) = "", "gdb", WGet(DebuggerPath)) & """ -x """ & ExePath & "/Temp/GDBCommands.txt""")
+		WLet(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", """" & WGet(DebuggerPath) & """") & " -x """ & ExePath & "/Temp/GDBCommands.txt""")
 	Else
 		Dim As Integer Idx = -1
 		If WGet(DebuggerPath) <> "" Then
@@ -6145,6 +6145,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			Else
 				CommandLine &= *CmdL
 			End If
+			If *EnvironmentVariables <> "" Then CommandLine = *EnvironmentVariables & " " & CommandLine
 			'IIf(WGet(DebuggerPath) = "", "gdb", Trim(WGet(DebuggerPath)) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")

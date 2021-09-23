@@ -153,12 +153,12 @@ Namespace My.Sys.Forms
 			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
 			If ec->InFocus Then
 				ec->CaretOn = Not ec->CaretOn
-				gtk_widget_queue_draw(ec->widget)
+				If gtk_is_widget(ec->widget) Then gtk_widget_queue_draw(ec->widget)
 				'gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
 				Return True
 			Else
 				ec->CaretOn = False
-				gtk_widget_queue_draw(ec->widget)
+				If gtk_is_widget(ec->widget) Then gtk_widget_queue_draw(ec->widget)
 				Return False
 			End If
 		End Function
@@ -2374,11 +2374,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			'PaintControlPriv
 			bChanged = True
-			#ifdef __USE_GTK3__
-				gtk_widget_queue_draw(widget)
-			#else
-				gtk_widget_queue_draw(widget)
-			#endif
+			If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
 		#else
 			PaintControlPriv
 		#endif
@@ -2741,11 +2737,7 @@ Namespace My.Sys.Forms
 				VScrollPos = gtk_adjustment_get_value(adjustmentv)
 				ShowCaretPos False
 				'PaintControl
-				#ifdef __USE_GTK3__
-					gtk_widget_queue_draw(widget)
-				#else
-					gtk_widget_queue_draw(widget)
-				#endif
+				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
 				'End If
 			#else
 				#ifdef __FB_64BIT__
