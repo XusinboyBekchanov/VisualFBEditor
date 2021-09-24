@@ -6056,6 +6056,14 @@ Sub RunWithDebug(Param As Any Ptr)
 	Dim As WString Ptr CurrentDebugger = IIf(Bit32, CurrentDebugger32, CurrentDebugger64)
 	Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 	ThreadsLeave()
+	Dim As Integer Idx = -1
+	If WGet(DebuggerPath) <> "" Then
+		Idx = pDebuggers->IndexOfKey(*CurrentDebugger)
+		If Idx <> -1 Then 
+			Dim As ToolType Ptr Tool = pDebuggers->Item(Idx)->Object
+			WLet(CmdL, Tool->GetCommand(IIf(InStr(LCase(WGet(DebuggerPath)), "gdb"), "", GetFileName(exename))))
+		End If
+	End If
 	#ifdef __USE_GTK__
 		If WGet(DebuggerPath) = "" OrElse InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
 	#else
@@ -6074,16 +6082,8 @@ Sub RunWithDebug(Param As Any Ptr)
 		Next i
 		Print #Fn, "r"
 		Close #Fn
-		WLet(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", """" & WGet(DebuggerPath) & """") & " -x """ & ExePath & "/Temp/GDBCommands.txt""")
+		WAdd(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", "") & " -x """ & ExePath & "/Temp/GDBCommands.txt""")
 	Else
-		Dim As Integer Idx = -1
-		If WGet(DebuggerPath) <> "" Then
-			Idx = pDebuggers->IndexOfKey(*CurrentDebugger)
-			If Idx <> -1 Then 
-				Dim As ToolType Ptr Tool = pDebuggers->Item(Idx)->Object
-				WLet(CmdL, Tool->GetCommand(GetFileName(exename)))
-			End If
-		End If
 		If Idx = -1 Then
 			WAdd(CmdL, " """ & GetFileName(exename) & """ " & *RunArguments)
 		Else
@@ -6145,7 +6145,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			Else
 				CommandLine &= *CmdL
 			End If
-			If *EnvironmentVariables <> "" Then CommandLine = *EnvironmentVariables & " " & CommandLine
+			If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then CommandLine = *EnvironmentVariables & " " & CommandLine
 			'IIf(WGet(DebuggerPath) = "", "gdb", Trim(WGet(DebuggerPath)) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")

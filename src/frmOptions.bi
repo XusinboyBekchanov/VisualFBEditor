@@ -153,13 +153,13 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CheckBox chkDisplayIcons
 		Dim As CheckBox chkShowMainToolbar
 		Dim As CheckBox chkAutoCreateBakFiles
-		Dim As Label lblFrame, lblDebugger32, lblDebugger64, lblFindCompilersFromComputer, lblOpenCommandPromptIn, lblIntellisenseLimit, lblEnvironmentVariables
+		Dim As Label lblFrame, lblDebugger32, lblDebugger64, lblFindCompilersFromComputer, lblOpenCommandPromptIn, lblIntellisenseLimit
 		Dim As Picture lblColorFrame
 		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps, cmdAddEditor, cmdChangeEditor, cmdRemoveEditor, cmdClearEditor, cmdFindCompilers, cmdInFolder
 		Dim As CheckBox chkFrame
 		Dim As CheckBox chkHighlightCurrentWord
 		Dim As CheckBox chkHighlightCurrentLine
-		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug, chkCreateNonStaticEventHandlers, chkShowKeywordsTooltip, chkAddSpacesToOperators, chkCreateFormTypesWithoutTypeWord
+		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug, chkCreateNonStaticEventHandlers, chkShowKeywordsTooltip, chkAddSpacesToOperators, chkCreateFormTypesWithoutTypeWord, chkTurnOnEnvironmentVariables
 		Dim As Boolean oldDisplayMenuIcons
 		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFile, optCreateProjectFile, optOpenLastSession, optDoNotNothing, optPromptToSave, optMainFileFolder, optInFolder
 	End Type

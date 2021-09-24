@@ -3818,6 +3818,7 @@ Sub LoadSettings
 	WLet(CommandPromptFolder, iniSettings.ReadString("Options", "CommandPromptFolder", "./Projects"))
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
+	TurnOnEnvironmentVariables = iniSettings.ReadBool("Options", "TurnOnEnvironmentVariables", True)
 	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
 	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects"))
 	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)

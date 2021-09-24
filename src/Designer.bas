@@ -3079,6 +3079,8 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To FLibs.Count - 1
 			If FLibs.Object(i) <> 0 Then DyLibFree(FLibs.Object(i))
 		Next
+		If MFF <> 0 Then DyLibFree(MFF)
+		if pApp = 0 then pApp = @VisualFBEditorApp
 		WDeallocate FClassName
 		WDeallocate FTemp
 	End Destructor

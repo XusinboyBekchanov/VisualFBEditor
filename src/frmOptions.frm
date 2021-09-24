@@ -1270,21 +1270,21 @@ pfOptions = @fOptions
 			.SetBounds 209, 267, 90, 20
 			.Parent = @pnlCodeEditor
 		End With
-		' lblEnvironmentVariables
-		With lblEnvironmentVariables
-			.Name = "lblEnvironmentVariables"
-			.Text = ML("Environment variables") & ":"
-			.TabIndex = 181
-			.Caption = ML("Environment variables") & ":"
-			.SetBounds 20, 181, 170, 17
-			.Parent = @pnlDebugger
-		End With
 		' txtEnvironmentVariables
 		With txtEnvironmentVariables
 			.Name = "txtEnvironmentVariables"
 			.Text = ""
 			.TabIndex = 182
-			.SetBounds 192, 180, 220, 20
+			.SetBounds 262, 180, 150, 20
+			.Parent = @pnlDebugger
+		End With
+		' chkTurnOnEnvironmentVariables
+		With chkTurnOnEnvironmentVariables
+			.Name = "chkTurnOnEnvironmentVariables"
+			.Text = ML("Turn on Environment variables") & ":"
+			.TabIndex = 184
+			.Caption = ML("Turn on Environment variables") & ":"
+			.SetBounds 15, 182, 200, 16
 			.Parent = @pnlDebugger
 		End With
 	End Constructor
@@ -1335,6 +1335,7 @@ Sub frmOptions.LoadSettings()
 		.chkAddSpacesToOperators.Checked = AddSpacesToOperators
 		.chkUseMakeOnStartWithCompile.Checked = UseMakeOnStartWithCompile
 		.chkLimitDebug.Checked = LimitDebug
+		.chkTurnOnEnvironmentVariables.Checked = TurnOnEnvironmentVariables
 		.txtEnvironmentVariables.Text = *EnvironmentVariables
 		.txtTabSize.Text = Str(TabWidth)
 		.txtHistoryLimit.Text = Str(HistoryLimit)
@@ -1962,6 +1963,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
 		LimitDebug = .chkLimitDebug.Checked
 		DisplayWarningsInDebug = .chkDisplayWarningsInDebug.Checked
+		TurnOnEnvironmentVariables = .chkTurnOnEnvironmentVariables.Checked
 		WLet(EnvironmentVariables, .txtEnvironmentVariables.Text)
 		AutoIncrement = .CheckBox1.Checked
 		AutoIndentation = .chkAutoIndentation.Checked
@@ -2123,6 +2125,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
 		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
 		piniSettings->WriteBool "Options", "DisplayWarningsInDebug", DisplayWarningsInDebug
+		piniSettings->WriteBool "Options", "TurnOnEnvironmentVariables", TurnOnEnvironmentVariables
 		piniSettings->WriteString "Options", "EnvironmentVariables", *EnvironmentVariables
 		piniSettings->WriteBool "Options", "AutoIncrement", AutoIncrement
 		piniSettings->WriteBool "Options", "AutoIndentation", AutoIndentation
