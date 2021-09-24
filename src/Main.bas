@@ -363,228 +363,6 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	End If
 End Function
 
-#ifndef __USE_GTK__
-'	#define BUFSIZE 4096 
-' 
-'Dim As HANDLE g_hChildStd_IN_Rd = NULL
-'Dim As HANDLE g_hChildStd_IN_Wr = NULL
-'Dim As HANDLE g_hChildStd_OUT_Rd = NULL
-'Dim As HANDLE g_hChildStd_OUT_Wr = NULL
-'
-'Dim As HANDLE g_hInputFile = NULL
-' 
-'Declare Sub CreateChildProcess()
-'Declare Sub WriteToPipe()
-'Declare Sub ReadFromPipe()
-'Declare Sub ErrorExit(PTSTR As String)
-' 
-'Function _tmain(argc As Integer, argv() As TCHAR Ptr) As Integer
-'   Dim As SECURITY_ATTRIBUTES saAttr 
-' 
-'   'printf("\n->Start of parent execution.\n");
-'
-'	' Set the bInheritHandle flag so pipe handles are inherited. 
-' 
-'   saAttr.nLength = SizeOf(SECURITY_ATTRIBUTES)
-'   saAttr.bInheritHandle = True
-'   saAttr.lpSecurityDescriptor = NULL
-'
-'	' Create a pipe for the child process's STDOUT. 
-' 
-'   If ( ! CreatePipe(& g_hChildStd_OUT_Rd, & g_hChildStd_OUT_Wr, & saAttr, 0) ) 
-'      ErrorExit(TEXT("StdoutRd CreatePipe")); 
-'
-'// Ensure the Read handle To the pipe For STDOUT Is Not inherited.
-'
-'   If ( ! SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0) )
-'      ErrorExit(TEXT("Stdout SetHandleInformation")); 
-'
-'// Create a pipe For the child process's STDIN. 
-' 
-'   If (! CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0)) 
-'      ErrorExit(TEXT("Stdin CreatePipe")); 
-'
-'// Ensure the Write handle To the pipe For STDIN Is Not inherited. 
-' 
-'   If ( ! SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0) )
-'      ErrorExit(TEXT("Stdin SetHandleInformation")); 
-' 
-'// Create the child process. 
-'   
-'   CreateChildProcess();
-'
-'// Get a handle To an Input file For the parent. 
-'// This example assumes a plain text file And uses String Output To verify Data flow. 
-' 
-'   If (argc == 1) 
-'      ErrorExit(TEXT("Please specify an input file.\n")); 
-'
-'   g_hInputFile = CreateFile(
-'       argv[1], 
-'       GENERIC_READ, 
-'       0, 
-'       NULL, 
-'       OPEN_EXISTING, 
-'       FILE_ATTRIBUTE_READONLY, 
-'       NULL); 
-'
-'   If ( g_hInputFile == INVALID_HANDLE_VALUE ) 
-'      ErrorExit(TEXT("CreateFile")); 
-' 
-'// Write To the pipe that Is the standard Input For a child process. 
-'// Data Is written To the pipe's buffers, so it is not necessary to wait
-'// Until the child process Is running before writing Data.
-' 
-'   WriteToPipe(); 
-'   printf( "\n->Contents of %S written to child STDIN pipe.\n", argv[1]);
-' 
-'// Read from pipe that Is the standard Output For child process. 
-' 
-'   printf( "\n->Contents of child process STDOUT:\n\n");
-'   ReadFromPipe(); 
-'
-'   printf("\n->End of parent execution.\n");
-'
-'// The remaining Open handles are cleaned up when This process terminates. 
-'// To avoid resource leaks in a larger application, Close handles explicitly. 
-'
-'   Return 0; 
-'} 
-' 
-'void CreateChildProcess()
-'// Create a child process that uses the previously created pipes For STDIN And STDOUT.
-'{ 
-'   TCHAR szCmdline[]=TEXT("child");
-'   PROCESS_INFORMATION piProcInfo; 
-'   STARTUPINFO siStartInfo;
-'   BOOL bSuccess = False; 
-' 
-'// Set up members of the PROCESS_INFORMATION structure. 
-' 
-'   ZeroMemory( &piProcInfo, SizeOf(PROCESS_INFORMATION) );
-' 
-'// Set up members of the STARTUPINFO structure. 
-'// This structure specifies the STDIN And STDOUT handles For redirection.
-' 
-'   ZeroMemory( &siStartInfo, SizeOf(STARTUPINFO) );
-'   siStartInfo.cb = SizeOf(STARTUPINFO); 
-'   siStartInfo.hStdError = g_hChildStd_OUT_Wr;
-'   siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
-'   siStartInfo.hStdInput = g_hChildStd_IN_Rd;
-'   siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
-' 
-'// Create the child process. 
-'    
-'   bSuccess = CreateProcess(NULL, 
-'      szCmdline,     // Command Line 
-'      NULL,          // process security attributes 
-'      NULL,          // primary thread security attributes 
-'      True,          // handles are inherited 
-'      0,             // creation flags 
-'      NULL,          // use parent's environment 
-'      NULL,          // use parent's current directory 
-'      &siStartInfo,  // STARTUPINFO Pointer 
-'      &piProcInfo);  // receives PROCESS_INFORMATION 
-'   
-'   // If an Error occurs, Exit the application. 
-'   If ( ! bSuccess ) 
-'      ErrorExit(TEXT("CreateProcess"));
-'   Else 
-'   {
-'      // Close handles To the child process And its primary thread.
-'      // Some applications might keep these handles To monitor the status
-'      // of the child process, For example. 
-'
-'      CloseHandle(piProcInfo.hProcess);
-'      CloseHandle(piProcInfo.hThread);
-'      
-'      // Close handles To the stdin And stdout pipes no longer needed by the child process.
-'      // If they are Not explicitly closed, there Is no way To recognize that the child process has ended.
-'      
-'      CloseHandle(g_hChildStd_OUT_Wr);
-'      CloseHandle(g_hChildStd_IN_Rd);
-'   }
-'}
-' 
-'void WriteToPipe(void) 
-'
-'// Read from a file And Write its contents To the pipe For the child's STDIN.
-'// Stop when there Is no more Data. 
-'{ 
-'   DWORD dwRead, dwWritten; 
-'   CHAR chBuf[BUFSIZE];
-'   BOOL bSuccess = False;
-' 
-'   For (;;) 
-'   { 
-'      bSuccess = ReadFile(g_hInputFile, chBuf, BUFSIZE, &dwRead, NULL);
-'      If ( ! bSuccess || dwRead == 0 ) break; 
-'      
-'      bSuccess = WriteFile(g_hChildStd_IN_Wr, chBuf, dwRead, &dwWritten, NULL);
-'      If ( ! bSuccess ) break; 
-'   } 
-' 
-'// Close the pipe handle so the child process stops reading. 
-' 
-'   If ( ! CloseHandle(g_hChildStd_IN_Wr) ) 
-'      ErrorExit(TEXT("StdInWr CloseHandle")); 
-'} 
-' 
-'void ReadFromPipe(void) 
-'
-'// Read Output from the child process's pipe for STDOUT
-'// And Write To the parent process's pipe for STDOUT. 
-'// Stop when there Is no more Data. 
-'{ 
-'   DWORD dwRead, dwWritten; 
-'   CHAR chBuf[BUFSIZE]; 
-'   BOOL bSuccess = False;
-'   HANDLE hParentStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-'
-'   For (;;) 
-'   { 
-'      bSuccess = ReadFile( g_hChildStd_OUT_Rd, chBuf, BUFSIZE, &dwRead, NULL);
-'      If( ! bSuccess || dwRead == 0 ) break; 
-'
-'      bSuccess = WriteFile(hParentStdOut, chBuf, 
-'                           dwRead, &dwWritten, NULL);
-'      If (! bSuccess ) break; 
-'   } 
-'} 
-' 
-'void ErrorExit(PTSTR lpszFunction) 
-'
-'// Format a readable Error message, display a message box, 
-'// And Exit from the application.
-'{ 
-'    LPVOID lpMsgBuf;
-'    LPVOID lpDisplayBuf;
-'    DWORD dw = GetLastError(); 
-'
-'    FormatMessage(
-'        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-'        FORMAT_MESSAGE_FROM_SYSTEM |
-'        FORMAT_MESSAGE_IGNORE_INSERTS,
-'        NULL,
-'        dw,
-'        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-'        (LPTSTR) &lpMsgBuf,
-'        0, NULL );
-'
-'    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
-'        (lstrlen((LPCTSTR)lpMsgBuf)+lstrlen((LPCTSTR)lpszFunction)+40)*SizeOf(TCHAR)); 
-'    StringCchPrintf((LPTSTR)lpDisplayBuf, 
-'        LocalSize(lpDisplayBuf) / SizeOf(TCHAR),
-'        TEXT("%s failed with error %d: %s"), 
-'        lpszFunction, dw, lpMsgBuf); 
-'    MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
-'
-'    LocalFree(lpMsgBuf);
-'    LocalFree(lpDisplayBuf);
-'    ExitProcess(1);
-'}
-#endif
-
 Function Compile(Parameter As String = "") As Integer
 	On Error Goto ErrorHandler
 	Dim As ProjectElement Ptr Project
@@ -818,49 +596,49 @@ Function Compile(Parameter As String = "") As Integer
 	#else
 		#define BufferSize 2048
 		Dim si As STARTUPINFO
-	    Dim pi As PROCESS_INFORMATION
-	    Dim sa As SECURITY_ATTRIBUTES
-	    Dim hReadPipe As HANDLE
-	    Dim hWritePipe As HANDLE
-	    Dim sBuffer As ZString * BufferSize
-	    Dim sOutput As UString
-	    Dim bytesRead As DWORD
-	    Dim result_ As Integer
-	   
-	    sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+		Dim pi As PROCESS_INFORMATION
+		Dim sa As SECURITY_ATTRIBUTES
+		Dim hReadPipe As HANDLE
+		Dim hWritePipe As HANDLE
+		Dim sBuffer As ZString * BufferSize
+		Dim sOutput As UString
+		Dim bytesRead As DWORD
+		Dim result_ As Integer
+		
+		sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
 		sa.lpSecurityDescriptor = Null
-	    sa.bInheritHandle = True
-	   
-	    If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+		sa.bInheritHandle = True
+		
+		If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
 			ShowMessages(ML("Error: Couldn't Create Pipe"), False)
 			Return 0
-	    End If
-	   
-	    si.cb = Len(STARTUPINFO)
-	    si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
-	    si.hStdOutput = hWritePipe
-	    si.hStdError = hWritePipe
-	    si.wShowWindow = 0
-	   
-	    If CreateProcess(0, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+		End If
+		
+		si.cb = Len(STARTUPINFO)
+		si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+		si.hStdOutput = hWritePipe
+		si.hStdError = hWritePipe
+		si.wShowWindow = 0
+		
+		If CreateProcess(0, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
 			ShowMessages(ML("Error: Couldn't Create Process"), False)
 			Return 0
 		End If
-	   
-	    CloseHandle hWritePipe
-	   
-	   Dim As Integer Pos1
-	    Do
-	        result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
-	        sBuffer = Left(sBuffer, bytesRead)
-	        Pos1 = InStrRev(sBuffer, Chr(10))
-	        If Pos1 > 0 Then
-	        	Dim res() As UString
-	        	sOutput += Left(sBuffer, Pos1 - 1)
-	        	Split sOutput, Chr(10), res()
-	        	For i As Integer = 0 To UBound(res)
-	        		Buff = res(i)
-		        	SplitError(Buff, ErrFileName, ErrTitle, iLine)
+		
+		CloseHandle hWritePipe
+		
+		Dim As Integer Pos1
+		Do
+			result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+			sBuffer = Left(sBuffer, bytesRead)
+			Pos1 = InStrRev(sBuffer, Chr(10))
+			If Pos1 > 0 Then
+				Dim res() As UString
+				sOutput += Left(sBuffer, Pos1 - 1)
+				Split sOutput, Chr(10), res()
+				For i As Integer = 0 To UBound(res)
+					Buff = res(i)
+					SplitError(Buff, ErrFileName, ErrTitle, iLine)
 					If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 					lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error") > 0 AndAlso Not StartsWith(*ErrTitle, "compiling C:"), "Error", "Info"))
 					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
@@ -868,14 +646,14 @@ Function Compile(Parameter As String = "") As Integer
 					ShowMessages(Buff, False)
 				Next i
 				sOutput = Mid(sBuffer, Pos1 + 1)
-	        Else
-	        	sOutput += sBuffer
-	        End If
-	    Loop While result_
-	   
-	    CloseHandle pi.hProcess
-	    CloseHandle pi.hThread
-	    CloseHandle hReadPipe
+			Else
+				sOutput += sBuffer
+			End If
+		Loop While result_
+		
+		CloseHandle pi.hProcess
+		CloseHandle pi.hThread
+		CloseHandle hReadPipe
 	#endif
 	WDeallocate PipeCommand
 	#ifdef __USE_GTK__
@@ -2643,12 +2421,12 @@ End Function
 Function DeleteSpaces(b As String) As String
 	Dim iCount As Integer
 	Dim bNew As String = b
-'	Do
-'		?bNew
-'		bNew = Replace(bNew, "  ", " ", , iCount)
-'		?bNew
-'		?iCount
-'	Loop While iCount > 0
+	'	Do
+	'		?bNew
+	'		bNew = Replace(bNew, "  ", " ", , iCount)
+	'		?bNew
+	'		?iCount
+	'	Loop While iCount > 0
 	Return bNew
 End Function
 
@@ -3440,6 +3218,7 @@ End Sub
 
 tlock = MutexCreate()
 tlockSave = MutexCreate()
+tlockToDo = MutexCreate()
 Sub LoadFunctionsSub(Param As Any Ptr)
 	MutexLock tlock
 	If Not FormClosing Then
@@ -5231,97 +5010,97 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
 	If te = 0 Then Exit Sub
 	'#ifndef __USE_GTK__
-		If LCase(te->TypeName) = "boolean" Then
-			'CtrlEdit = @pnlPropertyValue
-			cboPropertyValue.Visible = True
-			cboPropertyValue.Clear
-			cboPropertyValue.AddItem " false"
-			cboPropertyValue.AddItem " true"
-			#ifdef __USE_GTK__
-				bNotChange = True
-			#endif
-			cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
-		ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(GlobalEnums.Contains(te->EnumTypeName)) Then
-			'CtrlEdit = @pnlPropertyValue
-			cboPropertyValue.Visible = True
-			cboPropertyValue.Clear
-			Var tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->EnumTypeName)))
-			If tbi Then
-				For i As Integer = 0 To tbi->Elements.Count - 1
-					cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
-				Next i
-				If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
-					#ifdef __USE_GTK__
-						bNotChange = True
-					#endif
-					cboPropertyValue.ItemIndex = Val(Item->Text(1))
-				End If
+	If LCase(te->TypeName) = "boolean" Then
+		'CtrlEdit = @pnlPropertyValue
+		cboPropertyValue.Visible = True
+		cboPropertyValue.Clear
+		cboPropertyValue.AddItem " false"
+		cboPropertyValue.AddItem " true"
+		#ifdef __USE_GTK__
+			bNotChange = True
+		#endif
+		cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
+	ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(GlobalEnums.Contains(te->EnumTypeName)) Then
+		'CtrlEdit = @pnlPropertyValue
+		cboPropertyValue.Visible = True
+		cboPropertyValue.Clear
+		Var tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->EnumTypeName)))
+		If tbi Then
+			For i As Integer = 0 To tbi->Elements.Count - 1
+				cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
+			Next i
+			If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
+				#ifdef __USE_GTK__
+					bNotChange = True
+				#endif
+				cboPropertyValue.ItemIndex = Val(Item->Text(1))
 			End If
-		ElseIf IsBase(te->TypeName, "Component") Then
-			'CtrlEdit = @pnlPropertyValue
-			cboPropertyValue.Visible = True
-			cboPropertyValue.Clear
-			cboPropertyValue.AddItem " " & ML("(None)")
-			For i As Integer = 1 To tb->cboClass.Items.Count - 1
-				Cpnt = tb->cboClass.Items.Item(i)->Object
-				If Cpnt <> 0 Then
-					If CInt(te->EnumTypeName <> "") Then
-						If (CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = Trim(te->EnumTypeName)) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)))) Then
-							cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
-						End If
-					ElseIf CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = WithoutPtr(Trim(te->TypeName))) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), WithoutPtr(Trim(te->TypeName)))) Then
+		End If
+	ElseIf IsBase(te->TypeName, "Component") Then
+		'CtrlEdit = @pnlPropertyValue
+		cboPropertyValue.Visible = True
+		cboPropertyValue.Clear
+		cboPropertyValue.AddItem " " & ML("(None)")
+		For i As Integer = 1 To tb->cboClass.Items.Count - 1
+			Cpnt = tb->cboClass.Items.Item(i)->Object
+			If Cpnt <> 0 Then
+				If CInt(te->EnumTypeName <> "") Then
+					If (CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = Trim(te->EnumTypeName)) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)))) Then
 						cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 					End If
+				ElseIf CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = WithoutPtr(Trim(te->TypeName))) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), WithoutPtr(Trim(te->TypeName)))) Then
+					cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 				End If
+			End If
+		Next i
+		#ifdef __USE_GTK__
+			bNotChange = True
+		#endif
+		cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
+	Else
+		Dim tbi As TypeElement Ptr = 0
+		If Comps.Contains(te->TypeName) Then
+			tbi = Cast(TypeElement Ptr, Comps.Object(Comps.IndexOf(te->TypeName)))
+		ElseIf GlobalEnums.Contains(te->TypeName) Then
+			tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->TypeName)))
+		End If
+		If tbi <> 0 AndAlso tbi->ElementType = "Enum" Then
+			'CtrlEdit = @pnlPropertyValue
+			cboPropertyValue.Visible = True
+			cboPropertyValue.Clear
+			For i As Integer = 0 To tbi->Elements.Count - 1
+				cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
 			Next i
-			#ifdef __USE_GTK__
-				bNotChange = True
-			#endif
-			cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
-		Else
-			Dim tbi As TypeElement Ptr = 0
-			If Comps.Contains(te->TypeName) Then
-				tbi = Cast(TypeElement Ptr, Comps.Object(Comps.IndexOf(te->TypeName)))
-			ElseIf GlobalEnums.Contains(te->TypeName) Then
-				tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->TypeName)))
+			If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
+				#ifdef __USE_GTK__
+					bNotChange = True
+				#endif
+				cboPropertyValue.ItemIndex = Val(Item->Text(1))
 			End If
-			If tbi <> 0 AndAlso tbi->ElementType = "Enum" Then
-				'CtrlEdit = @pnlPropertyValue
-				cboPropertyValue.Visible = True
-				cboPropertyValue.Clear
-				For i As Integer = 0 To tbi->Elements.Count - 1
-					cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
-				Next i
-				If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
-					#ifdef __USE_GTK__
-						bNotChange = True
-					#endif
-					cboPropertyValue.ItemIndex = Val(Item->Text(1))
-				End If
-			Else
-				'CtrlEdit = @txtPropertyValue
-				'CtrlEdit->Text = Item->Text(1)
-				txtPropertyValue.Text = Item->Text(1)
-				txtPropertyValue.Visible = True 
-			End If
-		End If
-		Dim As String teTypeName = LCase(te->TypeName)
-		pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
-		If CInt(teTypeName = "icon") OrElse CInt(teTypeName = "cursor") OrElse CInt(teTypeName = "bitmaptype") OrElse CInt(teTypeName = "graphictype") OrElse CInt(teTypeName = "font") OrElse CInt(EndsWith(LCase(PropertyName), "color")) Then
-			btnPropertyValue.SetBounds UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top - 1) - 1, -1, UnScaleY(lpRect.Bottom - lpRect.Top - 1) + 2, UnScaleY(lpRect.Bottom - lpRect.Top - 1) + 2
-			txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top - 1), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
-			'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
-			btnPropertyValue.Visible = True
-			btnPropertyValue.Tag = te
-			'CtrlEdit->Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		Else
-			txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
-			cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
-			'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+			'CtrlEdit = @txtPropertyValue
+			'CtrlEdit->Text = Item->Text(1)
+			txtPropertyValue.Text = Item->Text(1)
+			txtPropertyValue.Visible = True
 		End If
-		'If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
-		'CtrlEdit->Visible = True
-		pnlPropertyValue.Visible = True
+	End If
+	Dim As String teTypeName = LCase(te->TypeName)
+	pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+	If CInt(teTypeName = "icon") OrElse CInt(teTypeName = "cursor") OrElse CInt(teTypeName = "bitmaptype") OrElse CInt(teTypeName = "graphictype") OrElse CInt(teTypeName = "font") OrElse CInt(EndsWith(LCase(PropertyName), "color")) Then
+		btnPropertyValue.SetBounds UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top - 1) - 1, -1, UnScaleY(lpRect.Bottom - lpRect.Top - 1) + 2, UnScaleY(lpRect.Bottom - lpRect.Top - 1) + 2
+		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top - 1), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+		btnPropertyValue.Visible = True
+		btnPropertyValue.Tag = te
+		'CtrlEdit->Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
+	Else
+		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+		cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
+		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+	End If
+	'If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
+	'CtrlEdit->Visible = True
+	pnlPropertyValue.Visible = True
 	'#endif
 	If te->Comment <> 0 Then
 		txtLabelProperty.Text = te->Comment
@@ -5713,7 +5492,12 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	txtLabelProperty.Text = ""
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
-	'tb->FillAllProperties
+	If Cbool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
+		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+		SetRightClosedStyle True, True
+	ElseIf tb->FileName <> "" Then
+		tb->FillAllProperties
+	End If
 	If tb->FileName = "" Then
 		frmMain.Caption = tb->Caption & " - " & App.Title
 	Else
@@ -6487,7 +6271,7 @@ Sub frmMain_Show(ByRef Sender As Control)
 		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabItemHeight
 		If Not GetRightClosedStyle Then pnlRightPin.Top = tabItemHeight
 		pnlBottomPin.Width = tabItemHeight
-		pnlPropertyValue.Visible = False 
+		pnlPropertyValue.Visible = False
 	#endif
 	pfSplash->CloseForm
 	CheckCompilerPaths
@@ -6762,7 +6546,7 @@ Sub OnProgramQuit() Destructor
 	For i As Integer = 0 To Threads.Count - 1
 		ThreadWait Threads.Item(i)
 	Next
-	MutexDestroy ToDoLock
+	MutexDestroy tlockToDo
 	MutexDestroy tlock
 	MutexDestroy tlockSave
 	Dim As UserToolType Ptr tt

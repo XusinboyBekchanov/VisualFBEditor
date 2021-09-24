@@ -106,7 +106,7 @@ Sub mClickMRU(Sender As My.Sys.Object)
 		miRecentSessions->Enabled = False
 		MRUSessions.Clear
 	Else
-		OpenFiles Sender.ToString
+		OpenFiles GetFullPath(Sender.ToString)
 	End If
 End Sub
 Sub mClickHelp(ByRef Sender As My.Sys.Object)
@@ -252,6 +252,7 @@ Sub mClick(Sender As My.Sys.Object)
 			ThreadCounter(ThreadCreate(@StartDebugging))
 		#endif
 	Case "StepInto":
+		ptabBottom->TabIndex = 6 'David Changed
 		If InDebug Then
 			ChangeEnabledDebug False, True, True
 			#ifndef __USE_GTK__
