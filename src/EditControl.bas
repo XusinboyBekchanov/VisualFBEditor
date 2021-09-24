@@ -35,7 +35,7 @@ Namespace My.Sys.Forms
 End Namespace
 
 ' Add Try End_Try
-ReDim Constructions(24) As Construction
+ReDim Constructions(22) As Construction
 Constructions(0)  = Type < Construction > ("If",            "",                     "",                     "",                 "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
 Constructions(1)  = Type < Construction > ("#If",           "#IfDef",               "#IfNDef",              "",                 "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
 Constructions(2)  = Type < Construction > ("#Macro",        "",                     "",                     "",                 "",         "",             "",         "#EndMacro",        "",         False,  False)
@@ -51,7 +51,7 @@ Constructions(11) = Type < Construction > ("Scope",         "",                 
 Constructions(12) = Type < Construction > ("'#Region",      "",                     "",                     "",                 "",         "",             "",         "'#End Region",     "",         True,   False)
 Constructions(13) = Type < Construction > ("Namespace",     "",                     "",                     "",                 "",         "",             "",         "End Namespace",    "",         True,   False)
 Constructions(14) = Type < Construction > ("Enum",          "Public Enum",          "Private Enum",         "",                 "",         "",             "",         "End Enum",         "",         True,   True)
-Constructions(15) = Type < Construction > ("Type",          "Public Type",          "Private Type",         "",                 "Private:", "Protected:",   "Public:",  "End Type",         "As ",         True,   True)
+Constructions(15) = Type < Construction > ("Type",          "Public Type",          "Private Type",         "",                 "Private:", "Protected:",   "Public:",  "End Type",         "As ",      True,   True)
 Constructions(16) = Type < Construction > ("Union",         "Public Union",         "Private Union",        "",                 "",         "",             "",         "End Union",        "",         True,   True)
 Constructions(17) = Type < Construction > ("Sub",           "Public Sub",           "Private Sub",          "Static Sub",       "",         "",             "",         "End Sub",          "",         True,   True)
 Constructions(18) = Type < Construction > ("Function",      "Public Function",      "Private Function",     "Static Function",  "",         "",             "",         "End Function",     "",         True,   True)
