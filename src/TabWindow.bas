@@ -1896,7 +1896,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			#endif
 			Dim As Integer iLeft2, iTop2, iWidth2, iHeight2
 			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, @iLeft2, @iTop2, @iWidth2, @iHeight2)
-			If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots tb->Des->SelectedControl
+			If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots tb->Des->SelectedControl, False
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
 				If tmpWidget <> tmpChangedWidget Then

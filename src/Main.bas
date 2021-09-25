@@ -5937,7 +5937,7 @@ Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 		End If
 	End If
 	If tabRight.TabPosition = tpRight And tabRight.SelectedTabIndex <> -1 Then
-		If frmMain.ActiveControl->Parent <> tabRight.SelectedTab AndAlso frmMain.ActiveControl <> @tabRight _
+		If frmMain.ActiveControl->Parent <> tabRight.SelectedTab AndAlso frmMain.ActiveControl <> @tabRight AndAlso frmMain.ActiveControl <> @frmMain _
 			AndAlso frmMain.ActiveControl <> @txtPropertyValue AndAlso frmMain.ActiveControl <> @cboPropertyValue Then
 			CloseRight()
 		End If
