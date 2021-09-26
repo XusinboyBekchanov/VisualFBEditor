@@ -2787,7 +2787,7 @@ Namespace My.Sys.Forms
 							gtk_widget_translate_coordinates(widget, .layoutwidget, Event->button.x, Event->button.y, @x1, @y1)
 							.MouseDown(x1, y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 						#else
-							Dim As gint x, y, x1, y1
+							Dim As Integer x, y, x1, y1
 							GetPosToClient(widget, .FDialogParent, @x, @y)
 							GetPosToClient(.layoutwidget, .FDialogParent, @x1, @y1)
 							.MouseDown(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
