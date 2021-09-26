@@ -3862,9 +3862,9 @@ Namespace My.Sys.Forms
 					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
 					gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
 				#else
-					gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth + 2, 0)
+					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth + 2, 0)
 					gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
-					gtk_layout_move(gtk_layout(ec->widget), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight + 2)
+					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight + 2)
 					gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
 				#endif
 				'Ctrl->RequestAlign AllocatedWidth, AllocatedHeight

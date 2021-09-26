@@ -1779,7 +1779,7 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Function Designer.HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
-			#ifdef __USE_GTK3__
+			#ifdef __USE_GTK__
 				Static As My.Sys.Forms.Designer Ptr Des
 				Des = data1
 				If Des Then
