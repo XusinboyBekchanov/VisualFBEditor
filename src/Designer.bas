@@ -369,7 +369,13 @@ Namespace My.Sys.Forms
 			For j As Integer = DotsCount To SelectedControls.Count Step -1
 				For i As Integer = 7 To 0 Step -1
 					#ifdef __USE_GTK__
-						If gtk_is_widget(FDots(j, i)) Then gtk_container_remove(gtk_container(FDialogParent), FDots(j, i))
+						If gtk_is_widget(FDots(j, i)) Then
+							#ifdef __USE_GTK3__
+								gtk_widget_destroy(FDots(j, i))
+							#else
+								gtk_container_remove(gtk_container(FDialogParent), FDots(j, i))
+							#endif
+						End If
 					#else
 						DestroyWindow(FDots(j, i))
 					#endif
@@ -416,7 +422,14 @@ Namespace My.Sys.Forms
 					Dim As GdkDisplay Ptr pdisplay
 					Dim As GdkCursor Ptr gcurs
 					For i As Integer = 0 To 7
-						If gtk_is_widget(FDots(j, i)) Then gtk_container_remove(gtk_container(FDialogParent), FDots(j, i))
+						If gtk_is_widget(FDots(j, i)) Then
+							#ifdef __USE_GTK3__
+								gtk_widget_destroy(FDots(j, i))
+								'gtk_container_remove(gtk_container(layout), FDots(j, i))
+							#else
+								gtk_container_remove(gtk_container(FDialogParent), FDots(j, i))
+							#endif
+						End If
 					Next i
 					For i As Integer = 0 To 7
 						FDots(j, i) = gtk_layout_new(NULL, NULL)
@@ -439,16 +452,31 @@ Namespace My.Sys.Forms
 						#else
 							g_signal_connect(FDots(j, i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
 						#endif
+						Dim As Integer iLeft, iTop
 						Select Case i
-						Case 0: If gtk_is_widget(FDots(j, 0)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 0), P.X-FDotSize, P.Y-FDotSize)
-						Case 1: If gtk_is_widget(FDots(j, 1)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 1), P.X+iWidth/2-3, P.Y-FDotSize)
-						Case 2: If gtk_is_widget(FDots(j, 2)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 2), P.X+iWidth, P.Y-FDotSize)
-						Case 3: If gtk_is_widget(FDots(j, 3)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 3), P.X+iWidth, P.Y + iHeight/2-3)
-						Case 4: If gtk_is_widget(FDots(j, 4)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 4), P.X+iWidth, P.Y + iHeight)
-						Case 5: If gtk_is_widget(FDots(j, 5)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 5), P.X+iWidth/2-3, P.Y + iHeight)
-						Case 6: If gtk_is_widget(FDots(j, 6)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 6), P.X-FDotSize, P.Y + iHeight)
-						Case 7: If gtk_is_widget(FDots(j, 7)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, 7), P.X-FDotSize, P.Y + iHeight/2-3)
+						Case 0: iLeft = P.X - FDotSize: iTop = P.Y - FDotSize
+						Case 1: iLeft = P.X + iWidth / 2 - 3: iTop = P.Y - FDotSize
+						Case 2: iLeft = P.X + iWidth: iTop = P.Y - FDotSize
+						Case 3: iLeft = P.X + iWidth: iTop = P.Y + iHeight / 2 - 3
+						Case 4: iLeft = P.X + iWidth: iTop = P.Y + iHeight
+						Case 5: iLeft = P.X + iWidth / 2 - 3: iTop = P.Y + iHeight
+						Case 6: iLeft = P.X - FDotSize: iTop = P.Y + iHeight
+						Case 7: iLeft = P.X - FDotSize: iTop = P.Y + iHeight / 2 - 3
 						End Select
+						#ifdef __USE_GTK3__
+							If gtk_is_widget(FDots(j, i)) Then 'gtk_layout_put(gtk_layout(layout), FDots(j, i), iLeft, iTop)
+								gtk_overlay_add_overlay(gtk_overlay(Parent->ReadProperty("overlaywidget")), FDots(j, i))
+								If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
+								Else
+									gtk_widget_set_margin_start(FDots(j, i), iLeft)
+									gtk_widget_set_margin_top(FDots(j, i), iTop)
+									gtk_widget_set_margin_end(FDots(j, i), Parent->Width - iLeft - FDotSize)
+									gtk_widget_set_margin_bottom(FDots(j, i), Parent->Height - iTop - FDotSize)
+								End If
+							End If
+						#else
+							If gtk_is_widget(FDots(j, i)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, i), iLeft, iTop)
+						#endif
 						gtk_widget_realize(FDots(j, i))
 						pdisplay = gtk_widget_get_display(FDots(j, i))
 						Select Case i
@@ -464,7 +492,15 @@ Namespace My.Sys.Forms
 						'SetProp(FDots(i),"@@@Control", Control)
 						'BringWindowToTop FDots(i)
 						'gdk_window_raise(gtk_widget_get_window(FDots(i)))
-						gtk_widget_show(FDots(j, i))
+						#ifdef __USE_GTK3__
+							If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
+								gtk_widget_hide(FDots(j, i))
+							Else
+								gtk_widget_show(FDots(j, i))
+							End If
+						#else
+							gtk_widget_show(FDots(j, i))
+						#endif
 					Next i
 				Next j
 			#else
@@ -955,7 +991,9 @@ Namespace My.Sys.Forms
 				SelectedControl = GetContainerControl(SelectedControl)
 				Dim As Rect R
 				If SelectedControl <> DesignControl Then
-					#ifndef __USE_GTK__
+					#ifdef __USE_GTK__
+						gtk_widget_translate_coordinates(FSelControl, layoutwidget, 0, 0, Cast(gint Ptr, @R.Left), Cast(gint Ptr, @R.Top))
+					#else
 						GetWindowRect FSelControl, @R
 						MapWindowPoints 0, FDialog, Cast(Point Ptr, @R), 2
 					#endif
@@ -2565,6 +2603,21 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If gtk_is_widget(FDialogParent) Then
 				g_signal_connect(FDialogParent, "event", G_CALLBACK(@HookDialogParentProc), @This)
+'				#ifdef __USE_GTK3__
+'					gtk_widget_set_events(layout, _
+'					GDK_EXPOSURE_MASK Or _
+'					GDK_SCROLL_MASK Or _
+'					GDK_STRUCTURE_MASK Or _
+'					GDK_KEY_PRESS_MASK Or _
+'					GDK_KEY_RELEASE_MASK Or _
+'					GDK_FOCUS_CHANGE_MASK Or _
+'					GDK_LEAVE_NOTIFY_MASK Or _
+'					GDK_BUTTON_PRESS_MASK Or _
+'					GDK_BUTTON_RELEASE_MASK Or _
+'					GDK_POINTER_MOTION_MASK Or _
+'					GDK_POINTER_MOTION_HINT_MASK)
+'					g_signal_connect(layout, "event", G_CALLBACK(@HookDialogParentProc), @This)
+'				#endif
 			End If
 		#else
 			If IsWindow(FDialog) Then
@@ -2729,10 +2782,16 @@ Namespace My.Sys.Forms
 					Case WM_LBUTTONDOWN
 					#endif
 					#ifdef __USE_GTK__
-						Dim As Integer x, y, x1, y1
-						GetPosToClient(widget, .FDialogParent, @x, @y)
-						GetPosToClient(.layoutwidget, .FDialogParent, @x1, @y1)
-						.MouseDown(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#ifdef __USE_GTK3__
+							Dim As gint x1, y1
+							gtk_widget_translate_coordinates(widget, .layoutwidget, Event->button.x, Event->button.y, @x1, @y1)
+							.MouseDown(x1, y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#else
+							Dim As gint x, y, x1, y1
+							GetPosToClient(widget, .FDialogParent, @x, @y)
+							GetPosToClient(.layoutwidget, .FDialogParent, @x1, @y1)
+							.MouseDown(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#endif
 						Return True
 					#else
 						Dim P As Point
@@ -2748,10 +2807,16 @@ Namespace My.Sys.Forms
 					Case WM_LBUTTONUP
 					#endif
 					#ifdef __USE_GTK__
-						Dim As Integer x, y, x1, y1
-						GetPosToClient(widget, .FDialogParent, @x, @y)
-						GetPosToClient(.layoutwidget, .FDialogParent, @x1, @y1)
-						.MouseUp(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state)
+						#ifdef __USE_GTK3__
+							Dim As gint x1, y1
+							gtk_widget_translate_coordinates(widget, .layoutwidget, Event->button.x, Event->button.y, @x1, @y1)
+							.MouseUp(x1, y1, Event->button.state)
+						#else
+							Dim As Integer x, y, x1, y1
+							GetPosToClient(widget, .FDialogParent, @x, @y)
+							GetPosToClient(.layoutwidget, .FDialogParent, @x1, @y1)
+							.MouseUp(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state)
+						#endif
 						Return True
 					#else
 						.MouseUp(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
@@ -3080,7 +3145,7 @@ Namespace My.Sys.Forms
 			If FLibs.Object(i) <> 0 Then DyLibFree(FLibs.Object(i))
 		Next
 		If MFF <> 0 Then DyLibFree(MFF)
-		if pApp = 0 then pApp = @VisualFBEditorApp
+		If pApp = 0 Then pApp = @VisualFBEditorApp
 		WDeallocate FClassName
 		WDeallocate FTemp
 	End Destructor

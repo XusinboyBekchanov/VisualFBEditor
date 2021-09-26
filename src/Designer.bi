@@ -240,6 +240,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			cr As cairo_t Ptr
 			layoutwidget As GtkWidget Ptr
+			layout As GtkWidget Ptr
 			FSelControl    As GtkWidget Ptr
 		#else
 			FSelControl    As HWND
