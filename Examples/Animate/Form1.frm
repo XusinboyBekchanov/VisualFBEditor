@@ -2,7 +2,7 @@
 	'#Compile "Form1.rc"
 #endif
 '#Region "Form"
-	'#define __USE_GTK3__
+	#define __USE_GTK3__
 	#include once "mff/Form.bi"
 	#include once "mff/Animate.bi"
 	#include once "mff/CommandButton.bi"
@@ -38,6 +38,7 @@
 			'.CommonAvi = CommonAVIs.aviCopyFileEx
 			.AutoSize = True
 			.Transparency = False
+			.File = "./Resources/horse.gif"
 			.SetBounds 40, 40, 272, 100
 			.Parent = @This
 		End With
@@ -80,11 +81,6 @@ Private Sub Form1Type.Form_Show_(ByRef Sender As Form)
 	*Cast(Form1Type Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub Form1Type.Form_Show(ByRef Sender As Form)
-	#ifdef __USE_GTK__
-		Animate1.File = "./Resources/horse.gif"
-	#else
-		Animate1.File = "./Resources/horse.avi"
-	#endif
 	Animate1.Open
 	Animate1.Play
 	'Animate1.Close
