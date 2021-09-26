@@ -12,8 +12,6 @@
 	Type Form1Type Extends Form
 		Declare Static Sub Form_Show_(ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub Form_Click_(ByRef Sender As Control)
-		Declare Sub Form_Click(ByRef Sender As Control)
 		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Static Sub CommandButton2_Click_(ByRef Sender As Control)
@@ -31,7 +29,6 @@
 			.Text = "Form1"
 			.Designer = @This
 			.OnShow = @Form_Show_
-			.OnClick = @Form_Click_
 			.SetBounds 0, 0, 350, 460
 		End With
 		' Animate1
@@ -91,13 +88,6 @@ Private Sub Form1Type.Form_Show(ByRef Sender As Form)
 	Animate1.Open
 	Animate1.Play
 	'Animate1.Close
-End Sub
-
-Private Sub Form1Type.Form_Click_(ByRef Sender As Control)
-	*Cast(Form1Type Ptr, Sender.Designer).Form_Click(Sender)
-End Sub
-Private Sub Form1Type.Form_Click(ByRef Sender As Control)
-	ANimAte1.Stop
 End Sub
 
 Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)

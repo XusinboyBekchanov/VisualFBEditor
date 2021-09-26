@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,4
-#define VER_FILEVERSION_STR         "0.0.0.4\0"
+#define VER_FILEVERSION             0,0,0,12
+#define VER_FILEVERSION_STR         "0.0.0.12\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
