@@ -4391,7 +4391,7 @@ CreateMenusAndToolBars
 Sub StartProgress
 	prProgress.Visible = True
 	#ifdef __USE_GTK__
-		progress_bar_timer_id = g_timeout_add(100, @progress_cb, prProgress.Handle)
+		progress_bar_timer_id = g_timeout_add(100, Cast(GSourceFunc, @progress_cb), prProgress.Handle)
 	#endif
 End Sub
 

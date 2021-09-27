@@ -2890,7 +2890,7 @@ Namespace My.Sys.Forms
 			Case GDK_FOCUS_CHANGE
 				InFocus = Cast(GdkEventFocus Ptr, e)->in
 				If InFocus Then
-					gdk_threads_add_timeout(This.BlinkTime, @Blink_cb, @This)
+					gdk_threads_add_timeout(This.BlinkTime, Cast(GSourceFunc, @Blink_cb), @This)
 				Else
 					If DropDownShowed Then CloseDropDown
 					If ToolTipShowed Then CloseToolTip
