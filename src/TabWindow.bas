@@ -265,10 +265,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				End If
 				.txtCode.ClearUndo
 				.Modified = bNew
-				If Not EndsWith(LCase(FileNameNew), ".frm") Then
-					tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-					SetRightClosedStyle True, True
-				End If
+'				If Not EndsWith(LCase(FileNameNew), ".frm") Then
+'					tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+'					SetRightClosedStyle True, True
+'				End If
 			Else
 				#ifdef __FB_WIN32__
 					tb->NewLineType = NewLineTypes.WindowsCRLF

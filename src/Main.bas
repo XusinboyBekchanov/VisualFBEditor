@@ -5519,8 +5519,8 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
 	If Cbool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
-		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-		SetRightClosedStyle True, True
+'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+'		SetRightClosedStyle True, True
 	ElseIf tb->FileName <> "" Then
 		tb->FillAllProperties
 	End If
