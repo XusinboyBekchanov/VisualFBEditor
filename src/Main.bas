@@ -3856,6 +3856,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Folder", "Folder"
 	imgList.Add "MainProject", "MainProject"
 	imgList.Add "Project", "Project"
+	imgList.Add "Apply", "Apply"
 	imgList.Add "Add", "Add"
 	imgList.Add "Remove", "Remove"
 	imgList.Add "Error", "Error"
@@ -4343,6 +4344,20 @@ Sub CreateMenusAndToolBars
 			tbStandard.Buttons.Item("B32")->Checked = True
 		#endif
 	#endif
+	tbStandard.Buttons.Add tbsSeparator
+	tbButton = tbStandard.Buttons.Add(tbsWholeDropdown Or tbsAutosize, "Apply", , @mClick, "Use", ML("Use"), ML("Use"), True)
+	Var mnuDefault = tbButton->DropDownMenu.Add(ML("Default"), "Default", "Default", @mclick)
+	tbButton->DropDownMenu.Add "-"
+	tbButton->DropDownMenu.Item(0)->Checked = True
+	Var mnuWinAPI = tbButton->DropDownMenu.Add(ML("WinAPI"), "", "WinAPI", @mclick)
+	Var mnuDefaultWinAPI = mnuWINAPI->Add(ML("Default"), "", "Default WinAPI", @mclick)
+	mnuWINAPI->Add "-"
+	Var mnuGTK = tbButton->DropDownMenu.Add(ML("GTK"), "", "GTK", @mclick)
+	mnuGTK->Add ML("Default GTK"), "", "DefaultGTK", @mclick
+	mnuGTK->Add "-"
+	mnuGTK->Add ML("GTK2"), "", "GTK2", @mclick
+	mnuGTK->Add ML("GTK3"), "", "GTK3", @mclick
+	mnuDefault->Checked = True
 End Sub
 
 CreateMenusAndToolBars
