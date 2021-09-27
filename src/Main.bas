@@ -490,6 +490,7 @@ Function Compile(Parameter As String = "") As Integer
 			IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
 		End If
 	End If
+	If UseDefine <> "" Then WAdd CompileWith, " -d " & UseDefine
 	If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
 	For i As Integer = 0 To pIncludePaths->Count - 1
 		WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
@@ -4346,18 +4347,28 @@ Sub CreateMenusAndToolBars
 	#endif
 	tbStandard.Buttons.Add tbsSeparator
 	tbButton = tbStandard.Buttons.Add(tbsWholeDropdown Or tbsAutosize, "Apply", , @mClick, "Use", ML("Use"), ML("Use"), True)
-	Var mnuDefault = tbButton->DropDownMenu.Add(ML("Default"), "Default", "Default", @mclick)
+	Var mnuDefault = tbButton->DropDownMenu.Add(ML("Default"), "", "Default:", @mClickUseDefine)
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Item(0)->Checked = True
-	Var mnuWinAPI = tbButton->DropDownMenu.Add(ML("WinAPI"), "", "WinAPI", @mclick)
-	Var mnuDefaultWinAPI = mnuWINAPI->Add(ML("Default"), "", "Default WinAPI", @mclick)
-	mnuWINAPI->Add "-"
-	Var mnuGTK = tbButton->DropDownMenu.Add(ML("GTK"), "", "GTK", @mclick)
-	mnuGTK->Add ML("Default GTK"), "", "DefaultGTK", @mclick
+	Var mnuWinAPI = tbButton->DropDownMenu.Add("WinAPI", "", "WinAPI", @mClickUseDefine)
+	Var mnuDefaultWinAPI = mnuWinAPI->Add(ML("Default"), "", "DefaultWinAPI:__USE_WINAPI__", @mClickUseDefine)
+	mnuWinAPI->Add "-"
+	mnuWinAPI->Add "Windows NT 4.0", "", "WindowsNT4:__USE_WINAPI__ -d _WIN32_WINNT=&h0400", @mClickUseDefine
+	mnuWinAPI->Add "Windows 2000", "", "Windows2000:__USE_WINAPI__ -d _WIN32_WINNT=&h0500", @mClickUseDefine
+	mnuWinAPI->Add "Windows XP", "", "WindowsXP:__USE_WINAPI__ -d _WIN32_WINNT=&h0501", @mClickUseDefine
+	mnuWinAPI->Add "Windows Server 2003", "", "WindowsServer2003:__USE_WINAPI__ -d _WIN32_WINNT=&h0502", @mClickUseDefine
+	mnuWinAPI->Add "Windows Vista", "", "WindowsVista:__USE_WINAPI__ -d _WIN32_WINNT=&h0600", @mClickUseDefine
+	mnuWinAPI->Add "Windows Server 2008", "", "WindowsServer2008:__USE_WINAPI__ -d _WIN32_WINNT=&h0600", @mClickUseDefine
+	mnuWinAPI->Add "Windows 7", "", "Windows7:__USE_WINAPI__ -d _WIN32_WINNT=&h0601", @mClickUseDefine
+	mnuWinAPI->Add "Windows 8", "", "Windows8:__USE_WINAPI__ -d _WIN32_WINNT=&h0602", @mClickUseDefine
+	mnuWinAPI->Add "Windows 8.1", "", "Windows8_1:__USE_WINAPI__ -d _WIN32_WINNT=&h0603", @mClickUseDefine
+	mnuWinAPI->Add "Windows 10", "", "Windows10:__USE_WINAPI__ -d _WIN32_WINNT=&h0A00", @mClickUseDefine
+	Var mnuGTK = tbButton->DropDownMenu.Add("GTK", "", "GTK", @mClickUseDefine)
+	mnuGTK->Add ML("Default"), "", "Default:__USE_GTK__", @mClickUseDefine
 	mnuGTK->Add "-"
-	mnuGTK->Add ML("GTK2"), "", "GTK2", @mclick
-	mnuGTK->Add ML("GTK3"), "", "GTK3", @mclick
+	mnuGTK->Add "GTK2", "", "GTK2:__USE_GTK__ -d __USE_GTK2__", @mClickUseDefine
+	mnuGTK->Add "GTK3", "", "GTK3:__USE_GTK__ -d __USE_GTK3__", @mClickUseDefine
 	mnuDefault->Checked = True
+	miUseDefine = mnuDefault
 End Sub
 
 CreateMenusAndToolBars

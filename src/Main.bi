@@ -73,6 +73,7 @@ Declare Sub mClick(Sender As My.Sys.Object)
 Declare Sub mClickMRU(Sender As My.Sys.Object)
 Declare Sub mClickHelp(Sender As My.Sys.Object)
 Declare Sub mClickTool(Sender As My.Sys.Object)
+Declare Sub mClickUseDefine(Sender As My.Sys.Object)
 Declare Sub LoadSettings
 Declare Sub LoadLanguageTexts
 
@@ -91,7 +92,7 @@ Common Shared As TabControl Ptr ptabCode, ptabLeft, ptabBottom, ptabRight
 Common Shared As TreeView Ptr ptvExplorer
 Common Shared As IniFile Ptr piniSettings, piniTheme
 Common Shared As MenuItem Ptr mnuUseDebugger, miHelps, miXizmat
-Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf16, miUtf32, miWindowsCRLF, miLinuxLF, miMacOSCR
+Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf16, miUtf32, miWindowsCRLF, miLinuxLF, miMacOSCR, miUseDefine
 
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
@@ -115,7 +116,7 @@ Common Shared As Integer IncludeMFFPath
 Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
 Common Shared As Integer LastOpenedFileType
-Common Shared As String CurLanguage
+Common Shared As String CurLanguage, UseDefine
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave, EnvironmentVariables
