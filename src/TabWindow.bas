@@ -4340,7 +4340,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->ImageListIndexOfFunc = DyLibSymbol(Des->MFF, "ImageListIndexOf")
 					Des->ImageListClearSub = DyLibSymbol(Des->MFF, "ImageListClear")
 					Des->TopMenu = @pnlTopMenu
-					Des->overlay = pnlForm.overlaywidget
+					#ifdef __USE_GTK__
+						Des->overlay = pnlForm.overlaywidget
+					#endif
 					'Des->layout = pnlForm.layoutwidget
 					'Des->ContextMenu = @mnuForm
 					pnlTopMenu.Visible = False
