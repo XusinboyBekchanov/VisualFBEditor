@@ -4340,7 +4340,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->ImageListIndexOfFunc = DyLibSymbol(Des->MFF, "ImageListIndexOf")
 					Des->ImageListClearSub = DyLibSymbol(Des->MFF, "ImageListClear")
 					Des->TopMenu = @pnlTopMenu
-					'Des->layout = layout
+					Des->overlay = pnlForm.overlaywidget
+					'Des->layout = pnlForm.layoutwidget
 					'Des->ContextMenu = @mnuForm
 					pnlTopMenu.Visible = False
 				End If
@@ -4987,15 +4988,6 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlForm.Visible = False
 	pnlForm.OnMessage = @pnlForm_Message
 	splForm.Visible = False
-	#ifdef __USE_GTK__
-		#ifdef __USE_GTK3__
-			Dim As GtkWidget Ptr overlay = gtk_overlay_new()
-			gtk_container_add(gtk_container(overlay), pnlForm.Handle)
-			pnlForm.overlaywidget = overlay
-			'layout = gtk_layout_new(NULL, NULL)
-			'gtk_overlay_add_overlay(gtk_overlay(overlay), layout)
-		#endif
-	#endif
 	pnlTop.Add @tbrTop
 	pnlTop.Add @pnlTopCombo
 	pnlTopCombo.Add @cboClass
@@ -5013,7 +5005,21 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		This.Caption = ML("Untitled") & "*"
 	End If
 	pnlForm.Top = -500
-	#ifndef __USE_GTK__
+	#ifdef __USE_GTK__
+		#ifdef __USE_GTK3__
+			pnlForm.overlaywidget = gtk_overlay_new()
+			gtk_container_add(gtk_container(pnlForm.overlaywidget), pnlForm.Handle)
+			pnlForm.scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			gtk_scrolled_window_set_policy(gtk_scrolled_window(pnlForm.scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_container_add(gtk_container(pnlForm.scrolledwidget), pnlForm.overlaywidget)
+			'layout = gtk_layout_new(NULL, NULL)
+			'gtk_overlay_add_overlay(gtk_overlay(overlay), layout)
+		#else
+			pnlForm.scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			gtk_scrolled_window_set_policy(gtk_scrolled_window(pnlForm.scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_container_add(gtk_container(pnlForm.scrolledwidget), pnlForm.Handle)
+		#endif
+	#else
 		pnlForm.Style = pnlForm.Style Or WS_HSCROLL Or WS_VSCROLL
 	#endif
 	pnlCode.Add @txtCode

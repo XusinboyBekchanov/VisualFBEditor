@@ -465,7 +465,7 @@ Namespace My.Sys.Forms
 						End Select
 						#ifdef __USE_GTK3__
 							If gtk_is_widget(FDots(j, i)) Then 'gtk_layout_put(gtk_layout(layout), FDots(j, i), iLeft, iTop)
-								gtk_overlay_add_overlay(gtk_overlay(Parent->ReadProperty("overlaywidget")), FDots(j, i))
+								gtk_overlay_add_overlay(gtk_overlay(overlay), FDots(j, i))
 								If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
 								Else
 									gtk_widget_set_margin_start(FDots(j, i), iLeft)
@@ -1728,13 +1728,24 @@ Namespace My.Sys.Forms
 		FStepX = GridSize
 		FStepY = GridSize
 		#ifdef __USE_GTK__
+			Dim As GtkWidget Ptr CtrlParent = gtk_widget_get_parent(layoutwidget)
+			If gtk_is_box(CtrlParent) = 0 Then CtrlParent = layoutwidget
+			Dim As Integer iWidth, iHeight, iWidthOverlay, iHeightOverlay
+			#ifdef __USE_GTK3__
+				iWidth = gtk_widget_get_allocated_width(CtrlParent): iHeight = gtk_widget_get_allocated_height(CtrlParent)
+				iWidthOverlay = gtk_widget_get_allocated_width(overlay): iHeightOverlay = gtk_widget_get_allocated_height(overlay)
+			#else
+				iWidth = CtrlParent->allocation.width: iHeight = CtrlParent->allocation.height
+				iWidthOverlay = overlay->allocation.width: iHeightOverlay = overlay->allocation.height
+			#endif
+			If iWidthOverlay <> iWidth + 2 * FDotSize OrElse iHeightOverlay <> iHeight + 2 * FDotSize Then
+				gtk_widget_set_size_request(overlay, iWidth + 2 * FDotSize, iHeight + 2 * FDotSize)
+			End If
 			If ShowAlignmentGrid Then
 				#ifdef __USE_GTK3__
-					Dim As Integer iWidth = gtk_widget_get_allocated_width(layoutwidget)
-					Dim As Integer iHeight = gtk_widget_get_allocated_height(layoutwidget)
+					iWidth = gtk_widget_get_allocated_width(layoutwidget): iHeight = gtk_widget_get_allocated_height(layoutwidget)
 				#else
-					Dim As Integer iWidth = layoutwidget->allocation.width
-					Dim As Integer iHeight = layoutwidget->allocation.height
+					iWidth = layoutwidget->allocation.width: iHeight = layoutwidget->allocation.height
 				#endif
 				cairo_set_source_rgb(cr, 0, 0, 0)
 				For i As Integer = 0 To iWidth Step FStepX
