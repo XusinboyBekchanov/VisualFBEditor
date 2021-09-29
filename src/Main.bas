@@ -956,7 +956,6 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 				End If
 			Next
 			tn = tvExplorer.Nodes.Add(GetFileName(FileName), , FileName, "Project", "Project")
-			?tn, tn->Text
 		Else
 			Var n = 0
 			Dim As String ProjectName = "Project"
