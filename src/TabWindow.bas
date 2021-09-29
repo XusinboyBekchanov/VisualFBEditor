@@ -2603,7 +2603,7 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	'    End If
 End Sub
 
-Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As String = "Type") As Boolean
+Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Type") As Boolean
 	On Error Goto ErrorHandler
 	If Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	c += 1
@@ -2759,7 +2759,7 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, tb->Types.Item(i), tb->Types.Object(i), Starts) Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->Enums.Count - 1
-		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts) Then Exit Sub
+		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts, , "Type") Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
 	For i As Integer = 0 To pComps->Count - 1
@@ -3901,6 +3901,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Functions.Clear
 	FunctionsOthers.Clear
 	Types.Clear
+	Enums.Clear
 	Procedures.Clear
 	Args.Clear
 	'ThreadCreate(@LoadFromTabWindow, @This)
