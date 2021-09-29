@@ -42,7 +42,7 @@ pfFind = @fFind
 
 	Constructor frmFind
 		This.Name = "frmFind"
-		This.SetBounds 0, 0, 406, 92
+		This.SetBounds 0, 0, 456, 92
 		This.Opacity = 210
 		This.Caption = ML("Find")
 		This.DefaultButton = @btnFind
@@ -138,13 +138,13 @@ pfFind = @fFind
 		' btnReplace
 		btnReplace.Name = "btnReplace"
 		btnReplace.Text = ML("&Replace")
-		btnReplace.SetBounds 215, 35, 80, 24
+		btnReplace.SetBounds 215, 34, 99, 24
 		btnReplace.Parent = @This
 
 		' btnReplaceAll
 		btnReplaceAll.Name = "btnReplaceAll"
 		btnReplaceAll.Text = ML("Replace &All")
-		btnReplaceAll.SetBounds  306, 34, 95, 24
+		btnReplaceAll.SetBounds 317, 34, 124, 24
 		btnReplaceAll.Parent = @This
 
 		' btnReplaceShow
@@ -161,7 +161,7 @@ pfFind = @fFind
 		' btnFindAll
 		btnFindAll.Name = "btnFindAll"
 		btnFindAll.Text = "All"
-		btnFindAll.SetBounds 158, 56, 52, 24
+		btnFindAll.SetBounds 401, 4, 40, 24
 		btnFindAll.OnClick = @btnFindAll_Click
 		btnFindAll.Parent = @This
  
@@ -480,7 +480,7 @@ End Sub
 
 Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
 	If Trim(txtFind.Text) = "" Then Exit Sub
-	If CInt(*gSearchSave <> txtFind.Text) Then FindAll plvSearch, 2,, False
+	If CInt(*gSearchSave <> txtFind.Text) OrElse CInt(gSearchTabIndex <> ptabCode->SelectedTabIndex) Then FindAll plvSearch, 2, , False
 	This.Caption=ML("Find: No Results")
 	If plvSearch->ListItems.Count < 1 Then Exit Sub
 	If gSearchItemIndex >= plvSearch->ListItems.Count-1 Then
@@ -517,14 +517,14 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex
 		If Not txtFind.Contains(tSearch) Then txtFind.AddItem tSearch
 		If Len(txtReplace.Text)>0 AndAlso (Not txtReplace.Contains(txtReplace.Text)) Then txtReplace.AddItem txtReplace.Text
 	End If
-
 	Dim Search As WString Ptr = @txtFind.Text
-	If tTabIndex <> 4 AndAlso (Len(*Search)< 1 OrElse CInt(*gSearchSave = *Search)) Then Return -1
+	If tTabIndex <> 4 AndAlso (Len(*Search) < 1 OrElse CInt(*gSearchSave = *Search AndAlso gSearchTabIndex = ptabCode->SelectedTabIndex)) Then Return -1
 	If tTabIndex =2 Then
 		ptabBottom->Tabs[tTabIndex]->Caption = ML("Find")
 	Else
 		ptabBottom->Tabs[tTabIndex]->Caption = ML("TODO")
 	End If
+	gSearchTabIndex = ptabCode->SelectedTabIndex
 	pTabBottom->Tabs[tTabIndex]->SelectTab
 	Dim As treenode Ptr tn = IIf(pTabLeft->SelectedTabIndex = 2, MainNode, MainNode)
 	Dim bMatchCase As Boolean = chkMatchCase.Checked
@@ -718,7 +718,7 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	#else
 		fFind.btnReplaceShow.Width=18
 	#endif
-	fFind.btnFindAll.Visible = False
+	'fFind.btnFindAll.Visible = False
 	fFind.Opacity = 210
 	fFind.TrackBar1.Position=210
 	cboFindRange.ItemIndex = 1
@@ -761,7 +761,7 @@ Private Sub frmFind.TrackBar1_Change(ByRef Sender As TrackBar,Position As Intege
 	End Sub
 
 	Private Sub frmFind.btnFindAll_Click(ByRef Sender As Control)
-		pfFind->FindAll plvSearch, 2,, False
+		pfFind->FindAll plvSearch, 2, , False
 	End Sub
 
 	Private Sub frmFind.Form_Create(ByRef Sender As Control)

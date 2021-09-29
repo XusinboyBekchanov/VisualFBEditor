@@ -113,7 +113,7 @@ Common Shared As Boolean OpenCommandPromptInMainFileFolder
 Common Shared As Integer WhenVisualFBEditorStarts
 Common Shared As Integer AutoSaveBeforeCompiling
 Common Shared As Integer IncludeMFFPath
-Common Shared As Integer gSearchItemIndex
+Common Shared As Integer gSearchItemIndex, gSearchTabIndex
 Common Shared As Integer InterfaceFontSize
 Common Shared As Integer LastOpenedFileType
 Common Shared As String CurLanguage, UseDefine
