@@ -464,15 +464,17 @@ Namespace My.Sys.Forms
 						Case 7: iLeft = P.X - FDotSize: iTop = P.Y + iHeight / 2 - 3
 						End Select
 						#ifdef __USE_GTK3__
-							If gtk_is_widget(FDots(j, i)) Then 'gtk_layout_put(gtk_layout(layout), FDots(j, i), iLeft, iTop)
+							If gtk_is_widget(FDots(j, i)) Then 'gtk_layout_put(gtk_layout(layout), FDots(j, i), iLeft, iTop) Then
+								g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Left", Cast(gpointer, iLeft))
+								g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Top", Cast(gpointer, iTop))
 								gtk_overlay_add_overlay(gtk_overlay(overlay), FDots(j, i))
-								If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
-								Else
-									gtk_widget_set_margin_start(FDots(j, i), iLeft)
-									gtk_widget_set_margin_top(FDots(j, i), iTop)
-									gtk_widget_set_margin_end(FDots(j, i), Parent->Width - iLeft - FDotSize)
-									gtk_widget_set_margin_bottom(FDots(j, i), Parent->Height - iTop - FDotSize)
-								End If
+'								If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
+'								Else
+'									gtk_widget_set_margin_start(FDots(j, i), iLeft)
+'									gtk_widget_set_margin_top(FDots(j, i), iTop)
+'									gtk_widget_set_margin_end(FDots(j, i), Parent->Width - iLeft - FDotSize)
+'									gtk_widget_set_margin_bottom(FDots(j, i), Parent->Height - iTop - FDotSize)
+'								End If
 							End If
 						#else
 							If gtk_is_widget(FDots(j, i)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, i), iLeft, iTop)

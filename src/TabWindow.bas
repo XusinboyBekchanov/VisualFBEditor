@@ -3826,6 +3826,19 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 	#endif
 End Sub
 
+#ifdef __USE_GTK__
+	#ifdef __USE_GTK3__
+		Function Overlay_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
+			Dim As Designer Ptr Des = user_data
+			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
+			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
+			allocation->width = Des->DotSize
+			allocation->height = Des->DotSize
+			Return True
+		End Function
+	#endif
+#endif
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	pfrmMain->UpdateLock
@@ -4349,6 +4362,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->TopMenu = @pnlTopMenu
 					#ifdef __USE_GTK__
 						Des->overlay = pnlForm.overlaywidget
+						If Des->overlay Then
+							g_signal_connect(Des->overlay, "get-child-position", G_CALLBACK(@Overlay_get_child_position), Des)
+						End If
 					#endif
 					'Des->layout = pnlForm.layoutwidget
 					'Des->ContextMenu = @mnuForm
