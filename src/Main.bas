@@ -4886,7 +4886,7 @@ tpShakl->Name = "tpShakl"
 			Dim As Control Ptr tb = IIf(tabLeft.SelectedTabIndex = 0, @tbExplorer, @tbForm)
 			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, pnlLeft.Width, 0, @x, @y)
 			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
-			allocation->x = x - tbLeft.Width
+			allocation->x = x - tbLeft.Width - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.Width, 0)
 			allocation->y = y
 			allocation->width = tbLeft.Width
 			allocation->height = tbLeft.Height
@@ -5510,11 +5510,13 @@ tbRight.Parent = @pnlRightPin
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
 		Function OverlayRight_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
-			Dim As gint x, y
+			Dim As gint x, y, x1, y1
 			Dim As Control Ptr tb = IIf(tabRight.SelectedTabIndex = 0, @tbProperties, @tbEvents)
 			gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, pnlRight.Width, 0, @x, @y)
+			Dim As Control Ptr lv = IIf(tabRight.SelectedTabIndex = 0, @lvProperties, @lvEvents)
+			gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, lv->Width, 0, @x1, @y1)
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
-			allocation->x = x - tbRight.Width
+			allocation->x = x - tbRight.Width - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.Width - x1 + 1, 0)
 			allocation->y = y
 			allocation->width = tbRight.Width
 			allocation->height = tbRight.Height
