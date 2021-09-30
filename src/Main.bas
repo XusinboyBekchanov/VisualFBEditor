@@ -4879,12 +4879,39 @@ Var tpLoyiha = tabLeft.AddTab(ML("Project"))
 tpShakl = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
 tpShakl->Name = "tpShakl"
 
+#ifdef __USE_GTK__
+	#ifdef __USE_GTK3__
+		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
+			Dim As gint x, y
+			Dim As Control Ptr tb = IIf(tabLeft.SelectedTabIndex = 0, @tbExplorer, @tbForm)
+			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, tb->Width, 0, @x, @y)
+			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
+			allocation->x = x - tbLeft.Width
+			allocation->y = y
+			allocation->width = tbLeft.Width
+			allocation->height = tbLeft.Height
+			Return True
+		End Function
+	#endif
+#endif
+
 pnlLeftPin.Anchor.Right = AnchorStyle.asAnchor
 pnlLeftPin.Top = tabItemHeight
 pnlLeftPin.Width = tbLeft.Width
 pnlLeftPin.Left = tabLeftWidth - pnlLeftPin.Width - 4
 pnlLeftPin.Height = tbLeft.Height
 pnlLeftPin.Parent = @pnlLeft
+#ifdef __USE_GTK__
+	#ifdef __USE_GTK3__
+		Dim As GtkWidget Ptr overlayLeft = gtk_overlay_new()
+		gtk_container_add(gtk_container(overlayLeft), pnlLeft.Handle)
+		g_object_ref(pnlLeftPin.Handle)
+		gtk_container_remove(gtk_container(pnlLeft.Handle), pnlLeftPin.Handle)
+		gtk_overlay_add_overlay(gtk_overlay(overlayLeft), pnlLeftPin.Handle)
+		g_signal_connect(overlayLeft, "get-child-position", G_CALLBACK(@OverlayLeft_get_child_position), @pnlLeft)
+		pnlLeft.WriteProperty("overlaywidget", overlayLeft)
+	#endif
+#endif
 
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
 lblLeft.Align = 4
@@ -5480,13 +5507,38 @@ tbRight.Flat = True
 tbRight.Width = 23
 tbRight.Parent = @pnlRightPin
 
+#ifdef __USE_GTK__
+	#ifdef __USE_GTK3__
+		Function OverlayRight_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
+			Dim As gint x, y
+			Dim As Control Ptr tb = IIf(tabRight.SelectedTabIndex = 0, @tbProperties, @tbEvents)
+			gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, tb->Width, 0, @x, @y)
+			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
+			allocation->x = x - tbRight.Width
+			allocation->y = y
+			allocation->width = tbRight.Width
+			allocation->height = tbRight.Height
+			Return True
+		End Function
+	#endif
+#endif
 pnlRightPin.Anchor.Right = AnchorStyle.asAnchor
 pnlRightPin.Top = tabItemHeight
 pnlRightPin.Width = 23
 pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - 4
 pnlRightPin.Height = tbRight.Height
 pnlRightPin.Parent = @pnlRight
-
+#ifdef __USE_GTK__
+	#ifdef __USE_GTK3__
+		Dim As GtkWidget Ptr overlayRight = gtk_overlay_new()
+		gtk_container_add(gtk_container(overlayRight), pnlRight.Handle)
+		g_object_ref(pnlRightPin.Handle)
+		gtk_container_remove(gtk_container(pnlRight.Handle), pnlRightPin.Handle)
+		gtk_overlay_add_overlay(gtk_overlay(overlayRight), pnlRightPin.Handle)
+		g_signal_connect(overlayRight, "get-child-position", G_CALLBACK(@OverlayRight_get_child_position), @pnlRight)
+		pnlRight.WriteProperty("overlaywidget", overlayRight)
+	#endif
+#endif
 'pnlRight.Width = 153
 'pnlRight.Align = 2
 'pnlRight.AddRange 1, @tabRight
