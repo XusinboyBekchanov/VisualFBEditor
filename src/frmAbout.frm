@@ -53,6 +53,7 @@
 		ML("Thanks to") & !" Stanislav Budinov for codes of GUI Library Window9\r" & _
 		ML("Thanks to") & !" Leandro Ascierto for codes of Chart control\r" & _
 		ML("Thanks to") & !" Laurent GRAS for codes of FBDebugger\r" & _
+		ML("Thanks to") & !" Paul Squires for codes of WinFormsX\r" & _
 		ML("Thanks to") & !" José Roca for codes of Afx\r" & _
 		ML("Language files by") & !":\r" & _
 		!"Xusinboy Bekchanov (Russian, Uzbekcyril, Uzbeklatin)\r" & _
