@@ -822,12 +822,16 @@ Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) A
 	End If
 	If EndsWith(LCase(FileName), ".rc") OrElse EndsWith(LCase(FileName), ".res") OrElse EndsWith(LCase(FileName), ".xpm") Then
 		Return sMain & "Resource"
+	ElseIf EndsWith(LCase(FileName), ".vfs") Then
+		Return sMain & "Session"
 	ElseIf EndsWith(LCase(FileName), ".vfp") Then
 		Return sMain & "Project"
 	ElseIf EndsWith(LCase(FileName), ".frm") Then
 		Return sMain & "Form"
 	ElseIf EndsWith(LCase(FileName), ".bas") Then
 		Return sMain & "Module"
+	ElseIf InStr(FileName, ".") = 0 Then
+		Return sMain & "Folder"
 	Else
 		Return sMain & "File"
 	End If
@@ -1746,7 +1750,11 @@ End Sub
 
 Sub NewProject()
 	If pfTemplates->ShowModal(frmMain) = ModalResults.OK Then
-		AddNew pfTemplates->SelectedTemplate
+		If pfTemplates->SelectedTemplate <> "" Then
+			AddNew pfTemplates->SelectedTemplate
+		ElseIf pfTemplates->SelectedFile <> "" Then
+			OpenFiles pfTemplates->SelectedFile
+		End If
 	End If
 End Sub
 
@@ -3840,6 +3848,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Make", "Make"
 	imgList.Add "Help", "Help"
 	imgList.Add "About", "About"
+	imgList.Add "Session", "Session"
 	imgList.Add "File", "File"
 	imgList.Add "MainFile", "MainFile"
 	imgList.Add "Resource", "Resource"

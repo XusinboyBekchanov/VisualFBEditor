@@ -305,15 +305,15 @@ Namespace My.Sys.Forms
 					CInt(CInt(CInt(.Name01 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name01 & " "))) OrElse _
 					CInt(.Name02 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name02 & " "))) OrElse _
 					CInt(.Name03 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name03 & " ")))))) AndAlso _
-					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(.Exception)) = 0)) AndAlso _
-					CInt(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
-					CInt(LCase(Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(.Name0), " ") > 0) Then
+					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(..Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(.Exception)) = 0)) AndAlso _
+					CInt(..Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
+					CInt(LCase(..Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(.Name0), " ") > 0) Then
 					iType = 0
 					Return i
 				ElseIf CInt(CInt(CInt(.Name1 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name1))))) OrElse _
 					CInt(CInt(.Name2 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name2))))) OrElse _
 					CInt(CInt(.Name3 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name3)))))) AndAlso _
-					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(Left(sLine, iPos), Any !"\t ")), LCase(.Exception)) = 0)) Then
+					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(..Left(sLine, iPos), Any !"\t ")), LCase(.Exception)) = 0)) Then
 					iType = 1
 					Return i
 				ElseIf CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.EndName & " "))) OrElse _
@@ -390,7 +390,7 @@ Namespace My.Sys.Forms
 			Next i
 		Else
 			If EndsWith(*FECLine->Text, "'...'") Then
-				WLetEx(FECLine->Text, RTrim(Left(*FECLine->Text, Len(*FECLine->Text) - 5)), True)
+				WLetEx(FECLine->Text, RTrim(.Left(*FECLine->Text, Len(*FECLine->Text) - 5)), True)
 			End If
 			Dim As EditControlLine Ptr OldCollapsed
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
@@ -592,7 +592,7 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.GetOldCharIndex() As Integer
 		If FSelEndLine >= 0 AndAlso FSelEndLine <= FLines.Count - 1 Then
-			Return Len(GetTabbedText(Left(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text, FSelEndChar)))
+			Return Len(GetTabbedText(.Left(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text, FSelEndChar)))
 		Else
 			Return FSelEndChar
 		End If
@@ -708,7 +708,7 @@ Namespace My.Sys.Forms
 		FECLine = ecStartLine
 		'If iSelStartLine <> iSelEndLine Or iSelStartChar <> iSelEndChar Then AddHistory
 		WLet(FLine, Mid(*ecEndLine->Text, iSelEndChar + 1))
-		WLet(FECLine->Text, Left(*ecStartLine->Text, iSelStartChar))
+		WLet(FECLine->Text, .Left(*ecStartLine->Text, iSelStartChar))
 		Var iC = 0, OldiC = ecEndLine->CommentIndex, OldPreviC = 0, PreviC = 0, Pos1 = 0, p = 1, c = 0, l = 0
 		If iSelEndLine > 0 Then PreviC = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine - 1))->CommentIndex: OldPreviC = PreviC
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
@@ -846,7 +846,7 @@ Namespace My.Sys.Forms
 			ElseIf i = iSelStartLine Then
 				WLet(FLine, Mid(Lines(i), iSelStartChar + 1))
 			ElseIf i = iSelEndLine Then
-				WAdd FLine, Chr(13) & Chr(10) & Left(Lines(i), iSelEndChar)
+				WAdd FLine, Chr(13) & Chr(10) & .Left(Lines(i), iSelEndChar)
 			Else
 				WAdd FLine, Chr(13) & Chr(10) & Lines(i)
 			End If
@@ -1023,7 +1023,7 @@ Namespace My.Sys.Forms
 			'
 			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet(FECLine->Text, Trim(*FECLine->Text, Any !"\t "))
 			'If *FECLine->Text = "" Then Continue For
-			If Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then wLet(FECLine->Text,"If (" & Mid(*FECLine->Text,4))
+			If .Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then wLet(FECLine->Text, "If (" & Mid(*FECLine->Text, 4))
 			'If LCase(*FECLine->Text) = "endif" Then wLet FECLine->Text,"End If"
 			If iComment = 0 Then
 				If FECLine->Multiline Then
@@ -1034,7 +1034,7 @@ Namespace My.Sys.Forms
 					Next
 					iPos = InStr(*FLine, "'") - 1
 					If iPos = -1 Then iPos = Len(*FLine)
-					Split(Left(*FLine, iPos), ":", LineParts())
+					Split(.Left(*FLine, iPos), ":", LineParts())
 					ConstructionIndex = GetConstruction(LineParts(0), ConstructionPart)
 					If ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 						iIndents = Max(0, iIndents - 1)
@@ -1066,7 +1066,7 @@ Namespace My.Sys.Forms
 				ElseIf FECLine->ConstructionIndex = 7 AndAlso FECLine->ConstructionPart = 2 Then
 					iPos = InStr(*FECLine->Text, "'") - 1
 					If iPos = -1 Then iPos = Len(*FECLine->Text)
-					iPos = InStrCount(Left(*FECLine->Text, iPos), ",")
+					iPos = InStrCount(.Left(*FECLine->Text, iPos), ",")
 					iIndents -= iPos
 					CurIndents = iIndents
 				End If
@@ -1254,7 +1254,7 @@ Namespace My.Sys.Forms
 	Sub EditControl.ShowCaretPos(Scroll As Boolean = False)
 		nCaretPosY = GetCaretPosY(FSelEndLine)
 		FCurLineCharIdx = FSelEndChar
-		nCaretPosX = TextWidth(GetTabbedText(Left(Lines(FSelEndLine), FCurLineCharIdx)))
+		nCaretPosX = TextWidth(GetTabbedText(.Left(Lines(FSelEndLine), FCurLineCharIdx)))
 		If CInt(DropDownShowed) AndAlso CInt(CInt(FSelEndChar < DropDownChar) OrElse CInt(FSelEndChar > GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar))) Then
 			CloseDropDown()
 		End If
@@ -1343,8 +1343,8 @@ Namespace My.Sys.Forms
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		If FSelStartLine = FSelEndLine Then
-			n = Len(GetTabbedText(Left(Lines(FSelStartLine), Min(FSelStartChar, FSelEndChar))))
-			If TabAsSpaces AndAlso (ChoosedTabStyle = 0 OrElse Trim(Left(Lines(iSelStartLine), iSelStartChar), Any !"\t ") <> "") Then
+			n = Len(GetTabbedText(.Left(Lines(FSelStartLine), Min(FSelStartChar, FSelEndChar))))
+			If TabAsSpaces AndAlso (ChoosedTabStyle = 0 OrElse Trim(.Left(Lines(iSelStartLine), iSelStartChar), Any !"\t ") <> "") Then
 				SelText = Space(TabWidth - (n Mod TabWidth))
 			Else
 				SelText = !"\t"
@@ -1381,7 +1381,7 @@ Namespace My.Sys.Forms
 			FECLine = FLines.Items[i]
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			n = Min(n, TabWidth - (n Mod TabWidth))
-			If n = 0 AndAlso Left(*FECLine->Text, 1) = !"\t" Then n = 1
+			If n = 0 AndAlso .Left(*FECLine->Text, 1) = !"\t" Then n = 1
 			WLet(FECLine->Text, Mid(*FECLine->Text, n + 1))
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar -= n
 			If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar -= n
@@ -1443,9 +1443,9 @@ Namespace My.Sys.Forms
 		Changing("Izohni olish")
 		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 			FECLine = FLines.Items[i]
-			If Left(Trim(*FECLine->Text, Any !"\t "), 1) = "'" Then
+			If .Left(Trim(*FECLine->Text, Any !"\t "), 1) = "'" Then
 				n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
-				WLet(FLineTemp, Left(*FECLine->Text, n))
+				WLet(FLineTemp, .Left(*FECLine->Text, n))
 				WLet(FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 2))
 				If i = FSelEndLine And FSelEndChar > n Then FSelEndChar -= 1
 				If i = FSelStartLine And FSelStartChar > n Then FSelStartChar -= 1
@@ -1590,7 +1590,7 @@ Namespace My.Sys.Forms
 '			Exit Sub
 '		End If
 		iPPos = 0
-		WLet(FLineLeft, GetTabbedText(Left(sText, iStart), iPPos))
+		WLet(FLineLeft, GetTabbedText(.Left(sText, iStart), iPPos))
 		WLet(FLineRight, GetTabbedText(Mid(sText, iStart + 1, iEnd - iStart) & addit, iPPos))
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend, extend2

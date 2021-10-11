@@ -80,6 +80,7 @@ Remove PNG "../resources/Remove.png"
 Resource PNG "../resources/Resource.png"
 SAVE PNG "../resources/Save.png"
 SAVEALL PNG "../resources/SaveAll.png"
+Session PNG "../resources/Session.png"
 SORT PNG "../resources/Sort.png"
 STANDARTTYPES PNG "../resources/StandartTypes.png"
 START PNG "../resources/Start.png"
@@ -110,8 +111,8 @@ weChat PNG "../resources/weChat.png"
 #define APP_TITLE_STR               "Visual FB Editor\0"
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,9,4534
-#define VER_FILEVERSION_STR         "1.2.9.4534\0"
+#define VER_FILEVERSION             1,2,9,4716
+#define VER_FILEVERSION_STR         "1.2.9.4716\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
