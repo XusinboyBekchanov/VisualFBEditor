@@ -29,7 +29,9 @@ Namespace My.Sys.Forms
 	Type WindowList
 		Count As Integer
 		Ctrl As Any Ptr
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			Child As GtkWidget Ptr
+		#else
 			Child As HWND Ptr
 		#endif
 	End Type

@@ -50,19 +50,6 @@ Namespace My.Sys.Forms
 	'    End With
 	'End Sub
 	
-	#ifndef __USE_GTK__
-		Function Designer.EnumChildsProc(hDlg As HWND, lParam As LPARAM) As Boolean
-			If lParam Then
-				With *Cast(WindowList Ptr, lParam)
-					.Count = .Count + 1
-					.Child = Reallocate_(.Child, .Count * SizeOf(HWND))
-					.Child[.Count-1] = hDlg
-				End With
-			End If
-			Return True
-		End Function
-	#endif
-	
 	Sub Designer.ChangeFirstMenuItem()
 		Select Case QWString(ReadPropertyFunc(SelectedControl, "ClassName"))
 		Case "MainMenu", "PopupMenu"
@@ -112,6 +99,17 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
+		Function Designer.EnumChildsProc(hDlg As HWND, lParam As LPARAM) As Boolean
+			If lParam Then
+				With *Cast(WindowList Ptr, lParam)
+					.Count = .Count + 1
+					.Child = Reallocate_(.Child, .Count * SizeOf(HWND))
+					.Child[.Count-1] = hDlg
+				End With
+			End If
+			Return True
+		End Function
+		
 		Sub Designer.GetChilds(Parent As HWND = 0)
 			FChilds.Count = 0
 			'FChilds.Child = CAllocate_(0)
@@ -1351,6 +1349,14 @@ Namespace My.Sys.Forms
 					SetProp(Control, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(Control, GWLP_WNDPROC, CInt(@HookChildProc))))
 				End If
 			End If
+			GetChilds(Control)
+			For i As Integer = 0 To FChilds.Count - 1
+				SetProp(FChilds.Child[i], "@@@Designer", This)
+				SetWindowLongPtr(FChilds.Child[i], GWLP_USERDATA, CInt(GetControl(Control)))
+				If GetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC) <> @HookChildProc Then
+					SetProp(FChilds.Child[i], "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC, CInt(@HookChildProc))))
+				End If
+			Next
 		#endif
 	End Sub
 	
@@ -1366,6 +1372,8 @@ Namespace My.Sys.Forms
 		FSelControl = 0
 		#ifdef __USE_GTK__
 			Dim As GtkWidget Ptr EventBox
+		#else
+			Dim As HWND ParentHandle
 		#endif
 		If MFF Then
 			If CreateControlFunc <> 0 Then
@@ -1389,6 +1397,7 @@ Namespace My.Sys.Forms
 							If hHandle <> 0 Then FSelControl = hHandle
 						#else
 							Dim As HWND Ptr hHandle = ReadPropertyFunc(Ctrl, "Handle")
+							If AParent <> 0 Then ParentHandle = ReadPropertyFunc(AParent, "Handle")
 							If hHandle <> 0 Then FSelControl = *hHandle
 						#endif
 					End If
@@ -1424,7 +1433,11 @@ Namespace My.Sys.Forms
 		#else
 			If IsWindow(FSelControl) Then
 				If Not bNotHook Then
-					HookControl(FSelControl)
+					If GetParent(FSelControl) <> ParentHandle Then
+						HookControl(GetParent(FSelControl))
+					Else
+						HookControl(FSelControl)
+					End If
 					'AName = iif(AName="", AName = AClassName & ...)
 					'SetProp(Control, "Name", ...)
 					'possibly using in propertylist inspector
@@ -1925,7 +1938,7 @@ Namespace My.Sys.Forms
 							Return True
 						End If
 					#else
-						P = Type<Point>(LoWord(lParam), HiWord(lParam))
+						P = Type < Point > (LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
