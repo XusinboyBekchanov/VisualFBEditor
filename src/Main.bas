@@ -6577,9 +6577,7 @@ frmMain.Add @pnlBottom
 frmMain.Add @splBottom
 frmMain.Add ptabCode
 
-'frmMain.CreateWnd
 frmMain.Show
-frmMain.CenterToScreen '
 
 Sub OnProgramStart() Constructor
 	'	pfSplash = @fSplash
