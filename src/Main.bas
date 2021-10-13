@@ -830,7 +830,7 @@ Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) A
 		Return sMain & "Form"
 	ElseIf EndsWith(LCase(FileName), ".bas") Then
 		Return sMain & "Module"
-	ElseIf InStr(FileName, ".") = 0 Then
+	ElseIf InStr(FileName, ".") = 0 AndAlso FileName <> "" Then
 		Return sMain & "Folder"
 	Else
 		Return sMain & "File"
