@@ -1397,7 +1397,7 @@ Namespace My.Sys.Forms
 							If hHandle <> 0 Then FSelControl = hHandle
 						#else
 							Dim As HWND Ptr hHandle = ReadPropertyFunc(Ctrl, "Handle")
-							If AParent <> 0 Then ParentHandle = ReadPropertyFunc(AParent, "Handle")
+							If AParent <> 0 Then ParentHandle = *Cast(HWND Ptr, ReadPropertyFunc(AParent, "Handle"))
 							If hHandle <> 0 Then FSelControl = *hHandle
 						#endif
 					End If
