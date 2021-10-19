@@ -22,7 +22,7 @@ Namespace My.Sys.Forms
 		End Function
 	#else
 		Function Designer.GetControl(ControlHandle As HWND) As Any Ptr
-			Return Cast(Any Ptr, GetWindowLongPtr(ControlHandle, GWLP_USERDATA))
+			Return Cast(Any Ptr, GetProp(ControlHandle, "MFFControl"))
 		End Function
 	#endif
 	
@@ -946,14 +946,18 @@ Namespace My.Sys.Forms
 					SelectedControl = DesignControl
 					FSelControl = FDialog
 					Dim As RECT R
-					GetChilds()
-					For i As Integer = 0 To FChilds.Count -1
-						If IsWindowVisible(FChilds.Child[i]) Then
-							GetWindowRect(FChilds.Child[i], @R)
+					Dim As Any Ptr Ctrl
+					'GetChilds()
+					For i As Integer = Objects.Count - 1 To 0 Step -1
+					'For i As Integer = 0 To FChilds.Count -1
+						Ctrl = Objects.Item(i)
+						'If IsWindowVisible(FChilds.Child[i]) Then
+						If Ctrl AndAlso ReadPropertyFunc <> 0 AndAlso IsWindowVisible(*Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle"))) Then
+							GetWindowRect(*Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), @R)
 							MapWindowPoints(0, FDialog, Cast(Point Ptr, @R) ,2)
 							If (UnScaleX(R.Left) > FBeginX And UnScaleX(R.Right) < FNewX) And (UnScaleY(R.Top) > FBeginY And UnScaleY(R.Bottom) < FNewY) Then
-								If SelectedControls.Count = 0 OrElse (ReadPropertyFunc <> 0 AndAlso GetControl(FChilds.Child[i]) <> 0 AndAlso ReadPropertyFunc(SelectedControls.Items[0], "Parent") = ReadPropertyFunc(GetControl(FChilds.Child[i]), "Parent")) Then
-									SelectedControls.Add GetControl(FChilds.Child[i])
+								If SelectedControls.Count = 0 OrElse (ReadPropertyFunc <> 0 AndAlso ReadPropertyFunc(SelectedControls.Items[0], "Parent") = ReadPropertyFunc(Ctrl, "Parent")) Then
+									SelectedControls.Add Ctrl
 								End If
 							End If
 						End If
@@ -1349,14 +1353,14 @@ Namespace My.Sys.Forms
 					SetProp(Control, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(Control, GWLP_WNDPROC, CInt(@HookChildProc))))
 				End If
 			End If
-			GetChilds(Control)
-			For i As Integer = 0 To FChilds.Count - 1
-				SetProp(FChilds.Child[i], "@@@Designer", This)
-				SetWindowLongPtr(FChilds.Child[i], GWLP_USERDATA, CInt(GetControl(Control)))
-				If GetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC) <> @HookChildProc Then
-					SetProp(FChilds.Child[i], "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC, CInt(@HookChildProc))))
-				End If
-			Next
+'			GetChilds(Control)
+'			For i As Integer = 0 To FChilds.Count - 1
+'				SetProp(FChilds.Child[i], "@@@Designer", This)
+'				SetWindowLongPtr(FChilds.Child[i], GWLP_USERDATA, CInt(GetControl(Control)))
+'				If GetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC) <> @HookChildProc Then
+'					SetProp(FChilds.Child[i], "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC, CInt(@HookChildProc))))
+'				End If
+'			Next
 		#endif
 	End Sub
 	
@@ -2051,6 +2055,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Return True
 		#else
+			'?GetMessageName(uMsg), uMsg, GetClassNameOf(hDlg), GetProp(hDlg, "@@@Proc")
 			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
 		#endif
 		'#Else
