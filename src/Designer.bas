@@ -205,6 +205,7 @@ Namespace My.Sys.Forms
 		#else
 			Dim ParentHwnd As Hwnd = *Cast(HWND Ptr, ReadPropertyFunc(Parent, "Handle"))
 			Dim Result As Hwnd = ChildWindowFromPoint(ParentHwnd, Type < Point > (ScaleX(X), ScaleY(Y)))
+			If GetControl(Result) = Parent Then Return Parent
 			If Result = 0 OrElse Result = ParentHwnd OrElse GetControl(Result) = 0 Then
 				Return Parent
 			Else
@@ -1353,14 +1354,15 @@ Namespace My.Sys.Forms
 					SetProp(Control, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(Control, GWLP_WNDPROC, CInt(@HookChildProc))))
 				End If
 			End If
-'			GetChilds(Control)
-'			For i As Integer = 0 To FChilds.Count - 1
-'				SetProp(FChilds.Child[i], "@@@Designer", This)
-'				SetWindowLongPtr(FChilds.Child[i], GWLP_USERDATA, CInt(GetControl(Control)))
-'				If GetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC) <> @HookChildProc Then
-'					SetProp(FChilds.Child[i], "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC, CInt(@HookChildProc))))
-'				End If
-'			Next
+			GetChilds(Control)
+			For i As Integer = 0 To FChilds.Count - 1
+				SetProp(FChilds.Child[i], "@@@Designer", This)
+				'SetWindowLongPtr(FChilds.Child[i], GWLP_USERDATA, CInt(GetControl(Control)))
+				SetProp(FChilds.Child[i], "MFFControl", GetControl(Control))
+				If GetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC) <> @HookChildProc Then
+					SetProp(FChilds.Child[i], "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC, CInt(@HookChildProc))))
+				End If
+			Next
 		#endif
 	End Sub
 	
