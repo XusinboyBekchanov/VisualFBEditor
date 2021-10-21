@@ -4375,7 +4375,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->ImageListIndexOfFunc = DyLibSymbol(Des->MFF, "ImageListIndexOf")
 					Des->ImageListClearSub = DyLibSymbol(Des->MFF, "ImageListClear")
 					Des->TopMenu = @pnlTopMenu
-					#ifdef __USE_GTK__
+					#ifdef __USE_GTK3__
 						Des->overlay = pnlForm.overlaywidget
 						If Des->overlay Then
 							g_signal_connect(Des->overlay, "get-child-position", G_CALLBACK(@Overlay_get_child_position), Des)

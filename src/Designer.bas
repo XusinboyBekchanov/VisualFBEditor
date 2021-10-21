@@ -1751,17 +1751,15 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkWidget Ptr CtrlParent = gtk_widget_get_parent(layoutwidget)
 			If gtk_is_box(CtrlParent) = 0 Then CtrlParent = layoutwidget
-			Dim As Integer iWidth, iHeight, iWidthOverlay, iHeightOverlay
+			Dim As Integer iWidth, iHeight
 			#ifdef __USE_GTK3__
+				Dim As Integer iWidthOverlay, iHeightOverlay
 				iWidth = gtk_widget_get_allocated_width(CtrlParent): iHeight = gtk_widget_get_allocated_height(CtrlParent)
 				iWidthOverlay = gtk_widget_get_allocated_width(overlay): iHeightOverlay = gtk_widget_get_allocated_height(overlay)
-			#else
-				iWidth = CtrlParent->allocation.width: iHeight = CtrlParent->allocation.height
-				iWidthOverlay = overlay->allocation.width: iHeightOverlay = overlay->allocation.height
+				If iWidthOverlay <> iWidth + 2 * FDotSize OrElse iHeightOverlay <> iHeight + 2 * FDotSize Then
+					gtk_widget_set_size_request(overlay, iWidth + 2 * FDotSize, iHeight + 2 * FDotSize)
+				End If
 			#endif
-			If iWidthOverlay <> iWidth + 2 * FDotSize OrElse iHeightOverlay <> iHeight + 2 * FDotSize Then
-				gtk_widget_set_size_request(overlay, iWidth + 2 * FDotSize, iHeight + 2 * FDotSize)
-			End If
 			If ShowAlignmentGrid Then
 				#ifdef __USE_GTK3__
 					iWidth = gtk_widget_get_allocated_width(layoutwidget): iHeight = gtk_widget_get_allocated_height(layoutwidget)
