@@ -235,7 +235,7 @@ Public:
 	Declare Sub FillAllProperties
 	Declare Sub ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 	Declare Function ReadObjProperty(ByRef Ctrl As Any Ptr, ByRef PropertyName As String) ByRef As WString
-	Declare Function WriteObjProperty(ByRef Ctrl As Any Ptr, ByRef PropertyName As String, ByRef Value As WString) As Boolean
+	Declare Function WriteObjProperty(ByRef Ctrl As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False) As Boolean
 	Declare Function GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	Declare Sub SetErrorHandling(StartLine As String, EndLine As String)
 	Declare Sub RemoveErrorHandling

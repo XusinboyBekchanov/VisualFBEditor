@@ -958,7 +958,13 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 	With *te
 		If pTemp <> 0 Then
 			Select Case LCase(.TypeName)
-			Case "wstring", "string", "zstring", "wstringlist", "dictionary": WLet(FLine, QWString(pTemp)): If InStr(*FLine, """") = 0 Then WLetEx FLine, """" & *FLine & """", True
+			Case "wstring", "string", "zstring", "wstringlist", "dictionary"
+				WLet(FLine, QWString(pTemp))
+				If Len(Trim(*FLine)) > 1 AndAlso StartsWith(*FLine, "=") Then 
+					WLetEx FLine, Mid(*FLine, 2), True
+				Else
+					WLetEx FLine, """" & Replace(*FLine, """", """""") & """", True
+				End If
 			Case "icon", "bitmaptype", "cursor", "graphictype": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
 			Case "integer": iTemp = QInteger(pTemp)
 				WLet(FLine, WStr(iTemp))
@@ -1024,7 +1030,7 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 	"in module " & ZGet(Ermn())
 End Function
 
-Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As String, ByRef Value As WString) As Boolean
+Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False) As Boolean
 	If Cpnt = 0 Then Return False
 	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return False
 	Dim Result As Boolean
@@ -1052,9 +1058,18 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 			Select Case LCase(te->TypeName)
 			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype", "graphictype", "wstringlist", "dictionary"
 				'?"VFE2:" & *FLine
-				If StartsWith(*FLine3, """") Then WLet(FLine4, Mid(*FLine3, 2)): WLet(FLine3, *FLine4)
-				If EndsWith(*FLine3, """") Then WLet(FLine4, Left(*FLine3, Len(*FLine3) - 1)): WLet(FLine3, *FLine4)
-				WLetEx FLine4, Replace(*FLine3, """""", """"), True
+				If FromText Then
+					If StartsWith(*FLine3, """") AndAlso EndsWith(*FLine3, """") Then
+						WLet(FLine4, Replace(Mid(*FLine3, 2, Len(*FLine3) - 2), """""", """"))
+						'WLet(FLine3, *FLine4)
+					Else
+						WLet(FLine4, "=" & *FLine3)
+					End If
+				Else
+					WLet(FLine4, *FLine3)
+				End If
+				'WLetEx FLine4, Replace(*FLine3, """""", """"), True
+				'WLetEx FLine4, *FLine3, True
 				'?"VFE3:" & *FLine
 				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
 					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine4))
@@ -4539,7 +4554,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Len(FLin) <> 0 Then
 									WLet(FLine2, Trim(Mid(*FLine, p1 + 1), Any !"\t "))
 									If StartsWith(*FLine2, "@") Then WLet(FLine3, Trim(Mid(*FLine2, 2), Any !"\t ")): WLet(FLine2, *FLine3)
-									If WriteObjProperty(Ctrl, PropertyName, *FLine2) Then
+									If WriteObjProperty(Ctrl, PropertyName, *FLine2, True) Then
 										#ifdef __USE_GTK__
 											If LCase(PropertyName) = "parent" AndAlso Des->ReadPropertyFunc(Ctrl, "Widget") Then
 												Des->HookControl(Des->ReadPropertyFunc(Ctrl, "Widget"))
