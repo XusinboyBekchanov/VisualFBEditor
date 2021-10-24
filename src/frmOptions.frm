@@ -1384,13 +1384,13 @@ Sub frmOptions.LoadSettings()
 		.cboDefaultProjectFile.Clear
 		f = Dir(ExePath & "/Templates/Projects/*.vfp")
 		While f <> ""
-			.cboDefaultProjectFile.AddItem Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
+			.cboDefaultProjectFile.AddItem ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			Templates.Add "Projects/" & f
 			f = Dir()
 		Wend
 		f = Dir(ExePath & "/Templates/Files/*")
 		While f <> ""
-			.cboDefaultProjectFile.AddItem Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
+			.cboDefaultProjectFile.AddItem ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			Templates.Add "Files/" & f
 			f = Dir()
 		Wend
@@ -1407,13 +1407,13 @@ Sub frmOptions.LoadSettings()
 				'WReallocate s, LOF(Fn) '
 				If Not EOF(Fn) Then
 					Line Input #Fn, Buff  '
-					Languages.Add Left(f, Len(f) - 4)
-					.cboLanguage.AddItem Buff & " - " & Left(f, Len(f) - 4)
+					Languages.Add ..Left(f, Len(f) - 4)
+					.cboLanguage.AddItem Buff & " - " & ..Left(f, Len(f) - 4)
 				End If
 				Close #Fn
 			Else
-				Languages.Add Left(f, Len(f) - 4)
-				.cboLanguage.AddItem Left(f, Len(f) - 4) & " (" & ML("format does not match") & ")"
+				Languages.Add ..Left(f, Len(f) - 4)
+				.cboLanguage.AddItem ..Left(f, Len(f) - 4) & " (" & ML("format does not match") & ")"
 			End If
 			f = Dir()
 		Wend
@@ -1426,7 +1426,7 @@ Sub frmOptions.LoadSettings()
 		.cboTheme.Clear
 		f = Dir(ExePath & "/Settings/Themes/*.ini")
 		While f <> ""
-			.cboTheme.AddItem Left(f, Len(f) - 4)
+			.cboTheme.AddItem ..Left(f, Len(f) - 4)
 			f = Dir()
 		Wend
 		.cboTheme.ItemIndex = .cboTheme.IndexOf(*CurrentTheme)
@@ -2014,7 +2014,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 				Pos1 = InStr(Item->Caption, !"\t")
 				If Pos1 = 0 Then Pos1 = Len(Item->Caption) + 1
 				Key = .lvShortcuts.ListItems.Item(i)->Text(1)
-				Item->Caption = Left(Item->Caption, Pos1 - 1) & !"\t" & Key
+				Item->Caption = ..Left(Item->Caption, Pos1 - 1) & !"\t" & Key
 				Print #Fn, .HotKeysPriv.Item(i) & "=" & Key
 			Next
 			Close #Fn

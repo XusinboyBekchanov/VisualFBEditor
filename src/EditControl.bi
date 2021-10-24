@@ -134,7 +134,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim As DWORD dwTemp
 			Dim As Points psPoints
-			Dim As Point poPoint
+			Dim As ..Point poPoint
 		#endif
 		Dim As Integer lParamLo, lParamHi
 		Dim FCurLine As Integer = 0
@@ -167,9 +167,9 @@ Namespace My.Sys.Forms
 			Dim As TEXTMETRIC tm
 			Dim As HWND hwndTT
 		#endif
-		Dim As RECT rc
+		Dim As ..RECT rc
 		#ifndef __USE_GTK__
-			Dim sz As Size
+			Dim sz As ..Size
 			Dim As SCROLLINFO si
 		#endif
 		Dim As String Symbols = "!@#$~`'%^&*+-=()/\?<>.,;:[]{}""" & Chr(13) & Chr(10) & Chr(9)
@@ -240,10 +240,10 @@ Namespace My.Sys.Forms
 		#else
 			Dim lXOffset As Long
 			Dim lYOffset As Long
-			Dim tP As Point
+			Dim tP As ..Point
 			Dim lVertOffset As Long
 			Dim lHorzOffset As Long
-			Dim As Point m_tP
+			Dim As ..Point m_tP
 			Declare Static Sub EC_TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 		#endif
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer

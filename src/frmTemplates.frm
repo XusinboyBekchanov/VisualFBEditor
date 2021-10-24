@@ -244,7 +244,7 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 	If Item.Name = "Projects" Then
 		f = Dir(ExePath & "/Templates/Projects/*.vfp")
 		While f <> ""
-			TemplateName = Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
+			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			lvTemplates.ListItems.Add TemplateName, "Project"
 			Templates.Add "Projects/" & f
 			f = Dir()
@@ -253,7 +253,7 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 		Dim As String IconName
 		f = Dir(ExePath & "/Templates/Files/*")
 		While f <> ""
-			TemplateName = Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
+			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			If EndsWith(f, ".frm") Then
 				IconName = "Form"
 			ElseIf f = "User Control.bas" Then

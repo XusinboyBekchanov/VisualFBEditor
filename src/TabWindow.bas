@@ -176,7 +176,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	Dim As UString FileNameNew
 	Dim As TabWindow Ptr tb
 	FileNameNew = FileName
-	If EndsWith(FileNameNew, ":") Then FileNameNew = Left(FileNameNew, Len(FileNameNew) - 1)
+	If EndsWith(FileNameNew, ":") Then FileNameNew = ..Left(FileNameNew, Len(FileNameNew) - 1)
 	If FileName <> "" Then
 		For i As Integer = 0 To pTabCode->TabCount - 1
 			If EqualPaths(Cast(TabWindow Ptr, pTabCode->Tabs[i])->FileName, FileNameNew) Then
@@ -232,7 +232,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				If bNew Then
 					Dim As String NewFormName
 					If TreeN <> 0 Then
-						NewFormName = Left(TreeN->Text, Len(TreeN->Text) - 5)
+						NewFormName = ..Left(TreeN->Text, Len(TreeN->Text) - 5)
 					End If
 					For i As Integer = 0 To .txtCode.LinesCount - 1
 						If CreateFormTypesWithoutTypeWord Then
@@ -388,7 +388,7 @@ End Sub
 Function IsLabel(ByRef LeftA As WString) As Boolean
 	Dim strLeftA As String = Trim(LeftA, Any !"\t ")
 	If EndsWith(strLeftA, ":") Then
-		strLeftA = LCase(Left(strLeftA, Len(strLeftA) - 1))
+		strLeftA = LCase(..Left(strLeftA, Len(strLeftA) - 1))
 		Dim t As Integer
 		If InStr("," & SingleConstructions & ",", "," & strLeftA & ",") > 0 Then Return False
 		For i As Integer = 1 To Len(strLeftA)
@@ -415,7 +415,7 @@ Property TabWindow.Modified(Value As Boolean)
 		End If
 	Else
 		If EndsWith(Caption, "*") Then
-			Caption = Left(Caption, Len(Caption) - 1)
+			Caption = ..Left(Caption, Len(Caption) - 1)
 		End If
 	End If
 	txtCode.Modified = Value
@@ -802,9 +802,9 @@ End Sub
 
 Function WithoutPtr(TypeName As String) As String
 	If EndsWith(LCase(TypeName), " ptr") Then
-		Return Left(TypeName, Len(TypeName) - 4)
+		Return ..Left(TypeName, Len(TypeName) - 4)
 	ElseIf EndsWith(LCase(TypeName), " pointer") Then
-		Return Left(TypeName, Len(TypeName) - 8)
+		Return ..Left(TypeName, Len(TypeName) - 8)
 	Else
 		Return TypeName
 	End If
@@ -822,7 +822,7 @@ Function GetPropertyType(ClassName As String, PropertyName As String) As TypeEle
 		If tbi Then
 			Pos2 = InStr(PropertyName, ".")
 			If Pos2 > 0 Then
-				te = GetPropertyType(TypeN, Left(PropertyName, Pos2 - 1))
+				te = GetPropertyType(TypeN, ..Left(PropertyName, Pos2 - 1))
 				If te <> 0 Then Return GetPropertyType(te->TypeName, Mid(PropertyName, Pos2 + 1))
 			Else
 				iIndex = tbi->Elements.IndexOf(PropertyName)
@@ -924,11 +924,11 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 					End If
 				End Select
 			ElseIf Pos1 > 0 Then
-				te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), Left(PropertyName, Pos1 - 1))
+				te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 				If te = 0 Then Return *FLine
 				If IsBase(te->TypeName, "My.Sys.Object") Then
 					If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-						Return ReadObjProperty(Des->ReadPropertyFunc(Cpnt, Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
+						Return ReadObjProperty(Des->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
 					End If
 				End If
 			ElseIf IsBase(.TypeName, "Component") Then
@@ -1010,11 +1010,11 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 				End If
 			End Select
 		ElseIf Pos1 > 0 Then
-			te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), Left(PropertyName, Pos1 - 1))
+			te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 			If te = 0 Then Return *FLine
 			If IsBase(te->TypeName, "My.Sys.Object") Then
 				If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-					Return GetFormattedPropertyValue(Des->ReadPropertyFunc(Cpnt, Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
+					Return GetFormattedPropertyValue(Des->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
 				End If
 			End If
 		ElseIf IsBase(.TypeName, "Component") Then
@@ -1152,8 +1152,8 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then Result = Des->WritePropertyFunc(Cpnt, PropertyName, 0)
 						Else
 							Dim Pos1 As Integer = InStr(*FLine3, ".")
-							If Pos1 > 0 AndAlso cboClass.Items.Contains(Trim(Left(*FLine3, Pos1 - 1))) Then
-								PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(Left(*FLine3, Pos1 - 1))))->Object)
+							If Pos1 > 0 AndAlso cboClass.Items.Contains(Trim(..Left(*FLine3, Pos1 - 1))) Then
+								PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(..Left(*FLine3, Pos1 - 1))))->Object)
 								Dim As Any Ptr Ctrl2 = Des->ReadPropertyFunc(PropertyCtrl, Trim(Mid(*FLine3, Pos1 + 1)))
 								If Ctrl2 <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
 									Result = Des->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
@@ -1175,11 +1175,11 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 		#endif
 	End If
 	If CInt(Pos1 > 0) AndAlso CInt(Result = False) Then
-		te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), Left(PropertyName, Pos1 - 1))
+		te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 		If te = 0 Then Return False
 		If IsBase(te->TypeName, "My.Sys.Object") Then
 			If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-				Return WriteObjProperty(Des->ReadPropertyFunc(Cpnt, Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1), Value)
+				Return WriteObjProperty(Des->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1), Value)
 			End If
 		Else
 			Return False
@@ -1265,7 +1265,7 @@ End Sub
 
 Sub CheckBi(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, ByRef ptxtCodeBi As EditControl Ptr, tb As TabWindow Ptr)
 	If ptxtCode = @txtCodeBi Then
-		Var tb1 = AddTab(Left(tb->FileName, Len(tb->FileName) - 4) & ".bi", , , True)
+		Var tb1 = AddTab(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi", , , True)
 		tb->SelectTab
 		ptxtCode = @tb1->txtCode
 		ptxtCodeBi = ptxtCode
@@ -1274,15 +1274,15 @@ Sub CheckBi(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, B
 End Sub
 
 Sub GetBiFile(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, ByRef ptxtCodeBi As EditControl Ptr, tb As TabWindow Ptr, IsBas As Boolean, ByRef bFind As Boolean, i As Integer, ByRef iStart As Integer, ByRef iEnd As Integer)
-	If CInt(IsBas) AndAlso CInt(Not bFind) AndAlso CInt(StartsWith(Trim(LCase(tb->txtCode.Lines(i)), Any !"\t "), "#include once """ & LCase(GetFileName(Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")) & """")) Then
-		Var tbBi = GetTab(Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")
+	If CInt(IsBas) AndAlso CInt(Not bFind) AndAlso CInt(StartsWith(Trim(LCase(tb->txtCode.Lines(i)), Any !"\t "), "#include once """ & LCase(GetFileName(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")) & """")) Then
+		Var tbBi = GetTab(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")
 		Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 		bFind = True
 		If tbBi Then
 			ptxtCode = @tbBi->txtCode
 			ptxtCodeBi = ptxtCode
 		Else
-			txtCodeBi.LoadFromFile(Left(tb->FileName, Len(tb->FileName) - 4) & ".bi", FileEncoding, NewLineType)
+			txtCodeBi.LoadFromFile(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi", FileEncoding, NewLineType)
 			ptxtCode = @txtCodeBi
 		End If
 		iStart = 0
@@ -1359,24 +1359,24 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 							', Change the ubound only
 							CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 							CtrlNameNew = CtrlNameNew & "(" & WStr(Val(StringExtract(CtrlName,"(",")"))-1) & ")"
-							ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p) & " " & CtrlNameNew &  Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 1)
+							ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p) & " " & CtrlNameNew &  Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 1)
 							WDeallocate Temp
 						Else
-							If Trim(Left(LCase(ptxtCode->Lines(k)), p), Any !"\t ") = "dim as " & LCase(WGet(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))) AndAlso Trim(Mid(ptxtCode->Lines(k), p + Len(LCase(CtrlName)) + 1), Any !"\t ") = "" Then
+							If Trim(..Left(LCase(ptxtCode->Lines(k)), p), Any !"\t ") = "dim as " & LCase(WGet(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))) AndAlso Trim(Mid(ptxtCode->Lines(k), p + Len(LCase(CtrlName)) + 1), Any !"\t ") = "" Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 								ptxtCode->DeleteLine k
 								k = k - 1
 							ElseIf InStr(*FLine & ",", " " & LCase(CtrlName) & ",") Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 								If EndsWith(*FLine, " " & LCase(CtrlName)) Then
-									ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p - 2)
+									ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p - 2)
 								Else
-									ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p - 1) & Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 2)
+									ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p - 1) & Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 2)
 								End If
 								' for No Space after ","
 							ElseIf InStr(*FLine & ",", "," & LCase(CtrlName) & ",") Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-								ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p - 1) & Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 1)
+								ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p - 1) & Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 1)
 							End If
 						End If
 					End If
@@ -1474,13 +1474,13 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			WLet(FLine2, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
 			If StartsWith(*FLine2, "type " & LCase(frmName) & " ") Then
 				sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
-				WLet(FLine1, Left(ptxtCode->Lines(k), sl))
+				WLet(FLine1, ..Left(ptxtCode->Lines(k), sl))
 				tp = k
 				b = True
 				frmTypeName = frmName
 			ElseIf StartsWith(*FLine2, "type " & LCase(frmName) & "type ") Then
 				sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
-				WLet(FLine1, Left(ptxtCode->Lines(k), sl))
+				WLet(FLine1, ..Left(ptxtCode->Lines(k), sl))
 				tp = k
 				b = True
 				frmTypeName = frmName & "Type"
@@ -1576,29 +1576,29 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 								tb->Des->GetControlBounds(Cpnt, @iLeft1, @iTop1, @iWidth1, @iHeight1)
 							End If
 							CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-							ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p + 10) & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
+							ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p + 10) & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 							'Ctrl2 = Cast(Control Ptr, Cpnt)
-							'.ReplaceLine i, Left(.Lines(i), p + Len(LCase(CtrlName)) + 10) & Ctrl2->Left & ", " & Ctrl2->Top & ", " & Ctrl2->Width & ", " & Ctrl2->Height
+							'.ReplaceLine i, ..Left(.Lines(i), p + Len(LCase(CtrlName)) + 10) & Ctrl2->Left & ", " & Ctrl2->Top & ", " & Ctrl2->Width & ", " & Ctrl2->Height
 							If LCase(PropertyName) = "left" OrElse LCase(PropertyName) = "top" OrElse LCase(PropertyName) = "width" OrElse LCase(PropertyName) = "height" Then t = True
 						ElseIf StartsWith(Trim(LCase(Mid(ptxtCode->Lines(k), p + 1)), Any !"\t "), "left ") Then
 							Var p1 = InStr(LCase(ptxtCode->Lines(k)), "=")
 							If p1 Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-								ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p1) & " " & tb->GetFormattedPropertyValue(Cpnt, "Left")
+								ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p1) & " " & tb->GetFormattedPropertyValue(Cpnt, "Left")
 								If LCase(PropertyName) = "left" Then t = True
 							End If
 						ElseIf StartsWith(Trim(LCase(Mid(ptxtCode->Lines(k), p + 1)), Any !"\t "), "top ") Then
 							Var p1 = InStr(LCase(ptxtCode->Lines(k)), "=")
 							If p1 Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-								ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p1) & " " & tb->GetFormattedPropertyValue(Cpnt, "Top")
+								ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p1) & " " & tb->GetFormattedPropertyValue(Cpnt, "Top")
 								If LCase(PropertyName) = "top" Then t = True
 							End If
 						ElseIf CInt(PropertyName <> "") AndAlso CInt(StartsWith(Mid(LCase(ptxtCode->Lines(k)), p + 1), LCase(PropertyName) & " ") OrElse StartsWith(Mid(LCase(ptxtCode->Lines(k)), p + 1), LCase(PropertyName) & "=")) Then
 							Var p1 = InStr(LCase(ptxtCode->Lines(k)), "=")
 							If p1 Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-								ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), p1) & " " & tb->GetFormattedPropertyValue(Cpnt, PropertyName)
+								ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p1) & " " & tb->GetFormattedPropertyValue(Cpnt, PropertyName)
 								t = True
 							End If
 						End If
@@ -1635,7 +1635,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 		se = ep + q + 10
 	ElseIf se = 0 Then
 		'Var l = .CharIndexFromLine(sc + 1)
-		'.ChangeText Left(.Text, l) & Space(sl) & "End Constructor" & Chr(13) & Mid(.Text, l + 1), "Tugatuvchi konstruktor qo`shildi", .SelStart, , False
+		'.ChangeText ..Left(.Text, l) & Space(sl) & "End Constructor" & Chr(13) & Mid(.Text, l + 1), "Tugatuvchi konstruktor qo`shildi", .SelStart, , False
 		se = sc + 1
 	End If
 	If j = 0 Then
@@ -1784,13 +1784,13 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 				c = True
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName) + 6)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName) + 6)
 				End If
 			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "type " & LCase(frmName) & "type ") Then
 				c = True
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName & "Type") + 6)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName & "Type") + 6)
 				End If
 			ElseIf c Then
 				If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "end type ") Then
@@ -1801,19 +1801,19 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 					If Pos1=0 Then Pos1 = InStr(LCase(RTrim(ptxtCode->Lines(k))) & ",", "," & LCase(OldName) & ",")
 					If Pos1 > 0 Then
 						CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-						ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Pos1) & NewName & Mid(ptxtCode->Lines(k), Len(OldName) + Pos1 + 1)
+						ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Pos1) & NewName & Mid(ptxtCode->Lines(k), Len(OldName) + Pos1 + 1)
 					End If
 				End If
 			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & " ") Then
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName) + 13)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName) + 13)
 				End If
 				b = True
 			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & "type ") Then
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName & "Type") + 13)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName & "Type") + 13)
 				End If
 				b = True
 			ElseIf b Then
@@ -1821,51 +1821,51 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 					b = False
 				ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "with " & LCase(OldName) & " ") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 6)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 6)
 				ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "' " & LCase(OldName) & " ") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 2) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 3)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 2) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 3)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(OldName) & ".") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 1)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 1)
 				ElseIf EndsWith(RTrim(LCase(ptxtCode->Lines(k)), " "), "@" & LCase(OldName)) Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName)) & NewName
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName)) & NewName
 				End If
 			ElseIf iIndex = 1 Then
 				If StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "private sub " & LCase(OldName) & ".") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 13)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 13)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "private sub " & LCase(OldName) & "type.") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 13)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 13)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "public sub " & LCase(OldName) & ".") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 11) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 12)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 11) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 12)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "public sub " & LCase(OldName) & "type.") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 11) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 12)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 11) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 12)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "*cast(" & LCase(OldName) & " ") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 7)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 7)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "*cast(" & LCase(OldName) & "type ") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 7)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 7)
 				End If
 			End If
 			If iIndex = 1 Then
 				If EndsWith(RTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(OldName) & " as " & LCase(OldName) & "type") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) * 2 - 8) & NewName & " As " & NewName & "Type"
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) * 2 - 8) & NewName & " As " & NewName & "Type"
 				ElseIf EndsWith(RTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), " as " & LCase(OldName) & "type") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) - 4) & NewName & "Type"
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) - 4) & NewName & "Type"
 				ElseIf EndsWith(RTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), " as " & LCase(OldName)) Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName)) & NewName
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName)) & NewName
 				ElseIf EndsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(OldName) & ".show") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-					ptxtCode->ReplaceLine k, Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) - 5) & NewName & ".Show"
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) - 5) & NewName & ".Show"
 				End If
 			End If
 		Next
@@ -2032,7 +2032,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 		Var InsLineCount = 0
 		If Not t Then
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-			ptxtCode->InsertLine j, Left(ptxtCode->Lines(j - 1), Len(ptxtCode->Lines(j - 1)) - Len(LTrim(ptxtCode->Lines(j - 1), Any !"\t "))) & "#include once """ & tbi->IncludeFile & """"
+			ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j - 1), Len(ptxtCode->Lines(j - 1)) - Len(LTrim(ptxtCode->Lines(j - 1), Any !"\t "))) & "#include once """ & tbi->IncludeFile & """"
 			InsLineCount += 1
 			tb->ConstructorStart += 1
 			tb->ConstructorEnd += 1
@@ -2151,8 +2151,8 @@ End Sub
 
 Function GetCorrectParam(ByVal Param As String) As String
 	'Param = Trim(Param)
-	If EndsWith(Param, """""") Then Param = Left(Param, Len(Param) - 2)
-	If EndsWith(Param, "=") Then Param = Left(Param, Len(Param) - 1)
+	If EndsWith(Param, """""") Then Param = ..Left(Param, Len(Param) - 2)
+	If EndsWith(Param, "=") Then Param = ..Left(Param, Len(Param) - 1)
 	Return Param
 End Function
 
@@ -2178,7 +2178,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 								b &= """" & WSpace(Len(res(j)))
 							End If
 						Next
-						WLet(ecl->Text, RTrim(Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & Right(RTrim(*ecl->Text), 1) & "=1")
+						WLet(ecl->Text, RTrim(..Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & Right(RTrim(*ecl->Text), 1) & "=1")
 						b &= "1"
 					End If
 					If ChangeKeyWordsCase Then
@@ -2192,11 +2192,11 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 						'							cn = Mid(b, i + 1, 1)
 						'							cp = Mid(b, i - 1, 1)
 						'							If InStr("+-*/\<>&=',:;", c) Then
-						'								If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(Mid(*ecl->Text, i, 2) <> "&H" AndAlso CInt(c <> "'")) AndAlso CInt(c <> "-" OrElse InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(Left(*ecl->Text, i - 1)), 6)) <> "return") AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse CInt(InStr(",:;", c) > 0 AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") Then
-						'									WLetEx ecl->Text, Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
+						'								If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(Mid(*ecl->Text, i, 2) <> "&H" AndAlso CInt(c <> "'")) AndAlso CInt(c <> "-" OrElse InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return") AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse CInt(InStr(",:;", c) > 0 AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") Then
+						'									WLetEx ecl->Text, ..Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
 						'								End If
-						'								If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso CInt(c <> ";") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn))))) OrElse CInt(CInt(c = "-") AndAlso CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) > 0)) Then
-						'									WLetEx ecl->Text, Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
+						'								If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso CInt(c <> ";") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn))))) OrElse CInt(CInt(c = "-") AndAlso CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) > 0)) Then
+						'									WLetEx ecl->Text, ..Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
 						'								End If
 						'							End If
 						'						Next
@@ -2244,14 +2244,14 @@ Function GetOnlyArguments(ArgumentsLine As String) As String
 	Dim As UString res(Any)
 	Dim As Integer Pos1
 	Dim As String Result
-	Split(Mid(Left(ArgumentsLine, Len(ArgumentsLine) - 1), 2), ",", res())
+	Split(Mid(..Left(ArgumentsLine, Len(ArgumentsLine) - 1), 2), ",", res())
 	For i As Integer = 0 To UBound(res)
 		If StartsWith(LTrim(LCase(res(i))), "byref ") OrElse StartsWith(LTrim(LCase(res(i))), "byval ") Then
 			res(i) = Mid(res(i), 7)
 		End If
 		Pos1 = InStr(LCase(res(i)), " as ")
 		If Pos1 > 0 Then
-			res(i) = Left(res(i), Pos1 - 1)
+			res(i) = ..Left(res(i), Pos1 - 1)
 		End If
 		If Result = "" Then
 			Result = Trim(res(i))
@@ -2386,13 +2386,13 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			ptxtCode = ptxtCodeType
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			If CreateNonStaticEventHandlers Then
-				ptxtCode->InsertLine j, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & "_" & Mid(te->TypeName, 4)
-				ptxtCode->InsertLine j + 1, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Sub " & SubName & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & "_" & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine j + 1, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Sub " & SubName & Mid(te->TypeName, 4)
 				tb->ConstructorStart += 2
 				tb->ConstructorEnd += 2
 				If ptxtCode = @tb->txtCode Then q1 = 1 Else q2 = 1
 			Else
-				ptxtCode->InsertLine j, Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & Mid(te->TypeName, 4)
 				tb->ConstructorStart += 1
 				tb->ConstructorEnd += 1
 			End If
@@ -2403,8 +2403,8 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			q = IIf(ptxtCode = @tb->txtCode, q1, q2)
 			If bWith Then WithCtrlName = "" Else WithCtrlName = CtrlName
-			If CreateNonStaticEventHandlers AndAlso Not tdes Then ptxtCode->InsertLine p + q, Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & ".Designer = @This": q += 1: If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
-			ptxtCode->InsertLine p + q, Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & "." & EventName & " = @" & SubName & IIf(CreateNonStaticEventHandlers, "_", "")
+			If CreateNonStaticEventHandlers AndAlso Not tdes Then ptxtCode->InsertLine p + q, ..Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & ".Designer = @This": q += 1: If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
+			ptxtCode->InsertLine p + q, ..Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & "." & EventName & " = @" & SubName & IIf(CreateNonStaticEventHandlers, "_", "")
 			tb->ConstructorEnd += 1
 			If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 		End If
@@ -2581,7 +2581,7 @@ End Sub
 		With tb->txtCode.lvIntellisense
 			'        If CInt(*sTempRight = "") OrElse CInt(Not StartsWith(LCase(.Items.Item(.ItemIndex)->Text), LCase(*sTempRight))) Then
 			'        Else
-			tb->txtCode.ReplaceLine SelLinePos, Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Mid(*sLine, i + 1)
+			tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Mid(*sLine, i + 1)
 			i = SelCharPos + Len(.ListItems.Item(ItemIndex)->Text(0))
 			tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
 			tb->txtCode.SetFocus
@@ -2599,7 +2599,7 @@ End Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
 		Dim i As Integer = GetNextCharIndex(*sLine, SelCharPos, True)
 		With tb->txtCode.cboIntellisense
-			tb->txtCode.ReplaceLine SelLinePos, Left(*sLine, SelCharPos) & .Items.Item(ItemIndex)->Text & Mid(*sLine, i + 1)
+			tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .Items.Item(ItemIndex)->Text & Mid(*sLine, i + 1)
 			i = SelCharPos + Len(.Items.Item(ItemIndex)->Text)
 			tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
 			tb->txtCode.SetFocus
@@ -2726,8 +2726,8 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	Dim As TypeElement Ptr te, te1
 	Dim As String FuncName = tb->cboFunction.Text
 	If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
-	Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
-	Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(Left(FuncName, Pos1 - 1))
+	Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
+	Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
 	If TypeName <> "" Then FillIntellisenseByName TypeName, Starts, True, True, True
 	If te1 <> 0 Then
 		For i As Integer = 0 To te1->Elements.Count - 1
@@ -2910,8 +2910,8 @@ Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boo
 	Dim As Integer Pos1
 	'Dim As String TypeName, FuncName = tb->cboFunction.Text
 	'	If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
-	'	Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
-	'	Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(Left(FuncName, Pos1 - 1))
+	'	Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
+	'	Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
 	'	If te1 <> 0 AndAlso te1->Elements.Contains(sTemp2) Then
 	'		te = te1->Elements.Object(te1->Elements.IndexOf(sTemp2))
 	'	ElseIf tb->Procedures.Contains(sTemp2) Then
@@ -3059,11 +3059,11 @@ Sub CompleteWord
 			Dim i As Integer = GetNextCharIndex(*sLine, SelCharPos)
 			#ifdef __USE_GTK__
 				If tb->txtCode.lvIntellisense.SelectedItem Then
-					tb->txtCode.ReplaceLine iSelEndLine, Left(*sLine, SelCharPos) & .SelectedItem->Text(0) & Mid(*sLine, i + 1)
+					tb->txtCode.ReplaceLine iSelEndLine, ..Left(*sLine, SelCharPos) & .SelectedItem->Text(0) & Mid(*sLine, i + 1)
 					i = SelCharPos + Len(.SelectedItem->Text(0))
 				End If
 			#else
-				tb->txtCode.ReplaceLine iSelEndLine, Left(*sLine, SelCharPos) & .Text & Mid(*sLine, i + 1)
+				tb->txtCode.ReplaceLine iSelEndLine, ..Left(*sLine, SelCharPos) & .Text & Mid(*sLine, i + 1)
 				i = SelCharPos + Len(.Text)
 			#endif
 			tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
@@ -3149,7 +3149,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 					FuncName = Mid(Parameter, iPos, Len(sWord))
 					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 					ParametersList.Add te->Parameters
-					Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+					Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 					If te->Comment <> "" Then Comments &= " " & te->Comment
 				End If
 			Next
@@ -3169,7 +3169,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 				If iPos > 0 Then
 					FuncName = Mid(Parameter, iPos, Len(sWord))
 					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
-					Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+					Parameters &= ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 				Else
 					Parameters &= Parameter
 				End If
@@ -3186,7 +3186,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 					iPos = InStr(LCase(Parameter), LCase(sWord))
 					FuncName = Mid(Parameter, iPos, Len(sWord))
 					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
-					Parameters &= IIf(Parameters = "", "", !"\r") & Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+					Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 					ParametersList.Add te->Parameters
 					If te->Comment <> "" Then Comments &= " " & te->Comment
 				End If
@@ -3207,7 +3207,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 						If iPos > 0 Then
 							FuncName = Mid(Parameter, iPos, Len(sWord))
 							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
-							Parameters &= Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
+							Parameters &= ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
 						Else
 							Parameters &= Parameter
 						End If
@@ -3305,9 +3305,9 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 					sTemp = ch & sTemp
 				ElseIf sTemp <> "" Then
 					If ch = "." Then
-						TypeName = GetTypeFromValue(tb, Left(Value, i - 1))
+						TypeName = GetTypeFromValue(tb, ..Left(Value, i - 1))
 					ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(Value, i - 1, 1) = "-" Then
-						TypeName = GetTypeFromValue(tb, Left(Value, i - 2))
+						TypeName = GetTypeFromValue(tb, ..Left(Value, i - 2))
 					End If
 					Exit For
 				Else
@@ -3341,8 +3341,8 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 			FListItems.Clear
 		Else
 			If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
-			Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
-			Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(Left(FuncName, Pos1 - 1))
+			Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
+			Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
 			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
 				te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
 			ElseIf tb->Procedures.Contains(sTemp) Then
@@ -3475,8 +3475,8 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 	Else
 		Dim As String FuncName = tb->cboFunction.Text
 		If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
-		Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
-		Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(Left(FuncName, Pos1 - 1))
+		Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
+		Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
 		If LCase(sTemp) = "this" Then Return TypeName
 		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
 			te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
@@ -3600,28 +3600,28 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		Link1 = Mid(Lines(i), iPos + 9, iPos1 - iPos - 9)
 		Split Link1, "~", LinkParse()
 		If UBound(LinkParse) < 2 Then Continue For
-		Lines(i) = Left(Lines(i), iPos - 1) & LinkParse(2) & Mid(Lines(i), iPos2 + 4)
+		Lines(i) = ..Left(Lines(i), iPos - 1) & LinkParse(2) & Mid(Lines(i), iPos2 + 4)
 		Split Replace(Lines(i), """", "”"), ",", Params()
 		For j As Integer = 0 To UBound(Params)
 			iPos = InStr(Params(j), "(")
 			iPos1 = InStr(Params(j), ")")
-			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso Left(Params(0), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then
+			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso ..Left(Params(0), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then
 				iPos = InStr(LCase(Params(j)), LCase(sWord))
 				If iPos > 0 Then
 					sWord = Mid(Params(j), iPos, Len(sWord))
-					Params(j) = Left(Params(j), iPos - 1) & "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & sWord & "~" & sWord & """>" & sWord & "</a>" & Mid(Params(j), iPos + Len(sWord))
+					Params(j) = ..Left(Params(j), iPos - 1) & "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & sWord & "~" & sWord & """>" & sWord & "</a>" & Mid(Params(j), iPos + Len(sWord))
 				End If
 			ElseIf iParamCount = j Then
 				n = Len(Params(j)) - Len(LTrim(Params(j)))
-				If j = 0 AndAlso Left(Params(0), 1) = " " Then iPos = InStr(InStr(LCase(Params(j)), LCase(sWord)) + 1, Params(j), " ")
-				If Left(Params(0), 1) = " " Then iPos1 = Len(Params(j)) + 1
+				If j = 0 AndAlso ..Left(Params(0), 1) = " " Then iPos = InStr(InStr(LCase(Params(j)), LCase(sWord)) + 1, Params(j), " ")
+				If ..Left(Params(0), 1) = " " Then iPos1 = Len(Params(j)) + 1
 				If iPos1 = 0 Then iPos1 = Len(Params(j)) + 1
 				If j = 0 AndAlso iPos > 0 Then
 					Param = Mid(Params(j), iPos + 1, iPos1 - iPos - 1)
-					Params(j) = Left(Params(j), iPos) & "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" &  Param & "</a>" & Mid(Params(j), iPos1)
+					Params(j) = ..Left(Params(j), iPos) & "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" &  Param & "</a>" & Mid(Params(j), iPos1)
 				ElseIf iParamCount = UBound(Params) Then
 					If iPos1 = 0 Then iPos1 = Len(Params(j)) + 1
-					Param = Left(Params(j), iPos1 - 1)
+					Param = ..Left(Params(j), iPos1 - 1)
 					Params(j) = "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" & Param & "</a>" & Mid(Params(j), iPos1) 'WString(n, " ") &
 				ElseIf iParamCount < UBound(Params) Then
 					Params(j) = "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Params(j)) & "~" & sWord & """>" &  Params(j) & "</a>" 'WString(n, " ") &
@@ -3665,7 +3665,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		Dim As TypeElement Ptr teEnum
-		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, Len(RTrim(Left(*sLine, iSelEndChar - 1))), teEnum)
+		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
 		#ifdef __USE_GTK__
 			tb->txtCode.lvIntellisense.ListItems.Clear
 		#else
@@ -3713,9 +3713,9 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-		If CInt(Key = Asc(" ")) AndAlso (CInt(EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), " as")) OrElse _
-			CInt(EndsWith(RTrim(LCase(Left(*sLine, iSelEndChar))), !"\tas"))OrElse _
-			CInt(RTrim(LCase(Left(*sLine, iSelEndChar))) = "as")) Then
+		If CInt(Key = Asc(" ")) AndAlso (CInt(EndsWith(RTrim(LCase(..Left(*sLine, iSelEndChar))), " as")) OrElse _
+			CInt(EndsWith(RTrim(LCase(..Left(*sLine, iSelEndChar))), !"\tas"))OrElse _
+			CInt(RTrim(LCase(..Left(*sLine, iSelEndChar))) = "as")) Then
 			FillTypeIntellisenses
 			SelLinePos = iSelEndLine
 			SelCharPos = iSelEndChar
@@ -3738,11 +3738,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-		If EndsWith(RTrim(Left(LCase(*sLine), tb->txtCode.DropDownChar)), " as") Then
+		If EndsWith(RTrim(..Left(LCase(*sLine), tb->txtCode.DropDownChar)), " as") Then
 			FillTypeIntellisenses Mid(*sLine, tb->txtCode.DropDownChar + 1)
-		ElseIf EndsWith(Left(*sLine, tb->txtCode.DropDownChar), ".") Then
+		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), ".") Then
 			'FillIntellisenseByName GetLeftArg(tb, iSelEndLine, tb->txtCode.DropDownChar - 1)
-		ElseIf EndsWith(Left(*sLine, tb->txtCode.DropDownChar), "->") Then
+		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), "->") Then
 			'FillIntellisenseByName GetLeftArg(tb, iSelEndLine, tb->txtCode.DropDownChar - 2)
 		Else
 			FillAllIntellisenses Mid(*sLine, tb->txtCode.DropDownChar + 1)
@@ -3776,9 +3776,9 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 				If Pos1 = 0 Then Pos1 = InStr(sLine, " ICON "): Image = "ICON"
 				If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
 				If Pos1 > 0 Then
-					If Trim(LCase(Left(sLine, Pos1 - 1))) = Trim(LCase(ResName)) Then
+					If Trim(LCase(..Left(sLine, Pos1 - 1))) = Trim(LCase(ResName)) Then
 						FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
-						If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
+						If EndsWith(FilePath, """") Then FilePath = ..Left(FilePath, Len(FilePath) - 1)
 						If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
 						FilePath = GetRelativePath(FilePath, ResourceFile)
 						Close #Fn
@@ -3953,7 +3953,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
 	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 	If IsBas Then
-		WLet(FLine1, Left(FileName, Len(FileName) - 4) & ".bi")
+		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
 		WLetEx FLine2, GetFileName(*FLine1), True
 	Else
 		WLet(FLine1, "")
@@ -4077,7 +4077,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
 							Pos4 = InStr(te->TypeName, "'")
 							If Pos4 > 0 Then
-								te->TypeName = Trim(Left(te->TypeName, Pos4 - 1))
+								te->TypeName = Trim(..Left(te->TypeName, Pos4 - 1))
 							End If
 							te->TypeName = WithoutPointers(te->TypeName)
 						End If
@@ -4106,18 +4106,18 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Else
 									ElementValue = ""
 								End If
-								If Pos1 > 0 Then res1(n) = Trim(Left(res1(n), Pos1 - 1))
+								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								Pos1 = InStr(LCase(res1(n)), " as ")
 								If Pos1 > 0 Then
 									CurType = Trim(Mid(res1(n), Pos1 + 4))
-									res1(n) = Trim(Left(res1(n), Pos1 - 1))
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
 								Pos1 = InStr(res1(n), "(")
 								If Pos1 > 0 Then
-									res1(n) = Trim(Left(res1(n), Pos1 - 1))
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								res1(n) = res1(n).TrimAll
 								Pos1 = InStrRev(CurType, ".")
@@ -4163,7 +4163,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->Parameters = bTrim
 				Pos4 = InStr(te->Parameters, "'")
 				If Pos4 > 0 Then
-					te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
+					te->Parameters = Trim(..Left(te->Parameters, Pos4 - 1))
 				End If
 				te->StartLine = i
 				te->EndLine = i
@@ -4221,7 +4221,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					End If
 					Pos4 = InStr(te->TypeName, "'")
 					If Pos4 > 0 Then
-						te->TypeName = Trim(Left(te->TypeName, Pos4 - 1))
+						te->TypeName = Trim(..Left(te->TypeName, Pos4 - 1))
 					End If
 					te->TypeName = WithoutPointers(te->TypeName)
 				End If
@@ -4249,7 +4249,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Dim As UString res1(Any)
 					Dim As Boolean bShared
 					Pos1 = InStr(b2, "'")
-					If Pos1 > 0 Then b2 = Trim(Left(b2, Pos1 - 1))
+					If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
 					If b2.ToLower.StartsWith("shared ") Then bShared = True: b2 = Trim(Mid(b2, 7))
 					If b2.ToLower.StartsWith("as ") Then
 						CurType = Trim(Mid(b2, 4))
@@ -4263,7 +4263,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						If Pos1 > 0 Then
 							Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
-							CurType = Left(CurType, Pos1 - 1)
+							CurType = ..Left(CurType, Pos1 - 1)
 						End If
 					Else
 						Split GetChangedCommas(b2), ",", res1()
@@ -4276,18 +4276,18 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Else
 							ElementValue = ""
 						End If
-						If Pos1 > 0 Then res1(n) = Trim(Left(res1(n), Pos1 - 1))
+						If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						Pos1 = InStr(LCase(res1(n)), " as ")
 						If Pos1 > 0 Then
 							CurType = Trim(Mid(res1(n), Pos1 + 4))
-							res1(n) = Trim(Left(res1(n), Pos1 - 1))
+							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
 							res1(n) = Trim(Mid(res1(n), 6))
 						End If
 						Pos1 = InStr(res1(n), "(")
 						If Pos1 > 0 Then
-							res1(n) = Trim(Left(res1(n), Pos1 - 1))
+							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						res1(n) = res1(n).TrimAll
 						Pos1 = InStrRev(CurType, ".")
@@ -4388,7 +4388,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				Pos1 = InStr(Trim(LCase(*FLine), Any !"\t "), " extends ")
 				frmTypeName = Mid(Trim(*FLine, Any !"\t "), 6, Pos1 - 6)
 				If EndsWith(LCase(frmTypeName), "type") Then
-					frmName = Left(frmTypeName, Len(frmTypeName) - 4)
+					frmName = ..Left(frmTypeName, Len(frmTypeName) - 4)
 				Else
 					frmName = frmTypeName
 				End If
@@ -4454,7 +4454,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						sText = Trim(Mid(Trim(*FLine, Any !"\t "), 8), Any !"\t ")
 						p = InStr(sText, " ")
 						If p Then
-							TypeName = Trim(Left(sText, p), Any !"\t ")
+							TypeName = Trim(..Left(sText, p), Any !"\t ")
 							sText = Trim(Mid(Trim(sText, Any !"\t "), p))
 							If StartsWith(LCase(sText), "ptr ") OrElse StartsWith(LCase(sText), "pointer ") Then
 								Continue For
@@ -4464,7 +4464,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							ArgName = ""
 							p = InStr(sText, ",")
 							Do While p > 0
-								ArgName = Trim(Left(sText, p - 1), Any !"\t ")
+								ArgName = Trim(..Left(sText, p - 1), Any !"\t ")
 								If InStr(ArgName,"(") > 0 Then  ' It is Ctrl Array Then
 									CtrlArrayNum = Val(StringExtract(ArgName,"(",")"))
 									Dim As String tCtrlName = StringExtract(ArgName,"(")
@@ -4535,7 +4535,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						p1 = InStr(*FLine, "=")
 						'If p > p1 Then p = 0
 						If p > 0 Then
-							ArgName = Trim(Left(*FLine, p - 1), Any !"\t ")
+							ArgName = Trim(..Left(*FLine, p - 1), Any !"\t ")
 							If ArgName = "" AndAlso WithArgs.Count > 0 Then ArgName = WithArgs.Item(WithArgs.Count - 1)
 							If LCase(ArgName) = "this" Then ArgName = frmName
 						ElseIf p1 AndAlso (InStr(*FLine, "->") = 0) Then
@@ -4587,15 +4587,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								sText = Mid(*FLine, p + 10)
 								p1 = InStr(sText, ",")
 								If p1 > 0 Then
-									lLeft = Val(Left(sText, p1 - 1))
+									lLeft = Val(..Left(sText, p1 - 1))
 									sText = Mid(sText, p1 + 1)
 									p1 = InStr(sText, ",")
 									If p1 > 0 Then
-										lTop = Val(Left(sText, p1 - 1))
+										lTop = Val(..Left(sText, p1 - 1))
 										sText = Mid(sText, p1 + 1)
 										p1 = InStr(sText, ",")
 										If p1 > 0 Then
-											lWidth = Val(Left(sText, p1 - 1))
+											lWidth = Val(..Left(sText, p1 - 1))
 											lHeight = Val(Mid(sText, p1 + 1))
 										End If
 									End If
@@ -4608,12 +4608,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								p1 = InStr(sText, ",")
 								If p1 > 0 Then
 									sRight = Trim(Mid(sText, p1 + 1))
-									sText = Trim(Left(sText, p1 - 1))
+									sText = Trim(..Left(sText, p1 - 1))
 								End If
 								If StartsWith(sRight, """") Then sRight = Mid(sRight, 2)
-								If EndsWith(sRight, """") Then sRight = Left(sRight, Len(sRight) - 1)
+								If EndsWith(sRight, """") Then sRight = ..Left(sRight, Len(sRight) - 1)
 								If StartsWith(sText, """") Then sText = Mid(sText, 2)
-								If EndsWith(sText, """") Then sText = Left(sText, Len(sText) - 1)
+								If EndsWith(sText, """") Then sText = ..Left(sText, Len(sText) - 1)
 								If LCase(Mid(*FLine, p + 1, 4)) = "add " Then
 									Des->ImageListAddFromFileSub(Ctrl, GetResNamePath(sText, ResourceFile), sRight)
 								Else
@@ -5035,7 +5035,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	If CInt(wFileName <> "") And CInt(bNew = False OrElse TreeN <> 0) Then
 		If bNew Then
 			FileName = TreeN->Text
-			If EndsWith(FileName, "*") Then FileName = Left(FileName, Len(FileName) - 1)
+			If EndsWith(FileName, "*") Then FileName = ..Left(FileName, Len(FileName) - 1)
 		Else
 			FileName = wFileName
 		End If
@@ -5340,7 +5340,7 @@ Sub SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef E
 	End If
 	ErrorLine = Val(Mid(sLine, Pos2 + 1, Pos1 - Pos2 - 1))
 	If ErrorLine = 0 Then Return
-	WLet(ErrFileName, Left(sLine, Pos2 - 1))
+	WLet(ErrFileName, ..Left(sLine, Pos2 - 1))
 	WLet(ErrTitle, Mid(sLine, Pos1 + 1))
 	'If bFlag AndAlso  Then
 End Sub
@@ -5806,7 +5806,7 @@ Function GetResourceFile(WithoutMainNode As Boolean = False) As UString
 	WDeallocate File
 	If ResourceFile = "" Then
 		Pos1 = InStrRev(MainFile, ".")
-		ResourceFile = IIf(Pos1 = 0, MainFile & ".rc", Left(MainFile, Pos1 - 1) & ".rc")
+		ResourceFile = IIf(Pos1 = 0, MainFile & ".rc", ..Left(MainFile, Pos1 - 1) & ".rc")
 		FolderNameRes = GetFolderName(ResourceFile)
 		If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ResourceFile
 	End If
@@ -5865,7 +5865,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							If Project Then
 								Var Pos3 = InStrRev(sLine, " ")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion)
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion)
 									bChanged = True
 									'									ThreadsEnter()
 									'									If CInt(ProjectNode) AndAlso CInt(Not EndsWith(ProjectNode->Text, "*")) Then ProjectNode->Text &= "*"
@@ -5874,7 +5874,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							Else
 								Var Pos3 = InStrRev(sLine, ",")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1)
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1)
 									bChanged = True
 								End If
 							End If
@@ -5882,13 +5882,13 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							If Project Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0""")
 									bChanged = True
 								End If
 							Else
 								Var Pos3 = InStrRev(sLine, ".")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0""")
 									bChanged = True
 								End If
 							End If
@@ -5896,61 +5896,61 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							If StartsWith(LCase(sLine), "#define app_title_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->ApplicationTitle) & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->ApplicationTitle) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_companyname_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_filedescription_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Replace(WGet(Project->FileDescription), "{ProjectDescription}", WGet(Project->ProjectDescription)) & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->FileDescription), "{ProjectDescription}", WGet(Project->ProjectDescription)) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_internalname_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->InternalName) & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->InternalName) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_legalcopyright_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->LegalCopyright) & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalCopyright) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_legaltrademarks_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->LegalTrademarks) & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalTrademarks) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_originalfilename_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & WGet(Project->OriginalFileName) & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->OriginalFileName) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_productname_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Replace(WGet(Project->ProductName), "{ProjectName}", WGet(Project->ProjectName)) & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->ProductName), "{ProjectName}", WGet(Project->ProjectName)) & "\0""")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_productversion ") Then
 								Var Pos3 = InStrRev(sLine, " ")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & ",0")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & ",0")
 									bChanged = True
 								End If
 							ElseIf StartsWith(LCase(sLine), "#define ver_productversion_str ") Then
 								Var Pos3 = InStr(sLine, """")
 								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0""")
+									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0""")
 									bChanged = True
 								End If
 							ElseIf Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" AndAlso (InStr(LCase(sLine), " icon ") OrElse InStr(LCase(sLine), " bitmap ") OrElse InStr(LCase(sLine), " png ") OrElse InStr(LCase(sLine), " cursor ") OrElse InStr(LCase(sLine), " rcdata ")) Then
@@ -5960,7 +5960,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 									Dim As String ResNameOrID
 									Pos1 = InStr(LTrim(sLine, Any !"\t "), " ")
 									If Pos1 > 0 Then
-										ResNameOrID = Trim(Left(LTrim(sLine, Any !"\t "), Pos1 - 1), Any !"\t ")
+										ResNameOrID = Trim(..Left(LTrim(sLine, Any !"\t "), Pos1 - 1), Any !"\t ")
 										If IsNumeric(ResNameOrID) Then
 											If MinResID = 0 OrElse MinResID > Val(ResNameOrID) Then MinResID = Val(ResNameOrID)
 										Else
@@ -6192,7 +6192,7 @@ Sub RunPr(Debugger As String = "")
 			Pos1 = InStr(Pos1 + 1, *ExeFileName, "\")
 		Wend
 		If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
-		WLet(Workdir, Left(*ExeFileName, Pos1))
+		WLet(Workdir, ..Left(*ExeFileName, Pos1))
 		If WGet(TerminalPath) <> "" Then
 			Dim As ToolType Ptr Tool
 			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
@@ -6270,17 +6270,17 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 					End If
 				Next
 				Dim As Integer Pos1 = InStr(b, "'")
-				If Pos1 > 0 Then b = Left(b, Pos1)
+				If Pos1 > 0 Then b = ..Left(b, Pos1)
 				For i As Integer = Len(b) To 1 Step -1
 					c = Mid(b, i, 1)
 					cn = Mid(b, i + 1, 1)
 					cp = Mid(b, i - 1, 1)
 					If InStr("+-*/\<>&=',:;""()^", c) Then
-						If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(LCase(Mid(*ecl->Text, i, 2)) <> "/'") AndAlso CInt(LCase(Mid(*ecl->Text, i, 2)) <> "&h" AndAlso CInt(c <> """")) AndAlso CInt(c <> "'") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso CInt(c <> "-" OrElse InStr("([{,;:+-*/=<>", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(Left(*ecl->Text, i - 1)), 6)) <> "return" AndAlso LCase(Right(RTrim(Left(*ecl->Text, i - 1)), 4)) <> "step") AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse CInt(InStr(",:;=", c) > 0 AndAlso (c <> "=" OrElse cn <> ">") AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") OrElse CInt(c = """" AndAlso IsArg(Asc(cn))) OrElse CInt(c = ")" AndAlso IsArg(Asc(cn))) Then
-							WLetEx ecl->Text, Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
+						If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(LCase(Mid(*ecl->Text, i, 2)) <> "/'") AndAlso CInt(LCase(Mid(*ecl->Text, i, 2)) <> "&h" AndAlso CInt(c <> """")) AndAlso CInt(c <> "'") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso CInt(c <> "-" OrElse InStr("([{,;:+-*/=<>", ..Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(..Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return" AndAlso LCase(..Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "step") AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse CInt(InStr(",:;=", c) > 0 AndAlso (c <> "=" OrElse cn <> ">") AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") OrElse CInt(c = """" AndAlso IsArg(Asc(cn))) OrElse CInt(c = ")" AndAlso IsArg(Asc(cn))) Then
+							WLetEx ecl->Text, ..Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
 						End If
-						If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> """") AndAlso CInt(c <> "'") AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso CInt(c <> ";") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn))))) AndAlso CInt(CInt(c <> "-") OrElse CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(c <> "'") AndAlso CInt(InStr("+-*/=", Right(RTrim(Left(*ecl->Text, i - 1)), 1)) > 0) AndAlso CInt(InStr("({[", cp) = 0) OrElse CInt(IsArg(Asc(cp))) OrElse CInt(InStr(""")]}", cp) > 0)) OrElse CInt(c = """" AndAlso IsArg(Asc(cp))) OrElse CInt(c = "(" AndAlso cp = """") OrElse CInt(c = "'" AndAlso cp <> "" AndAlso cp <> " " AndAlso cp <> !"\t" AndAlso cp <> "/") Then
-							WLetEx ecl->Text, Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
+						If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> """") AndAlso CInt(c <> "'") AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso CInt(c <> ";") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn))))) AndAlso CInt(CInt(c <> "-") OrElse CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(c <> "'") AndAlso CInt(InStr("+-*/=", ..Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) > 0) AndAlso CInt(InStr("({[", cp) = 0) OrElse CInt(IsArg(Asc(cp))) OrElse CInt(InStr(""")]}", cp) > 0)) OrElse CInt(c = """" AndAlso IsArg(Asc(cp))) OrElse CInt(c = "(" AndAlso cp = """") OrElse CInt(c = "'" AndAlso cp <> "" AndAlso cp <> " " AndAlso cp <> !"\t" AndAlso cp <> "/") Then
+							WLetEx ecl->Text, ..Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
 						End If
 					End If
 				Next
@@ -6321,7 +6321,7 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			If StartsWith(LTrim(*FECLine->Text), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-				If IsNumeric(Mid(Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
+				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
 			ElseIf StartsWith(LTrim(*FECLine->Text), "_L_") Then
@@ -6543,7 +6543,7 @@ Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			If StartsWith(LTrim(*FECLine->Text), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-				If IsNumeric(Mid(Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
+				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
 			ElseIf StartsWith(LTrim(*FECLine->Text), "_L_") Then
@@ -6672,8 +6672,8 @@ Sub TabWindow.Define
 				.Item(.Count - 1)->Tag = te2->TabPtr
 			End If
 			If cboFunction.ItemIndex > -1 Then te1 = cboFunction.Items.Item(cboFunction.ItemIndex)->Object
-			Pos1 = InStr(cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(Left(cboFunction.Text, Pos1 - 1)): TypeName = FuncName
-			Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(Left(FuncName, Pos1 - 1))
+			Pos1 = InStr(cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(cboFunction.Text, Pos1 - 1)): TypeName = FuncName
+			Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
 			If te1 <> 0 AndAlso te1->Elements.Contains(sWord) Then
 				For i As Integer = 0 To te1->Elements.Count - 1
 					te = te1->Elements.Object(i)

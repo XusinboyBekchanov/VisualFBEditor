@@ -4590,7 +4590,7 @@ Dim Shared exedate As Double 'serial date
 					temp2*=(vubound(k)-vlbound(k)+1)
 				Next
 				vrr(i).ad=vrr(i).ini+temp1*udtlg
-				If .typ>TYPESTD Then update_address(i) ''udt case
+				If typ > TYPESTD Then update_address(i) ''udt case
 			End If
 		End If
 		

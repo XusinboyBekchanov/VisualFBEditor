@@ -166,7 +166,7 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 				f = Dir(ExePath & "/AddIns/*.so")
 			#endif
 			While f <> ""
-				AddIn = Left(f, InStrRev(f, ".") - 1)
+				AddIn = ..Left(f, InStrRev(f, ".") - 1)
 				Add_In = New_( AddInType)
 				Add_In->LoadOnStartupINI = piniSettings->ReadBool("AddInsOnStartup", AddIn, False)
 				Add_In->LoadOnStartup = Add_In->LoadOnStartupINI

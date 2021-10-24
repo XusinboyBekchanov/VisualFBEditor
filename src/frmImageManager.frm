@@ -299,13 +299,13 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 				If Pos1 = 0 Then Pos1 = InStr(sLine, " CURSOR "): Image = "CURSOR"
 				If Pos1 > 0 Then
 					FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
-					If EndsWith(FilePath, """") Then FilePath = Left(FilePath, Len(FilePath) - 1)
+					If EndsWith(FilePath, """") Then FilePath = ..Left(FilePath, Len(FilePath) - 1)
 					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
 					If CurrentImageList Then
-						ResNamePaths.Add Trim(Left(sLine, Pos1 - 1)), GetRelativePath(FilePath, ResourceFile)
+						ResNamePaths.Add Trim(..Left(sLine, Pos1 - 1)), GetRelativePath(FilePath, ResourceFile)
 					Else
-						ImageList1.AddFromFile GetRelativePath(FilePath, ResourceFile), Trim(Left(sLine, Pos1 - 1))
-						lvImages.ListItems.Add Trim(Left(sLine, Pos1 - 1))
+						ImageList1.AddFromFile GetRelativePath(FilePath, ResourceFile), Trim(..Left(sLine, Pos1 - 1))
+						lvImages.ListItems.Add Trim(..Left(sLine, Pos1 - 1))
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
@@ -368,12 +368,12 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 						p1 = InStr(sText, ",")
 						If p1 > 0 Then
 							sRight = Trim(Mid(sText, p1 + 1))
-							sText = Trim(Left(sText, p1 - 1))
+							sText = Trim(..Left(sText, p1 - 1))
 						End If
 						If StartsWith(sRight, """") Then sRight = Mid(sRight, 2)
-						If EndsWith(sRight, """") Then sRight = Left(sRight, Len(sRight) - 1)
+						If EndsWith(sRight, """") Then sRight = ..Left(sRight, Len(sRight) - 1)
 						If StartsWith(sText, """") Then sText = Mid(sText, 2)
-						If EndsWith(sText, """") Then sText = Left(sText, Len(sText) - 1)
+						If EndsWith(sText, """") Then sText = ..Left(sText, Len(sText) - 1)
 						lvImages.ListItems.Add sRight
 						If InStr(b, LCase(".AddFromFile ")) Then
 							ImageList1.AddFromFile GetRelativePath(sText, ResourceFile), sRight
@@ -441,17 +441,17 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 				ElseIf bStarted Then
 					If StartsWith(b, LCase("End Constructor")) Then
 						EndConstructorPos = i
-						sLeftEndConstructorPos = Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
+						sLeftEndConstructorPos = ..Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
 						Exit For
 					ElseIf StartsWith(b & " ", LCase("With " & ImageListName & " ")) Then
 						bInWith = True
 					ElseIf bInWith AndAlso StartsWith(b, LCase("End With")) Then
 						bInWith = False
 					ElseIf StartsWith(b, LCase(ImageListName & ".Add ")) OrElse StartsWith(b, LCase(ImageListName & ".AddFromFile ")) OrElse bInWith AndAlso (StartsWith(b, LCase(".Add ")) OrElse StartsWith(b, LCase(".AddFromFile "))) Then
-						If FirstAddPos = 0 Then FirstAddPos = i: bFirstAddPosInWith = bInWith: sLeftFirstAddPos = Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
+						If FirstAddPos = 0 Then FirstAddPos = i: bFirstAddPosInWith = bInWith: sLeftFirstAddPos = ..Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
 						iList.Add i
 					ElseIf StartsWith(b, LCase(ImageListName & ".")) OrElse bInWith AndAlso StartsWith(b, LCase(".")) Then
-						LastPropertyPos = i: bLastPropertyPosInWith = bInWith: sLeftLastPropertyPos = Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
+						LastPropertyPos = i: bLastPropertyPosInWith = bInWith: sLeftLastPropertyPos = ..Left(*ECLine->Text, Len(*ECLine->Text) - Len(b))
 					End If
 				End If
 			Next i

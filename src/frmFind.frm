@@ -657,7 +657,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(2) = WStr(Pos1)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(3) = tb->FileName
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Tag = tb
-				WLet ECLine->Text, Left(*buff, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search))
+				WLet ECLine->Text, ..Left(*buff, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search))
 				buff = @tb->txtCode.Lines(i)
 				If bMatchCase Then
 					Pos1 = InStr(Pos1 + Len(*tReplace), *buff, *Search)
@@ -728,8 +728,8 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 		Var Posi=InStr(pClipboard->GetAsText,Chr(13))-1
 		If Posi < 1 Then Posi=InStr(pClipboard->GetAsText,Chr(10))-1
 		If Posi < 1 Then Posi= Len(pClipboard->GetAsText)
-		txtFind.AddItem Left(pClipboard->GetAsText,Posi)
-		txtFind.Text = Left(pClipboard->GetAsText,Posi)
+		txtFind.AddItem ..Left(pClipboard->GetAsText, Posi)
+		txtFind.Text = ..Left(pClipboard->GetAsText,Posi)
 		txtFind.SetFocus
 	End If
 End Sub

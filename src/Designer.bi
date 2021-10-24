@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 			
 		#else
 			FHDC        As HDC
-			FPoint As Point
+			FPoint As ..Point
 		#endif
 		Dim Ctrl As Any Ptr
 		#ifndef __USE_GTK__
@@ -161,8 +161,8 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare        Sub ClipCursor(hDlg As HWND)
 		#endif
-		Declare        Sub DrawBox(R As RECT)
-		Declare        Sub DrawBoxs(R() As RECT)
+		Declare        Sub DrawBox(R As My.Sys.Drawing.Rect)
+		Declare        Sub DrawBoxs(R() As My.Sys.Drawing.Rect)
 		Declare        Sub Clear
 		Declare        Function GetClassAcceptControls(AClassName As String) As Boolean
 		Declare        Sub DblClick(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
@@ -249,7 +249,7 @@ Namespace My.Sys.Forms
 			FSelControl    As HWND
 			BitmapHandle   As HBitmap
 		#endif
-		Dim Rects(Any) As Rect
+		Dim Rects(Any) As ..Rect
 		Dim Ctrls(Any) As Any Ptr
 		Dim RectsCount As Integer
 		Dim ActiveRect As Integer

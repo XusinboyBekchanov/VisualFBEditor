@@ -276,7 +276,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 							If CurWidth > MaxWidth Then MaxWidth = CurWidth
 						End If
 					Next
-					Dim As Rect rct
+					Dim As My.Sys.Drawing.Rect rct
 					If CurrentMenuItem = 0 Then
 						If ParentRect = 0 Then
 							rct.Left = 1
@@ -351,7 +351,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 								Dim As WString Ptr pCaption = Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")
 								Dim As Integer Pos1 = InStr(*pCaption, !"\t")
 								If Pos1 > 0 Then
-									.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, Left(*pCaption, Pos1 - 1), BGR(0, 0, 0), -1
+									.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ..Left(*pCaption, Pos1 - 1), BGR(0, 0, 0), -1
 									.TextOut Rects(RectsCount).Right - 10 - 5 - .TextWidth(Mid(*pCaption, Pos1 + 1)), Rects(RectsCount).Top + 3, Mid(*pCaption, Pos1 + 1), BGR(0, 0, 0), -1
 								Else
 									.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, *pCaption, BGR(0, 0, 0), -1

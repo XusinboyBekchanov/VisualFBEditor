@@ -185,7 +185,7 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 						.txtPath.Text = .OpenD.FileName
 					End If
 					If EndsWith(.OpenD.FileName, ".chm") OrElse .SetFileNameToVersion Then
-						.txtVersion.Text = Left(GetFileName(.OpenD.FileName), Len(GetFileName(.OpenD.FileName)) - 4)
+						.txtVersion.Text = ..Left(GetFileName(.OpenD.FileName), Len(GetFileName(.OpenD.FileName)) - 4)
 					Else
 						.txtVersion.Text = GetFileName(GetFolderName(.OpenD.FileName, False))
 						If .txtVersion.Text = "bin" Then

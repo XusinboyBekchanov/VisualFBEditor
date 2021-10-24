@@ -1923,7 +1923,7 @@ Namespace My.Sys.Forms
 								ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse t = Asc("#") OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
 									If MatnBoshi = 0 Then MatnBoshi = j
 									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso t >= 48 AndAlso t <= 57)) Then
-										If LeftMargin + (-HScrollPos + j + InStrCount(Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
+										If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 											Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 											sc = @Identifiers
 											'ss = NormalText.Background
@@ -2010,7 +2010,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				If CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine AndAlso z = FLines.Count - 1)) Then
-					Dim As Rect rec
+					Dim As ..Rect rec
 					If z = FSelEndLine + 1 Then
 						rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos - 1) * dwCharY), ScaleX(This.Width), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1))
 					Else
@@ -2053,7 +2053,7 @@ Namespace My.Sys.Forms
 				End If
 				If HighlightBrackets Then
 					If z = BracketsStartLine AndAlso BracketsStart > -1 Then
-						Dim As Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(Left(*s, BracketsStart))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(Left(*s, BracketsStart))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY))
+						Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY))
 						#ifdef __USE_GTK__
 							cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
 							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
@@ -2064,7 +2064,7 @@ Namespace My.Sys.Forms
 						#endif
 					End If
 					If z = BracketsEndLine AndAlso BracketsEnd > -1 Then
-						Dim As Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(Left(*s, BracketsEnd))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(Left(*s, BracketsEnd))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY))
+						Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY))
 						#ifdef __USE_GTK__
 							cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
 							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
@@ -2345,13 +2345,13 @@ Namespace My.Sys.Forms
 					SelectObject(bufDC, This.Canvas.Pen.Handle)
 					SelectObject(bufDC, This.Canvas.Brush.Handle)
 					Ellipse bufDC, ScaleX(MButtonX + 10), ScaleY(MButtonY + 10), ScaleX(MButtonX + 14), ScaleY(MButtonY + 14)
-					Dim pPoint1(3) As Point = {(ScaleX(MButtonX + 11), ScaleY(MButtonY + 1)), (ScaleX(MButtonX + 7), ScaleY(MButtonY + 5)), (ScaleX(MButtonX + 16), ScaleY(MButtonY + 5)), (ScaleX(MButtonX + 12), ScaleY(MButtonY + 1))}
+					Dim pPoint1(3) As ..Point = {(ScaleX(MButtonX + 11), ScaleY(MButtonY + 1)), (ScaleX(MButtonX + 7), ScaleY(MButtonY + 5)), (ScaleX(MButtonX + 16), ScaleY(MButtonY + 5)), (ScaleX(MButtonX + 12), ScaleY(MButtonY + 1))}
 					PolyGon(bufDC, @pPoint1(0), 4)
-					Dim pPoint2(3) As Point = {(ScaleX(MButtonX + 11), ScaleY(MButtonY + 22)), (ScaleX(MButtonX + 7), ScaleY(MButtonY + 18)), (ScaleX(MButtonX + 16), ScaleY(MButtonY + 18)), (ScaleX(MButtonX + 12), ScaleY(MButtonY + 22))}
+					Dim pPoint2(3) As ..Point = {(ScaleX(MButtonX + 11), ScaleY(MButtonY + 22)), (ScaleX(MButtonX + 7), ScaleY(MButtonY + 18)), (ScaleX(MButtonX + 16), ScaleY(MButtonY + 18)), (ScaleX(MButtonX + 12), ScaleY(MButtonY + 22))}
 					PolyGon(bufDC, @pPoint2(0), 4)
-					Dim pPoint3(3) As Point = {(ScaleX(MButtonX + 1), ScaleY(MButtonY + 11)), (ScaleX(MButtonX + 5), ScaleY(MButtonY + 7)), (ScaleX(MButtonX + 5), ScaleY(MButtonY + 16)), (ScaleX(MButtonX + 1), ScaleY(MButtonY + 12))}
+					Dim pPoint3(3) As ..Point = {(ScaleX(MButtonX + 1), ScaleY(MButtonY + 11)), (ScaleX(MButtonX + 5), ScaleY(MButtonY + 7)), (ScaleX(MButtonX + 5), ScaleY(MButtonY + 16)), (ScaleX(MButtonX + 1), ScaleY(MButtonY + 12))}
 					PolyGon(bufDC, @pPoint3(0), 4)
-					Dim pPoint4(3) As Point = {(ScaleX(MButtonX + 22), ScaleY(MButtonY + 11)), (ScaleX(MButtonX + 18), ScaleY(MButtonY + 7)), (ScaleX(MButtonX + 18), ScaleY(MButtonY + 16)), (ScaleX(MButtonX + 22), ScaleY(MButtonY + 12))}
+					Dim pPoint4(3) As ..Point = {(ScaleX(MButtonX + 22), ScaleY(MButtonY + 11)), (ScaleX(MButtonX + 18), ScaleY(MButtonY + 7)), (ScaleX(MButtonX + 18), ScaleY(MButtonY + 16)), (ScaleX(MButtonX + 22), ScaleY(MButtonY + 12))}
 					PolyGon(bufDC, @pPoint4(0), 4)
 				#endif
 			End If
@@ -2543,7 +2543,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.ShowDropDownAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
-		Var nCaretPosX = TextWidth(GetTabbedText(Left(Lines(iSelEndLine), iSelEndChar)))
+		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
 		Var HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
 		Var VCaretPos = (nCaretPosY - VScrollPos + 1) * dwCharY
 		DropDownChar = iSelEndChar
@@ -2562,7 +2562,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
-		Var nCaretPosX = TextWidth(GetTabbedText(Left(Lines(iSelEndLine), iSelEndChar)))
+		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
 		Var HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
 		Var VCaretPos = (nCaretPosY - VScrollPos + 1) * dwCharY
 		ToolTipChar = iSelEndChar
@@ -2601,7 +2601,7 @@ Namespace My.Sys.Forms
 			SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
 			SendMessage(hwndTT, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
 			
-			Dim As RECT rc
+			Dim As ..RECT rc
 			GetWindowRect(FHandle, @rc)
 			SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(HCaretPos), rc.Top + ScaleY(VCaretPos + 5)))
 		#endif
@@ -2774,7 +2774,7 @@ Namespace My.Sys.Forms
 							psPoints = MAKEPOINTS(dwTemp)
 							poPoint.X = psPoints.X
 							poPoint.Y = psPoints.Y
-							ScreenToClient(Handle, @poPoint)
+							..ScreenToClient(Handle, @poPoint)
 							FSelEndLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
 							FSelEndChar = CharIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
 							If poPoint.X < LeftMargin Then
@@ -2807,7 +2807,7 @@ Namespace My.Sys.Forms
 				psPoints = MAKEPOINTS(dwTemp)
 				poPoint.X = psPoints.X
 				poPoint.Y = psPoints.Y
-				ScreenToClient(Handle, @poPoint)
+				..ScreenToClient(Handle, @poPoint)
 				iCursorLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
 				'If Cast(EditControlLine Ptr, FLines.Items[i])->Collapsible Then
 				'If p.X < LeftMargin AndAlso p.X > LeftMargin - 15 Then
@@ -3436,14 +3436,14 @@ Namespace My.Sys.Forms
 					FSelStartLine = FSelEndLine
 					FSelStartChar = FSelEndChar
 				End If
-				WLet(FLine, Left(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar))
+				WLet(FLine, ..Left(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar))
 				WLet(FLineLeft, "")
 				WLet(FLineRight, "")
 				WLet(FLineTemp, "")
 				Dim j As Integer = 0
 				Dim i As Integer = GetConstruction(RTrim(*FLine, Any !"\t "), j)
 				Var d = Len(*FLine) - Len(LTrim(*FLine, Any !"\t "))
-				WLet(FLineSpace, Left(*FLine, d))
+				WLet(FLineSpace, ..Left(*FLine, d))
 				Var k = 0
 				Var p = 0
 				Var z = 0
@@ -3463,7 +3463,7 @@ Namespace My.Sys.Forms
 												d = Len(*.Text) - Len(LTrim(*.Text, Any !"\t "))
 												FSelEndChar = FSelEndChar - (Len(*FLineSpace) - d)
 												FSelStartChar = FSelEndChar
-												WLet(FLineSpace, Left(*.Text, d))
+												WLet(FLineSpace, ..Left(*.Text, d))
 												WLet(Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, *FLineSpace & LTrim(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, Any !"\t "))
 											End If
 											Exit For

@@ -35,7 +35,7 @@
 		Dim CurrentStatusBar As Any Ptr
 		Dim tb As TabWindowPtr
 		Dim Des As My.Sys.Forms.Designer Ptr
-		Dim Rects(Any) As Rect
+		Dim Rects(Any) As My.Sys.Drawing.Rect
 		Dim Ctrls(Any) As Any Ptr
 		Dim Parents(Any) As Any Ptr
 		Dim RectsCount As Integer
