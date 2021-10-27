@@ -30,6 +30,7 @@
 #include once "mff/TreeListView.bi"
 #include once "mff/IniFile.bi"
 #include once "mff/PointerList.bi"
+#include once "mff/ReBar.bi"
 #include once "vbcompat.bi"
 
 Using My.Sys.Forms
@@ -56,6 +57,7 @@ Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
 Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd
 Dim Shared As SaveFileDialog SaveD
+Dim Shared As ReBar ReBar1
 #ifndef __USE_GTK__
 	Dim Shared As ScrollBarControl scrTool
 	Dim Shared As PageSetupDialog PageSetupD
@@ -4270,7 +4272,9 @@ Sub CreateMenusAndToolBars
 	tbStandard.ImagesList = @imgList
 	tbStandard.HotImagesList = @imgList
 	tbStandard.DisabledImagesList = @imgListD
-	tbStandard.Align = 3
+	#ifdef __USE_GTK__
+		tbStandard.Align = 3
+	#endif
 	tbStandard.Flat = True
 	tbStandard.List = True
 	tbStandard.Buttons.Add tbsAutosize, "New",,@mClick, "New", , ML("New") & " (Ctrl+N)", True
@@ -6161,6 +6165,11 @@ Sub frmMain_Create(ByRef Sender As Control)
 	
 	LoadToolBox
 	
+	#ifndef __USE_GTK__
+		ReBar1.AddBand @tbStandard
+		ReBar1.ShowBand(0) = True
+	#endif
+
 	pnlRightPin.Height = tbRight.Height
 	pnlLeftPin.Height = tbLeft.Height
 	
@@ -6547,6 +6556,8 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	"in module " & ZGet(Ermn())
 End Sub
 
+Rebar1.Align = DockStyle.alTop
+
 #ifdef __USE_GTK__
 	frmMain.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 #else
@@ -6567,6 +6578,9 @@ frmMain.OnShow = @frmMain_Show
 frmMain.OnClose = @frmMain_Close
 frmMain.OnDropFile = @frmMain_DropFile
 frmMain.Menu = @mnuMain
+#ifndef __USE_GTK__
+	frmMain.Add @ReBar1
+#endif
 frmMain.Add @tbStandard
 frmMain.Add @stBar
 frmMain.Add @pnlLeft
