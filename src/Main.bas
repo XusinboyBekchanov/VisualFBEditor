@@ -6165,11 +6165,6 @@ Sub frmMain_Create(ByRef Sender As Control)
 	
 	LoadToolBox
 	
-	#ifndef __USE_GTK__
-		ReBar1.AddBand @tbStandard
-		ReBar1.ShowBand(0) = True
-	#endif
-
 	pnlRightPin.Height = tbRight.Height
 	pnlLeftPin.Height = tbLeft.Height
 	
@@ -6579,9 +6574,11 @@ frmMain.OnClose = @frmMain_Close
 frmMain.OnDropFile = @frmMain_DropFile
 frmMain.Menu = @mnuMain
 #ifndef __USE_GTK__
+	ReBar1.Add @tbStandard
 	frmMain.Add @ReBar1
+#else
+	frmMain.Add @tbStandard
 #endif
-frmMain.Add @tbStandard
 frmMain.Add @stBar
 frmMain.Add @pnlLeft
 frmMain.Add @splLeft
