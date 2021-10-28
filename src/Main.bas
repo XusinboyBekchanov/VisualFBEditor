@@ -5157,7 +5157,9 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		btnPropertyValue.Visible = True
 		btnPropertyValue.Tag = te
-		'CtrlEdit->Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
+		If teTypeName = "font" Then
+			txtPropertyValue.Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
+		End If
 	Else
 		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
