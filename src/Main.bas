@@ -6579,6 +6579,7 @@ frmMain.Menu = @mnuMain
 	ReBar1.Add @tbStandard
 	frmMain.Add @ReBar1
 #else
+	tbStandard.Align = DockStyle.alTop
 	frmMain.Add @tbStandard
 #endif
 frmMain.Add @stBar
