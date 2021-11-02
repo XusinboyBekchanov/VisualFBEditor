@@ -5157,8 +5157,15 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		btnPropertyValue.Visible = True
 		btnPropertyValue.Tag = te
+		#ifndef __USE_GTK__
+			'SendMessage txtPropertyValue.Handle, EM_SETMARGINS, EC_LEFTMARGIN, 0
+		#endif
 		If teTypeName = "font" Then
 			txtPropertyValue.Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
+		ElseIf EndsWith(LCase(PropertyName), "color") Then
+			#ifndef __USE_GTK__
+				'SendMessage txtPropertyValue.Handle, EM_SETMARGINS, EC_LEFTMARGIN, 20
+			#endif
 		End If
 	Else
 		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
@@ -6163,6 +6170,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
 	#else
 		tabItemHeight = tabLeft.ItemHeight(0) + 4
+		pnlPropertyValue.SendToBack
 	#endif
 	
 	LoadToolBox
