@@ -5336,6 +5336,64 @@ Sub lvProperties_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer
 	'Key = 0
 End Sub
 
+Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
+	#ifndef __USE_GTK__
+		If Item = 0 Then Exit Sub
+			Dim As ..Rect rc = *Cast(..Rect Ptr, @R)
+			rc.Left += 40 + Item->Indent * 16
+			If ItemAction = 17 Then                       'if selected Then
+				FillRect Canvas.Handle, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
+				SetBkColor Canvas.Handle, GetSysColor(COLOR_HIGHLIGHT)                    'Set text Background
+				SetTextColor Canvas.Handle, GetSysColor(COLOR_HIGHLIGHTTEXT)                'Set text color
+				If Sender.SelectedItem = Item AndAlso Sender.Focused Then
+					DrawFocusRect Canvas.Handle, @rc  'draw focus rectangle
+				End If
+'				lvProperties_EndScroll(Sender)
+			Else
+'				If (lpdis->itemState And ODS_COMBOBOXEDIT) Then
+'					SetBKMode lpdis->hDC, TRANSPARENT
+'				Else
+					FillRect Canvas.Handle, @rc, GetSysColorBrush(COLOR_WINDOW)
+					SetBkColor Canvas.Handle, GetSysColor(COLOR_WINDOW)                    'Set text Background
+'				End If
+				SetTextColor Canvas.Handle, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
+'				If CInt(ItemIndex = -1) AndAlso CInt(lpdis->itemID = 0) AndAlso CInt(Focused) Then
+'					rc.Left   = lpdis->rcItem.Left + 16 : rc.Right = lpdis->rcItem.Right              '  Set cordinates
+'					rc.top    = lpdis->rcItem.top
+'					rc.bottom = lpdis->rcItem.bottom
+'					DrawFocusRect lpdis->hDC, @rc  'draw focus rectangle
+'				End If
+			End If
+			'DRAW TEXT
+			'If ItemIndex >= 0 AndAlso ItemIndex < ListView_GetItemCount(Sender.Handle) Then
+				Dim zTxt As WString * 64
+				Dim iIndent As Integer
+				Dim l As Integer
+				For i As Integer = 0 To Sender.Columns.Count - 1
+					zTxt = Item->Text(i)
+					iIndent = Item->Indent
+					TextOut Canvas.Handle, R.Left + IIf(i = 0, 40, l + 3) + 3 + IIf(i = 0, iIndent * 16, 0), R.Top + 2, @zTxt, Len(zTxt)     'Draw text
+					If i = 0 Then
+						'DRAW IMAGE
+						If Sender.StateImages AndAlso Sender.StateImages->Handle AndAlso Item->State > 0 Then
+							ImageList_Draw(Sender.StateImages->Handle, Item->State - 1, Canvas.Handle, R.Left + iIndent * 16 + 3, R.Top, ILD_TRANSPARENT)
+						End If
+						If Sender.Images AndAlso Sender.Images->Handle Then
+							ImageList_Draw(Sender.Images->Handle, Item->ImageIndex, Canvas.Handle, R.Left + iIndent * 16 + 24, R.Top, ILD_TRANSPARENT)
+						End If
+					End If
+					l += Sender.Columns.Column(i)->Width
+				Next
+			'End If
+			'Exit Sub
+'		Case ODA_FOCUS
+'			?3
+'			DrawFocusRect Canvas.Handle, Cast(..RECT Ptr, @R) 'draw focus rectangle
+'			Exit Sub
+'		End Select
+	#endif
+End Sub
+
 imgListStates.Add "Collapsed", "Collapsed"
 imgListStates.Add "Expanded", "Expanded"
 imgListStates.Add "Property", "Property"
@@ -5345,6 +5403,7 @@ lvProperties.Align = 5
 'lvProperties.Sort = ssSortAscending
 lvProperties.StateImages = @imgListStates
 lvProperties.Images = @imgListStates
+'lvProperties.OwnerDraw = True
 'lvProperties.ColumnHeaderHidden = True
 lvProperties.Columns.Add ML("Property"), , 70
 lvProperties.Columns.Add ML("Value"), , 50, , True
@@ -5365,7 +5424,7 @@ lvProperties.OnKeyUp = @lvProperties_KeyUp
 lvProperties.OnCellEditing = @lvProperties_CellEditing
 lvProperties.OnCellEdited = @lvProperties_CellEdited
 lvProperties.OnItemExpanding = @lvProperties_ItemExpanding
-
+lvProperties.OnDrawItem = @lvProperties_DrawItem
 lvEvents.Align = 5
 lvEvents.Sort = ssSortAscending
 lvEvents.Columns.Add ML("Event"), , 70
