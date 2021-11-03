@@ -51,7 +51,7 @@ Dim Shared As CheckBox chkLeft
 Dim Shared As RadioButton radButton
 Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
-Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue
+Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
 Dim Shared As Trackbar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
@@ -5032,18 +5032,11 @@ Sub btnPropertyValue_Click(ByRef Sender As Control)
 	End Select
 End Sub
 
-Sub txtPropertyValue_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	Canvas.Brush.Color = Val(Sender.Text)
-	SelectObject(Canvas.Handle, Canvas.Brush.Handle)
-	Rectangle Canvas.Handle, 0, 0 + 2, 0 + 13 - 1, 0 + 1 + 13
-End Sub
-
 'txtPropertyValue.BorderStyle = 0
 txtPropertyValue.Visible = False
 txtPropertyValue.WantReturn = True
 txtPropertyValue.OnActivate = @txtPropertyValue_Activate
 txtPropertyValue.OnLostFocus = @txtPropertyValue_LostFocus
-txtPropertyValue.OnPaint = @txtPropertyValue_Paint
 
 btnPropertyValue.Visible = False
 btnPropertyValue.Text = "..."
@@ -5053,6 +5046,17 @@ cboPropertyValue.OnActivate = @txtPropertyValue_Activate
 cboPropertyValue.OnChange = @cboPropertyValue_Change
 cboPropertyValue.Left = -1
 cboPropertyValue.Top = -2
+
+Sub pnlColor_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Canvas.Brush.Color = Val(txtPropertyValue.Text)
+'	SelectObject(Canvas.Handle, Canvas.Brush.Handle)
+'	Rectangle Canvas.Handle, 0, 0, 12, 12
+	Canvas.Rectangle 0, 0, 12, 12
+End Sub
+
+pnlColor.SetBounds 3, 2, 12, 12
+pnlColor.Visible = False
+pnlColor.OnPaint = @pnlColor_Paint
 
 pnlPropertyValue.Visible = False
 pnlPropertyValue.Add @cboPropertyValue
@@ -5070,6 +5074,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	txtPropertyValue.Visible = False
 	btnPropertyValue.Visible = False
 	cboPropertyValue.Visible = False
+	pnlColor.Visible = False
 	#ifdef __USE_GTK__
 		Dim As GdkRectangle gdkRect
 		Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(lvProperties.TreeStore), @Item->TreeIter))
@@ -5168,6 +5173,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		If teTypeName = "font" Then
 			txtPropertyValue.Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		ElseIf EndsWith(LCase(PropertyName), "color") Then
+			pnlColor.BackColor = Val(Item->Text(1))
+			pnlColor.Visible = True 
 			txtPropertyValue.LeftMargin = 16
 		End If
 	Else
@@ -5405,6 +5412,7 @@ lvProperties.Columns.Add ML("Property"), , 70
 lvProperties.Columns.Add ML("Value"), , 50, , True
 pnlPropertyValue.Add @btnPropertyValue
 pnlPropertyValue.Add @txtPropertyValue
+pnlPropertyValue.Add @pnlColor
 #ifndef __USE_GTK__
 	'lvProperties.Add @txtPropertyValue
 	'lvProperties.Add @btnPropertyValue
