@@ -6052,7 +6052,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		Restarting = False
 	End If
 	ThreadsEnter()
-	Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
+	Dim As Boolean Bit32 = tbt32Bit->Checked
 	Dim As WString Ptr CurrentDebugger = IIf(Bit32, CurrentDebugger32, CurrentDebugger64)
 	Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 	ThreadsLeave()

@@ -2162,7 +2162,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "DisplayMenuIcons", DisplayMenuIcons
 		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolbar
 		pfrmMain->Menu->ImagesList = IIf(DisplayMenuIcons, pimgList, 0)
-		ptbStandard->Visible = ShowMainToolbar
+		ReBar1.Visible = ShowMainToolbar
 		pfrmMain->RequestAlign
 		
 		piniTheme->Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"

@@ -107,7 +107,7 @@ Common Shared As Boolean mFormFind, mFormFindInFile
 Common Shared As Boolean InDebug, FormClosing, Restarting, FastRunning, RunningToCursor
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
-Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar
+Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar, ShowStandardToolBar, ShowEditToolBar, ShowProjectToolBar, ShowBuildToolBar, ShowRunToolBar
 Common Shared As Boolean ShowKeywordsToolTip
 Common Shared As Boolean OpenCommandPromptInMainFileFolder
 Common Shared As Integer WhenVisualFBEditorStarts

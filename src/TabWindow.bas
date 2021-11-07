@@ -5397,7 +5397,7 @@ End Sub
 	Function build_create_shellscript(ByRef working_dir As WString, ByRef cmd As WString, autoclose As Boolean, debug As Boolean = False, ByRef Arguments As WString = "") As String
 		'?Replace(cmd, "\", "/")
 		'?!"#!/bin/sh\n\nrm $0\n\ncd " & Replace(working_dir, "\", "/") & !"\n\n" & Replace(cmd, "\", "/") & !"\n\necho ""\n\n------------------\n(program exited with code: $?)"" \n\n" & IIF(autoclose, "", !"\necho ""Press return to continue""\n#to be more compatible with shells like ""dash\ndummy_var=""""\nread dummy_var") & !"\n"
-		Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
+		Dim As Boolean Bit32 = tbt32Bit->Checked
 		Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 		Dim As String ScriptPath
 		Dim As Integer Fn = FreeFile
@@ -6015,7 +6015,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 End Sub
 
 Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ForWindows As Boolean = False) As UString
-	Dim As Boolean Bit32 = ptbStandard->Buttons.Item("B32")->Checked
+	Dim As Boolean Bit32 = tbt32Bit->Checked
 	Dim As UString Result
 	Result = IIf(Bit32, *Compiler32Arguments, *Compiler64Arguments)
 	If Project Then
@@ -6092,10 +6092,10 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 				End If
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_64bit__") Then
 				l = l + 1
-				k(l) = ptbStandard->Buttons.Item("B64")->Checked
+				k(l) = tbt64Bit->Checked
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifndef __fb_64bit__") Then
 				l = l + 1
-				k(l) = Not ptbStandard->Buttons.Item("B64")->Checked
+				k(l) = Not tbt64Bit->Checked
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#else") Then
 				k(l) = Not k(l)
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#endif") Then

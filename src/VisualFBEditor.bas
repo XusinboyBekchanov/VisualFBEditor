@@ -170,8 +170,13 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "ThreadsWindow":                       ptabBottom->Tab(8)->SelectTab
 	Case "WatchWindow":                         ptabBottom->Tab(9)->SelectTab
 	Case "ImageManager":                        pfImageManager->Show *pfrmMain
-	Case "Toolbars":                            ShowMainToolbar = Not ShowMainToolbar: ptbStandard->Visible = ShowMainToolbar: pfrmMain->RequestAlign
-	Case "TBUseDebugger":                       ChangeUseDebugger ptbStandard->Buttons.Item("TBUseDebugger")->Checked, 0
+	Case "Toolbars":                            'ShowMainToolbar = Not ShowMainToolbar: ReBar1.Visible = ShowMainToolbar: pfrmMain->RequestAlign
+	Case "Standard":                            ShowStandardToolbar = Not ShowStandardToolbar: ReBar1.Bands.Item(0)->Visible = ShowStandardToolbar: mnuStandardToolBar->Checked = ShowStandardToolbar: pfrmMain->RequestAlign
+	Case "Edit":                                ShowEditToolbar = Not ShowEditToolbar: ReBar1.Bands.Item(1)->Visible = ShowEditToolbar: mnuEditToolbar->Checked = ShowEditToolbar: pfrmMain->RequestAlign
+	Case "Project":                             ShowProjectToolbar = Not ShowProjectToolbar: ReBar1.Bands.Item(2)->Visible = ShowProjectToolbar: mnuProjectToolbar->Checked = ShowProjectToolbar: pfrmMain->RequestAlign
+	Case "Build":                               ShowBuildToolbar = Not ShowBuildToolbar: ReBar1.Bands.Item(3)->Visible = ShowBuildToolbar: mnuBuildToolbar->Checked = ShowBuildToolbar: pfrmMain->RequestAlign
+	Case "Run":                                 ShowRunToolbar = Not ShowRunToolbar: ReBar1.Bands.Item(4)->Visible = ShowRunToolbar: mnuRunToolbar->Checked = ShowRunToolbar: pfrmMain->RequestAlign
+	Case "TBUseDebugger":                       ChangeUseDebugger tbtUseDebugger->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
 	Case "SyntaxCheck":                         If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@SyntaxCheck))

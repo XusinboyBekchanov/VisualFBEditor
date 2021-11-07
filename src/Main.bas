@@ -43,7 +43,7 @@ pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As iniFile iniSettings, iniTheme
-Dim Shared As Toolbar tbStandard, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
+Dim Shared As Toolbar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
 Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
 Dim Shared As ListControl lstLeft
@@ -54,8 +54,8 @@ Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
 Dim Shared As Trackbar trLeft
 Dim Shared As MainMenu mnuMain
-Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
-Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd
+Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
+Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar ReBar1
 #ifndef __USE_GTK__
@@ -383,7 +383,7 @@ Function Compile(Parameter As String = "") As Integer
 	Versioning *MainFile, *FirstLine, Project, ProjectNode
 	Dim FileOut As Integer
 	ThreadsEnter()
-	Dim As Boolean Bit32 = tbStandard.Buttons.Item("B32")->Checked
+	Dim As Boolean Bit32 = tbt32Bit->Checked
 	ThreadsLeave()
 	Dim ExeName As WString Ptr: WLet(ExeName, GetExeFileName(*MainFile, *FirstLine))
 	Dim CurrentCompiler As WString Ptr = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
@@ -467,9 +467,9 @@ Function Compile(Parameter As String = "") As Integer
 	End If
 	WAdd(CompileWith, " " & *FirstLine)
 	If InStr(*CompileWith, " -s ") = 0 Then
-		If CInt(tbStandard.Buttons.Item("Console")->Checked) Then
+		If CInt(tbtConsole->Checked) Then
 			WAdd CompileWith, " -s console"
-		ElseIf CInt(tbStandard.Buttons.Item("GUI")->Checked) Then
+		ElseIf CInt(tbtGUI->Checked) Then
 			WAdd CompileWith, " -s gui"
 		End If
 	End If
@@ -2128,36 +2128,40 @@ End Sub
 
 Sub ChangeUseDebugger(bUseDebugger As Boolean, ChangeObject As Integer = -1)
 	UseDebugger = bUseDebugger
-	If ChangeObject <> 0 Then tbStandard.Buttons.Item("TBUseDebugger")->Checked = bUseDebugger
+	If ChangeObject <> 0 Then tbtUseDebugger->Checked = bUseDebugger
 	If ChangeObject <> 1 AndAlso mnuUseDebugger->Checked <> UseDebugger Then mnuUseDebugger->Checked = bUseDebugger
 End Sub
 
 Sub ChangeFileEncoding(FileEncoding As FileEncodings)
-	miPlainText->Checked = FileEncoding = FileEncodings.PlainText
-	miUtf8->Checked = FileEncoding = FileEncodings.Utf8
-	miUtf16->Checked = FileEncoding = FileEncodings.Utf16
-	miUtf32->Checked = FileEncoding = FileEncodings.Utf32
-	With *stBar.Panels[3]
-		Select Case FileEncoding
-		Case FileEncodings.PlainText: .Caption = "ASCII"
-		Case FileEncodings.Utf8: .Caption = "UTF-8"
-		Case FileEncodings.Utf16: .Caption = "UTF-16"
-		Case FileEncodings.Utf32: .Caption = "UTF-32"
-		End Select
-	End With
+	If miPlainText <> 0 Then miPlainText->Checked = FileEncoding = FileEncodings.PlainText
+	If miUtf8 <> 0 Then miUtf8->Checked = FileEncoding = FileEncodings.Utf8
+	If miUtf16 <> 0 Then miUtf16->Checked = FileEncoding = FileEncodings.Utf16
+	If miUtf32 <> 0 Then miUtf32->Checked = FileEncoding = FileEncodings.Utf32
+	If stBar.Count > 3 Then 
+		With *stBar.Panels[3]
+			Select Case FileEncoding
+			Case FileEncodings.PlainText: .Caption = "ASCII"
+			Case FileEncodings.Utf8: .Caption = "UTF-8"
+			Case FileEncodings.Utf16: .Caption = "UTF-16"
+			Case FileEncodings.Utf32: .Caption = "UTF-32"
+			End Select
+		End With
+	End If
 End Sub
 
 Sub ChangeNewLineType(NewLineType As NewLineTypes)
-	miWindowsCRLF->Checked = NewLineType = NewLineTypes.WindowsCRLF
-	miLinuxLF->Checked = NewLineType = NewLineTypes.LinuxLF
-	miMacOSCR->Checked = NewLineType = NewLineTypes.MacOSCR
-	With *stBar.Panels[4]
-		Select Case NewLineType
-		Case NewLineTypes.WindowsCRLF: .Caption = "CR+LF"
-		Case NewLineTypes.LinuxLF: .Caption = "LF"
-		Case NewLineTypes.MacOSCR: .Caption = "CR"
-		End Select
-	End With
+	If miWindowsCRLF <> 0 Then miWindowsCRLF->Checked = NewLineType = NewLineTypes.WindowsCRLF
+	If miLinuxLF <> 0 Then miLinuxLF->Checked = NewLineType = NewLineTypes.LinuxLF
+	If miMacOSCR <> 0 Then miMacOSCR->Checked = NewLineType = NewLineTypes.MacOSCR
+	If stBar.Count > 4 Then
+		With *stBar.Panels[4]
+			Select Case NewLineType
+			Case NewLineTypes.WindowsCRLF: .Caption = "CR+LF"
+			Case NewLineTypes.LinuxLF: .Caption = "LF"
+			Case NewLineTypes.MacOSCR: .Caption = "CR"
+			End Select
+		End With
+	End If
 End Sub
 
 Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
@@ -3652,7 +3656,7 @@ Sub LoadSettings
 	
 	mnuMain.DisplayIcons = DisplayMenuIcons
 	'mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
-	tbStandard.Visible = ShowMainToolbar
+	ReBar1.Visible = ShowMainToolbar
 	
 	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-exx"))
 	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-exx"))
@@ -3806,6 +3810,66 @@ Sub LoadHotKeys
 	Wend
 	Close #Fn
 End Sub
+
+#ifdef __USE_GTK__
+	Dim Shared progress_bar_timer_id As UInteger
+	Function progress_cb(ByVal user_data As gpointer) As gboolean
+		gtk_progress_bar_pulse(GTK_PROGRESS_BAR(user_data))
+		'?gtk_progress_bar_get_fraction (GTK_PROGRESS_BAR(user_data))
+		If progress_bar_timer_id = 0 Then
+			Return False
+			'Return G_SOURCE_REMOVE
+		Else
+			Return True
+		End If
+	End Function
+#endif
+
+Sub StartProgress
+	prProgress.Visible = True
+	#ifdef __USE_GTK__
+		progress_bar_timer_id = g_timeout_add(100, Cast(GSourceFunc, @progress_cb), prProgress.Handle)
+	#endif
+End Sub
+
+Sub StopProgress
+	#ifdef __USE_GTK__
+		If progress_bar_timer_id <> 0 Then
+			'g_source_remove_ progress_bar_timer_id
+			progress_bar_timer_id = 0
+		End If
+	#endif
+	prProgress.Visible = False
+End Sub
+
+stBar.Align = 4
+stBar.Add ML("Press F1 for get more information")
+stBar.Panels[0]->Width = frmMain.ClientWidth - 560
+stBar.Add "" 'Space(20)
+stBar.Panels[1]->Width = 240
+stBar.Add "" 'Space(20)
+stBar.Panels[2]->Width = 160
+stBar.Add "UTF-8"
+stBar.Panels[3]->Width = 50
+stBar.Add "CR+LF"
+stBar.Panels[4]->Width = 50
+stBar.Add "NUM"
+Var spProgress = stBar.Add("")
+spProgress->Width = 100
+
+prProgress.Visible = False
+prProgress.Marquee = True
+#ifdef __USE_GTK__
+	prProgress.Height = 30
+	gtk_box_pack_end (GTK_BOX (gtk_statusbar_get_message_area (gtk_statusbar(stBar.Handle))), prProgress.Handle, False, True, 10)
+#else
+	prProgress.SetMarquee True, 100
+	prProgress.Top = 3
+	prProgress.Parent = @stBar
+#endif
+
+'stBar.Add ""
+'stBar.Panels[1]->Alignment = 1
 
 Function HK(Key As String, Default As String = "") As String
 	Dim As String HotKey = HotKeys.Get(Key, Default)
@@ -4092,7 +4156,12 @@ Sub CreateMenusAndToolBars
 	miView->Add("-")
 	miView->Add(ML("Image Manager") & HK("ImageManager"), "ImageManager", "ImageManager", @mclick)
 	miView->Add("-")
-	miView->Add(ML("Toolbars") & HK("Toolbars"), "Toolbars", "Toolbars", @mclick, True)
+	Var miToolBars = miView->Add(ML("Toolbars") & HK("Toolbars"), "Toolbars", "Toolbars", @mclick)
+	mnuStandardToolBar = miToolBars->Add(ML("Standard") & HK("Standard"), "", "Standard", @mclick, True)
+	mnuEditToolBar = miToolBars->Add(ML("Edit") & HK("Edit"), "", "Edit", @mclick, True)
+	mnuProjectToolBar = miToolBars->Add(ML("Project") & HK("Project"), "", "Project", @mclick, True)
+	mnuBuildToolBar = miToolBars->Add(ML("Build") & HK("Build"), "", "Build", @mclick, True)
+	mnuRunToolBar = miToolBars->Add(ML("Run") & HK("Run"), "", "Run", @mclick, True)
 	
 	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
 	miProject->Add(ML("Add &Form") & HK("AddForm", "Ctrl+Alt+N"), "Form", "AddForm", @mclick)
@@ -4272,9 +4341,9 @@ Sub CreateMenusAndToolBars
 	tbStandard.ImagesList = @imgList
 	tbStandard.HotImagesList = @imgList
 	tbStandard.DisabledImagesList = @imgListD
-	#ifdef __USE_GTK__
-		tbStandard.Align = 3
-	#endif
+'	#ifdef __USE_GTK__
+'		tbStandard.Align = 3
+'	#endif
 	tbStandard.Flat = True
 	tbStandard.List = True
 	tbStandard.Buttons.Add tbsAutosize, "New",,@mClick, "New", , ML("New") & " (Ctrl+N)", True
@@ -4289,19 +4358,28 @@ Sub CreateMenusAndToolBars
 	tbStandard.Buttons.Add , "Copy",, @mClick, "Copy", , ML("Copy") & " (Ctrl+C)", True
 	tbStandard.Buttons.Add , "Paste", , @mClick, "Paste", , ML("Paste") & " (Ctrl+V)", True
 	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "Find",, @mClick, "Find", , ML("Find") & " (Ctrl+F)", True
-	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "Format",, @mClick, "Format", , ML("Format") & " (Ctrl+Tab)", True
-	tbStandard.Buttons.Add , "Unformat",, @mClick, "Unformat", , ML("Unformat") & " (Shift+Ctrl+Tab)", True
-	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "Comment",, @mClick, "SingleComment", , ML("Single comment") & " (Ctrl+I)", True
-	tbStandard.Buttons.Add , "UnComment",, @mClick, "UnComment", , ML("UnComment") & " (Shift+Ctrl+I)", True
-	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "CompleteWord", , @mClick, "CompleteWord", , ML("Complete Word") & " (Ctrl+Space)", True
-	tbStandard.Buttons.Add , "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & " (Ctrl+J)", True
-	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "SyntaxCheck",, @mClick, "SyntaxCheck", , ML("Syntax Check"), True
-	Var tbButton = tbStandard.Buttons.Add(tbsWholeDropdown, "Try",, @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
+	tbStandard.Buttons.Add , "Find", , @mClick, "Find", , ML("Find") & " (Ctrl+F)", True
+	'tbStandard.Buttons.Add tbsSeparator
+	tbEdit.Name = "Edit"
+	tbEdit.ImagesList = @imgList
+	tbEdit.HotImagesList = @imgList
+	tbEdit.DisabledImagesList = @imgListD
+'	#ifdef __USE_GTK__
+'		tbEdit.Align = 3
+'	#endif
+	tbEdit.Flat = True
+	tbEdit.List = True
+	tbEdit.Buttons.Add , "Format", , @mClick, "Format", , ML("Format") & " (Ctrl+Tab)", True
+	tbEdit.Buttons.Add , "Unformat", , @mClick, "Unformat", , ML("Unformat") & " (Shift+Ctrl+Tab)", True
+	tbEdit.Buttons.Add tbsSeparator
+	tbEdit.Buttons.Add , "Comment", , @mClick, "SingleComment", , ML("Single comment") & " (Ctrl+I)", True
+	tbEdit.Buttons.Add , "UnComment", , @mClick, "UnComment", , ML("UnComment") & " (Shift+Ctrl+I)", True
+	tbEdit.Buttons.Add tbsSeparator
+	tbEdit.Buttons.Add , "CompleteWord", , @mClick, "CompleteWord", , ML("Complete Word") & " (Ctrl+Space)", True
+	tbEdit.Buttons.Add , "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & " (Ctrl+J)", True
+	tbEdit.Buttons.Add tbsSeparator
+	tbEdit.Buttons.Add , "SyntaxCheck", , @mClick, "SyntaxCheck", , ML("Syntax Check"), True
+	Var tbButton = tbEdit.Buttons.Add(tbsWholeDropdown, "Try", , @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
 	'tbButton->DropDownMenu.ImagesList = @imgList
 	tbButton->DropDownMenu.Add ML("Numbering"), "Numbering", "NumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Macro numbering"), "", "MacroNumberOn", @mclick
@@ -4318,133 +4396,90 @@ Sub CreateMenusAndToolBars
 	tbButton->DropDownMenu.Add "On Error Goto ...", "", "OnErrorGoto", @mclick
 	tbButton->DropDownMenu.Add "On Error Goto ... Resume Next", "", "OnErrorGotoResumeNext", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Error Handling"), "", "RemoveErrorHandling", @mclick
-	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add tbsCheck Or tbsAutoSize, "UseDebugger",, @mClick, "TBUseDebugger", , ML("Use Debugger"), True
-	tbStandard.Buttons.Add , "Compile",, @mClick, "Compile", , ML("Compile") & " (Ctrl+F9)", True
-	Var tbMake = tbStandard.Buttons.Add(tbsAutosize Or tbsWholeDropdown, "Make",, @mClick, "Make", , ML("Make"), True)
+	'tbStandard.Buttons.Add tbsSeparator
+	tbBuild.Name = "Build"
+	tbBuild.ImagesList = @imgList
+	tbBuild.HotImagesList = @imgList
+	tbBuild.DisabledImagesList = @imgListD
+'	#ifdef __USE_GTK__
+'		tbBuild.Align = 3
+'	#endif
+	tbBuild.Flat = True
+	tbBuild.List = True
+	tbtUseDebugger = tbBuild.Buttons.Add(tbsCheck Or tbsAutoSize, "UseDebugger", , @mClick, "TBUseDebugger", , ML("Use Debugger"), True)
+	tbBuild.Buttons.Add , "Compile", , @mClick, "Compile", , ML("Compile") & " (Ctrl+F9)", True
+	Var tbMake = tbBuild.Buttons.Add(tbsAutosize Or tbsWholeDropdown, "Make", , @mClick, "Make", , ML("Make"), True)
 	tbMake->DropDownMenu.Add "Make", "", "Make", @mclick
 	tbMake->DropDownMenu.Add "Make clean", "", "MakeClean", @mclick
-	tbStandard.Buttons.Add , "Parameters",, @mClick, "Parameters", , ML("Parameters"), True
-	tbStandard.Buttons.Add tbsSeparator
-	tbtStartWithCompile = tbStandard.Buttons.Add( , "StartWithCompile",, @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True)
-	tbtStart = tbStandard.Buttons.Add( , "Start",, @mClick, "Start", , ML("Start") & " (Ctrl+F5)", True)
-	tbtBreak = tbStandard.Buttons.Add( , "Break",, @mClick, "Break", , ML("Break") & " (Ctrl+Pause)", True, 0)
-	tbtEnd = tbStandard.Buttons.Add( , "End",, @mClick, "End", , ML("End"), True, 0)
-	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "NotSetted", , @mClick, "NotSetted", , ML("Not Setted"), True
-	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Console",, @mClick, "Console", , ML("Console"), True
-	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "Form",, @mClick, "GUI", , ML("GUI"), True
-	tbStandard.Buttons.Add tbsSeparator
+	tbBuild.Buttons.Add , "Parameters", , @mClick, "Parameters", , ML("Parameters"), True
+	'tbStandard.Buttons.Add tbsSeparator
+	tbRun.Name = "Run"
+	tbRun.ImagesList = @imgList
+	tbRun.HotImagesList = @imgList
+	tbRun.DisabledImagesList = @imgListD
+'	#ifdef __USE_GTK__
+'		tbRun.Align = 3
+'	#endif
+	tbRun.Flat = True
+	tbRun.List = True
+	tbtStartWithCompile = tbRun.Buttons.Add( , "StartWithCompile", , @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True)
+	tbtStart = tbRun.Buttons.Add( , "Start", , @mClick, "Start", , ML("Start") & " (Ctrl+F5)", True)
+	tbtBreak = tbRun.Buttons.Add( , "Break", , @mClick, "Break", , ML("Break") & " (Ctrl+Pause)", True, 0)
+	tbtEnd = tbRun.Buttons.Add( , "End", , @mClick, "End", , ML("End"), True, 0)
+	'tbStandard.Buttons.Add tbsSeparator
+	tbProject.Name = "Run"
+	tbProject.ImagesList = @imgList
+	tbProject.HotImagesList = @imgList
+	tbProject.DisabledImagesList = @imgListD
+'	#ifdef __USE_GTK__
+'		tbProject.Align = 3
+'	#endif
+	tbProject.Flat = True
+	tbProject.List = True
+	tbtNotSetted = tbProject.Buttons.Add(tbsAutosize Or tbsCheckGroup, "NotSetted", , @mClick, "NotSetted", , ML("Not Setted"), True)
+	tbtConsole = tbProject.Buttons.Add(tbsAutosize Or tbsCheckGroup, "Console", , @mClick, "Console", , ML("Console"), True)
+	tbtGUI = tbProject.Buttons.Add(tbsAutosize Or tbsCheckGroup, "Form", , @mClick, "GUI", , ML("GUI"), True)
+	tbProject.Buttons.Add tbsSeparator
 	#ifdef __USE_GTK__
-		tbStandard.Buttons.Add tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True
-		tbStandard.Buttons.Add tbsCheckGroup, "B64",, @mClick, "B64", , ML("64-bit"), True
-		#ifdef __FB_64BIT__
-			tbStandard.Buttons.Item("B64")->Checked = True
-		#else
-			tbStandard.Buttons.Item("B32")->Checked = True
-		#endif
+		tbt32Bit = tbProject.Buttons.Add(tbsCheckGroup, "B32", , @mClick, "B32", , ML("32-bit"), True)
+		tbt64Bit = tbProject.Buttons.Add(tbsCheckGroup, "B64", , @mClick, "B64", , ML("64-bit"), True)
 	#else
-		'#IfDef __FB_64bit__
-		tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True
-		'	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B64",, @mClick, "B64", , ML("64-bit"), True, tstEnabled Or tstChecked
-		'#Else
-		'	tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B32",, @mClick, "B32", , ML("32-bit"), True, tstEnabled Or tstChecked
-		tbStandard.Buttons.Add tbsAutosize Or tbsCheckGroup, "B64",, @mClick, "B64", , ML("64-bit"), True
-		'#EndIf
-		#ifdef __FB_64BIT__
-			tbStandard.Buttons.Item("B64")->Checked = True
-		#else
-			tbStandard.Buttons.Item("B32")->Checked = True
-		#endif
+		tbt32Bit = tbProject.Buttons.Add(tbsAutosize Or tbsCheckGroup, "B32", , @mClick, "B32", , ML("32-bit"), True)
+		tbt64Bit = tbProject.Buttons.Add(tbsAutosize Or tbsCheckGroup, "B64", , @mClick, "B64", , ML("64-bit"), True)
 	#endif
-	tbStandard.Buttons.Add tbsSeparator
-	tbButton = tbStandard.Buttons.Add(tbsWholeDropdown Or tbsAutosize, "Apply", , @mClick, "Use", ML("Use"), ML("Use"), True)
-	Var mnuDefault = tbButton->DropDownMenu.Add(ML("Default"), "", "Default:", @mClickUseDefine)
+	#ifdef __FB_64BIT__
+		tbt64Bit->Checked = True
+	#else
+		tbt32Bit->Checked = True
+	#endif
+	tbProject.Buttons.Add tbsSeparator
+	tbButton = tbProject.Buttons.Add(tbsWholeDropdown Or tbsAutosize, "Apply", , @mClick, "Use", ML("Use"), ML("Use"), True)
+	Var mnuDefault = tbButton->DropDownMenu.Add(ML("Default"), "", "Default:", @mClickUseDefine, True)
 	tbButton->DropDownMenu.Add "-"
 	Var mnuWinAPI = tbButton->DropDownMenu.Add("WinAPI", "", "WinAPI", @mClickUseDefine)
-	Var mnuDefaultWinAPI = mnuWinAPI->Add(ML("Default"), "", "DefaultWinAPI:__USE_WINAPI__", @mClickUseDefine)
+	Var mnuDefaultWinAPI = mnuWinAPI->Add(ML("Default"), "", "DefaultWinAPI:__USE_WINAPI__", @mClickUseDefine, True)
 	mnuWinAPI->Add "-"
-	mnuWinAPI->Add "Windows NT 4.0", "", "WindowsNT4:__USE_WINAPI__ -d _WIN32_WINNT=&h0400", @mClickUseDefine
-	mnuWinAPI->Add "Windows 2000", "", "Windows2000:__USE_WINAPI__ -d _WIN32_WINNT=&h0500", @mClickUseDefine
-	mnuWinAPI->Add "Windows XP", "", "WindowsXP:__USE_WINAPI__ -d _WIN32_WINNT=&h0501", @mClickUseDefine
-	mnuWinAPI->Add "Windows Server 2003", "", "WindowsServer2003:__USE_WINAPI__ -d _WIN32_WINNT=&h0502", @mClickUseDefine
-	mnuWinAPI->Add "Windows Vista", "", "WindowsVista:__USE_WINAPI__ -d _WIN32_WINNT=&h0600", @mClickUseDefine
-	mnuWinAPI->Add "Windows Server 2008", "", "WindowsServer2008:__USE_WINAPI__ -d _WIN32_WINNT=&h0600", @mClickUseDefine
-	mnuWinAPI->Add "Windows 7", "", "Windows7:__USE_WINAPI__ -d _WIN32_WINNT=&h0601", @mClickUseDefine
-	mnuWinAPI->Add "Windows 8", "", "Windows8:__USE_WINAPI__ -d _WIN32_WINNT=&h0602", @mClickUseDefine
-	mnuWinAPI->Add "Windows 8.1", "", "Windows8_1:__USE_WINAPI__ -d _WIN32_WINNT=&h0603", @mClickUseDefine
-	mnuWinAPI->Add "Windows 10", "", "Windows10:__USE_WINAPI__ -d _WIN32_WINNT=&h0A00", @mClickUseDefine
+	mnuWinAPI->Add "Windows NT 4.0", "", "WindowsNT4:__USE_WINAPI__ -d _WIN32_WINNT=&h0400", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows 2000", "", "Windows2000:__USE_WINAPI__ -d _WIN32_WINNT=&h0500", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows XP", "", "WindowsXP:__USE_WINAPI__ -d _WIN32_WINNT=&h0501", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows Server 2003", "", "WindowsServer2003:__USE_WINAPI__ -d _WIN32_WINNT=&h0502", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows Vista", "", "WindowsVista:__USE_WINAPI__ -d _WIN32_WINNT=&h0600", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows Server 2008", "", "WindowsServer2008:__USE_WINAPI__ -d _WIN32_WINNT=&h0600", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows 7", "", "Windows7:__USE_WINAPI__ -d _WIN32_WINNT=&h0601", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows 8", "", "Windows8:__USE_WINAPI__ -d _WIN32_WINNT=&h0602", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows 8.1", "", "Windows8_1:__USE_WINAPI__ -d _WIN32_WINNT=&h0603", @mClickUseDefine, True
+	mnuWinAPI->Add "Windows 10", "", "Windows10:__USE_WINAPI__ -d _WIN32_WINNT=&h0A00", @mClickUseDefine, True
 	Var mnuGTK = tbButton->DropDownMenu.Add("GTK", "", "GTK", @mClickUseDefine)
-	mnuGTK->Add ML("Default"), "", "Default:__USE_GTK__", @mClickUseDefine
+	mnuGTK->Add ML("Default"), "", "Default:__USE_GTK__", @mClickUseDefine, True
 	mnuGTK->Add "-"
-	mnuGTK->Add "GTK2", "", "GTK2:__USE_GTK__ -d __USE_GTK2__", @mClickUseDefine
-	mnuGTK->Add "GTK3", "", "GTK3:__USE_GTK__ -d __USE_GTK3__", @mClickUseDefine
+	mnuGTK->Add "GTK2", "", "GTK2:__USE_GTK__ -d __USE_GTK2__", @mClickUseDefine, True
+	mnuGTK->Add "GTK3", "", "GTK3:__USE_GTK__ -d __USE_GTK3__", @mClickUseDefine, True
 	mnuDefault->Checked = True
 	miUseDefine = mnuDefault
 End Sub
 
 CreateMenusAndToolBars
 'tbStandard.AddRange 1, @cboCommands
-
-#ifdef __USE_GTK__
-	Dim Shared progress_bar_timer_id As UInteger
-	Function progress_cb(ByVal user_data As gpointer) As gboolean
-		gtk_progress_bar_pulse(GTK_PROGRESS_BAR(user_data))
-		'?gtk_progress_bar_get_fraction (GTK_PROGRESS_BAR(user_data))
-		If progress_bar_timer_id = 0 Then
-			Return False
-			'Return G_SOURCE_REMOVE
-		Else
-			Return True
-		End If
-	End Function
-#endif
-
-Sub StartProgress
-	prProgress.Visible = True
-	#ifdef __USE_GTK__
-		progress_bar_timer_id = g_timeout_add(100, Cast(GSourceFunc, @progress_cb), prProgress.Handle)
-	#endif
-End Sub
-
-Sub StopProgress
-	#ifdef __USE_GTK__
-		If progress_bar_timer_id <> 0 Then
-			'g_source_remove_ progress_bar_timer_id
-			progress_bar_timer_id = 0
-		End If
-	#endif
-	prProgress.Visible = False
-End Sub
-
-stBar.Align = 4
-stBar.Add ML("Press F1 for get more information")
-stBar.Panels[0]->Width = frmMain.ClientWidth - 560
-stBar.Add "" 'Space(20)
-stBar.Panels[1]->Width = 240
-stBar.Add "" 'Space(20)
-stBar.Panels[2]->Width = 160
-stBar.Add "UTF-8"
-stBar.Panels[3]->Width = 50
-stBar.Add "CR+LF"
-stBar.Panels[4]->Width = 50
-stBar.Add "NUM"
-Var spProgress = stBar.Add("")
-spProgress->Width = 100
-
-prProgress.Visible = False
-prProgress.Marquee = True
-#ifdef __USE_GTK__
-	prProgress.Height = 30
-	gtk_box_pack_end (GTK_BOX (gtk_statusbar_get_message_area (gtk_statusbar(stBar.Handle))), prProgress.Handle, False, True, 10)
-#else
-	prProgress.SetMarquee True, 100
-	prProgress.Top = 3
-	prProgress.Parent = @stBar
-#endif
-
-'stBar.Add ""
-'stBar.Panels[1]->Alignment = 1
 
 tbExplorer.ImagesList = @imgList
 tbExplorer.HotImagesList = @imgList
@@ -5729,7 +5764,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			End If
 			Close #Fn
 			Dim As WString Ptr FbcExe, ExeName
-			If tbStandard.Buttons.Item("B32")->Checked Then
+			If tbt32Bit->Checked Then
 				FbcExe = Compiler32Path
 			Else
 				FbcExe = Compiler32Path
@@ -6256,11 +6291,26 @@ Sub frmMain_Create(ByRef Sender As Control)
 	WLet(RecentProject, iniSettings.ReadString("MainWindow", "RecentProject", ""))
 	WLet(RecentFolder, iniSettings.ReadString("MainWindow", "RecentFolder", ""))
 	WLet(RecentSession, iniSettings.ReadString("MainWindow", "RecentSession", ""))
+	ShowStandardToolbar = iniSettings.ReadBool("MainWindow", "ShowStandardToolBar", True)
+	ShowEditToolbar = iniSettings.ReadBool("MainWindow", "ShowEditToolBar", True)
+	ShowProjectToolbar = iniSettings.ReadBool("MainWindow", "ShowProjectToolbar", True)
+	ShowBuildToolbar = iniSettings.ReadBool("MainWindow", "ShowBuildToolbar", True)
+	ShowRunToolbar = iniSettings.ReadBool("MainWindow", "ShowRunToolbar", True)
+	ReBar1.Bands.Item(0)->Visible = ShowStandardToolbar
+	ReBar1.Bands.Item(1)->Visible = ShowEditToolbar
+	ReBar1.Bands.Item(2)->Visible = ShowProjectToolbar
+	ReBar1.Bands.Item(3)->Visible = ShowBuildToolbar
+	ReBar1.Bands.Item(4)->Visible = ShowRunToolbar
+	mnuStandardToolBar->Checked = ShowStandardToolbar
+	mnuEditToolbar->Checked = ShowEditToolbar
+	mnuProjectToolbar->Checked = ShowProjectToolbar
+	mnuBuildToolbar->Checked = ShowBuildToolbar
+	mnuRunToolbar->Checked = ShowRunToolbar
 	Dim As Integer Subsystem = iniSettings.ReadInteger("MainWindow", "Subsystem", 0)
 	Select Case Subsystem
-	Case 0: tbStandard.Buttons.Item("NotSetted")->Checked = True
-	Case 1: tbStandard.Buttons.Item("Console")->Checked = True
-	Case 2: tbStandard.Buttons.Item("GUI")->Checked = True
+	Case 0: tbtNotSetted->Checked = True
+	Case 1: tbtConsole->Checked = True
+	Case 2: tbtGUI->Checked = True
 	End Select
 	Var file = Command(-1)
 	Var Pos1 = InStr(file, "2>CON")
@@ -6558,9 +6608,15 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteBool("MainWindow", "ProjectFolders", tbExplorer.Buttons.Item(3)->Checked)
 	iniSettings.WriteBool("MainWindow", "ToolLabels", tbForm.Buttons.Item(0)->Checked)
 	iniSettings.WriteBool("MainWindow", "UseDebugger", UseDebugger)
-	iniSettings.WriteInteger("MainWindow", "Subsystem", IIf(tbStandard.Buttons.Item("Console")->Checked, 1, IIf(tbStandard.Buttons.Item("GUI")->Checked, 2, 0)))
+	iniSettings.WriteInteger("MainWindow", "Subsystem", IIf(tbtConsole->Checked, 1, IIf(tbtGUI->Checked, 2, 0)))
+	iniSettings.WriteBool("MainWindow", "ShowMainToolBar", ShowMainToolBar)
+	iniSettings.WriteBool("MainWindow", "ShowStandardToolBar", ShowStandardToolBar)
+	iniSettings.WriteBool("MainWindow", "ShowEditToolBar", ShowEditToolBar)
+	iniSettings.WriteBool("MainWindow", "ShowProjectToolBar", ShowProjectToolBar)
+	iniSettings.WriteBool("MainWindow", "ShowBuildToolBar", ShowBuildToolBar)
+	iniSettings.WriteBool("MainWindow", "ShowRunToolBar", ShowRunToolBar)
 	
-	Dim As Integer MRUFilesCount, kk=-1
+	Dim As Integer MRUFilesCount, kk = -1
 	MRUFilesCount = MRUFiles.Count
 	If MRUFilesCount<1 Then
 		For i As Integer = 0 To miRecentMax
@@ -6647,13 +6703,17 @@ frmMain.OnShow = @frmMain_Show
 frmMain.OnClose = @frmMain_Close
 frmMain.OnDropFile = @frmMain_DropFile
 frmMain.Menu = @mnuMain
-#ifndef __USE_GTK__
+'#ifndef __USE_GTK__
 	ReBar1.Add @tbStandard
+	ReBar1.Add @tbEdit
+	ReBar1.Add @tbProject
+	ReBar1.Add @tbBuild
+	ReBar1.Add @tbRun
 	frmMain.Add @ReBar1
-#else
-	tbStandard.Align = DockStyle.alTop
-	frmMain.Add @tbStandard
-#endif
+'#else
+'	tbStandard.Align = DockStyle.alTop
+'	frmMain.Add @tbStandard
+'#endif
 frmMain.Add @stBar
 frmMain.Add @pnlLeft
 frmMain.Add @splLeft
