@@ -2903,7 +2903,7 @@ Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boo
 			tb->txtCode.lvIntellisense.Sort = ssSortAscending
 		#else
 			tb->txtCode.cboIntellisense.Items.Clear
-			tb->txtCode.cboIntellisense.Sort = True
+			'tb->txtCode.cboIntellisense.Sort = True
 		#endif
 	End If
 	Dim As TypeElement Ptr te, te1
