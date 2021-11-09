@@ -1547,6 +1547,7 @@ Namespace My.Sys.Forms
 							End If
 							WritePropertyFunc(Cpnt, "Handle", @FSelControl)
 							SetWindowLongPtr(FSelControl, GWLP_USERDATA, CInt(Cpnt))
+							SetProp(FSelControl, "MFFControl", Cpnt)
 							SendMessage(FSelControl, BM_SETIMAGE, 0, Cast(LPARAM, pBitmap.Handle))
 							ShowWindow(FSelControl, SW_SHOWNORMAL)
 						#endif
