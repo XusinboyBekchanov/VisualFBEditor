@@ -2537,7 +2537,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				End If
 			ElseIf LoadParameter <> LoadParam.OnlyIncludeFiles Then
 				Pos3 = InStr(bTrimLCase, " as ")
-				If CInt(StartsWith(bTrimLCase, "type ")) AndAlso CInt(IIf(InType, Pos3 = 0, True)) Then
+				If CInt(StartsWith(bTrimLCase, "type ") OrElse StartsWith(bTrimLCase, "private type ") OrElse StartsWith(bTrimLCase, "public type ")) AndAlso CInt(IIf(InType, Pos3 = 0, True)) Then
 					Pos1 = InStr(" " & bTrimLCase, " type ")
 					If Pos1 > 0 Then
 						Pos2 = InStr(bTrimLCase, " extends ")
