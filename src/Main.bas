@@ -54,7 +54,7 @@ Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
 Dim Shared As Trackbar trLeft
 Dim Shared As MainMenu mnuMain
-Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles
+Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles, miToolBars
 Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar ReBar1
@@ -4156,7 +4156,7 @@ Sub CreateMenusAndToolBars
 	miView->Add("-")
 	miView->Add(ML("Image Manager") & HK("ImageManager"), "ImageManager", "ImageManager", @mclick)
 	miView->Add("-")
-	Var miToolBars = miView->Add(ML("Toolbars") & HK("Toolbars"), "Toolbars", "Toolbars", @mclick)
+	miToolBars = miView->Add(ML("Toolbars") & HK("Toolbars"), "Toolbars", "Toolbars", @mclick)
 	mnuStandardToolBar = miToolBars->Add(ML("Standard") & HK("Standard"), "", "Standard", @mclick, True)
 	mnuEditToolBar = miToolBars->Add(ML("Edit") & HK("Edit"), "", "Edit", @mclick, True)
 	mnuProjectToolBar = miToolBars->Add(ML("Project") & HK("Project"), "", "Project", @mclick, True)
@@ -6680,6 +6680,17 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Sub
+
+Sub ToolBar_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 1 Then Exit Sub
+	Sender.ContextMenu = miToolBars->SubMenu
+End Sub
+
+tbStandard.OnMouseUp = @ToolBar_MouseUp
+tbEdit.OnMouseUp = @ToolBar_MouseUp
+tbProject.OnMouseUp = @ToolBar_MouseUp
+tbBuild.OnMouseUp = @ToolBar_MouseUp
+tbRun.OnMouseUp = @ToolBar_MouseUp
 
 Rebar1.Align = DockStyle.alTop
 
