@@ -239,7 +239,7 @@ Dim Shared exedate As Double 'serial date
 			Fcurlig = -1
 			CurEC->CurExecutedLine = -1
 			CurEC = 0
-			curEC2->PaintControl
+			curEC2->Repaint
 		End If
 	End Sub
 	
