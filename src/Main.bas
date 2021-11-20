@@ -358,7 +358,12 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	If Pos1 = 0 Then Pos1 = Len(pFileName) + 1
 	If Pos1 > 0 Then
 		#ifdef __USE_GTK__
-			Return Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", "")
+			Pos2 = InStrRev(pFileName, "/")
+			If Pos2 > 0 AndAlso InStr(CompileWith, "-dll") > 0 Then
+				Return Left(pFileName, Pos2) & "lib" & Mid(pFileName, Pos2 + 1, Pos1 - Pos2 - 1) & ".so"
+			Else
+				Return IIf(InStr(CompileWith, "-dll"), "lib", "") & Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", "")
+			End If
 		#else
 			Return Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".dll", ".exe")
 		#endif
@@ -664,30 +669,31 @@ Function Compile(Parameter As String = "") As Integer
 	#else
 		Yaratilmadi = Dir(*ExeName) = ""
 	#endif
-	
-	Fn =FreeFile
-	Result=-1
-	Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(*LogFileName2 For Input As #Fn)
-	If Result = 0 Then
-		While Not EOF(Fn)
-			Line Input #Fn, Buff
-			'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
-			SplitError(Buff, ErrFileName, ErrTitle, iLine)
-			ThreadsEnter()
-			If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-			lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
-			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-			lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-			ShowMessages(Buff, False)
-			ThreadsLeave()
-			'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
-			Log2_ = True
-		Wend
-		Close #Fn
-	End If
+	#ifdef __USE_GTK__
+		Fn = FreeFile
+		Result = -1
+		Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(*LogFileName2 For Input As #Fn)
+		If Result = 0 Then
+			While Not EOF(Fn)
+				Line Input #Fn, Buff
+				'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
+				SplitError(Buff, ErrFileName, ErrTitle, iLine)
+				ThreadsEnter()
+				If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+				lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
+				lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+				lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+				ShowMessages(Buff, False)
+				ThreadsLeave()
+				'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
+				Log2_ = True
+			Wend
+			Close #Fn
+		End If
+	#endif
 	ThreadsEnter()
 	If lvErrors.ListItems.Count <> 0 Then
 		ptabBottom->Tabs[1]->Caption = ML("Errors") & " (" & lvErrors.ListItems.Count & " " & ML("Pos") & ")"
