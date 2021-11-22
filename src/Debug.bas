@@ -1882,7 +1882,7 @@ Dim Shared exedate As Double 'serial date
 	
 	Dim Shared frm As Form, txt As TextBox
 	frm.SetBounds 2,2,400,260
-	txt.Align = 5
+	txt.Align = DockStyle.alClient
 	frm.Add @txt
 	
 	Sub string_sh(tv As HWND)

@@ -365,7 +365,16 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 				Return IIf(InStr(CompileWith, "-dll"), "lib", "") & Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", "")
 			End If
 		#else
-			Return Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".dll", ".exe")
+			If InStr(CompileWith, "-target ") Then
+				Pos2 = InStrRev(pFileName, "\")
+				If Pos2 > 0 AndAlso InStr(CompileWith, "-dll") > 0 Then
+					Return Left(pFileName, Pos2) & "lib" & Mid(pFileName, Pos2 + 1, Pos1 - Pos2 - 1) & ".so"
+				Else
+					Return IIf(InStr(CompileWith, "-dll"), "lib", "") & Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", "")
+				End If
+			Else
+				Return Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".dll", ".exe")
+			End If
 		#endif
 	End If
 End Function
@@ -3456,7 +3465,7 @@ Sub LoadToolBox
 	Dim cl As Integer = clSilver
 	#ifdef __USE_GTK__
 		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(GetFullPath(*MFFPath) & "/resources"))
-		tbToolBox.Align = 5
+		tbToolBox.Align = DockStyle.alClient
 	#else
 		imgListTools.Add "DropDown", "DropDown"
 		imgListTools.Add "DropRight", "DropRight"
@@ -3848,7 +3857,7 @@ Sub StopProgress
 	prProgress.Visible = False
 End Sub
 
-stBar.Align = 4
+stBar.Align = DockStyle.alBottom
 stBar.Add ML("Press F1 for get more information")
 stBar.Panels[0]->Width = frmMain.ClientWidth - 560
 stBar.Add "" 'Space(20)
@@ -4491,7 +4500,7 @@ tbExplorer.ImagesList = @imgList
 tbExplorer.HotImagesList = @imgList
 tbExplorer.DisabledImagesList = @imgList
 tbExplorer.Flat = True
-tbExplorer.Align = 3
+tbExplorer.Align = DockStyle.alTop
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
 tbExplorer.Buttons.Add , "Remove",, @mClick, "RemoveFileFromProject", , ML("Remove"), True
 tbExplorer.Buttons.Add tbsSeparator
@@ -4514,7 +4523,7 @@ End Sub
 tbForm.ImagesList = @imgList
 tbForm.HotImagesList = @imgList
 tbForm.DisabledImagesList = @imgListD
-tbForm.Align = 3
+tbForm.Align = DockStyle.alTop
 tbForm.Flat = True
 tbForm.Buttons.Add tbsCheck, "Label", , @tbFormClick, "Text", "", ML("Text"), , tstChecked Or tstEnabled
 tbForm.Buttons.Add tbsSeparator
@@ -4636,7 +4645,7 @@ End Sub
 	End Sub
 	
 	scrTool.Style = sbVertical
-	scrTool.Align = 2
+	scrTool.Align = DockStyle.alRight
 	scrTool.ArrowChangeSize = tbToolBox.ButtonHeight
 	scrTool.PageSize = 3 * scrTool.ArrowChangeSize
 	scrTool.OnScroll = @scrTool_Scroll
@@ -4859,7 +4868,7 @@ End Sub
 
 tvExplorer.Images = @imgList
 tvExplorer.SelectedImages = @imgList
-tvExplorer.Align = 5
+tvExplorer.Align = DockStyle.alClient
 tvExplorer.HideSelection = False
 'tvExplorer.Sorted = True
 'tvExplorer.OnDblClick = @tvExplorer_DblClick
@@ -4909,13 +4918,13 @@ Sub pnlLeft_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight 
 End Sub
 
 pnlLeft.Name = "pnlLeft"
-pnlLeft.Align = 1
+pnlLeft.Align = DockStyle.alLeft
 pnlLeft.Width = tabLeftWidth
 pnlLeft.OnReSize = @pnlLeft_Resize
 
 tabLeft.Name = "tabLeft"
 tabLeft.Width = tabLeftWidth
-tabLeft.Align = 5
+tabLeft.Align = DockStyle.alClient
 tabLeft.OnClick = @tabLeft_Click
 tabLeft.OnDblClick = @tabLeft_DblClick
 tabLeft.OnSelChange = @tabLeft_SelChange
@@ -4968,7 +4977,7 @@ pnlLeftPin.Parent = @pnlLeft
 #endif
 
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
-lblLeft.Align = 4
+lblLeft.Align = DockStyle.alBottom
 
 tpLoyiha->Add @tbExplorer
 tpLoyiha->Add @lblLeft
@@ -4999,14 +5008,14 @@ Sub tbProperties_ButtonClick(Sender As My.Sys.Object)
 End Sub
 
 tbProperties.ImagesList = @imgList
-tbProperties.Align = 3
+tbProperties.Align = DockStyle.alTop
 tbProperties.Buttons.Add tbsCheck, "Categorized", , @tbProperties_ButtonClick, "PropertyCategory", "", ML("Categorized"), , tstEnabled Or tstChecked
 tbProperties.Buttons.Add tbsSeparator
 tbProperties.Buttons.Add , "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
 tbProperties.Flat = True
 
 tbEvents.ImagesList = @imgList
-tbEvents.Align = 3
+tbEvents.Align = DockStyle.alTop
 tbEvents.Buttons.Add tbsCheck, "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
 tbEvents.Buttons.Add tbsSeparator
 tbEvents.Flat = True
@@ -5444,7 +5453,7 @@ imgListStates.Add "Expanded", "Expanded"
 imgListStates.Add "Property", "Property"
 imgListStates.Add "Event", "Event"
 
-lvProperties.Align = 5
+lvProperties.Align = DockStyle.alClient
 'lvProperties.Sort = ssSortAscending
 lvProperties.StateImages = @imgListStates
 lvProperties.Images = @imgListStates
@@ -5471,7 +5480,7 @@ lvProperties.OnKeyUp = @lvProperties_KeyUp
 lvProperties.OnCellEditing = @lvProperties_CellEditing
 lvProperties.OnCellEdited = @lvProperties_CellEdited
 lvProperties.OnItemExpanding = @lvProperties_ItemExpanding
-lvEvents.Align = 5
+lvEvents.Align = DockStyle.alClient
 lvEvents.Sort = ssSortAscending
 lvEvents.Columns.Add ML("Event"), , 70
 lvEvents.Columns.Add ML("Value"), , -2
@@ -5490,7 +5499,7 @@ splProperties.Align = SplitterAlignmentConstants.alBottom
 splEvents.Align = SplitterAlignmentConstants.alBottom
 
 txtLabelProperty.Height = 50
-txtLabelProperty.Align = 4
+txtLabelProperty.Align = DockStyle.alBottom
 txtLabelProperty.Multiline = True
 txtLabelProperty.ReadOnly = True
 #ifndef __USE_GTK__
@@ -5499,7 +5508,7 @@ txtLabelProperty.ReadOnly = True
 txtLabelProperty.WordWraps = True
 
 txtLabelEvent.Height = 50
-txtLabelEvent.Align = 4
+txtLabelEvent.Align = DockStyle.alBottom
 txtLabelEvent.Multiline = True
 txtLabelEvent.ReadOnly = True
 #ifndef __USE_GTK__
@@ -5558,10 +5567,10 @@ Sub tabRight_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	End If
 End Sub
 
-tvVar.Align = 5
-tvPrc.Align = 5
-tvThd.Align = 5
-tvWch.Align = 5
+tvVar.Align = DockStyle.alClient
+tvPrc.Align = DockStyle.alClient
+tvThd.Align = DockStyle.alClient
+tvWch.Align = DockStyle.alClient
 
 Sub tvVar_Message(ByRef Sender As Control, ByRef message As Message)
 	#ifndef __USE_GTK__
@@ -5599,15 +5608,15 @@ Sub pnlRight_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight
 	#endif
 End Sub
 
-pnlRight.Align = 2
+pnlRight.Align = DockStyle.alRight
 pnlRight.Width = tabRightWidth
 pnlRight.OnResize = @pnlRight_Resize
 
 tabRight.Width = tabRightWidth
 #ifdef __USE_GTK__
-	tabRight.Align = 2
+	tabRight.Align = DockStyle.alRight
 #else
-	tabRight.Align = 5
+	tabRight.Align = DockStyle.alClient
 #endif
 tabRight.OnClick = @tabRight_Click
 tabRight.OnDblClick = @tabRight_DblClick
@@ -5727,7 +5736,7 @@ Sub tabCode_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Intege
 End Sub
 
 ptabCode->Images = @imgList
-ptabCode->Align = 5
+ptabCode->Align = DockStyle.alClient
 ptabCode->Reorderable = True
 ptabCode->OnPaint = @tabCode_Paint
 ptabCode->OnSelChange = @tabCode_SelChange
@@ -5735,7 +5744,7 @@ ptabCode->OnMouseUp = @tabCode_MouseUp
 ptabCode->ContextMenu = @mnuTabs
 
 txtOutput.Name = "txtOutput"
-txtOutput.Align = 5
+txtOutput.Align = DockStyle.alClient
 txtOutput.Multiline = True
 txtOutput.ScrollBars = ScrollBarsType.Both
 txtOutput.OnDblClick = @txtOutput_DblClick
@@ -5844,7 +5853,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 	If Not EndsWith(txtImmediate.Text, !"\r") Then txtImmediate.Text &= !"\r"
 End Sub
 
-txtImmediate.Align = 5
+txtImmediate.Align = DockStyle.alClient
 txtImmediate.Multiline = True
 txtImmediate.ScrollBars = ScrollBarsType.Both
 txtImmediate.OnKeyDown = @txtImmediate_KeyDown
@@ -5875,7 +5884,7 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 	End If
 End Sub
 'mChangeLogEdited
-txtChangeLog.Align = 5
+txtChangeLog.Align = DockStyle.alClient
 txtChangeLog.Multiline = True
 txtChangeLog.ScrollBars = ScrollBarsType.Both
 txtChangeLog.OnKeyDown = @txtChangeLog_KeyDown
@@ -5888,7 +5897,7 @@ End Sub
 lvToDo.Images = @imgList
 lvToDo.StateImages = @imgList
 lvToDo.SmallImages = @imgList
-lvToDo.Align = 5
+lvToDo.Align = DockStyle.alClient
 lvToDo.Columns.Add ML("Content"), , 500, cfLeft
 lvToDo.Columns.Add ML("Line"), , 50, cfRight
 lvToDo.Columns.Add ML("Column"), , 50, cfRight
@@ -5912,7 +5921,7 @@ End Sub
 lvErrors.Images = @imgList
 lvErrors.StateImages = @imgList
 lvErrors.SmallImages = @imgList
-lvErrors.Align = 5
+lvErrors.Align = DockStyle.alClient
 lvErrors.Columns.Add ML("Content"), , 500, cfLeft
 lvErrors.Columns.Add ML("Line"), , 50, cfRight
 lvErrors.Columns.Add ML("File"), , 300, cfLeft
@@ -5933,7 +5942,7 @@ End Sub
 '	#EndIf
 'End Sub
 
-lvSearch.Align = 5
+lvSearch.Align = DockStyle.alClient
 lvSearch.Columns.Add ML("Line Text"), , 500, cfLeft
 lvSearch.Columns.Add ML("Line"), , 50, cfRight
 lvSearch.Columns.Add ML("Column"), , 50, cfRight
@@ -6071,7 +6080,7 @@ Sub pnlBottom_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeigh
 End Sub
 
 pnlBottom.Name = "pnlBottom"
-pnlBottom.Align = 4
+pnlBottom.Align = DockStyle.alBottom
 pnlBottom.Height = tabBottomHeight
 pnlBottom.OnResize = @pnlBottom_Resize
 
@@ -6093,9 +6102,9 @@ tbBottom.Parent = @pnlBottomPin
 ptabBottom->Name = "tabBottom"
 ptabBottom->Height = tabBottomHeight
 #ifdef __USE_GTK__
-	ptabBottom->Align = 4
+	ptabBottom->Align = DockStyle.alBottom
 #else
-	ptabBottom->Align = 5
+	ptabBottom->Align = DockStyle.alClient
 #endif
 'ptabBottom->TabPosition = tpBottom
 ptabBottom->AddTab(ML("Output"))
@@ -6123,7 +6132,7 @@ ptabBottom->OnDblClick = @tabBottom_DblClick
 ptabBottom->OnSelChange = @tabBottom_SelChange
 ptabBottom->Parent = @pnlBottomTab
 
-pnlBottomTab.Align = 5
+pnlBottomTab.Align = DockStyle.alClient
 pnlBottomTab.Parent = @pnlBottom
 
 'pnlBottom.Height = 153

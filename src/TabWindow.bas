@@ -4748,13 +4748,13 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			ptabLeft->SelectedTabIndex = 0
 		Case "Form"
 			.pnlCode.Visible = False
-			.pnlForm.Align = 5
+			.pnlForm.Align = DockStyle.alClient
 			.pnlForm.Visible = True
 			.splForm.Visible = False
 			If .bNotDesign = False Then .FormDesign
 			ptabLeft->SelectedTabIndex = 1
 		Case "CodeAndForm"
-			.pnlForm.Align = 2
+			.pnlForm.Align = DockStyle.alRight
 			.pnlForm.Width = 350
 			.pnlForm.Visible = True
 			.splForm.Visible = True
@@ -4932,7 +4932,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	WLet(FFileName, "")
 	txtCode.Font.Name = *EditorFontName
 	txtCode.Font.Size = EditorFontSize
-	txtCode.Align = 5
+	txtCode.Align = DockStyle.alClient
 	txtCode.OnChange = @OnChangeEdit
 	txtCode.OnLineChange = @OnLineChangeEdit
 	txtCode.OnSelChange = @OnSelChangeEdit
@@ -4956,20 +4956,20 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#else
 		pnlTop.Height = 25
 	#endif
-	pnlTop.Align = 3
+	pnlTop.Align = DockStyle.alTop
 	#ifdef __USE_GTK__
 		pnlTopCombo.Height = 33
 	#else
 		pnlTopCombo.Height = 25
 	#endif
 	txtCode.ContextMenu = @mnuCode
-	pnlTopCombo.Align = 5
+	pnlTopCombo.Align = DockStyle.alClient
 	pnlTopCombo.Width = 101
 	pnlForm.Name = "Designer"
 	pnlForm.Width = 360
-	pnlForm.Align = 2
-	pnlCode.Align = 5
-	pnlEdit.Align = 5
+	pnlForm.Align = DockStyle.alRight
+	pnlCode.Align = DockStyle.alClient
+	pnlEdit.Align = DockStyle.alClient
 	pnlTopMenu.Parent = @pnlForm
 	#ifndef __USE_GTK__
 		pnlTopMenu.Font.Name = "Tahoma"
@@ -4992,7 +4992,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#else
 		tbrTop.Width = 75
 	#endif
-	tbrTop.Align = 2
+	tbrTop.Align = DockStyle.alRight
 	tbrTop.Buttons.Add tbsSeparator
 	tbrTop.Buttons.Add tbsCheckGroup, "Code", , , "Code", , ML("Show Code"), True ' Show the toollips
 	tbrTop.Buttons.Add tbsCheckGroup, "Form", , , "Form", , ML("Show Form"), True ' Show the toollips
