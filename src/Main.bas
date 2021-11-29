@@ -564,7 +564,24 @@ Function Compile(Parameter As String = "") As Integer
 	'Print #FileOut, *fbcCommand  + " > """ + *LogFileName + """" + " 2>""" + *LogFileName2 + """"
 	'Close #FileOut
 	'Shell("""" + BatFileName + """")
-	ChDir(GetFolderName(*MainFile))
+	If Project <> 0 AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
+		Dim As String gradlewCommand
+		If Parameter = "Bundle" Then
+			gradlewCommand = "bundleRelease"
+		ElseIf Parameter = "APK" Then
+			gradlewCommand = "assembleRelease"
+		Else
+			gradlewCommand = "assembleDebug"
+		End If
+		#ifdef __FB_WIN32__
+			WLet(PipeCommand, "gradlew.bat " & gradlewCommand)
+		#else
+			WLet(PipeCommand, "./gradlew " & gradlewCommand)
+		#endif
+		ChDir(*Project->FileName)
+	Else
+		ChDir(GetFolderName(*MainFile))
+	End If
 	'Shell(*fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """")
 	'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #Fn
 	'Close #Fn
@@ -769,6 +786,208 @@ Function Compile(Parameter As String = "") As Integer
 	ThreadsLeave()
 End Function
 
+Sub CreateKeyStore
+	#ifndef __USE_GTK__
+		Dim As WString Ptr Workdir, CmdL
+		Dim As UString JavaHome
+		#define BufferSize 2048
+		WLet CmdL, "where java"
+		Dim si As STARTUPINFO
+		Dim pi As PROCESS_INFORMATION
+		Dim sa As SECURITY_ATTRIBUTES
+		Dim hReadPipe As HANDLE
+		Dim hWritePipe As HANDLE
+		Dim sBuffer As ZString * BufferSize
+		Dim sOutput As UString
+		Dim bytesRead As DWORD
+		Dim result_ As Integer
+		Dim Buff As WString * 2048
+		
+		sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+		sa.lpSecurityDescriptor = Null
+		sa.bInheritHandle = True
+		
+		If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+			ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+			Exit Sub
+		End If
+		
+		si.cb = Len(STARTUPINFO)
+		si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+		si.hStdOutput = hWritePipe
+		si.hStdError = hWritePipe
+		si.wShowWindow = 0
+		
+		If CreateProcess(0, CmdL, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+			ShowMessages(ML("Error: Couldn't Create Process"), False)
+			Exit Sub
+		End If
+		
+		CloseHandle hWritePipe
+		
+		Dim As Integer Pos1
+		Do
+			result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+			sBuffer = Left(sBuffer, bytesRead)
+			Pos1 = InStrRev(sBuffer, Chr(10))
+			If Pos1 > 0 Then
+				Dim res() As UString
+				sOutput += Left(sBuffer, Pos1 - 1)
+				Split sOutput, Chr(10), res()
+				For i As Integer = 0 To UBound(res)
+					Buff = res(i)
+					JavaHome = Buff
+					Exit Do
+				Next i
+				sOutput = Mid(sBuffer, Pos1 + 1)
+			Else
+				sOutput += sBuffer
+			End If
+		Loop While result_
+		
+		CloseHandle pi.hProcess
+		CloseHandle pi.hThread
+		CloseHandle hReadPipe
+		If JavaHome = "" Then
+			ShowMessages(ML("Install java!"), False)
+			WDeallocate(CmdL)
+			Exit Sub
+		End If
+		Dim As Integer pClass, Result
+		Dim As Unsigned Long ExitCode
+		Dim As SaveFileDialog SaveD
+		SaveD.InitialDir = GetFullPath(*ProjectsPath)
+		SaveD.Caption = "Save key"
+		SaveD.Filter = ML("Key files") & " (*.jks)|*.jks|" & ML("All Files") & "|*.*|"
+		If Not SaveD.Execute Then Exit Sub
+		WLet CmdL, Environ("COMSPEC") & " /K cd /D """ & GetFolderName(SaveD.FileName) & """ & """ & GetFolderName(JavaHome) & "/keytool"" -genkey -v -keystore " & SaveD.FileName & " -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias"
+		Dim SInfo As STARTUPINFO
+		Dim PInfo As PROCESS_INFORMATION
+		SInfo.cb = Len(SInfo)
+		SInfo.dwFlags = STARTF_USESHOWWINDOW
+		SInfo.wShowWindow = SW_NORMAL
+		pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+		If CreateProcessW(Null, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+			WaitForSingleObject pinfo.hProcess, INFINITE
+			GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+			CloseHandle(pinfo.hProcess)
+			CloseHandle(pinfo.hThread)
+			Result = ExitCode
+			ShowMessages(ML("Key store created!"))
+			'Result = Shell(Debugger & """" & *ExeFileName + """")
+		Else
+			Result = GetLastError()
+			ShowMessages(ML("keytool do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+			Exit Sub
+		End If
+		WDeallocate(CmdL)
+	#endif
+End Sub
+
+Sub GenerateSignedBundleAPK(Parameter As String)
+	#ifndef __USE_GTK__
+		Dim Result As Integer
+		Dim As ProjectElement Ptr Project
+		Dim As TreeNode Ptr ProjectNode
+		Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
+		If Project <> 0 AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
+		Else
+			ShowMessages ML(ML("File ") & "local.properties" & ML(" not found!"))
+			Exit Sub
+		End If
+		Dim As Integer Fn = FreeFile
+		Open *Project->FileName & "/local.properties" For Input As #Fn
+		Dim SDKDir As UString
+		Dim pBuff As WString Ptr
+		Dim As Integer FileSize
+		FileSize = LOF(Fn)
+		WReallocate(pBuff, FileSize)
+		Do Until EOF(Fn)
+			LineInputWstr Fn, pBuff, FileSize
+			If StartsWith(*pBuff, "sdk.dir=") Then
+				SDKDir = Replace(Replace(Mid(*pBuff, 9), "\\", "\"), "\:", ":")
+				Exit Do
+			End If
+		Loop
+		Close #Fn
+		If SDKDir = "" Then
+			ShowMessages ML("Sdk.dir not specified in file local.properties!")
+			Exit Sub
+		End If
+		If Not FileExists(*Project->FileName & "/app/build.gradle") Then
+			ShowMessages ML(ML("File ") & *Project->FileName & "/app/build.gradle" & ML(" not found!"))
+			Exit Sub
+		End If
+		Fn = FreeFile
+		Open *Project->FileName & "/app/build.gradle" For Input As #Fn
+		Dim buildToolsVersion As String
+		FileSize = LOF(Fn)
+		WReallocate(pBuff, FileSize)
+		Do Until EOF(Fn)
+			LineInputWstr Fn, pBuff, FileSize
+			If StartsWith(Trim(*pBuff), "buildToolsVersion ") Then
+				buildToolsVersion = Left(Mid(Trim(*pBuff), 20), Len(Mid(Trim(*pBuff), 20)) - 1)
+				Exit Do
+			End If
+		Loop
+		Close #Fn
+		If buildToolsVersion = "" Then
+			ShowMessages ML("buildToolsVersion not found in file app/build.gradle!")
+			Exit Sub
+		End If
+		If Parameter = "apk" Then
+			If Not FileExists(*Project->FileName & "/app/build/outputs/apk/release/app-release-unsigned.apk") Then
+				ShowMessages ML(ML("File ") & *Project->FileName & "/app/build/outputs/apk/release/app-release-unsigned.apk" & ML(" not found! You need to compile without debug."))
+				Exit Sub
+			End If
+			ChDir(*Project->FileName & "/app/build/outputs/apk/release")
+			Dim As WString Ptr Workdir, CmdL
+			Dim As Integer pClass
+			Dim As Unsigned Long ExitCode
+			WLet CmdL, SDKDir & "/build-tools/" & buildToolsVersion & "/zipalign -v -p 4 app-release-unsigned.apk app-release-unsigned-aligned.apk"
+			Dim SInfo As STARTUPINFO
+			Dim PInfo As PROCESS_INFORMATION
+			SInfo.cb = Len(SInfo)
+			SInfo.dwFlags = STARTF_USESHOWWINDOW
+			SInfo.wShowWindow = SW_NORMAL
+			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+			If CreateProcessW(Null, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject pinfo.hProcess, INFINITE
+				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+				CloseHandle(pinfo.hProcess)
+				CloseHandle(pinfo.hThread)
+				Result = ExitCode
+				'Result = Shell(Debugger & """" & *ExeFileName + """")
+			Else
+				Result = GetLastError()
+				ShowMessages(ML("zipalign do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+				Exit Sub
+			End If
+			Dim As OpenFileDialog OpenD
+			OpenD.InitialDir = GetFullPath(*ProjectsPath)
+			OpenD.Caption = "Select key"
+			OpenD.Filter = ML("Key files") & " (*.jks)|*.jks|" & ML("All Files") & "|*.*|"
+			If Not OpenD.Execute Then Exit Sub
+			WLet CmdL, Environ("COMSPEC") & " /K cd /D """ & *Project->FileName & "/app/build/outputs/apk/release"" & " & SDKDir & "/build-tools/" & buildToolsVersion & "/apksigner sign --ks " & OpenD.FileName & " --out ../../../../release/app-release.apk app-release-unsigned-aligned.apk"
+			If CreateProcessW(Null, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject pinfo.hProcess, INFINITE
+				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+				CloseHandle(pinfo.hProcess)
+				CloseHandle(pinfo.hThread)
+				Result = ExitCode
+				'Result = Shell(Debugger & """" & *ExeFileName + """")
+				ShowMessages(Time & ": " & ML("Signed APK file generated") & "!")
+			Else
+				Result = GetLastError()
+				ShowMessages(Time & ": " & ML("apksigner do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+			End If
+			WDeallocate CmdL
+		Else
+			
+		End If
+	#endif
+End Sub
+
 Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, ByVal iSelStart As Integer =-1, ByVal iSelLength As Integer =-1, tabw As TabWindow Ptr = 0, ByRef SearchText As WString = "")
 	Dim tb As TabWindow Ptr
 	If tabw <> 0 AndAlso ptabCode->IndexOfTab(tabw) <> -1 Then
@@ -847,7 +1066,7 @@ Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) A
 		Return sMain & "Form"
 	ElseIf EndsWith(LCase(FileName), ".bas") Then
 		Return sMain & "Module"
-	ElseIf InStr(FileName, ".") = 0 AndAlso FileName <> "" Then
+	ElseIf CBool(InStr(FileName, ".") = 0) AndAlso CBool(FileName <> "") AndAlso FolderExists(FileName) Then
 		Return sMain & "Folder"
 	Else
 		Return sMain & "File"
@@ -859,7 +1078,7 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 	Dim As ExplorerElement Ptr ee = tn->Tag, ee1
 	If ee = 0 OrElse ee->FileName = 0 Then Exit Sub
 	ClearTreeNode tn
-	Dim As TreeNode Ptr tn1
+	Dim As TreeNode Ptr tn1, tnP = GetParentNode(tn)
 	Dim As String f, IconName
 	Dim As UInteger Attr
 	Dim As WStringList Files
@@ -871,24 +1090,24 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 					IconName = "Project"
 					tn1 = tn->Nodes.Add(GetFileName(f), , f, IconName, IconName)
 					AddProject f & Slash & f & ".vfp", , tn1
-					WLet(Cast(ExplorerElement Ptr, tn1->Tag)->FileName, *ee->FileName & "/" & f)
+					WLet(Cast(ExplorerElement Ptr, tn1->Tag)->FileName, *ee->FileName & Slash & f)
 				Else
 					IconName = "Opened"
 					tn1 = tn->Nodes.Add(GetFileName(f), , f, IconName, IconName)
 					ee1 = New_( ExplorerElement)
-					WLet(ee1->FileName, *ee->FileName & "/" & f)
+					WLet(ee1->FileName, *ee->FileName & Slash & f)
 					tn1->Tag = ee1
 				End If
 				tn1->Nodes.Add ""
 			End If
 		Else
-			Files.Add *ee->FileName & "/" & f
+			Files.Add *ee->FileName & Slash & f
 		End If
 		f = Dir(Attr)
 	Wend
 	For i As Integer = 0 To Files.Count - 1
-		If tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
-			IconName = GetIconName(Files.Item(i), tn->Tag)
+		If tnP->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tnP->Tag) Is ProjectElement Then
+			IconName = GetIconName(Files.Item(i), tnP->Tag)
 		Else
 			IconName = GetIconName(Files.Item(i))
 		End If
@@ -961,7 +1180,9 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 	Dim As ExplorerElement Ptr ee
 	Dim As TreeNode Ptr tn, tn3
 	Dim As Boolean inFolder = tn1 <> 0
-	If Not inFolder Then
+	If inFolder Then
+		tn = tn1
+	Else
 		If FileName <> "" AndAlso Not bNew Then
 			If Not FileExists(FileName) Then
 				MsgBox ML("File not found") & ": " & FileName
@@ -1469,11 +1690,11 @@ End Function
 
 Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
 	If tnP = 0 Then MsgBox(ML("Project not selected!")): Return True
-	Dim As TreeNode Ptr tn = GetParentNode(tnP)
+	Dim As TreeNode Ptr tnPr = GetParentNode(tnP)
 	Dim As ExplorerElement Ptr ee
 	Dim As ProjectElement Ptr ppe
-	ppe = tn->Tag
-	If tn->ImageKey <> "Project" Then MsgBox(ML("Project not selected!")): Return True
+	ppe = tnPr->Tag
+	If tnPr->ImageKey <> "Project" Then MsgBox(ML("Project not selected!")): Return True
 	If CInt(ppe = 0) OrElse CInt(InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "/") = 0) OrElse CInt(bWithQuestion) Then
 		SaveD.Caption = ML("Save Project As")
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
@@ -1491,7 +1712,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		If FileExists(SaveD.Filename) Then
 			Select Case MsgBox(ML("Are you sure you want to overwrite the project") & "?" & WChr(13,10) & SaveD.Filename, "Visual FB Editor", mtWarning, btYesNo)
 			Case mrYES:
-			Case mrNO: Return SaveProject(tn, bWithQuestion)
+			Case mrNO: Return SaveProject(tnPr, bWithQuestion)
 			End Select
 		End If
 		If ppe = 0 Then ppe = New_( ProjectElement)
@@ -1500,8 +1721,8 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	End If
 	Dim As TreeNode Ptr tn1, tn2
 	Dim As String Zv = "*"
-	For i As Integer = 0 To tn->Nodes.Count - 1
-		tn1 = tn->Nodes.Item(i)
+	For i As Integer = 0 To tnPr->Nodes.Count - 1
+		tn1 = tnPr->Nodes.Item(i)
 		ee = tn1->Tag
 		If ee <> 0 Then
 			If Not SaveProjectFile(ppe, ee, tn1) Then Return False
@@ -1516,32 +1737,44 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		End If
 	Next
 	Dim As Integer Fn = FreeFile
-	Open *ppe->FileName For Output Encoding "utf-8" As #Fn
-	For i As Integer = 0 To tn->Nodes.Count - 1
-		tn1 = tn->Nodes.Item(i)
-		ee = tn1->Tag
-		If ee <> 0 Then
-			Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
-			If StartsWith(*ee->FileName, GetFolderName(*ppe->FileName)) Then
-				Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
+	If Not EndsWith(*ppe->FileName, ".vfp") Then
+		Open *ppe->FileName & "/" & GetFileName(*ppe->FileName) & ".vfp" For Output Encoding "utf-8" As #Fn
+		For i As Integer = 0 To ppe->Files.Count - 1
+			Zv = IIf(ppe AndAlso (ppe->Files.Item(i) = *ppe->MainFileName OrElse ppe->Files.Item(i) = *ppe->ResourceFileName OrElse ppe->Files.Item(i) = *ppe->IconResourceFileName), "*", "")
+			If StartsWith(ppe->Files.Item(i), *ppe->FileName & "\") Then
+				Print #Fn, Zv & "File=" & Replace(Mid(ppe->Files.Item(i), Len(*ppe->FileName & "\") + 1), "\", "/")
 			Else
-				Print #Fn, Zv & "File=" & *ee->FileName
+				Print #Fn, Zv & "File=" & ppe->Files.Item(i)
 			End If
-		ElseIf tn1->Nodes.Count > 0 Then
-			For j As Integer = 0 To tn1->Nodes.Count - 1
-				tn2 = tn1->Nodes.Item(j)
-				ee = tn2->Tag
-				If ee <> 0 Then
-					Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
-					If StartsWith(Replace(*ee->FileName, "\", "/"), Replace(GetFolderName(*ppe->FileName), "\", "/")) Then
-						Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
-					Else
-						Print #Fn, Zv & "File=" & *ee->FileName
-					End If
+		Next
+	Else
+		Open *ppe->FileName For Output Encoding "utf-8" As #Fn
+		For i As Integer = 0 To tnPr->Nodes.Count - 1
+			tn1 = tnPr->Nodes.Item(i)
+			ee = tn1->Tag
+			If ee <> 0 Then
+				Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
+				If StartsWith(*ee->FileName, GetFolderName(*ppe->FileName)) Then
+					Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
+				Else
+					Print #Fn, Zv & "File=" & *ee->FileName
 				End If
-			Next
-		End If
-	Next
+			ElseIf tn1->Nodes.Count > 0 Then
+				For j As Integer = 0 To tn1->Nodes.Count - 1
+					tn2 = tn1->Nodes.Item(j)
+					ee = tn2->Tag
+					If ee <> 0 Then
+						Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
+						If StartsWith(Replace(*ee->FileName, "\", "/"), Replace(GetFolderName(*ppe->FileName), "\", "/")) Then
+							Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
+						Else
+							Print #Fn, Zv & "File=" & *ee->FileName
+						End If
+					End If
+				Next
+			End If
+		Next
+	End If
 	Print #Fn, "ProjectType=" & ppe->ProjectType
 	Print #Fn, "Subsystem=" & ppe->Subsystem
 	Print #Fn, "ProjectName=""" & *ppe->ProjectName & """"
@@ -1573,8 +1806,8 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "CommandLineArguments=""" & *ppe->CommandLineArguments & """"
 	Print #Fn, "CreateDebugInfo=" & ppe->CreateDebugInfo
 	Close #Fn
-	tn->Text = GetFileName(WGet(ppe->FileName))
-	tn->Tag = ppe
+	If tnPr->Text <> GetFileName(WGet(ppe->FileName)) Then tnPr->Text = GetFileName(WGet(ppe->FileName))
+	tnPr->Tag = ppe
 	Return True
 End Function
 
@@ -1940,8 +2173,17 @@ Sub SetAsMain()
 		If ptn <> 0 Then
 			ppe = ptn->Tag
 			If ppe = 0 Then
-				ppe = New_( ProjectElement)
+				ppe = New_(ProjectElement)
 				WLet(ppe->FileName, "")
+				ptn->Tag = ppe
+			ElseIf Not *Cast(ExplorerElement Ptr, ptn->Tag) Is ProjectElement Then
+				Dim As UString FileName = *Cast(ExplorerElement Ptr, ppe)->FileName
+				Delete_(Cast(ExplorerElement Ptr, ppe))
+				ppe = New_(ProjectElement)
+				WLet(ppe->FileName, FileName)
+				ptn->Tag = ppe
+				ptn->ImageKey = "Project"
+				ptn->SelectedImageKey = "Project"
 			End If
 			If ee <> 0 AndAlso ppe <> 0 Then
 				'David Change
@@ -1957,6 +2199,9 @@ Sub SetAsMain()
 					Else
 						WLet(ppe->MainFileName, *ee->FileName)
 					End If
+					If Not ppe->Files.Contains(*ee->FileName) Then
+						ppe->Files.Add *ee->FileName
+					End If
 					IconName = GetIconName(WGet(ee->FileName), ppe)
 					If MainNode <> 0 Then MainNode->Bold = False
 					MainNode = ptn 'MainNode must be root node
@@ -1967,18 +2212,22 @@ Sub SetAsMain()
 					For i As Integer = 0 To ptn->Nodes.Count - 1
 						tn1 = ptn->Nodes.Item(i)
 						If tn1->Nodes.Count = 0 Then
-							ee = tn1->Tag
-							If ee <> 0 Then
-								tn1->ImageKey = GetIconName(WGet(ee->FileName), ppe)
-								tn1->SelectedImageKey = tn1->ImageKey
+							If StartsWith(tn1->ImageKey, "Main") Then
+								ee = tn1->Tag
+								If ee <> 0 Then
+									tn1->ImageKey = GetIconName(WGet(ee->FileName), ppe)
+									tn1->SelectedImageKey = tn1->ImageKey
+								End If
 							End If
 						Else
 							For j As Integer = tn1->Nodes.Count - 1 To 0 Step -1
 								tn2 = tn1->Nodes.Item(j)
-								ee = tn2->Tag
-								If ee <> 0 Then
-									tn2->ImageKey = GetIconName(WGet(ee->FileName), ppe)
-									tn2->SelectedImageKey = tn2->ImageKey
+								If StartsWith(tn2->ImageKey, "Main") Then
+									ee = tn2->Tag
+									If ee <> 0 Then
+										tn2->ImageKey = GetIconName(WGet(ee->FileName), ppe)
+										tn2->SelectedImageKey = tn2->ImageKey
+									End If
 								End If
 							Next
 						End If
@@ -1997,20 +2246,20 @@ End Sub
 
 Sub Save()
 	If tvExplorer.Focused Then
-		If tvExplorer.SelectedNode = 0 Then Exit Sub
-		If tvExplorer.SelectedNode->ImageKey = "Project" Then
-			SaveProject tvExplorer.SelectedNode
-		Else
-			Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
-			Dim tb As TabWindow Ptr
-			If tn = 0 Then Exit Sub
-			For i As Integer = 0 To ptabCode->TabCount - 1
-				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-				If tb->tn = tn Then
-					tb->Save
-					Exit For
-				End If
-			Next i
+		Dim tn As TreeNode Ptr = GetParentNode(tvExplorer.SelectedNode)
+		If tn = 0 Then Exit Sub
+		If tn->ImageKey = "Project" Then
+			SaveProject tn
+'		Else
+'			Dim tb As TabWindow Ptr
+'			If tn = 0 Then Exit Sub
+'			For i As Integer = 0 To ptabCode->TabCount - 1
+'				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+'				If tb->tn = tn Then
+'					tb->Save
+'					Exit For
+'				End If
+'			Next i
 		End If
 	Else
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -2290,6 +2539,14 @@ End Sub
 Sub CompileProgram(Param As Any Ptr)
 	'If Compile Then RunProgram(0) ', Run Program after compiled with FBC.exe only here.
 	Compile
+End Sub
+
+Sub CompileBundle(Param As Any Ptr)
+	Compile("Bundle")
+End Sub
+
+Sub CompileAPK(Param As Any Ptr)
+	Compile("APK")
 End Sub
 
 Sub CompileAndRun(Param As Any Ptr)
@@ -4199,6 +4456,15 @@ Sub CreateMenusAndToolBars
 	miBuild->Add("-")
 	miBuild->Add(ML("&Compile") & HK("Compile", "Ctrl+F9"), "Compile", "Compile", @mclick)
 	miBuild->Add("-")
+	Var miBuildBundleAPK = miBuild->Add(ML("&Build Bundle / APK") & HK("BuildBundleAPK"), "", "BuildBundleAPK", @mclick)
+	miBuildBundleAPK->Add(ML("Build &Bundle") & HK("BuildBundle"), "", "BuildBundle", @mclick)
+	miBuildBundleAPK->Add(ML("Build &APK") & HK("BuildAPK"), "", "BuildAPK", @mclick)
+	Var miGenerateSignedBundleAPK = miBuild->Add(ML("&Generate Signed Bundle / APK") & HK("GenerateSignedBundleAPK"), "", "GenerateSignedBundleAPK", @mclick)
+	miGenerateSignedBundleAPK->Add(ML("Create Key Store") & HK("CreateKeyStore"), "", "CreateKeyStore", @mclick)
+	miGenerateSignedBundleAPK->Add("-")
+	miGenerateSignedBundleAPK->Add(ML("Generate Signed &Bundle") & HK("GenerateSignedBundle"), "", "GenerateSignedBundle", @mclick)
+	miGenerateSignedBundleAPK->Add(ML("Generate Signed &APK") & HK("GenerateSignedAPK"), "", "GenerateSignedAPK", @mclick)
+	miBuild->Add("-")
 	miBuild->Add(ML("&Make") & HK("Make"), "Make", "Make", @mclick)
 	miBuild->Add(ML("Make Clea&n") & HK("MakeClean"), "", "MakeClean", @mclick)
 	miBuild->Add("-")
@@ -4489,6 +4755,11 @@ Sub CreateMenusAndToolBars
 	mnuGTK->Add "-"
 	mnuGTK->Add "GTK2", "", "GTK2:__USE_GTK__ -d __USE_GTK2__", @mClickUseDefine, True
 	mnuGTK->Add "GTK3", "", "GTK3:__USE_GTK__ -d __USE_GTK3__", @mClickUseDefine, True
+	Var mnuJNI = tbButton->DropDownMenu.Add("JNI", "", "JNI", @mClickUseDefine)
+	mnuJNI->Add ML("Default"), "", "Default:__USE_JNI__", @mClickUseDefine, True
+	mnuJNI->Add "-"
+	mnuJNI->Add "Android GUI", "", "AndroidGUI:__USE_JNI__ -d __USE_ANDROIDGUI__", @mClickUseDefine, True
+	mnuJNI->Add "Native GUI", "", "NativeGUI:__USE_JNI__ -d __USE_NATIVEGUI__", @mClickUseDefine, True
 	mnuDefault->Checked = True
 	miUseDefine = mnuDefault
 End Sub

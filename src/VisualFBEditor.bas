@@ -182,7 +182,12 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "SyntaxCheck":                         If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@SyntaxCheck))
 	Case "Compile":                             If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@CompileProgram))
 	Case "Make":                                If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@MakeExecute))
-	Case "MakeClean":                           ThreadCounter(ThreadCreate(@MakeClean))
+	Case "MakeClean":                           If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@MakeExecute))
+	Case "BuildBundle":                         If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@CompileBundle))
+	Case "BuildAPK":                            If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate(@CompileAPK))
+	Case "CreateKeyStore":                      CreateKeyStore
+	Case "GenerateSignedBundle":                GenerateSignedBundleAPK("bundle")
+	Case "GenerateSignedAPK":                   GenerateSignedBundleAPK("apk")
 	Case "FormatProject":                       ThreadCounter(ThreadCreate(@FormatProject)) 'FormatProject 0
 	Case "UnformatProject":                     ThreadCounter(ThreadCreate(@FormatProject, Cast(Any Ptr, 1))) 'FormatProject Cast(Any Ptr, 1)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain

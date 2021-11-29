@@ -2169,7 +2169,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	bNotFunctionChange = True
-	If TextChanged Then
+	If TextChanged AndAlso tb->txtCode.SyntaxEdit Then
 		With tb->txtCode
 			If Not .Focused Then bNotFunctionChange = False: Exit Sub
 			If OldLine < .FLines.Count Then
@@ -5755,18 +5755,24 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 	Else
 		tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 		If tb = 0 OrElse tb->tn = 0 Then
+			Dim As TreeNode Ptr tn
 			If tvExplorer.SelectedNode = 0 Then
-				Return ""
-			Else
-				Var tn = GetParentNode(tvExplorer.SelectedNode)
-				If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
-					ProjectNode = tn
-					Dim As ExplorerElement Ptr ee = tn->Tag
-					If ee Then Project = Cast(ProjectElement Ptr, ee)
-					If ee AndAlso Project AndAlso Project->MainFileName <> 0 AndAlso *Project->MainFileName <> "" Then Return *Project->MainFileName
+				If tvExplorer.Nodes.Count > 0 Then
+					tn = tvExplorer.Nodes.Item(0)
+				Else
+					Return ""
 				End If
-				Return ""
+			Else
+				tn = tvExplorer.SelectedNode
 			End If
+			tn = GetParentNode(tn)
+			If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
+				ProjectNode = tn
+				Dim As ExplorerElement Ptr ee = tn->Tag
+				If ee Then Project = Cast(ProjectElement Ptr, ee)
+				If ee AndAlso Project AndAlso Project->MainFileName <> 0 AndAlso *Project->MainFileName <> "" Then Return *Project->MainFileName
+			End If
+			Return ""
 		Else
 			If bSaveTab Then
 				If tb->Modified Then tb->Save
@@ -6130,6 +6136,92 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 	Return Result
 End Function
 
+Sub RunEmulator(Param As Any Ptr)
+	#ifndef __USE_GTK__
+		Dim As WString Ptr SdkDir = Param
+		Dim As WString Ptr Workdir, CmdL
+		Dim As UString AvdName
+		#define BufferSize 2048
+		For i As Integer = 0 To 1
+			Select Case i
+			Case 0: WLet CmdL, *SdkDir & "\emulator\emulator.exe -list-avds"
+			Case 1: WLet CmdL, *SdkDir & "\emulator\emulator.exe -avd " & AvdName
+			End Select
+			If i = 1 Then
+				ShowMessages "Run AVD: " & AvdName & "", False
+			End If
+			Dim si As STARTUPINFO
+			Dim pi As PROCESS_INFORMATION
+			Dim sa As SECURITY_ATTRIBUTES
+			Dim hReadPipe As HANDLE
+			Dim hWritePipe As HANDLE
+			Dim sBuffer As ZString * BufferSize
+			Dim sOutput As UString
+			Dim bytesRead As DWORD
+			Dim result_ As Integer
+			Dim Buff As WString * 2048
+			
+			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+			sa.lpSecurityDescriptor = Null
+			sa.bInheritHandle = True
+			
+			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+				ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+				Exit For
+			End If
+			
+			si.cb = Len(STARTUPINFO)
+			si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+			si.hStdOutput = hWritePipe
+			si.hStdError = hWritePipe
+			si.wShowWindow = 0
+			
+			If CreateProcess(0, CmdL, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+				ShowMessages(ML("Error: Couldn't Create Process"), False)
+				Exit For
+			End If
+			
+			CloseHandle hWritePipe
+			
+			Dim As Integer Pos1
+			Do
+				result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+				sBuffer = Left(sBuffer, bytesRead)
+				Pos1 = InStrRev(sBuffer, Chr(10))
+				If Pos1 > 0 Then
+					Dim res() As UString
+					sOutput += Left(sBuffer, Pos1 - 1)
+					Split sOutput, Chr(10), res()
+					For i As Integer = 0 To UBound(res)
+						Buff = res(i)
+						If i = 0 Then
+							AvdName = Buff
+							If EndsWith(AvdName, Chr(13)) Then
+								AvdName = Left(AvdName, Len(AvdName) - 1)
+							End If
+							Exit Do
+						Else
+							ShowMessages(Buff, False)
+						End If
+					Next i
+					sOutput = Mid(sBuffer, Pos1 + 1)
+				Else
+					sOutput += sBuffer
+				End If
+			Loop While result_
+			
+			CloseHandle pi.hProcess
+			CloseHandle pi.hThread
+			CloseHandle hReadPipe
+			If AvdName = "" Then
+				ShowMessages(ML("Install AVD!"), False)
+				Exit For
+			End If
+		Next
+		WDeallocate(CmdL)
+	#endif
+End Sub
+
 Sub RunPr(Debugger As String = "")
 	On Error Goto ErrorHandler
 	Dim Result As Integer
@@ -6138,108 +6230,230 @@ Sub RunPr(Debugger As String = "")
 	Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
 	Dim FirstLine As UString = GetFirstCompileLine(MainFile, Project)
 	Dim ExeFileName As WString Ptr
-	WLet(ExeFileName, (GetExeFileName(MainFile, FirstLine)))
-	#ifdef __USE_GTK__
-		Dim As GPid pid = 0
-		'		Dim As GtkWidget Ptr win, vte
-		'		win = gtk_window_new(gtk_window_toplevel)
-		'		If vf->vte_terminal_new <> 0 Then
-		'			vte = vf->vte_terminal_new()
-		'			g_signal_connect(vte, "button-press-event", G_CALLBACK(@vte_button_pressed), NULL)
-		'			gtk_container_add(gtk_container(win), vte)
-		'			'Dim As gint i_retcode = 0, i_exitcode = 0
-		'			Dim As gchar Ptr Ptr argv = g_strsplit(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), " ", -1)
-		'			gtk_widget_show_all(win)
-		'			Dim As GError Ptr error1
-		'			vf->vte_terminal_spawn_sync(vte_terminal(vte), VTE_PTY_DEFAULT, ToUTF8(GetFolderName(*ExeFileName)), argv, NULL, G_SPAWN_SEARCH_PATH Or G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, @pid, NULL, @error1)
-		'	    	If pid > 0 Then
-		'	    		g_child_watch_add(pid, @run_exit_cb, win)
-		'	    	Else
-		'				m *error1->message
-		'	    		run_exit_cb(pid, 0, win)
-		'	    	End If
-		'	    Else
-		Dim As WString Ptr Arguments
-		WLet(Arguments, *RunArguments)
-		If Project Then WLet(Arguments, *Arguments & " " & WGet(Project->CommandLineArguments))
-		If 0 Then
-			Result = Shell("""" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False, , *Arguments) & """")
-		Else
-			ChDir(GetFolderName(*ExeFileName))
-			Dim As UString CommandLine
-			Dim As ToolType Ptr Tool
-			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
-			If Idx <> - 1 Then
-				Tool = pTerminals->Item(Idx)->Object
-				CommandLine = Tool->GetCommand(Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)))
-				If Tool->Parameters = "" Then CommandLine &= " --wait -- "
-			Else
-				CommandLine &= """" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
-			End If
-			ThreadsEnter()
-			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
-			ThreadsLeave()
-			Result = Shell(CommandLine)
+	If Project <> 0 AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
+		Dim As String ApkFileName = *Project->FileName & "/app/build/outputs/apk/debug/app-debug.apk"
+		If Not FileExists(ApkFileName) Then
+			ShowMessages ML("Do not found apk file!")
+			Exit Sub
 		End If
-		WDeallocate Arguments
-		ThreadsEnter()
-		ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-		ThreadsLeave()
-		'EndIf
-		'i_retcode = g_spawn_command_line_sync(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), NULL, NULL, @i_exitcode, NULL)
-		'?build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)
-		'Shell "sh " & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)
-	#else
-		Dim As Integer pClass
+		Dim As Integer Fn = FreeFile
+		Open *Project->FileName & "/local.properties" For Input As #Fn
+		Dim SDKDir As UString
+		Dim pBuff As WString Ptr
+		Dim As Integer FileSize
+		FileSize = LOF(Fn)
+		WReallocate(pBuff, FileSize)
+		Do Until EOF(Fn)
+			LineInputWstr Fn, pBuff, FileSize
+			If StartsWith(*pBuff, "sdk.dir=") Then
+				SDKDir = Replace(Replace(Mid(*pBuff, 9), "\\", "\"), "\:", ":")
+				Exit Do
+			End If
+		Loop
+		Close #Fn
+		If SDKDir = "" Then
+			ShowMessages ML("Sdk.dir not specified in file local.properties!")
+			Exit Sub
+		End If
+		If Not FileExists(*Project->FileName & "/app/build.gradle") Then
+			ShowMessages ML(ML("File ") & *Project->FileName & "/app/build.gradle" & ML(" not found!"))
+			Exit Sub
+		End If
+		Fn = FreeFile
+		Open *Project->FileName & "/app/build.gradle" For Input As #Fn
+		Dim applicationId As String
+		FileSize = LOF(Fn)
+		WReallocate(pBuff, FileSize)
+		Do Until EOF(Fn)
+			LineInputWstr Fn, pBuff, FileSize
+			If StartsWith(Trim(*pBuff), "applicationId ") Then
+				applicationId = Left(Mid(Trim(*pBuff), 16), Len(Mid(Trim(*pBuff), 16)) - 1)
+				Exit Do
+			End If
+		Loop
+		Close #Fn
+		If applicationId = "" Then
+			ShowMessages ML("applicationId not found in file app/build.gradle!")
+			Exit Sub
+		End If
 		Dim As WString Ptr Workdir, CmdL
-		Dim As Unsigned Long ExitCode
-		WLet(CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments)
-		If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
-		WLet(ExeFileName, Replace(*ExeFileName, "/", "\"))
-		Var Pos1 = 0
-		While InStr(Pos1 + 1, *ExeFileName, "\")
-			Pos1 = InStr(Pos1 + 1, *ExeFileName, "\")
-		Wend
-		If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
-		WLet(Workdir, ..Left(*ExeFileName, Pos1))
-		If WGet(TerminalPath) <> "" Then
-			Dim As ToolType Ptr Tool
-			Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
-			If Idx <> - 1 Then
-				Tool = pTerminals->Item(Idx)->Object
-				WLetEx CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments, True
-			End If
-			'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-			WLet(ExeFileName, Replace(GetFullPathInSystem(WGet(TerminalPath)), "/", "\"))
-		End If
-		ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
-		Dim SInfo As STARTUPINFO
-		Dim PInfo As PROCESS_INFORMATION
-		SInfo.cb = Len(SInfo)
-		SInfo.dwFlags = STARTF_USESHOWWINDOW
-		SInfo.wShowWindow = SW_NORMAL
-		pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
-		If CreateProcessW(ExeFileName, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-			WaitForSingleObject pinfo.hProcess, INFINITE
-			GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-			CloseHandle(pinfo.hProcess)
-			CloseHandle(pinfo.hThread)
-			Result = ExitCode
-			'Result = Shell(Debugger & """" & *ExeFileName + """")
-			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-		Else
-			Result = GetLastError()
-			ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
-		End If
-		'		Else
-		'			WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-		'			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL & " ...")
-		'			Result = Shell(*CmdL)
-		'			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-		'		End If
+		WLet ExeFileName, SDKDir & "\platform-tools\adb"
+		WLet CmdL, SDKDir & "\platform-tools\adb uninstall " & applicationId
+		WLet(Workdir, SDKDir & "\platform-tools")
+		#ifdef __USE_WINAPI__
+			For i As Integer = 0 To 2
+				#define BufferSize 2048
+				Select Case i
+				Case 0: WLet CmdL, SDKDir & "\platform-tools\adb uninstall " & applicationId
+				Case 1: WLet CmdL, SDKDir & "\platform-tools\adb install -t " & ApkFileName
+				Case 2: WLet(CmdL, SDKDir & "\platform-tools\adb shell am start " & applicationId & "/" & applicationId & ".mffActivity")
+				End Select
+				Dim si As STARTUPINFO
+				Dim pi As PROCESS_INFORMATION
+				Dim sa As SECURITY_ATTRIBUTES
+				Dim hReadPipe As HANDLE
+				Dim hWritePipe As HANDLE
+				Dim sBuffer As ZString * BufferSize
+				Dim sOutput As UString
+				Dim bytesRead As DWORD
+				Dim result_ As Integer
+				Dim Buff As WString * 2048
+				
+				sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+				sa.lpSecurityDescriptor = Null
+				sa.bInheritHandle = True
+				
+				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+					ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+					Exit For
+				End If
+				
+				si.cb = Len(STARTUPINFO)
+				si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+				si.hStdOutput = hWritePipe
+				si.hStdError = hWritePipe
+				si.wShowWindow = 0
+				
+				If CreateProcess(0, CmdL, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+					ShowMessages(ML("Error: Couldn't Create Process"), False)
+					Exit For
+				End If
+				
+				CloseHandle hWritePipe
+				
+				Dim As Integer Pos1
+				Do
+					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+					sBuffer = Left(sBuffer, bytesRead)
+					Pos1 = InStrRev(sBuffer, Chr(10))
+					If Pos1 > 0 Then
+						Dim res() As UString
+						sOutput += Left(sBuffer, Pos1 - 1)
+						Split sOutput, Chr(10), res()
+						For i As Integer = 0 To UBound(res)
+							Buff = res(i)
+							ShowMessages(Buff, False)
+							If StartsWith(Buff, "- waiting for device -") Then
+								ThreadCreate(@RunEmulator, SDKDir.vptr)
+							End If
+						Next i
+						sOutput = Mid(sBuffer, Pos1 + 1)
+					Else
+						sOutput += sBuffer
+					End If
+				Loop While result_
+				
+				CloseHandle pi.hProcess
+				CloseHandle pi.hThread
+				CloseHandle hReadPipe
+			Next
+		#endif
 		If WorkDir Then Deallocate_( WorkDir)
-		If CmdL Then Deallocate_( CmdL)
-	#endif
+		If CmdL Then Deallocate_(CmdL)
+	Else
+		WLet(ExeFileName, (GetExeFileName(MainFile, FirstLine)))
+		#ifdef __USE_GTK__
+			Dim As GPid pid = 0
+			'		Dim As GtkWidget Ptr win, vte
+			'		win = gtk_window_new(gtk_window_toplevel)
+			'		If vf->vte_terminal_new <> 0 Then
+			'			vte = vf->vte_terminal_new()
+			'			g_signal_connect(vte, "button-press-event", G_CALLBACK(@vte_button_pressed), NULL)
+			'			gtk_container_add(gtk_container(win), vte)
+			'			'Dim As gint i_retcode = 0, i_exitcode = 0
+			'			Dim As gchar Ptr Ptr argv = g_strsplit(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), " ", -1)
+			'			gtk_widget_show_all(win)
+			'			Dim As GError Ptr error1
+			'			vf->vte_terminal_spawn_sync(vte_terminal(vte), VTE_PTY_DEFAULT, ToUTF8(GetFolderName(*ExeFileName)), argv, NULL, G_SPAWN_SEARCH_PATH Or G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, @pid, NULL, @error1)
+			'	    	If pid > 0 Then
+			'	    		g_child_watch_add(pid, @run_exit_cb, win)
+			'	    	Else
+			'				m *error1->message
+			'	    		run_exit_cb(pid, 0, win)
+			'	    	End If
+			'	    Else
+			Dim As WString Ptr Arguments
+			WLet(Arguments, *RunArguments)
+			If Project Then WLet(Arguments, *Arguments & " " & WGet(Project->CommandLineArguments))
+			If 0 Then
+				Result = Shell("""" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False, , *Arguments) & """")
+			Else
+				ChDir(GetFolderName(*ExeFileName))
+				Dim As UString CommandLine
+				Dim As ToolType Ptr Tool
+				Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
+				If Idx <> - 1 Then
+					Tool = pTerminals->Item(Idx)->Object
+					CommandLine = Tool->GetCommand(Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)))
+					If Tool->Parameters = "" Then CommandLine &= " --wait -- "
+				Else
+					CommandLine &= """" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
+				End If
+				ThreadsEnter()
+				ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
+				ThreadsLeave()
+				Result = Shell(CommandLine)
+			End If
+			WDeallocate Arguments
+			ThreadsEnter()
+			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			ThreadsLeave()
+			'EndIf
+			'i_retcode = g_spawn_command_line_sync(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), NULL, NULL, @i_exitcode, NULL)
+			'?build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)
+			'Shell "sh " & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)
+		#else
+			Dim As Integer pClass
+			Dim As WString Ptr Workdir, CmdL
+			Dim As Unsigned Long ExitCode
+			WLet(CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments)
+			If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
+			WLet(ExeFileName, Replace(*ExeFileName, "/", "\"))
+			Var Pos1 = 0
+			While InStr(Pos1 + 1, *ExeFileName, "\")
+				Pos1 = InStr(Pos1 + 1, *ExeFileName, "\")
+			Wend
+			If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
+			WLet(Workdir, ..Left(*ExeFileName, Pos1))
+			If WGet(TerminalPath) <> "" Then
+				Dim As ToolType Ptr Tool
+				Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
+				If Idx <> - 1 Then
+					Tool = pTerminals->Item(Idx)->Object
+					WLetEx CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments, True
+				End If
+				'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
+				WLet(ExeFileName, Replace(GetFullPathInSystem(WGet(TerminalPath)), "/", "\"))
+			End If
+			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
+			Dim SInfo As STARTUPINFO
+			Dim PInfo As PROCESS_INFORMATION
+			SInfo.cb = Len(SInfo)
+			SInfo.dwFlags = STARTF_USESHOWWINDOW
+			SInfo.wShowWindow = SW_NORMAL
+			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+			If CreateProcessW(ExeFileName, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject pinfo.hProcess, INFINITE
+				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+				CloseHandle(pinfo.hProcess)
+				CloseHandle(pinfo.hThread)
+				Result = ExitCode
+				'Result = Shell(Debugger & """" & *ExeFileName + """")
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			Else
+				Result = GetLastError()
+				ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+			End If
+			'		Else
+			'			WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
+			'			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL & " ...")
+			'			Result = Shell(*CmdL)
+			'			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			'		End If
+			If WorkDir Then Deallocate_( WorkDir)
+			If CmdL Then Deallocate_( CmdL)
+		#endif
+	End If
 	If ExeFileName Then Deallocate_( ExeFileName)
 	Exit Sub
 	ErrorHandler:

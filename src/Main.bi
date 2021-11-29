@@ -230,6 +230,7 @@ Declare Function GetXY(XorY As Integer) As Integer
 	Declare Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
 	Declare Function GetFileLastWriteTime(ByRef FileName As WString) As FILETIME
 #endif
+Declare Function FolderExists(ByRef FolderName As WString) As Boolean
 Declare Function Compile(Parameter As String = "") As Integer
 Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0)
 Declare Sub LoadFunctionsSub(Param As Any Ptr)
