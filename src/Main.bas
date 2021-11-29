@@ -789,68 +789,34 @@ End Function
 Sub CreateKeyStore
 	#ifndef __USE_GTK__
 		Dim As WString Ptr Workdir, CmdL
+		Dim As ProjectElement Ptr Project
+		Dim As TreeNode Ptr ProjectNode
+		Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
+		If Project = 0 Then
+			ShowMessages ML(ML("Not find project!"))
+			Exit Sub
+		End If
+		If Not FileExists(*Project->FileName & "/gradle.properties") Then
+			ShowMessages ML(ML("File ") & *Project->FileName & "/gradle.properties" & ML(" not found!"))
+			Exit Sub
+		End If
+		Dim As Integer Fn = FreeFile
+		Dim pBuff As WString Ptr
+		Dim As Integer FileSize
+		Open *Project->FileName & "/gradle.properties" For Input As #Fn
 		Dim As UString JavaHome
-		#define BufferSize 2048
-		WLet CmdL, "where java"
-		Dim si As STARTUPINFO
-		Dim pi As PROCESS_INFORMATION
-		Dim sa As SECURITY_ATTRIBUTES
-		Dim hReadPipe As HANDLE
-		Dim hWritePipe As HANDLE
-		Dim sBuffer As ZString * BufferSize
-		Dim sOutput As UString
-		Dim bytesRead As DWORD
-		Dim result_ As Integer
-		Dim Buff As WString * 2048
-		
-		sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
-		sa.lpSecurityDescriptor = Null
-		sa.bInheritHandle = True
-		
-		If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
-			ShowMessages(ML("Error: Couldn't Create Pipe"), False)
-			Exit Sub
-		End If
-		
-		si.cb = Len(STARTUPINFO)
-		si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
-		si.hStdOutput = hWritePipe
-		si.hStdError = hWritePipe
-		si.wShowWindow = 0
-		
-		If CreateProcess(0, CmdL, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
-			ShowMessages(ML("Error: Couldn't Create Process"), False)
-			Exit Sub
-		End If
-		
-		CloseHandle hWritePipe
-		
-		Dim As Integer Pos1
-		Do
-			result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
-			sBuffer = Left(sBuffer, bytesRead)
-			Pos1 = InStrRev(sBuffer, Chr(10))
-			If Pos1 > 0 Then
-				Dim res() As UString
-				sOutput += Left(sBuffer, Pos1 - 1)
-				Split sOutput, Chr(10), res()
-				For i As Integer = 0 To UBound(res)
-					Buff = res(i)
-					JavaHome = Buff
-					Exit Do
-				Next i
-				sOutput = Mid(sBuffer, Pos1 + 1)
-			Else
-				sOutput += sBuffer
+		FileSize = LOF(Fn)
+		WReallocate(pBuff, FileSize)
+		Do Until EOF(Fn)
+			LineInputWstr Fn, pBuff, FileSize
+			If StartsWith(Trim(*pBuff), "org.gradle.java.home=") Then
+				JavaHome = Replace(Replace(Mid(Trim(*pBuff), 22), "\\", "\"), "\:", ":")
+				Exit Do
 			End If
-		Loop While result_
-		
-		CloseHandle pi.hProcess
-		CloseHandle pi.hThread
-		CloseHandle hReadPipe
+		Loop
+		Close #Fn
 		If JavaHome = "" Then
-			ShowMessages(ML("Install java!"), False)
-			WDeallocate(CmdL)
+			ShowMessages ML("org.gradle.java.home not specified in file gradle.properties!")
 			Exit Sub
 		End If
 		Dim As Integer pClass, Result
@@ -860,7 +826,7 @@ Sub CreateKeyStore
 		SaveD.Caption = "Save key"
 		SaveD.Filter = ML("Key files") & " (*.jks)|*.jks|" & ML("All Files") & "|*.*|"
 		If Not SaveD.Execute Then Exit Sub
-		WLet CmdL, Environ("COMSPEC") & " /K cd /D """ & GetFolderName(SaveD.FileName) & """ & """ & GetFolderName(JavaHome) & "/keytool"" -genkey -v -keystore " & SaveD.FileName & " -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias"
+		WLet CmdL, Environ("COMSPEC") & " /K cd /D """ & GetFolderName(SaveD.FileName) & """ & """ & JavaHome & "/bin/keytool"" -genkey -v -keystore " & SaveD.FileName & " -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias"
 		Dim SInfo As STARTUPINFO
 		Dim PInfo As PROCESS_INFORMATION
 		SInfo.cb = Len(SInfo)
