@@ -793,11 +793,11 @@ Sub CreateKeyStore
 		Dim As TreeNode Ptr ProjectNode
 		Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
 		If Project = 0 Then
-			ShowMessages ML(ML("Not find project!"))
+			ShowMessages ML(ML("Project not found!"))
 			Exit Sub
 		End If
 		If Not FileExists(*Project->FileName & "/gradle.properties") Then
-			ShowMessages ML(ML("File ") & *Project->FileName & "/gradle.properties" & ML(" not found!"))
+			ShowMessages ML(ML("File") & " " & *Project->FileName & "/gradle.properties " & ML("not found!"))
 			Exit Sub
 		End If
 		Dim As Integer Fn = FreeFile
@@ -817,6 +817,10 @@ Sub CreateKeyStore
 		Close #Fn
 		If JavaHome = "" Then
 			ShowMessages ML("org.gradle.java.home not specified in file gradle.properties!")
+			Exit Sub
+		End If
+		If Not FileExists(JavaHome & "/bin/keytool.exe") Then
+			ShowMessages ML(ML("File") & " " & JavaHome & "/bin/keytool.exe " & ML("not found!"))
 			Exit Sub
 		End If
 		Dim As Integer pClass, Result
