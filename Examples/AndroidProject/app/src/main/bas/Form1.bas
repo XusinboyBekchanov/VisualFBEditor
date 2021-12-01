@@ -12,6 +12,9 @@
 	#include once "mff/TextBox.bi"
 	#include once "mff/Label.bi"
 	#include once "mff/Panel.bi"
+	#include once "mff/CheckBox.bi"
+	#include once "mff/RadioButton.bi"
+	#include once "mff/MonthCalendar.bi"
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
@@ -21,10 +24,12 @@
 		Declare Sub TextBox1_Change(ByRef Sender As TextBox)
 		Declare Constructor
 		
-		Dim As CommandButton CommandButton1, CommandButton2
+		Dim As CommandButton CommandButton1
 		Dim As TextBox TextBox1
 		Dim As Label Label1
-		Dim As Panel Panel1
+		Dim As CheckBox CheckBox1
+		Dim As RadioButton RadioButton1
+		Dim As MonthCalendar MonthCalendar1
 	End Type
 	
 	Constructor Form1Type
@@ -64,21 +69,30 @@
 			.SetBounds 10, 10, 50, 40
 			.Parent = @This
 		End With
-		' Panel1
-		With Panel1
-			.Name = "Panel1"
-			.Text = "Panel1"
-			.TabIndex = 3
-			.SetBounds 70, 130, 130, 100
+		' CheckBox1
+		With CheckBox1
+			.Name = "CheckBox1"
+			.Text = "CheckBox1"
+			.TabIndex = 5
+			.Checked = True
+			.SetBounds 40, 240, 180, 40
 			.Parent = @This
 		End With
-		' CommandButton2
-		With CommandButton2
-			.Name = "CommandButton2"
-			.Text = "CommandButton2"
-			.TabIndex = 4
-			.SetBounds 10, 300, 20, 30
-			.Parent = @Panel1
+		' RadioButton1
+		With RadioButton1
+			.Name = "RadioButton1"
+			.Text = "RadioButton1"
+			.TabIndex = 6
+			.SetBounds 30, 290, 190, 30
+			.Parent = @This
+		End With
+		' MonthCalendar1
+		With MonthCalendar1
+			.Name = "MonthCalendar1"
+			.Text = "MonthCalendar1"
+			.TabIndex = 5
+			.SetBounds 40, 90, 240, 170
+			.Parent = @This
 		End With
 	End Constructor
 	
@@ -97,7 +111,7 @@ Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)
 	*Cast(Form1Type Ptr, Sender.Designer).CommandButton1_Click(Sender)
 End Sub
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
-	Me.Text = Form1.Width & ", " & Form1.Height & ", " & CommandButton1.Width & ", " & CommandButton1.Height
+	'Me.Text = Str(DateSerial(2021, 12, 12))
 End Sub
 
 Private Sub Form1Type.TextBox1_Change_(ByRef Sender As TextBox)
