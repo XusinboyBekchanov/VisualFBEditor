@@ -1,4 +1,5 @@
-make --directory ./app/src/main/bas
+@rem make --directory ./app/src/main/bas
+D:/GitHub/fbc-android8/bin/fbc.exe ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/x86/libmff-app.so" -target i686-linux-android -i "D:/GitHub/VisualFBEditor/MyFbFramework" -v -dll -exx -sysroot "D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-x86" -Wl "-L D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-x86/usr/lib"
 
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
