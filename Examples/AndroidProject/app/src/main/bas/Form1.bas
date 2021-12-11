@@ -12,6 +12,9 @@
 	#include once "mff/TextBox.bi"
 	#include once "mff/Label.bi"
 	#include once "mff/Panel.bi"
+	#include once "mff/CheckBox.bi"
+	#include once "mff/MonthCalendar.bi"
+	#include once "mff/ListView.bi"
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
@@ -21,10 +24,11 @@
 		Declare Sub TextBox1_Change(ByRef Sender As TextBox)
 		Declare Constructor
 		
-		Dim As CommandButton CommandButton1, CommandButton2
+		Dim As CommandButton CommandButton1
 		Dim As TextBox TextBox1
 		Dim As Label Label1
-		Dim As Panel Panel1
+		Dim As CheckBox CheckBox1
+		Dim As MonthCalendar MonthCalendar1
 	End Type
 	
 	Constructor Form1Type
@@ -41,7 +45,7 @@
 			.Text = "CommandButton1"
 			.TabIndex = 0
 			.Align = DockStyle.alNone
-			.SetBounds 0, 70, 257, 27
+			.SetBounds 0, 60, 257, 37
 			.Designer = @This
 			.OnClick = @CommandButton1_Click_
 			.Parent = @This
@@ -51,7 +55,7 @@
 			.Name = "TextBox1"
 			.Text = "TextBox1"
 			.TabIndex = 0
-			.SetBounds 70, 10, 170, 40
+			.SetBounds 70, 10, 170, 30
 			.Designer = @This
 			.OnChange = @TextBox1_Change_
 			.Parent = @This
@@ -61,24 +65,24 @@
 			.Name = "Label1"
 			.Text = "Label1"
 			.TabIndex = 0
-			.SetBounds 10, 10, 50, 40
+			.SetBounds 10, 10, 50, 20
 			.Parent = @This
 		End With
-		' Panel1
-		With Panel1
-			.Name = "Panel1"
-			.Text = "Panel1"
-			.TabIndex = 3
-			.SetBounds 70, 130, 130, 100
+		' CheckBox1
+		With CheckBox1
+			.Name = "CheckBox1"
+			.Text = "CheckBox1"
+			.TabIndex = 5
+			.SetBounds 30, 310, 170, 30
 			.Parent = @This
 		End With
-		' CommandButton2
-		With CommandButton2
-			.Name = "CommandButton2"
-			.Text = "CommandButton2"
+		' MonthCalendar1
+		With MonthCalendar1
+			.Name = "MonthCalendar1"
+			.Text = "MonthCalendar1"
 			.TabIndex = 4
-			.SetBounds 10, 300, 20, 30
-			.Parent = @Panel1
+			.SetBounds 10, 110, 230, 190
+			.Parent = @This
 		End With
 	End Constructor
 	
