@@ -6192,8 +6192,8 @@ Sub RunEmulator(Param As Any Ptr)
 					Dim res() As UString
 					sOutput += Left(sBuffer, Pos1 - 1)
 					Split sOutput, Chr(10), res()
-					For i As Integer = 0 To UBound(res)
-						Buff = res(i)
+					For j As Integer = 0 To UBound(res)
+						Buff = res(j)
 						If i = 0 Then
 							AvdName = Buff
 							If EndsWith(AvdName, Chr(13)) Then
@@ -6203,7 +6203,7 @@ Sub RunEmulator(Param As Any Ptr)
 						Else
 							ShowMessages(Buff, False)
 						End If
-					Next i
+					Next j
 					sOutput = Mid(sBuffer, Pos1 + 1)
 				Else
 					sOutput += sBuffer
@@ -6217,6 +6217,78 @@ Sub RunEmulator(Param As Any Ptr)
 				ShowMessages(ML("Install AVD!"), False)
 				Exit For
 			End If
+		Next
+		WDeallocate(CmdL)
+	#endif
+End Sub
+
+Sub RunLogCat(Param As Any Ptr)
+	#ifndef __USE_GTK__
+		Dim As WString Ptr SdkDir = Param
+		Dim As WString Ptr Workdir, CmdL
+		#define BufferSize 2048
+		For i As Integer = 0 To 1
+			Select Case i
+			Case 0: WLet(CmdL, *SDKDir & "\platform-tools\adb logcat -c")
+			Case 1: WLet(CmdL, *SDKDir & "\platform-tools\adb logcat")
+			End Select
+			Dim si As STARTUPINFO
+			Dim pi As PROCESS_INFORMATION
+			Dim sa As SECURITY_ATTRIBUTES
+			Dim hReadPipe As HANDLE
+			Dim hWritePipe As HANDLE
+			Dim sBuffer As ZString * BufferSize
+			Dim sOutput As UString
+			Dim bytesRead As DWORD
+			Dim result_ As Integer
+			Dim Buff As WString * 2048
+			
+			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+			sa.lpSecurityDescriptor = Null
+			sa.bInheritHandle = True
+			
+			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+				ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+				Exit For
+			End If
+			
+			si.cb = Len(STARTUPINFO)
+			si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+			si.hStdOutput = hWritePipe
+			si.hStdError = hWritePipe
+			si.wShowWindow = 0
+			
+			If CreateProcess(0, CmdL, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+				ShowMessages(ML("Error: Couldn't Create Process"), False)
+				Exit For
+			End If
+			
+			CloseHandle hWritePipe
+			
+			Dim As Integer Pos1
+			Do
+				result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+				sBuffer = Left(sBuffer, bytesRead)
+				Pos1 = InStrRev(sBuffer, Chr(10))
+				If Pos1 > 0 Then
+					Dim res() As UString
+					sOutput += Left(sBuffer, Pos1 - 1)
+					Split sOutput, Chr(10), res()
+					For j As Integer = 0 To UBound(res)
+						Buff = res(j)
+						If InStr(Buff, "DEBUG") Then
+							ShowMessages(Buff, False)
+						End If
+					Next j
+					sOutput = Mid(sBuffer, Pos1 + 1)
+				Else
+					sOutput += sBuffer
+				End If
+			Loop While result_
+			
+			CloseHandle pi.hProcess
+			CloseHandle pi.hThread
+			CloseHandle hReadPipe
 		Next
 		WDeallocate(CmdL)
 	#endif
@@ -6330,13 +6402,14 @@ Sub RunPr(Debugger As String = "")
 						Dim res() As UString
 						sOutput += Left(sBuffer, Pos1 - 1)
 						Split sOutput, Chr(10), res()
-						For i As Integer = 0 To UBound(res)
-							Buff = res(i)
+						For j As Integer = 0 To UBound(res)
+							Buff = res(j)
 							ShowMessages(Buff, False)
 							If StartsWith(Buff, "- waiting for device -") Then
 								ThreadCreate(@RunEmulator, SDKDir.vptr)
+								ThreadCreate(@RunLogCat, SDKDir.vptr)
 							End If
-						Next i
+						Next j
 						sOutput = Mid(sBuffer, Pos1 + 1)
 					Else
 						sOutput += sBuffer
