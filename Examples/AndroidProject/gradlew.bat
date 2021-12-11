@@ -1,5 +1,7 @@
 @rem make --directory ./app/src/main/bas
-D:/GitHub/fbc-android8/bin/fbc.exe ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/x86/libmff-app.so" -target i686-linux-android -i "D:/GitHub/VisualFBEditor/MyFbFramework" -v -dll -exx -sysroot "D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-x86" -Wl "-L D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-x86/usr/lib"
+D:/GitHub/fbc-android9/bin/fbc.exe ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/x86/libmff-app.so" -target i686-linux-android -i "D:/GitHub/VisualFBEditor/MyFbFramework" -v -dll -exx -sysroot "D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-x86" -Wl "-L D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-x86/usr/lib"
+D:/GitHub/fbc-android9/bin/fbc.exe ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/arm64-v8a/libmff-app.so" -target aarch64-linux-android -i "D:/GitHub/VisualFBEditor/MyFbFramework" -v -dll -exx -sysroot "D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-21/arch-arm64" -Wl "-L D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-21/arch-arm64/usr/lib"
+D:/GitHub/fbc-android9/bin/fbc.exe ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/armeabi-v7a/libmff-app.so" -target arm-linux-androideabi -i "D:/GitHub/VisualFBEditor/MyFbFramework" -v -dll -exx -sysroot "D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-21/arch-arm" -Wl "-L D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-arm/usr/lib"
 
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
