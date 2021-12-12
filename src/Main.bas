@@ -265,7 +265,11 @@ End Function
 
 Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 	If CInt(InStr(Path, ":") > 0) OrElse CInt(StartsWith(Path, "/")) OrElse CInt(StartsWith(Path, "\")) Then
-		Return Path
+		If EndsWith(Path, "\..") OrElse EndsWith(Path, "/..") Then
+			Return GetFolderName(GetFolderName(Path))
+		Else
+			Return Path
+		End If
 	ElseIf StartsWith(Path, "./") OrElse StartsWith(Path, ".\") Then
 		If FromFile = "" Then
 			If EndsWith(ExePath, "\..") OrElse EndsWith(ExePath, "/..") Then
@@ -1356,6 +1360,7 @@ End Function
 
 Sub OpenFolder()
 	Dim As FolderBrowserDialog BrowseD
+	BrowseD.InitialDir = GetFullPath(*ProjectsPath)
 	If Not BrowseD.Execute Then Exit Sub
 	AddFolder BrowseD.Directory
 	WLet(RecentFolder, BrowseD.Directory)

@@ -290,6 +290,7 @@ Private Sub frmFindInFiles.btnCancel_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmFindInFiles.btnBrowse_Click(ByRef Sender As Control)
+	fFindFile.FolderDialog.InitialDir = GetFullPath(fFindFile.txtPath.Text)
 	If fFindFile.FolderDialog.Execute Then
 		fFindFile.txtPath.Text = fFindFile.FolderDialog.Directory
 	End If

@@ -169,6 +169,7 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 				FolderName = GetFolderName(pApp->FileName)
 			End If
 			If .ChooseFolder Then
+				.BrowseD.InitialDir = GetFullPath(.txtPath.Text)
 				If .BrowseD.Execute Then
 					If FolderName <> "" AndAlso StartsWith(.BrowseD.Directory, FolderName) Then
 						.txtPath.Text = "." & Slash & Mid(.BrowseD.Directory, Len(FolderName) + 1)

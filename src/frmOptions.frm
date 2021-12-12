@@ -2317,6 +2317,7 @@ End Sub
 
 Private Sub frmOptions.cmdMFFPath_Click(ByRef Sender As Control)
 	With fOptions
+		.BrowsD.InitialDir = GetFullPath(.txtMFFPath.Text)
 		If .BrowsD.Execute Then
 			.txtMFFPath.Text = .BrowsD.Directory
 		End If
@@ -2969,6 +2970,7 @@ End Sub
 
 Private Sub frmOptions.cmdProjectsPath_Click(ByRef Sender As Control)
 	With fOptions
+		.BrowsD.InitialDir = GetFullPath(.txtProjectsPath.Text)
 		If .BrowsD.Execute Then
 			.txtProjectsPath.Text = .BrowsD.Directory
 		End If
@@ -3234,6 +3236,7 @@ Private Sub frmOptions.cmdInFolder_Click_(ByRef Sender As Control)
 	*Cast(frmOptions Ptr, Sender.Designer).cmdInFolder_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdInFolder_Click(ByRef Sender As Control)
+	BrowsD.InitialDir = GetFullPath(txtInFolder.Text)
 	If BrowsD.Execute Then
 		txtInFolder.Text = BrowsD.Directory
 	End If
