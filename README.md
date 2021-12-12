@@ -26,12 +26,40 @@ To compile use the following command lines:
   cd Path_to_VisualFBEditor/MyFbFramework/mff
   fbc -b "mff.bi" "mff.rc" -dll -x "../mff32.dll"
 ```
+#### For Windows 32-bit (for gtk2):
+```shell
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32_gtk2.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff32_gtk2.dll"
+```
+#### For Windows 32-bit (for gtk3):
+```shell
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32_gtk3.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff32_gtk3.dll"
+```
 #### For Windows 64-bit:
 ```shell
   cd Path_to_VisualFBEditor/src
   fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
   fbc -b "mff.bi" "mff.rc" -dll -x "../mff64.dll"
+```
+#### For Windows 64-bit (for gtk2):
+```shell
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64_gtk2.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff64_gtk2.dll"
+```
+#### For Windows 64-bit (for gtk3):
+```shell
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64_gtk3.exe" "VisualFBEditor.rc" -i "Path_to_VisualFBEditor/MyFbFramework"
+  cd Path_to_VisualFBEditor/MyFbFramework/mff
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff64_gtk3.dll"
 ```
 #### For Linux 32-bit (for gtk2):
 ```shell
