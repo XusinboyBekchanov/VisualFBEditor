@@ -294,7 +294,9 @@ Namespace My.Sys.Forms
 		For j As Integer = UBound(FDots) To 0 Step -1
 			For i As Integer = 7 To 0 Step -1
 				#ifdef __USE_GTK__
-					If gtk_is_widget(FDots(j, i)) Then gtk_widget_destroy(FDots(j, i))
+					#ifndef __FB_WIN32__
+						If gtk_is_widget(FDots(j, i)) Then gtk_widget_destroy(FDots(j, i))
+					#endif
 				#else
 					DestroyWindow(FDots(j, i))
 				#endif
