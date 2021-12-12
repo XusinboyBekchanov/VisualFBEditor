@@ -3805,7 +3805,11 @@ Namespace My.Sys.Forms
 			Dim As EditControl Ptr ec = Cast(Any Ptr, data1)
 			If ec->cr = 0 Then
 				ec->cr = cr
-				cairo_select_font_face(cr, "Noto Mono", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+				#ifdef __FB_WIN32__
+					cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+				#else
+					cairo_select_font_face(cr, "Noto Mono", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+				#endif
 				cairo_set_font_size(cr, 11)
 				
 				Dim As PangoRectangle extend
@@ -3972,7 +3976,11 @@ Namespace My.Sys.Forms
 			pcontext = gtk_widget_create_pango_context(widget)
 			layout = pango_layout_new(pcontext)
 			Dim As PangoFontDescription Ptr desc
-			desc = pango_font_description_from_string ("Noto Mono 11")
+			#ifdef __FB_WIN32__
+				desc = pango_font_description_from_string ("Courier 11")
+			#else
+				desc = pango_font_description_from_string ("Noto Mono 11")
+			#endif
 			pango_layout_set_font_description (layout, desc)
 			pango_font_description_free (desc)
 			

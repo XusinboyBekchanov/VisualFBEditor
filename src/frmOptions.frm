@@ -3115,7 +3115,7 @@ Sub FindCompilers(ByRef Path As WString)
 			ThreadsEnter
 			With fOptions.lvCompilerPaths.ListItems
 				For i As Integer = 0 To .Count - 1
-					If EqualPaths(.Item(i)->Text(1), f1) Then f = Dir(Attr): Continue While
+					If EqualPaths(.Item(i)->Text(1), f1) Then f = Dir(Attr): ThreadsLeave: Continue While
 				Next
 				If StartsWith(f1, FolderName) Then f1 = "." & Slash & Mid(f1, Len(FolderName) + 1)
 				f2 = GetFileName(GetFolderName(f1, False))
@@ -3153,7 +3153,7 @@ Sub FindProcessStartStop()
 		Else
 			StartProgress
 			.cmdFindCompilers.Text = ML("Stop")
-			ThreadCounter(ThreadCreate(@FindCompilersSub))
+			ThreadCounter(ThreadCreate_(@FindCompilersSub))
 		End If
 		.cmdAddCompiler.Enabled = bStop
 		.cmdChangeCompiler.Enabled = bStop

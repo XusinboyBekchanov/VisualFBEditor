@@ -536,7 +536,7 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex
 			If ee > 0 AndAlso *ee->FileName <> "" Then
 				lvSearchResult->ListItems.Clear
 				gSearchItemIndex = 0
-				ThreadCreate(@FindSubProj, Tn)
+				ThreadCreate_(@FindSubProj, Tn)
 				wLet gSearchSave, *Search
 			End If
 		End If
@@ -632,7 +632,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 		If Tn > 0 Then
 			Dim As ExplorerElement Ptr ee = Tn->Tag
 			If ee > 0 AndAlso *ee->FileName <> "" Then
-				ThreadCreate(@ReplaceSubProj,Tn)
+				ThreadCreate_(@ReplaceSubProj,Tn)
 			End If
 		End If
 	Else

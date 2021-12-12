@@ -32,7 +32,7 @@ DOWN PNG "../resources/Down.png"
 DropDown PNG "../resources/DropDown.png"
 DropRight PNG "../resources/DropRight.png"
 EndD PNG "../resources/EndD.png"
-EndProgram PNG "../resources/End.png"
+EndProgram PNG "../resources/EndProgram.png"
 Enum PNG "../resources/Enum.png"
 EnumItem PNG "../resources/EnumItem.png"
 Eraser PNG "../resources/Eraser.png"
@@ -51,7 +51,7 @@ HAND CURSOR "../resources/Hand.cur"
 HELP PNG "../resources/Help.png"
 INFO PNG "../resources/Info.png"
 KURSOR PNG "../resources/Cursor.png"
-LIST PNG "../resources/Try.png"
+LIST PNG "../resources/List.png"
 LOGO PNG "../resources/Logo.png"
 Label PNG "../resources/Label.png"
 MAKE PNG "../resources/Make.png"
@@ -111,8 +111,8 @@ weChat PNG "../resources/weChat.png"
 #define APP_TITLE_STR               "Visual FB Editor\0"
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,9,5139
-#define VER_FILEVERSION_STR         "1.2.9.5139\0"
+#define VER_FILEVERSION             1,2,9,5290
+#define VER_FILEVERSION_STR         "1.2.9.5290\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

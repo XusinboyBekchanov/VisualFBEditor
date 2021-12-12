@@ -480,7 +480,11 @@ End Sub
 	Function CloseButton_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 		Dim As CloseButton Ptr cb = Cast(Any Ptr, data1)
 		
-		cairo_select_font_face(cr, "Noto Mono", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+		#ifdef __FB_WIN32__
+			cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+		#else
+			cairo_select_font_face(cr, "Noto Mono", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+		#endif
 		cairo_set_font_size(cr, 11)
 		
 		#ifdef __USE_GTK3__
@@ -539,7 +543,11 @@ Constructor CloseButton
 		pcontext = gtk_widget_create_pango_context(widget)
 		layout = pango_layout_new(pcontext)
 		Dim As PangoFontDescription Ptr desc
-		desc = pango_font_description_from_string ("Noto Mono 11")
+		#ifdef __FB_WIN32__
+			desc = pango_font_description_from_string ("Courier 11")
+		#else
+			desc = pango_font_description_from_string ("Noto Mono 11")
+		#endif
 		pango_layout_set_font_description (layout, desc)
 		pango_font_description_free (desc)
 	#else
@@ -683,7 +691,7 @@ Function TabWindow.SaveTab As Boolean
 		End If
 		'LoadFunctions FileName, LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
 		MutexUnlock tlockSave
-		ThreadCounter(ThreadCreate(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
+		ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
 	End If
 	Return True
 End Function
@@ -2151,7 +2159,7 @@ Sub OnToolTipLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
 			'Else
 			HelpOption.CurrentWord = res(3)
 			'End If
-			ThreadCounter(ThreadCreate(@RunHelp, @HelpOption))
+			ThreadCounter(ThreadCreate_(@RunHelp, @HelpOption))
 		Else
 			SelectSearchResult res(0), Val(res(1)) + 1, , , , res(2)
 		End If
@@ -3947,7 +3955,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Enums.Clear
 	Procedures.Clear
 	Args.Clear
-	'ThreadCreate(@LoadFromTabWindow, @This)
+	'ThreadCreate_(@LoadFromTabWindow, @This)
 	'LoadFunctions FileName, OnlyFilePath, Types, Procedures, Args, @txtCode
 	t = False
 	Var bT = False
@@ -4035,7 +4043,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
 						If Not pLoadPaths->Contains(*FPath) Then
 							pLoadPaths->Add *FPath
-							ThreadCounter(ThreadCreate(@LoadFunctionsSub, @pLoadPaths->Item(pLoadPaths->Count - 1)))
+							ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(pLoadPaths->Count - 1)))
 						End If
 					End If
 				#endif
@@ -6406,8 +6414,8 @@ Sub RunPr(Debugger As String = "")
 							Buff = res(j)
 							ShowMessages(Buff, False)
 							If StartsWith(Buff, "- waiting for device -") Then
-								ThreadCreate(@RunEmulator, SDKDir.vptr)
-								ThreadCreate(@RunLogCat, SDKDir.vptr)
+								ThreadCreate_(@RunEmulator, SDKDir.vptr)
+								ThreadCreate_(@RunLogCat, SDKDir.vptr)
 							End If
 						Next j
 						sOutput = Mid(sBuffer, Pos1 + 1)
@@ -6458,7 +6466,9 @@ Sub RunPr(Debugger As String = "")
 				If Idx <> - 1 Then
 					Tool = pTerminals->Item(Idx)->Object
 					CommandLine = Tool->GetCommand(Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)))
-					If Tool->Parameters = "" Then CommandLine &= " --wait -- "
+					#ifndef __FB_WIN32__
+						If Tool->Parameters = "" Then CommandLine &= " --wait -- "
+					#endif
 				Else
 					CommandLine &= """" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
 				End If

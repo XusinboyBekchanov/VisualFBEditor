@@ -607,7 +607,7 @@ Function Compile(Parameter As String = "") As Integer
 		ThreadsLeave()
 	End If
 	#ifdef __USE_GTK__
-		If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
+		If Open Pipe(*PipeCommand For Input As Fn) = 0 Then
 			'#ifndef __USE_GTK__
 			'#if __FB_GUI__ <> 0
 			'ShowWindow(FindWindow(, SW_MINIMIZE)
@@ -1268,7 +1268,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
 						pFiles->Add *ee->FileName
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
-						ThreadCounter(ThreadCreate(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
+						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
 					End If
 					If inFolder Then
 						ppe->Files.Add *ee->FileName
@@ -1343,7 +1343,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		End If
 		If pFilesList = 0 Then
 			For i As Integer = 0 To pFiles->Count - 1
-				ThreadCounter(ThreadCreate(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i)))))
+				ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i)))))
 			Next
 		End If
 	End If
@@ -1438,7 +1438,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn ' For No MainFIle
 		Close #Fn
 		For i As Integer = 0 To Files.Count - 1
-			ThreadCounter(ThreadCreate(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
+			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
 		Next
 		Return True
 	End If
@@ -3668,16 +3668,32 @@ Sub LoadToolBox
 		#endif
 	#else
 		#ifdef __USE_GTK3__
-			#ifdef __FB_64BIT__
-				WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk3.so")
+			#ifdef __FB_WIN32__
+				#ifdef __FB_64BIT__
+					WLet(MFFDll, GetFullPath(*MFFPath) & "/mff64_gtk3.dll")
+				#else
+					WLet(MFFDll, GetFullPath(*MFFPath) & "/mff32_gtk3.dll")
+				#endif
 			#else
-				WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk3.so")
+				#ifdef __FB_64BIT__
+					WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk3.so")
+				#else
+					WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk3.so")
+				#endif
 			#endif
 		#else
-			#ifdef __FB_64BIT__
-				WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk2.so")
+			#ifdef __FB_WIN32__
+				#ifdef __FB_64BIT__
+					WLet(MFFDll, GetFullPath(*MFFPath) & "/mff64_gtk2.dll")
+				#else
+					WLet(MFFDll, GetFullPath(*MFFPath) & "/mff32_gtk2.dll")
+				#endif
 			#else
-				WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk2.so")
+				#ifdef __FB_64BIT__
+					WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk2.so")
+				#else
+					WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk2.so")
+				#endif
 			#endif
 		#endif
 	#endif
@@ -4127,7 +4143,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "StartWithCompile", "StartWithCompile"
 	imgList.Add "Start", "Start"
 	imgList.Add "Break", "Break"
-	imgList.Add "EndProgram", "End"
+	imgList.Add "EndProgram", "EndProgram"
 	imgList.Add "New", "New"
 	imgList.Add "Open", "Open"
 	imgList.Add "Save", "Save"
@@ -4630,7 +4646,7 @@ Sub CreateMenusAndToolBars
 	tbEdit.Buttons.Add , "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & " (Ctrl+J)", True
 	tbEdit.Buttons.Add tbsSeparator
 	tbEdit.Buttons.Add , "SyntaxCheck", , @mClick, "SyntaxCheck", , ML("Syntax Check"), True
-	Var tbButton = tbEdit.Buttons.Add(tbsWholeDropdown, "Try", , @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
+	Var tbButton = tbEdit.Buttons.Add(tbsWholeDropdown, "List", , @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
 	'tbButton->DropDownMenu.ImagesList = @imgList
 	tbButton->DropDownMenu.Add ML("Numbering"), "Numbering", "NumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Macro numbering"), "", "MacroNumberOn", @mclick
@@ -4676,7 +4692,7 @@ Sub CreateMenusAndToolBars
 	tbtStartWithCompile = tbRun.Buttons.Add( , "StartWithCompile", , @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True)
 	tbtStart = tbRun.Buttons.Add( , "Start", , @mClick, "Start", , ML("Start") & " (Ctrl+F5)", True)
 	tbtBreak = tbRun.Buttons.Add( , "Break", , @mClick, "Break", , ML("Break") & " (Ctrl+Pause)", True, 0)
-	tbtEnd = tbRun.Buttons.Add( , "End", , @mClick, "End", , ML("End"), True, 0)
+	tbtEnd = tbRun.Buttons.Add( , "EndProgram", , @mClick, "End", , ML("End"), True, 0)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbProject.Name = "Run"
 	tbProject.ImagesList = @imgList
@@ -4905,12 +4921,12 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 	Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine)
 	Dim As UString CurrentWord = ""
 	Dim As UString Params
-	If Not WithoutProgram Then
-		#ifdef __USE_GTK__
-			If Not g_find_program_in_path(ToUTF8(This.Path)) = NULL Then
-		#else
+	If Trim(This.Path) <> "" AndAlso Not WithoutProgram Then
+		'#ifdef __USE_GTK__
+		'	If Not g_find_program_in_path(ToUTF8(This.Path)) = NULL Then
+		'#else
 			If Not FileExists(This.Path) Then
-		#endif
+		'#endif
 			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
 		Else
 			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
@@ -5072,7 +5088,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 					End If
 					mLoadLog = True
 				ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
-					ThreadCounter(ThreadCreate(@FindToDoSub, ptn))
+					ThreadCounter(ThreadCreate_(@FindToDoSub, ptn))
 					mLoadToDo = True
 				End If
 			End If
@@ -6274,7 +6290,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 			mLoadLog = True
 		ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
 			mLoadToDo = True
-			ThreadCounter(ThreadCreate(@FindToDoSub, MainNode))
+			ThreadCounter(ThreadCreate_(@FindToDoSub, MainNode))
 		End If
 	End If
 End Sub
@@ -6950,6 +6966,7 @@ tbRun.OnMouseUp = @ToolBar_MouseUp
 
 Rebar1.Align = DockStyle.alTop
 
+frmMain.Name = "frmMain"
 #ifdef __USE_GTK__
 	frmMain.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 #else
@@ -7043,7 +7060,7 @@ Sub OnProgramQuit() Destructor
 	WDeallocate MFFDll
 	WDeallocate gSearchSave
 	For i As Integer = 0 To Threads.Count - 1
-		ThreadWait Threads.Item(i)
+		If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
 	Next
 	MutexDestroy tlockToDo
 	MutexDestroy tlock

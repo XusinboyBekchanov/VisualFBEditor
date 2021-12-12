@@ -41,7 +41,11 @@ Using My.Sys.Forms
 		#else
 			lblSplash.Text = "Visual FB Editor " & pApp->GetVerInfo("ProductVersion")
 		#endif
-		lblSplash.Font.Name = "Times New Roman"
+		#if defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+			lblSplash.Font.Name = "Sans"
+		#else
+			lblSplash.Font.Name = "Times New Roman"
+		#endif
 		lblSplash.Font.Size = 20
 		lblSplash.Font.Bold = True
 		lblSplash.Font.Italic = True

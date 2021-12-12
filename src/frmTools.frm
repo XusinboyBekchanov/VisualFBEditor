@@ -348,7 +348,7 @@ Sub UserToolType.Execute()
 	If WaitComplete Then
 		ExecuteTool @This
 	Else
-		ThreadCounter(ThreadCreate(@ExecuteTool, @This))
+		ThreadCounter(ThreadCreate_(@ExecuteTool, @This))
 	End If
 End Sub
 
