@@ -29,16 +29,16 @@ To compile use the following command lines:
 #### For Windows 32-bit (for gtk2):
 ```shell
   cd Path_to_VisualFBEditor/src
-  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32_gtk2.exe" "VisualFBEditor.rc" -d __USE_GTK__ -i "Path_to_VisualFBEditor/MyFbFramework" -p "Path_to_msys2\msys32\mingw64\lib"
+  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32_gtk2.exe" "VisualFBEditor.rc" -d __USE_GTK__ -i "Path_to_VisualFBEditor/MyFbFramework" -p "Path_to_msys2\msys32\mingw32\lib"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
-  fbc -b "mff.bi" "mff.rc" -dll -x "../mff32_gtk2.dll"
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff32_gtk2.dll" -d __USE_GTK__ -p "Path_to_msys2\msys32\mingw32\lib"
 ```
 #### For Windows 32-bit (for gtk3):
 ```shell
   cd Path_to_VisualFBEditor/src
-  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32_gtk3.exe" "VisualFBEditor.rc" -d __USE_GTK__ -d __USE_GTK3__ -i "Path_to_VisualFBEditor/MyFbFramework" -p "Path_to_msys2\msys32\mingw64\lib"
+  fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32_gtk3.exe" "VisualFBEditor.rc" -d __USE_GTK__ -d __USE_GTK3__ -i "Path_to_VisualFBEditor/MyFbFramework" -p "Path_to_msys2\msys32\mingw32\lib"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
-  fbc -b "mff.bi" "mff.rc" -dll -x "../mff32_gtk3.dll"
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff32_gtk3.dll" -d __USE_GTK__ -d __USE_GTK3__ -p "Path_to_msys2\msys32\mingw32\lib"
 ```
 #### For Windows 64-bit:
 ```shell
@@ -52,14 +52,14 @@ To compile use the following command lines:
   cd Path_to_VisualFBEditor/src
   fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64_gtk2.exe" "VisualFBEditor.rc" -d __USE_GTK__ -i "Path_to_VisualFBEditor/MyFbFramework" -p "Path_to_msys2\msys32\mingw64\lib"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
-  fbc -b "mff.bi" "mff.rc" -dll -x "../mff64_gtk2.dll"
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff64_gtk2.dll" -d __USE_GTK__ -p "Path_to_msys2\msys32\mingw64\lib"
 ```
 #### For Windows 64-bit (for gtk3):
 ```shell
   cd Path_to_VisualFBEditor/src
   fbc "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64_gtk3.exe" "VisualFBEditor.rc" -d __USE_GTK__ -d __USE_GTK3__ -i "Path_to_VisualFBEditor/MyFbFramework" -p "Path_to_msys2\msys32\mingw64\lib"
   cd Path_to_VisualFBEditor/MyFbFramework/mff
-  fbc -b "mff.bi" "mff.rc" -dll -x "../mff64_gtk3.dll"
+  fbc -b "mff.bi" "mff.rc" -dll -x "../mff64_gtk3.dll" -d __USE_GTK__ -d __USE_GTK3__ -p "Path_to_msys2\msys32\mingw64\lib"
 ```
 #### For Linux 32-bit (for gtk2):
 ```shell
