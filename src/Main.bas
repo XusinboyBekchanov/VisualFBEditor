@@ -4166,7 +4166,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Numbering", "Numbering"
 	imgList.Add "CodeAndForm", "CodeAndForm"
 	imgList.Add "SyntaxCheck", "SyntaxCheck"
-	imgList.Add "List", "Try"
+	imgList.Add "List", "List"
 	imgList.Add "UseDebugger", "UseDebugger"
 	imgList.Add "Compile", "Compile"
 	imgList.Add "Make", "Make"
