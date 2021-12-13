@@ -28,21 +28,21 @@ Constructor ProjectElement
 End Constructor
 
 Destructor ProjectElement
-	WDeallocate MainFileName
-	WDeallocate ResourceFileName
-	WDeallocate IconResourceFileName
-	WDeallocate ProjectName
-	WDeallocate HelpFileName
-	WDeallocate ProjectDescription
-	WDeallocate ApplicationTitle
-	WDeallocate ApplicationIcon
-	WDeallocate CompanyName
-	WDeallocate FileDescription
-	WDeallocate InternalName
-	WDeallocate LegalCopyright
-	WDeallocate LegalTrademarks
-	WDeallocate OriginalFilename
-	WDeallocate ProductName
+	WDeAllocate MainFileName
+	WDeAllocate ResourceFileName
+	WDeAllocate IconResourceFileName
+	WDeAllocate ProjectName
+	WDeAllocate HelpFileName
+	WDeAllocate ProjectDescription
+	WDeAllocate ApplicationTitle
+	WDeAllocate ApplicationIcon
+	WDeAllocate CompanyName
+	WDeAllocate FileDescription
+	WDeAllocate InternalName
+	WDeAllocate LegalCopyright
+	WDeAllocate LegalTrademarks
+	WDeAllocate OriginalFilename
+	WDeAllocate ProductName
 	WDeallocate CompilationArguments32Windows
 	WDeallocate CompilationArguments64Windows
 	WDeallocate CompilationArguments32Linux
@@ -154,8 +154,8 @@ End Sub
 
 Function GetTab(ByRef FileName As WString) As TabWindow Ptr
 	Dim As TabWindow Ptr tb
-	For i As Integer = 0 To pTabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, pTabCode->Tabs[i])
+	For i As Integer = 0 To ptabCode->TabCount - 1
+		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 		If EqualPaths(tb->FileName, FileName) Then Return tb
 	Next i
 	Return 0
@@ -163,8 +163,8 @@ End Function
 
 Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 	Dim As TabWindow Ptr tb
-	For i As Integer = 0 To pTabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, pTabCode->Tabs[i])
+	For i As Integer = 0 To ptabCode->TabCount - 1
+		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 		If tb->tn = tn Then Return tb
 	Next i
 	Return 0
@@ -178,10 +178,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	FileNameNew = FileName
 	If EndsWith(FileNameNew, ":") Then FileNameNew = ..Left(FileNameNew, Len(FileNameNew) - 1)
 	If FileName <> "" Then
-		For i As Integer = 0 To pTabCode->TabCount - 1
-			If EqualPaths(Cast(TabWindow Ptr, pTabCode->Tabs[i])->FileName, FileNameNew) Then
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			If EqualPaths(Cast(TabWindow Ptr, ptabCode->Tabs[i])->FileName, FileNameNew) Then
 				bFind = True
-				tb = Cast(TabWindow Ptr, pTabCode->Tabs[i])
+				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 				If Not bNoActivate Then tb->SelectTab
 				Return tb
 			End If
@@ -197,7 +197,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			Next i
 		End If
 	End If
-	pTabCode->UpdateLock
+	ptabCode->UpdateLock
 	If Not bFind Then
 		tb = New_( TabWindow(FileNameNew, bNew, TreeN))
 		If tb = 0 Then
@@ -214,7 +214,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			tb->txtCode.CStyle = CInt(EndsWith(LCase(FileName), ".rc")) OrElse CInt(EndsWith(LCase(FileName), ".c")) OrElse CInt(EndsWith(LCase(FileName), ".cpp")) OrElse CInt(EndsWith(LCase(FileName), ".h")) OrElse CInt(EndsWith(LCase(FileName), ".xml"))
 			tb->txtCode.SyntaxEdit = tb->txtCode.CStyle OrElse CInt(FileName = "") OrElse CInt(EndsWith(LCase(FileName), ".bas")) OrElse CInt(EndsWith(LCase(FileName), ".frm")) OrElse CInt(EndsWith(LCase(FileName), ".bi")) OrElse CInt(EndsWith(LCase(FileName), ".inc"))
 			'.txtCode.ContextMenu = @mnuCode
-			pTabCode->AddTab(Cast(TabPage Ptr, tb))
+			ptabCode->AddTab(Cast(TabPage Ptr, tb))
 			#ifdef __USE_GTK__
 				'.layout = gtk_layout_new(NULL, NULL)
 				'gtk_widget_set_size_request(.layout, 16, 16)
@@ -222,10 +222,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				gtk_box_pack_end (GTK_BOX (._box), .btnClose.Handle, False, False, 0)
 				gtk_widget_show_all(._box)
 			#else
-				pTabCode->Add(@.btnClose)
+				ptabCode->Add(@.btnClose)
 			#endif
 			tb->ImageKey = GetIconName(FileNameNew)
-			If Not bNoActivate Then .SelectTab Else .Visible = True: pTabCode->RequestAlign: .Visible = False
+			If Not bNoActivate Then .SelectTab Else .Visible = True: ptabCode->RequestAlign: .Visible = False
 			.tbrTop.Buttons.Item(1)->Checked = True
 			If FileName <> "" Then
 				.txtCode.LoadFromFile(FileNameNew, tb->FileEncoding, tb->NewLineType)
@@ -281,10 +281,16 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			ChangeNewLineType tb->NewLineType
 			.FormDesign(bNoActivate)
 		End With
+		If tb->cboClass.Items.Count < 1 Then
+			tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+			SetRightClosedStyle True, True
+		Else
+			SetRightClosedStyle False, False
+		End If
 		MoveCloseButtons
 	End If
 	tb->txtCode.SetFocus
-	pTabCode->UpdateUnLock
+	ptabCode->UpdateUnLock
 	Return tb
 	Exit Function
 	ErrorHandler:
@@ -4754,6 +4760,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			.splForm.Visible = False
 			ptabLeft->SelectedTabIndex = 0
 		Case "Form"
+			If tb->cboClass.Items.Count < 2 Then Exit Sub
 			.pnlCode.Visible = False
 			.pnlForm.Align = DockStyle.alClient
 			.pnlForm.Visible = True
@@ -4761,6 +4768,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			If .bNotDesign = False Then .FormDesign
 			ptabLeft->SelectedTabIndex = 1
 		Case "CodeAndForm"
+			If tb->cboClass.Items.Count < 2 Then Exit Sub
 			.pnlForm.Align = DockStyle.alRight
 			.pnlForm.Width = 350
 			.pnlForm.Visible = True
@@ -4774,13 +4782,13 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 End Sub
 
 Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	tb->txtCode.DropDownShowed = True
 End Sub
 
 Sub cboIntellisense_CloseUp(ByRef Sender As ComboBoxEdit)
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	tb->txtCode.DropDownShowed = False
 End Sub
@@ -4935,7 +4943,7 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 End Sub
 
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
-	WLEt(FCaption, "")
+	WLet(FCaption, "")
 	WLet(FFileName, "")
 	txtCode.Font.Name = *EditorFontName
 	txtCode.Font.Size = EditorFontSize
@@ -4956,7 +4964,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	This.Width = 180
 	This.OnDestroy = @TabWindow_Destroy
 	This.OnResize = @TabWindow_Resize
-	
+	lvPropertyWidth = 150
 	btnClose.tbParent = @This
 	#ifdef __USE_GTK__
 		pnlTop.Height = 33
@@ -5401,7 +5409,6 @@ Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 		SI.wShowWindow = SW_HIDE
 		SI.cb = SizeOf(STARTUPINFO)
 		SI.dwFlags = STARTF_USESHOWWINDOW
-		
 		
 		CreateProcess(0, cmdW, 0, 0, 1, NORMAL_PRIORITY_CLASS, 0, 0, @SI, @PI)
 		WaitForSingleObject(PI.hProcess, INFINITE)
@@ -7151,3 +7158,4 @@ Sub TabWindow.Define
 		End If
 	End With
 End Sub
+ 
