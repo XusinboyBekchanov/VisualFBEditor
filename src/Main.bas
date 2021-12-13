@@ -42,8 +42,8 @@ pfSplash->Show
 pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
-Dim Shared As iniFile iniSettings, iniTheme
-Dim Shared As Toolbar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
+Dim Shared As IniFile iniSettings, iniTheme
+Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
 Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
 Dim Shared As ListControl lstLeft
@@ -52,7 +52,7 @@ Dim Shared As RadioButton radButton
 Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
-Dim Shared As Trackbar trLeft
+Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles, miToolBars
 Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
@@ -403,22 +403,22 @@ Function Compile(Parameter As String = "") As Integer
 	ThreadsEnter()
 	Dim As Boolean Bit32 = tbt32Bit->Checked
 	ThreadsLeave()
-	Dim ExeName As WString Ptr: WLet(ExeName, GetExeFileName(*MainFile, *FirstLine))
+	Dim exename As WString Ptr: WLet(exename, GetExeFileName(*MainFile, *FirstLine))
 	Dim CurrentCompiler As WString Ptr = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
 	Dim FbcExe As WString Ptr = IIf(Bit32, Compiler32Path, Compiler64Path)
 	If *FbcExe = "" Then
-		WDeallocate MainFile
+		WDeAllocate MainFile
 		ThreadsEnter()
 		ShowMessages ML("Invalid defined compiler path.")
 		ThreadsLeave()
 		Return 0
 	Else
 		#ifdef __USE_GTK__
-			If g_find_program_in_path(ToUTF8(*FbcExe)) = NULL Then
+			If g_find_program_in_path(ToUtf8(*FbcExe)) = NULL Then
 		#else
 			If Not FileExists(*FbcExe) Then
 		#endif
-			WDeallocate MainFile
+			WDeAllocate MainFile
 			ThreadsEnter()
 			ShowMessages ML("File") & " """ & *FbcExe & """ " & ML("not found") & "!"
 			ThreadsLeave()
@@ -446,25 +446,25 @@ Function Compile(Parameter As String = "") As Integer
 	Dim As Boolean Band, Yaratilmadi
 	ChDir(GetFolderName(*MainFile))
 	If Parameter = "Check" Then
-		WLet(ExeName, "chk.dll")
+		WLet(exename, "chk.dll")
 	End If
 	ThreadsEnter()
 	ClearMessages
 	ThreadsLeave()
 	FileOut = FreeFile
-	If Dir(*ExeName) <> "" Then 'delete exe if exist
-		If *ExeName = ExePath OrElse Kill(*ExeName) <> 0 Then
+	If Dir(*exename) <> "" Then 'delete exe if exist
+		If *exename = ExePath OrElse Kill(*exename) <> 0 Then
 			ThreadsEnter()
-			ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *ExeName) '
+			ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *exename) '
 			ThreadsLeave()
 			Band = True
-			WDeallocate fbcCommand  '
-			WDeallocate CompileWith
-			WDeallocate MFFPathC
-			WDeallocate MainFile
-			WDeallocate FirstLine
-			WDeallocate ExeName
-			WDeallocate LogText
+			WDeAllocate fbcCommand  '
+			WDeAllocate CompileWith
+			WDeAllocate MFFPathC
+			WDeAllocate MainFile
+			WDeAllocate FirstLine
+			WDeAllocate exename
+			WDeAllocate LogText
 			Return 0
 		End If
 	End If
@@ -544,7 +544,7 @@ Function Compile(Parameter As String = "") As Integer
 		WLet(fbcCommand, """" & GetFileName(*MainFile) & """" & OtherModuleFiles & " " & *CompileWith)
 	End If
 	If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
-		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
+		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *exename & """"
 	End If
 	Dim As WString Ptr PipeCommand
 	If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile"))) Then
@@ -552,7 +552,7 @@ Function Compile(Parameter As String = "") As Integer
 		#ifdef __USE_GTK__
 			Colon = ":"
 		#endif
-		WLet(PipeCommand, """" & *MakeToolPath1 & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *ExeName & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
+		WLet(PipeCommand, """" & *MakeToolPath1 & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *exename & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
 	ElseIf Parameter = "MakeClean" Then
 		WLet(PipeCommand, """" & *MakeToolPath2 & """ " & *Make2Arguments)
 	Else
@@ -693,11 +693,11 @@ Function Compile(Parameter As String = "") As Integer
 		CloseHandle pi.hThread
 		CloseHandle hReadPipe
 	#endif
-	WDeallocate PipeCommand
+	WDeAllocate PipeCommand
 	#ifdef __USE_GTK__
-		Yaratilmadi = g_find_program_in_path(ToUTF8(*ExeName)) = NULL
+		Yaratilmadi = g_find_program_in_path(ToUtf8(*exename)) = NULL
 	#else
-		Yaratilmadi = Dir(*ExeName) = ""
+		Yaratilmadi = Dir(*exename) = ""
 	#endif
 	#ifdef __USE_GTK__
 		Fn = FreeFile
@@ -775,8 +775,8 @@ Function Compile(Parameter As String = "") As Integer
 			End If
 		End If
 		ThreadsLeave()
-		WDeallocate LogText
-		WDeallocate ExeName
+		WDeAllocate LogText
+		WDeAllocate exename
 		Return 1
 	End If
 	
@@ -810,7 +810,7 @@ Sub CreateKeyStore
 		Open *Project->FileName & "/gradle.properties" For Input As #Fn
 		Dim As UString JavaHome
 		FileSize = LOF(Fn)
-		WReallocate(pBuff, FileSize)
+		WReAllocate(pBuff, FileSize)
 		Do Until EOF(Fn)
 			LineInputWstr Fn, pBuff, FileSize
 			If StartsWith(Trim(*pBuff), "org.gradle.java.home=") Then
@@ -896,7 +896,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 		Open *Project->FileName & "/app/build.gradle" For Input As #Fn
 		Dim buildToolsVersion As String
 		FileSize = LOF(Fn)
-		WReallocate(pBuff, FileSize)
+		WReAllocate(pBuff, FileSize)
 		Do Until EOF(Fn)
 			LineInputWstr Fn, pBuff, FileSize
 			If StartsWith(Trim(*pBuff), "buildToolsVersion ") Then
@@ -2135,7 +2135,7 @@ End Sub
 
 Sub SetAsMain()
 	Dim As TreeNode Ptr tn = tvExplorer.SelectedNode
-	If CInt(pTabCode->Focused) AndAlso CInt(pTabCode->SelectedTab <> 0) Then tn = Cast(TabWindow Ptr, pTabCode->SelectedTab)->tn
+	If CInt(ptabCode->Focused) AndAlso CInt(ptabCode->SelectedTab <> 0) Then tn = Cast(TabWindow Ptr, ptabCode->SelectedTab)->tn
 	If tn = 0 Then Exit Sub
 	If tn->ParentNode = 0 OrElse (tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement) Then
 		SetMainNode tn
@@ -3712,7 +3712,7 @@ Sub LoadToolBox
 	#endif
 	Dim cl As Integer = clSilver
 	#ifdef __USE_GTK__
-		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUTF8(GetFullPath(*MFFPath) & "/resources"))
+		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFullPath(*MFFPath) & "/resources"))
 		tbToolBox.Align = DockStyle.alClient
 	#else
 		imgListTools.Add "DropDown", "DropDown"
@@ -4236,42 +4236,42 @@ Sub CreateMenusAndToolBars
 	LoadHotKeys
 	
 	Var miFile = mnuMain.Add(ML("&File"), "", "File")
-	miFile->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mclick)
-	miFile->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mclick)
-	miFile->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mclick)
+	miFile->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mClick)
+	miFile->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mClick)
+	miFile->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mClick)
 	miFile->Add("-")
-	miFile->Add(ML("Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mclick)
-	miFile->Add(ML("Save Project As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mclick)
+	miFile->Add(ML("Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mClick)
+	miFile->Add(ML("Save Project As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mClick)
 	miFile->Add("-")
-	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mclick)
-	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mclick)
+	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mClick)
+	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mClick)
 	miFile->Add("-")
-	miFile->Add(ML("Open Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mclick)
-	miFile->Add(ML("Close Folder") & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mclick)
+	miFile->Add(ML("Open Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mClick)
+	miFile->Add(ML("Close Folder") & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mClick)
 	miFile->Add("-")
-	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "New", @mclick)
-	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mclick)
+	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "New", @mClick)
+	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mClick)
 	miFile->Add("-")
-	miFile->Add(ML("&Save") & "..." & HK("Save", "Ctrl+S"), "Save", "Save", @mclick)
-	miFile->Add(ML("Save &As") & "..." & HK("SaveAs"), "", "SaveAs", @mclick)
-	miFile->Add(ML("Save All") & HK("SaveAll", "Ctrl+Alt+Shift+S"), "SaveAll", "SaveAll", @mclick)
+	miFile->Add(ML("&Save") & "..." & HK("Save", "Ctrl+S"), "Save", "Save", @mClick)
+	miFile->Add(ML("Save &As") & "..." & HK("SaveAs"), "", "SaveAs", @mClick)
+	miFile->Add(ML("Save All") & HK("SaveAll", "Ctrl+Alt+Shift+S"), "SaveAll", "SaveAll", @mClick)
 	miFile->Add("-")
-	miFile->Add(ML("&Close") & HK("Close", "Ctrl+F4"), "Close", "Close", @mclick)
-	miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Alt+Shift+F4"), "", "CloseAll", @mclick)
+	miFile->Add(ML("&Close") & HK("Close", "Ctrl+F4"), "Close", "Close", @mClick)
+	miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Alt+Shift+F4"), "", "CloseAll", @mClick)
 	miFile->Add("-")
-	miFile->Add(ML("&Print") & HK("Print", "Ctrl+P"), "Print", "Print", @mclick)
-	miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mclick)
-	miFile->Add(ML("Page Set&up") & "..." & HK("PageSetup"), "", "PageSetup", @mclick)
+	miFile->Add(ML("&Print") & HK("Print", "Ctrl+P"), "Print", "Print", @mClick)
+	miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mClick)
+	miFile->Add(ML("Page Set&up") & "..." & HK("PageSetup"), "", "PageSetup", @mClick)
 	miFile->Add("-")
 	Var miFileFormat = miFile->Add(ML("File format"))
-	miPlainText = miFileFormat->Add(ML("Encoding") & ": " & ML("Plain text") & HK("PlainText"), "", "PlainText", @mclick, True)
-	miUtf8 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf8") & HK("Utf8"), "", "Utf8", @mclick, True)
-	miUtf16 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf16") & HK("Utf16"), "", "Utf16", @mclick, True)
-	miUtf32 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf32") & HK("Utf32"), "", "Utf32", @mclick, True)
+	miPlainText = miFileFormat->Add(ML("Encoding") & ": " & ML("Plain text") & HK("PlainText"), "", "PlainText", @mClick, True)
+	miUtf8 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf8") & HK("Utf8"), "", "Utf8", @mClick, True)
+	miUtf16 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf16") & HK("Utf16"), "", "Utf16", @mClick, True)
+	miUtf32 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf32") & HK("Utf32"), "", "Utf32", @mClick, True)
 	miFileFormat->Add("-")
-	miWindowsCRLF = miFileFormat->Add(ML("Newline") & ": " & ML("Windows (CRLF)") & HK("WindowsCRLF"), "", "WindowsCRLF", @mclick, True)
-	miLinuxLF = miFileFormat->Add(ML("Newline") & ": " & ML("Linux (LF)") & HK("LinuxLF"), "", "LinuxLF", @mclick, True)
-	miMacOSCR = miFileFormat->Add(ML("Newline") & ": " & ML("MacOS (CR)") & HK("MacOSCR"), "", "MacOSCR", @mclick, True)
+	miWindowsCRLF = miFileFormat->Add(ML("Newline") & ": " & ML("Windows (CRLF)") & HK("WindowsCRLF"), "", "WindowsCRLF", @mClick, True)
+	miLinuxLF = miFileFormat->Add(ML("Newline") & ": " & ML("Linux (LF)") & HK("LinuxLF"), "", "LinuxLF", @mClick, True)
+	miMacOSCR = miFileFormat->Add(ML("Newline") & ": " & ML("MacOS (CR)") & HK("MacOSCR"), "", "MacOSCR", @mClick, True)
 	miUtf8->Checked = True
 	#ifdef __FB_WIN32__
 		miWindowsCRLF->Checked = True
@@ -4678,11 +4678,11 @@ Sub CreateMenusAndToolBars
 '	#endif
 	tbBuild.Flat = True
 	tbBuild.List = True
-	tbtUseDebugger = tbBuild.Buttons.Add(tbsCheck Or tbsAutoSize, "UseDebugger", , @mClick, "TBUseDebugger", , ML("Use Debugger"), True)
+	tbtUseDebugger = tbBuild.Buttons.Add(tbsCheck Or tbsAutosize, "UseDebugger", , @mClick, "TBUseDebugger", , ML("Use Debugger"), True)
 	tbBuild.Buttons.Add , "Compile", , @mClick, "Compile", , ML("Compile") & " (Ctrl+F9)", True
 	Var tbMake = tbBuild.Buttons.Add(tbsAutosize Or tbsWholeDropdown, "Make", , @mClick, "Make", , ML("Make"), True)
-	tbMake->DropDownMenu.Add "Make", "", "Make", @mclick
-	tbMake->DropDownMenu.Add "Make clean", "", "MakeClean", @mclick
+	tbMake->DropDownMenu.Add "Make", "", "Make", @mClick
+	tbMake->DropDownMenu.Add "Make clean", "", "MakeClean", @mClick
 	tbBuild.Buttons.Add , "Parameters", , @mClick, "Parameters", , ML("Parameters"), True
 	'tbStandard.Buttons.Add tbsSeparator
 	tbRun.Name = "Run"
@@ -5945,19 +5945,30 @@ pnlRightPin.Parent = @pnlRight
 
 'ptabCode->Images.AddIcon bmp
 
-Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
+Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	Static tbOld As TabWindow Ptr
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(NewIndex))
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(newIndex))
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
 	tb->tn->SelectItem
-	'	Static OldIndex As Integer
-	'	If OldIndex <> NewIndex Then
-	'		If pfFind->Visible = True AndAlso pfFind->OptFindinCurrFile.Checked Then
-	'			wLet(gSearchSave,"")
-	'			pfFind->FindAll plvSearch, 2,, False
-	'		End If
-	'	End If
+	If tbOld AndAlso tb = tbOld Then Exit Sub
+	If tbOld > 0 Then
+		tbOld->lvPropertyWidth = tabRightWidth
+		tbOld->FindFormPosiLeft = pfFind->Left
+		tbOld->FindFormPosiTop = pfFind->Top
+	End If
+	If tb > 0 Then
+		tabRightWidth = tb->lvPropertyWidth
+		If tb->FindFormPosiLeft > 0 Then pfFind->Left = tb->FindFormPosiLeft
+		If tb->FindFormPosiTop > 0 Then pfFind->Top = tb->FindFormPosiTop
+	End If
+	tbOld = tb
+	If tb->cboClass.Items.Count < 2 Then
+		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+		SetRightClosedStyle True, True
+	Else
+		SetRightClosedStyle False, False
+	End If
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To sourcenb
 			If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
@@ -5969,7 +5980,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 	txtLabelProperty.Text = ""
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
-	If Cbool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
+	If CBool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
 '		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 '		SetRightClosedStyle True, True
 	ElseIf tb->FileName <> "" Then
@@ -6260,7 +6271,7 @@ Sub tabBottom_DblClick(ByRef Sender As Control)
 	SetBottomClosedStyle Not GetBottomClosedStyle
 End Sub
 
-Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
+Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 	#ifdef __USE_GTK__
 		If ptabBottom->TabPosition = tpBottom And pnlBottom.Height = 25 Then
 	#else
@@ -6293,7 +6304,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, NewIndex As Integer)
 				txtChangeLog.Text = ""
 			End If
 			mLoadLog = True
-		ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
+		ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDo Then
 			mLoadToDo = True
 			ThreadCounter(ThreadCreate_(@FindToDoSub, MainNode))
 		End If

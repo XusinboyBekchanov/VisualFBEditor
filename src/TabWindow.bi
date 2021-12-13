@@ -188,12 +188,12 @@ Public:
 	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
 	Declare Sub SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
 	Dim bNotDesign As Boolean
-	Dim As Integer ConstructorStart, ConstructorEnd
+	Dim As Integer ConstructorStart, ConstructorEnd, lvPropertyWidth, FindFormPosiLeft, FindFormPosiTop
 	tn As TreeNode Ptr
 	DownLine As Integer
 	DownLineSelStart As Integer
 	DownLineSelEnd As Integer
-	lblPlusMinus As label
+	lblPlusMinus As Label
 	pnlTop As Panel
 	pnlTopCombo As Panel
 	pnlCode As Panel
@@ -420,3 +420,4 @@ Declare Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, ByVa
 #ifndef __USE_MAKE__
 	#include once "TabWindow.bas"
 #endif
+ 

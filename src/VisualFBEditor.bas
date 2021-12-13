@@ -171,11 +171,11 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "WatchWindow":                         ptabBottom->Tab(9)->SelectTab
 	Case "ImageManager":                        pfImageManager->Show *pfrmMain
 	Case "Toolbars":                            'ShowMainToolbar = Not ShowMainToolbar: ReBar1.Visible = ShowMainToolbar: pfrmMain->RequestAlign
-	Case "Standard":                            ShowStandardToolbar = Not ShowStandardToolbar: ReBar1.Bands.Item(0)->Visible = ShowStandardToolbar: mnuStandardToolBar->Checked = ShowStandardToolbar: pfrmMain->RequestAlign
-	Case "Edit":                                ShowEditToolbar = Not ShowEditToolbar: ReBar1.Bands.Item(1)->Visible = ShowEditToolbar: mnuEditToolbar->Checked = ShowEditToolbar: pfrmMain->RequestAlign
-	Case "Project":                             ShowProjectToolbar = Not ShowProjectToolbar: ReBar1.Bands.Item(2)->Visible = ShowProjectToolbar: mnuProjectToolbar->Checked = ShowProjectToolbar: pfrmMain->RequestAlign
-	Case "Build":                               ShowBuildToolbar = Not ShowBuildToolbar: ReBar1.Bands.Item(3)->Visible = ShowBuildToolbar: mnuBuildToolbar->Checked = ShowBuildToolbar: pfrmMain->RequestAlign
-	Case "Run":                                 ShowRunToolbar = Not ShowRunToolbar: ReBar1.Bands.Item(4)->Visible = ShowRunToolbar: mnuRunToolbar->Checked = ShowRunToolbar: pfrmMain->RequestAlign
+	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: ReBar1.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolbar: pfrmMain->RequestAlign
+	Case "Edit":                                ShowEditToolBar = Not ShowEditToolBar: ReBar1.Bands.Item(1)->Visible = ShowEditToolBar: mnuEditToolBar->Checked = ShowEditToolbar: pfrmMain->RequestAlign
+	Case "Project":                             ShowProjectToolBar = Not ShowProjectToolBar: ReBar1.Bands.Item(2)->Visible = ShowProjectToolBar: mnuProjectToolBar->Checked = ShowProjectToolbar: pfrmMain->RequestAlign
+	Case "Build":                               ShowBuildToolBar = Not ShowBuildToolBar: ReBar1.Bands.Item(3)->Visible = ShowBuildToolBar: mnuBuildToolBar->Checked = ShowBuildToolbar: pfrmMain->RequestAlign
+	Case "Run":                                 ShowRunToolBar = Not ShowRunToolBar: ReBar1.Bands.Item(4)->Visible = ShowRunToolBar: mnuRunToolBar->Checked = ShowRunToolbar: pfrmMain->RequestAlign
 	Case "TBUseDebugger":                       ChangeUseDebugger tbtUseDebugger->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
@@ -242,7 +242,7 @@ Sub mClick(Sender As My.Sys.Object)
 			Else
 				runtype=RTSTEP:procad=0:procin=0:proctop=False:procbot=0
 			EndIf
-			Stopcode=CSHALTBU
+			stopcode=CSHALTBU
 			'SetFocus(richeditcur)
 		#endif
 	Case "End":
@@ -251,7 +251,7 @@ Sub mClick(Sender As My.Sys.Object)
 		#else
 			'kill_process("Terminate immediatly no saved data, other option Release")
 			For i As Integer = 1 To linenb 'restore old instructions
-				WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rLine(i).sv, 1, 0)
+				WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rline(i).sv, 1, 0)
 			Next
 			runtype = RTFREE
 			'but_enable()
@@ -347,8 +347,8 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
 		Case "Code":                        tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-		Case "Form":                        tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
-		Case "CodeAndForm":                 tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
+		Case "Form":                        If tb->cboClass.Items.Count < 2 Then Exit Sub: tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
+		Case "CodeAndForm":                 If tb->cboClass.Items.Count < 2 Then Exit Sub: tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
 		End Select
 	Case "SaveAll":                         SaveAll
 	Case "CloseAll":                        CloseAllTabs
@@ -496,3 +496,4 @@ MsgBox ErrDescription(Err) & " (" & Err & ") " & _
 "in function " & ZGet(Erfn()) & " " & _
 "in module " & ZGet(Ermn()) ' & " " & _
 '"in line " & Erl()
+ 
