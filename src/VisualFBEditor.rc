@@ -5,6 +5,8 @@
 /*'#           Liu XiaLin                                  #*/
 /*'#########################################################*/
 
+#include <windows.h>
+
 1 24 "./Manifest.xml"
 1 ICON "../resources/VisualFBEditor.ico"
 ABOUT PNG "../resources/About.png"
@@ -48,7 +50,7 @@ Folder PNG "../resources/Folder.png"
 Format PNG "../resources/Format.png"
 Function PNG "../resources/Function.png"
 HAND CURSOR "../resources/Hand.cur"
-HELP PNG "../resources/Help.png"
+BOOK PNG "../resources/Book.png"
 INFO PNG "../resources/Info.png"
 KURSOR PNG "../resources/Cursor.png"
 LIST PNG "../resources/List.png"
@@ -111,8 +113,8 @@ weChat PNG "../resources/weChat.png"
 #define APP_TITLE_STR               "Visual FB Editor\0"
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,2,9,5290
-#define VER_FILEVERSION_STR         "1.2.9.5290\0"
+#define VER_FILEVERSION             1,2,9,5146
+#define VER_FILEVERSION_STR         "1.2.9.5146\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

@@ -4175,7 +4175,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "UseDebugger", "UseDebugger"
 	imgList.Add "Compile", "Compile"
 	imgList.Add "Make", "Make"
-	imgList.Add "Help", "Help"
+	imgList.Add "Book", "Book"
 	imgList.Add "About", "About"
 	imgList.Add "Session", "Session"
 	imgList.Add "File", "File"
@@ -4542,7 +4542,7 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mclick)
 	
 	Var miHelp = mnuMain.Add(ML("&Help"), "", "Help")
-	miHelp->Add(ML("&Content") & HK("Content", "F1"), "Help", "Content", @mclick)
+	miHelp->Add(ML("&Content") & HK("Content", "F1"), "Book", "Content", @mclick)
 	miHelps = miHelp->Add(ML("&Others"), "", "Others")
 	Dim As WString * 1024 sTmp2
 	For i As Integer = 0 To pHelps->Count - 1
@@ -4553,7 +4553,7 @@ Sub CreateMenusAndToolBars
 		End If
 	Next
 	miHelp->Add("-")
-	miHelp->Add(ML("FreeBasic WiKi") & HK("FreeBasicWiKi"), "Help", "FreeBasicWiKi", @mclick)
+	miHelp->Add(ML("FreeBasic WiKi") & HK("FreeBasicWiKi"), "Book", "FreeBasicWiKi", @mclick)
 	miHelp->Add(ML("FreeBasic Forums") & HK("FreeBasicForums"), "", "FreeBasicForums", @mclick)
 	Var miGitHub = miHelp->Add(ML("GitHub"))
 	miGitHub->Add(ML("GitHub WebSite") & HK("GitHubWebSite"), "", "GitHubWebSite", @mclick)
@@ -4561,10 +4561,10 @@ Sub CreateMenusAndToolBars
 	miGitHub->Add(ML("FreeBasic Repository") & HK("FreeBasicRepository"), "", "FreeBasicRepository", @mclick)
 	miGitHub->Add("-")
 	miGitHub->Add(ML("VisualFBEditor Repository") & HK("VisualFBEditorRepository"), "", "VisualFBEditorRepository", @mclick)
-	miGitHub->Add(ML("VisualFBEditor WiKi") & HK("VisualFBEditorWiKi"), "Help", "VisualFBEditorWiKi", @mclick)
+	miGitHub->Add(ML("VisualFBEditor WiKi") & HK("VisualFBEditorWiKi"), "Book", "VisualFBEditorWiKi", @mclick)
 	miGitHub->Add("-")
 	miGitHub->Add(ML("MyFbFramework Repository") & HK("MyFbFrameworkRepository"), "", "MyFbFrameworkRepository", @mclick)
-	miGitHub->Add(ML("MyFbFramework WiKi") & HK("MyFbFrameworkWiKi"), "Help", "MyFbFrameworkWiKi", @mclick)
+	miGitHub->Add(ML("MyFbFramework WiKi") & HK("MyFbFrameworkWiKi"), "Book", "MyFbFrameworkWiKi", @mclick)
 	miHelp->Add("-")
 	miHelp->Add(ML("&About") & HK("About"), "About", "About", @mclick)
 	
