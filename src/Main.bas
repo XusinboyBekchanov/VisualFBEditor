@@ -6843,7 +6843,7 @@ Sub frmMain_Show(ByRef Sender As Control)
 		pfAbout->Label1.Text = "Visual FB Editor " & "(" & ML("64-bit") & ")"
 		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
 	#else
-		frmMain.Text = "Visual FB Editor - " & App.Title & " (" & ML("32-bit") & ")"
+		frmMain.Text = App.Title & " (" & ML("32-bit") & ")"
 		pfAbout->Label1.Text = "Visual FB Editor " & " (" & ML("32-bit") & ")"
 		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
 	#endif
