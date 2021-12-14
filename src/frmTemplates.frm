@@ -176,7 +176,7 @@
 			.Nodes.Add ML("Sessions")
 			.Nodes.Add ML("Folders")
 			.Nodes.Add ML("Projects")
-			.Nodes.Add ML("File")
+			.Nodes.Add ML("Files")
 			.Designer = @This
 			.OnSelChanged = @tvRecent_SelChanged_
 		End With
