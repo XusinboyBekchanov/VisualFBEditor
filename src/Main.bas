@@ -6703,7 +6703,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	mStartLoadSession = False
 End Sub
 
-Sub CheckCompilerPaths
+Function CheckCompilerPaths As Boolean
 	Dim As Boolean bFind
 	For i As Integer = 0 To pCompilers->Count - 1
 		If FileExists(pCompilers->Item(i)->Text) Then
@@ -6740,7 +6740,8 @@ Sub CheckCompilerPaths
 			End If
 		End If
 	End If
-End Sub
+	Return bFind
+End Function
 
 For i As Integer = 48 To 57
 	symbols(i - 48) = i
@@ -6857,7 +6858,7 @@ Sub frmMain_Show(ByRef Sender As Control)
 		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
 	#endif
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("CheckCompilerPaths")
-	CheckCompilerPaths
+	Var bFind = CheckCompilerPaths
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("AddIns")
 	LoadAddIns
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("Tools")
@@ -6865,9 +6866,11 @@ Sub frmMain_Show(ByRef Sender As Control)
 	
 	pfSplash->CloseForm
 	Var FILE = Command(-1)
+	Var Pos1 = InStr(file, "2>CON")
+	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
 	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
 		OpenFiles GetFullPath(FILE)
-	Else
+	ElseIf bFind Then
 		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
 		Select Case WhenVisualFBEditorStarts
 		Case 1: NewProject 'pfTemplates->ShowModal
