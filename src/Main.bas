@@ -4153,7 +4153,6 @@ End Function
 Sub CreateMenusAndToolBars
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("Create Menus And ToolBars")
 	imgList.Name = "imgList"
-	imgList.Add "Compile", "Compile"
 	imgList.Add "StartWithCompile", "StartWithCompile"
 	imgList.Add "Start", "Start"
 	imgList.Add "Break", "Break"
@@ -4182,6 +4181,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "SyntaxCheck", "SyntaxCheck"
 	imgList.Add "List", "List"
 	imgList.Add "UseDebugger", "UseDebugger"
+	imgList.Add "Compile", "Compile"
 	imgList.Add "Make", "Make"
 	imgList.Add "Book", "Book"
 	imgList.Add "About", "About"
@@ -4237,7 +4237,7 @@ Sub CreateMenusAndToolBars
 	imgListD.Add "StartWithCompileD", "StartWithCompile"
 	imgListD.Add "StartD", "Start"
 	imgListD.Add "BreakD", "Break"
-	imgListD.Add "EndD", "End"
+	imgListD.Add "EndD", "EndProgram"
 	
 	'mnuMain.ImagesList = @imgList
 	
