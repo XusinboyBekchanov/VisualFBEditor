@@ -6643,7 +6643,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	mStartLoadSession = False
 End Sub
 
-Sub CheckCompilerPaths
+Function CheckCompilerPaths As Boolean
 	Dim As Boolean bFind
 	For i As Integer = 0 To pCompilers->Count - 1
 		If FileExists(pCompilers->Item(i)->Text) Then
@@ -6680,7 +6680,8 @@ Sub CheckCompilerPaths
 			End If
 		End If
 	End If
-End Sub
+	Return bFind
+End Function
 
 For i As Integer = 48 To 57
 	symbols(i - 48) = i
@@ -6778,11 +6779,11 @@ Sub frmMain_Show(ByRef Sender As Control)
 		pnlPropertyValue.Visible = False
 	#endif
 	pfSplash->CloseForm
-	CheckCompilerPaths
+	Var bFind = CheckCompilerPaths
 	Var file = Command(-1)
 	Var Pos1 = InStr(file, "2>CON")
 	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
-	If file = "" Then
+	If file = "" AndAlso bFind Then
 		Select Case WhenVisualFBEditorStarts
 		Case 1: NewProject
 		End Select

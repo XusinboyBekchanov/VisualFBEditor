@@ -141,6 +141,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Integer EditFontSize, InterfFontSize, oldInterfFontSize
 		Dim Colors(Any, Any) As Integer
 		Dim ColorsCount As Integer
+		Dim As Boolean FDisposing
 		Dim As WStringList HotKeysPriv, Templates
 		Dim As Boolean HotKeysChanged
 		Dim As Integer LibraryPathsCount

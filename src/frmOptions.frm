@@ -1290,6 +1290,7 @@ pfOptions = @fOptions
 	End Constructor
 	
 	Destructor frmOptions
+		FDisposing = True
 		WDeallocate InterfFontName
 		WDeallocate OldInterfFontName
 		WDeallocate EditFontName
@@ -2293,6 +2294,7 @@ End Sub
 
 Private Sub frmOptions.TreeView1_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	With fOptions
+		If .FDisposing Then Exit Sub
 		Dim Key As String = Item.Name
 		.pnlGeneral.Visible = Key = "General"
 		.pnlCodeEditor.Visible = Key = "CodeEditor"

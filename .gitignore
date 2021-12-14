@@ -8,3 +8,5 @@ Projects/*.exe
 *_gtk*
 *.so
 *.o
+lib
+share
