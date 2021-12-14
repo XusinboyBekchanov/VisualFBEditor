@@ -30,6 +30,8 @@
 		Declare Sub lvRecent_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Static Sub OpenFileControl1_FileActivate_(ByRef Sender As OpenFileControl)
 		Declare Sub OpenFileControl1_FileActivate(ByRef Sender As OpenFileControl)
+		Declare Static Sub TabControl1_SelChange_(ByRef Sender As TabControl, NewIndex As Integer)
+		Declare Sub TabControl1_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
 		Declare Constructor
 		
 		Dim As TabControl TabControl1

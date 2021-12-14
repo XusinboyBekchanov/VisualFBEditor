@@ -20,17 +20,20 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmFind Extends Form
-		Declare Static Sub _Form_Show_(ByRef Sender As Form)
-		Declare Static Sub _Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _btnFind_Click_(ByRef Sender As Control)
-		Declare Static Sub _btnFindAll_Click_(ByRef Sender As Control)
-		Declare Static Sub _btnFindPrev_Click_(ByRef Sender As Control)
-		Declare Static Sub _btnReplace_Click_(ByRef Sender As Control)
-		Declare Static Sub _btnReplaceAll_Click_(ByRef Sender As Control)
-		Declare Static Sub _btnReplaceShow_Click_(ByRef Sender As Control)
-		Declare Static Sub _btnCancel_Click_(ByRef Sender As Control)
+		Declare Static Sub Form_Show_(ByRef Sender As Form)
+		Declare Static Sub Form_Close_(ByRef Sender As Control, ByRef Action As Integer)
+		Declare Static Sub Form_Create_(ByRef Sender As Control)
+		Declare Static Sub btnFind_Click_(ByRef Sender As Control)
+		Declare Static Sub btnFindAll_Click_(ByRef Sender As Control)
+		Declare Static Sub btnFindPrev_Click_(ByRef Sender As Control)
+		Declare Static Sub btnReplace_Click_(ByRef Sender As Control)
+		Declare Static Sub btnReplaceAll_Click_(ByRef Sender As Control)
+		Declare Static Sub btnReplaceShow_Click_(ByRef Sender As Control)
+		Declare Static Sub btnCancel_Click_(ByRef Sender As Control)
+		Declare Static Sub TrackBar1_Change_(ByRef Sender As TrackBar, Position As Integer)
+		Declare Static Sub cboFindRange_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Sub Form_Close(ByRef Sender As Control, ByRef Action As Integer)
 		Declare Sub btnFind_Click(ByRef Sender As Control)
 		Declare Function FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex As Integer =2, ByRef tSearch As WString ="", bNotShowResults As Boolean = False) As Integer
 		Declare Sub FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WString="", ByRef tn As TreeNode Ptr)
@@ -41,10 +44,9 @@ Using My.Sys.Forms
 		Declare Sub btnReplaceShow_Click(ByRef Sender As Control)
 		Declare Sub btnCancel_Click(ByRef Sender As Control)
 		Declare Function Find(Down As Boolean, bNotShowResults As Boolean = False) As Integer
-		Declare Static Sub TrackBar1_Change(ByRef Sender As TrackBar,Position As Integer)
-		Declare Static Sub btnFindAll_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub cboFindRange_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		Declare Sub TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
+		Declare Sub btnFindAll_Click(ByRef Sender As Control)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Sub cboFindRange_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Constructor
 		Declare Destructor

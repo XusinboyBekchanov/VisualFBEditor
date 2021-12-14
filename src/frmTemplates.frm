@@ -11,9 +11,13 @@
 		With This
 			.Name = "frmTemplates"
 			.Text = ML("New Project")
+			#ifdef __USE_GTK__
+				.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+			#else
+				.Icon.LoadFromResourceID(1)
+			#endif
 			.StartPosition = FormStartPosition.CenterParent
 			.Designer = @This
-			.OnCreate = @Form_Create_
 			.BorderStyle = FormBorderStyle.Sizable
 			.OnShow = @Form_Show_
 			.OnClose = @Form_Close_
@@ -29,7 +33,9 @@
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
 			.SelectedTabIndex = 2
-			.SetBounds 10, 10, 461, 241
+			.SetBounds 10, 10, 621, 351
+			.Designer = @This
+			.OnSelChange = @TabControl1_SelChange_
 			.Parent = @This
 		End With
 		' tpNew
@@ -102,7 +108,6 @@
 			.Name = "tpExisting"
 			.Text = ML("Existing")
 			.TabIndex = 6
-			.Caption = ML("Existing")
 			.UseVisualStyleBackColor = True
 			.SetBounds 0, -10, 496, 275
 			.Parent = @TabControl1
@@ -110,9 +115,8 @@
 		' tpRecent
 		With tpRecent
 			.Name = "tpRecent"
-			.Text = ML("Recent")
+			.Text = ML("Recent Files")
 			.TabIndex = 7
-			.Caption = ML("Recent")
 			.UseVisualStyleBackColor = True
 			.SetBounds 0, 0, 446, 255
 			.Parent = @TabControl1
@@ -131,10 +135,10 @@
 			.SmallImages = @imgList
 			.SetBounds 130, 10, 475, 306
 			.Parent = @tpRecent
-			.Columns.Add "File", , 150
+			.Columns.Add ML("File"), , 150
 			.Designer = @This
 			.OnItemActivate = @lvRecent_ItemActivate_
-			.Columns.Add "Path", , 300
+			.Columns.Add ML("Path"), , 300
 		End With
 		' OpenFileControl1
 		With OpenFileControl1
@@ -172,12 +176,16 @@
 			.Nodes.Add ML("Sessions")
 			.Nodes.Add ML("Folders")
 			.Nodes.Add ML("Projects")
+			.Nodes.Add ML("File")
 			.Designer = @This
 			.OnSelChanged = @tvRecent_SelChanged_
-			.Nodes.Add ML("Files")
 		End With
 	End Constructor
 	
+Private Sub frmTemplates.TabControl1_SelChange_(ByRef Sender As TabControl, NewIndex As Integer)
+	*Cast(frmTemplates Ptr, Sender.Designer).TabControl1_SelChange(Sender, NewIndex)
+End Sub
+
 	Dim Shared fTemplates As frmTemplates
 	pfTemplates = @fTemplates
 	
@@ -246,7 +254,7 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 		While f <> ""
 			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			lvTemplates.ListItems.Add TemplateName, "Project"
-			Templates.Add "Projects/" & f
+			Templates.Add "Projects" & Slash & f
 			f = Dir()
 		Wend
 	Else
@@ -254,29 +262,22 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 		f = Dir(ExePath & "/Templates/Files/*")
 		While f <> ""
 			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
-			If EndsWith(f, ".frm") Then
+			If EndsWith(LCase(f), ".frm") Then
 				IconName = "Form"
 			ElseIf f = "User Control.bas" Then
 				IconName = "UserControl"
-			ElseIf EndsWith(f, ".bas") Then
+			ElseIf EndsWith(LCase(f), ".bas") Then
 				IconName = "Module"
-			ElseIf EndsWith(f, ".rc") Then
+			ElseIf EndsWith(LCase(f), ".rc") Then
 				IconName = "Resource"
 			Else
 				IconName = "File"
 			End If
 			lvTemplates.ListItems.Add TemplateName, IconName
-			Templates.Add "Files/" & f
+			Templates.Add "Files" & Slash & f
 			f = Dir()
 		Wend
 	End If
-End Sub
-
-Private Sub frmTemplates.Form_Create_(ByRef Sender As Control)
-	*Cast(frmTemplates Ptr, Sender.Designer).Form_Create(Sender)
-End Sub
-Private Sub frmTemplates.Form_Create(ByRef Sender As Control)
-	
 End Sub
 
 Private Sub frmTemplates.lvTemplates_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
@@ -299,6 +300,7 @@ Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
 	tvTemplates_SelChanged tvTemplates, *tvTemplates.Nodes.Item(0)
 	tvRecent_SelChanged tvRecent, *tvRecent.Nodes.Item(0)
 	TabControl1.SelectedTabIndex = 0
+	This.width = This.width + 1
 End Sub
 
 Private Sub frmTemplates.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
@@ -342,4 +344,11 @@ Private Sub frmTemplates.OpenFileControl1_FileActivate_(ByRef Sender As OpenFile
 End Sub
 Private Sub frmTemplates.OpenFileControl1_FileActivate(ByRef Sender As OpenFileControl)
 	cmdOK_Click cmdOK
+End Sub
+
+Private Sub frmTemplates.TabControl1_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
+	If  NewIndex = 1 Then 
+		OpenFileControl1.SetBounds TabControl1.Left, TabControl1.Top, TabControl1.Width, TabControl1.Height
+		TabControl1.RequestAlign
+	End If
 End Sub

@@ -612,9 +612,9 @@ Namespace My.Sys.Forms
 	#else
 		Function Designer.GetControlHandle(Control As Any Ptr) As HWND
 			If Control = 0 Then Return 0
-			Var Handle = ReadPropertyFunc(Control, "Handle")
-			If Handle = 0 Then Return 0
-			Return *Cast(HWND Ptr, Handle)
+			Var tHandle = ReadPropertyFunc(Control, "Handle")
+			If tHandle = 0 Then Return 0
+			Return *Cast(HWND Ptr, tHandle)
 	#endif
 	End Function
 	

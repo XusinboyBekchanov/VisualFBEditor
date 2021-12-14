@@ -15,6 +15,7 @@ Dim Shared FListItems As WStringList
 Dim Shared txtCodeBi As EditControl
 Dim Shared mnuCode As PopupMenu
 pmnuCode = @mnuCode
+Dim Shared MouseHoverTimerVal As Double
 txtCodeBi.WithHistory = False
 
 Destructor ExplorerElement
@@ -172,6 +173,7 @@ End Function
 
 Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 	On Error Goto ErrorHandler
+	MouseHoverTimerVal = Timer
 	Dim bFind As Boolean
 	Dim As UString FileNameNew
 	Dim As TabWindow Ptr tb
@@ -265,10 +267,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				End If
 				.txtCode.ClearUndo
 				.Modified = bNew
-'				If Not EndsWith(LCase(FileNameNew), ".frm") Then
-'					tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-'					SetRightClosedStyle True, True
-'				End If
+				'				If Not EndsWith(LCase(FileNameNew), ".frm") Then
+				'					tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+				'					SetRightClosedStyle True, True
+				'				End If
 			Else
 				#ifdef __FB_WIN32__
 					tb->NewLineType = NewLineTypes.WindowsCRLF
@@ -300,9 +302,9 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	"in module " & ZGet(Ermn())
 End Function
 
-Sub m(ByRef msg As WString, Debug As Boolean = False)
+Sub m(ByRef MSG As WString, Debug As Boolean = False)
 	If Debug AndAlso Not DisplayWarningsInDebug Then Exit Sub
-	ShowMessages msg
+	ShowMessages MSG
 End Sub
 
 Sub OnChangeEdit(ByRef Sender As Control)
@@ -338,13 +340,29 @@ End Sub
 
 Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	#ifndef __USE_GTK__
-		If Not InDebug Then Exit Sub
+		If Not InDebug AndAlso Timer - MouseHoverTimerVal <= 4 Then Exit Sub
+		Static As Integer OldY, OldX
+		MouseHoverTimerVal = Timer
 		Var tb = Cast(TabWindow Ptr, Sender.Tag)
-		If tb = 0 Then Exit Sub
-		Dim As String Word = tb->txtCode.GetWordAtPoint(X, Y, True)
-		If Word <> "" Then
-			Dim As UString Value
-			Value = get_var_value(Word, tb->txtCode.LineIndexFromPoint(X, Y))
+		If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
+		If tb->txtCode.DropDownShowed Then Exit Sub
+		If tb->txtCode.ToolTipShowed And CBool((Abs(oldY - y) > 20 OrElse Abs(oldX - x) > 50)) Then
+			tb->txtCode.CloseToolTip
+			Exit Sub
+		End If
+		Oldy = y: Oldx = x
+		Dim As String sWord = tb->txtCode.GetWordAtPoint(UnScaleX(X), UnScaleY(Y), True)
+		If sWord <> "" Then
+			If Not InDebug Then
+				Dim As Integer iSelEndLine, iSelEndChar
+				iSelEndLine = tb->txtCode.LineIndexFromPoint(UnScaleX(X), UnScaleY(Y))
+				iSelEndChar = tb->txtCode.CharIndexFromPoint(UnScaleX(X), UnScaleY(Y))
+				tb->txtCode.SetSelection(iSelEndLine, iSelEndLine, iSelEndChar, iSelEndChar)
+				OnKeyPressEdit(tb->txtCode, 5)
+				Exit Sub
+			End If
+			Dim As WString * 250 Value
+			If InDebug Then Value = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(X, Y)) Else Exit Sub
 			If Value <> "" Then
 				Dim ByRef As HWND hwndTT = tb->ToolTipHandle
 				Dim As TOOLINFO    ti
@@ -354,17 +372,14 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 				'ti.uId    = Cast(UINT, FHandle)
 				If hwndTT = 0 Then
 					hwndTT = CreateWindow(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
-					
 					ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
 					ti.hinst  = GetModuleHandle(NULL)
-					ti.lpszText  = Value.vptr
+					ti.lpszText  = @Value
 					'SendMessage(hwndTT, TTM_SETDELAYTIME, TTDT_INITIAL, 100)
 					SendMessage(hwndTT, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
 				Else
 					SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
-					
-					ti.lpszText = Value.vptr
-					
+					ti.lpszText = @Value
 					SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
 				End If
 				Dim As Point Pt
@@ -375,7 +390,6 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 				SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
 				SendMessage(hwndTT, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
 				tb->ToolTipHandle = hwndTT
-				'tb->txtCode.ShowHint = True
 				Exit Sub
 			End If
 		End If
@@ -464,7 +478,7 @@ End Sub
 
 Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Dim btn As CloseButton Ptr = Cast(CloseButton Ptr, @Sender)
-	If btn->BackColor = clRed Then Exit Sub
+	If btn= 0 OrElse btn->BackColor = clRed Then Exit Sub
 	#ifndef __USE_GTK__
 		btn->BackColor = clRed
 		btn->Font.Color = clWhite
@@ -475,6 +489,7 @@ End Sub
 
 Sub CloseButton_MouseLeave(ByRef Sender As Control)
 	Dim btn As CloseButton Ptr = Cast(CloseButton Ptr, @Sender)
+	If btn= 0 Then Exit Sub
 	#ifndef __USE_GTK__
 		btn->BackColor = btn->OldBackColor
 		btn->Font.Color = btn->OldForeColor
@@ -974,7 +989,7 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 			Select Case LCase(.TypeName)
 			Case "wstring", "string", "zstring", "wstringlist", "dictionary"
 				WLet(FLine, QWString(pTemp))
-				If Len(Trim(*FLine)) > 1 AndAlso StartsWith(*FLine, "=") Then 
+				If Len(Trim(*FLine)) > 1 AndAlso StartsWith(*FLine, "=") Then
 					WLetEx FLine, Mid(*FLine, 2), True
 				Else
 					WLetEx FLine, """" & Replace(*FLine, """", """""") & """", True
@@ -1289,14 +1304,19 @@ End Sub
 Sub CheckBi(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, ByRef ptxtCodeBi As EditControl Ptr, tb As TabWindow Ptr)
 	If ptxtCode = @txtCodeBi Then
 		Var tb1 = AddTab(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi", , , True)
-		tb->SelectTab
-		ptxtCode = @tb1->txtCode
-		ptxtCodeBi = ptxtCode
-		ptxtCodeBi->Changing "Unsur qo`shish"
+		If tb1>0 Then
+			tb->SelectTab
+			ptxtCode = @tb1->txtCode
+			ptxtCodeBi = ptxtCode
+			ptxtCodeBi->Changing "Unsur qo`shish"
+		Else
+			MsgBox ML("Memory was not allocated")
+		End If
 	End If
 End Sub
 
 Sub GetBiFile(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, ByRef ptxtCodeBi As EditControl Ptr, tb As TabWindow Ptr, IsBas As Boolean, ByRef bFind As Boolean, i As Integer, ByRef iStart As Integer, ByRef iEnd As Integer)
+	If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
 	If CInt(IsBas) AndAlso CInt(Not bFind) AndAlso CInt(StartsWith(Trim(LCase(tb->txtCode.Lines(i)), Any !"\t "), "#include once """ & LCase(GetFileName(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")) & """")) Then
 		Var tbBi = GetTab(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")
 		Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
@@ -2155,6 +2175,7 @@ Sub OnLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
 End Sub
 
 Sub OnToolTipLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
+	If Trim(Link1)="" Then Exit Sub
 	Dim As UString res(Any)
 	Split(Link1, "~", res())
 	If UBound(res) >= 3 Then
@@ -2287,6 +2308,7 @@ End Function
 
 Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	On Error Goto ErrorHandler
+	If Cpnt = 0 Then Exit Sub
 	Dim As TabWindow Ptr tb = ptabRight->Tag
 	If tb = 0 Then
 		tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -2324,7 +2346,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	tb->txtCode.Changing "Hodisa qo`shish"
 	ChangeControl Cpnt
 	Dim As Boolean b, c, e, f, t, td, tdns, tt, tdes
-	Dim As Integer j, l, p
+	Dim As Integer j, l, p, LineEndType, LineEndRegion
 	For i = 0 To tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		For k As Integer = iStart To iEnd
@@ -2339,7 +2361,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			ElseIf b Then
 				If Not e Then
 					If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end type ") Then
-						e = True
+						e = True: LineEndType = K
 					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare constructor") Then
 						j = k
 					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare static") Then
@@ -2377,7 +2399,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 									End If
 								End If
 							ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "end constructor") Then
-								f = True
+								f = True : LineEndRegion = k + 1
 							End If
 						ElseIf f Then
 							If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Sub " & frmTypeName & "." & SubName)) OrElse _
@@ -2422,7 +2444,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 		End If
 		If Not tt Then
-			ptxtCode = ptxtCodeConstructor
+			If C Then ptxtCode = ptxtCodeConstructor
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			q = IIf(ptxtCode = @tb->txtCode, q1, q2)
 			If bWith Then WithCtrlName = "" Else WithCtrlName = CtrlName
@@ -2433,15 +2455,22 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		End If
 		ptxtCode = @tb->txtCode
 		q = q1
+		If LineEndRegion < 1 Then LineEndRegion = i - 1
+		
 		ptxtCode->InsertLine i + q, ""
 		If CreateNonStaticEventHandlers Then
-			ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & "_" & Mid(te->TypeName, 4)
-			ptxtCode->InsertLine i + q + 2, TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
-			ptxtCode->InsertLine i + q + 3, "End Sub"
-			q += 3
+			ptxtCode->InsertLine LineEndRegion + 1 + q, ""
+			ptxtCode->InsertLine LineEndRegion + q + 1, "Private Sub " & frmTypeName & "." & SubName & "_" & Mid(te->TypeName, 4)
+			ptxtCode->InsertLine LineEndRegion + q + 2, TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
+			ptxtCode->InsertLine LineEndRegion + q + 3, "End Sub"
+			q += 4
 		End If
 		ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & Mid(te->TypeName, 4)
-		ptxtCode->InsertLine i + q + 2, TabSpace
+		If InStr(CtrlName,"(")Then
+			ptxtCode->InsertLine i + q + 2, TabSpace & "Dim As Integer Index = Val(StringExtract(Sende.Name)" & ", "" ("", "")""))"
+		Else
+			ptxtCode->InsertLine i + q + 2, TabSpace
+		End If
 		ptxtCode->InsertLine i + q + 3, "End Sub"
 		bNotDesignForms = True
 		ptxtCode->SetSelection i + q + 2, i + q + 2, Len(TabSpace), Len(TabSpace)
@@ -2455,7 +2484,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		If tb->tbrTop.Buttons.Item(2)->Checked Then tb->tbrTop.Buttons.Item(1)->Checked = True
 		bNotDesignForms = False
 	End If
-	WDeallocate FLine1
+	WDeAllocate FLine1
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
@@ -2466,7 +2495,7 @@ End Sub
 
 Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	If bNotFunctionChange Then Exit Sub
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	'If frmMain.ActiveControl AndAlso frmMain.ActiveControl->ClassName = "EditControl" Then Exit Sub
 	Dim frmName As String
@@ -2521,8 +2550,9 @@ Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 End Sub
 
 Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
+	frmMain.UpdateLock
 	Select Case QWString(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))
 	Case "MainMenu", "PopupMenu"
 		pfMenuEditor->tb = tb
@@ -2560,25 +2590,20 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfImageListEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
-			FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, tb->cboFunction.Items.Item(1)->Text
-			'tb->cboFunction.ItemIndex = 1
-			'cboFunction_Change tb->cboFunction
-			If tb->tbrTop.Buttons.Item(2)->Checked Then
-				tb->tbrTop.Buttons.Item(1)->Checked = True
-			End If
+			FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
+			tb->tbrTop.Buttons.Item("Code")->Checked = True
+			tb->pnlCode.Visible = True
+			tb->pnlForm.Visible = False
+			tb->splForm.Visible = False
+			ptabLeft->SelectedTabIndex = 0
+			tb->RequestAlign
 		End If
 	End Select
-	'    With tb->txtCode
-	'        frmMain.UpdateLock
-	'        .Changing "Unsurni o`zgartirish"
-	'        ChangeControl Ctrl
-	'        .Changed "Unsurni o`zgartirish"
-	'        frmMain.UpdateUnLock
-	'    End With
+	frmMain.UpdateUnLock
 End Sub
 
 Sub DesignerClickMenuItem(ByRef Sender As Designer, MenuItem As Any Ptr)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	FindEvent MenuItem, "OnClick"
 	If tb->tbrTop.Buttons.Item(2)->Checked Then
@@ -2587,7 +2612,7 @@ Sub DesignerClickMenuItem(ByRef Sender As Designer, MenuItem As Any Ptr)
 End Sub
 
 Sub DesignerClickProperties(ByRef Sender As Designer, Ctrl As Any Ptr)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	ptabRight->Tab(0)->SelectTab
 End Sub
@@ -3007,6 +3032,7 @@ Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boo
 End Sub
 
 Sub CompleteWord
+	If FormClosing Then Exit Sub
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
@@ -3097,6 +3123,7 @@ Sub CompleteWord
 End Sub
 
 Sub ParameterInfo(Key As Byte = Asc(","))
+	If FormClosing Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
@@ -3554,8 +3581,9 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 End Function
 
 Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
+	MouseHoverTimerVal = Timer
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	pstBar->Panels[1]->Caption = ML("Row") + " " + WStr(iSelEndLine + 1) + " : " + WStr(tb->txtCode.LinesCount) + WSpace(2) + _
@@ -3661,7 +3689,8 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 End Sub
 
 Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	MouseHoverTimerVal = Timer
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	If CInt(Key = Asc(".")) OrElse CInt(Key = Asc(">")) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
@@ -3673,6 +3702,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 			k = 2
 		End If
 		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k)
+		If Trim(TypeName) = "" Then Exit Sub
 		FillIntellisenseByName TypeName
 		#ifdef __USE_GTK__
 			If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
@@ -3686,6 +3716,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 	ElseIf CInt(Key = Asc("=")) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If iSelEndLine <= 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		Dim As TypeElement Ptr teEnum
 		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
@@ -3732,7 +3763,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 		#endif
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
-	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) OrElse CInt(Key = Asc("?")) Then
+	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) OrElse CInt(Key = Asc("?")) OrElse CInt(Key = 5)  Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
@@ -3879,6 +3910,7 @@ End Sub
 
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
+	If bNotDesign OrElse FormClosing Then Exit Sub
 	pfrmMain->UpdateLock
 	bNotDesign = True
 	Dim CtrlName As String
@@ -4725,12 +4757,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				t = False
 				For i As Integer = 1 To cboFunction.Items.Count - 1
 					If LCase(cboFunction.Items.Item(i)->Text) > LCase(te2->DisplayName) Then
-						cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey, , , i
+						If Not EndsWith(te2->DisplayName, "_") Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey, , , i
 						t = True
 						Exit For
 					End If
 				Next i
-				If Not t Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey
+				If Not T AndAlso Not EndsWith(te2->DisplayName, "_") Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey
 			End If
 			'End If
 		Next
@@ -4752,6 +4784,7 @@ End Sub
 
 Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Button)->Ctrl->Parent->Parent)
+	If tb = 0 Then Exit Sub
 	With *tb
 		Select Case Button.Name
 		Case "Code"
@@ -4946,7 +4979,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	WLet(FCaption, "")
 	WLet(FFileName, "")
 	txtCode.Font.Name = *EditorFontName
-	txtCode.Font.Size = EditorFontSize
+	txtCode.Font.Size = MAX(8, EditorFontSize)
 	txtCode.Align = DockStyle.alClient
 	txtCode.OnChange = @OnChangeEdit
 	txtCode.OnLineChange = @OnLineChangeEdit
@@ -6317,7 +6350,7 @@ Sub RunPr(Debugger As String = "")
 	Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
 	Dim FirstLine As UString = GetFirstCompileLine(MainFile, Project)
 	Dim ExeFileName As WString Ptr
-	If Project <> 0 AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
+	If cBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
 		Dim As String ApkFileName = *Project->FileName & "/app/build/outputs/apk/debug/app-debug.apk"
 		If Not FileExists(ApkFileName) Then
 			ShowMessages ML("Do not found apk file!")
@@ -6495,53 +6528,98 @@ Sub RunPr(Debugger As String = "")
 		#else
 			Dim As Integer pClass
 			Dim As WString Ptr Workdir, CmdL
-			Dim As Unsigned Long ExitCode
-			WLet(CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments)
+			Dim As ULong ExitCode
+			
+			WLet CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments
 			If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
-			WLet(ExeFileName, Replace(*ExeFileName, "/", "\"))
-			Var Pos1 = 0
-			While InStr(Pos1 + 1, *ExeFileName, "\")
-				Pos1 = InStr(Pos1 + 1, *ExeFileName, "\")
-			Wend
+			Var Pos1 = InStrRev(*ExeFileName, Slash)
 			If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
-			WLet(Workdir, ..Left(*ExeFileName, Pos1))
+			WLet Workdir, Left(*ExeFileName, Pos1)
+			If WGet(TerminalPath) <> "" Then
+				WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """"
+				wLet ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash)
+			End If
 			If WGet(TerminalPath) <> "" Then
 				Dim As ToolType Ptr Tool
 				Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
 				If Idx <> - 1 Then
 					Tool = pTerminals->Item(Idx)->Object
-					WLetEx CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments, True
+					WLet CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments
 				End If
 				'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-				WLet(ExeFileName, Replace(GetFullPathInSystem(WGet(TerminalPath)), "/", "\"))
+				WLet ExeFileName, Replace(GetFullPath(WGet(TerminalPath)), BackSlash, Slash)
 			End If
+			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
-			Dim SInfo As STARTUPINFO
-			Dim PInfo As PROCESS_INFORMATION
-			SInfo.cb = Len(SInfo)
-			SInfo.dwFlags = STARTF_USESHOWWINDOW
-			SInfo.wShowWindow = SW_NORMAL
-			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
-			If CreateProcessW(ExeFileName, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-				WaitForSingleObject pinfo.hProcess, INFINITE
-				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-				CloseHandle(pinfo.hProcess)
-				CloseHandle(pinfo.hThread)
-				Result = ExitCode
-				'Result = Shell(Debugger & """" & *ExeFileName + """")
-				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-			Else
-				Result = GetLastError()
-				ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+			ThreadsLeave()
+			#define BufferSize 2048
+			Dim si As STARTUPINFO
+			Dim pi As PROCESS_INFORMATION
+			Dim sa As SECURITY_ATTRIBUTES
+			Dim hReadPipe As HANDLE
+			Dim hWritePipe As HANDLE
+			Dim sBuffer As ZString * BufferSize
+			Dim sOutput As WString * BufferSize
+			Dim bytesRead As DWORD
+			Dim As Integer result1, nPos, nPos1
+			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+			sa.lpSecurityDescriptor = NULL
+			sa.bInheritHandle = True
+			
+			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+				ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+				If WorkDir Then Deallocate WorkDir
+				If CmdL Then Deallocate CmdL
+				ChangeEnabledDebug True, False, False
+				Exit Sub
 			End If
-			'		Else
-			'			WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-			'			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL & " ...")
-			'			Result = Shell(*CmdL)
-			'			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-			'		End If
-			If WorkDir Then Deallocate_( WorkDir)
-			If CmdL Then Deallocate_( CmdL)
+			
+			si.cb = Len(STARTUPINFO)
+			si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+			si.hStdOutput = hWritePipe
+			si.hStdError = hWritePipe
+			si.wShowWindow = SW_SHOW
+			If CreateProcess(0, *CmdL, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+				ShowMessages(ML("Error: Couldn't Create Process"), False)
+				If WorkDir Then Deallocate WorkDir
+				If CmdL Then Deallocate CmdL
+				ChangeEnabledDebug True, False, False
+				Exit Sub
+			End If
+			CloseHandle hWritePipe
+			Do
+				result1 = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+				sBuffer = Left(sBuffer, bytesRead)
+				Pos1 = InStrRev(sBuffer, Chr(10))
+				If Pos1 > 0 Then
+					Dim res() As WString Ptr
+					sOutput += Left(sBuffer, Pos1 - 1)
+					Split sOutput, Chr(10), res()
+					For i As Integer = 0 To UBound(res)
+						If Len(*res(i)) <= 1 Then Continue For
+						If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
+						ThreadsEnter()
+						ShowMessages Str(Time) & ": " & ML("DebugPrint") & ": " & *res(i)
+						ThreadsLeave()
+						Deallocate res(i): res(i) = 0
+					Next i
+					Erase res
+					sOutput = ""
+				Else
+					sOutput += sBuffer
+				End If
+			Loop While result1
+			
+			CloseHandle pi.hProcess
+			CloseHandle pi.hThread
+			CloseHandle hReadPipe
+			result1 = GetLastError()
+			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & result1  & " - " & Err2Description(result1))
+			ChangeEnabledDebug True, False, False
+			'End If
+			pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
+			If WorkDir Then Deallocate WorkDir
+			If CmdL Then Deallocate CmdL
 		#endif
 	End If
 	If ExeFileName Then Deallocate_( ExeFileName)
@@ -6637,7 +6715,11 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
-			ElseIf StartsWith(LTrim(*FECLine->Text), "_L_") Then
+			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L_") OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
+				bNotNumberThis = True
+			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "debugprint") Then
+				bNotNumberThis = True
+			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "?") Then
 				bNotNumberThis = True
 			ElseIf IsLabel(*FECLine->Text) Then
 				bNotNumberThis = True
@@ -6649,7 +6731,7 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 				If bMacro Then
 					WLet(FECLine->Text, "_L_" & IIf(StartsWith(*FECLine->Text, " ") OrElse StartsWith(*FECLine->Text, !"\t"), "", " ") & *FECLine->Text)
 				Else
-					WLet(FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text)
+					WLet FECLine->Text, "DebugPrint(__FILE__ & " & Chr(34) & " Line " & Chr(34) & " & __LINE__, True, False) : " & Trim(*FECLine->Text, Any !" \t ")
 				End If
 			End If
 		Next i
@@ -7158,4 +7240,4 @@ Sub TabWindow.Define
 		End If
 	End With
 End Sub
- 
+

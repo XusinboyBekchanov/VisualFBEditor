@@ -14,10 +14,11 @@ Using My.Sys.Forms
 	Type frmSplash Extends Form
 		Declare Static Sub lblImage_Click_(ByRef Sender As Control)
 		Declare Sub lblImage_Click(ByRef Sender As Control)
+		declare static sub lblProcess_Click_(ByRef Sender As Label)
+		declare sub lblProcess_Click(ByRef Sender As Label)
 		Declare Constructor
-		
 		Dim As ImageBox lblImage
-		Dim As Label lblSplash, lblInfo, lblProcess
+		Dim As Label lblSplash, lblInfo, lblProcess, lblSplash1
 	End Type
 	
 	Common Shared As frmSplash Ptr pfSplash
@@ -26,3 +27,4 @@ Using My.Sys.Forms
 #ifndef __USE_MAKE__
 	#include once "frmSplash.frm"
 #endif
+ 

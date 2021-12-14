@@ -39,6 +39,11 @@ Using My.Sys.Drawing
 #include once "frmSplash.bi"
 pfSplash->MainForm = False
 pfSplash->Show
+#ifdef __FB_64BIT__
+	pfSplash->lblSplash1.Text = "(" & ML("Version") & " " & pApp->Version & "  " & ML("64-bit") & ")"
+#else
+	pfSplash->lblSplash1.Text = "(" & ML("Version") & " " & pApp->Version & "  " & ML("32-bit") & ")"
+#endif
 pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
@@ -127,6 +132,7 @@ pIncludeFiles = @IncludeFiles
 pLoadPaths = @LoadPaths
 pIncludePaths = @IncludePaths
 pLibraryPaths = @LibraryPaths
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": LoadKeyWords"
 LoadLanguageTexts
 LoadSettings
 
@@ -568,7 +574,7 @@ Function Compile(Parameter As String = "") As Integer
 	'Print #FileOut, *fbcCommand  + " > """ + *LogFileName + """" + " 2>""" + *LogFileName2 + """"
 	'Close #FileOut
 	'Shell("""" + BatFileName + """")
-	If Project <> 0 AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
+	If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
 		Dim As String gradlewCommand
 		If Parameter = "Bundle" Then
 			gradlewCommand = "bundleRelease"
@@ -864,7 +870,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 		Dim As ProjectElement Ptr Project
 		Dim As TreeNode Ptr ProjectNode
 		Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
-		If Project <> 0 AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
+		If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
 		Else
 			ShowMessages ML(ML("File ") & "local.properties" & ML(" not found!"))
 			Exit Sub
@@ -984,6 +990,7 @@ End Sub
 
 Sub txtOutput_DblClick(ByRef Sender As Control)
 	Dim Buff As WString Ptr = @txtOutput.Lines(txtOutput.GetLineFromCharIndex)
+	If Buff > 0 AndAlso InStr(LCase(*buff), ML("debugprint")) > 1 Then Exit Sub
 	Dim As WString Ptr ErrFileName, ErrTitle
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
@@ -4144,7 +4151,9 @@ Function HK(Key As String, Default As String = "") As String
 End Function
 
 Sub CreateMenusAndToolBars
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("Create Menus And ToolBars")
 	imgList.Name = "imgList"
+	imgList.Add "Compile", "Compile"
 	imgList.Add "StartWithCompile", "StartWithCompile"
 	imgList.Add "Start", "Start"
 	imgList.Add "Break", "Break"
@@ -4173,9 +4182,8 @@ Sub CreateMenusAndToolBars
 	imgList.Add "SyntaxCheck", "SyntaxCheck"
 	imgList.Add "List", "List"
 	imgList.Add "UseDebugger", "UseDebugger"
-	imgList.Add "Compile", "Compile"
 	imgList.Add "Make", "Make"
-	imgList.Add "Help", "Help"
+	imgList.Add "Book", "Book"
 	imgList.Add "About", "About"
 	imgList.Add "Session", "Session"
 	imgList.Add "File", "File"
@@ -4236,21 +4244,20 @@ Sub CreateMenusAndToolBars
 	LoadHotKeys
 	
 	Var miFile = mnuMain.Add(ML("&File"), "", "File")
-	miFile->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mClick)
-	miFile->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mClick)
-	miFile->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mClick)
+	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "NewProject", @mClick)
+	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mClick)
+	'miFile->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mClick)
+	'miFile->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mClick)
 	miFile->Add("-")
 	miFile->Add(ML("Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mClick)
 	miFile->Add(ML("Save Project As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mClick)
+	miFile->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mClick)
 	miFile->Add("-")
 	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mClick)
 	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mClick)
 	miFile->Add("-")
 	miFile->Add(ML("Open Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mClick)
 	miFile->Add(ML("Close Folder") & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mClick)
-	miFile->Add("-")
-	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "New", @mClick)
-	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mClick)
 	miFile->Add("-")
 	miFile->Add(ML("&Save") & "..." & HK("Save", "Ctrl+S"), "Save", "Save", @mClick)
 	miFile->Add(ML("Save &As") & "..." & HK("SaveAs"), "", "SaveAs", @mClick)
@@ -4439,6 +4446,7 @@ Sub CreateMenusAndToolBars
 	miProject->Add(ML("&Remove") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mclick)
 	miProject->Add("-")
 	miProject->Add(ML("&Open Project Folder") & HK("OpenProjectFolder"), "", "OpenProjectFolder", @mclick)
+	miProject->Add(ML("Import from Folder") & "..." & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mClick)
 	miProject->Add("-")
 	miProject->Add(ML("&Project Properties") & "..." & HK("ProjectProperties"), "", "ProjectProperties", @mclick)
 	
@@ -4542,7 +4550,7 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mclick)
 	
 	Var miHelp = mnuMain.Add(ML("&Help"), "", "Help")
-	miHelp->Add(ML("&Content") & HK("Content", "F1"), "Help", "Content", @mclick)
+	miHelp->Add(ML("&Content") & HK("Content", "F1"), "Book", "Content", @mclick)
 	miHelps = miHelp->Add(ML("&Others"), "", "Others")
 	Dim As WString * 1024 sTmp2
 	For i As Integer = 0 To pHelps->Count - 1
@@ -4553,7 +4561,7 @@ Sub CreateMenusAndToolBars
 		End If
 	Next
 	miHelp->Add("-")
-	miHelp->Add(ML("FreeBasic WiKi") & HK("FreeBasicWiKi"), "Help", "FreeBasicWiKi", @mclick)
+	miHelp->Add(ML("FreeBasic WiKi") & HK("FreeBasicWiKi"), "Book", "FreeBasicWiKi", @mclick)
 	miHelp->Add(ML("FreeBasic Forums") & HK("FreeBasicForums"), "", "FreeBasicForums", @mclick)
 	Var miGitHub = miHelp->Add(ML("GitHub"))
 	miGitHub->Add(ML("GitHub WebSite") & HK("GitHubWebSite"), "", "GitHubWebSite", @mclick)
@@ -4561,10 +4569,10 @@ Sub CreateMenusAndToolBars
 	miGitHub->Add(ML("FreeBasic Repository") & HK("FreeBasicRepository"), "", "FreeBasicRepository", @mclick)
 	miGitHub->Add("-")
 	miGitHub->Add(ML("VisualFBEditor Repository") & HK("VisualFBEditorRepository"), "", "VisualFBEditorRepository", @mclick)
-	miGitHub->Add(ML("VisualFBEditor WiKi") & HK("VisualFBEditorWiKi"), "Help", "VisualFBEditorWiKi", @mclick)
+	miGitHub->Add(ML("VisualFBEditor WiKi") & HK("VisualFBEditorWiKi"), "Book", "VisualFBEditorWiKi", @mclick)
 	miGitHub->Add("-")
 	miGitHub->Add(ML("MyFbFramework Repository") & HK("MyFbFrameworkRepository"), "", "MyFbFrameworkRepository", @mclick)
-	miGitHub->Add(ML("MyFbFramework WiKi") & HK("MyFbFrameworkWiKi"), "Help", "MyFbFrameworkWiKi", @mclick)
+	miGitHub->Add(ML("MyFbFramework WiKi") & HK("MyFbFrameworkWiKi"), "Book", "MyFbFrameworkWiKi", @mclick)
 	miHelp->Add("-")
 	miHelp->Add(ML("&About") & HK("About"), "About", "About", @mclick)
 	
@@ -4618,7 +4626,7 @@ Sub CreateMenusAndToolBars
 '	#endif
 	tbStandard.Flat = True
 	tbStandard.List = True
-	tbStandard.Buttons.Add tbsAutosize, "New",,@mClick, "New", , ML("New") & " (Ctrl+N)", True
+	tbStandard.Buttons.Add tbsAutosize, "New", , @mClick, "New", , ML("New") & " (Ctrl+N)", True
 	tbStandard.Buttons.Add , "Open",, @mClick, "Open", , ML("Open") & " (Ctrl+O)", True
 	tbStandard.Buttons.Add , "Save",, @mClick, "Save", , ML("Save") & "..." & " (Ctrl+S)", True
 	tbStandard.Buttons.Add , "SaveAll", , @mClick, "SaveAll", , ML("Save &All") & " (Shift+Ctrl+S)", True
@@ -5931,10 +5939,10 @@ pnlRightPin.Parent = @pnlRight
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
 		Dim As GtkWidget Ptr overlayRight = gtk_overlay_new()
-		gtk_container_add(gtk_container(overlayRight), pnlRight.Handle)
+		gtk_container_add(GTK_CONTAINER(overlayRight), pnlRight.Handle)
 		g_object_ref(pnlRightPin.Handle)
-		gtk_container_remove(gtk_container(pnlRight.Handle), pnlRightPin.Handle)
-		gtk_overlay_add_overlay(gtk_overlay(overlayRight), pnlRightPin.Handle)
+		gtk_container_remove(GTK_CONTAINER(pnlRight.Handle), pnlRightPin.Handle)
+		gtk_overlay_add_overlay(GTK_OVERLAY(overlayRight), pnlRightPin.Handle)
 		g_signal_connect(overlayRight, "get-child-position", G_CALLBACK(@OverlayRight_get_child_position), @pnlRight)
 		pnlRight.WriteProperty("overlaywidget", overlayRight)
 	#endif
@@ -5950,6 +5958,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(newIndex))
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
+	MouseHoverTimerVal = Timer
 	tb->tn->SelectItem
 	If tbOld AndAlso tb = tbOld Then Exit Sub
 	If tbOld > 0 Then
@@ -6144,15 +6153,56 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 	#endif
 	If CInt(Not bCtrl) OrElse Shift <> 1 Then mChangeLogEdited = True
 	If CInt(bCtrl) And key =13 Then
-		txtChangeLog.SelText = Format(Now, "yyyy/mm/dd hh:mm:ss") & !"\t" & !"\t"
+		txtChangeLog.SelText = __DATE_ISO__ & " " & Time & !"\t" & !"\t"  'Format(Now, "yyyy/mm/dd hh:mm:ss") & !"\t" & !"\t"
 		mChangeLogEdited = True
 	ElseIf CInt(bCtrl) And Shift And (key =108 Or key =76) Then
-		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, pTabCode->SelectedTab)
+		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
-			'txtChangeLog.SelText =" {" & Replace(tb->Caption,"*","") & "|" & tb->cboFunction.Text & " Ln" & Val(Trim(Replace(pstBar->Panels[1]->Caption,ML("Row"),""))) & "}"
-			txtChangeLog.SelText =" {" & tb->Caption & "|" & tb->cboFunction.Text & " Ln" & Val( pstBar->Panels[1]->Caption)
+			Dim As WString Ptr sTmp
+			WLet sTmp, " {" & Replace(tb->Caption,"*","")
+			WAdd sTmp, "|" & tb->cboFunction.Text & " Ln" & Val(Trim(Replace(pstBar->Panels[1]->Caption,ML("Row"),""))) & "}"
+			txtChangeLog.SelText = *sTmp
+			WDeAllocate sTmp
 			mChangeLogEdited = True
-			
+		End If
+		ElseIf CInt(bCtrl) And Shift And (key =99 Or key =67) Then 'Ctrl+Shift+C
+		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb <> 0 Then
+			Dim As WString Ptr txtChangeLogText =@txtChangeLog.Text
+			Dim As Integer LStart = InStr(*txtChangeLogText, "{" & Replace(tb->Caption,"*",""))
+			If LStart > 0 Then
+				Dim As Integer LEnd = InStr(LStart,*txtChangeLogText, "|" & tb->cboFunction.Text)
+				If LEnd > 0 Then LStart = LEnd
+				txtChangeLog.SelStart = LStart
+				txtChangeLog.SelEnd = LStart
+				txtChangeLog.ScrollToCaret
+			End If
+		End If
+	End If
+End Sub
+Sub txtChangeLog_DblClick(ByRef Sender As Control)
+	Dim As WString Ptr txtChangeLogText =@txtChangeLog.Text
+	Dim As Integer LStart = txtChangeLog.SelStart
+	Dim As Integer LEnd = InStr(LStart,*txtChangeLogText,"}")
+	If LEnd < 1 Then Exit Sub
+	Dim As WString Ptr FSelText
+	LStart = InStrRev(*txtChangeLogText, "{", LEnd)
+	LStart = MAX(1,LStart)
+	If LEnd > LStart Then
+		Dim As WString * 255 CodeFileName = Mid(*txtChangeLogText, LStart, LEnd - LStart + 1)
+		If Trim(CodeFileName) = "" Then Exit Sub
+		Dim As Integer iPos = InStrRev(CodeFileName, " ")
+		If iPos > 0 Then
+			Dim As Integer iLine = Val(Mid(CodeFileName, ipos + 3))
+			Dim As Integer iPos1 = InStr(ipos + 3, CodeFileName, Any !" }")
+			'pClipboard->SetAsText Mid(CodeFileName,iPos+1,iPos1-ipos-1)
+			'' Will Search With find Function
+			'pfFind->txtFind.Text = Mid(CodeFileName,iPos+1,iPos1-ipos-1)
+			Dim As Integer iPos2 = InStr(CodeFileName, "|")
+			If iPos2 <= 0 Then Exit Sub
+			Dim tn2 As TreeNode Ptr = FileNameInTreeNode(MainNode->Tag, Mid(CodeFileName, 2, iPos2 - 2))
+			If tn2 = 0 Then Exit Sub
+			If tn2->Tag <> 0 Then SelectError(*Cast(ExplorerElement Ptr, tn2->Tag)->FileName, iLine)
 		End If
 	End If
 End Sub
@@ -6161,6 +6211,7 @@ txtChangeLog.Align = DockStyle.alClient
 txtChangeLog.Multiline = True
 txtChangeLog.ScrollBars = ScrollBarsType.Both
 txtChangeLog.OnKeyDown = @txtChangeLog_KeyDown
+txtChangeLog.OnDblClick = @txtChangeLog_DblClick
 
 Sub lvToDo_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvToDo.ListItems.Item(itemIndex)
@@ -6179,7 +6230,7 @@ lvToDo.OnItemActivate = @lvToDo_ItemActivate
 
 Sub lvErrors_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvErrors.ListItems.Item(itemIndex)
-	SelectError(item->Text(2), Val(item->Text(1)), item->Tag)
+	SelectError(GetFullPath(Item->Text(2)), Val(Item->Text(1)), Item->Tag)
 End Sub
 
 'Sub lvErrors_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
@@ -6204,6 +6255,9 @@ lvErrors.OnItemActivate = @lvErrors_ItemActivate
 Sub lvSearch_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSearch.ListItems.Item(itemIndex)
 	SelectSearchResult(item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(lvSearch.Text), item->Tag)
+	If pfFind->Visible Then 'David Change
+		pfFind->Caption = ML("Find")+": " + WStr(gSearchItemIndex+1) + " of " + WStr(lvSearch.ListItems.Count)
+	End If
 End Sub
 
 'Sub lvSearch_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
@@ -6564,7 +6618,14 @@ Sub frmMain_Create(ByRef Sender As Control)
 	
 	pnlRightPin.Height = tbRight.Height
 	pnlLeftPin.Height = tbLeft.Height
-	
+		If Dir(ExePath & "/DebugInfo.log") <> "" Then
+		#ifdef __USE_GTK__
+			FileCopy ExePath & "/DebugInfo.log", ExePath & "/DebugInfo.bak"
+		#else
+			CopyFileW ExePath & "/DebugInfo.log", ExePath & "/DebugInfo.bak", False
+		#endif
+		Kill ExePath & "/DebugInfo.log"
+	End If
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", True)
 	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
@@ -6638,8 +6699,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	'			wDeallocate Changelog
 	'		End If
 	'	End If
-	LoadAddins
-	LoadTools
+
 	mStartLoadSession = False
 End Sub
 
@@ -6777,14 +6837,44 @@ Sub frmMain_Show(ByRef Sender As Control)
 		pnlBottomPin.Width = tabItemHeight
 		pnlPropertyValue.Visible = False
 	#endif
-	pfSplash->CloseForm
+	#ifdef __FB_64BIT__
+		frmMain.Text = "Visual freeBasic Editor - " & App.Title & "(" & ML("64-bit") & ")"
+		pfAbout->Label1.Text = "Visual freeBasic Editor " & "(" & ML("64-bit") & ")"
+		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
+	#else
+		frmMain.Text = "Visual freeBasic Editor - " & App.Title & "(" & ML("32-bit") & ")"
+		pfAbout->Label1.Text = "Visual freeBasic Editor " & "(" & ML("32-bit") & ")"
+		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
+	#endif
+
+	#ifdef __FB_64BIT__
+		frmMain.Text = "Visual freeBasic Editor - " & App.Title & "(" & ML("64-bit") & ")"
+		pfAbout->Label1.Text = "Visual freeBasic Editor " & "(" & ML("64-bit") & ")"
+		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
+	#else
+		frmMain.Text = "Visual freeBasic Editor - " & App.Title & "(" & ML("32-bit") & ")"
+		pfAbout->Label1.Text = "Visual freeBasic Editor " & "(" & ML("32-bit") & ")"
+		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
+	#endif
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("CheckCompilerPaths")
 	CheckCompilerPaths
-	Var file = Command(-1)
-	Var Pos1 = InStr(file, "2>CON")
-	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
-	If file = "" Then
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("AddIns")
+	LoadAddIns
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("Tools")
+	LoadTools
+	
+	pfSplash->CloseForm
+	Var FILE = Command(-1)
+	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
+		OpenFiles GetFullPath(FILE)
+	Else
+		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
 		Select Case WhenVisualFBEditorStarts
-		Case 1: NewProject
+		Case 1: NewProject 'pfTemplates->ShowModal
+		Case 2: AddNew WGet(DefaultProjectFile)
+		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+			'Auto Load the last one.
+			OpenFiles GetFullPath(*RecentFiles)
 		End Select
 	End If
 End Sub
@@ -7158,6 +7248,6 @@ Sub OnProgramQuit() Destructor
 		te = pGlobalArgs->Object(i)
 		Delete_( Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
 		'pGlobalArgs->Remove i
-	Next
+	Next 
 End Sub
 
