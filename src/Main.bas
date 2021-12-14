@@ -5977,6 +5977,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 		SetRightClosedStyle True, True
 	Else
 		SetRightClosedStyle False, False
+		tabRight.SelectedTabIndex = 0
 	End If
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To sourcenb

@@ -283,11 +283,12 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			ChangeNewLineType tb->NewLineType
 			.FormDesign(bNoActivate)
 		End With
-		If tb->cboClass.Items.Count < 1 Then
+		If tb->cboClass.Items.Count < 2 Then
 			tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 			SetRightClosedStyle True, True
 		Else
 			SetRightClosedStyle False, False
+			tabRight.SelectedTabIndex = 0
 		End If
 		MoveCloseButtons
 	End If
