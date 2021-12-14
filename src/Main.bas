@@ -6839,14 +6839,13 @@ Sub frmMain_Show(ByRef Sender As Control)
 		pnlPropertyValue.Visible = False
 	#endif
 	#ifdef __FB_64BIT__
-		frmMain.Text = App.Title & " (" & ML("64-bit") & ")"
-		pfAbout->Label1.Text = "Visual FB Editor " & "(" & ML("64-bit") & ")"
-		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
+		App.Title = App.Title & " (" & ML("64-bit") & ")"
 	#else
-		frmMain.Text = App.Title & " (" & ML("32-bit") & ")"
-		pfAbout->Label1.Text = "Visual FB Editor " & " (" & ML("32-bit") & ")"
-		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
+		App.Title = App.Title & " (" & ML("32-bit") & ")"
 	#endif
+	frmMain.Text = App.Title
+	pfAbout->Label1.Text = App.Title
+	pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
 
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("CheckCompilerPaths")
 	Var bFind = CheckCompilerPaths
