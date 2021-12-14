@@ -23,7 +23,7 @@ Using My.Sys.Forms
 		Declare Static Sub lblImage_Click(ByRef Sender As ImageBox)
 		Declare Constructor
 
-		Dim As Label Label1, lblInfo
+		Dim As Label Label1, lblInfo, Label11
 		Dim As LinkLabel Label2
 		Dim As CommandButton CommandButton1
 		Dim As ImageBox lblIcon
@@ -36,3 +36,4 @@ Using My.Sys.Forms
 #ifndef __USE_MAKE__
 	#include once "frmAbout.frm"
 #endif
+ 

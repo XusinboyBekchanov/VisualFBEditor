@@ -25,19 +25,18 @@
 		Label1.Name = "Label1"
 		Label1.Font.Name = "Times New Roman"
 		Label1.Font.Bold = True
-		Label1.Font.Size = 15
-		Label1.SetBounds 84, 12, 252, 24
+		Label1.Font.Size = 18
+		Label1.Text = "Visual freeBasic Editor"
+		Label1.SetBounds 11, 7, 428, 54
+		Label1.Alignment = AlignmentConstants.taCenter
 		Label1.Parent = @This
 		CommandButton1.Name = "CommandButton1"
 		CommandButton1.Text = ML("&Close")
-		#ifndef __USE_GTK__
-			CommandButton1.Default = True
-			Label1.Text = "Visual FB Editor " & pApp->Version
-		#else
-			Label1.Text = "Visual FB Editor " & WStr(VERSION)
-		#endif
 		CommandButton1.SetBounds 348, 481, 92, 26
 		CommandButton1.OnClick = @CommandButton1_Click
+		#ifndef __USE_GTK__
+			CommandButton1.Default = True 
+		#endif
 		CommandButton1.Parent = @This
 		' Label2
 		Label2.Name = "Label2"
@@ -58,11 +57,10 @@
 		ML("Language files by") & !":\r" & _
 		!"Xusinboy Bekchanov (Russian, Uzbekcyril, Uzbeklatin)\r" & _
 		!"Liu XiaLin (Chinese)\r"  & _
-		!"Thomas Frank Ludewig (Deutsch)\r" & _
-		!"Juan Sánchez (Spanish)\r" & _
-		!"Dariusz Prochotta (Polish)\r"
+		!"Thomas Frank Ludewig (Deutsch)\r"  & _
+		!"Juan Sánchez (Spanish)\r"
 		Label2.BorderStyle = 0
-		Label2.SetBounds 10, 66, 432, 403
+		Label2.SetBounds 10, 58, 432, 403
 		Label2.Parent = @This
 		' lblIcon
 		lblIcon.Name = "lblIcon"
@@ -87,21 +85,32 @@
 			#endif
 			.Parent = @This
 		End With
+		' Label11
+		With Label11
+			.Name = "Label11"
+			.Text = "Label11"
+			.TabIndex = 3
+			.SetBounds  107, 39, 260, 22
+			.Font.Size = 10
+			.Alignment = AlignmentConstants.taCenter
+			.Parent = @This
+		End With
 	End Constructor
 
 	Dim Shared As frmAbout fAbout
 	pfAbout = @fAbout
 	#ifndef _NOT_AUTORUN_FORMS_
-		frm.Show
+		fAbout.Show
 
 		App.Run
 	#endif
 '#End Region
 
 Private Sub frmAbout.CommandButton1_Click(ByRef Sender As Control)
-	Cast(Form Ptr, Sender.Parent)->CloseForm
+	Cast(frmAbout Ptr, Sender.Parent)->CloseForm
 End Sub
 
 Private Sub frmAbout.lblImage_Click(ByRef Sender As ImageBox)
-	
+
 End Sub
+ 
