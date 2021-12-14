@@ -38,7 +38,11 @@ Using My.Sys.Forms
 		' lblSplash
 		lblSplash.SetBounds 8, 14, 398, 33
 		lblSplash.Text = "Visual FB Editor" & " " & pApp->GetVerInfo("ProductVersion")
-		lblSplash.Font.Name = "Times New Roman"
+		#if defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+			lblSplash.Font.Name = "Sans"
+		#else
+			lblSplash.Font.Name = "Times New Roman"
+		#endif
 		lblSplash.Font.Size = 20
 		lblSplash.Font.Bold = True
 		lblSplash.Font.Italic = True
@@ -81,7 +85,11 @@ Using My.Sys.Forms
 			.BackColor = 0
 			.Font.Size = 12
 			.Font.Bold = True
-			.Font.Name = "Times New Roman"
+			#if defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+				.Font.Name = "Sans"
+			#else
+				.Font.Name = "Times New Roman"
+			#endif
 			.Font.Color = 16777215
 			.SetBounds 16, 54, 382, 17
 			.Parent = @This

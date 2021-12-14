@@ -300,7 +300,7 @@ Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
 	tvTemplates_SelChanged tvTemplates, *tvTemplates.Nodes.Item(0)
 	tvRecent_SelChanged tvRecent, *tvRecent.Nodes.Item(0)
 	TabControl1.SelectedTabIndex = 0
-	This.width = This.width + 1
+	'This.width = This.width + 1
 End Sub
 
 Private Sub frmTemplates.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)

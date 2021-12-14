@@ -6841,8 +6841,11 @@ Sub frmMain_Show(ByRef Sender As Control)
 	#endif
 	frmMain.Text = App.Title
 	pfAbout->Label1.Text = App.Title
-	pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
-
+	#ifdef __FB_WIN32__
+		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
+	#else
+		pfAbout->Label11.Text = ML("Version") & " " & WStr(VERSION)
+	#endif
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("CheckCompilerPaths")
 	Var bFind = CheckCompilerPaths
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("AddIns")
