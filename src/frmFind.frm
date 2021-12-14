@@ -141,7 +141,7 @@ pfFind = @fFind
 			.Name = "cboFindRange"
 			.Text = "cboFindRange"
 			.AddItem ML("Procedure")
-			.AddItem ML("Modules")
+			.AddItem ML("Module")
 			.AddItem ML("Project")
 			.TabIndex = 17
 			.SetBounds 215, 4, 62, 18
@@ -734,17 +734,17 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 		This.Caption=ML("Find")
 		#ifdef __USE_GTK__
 			This.Height = 58
-			SetBounds pfrmMain->Left + pfrmMain->Width - Width - 5, pfrmMain->Top + 20, Width, 58
+			SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 58
 		#else
 			This.Height = 65
-			SetBounds pfrmMain->Left + pfrmMain->Width - Width - 5, pfrmMain->Top + 20, Width, 65
+			SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 65
 		#endif
 		btnReplace.Enabled = False
 		btnReplaceAll.Enabled = False
 	Else
 		This.Caption=ML("Replace")
 		This.Height = 95
-		SetBounds pfrmMain->Left + pfrmMain->Width - Width - 5, pfrmMain->Top + 20, Width, 95
+		SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 95
 		btnReplace.Enabled = True
 		btnReplaceAll.Enabled = True
 	End If
@@ -756,7 +756,7 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	#else
 		btnReplaceShow.Width=18
 	#endif
-	btnFindAll.Visible = False
+	'btnFindAll.Visible = False
 	Opacity = 230
 	TrackBar1.Position = 230
 	cboFindRange.ItemIndex = 1

@@ -37,7 +37,7 @@ Using My.Sys.Forms
 		lblImage.Parent = @This
 		' lblSplash
 		lblSplash.SetBounds 8, 14, 398, 33
-		lblSplash.Text = "Visual FB Editor"
+		lblSplash.Text = "Visual FB Editor" & " " & pApp->GetVerInfo("ProductVersion")
 		lblSplash.Font.Name = "Times New Roman"
 		lblSplash.Font.Size = 20
 		lblSplash.Font.Bold = True
@@ -71,7 +71,11 @@ Using My.Sys.Forms
 		' lblSplash1
 		With lblSplash1
 			.Name = "lblSplash1"
-			.Text = "lblSplash1"
+			#ifdef __FB_64BIT__
+				.Text = ML("64-bit")
+			#else
+				.Text = ML("32-bit")
+			#endif
 			.TabIndex = 3
 			.Alignment = AlignmentConstants.taCenter
 			.BackColor = 0

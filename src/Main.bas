@@ -39,11 +39,6 @@ Using My.Sys.Drawing
 #include once "frmSplash.bi"
 pfSplash->MainForm = False
 pfSplash->Show
-#ifdef __FB_64BIT__
-	pfSplash->lblSplash1.Text = "(" & ML("Version") & " " & pApp->Version & "  " & ML("64-bit") & ")"
-#else
-	pfSplash->lblSplash1.Text = "(" & ML("Version") & " " & pApp->Version & "  " & ML("32-bit") & ")"
-#endif
 pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
