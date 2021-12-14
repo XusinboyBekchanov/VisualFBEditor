@@ -115,7 +115,7 @@
 		' tpRecent
 		With tpRecent
 			.Name = "tpRecent"
-			.Text = ML("Recent Files")
+			.Text = ML("Recent")
 			.TabIndex = 7
 			.UseVisualStyleBackColor = True
 			.SetBounds 0, 0, 446, 255
@@ -347,8 +347,8 @@ Private Sub frmTemplates.OpenFileControl1_FileActivate(ByRef Sender As OpenFileC
 End Sub
 
 Private Sub frmTemplates.TabControl1_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
-	If  NewIndex = 1 Then 
-		OpenFileControl1.SetBounds TabControl1.Left, TabControl1.Top, TabControl1.Width, TabControl1.Height
-		TabControl1.RequestAlign
-	End If
+	'If  NewIndex = 1 Then 
+		'OpenFileControl1.SetBounds TabControl1.Left, TabControl1.Top, TabControl1.Width, TabControl1.Height
+		'TabControl1.RequestAlign
+	'End If
 End Sub

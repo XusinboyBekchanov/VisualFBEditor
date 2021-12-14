@@ -6839,24 +6839,15 @@ Sub frmMain_Show(ByRef Sender As Control)
 		pnlPropertyValue.Visible = False
 	#endif
 	#ifdef __FB_64BIT__
-		frmMain.Text = "Visual freeBasic Editor - " & App.Title & "(" & ML("64-bit") & ")"
-		pfAbout->Label1.Text = "Visual freeBasic Editor " & "(" & ML("64-bit") & ")"
+		frmMain.Text = App.Title & " (" & ML("64-bit") & ")"
+		pfAbout->Label1.Text = "Visual FB Editor " & "(" & ML("64-bit") & ")"
 		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
 	#else
-		frmMain.Text = "Visual freeBasic Editor - " & App.Title & "(" & ML("32-bit") & ")"
-		pfAbout->Label1.Text = "Visual freeBasic Editor " & "(" & ML("32-bit") & ")"
+		frmMain.Text = "Visual FB Editor - " & App.Title & " (" & ML("32-bit") & ")"
+		pfAbout->Label1.Text = "Visual FB Editor " & " (" & ML("32-bit") & ")"
 		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
 	#endif
 
-	#ifdef __FB_64BIT__
-		frmMain.Text = "Visual freeBasic Editor - " & App.Title & "(" & ML("64-bit") & ")"
-		pfAbout->Label1.Text = "Visual freeBasic Editor " & "(" & ML("64-bit") & ")"
-		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
-	#else
-		frmMain.Text = "Visual freeBasic Editor - " & App.Title & "(" & ML("32-bit") & ")"
-		pfAbout->Label1.Text = "Visual freeBasic Editor " & "(" & ML("32-bit") & ")"
-		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
-	#endif
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("CheckCompilerPaths")
 	Var bFind = CheckCompilerPaths
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("AddIns")

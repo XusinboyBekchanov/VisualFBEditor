@@ -6350,7 +6350,7 @@ Sub RunPr(Debugger As String = "")
 	Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
 	Dim FirstLine As UString = GetFirstCompileLine(MainFile, Project)
 	Dim ExeFileName As WString Ptr
-	If cBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
+	If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
 		Dim As String ApkFileName = *Project->FileName & "/app/build/outputs/apk/debug/app-debug.apk"
 		If Not FileExists(ApkFileName) Then
 			ShowMessages ML("Do not found apk file!")
@@ -6594,7 +6594,7 @@ Sub RunPr(Debugger As String = "")
 				If Pos1 > 0 Then
 					Dim res() As WString Ptr
 					sOutput += Left(sBuffer, Pos1 - 1)
-					Split sOutput, Chr(10), res()
+					Split sOutput, WChr(10), res()
 					For i As Integer = 0 To UBound(res)
 						If Len(*res(i)) <= 1 Then Continue For
 						If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)

@@ -26,8 +26,8 @@
 		Label1.Font.Name = "Times New Roman"
 		Label1.Font.Bold = True
 		Label1.Font.Size = 18
-		Label1.Text = "Visual freeBasic Editor"
-		Label1.SetBounds 11, 7, 428, 54
+		Label1.Text = "Visual FB Editor"
+		Label1.SetBounds 21, 7, 428, 54
 		Label1.Alignment = AlignmentConstants.taCenter
 		Label1.Parent = @This
 		CommandButton1.Name = "CommandButton1"
@@ -56,9 +56,10 @@
 		ML("Thanks to") & !" José Roca for codes of Afx\r" & _
 		ML("Language files by") & !":\r" & _
 		!"Xusinboy Bekchanov (Russian, Uzbekcyril, Uzbeklatin)\r" & _
-		!"Liu XiaLin (Chinese)\r"  & _
-		!"Thomas Frank Ludewig (Deutsch)\r"  & _
-		!"Juan Sánchez (Spanish)\r"
+		!"Liu XiaLin (Chinese)\r" & _
+		!"Thomas Frank Ludewig (Deutsch)\r" & _
+		!"Juan Sánchez (Spanish)\r" & _
+		!"Dariusz Prochotta (Polish)\r"
 		Label2.BorderStyle = 0
 		Label2.SetBounds 10, 58, 432, 403
 		Label2.Parent = @This
@@ -71,7 +72,7 @@
 		#else
 			lblIcon.Graphic.Icon.LoadFromResourceID(1, , 48, 48)
 		#endif
-		lblIcon.SetBounds 18, 10, 48, 48
+		lblIcon.SetBounds 8, 10, 48, 48
 		lblIcon.Parent = @This
 		' lblImage
 		With lblImage

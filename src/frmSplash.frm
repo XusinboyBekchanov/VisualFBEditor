@@ -11,14 +11,14 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Constructor frmSplash
-		This.Text = "Visual freeBasic Editor"
+		This.Text = "Visual FB Editor"
 		#ifdef __USE_GTK__
 			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 		#else
 			This.Icon.LoadFromResourceID(1)
 		#endif
 		This.BackColor = 0
-		This.SetBounds  0, 0, 362, 336
+		This.SetBounds 0, 0, 412, 396
 		This.BorderStyle = 0
 		This.StartPosition = FormStartPosition.CenterScreen
 		' lblImage
@@ -29,15 +29,15 @@ Using My.Sys.Forms
 		#else
 			lblImage.Graphic.Bitmap = "Logo"
 		#endif
-		lblImage.SetBounds  6, 56, 343, 270
+		lblImage.SetBounds 36, 76, 343, 270
 		lblImage.CenterImage = True
 		lblImage.Designer = @This
 		lblImage.OnClick = @lblImage_Click_
 		lblImage.BackColor = 0
 		lblImage.Parent = @This
 		' lblSplash
-		lblSplash.SetBounds 8, 14, 348, 33
-		lblSplash.Text = "Visual freeBasic Editor"
+		lblSplash.SetBounds 8, 14, 398, 33
+		lblSplash.Text = "Visual FB Editor"
 		lblSplash.Font.Name = "Times New Roman"
 		lblSplash.Font.Size = 20
 		lblSplash.Font.Bold = True
@@ -53,7 +53,7 @@ Using My.Sys.Forms
 		' lblInfo
 		lblInfo.Name = "lblInfo"
 		lblInfo.Text = "2018-2021"
-		lblInfo.SetBounds 18, 282, 52, 17
+		lblInfo.SetBounds 18, 332, 52, 17
 		lblInfo.BackColor = 0
 		lblInfo.Font.Color = 16777215
 		lblInfo.Font.Size = 8
@@ -62,7 +62,7 @@ Using My.Sys.Forms
 		With lblProcess
 			.Name = "lblProcess"
 			.Text = ""
-			.SetBounds  18, 306, 430, 30
+			.SetBounds 18, 356, 430, 30
 			.BackColor = 0
 			.Font.Color = 16777215
 			.Font.Size = 8
@@ -79,7 +79,7 @@ Using My.Sys.Forms
 			.Font.Bold = True
 			.Font.Name = "Times New Roman"
 			.Font.Color = 16777215
-			.SetBounds 16, 54, 332, 17
+			.SetBounds 16, 54, 382, 17
 			.Parent = @This
 		End With
 	End Constructor
