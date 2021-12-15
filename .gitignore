@@ -1,8 +1,6 @@
 MyFbFramework
 *.7z
 *.bak
-*32.exe
-*64.exe
 Projects/*.exe
 *.dll*
 *_gtk*
