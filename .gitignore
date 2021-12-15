@@ -8,3 +8,4 @@ Projects/*.exe
 *.o
 lib
 share
+etc
