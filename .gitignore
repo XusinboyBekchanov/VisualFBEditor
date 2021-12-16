@@ -9,3 +9,5 @@ Projects/*.exe
 lib
 share
 etc
+*32.exe
+*64.exe
