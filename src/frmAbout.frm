@@ -72,7 +72,7 @@
 		#else
 			lblIcon.Graphic.Icon.LoadFromResourceID(1, , 48, 48)
 		#endif
-		lblIcon.SetBounds 8, 10, 48, 48
+		lblIcon.SetBounds 28, 0, 48, 48
 		lblIcon.Parent = @This
 		' lblImage
 		With lblImage
@@ -82,7 +82,7 @@
 			#ifdef __USE_GTK__
 				If Dir(ExePath & "/Resources/weChat.png")<>"" Then .Graphic.Bitmap.LoadFromFile(ExePath & "/Resources/weChat.png")
 			#else
-				.Graphic.Bitmap = "weChat"
+				.Graphic = "weChat"
 			#endif
 			.Parent = @This
 		End With
