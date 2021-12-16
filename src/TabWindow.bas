@@ -4374,7 +4374,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends form") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends form '...'")))) OrElse _
 				CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends usercontrol") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends usercontrol '...'")))) Then
 				If Des = 0 Then
-					Visible = True
+					This.Visible = True
 					pnlForm.Visible = True
 					splForm.Visible = True
 					If Not tbrTop.Buttons.Item(3)->Checked Then tbrTop.Buttons.Item(3)->Checked = True

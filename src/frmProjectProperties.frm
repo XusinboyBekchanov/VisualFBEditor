@@ -473,7 +473,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "chkPassAllModuleFilesToCompiler"
 			.Text = ML("Pass All Module Files To Compiler")
 			.TabIndex = 71
-			.SetBounds 225, 183, 252, 22
+			.SetBounds 225, 200, 252, 22
 			.Caption = ML("Pass All Module Files To Compiler")
 			.Parent = @tpGeneral
 		End With
@@ -494,23 +494,12 @@ pfProjectProperties = @fProjectProperties
 			.Caption = ML("Subsystem") & " (" & ML("For Windows") & "):"
 			.Parent = @tpGeneral
 		End With
-		' chkAndroidProject
-		With chkAndroidProject
-			.Name = "chkAndroidProject"
-			.Text = ML("Android Project")
-			.TabIndex = 74
-			.Caption = ML("Android Project")
-			.SetBounds 226, 218, 252, 22
-			.Designer = @This
-			.OnClick = @chkAndroidProject_Click_
-			.Parent = @tpGeneral
-		End With
 		' tpAndroidSettings
 		With tpAndroidSettings
 			.Name = "tpAndroidSettings"
 			.Text = ML("Android Settings")
 			.TabIndex = 75
-			.UseVisualStyleBackColor = true
+			.UseVisualStyleBackColor = True
 			.Caption = ML("Android Settings")
 			.SetBounds 0, 0, 487, 316
 			.Parent = @tabProperties
@@ -556,6 +545,7 @@ pfProjectProperties = @fProjectProperties
 		With txtAndroidNDKLocation
 			.Name = "txtAndroidNDKLocation"
 			.TabIndex = 80
+			.Text = ""
 			.SetBounds 12, 92, 430, 20
 			.Parent = @tpAndroidSettings
 		End With
@@ -582,6 +572,7 @@ pfProjectProperties = @fProjectProperties
 		With txtJDKLocation
 			.Name = "txtJDKLocation"
 			.TabIndex = 83
+			.Text = ""
 			.SetBounds 12, 152, 430, 20
 			.Parent = @tpAndroidSettings
 		End With
@@ -594,6 +585,12 @@ pfProjectProperties = @fProjectProperties
 			.Designer = @This
 			.OnClick = @cmdJDKLocation_Click_
 			.Parent = @tpAndroidSettings
+		End With
+		' BrowseD
+		With BrowseD
+			.Name = "BrowseD"
+			.SetBounds 60, 370, 16, 16
+			.Parent = @This
 		End With
 	End Constructor
 	
@@ -910,13 +907,6 @@ Private Sub frmProjectProperties.tpDebugging_Click_(ByRef Sender As Control)
 End Sub
 Private Sub frmProjectProperties.tpDebugging_Click(ByRef Sender As Control)
 	
-End Sub
-
-Private Sub frmProjectProperties.chkAndroidProject_Click_(ByRef Sender As CheckBox)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).chkAndroidProject_Click(Sender)
-End Sub
-Private Sub frmProjectProperties.chkAndroidProject_Click(ByRef Sender As CheckBox)
-	tpAndroidSettings.Visible = chkAndroidProject.Checked
 End Sub
 
 Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click_(ByRef Sender As Control)
