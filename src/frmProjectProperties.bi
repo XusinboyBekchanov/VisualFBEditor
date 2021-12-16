@@ -44,22 +44,31 @@ Using My.Sys.Forms
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Static Sub tpDebugging_Click_(ByRef Sender As Control)
 		Declare Sub tpDebugging_Click(ByRef Sender As Control)
+		Declare Static Sub chkAndroidProject_Click_(ByRef Sender As CheckBox)
+		Declare Sub chkAndroidProject_Click(ByRef Sender As CheckBox)
+		Declare Static Sub cmdAndroidSDKLocation_Click_(ByRef Sender As Control)
+		Declare Sub cmdAndroidSDKLocation_Click(ByRef Sender As Control)
+		Declare Static Sub cmdAndroidNDKLocation_Click_(ByRef Sender As Control)
+		Declare Sub cmdAndroidNDKLocation_Click(ByRef Sender As Control)
+		Declare Static Sub cmdJDKLocation_Click_(ByRef Sender As Control)
+		Declare Sub cmdJDKLocation_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As TabControl tabProperties
-		Dim As TabPage tpGeneral, tpMake, tpCompile, tpDebugging
-		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions, CommandButton1
-		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321, lblSubsystem
+		Dim As TabPage tpGeneral, tpMake, tpCompile, tpDebugging, tpAndroidSettings
+		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions, CommandButton1, cmdAndroidSDKLocation, cmdAndroidNDKLocation, cmdJDKLocation
+		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321, lblSubsystem, lblAndroidSDKLocation, lblAndroidNDKLocation, lblJDKLocation
 		Dim As Picture picCompileToGCC, picVersionNumber, picApplication, picVersionInformation, picCompilationArguments
 		Dim As ComboBoxEdit cboProjectType, cboMainFile, cboResourceFile, cboIconResourceFile, cboOptimizationLevel, cboSubsystem
-		Dim As TextBox txtProjectName, txtProjectDescription, txtCompilationArguments32Windows, txtCompilationArguments64Windows, txtIcon, txtTitle, txtMajor, txtMinor, txtRevision, txtBuild, txtCompilationArguments32Linux, txtValue, txtHelpFileName, txtCommandLineArguments, txtCompilationArguments32Windows1, txtCompilationArguments64Windows1, txtCompilationArguments32Linux1, txtCompilationArguments64Linux
+		Dim As TextBox txtProjectName, txtProjectDescription, txtCompilationArguments32Windows, txtCompilationArguments64Windows, txtIcon, txtTitle, txtMajor, txtMinor, txtRevision, txtBuild, txtCompilationArguments32Linux, txtValue, txtHelpFileName, txtCommandLineArguments, txtCompilationArguments32Windows1, txtCompilationArguments64Windows1, txtCompilationArguments32Linux1, txtCompilationArguments64Linux, txtAndroidSDKLocation, txtAndroidNDKLocation, txtJDKLocation
 		Dim As GroupBox grbVersionNumber, grbApplication, grbVersionInformation, grbCompilationArguments, grbCompileToGCC
-		Dim As CheckBox chkAutoIncrementVersion, chkCreateDebugInfo, chkPassAllModuleFilesToCompiler
+		Dim As CheckBox chkAutoIncrementVersion, chkCreateDebugInfo, chkPassAllModuleFilesToCompiler, chkAndroidProject
 		Dim As ListControl lstType
 		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization, optCompileByDefault, optCompileToLLVM
 		Dim As Dictionary Types, MainFiles, ResourceFiles, IconResourceFiles
 		Dim As TreeNode Ptr ProjectTreeNode
 		Dim As ImageBox imgIcon
+		Dim As FolderBrowserDialog BrowseD
 	End Type
 	
 	Common Shared pfProjectProperties As frmProjectProperties Ptr

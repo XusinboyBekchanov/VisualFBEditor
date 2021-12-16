@@ -1510,6 +1510,33 @@ Sub AddMRUSession(ByRef FileName As WString)
 	AddMRU FileName, MRUSessions, miRecentSessions, "Sessions"
 End Sub
 
+Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
+    Dim As WString * 1024 f, fsrc, fdest
+	Dim As UInteger Attr
+	Dim As WStringList Folders
+	MkDir ToDir
+	f = Dir(FromDir & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
+	While f <> ""
+		If (Attr And fbDirectory) <> 0 Then
+			If f <> "." AndAlso f <> ".." Then Folders.Add FromDir & IIf(EndsWith(FromDir, Slash), "", Slash) & f
+		Else
+			#ifdef __USE_GTK__
+				FileCopy FromDir & Slash & f, ToDir & Slash & f
+			#else
+				fsrc = FromDir & Slash & f
+				fdest = ToDir & Slash & f
+				CopyFileW @fsrc, @fdest, False
+			#endif
+		End If
+		f = Dir(Attr)
+	Wend
+	For i As Integer = 0 To Folders.Count - 1
+		FolderCopy Folders.Item(i), ToDir & Slash & GetFileName(Folders.Item(i))
+	Next
+	Folders.Clear
+	Return 0
+End Function
+
 Function FolderExists(ByRef FolderName As WString) As Boolean
 	Dim AttrTester As Integer, DirString As String
 	DirString = Dir(FolderName, fbDirectory, AttrTester)
@@ -1977,7 +2004,9 @@ End Sub
 
 Sub NewProject()
 	If pfTemplates->ShowModal(frmMain) = ModalResults.OK Then
-		If pfTemplates->SelectedTemplate <> "" Then
+		If pfTemplates->SelectedFolder <> "" Then
+			AddFolder pfTemplates->SelectedFolder
+		ElseIf pfTemplates->SelectedTemplate <> "" Then
 			AddNew pfTemplates->SelectedTemplate
 		ElseIf pfTemplates->SelectedFile <> "" Then
 			OpenFiles pfTemplates->SelectedFile
@@ -2617,7 +2646,7 @@ End Sub
 Function DirExists(ByRef DirPath As WString) As Integer
 	Const InAttr = fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive
 	Dim AttrTester As Integer, DirString As String
-	DirString = Dir (DirPath, InAttr, AttrTester)
+	DirString = Dir(DirPath, InAttr, AttrTester)
 	If (AttrTester And fbDirectory) Then
 		Return (-1)
 	End If

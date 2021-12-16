@@ -70,10 +70,11 @@
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 190, 0, 265, 216
+			.SetBounds 200, 10, 405, 306
 			.Designer = @This
 			.Columns.Add ML("Template"), , 500, cfLeft
 			.OnItemActivate = @lvTemplates_ItemActivate_
+			.OnSelectedItemChanged = @lvTemplates_SelectedItemChanged_
 			.Parent = @tpNew
 		End With
 		' cmdCancel
@@ -180,6 +181,43 @@
 			.Designer = @This
 			.OnSelChanged = @tvRecent_SelChanged_
 		End With
+		' pnlSaveLocation
+		With pnlSaveLocation
+			.Name = "pnlSaveLocation"
+			.Text = "Panel1"
+			.TabIndex = 12
+			.SetBounds 0, -1, 390, 30
+			.Visible = False
+			.Parent = @pnlBottom
+		End With
+		' lblSaveLocation
+		With lblSaveLocation
+			.Name = "lblSaveLocation"
+			.Text = ML("Save location:")
+			.TabIndex = 13
+			.Caption = ML("Save location:")
+			.SetBounds 10, 3, 110, 20
+			.Parent = @pnlSaveLocation
+		End With
+		' txtSaveLocation
+		With txtSaveLocation
+			.Name = "txtSaveLocation"
+			.Text = "./Projects/Project1"
+			.TabIndex = 14
+			.SetBounds 120, 1, 204, 20
+			.Parent = @pnlSaveLocation
+		End With
+		' cmdSaveLocation
+		With cmdSaveLocation
+			.Name = "cmdSaveLocation"
+			.Text = "..."
+			.TabIndex = 15
+			.Caption = "..."
+			.SetBounds 325, 0, 30, 22
+			.Designer = @This
+			.OnClick = @cmdSaveLocation_Click_
+			.Parent = @pnlSaveLocation
+		End With
 	End Constructor
 	
 Private Sub frmTemplates.TabControl1_SelChange_(ByRef Sender As TabControl, NewIndex As Integer)
@@ -213,9 +251,34 @@ Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
 	Select Case TabControl1.SelectedTabIndex
 	Case 0
 		If lvTemplates.SelectedItemIndex > -1 Then
-			SelectedTemplate = ExePath & Slash & "Templates" & Slash & Templates.Item(lvTemplates.SelectedItemIndex)
-			ModalResult = ModalResults.OK
-			Me.CloseForm
+			If pnlSaveLocation.Visible Then
+				If FolderExists(GetFullPath(txtSaveLocation.Text)) Then
+					MsgBox ML("Selected folder exists, change the project folder!")
+					Me.BringToFront
+				ElseIf Not FolderExists(GetFolderName(GetFullPath(txtSaveLocation.Text), False)) Then
+					MsgBox ML("Parent folder not exists, change the parent folder!")
+					Me.BringToFront
+				Else
+					SelectedTemplate = ExePath & Slash & "Templates" & Slash & Templates.Item(lvTemplates.SelectedItemIndex)
+					Dim As UString TemplateFolderName = Left(SelectedTemplate, Len(SelectedTemplate) - 4)
+					SelectedFolder = GetFullPath(txtSaveLocation.Text)
+					FolderCopy TemplateFolderName, SelectedFolder
+					Dim As WString * MAX_PATH SrcPath, DestPath
+					SrcPath = SelectedFolder & Slash & GetFileName(SelectedTemplate)
+					DestPath = SelectedFolder & Slash & GetFileName(SelectedFolder) & ".vfp"
+					#ifdef __USE_GTK__
+						Print Name(SrcPath, DestPath)
+					#else
+						MoveFile @SrcPath, @DestPath
+					#endif
+					ModalResult = ModalResults.OK
+					Me.CloseForm
+				End If
+			Else
+				SelectedTemplate = ExePath & Slash & "Templates" & Slash & Templates.Item(lvTemplates.SelectedItemIndex)
+				ModalResult = ModalResults.OK
+				Me.CloseForm
+			End If
 		Else
 			MsgBox ML("Select template!")
 			Me.BringToFront
@@ -254,7 +317,11 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 		While f <> ""
 			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			lvTemplates.ListItems.Add TemplateName, "Project"
-			Templates.Add "Projects" & Slash & f
+			If FileExists(ExePath & "/Templates/Projects/" & TemplateName & "/" & f) Then
+				Templates.Add "Projects" & Slash & f, lvTemplates.ListItems.Item(lvTemplates.ListItems.Count - 1)
+			Else
+				Templates.Add "Projects" & Slash & f
+			End If
 			f = Dir()
 		Wend
 	Else
@@ -300,7 +367,15 @@ Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
 	tvTemplates_SelChanged tvTemplates, *tvTemplates.Nodes.Item(0)
 	tvRecent_SelChanged tvRecent, *tvRecent.Nodes.Item(0)
 	TabControl1.SelectedTabIndex = 0
-	'This.width = This.width + 1
+	'This.Width = This.Width + 1
+	Var n = 0
+	Dim As String ProjectName = "Project"
+	Dim NewName As String
+	Do
+		n = n + 1
+		NewName = ProjectName & Str(n)
+	Loop While FolderExists(*ProjectsPath & Slash & NewName)
+	txtSaveLocation.Text = Replace(*ProjectsPath, BackSlash, Slash) & Slash & NewName
 End Sub
 
 Private Sub frmTemplates.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
@@ -351,4 +426,24 @@ Private Sub frmTemplates.TabControl1_SelChange(ByRef Sender As TabControl, NewIn
 		'OpenFileControl1.SetBounds TabControl1.Left, TabControl1.Top, TabControl1.Width, TabControl1.Height
 		'TabControl1.RequestAlign
 	'End If
+End Sub
+
+Private Sub frmTemplates.cmdSaveLocation_Click_(ByRef Sender As Control)
+	*Cast(frmTemplates Ptr, Sender.Designer).cmdSaveLocation_Click(Sender)
+End Sub
+Private Sub frmTemplates.cmdSaveLocation_Click(ByRef Sender As Control)
+	Dim BrowseD As FolderBrowserDialog
+	BrowseD.InitialDir = GetFullPath(Replace(GetFolderName(txtSaveLocation.Text), BackSlash, Slash))
+	If BrowseD.Execute Then
+		txtSaveLocation.Text = BrowseD.Directory & Slash & Mid(txtSaveLocation.Text, InStrRev(Replace(txtSaveLocation.Text, BackSlash, Slash), Slash) + 1)
+	End If
+End Sub
+
+Private Sub frmTemplates.lvTemplates_SelectedItemChanged_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	*Cast(frmTemplates Ptr, Sender.Designer).lvTemplates_SelectedItemChanged(Sender, ItemIndex)
+End Sub
+Private Sub frmTemplates.lvTemplates_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	If lvTemplates.SelectedItemIndex > -1 Then
+		pnlSaveLocation.Visible = Templates.Object(lvTemplates.SelectedItemIndex) > 0
+	End If
 End Sub

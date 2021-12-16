@@ -6,6 +6,8 @@
 	#include once "mff/CommandButton.bi"
 	#include once "mff/OpenFileControl.bi"
 	#include once "mff/Panel.bi"
+	#include once "mff/Label.bi"
+	#include once "mff/TextBox.bi"
 	
 	Using My.Sys.Forms
 	
@@ -32,18 +34,24 @@
 		Declare Sub OpenFileControl1_FileActivate(ByRef Sender As OpenFileControl)
 		Declare Static Sub TabControl1_SelChange_(ByRef Sender As TabControl, NewIndex As Integer)
 		Declare Sub TabControl1_SelChange(ByRef Sender As TabControl, NewIndex As Integer)
+		Declare Static Sub cmdSaveLocation_Click_(ByRef Sender As Control)
+		Declare Sub cmdSaveLocation_Click(ByRef Sender As Control)
+		Declare Static Sub lvTemplates_SelectedItemChanged_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Sub lvTemplates_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Constructor
 		
 		Dim As TabControl TabControl1
 		Dim As TabPage tpNew, tpExisting, tpRecent
 		Dim As TreeView tvTemplates, tvRecent
 		Dim As ListView lvTemplates, lvRecent
-		Dim As CommandButton cmdOK, cmdCancel
+		Dim As CommandButton cmdOK, cmdCancel, cmdSaveLocation
 		Dim As WStringList Templates
 		Dim As Boolean OnlyFiles
-		Dim As UString SelectedTemplate, SelectedFile
+		Dim As UString SelectedTemplate, SelectedFile, SelectedFolder
 		Dim As OpenFileControl OpenFileControl1
-		Dim As Panel pnlBottom
+		Dim As Panel pnlBottom, pnlSaveLocation
+		Dim As Label lblSaveLocation
+		Dim As TextBox txtSaveLocation
 	End Type
 	
 	Common Shared pfTemplates As frmTemplates Ptr

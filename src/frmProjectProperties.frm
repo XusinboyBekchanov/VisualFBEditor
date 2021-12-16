@@ -36,7 +36,7 @@ pfProjectProperties = @fProjectProperties
 		' tpGeneral
 		tpGeneral.Name = "tpGeneral"
 		tpGeneral.Text = ML("General")
-		tpGeneral.SetBounds 7, 44, 491, 302
+		tpGeneral.SetBounds -268, 22, 487, 316
 		tpGeneral.UseVisualStyleBackColor = True
 		tpGeneral.Parent = @tabProperties
 		' tpMake
@@ -471,10 +471,10 @@ pfProjectProperties = @fProjectProperties
 		' chkPassAllModuleFilesToCompiler
 		With chkPassAllModuleFilesToCompiler
 			.Name = "chkPassAllModuleFilesToCompiler"
-			.Text = "Pass All Module Files To Compiler"
+			.Text = ML("Pass All Module Files To Compiler")
 			.TabIndex = 71
-			.SetBounds 225, 200, 252, 22
-			.Caption = "Pass All Module Files To Compiler"
+			.SetBounds 225, 183, 252, 22
+			.Caption = ML("Pass All Module Files To Compiler")
 			.Parent = @tpGeneral
 		End With
 		' cboSubsystem
@@ -493,6 +493,107 @@ pfProjectProperties = @fProjectProperties
 			.SetBounds 10, 66, 202, 18
 			.Caption = ML("Subsystem") & " (" & ML("For Windows") & "):"
 			.Parent = @tpGeneral
+		End With
+		' chkAndroidProject
+		With chkAndroidProject
+			.Name = "chkAndroidProject"
+			.Text = ML("Android Project")
+			.TabIndex = 74
+			.Caption = ML("Android Project")
+			.SetBounds 226, 218, 252, 22
+			.Designer = @This
+			.OnClick = @chkAndroidProject_Click_
+			.Parent = @tpGeneral
+		End With
+		' tpAndroidSettings
+		With tpAndroidSettings
+			.Name = "tpAndroidSettings"
+			.Text = ML("Android Settings")
+			.TabIndex = 75
+			.UseVisualStyleBackColor = true
+			.Caption = ML("Android Settings")
+			.SetBounds 0, 0, 487, 316
+			.Parent = @tabProperties
+		End With
+		' txtAndroidSDKLocation
+		With txtAndroidSDKLocation
+			.Name = "txtAndroidSDKLocation"
+			.Text = ""
+			.TabIndex = 76
+			.SetBounds 12, 32, 430, 20
+			.Parent = @tpAndroidSettings
+		End With
+		' cmdAndroidSDKLocation
+		With cmdAndroidSDKLocation
+			.Name = "cmdAndroidSDKLocation"
+			.Text = "..."
+			.TabIndex = 77
+			.Caption = "..."
+			.SetBounds 450, 31, 25, 22
+			.Designer = @This
+			.OnClick = @cmdAndroidSDKLocation_Click_
+			.Parent = @tpAndroidSettings
+		End With
+		' lblAndroidSDKLocation
+		With lblAndroidSDKLocation
+			.Name = "lblAndroidSDKLocation"
+			.Text = ML("Android SDK location")
+			.TabIndex = 78
+			.Caption = ML("Android SDK location")
+			.SetBounds 12, 12, 260, 20
+			.Parent = @tpAndroidSettings
+		End With
+		' lblAndroidNDKLocation
+		With lblAndroidNDKLocation
+			.Name = "lblAndroidNDKLocation"
+			.Text = ML("Android NDK location")
+			.TabIndex = 79
+			.Caption = ML("Android NDK location")
+			.SetBounds 12, 72, 260, 20
+			.Parent = @tpAndroidSettings
+		End With
+		' txtAndroidNDKLocation
+		With txtAndroidNDKLocation
+			.Name = "txtAndroidNDKLocation"
+			.TabIndex = 80
+			.SetBounds 12, 92, 430, 20
+			.Parent = @tpAndroidSettings
+		End With
+		' cmdAndroidNDKLocation
+		With cmdAndroidNDKLocation
+			.Name = "cmdAndroidNDKLocation"
+			.Text = "..."
+			.TabIndex = 81
+			.SetBounds 450, 91, 25, 22
+			.Designer = @This
+			.OnClick = @cmdAndroidNDKLocation_Click_
+			.Parent = @tpAndroidSettings
+		End With
+		' lblJDKLocation
+		With lblJDKLocation
+			.Name = "lblJDKLocation"
+			.Text = ML("JDK location")
+			.TabIndex = 82
+			.Caption = ML("JDK location")
+			.SetBounds 12, 132, 260, 20
+			.Parent = @tpAndroidSettings
+		End With
+		' txtJDKLocation
+		With txtJDKLocation
+			.Name = "txtJDKLocation"
+			.TabIndex = 83
+			.SetBounds 12, 152, 430, 20
+			.Parent = @tpAndroidSettings
+		End With
+		' cmdJDKLocation
+		With cmdJDKLocation
+			.Name = "cmdJDKLocation"
+			.Text = "..."
+			.TabIndex = 84
+			.SetBounds 450, 151, 25, 22
+			.Designer = @This
+			.OnClick = @cmdJDKLocation_Click_
+			.Parent = @tpAndroidSettings
 		End With
 	End Constructor
 	
@@ -809,4 +910,41 @@ Private Sub frmProjectProperties.tpDebugging_Click_(ByRef Sender As Control)
 End Sub
 Private Sub frmProjectProperties.tpDebugging_Click(ByRef Sender As Control)
 	
+End Sub
+
+Private Sub frmProjectProperties.chkAndroidProject_Click_(ByRef Sender As CheckBox)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).chkAndroidProject_Click(Sender)
+End Sub
+Private Sub frmProjectProperties.chkAndroidProject_Click(ByRef Sender As CheckBox)
+	tpAndroidSettings.Visible = chkAndroidProject.Checked
+End Sub
+
+Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click_(ByRef Sender As Control)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAndroidSDKLocation_Click(Sender)
+End Sub
+Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click(ByRef Sender As Control)
+	BrowseD.InitialDir = txtAndroidSDKLocation.Text
+	If BrowseD.Execute Then
+		txtAndroidSDKLocation.Text = BrowseD.Directory
+	End If
+End Sub
+
+Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click_(ByRef Sender As Control)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAndroidNDKLocation_Click(Sender)
+End Sub
+Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click(ByRef Sender As Control)
+	BrowseD.InitialDir = txtAndroidNDKLocation.Text
+	If BrowseD.Execute Then
+		txtAndroidNDKLocation.Text = BrowseD.Directory
+	End If
+End Sub
+
+Private Sub frmProjectProperties.cmdJDKLocation_Click_(ByRef Sender As Control)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).cmdJDKLocation_Click(Sender)
+End Sub
+Private Sub frmProjectProperties.cmdJDKLocation_Click(ByRef Sender As Control)
+	BrowseD.InitialDir = txtJDKLocation.Text
+	If BrowseD.Execute Then
+		txtJDKLocation.Text = BrowseD.Directory
+	End If
 End Sub

@@ -200,6 +200,7 @@ Declare Sub ChangeNewLineType(NewLineType As NewLineTypes)
 #endif
 Declare Function WithoutPointers(ByRef e As String) As String
 Declare Sub WithFolder
+Declare Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
 Declare Sub Save
 Declare Function SaveAllBeforeCompile() As Boolean
 Declare Function SaveSession() As Boolean
