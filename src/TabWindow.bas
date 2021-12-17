@@ -616,6 +616,9 @@ End Operator
 Function TabWindow.SaveTab As Boolean
 	'  It is important to creat a backup file by time.
 	'If txtCode.Modified = True Then
+	MutexLock tlock
+	MutexLock tlockSave
+	MutexLock tlockToDo
 	If AutoCreateBakFiles Then
 		FileCopy *FFileName, Str(GetBakFileName(*FFileName)) '
 	End If
@@ -626,7 +629,6 @@ Function TabWindow.SaveTab As Boolean
 	#endif
 	Var FileIndex = IncludeFiles.IndexOf(FileName)
 	If FileIndex <> 0 Then
-		MutexLock tlockSave
 		Dim As TypeElement Ptr te, te1
 		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 			te = pGlobalNamespaces->Object(i)
@@ -712,9 +714,11 @@ Function TabWindow.SaveTab As Boolean
 			pLoadPaths->Add FileName
 		End If
 		'LoadFunctions FileName, LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
-		MutexUnlock tlockSave
 		ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
 	End If
+	MutexUnlock tlock
+	MutexUnlock tlockSave
+	MutexUnlock tlockToDo
 	Return True
 End Function
 
@@ -5377,32 +5381,71 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 	End If
 End Sub
 
-Sub SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer)
-	Dim As Integer Pos1, Pos2
-	Dim As Boolean bFlag
-	WLet(ErrFileName, "")
-	WLet(ErrTitle, sLine)
+Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer) As UShort
+	Dim As Integer Pos3, Pos1, Pos2 'David Change for ML
+	Dim As WString * 50 bFlagErr =""
+	WLet ErrFileName, ""
+	WLet ErrTitle, sLine
 	ErrorLine = 0
-	Pos1 = InStr(sLine, ") error ")
-	If Pos1 = 0 Then Pos1 = InStr(sLine, ") warning ")
+	Pos1 = InStr(LCase(sLine), ") error ")
+	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error:")
+	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "ld.exe:")
+	If Pos1 = 0 Then
+		Pos1 = InStr(LCase(sLine), " warning")
+		If Pos1>0 Then bFlagErr = "Warning"
+	Else
+		bFlagErr = "Errors"
+	End If
 	If Pos1 = 0 Then
 		Pos1 = InStr(3, sLine, ":")
-		If Pos1 = 0 Then Return
+		If Pos1 = 0 Then Return -1
 		Pos2 = InStr(Pos1 + 1, sLine, ":")
-		If Pos2 = 0 Then Return
-		If Not IsNumeric(Mid(sLine, Pos1 + 1, Pos2 - Pos1 - 1)) Then Return
+		If Pos2 = 0 Then Return -1
+		'If Not IsNumeric(Mid(sLine, Pos1 + 1, Pos2 - Pos1 - 1)) Then Return -1
 		Swap Pos1, Pos2
-		bFlag = True
 	Else
 		Pos2 = InStrRev(sLine, "(", Pos1)
-		If Pos2 = 0 Then Return
+		If Pos2 = 0 Then Pos2 = InStr(Pos1, sLine, ":") 'David Changed
+		'If Pos2 = 0 Then Return -1
 	End If
 	ErrorLine = Val(Mid(sLine, Pos2 + 1, Pos1 - Pos2 - 1))
-	If ErrorLine = 0 Then Return
-	WLet(ErrFileName, ..Left(sLine, Pos2 - 1))
-	WLet(ErrTitle, Mid(sLine, Pos1 + 1))
-	'If bFlag AndAlso  Then
-End Sub
+	'If ErrorLine = 0 Then Return 0
+	WLet ErrFileName, Left(sLine, Pos2 - 1)
+	Pos3 =InStr(Pos1, sLine, ":")
+	If Pos3>0 Then
+		Pos2 =InStrRev(sLine, ",")
+		If Pos2 < 1 Then Pos2 = Len(sLine)
+		If InStr(Mid(sLine, Pos2),", found") = 1 Then
+			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found")))
+		ElseIf InStr(Mid(sLine, Pos2),", before") = 1 Then
+			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before")))
+		ElseIf InStr(Mid(sLine, Pos2),", after") = 1 Then
+			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("after") + (Mid(sLine, Pos2 + Len(", after")))
+		ElseIf InStr(Mid(sLine, Pos2),", exiting") = 1 Then
+			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("Exit") + (Mid(sLine, Pos2 + Len(", exiting")))
+		ElseIf InStr(Mid(sLine, Pos2),", at parameter") = 1 Then
+			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("at parameter") + (Mid(sLine, Pos2 + Len(", at parameter")))
+			'at parameter
+		Else
+			If Pos2 > Pos3 Then
+				Dim As WString * 250 tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3))
+				If Right(tStr, 1) = "," Then tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1)) 'Strange. Sometime got letter ","
+				WLet ErrTitle, ML(bFlagErr) + ": " + ML(tStr) & ", " + (Mid(sLine, Pos2 + 1)) '& Mid(sLine, Pos2+1)
+			Else
+				WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3+1)))
+			End If
+		End If
+	Else
+		WLet ErrTitle, Mid(sLine, Pos1 + 1)
+	End If
+	If bFlagErr = "Warning"  Then
+		Return 1
+	ElseIf bFlagErr = "Errors"  Then
+		Return 2
+	Else
+		Return 0
+	End If
+End Function
 
 Function Err2Description(Code As Integer) ByRef As WString
 	Select Case Code

@@ -20,11 +20,16 @@ pfOptions = @fOptions
 		This.OnCreate = @Form_Create
 		This.OnClose = @Form_Close
 		This.OnShow = @Form_Show
+		#ifdef __USE_GTK__
+			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+		#else
+			This.Icon.LoadFromResourceID(1)
+		#endif
 		This.MinimizeBox = False
 		This.MaximizeBox = False
 		This.SetBounds 0, 0, 630, 488
 		This.StartPosition = FormStartPosition.CenterParent
-		This.Caption = ML("Options")
+		'This.Caption = ML("Options")
 		This.CancelButton = @cmdCancel
 		This.DefaultButton = @cmdOK
 		This.BorderStyle = FormBorderStyle.FixedDialog
@@ -41,7 +46,7 @@ pfOptions = @fOptions
 		cmdOK.Default = True
 		cmdOK.SetBounds 348, 427, 90, 24
 		cmdOK.OnClick = @cmdOK_Click
-		cmdOK.Caption = ML("OK")
+		'cmdOK.Caption = ML("OK")
 		cmdOK.Parent = @This
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
@@ -563,14 +568,14 @@ pfOptions = @fOptions
 		cmdForeground.Name = "cmdForeground"
 		cmdForeground.Text = "..."
 		cmdForeground.SetBounds 330, 70, 24, 22
-		cmdForeground.Caption = "..."
+		'cmdForeground.Caption = "..."
 		cmdForeground.OnClick = @cmdForeground_Click
 		cmdForeground.Parent = @grbColors
 		' cmdFont
 		cmdFont.Name = "cmdFont"
 		cmdFont.Text = "..."
 		cmdFont.SetBounds 376, 18, 24, 22
-		cmdFont.Caption = "..."
+		'cmdFont.Caption = "..."
 		cmdFont.OnClick = @cmdFont_Click
 		cmdFont.Parent = @grbFont
 		' lblFont
@@ -587,7 +592,7 @@ pfOptions = @fOptions
 		cmdProjectsPath.Name = "cmdProjectsPath"
 		cmdProjectsPath.Text = "..."
 		cmdProjectsPath.SetBounds 400, 367, 24, 22
-		cmdProjectsPath.Caption = "..."
+		'cmdProjectsPath.Caption = "..."
 		cmdProjectsPath.OnClick = @cmdProjectsPath_Click
 		cmdProjectsPath.Parent = @pnlGeneral
 		' lblProjectsPath
@@ -605,7 +610,7 @@ pfOptions = @fOptions
 		cmdBackground.Name = "cmdBackground"
 		cmdBackground.Text = "..."
 		cmdBackground.SetBounds 330, 112, 24, 22
-		cmdBackground.Caption = "..."
+		'cmdBackground.Caption = "..."
 		cmdBackground.OnClick = @cmdBackground_Click
 		cmdBackground.Parent = @grbColors
 		' lblForeground
@@ -633,7 +638,7 @@ pfOptions = @fOptions
 		cmdIndicator.Name = "cmdIndicator"
 		cmdIndicator.Text = "..."
 		cmdIndicator.SetBounds 330, 191, 24, 22
-		cmdIndicator.Caption = "..."
+		'cmdIndicator.Caption = "..."
 		cmdIndicator.OnClick = @cmdIndicator_Click
 		cmdIndicator.Parent = @grbColors
 		'
@@ -677,7 +682,7 @@ pfOptions = @fOptions
 		chkUseMakeOnStartWithCompile.Name = "chkUseMakeOnStartWithCompile"
 		chkUseMakeOnStartWithCompile.Text = ML("Use make on start with compile (if exists makefile)")
 		chkUseMakeOnStartWithCompile.SetBounds 15, 73, 390, 16
-		chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
+		'chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
 		chkUseMakeOnStartWithCompile.Parent = @pnlMake
 		' lvCompilerPaths
 		With lvCompilerPaths
@@ -759,7 +764,7 @@ pfOptions = @fOptions
 			.Name = "lblInterfaceFont"
 			.Text = "Tahoma, 8 pt"
 			.SetBounds 107, 20, 264, 16
-			.Caption = "Tahoma, 8 pt"
+			'.Caption = "Tahoma, 8 pt"
 			.Parent = @grbThemes
 		End With
 		' cmdInterfaceFont
@@ -767,7 +772,7 @@ pfOptions = @fOptions
 			.Name = "cmdInterfaceFont"
 			.Text = "..."
 			.SetBounds 376, 20, 24, 22
-			.Caption = "..."
+			'.Caption = "..."
 			.OnClick = @cmdInterfaceFont_Click
 			.Parent = @grbThemes
 		End With
@@ -775,7 +780,7 @@ pfOptions = @fOptions
 		With lblInterfaceFontLabel
 			.Name = "lblInterfaceFontLabel"
 			.Text = ML("Interface font") & ":"
-			.SetBounds 10, 20, 80, 16
+			.SetBounds 10, 20, 240, 16
 			.Parent = @grbThemes
 		End With
 		' chkDisplayIcons
@@ -819,7 +824,7 @@ pfOptions = @fOptions
 			.Name = "cmdFrame"
 			.Text = "..."
 			.SetBounds 330, 151, 24, 22
-			.Caption = "..."
+			'.Caption = "..."
 			.OnClick = @cmdFrame_Click
 			.Parent = @grbColors
 		End With
@@ -1004,7 +1009,7 @@ pfOptions = @fOptions
 			.Name = "chkCreateNonStaticEventHandlers"
 			.Text = ML("Create non-static event handlers")
 			.SetBounds 12, 127, 288, 24
-			.Caption = ML("Create non-static event handlers")
+			'.Caption = ML("Create non-static event handlers")
 			.Parent = @pnlDesigner
 		End With
 		' lblDebugger32
@@ -1046,9 +1051,9 @@ pfOptions = @fOptions
 		' cmdAddEditor
 		With cmdAddEditor
 			.Name = "cmdAddEditor"
-			.Text = "Add"
+			.Text = ML("&Add")
 			.SetBounds 17, 361, 96, 24
-			.Caption = "Add"
+			'.Caption = "Add"
 			.Designer = @This
 			.OnClick = @cmdAddEditor_Click_
 			.Parent = @grbOtherEditors
@@ -1056,9 +1061,9 @@ pfOptions = @fOptions
 		' cmdChangeEditor
 		With cmdChangeEditor
 			.Name = "cmdChangeEditor"
-			.Text = "Change"
+			.Text = ML("Chan&ge")
 			.SetBounds 114, 361, 96, 24
-			.Caption = "Change"
+			'.Caption = "Change"
 			.Designer = @This
 			.OnClick = @cmdChangeEditor_Click_
 			.Parent = @grbOtherEditors
@@ -1066,9 +1071,9 @@ pfOptions = @fOptions
 		' cmdRemoveEditor
 		With cmdRemoveEditor
 			.Name = "cmdRemoveEditor"
-			.Text = "Remove"
+			.Text = ML("&Remove")
 			.SetBounds 211, 361, 96, 24
-			.Caption = "Remove"
+			'.Caption = "Remove"
 			.Designer = @This
 			.OnClick = @cmdRemoveEditor_Click_
 			.Parent = @grbOtherEditors
@@ -1076,9 +1081,9 @@ pfOptions = @fOptions
 		' cmdClearEditor
 		With cmdClearEditor
 			.Name = "cmdClearEditor"
-			.Text = "Clear"
+			.Text = ML("&Clear")
 			.SetBounds 307, 361, 96, 24
-			.Caption = "Clear"
+			'.Caption = "Clear"
 			.Designer = @This
 			.OnClick = @cmdClearEditor_Click_
 			.Parent = @grbOtherEditors
@@ -1095,7 +1100,7 @@ pfOptions = @fOptions
 			.Name = "optPromptForProjectAndFile"
 			.Text = ML("Prompt for Project / File")
 			.SetBounds 18, 22, 184, 16
-			.Caption = ML("Prompt for Project / File")
+			'.Caption = ML("Prompt for Project / File")
 			.Designer = @This
 			.OnClick = @optPromptForProjectAndFiles_Click
 			.Parent = @grbWhenVFBEStarts
@@ -1105,7 +1110,7 @@ pfOptions = @fOptions
 			.Name = "optCreateProjectFile"
 			.Text = ML("Create Project / File")
 			.SetBounds 18, 45, 184, 16
-			.Caption = ML("Create Project / File")
+			'.Caption = ML("Create Project / File")
 			.Designer = @This
 			.OnClick = @optCreateProjectFile_Click
 			.Parent = @grbWhenVFBEStarts
@@ -1124,7 +1129,7 @@ pfOptions = @fOptions
 			.Name = "optDoNotNothing"
 			.Text = ML("Don't Nothing")
 			.SetBounds 19, 90, 184, 16
-			.Caption = ML("Don't Nothing")
+			'.Caption = ML("Don't Nothing")
 			.Designer = @This
 			.OnClick = @optDoNotNothing_Click
 			.Parent = @grbWhenVFBEStarts
@@ -1142,7 +1147,7 @@ pfOptions = @fOptions
 			.Text = ML("&Find")
 			.TabIndex = 167
 			.SetBounds 307, 14, 96, 24
-			.Caption = ML("&Find")
+			'.Caption = ML("&Find")
 			.Designer = @This
 			.OnClick = @cmdFindCompilers_Click_
 			.Parent = @grbCompilerPaths
@@ -1153,7 +1158,7 @@ pfOptions = @fOptions
 			.Text = ML("Find Compilers from Computer:")
 			.TabIndex = 168
 			.SetBounds 20, 19, 280, 20
-			.Caption = ML("Find Compilers from Computer:")
+			'.Caption = ML("Find Compilers from Computer:")
 			.Parent = @grbCompilerPaths
 		End With
 		' optPromptToSave
@@ -1162,7 +1167,7 @@ pfOptions = @fOptions
 			.Text = ML("Prompt To Save")
 			.TabIndex = 166
 			.SetBounds 18, 68, 184, 16
-			.Caption = ML("Prompt To Save")
+			'.Caption = ML("Prompt To Save")
 			.Parent = @grbWhenCompiling
 		End With
 		' chkShowKeywordsTooltip
@@ -1171,7 +1176,7 @@ pfOptions = @fOptions
 			.Text = ML("Show Keywords Tooltip")
 			.TabIndex = 170
 			.SetBounds 10, 63, 264, 18
-			.Caption = ML("Show Keywords Tooltip")
+			'.Caption = ML("Show Keywords Tooltip")
 			.Parent = @pnlCodeEditor
 		End With
 		' chkAddSpacesToOperators
@@ -1180,7 +1185,7 @@ pfOptions = @fOptions
 			.Text = ML("Add Spaces To Operators")
 			.TabIndex = 171
 			.SetBounds 10, 153, 194, 18
-			.Caption = ML("Add Spaces To Operators")
+			'.Caption = ML("Add Spaces To Operators")
 			.Parent = @pnlCodeEditor
 		End With
 		' cboOpenedFile
@@ -1197,7 +1202,7 @@ pfOptions = @fOptions
 			.Text = ML("Create Form types without Type word")
 			.TabIndex = 173
 			.SetBounds 12, 148, 288, 24
-			.Caption = ML("Create Form types without Type word")
+			'.Caption = ML("Create Form types without Type word")
 			.Parent = @pnlDesigner
 		End With
 		' grbCommandPromptOptions
@@ -1206,7 +1211,7 @@ pfOptions = @fOptions
 			.Text = ML("Command Prompt options")
 			.TabIndex = 174
 			.SetBounds 10, 68, 416, 94
-			.Caption = ML("Command Prompt options")
+			'.Caption = ML("Command Prompt options")
 			.Parent = @pnlTerminal
 		End With
 		' optMainFileFolder
@@ -1215,7 +1220,7 @@ pfOptions = @fOptions
 			.Text = ML("Main File folder")
 			.TabIndex = 175
 			.SetBounds 20, 39, 220, 20
-			.Caption = ML("Main File folder")
+			'.Caption = ML("Main File folder")
 			.Parent = @grbCommandPromptOptions
 		End With
 		' lblOpenCommandPromptIn
@@ -1224,16 +1229,16 @@ pfOptions = @fOptions
 			.Text = ML("Open command prompt in:")
 			.TabIndex = 176
 			.SetBounds 20, 19, 380, 20
-			.Caption = ML("Open command prompt in:")
+			'.Caption = ML("Open command prompt in:")
 			.Parent = @grbCommandPromptOptions
 		End With
 		' optInFolder
 		With optInFolder
 			.Name = "optInFolder"
-			.Text = ML("Folder:")
+			.Text = ML("Folder") & ":"
 			.TabIndex = 177
 			.SetBounds 20, 59, 120, 20
-			.Caption = ML("Folder:")
+			'.Caption = ML("Folder:")
 			.Parent = @grbCommandPromptOptions
 		End With
 		' txtInFolder
@@ -1259,7 +1264,7 @@ pfOptions = @fOptions
 			.Name = "lblIntellisenseLimit"
 			.Text = ML("Intellisense limit") & ":"
 			.TabIndex = 180
-			.Caption = ML("Intellisense limit") & ":"
+			'.Caption = ML("Intellisense limit") & ":"
 			.SetBounds 66, 269, 150, 17
 			.Parent = @pnlCodeEditor
 		End With
@@ -1283,7 +1288,7 @@ pfOptions = @fOptions
 			.Name = "chkTurnOnEnvironmentVariables"
 			.Text = ML("Turn on Environment variables") & ":"
 			.TabIndex = 184
-			.Caption = ML("Turn on Environment variables") & ":"
+			'.Caption = ML("Turn on Environment variables") & ":"
 			.SetBounds 15, 182, 200, 16
 			.Parent = @pnlDebugger
 		End With

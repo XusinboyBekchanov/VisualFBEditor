@@ -26,7 +26,12 @@ pfGoto = @fGoto
 	
 	Constructor frmGoto
 		This.Width = 320
-		Height = 100
+		This.Height = 100
+		#ifdef __USE_GTK__
+			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+		#else
+			This.Icon.LoadFromResourceID(1)
+		#endif
 		This.StartPosition = FormStartPosition.CenterParent
 		lblFind.Caption = ML("Line") & ":"
 		lblFind.SetBounds 10, 10, 80, 20

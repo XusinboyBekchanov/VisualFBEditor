@@ -16,7 +16,12 @@ pfTools = @fTools
 		' frmTools
 		This.Name = "frmTools"
 		This.Text = ML("Tools")
-		This.BorderStyle = FormBorderStyle.FixedDialog
+		#ifdef __USE_GTK__
+			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+		#else
+			This.BorderStyle = FormBorderStyle.FixedDialog
+			This.Icon.LoadFromResourceID(1)
+		#endif
 		This.ControlBox = True
 		This.MinimizeBox = False
 		This.MaximizeBox = False

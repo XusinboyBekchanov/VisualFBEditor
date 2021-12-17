@@ -7,6 +7,11 @@
 			.Name = "frmMenuEditor"
 			.Caption = ML("Menu Editor")
 			.Designer = @This
+			#ifdef __USE_GTK__
+				This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+			#else
+				This.Icon.LoadFromResourceID(1)
+			#endif
 			.OnPaint = @Form_Paint_
 			.Canvas.Font.Name = "Tahoma"
 			.Canvas.Font.Size = 8
