@@ -99,7 +99,7 @@
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
 			.SetBounds 290, 274, 88, 21
-			.Caption = ML("OK")
+			'.Caption = ML("OK")
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
 			.Parent = @pnlBottom
@@ -260,7 +260,7 @@ Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
 					Me.BringToFront
 				Else
 					SelectedTemplate = ExePath & Slash & "Templates" & Slash & Templates.Item(lvTemplates.SelectedItemIndex)
-					Dim As UString TemplateFolderName = Left(SelectedTemplate, Len(SelectedTemplate) - 4)
+					Dim As UString TemplateFolderName = ..Left(SelectedTemplate, Len(SelectedTemplate) - 4)
 					SelectedFolder = GetFullPath(txtSaveLocation.Text)
 					FolderCopy TemplateFolderName, SelectedFolder
 					Dim As WString * MAX_PATH SrcPath, DestPath
@@ -316,7 +316,7 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 		f = Dir(ExePath & "/Templates/Projects/*.vfp")
 		While f <> ""
 			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
-			lvTemplates.ListItems.Add TemplateName, "Project"
+			lvTemplates.ListItems.Add ML(TemplateName), "Project"
 			If FileExists(ExePath & "/Templates/Projects/" & TemplateName & "/" & f) Then
 				Templates.Add "Projects" & Slash & f, lvTemplates.ListItems.Item(lvTemplates.ListItems.Count - 1)
 			Else
@@ -369,7 +369,7 @@ Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
 	TabControl1.SelectedTabIndex = 0
 	'This.Width = This.Width + 1
 	Var n = 0
-	Dim As String ProjectName = "Project"
+	Dim As String ProjectName = ML("Project")
 	Dim NewName As String
 	Do
 		n = n + 1

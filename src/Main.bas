@@ -597,7 +597,7 @@ Function Compile(Parameter As String = "") As Integer
 	ptabBottom->Tabs[1]->Caption = ML("Errors") '    'Inits
 	ThreadsLeave()
 	Dim As Long nLen, nLen2
-	Dim As Boolean Log2_
+	Dim As Boolean Log2_, ERRGoRc
 	
 	Dim As Integer Result = -1, Fn = FreeFile
 	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
@@ -611,24 +611,49 @@ Function Compile(Parameter As String = "") As Integer
 		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
 		ThreadsLeave()
 	End If
+	Dim As UShort bFlagErr
+	Dim As Integer NumberErr, NumberWarning, NumberInfo, nPos , nPos1
+	Dim As String TmpStr, TmpStrKey = "@freebasic compiler @copyright @standalone @creating import library @target @backend @compiling @compiling rc @compiling c @assembling @linking @line "
 	#ifdef __USE_GTK__
-		If Open Pipe(*PipeCommand For Input As Fn) = 0 Then
-			'#ifndef __USE_GTK__
-			'#if __FB_GUI__ <> 0
-			'ShowWindow(FindWindow(, SW_MINIMIZE)
-			'#endif
-			'#endif
+		If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 			While Not EOF(Fn)
 				Line Input #Fn, Buff
-				SplitError(Buff, ErrFileName, ErrTitle, iLine)
-				ThreadsEnter()
-				If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-				lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error") > 0 AndAlso Not StartsWith(*ErrTitle, "compiling C:"), "Error", "Info"))
-				lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-				lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-				ShowMessages(Buff, False)
-				ThreadsLeave()
-				'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
+				If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
+				nPos1 = -1
+				nPos = InStr(Buff, ":")
+				If nPos < 1 Then nPos = InStr(Buff, " ")
+				If nPos < 1 Then
+					nPos = Len(Buff) + 1
+					TmpStr = Buff
+				Else
+					TmpStr = Left(Buff, nPos - 1)
+				End If
+				If InStr(Buff, "Error!") Then ERRGoRc = True
+				nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr))
+				If CBool(nPos1 > 0) OrElse ERRGoRc Then
+					ThreadsEnter()
+					ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(Buff, nPos))
+					ThreadsLeave()
+					NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
+				Else
+					bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
+					If bFlagErr = 2 Then
+						NumberErr += 1
+					ElseIf bFlagErr = 1 Then
+						NumberWarning += 1
+					Else
+						NumberInfo += 1
+					End If
+					If 	bFlagErr >= 0 Then
+						ThreadsEnter()
+						If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(MainFile) & *ErrFileName
+						lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
+						lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+						lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+						'ShowMessages(Buff, False)
+						ThreadsLeave()
+					End If
+				End If
 			Wend
 			Close #Fn
 		End If
@@ -666,27 +691,66 @@ Function Compile(Parameter As String = "") As Integer
 		
 		CloseHandle hWritePipe
 		
-		Dim As Integer Pos1
+		Dim As Integer Pos1, FirstErrFlag
 		Do
 			result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
 			sBuffer = Left(sBuffer, bytesRead)
 			Pos1 = InStrRev(sBuffer, Chr(10))
 			If Pos1 > 0 Then
-				Dim res() As UString
+				Dim res() As WString Ptr
 				sOutput += Left(sBuffer, Pos1 - 1)
+				If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
+					sOutput = Replace(sOutput, Chr(13, 10), " ")
+					ERRGoRc = True
+				End If
 				Split sOutput, Chr(10), res()
-				For i As Integer = 0 To UBound(res)
-					Buff = res(i)
-					SplitError(Buff, ErrFileName, ErrTitle, iLine)
-					If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-					lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error") > 0 AndAlso Not StartsWith(*ErrTitle, "compiling C:"), "Error", "Info"))
-					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-					ShowMessages(Buff, False)
+				For i As Integer = 0 To UBound(res) 'Copyright
+					If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
+					If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
+					nPos = InStr(*res(i), ":")
+					If nPos < 1 Then nPos = InStr(*res(i), " ")
+					If nPos < 1 Then
+						nPos = Len(*res(i)) + 1
+						TmpStr = *res(i) '"standalone" ' Hanving ASCii CR
+					Else
+						TmpStr = Left(*res(i), nPos - 1)
+					End If
+					nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
+					If nPos1 > 0 OrElse ERRGoRc  Then
+						ThreadsEnter()
+						ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+						ThreadsLeave()
+						NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
+					Else
+						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
+						If bFlagErr = 2 Then
+							NumberErr += 1
+						ElseIf bFlagErr = 1 Then
+							NumberWarning += 1
+						Else
+							NumberInfo += 1
+						End If
+						If 	bFlagErr >= 0 Then
+							ThreadsEnter()
+							If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
+							lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
+							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+							ThreadsLeave()
+						End If
+					End If
+					Deallocate res(i): res(i) = 0
+					sOutput = ""
 				Next i
+				Erase res
 				sOutput = Mid(sBuffer, Pos1 + 1)
 			Else
-				sOutput += sBuffer
+				If FirstErrFlag < 1 AndAlso InStr(LCase(sOutput), "compiling") Then
+					sOutput +=  Chr(10) + sBuffer
+					FirstErrFlag +=1
+				Else
+					sOutput += sBuffer
+				End If
 			End If
 		Loop While result_
 		
@@ -4425,9 +4489,9 @@ Sub CreateMenusAndToolBars
 	miBookmark->Add(ML("Clear All Bookmarks") & HK("ClearAllBookmarks"), "", "ClearAllBookmarks", @mclick)
 	
 	Var miView = mnuMain.Add(ML("&View"), "", "View")
-	miView->Add(ML("&Code") & HK("Code"), "Code", "Code", @mclick)
-	miView->Add(ML("&Form") & HK("Form"), "Form", "Form", @mclick)
-	miView->Add(ML("Code &And Form") & HK("CodeAndForm"), "CodeAndForm", "CodeAndForm", @mclick)
+	miView->Add(ML("Code") & HK("Code"), "Code", "Code", @mclick)
+	miView->Add(ML("Form") & HK("Form"), "Form", "Form", @mclick)
+	miView->Add(ML("Code And Form") & HK("CodeAndForm"), "CodeAndForm", "CodeAndForm", @mclick)
 	miView->Add("-")
 	miView->Add(ML("Collapse All") & HK("CollapseAll"), "", "CollapseAll", @mclick)
 	miView->Add(ML("Uncollapse All") & HK("UnCollapseAll"), "", "UnCollapseAll", @mclick)
@@ -4796,7 +4860,7 @@ tbExplorer.DisabledImagesList = @imgList
 tbExplorer.Flat = True
 tbExplorer.Align = DockStyle.alTop
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
-tbExplorer.Buttons.Add , "Remove",, @mClick, "RemoveFileFromProject", , ML("Remove"), True
+tbExplorer.Buttons.Add , "Remove", , @mClick, "RemoveFileFromProject", , ML("&Remove"), True
 tbExplorer.Buttons.Add tbsSeparator
 tbExplorer.Buttons.Add tbsCheck, "Folder",, @mClick, "Folder", , ML("Show Folders"), True
 
@@ -5982,7 +6046,6 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(newIndex))
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
-	MouseHoverTimerVal = Timer
 	tb->tn->SelectItem
 	If tbOld AndAlso tb = tbOld Then Exit Sub
 	If tbOld > 0 Then
@@ -6008,6 +6071,10 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 			If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
 		Next
 	#endif
+	MouseHoverTimerVal = Timer
+	If pfFind->CboFindRange.ItemIndex < 2 Then
+		WLet gSearchSave, ""
+	End If
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
 	lvProperties.Nodes.Clear
 	lvEvents.Nodes.Clear

@@ -11,7 +11,12 @@
 	Constructor frmTheme
 		' frmTheme
 		This.Name = "frmTheme"
-		This.Caption = ML("New Theme")
+		This.Text = ML("New Theme")
+		#ifdef __USE_GTK__
+			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+		#else
+			This.Icon.LoadFromResourceID(1)
+		#endif
 		This.StartPosition = FormStartPosition.CenterParent
 		This.SetBounds 0, 0, 310, 156
 		' lblThemeName

@@ -32,11 +32,11 @@ pfFindFile = @fFindFile
 	Constructor frmFindInFiles
 		This.Name = "frmFindInFiles"
 		This.StartPosition = FormStartPosition.CenterParent
-		'		#ifndef __USE_GTK__
-		'			This.BorderStyle = FormBorderStyle.FixedDialog
-		'		#endif
-		'		This.MinimizeBox = False
-		'		 This.MaximizeBox = False
+		#ifdef __USE_GTK__
+			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+		#else
+			This.Icon.LoadFromResourceID(1)
+		#endif
 		This.BorderStyle = FormBorderStyle.Sizable
 		This.Caption = ML("Find In Files")
 		This.ID = 1000

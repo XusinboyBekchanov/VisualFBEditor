@@ -1,0 +1,6 @@
+mff/example/application/BuildConfig.java
+ mff.example.application.BuildConfig
+mffActivity.java
+ mff.example.application.mffActivity
+mffEditText.java
+ mff.example.application.mffEditText

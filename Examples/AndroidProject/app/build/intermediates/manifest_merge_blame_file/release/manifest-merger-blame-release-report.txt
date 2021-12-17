@@ -1,0 +1,45 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="mff.example.application"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="16"
+8-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml
+9        android:targetSdkVersion="30" />
+9-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml
+10
+11    <application
+11-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:5:5-19:19
+12        android:allowBackup="true"
+12-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:6:9-35
+13        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+13-->[androidx.core:core:1.3.1] C:\Users\刘紫淇\.gradle\caches\transforms-2\files-2.1\c560b8721f05ca12656603dd382025ab\core-1.3.1\AndroidManifest.xml:24:18-86
+14        android:icon="@mipmap/ic_launcher"
+14-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:7:9-43
+15        android:label="@string/app_name"
+15-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:8:9-41
+16        android:roundIcon="@mipmap/ic_launcher_round"
+16-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:9:9-54
+17        android:supportsRtl="true"
+17-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:10:9-35
+18        android:theme="@style/Theme.MyApplication" >
+18-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:11:9-51
+19        <activity android:name="mff.example.application.mffActivity" >
+19-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:12:9-18:20
+19-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:12:19-46
+20            <intent-filter>
+20-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:13:13-17:29
+21                <action android:name="android.intent.action.MAIN" />
+21-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:14:17-69
+21-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:14:25-66
+22
+23                <category android:name="android.intent.category.LAUNCHER" />
+23-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:16:17-77
+23-->D:\GitHub\VisualFBEditor\Examples\AndroidProject\app\src\main\AndroidManifest.xml:16:27-74
+24            </intent-filter>
+25        </activity>
+26    </application>
+27
+28</manifest>

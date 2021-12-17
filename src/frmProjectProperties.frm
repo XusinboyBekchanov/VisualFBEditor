@@ -28,6 +28,11 @@ pfProjectProperties = @fProjectProperties
 		This.DefaultButton = @cmdOK
 		This.CancelButton = @cmdCancel
 		This.SetBounds 0, 0, 510, 428
+		#ifdef __USE_GTK__
+			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+		#else
+			This.Icon.LoadFromResourceID(1)
+		#endif
 		' tabProperties
 		tabProperties.Name = "tabProperties"
 		tabProperties.Text = "TabControl1"
@@ -434,7 +439,7 @@ pfProjectProperties = @fProjectProperties
 			.Text = ML("Compile by default")
 			.TabIndex = 69
 			.SetBounds 16, 15, 150, 16
-			.Caption = ML("Compile by default")
+			'.Caption = ML("Compile by default")
 			.Designer = @This
 			.OnClick = @optCompileByDefault_Click_
 			.Parent = @tpCompile
@@ -445,7 +450,7 @@ pfProjectProperties = @fProjectProperties
 			.Text = ML("Compile to LLVM")
 			.TabIndex = 70
 			.SetBounds 330, 15, 140, 16
-			.Caption = ML("Compile to LLVM")
+			'.Caption = ML("Compile to LLVM")
 			.Designer = @This
 			.OnClick = @optCompileToLLVM_Click_
 			.Parent = @tpCompile
@@ -474,7 +479,7 @@ pfProjectProperties = @fProjectProperties
 			.Text = ML("Pass All Module Files To Compiler")
 			.TabIndex = 71
 			.SetBounds 225, 200, 252, 22
-			.Caption = ML("Pass All Module Files To Compiler")
+			'.Caption = ML("Pass All Module Files To Compiler")
 			.Parent = @tpGeneral
 		End With
 		' cboSubsystem
@@ -491,7 +496,7 @@ pfProjectProperties = @fProjectProperties
 			.Text = ML("Subsystem") & " (" & ML("For Windows") & "):"
 			.TabIndex = 73
 			.SetBounds 10, 66, 202, 18
-			.Caption = ML("Subsystem") & " (" & ML("For Windows") & "):"
+			'.Caption = ML("Subsystem") & " (" & ML("For Windows") & "):"
 			.Parent = @tpGeneral
 		End With
 		' tpAndroidSettings
