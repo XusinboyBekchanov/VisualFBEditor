@@ -2679,7 +2679,7 @@ End Sub
 
 Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Type") As Boolean
 	On Error Goto ErrorHandler
-	If Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
+	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	c += 1
 	If c > IntellisenseLimit Then Return False
 	Dim As String imgKeyNew = imgKey
@@ -6756,12 +6756,12 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
-			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L_") OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
+			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L_") Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
 				bNotNumberThis = True
-			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "debugprint") Then
-				bNotNumberThis = True
-			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "?") Then
-				bNotNumberThis = True
+'			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "debugprint") Then
+'				bNotNumberThis = True
+'			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "?") Then
+'				bNotNumberThis = True
 			ElseIf IsLabel(*FECLine->Text) Then
 				bNotNumberThis = True
 			ElseIf FECLine->InConstructionIndex = 5 OrElse FECLine->InConstructionIndex = 6 AndAlso FECLine->InConstructionPart = 0 OrElse _
@@ -6772,7 +6772,8 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 				If bMacro Then
 					WLet(FECLine->Text, "_L_" & IIf(StartsWith(*FECLine->Text, " ") OrElse StartsWith(*FECLine->Text, !"\t"), "", " ") & *FECLine->Text)
 				Else
-					WLet FECLine->Text, "DebugPrint(__FILE__ & " & Chr(34) & " Line " & Chr(34) & " & __LINE__, True, False) : " & Trim(*FECLine->Text, Any !" \t ")
+					WLet(FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text)
+					'WLet FECLine->Text, "DebugPrint(__FILE__ & " & Chr(34) & " Line " & Chr(34) & " & __LINE__, True, False) : " & Trim(*FECLine->Text, Any !" \t ")
 				End If
 			End If
 		Next i
