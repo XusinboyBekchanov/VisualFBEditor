@@ -6593,9 +6593,7 @@ Sub RunPr(Debugger As String = "")
 				'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
 				WLet ExeFileName, Replace(GetFullPath(WGet(TerminalPath)), BackSlash, Slash)
 			End If
-			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
-			ThreadsLeave()
 			#define BufferSize 2048
 			Dim si As STARTUPINFO
 			Dim pi As PROCESS_INFORMATION
@@ -6643,9 +6641,7 @@ Sub RunPr(Debugger As String = "")
 					For i As Integer = 0 To UBound(res)
 						If Len(*res(i)) <= 1 Then Continue For
 						If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
-						ThreadsEnter()
 						ShowMessages Str(Time) & ": " & ML("DebugPrint") & ": " & *res(i)
-						ThreadsLeave()
 						Deallocate res(i): res(i) = 0
 					Next i
 					Erase res
