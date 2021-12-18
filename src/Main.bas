@@ -6055,7 +6055,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 		tbOld->FindFormPosiTop = pfFind->Top
 	End If
 	If tb > 0 Then
-		tabRightWidth = tb->lvPropertyWidth
+		'tabRightWidth = tb->lvPropertyWidth
 		If tb->FindFormPosiLeft > 0 Then pfFind->Left = tb->FindFormPosiLeft
 		If tb->FindFormPosiTop > 0 Then pfFind->Top = tb->FindFormPosiTop
 	End If
