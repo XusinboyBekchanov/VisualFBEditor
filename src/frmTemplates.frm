@@ -369,7 +369,7 @@ Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
 	TabControl1.SelectedTabIndex = 0
 	'This.Width = This.Width + 1
 	Var n = 0
-	Dim As String ProjectName = ML("Project")
+	Dim As String ProjectName = "Project"
 	Dim NewName As String
 	Do
 		n = n + 1

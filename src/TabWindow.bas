@@ -6579,10 +6579,10 @@ Sub RunPr(Debugger As String = "")
 			Var Pos1 = InStrRev(*ExeFileName, Slash)
 			If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
 			WLet Workdir, Left(*ExeFileName, Pos1)
-			If WGet(TerminalPath) <> "" Then
-				WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """"
-				wLet ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash)
-			End If
+'			If WGet(TerminalPath) <> "" Then
+'				WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """"
+'				wLet ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash)
+'			End If
 			If WGet(TerminalPath) <> "" Then
 				Dim As ToolType Ptr Tool
 				Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)

@@ -705,6 +705,7 @@ Function Compile(Parameter As String = "") As Integer
 				End If
 				Split sOutput, Chr(10), res()
 				For i As Integer = 0 To UBound(res) 'Copyright
+					ShowMessages(*res(i), False)
 					If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
 					If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
 					nPos = InStr(*res(i), ":")
@@ -718,7 +719,7 @@ Function Compile(Parameter As String = "") As Integer
 					nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
 					If nPos1 > 0 OrElse ERRGoRc  Then
 						ThreadsEnter()
-						ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 						ThreadsLeave()
 						NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
 					Else
