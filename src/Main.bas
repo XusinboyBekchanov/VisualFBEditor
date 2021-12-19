@@ -86,7 +86,7 @@ Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As Form frmMain
 Dim Shared As Integer MainHeight =600, MainWidth = 800, tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
-Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True ' Add Change Log
+Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True, ManifestIcoCopy ' Add Change Log
 Dim Shared As WString * MAX_PATH mChangelogName  'David Changed
 pApp = @VisualFBEditorApp
 pfrmMain = @frmMain
@@ -493,6 +493,11 @@ Function Compile(Parameter As String = "") As Integer
 		End If
 	End If
 	If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WAdd CompileWith, " -g"
+	
+	If CInt(InStr(*CompileWith, " -v ") = 0)  Then
+		WAdd CompileWith, " -v "
+	End If
+	
 	If Project Then
 		If InStr(*CompileWith, " -s ") = 0 Then
 			Select Case Project->Subsystem
@@ -613,6 +618,7 @@ Function Compile(Parameter As String = "") As Integer
 	End If
 	Dim As UShort bFlagErr
 	Dim As Integer NumberErr, NumberWarning, NumberInfo, nPos , nPos1
+	Dim As Double CompileElaspedTime = Timer
 	Dim As String TmpStr, TmpStrKey = "@freebasic compiler @copyright @standalone @creating import library @target @backend @compiling @compiling rc @compiling c @assembling @linking @line "
 	#ifdef __USE_GTK__
 		If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
@@ -705,7 +711,7 @@ Function Compile(Parameter As String = "") As Integer
 				End If
 				Split sOutput, Chr(10), res()
 				For i As Integer = 0 To UBound(res) 'Copyright
-					ShowMessages(*res(i), False)
+					'ShowMessages(*res(i), False)
 					If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
 					If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
 					nPos = InStr(*res(i), ":")
@@ -719,7 +725,7 @@ Function Compile(Parameter As String = "") As Integer
 					nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
 					If nPos1 > 0 OrElse ERRGoRc  Then
 						ThreadsEnter()
-						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+						ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 						ThreadsLeave()
 						NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
 					Else
@@ -765,6 +771,9 @@ Function Compile(Parameter As String = "") As Integer
 	#else
 		Yaratilmadi = Dir(*exename) = ""
 	#endif
+	'Delete the default ManifestFile And IcoFile
+	If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
+	End If
 	#ifdef __USE_GTK__
 		Fn = FreeFile
 		Result = -1
@@ -792,7 +801,9 @@ Function Compile(Parameter As String = "") As Integer
 	#endif
 	ThreadsEnter()
 	If lvErrors.ListItems.Count <> 0 Then
-		ptabBottom->Tabs[1]->Caption = ML("Errors") & " (" & lvErrors.ListItems.Count & " " & ML("Pos") & ")"
+		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ", " & ML("Undefined label") & "(" & WStr(NumberInfo) & ML("Pos") & ")", WStr(""))
+		ptabBottom->Tabs[1]->Caption = ML("Warning") & "(" & WStr(NumberWarning) & ML("Pos") & ") " & ML("Errors") & "(" & WStr(NumberErr) & ML("Pos") & ")"
+		ShowMessages(Str(Time) & ": " & ML("found") & ptabBottom->Tabs[1]->Caption & tInfo, False)
 	Else
 		ptabBottom->Tabs[1]->Caption = ML("Errors")
 	End If
@@ -816,13 +827,13 @@ Function Compile(Parameter As String = "") As Integer
 	If Yaratilmadi Or Band Then
 		ThreadsEnter()
 		If Parameter <> "Check" Then
-			ShowMessages(Str(Time) & ": " & ML("Do not build file."))
+			ShowMessages(Str(Time) & ": " & ML("Do not build file.")) & ML("Elapsed Time") & ": " & Format(Timer - CompileElaspedTime, "#0.00") & " " & ML("Seconds")
 			If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then ptabBottom->Tabs[1]->SelectTab
 		ElseIf lvErrors.ListItems.Count <> 0 Then
-			ShowMessages(Str(Time) & ": " & ML("Checking ended."))
+			ShowMessages(Str(Time) & ": " & ML("Checking ended.")) & ML("Elapsed Time") & ": " & Format(Timer - CompileElaspedTime, "#0.00") & " " & ML("Seconds")
 			ptabBottom->Tabs[1]->SelectTab
 		Else
-			ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found."))
+			ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found.")) & ML("Elapsed Time") & ": " & Format(Timer - CompileElaspedTime, "#0.00") & " " & ML("Seconds")
 		End If
 		ThreadsLeave()
 		WDeallocate LogText
@@ -831,13 +842,13 @@ Function Compile(Parameter As String = "") As Integer
 		ThreadsEnter()
 		If InStr(*LogText, "warning") > 0 Then
 			If Parameter <> "Check" Then
-				ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings."))
+				ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings.")) & ML("Elapsed Time") & ": " & Format(Timer - CompileElaspedTime, "#0.00") & " " & ML("Seconds")
 			End If
 		Else
 			If Parameter <> "Check" Then
-				ShowMessages(Str(Time) & ": " & ML("Layout succeeded!"))
+				ShowMessages(Str(Time) & ": " & ML("Layout succeeded!")) & ML("Elapsed Time") & ": " & Format(Timer - CompileElaspedTime, "#0.00") & " " & ML("Seconds")
 			Else
-				ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!"))
+				ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!")) & ML("Elapsed Time") & ": " & Format(Timer - CompileElaspedTime, "#0.00") & " " & ML("Seconds")
 			End If
 		End If
 		ThreadsLeave()
