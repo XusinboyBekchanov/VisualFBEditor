@@ -12,8 +12,8 @@
 #endif
 
 Const VER_MAJOR  = "1"
-Const VER_MINOR  = "2"
-Const VER_PATCH  = "9"
+Const VER_MINOR  = "3"
+Const VER_PATCH  = "0"
 Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
 Const SIGN       = "VisualFBEditor " + VERSION
