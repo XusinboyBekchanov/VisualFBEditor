@@ -1250,7 +1250,7 @@ Sub TabWindow.FillAllProperties()
 		te = FPropertyItems.Object(lvPropertyCount)
 		If te = 0 Then Continue For
 		With *te
-			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso CInt(.ElementType = "Property") Then
+			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso CInt(.ElementType = "Property") Then
 				If plvProperties->Nodes.Count <= lvPropertyCount Then
 					lvItem = plvProperties->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(.TypeIsPointer = False AndAlso pComps->Contains(.TypeName), 1, 0))
 					If .TypeIsPointer = False AndAlso pComps->Contains(.TypeName) Then lvItem->Nodes.Add
