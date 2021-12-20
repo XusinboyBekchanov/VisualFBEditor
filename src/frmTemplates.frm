@@ -10,7 +10,7 @@
 		' frmTemplates
 		With This
 			.Name = "frmTemplates"
-			.Text = ML("New Project")
+			.Text = ML("New") & "..."
 			#ifdef __USE_GTK__
 				.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 			#else
@@ -425,7 +425,7 @@ Private Sub frmTemplates.TabControl1_SelChange(ByRef Sender As TabControl, NewIn
 	'If  NewIndex = 1 Then 
 		'OpenFileControl1.SetBounds TabControl1.Left, TabControl1.Top, TabControl1.Width, TabControl1.Height
 		'TabControl1.RequestAlign
-	'End If
+	'End If 
 End Sub
 
 Private Sub frmTemplates.cmdSaveLocation_Click_(ByRef Sender As Control)

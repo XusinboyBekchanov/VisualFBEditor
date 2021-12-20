@@ -5937,6 +5937,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	WLet(Buff, LTrim(sFirstLine, Any !"\t "))
 	Var Pos1 = InStr(*Buff, """"), Pos2 = 1
 	Dim QavsBoshi As Boolean
+	ManifestIcoCopy = False
 	Do While Pos1 > 0
 		QavsBoshi = Not QavsBoshi
 		If QavsBoshi Then
@@ -5951,6 +5952,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							FileCopy ExePath & "/Templates/Files/Resource.rc", *File
 							If Not FileExists(GetFolderName(FileName) & "Manifest.xml") Then
 								FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(FileName).vptr & "Manifest.xml"
+								ManifestIcoCopy = True
 							End If
 						#endif
 					End If
@@ -6240,7 +6242,7 @@ Sub RunEmulator(Param As Any Ptr)
 			Case 1: WLet CmdL, *SdkDir & "\emulator\emulator.exe -avd " & AvdName
 			End Select
 			If i = 1 Then
-				ShowMessages "Run AVD: " & AvdName & "", False
+				ShowMessages ML("Run AVD:") & " " & AvdName & "", False
 			End If
 			Dim si As STARTUPINFO
 			Dim pi As PROCESS_INFORMATION

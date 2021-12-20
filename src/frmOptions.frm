@@ -763,7 +763,7 @@ pfOptions = @fOptions
 		With lblInterfaceFont
 			.Name = "lblInterfaceFont"
 			.Text = "Tahoma, 8 pt"
-			.SetBounds 107, 20, 264, 16
+			.SetBounds 145, 20, 264, 16
 			'.Caption = "Tahoma, 8 pt"
 			.Parent = @grbThemes
 		End With
@@ -780,7 +780,7 @@ pfOptions = @fOptions
 		With lblInterfaceFontLabel
 			.Name = "lblInterfaceFontLabel"
 			.Text = ML("Interface font") & ":"
-			.SetBounds 10, 20, 240, 16
+			.SetBounds 10, 20, 108, 16
 			.Parent = @grbThemes
 		End With
 		' chkDisplayIcons
