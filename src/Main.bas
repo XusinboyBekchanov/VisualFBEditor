@@ -147,6 +147,7 @@ LoadSettings
 #include once "frmParameters.bi"
 #include once "frmProjectProperties.bi"
 #include once "frmSave.bi"
+#include once "frmTipOfDay.frm"
 
 Namespace VisualFBEditor
 	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -656,7 +657,7 @@ Function Compile(Parameter As String = "") As Integer
 						lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 						lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 						lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-						'ShowMessages(Buff, False)
+						ShowMessages(Buff, False)
 						ThreadsLeave()
 					End If
 				End If
@@ -711,7 +712,6 @@ Function Compile(Parameter As String = "") As Integer
 				End If
 				Split sOutput, Chr(10), res()
 				For i As Integer = 0 To UBound(res) 'Copyright
-					ShowMessages(*res(i), False)
 					If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
 					If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
 					nPos = InStr(*res(i), ":")
@@ -725,10 +725,11 @@ Function Compile(Parameter As String = "") As Integer
 					nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
 					If nPos1 > 0 OrElse ERRGoRc  Then
 						ThreadsEnter()
-						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+						ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 						ThreadsLeave()
 						NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
 					Else
+						ShowMessages(*res(i), False)
 						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
 							NumberErr += 1
@@ -802,7 +803,7 @@ Function Compile(Parameter As String = "") As Integer
 	If lvErrors.ListItems.Count <> 0 Then
 		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ", " & ML("Undefined label") & "(" & WStr(NumberInfo) & ML("Pos") & ")", WStr(""))
 		ptabBottom->Tabs[1]->Caption = ML("Warning") & "(" & WStr(NumberWarning) & ML("Pos") & ") " & ML("Errors") & "(" & WStr(NumberErr) & ML("Pos") & ")"
-		ShowMessages(Str(Time) & ": " & ML("found") & ptabBottom->Tabs[1]->Caption & tInfo, False)
+		ShowMessages(Str(Time) & ": " & ML("found") & " " & ptabBottom->Tabs[1]->Caption & tInfo, False)
 	Else
 		ptabBottom->Tabs[1]->Caption = ML("Errors")
 	End If
@@ -877,7 +878,7 @@ Sub CreateKeyStore
 			Exit Sub
 		End If
 		If Not FileExists(*Project->FileName & "/gradle.properties") Then
-			ShowMessages ML(ML("File") & " " & *Project->FileName & "/gradle.properties " & ML("not found!"))
+			ShowMessages ML("File") & " " & *Project->FileName & "/gradle.properties " & ML("not found!")
 			Exit Sub
 		End If
 		Dim As Integer Fn = FreeFile
@@ -3972,7 +3973,7 @@ Sub LoadSettings
 	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
 	WLet(DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", ""))
 	WLet(HelpPath, Helps.Get(*DefaultHelp, ""))
-	
+	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False) 
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
 	CreateFormTypesWithoutTypeWord = iniSettings.ReadBool("Options", "CreateFormTypesWithoutTypeWord", False)
@@ -4672,6 +4673,8 @@ Sub CreateMenusAndToolBars
 	miGitHub->Add("-")
 	miGitHub->Add(ML("MyFbFramework Repository") & HK("MyFbFrameworkRepository"), "", "MyFbFrameworkRepository", @mclick)
 	miGitHub->Add(ML("MyFbFramework WiKi") & HK("MyFbFrameworkWiKi"), "Book", "MyFbFrameworkWiKi", @mclick)
+	miHelp->Add("-")
+	miHelp->Add(ML("Tip of the Day"), "Book", "TipoftheDay", @mclick)
 	miHelp->Add("-")
 	miHelp->Add(ML("&About") & HK("About"), "About", "About", @mclick)
 	
@@ -6748,6 +6751,8 @@ Sub frmMain_Create(ByRef Sender As Control)
 	ShowProjectToolbar = iniSettings.ReadBool("MainWindow", "ShowProjectToolbar", True)
 	ShowBuildToolbar = iniSettings.ReadBool("MainWindow", "ShowBuildToolbar", True)
 	ShowRunToolbar = iniSettings.ReadBool("MainWindow", "ShowRunToolbar", True)
+	ShowTipoftheDay = iniSettings.ReadBool("MainWindow", "ShowTipoftheDay", True)
+	ShowTipoftheDayIndex = iniSettings.ReadInteger("MainWindow", "ShowTipoftheDayIndex", 0)
 	ReBar1.Bands.Item(0)->Visible = ShowStandardToolbar
 	ReBar1.Bands.Item(1)->Visible = ShowEditToolbar
 	ReBar1.Bands.Item(2)->Visible = ShowProjectToolbar
@@ -6961,6 +6966,7 @@ Sub frmMain_Show(ByRef Sender As Control)
 	LoadTools
 	
 	pfSplash->CloseForm
+	
 	Var FILE = Command(-1)
 	Var Pos1 = InStr(file, "2>CON")
 	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
@@ -6976,6 +6982,8 @@ Sub frmMain_Show(ByRef Sender As Control)
 			OpenFiles GetFullPath(*RecentFiles)
 		End Select
 	End If
+	If ShowTipoftheDay Then pfTipOfDay->ShowModal *pfrmMain
+	
 End Sub
 
 #ifndef __USE_GTK__
@@ -7092,6 +7100,9 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteBool("MainWindow", "ShowProjectToolBar", ShowProjectToolBar)
 	iniSettings.WriteBool("MainWindow", "ShowBuildToolBar", ShowBuildToolBar)
 	iniSettings.WriteBool("MainWindow", "ShowRunToolBar", ShowRunToolBar)
+	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)
+	iniSettings.ReadBool("MainWindow", "ShowTipoftheDayIndex", ShowTipoftheDayIndex)
+	iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
 	
 	Dim As Integer MRUFilesCount, kk = -1
 	MRUFilesCount = MRUFiles.Count
