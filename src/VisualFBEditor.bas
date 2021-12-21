@@ -483,7 +483,9 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "VisualFBEditorWiKi":              OpenUrl "https://github.com/XusinboyBekchanov/VisualFBEditor/wiki"
 	Case "MyFbFrameworkRepository":         OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework"
 	Case "MyFbFrameworkWiKi":               OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework/wiki"
-	Case "About":                           pfAbout->Show *pfrmMain
+	Case "About":                            pfAbout->Show *pfrmMain
+	Case "TipoftheDay":                      pfTipOfDay->ShowModal *pfrmMain
+		
 	End Select
 End Sub
 
