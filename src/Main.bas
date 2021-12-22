@@ -4636,6 +4636,7 @@ Sub CreateMenusAndToolBars
 						DestroyIcon IcoHandle
 					#endif
 					mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool)
+					Bitm.Handle = 0
 					mi->Tag = tt
 				ElseIf StartsWith(Buff, "LoadType=") Then
 					tt->LoadType = Cast(LoadTypes, Val(Mid(Buff, 10)))

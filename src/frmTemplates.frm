@@ -267,7 +267,7 @@ Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
 					SrcPath = SelectedFolder & Slash & GetFileName(SelectedTemplate)
 					DestPath = SelectedFolder & Slash & GetFileName(SelectedFolder) & ".vfp"
 					#ifdef __USE_GTK__
-						Print Name(SrcPath, DestPath)
+						.Name(SrcPath, DestPath)
 					#else
 						MoveFile @SrcPath, @DestPath
 					#endif
