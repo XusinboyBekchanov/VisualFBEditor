@@ -26,9 +26,25 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	'Operator Designer.Cast As Control Ptr
-	'   Return @This
-	'End Operator
+	Function Designer.GetParentControl(iControl As Any Ptr, ByVal toRoot As Boolean = True) As Any Ptr
+		If iControl = 0 Then Return iControl
+		Dim As Any Ptr iParentControl, iParentControlSave
+		If ReadPropertyFunc <> 0  Then
+			iParentControl = ReadPropertyFunc(iControl, "Parent")
+			Dim As Integer ii
+			If toRoot Then
+				Do Until iParentControl = 0
+					iParentControlSave = iControl
+					iControl = iParentControl
+					iParentControl = ReadPropertyFunc(iControl, "Parent")
+					ii +=1
+					If ii > 10 Then Exit Do
+				Loop
+				iParentControl = iParentControlSave
+			End If
+		End If
+		Return iParentControl
+	End Function
 	
 	Sub Designer.ProcessMessage(ByRef message As Message)
 		

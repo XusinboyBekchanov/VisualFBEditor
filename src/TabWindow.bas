@@ -2163,12 +2163,20 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 				'tb->Des->SelectedControl = Ctrl
 				'tb->Des->MoveDots(tb->Des->ReadPropertyFunc(Ctrl, "Widget"))
 			#else
+				Dim iParentCtrl As Any Ptr = tb->Des->GetParentControl(Ctrl)
+				If iParentCtrl = 0 Then Exit Sub
+				tb->Des->SelectedControls.Clear
+				tb->Des->SelectedControl = iParentCtrl
+				Dim As HWND Ptr hw = tb->Des->ReadPropertyFunc(iParentCtrl, "Handle")
+				If hw <> 0 Then tb->Des->MoveDots(iParentCtrl, False) Else tb->Des->MoveDots(0, False): DesignerChangeSelection *tb->Des, iParentCtrl
+				tb->Des->BringToFront
 				tb->Des->SelectedControls.Clear
 				tb->Des->SelectedControl = Ctrl
-				Dim As HWND Ptr hw = tb->Des->ReadPropertyFunc(Ctrl, "Handle")
+				hw = tb->Des->ReadPropertyFunc(Ctrl, "Handle")
 				If hw <> 0 Then tb->Des->MoveDots(Ctrl, False) Else tb->Des->MoveDots(0, False)
 				DesignerChangeSelection *tb->Des, Ctrl
 			#endif
+			tb->FillAllProperties
 		End If
 	End If
 End Sub

@@ -1587,7 +1587,7 @@ Sub AddMRUSession(ByRef FileName As WString)
 End Sub
 
 Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
-    Dim As WString * 1024 f, fsrc, fdest
+	Dim As WString * 1024 f, fsrc, fdest
 	Dim As UInteger Attr
 	Dim As WStringList Folders
 	MkDir ToDir
@@ -1817,18 +1817,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		End If
 	Next
 	Dim As Integer Fn = FreeFile
-	If Not EndsWith(*ppe->FileName, ".vfp") Then
-		Open *ppe->FileName & "/" & GetFileName(*ppe->FileName) & ".vfp" For Output Encoding "utf-8" As #Fn
-		For i As Integer = 0 To ppe->Files.Count - 1
-			Zv = IIf(ppe AndAlso (ppe->Files.Item(i) = *ppe->MainFileName OrElse ppe->Files.Item(i) = *ppe->ResourceFileName OrElse ppe->Files.Item(i) = *ppe->IconResourceFileName), "*", "")
-			If StartsWith(ppe->Files.Item(i), *ppe->FileName & "\") Then
-				Print #Fn, Zv & "File=" & Replace(Mid(ppe->Files.Item(i), Len(*ppe->FileName & "\") + 1), "\", "/")
-			Else
-				Print #Fn, Zv & "File=" & ppe->Files.Item(i)
-			End If
-		Next
-	Else
-		Open *ppe->FileName For Output Encoding "utf-8" As #Fn
+	If Open(*ppe->FileName For Output Encoding "utf-8" As #Fn) = 0 Then
 		For i As Integer = 0 To tnPr->Nodes.Count - 1
 			tn1 = tnPr->Nodes.Item(i)
 			ee = tn1->Tag
@@ -1854,38 +1843,40 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 				Next
 			End If
 		Next
+		Print #Fn, "ProjectType=" & ppe->ProjectType
+		Print #Fn, "Subsystem=" & ppe->Subsystem
+		Print #Fn, "ProjectName=""" & *ppe->ProjectName & """"
+		Print #Fn, "HelpFileName=""" & *ppe->HelpFileName & """"
+		Print #Fn, "ProjectDescription=""" & *ppe->ProjectDescription & """"
+		Print #Fn, "PassAllModuleFilesToCompiler=" & ppe->PassAllModuleFilesToCompiler
+		Print #Fn, "MajorVersion=" & ppe->MajorVersion
+		Print #Fn, "MinorVersion=" & ppe->MinorVersion
+		Print #Fn, "RevisionVersion=" & ppe->RevisionVersion
+		Print #Fn, "BuildVersion=" & ppe->BuildVersion
+		Print #Fn, "AutoIncrementVersion=" & ppe->AutoIncrementVersion
+		Print #Fn, "ApplicationTitle=""" & *ppe->ApplicationTitle & """"
+		Print #Fn, "ApplicationIcon=""" & *ppe->ApplicationIcon & """"
+		Print #Fn, "CompanyName=""" & *ppe->CompanyName & """"
+		Print #Fn, "FileDescription=""" & *ppe->FileDescription & """"
+		Print #Fn, "InternalName=""" & *ppe->InternalName & """"
+		Print #Fn, "LegalCopyright=""" & *ppe->LegalCopyright & """"
+		Print #Fn, "LegalTrademarks=""" & *ppe->LegalTrademarks & """"
+		Print #Fn, "OriginalFilename=""" & *ppe->OriginalFilename & """"
+		Print #Fn, "ProductName=""" & *ppe->ProductName & """"
+		Print #Fn, "CompileTo=" & ppe->CompileTo
+		Print #Fn, "OptimizationLevel=" & ppe->OptimizationLevel
+		Print #Fn, "OptimizationFastCode=" & ppe->OptimizationFastCode
+		Print #Fn, "OptimizationSmallCode=" & ppe->OptimizationSmallCode
+		Print #Fn, "CompilationArguments32Windows=""" & *ppe->CompilationArguments32Windows & """"
+		Print #Fn, "CompilationArguments64Windows=""" & *ppe->CompilationArguments64Windows & """"
+		Print #Fn, "CompilationArguments32Linux=""" & *ppe->CompilationArguments32Linux & """"
+		Print #Fn, "CompilationArguments64Linux=""" & *ppe->CompilationArguments64Linux & """"
+		Print #Fn, "CommandLineArguments=""" & *ppe->CommandLineArguments & """"
+		Print #Fn, "CreateDebugInfo=" & ppe->CreateDebugInfo
+		Close #Fn
+	Else
+		MsgBox ML("Save file failure!") & Chr(13,10) & *ppe->FileName
 	End If
-	Print #Fn, "ProjectType=" & ppe->ProjectType
-	Print #Fn, "Subsystem=" & ppe->Subsystem
-	Print #Fn, "ProjectName=""" & *ppe->ProjectName & """"
-	Print #Fn, "HelpFileName=""" & *ppe->HelpFileName & """"
-	Print #Fn, "ProjectDescription=""" & *ppe->ProjectDescription & """"
-	Print #Fn, "PassAllModuleFilesToCompiler=" & ppe->PassAllModuleFilesToCompiler
-	Print #Fn, "MajorVersion=" & ppe->MajorVersion
-	Print #Fn, "MinorVersion=" & ppe->MinorVersion
-	Print #Fn, "RevisionVersion=" & ppe->RevisionVersion
-	Print #Fn, "BuildVersion=" & ppe->BuildVersion
-	Print #Fn, "AutoIncrementVersion=" & ppe->AutoIncrementVersion
-	Print #Fn, "ApplicationTitle=""" & *ppe->ApplicationTitle & """"
-	Print #Fn, "ApplicationIcon=""" & *ppe->ApplicationIcon & """"
-	Print #Fn, "CompanyName=""" & *ppe->CompanyName & """"
-	Print #Fn, "FileDescription=""" & *ppe->FileDescription & """"
-	Print #Fn, "InternalName=""" & *ppe->InternalName & """"
-	Print #Fn, "LegalCopyright=""" & *ppe->LegalCopyright & """"
-	Print #Fn, "LegalTrademarks=""" & *ppe->LegalTrademarks & """"
-	Print #Fn, "OriginalFilename=""" & *ppe->OriginalFilename & """"
-	Print #Fn, "ProductName=""" & *ppe->ProductName & """"
-	Print #Fn, "CompileTo=" & ppe->CompileTo
-	Print #Fn, "OptimizationLevel=" & ppe->OptimizationLevel
-	Print #Fn, "OptimizationFastCode=" & ppe->OptimizationFastCode
-	Print #Fn, "OptimizationSmallCode=" & ppe->OptimizationSmallCode
-	Print #Fn, "CompilationArguments32Windows=""" & *ppe->CompilationArguments32Windows & """"
-	Print #Fn, "CompilationArguments64Windows=""" & *ppe->CompilationArguments64Windows & """"
-	Print #Fn, "CompilationArguments32Linux=""" & *ppe->CompilationArguments32Linux & """"
-	Print #Fn, "CompilationArguments64Linux=""" & *ppe->CompilationArguments64Linux & """"
-	Print #Fn, "CommandLineArguments=""" & *ppe->CommandLineArguments & """"
-	Print #Fn, "CreateDebugInfo=" & ppe->CreateDebugInfo
-	Close #Fn
 	If tnPr->Text <> GetFileName(WGet(ppe->FileName)) Then tnPr->Text = GetFileName(WGet(ppe->FileName))
 	tnPr->Tag = ppe
 	Return True
@@ -2332,16 +2323,16 @@ Sub Save()
 		If tn = 0 Then Exit Sub
 		If tn->ImageKey = "Project" Then
 			SaveProject tn
-'		Else
-'			Dim tb As TabWindow Ptr
-'			If tn = 0 Then Exit Sub
-'			For i As Integer = 0 To ptabCode->TabCount - 1
-'				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-'				If tb->tn = tn Then
-'					tb->Save
-'					Exit For
-'				End If
-'			Next i
+			'		Else
+			'			Dim tb As TabWindow Ptr
+			'			If tn = 0 Then Exit Sub
+			'			For i As Integer = 0 To ptabCode->TabCount - 1
+			'				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			'				If tb->tn = tn Then
+			'					tb->Save
+			'					Exit For
+			'				End If
+			'			Next i
 		End If
 	Else
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -2483,7 +2474,7 @@ Sub ChangeFileEncoding(FileEncoding As FileEncodings)
 	If miUtf8 <> 0 Then miUtf8->Checked = FileEncoding = FileEncodings.Utf8
 	If miUtf16 <> 0 Then miUtf16->Checked = FileEncoding = FileEncodings.Utf16
 	If miUtf32 <> 0 Then miUtf32->Checked = FileEncoding = FileEncodings.Utf32
-	If stBar.Count > 3 Then 
+	If stBar.Count > 3 Then
 		With *stBar.Panels[3]
 			Select Case FileEncoding
 			Case FileEncodings.PlainText: .Caption = "ASCII"
@@ -3973,7 +3964,7 @@ Sub LoadSettings
 	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
 	WLet(DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", ""))
 	WLet(HelpPath, Helps.Get(*DefaultHelp, ""))
-	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False) 
+	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
 	CreateFormTypesWithoutTypeWord = iniSettings.ReadBool("Options", "CreateFormTypesWithoutTypeWord", False)
@@ -4723,9 +4714,9 @@ Sub CreateMenusAndToolBars
 	tbStandard.ImagesList = @imgList
 	tbStandard.HotImagesList = @imgList
 	tbStandard.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbStandard.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbStandard.Align = 3
+	'	#endif
 	tbStandard.Flat = True
 	tbStandard.List = True
 	tbStandard.Buttons.Add tbsAutosize, "New", , @mClick, "New", , ML("New") & " (Ctrl+N)", True
@@ -4746,9 +4737,9 @@ Sub CreateMenusAndToolBars
 	tbEdit.ImagesList = @imgList
 	tbEdit.HotImagesList = @imgList
 	tbEdit.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbEdit.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbEdit.Align = 3
+	'	#endif
 	tbEdit.Flat = True
 	tbEdit.List = True
 	tbEdit.Buttons.Add , "Format", , @mClick, "Format", , ML("Format") & " (Ctrl+Tab)", True
@@ -4783,9 +4774,9 @@ Sub CreateMenusAndToolBars
 	tbBuild.ImagesList = @imgList
 	tbBuild.HotImagesList = @imgList
 	tbBuild.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbBuild.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbBuild.Align = 3
+	'	#endif
 	tbBuild.Flat = True
 	tbBuild.List = True
 	tbtUseDebugger = tbBuild.Buttons.Add(tbsCheck Or tbsAutosize, "UseDebugger", , @mClick, "TBUseDebugger", , ML("Use Debugger"), True)
@@ -4799,9 +4790,9 @@ Sub CreateMenusAndToolBars
 	tbRun.ImagesList = @imgList
 	tbRun.HotImagesList = @imgList
 	tbRun.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbRun.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbRun.Align = 3
+	'	#endif
 	tbRun.Flat = True
 	tbRun.List = True
 	tbtStartWithCompile = tbRun.Buttons.Add( , "StartWithCompile", , @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True)
@@ -4813,9 +4804,9 @@ Sub CreateMenusAndToolBars
 	tbProject.ImagesList = @imgList
 	tbProject.HotImagesList = @imgList
 	tbProject.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbProject.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbProject.Align = 3
+	'	#endif
 	tbProject.Flat = True
 	tbProject.List = True
 	tbtNotSetted = tbProject.Buttons.Add(tbsAutosize Or tbsCheckGroup, "NotSetted", , @mClick, "NotSetted", , ML("Not Setted"), True)
@@ -5040,8 +5031,8 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 		'#ifdef __USE_GTK__
 		'	If Not g_find_program_in_path(ToUTF8(This.Path)) = NULL Then
 		'#else
-			If Not FileExists(This.Path) Then
-		'#endif
+		If Not FileExists(This.Path) Then
+			'#endif
 			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
 		Else
 			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
@@ -5471,8 +5462,8 @@ cboPropertyValue.Top = -2
 
 Sub pnlColor_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	Canvas.Brush.Color = Val(txtPropertyValue.Text)
-'	SelectObject(Canvas.Handle, Canvas.Brush.Handle)
-'	Rectangle Canvas.Handle, 0, 0, 12, 12
+	'	SelectObject(Canvas.Handle, Canvas.Brush.Handle)
+	'	Rectangle Canvas.Handle, 0, 0, 12, 12
 	Canvas.Rectangle 0, 0, 12, 12
 End Sub
 
@@ -5596,7 +5587,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 			txtPropertyValue.Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		ElseIf EndsWith(LCase(PropertyName), "color") Then
 			pnlColor.BackColor = Val(Item->Text(1))
-			pnlColor.Visible = True 
+			pnlColor.Visible = True
 			txtPropertyValue.LeftMargin = 16
 		End If
 	Else
@@ -6096,8 +6087,8 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
 	If CBool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
-'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-'		SetRightClosedStyle True, True
+		'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+		'		SetRightClosedStyle True, True
 	ElseIf tb->FileName <> "" Then
 		tb->FillAllProperties
 	End If
@@ -6271,7 +6262,7 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			WDeAllocate sTmp
 			mChangeLogEdited = True
 		End If
-		ElseIf CInt(bCtrl) And Shift And (key =99 Or key =67) Then 'Ctrl+Shift+C
+	ElseIf CInt(bCtrl) And Shift And (key =99 Or key =67) Then 'Ctrl+Shift+C
 		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
 			Dim As WString Ptr txtChangeLogText =@txtChangeLog.Text
@@ -6724,7 +6715,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	
 	pnlRightPin.Height = tbRight.Height
 	pnlLeftPin.Height = tbLeft.Height
-		If Dir(ExePath & "/DebugInfo.log") <> "" Then
+	If Dir(ExePath & "/DebugInfo.log") <> "" Then
 		#ifdef __USE_GTK__
 			FileCopy ExePath & "/DebugInfo.log", ExePath & "/DebugInfo.bak"
 		#else
@@ -6807,7 +6798,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	'			wDeallocate Changelog
 	'		End If
 	'	End If
-
+	
 	mStartLoadSession = False
 End Sub
 
@@ -6827,7 +6818,7 @@ Function CheckCompilerPaths As Boolean
 	#endif
 	If Not bFind Then
 		If MsgBox(ML("Invalid defined compiler path.") & !"\r" & ML("Find Compilers from Computer?"), , mtQuestion, btYesNo) = mrYes Then
-			pfOptions->Show *pfrmMain
+			pfOptions->ShowModal *pfrmMain
 			pfOptions->tvOptions.Nodes.Item(2)->SelectItem
 			pfOptions->cmdFindCompilers_Click(pfOptions->cmdFindCompilers)
 		End If
@@ -7204,12 +7195,12 @@ frmMain.OnClose = @frmMain_Close
 frmMain.OnDropFile = @frmMain_DropFile
 frmMain.Menu = @mnuMain
 '#ifndef __USE_GTK__
-	ReBar1.Add @tbStandard
-	ReBar1.Add @tbEdit
-	ReBar1.Add @tbProject
-	ReBar1.Add @tbBuild
-	ReBar1.Add @tbRun
-	frmMain.Add @ReBar1
+ReBar1.Add @tbStandard
+ReBar1.Add @tbEdit
+ReBar1.Add @tbProject
+ReBar1.Add @tbBuild
+ReBar1.Add @tbRun
+frmMain.Add @ReBar1
 '#else
 '	tbStandard.Align = DockStyle.alTop
 '	frmMain.Add @tbStandard
@@ -7358,6 +7349,6 @@ Sub OnProgramQuit() Destructor
 		te = pGlobalArgs->Object(i)
 		Delete_( Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
 		'pGlobalArgs->Remove i
-	Next 
+	Next
 End Sub
 
