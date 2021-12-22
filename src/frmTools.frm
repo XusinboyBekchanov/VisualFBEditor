@@ -231,10 +231,13 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 			Dim As My.Sys.Drawing.Icon Ico
 			#ifdef __USE_GTK__
 			#else
-				Ico.Handle = ExtractIconW(Instance, tt->Path, NULL)
-				Bitm.Handle = Ico.ToBitmap
+				Dim As HICON IcoHandle
+				ExtractIconEx(GetFullPath(tt->Path), NULL, NULL, @IcoHandle, 1)
+				Bitm = IcoHandle
+				DestroyIcon IcoHandle
 			#endif
 			mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool, , i + ToolsIndex + 2)
+			Bitm.Handle = 0
 			mi->Tag = tt
 			Print #Fn, "Path=" & tt->Path
 			Print #Fn, "Name=" & tt->Name

@@ -4631,7 +4631,7 @@ Sub CreateMenusAndToolBars
 					#ifdef __USE_GTK__
 					#else
 						Dim As HICON IcoHandle
-						ExtractIconEx(tt->Path, NULL, NULL, @IcoHandle, 1)
+						ExtractIconEx(GetFullPath(tt->Path), NULL, NULL, @IcoHandle, 1)
 						Bitm = IcoHandle
 						DestroyIcon IcoHandle
 					#endif
