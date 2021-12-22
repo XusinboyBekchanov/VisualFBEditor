@@ -5071,6 +5071,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#else
 		cboClass.Top = 1
 		cboClass.Height = 30 * 22
+		cboClass.DropDownCount = 30
 	#endif
 	cboClass.Anchor.Left = asAnchor
 	cboClass.Anchor.Right = asAnchorProportional
@@ -5089,6 +5090,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#else
 		cboFunction.Top = 1
 		cboFunction.Height = 30 * 22
+		cboFunction.DropDownCount = 30
 	#endif
 	cboFunction.Anchor.Left = asAnchorProportional
 	cboFunction.Anchor.Right = asAnchor

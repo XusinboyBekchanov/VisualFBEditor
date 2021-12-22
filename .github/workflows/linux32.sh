@@ -10,10 +10,10 @@ cd ..
 cd VisualFBEditor
 git clone https://github.com/XusinboyBekchanov/MyFbFramework
 cd src
-fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "../MyFbFramework"
+fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "../MyFbFramework" -d __USE_GTK3__
 cd ..
 cd MyFbFramework/mff
-fbc -b "mff.bi" -dll -x "../../libmff32_gtk3.so"
+fbc -b "mff.bi" -dll -x "../../libmff32_gtk3.so" -d __USE_GTK3__
 
 cd ..
 cd ..
