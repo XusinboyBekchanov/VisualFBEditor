@@ -1,0 +1,83 @@
+:Base Spyhelp.hlp>Main
+:Title Microsoft Spy++ Help
+1 How To Use Spy++
+2 Using Spy++=_ASUG_Using_Spy.2b2b
+1 Working in Spy++
+2 Working in Spy++=_ASUG_Working_In_Spy.2b2b
+3 Starting Spy++=_ASUG_Starting_Spy.2b2b
+3 Viewing with Spy++=_ASUG_Viewing_with_Spy2b2b
+3 Using the Spy++Toolbar=_ASUG_The_Spy_2b2b_Toolbar
+3 Refreshing the View=_ASUG_Refreshing_the_View
+3 Changing Fonts=_ASUG_Changing_Fonts
+3 Expanding the Spy++ Trees=_ASUG_Expanding_and_Collapsing_Spy.2b2b_.Trees
+1 How to Use Spy++ Views
+2 The Windows Views
+3 The Windows Views=_ASUG_The_Windows_View
+4 Using the Window Finder Tool=_ASUG_The_Window_Finder_Tool
+4 Searching for a Window=_ASUG_Searching_for_a_Window
+4 Opening Window Properties=_ASUG_Opening_Window_Properties
+4 Window Properties=_ASUG_Window_Properties
+2 The Processes View
+3 The Processes View=_ASUG_The_Processes_View
+4 Searching for a Process=_ASUG_Searching_for_a_Process
+4 Opening Process Properties=_ASUG_Opening_Process_Properties
+4 Process Properties for Windows 95=_ASUG_Process_Properties_for_Windows_95
+4 Process Properties for Windows NT=_ASUG_Process_Properties_for_Windows_NT
+2 The Threads View
+3 The Threads View=_ASUG_The_Threads_VIew
+4 Searching for a Thread=_ASUG_Searching_for_a_Thread
+4 Opening Thread Properties=_ASUG_Opening_Thread_Properties
+4 Thread Properties for Windows 95=_ASUG_Thread_Properties_for_Windows_95
+4 Thread Properties for Windows NT=_ASUG_Thread_Properties_for_Windows_NT
+2 The Messages View
+3 The Messages View=_ASUG_The_Messages_View
+4 Message Codes=_Asug_message_codes
+4 Controlling the Messages View=_ASUG_Controlling_the_Messages_View
+4 Starting and Stopping the Message Log Display=_ASUG_Starting_and_Stopping_the_Message_Log_Display
+4 Choosing Message Options=_ASUG_Choosing_Message_Options
+4 Searching for a Message=_ASUG_Searching_for_a_Message
+4 Opening Message Properties=_ASUG_Opening_Message_Properties
+4 Message Properties=_ASUG_Message_Properties
+1 Reference Information
+2 Spy++ Menu Commands
+3 Spy=_asug_Spy_Menu_Commands
+3 Tree=_asug_tree_menu_commands
+3 Search=_asug_search_menu_commands
+3 View=_asug_view_menu_commands
+3 Messages=_asug_message_menu_commands
+3 Window=_asug_window_menu_commands
+3 Help=_asug_help_menu_commands
+2 Spy++ Dialog Boxes
+3 Font=hidd_font
+3 Find Window=HIDD_FINDWINDOW
+3 Process Search=HIDD_SEARCH_FINDPROCESS
+3 Thread Search=HIDD_SEARCH_FINDTHREAD
+3 Message Search=HIDD_SEARCH_FINDMESSAGE
+3 Window Search=HIDD_SEARCH_FINDWINDOW
+3 Message Options and Properties
+4 About Messages=HIDR_MSGTYPE
+4 Windows=HIDD_FILTERSWINDOWTAB
+4 Messages=HIDD_FILTERSMESSAGETAB
+4 Output=HIDD_FILTERSOUTPUTTAB
+4 Message Properties for Windows NT: General=HIDD_MESSAGEGENERALTAB
+3 Process Properties
+4 About Process Properties=HIDR_PRCTREETYPE
+4 Process Properties for Windows 95: General=HIDD_PROCESSGENERALTAB
+4 Process Properties for Windows NT: General=HIDD_PROCESSGENERALTAB_NT
+4 Process Properties for Windows NT: Memory=HIDD_PROCESSMEMORYTAB
+4 Process Properties for Windows NT: Page File=HIDD_PROCESSPAGEFILETAB
+4 Process Properties for Windows NT: Space=HIDD_PROCESSSPACETAB
+3 Thread Properties
+4 About Thread Properties=HIDR_THDTREETYPE
+4 Thread Properties for Windows 95: General=HIDD_THREADGENERALTAB
+4 Thread Properties for Windows NT: General=HIDD_THREADGENERALTAB_NT
+3 Window Properties
+4 About Windows Properties=HIDR_WNDTREETYPE
+4 Window Properties for Windows 95: General=HIDD_WINDOWGENERALTAB
+4 Window Properties for Windows 95: Styles=HIDD_WINDOWSTYLESTAB
+4 Window Properties for Windows 95: Windows=HIDD_WINDOWWINDOWSTAB
+4 Window Properties for Windows 95: Class=HIDD_WINDOWCLASSTAB
+4 Window Properties for Windows 95: Process=HIDD_WINDOWPROCESSTAB
+3 Other Dialog Boxes
+4 Microsoft Spy++=HIDR_MAINFRAME
+4 About Microsoft Spy++=HIDD_ABOUT

@@ -4622,11 +4622,12 @@ Sub CreateMenusAndToolBars
 					#ifdef __USE_GTK__
 					#else
 						Dim As HICON IcoHandle
-						ExtractIconEx(tt->Path, NULL, NULL, @IcoHandle, 1)
+						ExtractIconEx(GetFullPath(tt->Path), NULL, NULL, @IcoHandle, 1)
 						Bitm = IcoHandle
 						DestroyIcon IcoHandle
 					#endif
 					mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool)
+					Bitm.Handle = 0
 					mi->Tag = tt
 				ElseIf StartsWith(Buff, "LoadType=") Then
 					tt->LoadType = Cast(LoadTypes, Val(Mid(Buff, 10)))
