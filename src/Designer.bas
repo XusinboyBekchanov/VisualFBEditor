@@ -1266,7 +1266,7 @@ Namespace My.Sys.Forms
 			OnInsertingControl(This, WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName)
 		End If
 		Dim As Integer FLeft, FTop, FWidth, FHeight
-		ComponentGetBoundsSub(Q_ComponentFunc(Ctrl), @FLeft, @FTop, @FWidth, @FHeight)
+		ComponentGetBoundsSub(Q_ComponentFunc(Ctrl), FLeft, FTop, FWidth, FHeight)
 		Dim As Any Ptr NewCtrl
 		If IsControlFunc(Ctrl) Then
 		 	NewCtrl = This.CreateControl(WGet(ReadPropertyFunc(Ctrl, "ClassName")), FName, WGet(ReadPropertyFunc(Ctrl, "Text")), ParentCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
