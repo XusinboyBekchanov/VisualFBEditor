@@ -801,8 +801,9 @@ Function Compile(Parameter As String = "") As Integer
 	#endif
 	ThreadsEnter()
 	If lvErrors.ListItems.Count <> 0 Then
-		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ", " & ML("Undefined label") & "(" & WStr(NumberInfo) & ML("Pos") & ")", WStr(""))
-		ptabBottom->Tabs[1]->Caption = ML("Warning") & "(" & WStr(NumberWarning) & ML("Pos") & ") " & ML("Errors") & "(" & WStr(NumberErr) & ML("Pos") & ")"
+		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ", " & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", WStr(""))
+		ptabBottom->Tabs[1]->Caption =  IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "") & _
+		IIf(NumberWarning > 0, IIf(NumberErr > 0, ", ", "") & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", "")
 		ShowMessages(Str(Time) & ": " & ML("found") & " " & ptabBottom->Tabs[1]->Caption & tInfo, False)
 	Else
 		ptabBottom->Tabs[1]->Caption = ML("Errors")
@@ -2938,7 +2939,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							typ = tbi
 							If Namespaces.Count > 0 Then
 								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tOrig, tbi
+								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tOrig, tbi
 							End If
 						End If
 					End If
@@ -3227,7 +3228,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Enums.Add t, tbi
 						If Namespaces.Count > 0 Then
 							Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-							Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tbi->Name, tbi
+							If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tbi->Name, tbi
 						End If
 					End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end enum")) Then

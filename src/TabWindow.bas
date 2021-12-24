@@ -5398,7 +5398,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		Pos1 = InStr(LCase(sLine), " warning")
 		If Pos1>0 Then bFlagErr = "Warning"
 	Else
-		bFlagErr = "Errors"
+		bFlagErr = "Error"
 	End If
 	If Pos1 = 0 Then
 		Pos1 = InStr(3, sLine, ":")
@@ -5434,7 +5434,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 			If Pos2 > Pos3 Then
 				Dim As WString * 250 tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3))
 				If Right(tStr, 1) = "," Then tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1)) 'Strange. Sometime got letter ","
-				WLet ErrTitle, ML(bFlagErr) + ": " + ML(tStr) & ", " + (Mid(sLine, Pos2 + 1)) '& Mid(sLine, Pos2+1)
+				WLet ErrTitle, ML(bFlagErr) + ": " + ML(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 1)), "") '& Mid(sLine, Pos2+1)
 			Else
 				WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3+1)))
 			End If
@@ -5444,7 +5444,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 	End If
 	If bFlagErr = "Warning"  Then
 		Return 1
-	ElseIf bFlagErr = "Errors"  Then
+	ElseIf bFlagErr = "Error"  Then
 		Return 2
 	Else
 		Return 0
