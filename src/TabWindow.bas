@@ -1623,7 +1623,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 								iHeight1 = iHeight
 								iWidth1 = iWidth
 							Else
-								tb->Des->GetControlBounds(Cpnt, @iLeft1, @iTop1, @iWidth1, @iHeight1)
+								tb->Des->GetControlBounds(Cpnt, iLeft1, iTop1, iWidth1, iHeight1)
 							End If
 							CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 							ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p + 10) & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
@@ -1676,7 +1676,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			WLet(FLine, tb->GetFormattedPropertyValue(tb->Des->DesignControl, PropertyName))
 			If *FLine <> "" Then ptxtCode->InsertLine ep + 8, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q = 1
 		End If
-		tb->Des->GetControlBounds(tb->Des->DesignControl, @iLeft1, @iTop1, @iWidth1, @iHeight1)
+		tb->Des->GetControlBounds(tb->Des->DesignControl, iLeft1, iTop1, iWidth1, iHeight1)
 		ptxtCode->InsertLine ep + q + 8, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 		ptxtCode->InsertLine ep + q + 9, *FLine1 & TabSpace & "End With"
 		ptxtCode->InsertLine ep + q + 10, *FLine1 & "End Constructor": tb->ConstructorEnd = ep + q + 10
@@ -1731,7 +1731,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 				iWidth1 = iWidth
 				iHeight1 = iHeight
 			Else
-				tb->Des->GetControlBounds(Cpnt, @iLeft1, @iTop1, @iWidth1, @iHeight1)
+				tb->Des->GetControlBounds(Cpnt, iLeft1, iTop1, iWidth1, iHeight1)
 			End If
 			ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 			InsLineCount += 1
@@ -1747,7 +1747,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 				iWidth1 = iWidth
 				iHeight1 = iHeight
 			Else
-				tb->Des->GetControlBounds(Cpnt, @iLeft1, @iTop1, @iWidth1, @iHeight1)
+				tb->Des->GetControlBounds(Cpnt, iLeft1, iTop1, iWidth1, iHeight1)
 			End If
 			ptxtCode->InsertLine se, *FLine1 & TabSpace & "' " & CtrlName
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
@@ -1957,7 +1957,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			.Changing "Unsurni o`zgartirish"
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
 			Dim As Integer iLeft, iTop, iWidth, iHeight
-			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, @iLeft, @iTop, @iWidth, @iHeight)
+			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, iLeft, iTop, iWidth, iHeight)
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr tmpWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
 			#endif
@@ -1966,7 +1966,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 				pApp->DoEvents
 			#endif
 			Dim As Integer iLeft2, iTop2, iWidth2, iHeight2
-			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, @iLeft2, @iTop2, @iWidth2, @iHeight2)
+			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, iLeft2, iTop2, iWidth2, iHeight2)
 			If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots tb->Des->SelectedControl, False
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
@@ -4873,7 +4873,7 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 			Dim As Integer iLeft, iTop, iWidth, iHeight
 			Dim si As SCROLLINFO
 			If tb->Des AndAlso tb->Des->DesignControl Then
-				tb->Des->GetControlBounds(tb->Des->DesignControl, @iLeft, @iTop, @iWidth, @iHeight)
+				tb->Des->GetControlBounds(tb->Des->DesignControl, iLeft, iTop, iWidth, iHeight)
 			End If
 			iWidth += 2 * tb->Des->DotSize
 			iHeight += 2 * tb->Des->DotSize
