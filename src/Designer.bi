@@ -232,8 +232,8 @@ Namespace My.Sys.Forms
 		Declare Sub SelectAllControls()
 		Declare Sub DeleteMenuItems(pMenu As Any Ptr, mi As Any Ptr)
 		Declare Sub DeleteControl()
-		Declare Sub BringToFront()
-		Declare Sub SendToBack()
+		Declare Sub BringToFront(Ctrl As Any Ptr = 0)
+		Declare Sub SendToBack(Ctrl As Any Ptr = 0)
 		DesignControl As Any Ptr
 		SelectedControl As Any Ptr
 		SelectedControls As List
