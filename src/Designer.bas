@@ -2100,7 +2100,7 @@ Namespace My.Sys.Forms
 		'#EndIf
 	End Function
 	
-	Sub Designer.BringToFront
+	Sub Designer.BringToFront(Ctrl As Any Ptr = 0)
 		#ifdef __USE_GTK__
 			If CInt(ReadPropertyFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) AndAlso CInt(ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")) Then
 				Dim As Integer iLeft = QInteger(ReadPropertyFunc(SelectedControl, "Left")), iTop = QInteger(ReadPropertyFunc(SelectedControl, "Top"))
@@ -2114,11 +2114,15 @@ Namespace My.Sys.Forms
 				gtk_layout_put(gtk_layout(LayoutWidget), CtrlWidget, iLeft, iTop)
 			End If
 		#else
-			SetWindowPos FSelControl, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			If Ctrl = 0 Then
+				SetWindowPos FSelControl, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			ElseIf CInt(ReadPropertyFunc <> 0) Then
+				SetWindowPos *Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			End If
 		#endif
 	End Sub
 	
-	Sub Designer.SendToBack
+	Sub Designer.SendToBack(Ctrl As Any Ptr = 0)
 		#ifdef __USE_GTK__
 			If CInt(ReadPropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) AndAlso CInt(ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")) Then
 				Dim As Integer iLeft, iTop
@@ -2141,7 +2145,11 @@ Namespace My.Sys.Forms
 				Next
 			End If
 		#else
-			SetWindowPos FSelControl, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			If Ctrl = 0 Then
+				SetWindowPos FSelControl, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			ElseIf CInt(ReadPropertyFunc <> 0) Then
+				SetWindowPos *Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			End If
 		#endif
 	End Sub
 	
