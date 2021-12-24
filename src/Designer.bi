@@ -234,6 +234,7 @@ Namespace My.Sys.Forms
 		Declare Sub DeleteControl()
 		Declare Sub BringToFront(Ctrl As Any Ptr = 0)
 		Declare Sub SendToBack(Ctrl As Any Ptr = 0)
+		Declare Function GetParentControl(iControl As Any Ptr, ByVal toRoot As Boolean = True) As Any Ptr
 		DesignControl As Any Ptr
 		SelectedControl As Any Ptr
 		SelectedControls As List

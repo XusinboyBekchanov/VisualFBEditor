@@ -1588,7 +1588,7 @@ Sub AddMRUSession(ByRef FileName As WString)
 End Sub
 
 Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
-    Dim As WString * 1024 f, fsrc, fdest
+	Dim As WString * 1024 f, fsrc, fdest
 	Dim As UInteger Attr
 	Dim As WStringList Folders
 	MkDir ToDir
@@ -1887,6 +1887,9 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "CommandLineArguments=""" & *ppe->CommandLineArguments & """"
 	Print #Fn, "CreateDebugInfo=" & ppe->CreateDebugInfo
 	Close #Fn
+	'Else
+	'	MsgBox ML("Save file failure!") & Chr(13,10) & *ppe->FileName
+	'End If
 	If tnPr->Text <> GetFileName(WGet(ppe->FileName)) Then tnPr->Text = GetFileName(WGet(ppe->FileName))
 	tnPr->Tag = ppe
 	Return True
@@ -2333,16 +2336,16 @@ Sub Save()
 		If tn = 0 Then Exit Sub
 		If tn->ImageKey = "Project" Then
 			SaveProject tn
-'		Else
-'			Dim tb As TabWindow Ptr
-'			If tn = 0 Then Exit Sub
-'			For i As Integer = 0 To ptabCode->TabCount - 1
-'				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-'				If tb->tn = tn Then
-'					tb->Save
-'					Exit For
-'				End If
-'			Next i
+			'		Else
+			'			Dim tb As TabWindow Ptr
+			'			If tn = 0 Then Exit Sub
+			'			For i As Integer = 0 To ptabCode->TabCount - 1
+			'				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			'				If tb->tn = tn Then
+			'					tb->Save
+			'					Exit For
+			'				End If
+			'			Next i
 		End If
 	Else
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -2484,7 +2487,7 @@ Sub ChangeFileEncoding(FileEncoding As FileEncodings)
 	If miUtf8 <> 0 Then miUtf8->Checked = FileEncoding = FileEncodings.Utf8
 	If miUtf16 <> 0 Then miUtf16->Checked = FileEncoding = FileEncodings.Utf16
 	If miUtf32 <> 0 Then miUtf32->Checked = FileEncoding = FileEncodings.Utf32
-	If stBar.Count > 3 Then 
+	If stBar.Count > 3 Then
 		With *stBar.Panels[3]
 			Select Case FileEncoding
 			Case FileEncodings.PlainText: .Caption = "ASCII"
@@ -3974,7 +3977,7 @@ Sub LoadSettings
 	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
 	WLet(DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", ""))
 	WLet(HelpPath, Helps.Get(*DefaultHelp, ""))
-	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False) 
+	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
 	CreateFormTypesWithoutTypeWord = iniSettings.ReadBool("Options", "CreateFormTypesWithoutTypeWord", False)
@@ -4725,9 +4728,9 @@ Sub CreateMenusAndToolBars
 	tbStandard.ImagesList = @imgList
 	tbStandard.HotImagesList = @imgList
 	tbStandard.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbStandard.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbStandard.Align = 3
+	'	#endif
 	tbStandard.Flat = True
 	tbStandard.List = True
 	tbStandard.Buttons.Add tbsAutosize, "New", , @mClick, "New", , ML("New") & " (Ctrl+N)", True
@@ -4748,9 +4751,9 @@ Sub CreateMenusAndToolBars
 	tbEdit.ImagesList = @imgList
 	tbEdit.HotImagesList = @imgList
 	tbEdit.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbEdit.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbEdit.Align = 3
+	'	#endif
 	tbEdit.Flat = True
 	tbEdit.List = True
 	tbEdit.Buttons.Add , "Format", , @mClick, "Format", , ML("Format") & " (Ctrl+Tab)", True
@@ -4785,9 +4788,9 @@ Sub CreateMenusAndToolBars
 	tbBuild.ImagesList = @imgList
 	tbBuild.HotImagesList = @imgList
 	tbBuild.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbBuild.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbBuild.Align = 3
+	'	#endif
 	tbBuild.Flat = True
 	tbBuild.List = True
 	tbtUseDebugger = tbBuild.Buttons.Add(tbsCheck Or tbsAutosize, "UseDebugger", , @mClick, "TBUseDebugger", , ML("Use Debugger"), True)
@@ -4801,9 +4804,9 @@ Sub CreateMenusAndToolBars
 	tbRun.ImagesList = @imgList
 	tbRun.HotImagesList = @imgList
 	tbRun.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbRun.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbRun.Align = 3
+	'	#endif
 	tbRun.Flat = True
 	tbRun.List = True
 	tbtStartWithCompile = tbRun.Buttons.Add( , "StartWithCompile", , @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True)
@@ -4815,9 +4818,9 @@ Sub CreateMenusAndToolBars
 	tbProject.ImagesList = @imgList
 	tbProject.HotImagesList = @imgList
 	tbProject.DisabledImagesList = @imgListD
-'	#ifdef __USE_GTK__
-'		tbProject.Align = 3
-'	#endif
+	'	#ifdef __USE_GTK__
+	'		tbProject.Align = 3
+	'	#endif
 	tbProject.Flat = True
 	tbProject.List = True
 	tbtNotSetted = tbProject.Buttons.Add(tbsAutosize Or tbsCheckGroup, "NotSetted", , @mClick, "NotSetted", , ML("Not Setted"), True)
@@ -5042,8 +5045,8 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 		'#ifdef __USE_GTK__
 		'	If Not g_find_program_in_path(ToUTF8(This.Path)) = NULL Then
 		'#else
-			If Not FileExists(This.Path) Then
-		'#endif
+		If Not FileExists(This.Path) Then
+			'#endif
 			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
 		Else
 			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
@@ -5473,8 +5476,8 @@ cboPropertyValue.Top = -2
 
 Sub pnlColor_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	Canvas.Brush.Color = Val(txtPropertyValue.Text)
-'	SelectObject(Canvas.Handle, Canvas.Brush.Handle)
-'	Rectangle Canvas.Handle, 0, 0, 12, 12
+	'	SelectObject(Canvas.Handle, Canvas.Brush.Handle)
+	'	Rectangle Canvas.Handle, 0, 0, 12, 12
 	Canvas.Rectangle 0, 0, 12, 12
 End Sub
 
@@ -5598,7 +5601,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 			txtPropertyValue.Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		ElseIf EndsWith(LCase(PropertyName), "color") Then
 			pnlColor.BackColor = Val(Item->Text(1))
-			pnlColor.Visible = True 
+			pnlColor.Visible = True
 			txtPropertyValue.LeftMargin = 16
 		End If
 	Else
@@ -6098,8 +6101,8 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
 	If CBool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
-'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-'		SetRightClosedStyle True, True
+		'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+		'		SetRightClosedStyle True, True
 	ElseIf tb->FileName <> "" Then
 		tb->FillAllProperties
 	End If
@@ -6273,7 +6276,7 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			WDeAllocate sTmp
 			mChangeLogEdited = True
 		End If
-		ElseIf CInt(bCtrl) And Shift And (key =99 Or key =67) Then 'Ctrl+Shift+C
+	ElseIf CInt(bCtrl) And Shift And (key =99 Or key =67) Then 'Ctrl+Shift+C
 		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
 			Dim As WString Ptr txtChangeLogText =@txtChangeLog.Text
@@ -6726,7 +6729,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	
 	pnlRightPin.Height = tbRight.Height
 	pnlLeftPin.Height = tbLeft.Height
-		If Dir(ExePath & "/DebugInfo.log") <> "" Then
+	If Dir(ExePath & "/DebugInfo.log") <> "" Then
 		#ifdef __USE_GTK__
 			FileCopy ExePath & "/DebugInfo.log", ExePath & "/DebugInfo.bak"
 		#else
@@ -6809,7 +6812,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	'			wDeallocate Changelog
 	'		End If
 	'	End If
-
+	
 	mStartLoadSession = False
 End Sub
 
@@ -7206,12 +7209,12 @@ frmMain.OnClose = @frmMain_Close
 frmMain.OnDropFile = @frmMain_DropFile
 frmMain.Menu = @mnuMain
 '#ifndef __USE_GTK__
-	ReBar1.Add @tbStandard
-	ReBar1.Add @tbEdit
-	ReBar1.Add @tbProject
-	ReBar1.Add @tbBuild
-	ReBar1.Add @tbRun
-	frmMain.Add @ReBar1
+ReBar1.Add @tbStandard
+ReBar1.Add @tbEdit
+ReBar1.Add @tbProject
+ReBar1.Add @tbBuild
+ReBar1.Add @tbRun
+frmMain.Add @ReBar1
 '#else
 '	tbStandard.Align = DockStyle.alTop
 '	frmMain.Add @tbStandard
@@ -7360,6 +7363,6 @@ Sub OnProgramQuit() Destructor
 		te = pGlobalArgs->Object(i)
 		Delete_( Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
 		'pGlobalArgs->Remove i
-	Next 
+	Next
 End Sub
 

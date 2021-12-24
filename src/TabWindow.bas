@@ -2165,6 +2165,8 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 				'tb->Des->SelectedControl = Ctrl
 				'tb->Des->MoveDots(tb->Des->ReadPropertyFunc(Ctrl, "Widget"))
 			#else
+				Dim iParentCtrl As Any Ptr = tb->Des->GetParentControl(Ctrl)
+				If iParentCtrl <> 0 Then tb->Des->BringToFront iParentCtrl
 				tb->Des->SelectedControls.Clear
 				tb->Des->SelectedControl = Ctrl
 				Dim As HWND Ptr hw = tb->Des->ReadPropertyFunc(Ctrl, "Handle")
