@@ -180,7 +180,7 @@ Namespace My.Sys.Forms
 		RemoveControlSub As Sub(Parent As Any Ptr, Ctrl As Any Ptr)
 		ControlByIndexFunc As Function(Parent As Any Ptr, Index As Integer) As Any Ptr
 		Q_ComponentFunc As Function(Cpnt As Any Ptr) As Any Ptr
-		ComponentGetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer Ptr, ATop As Integer Ptr, AWidth As Integer Ptr, AHeight As Integer Ptr)
+		ComponentGetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		ComponentSetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		ControlIsContainerFunc As Function(Ctrl As Any Ptr) As Boolean
 		IsControlFunc As Function(Ctrl As Any Ptr) As Boolean
