@@ -1818,7 +1818,18 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		End If
 	Next
 	Dim As Integer Fn = FreeFile
-	If Open(*ppe->FileName For Output Encoding "utf-8" As #Fn) = 0 Then
+	If Not EndsWith(*ppe->FileName, ".vfp") Then
+		Open *ppe->FileName & "/" & GetFileName(*ppe->FileName) & ".vfp" For Output Encoding "utf-8" As #Fn
+		For i As Integer = 0 To ppe->Files.Count - 1
+			Zv = IIf(ppe AndAlso (ppe->Files.Item(i) = *ppe->MainFileName OrElse ppe->Files.Item(i) = *ppe->ResourceFileName OrElse ppe->Files.Item(i) = *ppe->IconResourceFileName), "*", "")
+			If StartsWith(ppe->Files.Item(i), *ppe->FileName & "\") Then
+				Print #Fn, Zv & "File=" & Replace(Mid(ppe->Files.Item(i), Len(*ppe->FileName & "\") + 1), "\", "/")
+			Else
+				Print #Fn, Zv & "File=" & ppe->Files.Item(i)
+			End If
+		Next
+	Else
+		Open *ppe->FileName For Output Encoding "utf-8" As #Fn
 		For i As Integer = 0 To tnPr->Nodes.Count - 1
 			tn1 = tnPr->Nodes.Item(i)
 			ee = tn1->Tag
@@ -1844,40 +1855,41 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 				Next
 			End If
 		Next
-		Print #Fn, "ProjectType=" & ppe->ProjectType
-		Print #Fn, "Subsystem=" & ppe->Subsystem
-		Print #Fn, "ProjectName=""" & *ppe->ProjectName & """"
-		Print #Fn, "HelpFileName=""" & *ppe->HelpFileName & """"
-		Print #Fn, "ProjectDescription=""" & *ppe->ProjectDescription & """"
-		Print #Fn, "PassAllModuleFilesToCompiler=" & ppe->PassAllModuleFilesToCompiler
-		Print #Fn, "MajorVersion=" & ppe->MajorVersion
-		Print #Fn, "MinorVersion=" & ppe->MinorVersion
-		Print #Fn, "RevisionVersion=" & ppe->RevisionVersion
-		Print #Fn, "BuildVersion=" & ppe->BuildVersion
-		Print #Fn, "AutoIncrementVersion=" & ppe->AutoIncrementVersion
-		Print #Fn, "ApplicationTitle=""" & *ppe->ApplicationTitle & """"
-		Print #Fn, "ApplicationIcon=""" & *ppe->ApplicationIcon & """"
-		Print #Fn, "CompanyName=""" & *ppe->CompanyName & """"
-		Print #Fn, "FileDescription=""" & *ppe->FileDescription & """"
-		Print #Fn, "InternalName=""" & *ppe->InternalName & """"
-		Print #Fn, "LegalCopyright=""" & *ppe->LegalCopyright & """"
-		Print #Fn, "LegalTrademarks=""" & *ppe->LegalTrademarks & """"
-		Print #Fn, "OriginalFilename=""" & *ppe->OriginalFilename & """"
-		Print #Fn, "ProductName=""" & *ppe->ProductName & """"
-		Print #Fn, "CompileTo=" & ppe->CompileTo
-		Print #Fn, "OptimizationLevel=" & ppe->OptimizationLevel
-		Print #Fn, "OptimizationFastCode=" & ppe->OptimizationFastCode
-		Print #Fn, "OptimizationSmallCode=" & ppe->OptimizationSmallCode
-		Print #Fn, "CompilationArguments32Windows=""" & *ppe->CompilationArguments32Windows & """"
-		Print #Fn, "CompilationArguments64Windows=""" & *ppe->CompilationArguments64Windows & """"
-		Print #Fn, "CompilationArguments32Linux=""" & *ppe->CompilationArguments32Linux & """"
-		Print #Fn, "CompilationArguments64Linux=""" & *ppe->CompilationArguments64Linux & """"
-		Print #Fn, "CommandLineArguments=""" & *ppe->CommandLineArguments & """"
-		Print #Fn, "CreateDebugInfo=" & ppe->CreateDebugInfo
-		Close #Fn
-	Else
-		MsgBox ML("Save file failure!") & Chr(13,10) & *ppe->FileName
 	End If
+	Print #Fn, "ProjectType=" & ppe->ProjectType
+	Print #Fn, "Subsystem=" & ppe->Subsystem
+	Print #Fn, "ProjectName=""" & *ppe->ProjectName & """"
+	Print #Fn, "HelpFileName=""" & *ppe->HelpFileName & """"
+	Print #Fn, "ProjectDescription=""" & *ppe->ProjectDescription & """"
+	Print #Fn, "PassAllModuleFilesToCompiler=" & ppe->PassAllModuleFilesToCompiler
+	Print #Fn, "MajorVersion=" & ppe->MajorVersion
+	Print #Fn, "MinorVersion=" & ppe->MinorVersion
+	Print #Fn, "RevisionVersion=" & ppe->RevisionVersion
+	Print #Fn, "BuildVersion=" & ppe->BuildVersion
+	Print #Fn, "AutoIncrementVersion=" & ppe->AutoIncrementVersion
+	Print #Fn, "ApplicationTitle=""" & *ppe->ApplicationTitle & """"
+	Print #Fn, "ApplicationIcon=""" & *ppe->ApplicationIcon & """"
+	Print #Fn, "CompanyName=""" & *ppe->CompanyName & """"
+	Print #Fn, "FileDescription=""" & *ppe->FileDescription & """"
+	Print #Fn, "InternalName=""" & *ppe->InternalName & """"
+	Print #Fn, "LegalCopyright=""" & *ppe->LegalCopyright & """"
+	Print #Fn, "LegalTrademarks=""" & *ppe->LegalTrademarks & """"
+	Print #Fn, "OriginalFilename=""" & *ppe->OriginalFilename & """"
+	Print #Fn, "ProductName=""" & *ppe->ProductName & """"
+	Print #Fn, "CompileTo=" & ppe->CompileTo
+	Print #Fn, "OptimizationLevel=" & ppe->OptimizationLevel
+	Print #Fn, "OptimizationFastCode=" & ppe->OptimizationFastCode
+	Print #Fn, "OptimizationSmallCode=" & ppe->OptimizationSmallCode
+	Print #Fn, "CompilationArguments32Windows=""" & *ppe->CompilationArguments32Windows & """"
+	Print #Fn, "CompilationArguments64Windows=""" & *ppe->CompilationArguments64Windows & """"
+	Print #Fn, "CompilationArguments32Linux=""" & *ppe->CompilationArguments32Linux & """"
+	Print #Fn, "CompilationArguments64Linux=""" & *ppe->CompilationArguments64Linux & """"
+	Print #Fn, "CommandLineArguments=""" & *ppe->CommandLineArguments & """"
+	Print #Fn, "CreateDebugInfo=" & ppe->CreateDebugInfo
+	Close #Fn
+	'Else
+	'	MsgBox ML("Save file failure!") & Chr(13,10) & *ppe->FileName
+	'End If
 	If tnPr->Text <> GetFileName(WGet(ppe->FileName)) Then tnPr->Text = GetFileName(WGet(ppe->FileName))
 	tnPr->Tag = ppe
 	Return True
@@ -6820,7 +6832,7 @@ Function CheckCompilerPaths As Boolean
 	#endif
 	If Not bFind Then
 		If MsgBox(ML("Invalid defined compiler path.") & !"\r" & ML("Find Compilers from Computer?"), , mtQuestion, btYesNo) = mrYes Then
-			pfOptions->ShowModal *pfrmMain
+			pfOptions->Show *pfrmMain
 			pfOptions->tvOptions.Nodes.Item(2)->SelectItem
 			pfOptions->cmdFindCompilers_Click(pfOptions->cmdFindCompilers)
 		End If
