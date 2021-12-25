@@ -580,7 +580,7 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub Designer.GetControlBounds(Control As Any Ptr, iLeft As Integer Ptr, iTop As Integer Ptr, iWidth As Integer Ptr, iHeight As Integer Ptr)
+	Sub Designer.GetControlBounds(Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
 		If ComponentGetBoundsSub <> 0 Then
 			ComponentGetBoundsSub(Q_ComponentFunc(Control), iLeft, iTop, iWidth, iHeight)
 		End If
