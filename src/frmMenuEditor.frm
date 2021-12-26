@@ -580,7 +580,7 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 	Select Case Key
 	Case Keys.F2
 		If ActiveRect <> 0 Then EditRect ActiveRect
-	Case Keys.Left
+	Case Keys.Key_Left
 		If Parents(ActiveRect) = 0 Then
 			If ActiveRect = 1 Then
 				Dim As Integer Last
@@ -601,7 +601,7 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 				End If
 			Next
 		End If
-	Case Keys.Right
+	Case Keys.Key_Right
 		If Parents(ActiveRect) = 0 AndAlso (CurrentToolBar <> 0 AndAlso ActiveRect <= TopCount OrElse CInt(Not IsPopup)) Then
 			Dim As Integer Last
 			For i As Integer = 1 To RectsCount
@@ -634,7 +634,7 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 				End If
 			Next
 		End If
-	Case Keys.Down
+	Case Keys.Key_Down
 		If Parents(ActiveRect) = 0 AndAlso (CurrentToolBar AndAlso ActiveRect <= TopCount OrElse CInt(Not IsPopup)) Then
 			If RectsCount > TopCount Then SelectRect TopCount + 1
 '			For i As Integer = 1 To RectsCount
@@ -661,7 +661,7 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 				SelectRect ActiveRect + 1
 			End If
 		End If
-	Case Keys.Up
+	Case Keys.Key_Up
 		If Parents(ActiveRect) <> 0 OrElse IsPopup Then
 			Dim As Integer First, Last
 			For i As Integer = IIf(CurrentToolBar, TopCount + 1, 1) To RectsCount
@@ -676,7 +676,7 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 				SelectRect ActiveRect - 1
 			End If
 		End If
-	Case Keys.DeleteKey
+	Case Keys.Key_Delete
 		If ActiveRect > 0 AndAlso Ctrls(ActiveRect) <> 0 Then
 			Dim As Any Ptr ParentMenu = Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent")
 			If CurrentToolBar Then
@@ -740,7 +740,7 @@ Private Sub frmMenuEditor.txtActive_KeyDown_(ByRef Sender As Control, Key As Int
 	*Cast(frmMenuEditor Ptr, Sender.Designer).txtActive_KeyDown(Sender, Key, Shift)
 End Sub
 Private Sub frmMenuEditor.txtActive_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	If Key = Keys.Enter Then
+	If Key = Keys.Key_Enter Then
 		SelectRect ActiveRect
 	End If
 End Sub

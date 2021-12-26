@@ -6158,7 +6158,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 	'
 	wLet(sLine, txtImmediate.Lines(iLine))
 	If CInt(Not bCtrl) AndAlso CInt(WGet(sLine) <> "") AndAlso CInt(Not StartsWith(Trim(WGet(sLine)),"'")) Then
-		If Key = Keys.Enter Then
+		If Key = Keys.Key_Enter Then
 			'
 			SaveAll
 			Dim As Integer Fn =FreeFile
@@ -7110,7 +7110,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteBool("MainWindow", "ShowBuildToolBar", ShowBuildToolBar)
 	iniSettings.WriteBool("MainWindow", "ShowRunToolBar", ShowRunToolBar)
 	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)
-	iniSettings.ReadBool("MainWindow", "ShowTipoftheDayIndex", ShowTipoftheDayIndex)
+	iniSettings.WriteInteger("MainWindow", "ShowTipoftheDayIndex", ShowTipoftheDayIndex)
 	iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
 	
 	Dim As Integer MRUFilesCount, kk = -1

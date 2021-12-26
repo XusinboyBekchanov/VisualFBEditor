@@ -3046,7 +3046,7 @@ Namespace My.Sys.Forms
 					OldCharIndex = GetOldCharIndex
 				End If
 				#ifdef __USE_GTK__
-				Case GDK_KEY_RIGHT
+				Case GDK_Keys.Key_Right
 					msg.Result = True
 				#else
 				Case VK_RIGHT
@@ -3071,7 +3071,7 @@ Namespace My.Sys.Forms
 					OldCharIndex = GetOldCharIndex
 				End If
 				#ifdef __USE_GTK__
-				Case GDK_KEY_UP
+				Case GDK_Keys.Key_Up
 					msg.Result = True
 				#else
 				Case VK_UP
