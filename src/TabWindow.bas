@@ -3161,7 +3161,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 			ElseIf Symb = """" Then
 				bQuotation = Not bQuotation
 			ElseIf Not bQuotation AndAlso iCount = 0 Then
-				If Symb = " " OrElse Symb = !"\t" Then
+				If (Symb = " " OrElse Symb = !"\t") AndAlso Not (LCase(Mid(*sLine, i + 1, 3)) = "ptr" OrElse LCase(Mid(*sLine, i + 1, 7)) = "pointer") Then
 					bStarted = True
 				ElseIf (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
 					bStarted = False
@@ -3478,7 +3478,9 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 	If StartsWith(LCase(sTemp2), "cast") Then
 		Return GetTypeFromValue(tb, sTemp2)
 	End If
-	If sTemp = "" Then
+	If CInt(sTemp = "") AndAlso CInt(StartsWith(sTemp2, "(")) AndAlso CInt(EndsWith(sTemp2, ")")) Then
+		Return GetTypeFromValue(tb, Left(sTemp2, Len(sTemp2) - 1))
+	ElseIf sTemp = "" AndAlso sTemp2 = "" Then
 		Var WithCount = 1
 		Dim As EditControlLine Ptr ECLine
 		For i As Integer = j - 1 To 0 Step -1
@@ -5388,7 +5390,7 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 End Sub
 
 Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer) As UShort
-	Dim As Integer Pos3, Pos1, Pos2 'David Change for ML
+	Dim As Integer Pos1, Pos2, Pos3 'David Change for ML
 	Dim As WString * 50 bFlagErr =""
 	WLet ErrFileName, ""
 	WLet ErrTitle, sLine
@@ -5396,6 +5398,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 	Pos1 = InStr(LCase(sLine), ") error ")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error:")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "ld.exe:")
+	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error!")
 	If Pos1 = 0 Then
 		Pos1 = InStr(LCase(sLine), " warning")
 		If Pos1>0 Then bFlagErr = "Warning"
@@ -5414,12 +5417,20 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		If Pos2 = 0 Then Pos2 = InStr(Pos1, sLine, ":") 'David Changed
 		'If Pos2 = 0 Then Return -1
 	End If
-	ErrorLine = Val(Mid(sLine, Pos2 + 1, Pos1 - Pos2 - 1))
-	'If ErrorLine = 0 Then Return 0
-	WLet ErrFileName, Left(sLine, Pos2 - 1)
-	Pos3 =InStr(Pos1, sLine, ":")
-	If Pos3>0 Then
-		Pos2 =InStrRev(sLine, ",")
+	If InStr(LCase(sLine), "error!") Then
+		Pos2 = InStr(Pos1, sLine, "Line ")
+		Pos3 = InStr(Pos2, sLine, " of Resource Script (")
+		ErrorLine = Val(Mid(sLine, Pos2 + 5, Pos3 - Pos2 - 1))
+		Pos2 = InStr(Pos3, sLine, ")")
+		WLet ErrFileName, Mid(sLine, Pos3 + 21, Pos2 - Pos3 - 21)
+	Else
+		ErrorLine = Val(Mid(sLine, Pos2 + 1, Pos1 - Pos2 - 1))
+		'If ErrorLine = 0 Then Return 0
+		WLet ErrFileName, Left(sLine, Pos2 - 1)
+	End If
+	Pos3 = InStr(Pos1, sLine, ":")
+	If Pos3 > 0 Then
+		Pos2 = InStrRev(sLine, ",")
 		If Pos2 < 1 Then Pos2 = Len(sLine)
 		If InStr(Mid(sLine, Pos2),", found") = 1 Then
 			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found")))
@@ -5436,7 +5447,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 			If Pos2 > Pos3 Then
 				Dim As WString * 250 tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3))
 				If Right(tStr, 1) = "," Then tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1)) 'Strange. Sometime got letter ","
-				WLet ErrTitle, ML(bFlagErr) + ": " + ML(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 1)), "") '& Mid(sLine, Pos2+1)
+				WLet ErrTitle, ML(bFlagErr) + ": " + ML(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 2)), "") '& Mid(sLine, Pos2+1)
 			Else
 				WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3+1)))
 			End If

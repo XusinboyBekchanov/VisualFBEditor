@@ -706,9 +706,11 @@ Function Compile(Parameter As String = "") As Integer
 			If Pos1 > 0 Then
 				Dim res() As WString Ptr
 				sOutput += Left(sBuffer, Pos1 - 1)
-				If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
+				If InStr(sOutput, "GoRC.exe' terminated with exit code") > 0 Then
 					sOutput = Replace(sOutput, Chr(13, 10), " ")
 					ERRGoRc = True
+				ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
+					sOutput = Replace(sOutput, Chr(13, 10), " ")
 				End If
 				Split sOutput, Chr(10), res()
 				For i As Integer = 0 To UBound(res) 'Copyright
@@ -723,11 +725,8 @@ Function Compile(Parameter As String = "") As Integer
 						TmpStr = Left(*res(i), nPos - 1)
 					End If
 					nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
-					If nPos1 > 0 OrElse ERRGoRc  Then
-						ThreadsEnter()
+					If nPos1 > 0 OrElse ERRGoRc Then
 						ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
-						ThreadsLeave()
-						NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
 					Else
 						ShowMessages(*res(i), False)
 						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
@@ -739,12 +738,10 @@ Function Compile(Parameter As String = "") As Integer
 							NumberInfo += 1
 						End If
 						If 	bFlagErr >= 0 Then
-							ThreadsEnter()
 							If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
 							lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-							ThreadsLeave()
 						End If
 					End If
 					Deallocate res(i): res(i) = 0
@@ -785,7 +782,14 @@ Function Compile(Parameter As String = "") As Integer
 			While Not EOF(Fn)
 				Line Input #Fn, Buff
 				'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
-				SplitError(Buff, ErrFileName, ErrTitle, iLine)
+				bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
+				If bFlagErr = 2 Then
+					NumberErr += 1
+				ElseIf bFlagErr = 1 Then
+					NumberWarning += 1
+				Else
+					NumberInfo += 1
+				End If
 				ThreadsEnter()
 				If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 				lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
@@ -802,9 +806,9 @@ Function Compile(Parameter As String = "") As Integer
 	ThreadsEnter()
 	If lvErrors.ListItems.Count <> 0 Then
 		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ", " & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", WStr(""))
-		ptabBottom->Tabs[1]->Caption =  IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "") & _
-		IIf(NumberWarning > 0, IIf(NumberErr > 0, ", ", "") & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", "")
-		ShowMessages(Str(Time) & ": " & ML("found") & " " & ptabBottom->Tabs[1]->Caption & tInfo, False)
+		ptabBottom->Tabs[1]->Caption = IIf(NumberWarning + NumberErr = 0, tInfo, IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "") & _
+		IIf(NumberWarning > 0, IIf(NumberErr > 0, ", ", "") & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", ""))
+		ShowMessages(Str(Time) & ": " & ML("Found") & " " & ptabBottom->Tabs[1]->Caption, False)
 	Else
 		ptabBottom->Tabs[1]->Caption = ML("Errors")
 	End If
