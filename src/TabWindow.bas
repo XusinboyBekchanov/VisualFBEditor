@@ -6613,68 +6613,96 @@ Sub RunPr(Debugger As String = "")
 				WLet ExeFileName, Replace(GetFullPath(WGet(TerminalPath)), BackSlash, Slash)
 			End If
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
-			#define BufferSize 2048
-			Dim si As STARTUPINFO
-			Dim pi As PROCESS_INFORMATION
-			Dim sa As SECURITY_ATTRIBUTES
-			Dim hReadPipe As HANDLE
-			Dim hWritePipe As HANDLE
-			Dim sBuffer As ZString * BufferSize
-			Dim sOutput As WString * BufferSize
-			Dim bytesRead As DWORD
-			Dim As Integer result1, nPos, nPos1
-			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
-			sa.lpSecurityDescriptor = NULL
-			sa.bInheritHandle = True
-			
-			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
-				ShowMessages(ML("Error: Couldn't Create Pipe"), False)
-				If WorkDir Then Deallocate WorkDir
-				If CmdL Then Deallocate CmdL
-				ChangeEnabledDebug True, False, False
-				Exit Sub
-			End If
-			
-			si.cb = Len(STARTUPINFO)
-			si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
-			si.hStdOutput = hWritePipe
-			si.hStdError = hWritePipe
-			si.wShowWindow = SW_SHOW
-			pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE 
-			If CreateProcess(0, *CmdL, @sa, @sa, 1, pClass, 0, 0, @si, @pi) = 0 Then
-				ShowMessages(ML("Error: Couldn't Create Process"), False)
-				If WorkDir Then Deallocate WorkDir
-				If CmdL Then Deallocate CmdL
-				ChangeEnabledDebug True, False, False
-				Exit Sub
-			End If
-			CloseHandle hWritePipe
-			Do
-				result1 = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
-				sBuffer = Left(sBuffer, bytesRead)
-				Pos1 = InStrRev(sBuffer, Chr(10))
-				If Pos1 > 0 Then
-					Dim res() As WString Ptr
-					sOutput += Left(sBuffer, Pos1 - 1)
-					Split sOutput, WChr(10), res()
-					For i As Integer = 0 To UBound(res)
-						If Len(*res(i)) <= 1 Then Continue For
-						If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
-						ShowMessages Str(Time) & ": " & ML("DebugPrint") & ": " & *res(i)
-						Deallocate res(i): res(i) = 0
-					Next i
-					Erase res
-					sOutput = ""
-				Else
-					sOutput += sBuffer
+			#if 0
+				#define BufferSize 2048
+				Dim si As STARTUPINFO
+				Dim pi As PROCESS_INFORMATION
+				Dim sa As SECURITY_ATTRIBUTES
+				Dim hReadPipe As HANDLE
+				Dim hWritePipe As HANDLE
+				Dim sBuffer As ZString * BufferSize
+				Dim sOutput As WString * BufferSize
+				Dim bytesRead As DWORD
+				Dim As Integer result1, nPos, nPos1
+				sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+				sa.lpSecurityDescriptor = NULL
+				sa.bInheritHandle = True
+				
+				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+					ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+					If WorkDir Then Deallocate WorkDir
+					If CmdL Then Deallocate CmdL
+					ChangeEnabledDebug True, False, False
+					Exit Sub
 				End If
-			Loop While result1
-			
-			CloseHandle pi.hProcess
-			CloseHandle pi.hThread
-			CloseHandle hReadPipe
-			result1 = GetLastError()
-			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & result1  & " - " & Err2Description(result1))
+				
+				si.cb = Len(STARTUPINFO)
+				si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+				si.hStdOutput = hWritePipe
+				si.hStdError = hWritePipe
+				si.wShowWindow = SW_SHOW
+				pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE 
+				If CreateProcess(0, *CmdL, @sa, @sa, 1, pClass, 0, 0, @si, @pi) = 0 Then
+					ShowMessages(ML("Error: Couldn't Create Process"), False)
+					If WorkDir Then Deallocate WorkDir
+					If CmdL Then Deallocate CmdL
+					ChangeEnabledDebug True, False, False
+					Exit Sub
+				End If
+				CloseHandle hWritePipe
+				Do
+					result1 = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+					sBuffer = Left(sBuffer, bytesRead)
+					Pos1 = InStrRev(sBuffer, Chr(10))
+					If Pos1 > 0 Then
+						Dim res() As WString Ptr
+						sOutput += Left(sBuffer, Pos1 - 1)
+						Split sOutput, WChr(10), res()
+						For i As Integer = 0 To UBound(res)
+							ShowMessages Str(Time) & ": " & ML("DebugPrint") & ": " & *res(i)
+							If Len(*res(i)) <= 1 Then Continue For
+							If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
+							'ShowMessages Str(Time) & ": " & ML("DebugPrint") & ": " & *res(i)
+							Deallocate res(i): res(i) = 0
+						Next i
+						Erase res
+						sOutput = ""
+					Else
+						sOutput += sBuffer
+					End If
+				Loop While result1
+				
+				CloseHandle pi.hProcess
+				CloseHandle pi.hThread
+				CloseHandle hReadPipe
+				result1 = GetLastError()
+				ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & result1  & " - " & Err2Description(result1))
+			#else
+				Dim SInfo As STARTUPINFO
+				Dim PInfo As PROCESS_INFORMATION
+				SInfo.cb = Len(SInfo)
+				SInfo.dwFlags = STARTF_USESHOWWINDOW
+				SInfo.wShowWindow = SW_NORMAL
+				pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+				If CreateProcessW(ExeFileName, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+					WaitForSingleObject pinfo.hProcess, INFINITE
+					GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+					CloseHandle(pinfo.hProcess)
+					CloseHandle(pinfo.hThread)
+					Result = ExitCode
+					'Result = Shell(Debugger & """" & *ExeFileName + """")
+					ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+				Else
+					Result = GetLastError()
+					ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+				End If
+				'		Else
+				'			WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
+				'			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL & " ...")
+				'			Result = Shell(*CmdL)
+				'			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+				'		End If
+			#endif
 			ChangeEnabledDebug True, False, False
 			'End If
 			pstBar->Panels[0]->Caption = ML("Press F1 for get more information")

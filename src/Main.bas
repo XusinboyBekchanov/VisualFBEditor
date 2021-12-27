@@ -714,6 +714,7 @@ Function Compile(Parameter As String = "") As Integer
 				End If
 				Split sOutput, Chr(10), res()
 				For i As Integer = 0 To UBound(res) 'Copyright
+					ShowMessages(*res(i), False)
 					If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
 					If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
 					nPos = InStr(*res(i), ":")
@@ -725,10 +726,9 @@ Function Compile(Parameter As String = "") As Integer
 						TmpStr = Left(*res(i), nPos - 1)
 					End If
 					nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
-					If nPos1 > 0 OrElse ERRGoRc Then
-						ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
-					Else
-						ShowMessages(*res(i), False)
+					'If nPos1 > 0 OrElse ERRGoRc Then
+						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+					'Else
 						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
 							NumberErr += 1
@@ -743,7 +743,7 @@ Function Compile(Parameter As String = "") As Integer
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
 						End If
-					End If
+					'End If
 					Deallocate res(i): res(i) = 0
 					sOutput = ""
 				Next i
@@ -805,7 +805,7 @@ Function Compile(Parameter As String = "") As Integer
 	#endif
 	ThreadsEnter()
 	If lvErrors.ListItems.Count <> 0 Then
-		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ", " & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", WStr(""))
+		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", WStr(""))
 		ptabBottom->Tabs[1]->Caption = IIf(NumberWarning + NumberErr = 0, tInfo, IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "") & _
 		IIf(NumberWarning > 0, IIf(NumberErr > 0, ", ", "") & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", ""))
 		ShowMessages(Str(Time) & ": " & ML("Found") & " " & ptabBottom->Tabs[1]->Caption, False)
@@ -3136,8 +3136,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					ElseIf bTrimLCase = "protected" Then
 						inPubPriPro = 2
 						Comment = ""
-					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse _
-						InStr(bTrimLCase, " as ") Then
+					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse InStr(bTrimLCase, " as ") Then
 						Dim As UString b2 = bTrim
 						Dim As UString CurType, ElementValue
 						Dim As UString res1(Any)
@@ -3188,7 +3187,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							res1(n) = res1(n).TrimAll
-							If Not CurType.ToLower.StartsWith("sub") Then
+							If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
 								Pos1 = InStrRev(CurType, ".")
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 							End If

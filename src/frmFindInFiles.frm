@@ -299,10 +299,10 @@ End Sub
 Private Sub frmFindInFiles.Form_Show(ByRef Sender As Form)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	' for limited the Muilti line
-	Var Posi=InStr(pClipboard->GetAsText,WChr(13))-1
-	If Posi < 1 Then Posi=InStr(pClipboard->GetAsText,WChr(10))-1
+	Var Posi = InStr(pClipboard->GetAsText, WChr(13)) - 1
+	If Posi < 1 Then Posi = InStr(pClipboard->GetAsText, WChr(10)) - 1
 	If Posi < 1 Then Posi= Len(pClipboard->GetAsText)
-	fFindFile.txtFind.Text = ..Left(pClipboard->GetAsText,Posi)
+	fFindFile.txtFind.Text = ..Left(pClipboard->GetAsText, Posi)
 	If tb <> 0 AndAlso tb->FileName <> "" Then
 		fFindFile.txtPath.Text = GetFolderName(tb->FileName)
 	Else
