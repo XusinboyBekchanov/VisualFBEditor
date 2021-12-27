@@ -3149,7 +3149,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 			Symb = Mid(*sLine, i, 1)
 			If Symb = "(" Then
 				If iCount = 0 Then
-					iSelEndChar = i + 1
+					iSelEndChar = i '+ 1
 					Exit For
 				Else
 					iCount -= 1
