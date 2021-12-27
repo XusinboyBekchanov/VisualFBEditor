@@ -210,7 +210,7 @@ Namespace My.Sys.Forms
 			For i As Integer = Objects.Count - 1 To 0 Step -1
 				Ctrl = Objects.Item(i)
 				If Ctrl Then
-					ComponentGetBoundsSub(Q_ComponentFunc(Ctrl), @ALeft, @ATop, @AWidth, @AHeight)
+					ComponentGetBoundsSub(Q_ComponentFunc(Ctrl), ALeft, ATop, AWidth, AHeight)
 					If (X > ALeft And X < ALeft + AWidth) And (Y > ATop And Y < ATop + AHeight) Then
 						'ControlAt(Ctrl, X - ALeft, Y - ATop)
 						Return Ctrl
@@ -698,7 +698,7 @@ Namespace My.Sys.Forms
 			ReDim As Integer FLeftNew(iCount), FTopNew(iCount), FWidthNew(iCount), FHeightNew(iCount)
 			For j As Integer = 0 To iCount
 				#ifdef __USE_GTK__
-					ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft(j), @FTop(j), @FWidth(j), @FHeight(j))
+					ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft(j), FTop(j), FWidth(j), FHeight(j))
 				#else
 					GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 					P.X         = R.Left
@@ -750,7 +750,7 @@ Namespace My.Sys.Forms
 					ReDim As Integer FLeftNew(iCount), FTopNew(iCount), FWidthNew(iCount), FHeightNew(iCount)
 					For j As Integer = 0 To iCount
 						#ifdef __USE_GTK__
-							ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft(j), @FTop(j), @FWidth(j), @FHeight(j))
+							ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft(j), FTop(j), FWidth(j), FHeight(j))
 						#else
 							GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 							P.X         = R.Left
@@ -1804,7 +1804,7 @@ Namespace My.Sys.Forms
 			cairo_set_dash(cr, @dashed, 0.5, 1.5)
 			For j As Integer = 0 To SelectedControls.Count - 1
 				If ReadPropertyFunc(SelectedControls.Items[j], "Parent") = DesignControl Then
-					ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft, @FTop, @FWidth, @FHeight)
+					ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft, FTop, FWidth, FHeight)
 					'GetPosToClient ReadPropertyFunc(SelectedControls.Items[j], "widget"), layoutwidget, @FLeft, @FTop
 					cairo_rectangle(cr, FLeft - 2, FTop - 2, FWidth + 4, FHeight + 4)
 					cairo_stroke(cr)
@@ -2283,9 +2283,9 @@ Namespace My.Sys.Forms
 						.KeyDown(wParam, 0)
 						'Select Case wParam
 					#endif
-					'					Case Keys.DeleteKey
+					'					Case Keys.Key_Delete
 					'						If Des->FSelControl <> Des->FDialog Then Des->DeleteControl(Des->SelectedControl)
-					'					Case Keys.Left, Keys.Right, Keys.Up, Keys.Down
+					'					Case Keys.Key_Left, Keys.Key_Right, Keys.Key_Up, Keys.Key_Down
 					'						Dim As Integer FLeft, FTop, FWidth, FHeight
 					'						Dim As Integer FStepX = Des->FStepX
 					'						Dim As Integer FStepY = Des->FStepY
@@ -2304,17 +2304,17 @@ Namespace My.Sys.Forms
 					'							FTop    = P.Y
 					'							If bShift Then
 					'								Select Case wParam
-					'								Case Keys.Left: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth - FStepX, FHeight, True)
-					'								Case Keys.Right: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth + FStepX, FHeight, True)
-					'								Case Keys.Up: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth, FHeight - FStepY, True)
-					'								Case Keys.Down: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth, FHeight + FStepY, True)
+					'								Case Keys.Key_Left: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth - FStepX, FHeight, True)
+					'								Case Keys.Key_Right: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth + FStepX, FHeight, True)
+					'								Case Keys.Key_Up: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth, FHeight - FStepY, True)
+					'								Case Keys.Key_Down: MoveWindow(Des->FSelControl, FLeft, FTop, FWidth, FHeight + FStepY, True)
 					'								End Select
 					'							ElseIf Des->FSelControl <> Des->Dialog Then
 					'								Select Case wParam
-					'								Case Keys.Left: MoveWindow(Des->FSelControl, FLeft - FStepX, FTop, FWidth, FHeight, True)
-					'								Case Keys.Right: MoveWindow(Des->FSelControl, FLeft + FStepX, FTop, FWidth, FHeight, True)
-					'								Case Keys.Up: MoveWindow(Des->FSelControl, FLeft, FTop - FStepY, FWidth, FHeight, True)
-					'								Case Keys.Down: MoveWindow(Des->FSelControl, FLeft, FTop + FStepY, FWidth, FHeight, True)
+					'								Case Keys.Key_Left: MoveWindow(Des->FSelControl, FLeft - FStepX, FTop, FWidth, FHeight, True)
+					'								Case Keys.Key_Right: MoveWindow(Des->FSelControl, FLeft + FStepX, FTop, FWidth, FHeight, True)
+					'								Case Keys.Key_Up: MoveWindow(Des->FSelControl, FLeft, FTop - FStepY, FWidth, FHeight, True)
+					'								Case Keys.Key_Down: MoveWindow(Des->FSelControl, FLeft, FTop + FStepY, FWidth, FHeight, True)
 					'								End Select
 					'							End If
 					'							Des->MoveDots(Des->FSelControl)
@@ -2718,8 +2718,8 @@ Namespace My.Sys.Forms
 			bCtrl = GetKeyState(VK_CONTROL) And 8000
 		#endif
 		Select Case KeyCode
-		Case Keys.DeleteKey: DeleteControl()
-		Case Keys.Left, Keys.Right, Keys.Up, Keys.Down
+		Case Keys.Key_Delete: DeleteControl()
+		Case Keys.Key_Left, Keys.Key_Right, Keys.Key_Up, Keys.Key_Down
 			FStepX = GridSize
 			FStepY = GridSize
 			Dim As Integer FStepX1 = FStepX
@@ -2729,20 +2729,20 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If SelectedControl <> 0 Then
 					For j As Integer = 0 To SelectedControls.Count - 1
-						ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), @FLeft, @FTop, @FWidth, @FHeight)
+						ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft, FTop, FWidth, FHeight)
 						If bShift Then
 							Select Case KeyCode
-							Case Keys.Left: FWidth = FWidth - FStepX1
-							Case Keys.Right: FWidth = FWidth + FStepX1
-							Case Keys.Up: FHeight = FHeight - FStepY1
-							Case Keys.Down: FHeight = FHeight + FStepY1
+							Case Keys.Key_Left: FWidth = FWidth - FStepX1
+							Case Keys.Key_Right: FWidth = FWidth + FStepX1
+							Case Keys.Key_Up: FHeight = FHeight - FStepY1
+							Case Keys.Key_Down: FHeight = FHeight + FStepY1
 							End Select
 						ElseIf SelectedControl <> DesignControl Then
 							Select Case KeyCode
-							Case Keys.Left: FLeft = FLeft - FStepX1
-							Case Keys.Right: FLeft = FLeft + FStepX1
-							Case Keys.Up: FTop = FTop - FStepY1
-							Case Keys.Down: FTop = FTop + FStepY1
+							Case Keys.Key_Left: FLeft = FLeft - FStepX1
+							Case Keys.Key_Right: FLeft = FLeft + FStepX1
+							Case Keys.Key_Up: FTop = FTop - FStepY1
+							Case Keys.Key_Down: FTop = FTop + FStepY1
 							End Select
 						End If
 						ComponentSetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft, FTop, FWidth, FHeight)
@@ -2770,17 +2770,17 @@ Namespace My.Sys.Forms
 					FTop    = UnScaleY(P.Y)
 					If bShift Then
 						Select Case KeyCode
-						Case Keys.Left: FWidth = FWidth - FStepX1
-						Case Keys.Right: FWidth = FWidth + FStepX1
-						Case Keys.Up: FHeight = FHeight - FStepY1
-						Case Keys.Down: FHeight = FHeight + FStepY1
+						Case Keys.Key_Left: FWidth = FWidth - FStepX1
+						Case Keys.Key_Right: FWidth = FWidth + FStepX1
+						Case Keys.Key_Up: FHeight = FHeight - FStepY1
+						Case Keys.Key_Down: FHeight = FHeight + FStepY1
 						End Select
 					ElseIf ControlHandle <> Dialog Then
 						Select Case KeyCode
-						Case Keys.Left: FLeft = FLeft - FStepX1
-						Case Keys.Right: FLeft = FLeft + FStepX1
-						Case Keys.Up: FTop = FTop - FStepY1
-						Case Keys.Down: FTop = FTop + FStepY1
+						Case Keys.Key_Left: FLeft = FLeft - FStepX1
+						Case Keys.Key_Right: FLeft = FLeft + FStepX1
+						Case Keys.Key_Up: FTop = FTop - FStepY1
+						Case Keys.Key_Down: FTop = FTop + FStepY1
 						End Select
 					End If
 					MoveWindow(ControlHandle, ScaleX(FLeft), ScaleY(FTop), ScaleX(FWidth), ScaleY(FHeight), True)

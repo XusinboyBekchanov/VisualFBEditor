@@ -146,6 +146,7 @@ Private Sub frmTipOfDayType.cmdClose_Click(ByRef Sender As Control)
 		Deallocate BuffTips(i)
 	Next
 	Erase BuffTips
+	ShowTipoftheDay = Not chkDoNotShow.Checked
 End Sub
 
 Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
@@ -171,10 +172,11 @@ Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
 	Else
 		Msgbox ML("File") & " " & ExePath & "/Help/Tip of the Day/" & CurLanguage & ".tip" & ML("not found!")
 	End If
+	chkDoNotShow.Checked = Not ShowTipoftheDay 
 End Sub
 
 Private Sub frmTipOfDayType.chkDoNotShow_Click(ByRef Sender As CheckBox)
-	ShowTipoftheDay = chkDoNotShow.Checked
+	
 End Sub
 
 Private Sub frmTipOfDayType.cmdPreviousTip_Click(ByRef Sender As Control)
