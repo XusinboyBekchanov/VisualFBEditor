@@ -246,8 +246,10 @@ Sub frmParameters.LoadSettings()
 		If .cboRun.ItemIndex = -1 Then .cboRun.ItemIndex = .cboRun.IndexOf(*DefaultTerminal)
 		.cboDebug32.Clear
 		.cboDebug32.AddItem ML("Integrated IDE Debugger")
+		.cboDebug32.AddItem ML("Integrated GDB Debugger")
 		.cboDebug64.Clear
 		.cboDebug64.AddItem ML("Integrated IDE Debugger")
+		.cboDebug64.AddItem ML("Integrated GDB Debugger")
 		For i As Integer = 0 To pDebuggers->Count - 1
 			.cboDebug32.AddItem pDebuggers->Item(i)->Key
 			.cboDebug64.AddItem pDebuggers->Item(i)->Key

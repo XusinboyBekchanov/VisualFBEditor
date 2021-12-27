@@ -3972,9 +3972,13 @@ Sub LoadSettings
 	WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", ""))
 	WLet(CurrentDebugger32, *DefaultDebugger32)
 	WLet(Debugger32Path, Debuggers.Get(*CurrentDebugger32, ""))
+	WLet(GDBDebugger32, iniSettings.ReadString("Debuggers", "GDBDebugger32", ""))
+	WLet(GDBDebugger32Path, Debuggers.Get(*GDBDebugger32, ""))
 	WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", ""))
 	WLet(CurrentDebugger64, *DefaultDebugger64)
 	WLet(Debugger64Path, Debuggers.Get(*CurrentDebugger64, ""))
+	WLet(GDBDebugger64, iniSettings.ReadString("Debuggers", "GDBDebugger64", ""))
+	WLet(GDBDebugger64Path, Debuggers.Get(*GDBDebugger64, ""))
 	WLet(DefaultTerminal, iniSettings.ReadString("Terminals", "DefaultTerminal", ""))
 	WLet(CurrentTerminal, *DefaultTerminal)
 	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
@@ -7248,6 +7252,8 @@ Sub OnProgramQuit() Destructor
 	WDeallocate MakeToolPath2
 	WDeallocate DefaultDebugger32
 	WDeallocate DefaultDebugger64
+	WDeallocate GDBDebugger32
+	WDeallocate GDBDebugger64
 	WDeallocate CurrentDebugger32
 	WDeallocate CurrentDebugger64
 	WDeallocate Debugger32Path
