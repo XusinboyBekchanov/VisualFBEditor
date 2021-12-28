@@ -7574,7 +7574,7 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 	
 End Function
 
-Sub set_bp()
+Sub set_bp(Temporary As Boolean = False)
 	
 	Dim As Long iFlagSetup
 	
@@ -7610,11 +7610,21 @@ Sub set_bp()
 	
 	If Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[iSelEndLine])->Breakpoint Then
 		
-		run_pipe_write(!"clear " & sTemp & !"\n")
+		If Not Temporary Then
 		
-		readpipe()
+			run_pipe_write(!"clear " & sTemp & !"\n")
+			
+			readpipe()
+			
+		End If
 		
 		'sendmessage ( Cast(Any Ptr , pd.sci(iCursel)) ,  SCI_MARKERDELETE , iLine , 0)
+		
+	ElseIf Temporary Then
+		
+		run_pipe_write(!"tbreak " & sTemp & !"\n")
+		
+		readpipe()
 		
 	Else
 		
@@ -7724,6 +7734,17 @@ Sub run_debug(iFlag As Long)
 				
 				readpipe()
 				
+			End If
+			
+			If RunningToCursor Then
+				Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
+				If tb <> 0 Then
+					Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+					tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+					Writepipe("tbreak """ & Replace(tb->FileName, "\", "/") & """:" & Str(iSelEndLine + 1) & !"\n")
+					readpipe()
+				End If
+				RunningToCursor = False 
 			End If
 			
 			settimer(0, 0, 20, Cast(Any Ptr, @timer_data))

@@ -367,7 +367,15 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "Close":                       CloseTab(tb)
 		Case "SortLines":                   tb->SortLines
 			#ifndef __USE_GTK__
-			Case "SetNextStatement":        exe_mod()
+			Case "SetNextStatement":
+				Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
+				If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+					Dim As Integer iStartLine, iEndLine, iStartChar, iEndChar
+					tb->txtCode.GetSelection iStartLine, iEndLine, iStartChar, iEndChar
+					command_debug("jump " & Replace(tb->FileName, "\", "/") & ":" & Str(iEndLine))
+				Else
+					exe_mod()
+				End If
 			Case "ShowVar":                 var_tip(1)
 			Case "StepOut":
 				Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
@@ -390,14 +398,26 @@ Sub mClick(Sender As My.Sys.Object)
 					End If
 				End If
 			Case "RunToCursor":
-				If InDebug Then
-					ChangeEnabledDebug False, True, True
-					brk_set(9)
+				Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
+				If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+					If iFlagStartDebug = 1 Then
+						ChangeEnabledDebug False, True, True
+						set_bp True
+						continue_debug
+					Else
+						RunningToCursor = True
+						ThreadCounter(ThreadCreate_(@StartDebugging))
+					End If
 				Else
-					RunningToCursor = True
-					runtype = RTFRUN
-					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
-					ThreadCounter(ThreadCreate_(@StartDebugging))
+					If InDebug Then
+						ChangeEnabledDebug False, True, True
+						brk_set(9)
+					Else
+						RunningToCursor = True
+						runtype = RTFRUN
+						CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+						ThreadCounter(ThreadCreate_(@StartDebugging))
+					End If
 				End If
 			Case "AddWatch":                var_tip(2)
 			#endif
