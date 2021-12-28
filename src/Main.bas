@@ -5974,13 +5974,51 @@ End Sub
 tvVar.ContextMenu = @mnuVars
 tvVar.OnMessage = @tvVar_Message
 
+Sub lvVar_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+	If Item AndAlso Item->Nodes.Count > 0 AndAlso Item->Nodes.Item(0)->Text(0) = "" Then
+		ptabBottom->UpdateLock
+		Dim lvItem As TreeListViewItem Ptr
+		Dim As WString Ptr p = @Item->Text(1)
+		Dim As UString sText
+		Dim As Boolean b
+		Dim As Integer iCount, Pos1
+		For i As Integer = 1 To Len(*p) - 1
+			If (*p)[i] = Asc("{") Then
+				iCount += 1
+				b = True
+			ElseIf b AndAlso (*p)[i] = Asc("}") Then
+				iCount -= 1
+				If iCount = 0 Then b = False
+			ElseIf CInt(Not b) AndAlso CInt((*p)[i] = Asc(",") OrElse (*p)[i] = Asc("}")) Then
+				Pos1 = InStr(sText, "=")
+				If Pos1 > 0 Then
+					lvItem = Item->Nodes.Add(Trim(Left(sText, Pos1 - 1)))
+				Else
+					lvItem = Item->Nodes.Add("")
+				End If
+				lvItem->Text(1) = Trim(Mid(sText, Pos1 + 1))
+				If StartsWith(lvItem->Text(1), "{") Then
+					lvItem->Nodes.Add
+				End If
+				sText = ""
+				Continue For
+			End If
+			If (*p)[i] <> 13 AndAlso (*p)[i] <> 10 Then
+				sText &= WChr((*p)[i])
+			End If
+		Next
+		Item->Nodes.Remove 0
+		ptabBottom->UpdateUnlock
+	End If
+End Sub
+
 lvVar.ContextMenu = @mnuVars
 lvVar.Visible = False
 lvVar.Columns.Add ML("Variable"), , 150
 lvVar.Columns.Add ML("Value"), , 500
 lvVar.StateImages = @imgListStates
 lvVar.Images = @imgListStates
-'lvVar.OnMessage = @tvVar_Message
+lvVar.OnItemExpanding = @lvVar_ItemExpanding
 
 Sub tabRight_Click(ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then

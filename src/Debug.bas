@@ -7110,10 +7110,16 @@ Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As 
 				
 				If iFindEQ Then
 					
-					lvVar.Nodes.Add sNameVar 
+					Var tn = lvVar.Nodes.Add(sNameVar)
 					
-					lvVar.Nodes.Item(lvVar.Nodes.Count - 1)->Text(1) = sValueVar
+					tn->Text(1) = sValueVar
+					
+					If StartsWith(sValueVar, "{") Then
 						
+						tn->Nodes.Add ""
+						
+					End If
+					
 '					Addlistviewitem(E_LISTVIEW , sNameVar , 0 , iItem , 0)
 '					
 '					Addlistviewitem(E_LISTVIEW , sValueVar , 0 , iItem , 1)
@@ -7210,10 +7216,16 @@ Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 					If iItem <= UBound(tgl_var_array) Then
 						
 '						Addlistviewitem(E_LISTVIEW , tgl_var_array(iItem).szVar , 0 , iItem , 0)
-						lvVar.Nodes.Add tgl_var_array(iItem).szVar
+						Var tn = lvVar.Nodes.Add(tgl_var_array(iItem).szVar)
 '						
 '						Addlistviewitem(E_LISTVIEW , sValueVar , 0 , iItem , 1)
-						lvVar.Nodes.Item(lvVar.Nodes.Count - 1)->Text(1) = sValueVar
+						tn->Text(1) = sValueVar
+						
+						If StartsWith(sValueVar, "{") Then
+						
+							tn->Nodes.Add ""
+						
+						End If
 						
 						iItem +=1
 						
@@ -7463,7 +7475,7 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 	
 	'Dim As String sFileTemp = Getwindowtext(pd.mDLG)
 	
-	ShowMessages("Wait , process loading...")
+	ShowMessages(ML("Wait, process loading..."))
 	
 	lvVar.Nodes.Clear
 	'Deletelistviewitemsall(E_LISTVIEW)
@@ -7661,6 +7673,8 @@ End Sub
 Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0)
 	
 	szDataForPipe = readpipe()
+	
+	?szDataForPipe
 	
 	If Len(szDataForPipe) Then
 		
