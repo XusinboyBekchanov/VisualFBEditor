@@ -76,7 +76,7 @@ Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
-Dim Shared As TreeListView lvProperties, lvEvents
+Dim Shared As TreeListView lvProperties, lvEvents, lvVar
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabDebug
@@ -5951,6 +5951,7 @@ Sub tabRight_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	End If
 End Sub
 
+lvVar.Align = DockStyle.alClient
 tvVar.Align = DockStyle.alClient
 tvPrc.Align = DockStyle.alClient
 tvThd.Align = DockStyle.alClient
@@ -5972,6 +5973,14 @@ End Sub
 
 tvVar.ContextMenu = @mnuVars
 tvVar.OnMessage = @tvVar_Message
+
+lvVar.ContextMenu = @mnuVars
+lvVar.Visible = False
+lvVar.Columns.Add ML("Variable"), , 150
+lvVar.Columns.Add ML("Value"), , 500
+lvVar.StateImages = @imgListStates
+lvVar.Images = @imgListStates
+'lvVar.OnMessage = @tvVar_Message
 
 Sub tabRight_Click(ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
@@ -6569,6 +6578,7 @@ ptabBottom->Tabs[3]->Add @lvToDo
 ptabBottom->Tabs[4]->Add @txtChangeLog
 ptabBottom->Tabs[5]->Add @txtImmediate
 ptabBottom->Tabs[6]->Add @tvVar
+ptabBottom->Tabs[6]->Add @lvVar
 ptabBottom->Tabs[7]->Add @tvPrc
 ptabBottom->Tabs[8]->Add @tvThd
 ptabBottom->Tabs[9]->Add @tvWch

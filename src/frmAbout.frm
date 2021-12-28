@@ -12,7 +12,7 @@
 
 		This.Name = "frmAbout"
 		This.Text = ML("About")
-		This.SetBounds 0, 0, 456, 538
+		This.SetBounds 0, 0, 496, 548
 		This.BorderStyle = FormBorderStyle.FixedDialog
 		This.MaximizeBox = False
 		This.MinimizeBox = False
@@ -27,12 +27,12 @@
 		Label1.Font.Bold = True
 		Label1.Font.Size = 18
 		Label1.Text = "Visual FB Editor"
-		Label1.SetBounds 21, 7, 428, 54
+		Label1.SetBounds 21, 7, 438, 54
 		Label1.Alignment = AlignmentConstants.taCenter
 		Label1.Parent = @This
 		CommandButton1.Name = "CommandButton1"
-		CommandButton1.Text = ML("&Close")
-		CommandButton1.SetBounds 348, 481, 92, 26
+		CommandButton1.Text = ML("&OK")
+		CommandButton1.SetBounds 388, 482, 92, 26
 		CommandButton1.OnClick = @CommandButton1_Click
 		#ifndef __USE_GTK__
 			CommandButton1.Default = True 
@@ -48,8 +48,8 @@
 		!"QQ Forums 1032313876 78458582 \r\r" & _
 		ML("For donation") & !":\r Patreon: <a href=""https://www.patreon.com/xusinboy"">patreon.com/xusinboy</a>,\r WebMoney: <a href=""https://www.webmoney.ru""> WMZ: Z884195021874</a>\r\r\r\r" & _
 		ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit and Simple Designer\r" & _
+		ML("Thanks to") & !" Stanislav Budinov for codes of GUI Library Window9 and FrontEnd GDB for freebasic\r" & _
 		ML("Thanks to") & !" Aloberoger for codes of GUITK-S Windows GUI FB Wrapper Library\r" & _
-		ML("Thanks to") & !" Stanislav Budinov for codes of GUI Library Window9\r" & _
 		ML("Thanks to") & !" Leandro Ascierto for codes of Chart control\r" & _
 		ML("Thanks to") & !" Laurent GRAS for codes of FBDebugger\r" & _
 		ML("Thanks to") & !" Paul Squires for codes of WinFormsX\r" & _
@@ -61,7 +61,7 @@
 		!"Juan Sánchez (Spanish)\r" & _
 		!"Dariusz Prochotta (Polish)\r"
 		Label2.BorderStyle = 0
-		Label2.SetBounds 10, 58, 432, 403
+		Label2.SetBounds 10, 58, 472, 403
 		Label2.Parent = @This
 		' lblIcon
 		lblIcon.Name = "lblIcon"
@@ -78,7 +78,7 @@
 		With lblImage
 			.Name = "lblImage"
 			.Text = "lblImage"
-			.SetBounds 268, 66, 170, 170
+			.SetBounds 298, 66, 170, 170
 			#ifdef __USE_GTK__
 				If Dir(ExePath & "/Resources/weChat.png")<>"" Then .Graphic.Bitmap.LoadFromFile(ExePath & "/Resources/weChat.png")
 			#else
@@ -91,7 +91,7 @@
 			.Name = "Label11"
 			.Text = "Label11"
 			.TabIndex = 3
-			.SetBounds  107, 39, 260, 22
+			.SetBounds 127, 39, 260, 22
 			.Font.Size = 10
 			.Alignment = AlignmentConstants.taCenter
 			.Parent = @This

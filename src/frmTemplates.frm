@@ -16,7 +16,7 @@
 			#else
 				.Icon.LoadFromResourceID(1)
 			#endif
-			.StartPosition = FormStartPosition.CenterParent
+			.StartPosition = FormStartPosition.CenterScreen
 			.Designer = @This
 			.BorderStyle = FormBorderStyle.Sizable
 			.OnShow = @Form_Show_

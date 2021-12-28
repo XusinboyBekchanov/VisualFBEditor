@@ -6028,16 +6028,35 @@ Dim Shared exedate As Double 'serial date
 
 Dim Shared As Long pIn, pOut
 
-Declare Function readpipe() As String
-Declare Function CreatePipeD(szCmd As ZString Ptr , szCmdParam As ZString Ptr = 0 , szCmdParam2 As ZString Ptr = 0) As Long
+Declare Function readpipe() As UString
+Declare Function CreatePipeD(szCmd As WString Ptr , szCmdParam As WString Ptr = 0 , szCmdParam2 As WString Ptr = 0) As Long
 
 #ifdef __FB_WIN32__
-Declare Sub writepipe(szBuf As String , iTime As Long = 30)
+Declare Sub writepipe(ByRef szBuf As ZString, iTime As Long = 30)
 #define writepipefast writepipe
 #else	
-Declare Sub writepipefast(szBuf As String , iTime As Long = 1)
-Declare Sub writepipe(szBuf As String , iTime As Long = 1)	
+Declare Sub writepipefast(ByRef szBuf As ZString, iTime As Long = 1)
+Declare Sub writepipe(ByRef szBuf As ZString, iTime As Long = 1)
 #endif
+Declare Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As Long
+Declare Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0) 
+Declare Sub info_all_variables_debug(iFlagUpdate As Long = 0)
+
+Dim Shared As HANDLE hReadPipe, hWritePipe
+
+#ifndef pid_t
+    #define pid_t Long
+#endif
+
+#ifdef __FB_WIN32__
+Dim Shared As Integer iGlPid
+#else
+Dim Shared As Long iGlPid
+#endif
+
+Dim Shared As Long iFlagThreadSignal, iFlagUpdateVariables
+
+Dim Shared As Long iCounterUpdateVariables, iFlagStartDebug, iStateMenu = 2
 
 Function GetPartPath(sPath As String) As String Export
 	
@@ -6047,13 +6066,7 @@ Function GetPartPath(sPath As String) As String Export
 	
 End Function
 
-Dim Shared As HANDLE hReadPipe, hWritePipe
-
-#ifndef pid_t
-    #define pid_t Long
-#endif
-
-Function CreatePipeD(szCmd As ZString Ptr, szCmdParam As ZString Ptr = 0 , szCmdParam2 As ZString Ptr = 0) As pid_t
+Function CreatePipeD(szCmd As WString Ptr, szCmdParam As WString Ptr = 0 , szCmdParam2 As WString Ptr = 0) As pid_t
 	
 	#ifdef __FB_WIN32__
 		
@@ -6156,27 +6169,26 @@ Function CreatePipeD(szCmd As ZString Ptr, szCmdParam As ZString Ptr = 0 , szCmd
 	
 End Function
 
-Function readpipe() As String
+Function readpipe() As UString
 	
 	#ifdef __FB_WIN32__
 		
 		Dim As Integer iTotalBytesAvail,iNumberOfBytesWritten
-		Dim As String sRet
-		Static As ZString*50000 sBuf
+		Dim As UString sRet
+		Static As ZString * 50000 sBuf
 		For i As Long = 0 To 10000
-			PeekNamedPipe(hReadPipe,NULL,NULL,NULL,Cast(Any Ptr,@iTotalBytesAvail),NULL)
-			If iTotalBytesAvail>0 Then
-				While iTotalBytesAvail>0
-					iTotalBytesAvail=IIf(iTotalBytesAvail>49999,49999,iTotalBytesAvail)
-					memset(@sBuf , 0 , 50000)
-					ReadFile(hReadPipe,StrPtr(sBuf),iTotalBytesAvail,Cast(Any Ptr,@iNumberOfBytesWritten),NULL)
-					sRet &= Left(sBuf , iNumberOfBytesWritten)
+			PeekNamedPipe(hReadPipe, NULL, NULL, NULL, Cast(Any Ptr, @iTotalBytesAvail), NULL)
+			If iTotalBytesAvail > 0 Then
+				While iTotalBytesAvail > 0
+					iTotalBytesAvail = IIf(iTotalBytesAvail > 49999, 49999, iTotalBytesAvail)
+					memset(@sBuf, 0, 50000)
+					ReadFile(hReadPipe, @sBuf, iTotalBytesAvail, Cast(Any Ptr, @iNumberOfBytesWritten), NULL)
+					sRet &= Left(sBuf, iNumberOfBytesWritten)
 					For i As Long = 0 To 10000
-						PeekNamedPipe(hReadPipe,NULL,NULL,NULL,Cast(Any Ptr,@iTotalBytesAvail),NULL)
+						PeekNamedPipe(hReadPipe, NULL, NULL, NULL, Cast(Any Ptr, @iTotalBytesAvail), NULL)
 						If iTotalBytesAvail Then Exit For
 					Next  
 				Wend
-				
 				Return Trim(sRet)
 			End If
 		Next
@@ -6205,7 +6217,7 @@ Function readpipe() As String
 				
 				pszTempBuf = CAllocate(iTotalBytesAvail+1)
 				
-				read_(pIn, pszTempBuf , iTotalBytesAvail)
+				read_(pIn, pszTempBuf, iTotalBytesAvail)
 				
 				If Len(*pszTempBuf) Then
 					
@@ -6227,17 +6239,17 @@ End Function
 
 #ifdef __FB_WIN32__
 	
-	Sub Writepipe(s As String , iTime As Long = 30)
+	Sub Writepipe(ByRef s As ZString, iTime As Long = 30)
 		Dim As Integer iNumberOfBytesWritten
-		WriteFile(hWritePipe,StrPtr(s),Len(s),Cast(Any Ptr,@iNumberOfBytesWritten),NULL)
+		WriteFile(hWritePipe, @s, Len(s), Cast(Any Ptr, @iNumberOfBytesWritten), NULL)
 		Sleep (iTime)
 	End Sub 
 	
 #else
 	
-	Sub writepipe(szBuf As String , iTime As Long = 1)
+	Sub writepipe(ByRef szBuf As ZString, iTime As Long = 1)
 		
-		write_(pOut , StrPtr(szBuf) , Len(szBuf))
+		write_(pOut, @szBuf, Len(szBuf))
 		
 		Updateinfoxserver
 		
@@ -6245,9 +6257,9 @@ End Function
 		
 	End Sub
 	
-	Sub writepipefast(szBuf As String , iTime As Long = 1)
+	Sub writepipefast(ByRef szBuf As ZString, iTime As Long = 1)
 		
-		write_(pOut , StrPtr(szBuf) , Len(szBuf))
+		write_(pOut , @szBuf , Len(szBuf))
 		
 		Sleep(iTime)
 		
@@ -6285,7 +6297,7 @@ Dim Shared As Integer iPosStartLast , iPosEndLast , iCurselLast
 
 Declare Function timer_data() As Integer
 
-Sub run_pipe_write(s As String , iTime As Long = 1)
+Sub run_pipe_write(ByRef s As WString , iTime As Long = 1)
 	
 	killtimer(0, 0)
 	
@@ -6295,133 +6307,134 @@ Sub run_pipe_write(s As String , iTime As Long = 1)
 	
 End Sub
 
-'Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
-'	
-'	If iFlagStepParam = 1 Then
-'		
-'		Dim As Long iF1 = InStr(szDataForPipe , "~*~")
-'		
-'		If iF1 Then
-'			
-'			Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
-'			
-'			fill_locals_variables(Mid(szDataForPipe , iF1+3) , 1)
-'			
-'		Else
-'			
-'			Pasteeditor(E_EDITOR, szDataForPipe)
-'			
-'		EndIf
-'		
-'	ElseIf iFlagStepParam = 2 Then
-'		
-'		Dim As Long iF1 = InStr(szDataForPipe , "~*~")
-'		
-'		Dim As Long iF2 = InStr(szDataForPipe , "~^~")
-'		
-'		If iF1 Then
-'			
-'			Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
-'			
-'			fill_all_variables(Mid(szDataForPipe , iF1))
-'			
-'		ElseIf iF2 Then
-'			
-'			Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF2-1))
-'			
-'			fill_all_variables(Mid(szDataForPipe , iF2+3))			
-'			
-'		Else
-'			
-'			Pasteeditor(E_EDITOR, szDataForPipe)
-'			
-'		EndIf
-'		
-'	Else
-'		
-'		If iStateMenu = 1 Then
-'			
-'			Dim As Long iF1 = InStr(szDataForPipe , "~*~")
-'			
-'			If iF1 Then
-'				
-'				Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
-'				
-'				fill_locals_variables(Mid(szDataForPipe , iF1+3) , 1)
-'				
-'			Else
-'				
-'				Pasteeditor(E_EDITOR, szDataForPipe)
-'
-'				If iFupd Then
-'					
-'					iFlagUpdateVariables = 1
-'					
-'					iCounterUpdateVariables = 0
-'					
-'				EndIf
-'				
-'			EndIf
-'			
-'		ElseIf iStateMenu = 2 Then
-'			
-'			Dim As Long iF1 = InStr(szDataForPipe , "~*~")
-'			
-'			Dim As Long iF2 = InStr(szDataForPipe , "~^~")
-'			
-'			If iF1 Then
-'				
-'				Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
-'				
-'				fill_all_variables(Mid(szDataForPipe , iF1))
-'				
-'			ElseIf iF2 Then
-'				
-'				Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF2-1))
-'				
-'				fill_all_variables(Mid(szDataForPipe , iF2+3))
-'				
-'			Else
-'				
-'				Pasteeditor(E_EDITOR, szDataForPipe)
-'
-'				If iFupd Then
-'					
-'					iFlagUpdateVariables = 1
-'					
-'					iCounterUpdateVariables = 0
-'					
-'				EndIf
-'				
-'			EndIf
-'			
-'		Else
-'			
-'			Pasteeditor(E_EDITOR, szDataForPipe)
-'			
-'			If iFupd Then
-'				
-'				iFlagUpdateVariables = 1
-'				
-'				iCounterUpdateVariables = 0
-'				
-'			EndIf
-'			
-'		EndIf
-'		
-'	EndIf	
-'	
-'End Sub
+Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
+	
+	If iFlagStepParam = 1 Then
+		
+		Dim As Long iF1 = InStr(szDataForPipe , "~*~")
+		
+		If iF1 Then
+			
+			'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
+			ShowMessages Mid(szDataForPipe , 1, iF1 - 1), False
+			
+			fill_locals_variables(Mid(szDataForPipe, iF1 + 3), 1)
+			
+		Else
+			
+			'Pasteeditor(E_EDITOR, szDataForPipe)
+			ShowMessages szDataForPipe, False
+			
+		EndIf
+		
+	ElseIf iFlagStepParam = 2 Then
+		
+		Dim As Long iF1 = InStr(szDataForPipe , "~*~")
+		
+		Dim As Long iF2 = InStr(szDataForPipe , "~^~")
+		
+		If iF1 Then
+			
+			'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
+			ShowMessages Mid(szDataForPipe , 1 , iF1 - 1), False
+			
+			fill_all_variables(Mid(szDataForPipe, iF1))
+			
+		ElseIf iF2 Then
+			
+			'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF2-1))
+			ShowMessages Mid(szDataForPipe , 1 , iF2 - 1), False
+			
+			fill_all_variables(Mid(szDataForPipe , iF2+3))			
+			
+		Else
+			
+			'Pasteeditor(E_EDITOR, szDataForPipe)
+			ShowMessages szDataForPipe, False
+			
+		EndIf
+		
+	Else
+		
+		If iStateMenu = 1 Then
+			
+			Dim As Long iF1 = InStr(szDataForPipe , "~*~")
+			
+			If iF1 Then
+				
+				'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
+				ShowMessages Mid(szDataForPipe, 1, iF1 - 1), False
+				
+				fill_locals_variables(Mid(szDataForPipe, iF1 + 3), 1)
+				
+			Else
+				
+				'Pasteeditor(E_EDITOR, szDataForPipe)
+				ShowMessages szDataForPipe, False
 
-#ifdef __FB_WIN32__
-Dim Shared As Integer iGlPid
-#else
-Dim Shared As Long iGlPid
-#endif
+				If iFupd Then
+					
+					iFlagUpdateVariables = 1
+					
+					iCounterUpdateVariables = 0
+					
+				EndIf
+				
+			EndIf
+			
+		ElseIf iStateMenu = 2 Then
+			
+			Dim As Long iF1 = InStr(szDataForPipe , "~*~")
+			
+			Dim As Long iF2 = InStr(szDataForPipe , "~^~")
+			
+			If iF1 Then
+				
+				'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1 - 1))
+				ShowMessages Mid(szDataForPipe , 1 , iF1 - 1), False
+				
+				fill_all_variables(Mid(szDataForPipe , iF1))
+				
+			ElseIf iF2 Then
+				
+				'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF2-1))
+				ShowMessages Mid(szDataForPipe , 1 , iF2 - 1), False
+				
+				fill_all_variables(Mid(szDataForPipe , iF2+3))
+				
+			Else
+				
+				'Pasteeditor(E_EDITOR, szDataForPipe)
+				ShowMessages szDataForPipe, False
 
-Dim Shared As Long iFlagThreadSignal , iFlagUpdateVariables
-
-Dim Shared As Long iCounterUpdateVariables , iFlagStartDebug , iStateMenu
+				If iFupd Then
+					
+					iFlagUpdateVariables = 1
+					
+					iCounterUpdateVariables = 0
+					
+				EndIf
+				
+			EndIf
+			
+		Else
+			
+			'Pasteeditor(E_EDITOR, szDataForPipe)
+			ShowMessages szDataForPipe, False
+			
+			If iFupd Then
+				
+				iFlagUpdateVariables = 1
+				
+				iCounterUpdateVariables = 0
+				
+			EndIf
+			
+		EndIf
+		
+	EndIf	
+	
+End Sub
 
 Function line_highlight(iFlagStepParam As Long = 0) As Long
 	
@@ -6471,9 +6484,14 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 			
 			If Len(sFile) AndAlso Len(sPos) AndAlso Len(sLine) Then
 				
-				Var tb = AddTab(sFile)
+				Dim As TabWindow Ptr tb = AddTab(sFile)
 				If tb Then
-					tb->txtCode.SetSelection Val(sLine), Val(sLine), Val(sPos), Val(sPos)
+					ChangeEnabledDebug True, False, True
+					CurEC = @tb->txtCode
+					tb->txtCode.CurExecutedLine = Val(sLine) - 1
+					tb->txtCode.SetSelection Val(sLine) - 1, Val(sLine) - 1, 0, 0
+					tb->txtCode.PaintControl
+					info_all_variables_debug()
 				End If
 				
 '				For i As Long = 0 To UBound(sfiles_array)
@@ -6485,8 +6503,8 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 '						selection_line(i , Val(sPos) , Val(sLine))
 '						
 '						Setselecttexteditorgadget(E_EDITOR, -1 ,-1)
-'						
-'						paste_updatevar(iFlagStepParam , 1)
+
+						paste_updatevar(iFlagStepParam , 1)
 '						
 '						Linescrolleditor(E_EDITOR,10000000)
 '						
@@ -6512,7 +6530,7 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 				
 '				Setselecttexteditorgadget(E_EDITOR, -1 ,-1)
 '				
-'				paste_updatevar(0 , 0)
+				paste_updatevar(0 , 0)
 '				
 '				Linescrolleditor(E_EDITOR,10000000)
 				
@@ -6524,7 +6542,7 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 					
 '					Setselecttexteditorgadget(E_EDITOR, -1 ,-1)
 '					
-'					paste_updatevar(iFlagStepParam , 0)
+					paste_updatevar(iFlagStepParam , 0)
 '					
 '					Linescrolleditor(E_EDITOR,10000000)
 '					
@@ -6551,6 +6569,16 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 					iCounterUpdateVariables = 0
 					
 					killtimer(0, 0)
+					
+					DeleteDebugCursor
+					
+					ThreadsEnter()
+					
+					ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": 0 - " & Err2Description(0))
+					
+					ThreadsLeave()
+					
+					ChangeEnabledDebug True, False, False
 					
 					Return 1
 					
@@ -6993,13 +7021,14 @@ Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As 
 			
 		EndIf
 		
+		lvVar.Nodes.Clear
 		'Deletelistviewitemsall(E_LISTVIEW)
 		
 		sPrevBuf = sBuf
 		
 	EndIf
 	
-	Dim As Long iCountItems = 0, iItem 'Getitemcountlistview(E_LISTVIEW)
+	Dim As Long iCountItems = lvVar.Nodes.Count, iItem 'Getitemcountlistview(E_LISTVIEW)
 	
 	If Len(sBuf) = 0 Then Return 0
 	
@@ -7081,6 +7110,10 @@ Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As 
 				
 				If iFindEQ Then
 					
+					lvVar.Nodes.Add sNameVar 
+					
+					lvVar.Nodes.Item(lvVar.Nodes.Count - 1)->Text(1) = sValueVar
+						
 '					Addlistviewitem(E_LISTVIEW , sNameVar , 0 , iItem , 0)
 '					
 '					Addlistviewitem(E_LISTVIEW , sValueVar , 0 , iItem , 1)
@@ -7125,27 +7158,28 @@ Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 	
 	If iFlagUpdate Then
 		
-		'Deletelistviewitemsall(E_LISTVIEW)
+		lvVar.Nodes.Clear
 		
 	Else
 	
-'		If Getitemcountlistview(E_LISTVIEW) Then
-'			
-'			Dim As Long iLen1 = Len(sBuf) , iLen2 = Len(sPrevBuf)
-'			
-'			If iLen1 = iLen2 Then
-'				
-'				If memcmp(StrPtr(sBuf) , StrPtr(sPrevBuf) , iLen1) = 0 Then
-'					
-'					Exit Sub
-'					
-'				EndIf
-'				
-'			EndIf
-'			
-'			Deletelistviewitemsall(E_LISTVIEW)
-'			
-'		EndIf
+		If lvVar.Nodes.Count Then
+		'If Getitemcountlistview(E_LISTVIEW) Then
+			
+			Dim As Long iLen1 = Len(sBuf) , iLen2 = Len(sPrevBuf)
+			
+			If iLen1 = iLen2 Then
+				
+				If memcmp(StrPtr(sBuf) , StrPtr(sPrevBuf) , iLen1) = 0 Then
+					
+					Exit Sub
+					
+				EndIf
+				
+			EndIf
+			
+			lvVar.Nodes.Clear
+			
+		EndIf
 		
 	EndIf
 	
@@ -7176,8 +7210,10 @@ Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 					If iItem <= UBound(tgl_var_array) Then
 						
 '						Addlistviewitem(E_LISTVIEW , tgl_var_array(iItem).szVar , 0 , iItem , 0)
+						lvVar.Nodes.Add tgl_var_array(iItem).szVar
 '						
 '						Addlistviewitem(E_LISTVIEW , sValueVar , 0 , iItem , 1)
+						lvVar.Nodes.Item(lvVar.Nodes.Count - 1)->Text(1) = sValueVar
 						
 						iItem +=1
 						
@@ -7429,6 +7465,7 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 	
 	ShowMessages("Wait , process loading...")
 	
+	lvVar.Nodes.Clear
 	'Deletelistviewitemsall(E_LISTVIEW)
 	
 	Updateinfoxserver(10)
@@ -7527,18 +7564,22 @@ End Function
 
 Sub set_bp()
 	
-'	Dim As Long iFlagSetup
-'	
+	Dim As Long iFlagSetup
+	
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 '	Dim As Long iCursel = Panelgadgetgetcursel(E_PANEL)
-'	
+	
+	If tb = 0 Then Exit Sub
 '	If iCursel > UBound(pd.sci) OrElse iCursel < 0 OrElse  iCursel > UBound(sfiles_array) Then Exit Sub
-'	
+	
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 '	Dim As Integer iPos = sendmessage ( Cast(Any Ptr , pd.sci(iCursel)) ,  SCI_GETCURRENTPOS , 0 , 0)
 '	
 '	Dim As Integer iLine = sendmessage ( Cast(Any Ptr , pd.sci(iCursel)) ,  SCI_LINEFROMPOSITION , iPos , 0)
 '	
-'	Dim As String sTemp = sfiles_array(iCursel) & ":" & iLine+1
-'	
+	Dim As String sTemp = """" & Replace(tb->FileName, "\", "/") & """:" & iSelEndLine + 1
+	
 '	For i As Long = 0 To UBound(sBP)
 '		
 '		If iFlagSetup = 0 AndAlso sBP(i) = sTemp Then
@@ -7554,23 +7595,23 @@ Sub set_bp()
 '		EndIf
 '		
 '	Next
-'	
-'	If iFlagSetup Then
-'		
-'		run_pipe_write(!"clear " & sTemp & !"\n")
-'		
-'		readpipe()
-'		
-'		sendmessage ( Cast(Any Ptr , pd.sci(iCursel)) ,  SCI_MARKERDELETE , iLine , 0)
-'		
-'	Else
-'		
-'		run_pipe_write(!"break " & sTemp & !"\n")
-'		
-'		readpipe()
-'		
-'		sendmessage ( Cast(Any Ptr , pd.sci(iCursel)) ,  SCI_MARKERADD , iLine , 0)
-'		
+	
+	If Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[iSelEndLine])->Breakpoint Then
+		
+		run_pipe_write(!"clear " & sTemp & !"\n")
+		
+		readpipe()
+		
+		'sendmessage ( Cast(Any Ptr , pd.sci(iCursel)) ,  SCI_MARKERDELETE , iLine , 0)
+		
+	Else
+		
+		run_pipe_write(!"break " & sTemp & !"\n")
+		
+		readpipe()
+		
+		'sendmessage ( Cast(Any Ptr , pd.sci(iCursel)) ,  SCI_MARKERADD , iLine , 0)
+		
 '		For i As Long = 0 To UBound(sBP)
 '			
 '			If Len(sBP(i)) = 0 Then
@@ -7583,7 +7624,7 @@ Sub set_bp()
 '			
 '		Next
 '		
-'	EndIf
+	EndIf
 	
 End Sub
 
@@ -7663,9 +7704,13 @@ Sub run_debug(iFlag As Long)
 			
 			killtimer(0, 0)
 			
-			Writepipe(!"b 1\n")
-			
-			readpipe()
+			If runtype = RTSTEP Then
+				
+				Writepipe(!"b 1\n")
+				
+				readpipe()
+				
+			End If
 			
 			settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
@@ -8147,8 +8192,44 @@ Sub RunWithDebug(Param As Any Ptr)
 			'Shell """" & WGet(Debugger) & """ """ & exename & """"
 		Else
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+				tvVar.Visible = False
+				lvVar.Visible = True
 				If load_file(exename, *GDBDebuggerPath) Then Exit Sub
+				
+				'If iFlagStartDebug = 0 Then
+					
+					'Setgadgettext(E_EDITOR , "")
+					
+					'Setimagegadget(E_BUT_RUN , bmp(1))
+					
+					Dim As TabWindow Ptr tb
+					For i As Integer = 0 To ptabCode->TabCount - 1
+						tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+						For j As Integer = 0 To tb->txtCode.FLines.Count - 1
+							If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
+							
+							run_pipe_write(!"break """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1) & !"\n")
+							
+							readpipe()
+						Next
+					Next i
+					
+					ptabBottom->Tabs[6]->SelectTab
+					
+					iFlagStartDebug = 1
+					
+					settimer(0, 0, 20, Cast(Any Ptr , @timer_data()))
+					
+					run_debug(1)
+					
+				'Else
+					
+				'	run_debug(0)
+					
+				'EndIf
 			Else
+				lvVar.Visible = False
+				tvVar.Visible = True
 				InDebug = True
 				ptabBottom->Tab(6)->SelectTab
 				pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE Or DEBUG_PROCESS Or DEBUG_ONLY_THIS_PROCESS
@@ -8167,15 +8248,15 @@ Sub RunWithDebug(Param As Any Ptr)
 				Dim As Unsigned Long ExitCode
 				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
 				Result = ExitCode
+				ThreadsEnter()
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+				ThreadsLeave()
+				ChangeEnabledDebug True, False, False
 			End If
 		End If
-		ThreadsEnter()
-		ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-		ThreadsLeave()
 	#endif
 	If WorkDir <> 0 Then Deallocate_( WorkDir)
 	If CmdL <> 0 Then Deallocate_( CmdL)
-	ChangeEnabledDebug True, False, False
 	#ifndef __USE_GTK__
 		If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer
 		CurrentTimer = 0
