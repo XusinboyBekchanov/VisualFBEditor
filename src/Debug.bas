@@ -6493,6 +6493,9 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 					tb->txtCode.SetSelection Val(sLine) - 1, Val(sLine) - 1, 0, 0
 					tb->txtCode.PaintControl
 					info_all_variables_debug()
+					#ifdef __FB_WIN32__
+						SetForegroundWindow pApp->MainForm->Handle
+					#endif
 				End If
 				
 '				For i As Long = 0 To UBound(sfiles_array)
@@ -7855,6 +7858,8 @@ Sub continue_debug()
 	run_pipe_write(!"continue\n")
 	
 	get_read_data(1)
+	
+	DeleteDebugCursor
 	
 End Sub
 

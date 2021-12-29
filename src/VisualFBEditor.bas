@@ -237,6 +237,7 @@ Sub mClick(Sender As My.Sys.Object)
 					ThreadCounter(ThreadCreate_(@RunProgram))
 				End If
 			Else
+				ChangeEnabledDebug False, True, True
 				continue_debug()
 			End If
 		Else
