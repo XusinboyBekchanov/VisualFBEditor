@@ -618,31 +618,35 @@ Function Compile(Parameter As String = "") As Integer
 		ThreadsLeave()
 	End If
 	Dim As UShort bFlagErr
-	Dim As Integer NumberErr, NumberWarning, NumberInfo, nPos , nPos1
+	Dim As Integer NumberErr, NumberWarning, NumberInfo ', nPos , nPos1
 	Dim As Double CompileElapsedTime = Timer
-	Dim As String TmpStr, TmpStrKey = "@freebasic compiler @copyright @standalone @creating import library @target @backend @compiling @compiling rc @compiling c @assembling @linking @line "
+	'Dim As String TmpStr, TmpStrKey = "@freebasic compiler @copyright @standalone @creating import library @target @backend @compiling @compiling rc @compiling c @assembling @linking @line "
 	#ifdef __USE_GTK__
 		If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 			While Not EOF(Fn)
 				Line Input #Fn, Buff
 				If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
-				nPos1 = -1
-				nPos = InStr(Buff, ":")
-				If nPos < 1 Then nPos = InStr(Buff, " ")
-				If nPos < 1 Then
-					nPos = Len(Buff) + 1
-					TmpStr = Buff
-				Else
-					TmpStr = Left(Buff, nPos - 1)
-				End If
-				If InStr(Buff, "Error!") Then ERRGoRc = True
-				nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr))
-				If CBool(nPos1 > 0) OrElse ERRGoRc Then
-					ThreadsEnter()
-					ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(Buff, nPos))
-					ThreadsLeave()
-					NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
-				Else
+				ShowMessages(Buff, False)
+				'nPos1 = -1
+				'nPos = InStr(Buff, ":")
+				'If nPos < 1 Then nPos = InStr(Buff, " ")
+				'If nPos < 1 Then
+				'	nPos = Len(Buff) + 1
+				'	TmpStr = Buff
+				'Else
+				'	TmpStr = Left(Buff, nPos - 1)
+				'End If
+				'If InStr(Buff, "Error!") Then ERRGoRc = True
+				'nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr))
+				'If CBool(nPos1 > 0) OrElse ERRGoRc Then
+				'	ThreadsEnter()
+				'	ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(Buff, nPos))
+				'	ThreadsLeave()
+				'	NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
+				'Else
+				If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
+					OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
+					OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:")) Then
 					bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 					If bFlagErr = 2 Then
 						NumberErr += 1
@@ -657,7 +661,7 @@ Function Compile(Parameter As String = "") As Integer
 						lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 						lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 						lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-						ShowMessages(Buff, False)
+						'ShowMessages(Buff, False)
 						ThreadsLeave()
 					End If
 				End If
@@ -717,18 +721,20 @@ Function Compile(Parameter As String = "") As Integer
 					ShowMessages(*res(i), False)
 					If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
 					If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
-					nPos = InStr(*res(i), ":")
-					If nPos < 1 Then nPos = InStr(*res(i), " ")
-					If nPos < 1 Then
-						nPos = Len(*res(i)) + 1
-						TmpStr = *res(i) '"standalone" ' Hanving ASCii CR
-					Else
-						TmpStr = Left(*res(i), nPos - 1)
-					End If
-					nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
+					'nPos = InStr(*res(i), ":")
+					'If nPos < 1 Then nPos = InStr(*res(i), " ")
+					'If nPos < 1 Then
+					'	nPos = Len(*res(i)) + 1
+					'	TmpStr = *res(i) '"standalone" ' Hanving ASCii CR
+					'Else
+					'	TmpStr = Left(*res(i), nPos - 1)
+					'End If
+					'nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
 					'If nPos1 > 0 OrElse ERRGoRc Then
 						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
-					'Else
+					If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
+						OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") OrElse StartsWith(*res(i), "compiling rc:") _
+						OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), "compiling rc failed:")) Then
 						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
 							NumberErr += 1
@@ -743,7 +749,7 @@ Function Compile(Parameter As String = "") As Integer
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
 						End If
-					'End If
+					End If
 					Deallocate res(i): res(i) = 0
 					sOutput = ""
 				Next i

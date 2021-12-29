@@ -7855,11 +7855,11 @@ Sub continue_debug()
 	
 	memset(@szDataForPipe , 0 , 200000)
 	
+	DeleteDebugCursor
+	
 	run_pipe_write(!"continue\n")
 	
 	get_read_data(1)
-	
-	DeleteDebugCursor
 	
 End Sub
 
