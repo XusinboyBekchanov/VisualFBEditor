@@ -6041,6 +6041,7 @@ Declare Sub writepipe(ByRef szBuf As ZString, iTime As Long = 1)
 Declare Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As Long
 Declare Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0) 
 Declare Sub info_all_variables_debug(iFlagUpdate As Long = 0)
+Declare Sub deinit()
 
 Dim Shared As HANDLE hReadPipe, hWritePipe
 
@@ -6299,11 +6300,11 @@ Declare Function timer_data() As Integer
 
 Sub run_pipe_write(ByRef s As WString , iTime As Long = 1)
 	
-	killtimer(0, 0)
+	'killtimer(0, 0)
 	
 	writepipe(s, iTime)
 	
-	settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+	'settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 	
 End Sub
 
@@ -6316,14 +6317,14 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 		If iF1 Then
 			
 			'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
-			ShowMessages Mid(szDataForPipe , 1, iF1 - 1), False
+			ShowMessages Mid(szDataForPipe, 1, iF1 - 1), False
 			
 			fill_locals_variables(Mid(szDataForPipe, iF1 + 3), 1)
 			
 		Else
 			
 			'Pasteeditor(E_EDITOR, szDataForPipe)
-			ShowMessages szDataForPipe, False
+			If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
 			
 		EndIf
 		
@@ -6350,7 +6351,7 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 		Else
 			
 			'Pasteeditor(E_EDITOR, szDataForPipe)
-			ShowMessages szDataForPipe, False
+			If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
 			
 		EndIf
 		
@@ -6370,7 +6371,7 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 			Else
 				
 				'Pasteeditor(E_EDITOR, szDataForPipe)
-				ShowMessages szDataForPipe, False
+				If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
 
 				If iFupd Then
 					
@@ -6405,7 +6406,7 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 			Else
 				
 				'Pasteeditor(E_EDITOR, szDataForPipe)
-				ShowMessages szDataForPipe, False
+				If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
 
 				If iFupd Then
 					
@@ -6420,7 +6421,7 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 		Else
 			
 			'Pasteeditor(E_EDITOR, szDataForPipe)
-			ShowMessages szDataForPipe, False
+			If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
 			
 			If iFupd Then
 				
@@ -6578,6 +6579,8 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 					
 					ThreadsLeave()
 					
+					deinit
+					
 					ChangeEnabledDebug True, False, False
 					
 					Return 1
@@ -6728,7 +6731,7 @@ Function timer_data() As Integer
 			
 			get_read_data(10)
 			
-			iReset = 0	
+			iReset = 0
 			
 		Else
 			
@@ -7480,6 +7483,8 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 	lvVar.Nodes.Clear
 	'Deletelistviewitemsall(E_LISTVIEW)
 	
+	killtimer(0, 0)
+	
 	Updateinfoxserver(10)
 	
 	iGlPid = CreatePipeD(sPathGDB,  "-f" , sCurentFileExe )
@@ -7684,8 +7689,6 @@ Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0)
 	
 	szDataForPipe = readpipe()
 	
-	?szDataForPipe
-	
 	If Len(szDataForPipe) Then
 		
 		Select Case iFlag
@@ -7747,7 +7750,7 @@ Sub run_debug(iFlag As Long)
 				RunningToCursor = False 
 			End If
 			
-			settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			'settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 		#else
 			
@@ -7807,7 +7810,7 @@ Sub run_debug(iFlag As Long)
 				
 			EndIf
 			
-			settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			'settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 '			Disablegadget(E_BUT_STEP_IN , 0)
 '			
@@ -8033,6 +8036,8 @@ Sub deinit()
 			close_(iReadPipe(0))
 		#endif
 		
+		killtimer(0, 0)
+		
 	'EndIf
 	
 	'sCurentFileExe = ""
@@ -8229,6 +8234,9 @@ Sub RunWithDebug(Param As Any Ptr)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 				tvVar.Visible = False
 				lvVar.Visible = True
+				
+				deinit()
+				
 				If load_file(exename, *GDBDebuggerPath) Then Exit Sub
 				
 				'If iFlagStartDebug = 0 Then
