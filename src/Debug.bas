@@ -6300,11 +6300,11 @@ Declare Function timer_data() As Integer
 
 Sub run_pipe_write(ByRef s As WString , iTime As Long = 1)
 	
-	'killtimer(0, 0)
+	killtimer(0, 0)
 	
 	writepipe(s, iTime)
 	
-	'settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+	settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 	
 End Sub
 
@@ -6613,6 +6613,10 @@ Function timer_data() As Integer
 	
 	Static As Long iReset , iReset2
 	
+	?iFlagThreadSignal
+	
+	If szDataForPipe <> "" Then ?szDataForPipe
+	
 	If iFlagThreadSignal = 10 Then
 		
 		iFlagThreadSignal = 4
@@ -6758,7 +6762,7 @@ Function timer_data() As Integer
 			
 	End Select
 	
-	Return True
+	'Return True
 	
 End Function
 
@@ -6928,6 +6932,28 @@ Function get_global_variables_from_exe(sBuf As String) As Long
 				
 				tgl_var_array(iIndex).szVar = sLine
 				
+				If StartsWith(sLine, "static ") Then sLine = Mid(sLine, 8)
+				Var Pos0 = InStr(sLine, ";")
+				If Pos0 > 0 Then sLine = Left(sLine, Pos0 - 1)
+				Var Pos1 = InStr(sLine, " ")
+				Var Pos2 = InStr(sLine, " *")
+				If Pos2 > 0 Then Pos1 = Pos2 + 1
+				Dim As String VarName = Mid(sLine, Pos1 + 1)
+				If StartsWith(VarName, "__Z") Then
+					Var Pos3 = InStr(VarName, "[")
+					If Pos3 > 0 Then
+						VarName = cutup_names(Left(VarName, Pos3 - 1)) & Mid(VarName, Pos3)
+					Else
+						VarName = cutup_names(VarName)
+					End If
+				End If
+				Var tn = lvGlobals.Nodes.Add(VarName)
+				If Pos2 = 0 Then
+					tn->Text(2) = Trim(Left(sLine, Pos1 - 1))
+				Else
+					tn->Text(2) = Trim(Left(sLine, Pos1 - 1)) & " Ptr"
+				End If
+				
 				iIndex+=1
 				
 			EndIf
@@ -7027,14 +7053,15 @@ Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As 
 			
 		EndIf
 		
-		lvVar.Nodes.Clear
 		'Deletelistviewitemsall(E_LISTVIEW)
 		
 		sPrevBuf = sBuf
 		
 	EndIf
 	
-	Dim As Long iCountItems = lvVar.Nodes.Count, iItem 'Getitemcountlistview(E_LISTVIEW)
+	lvLocals.Nodes.Clear
+	
+	Dim As Long iCountItems = lvLocals.Nodes.Count, iItem 'Getitemcountlistview(E_LISTVIEW)
 	
 	If Len(sBuf) = 0 Then Return 0
 	
@@ -7116,11 +7143,33 @@ Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As 
 				
 				If iFindEQ Then
 					
-					Var tn = lvVar.Nodes.Add(sNameVar)
+					Dim As TreeListViewItem Ptr tn
+					
+					Var Idx = lvLocals.Nodes.IndexOf(sNameVar)
+					
+					If Idx = -1 Then
+					
+						tn = lvLocals.Nodes.Add(sNameVar)
+						
+					Else
+						
+						tn = lvLocals.Nodes.Item(Idx)
+						
+					End If
 					
 					tn->Text(1) = sValueVar
 					
-					If StartsWith(sValueVar, "{") Then
+					Var Pos1 = InStr(sValueVar, "<vtable for ")
+					
+					Var Pos2 = InStr(sValueVar, "+")
+					
+					If Pos1 > 0 AndAlso Pos2 > 0 Then
+						
+						tn->Text(2) = Replace(Mid(sValueVar, Pos1 + 12, Pos2 - Pos1 - 12), "::", ".")
+						
+					End If
+					
+					If StartsWith(sValueVar, "{") AndAlso tn->Nodes.Count = 0 Then
 						
 						tn->Nodes.Add ""
 						
@@ -7170,11 +7219,11 @@ Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 	
 	If iFlagUpdate Then
 		
-		lvVar.Nodes.Clear
+		'lvVar.Nodes.Clear
 		
 	Else
 	
-		If lvVar.Nodes.Count Then
+		If lvGlobals.Nodes.Count Then
 		'If Getitemcountlistview(E_LISTVIEW) Then
 			
 			Dim As Long iLen1 = Len(sBuf) , iLen2 = Len(sPrevBuf)
@@ -7189,7 +7238,7 @@ Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 				
 			EndIf
 			
-			lvVar.Nodes.Clear
+			'lvVar.Nodes.Clear
 			
 		EndIf
 		
@@ -7222,15 +7271,37 @@ Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 					If iItem <= UBound(tgl_var_array) Then
 						
 '						Addlistviewitem(E_LISTVIEW , tgl_var_array(iItem).szVar , 0 , iItem , 0)
-						Var tn = lvVar.Nodes.Add(tgl_var_array(iItem).szVar)
+						
+						'Var Idx = lvGlobals.Nodes.IndexOf(tgl_var_array(iItem).szVar)
+						
+						'If Idx = -1 Then
+						
+						'	tn = lvGlobals.Nodes.Add(tgl_var_array(iItem).szVar)
+						
+						'Else
+						
+						'	tn = lvGlobals.Nodes.Item(Idx)
+						
+						'End If
 '						
 '						Addlistviewitem(E_LISTVIEW , sValueVar , 0 , iItem , 1)
-						tn->Text(1) = sValueVar
 						
-						If StartsWith(sValueVar, "{") Then
-						
-							tn->Nodes.Add ""
-						
+						If iItem < lvGlobals.Nodes.Count Then
+							
+							Var tn = lvGlobals.Nodes.Item(iItem)
+							
+							tn->Text(1) = sValueVar
+							
+							If StartsWith(sValueVar, "{") AndAlso tn->Nodes.Count = 0 Then
+							
+								tn->Nodes.Add ""
+							
+							End If
+							
+						Else
+							
+							Exit Do
+							
 						End If
 						
 						iItem +=1
@@ -7483,10 +7554,10 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 	
 	ShowMessages(ML("Wait, process loading..."))
 	
-	lvVar.Nodes.Clear
-	'Deletelistviewitemsall(E_LISTVIEW)
+	lvLocals.Nodes.Clear
 	
-	killtimer(0, 0)
+	lvGlobals.Nodes.Clear
+	'Deletelistviewitemsall(E_LISTVIEW)
 	
 	Updateinfoxserver(10)
 	
@@ -7716,7 +7787,7 @@ Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0)
 		
 	Else
 		
-		iFlagThreadSignal = 13	
+		iFlagThreadSignal = 13
 		
 	EndIf
 	
@@ -7753,7 +7824,18 @@ Sub run_debug(iFlag As Long)
 				RunningToCursor = False 
 			End If
 			
-			'settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			Dim As TabWindow Ptr tb
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+				For j As Integer = 0 To tb->txtCode.FLines.Count - 1
+					If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
+					
+					Writepipe(!"break """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1) & !"\n")
+					readpipe()
+				Next
+			Next i
+			
+			settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 		#else
 			
@@ -7813,7 +7895,7 @@ Sub run_debug(iFlag As Long)
 				
 			EndIf
 			
-			'settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 '			Disablegadget(E_BUT_STEP_IN , 0)
 '			
@@ -7985,6 +8067,8 @@ Sub kill_debug()
 	ShowMessages "Kill Program."
 '	
 '	Linescrolleditor(E_EDITOR,10000000)
+
+	deinit
 	
 End Sub
 
@@ -8040,8 +8124,6 @@ Sub deinit()
 			close_(iWritePipe(1))    
 			close_(iReadPipe(0))
 		#endif
-		
-		killtimer(0, 0)
 		
 	'EndIf
 	
@@ -8238,7 +8320,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		Else
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 				tvVar.Visible = False
-				lvVar.Visible = True
+				lvGlobals.Visible = True
 				
 				deinit()
 				
@@ -8250,23 +8332,11 @@ Sub RunWithDebug(Param As Any Ptr)
 					
 					'Setimagegadget(E_BUT_RUN , bmp(1))
 					
-					Dim As TabWindow Ptr tb
-					For i As Integer = 0 To ptabCode->TabCount - 1
-						tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-						For j As Integer = 0 To tb->txtCode.FLines.Count - 1
-							If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
-							
-							run_pipe_write(!"break """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1) & !"\n")
-							
-							readpipe()
-						Next
-					Next i
-					
 					ptabBottom->Tabs[6]->SelectTab
 					
 					iFlagStartDebug = 1
 					
-					settimer(0, 0, 20, Cast(Any Ptr , @timer_data()))
+					CurrentTimer = settimer(0, 0, 20, Cast(Any Ptr , @timer_data()))
 					
 					run_debug(1)
 					
@@ -8276,7 +8346,7 @@ Sub RunWithDebug(Param As Any Ptr)
 					
 				'EndIf
 			Else
-				lvVar.Visible = False
+				lvGlobals.Visible = False
 				tvVar.Visible = True
 				InDebug = True
 				ptabBottom->Tab(6)->SelectTab
@@ -8300,15 +8370,15 @@ Sub RunWithDebug(Param As Any Ptr)
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 				ThreadsLeave()
 				ChangeEnabledDebug True, False, False
+				#ifndef __USE_GTK__
+					If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer
+					CurrentTimer = 0
+				#endif
 			End If
 		End If
 	#endif
 	If WorkDir <> 0 Then Deallocate_( WorkDir)
 	If CmdL <> 0 Then Deallocate_( CmdL)
-	#ifndef __USE_GTK__
-		If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer
-		CurrentTimer = 0
-	#endif
 	Exit Sub
 	ErrorHandler:
 	ThreadsEnter()

@@ -76,7 +76,7 @@ Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
-Dim Shared As TreeListView lvProperties, lvEvents, lvVar
+Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabDebug
@@ -190,7 +190,7 @@ Namespace VisualFBEditor
 		Return True
 	End Function
 End Namespace
-
+ 
 Function ML(ByRef V As WString) ByRef As WString
 	If LCase(CurLanguage) = "english" Then Return V
 	Dim As Integer tIndex = mlKeys.IndexOf(V) ' For improve the speed
@@ -734,7 +734,8 @@ Function Compile(Parameter As String = "") As Integer
 						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 					If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 						OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") OrElse StartsWith(*res(i), "compiling rc:") _
-						OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), "compiling rc failed:")) Then
+						OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), "compiling rc failed:") _
+						OrElse InStr(*res(i), "ld.exe") > 0) Then
 						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
 							NumberErr += 1
@@ -4537,6 +4538,7 @@ Sub CreateMenusAndToolBars
 	miOtherWindows->Add(ML("Change Log Window") & HK("ChangeLogWindow"), "ChangeLogWindow", "ChangeLogWindow", @mclick)
 	miOtherWindows->Add(ML("Immediate Window") & HK("ImmediateWindow"), "ImmediateWindow", "ImmediateWindow", @mclick)
 	miOtherWindows->Add(ML("Locals Window") & HK("LocalsWindow"), "LocalsWindow", "LocalsWindow", @mclick)
+	miOtherWindows->Add(ML("Globals Window") & HK("GlobalsWindow"), "GlobalsWindow", "GlobalsWindow", @mclick)
 	miOtherWindows->Add(ML("Processes Window") & HK("ProcessesWindow"), "ProcessesWindow", "ProcessesWindow", @mclick)
 	miOtherWindows->Add(ML("Threads Window") & HK("ThreadsWindow"), "ThreadsWindow", "ThreadsWindow", @mclick)
 	miOtherWindows->Add(ML("Watch Window") & HK("WatchWindow"), "Watch", "WatchWindow", @mclick)
@@ -5957,7 +5959,6 @@ Sub tabRight_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	End If
 End Sub
 
-lvVar.Align = DockStyle.alClient
 tvVar.Align = DockStyle.alClient
 tvPrc.Align = DockStyle.alClient
 tvThd.Align = DockStyle.alClient
@@ -5987,7 +5988,8 @@ Sub lvVar_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListView
 		Dim As WString Ptr p = @Item->Text(1)
 		Dim As UString sText
 		Dim As Boolean b
-		Dim As Integer iCount, Pos1
+		Dim As Integer iCount, Pos1, Pos2
+		Item->Nodes.Clear
 		For i As Integer = 1 To Len(*p) - 1
 			If (*p)[i] = Asc("{") Then
 				iCount += 1
@@ -6000,9 +6002,14 @@ Sub lvVar_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListView
 				If Pos1 > 0 Then
 					lvItem = Item->Nodes.Add(Trim(Left(sText, Pos1 - 1)))
 				Else
-					lvItem = Item->Nodes.Add("")
+					lvItem = Item->Nodes.Add(Str(Item->Nodes.Count))
 				End If
 				lvItem->Text(1) = Trim(Mid(sText, Pos1 + 1))
+				Pos1 = InStr(sText, "<vtable for ")
+				Pos2 = InStr(sText, "+")
+				If Pos1 > 0 AndAlso Pos2 > 0 Then
+					lvItem->Text(2) = Replace(Mid(sText, Pos1 + 12, Pos2 - Pos1 - 12), "::", ".")
+				End If
 				If StartsWith(lvItem->Text(1), "{") Then
 					lvItem->Nodes.Add
 				End If
@@ -6013,18 +6020,29 @@ Sub lvVar_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListView
 				sText &= WChr((*p)[i])
 			End If
 		Next
-		Item->Nodes.Remove 0
+		'Item->Nodes.Remove 0
 		ptabBottom->UpdateUnlock
 	End If
 End Sub
 
-lvVar.ContextMenu = @mnuVars
-lvVar.Visible = False
-lvVar.Columns.Add ML("Variable"), , 150
-lvVar.Columns.Add ML("Value"), , 500
-lvVar.StateImages = @imgListStates
-lvVar.Images = @imgListStates
-lvVar.OnItemExpanding = @lvVar_ItemExpanding
+lvLocals.Align = DockStyle.alClient
+lvLocals.ContextMenu = @mnuVars
+lvLocals.Columns.Add ML("Variable"), , 150
+lvLocals.Columns.Add ML("Value"), , 500
+lvLocals.Columns.Add ML("Type"), , 500
+lvLocals.StateImages = @imgListStates
+lvLocals.Images = @imgListStates
+lvLocals.OnItemExpanding = @lvVar_ItemExpanding
+
+lvGlobals.Align = DockStyle.alClient
+lvGlobals.ContextMenu = @mnuVars
+lvGlobals.Visible = False
+lvGlobals.Columns.Add ML("Variable"), , 150
+lvGlobals.Columns.Add ML("Value"), , 500
+lvGlobals.Columns.Add ML("Type"), , 500
+lvGlobals.StateImages = @imgListStates
+lvGlobals.Images = @imgListStates
+lvGlobals.OnItemExpanding = @lvVar_ItemExpanding
 
 Sub tabRight_Click(ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
@@ -6612,6 +6630,7 @@ ptabBottom->AddTab(ML("ToDo"))
 ptabBottom->AddTab(ML("Change Log"))
 ptabBottom->AddTab(ML("Immediate"))
 ptabBottom->AddTab(ML("Locals"))
+ptabBottom->AddTab(ML("Globals"))
 ptabBottom->AddTab(ML("Processes"))
 ptabBottom->AddTab(ML("Threads"))
 ptabBottom->AddTab(ML("Watches"))
@@ -6621,11 +6640,12 @@ ptabBottom->Tabs[2]->Add @lvSearch
 ptabBottom->Tabs[3]->Add @lvToDo
 ptabBottom->Tabs[4]->Add @txtChangeLog
 ptabBottom->Tabs[5]->Add @txtImmediate
-ptabBottom->Tabs[6]->Add @tvVar
-ptabBottom->Tabs[6]->Add @lvVar
-ptabBottom->Tabs[7]->Add @tvPrc
-ptabBottom->Tabs[8]->Add @tvThd
-ptabBottom->Tabs[9]->Add @tvWch
+ptabBottom->Tabs[6]->Add @lvLocals
+ptabBottom->Tabs[7]->Add @lvGlobals
+ptabBottom->Tabs[7]->Add @tvVar
+ptabBottom->Tabs[8]->Add @tvPrc
+ptabBottom->Tabs[9]->Add @tvThd
+ptabBottom->Tabs[10]->Add @tvWch
 ptabBottom->OnClick = @tabBottom_Click
 ptabBottom->OnDblClick = @tabBottom_DblClick
 ptabBottom->OnSelChange = @tabBottom_SelChange
