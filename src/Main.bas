@@ -5,7 +5,7 @@
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 '#define __USE_GTK__
-
+ 
 #include once "Main.bi"
 #include once "mff/Dialogs.bi"
 #include once "mff/Form.bi"
@@ -646,7 +646,7 @@ Function Compile(Parameter As String = "") As Integer
 				'Else
 				If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
 					OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
-					OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:")) Then
+					OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") OrElse StartsWith(Buff, "backend:")) Then
 					bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 					If bFlagErr = 2 Then
 						NumberErr += 1
@@ -734,7 +734,7 @@ Function Compile(Parameter As String = "") As Integer
 						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 					If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 						OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") OrElse StartsWith(*res(i), "compiling rc:") _
-						OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), "compiling rc failed:") _
+						OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "backend:") _
 						OrElse InStr(*res(i), "ld.exe") > 0) Then
 						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
