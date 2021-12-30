@@ -6028,7 +6028,7 @@ Dim Shared exedate As Double 'serial date
 
 Dim Shared As Long pIn, pOut
 
-Declare Function readpipe() As UString
+Declare Function readpipe() As String
 Declare Function CreatePipeD(szCmd As WString Ptr , szCmdParam As WString Ptr = 0 , szCmdParam2 As WString Ptr = 0) As Long
 
 #ifdef __FB_WIN32__
@@ -6170,12 +6170,12 @@ Function CreatePipeD(szCmd As WString Ptr, szCmdParam As WString Ptr = 0 , szCmd
 	
 End Function
 
-Function readpipe() As UString
+Function readpipe() As String
 	
 	#ifdef __FB_WIN32__
 		
 		Dim As Integer iTotalBytesAvail,iNumberOfBytesWritten
-		Dim As UString sRet
+		Dim As String sRet
 		Static As ZString * 50000 sBuf
 		For i As Long = 0 To 10000
 			PeekNamedPipe(hReadPipe, NULL, NULL, NULL, Cast(Any Ptr, @iTotalBytesAvail), NULL)
@@ -6300,11 +6300,11 @@ Declare Function timer_data() As Integer
 
 Sub run_pipe_write(ByRef s As WString , iTime As Long = 1)
 	
-	killtimer(0, 0)
+	killtimer(0, CurrentTimer)
 	
 	writepipe(s, iTime)
 	
-	settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+	CurrentTimer = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 	
 End Sub
 
@@ -6484,7 +6484,6 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 			EndIf
 			
 			If Len(sFile) AndAlso Len(sPos) AndAlso Len(sLine) Then
-				
 				Dim As TabWindow Ptr tb = AddTab(sFile)
 				If tb Then
 					ChangeEnabledDebug True, False, True
@@ -6568,11 +6567,11 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 '					
 '					Disablegadget(E_BUT_COMMAND , 1)
 					
+					killtimer(0, CurrentTimer)
+					
 					iFlagUpdateVariables = 0
 					
 					iCounterUpdateVariables = 0
-					
-					killtimer(0, 0)
 					
 					DeleteDebugCursor
 					
@@ -6643,7 +6642,7 @@ Function timer_data() As Integer
 			
 			kill_debug()
 			
-			killtimer(0, 0)
+			killtimer(0, CurrentTimer)
 			
 '			Setselecttexteditorgadget(E_EDITOR, -1 ,-1)
 '			
@@ -6656,7 +6655,7 @@ Function timer_data() As Integer
 			
 			kill_debug()
 			
-			killtimer(0, 0)
+			killtimer(0, CurrentTimer)
 			
 		Else
 			
@@ -6689,7 +6688,7 @@ Function timer_data() As Integer
 				
 				kill_debug()
 				
-				killtimer(0, 0)
+				killtimer(0, CurrentTimer)
 				
 			Else
 				
@@ -7803,15 +7802,15 @@ Sub run_debug(iFlag As Long)
 			
 			iGlPid = 0
 			
-			killtimer(0, 0)
+			killtimer(0, CurrentTimer)
 			
-			If runtype = RTSTEP Then
+			'If runtype = RTSTEP Then
 				
 				Writepipe(!"b 1\n")
 				
 				readpipe()
 				
-			End If
+			'End If
 			
 			If RunningToCursor Then
 				Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
@@ -7835,7 +7834,7 @@ Sub run_debug(iFlag As Long)
 				Next
 			Next i
 			
-			settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			CurrentTimer = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 		#else
 			
@@ -7865,7 +7864,7 @@ Sub run_debug(iFlag As Long)
 			
 			Updateinfoxserver(10)
 			
-			killtimer(0, 0)
+			killtimer(0, CurrentTimer)
 			
 			Writepipe(!"info inferiors\n")
 			
@@ -7895,7 +7894,7 @@ Sub run_debug(iFlag As Long)
 				
 			EndIf
 			
-			settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			CurrentTimer = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 '			Disablegadget(E_BUT_STEP_IN , 0)
 '			
@@ -8033,7 +8032,7 @@ Sub kill_debug()
 		
 		If iGlPid Then
 			
-			killtimer(0, 0)
+			killtimer(0, CurrentTimer)
 			
 			readpipe()
 			
@@ -8057,7 +8056,7 @@ Sub kill_debug()
 		
 		Sleep(1000)
 		
-		killtimer(0, 0)
+		killtimer(0, CurrentTimer)
 		
 	#endif
 	

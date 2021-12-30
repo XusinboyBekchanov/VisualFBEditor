@@ -733,9 +733,9 @@ Function Compile(Parameter As String = "") As Integer
 					'If nPos1 > 0 OrElse ERRGoRc Then
 						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 					If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
-						OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") OrElse StartsWith(*res(i), "compiling rc:") _
-						OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "backend:") _
-						OrElse InStr(*res(i), "ld.exe") > 0) Then
+						OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
+						OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
+						OrElse StartsWith(*res(i), "compiling rc failed:") OrElse InStr(*res(i), "ld.exe") > 0) Then
 						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
 							NumberErr += 1
