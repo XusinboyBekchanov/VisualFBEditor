@@ -2560,6 +2560,27 @@ End Sub
 	End Sub
 #endif
 
+Function TimerProcGDB() As Integer
+	If Fcurlig < 1 Then Exit Function
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+	If tb = 0 OrElse Not EqualPaths(tb->FileName, CurrentFile) Then
+		tb = AddTab(CurrentFile)
+	End If
+	If tb Then
+		ChangeEnabledDebug True, False, True
+		CurEC = @tb->txtCode
+		tb->txtCode.CurExecutedLine = Fcurlig - 1
+		tb->txtCode.SetSelection Fcurlig - 1, Fcurlig - 1, 0, 0
+		tb->txtCode.PaintControl
+		'info_all_variables_debug()
+		#ifdef __FB_WIN32__
+			SetForegroundWindow pApp->MainForm->Handle
+		#endif
+		Fcurlig = -1
+	End If
+	Return 1
+End Function
+
 Function EqualPaths(ByRef a As WString, ByRef b As WString) As Boolean
 	Dim FileNameLeft As WString Ptr
 	Dim FileNameRight As WString Ptr

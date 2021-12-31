@@ -195,7 +195,7 @@ Declare Sub ChangeUseDebugger(bUseDebugger As Boolean, ChangeObject As Integer =
 Declare Sub ChangeFileEncoding(FileEncoding As FileEncodings)
 Declare Sub ChangeNewLineType(NewLineType As NewLineTypes)
 #ifndef __USE_GTK__
-	Common Shared As UINT_PTR CurrentTimer
+	Common Shared As UINT_PTR CurrentTimer, CurrentTimerData
 	Declare Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 #endif
 Declare Function WithoutPointers(ByRef e As String) As String

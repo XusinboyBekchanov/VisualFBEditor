@@ -166,9 +166,10 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "ChangeLogWindow":                     ptabBottom->Tab(4)->SelectTab
 	Case "ImmediateWindow":                     ptabBottom->Tab(5)->SelectTab
 	Case "LocalsWindow":                        ptabBottom->Tab(6)->SelectTab
-	Case "ProcessesWindow":                     ptabBottom->Tab(7)->SelectTab
-	Case "ThreadsWindow":                       ptabBottom->Tab(8)->SelectTab
-	Case "WatchWindow":                         ptabBottom->Tab(9)->SelectTab
+	Case "GlobalsWindow":                       ptabBottom->Tab(7)->SelectTab
+	Case "ProcessesWindow":                     ptabBottom->Tab(8)->SelectTab
+	Case "ThreadsWindow":                       ptabBottom->Tab(9)->SelectTab
+	Case "WatchWindow":                         ptabBottom->Tab(10)->SelectTab
 	Case "ImageManager":                        pfImageManager->Show *pfrmMain
 	Case "Toolbars":                            'ShowMainToolbar = Not ShowMainToolbar: ReBar1.Visible = ShowMainToolbar: pfrmMain->RequestAlign
 	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: ReBar1.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolbar: pfrmMain->RequestAlign
@@ -199,6 +200,8 @@ Sub mClick(Sender As My.Sys.Object)
 				If iFlagStartDebug = 0 Then
 					If UseDebugger Then
 						runtype = RTFRUN
+						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+						CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 						ThreadCounter(ThreadCreate_(@StartDebuggingWithCompile))
 					Else
 						ThreadCounter(ThreadCreate_(@CompileAndRun))
@@ -232,6 +235,8 @@ Sub mClick(Sender As My.Sys.Object)
 			If iFlagStartDebug = 0 Then
 				If UseDebugger Then
 					runtype= RTFRUN
+					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+					CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 					ThreadCounter(ThreadCreate_(@StartDebugging))
 				Else
 					ThreadCounter(ThreadCreate_(@RunProgram))
@@ -310,6 +315,8 @@ Sub mClick(Sender As My.Sys.Object)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 			If iFlagStartDebug = 0 Then
 				runtype = RTSTEP
+				CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+				CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			Else
 				step_debug("s")
@@ -335,6 +342,8 @@ Sub mClick(Sender As My.Sys.Object)
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 			If iFlagStartDebug = 0 Then
+				CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+				CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			Else
 				step_debug("n")
@@ -407,6 +416,8 @@ Sub mClick(Sender As My.Sys.Object)
 						continue_debug
 					Else
 						RunningToCursor = True
+						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+						CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 						ThreadCounter(ThreadCreate_(@StartDebugging))
 					End If
 				Else

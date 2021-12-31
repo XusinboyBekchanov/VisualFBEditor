@@ -6043,6 +6043,16 @@ Declare Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 Declare Sub info_all_variables_debug(iFlagUpdate As Long = 0)
 Declare Sub deinit()
 
+Dim Shared As ZString * 200000 szDataForPipe
+
+Dim Shared As Long iVersionGdb
+
+Dim Shared As String CurrentFile
+
+Dim Shared As Integer iPosStartLast, iPosEndLast, iCurselLast, TimerID
+
+Declare Function timer_data() As Integer
+
 Dim Shared As HANDLE hReadPipe, hWritePipe
 
 #ifndef pid_t
@@ -6057,7 +6067,7 @@ Dim Shared As Long iGlPid
 
 Dim Shared As Long iFlagThreadSignal, iFlagUpdateVariables
 
-Dim Shared As Long iCounterUpdateVariables, iFlagStartDebug, iStateMenu = 2
+Dim Shared As Long iCounterUpdateVariables, iFlagStartDebug, iStateMenu = 1
 
 Function GetPartPath(sPath As String) As String Export
 	
@@ -6290,21 +6300,13 @@ End Function
 	
 #endif
 
-Dim Shared As ZString*200000 szDataForPipe
-
-Dim Shared As Long iVersionGdb
-
-Dim Shared As Integer iPosStartLast , iPosEndLast , iCurselLast
-
-Declare Function timer_data() As Integer
-
 Sub run_pipe_write(ByRef s As WString , iTime As Long = 1)
 	
-	killtimer(0, CurrentTimer)
+	killtimer(0, TimerID)
 	
 	writepipe(s, iTime)
 	
-	CurrentTimer = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+	TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 	
 End Sub
 
@@ -6484,18 +6486,20 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 			EndIf
 			
 			If Len(sFile) AndAlso Len(sPos) AndAlso Len(sLine) Then
-				Dim As TabWindow Ptr tb = AddTab(sFile)
-				If tb Then
-					ChangeEnabledDebug True, False, True
-					CurEC = @tb->txtCode
-					tb->txtCode.CurExecutedLine = Val(sLine) - 1
-					tb->txtCode.SetSelection Val(sLine) - 1, Val(sLine) - 1, 0, 0
-					tb->txtCode.PaintControl
-					info_all_variables_debug()
-					#ifdef __FB_WIN32__
-						SetForegroundWindow pApp->MainForm->Handle
-					#endif
-				End If
+				CurrentFile = sFile
+				Fcurlig = Val(sLine)
+'				Dim As TabWindow Ptr tb = AddTab(sFile)
+'				If tb Then
+'					ChangeEnabledDebug True, False, True
+'					CurEC = @tb->txtCode
+'					tb->txtCode.CurExecutedLine = Val(sLine) - 1
+'					tb->txtCode.SetSelection Val(sLine) - 1, Val(sLine) - 1, 0, 0
+'					tb->txtCode.PaintControl
+'					info_all_variables_debug()
+'					#ifdef __FB_WIN32__
+'						SetForegroundWindow pApp->MainForm->Handle
+'					#endif
+'				End If
 				
 '				For i As Long = 0 To UBound(sfiles_array)
 '					
@@ -6567,7 +6571,9 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 '					
 '					Disablegadget(E_BUT_COMMAND , 1)
 					
-					killtimer(0, CurrentTimer)
+					killtimer(0, TimerID)
+					
+					killtimer(0, CurrentTimerData)
 					
 					iFlagUpdateVariables = 0
 					
@@ -6642,7 +6648,7 @@ Function timer_data() As Integer
 			
 			kill_debug()
 			
-			killtimer(0, CurrentTimer)
+			killtimer(0, TimerID)
 			
 '			Setselecttexteditorgadget(E_EDITOR, -1 ,-1)
 '			
@@ -6655,7 +6661,7 @@ Function timer_data() As Integer
 			
 			kill_debug()
 			
-			killtimer(0, CurrentTimer)
+			killtimer(0, TimerID)
 			
 		Else
 			
@@ -6688,7 +6694,7 @@ Function timer_data() As Integer
 				
 				kill_debug()
 				
-				killtimer(0, CurrentTimer)
+				killtimer(0, TimerID)
 				
 			Else
 				
@@ -7620,14 +7626,14 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 	
 	Updateinfoxserver(60)
 	
-	writepipe(!"info functions\n" , 100)
-	
-	Updateinfoxserver(10)
-	
-	sTemp = readpipe()
-	
-	If Len(sTemp) Then
-		
+'	writepipe(!"info functions\n" , 100)
+'	
+'	Updateinfoxserver(10)
+'	
+'	sTemp = readpipe()
+'	
+'	If Len(sTemp) Then
+'		
 '		get_main_file_from_exe(sTemp)
 '		
 '		If iIndexMainFile <> 0 Then
@@ -7643,12 +7649,12 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 '			iIndexMainFile = 0
 '			
 '		EndIf
-		
-	EndIf
+'		
+'	EndIf
 	
 	'Setwindowtext(pd.mDLG , sFileTemp)
 	
-	Updateinfoxserver(5)
+'	Updateinfoxserver(5)
 	
 End Function
 
@@ -7802,15 +7808,15 @@ Sub run_debug(iFlag As Long)
 			
 			iGlPid = 0
 			
-			killtimer(0, CurrentTimer)
+			killtimer(0, TimerID)
 			
-			'If runtype = RTSTEP Then
+			If runtype = RTSTEP Then
 				
 				Writepipe(!"b 1\n")
 				
 				readpipe()
 				
-			'End If
+			End If
 			
 			If RunningToCursor Then
 				Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
@@ -7834,7 +7840,7 @@ Sub run_debug(iFlag As Long)
 				Next
 			Next i
 			
-			CurrentTimer = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 		#else
 			
@@ -7864,7 +7870,7 @@ Sub run_debug(iFlag As Long)
 			
 			Updateinfoxserver(10)
 			
-			killtimer(0, CurrentTimer)
+			killtimer(0, TimerID)
 			
 			Writepipe(!"info inferiors\n")
 			
@@ -7894,7 +7900,7 @@ Sub run_debug(iFlag As Long)
 				
 			EndIf
 			
-			CurrentTimer = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 '			Disablegadget(E_BUT_STEP_IN , 0)
 '			
@@ -8032,7 +8038,7 @@ Sub kill_debug()
 		
 		If iGlPid Then
 			
-			killtimer(0, CurrentTimer)
+			killtimer(0, TimerID)
 			
 			readpipe()
 			
@@ -8056,7 +8062,7 @@ Sub kill_debug()
 		
 		Sleep(1000)
 		
-		killtimer(0, CurrentTimer)
+		killtimer(0, TimerID)
 		
 	#endif
 	
@@ -8335,7 +8341,7 @@ Sub RunWithDebug(Param As Any Ptr)
 					
 					iFlagStartDebug = 1
 					
-					CurrentTimer = settimer(0, 0, 20, Cast(Any Ptr , @timer_data()))
+					TimerID = settimer(0, 0, 20, Cast(Any Ptr , @timer_data()))
 					
 					run_debug(1)
 					
