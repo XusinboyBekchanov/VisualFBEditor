@@ -76,11 +76,11 @@ Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
-Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals
+Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabDebug
-Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
+Dim Shared As TreeView tvExplorer, tvVar, tvThd, tvWch ', tvPrc
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
 Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As Form frmMain
@@ -231,11 +231,11 @@ Sub SelectError(ByRef FileName As WString, iLine As Integer, tabw As TabWindow P
 	tb->txtCode.SetSelection iLine - 1, iLine - 1, 0, tb->txtCode.LineLength(iLine - 1)
 End Sub
 
-Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr)
+Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
 	'CellEditor = @cboPropertyValue
 End Sub
 
-Sub lvProperties_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString)
+Sub lvProperties_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
 	PropertyChanged Sender, NewText, False
 End Sub
 
@@ -453,7 +453,7 @@ Function Compile(Parameter As String = "") As Integer
 	ThreadsEnter()
 	ClearMessages
 	ThreadsLeave()
-	FileOut = FreeFile
+	FileOut = FreeFile_
 	If Dir(*exename) <> "" Then 'delete exe if exist
 		If *exename = ExePath OrElse Kill(*exename) <> 0 Then
 			ThreadsEnter()
@@ -605,7 +605,7 @@ Function Compile(Parameter As String = "") As Integer
 	Dim As Long nLen, nLen2
 	Dim As Boolean Log2_, ERRGoRc
 	
-	Dim As Integer Result = -1, Fn = FreeFile
+	Dim As Integer Result = -1, Fn = FreeFile_
 	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 	#ifdef __USE_GTK__
 		WLetEx(PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True)
@@ -626,7 +626,9 @@ Function Compile(Parameter As String = "") As Integer
 			While Not EOF(Fn)
 				Line Input #Fn, Buff
 				If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
+				ThreadsEnter()
 				ShowMessages(Buff, False)
+				ThreadsLeave()
 				'nPos1 = -1
 				'nPos = InStr(Buff, ":")
 				'If nPos < 1 Then nPos = InStr(Buff, " ")
@@ -666,7 +668,7 @@ Function Compile(Parameter As String = "") As Integer
 					End If
 				End If
 			Wend
-			Close #Fn
+			CloseFile_(Fn)
 		End If
 	#else
 		#define BufferSize 2048
@@ -779,7 +781,7 @@ Function Compile(Parameter As String = "") As Integer
 	'Delete the default ManifestFile And IcoFile
 	If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
 	#ifdef __USE_GTK__
-		Fn = FreeFile
+		Fn = FreeFile_
 		Result = -1
 		Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
@@ -807,7 +809,7 @@ Function Compile(Parameter As String = "") As Integer
 				'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
 				Log2_ = True
 			Wend
-			Close #Fn
+			CloseFile_(Fn)
 		End If
 	#endif
 	ThreadsEnter()
@@ -893,7 +895,7 @@ Sub CreateKeyStore
 			ShowMessages ML("File") & " " & *Project->FileName & "/gradle.properties " & ML("not found!")
 			Exit Sub
 		End If
-		Dim As Integer Fn = FreeFile
+		Dim As Integer Fn = FreeFile_
 		Dim pBuff As WString Ptr
 		Dim As Integer FileSize
 		Open *Project->FileName & "/gradle.properties" For Input As #Fn
@@ -907,7 +909,7 @@ Sub CreateKeyStore
 				Exit Do
 			End If
 		Loop
-		Close #Fn
+		CloseFile_(Fn)
 		If JavaHome = "" Then
 			ShowMessages ML("org.gradle.java.home not specified in file gradle.properties!")
 			Exit Sub
@@ -958,7 +960,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 			ShowMessages ML(ML("File ") & "local.properties" & ML(" not found!"))
 			Exit Sub
 		End If
-		Dim As Integer Fn = FreeFile
+		Dim As Integer Fn = FreeFile_
 		Open *Project->FileName & "/local.properties" For Input As #Fn
 		Dim SDKDir As UString
 		Dim pBuff As WString Ptr
@@ -972,7 +974,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 				Exit Do
 			End If
 		Loop
-		Close #Fn
+		CloseFile_(Fn)
 		If SDKDir = "" Then
 			ShowMessages ML("Sdk.dir not specified in file local.properties!")
 			Exit Sub
@@ -981,7 +983,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 			ShowMessages ML(ML("File ") & *Project->FileName & "/app/build.gradle" & ML(" not found!"))
 			Exit Sub
 		End If
-		Fn = FreeFile
+		Fn = FreeFile_
 		Open *Project->FileName & "/app/build.gradle" For Input As #Fn
 		Dim buildToolsVersion As String
 		FileSize = LOF(Fn)
@@ -993,7 +995,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 				Exit Do
 			End If
 		Loop
-		Close #Fn
+		CloseFile_(Fn)
 		If buildToolsVersion = "" Then
 			ShowMessages ML("buildToolsVersion not found in file app/build.gradle!")
 			Exit Sub
@@ -1304,7 +1306,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		Dim As String IconName
 		Dim As String ZvFile
 		Dim Buff As WString * 1024 ' for V1.07 Line Input not working fine
-		Dim As Integer Fn = FreeFile
+		Dim As Integer Fn = FreeFile_
 		Dim Result As Integer = -1
 		If bNew Then ZvFile = "*" Else ZvFile = ""
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
@@ -1433,7 +1435,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					ppe->CreateDebugInfo = CBool(Mid(Buff, Pos1 + 1))
 				End If
 			Loop
-			Close #Fn
+			CloseFile_(Fn)
 		End If
 		If pFilesList = 0 Then
 			For i As Integer = 0 To pFiles->Count - 1
@@ -1488,7 +1490,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 	AddMRUSession FileName
 	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 	Dim As WStringList Files
-	Dim As Integer Fn = FreeFile
+	Dim As Integer Fn = FreeFile_
 	Dim Result As Integer = -1 '
 	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
@@ -1531,7 +1533,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		Loop
 		WDeallocate filn
 		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn ' For No MainFIle
-		Close #Fn
+		CloseFile_(Fn)
 		For i As Integer = 0 To Files.Count - 1
 			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
 		Next
@@ -1694,7 +1696,7 @@ Function SaveSession() As Boolean
 	Dim As TreeNode Ptr tn1
 	Dim As Integer p
 	Dim As String Zv
-	Dim As Integer Fn =FreeFile
+	Dim As Integer Fn = FreeFile_
 	If Open(SaveD.Filename For Output Encoding "utf-8" As #Fn) = 0 Then
 		For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 			tn1 = tvExplorer.Nodes.Item(i)
@@ -1707,7 +1709,7 @@ Function SaveSession() As Boolean
 				Print #Fn, Zv & "File=" & *ee->FileName
 			End If
 		Next
-		Close #Fn
+		CloseFile_(Fn)
 	End If
 	WDeallocate Temp
 	WDeallocate Temp2
@@ -1828,7 +1830,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 			Next
 		End If
 	Next
-	Dim As Integer Fn = FreeFile
+	Dim As Integer Fn = FreeFile_
 	If Not EndsWith(*ppe->FileName, ".vfp") Then
 		Open *ppe->FileName & "/" & GetFileName(*ppe->FileName) & ".vfp" For Output Encoding "utf-8" As #Fn
 		For i As Integer = 0 To ppe->Files.Count - 1
@@ -1897,7 +1899,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "CompilationArguments64Linux=""" & *ppe->CompilationArguments64Linux & """"
 	Print #Fn, "CommandLineArguments=""" & *ppe->CommandLineArguments & """"
 	Print #Fn, "CreateDebugInfo=" & ppe->CreateDebugInfo
-	Close #Fn
+	CloseFile_(Fn)
 	'Else
 	'	MsgBox ML("Save file failure!") & Chr(13,10) & *ppe->FileName
 	'End If
@@ -2526,7 +2528,6 @@ Sub ChangeNewLineType(NewLineType As NewLineTypes)
 End Sub
 
 Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
-	ThreadsEnter()
 	tbtStartWithCompile->Enabled = bStart
 	tbtStart->Enabled = bStart
 	tbtBreak->Enabled = bBreak
@@ -2536,7 +2537,6 @@ Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	mnuBreak->Enabled = bBreak
 	mnuEnd->Enabled = bEnd
 	mnuRestart->Enabled = bStart
-	ThreadsLeave()
 End Sub
 
 #ifndef __USE_GTK__
@@ -2561,7 +2561,7 @@ End Sub
 #endif
 
 Function TimerProcGDB() As Integer
-	If Fcurlig < 1 Then Exit Function
+	If Fcurlig < 1 Then Return 1
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
 	If tb = 0 OrElse Not EqualPaths(tb->FileName, CurrentFile) Then
 		tb = AddTab(CurrentFile)
@@ -2573,7 +2573,7 @@ Function TimerProcGDB() As Integer
 		tb->txtCode.SetSelection Fcurlig - 1, Fcurlig - 1, 0, 0
 		tb->txtCode.PaintControl
 		'info_all_variables_debug()
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			SetForegroundWindow pApp->MainForm->Handle
 		#endif
 		Fcurlig = -1
@@ -2875,7 +2875,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			Next
 		End With
 	Else
-		Dim As Integer ff = FreeFile
+		Dim As Integer ff = FreeFile_
 		Result = Open(PathFunction For Input Encoding "utf-32" As #ff)
 		If Result <> 0 Then Result = Open(PathFunction For Input Encoding "utf-16" As #ff)
 		If Result <> 0 Then Result = Open(PathFunction For Input Encoding "utf-8" As #ff)
@@ -2886,7 +2886,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				Line Input #ff, b
 				Lines.Add b
 			Loop
-			Close #ff
+			CloseFile_(ff)
 		End If
 	End If
 	For i As Integer = 0 To Lines.Count - 1
@@ -3622,6 +3622,7 @@ End Sub
 tlock = MutexCreate()
 tlockSave = MutexCreate()
 tlockToDo = MutexCreate()
+tlockGDB = MutexCreate()
 Sub LoadFunctionsSub(Param As Any Ptr)
 	MutexLock tlock
 	If Not FormClosing Then
@@ -3666,7 +3667,7 @@ Sub LoadHelp
 		parDifferencesFromQB
 		parSeeAlso
 	End Enum
-	Dim As Integer Fn = FreeFile
+	Dim As Integer Fn = FreeFile_
 	WLet KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt"
 	Open *KeywordsHelpPath For Input As #Fn
 	Dim As TypeElement Ptr te, te1
@@ -3796,7 +3797,7 @@ Sub LoadHelp
 			bStart = False
 		End If
 	Loop
-	Close #Fn
+	CloseFile_(Fn)
 End Sub
 
 Sub LoadToolBox
@@ -4185,7 +4186,7 @@ Sub LoadLanguageTexts
 		CurLanguage = "English"
 	Else
 		Dim As Integer i, Pos1
-		Dim As Integer Fn = FreeFile, Result
+		Dim As Integer Fn = FreeFile_, Result
 		Dim Buff As WString * 2048 '
 		Dim As UString FileName = ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
@@ -4201,13 +4202,13 @@ Sub LoadLanguageTexts
 					mlTexts.Add Trim(Mid(Buff, Pos1 + 1), " ")
 				End If
 			Loop
-			Close #Fn
+			CloseFile_(Fn)
 		End If
 	End If
 End Sub
 
 Sub LoadHotKeys
-	Dim As Integer Fn = FreeFile, Pos1
+	Dim As Integer Fn = FreeFile_, Pos1
 	Dim As String Buff
 	Open ExePath & "/Settings/Others/HotKeys.txt" For Input As #Fn
 	While Not EOF(Fn)
@@ -4217,7 +4218,7 @@ Sub LoadHotKeys
 			HotKeys.Add Left(Buff, Pos1 - 1), Mid(Buff, Pos1 + 1)
 		End If
 	Wend
-	Close #Fn
+	CloseFile_(Fn)
 End Sub
 
 #ifdef __USE_GTK__
@@ -4288,6 +4289,15 @@ Function HK(Key As String, Default As String = "") As String
 		Return !"\t" & HotKey
 	End If
 End Function
+
+Sub GDBCommand
+	fTheme.Text = ML("GDB Command")
+	fTheme.lblThemeName.Text = ML("Type command:")
+	If fTheme.ShowModal() = ModalResults.OK Then
+		'ShowResult = True
+		command_debug fTheme.txtThemeName.Text
+	End If
+End Sub
 
 Sub CreateMenusAndToolBars
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("Create Menus And ToolBars")
@@ -4373,6 +4383,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Down", "Down"
 	imgList.Add "Sort", "Sort"
 	imgList.Add "EnumItem", "EnumItem"
+	imgList.Add "Update", "Update"
 	imgListD.Add "StartWithCompileD", "StartWithCompile"
 	imgListD.Add "StartD", "Start"
 	imgListD.Add "BreakD", "Break"
@@ -4560,7 +4571,7 @@ Sub CreateMenusAndToolBars
 	miOtherWindows->Add(ML("Immediate Window") & HK("ImmediateWindow"), "ImmediateWindow", "ImmediateWindow", @mclick)
 	miOtherWindows->Add(ML("Locals Window") & HK("LocalsWindow"), "LocalsWindow", "LocalsWindow", @mclick)
 	miOtherWindows->Add(ML("Globals Window") & HK("GlobalsWindow"), "GlobalsWindow", "GlobalsWindow", @mclick)
-	miOtherWindows->Add(ML("Processes Window") & HK("ProcessesWindow"), "ProcessesWindow", "ProcessesWindow", @mclick)
+	'miOtherWindows->Add(ML("Procedures Window") & HK("ProceduresWindow"), "ProceduresWindow", "ProceduresWindow", @mclick)
 	miOtherWindows->Add(ML("Threads Window") & HK("ThreadsWindow"), "ThreadsWindow", "ThreadsWindow", @mclick)
 	miOtherWindows->Add(ML("Watch Window") & HK("WatchWindow"), "Watch", "WatchWindow", @mclick)
 	miView->Add("-")
@@ -4617,6 +4628,7 @@ Sub CreateMenusAndToolBars
 	miDebug->Add(ML("Step O&ut") & HK("StepOut", "Ctrl+Shift+F8"), "", "StepOut", @mclick)
 	miDebug->Add(ML("&Run To Cursor") & HK("RunToCursor", "Ctrl+F8"), "", "RunToCursor", @mclick)
 	miDebug->Add("-")
+	miDebug->Add(ML("&GDB Command") & HK("GDBCommand"), "", "GDBCommand", @mclick)
 	miDebug->Add(ML("&Add Watch") & HK("AddWatch"), "", "AddWatch", @mclick)
 	miDebug->Add("-")
 	miDebug->Add(ML("&Toggle Breakpoint") & HK("Breakpoint", "F9"), "Breakpoint", "Breakpoint", @mclick)
@@ -4641,7 +4653,7 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add(ML("&Tools") & "..." & HK("Tools"), "", "Tools", @mclick)
 	miXizmat->Add("-")
 	Dim As My.Sys.Drawing.BitmapType Bitm
-	Dim As Integer Fn = FreeFile
+	Dim As Integer Fn = FreeFile_
 	Dim As WString * 1024 Buff
 	Dim As MenuItem Ptr mi
 	Dim As UserToolType Ptr tt
@@ -4685,7 +4697,7 @@ Sub CreateMenusAndToolBars
 				End If
 			End If
 		Loop
-		Close #Fn
+		CloseFile_(Fn)
 	End If
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mclick)
@@ -5980,10 +5992,28 @@ Sub tabRight_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	End If
 End Sub
 
+tvVar.Visible = False
 tvVar.Align = DockStyle.alClient
-tvPrc.Align = DockStyle.alClient
+'tvPrc.Align = DockStyle.alClient
+tvThd.Visible = False
 tvThd.Align = DockStyle.alClient
+tvWch.Visible = False 
 tvWch.Align = DockStyle.alClient
+tvWch.EditLabels = True
+tvWch.Nodes.Add
+
+Sub lvThreads_ItemActivate(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+	If Val(item->Text(1)) = 0 Then Exit Sub
+	SelectSearchResult(item->Text(2), Val(item->Text(1)))
+End Sub
+
+lvThreads.Align = DockStyle.alClient
+lvThreads.Columns.Add ML("Procedure"), , 500
+lvThreads.Columns.Add ML("Line"), , 50
+lvThreads.Columns.Add ML("File"), , 500
+lvThreads.StateImages = @imgListStates
+lvThreads.Images = @imgListStates
+lvThreads.OnItemActivate = @lvThreads_ItemActivate
 
 Sub tvVar_Message(ByRef Sender As Control, ByRef message As Message)
 	#ifndef __USE_GTK__
@@ -6048,22 +6078,70 @@ End Sub
 
 lvLocals.Align = DockStyle.alClient
 lvLocals.ContextMenu = @mnuVars
+lvLocals.EditLabels = True
 lvLocals.Columns.Add ML("Variable"), , 150
 lvLocals.Columns.Add ML("Value"), , 500
 lvLocals.Columns.Add ML("Type"), , 500
+lvLocals.Columns.Column(1)->Editable = True
 lvLocals.StateImages = @imgListStates
 lvLocals.Images = @imgListStates
 lvLocals.OnItemExpanding = @lvVar_ItemExpanding
 
 lvGlobals.Align = DockStyle.alClient
 lvGlobals.ContextMenu = @mnuVars
-lvGlobals.Visible = False
+lvGlobals.EditLabels = True
 lvGlobals.Columns.Add ML("Variable"), , 150
 lvGlobals.Columns.Add ML("Value"), , 500
 lvGlobals.Columns.Add ML("Type"), , 500
+lvGlobals.Columns.Column(1)->Editable = True
 lvGlobals.StateImages = @imgListStates
 lvGlobals.Images = @imgListStates
 lvGlobals.OnItemExpanding = @lvVar_ItemExpanding
+
+Sub lvWatches_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
+	If Item = 0 Then Exit Sub
+	If SubItemIndex > 0 Then Exit Sub
+	If Item->ParentItem > 0 Then
+		Cancel = True
+	End If
+End Sub
+
+Sub lvWatches_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
+	If Item = 0 Then Exit Sub
+	If SubItemIndex > 0 Then Exit Sub
+	If NewText = "" Then
+		WatchIndex = -1
+		If Item->Index <> lvWatches.Nodes.Count - 1 Then
+			lvWatches.Nodes.Remove Item->Index
+		End If
+	Else
+		WatchIndex = Item->Index
+		command_debug "print " & UCase(NewText)
+		If Item->Index = lvWatches.Nodes.Count - 1 Then
+			lvWatches.Nodes.Add
+		End If
+	End If
+	If lvWatches.Nodes.Count = 1 Then
+		ptabBottom->Tabs[9]->Caption = ML("Watches")
+	Else
+		ptabBottom->Tabs[9]->Caption = ML("Watches") & " (" & Str(lvWatches.Nodes.Count - 1) & " " & ML("Pos") & ")"
+	End If
+End Sub
+
+lvWatches.Align = DockStyle.alClient
+lvWatches.ContextMenu = @mnuVars
+lvWatches.EditLabels = True
+lvWatches.Columns.Add ML("Variable"), , 150
+lvWatches.Columns.Add ML("Value"), , 500
+lvWatches.Columns.Add ML("Type"), , 500
+lvWatches.Columns.Column(0)->Editable = True
+lvWatches.Columns.Column(1)->Editable = True
+lvWatches.StateImages = @imgListStates
+lvWatches.Images = @imgListStates
+lvWatches.OnItemExpanding = @lvVar_ItemExpanding
+lvWatches.OnCellEditing = @lvWatches_CellEditing
+lvWatches.OnCellEdited = @lvWatches_CellEdited
+lvWatches.Nodes.Add
 
 Sub tabRight_Click(ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
@@ -6256,7 +6334,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 		If Key = Keys.Key_Enter Then
 			'
 			SaveAll
-			Dim As Integer Fn =FreeFile
+			Dim As Integer Fn = FreeFile_
 			Open ExePath & "/Temp/FBTemp.bas" For Output Encoding "utf-8" As #Fn
 			'Print #Fn, "#Include Once " + Chr(34) + "mff/SysUtils.bas"+Chr(34)
 			For i As Integer =0 To iLine
@@ -6269,7 +6347,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			Else
 				Print #Fn, "Print Str(" & Trim(*sLine) & " & Space(1024))" 'space for wstring
 			End If
-			Close #Fn
+			CloseFile_(Fn)
 			Dim As WString Ptr FbcExe, ExeName
 			If tbt32Bit->Checked Then
 				FbcExe = Compiler32Path
@@ -6282,7 +6360,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			Dim As WString Ptr ErrFileName, ErrTitle
 			Dim As Integer nLen, nLen2
 			WLet(LogText, "")
-			Fn = FreeFile
+			Fn = FreeFile_
 			Dim Result As Integer=-1 '
 			Result = Open(ExePath & "/Temp/Compile1.log" For Input As #Fn)
 			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile1.log" For Input Encoding "utf-16" As #Fn)
@@ -6295,8 +6373,8 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 					WAdd LogText, *ErrTitle & !"\r"
 				Wend
 			End If
-			Close #Fn
-			Fn = FreeFile
+			CloseFile_(Fn)
+			Fn = FreeFile_
 			Result =-1
 			Result = Open(ExePath & "/Temp/Compile2.log" For Input Encoding "utf-8" As #Fn)
 			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile2.log" For Input Encoding "utf-16" As #Fn)
@@ -6308,7 +6386,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 					WAdd LogText, Trim(Buff) & !"\r"
 				Wend
 			End If
-			Close #Fn
+			CloseFile_(Fn)
 			Key = 0
 			If WGet(LogText) <> "" Then
 				MsgBox !"Compile error:\r\r" & *LogText, , mtWarning
@@ -6319,7 +6397,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 					WLet(ExeName, ExePath & "\Temp\FBTemp.exe") ' > output.txt
 				#endif
 				PipeCmd "",  *ExeName
-				Fn =FreeFile
+				Fn = FreeFile_
 				If Open Pipe(*ExeName For Input Encoding "utf-8" As #Fn) = 0 Then '
 					Dim As Integer i
 					While Not EOF(Fn)
@@ -6332,7 +6410,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 						frmMain.Update
 					Wend
 				End If
-				Close #Fn
+				CloseFile_(Fn)
 				Kill *ExeName
 			End If
 			WDeallocate ExeName
@@ -6548,9 +6626,10 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 		'		splBottom.Visible = True
 		'		frmMain.RequestAlign '<bp>
 	End If
-	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = ptabBottom->SelectedTabIndex = 0
-	tbBottom.Buttons.Item("AddWatch")->Visible = ptabBottom->SelectedTabIndex = 9
-	tbBottom.Buttons.Item("RemoveWatch")->Visible = ptabBottom->SelectedTabIndex = 9
+	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = newIndex = 0
+	tbBottom.Buttons.Item("AddWatch")->Visible = newIndex = 9
+	tbBottom.Buttons.Item("RemoveWatch")->Visible = newIndex = 9
+	tbBottom.Buttons.Item("Update")->Visible = newIndex = 7
 	If MainNode <>0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text,".") Then
 		If ptabBottom->SelectedTabIndex = 4 AndAlso CInt(Not mLoadLog) Then ' AndAlso CInt(Not mLoadToDo)
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
@@ -6628,6 +6707,7 @@ tbBottom.Buttons.Add tbsSeparator
 tbBottom.Buttons.Add , "Eraser", , @mClick, "EraseOutputWindow", "", ML("Erase output window"), , tstEnabled
 tbBottom.Buttons.Add , "Add", , @mClick, "AddWatch", "", ML("Add Watch"), , tstEnabled
 tbBottom.Buttons.Add , "Remove", , @mClick, "RemoveWatch", "", ML("Remove Watch"), , tstEnabled
+tbBottom.Buttons.Add tbsCheck, "Update", , @mClick, "Update", "", ML("Update"), , tstEnabled
 'tbBottom.Buttons.Item("AddWatch")->Visible = False
 'tbBottom.Buttons.Item("RemoveWatch")->Visible = False
 tbBottom.Flat = True
@@ -6652,7 +6732,7 @@ ptabBottom->AddTab(ML("Change Log"))
 ptabBottom->AddTab(ML("Immediate"))
 ptabBottom->AddTab(ML("Locals"))
 ptabBottom->AddTab(ML("Globals"))
-ptabBottom->AddTab(ML("Processes"))
+'ptabBottom->AddTab(ML("Procedures"))
 ptabBottom->AddTab(ML("Threads"))
 ptabBottom->AddTab(ML("Watches"))
 ptabBottom->Tabs[0]->Add @txtOutput
@@ -6662,11 +6742,13 @@ ptabBottom->Tabs[3]->Add @lvToDo
 ptabBottom->Tabs[4]->Add @txtChangeLog
 ptabBottom->Tabs[5]->Add @txtImmediate
 ptabBottom->Tabs[6]->Add @lvLocals
+ptabBottom->Tabs[6]->Add @tvVar
 ptabBottom->Tabs[7]->Add @lvGlobals
-ptabBottom->Tabs[7]->Add @tvVar
-ptabBottom->Tabs[8]->Add @tvPrc
-ptabBottom->Tabs[9]->Add @tvThd
-ptabBottom->Tabs[10]->Add @tvWch
+'ptabBottom->Tabs[8]->Add @tvPrc
+ptabBottom->Tabs[8]->Add @lvThreads
+ptabBottom->Tabs[8]->Add @tvThd
+ptabBottom->Tabs[9]->Add @lvWatches
+ptabBottom->Tabs[9]->Add @tvWch
 ptabBottom->OnClick = @tabBottom_Click
 ptabBottom->OnDblClick = @tabBottom_DblClick
 ptabBottom->OnSelChange = @tabBottom_SelChange
@@ -6876,31 +6958,11 @@ Sub frmMain_Create(ByRef Sender As Control)
 	Case 1: tbtConsole->Checked = True
 	Case 2: tbtGUI->Checked = True
 	End Select
-	Var file = Command(-1)
-	Var Pos1 = InStr(file, "2>CON")
-	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
-	If file = "" Then
-		Select Case WhenVisualFBEditorStarts
-		Case 1: 'pfTemplates->ShowModal
-		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
-		Case 3:
-			' , Auto Load the last one.
-			Select Case LastOpenedFileType
-			Case 0: OpenFiles *RecentFiles
-			Case 1: OpenFiles *RecentSession
-			Case 2: OpenFiles *RecentFolder
-			Case 3: OpenFiles *RecentProject
-			Case 4: OpenFiles *RecentFile
-			End Select
-		End Select
-	Else
-		OpenFiles file
-	End If
 	#ifndef __USE_GTK__
 		windmain = frmMain.Handle
 		htab2    = ptabCode->Handle
 		tviewVar = tvVar.Handle
-		tviewPrc = tvPrc.Handle
+		'tviewPrc = tvPrc.Handle
 		tviewThd = tvThd.Handle
 		tviewWch = tvWch.Handle
 		DragAcceptFiles(frmMain.Handle, True)
@@ -7074,22 +7136,41 @@ Sub frmMain_Show(ByRef Sender As Control)
 	
 	pfSplash->CloseForm
 	
-	Var FILE = Command(-1)
+	Var file = Command(-1)
 	Var Pos1 = InStr(file, "2>CON")
 	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
-	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
-		OpenFiles GetFullPath(FILE)
+	If file <> "" AndAlso Right(LCase(file), 4) <> ".exe" Then
+		OpenFiles GetFullPath(file)
 	ElseIf bFind Then
-		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
 		Select Case WhenVisualFBEditorStarts
 		Case 1: NewProject 'pfTemplates->ShowModal
-		Case 2: AddNew WGet(DefaultProjectFile)
-		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
-			'Auto Load the last one.
-			OpenFiles GetFullPath(*RecentFiles)
+		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
+		Case 3:
+			Select Case LastOpenedFileType
+			Case 0: OpenFiles *RecentFiles
+			Case 1: OpenFiles *RecentSession
+			Case 2: OpenFiles *RecentFolder
+			Case 3: OpenFiles *RecentProject
+			Case 4: OpenFiles *RecentFile
+			End Select
 		End Select
 	End If
-	If ShowTipoftheDay Then pfTipOfDay->ShowModal *pfrmMain
+'	Var FILE = Command(-1)
+'	Var Pos1 = InStr(file, "2>CON")
+'	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
+'	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
+'		OpenFiles GetFullPath(FILE)
+'	ElseIf bFind Then
+'		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+'		Select Case WhenVisualFBEditorStarts
+'		Case 1: NewProject 'pfTemplates->ShowModal
+'		Case 2: AddNew WGet(DefaultProjectFile)
+'		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+'			'Auto Load the last one.
+'			OpenFiles GetFullPath(*RecentFiles)
+'		End Select
+'	End If
+	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
 	
 End Sub
 
@@ -7141,6 +7222,10 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	Dim tn As TreeNode Ptr
 	Dim tnP As TreeNode Ptr
 	Dim Index As Integer
+	If iFlagStartDebug = 1 Then
+		NewCommand = !"q\n"
+		MutexUnlock tlockGDB
+	End If
 	With *pfSave
 		.lstFiles.Clear
 		For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
@@ -7329,7 +7414,6 @@ frmMain.Add @splRight
 frmMain.Add @pnlBottom
 frmMain.Add @splBottom
 frmMain.Add ptabCode
-
 frmMain.Show
 
 Sub OnProgramStart() Constructor
@@ -7390,6 +7474,7 @@ Sub OnProgramQuit() Destructor
 	MutexDestroy tlockToDo
 	MutexDestroy tlock
 	MutexDestroy tlockSave
+	MutexDestroy tlockGDB
 	Dim As UserToolType Ptr tt
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To Tools.Count - 1

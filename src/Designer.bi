@@ -242,7 +242,7 @@ Namespace My.Sys.Forms
 		Controls As List
 		#ifdef __USE_GTK__
 			cr As cairo_t Ptr
-			layoutwidget As GtkWidget Ptr
+			'layoutwidget As GtkWidget Ptr
 			overlay As GtkWidget Ptr
 			layout As GtkWidget Ptr
 			FSelControl    As GtkWidget Ptr
@@ -271,17 +271,17 @@ Namespace My.Sys.Forms
 		Declare        Sub GetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
 		Declare        Function CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer,y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
 		Declare        Function CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
-		OnChangeSelection  As Sub(ByRef Sender As Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
-		OnDeleteControl    As Sub(ByRef Sender As Designer, Control As Any Ptr)
-		OnModified         As Sub(ByRef Sender As Designer, Control As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
-		OnInsertControl    As Sub(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
-		OnInsertComponent  As Sub(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
-		OnInsertObject     As Sub(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr)
-		OnInsertingControl As Sub(ByRef Sender As Designer, ByRef ClassName As String, ByRef sName As String)
-		OnMouseMove        As Sub(ByRef Sender As Designer, X As Integer, Y As Integer, ByRef Over As Any Ptr)
-		OnDblClickControl  As Sub(ByRef Sender As Designer, Control As Any Ptr)
-		OnClickMenuItem    As Sub(ByRef Sender As Designer, MenuItem As Any Ptr)
-		OnClickProperties  As Sub(ByRef Sender As Designer, Control As Any Ptr)
+		OnChangeSelection  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
+		OnDeleteControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
+		OnModified         As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
+		OnInsertControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+		OnInsertComponent  As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
+		OnInsertObject     As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Obj As Any Ptr)
+		OnInsertingControl As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, ByRef sName As String)
+		OnMouseMove        As Sub(ByRef Sender As My.Sys.Forms.Designer, X As Integer, Y As Integer, ByRef Over As Any Ptr)
+		OnDblClickControl  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
+		OnClickMenuItem    As Sub(ByRef Sender As My.Sys.Forms.Designer, MenuItem As Any Ptr)
+		OnClickProperties  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
 		Declare            Function ClassExists() As Boolean
 		'declare static     function GetClassName(hDlg as HWND) as string
 		#ifdef __USE_GTK__

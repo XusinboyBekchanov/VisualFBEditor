@@ -7,6 +7,11 @@
 '#########################################################
 
 #include once "Debug.bi"
+#ifdef __USE_GTK__
+	#include once "crt.bi"
+'	#include once "crt/linux/fcntl.bi"
+'	#include once "crt/mem.bi"
+#endif
 
 Dim Shared exename As WString *300 'debuggee executable
 Dim Shared mainfolder As WString * 300 'debuggee main folder
@@ -232,16 +237,6 @@ Dim Shared exedate As Double 'serial date
 	'#EndIf
 	
 	runtype = RTOFF
-	
-	Sub DeleteDebugCursor
-		If CurEC <> 0 Then
-			Var curEC2 = curEC
-			Fcurlig = -1
-			CurEC->CurExecutedLine = -1
-			CurEC = 0
-			curEC2->Repaint
-		End If
-	End Sub
 	
 	'#IfNDef __USE_GTK__
 	Private Function excep_lib(e As Integer) As String 'not managed exception
@@ -722,11 +717,12 @@ Dim Shared exedate As Double 'serial date
 			End If
 		End If
 	End Sub
-	
+#endif
+
 	Function String_to_ZString_Ptr(ByRef s_ZString_Ptr As ZString Ptr) As ZString Ptr
 		Return s_ZString_Ptr
 	End Function
-	
+
 	Private Function cutup_names(strg As String) As String
 		'"__ZN9TESTNAMES2XXE:S1
 		Dim As Integer Pos1 = InStr(strg, ":")
@@ -762,10 +758,12 @@ Dim Shared exedate As Double 'serial date
 		'		'Return "NS : "+nm+"."+nm2
 		'		Return nm+"."+nm2 '17/01/2015
 	End Function
+	
+#ifndef __USE_GTK__
 	Private Function cutup_array(gv As String,d As Integer,f As Byte) As Integer
 		Dim As Integer p=d,q,c
 		
-		If arrnb>ARRMAX Then Msgbox(ML("Max array reached: can't store")):Exit Function
+		If arrnb > ARRMAX Then Msgbox(ML("Max array reached: can't store")): Exit Function
 		arrnb+=1
 		
 		'While gv[p-1]=Asc("a")
@@ -1186,7 +1184,7 @@ Dim Shared exedate As Double 'serial date
 				If UCase(Left(vname,InStr(vname,":")))<>Left(vname,InStr(vname,":")) Then
 					Exit Sub 'don't keep  <lower case name>:t, keep <upper case name>:t  => enum
 				End If
-			ElseIf InStr(vname,"_ZTSN")<>0  orelse InStr(vname,"_ZTVN")<>0 then
+			ElseIf InStr(vname,"_ZTSN")<>0  OrElse InStr(vname,"_ZTVN")<>0 Then
 				Exit Sub 'don't keep _ZTSN or _ZTVN (extra data for class) or with double underscore  __Z
 			End If
 			If Left(vname,2)="_{" Then Exit Sub '_{fbdata}_<label name>  07/04/2014
@@ -1500,13 +1498,13 @@ Dim Shared exedate As Double 'serial date
 	udt(7).nm="Void":udt(7).lg=Len(Integer)'4 12/07/2015
 	udt(7).index=7'dwarf
 	'12/07/2015
-	#Ifdef __FB_64BIT__
+	#ifdef __FB_64BIT__
 		udt(8).nm="Ulong":udt(8).lg=Len(ULong)
-	#Else
+	#else
 		udt(8).nm="Uinteger":udt(8).lg=Len(UInteger)
-	#EndIf
+	#endif
 	'12/07/2015
-	#Ifdef __FB_64BIT__
+	#ifdef __FB_64BIT__
 		udt(9).nm="Integer":udt(9).lg=Len(Integer)
 	#else
 		udt(9).nm="Longint":udt(9).lg=Len(LongInt)
@@ -4842,28 +4840,28 @@ Dim Shared exedate As Double 'serial date
 		Return udt(proc(prcnb).rv).nm
 	End Function
 	
-	Private Sub proc_sh()
-		Dim libel As String
-		Dim tvi As TVITEM
-		SendMessage(tviewprc,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'zone proc
-		tvI.mask      = TVIF_STATE
-		tvI.statemask = TVIS_STATEIMAGEMASK
-		For j As Integer =1 To procnb
-			With proc(j)
-				If procsort=KMODULE Then 'sorted by module
-					libel=name_extract(source(.sr))+">> "+.nm+":"+proc_retval(j)
-				Else 'sorted by proc name
-					libel=.nm+":"+proc_retval(j)+"   << "+name_extract(source(.sr))
-				End If
-				If flagverbose Then libel+=" ["+Str(.db)+"]"
-				.tv=Tree_AddItem(NULL,libel, 0, tviewprc, 0)
-				tvI.hitem= .tv
-				tvI.state= INDEXTOSTATEIMAGEMASK(.st)
-				sendmessage(tviewprc,TVM_SETITEM,0,Cast(LPARAM,@tvi))
-			End With
-		Next
-		SendMessage(tviewprc,TVM_SORTCHILDREN ,0,0) 'Activate to sort elements
-	End Sub
+'	Private Sub proc_sh()
+'		Dim libel As String
+'		Dim tvi As TVITEM
+'		SendMessage(tviewprc,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'zone proc
+'		tvI.mask      = TVIF_STATE
+'		tvI.statemask = TVIS_STATEIMAGEMASK
+'		For j As Integer =1 To procnb
+'			With proc(j)
+'				If procsort=KMODULE Then 'sorted by module
+'					libel=name_extract(source(.sr))+">> "+.nm+":"+proc_retval(j)
+'				Else 'sorted by proc name
+'					libel=.nm+":"+proc_retval(j)+"   << "+name_extract(source(.sr))
+'				End If
+'				If flagverbose Then libel+=" ["+Str(.db)+"]"
+'				.tv=Tree_AddItem(NULL,libel, 0, tviewprc, 0)
+'				tvI.hitem= .tv
+'				tvI.state= INDEXTOSTATEIMAGEMASK(.st)
+'				sendmessage(tviewprc,TVM_SETITEM,0,Cast(LPARAM,@tvi))
+'			End With
+'		Next
+'		SendMessage(tviewprc,TVM_SORTCHILDREN ,0,0) 'Activate to sort elements
+'	End Sub
 	
 	'focus box
 	Dim Shared focusbx   As HWND
@@ -4946,9 +4944,9 @@ Dim Shared exedate As Double 'serial date
 			dump_sh()
 			'but_enable()
 			
-			If tviewcur = tviewprc Then
-				proc_sh
-			ElseIf tviewcur = tviewthd Then '25/01/2015
+'			If tviewcur = tviewprc Then
+'				proc_sh
+			If tviewcur = tviewthd Then '25/01/2015
 				thread_text
 			End If
 			'      If flagfollow=TRUE AndAlso focusbx<>0 Then
@@ -5955,7 +5953,7 @@ Dim Shared exedate As Double 'serial date
 		brkol(0).ad=0   'no break on cursor
 		
 		SendMessage(tviewvar,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'procs/vars
-		SendMessage(tviewprc,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'procs
+		'SendMessage(tviewprc,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'procs
 		SendMessage(tviewthd,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'threads
 		
 		'ShowWindow(tviewcur,SW_HIDE):tviewcur=tviewvar:ShowWindow(tviewcur,SW_SHOW)
@@ -6028,7 +6026,7 @@ Dim Shared exedate As Double 'serial date
 
 Dim Shared As Long pIn, pOut
 
-Declare Function readpipe() As String
+Declare Function readpipe(WithoutAnswer As Boolean = False) As String
 Declare Function CreatePipeD(szCmd As WString Ptr , szCmdParam As WString Ptr = 0 , szCmdParam2 As WString Ptr = 0) As Long
 
 #ifdef __FB_WIN32__
@@ -6041,22 +6039,56 @@ Declare Sub writepipe(ByRef szBuf As ZString, iTime As Long = 1)
 Declare Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As Long
 Declare Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0) 
 Declare Sub info_all_variables_debug(iFlagUpdate As Long = 0)
+Declare Sub info_loc_variables_debug(iFlagAutoUpdate As Long = 0)
+Declare Sub info_threads_debug(iFlagAutoUpdate As Long = 0)
 Declare Sub deinit()
+
+Dim Shared As Boolean Running, ShowResult
 
 Dim Shared As ZString * 200000 szDataForPipe
 
 Dim Shared As Long iVersionGdb
 
-Dim Shared As String CurrentFile
+Dim Shared As String CurrentFile, NewCommand
 
-Dim Shared As Integer iPosStartLast, iPosEndLast, iCurselLast, TimerID
+Dim Shared As Integer iPosStartLast, iPosEndLast, iCurselLast, TimerID, WatchIndex
 
 Declare Function timer_data() As Integer
 
-Dim Shared As HANDLE hReadPipe, hWritePipe
+Declare Sub continue_debug()
 
-#ifndef pid_t
-    #define pid_t Long
+#ifndef __FB_WIN32__
+	#include "crt/unistd.bi"
+	
+	Extern "C"
+		
+		Declare Function fdopen(fildes As Long, mode As ZString Ptr) As FILE Ptr
+		Declare Function kill_ Alias "kill" ( pid As pid_t, sig As Integer) As Integer	
+		Declare Function poll(ufds As Any Ptr, nfds As ULong, timeout As Long) As Long
+		Declare Function ioctl Alias "ioctl" (fd As Integer, request As ULong, ...) As Integer
+		Declare Function _access Alias "access" (ByVal As ZString Ptr, ByVal As Long) As Long
+	End Extern
+	
+	#define SIGKILL 9
+	#define FIONREAD    &h541B
+	
+	Type pollfd
+		
+		As Long fd          '/* РѕРїРёСЃР°С‚РµР»СЊ С„Р°Р№Р»Р° */
+		As Short events     '/* Р·Р°РїСЂРѕС€РµРЅРЅС‹Рµ СЃРѕР±С‹С‚РёСЏ */
+		As Short revents    '/* РІРѕР·РІСЂР°С‰РµРЅРЅС‹Рµ СЃРѕР±С‹С‚РёСЏ */	
+		
+	End Type
+	
+	Dim Shared As pid_t pid
+	
+	Dim Shared As Long 	iReadPipe(1), iWritePipe(1)
+#else
+	Dim Shared As HANDLE hReadPipe, hWritePipe
+	
+	#ifndef pid_t
+	    #define pid_t Long
+	#endif
 #endif
 
 #ifdef __FB_WIN32__
@@ -6069,7 +6101,58 @@ Dim Shared As Long iFlagThreadSignal, iFlagUpdateVariables
 
 Dim Shared As Long iCounterUpdateVariables, iFlagStartDebug, iStateMenu = 1
 
-Function GetPartPath(sPath As String) As String Export
+#ifdef __USE_GTK__
+	Dim Shared As Guint w9T(50)
+	
+	Sub KillTimer (hwnd As Any Ptr = 0, idTimer As Long)
+		
+		g_source_remove_ (w9T(idTimer))
+		
+		w9T(idTimer) = 0
+	
+	End Sub
+	
+	Function SetTimer (hwnd As Any Ptr = 0, ByRef idTimer As Long, iElapse As Long, pTimerProc As Any Ptr) As Long
+		
+		Dim As Guint pTimer
+		
+		Dim As Long IDTimer_ = idTimer
+		If idTimer = 0 Then IDTimer_ = 1
+		
+		If w9T(IDTimer_) <> 0 Then
+		
+			'KillTimer(0, IDTimer_)
+	
+		EndIf
+		
+'		If pTimerProc = 0 Then
+'		
+'			pTimer = g_timeout_add(iElapse , @timersfunc, @idTimer)
+'			
+'		Else
+		
+			pTimer = g_timeout_add(iElapse, pTimerProc, @IDTimer_)
+	
+		'EndIf
+		
+		w9T(IDTimer_) = pTimer
+		
+		Return IDTimer_
+	
+	End Function
+#endif
+
+Sub DeleteDebugCursor
+	If CurEC <> 0 Then
+		Var curEC2 = curEC
+		Fcurlig = -1
+		CurEC->CurExecutedLine = -1
+		CurEC = 0
+		curEC2->Repaint
+	End If
+End Sub
+
+Function GetPartPath(sPath As String) As String
 	
 	Dim As Long iPos = InStrRev(sPath , "/")
 	
@@ -6112,19 +6195,19 @@ Function CreatePipeD(szCmd As WString Ptr, szCmdParam As WString Ptr = 0 , szCmd
 		si.hStdError   = hWriteChildPipe
 		si.hStdInput   = hReadChildPipe
 		
-		If CreateProcess(0,*szCmd & " " & *szCmdParam & " " & *szCmdParam2,0,0,True,DETACHED_PROCESS,0,0,@si,@pi) = 0 Then
+		If CreateProcess(0, *szCmd & " " & *szCmdParam & " " & *szCmdParam2, 0, 0, True, DETACHED_PROCESS, 0, 0, @si, @pi) = 0 Then
 			MessageBox(0,"Error creating a child process","",MB_ICONERROR)
 		EndIf
 		Closehandle(hWriteChildPipe)
 		Closehandle(hReadChildPipe)
-		Sleep(300)
+		'Sleep(300)
 		Return pi.dwProcessId
 		
 	#else
 		
 		If szCmdParam2 AndAlso Len(*szCmdParam2) Then
 			
-			Dim As String sPath = Replacestring(*szCmdParam2 , " " , "\ " , , ,1)
+			Dim As String sPath = Replace(*szCmdParam2 , " ", "\ ", , , 1)
 			
 			ChDir(GetPartPath(sPath))
 			
@@ -6150,15 +6233,19 @@ Function CreatePipeD(szCmd As WString Ptr, szCmdParam As WString Ptr = 0 , szCmd
 			
 			close_(iReadPipe(1))
 			
+			Dim As ZString * 1000 szCmd_ = *szCmd, szCmdParam_ = *szCmdParam, szCmdParam2_ = *szCmdParam2
+			
+			If LCase(szCmd_) = "gdb" Then szCmd_ = "usr/bin/gdb"
+			
 			If szCmdParam  Then
 				
-				execl(szCmd, szCmd, szCmdParam , szCmdParam2 , NULL)
+				execl(@szCmd_, @szCmd_, @szCmdParam_, @szCmdParam2_, NULL)
 				
 			Else
 				
-				execl(szCmd, szCmd, NULL)
+				execl(@szCmd_, @szCmd_, NULL)
 				
-			EndIf			
+			EndIf
 			
 		ElseIf pid > 0 Then
 			
@@ -6180,67 +6267,111 @@ Function CreatePipeD(szCmd As WString Ptr, szCmdParam As WString Ptr = 0 , szCmd
 	
 End Function
 
-Function readpipe() As String
+Function readpipe(WithoutAnswer As Boolean = False) As String
+	
+	Dim As String sRet
 	
 	#ifdef __FB_WIN32__
 		
-		Dim As Integer iTotalBytesAvail,iNumberOfBytesWritten
-		Dim As String sRet
-		Static As ZString * 50000 sBuf
-		For i As Long = 0 To 10000
-			PeekNamedPipe(hReadPipe, NULL, NULL, NULL, Cast(Any Ptr, @iTotalBytesAvail), NULL)
-			If iTotalBytesAvail > 0 Then
-				While iTotalBytesAvail > 0
-					iTotalBytesAvail = IIf(iTotalBytesAvail > 49999, 49999, iTotalBytesAvail)
-					memset(@sBuf, 0, 50000)
-					ReadFile(hReadPipe, @sBuf, iTotalBytesAvail, Cast(Any Ptr, @iNumberOfBytesWritten), NULL)
-					sRet &= Left(sBuf, iNumberOfBytesWritten)
-					For i As Long = 0 To 10000
-						PeekNamedPipe(hReadPipe, NULL, NULL, NULL, Cast(Any Ptr, @iTotalBytesAvail), NULL)
-						If iTotalBytesAvail Then Exit For
-					Next  
-				Wend
-				Return Trim(sRet)
+		#define BufferSize 2048
+		Dim As Integer Count
+		Dim sBuffer As ZString * BufferSize
+		Dim sOutput As UString
+		Dim bytesRead As DWORD
+		Dim result_ As Integer
+		Dim s As String = ""
+		Dim As Integer iNumberOfBytesWritten
+		Do
+			result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+			sBuffer = Left(sBuffer, bytesRead)
+			sOutput += sBuffer
+			Count = Count + 1
+			If sBuffer = "--Type <RET> for more, q to quit, c to continue without paging--" Then
+				writepipe !"\n"
 			End If
-		Next
+			ShowMessages sBuffer, False
+			'?sBuffer
+		Loop While Not (CBool(InStr(sOutput, Chr(10) & "(gdb) ")) OrElse CBool(InStr(sOutput, "~*~(gdb) ")) OrElse IIf(WithoutAnswer, CBool(sOutput = "(gdb) "), StartsWith(sOutput, "(gdb) ") AndAlso CBool(Len(sOutput) > 6 OrElse Count > 1)))
+		'WriteFile(hWritePipe, @s, Len(s), Cast(Any Ptr, @iNumberOfBytesWritten), NULL) =  '
+		sRet = sOutput
+		
+'		Dim As Integer iTotalBytesAvail,iNumberOfBytesWritten
+'		Dim As String sRet
+'		Static As ZString * 50000 sBuf
+'		For i As Long = 0 To 10000
+'			PeekNamedPipe(hReadPipe, NULL, NULL, NULL, Cast(Any Ptr, @iTotalBytesAvail), NULL)
+'			If iTotalBytesAvail > 0 Then
+'				While iTotalBytesAvail > 0
+'					iTotalBytesAvail = IIf(iTotalBytesAvail > 49999, 49999, iTotalBytesAvail)
+'					memset(@sBuf, 0, 50000)
+'					ReadFile(hReadPipe, @sBuf, iTotalBytesAvail, Cast(Any Ptr, @iNumberOfBytesWritten), NULL)
+'					sRet &= Left(sBuf, iNumberOfBytesWritten)
+'					For i As Long = 0 To 10000
+'						PeekNamedPipe(hReadPipe, NULL, NULL, NULL, Cast(Any Ptr, @iTotalBytesAvail), NULL)
+'						If iTotalBytesAvail Then Exit For
+'					Next  
+'				Wend
+'				Return Trim(sRet)
+'			End If
+'		Next
 		
 	#else
+		
+		Dim As Integer Count
 		
 		Dim As Integer iTotalBytesAvail
 		
 		Dim As ZString Ptr pszTempBuf
 		
-		Dim As String sRet
-		
 		Dim As pollfd pfds(0)
 		
-		pfds(0).fd = pIn
+		Dim sOutput As String
 		
-		pfds(0).events = 1
-		
-		poll(@pfds(0), 1, 30)
-		
-		If pfds(0).revents And 1 Then
+		Do
 			
-			ioctl(pIn, FIONREAD, @iTotalBytesAvail)
+			pfds(0).fd = pIn
 			
-			If iTotalBytesAvail>0 Then
+			pfds(0).events = 1
+			
+			poll(@pfds(0), 1, 30)
+			
+			If pfds(0).revents And 1 Then
 				
-				pszTempBuf = CAllocate(iTotalBytesAvail+1)
+				ioctl(pIn, FIONREAD, @iTotalBytesAvail)
 				
-				read_(pIn, pszTempBuf, iTotalBytesAvail)
-				
-				If Len(*pszTempBuf) Then
+				If iTotalBytesAvail>0 Then
 					
-					sRet = *pszTempBuf
+					pszTempBuf = CAllocate(iTotalBytesAvail+1)
+					
+					read_(pIn, pszTempBuf, iTotalBytesAvail)
+					
+					If Len(*pszTempBuf) Then
+						
+						sOutput &= *pszTempBuf
+						
+						If *pszTempBuf = "--Type <RET> for more, q to quit, c to continue without paging--" Then
+							
+							writepipe !"\n"
+							
+						ElseIf *pszTempBuf <> "" Then
+							
+							'?*pszTempBuf
+							
+						End If
+						
+					EndIf
+					
+					Deallocate(pszTempBuf)
 					
 				EndIf
 				
-				Deallocate(pszTempBuf)
-				
 			EndIf
 			
-		EndIf
+			Count = Count + 1
+			
+		Loop While Not (CBool(InStr(sOutput, Chr(10) & "(gdb) ")) OrElse CBool(InStr(sOutput, "~*~(gdb) ")) OrElse IIf(WithoutAnswer, CBool(sOutput = "(gdb) "), StartsWith(sOutput, "(gdb) ") AndAlso CBool(Len(sOutput) > 6 OrElse Count > 1)))
+		
+		sRet = sOutput
 		
 	#endif
 	
@@ -6253,7 +6384,7 @@ End Function
 	Sub Writepipe(ByRef s As ZString, iTime As Long = 30)
 		Dim As Integer iNumberOfBytesWritten
 		WriteFile(hWritePipe, @s, Len(s), Cast(Any Ptr, @iNumberOfBytesWritten), NULL)
-		Sleep (iTime)
+		'Sleep (iTime)
 	End Sub 
 	
 #else
@@ -6262,9 +6393,9 @@ End Function
 		
 		write_(pOut, @szBuf, Len(szBuf))
 		
-		Updateinfoxserver
+		'Updateinfoxserver
 		
-		Sleep(iTime)
+		'Sleep(iTime)
 		
 	End Sub
 	
@@ -6272,7 +6403,7 @@ End Function
 		
 		write_(pOut , @szBuf , Len(szBuf))
 		
-		Sleep(iTime)
+		'Sleep(iTime)
 		
 	End Sub
 	
@@ -6302,11 +6433,11 @@ End Function
 
 Sub run_pipe_write(ByRef s As WString , iTime As Long = 1)
 	
-	killtimer(0, TimerID)
+	'killtimer(0, TimerID)
 	
 	writepipe(s, iTime)
 	
-	TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+	'TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 	
 End Sub
 
@@ -6319,14 +6450,22 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 		If iF1 Then
 			
 			'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
-			ShowMessages Mid(szDataForPipe, 1, iF1 - 1), False
+			
+			ThreadsEnter
+			
+			ShowMessages Replace(Mid(szDataForPipe, 1, iF1 - 1), Chr(26), "→"), False
 			
 			fill_locals_variables(Mid(szDataForPipe, iF1 + 3), 1)
 			
+			ThreadsLeave
+			
 		Else
 			
+			ThreadsEnter
 			'Pasteeditor(E_EDITOR, szDataForPipe)
 			If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
+			
+			ThreadsLeave
 			
 		EndIf
 		
@@ -6338,22 +6477,31 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 		
 		If iF1 Then
 			
+			ThreadsEnter
 			'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
 			ShowMessages Mid(szDataForPipe , 1 , iF1 - 1), False
 			
 			fill_all_variables(Mid(szDataForPipe, iF1))
 			
+			ThreadsLeave
+			
 		ElseIf iF2 Then
 			
+			ThreadsEnter
 			'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF2-1))
 			ShowMessages Mid(szDataForPipe , 1 , iF2 - 1), False
 			
-			fill_all_variables(Mid(szDataForPipe , iF2+3))			
+			fill_all_variables(Mid(szDataForPipe , iF2 + 3))			
+			
+			ThreadsLeave
 			
 		Else
 			
+			ThreadsEnter
 			'Pasteeditor(E_EDITOR, szDataForPipe)
 			If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
+			
+			ThreadsLeave
 			
 		EndIf
 		
@@ -6365,15 +6513,21 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 			
 			If iF1 Then
 				
+				ThreadsEnter
 				'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1-1))
-				ShowMessages Mid(szDataForPipe, 1, iF1 - 1), False
+				ShowMessages Replace(Mid(szDataForPipe, 1, iF1 - 1), Chr(26), "→"), False
 				
 				fill_locals_variables(Mid(szDataForPipe, iF1 + 3), 1)
 				
+				ThreadsLeave
+				
 			Else
 				
+				ThreadsEnter
 				'Pasteeditor(E_EDITOR, szDataForPipe)
 				If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
+				
+				ThreadsLeave
 
 				If iFupd Then
 					
@@ -6393,22 +6547,31 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 			
 			If iF1 Then
 				
+				ThreadsEnter
 				'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF1 - 1))
 				ShowMessages Mid(szDataForPipe , 1 , iF1 - 1), False
 				
 				fill_all_variables(Mid(szDataForPipe , iF1))
 				
+				ThreadsLeave
+				
 			ElseIf iF2 Then
 				
+				ThreadsEnter
 				'Pasteeditor(E_EDITOR, Mid(szDataForPipe , 1 , iF2-1))
 				ShowMessages Mid(szDataForPipe , 1 , iF2 - 1), False
 				
-				fill_all_variables(Mid(szDataForPipe , iF2+3))
+				fill_all_variables(Mid(szDataForPipe , iF2 + 3))
+				
+				ThreadsLeave
 				
 			Else
 				
+				ThreadsEnter
 				'Pasteeditor(E_EDITOR, szDataForPipe)
 				If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
+				
+				ThreadsLeave
 
 				If iFupd Then
 					
@@ -6422,8 +6585,11 @@ Sub paste_updatevar(iFlagStepParam As Long , iFupd As Long)
 			
 		Else
 			
+			ThreadsEnter
 			'Pasteeditor(E_EDITOR, szDataForPipe)
 			If Len(Trim(szDataForPipe)) Then ShowMessages szDataForPipe, False
+			
+			ThreadsLeave
 			
 			If iFupd Then
 				
@@ -6441,7 +6607,7 @@ End Sub
 
 Function line_highlight(iFlagStepParam As Long = 0) As Long
 	
-	Dim As Long iFind = InStr(szDataForPipe , Chr(26,26))
+	Dim As Long iFind = InStr(szDataForPipe, Chr(26, 26))
 	
 	If iFind Then
 		
@@ -6553,43 +6719,13 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 '					
 '					Linescrolleditor(E_EDITOR,10000000)
 '					
-					iFlagStartDebug = 0
-'					
-'					Setimagegadget(E_BUT_RUN , bmp(0))
-'					
-'					Disablegadget(E_BUT_STEP_IN , 1)
-'					
-'					Disablegadget(E_BUT_STEP_OUT , 1)
-'					
-'					Disablegadget(E_BUT_CONTINUE , 1)
-'					
-'					Disablegadget(E_BUT_KILL , 1)
-'					
-'					Disablegadget(E_BUT_UPDATEL , 1)
-'					
-'					Disablegadget(E_BUT_UPDATEGL , 1)
-'					
-'					Disablegadget(E_BUT_COMMAND , 1)
-					
-					killtimer(0, TimerID)
-					
-					killtimer(0, CurrentTimerData)
-					
-					iFlagUpdateVariables = 0
-					
-					iCounterUpdateVariables = 0
-					
-					DeleteDebugCursor
-					
-					ThreadsEnter()
-					
-					ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": 0 - " & Err2Description(0))
-					
-					ThreadsLeave()
+					ThreadsEnter
 					
 					deinit
 					
-					ChangeEnabledDebug True, False, False
+					'ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": 0 - " & Err2Description(0))
+					
+					ThreadsLeave()
 					
 					Return 1
 					
@@ -6618,9 +6754,9 @@ Function timer_data() As Integer
 	
 	Static As Long iReset , iReset2
 	
-	?iFlagThreadSignal
+	'?iFlagThreadSignal
 	
-	If szDataForPipe <> "" Then ?szDataForPipe
+	'If szDataForPipe <> "" Then ?szDataForPipe
 	
 	If iFlagThreadSignal = 10 Then
 		
@@ -6648,7 +6784,7 @@ Function timer_data() As Integer
 			
 			kill_debug()
 			
-			killtimer(0, TimerID)
+			'killtimer(0, TimerID)
 			
 '			Setselecttexteditorgadget(E_EDITOR, -1 ,-1)
 '			
@@ -6661,7 +6797,7 @@ Function timer_data() As Integer
 			
 			kill_debug()
 			
-			killtimer(0, TimerID)
+			'killtimer(0, TimerID)
 			
 		Else
 			
@@ -6694,7 +6830,7 @@ Function timer_data() As Integer
 				
 				kill_debug()
 				
-				killtimer(0, TimerID)
+				'killtimer(0, TimerID)
 				
 			Else
 				
@@ -6836,49 +6972,49 @@ Sub set_macroses()
 	
 	writepipe(s, 100)
 	
-	readpipe()
+	'readpipe()
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
 	s = !"define _l_\ninfo args\ninfo locals\nend\n"
 	
 	writepipe(s, 100)
 	
-	readpipe()
+	'readpipe()
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
 	s = !"define _sg_\ns\n_g_\nend\n"
 	
 	writepipe(s, 100)
 	
-	readpipe()
+	'readpipe()
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
 	s = !"define _sl_\ns\nprintf ""~*~""\n_l_\nend\n"
 	
 	writepipe(s, 100)
 	
-	readpipe()
+	'readpipe()
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
 	s = !"define _ng_\nn\n_g_\nend\n"
 	
 	writepipe(s, 100)
 	
-	readpipe()
+	'readpipe()
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
 	s = !"define _nl_\nn\nprintf ""~*~""\n_l_\nend\n"
 	
 	writepipe(s, 100)
 	
-	readpipe()
+	'readpipe()
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
 End Sub
 
@@ -6973,6 +7109,8 @@ Function get_global_variables_from_exe(sBuf As String) As Long
 		
 	Loop
 	
+	ptabBottom->Tabs[7]->Caption = ML("Globals") & " (" & lvGlobals.Nodes.Count & " " & ML("Pos") & ")"
+	
 	Return iIndex
 	
 End Function
@@ -7034,6 +7172,44 @@ Function get_type_str(sLine As String) As Long
 		EndIf
 		
 	#endif
+End Function
+
+Function fill_threads(sBuf As String, iFlagAutoUpdate As Long = 0) As Long
+	
+	lvThreads.Nodes.Clear
+	
+	Dim As UString res()
+	
+		#ifdef __USE_GTK__
+	    Split(sBuf, Chr(10), res())
+		#else
+			Split(sBuf, Chr(13, 10), res())
+		#endif
+	
+	For i As Integer = 0 To UBound(res)
+		
+		If StartsWith(res(i), "Thread") Then
+			lvThreads.Nodes.Insert 0, res(i)
+		ElseIf StartsWith(res(i), "#") Then
+			Var Pos0 = InStr(res(i), " ")
+			Var Pos1 = InStr(res(i), " at ")
+			If Pos1 > 0 Then
+				Var Pos2 = InStrRev(res(i), ":")
+				Var tn = lvThreads.Nodes.Item(0)->Nodes.Add(Mid(Left(res(i), Pos1 - 1), Pos0 + 1))
+				tn->Text(1) = Mid(res(i), Pos2 + 1)
+				tn->Text(2) = GetFullPath(Mid(res(i), Pos1 + 4, Pos2 - Pos1 - 4))
+			Else
+				lvThreads.Nodes.Item(0)->Nodes.Add Mid(res(i), Pos0 + 1)
+			End If
+		End If
+		
+	Next
+	
+	lvThreads.ExpandAll
+	ptabBottom->Tabs[8]->Caption = ML("Threads") & " (" & lvThreads.Nodes.Count & " " & ML("Pos") & ")"
+	
+	Return 1
+	
 End Function
 
 Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As Long
@@ -7214,6 +7390,8 @@ Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As 
 		
 	Loop
 	
+	ptabBottom->Tabs[6]->Caption = ML("Locals") & " (" & lvLocals.Nodes.Count & " " & ML("Pos") & ")"
+	
 	Return 1
 	
 End Function
@@ -7253,7 +7431,7 @@ Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 	
 	Dim iItem As Long
 	
-	If iF0 Then
+	'If iF0 Then
 		
 		Dim As Long iF1 = 4 , iF2
 		
@@ -7331,25 +7509,37 @@ Sub fill_all_variables(sBuf As String , iFlagUpdate As Long = 0)
 			
 		Loop
 		
-		Dim As String s = Mid(sBuf , iF0+16)
+'		Dim As String s = Mid(sBuf , iF0+16)
+'		
+'		ThreadsEnter
+'		
+'		fill_locals_variables(s)
+'		
+'		ThreadsLeave
 		
-		fill_locals_variables(s)
-		
-	Else
-		
-		If Left(sBuf , 3) = "~^~" Then
-			
-			Dim As String s = Mid(sBuf , 4)
-			
-			fill_locals_variables(s)
-			
-		Else
-			
-			fill_locals_variables(sBuf)
-			
-		EndIf
-		
-	EndIf
+'	Else
+'		
+'		If Left(sBuf , 3) = "~^~" Then
+'			
+'			Dim As String s = Mid(sBuf , 4)
+'			
+'			ThreadsEnter
+'			
+'			fill_locals_variables(s)
+'			
+'			ThreadsLeave
+'			
+'		Else
+'			
+'			ThreadsEnter
+'			
+'			fill_locals_variables(sBuf)
+'			
+'			ThreadsLeave
+'			
+'		EndIf
+'		
+'	EndIf
 	
 	sPrevBuf = sBuf
 	
@@ -7539,9 +7729,17 @@ End Function
 
 Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) As Long
 	
-	If FileExists(sPathGDB) = 0 Then
+	#ifdef __USE_GTK__
+		If g_find_program_in_path(ToUtf8(sPathGDB)) = NULL Then
+	#else
+		If FileExists(sPathGDB) = 0 Then
+	#endif
+		
+		ThreadsEnter
 		
 		MsgBox("File gdb not found or is not executable.", "Error!")
+		
+		ThreadsLeave
 		
 		Return -1
 		
@@ -7549,27 +7747,32 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 	
 	If FileExists(sCurentFileExe) = 0 Then
 		
+		ThreadsEnter
+		
 		MsgBox("Source file is not executable.", "Error!")
+		
+		ThreadsLeave
 		
 		Return -1
 		
 	EndIf
 	
-	'Dim As String sFileTemp = Getwindowtext(pd.mDLG)
+	ThreadsEnter
 	
 	ShowMessages(ML("Wait, process loading..."))
 	
 	lvLocals.Nodes.Clear
 	
 	lvGlobals.Nodes.Clear
-	'Deletelistviewitemsall(E_LISTVIEW)
 	
-	Updateinfoxserver(10)
-	
+	ThreadsLeave
+		
+	'Updateinfoxserver(10)
+ 
 	iGlPid = CreatePipeD(sPathGDB,  "-f" , sCurentFileExe )
 	
-	Updateinfoxserver(150)
-	
+	'Updateinfoxserver(150)
+		
 	Dim As String sTemp = readpipe()
 	
 	If Len(sTemp) Then
@@ -7578,41 +7781,49 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 		
 	EndIf
 	
-	Updateinfoxserver(30)
+	'Updateinfoxserver(30)
 	
 	writepipe(!"set confirm off\n" , 100)
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
-	readpipe()
+	readpipe(True)
 	
-	Updateinfoxserver(30)
+	'Updateinfoxserver(30)
 	
 	writepipe(!"set lang c\n" , 100)
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
-	readpipe()	
+	readpipe(True)
 	
-	Updateinfoxserver(10)
+	writepipe(!"set width 0\n" , 100)
 	
-	writepipe(!"info sources\n" , 100)
+	readpipe(True)
 	
-	Updateinfoxserver(30)
+	writepipe(!"set height 0\n" , 100)
 	
-	sTemp = readpipe()
+	readpipe(True)
 	
-	If Len(sTemp) Then
+	'Updateinfoxserver(10)
+	
+	'writepipe(!"info sources\n" , 100)
+	
+	'Updateinfoxserver(30)
+	
+	'sTemp = readpipe()
+	
+	'If Len(sTemp) Then
 		
 		'get_name_files_from_exe(sTemp)
 		
-	EndIf
+	'EndIf
 	
-	Updateinfoxserver(10)
+	'Updateinfoxserver(10)
 	
 	writepipe(!"info variables\n" , 100)
 	
-	Updateinfoxserver(30)
+	'Updateinfoxserver(30)
 	
 	sTemp = readpipe()
 	
@@ -7624,7 +7835,7 @@ Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) A
 	
 	set_macroses()
 	
-	Updateinfoxserver(60)
+	'Updateinfoxserver(60)
 	
 '	writepipe(!"info functions\n" , 100)
 '	
@@ -7778,11 +7989,27 @@ Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0)
 				
 			Case 2
 				
+				ThreadsEnter
+				
 				fill_all_variables(szDataForPipe , iFlagAutoUpdate)
+				
+				ThreadsLeave
 				
 			Case 3
 				
+				ThreadsEnter
+				
 				fill_locals_variables(szDataForPipe , iFlagAutoUpdate)
+				
+				ThreadsLeave
+			
+			Case 4
+				
+				ThreadsEnter
+				
+				fill_threads(szDataForPipe , iFlagAutoUpdate)
+				
+				ThreadsLeave
 				
 			Case Else
 				
@@ -7798,25 +8025,47 @@ Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0)
 	
 End Sub
 
+Sub UpdateWatch(WatchIndex As Integer, Text As String)
+	Dim As String Result = Text
+	Var Pos1 = InStr(Result, "=")
+	If Pos1 > 0 Then Result = Trim(Mid(Result, Pos1 + 1))
+	If StartsWith(Result, "(gdb)") Then Result = Trim(Mid(Result, 6))
+	#ifdef __USE_GTK__
+		If StartsWith(Result, Chr(10)) Then Result = Trim(Mid(Result, 2))
+	#else
+		If StartsWith(Result, Chr(13, 10)) Then Result = Trim(Mid(Result, 3))
+	#endif
+	If EndsWith(Result, "(gdb)") Then Result = Trim(Left(Result, Len(Result) - 5))
+	If EndsWith(Result, "(gdb) ") Then Result = Trim(Left(Result, Len(Result) - 6))
+	#ifdef __USE_GTK__
+		If EndsWith(Result, Chr(10)) Then Result = Trim(Left(Result, Len(Result) - 1))
+	#else
+		If EndsWith(Result, Chr(13, 10)) Then Result = Trim(Left(Result, Len(Result) - 2))
+	#endif
+	If Result = "" Then Result = "No symbol """ & UCase(lvWatches.Nodes.Item(WatchIndex)->Text(0)) & """ in current context."
+	lvWatches.Nodes.Item(WatchIndex)->Text(1) = Result
+	If StartsWith(Result, "{") Then lvWatches.Nodes.Item(WatchIndex)->Nodes.Add Else lvWatches.Nodes.Item(WatchIndex)->Nodes.Clear
+End Sub
+
 Sub run_debug(iFlag As Long)
 	
 	iFlagThreadSignal = 0
 	
 	If iFlag Then
 		
-		#ifdef __FB_WIN32__
+		'#ifdef __FB_WIN32__
 			
 			iGlPid = 0
 			
-			killtimer(0, TimerID)
+			'killtimer(0, TimerID)
 			
-			If runtype = RTSTEP Then
+			'If runtype = RTSTEP Then
 				
 				Writepipe(!"b 1\n")
 				
 				readpipe()
 				
-			End If
+			'End If
 			
 			If RunningToCursor Then
 				Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
@@ -7826,7 +8075,7 @@ Sub run_debug(iFlag As Long)
 					Writepipe("tbreak """ & Replace(tb->FileName, "\", "/") & """:" & Str(iSelEndLine + 1) & !"\n")
 					readpipe()
 				End If
-				RunningToCursor = False 
+				RunningToCursor = False
 			End If
 			
 			Dim As TabWindow Ptr tb
@@ -7840,67 +8089,9 @@ Sub run_debug(iFlag As Long)
 				Next
 			Next i
 			
-			TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+			'TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
-		#else
-			
-'			Disablegadget(E_BUT_STEP_IN , 0)
-'			
-'			Disablegadget(E_BUT_STEP_OUT , 0)
-'			
-'			Disablegadget(E_BUT_CONTINUE , 0)
-'			
-'			Disablegadget(E_BUT_KILL , 0)
-'			
-'			Disablegadget(E_BUT_UPDATEL , 0)
-'			
-'			Disablegadget(E_BUT_UPDATEGL , 0)
-'			
-'			Disablegadget(E_BUT_COMMAND , 0)
-			
-		#endif
-		
-		run_pipe_write(!"r\n" , 300)
-		
-		memset(@szDataForPipe , 0 , 200000)
-		
-		get_read_data(1)
-		
-		#ifdef __FB_WIN32__
-			
-			Updateinfoxserver(10)
-			
-			killtimer(0, TimerID)
-			
-			Writepipe(!"info inferiors\n")
-			
-			Updateinfoxserver(10)
-			
-			Dim As String s = readpipe()
-			
-			If Len(s) Then
-				
-				Dim As Long iF1 = InStr(s, " process ")
-				
-				If iF1 Then
-					
-					s = Trim(Mid(s , iF1+9))
-					
-					Dim As Long iF1 = InStr(s, " ")
-					
-					If iF1 Then
-						
-						s = Trim(Mid(s , 1 ,  iF1-1))
-						
-						iGlPid =  Val(s)
-						
-					EndIf
-					
-				EndIf
-				
-			EndIf
-			
-			TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
+		'#else
 			
 '			Disablegadget(E_BUT_STEP_IN , 0)
 '			
@@ -7916,21 +8107,127 @@ Sub run_debug(iFlag As Long)
 '			
 '			Disablegadget(E_BUT_COMMAND , 0)
 			
-		#endif
+		'#endif
+		
+		'run_pipe_write(!"r\n" , 300)
+		writepipe !"r\n"
+		
+		MutexLock tlockGDB
+		Dim As String Result
+		Dim As Boolean bGetPid = True
+		Var Pos1 = 0
+		Running = True
+		Do
+			'memset(@szDataForPipe , 0 , 200000)
+			
+			'get_read_data(1)
+			
+			If Running Then
+				Result = readpipe(True)
+				If bGetPid Then
+					#ifdef __FB_WIN32__
+						
+						'Updateinfoxserver(10)
+						
+						'killtimer(0, TimerID)
+						
+						Writepipe(!"info inferiors\n")
+						
+						'Updateinfoxserver(10)
+						
+						Dim As String s = readpipe()
+						Result = Result & s
+						
+						If Len(s) Then
+							
+							Dim As Long iF1 = InStr(s, " process ")
+							
+							If iF1 Then
+								
+								s = Trim(Mid(s , iF1+9))
+								
+								Dim As Long iF1 = InStr(s, " ")
+								
+								If iF1 Then
+									
+									s = Trim(Mid(s , 1 ,  iF1-1))
+									
+									iGlPid =  Val(s)
+									
+								EndIf
+								
+							EndIf
+							
+						EndIf
+					#endif
+					bGetPid = False
+					If runtype <> RTSTEP Then
+						Writepipe(!"c\n")
+						Running = True
+						Continue Do
+'					Else
+'						Result = readpipe
+					End If
+				End If
+				If ShowResult Then
+					ShowMessages Result
+					ShowResult = False
+				End If
+				szDataForPipe = Result
+				Running = False
+				If WatchIndex <> -1 Then
+					ThreadsEnter
+					UpdateWatch WatchIndex, Result
+					ThreadsLeave
+					WatchIndex = -1
+				Else
+					line_highlight iStateMenu
+					If iFlagStartDebug = 0 Then Exit Do
+						info_loc_variables_debug
+					If iStateMenu = 2 Then
+						info_all_variables_debug
+					End If
+					info_threads_debug
+					ThreadsEnter
+					For i As Integer = 0 To lvWatches.Nodes.Count - 1
+						If Trim(lvWatches.Nodes.Item(i)->Text(0)) = "" Then Continue For
+						writepipe "print " & UCase(lvWatches.Nodes.Item(i)->Text(0)) & !"\n"
+						Result = readpipe
+						UpdateWatch i, Result
+					Next
+					ThreadsLeave
+				End If
+				MutexLock tlockGDB
+			ElseIf NewCommand <> "" Then
+				If NewCommand = !"q\n" Then
+					ThreadsEnter
+					ShowMessages ML("Debugging finished.")
+					deinit
+					ThreadsLeave
+					Exit Do
+				Else
+					Writepipe(NewCommand)
+				End If
+				NewCommand = ""
+				Running = True
+			End If
+		Loop
+		
+		Running = False
+		bGetPid = False
 		
 	Else
-		
-		#ifdef __FB_WIN32__
-			
-			MsgBox("In Windows, this feature does not work. If the debugging application is a console, press it Ctrl + C to suspend the process.", "Warning!")
-			
-		#else
-			
-			kill_(iGlPid , 2)
-			
-			Updateinfoxserver(10000)
-			
-		#endif
+'		#ifdef __FB_WIN32__
+'			
+'			MsgBox("In Windows, this feature does not work. If the debugging application is a console, press it Ctrl + C to suspend the process.", "Warning!")
+'			
+'		#else
+'			
+'			kill_(iGlPid , 2)
+'			
+'			Updateinfoxserver(10000)
+'			
+'		#endif
 		
 	EndIf
 	
@@ -7938,15 +8235,19 @@ End Sub
 
 Sub continue_debug()
 	
-	iFlagThreadSignal = 0
-	
-	memset(@szDataForPipe , 0 , 200000)
+'	iFlagThreadSignal = 0
+'	
+'	memset(@szDataForPipe , 0 , 200000)
 	
 	DeleteDebugCursor
 	
-	run_pipe_write(!"continue\n")
+	NewCommand = !"c\n"
 	
-	get_read_data(1)
+	MutexUnlock tLockGDB
+	
+'	run_pipe_write(!"continue\n")
+'	
+'	get_read_data(1)
 	
 End Sub
 
@@ -7966,45 +8267,54 @@ End Sub
 
 Sub command_debug(sCom As String)
 	
-	iFlagThreadSignal = 0
+	'iFlagThreadSignal = 0
 	
-	run_pipe_write(sCom & !"\n")
+	'run_pipe_write(sCom & !"\n")
 	
-	memset(@szDataForPipe , 0 , 200000)
+	NewCommand = sCom & !"\n"
 	
-	get_read_data(1)
+	'memset(@szDataForPipe , 0 , 200000)
+	
+	'get_read_data(1)
+	
+	MutexUnlock tlockGDB
 	
 End Sub
 
 Sub step_debug(s As String)
 	
-	iFlagThreadSignal = 0
+'	iFlagThreadSignal = 0
+'	
+'	Dim As Long iSleep
 	
-	Dim As Long iSleep
+'	#ifdef __FB_WIN32__
+'		iSleep = 100
+'	#else
+'		iSleep = 1
+'	#endif
 	
-	#ifdef __FB_WIN32__
-		iSleep = 100
-	#else
-		iSleep = 1
-	#endif
+'	If iStateMenu = 1 Then
+'		
+'		NewCommand = "_" & s & !"l_\n"
+'		'run_pipe_write("_" & s & !"l_\n" , iSleep)
+'		
+'	ElseIf iStateMenu = 2 Then
+'		
+'		NewCommand = "_" & s & !"g_\n"
+'		'run_pipe_write("_" & s & !"g_\n" , iSleep)
+'		
+'	Else
+		
+		NewCommand = s & !"\n"
+		'writepipefast(s & !"\n" , iSleep)
+		
+	'EndIf
 	
-	If iStateMenu = 1 Then
-		
-		run_pipe_write("_" & s & !"l_\n" , iSleep)
-		
-	ElseIf iStateMenu = 2 Then
-		
-		run_pipe_write("_" & s & !"g_\n" , iSleep)
-		
-	Else
-		
-		writepipefast(s & !"\n" , iSleep)
-		
-	EndIf
-	
-	memset(@szDataForPipe , 0 , 200000)
-	
-	get_read_data(1 , iStateMenu)
+'	memset(@szDataForPipe , 0 , 200000)
+'	
+'	get_read_data(1 , iStateMenu)
+
+	MutexUnlock tlockGDB
 	
 End Sub
 
@@ -8038,7 +8348,7 @@ Sub kill_debug()
 		
 		If iGlPid Then
 			
-			killtimer(0, TimerID)
+			'killtimer(0, TimerID)
 			
 			readpipe()
 			
@@ -8050,19 +8360,19 @@ Sub kill_debug()
 			
 		EndIf
 		
-		Updateinfoxserver(300)
+		'Updateinfoxserver(300)
 		
 	#else
 		
 		kill_(iGlPid , 2)
 		
-		Updateinfoxserver(10000)
+		'Updateinfoxserver(10000)
 		
 		run_pipe_write(!"kill\n")
 		
-		Sleep(1000)
+		'Sleep(1000)
 		
-		killtimer(0, TimerID)
+		'killtimer(0, TimerID)
 		
 	#endif
 	
@@ -8077,13 +8387,25 @@ Sub kill_debug()
 	
 End Sub
 
+Sub info_threads_debug(iFlagAutoUpdate As Long = 0)
+	
+	iFlagThreadSignal = 0
+	
+	run_pipe_write(!"thread apply all bt\n" , 100)
+	
+	'memset(@szDataForPipe , 0 , 200000)
+	
+	get_read_data(4, iFlagAutoUpdate)
+	
+End Sub
+
 Sub info_loc_variables_debug(iFlagAutoUpdate As Long = 0)
 	
 	iFlagThreadSignal = 0
 	
 	run_pipe_write(!"_l_\n" , 100)
 	
-	memset(@szDataForPipe , 0 , 200000)
+	'memset(@szDataForPipe , 0 , 200000)
 	
 	get_read_data(3 , iFlagAutoUpdate)
 	
@@ -8095,7 +8417,7 @@ Sub info_all_variables_debug(iFlagUpdate As Long = 0)
 	
 	run_pipe_write(!"_g_\n" , 100)
 	
-	memset(@szDataForPipe , 0 , 200000)
+	'memset(@szDataForPipe , 0 , 200000)
 	
 	get_read_data(2 , iFlagUpdate)
 	
@@ -8125,12 +8447,23 @@ Sub deinit()
 			Closehandle(hReadPipe)
 			Closehandle(hWritePipe)            
 		#else
-			readpipe()
+			'readpipe()
 			close_(iWritePipe(1))    
 			close_(iReadPipe(0))
 		#endif
 		
 	'EndIf
+	MutexUnlock tlockGDB
+	
+	iFlagStartDebug = 0
+	
+	iFlagUpdateVariables = 0
+	
+	iCounterUpdateVariables = 0
+	
+	DeleteDebugCursor
+	
+	ChangeEnabledDebug True, False, False
 	
 	'sCurentFileExe = ""
 	
@@ -8162,13 +8495,13 @@ Sub deinit()
 '		
 '	Next
 	
-	iFlagThreadSignal = 0
-	
-	iPosStartLast = 0 
-	
-	iPosEndLast = 0
-	
-	iCurselLast = 0
+'	iFlagThreadSignal = 0
+'	
+'	iPosStartLast = 0 
+'	
+'	iPosEndLast = 0
+'	
+'	iCurselLast = 0
 	
 	memset(@szDataForPipe , 0 , 200000)
 	
@@ -8213,12 +8546,13 @@ Sub RunWithDebug(Param As Any Ptr)
 			WLet(CmdL, Tool->GetCommand(IIf(InStr(LCase(WGet(DebuggerPath)), "gdb"), "", GetFileName(exename))))
 		End If
 	End If
+	WatchIndex = -1
 	#ifdef __USE_GTK__
-		If WGet(DebuggerPath) = "" OrElse InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
+		If WGet(DebuggerPath) = "" AndAlso *CurrentDebugger <> ML("Integrated GDB Debugger") OrElse InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
 	#else
 		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP AndAlso InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
 	#endif
-		Dim As Integer Fn = FreeFile
+		Dim As Integer Fn = FreeFile_
 		Open ExePath & "/Temp/GDBCommands.txt" For Output As #Fn
 		Print #Fn, "file """ & Replace(exename, "\", "/") & """"
 		Dim As TabWindow Ptr tb
@@ -8230,7 +8564,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			Next
 		Next i
 		Print #Fn, "r"
-		Close #Fn
+		CloseFile_(Fn)
 		WAdd(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", "") & " -x """ & ExePath & "/Temp/GDBCommands.txt""")
 	Else
 		If Idx = -1 Then
@@ -8253,11 +8587,6 @@ Sub RunWithDebug(Param As Any Ptr)
 	Wend
 	If Pos1 = 0 Then Pos1 = Len(exename)
 	WLet(Workdir, Left(exename, Pos1))
-	#ifndef __USE_GTK__
-		SInfo.cb = Len(SInfo)
-		SInfo.dwFlags = STARTF_USESHOWWINDOW
-		SInfo.wShowWindow = SW_NORMAL
-	#endif
 	#ifdef __USE_GTK__
 		Dim As GPid pid = 0
 		'		Dim As GtkWidget Ptr win, vte
@@ -8296,20 +8625,48 @@ Sub RunWithDebug(Param As Any Ptr)
 			End If
 			If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then CommandLine = *EnvironmentVariables & " " & CommandLine
 			'IIf(WGet(DebuggerPath) = "", "gdb", Trim(WGet(DebuggerPath)) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
+			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+				ThreadsEnter()
+				ShowMessages(Time & ": " & ML("Run") & ": " & exename + " ...")
+				tvVar.Visible = False
+				lvLocals.Visible = True
+				tvThd.Visible = False
+				lvThreads.Visible = True
+				tvWch.Visible = False
+				lvWatches.Visible = True
+'				gtk_widget_show_all(lvGlobals.Handle)
+'				lvGlobals.Parent->RequestAlign
+				ThreadsLeave()
+				If load_file(exename, *GDBDebuggerPath) Then
+					ThreadsEnter()
+					ShowMessages(Time & ": " & ML("Debugging finished."))
+					ChangeEnabledDebug True, False, False
+					ThreadsLeave()
+					Exit Sub
+				End If
+				ThreadsEnter()
+				ptabBottom->Tabs[6]->SelectTab
+				ThreadsLeave()
+				iFlagStartDebug = 1
+				run_debug(1)
+			Else
+				ThreadsEnter()
+				ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
+				ThreadsLeave()
+				Result = Shell(CommandLine)
+			End If
 			ThreadsEnter()
-			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
-			ThreadsLeave()
-			Result = Shell(CommandLine)
-			ThreadsEnter()
-			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			ChangeEnabledDebug True, False, False
 			ThreadsLeave()
 		End If
 		WDeallocate Arguments
 		'Shell "gdb " & CmdL
 	#else
-		ThreadsEnter()
 		ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
-		ThreadsLeave()
+		SInfo.cb = Len(SInfo)
+		SInfo.dwFlags = STARTF_USESHOWWINDOW
+		SInfo.wShowWindow = SW_NORMAL
 		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP Then
 			Dim As Unsigned Long ExitCode
 			exename = WGet(DebuggerPath)
@@ -8321,38 +8678,34 @@ Sub RunWithDebug(Param As Any Ptr)
 				CloseHandle(pinfo.hThread)
 			End If
 			Result = ExitCode
+			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			ChangeEnabledDebug True, False, False
 			'Shell """" & WGet(Debugger) & """ """ & exename & """"
 		Else
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 				tvVar.Visible = False
-				lvGlobals.Visible = True
-				
-				deinit()
-				
-				If load_file(exename, *GDBDebuggerPath) Then Exit Sub
-				
-				'If iFlagStartDebug = 0 Then
-					
-					'Setgadgettext(E_EDITOR , "")
-					
-					'Setimagegadget(E_BUT_RUN , bmp(1))
-					
-					ptabBottom->Tabs[6]->SelectTab
-					
-					iFlagStartDebug = 1
-					
-					TimerID = settimer(0, 0, 20, Cast(Any Ptr , @timer_data()))
-					
-					run_debug(1)
-					
-				'Else
-					
-				'	run_debug(0)
-					
-				'EndIf
+				lvLocals.Visible = True
+				tvThd.Visible = False
+				lvThreads.Visible = True
+				tvWch.Visible = False
+				lvWatches.Visible = True
+				If load_file(exename, *GDBDebuggerPath) Then 
+					ShowMessages(Time & ": " & ML("Debugging finished."))
+					ChangeEnabledDebug True, False, False
+					Exit Sub
+				End If
+				ptabBottom->Tabs[6]->SelectTab
+				iFlagStartDebug = 1
+				run_debug(1)
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+				ChangeEnabledDebug True, False, False
 			Else
-				lvGlobals.Visible = False
+				lvLocals.Visible = False
 				tvVar.Visible = True
+				lvThreads.Visible = False
+				tvThd.Visible = True
+				lvWatches.Visible = False
+				tvWch.Visible = True
 				InDebug = True
 				ptabBottom->Tab(6)->SelectTab
 				pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE Or DEBUG_PROCESS Or DEBUG_ONLY_THIS_PROCESS
@@ -8362,7 +8715,7 @@ Sub RunWithDebug(Param As Any Ptr)
 					dbgthreadID = pinfo.dwThreadId
 					dbghand = pinfo.hProcess
 					dbghthread = pinfo.hThread
-					prun=True
+					prun = True
 					Wait_Debug
 				End If
 				KillTimer 0, 0
@@ -8371,9 +8724,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				Dim As Unsigned Long ExitCode
 				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
 				Result = ExitCode
-				ThreadsEnter()
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-				ThreadsLeave()
 				ChangeEnabledDebug True, False, False
 				#ifndef __USE_GTK__
 					If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer

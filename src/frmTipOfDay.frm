@@ -29,6 +29,10 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		Dim As ImageBox lblImage
 	End Type
 	
+	Dim Shared frmTipOfDay As frmTipOfDayType
+	Common Shared As frmTipOfDayType Ptr pfTipOfDay
+	pfTipOfDay = @frmTipOfDay
+	
 	Constructor frmTipOfDayType
 		' frmTipOfDay
 		With This
@@ -37,9 +41,9 @@ Dim Shared  As WString Ptr BuffTips(Any)
 			This.BorderStyle = FormBorderStyle.FixedDialog
 			This.MaximizeBox = False
 			This.MinimizeBox = False
-			This.StartPosition = FormStartPosition.CenterScreen
+			This.StartPosition = FormStartPosition.CenterParent
+			.Designer = @This
 			#ifndef __USE_GTK__
-				.Designer = @This
 				.DefaultButton = @cmdClose
 				.CancelButton = @cmdClose
 			#endif
@@ -51,7 +55,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 			.Name = "cmdPreviousTip"
 			.Text = ML("Previous Tip")
 			.TabIndex = 0
-			.SetBounds 240, 280, 90, 24
+			.SetBounds 220, 280, 90, 24
 			.Designer = @This
 			.OnClick = @cmdPreviousTip_Click_
 			.Parent = @This
@@ -61,7 +65,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 			.Name = "cmdNextTip"
 			.Text = ML("Next Tip")
 			.TabIndex = 1
-			.SetBounds 330, 280, 90, 24
+			.SetBounds 320, 280, 90, 24
 			.Designer = @This
 			.OnClick = @cmdNextTip_Click_
 			.Parent = @This
@@ -81,7 +85,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 			.Name = "chkDoNotShow"
 			.Text = ML("Don't show tips")
 			.TabIndex = 3
-			.SetBounds 20, 280, 180, 20
+			.SetBounds 20, 282, 180, 20
 			.Designer = @This
 			.OnClick = @chkDoNotShow_Click_
 			.Parent = @This
@@ -126,10 +130,6 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		*Cast(frmTipOfDayType Ptr, Sender.Designer).cmdClose_Click(Sender)
 	End Sub
 	
-	Dim Shared frmTipOfDay As frmTipOfDayType
-	Common Shared As frmTipOfDayType Ptr pfTipOfDay
-	pfTipOfDay = @frmTipOfDay
-	
 	#ifndef _NOT_AUTORUN_FORMS_
 		#define _NOT_AUTORUN_FORMS_
 		
@@ -150,7 +150,7 @@ Private Sub frmTipOfDayType.cmdClose_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
-	Dim As Integer Fn = FreeFile, Result = -1, i = 0
+	Dim As Integer Fn = FreeFile_, Result = -1, i = 0
 	Dim Buff As WString * 1024
 	Dim As WString * MAX_Path FileName = ExePath & "/Help/Tip of the Day/" & CurLanguage & ".tip"
 	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
@@ -165,10 +165,10 @@ Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
 			wLet BuffTips(i), Buff
 			i += 1
 		Loop
-		Close #Fn
+		CloseFile_(Fn)
 		If ShowTipoftheDayIndex < i AndAlso ShowTipoftheDayIndex >= 0 Then lblTips.Text = *BuffTips(ShowTipoftheDayIndex)
 		Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & ".png"
-		If Dir(imageFileName) <> "" Then lblImage.Graphic.Bitmap.LoadFromFile(imageFileName)
+		If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
 	Else
 		Msgbox ML("File") & " " & ExePath & "/Help/Tip of the Day/" & CurLanguage & ".tip" & ML("not found!")
 	End If
@@ -183,7 +183,7 @@ Private Sub frmTipOfDayType.cmdPreviousTip_Click(ByRef Sender As Control)
 	ShowTipoftheDayIndex -= 1
 	If ShowTipoftheDayIndex < 0 Then ShowTipoftheDayIndex = UBound(BuffTips)
 	Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & ".png"
-	If Dir(imageFileName) <> "" Then lblImage.Graphic.Bitmap.LoadFromFile(imageFileName)
+	If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
 	lblTips.Text = *BuffTips(ShowTipoftheDayIndex)
 	
 End Sub
@@ -192,7 +192,7 @@ Private Sub frmTipOfDayType.cmdNextTip_Click(ByRef Sender As Control)
 	ShowTipoftheDayIndex += 1
 	If ShowTipoftheDayIndex > UBound(BuffTips) Then ShowTipoftheDayIndex = 0
 	Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & ".png"
-	If Dir(imageFileName) <> "" Then lblImage.Graphic.Bitmap.LoadFromFile(imageFileName)
+	If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
 	lblTips.Text = *BuffTips(ShowTipoftheDayIndex)
 	
 End Sub

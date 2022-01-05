@@ -1417,7 +1417,7 @@ Sub frmOptions.LoadSettings()
 		.chkDisplayIcons.Checked = DisplayMenuIcons
 		.chkShowMainToolbar.Checked = ShowMainToolbar
 		Dim As String f
-		Dim As Integer Fn = FreeFile, Result
+		Dim As Integer Fn, Result
 		Dim Buff As WString * 2048 '
 		Dim As UString FileName
 		'On Error Resume Next
@@ -1439,6 +1439,7 @@ Sub frmOptions.LoadSettings()
 		f = Dir(ExePath & "/Settings/Languages/*.lng")
 		While f <> ""
 			FileName = ExePath & "/Settings/Languages/" & f
+			Fn = FreeFile_
 			Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 			If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 			If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
@@ -1450,7 +1451,7 @@ Sub frmOptions.LoadSettings()
 					Languages.Add ..Left(f, Len(f) - 4)
 					.cboLanguage.AddItem Buff & " - " & ..Left(f, Len(f) - 4)
 				End If
-				Close #Fn
+				CloseFile_(Fn)
 			Else
 				Languages.Add ..Left(f, Len(f) - 4)
 				.cboLanguage.AddItem ..Left(f, Len(f) - 4) & " (" & ML("format does not match") & ")"
@@ -2056,7 +2057,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		ShowMainToolbar = .chkShowMainToolbar.Checked
 		SetColors
 		If .HotKeysChanged Then
-			Dim As Integer Pos1, Fn = FreeFile
+			Dim As Integer Pos1, Fn = FreeFile_
 			Dim As MenuItem Ptr Item
 			Dim As String Key
 			Open ExePath & "/Settings/Others/HotKeys.txt" For Output As #Fn
@@ -2069,7 +2070,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 				Item->Caption = ..Left(Item->Caption, Pos1 - 1) & !"\t" & Key
 				Print #Fn, .HotKeysPriv.Item(i) & "=" & Key
 			Next
-			Close #Fn
+			CloseFile_(Fn)
 			pfrmMain->Menu->ParentWindow = pfrmMain
 		End If
 		piniSettings->WriteString "Compilers", "DefaultCompiler32", *DefaultCompiler32

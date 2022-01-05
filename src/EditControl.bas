@@ -622,7 +622,7 @@ Namespace My.Sys.Forms
 		FSelStartLine = Min(FLines.Count - 1, Max(0, iSelStartLine))
 		FSelEndLine = Min(FLines.Count - 1, Max(0, iSelEndLine))
 		#ifdef __USE_GTK__
-			If cr Then
+			If Handle Then
 		#else
 			If Handle Then
 		#endif
@@ -861,7 +861,7 @@ Namespace My.Sys.Forms
 	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes)
 		'Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
 		Dim pBuff As WString Ptr
-		Dim As Integer Result = -1, Fn = FreeFile, FileSize
+		Dim As Integer Result = -1, Fn = FreeFile_, FileSize
 		Var iC = 0, OldiC = 0, i = 0
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn): FileEncoding = FileEncodings.Utf8
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn): FileEncoding = FileEncodings.Utf32
@@ -881,7 +881,7 @@ Namespace My.Sys.Forms
 				LineInputWstr Fn, pBuff, FileSize
 				FECLine = New_( EditControlLine)
 				If FECLine = 0 Then
-					Close #Fn
+					CloseFile_(Fn)
 					Return
 				End If
 				WLet(FECLine->Text, *pBuff)
@@ -902,7 +902,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			ScrollToCaret
-			Close #Fn
+			CloseFile_(Fn)
 		Else
 			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13,10) & " " & FileName
 		End If
@@ -910,7 +910,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef File As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
-		Dim As Integer Fn = FreeFile
+		Dim As Integer Fn = FreeFile_
 		Dim As Integer Result
 		Dim As String FileEncodingText, NewLine
 		If FileEncoding = FileEncodings.Utf8 Then
@@ -933,7 +933,7 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To FLines.Count - 1
 				Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
 			Next
-			Close #Fn
+			CloseFile_(Fn)
 		Else
 			MsgBox ML("Save file failure!") & Chr(13,10) & File
 		End If
@@ -3839,7 +3839,10 @@ Namespace My.Sys.Forms
 				
 				ec->ShowCaretPos False
 				ec->HScrollPos = 0
-				ec->VScrollPos = 0
+				If ec->VScrollPos <> 0 Then
+					ec->ShowCaretPos True
+				End If
+				'ec->VScrollPos = 0
 				
 				gtk_window_set_transient_for(gtk_window(ec->winIntellisense), gtk_window(pfrmMain->Handle))
 				gtk_window_set_transient_for(gtk_window(ec->winTooltip), gtk_window(pfrmMain->Handle))
@@ -4139,13 +4142,13 @@ Sub LoadKeyWords
 		ElseIf Trim(file) = "Statements And Operators" Then
 			pkeywords2 = keywordlist
 		End If
-		Dim Fn As Integer = FreeFile
+		Dim Fn As Integer = FreeFile_
 		Open ExePath & "/Settings/Keywords/" & file For Input As #Fn
 		Do Until EOF(Fn)
 			Input #Fn, b
 			keywordlist->Add b
 		Loop
-		Close #Fn
+		CloseFile_(Fn)
 		file = Dir()
 	Loop
 '	Fn = FreeFile

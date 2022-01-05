@@ -11,16 +11,18 @@
 	#define _NOT_AUTORUN_FORMS_
 #endif
 
-Const VER_MAJOR  = "1"
-Const VER_MINOR  = "3"
-Const VER_PATCH  = "0"
+#define APP_TITLE "Visual FB Editor"
+#define VER_MAJOR "1"
+#define VER_MINOR "3"
+#define VER_PATCH "0"
 Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
-Const SIGN       = "VisualFBEditor " + VERSION
+Const SIGN       = APP_TITLE + " " + VERSION
 
 On Error Goto AA
 
 #define MEMCHECK 0
+#define FILENUMCHECK 1
 
 #include once "Main.bi"
 #include once "Debug.bi"
@@ -38,12 +40,16 @@ On Error Goto AA
 #include once "TabWindow.bi"
 
 Sub StartDebuggingWithCompile(Param As Any Ptr)
+	ThreadsEnter
 	ChangeEnabledDebug False, True, True
-	If Compile("Run") Then RunWithDebug(0) Else ChangeEnabledDebug True, False, False
+	ThreadsLeave
+	If Compile("Run") Then RunWithDebug(0) Else ThreadsEnter: ChangeEnabledDebug True, False, False: ThreadsLeave
 End Sub
 
 Sub StartDebugging(Param As Any Ptr)
+	ThreadsEnter
 	ChangeEnabledDebug False, True, True
+	ThreadsLeave
 	RunWithDebug(0)
 End Sub
 
@@ -167,9 +173,9 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "ImmediateWindow":                     ptabBottom->Tab(5)->SelectTab
 	Case "LocalsWindow":                        ptabBottom->Tab(6)->SelectTab
 	Case "GlobalsWindow":                       ptabBottom->Tab(7)->SelectTab
-	Case "ProcessesWindow":                     ptabBottom->Tab(8)->SelectTab
-	Case "ThreadsWindow":                       ptabBottom->Tab(9)->SelectTab
-	Case "WatchWindow":                         ptabBottom->Tab(10)->SelectTab
+	'Case "ProceduresWindow":                    ptabBottom->Tab(8)->SelectTab
+	Case "ThreadsWindow":                       ptabBottom->Tab(8)->SelectTab
+	Case "WatchWindow":                         ptabBottom->Tab(9)->SelectTab
 	Case "ImageManager":                        pfImageManager->Show *pfrmMain
 	Case "Toolbars":                            'ShowMainToolbar = Not ShowMainToolbar: ReBar1.Visible = ShowMainToolbar: pfrmMain->RequestAlign
 	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: ReBar1.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolbar: pfrmMain->RequestAlign
@@ -192,6 +198,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "FormatProject":                       ThreadCounter(ThreadCreate_(@FormatProject)) 'FormatProject 0
 	Case "UnformatProject":                     ThreadCounter(ThreadCreate_(@FormatProject, Cast(Any Ptr, 1))) 'FormatProject Cast(Any Ptr, 1)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
+	Case "GDBCommand":                          GDBCommand
 	Case "StartWithCompile"
 		If SaveAllBeforeCompile Then
 			'SaveAll '
@@ -201,7 +208,6 @@ Sub mClick(Sender As My.Sys.Object)
 					If UseDebugger Then
 						runtype = RTFRUN
 						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-						CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 						ThreadCounter(ThreadCreate_(@StartDebuggingWithCompile))
 					Else
 						ThreadCounter(ThreadCreate_(@CompileAndRun))
@@ -236,7 +242,6 @@ Sub mClick(Sender As My.Sys.Object)
 				If UseDebugger Then
 					runtype= RTFRUN
 					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-					CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 					ThreadCounter(ThreadCreate_(@StartDebugging))
 				Else
 					ThreadCounter(ThreadCreate_(@RunProgram))
@@ -282,7 +287,11 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "End":
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-			kill_debug()
+			If Running Then
+				kill_debug()
+			Else
+				command_debug "q"
+			End If
 		Else
 			#ifdef __USE_GTK__
 				ChangeEnabledDebug True, False, False
@@ -299,16 +308,21 @@ Sub mClick(Sender As My.Sys.Object)
 			#endif
 		End If
 	Case "Restart"
-		#ifndef __USE_GTK__
-			If prun AndAlso kill_process("Trying to launch but debuggee still running")=False Then
-				Exit Sub
-			End If
-			runtype = RTFRUN
-			'runtype = RTRUN
-			CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
-			Restarting = True
-			ThreadCounter(ThreadCreate_(@StartDebugging))
-		#endif
+		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
+		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+			command_debug("r")
+		Else
+			#ifndef __USE_GTK__
+				If prun AndAlso kill_process("Trying to launch but debuggee still running") = False Then
+					Exit Sub
+				End If
+				runtype = RTFRUN
+				'runtype = RTRUN
+				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+				Restarting = True
+				ThreadCounter(ThreadCreate_(@StartDebugging))
+			#endif
+		End If
 	Case "StepInto":
 		ptabBottom->TabIndex = 6 'David Changed
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
@@ -316,7 +330,6 @@ Sub mClick(Sender As My.Sys.Object)
 			If iFlagStartDebug = 0 Then
 				runtype = RTSTEP
 				CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-				CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			Else
 				step_debug("s")
@@ -343,7 +356,6 @@ Sub mClick(Sender As My.Sys.Object)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 			If iFlagStartDebug = 0 Then
 				CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-				CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			Else
 				step_debug("n")
@@ -376,26 +388,31 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "SaveAs":                      tb->SaveAs
 		Case "Close":                       CloseTab(tb)
 		Case "SortLines":                   tb->SortLines
-			#ifndef __USE_GTK__
-			Case "SetNextStatement":
-				Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
-				If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-					Dim As Integer iStartLine, iEndLine, iStartChar, iEndChar
-					tb->txtCode.GetSelection iStartLine, iEndLine, iStartChar, iEndChar
-					command_debug("jump " & Replace(tb->FileName, "\", "/") & ":" & Str(iEndLine))
-				Else
+		Case "SetNextStatement":
+			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
+			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+				Dim As Integer iStartLine, iEndLine, iStartChar, iEndChar
+				tb->txtCode.GetSelection iStartLine, iEndLine, iStartChar, iEndChar
+				command_debug("jump " & Replace(tb->FileName, "\", "/") & ":" & Str(iEndLine))
+			Else
+				#ifndef __USE_GTK__
 					exe_mod()
-				End If
-			Case "ShowVar":                 var_tip(1)
-			Case "StepOut":
-				Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
-				If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-					If iFlagStartDebug = 0 Then
-						ThreadCounter(ThreadCreate_(@StartDebugging))
-					Else
-						step_debug("n")
-					End If
+				#endif
+			End If
+		Case "ShowVar":                 
+			#ifndef __USE_GTK__
+				var_tip(1)
+			#endif
+		Case "StepOut":
+			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
+			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+				If iFlagStartDebug = 0 Then
+					ThreadCounter(ThreadCreate_(@StartDebugging))
 				Else
+					step_debug("n")
+				End If
+			Else
+				#ifndef __USE_GTK__
 					If InDebug Then
 						ChangeEnabledDebug False, True, True
 						If (threadcur<>0 AndAlso proc_find(thread(threadcur).id,KLAST)<>proc_find(thread(threadcur).id,KFIRST)) _
@@ -406,32 +423,38 @@ Sub mClick(Sender As My.Sys.Object)
 						SetFocus(windmain)
 						thread_rsm()
 					End If
-				End If
-			Case "RunToCursor":
-				Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
-				If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-					If iFlagStartDebug = 1 Then
-						ChangeEnabledDebug False, True, True
-						set_bp True
-						continue_debug
-					Else
-						RunningToCursor = True
-						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-						CurrentTimerData = SetTimer(0, 0, 1, Cast(Any Ptr, @timer_data))
-						ThreadCounter(ThreadCreate_(@StartDebugging))
-					End If
+				#endif
+			End If
+		Case "RunToCursor":
+			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
+			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+				If iFlagStartDebug = 1 Then
+					ChangeEnabledDebug False, True, True
+					set_bp True
+					continue_debug
 				Else
-					If InDebug Then
-						ChangeEnabledDebug False, True, True
-						brk_set(9)
-					Else
-						RunningToCursor = True
-						runtype = RTFRUN
-						CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
-						ThreadCounter(ThreadCreate_(@StartDebugging))
-					End If
+					RunningToCursor = True
+					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+					ThreadCounter(ThreadCreate_(@StartDebugging))
 				End If
-			Case "AddWatch":                var_tip(2)
+			Else
+				If InDebug Then
+					ChangeEnabledDebug False, True, True
+					#ifndef __USE_GTK__
+						brk_set(9)
+					#endif
+				Else
+					RunningToCursor = True
+					runtype = RTFRUN
+					#ifndef __USE_GTK__
+						CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+					#endif
+					ThreadCounter(ThreadCreate_(@StartDebugging))
+				End If
+			End If
+		Case "AddWatch":
+			#ifndef __USE_GTK__
+				var_tip(2)
 			#endif
 		Case "FindNext":                    pfFind->Find(True)
 		Case "FindPrev":                    pfFind->Find(False)
@@ -440,8 +463,8 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
 		Case "Code":                        tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-		Case "Form":                        If tb->cboClass.Items.Count < 2 Then Exit Sub: tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
-		Case "CodeAndForm":                 If tb->cboClass.Items.Count < 2 Then Exit Sub: tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
+		Case "Form":                        tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
+		Case "CodeAndForm":                 tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
 		End Select
 	Case "SaveAll":                         SaveAll
 	Case "CloseAll":                        CloseAllTabs
@@ -455,6 +478,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "PinRight":                        SetRightClosedStyle Not tbRight.Buttons.Item("PinRight")->Checked, False
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
 	Case "EraseOutputWindow":               txtOutput.Text = ""
+	Case "Update":                          iStateMenu = IIf(tbBottom.Buttons.Item("Update")->Checked, 2, 1): If Running = False Then command_debug("")
 	Case "AddForm":                         AddFromTemplate ExePath + "/Templates/Files/Form.frm"
 	Case "AddModule":                       AddFromTemplate ExePath + "/Templates/Files/Module.bas"
 	Case "AddIncludeFile":                  AddFromTemplate ExePath + "/Templates/Files/Include File.bi"

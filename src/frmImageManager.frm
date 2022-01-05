@@ -285,7 +285,7 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	If FolderName = "" Then ExeFileName = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ExeFileName
 	Dim As Dictionary ResNamePaths
 	If CurrentImageList = 0 Then
-		Var Fn = FreeFile, Pos1 = 0
+		Var Fn = FreeFile_, Pos1 = 0
 		If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
 			Dim As WString * 1024 FilePath
 			Dim As WString * 1024 sLine
@@ -317,7 +317,7 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 					End If
 				End If
 			Loop
-			Close #Fn
+			CloseFile_(Fn)
 		End If
 		lblResourceFile.Text = ML("File") & ": " & ResourceFile
 	Else
@@ -485,7 +485,7 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 	Else
 		Dim As WStringList Lines
 		Dim As Integer Result
-		Var Fn = FreeFile
+		Var Fn = FreeFile_
 		If Not FileExists(ResourceFile) Then
 			If AutoCreateRC Then
 				FileCopy ExePath & "/Templates/Files/Resource.rc", *ResourceFile.vptr
@@ -505,9 +505,9 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 				Line Input #Fn, sLine
 				Lines.Add sLine
 			Loop
-			Close #Fn
+			CloseFile_(Fn)
 		End If
-		Fn = FreeFile
+		Fn = FreeFile_
 		Dim As Boolean bFinded
 		Dim As Integer Pos1
 		Open ResourceFile For Output Encoding "utf-8" As #Fn
@@ -539,7 +539,7 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 				Next
 			End With
 		End If
-		Close #Fn
+		CloseFile_(Fn)
 		'	If tb = 0 AndAlso MainFile <> ML("Untitled") Then tb = AddTab(MainFile)
 		'	If tb <> 0 AndAlso ptabCode->IndexOfTab(tb) > -1 Then
 		'		tb->txtCode.Changing "Adding #Compile"

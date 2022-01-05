@@ -193,7 +193,7 @@ Destructor frmTools
 End Destructor
 
 Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
-	Var Fn = FreeFile
+	Var Fn = FreeFile_
 	Dim As UserToolType Ptr Tool, tt
 	Dim As MenuItem Ptr mi
 	Dim As Integer ToolsIndex
@@ -248,7 +248,7 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 			Print #Fn, "WaitComplete=" & tt->WaitComplete
 		Next
 	End With
-	Close #Fn
+	CloseFile_(Fn)
 	fTools.CloseForm
 	pfrmMain->Menu->ParentWindow = pfrmMain
 End Sub

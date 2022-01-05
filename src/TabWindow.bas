@@ -230,6 +230,8 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			If Not bNoActivate Then .SelectTab Else .Visible = True: ptabCode->RequestAlign: .Visible = False
 			.tbrTop.Buttons.Item(1)->Checked = True
 			If FileName <> "" Then
+				pApp = @VisualFBEditorApp
+				pApp->MainForm = @frmMain
 				.txtCode.LoadFromFile(FileNameNew, tb->FileEncoding, tb->NewLineType)
 				If bNew Then
 					Dim As String NewFormName
@@ -282,6 +284,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
 			.FormDesign(bNoActivate)
+			pApp->MainForm = @frmMain
 		End With
 		If tb->cboClass.Items.Count < 2 Then
 			tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
@@ -3828,7 +3831,7 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 		FilePath = GetRelativePath(ResName, ResourceFile)
 		Return FilePath
 	Else
-		Var Fn = FreeFile
+		Var Fn = FreeFile_
 		If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
 			Dim As WString * 1024 sLine
 			Dim As Integer Pos1
@@ -3846,12 +3849,12 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 						If EndsWith(FilePath, """") Then FilePath = ..Left(FilePath, Len(FilePath) - 1)
 						If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
 						FilePath = GetRelativePath(FilePath, ResourceFile)
-						Close #Fn
+						CloseFile_(Fn)
 						Return FilePath
 					End If
 				End If
 			Loop
-			Close #Fn
+			CloseFile_(Fn)
 		End If
 		Return ""
 	End If
@@ -3878,7 +3881,6 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 		Exit Sub
 	End If
 	Dim As UString ResourceFile = GetResourceFile(True)
-	Var Fn = FreeFile
 	Dim As WString * 1024 FilePath = GetResNamePath(ResName, ResourceFile)
 	Select Case LCase(TypeName)
 	Case "graphictype"
@@ -5518,7 +5520,7 @@ End Sub
 		Dim As Boolean Bit32 = tbt32Bit->Checked
 		Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 		Dim As String ScriptPath
-		Dim As Integer Fn = FreeFile
+		Dim As Integer Fn = FreeFile_
 		ScriptPath = *g_get_tmp_dir() & "/vfb_run_script.sh"
 		Open ScriptPath For Output As #Fn
 		Print #Fn, "#!/bin/sh"
@@ -5530,7 +5532,7 @@ End Sub
 		Print #Fn, IIf(debug, """" & WGet(DebuggerPath) & """" & " ", "") & Replace(cmd, "\", "/") & " " & Arguments
 		Print #Fn, ""
 		Print #Fn, !"echo ""\n\n------------------\n(program exited with code: $?)"" \n\n" & IIf(autoclose, "", !"\necho ""Press return to continue""\n#to be more compatible with shells like ""dash\ndummy_var=""""\nread dummy_var") & !"\n"
-		Close #Fn
+		CloseFile_(Fn)
 		ScriptPath = "sh " & ScriptPath
 		Return ScriptPath
 	End Function
@@ -5974,7 +5976,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 						#endif
 					End If
 				End If
-				Var Fn = FreeFile
+				Var Fn = FreeFile_
 				If Open(*File For Input Encoding "utf-8" As #Fn) = 0 Then
 					Dim As Integer iStartImages, MinResID
 					Dim As String MinResName
@@ -6119,13 +6121,13 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							bFinded = True
 						End If
 					End If
-					Close #Fn
+					CloseFile_(Fn)
 					If bFinded Then
-						Var Fn2 = FreeFile
+						Var Fn2 = FreeFile_
 						If Open(*File For Output Encoding "utf-8" As #Fn2) = 0 Then
 							Print #Fn2, *sLines;
 							If bChangeIcon AndAlso ResPath <> "" Then Print #Fn2, Chr(13, 10) & "A" & ResPath
-							Close #Fn2
+							CloseFile_(Fn2)
 						End If
 					End If
 					Exit Do
@@ -6169,7 +6171,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		Case 2: Result += " -lib"
 		End Select
 	End If
-	Dim As Integer LinesCount, d, Fn = FreeFile
+	Dim As Integer LinesCount, d, Fn = FreeFile_
 	Dim As Boolean bFromTab
 	Dim As TabWindow Ptr tb
 	Var FileOpenResult = Open(FileName For Input Encoding "utf-8" As #Fn)
@@ -6241,7 +6243,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			If l >= 10 Then Exit Do
 		Loop
 		If Not bFromTab Then
-			Close #Fn
+			CloseFile_(Fn)
 		End If
 	End If
 	Return Result
@@ -6419,7 +6421,7 @@ Sub RunPr(Debugger As String = "")
 			ShowMessages ML("Do not found apk file!")
 			Exit Sub
 		End If
-		Dim As Integer Fn = FreeFile
+		Dim As Integer Fn = FreeFile_
 		Open *Project->FileName & "/local.properties" For Input As #Fn
 		Dim SDKDir As UString
 		Dim pBuff As WString Ptr
@@ -6433,7 +6435,7 @@ Sub RunPr(Debugger As String = "")
 				Exit Do
 			End If
 		Loop
-		Close #Fn
+		CloseFile_(Fn)
 		If SDKDir = "" Then
 			ShowMessages ML("Sdk.dir not specified in file local.properties!")
 			Exit Sub
@@ -6442,7 +6444,7 @@ Sub RunPr(Debugger As String = "")
 			ShowMessages ML(ML("File ") & *Project->FileName & "/app/build.gradle" & ML(" not found!"))
 			Exit Sub
 		End If
-		Fn = FreeFile
+		Fn = FreeFile_
 		Open *Project->FileName & "/app/build.gradle" For Input As #Fn
 		Dim applicationId As String
 		FileSize = LOF(Fn)
@@ -6454,7 +6456,7 @@ Sub RunPr(Debugger As String = "")
 				Exit Do
 			End If
 		Loop
-		Close #Fn
+		CloseFile_(Fn)
 		If applicationId = "" Then
 			ShowMessages ML("applicationId not found in file app/build.gradle!")
 			Exit Sub
@@ -6582,7 +6584,7 @@ Sub RunPr(Debugger As String = "")
 			End If
 			WDeallocate Arguments
 			ThreadsEnter()
-			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 			ThreadsLeave()
 			'EndIf
 			'i_retcode = g_spawn_command_line_sync(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), NULL, NULL, @i_exitcode, NULL)
@@ -6676,7 +6678,7 @@ Sub RunPr(Debugger As String = "")
 				CloseHandle pi.hThread
 				CloseHandle hReadPipe
 				result1 = GetLastError()
-				ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & result1  & " - " & Err2Description(result1))
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & result1  & " - " & Err2Description(result1))
 			#else
 				Dim SInfo As STARTUPINFO
 				Dim PInfo As PROCESS_INFORMATION

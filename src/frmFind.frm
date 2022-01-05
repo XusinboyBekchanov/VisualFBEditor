@@ -303,7 +303,7 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".html") _
 					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".htm") OrElse EndsWith(LCase(f), ".xml") _
 					OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".cpp") Then
-					Result = -1: Fn = FreeFile()
+					Result = -1: Fn = FreeFile_
 					Result = Open(f For Input Encoding "utf-8" As #Fn)
 					If Result <> 0 Then Result = Open(f For Input Encoding "utf-16" As #Fn)
 					If Result <> 0 Then Result = Open(f For Input Encoding "utf-32" As #Fn)
@@ -329,7 +329,7 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 								Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
 							Wend
 						Loop
-						Close #Fn
+						CloseFile_(Fn)
 					Else
 						'MsgBox ML("Open file failure!") &  " " & ML("in function") & " frmFindInFiles.Find"  & Chr(13,10) & "  " & Path & f
 					End If
@@ -371,7 +371,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 					Else
 						FNameOpen = f
 					End If
-					Result = -1: Fn=FreeFile()
+					Result = -1: Fn = FreeFile_
 					Result = Open(FNameOpen For Input Encoding "utf-8" As #Fn)
 					If Result <> 0 Then Result = Open(FNameOpen For Input Encoding "utf-16" As #Fn)
 					If Result <> 0 Then Result = Open(FNameOpen For Input Encoding "utf-32" As #Fn)
@@ -423,12 +423,12 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 								Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
 							Wend
 						Loop
-						Close #Fn
+						CloseFile_(Fn)
 						If LCase(tSearch) <> LCase(tReplace) Then
-							Fn=FreeFile()
+							Fn = FreeFile_
 							If Open(f For Output Encoding "utf-8" As #Fn) = 0 Then
 								Print #Fn, *BuffOut
-								Close #Fn
+								CloseFile_(Fn)
 							Else
 								MsgBox ML("Open file failure!") & " " & ML("in function") & " frmFindInFiles.ReplaceInFile" & Chr(13,10) & "  " & f
 							End If
@@ -440,10 +440,10 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 	Next
 	
 	If LCase(tML) = LCase(tReplace) Then
-		Fn=FreeFile()
+		Fn = FreeFile_
 		If Open(ExePath & "\Languages.txt" For Output Encoding "utf-8" As #Fn) = 0 Then
 			Print #Fn, *BuffOut
-			Close #Fn
+			CloseFile_(Fn)
 		End If
 	End If
 	Deallocate BuffOut

@@ -25,9 +25,9 @@ Using My.Sys.Forms
 		lblImage.Name = "lblImage"
 		'lblImage.Graphic.Bitmap.LoadFromResourceName("Logo")
 		#ifdef __USE_GTK__
-			lblImage.Graphic.Bitmap.LoadFromFile(ExePath & "/Resources/Logo.png")
+			lblImage.Graphic.LoadFromFile(ExePath & "/Resources/Logo.png")
 		#else
-			lblImage.Graphic.Bitmap = "Logo"
+			lblImage.Graphic = "Logo"
 		#endif
 		lblImage.SetBounds 36, 76, 343, 270
 		lblImage.CenterImage = True

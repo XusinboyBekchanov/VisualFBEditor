@@ -2372,7 +2372,7 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Function Designer.HookTopMenuProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Static As Designer Ptr Des
+			Static As My.Sys.Forms.Designer Ptr Des
 			Des = GetProp(hDlg, "@@@Designer")
 			If Des Then
 				With *Des
@@ -2492,7 +2492,7 @@ Namespace My.Sys.Forms
 	#else
 		Function Designer.HookDialogParentProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 	#endif
-		Static As Designer Ptr Des
+		Static As My.Sys.Forms.Designer Ptr Des
 		#ifdef __USE_GTK__
 			Des = user_data
 		#else
@@ -2796,11 +2796,11 @@ Namespace My.Sys.Forms
 	#else
 		Function Designer.DotWndProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 	#endif
-		Dim As Designer Ptr Des
+		Dim As My.Sys.Forms.Designer Ptr Des
 		#ifdef __USE_GTK__
 			Des = user_data
 		#else
-			Des = Cast(Designer Ptr, GetWindowLongPtr(hDlg, GWLP_USERDATA))
+			Des = Cast(My.Sys.Forms.Designer Ptr, GetWindowLongPtr(hDlg, GWLP_USERDATA))
 		#endif
 		If Des Then
 			With *Des
