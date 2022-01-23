@@ -29,7 +29,7 @@ Using My.Sys.Forms
 		#else
 			lblImage.Graphic = "Logo"
 		#endif
-		lblImage.SetBounds 36, 76, 343, 270
+		lblImage.SetBounds 36, 66, 343, 270
 		lblImage.CenterImage = True
 		lblImage.Designer = @This
 		lblImage.OnClick = @lblImage_Click_

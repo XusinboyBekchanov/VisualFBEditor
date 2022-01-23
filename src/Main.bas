@@ -3669,134 +3669,135 @@ Sub LoadHelp
 	End Enum
 	Dim As Integer Fn = FreeFile_
 	WLet KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt"
-	Open *KeywordsHelpPath For Input As #Fn
-	Dim As TypeElement Ptr te, te1
-	Dim As String Buff, StartBuff, bTrim
-	Dim As Boolean bStart, bStartEnd, bDescriptionEnd
-	Dim As Paragraph Parag
-	Dim As Integer Pos1, LineNumber
-	Do Until EOF(Fn)
-		LineNumber += 1
-		Line Input #Fn, Buff
-		If StartsWith(Buff, "---") Then
-			bStart = True
-			Parag = parStart
-		ElseIf Buff = "Syntax" Then
-			Parag = parSyntax
-		ElseIf Buff = "Usage" Then
-			Parag = parUsage
-		ElseIf Buff = "Parameters" Then
-			Parag = parParameters
-		ElseIf Buff = "Return Value" Then
-			Parag = parReturnValue
-		ElseIf Buff = "Description" Then
-			Parag = parDescription
-		ElseIf Buff = "Example" Then
-			Parag = parExample
-		ElseIf Buff = "Differences from QB" Then
-			Parag = parDifferencesFromQB
-		ElseIf Buff = "See also" Then
-			Parag = parSeeAlso
-		Else
-			If bStart Then
-				StartBuff = Buff
-				bTrim = Trim(Buff)
-				If StartsWith(bTrim, "Operator ") Then bTrim = Trim(Mid(bTrim, 10))
-				Pos1 = InStr(bTrim, " ")
-				If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
-				Pos1 = InStr(bTrim, "...")
-				If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
-				Pos1 = InStr(bTrim, "(")
-				If Pos1 = 1 Then bTrim = Mid(bTrim, Pos1 + 1) Else If Pos1 > 1 Then bTrim = Left(bTrim, Pos1 - 1)
-				te = New_( TypeElement)
-				te->Name = bTrim
-				te->DisplayName = te->Name
-				te->ElementType = "Keyword"
-				te->FileName = *KeywordsHelpPath
-				GlobalFunctions.Add te->Name, te
-				bStartEnd = False
-				bDescriptionEnd = False
-			ElseIf Parag = parStart Then
-				If Buff <> "" AndAlso te <> 0 Then
-					If te->Comment = "" Then
-						te->Comment = Buff
-					Else
-						te->Comment &= " " & Buff
-					End If
-				End If
-			ElseIf Parag = parSyntax Then
-				If Not bStartEnd Then
-					If te <> 0 AndAlso Not EndsWith(te->Comment, ".") Then te->Comment &= "."
-					bStartEnd = True
-				End If
-				If te <> 0 Then
-					If StartsWith(Trim(Buff), "Declare ") AndAlso te->Name <> "Declare" Then
-						bTrim = LTrim(Mid(LTrim(Buff), 9))
-						If StartsWith(bTrim, "Function ") Then
-							Buff = LTrim(Mid(LTrim(bTrim), 10))
-							te->ElementType = "KeywordFunction"
-						ElseIf StartsWith(bTrim, "Sub ") Then
-							Buff = LTrim(Mid(LTrim(bTrim), 5))
-							te->ElementType = "KeywordSub"
-						ElseIf StartsWith(bTrim, "Operator ") Then
-							Buff = LTrim(Mid(LTrim(bTrim), 10))
-							te->ElementType = "KeywordOperator"
-						End If
-					End If
-					If te->Parameters = "" Then
-						te->Parameters = Buff
-					ElseIf EndsWith(te->Parameters, " ") Then
-						te->Parameters &= LTrim(Buff)
-					Else
-						te->Parameters &= !"\r" & Buff
-					End If
-				End If
-			ElseIf Parag = parUsage Then
-				
-			ElseIf Parag = parParameters Then
-				
-			ElseIf Parag = parReturnValue Then
-				
-			ElseIf Parag = parDescription Then
-				If Not bDescriptionEnd Then
-					Pos1 = InStr(Buff, ".")
-					If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ".")
-					If Pos1 > 0 Then
-						Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
-						bDescriptionEnd = True
-					End If
+	If Open(*KeywordsHelpPath For Input As #Fn) = 0 Then
+		Dim As TypeElement Ptr te, te1
+		Dim As String Buff, StartBuff, bTrim
+		Dim As Boolean bStart, bStartEnd, bDescriptionEnd
+		Dim As Paragraph Parag
+		Dim As Integer Pos1, LineNumber
+		Do Until EOF(Fn)
+			LineNumber += 1
+			Line Input #Fn, Buff
+			If StartsWith(Buff, "---") Then
+				bStart = True
+				Parag = parStart
+			ElseIf Buff = "Syntax" Then
+				Parag = parSyntax
+			ElseIf Buff = "Usage" Then
+				Parag = parUsage
+			ElseIf Buff = "Parameters" Then
+				Parag = parParameters
+			ElseIf Buff = "Return Value" Then
+				Parag = parReturnValue
+			ElseIf Buff = "Description" Then
+				Parag = parDescription
+			ElseIf Buff = "Example" Then
+				Parag = parExample
+			ElseIf Buff = "Differences from QB" Then
+				Parag = parDifferencesFromQB
+			ElseIf Buff = "See also" Then
+				Parag = parSeeAlso
+			Else
+				If bStart Then
+					StartBuff = Buff
+					bTrim = Trim(Buff)
+					If StartsWith(bTrim, "Operator ") Then bTrim = Trim(Mid(bTrim, 10))
+					Pos1 = InStr(bTrim, " ")
+					If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
+					Pos1 = InStr(bTrim, "...")
+					If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
+					Pos1 = InStr(bTrim, "(")
+					If Pos1 = 1 Then bTrim = Mid(bTrim, Pos1 + 1) Else If Pos1 > 1 Then bTrim = Left(bTrim, Pos1 - 1)
+					te = New_( TypeElement)
+					te->Name = bTrim
+					te->DisplayName = te->Name
+					te->ElementType = "Keyword"
+					te->FileName = *KeywordsHelpPath
+					GlobalFunctions.Add te->Name, te
+					bStartEnd = False
+					bDescriptionEnd = False
+				ElseIf Parag = parStart Then
 					If Buff <> "" AndAlso te <> 0 Then
 						If te->Comment = "" Then
-							te->Comment = Trim(Buff)
+							te->Comment = Buff
 						Else
-							te->Comment &= " " & Trim(Buff)
+							te->Comment &= " " & Buff
 						End If
 					End If
+				ElseIf Parag = parSyntax Then
+					If Not bStartEnd Then
+						If te <> 0 AndAlso Not EndsWith(te->Comment, ".") Then te->Comment &= "."
+						bStartEnd = True
+					End If
+					If te <> 0 Then
+						If StartsWith(Trim(Buff), "Declare ") AndAlso te->Name <> "Declare" Then
+							bTrim = LTrim(Mid(LTrim(Buff), 9))
+							If StartsWith(bTrim, "Function ") Then
+								Buff = LTrim(Mid(LTrim(bTrim), 10))
+								te->ElementType = "KeywordFunction"
+							ElseIf StartsWith(bTrim, "Sub ") Then
+								Buff = LTrim(Mid(LTrim(bTrim), 5))
+								te->ElementType = "KeywordSub"
+							ElseIf StartsWith(bTrim, "Operator ") Then
+								Buff = LTrim(Mid(LTrim(bTrim), 10))
+								te->ElementType = "KeywordOperator"
+							End If
+						End If
+						If te->Parameters = "" Then
+							te->Parameters = Buff
+						ElseIf EndsWith(te->Parameters, " ") Then
+							te->Parameters &= LTrim(Buff)
+						Else
+							te->Parameters &= !"\r" & Buff
+						End If
+					End If
+				ElseIf Parag = parUsage Then
+					
+				ElseIf Parag = parParameters Then
+					
+				ElseIf Parag = parReturnValue Then
+					
+				ElseIf Parag = parDescription Then
+					If Not bDescriptionEnd Then
+						Pos1 = InStr(Buff, ".")
+						If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ".")
+						If Pos1 > 0 Then
+							Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
+							bDescriptionEnd = True
+						End If
+						If Buff <> "" AndAlso te <> 0 Then
+							If te->Comment = "" Then
+								te->Comment = Trim(Buff)
+							Else
+								te->Comment &= " " & Trim(Buff)
+							End If
+						End If
+					End If
+				ElseIf Parag = parExample Then
+					
+				ElseIf Parag = parDifferencesFromQB Then
+					
+				ElseIf Parag = parSeeAlso Then
+					If te <> 0 AndAlso EndsWith(te->Parameters, !"\r") Then te->Parameters = Left(te->Parameters, Len(te->Parameters) - 1)
+					If bDescriptionEnd = False Then
+						te->Comment &= " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
+						bDescriptionEnd = True
+					End If
+					If te->Name = "Print" Then
+						te1 = New_( TypeElement)
+						te1->Name = "?"
+						te1->DisplayName = te->DisplayName
+						te1->ElementType = te->ElementType
+						te1->FileName = te->FileName
+						te1->Parameters = te->Parameters
+						te1->Comment = te->Comment
+						GlobalFunctions.Add te1->Name, te1
+					End If
 				End If
-			ElseIf Parag = parExample Then
-				
-			ElseIf Parag = parDifferencesFromQB Then
-				
-			ElseIf Parag = parSeeAlso Then
-				If te <> 0 AndAlso EndsWith(te->Parameters, !"\r") Then te->Parameters = Left(te->Parameters, Len(te->Parameters) - 1)
-				If bDescriptionEnd = False Then
-					te->Comment &= " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
-					bDescriptionEnd = True
-				End If
-				If te->Name = "Print" Then
-					te1 = New_( TypeElement)
-					te1->Name = "?"
-					te1->DisplayName = te->DisplayName
-					te1->ElementType = te->ElementType
-					te1->FileName = te->FileName
-					te1->Parameters = te->Parameters
-					te1->Comment = te->Comment
-					GlobalFunctions.Add te1->Name, te1
-				End If
+				bStart = False
 			End If
-			bStart = False
-		End If
-	Loop
+		Loop
+	End If
 	CloseFile_(Fn)
 End Sub
 
@@ -4210,14 +4211,15 @@ End Sub
 Sub LoadHotKeys
 	Dim As Integer Fn = FreeFile_, Pos1
 	Dim As String Buff
-	Open ExePath & "/Settings/Others/HotKeys.txt" For Input As #Fn
-	While Not EOF(Fn)
-		Line Input #Fn, Buff
-		Pos1 = InStr(Buff, "=")
-		If Pos1 > 0 Then
-			HotKeys.Add Left(Buff, Pos1 - 1), Mid(Buff, Pos1 + 1)
-		End If
-	Wend
+	If Open(ExePath & "/Settings/Others/HotKeys.txt" For Input As #Fn) = 0 Then
+		While Not EOF(Fn)
+			Line Input #Fn, Buff
+			Pos1 = InStr(Buff, "=")
+			If Pos1 > 0 Then
+				HotKeys.Add Left(Buff, Pos1 - 1), Mid(Buff, Pos1 + 1)
+			End If
+		Wend
+	End If
 	CloseFile_(Fn)
 End Sub
 
