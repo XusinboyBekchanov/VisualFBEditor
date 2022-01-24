@@ -369,7 +369,7 @@ Declare Function Ekvivalent(ByRef a As WString, ByRef b As WString) As Integer
 
 Declare Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Integer)
 
-Declare Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False)
+Declare Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False)
 
 Declare Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 

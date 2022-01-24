@@ -3521,7 +3521,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
 						te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 						te->TypeName = WithoutPointers(te->TypeName)
-						te->ElementType = "property"
+						te->ElementType = "Property"
 						te->StartLine = i
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If Comment <> "" Then te->Comment = Comment: Comment = ""

@@ -2684,7 +2684,7 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	'    End If
 End Sub
 
-Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Type") As Boolean
+Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Sub") As Boolean
 	On Error Goto ErrorHandler
 	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	c += 1
@@ -2706,6 +2706,10 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 		imgKeyNew = "Property"
 	ElseIf te->ElementType = "Event" Then
 		imgKeyNew = "Event"
+	ElseIf te->ElementType = "Type" OrElse te->ElementType = "TypeCopy" OrElse te->ElementType = "Union" Then
+		imgKeyNew = "Type"
+	ElseIf StartsWith(te->ElementType, "Keyword") Then
+		imgKeyNew = "StandartTypes"
 	End If
 	#ifdef __USE_GTK__
 		Dim iIndex As Integer = -1
@@ -2788,7 +2792,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
 	Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
 	Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
-	If TypeName <> "" Then FillIntellisenseByName TypeName, Starts, True, True, True
+	If TypeName <> "" Then FillIntellisenseByName "", TypeName, Starts, True, True, True
 	If te1 <> 0 Then
 		For i As Integer = 0 To te1->Elements.Count - 1
 			te = te1->Elements.Object(i)
@@ -2942,12 +2946,12 @@ Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Inte
 	WDeallocate sTempRight
 End Sub
 
-Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False)
+Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
-	Dim As String sTemp2 = Value
+	Dim As String sTemp2 = TypeName
 	If tb->Des AndAlso tb->Des->ReadPropertyFunc <> 0 Then
-		If CInt(LCase(sTemp2) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) Then
+		If CInt(LCase(Value) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) Then
 			Dim As String frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 			If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
 				sTemp2 = frmName
@@ -3000,6 +3004,9 @@ Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boo
 	'		FListItems.Clear
 	'	End If
 	'	If te <> 0 Then sTemp2 = te->TypeName
+	If TypeName <> "" AndAlso LCase(Value) = "base" Then
+		FListItems.Add "Base"
+	End If
 	If tb->Types.Contains(sTemp2) Then
 		tb->FillIntellisense sTemp2, @tb->Types, bLocal, bAll
 	ElseIf tb->Enums.Contains(sTemp2) Then
@@ -3019,8 +3026,9 @@ Sub FillIntellisenseByName(Value As String, Starts As String = "", bLocal As Boo
 	For i As Integer = 0 To FListItems.Count - 1
 		Dim As String imgKey = "Sub"
 		te = FListItems.Object(i)
-		If te = 0 Then Continue For
-		If te->ElementType = "Property" Then
+		If te = 0 Then 
+			imgKey = "StandartTypes"
+		ElseIf te->ElementType = "Property" Then
 			imgKey = "Property"
 		ElseIf te->ElementType = "Function" Then
 			imgKey = "Function"
@@ -3094,7 +3102,7 @@ Sub CompleteWord
 		TypeName = GetTypeFromValue(tb, teOld->Value)
 	End If
 	If TypeName <> "" Then
-		FillIntellisenseByName TypeName
+		FillIntellisenseByName sTemp, TypeName
 	Else
 		If LCase(sTemp2) = "as" Then
 			FillTypeIntellisenses sTemp
@@ -3766,7 +3774,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		End If
 		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k)
 		If Trim(TypeName) = "" Then Exit Sub
-		FillIntellisenseByName TypeName
+		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName
 		#ifdef __USE_GTK__
 			If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
 		#else
