@@ -3521,13 +3521,13 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		If LCase(sTemp) = "base" Then
 			If tb->Types.Contains(TypeName) Then
 				te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
-				Return te2->TypeName
+				If te2 <> 0 Then Return te2->TypeName
 			ElseIf pComps->Contains(TypeName) Then
-				te2 = pComps->Object(tb->Types.IndexOf(TypeName))
-				Return te2->TypeName
+				te2 = pComps->Object(pComps->IndexOf(TypeName))
+				If te2 <> 0 Then Return te2->TypeName
 			ElseIf pGlobalTypes->Contains(TypeName) Then
-				te2 = pGlobalTypes->Object(tb->Types.IndexOf(TypeName))
-				Return te2->TypeName
+				te2 = pGlobalTypes->Object(pGlobalTypes->IndexOf(TypeName))
+				If te2 <> 0 Then Return te2->TypeName
 			End If
 		ElseIf tb->Types.Contains(TypeName) Then
 			tb->FillIntellisense TypeName, @tb->Types, True
@@ -3557,13 +3557,13 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		ElseIf LCase(sTemp) = "base" Then
 			If tb->Types.Contains(TypeName) Then
 				te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
-				Return te2->TypeName
+				If te2 <> 0 Then Return te2->TypeName
 			ElseIf pComps->Contains(TypeName) Then
-				te2 = pComps->Object(tb->Types.IndexOf(TypeName))
-				Return te2->TypeName
+				te2 = pComps->Object(pComps->IndexOf(TypeName))
+				If te2 <> 0 Then Return te2->TypeName
 			ElseIf pGlobalTypes->Contains(TypeName) Then
-				te2 = pGlobalTypes->Object(tb->Types.IndexOf(TypeName))
-				Return te2->TypeName
+				te2 = pGlobalTypes->Object(pGlobalTypes->IndexOf(TypeName))
+				If te2 <> 0 Then Return te2->TypeName
 			End If
 		End If
 		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
