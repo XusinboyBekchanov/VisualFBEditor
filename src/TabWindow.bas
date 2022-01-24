@@ -3445,7 +3445,7 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 End Function
 
 Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "") As String
-	Dim As String sTemp, sTemp2, TypeName
+	Dim As String sTemp, sTemp2, TypeName, BaseTypeName
 	Dim sLine As WString Ptr
 	Dim As Integer j, iCount, Pos1
 	Dim As String ch
@@ -3521,15 +3521,28 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		If LCase(sTemp) = "base" Then
 			If tb->Types.Contains(TypeName) Then
 				te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
-				If te2 <> 0 Then Return te2->TypeName
+				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			ElseIf pComps->Contains(TypeName) Then
 				te2 = pComps->Object(pComps->IndexOf(TypeName))
-				If te2 <> 0 Then Return te2->TypeName
+				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			ElseIf pGlobalTypes->Contains(TypeName) Then
 				te2 = pGlobalTypes->Object(pGlobalTypes->IndexOf(TypeName))
-				If te2 <> 0 Then Return te2->TypeName
+				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			End If
-		ElseIf tb->Types.Contains(TypeName) Then
+			If BaseTypeName <> "" Then
+				If tb->Types.Contains(BaseTypeName) Then
+					teEnum = tb->Types.Object(tb->Types.IndexOf(BaseTypeName))
+				ElseIf pComps->Contains(BaseTypeName) Then
+					teEnum = pComps->Object(pComps->IndexOf(BaseTypeName))
+				ElseIf pGlobalTypes->Contains(BaseTypeName) Then
+					teEnum = pGlobalTypes->Object(pGlobalTypes->IndexOf(BaseTypeName))
+				End If
+				teEnumOld = 0
+				OldTypeName = ""
+				Return BaseTypeName
+			End If
+		End If
+		If tb->Types.Contains(TypeName) Then
 			tb->FillIntellisense TypeName, @tb->Types, True
 		ElseIf tb->Enums.Contains(TypeName) Then
 			tb->FillIntellisense TypeName, @tb->Enums, True
@@ -3557,13 +3570,25 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		ElseIf LCase(sTemp) = "base" Then
 			If tb->Types.Contains(TypeName) Then
 				te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
-				If te2 <> 0 Then Return te2->TypeName
+				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			ElseIf pComps->Contains(TypeName) Then
 				te2 = pComps->Object(pComps->IndexOf(TypeName))
-				If te2 <> 0 Then Return te2->TypeName
+				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			ElseIf pGlobalTypes->Contains(TypeName) Then
 				te2 = pGlobalTypes->Object(pGlobalTypes->IndexOf(TypeName))
-				If te2 <> 0 Then Return te2->TypeName
+				If te2 <> 0 Then BaseTypeName = te2->TypeName
+			End If
+			If BaseTypeName <> "" Then
+				If tb->Types.Contains(BaseTypeName) Then
+					teEnum = tb->Types.Object(tb->Types.IndexOf(BaseTypeName))
+				ElseIf pComps->Contains(BaseTypeName) Then
+					teEnum = pComps->Object(pComps->IndexOf(BaseTypeName))
+				ElseIf pGlobalTypes->Contains(BaseTypeName) Then
+					teEnum = pGlobalTypes->Object(pGlobalTypes->IndexOf(BaseTypeName))
+				End If
+				teEnumOld = 0
+				OldTypeName = ""
+				Return BaseTypeName
 			End If
 		End If
 		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
@@ -4036,7 +4061,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Var bT = False
 	c = False
 	txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-	Dim As Integer iStart, iEnd, CtrlArrayNum, Pos1, Pos2, Pos3, Pos4, Pos5, n, inPubPriPro = 0, ConstructionIndex = -1, ConstructionPart
+	Dim As Integer iStart, iEnd, CtrlArrayNum, Pos1, Pos2, Pos3, Pos4, Pos5, n, inPubProPri = 0, ConstructionIndex = -1, ConstructionPart
 	Dim ptxtCode As EditControl Ptr = 0
 	Dim As Boolean bFind, bTrue = True
 	Dim WithArgs As WStringList
@@ -4127,7 +4152,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Pos1 = 0
 					Pos2 = 0
 					l = 0
-					inPubPriPro = 0
+					inPubProPri = 0
 					inFunc = True
 					Pos1 = InStr(" " & bTrimLCase, " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
 					If Pos1 > 0 Then
@@ -4235,11 +4260,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					If Functions.Count > 0 Then Cast(TypeElement Ptr, Functions.Object(Functions.Count - 1))->EndLine = i: inFunc = False
 				End If
 			ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
-				inPubPriPro = 0
-			ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
-				inPubPriPro = 1
+				inPubProPri = 0
 			ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
-				inPubPriPro = 2
+				inPubProPri = 1
+			ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
+				inPubProPri = 2
 			ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
 				Pos1 = InStr(9, bTrim, " ")
 				Pos2 = InStr(9, bTrim, "(")
@@ -4393,9 +4418,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->TypeName = WithoutPointers(te->TypeName)
 						te->Value = ElementValue
 						If inFunc Then
-							te->Locals = inPubPriPro
+							te->Locals = inPubProPri
 						Else
-							te->Locals = IIf(bShared, 0, 1)
+							te->Locals = IIf(bShared, 0, 2)
 						End If
 						te->StartLine = i
 						te->EndLine = i

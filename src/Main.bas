@@ -2862,7 +2862,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Dim As TypeElement Ptr te, tbi, typ
 	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace
 	Dim As Boolean bTypeIsPointer
-	Dim As Integer inPubPriPro = 0
+	Dim As Integer inPubProPri = 0
 	Dim As Integer Result
 	Dim As WString * 2048 bTrim, bTrimLCase
 	Dim b As WString * 2048 ' for V1.07 Line Input not working fine
@@ -2959,7 +2959,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								e = ""
 							End If
 							inType = Pos3 = 0
-							inPubPriPro = 0
+							inPubProPri = 0
 							tbi = New_( TypeElement)
 							tbi->Name = t
 							tbi->DisplayName = t & " [Type]"
@@ -2969,7 +2969,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							tbi->StartLine = i
 							tbi->FileName = PathFunction
 							tbi->IncludeFile = "mff/" & GetFileName(PathFunction)
-							tbi->Parameters = Trim(Mid(bTrim, 6))
+							tbi->Parameters = Trim(Mid(bTrim, Pos1 + 5))
 							Types.Add t, tbi
 							typ = tbi
 							If Namespaces.Count > 0 Then
@@ -3136,10 +3136,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 					End If
 					If inType Then
-						te->Locals = inPubPriPro
+						te->Locals = inPubProPri
 					End If
 					If LCase(te->ElementType) = "operator" Then
-						te->Locals = 1
+						te->Locals = 2
 					End If
 					Pos4 = InStr(te->Parameters, "'")
 					If Pos4 > 0 Then
@@ -3156,13 +3156,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					End If
 				ElseIf inType OrElse inUnion Then
 					If bTrimLCase = "public" Then
-						inPubPriPro = 0
-						Comment = ""
-					ElseIf bTrimLCase = "private" Then
-						inPubPriPro = 1
+						inPubProPri = 0
 						Comment = ""
 					ElseIf bTrimLCase = "protected" Then
-						inPubPriPro = 2
+						inPubProPri = 1
+						Comment = ""
+					ElseIf bTrimLCase = "private" Then
+						inPubProPri = 2
 						Comment = ""
 					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse InStr(bTrimLCase, " as ") Then
 						Dim As UString b2 = bTrim
@@ -3237,7 +3237,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->TypeName = WithoutPointers(te->TypeName)
 							te->Value = ElementValue
 							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-							te->Locals = inPubPriPro
+							te->Locals = inPubProPri
 							te->StartLine = i
 							te->Parameters = res1(n) & " As " & CurType
 							te->FileName = PathFunction
@@ -3392,7 +3392,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Pos1 > 0 Then
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
-							te->Locals = 1
+							te->Locals = 2
 						Else
 							bt = ""
 							te->Locals = 0 'IIf(StartsWith(bTrimLCase, "private sub "), 1, 0)
@@ -3447,7 +3447,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Pos1 > 0 Then
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
-							te->Locals = 1
+							te->Locals = 2
 						Else
 							bt = ""
 							te->Locals = 0 'IIf(StartsWith(bTrimLCase, "private function "), 1, 0)
@@ -3510,7 +3510,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Pos1 > 0 Then
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
-							te->Locals = 1
+							te->Locals = 2
 						Else
 							bt = ""
 							te->Locals = 0 'IIf(StartsWith(bTrimLCase, "private property "), 1, 0)
@@ -3599,7 +3599,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->TypeName = CurType
 							te->TypeName = WithoutPointers(te->TypeName)
 							te->Value = ElementValue
-							te->Locals = IIf(bShared, 0, 1)
+							te->Locals = IIf(bShared, 0, 2)
 							te->StartLine = i
 							te->Parameters = res1(n) & " As " & CurType
 							te->FileName = PathFunction
