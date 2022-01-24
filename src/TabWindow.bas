@@ -3516,9 +3516,20 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 			End If
 		End If
 	End If
-	Dim As TypeElement Ptr te, te1
+	Dim As TypeElement Ptr te, te1, te2
 	If TypeName <> "" Then
-		If tb->Types.Contains(TypeName) Then
+		If LCase(sTemp) = "base" Then
+			If tb->Types.Contains(TypeName) Then
+				te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
+				Return te2->TypeName
+			ElseIf pComps->Contains(TypeName) Then
+				te2 = pComps->Object(tb->Types.IndexOf(TypeName))
+				Return te2->TypeName
+			ElseIf pGlobalTypes->Contains(TypeName) Then
+				te2 = pGlobalTypes->Object(tb->Types.IndexOf(TypeName))
+				Return te2->TypeName
+			End If
+		ElseIf tb->Types.Contains(TypeName) Then
 			tb->FillIntellisense TypeName, @tb->Types, True
 		ElseIf tb->Enums.Contains(TypeName) Then
 			tb->FillIntellisense TypeName, @tb->Enums, True
@@ -3541,7 +3552,20 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
 		Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
 		Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
-		If LCase(sTemp) = "this" Then Return TypeName
+		If LCase(sTemp) = "this" Then
+			Return TypeName
+		ElseIf LCase(sTemp) = "base" Then
+			If tb->Types.Contains(TypeName) Then
+				te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
+				Return te2->TypeName
+			ElseIf pComps->Contains(TypeName) Then
+				te2 = pComps->Object(tb->Types.IndexOf(TypeName))
+				Return te2->TypeName
+			ElseIf pGlobalTypes->Contains(TypeName) Then
+				te2 = pGlobalTypes->Object(tb->Types.IndexOf(TypeName))
+				Return te2->TypeName
+			End If
+		End If
 		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
 			te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
 		ElseIf tb->Procedures.Contains(sTemp) Then
