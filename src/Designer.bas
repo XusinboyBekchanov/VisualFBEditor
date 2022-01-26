@@ -220,7 +220,7 @@ Namespace My.Sys.Forms
 			Return Parent
 		#else
 			Dim ParentHwnd As Hwnd = *Cast(HWND Ptr, ReadPropertyFunc(Parent, "Handle"))
-			Dim Result As Hwnd = ChildWindowFromPoint(ParentHwnd, Type < ..Point > (ScaleX(X), ScaleY(Y)))
+			Dim Result As Hwnd = ChildWindowFromPoint(ParentHwnd, Type<..Point>(ScaleX(X), ScaleY(Y)))
 			If GetControl(Result) = Parent Then Return Parent
 			If Result = 0 OrElse Result = ParentHwnd OrElse GetControl(Result) = 0 Then
 				Return Parent
@@ -781,7 +781,7 @@ Namespace My.Sys.Forms
 					#ifndef __USE_GTK__
 						FHDC = GetDC(FDialog)
 						'SetROP2(hdc, R2_NOTXORPEN)
-						DrawFocusRect(Fhdc, @Type < ..RECT > (ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
+						DrawFocusRect(Fhdc, @Type<..RECT>(ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
 						FOldX = FNewX
 						FOldY = FNewY
 						ReleaseDC(FDialog, Fhdc)
@@ -808,8 +808,8 @@ Namespace My.Sys.Forms
 				#else
 					SetCursor(crCross)
 				#endif
-				DrawBox(Type < My.Sys.Drawing.RECT > (FBeginX, FBeginY, FNewX, FNewY))
-				DrawBox(Type < My.Sys.Drawing.RECT > (FBeginX, FBeginY, FEndX, FEndY))
+				DrawBox(Type<My.Sys.Drawing.RECT>(FBeginX, FBeginY, FNewX, FNewY))
+				DrawBox(Type<My.Sys.Drawing.RECT>(FBeginX, FBeginY, FEndX, FEndY))
 			End If
 			If FCanSize Then
 				For j As Integer = 0 To SelectedControls.Count - 1
@@ -868,8 +868,8 @@ Namespace My.Sys.Forms
 				#else
 					FHDC = GetDC(FDialog)
 					'SetROP2(hdc, R2_NOTXORPEN)
-					DrawFocusRect(Fhdc, @Type < ..RECT > (ScaleX(Min(FBeginX, FOldX)), ScaleY(Min(FBeginY, FOldY)), ScaleX(Max(FBeginX, FOldX)), ScaleY(Max(FBeginY, FOldY))))
-					DrawFocusRect(Fhdc, @Type < ..RECT > (ScaleX(Min(FBeginX, FNewX)), ScaleX(Min(FBeginY, FNewY)), ScaleX(Max(FBeginX, FNewX)), ScaleY(Max(FBeginY, FNewY))))
+					DrawFocusRect(Fhdc, @Type<..RECT>(ScaleX(Min(FBeginX, FOldX)), ScaleY(Min(FBeginY, FOldY)), ScaleX(Max(FBeginX, FOldX)), ScaleY(Max(FBeginY, FOldY))))
+					DrawFocusRect(Fhdc, @Type<..RECT>(ScaleX(Min(FBeginX, FNewX)), ScaleX(Min(FBeginY, FNewY)), ScaleX(Max(FBeginX, FNewX)), ScaleY(Max(FBeginY, FNewY))))
 				#endif
 				FOldX = FNewX
 				FOldY = FNewY
@@ -964,7 +964,7 @@ Namespace My.Sys.Forms
 					Next i
 				#else
 					FHDC = GetDC(FDialog)
-					DrawFocusRect(Fhdc, @Type < ..RECT > (ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
+					DrawFocusRect(Fhdc, @Type<..RECT>(ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
 					ReleaseDC(FDialog, Fhdc)
 					SelectedControl = DesignControl
 					FSelControl = FDialog
@@ -995,7 +995,7 @@ Namespace My.Sys.Forms
 			If FCanInsert Then
 				If FBeginX > FNewX Then Swap FBeginX, FNewX
 				If FBeginY > FNewY Then Swap FBeginY, FNewY
-				DrawBox(Type < My.Sys.Drawing.RECT > (FBeginX, FBeginY, FNewX, FNewY))
+				DrawBox(Type<My.Sys.Drawing.RECT>(FBeginX, FBeginY, FNewX, FNewY))
 				#ifdef __USE_GTK__
 					If gtk_is_widget(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
 				#endif
@@ -1967,7 +1967,7 @@ Namespace My.Sys.Forms
 							Return True
 						End If
 					#else
-						P = Type < ..Point > (LoWord(lParam), HiWord(lParam))
+						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
@@ -1992,7 +1992,7 @@ Namespace My.Sys.Forms
 							Return True
 						End If
 					#else
-						P = Type <..Point > (LoWord(lParam), HiWord(lParam))
+						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseUp(GetXY(UnScaleX(P.X)), GetXY(UnScaleY(P.Y)), wParam And &HFFFF )
@@ -2010,7 +2010,7 @@ Namespace My.Sys.Forms
 						.MouseMove(Event->button.x + x, Event->button.y + y, Event->button.state)
 						Return True
 					#else
-						P = Type <..Point > (LoWord(lParam), HiWord(lParam))
+						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseMove(GetXY(UnScaleX(P.X)), GetXY(UnScaleY(P.Y)), wParam And &HFFFF )
@@ -2516,7 +2516,7 @@ Namespace My.Sys.Forms
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
-						P = Type <..Point > (LoWord(lParam), HiWord(lParam))
+						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.DblClick(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF)
@@ -2533,7 +2533,7 @@ Namespace My.Sys.Forms
 						.MouseDown(Event->button.x - x, Event->button.y - y, Event->button.state)
 						Return True
 					#else
-						P = Type <..Point > (LoWord(lParam), HiWord(lParam))
+						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
@@ -2550,7 +2550,7 @@ Namespace My.Sys.Forms
 						.MouseUp(Event->button.x - x, Event->button.y - y, Event->button.state)
 						Return True
 					#else
-						P = Type <..Point > (LoWord(lParam), HiWord(lParam))
+						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseUp(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
@@ -2581,7 +2581,7 @@ Namespace My.Sys.Forms
 						.MouseMove(Event->Motion.x - x, Event->Motion.y - y, Event->Motion.state)
 						Return True
 					#else
-						P = Type <..Point > (LoWord(lParam), HiWord(lParam))
+						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
 						.MouseMove(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
