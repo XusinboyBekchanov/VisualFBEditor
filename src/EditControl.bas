@@ -3793,12 +3793,14 @@ Namespace My.Sys.Forms
 	Sub EditControl.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
 			With QEditControl(Sender.Child)
-				If g_darkModeSupported AndAlso g_darkModeEnabled Then
-					SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
-					SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-					_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
-					UpdateWindow(.FHandle)
-				End If
+				#ifdef __USE_WINAPI__
+					If g_darkModeSupported AndAlso g_darkModeEnabled Then
+						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
+						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						UpdateWindow(.FHandle)
+					End If
+				#endif
 				'Var s1Pos = 100, s1Min = 1, s1Max = 100
 				'SetScrollRange(.FHandle, SB_CTL, s1Min, s1Max, TRUE)
 				'SetScrollPos(.FHandle, SB_CTL, s1Pos, TRUE)

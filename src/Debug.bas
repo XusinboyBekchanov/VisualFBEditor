@@ -6057,7 +6057,7 @@ Declare Function timer_data() As Integer
 
 Declare Sub continue_debug()
 
-#ifndef __FB_WIN32__
+#ifndef __USE_WINAPI__
 	#include "crt/unistd.bi"
 	
 	Extern "C"
@@ -6104,7 +6104,7 @@ Dim Shared As Long iCounterUpdateVariables, iFlagStartDebug, iStateMenu = 1
 #ifdef __USE_GTK__
 	Dim Shared As Guint w9T(50)
 	
-	Sub KillTimer (hwnd As Any Ptr = 0, idTimer As Long)
+	Sub KillTimer(hwnd As Any Ptr = 0, idTimer As Long)
 		
 		g_source_remove_ (w9T(idTimer))
 		
@@ -6112,7 +6112,7 @@ Dim Shared As Long iCounterUpdateVariables, iFlagStartDebug, iStateMenu = 1
 	
 	End Sub
 	
-	Function SetTimer (hwnd As Any Ptr = 0, ByRef idTimer As Long, iElapse As Long, pTimerProc As Any Ptr) As Long
+	Function SetTimer(hwnd As Any Ptr = 0, ByRef idTimer As Long, iElapse As Long, pTimerProc As Any Ptr) As Long
 		
 		Dim As Guint pTimer
 		

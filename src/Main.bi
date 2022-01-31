@@ -61,6 +61,10 @@ Namespace VisualFBEditor
 	End Type
 End Namespace
 
+#if defined(__FB_WIN32__) AndAlso defined(__USE_GTK__)
+	#define MAX_PATH 260
+#endif
+
 Type HelpOptions
 	CurrentPath As WString * MAX_PATH
 	CurrentWord As WString * MAX_PATH

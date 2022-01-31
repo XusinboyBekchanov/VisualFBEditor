@@ -36,9 +36,11 @@
 Using My.Sys.Forms
 Using My.Sys.Drawing
 
-InitDarkMode
-'setDarkMode(True, True)
-		
+#ifdef __USE_WINAPI__
+	InitDarkMode
+	'setDarkMode(True, True)
+#endif
+
 #include once "frmSplash.bi"
 pfSplash->MainForm = False
 pfSplash->Show
@@ -4066,7 +4068,7 @@ Sub LoadSettings
 	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
 	ShowMainToolbar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
 	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		If DarkMode Then
 			txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
 			txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
@@ -4078,7 +4080,9 @@ Sub LoadSettings
 	mnuMain.DisplayIcons = DisplayMenuIcons
 	'mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
 	ReBar1.Visible = ShowMainToolbar
-	SetDarkMode DarkMode, False
+	#ifdef __USE_WINAPI__
+		SetDarkMode DarkMode, False
+	#endif
 	
 	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-exx"))
 	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-exx"))
