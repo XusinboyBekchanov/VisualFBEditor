@@ -36,6 +36,9 @@
 Using My.Sys.Forms
 Using My.Sys.Drawing
 
+InitDarkMode
+'setDarkMode(True, True)
+		
 #include once "frmSplash.bi"
 pfSplash->MainForm = False
 pfSplash->Show
@@ -2739,9 +2742,9 @@ Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeig
 	#ifdef __USE_GTK__
 		tbToolBox.SetBounds 0, 0, NewWidth, NewHeight
 	#else
-		tbToolBox.SetBounds 0, 0, NewWidth - IIf(scrTool.Visible, scrTool.Width, 0), NewHeight
 		scrTool.MaxValue = Max(0, tbToolBox.Height - NewHeight)
 		scrTool.Visible = scrTool.MaxValue <> 0
+		tbToolBox.SetBounds 0, 0, NewWidth - IIf(scrTool.Visible, scrTool.Width, 0), NewHeight
 	#endif
 End Sub
 
@@ -4062,12 +4065,20 @@ Sub LoadSettings
 	#endif
 	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
 	ShowMainToolbar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
+	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
+	#ifndef __USE_GTK__
+		If DarkMode Then
+			txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
+			txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
+		End If
+	#endif
 	pDefaultFont->Name = WGet(InterfaceFontName)
 	pDefaultFont->Size  = InterfaceFontSize
 	
 	mnuMain.DisplayIcons = DisplayMenuIcons
 	'mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
 	ReBar1.Visible = ShowMainToolbar
+	SetDarkMode DarkMode, False
 	
 	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-exx"))
 	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-exx"))
@@ -4302,7 +4313,7 @@ Sub GDBCommand
 End Sub
 
 Sub CreateMenusAndToolBars
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("Create Menus And ToolBars")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Create Menus And ToolBars")
 	imgList.Name = "imgList"
 	imgList.Add "StartWithCompile", "StartWithCompile"
 	imgList.Add "Start", "Start"
@@ -4931,7 +4942,7 @@ tbExplorer.Align = DockStyle.alTop
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
 tbExplorer.Buttons.Add , "Remove", , @mClick, "RemoveFileFromProject", , ML("&Remove"), True
 tbExplorer.Buttons.Add tbsSeparator
-tbExplorer.Buttons.Add tbsCheck, "Folder",, @mClick, "Folder", , ML("Show Folders"), True
+tbExplorer.Buttons.Add tbsCheck, "Folder", , @mClick, "Folder", , ML("Show Folders"), True
 
 Sub tbFormClick(ByRef Sender As My.Sys.Object)
 	Var bFlag = Cast(ToolButton Ptr, @Sender)->Checked
@@ -5837,9 +5848,15 @@ Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 			End If
 			lvProperties_EndScroll(Sender)
 		Else
-			FillRect Canvas.Handle, @rc, GetSysColorBrush(COLOR_WINDOW)
-			SetBkColor Canvas.Handle, GetSysColor(COLOR_WINDOW)                    'Set text Background
-			SetTextColor Canvas.Handle, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
+			If g_darkModeSupported AndAlso g_darkModeEnabled Then
+				FillRect Canvas.Handle, @rc, hbrBkgnd
+				SetBkColor Canvas.Handle, darkBkColor                    'Set text Background
+				SetTextColor Canvas.Handle, darkTextColor                'Set text color
+			Else
+				FillRect Canvas.Handle, @rc, GetSysColorBrush(COLOR_WINDOW)
+				SetBkColor Canvas.Handle, GetSysColor(COLOR_WINDOW)                    'Set text Background
+				SetTextColor Canvas.Handle, GetSysColor(COLOR_WINDOWTEXT)                'Set text color
+			End If
 		End If
 		'DRAW TEXT
 		Dim zTxt As WString * 64
@@ -5930,7 +5947,9 @@ txtLabelProperty.Align = DockStyle.alBottom
 txtLabelProperty.Multiline = True
 txtLabelProperty.ReadOnly = True
 #ifndef __USE_GTK__
-	txtLabelProperty.BackColor = clBtnFace
+	If Not DarkMode Then
+		txtLabelProperty.BackColor = clBtnFace
+	End If
 #endif
 txtLabelProperty.WordWraps = True
 
@@ -5939,7 +5958,9 @@ txtLabelEvent.Align = DockStyle.alBottom
 txtLabelEvent.Multiline = True
 txtLabelEvent.ReadOnly = True
 #ifndef __USE_GTK__
-	txtLabelEvent.BackColor = clBtnFace
+	If Not DarkMode Then
+		txtLabelEvent.BackColor = clBtnFace
+	End If
 #endif
 txtLabelEvent.WordWraps = True
 
@@ -7116,6 +7137,8 @@ Sub frmMain_Show(ByRef Sender As Control)
 		If Not GetRightClosedStyle Then pnlRightPin.Top = tabItemHeight
 		pnlBottomPin.Width = tabItemHeight
 		pnlPropertyValue.Visible = False
+	#else
+		pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
 	#endif
 	#ifdef __FB_64BIT__
 		App.Title = App.Title & " (" & ML("64-bit") & ")"
@@ -7129,11 +7152,11 @@ Sub frmMain_Show(ByRef Sender As Control)
 	#else
 		pfAbout->Label11.Text = ML("Version") & " " & WStr(VERSION)
 	#endif
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("CheckCompilerPaths")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("CheckCompilerPaths")
 	Var bFind = CheckCompilerPaths
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("AddIns")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("AddIns")
 	LoadAddIns
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ":" & ML("Tools")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Tools")
 	LoadTools
 	
 	pfSplash->CloseForm

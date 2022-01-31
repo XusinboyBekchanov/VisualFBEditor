@@ -609,7 +609,6 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "MyFbFrameworkWiKi":               OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework/wiki"
 	Case "About":                            pfAbout->Show *pfrmMain
 	Case "TipoftheDay":                      pfTipOfDay->ShowModal *pfrmMain
-		
 	End Select
 End Sub
 

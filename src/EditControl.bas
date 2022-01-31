@@ -933,10 +933,10 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To FLines.Count - 1
 				Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
 			Next
-			CloseFile_(Fn)
 		Else
 			MsgBox ML("Save file failure!") & Chr(13,10) & File
 		End If
+		CloseFile_(Fn)
 	End Sub
 	
 	Sub EditControl.Clear
@@ -3793,6 +3793,12 @@ Namespace My.Sys.Forms
 	Sub EditControl.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
 			With QEditControl(Sender.Child)
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
+					SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+					_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+					UpdateWindow(.FHandle)
+				End If
 				'Var s1Pos = 100, s1Min = 1, s1Max = 100
 				'SetScrollRange(.FHandle, SB_CTL, s1Min, s1Max, TRUE)
 				'SetScrollPos(.FHandle, SB_CTL, s1Pos, TRUE)

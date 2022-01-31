@@ -973,7 +973,7 @@ pfOptions = @fOptions
 		With pnlThemesCheckboxes
 			.Name = "pnlThemesCheckboxes"
 			.Text = "Panel2"
-			.SetBounds 10, 63, 320, 48
+			.SetBounds 10, 63, 320, 198
 			.Parent = @grbThemes
 		End With
 		' pnlColors
@@ -1326,6 +1326,15 @@ pfOptions = @fOptions
 			.SetBounds 218, 89, 184, 21
 			.Parent = @grbDefaultDebuggers
 		End With
+		' chkDarkMode
+		With chkDarkMode
+			.Name = "chkDarkMode"
+			.Text = ML("DarkMode")
+			.TabIndex = 188
+			.Caption = ML("DarkMode")
+			.SetBounds 2, 38, 224, 24
+			.Parent = @pnlThemesCheckboxes
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1416,6 +1425,7 @@ Sub frmOptions.LoadSettings()
 		.cboLanguage.Clear
 		.chkDisplayIcons.Checked = DisplayMenuIcons
 		.chkShowMainToolbar.Checked = ShowMainToolbar
+		.chkDarkMode.Checked = DarkMode
 		Dim As String f
 		Dim As Integer Fn, Result
 		Dim Buff As WString * 2048 '
@@ -1663,6 +1673,7 @@ Sub frmOptions.LoadSettings()
 		.InterfFontSize = InterfaceFontSize
 		.oldInterfFontSize = InterfaceFontSize
 		.oldDisplayMenuIcons = DisplayMenuIcons
+		.oldDarkMode = DarkMode
 		.lblInterfaceFont.Font.Name = *InterfaceFontName
 		.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
 	End With
@@ -2055,6 +2066,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		InterfaceFontSize = .InterfFontSize
 		DisplayMenuIcons = .chkDisplayIcons.Checked
 		ShowMainToolbar = .chkShowMainToolbar.Checked
+		DarkMode = .chkDarkMode.Checked
 		SetColors
 		If .HotKeysChanged Then
 			Dim As Integer Pos1, Fn = FreeFile_
@@ -2216,9 +2228,11 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "InterfaceFontSize", InterfaceFontSize
 		piniSettings->WriteBool "Options", "DisplayMenuIcons", DisplayMenuIcons
 		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolbar
+		piniSettings->WriteBool "Options", "DarkMode", DarkMode
 		pfrmMain->Menu->ImagesList = IIf(DisplayMenuIcons, pimgList, 0)
 		ReBar1.Visible = ShowMainToolbar
 		pfrmMain->RequestAlign
+		'SetDarkMode DarkMode, False
 		
 		piniTheme->Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
 		piniTheme->WriteInteger("Colors", "BookmarksForeground", Bookmarks.ForegroundOption)
@@ -2336,6 +2350,7 @@ Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	If newIndex <> oldIndex Then MsgBox ML("Localization changes will be applied the next time the application is run.")
 	If *InterfaceFontName <> *fOptions.oldInterfFontName OrElse InterfaceFontSize <> fOptions.oldInterfFontSize Then MsgBox ML("Interface font changes will be applied the next time the application is run.")
 	If DisplayMenuIcons <> fOptions.oldDisplayMenuIcons Then MsgBox ML("Display icons in the menu changes will be applied the next time the application is run.")
+	If DarkMode <> fOptions.oldDarkMode Then MsgBox ML("Dark Mode changes will be applied the next time the application is run.")
 	'If fOptions.HotKeysChanged Then MsgBox ML("Hotkey changes will be applied the next time the application is run.")
 End Sub
 

@@ -297,6 +297,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	End If
 	tb->txtCode.SetFocus
 	ptabCode->UpdateUnLock
+	ptabCode->Update
 	Return tb
 	Exit Function
 	ErrorHandler:

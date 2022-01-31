@@ -138,6 +138,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim ColorD As ColorDialog
 		Dim FontD As FontDialog
 		Dim As WString Ptr EditFontName, InterfFontName, oldInterfFontName
+		Dim As Boolean oldDarkMode
 		Dim As Integer EditFontSize, InterfFontSize, oldInterfFontSize
 		Dim Colors(Any, Any) As Integer
 		Dim ColorsCount As Integer
@@ -160,7 +161,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CheckBox chkFrame
 		Dim As CheckBox chkHighlightCurrentWord
 		Dim As CheckBox chkHighlightCurrentLine
-		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug, chkCreateNonStaticEventHandlers, chkShowKeywordsTooltip, chkAddSpacesToOperators, chkCreateFormTypesWithoutTypeWord, chkTurnOnEnvironmentVariables
+		Dim As CheckBox chkHighlightBrackets, chkIncludeMFFPath, chkLimitDebug, chkDisplayWarningsInDebug, chkCreateNonStaticEventHandlers, chkShowKeywordsTooltip, chkAddSpacesToOperators, chkCreateFormTypesWithoutTypeWord, chkTurnOnEnvironmentVariables, chkDarkMode
 		Dim As Boolean oldDisplayMenuIcons
 		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFile, optCreateProjectFile, optOpenLastSession, optDoNotNothing, optPromptToSave, optMainFileFolder, optInFolder
 	End Type
