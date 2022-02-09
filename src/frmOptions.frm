@@ -1329,9 +1329,9 @@ pfOptions = @fOptions
 		' chkDarkMode
 		With chkDarkMode
 			.Name = "chkDarkMode"
-			.Text = ML("DarkMode")
+			.Text = ML("Dark Mode")
 			.TabIndex = 188
-			.Caption = ML("DarkMode")
+			.Caption = ML("Dark Mode")
 			.SetBounds 2, 38, 224, 24
 			.Parent = @pnlThemesCheckboxes
 		End With
