@@ -6455,8 +6455,8 @@ txtImmediate.Multiline = True
 txtImmediate.ScrollBars = ScrollBarsType.Both
 txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
-txtImmediate.BackColor = NormalText.Background
-txtImmediate.Font.Color = NormalText.Foreground
+'txtImmediate.BackColor = NormalText.Background
+'txtImmediate.Font.Color = NormalText.Foreground
 txtImmediate.Text = "import #Include Once " + Chr(34) + "mff/SysUtils.bas"+Chr(34) & WChr(13,10) & WChr(13,10)
 
 Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
