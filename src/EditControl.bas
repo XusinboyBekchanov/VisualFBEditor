@@ -922,9 +922,9 @@ Namespace My.Sys.Forms
 		Else
 			FileEncodingText = "ascii"
 		End If
-		If FileEncoding = NewLineTypes.LinuxLF Then
+		If NewLineType = NewLineTypes.LinuxLF Then
 			NewLine = Chr(10)
-		ElseIf FileEncoding = NewLineTypes.MacOSCR Then
+		ElseIf NewLineType = NewLineTypes.MacOSCR Then
 			NewLine = Chr(13)
 		Else
 			NewLine = Chr(13, 10)
