@@ -2863,7 +2863,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	'	#endif
 	Dim As UString b1, Comment, PathFunction, LoadFunctionPath
 	Dim As String t, e, tOrig, bt
-	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, Index
+	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, Index, iStart
 	Dim As TypeElement Ptr te, tbi, typ
 	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace
 	Dim As Boolean bTypeIsPointer
@@ -3076,9 +3076,11 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Next i
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "declare ") Then
+					iStart = 9
 					Pos1 = InStr(9, bTrim, " ")
 					Pos3 = InStr(9, bTrim, "(")
 					If StartsWith(Trim(Mid(bTrimLCase, 9)), "static ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "virtual ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "abstract ") Then
+						iStart = Pos1
 						Pos1 = InStr(Pos1 + 1, bTrim, " ")
 					End If
 					Pos4 = InStr(Pos1 + 1, bTrim, " ")
@@ -3089,9 +3091,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					te = New_( TypeElement)
 					te->Declaration = True
 					If Pos1 = 0 Then
-						te->ElementType = Trim(Mid(bTrim, 9))
+						te->ElementType = Trim(Mid(bTrim, iStart))
 					Else
-						te->ElementType = Trim(Mid(bTrim, 9, Pos1 - 9))
+						te->ElementType = Trim(Mid(bTrim, iStart, Pos1 - iStart))
 					End If
 					If inType AndAlso typ <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
 						te->Name = typ->Name
