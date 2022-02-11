@@ -38,7 +38,7 @@ Using My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		
-		Dim As CheckBox chkMatchCase, chkSearchinSub
+		Dim As CheckBox chkMatchCase, chkSearchinSub, chkUsePatternMatching
 		Dim As Label lblFind, lblReplace
 		Dim As TextBox txtFind, txtReplace, txtPath
 		Dim As Label lblPath

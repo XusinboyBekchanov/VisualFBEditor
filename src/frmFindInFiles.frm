@@ -145,6 +145,15 @@ pfFindFile = @fFindFile
 			.Parent = @This
 		End With
 		
+		' chkUsePatternMatching
+		With chkUsePatternMatching
+			.Name = "chkUsePatternMatching"
+			.Text = ML("Use Pattern Matching")
+			.TabIndex = 13
+			.Caption = ML("Use Pattern Matching")
+			.SetBounds 222, 38, 188, 22
+			.Parent = @Panel1
+		End With
 	End Constructor
 	
 	Destructor frmFindInFiles
@@ -162,6 +171,7 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 	ThreadsEnter
 	Dim As Boolean SearchInSub = chkSearchInSub.Checked
 	Dim As Boolean MatchCase = chkMatchCase.Checked
+	Dim As Boolean UsePatternMatching = chkUsePatternMatching.Checked
 	ThreadsLeave
 	Dim As WStringList Folders
 	If Path = "" OrElse tSearch = "" Then Exit Sub
@@ -190,7 +200,13 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 				Do Until EOF(Fn)
 					Line Input #Fn, Buff
 					iLine += 1
-					If MatchCase Then
+					If UsePatternMatching Then
+						If MatchCase Then
+							Pos1 = InStrMatch(Buff, tSearch)
+						Else
+							Pos1 = InStrMatch(LCase(Buff), LCase(tSearch))
+						End If
+					ElseIf MatchCase Then
 						Pos1 = InStr(Buff, tSearch)
 					Else
 						Pos1 = InStr(LCase(Buff), LCase(tSearch))
@@ -204,7 +220,17 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 						lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(3) = Path & IIf(EndsWith(Path, Slash), "", Slash) & f
 						pfrmMain->Update
 						ThreadsLeave
-						Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
+						If UsePatternMatching Then
+							If MatchCase Then
+								Pos1 = InStrMatch(Buff, tSearch, Pos1 + Len(tSearch))
+							Else
+								Pos1 = InStrMatch(LCase(Buff), LCase(tSearch), Pos1 + Len(tSearch))
+							End If
+						ElseIf MatchCase Then
+							Pos1 = InStr(Pos1 + Len(tSearch), Buff, tSearch)
+						Else
+							Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
+						End If
 					Wend
 				Loop
 				CloseFile_(Fn)
