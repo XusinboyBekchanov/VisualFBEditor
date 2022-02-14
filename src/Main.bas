@@ -2746,7 +2746,7 @@ Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeig
 	#else
 		scrTool.MaxValue = Max(0, tbToolBox.Height - NewHeight)
 		scrTool.Visible = scrTool.MaxValue <> 0
-		tbToolBox.SetBounds 0, 0, NewWidth - IIf(scrTool.Visible, scrTool.Width, 0), NewHeight
+		tbToolBox.SetBounds 0, 0, NewWidth - IIf(scrTool.MaxValue <> 0, scrTool.Width, 0), NewHeight
 	#endif
 End Sub
 
