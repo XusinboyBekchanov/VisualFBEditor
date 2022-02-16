@@ -197,6 +197,9 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "GenerateSignedAPK":                   GenerateSignedBundleAPK("apk")
 	Case "FormatProject":                       ThreadCounter(ThreadCreate_(@FormatProject)) 'FormatProject 0
 	Case "UnformatProject":                     ThreadCounter(ThreadCreate_(@FormatProject, Cast(Any Ptr, 1))) 'FormatProject Cast(Any Ptr, 1)
+	Case "ProjectNumberOn":                     ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
+	Case "ProjectMacroNumberOn":                ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
+	Case "ProjectNumberOff":                    ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "GDBCommand":                          GDBCommand
 	Case "StartWithCompile"

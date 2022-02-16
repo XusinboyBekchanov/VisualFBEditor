@@ -123,7 +123,7 @@ Sub FormatProject(UnFormat As Any Ptr)
 				tn1 = tn->Nodes.Item(j)
 				If tn1 <> 0 Then
 					ee = tn1->Tag
-					If ee <> 0 AndAlso (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc")) Then
+					If ee <> 0 AndAlso (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") OrElse EndsWith(*ee->FileName, ".frm")) Then
 						tb = GetTab(*ee->FileName)
 						If tb = 0 Then
 							txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
@@ -136,7 +136,7 @@ Sub FormatProject(UnFormat As Any Ptr)
 					End If
 				End If
 			Next
-		ElseIf (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc")) Then
+		ElseIf (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") OrElse EndsWith(*ee->FileName, ".frm")) Then
 			tb = GetTab(*ee->FileName)
 			If tb = 0 Then
 				txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
@@ -145,6 +145,59 @@ Sub FormatProject(UnFormat As Any Ptr)
 				ptxt = @tb->txtCode
 			End If
 			If UnFormat Then ptxt->UnFormatCode(True) Else ptxt->FormatCode(True)
+			If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
+		End If
+	Next
+	StopProgress
+	pfrmMain->Enabled = True
+	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateUnLock
+	MsgBox ML("Done") & "!"
+End Sub
+
+Sub NumberingProject(pSender As Any Ptr)
+	Dim As TreeNode Ptr tn, tn1, tn2 = ptvExplorer->SelectedNode
+	Dim As ExplorerElement Ptr ee
+	Dim As Boolean bMacro = Cast(My.Sys.Object Ptr, pSender)->ToString = "ProjectMacroNumberOn"
+	Dim As Boolean bRemove = Cast(My.Sys.Object Ptr, pSender)->ToString = "ProjectNumberOff"
+	Dim As EditControl txt
+	Dim As EditControl Ptr ptxt
+	Dim As TabWindow Ptr tb, tbCurrent = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
+	If tn2 <> 0 Then tn2 = GetParentNode(tn2)
+	If tn2 = 0 OrElse tn2->ImageKey <> "Project" Then Exit Sub
+	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateLock
+	pfrmMain->Enabled = False
+	StartProgress
+	For i As Integer = 0 To tn2->Nodes.Count - 1
+		tn = tn2->Nodes.Item(i)
+		ee = tn->Tag
+		If ee = 0 Then
+			For j As Integer = 0 To tn->Nodes.Count - 1
+				tn1 = tn->Nodes.Item(j)
+				If tn1 <> 0 Then
+					ee = tn1->Tag
+					If ee <> 0 AndAlso (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") OrElse EndsWith(*ee->FileName, ".frm")) Then
+						tb = GetTab(*ee->FileName)
+						If tb = 0 Then
+							txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
+							ptxt = @txt
+						Else
+							ptxt = @tb->txtCode
+						End If
+						If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True)
+						If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
+					End If
+				End If
+			Next
+		ElseIf (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") OrElse EndsWith(*ee->FileName, ".frm")) Then
+			tb = GetTab(*ee->FileName)
+			If tb = 0 Then
+				txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
+				ptxt = @txt
+			Else
+				ptxt = @tb->txtCode
+			End If
+			If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True)
 			If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 		End If
 	Next
@@ -6843,11 +6896,9 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 	End With
 End Sub
 
-Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
-	If tb = 0 Then Exit Sub
-	With tb->txtCode
-		.UpdateLock
+Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False, ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
+	With txtCode
+		If Not WithoutUpdate Then .UpdateLock
 		.Changing("Raqamlash")
 		If StartLine = -1 Or EndLine = -1 Then
 			Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -6856,8 +6907,8 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 			EndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 		End If
 		Dim As EditControlLine Ptr FECLine
-		Dim As Integer n
-		Dim As Boolean bNotNumberNext, bNotNumberThis
+		Dim As Integer n, NotNumberingScopesCount
+		Dim As Boolean bNotNumberNext, bNotNumberThis, bInFunction
 		For i As Integer = StartLine To EndLine
 			FECLine = .FLines.Items[i]
 			bNotNumberThis = bNotNumberNext
@@ -6869,7 +6920,19 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 				Continue For
 			ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
 				bNotNumberNext = True
+			ElseIf FECLine->ConstructionIndex = 3 OrElse FECLine->ConstructionIndex = 5 OrElse FECLine->ConstructionIndex >= 13 AndAlso FECLine->ConstructionIndex <= 16 Then
+				If FECLine->ConstructionPart = 0 Then
+					NotNumberingScopesCount += 1
+				ElseIf FECLine->ConstructionPart = 2 Then
+					NotNumberingScopesCount -= 1
+				End If
+				Continue For
+			ElseIf FECLine->ConstructionIndex >= 17 Then
+				bInFunction = FECLine->ConstructionPart <> 2
+				Continue For
 			ElseIf FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
+				Continue For
+			ElseIf NotNumberingScopesCount > 0 AndAlso Not bInFunction Then
 				Continue For
 			End If
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
@@ -6900,9 +6963,15 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 			End If
 		Next i
 		.Changed("Raqamlash")
-		.UpdateUnLock
+		If Not WithoutUpdate Then .UpdateUnLock
 		'.ShowCaretPos True
 	End With
+End Sub
+
+Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False)
+	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	NumberingOn StartLine, EndLine, bMacro, tb->txtCode
 End Sub
 
 Sub TabWindow.PreprocessorNumberOn()
@@ -7083,11 +7152,9 @@ Sub TabWindow.RemoveErrorHandling()
 	SetErrorHandling "", ""
 End Sub
 
-Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
-	If tb = 0 Then Exit Sub
-	With tb->txtCode
-		.UpdateLock
+Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
+	With txtCode
+		If Not WithoutUpdate Then .UpdateLock
 		.Changing("Raqamlarni olish")
 		If StartLine = -1 Or EndLine = -1 Then
 			Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -7110,9 +7177,15 @@ Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 			End If
 		Next i
 		.Changed("Raqamlarni olish")
-		.UpdateUnLock
+		If Not WithoutUpdate Then .UpdateUnLock
 		'.ShowCaretPos True
 	End With
+End Sub
+
+Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	NumberingOff StartLine, EndLine, tb->txtCode
 End Sub
 
 Sub TabWindow.PreprocessorNumberOff()
