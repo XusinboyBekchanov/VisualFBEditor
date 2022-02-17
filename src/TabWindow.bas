@@ -6895,7 +6895,7 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 		Next l
 	End With
 End Sub
- 
+
 Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False, ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
 	With txtCode
 		If Not WithoutUpdate Then .UpdateLock
@@ -6913,7 +6913,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			FECLine = .FLines.Items[i]
 			bNotNumberThis = bNotNumberNext
 			bNotNumberNext = False
-			If EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") Then
+			If EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") OrElse EndsWith(RTrim(*FECLine->Text, Any !"\t "), ",_") Then
 				bNotNumberNext = True
 			End If
 			If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
@@ -6948,7 +6948,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
-			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L_") Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
+			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
 				bNotNumberThis = True
 '			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "debugprint") Then
 '				bNotNumberThis = True
@@ -6962,7 +6962,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			End If
 			If Not bNotNumberThis Then
 				If bMacro Then
-					WLet(FECLine->Text, "_L_" & IIf(StartsWith(*FECLine->Text, " ") OrElse StartsWith(*FECLine->Text, !"\t"), "", " ") & *FECLine->Text)
+					WLet(FECLine->Text, "_L " & *FECLine->Text) '& IIf(StartsWith(*FECLine->Text, " ") OrElse StartsWith(*FECLine->Text, !"\t"), "", " ")
 				Else
 					WLet(FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text)
 					'WLet FECLine->Text, "DebugPrint(__FILE__ & " & Chr(34) & " Line " & Chr(34) & " & __LINE__, True, False) : " & Trim(*FECLine->Text, Any !" \t ")
@@ -7179,7 +7179,7 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
-			ElseIf StartsWith(LTrim(*FECLine->Text), "_L_") Then
+			ElseIf StartsWith(LTrim(*FECLine->Text), "_L ") Then
 				WLet(FECLine->Text, Mid(LTrim(*FECLine->Text), 4))
 			End If
 		Next i
