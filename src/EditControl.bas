@@ -1931,7 +1931,7 @@ Namespace My.Sys.Forms
 											If r <> 46 AndAlso r <> 62 Then ' . > THEN
 												pkeywords = 0
 												If CStyle Then
-													If LCase(Matn) = "#define" Then
+													If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" Then
 														If pkeywords0 <> 0 Then
 															sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
 														End If
