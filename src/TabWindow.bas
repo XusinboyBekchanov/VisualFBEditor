@@ -4,30 +4,30 @@
 '#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
-
+ 
 #include once "TabWindow.bi"
 #include once "frmImageManager.bi"
 #include once "vbcompat.bi"  ' for could using format function
 #define TabSpace IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
-
-Dim Shared FPropertyItems As WStringList
-Dim Shared FListItems As WStringList
-Dim Shared txtCodeBi As EditControl
-Dim Shared mnuCode As PopupMenu
-pmnuCode = @mnuCode
-Dim Shared MouseHoverTimerVal As Double
-txtCodeBi.WithHistory = False
-
+ 
+ Dim Shared FPropertyItems As WStringList
+ Dim Shared FListItems As WStringList
+ Dim Shared txtCodeBi As EditControl
+ Dim Shared mnuCode As PopupMenu
+ pmnuCode = @mnuCode
+ Dim Shared MouseHoverTimerVal As Double
+ txtCodeBi.WithHistory = False
+ 
 Destructor ExplorerElement
 	If FileName Then Deallocate_( FileName)
 	If TemplateFileName Then Deallocate_( TemplateFileName)
 End Destructor
-
+ 
 Constructor ProjectElement
 	WLet(FileDescription, "{ProjectDescription}")
 	WLet(ProductName, "{ProjectName}")
 End Constructor
-
+ 
 Destructor ProjectElement
 	WDeAllocate MainFileName
 	WDeAllocate ResourceFileName
@@ -51,11 +51,11 @@ Destructor ProjectElement
 	WDeallocate CommandLineArguments
 	Files.Clear
 End Destructor
-
+ 
 Destructor TypeElement
 	Elements.Clear
 End Destructor
-
+ 
 Public Sub MoveCloseButtons()
 	Dim As Rect RR
 	For i As Integer = 0 To pTabCode->TabCount - 1
@@ -68,7 +68,7 @@ Public Sub MoveCloseButtons()
 		#endif
 	Next i
 End Sub
-
+ 
 Sub PopupClick(ByRef Sender As My.Sys.Object)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 Then Exit Sub
@@ -83,7 +83,7 @@ Sub PopupClick(ByRef Sender As My.Sys.Object)
 	Case "Properties":      If tb->Des->OnClickProperties Then tb->Des->OnClickProperties(*tb->Des, tb->Des->SelectedControl)
 	End Select
 End Sub
-
+ 
 ' Could not find in the child node
 Function FileNameInTreeNode(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
 	If tn = 0 Then Return 0
@@ -102,7 +102,7 @@ Function FileNameInTreeNode(tn As TreeNode Ptr, ByRef FileName As WString) As Tr
 	End If
 	Return 0
 End Function
-
+ 
 Sub FormatProject(UnFormat As Any Ptr)
 	Dim As TreeNode Ptr tn, tn1, tn2 = ptvExplorer->SelectedNode
 	Dim As ExplorerElement Ptr ee
@@ -153,7 +153,7 @@ Sub FormatProject(UnFormat As Any Ptr)
 	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateUnLock
 	MsgBox ML("Done") & "!"
 End Sub
-
+ 
 Sub NumberingProject(pSender As Any Ptr)
 	Dim As TreeNode Ptr tn, tn1, tn2 = ptvExplorer->SelectedNode
 	Dim As ExplorerElement Ptr ee
@@ -206,7 +206,7 @@ Sub NumberingProject(pSender As Any Ptr)
 	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateUnLock
 	MsgBox ML("Done") & "!"
 End Sub
-
+ 
 Function GetTab(ByRef FileName As WString) As TabWindow Ptr
 	Dim As TabWindow Ptr tb
 	For i As Integer = 0 To ptabCode->TabCount - 1
@@ -215,7 +215,7 @@ Function GetTab(ByRef FileName As WString) As TabWindow Ptr
 	Next i
 	Return 0
 End Function
-
+ 
 Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 	Dim As TabWindow Ptr tb
 	For i As Integer = 0 To ptabCode->TabCount - 1
@@ -224,7 +224,7 @@ Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 	Next i
 	Return 0
 End Function
-
+ 
 Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 	On Error Goto ErrorHandler
 	MouseHoverTimerVal = Timer
@@ -360,12 +360,12 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Function
-
+ 
 Sub m(ByRef MSG As WString, Debug As Boolean = False)
 	If Debug AndAlso Not DisplayWarningsInDebug Then Exit Sub
 	ShowMessages MSG
 End Sub
-
+ 
 Sub OnChangeEdit(ByRef Sender As Control)
 	Static CurLine As Integer, bChanged As Boolean
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
@@ -378,9 +378,9 @@ Sub OnChangeEdit(ByRef Sender As Control)
 	'        tb->FormDesign tb->tbrTop.Buttons.Item(1)->Checked
 	'    End With
 End Sub
-
-Declare Function get_var_value(VarName As String, LineIndex As Integer) As String
-
+ 
+ Declare Function get_var_value(VarName As String, LineIndex As Integer) As String
+ 
 Sub OnMouseMoveEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	'	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	'	If tb = 0 Then Exit Sub
@@ -396,7 +396,7 @@ Sub OnMouseMoveEdit(ByRef Sender As Control, MouseButton As Integer, x As Intege
 	'		End If
 	'	#endif
 End Sub
-
+ 
 Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	#ifndef __USE_GTK__
 		If Not InDebug AndAlso Timer - MouseHoverTimerVal <= 4 Then Exit Sub
@@ -463,7 +463,7 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 		End If
 	#endif
 End Sub
-
+ 
 Function IsLabel(ByRef LeftA As WString) As Boolean
 	Dim strLeftA As String = Trim(LeftA, Any !"\t ")
 	If EndsWith(strLeftA, ":") Then
@@ -481,11 +481,11 @@ Function IsLabel(ByRef LeftA As WString) As Boolean
 		Return False
 	End If
 End Function
-
+ 
 Property TabWindow.Modified As Boolean
 	Return txtCode.Modified
 End Property
-
+ 
 Property TabWindow.Modified(Value As Boolean)
 	If Value Then
 		If Not EndsWith(Caption, "*") Then
@@ -499,7 +499,7 @@ Property TabWindow.Modified(Value As Boolean)
 	End If
 	txtCode.Modified = Value
 End Property
-
+ 
 'Function Likes(a As String, ContructionPart As String) As Boolean
 '  Dim m As Variant, k As Long
 '  m = Split(ContructionPart, ",")
@@ -534,7 +534,7 @@ Sub CloseButton_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As In
 	If tb = 0 Then Exit Sub
 	CloseTab(tb)
 End Sub
-
+ 
 Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Dim btn As CloseButton Ptr = Cast(CloseButton Ptr, @Sender)
 	If btn= 0 OrElse btn->BackColor = clRed Then Exit Sub
@@ -545,7 +545,7 @@ Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As 
 	btn->MouseIn = True
 	'DeAllocate btn
 End Sub
-
+ 
 Sub CloseButton_MouseLeave(ByRef Sender As Control)
 	Dim btn As CloseButton Ptr = Cast(CloseButton Ptr, @Sender)
 	If btn= 0 Then Exit Sub
@@ -555,7 +555,7 @@ Sub CloseButton_MouseLeave(ByRef Sender As Control)
 	#endif
 	btn->MouseIn = False
 End Sub
-
+ 
 #ifdef __USE_GTK__
 	Function CloseButton_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 		Dim As CloseButton Ptr cb = Cast(Any Ptr, data1)
@@ -604,7 +604,7 @@ End Sub
 		Return False
 	End Function
 #endif
-
+ 
 Constructor CloseButton
 	Base.OnMouseUp = @CloseButton_MouseUp
 	OnMouseMove = @CloseButton_MouseMove
@@ -636,15 +636,15 @@ Constructor CloseButton
 	#endif
 	'SubClass = True
 End Constructor
-
+ 
 Destructor CloseButton
 	
 End Destructor
-
+ 
 Property TabWindow.Caption ByRef As WString
 	Return WGet(FCaptionNew)
 End Property
-
+ 
 Property TabWindow.Caption(ByRef Value As WString)
 	FCaptionNew = Reallocate_(FCaptionNew, (Len(Value) + 1) * SizeOf(WString))
 	*FCaptionNew = Value
@@ -654,7 +654,7 @@ Property TabWindow.Caption(ByRef Value As WString)
 		Base.Caption = Value + Space(5)
 	#endif
 End Property
-
+ 
 Property TabWindow.FileName ByRef As WString
 	If WGet(FFileName) = "" Then
 		Return ML("Untitled")
@@ -662,15 +662,15 @@ Property TabWindow.FileName ByRef As WString
 		Return WGet(FFileName)
 	End If
 End Property
-
+ 
 Property TabWindow.FileName(ByRef Value As WString)
 	wLet(FFileName,  Value)
 End Property
-
+ 
 Operator TabWindow.Cast As TabPage Ptr
 	Return Cast(TabPage Ptr, @This)
 End Operator
-
+ 
 Function TabWindow.SaveTab As Boolean
 	'  It is important to creat a backup file by time.
 	'If txtCode.Modified = True Then
@@ -781,7 +781,7 @@ Function TabWindow.SaveTab As Boolean
 	'MutexUnlock tlockToDo
 	Return True
 End Function
-
+ 
 Function TabWindow.SaveAs As Boolean
 	SetSaveDialogParameters(FileName)
 	If pSaveD->Execute Then
@@ -816,11 +816,11 @@ Function TabWindow.SaveAs As Boolean
 	End If
 	Return False
 End Function
-
+ 
 Function TabWindow.Save As Boolean
 	If InStr(*FFileName, "/") > 0 OrElse InStr(*FFileName, "\") > 0 Then Return SaveTab Else Return SaveAs
 End Function
-
+ 
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
 	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
@@ -831,7 +831,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 		Return False
 	End If
 End Function
-
+ 
 Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 	If txtCode.Modified AndAlso Not WithoutMessage Then
 		Select Case MsgBox(ML("Want to save the file") & " """ & Caption & """?", "Visual FB Editor", mtWarning, btYesNoCancel)
@@ -865,11 +865,11 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 	FreeWnd
 	Return True
 End Function
-
+ 
 'Sub TabWindow.FindProceduresAndTypes
-
+ 
 'End Sub
-
+ 
 Sub TabWindow.FillProperties(ByRef ClassName As WString)
 	If ClassName = "" Then Exit Sub
 	If pComps->Contains(ClassName) Then
@@ -893,7 +893,7 @@ Sub TabWindow.FillProperties(ByRef ClassName As WString)
 		End If
 	End If
 End Sub
-
+ 
 Function WithoutPtr(TypeName As String) As String
 	If EndsWith(LCase(TypeName), " ptr") Then
 		Return ..Left(TypeName, Len(TypeName) - 4)
@@ -903,7 +903,7 @@ Function WithoutPtr(TypeName As String) As String
 		Return TypeName
 	End If
 End Function
-
+ 
 Function GetPropertyType(ClassName As String, PropertyName As String) As TypeElement Ptr
 	Dim iIndex As Integer
 	Dim Pos2 As Integer
@@ -932,7 +932,7 @@ Function GetPropertyType(ClassName As String, PropertyName As String) As TypeEle
 	End If
 	Return 0
 End Function
-
+ 
 Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
 	Dim iIndex As Integer
 	Dim tbi As TypeElement Ptr
@@ -952,7 +952,7 @@ Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
 	End If
 	Return False
 End Function
-
+ 
 Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	On Error Goto ErrorHandler
 	WLet(FLine, "")
@@ -1039,7 +1039,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Function
-
+ 
 Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	On Error Goto ErrorHandler
 	WLet(FLine, "")
@@ -1123,7 +1123,7 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Function
-
+ 
 Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False) As Boolean
 	If Cpnt = 0 Then Return False
 	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return False
@@ -1290,7 +1290,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 	End If
 	Return Result
 End Function
-
+ 
 Sub TabWindow.FillAllProperties()
 	If Des = 0 OrElse Des->SelectedControl = 0 Then Exit Sub
 	ptabRight->Tag = @This
@@ -1335,7 +1335,7 @@ Sub TabWindow.FillAllProperties()
 	'lvEvents.ListItems.Sort
 	ptabRight->UpdateUnlock
 End Sub
-
+ 
 Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 	Static SelectedCtrl As Any Ptr
 	If Ctrl = 0 Then Exit Sub
@@ -1353,7 +1353,7 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	tb->FillAllProperties
 	bNotFunctionChange = False
 End Sub
-
+ 
 Sub GetControls(Des As Designer Ptr, ByRef lst As List, Ctrl As Any Ptr)
 	lst.Add Ctrl
 	If Des->Controls.Contains(Ctrl) Then
@@ -1365,7 +1365,7 @@ Sub GetControls(Des As Designer Ptr, ByRef lst As List, Ctrl As Any Ptr)
 		End If
 	End If
 End Sub
-
+ 
 Sub CheckBi(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, ByRef ptxtCodeBi As EditControl Ptr, tb As TabWindow Ptr)
 	If ptxtCode = @txtCodeBi Then
 		Var tb1 = AddTab(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi", , , True)
@@ -1379,7 +1379,7 @@ Sub CheckBi(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, B
 		End If
 	End If
 End Sub
-
+ 
 Sub GetBiFile(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, ByRef ptxtCodeBi As EditControl Ptr, tb As TabWindow Ptr, IsBas As Boolean, ByRef bFind As Boolean, i As Integer, ByRef iStart As Integer, ByRef iEnd As Integer)
 	If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
 	If CInt(IsBas) AndAlso CInt(Not bFind) AndAlso CInt(StartsWith(Trim(LCase(tb->txtCode.Lines(i)), Any !"\t "), "#include once """ & LCase(GetFileName(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")) & """")) Then
@@ -1401,19 +1401,19 @@ Sub GetBiFile(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl,
 		iEnd = i
 	End If
 End Sub
-
+ 
 Sub DesignerBringToFront(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Sender.BringToFront
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 OrElse Ctrl = 0 OrElse tb->Des = 0 Then Exit Sub
 	
 End Sub
-
+ 
 Sub DesignerSendToBack(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Sender.SendToBack
 	
 End Sub
-
+ 
 Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -1546,7 +1546,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	ptxtCode->Changed "Unsurni o`chirish"
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed "Unsurni o`chirish"
 End Sub
-
+ 
 Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
 	On Error Goto ErrorHandler
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
@@ -1868,7 +1868,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Function
-
+ 
 Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 	Dim iIndex As Integer = cboClass.Items.IndexOf(OldName)
 	If Des = 0 Then Exit Sub
@@ -1979,7 +1979,7 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 		Next
 	Next
 End Sub
-
+ 
 Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
 	Dim As String PropertyName = Item->Text(0)
 	If Item->ParentItem = 0 Then
@@ -1988,7 +1988,7 @@ Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
 		Return GetItemText(Item->ParentItem) & "." & PropertyName
 	End If
 End Function
-
+ 
 Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCombo As Boolean)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2068,7 +2068,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 		End If
 	End With
 End Sub
-
+ 
 Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2097,7 +2097,7 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 		pfrmMain->UpdateUnLock
 	End With
 End Sub
-
+ 
 Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
 	On Error Goto ErrorHandler
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
@@ -2159,15 +2159,15 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Sub
-
+ 
 Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 	DesignerInsertControl(Sender, ClassName, Cpnt, iLeft2, iTop2, 16, 16)
 End Sub
-
+ 
 Sub DesignerInsertObject(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr)
 	DesignerInsertControl(Sender, ClassName, Obj, -1, -1, -1, -1)
 End Sub
-
+ 
 Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String, ByRef AName As String)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2195,7 +2195,7 @@ Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String
 	End If
 	AName = NewName
 End Sub
-
+ 
 Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2234,13 +2234,13 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		End If
 	End If
 End Sub
-
+ 
 Sub OnLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	AddTab GetRelativePath(Link1, tb->FileName)
 End Sub
-
+ 
 Sub OnToolTipLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
 	If Trim(Link1)="" Then Exit Sub
 	Dim As UString res(Any)
@@ -2259,14 +2259,14 @@ Sub OnToolTipLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
 		End If
 	End If
 End Sub
-
+ 
 Function GetCorrectParam(ByVal Param As String) As String
 	'Param = Trim(Param)
 	If EndsWith(Param, """""") Then Param = ..Left(Param, Len(Param) - 2)
 	If EndsWith(Param, "=") Then Param = ..Left(Param, Len(Param) - 1)
 	Return Param
 End Function
-
+ 
 Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2350,7 +2350,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 	tb->cboFunction.ItemIndex = 0
 	bNotFunctionChange = False
 End Sub
-
+ 
 Function GetOnlyArguments(ArgumentsLine As String) As String
 	Dim As UString res(Any)
 	Dim As Integer Pos1
@@ -2372,7 +2372,7 @@ Function GetOnlyArguments(ArgumentsLine As String) As String
 	Next
 	Return "(" & Result & ")"
 End Function
-
+ 
 Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	On Error Goto ErrorHandler
 	If Cpnt = 0 Then Exit Sub
@@ -2559,7 +2559,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Sub
-
+ 
 Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	If bNotFunctionChange Then Exit Sub
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -2615,7 +2615,7 @@ Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		End If
 	End With
 End Sub
-
+ 
 Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2668,7 +2668,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	End Select
 	frmMain.UpdateUnLock
 End Sub
-
+ 
 Sub DesignerClickMenuItem(ByRef Sender As Designer, MenuItem As Any Ptr)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2677,13 +2677,13 @@ Sub DesignerClickMenuItem(ByRef Sender As Designer, MenuItem As Any Ptr)
 		tb->tbrTop.Buttons.Item(1)->Checked = True
 	End If
 End Sub
-
+ 
 Sub DesignerClickProperties(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	ptabRight->Tab(0)->SelectTab
 End Sub
-
+ 
 #ifdef __USE_GTK__
 	Sub lvIntellisense_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
@@ -2721,7 +2721,7 @@ End Sub
 		End With
 	End Sub
 #endif
-
+ 
 Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2738,7 +2738,7 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	'        End If
 	'    End If
 End Sub
-
+ 
 Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Sub") As Boolean
 	On Error Goto ErrorHandler
 	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
@@ -2799,7 +2799,7 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
 	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Function
-
+ 
 Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2876,7 +2876,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, pGlobalArgs->Item(i), pGlobalArgs->Object(i), Starts, c) Then Exit Sub
 	Next
 End Sub
-
+ 
 Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2915,7 +2915,7 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c) Then Exit Sub
 	Next
 End Sub
-
+ 
 Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
 	If ClassName = "" Then Return False
 	Var Index = pList->IndexOf(ClassName)
@@ -2947,7 +2947,7 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 	End If
 	Return True
 End Function
-
+ 
 Function Ekvivalent(ByRef a As WString, ByRef b As WString) As Integer
 	Dim i As Integer
 	For i = 1 To Len(b)
@@ -2955,7 +2955,7 @@ Function Ekvivalent(ByRef a As WString, ByRef b As WString) As Integer
 	Next
 	Return i - 1
 End Function
-
+ 
 Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Integer)
 	Dim As WString Ptr sTempRight
 	For i As Integer = iEndChar + 1 To Len(sLine)
@@ -3000,7 +3000,7 @@ Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Inte
 	End With
 	WDeallocate sTempRight
 End Sub
-
+ 
 Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -3105,7 +3105,7 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 		End If
 	Next i
 End Sub
-
+ 
 Sub CompleteWord
 	If FormClosing Then Exit Sub
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
@@ -3196,7 +3196,7 @@ Sub CompleteWord
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	End With
 End Sub
-
+ 
 Sub ParameterInfo(Key As Byte = Asc(","))
 	If FormClosing Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
@@ -3350,7 +3350,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 		OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
 	End If
 End Sub
-
+ 
 Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer) As String
 	Dim As String sTemp
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
@@ -3382,7 +3382,7 @@ Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As 
 	End If
 	Return sTemp
 End Function
-
+ 
 Function GetChangedCommas(Value As String) As String
 	Dim As String ch, Text
 	Dim As Boolean b
@@ -3403,7 +3403,7 @@ Function GetChangedCommas(Value As String) As String
 	Next
 	Return Text
 End Function
-
+ 
 Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 	Dim As String sTemp
 	If StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(") Then
@@ -3506,7 +3506,7 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 	End If
 	Return sTemp
 End Function
-
+ 
 Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "") As String
 	Dim As String sTemp, sTemp2, TypeName, BaseTypeName
 	Dim sLine As WString Ptr
@@ -3705,7 +3705,7 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 	teEnum = te
 	Return sTemp
 End Function
-
+ 
 Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -3813,7 +3813,7 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		tb->txtCode.UpdateToolTip
 	End If
 End Sub
-
+ 
 Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 	MouseHoverTimerVal = Timer
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -3935,7 +3935,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		#endif
 	End If
 End Sub
-
+ 
 Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString) As UString
 	'Dim As UString ResourceFile = GetResourceFile(True)
 	Dim As WString * 1024 FilePath
@@ -3971,7 +3971,7 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 		Return ""
 	End If
 End Function
-
+ 
 Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
 	If Des = 0 OrElse Des->GraphicTypeLoadFromFileFunc = 0 Then Exit Sub
 	Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Ctrl, PropertyName)
@@ -4019,7 +4019,7 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 		End If
 	#endif
 End Sub
-
+ 
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
 		Function Overlay_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
@@ -4032,7 +4032,7 @@ End Sub
 		End Function
 	#endif
 #endif
-
+ 
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	If bNotDesign OrElse FormClosing Then Exit Sub
@@ -4906,7 +4906,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Sub
-
+ 
 Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Button)->Ctrl->Parent->Parent)
 	If tb = 0 Then Exit Sub
@@ -4938,23 +4938,23 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 		.RequestAlign
 	End With
 End Sub
-
+ 
 Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	tb->txtCode.DropDownShowed = True
 End Sub
-
+ 
 Sub cboIntellisense_CloseUp(ByRef Sender As ComboBoxEdit)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	tb->txtCode.DropDownShowed = False
 End Sub
-
+ 
 Sub TabWindow_Destroy(ByRef Sender As Control)
 	pApp->DoEvents
 End Sub
-
+ 
 Sub TabWindow_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -4962,24 +4962,24 @@ Sub TabWindow_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As 
 		tb->pnlForm.Width = tb->Width - tb->splForm.Width
 	End If
 End Sub
-
+ 
 'mnuCode.ImagesList = pimgList '<m>
-mnuCode.Add(ML("Cut"), "Cut", "Cut", @mclick)
-mnuCode.Add(ML("Copy"), "Copy", "Copy", @mclick)
-mnuCode.Add(ML("Paste"), "Paste", "Paste", @mclick)
-mnuCode.Add("-")
-Var miToogle = mnuCode.Add(ML("Toggle"), "", "Toggle")
-miToogle->Add(ML("Breakpoint"), "Breakpoint", "Breakpoint", @mclick)
-miToogle->Add(ML("Bookmark"), "Bookmark", "ToggleBookmark", @mclick)
-mnuCode.Add("-")
-mnuCode.Add(ML("Add Watch"), "", "AddWatch", @mclick)
-mnuCode.Add(ML("Run To Cursor"), "", "RunToCursor", @mclick)
-mnuCode.Add(ML("Set Next Statement"), "", "SetNextStatement", @mclick)
-mnuCode.Add("-")
-mnuCode.Add(ML("Define"), "", "Define", @mclick)
-mnuCode.Add("-")
-mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mclick)
-
+ mnuCode.Add(ML("Cut"), "Cut", "Cut", @mclick)
+ mnuCode.Add(ML("Copy"), "Copy", "Copy", @mclick)
+ mnuCode.Add(ML("Paste"), "Paste", "Paste", @mclick)
+ mnuCode.Add("-")
+ Var miToogle = mnuCode.Add(ML("Toggle"), "", "Toggle")
+ miToogle->Add(ML("Breakpoint"), "Breakpoint", "Breakpoint", @mclick)
+ miToogle->Add(ML("Bookmark"), "Bookmark", "ToggleBookmark", @mclick)
+ mnuCode.Add("-")
+ mnuCode.Add(ML("Add Watch"), "", "AddWatch", @mclick)
+ mnuCode.Add(ML("Run To Cursor"), "", "RunToCursor", @mclick)
+ mnuCode.Add(ML("Set Next Statement"), "", "SetNextStatement", @mclick)
+ mnuCode.Add("-")
+ mnuCode.Add(ML("Define"), "", "Define", @mclick)
+ mnuCode.Add("-")
+ mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mclick)
+ 
 Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pnl->Parent)
@@ -5099,7 +5099,7 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 		End Select
 	#endif
 End Sub
-
+ 
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
 	WLet(FCaption, "")
 	WLet(FFileName, "")
@@ -5292,7 +5292,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		End If
 	End If
 End Constructor
-
+ 
 Destructor TabWindow
 	If FCaptionNew Then Deallocate_( FCaptionNew)
 	If FFileName Then Deallocate_( FFileName)
@@ -5340,7 +5340,7 @@ Destructor TabWindow
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0
 	'If tn <> 0 Then ptvExplorer->RemoveRoot ptvExplorer->IndexOfRoot(tn)
 End Destructor
-
+ 
 'Public Function STATEIMAGEMASKTOINDEX(iState As Integer) As Integer
 '
 '  STATEIMAGEMASKTOINDEX = iState / (2 ^ 12)
@@ -5376,7 +5376,7 @@ End Destructor
 '		Return ListView_SetItem(hwndLV, @lvi)
 '	End Function
 '#EndIF
-
+ 
 'Sub AddChildItems(iParentItem As Integer, iParentIndent As Integer)
 '    If (iParentItem <> -1) Then
 '		#IfNDef __USE_GTK__
@@ -5469,7 +5469,7 @@ End Destructor
 '		End If
 '	#EndIf
 'End Sub
-
+ 
 Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	If Item AndAlso Item->Nodes.Count > 0 AndAlso Item->Nodes.Item(0)->Text(0) = "" Then
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabRight->Tag)
@@ -5502,7 +5502,7 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 		ptabRight->UpdateUnlock
 	End If
 End Sub
-
+ 
 Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer) As UShort
 	Dim As Integer Pos1, Pos2, Pos3 'David Change for ML
 	Dim As WString * 50 bFlagErr =""
@@ -5577,7 +5577,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		Return 0
 	End If
 End Function
-
+ 
 Function Err2Description(Code As Integer) ByRef As WString
 	Select Case Code
 	Case 0: Return ML("No error")
@@ -5601,7 +5601,7 @@ Function Err2Description(Code As Integer) ByRef As WString
 	Case Else: Return WStr("")
 	End Select
 End Function
-
+ 
 Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 	Dim As WString Ptr fileW, cmdW
 	'WLet fileW, file
@@ -5624,7 +5624,7 @@ Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 		CloseHandle(PI.hThread)
 	#endif
 End Sub
-
+ 
 #ifdef __USE_GTK__
 	Function build_create_shellscript(ByRef working_dir As WString, ByRef cmd As WString, autoclose As Boolean, debug As Boolean = False, ByRef Arguments As WString = "") As String
 		'?Replace(cmd, "\", "/")
@@ -5649,7 +5649,7 @@ End Sub
 		Return ScriptPath
 	End Function
 #endif
-
+ 
 '#IfDef __USE_GTK__
 'Type VteInfo
 '	Dim As gboolean load_vte			'/* this is the preference, NOT the current instance VTE state */
@@ -5704,7 +5704,7 @@ End Sub
 '#define VTE_TYPE_TERMINAL (vf->vte_terminal_get_type())
 '
 '/' Holds function pointers we need to access the VTE API. '/
-
+ 
 'Type VteFunctions
 '	vte_get_major_version As Function() As guint
 '	vte_get_minor_version As Function() As guint
@@ -5948,7 +5948,7 @@ End Sub
 '	return FALSE
 'End Function
 '#EndIf
-
+ 
 Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False) As UString
 	Dim As TabWindow Ptr tb
 	If MainNode <> 0 AndAlso Not WithoutMainNode Then
@@ -6012,7 +6012,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 	End If
 	Return ""
 End Function
-
+ 
 Function GetResourceFile(WithoutMainNode As Boolean = False) As UString
 	Dim As UString ResourceFile
 	Dim As ProjectElement Ptr Project
@@ -6050,7 +6050,7 @@ Function GetResourceFile(WithoutMainNode As Boolean = False) As UString
 	End If
 	Return *ResourceFile.vptr
 End Function
-
+ 
 Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 	'If StartsWith(LTrim(LCase(sFirstLine), Any !"\t "), "'#compile ") Then
 	Dim As WString Ptr Buff, File, sLine, sLines
@@ -6253,7 +6253,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	If sLines Then Deallocate_( sLines)
 	'End If
 End Sub
-
+ 
 Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ForWindows As Boolean = False) As UString
 	Dim As Boolean Bit32 = tbt32Bit->Checked
 	Dim As UString Result
@@ -6360,7 +6360,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 	End If
 	Return Result
 End Function
-
+ 
 Sub RunEmulator(Param As Any Ptr)
 	#ifndef __USE_GTK__
 		Dim As WString Ptr SdkDir = Param
@@ -6446,7 +6446,7 @@ Sub RunEmulator(Param As Any Ptr)
 		WDeallocate(CmdL)
 	#endif
 End Sub
-
+ 
 Sub RunLogCat(Param As Any Ptr)
 	#ifndef __USE_GTK__
 		Dim As WString Ptr SdkDir = Param
@@ -6518,7 +6518,7 @@ Sub RunLogCat(Param As Any Ptr)
 		WDeallocate(CmdL)
 	#endif
 End Sub
-
+ 
 Sub RunPr(Debugger As String = "")
 	On Error Goto ErrorHandler
 	Dim Result As Integer
@@ -6834,11 +6834,11 @@ Sub RunPr(Debugger As String = "")
 	"in module " & ZGet(Ermn())
 	ThreadsLeave()
 End Sub
-
+ 
 Sub RunProgram(Param As Any Ptr)
 	RunPr
 End Sub
-
+ 
 Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	If txtCode.CStyle Then Exit Sub
 	With txtCode
@@ -6895,7 +6895,7 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 		Next l
 	End With
 End Sub
-
+ 
 Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False, ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
 	With txtCode
 		If Not WithoutUpdate Then .UpdateLock
@@ -6907,8 +6907,8 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			EndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 		End If
 		Dim As EditControlLine Ptr FECLine
-		Dim As Integer n, NotNumberingScopesCount
-		Dim As Boolean bNotNumberNext, bNotNumberThis, bInFunction
+		Dim As Integer n, NotNumberingScopesCount, NamespacesCount
+		Dim As Boolean bNotNumberNext, bNotNumberThis, bInFunction, bInType
 		For i As Integer = StartLine To EndLine
 			FECLine = .FLines.Items[i]
 			bNotNumberThis = bNotNumberNext
@@ -6920,7 +6920,14 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				Continue For
 			ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
 				bNotNumberNext = True
-			ElseIf FECLine->ConstructionIndex = 3 OrElse FECLine->ConstructionIndex = 5 OrElse FECLine->ConstructionIndex >= 13 AndAlso FECLine->ConstructionIndex <= 16 Then
+			ElseIf FECLine->ConstructionIndex = 13 Then
+				If FECLine->ConstructionPart = 0 Then
+					NamespacesCount += 1
+				ElseIf FECLine->ConstructionPart = 2 Then
+					NamespacesCount -= 1
+				End If
+				Continue For
+			ElseIf FECLine->ConstructionIndex = 3 OrElse FECLine->ConstructionIndex = 5 OrElse FECLine->ConstructionIndex >= 14 AndAlso FECLine->ConstructionIndex <= 16 Then
 				If FECLine->ConstructionPart = 0 Then
 					NotNumberingScopesCount += 1
 				ElseIf FECLine->ConstructionPart = 2 Then
@@ -6932,7 +6939,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				Continue For
 			ElseIf FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
 				Continue For
-			ElseIf NotNumberingScopesCount > 0 AndAlso Not bInFunction Then
+			ElseIf (NamespacesCount > 0 AndAlso Not bInFunction) OrElse NotNumberingScopesCount > 0 Then
 				Continue For
 			End If
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
@@ -6967,13 +6974,13 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 		'.ShowCaretPos True
 	End With
 End Sub
-
+ 
 Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	NumberingOn StartLine, EndLine, bMacro, tb->txtCode
 End Sub
-
+ 
 Sub TabWindow.PreprocessorNumberOn()
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -7001,7 +7008,7 @@ Sub TabWindow.PreprocessorNumberOn()
 		'.ShowCaretPos True
 	End With
 End Sub
-
+ 
 Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -7033,7 +7040,7 @@ Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
 		If Not t Then ehEnd = i - 1
 	End With
 End Sub
-
+ 
 Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -7147,11 +7154,11 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 		'.ShowCaretPos True
 	End With
 End Sub
-
+ 
 Sub TabWindow.RemoveErrorHandling()
 	SetErrorHandling "", ""
 End Sub
-
+ 
 Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
 	With txtCode
 		If Not WithoutUpdate Then .UpdateLock
@@ -7181,13 +7188,13 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 		'.ShowCaretPos True
 	End With
 End Sub
-
+ 
 Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	NumberingOff StartLine, EndLine, tb->txtCode
 End Sub
-
+ 
 Sub TabWindow.PreprocessorNumberOff()
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -7207,7 +7214,7 @@ Sub TabWindow.PreprocessorNumberOff()
 		'.ShowCaretPos True
 	End With
 End Sub
-
+ 
 Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -7238,19 +7245,19 @@ Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 		'.ShowCaretPos True
 	End With
 End Sub
-
+ 
 Sub TabWindow.ProcedureNumberOn(bMacro As Boolean = False)
 	Dim As Integer ehStart, ehEnd
 	GetProcedureLines ehStart, ehEnd
 	NumberOn ehStart, ehEnd, bMacro
 End Sub
-
+ 
 Sub TabWindow.ProcedureNumberOff
 	Dim As Integer ehStart, ehEnd
 	GetProcedureLines ehStart, ehEnd
 	NumberOff ehStart, ehEnd
 End Sub
-
+ 
 Sub TabWindow.Define
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, Pos1
 	txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -7477,4 +7484,4 @@ Sub TabWindow.Define
 		End If
 	End With
 End Sub
-
+ 
