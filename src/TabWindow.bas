@@ -412,14 +412,14 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 		Oldy = y: Oldx = x
 		Dim As String sWord = tb->txtCode.GetWordAtPoint(UnScaleX(X), UnScaleY(Y), True)
 		If sWord <> "" Then
-			If Not InDebug Then
-				Dim As Integer iSelEndLine, iSelEndChar
-				iSelEndLine = tb->txtCode.LineIndexFromPoint(UnScaleX(X), UnScaleY(Y))
-				iSelEndChar = tb->txtCode.CharIndexFromPoint(UnScaleX(X), UnScaleY(Y))
-				tb->txtCode.SetSelection(iSelEndLine, iSelEndLine, iSelEndChar, iSelEndChar)
-				OnKeyPressEdit(tb->txtCode, 5)
-				Exit Sub
-			End If
+'			If Not InDebug Then
+'				Dim As Integer iSelEndLine, iSelEndChar
+'				iSelEndLine = tb->txtCode.LineIndexFromPoint(UnScaleX(X), UnScaleY(Y))
+'				iSelEndChar = tb->txtCode.CharIndexFromPoint(UnScaleX(X), UnScaleY(Y))
+'				tb->txtCode.SetSelection(iSelEndLine, iSelEndLine, iSelEndChar, iSelEndChar)
+'				OnKeyPressEdit(tb->txtCode, 5)
+'				Exit Sub
+'			End If
 			Dim As WString * 250 Value
 			If InDebug Then Value = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(X, Y)) Else Exit Sub
 			If Value <> "" Then
@@ -4882,12 +4882,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				t = False
 				For i As Integer = 1 To cboFunction.Items.Count - 1
 					If LCase(cboFunction.Items.Item(i)->Text) > LCase(te2->DisplayName) Then
-						If Not EndsWith(te2->DisplayName, "_") Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey, , , i
+						cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey, , , i
 						t = True
 						Exit For
 					End If
 				Next i
-				If Not T AndAlso Not EndsWith(te2->DisplayName, "_") Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey
+				If Not T Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey
 			End If
 			'End If
 		Next

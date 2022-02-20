@@ -23,6 +23,7 @@ On Error Goto AA
 
 #define MEMCHECK 0
 #define FILENUMCHECK 1
+#define _L
 
 #include once "Main.bi"
 #include once "Debug.bi"
