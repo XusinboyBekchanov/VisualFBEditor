@@ -48,6 +48,7 @@ Destructor ProjectElement
 	WDeallocate CompilationArguments64Windows
 	WDeallocate CompilationArguments32Linux
 	WDeallocate CompilationArguments64Linux
+	WDeallocate CompilerPath
 	WDeallocate CommandLineArguments
 	WDeallocate AndroidSDKLocation
 	WDeallocate AndroidNDKLocation
@@ -270,7 +271,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				#endif
 			End If
 			tb->UseVisualStyleBackColor = True
-			tb->txtCode.CStyle = CInt(EndsWith(LCase(FileName), ".rc")) OrElse CInt(EndsWith(LCase(FileName), ".c")) OrElse CInt(EndsWith(LCase(FileName), ".cpp")) OrElse CInt(EndsWith(LCase(FileName), ".h")) OrElse CInt(EndsWith(LCase(FileName), ".xml"))
+			tb->txtCode.CStyle = CInt(EndsWith(LCase(FileName), ".rc")) OrElse CInt(EndsWith(LCase(FileName), ".c")) OrElse CInt(EndsWith(LCase(FileName), ".cpp")) OrElse CInt(EndsWith(LCase(FileName), ".java")) OrElse CInt(EndsWith(LCase(FileName), ".h")) OrElse CInt(EndsWith(LCase(FileName), ".xml")) OrElse CInt(EndsWith(LCase(FileName), ".bat"))
 			tb->txtCode.SyntaxEdit = tb->txtCode.CStyle OrElse CInt(FileName = "") OrElse CInt(EndsWith(LCase(FileName), ".bas")) OrElse CInt(EndsWith(LCase(FileName), ".frm")) OrElse CInt(EndsWith(LCase(FileName), ".bi")) OrElse CInt(EndsWith(LCase(FileName), ".inc"))
 			'.txtCode.ContextMenu = @mnuCode
 			ptabCode->AddTab(Cast(TabPage Ptr, tb))
@@ -2416,7 +2417,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	tb->txtCode.Changing "Hodisa qo`shish"
 	ChangeControl Cpnt
 	Dim As Boolean b, c, e, f, t, td, tdns, tt, tdes
-	Dim As Integer j, l, p, LineEndType, LineEndRegion
+	Dim As Integer j, l, p, LineEndType, LineEndConstructor
 	For i = 0 To tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		For k As Integer = iStart To iEnd
@@ -2469,7 +2470,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 									End If
 								End If
 							ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "end constructor") Then
-								f = True : LineEndRegion = k + 1
+								f = True : LineEndConstructor = k + 1
 							End If
 						ElseIf f Then
 							If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Sub " & frmTypeName & "." & SubName)) OrElse _
@@ -2525,14 +2526,15 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		End If
 		ptxtCode = @tb->txtCode
 		q = q1
-		If LineEndRegion < 1 Then LineEndRegion = i - 1
+		If LineEndConstructor < 1 Then LineEndConstructor = i - 1
 		
 		ptxtCode->InsertLine i + q, ""
 		If CreateNonStaticEventHandlers Then
-			ptxtCode->InsertLine LineEndRegion + 1 + q, ""
-			ptxtCode->InsertLine LineEndRegion + q + 1, "Private Sub " & frmTypeName & "." & SubName & "_" & Mid(te->TypeName, 4)
-			ptxtCode->InsertLine LineEndRegion + q + 2, TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
-			ptxtCode->InsertLine LineEndRegion + q + 3, "End Sub"
+			Dim As String LeftTabSpace = ..Left(ptxtCode->Lines(LineEndConstructor + q), Len(ptxtCode->Lines(LineEndConstructor + q)) - Len(LTrim(ptxtCode->Lines(LineEndConstructor + q), Any !"\t ")))
+			ptxtCode->InsertLine LineEndConstructor + 1 + q, LeftTabSpace
+			ptxtCode->InsertLine LineEndConstructor + q + 1, LeftTabSpace & "Private Sub " & frmTypeName & "." & SubName & "_" & Mid(te->TypeName, 4)
+			ptxtCode->InsertLine LineEndConstructor + q + 2, LeftTabSpace & TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
+			ptxtCode->InsertLine LineEndConstructor + q + 3, LeftTabSpace & "End Sub"
 			q += 4
 		End If
 		ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & Mid(te->TypeName, 4)
@@ -6951,8 +6953,10 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
-			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
+			ElseIf bMacro AndAlso StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
 				bNotNumberThis = True
+			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") AndAlso Not bMacro Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
+				WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), 4))
 '			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "debugprint") Then
 '				bNotNumberThis = True
 '			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "?") Then

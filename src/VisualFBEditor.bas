@@ -208,17 +208,19 @@ Sub mClick(Sender As My.Sys.Object)
 			'SaveAll '
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-				If iFlagStartDebug = 0 Then
-					If UseDebugger Then
-						runtype = RTFRUN
-						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-						ThreadCounter(ThreadCreate_(@StartDebuggingWithCompile))
+				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+					If iFlagStartDebug = 0 Then
+						If UseDebugger Then
+							runtype = RTFRUN
+							CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+							ThreadCounter(ThreadCreate_(@StartDebuggingWithCompile))
+						Else
+							ThreadCounter(ThreadCreate_(@CompileAndRun))
+						End If
 					Else
-						ThreadCounter(ThreadCreate_(@CompileAndRun))
+						continue_debug
 					End If
-				Else
-					continue_debug
-				End If
+				#endif
 			Else
 				If InDebug Then
 					#ifndef __USE_GTK__
@@ -242,18 +244,20 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Start"
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-			If iFlagStartDebug = 0 Then
-				If UseDebugger Then
-					runtype= RTFRUN
-					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-					ThreadCounter(ThreadCreate_(@StartDebugging))
+			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+				If iFlagStartDebug = 0 Then
+					If UseDebugger Then
+						runtype= RTFRUN
+						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+						ThreadCounter(ThreadCreate_(@StartDebugging))
+					Else
+						ThreadCounter(ThreadCreate_(@RunProgram))
+					End If
 				Else
-					ThreadCounter(ThreadCreate_(@RunProgram))
+					ChangeEnabledDebug False, True, True
+					continue_debug()
 				End If
-			Else
-				ChangeEnabledDebug False, True, True
-				continue_debug()
-			End If
+			#endif
 		Else
 			If InDebug Then
 				#ifndef __USE_GTK__
@@ -291,11 +295,13 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "End":
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-			If Running Then
-				kill_debug()
-			Else
-				command_debug "q"
-			End If
+			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+				If Running Then
+					kill_debug()
+				Else
+					command_debug "q"
+				End If
+			#endif
 		Else
 			#ifdef __USE_GTK__
 				ChangeEnabledDebug True, False, False
@@ -314,7 +320,9 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Restart"
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-			command_debug("r")
+			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+				command_debug("r")
+			#endif
 		Else
 			#ifndef __USE_GTK__
 				If prun AndAlso kill_process("Trying to launch but debuggee still running") = False Then
@@ -331,13 +339,15 @@ Sub mClick(Sender As My.Sys.Object)
 		ptabBottom->TabIndex = 6 'David Changed
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-			If iFlagStartDebug = 0 Then
-				runtype = RTSTEP
-				CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-				ThreadCounter(ThreadCreate_(@StartDebugging))
-			Else
-				step_debug("s")
-			End If
+			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+				If iFlagStartDebug = 0 Then
+					runtype = RTSTEP
+					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+					ThreadCounter(ThreadCreate_(@StartDebugging))
+				Else
+					step_debug("s")
+				End If
+			#endif
 		Else
 			If InDebug Then
 				ChangeEnabledDebug False, True, True
@@ -358,12 +368,14 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "StepOver":
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-			If iFlagStartDebug = 0 Then
-				CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-				ThreadCounter(ThreadCreate_(@StartDebugging))
-			Else
-				step_debug("n")
-			End If
+			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+				If iFlagStartDebug = 0 Then
+					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+					ThreadCounter(ThreadCreate_(@StartDebugging))
+				Else
+					step_debug("n")
+				End If
+			#endif
 		Else
 			If InDebug Then
 				ChangeEnabledDebug False, True, True
@@ -395,9 +407,11 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "SetNextStatement":
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-				Dim As Integer iStartLine, iEndLine, iStartChar, iEndChar
-				tb->txtCode.GetSelection iStartLine, iEndLine, iStartChar, iEndChar
-				command_debug("jump " & Replace(tb->FileName, "\", "/") & ":" & Str(iEndLine))
+				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+					Dim As Integer iStartLine, iEndLine, iStartChar, iEndChar
+					tb->txtCode.GetSelection iStartLine, iEndLine, iStartChar, iEndChar
+					command_debug("jump " & Replace(tb->FileName, "\", "/") & ":" & Str(iEndLine))
+				#endif
 			Else
 				#ifndef __USE_GTK__
 					exe_mod()
@@ -410,11 +424,13 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "StepOut":
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-				If iFlagStartDebug = 0 Then
-					ThreadCounter(ThreadCreate_(@StartDebugging))
-				Else
-					step_debug("n")
-				End If
+				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+					If iFlagStartDebug = 0 Then
+						ThreadCounter(ThreadCreate_(@StartDebugging))
+					Else
+						step_debug("n")
+					End If
+				#endif
 			Else
 				#ifndef __USE_GTK__
 					If InDebug Then
@@ -432,15 +448,17 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "RunToCursor":
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-				If iFlagStartDebug = 1 Then
-					ChangeEnabledDebug False, True, True
-					set_bp True
-					continue_debug
-				Else
-					RunningToCursor = True
-					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
-					ThreadCounter(ThreadCreate_(@StartDebugging))
-				End If
+				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+					If iFlagStartDebug = 1 Then
+						ChangeEnabledDebug False, True, True
+						set_bp True
+						continue_debug
+					Else
+						RunningToCursor = True
+						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
+						ThreadCounter(ThreadCreate_(@StartDebugging))
+					End If
+				#endif
 			Else
 				If InDebug Then
 					ChangeEnabledDebug False, True, True
@@ -482,7 +500,10 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "PinRight":                        SetRightClosedStyle Not tbRight.Buttons.Item("PinRight")->Checked, False
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
 	Case "EraseOutputWindow":               txtOutput.Text = ""
-	Case "Update":                          iStateMenu = IIf(tbBottom.Buttons.Item("Update")->Checked, 2, 1): If Running = False Then command_debug("")
+	Case "Update":                          
+		#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+			iStateMenu = IIf(tbBottom.Buttons.Item("Update")->Checked, 2, 1): If Running = False Then command_debug("")
+		#endif
 	Case "AddForm":                         AddFromTemplate ExePath + "/Templates/Files/Form.frm"
 	Case "AddModule":                       AddFromTemplate ExePath + "/Templates/Files/Module.bas"
 	Case "AddIncludeFile":                  AddFromTemplate ExePath + "/Templates/Files/Include File.bi"
@@ -569,9 +590,11 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "Breakpoint":
 					Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 					If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-						If iFlagStartDebug = 1 Then
-							set_bp
-						End If
+						#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+							If iFlagStartDebug = 1 Then
+								set_bp
+							End If
+						#endif
 					Else
 						#ifndef __USE_GTK__
 							If InDebug Then: brk_set(1): End If

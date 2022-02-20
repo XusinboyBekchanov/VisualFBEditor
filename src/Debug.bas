@@ -6024,6 +6024,7 @@ Dim Shared exedate As Double 'serial date
 	End Sub
 #endif
 
+#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 Dim Shared As Long pIn, pOut
 
 Declare Function readpipe(WithoutAnswer As Boolean = False) As String
@@ -8506,6 +8507,7 @@ Sub deinit()
 	memset(@szDataForPipe , 0 , 200000)
 	
 End Sub
+#endif
 
 Sub RunWithDebug(Param As Any Ptr)
 	On Error Goto ErrorHandler
@@ -8546,7 +8548,9 @@ Sub RunWithDebug(Param As Any Ptr)
 			WLet(CmdL, Tool->GetCommand(IIf(InStr(LCase(WGet(DebuggerPath)), "gdb"), "", GetFileName(exename))))
 		End If
 	End If
-	WatchIndex = -1
+	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+		WatchIndex = -1
+	#endif
 	#ifdef __USE_GTK__
 		If WGet(DebuggerPath) = "" AndAlso *CurrentDebugger <> ML("Integrated GDB Debugger") OrElse InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
 	#else
@@ -8626,29 +8630,31 @@ Sub RunWithDebug(Param As Any Ptr)
 			If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then CommandLine = *EnvironmentVariables & " " & CommandLine
 			'IIf(WGet(DebuggerPath) = "", "gdb", Trim(WGet(DebuggerPath)) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
-				ThreadsEnter()
-				ShowMessages(Time & ": " & ML("Run") & ": " & exename + " ...")
-				tvVar.Visible = False
-				lvLocals.Visible = True
-				tvThd.Visible = False
-				lvThreads.Visible = True
-				tvWch.Visible = False
-				lvWatches.Visible = True
-'				gtk_widget_show_all(lvGlobals.Handle)
-'				lvGlobals.Parent->RequestAlign
-				ThreadsLeave()
-				If load_file(exename, *GDBDebuggerPath) Then
+				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 					ThreadsEnter()
-					ShowMessages(Time & ": " & ML("Debugging finished."))
-					ChangeEnabledDebug True, False, False
+					ShowMessages(Time & ": " & ML("Run") & ": " & exename + " ...")
+					tvVar.Visible = False
+					lvLocals.Visible = True
+					tvThd.Visible = False
+					lvThreads.Visible = True
+					tvWch.Visible = False
+					lvWatches.Visible = True
+	'				gtk_widget_show_all(lvGlobals.Handle)
+	'				lvGlobals.Parent->RequestAlign
 					ThreadsLeave()
-					Exit Sub
-				End If
-				ThreadsEnter()
-				ptabBottom->Tabs[6]->SelectTab
-				ThreadsLeave()
-				iFlagStartDebug = 1
-				run_debug(1)
+					If load_file(exename, *GDBDebuggerPath) Then
+						ThreadsEnter()
+						ShowMessages(Time & ": " & ML("Debugging finished."))
+						ChangeEnabledDebug True, False, False
+						ThreadsLeave()
+						Exit Sub
+					End If
+					ThreadsEnter()
+					ptabBottom->Tabs[6]->SelectTab
+					ThreadsLeave()
+					iFlagStartDebug = 1
+					run_debug(1)
+				#endif
 			Else
 				ThreadsEnter()
 				ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")

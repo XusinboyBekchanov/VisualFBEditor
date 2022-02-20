@@ -78,6 +78,7 @@ Type ProjectElement Extends ExplorerElement
 	CompilationArguments64Windows As WString Ptr
 	CompilationArguments32Linux As WString Ptr
 	CompilationArguments64Linux As WString Ptr
+	CompilerPath As WString Ptr
 	CommandLineArguments As WString Ptr
 	CreateDebugInfo As Boolean
 	AndroidSDKLocation As WString Ptr

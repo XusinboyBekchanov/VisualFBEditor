@@ -289,6 +289,7 @@ Namespace My.Sys.Forms
 	Function EditControl.GetConstruction(ByRef wLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0) As Integer
 		On Error Goto ErrorHandler
 		Dim As String sLine = wLine
+		If CStyle Then Return -1
 		If Trim(sLine, Any !"\t ") = "" Then Return -1
 		'		iPos = -1
 		'		For i As Integer = 1 To OldCommentIndex
@@ -1848,7 +1849,7 @@ Namespace My.Sys.Forms
 						ElseIf iC > 0 AndAlso Mid(*s, j, 2) = "'/" Then
 							iC = iC - 1
 							j = j + 1
-						ElseIf iC = 0 AndAlso (Mid(*s, j, 1) = "'" OrElse LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j - 1, 5)) = !"\trem ") Then
+						ElseIf iC = 0 AndAlso (Mid(*s, j, 1) = "'" OrElse LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j - 1, 5)) = !"\trem ") Then
 							Exit Do
 						End If
 					End If
@@ -1913,10 +1914,12 @@ Namespace My.Sys.Forms
 							ElseIf iC = 0 Then
 								t = Asc(Mid(*s, j, 1))
 								u = Asc(Mid(*s, j + 1, 1))
-								If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
+								If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
 									If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) AndAlso pkeywords2 <> 0 Then
-										Keyword = GetKeyWordCase("rem", pkeywords2)
-										If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = Keyword
+										If Not CStyle Then
+											Keyword = GetKeyWordCase("rem", pkeywords2)
+											If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = Keyword
+										End If
 									End If
 									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 									Exit Do
@@ -2009,21 +2012,31 @@ Namespace My.Sys.Forms
 						PaintText i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, Strings.Underline Or bInIncludeFileRect And CBool(iCursorLine = z)
 					End If
 				End If
-				If CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine AndAlso z = FLines.Count - 1)) Then
+				If CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine)) Then ' AndAlso z = FLines.Count - 1
 					Dim As ..Rect rec
 					If z = FSelEndLine + 1 Then
-						rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos - 1) * dwCharY), ScaleX(This.Width), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1))
+						rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1), ScaleX(This.Width), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1))
+						#ifdef __USE_GTK__
+							cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
+							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+							cairo_stroke(cr)
+						#else
+							This.Canvas.Pen.Color = CurrentLine.Frame
+							SelectObject bufDC, This.Canvas.Pen.Handle
+							MoveToEx bufDC, rec.Left, rec.Top - 1, 0
+							LineTo bufDC, rec.Right, rec.Top - 1
+						#endif
 					Else
 						rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos) * dwCharY), ScaleX(This.Width), ScaleY((i - VScrollPos) * dwCharY + dwCharY + 1))
+						#ifdef __USE_GTK__
+							cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
+							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+							cairo_stroke(cr)
+						#else
+							This.Canvas.Brush.Color = CurrentLine.Frame
+							FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+						#endif
 					End If
-					#ifdef __USE_GTK__
-						cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
-						cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
-						cairo_stroke(cr)
-					#else
-						This.Canvas.Brush.Color = CurrentLine.Frame
-						FrameRect bufDC, @rec, This.Canvas.Brush.Handle
-					#endif
 				End If
 				If FSelStartLine <> FSelEndLine Or FSelStartChar <> FSelEndChar Then
 					'If iMin <> iMax Then

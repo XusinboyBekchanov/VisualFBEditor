@@ -411,8 +411,13 @@ Function Compile(Parameter As String = "") As Integer
 	Dim As Boolean Bit32 = tbt32Bit->Checked
 	ThreadsLeave()
 	Dim exename As WString Ptr: WLet(exename, GetExeFileName(*MainFile, *FirstLine))
+	Dim FbcExe As WString Ptr
 	Dim CurrentCompiler As WString Ptr = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
-	Dim FbcExe As WString Ptr = IIf(Bit32, Compiler32Path, Compiler64Path)
+	If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
+		FbcExe = Project->CompilerPath
+	Else
+		FbcExe = IIf(Bit32, Compiler32Path, Compiler64Path)
+	End If
 	If *FbcExe = "" Then
 		WDeAllocate MainFile
 		ThreadsEnter()
@@ -581,7 +586,7 @@ Function Compile(Parameter As String = "") As Integer
 	'Close #FileOut
 	'Shell("""" + BatFileName + """")
 	If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
-		Dim As String gradlewCommand
+		Dim As String gradlewFile, gradlewCommand
 		If Parameter = "Bundle" Then
 			gradlewCommand = "bundleRelease"
 		ElseIf Parameter = "APK" Then
@@ -589,12 +594,38 @@ Function Compile(Parameter As String = "") As Integer
 		Else
 			gradlewCommand = "assembleDebug"
 		End If
-		#ifdef __FB_WIN32__
-			WLet(PipeCommand, "gradlew.bat " & gradlewCommand)
-		#else
-			WLet(PipeCommand, "./gradlew " & gradlewCommand)
-		#endif
 		ChDir(*Project->FileName)
+		#ifdef __FB_WIN32__
+			gradlewFile = "gradlew.bat"
+		#else
+			gradlewFile = "./gradlew"
+		#endif
+		WLet(PipeCommand, gradlewFile & " " & gradlewCommand)
+		Dim As Integer Fn1 = FreeFile_, Fn2 = FreeFile_
+		Open gradlewFile For Input As #Fn1
+		Dim pBuff As WString Ptr
+		Dim As Integer FileSize
+		Dim As WStringList Lines
+		FileSize = LOF(Fn1)
+		WReallocate(pBuff, FileSize)
+		Do Until EOF(Fn1)
+			LineInputWstr Fn1, pBuff, FileSize
+			Lines.Add *pBuff
+		Loop
+		CloseFile_(Fn1)
+		Open gradlewFile For Output As #Fn2
+		For i As Integer = 0 To Lines.Count - 1
+			If StartsWith(Lines.Item(i), "set FBC=") Then
+				Print #Fn2, "set FBC=" & *FbcExe
+			ElseIf StartsWith(Lines.Item(i), "set MFF=") Then
+				Print #Fn2, "set MFF=" & *MFFPathC
+			ElseIf StartsWith(Lines.Item(i), "set NDK=") Then
+				Print #Fn2, "set NDK=" & *Project->AndroidNDKLocation
+			Else
+				Print #Fn2, Lines.Item(i)
+			End If
+		Next i
+		CloseFile_(Fn2)
 	Else
 		ChDir(GetFolderName(*MainFile))
 	End If
@@ -1434,10 +1465,18 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					WLet(ppe->CompilationArguments32Linux, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CompilationArguments64Linux" Then
 					WLet(ppe->CompilationArguments64Linux, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
+				ElseIf Parameter = "CompilerPath" Then
+					WLet(ppe->CompilerPath, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CommandLineArguments" Then
 					WLet(ppe->CommandLineArguments, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "CreateDebugInfo" Then
 					ppe->CreateDebugInfo = CBool(Mid(Buff, Pos1 + 1))
+				ElseIf Parameter = "AndroidSDKLocation" Then
+					WLet(ppe->AndroidSDKLocation, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
+				ElseIf Parameter = "AndroidNDKLocation" Then
+					WLet(ppe->AndroidNDKLocation, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
+				ElseIf Parameter = "JDKLocation" Then
+					WLet(ppe->JDKLocation, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				End If
 			Loop
 			CloseFile_(Fn)
@@ -1902,8 +1941,12 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "CompilationArguments64Windows=""" & *ppe->CompilationArguments64Windows & """"
 	Print #Fn, "CompilationArguments32Linux=""" & *ppe->CompilationArguments32Linux & """"
 	Print #Fn, "CompilationArguments64Linux=""" & *ppe->CompilationArguments64Linux & """"
+	Print #Fn, "CompilerPath=""" & *ppe->CompilerPath & """"
 	Print #Fn, "CommandLineArguments=""" & *ppe->CommandLineArguments & """"
 	Print #Fn, "CreateDebugInfo=" & ppe->CreateDebugInfo
+	Print #Fn, "AndroidSDKLocation=""" & *ppe->AndroidSDKLocation & """"
+	Print #Fn, "AndroidNDKLocation=""" & *ppe->AndroidNDKLocation & """"
+	Print #Fn, "JDKLocation=""" & *ppe->JDKLocation & """"
 	CloseFile_(Fn)
 	'Else
 	'	MsgBox ML("Save file failure!") & Chr(13,10) & *ppe->FileName
@@ -2565,26 +2608,28 @@ End Sub
 	End Sub
 #endif
 
-Function TimerProcGDB() As Integer
-	If Fcurlig < 1 Then Return 1
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
-	If tb = 0 OrElse Not EqualPaths(tb->FileName, CurrentFile) Then
-		tb = AddTab(CurrentFile)
-	End If
-	If tb Then
-		ChangeEnabledDebug True, False, True
-		CurEC = @tb->txtCode
-		tb->txtCode.CurExecutedLine = Fcurlig - 1
-		tb->txtCode.SetSelection Fcurlig - 1, Fcurlig - 1, 0, 0
-		tb->txtCode.PaintControl
-		'info_all_variables_debug()
-		#ifdef __USE_WINAPI__
-			SetForegroundWindow pApp->MainForm->Handle
-		#endif
-		Fcurlig = -1
-	End If
-	Return 1
-End Function
+#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+	Function TimerProcGDB() As Integer
+		If Fcurlig < 1 Then Return 1
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+		If tb = 0 OrElse Not EqualPaths(tb->FileName, CurrentFile) Then
+			tb = AddTab(CurrentFile)
+		End If
+		If tb Then
+			ChangeEnabledDebug True, False, True
+			CurEC = @tb->txtCode
+			tb->txtCode.CurExecutedLine = Fcurlig - 1
+			tb->txtCode.SetSelection Fcurlig - 1, Fcurlig - 1, 0, 0
+			tb->txtCode.PaintControl
+			'info_all_variables_debug()
+			#ifdef __USE_WINAPI__
+				SetForegroundWindow pApp->MainForm->Handle
+			#endif
+			Fcurlig = -1
+		End If
+		Return 1
+	End Function
+#endif
 
 Function EqualPaths(ByRef a As WString, ByRef b As WString) As Boolean
 	Dim FileNameLeft As WString Ptr
@@ -4314,7 +4359,9 @@ Sub GDBCommand
 	fTheme.lblThemeName.Text = ML("Type command:")
 	If fTheme.ShowModal() = ModalResults.OK Then
 		'ShowResult = True
-		command_debug fTheme.txtThemeName.Text
+		#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+			command_debug fTheme.txtThemeName.Text
+		#endif
 	End If
 End Sub
 
@@ -6144,18 +6191,20 @@ End Sub
 Sub lvWatches_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
 	If Item = 0 Then Exit Sub
 	If SubItemIndex > 0 Then Exit Sub
-	If NewText = "" Then
-		WatchIndex = -1
-		If Item->Index <> lvWatches.Nodes.Count - 1 Then
-			lvWatches.Nodes.Remove Item->Index
+	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+		If NewText = "" Then
+			WatchIndex = -1
+			If Item->Index <> lvWatches.Nodes.Count - 1 Then
+				lvWatches.Nodes.Remove Item->Index
+			End If
+		Else
+			WatchIndex = Item->Index
+			command_debug "print " & UCase(NewText)
+			If Item->Index = lvWatches.Nodes.Count - 1 Then
+				lvWatches.Nodes.Add
+			End If
 		End If
-	Else
-		WatchIndex = Item->Index
-		command_debug "print " & UCase(NewText)
-		If Item->Index = lvWatches.Nodes.Count - 1 Then
-			lvWatches.Nodes.Add
-		End If
-	End If
+	#endif
 	If lvWatches.Nodes.Count = 1 Then
 		ptabBottom->Tabs[9]->Caption = ML("Watches")
 	Else
@@ -7259,10 +7308,12 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	Dim tn As TreeNode Ptr
 	Dim tnP As TreeNode Ptr
 	Dim Index As Integer
-	If iFlagStartDebug = 1 Then
-		NewCommand = !"q\n"
-		MutexUnlock tlockGDB
-	End If
+	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+		If iFlagStartDebug = 1 Then
+			NewCommand = !"q\n"
+			MutexUnlock tlockGDB
+		End If
+	#endif
 	With *pfSave
 		.lstFiles.Clear
 		For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1

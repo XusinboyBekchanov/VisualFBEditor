@@ -5,12 +5,15 @@
 @rem
 @rem ##########################################################################
 
+set FBC=D:\GitHub\fbc-android9\bin\fbc.exe
+set MFF=D:\GitHub\VisualFBEditor/./MyFbFramework
+set NDK=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b
 @rem make --directory ./app/src/main/bas
-D:/GitHub/fbc-android9/bin/fbc.exe ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/x86/libmff-app.so" -target i686-linux-android -i "D:/GitHub/VisualFBEditor/MyFbFramework" -v -dll -exx -sysroot "D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-x86" -Wl "-L D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-x86/usr/lib"
+"%FBC%" ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/x86/libmff-app.so" -target i686-linux-android -i "%MFF%" -v -dll -exx -sysroot "%NDK%/platforms/android-9/arch-x86" -Wl "-L %NDK%/platforms/android-9/arch-x86/usr/lib"
 if "%ERRORLEVEL%" == "1" goto omega
-D:/GitHub/fbc-android9/bin/fbc.exe ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/arm64-v8a/libmff-app.so" -target aarch64-linux-android -i "D:/GitHub/VisualFBEditor/MyFbFramework" -v -dll -exx -sysroot "D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-21/arch-arm64" -Wl "-L D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-21/arch-arm64/usr/lib"
+"%FBC%" ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/arm64-v8a/libmff-app.so" -target aarch64-linux-android -i "%MFF%" -v -dll -exx -sysroot "%NDK%/platforms/android-21/arch-arm64" -Wl "-L %NDK%/platforms/android-21/arch-arm64/usr/lib"
 if "%ERRORLEVEL%" == "1" goto omega
-D:/GitHub/fbc-android9/bin/fbc.exe ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/armeabi-v7a/libmff-app.so" -target arm-linux-androideabi -i "D:/GitHub/VisualFBEditor/MyFbFramework" -v -dll -exx -sysroot "D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-21/arch-arm" -Wl "-L D:/GitHub/android-ndk-r12b-windows-x86/android-ndk-r12b/platforms/android-9/arch-arm/usr/lib"
+"%FBC%" ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/armeabi-v7a/libmff-app.so" -target arm-linux-androideabi -i "%MFF%" -v -dll -exx -sysroot "%NDK%/platforms/android-21/arch-arm" -Wl "-L %NDK%/platforms/android-9/arch-arm/usr/lib"
 if "%ERRORLEVEL%" == "1" goto omega
 
 @rem Set local scope for the variables with windows NT shell
@@ -29,7 +32,7 @@ if defined JAVA_HOME goto findJavaFromJavaHome
 
 set JAVA_EXE=java.exe
 %JAVA_EXE% -version >NUL 2>&1
-if "%ERRORLEVEL%" == "0" goto init
+if "%ERRORLEVEL%"=="0" goto init
 
 echo.
 echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.

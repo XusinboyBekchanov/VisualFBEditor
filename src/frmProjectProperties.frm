@@ -136,7 +136,7 @@ pfProjectProperties = @fProjectProperties
 		' grbCompilationArguments
 		grbCompilationArguments.Name = "grbCompilationArguments"
 		grbCompilationArguments.Text = ML("Compilation Arguments")
-		grbCompilationArguments.SetBounds 10, 138, 469, 152
+		grbCompilationArguments.SetBounds 10, 138, 469, 138
 		grbCompilationArguments.Parent = @tpCompile
 		' lblCompilationArguments64
 		lblCompilationArguments64.Name = "lblCompilationArguments64"
@@ -429,7 +429,7 @@ pfProjectProperties = @fProjectProperties
 		' picCompilationArguments
 		With picCompilationArguments
 			.Name = "picCompilationArguments"
-			.SetBounds 24, 156, 445, 123
+			.SetBounds 24, 156, 445, 113
 			.Text = ""
 			.Parent = @tpCompile
 		End With
@@ -597,8 +597,65 @@ pfProjectProperties = @fProjectProperties
 			.SetBounds 60, 370, 16, 16
 			.Parent = @This
 		End With
+		' OpenD
+		With OpenD
+			.Name = "OpenD"
+			.SetBounds 80, 370, 16, 16
+			.Parent = @This
+		End With
+		' lblCompiler
+		With lblCompiler
+			.Name = "lblCompiler"
+			.Text = ML("Compiler") & ":"
+			.TabIndex = 86
+			.Caption = ML("Compiler") & ":"
+			.SetBounds 29, 288, 90, 20
+			.Parent = @tpCompile
+		End With
+		' cboCompiler
+		With cboCompiler
+			.Name = "cboCompiler"
+			.Text = "ComboBoxEdit1"
+			.TabIndex = 84
+			.SetBounds 102, 285, 126, 21
+			.Designer = @This
+			.OnSelected = @cboCompiler_Selected_
+			.Parent = @tpCompile
+		End With
+		' txtCompilerPath
+		With txtCompilerPath
+			.Name = "txtCompilerPath"
+			.Text = ""
+			.TabIndex = 85
+			.SetBounds 236, 285, 198, 20
+			.Designer = @This
+			.OnChange = @txtCompilerPath_Change_
+			.Parent = @tpCompile
+		End With
+		' cmdCompiler
+		With cmdCompiler
+			.Name = "cmdCompiler"
+			.Text = "..."
+			.TabIndex = 87
+			.SetBounds 441, 284, 25, 22
+			.Designer = @This
+			.OnClick = @cmdCompiler_Click_
+			.Parent = @tpCompile
+		End With
 	End Constructor
 	
+Private Sub frmProjectProperties.cboCompiler_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).cboCompiler_Selected(Sender, ItemIndex)
+End Sub
+
+Private Sub frmProjectProperties.txtCompilerPath_Change_(ByRef Sender As TextBox)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).txtCompilerPath_Change(Sender)
+End Sub
+
+Private Sub frmProjectProperties.cmdCompiler_Click_(ByRef Sender As Control)
+	*Cast(frmProjectProperties Ptr, Sender.Designer).cmdCompiler_Click(Sender)
+End Sub
+
 	#ifndef _NOT_AUTORUN_FORMS_
 		fProjectProperties.Show
 		
@@ -651,6 +708,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->CompilationArguments64Windows, .txtCompilationArguments64Windows.Text)
 		WLet(ppe->CompilationArguments32Linux, .txtCompilationArguments32Linux.Text)
 		WLet(ppe->CompilationArguments64Linux, .txtCompilationArguments64Linux.Text)
+		WLet(ppe->CompilerPath, .txtCompilerPath.Text)
 		WLet(ppe->CommandLineArguments, .txtCommandLineArguments.Text)
 		ppe->CreateDebugInfo = .chkCreateDebugInfo.Checked
 		If CBool(*ppe->AndroidSDKLocation <> .txtAndroidSDKLocation.Text OrElse *ppe->AndroidNDKLocation <> .txtAndroidNDKLocation.Text) AndAlso _
@@ -782,7 +840,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 		If ptn->ImageKey = "Project" OrElse ee AndAlso *ee Is ProjectElement Then
 			.ProjectTreeNode = ptn
 			ppe = Cast(ProjectElement Ptr, ee)
-			If ptn->ImageKey = "Project" Then
+			If ptn->ImageKey = "Project" AndAlso (EndsWith(ptn->Text, ".vfp") OrElse EndsWith(ptn->Text, "*")) Then
 				For i As Integer = 0 To ptn->Nodes.Count - 1
 					tn1 = ptn->Nodes.Item(i)
 					If tn1->Tag <> 0 Then
@@ -851,6 +909,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.txtCompilationArguments64Windows.Text = *ppe->CompilationArguments64Windows
 				.txtCompilationArguments32Linux.Text = *ppe->CompilationArguments32Linux
 				.txtCompilationArguments64Linux.Text = *ppe->CompilationArguments64Linux
+				.txtCompilerPath.Text = *ppe->CompilerPath
 				.txtCommandLineArguments.Text = *ppe->CommandLineArguments
 				.chkCreateDebugInfo.Checked = ppe->CreateDebugInfo
 				If Not EndsWith(*ppe->FileName, ".vfp") AndAlso FileExists(*ppe->FileName & "/local.properties") Then
@@ -921,6 +980,10 @@ Public Sub frmProjectProperties.RefreshProperties()
 			.txtCompilationArguments64Windows.Text = ""
 			.txtCompilationArguments32Linux.Text = ""
 			.txtCompilationArguments64Linux.Text = ""
+			.txtCompilerPath.Text = ""
+			.txtAndroidSDKLocation.Text = ""
+			.txtAndroidNDKLocation.Text = ""
+			.txtJDKLocation.Text = ""
 		End If
 	End With
 End Sub
@@ -964,6 +1027,12 @@ Private Sub frmProjectProperties.cmdAdvancedOptions_Click(ByRef Sender As Contro
 End Sub
 
 Private Sub frmProjectProperties.Form_Show(ByRef Sender As Form)
+	fProjectProperties.cboCompiler.Clear
+	fProjectProperties.cboCompiler.AddItem ML("Default")
+	For i As Integer = 0 To pCompilers->Count - 1
+		fProjectProperties.cboCompiler.AddItem pCompilers->Item(i)->Key
+	Next
+	fProjectProperties.cboCompiler.AddItem ML("Custom")
 	fProjectProperties.RefreshProperties
 End Sub
 
@@ -1051,5 +1120,33 @@ Private Sub frmProjectProperties.cmdJDKLocation_Click(ByRef Sender As Control)
 	BrowseD.InitialDir = txtJDKLocation.Text
 	If BrowseD.Execute Then
 		txtJDKLocation.Text = BrowseD.Directory
+	End If
+End Sub
+
+Private Sub frmProjectProperties.cmdCompiler_Click(ByRef Sender As Control)
+	OpenD.InitialDir = GetFolderName(txtCompilerPath.Text)
+	If OpenD.Execute Then
+		txtCompilerPath.Text = OpenD.FileName
+	End If
+End Sub
+
+Private Sub frmProjectProperties.txtCompilerPath_Change(ByRef Sender As TextBox)
+	If Trim(txtCompilerPath.Text) = "" Then
+		cboCompiler.ItemIndex = 0
+	Else
+		Var Idx = pCompilers->IndexOf(Trim(txtCompilerPath.Text))
+		If Idx = -1 Then
+			cboCompiler.ItemIndex = cboCompiler.ItemCount - 1
+		Else
+			cboCompiler.ItemIndex = Idx + 1
+		End If
+	End If
+End Sub
+
+Private Sub frmProjectProperties.cboCompiler_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	If ItemIndex = 0 Then
+		txtCompilerPath.Text = ""
+	ElseIf ItemIndex > 0 AndAlso ItemIndex <= pCompilers->Count - 1 Then
+		txtCompilerPath.Text = pCompilers->Item(ItemIndex - 1)->Text
 	End If
 End Sub
