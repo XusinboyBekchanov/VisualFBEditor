@@ -49,6 +49,9 @@ Destructor ProjectElement
 	WDeallocate CompilationArguments32Linux
 	WDeallocate CompilationArguments64Linux
 	WDeallocate CommandLineArguments
+	WDeallocate AndroidSDKLocation
+	WDeallocate AndroidNDKLocation
+	WDeallocate JDKLocation
 	Files.Clear
 End Destructor
  

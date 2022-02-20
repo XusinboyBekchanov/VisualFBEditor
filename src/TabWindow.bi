@@ -80,6 +80,9 @@ Type ProjectElement Extends ExplorerElement
 	CompilationArguments64Linux As WString Ptr
 	CommandLineArguments As WString Ptr
 	CreateDebugInfo As Boolean
+	AndroidSDKLocation As WString Ptr
+	AndroidNDKLocation As WString Ptr
+	JDKLocation As WString Ptr
 	Files As WStringList
 	Declare Constructor
 	Declare Destructor

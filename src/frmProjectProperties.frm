@@ -653,6 +653,73 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->CompilationArguments64Linux, .txtCompilationArguments64Linux.Text)
 		WLet(ppe->CommandLineArguments, .txtCommandLineArguments.Text)
 		ppe->CreateDebugInfo = .chkCreateDebugInfo.Checked
+		If CBool(*ppe->AndroidSDKLocation <> .txtAndroidSDKLocation.Text OrElse *ppe->AndroidNDKLocation <> .txtAndroidNDKLocation.Text) AndAlso _
+			CBool(Not EndsWith(*ppe->FileName, ".vfp") AndAlso FileExists(*ppe->FileName & "/local.properties")) Then
+			WLet(ppe->AndroidSDKLocation, .txtAndroidSDKLocation.Text)
+			WLet(ppe->AndroidNDKLocation, .txtAndroidNDKLocation.Text)
+			Dim As Integer Fn1 = FreeFile_, Fn2 = FreeFile_
+			Open *ppe->FileName & "/local.properties" For Input As #Fn1
+			Dim pBuff As WString Ptr
+			Dim As Integer FileSize
+			Dim As WStringList Lines
+			FileSize = LOF(Fn1)
+			WReallocate(pBuff, FileSize)
+			Do Until EOF(Fn1)
+				LineInputWstr Fn1, pBuff, FileSize
+				Lines.Add *pBuff
+			Loop
+			CloseFile_(Fn1)
+			Dim As Boolean bFindSDK, bFindNDK
+			Open *ppe->FileName & "/local.properties" For Output As #Fn2
+			For i As Integer = 0 To Lines.Count - 1
+				If StartsWith(Lines.Item(i), "sdk.dir=") Then
+					Print #Fn2, "sdk.dir=" & Replace(Replace(*ppe->AndroidSDKLocation, "\", "\\"), ":", "\:")
+					bFindSDK = True
+				ElseIf StartsWith(Lines.Item(i), "ndk.dir=") Then
+					Print #Fn2, "ndk.dir=" & Replace(Replace(*ppe->AndroidNDKLocation, "\", "\\"), ":", "\:")
+					bFindNDK = True
+				Else
+					Print #Fn2, Lines.Item(i)
+				End If
+			Next i
+			If *ppe->AndroidSDKLocation <> "" AndAlso Not bFindSDK Then
+				Print #Fn2, "sdk.dir=" & Replace(Replace(*ppe->AndroidSDKLocation, "\", "\\"), ":", "\:")
+			End If
+			If *ppe->AndroidNDKLocation <> "" AndAlso Not bFindNDK Then
+				Print #Fn2, "ndk.dir=" & Replace(Replace(*ppe->AndroidNDKLocation, "\", "\\"), ":", "\:")
+			End If
+			CloseFile_(Fn2)
+		End If
+		If CBool(Not EndsWith(*ppe->FileName, ".vfp") AndAlso FileExists(*ppe->FileName & "/gradle.properties")) AndAlso _
+			(*ppe->JDKLocation <> .txtJDKLocation.Text) Then
+			WLet(ppe->JDKLocation, .txtJDKLocation.Text)
+			Dim As Integer Fn1 = FreeFile_, Fn2 = FreeFile_
+			Open *ppe->FileName & "/gradle.properties" For Input As #Fn1
+			Dim pBuff As WString Ptr
+			Dim As Integer FileSize
+			Dim As WStringList Lines
+			FileSize = LOF(Fn1)
+			WReallocate(pBuff, FileSize)
+			Do Until EOF(Fn1)
+				LineInputWstr Fn1, pBuff, FileSize
+				Lines.Add *pBuff
+			Loop
+			CloseFile_(Fn1)
+			Dim As Boolean bFindJDK
+			Open *ppe->FileName & "/gradle.properties" For Output As #Fn2
+			For i As Integer = 0 To Lines.Count - 1
+				If StartsWith(Lines.Item(i), "org.gradle.java.home=") Then
+					Print #Fn2, "org.gradle.java.home=" & Replace(Replace(*ppe->JDKLocation, "\", "\\"), ":", "\:")
+					bFindJDK = True
+				Else
+					Print #Fn2, Lines.Item(i)
+				End If
+			Next i
+			If *ppe->JDKLocation <> "" AndAlso Not bFindJDK Then
+				Print #Fn2, "org.gradle.java.home=" & Replace(Replace(*ppe->JDKLocation, "\", "\\"), ":", "\:")
+			End If
+			CloseFile_(Fn2)
+		End If
 		If Not EndsWith(.ProjectTreeNode->Text, "*") Then .ProjectTreeNode->Text &= "*"
 		.CloseForm
 	End With
@@ -786,6 +853,49 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.txtCompilationArguments64Linux.Text = *ppe->CompilationArguments64Linux
 				.txtCommandLineArguments.Text = *ppe->CommandLineArguments
 				.chkCreateDebugInfo.Checked = ppe->CreateDebugInfo
+				If Not EndsWith(*ppe->FileName, ".vfp") AndAlso FileExists(*ppe->FileName & "/local.properties") Then
+					Dim As Integer Fn = FreeFile_
+					Open *ppe->FileName & "/local.properties" For Input As #Fn
+					Dim SDKDir As UString
+					Dim NDKDir As UString
+					Dim pBuff As WString Ptr
+					Dim As Integer FileSize
+					FileSize = LOF(Fn)
+					WReallocate(pBuff, FileSize)
+					Do Until EOF(Fn)
+						LineInputWstr Fn, pBuff, FileSize
+						If StartsWith(*pBuff, "sdk.dir=") Then
+							SDKDir = Replace(Replace(Mid(*pBuff, 9), "\\", "\"), "\:", ":")
+						End If
+						If StartsWith(*pBuff, "ndk.dir=") Then
+							NDKDir = Replace(Replace(Mid(*pBuff, 9), "\\", "\"), "\:", ":")
+						End If
+					Loop
+					WLet ppe->AndroidSDKLocation, SDKDir
+					WLet ppe->AndroidNDKLocation, NDKDir
+					.txtAndroidSDKLocation.Text = SDKDir
+					.txtAndroidNDKLocation.Text = NDKDir
+					CloseFile_(Fn)
+				End If
+				If Not EndsWith(*ppe->FileName, ".vfp") AndAlso FileExists(*ppe->FileName & "/gradle.properties") Then
+					Dim As Integer Fn = FreeFile_
+					Open *ppe->FileName & "/gradle.properties" For Input As #Fn
+					Dim JavaHome As UString
+					Dim pBuff As WString Ptr
+					Dim As Integer FileSize
+					FileSize = LOF(Fn)
+					WReallocate(pBuff, FileSize)
+					Do Until EOF(Fn)
+						LineInputWstr Fn, pBuff, FileSize
+						If StartsWith(*pBuff, "org.gradle.java.home=") Then
+							JavaHome = Replace(Replace(Mid(*pBuff, 22), "\\", "\"), "\:", ":")
+							Exit Do
+						End If
+					Loop
+					WLet ppe->JDKLocation, JavaHome
+					.txtJDKLocation.Text = JavaHome
+					CloseFile_(Fn)
+				End If
 			End If
 		Else
 			.ProjectTreeNode = ptn
