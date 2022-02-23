@@ -2019,7 +2019,9 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			.Changing "Unsurni o`zgartirish"
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
 			Dim As Integer iLeft, iTop, iWidth, iHeight
-			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, iLeft, iTop, iWidth, iHeight)
+			If tb->Des->IsComponentFunc(tb->Des->SelectedControl) Then
+				tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, iLeft, iTop, iWidth, iHeight)
+			End If
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr tmpWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
 			#endif
@@ -2028,8 +2030,10 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 				pApp->DoEvents
 			#endif
 			Dim As Integer iLeft2, iTop2, iWidth2, iHeight2
-			tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, iLeft2, iTop2, iWidth2, iHeight2)
-			If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots tb->Des->SelectedControl, False
+			If tb->Des->IsComponentFunc(tb->Des->SelectedControl) Then
+				tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, iLeft2, iTop2, iWidth2, iHeight2)
+				If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots tb->Des->SelectedControl, False
+			End If
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
 				If tmpWidget <> tmpChangedWidget Then
