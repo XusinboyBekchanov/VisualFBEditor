@@ -30,7 +30,7 @@ Common Shared As KeyWordsCase ChoosedKeyWordsCase
 Common Shared As Integer ChoosedTabStyle
 Common Shared As Boolean ChangeKeyWordsCase
 Common Shared As Boolean AddSpacesToOperators
-Common Shared As WStringList Ptr pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
+Common Shared As WStringList Ptr pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
 
 Type ECColorScheme
 	As Long ForegroundOption, BackgroundOption, FrameOption, IndicatorOption
@@ -76,18 +76,19 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Type EditControlLine
-		Text As WString Ptr = 0
-		CommentIndex As Integer
-		Breakpoint As Boolean
 		Bookmark As Boolean
+		Breakpoint As Boolean
+		Collapsed As Boolean
+		Collapsible As Boolean
+		CommentIndex As Integer
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
+		InAsm As Boolean
+		InCollapse As Boolean
 		InConstructionIndex As Integer
 		InConstructionPart As Integer
 		Multiline As Boolean
-		Collapsible As Boolean
-		Collapsed As Boolean
-		InCollapse As Boolean
+		Text As WString Ptr = 0
 		Visible As Boolean
 		Declare Constructor
 		Declare Destructor
@@ -305,7 +306,7 @@ Namespace My.Sys.Forms
 		DropDownChar As Integer
 		ToolTipShowed As Boolean
 		ToolTipChar As Integer
-		Declare Function GetConstruction(ByRef sLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0) As Integer
+		Declare Function GetConstruction(ByRef sLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0, InAsm As Boolean = False) As Integer
 		Declare Sub SetScrollsInfo()
 		Declare Sub ShowCaretPos(Scroll As Boolean = False)
 		Declare Function TextWidth(ByRef sText As WString) As Integer
@@ -339,6 +340,7 @@ Namespace My.Sys.Forms
 		Declare Property TopLine As Integer
 		Declare Property TopLine(Value As Integer)
 		Declare Sub ChangeCollapseState(LineIndex As Integer, Value As Boolean)
+		Declare Sub ChangeInConstruction(LineIndex As Integer, OldConstructionIndex As Integer, OldConstructionPart As Integer)
 		Declare Sub InsertLine(Index As Integer, ByRef sLine As WString)
 		Declare Sub ReplaceLine(Index As Integer, ByRef sLine As WString)
 		Declare Sub DeleteLine(Index As Integer = -1)

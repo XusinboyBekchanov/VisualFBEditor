@@ -230,6 +230,7 @@ Namespace My.Sys.Forms
 				FECLine->CommentIndex = .CommentIndex
 				FECLine->ConstructionIndex = .ConstructionIndex
 				FECLine->ConstructionPart = .ConstructionPart
+				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
 				FECLine->Multiline = .Multiline
@@ -286,9 +287,10 @@ Namespace My.Sys.Forms
 		Return result
 	End Function
 	
-	Function EditControl.GetConstruction(ByRef wLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0) As Integer
+	Function EditControl.GetConstruction(ByRef wLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0, InAsm As Boolean = False) As Integer
 		On Error Goto ErrorHandler
 		Dim As String sLine = wLine
+		If InAsm AndAlso CBool(InStr(LCase(wLine), "asm") = 0) Then Return -1
 		If CStyle Then Return -1
 		If Trim(sLine, Any !"\t ") = "" Then Return -1
 		'		iPos = -1
@@ -423,6 +425,65 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
+	Sub EditControl.ChangeInConstruction(LineIndex As Integer, OldConstructionIndex As Integer, OldConstructionPart As Integer)
+'		If LineIndex < 0 OrElse LineIndex > FLines.Count - 1 Then Exit Sub
+'		Dim As Integer j, Idx
+'		Dim FECLine As EditControlLine Ptr = FLines.Items[LineIndex]
+'		Dim As EditControlLine Ptr FECLine2
+'		If FECLine->Construction Then
+'			If Not EndsWith(*FECLine->Text, "'...'") Then
+'				WLetEx(FECLine->Text, *FECLine->Text & " '...'", True)
+'			End If
+'			For i As Integer = LineIndex + 1 To FLines.Count - 1
+'				FECLine2 = FLines.Items[i]
+'				FECLine2->Visible = False
+''				Idx = VisibleLines.IndexOf(FECLine2)
+''				If Idx > -1 Then VisibleLines.Remove Idx
+'				If FECLine2->ConstructionIndex = FECLine->ConstructionIndex Then
+'					If FECLine2->ConstructionPart = 2 Then
+'						j -= 1
+'						If j = -1 Then
+'							Exit For
+'						End If
+'					ElseIf FECLine2->ConstructionPart = 0 Then
+'						j += 1
+'					End If
+'				End If
+'			Next i
+'		Else
+'			If EndsWith(*FECLine->Text, "'...'") Then
+'				WLetEx(FECLine->Text, RTrim(.Left(*FECLine->Text, Len(*FECLine->Text) - 5)), True)
+'			End If
+'			Dim As EditControlLine Ptr OldCollapsed
+'			For i As Integer = LineIndex + 1 To FLines.Count - 1
+'				FECLine2 = FLines.Items[i]
+'				If FECLine2->Visible Then Exit For
+'				FECLine2->Visible = True
+'				If CInt(OldCollapsed = 0) AndAlso CInt(FECLine2->Collapsed) Then
+'					OldCollapsed = FECLine2
+'					j = 0
+'				ElseIf OldCollapsed <> 0 Then
+'					If FECLine2->ConstructionIndex = OldCollapsed->ConstructionIndex Then
+'						If FECLine2->ConstructionPart = 2 Then
+'							j -= 1
+'							If j = -1 Then
+'								OldCollapsed = 0
+'							End If
+'						ElseIf FECLine2->ConstructionPart = 0 Then
+'							j += 1
+'						End If
+'					End If
+'					FECLine2->Visible = False
+'				End If
+'				If FECLine2->Visible Then
+''					Idx = VisibleLines.IndexOf(FECLine2)
+''					If Idx = -1 Then VisibleLines.Insert VisibleLines.IndexOf(FECLine) + 1, FECLine2
+'					FECLine = FECLine2
+'				End If
+'			Next i
+'		End If
+	End Sub
+	
 	Sub EditControl.CollapseAll
 		For i As Integer = 0 To FLines.Count - 1
 			With *Cast(EditControlLine Ptr, FLines.Items[i])
@@ -443,11 +504,13 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.ChangeCollapsibility(LineIndex As Integer)
 		Dim As Integer i, j, k, Idx
-		Dim OldCollapsed As Boolean, OldLineIndex As Integer = LineIndex - 1
+		Dim OldCollapsed As Boolean, OldConstructionIndex As Integer = -1, OldConstructionPart As Integer = 0, OldLineIndex As Integer = LineIndex - 1
 		If LineIndex < 0 OrElse LineIndex > FLines.Count - 1 Then Exit Sub
 		Dim ecl As EditControlLine Ptr = FLines.Items[LineIndex]
 		If ecl = 0 OrElse ecl->Text = 0 Then Exit Sub
-		i = GetConstruction(*ecl->Text, j)
+		OldConstructionIndex = ecl->ConstructionIndex
+		OldConstructionPart = ecl->ConstructionPart
+		i = GetConstruction(*ecl->Text, j, , ecl->InAsm)
 		ecl->ConstructionIndex = i
 		ecl->ConstructionPart = j
 		ecl->Multiline = InStr(*ecl->Text, ":") > 0
@@ -465,6 +528,9 @@ Namespace My.Sys.Forms
 		End If
 		If OldCollapsed <> ecl->Collapsed Then
 			ChangeCollapseState LineIndex, ecl->Collapsed
+		End If
+		If OldConstructionIndex <> ecl->ConstructionIndex OrElse OldConstructionPart <> ecl->ConstructionPart Then
+			ChangeInConstruction LineIndex, OldConstructionIndex, OldConstructionPart
 		End If
 		If OldLineIndex > -1 Then
 			Dim As EditControlLine Ptr FECLine2, eclOld = FLines.Items[OldLineIndex]
@@ -705,13 +771,13 @@ Namespace My.Sys.Forms
 		ChangePos CharTo
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Var ecStartLine = Cast(EditControlLine Ptr, FLines.Item(iSelStartLine)), ecEndLine = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine))
+		Dim As EditControlLine Ptr ecStartLine = FLines.Item(iSelStartLine), ecEndLine = FLines.Item(iSelEndLine), ecOldLine
 		FECLine = ecStartLine
 		'If iSelStartLine <> iSelEndLine Or iSelStartChar <> iSelEndChar Then AddHistory
 		WLet(FLine, Mid(*ecEndLine->Text, iSelEndChar + 1))
 		WLet(FECLine->Text, .Left(*ecStartLine->Text, iSelStartChar))
-		Var iC = 0, OldiC = ecEndLine->CommentIndex, OldPreviC = 0, PreviC = 0, Pos1 = 0, p = 1, c = 0, l = 0
-		If iSelEndLine > 0 Then PreviC = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine - 1))->CommentIndex: OldPreviC = PreviC
+		Var iC = 0, OldiC = ecEndLine->CommentIndex, OldPreviC = 0, PreviC = 0, InAsm = False, OldInAsm = ecEndLine->InAsm, Pos1 = 0, p = 1, c = 0, l = 0
+		If iSelEndLine > 0 Then ecOldLine = FLines.Item(iSelEndLine - 1): PreviC = ecOldLine->CommentIndex: OldPreviC = PreviC: InAsm = ecOldLine->InAsm
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
 			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			FLines.Remove i
@@ -725,6 +791,7 @@ Namespace My.Sys.Forms
 			Else
 				l = Pos1 - p
 			End If
+			FECLine->InAsm = InAsm
 			If c = 1 Then
 				WLet(FECLine->Text, *FECLine->Text & Mid(Value, p, l))
 				ChangeCollapsibility iSelStartLine
@@ -737,10 +804,15 @@ Namespace My.Sys.Forms
 			'item->Length = Len(*item->Text)
 			iC = FindCommentIndex(*FECLine->Text, PreviC)
 			FECLine->CommentIndex = iC
+			FECLine->InAsm = InAsm
 			If c > 1 Then
 				FLines.Insert iSelStartLine + c - 1, FECLine
 				ChangeCollapsibility iSelStartLine + c - 1
 			End If
+			If FECLine->ConstructionIndex = 5 Then
+				InAsm = FECLine->ConstructionPart = 0
+			End If
+			FECLine->InAsm = InAsm
 			p = Pos1 + 1
 			PreviC = iC
 		Loop While Pos1 > 0
@@ -759,6 +831,15 @@ Namespace My.Sys.Forms
 				iC = FindCommentIndex(*FECLine->Text, iC)
 				FECLine->CommentIndex = iC
 				'p = p + ecItem->Length
+			Next i
+		End If
+		If OldInAsm <> InAsm Then
+			For i As Integer = iSelStartLine To FLines.Count - 1
+				FECLine = Cast(EditControlLine Ptr, FLines.Item(i))
+				If FECLine->ConstructionIndex = 5 Then
+					InAsm = FECLine->ConstructionPart = 0
+				End If
+				FECLine->InAsm = InAsm
 			Next i
 		End If
 		If SelStartLine <> -1 Then FSelStartLine = SelStartLine
@@ -863,7 +944,7 @@ Namespace My.Sys.Forms
 		'Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
 		Dim pBuff As WString Ptr
 		Dim As Integer Result = -1, Fn = FreeFile_, FileSize
-		Var iC = 0, OldiC = 0, i = 0
+		Var iC = 0, OldiC = 0, i = 0, InAsm = False
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn): FileEncoding = FileEncodings.Utf8
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn): FileEncoding = FileEncodings.Utf32
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn): FileEncoding = FileEncodings.Utf16
@@ -888,8 +969,13 @@ Namespace My.Sys.Forms
 				WLet(FECLine->Text, *pBuff)
 				iC = FindCommentIndex(*pBuff, OldiC)
 				FECLine->CommentIndex = iC
+				FECLine->InAsm = InAsm
 				FLines.Add(FECLine)
 				ChangeCollapsibility i
+				If FECLine->ConstructionIndex = 5 Then
+					InAsm = FECLine->ConstructionPart = 0
+				End If
+				FECLine->InAsm = InAsm
 				'If FECLine->Visible Then VisibleLines.Add(FECLine)
 				OldiC = iC
 				i += 1
@@ -949,45 +1035,63 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub EditControl.InsertLine(Index As Integer, ByRef sLine As WString)
-		Var iC = 0, OldiC = 0
+		Var iC = 0, OldiC = 0, InAsm = False
 		If Index > 0 AndAlso Index < FLines.Count - 1 Then
 			OldiC = Cast(EditControlLine Ptr, FLines.Items[Index])->CommentIndex
+			InAsm = Cast(EditControlLine Ptr, FLines.Items[Index])->InAsm
 		End If
 		FECLine = New_( EditControlLine)
 		WLet(FECLine->Text, sLine)
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
+		FECLine->InAsm = InAsm
 		FLines.Insert Index, FECLine
 		ChangeCollapsibility Index
+		If FECLine->ConstructionIndex = 5 Then
+			InAsm = FECLine->ConstructionPart = 0
+		End If
+		FECLine->InAsm = InAsm
 		If Index <= FSelEndLine Then FSelEndLine += 1
 		If Index <= FSelStartLine Then FSelStartLine += 1
 	End Sub
 	
 	Sub EditControl.ReplaceLine(Index As Integer, ByRef sLine As WString)
-		Var iC = 0, OldiC = 0
+		Var iC = 0, OldiC = 0, InAsm = False
 		If Index > 0 AndAlso Index < FLines.Count - 1 Then
 			OldiC = Cast(EditControlLine Ptr, FLines.Items[Index])->CommentIndex
+			InAsm = Cast(EditControlLine Ptr, FLines.Items[Index])->InAsm
 		End If
 		FECLine = FLines.Items[Index]
 		WLet(FECLine->Text, sLine)
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
+		FECLine->InAsm = InAsm
 		ChangeCollapsibility Index
+		If FECLine->ConstructionIndex = 5 Then
+			InAsm = FECLine->ConstructionPart = 0
+		End If
+		FECLine->InAsm = InAsm
 	End Sub
 	
 	Sub EditControl.DuplicateLine(Index As Integer = -1)
 		Changing "Duplicate line"
-		Var iC = 0, OldiC = 0
+		Var iC = 0, OldiC = 0, InAsm = False
 		Var Idx = IIf(Index = -1, FSelEndLine, Index)
 		If Idx > 0 AndAlso Idx < FLines.Count - 1 Then
 			OldiC = Cast(EditControlLine Ptr, FLines.Items[Idx])->CommentIndex
+			InAsm = Cast(EditControlLine Ptr, FLines.Items[Idx])->InAsm
 		End If
 		FECLine = New_( EditControlLine)
 		WLet(FECLine->Text, *Cast(EditControlLine Ptr, FLines.Items[Idx])->Text)
 		iC = FindCommentIndex(*FECLine->Text, OldiC)
 		FECLine->CommentIndex = iC
+		FECLine->InAsm = InAsm
 		FLines.Insert Idx + 1, FECLine
 		ChangeCollapsibility Idx + 1
+		If FECLine->ConstructionIndex = 5 Then
+			InAsm = FECLine->ConstructionPart = 0
+		End If
+		FECLine->InAsm = InAsm
 		If FSelStartLine = FSelEndLine Then FSelStartLine += 1
 		FSelEndLine += 1
 		Changed "Duplicate line"
@@ -1036,7 +1140,7 @@ Namespace My.Sys.Forms
 					iPos = InStr(*FLine, "'") - 1
 					If iPos = -1 Then iPos = Len(*FLine)
 					Split(.Left(*FLine, iPos), ":", LineParts())
-					ConstructionIndex = GetConstruction(LineParts(0), ConstructionPart)
+					ConstructionIndex = GetConstruction(LineParts(0), ConstructionPart, , FECLine->InAsm)
 					If ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 						iIndents = Max(0, iIndents - 1)
 					End If
@@ -1076,7 +1180,7 @@ Namespace My.Sys.Forms
 			If iComment = 0 Then
 				If FECLine->Multiline Then
 					For k As Integer = 0 To UBound(LineParts)
-						ConstructionIndex = GetConstruction(LineParts(k), ConstructionPart)
+						ConstructionIndex = GetConstruction(LineParts(k), ConstructionPart, , FECLine->InAsm)
 						If k > 0 AndAlso ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 							iIndents = Max(0, iIndents - 1)
 						End If
@@ -1403,6 +1507,7 @@ Namespace My.Sys.Forms
 			WLet(FECLine->Text, "'" & *FECLine->Text)
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += 1
 			If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += 1
+			ChangeCollapsibility i
 		Next i
 		Changed("Izoh qilish")
 		UpdateUnLock
@@ -1430,6 +1535,7 @@ Namespace My.Sys.Forms
 			Else
 				FECLine->CommentIndex += 1
 			End If
+			ChangeCollapsibility i
 		Next i
 		Changed("Blokli izoh qilish")
 		UpdateUnLock
@@ -1438,7 +1544,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.UnComment
 		UpdateLock
-		Dim n As Integer
+		Dim As Integer n
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Changing("Izohni olish")
@@ -1450,6 +1556,7 @@ Namespace My.Sys.Forms
 				WLet(FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 2))
 				If i = FSelEndLine And FSelEndChar > n Then FSelEndChar -= 1
 				If i = FSelStartLine And FSelStartChar > n Then FSelStartChar -= 1
+				ChangeCollapsibility i
 			End If
 		Next i
 		Changed("Izohni olish")
@@ -1931,7 +2038,7 @@ Namespace My.Sys.Forms
 											sc = @Identifiers
 											'ss = NormalText.Background
 											If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
-											If r <> 46 AndAlso r <> 62 Then ' . > THEN
+											If CBool(r <> 46) AndAlso CBool(r <> 62) Then ' . > THEN
 												pkeywords = 0
 												If CStyle Then
 													If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" Then
@@ -1940,27 +2047,34 @@ Namespace My.Sys.Forms
 														End If
 													End If
 												Else
-													For k As Integer = 0 To KeywordLists.Count - 1
-														pkeywords = KeywordLists.Object(k)
-														If pkeywords->Contains(LCase(Matn)) Then
-															sc = @Keywords(k)
-															Exit For
+													If FECLine->InAsm AndAlso CBool(LCase(Matn) <> "asm") Then
+														If pkeywordsAsm->Contains(LCase(Matn)) Then
+															sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
+															pkeywords = pkeywordsAsm
 														End If
-														pkeywords = 0
-	'													If keywords0.Contains(LCase(Matn)) Then
-	'														sc = @Preprocessors '
-	'														pkeywords = @keywords0
-	'													ElseIf keywords1.Contains(LCase(Matn)) Then
-	'														sc = @Keywords
-	'														pkeywords = @keywords1
-	'													ElseIf keywords2.Contains(LCase(Matn)) Then
-	'														sc = @Keywords
-	'														pkeywords = @keywords2
-	'													ElseIf keywords3.Contains(LCase(Matn)) Then
-	'														sc = @Keywords
-	'														pkeywords = @keywords3
-	'													End If
-													Next k
+													Else
+														For k As Integer = 1 To KeywordLists.Count - 1
+															pkeywords = KeywordLists.Object(k)
+															If pkeywords->Contains(LCase(Matn)) Then
+																sc = @Keywords(k)
+																Exit For
+															End If
+															pkeywords = 0
+		'													If keywords0.Contains(LCase(Matn)) Then
+		'														sc = @Preprocessors '
+		'														pkeywords = @keywords0
+		'													ElseIf keywords1.Contains(LCase(Matn)) Then
+		'														sc = @Keywords
+		'														pkeywords = @keywords1
+		'													ElseIf keywords2.Contains(LCase(Matn)) Then
+		'														sc = @Keywords
+		'														pkeywords = @keywords2
+		'													ElseIf keywords3.Contains(LCase(Matn)) Then
+		'														sc = @Keywords
+		'														pkeywords = @keywords3
+		'													End If
+														Next k
+													End If
 													If CInt(ChangeKeyWordsCase) AndAlso CInt(pkeywords <> 0) AndAlso CInt(FSelEndLine <> z) Then
 														Keyword = GetKeyWordCase(Matn, pkeywords)
 														If Keyword <> Matn Then
@@ -2407,6 +2521,7 @@ Namespace My.Sys.Forms
 				FECLine->CommentIndex = .CommentIndex
 				FECLine->ConstructionIndex = .ConstructionIndex
 				FECLine->ConstructionPart = .ConstructionPart
+				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
 				FECLine->Multiline = .Multiline
@@ -3454,7 +3569,7 @@ Namespace My.Sys.Forms
 				WLet(FLineRight, "")
 				WLet(FLineTemp, "")
 				Dim j As Integer = 0
-				Dim i As Integer = GetConstruction(RTrim(*FLine, Any !"\t "), j)
+				Dim i As Integer = GetConstruction(RTrim(*FLine, Any !"\t "), j, , Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->InAsm)
 				Var d = Len(*FLine) - Len(LTrim(*FLine, Any !"\t "))
 				WLet(FLineSpace, ..Left(*FLine, d))
 				Var k = 0
@@ -3497,7 +3612,7 @@ Namespace My.Sys.Forms
 						If j = 0 Then
 							If FSelEndLine < FLines.Count - 1 Then WLetEx(FLineTemp, GetTabbedText(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine + 1])->Text), True)
 							Dim n As Integer
-							Dim m As Integer = GetConstruction(*FLineTemp, n)
+							Dim m As Integer = GetConstruction(*FLineTemp, n, , Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->InAsm)
 							Var e = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
 							WLetEx(FLineTemp, GetTabbedText(*FLine), True)
 							Var r = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
@@ -4156,7 +4271,9 @@ Sub LoadKeyWords
 		ReDim Preserve Keywords(k)
 		keywordlist = New WStringList
 		KeywordLists.Add file, keywordlist
-		If Trim(file) = "Preprocessors" Then
+		If Trim(file) = "Asm" Then
+			pkeywordsAsm = keywordlist
+		ElseIf Trim(file) = "Preprocessors" Then
 			pkeywords0 = keywordlist
 		ElseIf Trim(file) = "Standard Data Types" Then
 			pkeywords1 = keywordlist
