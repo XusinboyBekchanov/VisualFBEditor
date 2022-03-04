@@ -2047,7 +2047,7 @@ Namespace My.Sys.Forms
 														End If
 													End If
 												Else
-													If FECLine->InAsm AndAlso CBool(LCase(Matn) <> "asm") Then
+													If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
 														If pkeywordsAsm->Contains(LCase(Matn)) Then
 															sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
 															pkeywords = pkeywordsAsm
