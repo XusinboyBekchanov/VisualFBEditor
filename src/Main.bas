@@ -390,391 +390,291 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	End If
 End Function
 
-Function Compile(Parameter As String = "") As Integer
+Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	On Error Goto ErrorHandler
+	Dim As WString Ptr MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeCommand
+	Dim As WString Ptr CompileWith, MFFPathC, ErrFileName, ErrTitle, ExeName, FirstLine
+	Dim As Integer NumberErr, NumberWarning, NumberInfo, NodesCount, CompileResult = 1
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
 	ThreadsEnter()
-	Dim MainFile As WString Ptr: WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
-	ThreadsLeave()
-	If Len(*MainFile) <= 0 Then
-		ThreadsEnter()
-		ShowMessages ML("No Main file specified for the project.") & "!"
-		ThreadsLeave()
-		WDeallocate MainFile
-		Return 0
-	End If
-	Dim FirstLine As WString Ptr: WLet(FirstLine, GetFirstCompileLine(*MainFile, Project))
-	Versioning *MainFile, *FirstLine, Project, ProjectNode
-	Dim FileOut As Integer
-	ThreadsEnter()
-	Dim As Boolean Bit32 = tbt32Bit->Checked
-	ThreadsLeave()
-	Dim exename As WString Ptr: WLet(exename, GetExeFileName(*MainFile, *FirstLine))
-	Dim FbcExe As WString Ptr
-	Dim CurrentCompiler As WString Ptr = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
-	If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
-		FbcExe = Project->CompilerPath
-	Else
-		FbcExe = IIf(Bit32, Compiler32Path, Compiler64Path)
-	End If
-	If *FbcExe = "" Then
-		WDeAllocate MainFile
-		ThreadsEnter()
-		ShowMessages ML("Invalid defined compiler path.")
-		ThreadsLeave()
-		Return 0
-	Else
-		#ifdef __USE_GTK__
-			If g_find_program_in_path(ToUtf8(*FbcExe)) = NULL Then
-		#else
-			If Not FileExists(*FbcExe) Then
-		#endif
-			WDeAllocate MainFile
-			ThreadsEnter()
-			ShowMessages ML("File") & " """ & *FbcExe & """ " & ML("not found") & "!"
-			ThreadsLeave()
-			Return 0
-		End If
-	End If
-	Dim As UserToolType Ptr Tool
-	For i As Integer = 0 To Tools.Count - 1
-		Tool = Tools.Item(i)
-		If Tool->LoadType = LoadTypes.BeforeCompile Then Tool->Execute
-	Next
-	Dim LogFileName As WString Ptr '
-	Dim LogFileName2 As WString Ptr
-	Dim BatFileName As WString Ptr
-	Dim fbcCommand As WString Ptr
-	Dim CompileWith As WString Ptr
-	Dim MFFPathC As WString Ptr
-	Dim As WString Ptr ErrFileName, ErrTitle
-	Dim As Integer iLine
-	Dim LogText As WString Ptr
-	
-	WLet(MFFPathC, *MFFPath)
-	If CInt(InStr(*MFFPathC, ":") = 0) AndAlso CInt(Not StartsWith(*MFFPathC, "/")) Then WLet(MFFPathC, ExePath & "/" & *MFFPath)
-	WLet(BatFileName, ExePath + "/debug.bat")
-	Dim As Boolean Band, Yaratilmadi
-	ChDir(GetFolderName(*MainFile))
-	If Parameter = "Check" Then
-		WLet(exename, "chk.dll")
-	End If
-	ThreadsEnter()
 	ClearMessages
-	ThreadsLeave()
-	FileOut = FreeFile_
-	If Dir(*exename) <> "" Then 'delete exe if exist
-		If *exename = ExePath OrElse Kill(*exename) <> 0 Then
-			ThreadsEnter()
-			ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *exename) '
-			ThreadsLeave()
-			Band = True
-			WDeAllocate fbcCommand  '
-			WDeAllocate CompileWith
-			WDeAllocate MFFPathC
-			WDeAllocate MainFile
-			WDeAllocate FirstLine
-			WDeAllocate exename
-			WDeAllocate LogText
-			Return 0
-		End If
-	End If
-	Dim As Integer Idx
-	Dim As ToolType Ptr CompilerTool
-	If Parameter = "Make" Then
-		Idx = pMakeTools->IndexOfKey(*CurrentMakeTool1)
-		If Idx <> -1 Then CompilerTool = pMakeTools->Item(Idx)->Object
-	ElseIf Parameter = "MakeClean" Then
-		Idx = pMakeTools->IndexOfKey(*CurrentMakeTool2)
-		If Idx <> -1 Then CompilerTool = pMakeTools->Item(Idx)->Object
-	Else
-		Idx = pCompilers->IndexOfKey(*CurrentCompiler)
-		If Idx <> -1 Then CompilerTool = pCompilers->Item(Idx)->Object
-	End If
-	If CompilerTool <> 0 Then
-		WLet(CompileWith, CompilerTool->GetCommand(, True))
-	End If
-	WAdd(CompileWith, " " & *FirstLine)
-	If InStr(*CompileWith, " -s ") = 0 Then
-		If CInt(tbtConsole->Checked) Then
-			WAdd CompileWith, " -s console"
-		ElseIf CInt(tbtGUI->Checked) Then
-			WAdd CompileWith, " -s gui"
-		End If
-	End If
-	If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WAdd CompileWith, " -g"
-	
-	If CInt(InStr(*CompileWith, " -v ") = 0)  Then
-		WAdd CompileWith, " -v "
-	End If
-	
-	If Project Then
-		If InStr(*CompileWith, " -s ") = 0 Then
-			Select Case Project->Subsystem
-			Case 0
-			Case 1: WAdd CompileWith, " -s console"
-			Case 2: WAdd CompileWith, " -s gui"
-			End Select
-		End If
-		If Project->CompileTo = ToGAS Then
-			WAdd CompileWith, " -gen gas" & IIf(Not Bit32, "64", "")
-		ElseIf Project->CompileTo = ToLLVM Then
-			WAdd CompileWith, " -gen llvm"
-		ElseIf Project->CompileTo = ToGCC Then
-			WAdd CompileWith, " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", ""))) & _
-			IIf(Project->ShowUnusedLabelWarnings, " -Wc -Wunused-label", "") & IIf(Project->ShowUnusedFunctionWarnings, " -Wc -Wunused-function", "") & IIf(Project->ShowUnusedVariableWarnings, " -Wc -Wunused-variable", "") & _
-			IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
-		End If
-	End If
-	If UseDefine <> "" Then WAdd CompileWith, " -d " & UseDefine
-	If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
-	For i As Integer = 0 To pIncludePaths->Count - 1
-		WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
-	Next
-	For i As Integer = 0 To pLibraryPaths->Count - 1
-		WAdd CompileWith, " -p """ & pLibraryPaths->Item(i) & """"
-	Next
-	'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
-	WLet(LogFileName2, ExePath & "/Temp/Compile.log")
-	Dim As UString OtherModuleFiles
-	If CInt(ProjectNode <> 0) AndAlso CInt(Project <> 0) AndAlso CInt(Project->PassAllModuleFilesToCompiler) Then
-		For i As Integer = 0 To ProjectNode->Nodes.Count - 1
-			If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Text), ".bas") Then
-				If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Text) Then
-					OtherModuleFiles &= " """ & ProjectNode->Nodes.Item(i)->Text & """"
-				End If
-			Else
-				For j As Integer = 0 To ProjectNode->Nodes.Item(i)->Nodes.Count - 1
-					If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text), ".bas") Then
-						If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text) Then
-							OtherModuleFiles &= " """ & ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text & """"
-						End If
-					End If
-				Next
-			End If
-		Next
-	End If
-	If InStr(*CompileWith, "{S}") > 0 Then
-		WLet(fbcCommand, Replace(*CompileWith, "{S}", """" & GetFileName(*MainFile) & """" & OtherModuleFiles))
-	Else
-		WLet(fbcCommand, """" & GetFileName(*MainFile) & """" & OtherModuleFiles & " " & *CompileWith)
-	End If
-	If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
-		If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *exename & """"
-	End If
-	Dim As WString Ptr PipeCommand
-	If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile"))) Then
-		Dim As String Colon = ""
-		#ifdef __USE_GTK__
-			Colon = ":"
-		#endif
-		WLet(PipeCommand, """" & *MakeToolPath1 & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *exename & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
-	ElseIf Parameter = "MakeClean" Then
-		WLet(PipeCommand, """" & *MakeToolPath2 & """ " & *Make2Arguments)
-	Else
-		WLet(PipeCommand, """" & *fbcexe & """ " & *fbcCommand)
-	End If
-	'	' for better showing
-	'	#ifdef __USE_GTK__
-	'		*PipeCommand=Replace(Replace(*PipeCommand,"\","/"),"/./","/")
-	'	#else
-	'		*PipeCommand=Replace(Replace(*PipeCommand,"/","\"),"\.\","\")
-	'	#endif
-	'OPEN *BatFileName For Output As #FileOut
-	'Print #FileOut, *fbcCommand  + " > """ + *LogFileName + """" + " 2>""" + *LogFileName2 + """"
-	'Close #FileOut
-	'Shell("""" + BatFileName + """")
-	If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
-		Dim As String gradlewFile, gradlewCommand
-		If Parameter = "Bundle" Then
-			gradlewCommand = "bundleRelease"
-		ElseIf Parameter = "APK" Then
-			gradlewCommand = "assembleRelease"
-		Else
-			gradlewCommand = "assembleDebug"
-		End If
-		ChDir(*Project->FileName)
-		#ifdef __FB_WIN32__
-			gradlewFile = "gradlew.bat"
-		#else
-			gradlewFile = "./gradlew"
-		#endif
-		WLet(PipeCommand, gradlewFile & " " & gradlewCommand)
-		Dim As Integer Fn1 = FreeFile_, Fn2 = FreeFile_
-		Open gradlewFile For Input As #Fn1
-		Dim pBuff As WString Ptr
-		Dim As Integer FileSize
-		Dim As WStringList Lines
-		FileSize = LOF(Fn1)
-		WReallocate(pBuff, FileSize)
-		Do Until EOF(Fn1)
-			LineInputWstr Fn1, pBuff, FileSize
-			Lines.Add *pBuff
-		Loop
-		CloseFile_(Fn1)
-		Open gradlewFile For Output As #Fn2
-		For i As Integer = 0 To Lines.Count - 1
-			If StartsWith(Lines.Item(i), "set FBC=") Then
-				Print #Fn2, "set FBC=" & *FbcExe
-			ElseIf StartsWith(Lines.Item(i), "set MFF=") Then
-				Print #Fn2, "set MFF=" & *MFFPathC
-			ElseIf StartsWith(Lines.Item(i), "set NDK=") Then
-				Print #Fn2, "set NDK=" & *Project->AndroidNDKLocation
-			Else
-				Print #Fn2, Lines.Item(i)
-			End If
-		Next i
-		CloseFile_(Fn2)
-	Else
-		ChDir(GetFolderName(*MainFile))
-	End If
-	'Shell(*fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """")
-	'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #Fn
-	'Close #Fn
-	'PipeCmd "", *PipeCommand & " > """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """"
-	ThreadsEnter()
+	NodesCount = IIf(bAll, tvExplorer.Nodes.Count, 1)
 	StartProgress
 	lvErrors.ListItems.Clear
 	ptabBottom->Tabs[1]->Caption = ML("Errors") '    'Inits
 	ThreadsLeave()
-	Dim As Long nLen, nLen2
-	Dim As Boolean Log2_, ERRGoRc
-	
-	Dim As Integer Result = -1, Fn = FreeFile_
-	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
-	#ifdef __USE_GTK__
-		WLetEx(PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True)
-	#else
-		'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
-	#endif
-	If Parameter <> "Check" Then
+	For k As Integer = 0 To NodesCount - 1
 		ThreadsEnter()
-		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
+		If bAll Then ProjectNode = tvExplorer.Nodes.Item(k) Else ProjectNode = 0
+		WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
 		ThreadsLeave()
-	End If
-	Dim As UShort bFlagErr
-	Dim As Integer NumberErr, NumberWarning, NumberInfo ', nPos , nPos1
-	Dim As Double CompileElapsedTime = Timer
-	'Dim As String TmpStr, TmpStrKey = "@freebasic compiler @copyright @standalone @creating import library @target @backend @compiling @compiling rc @compiling c @assembling @linking @line "
-	#ifdef __USE_GTK__
-		If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
-			While Not EOF(Fn)
-				Line Input #Fn, Buff
-				If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
+		If Len(*MainFile) <= 0 Then
+			ThreadsEnter()
+			ShowMessages ML("No Main file specified for the project.") & "!"
+			ThreadsLeave()
+			CompileResult = 0
+			Continue For
+		End If
+		WLet(FirstLine, GetFirstCompileLine(*MainFile, Project))
+		Versioning *MainFile, *FirstLine, Project, ProjectNode
+		Dim FileOut As Integer
+		ThreadsEnter()
+		Dim As Boolean Bit32 = tbt32Bit->Checked
+		ThreadsLeave()
+		WLet(exename, GetExeFileName(*MainFile, *FirstLine))
+		Dim As WString Ptr FbcExe, CurrentCompiler = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
+		If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
+			FbcExe = Project->CompilerPath
+		Else
+			FbcExe = IIf(Bit32, Compiler32Path, Compiler64Path)
+		End If
+		If *FbcExe = "" Then
+			ThreadsEnter()
+			ShowMessages ML("Invalid defined compiler path.")
+			ThreadsLeave()
+			CompileResult = 0
+			Continue For
+		Else
+			#ifdef __USE_GTK__
+				If g_find_program_in_path(ToUtf8(*FbcExe)) = NULL Then
+			#else
+				If Not FileExists(*FbcExe) Then
+			#endif
 				ThreadsEnter()
-				ShowMessages(Buff, False)
+				ShowMessages ML("File") & " """ & *FbcExe & """ " & ML("not found") & "!"
 				ThreadsLeave()
-				'nPos1 = -1
-				'nPos = InStr(Buff, ":")
-				'If nPos < 1 Then nPos = InStr(Buff, " ")
-				'If nPos < 1 Then
-				'	nPos = Len(Buff) + 1
-				'	TmpStr = Buff
-				'Else
-				'	TmpStr = Left(Buff, nPos - 1)
-				'End If
-				'If InStr(Buff, "Error!") Then ERRGoRc = True
-				'nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr))
-				'If CBool(nPos1 > 0) OrElse ERRGoRc Then
-				'	ThreadsEnter()
-				'	ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(Buff, nPos))
-				'	ThreadsLeave()
-				'	NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
-				'Else
-				If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
-					OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
-					OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") OrElse StartsWith(Buff, "backend:")) Then
-					bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
-					If bFlagErr = 2 Then
-						NumberErr += 1
-					ElseIf bFlagErr = 1 Then
-						NumberWarning += 1
-					Else
-						NumberInfo += 1
+				CompileResult = 0
+				Continue For
+			End If
+		End If
+		Dim As UserToolType Ptr Tool
+		For i As Integer = 0 To Tools.Count - 1
+			Tool = Tools.Item(i)
+			If Tool->LoadType = LoadTypes.BeforeCompile Then Tool->Execute
+		Next
+		Dim As Integer iLine
+		WLet(MFFPathC, *MFFPath)
+		If CInt(InStr(*MFFPathC, ":") = 0) AndAlso CInt(Not StartsWith(*MFFPathC, "/")) Then WLet(MFFPathC, ExePath & "/" & *MFFPath)
+		WLet(BatFileName, ExePath + "/debug.bat")
+		Dim As Boolean Band, Yaratilmadi
+		ChDir(GetFolderName(*MainFile))
+		If Parameter = "Check" Then
+			WLet(exename, "chk.dll")
+		End If
+		FileOut = FreeFile_
+		If Dir(*exename) <> "" Then 'delete exe if exist
+			If *exename = ExePath OrElse Kill(*exename) <> 0 Then
+				ThreadsEnter()
+				ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *exename) '
+				ThreadsLeave()
+				Band = True
+				CompileResult = 0
+				Continue For
+			End If
+		End If
+		Dim As Integer Idx
+		Dim As ToolType Ptr CompilerTool
+		If Parameter = "Make" Then
+			Idx = pMakeTools->IndexOfKey(*CurrentMakeTool1)
+			If Idx <> -1 Then CompilerTool = pMakeTools->Item(Idx)->Object
+		ElseIf Parameter = "MakeClean" Then
+			Idx = pMakeTools->IndexOfKey(*CurrentMakeTool2)
+			If Idx <> -1 Then CompilerTool = pMakeTools->Item(Idx)->Object
+		Else
+			Idx = pCompilers->IndexOfKey(*CurrentCompiler)
+			If Idx <> -1 Then CompilerTool = pCompilers->Item(Idx)->Object
+		End If
+		If CompilerTool <> 0 Then
+			WLet(CompileWith, CompilerTool->GetCommand(, True))
+		End If
+		WAdd(CompileWith, " " & *FirstLine)
+		If InStr(*CompileWith, " -s ") = 0 Then
+			If CInt(tbtConsole->Checked) Then
+				WAdd CompileWith, " -s console"
+			ElseIf CInt(tbtGUI->Checked) Then
+				WAdd CompileWith, " -s gui"
+			End If
+		End If
+		If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WAdd CompileWith, " -g"
+		
+		If CInt(InStr(*CompileWith, " -v ") = 0)  Then
+			WAdd CompileWith, " -v "
+		End If
+		
+		If Project Then
+			If InStr(*CompileWith, " -s ") = 0 Then
+				Select Case Project->Subsystem
+				Case 0
+				Case 1: WAdd CompileWith, " -s console"
+				Case 2: WAdd CompileWith, " -s gui"
+				End Select
+			End If
+			If Project->CompileTo = ToGAS Then
+				WAdd CompileWith, " -gen gas" & IIf(Not Bit32, "64", "")
+			ElseIf Project->CompileTo = ToLLVM Then
+				WAdd CompileWith, " -gen llvm"
+			ElseIf Project->CompileTo = ToGCC Then
+				WAdd CompileWith, " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", ""))) & _
+				IIf(Project->ShowUnusedLabelWarnings, " -Wc -Wunused-label", "") & IIf(Project->ShowUnusedFunctionWarnings, " -Wc -Wunused-function", "") & IIf(Project->ShowUnusedVariableWarnings, " -Wc -Wunused-variable", "") & _
+				IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
+			End If
+		End If
+		If UseDefine <> "" Then WAdd CompileWith, " -d " & UseDefine
+		If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
+		For i As Integer = 0 To pIncludePaths->Count - 1
+			WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
+		Next
+		For i As Integer = 0 To pLibraryPaths->Count - 1
+			WAdd CompileWith, " -p """ & pLibraryPaths->Item(i) & """"
+		Next
+		'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
+		WLet(LogFileName2, ExePath & "/Temp/Compile.log")
+		Dim As UString OtherModuleFiles
+		If CInt(ProjectNode <> 0) AndAlso CInt(Project <> 0) AndAlso CInt(Project->PassAllModuleFilesToCompiler) Then
+			For i As Integer = 0 To ProjectNode->Nodes.Count - 1
+				If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Text), ".bas") Then
+					If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Text) Then
+						OtherModuleFiles &= " """ & ProjectNode->Nodes.Item(i)->Text & """"
 					End If
-					If 	bFlagErr >= 0 Then
-						ThreadsEnter()
-						If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
-						lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
-						lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-						lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-						'ShowMessages(Buff, False)
-						ThreadsLeave()
-					End If
+				Else
+					For j As Integer = 0 To ProjectNode->Nodes.Item(i)->Nodes.Count - 1
+						If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text), ".bas") Then
+							If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text) Then
+								OtherModuleFiles &= " """ & ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text & """"
+							End If
+						End If
+					Next
 				End If
-			Wend
-			CloseFile_(Fn)
+			Next
 		End If
-	#else
-		#define BufferSize 2048
-		Dim si As STARTUPINFO
-		Dim pi As PROCESS_INFORMATION
-		Dim sa As SECURITY_ATTRIBUTES
-		Dim hReadPipe As HANDLE
-		Dim hWritePipe As HANDLE
-		Dim sBuffer As ZString * BufferSize
-		Dim sOutput As UString
-		Dim bytesRead As DWORD
-		Dim result_ As Integer
-		
-		sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
-		sa.lpSecurityDescriptor = Null
-		sa.bInheritHandle = True
-		
-		If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
-			ShowMessages(ML("Error: Couldn't Create Pipe"), False)
-			Return 0
+		If InStr(*CompileWith, "{S}") > 0 Then
+			WLet(fbcCommand, Replace(*CompileWith, "{S}", """" & GetFileName(*MainFile) & """" & OtherModuleFiles))
+		Else
+			WLet(fbcCommand, """" & GetFileName(*MainFile) & """" & OtherModuleFiles & " " & *CompileWith)
 		End If
-		
-		si.cb = Len(STARTUPINFO)
-		si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
-		si.hStdOutput = hWritePipe
-		si.hStdError = hWritePipe
-		si.wShowWindow = 0
-		
-		If CreateProcess(0, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
-			ShowMessages(ML("Error: Couldn't Create Process"), False)
-			Return 0
+		If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
+			If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *exename & """"
 		End If
-		
-		CloseHandle hWritePipe
-		
-		Dim As Integer Pos1, FirstErrFlag
-		Do
-			result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
-			sBuffer = Left(sBuffer, bytesRead)
-			Pos1 = InStrRev(sBuffer, Chr(10))
-			If Pos1 > 0 Then
-				Dim res() As WString Ptr
-				sOutput += Left(sBuffer, Pos1 - 1)
-				If InStr(sOutput, "GoRC.exe' terminated with exit code") > 0 Then
-					sOutput = Replace(sOutput, Chr(13, 10), " ")
-					ERRGoRc = True
-				ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
-					sOutput = Replace(sOutput, Chr(13, 10), " ")
+		If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile"))) Then
+			Dim As String Colon = ""
+			#ifdef __USE_GTK__
+				Colon = ":"
+			#endif
+			WLet(PipeCommand, """" & *MakeToolPath1 & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *exename & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
+		ElseIf Parameter = "MakeClean" Then
+			WLet(PipeCommand, """" & *MakeToolPath2 & """ " & *Make2Arguments)
+		Else
+			WLet(PipeCommand, """" & *fbcexe & """ " & *fbcCommand)
+		End If
+		'	' for better showing
+		'	#ifdef __USE_GTK__
+		'		*PipeCommand=Replace(Replace(*PipeCommand,"\","/"),"/./","/")
+		'	#else
+		'		*PipeCommand=Replace(Replace(*PipeCommand,"/","\"),"\.\","\")
+		'	#endif
+		'OPEN *BatFileName For Output As #FileOut
+		'Print #FileOut, *fbcCommand  + " > """ + *LogFileName + """" + " 2>""" + *LogFileName2 + """"
+		'Close #FileOut
+		'Shell("""" + BatFileName + """")
+		If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
+			Dim As String gradlewFile, gradlewCommand
+			If Parameter = "Bundle" Then
+				gradlewCommand = "bundleRelease"
+			ElseIf Parameter = "APK" Then
+				gradlewCommand = "assembleRelease"
+			Else
+				gradlewCommand = "assembleDebug"
+			End If
+			ChDir(*Project->FileName)
+			#ifdef __FB_WIN32__
+				gradlewFile = "gradlew.bat"
+			#else
+				gradlewFile = "./gradlew"
+			#endif
+			WLet(PipeCommand, gradlewFile & " " & gradlewCommand)
+			Dim As Integer Fn1 = FreeFile_, Fn2 = FreeFile_
+			Open gradlewFile For Input As #Fn1
+			Dim pBuff As WString Ptr
+			Dim As Integer FileSize
+			Dim As WStringList Lines
+			FileSize = LOF(Fn1)
+			WReallocate(pBuff, FileSize)
+			Do Until EOF(Fn1)
+				LineInputWstr Fn1, pBuff, FileSize
+				Lines.Add *pBuff
+			Loop
+			CloseFile_(Fn1)
+			WDeallocate pBuff
+			Open gradlewFile For Output As #Fn2
+			For i As Integer = 0 To Lines.Count - 1
+				If StartsWith(Lines.Item(i), "set FBC=") Then
+					Print #Fn2, "set FBC=" & *FbcExe
+				ElseIf StartsWith(Lines.Item(i), "set MFF=") Then
+					Print #Fn2, "set MFF=" & *MFFPathC
+				ElseIf StartsWith(Lines.Item(i), "set NDK=") Then
+					Print #Fn2, "set NDK=" & *Project->AndroidNDKLocation
+				Else
+					Print #Fn2, Lines.Item(i)
 				End If
-				Split sOutput, Chr(10), res()
-				For i As Integer = 0 To UBound(res) 'Copyright
-					ShowMessages(*res(i), False)
-					If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
-					If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
-					'nPos = InStr(*res(i), ":")
-					'If nPos < 1 Then nPos = InStr(*res(i), " ")
+			Next i
+			CloseFile_(Fn2)
+		Else
+			ChDir(GetFolderName(*MainFile))
+		End If
+		'Shell(*fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """")
+		'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #Fn
+		'Close #Fn
+		'PipeCmd "", *PipeCommand & " > """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """"
+		
+		Dim As Long nLen, nLen2
+		Dim As Boolean Log2_, ERRGoRc
+		
+		Dim As Integer Result = -1, Fn = FreeFile_
+		Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
+		#ifdef __USE_GTK__
+			WLetEx(PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True)
+		#else
+			'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
+		#endif
+		If Parameter <> "Check" Then
+			ThreadsEnter()
+			ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
+			ThreadsLeave()
+		End If
+		Dim As UShort bFlagErr
+		Dim As Double CompileElapsedTime = Timer
+		'Dim As String TmpStr, TmpStrKey = "@freebasic compiler @copyright @standalone @creating import library @target @backend @compiling @compiling rc @compiling c @assembling @linking @line "
+		#ifdef __USE_GTK__
+			If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
+				While Not EOF(Fn)
+					Line Input #Fn, Buff
+					If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
+					ThreadsEnter()
+					ShowMessages(Buff, False)
+					ThreadsLeave()
+					'nPos1 = -1
+					'nPos = InStr(Buff, ":")
+					'If nPos < 1 Then nPos = InStr(Buff, " ")
 					'If nPos < 1 Then
-					'	nPos = Len(*res(i)) + 1
-					'	TmpStr = *res(i) '"standalone" ' Hanving ASCii CR
+					'	nPos = Len(Buff) + 1
+					'	TmpStr = Buff
 					'Else
-					'	TmpStr = Left(*res(i), nPos - 1)
+					'	TmpStr = Left(Buff, nPos - 1)
 					'End If
-					'nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
-					'If nPos1 > 0 OrElse ERRGoRc Then
-						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
-					If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
-						OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
-						OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
-						OrElse StartsWith(*res(i), "compiling rc failed:") OrElse InStr(*res(i), "ld.exe") > 0) Then
-						bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
+					'If InStr(Buff, "Error!") Then ERRGoRc = True
+					'nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr))
+					'If CBool(nPos1 > 0) OrElse ERRGoRc Then
+					'	ThreadsEnter()
+					'	ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(Buff, nPos))
+					'	ThreadsLeave()
+					'	NumberWarning = 0 : NumberErr = 0 : NumberInfo = 0
+					'Else
+					If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
+						OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
+						OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") OrElse _
+						OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:")) Then
+						bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
 							NumberErr += 1
 						ElseIf bFlagErr = 1 Then
@@ -783,71 +683,210 @@ Function Compile(Parameter As String = "") As Integer
 							NumberInfo += 1
 						End If
 						If 	bFlagErr >= 0 Then
+							ThreadsEnter()
 							If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
 							lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+							'ShowMessages(Buff, False)
+							ThreadsLeave()
 						End If
 					End If
-					Deallocate res(i): res(i) = 0
-					sOutput = ""
-				Next i
-				Erase res
-				sOutput = Mid(sBuffer, Pos1 + 1)
-			Else
-				If FirstErrFlag < 1 AndAlso InStr(LCase(sOutput), "compiling") Then
-					sOutput +=  Chr(10) + sBuffer
-					FirstErrFlag +=1
+				Wend
+				CloseFile_(Fn)
+			End If
+		#else
+			#define BufferSize 2048
+			Dim si As STARTUPINFO
+			Dim pi As PROCESS_INFORMATION
+			Dim sa As SECURITY_ATTRIBUTES
+			Dim hReadPipe As HANDLE
+			Dim hWritePipe As HANDLE
+			Dim sBuffer As ZString * BufferSize
+			Dim sOutput As UString
+			Dim bytesRead As DWORD
+			Dim result_ As Integer
+			
+			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+			sa.lpSecurityDescriptor = Null
+			sa.bInheritHandle = True
+			
+			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+				ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+				CompileResult = 0
+				Continue For
+			End If
+			
+			si.cb = Len(STARTUPINFO)
+			si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+			si.hStdOutput = hWritePipe
+			si.hStdError = hWritePipe
+			si.wShowWindow = 0
+			
+			If CreateProcess(0, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+				ShowMessages(ML("Error: Couldn't Create Process"), False)
+				CompileResult = 0
+				Continue For
+			End If
+			
+			CloseHandle hWritePipe
+			
+			Dim As Integer Pos1, FirstErrFlag
+			Do
+				result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+				sBuffer = Left(sBuffer, bytesRead)
+				Pos1 = InStrRev(sBuffer, Chr(10))
+				If Pos1 > 0 Then
+					Dim res() As WString Ptr
+					sOutput += Left(sBuffer, Pos1 - 1)
+					If InStr(sOutput, "GoRC.exe' terminated with exit code") > 0 Then
+						sOutput = Replace(sOutput, Chr(13, 10), " ")
+						ERRGoRc = True
+					ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
+						sOutput = Replace(sOutput, Chr(13, 10), " ")
+					End If
+					Split sOutput, Chr(10), res()
+					For i As Integer = 0 To UBound(res) 'Copyright
+						ShowMessages(*res(i), False)
+						If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
+						If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
+						'nPos = InStr(*res(i), ":")
+						'If nPos < 1 Then nPos = InStr(*res(i), " ")
+						'If nPos < 1 Then
+						'	nPos = Len(*res(i)) + 1
+						'	TmpStr = *res(i) '"standalone" ' Hanving ASCii CR
+						'Else
+						'	TmpStr = Left(*res(i), nPos - 1)
+						'End If
+						'nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
+						'If nPos1 > 0 OrElse ERRGoRc Then
+							'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+						If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
+							OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
+							OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
+							OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse InStr(*res(i), "ld.exe") > 0) Then
+							bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
+							If bFlagErr = 2 Then
+								NumberErr += 1
+							ElseIf bFlagErr = 1 Then
+								NumberWarning += 1
+							Else
+								NumberInfo += 1
+							End If
+							If 	bFlagErr >= 0 Then
+								If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
+								lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
+								lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+								lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+							End If
+						End If
+						Deallocate res(i): res(i) = 0
+						sOutput = ""
+					Next i
+					Erase res
+					sOutput = Mid(sBuffer, Pos1 + 1)
 				Else
-					sOutput += sBuffer
+					If FirstErrFlag < 1 AndAlso InStr(LCase(sOutput), "compiling") Then
+						sOutput +=  Chr(10) + sBuffer
+						FirstErrFlag +=1
+					Else
+						sOutput += sBuffer
+					End If
+				End If
+			Loop While result_
+			
+			CloseHandle pi.hProcess
+			CloseHandle pi.hThread
+			CloseHandle hReadPipe
+		#endif
+		#ifdef __USE_GTK__
+			Yaratilmadi = g_find_program_in_path(ToUtf8(*exename)) = NULL
+		#else
+			Yaratilmadi = Dir(*exename) = ""
+		#endif
+		'Delete the default ManifestFile And IcoFile
+		If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
+		#ifdef __USE_GTK__
+			Fn = FreeFile_
+			Result = -1
+			Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
+			If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result = Open(*LogFileName2 For Input As #Fn)
+			If Result = 0 Then
+				While Not EOF(Fn)
+					Line Input #Fn, Buff
+					'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
+					bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
+					If bFlagErr = 2 Then
+						NumberErr += 1
+					ElseIf bFlagErr = 1 Then
+						NumberWarning += 1
+					Else
+						NumberInfo += 1
+					End If
+					ThreadsEnter()
+					If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+					lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
+					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+					ShowMessages(Buff, False)
+					ThreadsLeave()
+					'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
+					Log2_ = True
+				Wend
+			End If
+			CloseFile_(Fn)
+		#endif
+		ThreadsEnter()
+		ShowMessages("")
+		ThreadsLeave()
+		For i As Integer = 0 To Tools.Count - 1
+			Tool = Tools.Item(i)
+			If Tool->LoadType = LoadTypes.AfterCompile Then Tool->Execute
+		Next
+		If Yaratilmadi Or Band Then
+			ThreadsEnter()
+			If Parameter <> "Check" Then
+				ShowMessages(Str(Time) & ": " & ML("Do not build file.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
+				If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then ptabBottom->Tabs[1]->SelectTab
+			ElseIf lvErrors.ListItems.Count <> 0 Then
+				ShowMessages(Str(Time) & ": " & ML("Checking ended.")) & " " & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
+				ptabBottom->Tabs[1]->SelectTab
+			Else
+				ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
+			End If
+			ThreadsLeave()
+			CompileResult = 0
+		Else
+			ThreadsEnter()
+			If InStr(*LogText, "warning") > 0 Then
+				If Parameter <> "Check" Then
+					ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
+				End If
+			Else
+				If Parameter <> "Check" Then
+					ShowMessages(Str(Time) & ": " & ML("Layout succeeded!")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
+				Else
+					ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
 				End If
 			End If
-		Loop While result_
-		
-		CloseHandle pi.hProcess
-		CloseHandle pi.hThread
-		CloseHandle hReadPipe
-	#endif
-	WDeAllocate PipeCommand
-	#ifdef __USE_GTK__
-		Yaratilmadi = g_find_program_in_path(ToUtf8(*exename)) = NULL
-	#else
-		Yaratilmadi = Dir(*exename) = ""
-	#endif
-	'Delete the default ManifestFile And IcoFile
-	If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
-	#ifdef __USE_GTK__
-		Fn = FreeFile_
-		Result = -1
-		Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
-		If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
-		If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-32" As #Fn)
-		If Result <> 0 Then Result = Open(*LogFileName2 For Input As #Fn)
-		If Result = 0 Then
-			While Not EOF(Fn)
-				Line Input #Fn, Buff
-				'If Trim(*Buff) <> "" Then lvErrors.ListItems.Add *Buff
-				bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
-				If bFlagErr = 2 Then
-					NumberErr += 1
-				ElseIf bFlagErr = 1 Then
-					NumberWarning += 1
-				Else
-					NumberInfo += 1
-				End If
-				ThreadsEnter()
-				If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-				lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
-				lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-				lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
-				ShowMessages(Buff, False)
-				ThreadsLeave()
-				'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
-				Log2_ = True
-			Wend
-			CloseFile_(Fn)
+			ThreadsLeave()
 		End If
-	#endif
+	Next k
+	WDeAllocate PipeCommand
+	WDeAllocate ExeName
+	WDeAllocate LogText
+	WDeallocate fbcCommand
+	WDeallocate CompileWith
+	WDeallocate MFFPathC
+	WDeallocate FirstLine
+	WDeallocate ErrTitle
+	WDeallocate ErrFileName
+	WDeallocate LogFileName
+	WDeallocate LogFileName2
+	WDeallocate BatFileName
+	WDeallocate MainFile
 	ThreadsEnter()
 	If lvErrors.ListItems.Count <> 0 Then
 		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", WStr(""))
@@ -857,56 +896,9 @@ Function Compile(Parameter As String = "") As Integer
 	Else
 		ptabBottom->Tabs[1]->Caption = ML("Errors")
 	End If
-	ThreadsLeave()
-	'If LogFileName Then Deallocate LogFileName
-	If LogFileName2 Then Deallocate_( LogFileName2)
-	If BatFileName Then Deallocate_( BatFileName)
-	WDeallocate fbcCommand
-	WDeallocate CompileWith
-	WDeallocate MFFPathC
-	WDeallocate MainFile
-	WDeallocate FirstLine
-	ThreadsEnter()
-	ShowMessages("")
 	StopProgress
 	ThreadsLeave()
-	For i As Integer = 0 To Tools.Count - 1
-		Tool = Tools.Item(i)
-		If Tool->LoadType = LoadTypes.AfterCompile Then Tool->Execute
-	Next
-	If Yaratilmadi Or Band Then
-		ThreadsEnter()
-		If Parameter <> "Check" Then
-			ShowMessages(Str(Time) & ": " & ML("Do not build file.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-			If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then ptabBottom->Tabs[1]->SelectTab
-		ElseIf lvErrors.ListItems.Count <> 0 Then
-			ShowMessages(Str(Time) & ": " & ML("Checking ended.")) & " " & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-			ptabBottom->Tabs[1]->SelectTab
-		Else
-			ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-		End If
-		ThreadsLeave()
-		WDeallocate LogText
-		Return 0
-	Else
-		ThreadsEnter()
-		If InStr(*LogText, "warning") > 0 Then
-			If Parameter <> "Check" Then
-				ShowMessages(Str(Time) & ": " & ML("Layout has been successfully completed, but there are warnings.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-			End If
-		Else
-			If Parameter <> "Check" Then
-				ShowMessages(Str(Time) & ": " & ML("Layout succeeded!")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-			Else
-				ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-			End If
-		End If
-		ThreadsLeave()
-		WDeAllocate LogText
-		WDeAllocate exename
-		Return 1
-	End If
-	
+	Return CompileResult
 	Exit Function
 	ErrorHandler:
 	ThreadsEnter()
@@ -2707,6 +2699,11 @@ End Sub
 Sub CompileProgram(Param As Any Ptr)
 	'If Compile Then RunProgram(0) ', Run Program after compiled with FBC.exe only here.
 	Compile
+End Sub
+
+Sub CompileAll(Param As Any Ptr)
+	'If Compile Then RunProgram(0) ', Run Program after compiled with FBC.exe only here.
+	Compile(, True)
 End Sub
 
 Sub CompileBundle(Param As Any Ptr)
@@ -4678,6 +4675,7 @@ Sub CreateMenusAndToolBars
 	miBuild->Add(ML("&Syntax Check") & HK("SyntaxCheck"), "SyntaxCheck", "SyntaxCheck", @mclick)
 	miBuild->Add("-")
 	miBuild->Add(ML("&Compile") & HK("Compile", "Ctrl+F9"), "Compile", "Compile", @mclick)
+	miBuild->Add(ML("Compile &All") & HK("CompileAll", "Ctrl+Alt+F9"), "", "CompileAll", @mclick)
 	miBuild->Add("-")
 	Var miBuildBundleAPK = miBuild->Add(ML("&Build Bundle / APK") & HK("BuildBundleAPK"), "", "BuildBundleAPK", @mclick)
 	miBuildBundleAPK->Add(ML("Build &Bundle") & HK("BuildBundle"), "", "BuildBundle", @mclick)

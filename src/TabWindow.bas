@@ -5960,11 +5960,13 @@ End Sub
  
 Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False) As UString
 	Dim As TabWindow Ptr tb
-	If MainNode <> 0 AndAlso Not WithoutMainNode Then
+	Dim As TreeNode Ptr Node = ProjectNode
+	If Node = 0 Then Node = MainNode
+	If Node <> 0 AndAlso Not WithoutMainNode Then
 		Dim ee As ExplorerElement Ptr
-		ee = MainNode->Tag
-		If MainNode->ImageKey = "Project" OrElse ee AndAlso *ee Is ProjectElement Then
-			ProjectNode = MainNode
+		ee = Node->Tag
+		If Node->ImageKey = "Project" OrElse ee AndAlso *ee Is ProjectElement Then
+			ProjectNode = Node
 			If ee Then Project = Cast(ProjectElement Ptr, ee)
 			If ee AndAlso Project AndAlso WGet(Project->MainFileName) <> "" Then
 				Return WGet(Project->MainFileName)
@@ -5974,7 +5976,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 		ElseIf ee = 0 OrElse ee->FileName = 0 OrElse *ee->FileName = "" Then
 			For i As Integer = 0 To pTabCode->TabCount - 1
 				tb = Cast(TabWindow Ptr, pTabCode->Tabs[i])
-				If tb AndAlso tb->tn = MainNode Then
+				If tb AndAlso tb->tn = Node Then
 					If bSaveTab Then
 						If tb->Modified Then tb->Save
 					End If
