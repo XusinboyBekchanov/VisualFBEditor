@@ -167,7 +167,7 @@ Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
 		Loop
 		CloseFile_(Fn)
 		If ShowTipoftheDayIndex < i AndAlso ShowTipoftheDayIndex >= 0 Then lblTips.Text = *BuffTips(ShowTipoftheDayIndex)
-		Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & ".png"
+		Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & IIf(g_darkModeEnabled, "1", "0") & ".png"
 		If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
 	Else
 		Msgbox ML("File") & " """ & GetOSPath(ExePath & "Help/Tip of the Day/") & CurLanguage & ".tip"" " & ML("not found!")
@@ -182,7 +182,7 @@ End Sub
 Private Sub frmTipOfDayType.cmdPreviousTip_Click(ByRef Sender As Control)
 	ShowTipoftheDayIndex -= 1
 	If ShowTipoftheDayIndex < 0 Then ShowTipoftheDayIndex = UBound(BuffTips)
-	Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & ".png"
+	Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & IIf(g_darkModeEnabled, "1", "0") & ".png"
 	If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
 	lblTips.Text = *BuffTips(ShowTipoftheDayIndex)
 	
@@ -191,7 +191,7 @@ End Sub
 Private Sub frmTipOfDayType.cmdNextTip_Click(ByRef Sender As Control)
 	ShowTipoftheDayIndex += 1
 	If ShowTipoftheDayIndex > UBound(BuffTips) Then ShowTipoftheDayIndex = 0
-	Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & ".png"
+	Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & ShowTipoftheDayIndex & IIf(g_darkModeEnabled, "1", "0") & ".png"
 	If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
 	lblTips.Text = *BuffTips(ShowTipoftheDayIndex)
 	
