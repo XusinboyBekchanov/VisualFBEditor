@@ -6876,47 +6876,47 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 		Dim As UString c, cn, cp
 		For l As Integer = StartLine To EndLine
 			ecl = .FLines.Items[l]
-			If CInt(ecl->CommentIndex = 0) Then
-				Split(*ecl->Text, """", res())
-				For j As Integer = 0 To UBound(res)
-					If j = 0 Then
-						b = res(0)
-					ElseIf j Mod 2 = 0 Then
-						b &= """" & res(j)
-					Else
-						b &= """" & WSpace(Len(res(j)))
+			If ecl->CommentIndex <> 0 Then Continue For
+			If ecl->InAsm Then Continue For
+			Split(*ecl->Text, """", res())
+			For j As Integer = 0 To UBound(res)
+				If j = 0 Then
+					b = res(0)
+				ElseIf j Mod 2 = 0 Then
+					b &= """" & res(j)
+				Else
+					b &= """" & WSpace(Len(res(j)))
+				End If
+			Next
+			Dim As Integer Pos1 = InStr(b, "'")
+			If Pos1 > 0 Then b = ..Left(b, Pos1)
+			For i As Integer = Len(b) To 1 Step -1
+				c = Mid(b, i, 1)
+				cn = Mid(b, i + 1, 1)
+				cp = Mid(b, i - 1, 1)
+				If InStr("+-*/\<>&=',:;""()^", c) Then
+					If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(LCase(Mid(*ecl->Text, i, 2)) <> "/'") AndAlso _
+						CInt(LCase(Mid(*ecl->Text, i, 2)) <> "&h" AndAlso CInt(c <> """")) AndAlso CInt(c <> "'") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso _
+						CInt(c <> "<" OrElse LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "type") AndAlso _
+						CInt(c <> ">" OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0) AndAlso _
+						CInt(c <> "-" OrElse InStr("([{,;:+-*/=<>eE", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return" AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "step") AndAlso _
+						CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse _
+						CInt(InStr(",:;=", c) > 0 AndAlso (c <> "=" OrElse cn <> ">") AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") OrElse _
+						CInt(c = """" AndAlso IsArg(Asc(cn))) OrElse CInt(c = ")" AndAlso IsArg(Asc(cn))) Then
+						WLetEx ecl->Text, ..Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
 					End If
-				Next
-				Dim As Integer Pos1 = InStr(b, "'")
-				If Pos1 > 0 Then b = ..Left(b, Pos1)
-				For i As Integer = Len(b) To 1 Step -1
-					c = Mid(b, i, 1)
-					cn = Mid(b, i + 1, 1)
-					cp = Mid(b, i - 1, 1)
-					If InStr("+-*/\<>&=',:;""()^", c) Then
-						If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(LCase(Mid(*ecl->Text, i, 2)) <> "/'") AndAlso _
-							CInt(LCase(Mid(*ecl->Text, i, 2)) <> "&h" AndAlso CInt(c <> """")) AndAlso CInt(c <> "'") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso _
-							CInt(c <> "<" OrElse LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "type") AndAlso _
-							CInt(c <> ">" OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0) AndAlso _
-							CInt(c <> "-" OrElse InStr("([{,;:+-*/=<>eE", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return" AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "step") AndAlso _
-							CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse _
-							CInt(InStr(",:;=", c) > 0 AndAlso (c <> "=" OrElse cn <> ">") AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") OrElse _
-							CInt(c = """" AndAlso IsArg(Asc(cn))) OrElse CInt(c = ")" AndAlso IsArg(Asc(cn))) Then
-							WLetEx ecl->Text, ..Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
-						End If
-						If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> """") AndAlso CInt(c <> "'") AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso _
-							CInt(c <> ";") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso _
-							CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) AndAlso _
-							CInt(CInt(c <> ">") OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0)) AndAlso _
-							CInt(CInt(c <> "-") OrElse CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(c <> "'") AndAlso _
-							CInt(InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) > 0) AndAlso _
-							CInt(InStr("({[", cp) = 0) OrElse CInt(IsArg(Asc(cp))) AndAlso CInt(LCase(cp) <> "e") OrElse CInt(InStr(""")]}", cp) > 0)) OrElse _
-							CInt(c = """" AndAlso IsArg(Asc(cp))) OrElse CInt(c = "(" AndAlso cp = """") OrElse CInt(c = "'" AndAlso cp <> "" AndAlso cp <> " " AndAlso cp <> !"\t" AndAlso cp <> "/") Then
-							WLetEx ecl->Text, ..Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
-						End If
+					If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> """") AndAlso CInt(c <> "'") AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso _
+						CInt(c <> ";") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso _
+						CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) AndAlso _
+						CInt(CInt(c <> ">") OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0)) AndAlso _
+						CInt(CInt(c <> "-") OrElse CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(c <> "'") AndAlso _
+						CInt(InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) > 0) AndAlso _
+						CInt(InStr("({[", cp) = 0) OrElse CInt(IsArg(Asc(cp))) AndAlso CInt(LCase(cp) <> "e") OrElse CInt(InStr(""")]}", cp) > 0)) OrElse _
+						CInt(c = """" AndAlso IsArg(Asc(cp))) OrElse CInt(c = "(" AndAlso cp = """") OrElse CInt(c = "'" AndAlso cp <> "" AndAlso cp <> " " AndAlso cp <> !"\t" AndAlso cp <> "/") Then
+						WLetEx ecl->Text, ..Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
 					End If
-				Next
-			End If
+				End If
+			Next
 		Next l
 	End With
 End Sub
