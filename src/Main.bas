@@ -672,7 +672,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					'Else
 					If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
 						OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
-						OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") OrElse _
+						OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") _
 						OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:")) Then
 						bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
