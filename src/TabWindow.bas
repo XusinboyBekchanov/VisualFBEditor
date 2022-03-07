@@ -2479,7 +2479,10 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 						ElseIf f Then
 							If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Sub " & frmTypeName & "." & SubName)) OrElse _
 								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Private Sub " & frmTypeName & "." & SubName)) OrElse _
-								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Sub " & frmTypeName & "." & SubName)) Then
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Sub " & frmTypeName & "." & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Sub " & frmTypeName & "._" & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Private Sub " & frmTypeName & "._" & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Sub " & frmTypeName & "._" & SubName)) Then
 								Var n = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
 								ptxtCode->SetSelection k + 1, k + 1, n + Len(TabSpace), n + Len(TabSpace)
 								ptxtCode->TopLine = k
@@ -2506,7 +2509,11 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			ptxtCode = ptxtCodeType
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			If CreateNonStaticEventHandlers Then
-				ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & "_" & Mid(te->TypeName, 4)
+				If PlaceStaticEventHandlersAfterTheConstructor Then
+					ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub _" & SubName & Mid(te->TypeName, 4)
+				Else
+					ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & "_" & Mid(te->TypeName, 4)
+				End If
 				ptxtCode->InsertLine j + 1, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Sub " & SubName & Mid(te->TypeName, 4)
 				tb->ConstructorStart += 2
 				tb->ConstructorEnd += 2
@@ -2524,7 +2531,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 			q = IIf(ptxtCode = @tb->txtCode, q1, q2)
 			If bWith Then WithCtrlName = "" Else WithCtrlName = CtrlName
 			If CreateNonStaticEventHandlers AndAlso Not tdes Then ptxtCode->InsertLine p + q, ..Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & ".Designer = @This": q += 1: If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
-			ptxtCode->InsertLine p + q, ..Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & "." & EventName & " = @" & SubName & IIf(CreateNonStaticEventHandlers, "_", "")
+			ptxtCode->InsertLine p + q, ..Left(ptxtCode->Lines(p + q), Len(ptxtCode->Lines(p + q)) - Len(LTrim(ptxtCode->Lines(p + q), Any !"\t "))) & WithCtrlName & "." & EventName & " = @" & IIf(CreateNonStaticEventHandlers AndAlso PlaceStaticEventHandlersAfterTheConstructor, "_", "") & SubName & IIf(CreateNonStaticEventHandlers AndAlso Not PlaceStaticEventHandlersAfterTheConstructor, "_", "")
 			tb->ConstructorEnd += 1
 			If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 		End If
@@ -2534,15 +2541,22 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		
 		ptxtCode->InsertLine i + q, ""
 		If CreateNonStaticEventHandlers Then
-			Dim As String LeftTabSpace = ..Left(ptxtCode->Lines(LineEndConstructor + q), Len(ptxtCode->Lines(LineEndConstructor + q)) - Len(LTrim(ptxtCode->Lines(LineEndConstructor + q), Any !"\t ")))
-			ptxtCode->InsertLine LineEndConstructor + 1 + q, LeftTabSpace
-			ptxtCode->InsertLine LineEndConstructor + q + 1, LeftTabSpace & "Private Sub " & frmTypeName & "." & SubName & "_" & Mid(te->TypeName, 4)
-			ptxtCode->InsertLine LineEndConstructor + q + 2, LeftTabSpace & TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
-			ptxtCode->InsertLine LineEndConstructor + q + 3, LeftTabSpace & "End Sub"
-			q += 4
+			If PlaceStaticEventHandlersAfterTheConstructor Then
+				Dim As String LeftTabSpace = ..Left(ptxtCode->Lines(LineEndConstructor + q), Len(ptxtCode->Lines(LineEndConstructor + q)) - Len(LTrim(ptxtCode->Lines(LineEndConstructor + q), Any !"\t ")))
+				ptxtCode->InsertLine LineEndConstructor + 1 + q, LeftTabSpace
+				ptxtCode->InsertLine LineEndConstructor + q + 1, LeftTabSpace & "Private Sub " & frmTypeName & "._" & SubName & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine LineEndConstructor + q + 2, LeftTabSpace & TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
+				ptxtCode->InsertLine LineEndConstructor + q + 3, LeftTabSpace & "End Sub"
+				q += 4
+			Else
+				ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & "_" & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine i + q + 2, TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
+				ptxtCode->InsertLine i + q + 3, "End Sub"
+				q += 3
+			End If
 		End If
 		ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & Mid(te->TypeName, 4)
-		If InStr(CtrlName,"(")Then
+		If InStr(CtrlName, "(") Then
 			ptxtCode->InsertLine i + q + 2, TabSpace & "Dim As Integer Index = Val(StringExtract(Sende.Name)" & ", "" ("", "")""))"
 		Else
 			ptxtCode->InsertLine i + q + 2, TabSpace

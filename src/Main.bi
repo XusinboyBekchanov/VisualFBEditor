@@ -103,7 +103,7 @@ Common Shared As Boolean AutoComplete
 Common Shared As Boolean AutoCreateRC
 Common Shared As Boolean AutoCreateBakFiles
 Common Shared As Boolean UseMakeOnStartWithCompile
-Common Shared As Boolean CreateNonStaticEventHandlers, CreateFormTypesWithoutTypeWord
+Common Shared As Boolean CreateNonStaticEventHandlers, PlaceStaticEventHandlersAfterTheConstructor, CreateFormTypesWithoutTypeWord
 Common Shared As Boolean LimitDebug, DisplayWarningsInDebug, TurnOnEnvironmentVariables
 Common Shared As Boolean UseDebugger, ParameterInfoShow
 Common Shared As Boolean CompileGUI

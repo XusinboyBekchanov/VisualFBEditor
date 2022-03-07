@@ -4066,6 +4066,7 @@ Sub LoadSettings
 	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
+	PlaceStaticEventHandlersAfterTheConstructor = iniSettings.ReadBool("Options", "PlaceStaticEventHandlersAfterTheConstructor", True)
 	CreateFormTypesWithoutTypeWord = iniSettings.ReadBool("Options", "CreateFormTypesWithoutTypeWord", False)
 	OpenCommandPromptInMainFileFolder = iniSettings.ReadBool("Options", "OpenCommandPromptInMainFileFolder", True)
 	WLet(CommandPromptFolder, iniSettings.ReadString("Options", "CommandPromptFolder", "./Projects"))

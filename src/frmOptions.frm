@@ -1008,7 +1008,7 @@ pfOptions = @fOptions
 		With chkCreateNonStaticEventHandlers
 			.Name = "chkCreateNonStaticEventHandlers"
 			.Text = ML("Create non-static event handlers")
-			.SetBounds 12, 127, 288, 24
+			.SetBounds 12, 150, 288, 24
 			'.Caption = ML("Create non-static event handlers")
 			.Parent = @pnlDesigner
 		End With
@@ -1201,7 +1201,7 @@ pfOptions = @fOptions
 			.Name = "chkCreateFormTypesWithoutTypeWord"
 			.Text = ML("Create Form types without Type word")
 			.TabIndex = 173
-			.SetBounds 12, 148, 288, 24
+			.SetBounds 12, 128, 288, 24
 			'.Caption = ML("Create Form types without Type word")
 			.Parent = @pnlDesigner
 		End With
@@ -1335,6 +1335,15 @@ pfOptions = @fOptions
 			.SetBounds 2, 38, 224, 24
 			.Parent = @pnlThemesCheckboxes
 		End With
+		' chkPlaceStaticEventHandlersAfterTheConstructor
+		With chkPlaceStaticEventHandlersAfterTheConstructor
+			.Name = "chkPlaceStaticEventHandlersAfterTheConstructor"
+			.Text = ML("Place static event handlers after the Constructor")
+			.TabIndex = 189
+			.Caption = ML("Place static event handlers after the Constructor")
+			.SetBounds 32, 170, 310, 24
+			.Parent = @pnlDesigner
+		End With
 	End Constructor
 	
 	Destructor frmOptions
@@ -1398,6 +1407,7 @@ Sub frmOptions.LoadSettings()
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
 		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
+		.chkPlaceStaticEventHandlersAfterTheConstructor.Checked = PlaceStaticEventHandlersAfterTheConstructor
 		.chkCreateFormTypesWithoutTypeWord.Checked = CreateFormTypesWithoutTypeWord
 		.optMainFileFolder.Checked = OpenCommandPromptInMainFileFolder
 		.optInFolder.Checked = Not OpenCommandPromptInMainFileFolder
@@ -2035,6 +2045,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
+		PlaceStaticEventHandlersAfterTheConstructor = .chkPlaceStaticEventHandlersAfterTheConstructor.Checked
 		CreateFormTypesWithoutTypeWord = .chkCreateFormTypesWithoutTypeWord.Checked
 		OpenCommandPromptInMainFileFolder = .optMainFileFolder.Checked
 		WLet(CommandPromptFolder, .txtInFolder.Text)
@@ -2213,6 +2224,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "ShowAlignmentGrid", ShowAlignmentGrid
 		piniSettings->WriteBool "Options", "SnapToGrid", SnapToGridOption
 		piniSettings->WriteBool "Options", "CreateNonStaticEventHandlers", CreateNonStaticEventHandlers
+		piniSettings->WriteBool "Options", "PlaceStaticEventHandlersAfterTheConstructor", PlaceStaticEventHandlersAfterTheConstructor
 		piniSettings->WriteBool "Options", "CreateFormTypesWithoutTypeWord", CreateFormTypesWithoutTypeWord
 		piniSettings->WriteBool "Options", "OpenCommandPromptInMainFileFolder", OpenCommandPromptInMainFileFolder
 		piniSettings->WriteString "Options", "CommandPromptFolder", *CommandPromptFolder
