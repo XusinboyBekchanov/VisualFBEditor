@@ -5184,7 +5184,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'cboClass.SetBounds 0, 2, 60, 20
 	tbrTop.ImagesList = pimgList
 	#ifdef __USE_GTK__
-		tbrTop.Width = 100
+		tbrTop.Width = 300
 	#else
 		tbrTop.Width = 75
 	#endif

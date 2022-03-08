@@ -4126,9 +4126,7 @@ Sub LoadSettings
 	mnuMain.DisplayIcons = DisplayMenuIcons
 	'mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
 	ReBar1.Visible = ShowMainToolbar
-	#ifdef __USE_WINAPI__
-		SetDarkMode DarkMode, False
-	#endif
+	SetDarkMode DarkMode, False
 	
 	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-exx"))
 	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-exx"))

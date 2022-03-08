@@ -2244,7 +2244,19 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		pfrmMain->Menu->ImagesList = IIf(DisplayMenuIcons, pimgList, 0)
 		ReBar1.Visible = ShowMainToolbar
 		pfrmMain->RequestAlign
-		'SetDarkMode DarkMode, False
+		SetDarkMode DarkMode, False
+		#ifdef __USE_WINAPI__
+			If DarkMode Then
+				txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
+				txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
+				fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)
+			Else
+				txtLabelProperty.BackColor = clBtnFace
+				txtLabelEvent.BackColor = clBtnFace
+				fAddIns.txtDescription.BackColor = clBtnFace
+			End If
+			RedrawWindow pfrmMain->Handle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+		#endif
 		
 		piniTheme->Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
 		piniTheme->WriteInteger("Colors", "BookmarksForeground", Bookmarks.ForegroundOption)
@@ -2362,7 +2374,7 @@ Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	If newIndex <> oldIndex Then MsgBox ML("Localization changes will be applied the next time the application is run.")
 	If *InterfaceFontName <> *fOptions.oldInterfFontName OrElse InterfaceFontSize <> fOptions.oldInterfFontSize Then MsgBox ML("Interface font changes will be applied the next time the application is run.")
 	If DisplayMenuIcons <> fOptions.oldDisplayMenuIcons Then MsgBox ML("Display icons in the menu changes will be applied the next time the application is run.")
-	If DarkMode <> fOptions.oldDarkMode Then MsgBox ML("Dark Mode changes will be applied the next time the application is run.")
+	'If DarkMode <> fOptions.oldDarkMode Then MsgBox ML("Dark Mode changes will be applied the next time the application is run.")
 	'If fOptions.HotKeysChanged Then MsgBox ML("Hotkey changes will be applied the next time the application is run.")
 End Sub
 

@@ -3910,6 +3910,29 @@ Namespace My.Sys.Forms
 			Case GDK_EXPOSE
 			#else
 			Case WM_PAINT
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					If Not FDarkMode Then
+						FDarkMode = True
+						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+						Brush.Handle = hbrBkgnd
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						Repaint
+					End If
+				Else
+					If FDarkMode Then
+						FDarkMode = False
+						SetWindowTheme(FHandle, NULL, NULL)
+						If FBackColor = -1 Then
+							Brush.Handle = 0
+						Else
+							Brush.Color = FBackColor
+						End If
+						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						Repaint
+					End If
+				End If
 			#endif
 			PaintControl
 			ShowCaretPos False
@@ -3922,7 +3945,8 @@ Namespace My.Sys.Forms
 		If Sender.Child Then
 			With QEditControl(Sender.Child)
 				#ifdef __USE_WINAPI__
-					If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					If g_darkModeEnabled Then
+						.FDarkMode = True
 						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
 						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
 						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
