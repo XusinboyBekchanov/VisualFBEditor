@@ -3914,7 +3914,7 @@ Namespace My.Sys.Forms
 					If Not FDarkMode Then
 						FDarkMode = True
 						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-						Brush.Handle = hbrBkgnd
+						This.Brush.Handle = hbrBkgnd
 						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
 						Repaint
@@ -3924,9 +3924,9 @@ Namespace My.Sys.Forms
 						FDarkMode = False
 						SetWindowTheme(FHandle, NULL, NULL)
 						If FBackColor = -1 Then
-							Brush.Handle = 0
+							This.Brush.Handle = 0
 						Else
-							Brush.Color = FBackColor
+							This.Brush.Color = FBackColor
 						End If
 						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
