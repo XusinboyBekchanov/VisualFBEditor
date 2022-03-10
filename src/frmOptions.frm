@@ -2267,6 +2267,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 				txtLabelEvent.BackColor = clBtnFace
 				fAddIns.txtDescription.BackColor = clBtnFace
 			End If
+			AllowDarkModeForWindow pfrmMain->Handle, DarkMode
+			RefreshTitleBarThemeColor(pfrmMain->Handle)
 			RedrawWindow pfrmMain->Handle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 		#endif
 		
