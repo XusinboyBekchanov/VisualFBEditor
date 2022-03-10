@@ -2267,9 +2267,13 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 				txtLabelEvent.BackColor = clBtnFace
 				fAddIns.txtDescription.BackColor = clBtnFace
 			End If
-			AllowDarkModeForWindow pfrmMain->Handle, DarkMode
-			RefreshTitleBarThemeColor(pfrmMain->Handle)
-			RedrawWindow pfrmMain->Handle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+			For i As Integer = 0 To pApp->FormCount - 1
+				If pApp->Forms[i]->Handle Then
+					AllowDarkModeForWindow pApp->Forms[i]->Handle, DarkMode
+					RefreshTitleBarThemeColor(pApp->Forms[i]->Handle)
+					RedrawWindow pApp->Forms[i]->Handle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+				End If
+			Next i
 		#endif
 		
 		piniTheme->Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
