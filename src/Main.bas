@@ -5,7 +5,7 @@
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 '#define __USE_GTK__
- 
+
 #include once "Main.bi"
 #include once "mff/Dialogs.bi"
 #include once "mff/Form.bi"
@@ -2883,7 +2883,7 @@ End Function
 
 Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0)
 	If FormClosing Then Exit Sub
-	If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then MutexLock tlockSave
+	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then 
 	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 		If ec = 0 Then
 			If IncludeFiles.Contains(Path) Then
@@ -3661,7 +3661,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		Next
 		If FormClosing Then MutexUnlock tlockSave: Exit Sub
 	Next
-	If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then MutexUnlock tlockSave
+	MutexUnlock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then 
 	For i As Integer = 0 To Files.Count - 1
 		LoadFunctions Files.Item(i), , Types, Enums, Functions, Args
 		If FormClosing Then Exit Sub
