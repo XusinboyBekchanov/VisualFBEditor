@@ -162,9 +162,9 @@ Namespace VisualFBEditor
 			Dim As ExplorerElement Ptr ee
 			Dim As TreeNode Ptr ProjectNode
 			Dim As UString ProjectFile = ""
-			Dim As UString MainFile = GetMainFile(, Project, ProjectNode)
-			Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project)
-			Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine)
+			Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
+			Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
+			Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine & CompileLine)
 			If ProjectNode <> 0 Then ee = ProjectNode->Tag
 			If ee <> 0 Then ProjectFile = *ee->FileName
 			Select Case LCase(PropertyName)
@@ -395,6 +395,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	Dim As WString Ptr MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeCommand
 	Dim As WString Ptr CompileWith, MFFPathC, ErrFileName, ErrTitle, ExeName, FirstLine
 	Dim As Integer NumberErr, NumberWarning, NumberInfo, NodesCount, CompileResult = 1
+	Dim As UString CompileLine
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
 	ThreadsEnter()
@@ -416,8 +417,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CompileResult = 0
 			Continue For
 		End If
-		WLet(FirstLine, GetFirstCompileLine(*MainFile, Project))
-		Versioning *MainFile, *FirstLine, Project, ProjectNode
+		WLet(FirstLine, GetFirstCompileLine(*MainFile, Project, CompileLine))
+		Versioning *MainFile, *FirstLine & CompileLine, Project, ProjectNode
 		Dim FileOut As Integer
 		ThreadsEnter()
 		Dim As Boolean Bit32 = tbt32Bit->Checked
@@ -2869,6 +2870,13 @@ Function WithoutPointers(ByRef e As String) As String
 	End If
 End Function
 
+Function WithoutQuotes(ByRef e As UString) As UString
+	Dim As UString s = e
+	If StartsWith(s, """") Then s = Mid(s, 2)
+	If EndsWith(s, """") Then s = Left(s, Len(s) - 1)
+	Return Replace(s, """""", """")
+End Function
+
 Function DeleteSpaces(b As String) As String
 	Dim iCount As Integer
 	Dim bNew As String = b
@@ -5155,9 +5163,9 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 	Dim As TreeNode Ptr ProjectNode
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	Dim As UString ProjectFile = ""
-	Dim As UString MainFile = GetMainFile(, Project, ProjectNode)
-	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project)
-	Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine)
+	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
+	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
+	Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine & CompileLine)
 	Dim As UString CurrentWord = ""
 	Dim As UString Params
 	If Trim(This.Path) <> "" AndAlso Not WithoutProgram Then
@@ -5671,7 +5679,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 					If (CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = Trim(te->EnumTypeName)) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)))) Then
 						cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 					End If
-				ElseIf CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = WithoutPtr(Trim(te->TypeName))) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), WithoutPtr(Trim(te->TypeName)))) Then
+				ElseIf CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = WithoutPointers(Trim(te->TypeName))) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), WithoutPointers(Trim(te->TypeName)))) Then
 					cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 				End If
 			End If

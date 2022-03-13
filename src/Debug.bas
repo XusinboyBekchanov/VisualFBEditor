@@ -8523,12 +8523,12 @@ Sub RunWithDebug(Param As Any Ptr)
 	ThreadsEnter()
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
-	Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
-	Dim FirstLine As UString = GetFirstCompileLine(MainFile, Project)
+	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
+	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
 	ThreadsLeave()
 	If Not Restarting Then
 		'#IfNDef __USE_GTK__
-		exename = GetExeFileName(MainFile, FirstLine)
+		exename = GetExeFileName(MainFile, FirstLine & CompileLine)
 		mainfolder = GetFolderName(MainFile)
 		'#EndIf
 	Else

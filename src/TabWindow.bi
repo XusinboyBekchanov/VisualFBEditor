@@ -302,8 +302,6 @@ Declare Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean =
 	Declare Function CloseButton_OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 #endif
 
-Declare Function WithoutPtr(TypeName As String) As String
-
 Declare Function GetPropertyType(ClassName As String, PropertyName As String) As TypeElement Ptr
 
 Declare Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
@@ -404,13 +402,13 @@ Declare Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 
 Declare Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) As String
 
-Declare Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ForWindows As Boolean = False) As UString
+Declare Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, CompileLine As UString, ForWindows As Boolean = False) As UString
 
 Declare Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
 
 Declare Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False) As UString
 
-Declare Function GetResourceFile(WithoutMainNode As Boolean = False) As UString
+Declare Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "") As UString
 
 Declare Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 

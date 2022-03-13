@@ -206,6 +206,7 @@ Declare Sub ChangeNewLineType(NewLineType As NewLineTypes)
 	Declare Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 #endif
 Declare Function WithoutPointers(ByRef e As String) As String
+Declare Function WithoutQuotes(ByRef e As UString) As UString
 Declare Sub WithFolder
 Declare Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
 Declare Sub Save

@@ -897,23 +897,13 @@ Sub TabWindow.FillProperties(ByRef ClassName As WString)
 		End If
 	End If
 End Sub
- 
-Function WithoutPtr(TypeName As String) As String
-	If EndsWith(LCase(TypeName), " ptr") Then
-		Return ..Left(TypeName, Len(TypeName) - 4)
-	ElseIf EndsWith(LCase(TypeName), " pointer") Then
-		Return ..Left(TypeName, Len(TypeName) - 8)
-	Else
-		Return TypeName
-	End If
-End Function
- 
+
 Function GetPropertyType(ClassName As String, PropertyName As String) As TypeElement Ptr
 	Dim iIndex As Integer
 	Dim Pos2 As Integer
 	Dim tbi As TypeElement Ptr
 	Dim te As TypeElement Ptr
-	Dim TypeN As String = WithoutPtr(ClassName)
+	Dim TypeN As String = WithoutPointers(ClassName)
 	If InStr(TypeN, ".") AndAlso TypeN <> "My.Sys.Object" Then TypeN = Mid(TypeN, InStrRev(TypeN, ".") + 1)
 	If pComps->Contains(TypeN) Then
 		tbi = pComps->Object(pComps->IndexOf(TypeN))
@@ -940,7 +930,7 @@ End Function
 Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
 	Dim iIndex As Integer
 	Dim tbi As TypeElement Ptr
-	Dim TypeN As String = WithoutPtr(TypeName)
+	Dim TypeN As String = WithoutPointers(TypeName)
 	If InStr(TypeN, ".") AndAlso TypeN <> "My.Sys.Object" Then TypeN = Mid(TypeN, InStrRev(TypeN, ".") + 1)
 	If pComps->Contains(TypeN) Then
 		tbi = pComps->Object(pComps->IndexOf(TypeN))
@@ -6038,37 +6028,47 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 	Return ""
 End Function
  
-Function GetResourceFile(WithoutMainNode As Boolean = False) As UString
-	Dim As UString ResourceFile
-	Dim As ProjectElement Ptr Project
-	Dim As TreeNode Ptr ProjectNode
-	Dim As UString MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode)
-	Dim sFirstLine As UString = GetFirstCompileLine(MainFile, Project, True)
+Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "") As UString
+	Dim As UString ResourceFile, MainFile, sFirstLine, CompileLine
+	If FirstLine = "" Then
+		Dim As ProjectElement Ptr Project
+		Dim As TreeNode Ptr ProjectNode
+		MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode)
+		sFirstLine = GetFirstCompileLine(MainFile, Project, CompileLine, True)
+	Else
+		sFirstLine = FirstLine
+	End If
 	Dim As WString Ptr Buff, File, sLines
 	ResourceFile = ""
-	WLet(Buff, LTrim(sFirstLine, Any !"\t "))
-	Var Pos1 = InStr(*Buff, """"), Pos2 = 1
+	WLet(Buff, " " & Trim(sFirstLine & CompileLine, Any !"\t ") & " ")
 	Dim As UString FolderName = GetFolderName(MainFile), FolderNameRes
 	Dim QavsBoshi As Boolean
-	Do While Pos1 > 0
-		QavsBoshi = Not QavsBoshi
-		If QavsBoshi Then
-			Pos2 = Pos1
-		Else
-			WLet(File, Mid(*Buff, Pos2 + 1, Pos1 - Pos2 - 1))
-			If EndsWith(LCase(*File), ".rc") Then
-				ResourceFile = *File
-				FolderNameRes = GetFolderName(ResourceFile)
-				If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ResourceFile
-				Exit Do
+	Dim As String SearchSymbol = """"
+	For i As Integer = 1 To 2
+		If i = 2 Then SearchSymbol = " "
+		Var Pos1 = InStr(*Buff, SearchSymbol), Pos2 = 1
+		Do While Pos1 > 0
+			QavsBoshi = Not QavsBoshi
+			If QavsBoshi Then
+				Pos2 = Pos1
+			Else
+				WLet(File, Mid(*Buff, Pos2 + 1, Pos1 - Pos2 - 1))
+				If EndsWith(LCase(*File), ".rc") Then
+					ResourceFile = *File
+					FolderNameRes = GetFolderName(ResourceFile)
+					If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ResourceFile
+					Exit For
+				End If
 			End If
-		End If
-		Pos1 = InStr(Pos1 + 1, *Buff, """")
-	Loop
+			If i = 2 Then QavsBoshi = True: Pos2 = Pos1
+			Pos1 = InStr(Pos1 + 1, *Buff, SearchSymbol)
+		Loop
+	Next
 	WDeallocate Buff
 	WDeallocate File
+	If FirstLine <> "" Then Return *ResourceFile.vptr
 	If ResourceFile = "" Then
-		Pos1 = InStrRev(MainFile, ".")
+		Var Pos1 = InStrRev(MainFile, ".")
 		ResourceFile = IIf(Pos1 = 0, MainFile & ".rc", ..Left(MainFile, Pos1 - 1) & ".rc")
 		FolderNameRes = GetFolderName(ResourceFile)
 		If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ResourceFile
@@ -6090,198 +6090,185 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 			End If
 		End If
 	End If
-	WLet(Buff, LTrim(sFirstLine, Any !"\t "))
-	Var Pos1 = InStr(*Buff, """"), Pos2 = 1
-	Dim QavsBoshi As Boolean
-	ManifestIcoCopy = False
-	Do While Pos1 > 0
-		QavsBoshi = Not QavsBoshi
-		If QavsBoshi Then
-			Pos2 = Pos1
-		Else
-			WLet(File, Mid(*Buff, Pos2 + 1, Pos1 - Pos2 - 1))
-			If EndsWith(LCase(*File), ".rc") Then
-				WLet(File, GetFolderName(FileName) & *File)
-				If Not FileExists(*File) Then
-					If AutoCreateRC Then
-						#ifndef __USE_GTK__
-							FileCopy ExePath & "/Templates/Files/Resource.rc", *File
-							If Not FileExists(GetFolderName(FileName) & "Manifest.xml") Then
-								FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(FileName).vptr & "Manifest.xml"
-								ManifestIcoCopy = True
+	WLet File, GetResourceFile(, sFirstLine)
+	If *File <> "" Then
+		If Not FileExists(*File) Then
+			If AutoCreateRC Then
+				#ifndef __USE_GTK__
+					FileCopy ExePath & "/Templates/Files/Resource.rc", *File
+					If Not FileExists(GetFolderName(FileName) & "Manifest.xml") Then
+						FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(FileName).vptr & "Manifest.xml"
+						ManifestIcoCopy = True
+					End If
+				#endif
+			End If
+		End If
+		Var Fn = FreeFile_
+		If Open(*File For Input Encoding "utf-8" As #Fn) = 0 Then
+			Dim As Integer iStartImages, MinResID
+			Dim As String MinResName
+			Dim As UString ResPath
+			Var n = 0
+			Var bFinded = False, bChanged = False, bChangeIcon = False
+			Dim As String NewLine = ""
+			Dim As WString * 1024 sLine
+			Do Until EOF(Fn)
+				Line Input #Fn, sLine
+				n += 1
+				bChanged = False
+				If CInt(bAutoIncrement) AndAlso CInt(StartsWith(LCase(sLine), "#define ver_fileversion ")) Then
+					If Project Then
+						Var Pos3 = InStrRev(sLine, " ")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion)
+							bChanged = True
+							'									ThreadsEnter()
+							'									If CInt(ProjectNode) AndAlso CInt(Not EndsWith(ProjectNode->Text, "*")) Then ProjectNode->Text &= "*"
+							'									ThreadsLeave()
+						End If
+					Else
+						Var Pos3 = InStrRev(sLine, ",")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1)
+							bChanged = True
+						End If
+					End If
+				ElseIf CInt(bAutoIncrement) AndAlso CInt(StartsWith(LCase(sLine), "#define ver_fileversion_str ")) Then
+					If Project Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0""")
+							bChanged = True
+						End If
+					Else
+						Var Pos3 = InStrRev(sLine, ".")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0""")
+							bChanged = True
+						End If
+					End If
+				ElseIf Project Then
+					If StartsWith(LCase(sLine), "#define app_title_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->ApplicationTitle) & "\0""")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_companyname_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0""")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_filedescription_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->FileDescription), "{ProjectDescription}", WGet(Project->ProjectDescription)) & "\0""")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_internalname_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->InternalName) & "\0""")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_legalcopyright_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalCopyright) & "\0""")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_legaltrademarks_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalTrademarks) & "\0""")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_originalfilename_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->OriginalFileName) & "\0""")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_productname_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->ProductName), "{ProjectName}", WGet(Project->ProjectName)) & "\0""")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_productversion ") Then
+						Var Pos3 = InStrRev(sLine, " ")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & ",0")
+							bChanged = True
+						End If
+					ElseIf StartsWith(LCase(sLine), "#define ver_productversion_str ") Then
+						Var Pos3 = InStr(sLine, """")
+						If Pos3 > 0 Then
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0""")
+							bChanged = True
+						End If
+					ElseIf Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" AndAlso (InStr(LCase(sLine), " icon ") OrElse InStr(LCase(sLine), " bitmap ") OrElse InStr(LCase(sLine), " png ") OrElse InStr(LCase(sLine), " cursor ") OrElse InStr(LCase(sLine), " rcdata ")) Then
+						If iStartImages = 0 Then iStartImages = n
+						If InStr(LCase(sLine), " icon ") Then
+							Dim As Integer Pos1
+							Dim As String ResNameOrID
+							Pos1 = InStr(LTrim(sLine, Any !"\t "), " ")
+							If Pos1 > 0 Then
+								ResNameOrID = Trim(..Left(LTrim(sLine, Any !"\t "), Pos1 - 1), Any !"\t ")
+								If IsNumeric(ResNameOrID) Then
+									If MinResID = 0 OrElse MinResID > Val(ResNameOrID) Then MinResID = Val(ResNameOrID)
+								Else
+									If MinResName = "" OrElse LCase(MinResName) > LCase(ResNameOrID) Then MinResName = ResNameOrID
+								End If
+								If LCase(ResNameOrID) = Trim(LCase(*Project->ApplicationIcon)) Then ResPath = Mid(LTrim(sLine, Any !"\t "), Pos1)
+								If LCase(ResNameOrID) = "a" Then
+									bChanged = True
+									n -= 1
+								End If
 							End If
-						#endif
+						End If
 					End If
 				End If
-				Var Fn = FreeFile_
-				If Open(*File For Input Encoding "utf-8" As #Fn) = 0 Then
-					Dim As Integer iStartImages, MinResID
-					Dim As String MinResName
-					Dim As UString ResPath
-					Var n = 0
-					Var bFinded = False, bChanged = False, bChangeIcon = False
-					Dim As String NewLine = ""
-					Dim As WString * 1024 sLine
-					Do Until EOF(Fn)
-						Line Input #Fn, sLine
-						n += 1
-						bChanged = False
-						If CInt(bAutoIncrement) AndAlso CInt(StartsWith(LCase(sLine), "#define ver_fileversion ")) Then
-							If Project Then
-								Var Pos3 = InStrRev(sLine, " ")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion)
-									bChanged = True
-									'									ThreadsEnter()
-									'									If CInt(ProjectNode) AndAlso CInt(Not EndsWith(ProjectNode->Text, "*")) Then ProjectNode->Text &= "*"
-									'									ThreadsLeave()
-								End If
-							Else
-								Var Pos3 = InStrRev(sLine, ",")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1)
-									bChanged = True
-								End If
-							End If
-						ElseIf CInt(bAutoIncrement) AndAlso CInt(StartsWith(LCase(sLine), "#define ver_fileversion_str ")) Then
-							If Project Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0""")
-									bChanged = True
-								End If
-							Else
-								Var Pos3 = InStrRev(sLine, ".")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0""")
-									bChanged = True
-								End If
-							End If
-						ElseIf Project Then
-							If StartsWith(LCase(sLine), "#define app_title_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->ApplicationTitle) & "\0""")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_companyname_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0""")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_filedescription_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->FileDescription), "{ProjectDescription}", WGet(Project->ProjectDescription)) & "\0""")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_internalname_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->InternalName) & "\0""")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_legalcopyright_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalCopyright) & "\0""")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_legaltrademarks_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalTrademarks) & "\0""")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_originalfilename_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->OriginalFileName) & "\0""")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_productname_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->ProductName), "{ProjectName}", WGet(Project->ProjectName)) & "\0""")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_productversion ") Then
-								Var Pos3 = InStrRev(sLine, " ")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & ",0")
-									bChanged = True
-								End If
-							ElseIf StartsWith(LCase(sLine), "#define ver_productversion_str ") Then
-								Var Pos3 = InStr(sLine, """")
-								If Pos3 > 0 Then
-									WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0""")
-									bChanged = True
-								End If
-							ElseIf Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" AndAlso (InStr(LCase(sLine), " icon ") OrElse InStr(LCase(sLine), " bitmap ") OrElse InStr(LCase(sLine), " png ") OrElse InStr(LCase(sLine), " cursor ") OrElse InStr(LCase(sLine), " rcdata ")) Then
-								If iStartImages = 0 Then iStartImages = n
-								If InStr(LCase(sLine), " icon ") Then
-									Dim As Integer Pos1
-									Dim As String ResNameOrID
-									Pos1 = InStr(LTrim(sLine, Any !"\t "), " ")
-									If Pos1 > 0 Then
-										ResNameOrID = Trim(..Left(LTrim(sLine, Any !"\t "), Pos1 - 1), Any !"\t ")
-										If IsNumeric(ResNameOrID) Then
-											If MinResID = 0 OrElse MinResID > Val(ResNameOrID) Then MinResID = Val(ResNameOrID)
-										Else
-											If MinResName = "" OrElse LCase(MinResName) > LCase(ResNameOrID) Then MinResName = ResNameOrID
-										End If
-										If LCase(ResNameOrID) = Trim(LCase(*Project->ApplicationIcon)) Then ResPath = Mid(LTrim(sLine, Any !"\t "), Pos1)
-										If LCase(ResNameOrID) = "a" Then
-											bChanged = True
-											n -= 1
-										End If
-									End If
-								End If
-							End If
-						End If
-						If bChanged Then
-							bFinded = True
-						Else
-							WLet(sLines, *sLines & NewLine & sLine)
-						End If
-						If n = 1 Then NewLine = WChr(13) & WChr(10)
-					Loop
-					If Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" Then
-						If IsNumeric(*Project->ApplicationIcon) Then
-							If MinResName <> "" OrElse (MinResID <> 0 AndAlso Val(*Project->ApplicationIcon) > MinResID) Then
-								bChangeIcon = True
-								bFinded = True
-							End If
-						ElseIf LCase(*Project->ApplicationIcon) > LCase(MinResName) Then
-							bChangeIcon = True
-							bFinded = True
-						End If
+				If bChanged Then
+					bFinded = True
+				Else
+					WLet(sLines, *sLines & NewLine & sLine)
+				End If
+				If n = 1 Then NewLine = WChr(13) & WChr(10)
+			Loop
+			If Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" Then
+				If IsNumeric(*Project->ApplicationIcon) Then
+					If MinResName <> "" OrElse (MinResID <> 0 AndAlso Val(*Project->ApplicationIcon) > MinResID) Then
+						bChangeIcon = True
+						bFinded = True
 					End If
-					CloseFile_(Fn)
-					If bFinded Then
-						Var Fn2 = FreeFile_
-						If Open(*File For Output Encoding "utf-8" As #Fn2) = 0 Then
-							Print #Fn2, *sLines;
-							If bChangeIcon AndAlso ResPath <> "" Then Print #Fn2, Chr(13, 10) & "A" & ResPath
-							CloseFile_(Fn2)
-						End If
-					End If
-					Exit Do
+				ElseIf LCase(*Project->ApplicationIcon) > LCase(MinResName) Then
+					bChangeIcon = True
+					bFinded = True
+				End If
+			End If
+			CloseFile_(Fn)
+			If bFinded Then
+				Var Fn2 = FreeFile_
+				If Open(*File For Output Encoding "utf-8" As #Fn2) = 0 Then
+					Print #Fn2, *sLines;
+					If bChangeIcon AndAlso ResPath <> "" Then Print #Fn2, Chr(13, 10) & "A" & ResPath
+					CloseFile_(Fn2)
 				End If
 			End If
 		End If
-		Pos1 = InStr(Pos1 + 1, *Buff, """")
-	Loop
+	End If
 	If Buff Then Deallocate_( Buff)
 	If File Then Deallocate_( File)
 	If sLines Then Deallocate_( sLines)
 	'End If
 End Sub
  
-Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ForWindows As Boolean = False) As UString
+Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, CompileLine As UString, ForWindows As Boolean = False) As UString
 	Dim As Boolean Bit32 = tbt32Bit->Checked
 	Dim As UString Result
+	CompileLine = ""
 	Result = IIf(Bit32, *Compiler32Arguments, *Compiler64Arguments)
 	If Project Then
 		If ForWindows Then
@@ -6373,6 +6360,8 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 				If i > l Then
 					If StartsWith(LTrim(LCase(sLine), Any !"\t "), "'#compile ") Then
 						Result = Result & " " & Mid(LTrim(sLine, Any !"\t "), 11)
+					ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#cmdline ") Then
+						CompileLine = CompileLine & " " & WithoutQuotes(Trim(Mid(Trim(sLine, Any !"\t "), 10), Any !"\t "))
 					End If
 					Exit Do
 				End If
@@ -6549,8 +6538,8 @@ Sub RunPr(Debugger As String = "")
 	Dim Result As Integer
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
-	Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
-	Dim FirstLine As UString = GetFirstCompileLine(MainFile, Project)
+	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
+	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
 	Dim ExeFileName As WString Ptr
 	If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
 		Dim As String ApkFileName = *Project->FileName & "/app/build/outputs/apk/debug/app-debug.apk"
@@ -6674,7 +6663,7 @@ Sub RunPr(Debugger As String = "")
 		If WorkDir Then Deallocate_( WorkDir)
 		If CmdL Then Deallocate_(CmdL)
 	Else
-		WLet(ExeFileName, (GetExeFileName(MainFile, FirstLine)))
+		WLet(ExeFileName, (GetExeFileName(MainFile, FirstLine & CompileLine)))
 		#ifdef __USE_GTK__
 			Dim As GPid pid = 0
 			'		Dim As GtkWidget Ptr win, vte

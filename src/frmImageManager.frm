@@ -275,12 +275,12 @@ End Sub
 Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
-	Dim As UString MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode), FolderName
-	Dim sFirstLine As UString = GetFirstCompileLine(MainFile, Project)
+	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode), FolderName
+	Dim sFirstLine As UString = GetFirstCompileLine(MainFile, Project, CompileLine)
 	lvImages.ListItems.Clear
 	ImageList1.Clear
 	ResourceFile = GetResourceFile(WithoutMainNode)
-	ExeFileName = GetFullPath(GetExeFileName(MainFile, sFirstLine), MainFile)
+	ExeFileName = GetFullPath(GetExeFileName(MainFile, sFirstLine & CompileLine), MainFile)
 	FolderName = GetFolderName(ExeFileName)
 	If FolderName = "" Then ExeFileName = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ExeFileName
 	Dim As Dictionary ResNamePaths
