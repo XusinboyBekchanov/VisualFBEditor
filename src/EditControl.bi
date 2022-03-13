@@ -246,6 +246,7 @@ Namespace My.Sys.Forms
 			Dim lHorzOffset As Long
 			Dim As ..Point m_tP
 			Declare Static Sub EC_TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+			Declare Sub SetDark(Value As Boolean)
 		#endif
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
 		Declare Sub MiddleScroll

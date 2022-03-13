@@ -2688,6 +2688,18 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	#ifdef __USE_WINAPI__
+		Private Sub EditControl.SetDark(Value As Boolean)
+			Base.SetDark Value
+			If Value Then
+				SetWindowTheme(hwndTT, "DarkMode_Explorer", nullptr)
+			Else
+				SetWindowTheme(hwndTT, NULL, NULL)
+			End If
+			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
+		End Sub
+	#endif
+	
 	Sub EditControl.ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
 		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
@@ -2712,7 +2724,9 @@ Namespace My.Sys.Forms
 			
 			If hwndTT = 0 Then
 				hwndTT = CreateWindow(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
-				
+				If g_darkModeEnabled Then
+					SetWindowTheme(hwndTT, "DarkMode_Explorer", nullptr)
+				End If
 				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
 				ti.hinst  = GetModuleHandle(NULL)
 				ti.lpszText  = FHint
@@ -3912,24 +3926,26 @@ Namespace My.Sys.Forms
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
-						FDarkMode = True
-						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
-						This.Brush.Handle = hbrBkgnd
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						SetDark True
+'						FDarkMode = True
+'						SetWindowTheme(FHandle, "DarkMode_Explorer", nullptr)
+'						This.Brush.Handle = hbrBkgnd
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
 						Repaint
 					End If
 				Else
 					If FDarkMode Then
-						FDarkMode = False
-						SetWindowTheme(FHandle, NULL, NULL)
-						If FBackColor = -1 Then
-							This.Brush.Handle = 0
-						Else
-							This.Brush.Color = FBackColor
-						End If
-						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
-						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
+						SetDark False
+'						FDarkMode = False
+'						SetWindowTheme(FHandle, NULL, NULL)
+'						If FBackColor = -1 Then
+'							This.Brush.Handle = 0
+'						Else
+'							This.Brush.Color = FBackColor
+'						End If
+'						SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
+'						_AllowDarkModeForWindow(FHandle, g_darkModeEnabled)
 						Repaint
 					End If
 				End If
@@ -3944,15 +3960,15 @@ Namespace My.Sys.Forms
 	Sub EditControl.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
 			With QEditControl(Sender.Child)
-				#ifdef __USE_WINAPI__
-					If g_darkModeEnabled Then
-						.FDarkMode = True
-						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
-						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-						_AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
-						UpdateWindow(.FHandle)
-					End If
-				#endif
+'				#ifdef __USE_WINAPI__
+'					If g_darkModeEnabled Then
+'						.FDarkMode = True
+'						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
+'						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+'						AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+'						UpdateWindow(.FHandle)
+'					End If
+'				#endif
 				'Var s1Pos = 100, s1Min = 1, s1Max = 100
 				'SetScrollRange(.FHandle, SB_CTL, s1Min, s1Max, TRUE)
 				'SetScrollPos(.FHandle, SB_CTL, s1Pos, TRUE)
