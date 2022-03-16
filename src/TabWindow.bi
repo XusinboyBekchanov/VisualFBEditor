@@ -188,6 +188,7 @@ Public:
 	Functions As WStringList
 	FunctionsOthers As WStringList
 	Args As WStringList
+	Declare Sub CheckExtension(ByRef FileName As WString)
 	Declare Sub FillProperties(ByRef ClassName As WString)
 	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
 	Declare Sub SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)

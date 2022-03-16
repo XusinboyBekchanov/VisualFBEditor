@@ -228,7 +228,7 @@ Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 	Next i
 	Return 0
 End Function
- 
+
 Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 	On Error Goto ErrorHandler
 	MouseHoverTimerVal = Timer
@@ -271,8 +271,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				#endif
 			End If
 			tb->UseVisualStyleBackColor = True
-			tb->txtCode.CStyle = CInt(EndsWith(LCase(FileName), ".rc")) OrElse CInt(EndsWith(LCase(FileName), ".c")) OrElse CInt(EndsWith(LCase(FileName), ".cpp")) OrElse CInt(EndsWith(LCase(FileName), ".java")) OrElse CInt(EndsWith(LCase(FileName), ".h")) OrElse CInt(EndsWith(LCase(FileName), ".xml")) OrElse CInt(EndsWith(LCase(FileName), ".bat"))
-			tb->txtCode.SyntaxEdit = tb->txtCode.CStyle OrElse CInt(FileName = "") OrElse CInt(EndsWith(LCase(FileName), ".bas")) OrElse CInt(EndsWith(LCase(FileName), ".frm")) OrElse CInt(EndsWith(LCase(FileName), ".bi")) OrElse CInt(EndsWith(LCase(FileName), ".inc"))
+			tb->CheckExtension FileName
 			'.txtCode.ContextMenu = @mnuCode
 			ptabCode->AddTab(Cast(TabPage Ptr, tb))
 			#ifdef __USE_GTK__
@@ -799,6 +798,7 @@ Function TabWindow.SaveAs As Boolean
 		Caption = GetFileName(pSaveD->Filename)
 		tn->Text = Caption
 		WLet(FFileName, pSaveD->Filename)
+		CheckExtension *FFileName
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
 		If ee = 0 Then
@@ -1862,7 +1862,12 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 	"in function " & ZGet(Erfn()) & " " & _
 	"in module " & ZGet(Ermn())
 End Function
- 
+
+Sub TabWindow.CheckExtension(ByRef sFileName As WString)
+	txtCode.CStyle = CInt(EndsWith(LCase(sFileName), ".rc")) OrElse CInt(EndsWith(LCase(sFileName), ".c")) OrElse CInt(EndsWith(LCase(sFileName), ".cpp")) OrElse CInt(EndsWith(LCase(sFileName), ".java")) OrElse CInt(EndsWith(LCase(sFileName), ".h")) OrElse CInt(EndsWith(LCase(sFileName), ".xml")) OrElse CInt(EndsWith(LCase(sFileName), ".bat"))
+	txtCode.SyntaxEdit = txtCode.CStyle OrElse CInt(sFileName = "") OrElse CInt(EndsWith(LCase(sFileName), ".bas")) OrElse CInt(EndsWith(LCase(sFileName), ".frm")) OrElse CInt(EndsWith(LCase(sFileName), ".bi")) OrElse CInt(EndsWith(LCase(sFileName), ".inc"))
+End Sub
+
 Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 	Dim iIndex As Integer = cboClass.Items.IndexOf(OldName)
 	If Des = 0 Then Exit Sub
@@ -6320,7 +6325,9 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			Else
 				Line Input #Fn, sLine
 			End If
-			If StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_win32__") Then
+			If StartsWith(LTrim(LCase(sLine), Any !"\t "), "'") AndAlso Not StartsWith(LTrim(LCase(sLine), Any !"\t "), "'#compile ") Then
+				Continue Do
+			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_win32__") Then
 				l = l + 1
 				If ForWindows Then
 					k(l) = True
