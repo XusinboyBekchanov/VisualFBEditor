@@ -2032,13 +2032,15 @@ Namespace My.Sys.Forms
 									Exit Do
 								ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
 									If MatnBoshi = 0 Then MatnBoshi = j
-									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso t >= 48 AndAlso t <= 57)) Then
+									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse u = Asc(".")) Then
 										If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 											Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 											sc = @Identifiers
 											'ss = NormalText.Background
 											If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
-											If CBool(r <> 46) AndAlso CBool(r <> 62) Then ' . > THEN
+											If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
+											If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
+												?Matn
 												pkeywords = 0
 												If CStyle Then
 													If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" Then
@@ -2055,7 +2057,7 @@ Namespace My.Sys.Forms
 													Else
 														For k As Integer = 1 To KeywordLists.Count - 1
 															pkeywords = KeywordLists.Object(k)
-															If pkeywords->Contains(LCase(Matn)) Then
+															If pkeywords->Contains(LCase(Matn)) OrElse (StartsWith(Matn, "..") AndAlso pkeywords->Contains(LCase(Mid(Matn, 3)))) Then
 																sc = @Keywords(k)
 																Exit For
 															End If
@@ -2801,6 +2803,10 @@ Namespace My.Sys.Forms
 				If KeyWordsList <> 0 Then
 					Var Idx = KeyWordsList->IndexOf(LCase(KeyWord))
 					If Idx <> -1 Then Return KeyWordsList->Item(Idx)
+					If StartsWith(KeyWord, "..") Then
+						Idx = KeyWordsList->IndexOf(LCase(Mid(KeyWord, 3)))
+						If Idx <> -1 Then Return ".." & KeyWordsList->Item(Idx)
+					End If
 				End If
 			Case KeyWordsCase.LowerCase: Return LCase(KeyWord) ': Return *TempString
 			Case KeyWordsCase.UpperCase: Return UCase(KeyWord) ': Return *TempString

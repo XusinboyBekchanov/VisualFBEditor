@@ -184,6 +184,7 @@ Namespace My.Sys.Forms
 		Dim l As Integer
 		Dim s As WString Ptr
 		Dim r As Integer
+		Dim q As Integer
 		Dim t As Integer
 		Dim u As Integer
 		Dim z As Integer

@@ -3347,7 +3347,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 						Parameters &= IIf(Parameters = "", "", !"\r")
 						iPos = InStr(LCase(Parameter), LCase(sWord))
 						'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
-						If iPos > 0 Then
+						If iPos > 0 AndAlso IsAlpha(Asc(Mid(Parameter, iPos - 1, 1))) = 0 Then
 							FuncName = Mid(Parameter, iPos, Len(sWord))
 							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 							Parameters &= ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
@@ -3800,7 +3800,7 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		For j As Integer = 0 To UBound(Params)
 			iPos = InStr(Params(j), "(")
 			iPos1 = InStr(Params(j), ")")
-			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso ..Left(Params(0), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then
+			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0) OrElse (iParamCount - 1 >= UBound(Params))) Then ' AndAlso ..Left(Params(0), 1) <> " "
 				iPos = InStr(LCase(Params(j)), LCase(sWord))
 				If iPos > 0 Then
 					sWord = Mid(Params(j), iPos, Len(sWord))
