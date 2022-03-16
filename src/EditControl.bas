@@ -2040,7 +2040,6 @@ Namespace My.Sys.Forms
 											If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
 											If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
 											If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
-												?Matn
 												pkeywords = 0
 												If CStyle Then
 													If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" Then
