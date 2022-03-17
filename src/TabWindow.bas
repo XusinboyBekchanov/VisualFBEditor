@@ -958,12 +958,8 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 	With *te
 		Select Case te->ElementType
 		Case "Event"
-			Dim As Dictionary Ptr Dict = Des->ReadPropertyFunc(Cpnt, "Tag")
-			If Dict <> 0 Then
-				If Dict->ContainsKey(PropertyName) Then
-					WLet(FLine, Dict->Item(PropertyName)->Text)
-				End If
-			End If
+			Var Idx = Events.IndexOfKey(PropertyName, Cpnt)
+			If Idx <> -1 Then WLet(FLine, Events.Item(Idx)->Text)
 		Case "Property"
 			Var Pos1 = InStr(PropertyName, ".")
 			If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
@@ -975,6 +971,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 				Select Case LCase(.TypeName)
 				Case "wstring", "wstring ptr", "wstringlist", "dictionary": WLet(FLine, QWString(pTemp))
 				Case "string", "zstring": WLet(FLine, QZString(pTemp))
+				Case "any", "any ptr": If AnyTexts.ContainsObject(pTemp) Then WLet(FLine, AnyTexts.Item(AnyTexts.IndexOfObject(pTemp))) Else WLet(FLine, "")
 				Case "control ptr", "control": WLet(FLine, QWString(Des->ReadPropertyFunc(pTemp, "Name")))
 				Case "integer": iTemp = QInteger(pTemp)
 					WLet(FLine, WStr(iTemp))
@@ -994,7 +991,6 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 				Case "single": iTemp = QSingle(pTemp): WLet(FLine, WStr(iTemp))
 				Case "double": iTemp = QDouble(pTemp): WLet(FLine, WStr(iTemp))
 				Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
-				Case "any ptr", "any": WLet(FLine, WStr(""))
 				Case Else:
 					If CInt(IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(Des->ToStringFunc <> 0) Then
 						WLet(FLine, Des->ToStringFunc(pTemp))
@@ -1053,6 +1049,13 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 				Else
 					WLetEx FLine, """" & Replace(*FLine, """", """""") & """", True
 				End If
+			Case "any", "any ptr"
+				If AnyTexts.ContainsObject(pTemp) Then WLet(FLine, AnyTexts.Item(AnyTexts.IndexOfObject(pTemp))) Else WLet(FLine, "")
+				If Len(Trim(*FLine)) > 1 AndAlso StartsWith(*FLine, "=") Then
+					WLetEx FLine, Mid(*FLine, 2), True
+				Else
+					WLetEx FLine, "@""" & Replace(*FLine, """", """""") & """", True
+				End If
 			Case "icon", "bitmaptype", "cursor", "graphictype": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
 			Case "integer": iTemp = QInteger(pTemp)
 				WLet(FLine, WStr(iTemp))
@@ -1072,7 +1075,6 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 			Case "single": iTemp = QSingle(pTemp): WLet(FLine, WStr(iTemp))
 			Case "double": iTemp = QDouble(pTemp): WLet(FLine, WStr(iTemp))
 			Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
-			Case "any ptr", "any": WLet(FLine, WStr(""))
 			Case Else
 				If pGlobalEnums->Contains(.TypeName) Then
 					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName))
@@ -1135,12 +1137,11 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 		#endif
 		Select Case te->ElementType
 		Case "Event"
-			If Des->ReadPropertyFunc(Cpnt, "Tag") = 0 Then Des->WritePropertyFunc(Cpnt, "Tag", New_( Dictionary))
-			Dim As Dictionary Ptr Dict = Des->ReadPropertyFunc(Cpnt, "Tag")
-			If Dict->ContainsKey(PropertyName) Then
-				Dict->Item(PropertyName)->Text = Value
+			Var Idx = Events.IndexOfKey(PropertyName, Cpnt)
+			If Idx <> -1 Then
+				Events.Item(Idx)->Text = Mid(Value, 2)
 			Else
-				Dict->Add PropertyName, Value
+				Events.Add PropertyName, Mid(Value, 2), Cpnt
 			End If
 		Case "Property"
 			Select Case LCase(te->TypeName)
@@ -1172,6 +1173,22 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				Select Case LCase(te->TypeName)
 				Case "icon", "cursor", "bitmaptype", "graphictype": SetGraphicProperty Cpnt, PropertyName, te->TypeName, *FLine4
 				End Select
+			Case "any", "any ptr"
+				Dim As WString Ptr FLine5
+				If FromText Then
+					If StartsWith(*FLine3, "@""") AndAlso EndsWith(*FLine3, """") Then
+						WLet(FLine5, Replace(Mid(*FLine3, 3, Len(*FLine3) - 3), """""", """"))
+					ElseIf StartsWith(*FLine3, """") AndAlso EndsWith(*FLine3, """") Then
+						WLet(FLine5, Replace(Mid(*FLine3, 2, Len(*FLine3) - 2), """""", """"))
+					Else
+						WLet(FLine5, "=" & *FLine3)
+					End If
+				Else
+					WLet(FLine5, *FLine3)
+				End If
+				If AnyTexts.ContainsObject(FLine5) Then AnyTexts.Item(AnyTexts.IndexOfObject(FLine5)) = *FLine5 Else AnyTexts.Add *FLine5, FLine5
+				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine5))
+				WDeallocate FLine5
 			Case "integer", "long", "ulong", "single", "double"
 				iTemp = Val(*FLine3)
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
@@ -1234,6 +1251,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 						End If
 					End If
 				Else
+					If StartsWith(*FLine3, "@") Then WLetEx(FLine3, Mid(*FLine3, 2), True)
 					If Des AndAlso LCase(*FLine3) = "this" Then
 						Dim hTemp As Any Ptr
 						If Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Des->DesignControl, "Name")
@@ -2400,7 +2418,8 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		CtrlName2 = "Form"
 	End If
 	Var EventName2 = Mid(EventName, IIf(StartsWith(LCase(EventName), "on"), 3, 1))
-	Dim As String SubName = CtrlName2 & "_" & EventName2
+	Dim As String SubName = CtrlName2 & "_" & EventName2, SubNameNew
+	SubNameNew = SubName
 	Var ii = tb->cboClass.ItemIndex
 	Var jj = tb->cboFunction.ItemIndex
 	If ii < 0 Then Exit Sub
@@ -2536,15 +2555,16 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		
 		ptxtCode->InsertLine i + q, ""
 		If CreateNonStaticEventHandlers Then
+			SubNameNew = IIf(CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & SubName & IIf(Not CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "")
 			If PlaceStaticEventHandlersAfterTheConstructor Then
 				Dim As String LeftTabSpace = ..Left(ptxtCode->Lines(LineEndConstructor + q), Len(ptxtCode->Lines(LineEndConstructor + q)) - Len(LTrim(ptxtCode->Lines(LineEndConstructor + q), Any !"\t ")))
 				ptxtCode->InsertLine LineEndConstructor + 1 + q, LeftTabSpace
-				ptxtCode->InsertLine LineEndConstructor + q + 1, LeftTabSpace & "Private Sub " & frmTypeName & "." & IIf(CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & SubName & IIf(Not CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine LineEndConstructor + q + 1, LeftTabSpace & "Private Sub " & frmTypeName & "." & SubNameNew & Mid(te->TypeName, 4)
 				ptxtCode->InsertLine LineEndConstructor + q + 2, LeftTabSpace & TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
 				ptxtCode->InsertLine LineEndConstructor + q + 3, LeftTabSpace & "End Sub"
 				q += 4
 			Else
-				ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & "_" & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubNameNew & Mid(te->TypeName, 4)
 				ptxtCode->InsertLine i + q + 2, TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
 				ptxtCode->InsertLine i + q + 3, "End Sub"
 				q += 3
@@ -2563,8 +2583,9 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		ptxtCode->Changed "Hodisa qo`shish"
 		ptxtCode->SetFocus
 		If plvEvents->Nodes.Contains(EventName) Then
-			plvEvents->Nodes.Item(plvEvents->Nodes.IndexOf(EventName))->Text(1) = SubName
+			plvEvents->Nodes.Item(plvEvents->Nodes.IndexOf(EventName))->Text(1) = SubNameNew
 		End If
+		tb->Events.Add EventName, SubNameNew, Cpnt
 		OnLineChangeEdit tb->txtCode, i + q + 2, i + q + 2
 		If tb->tbrTop.Buttons.Item(2)->Checked Then tb->tbrTop.Buttons.Item(1)->Checked = True
 		bNotDesignForms = False
@@ -4078,6 +4099,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			.SelectedControls.Clear
 			.Objects.Clear
 			.Controls.Clear
+			Events.Clear
 			'If .SelectedControl = .DesignControl Then bSelControlFind = True
 			If .DesignControl Then
 				.UnHook
@@ -4094,12 +4116,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					If CurCtrl <> 0 Then
 						'TODO Hange here with ctrl RichEdit
 						If WGet(.ReadPropertyFunc(CurCtrl, "ClassName"))<>"RichTextBox" Then
-							If .ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrl, "Tag")))
+							'If .ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrl, "Tag")))
 							.DeleteComponentFunc(CurCtrl)
 						Else
 							''Delete the last one not current one. But still one more remain exist
 							If CurCtrlRichedit <> 0 Then
-								If .ReadPropertyFunc(CurCtrlRichedit, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrlRichedit, "Tag")))
+								'If .ReadPropertyFunc(CurCtrlRichedit, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrlRichedit, "Tag")))
 								.DeleteComponentFunc(CurCtrlRichedit)
 							End If
 							CurCtrlRichedit = CurCtrl
@@ -4751,7 +4773,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								FLin = Trim(FLin, Any !"\t ")
 								If Len(FLin) <> 0 Then
 									WLet(FLine2, Trim(Mid(*FLine, p1 + 1), Any !"\t "))
-									If StartsWith(*FLine2, "@") Then WLet(FLine3, Trim(Mid(*FLine2, 2), Any !"\t ")): WLet(FLine2, *FLine3)
+									'If StartsWith(*FLine2, "@") Then WLet(FLine3, Trim(Mid(*FLine2, 2), Any !"\t ")): WLet(FLine2, *FLine3)
 									If WriteObjProperty(Ctrl, PropertyName, *FLine2, True) Then
 										#ifdef __USE_GTK__
 											If LCase(PropertyName) = "parent" AndAlso Des->ReadPropertyFunc(Ctrl, "Widget") Then
@@ -5327,7 +5349,7 @@ Destructor TabWindow
 			If CBItem <> 0 Then CurCtrl = CBItem->Object
 			If CurCtrl <> 0 Then
 				#ifndef __USE_GTK__
-					If Des->ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, Des->ReadPropertyFunc(CurCtrl, "Tag")))
+					'If Des->ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, Des->ReadPropertyFunc(CurCtrl, "Tag")))
 					Des->DeleteComponentFunc(CurCtrl)
 				#endif
 			End If

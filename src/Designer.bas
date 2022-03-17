@@ -1153,7 +1153,7 @@ Namespace My.Sys.Forms
 			End If
 			If Objects.Contains(Ctrl) Then Objects.Remove Objects.IndexOf(Ctrl)
 			If DeleteComponentFunc Then
-				If ReadPropertyFunc(Ctrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, ReadPropertyFunc(Ctrl, "Tag")))
+				'If ReadPropertyFunc(Ctrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, ReadPropertyFunc(Ctrl, "Tag")))
 				DeleteComponentFunc(Ctrl)
 			End If
 		End If

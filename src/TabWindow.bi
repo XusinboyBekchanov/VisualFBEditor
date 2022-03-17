@@ -188,6 +188,8 @@ Public:
 	Functions As WStringList
 	FunctionsOthers As WStringList
 	Args As WStringList
+	AnyTexts As WStringList
+	Events As Dictionary
 	Declare Sub CheckExtension(ByRef FileName As WString)
 	Declare Sub FillProperties(ByRef ClassName As WString)
 	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
