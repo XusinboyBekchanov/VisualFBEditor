@@ -1350,11 +1350,12 @@ End Sub
  
 Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 	Static SelectedCtrl As Any Ptr
+	Static SelectedCount As Integer
 	If Ctrl = 0 Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
-	If SelectedCtrl = Ctrl AndAlso tb->cboClass.ItemIndex <> 0 AndAlso lvProperties.Nodes.Count <> 0 Then Exit Sub
+	If SelectedCtrl = Ctrl AndAlso SelectedCount = Sender.SelectedControls.Count AndAlso tb->cboClass.ItemIndex <> 0 AndAlso lvProperties.Nodes.Count <> 0 Then Exit Sub
 	'tb->Des->SelectedControl = Ctrl
 	SelectedCtrl = Ctrl
 	bNotFunctionChange = True
