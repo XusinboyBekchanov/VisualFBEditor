@@ -3368,7 +3368,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 						Parameters &= IIf(Parameters = "", "", !"\r")
 						iPos = InStr(LCase(Parameter), LCase(sWord))
 						'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
-						If iPos > 0 AndAlso IsAlpha(Asc(Mid(Parameter, iPos - 1, 1))) = 0 Then
+						If iPos > 0 AndAlso IsArg(Asc(Mid(Parameter, iPos - 1, 1))) = 0 Then
 							FuncName = Mid(Parameter, iPos, Len(sWord))
 							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 							Parameters &= ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
@@ -5201,7 +5201,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'cboClass.SetBounds 0, 2, 60, 20
 	tbrTop.ImagesList = pimgList
 	#ifdef __USE_GTK__
-		tbrTop.Width = 300
+		tbrTop.Width = 150
 	#else
 		tbrTop.Width = 75
 	#endif

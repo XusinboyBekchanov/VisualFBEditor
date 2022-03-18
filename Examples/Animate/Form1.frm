@@ -18,7 +18,7 @@
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
 		Declare Constructor
 		
-		Dim As Animate Animate1
+		Dim As Animate Animate1, Animate2
 		Dim As CommandButton CommandButton1, CommandButton2
 	End Type
 	
@@ -37,9 +37,10 @@
 			.Text = "Animate1"
 			'.CommonAvi = CommonAVIs.aviCopyFileEx
 			.AutoSize = True
+			.Center = True
 			.Transparency = False
 			.File = "./Resources/horse.gif"
-			.SetBounds 40, 40, 272, 100
+			.SetBounds 40, 40, 272, 310
 			.Parent = @This
 		End With
 		' CommandButton1
@@ -62,6 +63,13 @@
 			.SetBounds 170, 380, 157, 34
 			.Designer = @This
 			.OnClick = @CommandButton2_Click_
+			.Parent = @This
+		End With
+		' Animate2
+		With Animate2
+			.Name = "Animate2"
+			.Text = "Animate2"
+			.SetBounds 160, 140, 50, 50
 			.Parent = @This
 		End With
 	End Constructor

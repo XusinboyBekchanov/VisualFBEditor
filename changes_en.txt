@@ -1,4 +1,188 @@
-﻿Version 1.2.9 (July 14, 2021)
+﻿Version 1.3.0 (March 18, 2022)
+- Added: Ability to change the Controls Tag property in the Properties Window
+- Added: Syntax Highlighting keywords with double dots
+- Fixed: Keywords Intellisense
+- Added: Extension changing check
+- Added: Dark Mode for EditControl ToolTips
+- Updated: Keywords Help from fbc 1.09
+- Changed: '#Compile replaces with #cmdline in Templates
+- Updated: FB-manual and keywords settings from fbc 1.09
+- Fixed: Crash when saving all files
+- Fixed: Refresh TitleBar on change Dark Mode
+- Added: Create static event handlers with an underscore at the beginning option
+- Changed: Switch from Light mode to Dark mode without exiting the program
+- Added: Dark Mode support in Linux.
+- Added: Syntax Highlighting Asm Comments
+- Added: Place static event handlers after the Constructor option to Designer
+- Added: Compile All command to Build menu
+- Added: DarkMode for Tip Of the Day
+- Added: Asm Syntax Highlighting
+- Fixed: Changing MenuItem Properties from Property Grid
+- Added: Saving SDK, NDK and JDK location project properties for Android
+- Changed: Numbering from _L_ to _L macros
+- Fixed: Saving resource files (*.rc) end lines with CRLF
+- Added: Project Numbering
+- Improved: The quality of some resource files on Dark Mode
+- Fixed: Showing ToolBox ScrollBar on start IDE
+- Fixed: Resources files in Dark mode
+- Added: Use Pattern Matching option to Find In Files Dialog
+- Fixed: Saving files with New Line types
+- Fixed: Showing Virtual Properties in Property Grid
+- Changed: Immediate Window BackColor and ForeColor
+- Fixed: TabWindow DarkMode
+- Added: Dark Mode option
+- Fixed: Add Spaces function (Type<>)
+- Added: Base keyword to "Base." intellisense
+- Added: Base keyword Define functionality
+- Added: Intellisense to Base keyword
+- Added: Globals tab to Debug
+- Added: Run To Cursor, Set Next Statement to GDB Debugger
+- Added: Expanding variables on GDB Debug
+- Added: Integrated GDB Debugger
+- Fixed: Intellisense and show errors
+- Changed: Designer BringToFront and SendToBack function
+- Fixed: Show Tools Icon
+- Fixed: Save Tabs
+- Added: Spy tool
+- Added: Change selection control from Class Combo
+- Fixed: DropDownCount of Combos (Class and Function)
+- Added: Tip of the Day
+- Fixed: Showing type intellisenses and Numbering
+- Fixed: Properties window width
+- Fixed: Run program and showing compile messages
+- Fixed: Compilling Error message showing. Add ico to each form
+- Changed: Project Properties window
+- Added: Android Project template
+- Fixed: Show Console on run program
+- Added: PageScroller and ReBar examples
+- Fixed: Font Name in Windows GTK3 version
+- Fixed: Find window Left position
+- Fixed: Add New Module
+- Fixed: New Project dialog
+- Fixed: Crash when closing 64-bit IDE
+- Changed: Not showing New Project dialog when Invalid defined compiler path.
+- Fixed: Compiling resource file with windres
+- Added: InitialDir to FolderBrowserDialogs
+- Fixed: Error Handling image
+- Fixed: Designer destructor
+- Fixed: Compiling with GTK on Windows
+- Improved: Show debug log when runs Android app.
+- Fixed: Create Key Store
+- Added: Android example project and functionality to Build and Sign APK files
+- Fixed: Set property from code
+- Fixed: Controls Align property
+- Fixed: Define dll file name on Compile
+- Fixed: Crash of IDE after debugging
+- Added: ContextMenu to ToolBars to show/hide
+- Fixed: Formatting numbers with E- notation
+- Fixed: Intellisense
+- Fixed: Change numeric properties from Property Grid on 64-bit
+- Fixed: Select Components in Designer
+- Fixed: Formatting numbers with e- notation
+- Added: ReBar to main interface on Windows and Linux
+- Improved: Showing Colors in Property Grid
+- Fixed: Choosing Font from Property Grid
+- Improved: Toolbar added to ReBar control
+- Fixed: Compiling with fbc 1.09
+- Changed: Set Text property to Control in Designer
+- Fixed: Designer on design ComboBoxEx and IPAddress control
+- Fixed: Designer on create IPAddress control
+- Added: Existing and Recent tabs to New project window
+- Changed: Pin and Pinned image
+- Fixed: Pin button position
+- Improved: Pin buttons
+- Fixed: Left and Right Pin buttons position in Linux
+- Fixed: Write Single type property in Property Grid
+- Fixed: Close IDE on show type intellisense
+- Fixed: Find Window
+- Added: Scrollbars to Designer in Linux
+- Fixed: Automatically close Properties Window on open module (without designer)
+- Added: Use button (For WinAPI and GTK versions) to IDE Toolbar
+- Added: Use menu
+- Fixed: Show Dots in Designer on Linux
+- Fixed: Compiling on Linux (GTK2)
+- Changed: Removed __USE_GTK3__ define from source
+- Improved: Animate Control Example
+- Fixed: Closing Properties window on select from combo
+- Added: Animate Control Example
+- Fixed: Format Code
+- Added: Turn on Environment variables option
+- Updated: Pin and Pinned images
+- Fixed: TreeListView ListItems and TreeListViewItem Items properties
+- Added: Environment variables option to Debugger options
+- Improved: ToolBox collapsed state
+- Changed: "When VisualFBEditor starts" option to "Prompt for Project / File"
+- Fixed: Recent Folder, Recent Project and Recent Session
+- Fixed: Progress marquee in Linux
+- Fixed: Icon in the Tab pages
+- Improved: Changed Intellisense quotation mark
+- Added: Complete Word and Parameter Info buttons to IDE ToolBar
+- Fixed: Intellisense ToolTip
+- Fixed: Clear Messages in Linux GTK3
+- Fixed: Showing Complete Word
+- Added: Intellisense limit to Options
+- Fixed: Update Designer on Code Editor change
+- Added: Send to Back and Bring to Front functions to Designer in Linux
+- Fixed: Command Prompt options in Linux
+- Added: Options to Command Prompt
+- Fixed: Controls coordinates in Designer
+- Improved: Selected text copies to find text box
+- Fixed: Intellisense in new form template
+- Fixed: GroupBox control in Designer
+- Fixed: ListBoxes in Linux
+- Fixed: Waiting Threads
+- Fixed: Delete control in Designer (in new Form template)
+- Fixed: Moving Controls by key press in Designer (in Linux)
+- Improved: Shows Component borders in Design mode on Linux
+- Added: #define _NOT_AUTORUN_FORMS_ to Form templates
+- Fixed: Name property of Form in Designer
+- Added: "Create Form types without Type word" option to Designer options
+- Improved: Changed Form Type name and Form name
+- Fixed: Selecting ComboBoxes with Mouse Pointer in Designer (in Linux)
+- Fixed: Disabled Hint from Code Editor
+- Added: Subsystem option to Project Properties
+- Removed: Cast and Let operators from Intellisense
+- Fixed: Non-public functions and properties in intellisense
+- Fixed: Project Properties window in Linux
+- Added: VisualFBEditor dark desktop file
+- Fixed: Add Form from Template
+- Fixed: Setting the Graphic property to a relative path
+- Fixed: Select ImageBox in Designer
+- Improved: When selecting from Auto Complete using Return key, does not branch to a new line
+- Fixed: Designer
+- Fixed: Find and Replace window
+- Fixed: On close current window clears Property Grid help box
+- Added: Duplicate function to Edit menu
+- Fixed: Property Grid on scrolling in Linux
+- Fixed: Hint property of Code Editor
+- Fixed: Update Property Grid and Designer from Code Editor
+- Fixed: Delete Controls from Designer
+- Fixed: Refresh Property Grid, If Selected Control is Design Control
+- Fixed: Update Property Grid on change Code Editor
+- Added: The ability to select an empty component in the Properties Grid
+- Fixed: When the current window is closed, the elements of the properties grid are cleared.
+- Fixed: Crash when Close All files
+- Fixed: Removed -exx compile key from Template files
+- Fixed: Empty Command prompt window appearing when compiling
+- Fixed: Adding extra characters when selecting files and folders.
+- Improved: Property Grid in Linux
+- Improved: Changed xterm command line to -e
+- Fixed: Showing empty command line window when launching an external exe
+- Fixed: Set initial dir to Save File Dialog
+- Added: Caption to Save Dialog
+- Added: mate-terminal and xterm to VisualFBEditor terminal settings in Linux
+- Fixed: Run compiled app if there are spaces in project path (Linux)
+- Fixed: Pin buttons in DPI
+- Added: High DPI compatibility to MenuEditor, Designer and EditControl
+- Added: High DPI compatibility
+- Fixed: Change checked state Code view and Form view buttons
+- Fixed: Splitter between the code view and form view stops when it reaches the left edge of the code view.
+- Improved: Designer will scrolled when design control not fit in the window
+- Fixed: Property Grid updates to the control selected by the drop down
+- Added: Project Property: Pass All Module Files To Compiler
+- Fixed: Double additions Include Path and Library Path
+- Fixed: Close Designer
+Version 1.2.9 (July 14, 2021)
 - Fixed: Show windows on DPI sets
 - Added: Polish language
 - Fixed: Showing lines in Code Editor

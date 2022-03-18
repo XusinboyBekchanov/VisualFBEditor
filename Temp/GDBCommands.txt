@@ -1,2 +1,2 @@
-file "D:/FreeBasic/spielfeld/SPIELFELD/spielfeld.exe"
+file "D:/GitHub/VisualFBEditor/src/../VisualFBEditor32.exe"
 r
