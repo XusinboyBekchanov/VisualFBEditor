@@ -1297,7 +1297,7 @@ pfOptions = @fOptions
 			.Name = "lblDebugger321"
 			.Text = ML("GDB") & " " & ML("32-bit")
 			.TabIndex = 184
-			.Caption = ML("GDB") & " " & ML("32-bit")
+			'.Caption = ML("GDB") & " " & ML("32-bit")
 			.SetBounds 222, 21, 180, 18
 			.Parent = @grbDefaultDebuggers
 		End With
@@ -1314,7 +1314,7 @@ pfOptions = @fOptions
 			.Name = "lblDebugger641"
 			.Text = ML("GDB") & " " & ML("64-bit")
 			.TabIndex = 186
-			.Caption = ML("GDB") & " " & ML("64-bit")
+			'.Caption = ML("GDB") & " " & ML("64-bit")
 			.SetBounds 222, 71, 180, 18
 			.Parent = @grbDefaultDebuggers
 		End With
@@ -1329,9 +1329,9 @@ pfOptions = @fOptions
 		' chkDarkMode
 		With chkDarkMode
 			.Name = "chkDarkMode"
-			.Text = ML("Dark Mode")
+			.Text = ML("Dark Mode, Currently available for Linux, Windows 10 and above")
 			.TabIndex = 188
-			.Caption = ML("Dark Mode")
+			'.Caption = ML("Dark Mode")
 			.SetBounds 2, 38, 224, 24
 			.Parent = @pnlThemesCheckboxes
 		End With
@@ -1340,8 +1340,8 @@ pfOptions = @fOptions
 			.Name = "chkPlaceStaticEventHandlersAfterTheConstructor"
 			.Text = ML("Place static event handlers after the Constructor")
 			.TabIndex = 189
-			.Caption = ML("Place static event handlers after the Constructor")
-			.SetBounds 32, 172, 310, 24
+			'.Caption = ML("Place static event handlers after the Constructor")
+			.SetBounds 12, 172, 310, 24
 			.Parent = @pnlDesigner
 		End With
 		' chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning
@@ -1349,8 +1349,8 @@ pfOptions = @fOptions
 			.Name = "chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning"
 			.Text = ML("Create static event handlers with an underscore at the beginning")
 			.TabIndex = 190
-			.Caption = ML("Create static event handlers with an underscore at the beginning")
-			.SetBounds 32, 195, 380, 24
+			'.Caption = ML("Create static event handlers with an underscore at the beginning")
+			.SetBounds 12, 195, 380, 24
 			.Parent = @pnlDesigner
 		End With
 	End Constructor

@@ -340,7 +340,7 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 			Else
 				IconName = "File"
 			End If
-			lvTemplates.ListItems.Add TemplateName, IconName
+			lvTemplates.ListItems.Add ML(TemplateName), IconName
 			Templates.Add "Files" & Slash & f
 			f = Dir()
 		Wend
