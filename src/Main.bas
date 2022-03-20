@@ -195,7 +195,7 @@ Namespace VisualFBEditor
 		Return True
 	End Function
 End Namespace
- 
+
 Function ML(ByRef V As WString) ByRef As WString
 	If LCase(CurLanguage) = "english" Then Return V
 	Dim As Integer tIndex = mlKeys.IndexOf(V) ' For improve the speed
@@ -294,7 +294,11 @@ Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As U
 			Return GetFolderName(GetFolderName(FromFile)) & Mid(Path, 4)
 		End If
 	Else
-		Return Path
+		If FromFile = "" Then
+			Return ExePath & Slash & Path
+		Else
+			Return GetFolderName(FromFile) & Path
+		End If
 	End If
 End Function
 
@@ -437,6 +441,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CompileResult = 0
 			Continue For
 		Else
+			ChDir(ExePath)
 			#ifdef __USE_GTK__
 				If g_find_program_in_path(ToUtf8(*FbcExe)) = NULL Then
 			#else
@@ -761,7 +766,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						'End If
 						'nPos1 = InStr(LCase(tmpStrKey), "@" & LCase(TmpStr)) ' so can't with " " for standalone + Chr(13)
 						'If nPos1 > 0 OrElse ERRGoRc Then
-							'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+						'ShowMessages Str(Time) & ": " &  ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 						If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 							OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 							OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
@@ -1707,7 +1712,7 @@ Sub OpenProgram()
 	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
 		WLet(LastOpenPath, GetFolderName(OpenD.Filename))
-		OpenFiles(OpenD.Filename)
+		OpenFiles(GetFullPath(OpenD.Filename))
 	End If
 	TabLeft.Tabs[0]->SelectTab
 End Sub
@@ -2891,7 +2896,7 @@ End Function
 
 Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0)
 	If FormClosing Then Exit Sub
-	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then 
+	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 		If ec = 0 Then
 			If IncludeFiles.Contains(Path) Then
@@ -3669,7 +3674,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		Next
 		If FormClosing Then MutexUnlock tlockSave: Exit Sub
 	Next
-	MutexUnlock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then 
+	MutexUnlock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	For i As Integer = 0 To Files.Count - 1
 		LoadFunctions Files.Item(i), , Types, Enums, Functions, Args
 		If FormClosing Then Exit Sub
@@ -6086,7 +6091,7 @@ tvVar.Align = DockStyle.alClient
 'tvPrc.Align = DockStyle.alClient
 tvThd.Visible = False
 tvThd.Align = DockStyle.alClient
-tvWch.Visible = False 
+tvWch.Visible = False
 tvWch.Align = DockStyle.alClient
 tvWch.EditLabels = True
 tvWch.Nodes.Add
@@ -7248,21 +7253,21 @@ Sub frmMain_Show(ByRef Sender As Control)
 			End Select
 		End Select
 	End If
-'	Var FILE = Command(-1)
-'	Var Pos1 = InStr(file, "2>CON")
-'	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
-'	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
-'		OpenFiles GetFullPath(FILE)
-'	ElseIf bFind Then
-'		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
-'		Select Case WhenVisualFBEditorStarts
-'		Case 1: NewProject 'pfTemplates->ShowModal
-'		Case 2: AddNew WGet(DefaultProjectFile)
-'		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
-'			'Auto Load the last one.
-'			OpenFiles GetFullPath(*RecentFiles)
-'		End Select
-'	End If
+	'	Var FILE = Command(-1)
+	'	Var Pos1 = InStr(file, "2>CON")
+	'	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
+	'	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
+	'		OpenFiles GetFullPath(FILE)
+	'	ElseIf bFind Then
+	'		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+	'		Select Case WhenVisualFBEditorStarts
+	'		Case 1: NewProject 'pfTemplates->ShowModal
+	'		Case 2: AddNew WGet(DefaultProjectFile)
+	'		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+	'			'Auto Load the last one.
+	'			OpenFiles GetFullPath(*RecentFiles)
+	'		End Select
+	'	End If
 	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
 	
 End Sub
