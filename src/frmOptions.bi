@@ -121,6 +121,8 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Sub lvCompilerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Static Sub cmdInFolder_Click_(ByRef Sender As Control)
 		Declare Sub cmdInFolder_Click(ByRef Sender As Control)
+		Declare Static Sub chkCreateNonStaticEventHandlers_Click_(ByRef Sender As CheckBox)
+		Declare Sub chkCreateNonStaticEventHandlers_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		Declare Destructor
 		

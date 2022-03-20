@@ -1010,6 +1010,8 @@ pfOptions = @fOptions
 			.Text = ML("Create non-static event handlers")
 			.SetBounds 12, 150, 288, 24
 			'.Caption = ML("Create non-static event handlers")
+			.Designer = @This
+			.OnClick = @chkCreateNonStaticEventHandlers_Click_
 			.Parent = @pnlDesigner
 		End With
 		' lblDebugger32
@@ -1341,7 +1343,7 @@ pfOptions = @fOptions
 			.Text = ML("Place static event handlers after the Constructor")
 			.TabIndex = 189
 			'.Caption = ML("Place static event handlers after the Constructor")
-			.SetBounds 12, 172, 310, 24
+			.SetBounds 32, 172, 310, 24
 			.Parent = @pnlDesigner
 		End With
 		' chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning
@@ -1350,10 +1352,14 @@ pfOptions = @fOptions
 			.Text = ML("Create static event handlers with an underscore at the beginning")
 			.TabIndex = 190
 			'.Caption = ML("Create static event handlers with an underscore at the beginning")
-			.SetBounds 12, 195, 380, 24
+			.SetBounds 32, 195, 380, 24
 			.Parent = @pnlDesigner
 		End With
 	End Constructor
+	
+	Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click_(ByRef Sender As CheckBox)
+		*Cast(frmOptions Ptr, Sender.Designer).chkCreateNonStaticEventHandlers_Click(Sender)
+	End Sub
 	
 	Destructor frmOptions
 		FDisposing = True
@@ -1419,6 +1425,7 @@ Sub frmOptions.LoadSettings()
 		.chkPlaceStaticEventHandlersAfterTheConstructor.Checked = PlaceStaticEventHandlersAfterTheConstructor
 		.chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Checked = CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning
 		.chkCreateFormTypesWithoutTypeWord.Checked = CreateFormTypesWithoutTypeWord
+		.chkCreateNonStaticEventHandlers_Click(.chkCreateNonStaticEventHandlers)
 		.optMainFileFolder.Checked = OpenCommandPromptInMainFileFolder
 		.optInFolder.Checked = Not OpenCommandPromptInMainFileFolder
 		.txtInFolder.Text = *CommandPromptFolder
@@ -3357,4 +3364,9 @@ Private Sub frmOptions.cmdInFolder_Click(ByRef Sender As Control)
 	If BrowsD.Execute Then
 		txtInFolder.Text = BrowsD.Directory
 	End If
+End Sub
+
+Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click(ByRef Sender As CheckBox)
+	chkPlaceStaticEventHandlersAfterTheConstructor.Enabled = chkCreateNonStaticEventHandlers.Checked
+	chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Enabled = chkCreateNonStaticEventHandlers.Checked
 End Sub
