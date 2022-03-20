@@ -1358,6 +1358,7 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	If SelectedCtrl = Ctrl AndAlso SelectedCount = Sender.SelectedControls.Count AndAlso tb->cboClass.ItemIndex <> 0 AndAlso lvProperties.Nodes.Count <> 0 Then Exit Sub
 	'tb->Des->SelectedControl = Ctrl
 	SelectedCtrl = Ctrl
+	SelectedCount = Sender.SelectedControls.Count
 	bNotFunctionChange = True
 	'	#ifndef __USE_GTK__
 	'		If tb->Des->ControlSetFocusSub <> 0 AndAlso tb->Des->DesignControl <> 0 Then tb->Des->ControlSetFocusSub(tb->Des->DesignControl)
