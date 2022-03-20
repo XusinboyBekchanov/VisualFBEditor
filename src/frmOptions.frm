@@ -364,7 +364,7 @@ pfOptions = @fOptions
 		' lstIncludePaths
 		lstIncludePaths.Name = "lstIncludePaths"
 		lstIncludePaths.Text = "ListControl1"
-		lstIncludePaths.SetBounds 16, 68, 360, 134
+		lstIncludePaths.SetBounds 17, 68, 360, 121
 		lstIncludePaths.Parent = @grbIncludePaths
 		' lstLibraryPaths
 		lstLibraryPaths.Name = "lstLibraryPaths"
@@ -931,7 +931,7 @@ pfOptions = @fOptions
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
 			.Text = ML("When compiling") & ":"
-			.SetBounds 8, 201, 416, 120
+			.SetBounds 8, 221, 416, 120
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
@@ -1094,7 +1094,7 @@ pfOptions = @fOptions
 		With grbWhenVFBEStarts
 			.Name = "grbWhenVFBEStarts"
 			.Text = ML("When VisualFBEditor starts") & ":"
-			.SetBounds 8, 74, 416, 120
+			.SetBounds 8, 94, 416, 120
 			.Parent = @pnlGeneral
 		End With
 		' optPromptForProjectAndFile
@@ -1331,10 +1331,11 @@ pfOptions = @fOptions
 		' chkDarkMode
 		With chkDarkMode
 			.Name = "chkDarkMode"
-			.Text = ML("Dark Mode, Currently available for Linux, Windows 10 and above")
+			.Text = ML("Dark Mode (available for Linux, Windows 10 and above)")
 			.TabIndex = 188
 			'.Caption = ML("Dark Mode")
-			.SetBounds 2, 38, 224, 24
+			.Caption = ML("Dark Mode (available for Linux, Windows 10 and above)")
+			.SetBounds 2, 38, 384, 24
 			.Parent = @pnlThemesCheckboxes
 		End With
 		' chkPlaceStaticEventHandlersAfterTheConstructor
@@ -1354,6 +1355,15 @@ pfOptions = @fOptions
 			'.Caption = ML("Create static event handlers with an underscore at the beginning")
 			.SetBounds 32, 195, 380, 24
 			.Parent = @pnlDesigner
+		End With
+		' chkAddRelativePathsToRecent
+		With chkAddRelativePathsToRecent
+			.Name = "chkAddRelativePathsToRecent"
+			.Text = ML("Add relative paths to recent")
+			.TabIndex = 191
+			.Caption = ML("Add relative paths to recent")
+			.SetBounds 10, 69, 400, 16
+			.Parent = @pnlGeneral
 		End With
 	End Constructor
 	
@@ -1421,6 +1431,7 @@ Sub frmOptions.LoadSettings()
 		.chkAutoIndentation.Checked = AutoIndentation
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
+		.chkAddRelativePathsToRecent.Checked = AddRelativePathsToRecent
 		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
 		.chkPlaceStaticEventHandlersAfterTheConstructor.Checked = PlaceStaticEventHandlersAfterTheConstructor
 		.chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Checked = CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning
@@ -2061,6 +2072,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoComplete = .chkEnableAutoComplete.Checked
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
+		AddRelativePathsToRecent = .chkAddRelativePathsToRecent.Checked
 		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
 		PlaceStaticEventHandlersAfterTheConstructor = .chkPlaceStaticEventHandlersAfterTheConstructor.Checked
 		CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning = .chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Checked
@@ -2228,6 +2240,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "AutoComplete", AutoComplete
 		piniSettings->WriteBool "Options", "AutoCreateRC", AutoCreateRC
 		piniSettings->WriteBool "Options", "AutoCreateBakFiles", AutoCreateBakFiles
+		piniSettings->WriteBool "Options", "AddRelativePathsToRecent", AddRelativePathsToRecent
 		piniSettings->WriteString "Options", "DefaultProjectFile", WGet(DefaultProjectFile)
 		piniSettings->WriteInteger "Options", "LastOpenedFileType", LastOpenedFileType
 		piniSettings->WriteInteger "Options", "WhenVisualFBEditorStarts", WhenVisualFBEditorStarts

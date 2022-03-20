@@ -1606,10 +1606,16 @@ Sub OpenSession()
 End Sub
 
 Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList, miRecentFilesFolders As MenuItem Ptr, ByRef MRUType As String)
-	Var i = MRUFilesFolders.IndexOf(FileFolderName)
+	Dim As UString FileFolderName_
+	If AddRelativePathsToRecent Then
+		FileFolderName_ = GetShortFileName(FileFolderName, ExePath & Slash & Slash)
+	Else
+		FileFolderName_ = FileFolderName
+	End If
+	Var i = MRUFilesFolders.IndexOf(FileFolderName_)
 	If i <> 0 Then
 		If i > 0 Then MRUFilesFolders.Remove i
-		MRUFilesFolders.Insert 0, FileFolderName
+		MRUFilesFolders.Insert 0, FileFolderName_
 		For i = 0 To Min(miRecentFilesFolders->Count - 1, MRUFilesFolders.Count - 1)
 			If miRecentFilesFolders->Item(i)->Caption = "-" Then Exit For
 			miRecentFilesFolders->Item(i)->Caption = MRUFilesFolders.Item(i)
@@ -4096,6 +4102,7 @@ Sub LoadSettings
 	AutoCreateRC = iniSettings.ReadBool("Options", "AutoCreateRC", True)
 	AutoSaveBeforeCompiling = iniSettings.ReadInteger("Options", "AutoSaveBeforeCompiling", 1)
 	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
+	AddRelativePathsToRecent = iniSettings.ReadBool("Options", "AddRelativePathsToRecent", True)
 	WhenVisualFBEditorStarts = iniSettings.ReadInteger("Options", "WhenVisualFBEditorStarts", 2)
 	WLet(DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm"))
 	LastOpenedFileType = iniSettings.ReadInteger("Options", "LastOpenedFileType", 0)
