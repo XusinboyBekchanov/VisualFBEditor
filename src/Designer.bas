@@ -1350,6 +1350,14 @@ Namespace My.Sys.Forms
 					RemoveProp(Control, "@@@Designer")
 					RemoveProp(Control, "@@@Proc")
 				End If
+				GetChilds(Control)
+				For i As Integer = 0 To FChilds.Count - 1
+					If GetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC) = @HookChildProc Then
+						SetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC, CInt(GetProp(FChilds.Child[i], "@@@Proc")))
+						RemoveProp(FChilds.Child[i], "@@@Designer")
+						RemoveProp(FChilds.Child[i], "@@@Proc")
+					End If
+				Next
 			End If
 		End Sub
 	#endif

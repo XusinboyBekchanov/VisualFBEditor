@@ -6058,10 +6058,10 @@ End Function
  
 Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "") As UString
 	Dim As UString ResourceFile, MainFile, sFirstLine, CompileLine
+	Dim As ProjectElement Ptr Project
+	Dim As TreeNode Ptr ProjectNode
+	MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode)
 	If FirstLine = "" Then
-		Dim As ProjectElement Ptr Project
-		Dim As TreeNode Ptr ProjectNode
-		MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode)
 		sFirstLine = GetFirstCompileLine(MainFile, Project, CompileLine, True)
 	Else
 		sFirstLine = FirstLine
