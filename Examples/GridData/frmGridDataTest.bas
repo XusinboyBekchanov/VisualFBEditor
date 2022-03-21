@@ -18,8 +18,8 @@ If SQLiteOpen(SQLiteDB, ExePath & "\Data\Test.db", "") Then
       Print "Opened SQLiteDB successfully.", ExePath & "\Data\Test.db"
  End If
 #define _NOT_AUTORUN_FORMS_
-#include once "mff/Dialogs.bi"
 #include once "mff/Form.bi"
+#include once "mff/Dialogs.bi"
 #include once "mff/TextBox.bi"
 #include once "mff/RichTextBox.bi"
 #include once "mff/TabControl.bi"
@@ -249,10 +249,10 @@ Constructor frmGridDataTest
 
    imgListGrid1.Height=16 'Change the Height of Body
    imgListGrid1.Width=16
-   imgListGrid1.AddPng "Grid", "Grid"    
-   imgListGrid1.AddPng "New", "New"
-   imgListGrid1.AddPng "Open", "Open"
-   imgListGrid1.AddPng "Save", "Save"
+   imgListGrid1.Add "Grid", "Grid"    
+   imgListGrid1.Add "New", "New"
+   imgListGrid1.Add "Open", "Open"
+   imgListGrid1.Add "Save", "Save"
    'MSHFGridCont.Align = 1'alLeft  2'alRight 3'alTop 4'alBottom 5'alClient
    'MSHFGridCont.SetMargins 0,50,10,10
 

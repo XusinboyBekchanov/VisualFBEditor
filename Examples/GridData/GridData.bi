@@ -1098,7 +1098,7 @@ End Enum
 			If Parent AndAlso Parent->Handle Then
 				Item(Index)->Visible = False
 			End If
-		#EndIf
+		#endif
 		FItems.Remove Index
     End Sub	
 	
@@ -1117,7 +1117,7 @@ End Enum
 '		#EndIf
 '    End Sub
     
-    Function GridDataItems.IndexOf(BYREF FItem As GridDataItem Ptr) As Integer
+    Function GridDataItems.IndexOf(ByRef FItem As GridDataItem Ptr) As Integer
         Return FItems.IndexOF(FItem)
     End Function
 
@@ -1135,11 +1135,11 @@ End Enum
     End Function
 
     Sub GridDataItems.Clear
-		#IfDef __USE_GTK__
+		#ifdef __USE_GTK__
 			If Parent AndAlso Cast(GridData Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(GridData Ptr, Parent)->TreeStore)
-		#Else
-			If Parent AndAlso Parent->Handle Then Parent->Perform LVM_DELETEALLITEMS, 0, 0 
-        #EndIf
+		#else
+			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0 
+        #endif
         For i As Integer = FItems.Count -1 To 0 Step -1
             Delete Cast(GridDataItem Ptr, FItems.Items[i])
         Next i
@@ -1173,7 +1173,7 @@ End Enum
        'QGridDataColumn(FColumns.Items[Index]) = Value 
     End Property
 
-	#IfDef __USE_GTK__
+	#ifdef __USE_GTK__
 		Sub GridDataColumns.Cell_Edited(renderer As GtkCellRendererText Ptr, path As gchar Ptr, new_text As gchar Ptr, user_data As Any Ptr)
 			Dim As GridDataColumn Ptr PColumn = user_data
 			If PColumn = 0 Then Exit Sub
@@ -1289,9 +1289,9 @@ End Enum
 
     Sub GridDataColumns.Insert(Index As Integer,ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, ColEditable As Boolean = True,tDataType As GridDataTypeEnum = DT_String,tLocked As Boolean=False,tControlType As GridControlTypeEnum=CT_TextBox,ByRef tComboItem As WString = "",tSortOrder As SortStyle=ssSortAscending)
         Dim As GridDataColumn Ptr PColumn
-        #IfNDef __USE_GTK__
+        #ifndef __USE_GTK__
 			Dim As LVCOLUMN lvc
-        #EndIf
+        #endif
         PColumn = New GridDataColumn
         FColumns.Insert Index, PColumn
         With *PColumn
@@ -1307,8 +1307,8 @@ End Enum
             .SortOrder=tSortOrder 
             .GridEditComboItem= tComboItem
         End With
-		#IfNDef __USE_GTK__
-			lvC.mask      =  LVCF_FMT OR LVCF_WIDTH OR LVCF_TEXT OR LVCF_SUBITEM
+		#ifndef __USE_GTK__
+			lvC.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvC.fmt       =  tFormat
 			lvc.cx=0
 			lvc.iImage   = PColumn->ImageIndex
@@ -1322,19 +1322,19 @@ End Enum
 					ListView_SetColumnWidth(Parent->Handle, Index, iWidth)
 				End If
 			End If
-		#EndIf
+		#endif
     End Sub
 
     Sub GridDataColumns.Remove(Index As Integer)
         FColumns.Remove Index
-        #IfNDef __USE_GTK__
+        #ifndef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
-				Parent->Perform LVM_DELETECOLUMN, cast(WPARAM, Index), 0
+				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
-		#EndIf
+		#endif
     End Sub
 
-    Function GridDataColumns.IndexOf(BYREF FColumn As GridDataColumn Ptr) As Integer
+    Function GridDataColumns.IndexOf(ByRef FColumn As GridDataColumn Ptr) As Integer
         Return FColumns.IndexOF(FColumn)
     End Function
 
@@ -1985,13 +1985,17 @@ End Sub
      
 '      case WM_MOUSELEAVE
 '          'print "WM_MOUSELEAVE !!!!!!!!!!" 
-'      case WM_VSCROLL
+  Case WM_VSCROLL
+  	mDrawRowStart = ListView_GetTopIndex(Handle)      
+  		GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage, mRow, mCol)
 '           tSCROLL_HorV=False
 '           'print "WM_VSCROLL XXXXXXXXX"
             
-'      case WM_HSCROLL
+      Case WM_HSCROLL
 '           tSCROLL_HorV=true
 '           'print "WM_HSCROLL !!!!!!!!!!"  
+	mDrawRowStart = ListView_GetTopIndex(Handle)      
+			GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage, mRow, mCol)
 '      Case WM_RBUTTONDOWN             
       Case WM_LBUTTONDOWN
           Dim lvhti As LVHITTESTINFO
@@ -2228,7 +2232,7 @@ End Sub
                        If message.LParam=99911 Then GridEditText.Visible =False
                        If message.LParam=99922 Then GridEditComboBox.Visible =False
                        If message.LParam=99933 Then GridEditDateTimePicker.Visible =False 
-                       'GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
+                       GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage, mRow, mCol)
                     End If
                  Case VK_SPACE
                       Print "VK_SPACE"
@@ -2240,7 +2244,7 @@ End Sub
                          message.Result=  CDRF_SKIPDEFAULT   
                       End If 
                       message.Result=  CDRF_SKIPDEFAULT                       
-                      'GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)                                          
+                      GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage, mRow, mCol)                                          
                  Case VK_RIGHT,VK_TAB                    
                       ListView_GetSubItemRect(Handle, mRow, mCol, LVIR_BOUNDS, @RECHeader)                                         
                       If RECHeader.Right<This.Width Then
@@ -2251,7 +2255,7 @@ End Sub
                       If message.LParam=99911 Then GridEditText.Visible =False
                       If message.LParam=99922 Then GridEditComboBox.Visible =False
                       If message.LParam=99933 Then GridEditDateTimePicker.Visible =False                                          
-                      'GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
+                      GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage, mRow, mCol)
                   Case VK_RETURN
                       ListView_GetSubItemRect(Handle, mRow, mCol, LVIR_BOUNDS, @RECHeader)                                         
                       If RECHeader.Right<This.Width Then
