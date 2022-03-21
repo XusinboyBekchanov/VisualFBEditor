@@ -1306,18 +1306,40 @@ End Function
 Sub TabWindow.FillAllProperties()
 	If Des = 0 OrElse Des->SelectedControl = 0 Then Exit Sub
 	ptabRight->Tag = @This
+	If Des->ReadPropertyFunc = 0 Then Exit Sub
 	ptabRight->UpdateLock
 	cboFunction.Items.Clear
 	cboFunction.Items.Add "(" & ML("Events") & ")", , "Event", "Event"
 	cboFunction.ItemIndex = 0
 	plvProperties->Nodes.Clear
 	plvEvents->Nodes.Clear
-	FPropertyItems.Clear
-	If Des->ReadPropertyFunc <> 0 Then
-		FillProperties WGet(Des->ReadPropertyFunc(Des->SelectedControl, "ClassName"))
-	End If
+	Dim SelCount As Integer = Des->SelectedControls.Count
+	Dim As WStringList FPropertyItemsAll
+	Dim As UString ItemText
+	For i As Integer = 0 To SelCount - 1
+		FPropertyItems.Clear
+		FillProperties WGet(Des->ReadPropertyFunc(Des->SelectedControls.Item(i), "ClassName"))
+		If SelCount > 1 Then
+			For lvPropertyCount As Integer = 0 To FPropertyItems.Count - 1
+				FPropertyItemsAll.Add FPropertyItems.Item(lvPropertyCount)
+			Next
+		End If
+	Next i
 	FPropertyItems.Sort
 	For lvPropertyCount As Integer = 0 To FPropertyItems.Count - 1
+		ItemText = ReadObjProperty(Des->SelectedControl, FPropertyItems.Item(lvPropertyCount))
+		If SelCount > 1 Then
+			If LCase(FPropertyItems.Item(lvPropertyCount)) = "name" OrElse LCase(FPropertyItems.Item(lvPropertyCount)) = "id" Then Continue For
+			If FPropertyItemsAll.CountOf(FPropertyItems.Item(lvPropertyCount)) <> SelCount Then Continue For
+			If ItemText <> "" Then
+				For i As Integer = 0 To SelCount - 1
+					If ReadObjProperty(Des->SelectedControls.Item(i), FPropertyItems.Item(lvPropertyCount)) <> ItemText Then
+						ItemText = ""
+						Exit For
+					End If
+				Next i
+			End If
+		End If
 		'If Instr(FPropertyItems.Item(lvPropertyCount), ".") Then Continue For
 		te = FPropertyItems.Object(lvPropertyCount)
 		If te = 0 Then Continue For
@@ -1331,7 +1353,7 @@ Sub TabWindow.FillAllProperties()
 					lvItem->Text(0) = FPropertyItems.Item(lvPropertyCount)
 					lvItem->Text(1) = ""
 				End If
-				lvItem->Text(1) = ReadObjProperty(Des->SelectedControl, FPropertyItems.Item(lvPropertyCount))
+				lvItem->Text(1) = ItemText 'ReadObjProperty(Des->SelectedControl, FPropertyItems.Item(lvPropertyCount))
 			ElseIf .ElementType = "Event" Then
 				cboFunction.Items.Add .Name, , "Event", "Event"
 				lvItem = plvEvents->Nodes.Add(.Name, 3)
@@ -2019,10 +2041,20 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 	'If te = 0 Then Exit Sub
 	Dim FLine As WString Ptr
 	Dim SenderText As UString
+	Dim As Integer SelCount = tb->Des->SelectedControls.Count
+	Dim As Boolean Different
 	SenderText = IIf(IsCombo, Mid(Sender_Text, 2), Sender_Text)
 	With tb->txtCode
 		Dim As UString OldText = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
-		If SenderText <> OldText Then
+		If SelCount > 1 Then
+			For i As Integer = 0 To SelCount - 1
+				If tb->ReadObjProperty(tb->Des->SelectedControls.Item(i), PropertyName) <> OldText Then
+					Different = True
+					Exit For
+				End If
+			Next i
+		End If
+		If SenderText <> OldText OrElse Different Then
 			If CInt(PropertyName = "Name") AndAlso CInt(tb->cboClass.Items.Contains(SenderText)) Then
 				MsgBox ML("This name is exists!"), "VisualFBEditor", mtWarning
 				#ifndef __USE_GTK__
@@ -2033,30 +2065,33 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			pfrmMain->UpdateLock
 			.Changing "Unsurni o`zgartirish"
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
-			Dim As Integer iLeft, iTop, iWidth, iHeight
-			If tb->Des->IsComponentFunc(tb->Des->SelectedControl) Then
-				tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, iLeft, iTop, iWidth, iHeight)
-			End If
-			#ifdef __USE_GTK__
-				Dim As GtkWidget Ptr tmpWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
-			#endif
-			tb->WriteObjProperty(tb->Des->SelectedControl, PropertyName, Sender_Text)
-			#ifdef __USE_GTK__
-				pApp->DoEvents
-			#endif
-			Dim As Integer iLeft2, iTop2, iWidth2, iHeight2
-			If tb->Des->IsComponentFunc(tb->Des->SelectedControl) Then
-				tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControl, iLeft2, iTop2, iWidth2, iHeight2)
-				If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots tb->Des->SelectedControl, False
-			End If
-			#ifdef __USE_GTK__
-				Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "widget")
-				If tmpWidget <> tmpChangedWidget Then
-					tb->Des->HookControl(tmpChangedWidget)
-					tb->Des->FSelControl = tmpChangedWidget
-					If g_object_get_data(G_OBJECT(tmpChangedWidget), "drawed") = tb->Des Then tb->Des->MoveDots tb->Des->SelectedControl
+			For i As Integer = 0 To SelCount - 1
+				Dim As Integer iLeft, iTop, iWidth, iHeight
+				If tb->Des->IsComponentFunc(tb->Des->SelectedControls.Item(i)) Then
+					tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControls.Item(i), iLeft, iTop, iWidth, iHeight)
 				End If
-			#else
+				#ifdef __USE_GTK__
+					Dim As GtkWidget Ptr tmpWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControls.Item(i), "widget")
+				#endif
+				tb->WriteObjProperty(tb->Des->SelectedControls.Item(i), PropertyName, Sender_Text)
+				#ifdef __USE_GTK__
+					pApp->DoEvents
+				#endif
+				Dim As Integer iLeft2, iTop2, iWidth2, iHeight2
+				If tb->Des->IsComponentFunc(tb->Des->SelectedControls.Item(i)) Then
+					tb->Des->ComponentGetBoundsSub(tb->Des->SelectedControls.Item(i), iLeft2, iTop2, iWidth2, iHeight2)
+					If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots tb->Des->SelectedControls.Item(i), False
+				End If
+				#ifdef __USE_GTK__
+					Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(tb->Des->SelectedControls.Item(i), "widget")
+					If tmpWidget <> tmpChangedWidget Then
+						tb->Des->HookControl(tmpChangedWidget)
+						tb->Des->FSelControl = tmpChangedWidget
+						If g_object_get_data(G_OBJECT(tmpChangedWidget), "drawed") = tb->Des Then tb->Des->MoveDots tb->Des->SelectedControls.Item(i)
+					End If
+				#endif
+			Next i
+			#ifdef __USE_WINAPI__
 				If PropertyName = "Menu" Then tb->Des->CheckTopMenuVisible
 				'Sender.Text = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
 				plvProperties->SelectedItem->Text(1) = SenderText
@@ -2066,26 +2101,33 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 					ChangeControl(tb->cboClass.Items.Item(i)->Object, "TabIndex")
 				Next
 			Else
-				ChangeControl(tb->Des->SelectedControl, PropertyName)
+				For i As Integer = 0 To SelCount - 1
+					ChangeControl(tb->Des->SelectedControls.Item(i), PropertyName)
+				Next i
 			End If
-			'If tb->frmForm Then tb->frmForm->MoveDots Cast(Control Ptr, tb->SelectedControl)->Handle, False
-			For i As Integer = 0 To plvProperties->Nodes.Count - 1
-				PropertyName = GetItemText(plvProperties->Nodes.Item(i))
-				Dim TempWS As UString
-				TempWS = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName)
-				If TempWS <> plvProperties->Nodes.Item(i)->Text(1) Then
-					plvProperties->Nodes.Item(i)->Text(1) = TempWS
-					ChangeControl(tb->Des->SelectedControl, PropertyName)
+			For j As Integer = 0 To SelCount - 1
+				'If tb->frmForm Then tb->frmForm->MoveDots Cast(Control Ptr, tb->SelectedControl)->Handle, False
+				If SelCount = 1 Then
+					For i As Integer = 0 To plvProperties->Nodes.Count - 1
+						'If SelCount > 1 AndAlso plvProperties->Nodes.Item(i)->Text(1) = "" Then Continue For
+						PropertyName = GetItemText(plvProperties->Nodes.Item(i))
+						Dim TempWS As UString
+						TempWS = tb->ReadObjProperty(tb->Des->SelectedControls.Item(j), PropertyName)
+						If TempWS <> plvProperties->Nodes.Item(i)->Text(1) Then
+							plvProperties->Nodes.Item(i)->Text(1) = TempWS
+							ChangeControl(tb->Des->SelectedControls.Item(j), PropertyName)
+						End If
+					Next i
 				End If
-			Next i
-			#ifndef __USE_GTK__
-				If QWString(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")) = "MenuItem" Then
-					tb->Des->TopMenu->Repaint
-					If pfMenuEditor->Visible Then pfMenuEditor->Repaint
-				ElseIf QWString(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")) = "ToolButton" Then
-					If pfMenuEditor->Visible Then pfMenuEditor->Repaint
-				End If
-			#endif
+				#ifndef __USE_GTK__
+					If QWString(tb->Des->ReadPropertyFunc(tb->Des->SelectedControls.Item(j), "ClassName")) = "MenuItem" Then
+						tb->Des->TopMenu->Repaint
+						If pfMenuEditor->Visible Then pfMenuEditor->Repaint
+					ElseIf QWString(tb->Des->ReadPropertyFunc(tb->Des->SelectedControls.Item(j), "ClassName")) = "ToolButton" Then
+						If pfMenuEditor->Visible Then pfMenuEditor->Repaint
+					End If
+				#endif
+			Next j
 			.Changed "Unsurni o`zgartirish"
 			pfrmMain->UpdateUnLock
 		End If
@@ -5524,16 +5566,27 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 		If te = 0 Then Exit Sub
 		ptabRight->UpdateLock
 		Dim lvItem As TreeListViewItem Ptr
+		Dim As UString ItemText
+		Dim As Integer SelCount = tb->Des->SelectedControls.Count
 		FPropertyItems.Clear
 		tb->FillProperties te->TypeName
 		FPropertyItems.Sort
 		For lvPropertyCount As Integer = FPropertyItems.Count - 1 To 0 Step -1
+			ItemText = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
+			If SelCount > 1 AndAlso ItemText <> "" Then
+				For i As Integer = 0 To SelCount - 1
+					If tb->ReadObjProperty(tb->Des->SelectedControls.Item(i), PropertyName & "." & FPropertyItems.Item(lvPropertyCount)) <> ItemText Then
+						ItemText = ""
+						Exit For
+					End If
+				Next i
+			End If
 			te = FPropertyItems.Object(lvPropertyCount)
 			If te = 0 Then Continue For
 			With *te
-				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(.ElementType = "Property") Then
+				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso CInt(.ElementType = "Property") Then
 					lvItem = Item->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(pComps->Contains(.TypeName), 1, 0))
-					lvItem->Text(1) = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
+					lvItem->Text(1) = ItemText 'tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
 					If pComps->Contains(.TypeName) Then
 						lvItem->Nodes.Add
 					End If
