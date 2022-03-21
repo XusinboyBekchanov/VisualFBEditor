@@ -2163,7 +2163,7 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 	End With
 End Sub
  
-Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
+Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
 	On Error Goto ErrorHandler
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -2212,6 +2212,21 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 		End If
 	End If
 	ChangeControl(Ctrl, , iLeft2, iTop2, iWidth2, iHeight2)
+	If CopiedCtrl <> 0 Then
+		FPropertyItems.Clear
+		tb->FillProperties ClassName
+		FPropertyItems.Sort
+		For i As Integer = 0 To FPropertyItems.Count - 1
+			Select Case FPropertyItems.Item(i)
+			Case "Left", "Top", "Width", "Height", "Name", "ID", "TabIndex", "ClassName", "Parent"
+			Case Else
+				If Trim(tb->ReadObjProperty(Ctrl, FPropertyItems.Item(i))) <> Trim(tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i))) Then
+					tb->WriteObjProperty(Ctrl, FPropertyItems.Item(i), tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i)))
+					ChangeControl Ctrl, FPropertyItems.Item(i), iLeft2, iTop2, iWidth2, iHeight2
+				End If
+			End Select
+		Next
+	End If
 	If tb->Des->ControlSetFocusSub <> 0 Then tb->Des->ControlSetFocusSub(tb->Des->DesignControl)
 	tb->txtCode.Changed "Unsur qo`shish"
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed "Unsur qo`shish"
@@ -2225,12 +2240,12 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	"in module " & ZGet(Ermn())
 End Sub
  
-Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
-	DesignerInsertControl(Sender, ClassName, Cpnt, iLeft2, iTop2, 16, 16)
+Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
+	DesignerInsertControl(Sender, ClassName, Cpnt, CopiedCpnt, iLeft2, iTop2, 16, 16)
 End Sub
  
-Sub DesignerInsertObject(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr)
-	DesignerInsertControl(Sender, ClassName, Obj, -1, -1, -1, -1)
+Sub DesignerInsertObject(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr, CopiedObj As Any Ptr)
+	DesignerInsertControl(Sender, ClassName, Obj, CopiedObj, -1, -1, -1, -1)
 End Sub
  
 Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String, ByRef AName As String)

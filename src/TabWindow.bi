@@ -241,8 +241,8 @@ Public:
 	Declare Function SaveAs As Boolean
 	Declare Sub FillAllProperties
 	Declare Sub ChangeName(ByRef OldName As WString, ByRef NewName As WString)
-	Declare Function ReadObjProperty(ByRef Ctrl As Any Ptr, ByRef PropertyName As String) ByRef As WString
-	Declare Function WriteObjProperty(ByRef Ctrl As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False) As Boolean
+	Declare Function ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String) ByRef As WString
+	Declare Function WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False) As Boolean
 	Declare Function GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	Declare Sub SetErrorHandling(StartLine As String, EndLine As String)
 	Declare Sub RemoveErrorHandling
@@ -338,9 +338,9 @@ Declare Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, Property
 
 Declare Sub ToolGroupsToCursor()
 
-Declare Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
+Declare Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
 
-Declare Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
+Declare Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 
 Declare Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String, ByRef AName As String)
 

@@ -438,7 +438,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
 				Des->WritePropertyFunc(Obj, "Parent", CurrentToolBar)
 				ChangeControl Obj, "Parent"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj)
+				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj, 0)
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
 				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
@@ -460,7 +460,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
 				Des->WritePropertyFunc(Obj, "Parent", CurrentStatusBar)
 				ChangeControl Obj, "Parent"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj)
+				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj, 0)
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
 				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
@@ -491,7 +491,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 					ChangeControl Obj, "Parent"
 				End If
 				ChangeControl Obj, "Caption"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj)
+				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj, 0)
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
 				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
