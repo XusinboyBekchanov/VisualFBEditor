@@ -68,6 +68,9 @@ Public Sub MoveCloseButtons()
 		#ifndef __USE_GTK__
 			SendMessage(pTabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
 			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
+			If g_darkModeSupported AndAlso g_darkModeEnabled Then
+				UpdateWindow pTabCode->Handle
+			End If
 		#endif
 	Next i
 End Sub
