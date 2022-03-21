@@ -1792,6 +1792,11 @@ Namespace My.Sys.Forms
 			End If
 			bufDC = CreateCompatibleDC(hD)
 			bufBMP = CreateCompatibleBitmap(hD, ScaleX(dwClientX), ScaleY(dwClientY))
+			This.Canvas.Handle = bufDC
+			This.Canvas.HandleSetted = True
+			SelectObject(bufDC, This.Font.Handle)
+			SelectObject(bufDC, bufBMP)
+			HideCaret(FHandle)
 		#endif
 		'iMin = Min(FSelEnd, FSelStart)
 		'iMax = Max(FSelEnd, FSelStart)
@@ -1879,11 +1884,6 @@ Namespace My.Sys.Forms
 		QavsBoshi = 0
 		MatnBoshi = 0
 		Matn = ""
-		#ifndef __USE_GTK__
-			SelectObject(bufDC, bufBMP)
-			HideCaret(FHandle)
-		#endif
-		This.Canvas.Brush.Color = NormalText.Background
 		#ifdef __USE_GTK__
 			Dim As Double iRed, iGreen, iBlue
 			#ifdef __USE_GTK3__
@@ -1896,12 +1896,13 @@ Namespace My.Sys.Forms
 		#else
 			'			This.Canvas.Font.Name = *EditorFontName
 			'			This.Canvas.Font.Size = EditorFontSize
+			This.Canvas.Brush.Color = NormalText.Background
 			This.Canvas.Pen.Color = FoldLines.Foreground
 			SetRect(@rc, ScaleX(LeftMargin), 0, ScaleX(dwClientX), ScaleY(dwClientY))
-			SelectObject(bufDC, This.Canvas.Brush.Handle)
-			SelectObject(bufDC, This.Canvas.Font.Handle)
-			SelectObject(bufDC, This.Canvas.Pen.Handle)
-			SetROP2 bufDC, This.Canvas.Pen.Mode
+'			SelectObject(bufDC, This.Canvas.Brush.Handle)
+'			SelectObject(bufDC, This.Canvas.Font.Handle)
+'			SelectObject(bufDC, This.Canvas.Pen.Handle)
+'			SetROP2 bufDC, This.Canvas.Pen.Mode
 			FillRect bufDC, @rc, This.Canvas.Brush.Handle
 		#endif
 		i = -1
@@ -1963,10 +1964,10 @@ Namespace My.Sys.Forms
 					j = j + 1
 				Loop
 			Else
-				#ifndef __USE_GTK__
-					SelectObject(bufDC, This.Canvas.Brush.Handle)
-					SelectObject(bufDC, This.Canvas.Pen.Handle)
-				#endif
+'				#ifndef __USE_GTK__
+'					SelectObject(bufDC, This.Canvas.Brush.Handle)
+'					SelectObject(bufDC, This.Canvas.Pen.Handle)
+'				#endif
 				LinePrinted = False
 				If FECLine->BreakPoint Then
 					PaintText i, *s, 0, Len(*s), Breakpoints, "", Breakpoints.Bold, Breakpoints.Italic, Breakpoints.Underline
@@ -1984,9 +1985,9 @@ Namespace My.Sys.Forms
 					'					Canvas.Font.Bold = False
 					'					Canvas.Font.Italic = False
 					'					Canvas.Font.Underline = False
-					#ifndef __USE_GTK__
-						'SelectObject(bufDC, This.Canvas.Font.Handle)
-					#endif
+					'#ifndef __USE_GTK__
+					'SelectObject(bufDC, This.Canvas.Font.Handle)
+					'#endif
 					IzohBoshi = 1
 					Do While j <= l
 						If LeftMargin + (-HScrollPos + j) * dwCharX > dwClientX AndAlso Mid(*s, j, 1) = " " Then
@@ -2137,7 +2138,7 @@ Namespace My.Sys.Forms
 							cairo_stroke(cr)
 						#else
 							This.Canvas.Pen.Color = CurrentLine.Frame
-							SelectObject bufDC, This.Canvas.Pen.Handle
+							'SelectObject bufDC, This.Canvas.Pen.Handle
 							MoveToEx bufDC, rec.Left, rec.Top - 1, 0
 							LineTo bufDC, rec.Right, rec.Top - 1
 						#endif
@@ -2211,7 +2212,7 @@ Namespace My.Sys.Forms
 						cairo_set_source_rgb(cr, SpaceIdentifiers.ForegroundRed, SpaceIdentifiers.ForegroundGreen, SpaceIdentifiers.ForegroundBlue)
 					#else
 						This.Canvas.Pen.Color = SpaceIdentifiers.Foreground 'rgb(100, 100, 100) 'clLtGray
-						SelectObject(bufDC, This.Canvas.Pen.Handle)
+						'SelectObject(bufDC, This.Canvas.Pen.Handle)
 					#endif
 					'WLet FLineLeft, GetTabbedText(*s, 0, True)
 					jj = 1
@@ -2337,8 +2338,8 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
 					cairo_stroke(cr)
 				#else
-					SelectObject(bufDC, This.Canvas.Brush.Handle)
-					SelectObject(bufDC, This.Canvas.Pen.Handle)
+'					SelectObject(bufDC, This.Canvas.Brush.Handle)
+'					SelectObject(bufDC, This.Canvas.Pen.Handle)
 					RoundRect bufDC, ScaleX(LeftMargin - 18), ScaleY((i - VScrollPos) * dwCharY + 2), ScaleX(LeftMargin - 3), ScaleY((i - VScrollPos) * dwCharY + 13), ScaleX(5), ScaleY(5)
 				#endif
 			End If
@@ -2357,8 +2358,8 @@ Namespace My.Sys.Forms
 						cairo_stroke (cr)
 					#else
 						This.Canvas.Pen.Color = FoldLines.Foreground
-						SelectObject(bufDC, This.Canvas.Brush.Handle)
-						SelectObject(bufDC, This.Canvas.Pen.Handle)
+'						SelectObject(bufDC, This.Canvas.Brush.Handle)
+'						SelectObject(bufDC, This.Canvas.Pen.Handle)
 						Rectangle bufDC, ScaleX(LeftMargin - 15), ScaleY((i - VScrollPos) * dwCharY + 3), ScaleX(LeftMargin - 6), ScaleY((i - VScrollPos) * dwCharY + 12)
 						MoveToEx bufDC, ScaleX(LeftMargin - 13), ScaleY((i - VScrollPos) * dwCharY + 7), 0
 						LineTo bufDC, ScaleX(LeftMargin - 8), ScaleY((i - VScrollPos) * dwCharY + 7)
@@ -2401,8 +2402,8 @@ Namespace My.Sys.Forms
 						cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 0 - 0.5)
 					#else
 						This.Canvas.Pen.Color = FoldLines.Foreground
-						SelectObject(bufDC, This.Canvas.Brush.Handle)
-						SelectObject(bufDC, This.Canvas.Pen.Handle)
+'						SelectObject(bufDC, This.Canvas.Brush.Handle)
+'						SelectObject(bufDC, This.Canvas.Pen.Handle)
 						MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 0), 0
 					#endif
 					If CollapseIndex = 0 Then
@@ -2470,8 +2471,8 @@ Namespace My.Sys.Forms
 				#else
 					This.Canvas.Pen.Color = SpaceIdentifiers.Foreground
 					This.Canvas.Brush.Color = SpaceIdentifiers.Foreground
-					SelectObject(bufDC, This.Canvas.Pen.Handle)
-					SelectObject(bufDC, This.Canvas.Brush.Handle)
+'					SelectObject(bufDC, This.Canvas.Pen.Handle)
+'					SelectObject(bufDC, This.Canvas.Brush.Handle)
 					Ellipse bufDC, ScaleX(MButtonX + 10), ScaleY(MButtonY + 10), ScaleX(MButtonX + 14), ScaleY(MButtonY + 14)
 					Dim pPoint1(3) As ..Point = {(ScaleX(MButtonX + 11), ScaleY(MButtonY + 1)), (ScaleX(MButtonX + 7), ScaleY(MButtonY + 5)), (ScaleX(MButtonX + 16), ScaleY(MButtonY + 5)), (ScaleX(MButtonX + 12), ScaleY(MButtonY + 1))}
 					PolyGon(bufDC, @pPoint1(0), 4)
@@ -2489,7 +2490,7 @@ Namespace My.Sys.Forms
 			ReleaseDc FHandle, hd
 			ShowCaret(FHandle)
 		#endif
-		
+		This.Canvas.HandleSetted = False
 		Exit Sub
 		ErrHandler:
 		?ErrDescription(Err) & " (" & Err & ") " & _
