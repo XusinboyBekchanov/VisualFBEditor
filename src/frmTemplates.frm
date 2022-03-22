@@ -294,7 +294,7 @@ Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
 		End If
 	Case 2
 		If lvRecent.SelectedItemIndex > -1 Then
-			SelectedFile = lvRecent.ListItems.Item(lvRecent.SelectedItemIndex)->Text(1)
+			SelectedFile = GetFullPath(lvRecent.ListItems.Item(lvRecent.SelectedItemIndex)->Text(1))
 			ModalResult = ModalResults.OK
 			Me.CloseForm
 		Else
