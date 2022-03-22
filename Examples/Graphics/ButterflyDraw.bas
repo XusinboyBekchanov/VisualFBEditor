@@ -1,5 +1,5 @@
 ﻿#ifdef __FB_WIN32__
-	''#Compile "Form1.rc"
+	'#Compile "Form1.rc"
 #endif
 '#Region "Form"
 	#include once "mff/Form.bi"
@@ -178,7 +178,7 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
     'Picture1.BackColor = clBlack  
     CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
     'Picture1.Visible = False
-    'Picture1.Canvas.GetDevice
+    Picture1.Canvas.GetDevice
     Picture1.Canvas.CreateDoubleBuffer
     
     Picture1.Canvas.Scale(-10, -10, 10, 10)
@@ -219,7 +219,7 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
     'Picture1.Visible = True
     Picture1.Canvas.TransferDoubleBuffer
     Picture1.Canvas.DeleteDoubleBuffer
-    'Picture1.Canvas.ReleaseDevice
+    Picture1.Canvas.ReleaseDevice
     
     
     CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw" '
