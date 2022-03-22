@@ -7252,11 +7252,11 @@ Sub frmMain_Show(ByRef Sender As Control)
 		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
 		Case 3:
 			Select Case LastOpenedFileType
-			Case 0: OpenFiles *RecentFiles
-			Case 1: OpenFiles *RecentSession
-			Case 2: OpenFiles *RecentFolder
-			Case 3: OpenFiles *RecentProject
-			Case 4: OpenFiles *RecentFile
+			Case 0: OpenFiles GetFullPath(*RecentFiles)
+			Case 1: OpenFiles GetFullPath(*RecentSession)
+			Case 2: OpenFiles GetFullPath(*RecentFolder)
+			Case 3: OpenFiles GetFullPath(*RecentProject)
+			Case 4: OpenFiles GetFullPath(*RecentFile)
 			End Select
 		End Select
 	End If
