@@ -89,7 +89,7 @@ Dim Shared As TreeView tvExplorer, tvVar, tvThd, tvWch ', tvPrc
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
 Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As Form frmMain
-Dim Shared As Integer MainHeight =600, MainWidth = 800, tabItemHeight
+Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
 Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True, ManifestIcoCopy ' Add Change Log
 Dim Shared As WString * MAX_PATH mChangelogName  'David Changed
@@ -3995,10 +3995,6 @@ Sub LoadToolBox
 End Sub
 
 Sub LoadSettings
-	MainWidth = iniSettings.ReadInteger("MainWindow", "MainWidth", MainWidth)
-	MainHeight = iniSettings.ReadInteger("MainWindow", "MainHeight", MainHeight)
-	frmMain.Width = Max(MainWidth, 600)
-	frmMain.Height = Max(MainHeight, 400)
 	Dim As UString Temp
 	Dim As ToolType Ptr Tool
 	Dim i As Integer = 0
@@ -7024,6 +7020,10 @@ Sub frmMain_Create(ByRef Sender As Control)
 		#endif
 		Kill ExePath & "/DebugInfo.log"
 	End If
+	frmMain.Width = iniSettings.ReadInteger("MainWindow", "Width", 600)
+	frmMain.Height = iniSettings.ReadInteger("MainWindow", "Height", 400)
+	Var MainMaximized = iniSettings.ReadBool("MainWindow", "Maximized", False)
+	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", True)
 	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
@@ -7381,8 +7381,11 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 		tn = tvExplorer.Nodes.Item(i)
 		If CInt(tn->ImageKey = "Project") Then CloseProject(tn, True)
 	Next i
-	iniSettings.WriteInteger("MainWindow", "MainWidth", frmMain.Width)
-	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)
+	If frmMain.WindowState <> WindowStates.wsMaximized Then
+		iniSettings.WriteInteger("MainWindow", "Width", frmMain.Width)
+		iniSettings.WriteInteger("MainWindow", "Height", frmMain.Height)
+	End If
+	iniSettings.WriteBool("MainWindow", "Maximized", frmMain.WindowState = WindowStates.wsMaximized)
 	iniSettings.WriteBool("MainWindow", "LeftClosed", GetLeftClosedStyle)
 	iniSettings.WriteInteger("MainWindow", "LeftWidth", tabLeftWidth)
 	iniSettings.WriteBool("MainWindow", "RightClosed", GetRightClosedStyle)
