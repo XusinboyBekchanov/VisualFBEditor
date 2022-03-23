@@ -5946,7 +5946,7 @@ Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 			Else
 				rc.Left += 3
 			End If
-			rc.Right = l + Sender.Columns.Column(i)->Width
+			rc.Right = l + ScaleX(Sender.Columns.Column(i)->Width)
 			zTxt = Item->Text(i)
 			iIndent = Item->Indent
 			DrawText Canvas.Handle, @zTxt, Len(zTxt), @rc, DT_END_ELLIPSIS     'Draw text
@@ -5960,7 +5960,7 @@ Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 					ImageList_Draw(Sender.Images->Handle, Item->ImageIndex, Canvas.Handle, R.Left + iIndent * 16 + 24, R.Top, ILD_TRANSPARENT)
 				End If
 			End If
-			l += Sender.Columns.Column(i)->Width
+			l += ScaleX(Sender.Columns.Column(i)->Width)
 			rc.Left = l + 3
 		Next
 	#endif
