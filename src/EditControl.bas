@@ -1598,7 +1598,7 @@ Namespace My.Sys.Forms
 		#endif
 		
 		VScrollMax = Max(0, LinesCount - VisibleLinesCount + 1)
-		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30
+		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
 		
 		#ifdef __USE_GTK__
 			gtk_adjustment_set_upper(adjustmentv, VScrollMax)
@@ -1773,7 +1773,7 @@ Namespace My.Sys.Forms
 			dwCharX = UnScaleX(tm.tmAveCharWidth)
 			dwCharY = UnScaleY(tm.tmHeight)
 		#endif
-		LeftMargin = Len(Str(LinesCount)) * dwCharX + 5 * dwCharX '30
+		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
 		
 		dwClientX = ClientWidth
 		dwClientY = ClientHeight
@@ -2876,17 +2876,6 @@ Namespace My.Sys.Forms
 				#else
 					scrDirection = IIf(e->scroll.direction = GDK_SCROLL_UP, -1, 1)
 				#endif
-				If scrDirection = 1 Then
-					gtk_adjustment_set_value(adjustmentv, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
-				ElseIf scrDirection = -1 Then
-					gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
-				End If
-				'If Not gtk_adjustment_get_value(adjustmentv) = OldPos Then
-				VScrollPos = gtk_adjustment_get_value(adjustmentv)
-				ShowCaretPos False
-				'PaintControl
-				If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
-				'End If
 			#else
 				#ifdef __FB_64BIT__
 					If msg.wParam < 4000000000 Then
@@ -2901,44 +2890,63 @@ Namespace My.Sys.Forms
 				si.fMask  = SIF_ALL
 				GetScrollInfo (FHandle, SB_VERT, @si)
 				OldPos = si.nPos
-				If scrDirection = -1 Then
-					si.nPos = Min(si.nPos + 3, si.nMax)
-				Else
-					si.nPos = Max(si.nPos - 3, si.nMin)
-				End If
-				si.fMask = SIF_POS
-				SetScrollInfo(FHandle, SB_VERT, @si, True)
-				GetScrollInfo(FHandle, SB_VERT, @si)
-				If (Not si.nPos = OldPos) Then
-					VScrollPos = si.nPos
+			#endif
+			If bCtrl Then
+				EditorFontSize += scrDirection
+				PaintControl
+			Else
+				#ifdef __USE_GTK__
+					If scrDirection = 1 Then
+						gtk_adjustment_set_value(adjustmentv, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
+					ElseIf scrDirection = -1 Then
+						gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
+					End If
+					'If Not gtk_adjustment_get_value(adjustmentv) = OldPos Then
+					VScrollPos = gtk_adjustment_get_value(adjustmentv)
 					ShowCaretPos False
-					If DownButton = 0 Then
-						#ifdef __USE_GTK__
-							FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-							FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-							If e->button.x < LeftMargin Then
-						#else
-							dwTemp = GetMessagePos
-							psPoints = MAKEPOINTS(dwTemp)
-							poPoint.X = psPoints.X
-							poPoint.Y = psPoints.Y
-							..ScreenToClient(Handle, @poPoint)
-							FSelEndLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
-							FSelEndChar = CharIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
-							If poPoint.X < LeftMargin Then
-						#endif
-							If FSelEndLine < FSelStartLine Then
-								'FSelStart = LineFromCharIndex(FSelStart)
-								'FSelStart = CharIndexFromLine(FSelStart) + LineLength(FSelStart)
-								FSelStartChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text)
-							Else
-								FSelEndChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text)
+					'PaintControl
+					If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
+					'End If
+				#else
+					If scrDirection = -1 Then
+						si.nPos = Min(si.nPos + 3, si.nMax)
+					Else
+						si.nPos = Max(si.nPos - 3, si.nMin)
+					End If
+					si.fMask = SIF_POS
+					SetScrollInfo(FHandle, SB_VERT, @si, True)
+					GetScrollInfo(FHandle, SB_VERT, @si)
+					If (Not si.nPos = OldPos) Then
+						VScrollPos = si.nPos
+						ShowCaretPos False
+						If DownButton = 0 Then
+							#ifdef __USE_GTK__
+								FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+								FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+								If e->button.x < LeftMargin Then
+							#else
+								dwTemp = GetMessagePos
+								psPoints = MAKEPOINTS(dwTemp)
+								poPoint.X = psPoints.X
+								poPoint.Y = psPoints.Y
+								..ScreenToClient(Handle, @poPoint)
+								FSelEndLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
+								FSelEndChar = CharIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
+								If poPoint.X < LeftMargin Then
+							#endif
+								If FSelEndLine < FSelStartLine Then
+									'FSelStart = LineFromCharIndex(FSelStart)
+									'FSelStart = CharIndexFromLine(FSelStart) + LineLength(FSelStart)
+									FSelStartChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text)
+								Else
+									FSelEndChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text)
+								End If
 							End If
 						End If
+						PaintControl
 					End If
-					PaintControl
-				End If
-			#endif
+				#endif
+			End If
 			#ifndef __USE_GTK__
 			Case WM_NOTIFY
 				Dim As LPNMHDR lp = Cast(LPNMHDR, msg.LParam)
@@ -4009,7 +4017,7 @@ Namespace My.Sys.Forms
 				'Dim extend As cairo_text_extents_t
 				'cairo_text_extents (cr, "|", @extend)
 				
-				ec->LeftMargin = Len(Str(ec->LinesCount)) * ec->dwCharX + 30
+				ec->LeftMargin = Len(Str(ec->LinesCount)) * ec->dwCharX + 30 '5 * dwCharX
 				
 				ec->pdisplay = gtk_widget_get_display(widget)
 				ec->gdkCursorIBeam = gdk_cursor_new_for_display(ec->pdisplay, GDK_XTERM)
