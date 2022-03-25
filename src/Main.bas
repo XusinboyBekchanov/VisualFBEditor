@@ -6664,6 +6664,10 @@ lvSearch.Columns.Add ML("File"), , 300, cfLeft
 lvSearch.OnItemActivate = @lvSearch_ItemActivate
 'lvSearch.OnKeyDown = @lvSearch_KeyDown
 
+Sub ReloadHistoryCode
+	
+End Sub
+
 Sub RestoreStatusText
 	pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
 End Sub
