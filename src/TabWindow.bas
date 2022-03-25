@@ -679,9 +679,6 @@ End Operator
 Function TabWindow.SaveTab As Boolean
 	'  It is important to creat a backup file by time.
 	'If txtCode.Modified = True Then
-	'MutexLock tlock
-	'MutexLock tlockSave
-	'MutexLock tlockToDo
 	If AutoCreateBakFiles Then
 		FileCopy *FFileName, Str(GetBakFileName(*FFileName)) '
 	End If
@@ -781,9 +778,6 @@ Function TabWindow.SaveTab As Boolean
 		MutexUnlock tlockSave
 		ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
 	End If
-	'MutexUnlock tlock
-	'MutexUnlock tlockSave
-	'MutexUnlock tlockToDo
 	Return True
 End Function
 

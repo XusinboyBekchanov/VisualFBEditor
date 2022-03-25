@@ -1,4 +1,4 @@
-﻿# VisualFBEditor
+﻿# VisualFBEditor|<a href="https://github.com/XusinboyBekchanov/README_CN.md">中文介绍</a>
 ## IDE for FreeBasic
 
 #### Introduction

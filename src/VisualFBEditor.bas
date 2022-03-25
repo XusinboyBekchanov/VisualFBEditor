@@ -162,6 +162,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "OpenProjectFolder":                   OpenProjectFolder
 	Case "ProjectProperties":                   pfProjectProperties->RefreshProperties: pfProjectProperties->ShowModal *pfrmMain
 	Case "SetAsMain":                           SetAsMain
+	Case "ReloadHistoryCode":                   ReloadHistoryCode 
 	Case "ProjectExplorer":                     ptabLeft->Tab(0)->SelectTab
 	Case "PropertiesWindow":                    ptabRight->Tab(0)->SelectTab
 	Case "EventsWindow":                        ptabRight->Tab(1)->SelectTab

@@ -190,6 +190,7 @@ Declare Sub OpenProgram()
 Declare Sub PrintThis()
 Declare Sub PrintPreview()
 Declare Sub PageSetup()
+Declare Sub ReloadHistoryCode
 Declare Sub SetAsMain()
 Declare Sub SetAutoColors
 Declare Sub StartProgress()
