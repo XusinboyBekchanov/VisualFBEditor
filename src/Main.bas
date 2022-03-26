@@ -59,7 +59,7 @@ Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
-Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miRemoveFiles, miToolBars
+Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
 Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar ReBar1
@@ -339,10 +339,15 @@ Function GetFileName(ByRef FileName As WString) As UString
 End Function
 
 Function GetBakFileName(ByRef FileName As WString) As UString
+	If FileName = "" Then Return ""
+	Dim As String BakDate = Format(Now, "yyyymmdd_hhmm") 'David Change ReplaceAny(__DATE_ISO__ & "_" & Time,":/\-","")
+	Dim As WString * MAX_PATH iFileName
 	Dim Pos1 As Long = InStrRev(FileName, ".")
 	If Pos1 = 0 Then Pos1 = Len(FileName)
 	If Pos1 > 0 Then
-		Return FileName & ".bak" 'Left(FileName, Pos1 - 1) & "_bak" & Mid(FileName, Pos1)
+		Return ExePath + "/Temp/" + GetFileName(FileName) + "_" & BakDate & ".bak"
+	Else
+		Return ExePath + "/Temp/" + BakDate & ".bak"
 	End If
 End Function
 
@@ -2307,6 +2312,24 @@ Sub SetMainNode(tn As TreeNode Ptr)
 		MainNode->Bold = True
 		lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 	End If
+End Sub
+
+Sub ReloadHistoryCode()
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	tb->txtCode.Modified = True
+	tb->Save
+	Dim As OpenFileDialog OpenD
+	OpenD.InitialDir = ExePath & "/Temp" 'TODO Not working ?
+	OpenD.Filter = ML("Backup Files") & "(*.bak)|" & getFilename(tb->FileName) & "*.bak|" & ML("All Files") & "|*.*|"
+	If OpenD.Execute AndAlso Trim(OpenD.FileName) <> "" Then
+		tb->txtCode.Changing "Reload"
+		tb->txtCode.LoadFromFile(OpenD.FileName, tb->FileEncoding, tb->NewLineType)
+		tb->txtCode.Changed "Reload"
+		tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
+		tb->txtCode.Modified = True
+	End If
+	
 End Sub
 
 Sub SetAsMain()
@@ -4825,6 +4848,7 @@ Sub CreateMenusAndToolBars
 	
 	'mnuTabs.ImagesList = @imgList '<m>
 	miTabSetAsMain = mnuTabs.Add(ML("&Set as Main"), "", "SetAsMain", @mclick)
+	miTabReloadHistoryCode = mnuTabs.Add(ML("&Reload History Code"), "", "ReloadHistoryCode", @mclick)
 	mnuTabs.Add("-")
 	mnuTabs.Add(ML("&Close"), "Close", "Close", @mclick)
 	mnuTabs.Add(ML("Close All Without Current"), "", "CloseAllWithoutCurrent", @mclick)
@@ -6663,10 +6687,6 @@ lvSearch.Columns.Add ML("Column"), , 50, cfRight
 lvSearch.Columns.Add ML("File"), , 300, cfLeft
 lvSearch.OnItemActivate = @lvSearch_ItemActivate
 'lvSearch.OnKeyDown = @lvSearch_KeyDown
-
-Sub ReloadHistoryCode
-	
-End Sub
 
 Sub RestoreStatusText
 	pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
