@@ -24,7 +24,10 @@ FreeBASIC编译器其他下载地址1：<a href="http://users.freebasic-portal.d
 
 切记：MyFbFramework框架目录下如果没有 mff64.dll和libmff64.dll.a（运行64位系统VisualFBEditor）,mff32.dll和libmff32.dll.a（运行32位系统VisualFBEditor） 你将不能进行可视化窗体设计。你可以下载MyFbFramework框架源码并按照下面提供的方法进行编译。freeBasic有很多第三方库支持，可以通过安装Msys2后下载。
 
-在下面提供的进行命令行程序编译中，编译器的路径，和MyFbFramework框架的路径也要改为在你电脑中的实际地址，在旧版中不支持相对路径，如果出现找不到文件的情况，请把相应的编译器的路径，和MyFbFramework框架的路径在“设置”里配置为绝对路径。
+在下面提供的进行命令行程序编译中，编译器的路径，和MyFbFramework框架的路径也要改为在你电脑中的实际地址，在旧版中不支持相对路径，如果出现找不到文件的情况，请把相应的编译器的路径，和MyFbFramework框架的路径在“设置”里配置为绝对路径。 
+
+#### 已知问题:
+VisualFBEditor代码窗口和微软的拼音有冲突出现假死，解决办法是在微软的拼音设置里把“使用以前版本的微软拼音输入法”打开或者安装其他输入法。
 
 #### 编译在操作系统 Windows 32-bit:
 ```shell
