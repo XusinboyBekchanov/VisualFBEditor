@@ -163,7 +163,8 @@ End Sub
 Sub NumberingProject(pSender As Any Ptr)
 	Dim As TreeNode Ptr tn, tn1, tn2 = ptvExplorer->SelectedNode
 	Dim As ExplorerElement Ptr ee
-	Dim As Boolean bMacro = Cast(My.Sys.Object Ptr, pSender)->ToString = "ProjectMacroNumberOn"
+	Dim As Boolean bMacro = StartsWith(Cast(My.Sys.Object Ptr, pSender)->ToString, "ProjectMacroNumberOn")
+	Dim As Boolean bStartsOfProcs = EndsWith(Cast(My.Sys.Object Ptr, pSender)->ToString, "StartsOfProcs")
 	Dim As Boolean bRemove = Cast(My.Sys.Object Ptr, pSender)->ToString = "ProjectNumberOff"
 	Dim As EditControl txt
 	Dim As EditControl Ptr ptxt
@@ -190,7 +191,7 @@ Sub NumberingProject(pSender As Any Ptr)
 						Else
 							ptxt = @tb->txtCode
 						End If
-						If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True)
+						If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
 						If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 					End If
 				End If
@@ -203,7 +204,7 @@ Sub NumberingProject(pSender As Any Ptr)
 			Else
 				ptxt = @tb->txtCode
 			End If
-			If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True)
+			If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
 			If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 		End If
 	Next
@@ -7026,7 +7027,7 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 	End With
 End Sub
 
-Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False, ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
+Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False, ByRef txtCode As EditControl, WithoutUpdate As Boolean = False, StartsOfProcs As Boolean = False)
 	With txtCode
 		If Not WithoutUpdate Then .UpdateLock
 		.Changing("Raqamlash")
@@ -7038,7 +7039,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 		End If
 		Dim As EditControlLine Ptr FECLine
 		Dim As Integer n, NotNumberingScopesCount, NamespacesCount
-		Dim As Boolean bNotNumberNext, bNotNumberThis, bInFunction, bInType
+		Dim As Boolean bNotNumberNext, bNotNumberThis, bInFunction, bInType, bFunctionStart
 		For i As Integer = StartLine To EndLine
 			FECLine = .FLines.Items[i]
 			bNotNumberThis = bNotNumberNext
@@ -7066,11 +7067,19 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				Continue For
 			ElseIf FECLine->ConstructionIndex >= 17 Then
 				bInFunction = FECLine->ConstructionPart <> 2
+				If bInFunction Then bFunctionStart = False
 				Continue For
 			ElseIf FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
 				Continue For
 			ElseIf (NamespacesCount > 0 AndAlso Not bInFunction) OrElse NotNumberingScopesCount > 0 Then
 				Continue For
+			End If
+			If StartsOfProcs Then
+				If bInFunction AndAlso Not bFunctionStart Then
+					bFunctionStart = True
+				Else
+					Continue For
+				End If
 			End If
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			If StartsWith(LTrim(*FECLine->Text), "?") Then

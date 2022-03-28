@@ -114,8 +114,8 @@ Select CURSOR "../resources/Select.cur"
 #define APP_TITLE_STR               "Visual FB Editor\0"
 #define VER_FILEDESCRIPTION_STR     "IDE for FreeBasic\0"
 
-#define VER_FILEVERSION             1,3,0,7286
-#define VER_FILEVERSION_STR         "1.3.0.7286\0"
+#define VER_FILEVERSION             1,3,0,7338
+#define VER_FILEVERSION_STR         "1.3.0.7338\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

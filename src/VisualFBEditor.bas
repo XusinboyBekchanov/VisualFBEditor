@@ -23,7 +23,9 @@ On Error Goto AA
 
 #define MEMCHECK 0
 #define FILENUMCHECK 1
-#define _L
+#define _L DebugPrint_ __LINE__ & ": " & __FILE__ & ": " & __FUNCTION__:
+
+Declare Sub DebugPrint_(ByRef Msg As WString)
 
 #include once "Main.bi"
 #include once "Debug.bi"
@@ -39,6 +41,10 @@ On Error Goto AA
 #include once "frmTools.bi"
 #include once "frmAbout.bi"
 #include once "TabWindow.bi"
+
+Sub DebugPrint_(ByRef Msg As WString)
+	DebugPrint Msg, True, False, False
+End Sub
 
 Sub StartDebuggingWithCompile(Param As Any Ptr)
 	ThreadsEnter
@@ -202,6 +208,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "UnformatProject":                     ThreadCounter(ThreadCreate_(@FormatProject, Cast(Any Ptr, 1))) 'FormatProject Cast(Any Ptr, 1)
 	Case "ProjectNumberOn":                     ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "ProjectMacroNumberOn":                ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
+	Case "ProjectMacroNumberOnStartsOfProcs":   ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "ProjectNumberOff":                    ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "GDBCommand":                          GDBCommand

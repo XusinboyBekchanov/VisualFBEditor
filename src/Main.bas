@@ -816,7 +816,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Yaratilmadi = Dir(*exename) = ""
 		#endif
 		'Delete the default ManifestFile And IcoFile
-		If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
+		'If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
 		#ifdef __USE_GTK__
 			Fn = FreeFile_
 			Result = -1
@@ -4629,8 +4629,8 @@ Sub CreateMenusAndToolBars
 	miTry->Add(ML("Procedure macro numbering") & HK("ProcedureMacroNumberOn"), "", "ProcedureMacroNumberOn", @mclick)
 	miTry->Add(ML("Remove Procedure numbering") & HK("ProcedureNumberOff"), "", "ProcedureNumberOff", @mclick)
 	miTry->Add("-")
-	miTry->Add(ML("Project numbering") & HK("ProjectNumberOn"), "Numbering", "ProjectNumberOn", @mclick)
 	miTry->Add(ML("Project macro numbering") & HK("ProjectMacroNumberOn"), "", "ProjectMacroNumberOn", @mclick)
+	miTry->Add(ML("Project macro numbering: Starts of procedures") & HK("ProjectMacroNumberOnStartsOfProcs"), "", "ProjectMacroNumberOnStartsOfProcs", @mclick)
 	miTry->Add(ML("Remove Project numbering") & HK("ProjectNumberOff"), "", "ProjectNumberOff", @mclick)
 	miTry->Add("-")
 	miTry->Add(ML("Preprocessor numbering") & HK("PreprocessorNumberOn"), "Numbering", "PreprocessorNumberOn", @mclick)
