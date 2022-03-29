@@ -177,7 +177,7 @@ Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
 		Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & Right("0000" & ShowTipoftheDayIndex, 4) & IIf(g_darkModeEnabled, "D", "") & ".png"
 		If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
 	Else
-		Msgbox ML("File") & " """ & GetOSPath(ExePath & "Help/Tip of the Day/") & CurLanguage & ".tip"" " & ML("not found!")
+		Msgbox ML("File") & " """ & GetOSPath(ExePath & "/Help/Tip of the Day/") & CurLanguage & ".tip"" " & ML("not found!")
 	End If
 	chkDoNotShow.Checked = Not ShowTipoftheDay 
 End Sub
