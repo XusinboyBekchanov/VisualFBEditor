@@ -2326,7 +2326,9 @@ Sub ReloadHistoryCode()
 		tb->txtCode.Changing "Reload"
 		tb->txtCode.LoadFromFile(OpenD.FileName, tb->FileEncoding, tb->NewLineType)
 		tb->txtCode.Changed "Reload"
-		tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
+		#ifdef __USE_WINAPI__
+			tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
+		#endif
 		tb->txtCode.Modified = True
 	End If
 	
