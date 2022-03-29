@@ -4284,8 +4284,8 @@ Sub LoadLanguageTexts
 	
 	If CurLanguage = "" Then
 		mlKeys.Add "#Til"
-		mlTexts.Add "English"
-		CurLanguage = "English"
+		mlTexts.Add "english"
+		CurLanguage = "english"
 	Else
 		Dim As Integer i, Pos1
 		Dim As Integer Fn = FreeFile_, Result
