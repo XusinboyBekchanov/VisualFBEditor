@@ -1,4 +1,22 @@
-﻿Version 1.3.0 (March 18, 2022)
+﻿Version 1.3.1 (March 31, 2022)
+- Fixed: Tip of the Day on Linux
+- Added: Project macro numbering: Starts of procedures menu item
+- Added: GridData Control
+- Added: Function Reload History Code
+- Added: Ctrl + MouseWheel to Edit control
+- Fixed: Properties Window High DPI
+- Added: Saving Width, Height and Maximized state of Main Window on exit
+- Fixed: Saving Recent Files/Folders/Projects/Sessions in Settings
+- Fixed: Showing properties without comment in Design Mode
+- Fixed: Tab window updating
+- Fixed: Compiling GridData example
+- Improved: Copy controls copies all properties
+- Added: Ability to edit properties of selected multiple controls
+- Added: Add relative paths to recent option
+- Fixed: Move controls by keys in Designer
+- Improved: When unchecked Create non-static event handlers option disables Place static event handlers after the Constructor and Create static event handlers with an underscore at the beginning options
+- Fixed: Auto create resource and manifest files
+Version 1.3.0 (March 18, 2022)
 - Added: Ability to change the Controls Tag property in the Properties Window
 - Added: Syntax Highlighting keywords with double dots
 - Fixed: Keywords Intellisense

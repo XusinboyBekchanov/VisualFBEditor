@@ -5035,7 +5035,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			.splForm.Visible = False
 			ptabLeft->SelectedTabIndex = 0
 		Case "Form"
-			If tb->cboClass.Items.Count < 2 Then Exit Sub
+			'If tb->cboClass.Items.Count < 2 Then Exit Sub
 			.pnlCode.Visible = False
 			.pnlForm.Align = DockStyle.alClient
 			.pnlForm.Visible = True
@@ -5043,7 +5043,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			If .bNotDesign = False Then .FormDesign
 			ptabLeft->SelectedTabIndex = 1
 		Case "CodeAndForm"
-			If tb->cboClass.Items.Count < 2 Then Exit Sub
+			'If tb->cboClass.Items.Count < 2 Then Exit Sub
 			.pnlForm.Align = DockStyle.alRight
 			.pnlForm.Width = 350
 			.pnlForm.Visible = True
