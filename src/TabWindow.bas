@@ -5100,6 +5100,7 @@ mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mclick)
 Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pnl->Parent)
+	If tb = 0 OrElse tb->Des = 0 Then Exit Sub
 	#ifndef __USE_GTK__
 		Select Case Msg.Msg
 		Case WM_SIZE
