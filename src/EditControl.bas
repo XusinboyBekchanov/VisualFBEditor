@@ -1772,6 +1772,8 @@ Namespace My.Sys.Forms
 			
 			dwCharX = UnScaleX(tm.tmAveCharWidth)
 			dwCharY = UnScaleY(tm.tmHeight)
+			CreateCaret(FHandle, 0, 0, ScaleY(dwCharY))
+			ShowCaret FHandle
 		#endif
 		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
 		
