@@ -944,12 +944,14 @@ Namespace My.Sys.Forms
 		'Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
 		Dim pBuff As WString Ptr
 		Dim As Integer Result = -1, Fn = FreeFile_, FileSize
+		Dim As FileEncodings OldFileEncoding
 		Var iC = 0, OldiC = 0, i = 0, InAsm = False
-		Result = Open(FileName For Input Encoding "utf-8" As #Fn): FileEncoding = FileEncodings.Utf8
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn): FileEncoding = FileEncodings.Utf32
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn): FileEncoding = FileEncodings.Utf16
+		Result = Open(FileName For Input Encoding "utf-8" As #Fn): FileEncoding = FileEncodings.Utf8BOM
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn): FileEncoding = FileEncodings.Utf32BOM
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn): FileEncoding = FileEncodings.Utf16BOM
 		If Result <> 0 Then Result = Open(FileName For Input As #Fn): FileEncoding = FileEncodings.PlainText
 		If Result = 0 Then
+			OldFileEncoding = FileEncoding
 			FileSize = LOF(Fn)
 			WReallocate(pBuff, FileSize)
 			For i As Integer = FLines.Count - 1 To 0 Step -1
@@ -965,6 +967,15 @@ Namespace My.Sys.Forms
 				If FECLine = 0 Then
 					CloseFile_(Fn)
 					Return
+				End If
+				If OldFileEncoding = FileEncodings.PlainText Then
+					Dim As String Buff = *pBuff
+					Dim As WString Ptr pBuff2 = @(FromUTF8(StrPtr(Buff)))
+					If *pBuff <> *pBuff2 Then
+						*pBuff = *pBuff2
+						FileEncoding = FileEncodings.UTF8
+					End If
+					WDeallocate pBuff2
 				End If
 				WLet(FECLine->Text, *pBuff)
 				iC = FindCommentIndex(*pBuff, OldiC)
@@ -1001,10 +1012,12 @@ Namespace My.Sys.Forms
 		Dim As Integer Result
 		Dim As String FileEncodingText, NewLine
 		If FileEncoding = FileEncodings.Utf8 Then
+			FileEncodingText = "ascii"
+		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
 			FileEncodingText = "utf-8"
-		ElseIf FileEncoding = FileEncodings.Utf16 Then
+		ElseIf FileEncoding = FileEncodings.Utf16BOM Then
 			FileEncodingText = "utf-16"
-		ElseIf FileEncoding = FileEncodings.Utf32 Then
+		ElseIf FileEncoding = FileEncodings.Utf32BOM Then
 			FileEncodingText = "utf-32"
 		Else
 			FileEncodingText = "ascii"
@@ -1017,9 +1030,15 @@ Namespace My.Sys.Forms
 			NewLine = Chr(13, 10)
 		End If
 		If Open(File For Output Encoding FileEncodingText As #Fn) = 0 Then
-			For i As Integer = 0 To FLines.Count - 1
-				Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
-			Next
+			If FileEncoding = FileEncodings.Utf8 Then
+				For i As Integer = 0 To FLines.Count - 1
+					Print #Fn, ToUTF8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine;
+				Next
+			Else
+				For i As Integer = 0 To FLines.Count - 1
+					Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
+				Next
+			End If
 		Else
 			MsgBox ML("Save file failure!") & Chr(13,10) & File
 		End If

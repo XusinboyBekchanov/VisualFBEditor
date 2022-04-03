@@ -96,7 +96,7 @@ Common Shared As TabControl Ptr ptabCode, ptabLeft, ptabBottom, ptabRight
 Common Shared As TreeView Ptr ptvExplorer
 Common Shared As IniFile Ptr piniSettings, piniTheme
 Common Shared As MenuItem Ptr mnuUseDebugger, miHelps, miXizmat
-Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf16, miUtf32, miWindowsCRLF, miLinuxLF, miMacOSCR, miUseDefine
+Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf8BOM, miUtf16BOM, miUtf32BOM, miWindowsCRLF, miLinuxLF, miMacOSCR, miUseDefine
 
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
@@ -157,8 +157,9 @@ End Enum
 Enum FileEncodings
 	PlainText
 	Utf8
-	Utf16
-	Utf32
+	Utf8BOM
+	Utf16BOM
+	Utf32BOM
 End Enum
 
 Enum NewLineTypes

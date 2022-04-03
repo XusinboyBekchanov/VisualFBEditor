@@ -519,14 +519,15 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "AddUserControl":                  AddFromTemplate ExePath + "/Templates/Files/User Control.bas"
 	Case "AddResource":                     AddFromTemplate ExePath + "/Templates/Files/Resource.rc"
 	Case "AddManifest":                     AddFromTemplate ExePath + "/Templates/Files/Manifest.xml"
-	Case "PlainText", "Utf8", "Utf16", "Utf32"
+	Case "PlainText", "Utf8", "Utf8BOM", "Utf16BOM", "Utf32BOM"
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		Dim FileEncoding As FileEncodings
 		Select Case Sender.ToString
 		Case "PlainText": FileEncoding = FileEncodings.PlainText
 		Case "Utf8": FileEncoding = FileEncodings.Utf8
-		Case "Utf16": FileEncoding = FileEncodings.Utf16
-		Case "Utf32": FileEncoding = FileEncodings.Utf32
+		Case "Utf8BOM": FileEncoding = FileEncodings.Utf8BOM
+		Case "Utf16BOM": FileEncoding = FileEncodings.Utf16BOM
+		Case "Utf32BOM": FileEncoding = FileEncodings.Utf32BOM
 		End Select
 		ChangeFileEncoding FileEncoding
 		If tb <> 0 Then

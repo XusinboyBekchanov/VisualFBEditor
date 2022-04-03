@@ -2575,15 +2575,17 @@ End Sub
 Sub ChangeFileEncoding(FileEncoding As FileEncodings)
 	If miPlainText <> 0 Then miPlainText->Checked = FileEncoding = FileEncodings.PlainText
 	If miUtf8 <> 0 Then miUtf8->Checked = FileEncoding = FileEncodings.Utf8
-	If miUtf16 <> 0 Then miUtf16->Checked = FileEncoding = FileEncodings.Utf16
-	If miUtf32 <> 0 Then miUtf32->Checked = FileEncoding = FileEncodings.Utf32
+	If miUtf8BOM <> 0 Then miUtf8BOM->Checked = FileEncoding = FileEncodings.Utf8BOM
+	If miUtf16BOM <> 0 Then miUtf16BOM->Checked = FileEncoding = FileEncodings.Utf16BOM
+	If miUtf32BOM <> 0 Then miUtf32BOM->Checked = FileEncoding = FileEncodings.Utf32BOM
 	If stBar.Count > 3 Then
 		With *stBar.Panels[3]
 			Select Case FileEncoding
 			Case FileEncodings.PlainText: .Caption = "ASCII"
 			Case FileEncodings.Utf8: .Caption = "UTF-8"
-			Case FileEncodings.Utf16: .Caption = "UTF-16"
-			Case FileEncodings.Utf32: .Caption = "UTF-32"
+			Case FileEncodings.Utf8BOM: .Caption = "UTF-8 (BOM)"
+			Case FileEncodings.Utf16BOM: .Caption = "UTF-16 (BOM)"
+			Case FileEncodings.Utf32BOM: .Caption = "UTF-32 (BOM)"
 			End Select
 		End With
 	End If
@@ -4357,13 +4359,13 @@ End Sub
 
 stBar.Align = DockStyle.alBottom
 stBar.Add ML("Press F1 for get more information")
-stBar.Panels[0]->Width = frmMain.ClientWidth - 560
+stBar.Panels[0]->Width = frmMain.ClientWidth - 600
 stBar.Add "" 'Space(20)
 stBar.Panels[1]->Width = 240
 stBar.Add "" 'Space(20)
 stBar.Panels[2]->Width = 160
-stBar.Add "UTF-8"
-stBar.Panels[3]->Width = 50
+stBar.Add "UTF-8 (BOM)"
+stBar.Panels[3]->Width = 80
 stBar.Add "CR+LF"
 stBar.Panels[4]->Width = 50
 stBar.Add "NUM"
@@ -4528,13 +4530,14 @@ Sub CreateMenusAndToolBars
 	Var miFileFormat = miFile->Add(ML("File format"))
 	miPlainText = miFileFormat->Add(ML("Encoding") & ": " & ML("Plain text") & HK("PlainText"), "", "PlainText", @mClick, True)
 	miUtf8 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf8") & HK("Utf8"), "", "Utf8", @mClick, True)
-	miUtf16 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf16") & HK("Utf16"), "", "Utf16", @mClick, True)
-	miUtf32 = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf32") & HK("Utf32"), "", "Utf32", @mClick, True)
+	miUtf8BOM = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf8 (BOM)") & HK("Utf8BOM"), "", "Utf8BOM", @mClick, True)
+	miUtf16BOM = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf16 (BOM)") & HK("Utf16BOM"), "", "Utf16BOM", @mClick, True)
+	miUtf32BOM = miFileFormat->Add(ML("Encoding") & ": " & ML("Utf32 (BOM)") & HK("Utf32BOM"), "", "Utf32BOM", @mClick, True)
 	miFileFormat->Add("-")
 	miWindowsCRLF = miFileFormat->Add(ML("Newline") & ": " & ML("Windows (CRLF)") & HK("WindowsCRLF"), "", "WindowsCRLF", @mClick, True)
 	miLinuxLF = miFileFormat->Add(ML("Newline") & ": " & ML("Linux (LF)") & HK("LinuxLF"), "", "LinuxLF", @mClick, True)
 	miMacOSCR = miFileFormat->Add(ML("Newline") & ": " & ML("MacOS (CR)") & HK("MacOSCR"), "", "MacOSCR", @mClick, True)
-	miUtf8->Checked = True
+	miUtf8BOM->Checked = True
 	#ifdef __FB_WIN32__
 		miWindowsCRLF->Checked = True
 	#else
@@ -6913,8 +6916,8 @@ End Sub
 
 Sub frmMain_Resize(ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifndef __USE_GTK__
-		stBar.Panels[0]->Width = NewWidth - 570
-		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width +3
+		stBar.Panels[0]->Width = NewWidth - 600
+		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width + 3
 	#endif
 End Sub
 
