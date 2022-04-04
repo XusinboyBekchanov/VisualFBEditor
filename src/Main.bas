@@ -5272,9 +5272,15 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 		End If
 	End If
 	Dim t As Boolean
+	Dim As TabWindow Ptr tb
 	For i As Integer = 0 To ptabCode->TabCount - 1
-		If Cast(TabWindow Ptr, ptabCode->Tabs[i])->tn = @Item Then
+		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+		If tb->tn = @Item Then
 			ptabCode->SelectedTabIndex = ptabCode->Tabs[i]->Index
+			If tb->Des <> 0 AndAlso tb->tbrTop.Buttons.Item("Code")->Checked Then
+				tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True
+				tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
+			End If
 			t = True
 			Exit For
 		End If
