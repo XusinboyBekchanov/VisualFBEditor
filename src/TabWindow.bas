@@ -1207,7 +1207,8 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
 					Select Case LCase(te->TypeName)
 					Case "integer"
-						Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Dim As Integer intTemp = iTemp
+						Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @intTemp))
 					Case "long"
 						Dim As Long iTemp = Val(*FLine3)
 						Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))

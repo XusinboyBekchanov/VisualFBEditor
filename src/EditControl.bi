@@ -205,6 +205,8 @@ Namespace My.Sys.Forms
 		Dim As Boolean bScrollStarted
 		Dim As Boolean bInMiddleScroll
 		Dim As Integer MButtonX, MButtonY
+		Dim As Boolean bInDivide, bDivided
+		Dim As Integer iDivideY
 		Dim As Integer iCursorLine
 		Dim As Integer iCursorLineOld
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
@@ -264,6 +266,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK3__
 				Dim As GtkStyleContext Ptr scontext
 			#endif
+			Dim As GtkWidget Ptr scrollbarvTop
 			Dim As GtkWidget Ptr scrollbarv
 			Dim As GtkWidget Ptr scrollbarh
 			Dim As GtkAdjustment Ptr adjustmentv
@@ -278,6 +281,10 @@ Namespace My.Sys.Forms
 			Dim As Integer BlinkTime
 			Dim As Boolean InFocus
 			Dim As Boolean bChanged
+		#else
+			Dim As HWND sbScrollBarvTop
+			Dim As HWND sbScrollBarv
+			Dim As HWND sbScrollBarh
 		#endif
 		Dim As Integer dwClientX    ' ширина клиентской области
 		Dim As Integer dwClientY    ' Высота клиентской области
