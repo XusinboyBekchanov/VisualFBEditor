@@ -2540,11 +2540,8 @@ Namespace My.Sys.Forms
 					PolyGon(bufDC, @pPoint4(0), 4)
 				#endif
 			End If
-			If bInDivide Then
-				SetRect(@rc, 0, ScaleY(iDivideY), ScaleX(dwClientX), ScaleY(iDivideY + 5))
-				InvertRect bufDC, @rc
-			ElseIf bDivided Then
-				SetRect(@rc, -1, ScaleY(iDivideY), ScaleX(dwClientX) + 1, ScaleY(iDivideY + 7))
+			If bDivided Then
+				SetRect(@rc, -1, ScaleY(iDividedY), ScaleX(dwClientX) + 1, ScaleY(iDividedY + 7))
 				If g_darkModeEnabled Then
 					This.Canvas.Pen.Color = BGR(130, 135, 144)
 					This.Canvas.Brush.Color = darkBkColor
@@ -2553,6 +2550,10 @@ Namespace My.Sys.Forms
 					This.Canvas.Brush.Color = clBtnFace
 				End If
 				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
+			End If
+			If bInDivide Then
+				SetRect(@rc, 0, ScaleY(iDivideY), ScaleX(dwClientX), ScaleY(iDivideY + 5))
+				InvertRect bufDC, @rc
 			End If
 			BitBlt(hD, 0, 0, ScaleX(dwClientX), ScaleY(dwClientY), bufDC, 0, 0, SRCCOPY)
 			DeleteDc bufDC
@@ -3049,7 +3050,7 @@ Namespace My.Sys.Forms
 				iCursorLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
 				'If Cast(EditControlLine Ptr, FLines.Items[i])->Collapsible Then
 				'If p.X < LeftMargin AndAlso p.X > LeftMargin - 15 Then
-				If bDivided AndAlso UnScaleY(poPoint.Y) >= iDivideY AndAlso UnScaleY(poPoint.Y) <= iDivideY + 7 Then
+				If bDivided AndAlso UnScaleY(poPoint.Y) >= iDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY + 7 Then
 					msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZENS)))
 					Return
 				ElseIf UnScaleX(poPoint.X) > dwClientX - 17 OrElse UnScaleY(poPoint.Y) > dwClientY - 17 Then
@@ -3931,7 +3932,7 @@ Namespace My.Sys.Forms
 			#else
 				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
 			#endif
-			If (X > dwClientX - 17 AndAlso Y < 7) OrElse (Y >= iDivideY AndAlso Y <= iDivideY + 7) Then
+			If (X > dwClientX - 17 AndAlso Y < 7) OrElse (Y >= iDividedY AndAlso Y <= iDividedY + 7) Then
 				bInDivide = True
 				#ifndef __USE_GTK__
 					SetCapture FHandle
@@ -3974,6 +3975,7 @@ Namespace My.Sys.Forms
 			#endif
 			If bInDivide Then
 				bInDivide = False
+				iDividedY = iDivideY
 				If iDivideY <= 7 Then
 					bDivided = False
 					ShowWindow sbScrollBarvTop, SW_HIDE

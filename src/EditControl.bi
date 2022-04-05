@@ -206,7 +206,7 @@ Namespace My.Sys.Forms
 		Dim As Boolean bInMiddleScroll
 		Dim As Integer MButtonX, MButtonY
 		Dim As Boolean bInDivide, bDivided
-		Dim As Integer iDivideY
+		Dim As Integer iDivideY, iDividedY
 		Dim As Integer iCursorLine
 		Dim As Integer iCursorLineOld
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
