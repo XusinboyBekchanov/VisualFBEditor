@@ -1768,12 +1768,13 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			WLet(FLine, tb->GetFormattedPropertyValue(tb->Des->DesignControl, PropertyName))
 			If *FLine <> "" Then ptxtCode->InsertLine ep + 8, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q = 1
 		End If
+		ptxtCode->InsertLine ep + q + 8, *FLine1 & TabSpace & TabSpace & ".Designer = @This"
 		tb->Des->GetControlBounds(tb->Des->DesignControl, iLeft1, iTop1, iWidth1, iHeight1)
-		ptxtCode->InsertLine ep + q + 8, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
-		ptxtCode->InsertLine ep + q + 9, *FLine1 & TabSpace & "End With"
-		ptxtCode->InsertLine ep + q + 10, *FLine1 & "End Constructor": tb->ConstructorEnd = ep + q + 10
-		InsLineCount += q + 9
-		If Cpnt = tb->Des->DesignControl Then j = ep + q + 10: t = True
+		ptxtCode->InsertLine ep + q + 9, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
+		ptxtCode->InsertLine ep + q + 10, *FLine1 & TabSpace & "End With"
+		ptxtCode->InsertLine ep + q + 11, *FLine1 & "End Constructor": tb->ConstructorEnd = ep + q + 11
+		InsLineCount += q + 11
+		If Cpnt = tb->Des->DesignControl Then j = ep + q + 11: t = True
 		se = ep + q + 10
 	ElseIf se = 0 Then
 		'Var l = .CharIndexFromLine(sc + 1)
@@ -1828,8 +1829,11 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 			InsLineCount += 1
 			tb->ConstructorEnd += 1
-			If Cpnt <> tb->Des->DesignControl Then ptxtCode->InsertLine se + q + 4, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: InsLineCount += 1: q += 1
-			ptxtCode->InsertLine se + q + 4, *FLine1 & TabSpace & "End With": InsLineCount += 1
+			ptxtCode->InsertLine se + q + 4, *FLine1 & TabSpace & TabSpace & ".Designer = @This"
+			InsLineCount += 1
+			tb->ConstructorEnd += 1
+			If Cpnt <> tb->Des->DesignControl Then ptxtCode->InsertLine se + q + 5, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: InsLineCount += 1: q += 1
+			ptxtCode->InsertLine se + q + 5, *FLine1 & TabSpace & "End With": InsLineCount += 1
 			tb->ConstructorEnd += 1
 		ElseIf tb->Des->IsComponentFunc <> 0 AndAlso CInt(tb->Des->IsComponentFunc(Cpnt)) Then
 			q = 0
@@ -1845,32 +1849,34 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
 			ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".SetBounds " & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
-			ptxtCode->InsertLine se + 4, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName
-			tb->ConstructorEnd += 5
+			ptxtCode->InsertLine se + 4, *FLine1 & TabSpace & TabSpace & ".Designer = @This"
+			ptxtCode->InsertLine se + 5, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName
+			tb->ConstructorEnd += 6
 			'  Confuse the formatcode function
 			If PropertyName <> "" AndAlso PropertyName <> "Name" Then
-				ptxtCode->InsertLine se + 5, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
+				ptxtCode->InsertLine se + 6, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
 				tb->ConstructorEnd += 1
 			End If
-			ptxtCode->InsertLine se + q + 5, *FLine1 & TabSpace & "End With"
-			InsLineCount += q + 5
+			ptxtCode->InsertLine se + q + 6, *FLine1 & TabSpace & "End With"
+			InsLineCount += q + 6
 			tb->ConstructorEnd += 1
 		Else
 			q = 0
 			ptxtCode->InsertLine se, *FLine1 & TabSpace & "' " & CtrlName
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
-			tb->ConstructorEnd += 3
+			ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".Designer = @This"
+			tb->ConstructorEnd += 4
 			'  Confuse the formatcode function
 			If PropertyName = "Parent" Then
-				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: q += 1
+				ptxtCode->InsertLine se + 4, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: q += 1
 				tb->ConstructorEnd += 1
 			ElseIf PropertyName <> "" AndAlso PropertyName <> "Name" Then
-				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
+				ptxtCode->InsertLine se + 4, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
 				tb->ConstructorEnd += 1
 			End If
-			ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & "End With"
-			InsLineCount += q + 3
+			ptxtCode->InsertLine se + q + 4, *FLine1 & TabSpace & "End With"
+			InsLineCount += q + 4
 			tb->ConstructorEnd += 1
 		End If
 	ElseIf Not t Then
