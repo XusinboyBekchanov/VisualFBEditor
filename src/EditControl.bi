@@ -119,7 +119,8 @@ Namespace My.Sys.Forms
 		Dim FLineSpace As WString Ptr
 		Dim FHintWord As WString Ptr
 		Dim HScrollMax As Integer
-		Dim VScrollMax As Integer
+		Dim VScrollMaxTop As Integer
+		Dim VScrollMaxBottom As Integer
 		Dim nCaretPosX As Integer = 0 ' горизонтальная координата каретки
 		Dim nCaretPosY As Integer = 0 ' вертикальная координата каретки
 		Dim iPos As Integer
@@ -221,7 +222,7 @@ Namespace My.Sys.Forms
 		Declare Sub FontSettings
 		Declare Function CharType(ByRef ch As WString) As Integer
 		Declare Function MaxLineWidth() As Integer
-		Declare Sub PaintText(iLine As Integer, ByRef s As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
+		Declare Sub PaintText(CodePane As Integer, iLine As Integer, ByRef s As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
 		Declare Function GetLineIndex(Index As Integer, iTo As Integer = 0) As Integer
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Sub SplitLines
@@ -283,9 +284,10 @@ Namespace My.Sys.Forms
 			Dim As Boolean bChanged
 		#else
 			Dim As HWND sbScrollBarvTop
-			Dim As HWND sbScrollBarv
+			Dim As HWND sbScrollBarvBottom
 			Dim As HWND sbScrollBarh
 		#endif
+		Dim As Integer ActiveCodePane
 		Dim As Integer dwClientX    ' ширина клиентской области
 		Dim As Integer dwClientY    ' Высота клиентской области
 		Canvas As My.Sys.Drawing.Canvas
@@ -303,7 +305,8 @@ Namespace My.Sys.Forms
 		Dim As Boolean CStyle
 		Dim LeftMargin As Integer
 		Dim HScrollPos As Integer
-		Dim VScrollPos As Integer
+		Dim VScrollPosTop As Integer
+		Dim VScrollPosBottom As Integer
 		#ifdef __USE_GTK__
 			lvIntellisense As ListView
 			lblTooltip As GtkWidget Ptr
@@ -335,9 +338,9 @@ Namespace My.Sys.Forms
 		Declare Function GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
 		Declare Function GetCaretPosY(LineIndex As Integer) As Integer
 		Declare Function CharIndexFromPoint(X As Integer, Y As Integer) As Integer
-		Declare Function LineIndexFromPoint(X As Integer, Y As Integer) As Integer
+		Declare Function LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		Declare Function LinesCount As Integer
-		Declare Function VisibleLinesCount As Integer
+		Declare Function VisibleLinesCount(CodePane As Integer = -1) As Integer
 		Declare Function Lines(Index As Integer) ByRef As WString
 		Declare Function LineLength(Index As Integer) As Integer
 		Declare Property Text ByRef As WString
@@ -394,6 +397,7 @@ Namespace My.Sys.Forms
 	
 	Common Constructions() As Construction
 	Common As EditControl Ptr CurEC, ScrEC
+	Common As Integer MiddleScrollIndex
 End Namespace
 
 Declare Sub LoadKeyWords

@@ -118,6 +118,8 @@ Namespace My.Sys.Forms
 			End If
 			si.cbSize = Len(si)
 			si.fMask = SIF_RANGE Or SIF_PAGE Or SIF_POS Or SIF_TRACKPOS
+			Var sbScrollBarv = IIf(MiddleScrollIndex = 0, sbScrollBarvTop, sbScrollBarvBottom)
+			Var VScrollPos = IIf(MiddleScrollIndex = 0, VScrollPosTop, VScrollPosBottom)
 			GetScrollInfo sbScrollBarv, SB_CTL, @si
 			'GetScrollInfo FHandle, SB_VERT, @si
 			lVertOffset = deltaToScrollAmount(lYOffset)
@@ -208,18 +210,26 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Property EditControl.TopLine As Integer
-		Return VScrollPos
+		If ActiveCodePane = 0 Then
+			Return VScrollPosTop
+		Else
+			Return VScrollPosBottom
+		End If
 	End Property
 	
 	Property EditControl.TopLine(Value As Integer)
-		VScrollPos = Min(GetCaretPosY(Value), VScrollMax)
+		Var VScrollPos = Min(GetCaretPosY(Value), IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom))
 		#ifdef __USE_GTK__
 			gtk_adjustment_set_value(adjustmentv, VScrollPos)
 		#else
 			si.cbSize = SizeOf (si)
 			si.fMask = SIF_POS
 			si.nPos = VScrollPos
-			SetScrollInfo(FHandle, SB_VERT, @si, True)
+			If ActiveCodePane = 0 Then
+				SetScrollInfo(sbScrollBarvTop, SB_CTL, @si, True)
+			Else
+				SetScrollInfo(sbScrollBarvBottom, SB_CTL, @si, True)
+			End If
 		#endif
 		PaintControl
 	End Property
@@ -1229,8 +1239,16 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Function EditControl.VisibleLinesCount() As Integer
-		Return (dwClientY) / dwCharY
+	Function EditControl.VisibleLinesCount(CodePane As Integer = -1) As Integer
+		If bDivided Then
+			If IIf(CodePane = -1, ActiveCodePane, CodePane) = 1 Then
+				Return (dwClientY - iDividedY - 7 - 17) / dwCharY
+			Else
+				Return (iDividedY) / dwCharY
+			End If
+		Else
+			Return (dwClientY - 17) / dwCharY
+		End If
 	End Function
 	
 	Function EditControl.CharIndexFromPoint(X As Integer, Y As Integer) As Integer
@@ -1249,8 +1267,16 @@ Namespace My.Sys.Forms
 		Return Idx
 	End Function
 	
-	Function EditControl.LineIndexFromPoint(X As Integer, Y As Integer) As Integer
-		Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + VScrollPos, LinesCount - 1)))
+	Function EditControl.LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
+		If bDivided Then
+			If IIf(CodePane = -1, ActiveCodePane, CodePane) = 1 Then
+				Return GetLineIndex(0, Max(0, Min(Fix((Y - iDividedY - 7) / dwCharY) + VScrollPosBottom, LinesCount - 1)))
+			Else
+				Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + VScrollPosTop, LinesCount - 1)))
+			End If
+		Else
+			Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + VScrollPosBottom, LinesCount - 1)))
+		End If
 	End Function
 	
 	Function EditControl.Lines(Index As Integer) ByRef As WString
@@ -1315,7 +1341,12 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
 		If X <= LeftMargin Then Return ""
-		Var LineIndex = Fix(Y / dwCharY) + VScrollPos
+		Dim As Integer LineIndex
+		If Y <= iDividedY AndAlso bDivided Then
+			LineIndex = Fix(Y / dwCharY) + VScrollPosTop
+		Else
+			LineIndex = Fix((Y - iDividedY - 7) / dwCharY) + VScrollPosBottom
+		End If
 		Var j = -1, k = -1
 		For i As Integer = 0 To FLines.Count - 1
 			If Cast(EditControlLine Ptr, FLines.Items[i])->Visible Then
@@ -1408,8 +1439,15 @@ Namespace My.Sys.Forms
 		End If
 		
 		SetScrollsInfo
+		Dim As Integer Ptr pVScrollPos
+		If ActiveCodePane = 0 Then
+			pVScrollPos = @VScrollPosTop
+		Else
+			pVScrollPos = @VScrollPosBottom
+		End If
+		Dim As Integer VScrollMax = IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom)
 		If Scroll Then
-			Var OldHScrollPos = HScrollPos, OldVScrollPos = VScrollPos
+			Var OldHScrollPos = HScrollPos, OldVScrollPos = *pVScrollPos
 			If nCaretPosX < HScrollPos * dwCharX Then
 				HScrollPos = nCaretPosX / dwCharX
 			ElseIf LeftMargin + nCaretPosX > HScrollPos * dwCharX + (dwClientX - dwCharX) Then
@@ -1417,12 +1455,12 @@ Namespace My.Sys.Forms
 			ElseIf HScrollPos > HScrollMax Then
 				HScrollPos = HScrollMax
 			End If
-			If nCaretPosY < VScrollPos Then
-				VScrollPos = nCaretPosY
-			ElseIf nCaretPosY > VScrollPos + (VisibleLinesCount - 2) Then
-				VScrollPos = nCaretPosY - (VisibleLinesCount - 2)
-			ElseIf VScrollPos > VScrollMax Then
-				VScrollPos = VScrollMax
+			If nCaretPosY < *pVScrollPos Then
+				*pVScrollPos = nCaretPosY
+			ElseIf nCaretPosY > *pVScrollPos + (VisibleLinesCount - 2) Then
+				*pVScrollPos = nCaretPosY - (VisibleLinesCount - 2)
+			ElseIf *pVScrollPos > VScrollMax Then
+				*pVScrollPos = VScrollMax
 			End If
 			
 			If OldHScrollPos <> HScrollPos Then
@@ -1436,14 +1474,18 @@ Namespace My.Sys.Forms
 					'SetScrollInfo(FHandle, SB_HORZ, @si, True)
 				#endif
 			End If
-			If OldVScrollPos <> VScrollPos Then
+			If OldVScrollPos <> *pVScrollPos Then
 				#ifdef __USE_GTK__
-					gtk_adjustment_set_value(adjustmentv, VScrollPos)
+					gtk_adjustment_set_value(adjustmentv, *pVScrollPos)
 				#else
 					si.cbSize = SizeOf (si)
 					si.fMask = SIF_POS
-					si.nPos = VScrollPos
-					SetScrollInfo(sbScrollBarv, SB_CTL, @si, True)
+					si.nPos = *pVScrollPos
+					If ActiveCodePane = 0 Then
+						SetScrollInfo(sbScrollBarvTop, SB_CTL, @si, True)
+					Else
+						SetScrollInfo(sbScrollBarvBottom, SB_CTL, @si, True)
+					End If
 					'SetScrollInfo(FHandle, SB_VERT, @si, True)
 				#endif
 			End If
@@ -1454,7 +1496,8 @@ Namespace My.Sys.Forms
 		End If
 		
 		HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
-		VCaretPos = (nCaretPosY - VScrollPos) * dwCharY
+		VCaretPos = (nCaretPosY - *pVScrollPos) * dwCharY
+		If bDivided AndAlso ActiveCodePane = 1 Then VCaretPos += iDividedY + 7
 		If HCaretPos < LeftMargin Or FSelStartLine <> FSelEndLine Or FSelStartChar <> FSelEndChar Then HCaretPos = -1
 		#ifdef __USE_GTK__
 			If Scroll Then
@@ -1628,32 +1671,62 @@ Namespace My.Sys.Forms
 			#endif
 		End If
 		
-		Var OldVScrollEnabled = CBool(VScrollMax)
-		Var OldVScrollMax = VScrollMax
-		VScrollMax = Max(0, LinesCount - VisibleLinesCount + 1)
+		Var OldVScrollEnabledBottom = CBool(VScrollMaxBottom)
+		Var OldVScrollMaxBottom = VScrollMaxBottom
+		VScrollMaxBottom = Max(0, LinesCount - VisibleLinesCount(1) + 1)
 		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
-		Var VScrollEnabled = CBool(VScrollMax)
+		Var VScrollEnabledBottom = CBool(VScrollMaxBottom)
 		
-		If OldVScrollMax <> VScrollMax Then
+		If OldVScrollMaxBottom <> VScrollMaxBottom Then
 			#ifdef __USE_GTK__
-				gtk_adjustment_set_upper(adjustmentv, VScrollMax)
+				gtk_adjustment_set_upper(adjustmentv, VScrollMaxBottom)
 				gtk_adjustment_set_page_size(adjustmentv, 0)
 				'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
 			#else
-				If VScrollEnabled Then
+				If VScrollEnabledBottom Then
 					si.cbSize = SizeOf(si)
 					si.fMask  = SIF_RANGE Or SIF_PAGE
 					si.nMin   = 0
-					si.nMax   = VScrollMax
+					si.nMax   = VScrollMaxBottom
 					si.nPage  = 1
-					SetScrollInfo(sbScrollBarv, SB_CTL, @si, True)
+					SetScrollInfo(sbScrollBarvBottom, SB_CTL, @si, True)
 				End If
 				'If OldVScrollEnabled <> VScrollEnabled Then
-					EnableWindow sbScrollBarv, VScrollEnabled
+					EnableWindow sbScrollBarvBottom, VScrollEnabledBottom
 				'End If
 				'SetScrollInfo(FHandle, SB_VERT, @si, True)
 			#endif
 		End If
+		
+		If bDivided Then
+			Var OldVScrollEnabledTop = CBool(VScrollMaxTop)
+			Var OldVScrollMaxTop = VScrollMaxTop
+			VScrollMaxTop = Max(0, LinesCount - VisibleLinesCount(0) + 1)
+			LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
+			Var VScrollEnabledTop = CBool(VScrollMaxTop)
+			
+			If OldVScrollMaxTop <> VScrollMaxTop Then
+				#ifdef __USE_GTK__
+					gtk_adjustment_set_upper(adjustmentv, VScrollMaxTop)
+					gtk_adjustment_set_page_size(adjustmentv, 0)
+					'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
+				#else
+					If VScrollEnabledTop Then
+						si.cbSize = SizeOf(si)
+						si.fMask  = SIF_RANGE Or SIF_PAGE
+						si.nMin   = 0
+						si.nMax   = VScrollMaxTop
+						si.nPage  = 1
+						SetScrollInfo(sbScrollBarvTop, SB_CTL, @si, True)
+					End If
+					'If OldVScrollEnabled <> VScrollEnabled Then
+						EnableWindow sbScrollBarvTop, VScrollEnabledTop
+					'End If
+					'SetScrollInfo(FHandle, SB_VERT, @si, True)
+				#endif
+			End If
+		End If
+		
 	End Sub
 	
 	'Sub PaintGliphs(x As Integer, y As Integer, ByRef utf8 As WString)
@@ -1729,7 +1802,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub EditControl.PaintText(iLine As Integer, ByRef sText As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
+	Sub EditControl.PaintText(CodePane As Integer, iLine As Integer, ByRef sText As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
 		'Dim s As WString Ptr
 		'WLet s, sText 'Mid(sText, 1, HScrollPos + This.Width / dwCharX)
 		'		If LeftMargin + (-HScrollPos + iStart) * dwCharX > dwClientX Then
@@ -1757,16 +1830,16 @@ Namespace My.Sys.Forms
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - VScrollPos) * dwCharY, extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDivided AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			ElseIf Colors.Background <> -1 Then
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, Colors.BackgroundRed, Colors.BackgroundGreen, Colors.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - VScrollPos) * dwCharY, extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDivided AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			End If
-			cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + extend.width - 0.5, (iLine - VScrollPos) * dwCharY + dwCharY - 5 - 0.5)
+			cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + extend.width - 0.5, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDivided AndAlso CodePane = 1, iDividedY + 7, 0))
 			'GetColor TextColor, iRed, iGreen, iBlue
 			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
@@ -1790,7 +1863,7 @@ Namespace My.Sys.Forms
 				Canvas.Font.Underline = Underline
 				SelectObject(bufDC, This.Canvas.Font.Handle)
 			End If
-			TextOut(bufDC, ScaleX(LeftMargin + -HScrollPos * dwCharX) + IIf(iStart = 0, 0, Sz.cx), ScaleY((iLine - VScrollPos) * dwCharY), FLineRight, Len(*FLineRight))
+			TextOut(bufDC, ScaleX(LeftMargin + -HScrollPos * dwCharX) + IIf(iStart = 0, 0, Sz.cx), ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDivided AndAlso CodePane = 1, iDividedY + 7, 0)), FLineRight, Len(*FLineRight))
 			If Colors.Background = -1 Then SetBKMode(bufDC, OPAQUE)
 			If Bold Or Italic Or Underline Then
 				Canvas.Font.Bold = False
@@ -1921,590 +1994,608 @@ Namespace My.Sys.Forms
 			Next
 		End If
 		If CInt(HighlightCurrentWord) AndAlso iSelStartLine = iSelEndLine AndAlso iSelStartChar = iSelEndChar Then CurWord = GetWordAtCursor Else CurWord = ""
-		iC = 0
-		vlc = Min(LinesCount, VScrollPos + VisibleLinesCount + 2)
-		vlc1 = VisibleLinesCount
-		IzohBoshi = 0
-		QavsBoshi = 0
-		MatnBoshi = 0
-		Matn = ""
-		#ifdef __USE_GTK__
-			Dim As Double iRed, iGreen, iBlue
-			#ifdef __USE_GTK3__
-				cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), True)
-			#else
-				cairo_rectangle (cr, 0.0, 0.0, widget->allocation.width, widget->allocation.height, True)
-			#endif
-			cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
-			cairo_fill (cr)
-		#else
-			'			This.Canvas.Font.Name = *EditorFontName
-			'			This.Canvas.Font.Size = EditorFontSize
-			This.Canvas.Brush.Color = NormalText.Background
-			This.Canvas.Pen.Color = FoldLines.Foreground
-			SetRect(@rc, ScaleX(LeftMargin), 0, ScaleX(dwClientX), ScaleY(dwClientY))
-			'			SelectObject(bufDC, This.Canvas.Brush.Handle)
-			'			SelectObject(bufDC, This.Canvas.Font.Handle)
-			'			SelectObject(bufDC, This.Canvas.Pen.Handle)
-			'			SetROP2 bufDC, This.Canvas.Pen.Mode
-			FillRect bufDC, @rc, This.Canvas.Brush.Handle
-		#endif
-		i = -1
-		If VScrollPos > 0 AndAlso VScrollPos <= FLines.Count Then iC = Cast(EditControlLine Ptr, FLines.Items[VScrollPos - 1])->CommentIndex
-		CollapseIndex = 0
-		OldCollapseIndex = 0
-		'ChangeCase = False
-		For z As Integer = 0 To FLines.Count - 1
-			FECLine = FLines.Items[z]
-			If FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
-				If FECLine->ConstructionPart = 0 Then
-					CollapseIndex += 1
-				ElseIf FECLine->ConstructionPart = 2 Then
-					CollapseIndex = Max(0, CollapseIndex - 1)
-				End If
+		For zz As Integer = 0 To 1
+			Dim As Integer VScrollPos, CodePaneY
+			If CBool(zz = 0) AndAlso Not bDivided Then
+				Continue For
 			End If
-			If Not FECLine->Visible Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
-			i = i + 1
-			If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
-			If z > 0 Then iC = Cast(EditControlLine Ptr, FLines.Items[z - 1])->CommentIndex
-			'If FECLine->Visible = False Then Continue For
-			'SelectObject(bufDC, This.Canvas.Brush.Handle)
-			'Pos1 = Instr(p, *FText, Chr(13))
-			'c = c + 1
-			'If c <= VScrollPos Then Continue Do
-			'i = c - 1
-			'ss = FECLine->CharIndex 'p - 1
-			'If Pos1 = 0 Then
-			'    *FLine = Mid(*FText, p, Len(*FText) - p + 1)
-			'Else
-			'        *FLine = Mid(*FText, p, Pos1 - p)
-			'End If
-			s = FECLine->Text 'FLine
-			l = Len(*s) 'FECLine->Length 'Len(*s)
-			bQ = False
-			j = 1
+			VScrollPos = IIf(zz = 0, VScrollPosTop, VScrollPosBottom)
+			If zz = 1 AndAlso bDivided Then CodePaneY = iDividedY + 7
+			iC = 0
+			vlc = Min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
+			vlc1 = VisibleLinesCount(zz)
 			IzohBoshi = 0
 			QavsBoshi = 0
 			MatnBoshi = 0
 			Matn = ""
-			If i < VScrollPos Then
-				Do While j <= l
-					If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
-						bQ = Not bQ
-					ElseIf Not bQ Then
-						If Mid(*s, j, 2) = "/'" Then
-							iC = iC + 1
-							If iC = 1 Then
-								IzohBoshi = j
-							End If
-							j = j + 1
-						ElseIf iC > 0 AndAlso Mid(*s, j, 2) = "'/" Then
-							iC = iC - 1
-							j = j + 1
-						ElseIf iC = 0 AndAlso (Mid(*s, j, 1) = "'" OrElse LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j - 1, 5)) = !"\trem ") Then
-							Exit Do
-						End If
+			#ifdef __USE_GTK__
+				Dim As Double iRed, iGreen, iBlue
+				#ifdef __USE_GTK3__
+					cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), True)
+				#else
+					cairo_rectangle (cr, 0.0, 0.0, widget->allocation.width, widget->allocation.height, True)
+				#endif
+				cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
+				cairo_fill (cr)
+			#else
+				'			This.Canvas.Font.Name = *EditorFontName
+				'			This.Canvas.Font.Size = EditorFontSize
+				This.Canvas.Brush.Color = NormalText.Background
+				This.Canvas.Pen.Color = FoldLines.Foreground
+				If bDivided Then
+					If zz = 0 Then
+						SetRect(@rc, ScaleX(LeftMargin), 0, ScaleX(dwClientX), ScaleY(iDividedY))
+					Else
+						SetRect(@rc, ScaleX(LeftMargin), ScaleY(iDividedY + 7), ScaleX(dwClientX), ScaleY(dwClientY))
 					End If
-					j = j + 1
-				Loop
-			Else
-				'				#ifndef __USE_GTK__
-				'					SelectObject(bufDC, This.Canvas.Brush.Handle)
-				'					SelectObject(bufDC, This.Canvas.Pen.Handle)
-				'				#endif
-				LinePrinted = False
-				If FECLine->BreakPoint Then
-					PaintText i, *s, 0, Len(*s), Breakpoints, "", Breakpoints.Bold, Breakpoints.Italic, Breakpoints.Underline
-					LinePrinted = True
+				Else
+					SetRect(@rc, ScaleX(LeftMargin), 0, ScaleX(dwClientX), ScaleY(dwClientY))
 				End If
-				If CurExecutedLine = z AndAlso CurEC <> 0 Then
-					PaintText i, *s, Len(*s) - Len(LTrim(*s, Any !"\t ")), Len(*s), IIf(CurEC = @This, ExecutionLine, CurrentLine), ""
-					LinePrinted = True
+				'			SelectObject(bufDC, This.Canvas.Brush.Handle)
+				'			SelectObject(bufDC, This.Canvas.Font.Handle)
+				'			SelectObject(bufDC, This.Canvas.Pen.Handle)
+				'			SetROP2 bufDC, This.Canvas.Pen.Mode
+				FillRect bufDC, @rc, This.Canvas.Brush.Handle
+			#endif
+			i = -1
+			If VScrollPos > 0 AndAlso VScrollPos <= FLines.Count Then iC = Cast(EditControlLine Ptr, FLines.Items[VScrollPos - 1])->CommentIndex
+			CollapseIndex = 0
+			OldCollapseIndex = 0
+			'ChangeCase = False
+			For z As Integer = 0 To FLines.Count - 1
+				FECLine = FLines.Items[z]
+				If FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
+					If FECLine->ConstructionPart = 0 Then
+						CollapseIndex += 1
+					ElseIf FECLine->ConstructionPart = 2 Then
+						CollapseIndex = Max(0, CollapseIndex - 1)
+					End If
 				End If
-				If Not SyntaxEdit Then
-					PaintText i, *s, 0, Len(*s), NormalText, "", NormalText.Bold, NormalText.Italic, NormalText.Underline
-					LinePrinted = True
-				End If
-				If Not LinePrinted Then
-					'					Canvas.Font.Bold = False
-					'					Canvas.Font.Italic = False
-					'					Canvas.Font.Underline = False
-					'#ifndef __USE_GTK__
-					'SelectObject(bufDC, This.Canvas.Font.Handle)
-					'#endif
-					IzohBoshi = 1
+				If Not FECLine->Visible Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
+				i = i + 1
+				If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
+				If z > 0 Then iC = Cast(EditControlLine Ptr, FLines.Items[z - 1])->CommentIndex
+				'If FECLine->Visible = False Then Continue For
+				'SelectObject(bufDC, This.Canvas.Brush.Handle)
+				'Pos1 = Instr(p, *FText, Chr(13))
+				'c = c + 1
+				'If c <= VScrollPos Then Continue Do
+				'i = c - 1
+				'ss = FECLine->CharIndex 'p - 1
+				'If Pos1 = 0 Then
+				'    *FLine = Mid(*FText, p, Len(*FText) - p + 1)
+				'Else
+				'        *FLine = Mid(*FText, p, Pos1 - p)
+				'End If
+				s = FECLine->Text 'FLine
+				l = Len(*s) 'FECLine->Length 'Len(*s)
+				bQ = False
+				j = 1
+				IzohBoshi = 0
+				QavsBoshi = 0
+				MatnBoshi = 0
+				Matn = ""
+				If i < VScrollPos Then
 					Do While j <= l
-						If LeftMargin + (-HScrollPos + j) * dwCharX > dwClientX AndAlso Mid(*s, j, 1) = " " Then
-							If iC = 0 AndAlso FECLine->CommentIndex > 0 Then IzohBoshi = j + 1
-							OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Exit Do
-						End If
 						If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
 							bQ = Not bQ
-							If bQ Then
-								QavsBoshi = j
-							Else
-								'								If StringsBold Then Canvas.Font.Bold = True
-								'								If StringsItalic Then Canvas.Font.Italic = True
-								'								If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
-								PaintText i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, CBool(Strings.Underline) Or CBool(bInIncludeFileRect) And CBool(iCursorLine = z)
-								'txtCode.SetSel ss + QavsBoshi - 1, ss + j
-								'txtCode.SelColor = clMaroon
-							End If
 						ElseIf Not bQ Then
-							If Mid(*s, j, 2) = IIf(CStyle, "/*", "/'") Then
+							If Mid(*s, j, 2) = "/'" Then
 								iC = iC + 1
 								If iC = 1 Then
 									IzohBoshi = j
 								End If
 								j = j + 1
-							ElseIf iC > 0 AndAlso Mid(*s, j, 2) = IIf(CStyle, "*/", "'/") Then
+							ElseIf iC > 0 AndAlso Mid(*s, j, 2) = "'/" Then
 								iC = iC - 1
 								j = j + 1
-								If iC = 0 Then
-									PaintText i, *s, IzohBoshi - 1, j, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
-								End If
-							ElseIf iC = 0 Then
-								t = Asc(Mid(*s, j, 1))
-								u = Asc(Mid(*s, j + 1, 1))
-								If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
-									If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) AndAlso pkeywords2 <> 0 Then
-										If Not CStyle Then
-											Keyword = GetKeyWordCase("rem", pkeywords2)
-											If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = Keyword
-										End If
-									End If
-									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
-									Exit Do
-								ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
-									If MatnBoshi = 0 Then MatnBoshi = j
-									If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso ((t >= 48 AndAlso t <= 57) OrElse t = 46))) Then
-										If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
-											Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
-											sc = @Identifiers
-											'ss = NormalText.Background
-											If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
-											If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
-											If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
-												pkeywords = 0
-												If CStyle Then
-													If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" Then
-														If pkeywords0 <> 0 Then
-															sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
-														End If
-													End If
-												Else
-													If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
-														If pkeywordsAsm->Contains(LCase(Matn)) Then
-															sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
-															pkeywords = pkeywordsAsm
-														End If
-													Else
-														For k As Integer = 1 To KeywordLists.Count - 1
-															pkeywords = KeywordLists.Object(k)
-															If pkeywords->Contains(LCase(Matn)) OrElse (StartsWith(Matn, "..") AndAlso pkeywords->Contains(LCase(Mid(Matn, 3)))) Then
-																sc = @Keywords(k)
-																Exit For
-															End If
-															pkeywords = 0
-															'													If keywords0.Contains(LCase(Matn)) Then
-															'														sc = @Preprocessors '
-															'														pkeywords = @keywords0
-															'													ElseIf keywords1.Contains(LCase(Matn)) Then
-															'														sc = @Keywords
-															'														pkeywords = @keywords1
-															'													ElseIf keywords2.Contains(LCase(Matn)) Then
-															'														sc = @Keywords
-															'														pkeywords = @keywords2
-															'													ElseIf keywords3.Contains(LCase(Matn)) Then
-															'														sc = @Keywords
-															'														pkeywords = @keywords3
-															'													End If
-														Next k
-													End If
-													If CInt(ChangeKeyWordsCase) AndAlso CInt(pkeywords <> 0) AndAlso CInt(FSelEndLine <> z) Then
-														Keyword = GetKeyWordCase(Matn, pkeywords)
-														If Keyword <> Matn Then
-															'ChangeCase = True
-															Mid(*s, MatnBoshi, j - MatnBoshi + 1) = Keyword
-														End If
-													ElseIf pkeywords = 0 Then
-														If IsNumeric(Matn) Then
-															If InStr(Matn, ".") Then
-																sc = @RealNumbers
-															Else
-																sc = @Numbers
-															End If
-														Else
-															sc = @Identifiers
-														End If
-													End If
-												End If
-											End If
-											'If sc <> 0 Then
-											PaintText i, *s, MatnBoshi - 1, j, *sc
-											'txtCode.SetSel ss + MatnBoshi - 1, ss + j
-											'txtCode.SelColor = sc
-											'End If
-										End If
-										MatnBoshi = 0
-									End If
-								ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", IIf(FECLine->InAsm, Chr(t) = "#", Chr(t) = "'")) Then
-									PaintText i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
-									'txtCode.SetSel ss + j - 1, ss + l
-									'txtCode.SelColor = clGreen
-									Exit Do
-								ElseIf Chr(t) <> " " Then
-									PaintText i, *s, j - 1, j, NormalText
-								End If
+							ElseIf iC = 0 AndAlso (Mid(*s, j, 1) = "'" OrElse LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j - 1, 5)) = !"\trem ") Then
+								Exit Do
 							End If
 						End If
 						j = j + 1
 					Loop
-					If iC > 0 Then
-						PaintText i, *s, Max(0, IzohBoshi - 1), l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
-						'txtCode.SetSel IzohBoshi - 1, ss + l
-						'txtCode.SelColor = clGreen
-						'If i = EndLine Then k = txtCode.LinesCount
-					ElseIf bQ Then
-						'						If StringsBold Then Canvas.Font.Bold = True
-						'						If StringsItalic Then Canvas.Font.Italic = True
-						'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
-						PaintText i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, Strings.Underline Or bInIncludeFileRect And CBool(iCursorLine = z)
-					End If
-				End If
-				If CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine)) Then ' AndAlso z = FLines.Count - 1
-					Dim As ..Rect rec
-					If z = FSelEndLine + 1 Then
-						rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1), ScaleX(This.Width), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1))
-						#ifdef __USE_GTK__
-							cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
-							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
-							cairo_stroke(cr)
-						#else
-							This.Canvas.Pen.Color = CurrentLine.Frame
-							'SelectObject bufDC, This.Canvas.Pen.Handle
-							MoveToEx bufDC, rec.Left, rec.Top - 1, 0
-							LineTo bufDC, rec.Right, rec.Top - 1
-						#endif
-					Else
-						rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos) * dwCharY), ScaleX(This.Width), ScaleY((i - VScrollPos) * dwCharY + dwCharY + 1))
-						#ifdef __USE_GTK__
-							cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
-							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
-							cairo_stroke(cr)
-						#else
-							This.Canvas.Brush.Color = CurrentLine.Frame
-							FrameRect bufDC, @rec, This.Canvas.Brush.Handle
-						#endif
-					End If
-				End If
-				If FSelStartLine <> FSelEndLine Or FSelStartChar <> FSelEndChar Then
-					'If iMin <> iMax Then
-					If z >= iSelStartLine And z <= iSelEndLine Then
-						'    If iMin >= ss And iMin <= ss + l Or iMax >= ss And iMax <= ss + l Or iMin <= ss And iMax >= ss + l Then
-						'iStart = Max(iMin - j, 0)
-						'iEnd = Min(iMax - j, l)
-						'						#ifdef __USE_GTK__
-						'							Dim As GdkRGBA colorHighlightText, colorHighlight
-						'							Dim As Integer colHighlightText, colHighlight
-						'							gtk_style_context_get_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlightText)
-						'							gtk_style_context_get_background_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlight)
-						'							colHighlight = clOrange 'rgb(colorHighlight.red * 255, colorHighlight.green * 255, colorHighlight.blue * 255)
-						'							colHighlightText = clWhite 'clWhite 'rgb(colorHighlightText.red * 255, colorHighlightText.green * 255, colorHighlightText.blue * 255)
-						'							?clBlue, getred(clBlue), getgreen(clBlue), getblue(clBlue)
-						'							PaintText i, *s, IIf(iSelStartLine = z, iSelStartChar, 0), IIf(iSelEndLine = z, iSelEndChar, Len(*s)), SelectionBackground, SelectionForeground, IIf(z <> iSelEndLine, " ", "")
-						'						#else
-						PaintText i, *s, IIf(iSelStartLine = z, iSelStartChar, 0), IIf(iSelEndLine = z, iSelEndChar, Len(*s)), Selection, IIf(z <> iSelEndLine, " ", "")
-						'						#endif
-						'WLet n, Left(*s, iStart)
-						'WLet h, Mid(*s, iStart + 1, iEnd - iStart) & IIF(iLineIndex <> i, " ", "")
-						'SetBKColor(bufDC, clHighlight)
-						'SetTextColor(bufDC, clHighlightText)
-						'GetTextExtentPoint32(bufDC, n, Len(*n), @Sz)
-						'TextOut(bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(iStart = 0, 0, Sz.cx), (i - VScrollPos - 1) * dwCharY, h, Len(*h))
-					End If
-				End If
-				If HighlightBrackets Then
-					If z = BracketsStartLine AndAlso BracketsStart > -1 Then
-						Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY))
-						#ifdef __USE_GTK__
-							cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
-							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
-							cairo_stroke(cr)
-						#else
-							This.Canvas.Brush.Color = CurrentBrackets.Frame
-							FrameRect bufDC, @rec, This.Canvas.Brush.Handle
-						#endif
-					End If
-					If z = BracketsEndLine AndAlso BracketsEnd > -1 Then
-						Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY))
-						#ifdef __USE_GTK__
-							cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
-							cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
-							cairo_stroke(cr)
-						#else
-							This.Canvas.Brush.Color = CurrentBrackets.Frame
-							FrameRect bufDC, @rec, This.Canvas.Brush.Handle
-						#endif
-					End If
-				End If
-				#ifdef __USE_GTK__
-					cairo_set_line_width (cr, 1)
-				#endif
-				If ShowSpaces Then
-					#ifdef __USE_GTK__
-						cairo_set_source_rgb(cr, SpaceIdentifiers.ForegroundRed, SpaceIdentifiers.ForegroundGreen, SpaceIdentifiers.ForegroundBlue)
-					#else
-						This.Canvas.Pen.Color = SpaceIdentifiers.Foreground 'rgb(100, 100, 100) 'clLtGray
-						'SelectObject(bufDC, This.Canvas.Pen.Handle)
-					#endif
-					'WLet FLineLeft, GetTabbedText(*s, 0, True)
-					jj = 1
-					jPos = 0
-					lLen = Len(*s)
-					Do While jj <= lLen
-						sChar = Mid(*s, jj, 1)
-						If sChar = " " Then
-							jPos += 1
-							'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
-							#ifdef __USE_GTK__
-								.cairo_rectangle(cr, LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, 1, 1)
-								cairo_fill(cr)
-							#else
-								'GetTextExtentPoint32(bufDC, @Wstr(Left(*FLineLeft, jj - 1)), jj - 1, @Sz) 'Len(*FLineLeft)
-								'SetPixel bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(jPos = 0, 0, Sz.cx) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, clBtnShadow
-								SetPixel bufDC, ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2)), SpaceIdentifiers.Foreground
-							#endif
-						ElseIf sChar = !"\t" Then
-							jPP = TabWidth - (jPos + TabWidth) Mod TabWidth
-							'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
-							#ifdef __USE_GTK__
-								cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-								cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-								cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 3 - 0.5)
-								cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-								cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) +jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 + 3 - 0.5)
-								cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-								cairo_stroke (cr)
-							#else
-								'GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
-								MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2)), 0
-								LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2))
-								MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) - 3), 0
-								LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2))
-								MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + 3), 0
-								LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2))
-							#endif
-							jPos += jPP
-						Else
-							jPos += 1
-						End If
-						jj += 1
-					Loop
-				End If
-			End If
-			'If c >= vlc Then Exit Do
-			'p = Pos1 + 1
-			'Loop While Pos1 > 0
-			'Canvas.Font.Bold = False
-			#ifdef __USE_GTK__
-				cairo_rectangle (cr, 0.0, (i - VScrollPos) * dwCharY, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, True)
-				cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
-				cairo_fill (cr)
-				WLet(FLineLeft, WStr(z + 1))
-				'Dim extend As cairo_text_extents_t
-				'cairo_text_extents (cr, *FLineLeft, @extend)
-				cairo_move_to(cr, LeftMargin - 30 - TextWidth(ToUTF8(*FLineLeft)), (i - VScrollPos) * dwCharY + dwCharY - 5)
-				cairo_set_source_rgb(cr, LineNumbers.ForegroundRed, LineNumbers.ForegroundGreen, LineNumbers.ForegroundBlue)
-				pango_layout_set_text(layout, ToUTF8(*FLineLeft), Len(ToUTF8(*FLineLeft)))
-				pango_cairo_update_layout(cr, layout)
-				#ifdef PANGO_VERSION
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
-				#else
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
-				#endif
-				pango_cairo_show_layout_line(cr, pl)
-				'cairo_show_text(cr, *FLineLeft)
-			#else
-				'SelectObject(bufDC, This.Canvas.Font.Handle)
-				This.Canvas.Brush.Color = LineNumbers.Background
-				SetRect(@rc, 0, ScaleY((i - VScrollPos) * dwCharY), ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos + 1) * dwCharY))
-				'SelectObject(bufDC, This.Canvas.Brush.Handle)
-				FillRect bufDC, @rc, This.Canvas.Brush.Handle
-				SetBKMode(bufDC, TRANSPARENT)
-				WLet(FLineLeft, WStr(z + 1))
-				GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
-				SetTextColor(bufDC, LineNumbers.Foreground)
-				TextOut(bufDC, ScaleX(LeftMargin - 25) - Sz.cx, ScaleY((i - VScrollPos) * dwCharY), FLineLeft, Len(*FLineLeft))
-				SetBKMode(bufDC, OPAQUE)
-			#endif
-			This.Canvas.Brush.Color = NormalText.Background
-			#ifdef __USE_GTK__
-				cairo_rectangle(cr, LeftMargin - 25, (i - VScrollPos) * dwCharY, LeftMargin, (i - VScrollPos + 1) * dwCharY, True)
-				cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
-				cairo_fill (cr)
-			#else
-				SetRect(@rc, ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos) * dwCharY), ScaleX(LeftMargin), ScaleY((i - VScrollPos + 1) * dwCharY))
-				FillRect bufDC, @rc, This.Canvas.Brush.Handle
-			#endif
-			If FECLine->BreakPoint Then
-				This.Canvas.Pen.Color = IndicatorLines.Foreground
-				This.Canvas.Brush.Color = Breakpoints.Indicator
-				#ifdef __USE_GTK__
-					cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
-					cairo_arc(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5, 5, 0, 2 * G_PI)
-					cairo_fill_preserve(cr)
-					cairo_set_source_rgb(cr, Breakpoints.IndicatorRed, Breakpoints.IndicatorGreen, Breakpoints.IndicatorBlue)
-					cairo_stroke(cr)
-				#else
-					SelectObject(bufDC, This.Canvas.Brush.Handle)
-					SelectObject(bufDC, This.Canvas.Pen.Handle)
-					Ellipse bufDC, ScaleX(LeftMargin - 16), ScaleY((i - VScrollPos) * dwCharY + 2), ScaleX(LeftMargin - 5), ScaleY((i - VScrollPos) * dwCharY + 13)
-				#endif
-			End If
-			If FECLine->Bookmark Then
-				This.Canvas.Pen.Color = IndicatorLines.Foreground
-				This.Canvas.Brush.Color = Bookmarks.Indicator
-				#ifdef __USE_GTK__
-					Var x = LeftMargin - 18, y = (i - VScrollPos) * dwCharY + 3
-					Var width1 = 14, height1 = 10, radius = 2
-					cairo_set_source_rgb(cr, Bookmarks.IndicatorRed, Bookmarks.IndicatorGreen, Bookmarks.IndicatorBlue)
-					cairo_move_to cr, x - 0.5, y + radius - 0.5
-					cairo_arc (cr, x + radius - 0.5, y + radius - 0.5, radius, G_PI, -G_PI / 2)
-					cairo_line_to (cr, x + width1 - radius - 0.5, y - 0.5)
-					cairo_arc (cr, x + width1 - radius - 0.5, y + radius - 0.5, radius, -G_PI / 2, 0)
-					cairo_line_to (cr, x + width1 - 0.5, y + height1 - radius - 0.5)
-					cairo_arc (cr, x + width1 - radius - 0.5, y + height1 - radius - 0.5, radius, 0, G_PI / 2)
-					cairo_line_to (cr, x + radius - 0.5, y + height1 - 0.5)
-					cairo_arc (cr, x + radius - 0.5, y + height1 - radius - 0.5, radius, G_PI / 2, G_PI)
-					cairo_close_path cr
-					cairo_fill_preserve(cr)
-					cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
-					cairo_stroke(cr)
-				#else
+				Else
+					'				#ifndef __USE_GTK__
 					'					SelectObject(bufDC, This.Canvas.Brush.Handle)
 					'					SelectObject(bufDC, This.Canvas.Pen.Handle)
-					RoundRect bufDC, ScaleX(LeftMargin - 18), ScaleY((i - VScrollPos) * dwCharY + 2), ScaleX(LeftMargin - 3), ScaleY((i - VScrollPos) * dwCharY + 13), ScaleX(5), ScaleY(5)
-				#endif
-			End If
-			#ifdef __USE_GTK__
-				cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
-			#endif
-			If SyntaxEdit AndAlso Not CStyle Then
-				If FECLine->Collapsible Then
+					'				#endif
+					LinePrinted = False
+					If FECLine->BreakPoint Then
+						PaintText zz, i, *s, 0, Len(*s), Breakpoints, "", Breakpoints.Bold, Breakpoints.Italic, Breakpoints.Underline
+						LinePrinted = True
+					End If
+					If CurExecutedLine = z AndAlso CurEC <> 0 Then
+						PaintText zz, i, *s, Len(*s) - Len(LTrim(*s, Any !"\t ")), Len(*s), IIf(CurEC = @This, ExecutionLine, CurrentLine), ""
+						LinePrinted = True
+					End If
+					If Not SyntaxEdit Then
+						PaintText zz, i, *s, 0, Len(*s), NormalText, "", NormalText.Bold, NormalText.Italic, NormalText.Underline
+						LinePrinted = True
+					End If
+					If Not LinePrinted Then
+						'					Canvas.Font.Bold = False
+						'					Canvas.Font.Italic = False
+						'					Canvas.Font.Underline = False
+						'#ifndef __USE_GTK__
+						'SelectObject(bufDC, This.Canvas.Font.Handle)
+						'#endif
+						IzohBoshi = 1
+						Do While j <= l
+							If LeftMargin + (-HScrollPos + j) * dwCharX > dwClientX AndAlso Mid(*s, j, 1) = " " Then
+								If iC = 0 AndAlso FECLine->CommentIndex > 0 Then IzohBoshi = j + 1
+								OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Exit Do
+							End If
+							If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
+								bQ = Not bQ
+								If bQ Then
+									QavsBoshi = j
+								Else
+									'								If StringsBold Then Canvas.Font.Bold = True
+									'								If StringsItalic Then Canvas.Font.Italic = True
+									'								If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
+									PaintText zz, i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, CBool(Strings.Underline) Or CBool(bInIncludeFileRect) And CBool(iCursorLine = z)
+									'txtCode.SetSel ss + QavsBoshi - 1, ss + j
+									'txtCode.SelColor = clMaroon
+								End If
+							ElseIf Not bQ Then
+								If Mid(*s, j, 2) = IIf(CStyle, "/*", "/'") Then
+									iC = iC + 1
+									If iC = 1 Then
+										IzohBoshi = j
+									End If
+									j = j + 1
+								ElseIf iC > 0 AndAlso Mid(*s, j, 2) = IIf(CStyle, "*/", "'/") Then
+									iC = iC - 1
+									j = j + 1
+									If iC = 0 Then
+										PaintText zz, i, *s, IzohBoshi - 1, j, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+									End If
+								ElseIf iC = 0 Then
+									t = Asc(Mid(*s, j, 1))
+									u = Asc(Mid(*s, j + 1, 1))
+									If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
+										If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) AndAlso pkeywords2 <> 0 Then
+											If Not CStyle Then
+												Keyword = GetKeyWordCase("rem", pkeywords2)
+												If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = Keyword
+											End If
+										End If
+										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+										Exit Do
+									ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
+										If MatnBoshi = 0 Then MatnBoshi = j
+										If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso ((t >= 48 AndAlso t <= 57) OrElse t = 46))) Then
+											If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
+												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
+												sc = @Identifiers
+												'ss = NormalText.Background
+												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
+												If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
+												If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
+													pkeywords = 0
+													If CStyle Then
+														If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" Then
+															If pkeywords0 <> 0 Then
+																sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
+															End If
+														End If
+													Else
+														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
+															If pkeywordsAsm->Contains(LCase(Matn)) Then
+																sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
+																pkeywords = pkeywordsAsm
+															End If
+														Else
+															For k As Integer = 1 To KeywordLists.Count - 1
+																pkeywords = KeywordLists.Object(k)
+																If pkeywords->Contains(LCase(Matn)) OrElse (StartsWith(Matn, "..") AndAlso pkeywords->Contains(LCase(Mid(Matn, 3)))) Then
+																	sc = @Keywords(k)
+																	Exit For
+																End If
+																pkeywords = 0
+																'													If keywords0.Contains(LCase(Matn)) Then
+																'														sc = @Preprocessors '
+																'														pkeywords = @keywords0
+																'													ElseIf keywords1.Contains(LCase(Matn)) Then
+																'														sc = @Keywords
+																'														pkeywords = @keywords1
+																'													ElseIf keywords2.Contains(LCase(Matn)) Then
+																'														sc = @Keywords
+																'														pkeywords = @keywords2
+																'													ElseIf keywords3.Contains(LCase(Matn)) Then
+																'														sc = @Keywords
+																'														pkeywords = @keywords3
+																'													End If
+															Next k
+														End If
+														If CInt(ChangeKeyWordsCase) AndAlso CInt(pkeywords <> 0) AndAlso CInt(FSelEndLine <> z) Then
+															Keyword = GetKeyWordCase(Matn, pkeywords)
+															If Keyword <> Matn Then
+																'ChangeCase = True
+																Mid(*s, MatnBoshi, j - MatnBoshi + 1) = Keyword
+															End If
+														ElseIf pkeywords = 0 Then
+															If IsNumeric(Matn) Then
+																If InStr(Matn, ".") Then
+																	sc = @RealNumbers
+																Else
+																	sc = @Numbers
+																End If
+															Else
+																sc = @Identifiers
+															End If
+														End If
+													End If
+												End If
+												'If sc <> 0 Then
+												PaintText zz, i, *s, MatnBoshi - 1, j, *sc
+												'txtCode.SetSel ss + MatnBoshi - 1, ss + j
+												'txtCode.SelColor = sc
+												'End If
+											End If
+											MatnBoshi = 0
+										End If
+									ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", IIf(FECLine->InAsm, Chr(t) = "#", Chr(t) = "'")) Then
+										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+										'txtCode.SetSel ss + j - 1, ss + l
+										'txtCode.SelColor = clGreen
+										Exit Do
+									ElseIf Chr(t) <> " " Then
+										PaintText zz, i, *s, j - 1, j, NormalText
+									End If
+								End If
+							End If
+							j = j + 1
+						Loop
+						If iC > 0 Then
+							PaintText zz, i, *s, Max(0, IzohBoshi - 1), l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+							'txtCode.SetSel IzohBoshi - 1, ss + l
+							'txtCode.SelColor = clGreen
+							'If i = EndLine Then k = txtCode.LinesCount
+						ElseIf bQ Then
+							'						If StringsBold Then Canvas.Font.Bold = True
+							'						If StringsItalic Then Canvas.Font.Italic = True
+							'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
+							PaintText zz, i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, Strings.Underline Or bInIncludeFileRect And CBool(iCursorLine = z)
+						End If
+					End If
+					If zz = ActiveCodePane AndAlso CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine)) Then ' AndAlso z = FLines.Count - 1
+						Dim As ..Rect rec
+						If z = FSelEndLine + 1 Then
+							rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1 + CodePaneY), ScaleX(This.Width), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1 + CodePaneY))
+							#ifdef __USE_GTK__
+								cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
+								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+								cairo_stroke(cr)
+							#else
+								This.Canvas.Pen.Color = CurrentLine.Frame
+								'SelectObject bufDC, This.Canvas.Pen.Handle
+								MoveToEx bufDC, rec.Left, rec.Top - 1, 0
+								LineTo bufDC, rec.Right, rec.Top - 1
+							#endif
+						Else
+							rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(This.Width), ScaleY((i - VScrollPos) * dwCharY + dwCharY + 1 + CodePaneY))
+							#ifdef __USE_GTK__
+								cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
+								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+								cairo_stroke(cr)
+							#else
+								This.Canvas.Brush.Color = CurrentLine.Frame
+								FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+							#endif
+						End If
+					End If
+					If zz = ActiveCodePane AndAlso (FSelStartLine <> FSelEndLine Or FSelStartChar <> FSelEndChar) Then
+						'If iMin <> iMax Then
+						If z >= iSelStartLine And z <= iSelEndLine Then
+							'    If iMin >= ss And iMin <= ss + l Or iMax >= ss And iMax <= ss + l Or iMin <= ss And iMax >= ss + l Then
+							'iStart = Max(iMin - j, 0)
+							'iEnd = Min(iMax - j, l)
+							'						#ifdef __USE_GTK__
+							'							Dim As GdkRGBA colorHighlightText, colorHighlight
+							'							Dim As Integer colHighlightText, colHighlight
+							'							gtk_style_context_get_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlightText)
+							'							gtk_style_context_get_background_color(scontext, GTK_STATE_FLAG_SELECTED, @colorHighlight)
+							'							colHighlight = clOrange 'rgb(colorHighlight.red * 255, colorHighlight.green * 255, colorHighlight.blue * 255)
+							'							colHighlightText = clWhite 'clWhite 'rgb(colorHighlightText.red * 255, colorHighlightText.green * 255, colorHighlightText.blue * 255)
+							'							?clBlue, getred(clBlue), getgreen(clBlue), getblue(clBlue)
+							'							PaintText i, *s, IIf(iSelStartLine = z, iSelStartChar, 0), IIf(iSelEndLine = z, iSelEndChar, Len(*s)), SelectionBackground, SelectionForeground, IIf(z <> iSelEndLine, " ", "")
+							'						#else
+							PaintText zz, i, *s, IIf(iSelStartLine = z, iSelStartChar, 0), IIf(iSelEndLine = z, iSelEndChar, Len(*s)), Selection, IIf(z <> iSelEndLine, " ", "")
+							'						#endif
+							'WLet n, Left(*s, iStart)
+							'WLet h, Mid(*s, iStart + 1, iEnd - iStart) & IIF(iLineIndex <> i, " ", "")
+							'SetBKColor(bufDC, clHighlight)
+							'SetTextColor(bufDC, clHighlightText)
+							'GetTextExtentPoint32(bufDC, n, Len(*n), @Sz)
+							'TextOut(bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(iStart = 0, 0, Sz.cx), (i - VScrollPos - 1) * dwCharY, h, Len(*h))
+						End If
+					End If
+					If HighlightBrackets Then
+						If z = BracketsStartLine AndAlso BracketsStart > -1 Then
+							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
+							#ifdef __USE_GTK__
+								cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
+								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+								cairo_stroke(cr)
+							#else
+								This.Canvas.Brush.Color = CurrentBrackets.Frame
+								FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+							#endif
+						End If
+						If z = BracketsEndLine AndAlso BracketsEnd > -1 Then
+							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
+							#ifdef __USE_GTK__
+								cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
+								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
+								cairo_stroke(cr)
+							#else
+								This.Canvas.Brush.Color = CurrentBrackets.Frame
+								FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+							#endif
+						End If
+					End If
 					#ifdef __USE_GTK__
-						'cairo_set_source_rgb(cr, abs(GetRed(clGray) / 255.0), abs(GetGreen(clGray) / 255.0), abs(GetBlue(clGray) / 255.0))
-						cairo_rectangle(cr, LeftMargin - 15 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5, LeftMargin - 7 - 0.5, (i - VScrollPos) * dwCharY + 12 - 0.5, True)
-						cairo_move_to(cr, LeftMargin - 13 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
-						cairo_line_to(cr, LeftMargin - 9 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
-						cairo_move_to(cr, LeftMargin - 0.5, (i - VScrollPos) * dwCharY - 0.5)
-						cairo_line_to(cr, dwClientX - 0.5, (i - VScrollPos) * dwCharY - 0.5)
-						cairo_stroke (cr)
-					#else
-						This.Canvas.Pen.Color = FoldLines.Foreground
-						'						SelectObject(bufDC, This.Canvas.Brush.Handle)
-						'						SelectObject(bufDC, This.Canvas.Pen.Handle)
-						Rectangle bufDC, ScaleX(LeftMargin - 15), ScaleY((i - VScrollPos) * dwCharY + 3), ScaleX(LeftMargin - 6), ScaleY((i - VScrollPos) * dwCharY + 12)
-						MoveToEx bufDC, ScaleX(LeftMargin - 13), ScaleY((i - VScrollPos) * dwCharY + 7), 0
-						LineTo bufDC, ScaleX(LeftMargin - 8), ScaleY((i - VScrollPos) * dwCharY + 7)
-						MoveToEx bufDC, ScaleX(LeftMargin), ScaleY((i - VScrollPos) * dwCharY), 0
-						LineTo bufDC, ScaleX(dwClientX), ScaleY((i - VScrollPos) * dwCharY)
+						cairo_set_line_width (cr, 1)
 					#endif
-					If OldCollapseIndex > 0 Then
+					If ShowSpaces Then
 						#ifdef __USE_GTK__
-							cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 0 - 0.5)
-							cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5)
-							cairo_stroke (cr)
+							cairo_set_source_rgb(cr, SpaceIdentifiers.ForegroundRed, SpaceIdentifiers.ForegroundGreen, SpaceIdentifiers.ForegroundBlue)
 						#else
-							MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 0), 0
-							LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 3)
+							This.Canvas.Pen.Color = SpaceIdentifiers.Foreground 'rgb(100, 100, 100) 'clLtGray
+							'SelectObject(bufDC, This.Canvas.Pen.Handle)
 						#endif
-					End If
-					If FECLine->Collapsed Then
-						#ifdef __USE_GTK__
-							cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 6 - 0.5)
-							cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 10 - 0.5)
-							cairo_stroke (cr)
-						#else
-							MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 5), 0
-							LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 10)
-						#endif
-					End If
-					If CInt(CInt(OldCollapseIndex = 0) And CInt(Not FECLine->Collapsed)) OrElse CInt(OldCollapseIndex > 0) Then
-						#ifdef __USE_GTK__
-							cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 12 - 0.5)
-							cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY - 0.5)
-							cairo_stroke (cr)
-						#else
-							MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 12), 0
-							LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY)
-						#endif
-					End If
-				ElseIf OldCollapseIndex > 0 Then
-					#ifdef __USE_GTK__
-						cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
-						cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 0 - 0.5)
-					#else
-						This.Canvas.Pen.Color = FoldLines.Foreground
-						'						SelectObject(bufDC, This.Canvas.Brush.Handle)
-						'						SelectObject(bufDC, This.Canvas.Pen.Handle)
-						MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 0), 0
-					#endif
-					If CollapseIndex = 0 Then
-						#ifdef __USE_GTK__
-							cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-							cairo_stroke (cr)
-						#else
-							LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2)
-						#endif
-					Else
-						#ifdef __USE_GTK__
-							cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos + 1) * dwCharY + dwCharY - 0.5)
-							cairo_stroke (cr)
-						#else
-							LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos + 1) * dwCharY + dwCharY)
-						#endif
-					End If
-					If FECLine->ConstructionIndex >= 0 AndAlso CInt(Constructions(FECLine->ConstructionIndex).Collapsible) And CInt(FECLine->ConstructionPart = 2) Then
-						#ifdef __USE_GTK__
-							cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-							cairo_line_to(cr, LeftMargin - 6 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-							cairo_stroke (cr)
-						#else
-							MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2), 0
-							LineTo bufDC, ScaleX(LeftMargin - 6), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2)
-						#endif
+						'WLet FLineLeft, GetTabbedText(*s, 0, True)
+						jj = 1
+						jPos = 0
+						lLen = Len(*s)
+						Do While jj <= lLen
+							sChar = Mid(*s, jj, 1)
+							If sChar = " " Then
+								jPos += 1
+								'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
+								#ifdef __USE_GTK__
+									.cairo_rectangle(cr, LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, 1, 1)
+									cairo_fill(cr)
+								#else
+									'GetTextExtentPoint32(bufDC, @Wstr(Left(*FLineLeft, jj - 1)), jj - 1, @Sz) 'Len(*FLineLeft)
+									'SetPixel bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(jPos = 0, 0, Sz.cx) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, clBtnShadow
+									SetPixel bufDC, ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY), SpaceIdentifiers.Foreground
+								#endif
+							ElseIf sChar = !"\t" Then
+								jPP = TabWidth - (jPos + TabWidth) Mod TabWidth
+								'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
+								#ifdef __USE_GTK__
+									cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+									cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+									cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 3 - 0.5)
+									cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+									cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) +jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 + 3 - 0.5)
+									cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+									cairo_stroke (cr)
+								#else
+									'GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
+									MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY), 0
+									LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
+									MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) - 3 + CodePaneY), 0
+									LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
+									MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + 3 + CodePaneY), 0
+									LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
+								#endif
+								jPos += jPP
+							Else
+								jPos += 1
+							End If
+							jj += 1
+						Loop
 					End If
 				End If
-			End If
-			If i - VScrollPos > vlc1 Then Exit For 'AndAlso Not ChangeCase
-			OldCollapseIndex = CollapseIndex
-		Next z
-		#ifdef __USE_GTK__
-			cairo_rectangle (cr, 0, (i - VScrollPos + 1) * dwCharY, LeftMargin - 25, dwClientY, True)
-			cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
-			cairo_fill (cr)
-			cairo_rectangle (cr, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, LeftMargin, dwClientY, True)
-			cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
-			cairo_fill (cr)
-			If CaretOn Then
-				#ifdef __USE_GTK3__
-					cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
-					gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, HCaretPos, VCaretPos, layout, 0, PANGO_DIRECTION_LTR)
-				#else
-					cairo_rectangle (cr, HCaretPos, VCaretPos, HCaretPos + 0.5, VCaretPos + dwCharY, True)
-					cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
+				'If c >= vlc Then Exit Do
+				'p = Pos1 + 1
+				'Loop While Pos1 > 0
+				'Canvas.Font.Bold = False
+				#ifdef __USE_GTK__
+					cairo_rectangle (cr, 0.0, (i - VScrollPos) * dwCharY, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, True)
+					cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
 					cairo_fill (cr)
+					WLet(FLineLeft, WStr(z + 1))
+					'Dim extend As cairo_text_extents_t
+					'cairo_text_extents (cr, *FLineLeft, @extend)
+					cairo_move_to(cr, LeftMargin - 30 - TextWidth(ToUTF8(*FLineLeft)), (i - VScrollPos) * dwCharY + dwCharY - 5)
+					cairo_set_source_rgb(cr, LineNumbers.ForegroundRed, LineNumbers.ForegroundGreen, LineNumbers.ForegroundBlue)
+					pango_layout_set_text(layout, ToUTF8(*FLineLeft), Len(ToUTF8(*FLineLeft)))
+					pango_cairo_update_layout(cr, layout)
+					#ifdef PANGO_VERSION
+						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
+					#else
+						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
+					#endif
+					pango_cairo_show_layout_line(cr, pl)
+					'cairo_show_text(cr, *FLineLeft)
+				#else
+					'SelectObject(bufDC, This.Canvas.Font.Handle)
+					This.Canvas.Brush.Color = LineNumbers.Background
+					SetRect(@rc, 0, ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
+					'SelectObject(bufDC, This.Canvas.Brush.Handle)
+					FillRect bufDC, @rc, This.Canvas.Brush.Handle
+					SetBKMode(bufDC, TRANSPARENT)
+					WLet(FLineLeft, WStr(z + 1))
+					GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
+					SetTextColor(bufDC, LineNumbers.Foreground)
+					TextOut(bufDC, ScaleX(LeftMargin - 25) - Sz.cx, ScaleY((i - VScrollPos) * dwCharY + CodePaneY), FLineLeft, Len(*FLineLeft))
+					SetBKMode(bufDC, OPAQUE)
 				#endif
-			End If
-			'cairo_paint(cr)
-		#else
-			SetRect(@rc, 0, ScaleY((i - VScrollPos + 1) * dwCharY), ScaleX(LeftMargin - 25), ScaleY(dwClientY))
-			This.Canvas.Brush.Color = LineNumbers.Background
-			FillRect bufDC, @rc, This.Canvas.Brush.Handle
-			SetRect(@rc, ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos + 1) * dwCharY), ScaleX(LeftMargin), ScaleY(dwClientY))
-			This.Canvas.Brush.Color = NormalText.Background
-			FillRect bufDC, @rc, This.Canvas.Brush.Handle
+				This.Canvas.Brush.Color = NormalText.Background
+				#ifdef __USE_GTK__
+					cairo_rectangle(cr, LeftMargin - 25, (i - VScrollPos) * dwCharY, LeftMargin, (i - VScrollPos + 1) * dwCharY, True)
+					cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
+					cairo_fill (cr)
+				#else
+					SetRect(@rc, ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
+					FillRect bufDC, @rc, This.Canvas.Brush.Handle
+				#endif
+				If FECLine->BreakPoint Then
+					This.Canvas.Pen.Color = IndicatorLines.Foreground
+					This.Canvas.Brush.Color = Breakpoints.Indicator
+					#ifdef __USE_GTK__
+						cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
+						cairo_arc(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5, 5, 0, 2 * G_PI)
+						cairo_fill_preserve(cr)
+						cairo_set_source_rgb(cr, Breakpoints.IndicatorRed, Breakpoints.IndicatorGreen, Breakpoints.IndicatorBlue)
+						cairo_stroke(cr)
+					#else
+						SelectObject(bufDC, This.Canvas.Brush.Handle)
+						SelectObject(bufDC, This.Canvas.Pen.Handle)
+						Ellipse bufDC, ScaleX(LeftMargin - 16), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(LeftMargin - 5), ScaleY((i - VScrollPos) * dwCharY + 13 + CodePaneY)
+					#endif
+				End If
+				If FECLine->Bookmark Then
+					This.Canvas.Pen.Color = IndicatorLines.Foreground
+					This.Canvas.Brush.Color = Bookmarks.Indicator
+					#ifdef __USE_GTK__
+						Var x = LeftMargin - 18, y = (i - VScrollPos) * dwCharY + 3
+						Var width1 = 14, height1 = 10, radius = 2
+						cairo_set_source_rgb(cr, Bookmarks.IndicatorRed, Bookmarks.IndicatorGreen, Bookmarks.IndicatorBlue)
+						cairo_move_to cr, x - 0.5, y + radius - 0.5
+						cairo_arc (cr, x + radius - 0.5, y + radius - 0.5, radius, G_PI, -G_PI / 2)
+						cairo_line_to (cr, x + width1 - radius - 0.5, y - 0.5)
+						cairo_arc (cr, x + width1 - radius - 0.5, y + radius - 0.5, radius, -G_PI / 2, 0)
+						cairo_line_to (cr, x + width1 - 0.5, y + height1 - radius - 0.5)
+						cairo_arc (cr, x + width1 - radius - 0.5, y + height1 - radius - 0.5, radius, 0, G_PI / 2)
+						cairo_line_to (cr, x + radius - 0.5, y + height1 - 0.5)
+						cairo_arc (cr, x + radius - 0.5, y + height1 - radius - 0.5, radius, G_PI / 2, G_PI)
+						cairo_close_path cr
+						cairo_fill_preserve(cr)
+						cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
+						cairo_stroke(cr)
+					#else
+						'					SelectObject(bufDC, This.Canvas.Brush.Handle)
+						'					SelectObject(bufDC, This.Canvas.Pen.Handle)
+						RoundRect bufDC, ScaleX(LeftMargin - 18), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(LeftMargin - 3), ScaleY((i - VScrollPos) * dwCharY + 13 + CodePaneY), ScaleX(5), ScaleY(5)
+					#endif
+				End If
+				#ifdef __USE_GTK__
+					cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
+				#endif
+				If SyntaxEdit AndAlso Not CStyle Then
+					If FECLine->Collapsible Then
+						#ifdef __USE_GTK__
+							'cairo_set_source_rgb(cr, abs(GetRed(clGray) / 255.0), abs(GetGreen(clGray) / 255.0), abs(GetBlue(clGray) / 255.0))
+							cairo_rectangle(cr, LeftMargin - 15 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5, LeftMargin - 7 - 0.5, (i - VScrollPos) * dwCharY + 12 - 0.5, True)
+							cairo_move_to(cr, LeftMargin - 13 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
+							cairo_line_to(cr, LeftMargin - 9 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
+							cairo_move_to(cr, LeftMargin - 0.5, (i - VScrollPos) * dwCharY - 0.5)
+							cairo_line_to(cr, dwClientX - 0.5, (i - VScrollPos) * dwCharY - 0.5)
+							cairo_stroke (cr)
+						#else
+							This.Canvas.Pen.Color = FoldLines.Foreground
+							'						SelectObject(bufDC, This.Canvas.Brush.Handle)
+							'						SelectObject(bufDC, This.Canvas.Pen.Handle)
+							Rectangle bufDC, ScaleX(LeftMargin - 15), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY), ScaleX(LeftMargin - 6), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY)
+							MoveToEx bufDC, ScaleX(LeftMargin - 13), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY), 0
+							LineTo bufDC, ScaleX(LeftMargin - 8), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)
+							MoveToEx bufDC, ScaleX(LeftMargin), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), 0
+							LineTo bufDC, ScaleX(dwClientX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY)
+						#endif
+						If OldCollapseIndex > 0 Then
+							#ifdef __USE_GTK__
+								cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 0 - 0.5)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5)
+								cairo_stroke (cr)
+							#else
+								MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 0 + CodePaneY), 0
+								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY)
+							#endif
+						End If
+						If FECLine->Collapsed Then
+							#ifdef __USE_GTK__
+								cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 6 - 0.5)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 10 - 0.5)
+								cairo_stroke (cr)
+							#else
+								MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 5 + CodePaneY), 0
+								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 10 + CodePaneY)
+							#endif
+						End If
+						If CInt(CInt(OldCollapseIndex = 0) And CInt(Not FECLine->Collapsed)) OrElse CInt(OldCollapseIndex > 0) Then
+							#ifdef __USE_GTK__
+								cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 12 - 0.5)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY - 0.5)
+								cairo_stroke (cr)
+							#else
+								MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY), 0
+								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY)
+							#endif
+						End If
+					ElseIf OldCollapseIndex > 0 Then
+						#ifdef __USE_GTK__
+							cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
+							cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 0 - 0.5)
+						#else
+							This.Canvas.Pen.Color = FoldLines.Foreground
+							'						SelectObject(bufDC, This.Canvas.Brush.Handle)
+							'						SelectObject(bufDC, This.Canvas.Pen.Handle)
+							MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 0 + CodePaneY), 0
+						#endif
+						If CollapseIndex = 0 Then
+							#ifdef __USE_GTK__
+								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+								cairo_stroke (cr)
+							#else
+								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY)
+							#endif
+						Else
+							#ifdef __USE_GTK__
+								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos + 1) * dwCharY + dwCharY - 0.5)
+								cairo_stroke (cr)
+							#else
+								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos + 1) * dwCharY + dwCharY + CodePaneY)
+							#endif
+						End If
+						If FECLine->ConstructionIndex >= 0 AndAlso CInt(Constructions(FECLine->ConstructionIndex).Collapsible) And CInt(FECLine->ConstructionPart = 2) Then
+							#ifdef __USE_GTK__
+								cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+								cairo_line_to(cr, LeftMargin - 6 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+								cairo_stroke (cr)
+							#else
+								MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY), 0
+								LineTo bufDC, ScaleX(LeftMargin - 6), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY)
+							#endif
+						End If
+					End If
+				End If
+				If i - VScrollPos > vlc1 Then Exit For 'AndAlso Not ChangeCase
+				OldCollapseIndex = CollapseIndex
+			Next z
+			#ifdef __USE_GTK__
+				cairo_rectangle (cr, 0, (i - VScrollPos + 1) * dwCharY, LeftMargin - 25, dwClientY, True)
+				cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
+				cairo_fill (cr)
+				cairo_rectangle (cr, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, LeftMargin, dwClientY, True)
+				cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
+				cairo_fill (cr)
+				If CaretOn Then
+					#ifdef __USE_GTK3__
+						cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
+						gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, HCaretPos, VCaretPos, layout, 0, PANGO_DIRECTION_LTR)
+					#else
+						cairo_rectangle (cr, HCaretPos, VCaretPos, HCaretPos + 0.5, VCaretPos + dwCharY, True)
+						cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
+						cairo_fill (cr)
+					#endif
+				End If
+				'cairo_paint(cr)
+			#else
+				SetRect(@rc, 0, ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25), ScaleY(IIf(zz = 0, iDividedY, dwClientY)))
+				This.Canvas.Brush.Color = LineNumbers.Background
+				FillRect bufDC, @rc, This.Canvas.Brush.Handle
+				SetRect(@rc, ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY), ScaleX(LeftMargin), ScaleY(IIf(zz = 0, iDividedY, dwClientY)))
+				This.Canvas.Brush.Color = NormalText.Background
+				FillRect bufDC, @rc, This.Canvas.Brush.Handle
+			#endif
+		Next zz
+		#ifdef __USE_WINAPI__
 			SetRect(@rc, ScaleX(dwClientX - 17), 0, ScaleX(dwClientX), ScaleY(7))
 			If g_darkModeEnabled Then
 				This.Canvas.Pen.Color = BGR(23, 23, 23)
@@ -2746,7 +2837,7 @@ Namespace My.Sys.Forms
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
 		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
 		Var HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
-		Var VCaretPos = (nCaretPosY - VScrollPos + 1) * dwCharY
+		Var VCaretPos = (nCaretPosY - IIf(ActiveCodePane = 0, VScrollPosTop, VScrollPosBottom) + 1) * dwCharY + IIf(bDivided AndAlso ActiveCodePane = 1, iDividedY + 7, 0)
 		DropDownChar = iSelEndChar
 		DropDownShowed = True
 		#ifdef __USE_GTK__
@@ -2767,12 +2858,12 @@ Namespace My.Sys.Forms
 			If Value Then
 				SetWindowTheme(hwndTT, "DarkMode_Explorer", nullptr)
 				SetWindowTheme(sbScrollBarvTop, "DarkMode_Explorer", nullptr)
-				SetWindowTheme(sbScrollBarv, "DarkMode_Explorer", nullptr)
+				SetWindowTheme(sbScrollBarvBottom, "DarkMode_Explorer", nullptr)
 				SetWindowTheme(sbScrollBarh, "DarkMode_Explorer", nullptr)
 			Else
 				SetWindowTheme(hwndTT, NULL, NULL)
 				SetWindowTheme(sbScrollBarvTop, NULL, NULL)
-				SetWindowTheme(sbScrollBarv, NULL, NULL)
+				SetWindowTheme(sbScrollBarvBottom, NULL, NULL)
 				SetWindowTheme(sbScrollBarh, NULL, NULL)
 			End If
 			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
@@ -2783,7 +2874,7 @@ Namespace My.Sys.Forms
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
 		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
 		Var HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
-		Var VCaretPos = (nCaretPosY - VScrollPos + 1) * dwCharY
+		Var VCaretPos = (nCaretPosY - IIf(ActiveCodePane = 0, VScrollPosTop, VScrollPosBottom) + 1) * dwCharY + IIf(bDivided AndAlso ActiveCodePane = 1, iDividedY + 7, 0)
 		ToolTipChar = iSelEndChar
 		ToolTipShowed = True
 		#ifdef __USE_GTK__
@@ -2939,8 +3030,14 @@ Namespace My.Sys.Forms
 				dwClientX = UnScaleX(LoWord(msg.lParam))
 				dwClientY = UnScaleY(HiWord(msg.lParam))
 				MoveWindow sbScrollBarh, 0, ScaleY(dwClientY - 17), ScaleX(dwClientX - 17), ScaleY(17), False
-				MoveWindow sbScrollBarv, ScaleX(dwClientX - 17), 7, ScaleX(17), ScaleY(dwClientY - 17 - 7), False
-				RedrawWindow sbScrollBarv, 0, 0, RDW_INVALIDATE
+				If Not bDivided Then
+					MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), False
+				Else
+					MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), False
+					MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), False
+					RedrawWindow sbScrollBarvTop, 0, 0, RDW_INVALIDATE
+				End If
+				RedrawWindow sbScrollBarvBottom, 0, 0, RDW_INVALIDATE
 			#endif
 			SetScrollsInfo
 			#ifdef __USE_GTK__
@@ -2949,6 +3046,13 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEWHEEL
 			#endif
 			bInMiddleScroll = False
+			Var VScrollMax = IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom)
+			Dim As Integer Ptr pVScrollPos
+			If ActiveCodePane = 0 Then
+				pVScrollPos = @VScrollPosTop
+			Else
+				pVScrollPos = @VScrollPosBottom
+			End If
 			#ifdef __USE_GTK__
 				OldPos = gtk_adjustment_get_value(adjustmentv)
 				#ifdef __USE_GTK3__
@@ -2957,6 +3061,7 @@ Namespace My.Sys.Forms
 					scrDirection = IIf(e->scroll.direction = GDK_SCROLL_UP, -1, 1)
 				#endif
 			#else
+				Var sbScrollBarv = IIf(ActiveCodePane = 0, sbScrollBarvTop, sbScrollBarvBottom)
 				#ifdef __FB_64BIT__
 					If msg.wParam < 4000000000 Then
 						scrDirection = 1
@@ -2983,7 +3088,7 @@ Namespace My.Sys.Forms
 						gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
 					End If
 					'If Not gtk_adjustment_get_value(adjustmentv) = OldPos Then
-					VScrollPos = gtk_adjustment_get_value(adjustmentv)
+					*pVScrollPos = gtk_adjustment_get_value(adjustmentv)
 					ShowCaretPos False
 					'PaintControl
 					If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
@@ -3000,7 +3105,7 @@ Namespace My.Sys.Forms
 					GetScrollInfo(sbScrollBarv, SB_CTL, @si)
 					'GetScrollInfo(FHandle, SB_VERT, @si)
 					If (Not si.nPos = OldPos) Then
-						VScrollPos = si.nPos
+						*pVScrollPos = si.nPos
 						ShowCaretPos False
 						If DownButton = 0 Then
 							#ifdef __USE_GTK__
@@ -3098,12 +3203,27 @@ Namespace My.Sys.Forms
 				'End If
 			Case WM_HSCROLL, WM_VSCROLL
 				Dim As HWND ScrollBarHandle
+				Dim As Integer Ptr pVScrollPos
 				If msg.msg = WM_HSCROLL Then
 					scrStyle = SB_HORZ
 					ScrollBarHandle = sbScrollBarh
 				Else
 					scrStyle = SB_VERT
-					ScrollBarHandle = sbScrollBarv
+					If bDivided Then
+						Dim As Point pt
+						GetCursorPos @pt
+						..ScreenToClient FHandle, @pt
+						If pt.Y <= iDividedY Then
+							pVScrollPos = @VScrollPosTop
+							ScrollBarHandle = sbScrollBarvTop
+						Else
+							pVScrollPos = @VScrollPosBottom
+							ScrollBarHandle = sbScrollBarvBottom
+						End If
+					Else
+						pVScrollPos = @VScrollPosBottom
+						ScrollBarHandle = sbScrollBarvBottom
+					End If
 				End If
 				si.cbSize = SizeOf (si)
 				si.fMask  = SIF_ALL
@@ -3146,7 +3266,7 @@ Namespace My.Sys.Forms
 					If scrStyle = SB_HORZ Then
 						HScrollPos = si.nPos
 					Else
-						VScrollPos = si.nPos
+						*pVScrollPos = si.nPos
 					End If
 					ShowCaretPos False
 					PaintControl
@@ -3938,6 +4058,11 @@ Namespace My.Sys.Forms
 					SetCapture FHandle
 				#endif
 			Else
+				If bDivided Then
+					ActiveCodePane = IIf(Y <= iDividedY, 0, 1)
+				Else
+					ActiveCodePane = 1
+				End If
 				FSelEndLine = LineIndexFromPoint(X, Y)
 				If InCollapseRect(FSelEndLine, X, Y) Then
 					FSelStartLine = FSelEndLine
@@ -3978,13 +4103,21 @@ Namespace My.Sys.Forms
 				iDividedY = iDivideY
 				If iDivideY <= 7 Then
 					bDivided = False
-					ShowWindow sbScrollBarvTop, SW_HIDE
-					MoveWindow sbScrollBarv, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
+					ActiveCodePane = 1
+					#ifdef __USE_WINAPI__
+						ShowWindow sbScrollBarvTop, SW_HIDE
+						MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
+					#endif
 				Else
+					If Not bDivided Then
+						VScrollPosTop = VScrollPosBottom
+					End If 
 					bDivided = True
-					ShowWindow sbScrollBarvTop, SW_SHOW
-					MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), True
-					MoveWindow sbScrollBarv, ScaleX(dwClientX - 17), iDivideY + 7, ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
+					#ifdef __USE_WINAPI__
+						ShowWindow sbScrollBarvTop, SW_SHOW
+						MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), True
+						MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
+					#endif
 				End If
 				PaintControl
 			End If
@@ -4010,6 +4143,7 @@ Namespace My.Sys.Forms
 				ScrEC = @This
 				MButtonX = UnScaleX(msg.lParamLo)
 				MButtonY = UnScaleY(msg.lParamHi)
+				MiddleScrollIndex = IIf(MButtonY < iDividedY, 0, 1)
 				GetCursorPos @m_tP
 				SetTimer Handle, 1, 25, @EC_TimerProc
 			#endif
@@ -4019,7 +4153,7 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEMOVE
 			#endif
 			#ifdef __USE_GTK__
-				iTemp = LineIndexFromPoint(e->button.x, e->button.y)
+				iTemp = LineIndexFromPoint(e->button.x, e->button.y, ActiveCodePane)
 				If InCollapseRect(iTemp, e->button.x, e->button.y) Then
 					gdk_window_set_cursor(win, gdkCursorHand)
 				Else
@@ -4045,7 +4179,7 @@ Namespace My.Sys.Forms
 					iDivideY = lParamHi
 					PaintControl
 				Else
-					FSelEndLine = LineIndexFromPoint(UnScaleX(lParamLo), UnScaleY(lParamHi))
+					FSelEndLine = LineIndexFromPoint(UnScaleX(lParamLo), UnScaleY(lParamHi), ActiveCodePane)
 					FSelEndChar = CharIndexFromPoint(UnScaleX(lParamLo), UnScaleY(lParamHi))
 					If lParamLo < LeftMargin Then
 						If FSelEndLine < FSelStartLine Then
@@ -4106,14 +4240,14 @@ Namespace My.Sys.Forms
 			With QEditControl(Sender.Child)
 				#ifdef __USE_WINAPI__
 										.sbscrollbarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
-										.sbscrollbarv = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
+										.sbscrollbarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
 										.sbscrollbarh = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
 										ShowWindow .sbscrollbarvTop, SW_HIDE
-										ShowWindow .sbscrollbarv, SW_SHOW
+										ShowWindow .sbscrollbarvBottom, SW_SHOW
 										ShowWindow .sbscrollbarh, SW_SHOW
 										If g_darkModeEnabled Then
 											SetWindowTheme(.sbscrollbarvTop, "DarkMode_Explorer", nullptr)
-											SetWindowTheme(.sbscrollbarv, "DarkMode_Explorer", nullptr)
+											SetWindowTheme(.sbscrollbarvBottom, "DarkMode_Explorer", nullptr)
 											SetWindowTheme(.sbscrollbarh, "DarkMode_Explorer", nullptr)
 					'						.FDarkMode = True
 					'						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
@@ -4168,7 +4302,7 @@ Namespace My.Sys.Forms
 				
 				ec->ShowCaretPos False
 				ec->HScrollPos = 0
-				If ec->VScrollPos <> 0 Then
+				If ec->VScrollPosBottom <> 0 Then
 					ec->ShowCaretPos True
 				End If
 				'ec->VScrollPos = 0
@@ -4237,7 +4371,7 @@ Namespace My.Sys.Forms
 		Sub EditControl_ScrollValueChanged(widget As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
 			If widget = ec->adjustmentv Then
-				ec->VScrollPos = gtk_adjustment_get_value(ec->adjustmentv)
+				ec->VScrollPosBottom = gtk_adjustment_get_value(ec->adjustmentv)
 			Else
 				ec->HScrollPos = gtk_adjustment_get_value(ec->adjustmenth)
 			End If
@@ -4433,7 +4567,9 @@ Namespace My.Sys.Forms
 		ChangeText "", 0, "Bo`sh"
 		ShowHint = False
 		WithHistory = True
-		VScrollMax = -1
+		VScrollMaxTop = -1
+		VScrollMaxBottom = -1
+		ActiveCodePane = 1
 		'ClearUndo
 		'Brush.Color = clWindowColor
 	End Constructor
