@@ -77,6 +77,7 @@ Declare Sub mClick(Sender As My.Sys.Object)
 Declare Sub mClickMRU(Sender As My.Sys.Object)
 Declare Sub mClickHelp(Sender As My.Sys.Object)
 Declare Sub mClickTool(Sender As My.Sys.Object)
+Declare Sub mClickWindow(Sender As My.Sys.Object)
 Declare Sub mClickUseDefine(Sender As My.Sys.Object)
 Declare Sub LoadSettings
 Declare Sub LoadLanguageTexts
@@ -95,7 +96,7 @@ Common Shared As ToolButton Ptr SelectedTool
 Common Shared As TabControl Ptr ptabCode, ptabLeft, ptabBottom, ptabRight
 Common Shared As TreeView Ptr ptvExplorer
 Common Shared As IniFile Ptr piniSettings, piniTheme
-Common Shared As MenuItem Ptr mnuUseDebugger, miHelps, miXizmat
+Common Shared As MenuItem Ptr mnuUseDebugger, miHelps, miXizmat, miWindow
 Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf8BOM, miUtf16BOM, miUtf32BOM, miWindowsCRLF, miLinuxLF, miMacOSCR, miUseDefine
 
 Common Shared As Boolean AutoIncrement

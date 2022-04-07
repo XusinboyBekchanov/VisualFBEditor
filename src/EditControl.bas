@@ -214,6 +214,33 @@ Namespace My.Sys.Forms
 		PaintControl
 	End Sub
 	
+	Private Property EditControl.Splitted As Boolean
+		Return bDivided
+	End Property
+
+	Private Property EditControl.Splitted(Value As Boolean)
+		If Not Value Then
+			bDivided = False
+			ActiveCodePane = 1
+			#ifdef __USE_WINAPI__
+				ShowWindow sbScrollBarvTop, SW_HIDE
+				MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
+			#endif
+		Else
+			If Not bDivided Then
+				VScrollPosTop = VScrollPosBottom
+			End If 
+			bDivided = True
+			If iDivideY <= 0 Then iDivideY = (dwClientY - 17) / 2: iDividedY = iDivideY
+			#ifdef __USE_WINAPI__
+				ShowWindow sbScrollBarvTop, SW_SHOW
+				MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), True
+				MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
+			#endif
+		End If
+		If OnSplitChange Then OnSplitChange(This, Value)
+	End Property
+	
 	Property EditControl.TopLine As Integer
 		If ActiveCodePane = 0 Then
 			Return VScrollPosTop
@@ -4116,22 +4143,26 @@ Namespace My.Sys.Forms
 				bInDivide = False
 				iDividedY = iDivideY
 				If iDivideY <= 7 OrElse iDivideY > (dwClientY - 17 - 7) Then
-					bDivided = False
-					ActiveCodePane = 1
-					#ifdef __USE_WINAPI__
-						ShowWindow sbScrollBarvTop, SW_HIDE
-						MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
-					#endif
+					Splitted = False
+'					bDivided = False
+'					ActiveCodePane = 1
+'					#ifdef __USE_WINAPI__
+'						ShowWindow sbScrollBarvTop, SW_HIDE
+'						MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
+'					#endif
+'					If OnSplitChange Then OnSplitChange(This, False)
 				Else
-					If Not bDivided Then
-						VScrollPosTop = VScrollPosBottom
-					End If 
-					bDivided = True
-					#ifdef __USE_WINAPI__
-						ShowWindow sbScrollBarvTop, SW_SHOW
-						MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), True
-						MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
-					#endif
+					Splitted = True
+'					If Not bDivided Then
+'						VScrollPosTop = VScrollPosBottom
+'					End If 
+'					bDivided = True
+'					#ifdef __USE_WINAPI__
+'						ShowWindow sbScrollBarvTop, SW_SHOW
+'						MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), True
+'						MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
+'					#endif
+'					If OnSplitChange Then OnSplitChange(This, True)
 				End If
 				PaintControl
 			End If

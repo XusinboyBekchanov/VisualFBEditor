@@ -59,7 +59,7 @@ Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
-Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
+Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
 Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar ReBar1
@@ -4820,6 +4820,14 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mclick)
 	
+	miWindow = mnuMain.Add(ML("&Window"), "", "Window")
+	mnuSplit = miWindow->Add(ML("S&plit") & HK("Split"), "", "Split", @mclick, True)
+	miWindow->Add("-")
+	mnuSplitHorizontally = miWindow->Add(ML("Split &Horizontally") & HK("SplitHorizontally"), "", "SplitHorizontally", @mclick, True)
+	mnuSplitVertically = miWindow->Add(ML("Split &Vertically") & HK("SplitVertically"), "", "SplitVertically", @mclick, True)
+	mnuWindowSeparator = miWindow->Add("-")
+	mnuWindowSeparator->Visible = False
+	
 	Var miHelp = mnuMain.Add(ML("&Help"), "", "Help")
 	miHelp->Add(ML("&Content") & HK("Content", "F1"), "Book", "Content", @mclick)
 	miHelps = miHelp->Add(ML("&Others"), "", "Others")
@@ -6380,6 +6388,9 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
 	tb->tn->SelectItem
+	For i As Integer = 5 To miWindow->Count - 1
+		miWindow->Item(i)->Checked = miWindow->Item(i) = tb->mi
+	Next
 	If tbOld AndAlso tb = tbOld Then Exit Sub
 	If tbOld > 0 Then
 		tbOld->lvPropertyWidth = tabRightWidth

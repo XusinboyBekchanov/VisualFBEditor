@@ -144,6 +144,13 @@ Sub mClickTool(ByRef Sender As My.Sys.Object)
 	If tt <> 0 Then tt->Execute
 End Sub
 
+Sub mClickWindow(ByRef Sender As My.Sys.Object)
+	Dim As MenuItem Ptr mi = Cast(MenuItem Ptr, @Sender)
+	If mi = 0 Then Exit Sub
+	Dim As TabWindow Ptr tb = mi->Tag
+	If tb <> 0 Then tb->SelectTab
+End Sub
+
 Sub mClick(Sender As My.Sys.Object)
 	Select Case Sender.ToString
 	Case "NewProject":                          NewProject
@@ -405,7 +412,7 @@ Sub mClick(Sender As My.Sys.Object)
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			End If
 		End If
-	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", _
+	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "Split", _
 		"Start", "Stop", "StepOut", "FindNext","FindPrev", "Goto", "SetNextStatement", "SortLines", _
 		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm" '
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -415,6 +422,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "SaveAs":                      tb->SaveAs
 		Case "Close":                       CloseTab(tb)
 		Case "SortLines":                   tb->SortLines
+		Case "Split":                       tb->txtCode.Splitted = Not mnuSplit->Checked
 		Case "SetNextStatement":
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then

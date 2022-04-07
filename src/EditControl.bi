@@ -349,6 +349,8 @@ Namespace My.Sys.Forms
 		Declare Property HintWord(ByRef Value As WString)
 		Declare Property SelText ByRef As WString
 		Declare Property SelText(ByRef Value As WString)
+		Declare Property Splitted As Boolean
+		Declare Property Splitted(Value As Boolean)
 		Declare Property TopLine As Integer
 		Declare Property TopLine(Value As Integer)
 		Declare Sub ChangeCollapseState(LineIndex As Integer, Value As Boolean)
@@ -393,6 +395,7 @@ Namespace My.Sys.Forms
 		OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 		OnLinkClicked As Sub(ByRef Sender As EditControl, ByRef Link As WString)
 		OnToolTipLinkClicked As Sub(ByRef Sender As EditControl, ByRef Link As WString)
+		OnSplitChange As Sub(ByRef Sender As EditControl, Splitted As Boolean)
 	End Type
 	
 	Common Constructions() As Construction

@@ -197,6 +197,7 @@ Public:
 	Dim bNotDesign As Boolean
 	Dim As Integer ConstructorStart, ConstructorEnd, lvPropertyWidth, FindFormPosiLeft, FindFormPosiTop, RightSelectedIndex
 	tn As TreeNode Ptr
+	mi As MenuItem Ptr
 	DownLine As Integer
 	DownLineSelStart As Integer
 	DownLineSelEnd As Integer

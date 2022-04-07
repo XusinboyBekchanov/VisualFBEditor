@@ -364,6 +364,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			tabRight.SelectedTabIndex = 0
 		End If
 		MoveCloseButtons
+		If Not mnuWindowSeparator->Visible Then mnuWindowSeparator->Visible = True
 	End If
 	tb->txtCode.SetFocus
 	ptabCode->UpdateUnLock
@@ -804,6 +805,7 @@ Function TabWindow.SaveAs As Boolean
 		End If
 		Caption = GetFileName(pSaveD->Filename)
 		tn->Text = Caption
+		mi->Caption = Caption
 		WLet(FFileName, pSaveD->Filename)
 		CheckExtension *FFileName
 		Dim As ExplorerElement Ptr ee = tn->Tag
@@ -852,8 +854,12 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		End Select
 	End If
 	pTabCode->Remove(@btnClose)
+	miWindow->Remove This.mi
 	btnClose.FreeWnd
 	pTabCode->DeleteTab(This.Index)
+	If pTabCode->TabCount = 0 Then
+		mnuWindowSeparator->Visible = False
+	End If
 	If tn <> 0 AndAlso tn->ImageKey <> "Project" Then ', Will remove all project from tree
 		If ptvExplorer->Nodes.IndexOf(tn) <> -1 Then
 			If tn->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Tag))
@@ -5235,6 +5241,10 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	#endif
 End Sub
 
+Private Sub OnSplitChangeEdit(ByRef Sender As EditControl, Splitted As Boolean)
+	mnuSplit->Checked = Splitted
+End Sub
+
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
 	WLet(FCaption, "")
 	WLet(FFileName, "")
@@ -5248,6 +5258,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnToolTipLinkClicked = @OnToolTipLinkClickedEdit
 	txtCode.OnKeyDown = @OnKeyDownEdit
 	txtCode.OnKeyPress = @OnKeyPressEdit
+	txtCode.OnSplitChange = @OnSplitChangeEdit
 	txtCode.Tag = @This
 	txtCode.ShowHint = False
 	'OnPaste = @OnPasteEdit
@@ -5425,6 +5436,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		If tn = 0 Then
 			tn = ptvExplorer->Nodes.Add(This.Caption, , , "File", "File")
 		End If
+		mi = miWindow->Add(This.Caption, "", , @mClickWindow, True)
+		mi->Tag = @This
 	End If
 End Constructor
 
