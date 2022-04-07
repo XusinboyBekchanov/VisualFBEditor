@@ -119,7 +119,12 @@ Namespace My.Sys.Forms
 			si.cbSize = Len(si)
 			si.fMask = SIF_RANGE Or SIF_PAGE Or SIF_POS Or SIF_TRACKPOS
 			Var sbScrollBarv = IIf(MiddleScrollIndex = 0, sbScrollBarvTop, sbScrollBarvBottom)
-			Var VScrollPos = IIf(MiddleScrollIndex = 0, VScrollPosTop, VScrollPosBottom)
+			Dim As Integer Ptr pVScrollPos
+			If MiddleScrollIndex = 0 Then
+				pVScrollPos = @VScrollPosTop
+			Else
+				pVScrollPos = @VScrollPosBottom
+			End If
 			GetScrollInfo sbScrollBarv, SB_CTL, @si
 			'GetScrollInfo FHandle, SB_VERT, @si
 			lVertOffset = deltaToScrollAmount(lYOffset)
@@ -143,8 +148,8 @@ Namespace My.Sys.Forms
 					'SetScrollInfo(FHandle, SB_VERT, @si, True)
 					GetScrollInfo(sbScrollBarv, SB_CTL, @si)
 					'GetScrollInfo(FHandle, SB_VERT, @si)
-					If (Not si.nPos = VScrollPos) Then
-						VScrollPos = si.nPos
+					If (Not si.nPos = *pVScrollPos) Then
+						*pVScrollPos = si.nPos
 						bChanged = True
 					End If
 				End If
@@ -1495,9 +1500,11 @@ Namespace My.Sys.Forms
 			#endif
 		End If
 		
+		Var OldCaretVisible = VCaretPos >= 0
 		HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
 		VCaretPos = (nCaretPosY - *pVScrollPos) * dwCharY
-		If bDivided AndAlso ActiveCodePane = 1 Then VCaretPos += iDividedY + 7
+		Var CaretVisible = VCaretPos >= 0
+		If bDivided AndAlso ActiveCodePane = 1 AndAlso VCaretPos >= 0 Then VCaretPos += iDividedY + 7
 		If HCaretPos < LeftMargin Or FSelStartLine <> FSelEndLine Or FSelStartChar <> FSelEndChar Then HCaretPos = -1
 		#ifdef __USE_GTK__
 			If Scroll Then
@@ -1506,7 +1513,16 @@ Namespace My.Sys.Forms
 			End If
 			'gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, 10, 10, layout, 0, PANGO_DIRECTION_LTR)
 		#else
-			SetCaretPos(ScaleX(HCaretPos), ScaleY(VCaretPos))
+'			If OldCaretVisible <> CaretVisible Then
+'				If CaretVisible Then
+'					ShowCaret FHandle
+'				Else
+'					HideCaret FHandle
+'				End If
+'			End If
+			'If CaretVisible Then 
+				SetCaretPos(ScaleX(HCaretPos), ScaleY(VCaretPos))
+			'End If
 		#endif
 		OldLine = FSelEndLine
 		OldChar = FSelEndChar
