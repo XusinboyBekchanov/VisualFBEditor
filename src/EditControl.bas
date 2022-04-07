@@ -1500,12 +1500,10 @@ Namespace My.Sys.Forms
 			#endif
 		End If
 		
-		Var OldCaretVisible = VCaretPos >= 0
 		HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
 		VCaretPos = (nCaretPosY - *pVScrollPos) * dwCharY
-		Var CaretVisible = VCaretPos >= 0
 		If bDivided AndAlso ActiveCodePane = 1 AndAlso VCaretPos >= 0 Then VCaretPos += iDividedY + 7
-		If HCaretPos < LeftMargin Or FSelStartLine <> FSelEndLine Or FSelStartChar <> FSelEndChar Then HCaretPos = -1
+		If HCaretPos < LeftMargin OrElse FSelStartLine <> FSelEndLine OrElse FSelStartChar <> FSelEndChar OrElse (ActiveCodePane = 0 AndAlso VCaretPos > iDividedY - dwCharY) Then HCaretPos = -1
 		#ifdef __USE_GTK__
 			If Scroll Then
 				CaretOn = True
