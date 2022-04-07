@@ -210,6 +210,8 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "ProjectMacroNumberOn":                ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "ProjectMacroNumberOnStartsOfProcs":   ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "ProjectNumberOff":                    ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
+	Case "ProjectPreprocessorNumberOn":         ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
+	Case "ProjectPreprocessorNumberOff":        ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "GDBCommand":                          GDBCommand
 	Case "StartWithCompile"

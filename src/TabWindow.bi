@@ -426,6 +426,10 @@ Declare Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 
 Declare Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
 
+Declare Sub PreprocessorNumberingOn(ByRef txtCode As EditControl, ByRef FileName As WString, WithoutUpdate As Boolean = False)
+
+Declare Sub PreprocessorNumberingOff(ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
+
 #ifndef __USE_MAKE__
 	#include once "TabWindow.bas"
 #endif

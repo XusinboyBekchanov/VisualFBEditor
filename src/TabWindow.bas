@@ -165,7 +165,9 @@ Sub NumberingProject(pSender As Any Ptr)
 	Dim As ExplorerElement Ptr ee
 	Dim As Boolean bMacro = StartsWith(Cast(My.Sys.Object Ptr, pSender)->ToString, "ProjectMacroNumberOn")
 	Dim As Boolean bStartsOfProcs = EndsWith(Cast(My.Sys.Object Ptr, pSender)->ToString, "StartsOfProcs")
+	Dim As Boolean bPreprocesssor = StartsWith(Cast(My.Sys.Object Ptr, pSender)->ToString, "ProjectPreprocessor")
 	Dim As Boolean bRemove = Cast(My.Sys.Object Ptr, pSender)->ToString = "ProjectNumberOff"
+	Dim As Boolean bRemovePreprocessor = Cast(My.Sys.Object Ptr, pSender)->ToString = "ProjectPreprocessorNumberOff"
 	Dim As EditControl txt
 	Dim As EditControl Ptr ptxt
 	Dim As TabWindow Ptr tb, tbCurrent = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -191,7 +193,11 @@ Sub NumberingProject(pSender As Any Ptr)
 						Else
 							ptxt = @tb->txtCode
 						End If
-						If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
+						If bPreprocesssor Then
+							If bRemovePreprocessor Then PreprocessorNumberingOff(*ptxt, True) Else PreprocessorNumberingOn(*ptxt, *ee->FileName, True)
+						Else
+							If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
+						End If
 						If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 					End If
 				End If
@@ -204,7 +210,11 @@ Sub NumberingProject(pSender As Any Ptr)
 			Else
 				ptxt = @tb->txtCode
 			End If
-			If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
+			If bPreprocesssor Then
+				If bRemovePreprocessor Then PreprocessorNumberingOff(*ptxt, True) Else PreprocessorNumberingOn(*ptxt, *ee->FileName, True)
+			Else
+				If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
+			End If
 			If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 		End If
 	Next
@@ -7130,13 +7140,9 @@ Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer
 	NumberingOn StartLine, EndLine, bMacro, tb->txtCode
 End Sub
 
-Sub TabWindow.PreprocessorNumberOn()
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
-	If tb = 0 Then Exit Sub
-	Dim As WString Ptr tempStr
-	WLetEx tempStr, GetFileName(tb->Filename), True
-	With tb->txtCode
-		.UpdateLock
+Sub PreprocessorNumberingOn(ByRef txtCode As EditControl, ByRef FileName As WString, WithoutUpdate As Boolean = False)
+	With txtCode
+		If Not WithoutUpdate Then .UpdateLock
 		.Changing("Preprocessor Numbering")
 		Dim As EditControlLine Ptr FECLine, FECLineOld
 		For i As Integer = .LinesCount - 1 To 0 Step -1
@@ -7149,13 +7155,18 @@ Sub TabWindow.PreprocessorNumberOn()
 			If Trim(*FECLine->Text, Any !"\t ") = "" Then Continue For
 			If StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "#print __line__") Then Continue For
 			If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") Then Continue For
-			.InsertLine i, "#print __LINE__ - " & *tempStr
+			.InsertLine i, "#print __LINE__ - " & FileName
 		Next i
 		.Changed("Preprocessor Numbering")
-		.UpdateUnLock
-		WDeallocate tempStr
+		If Not WithoutUpdate Then .UpdateUnLock
 		'.ShowCaretPos True
 	End With
+End Sub
+
+Sub TabWindow.PreprocessorNumberOn()
+	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	PreprocessorNumberingOn tb->txtCode, tb->FileName
 End Sub
 
 Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
@@ -7344,11 +7355,9 @@ Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 	NumberingOff StartLine, EndLine, tb->txtCode
 End Sub
 
-Sub TabWindow.PreprocessorNumberOff()
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
-	If tb = 0 Then Exit Sub
-	With tb->txtCode
-		.UpdateLock
+Sub PreprocessorNumberingOff(ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
+	With txtCode
+		If Not WithoutUpdate Then .UpdateLock
 		.Changing("Remove Preprocessor Numbering")
 		Dim As EditControlLine Ptr FECLine
 		Dim As Integer n
@@ -7359,9 +7368,15 @@ Sub TabWindow.PreprocessorNumberOff()
 			End If
 		Next i
 		.Changed("Remove Preprocessor Numbering")
-		.UpdateUnLock
+		If Not WithoutUpdate Then .UpdateUnLock
 		'.ShowCaretPos True
 	End With
+End Sub
+
+Sub TabWindow.PreprocessorNumberOff()
+	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	PreprocessorNumberingOff tb->txtCode
 End Sub
 
 Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
