@@ -2603,10 +2603,10 @@ Namespace My.Sys.Forms
 				End If
 				'cairo_paint(cr)
 			#else
-				SetRect(@rc, 0, ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25), ScaleY(IIf(zz = 0, iDividedY, dwClientY)))
+				SetRect(@rc, 0, ScaleY((Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25), ScaleY(IIf(zz = 0, iDividedY, dwClientY)))
 				This.Canvas.Brush.Color = LineNumbers.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
-				SetRect(@rc, ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY), ScaleX(LeftMargin), ScaleY(IIf(zz = 0, iDividedY, dwClientY)))
+				SetRect(@rc, ScaleX(LeftMargin - 25), ScaleY((Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY), ScaleX(LeftMargin), ScaleY(IIf(zz = 0, iDividedY, dwClientY)))
 				This.Canvas.Brush.Color = NormalText.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			#endif
