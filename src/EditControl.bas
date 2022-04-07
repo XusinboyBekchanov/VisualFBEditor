@@ -4101,7 +4101,7 @@ Namespace My.Sys.Forms
 			If bInDivide Then
 				bInDivide = False
 				iDividedY = iDivideY
-				If iDivideY <= 7 Then
+				If iDivideY <= 7 OrElse iDivideY > (dwClientY - 17 - 7) Then
 					bDivided = False
 					ActiveCodePane = 1
 					#ifdef __USE_WINAPI__
