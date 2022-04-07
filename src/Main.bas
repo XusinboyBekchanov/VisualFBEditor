@@ -6437,7 +6437,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 		frmMain.Caption = tb->FileName & " - " & App.Title
 	End If
 	ChangeFileEncoding tb->FileEncoding
-	ChangeFileEncoding tb->NewLineType
+	ChangeNewLineType tb->NewLineType
 	tbOld = tb
 End Sub
 

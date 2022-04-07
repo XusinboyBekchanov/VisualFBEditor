@@ -286,6 +286,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			tb->UseVisualStyleBackColor = True
 			tb->CheckExtension FileName
 			'.txtCode.ContextMenu = @mnuCode
+			If Not mnuWindowSeparator->Visible Then mnuWindowSeparator->Visible = True
 			ptabCode->AddTab(Cast(TabPage Ptr, tb))
 			#ifdef __USE_GTK__
 				'.layout = gtk_layout_new(NULL, NULL)
@@ -364,7 +365,6 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			tabRight.SelectedTabIndex = 0
 		End If
 		MoveCloseButtons
-		If Not mnuWindowSeparator->Visible Then mnuWindowSeparator->Visible = True
 	End If
 	tb->txtCode.SetFocus
 	ptabCode->UpdateUnLock
@@ -5436,9 +5436,9 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		If tn = 0 Then
 			tn = ptvExplorer->Nodes.Add(This.Caption, , , "File", "File")
 		End If
-		mi = miWindow->Add(This.Caption, "", , @mClickWindow, True)
-		mi->Tag = @This
 	End If
+	mi = miWindow->Add(This.Caption, "", , @mClickWindow, True)
+	mi->Tag = @This
 End Constructor
 
 Destructor TabWindow
