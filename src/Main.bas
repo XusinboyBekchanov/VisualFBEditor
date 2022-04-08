@@ -4821,8 +4821,6 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mclick)
 	
 	miWindow = mnuMain.Add(ML("&Window"), "", "Window")
-	mnuSplit = miWindow->Add(ML("S&plit") & HK("Split"), "", "Split", @mclick, True)
-	miWindow->Add("-")
 	mnuSplitHorizontally = miWindow->Add(ML("Split &Horizontally") & HK("SplitHorizontally"), "", "SplitHorizontally", @mclick, True)
 	mnuSplitVertically = miWindow->Add(ML("Split &Vertically") & HK("SplitVertically"), "", "SplitVertically", @mclick, True)
 	mnuWindowSeparator = miWindow->Add("-")
