@@ -4252,6 +4252,10 @@ Namespace My.Sys.Forms
 				SplittedVertically = False
 			ElseIf bDividedY AndAlso Y >= iDividedY AndAlso Y <= iDividedY + 7 Then
 				SplittedHorizontally = False
+			ElseIf (Not bDividedX) AndAlso Y >= dwClientY - 17 AndAlso X <= 7 Then
+				SplittedVertically = True
+			ElseIf (Not bDividedY) AndAlso X >= dwClientX - 17 AndAlso Y <= 7 Then
+				SplittedHorizontally = True
 			ElseIf InCollapseRect(FSelEndLine, X, Y) Then
 			Else
 				FSelEndChar = CharIndexFromPoint(X, Y)
