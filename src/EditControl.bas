@@ -3444,7 +3444,7 @@ Namespace My.Sys.Forms
 						Dim As Point pt
 						GetCursorPos @pt
 						..ScreenToClient FHandle, @pt
-						If (bDividedY AndAlso pt.Y <= iDividedY) OrElse (bDividedX AndAlso pt.X <= iDividedX) Then
+						If (bDividedY AndAlso pt.Y <= iDividedY) OrElse (bDividedX AndAlso pt.X <= iDividedX + (dwClientX - iDividedX) / 2) Then
 							pVScrollPos = @VScrollPosTop
 							ScrollBarHandle = sbScrollBarvTop
 						Else

@@ -2755,6 +2755,9 @@ End Sub
 
 Sub CompileAndRun(Param As Any Ptr)
 	If Compile("Run") Then RunProgram(0)
+	ThreadsEnter
+	ChangeEnabledDebug True, False, False
+	ThreadsLeave
 End Sub
 
 Sub MakeExecute(Param As Any Ptr)
@@ -6386,7 +6389,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
 	tb->tn->SelectItem
-	For i As Integer = 5 To miWindow->Count - 1
+	For i As Integer = 3 To miWindow->Count - 1
 		miWindow->Item(i)->Checked = miWindow->Item(i) = tb->mi
 	Next
 	If tbOld AndAlso tb = tbOld Then Exit Sub

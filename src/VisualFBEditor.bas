@@ -47,9 +47,9 @@ Sub DebugPrint_(ByRef Msg As WString)
 End Sub
 
 Sub StartDebuggingWithCompile(Param As Any Ptr)
-	ThreadsEnter
-	ChangeEnabledDebug False, True, True
-	ThreadsLeave
+'	ThreadsEnter
+'	ChangeEnabledDebug False, True, True
+'	ThreadsLeave
 	If Compile("Run") Then RunWithDebug(0) Else ThreadsEnter: ChangeEnabledDebug True, False, False: ThreadsLeave
 End Sub
 
@@ -223,6 +223,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "GDBCommand":                          GDBCommand
 	Case "StartWithCompile"
 		If SaveAllBeforeCompile Then
+			ChangeEnabledDebug False, True, True
 			'SaveAll '
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
