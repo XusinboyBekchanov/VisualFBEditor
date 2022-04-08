@@ -2651,7 +2651,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 		End If
 		ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & Mid(te->TypeName, 4)
 		If InStr(CtrlName, "(") Then
-			ptxtCode->InsertLine i + q + 2, TabSpace & "Dim As Integer Index = Val(StringExtract(Sender.Name)" & ", ""("", "")""))"
+			ptxtCode->InsertLine i + q + 2, TabSpace & "Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, ""("") + 1))"
 		Else
 			ptxtCode->InsertLine i + q + 2, TabSpace
 		End If
