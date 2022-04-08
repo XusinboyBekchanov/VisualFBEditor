@@ -5241,8 +5241,12 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	#endif
 End Sub
 
-Private Sub OnSplitChangeEdit(ByRef Sender As EditControl, Splitted As Boolean)
-	mnuSplit->Checked = Splitted
+Private Sub OnSplitHorizontallyChangeEdit(ByRef Sender As EditControl, Splitted As Boolean)
+	mnuSplitHorizontally->Checked = Splitted
+End Sub
+
+Private Sub OnSplitVerticallyChangeEdit(ByRef Sender As EditControl, Splitted As Boolean)
+	mnuSplitVertically->Checked = Splitted
 End Sub
 
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
@@ -5258,7 +5262,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnToolTipLinkClicked = @OnToolTipLinkClickedEdit
 	txtCode.OnKeyDown = @OnKeyDownEdit
 	txtCode.OnKeyPress = @OnKeyPressEdit
-	txtCode.OnSplitChange = @OnSplitChangeEdit
+	txtCode.OnSplitHorizontallyChange = @OnSplitHorizontallyChangeEdit
+	txtCode.OnSplitVerticallyChange = @OnSplitVerticallyChangeEdit
 	txtCode.Tag = @This
 	txtCode.ShowHint = False
 	'OnPaste = @OnPasteEdit

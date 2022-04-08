@@ -87,6 +87,13 @@ Namespace My.Sys.Forms
 			Dim As Boolean bChanged, bDoIt
 			si.cbSize = Len(si)
 			si.fMask = SIF_RANGE Or SIF_PAGE Or SIF_POS Or SIF_TRACKPOS
+			Var sbScrollBarh = IIf(MiddleScrollIndexX = 0, sbScrollBarhLeft, sbScrollBarhRight)
+			Dim As Integer Ptr pHScrollPos
+			If MiddleScrollIndexX = 0 Then
+				pHScrollPos = @HScrollPosLeft
+			Else
+				pHScrollPos = @HScrollPosRight
+			End If
 			GetScrollInfo sbScrollBarh, SB_CTL, @si
 			'GetScrollInfo FHandle, SB_HORZ, @si
 			lHorzOffset = deltaToScrollAmount(lXOffset)
@@ -110,17 +117,17 @@ Namespace My.Sys.Forms
 					'SetScrollInfo FHandle, SB_HORZ, @si, True
 					GetScrollInfo(sbScrollBarh, SB_CTL, @si)
 					'GetScrollInfo(FHandle, SB_HORZ, @si)
-					If (Not si.nPos = HScrollPos) Then
-						HScrollPos = si.nPos
+					If (Not si.nPos = *pHScrollPos) Then
+						*pHScrollPos = si.nPos
 						bChanged = True
 					End If
 				End If
 			End If
 			si.cbSize = Len(si)
 			si.fMask = SIF_RANGE Or SIF_PAGE Or SIF_POS Or SIF_TRACKPOS
-			Var sbScrollBarv = IIf(MiddleScrollIndex = 0, sbScrollBarvTop, sbScrollBarvBottom)
+			Var sbScrollBarv = IIf(MiddleScrollIndexY = 0, sbScrollBarvTop, sbScrollBarvBottom)
 			Dim As Integer Ptr pVScrollPos
-			If MiddleScrollIndex = 0 Then
+			If MiddleScrollIndexY = 0 Then
 				pVScrollPos = @VScrollPosTop
 			Else
 				pVScrollPos = @VScrollPosBottom
@@ -214,23 +221,59 @@ Namespace My.Sys.Forms
 		PaintControl
 	End Sub
 	
-	Private Property EditControl.Splitted As Boolean
-		Return bDivided
+	Private Property EditControl.SplittedVertically As Boolean
+		Return bDividedX
 	End Property
 
-	Private Property EditControl.Splitted(Value As Boolean)
+	Private Property EditControl.SplittedVertically(Value As Boolean)
 		If Not Value Then
-			bDivided = False
+			bDividedX = False
+			bInDivideX = False
+			iDivideX = 0
+			ActiveCodePane = 1
+			#ifdef __USE_WINAPI__
+				ShowWindow sbScrollBarvTop, SW_HIDE
+				ShowWindow sbScrollBarhLeft, SW_HIDE
+				MoveWindow sbScrollBarhRight, ScaleX(7), ScaleY(dwClientY - 17), ScaleX(dwClientX - 17 - 7), ScaleY(17), True
+			#endif
+		Else
+			If bDividedY Then SplittedHorizontally = False
+			If Not bDividedX Then
+				HScrollPosLeft = HScrollPosRight
+			End If 
+			bDividedX = True
+			If iDivideX <= 0 Then iDivideX = (dwClientX - 17) / 2: iDividedX = iDivideX
+			#ifdef __USE_WINAPI__
+				MoveWindow sbScrollBarvTop, ScaleX(iDivideX - 17), 0, ScaleX(17), ScaleY(dwClientY - 17), True
+				MoveWindow sbScrollBarhLeft, 0, ScaleY(dwClientY - 17), ScaleX(iDivideX - 17), ScaleY(17), True
+				MoveWindow sbScrollBarhRight, ScaleX(iDivideX + 7), ScaleY(dwClientY - 17), ScaleX(dwClientX - iDivideX - 7 - 17), ScaleY(17), True
+				ShowWindow sbScrollBarvTop, SW_SHOW
+				ShowWindow sbScrollBarhLeft, SW_SHOW
+			#endif
+		End If
+		If OnSplitVerticallyChange Then OnSplitVerticallyChange(This, Value)
+	End Property
+	
+	Private Property EditControl.SplittedHorizontally As Boolean
+		Return bDividedY
+	End Property
+
+	Private Property EditControl.SplittedHorizontally(Value As Boolean)
+		If Not Value Then
+			bDividedY = False
+			bInDivideY = False
+			iDivideY = 0
 			ActiveCodePane = 1
 			#ifdef __USE_WINAPI__
 				ShowWindow sbScrollBarvTop, SW_HIDE
 				MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
 			#endif
 		Else
-			If Not bDivided Then
+			If bDividedX Then SplittedVertically = False
+			If Not bDividedY Then
 				VScrollPosTop = VScrollPosBottom
 			End If 
-			bDivided = True
+			bDividedY = True
 			If iDivideY <= 0 Then iDivideY = (dwClientY - 17) / 2: iDividedY = iDivideY
 			#ifdef __USE_WINAPI__
 				ShowWindow sbScrollBarvTop, SW_SHOW
@@ -238,7 +281,7 @@ Namespace My.Sys.Forms
 				MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
 			#endif
 		End If
-		If OnSplitChange Then OnSplitChange(This, Value)
+		If OnSplitHorizontallyChange Then OnSplitHorizontallyChange(This, Value)
 	End Property
 	
 	Property EditControl.TopLine As Integer
@@ -1272,7 +1315,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function EditControl.VisibleLinesCount(CodePane As Integer = -1) As Integer
-		If bDivided Then
+		If bDividedY Then
 			If IIf(CodePane = -1, ActiveCodePane, CodePane) = 1 Then
 				Return (dwClientY - iDividedY - 7 - 17) / dwCharY
 			Else
@@ -1283,9 +1326,10 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
-	Function EditControl.CharIndexFromPoint(X As Integer, Y As Integer) As Integer
-		WLet(FLine, *Cast(EditControlLine Ptr, FLines.Item(LineIndexFromPoint(X, Y)))->Text)
-		Dim As Integer nCaretPosX = X - LeftMargin + HScrollPos * dwCharX
+	Function EditControl.CharIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
+		WLet(FLine, *Cast(EditControlLine Ptr, FLines.Item(LineIndexFromPoint(X, Y, CodePane)))->Text)
+		Var CurCodePane = IIf(CodePane = -1, ActiveCodePane, CodePane)
+		Dim As Integer nCaretPosX = X - LeftMargin + IIf(CurCodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX - IIf(bDividedX AndAlso CurCodePane = 1, iDividedX + 7, 0)
 		Dim As Integer w = TextWidth(GetTabbedText(*FLine))
 		Dim As Integer Idx = Len(*FLine)
 		If w - 2 > nCaretPosX Then
@@ -1300,14 +1344,14 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControl.LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
-		If bDivided Then
+		If bDividedY Then
 			If IIf(CodePane = -1, ActiveCodePane, CodePane) = 1 Then
 				Return GetLineIndex(0, Max(0, Min(Fix((Y - iDividedY - 7) / dwCharY) + VScrollPosBottom, LinesCount - 1)))
 			Else
 				Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + VScrollPosTop, LinesCount - 1)))
 			End If
 		Else
-			Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + VScrollPosBottom, LinesCount - 1)))
+			Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + IIf(bDividedX AndAlso IIf(CodePane = -1, ActiveCodePane, CodePane) = 0, VScrollPosTop, VScrollPosBottom), LinesCount - 1)))
 		End If
 	End Function
 	
@@ -1374,10 +1418,10 @@ Namespace My.Sys.Forms
 	Function EditControl.GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
 		If X <= LeftMargin Then Return ""
 		Dim As Integer LineIndex
-		If Y <= iDividedY AndAlso bDivided Then
+		If Y <= iDividedY AndAlso bDividedY Then
 			LineIndex = Fix(Y / dwCharY) + VScrollPosTop
 		Else
-			LineIndex = Fix((Y - iDividedY - 7) / dwCharY) + VScrollPosBottom
+			LineIndex = Fix((Y - IIf(bDividedY, iDividedY + 7, 0)) / dwCharY) + VScrollPosBottom
 		End If
 		Var j = -1, k = -1
 		For i As Integer = 0 To FLines.Count - 1
@@ -1388,7 +1432,7 @@ Namespace My.Sys.Forms
 		Next
 		If k = -1 Then Return ""
 		WLet(FLine, *Cast(EditControlLine Ptr, FLines.Item(k))->Text)
-		Dim As Integer nCaretPosX = X - LeftMargin + HScrollPos * dwCharX
+		Dim As Integer nCaretPosX = X - LeftMargin + IIf(X <= iDividedX AndAlso bDividedX, HScrollPosLeft, HScrollPosRight - IIf(bDividedX, iDividedX + 7, 0)) * dwCharX
 		Dim As Integer w = TextWidth(GetTabbedText(*FLine))
 		Dim As Integer Idx = Len(*FLine)
 		If w - 2 <= nCaretPosX Then Return ""
@@ -1471,21 +1515,28 @@ Namespace My.Sys.Forms
 		End If
 		
 		SetScrollsInfo
+		Dim As Integer Ptr pHScrollPos
+		If bDividedX AndAlso ActiveCodePane = 0 Then
+			pHScrollPos = @HScrollPosLeft
+		Else
+			pHScrollPos = @HScrollPosRight
+		End If
 		Dim As Integer Ptr pVScrollPos
 		If ActiveCodePane = 0 Then
 			pVScrollPos = @VScrollPosTop
 		Else
 			pVScrollPos = @VScrollPosBottom
 		End If
+		Dim As Integer HScrollMax = IIf(bDividedX AndAlso ActiveCodePane = 0, HScrollMaxLeft, HScrollMaxRight)
 		Dim As Integer VScrollMax = IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom)
 		If Scroll Then
-			Var OldHScrollPos = HScrollPos, OldVScrollPos = *pVScrollPos
-			If nCaretPosX < HScrollPos * dwCharX Then
-				HScrollPos = nCaretPosX / dwCharX
-			ElseIf LeftMargin + nCaretPosX > HScrollPos * dwCharX + (dwClientX - dwCharX) Then
-				HScrollPos = (LeftMargin + nCaretPosX - (dwClientX - dwCharX)) / dwCharX
-			ElseIf HScrollPos > HScrollMax Then
-				HScrollPos = HScrollMax
+			Var OldHScrollPos = *pHScrollPos, OldVScrollPos = *pVScrollPos
+			If nCaretPosX < *pHScrollPos * dwCharX Then
+				*pHScrollPos = nCaretPosX / dwCharX
+			ElseIf LeftMargin + nCaretPosX > *pHScrollPos * dwCharX + (dwClientX - dwCharX) Then
+				*pHScrollPos = (LeftMargin + nCaretPosX - (dwClientX - dwCharX)) / dwCharX
+			ElseIf *pHScrollPos > HScrollMax Then
+				*pHScrollPos = HScrollMax
 			End If
 			If nCaretPosY < *pVScrollPos Then
 				*pVScrollPos = nCaretPosY
@@ -1495,14 +1546,18 @@ Namespace My.Sys.Forms
 				*pVScrollPos = VScrollMax
 			End If
 			
-			If OldHScrollPos <> HScrollPos Then
+			If OldHScrollPos <> *pHScrollPos Then
 				#ifdef __USE_GTK__
 					gtk_adjustment_set_value(adjustmenth, HScrollPos)
 				#else
 					si.cbSize = SizeOf (si)
 					si.fMask = SIF_POS
-					si.nPos = HScrollPos
-					SetScrollInfo(sbScrollBarh, SB_CTL, @si, True)
+					si.nPos = *pHScrollPos
+					If bDividedX AndAlso ActiveCodePane = 0 Then
+						SetScrollInfo(sbScrollBarhLeft, SB_CTL, @si, True)
+					Else
+						SetScrollInfo(sbScrollBarhRight, SB_CTL, @si, True)
+					End If
 					'SetScrollInfo(FHandle, SB_HORZ, @si, True)
 				#endif
 			End If
@@ -1527,10 +1582,16 @@ Namespace My.Sys.Forms
 			#endif
 		End If
 		
-		HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
+		HCaretPos = LeftMargin + nCaretPosX - *pHScrollPos * dwCharX
 		VCaretPos = (nCaretPosY - *pVScrollPos) * dwCharY
-		If bDivided AndAlso ActiveCodePane = 1 AndAlso VCaretPos >= 0 Then VCaretPos += iDividedY + 7
-		If HCaretPos < LeftMargin OrElse FSelStartLine <> FSelEndLine OrElse FSelStartChar <> FSelEndChar OrElse (ActiveCodePane = 0 AndAlso VCaretPos > iDividedY - dwCharY) Then HCaretPos = -1
+		If ActiveCodePane = 1 Then
+			If bDividedX AndAlso HCaretPos >= 0 Then HCaretPos += iDividedX + 7
+			If bDividedY AndAlso VCaretPos >= 0 Then VCaretPos += iDividedY + 7
+		End If
+		If HCaretPos < LeftMargin + IIf(bDividedX AndAlso ActiveCodePane = 1, iDividedX + 7, 0) OrElse FSelStartLine <> FSelEndLine OrElse FSelStartChar <> FSelEndChar _
+			OrElse (ActiveCodePane = 0 AndAlso ((bDividedX AndAlso (HCaretPos > iDividedX - dwCharX)) OrElse (bDividedY AndAlso (VCaretPos > iDividedY - dwCharY)))) Then
+			HCaretPos = -1
+		End If
 		#ifdef __USE_GTK__
 			If Scroll Then
 				CaretOn = True
@@ -1695,21 +1756,52 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.SetScrollsInfo()
 		
-		Var OldHScrollMax = HScrollMax
-		HScrollMax = 10000 'Max(0, (MaxLineWidth - (dwClientX - LeftMargin - dwCharX))) \ dwCharX
-		If OldHScrollMax <> HScrollMax Then
+		Var OldHScrollEnabledRight = CBool(HScrollMaxRight)
+		Var OldHScrollMaxRight = HScrollMaxRight
+		HScrollMaxRight = 10000 'Max(0, (MaxLineWidth - (dwClientX - LeftMargin - dwCharX))) \ dwCharX
+		If OldHScrollMaxRight <> HScrollMaxRight Then
 			#ifdef __USE_GTK__
-				gtk_adjustment_set_upper(adjustmenth, HScrollMax)
+				gtk_adjustment_set_upper(adjustmenth, HScrollMaxRight)
 				'gtk_adjustment_configure(adjustmenth, gtk_adjustment_get_value(adjustmenth), 0, HScrollMax, 1, 10, HScrollMax)
 			#else
-				si.cbSize = SizeOf(si)
-				si.fMask  = SIF_RANGE Or SIF_PAGE
-				si.nMin   = 0
-				si.nMax   = HScrollMax
-				si.nPage  = 10
-				SetScrollInfo(sbScrollBarh, SB_CTL, @si, True)
+				'If HScrollEnabledRight Then
+					si.cbSize = SizeOf(si)
+					si.fMask  = SIF_RANGE Or SIF_PAGE
+					si.nMin   = 0
+					si.nMax   = HScrollMaxRight
+					si.nPage  = 10
+					SetScrollInfo(sbScrollBarhRight, SB_CTL, @si, True)
+				'End If
+				'EnableWindow sbScrollBarhRight, HScrollEnabledRight
 				'SetScrollInfo(FHandle, SB_HORZ, @si, True)
 			#endif
+		End If
+		
+		If bDividedX Then
+			Var OldHScrollEnabledLeft = CBool(HScrollMaxLeft)
+			Var OldHScrollMaxLeft = HScrollMaxLeft
+			HScrollMaxLeft = 10000 'Max(0, (MaxLineWidth - (dwClientX - LeftMargin - dwCharX))) \ dwCharX
+			Var HScrollEnabledLeft = CBool(HScrollMaxLeft)
+			
+			If OldHScrollMaxLeft <> HScrollMaxLeft Then
+				#ifdef __USE_GTK__
+					gtk_adjustment_set_upper(adjustmenth, HScrollMaxRight)
+					'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
+				#else
+					If HScrollEnabledLeft Then
+						si.cbSize = SizeOf(si)
+						si.fMask  = SIF_RANGE Or SIF_PAGE
+						si.nMin   = 0
+						si.nMax   = HScrollMaxLeft
+						si.nPage  = 1
+						SetScrollInfo(sbScrollBarhLeft, SB_CTL, @si, True)
+					End If
+					'If OldHScrollEnabled <> HScrollEnabled Then
+						'EnableWindow sbScrollBarhTop, HScrollEnabledLeft
+					'End If
+					'SetScrollInfo(FHandle, SB_VERT, @si, True)
+				#endif
+			End If
 		End If
 		
 		Var OldVScrollEnabledBottom = CBool(VScrollMaxBottom)
@@ -1739,7 +1831,7 @@ Namespace My.Sys.Forms
 			#endif
 		End If
 		
-		If bDivided Then
+		If bDividedY OrElse bDividedX Then
 			Var OldVScrollEnabledTop = CBool(VScrollMaxTop)
 			Var OldVScrollMaxTop = VScrollMaxTop
 			VScrollMaxTop = Max(0, LinesCount - VisibleLinesCount(0) + 1)
@@ -1904,7 +1996,18 @@ Namespace My.Sys.Forms
 				Canvas.Font.Underline = Underline
 				SelectObject(bufDC, This.Canvas.Font.Handle)
 			End If
-			TextOut(bufDC, ScaleX(LeftMargin + -HScrollPos * dwCharX) + IIf(iStart = 0, 0, Sz.cx), ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDivided AndAlso CodePane = 1, iDividedY + 7, 0)), FLineRight, Len(*FLineRight))
+			'TextOut(bufDC, ScaleX(LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, Sz.cx), ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0)), FLineRight, Len(*FLineRight))
+			'Dim As POLYTEXT ppt
+			Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, Sz.cx)
+			Var y = ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
+			SetRect(@rc, IIf(bDividedX And CodePane = 1, iDividedX + 7, 0), y, _
+			IIf(bDividedX AndAlso CodePane = 0, iDividedX, dwClientX), y + ScaleY(dwCharY))
+			'ppt.lpstr = FLineRight
+			'ppt.n = Len(*FLineRight)
+			'ppt.uiFlags = ETO_CLIPPED Or ETO_OPAQUE
+			'DrawText(bufDC, FLineRight, Len(*FLineRight), @rc, DT_SINGLELINE Or DT_NOPREFIX)
+			ExtTextOut bufDC, x, y, ETO_CLIPPED, @rc, FLineRight, Len(*FLineRight), 0
+			'PolyTextOut bufDC, @ppt, 1
 			If Colors.Background = -1 Then SetBKMode(bufDC, OPAQUE)
 			If Bold Or Italic Or Underline Then
 				Canvas.Font.Bold = False
@@ -2036,12 +2139,19 @@ Namespace My.Sys.Forms
 		End If
 		If CInt(HighlightCurrentWord) AndAlso iSelStartLine = iSelEndLine AndAlso iSelStartChar = iSelEndChar Then CurWord = GetWordAtCursor Else CurWord = ""
 		For zz As Integer = 0 To 1
-			Dim As Integer VScrollPos, CodePaneY
-			If CBool(zz = 0) AndAlso Not bDivided Then
+			Dim As Integer HScrollPos, VScrollPos, CodePaneX, CodePaneY
+			If CBool(zz = 0) AndAlso (Not bDividedX) AndAlso (Not bDividedY) Then
 				Continue For
 			End If
+			HScrollPos = IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight)
 			VScrollPos = IIf(zz = 0, VScrollPosTop, VScrollPosBottom)
-			If zz = 1 AndAlso bDivided Then CodePaneY = iDividedY + 7
+			If zz = 1 Then
+				If bDividedY Then 
+					CodePaneY = iDividedY + 7
+				ElseIf bDividedX Then
+					CodePaneX = iDividedX + 7
+				End If
+			End If
 			iC = 0
 			vlc = Min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
 			vlc1 = VisibleLinesCount(zz)
@@ -2063,11 +2173,17 @@ Namespace My.Sys.Forms
 				'			This.Canvas.Font.Size = EditorFontSize
 				This.Canvas.Brush.Color = NormalText.Background
 				This.Canvas.Pen.Color = FoldLines.Foreground
-				If bDivided Then
+				If bDividedY Then
 					If zz = 0 Then
 						SetRect(@rc, ScaleX(LeftMargin), 0, ScaleX(dwClientX), ScaleY(iDividedY))
 					Else
 						SetRect(@rc, ScaleX(LeftMargin), ScaleY(iDividedY + 7), ScaleX(dwClientX), ScaleY(dwClientY))
+					End If
+				ElseIf bDividedX Then
+					If zz = 0 Then
+						SetRect(@rc, ScaleX(LeftMargin), 0, ScaleX(iDividedX), ScaleY(dwClientY))
+					Else
+						SetRect(@rc, ScaleX(iDividedX + 7 + LeftMargin), 0, ScaleX(dwClientX), ScaleY(dwClientY))
 					End If
 				Else
 					SetRect(@rc, ScaleX(LeftMargin), 0, ScaleX(dwClientX), ScaleY(dwClientY))
@@ -2304,7 +2420,7 @@ Namespace My.Sys.Forms
 					If zz = ActiveCodePane AndAlso CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine)) Then ' AndAlso z = FLines.Count - 1
 						Dim As ..Rect rec
 						If z = FSelEndLine + 1 Then
-							rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1 + CodePaneY), ScaleX(This.Width), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1 + CodePaneY))
+							rec = Type(ScaleX(Max(-1, LeftMargin + -HScrollPos * dwCharX) + CodePaneX), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1 + CodePaneY), ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, This.Width)), ScaleY((i - VScrollPos - 1) * dwCharY + dwCharY + 1 + CodePaneY))
 							#ifdef __USE_GTK__
 								cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
 								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
@@ -2316,7 +2432,7 @@ Namespace My.Sys.Forms
 								LineTo bufDC, rec.Right, rec.Top - 1
 							#endif
 						Else
-							rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(This.Width), ScaleY((i - VScrollPos) * dwCharY + dwCharY + 1 + CodePaneY))
+							rec = Type(ScaleX(Max(-1, LeftMargin + -HScrollPos * dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, This.Width)), ScaleY((i - VScrollPos) * dwCharY + dwCharY + 1 + CodePaneY))
 							#ifdef __USE_GTK__
 								cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
 								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
@@ -2355,7 +2471,7 @@ Namespace My.Sys.Forms
 					End If
 					If HighlightBrackets Then
 						If z = BracketsStartLine AndAlso BracketsStart > -1 Then
-							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
+							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + dwCharX + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
 							#ifdef __USE_GTK__
 								cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
 								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
@@ -2366,7 +2482,7 @@ Namespace My.Sys.Forms
 							#endif
 						End If
 						If z = BracketsEndLine AndAlso BracketsEnd > -1 Then
-							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX)), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX) + dwCharX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
+							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX) + dwCharX + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
 							#ifdef __USE_GTK__
 								cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
 								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
@@ -2395,35 +2511,39 @@ Namespace My.Sys.Forms
 							sChar = Mid(*s, jj, 1)
 							If sChar = " " Then
 								jPos += 1
-								'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
-								#ifdef __USE_GTK__
-									.cairo_rectangle(cr, LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, 1, 1)
-									cairo_fill(cr)
-								#else
-									'GetTextExtentPoint32(bufDC, @Wstr(Left(*FLineLeft, jj - 1)), jj - 1, @Sz) 'Len(*FLineLeft)
-									'SetPixel bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(jPos = 0, 0, Sz.cx) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, clBtnShadow
-									SetPixel bufDC, ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY), SpaceIdentifiers.Foreground
-								#endif
+								If LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 > 0 Then
+									'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
+									#ifdef __USE_GTK__
+										.cairo_rectangle(cr, LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, 1, 1)
+										cairo_fill(cr)
+									#else
+										'GetTextExtentPoint32(bufDC, @Wstr(Left(*FLineLeft, jj - 1)), jj - 1, @Sz) 'Len(*FLineLeft)
+										'SetPixel bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(jPos = 0, 0, Sz.cx) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, clBtnShadow
+										SetPixel bufDC, ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY), SpaceIdentifiers.Foreground
+									#endif
+								End If
 							ElseIf sChar = !"\t" Then
 								jPP = TabWidth - (jPos + TabWidth) Mod TabWidth
-								'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
-								#ifdef __USE_GTK__
-									cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-									cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-									cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 3 - 0.5)
-									cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-									cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) +jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 + 3 - 0.5)
-									cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-									cairo_stroke (cr)
-								#else
-									'GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
-									MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY), 0
-									LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
-									MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) - 3 + CodePaneY), 0
-									LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
-									MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + 3 + CodePaneY), 0
-									LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
-								#endif
+								If LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX > 0 Then
+									'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
+									#ifdef __USE_GTK__
+										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 3 - 0.5)
+										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) +jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 + 3 - 0.5)
+										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+										cairo_stroke (cr)
+									#else
+										'GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
+										MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY), 0
+										LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
+										MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) - 3 + CodePaneY), 0
+										LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
+										MoveToEx bufDC,   ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + 3 + CodePaneY), 0
+										LineTo bufDC,     ScaleX(LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY)
+									#endif
+								End If
 								jPos += jPP
 							Else
 								jPos += 1
@@ -2457,14 +2577,14 @@ Namespace My.Sys.Forms
 				#else
 					'SelectObject(bufDC, This.Canvas.Font.Handle)
 					This.Canvas.Brush.Color = LineNumbers.Background
-					SetRect(@rc, 0, ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
+					SetRect(@rc, ScaleX(CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
 					'SelectObject(bufDC, This.Canvas.Brush.Handle)
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 					SetBKMode(bufDC, TRANSPARENT)
 					WLet(FLineLeft, WStr(z + 1))
 					GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
 					SetTextColor(bufDC, LineNumbers.Foreground)
-					TextOut(bufDC, ScaleX(LeftMargin - 25) - Sz.cx, ScaleY((i - VScrollPos) * dwCharY + CodePaneY), FLineLeft, Len(*FLineLeft))
+					TextOut(bufDC, ScaleX(LeftMargin - 25 + CodePaneX) - Sz.cx, ScaleY((i - VScrollPos) * dwCharY + CodePaneY), FLineLeft, Len(*FLineLeft))
 					SetBKMode(bufDC, OPAQUE)
 				#endif
 				This.Canvas.Brush.Color = NormalText.Background
@@ -2473,7 +2593,7 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 					cairo_fill (cr)
 				#else
-					SetRect(@rc, ScaleX(LeftMargin - 25), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
+					SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				#endif
 				If FECLine->BreakPoint Then
@@ -2488,7 +2608,7 @@ Namespace My.Sys.Forms
 					#else
 						SelectObject(bufDC, This.Canvas.Brush.Handle)
 						SelectObject(bufDC, This.Canvas.Pen.Handle)
-						Ellipse bufDC, ScaleX(LeftMargin - 16), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(LeftMargin - 5), ScaleY((i - VScrollPos) * dwCharY + 13 + CodePaneY)
+						Ellipse bufDC, ScaleX(LeftMargin - 16 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(LeftMargin - 5 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 13 + CodePaneY)
 					#endif
 				End If
 				If FECLine->Bookmark Then
@@ -2513,7 +2633,7 @@ Namespace My.Sys.Forms
 					#else
 						'					SelectObject(bufDC, This.Canvas.Brush.Handle)
 						'					SelectObject(bufDC, This.Canvas.Pen.Handle)
-						RoundRect bufDC, ScaleX(LeftMargin - 18), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(LeftMargin - 3), ScaleY((i - VScrollPos) * dwCharY + 13 + CodePaneY), ScaleX(5), ScaleY(5)
+						RoundRect bufDC, ScaleX(LeftMargin - 18 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(LeftMargin - 3 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 13 + CodePaneY), ScaleX(5), ScaleY(5)
 					#endif
 				End If
 				#ifdef __USE_GTK__
@@ -2533,11 +2653,11 @@ Namespace My.Sys.Forms
 							This.Canvas.Pen.Color = FoldLines.Foreground
 							'						SelectObject(bufDC, This.Canvas.Brush.Handle)
 							'						SelectObject(bufDC, This.Canvas.Pen.Handle)
-							Rectangle bufDC, ScaleX(LeftMargin - 15), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY), ScaleX(LeftMargin - 6), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY)
-							MoveToEx bufDC, ScaleX(LeftMargin - 13), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY), 0
-							LineTo bufDC, ScaleX(LeftMargin - 8), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)
-							MoveToEx bufDC, ScaleX(LeftMargin), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), 0
-							LineTo bufDC, ScaleX(dwClientX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY)
+							Rectangle bufDC, ScaleX(LeftMargin - 15 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY), ScaleX(LeftMargin - 6 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY)
+							MoveToEx bufDC, ScaleX(LeftMargin - 13 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY), 0
+							LineTo bufDC, ScaleX(LeftMargin - 8 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)
+							MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), 0
+							LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i - VScrollPos) * dwCharY + CodePaneY)
 						#endif
 						If OldCollapseIndex > 0 Then
 							#ifdef __USE_GTK__
@@ -2545,8 +2665,8 @@ Namespace My.Sys.Forms
 								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5)
 								cairo_stroke (cr)
 							#else
-								MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 0 + CodePaneY), 0
-								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY)
+								MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 0 + CodePaneY), 0
+								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY)
 							#endif
 						End If
 						If FECLine->Collapsed Then
@@ -2555,8 +2675,8 @@ Namespace My.Sys.Forms
 								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 10 - 0.5)
 								cairo_stroke (cr)
 							#else
-								MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 5 + CodePaneY), 0
-								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 10 + CodePaneY)
+								MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 5 + CodePaneY), 0
+								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 10 + CodePaneY)
 							#endif
 						End If
 						If CInt(CInt(OldCollapseIndex = 0) And CInt(Not FECLine->Collapsed)) OrElse CInt(OldCollapseIndex > 0) Then
@@ -2565,8 +2685,8 @@ Namespace My.Sys.Forms
 								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY - 0.5)
 								cairo_stroke (cr)
 							#else
-								MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY), 0
-								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY)
+								MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY), 0
+								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY)
 							#endif
 						End If
 					ElseIf OldCollapseIndex > 0 Then
@@ -2577,21 +2697,21 @@ Namespace My.Sys.Forms
 							This.Canvas.Pen.Color = FoldLines.Foreground
 							'						SelectObject(bufDC, This.Canvas.Brush.Handle)
 							'						SelectObject(bufDC, This.Canvas.Pen.Handle)
-							MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + 0 + CodePaneY), 0
+							MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 0 + CodePaneY), 0
 						#endif
 						If CollapseIndex = 0 Then
 							#ifdef __USE_GTK__
 								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
 								cairo_stroke (cr)
 							#else
-								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY)
+								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY)
 							#endif
 						Else
 							#ifdef __USE_GTK__
 								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos + 1) * dwCharY + dwCharY - 0.5)
 								cairo_stroke (cr)
 							#else
-								LineTo bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos + 1) * dwCharY + dwCharY + CodePaneY)
+								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY + dwCharY + CodePaneY)
 							#endif
 						End If
 						If FECLine->ConstructionIndex >= 0 AndAlso CInt(Constructions(FECLine->ConstructionIndex).Collapsible) And CInt(FECLine->ConstructionPart = 2) Then
@@ -2600,8 +2720,8 @@ Namespace My.Sys.Forms
 								cairo_line_to(cr, LeftMargin - 6 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
 								cairo_stroke (cr)
 							#else
-								MoveToEx bufDC, ScaleX(LeftMargin - 11), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY), 0
-								LineTo bufDC, ScaleX(LeftMargin - 6), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY)
+								MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY), 0
+								LineTo bufDC, ScaleX(LeftMargin - 6 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY)
 							#endif
 						End If
 					End If
@@ -2628,27 +2748,44 @@ Namespace My.Sys.Forms
 				End If
 				'cairo_paint(cr)
 			#else
-				SetRect(@rc, 0, ScaleY((Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25), ScaleY(IIf(zz = 0, iDividedY, dwClientY)))
+				SetRect(@rc, ScaleX(CodePaneX), ScaleY((Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
 				This.Canvas.Brush.Color = LineNumbers.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
-				SetRect(@rc, ScaleX(LeftMargin - 25), ScaleY((Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY), ScaleX(LeftMargin), ScaleY(IIf(zz = 0, iDividedY, dwClientY)))
+				SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY), ScaleX(LeftMargin + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
 				This.Canvas.Brush.Color = NormalText.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			#endif
 		Next zz
 		#ifdef __USE_WINAPI__
-			SetRect(@rc, ScaleX(dwClientX - 17), 0, ScaleX(dwClientX), ScaleY(7))
-			If g_darkModeEnabled Then
-				This.Canvas.Pen.Color = BGR(23, 23, 23)
-				This.Canvas.Brush.Color = darkBkColor
-			Else
-				This.Canvas.Pen.Color = BGR(217, 217, 217)
-				This.Canvas.Brush.Color = clBtnFace
+			If Not bDividedX Then
+				SetRect(@rc, 0, ScaleY(dwClientY - 17), ScaleX(7), ScaleY(dwClientY))
+				If g_darkModeEnabled Then
+					This.Canvas.Pen.Color = BGR(23, 23, 23)
+					This.Canvas.Brush.Color = darkBkColor
+				Else
+					This.Canvas.Pen.Color = BGR(217, 217, 217)
+					This.Canvas.Brush.Color = clBtnFace
+				End If
+				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
 			End If
-			Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
+			If Not bDividedY Then
+				SetRect(@rc, ScaleX(dwClientX - 17), 0, ScaleX(dwClientX), ScaleY(7))
+				If g_darkModeEnabled Then
+					This.Canvas.Pen.Color = BGR(23, 23, 23)
+					This.Canvas.Brush.Color = darkBkColor
+				Else
+					This.Canvas.Pen.Color = BGR(217, 217, 217)
+					This.Canvas.Brush.Color = clBtnFace
+				End If
+				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
+			End If
 			'FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			SetRect(@rc, ScaleX(dwClientX - 17), ScaleY(dwClientY - 17), ScaleX(dwClientX), ScaleY(dwClientY))
 			FillRect bufDC, @rc, This.Canvas.Brush.Handle
+			If bDividedX Then
+				SetRect(@rc, ScaleX(iDividedX - 17), ScaleY(dwClientY - 17), ScaleX(iDividedX), ScaleY(dwClientY))
+				FillRect bufDC, @rc, This.Canvas.Brush.Handle
+			End If
 			If bInMiddleScroll Then
 				#ifdef __USE_GTK__
 					'					cairo_set_source_rgb(cr, Abs(GetRed(clMaroon) / 255.0), Abs(GetGreen(clMaroon) / 255.0), Abs(GetBlue(clMaroon) / 255.0))
@@ -2672,7 +2809,17 @@ Namespace My.Sys.Forms
 					PolyGon(bufDC, @pPoint4(0), 4)
 				#endif
 			End If
-			If bDivided Then
+			If bDividedX Then
+				SetRect(@rc, ScaleX(iDividedX), -1, ScaleX(iDividedX + 7), ScaleY(dwClientY) + 1)
+				If g_darkModeEnabled Then
+					This.Canvas.Pen.Color = BGR(130, 135, 144)
+					This.Canvas.Brush.Color = darkBkColor
+				Else
+					This.Canvas.Pen.Color = BGR(217, 217, 217)
+					This.Canvas.Brush.Color = clBtnFace
+				End If
+				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
+			ElseIf bDividedY Then
 				SetRect(@rc, -1, ScaleY(iDividedY), ScaleX(dwClientX) + 1, ScaleY(iDividedY + 7))
 				If g_darkModeEnabled Then
 					This.Canvas.Pen.Color = BGR(130, 135, 144)
@@ -2683,7 +2830,10 @@ Namespace My.Sys.Forms
 				End If
 				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
 			End If
-			If bInDivide Then
+			If bInDivideX Then
+				SetRect(@rc, ScaleX(iDivideX), 0, ScaleX(iDivideX + 5), ScaleY(dwClientY))
+				InvertRect bufDC, @rc
+			ElseIf bInDivideY Then
 				SetRect(@rc, 0, ScaleY(iDivideY), ScaleX(dwClientX), ScaleY(iDivideY + 5))
 				InvertRect bufDC, @rc
 			End If
@@ -2843,15 +2993,17 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControl.InCollapseRect(i As Integer, X As Integer, Y As Integer) As Boolean
-		Return CInt(X >= LeftMargin - 15 AndAlso X <= LeftMargin - 6) AndAlso _
+		Var CodePaneX = IIf(bDividedX AndAlso X > iDividedX, iDividedX + 7, 0)
+		Return CInt(X >= LeftMargin - 15 + CodePaneX AndAlso X <= LeftMargin - 6 + CodePaneX) AndAlso _
 		CInt(Cast(EditControlLine Ptr, FLines.Items[i])->Collapsible)
 		'Y >= (i - VScrollPos) * dwCharY + 3 AndAlso Y <= (i - VScrollPos) * dwCharY + 12) AndAlso _
 	End Function
 	
 	Function EditControl.InIncludeFileRect(i As Integer, X As Integer, Y As Integer) As Boolean
 		Dim As WString Ptr ECText = Cast(EditControlLine Ptr, FLines.Items[i])->Text
+		Dim As Integer CodePane = IIf((bDividedX AndAlso X < iDividedX) OrElse (bDividedY AndAlso Y < iDividedY), 0, 1)
 		If StartsWith(LTrim(LCase(*ECText), Any !"\t "), "#include ") Then
-			Var CharIdx = CharIndexFromPoint(X, Y)
+			Var CharIdx = CharIndexFromPoint(X, Y, CodePane)
 			Var Pos1 = InStr(*ECText, """")
 			If Pos1 > 0 Then
 				Var Pos2 = InStr(Pos1 + 1, *ECText, """")
@@ -2877,8 +3029,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.ShowDropDownAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
 		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
-		Var HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
-		Var VCaretPos = (nCaretPosY - IIf(ActiveCodePane = 0, VScrollPosTop, VScrollPosBottom) + 1) * dwCharY + IIf(bDivided AndAlso ActiveCodePane = 1, iDividedY + 7, 0)
+		Var HCaretPos = LeftMargin + nCaretPosX - IIf(bDividedX AndAlso ActiveCodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso ActiveCodePane = 1, iDividedX + 7, 0)
+		Var VCaretPos = (nCaretPosY - IIf(ActiveCodePane = 0, VScrollPosTop, VScrollPosBottom) + 1) * dwCharY + IIf(bDividedY AndAlso ActiveCodePane = 1, iDividedY + 7, 0)
 		DropDownChar = iSelEndChar
 		DropDownShowed = True
 		#ifdef __USE_GTK__
@@ -2900,12 +3052,14 @@ Namespace My.Sys.Forms
 				SetWindowTheme(hwndTT, "DarkMode_Explorer", nullptr)
 				SetWindowTheme(sbScrollBarvTop, "DarkMode_Explorer", nullptr)
 				SetWindowTheme(sbScrollBarvBottom, "DarkMode_Explorer", nullptr)
-				SetWindowTheme(sbScrollBarh, "DarkMode_Explorer", nullptr)
+				SetWindowTheme(sbScrollBarhLeft, "DarkMode_Explorer", nullptr)
+				SetWindowTheme(sbScrollBarhRight, "DarkMode_Explorer", nullptr)
 			Else
 				SetWindowTheme(hwndTT, NULL, NULL)
 				SetWindowTheme(sbScrollBarvTop, NULL, NULL)
 				SetWindowTheme(sbScrollBarvBottom, NULL, NULL)
-				SetWindowTheme(sbScrollBarh, NULL, NULL)
+				SetWindowTheme(sbScrollBarhLeft, NULL, NULL)
+				SetWindowTheme(sbScrollBarhRight, NULL, NULL)
 			End If
 			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
 		End Sub
@@ -2914,8 +3068,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
 		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
-		Var HCaretPos = LeftMargin + nCaretPosX - HScrollPos * dwCharX
-		Var VCaretPos = (nCaretPosY - IIf(ActiveCodePane = 0, VScrollPosTop, VScrollPosBottom) + 1) * dwCharY + IIf(bDivided AndAlso ActiveCodePane = 1, iDividedY + 7, 0)
+		Var HCaretPos = LeftMargin + nCaretPosX - IIf(bDividedX AndAlso ActiveCodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso ActiveCodePane = 1, iDividedX + 7, 0)
+		Var VCaretPos = (nCaretPosY - IIf(ActiveCodePane = 0, VScrollPosTop, VScrollPosBottom) + 1) * dwCharY + IIf(bDividedY AndAlso ActiveCodePane = 1, iDividedY + 7, 0)
 		ToolTipChar = iSelEndChar
 		ToolTipShowed = True
 		#ifdef __USE_GTK__
@@ -3068,11 +3222,21 @@ Namespace My.Sys.Forms
 				#endif
 			#else
 			Case WM_SIZE
+				Var dDividedX = iDividedX / dwClientX
 				Var dDividedY = iDividedY / dwClientY
 				dwClientX = UnScaleX(LoWord(msg.lParam))
 				dwClientY = UnScaleY(HiWord(msg.lParam))
-				MoveWindow sbScrollBarh, 0, ScaleY(dwClientY - 17), ScaleX(dwClientX - 17), ScaleY(17), False
-				If Not bDivided Then
+				If Not bDividedX Then
+					MoveWindow sbScrollBarhRight, ScaleX(7), ScaleY(dwClientY - 17), ScaleX(dwClientX - 17), ScaleY(17), False
+				Else
+					iDividedX = dwClientX * dDividedX
+					iDivideX = iDividedX
+					MoveWindow sbScrollBarvTop, ScaleX(iDividedX - 17), 0, ScaleX(17), ScaleY(dwClientY - 17), False
+					MoveWindow sbScrollBarhLeft, 0, ScaleY(dwClientY - 17), ScaleX(iDivideX - 17), ScaleY(17), False
+					MoveWindow sbScrollBarhRight, ScaleX(iDivideX + 7), ScaleY(dwClientY - 17), ScaleX(dwClientX - iDivideX - 7 - 17), ScaleY(17), False
+					RedrawWindow sbScrollBarhLeft, 0, 0, RDW_INVALIDATE
+				End If
+				If Not bDividedY Then
 					MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), False
 				Else
 					iDividedY = dwClientY * dDividedY
@@ -3081,6 +3245,7 @@ Namespace My.Sys.Forms
 					MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), False
 					RedrawWindow sbScrollBarvTop, 0, 0, RDW_INVALIDATE
 				End If
+				RedrawWindow sbScrollBarhRight, 0, 0, RDW_INVALIDATE
 				RedrawWindow sbScrollBarvBottom, 0, 0, RDW_INVALIDATE
 			#endif
 			SetScrollsInfo
@@ -3196,14 +3361,22 @@ Namespace My.Sys.Forms
 				poPoint.X = psPoints.X
 				poPoint.Y = psPoints.Y
 				..ScreenToClient(Handle, @poPoint)
-				iCursorLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y), IIf(bDivided AndAlso UnScaleY(poPoint.Y) <= iDividedY, 0, 1))
+				iCursorLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y), IIf(bDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY, 0, 1))
 				'If Cast(EditControlLine Ptr, FLines.Items[i])->Collapsible Then
 				'If p.X < LeftMargin AndAlso p.X > LeftMargin - 15 Then
-				If bDivided AndAlso UnScaleY(poPoint.Y) >= iDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY + 7 Then
+				If bDividedX AndAlso UnScaleX(poPoint.X) >= iDividedX AndAlso UnScaleX(poPoint.X) <= iDividedX + 7 Then
+					msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZEWE)))
+					Return
+				ElseIf bDividedY AndAlso UnScaleY(poPoint.Y) >= iDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY + 7 Then
 					msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZENS)))
 					Return
+				ElseIf bDividedX AndAlso UnScaleX(poPoint.X) >= iDividedX - 17 AndAlso UnScaleX(poPoint.X) <= iDividedX Then
+					msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_ARROW)))
+					Return
 				ElseIf UnScaleX(poPoint.X) > dwClientX - 17 OrElse UnScaleY(poPoint.Y) > dwClientY - 17 Then
-					If UnScaleY(poPoint.Y) < 7 AndAlso Not bDivided Then
+					If UnScaleX(poPoint.X) < 7 AndAlso Not bDividedX Then
+						msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZEWE)))
+					ElseIf UnScaleY(poPoint.Y) < 7 AndAlso Not bDividedY Then
 						msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZENS)))
 					Else
 						msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_ARROW)))
@@ -3247,17 +3420,31 @@ Namespace My.Sys.Forms
 				'End If
 			Case WM_HSCROLL, WM_VSCROLL
 				Dim As HWND ScrollBarHandle
-				Dim As Integer Ptr pVScrollPos
+				Dim As Integer Ptr pVScrollPos, pHScrollPos
 				If msg.msg = WM_HSCROLL Then
 					scrStyle = SB_HORZ
-					ScrollBarHandle = sbScrollBarh
-				Else
-					scrStyle = SB_VERT
-					If bDivided Then
+					If bDividedX Then
 						Dim As Point pt
 						GetCursorPos @pt
 						..ScreenToClient FHandle, @pt
-						If pt.Y <= iDividedY Then
+						If pt.X <= iDividedX Then
+							pHScrollPos = @HScrollPosLeft
+							ScrollBarHandle = sbScrollBarhLeft
+						Else
+							pHScrollPos = @HScrollPosRight
+							ScrollBarHandle = sbScrollBarhRight
+						End If
+					Else
+						pHScrollPos = @HScrollPosRight
+						ScrollBarHandle = sbScrollBarhRight
+					End If
+				Else
+					scrStyle = SB_VERT
+					If bDividedY OrElse bDividedX Then
+						Dim As Point pt
+						GetCursorPos @pt
+						..ScreenToClient FHandle, @pt
+						If (bDividedY AndAlso pt.Y <= iDividedY) OrElse (bDividedX AndAlso pt.X <= iDividedX) Then
 							pVScrollPos = @VScrollPosTop
 							ScrollBarHandle = sbScrollBarvTop
 						Else
@@ -3308,7 +3495,7 @@ Namespace My.Sys.Forms
 					'SetScrollPos ScrollBarHandle, SB_CTL, si.nPos, False
 					SetScrollInfo(ScrollBarHandle, SB_CTL, @si, False)
 					If scrStyle = SB_HORZ Then
-						HScrollPos = si.nPos
+						*pHScrollPos = si.nPos
 					Else
 						*pVScrollPos = si.nPos
 					End If
@@ -4056,18 +4243,18 @@ Namespace My.Sys.Forms
 			#endif
 			bInMiddleScroll = False
 			#ifdef __USE_GTK__
-				FSelEndLine = LineIndexFromPoint(e->button.x, e->button.y)
-				If InCollapseRect(FSelEndLine, e->button.x, e->button.y) Then
+				Var X = e->button.x, Y = e->button.y
 			#else
-				FSelEndLine = LineIndexFromPoint(msg.lParamLo, msg.lParamHi)
-				If InCollapseRect(FSelEndLine, msg.lParamLo, msg.lParamHi) Then
+				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
 			#endif
+			FSelEndLine = LineIndexFromPoint(X, Y)
+			If bDividedX AndAlso X >= iDividedX AndAlso X <= iDividedX + 7 Then
+				SplittedVertically = False
+			ElseIf bDividedY AndAlso Y >= iDividedY AndAlso Y <= iDividedY + 7 Then
+				SplittedHorizontally = False
+			ElseIf InCollapseRect(FSelEndLine, X, Y) Then
 			Else
-				#ifdef __USE_GTK__
-					FSelEndChar = CharIndexFromPoint(e->button.x, e->button.y)
-				#else
-					FSelEndChar = CharIndexFromPoint(msg.lParamLo, msg.lParamHi)
-				#endif
+				FSelEndChar = CharIndexFromPoint(X, Y)
 				If CInt(Not bShifted) And CInt(FSelEndLine <> FSelStartLine Or FSelEndChar <> FSelStartChar) Then
 					FSelStartLine = FSelEndLine
 					FSelStartChar = FSelEndChar
@@ -4097,12 +4284,19 @@ Namespace My.Sys.Forms
 				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
 			#endif
 			If (X > dwClientX - 17 AndAlso Y < 7) OrElse (Y >= iDividedY AndAlso Y <= iDividedY + 7) Then
-				bInDivide = True
+				bInDivideY = True
+				#ifndef __USE_GTK__
+					SetCapture FHandle
+				#endif
+			ElseIf (Y > dwClientY - 17 AndAlso X < 7) OrElse (X >= iDividedX AndAlso X <= iDividedX + 7) Then
+				bInDivideX = True
 				#ifndef __USE_GTK__
 					SetCapture FHandle
 				#endif
 			Else
-				If bDivided Then
+				If bDividedX Then
+					ActiveCodePane = IIf(X <= iDividedX, 0, 1)
+				ElseIf bDividedY Then
 					ActiveCodePane = IIf(Y <= iDividedY, 0, 1)
 				Else
 					ActiveCodePane = 1
@@ -4142,30 +4336,22 @@ Namespace My.Sys.Forms
 			Case WM_LBUTTONUP
 				ReleaseCapture
 			#endif
-			If bInDivide Then
-				bInDivide = False
+			If bInDivideY Then
+				bInDivideY = False
 				iDividedY = iDivideY
 				If iDivideY <= 7 OrElse iDivideY > (dwClientY - 17 - 7) Then
-					Splitted = False
-'					bDivided = False
-'					ActiveCodePane = 1
-'					#ifdef __USE_WINAPI__
-'						ShowWindow sbScrollBarvTop, SW_HIDE
-'						MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
-'					#endif
-'					If OnSplitChange Then OnSplitChange(This, False)
+					SplittedHorizontally = False
 				Else
-					Splitted = True
-'					If Not bDivided Then
-'						VScrollPosTop = VScrollPosBottom
-'					End If 
-'					bDivided = True
-'					#ifdef __USE_WINAPI__
-'						ShowWindow sbScrollBarvTop, SW_SHOW
-'						MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), True
-'						MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
-'					#endif
-'					If OnSplitChange Then OnSplitChange(This, True)
+					SplittedHorizontally = True
+				End If
+				PaintControl
+			ElseIf bInDivideX Then
+				bInDivideX = False
+				iDividedX = iDivideX
+				If iDivideX <= 7 OrElse iDivideX > (dwClientX - 17 - 7) Then
+					SplittedVertically = False
+				Else
+					SplittedVertically = True
 				End If
 				PaintControl
 			End If
@@ -4191,7 +4377,14 @@ Namespace My.Sys.Forms
 				ScrEC = @This
 				MButtonX = UnScaleX(msg.lParamLo)
 				MButtonY = UnScaleY(msg.lParamHi)
-				MiddleScrollIndex = IIf(MButtonY < iDividedY, 0, 1)
+				If bDividedY Then
+					MiddleScrollIndexY = IIf(MButtonY < iDividedY, 0, 1)
+				ElseIf bDividedX Then
+					MiddleScrollIndexX = IIf(MButtonX < iDividedX, 0, 1)
+				Else
+					MiddleScrollIndexX = 1
+					MiddleScrollIndexY = 1
+				End If
 				GetCursorPos @m_tP
 				SetTimer Handle, 1, 25, @EC_TimerProc
 			#endif
@@ -4223,12 +4416,15 @@ Namespace My.Sys.Forms
 					lParamLo = IIf(msg.lParamLo > 60000, msg.lParamLo - 65535, msg.lParamLo)
 					lParamHi = IIf(msg.lParamHi > 60000, msg.lParamHi - 65535, msg.lParamHi)
 				#endif
-				If bInDivide Then
+				If bInDivideX Then
+					iDivideX = lParamLo
+					PaintControl
+				ElseIf bInDivideY Then
 					iDivideY = lParamHi
 					PaintControl
 				Else
 					FSelEndLine = LineIndexFromPoint(UnScaleX(lParamLo), UnScaleY(lParamHi), ActiveCodePane)
-					FSelEndChar = CharIndexFromPoint(UnScaleX(lParamLo), UnScaleY(lParamHi))
+					FSelEndChar = CharIndexFromPoint(UnScaleX(lParamLo), UnScaleY(lParamHi), ActiveCodePane)
 					If lParamLo < LeftMargin Then
 						If FSelEndLine < FSelStartLine Then
 							FSelStartChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text)
@@ -4289,14 +4485,17 @@ Namespace My.Sys.Forms
 				#ifdef __USE_WINAPI__
 										.sbscrollbarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
 										.sbscrollbarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
-										.sbscrollbarh = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
+										.sbscrollbarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
+										.sbscrollbarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
 										ShowWindow .sbscrollbarvTop, SW_HIDE
 										ShowWindow .sbscrollbarvBottom, SW_SHOW
-										ShowWindow .sbscrollbarh, SW_SHOW
+										ShowWindow .sbscrollbarhLeft, SW_HIDE
+										ShowWindow .sbscrollbarhRight, SW_SHOW
 										If g_darkModeEnabled Then
 											SetWindowTheme(.sbscrollbarvTop, "DarkMode_Explorer", nullptr)
 											SetWindowTheme(.sbscrollbarvBottom, "DarkMode_Explorer", nullptr)
-											SetWindowTheme(.sbscrollbarh, "DarkMode_Explorer", nullptr)
+											SetWindowTheme(.sbscrollbarhLeft, "DarkMode_Explorer", nullptr)
+											SetWindowTheme(.sbscrollbarhRight, "DarkMode_Explorer", nullptr)
 					'						.FDarkMode = True
 					'						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
 					'						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)

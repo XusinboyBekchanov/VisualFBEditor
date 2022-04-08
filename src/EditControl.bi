@@ -118,7 +118,8 @@ Namespace My.Sys.Forms
 		Dim FLineTab As WString Ptr
 		Dim FLineSpace As WString Ptr
 		Dim FHintWord As WString Ptr
-		Dim HScrollMax As Integer
+		Dim HScrollMaxLeft As Integer
+		Dim HScrollMaxRight As Integer
 		Dim VScrollMaxTop As Integer
 		Dim VScrollMaxBottom As Integer
 		Dim nCaretPosX As Integer = 0 ' горизонтальная координата каретки
@@ -206,8 +207,10 @@ Namespace My.Sys.Forms
 		Dim As Boolean bScrollStarted
 		Dim As Boolean bInMiddleScroll
 		Dim As Integer MButtonX, MButtonY
-		Dim As Boolean bInDivide, bDivided
+		Dim As Boolean bInDivideX, bDividedX
+		Dim As Boolean bInDivideY, bDividedY
 		Dim As Integer iDivideY, iDividedY
+		Dim As Integer iDivideX, iDividedX
 		Dim As Integer iCursorLine
 		Dim As Integer iCursorLineOld
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
@@ -285,7 +288,8 @@ Namespace My.Sys.Forms
 		#else
 			Dim As HWND sbScrollBarvTop
 			Dim As HWND sbScrollBarvBottom
-			Dim As HWND sbScrollBarh
+			Dim As HWND sbScrollBarhLeft
+			Dim As HWND sbScrollBarhRight
 		#endif
 		Dim As Integer ActiveCodePane
 		Dim As Integer dwClientX    ' ширина клиентской области
@@ -304,7 +308,8 @@ Namespace My.Sys.Forms
 		Dim As Boolean SyntaxEdit
 		Dim As Boolean CStyle
 		Dim LeftMargin As Integer
-		Dim HScrollPos As Integer
+		Dim HScrollPosLeft As Integer
+		Dim HScrollPosRight As Integer
 		Dim VScrollPosTop As Integer
 		Dim VScrollPosBottom As Integer
 		#ifdef __USE_GTK__
@@ -337,7 +342,7 @@ Namespace My.Sys.Forms
 		Declare Function GetWordAtCursor(WithDot As Boolean = False) As String
 		Declare Function GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
 		Declare Function GetCaretPosY(LineIndex As Integer) As Integer
-		Declare Function CharIndexFromPoint(X As Integer, Y As Integer) As Integer
+		Declare Function CharIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		Declare Function LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		Declare Function LinesCount As Integer
 		Declare Function VisibleLinesCount(CodePane As Integer = -1) As Integer
@@ -349,8 +354,10 @@ Namespace My.Sys.Forms
 		Declare Property HintWord(ByRef Value As WString)
 		Declare Property SelText ByRef As WString
 		Declare Property SelText(ByRef Value As WString)
-		Declare Property Splitted As Boolean
-		Declare Property Splitted(Value As Boolean)
+		Declare Property SplittedHorizontally As Boolean
+		Declare Property SplittedHorizontally(Value As Boolean)
+		Declare Property SplittedVertically As Boolean
+		Declare Property SplittedVertically(Value As Boolean)
 		Declare Property TopLine As Integer
 		Declare Property TopLine(Value As Integer)
 		Declare Sub ChangeCollapseState(LineIndex As Integer, Value As Boolean)
@@ -395,12 +402,13 @@ Namespace My.Sys.Forms
 		OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 		OnLinkClicked As Sub(ByRef Sender As EditControl, ByRef Link As WString)
 		OnToolTipLinkClicked As Sub(ByRef Sender As EditControl, ByRef Link As WString)
-		OnSplitChange As Sub(ByRef Sender As EditControl, Splitted As Boolean)
+		OnSplitHorizontallyChange As Sub(ByRef Sender As EditControl, Splitted As Boolean)
+		OnSplitVerticallyChange As Sub(ByRef Sender As EditControl, Splitted As Boolean)
 	End Type
 	
 	Common Constructions() As Construction
 	Common As EditControl Ptr CurEC, ScrEC
-	Common As Integer MiddleScrollIndex
+	Common As Integer MiddleScrollIndexX, MiddleScrollIndexY
 End Namespace
 
 Declare Sub LoadKeyWords
