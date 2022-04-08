@@ -230,6 +230,7 @@ Namespace My.Sys.Forms
 			bDividedX = False
 			bInDivideX = False
 			iDivideX = 0
+			iDividedX = 0
 			ActiveCodePane = 1
 			#ifdef __USE_WINAPI__
 				ShowWindow sbScrollBarvTop, SW_HIDE
@@ -263,6 +264,7 @@ Namespace My.Sys.Forms
 			bDividedY = False
 			bInDivideY = False
 			iDivideY = 0
+			iDividedY = 0
 			ActiveCodePane = 1
 			#ifdef __USE_WINAPI__
 				ShowWindow sbScrollBarvTop, SW_HIDE
@@ -4287,12 +4289,12 @@ Namespace My.Sys.Forms
 			#else
 				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
 			#endif
-			If (X > dwClientX - 17 AndAlso Y < 7) OrElse (Y >= iDividedY AndAlso Y <= iDividedY + 7) Then
+			If (X > dwClientX - 17 AndAlso Y < 7) OrElse (bDividedY AndAlso Y >= iDividedY AndAlso Y <= iDividedY + 7) Then
 				bInDivideY = True
 				#ifndef __USE_GTK__
 					SetCapture FHandle
 				#endif
-			ElseIf (Y > dwClientY - 17 AndAlso X < 7) OrElse (X >= iDividedX AndAlso X <= iDividedX + 7) Then
+			ElseIf (Y > dwClientY - 17 AndAlso X < 7) OrElse (bDividedX AndAlso X >= iDividedX AndAlso X <= iDividedX + 7) Then
 				bInDivideX = True
 				#ifndef __USE_GTK__
 					SetCapture FHandle
