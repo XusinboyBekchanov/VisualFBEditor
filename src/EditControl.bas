@@ -3068,12 +3068,15 @@ Namespace My.Sys.Forms
 				#endif
 			#else
 			Case WM_SIZE
+				Var dDividedY = iDividedY / dwClientY
 				dwClientX = UnScaleX(LoWord(msg.lParam))
 				dwClientY = UnScaleY(HiWord(msg.lParam))
 				MoveWindow sbScrollBarh, 0, ScaleY(dwClientY - 17), ScaleX(dwClientX - 17), ScaleY(17), False
 				If Not bDivided Then
 					MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), False
 				Else
+					iDividedY = dwClientY * dDividedY
+					iDivideY = iDividedY
 					MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), False
 					MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), False
 					RedrawWindow sbScrollBarvTop, 0, 0, RDW_INVALIDATE
