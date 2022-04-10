@@ -1535,8 +1535,8 @@ Namespace My.Sys.Forms
 			Var OldHScrollPos = *pHScrollPos, OldVScrollPos = *pVScrollPos
 			If nCaretPosX < *pHScrollPos * dwCharX Then
 				*pHScrollPos = nCaretPosX / dwCharX
-			ElseIf LeftMargin + nCaretPosX > *pHScrollPos * dwCharX + (dwClientX - dwCharX) Then
-				*pHScrollPos = (LeftMargin + nCaretPosX - (dwClientX - dwCharX)) / dwCharX
+			ElseIf LeftMargin + nCaretPosX > *pHScrollPos * dwCharX + (IIf(bDividedX, IIf(ActiveCodePane = 0, iDividedX, dwClientX - iDividedX - 7), dwClientX) - dwCharX - 17) Then
+				*pHScrollPos = (LeftMargin + nCaretPosX - (IIf(bDividedX, IIf(ActiveCodePane = 0, iDividedX, dwClientX - iDividedX - 7), dwClientX) - dwCharX - 17)) / dwCharX
 			ElseIf *pHScrollPos > HScrollMax Then
 				*pHScrollPos = HScrollMax
 			End If

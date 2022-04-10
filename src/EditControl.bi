@@ -294,7 +294,6 @@ Namespace My.Sys.Forms
 		Dim As Integer ActiveCodePane
 		Dim As Integer dwClientX    ' ширина клиентской области
 		Dim As Integer dwClientY    ' Высота клиентской области
-		Canvas As My.Sys.Drawing.Canvas
 		Modified As Boolean
 		WithHistory As Boolean
 		FLines As List
