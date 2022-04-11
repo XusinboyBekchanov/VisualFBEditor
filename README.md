@@ -1,4 +1,4 @@
-﻿# VisualFBEditor|<a href="README_CN.md">中文介绍</a>
+﻿# VisualFBEditor | <a href="README_CN.md">中文介绍</a>
 ## IDE for FreeBasic
 
 #### Introduction
