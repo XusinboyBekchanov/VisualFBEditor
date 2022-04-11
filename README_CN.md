@@ -1,4 +1,4 @@
-﻿# VisualFBEditor|<a href="README_CN.md">中文介绍</a>|<a href="README.md">English</a>
+﻿# Visual FB Editor | <a href="README_CN.md">中文介绍</a> | <a href="README.md">English</a>
 ## IDE for FreeBasic
 
 Visual FreeBasic Editor可以生成在Windows,Linux, Dos，Android下使用的32位及64位绿色免安装程序，语言风格类似VB.NET的Basic语言。如果你觉得需要某个新功能，你可以自己在Visual FreeBasic Editor源代码基础上修改，自己使用。如果你想向大家推荐，可以把修改后的源代码发给作者，集成到官方版本里。
