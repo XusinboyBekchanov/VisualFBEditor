@@ -2008,8 +2008,8 @@ Namespace My.Sys.Forms
 			'Dim As POLYTEXT ppt
 			Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, Sz.cx)
 			Var y = ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
-			SetRect(@rc, IIf(bDividedX And CodePane = 1, iDividedX + 7, 0), y, _
-			IIf(bDividedX AndAlso CodePane = 0, iDividedX, dwClientX), y + ScaleY(dwCharY))
+			SetRect(@rc, IIf(bDividedX And CodePane = 1, ScaleX(iDividedX + 7), 0), y, _
+			ScaleX(IIf(bDividedX AndAlso CodePane = 0, iDividedX, dwClientX)), y + ScaleY(dwCharY))
 			'ppt.lpstr = FLineRight
 			'ppt.n = Len(*FLineRight)
 			'ppt.uiFlags = ETO_CLIPPED Or ETO_OPAQUE
@@ -2944,7 +2944,7 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
-	Sub EditControl.WordLeft() '...'
+	Sub EditControl.WordLeft()
 		Dim f As Integer
 		Var item = Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))
 		If FSelEndChar = 0 Then
@@ -2970,7 +2970,7 @@ Namespace My.Sys.Forms
 		FSelEndLine = 0
 	End Sub
 	
-	Sub EditControl.WordRight() '...'
+	Sub EditControl.WordRight()
 		Dim f As Integer
 		Var item = Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))
 		If FSelEndChar = Len(*item->Text) Then
@@ -3235,7 +3235,7 @@ Namespace My.Sys.Forms
 				dwClientX = UnScaleX(LoWord(msg.lParam))
 				dwClientY = UnScaleY(HiWord(msg.lParam))
 				If Not bDividedX Then
-					MoveWindow sbScrollBarhRight, ScaleX(7), ScaleY(dwClientY - 17), ScaleX(dwClientX - 17), ScaleY(17), False
+					MoveWindow sbScrollBarhRight, ScaleX(7), ScaleY(dwClientY - 17), ScaleX(dwClientX - 17 - 7), ScaleY(17), False
 				Else
 					iDividedX = dwClientX * dDividedX
 					iDivideX = iDividedX
@@ -4429,10 +4429,10 @@ Namespace My.Sys.Forms
 					lParamHi = IIf(msg.lParamHi > 60000, msg.lParamHi - 65535, msg.lParamHi)
 				#endif
 				If bInDivideX Then
-					iDivideX = lParamLo
+					iDivideX = UnScaleX(lParamLo)
 					PaintControl
 				ElseIf bInDivideY Then
-					iDivideY = lParamHi
+					iDivideY = UnScaleY(lParamHi)
 					PaintControl
 				Else
 					FSelEndLine = LineIndexFromPoint(UnScaleX(lParamLo), UnScaleY(lParamHi), ActiveCodePane)
