@@ -56,6 +56,7 @@ Using My.Sys.Forms
 		Dim As ComboBoxEdit txtFind, txtReplace, cboFindRange
 		Dim As CommandButton btnCancel, btnFind, btnFindPrev, btnReplaceAll, btnReplace, btnReplaceShow, btnFindAll
 		Dim As TrackBar TrackBar1
+		Dim As Integer ActionReplace
 	End Type
 	Common Shared As frmFind Ptr pfFind
 '#End Region
