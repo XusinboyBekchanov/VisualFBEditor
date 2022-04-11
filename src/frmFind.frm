@@ -515,15 +515,22 @@ Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
 	If CInt(*gSearchSave <> txtFind.Text) Then FindAll plvSearch, 2, , False
 	This.Caption = ML("Find: No Results")
 	If plvSearch->ListItems.Count < 1 Then Exit Sub
-	If gSearchItemIndex >= plvSearch->ListItems.Count-1 Then
-		gSearchItemIndex = 0
+	Dim As Integer preLine
+	If gSearchItemIndex >= plvSearch->ListItems.Count - 1 Then
+		gSearchItemIndex = 0: ActionReplace = 0: preLine = -1
 	Else
+		preLine= Val(plvSearch->ListItems.Item(gSearchItemIndex)->Text(1))
 		gSearchItemIndex = gSearchItemIndex+1
 	End If
 	If plvSearch->ListItems.Count > 0 Then
+		This.Caption = IIf(ActionReplace > 0, ML("Replace"), ML("Find")) + ": " + WStr(gSearchItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
 		Dim Item As ListViewItem Ptr = plvSearch->ListItems.Item(gSearchItemIndex)
-		SelectSearchResult(item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(*gSearchSave), item->Tag)
-		This.Caption = ML("Find") + ": " + WStr(gSearchItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
+		If preLine = Val(item->Text(1)) AndAlso ActionReplace > 0 Then
+			SelectSearchResult (item->Text(3), Val(item->Text(1)), Val(item->Text(2)) + ActionReplace * (Len(txtReplace.Text) - Len(txtFind.Text)), Len(*gSearchSave), item->Tag)
+		Else
+			ActionReplace = 0
+			SelectSearchResult (item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(*gSearchSave), item->Tag)
+		End If
 	End If
 End Sub
 Private Sub frmFind.btnFindPrev_Click(ByRef Sender As Control)
@@ -635,6 +642,7 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	If tb = 0 Then Exit Sub
 	Dim txt As EditControl Ptr = @tb->txtCode
 	If LCase(txt->SelText) = LCase(txtFind.Text) Then
+		ActionReplace += 1
 		txt->SelText = txtReplace.Text
 		This.btnFind_Click(Sender)
 		If txtReplace.Contains(txtReplace.Text)=False Then txtReplace.AddItem txtReplace.Text

@@ -420,7 +420,7 @@ Sub mClick(Sender As My.Sys.Object)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
 		Case "Save":                        tb->Save
-		Case "SaveAs":                      tb->SaveAs
+		Case "SaveAs":                      tb->SaveAs:  frmMain.Caption = tb->FileName & " - " & App.Title
 		Case "Close":                       CloseTab(tb)
 		Case "SortLines":                   tb->SortLines
 		Case "SplitHorizontally":           tb->txtCode.SplittedHorizontally = Not mnuSplitHorizontally->Checked
