@@ -1791,7 +1791,7 @@ Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLef
 		ptxtCode->InsertLine ep + q + 11, *FLine1 & "End Constructor": tb->ConstructorEnd = ep + q + 11
 		InsLineCount += q + 11
 		If Cpnt = tb->Des->DesignControl Then j = ep + q + 11: t = True
-		se = ep + q + 10
+		se = ep + q + 11
 	ElseIf se = 0 Then
 		'Var l = .CharIndexFromLine(sc + 1)
 		'.ChangeText ..Left(.Text, l) & Space(sl) & "End Constructor" & Chr(13) & Mid(.Text, l + 1), "Tugatuvchi konstruktor qo`shildi", .SelStart, , False
