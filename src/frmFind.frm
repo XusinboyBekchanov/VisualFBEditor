@@ -349,7 +349,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 	Dim SubStr() As WString Ptr
 	Dim As WString * 5 tML = WChr(77) & WChr(76) & WChr(40)& WChr(34)
 	If tSearch = "" OrElse tn < 1 Then Exit Sub
-	If LCase(tSearch) = LCase(tReplace) Then WLet BuffOut, "File"
+	If LCase(tSearch) = LCase(tReplace) Then WLet(BuffOut, "File")
 	For i As Integer = 0 To tn->Nodes.Count - 1
 		If tn->Nodes.Item(i)->ImageKey = "Opened" Then
 			fFind.ReplaceInProj tSearch, tReplace, tn->Nodes.Item(i)
@@ -378,7 +378,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 					If Result <> 0 Then Result = Open(FNameOpen For Input As #Fn)
 					If Result = 0 Then
 						iLine = 0
-						If LCase(tSearch) <> LCase(tReplace) Then WLet BuffOut, ""
+						If LCase(tSearch) <> LCase(tReplace) Then WLet(BuffOut, "")
 						Do Until EOF(Fn)
 							Line Input #Fn, Buff
 							iLine += 1
@@ -400,14 +400,14 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 									Erase SubStr
 								Else
 									If *BuffOut="" Then
-										WLet BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked)
+										WLet(BuffOut, Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked))
 									Else
 										WAdd BuffOut, Chr(13,10) & Replace(Buff, tSearch, tReplace,,, chkMatchCase.Checked)
 									End If
 								End If
 							ElseIf LCase(tSearch) <> LCase(tReplace) Then
 								If *BuffOut="" Then
-									WLet BuffOut, Buff
+									WLet(BuffOut, Buff)
 								Else
 									WAdd BuffOut, Chr(13,10) & Buff
 								End If
@@ -473,10 +473,10 @@ Sub FindSubProj(Param As Any Ptr)
 		StopProgress
 		If *gSearchSave = WChr(39)+ WChr(84)+"ODO" Then
 			ptabBottom->Tabs[3]->Caption = ML("TODO") & " (" & plvToDo->ListItems.Count & " " & ML("Pos") & ")"
-			WLet gSearchSave, ""
+			WLet(gSearchSave, "")
 			.cboFindRange.ItemIndex = 2
 		Else
-			WLet gSearchSave, .txtFind.Text
+			WLet(gSearchSave, .txtFind.Text)
 			ptabBottom->Tabs[2]->Caption = ML("Find") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
 		End If
 		If .Visible Then 'David Change
@@ -504,7 +504,7 @@ Sub ReplaceSubProj(Param As Any Ptr)
 	fFind.btnReplace.Enabled = True
 	fFind.btnReplaceAll.Enabled = True
 	StopProgress
-	wLet gSearchSave, fFind.txtFind.Text
+	wLet(gSearchSave, fFind.txtFind.Text)
 	ptabBottom->Tabs[2]->Caption = ML("Replace") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
 	ThreadsLeave
 	MutexUnlock tlockToDo
@@ -569,7 +569,7 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex
 				lvSearchResult->ListItems.Clear
 				gSearchItemIndex = 0
 				ThreadCreate_(@FindSubProj, Tn)
-				wLet gSearchSave, *Search
+				wLet(gSearchSave, *Search)
 			End If
 		End If
 	Else
@@ -583,7 +583,7 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex
 		End If
 		lvSearchResult->ListItems.Clear
 		gSearchItemIndex = 0
-		wLet gSearchSave, *Search
+		wLet(gSearchSave, *Search)
 		For i As Integer = iSelStartLine To iSelEndLine
 			buff = @tb->txtCode.Lines(i)
 			If bMatchCase Then
@@ -683,7 +683,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(2) = WStr(Pos1)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(3) = tb->FileName
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Tag = tb
-				WLet ECLine->Text, ..Left(*buff, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search))
+				WLet(ECLine->Text, ..Left(*buff, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search)))
 				buff = @tb->txtCode.Lines(i)
 				If bMatchCase Then
 					Pos1 = InStr(Pos1 + Len(*tReplace), *buff, *Search)
@@ -699,7 +699,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 			This.Caption=ML("Replace") + ": 1 of " + WStr(plvSearch->ListItems.Count)
 		End If
 	End If
-	wLet gSearchSave, *Search
+	wLet(gSearchSave, *Search)
 	btnFind.SetFocus  'David Change
 End Sub
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
@@ -805,11 +805,11 @@ End Sub
 Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	Dim tmpStr As WString Ptr
 	For i As Integer =0 To 9
-		WLet tmpStr, piniSettings->ReadString("Find", "Find_"+WStr(i), "")
+		WLet(tmpStr, piniSettings->ReadString("Find", "Find_"+WStr(i), ""))
 		If CInt(Trim(*tmpstr)<>"") Then txtFind.AddItem *tmpstr
 	Next
 	For i As Integer =0 To 9
-		WLet tmpStr, piniSettings->ReadString("Replace", "Replace_"+WStr(i), "")
+		WLet(tmpStr, piniSettings->ReadString("Replace", "Replace_"+WStr(i), ""))
 		If CInt(Trim(*tmpstr)<>"") Then txtReplace.AddItem *tmpstr
 	Next
 	cboFindRange.ItemIndex = 1
@@ -819,7 +819,7 @@ End Sub
 Private Sub frmFind.cboFindRange_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	Static As Integer ItemIndexSave
 	If ItemIndexSave <> ItemIndex Then
-		wLet gSearchSave, ""
+		wLet(gSearchSave, "")
 		ItemIndexSave = ItemIndex
 	End If
 End Sub

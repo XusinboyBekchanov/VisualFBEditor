@@ -169,7 +169,7 @@ Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
 			Line Input #Fn, Buff
 			Buff = Replace(Buff, "<br>", Chr(13, 10))
 			ReDim Preserve BuffTips(i)
-			wLet BuffTips(i), Buff
+			wLet(BuffTips(i), Buff)
 			i += 1
 		Loop
 		CloseFile_(Fn)

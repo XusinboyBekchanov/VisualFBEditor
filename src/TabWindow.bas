@@ -5670,8 +5670,8 @@ End Sub
 Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer) As UShort
 	Dim As Integer Pos1, Pos2, Pos3 'David Change for ML
 	Dim As WString * 50 bFlagErr =""
-	WLet ErrFileName, ""
-	WLet ErrTitle, sLine
+	WLet(ErrFileName, "")
+	WLet(ErrTitle, sLine)
 	ErrorLine = 0
 	Pos1 = InStr(LCase(sLine), ") error ")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error:")
@@ -5700,38 +5700,38 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		Pos3 = InStr(Pos2, sLine, " of Resource Script (")
 		ErrorLine = Val(Mid(sLine, Pos2 + 5, Pos3 - Pos2 - 1))
 		Pos2 = InStr(Pos3, sLine, ")")
-		WLet ErrFileName, Mid(sLine, Pos3 + 21, Pos2 - Pos3 - 21)
+		WLet(ErrFileName, Mid(sLine, Pos3 + 21, Pos2 - Pos3 - 21))
 	Else
 		ErrorLine = Val(Mid(sLine, Pos2 + 1, Pos1 - Pos2 - 1))
 		'If ErrorLine = 0 Then Return 0
-		WLet ErrFileName, Left(sLine, Pos2 - 1)
+		WLet(ErrFileName, Left(sLine, Pos2 - 1))
 	End If
 	Pos3 = InStr(Pos1, sLine, ":")
 	If Pos3 > 0 Then
 		Pos2 = InStrRev(sLine, ",")
 		If Pos2 < 1 Then Pos2 = Len(sLine)
 		If InStr(Mid(sLine, Pos2),", found") = 1 Then
-			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found")))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found"))))
 		ElseIf InStr(Mid(sLine, Pos2),", before") = 1 Then
-			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before")))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before"))))
 		ElseIf InStr(Mid(sLine, Pos2),", after") = 1 Then
-			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("after") + (Mid(sLine, Pos2 + Len(", after")))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("after") + (Mid(sLine, Pos2 + Len(", after"))))
 		ElseIf InStr(Mid(sLine, Pos2),", exiting") = 1 Then
-			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("Exit") + (Mid(sLine, Pos2 + Len(", exiting")))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("Exit") + (Mid(sLine, Pos2 + Len(", exiting"))))
 		ElseIf InStr(Mid(sLine, Pos2),", at parameter") = 1 Then
-			WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("at parameter") + (Mid(sLine, Pos2 + Len(", at parameter")))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("at parameter") + (Mid(sLine, Pos2 + Len(", at parameter"))))
 			'at parameter
 		Else
 			If Pos2 > Pos3 Then
 				Dim As WString * 250 tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3))
 				If Right(tStr, 1) = "," Then tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1)) 'Strange. Sometime got letter ","
-				WLet ErrTitle, ML(bFlagErr) + ": " + ML(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 2)), "") '& Mid(sLine, Pos2+1)
+				WLet(ErrTitle, ML(bFlagErr) + ": " + ML(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 2)), "")) '& Mid(sLine, Pos2+1)
 			Else
-				WLet ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3+1)))
+				WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3+1))))
 			End If
 		End If
 	Else
-		WLet ErrTitle, Mid(sLine, Pos1 + 1)
+		WLet(ErrTitle, Mid(sLine, Pos1 + 1))
 	End If
 	If bFlagErr = "Warning"  Then
 		Return 1
@@ -6241,7 +6241,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 			End If
 		End If
 	End If
-	WLet File, GetResourceFile(, sFirstLine)
+	WLet(File, GetResourceFile(, sFirstLine))
 	If *File <> "" Then
 		If Not FileExists(*File) Then
 			If AutoCreateRC Then
@@ -6536,8 +6536,8 @@ Sub RunEmulator(Param As Any Ptr)
 		#define BufferSize 2048
 		For i As Integer = 0 To 1
 			Select Case i
-			Case 0: WLet CmdL, *SdkDir & "\emulator\emulator.exe -list-avds"
-			Case 1: WLet CmdL, *SdkDir & "\emulator\emulator.exe -avd " & AvdName
+			Case 0: WLet(CmdL, *SdkDir & "\emulator\emulator.exe -list-avds")
+			Case 1: WLet(CmdL, *SdkDir & "\emulator\emulator.exe -avd " & AvdName)
 			End Select
 			If i = 1 Then
 				ShowMessages ML("Run AVD:") & " " & AvdName & "", False
@@ -6741,15 +6741,15 @@ Sub RunPr(Debugger As String = "")
 			Exit Sub
 		End If
 		Dim As WString Ptr Workdir, CmdL
-		WLet ExeFileName, SDKDir & "\platform-tools\adb"
-		WLet CmdL, SDKDir & "\platform-tools\adb uninstall " & applicationId
+		WLet(ExeFileName, SDKDir & "\platform-tools\adb")
+		WLet(CmdL, SDKDir & "\platform-tools\adb uninstall " & applicationId)
 		WLet(Workdir, SDKDir & "\platform-tools")
 		#ifdef __USE_WINAPI__
 			For i As Integer = 0 To 2
 				#define BufferSize 2048
 				Select Case i
-				Case 0: WLet CmdL, SDKDir & "\platform-tools\adb uninstall " & applicationId
-				Case 1: WLet CmdL, SDKDir & "\platform-tools\adb install -t " & ApkFileName
+				Case 0: WLet(CmdL, SDKDir & "\platform-tools\adb uninstall " & applicationId)
+				Case 1: WLet(CmdL, SDKDir & "\platform-tools\adb install -t " & ApkFileName)
 				Case 2: WLet(CmdL, SDKDir & "\platform-tools\adb shell am start " & applicationId & "/" & applicationId & ".mffActivity")
 				End Select
 				Dim si As STARTUPINFO
@@ -6874,11 +6874,11 @@ Sub RunPr(Debugger As String = "")
 			Dim As WString Ptr Workdir, CmdL
 			Dim As ULong ExitCode
 			
-			WLet CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments
+			WLet(CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments)
 			If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
 			Var Pos1 = InStrRev(*ExeFileName, Slash)
 			If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
-			WLet Workdir, Left(*ExeFileName, Pos1)
+			WLet(Workdir, Left(*ExeFileName, Pos1))
 			'			If WGet(TerminalPath) <> "" Then
 			'				WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """"
 			'				wLet ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash)
@@ -6888,10 +6888,10 @@ Sub RunPr(Debugger As String = "")
 				Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
 				If Idx <> - 1 Then
 					Tool = pTerminals->Item(Idx)->Object
-					WLet CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments
+					WLet(CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments)
 				End If
 				'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-				WLet ExeFileName, Replace(GetFullPath(WGet(TerminalPath)), BackSlash, Slash)
+				WLet(ExeFileName, Replace(GetFullPath(WGet(TerminalPath)), BackSlash, Slash))
 			End If
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
 			#if 0

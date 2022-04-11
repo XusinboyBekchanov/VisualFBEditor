@@ -295,13 +295,19 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property EditControl.TopLine(Value As Integer)
-		Var VScrollPos = Min(GetCaretPosY(Value), IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom))
+		Dim As Integer Ptr pVScrollPos
+		If ActiveCodePane = 0 Then
+			pVScrollPos = @VScrollPosTop
+		Else
+			pVScrollPos = @VScrollPosBottom
+		End If
+		*pVScrollPos = Min(GetCaretPosY(Value), IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom))
 		#ifdef __USE_GTK__
 			gtk_adjustment_set_value(adjustmentv, VScrollPos)
 		#else
 			si.cbSize = SizeOf (si)
 			si.fMask = SIF_POS
-			si.nPos = VScrollPos
+			si.nPos = *pVScrollPos
 			If ActiveCodePane = 0 Then
 				SetScrollInfo(sbScrollBarvTop, SB_CTL, @si, True)
 			Else

@@ -785,7 +785,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								NumberInfo += 1
 							End If
 							If 	bFlagErr >= 0 Then
-								If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
+								If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 								lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 								lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 								lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
@@ -964,7 +964,7 @@ Sub CreateKeyStore
 		SaveD.Caption = "Save key"
 		SaveD.Filter = ML("Key files") & " (*.jks)|*.jks|" & ML("All Files") & "|*.*|"
 		If Not SaveD.Execute Then Exit Sub
-		WLet CmdL, Environ("COMSPEC") & " /K cd /D """ & GetFolderName(SaveD.FileName) & """ & """ & JavaHome & "/bin/keytool"" -genkey -v -keystore " & SaveD.FileName & " -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias"
+		WLet(CmdL, Environ("COMSPEC") & " /K cd /D """ & GetFolderName(SaveD.FileName) & """ & """ & JavaHome & "/bin/keytool"" -genkey -v -keystore " & SaveD.FileName & " -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias")
 		Dim SInfo As STARTUPINFO
 		Dim PInfo As PROCESS_INFORMATION
 		SInfo.cb = Len(SInfo)
@@ -1048,7 +1048,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 			Dim As WString Ptr Workdir, CmdL
 			Dim As Integer pClass
 			Dim As Unsigned Long ExitCode
-			WLet CmdL, SDKDir & "/build-tools/" & buildToolsVersion & "/zipalign -v -p 4 app-release-unsigned.apk app-release-unsigned-aligned.apk"
+			WLet(CmdL, SDKDir & "/build-tools/" & buildToolsVersion & "/zipalign -v -p 4 app-release-unsigned.apk app-release-unsigned-aligned.apk")
 			Dim SInfo As STARTUPINFO
 			Dim PInfo As PROCESS_INFORMATION
 			SInfo.cb = Len(SInfo)
@@ -1072,7 +1072,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 			OpenD.Caption = "Select key"
 			OpenD.Filter = ML("Key files") & " (*.jks)|*.jks|" & ML("All Files") & "|*.*|"
 			If Not OpenD.Execute Then Exit Sub
-			WLet CmdL, Environ("COMSPEC") & " /K cd /D """ & *Project->FileName & "/app/build/outputs/apk/release"" & " & SDKDir & "/build-tools/" & buildToolsVersion & "/apksigner sign --ks " & OpenD.FileName & " --out ../../../../release/app-release.apk app-release-unsigned-aligned.apk"
+			WLet(CmdL, Environ("COMSPEC") & " /K cd /D """ & *Project->FileName & "/app/build/outputs/apk/release"" & " & SDKDir & "/build-tools/" & buildToolsVersion & "/apksigner sign --ks " & OpenD.FileName & " --out ../../../../release/app-release.apk app-release-unsigned-aligned.apk")
 			If CreateProcessW(Null, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
 				WaitForSingleObject pinfo.hProcess, INFINITE
 				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
@@ -1969,7 +1969,7 @@ Sub SaveAll()
 	Dim tb As TabWindow Ptr
 	For i As Integer = 0 To ptabCode->TabCount - 1
 		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-		tb->Save
+		If tb->Modified Then tb->Save
 	Next i
 	For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 		If tvExplorer.Nodes.Item(i)->ImageKey = "Project" Then
@@ -3766,7 +3766,7 @@ Sub LoadHelp
 		parSeeAlso
 	End Enum
 	Dim As Integer Fn = FreeFile_
-	WLet KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt"
+	WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt")
 	If Open(*KeywordsHelpPath For Input As #Fn) = 0 Then
 		Dim As TypeElement Ptr te, te1
 		Dim As String Buff, StartBuff, bTrim
@@ -6418,7 +6418,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	#endif
 	MouseHoverTimerVal = Timer
 	If pfFind->CboFindRange.ItemIndex < 2 Then
-		WLet gSearchSave, ""
+		WLet(gSearchSave, "")
 	End If
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
 	lvProperties.Nodes.Clear
@@ -6596,7 +6596,7 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
 			Dim As WString Ptr sTmp
-			WLet sTmp, " {" & Replace(tb->Caption,"*","")
+			WLet(sTmp, " {" & Replace(tb->Caption, "*", ""))
 			WAdd sTmp, "|" & tb->cboFunction.Text & " Ln" & Val(Trim(Replace(pstBar->Panels[1]->Caption,ML("Row"),""))) & "}"
 			txtChangeLog.SelText = *sTmp
 			WDeAllocate sTmp

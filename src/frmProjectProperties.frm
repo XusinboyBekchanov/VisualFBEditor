@@ -930,8 +930,8 @@ Public Sub frmProjectProperties.RefreshProperties()
 							NDKDir = Replace(Replace(Mid(*pBuff, 9), "\\", "\"), "\:", ":")
 						End If
 					Loop
-					WLet ppe->AndroidSDKLocation, SDKDir
-					WLet ppe->AndroidNDKLocation, NDKDir
+					WLet(ppe->AndroidSDKLocation, SDKDir)
+					WLet(ppe->AndroidNDKLocation, NDKDir)
 					.txtAndroidSDKLocation.Text = SDKDir
 					.txtAndroidNDKLocation.Text = NDKDir
 					CloseFile_(Fn)
@@ -951,7 +951,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 							Exit Do
 						End If
 					Loop
-					WLet ppe->JDKLocation, JavaHome
+					WLet(ppe->JDKLocation, JavaHome)
 					.txtJDKLocation.Text = JavaHome
 					CloseFile_(Fn)
 				End If
