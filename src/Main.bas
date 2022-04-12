@@ -230,10 +230,11 @@ Sub SelectError(ByRef FileName As WString, iLine As Integer, tabw As TabWindow P
 		tb = tabw
 		tb->SelectTab
 	Else
-		If FileName = "" Then Exit Sub
+		If FileName = "" OrElse EndsWith(LCase(FileName), ".exe") OrElse Dir(FileName) = ""  Then Exit Sub
 		tb = AddTab(FileName)
 	End If
 	tb->txtCode.SetSelection iLine - 1, iLine - 1, 0, tb->txtCode.LineLength(iLine - 1)
+	If tb->tbrTop.Buttons.Item("Form")->Checked = True Then tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")								
 End Sub
 
 Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
