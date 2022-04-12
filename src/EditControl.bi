@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 		Dim bOldCommented As Boolean
 		Dim curHistory As Integer
 		Dim crRArrow As My.Sys.Drawing.Cursor
-		Dim crHand As My.Sys.Drawing.Cursor
+		Dim crHand_ As My.Sys.Drawing.Cursor
 		Dim crScroll As My.Sys.Drawing.Cursor
 		Dim crScrollLeft As My.Sys.Drawing.Cursor
 		Dim crScrollDown As My.Sys.Drawing.Cursor

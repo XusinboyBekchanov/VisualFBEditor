@@ -3413,7 +3413,7 @@ Namespace My.Sys.Forms
 					End If
 					Return
 				ElseIf InCollapseRect(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
-					msg.Result = Cast(LResult, SetCursor(crHand.Handle))
+					msg.Result = Cast(LResult, SetCursor(crHand_.Handle))
 					Return
 				Else
 					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
@@ -3421,14 +3421,14 @@ Namespace My.Sys.Forms
 					iCursorLineOld = iCursorLine
 					bInIncludeFileRectOld = bInIncludeFileRect
 					If bInIncludeFileRect Then
-						msg.Result = Cast(LResult, SetCursor(crHand.Handle))
+						msg.Result = Cast(LResult, SetCursor(crHand_.Handle))
 						Return
 					End If
 				End If
 				'End If
 				'If LoWord(msg.lParam) = HTCLIENT Then
-				'    'msg.Result = Cast(LResult, SetCursor(crHand.Handle))
-				'    SetCursor(crHand.Handle)
+				'    'msg.Result = Cast(LResult, SetCursor(crHand_.Handle))
+				'    SetCursor(crHand_.Handle)
 				'    Return
 				'End If
 			Case WM_HSCROLL, WM_VSCROLL
@@ -4782,7 +4782,7 @@ Namespace My.Sys.Forms
 		#endif
 		Canvas.Ctrl = @This
 		crRArrow.LoadFromResourceName("Select")
-		crHand.LoadFromResourceName("Hand")
+		crHand_.LoadFromResourceName("Hand")
 		crScroll.LoadFromResourceName("Scroll")
 		crScrollLeft.LoadFromResourceName("ScrollLeft")
 		crScrollDown.LoadFromResourceName("ScrollDown")
