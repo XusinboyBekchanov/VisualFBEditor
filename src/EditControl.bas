@@ -445,17 +445,18 @@ Namespace My.Sys.Forms
 		Dim As Boolean bQ
 		Dim As Integer j = 1, l = Len(Value)
 		Dim As Integer iC = OldiC
+		Var Slash_ = Asc("/"), Apostrophe = Asc("'"), Quotes = Asc("""")
 		Do While j <= l
-			If iC = 0 AndAlso Mid(Value, j, 1) = """" Then
+			If iC = 0 AndAlso Value[j - 1] = Quotes Then
 				bQ = Not bQ
 			ElseIf Not bQ Then
-				If Mid(Value, j, 2) = "/'" Then
+				If Value[j - 1] = Slash_ AndAlso Value[j] = Apostrophe Then
 					iC = iC + 1
 					j = j + 1
-				ElseIf iC > 0 AndAlso Mid(Value, j, 2) = "'/" Then
+				ElseIf iC > 0 AndAlso Value[j - 1] = Apostrophe AndAlso Value[j] = Slash_ Then
 					iC = iC - 1
 					j = j + 1
-				ElseIf iC = 0 AndAlso Mid(Value, j, 1) = "'" Then
+				ElseIf iC = 0 AndAlso Value[j - 1] = Apostrophe Then
 					Exit Do
 				End If
 			End If
@@ -1041,10 +1042,12 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes)
 		'Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
+		'Var Timer_ = Timer
 		Dim pBuff As WString Ptr
 		Dim As Integer Result = -1, Fn = FreeFile_, FileSize
 		Dim As FileEncodings OldFileEncoding
-		Var iC = 0, OldiC = 0, i = 0, InAsm = False
+		Dim As Integer iC = 0, OldiC = 0, i = 0
+		Var InAsm = False
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn): FileEncoding = FileEncodings.Utf8BOM
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn): FileEncoding = FileEncodings.Utf32BOM
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn): FileEncoding = FileEncodings.Utf16BOM
@@ -1104,6 +1107,8 @@ Namespace My.Sys.Forms
 			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13,10) & " " & FileName
 		End If
 		WDeallocate pBuff
+		'?Timer - Timer_
+		'?FileName
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef File As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
