@@ -1077,7 +1077,7 @@ Namespace My.Sys.Forms
 						*pBuff = *pBuff2
 						FileEncoding = FileEncodings.UTF8
 					End If
-					WDeallocate pBuff2
+					'WDeallocate pBuff2
 				End If
 				WLet(FECLine->Text, *pBuff)
 				iC = FindCommentIndex(*pBuff, OldiC)
