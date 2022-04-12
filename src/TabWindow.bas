@@ -1248,6 +1248,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				If pGlobalEnums->Contains(te->TypeName) Then
 					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName))
 					If tbi Then
+						Dim iTemp As Integer
 						iTemp = Val(*FLine3)
 						If tbi->Elements.Contains(*FLine3) Then
 							iTemp = tbi->Elements.IndexOf(*FLine3)
