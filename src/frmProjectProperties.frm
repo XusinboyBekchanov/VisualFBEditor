@@ -121,17 +121,17 @@ pfProjectProperties = @fProjectProperties
 		' grbVersionNumber
 		grbVersionNumber.Name = "grbVersionNumber"
 		grbVersionNumber.Text = ML("Version Number")
-		grbVersionNumber.SetBounds 10, 8, 228, 112
+		grbVersionNumber.SetBounds 10, 8, 228, 122
 		grbVersionNumber.Parent = @tpMake
 		' grbApplication
 		grbApplication.Name = "grbApplication"
 		grbApplication.Text = ML("Application")
-		grbApplication.SetBounds 253, 8, 225, 112
+		grbApplication.SetBounds 253, 8, 225, 122
 		grbApplication.Parent = @tpMake
 		' grbVersionInformation
 		grbVersionInformation.Name = "grbVersionInformation"
 		grbVersionInformation.Text = ML("Version Information")
-		grbVersionInformation.SetBounds 9, 126, 469, 181
+		grbVersionInformation.SetBounds 9, 136, 469, 171
 		grbVersionInformation.Parent = @tpMake
 		' grbCompilationArguments
 		grbCompilationArguments.Name = "grbCompilationArguments"
@@ -146,7 +146,7 @@ pfProjectProperties = @fProjectProperties
 		' lblIcon
 		lblIcon.Name = "lblIcon"
 		lblIcon.Text = ML("Icon") & ":"
-		lblIcon.SetBounds 0, 49, 34, 18
+		lblIcon.SetBounds 0, 37, 34, 18
 		lblIcon.Parent = @picApplication
 		' lblTitle
 		lblTitle.Name = "lblTitle"
@@ -359,7 +359,7 @@ pfProjectProperties = @fProjectProperties
 		' txtValue
 		With txtValue
 			.Name = "txtValue"
-			.SetBounds 237, 16, 212, 132
+			.SetBounds 237, 16, 212, 122
 			.OnLostFocus = @txtValue_LostFocus
 			.Parent = @picVersionInformation
 		End With
@@ -372,7 +372,7 @@ pfProjectProperties = @fProjectProperties
 		' txtIcon
 		With txtIcon
 			.Name = "txtIcon"
-			.SetBounds 40, 47, 74, 18
+			.SetBounds 40, 37, 74, 18
 			.ReadOnly = False
 			.Parent = @picApplication
 		End With
@@ -417,13 +417,13 @@ pfProjectProperties = @fProjectProperties
 		' picVersionInformation
 		With picApplication
 			.Name = "picApplication"
-			.SetBounds 262, 20, 202, 90
+			.SetBounds 262, 20, 202, 100
 			.Parent = @tpMake
 		End With
 		' picVersionInformation
 		With picVersionInformation
 			.Name = "picVersionInformation"
-			.SetBounds 16, 145, 450, 151
+			.SetBounds 16, 155, 450, 141
 			.Parent = @tpMake
 		End With
 		' picCompilationArguments
@@ -460,7 +460,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "CommandButton1"
 			.Text = "..."
 			.TabIndex = 70
-			.SetBounds 114, 46, 20, 20
+			.SetBounds 114, 36, 20, 20
 			.Caption = "..."
 			.Designer = @This
 			.OnClick = @CommandButton1_Click_
@@ -470,7 +470,7 @@ pfProjectProperties = @fProjectProperties
 		With imgIcon
 			.Name = "imgIcon"
 			.Text = "lblIcon"
-			.SetBounds 166, 51, 32, 32
+			.SetBounds 156, 41, 32, 32
 			.Parent = @picApplication
 		End With
 		' chkPassAllModuleFilesToCompiler
@@ -642,7 +642,32 @@ pfProjectProperties = @fProjectProperties
 			.OnClick = @cmdCompiler_Click_
 			.Parent = @tpCompile
 		End With
+		' chkManifest
+		With chkManifest
+			.Name = "chkManifest"
+			.Text = ML("Manifest")
+			.TabIndex = 88
+			.Caption = ML("Manifest")
+			.SetBounds 4, 59, 130, 20
+			.Designer = @This
+			.OnClick = @chkManifest_Click_
+			.Parent = @picApplication
+		End With
+		' chkRunAsAdministrator
+		With chkRunAsAdministrator
+			.Name = "chkRunAsAdministrator"
+			.Text = ML("Run as administrator")
+			.TabIndex = 89
+			.Caption = ML("Run as administrator")
+			.SetBounds 30, 80, 170, 20
+			.Designer = @This
+			.Parent = @picApplication
+		End With
 	End Constructor
+	
+	Private Sub frmProjectProperties.chkManifest_Click_(ByRef Sender As CheckBox)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).chkManifest_Click(Sender)
+	End Sub
 	
 Private Sub frmProjectProperties.cboCompiler_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	*Cast(frmProjectProperties Ptr, Sender.Designer).cboCompiler_Selected(Sender, ItemIndex)
@@ -688,6 +713,8 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		ppe->AutoIncrementVersion = .chkAutoIncrementVersion.Checked
 		WLet(ppe->ApplicationTitle, .txtTitle.Text)
 		WLet(ppe->ApplicationIcon, .txtIcon.Text)
+		ppe->Manifest = .chkManifest.Checked 
+		ppe->RunAsAdministrator = .chkRunAsAdministrator.Checked 
 		WLet(ppe->CompanyName, .Types.Get(ML("Company Name")))
 		WLet(ppe->FileDescription, .Types.Get(ML("File Description")))
 		WLet(ppe->InternalName, .Types.Get(ML("Internal Name")))
@@ -882,6 +909,9 @@ Public Sub frmProjectProperties.RefreshProperties()
 					'	DrawIconEx GetDC(picApplication.Handle), 0, 0, imgIcon.Graphic.Icon.Handle, 32, 32, 0, 0, DI_NORMAL
 					'#endif
 				End If
+				.chkManifest.Checked = ppe->Manifest
+				.chkManifest_Click(.chkManifest)
+				.chkRunAsAdministrator.Checked = ppe->RunAsAdministrator
 				.Types.Set ML("Company Name"), *ppe->CompanyName
 				.Types.Set ML("File Description"), *ppe->FileDescription
 				.Types.Set ML("Internal Name"), *ppe->InternalName
@@ -976,6 +1006,9 @@ Public Sub frmProjectProperties.RefreshProperties()
 			.chkAutoIncrementVersion.Checked = False
 			.txtTitle.Text = ""
 			.txtIcon.Text = ""
+			.chkManifest.Checked = True
+			.chkRunAsAdministrator.Checked = False
+			.chkManifest_Click(.chkManifest)
 			.txtCompilationArguments32Windows.Text = ""
 			.txtCompilationArguments64Windows.Text = ""
 			.txtCompilationArguments32Linux.Text = ""
@@ -1149,4 +1182,8 @@ Private Sub frmProjectProperties.cboCompiler_Selected(ByRef Sender As ComboBoxEd
 	ElseIf ItemIndex > 0 AndAlso ItemIndex <= pCompilers->Count - 1 Then
 		txtCompilerPath.Text = pCompilers->Item(ItemIndex - 1)->Text
 	End If
+End Sub
+
+Private Sub frmProjectProperties.chkManifest_Click(ByRef Sender As CheckBox)
+	chkRunAsAdministrator.Enabled = chkManifest.Checked
 End Sub

@@ -58,6 +58,8 @@ Using My.Sys.Forms
 		Declare Sub txtCompilerPath_Change(ByRef Sender As TextBox)
 		Declare Static Sub cboCompiler_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub cboCompiler_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		Declare Static Sub chkManifest_Click_(ByRef Sender As CheckBox)
+		Declare Sub chkManifest_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
 		Dim As TabControl tabProperties
@@ -68,7 +70,7 @@ Using My.Sys.Forms
 		Dim As ComboBoxEdit cboProjectType, cboMainFile, cboResourceFile, cboIconResourceFile, cboOptimizationLevel, cboSubsystem, cboCompiler
 		Dim As TextBox txtProjectName, txtProjectDescription, txtCompilationArguments32Windows, txtCompilationArguments64Windows, txtIcon, txtTitle, txtMajor, txtMinor, txtRevision, txtBuild, txtCompilationArguments32Linux, txtValue, txtHelpFileName, txtCommandLineArguments, txtCompilationArguments32Windows1, txtCompilationArguments64Windows1, txtCompilationArguments32Linux1, txtCompilationArguments64Linux, txtAndroidSDKLocation, txtAndroidNDKLocation, txtJDKLocation, txtCompilerPath
 		Dim As GroupBox grbVersionNumber, grbApplication, grbVersionInformation, grbCompilationArguments, grbCompileToGCC
-		Dim As CheckBox chkAutoIncrementVersion, chkCreateDebugInfo, chkPassAllModuleFilesToCompiler
+		Dim As CheckBox chkAutoIncrementVersion, chkCreateDebugInfo, chkPassAllModuleFilesToCompiler, chkManifest, chkRunAsAdministrator
 		Dim As ListControl lstType
 		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization, optCompileByDefault, optCompileToLLVM
 		Dim As Dictionary Types, MainFiles, ResourceFiles, IconResourceFiles

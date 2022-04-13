@@ -58,6 +58,8 @@ Type ProjectElement Extends ExplorerElement
 	AutoIncrementVersion As Boolean
 	ApplicationTitle As WString Ptr
 	ApplicationIcon As WString Ptr
+	Manifest As Boolean
+	RunAsAdministrator As Boolean
 	CompanyName As WString Ptr
 	FileDescription As WString Ptr
 	InternalName As WString Ptr
