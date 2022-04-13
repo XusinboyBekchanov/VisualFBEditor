@@ -179,6 +179,7 @@ Declare Sub AddMRUSession(ByRef FileName As WString) '
 Declare Sub AddFromTemplates
 Declare Sub AddFilesToProject
 Declare Sub RemoveFileFromProject
+Declare Sub SaveMRU
 Declare Sub RestoreStatusText
 Declare Sub OpenUrl(ByVal url As String)
 Declare Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean = False) As TreeNode Ptr

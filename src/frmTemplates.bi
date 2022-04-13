@@ -38,18 +38,26 @@
 		Declare Sub cmdSaveLocation_Click(ByRef Sender As Control)
 		Declare Static Sub lvTemplates_SelectedItemChanged_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Sub lvTemplates_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub cmdClear_Click_(ByRef Sender As Control)
+		Declare Sub cmdClear_Click(ByRef Sender As Control)
+		Declare Static Sub cmdRemove_Click_(ByRef Sender As Control)
+		Declare Sub cmdRemove_Click(ByRef Sender As Control)
+		Declare Static Sub cmdChange_Click_(ByRef Sender As Control)
+		Declare Sub cmdChange_Click(ByRef Sender As Control)
+		Declare Static Sub cmdAdd_Click_(ByRef Sender As Control)
+		Declare Sub cmdAdd_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As TabControl TabControl1
 		Dim As TabPage tpNew, tpExisting, tpRecent
 		Dim As TreeView tvTemplates, tvRecent
 		Dim As ListView lvTemplates, lvRecent
-		Dim As CommandButton cmdOK, cmdCancel, cmdSaveLocation
+		Dim As CommandButton cmdOK, cmdCancel, cmdSaveLocation, cmdClear, cmdRemove, cmdChange, cmdAdd
 		Dim As WStringList Templates
-		Dim As Boolean OnlyFiles
+		Dim As Boolean OnlyFiles, RecentChanged
 		Dim As UString SelectedTemplate, SelectedFile, SelectedFolder
 		Dim As OpenFileControl OpenFileControl1
-		Dim As Panel pnlBottom, pnlSaveLocation
+		Dim As Panel pnlBottom, pnlSaveLocation, pnlRecent
 		Dim As Label lblSaveLocation
 		Dim As TextBox txtSaveLocation
 	End Type

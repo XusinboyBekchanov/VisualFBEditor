@@ -217,8 +217,8 @@ Private Sub frmPath.Form_Show_(ByRef Sender As Form)
 	*Cast(frmPath Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub frmPath.Form_Show(ByRef Sender As Form)
-	lblVersion.Visible = Not ChooseFolder
-	txtVersion.Visible = Not ChooseFolder
+	lblVersion.Visible = (Not WithoutVersion) AndAlso Not ChooseFolder
+	txtVersion.Visible = (Not WithoutVersion) AndAlso Not ChooseFolder
 	lblCommandLine.Visible = Not (WithoutCommandLine OrElse ChooseFolder)
 	txtCommandLine.Visible = Not (WithoutCommandLine OrElse ChooseFolder OrElse WithType)
 	lblExtensions.Visible = WithExtensions
@@ -234,6 +234,7 @@ Private Sub frmPath.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
 End Sub
 Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	ChooseFolder = False
+	WithoutVersion = False
 	WithoutCommandLine = False
 	WithExtensions = False
 	WithType = False

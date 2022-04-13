@@ -186,7 +186,7 @@
 			.Name = "pnlSaveLocation"
 			.Text = "Panel1"
 			.TabIndex = 12
-			.SetBounds 0, -1, 390, 30
+			.SetBounds 10, -1, 410, 30
 			.Visible = False
 			.Parent = @pnlBottom
 		End With
@@ -218,7 +218,88 @@
 			.OnClick = @cmdSaveLocation_Click_
 			.Parent = @pnlSaveLocation
 		End With
+		' pnlRecent
+		With pnlRecent
+			.Name = "pnlRecent"
+			.Text = "Panel1"
+			.TabIndex = 16
+			.SetBounds 10, 0, 420, 30
+			.Designer = @This
+			.Parent = @pnlBottom
+		End With
+		' cmdAdd
+		With cmdAdd
+			.Name = "cmdAdd"
+			.Text = ML("Add")
+			.TabIndex = 20
+			.Align = DockStyle.alLeft
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Bottom = 10
+			.Caption = ML("Add")
+			.SetBounds 0, 0, 88, 20
+			.Designer = @This
+			.OnClick = @cmdAdd_Click_
+			.Parent = @pnlRecent
+		End With
+		' cmdChange
+		With cmdChange
+			.Name = "cmdChange"
+			.Text = ML("Change")
+			.TabIndex = 19
+			.Align = DockStyle.alLeft
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Bottom = 10
+			.Caption = ML("Change")
+			.SetBounds 98, 0, 88, 20
+			.Designer = @This
+			.OnClick = @cmdChange_Click_
+			.Parent = @pnlRecent
+		End With
+		' cmdRemove
+		With cmdRemove
+			.Name = "cmdRemove"
+			.Text = ML("Remove")
+			.TabIndex = 18
+			.Align = DockStyle.alLeft
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Bottom = 10
+			.Caption = ML("Remove")
+			.SetBounds 196, 0, 88, 20
+			.Designer = @This
+			.OnClick = @cmdRemove_Click_
+			.Parent = @pnlRecent
+		End With
+		' cmdClear
+		With cmdClear
+			.Name = "cmdClear"
+			.Text = ML("Clear")
+			.TabIndex = 17
+			.Align = DockStyle.alLeft
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Bottom = 10
+			.Caption = ML("Clear")
+			.SetBounds 0, 0, 88, 20
+			.Designer = @This
+			.OnClick = @cmdClear_Click_
+			.Parent = @pnlRecent
+		End With
 	End Constructor
+	
+	Private Sub frmTemplates.cmdAdd_Click_(ByRef Sender As Control)
+		*Cast(frmTemplates Ptr, Sender.Designer).cmdAdd_Click(Sender)
+	End Sub
+	
+	Private Sub frmTemplates.cmdChange_Click_(ByRef Sender As Control)
+		*Cast(frmTemplates Ptr, Sender.Designer).cmdChange_Click(Sender)
+	End Sub
+	
+	Private Sub frmTemplates.cmdRemove_Click_(ByRef Sender As Control)
+		*Cast(frmTemplates Ptr, Sender.Designer).cmdRemove_Click(Sender)
+	End Sub
+	
+	Private Sub frmTemplates.cmdClear_Click_(ByRef Sender As Control)
+		*Cast(frmTemplates Ptr, Sender.Designer).cmdClear_Click(Sender)
+	End Sub
 	
 Private Sub frmTemplates.TabControl1_SelChange_(ByRef Sender As TabControl, NewIndex As Integer)
 	*Cast(frmTemplates Ptr, Sender.Designer).TabControl1_SelChange(Sender, NewIndex)
@@ -302,6 +383,9 @@ Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
 			Me.BringToFront
 		End If
 	End Select
+	If RecentChanged Then
+		SaveMRU
+	End If
 End Sub
 
 Private Sub frmTemplates.tvTemplates_SelChanged_(ByRef Sender As TreeView, ByRef Item As TreeNode)
@@ -366,6 +450,7 @@ Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
 	tvTemplates.Nodes.Add ML("Files"), "Files"
 	tvTemplates_SelChanged tvTemplates, *tvTemplates.Nodes.Item(0)
 	tvRecent_SelChanged tvRecent, *tvRecent.Nodes.Item(0)
+	RecentChanged = False
 	TabControl1.SelectedTabIndex = 0
 	'This.Width = This.Width + 1
 	Var n = 0
@@ -426,6 +511,8 @@ Private Sub frmTemplates.TabControl1_SelChange(ByRef Sender As TabControl, NewIn
 		'OpenFileControl1.SetBounds TabControl1.Left, TabControl1.Top, TabControl1.Width, TabControl1.Height
 		'TabControl1.RequestAlign
 	'End If 
+	pnlSaveLocation.Visible = lvTemplates.SelectedItemIndex >= 0 AndAlso Templates.Object(lvTemplates.SelectedItemIndex) > 0 AndAlso TabControl1.SelectedTabIndex = 0
+	pnlRecent.Visible = TabControl1.SelectedTabIndex = 2
 End Sub
 
 Private Sub frmTemplates.cmdSaveLocation_Click_(ByRef Sender As Control)
@@ -446,4 +533,123 @@ Private Sub frmTemplates.lvTemplates_SelectedItemChanged(ByRef Sender As ListVie
 	If lvTemplates.SelectedItemIndex > -1 Then
 		pnlSaveLocation.Visible = Templates.Object(lvTemplates.SelectedItemIndex) > 0
 	End If
+End Sub
+
+Private Sub frmTemplates.cmdClear_Click(ByRef Sender As Control)
+	Dim NodeIdx As Integer = -1
+	If tvRecent.SelectedNode <> 0 Then NodeIdx = tvRecent.SelectedNode->Index
+	If NodeIdx = 0 Then
+		miRecentSessions->Clear
+		miRecentSessions->Enabled = False
+		MRUSessions.Clear
+	ElseIf NodeIdx = 1 Then
+		miRecentFolders->Clear
+		miRecentFolders->Enabled = False
+		MRUFolders.Clear
+	ElseIf NodeIdx = 2 Then
+		miRecentProjects->Clear
+		miRecentProjects->Enabled = False
+		MRUProjects.Clear
+	ElseIf NodeIdx = 3 Then
+		miRecentFiles->Clear
+		miRecentFiles->Enabled = False
+		MRUFiles.Clear
+	End If
+	lvRecent.ListItems.Clear
+	RecentChanged = True
+End Sub
+
+Private Sub frmTemplates.cmdRemove_Click(ByRef Sender As Control)
+	Var Idx = lvRecent.SelectedItemIndex
+	Dim NodeIdx As Integer = -1
+	If tvRecent.SelectedNode <> 0 Then NodeIdx = tvRecent.SelectedNode->Index
+	If Idx <> -1 Then
+		If NodeIdx <= 0 Then
+			miRecentSessions->Remove miRecentSessions->Item(Idx)
+			MRUSessions.Remove Idx
+		ElseIf NodeIdx = 1 Then
+			miRecentFolders->Remove miRecentFolders->Item(Idx)
+			MRUFolders.Remove Idx
+		ElseIf NodeIdx = 2 Then
+			miRecentProjects->Remove miRecentProjects->Item(Idx)
+			MRUProjects.Remove Idx
+		ElseIf NodeIdx = 3 Then
+			miRecentFiles->Remove miRecentFiles->Item(Idx)
+			MRUFiles.Remove Idx
+		End If
+		lvRecent.ListItems.Remove Idx
+		RecentChanged = True
+	End If
+End Sub
+
+Private Sub frmTemplates.cmdChange_Click(ByRef Sender As Control)
+	Var Idx = lvRecent.SelectedItemIndex
+	Dim NodeIdx As Integer = -1
+	If tvRecent.SelectedNode <> 0 Then NodeIdx = tvRecent.SelectedNode->Index
+	If Idx <> -1 Then
+		pfPath->WithoutVersion = True
+		pfPath->WithoutCommandLine = True
+		If NodeIdx = 1 Then
+			pfPath->ChooseFolder = True
+		End If
+		pfPath->txtPath.Text = lvRecent.SelectedItem->Text(1)
+		Dim As UString Path
+		If pfPath->ShowModal() = ModalResults.OK Then
+			Path = pfPath->txtPath.Text
+		Else
+			Exit Sub
+		End If
+		If StartsWith(Path, "." & Slash) Then Path = Mid(Path, 3)
+		If NodeIdx <= 0 Then
+			miRecentSessions->Item(Idx)->Caption = Path
+			MRUSessions.Item(Idx) = Path
+		ElseIf NodeIdx = 1 Then
+			miRecentFolders->Item(Idx)->Caption = Path
+			MRUFolders.Item(Idx) = Path
+		ElseIf NodeIdx = 2 Then
+			miRecentProjects->Item(Idx)->Caption = Path
+			MRUProjects.Item(Idx) = Path
+		ElseIf NodeIdx = 3 Then
+			miRecentFiles->Item(Idx)->Caption = Path
+			MRUFiles.Item(Idx) = Path
+		End If
+		lvRecent.ListItems.Item(Idx)->Text(0) = GetFileName(Path)
+		lvRecent.ListItems.Item(Idx)->Text(1) = Path
+		lvRecent.ListItems.Item(Idx)->ImageKey = GetIconName(Path)
+		RecentChanged = True
+	End If
+End Sub
+
+Private Sub frmTemplates.cmdAdd_Click(ByRef Sender As Control)
+	Dim NodeIdx As Integer = -1
+	If tvRecent.SelectedNode <> 0 Then NodeIdx = tvRecent.SelectedNode->Index
+	pfPath->WithoutVersion = True
+	pfPath->WithoutCommandLine = True
+	If NodeIdx = 1 Then
+		pfPath->ChooseFolder = True
+	End If
+	pfPath->txtPath.Text = ""
+	Dim As UString Path
+	If pfPath->ShowModal() = ModalResults.OK Then
+		Path = pfPath->txtPath.Text
+	Else
+		Exit Sub
+	End If
+	If StartsWith(Path, "." & Slash) Then Path = Mid(Path, 3)
+	If NodeIdx <= 0 Then
+		miRecentSessions->Add Path, "", , @mClickMRU, , 0
+		MRUSessions.Insert 0, Path
+	ElseIf NodeIdx = 1 Then
+		miRecentFolders->Add Path, "", , @mClickMRU, , 0
+		MRUFolders.Insert 0, Path
+	ElseIf NodeIdx = 2 Then
+		miRecentProjects->Add Path, "", , @mClickMRU, , 0
+		MRUProjects.Insert 0, Path
+	ElseIf NodeIdx = 3 Then
+		miRecentFiles->Add Path, "", , @mClickMRU, , 0
+		MRUFiles.Insert 0, Path
+	End If
+	Var Item = lvRecent.ListItems.Add(GetFileName(Path), GetIconName(Path), , , 0)
+	Item->Text(1) = Path
+	RecentChanged = True
 End Sub

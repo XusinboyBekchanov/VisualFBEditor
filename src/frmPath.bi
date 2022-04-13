@@ -32,7 +32,7 @@ Using My.Sys.Forms
 		Dim As Label lblVersion, lblPath, lblCommandLine, lblExtensions
 		Dim As OpenFileDialog OpenD
 		Dim As FolderBrowserDialog BrowseD
-		Dim As Boolean ChooseFolder, SetFileNameToVersion, WithoutCommandLine, WithExtensions, WithType, WithKey
+		Dim As Boolean ChooseFolder, SetFileNameToVersion, WithoutVersion, WithoutCommandLine, WithExtensions, WithType, WithKey
 		Dim As UString ExeFileName
 		Dim As ComboBoxEdit cboType
 	End Type

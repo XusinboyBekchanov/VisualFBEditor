@@ -7371,6 +7371,34 @@ Sub frmMain_ActivateApp(ByRef Sender As Form)
 	#endif
 End Sub
 
+Sub SaveMRU
+	Dim i As Integer
+	For i = 0 To MRUFiles.Count - 1
+		iniSettings.WriteString("MRUFiles", "MRUFile_0" & WStr(i), MRUFiles.Item(i))
+	Next
+	For i = i To miRecentMax
+		iniSettings.KeyRemove("MRUFiles", "MRUFile_0" & WStr(i))
+	Next
+	For i = 0 To MRUFolders.Count - 1
+		iniSettings.WriteString("MRUFolders", "MRUFolder_0" & WStr(i), MRUFolders.Item(i))
+	Next
+	For i = i To miRecentMax
+		iniSettings.KeyRemove("MRUFolders", "MRUFolder_0" & WStr(i))
+	Next
+	For i = 0 To MRUProjects.Count - 1
+		iniSettings.WriteString("MRUProjects", "MRUProject_0" & WStr(i), MRUProjects.Item(i))
+	Next
+	For i = i To miRecentMax
+		iniSettings.KeyRemove("MRUProjects", "MRUProject_0" & WStr(i))
+	Next
+	For i = 0 To MRUSessions.Count - 1
+		iniSettings.WriteString("MRUSessions", "MRUSession_0" & WStr(i), MRUSessions.Item(i))
+	Next
+	For i = i To miRecentMax
+		iniSettings.KeyRemove("MRUSessions", "MRUSession_0" & WStr(i))
+	Next
+End Sub
+
 Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
 	FormClosing = True
@@ -7457,31 +7485,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteInteger("MainWindow", "ShowTipoftheDayIndex", ShowTipoftheDayIndex)
 	iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
 	
-	Dim i As Integer
-	For i = 0 To MRUFiles.Count - 1
-		iniSettings.WriteString("MRUFiles", "MRUFile_0" & WStr(i), MRUFiles.Item(i))
-	Next
-	For i = i To miRecentMax
-		iniSettings.KeyRemove("MRUFiles", "MRUFile_0" & WStr(i))
-	Next
-	For i = 0 To MRUFolders.Count - 1
-		iniSettings.WriteString("MRUFolders", "MRUFolder_0" & WStr(i), MRUFolders.Item(i))
-	Next
-	For i = i To miRecentMax
-		iniSettings.KeyRemove("MRUFolders", "MRUFolder_0" & WStr(i))
-	Next
-	For i = 0 To MRUProjects.Count - 1
-		iniSettings.WriteString("MRUProjects", "MRUProject_0" & WStr(i), MRUProjects.Item(i))
-	Next
-	For i = i To miRecentMax
-		iniSettings.KeyRemove("MRUProjects", "MRUProject_0" & WStr(i))
-	Next
-	For i = 0 To MRUSessions.Count - 1
-		iniSettings.WriteString("MRUSessions", "MRUSession_0" & WStr(i), MRUSessions.Item(i))
-	Next
-	For i = i To miRecentMax
-		iniSettings.KeyRemove("MRUSessions", "MRUSession_0" & WStr(i))
-	Next
+	SaveMRU
 	
 	iniSettings.WriteString("MainWindow", "RecentFiles", *RecentFiles)
 	iniSettings.WriteString("MainWindow", "RecentFile", *RecentFile)
