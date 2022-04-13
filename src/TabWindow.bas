@@ -6892,7 +6892,7 @@ Sub RunPr(Debugger As String = "")
 					WLet(CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments)
 				End If
 				'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-				WLet(ExeFileName, Replace(GetFullPath(WGet(TerminalPath)), BackSlash, Slash))
+				WLet(ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash))
 			End If
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
 			#if 0
@@ -6966,7 +6966,7 @@ Sub RunPr(Debugger As String = "")
 				SInfo.dwFlags = STARTF_USESHOWWINDOW
 				SInfo.wShowWindow = SW_NORMAL
 				pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
-				If CreateProcessW(ExeFileName, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+				If CreateProcessW(NULL, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
 					WaitForSingleObject pinfo.hProcess, INFINITE
 					GetExitCodeProcess(pinfo.hProcess, @ExitCode)
 					CloseHandle(pinfo.hProcess)
