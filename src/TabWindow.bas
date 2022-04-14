@@ -26,6 +26,7 @@ End Destructor
 Constructor ProjectElement
 	WLet(FileDescription, "{ProjectDescription}")
 	WLet(ProductName, "{ProjectName}")
+	Manifest = True
 End Constructor
 
 Destructor ProjectElement
@@ -6230,7 +6231,8 @@ End Function
 
 Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 	'If StartsWith(LTrim(LCase(sFirstLine), Any !"\t "), "'#compile ") Then
-	Dim As WString Ptr Buff, File, sLine, sLines
+	Dim As WString Ptr Buff, File, sLines
+	Dim As WString * 1024 sLine
 	Var bAutoIncrement = CInt(AutoIncrement) OrElse CInt(Project AndAlso CInt(Project->AutoIncrementVersion))
 	If Project <> 0 AndAlso bAutoIncrement Then
 		Project->BuildVersion += 1
@@ -6243,15 +6245,21 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 		End If
 	End If
 	WLet(File, GetResourceFile(, sFirstLine))
+	Var bFinded = False, bChanged = False
+	Dim As String NewLine = ""
 	If *File <> "" Then
 		If Not FileExists(*File) Then
 			If AutoCreateRC Then
 				#ifndef __USE_GTK__
 					FileCopy ExePath & "/Templates/Files/Resource.rc", *File
-					If Not FileExists(GetFolderName(FileName) & "Manifest.xml") Then
-						FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(FileName).vptr & "Manifest.xml"
-						ManifestIcoCopy = True
-					End If
+				#endif
+			End If
+		End If
+		If Not FileExists(GetFolderName(FileName) & "Manifest.xml") Then
+			If AutoCreateRC Then
+				#ifndef __USE_GTK__
+					FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(FileName).vptr & "Manifest.xml"
+					ManifestIcoCopy = True
 				#endif
 			End If
 		End If
@@ -6261,9 +6269,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 			Dim As String MinResName
 			Dim As UString ResPath
 			Var n = 0
-			Var bFinded = False, bChanged = False, bChangeIcon = False
-			Dim As String NewLine = ""
-			Dim As WString * 1024 sLine
+			Var bChangeIcon = False
 			Do Until EOF(Fn)
 				Line Input #Fn, sLine
 				n += 1
@@ -6380,6 +6386,12 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 								End If
 							End If
 						End If
+					ElseIf StartsWith(LCase(sLine), "1 24 ""./manifest.xml""") AndAlso Project->Manifest = False Then
+						WLet(sLines, *sLines & NewLine & "//1 24 ""./Manifest.xml""")
+						bChanged = True
+					ElseIf StartsWith(LCase(sLine), "//1 24 ""./manifest.xml""") AndAlso Project->Manifest Then
+						WLet(sLines, *sLines & NewLine & "1 24 ""./Manifest.xml""")
+						bChanged = True
 					End If
 				End If
 				If bChanged Then
@@ -6411,6 +6423,35 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 			End If
 		End If
 	End If
+	Var Fn = FreeFile_
+	bFinded = False
+	WLet(sLines, "")
+	If Open(GetFolderName(*File) & "Manifest.xml" For Input Encoding "utf-8" As #Fn) = 0 Then
+		Line Input #Fn, sLine
+		bChanged = False
+		If Project Then
+			If StartsWith(LCase(sLine), "                <!-- <requestedexecutionlevel level=""requireadministrator"" uiaccess=""false"" /> -->") AndAlso Project->RunAsAdministrator Then
+				WLet(sLines, *sLines & NewLine & "                <requestedexecutionlevel level=""requireAdministrator"" uiaccess=""false"" />")
+				bChanged = True
+			ElseIf StartsWith(LCase(sLine), "                <requestedexecutionlevel level=""requireadministrator"" uiaccess=""false"" />") AndAlso Project->RunAsAdministrator = False Then
+				WLet(sLines, *sLines & NewLine & "                <!-- <requestedexecutionlevel level=""requireAdministrator"" uiaccess=""false"" /> -->")
+				bChanged = True
+			End If
+		End If
+		If bChanged Then
+			bFinded = True
+		Else
+			WLet(sLines, *sLines & NewLine & sLine)
+		End If
+		If bFinded Then
+			Var Fn2 = FreeFile_
+			If Open(GetFolderName(*File) & "Manifest.xml" For Output Encoding "utf-8" As #Fn2) = 0 Then
+				Print #Fn2, *sLines;
+			End If
+			CloseFile_(Fn2)
+		End If
+	End If
+	CloseFile_(Fn)
 	If Buff Then Deallocate_( Buff)
 	If File Then Deallocate_( File)
 	If sLines Then Deallocate_( sLines)

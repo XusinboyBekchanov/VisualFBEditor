@@ -1439,6 +1439,10 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					WLet(ppe->ApplicationTitle, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "ApplicationIcon" Then
 					WLet(ppe->ApplicationIcon, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
+				ElseIf Parameter = "Manifest" Then
+					ppe->Manifest = CBool(Mid(Buff, Pos1 + 1))
+				ElseIf Parameter = "RunAsAdministrator" Then
+					ppe->RunAsAdministrator = CBool(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "CompanyName" Then
 					WLet(ppe->CompanyName, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "FileDescription" Then
