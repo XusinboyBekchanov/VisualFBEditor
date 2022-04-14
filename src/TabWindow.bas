@@ -7009,6 +7009,7 @@ Sub RunPr(Debugger As String = "")
 				SInfo.dwFlags = STARTF_USESHOWWINDOW
 				SInfo.wShowWindow = SW_NORMAL
 				pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+				ChDir(GetFolderName(*ExeFileName))
 				If CreateProcessW(NULL, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
 					WaitForSingleObject pinfo.hProcess, INFINITE
 					GetExitCodeProcess(pinfo.hProcess, @ExitCode)
