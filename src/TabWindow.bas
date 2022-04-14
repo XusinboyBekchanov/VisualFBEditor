@@ -6427,22 +6427,24 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	bFinded = False
 	WLet(sLines, "")
 	If Open(GetFolderName(*File) & "Manifest.xml" For Input Encoding "utf-8" As #Fn) = 0 Then
-		Line Input #Fn, sLine
-		bChanged = False
-		If Project Then
-			If StartsWith(LCase(sLine), "                <!-- <requestedexecutionlevel level=""requireadministrator"" uiaccess=""false"" /> -->") AndAlso Project->RunAsAdministrator Then
-				WLet(sLines, *sLines & NewLine & "                <requestedexecutionlevel level=""requireAdministrator"" uiaccess=""false"" />")
-				bChanged = True
-			ElseIf StartsWith(LCase(sLine), "                <requestedexecutionlevel level=""requireadministrator"" uiaccess=""false"" />") AndAlso Project->RunAsAdministrator = False Then
-				WLet(sLines, *sLines & NewLine & "                <!-- <requestedexecutionlevel level=""requireAdministrator"" uiaccess=""false"" /> -->")
-				bChanged = True
+		Do Until EOF(Fn)
+			Line Input #Fn, sLine
+			bChanged = False
+			If Project Then
+				If StartsWith(LCase(sLine), "                <!-- <requestedexecutionlevel level=""requireadministrator"" uiaccess=""false"" /> -->") AndAlso Project->RunAsAdministrator Then
+					WLet(sLines, *sLines & NewLine & "                <requestedExecutionLevel level=""requireAdministrator"" uiAccess=""false"" />")
+					bChanged = True
+				ElseIf StartsWith(LCase(sLine), "                <requestedexecutionlevel level=""requireadministrator"" uiaccess=""false"" />") AndAlso Project->RunAsAdministrator = False Then
+					WLet(sLines, *sLines & NewLine & "                <!-- <requestedExecutionLevel level=""requireAdministrator"" uiAccess=""false"" /> -->")
+					bChanged = True
+				End If
 			End If
-		End If
-		If bChanged Then
-			bFinded = True
-		Else
-			WLet(sLines, *sLines & NewLine & sLine)
-		End If
+			If bChanged Then
+				bFinded = True
+			Else
+				WLet(sLines, *sLines & NewLine & sLine)
+			End If
+		Loop
 		If bFinded Then
 			Var Fn2 = FreeFile_
 			If Open(GetFolderName(*File) & "Manifest.xml" For Output Encoding "utf-8" As #Fn2) = 0 Then
