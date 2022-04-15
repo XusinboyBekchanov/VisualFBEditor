@@ -6386,11 +6386,11 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 								End If
 							End If
 						End If
-					ElseIf StartsWith(LCase(sLine), "1 24 ""./manifest.xml""") AndAlso Project->Manifest = False Then
-						WLet(sLines, *sLines & NewLine & "//1 24 ""./Manifest.xml""")
+					ElseIf StartsWith(LCase(sLine), "1 24 ") AndAlso Project->Manifest = False Then
+						WLet(sLines, *sLines & NewLine & "//" & sLine)
 						bChanged = True
-					ElseIf StartsWith(LCase(sLine), "//1 24 ""./manifest.xml""") AndAlso Project->Manifest Then
-						WLet(sLines, *sLines & NewLine & "1 24 ""./Manifest.xml""")
+					ElseIf StartsWith(LCase(sLine), "//1 24 ") AndAlso Project->Manifest Then
+						WLet(sLines, *sLines & NewLine & Mid(sLine, 3))
 						bChanged = True
 					End If
 				End If
