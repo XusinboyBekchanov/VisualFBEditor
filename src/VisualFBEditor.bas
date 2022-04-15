@@ -174,7 +174,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "RemoveFileFromProject":               RemoveFileFromProject
 	Case "OpenProjectFolder":                   OpenProjectFolder
 	Case "ProjectProperties":                   pfProjectProperties->RefreshProperties: pfProjectProperties->ShowModal *pfrmMain
-	Case "SetAsMain":                           SetAsMain
+	Case "SetAsMain":                           SetAsMain @Sender = miTabSetAsMain
 	Case "ReloadHistoryCode":                   ReloadHistoryCode 
 	Case "ProjectExplorer":                     ptabLeft->Tab(0)->SelectTab
 	Case "PropertiesWindow":                    ptabRight->Tab(0)->SelectTab

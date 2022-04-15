@@ -2341,8 +2341,13 @@ Sub ReloadHistoryCode()
 	
 End Sub
 
-Sub SetAsMain()
-	Dim As TreeNode Ptr tn = tvExplorer.SelectedNode
+Sub SetAsMain(IsTab As Boolean)
+	Dim As TreeNode Ptr tn
+	If IsTab AndAlso ptabCode->SelectedTab <> 0 Then
+		tn = Cast(TabWindow Ptr, ptabCode->SelectedTab)->tn
+	Else
+		tn = tvExplorer.SelectedNode
+	End If
 	If CInt(ptabCode->Focused) AndAlso CInt(ptabCode->SelectedTab <> 0) Then tn = Cast(TabWindow Ptr, ptabCode->SelectedTab)->tn
 	If tn = 0 Then Exit Sub
 	If tn->ParentNode = 0 OrElse (tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement) Then

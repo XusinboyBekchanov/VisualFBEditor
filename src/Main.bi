@@ -194,7 +194,7 @@ Declare Sub PrintThis()
 Declare Sub PrintPreview()
 Declare Sub PageSetup()
 Declare Sub ReloadHistoryCode
-Declare Sub SetAsMain()
+Declare Sub SetAsMain(IsTab As Boolean)
 Declare Sub SetAutoColors
 Declare Sub StartProgress()
 Declare Sub StopProgress()
