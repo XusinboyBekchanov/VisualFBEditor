@@ -5050,7 +5050,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 End Sub
 
 Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
-	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Button)->Ctrl->Parent->Parent)
+	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Button)->Ctrl->Parent->Parent->Parent)
 	If tb = 0 Then Exit Sub
 	With *tb
 		Select Case Button.Name
@@ -5315,8 +5315,10 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	tbrTop.ImagesList = pimgList
 	#ifdef __USE_GTK__
 		tbrTop.Width = 150
+		pnlToolbar.Width = 150
 	#else
 		tbrTop.Width = 75
+		pnlToolbar.Width = 75
 	#endif
 	tbrTop.Align = DockStyle.alRight
 	tbrTop.Buttons.Add tbsSeparator
@@ -5325,6 +5327,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	tbrTop.Buttons.Add tbsCheckGroup, "CodeAndForm", , , "CodeAndForm", , ML("Show Code And Form"), True '
 	tbrTop.OnButtonClick = @tbrTop_ButtonClick
 	tbrTop.Flat = True
+	pnlToolbar.Align = DockStyle.alRight
 	cboClass.Width = 50
 	#ifdef __USE_GTK__
 		cboClass.Top = 0
@@ -5366,7 +5369,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlForm.Visible = False
 	pnlForm.OnMessage = @pnlForm_Message
 	splForm.Visible = False
-	pnlTop.Add @tbrTop
+	pnlToolBar.Add @tbrTop
+	pnlTop.Add @pnlToolBar
 	pnlTop.Add @pnlTopCombo
 	pnlTopCombo.Add @cboClass
 	pnlTopCombo.Add @cboFunction
