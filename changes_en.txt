@@ -1,4 +1,31 @@
-﻿Version 1.3.1 (March 31, 2022)
+﻿Version 1.3.2 (April 16, 2022)
+- Fixed: Click Set As Main menu item from Tab Window
+- Fixed: Showing Functions List and Form/Code view toolbar on Windows XP and Classic without manifest mode
+- Added: Bass examples
+- Added: Manifest And Run As Administrator options to Project Properties
+- Added: Add, Change, Remove and Clear buttons to New Project Dialog's Recent files tab
+- Fixed: Run with cmd.exe and PowerShell.exe
+- Fixed: Crash 64-bit IDE on open Chart Example
+- Fixed: open the execute file like ld.exe in code windows when double click in output windows
+- Fixed: Not showing the right selection text after replace in one line
+- Added: DPI Awareness PerMonitorV2
+- Fixed: The caption of Main Window not updated after save as a file
+- Fixed: Edit control High DPI
+- Added: Double Click on Edit control divider splits or joins window
+- Added: Split vertically to Edit control
+- Improved: Edit control proportionally changes the Divided position on control size changed
+- Added: Window menu
+- Added: Project preprocessor numbering
+- Fixed: If the edit control separator is moved down from the edit control then the separator is moved back to the top.
+- Improved: The Code editor can be split into two areas.
+- Improved: Auto adds Designer property to the Form Constructor on Design
+- Improved: Double-clicking a form in Explorer opens the Visual Designer.
+- Fixed: The Index of Control array
+- Added: Save and Open files with UTF8 (without BOM)
+- Fixed: Tip of the Day
+- Fixed: Edit Control Caret height on change Font Size with Ctrl+MouseWheel
+- Fixed: Crash when changing a Form/Code view in a module without forms.
+Version 1.3.1 (March 31, 2022)
 - Fixed: Tip of the Day on Linux
 - Added: Project macro numbering: Starts of procedures menu item
 - Added: GridData Control

@@ -303,7 +303,7 @@ Namespace My.Sys.Forms
 		End If
 		*pVScrollPos = Min(GetCaretPosY(Value), IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom))
 		#ifdef __USE_GTK__
-			gtk_adjustment_set_value(adjustmentv, VScrollPos)
+			gtk_adjustment_set_value(adjustmentv, *pVScrollPos)
 		#else
 			si.cbSize = SizeOf (si)
 			si.fMask = SIF_POS
@@ -1561,7 +1561,7 @@ Namespace My.Sys.Forms
 			
 			If OldHScrollPos <> *pHScrollPos Then
 				#ifdef __USE_GTK__
-					gtk_adjustment_set_value(adjustmenth, HScrollPos)
+					gtk_adjustment_set_value(adjustmenth, *pHScrollPos)
 				#else
 					si.cbSize = SizeOf (si)
 					si.fMask = SIF_POS
@@ -1976,16 +1976,16 @@ Namespace My.Sys.Forms
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDivided AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			ElseIf Colors.Background <> -1 Then
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, Colors.BackgroundRed, Colors.BackgroundGreen, Colors.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin + -HScrollPos * dwCharX + extend.width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDivided AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			End If
-			cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + extend.width - 0.5, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDivided AndAlso CodePane = 1, iDividedY + 7, 0))
+			cairo_move_to(cr, LeftMargin - HScrollPosRight * dwCharX + extend.width - 0.5, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
 			'GetColor TextColor, iRed, iGreen, iBlue
 			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
@@ -4565,7 +4565,7 @@ Namespace My.Sys.Forms
 				gdk_window_set_cursor(ec->win, ec->gdkCursorIBeam)
 				
 				ec->ShowCaretPos False
-				ec->HScrollPos = 0
+				ec->HScrollPosRight = 0
 				If ec->VScrollPosBottom <> 0 Then
 					ec->ShowCaretPos True
 				End If
@@ -4637,7 +4637,7 @@ Namespace My.Sys.Forms
 			If widget = ec->adjustmentv Then
 				ec->VScrollPosBottom = gtk_adjustment_get_value(ec->adjustmentv)
 			Else
-				ec->HScrollPos = gtk_adjustment_get_value(ec->adjustmenth)
+				ec->HScrollPosRight = gtk_adjustment_get_value(ec->adjustmenth)
 			End If
 			#ifdef __USE_GTK3__
 				ec->ShowCaretPos False
