@@ -12,6 +12,7 @@
 #include once "mff/Clipboard.bi"
 #include once "mff/Application.bi"
 #include once "mff/ListView.bi"
+#include once "mff/ToolTips.bi"
 #include once "Main.bi"
 
 Enum KeyWordsCase
@@ -169,6 +170,7 @@ Namespace My.Sys.Forms
 			Dim As HBITMAP bufBMP
 			Dim As TEXTMETRIC tm
 			Dim As HWND hwndTT
+			Dim As ToolTips TT
 		#endif
 		Dim As ..RECT rc
 		#ifndef __USE_GTK__

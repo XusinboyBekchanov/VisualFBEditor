@@ -3101,7 +3101,8 @@ Namespace My.Sys.Forms
 			'ti.uId    = Cast(UINT, FHandle)
 			
 			If hwndTT = 0 Then
-				hwndTT = CreateWindow(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
+				TT.CreateWnd
+				hwndTT = TT.Handle 'CreateWindowW(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
 				If g_darkModeEnabled Then
 					SetWindowTheme(hwndTT, "DarkMode_Explorer", nullptr)
 				End If
