@@ -14,6 +14,7 @@
 		This.Text = ML("About")
 		This.SetBounds 0, 0, 496, 548
 		This.BorderStyle = FormBorderStyle.FixedDialog
+		This.FormStyle = FormStyles.fsStayOnTop
 		This.MaximizeBox = False
 		This.MinimizeBox = False
 		This.StartPosition = FormStartPosition.CenterScreen
