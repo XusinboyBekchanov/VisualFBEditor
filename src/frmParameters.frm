@@ -15,6 +15,7 @@
 		This.Text = "Parameters"
 		This.Caption = ML("Parameters")
 		This.StartPosition = FormStartPosition.CenterParent
+		This.FormStyle = FormStyles.fsStayOnTop
 		This.CancelButton = @cmdCancel
 		This.DefaultButton = @cmdOK
 		This.OnCreate = @Form_Create
