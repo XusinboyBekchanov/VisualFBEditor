@@ -29,6 +29,7 @@ pfOptions = @fOptions
 		This.MaximizeBox = False
 		This.SetBounds 0, 0, 630, 488
 		This.StartPosition = FormStartPosition.CenterParent
+		This.FormStyle = FormStyles.fsStayOnTop
 		'This.Caption = ML("Options")
 		This.CancelButton = @cmdCancel
 		This.DefaultButton = @cmdOK
