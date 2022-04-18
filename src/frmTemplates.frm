@@ -19,6 +19,7 @@
 			.StartPosition = FormStartPosition.CenterParent
 			.Designer = @This
 			.BorderStyle = FormBorderStyle.Sizable
+			.FormStyle = FormStyles.fsStayOnTop
 			.OnShow = @Form_Show_
 			.OnClose = @Form_Close_
 			.SetBounds 0, 0, 657, 440
