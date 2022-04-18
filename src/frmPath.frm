@@ -15,6 +15,7 @@
 			.Text = ML("Path")
 			.StartPosition = FormStartPosition.CenterParent
 			.BorderStyle = FormBorderStyle.FixedDialog
+			.FormStyle = FormStyles.fsStayOnTop
 			.MaximizeBox = False
 			.MinimizeBox = False
 			.Designer = @This
