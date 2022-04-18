@@ -3122,8 +3122,9 @@ Namespace My.Sys.Forms
 			SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
 			SendMessage(hwndTT, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
 			
-			Dim As ..RECT rc
+			Dim As ..RECT rc, rc2
 			GetWindowRect(FHandle, @rc)
+			'SendMessage(hwndTT, TTM_ADJUSTRECT, False, Cast(LPARAM, @rc2))
 			SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(HCaretPos), rc.Top + ScaleY(VCaretPos + 5)))
 		#endif
 	End Sub
@@ -3366,6 +3367,11 @@ Namespace My.Sys.Forms
 					Dim As PNMLINK pNMLink1 = Cast(PNMLINK, msg.lParam)
 					Dim As LITEM item = pNMLink1->item
 					If OnToolTipLinkClicked Then OnToolTipLinkClicked(This, item.szUrl)
+				Case TTN_SHOW
+'					Dim As RECT rc
+'					SendMessage(lp->hwndFrom, TTM_ADJUSTRECT, True, Cast(LPARAM, @rc))
+'					?rc.Left, rc.Right, rc.top, rc.Bottom
+'					SetWindowPos(hwndTT, NULL, rc.left, rc.top - (rc.Bottom - rc.Top), 0, 0, SWP_NOSIZE Or SWP_NOZORDER Or SWP_NOACTIVATE)
 				End Select
 			#endif
 			#ifndef __USE_GTK__

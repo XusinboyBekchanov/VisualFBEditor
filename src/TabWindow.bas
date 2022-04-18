@@ -3467,6 +3467,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 		tb->txtCode.HintWord = sWord
 		tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
 		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelEndChar - Len(sWord) - 1)
+		tb->txtCode.SetFocus
 		OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
 	End If
 End Sub
