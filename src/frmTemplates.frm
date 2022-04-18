@@ -230,12 +230,11 @@
 		' cmdAdd
 		With cmdAdd
 			.Name = "cmdAdd"
-			.Text = ML("Add")
+			.Text = ML("&Add")
 			.TabIndex = 20
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.Caption = ML("Add")
 			.SetBounds 0, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdAdd_Click_
@@ -244,12 +243,11 @@
 		' cmdChange
 		With cmdChange
 			.Name = "cmdChange"
-			.Text = ML("Change")
+			.Text = ML("&Change")
 			.TabIndex = 19
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.Caption = ML("Change")
 			.SetBounds 98, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdChange_Click_
@@ -258,12 +256,11 @@
 		' cmdRemove
 		With cmdRemove
 			.Name = "cmdRemove"
-			.Text = ML("Remove")
+			.Text = ML("&Remove")
 			.TabIndex = 18
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.Caption = ML("Remove")
 			.SetBounds 196, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdRemove_Click_
@@ -272,12 +269,11 @@
 		' cmdClear
 		With cmdClear
 			.Name = "cmdClear"
-			.Text = ML("Clear")
+			.Text = ML("&Clear")
 			.TabIndex = 17
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.Caption = ML("Clear")
 			.SetBounds 0, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdClear_Click_
