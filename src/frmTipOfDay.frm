@@ -46,6 +46,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 			.Name = "frmTipOfDay"
 			.Text = ML("Tip of the Day")
 			This.BorderStyle = FormBorderStyle.FixedDialog
+			This.FormStyle = FormStyles.fsStayOnTop				
 			This.MaximizeBox = False
 			This.MinimizeBox = False
 			This.StartPosition = FormStartPosition.CenterParent
