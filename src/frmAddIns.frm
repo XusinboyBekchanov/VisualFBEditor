@@ -21,6 +21,7 @@ pAvailableAddIns = @AvailableAddIns
 		This.OnClose = @Form_Close
 		This.OnShow = @Form_Show
 		This.BorderStyle = FormBorderStyle.FixedDialog
+		This.FormStyle = FormStyles.fsStayOnTop
 		This.ControlBox = True
 		This.MinimizeBox = False
 		This.MaximizeBox = False
