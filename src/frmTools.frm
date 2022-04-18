@@ -26,6 +26,7 @@ pfTools = @fTools
 		This.MinimizeBox = False
 		This.MaximizeBox = False
 		This.StartPosition = FormStartPosition.CenterParent
+		This.FormStyle = FormStyles.fsStayOnTop
 		This.OnCreate = @Form_Create
 		This.SetBounds 0, 0, 484, 454
 		' lvTools
