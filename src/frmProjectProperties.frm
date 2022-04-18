@@ -21,6 +21,7 @@ pfProjectProperties = @fProjectProperties
 		This.Name = "frmProjectProperties"
 		This.Text = ML("Project Properties")
 		This.BorderStyle = FormBorderStyle.Fixed3D
+		This.FormStyle = FormStyles.fsStayOnTop
 		This.MaximizeBox = False
 		This.MinimizeBox = False
 		This.StartPosition = FormStartPosition.CenterScreen
