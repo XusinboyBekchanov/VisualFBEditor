@@ -72,7 +72,6 @@ pAvailableAddIns = @AvailableAddIns
 		chkLoaded.Text = ML("Loaded/Unloaded")
 		chkLoaded.SetBounds 4, 3, 140, 18
 		chkLoaded.OnClick = @chkLoaded_Click
-		chkLoaded.Caption = ML("Loaded/Unloaded")
 		chkLoaded.Parent = @pnlLoadBehavior
 		' chkLoadOnStartup
 		chkLoadOnStartup.Name = "chkLoadOnStartup"

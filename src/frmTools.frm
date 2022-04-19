@@ -57,7 +57,7 @@ pfTools = @fTools
 		' cmdAdd
 		With cmdAdd
 			.Name = "cmdAdd"
-			.Text = ML("Add")
+			.Text = ML("&Add")
 			.SetBounds 390, 12, 78, 24
 			.OnClick = @cmdAdd_Click
 			.Parent = @This
@@ -65,7 +65,7 @@ pfTools = @fTools
 		' cmdChange
 		With cmdChange
 			.Name = "cmdChange"
-			.Text = ML("Change")
+			.Text = ML("Chan&ge")
 			.SetBounds 390, 41, 78, 24
 			.OnClick = @cmdChange_Click
 			.Parent = @This
@@ -73,7 +73,7 @@ pfTools = @fTools
 		' cmdRemove
 		With cmdRemove
 			.Name = "cmdRemove"
-			.Text = ML("Remove")
+			.Text = ML("&Remove")
 			.SetBounds 390, 72, 78, 24
 			.OnClick = @cmdRemove_Click
 			.Parent = @This
@@ -131,12 +131,12 @@ pfTools = @fTools
 			.AddItem ML("Only on user selected")
 			.AddItem ML("On editor startup")
 			.AddItem ML("Before compile")
-			.AddItem ML("AfterCompile")
+			.AddItem ML("After compile")
 		End With
 		' lblShortcut
 		With lblShortcut
 			.Name = "lblShortcut"
-			.Text = ML("Shortcut") & ":"
+			.Text = ML("Shortcuts") & ":"
 			.SetBounds 16, 343, 80, 16
 			.Parent = @This
 		End With

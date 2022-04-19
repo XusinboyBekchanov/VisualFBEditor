@@ -4156,6 +4156,9 @@ Sub LoadSettings
 	TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
 	HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
 	IntellisenseLimit = iniSettings.ReadInteger("Options", "IntellisenseLimit", 100)
+	HistoryCodeDays = iniSettings.ReadInteger("Options", "HistoryCodeDays", 100)
+	HistoryCodeCleanDay = iniSettings.ReadInteger("Options", "HistoryCodeCleanDay", DateValue(Format(Now, "yyyy/mm/dd")))
+	If HistoryCodeCleanDay <> DateValue(Format(Now, "yyyy/mm/dd")) Then HistoryCodeClean(ExePath & "/Temp")
 	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
 	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
 	AddSpacesToOperators = iniSettings.ReadBool("Options", "AddSpacesToOperators", True)
@@ -4723,8 +4726,8 @@ Sub CreateMenusAndToolBars
 	miProject->Add(ML("Add &User Control") & HK("AddUserControl", "Ctrl+Alt+U"), "UserControl", "AddUserControl", @mclick)
 	miProject->Add(ML("Add &Resource File") & HK("AddResoureFile",""), "Resource", "AddResourceFile", @mclick)
 	miProject->Add(ML("Add Ma&nifest File") & HK("AddManifestFile",""), "File", "AddManifestFile", @mclick)
-	miProject->Add(ML("Add From Templates" & "...") & HK("AddFromTemplates"), "Add", "AddFromTemplates", @mclick)
-	miProject->Add(ML("Add Files" & "...") & HK("AddFilesToProject"), "Add", "AddFilesToProject", @mclick)
+	miProject->Add(ML("Add From Templates") & "..." & HK("AddFromTemplates"), "Add", "AddFromTemplates", @mclick)
+	miProject->Add(ML("Add Files") & "..." & HK("AddFilesToProject"), "Add", "AddFilesToProject", @mclick)
 	miProject->Add("-")
 	miProject->Add(ML("&Remove") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mclick)
 	miProject->Add("-")
@@ -7495,6 +7498,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)
 	iniSettings.WriteInteger("MainWindow", "ShowTipoftheDayIndex", ShowTipoftheDayIndex)
 	iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
+	iniSettings.WriteInteger "Options", "HistoryCodeDays", HistoryCodeCleanDay
 	
 	SaveMRU
 	

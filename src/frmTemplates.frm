@@ -243,7 +243,7 @@
 		' cmdChange
 		With cmdChange
 			.Name = "cmdChange"
-			.Text = ML("&Change")
+			.Text = ML("Chan&ge")
 			.TabIndex = 19
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10

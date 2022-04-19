@@ -1267,7 +1267,7 @@ pfOptions = @fOptions
 			.Text = ML("Intellisense limit") & ":"
 			.TabIndex = 180
 			'.Caption = ML("Intellisense limit") & ":"
-			.SetBounds 66, 289, 150, 17
+			.SetBounds 66, 289, 137, 17
 			.Parent = @pnlCodeEditor
 		End With
 		' txtIntellisenseLimit
@@ -1361,7 +1361,6 @@ pfOptions = @fOptions
 			.Name = "chkAddRelativePathsToRecent"
 			.Text = ML("Add relative paths to recent")
 			.TabIndex = 191
-			.Caption = ML("Add relative paths to recent")
 			.SetBounds 10, 69, 400, 16
 			.Parent = @pnlGeneral
 		End With
@@ -1370,8 +1369,25 @@ pfOptions = @fOptions
 			.Name = "chkShowTooltipsAtTheTop"
 			.Text = ML("Show Tooltips at the Top")
 			.TabIndex = 192
-			.Caption = ML("Show Tooltips at the Top")
 			.SetBounds 10, 84, 264, 18
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
+		' txtHistoryCodeDays
+		With txtHistoryCodeDays
+			.Name = "txtHistoryCodeDays"
+			.Text = "3"
+			.TabIndex = 193
+			.SetBounds 210, 312, 90, 20
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
+		' lblHistoryDay
+		With lblHistoryDay
+			.Name = "lblHistoryDay"
+			.Text = ML("History file saving days")
+			.TabIndex = 194
+			.SetBounds 67, 314, 129, 17
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
@@ -1433,6 +1449,7 @@ Sub frmOptions.LoadSettings()
 		.txtTabSize.Text = Str(TabWidth)
 		.txtHistoryLimit.Text = Str(HistoryLimit)
 		.txtIntellisenseLimit.Text = Str(IntellisenseLimit)
+		.txtHistoryCodeDays.Text = Str(HistoryCodeDays)
 		.txtMFFPath.Text = *MFFPath
 		.chkIncludeMFFPath.Checked = IncludeMFFPath
 		.txtProjectsPath.Text = *ProjectsPath
@@ -2073,6 +2090,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		TabWidth = Val(.txtTabSize.Text)
 		HistoryLimit = Val(.txtHistoryLimit.Text)
 		IntellisenseLimit = Val(.txtIntellisenseLimit.Text)
+		If Val(.txtHistoryCodeDays.Text) < HistoryCodeDays Then 
+			HistoryCodeDays = Val(.txtHistoryCodeDays.Text)
+			HistoryCodeClean(ExePath & "/Temp")
+		Else
+			HistoryCodeDays = Val(.txtHistoryCodeDays.Text)
+		End If
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
 		LimitDebug = .chkLimitDebug.Checked
 		DisplayWarningsInDebug = .chkDisplayWarningsInDebug.Checked
@@ -2242,6 +2265,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "TabWidth", TabWidth
 		piniSettings->WriteInteger "Options", "HistoryLimit", HistoryLimit
 		piniSettings->WriteInteger "Options", "IntellisenseLimit", IntellisenseLimit
+		piniSettings->WriteInteger "Options", "HistoryCodeDays", HistoryCodeDays
+		piniSettings->WriteInteger "Options", "HistoryCodeDays", HistoryCodeCleanDay
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
 		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
 		piniSettings->WriteBool "Options", "DisplayWarningsInDebug", DisplayWarningsInDebug
@@ -3329,6 +3354,26 @@ Sub FindCompilersSub(Param As Any Ptr)
 		MsgBox ML("Number of compilers found") & ": " & Str(FindedCompilersCount), App.Title
 	End If
 	ThreadsLeave
+End Sub
+
+Sub HistoryCodeClean(ByRef Path As WString)
+	Dim As WString * 1024 f, f1
+	Dim As Double d2 
+	Dim As UInteger Attr, NameCount
+	If Path = "" Then Exit Sub
+	If FormClosing OrElse bStop Then Exit Sub
+	If EndsWith(Path, "\Windows") Then Exit Sub
+	f = Dir(Path & Slash & "*.bak", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
+	While f <> ""
+		If FormClosing OrElse bStop Then Exit Sub
+		f1 = Mid(f, Len(f) - 16)
+		If Len(f1) > 16 Then
+			d2 = DateValue(Mid(f1, 1, 4) & "/" & Mid(f1, 5, 2) & "/" & Mid(f1, 7, 2)) 
+			If DateDiff( "d", d2, Now()) > HistoryCodeDays Then Kill Path & Slash & f
+		End If
+		f = Dir(Attr)
+	Wend
+	HistoryCodeCleanDay = DateValue(Format(Now, "yyyy/mm/dd"))
 End Sub
 
 Private Sub frmOptions.cmdFindCompilers_Click_(ByRef Sender As Control)
