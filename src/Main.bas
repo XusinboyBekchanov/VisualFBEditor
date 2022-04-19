@@ -7498,7 +7498,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)
 	iniSettings.WriteInteger("MainWindow", "ShowTipoftheDayIndex", ShowTipoftheDayIndex)
 	iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
-	iniSettings.WriteInteger "Options", "HistoryCodeDays", HistoryCodeCleanDay
+	iniSettings.WriteInteger "Options", "HistoryCodeCleanDay", HistoryCodeCleanDay
 	
 	SaveMRU
 	

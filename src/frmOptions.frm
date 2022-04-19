@@ -2266,7 +2266,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "HistoryLimit", HistoryLimit
 		piniSettings->WriteInteger "Options", "IntellisenseLimit", IntellisenseLimit
 		piniSettings->WriteInteger "Options", "HistoryCodeDays", HistoryCodeDays
-		piniSettings->WriteInteger "Options", "HistoryCodeDays", HistoryCodeCleanDay
+		piniSettings->WriteInteger "Options", "HistoryCodeCleanDay", HistoryCodeCleanDay
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
 		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
 		piniSettings->WriteBool "Options", "DisplayWarningsInDebug", DisplayWarningsInDebug
