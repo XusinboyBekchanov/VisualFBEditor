@@ -9,7 +9,6 @@
 			.Name = "frmAdvancedOptions"
 			.StartPosition = FormStartPosition.CenterScreen
 			.BorderStyle = FormBorderStyle.FixedDialog
-			.FormStyle = FormStyles.fsStayOnTop
 			.DefaultButton = @cmdOK
 			.CancelButton = @cmdCancel
 			.SetBounds 0, 0, 340, 468

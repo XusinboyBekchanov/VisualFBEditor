@@ -118,7 +118,8 @@ Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar, DarkMode, ShowStanda
 Common Shared As Boolean ShowKeywordsToolTip, ShowTooltipsAtTheTop, ShowTipoftheDay
 Common Shared As Boolean OpenCommandPromptInMainFileFolder
 Common Shared As Integer WhenVisualFBEditorStarts, ShowTipoftheDayIndex
-Common Shared As Integer AutoSaveBeforeCompiling
+Common Shared As Integer AutoSaveBeforeCompiling, HistoryCodeDays
+Common Shared As Double  HistoryCodeCleanDay
 Common Shared As Integer IncludeMFFPath
 Common Shared As Integer gSearchItemIndex, gSearchTabIndex
 Common Shared As Integer InterfaceFontSize

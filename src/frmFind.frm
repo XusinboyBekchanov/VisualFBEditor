@@ -23,7 +23,6 @@ pfFind = @fFind
 			This.BorderStyle = FormBorderStyle.FixedDialog
 			This.Icon.LoadFromResourceID(1)
 		#endif
-		This.FormStyle = FormStyles.fsStayOnTop
 		This.MinimizeBox = False
 		This.MaximizeBox = False
 		This.OnCreate = @Form_Create_

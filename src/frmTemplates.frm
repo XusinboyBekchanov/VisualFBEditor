@@ -19,7 +19,6 @@
 			.StartPosition = FormStartPosition.CenterParent
 			.Designer = @This
 			.BorderStyle = FormBorderStyle.Sizable
-			.FormStyle = FormStyles.fsStayOnTop
 			.OnShow = @Form_Show_
 			.OnClose = @Form_Close_
 			.SetBounds 0, 0, 657, 440
@@ -244,7 +243,7 @@
 		' cmdChange
 		With cmdChange
 			.Name = "cmdChange"
-			.Text = ML("&Change")
+			.Text = ML("Chan&ge")
 			.TabIndex = 19
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10

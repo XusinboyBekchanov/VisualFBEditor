@@ -38,7 +38,6 @@ pfFindFile = @fFindFile
 			This.Icon.LoadFromResourceID(1)
 		#endif
 		This.BorderStyle = FormBorderStyle.Sizable
-		This.FormStyle = FormStyles.fsStayOnTop
 		This.Caption = ML("Find In Files")
 		This.ID = 1000
 		'This.IsChild = True

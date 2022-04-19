@@ -33,7 +33,6 @@ pfGoto = @fGoto
 			This.Icon.LoadFromResourceID(1)
 		#endif
 		This.StartPosition = FormStartPosition.CenterParent
-		This.FormStyle = FormStyles.fsStayOnTop
 		lblFind.Caption = ML("Line") & ":"
 		lblFind.SetBounds 10, 10, 80, 20
 		lblFind.Parent = @This

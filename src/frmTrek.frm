@@ -14,7 +14,6 @@
 			#endif
 			.MinimizeBox = False
 			.BorderStyle = FormBorderStyle.Sizable
-			.FormStyle = FormStyles.fsStayOnTop
 			.StartPosition = FormStartPosition.CenterParent
 			.OnShow = @Form_Show
 			.DefaultButton = @cmdOK

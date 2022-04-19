@@ -21,7 +21,6 @@ pAvailableAddIns = @AvailableAddIns
 		This.OnClose = @Form_Close
 		This.OnShow = @Form_Show
 		This.BorderStyle = FormBorderStyle.FixedDialog
-		This.FormStyle = FormStyles.fsStayOnTop
 		This.ControlBox = True
 		This.MinimizeBox = False
 		This.MaximizeBox = False
@@ -73,7 +72,6 @@ pAvailableAddIns = @AvailableAddIns
 		chkLoaded.Text = ML("Loaded/Unloaded")
 		chkLoaded.SetBounds 4, 3, 140, 18
 		chkLoaded.OnClick = @chkLoaded_Click
-		chkLoaded.Caption = ML("Loaded/Unloaded")
 		chkLoaded.Parent = @pnlLoadBehavior
 		' chkLoadOnStartup
 		chkLoadOnStartup.Name = "chkLoadOnStartup"

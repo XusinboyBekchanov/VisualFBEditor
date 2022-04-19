@@ -12,7 +12,6 @@
 			#else
 				This.Icon.LoadFromResourceID(1)
 			#endif
-			.FormStyle = FormStyles.fsStayOnTop
 			.OnPaint = @Form_Paint_
 			.Canvas.Font.Name = "Tahoma"
 			.Canvas.Font.Size = 8

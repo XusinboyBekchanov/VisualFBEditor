@@ -1,4 +1,4 @@
-#ifdef __FB_WIN32__
+﻿#ifdef __FB_WIN32__
 	'#Compile -exx "Form1.rc"
 #else
 	'#Compile -exx
@@ -19,7 +19,6 @@
 			.Margins.Left = 0
 			.Margins.Bottom = 0
 			.BorderStyle = FormBorderStyle.Sizable
-			.FormStyle = FormStyles.fsStayOnTop
 			.DefaultButton = @cmdOK
 			.CancelButton = @cmdCancel
 			.OnCreate = @Form_Create_

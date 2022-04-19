@@ -18,7 +18,6 @@
 			This.Icon.LoadFromResourceID(1)
 		#endif
 		This.StartPosition = FormStartPosition.CenterParent
-		This.FormStyle = FormStyles.fsStayOnTop
 		This.SetBounds 0, 0, 310, 156
 		' lblThemeName
 		lblThemeName.Name = "lblThemeName"
