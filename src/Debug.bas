@@ -3701,10 +3701,14 @@ Dim Shared exedate As Double 'serial date
 			If Trim(dwln) = "" Then Continue Do
 			If EndsWith(dwln, ":") OrElse EndsWith(dwln, ":[++]") Then
 				LastPath = GetDWFileName(dwln)
-				LastFolder = GetFolderName(LastPath)
+			Else
+				LastPath = dwln
 			End If
-			If CInt(LimitDebug) AndAlso CInt(LastFolder <> "./") AndAlso CInt(Not EqualPaths(LastFolder, mainfolder)) Then Continue Do
-			If InStr(LCase(dwln), ".bas") OrElse InStr(LCase(dwln), ".bi") OrElse InStr(LCase(dwln), ".frm") OrElse InStr(LCase(dwln), ".inc") Then dw_lastline_procs()
+			LastFolder = GetFolderName(LastPath)
+			If InStr(LCase(dwln), ".bas") OrElse InStr(LCase(dwln), ".bi") OrElse InStr(LCase(dwln), ".frm") OrElse InStr(LCase(dwln), ".inc") Then
+				If CInt(LimitDebug) AndAlso CInt(LastFolder <> "./") AndAlso CInt(Not EqualPaths(LastFolder, mainfolder)) Then Continue Do
+				dw_lastline_procs()
+			End If
 		Loop
 		Close #dwff
 		''===================
@@ -3719,10 +3723,14 @@ Dim Shared exedate As Double 'serial date
 			If Trim(dwln) = "" Then Continue Do
 			If EndsWith(dwln, ":") OrElse EndsWith(dwln, ":[++]") Then
 				LastPath = GetDWFileName(dwln)
-				LastFolder = GetFolderName(LastPath)
+			Else
+				LastPath = dwln
 			End If
-			If CInt(LimitDebug) AndAlso CInt(LastFolder <> "./") AndAlso CInt(Not EqualPaths(LastFolder, mainfolder)) Then Continue Do
-			If InStr(LCase(dwln), ".bas") OrElse InStr(LCase(dwln), ".bi") OrElse InStr(LCase(dwln), ".frm") OrElse InStr(LCase(dwln), ".inc") Then dw_lines_parse(adrdiff)
+			LastFolder = GetFolderName(LastPath)
+			If InStr(LCase(dwln), ".bas") OrElse InStr(LCase(dwln), ".bi") OrElse InStr(LCase(dwln), ".frm") OrElse InStr(LCase(dwln), ".inc") Then
+				If CInt(LimitDebug) AndAlso CInt(LastFolder <> "./") AndAlso CInt(Not EqualPaths(LastFolder, mainfolder)) Then Continue Do
+				dw_lines_parse(adrdiff)
+			End If
 		Loop
 		Close #dwff
 		If srcprevnb=sourcenb Then Return 0 'if module not found so sourecnb is equal otherwise return 1
