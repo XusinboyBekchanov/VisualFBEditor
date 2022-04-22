@@ -9,6 +9,8 @@ On Error Goto ErrorQ
 #include "vbcompat.bi"
 #include once "mff/SysUtils.bi"
 #include once "SQLITE3_UTILITY.inc"
+#include once "mff/Panel.bi"
+#include once "mff/Splitter.bi"
 
 Dim Shared SQLiteDB As SQLite3 Ptr
 
@@ -60,16 +62,14 @@ Using My.Sys.Forms
 		Declare Static Sub Form_Click(ByRef Sender As Control)
 		Declare Static Sub Form_Close(ByRef Sender As Control, ByRef Action As Integer)
 		Declare Static Sub Form_Show(ByRef Sender As Control)
-		Declare Static Sub cmdDraw_Click(ByRef Sender As Control)
 		
-		Declare Static Sub Picture1_Paint(ByRef Sender As Control, ByRef R As Rect,ByVal DC As HDC)
 		'GRID DATA
 		Declare Static Sub MSHFGridCont_EndScroll(ByRef Sender As Control)
 		Declare Static Sub MSHFGridCont_Click(ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As hDc)
 		Declare Static Sub MSHFGridCont_ItemActivate(ByRef Sender As Control, ByRef Item As GridDataItem Ptr)
 		Declare Static Sub MSHFGridCont_OnHeadClick(ByRef Sender As Control, ColIndex As Integer)
 		Declare Static Sub MSHFGridCont_OnHeadColWidthAdjust(ByRef Sender As Control, ColIndex As Integer)
-		Declare Static Sub MSHFGridCont_DblClick(ByRef Sender As Control, ByRef Item As GridDataItem Ptr)
+		Declare Static Sub MSHFGridCont_DblClick(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
 		Declare Static Sub MSHFGridCont_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
 		Declare Static Sub MSHFGridCont_KeyPress(ByRef Sender As Control, Key As Byte)
 		Declare Static Sub MSHFGridCont_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -96,7 +96,6 @@ Using My.Sys.Forms
 		Dim As ListView ListView_Offset
 		Dim As CommandButton Command_OffsetSave
 		Dim As CommandButton Command_OffsetCancel
-		Dim As CommandButton cmdDraw
 		Dim As ComboBoxEdit Combo_ACR
 		Dim As CommandButton Command5
 		Dim As ComboBoxEdit Combo_Offset_UseRule
@@ -137,7 +136,8 @@ Using My.Sys.Forms
 		Dim As Label Label1
 		Dim As Label Label2
 		Dim As Picture Image_Toolbar
-		Dim As Picture Picture1
+		Dim As Panel Panel1, Panel2
+		Dim As Splitter Splitter1, Splitter2
 	End Type
 	
 	Constructor frmGridDataTest
@@ -151,7 +151,7 @@ Using My.Sys.Forms
 		This.OnResize = @Form_Resize
 		This.MinimizeBox = True
 		This.MaximizeBox = True
-		This.SetBounds 10, 30, 1080, 800
+		This.SetBounds 0, 0, 800, 500
 		This.CenterToScreen
 		This.Caption = "GridDataTest"
 		This.BorderStyle = FormBorderStyle.Sizable 'FixedDialog
@@ -161,17 +161,33 @@ Using My.Sys.Forms
 		'TreeView1.BackColor = clWhite
 		'TreeView1.Anchor.Right = asAnchor
 		'TreeView1.OnClick = @TreeView1_Click
-		TreeView1.SetBounds 5, 30, 270, 722
+		TreeView1.Align = DockStyle.alLeft
+		TreeView1.ExtraMargins.Top = 10
+		TreeView1.ExtraMargins.Right = 0
+		TreeView1.ExtraMargins.Bottom = 10
+		TreeView1.ExtraMargins.Left = 10
+		TreeView1.SetBounds 10, 10, 270, 441
 		TreeView1.BackColor = -1
 		TreeView1.ID = 1001
 		TreeView1.Parent = @This
-		
+		' Splitter2
+		With Splitter2
+			.Name = "Splitter2"
+			.Text = "Splitter2"
+			.SetBounds 290, 0, 10, 461
+			.Designer = @This
+			.Parent = @This
+		End With
 		Frame_Sql.Name = "Frame_Sql"
 		'Frame_Sql.Text = "Frame Sql"
 		'Frame_Sql.BackColor =
 		'Frame_Sql.Font.Size = 11
 		'Frame_Sql.OnClick = @Frame_Sql_Click
-		Frame_Sql.SetBounds 280, 30, 780, 830
+		Frame_Sql.Align = DockStyle.alClient
+		Frame_Sql.ExtraMargins.Top = 10
+		Frame_Sql.ExtraMargins.Right = 10
+		Frame_Sql.ExtraMargins.Bottom = 10
+		Frame_Sql.SetBounds 270, 0, 794, 761
 		Frame_Sql.Designer = @This
 		Frame_Sql.OnClick = @Frame_Sql_Click_
 		Frame_Sql.Parent = @This
@@ -183,8 +199,8 @@ Using My.Sys.Forms
 		cboServer.BackColor = clWhite
 		'cboServer.Font.Size = 11
 		'cboServer.OnClick = @cboServer_Click
-		cboServer.SetBounds 16, 16, 94, 20
-		cboServer.Parent = @Frame_Sql
+		cboServer.SetBounds 16, 16, 94, 21
+		cboServer.Parent = @Panel1
 		
 		cboSource.Name = "cboSource"
 		cboSource.Text = "YOGA2\SQLEXPRESS"
@@ -193,8 +209,8 @@ Using My.Sys.Forms
 		cboSource.BackColor = clWhite
 		'cboSource.Font.Size = 11
 		'cboSource.OnClick = @cboSource_Click
-		cboSource.SetBounds 120, 16, 94, 20
-		cboSource.Parent = @Frame_Sql
+		cboSource.SetBounds 120, 16, 94, 21
+		cboSource.Parent = @Panel1
 		
 		
 		cmdFindServer.Name = "cmdFindServer"
@@ -203,7 +219,7 @@ Using My.Sys.Forms
 		'cmdFindServer.Font.Size = 11
 		'cmdFindServer.OnClick = @cmdFindServer_Click
 		cmdFindServer.SetBounds 225, 16, 30, 25
-		cmdFindServer.Parent = @Frame_Sql
+		cmdFindServer.Parent = @Panel1
 		
 		cmdRefrshDataBase.Name = "cmdRefrshDataBase"
 		cmdRefrshDataBase.Text = "Refresh DataBase"
@@ -211,7 +227,7 @@ Using My.Sys.Forms
 		'cmdRefrshDataBase.Font.Size = 11
 		'cmdRefrshDataBase.OnClick = @cmdRefrshDataBase_Click
 		cmdRefrshDataBase.SetBounds 260, 16, 121, 25
-		cmdRefrshDataBase.Parent = @Frame_Sql
+		cmdRefrshDataBase.Parent = @Panel1
 		
 		txtPWD.Name = "txtPWD"
 		txtPWD.Text = "dtquser"
@@ -219,29 +235,29 @@ Using My.Sys.Forms
 		'txtPWD.Font.Size = 11
 		'txtPWD.OnClick = @txtPWD_Click
 		txtPWD.SetBounds 232, 75, 72, 25
-		txtPWD.Parent = @Frame_Sql
+		txtPWD.Parent = @Panel1
 		
 		TxtID.Name = "TxtID"
 		TxtID.Text = "Combo1"
 		'TxtID.BackColor = clWhite
 		'TxtID.Font.Size = 11
 		'TxtID.OnClick = @TxtID_Click
-		TxtID.SetBounds 56, 75, 80, 25
-		TxtID.Parent = @Frame_Sql
+		TxtID.SetBounds 56, 75, 80, 21
+		TxtID.Parent = @Panel1
 		
 		Label1.Name = "Label1"
 		Label1.Text = "ID:"
 		'Label1.BackColor = clWhite
 		'Label1.Font.Size = 11
 		Label1.SetBounds 24, 75, 22, 22
-		Label1.Parent = @Frame_Sql
+		Label1.Parent = @Panel1
 		
 		Label2.Name = "Label2"
 		Label2.Text ="Password:"
 		'Label2.BackColor = clWhite
 		'Label2.Font.Size = 11
 		Label2.SetBounds 150, 75, 80, 22
-		Label2.Parent = @Frame_Sql
+		Label2.Parent = @Panel1
 		
 		Option_DB.Name = "Option_DB"
 		Option_DB.Text = "Show DataBase"
@@ -249,7 +265,7 @@ Using My.Sys.Forms
 		'Option_DB.Font.Size = 11
 		'Option_DB.OnClick = @Option_DB_Click
 		Option_DB.SetBounds 24, 48, 101, 22
-		Option_DB.Parent = @Frame_Sql
+		Option_DB.Parent = @Panel1
 		
 		imgListGrid1.Height=16 'Change the Height of Body
 		imgListGrid1.Width=16
@@ -264,17 +280,27 @@ Using My.Sys.Forms
 		MSHFGrid.StateImages =@imgListGrid1             ' @imgList
 		MSHFGrid.SmallImages =@imgListGrid1             '@imgList
 		'MSHFGridCont.Font.Size=13'22 two line 'Change the Height of Header
-		MSHFGrid.RowHeight=20
-		MSHFGrid.Parent =@Frame_Sql' @This
+		MSHFGrid.RowHeight = 20
+		MSHFGrid.Align = DockStyle.alLeft
+		MSHFGrid.Parent = @Panel2 ' @This
 		'MSHFGrid.Columns.Add "NO ", 0,35,cfCenter, False,CT_Header,False,CT_Header,,ssSortAscending
 		'MSHFGrid.ListItems.Add  "1",0,1
+		' Splitter1
+		With Splitter1
+			.Name = "Splitter1"
+			.Text = "Splitter1"
+			.SetBounds 0, 0, 10, 291
+			.Designer = @This
+			.Parent = @Panel2
+		End With
 		
 		MSHFGridCont.SetBounds 170, 150, 760, 250
 		MSHFGridCont.StateImages =@imgListGrid1             ' @imgList
 		MSHFGridCont.SmallImages =@imgListGrid1             '@imgList
 		'MSHFGridCont.Font.Size=13'22 two line 'Change the Height of Header
-		MSHFGridCont.RowHeight=40
-		MSHFGridCont.Parent =@Frame_Sql' @This
+		MSHFGridCont.RowHeight = 40
+		MSHFGridCont.Align = DockStyle.alClient
+		MSHFGridCont.Parent = @Panel2 ' @This
 		'MSHFGridCont.RowHeightHeader=40
 		'MSHFGridCont.SetGridLines(FocusRect_Row,GRIDLINE_Both,clSilver,,,,,PS_SOLID)
 		'MSHFGridCont.GridEditComboBox.GridEditComboItem ="True" +CHR(9) +"False"
@@ -290,14 +316,14 @@ Using My.Sys.Forms
 		MSHFGridCont.Init
 		Dim As WString Ptr ComboEditItem
 		WLET ComboEditItem, "True"+Chr(9)+"False" +Chr(9)+"121313"+Chr(9)+"321232"
-		MSHFGridCont.Columns.Add  "NO ", 0, 35, cfCenter, False, False, DT_Numeric,  , GridSortStyle.ssSortAscending
-		MSHFGridCont.Columns.Add "Property" + WChr(13, 10) + "1TH", 0, 100, cfLeft, True, False, CT_TextBox, , GridSortStyle.ssSortAscending
-		MSHFGridCont.Columns.Add "Property" + WChr(13, 10) + "2nd", 0, 100, cfRight, True, False, CT_LinkLabel, , GridSortStyle.ssSortAscending
-		MSHFGridCont.Columns.Add "Property" + WChr(13, 10) + "3RD", 0, 100, cfCenter, True, False, CT_Button, , GridSortStyle.ssSortAscending
+		MSHFGridCont.Columns.Add  "NO ", 0, 35, cfCenter, DT_Numeric, False, , , GridSortStyle.ssSortAscending
+		MSHFGridCont.Columns.Add "Property" + WChr(13, 10) + "1TH", 0, 100, cfLeft, DT_Numeric, False, CT_TextBox, , GridSortStyle.ssSortAscending
+		MSHFGridCont.Columns.Add "Property" + WChr(13, 10) + "2nd", 0, 100, cfRight, DT_Numeric, False, CT_LinkLabel, , GridSortStyle.ssSortAscending
+		MSHFGridCont.Columns.Add "Property" + WChr(13, 10) + "3RD", 0, 100, cfCenter, DT_Numeric, False, CT_Button, , GridSortStyle.ssSortAscending
 		MSHFGridCont.Columns.Add "Value", 0, 70, cfCenter, True, False, CT_ComboBoxEdit, *ComboEditItem, GridSortStyle.ssSortAscending
 		MSHFGridCont.Columns.Add "GridData" + WChr(13, 10) + "5TH", 0, 100, cfCenter, True, False, CT_CheckBox, , GridSortStyle.ssSortAscending
-		MSHFGridCont.Columns.Add "GridData" + WChr(13, 10) + "6TH", 0, 100, cfCenter, True, False, CT_ProgressBar, , GridSortStyle.ssSortAscending
-		MSHFGridCont.Columns.Add "GridData" + WChr(13, 10) + "7TH", 0, 100, cfCenter, True, False, CT_DateTimePicker, , GridSortStyle.ssSortAscending
+		MSHFGridCont.Columns.Add "GridData" + WChr(13, 10) + "6TH", 0, 100, cfCenter, DT_Numeric, False, CT_ProgressBar, , GridSortStyle.ssSortAscending
+		MSHFGridCont.Columns.Add "GridData" + WChr(13, 10) + "7TH", 0, 100, cfCenter, DT_Date, False, CT_DateTimePicker, , GridSortStyle.ssSortAscending
 		MSHFGridCont.Columns.Add "GridData" + WChr(13, 10) + "8TH", 0, 100, cfCenter, True, False, CT_TextBox, , GridSortStyle.ssSortAscending
 		
 		Dim ItemsCount As Integer
@@ -392,23 +418,33 @@ Using My.Sys.Forms
 		'Image_Toolbar.Font.Size = 11
 		'Image_Toolbar.OnClick = @Image_Toolbar_Click
 		
-		'Picture1
-		Picture1.Name = "Picture1"
-		Picture1.Text = "pnlDraw"
-		Picture1.SetBounds 21, 355, 233, 257
-		Picture1.Parent = @This
-		Picture1.Font.Size=24
-		Picture1.Graphic.Bitmap = "Logo"
-		'Picture1.OnDblClick = @Picture1_DblClick
-		'Picture1.OnPaint = @Picture1_Paint
-		
-		' cmdDraw
-		cmdDraw.Name = "cmdDraw"
-		cmdDraw.SetBounds 200, 850, 24, 25
-		cmdDraw.Caption = "Draw Line"
-		cmdDraw.OnClick = @cmdDraw_Click
-		cmdDraw.Parent = @This'@pnlGeneral'@pnlIncludes
-		cmdDraw.Font.Size = 12 'Can print like this
+		' Panel1
+		With Panel1
+			.Name = "Panel1"
+			.Text = "Panel1"
+			.TabIndex = 12
+			.Align = DockStyle.alTop
+			.ExtraMargins.Top = 20
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Left = 10
+			.ExtraMargins.Bottom = 10
+			.SetBounds 140, -80, 464, 110
+			.Designer = @This
+			.Parent = @Frame_Sql
+		End With
+		' Panel2
+		With Panel2
+			.Name = "Panel2"
+			.Text = "Panel2"
+			.TabIndex = 13
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Left = 10
+			.ExtraMargins.Bottom = 10
+			.Align = DockStyle.alClient
+			.SetBounds 50, 160, 464, 291
+			.Designer = @This
+			.Parent = @Frame_Sql
+		End With
 	End Constructor
 	
 	Private Sub frmGridDataTest.Frame_Sql_Click_(ByRef Sender As GroupBox)
@@ -447,33 +483,33 @@ Private Sub frmGridDataTest.Form_Show(ByRef Sender As Control)
 End Sub
 
 Private Sub frmGridDataTest.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	Dim R As Rect
-	fGridDataTest.TreeView1.Left=5
-	R.Left=fGridDataTest.TreeView1.Width+10
-	R.Top=fGridDataTest.TreeView1.Top
-	R.Right=fGridDataTest.ClientWidth-fGridDataTest.TreeView1.Width-60
-	fGridDataTest.TreeView1.Height=fGridDataTest.ClientHeight-60
-	R.Bottom=fGridDataTest.TreeView1.Height/2
-	'print "frmGridDataTest.Form_Resize ",R.Right
-	If R.Right>0 Then
-		If R.Bottom>75 AndAlso R.Right>150 Then
-			fGridDataTest.Frame_Sql.SetBounds R.Left,R.top,R.Right,R.Bottom+50
-			'fGridDataTest.MSHFGrid.SetBounds R.Left,150,190,R.Bottom-65
-			'fGridDataTest.MSHFGridCont.SetBounds R.Left+205,150,R.Right-205,R.Bottom-65
-			?10,110,130,R.Bottom-65
-			'fGridDataTest.MSHFGrid.SetBounds 10,110,130,R.Bottom-65
-			fGridDataTest.MSHFGridCont.SetBounds 180,110,R.Right-205,R.Bottom-65
-			'fGridDataTest.MSHFGrid.Refresh
-			'fGridDataTest.MSHFGridCont.Refresh
-			fGridDataTest.Picture1.SetBounds R.Left,R.Bottom+100,R.Right,R.Bottom-80
-			fGridDataTest.cmdDraw.SetBounds R.Left,R.Bottom*2+5,100,25
-			fGridDataTest.cmdDraw_Click(Sender)
-			
-			'InvalidateRect(fGridDataTest.Picture1.Handle,null,True) 'Refresh the current handle only. do not updated the child
-			'UpdateWindow fGridDataTest.Picture1.Handle
-		End If
-		
-	End If
+'	Dim R As Rect
+'	fGridDataTest.TreeView1.Left=5
+'	R.Left=fGridDataTest.TreeView1.Width+10
+'	R.Top=fGridDataTest.TreeView1.Top
+'	R.Right=fGridDataTest.ClientWidth-fGridDataTest.TreeView1.Width-60
+'	fGridDataTest.TreeView1.Height=fGridDataTest.ClientHeight-60
+'	R.Bottom=fGridDataTest.TreeView1.Height/2
+'	'print "frmGridDataTest.Form_Resize ",R.Right
+'	If R.Right>0 Then
+'		If R.Bottom>75 AndAlso R.Right>150 Then
+'			fGridDataTest.Frame_Sql.SetBounds R.Left,R.top,R.Right,R.Bottom+50
+'			'fGridDataTest.MSHFGrid.SetBounds R.Left,150,190,R.Bottom-65
+'			'fGridDataTest.MSHFGridCont.SetBounds R.Left+205,150,R.Right-205,R.Bottom-65
+'			?10,110,130,R.Bottom-65
+'			'fGridDataTest.MSHFGrid.SetBounds 10,110,130,R.Bottom-65
+'			fGridDataTest.MSHFGridCont.SetBounds 180,110,R.Right-205,R.Bottom-65
+'			'fGridDataTest.MSHFGrid.Refresh
+'			'fGridDataTest.MSHFGridCont.Refresh
+''			fGridDataTest.Picture1.SetBounds R.Left, R.Bottom + 100, R.Right, R.Bottom - 80
+''			fGridDataTest.cmdDraw.SetBounds R.Left,R.Bottom*2+5,100,25
+''			fGridDataTest.cmdDraw_Click(Sender)
+'			
+'			'InvalidateRect(fGridDataTest.Picture1.Handle,null,True) 'Refresh the current handle only. do not updated the child
+'			'UpdateWindow fGridDataTest.Picture1.Handle
+'		End If
+'		
+'	End If
 End Sub
 
 Private Sub frmGridDataTest.Form_Click(ByRef Sender As Control)
@@ -488,60 +524,60 @@ End Sub
 Private Sub frmGridDataTest.CommandButton2_Click(ByRef Sender As Control)
 	Cast(frmGridDataTest Ptr, Sender.Parent)->CloseForm
 End Sub
-Private Sub frmGridDataTest.cmdDraw_Click(ByRef Sender As Control)
-	Dim R As Rect
-	R.Right=fGridDataTest.ClientWidth -fGridDataTest.Picture1.Width- 55
-	R.Bottom= fGridDataTest.Picture1.Height-fGridDataTest.Picture1.top-fGridDataTest.Picture1.top-10'fGridDataTest.ClientHeight - 20
-	Static As logfont lf
-	'    with Sender
-	'        lf.lfHeight=20
-	'        lf.lfunderline=1
-	'        lf.lfWeight=700
-	'        lf.lfEscapement=10*45 ' degrees to rotate
-	'        lf.lfOrientation=10*45
-	'        lf.lfCharSet=DEFAULT_CHARSET
-	'        lf.lfFaceName="Tahoma"
-	'        .Canvas.Font.Color=255
-	'        .Canvas.Font=CreateFontIndirect(@lf)
-	'        .Canvas.TextOut(10, 100, "Rotated text")
-	'        .Canvas.TextOut(10, 128, "GUI-S is great !")
-	'    end with
-	
-	With fGridDataTest
-		' If .BrowsD.Execute Then
-		'     .txtMFFPath.Text = .BrowsD.Directory
-		' End If
-		
-		'fGridDataTest.Picture1.Style=2
-		'fGridDataTest.Picture1.Canvas.Rectangle(R)
-		
-		'        fGridDataTest.Picture1.Canvas.Font.Orientation=10
-		fGridDataTest.Picture1.Canvas.Font.Size=24
-		'        fGridDataTest.Picture1.Canvas.Bitmap = "Logo"
-		'fGridDataTest.Picture1.Canvas.Font=CreateFontIndirect(@lf)
-		'fGridDataTest.Picture1.Canvas.TextOut(10, 100, "Rotated text")
-		'fGridDataTest.Picture1.Canvas.TextOut(10, 128, "GUI-S is great !")
-		
-		fGridDataTest.Picture1.Canvas.Pen.Color =clred' BGR(102,24,25)
-		fGridDataTest.Picture1.Canvas.Line 0,0,104,168
-		fGridDataTest.Picture1.Canvas.Pen.Color = clYellow'BGR(202,24,25)
-		fGridDataTest.Picture1.Canvas.Line 104,168,R.Right,R.Bottom
-		fGridDataTest.Picture1.Canvas.TextOut 100,140,"Test String",clBlue,-1'clNone
-		'fGridDataTest.Picture1.line 50,50,124,128
-		'fGridDataTest.Picture1.line 124,128,444,498
-		fGridDataTest.Canvas.line 0,0,524,428
-		
-	End With
-End Sub
-Private Sub frmGridDataTest.Picture1_Paint(ByRef Sender As Control, ByRef R As Rect,DC As HDC)
-	'print "DC",DC
-	' dim hBrush_HP As HBRUSH
-	'hBrush_HP = CreateSolidBrush(BGR(255, 96, 96))
-	' FrameRect(DC,@R,hBrush_HP)
-	'Line(DC,154,198,R.Right,R.Bottom)
-	'DeleteObject(hBrush_HP)
-	fGridDataTest.cmdDraw_Click(Sender)
-End Sub
+'Private Sub frmGridDataTest.cmdDraw_Click(ByRef Sender As Control)
+'	Dim R As Rect
+'	R.Right = fGridDataTest.ClientWidth - fGridDataTest.Picture1.Width - 55
+'	R.Bottom= fGridDataTest.Picture1.Height-fGridDataTest.Picture1.top-fGridDataTest.Picture1.top-10'fGridDataTest.ClientHeight - 20
+'	Static As logfont lf
+'	'    with Sender
+'	'        lf.lfHeight=20
+'	'        lf.lfunderline=1
+'	'        lf.lfWeight=700
+'	'        lf.lfEscapement=10*45 ' degrees to rotate
+'	'        lf.lfOrientation=10*45
+'	'        lf.lfCharSet=DEFAULT_CHARSET
+'	'        lf.lfFaceName="Tahoma"
+'	'        .Canvas.Font.Color=255
+'	'        .Canvas.Font=CreateFontIndirect(@lf)
+'	'        .Canvas.TextOut(10, 100, "Rotated text")
+'	'        .Canvas.TextOut(10, 128, "GUI-S is great !")
+'	'    end with
+'	
+'	With fGridDataTest
+'		' If .BrowsD.Execute Then
+'		'     .txtMFFPath.Text = .BrowsD.Directory
+'		' End If
+'		
+'		'fGridDataTest.Picture1.Style=2
+'		'fGridDataTest.Picture1.Canvas.Rectangle(R)
+'		
+'		'        fGridDataTest.Picture1.Canvas.Font.Orientation=10
+'		fGridDataTest.Picture1.Canvas.Font.Size=24
+'		'        fGridDataTest.Picture1.Canvas.Bitmap = "Logo"
+'		'fGridDataTest.Picture1.Canvas.Font=CreateFontIndirect(@lf)
+'		'fGridDataTest.Picture1.Canvas.TextOut(10, 100, "Rotated text")
+'		'fGridDataTest.Picture1.Canvas.TextOut(10, 128, "GUI-S is great !")
+'		
+'		fGridDataTest.Picture1.Canvas.Pen.Color =clred' BGR(102,24,25)
+'		fGridDataTest.Picture1.Canvas.Line 0,0,104,168
+'		fGridDataTest.Picture1.Canvas.Pen.Color = clYellow'BGR(202,24,25)
+'		fGridDataTest.Picture1.Canvas.Line 104,168,R.Right,R.Bottom
+'		fGridDataTest.Picture1.Canvas.TextOut 100,140,"Test String",clBlue,-1'clNone
+'		'fGridDataTest.Picture1.line 50,50,124,128
+'		'fGridDataTest.Picture1.line 124,128,444,498
+'		fGridDataTest.Canvas.line 0,0,524,428
+'		
+'	End With
+'End Sub
+'Private Sub frmGridDataTest.Picture1_Paint(ByRef Sender As Control, ByRef R As Rect,DC As HDC)
+'	'print "DC",DC
+'	' dim hBrush_HP As HBRUSH
+'	'hBrush_HP = CreateSolidBrush(BGR(255, 96, 96))
+'	' FrameRect(DC,@R,hBrush_HP)
+'	'Line(DC,154,198,R.Right,R.Bottom)
+'	'DeleteObject(hBrush_HP)
+'	fGridDataTest.cmdDraw_Click(Sender)
+'End Sub
 'AA1
 '########################################################################################
 'GRID CODE
@@ -604,7 +640,7 @@ Sub frmGridDataTest.MSHFGridCont_OnHeadColWidthAdjust(ByRef Sender As Control, C
 	#endif
 End Sub
 
-Sub frmGridDataTest.MSHFGridCont_DblClick(ByRef Sender As Control, ByRef Item As GridDataItem Ptr)
+Sub frmGridDataTest.MSHFGridCont_DblClick(ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
 	'Dim Item As GridDataItem Ptr = MSHFGridCont.ListItems.Item(itemIndex)
 	'print "Item->Text(2)" + Item->Text(2)
 	' dim as SCROLLINFO si
