@@ -1,3 +1,5 @@
+@echo off
+
 set /p Bit=What bitness of VisualFBEditor do you want to compile (32/64/both)? 
 
 set /p DownloadCompiler=Do you want to download FreeBASIC Compiler 1.09.0 (yes/no/downloaded)? 
