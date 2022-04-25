@@ -252,14 +252,18 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	FileNameNew = FileName
 	If EndsWith(FileNameNew, ":") Then FileNameNew = ..Left(FileNameNew, Len(FileNameNew) - 1)
 	If FileName <> "" Then
-		For i As Integer = 0 To ptabCode->TabCount - 1
-			If EqualPaths(Cast(TabWindow Ptr, ptabCode->Tabs[i])->FileName, FileNameNew) Then
-				bFind = True
-				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-				If Not bNoActivate Then tb->SelectTab
-				Return tb
-			End If
-		Next i
+		Dim As TabControl Ptr ptabCode
+		For j As Integer = 0 To tabPanels.Count - 1
+			ptabCode = @Cast(tabPanel Ptr, tabPanels.Item(j))->tabCode
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				If EqualPaths(Cast(TabWindow Ptr, ptabCode->Tabs[i])->FileName, FileNameNew) Then
+					bFind = True
+					tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+					If Not bNoActivate Then tb->SelectTab
+					Return tb
+				End If
+			Next i
+		Next j
 		If Not bFind Then
 			Dim tn2 As TreeNode Ptr
 			For i As Integer = 0 To ptvExplorer->Nodes.Count - 1
