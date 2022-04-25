@@ -171,6 +171,7 @@ Namespace My.Sys.Forms
 		Declare        Sub MouseMove(X As Integer, Y As Integer, Shift As Integer)
 		Declare        Sub KeyDown(Key As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 	Public:
+		Tag As Any Ptr
 		CreateControlFunc As Function(ByRef ClassName As String, ByRef Name As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As Any Ptr
 		CreateComponentFunc As Function(ClassName As String, ByRef Name As WString, lLeft As Integer, lTop As Integer, Parent As Any Ptr) As Any Ptr
 		DeleteComponentFunc As Function(Cpnt As Any Ptr) As Boolean

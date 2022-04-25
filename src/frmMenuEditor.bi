@@ -50,7 +50,7 @@
 	Common Shared pfMenuEditor As frmMenuEditor Ptr
 '#End Region
 
-Declare Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
+Declare Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
 
 #ifndef __USE_MAKE__
 	#include once "frmMenuEditor.frm"

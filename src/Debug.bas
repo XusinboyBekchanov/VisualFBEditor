@@ -8077,7 +8077,7 @@ Sub run_debug(iFlag As Long)
 			'End If
 			
 			If RunningToCursor Then
-				Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
+				Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 				If tb <> 0 Then
 					Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 					tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar

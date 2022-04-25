@@ -416,11 +416,11 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 		Dim As Integer iWidth = Val(txtWidth.Text), iHeight = Val(txtHeight.Text)
 		If QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageWidth")) <> iWidth Then
 			Des->WritePropertyFunc(CurrentImageList, "ImageWidth", @iWidth)
-			ChangeControl CurrentImageList, "ImageWidth"
+			ChangeControl *Des, CurrentImageList, "ImageWidth"
 		End If
 		If QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageHeight")) <> iHeight Then
 			Des->WritePropertyFunc(CurrentImageList, "ImageHeight", @iHeight)
-			ChangeControl CurrentImageList, "ImageHeight"
+			ChangeControl *Des, CurrentImageList, "ImageHeight"
 		End If
 		If tb Then
 			Dim As EditControlLine Ptr ECLine

@@ -70,7 +70,7 @@ Dim Shared As ReBar ReBar1
 	Dim Shared As PrintPreviewDialog PrintPreviewD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
-Dim Shared As List Tools
+Dim Shared As List Tools, TabPanels
 Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors
@@ -84,10 +84,9 @@ Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
 Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox
-Dim Shared As TabControl tabLeft, tabRight, tabDebug
+Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvThd, tvWch ', tvPrc
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
-Dim Shared As TabControl tabCode, tabBottom
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
@@ -122,7 +121,6 @@ pstBar = @stBar   'David Change
 ptxtPropertyValue = @txtPropertyValue
 pbtnPropertyValue = @btnPropertyValue
 ptvExplorer = @tvExplorer
-ptabCode = @tabCode
 ptabLeft = @tabLeft
 ptabBottom = @tabBottom
 ptabRight = @tabRight
@@ -218,10 +216,6 @@ End Sub
 Sub ClearMessages()
 	txtOutput.Text = ""
 	txtOutput.Update
-End Sub
-
-Sub tabCode_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	MoveCloseButtons
 End Sub
 
 Sub SelectError(ByRef FileName As WString, iLine As Integer, tabw As TabWindow Ptr = 0)
@@ -2635,7 +2629,7 @@ End Sub
 		If FnTab < 0 Or Fcurlig < 1 Then Exit Sub
 		If source(Fntab) = "" Then Exit Sub
 		shwtab = Fntab
-		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 OrElse Not EqualPaths(tb->FileName, source(Fntab)) Then
 			tb = AddTab(LCase(source(Fntab)))
 		End If
@@ -2654,7 +2648,7 @@ End Sub
 #if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 	Function TimerProcGDB() As Integer
 		If Fcurlig < 1 Then Return 1
-		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, tabCode.SelectedTab)
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 OrElse Not EqualPaths(tb->FileName, CurrentFile) Then
 			tb = AddTab(CurrentFile)
 		End If
@@ -4885,6 +4879,14 @@ Sub CreateMenusAndToolBars
 	mnuTabs.Add(ML("&Close"), "Close", "Close", @mclick)
 	mnuTabs.Add(ML("Close All Without Current"), "", "CloseAllWithoutCurrent", @mclick)
 	mnuTabs.Add(ML("Close &All"), "", "CloseAll", @mclick)
+	mnuTabs.Add("-")
+	mnuTabs.Add(ML("Split Up"), "", "SplitUp", @mclick)
+	mnuTabs.Add(ML("Split Down"), "", "SplitDown", @mclick)
+	mnuTabs.Add(ML("Split Left"), "", "SplitLeft", @mclick)
+	mnuTabs.Add(ML("Split Right"), "", "SplitRight", @mclick)
+	mnuTabs.Add("-")
+	mnuTabs.Add(ML("Split &Horizontally"), "", "SplitHorizontally", @mclick)
+	mnuTabs.Add(ML("Split &Vertically"), "", "SplitVertically", @mclick)
 	
 	'mnuVars.ImagesList = @imgList '<m>
 	mnuVars.Add(ML("Show String"), "", "ShowString", @mclick)
@@ -5634,15 +5636,15 @@ Sub btnPropertyValue_Click(ByRef Sender As Control)
 		fd.Font.Strikeout = FontStrikeout
 		fd.Font.Orientation = FontOrientation
 		If fd.Execute Then
-			If fd.Font.Name <> FontName Then FontName = fd.Font.Name: tb->Des->WritePropertyFunc(SelFont, "Name", FontName.vptr): ChangeControl(tb->Des->SelectedControl, te->Name & ".Name")
-			If fd.Font.Color <> FontColor Then FontColor = fd.Font.Color: tb->Des->WritePropertyFunc(SelFont, "Color", @FontColor): ChangeControl(tb->Des->SelectedControl, te->Name & ".Color")
-			If fd.Font.Size <> FontSize Then FontSize = fd.Font.Size: tb->Des->WritePropertyFunc(SelFont, "Size", @FontSize): ChangeControl(tb->Des->SelectedControl, te->Name & ".Size")
-			If fd.Font.Charset <> FontCharset_ Then FontCharset_ = fd.Font.Charset: tb->Des->WritePropertyFunc(SelFont, "Charset", @FontCharset_): ChangeControl(tb->Des->SelectedControl, te->Name & ".Charset")
-			If fd.Font.Bold <> FontBold Then FontBold = fd.Font.Bold: tb->Des->WritePropertyFunc(SelFont, "Bold", @FontBold): ChangeControl(tb->Des->SelectedControl, te->Name & ".Bold")
-			If fd.Font.Italic <> FontItalic Then FontItalic = fd.Font.Italic: tb->Des->WritePropertyFunc(SelFont, "Italic", @FontItalic): ChangeControl(tb->Des->SelectedControl, te->Name & ".Italic")
-			If fd.Font.Underline <> FontUnderline Then FontUnderline = fd.Font.Underline: tb->Des->WritePropertyFunc(SelFont, "Underline", @FontUnderline): ChangeControl(tb->Des->SelectedControl, te->Name & ".Underline")
-			If fd.Font.Strikeout <> FontStrikeout Then FontStrikeout = fd.Font.Strikeout: tb->Des->WritePropertyFunc(SelFont, "Strikeout", @FontStrikeout): ChangeControl(tb->Des->SelectedControl, te->Name & ".Strikeout")
-			If fd.Font.Orientation <> FontOrientation Then FontOrientation = fd.Font.Orientation: tb->Des->WritePropertyFunc(SelFont, "Orientation", @FontOrientation): ChangeControl(tb->Des->SelectedControl, te->Name & ".Orientation")
+			If fd.Font.Name <> FontName Then FontName = fd.Font.Name: tb->Des->WritePropertyFunc(SelFont, "Name", FontName.vptr): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Name")
+			If fd.Font.Color <> FontColor Then FontColor = fd.Font.Color: tb->Des->WritePropertyFunc(SelFont, "Color", @FontColor): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Color")
+			If fd.Font.Size <> FontSize Then FontSize = fd.Font.Size: tb->Des->WritePropertyFunc(SelFont, "Size", @FontSize): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Size")
+			If fd.Font.Charset <> FontCharset_ Then FontCharset_ = fd.Font.Charset: tb->Des->WritePropertyFunc(SelFont, "Charset", @FontCharset_): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Charset")
+			If fd.Font.Bold <> FontBold Then FontBold = fd.Font.Bold: tb->Des->WritePropertyFunc(SelFont, "Bold", @FontBold): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Bold")
+			If fd.Font.Italic <> FontItalic Then FontItalic = fd.Font.Italic: tb->Des->WritePropertyFunc(SelFont, "Italic", @FontItalic): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Italic")
+			If fd.Font.Underline <> FontUnderline Then FontUnderline = fd.Font.Underline: tb->Des->WritePropertyFunc(SelFont, "Underline", @FontUnderline): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Underline")
+			If fd.Font.Strikeout <> FontStrikeout Then FontStrikeout = fd.Font.Strikeout: tb->Des->WritePropertyFunc(SelFont, "Strikeout", @FontStrikeout): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Strikeout")
+			If fd.Font.Orientation <> FontOrientation Then FontOrientation = fd.Font.Orientation: tb->Des->WritePropertyFunc(SelFont, "Orientation", @FontOrientation): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Orientation")
 			txtPropertyValue.Text = tb->Des->ToStringFunc(SelFont)
 			If lvProperties.SelectedItem <> 0 Then lvProperties.SelectedItem->Text(1) = txtPropertyValue.Text
 		End If
@@ -5836,7 +5838,7 @@ End Sub
 Sub lvEvents_ItemDblClick(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Dim As TabWindow Ptr tb = tabRight.Tag
 	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
-	If Item <> 0 Then FindEvent tb->Des->SelectedControl, Item->Text(0)
+	If Item <> 0 Then FindEvent tb, tb->Des->SelectedControl, Item->Text(0)
 End Sub
 
 Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
@@ -6457,25 +6459,10 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	tbOld = tb
 End Sub
 
-Sub tabCode_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-	If MouseButton <> 1 Then Exit Sub
-	If tabCode.SelectedTab = 0 Then Exit Sub
-	Dim tn As TreeNode Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)->tn
-	If tn = 0 Then Exit Sub
-	If tn->ParentNode <> 0 Then
-		miTabSetAsMain->Caption = ML("Set as Main")
-	Else
-		miTabSetAsMain->Caption = ML("Set as Start Up")
-	End If
-End Sub
-
-ptabCode->Images = @imgList
-ptabCode->Align = DockStyle.alClient
-ptabCode->Reorderable = True
-ptabCode->OnPaint = @tabCode_Paint
-ptabCode->OnSelChange = @tabCode_SelChange
-ptabCode->OnMouseUp = @tabCode_MouseUp
-ptabCode->ContextMenu = @mnuTabs
+Var ptabPanel = New TabPanel
+ptabPanel->Align = DockStyle.alClient
+TabPanels.Add ptabPanel
+ptabCode = @ptabPanel->tabCode
 
 txtOutput.Name = "txtOutput"
 txtOutput.Align = DockStyle.alClient
@@ -7569,7 +7556,7 @@ frmMain.Add @pnlRight
 frmMain.Add @splRight
 frmMain.Add @pnlBottom
 frmMain.Add @splBottom
-frmMain.Add ptabCode
+frmMain.Add ptabPanel
 frmMain.Show
 
 Sub OnProgramStart() Constructor

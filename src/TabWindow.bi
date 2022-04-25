@@ -146,6 +146,13 @@ Public:
 	Declare Destructor
 End Type
 
+Type TabPanel Extends Panel
+	Dim as Integer OldWidth, OldHeight
+	Dim As TabControl tabCode
+	Dim As Splitter splGroup
+	Declare Constructor
+End Type
+
 Type TabWindow Extends TabPage
 Private:
 	FCaptionNew As WString Ptr
@@ -269,7 +276,7 @@ End Type
 
 Common Shared As PopupMenu Ptr pmnuCode
 
-Declare Sub MoveCloseButtons()
+Declare Sub MoveCloseButtons(ptabCode As TabControl Ptr)
 
 Declare Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString) As UString
 	
@@ -352,7 +359,7 @@ Declare Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 Common Shared bNotDesignForms As Boolean
 Declare Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 
-Declare Sub FindEvent(Cpnt As Any Ptr, EventName As String)
+Declare Sub FindEvent(tb As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 
 Declare Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 

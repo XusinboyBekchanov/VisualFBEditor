@@ -437,7 +437,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 				Dim Obj As Any Ptr = Des->CreateObjectFunc("ToolButton")
 				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
 				Des->WritePropertyFunc(Obj, "Parent", CurrentToolBar)
-				ChangeControl Obj, "Parent"
+				ChangeControl *Des, Obj, "Parent"
 				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj, 0)
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
@@ -459,7 +459,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 				Dim Obj As Any Ptr = Des->CreateObjectFunc("StatusPanel")
 				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
 				Des->WritePropertyFunc(Obj, "Parent", CurrentStatusBar)
-				ChangeControl Obj, "Parent"
+				ChangeControl *Des, Obj, "Parent"
 				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj, 0)
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
@@ -486,11 +486,11 @@ Sub frmMenuEditor.EditRect(i As Integer)
 				End If
 				Des->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
 				If Parents(i) = 0 Then
-					ChangeControl Obj, "ParentMenu"
+					ChangeControl *Des, Obj, "ParentMenu"
 				Else
-					ChangeControl Obj, "Parent"
+					ChangeControl *Des, Obj, "Parent"
 				End If
-				ChangeControl Obj, "Caption"
+				ChangeControl *Des, Obj, "Caption"
 				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj, 0)
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
@@ -520,7 +520,7 @@ Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 	If ActiveRect <> 0 Then
 		If Ctrls(ActiveRect) <> 0 AndAlso QWString(Des->ReadPropertyFunc(Ctrls(ActiveRect), "Caption")) <> txtActive.Text Then
 			Des->WritePropertyFunc(Ctrls(ActiveRect), "Caption", @txtActive.Text)
-			ChangeControl Ctrls(ActiveRect), "Caption"
+			ChangeControl *Des, Ctrls(ActiveRect), "Caption"
 			If Parents(ActiveRect) = 0 Then Des->TopMenu->Repaint
 		End If
 		Repaint

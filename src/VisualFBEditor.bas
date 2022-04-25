@@ -414,7 +414,7 @@ Sub mClick(Sender As My.Sys.Object)
 			End If
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "SplitHorizontally", "SplitVertically", _
-		"Start", "Stop", "StepOut", "FindNext","FindPrev", "Goto", "SetNextStatement", "SortLines", _
+		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
 		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm" '
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
@@ -425,6 +425,51 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "SortLines":                   tb->SortLines
 		Case "SplitHorizontally":           tb->txtCode.SplittedHorizontally = Not mnuSplitHorizontally->Checked
 		Case "SplitVertically":             tb->txtCode.SplittedVertically = Not mnuSplitVertically->Checked
+		Case "SplitUp", "SplitDown", "SplitLeft", "SplitRight":
+			Var tp = Cast(TabPanel Ptr, tb->Parent->Parent)
+			Var ptabPanelNew = New TabPanel
+			Var bUpDown = False
+			Select Case Sender.ToString
+			Case "SplitUp"
+				ptabPanelNew->Align = DockStyle.alTop
+				ptabPanelNew->splGroup.Align = SplitterAlignmentConstants.alTop
+				bUpDown = True
+			Case "SplitDown"
+				ptabPanelNew->Align = DockStyle.alBottom
+				ptabPanelNew->splGroup.Align = SplitterAlignmentConstants.alBottom
+				bUpDown = True
+			Case "SplitLeft"
+				ptabPanelNew->Align = DockStyle.alLeft
+				ptabPanelNew->splGroup.Align = SplitterAlignmentConstants.alLeft
+			Case "SplitRight"
+				ptabPanelNew->Align = DockStyle.alRight
+				ptabPanelNew->splGroup.Align = SplitterAlignmentConstants.alRight
+			End Select
+			Var ptabPanel = Cast(TabPanel Ptr, tb->Parent->Parent)
+			Var Idx = tp->IndexOf(tb->Parent)
+			tp->Add ptabPanelNew, Idx
+			tp->Add @ptabPanelNew->splGroup, Idx + 1
+			Var SplitterCount = 0 'Fix(tp->ControlCount / 2)
+			For i As Integer = 1 To tp->ControlCount - 2 Step 2
+				If bUpDown Then
+					If tp->Controls[i]->Align = DockStyle.alTop OrElse tp->Controls[i]->Align = DockStyle.alBottom Then SplitterCount += 1
+				Else
+					If tp->Controls[i]->Align = DockStyle.alLeft OrElse tp->Controls[i]->Align = DockStyle.alRight Then SplitterCount += 1
+				End If
+			Next
+			For i As Integer = 0 To tp->ControlCount - 2 Step 2
+				If bUpDown Then
+					tp->Controls[i]->Height = (tp->Height - ptabPanelNew->splGroup.Height * SplitterCount) / (SplitterCount + 1)
+				Else
+					tp->Controls[i]->Width = (tp->Width - ptabPanelNew->splGroup.Width * SplitterCount) / (SplitterCount + 1)
+				End If
+			Next
+			ptabPanel->tabCode.DeleteTab tb
+			tb->Parent = @ptabPanelNew->tabCode
+			ptabPanelNew->tabCode.Add @tb->btnClose
+			tp->RequestAlign
+			ptabCode = @ptabPanelNew->tabCode
+			tb->ImageKey = tb->ImageKey
 		Case "SetNextStatement":
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then

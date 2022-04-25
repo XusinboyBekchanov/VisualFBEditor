@@ -61,7 +61,7 @@ Destructor TypeElement
 	Elements.Clear
 End Destructor
 
-Public Sub MoveCloseButtons()
+Public Sub MoveCloseButtons(ptabCode As TabControl Ptr)
 	Dim As Rect RR
 	For i As Integer = 0 To pTabCode->TabCount - 1
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->Tabs[i])
@@ -365,7 +365,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			SetRightClosedStyle False, False
 			tabRight.SelectedTabIndex = 0
 		End If
-		MoveCloseButtons
+		MoveCloseButtons ptabCode
 	End If
 	tb->txtCode.SetFocus
 	ptabCode->UpdateUnLock
@@ -508,7 +508,7 @@ Property TabWindow.Modified(Value As Boolean)
 	If Value Then
 		If Not EndsWith(Caption, "*") Then
 			Caption = Caption + "*"
-			MoveCloseButtons
+			MoveCloseButtons Cast(TabControl Ptr, This.Parent)
 		End If
 	Else
 		If EndsWith(Caption, "*") Then
@@ -854,6 +854,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		Case mrCancel: Return False
 		End Select
 	End If
+	Var ptabCode = Cast(TabControl Ptr, This.Parent)
 	pTabCode->Remove(@btnClose)
 	miWindow->Remove This.mi
 	btnClose.FreeWnd
@@ -879,7 +880,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		pnlPropertyValue.Visible = False
 	End If
 	If ptabCode->TabCount = 0 Then pfrmMain->Caption = App.Title
-	MoveCloseButtons
+	MoveCloseButtons ptabCode
 	FreeWnd
 	Return True
 End Function
@@ -1390,7 +1391,7 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	Static SelectedCtrl As Any Ptr
 	Static SelectedCount As Integer
 	If Ctrl = 0 Then Exit Sub
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
 	If SelectedCtrl = Ctrl AndAlso SelectedCount = Sender.SelectedControls.Count AndAlso tb->cboClass.ItemIndex <> 0 AndAlso lvProperties.Nodes.Count <> 0 Then Exit Sub
@@ -1456,18 +1457,17 @@ End Sub
 
 Sub DesignerBringToFront(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Sender.BringToFront
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 OrElse Ctrl = 0 OrElse tb->Des = 0 Then Exit Sub
 	
 End Sub
 
 Sub DesignerSendToBack(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Sender.SendToBack
-	
 End Sub
 
 Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
 	If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
@@ -1599,9 +1599,9 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed "Unsurni o`chirish"
 End Sub
 
-Function ChangeControl(Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
+Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
 	On Error Goto ErrorHandler
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Return 0
 	If tb->Des = 0 Then Return 0
 	If tb->Des->ReadPropertyFunc = 0 Then Return 0
@@ -2053,7 +2053,7 @@ Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
 End Function
 
 Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCombo As Boolean)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, tabRight.Tag)
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
 	If tb->Des->SelectedControl = 0 Then Exit Sub
@@ -2120,11 +2120,11 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			#endif
 			If PropertyName = "TabIndex" Then
 				For i As Integer = 2 To tb->cboClass.ItemCount - 1
-					ChangeControl(tb->cboClass.Items.Item(i)->Object, "TabIndex")
+					ChangeControl(*tb->Des, tb->cboClass.Items.Item(i)->Object, "TabIndex")
 				Next
 			Else
 				For i As Integer = 0 To SelCount - 1
-					ChangeControl(tb->Des->SelectedControls.Item(i), PropertyName)
+					ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), PropertyName)
 				Next i
 			End If
 			For j As Integer = 0 To SelCount - 1
@@ -2137,7 +2137,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 						TempWS = tb->ReadObjProperty(tb->Des->SelectedControls.Item(j), PropertyName)
 						If TempWS <> plvProperties->Nodes.Item(i)->Text(1) Then
 							plvProperties->Nodes.Item(i)->Text(1) = TempWS
-							ChangeControl(tb->Des->SelectedControls.Item(j), PropertyName)
+							ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(j), PropertyName)
 						End If
 					Next i
 				End If
@@ -2157,7 +2157,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 End Sub
 
 Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	With tb->txtCode
 		pfrmMain->UpdateLock
@@ -2178,7 +2178,7 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 			Next i
 		End If
 		.Changing "Unsurni o`zgartirish"
-		ChangeControl(Ctrl, PropertyName, iLeft, iTop, iWidth, iHeight)
+		ChangeControl(Sender, Ctrl, PropertyName, iLeft, iTop, iWidth, iHeight)
 		.Changed "Unsurni o`zgartirish"
 		tb->FormDesign True
 		pfrmMain->UpdateUnLock
@@ -2187,7 +2187,7 @@ End Sub
 
 Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
 	On Error Goto ErrorHandler
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
 	If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
@@ -2233,7 +2233,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 			tb->ConstructorEnd += 1
 		End If
 	End If
-	ChangeControl(Ctrl, , iLeft2, iTop2, iWidth2, iHeight2)
+	ChangeControl(Sender, Ctrl, , iLeft2, iTop2, iWidth2, iHeight2)
 	If CopiedCtrl <> 0 Then
 		FPropertyItems.Clear
 		tb->FillProperties ClassName
@@ -2244,7 +2244,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 			Case Else
 				If Trim(tb->ReadObjProperty(Ctrl, FPropertyItems.Item(i))) <> Trim(tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i))) Then
 					tb->WriteObjProperty(Ctrl, FPropertyItems.Item(i), tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i)))
-					ChangeControl Ctrl, FPropertyItems.Item(i), iLeft2, iTop2, iWidth2, iHeight2
+					ChangeControl Sender, Ctrl, FPropertyItems.Item(i), iLeft2, iTop2, iWidth2, iHeight2
 				End If
 			End Select
 		Next
@@ -2271,7 +2271,7 @@ Sub DesignerInsertObject(ByRef Sender As Designer, ByRef ClassName As String, Ob
 End Sub
 
 Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String, ByRef AName As String)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	Dim PrevName As String = AName
 	Dim NewName As String
@@ -2299,7 +2299,7 @@ Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String
 End Sub
 
 Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
 	If tb = 0 Then Exit Sub
 	Var ii = Sender.ItemIndex
 	If ii = -1 Then Exit Sub
@@ -2475,12 +2475,12 @@ Function GetOnlyArguments(ArgumentsLine As String) As String
 	Return "(" & Result & ")"
 End Function
 
-Sub FindEvent(Cpnt As Any Ptr, EventName As String)
+Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 	On Error Goto ErrorHandler
 	If Cpnt = 0 Then Exit Sub
 	Dim As TabWindow Ptr tb = ptabRight->Tag
 	If tb = 0 Then
-		tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		tb = tbw
 	End If
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
@@ -2514,7 +2514,7 @@ Sub FindEvent(Cpnt As Any Ptr, EventName As String)
 	Var bWith = False
 	WLet(FLine1, "")
 	tb->txtCode.Changing "Hodisa qo`shish"
-	ChangeControl Cpnt
+	ChangeControl *tb->Des, Cpnt
 	Dim As Boolean b, c, e, f, t, td, tdns, tt, tdes
 	Dim As Integer j, l, p, LineEndType, LineEndConstructor
 	For i = 0 To tb->txtCode.LinesCount - 1
@@ -2682,7 +2682,7 @@ End Sub
 
 Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	If bNotFunctionChange Then Exit Sub
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
 	If tb = 0 Then Exit Sub
 	'If frmMain.ActiveControl AndAlso frmMain.ActiveControl->ClassName = "EditControl" Then Exit Sub
 	Dim frmName As String
@@ -2731,13 +2731,13 @@ Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 				End If
 			Next i
 		ElseIf Sender.ItemIndex <> -1 Then
-			FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, tb->cboFunction.Items.Item(Sender.ItemIndex)->Text
+			FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, tb->cboFunction.Items.Item(Sender.ItemIndex)->Text
 		End If
 	End With
 End Sub
 
 Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	frmMain.UpdateLock
 	Select Case QWString(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))
@@ -2777,7 +2777,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfImageListEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
-			FindEvent tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
+			FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
 			tb->tbrTop.Buttons.Item("Code")->Checked = True
 			tb->pnlCode.Visible = True
 			tb->pnlForm.Visible = False
@@ -2790,16 +2790,16 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 End Sub
 
 Sub DesignerClickMenuItem(ByRef Sender As Designer, MenuItem As Any Ptr)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
-	FindEvent MenuItem, "OnClick"
+	FindEvent tb, MenuItem, "OnClick"
 	If tb->tbrTop.Buttons.Item(2)->Checked Then
 		tb->tbrTop.Buttons.Item(1)->Checked = True
 	End If
 End Sub
 
 Sub DesignerClickProperties(ByRef Sender As Designer, Ctrl As Any Ptr)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	ptabRight->Tab(0)->SelectTab
 End Sub
@@ -2857,6 +2857,17 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	'            Key = 0
 	'        End If
 	'    End If
+End Sub
+
+Declare Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
+
+Sub OnGotFocusEdit(ByRef Sender As Control)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0 Then Exit Sub
+	If ptabCode <> tb->Parent Then
+		ptabCode = tb->Parent
+		tabCode_SelChange *ptabCode, tb->Index
+	End If
 End Sub
 
 Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Sub") As Boolean
@@ -3319,7 +3330,7 @@ End Sub
 
 Sub ParameterInfo(Key As Byte = Asc(","))
 	If FormClosing Then Exit Sub
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, tabCode.SelectedTab)
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -4651,6 +4662,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					
 					Des = New_( My.Sys.Forms.Designer(pnlForm))
 					If Des = 0 Then bNotDesign = False: pfrmMain->UpdateUnLock: Exit Sub
+					Des->Tag = @This
 					Des->OnInsertingControl = @DesignerInsertingControl
 					Des->OnInsertControl = @DesignerInsertControl
 					Des->OnInsertComponent = @DesignerInsertComponent
@@ -5252,6 +5264,60 @@ Private Sub OnSplitVerticallyChangeEdit(ByRef Sender As EditControl, Splitted As
 	mnuSplitVertically->Checked = Splitted
 End Sub
 
+Sub tabCode_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 1 Then Exit Sub
+	With *Cast(TabControl Ptr, @Sender)
+		If .SelectedTab = 0 Then Exit Sub
+		Dim tn As TreeNode Ptr = Cast(TabWindow Ptr, .SelectedTab)->tn
+		If tn = 0 Then Exit Sub
+		If tn->ParentNode <> 0 Then
+			miTabSetAsMain->Caption = ML("Set as Main")
+		Else
+			miTabSetAsMain->Caption = ML("Set as Start Up")
+		End If
+		Var SplitEnabled = .TabCount > 1
+		mnuTabs.Item("SplitUp")->Enabled = SplitEnabled
+		mnuTabs.Item("SplitDown")->Enabled = SplitEnabled
+		mnuTabs.Item("SplitLeft")->Enabled = SplitEnabled
+		mnuTabs.Item("SplitRight")->Enabled = SplitEnabled
+	End With
+End Sub
+
+Sub tabCode_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	MoveCloseButtons Cast(TabControl Ptr, @Sender)
+End Sub
+
+Sub tabPanel_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	With *Cast(TabPanel Ptr, @Sender)
+		For i As Integer = 0 To .ControlCount - 1
+			If *.Controls[i] Is TabPanel Then
+				If .Controls[i]->Align = DockStyle.alLeft OrElse .Controls[i]->Align = DockStyle.alRight Then
+					.Controls[i]->Width = .Controls[i]->Width * NewWidth / .OldWidth 
+				ElseIf .Controls[i]->Align = DockStyle.alTop OrElse .Controls[i]->Align = DockStyle.alBottom Then
+					.Controls[i]->Height = .Controls[i]->Height * NewHeight / .OldHeight
+				End If
+			End If
+		Next
+		.RequestAlign
+		.OldWidth = NewWidth
+		.Oldheight = NewHeight
+	End With
+End Sub
+
+Constructor TabPanel
+	tabCode.Images = @imgList
+	tabCode.Align = DockStyle.alClient
+	tabCode.Reorderable = True
+	tabCode.OnPaint = @tabCode_Paint
+	tabCode.OnSelChange = @tabCode_SelChange
+	tabCode.OnMouseUp = @tabCode_MouseUp
+	tabCode.ContextMenu = @mnuTabs
+	This.OldWidth = This.Width
+	This.OldHeight = This.Height
+	This.OnResize = @tabPanel_Resize
+	This.Add @tabCode
+End Constructor
+
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
 	WLet(FCaption, "")
 	WLet(FFileName, "")
@@ -5263,6 +5329,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnSelChange = @OnSelChangeEdit
 	txtCode.OnLinkClicked = @OnLinkClickedEdit
 	txtCode.OnToolTipLinkClicked = @OnToolTipLinkClickedEdit
+	txtCode.OnGotFocus = @OnGotFocusEdit
 	txtCode.OnKeyDown = @OnKeyDownEdit
 	txtCode.OnKeyPress = @OnKeyPressEdit
 	txtCode.OnSplitHorizontallyChange = @OnSplitHorizontallyChangeEdit
