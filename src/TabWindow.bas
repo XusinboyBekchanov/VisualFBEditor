@@ -5271,14 +5271,16 @@ End Sub
 Sub tabCode_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 1 Then Exit Sub
 	With *Cast(TabControl Ptr, @Sender)
-		If .SelectedTab = 0 Then Exit Sub
-		Dim tn As TreeNode Ptr = Cast(TabWindow Ptr, .SelectedTab)->tn
+		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, .SelectedTab)
+		If tb = 0 Then Exit Sub
+		Dim tn As TreeNode Ptr = tb->tn
 		If tn = 0 Then Exit Sub
 		If tn->ParentNode <> 0 Then
 			miTabSetAsMain->Caption = ML("Set as Main")
 		Else
 			miTabSetAsMain->Caption = ML("Set as Start Up")
 		End If
+		miTabReloadHistoryCode->Enabled = tb->FileName <> "" AndAlso tb->FileName <> ML("Untitled")
 		Var SplitEnabled = .TabCount > 1
 		mnuTabs.Item("SplitUp")->Enabled = SplitEnabled
 		mnuTabs.Item("SplitDown")->Enabled = SplitEnabled

@@ -6,32 +6,32 @@
 '#########################################################
 '#define __USE_GTK__
 
-#include Once "Main.bi"
-#include Once "mff/Dialogs.bi"
-#include Once "mff/Form.bi"
-#include Once "mff/TextBox.bi"
-#include Once "mff/RichTextBox.bi"
-#include Once "mff/TabControl.bi"
-#include Once "mff/StatusBar.bi"
-#include Once "mff/Splitter.bi"
-#include Once "mff/ToolBar.bi"
-#include Once "mff/ListControl.bi"
-#include Once "mff/CheckBox.bi"
-#include Once "mff/ComboBoxEdit.bi"
-#include Once "mff/ComboBoxEx.bi"
-#include Once "mff/RadioButton.bi"
-#include Once "mff/ProgressBar.bi"
-#include Once "mff/ScrollBarControl.bi"
-#include Once "mff/Label.bi"
-#include Once "mff/Panel.bi"
-#include Once "mff/TrackBar.bi"
-#include Once "mff/Clipboard.bi"
-#include Once "mff/TreeView.bi"
-#include Once "mff/TreeListView.bi"
-#include Once "mff/IniFile.bi"
-#include Once "mff/PointerList.bi"
-#include Once "mff/ReBar.bi"
-#include Once "vbcompat.bi"
+#include once "Main.bi"
+#include once "mff/Dialogs.bi"
+#include once "mff/Form.bi"
+#include once "mff/TextBox.bi"
+#include once "mff/RichTextBox.bi"
+#include once "mff/TabControl.bi"
+#include once "mff/StatusBar.bi"
+#include once "mff/Splitter.bi"
+#include once "mff/ToolBar.bi"
+#include once "mff/ListControl.bi"
+#include once "mff/CheckBox.bi"
+#include once "mff/ComboBoxEdit.bi"
+#include once "mff/ComboBoxEx.bi"
+#include once "mff/RadioButton.bi"
+#include once "mff/ProgressBar.bi"
+#include once "mff/ScrollBarControl.bi"
+#include once "mff/Label.bi"
+#include once "mff/Panel.bi"
+#include once "mff/TrackBar.bi"
+#include once "mff/Clipboard.bi"
+#include once "mff/TreeView.bi"
+#include once "mff/TreeListView.bi"
+#include once "mff/IniFile.bi"
+#include once "mff/PointerList.bi"
+#include once "mff/ReBar.bi"
+#include once "vbcompat.bi"
 
 Using My.Sys.Forms
 Using My.Sys.Drawing
@@ -2375,11 +2375,12 @@ End Sub
 Sub ReloadHistoryCode()
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
-	tb->txtCode.Modified = True
-	tb->Save
+	If tb->txtCode.Modified Then
+		tb->Save
+	End If
 	Dim As OpenFileDialog OpenD
-	OpenD.InitialDir = ExePath & "/Temp" 'TODO Not working ?
-	OpenD.Filter = ML("Backup Files") & "(*.bak)|" & getFilename(tb->FileName) & "*.bak|" & ML("All Files") & "|*.*|"
+	OpenD.InitialDir = ExePath & Slash & "Temp"
+	OpenD.Filter = ML("Backup Files") & " (*.bak)|" & getFilename(tb->FileName) & "*.bak|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute AndAlso Trim(OpenD.FileName) <> "" Then
 		tb->txtCode.Changing "Reload"
 		tb->txtCode.LoadFromFile(OpenD.FileName, tb->FileEncoding, tb->NewLineType)
