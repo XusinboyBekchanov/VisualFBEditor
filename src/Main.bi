@@ -72,6 +72,9 @@ End Type
 Common Shared As HelpOptions HelpOption
 
 Declare Function ML(ByRef msg As WString) ByRef As WString
+Declare Function MP(ByRef V As WString) ByRef As WString
+Declare Function MLCompilerFun(ByRef V As WString) ByRef As WString
+Declare Function MC(ByRef V As WString) ByRef As WString
 Declare Sub PopupClick(ByRef Sender As My.Sys.Object)
 Declare Sub mClick(Sender As My.Sys.Object)
 Declare Sub mClickMRU(Sender As My.Sys.Object)
@@ -102,7 +105,7 @@ Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf8BOM, miUtf16BOM, miUtf3
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
 Common Shared As Boolean AutoCreateRC
-Common Shared As Boolean AutoCreateBakFiles
+Common Shared As Boolean AutoCreateBakFiles, gLocalProperties
 Common Shared As Boolean AddRelativePathsToRecent
 Common Shared As Boolean UseMakeOnStartWithCompile
 Common Shared As Boolean CreateNonStaticEventHandlers, CreateFormTypesWithoutTypeWord

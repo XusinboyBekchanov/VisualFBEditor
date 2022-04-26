@@ -5789,23 +5789,23 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		Pos2 = InStrRev(sLine, ",")
 		If Pos2 < 1 Then Pos2 = Len(sLine)
 		If InStr(Mid(sLine, Pos2),", found") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found"))))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found"))))
 		ElseIf InStr(Mid(sLine, Pos2),", before") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before"))))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before"))))
 		ElseIf InStr(Mid(sLine, Pos2),", after") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("after") + (Mid(sLine, Pos2 + Len(", after"))))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("after") + (Mid(sLine, Pos2 + Len(", after"))))
 		ElseIf InStr(Mid(sLine, Pos2),", exiting") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("Exit") + (Mid(sLine, Pos2 + Len(", exiting"))))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("Exit") + (Mid(sLine, Pos2 + Len(", exiting"))))
 		ElseIf InStr(Mid(sLine, Pos2),", at parameter") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("at parameter") + (Mid(sLine, Pos2 + Len(", at parameter"))))
+			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("at parameter") + (Mid(sLine, Pos2 + Len(", at parameter"))))
 			'at parameter
 		Else
 			If Pos2 > Pos3 Then
 				Dim As WString * 250 tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3))
 				If Right(tStr, 1) = "," Then tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1)) 'Strange. Sometime got letter ","
-				WLet(ErrTitle, ML(bFlagErr) + ": " + ML(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 2)), "")) '& Mid(sLine, Pos2+1)
+				WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 2)), "")) '& Mid(sLine, Pos2+1)
 			Else
-				WLet(ErrTitle, ML(bFlagErr) + ": " + ML(Trim(Mid(sLine, POS3+1))))
+				WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1))))
 			End If
 		End If
 	Else
@@ -6840,7 +6840,7 @@ Sub RunPr(Debugger As String = "")
 			Exit Sub
 		End If
 		If Not FileExists(*Project->FileName & "/app/build.gradle") Then
-			ShowMessages ML(ML("File ") & *Project->FileName & "/app/build.gradle" & ML(" not found!"))
+			ShowMessages ML("File") & " " & *Project->FileName & "/app/build.gradle " & ML("not found") & "!"
 			Exit Sub
 		End If
 		Fn = FreeFile_

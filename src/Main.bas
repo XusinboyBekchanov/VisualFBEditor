@@ -44,6 +44,11 @@ Using My.Sys.Drawing
 #include once "frmSplash.bi"
 pfSplash->MainForm = False
 pfSplash->Show
+#ifdef __FB_64BIT__
+	pfSplash->lblSplash1.Text = "(" & ML("Version") & " " & pApp->Version & "  " & ML("64-bit") & ")"
+#else
+	pfSplash->lblSplash1.Text = "(" & ML("Version") & " " & pApp->Version & "  " & ML("32-bit") & ")"
+#endif
 pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
@@ -71,9 +76,9 @@ Dim Shared As ReBar ReBar1
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, mlKeys, mlTexts, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
-Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors
+Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
@@ -196,15 +201,67 @@ End Namespace
 
 Function ML(ByRef V As WString) ByRef As WString
 	If LCase(CurLanguage) = "english" Then Return V
-	Dim As Integer tIndex = mlKeys.IndexOf(V) ' For improve the speed
-	If tIndex >= 0 Then  '
-		If mlTexts.Item(tIndex) <> "" Then Return mlTexts.Item(tIndex)
+	Dim As Integer tIndex = mlKeys.IndexOfKey(V) ' For improve the speed
+	If tIndex >= 0 Then
+		Return  mlKeys.Item(tIndex)->Text
 	Else
-		tIndex = mlKeys.IndexOf(Replace(V, "&", "")) '
-		If mlTexts.Item(tIndex) <> "" Then Return mlTexts.Item(tIndex)
+		tIndex = mlKeys.IndexOfKey(Replace(V, "&", "")) '
+		If tIndex >= 0 Then Return mlKeys.Item(tIndex)->Text Else Return V
+	End If
+End Function
+
+Function MLCompilerFun(ByRef V As WString) ByRef As WString
+	If LCase(CurLanguage) = "english" Then Return V
+	Dim As Integer tIndex = MLCompiler.IndexOfKey(V) ' For improve the speed
+	If tIndex >= 0 Then Return MLCompiler.Item(tIndex)->Text Else Return V
+End Function
+
+'David Change For the comment of control's Properties
+Function MC(ByRef V As WString) ByRef As WString
+	If (Not gLocalProperties) OrElse LCase(CurLanguage) = "english" Then Return V
+	Dim As WString * 100 TempV = ""
+	Dim As Integer Posi = InStrRev(V, ".")
+	TempV = IIf(Posi > 0, Mid(V, posi + 1), V)
+	Dim As Integer tIndex = mcKeys.IndexOfKey(TempV) 'David Changed
+	If tIndex >= 0 Then Return mcKeys.Item(tIndex)->Text
+	Return V
+End Function
+
+Function MP(ByRef V As WString) ByRef As WString
+	If (Not gLocalProperties) OrElse LCase(CurLanguage) = "english" Then Return V
+	Dim As Integer tIndex = -1, tIndex2 = -1
+	If InStr(v,".") Then
+		Static As WString*50 TempWstr =""
+		Dim As UString LineParts(Any)
+		Split(V, ".", LineParts())
+		For k As Integer = 0 To UBound(LineParts)
+			tIndex = mpKeys.IndexOfkey(LineParts(k))
+			If tIndex >=0 Then
+				If k=0 Then
+					TempWstr = mpKeys.Item(tIndex)->Text
+				Else
+					TempWstr &= "." & mpKeys.Item(tIndex)->Text
+				End If
+			Else
+				If k=0 Then
+					TempWstr = LineParts(k)
+				Else
+					TempWstr &= "." & LineParts(k)
+				End If
+			End If
+		Next
+		Return TempWstr
+	Else
+		tIndex = mpKeys.IndexOfKey(V)
+		If tIndex >=0 Then
+			Return mpKeys.Item(tIndex)->Text
+		Else
+			Return V
+		End If
 	End If
 	Return V
 End Function
+
 
 Sub ToolGroupsToCursor()
 	tbToolBox.Groups.Item(0)->Buttons.Item(0)->Checked = True
@@ -228,7 +285,7 @@ Sub SelectError(ByRef FileName As WString, iLine As Integer, tabw As TabWindow P
 		tb = AddTab(FileName)
 	End If
 	tb->txtCode.SetSelection iLine - 1, iLine - 1, 0, tb->txtCode.LineLength(iLine - 1)
-	If tb->tbrTop.Buttons.Item("Form")->Checked = True Then tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")								
+	If tb->tbrTop.Buttons.Item("Form")->Checked = True Then tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 End Sub
 
 Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
@@ -922,7 +979,7 @@ Sub CreateKeyStore
 		Dim As TreeNode Ptr ProjectNode
 		Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
 		If Project = 0 Then
-			ShowMessages ML(ML("Project not found!"))
+			ShowMessages ML("Project not found!")
 			Exit Sub
 		End If
 		If Not FileExists(*Project->FileName & "/gradle.properties") Then
@@ -949,7 +1006,7 @@ Sub CreateKeyStore
 			Exit Sub
 		End If
 		If Not FileExists(JavaHome & "/bin/keytool.exe") Then
-			ShowMessages ML(ML("File") & " " & JavaHome & "/bin/keytool.exe " & ML("not found!"))
+			ShowMessages ML("File") & " " & JavaHome & "/bin/keytool.exe " & ML("not found") & "!"
 			Exit Sub
 		End If
 		Dim As Integer pClass, Result
@@ -991,7 +1048,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 		Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
 		If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
 		Else
-			ShowMessages ML(ML("File ") & "local.properties" & ML(" not found!"))
+			ShowMessages ML("File") & " local.properties " & ML("not found") & "!"
 			Exit Sub
 		End If
 		Dim As Integer Fn = FreeFile_
@@ -1014,7 +1071,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 			Exit Sub
 		End If
 		If Not FileExists(*Project->FileName & "/app/build.gradle") Then
-			ShowMessages ML(ML("File ") & *Project->FileName & "/app/build.gradle" & ML(" not found!"))
+			ShowMessages ML("File ") & *Project->FileName & "/app/build.gradle " & ML("not found") & "!"
 			Exit Sub
 		End If
 		Fn = FreeFile_
@@ -1036,7 +1093,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 		End If
 		If Parameter = "apk" Then
 			If Not FileExists(*Project->FileName & "/app/build/outputs/apk/release/app-release-unsigned.apk") Then
-				ShowMessages ML(ML("File ") & *Project->FileName & "/app/build/outputs/apk/release/app-release-unsigned.apk" & ML(" not found! You need to compile without debug."))
+				ShowMessages ML("File ") & *Project->FileName & "/app/build/outputs/apk/release/app-release-unsigned.apk " & ML("not found") & "!" & ML("You need to compile without debug.")
 				Exit Sub
 			End If
 			ChDir(*Project->FileName & "/app/build/outputs/apk/release")
@@ -1078,7 +1135,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 				ShowMessages(Time & ": " & ML("Signed APK file generated") & "!")
 			Else
 				Result = GetLastError()
-				ShowMessages(Time & ": " & ML("apksigner do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
+				ShowMessages(Time & ": " & ML("APK signer do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
 			End If
 			WDeallocate CmdL
 		Else
@@ -3772,39 +3829,54 @@ Sub LoadHelp
 		parSeeAlso
 	End Enum
 	Dim As Integer Fn = FreeFile_
-	WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt")
-	If Open(*KeywordsHelpPath For Input As #Fn) = 0 Then
+	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt") = "" Then
+		WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt")
+	Else
+		WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt")
+	End If
+	Dim As Integer Result = -1
+	Result = Open(*KeywordsHelpPath For Input Encoding "utf-8" As #Fn)
+	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input Encoding "utf-16" As #Fn)
+	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input Encoding "utf-32" As #Fn)
+	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input As #Fn)
+	If Result = 0 Then
 		Dim As TypeElement Ptr te, te1
-		Dim As String Buff, StartBuff, bTrim
-		Dim As Boolean bStart, bStartEnd, bDescriptionEnd
+		Dim As WString * 1024 Buff, StartBuff, bTrim
+		Dim As Boolean bStart, bStartEnd, bDescriptionStart, bDescriptionEnd, bReturnValueStart
 		Dim As Paragraph Parag
-		Dim As Integer Pos1, LineNumber
+		Dim As Integer Pos2, Pos1, LineNumber
 		Do Until EOF(Fn)
 			LineNumber += 1
 			Line Input #Fn, Buff
 			If StartsWith(Buff, "---") Then
-				bStart = True
+				bStart = True : bDescriptionStart = False : bReturnValueStart = False
 				Parag = parStart
-			ElseIf Buff = "Syntax" Then
+			ElseIf Buff = "Syntax" OrElse Buff = ML("Syntax") Then
 				Parag = parSyntax
-			ElseIf Buff = "Usage" Then
+			ElseIf Buff = "Usage" OrElse Buff = ML("Usage") Then
 				Parag = parUsage
-			ElseIf Buff = "Parameters" Then
+			ElseIf Buff = "Parameters" OrElse Buff = ML("Parameters") Then
 				Parag = parParameters
-			ElseIf Buff = "Return Value" Then
-				Parag = parReturnValue
-			ElseIf Buff = "Description" Then
-				Parag = parDescription
-			ElseIf Buff = "Example" Then
+			ElseIf Buff = "Return Value" OrElse Buff = ML("Return Value") Then
+				Parag = parReturnValue: bReturnValueStart = True
+			ElseIf Buff = "Description" OrElse Buff = ML("Description") Then
+				Parag = parDescription : bDescriptionStart = True
+			ElseIf Buff = "Example" OrElse Buff = ML("Example") Then
 				Parag = parExample
-			ElseIf Buff = "Differences from QB" Then
+			ElseIf Buff = "Differences from QB" OrElse Buff = ML("Differences from QB") Then
 				Parag = parDifferencesFromQB
-			ElseIf Buff = "See also" Then
+			ElseIf Buff = "See also" OrElse Buff = ML("See also") Then
 				Parag = parSeeAlso
 			Else
 				If bStart Then
-					StartBuff = Buff
+					If te <> 0 AndAlso bDescriptionEnd = False Then  ' the last one not add ending
+						te->Comment &= " " & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
+						bDescriptionEnd = True
+					End If
 					bTrim = Trim(Buff)
+					Pos2 = InStr(bTrim, "   ")  ' For good understanding, KeyWords + "   " + Local
+					If Pos2 > 0 Then bTrim = Trim(Left(bTrim, Pos2))
+					StartBuff = bTrim
 					If StartsWith(bTrim, "Operator ") Then bTrim = Trim(Mid(bTrim, 10))
 					Pos1 = InStr(bTrim, " ")
 					If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
@@ -3814,12 +3886,15 @@ Sub LoadHelp
 					If Pos1 = 1 Then bTrim = Mid(bTrim, Pos1 + 1) Else If Pos1 > 1 Then bTrim = Left(bTrim, Pos1 - 1)
 					te = New_( TypeElement)
 					te->Name = bTrim
-					te->DisplayName = te->Name
+					te->DisplayName = Trim(Buff)
 					te->ElementType = "Keyword"
 					te->FileName = *KeywordsHelpPath
 					GlobalFunctions.Add te->Name, te
 					bStartEnd = False
 					bDescriptionEnd = False
+					te->Comment = Buff & !"\r"
+					'DebugPrint  "te->Name " & te->Name, , False, False
+					'Print te->Name
 				ElseIf Parag = parStart Then
 					If Buff <> "" AndAlso te <> 0 Then
 						If te->Comment = "" Then
@@ -3827,13 +3902,14 @@ Sub LoadHelp
 						Else
 							te->Comment &= " " & Buff
 						End If
+						'DebugPrint  "te->Comment " & te->Comment, , False, False
 					End If
 				ElseIf Parag = parSyntax Then
 					If Not bStartEnd Then
 						If te <> 0 AndAlso Not EndsWith(te->Comment, ".") Then te->Comment &= "."
 						bStartEnd = True
 					End If
-					If te <> 0 Then
+					If te <> 0 AndAlso Trim(Buff) <> "" Then
 						If StartsWith(Trim(Buff), "Declare ") AndAlso te->Name <> "Declare" Then
 							bTrim = LTrim(Mid(LTrim(Buff), 9))
 							If StartsWith(bTrim, "Function ") Then
@@ -3856,22 +3932,29 @@ Sub LoadHelp
 						End If
 					End If
 				ElseIf Parag = parUsage Then
-					
+					'If Buff <> "" AndAlso te <> 0 Then te->Comment &= !"\r" & Trim(Buff)
 				ElseIf Parag = parParameters Then
-					
+					'If Buff <> "" AndAlso te <> 0 Then te->Comment &= !"\r" & Trim(Buff)
 				ElseIf Parag = parReturnValue Then
-					
+					If Buff <> "" AndAlso te <> 0 Then
+						If bReturnValueStart Then
+							te->Comment &= !"\r" & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("Return Value") & !"</a>\r"  & Trim(Buff)
+						Else
+							te->Comment &= !"\r" & Trim(Buff)
+							bReturnValueStart = False
+						End If
+					End If
 				ElseIf Parag = parDescription Then
 					If Not bDescriptionEnd Then
-						Pos1 = InStr(Buff, ".")
-						If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ".")
+						Pos1 = InStr(Buff, ML("."))  'you must add "." to your language file for good local showing
+						If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ML("."))
 						If Pos1 > 0 Then
 							Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
 							bDescriptionEnd = True
 						End If
 						If Buff <> "" AndAlso te <> 0 Then
-							If te->Comment = "" Then
-								te->Comment = Trim(Buff)
+							If bDescriptionEnd  Then
+								te->Comment &=  !"\r" & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("Description") & !"</a>\r"  & Trim(Buff)
 							Else
 								te->Comment &= " " & Trim(Buff)
 							End If
@@ -4295,15 +4378,16 @@ End Sub
 Sub LoadLanguageTexts
 	iniSettings.Load SettingsPath
 	CurLanguage = iniSettings.ReadString("Options", "Language", "english")
-	
+	Dim As Boolean StartGeneral = True, StartKeyWords, StartProperty, StartCompiler, StartTemplates
 	If CurLanguage = "" Then
-		mlKeys.Add "#Til"
-		mlTexts.Add "english"
-		CurLanguage = "english"
+		mpKeys.Add "#Til", "English"
+		mlKeys.Add "#Til", "English"
+		mlCompiler.Add "#Til", "English"
+		CurLanguage = "English"
 	Else
-		Dim As Integer i, Pos1
+		Dim As Integer i, Pos1, Pos2
 		Dim As Integer Fn = FreeFile_, Result
-		Dim Buff As WString * 2048 '
+		Dim As WString * 2048 Buff, tKey
 		Dim As UString FileName = ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
@@ -4312,15 +4396,86 @@ Sub LoadLanguageTexts
 		If Result = 0 Then
 			Do Until EOF(Fn)
 				Line Input #Fn, Buff
+				If LCase(Trim(Buff)) = "[keywords]" Then
+					StartKeyWords = True
+					StartProperty = False
+					StartCompiler = False
+					Starttemplates = False
+					StartGeneral = False
+				ElseIf LCase(Trim(Buff)) = "[property]" Then
+					StartKeyWords = False
+					StartProperty = True
+					StartCompiler = False
+					Starttemplates = False
+					StartGeneral = False
+				ElseIf LCase(Trim(Buff)) = "[compiler]" Then
+					StartKeyWords = False
+					StartProperty = False
+					StartCompiler = True
+					Starttemplates = False
+					StartGeneral = False
+				ElseIf LCase(Trim(Buff)) = "[templates]" Then
+					StartKeyWords = False
+					StartProperty = False
+					StartCompiler = False
+					Starttemplates = True
+					StartGeneral = False
+				ElseIf LCase(Trim(Buff)) = "[general]" Then
+					StartKeyWords = False
+					StartProperty = False
+					StartCompiler = False
+					Starttemplates = False
+					StartGeneral = True
+				End If
 				Pos1 = InStr(Buff, "=")
-				If Pos1 > 0 Then
-					mlKeys.Add Trim(Left(Buff, Pos1 - 1), " ")
-					mlTexts.Add Trim(Mid(Buff, Pos1 + 1), " ")
+				If Len(Trim(Buff, Any !"\t ")) > 0 AndAlso Pos1 > 0 Then
+					Pos2 = InStr(Pos1, Buff, "|")
+					'David Change For the Control Property's Language.
+					'note: "=" already convert To "~"
+					tKey = Trim(Mid(Buff, 1, Pos1 - 1), Any !"\t ")
+					If InStr(Buff, "~") < Pos1 Then Buff = Replace(Buff, "~", "=")
+					If StartGeneral = True Then
+						If Trim(Mid(Buff, Pos1 + 1), Any !"\t ") <> "" Then mlKeys.Add Trim(Left(Buff, Pos1 - 1), Any !"\t "), Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					ElseIf StartProperty = True Then
+						If Pos2 > 0 Then
+							mpKeys.Add tKey, Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), Any !"\t ")
+							If Len(Buff) - Pos2 <= 1 Then
+								mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & "  " & Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1)   ' No comment
+							Else
+								mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & "  " & Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1) & Chr(13, 10) & Mid(Buff, Pos2 + 1, Len(Buff) - Pos2)
+							End If
+						Else
+							mpKeys.Add tKey, Trim(Mid(Buff, Pos1 + 1, Len(Buff) - Pos2), Any !"\t ")
+							mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & "  " & Mid(Buff, Pos1 + 1, Len(Buff) - Pos2)
+						End If
+					ElseIf StartKeyWords = True Then
+						
+					ElseIf StartCompiler = True Then
+						mlCompiler.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					ElseIf StartTemplates = True Then
+						mlTemplates.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					End If
 				End If
 			Loop
 			CloseFile_(Fn)
+			mlKeys.SortKeys
+			mpKeys.SortKeys
+			mlCompiler.SortKeys
+			mlTemplates.SortKeys
+			Exit Sub
+		Else
+			MsgBox ML("Open file failure!") &  " " & Chr(13, 10) & ML("in function") & " Main.LoadLanguageTexts" & Chr(13, 10) & "  " & ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
 		End If
 	End If
+	mlKeys.Clear
+	mcKeys.Clear
+	mpKeys.Clear
+	
+	mlCompiler.Clear
+	mpKeys.Add "#Til", "English"
+	mlKeys.Add "#Til", "English"
+	mlCompiler.Add "#Til", "English"
+	CurLanguage = "English"
 End Sub
 
 Sub LoadHotKeys
@@ -4902,8 +5057,8 @@ Sub CreateMenusAndToolBars
 	miAdd->Add(ML("Add &User Control"), "UserControl", "AddUserControl", @mclick)
 	miAdd->Add(ML("Add &Resource File"), "Resource", "AddResourceFile", @mclick)
 	miAdd->Add(ML("Add Ma&nifest File"), "File", "AddManifestFile", @mclick)
-	miAdd->Add(ML("Add From &Templates ..."), "", "AddFromTemplates", @mclick)
-	miAdd->Add(ML("Add &Files ..."), "", "AddFilesToProject", @mclick)
+	miAdd->Add(ML("Add From Templates") & "...", "", "AddFromTemplates", @mclick)
+	miAdd->Add(ML("Add Files") & "...", "", "AddFilesToProject", @mclick)
 	miRemoveFiles = mnuExplorer.Add(ML("&Remove"), "Remove", "RemoveFileFromProject", @mclick)
 	mnuExplorer.Add("-")
 	mnuExplorer.Add(ML("Open Project Folder"), "", "OpenProjectFolder", @mclick)
@@ -5727,7 +5882,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		#ifdef __USE_GTK__
 			bNotChange = True
 		#endif
-		cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
+		cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Trim(Item->Text(1)))
 	ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(GlobalEnums.Contains(te->EnumTypeName)) Then
 		'CtrlEdit = @pnlPropertyValue
 		cboPropertyValue.Visible = True
@@ -5735,7 +5890,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		Var tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->EnumTypeName)))
 		If tbi Then
 			For i As Integer = 0 To tbi->Elements.Count - 1
-				cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
+				cboPropertyValue.AddItem " " & i & " - " & MP(tbi->Elements.Item(i))
 			Next i
 			If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
 				#ifdef __USE_GTK__
@@ -5777,7 +5932,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 			cboPropertyValue.Visible = True
 			cboPropertyValue.Clear
 			For i As Integer = 0 To tbi->Elements.Count - 1
-				cboPropertyValue.AddItem " " & i & " - " & tbi->Elements.Item(i)
+				cboPropertyValue.AddItem " " & i & " - " & MP(tbi->Elements.Item(i))
 			Next i
 			If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
 				#ifdef __USE_GTK__
@@ -5817,23 +5972,23 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	'CtrlEdit->Visible = True
 	pnlPropertyValue.Visible = True
 	'#endif
-	If te->Comment <> 0 Then
-		txtLabelProperty.Text = te->Comment
-	Else
-		txtLabelProperty.Text = ""
-	End If
+	'If te->Comment <> 0 Then
+	txtLabelProperty.Text = MC(GetItemText(Item)) 'te->Comment
+	'Else
+	'	txtLabelProperty.Text = ""
+	'End If
 End Sub
 
 Sub lvEvents_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
 	Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), GetItemText(Item))
-	If te = 0 Then Exit Sub
-	If te->Comment <> 0 Then
-		txtLabelEvent.Text = te->Comment
-	Else
-		txtLabelEvent.Text = ""
-	End If
+	'If te = 0 Then Exit Sub
+	'If te->Comment <> 0 Then
+	txtLabelEvent.Text = MC(Item->Text(0)) 'te->Comment
+	'Else
+	'	txtLabelEvent.Text = ""
+	'End If
 End Sub
 
 'Sub lvProperties_ItemDblClick(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
@@ -7333,7 +7488,7 @@ Sub frmMain_Show(ByRef Sender As Control)
 	'		End Select
 	'	End If
 	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
-	
+	gLocalProperties = True
 End Sub
 
 #ifndef __USE_GTK__
