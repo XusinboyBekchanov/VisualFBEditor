@@ -6,32 +6,32 @@
 '#########################################################
 '#define __USE_GTK__
 
-#include once "Main.bi"
-#include once "mff/Dialogs.bi"
-#include once "mff/Form.bi"
-#include once "mff/TextBox.bi"
-#include once "mff/RichTextBox.bi"
-#include once "mff/TabControl.bi"
-#include once "mff/StatusBar.bi"
-#include once "mff/Splitter.bi"
-#include once "mff/ToolBar.bi"
-#include once "mff/ListControl.bi"
-#include once "mff/CheckBox.bi"
-#include once "mff/ComboBoxEdit.bi"
-#include once "mff/ComboBoxEx.bi"
-#include once "mff/RadioButton.bi"
-#include once "mff/ProgressBar.bi"
-#include once "mff/ScrollBarControl.bi"
-#include once "mff/Label.bi"
-#include once "mff/Panel.bi"
-#include once "mff/TrackBar.bi"
-#include once "mff/Clipboard.bi"
-#include once "mff/TreeView.bi"
-#include once "mff/TreeListView.bi"
-#include once "mff/IniFile.bi"
-#include once "mff/PointerList.bi"
-#include once "mff/ReBar.bi"
-#include once "vbcompat.bi"
+#include Once "Main.bi"
+#include Once "mff/Dialogs.bi"
+#include Once "mff/Form.bi"
+#include Once "mff/TextBox.bi"
+#include Once "mff/RichTextBox.bi"
+#include Once "mff/TabControl.bi"
+#include Once "mff/StatusBar.bi"
+#include Once "mff/Splitter.bi"
+#include Once "mff/ToolBar.bi"
+#include Once "mff/ListControl.bi"
+#include Once "mff/CheckBox.bi"
+#include Once "mff/ComboBoxEdit.bi"
+#include Once "mff/ComboBoxEx.bi"
+#include Once "mff/RadioButton.bi"
+#include Once "mff/ProgressBar.bi"
+#include Once "mff/ScrollBarControl.bi"
+#include Once "mff/Label.bi"
+#include Once "mff/Panel.bi"
+#include Once "mff/TrackBar.bi"
+#include Once "mff/Clipboard.bi"
+#include Once "mff/TreeView.bi"
+#include Once "mff/TreeListView.bi"
+#include Once "mff/IniFile.bi"
+#include Once "mff/PointerList.bi"
+#include Once "mff/ReBar.bi"
+#include Once "vbcompat.bi"
 
 Using My.Sys.Forms
 Using My.Sys.Drawing
@@ -218,7 +218,7 @@ End Function
 
 'David Change For the comment of control's Properties
 Function MC(ByRef V As WString) ByRef As WString
-	If (Not gLocalProperties) OrElse LCase(CurLanguage) = "english" Then Return V
+	If (Not gLocalProperties) Then Return V
 	Dim As WString * 100 TempV = ""
 	Dim As Integer Posi = InStrRev(V, ".")
 	TempV = IIf(Posi > 0, Mid(V, posi + 1), V)
