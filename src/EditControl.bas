@@ -2033,7 +2033,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.FontSettings()
-		Canvas.Font = This.Font
+		This.Canvas.Font = This.Font
 		WLet(CurrentFontName, *EditorFontName)
 		CurrentFontSize = EditorFontSize
 		#ifndef __USE_GTK__
@@ -4783,7 +4783,7 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			This.RegisterClass "EditControl", ""
 		#endif
-		Canvas.Ctrl = @This
+		This.Canvas.Ctrl = @This
 		crRArrow.LoadFromResourceName("Select")
 		crHand_.LoadFromResourceName("Hand")
 		crScroll.LoadFromResourceName("Scroll")
