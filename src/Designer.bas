@@ -1388,7 +1388,7 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To FChilds.Count - 1
 				SetProp(FChilds.Child[i], "@@@Designer", This)
 				'SetWindowLongPtr(FChilds.Child[i], GWLP_USERDATA, CInt(GetControl(Control)))
-				SetProp(FChilds.Child[i], "MFFControl", GetControl(Control))
+				If GetProp(FChilds.Child[i], "MFFControl") = 0 Then SetProp(FChilds.Child[i], "MFFControl", GetControl(Control))
 				If GetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC) <> @HookChildProc Then
 					SetProp(FChilds.Child[i], "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC, CInt(@HookChildProc))))
 				End If
@@ -1978,7 +1978,7 @@ Namespace My.Sys.Forms
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
+						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF, GetProp(hDlg, "MFFControl"))
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
