@@ -227,19 +227,25 @@ End Sub
 
 Function GetTab(ByRef FileName As WString) As TabWindow Ptr
 	Dim As TabWindow Ptr tb
-	For i As Integer = 0 To ptabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-		If EqualPaths(tb->FileName, FileName) Then Return tb
-	Next i
+	For j As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			If EqualPaths(tb->FileName, FileName) Then Return tb
+		Next i
+	Next j
 	Return 0
 End Function
 
 Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 	Dim As TabWindow Ptr tb
-	For i As Integer = 0 To ptabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-		If tb->tn = tn Then Return tb
-	Next i
+	For j As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			If tb->tn = tn Then Return tb
+		Next i
+	Next j
 	Return 0
 End Function
 
@@ -6264,15 +6270,18 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 				MsgBox ML("Project Main File don't set")
 			End If
 		ElseIf ee = 0 OrElse ee->FileName = 0 OrElse *ee->FileName = "" Then
-			For i As Integer = 0 To pTabCode->TabCount - 1
-				tb = Cast(TabWindow Ptr, pTabCode->Tabs[i])
-				If tb AndAlso tb->tn = Node Then
-					If bSaveTab Then
-						If tb->Modified Then tb->Save
+			For j As Integer = 0 To TabPanels.Count - 1
+				Var ptabCode = @Cast(tabPanel Ptr, tabPanels.Item(j))->tabCode
+				For i As Integer = 0 To pTabCode->TabCount - 1
+					tb = Cast(TabWindow Ptr, pTabCode->Tabs[i])
+					If tb AndAlso tb->tn = Node Then
+						If bSaveTab Then
+							If tb->Modified Then tb->Save
+						End If
+						Return tb->FileName
 					End If
-					Return tb->FileName
-				End If
-			Next i
+				Next i
+			Next j
 		Else
 			Return *ee->FileName
 		End If

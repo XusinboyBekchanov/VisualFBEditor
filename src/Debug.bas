@@ -2731,37 +2731,40 @@ Dim Shared exedate As Double 'serial date
 			End If
 		End If
 		Dim f As Boolean, brknumber As UInteger
-		For i As Integer = 0 To ptabCode->TabCount - 1
-			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-			For j As Integer = 0 To sourcenb
-				If EqualPaths(source(j), tb->FileName) Then
-					For s As Integer = 0 To tb->txtCode.FLines.Count - 1
-						If Not (CInt(RunningToCursor AndAlso curtb = tb AndAlso s = FSelEndLine) OrElse CInt(Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[s])->BreakPoint)) Then Continue For
-						For k As Integer = 1 To linenb
-							If rline(k).nu=s+1 AndAlso rline(k).sx=j Then 'searching index in rline Then
-								If RunningToCursor Then
-									brknumber = 0
-									RunningToCursor = False
-								Else
-									If brknb = BRKMAX Then MsgBox ML("Max number of breakpoints reached"): Exit Sub
-									brknb += 1
-									brknumber = brknb
+		For jj As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+				For j As Integer = 0 To sourcenb
+					If EqualPaths(source(j), tb->FileName) Then
+						For s As Integer = 0 To tb->txtCode.FLines.Count - 1
+							If Not (CInt(RunningToCursor AndAlso curtb = tb AndAlso s = FSelEndLine) OrElse CInt(Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[s])->BreakPoint)) Then Continue For
+							For k As Integer = 1 To linenb
+								If rline(k).nu=s+1 AndAlso rline(k).sx=j Then 'searching index in rline Then
+									If RunningToCursor Then
+										brknumber = 0
+										RunningToCursor = False
+									Else
+										If brknb = BRKMAX Then MsgBox ML("Max number of breakpoints reached"): Exit Sub
+										brknb += 1
+										brknumber = brknb
+									End If
+									brkol(brknumber).isrc =j
+									brkol(brknumber).nline=s + 1
+									brkol(brknumber).index=k
+									brkol(brknumber).ad   =rline(k).ad
+									brkol(brknumber).typ  =1
+									'brkol(brknb).cntrsav=cntr
+									'brkol(brknb).counter=cntr
+									'brk_color(brknb)
+									f = True 'flag for managing breakpoint
+									Exit For
 								End If
-								brkol(brknumber).isrc =j
-								brkol(brknumber).nline=s + 1
-								brkol(brknumber).index=k
-								brkol(brknumber).ad   =rline(k).ad
-								brkol(brknumber).typ  =1
-								'brkol(brknb).cntrsav=cntr
-								'brkol(brknb).counter=cntr
-								'brk_color(brknb)
-								f = True 'flag for managing breakpoint
-								Exit For
-							End If
-						Next
-					Next s
-					Exit For
-				End If
+							Next
+						Next s
+						Exit For
+					End If
+				Next
 			Next
 		Next
 	End Sub
@@ -8088,16 +8091,18 @@ Sub run_debug(iFlag As Long)
 			End If
 			
 			Dim As TabWindow Ptr tb
-			For i As Integer = 0 To ptabCode->TabCount - 1
-				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-				For j As Integer = 0 To tb->txtCode.FLines.Count - 1
-					If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
-					
-					Writepipe(!"break """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1) & !"\n")
-					readpipe()
-				Next
-			Next i
-			
+			For jj As Integer = 0 To TabPanels.Count - 1
+				Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+				For i As Integer = 0 To ptabCode->TabCount - 1
+					tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+					For j As Integer = 0 To tb->txtCode.FLines.Count - 1
+						If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
+						
+						Writepipe(!"break """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1) & !"\n")
+						readpipe()
+					Next
+				Next i
+			Next jj
 			'TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 			
 		'#else
@@ -8568,13 +8573,16 @@ Sub RunWithDebug(Param As Any Ptr)
 		Open ExePath & "/Temp/GDBCommands.txt" For Output As #Fn
 		Print #Fn, "file """ & Replace(exename, "\", "/") & """"
 		Dim As TabWindow Ptr tb
-		For i As Integer = 0 To ptabCode->TabCount - 1
-			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-			For j As Integer = 0 To tb->txtCode.FLines.Count - 1
-				If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
-				Print #Fn, "b """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1)
-			Next
-		Next i
+		For jj As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+				For j As Integer = 0 To tb->txtCode.FLines.Count - 1
+					If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
+					Print #Fn, "b """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1)
+				Next
+			Next i
+		Next jj
 		Print #Fn, "r"
 		CloseFile_(Fn)
 		WAdd(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", "") & " -x """ & ExePath & "/Temp/GDBCommands.txt""")

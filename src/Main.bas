@@ -2025,10 +2025,13 @@ End Function
 
 Sub SaveAll()
 	Dim tb As TabWindow Ptr
-	For i As Integer = 0 To ptabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-		If tb->Modified Then tb->Save
-	Next i
+	For j As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			If tb->Modified Then tb->Save
+		Next i
+	Next j
 	For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 		If tvExplorer.Nodes.Item(i)->ImageKey = "Project" Then
 			SaveProject tvExplorer.Nodes.Item(i)
@@ -2057,18 +2060,21 @@ Function SaveAllBeforeCompile() As Boolean
 					.lstFiles.AddItem tn->Text, tn
 				End If
 			Next i
-			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
-				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-				If tb->Modified Then
-					tnP = GetParentNode(tb->tn)
-					Index = .lstFiles.IndexOfData(tnP)
-					If Index <> -1 Then
-						.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
-					Else
-						.lstFiles.AddItem tb->Caption, tb
+			For j As Integer = TabPanels.Count - 1 To 0 Step - 1
+				Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+				For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+					If tb->Modified Then
+						tnP = GetParentNode(tb->tn)
+						Index = .lstFiles.IndexOfData(tnP)
+						If Index <> -1 Then
+							.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
+						Else
+							.lstFiles.AddItem tb->Caption, tb
+						End If
 					End If
-				End If
-			Next i
+				Next i
+			Next j
 			If .lstFiles.ItemCount > 0 Then
 				.lstFiles.SelectAll
 				Select Case .ShowModal(*pfrmMain)
@@ -2112,13 +2118,16 @@ End Sub
 Sub CloseAllTabs(WithoutCurrent As Boolean = False)
 	Dim tb As TabWindow Ptr
 	Dim j As Integer = ptabCode->SelectedTabIndex
-	For i As Long = ptabCode->TabCount - 1 To 0 Step -1
-		If WithoutCurrent Then
-			If i = j Then Continue For
-		End If
-		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-		CloseTab(tb)
-	Next i
+	For jj As Integer = TabPanels.Count - 1 To 0 Step -1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+		For i As Long = ptabCode->TabCount - 1 To 0 Step -1
+			If WithoutCurrent Then
+				If i = j Then Continue For
+			End If
+			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			CloseTab(tb)
+		Next i
+	Next jj
 End Sub
 
 Sub RunHelp(Param As Any Ptr)
@@ -2327,13 +2336,16 @@ Sub RemoveFileFromProject
 	ptn = GetParentNode(tn)
 	If ptn->ImageKey <> "Project" Then ptn = 0
 	Dim tb As TabWindow Ptr
-	For i As Integer = 0 To ptabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-		If tb->tn = tn Then
-			If Not CloseTab(tb) Then Exit Sub
-			Exit For
-		End If
-	Next i
+	For j As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			If tb->tn = tn Then
+				If Not CloseTab(tb) Then Exit Sub
+				Exit For
+			End If
+		Next i
+	Next j
 	If ptn <> 0 Then
 		If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
 	End If
@@ -2519,15 +2531,18 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 		With *pfSave
 			.lstFiles.Clear
 			If bProjectModified Then .lstFiles.AddItem tn->Text, tn
-			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
-				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-				If tb->Modified Then
-					tnP = GetParentNode(tb->tn)
-					If tnP = tn Then
-						.lstFiles.AddItem IIf(bProjectModified, WSpace(2), "") & tb->Caption, tb
+			For j As Integer = TabPanels.Count - 1 To 0 Step -1
+				Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+				For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+					If tb->Modified Then
+						tnP = GetParentNode(tb->tn)
+						If tnP = tn Then
+							.lstFiles.AddItem IIf(bProjectModified, WSpace(2), "") & tb->Caption, tb
+						End If
 					End If
-				End If
-			Next i
+				Next i
+			Next j
 			If .lstFiles.ItemCount > 0 Then
 				Select Case .ShowModal(*pfrmMain)
 				Case ModalResults.Yes
@@ -2548,23 +2563,29 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 	End If
 	For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
 		If tn->Nodes.Item(j)->Nodes.Count = 0 Then
-			For i As Integer = 0 To ptabCode->TabCount - 1
-				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-				If tn->Nodes.Item(j) = tb->tn Then
-					If Not CloseTab(tb, True) Then Return False
-					Exit For
-				End If
-			Next i
-			If tn->Nodes.Item(j)->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Tag))
-		Else
-			For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 '
+			For jj As Integer = 0 To TabPanels.Count - 1
+				Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
 				For i As Integer = 0 To ptabCode->TabCount - 1
 					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-					If tn->Nodes.Item(j)->Nodes.Item(k) = tb->tn Then
+					If tn->Nodes.Item(j) = tb->tn Then
 						If Not CloseTab(tb, True) Then Return False
 						Exit For
 					End If
 				Next i
+			Next jj
+			If tn->Nodes.Item(j)->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Tag))
+		Else
+			For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 '
+				For jj As Integer = 0 To TabPanels.Count - 1
+					Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+					For i As Integer = 0 To ptabCode->TabCount - 1
+						tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+						If tn->Nodes.Item(j)->Nodes.Item(k) = tb->tn Then
+							If Not CloseTab(tb, True) Then Return False
+							Exit For
+						End If
+					Next i
+				Next jj
 				If tn->Nodes.Item(j)->Nodes.Item(k)->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Nodes.Item(k)->Tag))
 			Next k
 		End If
@@ -2625,8 +2646,11 @@ Sub NextBookmark(iTo As Integer = 1)
 End Sub
 
 Sub ClearAllBookmarks
-	For i As Integer = 0 To ptabCode->TabCount -1
-		Cast(TabWindow Ptr, ptabCode->Tabs[i])->txtCode.ClearAllBookmarks
+	For j As Integer = 0 To TabPanels.Count - 1
+		
+		For i As Integer = 0 To ptabCode->TabCount -1
+			Cast(TabWindow Ptr, ptabCode->Tabs[i])->txtCode.ClearAllBookmarks
+		Next
 	Next
 End Sub
 
@@ -2739,13 +2763,16 @@ End Function
 
 Sub ChangeTabsTn(TnPrev As TreeNode Ptr, Tn As TreeNode Ptr)
 	Dim tb As TabWindow Ptr
-	For i As Integer = 0 To ptabCode->TabCount - 1
-		tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-		If tb->tn = TnPrev Then
-			tb->tn = Tn
-			If ptabCode->SelectedTab = ptabCode->Tabs[i] Then Tn->SelectItem
-			Exit For
-		End If
+	For j As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			If tb->tn = TnPrev Then
+				tb->tn = Tn
+				If ptabCode->SelectedTab = ptabCode->Tabs[i] Then Tn->SelectItem
+				Exit For
+			End If
+		Next
 	Next
 End Sub
 
@@ -7517,19 +7544,22 @@ Sub frmMain_ActivateApp(ByRef Sender As Form)
 		If bInActivateApp Then Exit Sub
 		bInActivateApp = True
 		Dim tb As TabWindow Ptr
-		For i As Integer = 0 To ptabCode->TabCount - 1
-			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-			If InStr(tb->FileName, "/") > 0 OrElse InStr(tb->FileName, "\") > 0 Then
-				If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
-					If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
-						tb->txtCode.Changing "Reload"
-						tb->txtCode.LoadFromFile(tb->FileName, tb->FileEncoding, tb->NewLineType)
-						tb->txtCode.Changed "Reload"
+		For j As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+				If InStr(tb->FileName, "/") > 0 OrElse InStr(tb->FileName, "\") > 0 Then
+					If FileTimeToVariantTime(GetFileLastWriteTime(tb->FileName)) <> FileTimeToVariantTime(tb->DateFileTime) Then
+						If MsgBox(tb->FileName & !"\r" & ML("File was changed by another application. Reload it?"), ML("File Changed"), mtQuestion, btYesNo) = mrYes Then
+							tb->txtCode.Changing "Reload"
+							tb->txtCode.LoadFromFile(tb->FileName, tb->FileEncoding, tb->NewLineType)
+							tb->txtCode.Changed "Reload"
+						End If
 					End If
+					tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
 				End If
-				tb->DateFileTime = GetFileLastWriteTime(tb->FileName)
-			End If
-		Next i
+			Next i
+		Next j
 		bInActivateApp = False
 	#endif
 End Sub
@@ -7584,19 +7614,22 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 			End If
 			'If CInt(tn->ImageKey = "Project") AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
 		Next i
-		For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
-			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-			If tb->Modified Then
-				tnP = GetParentNode(tb->tn)
-				Index = .lstFiles.IndexOfData(tnP)
-				If Index <> -1 Then
-					.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
-				Else
-					.lstFiles.AddItem tb->Caption, tb
+		For j As Integer = TabPanels.Count - 1 To 0 Step -1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+				If tb->Modified Then
+					tnP = GetParentNode(tb->tn)
+					Index = .lstFiles.IndexOfData(tnP)
+					If Index <> -1 Then
+						.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
+					Else
+						.lstFiles.AddItem tb->Caption, tb
+					End If
 				End If
-			End If
-			'If Not CloseTab(tb) Then Action = 0: Return
-		Next i
+				'If Not CloseTab(tb) Then Action = 0: Return
+			Next i
+		Next j
 		If .lstFiles.ItemCount > 0 Then
 			.lstFiles.SelectAll
 			Select Case .ShowModal(*pfrmMain)
@@ -7615,10 +7648,13 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 			End Select
 		End If
 	End With
-	For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
-		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-		CloseTab(tb, True)
-	Next i
+	For j As Integer = TabPanels.Count - 1 To 0 Step -1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			CloseTab(tb, True)
+		Next i
+	Next j
 	For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
 		tn = tvExplorer.Nodes.Item(i)
 		If CInt(tn->ImageKey = "Project") Then CloseProject(tn, True)

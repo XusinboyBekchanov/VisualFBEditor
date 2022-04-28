@@ -2431,10 +2431,13 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "StringsUnderline", Strings.Underline)
 		
 		Dim As TabWindow Ptr tb
-		For i As Integer = 0 To ptabCode->TabCount - 1
-			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-			tb->txtCode.Font.Name = *EditorFontName
-			tb->txtCode.Font.Size = EditorFontSize
+		For jj As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+				tb->txtCode.Font.Name = *EditorFontName
+				tb->txtCode.Font.Size = EditorFontSize
+			Next
 		Next
 		newIndex = .cboLanguage.ItemIndex
 	End With
