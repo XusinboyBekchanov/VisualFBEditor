@@ -426,6 +426,8 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "SplitHorizontally":           tb->txtCode.SplittedHorizontally = Not mnuSplitHorizontally->Checked
 		Case "SplitVertically":             tb->txtCode.SplittedVertically = Not mnuSplitVertically->Checked
 		Case "SplitUp", "SplitDown", "SplitLeft", "SplitRight":
+			Var ptabCode = Cast(TabControl Ptr, mnuTabs.ParentWindow)
+			Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 			Var tp = Cast(TabPanel Ptr, tb->Parent->Parent)
 			Var ptabPanelNew = New TabPanel
 			Var bUpDown = False

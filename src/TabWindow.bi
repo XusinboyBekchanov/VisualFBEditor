@@ -147,7 +147,7 @@ Public:
 End Type
 
 Type TabPanel Extends Panel
-	Dim as Integer OldWidth, OldHeight
+	Dim As Integer OldWidth, OldHeight
 	Dim As TabControl tabCode
 	Dim As Splitter splGroup
 	Declare Constructor

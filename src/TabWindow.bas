@@ -847,33 +847,56 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
 		Delete_(tb)
 		If pParentTabCode->TabCount = 0 Then
-'			Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, pParentTabCode->Parent)
-'			Var Idx = ptabPanelParent->IndexOf(pParentTabCode)
-'			If Idx >= 2 Then
-'				Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
-'				ptabPanelChild->Align = DockStyle.alClient
-'				ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
-'				pParentTabCode->Visible = False
-'				ptabCode = @ptabPanelChild->tabCode
-'				ptabPanelParent->RequestAlign
-'			Else
-'				ptabPanel = ptabPanelParent
-'				Do While *ptabPanel->Parent Is TabPanel
-'					Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, ptabPanel->Parent)
-'					Var Idx = ptabPanelParent->IndexOf(ptabPanel)
-'					If ptabPanel->Align = DockStyle.alClient AndAlso Idx >= 2 Then
-'						Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
-'						ptabPanelChild->Align = DockStyle.alClient
-'						ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
-'						ptabPanelParent->Remove ptabPanel
-'						Delete_(ptabPanel)
-'						ptabPanelParent->RequestAlign
-'						Exit Do
-'					Else
-'						
-'					End If
-'				Loop
-'			End If
+			Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, pParentTabCode->Parent)
+			Var Idx = ptabPanelParent->IndexOf(pParentTabCode)
+			If Idx >= 2 Then
+				Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
+				ptabPanelChild->Align = DockStyle.alClient
+				ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
+				pParentTabCode->Visible = False
+				ptabCode = @ptabPanelChild->tabCode
+				ptabPanelParent->RequestAlign
+			Else
+				Var ptabPanel = ptabPanelParent
+				Do While *ptabPanel->Parent Is TabPanel
+					Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, ptabPanel->Parent)
+					Var Idx = ptabPanelParent->IndexOf(ptabPanel)
+					If Idx >= 2 AndAlso ptabPanel->Align = DockStyle.alClient Then
+						Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
+						ptabPanelChild->Align = DockStyle.alClient
+						ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
+						ptabPanelParent->Remove ptabPanel
+						TabPanels.Remove TabPanels.IndexOf(ptabPanel)
+						Delete_(ptabPanel)
+						ptabPanelParent->RequestAlign
+						ptabCode = @ptabPanelChild->tabCode
+						ptabPanel = 0
+						Exit Do
+					ElseIf ptabPanel->Align <> DockStyle.alClient Then
+						If ptabPanelParent->tabCode.Visible Then
+							ptabCode = @ptabPanelParent->tabCode
+						Else
+							ptabCode = @Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx + 2])->tabCode
+						End If
+						ptabPanelParent->Remove ptabPanelParent->Controls[Idx + 1]
+						ptabPanelParent->Remove ptabPanel
+						TabPanels.Remove TabPanels.IndexOf(ptabPanel)
+						Delete_(ptabPanel)
+						ptabPanelParent->RequestAlign
+						ptabPanel = 0
+						Exit Do
+					Else
+						ptabPanelParent->Remove ptabPanel
+						TabPanels.Remove TabPanels.IndexOf(ptabPanel)
+						Delete_(ptabPanel)
+						ptabPanel = ptabPanelParent
+					End If
+				Loop
+				If ptabPanel > 0 AndAlso ptabPanel->Parent = pfrmMain Then
+					ptabPanel->tabCode.Visible = True
+					ptabCode = @ptabPanel->tabCode
+				End If
+			End If
 		End If
 		Return True
 	Else
@@ -5317,6 +5340,7 @@ Sub tabCode_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Intege
 		mnuTabs.Item("SplitDown")->Enabled = SplitEnabled
 		mnuTabs.Item("SplitLeft")->Enabled = SplitEnabled
 		mnuTabs.Item("SplitRight")->Enabled = SplitEnabled
+		Sender.ContextMenu = @mnuTabs
 	End With
 End Sub
 

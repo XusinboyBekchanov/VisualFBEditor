@@ -6599,16 +6599,17 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 		WLet(gSearchSave, "")
 	End If
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
-	lvProperties.Nodes.Clear
-	lvEvents.Nodes.Clear
 	txtLabelProperty.Text = ""
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
-	If CBool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
+	'If CBool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
 		'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 		'		SetRightClosedStyle True, True
-	ElseIf tb->FileName <> "" Then
+	If tb->cboClass.Items.Count > 1 Then
 		tb->FillAllProperties
+	Else
+		lvProperties.Nodes.Clear
+		lvEvents.Nodes.Clear
 	End If
 	If tb->FileName = "" Then
 		frmMain.Caption = tb->Caption & " - " & App.Title
