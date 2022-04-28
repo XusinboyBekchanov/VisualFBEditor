@@ -840,10 +840,41 @@ Function TabWindow.Save As Boolean
 End Function
 
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
-	If tb <> 0 AndAlso tb->CloseTab(WithoutMessage) Then
+	If tb = 0 Then Return False
+	Dim As TabControl Ptr pParentTabCode = tb->Parent
+	If tb->CloseTab(WithoutMessage) Then
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
 		Delete_(tb)
+		If pParentTabCode->TabCount = 0 Then
+'			Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, pParentTabCode->Parent)
+'			Var Idx = ptabPanelParent->IndexOf(pParentTabCode)
+'			If Idx >= 2 Then
+'				Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
+'				ptabPanelChild->Align = DockStyle.alClient
+'				ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
+'				pParentTabCode->Visible = False
+'				ptabCode = @ptabPanelChild->tabCode
+'				ptabPanelParent->RequestAlign
+'			Else
+'				ptabPanel = ptabPanelParent
+'				Do While *ptabPanel->Parent Is TabPanel
+'					Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, ptabPanel->Parent)
+'					Var Idx = ptabPanelParent->IndexOf(ptabPanel)
+'					If ptabPanel->Align = DockStyle.alClient AndAlso Idx >= 2 Then
+'						Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
+'						ptabPanelChild->Align = DockStyle.alClient
+'						ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
+'						ptabPanelParent->Remove ptabPanel
+'						Delete_(ptabPanel)
+'						ptabPanelParent->RequestAlign
+'						Exit Do
+'					Else
+'						
+'					End If
+'				Loop
+'			End If
+		End If
 		Return True
 	Else
 		Return False

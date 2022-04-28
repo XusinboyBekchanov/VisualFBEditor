@@ -3377,7 +3377,7 @@ Namespace My.Sys.Forms
 				poPoint.X = psPoints.X
 				poPoint.Y = psPoints.Y
 				..ScreenToClient(Handle, @poPoint)
-				iCursorLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y), IIf(bDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY, 0, 1))
+				iCursorLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y), IIf((bDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY) OrElse (bDividedX AndAlso UnScaleX(poPoint.X) <= iDividedX), 0, 1))
 				'If Cast(EditControlLine Ptr, FLines.Items[i])->Collapsible Then
 				'If p.X < LeftMargin AndAlso p.X > LeftMargin - 15 Then
 				If bDividedX AndAlso UnScaleX(poPoint.X) >= iDividedX AndAlso UnScaleX(poPoint.X) <= iDividedX + 7 Then

@@ -466,10 +466,10 @@ Sub mClick(Sender As My.Sys.Object)
 			Next
 			ptabPanel->tabCode.DeleteTab tb
 			tb->Parent = @ptabPanelNew->tabCode
+			tb->ImageKey = tb->ImageKey
 			ptabPanelNew->tabCode.Add @tb->btnClose
 			tp->RequestAlign
 			ptabCode = @ptabPanelNew->tabCode
-			tb->ImageKey = tb->ImageKey
 			tabPanels.Add ptabPanelNew
 		Case "SetNextStatement":
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
