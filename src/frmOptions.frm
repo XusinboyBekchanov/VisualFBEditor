@@ -1157,7 +1157,7 @@ pfOptions = @fOptions
 		' lblFindCompilersFromComputer
 		With lblFindCompilersFromComputer
 			.Name = "lblFindCompilersFromComputer"
-			.Text = ML("Find Compilers from Computer:")
+			.Text = ML("Find Compilers from Computer?")
 			.TabIndex = 168
 			.SetBounds 20, 19, 280, 20
 			'.Caption = ML("Find Compilers from Computer:")

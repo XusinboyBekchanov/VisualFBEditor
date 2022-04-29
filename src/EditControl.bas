@@ -1072,7 +1072,7 @@ Namespace My.Sys.Forms
 				End If
 				If OldFileEncoding = FileEncodings.PlainText Then
 					Dim As String Buff = *pBuff
-					Dim As WString Ptr pBuff2 = @(FromUTF8(StrPtr(Buff)))
+					Dim As WString Ptr pBuff2: wLet pBuff2, FromUTF8(StrPtr(Buff))
 					If *pBuff <> *pBuff2 Then
 						*pBuff = *pBuff2
 						FileEncoding = FileEncodings.UTF8
