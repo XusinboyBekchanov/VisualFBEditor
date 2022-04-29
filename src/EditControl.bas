@@ -1054,7 +1054,7 @@ Namespace My.Sys.Forms
 		If Result <> 0 Then Result = Open(FileName For Input As #Fn): FileEncoding = FileEncodings.PlainText
 		If Result = 0 Then
 			OldFileEncoding = FileEncoding
-			FileSize = LOF(Fn)
+			FileSize = LOF(Fn) + 2
 			WReallocate(pBuff, FileSize)
 			For i As Integer = FLines.Count - 1 To 0 Step -1
 				Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
