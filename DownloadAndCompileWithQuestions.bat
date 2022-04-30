@@ -2,6 +2,10 @@
 
 set /p Bit=What bitness of VisualFBEditor do you want to compile (32/64/both)? 
 
+set /p DownloadCompiler=Do you want to download FreeBASIC Compiler 1.09.0 (yes/no/downloaded)? 
+
+if "%DownloadCompiler%" == "no" goto selectpath
+
 set /p Download7Zip=Do you want to download 7-Zip (yes/no)? 
 
 set e7Zip=7z
@@ -15,10 +19,6 @@ PowerShell Expand-Archive -LiteralPath "7za920.zip" -DestinationPath ".\7z" -For
 set e7Zip=%~dp0\7z\7za.exe
 
 :compiler
-
-set /p DownloadCompiler=Do you want to download FreeBASIC Compiler 1.09.0 (yes/no/downloaded)? 
-
-if "%DownloadCompiler%" == "no" goto selectpath
 
 if "%DownloadCompiler%" == "downloaded" goto unpack
 
