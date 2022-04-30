@@ -2,6 +2,20 @@
 
 set /p Bit=What bitness of VisualFBEditor do you want to compile (32/64/both)? 
 
+set /p Download7Zip=Do you want to download 7-Zip (yes/no)? 
+
+set e7Zip=7z
+
+if "%Download7Zip%" == "no" goto compiler
+
+curl -L -O https://www.7-zip.org/a/7za920.zip
+
+PowerShell Expand-Archive -LiteralPath "7za920.zip" -DestinationPath ".\7z" -Force
+
+set e7Zip=%~dp0\7z\7za.exe
+
+:compiler
+
 set /p DownloadCompiler=Do you want to download FreeBASIC Compiler 1.09.0 (yes/no/downloaded)? 
 
 if "%DownloadCompiler%" == "no" goto selectpath
@@ -12,7 +26,7 @@ curl -L -O https://sourceforge.net/projects/fbc/files/FreeBASIC-1.09.0/Binaries-
 
 :unpack
 
-7z x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z"
+"%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z"
 
 set FBC32=%~dp0FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
 
