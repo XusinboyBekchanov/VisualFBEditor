@@ -68,9 +68,11 @@ cd VisualFBEditor
 
 Rename MyFbFramework-master MyFbFramework
 
-cd MyFbFramework\mff
+cd ..\
 
 if "%Bit%" == "64" goto compile64
+
+cd VisualFBEditor\MyFbFramework\mff
 
 "%FBC32%" -b "mff.bi" "mff.rc" -dll -x "../mff32.dll" -v
 
