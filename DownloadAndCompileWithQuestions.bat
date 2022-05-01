@@ -84,6 +84,8 @@ if "%Bit%" == "32" goto finish
 
 :compile64
 
+cd VisualFBEditor\MyFbFramework\mff
+
 "%FBC64%" -b "mff.bi" "mff.rc" -dll -x "../mff32.dll" -v
 
 cd ..\..\..\VisualFBEditor\src
