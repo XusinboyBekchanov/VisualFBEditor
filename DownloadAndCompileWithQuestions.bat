@@ -88,11 +88,11 @@ if "%Bit%" == "32" goto finish
 
 cd VisualFBEditor\MyFbFramework\mff
 
-"%FBC64%" -b "mff.bi" "mff.rc" -dll -x "../mff32.dll" -v
+"%FBC64%" -b "mff.bi" "mff.rc" -dll -x "../mff64.dll" -v
 
 cd ..\..\..\VisualFBEditor\src
 
-"%FBC64%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\MyFbFramework" -v
+"%FBC64%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "..\MyFbFramework" -v
 
 cd ..\..\
 
