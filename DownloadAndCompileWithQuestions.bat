@@ -22,13 +22,11 @@ set e7Zip=%~dp0\7z\7za.exe
 
 if "%DownloadCompiler%" == "no" goto selectpath
 
-if "%DownloadCompiler%" == "downloaded" goto unpack
+if "%DownloadCompiler%" == "downloaded" goto setpath
 
 curl -L -O https://sourceforge.net/projects/fbc/files/FreeBASIC-1.09.0/Binaries-Windows/winlibs-gcc-9.3.0/FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z
 
-:unpack
-
-"%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor
+:setpath
 
 set FBC32=%~dp0VisualFBEditor\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
 
@@ -71,6 +69,10 @@ Rename VisualFBEditor-master VisualFBEditor
 curl -L -O https://github.com/XusinboyBekchanov/MyFbFramework/archive/master.zip
 
 PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEditor" -Force
+
+if "%DownloadCompiler%" == "no" goto start
+
+"%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor
 
 :start
 
