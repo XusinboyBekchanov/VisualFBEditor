@@ -1553,7 +1553,7 @@ Sub frmOptions.LoadSettings()
 		.cboCompiler32.AddItem ML("(not selected)")
 		.cboCompiler64.AddItem ML("(not selected)")
 		For i As Integer = 0 To pCompilers->Count - 1
-			.lvCompilerPaths.ListItems.Add pCompilers->Item(i)->Key, IIf(FileExists(pCompilers->Item(i)->Text), "", "FileError")
+			.lvCompilerPaths.ListItems.Add pCompilers->Item(i)->Key, IIf(FileExists(GetFullPath(pCompilers->Item(i)->Text)), "", "FileError")
 			.lvCompilerPaths.ListItems.Item(i)->Text(1) = pCompilers->Item(i)->Text
 			.lvCompilerPaths.ListItems.Item(i)->Text(2) = Cast(ToolType Ptr, pCompilers->Item(i)->Object)->Parameters
 			.cboCompiler32.AddItem pCompilers->Item(i)->Key
