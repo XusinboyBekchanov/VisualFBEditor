@@ -4,7 +4,7 @@ set /p Bit=What bitness of VisualFBEditor do you want to compile (32/64/both)?
 
 set /p DownloadCompiler=Do you want to download FreeBASIC Compiler 1.09.0 (yes/no/downloaded)? 
 
-if "%DownloadCompiler%" == "no" goto selectpath
+set /p DownloadGDB=Do you want to download gdb 11.2.90.20220320 (yes/no)? 
 
 set /p Download7Zip=Do you want to download 7-Zip (yes/no)? 
 
@@ -20,17 +20,19 @@ set e7Zip=%~dp0\7z\7za.exe
 
 :compiler
 
+if "%DownloadCompiler%" == "no" goto selectpath
+
 if "%DownloadCompiler%" == "downloaded" goto unpack
 
 curl -L -O https://sourceforge.net/projects/fbc/files/FreeBASIC-1.09.0/Binaries-Windows/winlibs-gcc-9.3.0/FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z
 
 :unpack
 
-"%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z"
+"%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor
 
-set FBC32=%~dp0FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
+set FBC32=%~dp0VisualFBEditor\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
 
-set FBC64=%~dp0FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc64.exe
+set FBC64=%~dp0VisualFBEditor\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc64.exe
 
 goto download
 
@@ -48,9 +50,17 @@ set /p FBC64=Enter 64-bit compiler path:
 
 :download
 
-set /p Download=Do you want to download VisualFBEditor and MyFbFramework (yes/no)? 
+if "%DownloadGDB%" == "no" goto downloadsources
 
-if "%Download%" == "no" goto start
+curl -L -O https://github.com/ssbssa/gdb/releases/download/gdb-11.2.90.20220320/gdb-11.2.90.20220320-i686.7z
+
+curl -L -O https://github.com/ssbssa/gdb/releases/download/gdb-11.2.90.20220320/gdb-11.2.90.20220320-x86_64.7z
+
+"%e7Zip%" x "gdb-11.2.90.20220320-i686.7z" -o%~dp0VisualFBEditor\gdb-11.2.90.20220320-i686
+
+"%e7Zip%" x "gdb-11.2.90.20220320-x86_64.7z" -o%~dp0VisualFBEditor\gdb-11.2.90.20220320-x86_64
+
+:downloadsources
 
 curl -L -O https://github.com/XusinboyBekchanov/VisualFBEditor/archive/master.zip
 
