@@ -28,9 +28,9 @@ curl -L -O https://sourceforge.net/projects/fbc/files/FreeBASIC-1.09.0/Binaries-
 
 :setpath
 
-set FBC32=%~dp0VisualFBEditor\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
+set FBC32=%~dp0VisualFBEditor\Compilers\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
 
-set FBC64=%~dp0VisualFBEditor\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc64.exe
+set FBC64=%~dp0VisualFBEditor\Compilers\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc64.exe
 
 goto download
 
@@ -70,15 +70,15 @@ PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEd
 
 if "%DownloadCompiler%" == "no" goto label7z
 
-"%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor
+"%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor\Compilers
 
 :label7z
 
 if "%Download7Zip%" == "no" goto start
 
-"%e7Zip%" x "gdb-11.2.90.20220320-i686.7z" -o%~dp0VisualFBEditor\gdb-11.2.90.20220320-i686
+"%e7Zip%" x "gdb-11.2.90.20220320-i686.7z" -o%~dp0VisualFBEditor\Debuggers\gdb-11.2.90.20220320-i686
 
-"%e7Zip%" x "gdb-11.2.90.20220320-x86_64.7z" -o%~dp0VisualFBEditor\gdb-11.2.90.20220320-x86_64
+"%e7Zip%" x "gdb-11.2.90.20220320-x86_64.7z" -o%~dp0VisualFBEditor\Debuggers\gdb-11.2.90.20220320-x86_64
 
 :start
 

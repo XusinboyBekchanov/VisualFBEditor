@@ -1,3 +1,5 @@
+Compilers
+Debuggers
 MyFbFramework
 *.7z
 *.bak
@@ -12,5 +14,3 @@ share
 etc
 *32.exe
 *64.exe
-FreeBasic*
-gdb*
