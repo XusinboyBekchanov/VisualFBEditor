@@ -58,6 +58,8 @@ curl -L -O https://github.com/ssbssa/gdb/releases/download/gdb-11.2.90.20220320/
 
 curl -L -O https://github.com/XusinboyBekchanov/VisualFBEditor/archive/master.zip
 
+RMDIR /S /Q VisualFBEditor
+
 PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "." -Force
 
 Rename VisualFBEditor-master VisualFBEditor
