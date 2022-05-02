@@ -54,10 +54,6 @@ curl -L -O https://github.com/ssbssa/gdb/releases/download/gdb-11.2.90.20220320/
 
 curl -L -O https://github.com/ssbssa/gdb/releases/download/gdb-11.2.90.20220320/gdb-11.2.90.20220320-x86_64.7z
 
-"%e7Zip%" x "gdb-11.2.90.20220320-i686.7z" -o%~dp0VisualFBEditor\gdb-11.2.90.20220320-i686
-
-"%e7Zip%" x "gdb-11.2.90.20220320-x86_64.7z" -o%~dp0VisualFBEditor\gdb-11.2.90.20220320-x86_64
-
 :downloadsources
 
 curl -L -O https://github.com/XusinboyBekchanov/VisualFBEditor/archive/master.zip
@@ -70,9 +66,17 @@ curl -L -O https://github.com/XusinboyBekchanov/MyFbFramework/archive/master.zip
 
 PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEditor" -Force
 
-if "%DownloadCompiler%" == "no" goto start
+if "%DownloadCompiler%" == "no" goto label7z
 
 "%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor
+
+:label7z
+
+if "%Download7Zip%" == "no" goto start
+
+"%e7Zip%" x "gdb-11.2.90.20220320-i686.7z" -o%~dp0VisualFBEditor\gdb-11.2.90.20220320-i686
+
+"%e7Zip%" x "gdb-11.2.90.20220320-x86_64.7z" -o%~dp0VisualFBEditor\gdb-11.2.90.20220320-x86_64
 
 :start
 
