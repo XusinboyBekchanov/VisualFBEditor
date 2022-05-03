@@ -1,7 +1,5 @@
 @echo off
 
-set /p Bit=What bitness of VisualFBEditor do you want to compile (32/64/both)? 
-
 set /p DownloadCompiler=Do you want to download FreeBASIC Compiler 1.09.0 (yes/no/downloaded)? 
 
 set /p DownloadGDB=Do you want to download gdb 11.2.90.20220320 (yes/no)? 
@@ -35,6 +33,13 @@ set FBC64=%~dp0VisualFBEditor\Compilers\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc64
 goto download
 
 :selectpath
+
+if "%PROCESSOR_ARCHITEW6432%" == "AMD64" Set Bit = "64"
+if "%PROCESSOR_ARCHITECTURE%" == ""      Set PROCESSOR_ARCHITECTURE = x86
+if "%PROCESSOR_ARCHITECTURE%" == "x86"   Set Bit = "32"
+if "%PROCESSOR_ARCHITECTURE%" == "AMD64" Set Bit = "64"
+
+if "%Bit%" == "64" Set Bit = "both"
 
 if "%Bit%" == "64" goto selectpath64
 
