@@ -1,4 +1,6 @@
 sudo apt install libgtk-3-dev
+sudo apt install git
+sudo apt-get install wget
 rm -r VisualFBEditor
 git clone https://github.com/XusinboyBekchanov/VisualFBEditor
 cd VisualFBEditor
