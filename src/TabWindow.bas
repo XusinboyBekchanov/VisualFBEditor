@@ -2647,7 +2647,7 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 								ptxtCode->TopLine = k
 								ptxtCode->SetFocus
 								OnLineChangeEdit tb->txtCode, i + 1, i + 1
-								If tb->tbrTop.Buttons.Item(2)->Checked Then tb->tbrTop.Buttons.Item(1)->Checked = True
+								SetCodeVisible tb
 								t = True
 								Exit Sub
 							End If
@@ -2732,7 +2732,7 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 		End If
 		tb->Events.Add EventName, SubNameNew, Cpnt
 		OnLineChangeEdit tb->txtCode, i + q + 2, i + q + 2
-		If tb->tbrTop.Buttons.Item(2)->Checked Then tb->tbrTop.Buttons.Item(1)->Checked = True
+		SetCodeVisible tb
 		bNotDesignForms = False
 	End If
 	WDeAllocate FLine1
@@ -2778,9 +2778,7 @@ Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 					.SetFocus
 					t = True
 				End If
-				If tb->tbrTop.Buttons.Item(2)->Checked Then
-					tb->tbrTop.Buttons.Item(1)->Checked = True
-				End If
+				SetCodeVisible tb
 			End If
 			Exit Sub
 		ElseIf ii = 1 And jj = 0 Then
@@ -2842,7 +2840,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
 			FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
-			tb->tbrTop.Buttons.Item("Code")->Checked = True
+			'tb->tbrTop.Buttons.Item("Code")->Checked = True
 			tb->pnlCode.Visible = True
 			tb->pnlForm.Visible = False
 			tb->splForm.Visible = False
@@ -2857,9 +2855,9 @@ Sub DesignerClickMenuItem(ByRef Sender As Designer, MenuItem As Any Ptr)
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	FindEvent tb, MenuItem, "OnClick"
-	If tb->tbrTop.Buttons.Item(2)->Checked Then
-		tb->tbrTop.Buttons.Item(1)->Checked = True
-	End If
+'	If tb->tbrTop.Buttons.Item(2)->Checked Then
+'		tb->tbrTop.Buttons.Item(1)->Checked = True
+'	End If
 End Sub
 
 Sub DesignerClickProperties(ByRef Sender As Designer, Ctrl As Any Ptr)

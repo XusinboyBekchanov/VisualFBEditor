@@ -423,6 +423,8 @@ Declare Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As Proje
 
 Declare Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "") As UString
 
+Declare Sub SetCodeVisible(tb As TabWindow Ptr)
+
 Declare Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 
 Declare Sub RunPr(Debugger As String = "")
