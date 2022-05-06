@@ -2840,12 +2840,15 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
 			FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
-			'tb->tbrTop.Buttons.Item("Code")->Checked = True
-			tb->pnlCode.Visible = True
-			tb->pnlForm.Visible = False
-			tb->splForm.Visible = False
-			ptabLeft->SelectedTabIndex = 0
-			tb->RequestAlign
+			If tb->tbrTop.Buttons.Item("CodeAndForm")->Checked Then
+				tb->tbrTop.Buttons.Item("Code")->Checked = True
+				tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+			End If
+'			tb->pnlCode.Visible = True
+'			tb->pnlForm.Visible = False
+'			tb->splForm.Visible = False
+'			ptabLeft->SelectedTabIndex = 0
+'			tb->RequestAlign
 		End If
 	End Select
 	frmMain.UpdateUnLock
