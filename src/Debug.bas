@@ -8691,7 +8691,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		SInfo.wShowWindow = SW_NORMAL
 		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP Then
 			Dim As Unsigned Long ExitCode
-			exename = WGet(DebuggerPath)
+			exename = GetFullPath(WGet(DebuggerPath))
 			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
 			If CreateProcessW(@exename, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
 				WaitForSingleObject pinfo.hProcess, INFINITE

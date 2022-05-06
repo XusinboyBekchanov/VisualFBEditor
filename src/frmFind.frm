@@ -131,7 +131,7 @@ pfFind = @fFind
 		
 		' btnFindAll
 		btnFindAll.Name = "btnFindAll"
-		btnFindAll.Text = "All"
+		btnFindAll.Text = ML("All")
 		btnFindAll.SetBounds 401, 4, 40, 24
 		btnFindAll.OnClick = @btnFindAll_Click_
 		btnFindAll.Parent = @This

@@ -1071,11 +1071,16 @@ Namespace My.Sys.Forms
 					Return
 				End If
 				If OldFileEncoding = FileEncodings.PlainText Then
-					Dim As String Buff = *pBuff
-					Dim As WString Ptr pBuff2: wLet pBuff2, FromUTF8(StrPtr(Buff))
-					If *pBuff <> *pBuff2 Then
-						*pBuff = *pBuff2
-						FileEncoding = FileEncodings.UTF8
+					If FileEncoding = FileEncodings.UTF8 Then
+						Dim As String Buff = *pBuff
+						*pBuff = FromUTF8(StrPtr(Buff))
+					Else
+						Dim As String Buff = *pBuff
+						Dim As WString Ptr pBuff2: wLet pBuff2, FromUTF8(StrPtr(Buff))
+						If *pBuff <> *pBuff2 Then
+							*pBuff = *pBuff2
+							FileEncoding = FileEncodings.UTF8
+						End If
 					End If
 					'WDeallocate pBuff2
 				End If

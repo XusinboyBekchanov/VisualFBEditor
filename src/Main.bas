@@ -136,7 +136,7 @@ pLoadPaths = @LoadPaths
 pIncludePaths = @IncludePaths
 pLibraryPaths = @LibraryPaths
 pfSplash->lblProcess.Text = ML("Load On Startup") & ": LoadKeyWords"
-LoadLanguageTexts
+'LoadLanguageTexts
 LoadSettings
 
 #include once "file.bi"
@@ -203,7 +203,7 @@ Function ML(ByRef V As WString) ByRef As WString
 	If LCase(CurLanguage) = "english" Then Return V
 	Dim As Integer tIndex = mlKeys.IndexOfKey(V) ' For improve the speed
 	If tIndex >= 0 Then
-		Return  mlKeys.Item(tIndex)->Text
+		Return mlKeys.Item(tIndex)->Text
 	Else
 		tIndex = mlKeys.IndexOfKey(Replace(V, "&", "")) '
 		If tIndex >= 0 Then Return mlKeys.Item(tIndex)->Text Else Return V
@@ -463,6 +463,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	Dim As UString CompileLine
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
+	Dim As Boolean Bit32 = tbt32Bit->Checked
+	Dim As WString Ptr FbcExe, CurrentCompiler = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
 	ThreadsEnter()
 	ClearMessages
 	NodesCount = IIf(bAll, tvExplorer.Nodes.Count, 1)
@@ -486,14 +488,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Versioning *MainFile, *FirstLine & CompileLine, Project, ProjectNode
 		Dim FileOut As Integer
 		ThreadsEnter()
-		Dim As Boolean Bit32 = tbt32Bit->Checked
 		ThreadsLeave()
 		WLet(exename, GetExeFileName(*MainFile, *FirstLine))
-		Dim As WString Ptr FbcExe, CurrentCompiler = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
 		If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
-			FbcExe = Project->CompilerPath
+			WLet FbcExe, GetFullPath(*Project->CompilerPath)
 		Else
-			FbcExe = IIf(Bit32, Compiler32Path, Compiler64Path)
+			WLet FbcExe, GetFullPath(IIf(Bit32, *Compiler32Path, *Compiler64Path))
 		End If
 		If *FbcExe = "" Then
 			ThreadsEnter()
@@ -941,6 +941,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ThreadsLeave()
 		End If
 	Next k
+	WDeAllocate FbcExe
 	WDeAllocate PipeCommand
 	WDeAllocate ExeName
 	WDeAllocate LogText
@@ -3876,6 +3877,8 @@ Sub LoadHelp
 		Dim As WString * 1024 Buff, StartBuff, bTrim
 		Dim As Boolean bStart, bStartEnd, bDescriptionStart, bDescriptionEnd, bReturnValueStart
 		Dim As Paragraph Parag
+		Dim As WString * 1024 MLSyntax = ML("Syntax"), MLUsage = ML("Usage"), MLParameters = ML("Parameters"), MLReturnValue = ML("Return Value"), MLDescription = ML("Description"), _
+		MLExample = ML("Example"), MLDifferencesFromQB = ML("Differences from QB"), MLSeeAlso = ML("See also"), MLMoreDetails = ML("More details ...")
 		Dim As Integer Pos2, Pos1, LineNumber
 		Do Until EOF(Fn)
 			LineNumber += 1
@@ -3883,26 +3886,26 @@ Sub LoadHelp
 			If StartsWith(Buff, "---") Then
 				bStart = True : bDescriptionStart = False : bReturnValueStart = False
 				Parag = parStart
-			ElseIf Buff = "Syntax" OrElse Buff = ML("Syntax") Then
+			ElseIf Buff = "Syntax" OrElse Buff = MLSyntax Then
 				Parag = parSyntax
-			ElseIf Buff = "Usage" OrElse Buff = ML("Usage") Then
+			ElseIf Buff = "Usage" OrElse Buff = MLUsage Then
 				Parag = parUsage
-			ElseIf Buff = "Parameters" OrElse Buff = ML("Parameters") Then
+			ElseIf Buff = "Parameters" OrElse Buff = MLParameters Then
 				Parag = parParameters
-			ElseIf Buff = "Return Value" OrElse Buff = ML("Return Value") Then
+			ElseIf Buff = "Return Value" OrElse Buff = MLReturnValue Then
 				Parag = parReturnValue: bReturnValueStart = True
-			ElseIf Buff = "Description" OrElse Buff = ML("Description") Then
+			ElseIf Buff = "Description" OrElse Buff = MLDescription Then
 				Parag = parDescription : bDescriptionStart = True
-			ElseIf Buff = "Example" OrElse Buff = ML("Example") Then
+			ElseIf Buff = "Example" OrElse Buff = MLExample Then
 				Parag = parExample
-			ElseIf Buff = "Differences from QB" OrElse Buff = ML("Differences from QB") Then
+			ElseIf Buff = "Differences from QB" OrElse Buff = MLDifferencesFromQB Then
 				Parag = parDifferencesFromQB
-			ElseIf Buff = "See also" OrElse Buff = ML("See also") Then
+			ElseIf Buff = "See also" OrElse Buff = MLSeeAlso Then
 				Parag = parSeeAlso
 			Else
 				If bStart Then
 					If te <> 0 AndAlso bDescriptionEnd = False Then  ' the last one not add ending
-						te->Comment &= " " & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
+						te->Comment &= " " & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 						bDescriptionEnd = True
 					End If
 					bTrim = Trim(Buff)
@@ -3970,7 +3973,7 @@ Sub LoadHelp
 				ElseIf Parag = parReturnValue Then
 					If Buff <> "" AndAlso te <> 0 Then
 						If bReturnValueStart Then
-							te->Comment &= !"\r" & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("Return Value") & !"</a>\r"  & Trim(Buff)
+							te->Comment &= !"\r" & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLReturnValue & !"</a>\r"  & Trim(Buff)
 						Else
 							te->Comment &= !"\r" & Trim(Buff)
 							bReturnValueStart = False
@@ -3981,12 +3984,12 @@ Sub LoadHelp
 						Pos1 = InStr(Buff, ML("."))  'you must add "." to your language file for good local showing
 						If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ML("."))
 						If Pos1 > 0 Then
-							Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
+							Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 							bDescriptionEnd = True
 						End If
 						If Buff <> "" AndAlso te <> 0 Then
 							If bDescriptionEnd  Then
-								te->Comment &=  !"\r" & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("Description") & !"</a>\r"  & Trim(Buff)
+								te->Comment &=  !"\r" & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLDescription & !"</a>\r"  & Trim(Buff)
 							Else
 								te->Comment &= " " & Trim(Buff)
 							End If
@@ -3999,7 +4002,7 @@ Sub LoadHelp
 				ElseIf Parag = parSeeAlso Then
 					If te <> 0 AndAlso EndsWith(te->Parameters, !"\r") Then te->Parameters = Left(te->Parameters, Len(te->Parameters) - 1)
 					If bDescriptionEnd = False Then
-						te->Comment &= " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & ML("More details ...") & "~" & StartBuff & """>" & ML("More details ...") & !"</a>\r"
+						te->Comment &= " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 						bDescriptionEnd = True
 					End If
 					If te->Name = "Print" Then
@@ -6694,9 +6697,9 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			CloseFile_(Fn)
 			Dim As WString Ptr FbcExe, ExeName
 			If tbt32Bit->Checked Then
-				FbcExe = Compiler32Path
+				WLet FbcExe, GetFullPath(*Compiler32Path)
 			Else
-				FbcExe = Compiler32Path
+				WLet FbcExe, GetFullPath(*Compiler32Path)
 			End If
 			PipeCmd "", """" & *FbcExe & """ -b """ & ExePath & "/Temp/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & ExePath & "/Temp/Compile1.log"" 2> """ & ExePath & "/Temp/Compile2.log"""
 			Dim As WString Ptr LogText
@@ -6757,6 +6760,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 				CloseFile_(Fn)
 				Kill *ExeName
 			End If
+			WDeallocate FbcExe
 			WDeallocate ExeName
 			WDeallocate LogText
 			WDeallocate ErrFileName
@@ -7331,7 +7335,7 @@ End Sub
 Function CheckCompilerPaths As Boolean
 	Dim As Boolean bFind
 	For i As Integer = 0 To pCompilers->Count - 1
-		If FileExists(pCompilers->Item(i)->Text) Then
+		If FileExists(GetFullPath(pCompilers->Item(i)->Text)) Then
 			bFind = True
 			Exit For
 		End If
@@ -7355,9 +7359,9 @@ Function CheckCompilerPaths As Boolean
 				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
 			End If
 			#ifdef __USE_GTK__
-			ElseIf g_find_program_in_path(ToUTF8(*CompilerPath)) = NULL Then
+			ElseIf g_find_program_in_path(ToUTF8(GetFullPath(*CompilerPath))) = NULL Then
 			#else
-			ElseIf Not FileExists(*CompilerPath) Then
+			ElseIf Not FileExists(GetFullPath(*CompilerPath)) Then
 			#endif
 			If MsgBox(ML("File") & " """ & *CompilerPath & """ " & ML("not found") & "." & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
 				pfOptions->Show *pfrmMain
@@ -7477,9 +7481,9 @@ Sub frmMain_Show(ByRef Sender As Control)
 	#else
 		pfAbout->Label11.Text = ML("Version") & " " & WStr(VERSION)
 	#endif
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("CheckCompilerPaths")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Check compiler paths")
 	Var bFind = CheckCompilerPaths
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("AddIns")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Add-Ins")
 	LoadAddIns
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Tools")
 	LoadTools
