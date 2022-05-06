@@ -4163,8 +4163,8 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 					End If
 				End If
 			Loop
-			CloseFile_(Fn)
 		End If
+		CloseFile_(Fn)
 		Return ""
 	End If
 End Function
@@ -6555,16 +6555,16 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 					bFinded = True
 				End If
 			End If
-			CloseFile_(Fn)
 			If bFinded Then
 				Var Fn2 = FreeFile_
 				If Open(*File For Output Encoding "utf-8" As #Fn2) = 0 Then
 					Print #Fn2, *sLines;
 					If bChangeIcon AndAlso ResPath <> "" Then Print #Fn2, Chr(13, 10) & "A" & ResPath
-					CloseFile_(Fn2)
 				End If
+				CloseFile_(Fn2)
 			End If
 		End If
+		CloseFile_(Fn)
 	End If
 	Var Fn = FreeFile_
 	bFinded = False
@@ -6633,11 +6633,10 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		Case 2: Result += " -lib"
 		End Select
 	End If
-	Dim As Integer LinesCount, d, Fn = FreeFile_
+	Dim As Integer LinesCount, d, Fn
 	Dim As Boolean bFromTab
 	Dim As TabWindow Ptr tb
-	Var FileOpenResult = Open(FileName For Input Encoding "utf-8" As #Fn)
-	If FileOpenResult <> 0 Then FileOpenResult = Open(FileName For Input As #Fn)
+	Var FileOpenResult = -1
 	If FileName = ML("Untitled") Then
 		tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
@@ -6645,6 +6644,10 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			bFromTab = True
 			LinesCount = tb->txtCode.LinesCount
 		End If
+	Else
+		Fn = FreeFile_
+		FileOpenResult = Open(FileName For Input Encoding "utf-8" As #Fn)
+		If FileOpenResult <> 0 Then FileOpenResult = Open(FileName For Input As #Fn)
 	End If
 	If FileOpenResult = 0 Then
 		Dim As WString * 1024 sLine
@@ -6708,9 +6711,9 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			End If
 			If l >= 10 Then Exit Do
 		Loop
-		If Not bFromTab Then
-			CloseFile_(Fn)
-		End If
+	End If
+	If Not bFromTab Then
+		CloseFile_(Fn)
 	End If
 	Return Result
 End Function

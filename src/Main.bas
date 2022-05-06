@@ -760,8 +760,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						End If
 					End If
 				Wend
-				CloseFile_(Fn)
 			End If
+			CloseFile_(Fn)
 		#else
 			#define BufferSize 2048
 			Dim si As STARTUPINFO
@@ -1543,8 +1543,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					WLet(ppe->JDKLocation, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				End If
 			Loop
-			CloseFile_(Fn)
 		End If
+		CloseFile_(Fn)
 		If pFilesList = 0 Then
 			For i As Integer = 0 To pFiles->Count - 1
 				ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i)))))
@@ -1823,8 +1823,8 @@ Function SaveSession() As Boolean
 				Print #Fn, Zv & "File=" & *ee->FileName
 			End If
 		Next
-		CloseFile_(Fn)
 	End If
+	CloseFile_(Fn)
 	WDeallocate Temp
 	WDeallocate Temp2
 	Return True
@@ -3078,8 +3078,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				Line Input #ff, b
 				Lines.Add b
 			Loop
-			CloseFile_(ff)
 		End If
+		CloseFile_(ff)
 	End If
 	For i As Integer = 0 To Lines.Count - 1
 		b1 = Replace(Lines.Item(i), !"\t", " ")
@@ -4492,7 +4492,6 @@ Sub LoadLanguageTexts
 					End If
 				End If
 			Loop
-			CloseFile_(Fn)
 			mlKeys.SortKeys
 			mpKeys.SortKeys
 			mlCompiler.SortKeys
@@ -4501,6 +4500,7 @@ Sub LoadLanguageTexts
 		Else
 			MsgBox ML("Open file failure!") &  " " & Chr(13, 10) & ML("in function") & " Main.LoadLanguageTexts" & Chr(13, 10) & "  " & ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
 		End If
+		CloseFile_(Fn)
 	End If
 	mlKeys.Clear
 	mcKeys.Clear

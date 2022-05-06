@@ -233,10 +233,10 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 						End If
 					Wend
 				Loop
-				CloseFile_(Fn)
 			Else
 				'MsgBox ML("Open file failure!") &  " " & ML("in function") & " frmFindInFiles.Find"  & WChr(13,10) & "  " & Path & f
 			End If
+			CloseFile_(Fn)
 		End If
 		f = Dir(Attr)
 	Wend
@@ -450,10 +450,10 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 					Fn = FreeFile_
 					If Open(Path & f For Output Encoding "utf-8" As #Fn) = 0 Then
 						Print #Fn, *BuffOut
-						CloseFile_(Fn)
 					Else
 						MsgBox ML("Open file failure!") & " " & ML("in function") & " frmFindInFiles.ReplaceInFile" & WChr(13,10) & "  " & Path & f
 					End If
+					CloseFile_(Fn)
 				End If
 			End If
 		End If
@@ -469,8 +469,8 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 		Fn = FreeFile_
 		If Open(ExePath & "\Languages.txt" For Output Encoding "utf-8" As #Fn) = 0 Then
 			Print #Fn, *BuffOut
-			CloseFile_(Fn)
 		End If
+		CloseFile_(Fn)
 	End If
 	wDeallocate BuffOut
 	Folders.Clear

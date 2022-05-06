@@ -1527,11 +1527,11 @@ Sub frmOptions.LoadSettings()
 					Languages.Add ..Left(f, Len(f) - 4)
 					.cboLanguage.AddItem Buff & " - " & ..Left(f, Len(f) - 4)
 				End If
-				CloseFile_(Fn)
 			Else
 				Languages.Add ..Left(f, Len(f) - 4)
 				.cboLanguage.AddItem ..Left(f, Len(f) - 4) & " (" & ML("format does not match") & ")"
 			End If
+			CloseFile_(Fn)
 			f = Dir()
 		Wend
 		HotKeysChanged = False 

@@ -329,10 +329,10 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 								Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
 							Wend
 						Loop
-						CloseFile_(Fn)
 					Else
 						'MsgBox ML("Open file failure!") &  " " & ML("in function") & " frmFindInFiles.Find"  & Chr(13,10) & "  " & Path & f
 					End If
+					CloseFile_(Fn)
 				End If
 			End If
 		End If
@@ -428,10 +428,10 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 							Fn = FreeFile_
 							If Open(f For Output Encoding "utf-8" As #Fn) = 0 Then
 								Print #Fn, *BuffOut
-								CloseFile_(Fn)
 							Else
 								MsgBox ML("Open file failure!") & " " & ML("in function") & " frmFindInFiles.ReplaceInFile" & Chr(13,10) & "  " & f
 							End If
+							CloseFile_(Fn)
 						End If
 					End If
 				End If
@@ -443,8 +443,8 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 		Fn = FreeFile_
 		If Open(ExePath & "\Languages.txt" For Output Encoding "utf-8" As #Fn) = 0 Then
 			Print #Fn, *BuffOut
-			CloseFile_(Fn)
 		End If
+		CloseFile_(Fn)
 	End If
 	Deallocate BuffOut
 End Sub

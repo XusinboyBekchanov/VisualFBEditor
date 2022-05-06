@@ -317,8 +317,8 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 					End If
 				End If
 			Loop
-			CloseFile_(Fn)
 		End If
+		CloseFile_(Fn)
 		lblResourceFile.Text = ML("File") & ": " & ResourceFile
 	Else
 		lblResourceFile.Text = ""
@@ -505,8 +505,8 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 				Line Input #Fn, sLine
 				Lines.Add sLine
 			Loop
-			CloseFile_(Fn)
 		End If
+		CloseFile_(Fn)
 		Fn = FreeFile_
 		Dim As Boolean bFinded
 		Dim As Integer Pos1

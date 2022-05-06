@@ -1107,10 +1107,10 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			ScrollToCaret
-			CloseFile_(Fn)
 		Else
 			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13,10) & " " & FileName
 		End If
+		CloseFile_(Fn)
 		WDeallocate pBuff
 		'?Timer - Timer_
 		'?FileName
