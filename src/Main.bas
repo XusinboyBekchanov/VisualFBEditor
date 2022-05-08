@@ -6953,10 +6953,12 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 		'		frmMain.RequestAlign '<bp>
 	End If
 	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = newIndex = 0
+	tbBottom.Buttons.Item("EraseImmediateWindow")->Visible = newIndex = 5
 	tbBottom.Buttons.Item("AddWatch")->Visible = newIndex = 9
 	tbBottom.Buttons.Item("RemoveWatch")->Visible = newIndex = 9
 	tbBottom.Buttons.Item("Update")->Visible = newIndex = 7
-	If MainNode <>0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text,".") Then
+	If newIndex = 9 Then tbBottom.Buttons.Item("AddWatch")->State = tbBottom.Buttons.Item("AddWatch")->State Or ToolButtonState.tstWrap
+	If MainNode <> 0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text, ".") Then
 		If ptabBottom->SelectedTabIndex = 4 AndAlso CInt(Not mLoadLog) Then ' AndAlso CInt(Not mLoadToDo)
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
 				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
@@ -7031,11 +7033,14 @@ tbBottom.Align = DockStyle.alRight
 tbBottom.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinBottom", "", ML("Pin"), , tstEnabled Or tstChecked
 tbBottom.Buttons.Add tbsSeparator
 tbBottom.Buttons.Add , "Eraser", , @mClick, "EraseOutputWindow", "", ML("Erase output window"), , tstEnabled
-tbBottom.Buttons.Add , "Add", , @mClick, "AddWatch", "", ML("Add Watch"), , tstEnabled
+tbBottom.Buttons.Add , "Eraser", , @mClick, "EraseImmediateWindow", "", ML("Erase immediate window"), , tstEnabled
+tbBottom.Buttons.Add , "Add", , @mClick, "AddWatch", "", ML("Add Watch"), , tstEnabled Or tstWrap
 tbBottom.Buttons.Add , "Remove", , @mClick, "RemoveWatch", "", ML("Remove Watch"), , tstEnabled
 tbBottom.Buttons.Add tbsCheck, "Update", , @mClick, "Update", "", ML("Update"), , tstEnabled
-'tbBottom.Buttons.Item("AddWatch")->Visible = False
-'tbBottom.Buttons.Item("RemoveWatch")->Visible = False
+tbBottom.Buttons.Item("EraseImmediateWindow")->Visible = False
+tbBottom.Buttons.Item("AddWatch")->Visible = False
+tbBottom.Buttons.Item("RemoveWatch")->Visible = False
+tbBottom.Buttons.Item("Update")->Visible = False
 tbBottom.Flat = True
 tbBottom.Wrapable = True
 tbBottom.Width = tbBottom.Height

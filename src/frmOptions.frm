@@ -4044,7 +4044,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	Dim As Dictionary mlKeysGeneral, mlKeysCompiler, mlKeysProperty, mlKeysTemplates, mlKeyWords, mlKeysCompilerEnglish, mlKeysPropertyEnglish, mlKeysTemplatesEnglish, mlKeyWordsEnglish, mlKeysGeneralEnglish
 	Dim As Boolean StartGeneral, StartKeyWords, StartProperty, StartCompiler, StartTemplates, IsComment = False
 	cmdUpdateLng.Enabled = False
-	lblShowMsg.Visible =True
+	lblShowMsg.Visible = True
 	' Produce English.lng from Projects at first
 	FileNameLng = ExePath & "/Settings/Languages/English.lng"
 	Fn1 = FreeFile
