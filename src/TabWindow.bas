@@ -389,8 +389,8 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	"in module " & ZGet(Ermn())
 End Function
 
-Sub m(ByRef MSG As WString, Debug As Boolean = False)
-	If Debug AndAlso Not DisplayWarningsInDebug Then Exit Sub
+Sub m(ByRef MSG As WString, InDebug As Boolean = False)
+	If InDebug AndAlso Not DisplayWarningsInDebug Then Exit Sub
 	ShowMessages MSG
 End Sub
 
@@ -6633,6 +6633,36 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		Case 2: Result += " -lib"
 		End Select
 	End If
+	If InStr(Result, " -s ") = 0 Then
+		If CInt(tbtConsole->Checked) Then
+			Result += " -s console"
+		ElseIf CInt(tbtGUI->Checked) Then
+			Result += " -s gui"
+		End If
+	End If
+	If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then Result += " -g"
+	If CInt(InStr(Result, " -v ") = 0)  Then
+		Result += " -v "
+	End If
+	If Project Then
+		If InStr(Result, " -s ") = 0 Then
+			Select Case Project->Subsystem
+			Case 0
+			Case 1: Result += " -s console"
+			Case 2: Result += " -s gui"
+			End Select
+		End If
+		If Project->CompileTo = ToGAS Then
+			Result += " -gen gas" & IIf(Not Bit32, "64", "")
+		ElseIf Project->CompileTo = ToLLVM Then
+			Result += " -gen llvm"
+		ElseIf Project->CompileTo = ToGCC Then
+			Result += " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", ""))) & _
+			IIf(Project->ShowUnusedLabelWarnings, " -Wc -Wunused-label", "") & IIf(Project->ShowUnusedFunctionWarnings, " -Wc -Wunused-function", "") & IIf(Project->ShowUnusedVariableWarnings, " -Wc -Wunused-variable", "") & _
+			IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
+		End If
+	End If
+	If UseDefine <> "" Then Result += " -d " & UseDefine
 	Dim As Integer LinesCount, d, Fn
 	Dim As Boolean bFromTab
 	Dim As TabWindow Ptr tb
@@ -7084,7 +7114,7 @@ Sub RunPr(Debugger As String = "")
 				WLet(ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash))
 			End If
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
-			#if 0
+			If InStr(FirstLine & CompileLine, "-s gui") Then
 				#define BufferSize 2048
 				Dim si As STARTUPINFO
 				Dim pi As PROCESS_INFORMATION
@@ -7130,7 +7160,7 @@ Sub RunPr(Debugger As String = "")
 						sOutput += Left(sBuffer, Pos1 - 1)
 						Split sOutput, WChr(10), res()
 						For i As Integer = 0 To UBound(res)
-							ShowMessages Str(Time) & ": " & ML("DebugPrint") & ": " & *res(i)
+							ShowMessages *res(i)
 							If Len(*res(i)) <= 1 Then Continue For
 							If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
 							'ShowMessages Str(Time) & ": " & ML("DebugPrint") & ": " & *res(i)
@@ -7148,7 +7178,7 @@ Sub RunPr(Debugger As String = "")
 				CloseHandle hReadPipe
 				result1 = GetLastError()
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & result1  & " - " & Err2Description(result1))
-			#else
+			Else
 				Dim SInfo As STARTUPINFO
 				Dim PInfo As PROCESS_INFORMATION
 				SInfo.cb = Len(SInfo)
@@ -7174,7 +7204,7 @@ Sub RunPr(Debugger As String = "")
 				'			Result = Shell(*CmdL)
 				'			ShowMessages(Time & ": " & ML("The application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 				'		End If
-			#endif
+			End If
 			ChangeEnabledDebug True, False, False
 			'End If
 			pstBar->Panels[0]->Caption = ML("Press F1 for get more information")

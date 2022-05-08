@@ -43,7 +43,7 @@ Declare Sub DebugPrint_(ByRef Msg As WString)
 #include once "TabWindow.bi"
 
 Sub DebugPrint_(ByRef Msg As WString)
-	DebugPrint Msg, True, False, False
+	Debug.Print Msg, True, False, False, False
 End Sub
 
 Sub StartDebuggingWithCompile(Param As Any Ptr)
