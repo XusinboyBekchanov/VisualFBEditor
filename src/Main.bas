@@ -3227,7 +3227,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					InNamespace = False
 					If Namespaces.Count > 0 Then
 						nc = Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->ControlType
-						For i As Integer = 1 To nc
+						For i As Integer = 0 To nc
 							If Namespaces.Count > 0 Then Namespaces.Remove Namespaces.Count - 1
 						Next i
 					End If
@@ -3316,6 +3316,14 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						typ->Elements.Add te->Name, te
 					Else
 						Functions.Add te->Name, te
+						If Not inType Then
+							If Namespaces.Count > 0 Then
+								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index <> -1 Then
+									Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+								End If
+							End If
+						End If
 					End If
 				ElseIf inType OrElse inUnion Then
 					If bTrimLCase = "public" Then

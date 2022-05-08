@@ -3112,7 +3112,7 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 	Next
 End Sub
 
-Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
+Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False) As Boolean
 	If ClassName = "" Then Return False
 	Var Index = pList->IndexOf(ClassName)
 	If Index = -1 Then Return False
@@ -3123,7 +3123,8 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 			te = tbi->Elements.Object(i)
 			If te Then
 				With *te
-					If bLocal OrElse .Locals = 0 Then
+					If (bLocal OrElse CBool(.Locals = 0)) AndAlso _
+						((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
 						If bAll OrElse Not FListItems.Contains(.Name) Then
 							FListItems.Add tbi->Elements.Item(i), te
 						End If
@@ -3132,13 +3133,13 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 			End If
 			i += 1
 		Loop
-		If FillIntellisense(tbi->TypeName, pList, bLocal, bAll) Then
-		ElseIf FillIntellisense(tbi->TypeName, @Types, bLocal, bAll) Then
-		ElseIf FillIntellisense(tbi->TypeName, @Enums, bLocal, bAll) Then
-		ElseIf FillIntellisense(tbi->TypeName, pComps, bLocal, bAll) Then
-		ElseIf FillIntellisense(tbi->TypeName, pGlobalTypes, bLocal, bAll) Then
-		ElseIf FillIntellisense(tbi->TypeName, pGlobalEnums, bLocal, bAll) Then
-		ElseIf FillIntellisense(tbi->TypeName, pGlobalNamespaces, bLocal, bAll) Then
+		If FillIntellisense(tbi->TypeName, pList, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, @Types, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, @Enums, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, pComps, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, pGlobalTypes, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, pGlobalEnums, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, pGlobalNamespaces, bLocal, bAll, TypesOnly) Then
 		End If
 	End If
 	Return True
@@ -3197,7 +3198,7 @@ Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Inte
 	WDeallocate sTempRight
 End Sub
 
-Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False)
+Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False)
 	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As String sTemp2 = TypeName
@@ -3258,7 +3259,11 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 	If TypeName <> "" AndAlso LCase(Value) = "base" Then
 		FListItems.Add "Base"
 	End If
-	If tb->Types.Contains(sTemp2) Then
+	If TypesOnly Then
+		If pGlobalNamespaces->Contains(sTemp2) Then
+			tb->FillIntellisense sTemp2, pGlobalNamespaces, bLocal, bAll, TypesOnly
+		End If
+	ElseIf tb->Types.Contains(sTemp2) AndAlso Not TypesOnly Then
 		tb->FillIntellisense sTemp2, @tb->Types, bLocal, bAll
 	ElseIf tb->Enums.Contains(sTemp2) Then
 		tb->FillIntellisense sTemp2, @tb->Enums, bLocal, bAll
@@ -3704,7 +3709,7 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 	Return sTemp
 End Function
 
-Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "") As String
+Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
 	Dim As String sTemp, sTemp2, TypeName, BaseTypeName
 	Dim sLine As WString Ptr
 	Dim As Integer j, iCount, Pos1
@@ -3726,9 +3731,11 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 					sTemp = ch & sTemp
 				ElseIf sTemp <> "" Then
 					If ch = "." Then
-						TypeName = GetLeftArgTypeName(tb, j, i - 1, teEnumOld)
+						TypeName = GetLeftArgTypeName(tb, j, i - 1, teEnumOld, , , Types)
 					ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
-						TypeName = GetLeftArgTypeName(tb, j, i - 2, teEnumOld)
+						TypeName = GetLeftArgTypeName(tb, j, i - 2, teEnumOld, , , Types)
+					ElseIf CBool(CBool(ch = " ") OrElse CBool(ch = !"\t")) AndAlso CBool(i > 0) AndAlso EndsWith(RTrim(LCase(Left(*sLine, i - 1)), Any "\t "), " as") Then
+						Types = True
 					End If
 					Exit For, For
 				Else
@@ -3758,7 +3765,7 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 					If WithCount < 0 Then
 						Return ""
 					ElseIf WithCount = 0 Then
-						TypeName = GetLeftArgTypeName(tb, i, Len(*ECLine->Text), teEnumOld)
+						TypeName = GetLeftArgTypeName(tb, i, Len(*ECLine->Text), teEnumOld, , , Types)
 						teEnum = teEnumOld
 						Return TypeName
 					End If
@@ -4024,9 +4031,10 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 			If Mid(*sLine, iSelEndChar - 1, 1) <> "-" Then Exit Sub
 			k = 2
 		End If
-		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k)
+		Dim As Boolean Types
+		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, , , , Types)
 		If Trim(TypeName) = "" Then Exit Sub
-		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName
+		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName, , , , , Types
 		#ifdef __USE_GTK__
 			If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
 		#else
