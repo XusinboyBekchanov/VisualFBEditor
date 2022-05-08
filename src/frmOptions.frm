@@ -10,6 +10,10 @@
 
 Dim Shared Languages As WStringList
 Dim Shared fOptions As frmOptions
+Dim Shared As WStringList FilesFind
+Dim Shared As Integer FilesIndex
+Dim Shared As Double mTimeStart, mTimeFactor ' spend on a litter more time for big filesize
+Dim Shared As Boolean Act1, Act2, Act3, Act4, Act5, Act6, Act7, Act0
 pfOptions = @fOptions
 
 '#Region "Form"
@@ -31,7 +35,7 @@ pfOptions = @fOptions
 		This.StartPosition = FormStartPosition.CenterParent
 		'This.Caption = ML("Options")
 		This.CancelButton = @cmdCancel
-		This.DefaultButton = @cmdOK
+		'This.DefaultButton = @cmdOK
 		This.BorderStyle = FormBorderStyle.FixedDialog
 		' tvOptions
 		tvOptions.Name = "tvOptions"
@@ -284,7 +288,7 @@ pfOptions = @fOptions
 		' cboLanguage
 		cboLanguage.Name = "cboLanguage"
 		'ComboBoxEdit1.Text = "russian"
-		cboLanguage.SetBounds 10, 20, 392, 21
+		cboLanguage.SetBounds 10, 20, 255, 21
 		cboLanguage.Parent = @grbLanguage
 		' cmdAddCompiler
 		cmdAddCompiler.Name = "cmdAddCompiler"
@@ -1391,7 +1395,222 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
+		' cmdUpdateLng
+		With cmdUpdateLng
+			.Name = "cmdUpdateLng"
+			.Text = ML("Scan and Update")
+			.TabIndex = 195
+			.Hint = ML("Scan the text string in source code and update languages files")
+			.SetBounds 270, 17, 132, 24
+			.Designer = @This
+			.OnClick = @cmdUpdateLng_Click_
+			.Parent = @grbLanguage
+		End With
+		' chkAllLNG
+		With chkAllLNG
+			.Name = "chkAllLNG"
+			.Text = ML("Update all language file.") & "(*.lng)"
+			.TabIndex = 196
+			.Checked = False
+			.SetBounds 17, 45, 244, 18
+			.Designer = @This
+			.Parent = @grbLanguage
+		End With
+		' txtFoldsHtml(0)
+		With txtFoldsHtml(0)
+			.Name = "txtFoldsHtml(0)"
+			.Text = ""
+			.TabIndex = 197
+			.SetBounds 11, 140, 255, 24
+			.Hint = ML("You can input the path where the files extracted from") & " .\Help\freebasic_manual_html_english.zip"
+			.Designer = @This
+			.OnChange = @txtFoldsHtml_Change_
+			.Parent = @grbLanguage
+		End With
+		' txtFoldsHtml(1)
+		With txtFoldsHtml(1)
+			.Name = "txtFoldsHtml(1)"
+			.TabIndex = 208
+			.Text = ""
+			.SetBounds 10, 193, 255, 24
+			.Designer = @This
+			.OnChange = @txtFoldsHtml_Change_
+			.Parent = @grbLanguage
+		End With
+		' cmdUpdateLngVFPFolds1
+		With cmdUpdateLngHTMLFolds(0)
+			.Name = "cmdUpdateLngHTMLFolds(0)"
+			.Text = "..."
+			.TabIndex = 198
+			.SetBounds 272, 138, 30, 24
+			.Designer = @This
+			.OnClick = @cmdUpdateLngHTMLFolds_Click_
+			.Parent = @grbLanguage
+		End With
+		' cmdUpdateLngHTMLFolds1
+		With cmdUpdateLngHTMLFolds(1)
+			.Name = "cmdUpdateLngHTMLFolds(1)"
+			.Text = "..."
+			.TabIndex = 209
+			.SetBounds 270, 193, 30, 24
+			.Designer = @This
+			.OnClick = @cmdUpdateLngHTMLFolds_Click_
+			.Parent = @grbLanguage
+		End With
+		' Label11
+		With Label11
+			.Name = "Label11"
+			.Text = ML("The path of the HTML file(freeBasic Manual)") & "-" & ML("English")
+			.TabIndex = 199
+			.SetBounds 15, 120, 332, 15
+			.Designer = @This
+			.Parent = @grbLanguage
+		End With
+		' cmdUpdateKeywordsHelp
+		With cmdUpdateKeywordsHelp
+			.Name = "cmdUpdateKeywordsHelp"
+			.Text = ML("Update") & " " & "KeywordsHelp.txt"
+			.Hint = ML("Supports Add win32 and gtk API if the html in the same folds.")
+			.TabIndex = 200
+			.Enabled = False
+			.SetBounds 271, 80, 132, 24
+			.Designer = @This
+			.OnClick = @cmdUpdateKeywordsHelp_Click_
+			.Parent = @grbLanguage
+		End With
+		' cmdTranslateByEdge
+		With cmdTranslateByEdge
+			.Name = "cmdTranslateByEdge"
+			.Text = ML("Send to translator")
+			.TabIndex = 211
+			.SetBounds 269, 51, 132, 24
+			.Hint = ML("Send html files to Edge or Chrome for automatic translation every 10 seconds, and then save all the translated web pages.")
+			.Enabled = False
+			.Designer = @This
+			.OnClick = @_cmdTranslateByEdge_Click
+			.Parent = @grbLanguage
+		End With
+		' txtHtmlFind
+		With txtHtmlFind
+			.Name = "txtHtmlFind"
+			.TabIndex = 202
+			.ScrollBars = ScrollBarsType.Vertical
+			.ID = 1014
+			'.Hint = ML("Supports batch replacement by Enter key separation.")
+			.WordWraps = True
+			.WantReturn = True
+			.Multiline = True
+			.SetBounds 7, 241, 394, 40
+			.Designer = @This
+			.Parent = @grbLanguage
+		End With
+		' txtHtmlReplace
+		With txtHtmlReplace
+			.Name = "txtHtmlReplace"
+			.TabIndex = 203
+			.WordWraps = True
+			.ID = 1014
+			.ScrollBars = ScrollBarsType.Vertical
+			.Multiline = True
+			.WantReturn = True
+			.SetBounds 8, 309, 395, 40
+			.Designer = @This
+			.Parent = @grbLanguage
+		End With
+		' lblReplace
+		With lblReplace
+			.Name = "lblReplace"
+			.Text = ML("Replace") + ":"
+			.Hint = ML("Supports batch replacement by Enter key separation.")
+			.TabIndex = 204
+			.SetBounds 8, 288, 171, 18
+			.Designer = @This
+			.Parent = @grbLanguage
+		End With
+		' lblFind
+		With lblFind
+			.Name = "lblFind"
+			.Text = ML("Find What") & ":" + "  " + ML("Supports batch replacement by Enter key separation.")
+			.TabIndex = 205
+			.SetBounds 12, 223, 383, 18
+			.Designer = @This
+			.Parent = @grbLanguage
+		End With
+		' cmdReplaceInFiles
+		With cmdReplaceInFiles(0)
+			.Name = "cmdReplaceInFiles(0)"
+			.Text = ML("Replace In Files")
+			.TabIndex = 206
+			.SetBounds 305, 138, 99, 24
+			.Designer = @This
+			.OnClick = @cmdReplaceInFiles_Click_
+			.Parent = @grbLanguage
+		End With
+		' cmdReplaceInFiles1
+		With cmdReplaceInFiles(1)
+			.Name = "cmdReplaceInFiles(1)"
+			.Text = ML("Replace In Files")
+			.TabIndex = 210
+			.SetBounds 302, 191, 101, 24
+			.Designer = @This
+			.OnClick = @cmdReplaceInFiles_Click_
+			.Parent = @grbLanguage
+		End With
+		' lblShowMsg
+		With lblShowMsg
+			.Name = "lblShowMsg"
+			.Text = ML("Make sure edge or Chrome's auto-translation feature is turned on before you start translating.")
+			.TabIndex = 206
+			.SetBounds 11, 364, 394, 24
+			.Designer = @This
+			.Parent = @grbLanguage
+		End With
+		' Label111
+		With Label111
+			.Name = "Label111"
+			.Text = ML("The path of the HTML file(freeBasic Manual)") & "-" & ML("localization")
+			.TabIndex = 211
+			.SetBounds 12, 173, 332, 15
+			.Designer = @This
+			.Parent = @grbLanguage
+		End With
+		' TimerMonitorEdge
+		With TimerMonitorEdge
+			.Name = "TimerMonitorEdge"
+			.SetBounds 212, 429, 16, 16
+			.Designer = @This
+			.OnTimer = @_TimerMonitorEdge_Timer
+			.Parent = @This
+		End With
 	End Constructor
+	
+	Private Sub frmOptions._TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
+		*Cast(frmOptions Ptr, Sender.Designer).TimerMonitorEdge_Timer(Sender)
+	End Sub
+	
+	Private Sub frmOptions._cmdTranslateByEdge_Click(ByRef Sender As Control)
+		*Cast(frmOptions Ptr, Sender.Designer).cmdTranslateByEdge_Click(Sender)
+	End Sub
+	
+	Private Sub frmOptions.txtFoldsHtml_Change_(ByRef Sender As TextBox)
+		*Cast(frmOptions Ptr, Sender.Designer).txtFoldsHtml_Change(Sender)
+	End Sub
+	
+	Private Sub frmOptions.cmdUpdateLng_Click_(ByRef Sender As Control)
+		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateLng_Click(Sender)
+	End Sub
+	
+	Private Sub frmOptions.cmdUpdateLngHTMLFolds_Click_(ByRef Sender As Control)
+		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateLngHTMLFolds_Click(Sender)
+	End Sub
+	
+	Private Sub frmOptions.cmdUpdateKeywordsHelp_Click_(ByRef Sender As Control)
+		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateKeywordsHelp_Click(Sender)
+	End Sub
+	
+	Private Sub frmOptions.cmdReplaceInFiles_Click_(ByRef Sender As Control)
+		*Cast(frmOptions Ptr, Sender.Designer).cmdReplaceInFiles_Click(Sender)
+	End Sub
 	
 	Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click_(ByRef Sender As CheckBox)
 		*Cast(frmOptions Ptr, Sender.Designer).chkCreateNonStaticEventHandlers_Click(Sender)
@@ -1534,7 +1753,7 @@ Sub frmOptions.LoadSettings()
 			CloseFile_(Fn)
 			f = Dir()
 		Wend
-		HotKeysChanged = False 
+		HotKeysChanged = False
 		'On Error Goto 0
 		'WDeallocate s '
 		newIndex = Languages.IndexOf(CurLanguage)
@@ -1627,107 +1846,107 @@ Sub frmOptions.LoadSettings()
 		For i As Integer = 0 To pLibraryPaths->Count - 1
 			.lstLibraryPaths.AddItem pLibraryPaths->Item(i)
 		Next
-'		For i As Integer = 0 To 15
-'			For j As Integer = 0 To 6
-'				.Colors(i, j) = -2
-'			Next
-'		Next
+		'		For i As Integer = 0 To 15
+		'			For j As Integer = 0 To 6
+		'				.Colors(i, j) = -2
+		'			Next
+		'		Next
 		.ColorsCount = 0
 		AddColors Bookmarks
-'		.Colors(0, 0) = Bookmarks.Foreground
-'		.Colors(0, 1) = Bookmarks.Background
-'		.Colors(0, 2) = Bookmarks.Frame
-'		.Colors(0, 3) = Bookmarks.Indicator
-'		.Colors(0, 4) = Bookmarks.Bold
-'		.Colors(0, 5) = Bookmarks.Italic
-'		.Colors(0, 6) = Bookmarks.Underline
+		'		.Colors(0, 0) = Bookmarks.Foreground
+		'		.Colors(0, 1) = Bookmarks.Background
+		'		.Colors(0, 2) = Bookmarks.Frame
+		'		.Colors(0, 3) = Bookmarks.Indicator
+		'		.Colors(0, 4) = Bookmarks.Bold
+		'		.Colors(0, 5) = Bookmarks.Italic
+		'		.Colors(0, 6) = Bookmarks.Underline
 		AddColors Breakpoints
-'		.Colors(1, 0) = Breakpoints.Foreground
-'		.Colors(1, 1) = Breakpoints.Background
-'		.Colors(1, 2) = Breakpoints.Frame
-'		.Colors(1, 3) = Breakpoints.Indicator
-'		.Colors(1, 4) = Breakpoints.Bold
-'		.Colors(1, 5) = Breakpoints.Italic
-'		.Colors(1, 6) = Breakpoints.Underline
+		'		.Colors(1, 0) = Breakpoints.Foreground
+		'		.Colors(1, 1) = Breakpoints.Background
+		'		.Colors(1, 2) = Breakpoints.Frame
+		'		.Colors(1, 3) = Breakpoints.Indicator
+		'		.Colors(1, 4) = Breakpoints.Bold
+		'		.Colors(1, 5) = Breakpoints.Italic
+		'		.Colors(1, 6) = Breakpoints.Underline
 		AddColors Comments, , , , False
-'		.Colors(2, 0) = Comments.Foreground
-'		.Colors(2, 1) = Comments.Background
-'		.Colors(2, 2) = Comments.Frame
-'		.Colors(2, 4) = Comments.Bold
-'		.Colors(2, 5) = Comments.Italic
-'		.Colors(2, 6) = Comments.Underline
+		'		.Colors(2, 0) = Comments.Foreground
+		'		.Colors(2, 1) = Comments.Background
+		'		.Colors(2, 2) = Comments.Frame
+		'		.Colors(2, 4) = Comments.Bold
+		'		.Colors(2, 5) = Comments.Italic
+		'		.Colors(2, 6) = Comments.Underline
 		AddColors CurrentBrackets, , , , False
-'		.Colors(3, 0) = CurrentBrackets.Foreground
-'		.Colors(3, 1) = CurrentBrackets.Background
-'		.Colors(3, 2) = CurrentBrackets.Frame
-'		.Colors(3, 4) = CurrentBrackets.Bold
-'		.Colors(3, 5) = CurrentBrackets.Italic
-'		.Colors(3, 6) = CurrentBrackets.Underline
+		'		.Colors(3, 0) = CurrentBrackets.Foreground
+		'		.Colors(3, 1) = CurrentBrackets.Background
+		'		.Colors(3, 2) = CurrentBrackets.Frame
+		'		.Colors(3, 4) = CurrentBrackets.Bold
+		'		.Colors(3, 5) = CurrentBrackets.Italic
+		'		.Colors(3, 6) = CurrentBrackets.Underline
 		AddColors CurrentLine, , , , False, False, False, False
-'		.Colors(4, 0) = CurrentLine.Foreground
-'		.Colors(4, 1) = CurrentLine.Background
-'		.Colors(4, 2) = CurrentLine.Frame
+		'		.Colors(4, 0) = CurrentLine.Foreground
+		'		.Colors(4, 1) = CurrentLine.Background
+		'		.Colors(4, 2) = CurrentLine.Frame
 		AddColors CurrentWord, , , , False
-'		.Colors(5, 0) = CurrentWord.Foreground
-'		.Colors(5, 1) = CurrentWord.Background
-'		.Colors(5, 2) = CurrentWord.Frame
-'		.Colors(5, 4) = CurrentWord.Bold
-'		.Colors(5, 5) = CurrentWord.Italic
-'		.Colors(5, 6) = CurrentWord.Underline
+		'		.Colors(5, 0) = CurrentWord.Foreground
+		'		.Colors(5, 1) = CurrentWord.Background
+		'		.Colors(5, 2) = CurrentWord.Frame
+		'		.Colors(5, 4) = CurrentWord.Bold
+		'		.Colors(5, 5) = CurrentWord.Italic
+		'		.Colors(5, 6) = CurrentWord.Underline
 		AddColors ExecutionLine, , , , , False, False, False
-'		.Colors(6, 0) = ExecutionLine.Foreground
-'		.Colors(6, 1) = ExecutionLine.Background
-'		.Colors(6, 2) = ExecutionLine.Frame
-'		.Colors(6, 3) = ExecutionLine.Indicator
+		'		.Colors(6, 0) = ExecutionLine.Foreground
+		'		.Colors(6, 1) = ExecutionLine.Background
+		'		.Colors(6, 2) = ExecutionLine.Frame
+		'		.Colors(6, 3) = ExecutionLine.Indicator
 		AddColors FoldLines, , False, False, False, False, False, False
-'		.Colors(7, 0) = FoldLines.Foreground
+		'		.Colors(7, 0) = FoldLines.Foreground
 		AddColors Identifiers, , , , False
 		AddColors IndicatorLines, , False, False, False, False, False, False
-'		.Colors(8, 0) = IndicatorLines.Foreground
+		'		.Colors(8, 0) = IndicatorLines.Foreground
 		For k As Integer = 0 To UBound(Keywords)
 			'ReDim Preserve Keywords(k)
 			AddColors Keywords(k), , , , False
 		Next
-'		.Colors(9, 0) = Keywords.Foreground
-'		.Colors(9, 1) = Keywords.Background
-'		.Colors(9, 2) = Keywords.Frame
-'		.Colors(9, 4) = Keywords.Bold
-'		.Colors(9, 5) = Keywords.Italic
-'		.Colors(9, 6) = Keywords.Underline
+		'		.Colors(9, 0) = Keywords.Foreground
+		'		.Colors(9, 1) = Keywords.Background
+		'		.Colors(9, 2) = Keywords.Frame
+		'		.Colors(9, 4) = Keywords.Bold
+		'		.Colors(9, 5) = Keywords.Italic
+		'		.Colors(9, 6) = Keywords.Underline
 		AddColors LineNumbers, , , False, False
-'		.Colors(10, 0) = LineNumbers.Foreground
-'		.Colors(10, 1) = LineNumbers.Background
-'		.Colors(10, 4) = LineNumbers.Bold
-'		.Colors(10, 5) = LineNumbers.Italic
-'		.Colors(10, 6) = LineNumbers.Underline
+		'		.Colors(10, 0) = LineNumbers.Foreground
+		'		.Colors(10, 1) = LineNumbers.Background
+		'		.Colors(10, 4) = LineNumbers.Bold
+		'		.Colors(10, 5) = LineNumbers.Italic
+		'		.Colors(10, 6) = LineNumbers.Underline
 		AddColors NormalText, , , , False
-'		.Colors(11, 0) = NormalText.Foreground
-'		.Colors(11, 1) = NormalText.Background
-'		.Colors(11, 2) = NormalText.Frame
-'		.Colors(11, 4) = NormalText.Bold
-'		.Colors(11, 5) = NormalText.Italic
-'		.Colors(11, 6) = NormalText.Underline
-'		.Colors(12, 0) = Preprocessors.Foreground
-'		.Colors(12, 1) = Preprocessors.Background
-'		.Colors(12, 2) = Preprocessors.Frame
-'		.Colors(12, 4) = Preprocessors.Bold
-'		.Colors(12, 5) = Preprocessors.Italic
-'		.Colors(12, 6) = Preprocessors.Underline
+		'		.Colors(11, 0) = NormalText.Foreground
+		'		.Colors(11, 1) = NormalText.Background
+		'		.Colors(11, 2) = NormalText.Frame
+		'		.Colors(11, 4) = NormalText.Bold
+		'		.Colors(11, 5) = NormalText.Italic
+		'		.Colors(11, 6) = NormalText.Underline
+		'		.Colors(12, 0) = Preprocessors.Foreground
+		'		.Colors(12, 1) = Preprocessors.Background
+		'		.Colors(12, 2) = Preprocessors.Frame
+		'		.Colors(12, 4) = Preprocessors.Bold
+		'		.Colors(12, 5) = Preprocessors.Italic
+		'		.Colors(12, 6) = Preprocessors.Underline
 		AddColors Numbers, , , , False
 		AddColors RealNumbers, , , , False
 		AddColors Selection, , , , False, False, False, False
-'		.Colors(13, 0) = Selection.Foreground
-'		.Colors(13, 1) = Selection.Background
-'		.Colors(13, 2) = Selection.Frame
+		'		.Colors(13, 0) = Selection.Foreground
+		'		.Colors(13, 1) = Selection.Background
+		'		.Colors(13, 2) = Selection.Frame
 		AddColors SpaceIdentifiers, , False, False, False, False, False, False
-'		.Colors(14, 0) = SpaceIdentifiers.Foreground
+		'		.Colors(14, 0) = SpaceIdentifiers.Foreground
 		AddColors Strings, , , , False
-'		.Colors(15, 0) = Strings.Foreground
-'		.Colors(15, 1) = Strings.Background
-'		.Colors(15, 2) = Strings.Frame
-'		.Colors(15, 4) = Strings.Bold
-'		.Colors(15, 5) = Strings.Italic
-'		.Colors(15, 6) = Strings.Underline
+		'		.Colors(15, 0) = Strings.Foreground
+		'		.Colors(15, 1) = Strings.Background
+		'		.Colors(15, 2) = Strings.Frame
+		'		.Colors(15, 4) = Strings.Bold
+		'		.Colors(15, 5) = Strings.Italic
+		'		.Colors(15, 6) = Strings.Underline
 		.lstColorKeys.ItemIndex = 0
 		.lstColorKeys_Change(.lstColorKeys)
 		WLet(.EditFontName, *EditorFontName)
@@ -1744,6 +1963,73 @@ Sub frmOptions.LoadSettings()
 		.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
 	End With
 End Sub
+
+Function Html2Text(ByRef inHtml As WString, ByRef StrMarkStart As WString = "", ByRef StrMarkEnd As WString = "") As String
+	If Trim(inHtml) = "" Then Return ""
+	Dim As  String ret
+	Dim As String HtmlCodes(0 To ...) = { "nbsp", " ", "amp", "&", "quot", """", "lt", "<", "gt", ">" }
+	Dim As Integer i = 1, j, k
+	If Len(StrMarkStart) > 0 Then
+		k = InStr(inHtml, StrMarkStart)
+		If k < 1 Then k = 1
+		j = InStr(inHtml, StrMarkEnd)
+		If j < 1 Then j = Len(inHtml)
+		ret = Trim(Mid(inHtml, k, j - k + 1))
+	Else
+		ret = Trim(inHtml)
+	End If
+	Do
+		i = InStr(i, ret, "<")
+		If i < 1 Then Exit Do
+		k = InStr(i, ret, ">")
+		If k > 0 Then
+			If ( LCase(Mid(ret, i + 1, Len("br "))) = "br " ) OrElse ( LCase(Mid(ret, i + 1, Len("br>"))) = "br>" ) Then
+				ret = Left(ret, i - 1) + Chr(13, 10) + Mid(ret, k + 1)
+			Else
+				ret = Left(ret, i - 1) + Mid(ret, k + 1)
+			End If
+		Else
+			k = Len(ret)
+			Exit Do
+		End If
+	Loop
+	
+	i = 1
+	Do
+		i = InStr(i, ret, "&")
+		If i < 1 Then Exit Do
+		If ( Asc( ret , i + 1 ) = Asc( "#" ) ) Then
+			Dim As Integer j = i + 2
+			Dim As Integer c = 0
+			Do
+				Select Case Asc( ret, j )
+				Case Asc("0") To Asc("9")
+					If ( c <= 255 ) Then c = c * 10 + Asc( ret, j ) - Asc("0")
+				Case Else
+					Exit Do
+				End Select
+				j += 1
+			Loop
+			If ( c > 0 And c <= 255 ) Then
+				If ( Mid( ret, j, 1) = ";" ) Then j += 1
+				ret = Trim(Left(ret, i - 1)) + Chr(c) + Trim(Mid(ret, j))
+			End If
+		Else
+			
+			For q As Integer = 0 To UBound(HtmlCodes) Step 2
+				If ( LCase(Mid( ret, i + 1, Len( HtmlCodes(q) ))) = HtmlCodes(q) ) Then
+					j = i + Len( HtmlCodes(q) ) + 1
+					If ( Mid( ret, j, 1) = ";" ) Then j += 1
+					ret = Left(ret, i - 1) + HtmlCodes(q + 1) + Mid(ret, j)
+					i += Len( HtmlCodes(q + 1) ) - 1
+					Exit For
+				End If
+			Next
+		End If
+		i += 1
+	Loop
+	Return ret
+End Function
 
 Sub AddShortcuts(item As MenuItem Ptr, ByRef Prefix As WString = "")
 	With fOptions
@@ -1828,7 +2114,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Normal Text")
 		.lstColorKeys.AddItem ML("Numbers")
 		.lstColorKeys.AddItem ML("Real Numbers")
-'		.lstColorKeys.AddItem ML("Preprocessors")
+		'		.lstColorKeys.AddItem ML("Preprocessors")
 		.lstColorKeys.AddItem ML("Selection")
 		.lstColorKeys.AddItem ML("Space Identifiers")
 		.lstColorKeys.AddItem ML("Strings")
@@ -1863,99 +2149,99 @@ Sub SetColors
 	With fOptions
 		.ColorsCount = 0
 		SetColor Bookmarks
-'		Bookmarks.ForegroundOption = .Colors(0, 0)
-'		Bookmarks.BackgroundOption = .Colors(0, 1)
-'		Bookmarks.FrameOption = .Colors(0, 2)
-'		Bookmarks.IndicatorOption = .Colors(0, 3)
-'		Bookmarks.Bold = .Colors(0, 4)
-'		Bookmarks.Italic = .Colors(0, 5)
-'		Bookmarks.Underline = .Colors(0, 6)
+		'		Bookmarks.ForegroundOption = .Colors(0, 0)
+		'		Bookmarks.BackgroundOption = .Colors(0, 1)
+		'		Bookmarks.FrameOption = .Colors(0, 2)
+		'		Bookmarks.IndicatorOption = .Colors(0, 3)
+		'		Bookmarks.Bold = .Colors(0, 4)
+		'		Bookmarks.Italic = .Colors(0, 5)
+		'		Bookmarks.Underline = .Colors(0, 6)
 		SetColor Breakpoints
-'		Breakpoints.ForegroundOption = .Colors(1, 0)
-'		Breakpoints.BackgroundOption = .Colors(1, 1)
-'		Breakpoints.FrameOption = .Colors(1, 2)
-'		Breakpoints.IndicatorOption = .Colors(1, 3)
-'		Breakpoints.Bold = .Colors(1, 4)
-'		Breakpoints.Italic = .Colors(1, 5)
-'		Breakpoints.Underline = .Colors(1, 6)
+		'		Breakpoints.ForegroundOption = .Colors(1, 0)
+		'		Breakpoints.BackgroundOption = .Colors(1, 1)
+		'		Breakpoints.FrameOption = .Colors(1, 2)
+		'		Breakpoints.IndicatorOption = .Colors(1, 3)
+		'		Breakpoints.Bold = .Colors(1, 4)
+		'		Breakpoints.Italic = .Colors(1, 5)
+		'		Breakpoints.Underline = .Colors(1, 6)
 		SetColor Comments
-'		Comments.ForegroundOption = .Colors(2, 0)
-'		Comments.BackgroundOption = .Colors(2, 1)
-'		Comments.FrameOption = .Colors(2, 2)
-'		Comments.Bold = .Colors(2, 4)
-'		Comments.Italic = .Colors(2, 5)
-'		Comments.Underline = .Colors(2, 6)
+		'		Comments.ForegroundOption = .Colors(2, 0)
+		'		Comments.BackgroundOption = .Colors(2, 1)
+		'		Comments.FrameOption = .Colors(2, 2)
+		'		Comments.Bold = .Colors(2, 4)
+		'		Comments.Italic = .Colors(2, 5)
+		'		Comments.Underline = .Colors(2, 6)
 		SetColor CurrentBrackets
-'		CurrentBrackets.ForegroundOption = .Colors(3, 0)
-'		CurrentBrackets.BackgroundOption = .Colors(3, 1)
-'		CurrentBrackets.FrameOption = .Colors(3, 2)
-'		CurrentBrackets.Bold = .Colors(3, 4)
-'		CurrentBrackets.Italic = .Colors(3, 5)
-'		CurrentBrackets.Underline = .Colors(3, 6)
+		'		CurrentBrackets.ForegroundOption = .Colors(3, 0)
+		'		CurrentBrackets.BackgroundOption = .Colors(3, 1)
+		'		CurrentBrackets.FrameOption = .Colors(3, 2)
+		'		CurrentBrackets.Bold = .Colors(3, 4)
+		'		CurrentBrackets.Italic = .Colors(3, 5)
+		'		CurrentBrackets.Underline = .Colors(3, 6)
 		SetColor CurrentLine
-'		CurrentLine.ForegroundOption = .Colors(4, 0)
-'		CurrentLine.BackgroundOption = .Colors(4, 1)
-'		CurrentLine.FrameOption = .Colors(4, 2)
+		'		CurrentLine.ForegroundOption = .Colors(4, 0)
+		'		CurrentLine.BackgroundOption = .Colors(4, 1)
+		'		CurrentLine.FrameOption = .Colors(4, 2)
 		SetColor CurrentWord
-'		CurrentWord.ForegroundOption = .Colors(5, 0)
-'		CurrentWord.BackgroundOption = .Colors(5, 1)
-'		CurrentWord.FrameOption = .Colors(5, 2)
-'		CurrentWord.Bold = .Colors(5, 4)
-'		CurrentWord.Italic = .Colors(5, 5)
-'		CurrentWord.Underline = .Colors(5, 6)
+		'		CurrentWord.ForegroundOption = .Colors(5, 0)
+		'		CurrentWord.BackgroundOption = .Colors(5, 1)
+		'		CurrentWord.FrameOption = .Colors(5, 2)
+		'		CurrentWord.Bold = .Colors(5, 4)
+		'		CurrentWord.Italic = .Colors(5, 5)
+		'		CurrentWord.Underline = .Colors(5, 6)
 		SetColor ExecutionLine
-'		ExecutionLine.ForegroundOption = .Colors(6, 0)
-'		ExecutionLine.BackgroundOption = .Colors(6, 1)
-'		ExecutionLine.FrameOption = .Colors(6, 2)
-'		ExecutionLine.IndicatorOption = .Colors(6, 3)
+		'		ExecutionLine.ForegroundOption = .Colors(6, 0)
+		'		ExecutionLine.BackgroundOption = .Colors(6, 1)
+		'		ExecutionLine.FrameOption = .Colors(6, 2)
+		'		ExecutionLine.IndicatorOption = .Colors(6, 3)
 		SetColor FoldLines
-'		FoldLines.ForegroundOption = .Colors(7, 0)
+		'		FoldLines.ForegroundOption = .Colors(7, 0)
 		SetColor Identifiers
 		SetColor IndicatorLines
-'		IndicatorLines.ForegroundOption = .Colors(8, 0)
+		'		IndicatorLines.ForegroundOption = .Colors(8, 0)
 		For k As Integer = 0 To UBound(Keywords)
 			SetColor Keywords(k)
 		Next k
-'		Keywords.ForegroundOption = .Colors(9, 0)
-'		Keywords.BackgroundOption = .Colors(9, 1)
-'		Keywords.FrameOption = .Colors(9, 2)
-'		Keywords.Bold = .Colors(9, 4)
-'		Keywords.Italic = .Colors(9, 5)
-'		Keywords.Underline = .Colors(9, 6)
+		'		Keywords.ForegroundOption = .Colors(9, 0)
+		'		Keywords.BackgroundOption = .Colors(9, 1)
+		'		Keywords.FrameOption = .Colors(9, 2)
+		'		Keywords.Bold = .Colors(9, 4)
+		'		Keywords.Italic = .Colors(9, 5)
+		'		Keywords.Underline = .Colors(9, 6)
 		SetColor LineNumbers
-'		LineNumbers.ForegroundOption = .Colors(10, 0)
-'		LineNumbers.BackgroundOption = .Colors(10, 1)
-'		LineNumbers.Bold = .Colors(10, 4)
-'		LineNumbers.Italic = .Colors(10, 5)
-'		LineNumbers.Underline = .Colors(10, 6)
+		'		LineNumbers.ForegroundOption = .Colors(10, 0)
+		'		LineNumbers.BackgroundOption = .Colors(10, 1)
+		'		LineNumbers.Bold = .Colors(10, 4)
+		'		LineNumbers.Italic = .Colors(10, 5)
+		'		LineNumbers.Underline = .Colors(10, 6)
 		SetColor NormalText
 		SetColor Numbers
 		SetColor RealNumbers
-'		NormalText.ForegroundOption = .Colors(11, 0)
-'		NormalText.BackgroundOption = .Colors(11, 1)
-'		NormalText.FrameOption = .Colors(11, 2)
-'		NormalText.Bold = .Colors(11, 4)
-'		NormalText.Italic = .Colors(11, 5)
-'		NormalText.Underline = .Colors(11, 6)
-'		Preprocessors.ForegroundOption = .Colors(12, 0)
-'		Preprocessors.BackgroundOption = .Colors(12, 1)
-'		Preprocessors.FrameOption = .Colors(12, 2)
-'		Preprocessors.Bold = .Colors(12, 4)
-'		Preprocessors.Italic = .Colors(12, 5)
-'		Preprocessors.Underline = .Colors(12, 6)
+		'		NormalText.ForegroundOption = .Colors(11, 0)
+		'		NormalText.BackgroundOption = .Colors(11, 1)
+		'		NormalText.FrameOption = .Colors(11, 2)
+		'		NormalText.Bold = .Colors(11, 4)
+		'		NormalText.Italic = .Colors(11, 5)
+		'		NormalText.Underline = .Colors(11, 6)
+		'		Preprocessors.ForegroundOption = .Colors(12, 0)
+		'		Preprocessors.BackgroundOption = .Colors(12, 1)
+		'		Preprocessors.FrameOption = .Colors(12, 2)
+		'		Preprocessors.Bold = .Colors(12, 4)
+		'		Preprocessors.Italic = .Colors(12, 5)
+		'		Preprocessors.Underline = .Colors(12, 6)
 		SetColor Selection
-'		Selection.ForegroundOption = .Colors(13, 0)
-'		Selection.BackgroundOption = .Colors(13, 1)
-'		Selection.FrameOption = .Colors(13, 2)
+		'		Selection.ForegroundOption = .Colors(13, 0)
+		'		Selection.BackgroundOption = .Colors(13, 1)
+		'		Selection.FrameOption = .Colors(13, 2)
 		SetColor SpaceIdentifiers
-'		SpaceIdentifiers.ForegroundOption = .Colors(14, 0)
+		'		SpaceIdentifiers.ForegroundOption = .Colors(14, 0)
 		SetColor Strings
-'		Strings.ForegroundOption = .Colors(15, 0)
-'		Strings.BackgroundOption = .Colors(15, 1)
-'		Strings.FrameOption = .Colors(15, 2)
-'		Strings.Bold = .Colors(15, 4)
-'		Strings.Italic = .Colors(15, 5)
-'		Strings.Underline = .Colors(15, 6)
+		'		Strings.ForegroundOption = .Colors(15, 0)
+		'		Strings.BackgroundOption = .Colors(15, 1)
+		'		Strings.FrameOption = .Colors(15, 2)
+		'		Strings.Bold = .Colors(15, 4)
+		'		Strings.Italic = .Colors(15, 5)
+		'		Strings.Underline = .Colors(15, 6)
 		SetAutoColors
 	End With
 End Sub
@@ -2090,7 +2376,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		TabWidth = Val(.txtTabSize.Text)
 		HistoryLimit = Val(.txtHistoryLimit.Text)
 		IntellisenseLimit = Val(.txtIntellisenseLimit.Text)
-		If Val(.txtHistoryCodeDays.Text) < HistoryCodeDays Then 
+		If Val(.txtHistoryCodeDays.Text) < HistoryCodeDays Then
 			HistoryCodeDays = Val(.txtHistoryCodeDays.Text)
 			HistoryCodeClean(ExePath & "/Temp")
 		Else
@@ -2401,12 +2687,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "NormalTextBold", NormalText.Bold)
 		piniTheme->WriteInteger("FontStyles", "NormalTextItalic", NormalText.Italic)
 		piniTheme->WriteInteger("FontStyles", "NormalTextUnderline", NormalText.Underline)
-'		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", Preprocessors.ForegroundOption)
-'		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", Preprocessors.BackgroundOption)
-'		piniTheme->WriteInteger("Colors", "PreprocessorsFrame", Preprocessors.FrameOption)
-'		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
-'		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
-'		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
+		'		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", Preprocessors.ForegroundOption)
+		'		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", Preprocessors.BackgroundOption)
+		'		piniTheme->WriteInteger("Colors", "PreprocessorsFrame", Preprocessors.FrameOption)
+		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
+		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
+		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
 		piniTheme->WriteInteger("Colors", "NumbersForeground", Numbers.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "NumbersBackground", Numbers.BackgroundOption)
 		piniTheme->WriteInteger("Colors", "NumbersFrame", Numbers.FrameOption)
@@ -2419,7 +2705,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "RealNumbersBold", RealNumbers.Bold)
 		piniTheme->WriteInteger("FontStyles", "RealNumbersItalic", RealNumbers.Italic)
 		piniTheme->WriteInteger("FontStyles", "RealNumbersUnderline", RealNumbers.Underline)
-'		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
+		'		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "SelectionBackground", Selection.BackgroundOption)
 		piniTheme->WriteInteger("Colors", "SelectionFrame", Selection.FrameOption)
 		piniTheme->WriteInteger("Colors", "SpaceIdentifiersForeground", SpaceIdentifiers.ForegroundOption)
@@ -2450,6 +2736,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	fOptions.TimerMonitorEdge.Enabled = False
 	If newIndex <> oldIndex Then MsgBox ML("Localization changes will be applied the next time the application is run.")
 	If *InterfaceFontName <> *fOptions.oldInterfFontName OrElse InterfaceFontSize <> fOptions.oldInterfFontSize Then MsgBox ML("Interface font changes will be applied the next time the application is run.")
 	If DisplayMenuIcons <> fOptions.oldDisplayMenuIcons Then MsgBox ML("Display icons in the menu changes will be applied the next time the application is run.")
@@ -2461,6 +2748,18 @@ Private Sub frmOptions.Form_Show(ByRef Sender As Form)
 	With fOptions
 		.LoadSettings
 		cboDefaultProjectFileCheckEnable
+		.cmdTranslateByEdge.Enabled = False
+		.TimerMonitorEdge.Enabled = False
+		.cmdUpdateKeywordsHelp.Enabled = False
+		.cmdReplaceInFiles(0).Enabled  = False
+		.cmdReplaceInFiles(1).Enabled  = False
+		
+		.txtHtmlFind.Text =    "href = ""./$F$_files/"    '  $F$ replace with filename without ext
+		.txtHtmlReplace.Text = "href=""images/"
+		.txtHtmlFind.Text =       .txtHtmlFind.Text & Chr(13, 10) & "src=""./$F$_files/"  '  $F$ replace with filename without ext
+		.txtHtmlReplace.Text = .txtHtmlReplace.Text & Chr(13, 10) & "src="""
+		.txtHtmlFind.Text =       .txtHtmlFind.Text & Chr(13, 10) & "href=""file:///C:/freeBasic/VB7M/"
+		.txtHtmlReplace.Text = .txtHtmlReplace.Text & Chr(13, 10) & "href="""
 	End With
 End Sub
 
@@ -2674,12 +2973,12 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 		.Colors(12 + k, 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
 		.Colors(12 + k, 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
 		.Colors(12 + k, 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
-'		.Colors(12 + k, 0) = piniTheme->ReadInteger("Colors", "PreprocessorsForeground", -1)
-'		.Colors(12 + k, 1) = piniTheme->ReadInteger("Colors", "PreprocessorsBackground", -1)
-'		.Colors(12 + k, 2) = piniTheme->ReadInteger("Colors", "PreprocessorsFrame", -1)
-'		.Colors(12 + k, 4) = piniTheme->ReadInteger("FontStyles", "PreprocessorsBold", 0)
-'		.Colors(12 + k, 5) = piniTheme->ReadInteger("FontStyles", "PreprocessorsItalic", 0)
-'		.Colors(12 + k, 6) = piniTheme->ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
+		'		.Colors(12 + k, 0) = piniTheme->ReadInteger("Colors", "PreprocessorsForeground", -1)
+		'		.Colors(12 + k, 1) = piniTheme->ReadInteger("Colors", "PreprocessorsBackground", -1)
+		'		.Colors(12 + k, 2) = piniTheme->ReadInteger("Colors", "PreprocessorsFrame", -1)
+		'		.Colors(12 + k, 4) = piniTheme->ReadInteger("FontStyles", "PreprocessorsBold", 0)
+		'		.Colors(12 + k, 5) = piniTheme->ReadInteger("FontStyles", "PreprocessorsItalic", 0)
+		'		.Colors(12 + k, 6) = piniTheme->ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
 		.Colors(13 + k, 0) = piniTheme->ReadInteger("Colors", "NumbersForeground", piniTheme->ReadInteger("Colors", "NormalTextForeground", -1))
 		.Colors(13 + k, 1) = piniTheme->ReadInteger("Colors", "NumbersBackground", piniTheme->ReadInteger("Colors", "NormalTextBackground", -1))
 		.Colors(13 + k, 2) = piniTheme->ReadInteger("Colors", "NumbersFrame", piniTheme->ReadInteger("Colors", "NormalTextFrame", -1))
@@ -3284,8 +3583,8 @@ Sub FindCompilers(ByRef Path As WString)
 	f = Dir(Path & Slash & "fbc*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
 	While f <> ""
 		If FormClosing OrElse bStop Then Exit Sub
-'		If (Attr And fbDirectory) <> 0 Then
-'			If f <> "." AndAlso f <> ".." Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
+		'		If (Attr And fbDirectory) <> 0 Then
+		'			If f <> "." AndAlso f <> ".." Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
 		#ifdef __FB_WIN32__
 			If LCase(f) = "fbc.exe" OrElse LCase(f) = "fbc32.exe" OrElse LCase(f) = "fbc64.exe" Then
 		#else
@@ -3361,7 +3660,7 @@ End Sub
 
 Sub HistoryCodeClean(ByRef Path As WString)
 	Dim As WString * 1024 f, f1
-	Dim As Double d2 
+	Dim As Double d2
 	Dim As UInteger Attr, NameCount
 	If Path = "" Then Exit Sub
 	If FormClosing OrElse bStop Then Exit Sub
@@ -3371,7 +3670,7 @@ Sub HistoryCodeClean(ByRef Path As WString)
 		If FormClosing OrElse bStop Then Exit Sub
 		f1 = Mid(f, Len(f) - 16)
 		If Len(f1) > 16 Then
-			d2 = DateValue(Mid(f1, 1, 4) & "/" & Mid(f1, 5, 2) & "/" & Mid(f1, 7, 2)) 
+			d2 = DateValue(Mid(f1, 1, 4) & "/" & Mid(f1, 5, 2) & "/" & Mid(f1, 7, 2))
 			If DateDiff( "d", d2, Now()) > HistoryCodeDays Then Kill Path & Slash & f
 		End If
 		f = Dir(Attr)
@@ -3443,4 +3742,917 @@ End Sub
 Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click(ByRef Sender As CheckBox)
 	chkPlaceStaticEventHandlersAfterTheConstructor.Enabled = chkCreateNonStaticEventHandlers.Checked
 	chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Enabled = chkCreateNonStaticEventHandlers.Checked
+End Sub
+
+Private Sub frmOptions.cmdUpdateLngHTMLFolds_Click(ByRef Sender As Control)
+	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
+	'BrowsD.Filter = ML("Html files") & " (*.html)|*.html|" & ML("All Files") & "|*.*|"
+	If BrowsD.Execute Then
+		txtFoldsHtml(Index).Text = BrowsD.Directory
+	End If
+End Sub
+
+Private Sub frmOptions.cmdReplaceInFiles_Click(ByRef Sender As Control)
+	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
+	Dim As WString * MAX_PATH f, FileNameLng, FileNameNoExt
+	Dim As WString Ptr WebHtml, WebHtmlSave, ResFind(Any), ResReplace(Any)
+	Dim As Integer ResFindCount, ResReplaceCount, FileIndex, P, P1
+	If Right(Trim(txtFoldsHtml(Index).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(Index).Text), 1) <> "/" Then
+		FileNameLng = Trim(txtFoldsHtml(Index).Text) & Slash
+	End If
+	Split txtHtmlFind.Text, Chr(13, 10), ResFind()
+	Split txtHtmlReplace.Text, Chr(13, 10), ResReplace()
+	ResFindCount = UBound(ResFind)
+	ResReplaceCount = UBound(ResReplace)
+	If ResFindCount > 0 AndAlso ResReplaceCount > 0  AndAlso ResFindCount <> ResReplaceCount Then
+		Msgbox "The count of items not match between finding text and replacing text."
+	Else
+		If ResFindCount > 0 AndAlso ResReplaceCount = 0 Then
+			ReDim ResReplace(ResFindCount)   'For replace all to ""
+		End If
+		f = Dir(FileNameLng & "*.html")
+		While f <> ""
+			FileNameNoExt = Mid(f, 1, Len(f) - 5)
+			wLet WebHtml, LoadFromFile(FileNameLng & f)
+			FileIndex += 1
+			lblShowMsg.Text = ML("Open") & ": NO. " & FileIndex & " " &  FileNameLng & f
+			If Len(Trim(*webHtml)) > 0 Then
+				'				p = InStr(LCase(*WebHtml), "<title>")   'Length 7
+				'				If p > 0 Then
+				'					p1 = InStr(p, LCase(*WebHtml), "</title>")
+				'					If p1 > 0 Then
+				'						WLetEx WebHtml, Mid(*WebHtml, 1, p - 1) & "</title>" & Mid(f, 1, Len(f) - 5) & "</title>" & Mid(*Webhtml, p1 + 8 ), True
+				'					End If
+				'				End If
+				If Len(txtHtmlFind.Text) > 0 Then
+					For i As Integer = 0 To ResFindCount
+						'Print Replace(*ResFind(i), "$F$", f), f
+						wLet webHtml, Replace(*webHtml, Replace(*ResFind(i), "$F$", FileNameNoExt), Replace(*ResReplace(i), "$F$", FileNameNoExt)) 'Surport replace with current  file name
+					Next
+				End If
+				'Save the html after modify
+				App.DoEvents
+				If Not SaveToFile(FileNameLng & f, *WebHtml) Then
+					MsgBox ML("Save file failure!") & " " & Chr(13, 10) & FileNameLng & f
+					Exit While
+				End If
+			Else
+				MsgBox ML("Open file failure!") & " " & Chr(13, 10) & FileNameLng & f
+				Exit While
+			End If
+			f = Dir()
+			App.DoEvents
+		Wend
+	End If
+	lblShowMsg.Text = ML("Find In Files") & ": " & FileIndex
+	For i As Integer = 0 To ResFindCount
+		Deallocate ResFind(i)
+	Next
+	Erase ResFind
+	
+	For i As Integer = 0 To ResReplaceCount
+		Deallocate ResREplace(i)
+	Next
+	Erase ResReplace
+	Deallocate WebHtml
+End Sub
+
+Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
+	
+	Dim As WString * 1024 Buff, FileNameLng, FileNameSrc
+	Dim As WString * 255 tKey, tText, f
+	Dim As Integer Pos1, p, p1, n, Result, Fn1, Fn2
+	Dim As Dictionary mlKeyWords
+	Dim As Boolean StartGeneral, StartKeyWords
+	cmdUpdateKeywordsHelp.Enabled = False
+	lblShowMsg.Visible =True
+	' Reading the language file first for got the local infomation of the keywords
+	p = InStr(cboLanguage.Text, "-")
+	If p > 0 Then FileNameLng = ExePath & "/Settings/Languages/" & Trim(Mid(cboLanguage.Text, p + 1)) & ".lng " Else Exit Sub
+	Fn1 = FreeFile
+	Result = Open(FileNameLng For Input Encoding "utf-8" As #Fn1)
+	If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-16" As #Fn1)
+	If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-32" As #Fn1)
+	If Result <> 0 Then Result = Open(FileNameLng For Input As #Fn1)
+	If Result = 0 Then
+		StartGeneral = True
+		lblShowMsg.Text  =  "Reading KeyWords from " & FileNameLng
+		Line Input #Fn1, Buff
+		Do Until EOF(Fn1)
+			Line Input #Fn1, Buff
+			If LCase(Trim(Buff)) = "[keywords]" Then
+				StartKeyWords = True
+				StartGeneral = False
+			ElseIf LCase(Trim(Buff)) = "[property]" Then
+				StartKeyWords = False
+				StartGeneral = False
+			ElseIf LCase(Trim(Buff)) = "[compiler]" Then
+				StartKeyWords = False
+				StartGeneral = False
+			ElseIf LCase(Trim(Buff)) = "[templates]" Then
+				StartKeyWords = False
+				StartGeneral = False
+			ElseIf LCase(Trim(Buff)) = "[general]" Then
+				StartKeyWords = False
+				StartGeneral = True
+			End If
+			Pos1 = InStr(Buff, "=")
+			If StartKeyWords AndAlso Len(Trim(Buff, Any !"\t ")) > 0 AndAlso Pos1 > 0 Then
+				'David Change For the Control Property's Language.
+				'note: "=" already converted to "~"
+				tKey = Trim(..Left(Buff, Pos1 - 1), Any !"\t ")
+				tText = Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				If Right(tText, 1) = "|" Then tText = ..Left(tText, Len(tText) - 1)
+				If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
+				If StartGeneral = True Then
+				ElseIf StartKeyWords = True Then
+					mlKeyWords.Add tKey, tText
+				End If
+			End If
+		Loop
+		Close Fn1
+		mlKeyWords.SortKeys
+	Else
+		lblShowMsg.Text = ML("File not found") & "! " & FileNameLng
+		Close Fn1
+		mlKeyWords.Clear
+		cmdUpdateKeywordsHelp.Enabled = True
+		Exit Sub
+	End If
+	
+	'' Got the local Keywords help contents from the html file that translated by Bing translating tools or Google.
+	'' Please using the batch replace tools at the this Tab to replace the what you do not like by any what you like it.
+	p = InStr(cboLanguage.Text, "-")
+	If p > 0 Then FileNameLng = ExePath & "/Settings/Others/KeywordsHelp." & Trim(Mid(cboLanguage.Text, p + 1)) & ".txt" Else Exit Sub
+	If Dir(FileNameLng) <> "" Then
+		FileCopy FileNameLng, FileNameLng & ".bak"
+		Kill FileNameLng
+	End If
+	If Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" Then txtFoldsHtml(1).Text = txtFoldsHtml(1).Text & "\"
+	
+	Fn1 = FreeFile
+	Result = Open(FileNameLng For Append As #Fn1) 'Encoding "utf-8" Can not be using in the same mode
+	If Result = 0 Then
+		Dim As WString Ptr WebHtml, WebText
+		Dim As WString * 255 KeyTemp, KeyText, KeyTempIndex, TitleTemp
+		Dim As Integer tIndex, tIndexSpace
+		
+		If Not FileExists(txtFoldsHtml(1).Text & "New") Then MkDir txtFoldsHtml(1).Text & "New"
+		f = Dir(txtFoldsHtml(1).Text & "*.html")
+		P1 = -5
+		txtHtmlFind.text = ML("The Keywords missed in your language file. (if it is english html files.)")
+		While f <> ""
+			'Print f  ThreadSelf
+			FileNameSrc = txtFoldsHtml(1).Text & f
+			wLet webHtml, LoadFromFile(FileNameSrc)
+			Result += 1
+			' Replace the keywords of translate by google which not good.
+			'<div id="fb_tab_l">__FB_ARGV__&nbsp;&nbsp;&nbsp;_编译传入值__</div>
+			p = InStr(LCase(*WebHtml), "<div id=""fb_tab_l"">&nbsp;")   'Length 19 This is a mark, meaning already change
+			If InStr(LCase(cboLanguage.Text), "english") Then p = 0
+			If p = 0 Then  ' not update the title.
+				'Replace title
+				p = InStr(LCase(*WebHtml), "<div id=""fb_tab_l"">")   'Length 19 This is a mark, meaning already change
+				If p > 0 Then
+					n = InStr(p + 18, LCase(*WebHtml), "</div>")
+					p1 = InStr(p + 18, LCase(*WebHtml), "&nbsp;")
+					If p1 > 0 AndAlso p1 < n Then n = p1  'no &nbsp; after the keywords. It is "</div>"
+					KeyTemp = Mid(*WebHtml, p + 19, n - p - 19)
+					tIndex = mlKeyWords.IndexOfKey(Trim(KeyTemp))
+					If tIndex < 0 Then
+						tIndexSpace = InStr(KeyTemp, " ")
+						KeyTempIndex = IIf(tIndexSpace> 0, ..Left(KeyTemp, tIndexSpace), KeyTemp)
+						tIndex = mlKeyWords.IndexOfKey(Trim(KeyTempIndex))
+					End If
+					If tIndex > -1 Then
+						KeyText = IIf(tIndex <> -1, mlKeyWords.item(tIndex)->Text, "")
+						If Right(KeyText, 1) = "|" Then KeyText = ..Left(KeyText, Len(KeyText) - 1)
+						'Print "KeyTemp ", KeyTemp
+						wLet WebHtml, ..Left(*WebHtml, p + 19 - 1) & KeyTemp & "&nbsp;&nbsp;&nbsp;" & KeyText & "</div><br \="""">" & Mid(*Webhtml, n + 6, Len(*Webhtml) - n + 1 - 6 )
+					Else
+						KeyText = ""
+					End If
+					'This function like the same in "Batch replace"
+					'<title>test   local words</title>
+					p = InStr(LCase(*WebHtml), "<title>")   'Length 7
+					If p > 0 Then
+						p1 = InStr(p, LCase(*WebHtml), "</title>")
+						If p1 > 0 Then
+							If InStr(LCase(cboLanguage.Text), "english") Then
+								Wlet WebHtml, ..Left(*WebHtml, p + 7 - 1) & KeyTemp & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
+							Else
+								Wlet WebHtml, ..Left(*WebHtml, p + 7 - 1) & KeyTemp & "&nbsp;-&nbsp;" & KeyText & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
+							End If
+						End If
+					End If
+					
+					'					p = InStr(LCase(*WebHtml), "<body><code>")   'Length 7
+					'					If p > 0 Then
+					'						p1 = InStr(p, LCase(*WebHtml), "</code>")
+					'						If p1 > 0 Then
+					'							If Len(KeyText) > 0 Then
+					'								Wlet WebHtml, ..Left(*WebHtml, p + 7 - 2) & "<code><title>" & KeyTemp & "&nbsp;-&nbsp;" & KeyText & "</title>" & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
+					'							Else
+					'								Wlet WebHtml, ..Left(*WebHtml, p + 7 - 2) & "<code><title>" + KeyTemp + "</title>" & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
+					'							End If
+					'
+					'						End If
+					'					End If
+					wLet WebText, Replace(*WebText, "</code>", "")
+					wLet WebText, Replace(*WebText, "<code>", "")
+				Else
+					wLet WebHtml, "<html class=""translated-ltr""><head><meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8""><title>No Data</title><link rel=""stylesheet"" type=""text/css"" href=""style.css""><meta charset=""UTF-8""></head><body></body></html>"
+				End If
+			End If
+			' Save the html after modify
+			If SaveToFile(txtFoldsHtml(1).Text & "New/" & f, *WebHtml) = False Then
+				Close #Fn1
+				lblShowMsg.Text = ML("Don't Save") & "! " & txtFoldsHtml(1).Text & "New/" & f
+				Exit Sub
+			Else
+				lblShowMsg.Text = ML("Save") & ": NO." & Str(Result) & " " & txtFoldsHtml(1).Text & "New/" & f
+			End If
+			P1 = -5
+			If ..Left(LCase(f), 3) = "key" Then
+				If tIndex = -1 Then txtHtmlFind.text = txtHtmlFind.text & Chr(13, 10) & KeyTemp
+				'WebBrowser1.Navigate(txtFoldsHtml(1).Text & "New/"  & f)
+				wLet *WebText, Html2Text(*WebHtml, "<div id=""fb_body_wrapper"">")
+				If Len(*WebText) > 0 Then
+					wLet WebText, Replace(*WebText, Chr(13, 10) + Chr(13, 10), Chr(13, 10))
+					wLet WebText, Replace(*WebText, Chr(13, 10) + " " + Chr(13, 10), Chr(13, 10))
+					p = -1
+					Pos1 = InStr(*WebText, Chr(13, 10) & ML("Description") & Chr(13, 10)) '  Description 描述      Example 例
+					If Pos1 < 1 Then Pos1 = InStr(*WebText, Chr(13, 10) & "Description" & Chr(13, 10))
+					If Pos1 > 1 Then
+						p = InStr(Pos1 + 20, *WebText, Chr(13, 10) & ML("Example") & Chr(13, 10))
+						If P < 1 Then p = InStr(Pos1 + 10, *WebText, Chr(13, 10) & "Example" & Chr(13, 10))
+						If P < 1 Then p = InStr(Pos1 + 10, *WebText, ML("Differences from QB") & Chr(13, 10))
+						If p > 0 AndAlso p < Pos1 + 200 Then
+							Pos1 = p
+						Else
+							Pos1 += 200
+						End If
+						'Print "Pos1, p", Pos1, p
+						' Save the html for produce keywords text file. It is writed with append mode
+						If Pos1 > 0 Then
+							Pos1 = Min(Pos1, Len(*WebText))
+							Print #Fn1, ""
+							Print #Fn1, "-------------------------------------------------------- " & ..Left(f, Len(f) - 5) & " ----"
+							Print #Fn1, ..Left (*WebText, Pos1)
+							Print #Fn1, ""
+						End If
+					End If
+				Else
+					Pos1 = 0
+				End If
+				If Pos1 < 1 Then
+					Print #Fn1, ""
+					Print #Fn1, "-------------------------------------------------------- " & ..Left(f, Len(f) - 5) & " ----"
+					Print #Fn1, KeyTemp & "   " & KeyText
+					Print #Fn1, "Description" & Chr(13, 10)
+					Print #Fn1, ""
+				End If
+			End If
+			f = Dir()
+		Wend
+		If Result > 0 Then
+			lblShowMsg.Text = ML("Find") & "： " & Str(Result)
+		Else
+			lblShowMsg.Text = ML("Find: No Results") & "! " & FileNameLng
+		End If
+		Close #Fn1
+		Deallocate WebText: WebText = 0
+		Deallocate WebHtml: WebHtml = 0
+		mlKeyWords.Clear
+	Else
+		lblShowMsg.Text = ML("File not found") & "! tttt" & FileNameLng
+	End If
+	cmdUpdateKeywordsHelp.Enabled = True
+End Sub
+
+
+Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
+	Dim As WString Ptr lang_name
+	Dim As WString * 1024 Buff, FileNameLng, FileNameSrc
+	Dim As String tKey, f
+	Dim As Integer Pos1, p, p1, n, Result, Fn1, Fn2
+	Dim As Dictionary mlKeysGeneral, mlKeysCompiler, mlKeysProperty, mlKeysTemplates, mlKeyWords, mlKeysCompilerEnglish, mlKeysPropertyEnglish, mlKeysTemplatesEnglish, mlKeyWordsEnglish, mlKeysGeneralEnglish
+	Dim As Boolean StartGeneral, StartKeyWords, StartProperty, StartCompiler, StartTemplates, IsComment = False
+	cmdUpdateLng.Enabled = False
+	lblShowMsg.Visible =True
+	' Produce English.lng from Projects at first
+	FileNameLng = ExePath & "/Settings/Languages/English.lng"
+	Fn1 = FreeFile
+	Result = Open(FileNameLng For Input Encoding "utf-8" As #Fn1)
+	If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-16" As #Fn1)
+	If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-32" As #Fn1)
+	If Result <> 0 Then Result = Open(FileNameLng For Input As #Fn1)
+	If Result = 0 Then
+		StartGeneral = True
+		Line Input #Fn1, Buff
+		wLet lang_name, Buff
+		Do Until EOF(Fn1)
+			Line Input #Fn1, Buff
+			If LCase(Trim(Buff)) = "[keywords]" Then
+				StartKeyWords = True
+				StartProperty = False
+				StartCompiler = False
+				Starttemplates = False
+				StartGeneral = False
+			ElseIf LCase(Trim(Buff)) = "[property]" Then
+				StartKeyWords = False
+				StartProperty = True
+				StartCompiler = False
+				Starttemplates = False
+				StartGeneral = False
+			ElseIf LCase(Trim(Buff)) = "[compiler]" Then
+				StartKeyWords = False
+				StartProperty = False
+				StartCompiler = True
+				Starttemplates = False
+				StartGeneral = False
+			ElseIf LCase(Trim(Buff)) = "[templates]" Then
+				StartKeyWords = False
+				StartProperty = False
+				StartCompiler = False
+				Starttemplates = True
+				StartGeneral = False
+			ElseIf LCase(Trim(Buff)) = "[general]" Then
+				StartKeyWords = False
+				StartProperty = False
+				StartCompiler = False
+				Starttemplates = False
+				StartGeneral = True
+			End If
+			Pos1 = InStr(Buff, "=")
+			If Len(Trim(Buff, Any !"\t ")) > 0 AndAlso Pos1 > 0 Then
+				'David Change For the Control Property's Language.
+				'note: "=" already Replaced by "~"
+				tKey = Trim(..Left(Buff, Pos1 - 1), Any !"\t ")
+				If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
+				If StartGeneral = True Then
+					mlKeysGeneralEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				ElseIf StartProperty = True Then
+					mlKeysPropertyEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				ElseIf StartKeyWords = True Then
+					mlKeyWordsEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				ElseIf StartCompiler = True Then
+					mlKeysCompilerEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				ElseIf StartTemplates = True Then
+					mlKeysTemplatesEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				End If
+			End If
+		Loop
+		Close Fn1
+		mlKeysGeneralEnglish.SortKeys
+		mlKeysPropertyEnglish.SortKeys
+		mlKeysCompilerEnglish.SortKeys
+		mlKeysTemplatesEnglish.SortKeys
+		mlKeyWordsEnglish.SortKeys
+	Else
+		lblShowMsg.Text = ML("File not found") & "! " & FileNameLng
+		mlKeysGeneral.Clear
+		mlKeysProperty.Clear
+		mlKeysCompiler.Clear
+		mlKeysTemplates.Clear
+		mlKeyWords.Clear
+		mlKeysGeneralEnglish.Clear
+		mlKeysPropertyEnglish.Clear
+		mlKeysCompilerEnglish.Clear
+		mlKeysTemplatesEnglish.Clear
+		mlKeyWordsEnglish.Clear
+		cmdUpdateLng.Enabled = True
+		Exit Sub
+	End If
+	Fn1= FreeFile
+	If Open(ExePath & "/VisualFBEditor.vfp" For Input Encoding "utf-8" As #Fn1) = 0 Then
+		IsComment = False
+		Do Until EOF(Fn1)
+			Line Input #Fn1, Buff
+			If InStr(Trim(Buff, Any !"\t "), "'") = 1 Then Continue Do
+			If InStr(Trim(Buff, Any !"\t "), "/*") = 1 Then IsComment = True
+			If InStr(Trim(Buff, Any !"\t "), "*/") > 1 Then
+				IsComment = False
+				Continue Do
+			End If
+			If IsComment Then Continue Do
+			If StartsWith(Buff, "File=") OrElse StartsWith(Buff, "*File=") Then
+				Buff = Mid(Buff, InStr(Buff, "=") + 1)
+				If InStr(Buff, ":") Then
+					FileNameSrc = Buff
+				Else
+					FileNameSrc = ExePath & "/" & Buff
+				End If
+				Fn2 = FreeFile
+				If Open(FileNameSrc For Input Encoding "utf-8" As #Fn2) = 0 Then
+					Print "FileNameSrc: " & FileNameSrc
+					lblShowMsg.Text = ML("Open") & "...  " & FileNameSrc
+					Do Until EOF(Fn2)
+						Line Input #Fn2, Buff
+						p = InStr(LCase(Buff), "ml(""")
+						Do While p > 0
+							p1 = InStr(p + 1, Buff, """)")
+							If p1 > 0 Then
+								tKey = Trim(Mid(Buff, p + 4, p1 - p - 4), Any !"\t ")
+								If tKey <> "" Then
+									If Not mlKeysGeneralEnglish.ContainsKey(tKey) Then
+										mlKeysGeneralEnglish.Add tKey, ""
+										tkey = replace(tkey, "&", "")
+										If Not mlKeysGeneralEnglish.ContainsKey(tkey) Then mlKeysGeneralEnglish.Add tKey, ""
+									End If
+								End If
+							End If
+							p = InStr(p1 + 1, LCase(Buff), "ml(""")
+						Loop
+					Loop
+					Close #Fn2
+					App.DoEvents
+				Else
+					lblShowMsg.Text = ML("File not found") & "! " & FileNameSrc
+				End If
+			End If
+		Loop
+		Close #Fn1
+	Else
+		lblShowMsg.Text = ML("File not found") & "! " & ExePath & "/VisualFBEditor.vfp"
+		mlKeysGeneral.Clear
+		mlKeysProperty.Clear
+		mlKeysCompiler.Clear
+		mlKeysTemplates.Clear
+		mlKeywords.Clear
+		cmdUpdateLng.Enabled = True
+		Exit Sub
+	End If
+	App.DoEvents
+	mlKeysGeneralEnglish.SortKeys
+	lblShowMsg.Text = ML("Save") & " " & FileNameLng
+	Fn1 = FreeFile
+	Open FileNameLng For Output Encoding "utf-8" As #Fn1
+	Print #Fn1, *lang_name
+	APP.DoEvents
+	Print #Fn1, "[Keywords]"
+	For i As Integer = 0 To mlKeyWordsEnglish.Count - 1
+		tKey = mlKeyWordsEnglish.Item(i)->Key
+		If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+		If tKey <> "" Then Print #Fn1, tKey & " = " '& mlKeysGeneral.Item(i)->Text
+	Next
+	APP.DoEvents
+	Print #Fn1, "[Property]"
+	For i As Integer = 0 To mlKeysPropertyEnglish.Count - 1
+		tKey = mlKeysPropertyEnglish.Item(i)->Key
+		If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+		If tKey <> "" Then Print #Fn1, tKey & " = " '& mlKeysGeneral.Item(i)->Text
+	Next
+	APP.DoEvents
+	Print #Fn1, "[Templates]"
+	For i As Integer = 0 To mlKeysTemplatesEnglish.Count - 1
+		tKey = mlKeysTemplatesEnglish.Item(i)->Key
+		If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+		If tKey <> "" Then Print #Fn1, tKey & " = " '& mlKeysGeneral.Item(i)->Text
+	Next
+	APP.DoEvents
+	Print #Fn1, "[Compiler]"
+	For i As Integer = 0 To mlKeysCompilerEnglish.Count - 1
+		tKey = mlKeysCompilerEnglish.Item(i)->Key
+		If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+		If tKey <> "" Then Print #Fn1, tKey & " = " '& mlKeysGeneral.Item(i)->Text
+	Next
+	APP.DoEvents
+	Print #Fn1, "[General]"
+	For i As Integer = 0 To mlKeysGeneralEnglish.Count - 1
+		tKey = mlKeysGeneralEnglish.Item(i)->Key
+		If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+		If tKey <> "" Then Print #Fn1, tKey & " = " '& mlKeysGeneral.Item(i)->Text
+	Next
+	Close #Fn1
+	APP.DoEvents
+	' Produce other Language .lng file from Projects.
+	mlKeysGeneral.Clear
+	mlKeysCompiler.Clear
+	mlKeysTemplates.Clear
+	mlKeysProperty.Clear
+	mlKeyWords.Clear
+	If chkAllLNG.Checked Then
+		f = Dir(ExePath & "/Settings/Languages/*.lng")
+	Else
+		p = InStr(cboLanguage.Text, "-")
+		If p > 0 Then f = Trim(Mid(cboLanguage.Text, p + 1)) & ".lng " Else Exit Sub
+	End If
+	While f <> ""
+		StartGeneral = True
+		mlKeysGeneral.Clear
+		mlKeysProperty.Clear
+		mlKeysCompiler.Clear
+		mlKeysTemplates.Clear
+		mlKeyWords.Clear
+		If chkAllLNG.Checked AndAlso InStr(LCase(f), "english.lng") > 0 Then
+			f = Dir()
+			If f = "" Then
+				cmdUpdateLng.Enabled = True
+				Exit Sub
+			End If
+		End If
+		Fn1 = FreeFile
+		FileNameLng = ExePath & "/Settings/Languages/" & f
+		Result = Open(FileNameLng For Input Encoding "utf-8" As #Fn1)
+		If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-16" As #Fn1)
+		If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-32" As #Fn1)
+		If Result <> 0 Then Result = Open(FileNameLng For Input As #Fn1)
+		If Result = 0 Then
+			StartGeneral = True
+			Text =  "******* Updating ... " & FileNameLng
+			Line Input #Fn1, Buff
+			wLet lang_name, Buff
+			Do Until EOF(Fn1)
+				Line Input #Fn1, Buff
+				If LCase(Trim(Buff)) = "[keywords]" Then
+					StartKeyWords = True
+					StartProperty = False
+					StartCompiler = False
+					Starttemplates = False
+					StartGeneral = False
+				ElseIf LCase(Trim(Buff)) = "[property]" Then
+					StartKeyWords = False
+					StartProperty = True
+					StartCompiler = False
+					Starttemplates = False
+					StartGeneral = False
+				ElseIf LCase(Trim(Buff)) = "[compiler]" Then
+					StartKeyWords = False
+					StartProperty = False
+					StartCompiler = True
+					Starttemplates = False
+					StartGeneral = False
+				ElseIf LCase(Trim(Buff)) = "[templates]" Then
+					StartKeyWords = False
+					StartProperty = False
+					StartCompiler = False
+					Starttemplates = True
+					StartGeneral = False
+				ElseIf LCase(Trim(Buff)) = "[general]" Then
+					StartKeyWords = False
+					StartProperty = False
+					StartCompiler = False
+					Starttemplates = False
+					StartGeneral = True
+				End If
+				Pos1 = InStr(Buff, "=")
+				If Len(Trim(Buff, Any !"\t ")) > 0 AndAlso Pos1 > 0 Then
+					'David Change For the Control Property's Language.
+					'note: "=" already converted to "~"
+					tKey = Trim(..Left(Buff, Pos1 - 1), Any !"\t ")
+					If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
+					If StartGeneral = True Then
+						mlKeysGeneral.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					ElseIf StartProperty = True Then
+						mlKeysProperty.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					ElseIf StartKeyWords = True Then
+						mlKeyWords.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					ElseIf StartCompiler = True Then
+						mlKeysCompiler.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					ElseIf StartTemplates = True Then
+						mlKeysTemplates.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					End If
+				End If
+			Loop
+			Close Fn1
+			mlKeysGeneral.SortKeys
+			mlKeysProperty.SortKeys
+			mlKeysCompiler.SortKeys
+			mlKeysTemplates.SortKeys
+			mlKeywords.SortKeys
+			APP.DoEvents
+			
+			'Add the not exist one
+			txtHtmlFind.Text = ""
+			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & *lang_name
+			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[KeyWords]"
+			For i As Integer = 0 To mlKeyWordsEnglish.Count - 1
+				tKey = mlKeyWordsEnglish.Item(i)->Key
+				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+				If Not mlKeyWords.ContainsKey(tKey) Then
+					mlKeyWords.Add tKey
+					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+				End If
+			Next
+			APP.DoEvents
+			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Property]"
+			For i As Integer = 0 To mlKeysPropertyEnglish.Count - 1
+				tKey = mlKeysPropertyEnglish.Item(i)->Key
+				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+				If Not mlKeysProperty.ContainsKey(tKey) Then
+					mlKeysProperty.Add tKey
+					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+				End If
+			Next
+			APP.DoEvents
+			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Templates]"
+			For i As Integer = 0 To mlKeysTemplatesEnglish.Count - 1
+				tKey = mlKeysTemplatesEnglish.Item(i)->Key
+				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+				If Not mlKeysTemplates.ContainsKey(tKey) Then
+					mlKeysTemplates.Add tKey
+					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+				End If
+			Next
+			APP.DoEvents
+			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Compiler]"
+			For i As Integer = 0 To mlKeysCompilerEnglish.Count - 1
+				tKey = mlKeysCompilerEnglish.Item(i)->Key
+				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+				If Not mlKeysCompiler.ContainsKey(tKey) Then
+					mlKeysCompiler.Add tKey
+					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+				End If
+			Next
+			APP.DoEvents
+			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[General]"
+			For i As Integer = 0 To mlKeysGeneralEnglish.Count - 1
+				tKey = mlKeysGeneralEnglish.Item(i)->Key
+				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+				If Not mlKeysGeneral.ContainsKey(tKey) Then
+					mlKeysGeneral.Add tKey
+					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+				End If
+			Next
+		Else
+			lblShowMsg.Text = lblShowMsg.Text & Chr(13, 10) & "File not found！" & FileNameLng
+			mlKeysGeneral.Clear
+			mlKeysProperty.Clear
+			mlKeysCompiler.Clear
+			mlKeysTemplates.Clear
+			mlKeyWords.Clear
+			mlKeysGeneralEnglish.Clear
+			mlKeysPropertyEnglish.Clear
+			mlKeysCompilerEnglish.Clear
+			mlKeysTemplatesEnglish.Clear
+			mlKeyWordsEnglish.Clear
+			cmdUpdateLng.Enabled = True
+			Exit Sub
+		End If
+		App.DoEvents
+		
+		mlKeysGeneral.SortKeys
+		mlKeysProperty.SortKeys
+		mlKeysCompiler.SortKeys
+		mlKeysTemplates.SortKeys
+		mlKeyWords.SortKeys
+		
+		'Save the Language file
+		Fn1 = FreeFile
+		Open FileNameLng For Output Encoding "utf-8" As #Fn1
+		Print #Fn1, *lang_name
+		lblShowMsg.Text = " Saving ... " & FileNameLng
+		APP.DoEvents
+		Print #Fn1, "[Keywords]"
+		For i As Integer = 0 To mlKeyWords.Count - 1
+			tKey = mlKeyWords.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeyWords.Item(i)->Text
+		Next
+		APP.DoEvents
+		Print #Fn1, "[Property]"
+		For i As Integer = 0 To mlKeysProperty.Count - 1
+			tKey = mlKeysProperty.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysProperty.Item(i)->Text
+		Next
+		APP.DoEvents
+		Print #Fn1, "[Templates]"
+		For i As Integer = 0 To mlKeysTemplates.Count - 1
+			tKey = mlKeysTemplates.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysTemplates.Item(i)->Text
+		Next
+		APP.DoEvents
+		Print #Fn1, "[Compiler]"
+		For i As Integer = 0 To mlKeysCompiler.Count - 1
+			tKey = mlKeysCompiler.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysCompiler.Item(i)->Text
+		Next
+		APP.DoEvents
+		Print #Fn1, "[General]"
+		For i As Integer = 0 To mlKeysGeneral.Count - 1
+			tKey = mlKeysGeneral.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysGeneral.Item(i)->Text
+		Next
+		Close #Fn1
+		APP.DoEvents
+		If chkAllLNG.Checked Then f = Dir() Else Exit While
+	Wend
+	App.DoEvents
+	mlKeysGeneral.Clear
+	mlKeysProperty.Clear
+	mlKeysCompiler.Clear
+	mlKeysTemplates.Clear
+	mlKeyWords.Clear
+	mlKeysGeneralEnglish.Clear
+	mlKeysPropertyEnglish.Clear
+	mlKeysCompilerEnglish.Clear
+	mlKeysTemplatesEnglish.Clear
+	mlKeyWordsEnglish.Clear
+	cmdUpdateLng.Enabled = True
+	'WebBrowser1.Navigate("https://cn.bing.com/translator?ref=TThis&&text=&from=en&to=cn")
+	
+End Sub
+
+Private Sub frmOptions.txtFoldsHtml_Change(ByRef Sender As TextBox)
+	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
+	If FileExists(Trim(txtFoldsHtml(Index).Text)) Then
+		If Index = 1 Then
+			cmdUpdateKeywordsHelp.Enabled = True
+		Else
+			cmdTranslateByEdge.Enabled = True
+		End If
+		cmdReplaceInFiles(Index).Enabled = True
+	Else
+		If Index = 1 Then
+			cmdUpdateKeywordsHelp.Enabled = False
+		Else
+			cmdTranslateByEdge.Enabled = False
+		End If
+		cmdReplaceInFiles(Index).Enabled = False
+	End If
+End Sub
+
+Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
+	Dim As WString * MAX_PATH f, FileNameLng
+	If cmdTranslateByEdge.Text = ML("Stop") Then
+		Act0 = True: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = True
+		TimerMonitorEdge.Enabled = False
+		Sleep(300)
+		cmdTranslateByEdge.Text = ML("Send to translator")
+		Exit Sub
+	Else
+		'Shell "explorer """" & ExePath & "/Settings/Others/property message.html" & """"
+		If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
+			FileNameLng = Trim(txtFoldsHtml(1).Text) & "\"
+		End If
+		f = Dir(FileNameLng & "*.html")
+		While f <> ""
+			'wLet WebHtml, LoadFromFile(FileNameLng & f)
+			If f <> "" Then
+				MsgBox(Trim(txtFoldsHtml(1).Text) & Chr(13, 10) & ML("Must be empty!"), "Visual FB Editor")
+				Exit Sub
+			End If
+		Wend
+		cmdTranslateByEdge.Text = ML("Stop")
+		Select Case MsgBox(ML("Please move away any windows including Edge or Chrome that may avoid not being able to click the Stop button. Continue?"), "Visual FB Editor", mtWarning, btYesNo)
+		Case mrYES:
+		Case mrNO: cmdTranslateByEdge.Text = ML("Send to translator"): Exit Sub
+		End Select
+	End If
+	FilesFind.Clear
+	If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
+		FileNameLng = Trim(txtFoldsHtml(0).Text) & "\"
+	End If
+	f = Dir(FileNameLng & "*.html")
+	While f <> ""
+		'wLet WebHtml, LoadFromFile(FileNameLng & f)
+		If f <> "" Then FilesFind.Add FileNameLng & f
+		f = Dir()
+		App.DoEvents
+	Wend
+	
+	FilesIndex = 0
+	'Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
+	Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
+	If tFilelen > 200000 Then
+		mTimeFactor = 45
+	ElseIf tFilelen > 150000 Then
+		mTimeFactor = 30
+	ElseIf tFilelen > 100000 Then
+		mTimeFactor = 25
+	ElseIf tFilelen > 50000 Then
+		mTimeFactor = 10
+	ElseIf tFilelen > 20000 Then
+		mTimeFactor = 5
+	Else
+		mTimeFactor = 0
+	End If
+	mTimeStart = Timer
+	TimerMonitorEdge.Enabled = True
+	Act0 = True: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = False
+	FilesIndex += 1
+	lblShowMsg.Text = FilesIndex & " / " & FilesFind.Count & " " & FilesFind.Item(FilesIndex)
+	cmdTranslateByEdge.Text = ML("Stop")
+End Sub
+
+Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
+	If Timer - mTimeStart > (11 + mTimeFactor) AndAlso Act0 = False Then
+		If FilesIndex < FilesFind.count Then
+			txtHtmlFind.Text = "file:///" + Replace(txtFoldsHtml(0).text, "\", "/")
+			txtHtmlFind.Text = Chr(13, 10) + "./" + FilesFind.Item(FilesIndex) + "_files/"
+			txtHtmlReplace.Text  =  ""
+			cmdReplaceInFiles_Click(cmdReplaceInFiles(0))
+			
+			Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
+			FilesIndex += 1
+			Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
+			If tFilelen > 200000 Then
+				mTimeFactor = 45
+			ElseIf tFilelen > 150000 Then
+				mTimeFactor = 30
+			ElseIf tFilelen > 100000 Then
+				mTimeFactor = 25
+			ElseIf tFilelen > 50000 Then
+				mTimeFactor = 10
+			ElseIf tFilelen > 20000 Then
+				mTimeFactor = 5
+			Else
+				mTimeFactor = 0
+			End If
+			'Print "mTimeFactor, tFilelen " & " " & mTimeFactor & " " & tFilelen
+			mTimeStart = Timer
+			Act0 = True: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = False
+			lblShowMsg.Text = FilesIndex & " / " & FilesFind.Count & " " & FilesFind.Item(FilesIndex)
+			cmdTranslateByEdge.Text = ML("Stop")
+		Else
+			Act0 = True
+			cmdTranslateByEdge.Text = ML("Send to translator")
+			TimerMonitorEdge.Enabled = False
+		End If
+	ElseIf Timer - mTimeStart > (9 + mTimeFactor) AndAlso Act1 = False Then
+		Act1 = True
+		'Ctrl + w 或 Ctrl + F4
+		'Close Current TAB  关闭当前标签页。（常用）
+		'Ctrl + Shift + w
+		'Close All TAB. 关闭所有已打开的标签页并关闭当前 Chrome 浏览器（如果开了多个浏览器，则只关闭当前的浏览器）。
+		'Ctrl + Shift + q  或 Alt + F4
+		'Close all Chrome    关闭所有 Chrome 浏览器。
+		mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 500 * 65536 / 1024, 400 * 65536 / 768, 0, 0)
+		mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
+		mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
+		
+		keybd_event(VK_CONTROL, 0, 0, 0) '按下 shift =16  ctrl = 17 alt =18
+		'keybd_event(VK_SHIFT, 0, 0, 0)
+		keybd_event(VK_W, 0, 0, 0)
+		keybd_event(VK_W, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
+		keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
+		
+		'keybd_event(VK_SHIFT, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
+		
+		Act0 = False: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = True
+		
+	ElseIf Timer - mTimeStart > (8 + mTimeFactor) AndAlso Act2 = False Then
+		Act2 = True
+		'ALT + S
+		keybd_event(VK_MENU, 0, 0, 0)
+		keybd_event(VK_S, 0, 0, 0)
+		keybd_event(VK_S, 0, KEYEVENTF_KEYUP, 0)
+		keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0)
+		Sleep(100)
+		keybd_event(VK_RETURN, 0, 0, 0) '释放 F4 115
+		keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
+		Act1 = False
+		
+	ElseIf Timer - mTimeStart > (7 + mTimeFactor) AndAlso Act4 = False Then
+		Act4 = True
+		keybd_event(VK_CONTROL, 0, 0, 0)
+		keybd_event(VK_S, 0, 0, 0)
+		keybd_event(VK_S, 0, KEYEVENTF_KEYUP, 0) '释放 S
+		keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0) '释放
+		Act2 = False
+	ElseIf Timer - mTimeStart > (1.5) AndAlso Act5 = False Then
+		'Mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0,0)  'NOT WORKING
+		mouse_event(MOUSEEVENTF_MOVE, -50, 20, 0,0)  'NOT WORKING
+		Act5 = True
+		Do Until Timer - mTimeStart > (6 + mTimeFactor)
+			keybd_event(VK_NEXT, 0, 0, 0)    'PageDown
+			keybd_event(VK_NEXT, 0, KEYEVENTF_KEYUP, 0)
+			Sleep(500)
+		Loop
+		keybd_event(VK_CONTROL, 0, 0, 0)
+		keybd_event(VK_END, 0, 0, 0)
+		keybd_event(VK_END, 0, KEYEVENTF_KEYUP, 0)
+		keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+		Sleep(500)
+		mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 500 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
+		mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
+		mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
+		
+		Act4 = False
+		'	ElseIf Timer - mTimeStart > 1.5 AndAlso Act6 = False Then
+		'		Act6 = True
+		'		keybd_event(VK_T, 0, 0, 0)
+		'		keybd_event(VK_T, 0, KEYEVENTF_KEYUP, 0)
+		'		Act5 = False
+	ElseIf Timer - mTimeStart > 0.5 AndAlso Act7 = False Then
+		Act7 = True
+		Act0 = True
+		
+		mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 500 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
+		mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
+		mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
+		'Mouse Down
+		' THis is for Chrome which not automaticaly start translating. Need press key "T" on the menu
+		'mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
+		'mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
+		'mouse_event(MOUSEEVENTF_RIGHTUP , 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
+		'https://blog.csdn.net/tianxw1209/article/details/6234386
+		Act6 = False
+		Act5 = False
+	End If
 End Sub
