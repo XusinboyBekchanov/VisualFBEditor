@@ -556,38 +556,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			WLet(CompileWith, CompilerTool->GetCommand(, True))
 		End If
 		WAdd(CompileWith, " " & *FirstLine)
-		If InStr(*CompileWith, " -s ") = 0 Then
-			If CInt(tbtConsole->Checked) Then
-				WAdd CompileWith, " -s console"
-			ElseIf CInt(tbtGUI->Checked) Then
-				WAdd CompileWith, " -s gui"
-			End If
-		End If
-		If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then WAdd CompileWith, " -g"
-		
-		If CInt(InStr(*CompileWith, " -v ") = 0)  Then
-			WAdd CompileWith, " -v "
-		End If
-		
-		If Project Then
-			If InStr(*CompileWith, " -s ") = 0 Then
-				Select Case Project->Subsystem
-				Case 0
-				Case 1: WAdd CompileWith, " -s console"
-				Case 2: WAdd CompileWith, " -s gui"
-				End Select
-			End If
-			If Project->CompileTo = ToGAS Then
-				WAdd CompileWith, " -gen gas" & IIf(Not Bit32, "64", "")
-			ElseIf Project->CompileTo = ToLLVM Then
-				WAdd CompileWith, " -gen llvm"
-			ElseIf Project->CompileTo = ToGCC Then
-				WAdd CompileWith, " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", ""))) & _
-				IIf(Project->ShowUnusedLabelWarnings, " -Wc -Wunused-label", "") & IIf(Project->ShowUnusedFunctionWarnings, " -Wc -Wunused-function", "") & IIf(Project->ShowUnusedVariableWarnings, " -Wc -Wunused-variable", "") & _
-				IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
-			End If
-		End If
-		If UseDefine <> "" Then WAdd CompileWith, " -d " & UseDefine
 		If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
 		For i As Integer = 0 To pIncludePaths->Count - 1
 			WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
@@ -595,6 +563,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		For i As Integer = 0 To pLibraryPaths->Count - 1
 			WAdd CompileWith, " -p """ & pLibraryPaths->Item(i) & """"
 		Next
+		WAdd CompileWith, " -d _DebugWindow_=" & Str(txtImmediate.Handle)
 		'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
 		WLet(LogFileName2, ExePath & "/Temp/Compile.log")
 		Dim As UString OtherModuleFiles
@@ -6778,7 +6747,8 @@ txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
 'txtImmediate.BackColor = NormalText.Background
 'txtImmediate.Font.Color = NormalText.Foreground
-txtImmediate.Text = "import #Include Once " + Chr(34) + "mff/SysUtils.bas"+Chr(34) & WChr(13,10) & WChr(13,10)
+txtImmediate.Text = "import #Include Once " + Chr(34) + "mff/SysUtils.bas" + Chr(34) & WChr(13, 10) & WChr(13, 10)
+txtImmediate.SetSel txtImmediate.GetTextLength, txtImmediate.GetTextLength
 
 Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Dim bCtrl As Boolean

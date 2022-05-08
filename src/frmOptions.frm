@@ -36,7 +36,7 @@ pfOptions = @fOptions
 		' tvOptions
 		tvOptions.Name = "tvOptions"
 		tvOptions.Text = "TreeView1"
-		tvOptions.SetBounds 10, 6, 178, 400
+		tvOptions.SetBounds 10, 10, 178, 400
 		tvOptions.HideSelection = False
 		tvOptions.OnSelChanged = @TreeView1_SelChange
 		tvOptions.Parent = @This
@@ -136,7 +136,7 @@ pfOptions = @fOptions
 		' pnlOtherEditors
 		pnlOtherEditors.Name = "pnlOtherEditors"
 		pnlOtherEditors.Text = ""
-		pnlOtherEditors.SetBounds 190, 2, 436, 410
+		pnlOtherEditors.SetBounds 190, 6, 436, 410
 		pnlOtherEditors.Parent = @This
 		' grbDefaultCompilers
 		With grbDefaultCompilers
@@ -304,20 +304,25 @@ pfOptions = @fOptions
 		chkAutoCreateRC.Parent = @pnlGeneral
 		' pnlIncludes
 		pnlIncludes.Name = "pnlIncludes"
-		pnlIncludes.SetBounds 190, 6, 426, 408
+		pnlIncludes.SetBounds 190, 10, 426, 398
 		pnlIncludes.Text = ""
 		pnlIncludes.Parent = @This
 		' grbIncludePaths
 		With grbIncludePaths
 			.Name = "grbIncludePaths"
 			.Text = ML("Include Paths")
-			.SetBounds 10, 3, 416, 216
+			.Align = DockStyle.alClient
+			.ExtraMargins.Left = 10
+			.SetBounds 0, 0, 426, 230
 			.Parent = @pnlIncludes
 		End With
 		' grbLibraryPaths
 		With grbLibraryPaths
 			.Name = "grbLibraryPaths"
 			.Text = ML("Library Paths")
+			.Align = DockStyle.alBottom
+			.ExtraMargins.Left = 10
+			.ExtraMargins.Top = 8
 			.SetBounds 10, 230, 416, 168
 			.Parent = @pnlIncludes
 		End With
@@ -1038,7 +1043,7 @@ pfOptions = @fOptions
 		With grbOtherEditors
 			.Name = "grbOtherEditors"
 			.Text = "Other Editors"
-			.SetBounds 10, 3, 416, 401
+			.SetBounds 10, 3, 416, 400
 			.Parent = @pnlOtherEditors
 		End With
 		' lvOtherEditors
