@@ -201,7 +201,7 @@ Public:
 	Events As Dictionary
 	Declare Sub CheckExtension(ByRef FileName As WString)
 	Declare Sub FillProperties(ByRef ClassName As WString)
-	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False) As Boolean
+	Declare Function FillIntellisense(ByRef ClassName As WString, pComps As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False) As Boolean
 	Declare Sub SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
 	Dim bNotDesign As Boolean
 	Dim As Integer ConstructorStart, ConstructorEnd, lvPropertyWidth, FindFormPosiLeft, FindFormPosiTop, RightSelectedIndex
@@ -384,7 +384,7 @@ Declare Function Ekvivalent(ByRef a As WString, ByRef b As WString) As Integer
 
 Declare Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Integer)
 
-Declare Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False)
+Declare Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False)
 
 Declare Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 
@@ -396,7 +396,7 @@ Declare Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
 
 Declare Sub cboIntellisense_CloseUp(ByRef Sender As ComboBoxEdit)
 
-Declare Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "") As String
+Declare Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
 
 Declare Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 
