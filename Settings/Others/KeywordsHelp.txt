@@ -1,4 +1,4 @@
-
+﻿
 -------------------------------------------------------- KeyPgAbs ----
 
 Abs
@@ -66,7 +66,8 @@ Open the file with read and write privileges.
 
 Description
 Access is used with the Open statement to request read, write, or read and write privileges.  If the Access clause is not specified, Read Write is assumed.
-
+
+
 
 
 -------------------------------------------------------- KeyPgAcos ----
@@ -317,7 +318,8 @@ The name of the array for which the length is returned.
 
 Description
 Returns the total number of elements of the array specified by arrayname() (taking into account all dimensions of array).
-
+
+
 
 
 -------------------------------------------------------- KeyPgArraySize ----
@@ -342,7 +344,8 @@ The name of the array for which the size is returned.
 
 Description
 Returns the total size (in bytes) of the array specified by arrayname() (size of array element multiplied by total number of array elements).
-
+
+
 
 
 -------------------------------------------------------- KeyPgAs ----
@@ -869,7 +872,8 @@ Dim variable As Byte
 
 Description
 8-bit signed whole-number data type. Can hold a value in the range of -128 to 127.
-
+
+
 
 
 -------------------------------------------------------- KeyPgByval ----
@@ -1107,7 +1111,8 @@ Returns the external program's exit code if executed successfully, or negative o
 
 Description
 Transfers control over to an external program. When the program exits, execution resumes immediately after the call to Chain.
-
+
+
 
 
 -------------------------------------------------------- KeyPgChdir ----
@@ -1132,7 +1137,8 @@ Returns zero (0) on success and negative one (-1) on failure.
 
 Description
 Changes the current drive and directory to that specified.
-
+
+
 
 
 -------------------------------------------------------- KeyPgChr ----
@@ -1766,7 +1772,8 @@ Description
 Converts an unsigned expression to a signed one, useful to force signed behavior of division or multiplication (including with Shl and Shr).
 
 This is the opposite of CUnsg.
-
+
+
 
 
 -------------------------------------------------------- KeyPgCsng ----
@@ -1821,7 +1828,8 @@ An Integer specifying the current row of the cursor.
 
 Description
 Returns the current row the cursor is on (i.e. the "cursor line").  The topmost row is number 1.
-
+
+
 
 
 -------------------------------------------------------- KeyPgCubyte ----
@@ -1992,7 +2000,8 @@ A String which is set to the name of the current directory/folder.
 
 Description
 Returns the current directory/folder.
-
+
+
 
 
 -------------------------------------------------------- KeyPgCushort ----
@@ -2359,7 +2368,8 @@ Returns the current system date, in the format mm-dd-yyyy
 
 Description
 None
-
+
+
 
 
 -------------------------------------------------------- KeyPgDateAdd ----
@@ -2494,7 +2504,8 @@ Returns a date serial containing the date formed by the values in the year, mont
 
 Description
 The compiler will not recognize this function unless vbcompat.bi or datetime.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDateValue ----
@@ -2548,7 +2559,8 @@ Returns the day of the month from a  variable containing a date in  Date Serial 
 Description
 
 The compiler will not recognize this function unless vbcompat.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDddate ----
@@ -2563,7 +2575,8 @@ __DATE__
 
 Description
 Substitutes the compiler date in a literal string ("mm-dd-yyyy" format) where used.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDddateiso ----
@@ -2578,7 +2591,8 @@ __DATE_ISO__
 
 Description
 Substitutes the compiler date in a literal string ("yyyy-mm-dd" format) where used.  This format is in line with ISO 8601 and can be used for lexicographical date comparisons.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfb64bit ----
@@ -2593,7 +2607,8 @@ __FB_64BIT__
 
 Description
 Define created at compile time if the the compilation target is 64bit, otherwise undefined.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbargc ----
@@ -2733,7 +2748,8 @@ __FB_ARM__
 
 Description
 Define created at compile time if the compilation target uses the ARM CPU architecture, otherwise undefined.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbasm ----
@@ -2748,7 +2764,8 @@ __FB_ASM__
 
 Description
 __FB_ASM__ returns a string equal to "intel" or "att" depending on whether inline assembly blocks should use the Intel format or the GCC/AT&T format.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdFBBackend ----
@@ -2763,7 +2780,8 @@ __FB_BACKEND__
 
 Description
 Defined to either "gas" or "gcc", depending on which backend was specified via -gen.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdFBBigEndian ----
@@ -2780,7 +2798,8 @@ Description
 Define without a value created at compile time if compiling for a big endian target.
 
 It can be used to compile parts of the program only if the target is big endian.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdFBBuildDate ----
@@ -2795,7 +2814,8 @@ __FB_BUILD_DATE__
 
 Description
 Substituted with the quoted string containing the date (MM-DD-YYYY) the compiler was built on.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbbuilddateiso ----
@@ -2810,7 +2830,8 @@ __FB_BUILD_DATE_ISO__
 
 Description
 Substituted with the quoted string containing the date (YYYY-MM-DD) the compiler was built on in ISO date format.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbbuildsha1 ----
@@ -2932,7 +2953,8 @@ __FB_FPMODE__
 
 Description
 Defined as "fast" if SSE fast arithmetics is enabled, or "precise" otherwise.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbfpu ----
@@ -2947,7 +2969,8 @@ __FB_FPU__
 
 Description
 Defined as "sse" if SSE floating point arithmetics is enabled, or "x87" otherwise.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbfreebsd ----
@@ -2976,7 +2999,8 @@ __FB_GCC__
 
 Description
 Defined to true (-1) if -gen gcc is used, or false (0) otherwise.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbgui ----
@@ -3011,7 +3035,8 @@ left (1) and right (2) arguments to join
 
 Description
 Joins two token arguments together as one, similar to token pasting operator (##) but more powerfull (will resolve arguments before joining).
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfblang ----
@@ -3087,7 +3112,8 @@ Returns zero (0) if the compiler version is less than the specified version, or 
 
 Description
 __FB_MIN_VERSION__ tests for a minimum version of the compiler.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbmt ----
@@ -3144,7 +3170,8 @@ __FB_OPTIMIZE__
 
 Description
 Always defined and will have a value from 0 to 3 (0 by default) to indicate the optimization level passed to the backend compiler via -O.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfboptionbyval ----
@@ -3173,7 +3200,8 @@ __FB_OPTION_DYNAMIC__
 
 Description
 __FB_OPTION_DYNAMIC__ is defined as true (negative one (-1)) if a recent Option Dynamic statement or '$Dynamic meta-command was issued. Otherwise, it is defined as zero (0).
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfboptionescape ----
@@ -3326,7 +3354,8 @@ __FB_PPC__
 
 Description
 Define created at compile time if the compilation target uses the PowerPC CPU architecture, otherwise undefined.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbquote ----
@@ -3360,7 +3389,8 @@ __FB_SIGNATURE__
 
 Description
 Substituted by a signature of the compiler where used.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbsse ----
@@ -3375,7 +3405,8 @@ __FB_SSE__
 
 Description
 Define without a value created at compile time if SSE floating point arithmetics is enabled.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbuniqueid ----
@@ -3447,7 +3478,8 @@ __FB_UNIX__
 
 Description
 Define created at compile time if the OS is reasonably enough like UNIX that you can call it UNIX, otherwise undefined.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbunquote ----
@@ -3481,7 +3513,8 @@ __FB_VECTORIZE__
 
 Description
 Defined as the vectorisation level number set by the -vec command-line option.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdFBVerMajor ----
@@ -3510,7 +3543,8 @@ __FB_VER_MINOR__
 
 Description
 __FB_VER_MINOR__ will return the minor version of FreeBASIC currently being used. For FreeBASIC version 0.90.1, for example, the minor version number is 90.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdFBVerPatch ----
@@ -3539,7 +3573,8 @@ Syntax
 
 Description
  Substituted by the version number of the compiler where used.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbwin32 ----
@@ -3568,7 +3603,8 @@ __FB_X86__
 
 Description
 Define created at compile time if the compilation target uses the X86 or X86_64 CPU architecture, otherwise undefined.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfbxbox ----
@@ -3583,7 +3619,8 @@ __FB_XBOX__
 
 Description
 Define without a value created at compile time when the -target xbox command line option is used. It can be used to compile parts of the program only if the target is Xbox.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfile ----
@@ -3600,7 +3637,8 @@ Description
 Substituted with the quoted source file name where used.
 
 An example of normal use is to report wrong values in debugging.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfilenq ----
@@ -3615,7 +3653,8 @@ __FILE_NQ__
 
 Description
 Substituted with the non-quoted source file name where used.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdfunction ----
@@ -3666,7 +3705,8 @@ Description
 Substituted with the current line number of the source file where used.
 
 Its normal use is to report wrong values in debugging.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdpath ----
@@ -3681,7 +3721,8 @@ __PATH__
 
 Description
 Set to the quoted absolute path of the source file at the time of compilation.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDdtime ----
@@ -3696,7 +3737,8 @@ __TIME__
 
 Description
 Substitutes the compiler time in a literal string (24 clock, "hh:mm:ss" format) where used.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDeallocate ----
@@ -4259,7 +4301,8 @@ The handle of a library to unload.
 
 Description
 DyLibFree is used to release at runtime libraries previously linked to your program with DyLibLoad. The argument is the handle to the library returned by DyLibLoad.
-
+
+
 
 
 -------------------------------------------------------- KeyPgDylibload ----
@@ -4443,7 +4486,8 @@ Returns the text value of the environmental variable, or the empty string ("") i
 
 Description
 Environ returns the text value of a system environment variable.
-
+
+
 
 
 -------------------------------------------------------- KeyPgEof ----
@@ -4514,7 +4558,8 @@ Returns NULL if the source is not compiled with the -exx compiler option.
 
 Description
 An error reporting function returning a pointer to the name of the function.
-
+
+
 
 
 -------------------------------------------------------- KeyPgErl ----
@@ -4559,7 +4604,8 @@ Returns NULL if the source is not compiled with the -exx compiler option.
 
 Description
 An error reporting function returning a pointer to the name of the module.
-
+
+
 
 
 -------------------------------------------------------- KeyPgErr ----
@@ -4648,7 +4694,8 @@ The exit status of the program, or negative one (-1) if the program could not be
 
 Description
 Transfers control over to an external program. When the program exits, execution resumes immediately after the call to Exec.
-
+
+
 
 
 -------------------------------------------------------- KeyPgExepath ----
@@ -4669,7 +4716,8 @@ A String variable set to the path of the running program.
 
 Description
 Returns the path (the location) of the calling program. This is not necessarily the same as CurDir.
-
+
+
 
 
 -------------------------------------------------------- KeyPgExit ----
@@ -4831,7 +4879,8 @@ Const False As Boolean
 
 Description
 Gives the False Boolean value where used.
-
+
+
 
 
 -------------------------------------------------------- KeyPgFBArray ----
@@ -5037,7 +5086,8 @@ Returns a Date Serial.
 
 Description
 Returns the file's last modified date and time as Date Serial.
-
+
+
 
 
 -------------------------------------------------------- KeyPgFileexists ----
@@ -5127,7 +5177,8 @@ A String argument specifying the filename of the file whose length to return.
 
 Description
 Returns the size in bytes of the file specified by filename.
-
+
+
 
 
 -------------------------------------------------------- KeyPgFileseteof ----
@@ -5328,7 +5379,8 @@ Returns the amount of free memory, in bytes.
 
 Description
 Returns the free memory (ram) available, in bytes.
-
+
+
 
 
 -------------------------------------------------------- KeyPgFreefile ----
@@ -5716,7 +5768,8 @@ Returns the hour from a variable containing a date in Date Serial format.
 
 Description
 The compiler will not recognize this function unless vbcompat.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgIfthen ----
@@ -5807,7 +5860,8 @@ A value of zero indicates that the Red and Blue channels are the other way round
 
 Description
 Copies the row of an image from one memory location to another, converting the color information in each pixel to match the destination image.
-
+
+
 
 
 -------------------------------------------------------- KeyPgImagecreate ----
@@ -5864,7 +5918,8 @@ Description
 Destroys the image pointed to by image, which must be an address returned from a call to ImageCreate.
 
 Calling ImageDestroy on a null pointer induces no action.
-
+
+
 
 
 -------------------------------------------------------- KeyPgImageInfo ----
@@ -5921,7 +5976,8 @@ Type typename Implements interface
 End Type
 
 Description
-
+
+
 
 
 -------------------------------------------------------- KeyPgImport ----
@@ -5950,7 +6006,8 @@ Syntax
 
 Description
 Includes a library in the linking process as if the user specified -l libname on the command line.
-
+
+
 
 
 -------------------------------------------------------- KeyPgInclude ----
@@ -6009,7 +6066,8 @@ The value at the specified port.
 
 Description
 This function retrieves the value at 'port' and returns immediately.
-
+
+
 
 
 -------------------------------------------------------- KeyPgInput ----
@@ -6137,7 +6195,8 @@ Return Value
 The position of the first occurrence of substring in str.
 
 Description
-Locates the position of the first occurrence of a substring or character within a string. In the first form of InStr (without start parameter), the search begins at the first character.
+Locates the position of the first occurrence of a substring or character within a string. In the first form of InStr (without start parameter), the search begins at the first character.
+
 
 
 -------------------------------------------------------- KeyPgInstrrev ----
@@ -6232,7 +6291,8 @@ Case Is expression
 
 Description
 Is specifies that a particular case inside a Select Case block will be evaluated based on an expression including the greater than (>) or less than (<) operator and a value. 
-
+
+
 
 
 -------------------------------------------------------- KeyPgIsDate ----
@@ -6369,7 +6429,8 @@ Description
 Returns a copy of str with all of the letters converted to lower case.
 
 If str is empty, the null string ("") is returned.
-
+
+
 
 
 -------------------------------------------------------- KeyPgLeft ----
@@ -6579,7 +6640,8 @@ Returns the value of the low byte of expr.
 
 Description
 This macro converts the numeric expression expr to an UInteger value, then expands to an UInteger representing the value of its least-significant (low) byte.
-
+
+
 
 
 -------------------------------------------------------- KeyPgLoc ----
@@ -6664,7 +6726,8 @@ Locate will attempt to position the cursor at the specified row and column. If t
 
 Description
 Sets the text cursor in both graphics and console modes.
-
+
+
 
 
 -------------------------------------------------------- KeyPgLock ----
@@ -6717,7 +6780,8 @@ The length in bytes of an open disk file.
 Description
 Returns the length, in bytes, of a file opened previously with Open using the given filenum.
 
-With Open Com it returns the length of the data pending to be read in the receive buffer.
+With Open Com it returns the length of the data pending to be read in the receive buffer.
+
 
 
 -------------------------------------------------------- KeyPgLog ----
@@ -6756,7 +6820,8 @@ Dim variable As Long
 
 Description
 32-bit signed whole-number data type. Can hold values from -2147483648 to 2147483647. Corresponds to a signed DWORD.
-
+
+
 
 
 -------------------------------------------------------- KeyPgLongint ----
@@ -6771,7 +6836,8 @@ Dim variable As LongInt
 
 Description
 A 64-bit signed whole-number data type. Can hold values from -9 223 372 036 854 775 808 to 9 223 372 036 854 775 807. Corresponds to a signed QWORD.
-
+
+
 
 
 -------------------------------------------------------- KeyPgLoop ----
@@ -6802,7 +6868,8 @@ Returns the value of the low word of expr.
 
 Description
 This macro converts the numeric expression expr to an UInteger value, then expands to an UInteger representing the value of its least-significant (low) 16bit word.
-
+
+
 
 
 -------------------------------------------------------- KeyPgLpos ----
@@ -6827,7 +6894,8 @@ Returns the number of characters sent.
 
 Description
 Used to determine, from the last LPrint, how many characters were sent to the printer port.
-
+
+
 
 
 -------------------------------------------------------- KeyPgLprint ----
@@ -7122,7 +7190,8 @@ Returns the minute from a  variable containing a date in  Date Serial  format.
 
 Description
 The compiler will not recognize this function unless vbcompat.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgMkd ----
@@ -7365,7 +7434,8 @@ The month values are in the range 1-12 being 1 for January and 12 for December.
 Description
 
 The compiler will not recognize this function unless vbcompat.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgMonthname ----
@@ -8078,7 +8148,8 @@ Description
 This operator appends one string onto another. The right-hand side expression (rhs) is converted to a string before concatenation. It is functionally equivalent to,
 
 lhs = lhs & rhs
-
+
+
 
 
 -------------------------------------------------------- KeyPgOpCombineDivide ----
@@ -9393,7 +9464,8 @@ Operator * (Multiply) returns the product of two multiplicands.
 Neither operand is modified in any way.
 
 This operator can be overloaded to accept user-defined types.
-
+
+
 
 
 -------------------------------------------------------- KeyPgOpNegate ----
@@ -9424,7 +9496,8 @@ Operator - (Negate) is a unary operator that negates the value of its operand.
 The operand is not modified in any way.
 
 This operator can be overloaded for user-defined types.
-
+
+
 
 
 -------------------------------------------------------- KeyPgOpNew ----
@@ -10338,7 +10411,8 @@ Data value to write.
 
 Description
 This function sends value to port and returns immediately.
-
+
+
 
 
 -------------------------------------------------------- KeyPgOutput ----
@@ -10679,7 +10753,8 @@ Returns the horizontal position of the text cursor.
 
 Description
 Returns the horizontal (left to right) position of the text cursor. The leftmost column is number 1.
-
+
+
 
 
 -------------------------------------------------------- KeyPgPpassert ----
@@ -10752,7 +10827,8 @@ Syntax
 
 Description
 #else can be added to an #if, #ifdef, or #ifndef block to provide an alternate result to the conditional expression.
-
+
+
 
 
 -------------------------------------------------------- KeyPgPpelseif ----
@@ -10774,7 +10850,8 @@ Syntax
 
 Description
 #elseif can be added to an #if block to provide an additional conditions.
-
+
+
 
 
 -------------------------------------------------------- KeyPgPpendif ----
@@ -10791,7 +10868,8 @@ Description
 Ends a group of conditional directives
 
 See #if, #ifdef, or #ifndef for examples of usage.
-
+
+
 
 
 -------------------------------------------------------- KeyPgPperror ----
@@ -10998,7 +11076,8 @@ symbol name to reserve.
 
 Description
 #pragma reserved statements are preprocessor directives that allow user to reserve symbol names by accessing to the internal symbol tables of the fbc compiler:
-- #pragma reserve symbol
+- #pragma reserve symbol
+
 
 
 -------------------------------------------------------- KeyPgPpprint ----
@@ -11013,7 +11092,8 @@ Syntax
 
 Description
 Causes compiler to output text to screen during compilation.
-
+
+
 
 
 -------------------------------------------------------- KeyPgPpundef ----
@@ -11449,7 +11529,8 @@ Open filename As String For Binary Access Read As #filenum As Integer
 
 Description
 Specifier for the Access clause in the Open statement.  Read specifies that the file is accessible for input.
-
+
+
 
 
 -------------------------------------------------------- KeyPgReadWriteFile ----
@@ -11464,7 +11545,8 @@ Open filename As String For Binary Access Read Write As #filenum As Integer
 
 Description
 Specifier for the Access clause in the Open statement.  Read Write specifies that the file is accessible for both input and output.
-
+
+
 
 
 -------------------------------------------------------- KeyPgReallocate ----
@@ -11759,7 +11841,8 @@ Returns zero (0) on success, and negative one (-1) on failure.
 
 Description
 Removes a folder from the file system. The function will fail if the folder is not empty.
-
+
+
 
 
 -------------------------------------------------------- KeyPgRnd ----
@@ -11865,7 +11948,8 @@ Returns negative one (-1) if the program could not be executed.
 
 Description
 Transfers control over to an external program. When the program exits, execution will return to the system.
-
+
+
 
 
 -------------------------------------------------------- KeyPgSadd ----
@@ -11892,7 +11976,8 @@ A pointer to the data associated with str.
 
 Description
 Returns the memory offset of the string data in the string variable.
-
+
+
 
 
 -------------------------------------------------------- KeyPgScope ----
@@ -12315,7 +12400,8 @@ Returns the seconds from a  variable containing a date in  Date Serial  format.
 
 Description
 The compiler will not recognize this function unless vbcompat.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgSeekreturn ----
@@ -12565,7 +12651,8 @@ If the command could not be executed, -1 is returned. Otherwise, the command is 
 
 Description
 Program execution will be suspended until the command interpreter exits.
-
+
+
 
 
 -------------------------------------------------------- KeyPgShort ----
@@ -12580,7 +12667,8 @@ Dim variable As Short
 
 Description
 16-bit signed whole-number data type. Can hold values from -32768 to 32767.
-
+
+
 
 
 -------------------------------------------------------- KeyPgSin ----
@@ -12691,7 +12779,8 @@ The created string. An empty string will be returned if count <= 0.
 
 Description
 Space creates a string with the specified number of spaces.
-
+
+
 
 
 -------------------------------------------------------- KeyPgSpc ----
@@ -12713,7 +12802,8 @@ number of spaces to skip
 
 Description
 Spc skips over the given number of spaces when Printing to screen or to a file.  The character cells skipped over are left unchanged.
-
+
+
 
 
 -------------------------------------------------------- KeyPgSqr ----
@@ -12998,7 +13088,8 @@ The created string. An empty string will be returned if either ch is an empty st
 
 Description
 The String function returns a string with a length of count, filled with a given ch_code or ch.
-
+
+
 
 
 -------------------------------------------------------- KeyPgSub ----
@@ -13280,7 +13371,8 @@ id
 Any Ptr handle of a thread created by ThreadCreate or ThreadCall
 
 Description
-ThreadDetach releases resources associated with the thread handle returned by ThreadCreate or ThreadCall. The thread handle will be destroyed by ThreadDetach and cannot be used anymore.
+ThreadDetach releases resources associated with the thread handle returned by ThreadCreate or ThreadCall. The thread handle will be destroyed by ThreadDetach and cannot be used anymore.
+
 
 
 -------------------------------------------------------- KeyPgThreadSelf ----
@@ -13346,7 +13438,8 @@ Returns the current system time.
 
 Description
 Returns the current system time in the format hh:mm:ss.
-
+
+
 
 
 -------------------------------------------------------- KeyPgTimer ----
@@ -13398,7 +13491,8 @@ Description
 hours must be specified in the range 0-23
 
 The compiler will not recognize this function unless vbcompat.bi or datetime.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgTimeValue ----
@@ -13426,7 +13520,8 @@ Description
 The time string must be in the format "23:59:59" or  "11:59:59PM"
 
 The compiler will not recognize this function unless vbcompat.bi or datetime.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgTo ----
@@ -13512,7 +13607,8 @@ Const True As Boolean
 
 Description
 Gives the True Boolean value where used.
-
+
+
 
 
 -------------------------------------------------------- KeyPgType ----
@@ -13670,7 +13766,8 @@ Dim variable As UByte
 
 Description
 8-bit unsigned whole-number data type. Can hold a value in the range of 0 to 255.
-
+
+
 
 
 -------------------------------------------------------- KeyPgUcase ----
@@ -13700,7 +13797,8 @@ Description
 Returns a copy of str with all of the letters converted to upper case.
 
 If str is empty, the null string ("") is returned.
-
+
+
 
 
 -------------------------------------------------------- KeyPgUinteger ----
@@ -13738,7 +13836,8 @@ Dim variable As ULong
 
 Description
 32-bit unsigned whole-number data type. Can hold values from 0 to 4294967295. Corresponds to an unsigned DWORD.
-
+
+
 
 
 -------------------------------------------------------- KeyPgUlongint ----
@@ -13754,7 +13853,8 @@ Dim variable As ULongInt
 
 Description
 A 64-bit unsigned whole-number data type. Can hold values from 0 to 18 446 744 073 709 551 615. Corresponds to an unsigned QWORD.
-
+
+
 
 
 -------------------------------------------------------- KeyPgUnion ----
@@ -13824,7 +13924,8 @@ Dim variable As Unsigned {integer-based data type}
 
 Description
 Forces an integer-based data type to be unsigned (cannot contain negative numbers, but has its maximum value doubled).
-
+
+
 
 
 -------------------------------------------------------- KeyPgUntil ----
@@ -13841,7 +13942,8 @@ Loop Until condition
 
 Description
 Until is used with the Do...Loop structure.
-
+
+
 
 
 -------------------------------------------------------- KeyPgUshort ----
@@ -13857,7 +13959,8 @@ Dim variable As UShort
 
 Description
 16-bit unsigned whole-number data type. Can hold values from 0 to 65535.
-
+
+
 
 
 -------------------------------------------------------- KeyPgUsing ----
@@ -14055,7 +14158,8 @@ Argument_Pointer = va_next ( Argument_List, datatype )
 
 Description
 The va_next macro provides a datatype pointer value that points to the next argument within the list Argument_List, datatype being the type of the current argument being stepped over.
-
+
+
 
 
 -------------------------------------------------------- KeyPgVar ----
@@ -14232,7 +14336,8 @@ Return Value
 Description
 Wait keeps reading port until the reading ANDed with and_mask and optionally XORed with xor_mask gives a non-zero result.
 
-
+
+
 
 
 -------------------------------------------------------- KeyPgWbin ----
@@ -14357,7 +14462,8 @@ Wend
 
 Description
 Wend specifies the end of a While...Wend loop block.
-
+
+
 
 
 -------------------------------------------------------- KeyPgWhex ----
@@ -14420,7 +14526,8 @@ Wend
 
 Description
 While specifies that a loop block will continue if the condition following it evaluates as true. This condition is checked during each loop iteration.
-
+
+
 
 
 -------------------------------------------------------- KeyPgWhilewend ----
@@ -14625,7 +14732,8 @@ Open filename As String For Binary Access Write As #filenum As Integer
 
 Description
 Specifier for the Access clause in the Open statement.  Write specifies that the file is accessible for output.
-
+
+
 
 
 -------------------------------------------------------- KeyPgWritePp ----
@@ -14670,7 +14778,8 @@ The created WString. An empty string will be returned if count <= 0.
 
 Description
 WSpace creates a wstring (wide character string- Unicode) with the specified number of spaces.
-
+
+
 
 
 -------------------------------------------------------- KeyPgWstr ----
@@ -14758,7 +14867,8 @@ The created WString. An empty string will be returned if either ch is an empty s
 
 Description
 WString generates a temporary WString filled with count copies of a Unicode character. This string can be printed or assigned to a previously Dimed WString.
-
+
+
 
 
 -------------------------------------------------------- KeyPgXorGfx ----
@@ -14804,7 +14914,8 @@ Returns the year from a  variable containing a date in  Date Serial  format.
 Description
 
 The compiler will not recognize this function unless vbcompat.bi is included.
-
+
+
 
 
 -------------------------------------------------------- KeyPgZstring ----
