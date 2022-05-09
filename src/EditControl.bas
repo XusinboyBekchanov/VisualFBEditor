@@ -957,9 +957,21 @@ Namespace My.Sys.Forms
 		ShowCaretPos True
 	End Sub
 	
+	Sub EditControl.CutCurrentLineToClipboard
+		If FSelEndLine = FLines.Count - 1 AndAlso Lines(FSelEndLine) = "" Then Exit Sub
+		CopyCurrentLineToClipboard
+		Changing "Current line was cut"
+		If FSelEndLine = FLines.Count - 1 Then ReplaceLine FSelEndLine, "" Else DeleteLine
+		Changed "Current line was cut"
+	End Sub
+	
 	Sub EditControl.CutToClipboard
 		CopyToClipboard
 		ChangeText "", 0, "Belgilangan matn qirqib olindi"
+	End Sub
+	
+	Sub EditControl.CopyCurrentLineToClipboard
+		pClipboard->SetAsText Lines(FSelEndLine) & Chr(13, 10)
 	End Sub
 	
 	Sub EditControl.CopyToClipboard
@@ -1227,7 +1239,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.DeleteLine(Index As Integer = -1)
 		Delete_( Cast(EditControlLine Ptr, FLines.Items[IIf(Index = -1, FSelEndLine, Index)]))
-		FLines.Remove Index
+		FLines.Remove IIf(Index = -1, FSelEndLine, Index)
 	End Sub
 	
 	Sub EditControl.UnFormatCode(WithoutUpdate As Boolean = False)

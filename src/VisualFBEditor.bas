@@ -612,7 +612,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "ShowString":                  string_sh(tviewvar)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)
 		#endif
-	Case "Undo", "Redo", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
+	Case "Undo", "Redo", "CutCurrentLine", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", _
 		"CompleteWord", "ParameterInfo", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
@@ -645,6 +645,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Select Case Sender.ToString
 				Case "Redo":                    ec->Redo
 				Case "Undo":                    ec->Undo
+				Case "CutCurrentLine":          ec->CutCurrentLineToClipboard
 				Case "Cut":                     ec->CutToClipboard
 				Case "Copy":                    ec->CopyToClipboard
 				Case "Paste":                   ec->PasteFromClipboard

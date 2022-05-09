@@ -4783,8 +4783,9 @@ Sub CreateMenusAndToolBars
 	
 	Var miEdit = mnuMain.Add(ML("&Edit"), "", "Tahrir")
 	miEdit->Add(ML("Undo") & HK("Undo", "Ctrl+Z"), "Undo", "Undo", @mclick)
-	miEdit->Add(ML("Redo") & HK("Redo", "Ctrl+Y"), "Redo", "Redo", @mclick)
+	miEdit->Add(ML("Redo") & HK("Redo", "Ctrl+Shift+Z"), "Redo", "Redo", @mclick)
 	miEdit->Add("-")
+	miEdit->Add(ML("C&ut Current Line") & HK("CutCurrentLine", "Ctrl+Y"), "", "CutCurrentLine", @mclick)
 	miEdit->Add(ML("Cu&t") & HK("Cut", "Ctrl+X"), "Cut", "Cut", @mclick)
 	miEdit->Add(ML("&Copy") & HK("Copy", "Ctrl+C"), "Copy", "Copy", @mclick)
 	miEdit->Add(ML("&Paste") & HK("Paste", "Ctrl+V"), "Paste", "Paste", @mclick)
