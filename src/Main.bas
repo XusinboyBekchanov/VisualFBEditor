@@ -3851,14 +3851,14 @@ Sub LoadHelp
 	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input As #Fn): tEncode= 1
 	If Result = 0 Then
 		#ifdef __FB_WIN32__
-			If tEncode= 1 Then Msgbox ML("The file encoding is not UTF-8(BOM). Better it was converted.") & Chr(13, 10) & *KeywordsHelpPath
+			If tEncode = 1 AndAlso CurLanguage <> "english" Then Msgbox ML("The file encoding is not UTF-8 (BOM). Better it was converted.") & Chr(13, 10) & *KeywordsHelpPath
 		#endif
 		Dim As TypeElement Ptr te, te1
 		Dim As WString * 1024 Buff, StartBuff, bTrim
 		Dim As Boolean bStart, bStartEnd, bDescriptionStart, bDescriptionEnd, bReturnValueStart
 		Dim As Paragraph Parag
 		Dim As WString * 1024 MLSyntax = ML("Syntax"), MLUsage = ML("Usage"), MLParameters = ML("Parameters"), MLReturnValue = ML("Return Value"), MLDescription = ML("Description"), _
-		MLExample = ML("Example"), MLDifferencesFromQB = ML("Differences from QB"), MLSeeAlso = ML("See also"), MLMoreDetails = ML("More details ...")
+		MLExample = ML("Example"), MLDifferencesFromQB = ML("Differences from QB"), MLSeeAlso = ML("See also"), MLMoreDetails = ML("More details ..."), MLDot = ML(".")
 		Dim As Integer Pos2, Pos1, LineNumber
 		Do Until EOF(Fn)
 			LineNumber += 1
@@ -3908,7 +3908,7 @@ Sub LoadHelp
 					GlobalFunctions.Add te->Name, te
 					bStartEnd = False
 					bDescriptionEnd = False
-					te->Comment = Buff & !"\r"
+					te->Comment = "<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & Trim(Buff) & !"</a>\r"
 					'DebugPrint  "te->Name " & te->Name, , False, False
 					'Print te->Name
 				ElseIf Parag = parStart Then
@@ -3954,7 +3954,7 @@ Sub LoadHelp
 				ElseIf Parag = parReturnValue Then
 					If Buff <> "" AndAlso te <> 0 Then
 						If bReturnValueStart Then
-							te->Comment &= !"\r" & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLReturnValue & !"</a>\r"  & Trim(Buff)
+							te->Comment &= !"\r" & "<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLReturnValue & !"</a>\r " & Trim(Buff)
 						Else
 							te->Comment &= !"\r" & Trim(Buff)
 							bReturnValueStart = False
@@ -3962,20 +3962,21 @@ Sub LoadHelp
 					End If
 				ElseIf Parag = parDescription Then
 					If Not bDescriptionEnd Then
-						Pos1 = InStr(Buff, ML("."))  'you must add "." to your language file for good local showing
-						If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ML("."))
-						If Pos1 < 100 Then Pos1 = 100
+						Pos1 = InStr(Buff, MLDot) 'you must add "." to your language file for good local showing
+						If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, MLDot)
+						'If Pos1 < 100 Then Pos1 = 100
 						If Pos1 > 0 Then
 							Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 							bDescriptionEnd = True
 						End If
 						If Buff <> "" AndAlso te <> 0 Then
-							If bDescriptionEnd  Then
-								te->Comment &=  !"\r" & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLDescription & !"</a>\r"  & Trim(Buff)
+							If bDescriptionStart Then
+								te->Comment &= !"\r<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLDescription & !"</a>\r " & Trim(Buff)
 							Else
 								te->Comment &= " " & Trim(Buff)
 							End If
 						End If
+						bDescriptionStart = False
 					End If
 				ElseIf Parag = parExample Then
 					

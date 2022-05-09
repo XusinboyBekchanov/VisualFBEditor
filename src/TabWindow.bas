@@ -3476,7 +3476,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 					ParametersList.Add te->Parameters
 					Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-					If te->Comment <> "" Then Comments &= " " & te->Comment
+					If te->Comment <> "" Then Comments &= "" & te->Comment
 				End If
 			Next
 		End If
@@ -3501,7 +3501,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 				End If
 			Next n
 			ParametersList.Add te->Parameters
-			If te->Comment <> "" Then Comments &= " " & te->Comment
+			If te->Comment <> "" Then Comments &= "" & te->Comment
 		End If
 		Index = tb->Functions.IndexOf(sWord)
 		If Index > -1 Then
@@ -3514,7 +3514,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
 					Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 					ParametersList.Add te->Parameters
-					If te->Comment <> "" Then Comments &= " " & te->Comment
+					If te->Comment <> "" Then Comments &= "" & te->Comment
 				End If
 			Next
 		End If
@@ -3539,7 +3539,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 						End If
 					Next n
 					ParametersList.Add te->Parameters
-					If te->Comment <> "" Then Comments &= " " & te->Comment
+					If te->Comment <> "" Then Comments &= "" & te->Comment
 				End If
 			Next
 		End If
