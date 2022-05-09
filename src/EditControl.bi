@@ -378,7 +378,9 @@ Namespace My.Sys.Forms
 		Declare Sub Undo
 		Declare Sub Redo
 		Declare Sub PasteFromClipboard
+		Declare Sub CopyCurrentLineToClipboard
 		Declare Sub CopyToClipboard
+		Declare Sub CutCurrentLineToClipboard
 		Declare Sub CutToClipboard
 		Declare Sub Breakpoint
 		Declare Sub Bookmark
