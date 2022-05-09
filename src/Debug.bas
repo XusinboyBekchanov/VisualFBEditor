@@ -5603,7 +5603,10 @@ Dim Shared exedate As Double 'serial date
 		ElseIf runtype=RTFRUN Then
 			fasttimer=Timer-fasttimer
 			For i As Integer = 1 To linenb 'restore CC
-				WriteProcessMemory(dbghand,Cast(LPVOID,rline(i).ad),@breakcpu,1,0)
+				If LimitDebug AndAlso Not EqualPaths(GetFolderName(source(rline(i).sx)), mainfolder) Then
+				Else
+					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @breakcpu, 1, 0)
+				End If
 			Next
 			'WriteProcessMemory(dbghand,Cast(LPVOID,rLine(i).ad),@rLine(i).sv,1,0) 'restore old value for execution
 			brk_test(proccurad) ' cancel breakpoint on line, if command halt not really used
