@@ -233,7 +233,7 @@ Declare Sub SaveAll()
 Declare Sub FormatProject(UnFormat As Any Ptr)
 Declare Sub SetSaveDialogParameters(ByRef FileName As WString)
 Declare Function IfNegative(Value As Integer, NonNegative As Integer) As Integer
-Declare Function GetChangedCommas(Value As String) As String
+Declare Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As String
 Declare Function GetFileName(ByRef FileName As WString) As UString
 Declare Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As UString
 Declare Function GetBakFileName(ByRef FileName As WString) As UString

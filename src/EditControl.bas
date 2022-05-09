@@ -1427,16 +1427,17 @@ Namespace My.Sys.Forms
 		Return i - 1
 	End Function
 	
-	Function EditControl.GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False) As String
+	Function EditControl.GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0) As String
 		Dim As Integer i
 		Dim As String s, sWord, sLine = Lines(LineIndex)
+		StartChar = CharIndex
 		For i = CharIndex To 1 Step -1
 			s = Mid(sLine, i, 1)
-			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) Then sWord = s & sWord Else Exit For
+			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) OrElse IIf(WithQuestion, s = "?", 0) Then sWord = s & sWord: StartChar = i - 1 Else Exit For
 		Next
 		For i = CharIndex + 1 To Len(sLine)
 			s = Mid(sLine, i, 1)
-			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) Then sWord = sWord & s Else Exit For
+			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) OrElse IIf(WithQuestion, s = "?", 0) Then sWord = sWord & s Else Exit For
 		Next
 		Return sWord
 	End Function
@@ -1525,7 +1526,7 @@ Namespace My.Sys.Forms
 		If CInt(DropDownShowed) AndAlso CInt(CInt(FSelEndChar < DropDownChar) OrElse CInt(FSelEndChar > GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar))) Then
 			CloseDropDown()
 		End If
-		If CInt(ToolTipShowed) AndAlso CInt(CInt(FSelEndChar < ToolTipChar) OrElse CInt(Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1, 1) = ":") OrElse CInt(GetWordAt(FSelEndLine, ToolTipChar) <> HintWord AndAlso Mid(Lines(FSelEndLine), ToolTipChar + 2, 1) <> "?")) Then
+		If CInt(ToolTipShowed) AndAlso CInt(CInt(FSelEndChar < ToolTipChar) OrElse CInt(Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1, 1) = ":") OrElse CInt(GetWordAt(FSelEndLine, ToolTipChar) <> HintWord AndAlso Mid(Lines(FSelEndLine), ToolTipChar + 1, 1) <> "?")) Then
 			CloseToolTip()
 		End If
 		If OldLine <> FSelEndLine OrElse OldChar <> FSelEndChar Then

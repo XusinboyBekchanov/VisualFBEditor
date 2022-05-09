@@ -3399,59 +3399,100 @@ Sub CompleteWord
 	End With
 End Sub
 
-Sub ParameterInfo(Key As Byte = Asc(","))
+Private Function GetFuncStartChar(sLine As WString Ptr, iSelEndChar As Integer, ByRef iSelEndCharFunc As Integer, ByRef iParamCount As Integer = -1) As Integer
+	Dim As Integer iCount, iSelStartCharFunc
+	Dim As String Symb
+	Dim As Boolean bStarted, bStartedFunc, bQuotation
+	Dim As UString res(Any), b
+	iParamCount = 0
+	Split *sLine, """", res()
+	b = ""
+	For j As Integer = 0 To UBound(res)
+		If j = 0 Then
+			b = res(0)
+		ElseIf j Mod 2 = 0 Then
+			b &= """" & res(j)
+		Else
+			b &= """" & WSpace(Len(res(j)))
+		End If
+	Next
+	iSelEndCharFunc = iSelEndChar
+	For i As Integer = iSelEndChar To 1 Step -1
+		Symb = Mid(*sLine, i, 1)
+		If bStartedFunc Then
+			If (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
+				iSelStartCharFunc = i
+				Exit For
+			End If
+		ElseIf Symb = "(" Then
+			If iCount = 0 Then
+				iSelEndCharFunc = i - 1 '+ 1
+				bStartedFunc = True
+			Else
+				iCount -= 1
+				bStarted = False
+			End If
+		ElseIf Symb = ")" Then
+			iCount += 1
+			bStarted = False
+'		ElseIf Symb = """" Then
+'			bQuotation = Not bQuotation
+		ElseIf Not bQuotation AndAlso iCount = 0 Then
+			If (Symb = " " OrElse Symb = !"\t") AndAlso Not (LCase(Mid(*sLine, i + 1, 3)) = "ptr" OrElse LCase(Mid(*sLine, i + 1, 7)) = "pointer") Then
+				bStarted = True
+			ElseIf Symb = "," Then
+				iParamCount += 1
+				bStarted = False
+			ElseIf Symb = "?" Then
+				iSelStartCharFunc = i - 1
+				Exit For
+			ElseIf (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
+				bStarted = False
+			ElseIf i > 4 AndAlso (LCase(Mid(*sLine, i - 5, 6)) = " byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = ",byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = " byref" OrElse LCase(Mid(*sLine, i - 5, 6)) = ",byref") Then
+				bStarted = False
+			ElseIf bStarted Then
+				iSelEndCharFunc = i '+ 1
+				bStartedFunc = True
+			End If
+		End If
+	Next
+	Return iSelStartCharFunc
+End Function
+
+Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, sWordAt As String = "")
 	If FormClosing Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
-	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iSelStartCharFunc, iSelEndCharFunc
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 	Dim As WStringList ParametersList
 	Dim As String sWord, Symb, FuncName, Parameters, Parameter, Link1
 	Dim As UString Comments
 	Dim As Integer iCount, iPos
-	Dim As Boolean bStarted, bQuotation
-	If Key = Asc(",") Then
-		If tb->txtCode.ToolTipShowed Then Exit Sub
-		For i As Integer = iSelEndChar To 1 Step -1
-			Symb = Mid(*sLine, i, 1)
-			If Symb = "(" Then
-				If iCount = 0 Then
-					iSelEndChar = i '+ 1
-					Exit For
-				Else
-					iCount -= 1
-					bStarted = False
-				End If
-			ElseIf Symb = ")" Then
-				iCount += 1
-				bStarted = False
-			ElseIf Symb = """" Then
-				bQuotation = Not bQuotation
-			ElseIf Not bQuotation AndAlso iCount = 0 Then
-				If (Symb = " " OrElse Symb = !"\t") AndAlso Not (LCase(Mid(*sLine, i + 1, 3)) = "ptr" OrElse LCase(Mid(*sLine, i + 1, 7)) = "pointer") Then
-					bStarted = True
-				ElseIf (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
-					bStarted = False
-				ElseIf i > 4 AndAlso (LCase(Mid(*sLine, i - 5, 6)) = " byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = " byref") Then
-					bStarted = False
-				ElseIf bStarted Then
-					iSelEndChar = i + 1
-					Exit For
-				End If
-			End If
-		Next
-	End If
-	If Key = Asc("?") OrElse Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar - 1, 1) = "?" Then
-		sWord = "?"
+	iSelEndCharFunc = iSelEndChar
+	If SelStartChar <> -1 Then
+		iSelStartCharFunc = SelStartChar
+		sWord = sWordAt
 	Else
-		sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - 2)
+		If Key = Asc(",") Then
+			'If tb->txtCode.ToolTipShowed Then Exit Sub
+			iSelStartCharFunc = GetFuncStartChar(sLine, iSelEndChar, iSelEndCharFunc)
+		End If
+		If Key = Asc("?") OrElse Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar, 1) = "?" Then
+			sWord = "?"
+			iSelStartCharFunc = iSelEndChar - 1
+		ElseIf Mid(tb->txtCode.Lines(iSelEndLine), iSelStartCharFunc + 1, 1) = "?" Then
+			sWord = "?"
+		Else
+			sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - 2, , True, iSelStartCharFunc)
+		End If
 	End If
 	Dim As TypeElement Ptr te, teOld
 	Dim As Integer Index
 	Dim As String TypeName
 	If sWord = "" Then Exit Sub
-	TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - 1, te, teOld)
+	TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndCharFunc - 1, te, teOld)
 	If teOld <> 0 AndAlso teOld->TypeName <> "" Then
 		TypeName = teOld->TypeName
 		FListItems.Clear
@@ -3548,7 +3589,7 @@ Sub ParameterInfo(Key As Byte = Asc(","))
 	If Parameters <> "" Then
 		tb->txtCode.HintWord = sWord
 		tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
-		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelEndChar - Len(sWord) - 1)
+		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelStartCharFunc)
 		tb->txtCode.SetFocus
 		OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
 	End If
@@ -3586,15 +3627,15 @@ Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As 
 	Return sTemp
 End Function
 
-Function GetChangedCommas(Value As String) As String
+Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As String
 	Dim As String ch, Text
 	Dim As Boolean b
-	Dim As Integer iCount
+	Dim As Integer iCount = IIf(FromSecond, -1, 0)
 	For i As Integer = 1 To Len(Value)
 		ch = Mid(Value, i, 1)
 		If ch = "(" Then
 			iCount += 1
-			b = True
+			If iCount = 1 Then b = True
 		ElseIf b AndAlso ch = ")" Then
 			iCount -= 1
 			If iCount = 0 Then b = False
@@ -3923,57 +3964,27 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 	If Not tb->txtCode.ToolTipShowed Then Exit Sub
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 	Dim As WStringList ParametersList
-	Dim As String sWord, Symb, FuncName, Parameters, Parameter, Link1, Param
-	Dim As UString Lines(Any), Params(Any), LinkParse(Any), res(Any), b
-	Dim As Integer iCount, iPos, iPos1, iPos2, n, iParamCount, iSelEndCharFunc
-	Dim As Boolean bStarted, bQuotation
-	Split *sLine, """", res()
-	b = ""
-	For j As Integer = 0 To UBound(res)
-		If j = 0 Then
-			b = res(0)
-		ElseIf j Mod 2 = 0 Then
-			b &= """" & res(j)
-		Else
-			b &= """" & WSpace(Len(res(j)))
-		End If
-	Next
+	Dim As String sWord, sWordAt, Symb, FuncName, Parameters, Parameter, Link1, Param
+	Dim As UString Lines(Any), Params(Any), LinkParse(Any)
+	Dim As Integer iCount, iPos, iPos1, iPos2, n, iParamCount, iSelStartCharFunc, iSelEndCharFunc
 	Parameters = tb->txtCode.Hint
 	Split Parameters, !"\r", Lines()
-	iSelEndCharFunc = iSelEndChar
-	For i As Integer = iSelEndChar To 1 Step -1
-		Symb = Mid(b, i, 1)
-		If Symb = "(" Then
-			If iCount = 0 Then
-				iSelEndCharFunc = i - 1
-				Exit For
-			Else
-				iCount -= 1
-				bStarted = False
-			End If
-		ElseIf Symb = ")" Then
-			iCount += 1
-			bStarted = False
-			'		ElseIf Symb = """" Then
-			'			bQuotation = Not bQuotation
-		ElseIf Not bQuotation AndAlso iCount = 0 Then
-			If Symb = " " OrElse Symb = !"\t" Then
-				bStarted = True
-			ElseIf Symb = "," Then
-				iParamCount += 1
-				bStarted = False
-			ElseIf Not IsArg(Asc(Symb)) Then
-				bStarted = False
-			ElseIf i > 4 AndAlso (LCase(Mid(*sLine, i - 5, 6)) = " byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = " byref") Then
-				bStarted = False
-			ElseIf bStarted Then
-				iSelEndCharFunc = i
-				Exit For
-			End If
-		End If
-	Next
+	iSelStartCharFunc = GetFuncStartChar(sLine, iSelEndChar, iSelEndCharFunc, iParamCount)
+	If Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar, 1) = "?" Then
+		sWordAt = "?"
+		iSelStartCharFunc = iSelEndChar - 1
+	ElseIf Mid(tb->txtCode.Lines(iSelEndLine), iSelStartCharFunc + 1, 1) = "?" Then
+		sWordAt = "?"
+	Else
+		sWordAt = tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - 2, , True, iSelStartCharFunc)
+	End If
+	If iSelStartCharFunc <> tb->txtCode.ToolTipChar Then
+		If iSelStartCharFunc < 0 Then Exit Sub
+		ParameterInfo , iSelStartCharFunc, sWordAt
+		Exit Sub
+	End If
 	sWord = tb->txtCode.HintWord
-	If tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - 2) <> sWord Then Exit Sub
+	If sWordAt <> sWord Then Exit Sub
 	For i As Integer = 0 To UBound(Lines)
 		If Lines(i) = "_________________" Then Exit For
 		iPos = InStr(Lines(i), "<a href=""")
@@ -3983,11 +3994,12 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		Split Link1, "~", LinkParse()
 		If UBound(LinkParse) < 2 Then Continue For
 		Lines(i) = ..Left(Lines(i), iPos - 1) & LinkParse(2) & Mid(Lines(i), iPos2 + 4)
-		Split Replace(Lines(i), """", "”"), ",", Params()
+		Split GetChangedCommas(Replace(Lines(i), """", "”"), True), ",", Params()
 		For j As Integer = 0 To UBound(Params)
+			Params(j) = Replace(Params(j), ";", ",")
 			iPos = InStr(Params(j), "(")
 			iPos1 = InStr(Params(j), ")")
-			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0) OrElse (iParamCount - 1 >= UBound(Params)) AndAlso (Mid(Params(j), InStr(LCase(Params(j)), LCase(sWord)) + Len(sWord), 1) <> " " OrElse CBool(iSelEndChar = iSelEndCharFunc))) Then
+			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso Mid(Params(0), InStr(LCase(Params(0)), LCase(sWord)) + Len(sWord), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then 'AndAlso (Mid(Params(0), InStr(LCase(Params(0)), LCase(sWord)) + Len(sWord), 1) <> " " OrElse CBool(iSelEndChar = iSelEndCharFunc))) Then
 				iPos = InStr(LCase(Params(j)), LCase(sWord))
 				If iPos > 0 Then
 					sWord = Mid(Params(j), iPos, Len(sWord))
