@@ -7,6 +7,7 @@
 
 #include once "TabWindow.bi"
 #include once "frmImageManager.bi"
+#include once "Debug.bi"
 #include once "vbcompat.bi"  ' for could using format function
 #define TabSpace IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
 
@@ -407,7 +408,7 @@ Sub OnChangeEdit(ByRef Sender As Control)
 	'    End With
 End Sub
 
-Declare Function get_var_value(VarName As String, LineIndex As Integer) As String
+'Declare Function get_var_value(VarName As String, LineIndex As Integer) As String
 
 Sub OnMouseMoveEdit(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	'	Var tb = Cast(TabWindow Ptr, Sender.Tag)
@@ -7195,10 +7196,13 @@ Sub RunPr(Debugger As String = "")
 				pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
 				ChDir(GetFolderName(*ExeFileName))
 				If CreateProcessW(NULL, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
+					dbghand = pinfo.hProcess
+					prun = True
 					WaitForSingleObject pinfo.hProcess, INFINITE
 					GetExitCodeProcess(pinfo.hProcess, @ExitCode)
 					CloseHandle(pinfo.hProcess)
 					CloseHandle(pinfo.hThread)
+					prun = False
 					Result = ExitCode
 					'Result = Shell(Debugger & """" & *ExeFileName + """")
 					ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))

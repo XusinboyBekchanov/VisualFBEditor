@@ -4157,7 +4157,10 @@ Dim Shared exedate As Double 'serial date
 			#ifdef fulldbg_prt
 				dbg_prt ("return code terminate process ="+Str(retcode)+" lasterror="+GetErrorString(lasterr))
 			#endif
-			thread_rsm()
+			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
+			If *CurrentDebugger = ML("Integrated IDE Debugger") Then
+				thread_rsm()
+			End If
 			While prun:Sleep 500:Wend
 			Return True
 		Else
@@ -6657,13 +6660,16 @@ Function line_highlight(iFlagStepParam As Long = 0) As Long
 				
 				If iFindColon3 Then
 					
-					sPos = Mid(szDataForPipe , iFindColon2+1 , iFindColon3 - (iFindColon2+1))
+					sPos = Mid(szDataForPipe , iFindColon2 + 1 , iFindColon3 - (iFindColon2 + 1))
 					
 				EndIf
 				
 			EndIf
 			
 			If Len(sFile) AndAlso Len(sPos) AndAlso Len(sLine) Then
+'				If LimitDebug Then
+'					?sFile
+'				End If
 				CurrentFile = sFile
 				Fcurlig = Val(sLine)
 '				Dim As TabWindow Ptr tb = AddTab(sFile)

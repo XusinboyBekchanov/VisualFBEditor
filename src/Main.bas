@@ -156,6 +156,7 @@ LoadSettings
 #include once "frmProjectProperties.bi"
 #include once "frmSave.bi"
 #include once "frmTipOfDay.frm"
+#include once "Debug.bi"
 
 Namespace VisualFBEditor
 	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -7592,6 +7593,11 @@ End Sub
 
 Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
+	#ifndef __USE_GTK__
+		If prun AndAlso kill_process("Trying to launch but debuggee still running") = False Then
+			Exit Sub
+		End If
+	#endif
 	FormClosing = True
 	Dim tb As TabWindow Ptr
 	Dim tn As TreeNode Ptr
@@ -7807,9 +7813,9 @@ Sub OnProgramQuit() Destructor
 	WDeallocate MFFPath
 	WDeallocate MFFDll
 	WDeallocate gSearchSave
-	For i As Integer = 0 To Threads.Count - 1
-		If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
-	Next
+'	For i As Integer = 0 To Threads.Count - 1
+'		If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
+'	Next
 	MutexDestroy tlockToDo
 	MutexDestroy tlock
 	MutexDestroy tlockSave
