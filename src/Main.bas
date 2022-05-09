@@ -3838,7 +3838,7 @@ Sub LoadHelp
 		parDifferencesFromQB
 		parSeeAlso
 	End Enum
-	Dim As Integer Fn = FreeFile_
+	Dim As Integer Fn = FreeFile_, tEncode
 	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt") = "" Then
 		WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt")
 	Else
@@ -3848,8 +3848,11 @@ Sub LoadHelp
 	Result = Open(*KeywordsHelpPath For Input Encoding "utf-8" As #Fn)
 	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input Encoding "utf-16" As #Fn)
 	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input As #Fn)
+	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input As #Fn): tEncode= 1
 	If Result = 0 Then
+		#ifdef __FB_WIN32__
+			If tEncode= 1 Then Msgbox ML("The file encoding is not UTF-8(BOM). Better it was converted.") & Chr(13, 10) & *KeywordsHelpPath
+		#endif
 		Dim As TypeElement Ptr te, te1
 		Dim As WString * 1024 Buff, StartBuff, bTrim
 		Dim As Boolean bStart, bStartEnd, bDescriptionStart, bDescriptionEnd, bReturnValueStart
@@ -3860,6 +3863,7 @@ Sub LoadHelp
 		Do Until EOF(Fn)
 			LineNumber += 1
 			Line Input #Fn, Buff
+			If Trim(Buff) = "" Then Continue Do
 			If StartsWith(Buff, "---") Then
 				bStart = True : bDescriptionStart = False : bReturnValueStart = False
 				Parag = parStart
@@ -3960,6 +3964,7 @@ Sub LoadHelp
 					If Not bDescriptionEnd Then
 						Pos1 = InStr(Buff, ML("."))  'you must add "." to your language file for good local showing
 						If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, ML("."))
+						If Pos1 < 100 Then Pos1 = 100
 						If Pos1 > 0 Then
 							Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 							bDescriptionEnd = True
