@@ -3479,7 +3479,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 	Dim As String sWord, Symb, FuncName, Parameters, Parameter, Link1
 	Dim As UString Comments
 	Dim As Integer iCount, iPos
-	iSelEndCharFunc = iSelEndChar
+	iSelEndCharFunc = iSelEndChar + 2
 	If SelStartChar <> -1 Then
 		iSelStartCharFunc = SelStartChar
 		iSelEndCharFunc = SelEndChar

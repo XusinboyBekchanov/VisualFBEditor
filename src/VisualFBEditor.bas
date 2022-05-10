@@ -676,7 +676,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "CollapseAll":             ec->CollapseAll
 				Case "UnCollapseAll":           ec->UnCollapseAll
 				Case "CompleteWord":            CompleteWord
-				Case "ParameterInfo":           ParameterInfo
+				Case "ParameterInfo":           ParameterInfo 0
 				Case "ToggleBookmark":          ec->Bookmark
 				Case "Define":                  tb->Define
 				Case "NumberOn":        	    tb->NumberOn
