@@ -3402,7 +3402,7 @@ End Sub
 Private Function GetFuncStartChar(sLine As WString Ptr, iSelEndChar As Integer, ByRef iSelEndCharFunc As Integer, ByRef iParamCount As Integer = -1) As Integer
 	Dim As Integer iCount, iSelStartCharFunc
 	Dim As String Symb
-	Dim As Boolean bStarted, bStartedFunc, bQuotation
+	Dim As Boolean bStarted, bStartedFunc, bQuotation, bArithmetic
 	Dim As UString res(Any), b
 	iParamCount = 0
 	Split *sLine, """", res()
@@ -3418,11 +3418,17 @@ Private Function GetFuncStartChar(sLine As WString Ptr, iSelEndChar As Integer, 
 	Next
 	iSelEndCharFunc = iSelEndChar
 	For i As Integer = iSelEndChar To 1 Step -1
-		Symb = Mid(*sLine, i, 1)
+		Symb = Mid(b, i, 1)
 		If bStartedFunc Then
 			If (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
-				iSelStartCharFunc = i
-				Exit For
+				If bArithmetic Then
+					bStarted = False
+					bStartedFunc = False
+					bArithmetic = False
+				Else
+					iSelStartCharFunc = i
+					Exit For
+				End If
 			End If
 		ElseIf Symb = "(" Then
 			If iCount = 0 Then
@@ -3438,17 +3444,20 @@ Private Function GetFuncStartChar(sLine As WString Ptr, iSelEndChar As Integer, 
 '		ElseIf Symb = """" Then
 '			bQuotation = Not bQuotation
 		ElseIf Not bQuotation AndAlso iCount = 0 Then
-			If (Symb = " " OrElse Symb = !"\t") AndAlso Not (LCase(Mid(*sLine, i + 1, 3)) = "ptr" OrElse LCase(Mid(*sLine, i + 1, 7)) = "pointer") Then
+			If (Symb = " " OrElse Symb = !"\t") AndAlso Not (LCase(Mid(b, i + 1, 3)) = "ptr" OrElse LCase(Mid(b, i + 1, 7)) = "pointer") Then
 				bStarted = True
 			ElseIf Symb = "," Then
 				iParamCount += 1
+				bStarted = False
+			ElseIf InStr("+-/\&", Symb) Then
+				bArithmetic = True
 				bStarted = False
 			ElseIf Symb = "?" Then
 				iSelStartCharFunc = i - 1
 				Exit For
 			ElseIf (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
 				bStarted = False
-			ElseIf i > 4 AndAlso (LCase(Mid(*sLine, i - 5, 6)) = " byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = ",byval" OrElse LCase(Mid(*sLine, i - 5, 6)) = " byref" OrElse LCase(Mid(*sLine, i - 5, 6)) = ",byref") Then
+			ElseIf i > 4 AndAlso (LCase(Mid(b, i - 5, 6)) = " byval" OrElse LCase(Mid(b, i - 5, 6)) = ",byval" OrElse LCase(Mid(b, i - 5, 6)) = " byref" OrElse LCase(Mid(b, i - 5, 6)) = ",byref") Then
 				bStarted = False
 			ElseIf bStarted Then
 				iSelEndCharFunc = i '+ 1
