@@ -3623,19 +3623,16 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 	Parameters = tb->txtCode.Hint
 	Split Parameters, !"\r", Lines()
 	iSelStartCharFunc = GetFuncStartChar(sLine, iSelEndChar, iSelEndCharFunc, iParamCount)
-	If Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar, 1) = "?" Then
-		sWordAt = "?"
-		iSelStartCharFunc = iSelEndChar - 1
-	ElseIf Mid(tb->txtCode.Lines(iSelEndLine), iSelStartCharFunc + 1, 1) = "?" Then
+	If Mid(*sLine, iSelStartCharFunc + 1, 1) = "?" Then
 		sWordAt = "?"
 	Else
 		sWordAt = tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - 2, , True, iSelStartCharFunc)
 	End If
-	If iSelStartCharFunc <> tb->txtCode.ToolTipChar Then
-		If iSelStartCharFunc < 0 Then Exit Sub
-		ParameterInfo , iSelStartCharFunc, iSelEndCharFunc, sWordAt
-		Exit Sub
-	End If
+'	If iSelStartCharFunc <> tb->txtCode.ToolTipChar Then
+'		If iSelStartCharFunc < 0 Then Exit Sub
+'		ParameterInfo , iSelStartCharFunc, iSelEndCharFunc, sWordAt
+'		Exit Sub
+'	End If
 	sWord = tb->txtCode.HintWord
 	If sWordAt <> sWord Then Exit Sub
 	For i As Integer = 0 To UBound(Lines)
