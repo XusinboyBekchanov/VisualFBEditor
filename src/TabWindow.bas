@@ -5963,7 +5963,7 @@ Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 End Sub
 
 #ifdef __USE_GTK__
-	Function build_create_shellscript(ByRef working_dir As WString, ByRef cmd As WString, autoclose As Boolean, debug As Boolean = False, ByRef Arguments As WString = "") As String
+	Function build_create_shellscript(ByRef working_dir As WString, ByRef cmd As WString, autoclose As Boolean, bDebug As Boolean = False, ByRef Arguments As WString = "") As String
 		'?Replace(cmd, "\", "/")
 		'?!"#!/bin/sh\n\nrm $0\n\ncd " & Replace(working_dir, "\", "/") & !"\n\n" & Replace(cmd, "\", "/") & !"\n\necho ""\n\n------------------\n(program exited with code: $?)"" \n\n" & IIF(autoclose, "", !"\necho ""Press return to continue""\n#to be more compatible with shells like ""dash\ndummy_var=""""\nread dummy_var") & !"\n"
 		Dim As Boolean Bit32 = tbt32Bit->Checked
@@ -5978,7 +5978,7 @@ End Sub
 		Print #Fn, ""
 		Print #Fn, "cd " & Replace(working_dir, "\", "/")
 		Print #Fn, ""
-		Print #Fn, IIf(debug, """" & WGet(DebuggerPath) & """" & " ", "") & Replace(cmd, "\", "/") & " " & Arguments
+		Print #Fn, IIf(bDebug, """" & WGet(DebuggerPath) & """" & " ", "") & Replace(cmd, "\", "/") & " " & Arguments
 		Print #Fn, ""
 		Print #Fn, !"echo ""\n\n------------------\n(program exited with code: $?)"" \n\n" & IIf(autoclose, "", !"\necho ""Press return to continue""\n#to be more compatible with shells like ""dash\ndummy_var=""""\nread dummy_var") & !"\n"
 		CloseFile_(Fn)
