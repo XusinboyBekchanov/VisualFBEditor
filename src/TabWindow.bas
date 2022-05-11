@@ -3417,7 +3417,7 @@ Private Function GetFuncStartChar(sLine As WString Ptr, iSelEndChar As Integer, 
 		End If
 	Next
 	iSelEndCharFunc = iSelEndChar
-	For i As Integer = iSelEndChar To 1 Step -1
+	For i As Integer = iSelEndChar + 1 To 1 Step -1
 		Symb = Mid(b, i, 1)
 		If bStartedFunc Then
 			If (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
@@ -3479,7 +3479,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 	Dim As String sWord, Symb, FuncName, Parameters, Parameter, Link1
 	Dim As UString Comments
 	Dim As Integer iCount, iPos
-	iSelEndCharFunc = iSelEndChar + 2
+	iSelEndCharFunc = iSelEndChar
 	If SelStartChar <> -1 Then
 		iSelStartCharFunc = SelStartChar
 		iSelEndCharFunc = SelEndChar
@@ -3495,7 +3495,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 		ElseIf Mid(tb->txtCode.Lines(iSelEndLine), iSelStartCharFunc + 1, 1) = "?" Then
 			sWord = "?"
 		Else
-			sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - 2, , True, iSelStartCharFunc)
+			sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - IIf(Key = 0, 0, 1), , True, iSelStartCharFunc)
 		End If
 	End If
 	Dim As TypeElement Ptr te, teOld
