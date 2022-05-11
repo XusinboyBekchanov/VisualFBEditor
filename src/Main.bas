@@ -3852,7 +3852,7 @@ Sub LoadHelp
 	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input As #Fn): tEncode= 1
 	If Result = 0 Then
 		#ifdef __FB_WIN32__
-			If tEncode = 1 AndAlso CurLanguage <> "english" Then Msgbox ML("The file encoding is not UTF-8 (BOM). Better it was converted.") & Chr(13, 10) & *KeywordsHelpPath
+			If tEncode = 1 AndAlso CurLanguage <> "english" Then Msgbox ML("The file encoding is not UTF-8 (BOM). You should convert it to UTF-8 (BOM).") & Chr(13, 10) & *KeywordsHelpPath
 		#endif
 		Dim As TypeElement Ptr te, te1
 		Dim As WString * 1024 Buff, StartBuff, bTrim
