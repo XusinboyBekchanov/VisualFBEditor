@@ -3525,7 +3525,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 					Parameter = te->Parameters
 					iPos = InStr(LCase(Parameter), LCase(sWord))
 					FuncName = Mid(Parameter, iPos, Len(sWord))
-					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
+					Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 					ParametersList.Add te->Parameters
 					Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 					If te->Comment <> "" Then Comments &= "" & te->Comment
@@ -3546,7 +3546,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 				'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
 				If iPos > 0 Then
 					FuncName = Mid(Parameter, iPos, Len(sWord))
-					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
+					Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 					Parameters &= ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 				Else
 					Parameters &= Parameter
@@ -3563,7 +3563,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 					Parameter = te->Parameters
 					iPos = InStr(LCase(Parameter), LCase(sWord))
 					FuncName = Mid(Parameter, iPos, Len(sWord))
-					Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
+					Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 					Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 					ParametersList.Add te->Parameters
 					If te->Comment <> "" Then Comments &= "" & te->Comment
@@ -3584,7 +3584,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 						'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
 						If iPos > 0 AndAlso IsArg(Asc(Mid(Parameter, iPos - 1, 1))) = 0 Then
 							FuncName = Mid(Parameter, iPos, Len(sWord))
-							Link1 = te->FileName & "~" & te->StartLine & "~" & FuncName & "~" & FuncName
+							Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 							Parameters &= ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & Mid(Parameter, iPos, Len(sWord)) & "</a>" & Mid(Parameter, iPos + Len(sWord))
 						Else
 							Parameters &= Parameter
