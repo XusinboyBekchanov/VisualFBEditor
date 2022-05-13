@@ -3476,8 +3476,8 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 	Dim As WStringList ParametersList
-	Dim As String sWord, Symb, FuncName, Parameters, Parameter, Link1
-	Dim As UString Comments
+	Dim As String sWord, Symb, FuncName, Parameters, Parameter
+	Dim As UString Comments, Link1
 	Dim As Integer iCount, iPos
 	iSelEndCharFunc = iSelEndChar
 	If SelStartChar <> -1 Then
@@ -3599,6 +3599,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 	If Parameters <> "" Then
 		tb->txtCode.HintWord = sWord
 		tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
+		Debug.Print tb->txtCode.Hint
 		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelStartCharFunc)
 		tb->txtCode.SetFocus
 		OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
@@ -5502,8 +5503,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		#endif
 	#else
 		cboClass.Top = 1
-		cboClass.Height = 30 * 22
-		cboClass.DropDownCount = 30
+		cboClass.Height = UnScaleY(30 * 22)
+		cboClass.DropDownCount = UnScaleY(30)
 	#endif
 	cboClass.Anchor.Left = asAnchor
 	cboClass.Anchor.Right = asAnchorProportional
@@ -5521,8 +5522,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		#endif
 	#else
 		cboFunction.Top = 1
-		cboFunction.Height = 30 * 22
-		cboFunction.DropDownCount = 30
+		cboFunction.Height = UnScaleY(30 * 22)
+		cboFunction.DropDownCount = UnScaleY(30)
 	#endif
 	cboFunction.Anchor.Left = asAnchorProportional
 	cboFunction.Anchor.Right = asAnchor

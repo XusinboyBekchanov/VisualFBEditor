@@ -3839,8 +3839,10 @@ Sub LoadHelp
 		parDifferencesFromQB
 		parSeeAlso
 	End Enum
+	Dim As Boolean InEnglish
 	Dim As Integer Fn = FreeFile_, tEncode
 	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt") = "" Then
+		InEnglish = True
 		WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt")
 	Else
 		WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt")
@@ -3852,7 +3854,7 @@ Sub LoadHelp
 	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input As #Fn): tEncode= 1
 	If Result = 0 Then
 		#ifdef __FB_WIN32__
-			If tEncode = 1 AndAlso CurLanguage <> "english" Then Msgbox ML("The file encoding is not UTF-8 (BOM). You should convert it to UTF-8 (BOM).") & Chr(13, 10) & *KeywordsHelpPath
+			If tEncode = 1 AndAlso Not InEnglish Then Msgbox ML("The file encoding is not UTF-8 (BOM). You should convert it to UTF-8 (BOM).") & Chr(13, 10) & *KeywordsHelpPath
 		#endif
 		Dim As TypeElement Ptr te, te1
 		Dim As WString * 1024 Buff, StartBuff, bTrim
