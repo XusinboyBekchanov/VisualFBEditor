@@ -4284,7 +4284,7 @@ Sub LoadSettings
 	pDefaultFont->Size  = InterfaceFontSize
 	
 	mnuMain.DisplayIcons = DisplayMenuIcons
-	'mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
+	mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
 	ReBar1.Visible = ShowMainToolbar
 	SetDarkMode DarkMode, False
 	
