@@ -3127,7 +3127,7 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 					If (bLocal OrElse CBool(.Locals = 0)) AndAlso _
 						((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
 						If bAll OrElse Not FListItems.Contains(.Name) Then
-							FListItems.Add tbi->Elements.Item(i), te
+							FListItems.Add tbi->Elements.Item(i), te, True
 						End If
 					End If
 				End With
