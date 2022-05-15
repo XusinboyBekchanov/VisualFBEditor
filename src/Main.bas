@@ -5979,8 +5979,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 	txtPropertyValue.LeftMargin = 3
 	If CInt(teTypeName = "icon") OrElse CInt(teTypeName = "cursor") OrElse CInt(teTypeName = "bitmaptype") OrElse CInt(teTypeName = "graphictype") OrElse CInt(teTypeName = "font") OrElse CInt(EndsWith(LCase(PropertyName), "color")) Then
-		btnPropertyValue.SetBounds UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top - 1) - 1, -1, UnScaleY(lpRect.Bottom - lpRect.Top - 1) + 2, UnScaleY(lpRect.Bottom - lpRect.Top - 1) + 2
-		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top - 1), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+		btnPropertyValue.SetBounds UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top) - 1 - 1, -1, UnScaleY(lpRect.Bottom - lpRect.Top) - 1 + 2, UnScaleY(lpRect.Bottom - lpRect.Top) - 1 + 2
+		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top) - 1, UnScaleY(lpRect.Bottom - lpRect.Top) - 1
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		btnPropertyValue.Visible = True
 		btnPropertyValue.Tag = te
@@ -5992,8 +5992,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 			txtPropertyValue.LeftMargin = 16
 		End If
 	Else
-		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
-		cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
+		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top) - 1
+		cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left) + 2
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 	End If
 	'If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
@@ -6164,7 +6164,7 @@ Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 	#ifndef __USE_GTK__
 		If Item = 0 Then Exit Sub
 		Dim As ..Rect rc = *Cast(..Rect Ptr, @R)
-		rc.Left += 40 + Item->Indent * 16
+		rc.Left += ScaleX(40 + Item->Indent * 16)
 		If ItemAction = 17 Then                       'if selected Then
 			FillRect Canvas.Handle, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
 			SetBkColor Canvas.Handle, GetSysColor(COLOR_HIGHLIGHT)                    'Set text Background
@@ -6188,15 +6188,15 @@ Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 		Dim zTxt As WString * 64
 		Dim iIndent As Integer
 		Dim l As Integer
-		rc.Top = R.Top + 2
+		rc.Top = R.Top + ScaleX(2)
 		For i As Integer = 0 To Sender.Columns.Count - 1
 			If i = 1 AndAlso EndsWith(LCase(Item->Text(0)), "color") Then
 				Canvas.Brush.Color = Val(Item->Text(1))
 				SelectObject(Canvas.Handle, Canvas.Brush.Handle)
-				Rectangle Canvas.Handle, rc.Left, R.Top + 2, rc.Left + 13 - 1, R.Top + 1 + 13
-				rc.Left += 13 + 3
+				Rectangle Canvas.Handle, rc.Left, R.Top + ScaleY(2), rc.Left + ScaleX(13 - 1), R.Top + ScaleY(1 + 13)
+				rc.Left += ScaleX(13 + 3)
 			Else
-				rc.Left += 3
+				rc.Left += ScaleX(3)
 			End If
 			rc.Right = l + ScaleX(Sender.Columns.Column(i)->Width)
 			zTxt = Item->Text(i)
@@ -6206,14 +6206,14 @@ Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 			If i = 0 Then
 				'DRAW IMAGE
 				If Sender.StateImages AndAlso Sender.StateImages->Handle AndAlso Item->State > 0 Then
-					ImageList_Draw(Sender.StateImages->Handle, Item->State - 1, Canvas.Handle, R.Left + iIndent * 16 + 3, R.Top, ILD_TRANSPARENT)
+					ImageList_Draw(Sender.StateImages->Handle, Item->State - 1, Canvas.Handle, R.Left + ScaleX(iIndent * 16 + 3), R.Top, ILD_TRANSPARENT)
 				End If
 				If Sender.Images AndAlso Sender.Images->Handle Then
-					ImageList_Draw(Sender.Images->Handle, Item->ImageIndex, Canvas.Handle, R.Left + iIndent * 16 + 24, R.Top, ILD_TRANSPARENT)
+					ImageList_Draw(Sender.Images->Handle, Item->ImageIndex, Canvas.Handle, R.Left + ScaleX(iIndent * 16 + 24), R.Top, ILD_TRANSPARENT)
 				End If
 			End If
 			l += ScaleX(Sender.Columns.Column(i)->Width)
-			rc.Left = l + 3
+			rc.Left = l + ScaleX(3)
 		Next
 	#endif
 End Sub
