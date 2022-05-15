@@ -3796,7 +3796,7 @@ Private Sub frmOptions.cmdReplaceInFiles_Click(ByRef Sender As Control)
 		If ResFindCount > 0 AndAlso ResReplaceCount = 0 Then
 			ReDim ResReplace(ResFindCount)   'For replace all to ""
 		End If
-		f = Dir(FileNameLng & "*.htm*")
+		f = Dir(FileNameLng & "*.html")
 		While f <> ""
 			FileNameNoExt = Mid(f, 1, Len(f) - 5)
 			wLet WebHtml, LoadFromFile(FileNameLng & f)
@@ -3930,7 +3930,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 	
 	P1 = -5
 	txtHtmlFind.text = ML("The Keywords missed in your language file. (if it is english html files.)")
-	f = Dir(txtFoldsHtml(1).Text & "*.htm*")
+	f = Dir(txtFoldsHtml(1).Text & "*.html")
 	While f <> ""
 		'Print f  ThreadSelf
 		FileNameSrc = txtFoldsHtml(1).Text & f
@@ -3940,11 +3940,9 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 		' Replace the keywords of translate by google which not good.
 		'<div id="fb_tab_l">__FB_ARGV__&nbsp;&nbsp;&nbsp;_编译传入值__</div>
 		p = InStr(LCase(*WebHtml), "<div id=""fb_tab_l"">&nbsp;")   'Length 19 This is a mark, meaning already change
-		If Right(LCase(f), 4) = ".htm" Then p = 1  'Other's  like Win32API, the file externion is .htm,
-		'debug.Print Str(p)
+		If Mid(LCase(f), 1, 8) = "keywin32" Then p = 1  'Other's  like Win32API HTML
 		If p = 0 OrElse InStr(LCase(cboLanguage.Text), "english") > 0 Then  ' not update the title.
 			'Replace title
-			debug.Print "0"
 			p = InStr(LCase(*WebHtml), "<div id=""fb_tab_l"">")   'Length 19 This is a mark, meaning already change
 			If p > 0 Then
 				n = InStr(p + 18, LCase(*WebHtml), "</div>")
@@ -3995,41 +3993,6 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 			Else
 				wLet WebHtml, "<html class=""translated-ltr""><head><meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8""><title>No Data</title><link rel=""stylesheet"" type=""text/css"" href=""style.css""><meta charset=""UTF-8""></head><body></body></html>"
 			End If
-		Else
-			' The following code is for Win32API
-			p = InStr(LCase(*WebHtml), "<title>")   'Length 7
-			If p > 0 Then
-				p1 = InStr(p, LCase(*WebHtml), "</title>")
-				If p1 > 0 Then
-					p1 = InStrRev(f, ".")
-					KeyTemp = ..Left(f, p1 - 1)
-					'KeyTemp = Trim(Mid(*WebHtml, p + 7, p1 - p - 7))
-					'For i As Integer = 0 To pGlobalFunctions->count - 1
-					'	debug.Print pGlobalFunctions->Item(i) 
-					'Next
-					'tIndex = pGlobalFunctions->IndexOf(KeyTemp)
-					'debug.Print "pGlobalFunctions tIndex " + Str(tIndex)
-					'If tIndex <>-1 Then KeyText = 
-					'debug.Print KeyTemp
-						f = "KeyWin32" + KeyTemp + ".htm"
-						'  <B>GetLocaleInfo</B>     <B>参数</B>
-						p = InStr(LCase(*WebHtml), LCase(KeyTemp)) 'Remove the usage, The first one is Title
-						If p > 0 Then p = InStr(p + Len(KeyTemp), LCase(*WebHtml), LCase(KeyTemp))
-						If p > 0 Then p = InStr(p + Len(KeyTemp), LCase(*WebHtml), LCase(KeyTemp)) 'Third times
-						If p > 0 Then p = InStr(p + Len(KeyTemp), LCase(*WebHtml), "</p><p><b>")
-						If p > 0 Then  'Insert keyWords "Syntax" for Win32 API. But the content is for C only not for freeBasic, so remove it. 
-							p1 = InStr(p + Len(KeyTemp), LCase(*WebHtml), "<b>" + ML("parameters") + "</b>") 'Parameters
-							If p1 < 0 Then p1 = InStr(p + Len(KeyTemp), LCase(*WebHtml), "<b>" + "parameters" + "</b>")
-							If p1 > 0 Then
-								' Remove the "Parameters" for it is for C and could add the Parameters of freeBasic in the functure
-								KeyText = IIf(InStr(LCase(cboLanguage.Text), "english"), "<br \=""""><br \=""""><B>" + "Syntax" + "</B><br \="""">", "<br \=""""><br \=""""><B>" + ML("Syntax") + "</B><br \="""">")
-								Wlet WebHtml, Mid(*WebHtml, 1, p + 3) + KeyText + Mid(*Webhtml, p1)
-							Else
-								debug.Print KeyTemp
-							End If
-						End If
-				End If
-			End If
 		End If
 		' Save the html after modify
 		If SaveToFile(txtFoldsHtml(1).Text & "New/" & f, *WebHtml) = False Then
@@ -4043,15 +4006,15 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 		If ..Left(LCase(f), 3) = "key" Then
 			If tIndex = -1 Then txtHtmlFind.text = txtHtmlFind.text & Chr(13, 10) & KeyTemp
 			'WebBrowser1.Navigate(txtFoldsHtml(1).Text & "New/"  & f)
-			wLet WebText, Html2Text(*WebHtml, "</title>") ' Remove the title
+			wLet *WebText, Html2Text(*WebHtml, "</title>") ' Remove the title
 			'Remove the extra space
-			Split(*WebText, Chr(10), LineParts())
+			Split(*WebText, Chr(13, 10), LineParts())
 			For i As Integer = 0 To UBound(LineParts)
-				*LineParts(i) = Trim(*LineParts(i), Any !"\t\r ")
+				*LineParts(i) = Trim(*LineParts(i), Any !"\t ")
 				If i = 0 Then
 					wlet WebText, *LineParts(i)
 				Else
-					If Len(*LineParts(i)) > 0 Then
+					If Len(*LineParts(i)) > 0 Then 
 						wAdd WebText, Chr(13, 10) & *LineParts(i)  'Remove the empty Line
 					End If
 				End If
@@ -4063,19 +4026,19 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 				wLet WebText, Replace(*WebText, Chr(13, 10) + Chr(13, 10), Chr(13, 10))
 				wLet WebText, Replace(*WebText, Chr(13, 10) + " " + Chr(13, 10), Chr(13, 10))
 				p = -1
-				Pos1 = InStr(LCase(*WebText), Chr(13, 10) & ML("description") & Chr(13, 10)) '  Description 描述      Example 例
+				Pos1 = InStr(*WebText, Chr(13, 10) & ML("Description") & Chr(13, 10)) '  Description 描述      Example 例
 				If Pos1 < 1 Then
-					txtHtmlFind.text = Chr(13, 10) + "No " + ML("description") + " " + f
-					Pos1 = InStr(LCase(*WebText), Chr(13, 10) & "description" & Chr(13, 10))
+					txtHtmlFind.text = Chr(13, 10) + "No " + ML("Description") + " " + f
+					Pos1 = InStr(*WebText, Chr(13, 10) & "Description" & Chr(13, 10))
 				End If
-				
+				If ..Left(LCase(f), 8) = "keywin32" Then Pos1 = Len(*WebText)
 				If Pos1 > 1  Then
-					p = InStr(Pos1, LCase(*WebText), Chr(13, 10) & ML("example") & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, LCase(*WebText), Chr(13, 10) & "example" & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, LCase(*WebText), Chr(13, 10) & ML("see also") & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, LCase(*WebText), Chr(13, 10) & "see also" & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, LCase(*WebText), ML("differences from qb") & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, *WebText, "differences from qb" & Chr(13, 10))
+					p = InStr(Pos1, *WebText, Chr(13, 10) & ML("Example") & Chr(13, 10))
+					If P < 1 Then
+						txtHtmlFind.text = Chr(13, 10) + "No " + ML("Example") + " " + f
+						p = InStr(Pos1, *WebText, Chr(13, 10) & "Example" & Chr(13, 10))
+					End If
+					If P < 1 Then p = InStr(Pos1, *WebText, ML("Differences from QB") & Chr(13, 10))
 					If p > 0 Then
 						If p - pos1 < 100 Then Pos1 = p Else pos1 += 100
 					End If
@@ -4085,9 +4048,8 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 				'Print "Pos1, p", Pos1, p
 				' Save the html for produce keywords text file. It is writed with append mode
 				Pos1 = Min(Pos1, Len(*WebText))
-				p1 = InStrRev(f, ".")
 				wAdd BuffOut, Chr(13, 10)
-				wAdd BuffOut, Chr(13, 10) + "-------------------------------------------------------- " & ..Left(f, p1 - 1) & " ----"
+				wAdd BuffOut, Chr(13, 10) + "-------------------------------------------------------- " & ..Left(f, Len(f) - 5) & " ----"
 				If chkKeyWordsAllItems.checked = True Then
 					wAdd BuffOut, Chr(13, 10) + *WebText
 				Else
@@ -4098,9 +4060,8 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 				Pos1 = 0
 			End If
 			If Pos1 < 1 Then
-				p1 = InStrRev(f, ".")
 				wAdd BuffOut, Chr(13, 10)
-				wAdd BuffOut, Chr(13, 10) + "-------------------------------------------------------- " & ..Left(f, p1 - 1) & " ----"
+				wAdd BuffOut, Chr(13, 10) + "-------------------------------------------------------- " & ..Left(f, Len(f) - 5) & " ----"
 				wAdd BuffOut, Chr(13, 10) +  KeyTemp & "   " & KeyText
 				wAdd BuffOut, Chr(13, 10) +  "Description" & Chr(13, 10)
 				wAdd BuffOut, Chr(13, 10)
@@ -4583,7 +4544,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
 			FileNameLng = Trim(txtFoldsHtml(1).Text) & "\"
 		End If
-		f = Dir(FileNameLng & "*.htm*")
+		f = Dir(FileNameLng & "*.html")
 		While f <> ""
 			'wLet WebHtml, LoadFromFile(FileNameLng & f)
 			If f <> "" Then
@@ -4601,7 +4562,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 	If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
 		FileNameLng = Trim(txtFoldsHtml(0).Text) & "\"
 	End If
-	f = Dir(FileNameLng & "*.htm*")
+	f = Dir(FileNameLng & "*.html")
 	While f <> ""
 		'wLet WebHtml, LoadFromFile(FileNameLng & f)
 		If f <> "" Then FilesFind.Add FileNameLng & f
