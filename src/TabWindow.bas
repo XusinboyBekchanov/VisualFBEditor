@@ -3127,7 +3127,7 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 					If (bLocal OrElse CBool(.Locals = 0)) AndAlso _
 						((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
 						If bAll OrElse Not FListItems.Contains(.Name) Then
-							FListItems.Add tbi->Elements.Item(i), te
+							FListItems.Add tbi->Elements.Item(i), te, True
 						End If
 					End If
 				End With
@@ -4332,12 +4332,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, Functions.Object(i)))
+		Functions.Remove i
 	Next
 	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, FunctionsOthers.Object(i)))
+FunctionsOthers.Remove i
 	Next
 	For i As Integer = Args.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, Args.Object(i)))
+		Args.Remove i
 	Next
 	Functions.Clear
 	FunctionsOthers.Clear
@@ -4351,7 +4354,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Var bT = False
 	c = False
 	txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-	Dim As Integer iStart, iEnd, CtrlArrayNum, Pos1, Pos2, Pos3, Pos4, Pos5, n, inPubProPri = 0, ConstructionIndex = -1, ConstructionPart
+	Dim As Integer iStart, iEnd, CtrlArrayNum, Pos1, Pos2, Pos3, Pos4, Pos5, n, inPubProPri = 0, ConstructionIndex = -1, ConstructionPart, LastIndexFunctions
 	Dim ptxtCode As EditControl Ptr = 0
 	Dim As Boolean bFind, bTrue = True
 	Dim WithArgs As WStringList
@@ -4453,7 +4456,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos2 = InStr(Pos1 + 1, b, """")
 						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
 						If Not pLoadPaths->Contains(*FPath) Then
-							pLoadPaths->Add *FPath
+							pLoadPaths->Add *FPath, , False
 							ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(pLoadPaths->Count - 1)))
 						End If
 					End If
@@ -4514,13 +4517,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->TabPtr = @This
 						te->FileName = FileName
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
-						Functions.Add te->DisplayName, te
+						LastIndexFunctions = Functions.Add(te->DisplayName, te, True)
 						If ECLine->ConstructionIndex = 14 Then
-							Enums.Add te->Name, te
+							Enums.Add te->Name, te, True
 						ElseIf ECLine->ConstructionIndex = 15 OrElse ECLine->ConstructionIndex = 16 Then
-							Types.Add te->Name, te
+							Types.Add te->Name, te, True
 						Else
-							Procedures.Add te->Name, te
+							Procedures.Add te->Name, te, True
 						End If
 						func = te
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
@@ -4568,7 +4571,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					End If
 				ElseIf ECLine->ConstructionPart = 2 Then
-					If Functions.Count > 0 Then Cast(TypeElement Ptr, Functions.Object(Functions.Count - 1))->EndLine = i: inFunc = False
+					If LastIndexFunctions >= 0 AndAlso Functions.Count > 0 Then 
+						Cast(TypeElement Ptr, Functions.Object(Functions.Count - 1))->EndLine = i: inFunc = False
+						LastIndexFunctions=-1
+					End If
 				End If
 			ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
 				inPubProPri = 0
@@ -4597,8 +4603,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->EndLine = i
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
 				te->FileName = FileName
-				FunctionsOthers.Add te->DisplayName, te
-				Procedures.Add te->Name, te
+				FunctionsOthers.Add te->DisplayName, te, True
+				Procedures.Add te->Name, te, True
 			ElseIf StartsWith(bTrimLCase, "declare ") Then
 				Pos1 = InStr(9, bTrim, " ")
 				Pos3 = InStr(9, bTrim, "(")
@@ -4661,8 +4667,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 					func->Elements.Add te->Name, te
 				Else
-					FunctionsOthers.Add te->DisplayName, te
-					Procedures.Add te->Name, te
+					FunctionsOthers.Add te->DisplayName, te, True
+					Procedures.Add te->Name, te, True
 				End If
 			Else
 				If CInt(StartsWith(bTrimLCase, "as ")) OrElse _
@@ -4738,7 +4744,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->Parameters = res1(n) & " As " & CurType
 						te->FileName = FileName
 						te->TabPtr = @This
-						If inFunc AndAlso func <> 0 Then func->Elements.Add te->Name, te Else Args.Add te->Name, te
+						If InFunc AndAlso func <> 0 Then
+							func->Elements.Add te->Name, te
+						Else
+							Args.Add te->Name, te, True
+						End If
 					Next
 				End If
 			End If
@@ -5096,7 +5106,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next i
 		'FillAllProperties
 	End If
-	Functions.Sort
+	'Functions.Sort 'Already sorted while add items
 	If cboClass.ItemIndex = 0 Then
 		Dim As TypeElement Ptr te2
 		Dim t As Boolean
