@@ -3945,7 +3945,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 		'debug.Print Str(p)
 		If p = 0 OrElse InStr(LCase(cboLanguage.Text), "english") > 0 Then  ' not update the title.
 			'Replace title
-			debug.Print "0"
+			'debug.Print "0"
 			p = InStr(LCase(*WebHtml), "<div id=""fb_tab_l"">")   'Length 19 This is a mark, meaning already change
 			If p > 0 Then
 				n = InStr(p + 18, LCase(*WebHtml), "</div>")
