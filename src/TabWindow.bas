@@ -966,7 +966,7 @@ Sub TabWindow.FillProperties(ByRef ClassName As WString)
 					With *te
 						If .Locals = 0 Then
 							If Not FPropertyItems.Contains(.Name) Then
-								FPropertyItems.Add .Name, te
+								FPropertyItems.Add .Name, te, True
 							End If
 						End If
 					End With
@@ -3599,7 +3599,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 	If Parameters <> "" Then
 		tb->txtCode.HintWord = sWord
 		tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
-		'Debug.Print tb->txtCode.Hint
+		Debug.Print tb->txtCode.Hint
 		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelStartCharFunc)
 		tb->txtCode.SetFocus
 		OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
