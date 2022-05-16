@@ -351,7 +351,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True) As String
-		Dim As String result, ch, sLine = subject
+		Dim As String Result, ch, sLine = subject
 		Dim As Integer cc, iPos = -1
 		Dim As Boolean q, c
 		For i As Integer = 1 To OldCommentIndex
@@ -673,7 +673,7 @@ Namespace My.Sys.Forms
 				FSelStartLine = FSelEndLine
 				FSelStartChar = FSelEndChar
 			Else
-				FSelStartChar = Min(FSelStartChar, FSelEndChar)
+				FSelStartChar = MIN(FSelStartChar, FSelEndChar)
 				FSelEndChar = FSelStartChar
 			End If
 		Else
@@ -749,7 +749,7 @@ Namespace My.Sys.Forms
 				iSelStartLine = FSelEndLine
 				iSelEndLine = FSelStartLine
 			Else
-				iSelStartChar = Min(FSelStartChar, FSelEndChar)
+				iSelStartChar = MIN(FSelStartChar, FSelEndChar)
 				iSelEndChar = Max(FSelStartChar, FSelEndChar)
 				iSelStartLine = FSelStartLine
 				iSelEndLine = FSelEndLine
@@ -1067,7 +1067,7 @@ Namespace My.Sys.Forms
 		If Result = 0 Then
 			OldFileEncoding = FileEncoding
 			FileSize = LOF(Fn) + 2
-			WReallocate(pBuff, FileSize)
+			WReAllocate(pBuff, FileSize)
 			For i As Integer = FLines.Count - 1 To 0 Step -1
 				Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			Next i
@@ -1085,10 +1085,10 @@ Namespace My.Sys.Forms
 				If OldFileEncoding = FileEncodings.PlainText Then
 					If FileEncoding = FileEncodings.UTF8 Then
 						Dim As String Buff = *pBuff
-						*pBuff = FromUTF8(StrPtr(Buff))
+						*pBuff = FromUtf8(StrPtr(Buff))
 					Else
 						Dim As String Buff = *pBuff
-						Dim As WString Ptr pBuff2: wLet pBuff2, FromUTF8(StrPtr(Buff))
+						Dim As WString Ptr pBuff2: WLet pBuff2, FromUtf8(StrPtr(Buff))
 						If *pBuff <> *pBuff2 Then
 							*pBuff = *pBuff2
 							FileEncoding = FileEncodings.UTF8
@@ -1123,12 +1123,12 @@ Namespace My.Sys.Forms
 			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13,10) & " " & FileName
 		End If
 		CloseFile_(Fn)
-		WDeallocate pBuff
+		WDeAllocate pBuff
 		'?Timer - Timer_
 		'?FileName
 	End Sub
 	
-	Sub EditControl.SaveToFile(ByRef File As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
+	Sub EditControl.SaveToFile(ByRef FILE As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
 		Dim As Integer Fn = FreeFile_
 		Dim As Integer Result
 		Dim As String FileEncodingText, NewLine
@@ -1150,10 +1150,10 @@ Namespace My.Sys.Forms
 		Else
 			NewLine = Chr(13, 10)
 		End If
-		If Open(File For Output Encoding FileEncodingText As #Fn) = 0 Then
+		If Open(FILE For Output Encoding FileEncodingText As #Fn) = 0 Then
 			If FileEncoding = FileEncodings.Utf8 Then
 				For i As Integer = 0 To FLines.Count - 1
-					Print #Fn, ToUTF8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine;
+					Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine;
 				Next
 			Else
 				For i As Integer = 0 To FLines.Count - 1
@@ -1161,7 +1161,7 @@ Namespace My.Sys.Forms
 				Next
 			End If
 		Else
-			MsgBox ML("Save file failure!") & Chr(13,10) & File
+			MsgBox ML("Save file failure!") & Chr(13,10) & FILE
 		End If
 		CloseFile_(Fn)
 	End Sub
@@ -1268,7 +1268,7 @@ Namespace My.Sys.Forms
 			'
 			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet(FECLine->Text, Trim(*FECLine->Text, Any !"\t "))
 			'If *FECLine->Text = "" Then Continue For
-			If .Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then wLet(FECLine->Text, "If (" & Mid(*FECLine->Text, 4))
+			If .Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then WLet(FECLine->Text, "If (" & Mid(*FECLine->Text, 4))
 			'If LCase(*FECLine->Text) = "endif" Then wLet FECLine->Text,"End If"
 			If iComment = 0 Then
 				If FECLine->Multiline Then
@@ -1495,7 +1495,7 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
 		lText = Len(SourceText)
-		WReallocate(FLineTab, lText * TabWidth + 1)
+		WReAllocate(FLineTab, lText * TabWidth + 1)
 		*FLineTab = ""
 		iPos = PosText
 		ii = 1
@@ -1688,7 +1688,7 @@ Namespace My.Sys.Forms
 		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 			FECLine = FLines.Items[i]
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-			n = Min(n, TabWidth - (n Mod TabWidth))
+			n = MIN(n, TabWidth - (n Mod TabWidth))
 			If n = 0 AndAlso .Left(*FECLine->Text, 1) = !"\t" Then n = 1
 			WLet(FECLine->Text, Mid(*FECLine->Text, n + 1))
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar -= n
@@ -1920,7 +1920,7 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.TextWidth(ByRef sText As WString) As Integer
 		#ifdef __USE_GTK__
-			pango_layout_set_text(layout, ToUTF8(sText), Len(ToUTF8(sText)))
+			pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
 			If cr Then
 				pango_cairo_update_layout(cr, layout)
 			End If
@@ -1937,7 +1937,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	Sub GetColor(iColor As Long, ByRef iRed As Double, ByRef iGreen As Double, ByRef iBlue As Double)
+	Sub GetColor(iColor As Long, ByRef iRED As Double, ByRef iGREEN As Double, ByRef iBLUE As Double)
 		Select Case iColor
 			'		Case clBlack:	iRed = 0: iGreen = 0: iBlue = 0
 			'		Case clRed:		iRed = 0.8: iGreen = 0: iBlue = 0
@@ -1945,7 +1945,7 @@ Namespace My.Sys.Forms
 			'		Case clBlue:	iRed = 0: iGreen = 0: iBlue = 1
 			'		Case clWhite:	iRed = 1: iGreen = 1: iBlue = 1
 			'		Case clOrange:	iRed = 1: iGreen = 83 / 255.0: iBlue = 0
-		Case Else: iRed = Abs(GetRed(iColor) / 255.0): iGreen = Abs(GetGreen(iColor) / 255.0): iBlue = Abs(GetBlue(iColor) / 255.0)
+		Case Else: iRED = Abs(GetRed(iColor) / 255.0): iGREEN = Abs(GetGreen(iColor) / 255.0): iBLUE = Abs(GetBlue(iColor) / 255.0)
 		End Select
 	End Sub
 	
@@ -1981,9 +1981,9 @@ Namespace My.Sys.Forms
 		WLet(FLineRight, GetTabbedText(Mid(sText, iStart + 1, iEnd - iStart) & addit, iPPos))
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend, extend2
-			Dim As Double iRed, iGreen, iBlue
+			Dim As Double iRED, iGREEN, iBLUE
 			extend.width = TextWidth(*FLineLeft)
-			pango_layout_set_text(layout, ToUTF8(*FLineRight), Len(ToUTF8(*FLineRight)))
+			pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
 			pango_cairo_update_layout(cr, layout)
 			#ifdef PANGO_VERSION
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -2009,7 +2009,7 @@ Namespace My.Sys.Forms
 			pango_cairo_show_layout_line(cr, pl)
 		#else
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
-				SetBKColor(bufDC, CurrentWord.Background)
+				SetBkColor(bufDC, CurrentWord.Background)
 				'ElseIf @Colors = @NormalText Then
 				'	SetBKMode(bufDC, TRANSPARENT)
 			Else
@@ -2039,7 +2039,7 @@ Namespace My.Sys.Forms
 			'DrawText(bufDC, FLineRight, Len(*FLineRight), @rc, DT_SINGLELINE Or DT_NOPREFIX)
 			ExtTextOut bufDC, x, y, ETO_CLIPPED, @rc, FLineRight, Len(*FLineRight), 0
 			'PolyTextOut bufDC, @ppt, 1
-			If Colors.Background = -1 Then SetBKMode(bufDC, OPAQUE)
+			If Colors.Background = -1 Then SetBkMode(bufDC, OPAQUE)
 			If Bold Or Italic Or Underline Then
 				Canvas.Font.Bold = False
 				Canvas.Font.Italic = False
@@ -2184,14 +2184,14 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			iC = 0
-			vlc = Min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
+			vlc = MIN(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
 			vlc1 = VisibleLinesCount(zz)
 			IzohBoshi = 0
 			QavsBoshi = 0
 			MatnBoshi = 0
 			Matn = ""
 			#ifdef __USE_GTK__
-				Dim As Double iRed, iGreen, iBlue
+				Dim As Double iRED, iGREEN, iBLUE
 				#ifdef __USE_GTK3__
 					cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), True)
 				#else
@@ -2369,10 +2369,12 @@ Namespace My.Sys.Forms
 															End If
 														End If
 													Else
+														Dim As Boolean bKeyWord
 														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
 															If pkeywordsAsm->Contains(LCase(Matn)) Then
 																sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
 																pkeywords = pkeywordsAsm
+																bKeyWord = True
 															End If
 														Else
 															Dim As Integer tIndex  = -1
@@ -2382,6 +2384,7 @@ Namespace My.Sys.Forms
 																If pkeywords->Contains(LCase(Matn)) OrElse (StartsWith(Matn, "..") AndAlso pkeywords->Contains(LCase(Mid(Matn, 3)))) Then
 																	sc = @Keywords(k)
 																	tNotFound = False
+																	bKeyWord = True
 																	Exit For
 																End If
 																pkeywords = 0
@@ -2439,7 +2442,7 @@ Namespace My.Sys.Forms
 																tNotFound = False
 															End If
 														End If
-														If ChangeKeyWordsCase AndAlso pkeywords <> 0 AndAlso FSelEndLine <> z Then
+														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso pkeywords <> 0 AndAlso FSelEndLine <> z Then
 															Keyword = GetKeyWordCase(Matn, pkeywords)
 															If Keyword <> Matn Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = Keyword
@@ -2635,9 +2638,9 @@ Namespace My.Sys.Forms
 					WLet(FLineLeft, WStr(z + 1))
 					'Dim extend As cairo_text_extents_t
 					'cairo_text_extents (cr, *FLineLeft, @extend)
-					cairo_move_to(cr, LeftMargin - 30 - TextWidth(ToUTF8(*FLineLeft)), (i - VScrollPos) * dwCharY + dwCharY - 5)
+					cairo_move_to(cr, LeftMargin - 30 - TextWidth(ToUtf8(*FLineLeft)), (i - VScrollPos) * dwCharY + dwCharY - 5)
 					cairo_set_source_rgb(cr, LineNumbers.ForegroundRed, LineNumbers.ForegroundGreen, LineNumbers.ForegroundBlue)
-					pango_layout_set_text(layout, ToUTF8(*FLineLeft), Len(ToUTF8(*FLineLeft)))
+					pango_layout_set_text(layout, ToUtf8(*FLineLeft), Len(ToUtf8(*FLineLeft)))
 					pango_cairo_update_layout(cr, layout)
 					#ifdef PANGO_VERSION
 						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -2652,12 +2655,12 @@ Namespace My.Sys.Forms
 					SetRect(@rc, ScaleX(CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
 					'SelectObject(bufDC, This.Canvas.Brush.Handle)
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
-					SetBKMode(bufDC, TRANSPARENT)
+					SetBkMode(bufDC, TRANSPARENT)
 					WLet(FLineLeft, WStr(z + 1))
 					GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
 					SetTextColor(bufDC, LineNumbers.Foreground)
 					TextOut(bufDC, ScaleX(LeftMargin - 25 + CodePaneX) - Sz.cx, ScaleY((i - VScrollPos) * dwCharY + CodePaneY), FLineLeft, Len(*FLineLeft))
-					SetBKMode(bufDC, OPAQUE)
+					SetBkMode(bufDC, OPAQUE)
 				#endif
 				This.Canvas.Brush.Color = NormalText.Background
 				#ifdef __USE_GTK__
@@ -3277,10 +3280,10 @@ Namespace My.Sys.Forms
 		#endif
 		'Base.ProcessMessage(msg)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = msg.event
-			Select Case msg.event->Type
+			Dim As GdkEvent Ptr e = MSG.event
+			Select Case MSG.event->Type
 		#else
-			Select Case msg.msg
+			Select Case MSG.msg
 			Case CM_CREATE
 				'FontSettings()
 				
@@ -3299,8 +3302,8 @@ Namespace My.Sys.Forms
 			Case WM_SIZE
 				Var dDividedX = iDividedX / dwClientX
 				Var dDividedY = iDividedY / dwClientY
-				dwClientX = UnScaleX(LoWord(msg.lParam))
-				dwClientY = UnScaleY(HiWord(msg.lParam))
+				dwClientX = UnScaleX(LoWord(MSG.lParam))
+				dwClientY = UnScaleY(HiWord(MSG.lParam))
 				If Not bDividedX Then
 					MoveWindow sbScrollBarhRight, ScaleX(7), ScaleY(dwClientY - 17), ScaleX(dwClientX - 17 - 7), ScaleY(17), False
 				Else
@@ -3347,13 +3350,13 @@ Namespace My.Sys.Forms
 			#else
 				Var sbScrollBarv = IIf(ActiveCodePane = 0, sbScrollBarvTop, sbScrollBarvBottom)
 				#ifdef __FB_64BIT__
-					If msg.wParam < 4000000000 Then
+					If MSG.wParam < 4000000000 Then
 						scrDirection = 1
 					Else
 						scrDirection = -1
 					End If
 				#else
-					scrDirection = Sgn(msg.wParam)
+					scrDirection = Sgn(MSG.wParam)
 				#endif
 				si.cbSize = SizeOf (si)
 				si.fMask  = SIF_ALL
@@ -3367,7 +3370,7 @@ Namespace My.Sys.Forms
 			ElseIf VScrollMax <> 0 Then
 				#ifdef __USE_GTK__
 					If scrDirection = 1 Then
-						gtk_adjustment_set_value(adjustmentv, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
+						gtk_adjustment_set_value(adjustmentv, MIN(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
 					ElseIf scrDirection = -1 Then
 						gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
 					End If
@@ -3379,7 +3382,7 @@ Namespace My.Sys.Forms
 					'End If
 				#else
 					If scrDirection = -1 Then
-						si.nPos = Min(si.nPos + 3, si.nMax)
+						si.nPos = MIN(si.nPos + 3, si.nMax)
 					Else
 						si.nPos = Max(si.nPos - 3, si.nMin)
 					End If
@@ -4081,7 +4084,7 @@ Namespace My.Sys.Forms
 				#ifndef __USE_GTK__
 					MessageBeep(-1)
 				#endif
-				msg.Result = 0
+				MSG.Result = 0
 			Case 9:  ' tab
 				If DropDownShowed Then
 					CloseDropDown()
@@ -4105,11 +4108,11 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						ChangeText *e->Key.string
 					#else
-						ChangeText WChr(msg.wParam)
+						ChangeText WChr(MSG.wParam)
 					#endif
 				End If
 				'End If
-				msg.Result = True
+				MSG.Result = True
 			Case 13:  ' возврат каретки
 				If ToolTipShowed Then CloseToolTip
 				If DropDownShowed Then
@@ -4248,7 +4251,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						If *e->Key.string = " " Then
 					#else
-						If msg.wParam = Asc(" ") Then
+						If MSG.wParam = Asc(" ") Then
 					#endif
 						If DropDownShowed Then
 							CloseDropDown()
@@ -4263,24 +4266,24 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						ChangeText *e->Key.string
 					#else
-						ChangeText WChr(msg.wParam)
+						ChangeText WChr(MSG.wParam)
 					#endif
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 26 Then
 					#else
-					ElseIf msg.wParam = 26 Then
+					ElseIf MSG.wParam = 26 Then
 					#endif
 					Undo
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 25 Then
 					#else
-					ElseIf msg.wParam = 25 Then
+					ElseIf MSG.wParam = 25 Then
 					#endif
 					Redo
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 24 Then
 					#else
-					ElseIf msg.wParam = 24 Then
+					ElseIf MSG.wParam = 24 Then
 					#endif
 					CutToClipBoard
 					#ifdef __USE_GTK__
