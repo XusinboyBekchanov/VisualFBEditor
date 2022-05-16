@@ -4411,12 +4411,12 @@ Sub LoadSettings
 	ColorProperty.Italic = iniTheme.ReadInteger("FontStyles", "PropertyItalic", NormalText.Italic)
 	ColorProperty.Underline = iniTheme.ReadInteger("FontStyles", "PropertyUnderline", NormalText.Italic)
  
-	ColorComps.ForegroundOption = iniTheme.ReadInteger("Colors", "CompsForeground", NormalText.ForegroundOption)
-	ColorComps.BackgroundOption = iniTheme.ReadInteger("Colors", "CompsBackground", -1)
-	ColorComps.FrameOption = iniTheme.ReadInteger("Colors", "CompsFrame", -1)
-	ColorComps.Bold = iniTheme.ReadInteger("FontStyles", "CompsBold", NormalText.Bold)
-	ColorComps.Italic = iniTheme.ReadInteger("FontStyles", "CompsItalic", NormalText.Italic)
-	ColorComps.Underline = iniTheme.ReadInteger("FontStyles", "CompsUnderline", NormalText.Italic)
+	ColorComps.ForegroundOption = iniTheme.ReadInteger("Colors", "ComponentsForeground", NormalText.ForegroundOption)
+	ColorComps.BackgroundOption = iniTheme.ReadInteger("Colors", "ComponentsBackground", -1)
+	ColorComps.FrameOption = iniTheme.ReadInteger("Colors", "ComponentsFrame", -1)
+	ColorComps.Bold = iniTheme.ReadInteger("FontStyles", "ComponentsBold", NormalText.Bold)
+	ColorComps.Italic = iniTheme.ReadInteger("FontStyles", "ComponentsItalic", NormalText.Italic)
+	ColorComps.Underline = iniTheme.ReadInteger("FontStyles", "ComponentsUnderline", NormalText.Italic)
  
 	ColorGlobalNamespaces.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesForeground", NormalText.ForegroundOption)
 	ColorGlobalNamespaces.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesBackground", -1)

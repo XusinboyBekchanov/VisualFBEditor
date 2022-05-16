@@ -4332,15 +4332,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, Functions.Object(i)))
-		Functions.Remove i
+		'Functions.Remove i
 	Next
 	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, FunctionsOthers.Object(i)))
-FunctionsOthers.Remove i
+		'FunctionsOthers.Remove i
 	Next
 	For i As Integer = Args.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, Args.Object(i)))
-		Args.Remove i
+		'Args.Remove i
 	Next
 	Functions.Clear
 	FunctionsOthers.Clear
@@ -4571,8 +4571,8 @@ FunctionsOthers.Remove i
 						End If
 					End If
 				ElseIf ECLine->ConstructionPart = 2 Then
-					If LastIndexFunctions >= 0 AndAlso Functions.Count > 0 Then 
-						Cast(TypeElement Ptr, Functions.Object(Functions.Count - 1))->EndLine = i: inFunc = False
+					If LastIndexFunctions >= 0 AndAlso LastIndexFunctions <= Functions.Count - 1 Then 
+						Cast(TypeElement Ptr, Functions.Object(LastIndexFunctions))->EndLine = i: inFunc = False
 						LastIndexFunctions=-1
 					End If
 				End If
