@@ -224,7 +224,7 @@ Namespace My.Sys.Forms
 	Private Property EditControl.SplittedVertically As Boolean
 		Return bDividedX
 	End Property
-
+	
 	Private Property EditControl.SplittedVertically(Value As Boolean)
 		If Not Value Then
 			bDividedX = False
@@ -241,7 +241,7 @@ Namespace My.Sys.Forms
 			If bDividedY Then SplittedHorizontally = False
 			If Not bDividedX Then
 				HScrollPosLeft = HScrollPosRight
-			End If 
+			End If
 			bDividedX = True
 			If iDivideX <= 0 Then iDivideX = (dwClientX - 17) / 2: iDividedX = iDivideX
 			#ifdef __USE_WINAPI__
@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 	Private Property EditControl.SplittedHorizontally As Boolean
 		Return bDividedY
 	End Property
-
+	
 	Private Property EditControl.SplittedHorizontally(Value As Boolean)
 		If Not Value Then
 			bDividedY = False
@@ -274,7 +274,7 @@ Namespace My.Sys.Forms
 			If bDividedX Then SplittedVertically = False
 			If Not bDividedY Then
 				VScrollPosTop = VScrollPosBottom
-			End If 
+			End If
 			bDividedY = True
 			If iDivideY <= 0 Then iDivideY = (dwClientY - 17) / 2: iDividedY = iDivideY
 			#ifdef __USE_WINAPI__
@@ -1630,15 +1630,15 @@ Namespace My.Sys.Forms
 			End If
 			'gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, 10, 10, layout, 0, PANGO_DIRECTION_LTR)
 		#else
-'			If OldCaretVisible <> CaretVisible Then
-'				If CaretVisible Then
-'					ShowCaret FHandle
-'				Else
-'					HideCaret FHandle
-'				End If
-'			End If
-			'If CaretVisible Then 
-				SetCaretPos(ScaleX(HCaretPos), ScaleY(VCaretPos))
+			'			If OldCaretVisible <> CaretVisible Then
+			'				If CaretVisible Then
+			'					ShowCaret FHandle
+			'				Else
+			'					HideCaret FHandle
+			'				End If
+			'			End If
+			'If CaretVisible Then
+			SetCaretPos(ScaleX(HCaretPos), ScaleY(VCaretPos))
 			'End If
 		#endif
 		OldLine = FSelEndLine
@@ -1796,12 +1796,12 @@ Namespace My.Sys.Forms
 				'gtk_adjustment_configure(adjustmenth, gtk_adjustment_get_value(adjustmenth), 0, HScrollMax, 1, 10, HScrollMax)
 			#else
 				'If HScrollEnabledRight Then
-					si.cbSize = SizeOf(si)
-					si.fMask  = SIF_RANGE Or SIF_PAGE
-					si.nMin   = 0
-					si.nMax   = HScrollMaxRight
-					si.nPage  = 10
-					SetScrollInfo(sbScrollBarhRight, SB_CTL, @si, True)
+				si.cbSize = SizeOf(si)
+				si.fMask  = SIF_RANGE Or SIF_PAGE
+				si.nMin   = 0
+				si.nMax   = HScrollMaxRight
+				si.nPage  = 10
+				SetScrollInfo(sbScrollBarhRight, SB_CTL, @si, True)
 				'End If
 				'EnableWindow sbScrollBarhRight, HScrollEnabledRight
 				'SetScrollInfo(FHandle, SB_HORZ, @si, True)
@@ -1828,7 +1828,7 @@ Namespace My.Sys.Forms
 						SetScrollInfo(sbScrollBarhLeft, SB_CTL, @si, True)
 					End If
 					'If OldHScrollEnabled <> HScrollEnabled Then
-						'EnableWindow sbScrollBarhTop, HScrollEnabledLeft
+					'EnableWindow sbScrollBarhTop, HScrollEnabledLeft
 					'End If
 					'SetScrollInfo(FHandle, SB_VERT, @si, True)
 				#endif
@@ -1856,7 +1856,7 @@ Namespace My.Sys.Forms
 					SetScrollInfo(sbScrollBarvBottom, SB_CTL, @si, True)
 				End If
 				'If OldVScrollEnabled <> VScrollEnabled Then
-					EnableWindow sbScrollBarvBottom, VScrollEnabledBottom
+				EnableWindow sbScrollBarvBottom, VScrollEnabledBottom
 				'End If
 				'SetScrollInfo(FHandle, SB_VERT, @si, True)
 			#endif
@@ -1884,7 +1884,7 @@ Namespace My.Sys.Forms
 						SetScrollInfo(sbScrollBarvTop, SB_CTL, @si, True)
 					End If
 					'If OldVScrollEnabled <> VScrollEnabled Then
-						EnableWindow sbScrollBarvTop, VScrollEnabledTop
+					EnableWindow sbScrollBarvTop, VScrollEnabledTop
 					'End If
 					'SetScrollInfo(FHandle, SB_VERT, @si, True)
 				#endif
@@ -2177,7 +2177,7 @@ Namespace My.Sys.Forms
 			HScrollPos = IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight)
 			VScrollPos = IIf(zz = 0, VScrollPosTop, VScrollPosBottom)
 			If zz = 1 Then
-				If bDividedY Then 
+				If bDividedY Then
 					CodePaneY = iDividedY + 7
 				ElseIf bDividedX Then
 					CodePaneX = iDividedX + 7
@@ -2375,33 +2375,74 @@ Namespace My.Sys.Forms
 																pkeywords = pkeywordsAsm
 															End If
 														Else
+															Dim As Integer tIndex  = -1
+															Dim As Boolean tNotFound = True
 															For k As Integer = 1 To KeywordLists.Count - 1
 																pkeywords = KeywordLists.Object(k)
 																If pkeywords->Contains(LCase(Matn)) OrElse (StartsWith(Matn, "..") AndAlso pkeywords->Contains(LCase(Mid(Matn, 3)))) Then
 																	sc = @Keywords(k)
+																	tNotFound = False
 																	Exit For
 																End If
 																pkeywords = 0
-																'													If keywords0.Contains(LCase(Matn)) Then
-																'														sc = @Preprocessors '
-																'														pkeywords = @keywords0
-																'													ElseIf keywords1.Contains(LCase(Matn)) Then
-																'														sc = @Keywords
-																'														pkeywords = @keywords1
-																'													ElseIf keywords2.Contains(LCase(Matn)) Then
-																'														sc = @Keywords
-																'														pkeywords = @keywords2
-																'													ElseIf keywords3.Contains(LCase(Matn)) Then
-																'														sc = @Keywords
-																'														pkeywords = @keywords3
-																'													End If
-															Next k
+																tIndex = -1
+															Next
+															'Modules
+															'If tIndex = -1 AndAlso pArgs > 0 Then tIndex = pArgs->IndexOf(LCase(Matn))
+															'If tNotFound AndAlso tIndex <> -1 Then
+															'	sc = @ColorGlobalEnums
+															'	pkeywords = pArgs
+															'	tNotFound = False
+															'End If
+															'If tIndex = -1 AndAlso pProcedures > 0 Then tIndex = pProcedures->IndexOf(LCase(Matn))
+															'If tNotFound AndAlso tIndex <> -1 Then
+															'	sc = @ColorGlobalFunctions
+															'	pkeywords = GlobalProcedures
+															'	tNotFound = False
+															'End If
+															
+															'Global
+															If tIndex = -1 AndAlso pComps > 0 Then tIndex = pComps->IndexOf(LCase(Matn))
+															If tNotFound AndAlso tIndex <> -1 Then
+																sc = @ColorComps
+																pkeywords = pComps
+																tNotFound = False
+															End If
+															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalTypes > 0 Then tIndex = pGlobalTypes->IndexOf(LCase(Matn))
+															If tNotFound AndAlso tIndex <> -1 Then
+																sc = @ColorGlobalTypes
+																pkeywords = pGlobalTypes
+																tNotFound = False
+															End If
+															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalEnums > 0 Then tIndex = pGlobalEnums->IndexOf(LCase(Matn))
+															If tNotFound AndAlso tIndex <> -1 Then
+																sc = @ColorGlobalEnums
+																pkeywords = pGlobalEnums
+																tNotFound = False
+															End If
+															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalArgs > 0 Then tIndex = pGlobalArgs->IndexOf(LCase(Matn))
+															If tNotFound AndAlso tIndex <> -1 Then
+																sc = @ColorGlobalArgs
+																pkeywords = pGlobalArgs
+																tNotFound = False
+															End If
+															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalFunctions > 0 Then tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
+															If tNotFound AndAlso tIndex <> -1 Then
+																sc = @ColorGlobalFunctions
+																pkeywords = pGlobalFunctions
+																tNotFound = False
+															End If
+															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalNamespaces > 0 Then tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
+															If tNotFound AndAlso tIndex <> -1 Then
+																sc = @ColorProperty
+																pkeywords = pGlobalNamespaces
+																tNotFound = False
+															End If
 														End If
-														If CInt(ChangeKeyWordsCase) AndAlso CInt(pkeywords <> 0) AndAlso CInt(FSelEndLine <> z) Then
+														If ChangeKeyWordsCase AndAlso pkeywords <> 0 AndAlso FSelEndLine <> z Then
 															Keyword = GetKeyWordCase(Matn, pkeywords)
 															If Keyword <> Matn Then
-																'ChangeCase = True
-																Mid(*s, MatnBoshi, j - MatnBoshi + 1) = Keyword
+																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = Keyword
 															End If
 														ElseIf pkeywords = 0 Then
 															If IsNumeric(Matn) Then
@@ -3519,8 +3560,8 @@ Namespace My.Sys.Forms
 				si.nPos = Min(Max(si.nPos, si.nMin), si.nMax)
 				'si.nTrackPos = si.nTrackPos
 				'If msg.wParamLo <> SB_THUMBTRACK Then
-					'?msg.wParamLo
-					'SetScrollInfo(ScrollBarHandle, SB_CTL, @si, True)
+				'?msg.wParamLo
+				'SetScrollInfo(ScrollBarHandle, SB_CTL, @si, True)
 				'End If
 				'SetScrollInfo(FHandle, scrStyle, @si, True)
 				'GetScrollInfo(ScrollBarHandle, SB_CTL, @si)
@@ -4521,25 +4562,25 @@ Namespace My.Sys.Forms
 		If Sender.Child Then
 			With QEditControl(Sender.Child)
 				#ifdef __USE_WINAPI__
-										.sbscrollbarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
-										.sbscrollbarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
-										.sbscrollbarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
-										.sbscrollbarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
-										ShowWindow .sbscrollbarvTop, SW_HIDE
-										ShowWindow .sbscrollbarvBottom, SW_SHOW
-										ShowWindow .sbscrollbarhLeft, SW_HIDE
-										ShowWindow .sbscrollbarhRight, SW_SHOW
-										If g_darkModeEnabled Then
-											SetWindowTheme(.sbscrollbarvTop, "DarkMode_Explorer", nullptr)
-											SetWindowTheme(.sbscrollbarvBottom, "DarkMode_Explorer", nullptr)
-											SetWindowTheme(.sbscrollbarhLeft, "DarkMode_Explorer", nullptr)
-											SetWindowTheme(.sbscrollbarhRight, "DarkMode_Explorer", nullptr)
-					'						.FDarkMode = True
-					'						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
-					'						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
-					'						AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
-					'						UpdateWindow(.FHandle)
-										End If
+					.sbscrollbarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
+					.sbscrollbarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
+					.sbscrollbarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
+					.sbscrollbarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
+					ShowWindow .sbscrollbarvTop, SW_HIDE
+					ShowWindow .sbscrollbarvBottom, SW_SHOW
+					ShowWindow .sbscrollbarhLeft, SW_HIDE
+					ShowWindow .sbscrollbarhRight, SW_SHOW
+					If g_darkModeEnabled Then
+						SetWindowTheme(.sbscrollbarvTop, "DarkMode_Explorer", nullptr)
+						SetWindowTheme(.sbscrollbarvBottom, "DarkMode_Explorer", nullptr)
+						SetWindowTheme(.sbscrollbarhLeft, "DarkMode_Explorer", nullptr)
+						SetWindowTheme(.sbscrollbarhRight, "DarkMode_Explorer", nullptr)
+						'						.FDarkMode = True
+						'						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
+						'						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
+						'						AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
+						'						UpdateWindow(.FHandle)
+					End If
 				#endif
 				'Var s1Pos = 100, s1Min = 1, s1Max = 100
 				'SetScrollRange(.FHandle, SB_CTL, s1Min, s1Max, TRUE)
