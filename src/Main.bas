@@ -136,6 +136,13 @@ pLoadPaths = @LoadPaths
 pIncludePaths = @IncludePaths
 pLibraryPaths = @LibraryPaths
 pfSplash->lblProcess.Text = ML("Load On Startup") & ": LoadKeyWords"
+GlobalNamespaces.Sorted = True
+Comps.Sorted = True
+GlobalTypes.Sorted = True
+GlobalEnums.Sorted = True
+GlobalFunctions.Sorted = True
+GlobalArgs.Sorted = True
+
 'LoadLanguageTexts
 LoadSettings
 
@@ -3155,7 +3162,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					tbi->ElementType = "Union"
 					tbi->StartLine = i
 					tbi->FileName = PathFunction
-					Types.Add t, tbi,True
+					Types.Add t, tbi
 					typ = tbi
 					If Namespaces.Count > 0 Then
 						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
@@ -3189,7 +3196,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					te->EndLine = i
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
-					LastIndexFunction = Functions.Add(te->Name, te, True)
+					LastIndexFunction = Functions.Add(te->Name, te)
 				ElseIf StartsWith(bTrimLCase & " ", "namespace ") AndAlso Pos3 = 0 Then
 					InNamespace = True
 					Pos1 = InStr(11, bTrim, " ")
@@ -3217,7 +3224,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->ControlType = nc
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
-						GlobalNamespaces.Add te->Name, te, True
+						GlobalNamespaces.Add te->Name, te
 						If Namespaces.Count > 0 Then
 							Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
@@ -3316,7 +3323,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If inType AndAlso typ <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 						typ->Elements.Add te->Name, te
 					Else
-						LastIndexFunction = Functions.Add(te->Name, te, True)
+						LastIndexFunction = Functions.Add(te->Name, te)
 						If Not inType Then
 							If Namespaces.Count > 0 Then
 								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
@@ -3431,7 +3438,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->ElementType = "Enum"
 						tbi->StartLine = i
 						tbi->FileName = PathFunction
-						Enums.Add t, tbi, True
+						Enums.Add t, tbi
 						If Namespaces.Count > 0 Then
 							Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tbi->Name, tbi
@@ -3482,7 +3489,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->StartLine = i
 						te->Parameters = Trim(res1(n))
 						te->FileName = PathFunction
-						Args.Add te->Name, te, True
+						Args.Add te->Name, te
 					Next n
 				Else 'If LoadParameter <> LoadParam.OnlyTypes Then
 					If CInt(StartsWith(bTrimLCase & " ", "end sub ")) OrElse _
@@ -3524,7 +3531,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Parameters = te->Name & IIf(Pos3 > 0, Mid(bTrim, Pos3), "()")
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
-						LastIndexFunction = Functions.Add(te->Name, te, True)
+						LastIndexFunction = Functions.Add(te->Name, te)
 					ElseIf CInt(StartsWith(bTrimLCase, "destructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private destructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public destructor ")) Then
@@ -3548,7 +3555,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Parameters = te->Name & IIf(Pos3 > 0, Mid(bTrim, Pos3), "()")
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
-						LastIndexFunction = Functions.Add(te->Name, te, True)
+						LastIndexFunction = Functions.Add(te->Name, te)
 					ElseIf CInt(StartsWith(bTrimLCase, "sub ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private sub ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public sub ")) Then
@@ -3601,7 +3608,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								End If
 							End If
 						Else
-							LastIndexFunction = Functions.Add(te->Name, te, True)
+							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
 					ElseIf CInt(StartsWith(bTrimLCase, "function ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private function ")) OrElse _
@@ -3661,7 +3668,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								End If
 							End If
 						Else
-							LastIndexFunction = Functions.Add(te->Name, te, True)
+							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
 					ElseIf CInt(StartsWith(bTrimLCase, "property ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private property ")) OrElse _
@@ -3712,7 +3719,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								If n > -1 AndAlso Comps.Object(n) <> 0 Then Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
 							End If
 						Else
-							LastIndexFunction = Functions.Add(te->Name, te, True)
+							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
 					ElseIf CInt(Not inType) AndAlso CInt(Not inEnum) AndAlso CInt(Not inFunc) AndAlso _
 						CInt(CInt(StartsWith(bTrimLCase, "dim ")) OrElse _

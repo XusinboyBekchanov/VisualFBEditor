@@ -966,7 +966,7 @@ Sub TabWindow.FillProperties(ByRef ClassName As WString)
 					With *te
 						If .Locals = 0 Then
 							If Not FPropertyItems.Contains(.Name) Then
-								FPropertyItems.Add .Name, te, True
+								FPropertyItems.Add .Name, te
 							End If
 						End If
 					End With
@@ -3127,7 +3127,7 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 					If (bLocal OrElse CBool(.Locals = 0)) AndAlso _
 						((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
 						If bAll OrElse Not FListItems.Contains(.Name) Then
-							FListItems.Add tbi->Elements.Item(i), te, True
+							FListItems.Add tbi->Elements.Item(i), te
 						End If
 					End If
 				End With
@@ -3599,7 +3599,6 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 	If Parameters <> "" Then
 		tb->txtCode.HintWord = sWord
 		tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
-		Debug.Print tb->txtCode.Hint
 		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelStartCharFunc)
 		tb->txtCode.SetFocus
 		OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
@@ -3629,11 +3628,11 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 	Else
 		sWordAt = tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - 2, , True, iSelStartCharFunc)
 	End If
-'	If iSelStartCharFunc <> tb->txtCode.ToolTipChar Then
-'		If iSelStartCharFunc < 0 Then Exit Sub
-'		ParameterInfo , iSelStartCharFunc, iSelEndCharFunc, sWordAt
-'		Exit Sub
-'	End If
+	If iSelStartCharFunc <> tb->txtCode.ToolTipChar Then
+		If iSelStartCharFunc < 0 Then Exit Sub
+		ParameterInfo , iSelStartCharFunc, iSelEndCharFunc, sWordAt
+		Exit Sub
+	End If
 	sWord = tb->txtCode.HintWord
 	If sWordAt <> sWord Then Exit Sub
 	For i As Integer = 0 To UBound(Lines)
@@ -4456,8 +4455,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos2 = InStr(Pos1 + 1, b, """")
 						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
 						If Not pLoadPaths->Contains(*FPath) Then
-							pLoadPaths->Add *FPath, , False
-							ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(pLoadPaths->Count - 1)))
+							Var AddedIndex = pLoadPaths->Add(*FPath)
+							ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
 						End If
 					End If
 				#endif
@@ -4517,13 +4516,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->TabPtr = @This
 						te->FileName = FileName
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
-						LastIndexFunctions = Functions.Add(te->DisplayName, te, True)
+						LastIndexFunctions = Functions.Add(te->DisplayName, te)
 						If ECLine->ConstructionIndex = 14 Then
-							Enums.Add te->Name, te, True
+							Enums.Add te->Name, te
 						ElseIf ECLine->ConstructionIndex = 15 OrElse ECLine->ConstructionIndex = 16 Then
-							Types.Add te->Name, te, True
+							Types.Add te->Name, te
 						Else
-							Procedures.Add te->Name, te, True
+							Procedures.Add te->Name, te
 						End If
 						func = te
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
@@ -4603,8 +4602,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->EndLine = i
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
 				te->FileName = FileName
-				FunctionsOthers.Add te->DisplayName, te, True
-				Procedures.Add te->Name, te, True
+				FunctionsOthers.Add te->DisplayName, te
+				Procedures.Add te->Name, te
 			ElseIf StartsWith(bTrimLCase, "declare ") Then
 				Pos1 = InStr(9, bTrim, " ")
 				Pos3 = InStr(9, bTrim, "(")
@@ -4667,8 +4666,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 					func->Elements.Add te->Name, te
 				Else
-					FunctionsOthers.Add te->DisplayName, te, True
-					Procedures.Add te->Name, te, True
+					FunctionsOthers.Add te->DisplayName, te
+					Procedures.Add te->Name, te
 				End If
 			Else
 				If CInt(StartsWith(bTrimLCase, "as ")) OrElse _
@@ -4747,7 +4746,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If InFunc AndAlso func <> 0 Then
 							func->Elements.Add te->Name, te
 						Else
-							Args.Add te->Name, te, True
+							Args.Add te->Name, te
 						End If
 					Next
 				End If
@@ -5450,6 +5449,12 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	This.Width = 180
 	This.OnDestroy = @TabWindow_Destroy
 	This.OnResize = @TabWindow_Resize
+	Types.Sorted = True
+	Enums.Sorted = True
+	Procedures.Sorted = True
+	Functions.Sorted = True
+	FunctionsOthers.Sorted = True
+	Args.Sorted = True
 	lvPropertyWidth = 150
 	btnClose.tbParent = @This
 	#ifdef __USE_GTK__
