@@ -7187,6 +7187,7 @@ Sub RunPr(Debugger As String = "")
 				si.hStdError = hWritePipe
 				si.wShowWindow = SW_SHOW
 				pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
+				ChDir(GetFolderName(*ExeFileName))
 				If CreateProcess(0, *CmdL, @sa, @sa, 1, pClass, 0, 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process"), False)
 					If WorkDir Then Deallocate WorkDir
