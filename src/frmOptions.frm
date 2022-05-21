@@ -3854,7 +3854,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 	End If
 	If Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" Then txtFoldsHtml(1).Text = txtFoldsHtml(1).Text & "\"
 	
-	Dim As WString Ptr WebHtml, WebText, BuffOut, LineParts(Any)
+	Dim As WString Ptr WebHtml, WebHtmlSave, WebText, BuffOut, LineParts(Any)
 	Dim As WString * 255 KeyTemp, KeyText, KeyTempIndex, TitleTemp
 	Dim As Integer tIndex, tIndexSpace
 	wLet BuffOut, " "
@@ -3872,8 +3872,8 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 		' Replace the keywords of translate by google which not good.
 		'<div id="fb_tab_l">__FB_ARGV__&nbsp;&nbsp;&nbsp;_编译传入值__</div>
 		p = InStr(LCase(*WebHtml), "<div id=""fb_tab_l"">&nbsp;")   'Length 19 This is a mark, meaning already change
-		If Right(LCase(f), 4) = ".htm" Then p = 1  'Other's  like Win32API, GTKAPI, the file externion is .htm, also as AASHELLMENUFILENAME mark.
-		'debug.Print Str(p)
+		If Right(LCase(f), 4) = ".htm" Then p = 1  'Other's  like Win32API, GTKAPI, the file externion is .htm, also as a mark.
+		If Mid(LCase(f), 1, 3) = "gtk" Then p = 2  'Other's  like GTK3API, the file externion is .html, also as a mark.
 		If p = 0 OrElse InStr(LCase(cboLanguage.Text), "english") > 0 Then  ' not update the title.
 			'Replace title
 			'debug.Print "0"
@@ -3904,9 +3904,9 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 					p1 = InStr(p, LCase(*WebHtml), "</title>")
 					If p1 > 0 Then
 						If InStr(LCase(cboLanguage.Text), "english")  OrElse KeyText = "" Then
-							Wlet WebHtml, ..Left(*WebHtml, p + 7 - 1) & KeyTemp & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
+							WLet WebHtml, ..Left(*WebHtml, p + 7 - 1) & KeyTemp & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
 						Else
-							Wlet WebHtml, ..Left(*WebHtml, p + 7 - 1) & KeyTemp & "&nbsp;-&nbsp;" & KeyText & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
+							WLet WebHtml, ..Left(*WebHtml, p + 7 - 1) & KeyTemp & "&nbsp;-&nbsp;" & KeyText & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
 						End If
 					End If
 				End If
@@ -3927,7 +3927,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 			Else
 				wLet WebHtml, "<html class=""translated-ltr""><head><meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8""><title>No Data</title><link rel=""stylesheet"" type=""text/css"" href=""style.css""><meta charset=""UTF-8""></head><body></body></html>"
 			End If
-		Else
+		ElseIf p = 1 Then 'For Win32 SDK API
 			' The following code is for Win32API
 			p = InStr(LCase(*WebHtml), "<title>")   'Length 7
 			If p > 0 Then
@@ -3962,12 +3962,99 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 					End If
 				End If
 			End If
+			'This document is for the GTK+ 3 library, version 3.12.2 .  https://developer-old.gnome.org/gtk3/stable/
+			'The latest versions can be found online at http://developer.gnome.org/gtk3/.
+			'If you are looking for the older GTK+ 2 series of libraries, see https://developer-old.gnome.org/gtk2/stable/
+		ElseIf p = 2 Then  'For GTK3 SDK API.
+			' The following code is for Win32API
+			p = InStr(LCase(*WebHtml), ".functions_details""></a><h2>functions</h2>")   'Length 7
+			If p > 0 Then
+				p += Len(".functions_details""></a><h2>functions</h2>") + 1
+				p1 = InStr(p, LCase(*WebHtml), "<div class=""refsect1"">")
+				If p1 > 0 Then
+					wLet WebHtml, Mid(*WebHtml, P, P1 - p)
+					WLet WebHtml, Replace(*WebHtml, "<h3>", "[br \=""""][br \=""""][code][title]")
+					wLet WebHtml, Replace(*WebHtml, "</h3>", "[/title][/code][br \=""""]")
+					wLet WebHtml, Replace(*WebHtml, "<h4>", "[br \=""""]<h4>")
+					wLet WebHtml, Replace(*WebHtml, "</h4>", "</h4>[br \=""""]")
+					wLet WebHtml, Replace(*WebHtml, "<pre ", "[syntax]<pre ")
+					wLet WebHtml, Replace(*WebHtml, "</pre>", "</pre>[/syntax]")
+					wLet WebHtml, Replace(*WebHtml, "<h4>Parameters</h4>", "[br \=""""]Syntax[br \=""""][br \=""""]<h4>Parameters</h4>[br \=""""]")
+					wLet WebHtml, Replace(*WebHtml, "<span class=""type"">", "<span class=""type"">[code]")
+					wLet WebHtml, Replace(*WebHtml, "</span>", "[/code]</span>")
+					wLet WebHtml, Replace(*WebHtml, "<td class=""parameter_name"">", "[code]<td class=""parameter_name"">")
+					wLet WebHtml, Replace(*WebHtml, "<td class=""parameter_description"">", "[/code]&nbsp;&nbsp;&nbsp;&nbsp;" + Chr(9) + "<td class=""parameter_description"">")
+					wLet WebHtml, Replace(*WebHtml, "</tr>", "</tr>[br \=""""]")
+					
+					wLet WebHtml, Html2Text(*WebHtml)
+					wLet WebHtml, Replace(*WebHtml, Chr(13, 10) + "?" + Chr(13, 10), Chr(13, 10))
+					wLet WebHtml, Replace(*WebHtml, Chr(13, 10), "")
+					p = InStr(LCase(*WebHtml), "[code][title]")
+					Do While p > 0
+						p1 = InStr(p, LCase(*WebHtml), "[/title][/code]")
+						If p1 > 0 Then 
+							KeyTemp = Mid(*WebHtml, p + Len("[code][title]"), p1 - p - Len("[code][title]")) 
+							p1 = InStr(KeyTemp, "?()")
+							If p1 < 1 Then p1 = InStr(KeyTemp, "()")
+							If p1 > 0 Then KeyTemp = Mid(KeyTemp, 1, p1 - 1)
+						Else
+							KeyTemp = "0"
+						End If
+						p1 = InStr(p + Len("[code][title]"), LCase(*WebHtml), "[code][title]")
+						If p1 > 0 Then 
+							wLet WebText, Mid(*WebHtml, p, p1 - p)
+							p = p1
+						Else
+							p1 = Len(*WebHtml)
+							wLet WebText, Mid(*WebHtml, p, p1 - p)
+							p = 0
+						End If
+						
+						'Remove the Syntax
+						p1 = InStr(LCase(*WebText), "[syntax]")
+						If p1 > 0 Then
+						   Pos1 = InStr(p1, LCase(*WebText), "[/syntax]")
+						   If Pos1 > 0 Then wLet WebText, Mid(*WebText, 1, p1 - 1) + Mid(*WebText, Pos1 + Len("[/syntax]") )
+						End If
+						wLet WebHtmlSave, "<html><head><code><title>" + KeyTemp
+						wAdd WebHtmlSave, "</title></code>" + Chr(13, 10) + "<link rel=""stylesheet"" type=""text/css"" href=""style.css""><meta charset=""UTF-8""></head>" + Chr(13, 10)
+						wAdd WebHtmlSave, "<body><div id=""fb_body_wrapper""><div id=""fb_tab""><code><div id=""fb_tab_l"">" + KeyTemp + "</div></code><div id=""fb_tab_r"">&nbsp;<img src=""images/fblogo_mini.gif""/></div></div>" + Chr(13, 10)
+						wAdd WebHtmlSave, "<div id=""fb_pg_wrapper""><div id=""fb_pg_body"">" + *WebText
+						wAdd WebHtmlSave, Chr(13, 10) + "</div>" + Chr(13, 10) + "</div></div></body></html>"
+						wLet WebHtmlSave, Replace(*WebHtmlSave, "[br \=""""]", "<br \="""">")
+						wLet WebHtmlSave, Replace(*WebHtmlSave, "[/code]", "</code>")
+						wLet WebHtmlSave, Replace(*WebHtmlSave, "[code]", "<code>")
+						wLet WebHtmlSave, Replace(*WebHtmlSave, "[/title]", "</title>")
+						wLet WebHtmlSave, Replace(*WebHtmlSave, "[title]", "<title>")
+						
+						If SaveToFile(txtFoldsHtml(1).Text & "New/" & KeyTemp + ".html" , *WebHtmlSave) = False Then
+							Debug.Print ML("Save file failure!") &  txtFoldsHtml(1).Text & "New/" & KeyTemp + ".html", True
+						End If
+						wLet WebText, Replace(*WebText, "[/code]", "")
+						wLet WebText, Replace(*WebText, "[code]", "")
+						wLet WebText, Replace(*WebText, "[/title]", "")
+						wLet WebText, Replace(*WebText, "[title]", "")
+						wLet WebText, Replace(*WebText, "[br \=""""]", Chr(13, 10))
+						Pos1 = Len(*WEbText)
+						wAdd BuffOut, Chr(13, 10)
+						wAdd BuffOut, Chr(13, 10) + "------------ KeyGTK3" & KeyTemp & " ----"
+						If chkKeyWordsAllItems.checked = True Then
+							wAdd BuffOut, Chr(13, 10) + *WebText
+						Else
+							wAdd BuffOut, Chr(13, 10) + ..Left (*WebText, Pos1)
+						End If
+						wAdd BuffOut, Chr(13, 10)
+						APP.DoEvents
+					Loop
+				End If
+			End If
+			p = 5  'Marking this is GTK3, no need save as HTML file
 		End If
 		' Save the html after modify
-		If SaveToFile(txtFoldsHtml(1).Text & "New/" & f, *WebHtml) = False Then
+		If p < 5 AndAlso SaveToFile(txtFoldsHtml(1).Text & "New/" & f, *WebHtml) = False Then
 			lblShowMsg.Text = ML("Save file failure!") &  txtFoldsHtml(1).Text & "New/" & f
 			Exit Sub
-		Else
+		ElseIf p < 5 Then
 			lblShowMsg.Text = ML("Save") & ": NO." & Str(Result) & " " & txtFoldsHtml(1).Text & "New/" & f
 		End If
 		APP.DoEvents
@@ -4028,7 +4115,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 				
 				p1 = InStrRev(f, ".")
 				wAdd BuffOut, Chr(13, 10)
-				wAdd BuffOut, Chr(13, 10) + "-------------------------------------------------------- " & ..Left(f, p1 - 1) & " ----"
+				wAdd BuffOut, Chr(13, 10) + "------------ " & ..Left(f, p1 - 1) & " ----"
 				If chkKeyWordsAllItems.checked = True Then
 					wAdd BuffOut, Chr(13, 10) + *WebText
 				Else
@@ -4041,7 +4128,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 			If Pos1 < 1 Then
 				p1 = InStrRev(f, ".")
 				wAdd BuffOut, Chr(13, 10)
-				wAdd BuffOut, Chr(13, 10) + "-------------------------------------------------------- " & ..Left(f, p1 - 1) & " ----"
+				wAdd BuffOut, Chr(13, 10) + "------------ " & ..Left(f, p1 - 1) & " ----"
 				wAdd BuffOut, Chr(13, 10) +  KeyTemp & "   " & KeyText
 				wAdd BuffOut, Chr(13, 10) +  "Description" & Chr(13, 10)
 				wAdd BuffOut, Chr(13, 10)
@@ -4059,6 +4146,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 	Deallocate BuffOut: BuffOut = 0
 	Deallocate WebText: WebText = 0
 	Deallocate WebHtml: WebHtml = 0
+	Deallocate WebHtmlSave: WebHtmlSave= 0
 	mlKeyWords.Clear
 	
 	cmdUpdateKeywordsHelp.Enabled = True
