@@ -3931,7 +3931,7 @@ Sub LoadHelp
 						If te->Comment = "" Then
 							te->Comment = Buff
 						Else
-							te->Comment &= " " & Buff
+							te->Comment &= " " & LTrim(Buff, !"\t")
 						End If
 						'DebugPrint  "te->Comment " & te->Comment, , False, False
 					End If
@@ -3969,7 +3969,7 @@ Sub LoadHelp
 				ElseIf Parag = parReturnValue Then
 					If Buff <> "" AndAlso te <> 0 Then
 						If bReturnValueStart Then
-							te->Comment &= !"\r" & MLReturnValue & !"\r " & Buff '"<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLReturnValue & !"</a>\r " & Trim(Buff)
+							te->Comment &= !"\r" & MLReturnValue & !"\r   " & Buff '"<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLReturnValue & !"</a>\r " & Trim(Buff)
 						Else
 							te->Comment &= !"\r" & Trim(Buff)
 							bReturnValueStart = False
@@ -3986,7 +3986,7 @@ Sub LoadHelp
 						End If
 						If Buff <> "" AndAlso te <> 0 Then
 							If bDescriptionStart Then
-								te->Comment &= !"\r" & MLDescription & !"\r " & Buff '!"\r<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLDescription & !"</a>\r " & Trim(Buff)
+								te->Comment &= !"\r" & MLDescription & !"\r   " & Buff '!"\r<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLDescription & !"</a>\r " & Trim(Buff)
 							Else
 								te->Comment &= " " & Trim(Buff)
 							End If

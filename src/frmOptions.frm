@@ -317,7 +317,7 @@ pfOptions = @fOptions
 			.Text = ML("Include Paths")
 			.Align = DockStyle.alClient
 			.ExtraMargins.Left = 10
-			.SetBounds 0, 0, 426, 230
+			.SetBounds 10, 0, 416, 222
 			.Parent = @pnlIncludes
 		End With
 		' grbLibraryPaths
@@ -373,12 +373,12 @@ pfOptions = @fOptions
 		' lstIncludePaths
 		lstIncludePaths.Name = "lstIncludePaths"
 		lstIncludePaths.Text = "ListControl1"
-		lstIncludePaths.SetBounds 16, 68, 360, 108
+		lstIncludePaths.SetBounds 16, 68, 360, 141
 		lstIncludePaths.Parent = @grbIncludePaths
 		' lstLibraryPaths
 		lstLibraryPaths.Name = "lstLibraryPaths"
 		lstLibraryPaths.Text = "ListControl11"
-		lstLibraryPaths.SetBounds 16, 21, 360, 121
+		lstLibraryPaths.SetBounds 16, 21, 360, 141
 		lstLibraryPaths.Parent = @grbLibraryPaths
 		' lblOthers
 		lblOthers.Name = "lblOthers"
