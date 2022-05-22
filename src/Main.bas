@@ -1654,24 +1654,17 @@ Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList
 	Else
 		FileFolderName_ = FileFolderName
 	End If
-	Var i = MRUFilesFolders.IndexOf(FileFolderName_)
-	If i <> 0 Then
-		If i > 0 Then MRUFilesFolders.Remove i
-		MRUFilesFolders.Insert 0, FileFolderName_
-		For i = 0 To Min(miRecentFilesFolders->Count - 1, MRUFilesFolders.Count - 1)
-			If miRecentFilesFolders->Item(i)->Caption = "-" Then Exit For
-			miRecentFilesFolders->Item(i)->Caption = MRUFilesFolders.Item(i)
-			miRecentFilesFolders->Item(i)->Name = MRUFilesFolders.Item(i)
-		Next
-		For i = i To Min(9, MRUFilesFolders.Count - 1)
-			miRecentFilesFolders->Add(MRUFilesFolders.Item(i), "", MRUFilesFolders.Item(i), @mClickMRU, , i)
-		Next
-		If Not miRecentFilesFolders->Enabled Then
-			miRecentFilesFolders->Enabled = True
-			miRecentFilesFolders->Add("-")
-			miRecentFilesFolders->Add(ML("Clear Recently Opened"),"","Clear" & MRUType, @mClickMRU)
-		End If
-	End If
+	Dim As Integer i = MRUFilesFolders.IndexOf(FileFolderName_)
+	If i <> -1 Then MRUFilesFolders.Remove i
+	MRUFilesFolders.Add FileFolderName_
+	miRecentFilesFolders->Clear
+	For i = 0 To MRUFilesFolders.Count - 1 
+		miRecentFilesFolders->Add(MRUFilesFolders.Item(i), "", MRUFilesFolders.Item(i), @mClickMRU, , i)
+	Next
+	miRecentFilesFolders->Add("-")
+	miRecentFilesFolders->Add(ML("Clear Recently Opened"), "", "Clear" & MRUType, @mClickMRU)
+	If miRecentFilesFolders->Enabled = False Then miRecentFilesFolders->Enabled = True
+	
 End Sub
 
 Sub AddMRUFile(ByRef FileName As WString)
@@ -4417,42 +4410,42 @@ Sub LoadSettings
 	ColorProperty.Bold = iniTheme.ReadInteger("FontStyles", "PropertyBold", NormalText.Bold)
 	ColorProperty.Italic = iniTheme.ReadInteger("FontStyles", "PropertyItalic", NormalText.Italic)
 	ColorProperty.Underline = iniTheme.ReadInteger("FontStyles", "PropertyUnderline", NormalText.Italic)
- 
+	
 	ColorComps.ForegroundOption = iniTheme.ReadInteger("Colors", "ComponentsForeground", NormalText.ForegroundOption)
 	ColorComps.BackgroundOption = iniTheme.ReadInteger("Colors", "ComponentsBackground", -1)
 	ColorComps.FrameOption = iniTheme.ReadInteger("Colors", "ComponentsFrame", -1)
 	ColorComps.Bold = iniTheme.ReadInteger("FontStyles", "ComponentsBold", NormalText.Bold)
 	ColorComps.Italic = iniTheme.ReadInteger("FontStyles", "ComponentsItalic", NormalText.Italic)
 	ColorComps.Underline = iniTheme.ReadInteger("FontStyles", "ComponentsUnderline", NormalText.Italic)
- 
+	
 	ColorGlobalNamespaces.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesForeground", NormalText.ForegroundOption)
 	ColorGlobalNamespaces.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesBackground", -1)
 	ColorGlobalNamespaces.FrameOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesFrame", -1)
 	ColorGlobalNamespaces.Bold = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesBold", NormalText.Bold)
 	ColorGlobalNamespaces.Italic = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesItalic", NormalText.Italic)
 	ColorGlobalNamespaces.Underline = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesUnderline", NormalText.Italic)
- 
+	
 	ColorGlobalTypes.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalTypesForeground", NormalText.ForegroundOption)
 	ColorGlobalTypes.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalTypesBackground", -1)
 	ColorGlobalTypes.FrameOption = iniTheme.ReadInteger("Colors", "GlobalTypesFrame", -1)
 	ColorGlobalTypes.Bold = iniTheme.ReadInteger("FontStyles", "GlobalTypesBold", NormalText.Bold)
 	ColorGlobalTypes.Italic = iniTheme.ReadInteger("FontStyles", "GlobalTypesItalic", NormalText.Italic)
 	ColorGlobalTypes.Underline = iniTheme.ReadInteger("FontStyles", "GlobalTypesUnderline", NormalText.Italic)
- 
+	
 	ColorGlobalEnums.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalEnumsForeground", NormalText.ForegroundOption)
 	ColorGlobalEnums.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalEnumsBackground", -1)
 	ColorGlobalEnums.FrameOption = iniTheme.ReadInteger("Colors", "GlobalEnumsFrame", -1)
 	ColorGlobalEnums.Bold = iniTheme.ReadInteger("FontStyles", "GlobalEnumsBold", NormalText.Bold)
 	ColorGlobalEnums.Italic = iniTheme.ReadInteger("FontStyles", "GlobalEnumsItalic", NormalText.Italic)
 	ColorGlobalEnums.Underline = iniTheme.ReadInteger("FontStyles", "GlobalEnumsUnderline", NormalText.Italic)
- 
+	
 	ColorGlobalArgs.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalArgsForeground", NormalText.ForegroundOption)
 	ColorGlobalArgs.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalArgsBackground", -1)
 	ColorGlobalArgs.FrameOption = iniTheme.ReadInteger("Colors", "GlobalArgsFrame", -1)
 	ColorGlobalArgs.Bold = iniTheme.ReadInteger("FontStyles", "GlobalArgsBold", NormalText.Bold)
 	ColorGlobalArgs.Italic = iniTheme.ReadInteger("FontStyles", "GlobalArgsItalic", NormalText.Italic)
 	ColorGlobalArgs.Underline = iniTheme.ReadInteger("FontStyles", "GlobalArgsUnderline", NormalText.Italic)
- 
+	
 	ColorGlobalFunctions.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsForeground", NormalText.ForegroundOption)
 	ColorGlobalFunctions.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsBackground", -1)
 	ColorGlobalFunctions.FrameOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsFrame", -1)
@@ -6691,8 +6684,8 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
 	'If CBool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
-		'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-		'		SetRightClosedStyle True, True
+	'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+	'		SetRightClosedStyle True, True
 	If tb->cboClass.Items.Count > 1 Then
 		tb->FillAllProperties
 	Else
@@ -7642,27 +7635,31 @@ Sub frmMain_ActivateApp(ByRef Sender As Form)
 End Sub
 
 Sub SaveMRU
-	Dim i As Integer
-	For i = 0 To MRUFiles.Count - 1
-		iniSettings.WriteString("MRUFiles", "MRUFile_0" & WStr(i), MRUFiles.Item(i))
+	Dim As Integer i, MRUStart
+	MRUStart = max(MRUFiles.Count - miRecentMax, 0)
+	For i = MRUStart To MRUFiles.Count - 1
+		iniSettings.WriteString("MRUFiles", "MRUFile_0" & WStr(i - MRUStart), MRUFiles.Item(i))
 	Next
 	For i = i To miRecentMax
 		iniSettings.KeyRemove("MRUFiles", "MRUFile_0" & WStr(i))
 	Next
-	For i = 0 To MRUFolders.Count - 1
-		iniSettings.WriteString("MRUFolders", "MRUFolder_0" & WStr(i), MRUFolders.Item(i))
+	MRUStart = max(MRUFolders.Count - miRecentMax, 0)
+	For i = MRUStart To MRUFolders.Count - 1
+		iniSettings.WriteString("MRUFolders", "MRUFolder_0" & WStr(i - MRUStart), MRUFolders.Item(i))
 	Next
 	For i = i To miRecentMax
 		iniSettings.KeyRemove("MRUFolders", "MRUFolder_0" & WStr(i))
 	Next
-	For i = 0 To MRUProjects.Count - 1
-		iniSettings.WriteString("MRUProjects", "MRUProject_0" & WStr(i), MRUProjects.Item(i))
+	MRUStart = max(MRUProjects.Count - miRecentMax, 0)
+	For i = MRUStart To MRUProjects.Count - 1
+		iniSettings.WriteString("MRUProjects", "MRUProject_0" & WStr(i - MRUStart), MRUProjects.Item(i))
 	Next
 	For i = i To miRecentMax
 		iniSettings.KeyRemove("MRUProjects", "MRUProject_0" & WStr(i))
 	Next
-	For i = 0 To MRUSessions.Count - 1
-		iniSettings.WriteString("MRUSessions", "MRUSession_0" & WStr(i), MRUSessions.Item(i))
+	MRUStart = max(MRUSessions.Count - miRecentMax, 0)
+	For i = MRUStart To MRUSessions.Count - 1
+		iniSettings.WriteString("MRUSessions", "MRUSession_0" & WStr(i - MRUStart), MRUSessions.Item(i))
 	Next
 	For i = i To miRecentMax
 		iniSettings.KeyRemove("MRUSessions", "MRUSession_0" & WStr(i))
@@ -7891,9 +7888,9 @@ Sub OnProgramQuit() Destructor
 	WDeallocate MFFPath
 	WDeallocate MFFDll
 	WDeallocate gSearchSave
-'	For i As Integer = 0 To Threads.Count - 1
-'		If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
-'	Next
+	'	For i As Integer = 0 To Threads.Count - 1
+	'		If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
+	'	Next
 	MutexDestroy tlockToDo
 	MutexDestroy tlock
 	MutexDestroy tlockSave
