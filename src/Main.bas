@@ -3916,7 +3916,7 @@ Sub LoadHelp
 					GlobalFunctions.Add te->Name, te
 					bStartEnd = False
 					bDescriptionEnd = False
-					te->Comment = "<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & Trim(Buff) & !"</a>\r   "
+					te->Comment = "<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & IIf(Pos2 = 0, Trim(Buff), Left(Trim(Buff), Pos2)) & !"</a>\r   " & IIf(Pos2 = 0, "", LTrim(Mid(Trim(Buff), Pos2)))
 					'DebugPrint  "te->Name " & te->Name, , False, False
 					'Print te->Name
 				ElseIf Parag = parStart Then
