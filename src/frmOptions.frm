@@ -4625,7 +4625,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		Exit Sub
 	Else
 		If Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" Then
-			txtFoldsHtml(1).Text = Trim(txtFoldsHtml(1).Text) & "/"
+			txtFoldsHtml(1).Text = Trim(txtFoldsHtml(1).Text) & Slash
 			FileNameLng = txtFoldsHtml(1).Text 
 		End If
 		f = Dir(FileNameLng & "*.htm*")
@@ -4644,7 +4644,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 	End If
 	FilesFind.Clear
 	If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
-		txtFoldsHtml(0).Text = Trim(txtFoldsHtml(0).Text) & "/"
+		txtFoldsHtml(0).Text = Trim(txtFoldsHtml(0).Text) & Slash
 		FileNameLng = txtFoldsHtml(0).Text 
 	End If
 	f = Dir(FileNameLng & "*.htm*")
@@ -4657,6 +4657,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 	MkDir txtFoldsHtml(0).text + "backup"
 	FilesIndex = 0
 	Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
+	debug.Print FilesFind.Item(FilesIndex)
 	Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
 	If tFilelen > 200000 Then
 		mTimeFactor = 45
@@ -4683,7 +4684,7 @@ End Sub
 
 Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 	#ifdef __USE_WINAPI__
-		If Timer - mTimeStart > (11 + mTimeFactor) AndAlso Act0 = False Then
+		If Timer - mTimeStart > (12 + mTimeFactor) AndAlso Act0 = False Then
 			If FilesIndex < FilesFind.count Then
 				txtHtmlFind.Text = "file:///" + Replace(txtFoldsHtml(0).text, "\", "/")
 				txtHtmlFind.Text = Chr(13, 10) + "./" + FilesFind.Item(FilesIndex) + "_files/"
@@ -4691,6 +4692,7 @@ Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 				FileCopy FilesFind.Item(FilesIndex - 1), txtFoldsHtml(0).text + "backup/" + getfilename(FilesFind.Item(FilesIndex - 1))
 				Kill FilesFind.Item(FilesIndex - 1)
 				Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
+				debug.Print FilesFind.Item(FilesIndex)
 				FilesIndex += 1
 				Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
 				If tFilelen > 200000 Then
@@ -4715,11 +4717,13 @@ Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 				cmdTranslateByEdge.Text = ML("Stop")
 			Else
 				Act0 = True
+				FileCopy FilesFind.Item(FilesIndex - 1), txtFoldsHtml(0).text + "backup/" + getfilename(FilesFind.Item(FilesIndex - 1))
+				Kill FilesFind.Item(FilesIndex - 1)
 				cmdTranslateByEdge.Text = ML("Send to translator")
 				TimerMonitorEdge.Enabled = False
 			End If
 			
-		ElseIf Timer - mTimeStart > (9 + mTimeFactor) AndAlso Act1 = False Then
+		ElseIf Timer - mTimeStart > (10 + mTimeFactor) AndAlso Act1 = False Then
 			Act1 = True
 			'Ctrl + w 或 Ctrl + F4
 			'Close Current TAB  关闭当前标签页。（常用）
