@@ -4624,7 +4624,6 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		cmdTranslateByEdge.Text = ML("Send to translator")
 		Exit Sub
 	Else
-		'Shell "explorer """" & ExePath & "/Settings/Others/property message.html" & """"
 		If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
 			FileNameLng = Trim(txtFoldsHtml(1).Text) & "\"
 		End If
@@ -4653,9 +4652,9 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		f = Dir()
 		App.DoEvents
 	Wend
-	
+	MkDir "backup"
 	FilesIndex = 0
-	'Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
+	Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
 	Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
 	If tFilelen > 200000 Then
 		mTimeFactor = 45
@@ -4687,6 +4686,8 @@ Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 				txtHtmlFind.Text = "file:///" + Replace(txtFoldsHtml(0).text, "\", "/")
 				txtHtmlFind.Text = Chr(13, 10) + "./" + FilesFind.Item(FilesIndex) + "_files/"
 				txtHtmlReplace.Text  =  ""
+				FileCopy FilesFind.Item(FilesIndex - 1), "backup/" + FilesFind.Item(FilesIndex - 1)
+				Kill FilesFind.Item(FilesIndex - 1)
 				Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
 				FilesIndex += 1
 				Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
