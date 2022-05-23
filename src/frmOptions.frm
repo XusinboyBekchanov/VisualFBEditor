@@ -4683,7 +4683,7 @@ End Sub
 
 Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 	#ifdef __USE_WINAPI__
-		If Timer - mTimeStart > (11 + mTimeFactor) AndAlso Act0 = False Then
+		If Timer - mTimeStart > (12 + mTimeFactor) AndAlso Act0 = False Then
 			If FilesIndex < FilesFind.count Then
 				txtHtmlFind.Text = "file:///" + Replace(txtFoldsHtml(0).text, "\", "/")
 				txtHtmlFind.Text = Chr(13, 10) + "./" + FilesFind.Item(FilesIndex) + "_files/"
@@ -4719,7 +4719,7 @@ Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 				TimerMonitorEdge.Enabled = False
 			End If
 			
-		ElseIf Timer - mTimeStart > (9 + mTimeFactor) AndAlso Act1 = False Then
+		ElseIf Timer - mTimeStart > (10 + mTimeFactor) AndAlso Act1 = False Then
 			Act1 = True
 			'Ctrl + w 或 Ctrl + F4
 			'Close Current TAB  关闭当前标签页。（常用）
