@@ -3852,7 +3852,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 		FileCopy FileNameLng, FileNameLng & ".bak"
 		Kill FileNameLng
 	End If
-	If Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" Then txtFoldsHtml(1).Text = txtFoldsHtml(1).Text & "\"
+	If Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" Then txtFoldsHtml(1).Text = txtFoldsHtml(1).Text & & Slash
 	
 	Dim As WString Ptr WebHtml, WebHtmlSave, WebText, BuffOut, LineParts(Any)
 	Dim As WString * 255 KeyTemp, KeyText, KeyTempIndex, TitleTemp
@@ -4624,7 +4624,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		cmdTranslateByEdge.Text = ML("Send to translator")
 		Exit Sub
 	Else
-		If Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" Then
+		If Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" Then
 			txtFoldsHtml(1).Text = Trim(txtFoldsHtml(1).Text) & Slash
 			FileNameLng = txtFoldsHtml(1).Text 
 		End If
@@ -4643,7 +4643,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		End Select
 	End If
 	FilesFind.Clear
-	If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
+	If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" AndAlso Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
 		txtFoldsHtml(0).Text = Trim(txtFoldsHtml(0).Text) & Slash
 		FileNameLng = txtFoldsHtml(0).Text 
 	End If
