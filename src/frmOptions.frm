@@ -3954,8 +3954,8 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 							txtHtmlFind.text = txtHtmlFind.text + Chr(13, 10) + "Missing <B>Parameters</B> " & KeyTemp
 						End If
 					End If
-					'Change the Parameters from two lines to one line 
-					wLet WebHtml, Replace(*WebHtml, "</P><P><I>", "</P><P><li><code>")  
+					'Change the Parameters from two lines to one line
+					wLet WebHtml, Replace(*WebHtml, "</P><P><I>", "</P><P><li><code>")
 					wLet WebHtml, Replace(*WebHtml, "</I></P><P>", "</code>&nbsp;&nbsp;-&nbsp;&nbsp;" + Chr(9))
 					
 					' Save the html after modify
@@ -4667,8 +4667,10 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		mTimeFactor = 10
 	ElseIf tFilelen > 20000 Then
 		mTimeFactor = 5
+	ElseIf tFilelen > 10000 Then
+		mTimeFactor = -2
 	Else
-		mTimeFactor = 0
+		mTimeFactor = -5
 	End If
 	mTimeStart = Timer
 	TimerMonitorEdge.Enabled = True
@@ -4679,122 +4681,118 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
-	APP.DoEvents
-	'#ifdef __USE_WINAPI__
-	'	If Timer - mTimeStart > (11 + mTimeFactor) AndAlso Act0 = False Then
-	'		If FilesIndex < FilesFind.count Then
-	'			txtHtmlFind.Text = "file:///" + Replace(txtFoldsHtml(0).text, "\", "/")
-	'			txtHtmlFind.Text = Chr(13, 10) + "./" + FilesFind.Item(FilesIndex) + "_files/"
-	'			txtHtmlReplace.Text  =  ""
-	'			cmdReplaceInFiles_Click(cmdReplaceInFiles(0))
-	'			Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
-	'			FilesIndex += 1
-	'			Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
-	'			If tFilelen > 200000 Then
-	'				mTimeFactor = 45
-	'			ElseIf tFilelen > 150000 Then
-	'				mTimeFactor = 30
-	'			ElseIf tFilelen > 100000 Then
-	'				mTimeFactor = 25
-	'			ElseIf tFilelen > 50000 Then
-	'				mTimeFactor = 10
-	'			ElseIf tFilelen > 20000 Then
-	'				mTimeFactor = 5
-	'			Else
-	'				mTimeFactor = 0
-	'			End If
-	'			'Print "mTimeFactor, tFilelen " & " " & mTimeFactor & " " & tFilelen
-	'			mTimeStart = Timer
-	'			Act0 = True: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = False
-	'			lblShowMsg.Text = FilesIndex & " / " & FilesFind.Count & " " & FilesFind.Item(FilesIndex)
-	'			cmdTranslateByEdge.Text = ML("Stop")
-	'		Else
-	'			Act0 = True
-	'			cmdTranslateByEdge.Text = ML("Send to translator")
-	'			TimerMonitorEdge.Enabled = False
-	'		End If
-	'APP.DoEvents
-	'	ElseIf Timer - mTimeStart > (9 + mTimeFactor) AndAlso Act1 = False Then
-	'		Act1 = True
-	'		'Ctrl + w 或 Ctrl + F4
-	'		'Close Current TAB  关闭当前标签页。（常用）
-	'		'Ctrl + Shift + w
-	'		'Close All TAB. 关闭所有已打开的标签页并关闭当前 Chrome 浏览器（如果开了多个浏览器，则只关闭当前的浏览器）。
-	'		'Ctrl + Shift + q  或 Alt + F4
-	'		'Close all Chrome    关闭所有 Chrome 浏览器。
-	'		mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 500 * 65536 / 1024, 400 * 65536 / 768, 0, 0)
-	'		mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
-	'		mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
-	'
-	'		keybd_event(VK_CONTROL, 0, 0, 0) '按下 shift =16  ctrl = 17 alt =18
-	'		'keybd_event(VK_SHIFT, 0, 0, 0)
-	'		keybd_event(VK_W, 0, 0, 0)
-	'		keybd_event(VK_W, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
-	'		keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
-	'
-	'		'keybd_event(VK_SHIFT, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
-	'
-	'		Act0 = False: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = True
-	' APP.DoEvents
-	'	ElseIf Timer - mTimeStart > (8 + mTimeFactor) AndAlso Act2 = False Then
-	'		Act2 = True
-	'		'ALT + S
-	'		keybd_event(VK_MENU, 0, 0, 0)
-	'		keybd_event(VK_S, 0, 0, 0)
-	'		keybd_event(VK_S, 0, KEYEVENTF_KEYUP, 0)
-	'		keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0)
-	'		Sleep(100)
-	'		keybd_event(VK_RETURN, 0, 0, 0) '释放 F4 115
-	'		keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
-	'		Act1 = False
-	'
-	'	ElseIf Timer - mTimeStart > (7 + mTimeFactor) AndAlso Act4 = False Then
-	'		Act4 = True
-	'		keybd_event(VK_CONTROL, 0, 0, 0)
-	'		keybd_event(VK_S, 0, 0, 0)
-	'		keybd_event(VK_S, 0, KEYEVENTF_KEYUP, 0) '释放 S
-	'		keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0) '释放
-	'		Act2 = False
-	'	ElseIf Timer - mTimeStart > (1.5) AndAlso Act5 = False Then
-	'		'Mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0,0)  'NOT WORKING
-	'		mouse_event(MOUSEEVENTF_MOVE, -50, 20, 0,0)  'NOT WORKING
-	'		Act5 = True
-	'		Do Until Timer - mTimeStart > (6 + mTimeFactor)
-	'			keybd_event(VK_NEXT, 0, 0, 0)    'PageDown
-	'			keybd_event(VK_NEXT, 0, KEYEVENTF_KEYUP, 0)
-	'			Sleep(500)
-	'		Loop
-	'		keybd_event(VK_CONTROL, 0, 0, 0)
-	'		keybd_event(VK_END, 0, 0, 0)
-	'		keybd_event(VK_END, 0, KEYEVENTF_KEYUP, 0)
-	'		keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
-	'		Sleep(500)
-	'		mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 500 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
-	'		mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
-	'		mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
-	'
-	'		Act4 = False
-	'		'	ElseIf Timer - mTimeStart > 1.5 AndAlso Act6 = False Then
-	'		'		Act6 = True
-	'		'		keybd_event(VK_T, 0, 0, 0)
-	'		'		keybd_event(VK_T, 0, KEYEVENTF_KEYUP, 0)
-	'		'		Act5 = False
-	'	ElseIf Timer - mTimeStart > 0.5 AndAlso Act7 = False Then
-	'		Act7 = True
-	'		Act0 = True
-	'APP.DoEvents
-	'		mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 500 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
-	'		mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
-	'		mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
-	'		'Mouse Down
-	'		' THis is for Chrome which not automaticaly start translating. Need press key "T" on the menu
-	'		'mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
-	'		'mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
-	'		'mouse_event(MOUSEEVENTF_RIGHTUP , 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
-	'		'https://blog.csdn.net/tianxw1209/article/details/6234386
-	'		Act6 = False
-	'		Act5 = False
-	'	End If
-	'#endif
+	#ifdef __USE_WINAPI__
+		If Timer - mTimeStart > (11 + mTimeFactor) AndAlso Act0 = False Then
+			If FilesIndex < FilesFind.count Then
+				txtHtmlFind.Text = "file:///" + Replace(txtFoldsHtml(0).text, "\", "/")
+				txtHtmlFind.Text = Chr(13, 10) + "./" + FilesFind.Item(FilesIndex) + "_files/"
+				txtHtmlReplace.Text  =  ""
+				Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
+				FilesIndex += 1
+				Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
+				If tFilelen > 200000 Then
+					mTimeFactor = 45
+				ElseIf tFilelen > 150000 Then
+					mTimeFactor = 30
+				ElseIf tFilelen > 100000 Then
+					mTimeFactor = 25
+				ElseIf tFilelen > 50000 Then
+					mTimeFactor = 10
+				ElseIf tFilelen > 20000 Then
+					mTimeFactor = 5
+				ElseIf tFilelen > 10000 Then
+					mTimeFactor = -2
+				Else
+					mTimeFactor = -5
+				End If
+				'Print "mTimeFactor, tFilelen " & " " & mTimeFactor & " " & tFilelen
+				mTimeStart = Timer
+				Act0 = True: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = False
+				lblShowMsg.Text = FilesIndex & " / " & FilesFind.Count & " " & FilesFind.Item(FilesIndex)
+				cmdTranslateByEdge.Text = ML("Stop")
+			Else
+				Act0 = True
+				cmdTranslateByEdge.Text = ML("Send to translator")
+				TimerMonitorEdge.Enabled = False
+			End If
+			
+		ElseIf Timer - mTimeStart > (9 + mTimeFactor) AndAlso Act1 = False Then
+			Act1 = True
+			'Ctrl + w 或 Ctrl + F4
+			'Close Current TAB  关闭当前标签页。（常用）
+			'Ctrl + Shift + w
+			'Close All TAB. 关闭所有已打开的标签页并关闭当前 Chrome 浏览器（如果开了多个浏览器，则只关闭当前的浏览器）。
+			'Ctrl + Shift + q  或 Alt + F4
+			'Close all Chrome    关闭所有 Chrome 浏览器。
+			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
+			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
+			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
+			
+			keybd_event(VK_CONTROL, 0, 0, 0) '按下 shift =16  ctrl = 17 alt =18
+			'keybd_event(VK_SHIFT, 0, 0, 0)
+			keybd_event(VK_W, 0, 0, 0)
+			keybd_event(VK_W, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
+			keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
+			Sleep(200)
+			Act0 = False: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = True
+			
+		ElseIf Timer - mTimeStart > (8 + mTimeFactor) AndAlso Act2 = False Then
+			Act2 = True
+			'ALT + S
+			keybd_event(VK_MENU, 0, 0, 0)
+			keybd_event(VK_S, 0, 0, 0)
+			keybd_event(VK_S, 0, KEYEVENTF_KEYUP, 0)
+			keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0)
+			Sleep(100)
+			keybd_event(VK_RETURN, 0, 0, 0) '释放 F4 115
+			keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
+			Act0 = True: Act1 = False: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = True
+			
+		ElseIf Timer - mTimeStart > (7 + mTimeFactor) AndAlso Act4 = False Then
+			Act4 = True
+			keybd_event(VK_CONTROL, 0, 0, 0)
+			keybd_event(VK_S, 0, 0, 0)
+			keybd_event(VK_S, 0, KEYEVENTF_KEYUP, 0) '释放 S
+			keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0) '释放
+			Act2 = False
+		ElseIf Timer - mTimeStart > 1.5 AndAlso Act5 = False Then
+			'Mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0,0)  'NOT WORKING
+			Act5 = True
+			mouse_event(MOUSEEVENTF_MOVE, -50, 20, 0,0)  'NOT WORKING
+			Do Until Timer - mTimeStart > (6 + mTimeFactor)
+				keybd_event(VK_NEXT, 0, 0, 0)    'PageDown
+				keybd_event(VK_NEXT, 0, KEYEVENTF_KEYUP, 0)
+				Sleep(400)
+			Loop
+			keybd_event(VK_CONTROL, 0, 0, 0)
+			keybd_event(VK_END, 0, 0, 0)
+			keybd_event(VK_END, 0, KEYEVENTF_KEYUP, 0)
+			keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+			Sleep(400)
+			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
+			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
+			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
+			
+			Act4 = False
+			'	ElseIf Timer - mTimeStart > 1.5 AndAlso Act6 = False Then
+			'		Act6 = True
+			'		keybd_event(VK_T, 0, 0, 0)
+			'		keybd_event(VK_T, 0, KEYEVENTF_KEYUP, 0)
+			'		Act5 = False
+		ElseIf Timer - mTimeStart > 0.5 AndAlso Act7 = False Then
+			Act7 = True
+			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
+			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
+			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
+			'Mouse Down
+			' THis is for Chrome which not automaticaly start translating. Need press key "T" on the menu
+			'mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
+			'mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
+			'mouse_event(MOUSEEVENTF_RIGHTUP , 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
+			'https://blog.csdn.net/tianxw1209/article/details/6234386
+			Act6 = False
+			Act5 = False
+		End If
+	#endif
 	
 End Sub
