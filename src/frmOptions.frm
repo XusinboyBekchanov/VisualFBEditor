@@ -4624,15 +4624,15 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		cmdTranslateByEdge.Text = ML("Send to translator")
 		Exit Sub
 	Else
-		If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
-			FileNameLng = Trim(txtFoldsHtml(1).Text) & "\"
+		If Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" Then
+			txtFoldsHtml(1).Text = Trim(txtFoldsHtml(1).Text) & "/"
+			FileNameLng = txtFoldsHtml(1).Text 
 		End If
 		f = Dir(FileNameLng & "*.htm*")
 		While f <> ""
 			'wLet WebHtml, LoadFromFile(FileNameLng & f)
 			If f <> "" Then
 				MsgBox(Trim(txtFoldsHtml(1).Text) & Chr(13, 10) & ML("Must be empty!"), "Visual FB Editor")
-				Exit Sub
 			End If
 		Wend
 		cmdTranslateByEdge.Text = ML("Stop")
@@ -4643,7 +4643,8 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 	End If
 	FilesFind.Clear
 	If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
-		FileNameLng = Trim(txtFoldsHtml(0).Text) & "\"
+		txtFoldsHtml(0).Text = Trim(txtFoldsHtml(0).Text) & "/"
+		FileNameLng = txtFoldsHtml(0).Text 
 	End If
 	f = Dir(FileNameLng & "*.htm*")
 	While f <> ""
@@ -4652,7 +4653,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 		f = Dir()
 		App.DoEvents
 	Wend
-	MkDir "backup"
+	MkDir txtFoldsHtml(0).text + "backup"
 	FilesIndex = 0
 	Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
 	Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
@@ -4686,7 +4687,7 @@ Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 				txtHtmlFind.Text = "file:///" + Replace(txtFoldsHtml(0).text, "\", "/")
 				txtHtmlFind.Text = Chr(13, 10) + "./" + FilesFind.Item(FilesIndex) + "_files/"
 				txtHtmlReplace.Text  =  ""
-				FileCopy FilesFind.Item(FilesIndex - 1), "backup/" + FilesFind.Item(FilesIndex - 1)
+				FileCopy FilesFind.Item(FilesIndex - 1), txtFoldsHtml(0).text + "backup/" + getfilename(FilesFind.Item(FilesIndex - 1))
 				Kill FilesFind.Item(FilesIndex - 1)
 				Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
 				FilesIndex += 1
