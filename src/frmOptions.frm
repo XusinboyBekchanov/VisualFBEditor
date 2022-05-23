@@ -3852,7 +3852,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 		FileCopy FileNameLng, FileNameLng & ".bak"
 		Kill FileNameLng
 	End If
-	If Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" Then txtFoldsHtml(1).Text = txtFoldsHtml(1).Text & & Slash
+	If Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" Then txtFoldsHtml(1).Text = txtFoldsHtml(1).Text & Slash
 	
 	Dim As WString Ptr WebHtml, WebHtmlSave, WebText, BuffOut, LineParts(Any)
 	Dim As WString * 255 KeyTemp, KeyText, KeyTempIndex, TitleTemp
