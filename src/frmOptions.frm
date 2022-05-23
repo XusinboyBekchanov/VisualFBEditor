@@ -4633,6 +4633,7 @@ Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
 			'wLet WebHtml, LoadFromFile(FileNameLng & f)
 			If f <> "" Then
 				MsgBox(Trim(txtFoldsHtml(1).Text) & Chr(13, 10) & ML("Must be empty!"), "Visual FB Editor")
+				Exit Sub
 			End If
 		Wend
 		cmdTranslateByEdge.Text = ML("Stop")
