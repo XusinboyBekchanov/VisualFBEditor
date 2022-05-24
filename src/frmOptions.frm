@@ -3992,7 +3992,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 					wLet WebHtml, Replace(*WebHtml, "<td class=""parameter_name"">", "[li][code]")
 					wLet WebHtml, Replace(*WebHtml, "<td class=""parameter_description"">", "[/code]&nbsp;&nbsp;-&nbsp;&nbsp;" + Chr(9))
 					wLet WebHtml, Replace(*WebHtml, "</tr>", "</tr>[br \=""""]")
-					wLet WebHtml, Replace(*WebHtml, "<p class=""since"">Since", "[br \=""""][br \=""""][p][/p]Since")
+					wLet WebHtml, Replace(*WebHtml, "<p class=""since"">Since", "[li][br \=""""][br \=""""][p][/p]Since")
 					'<p class=""since"">Since
 					wLet WebHtml, Html2Text(*WebHtml)
 					wLet WebHtml, Replace(*WebHtml, Chr(13, 10) + "?" + Chr(13, 10), Chr(13, 10))
