@@ -3911,6 +3911,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 						End If
 					End If
 				End If
+				wLet WebHtml, Replace(*WebHtml, "<html>", "<html dir=""ltr"" lang=""en-gb"">")
 				'Else
 				'wLet WebHtml, "<html class=""translated-ltr""><head><meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8""><title>No Data</title><link rel=""stylesheet"" type=""text/css"" href=""style.css""><meta charset=""UTF-8""></head><body></body></html>"
 				' Save the html after modify
@@ -3957,7 +3958,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 					'Change the Parameters from two lines to one line
 					wLet WebHtml, Replace(*WebHtml, "</P><P><I>", "</P><P><li><code>")
 					wLet WebHtml, Replace(*WebHtml, "</I></P><P>", "</code>&nbsp;&nbsp;-&nbsp;&nbsp;" + Chr(9))
-					
+					wLet WebHtml, Replace(*WebHtml, "<html>", "<html dir=""ltr"" lang=""en-gb"">")
 					' Save the html after modify
 					If SaveToFile(txtFoldsHtml(1).Text & "New/" & f, *WebHtml) = False Then
 						lblShowMsg.Text = ML("Save file failure!") &  txtFoldsHtml(1).Text & "New/" & f
@@ -3991,7 +3992,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 					wLet WebHtml, Replace(*WebHtml, "<td class=""parameter_name"">", "[li][code]")
 					wLet WebHtml, Replace(*WebHtml, "<td class=""parameter_description"">", "[/code]&nbsp;&nbsp;-&nbsp;&nbsp;" + Chr(9))
 					wLet WebHtml, Replace(*WebHtml, "</tr>", "</tr>[br \=""""]")
-					wLet WebHtml, Replace(*WebHtml, "<p class=""since"">Since", "[br \=""""][p][/p]Since")
+					wLet WebHtml, Replace(*WebHtml, "<p class=""since"">Since", "[br \=""""][br \=""""][p][/p]Since")
 					'<p class=""since"">Since
 					wLet WebHtml, Html2Text(*WebHtml)
 					wLet WebHtml, Replace(*WebHtml, Chr(13, 10) + "?" + Chr(13, 10), Chr(13, 10))
@@ -4023,7 +4024,7 @@ Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
 								Pos1 = InStr(p1, LCase(*WebText), "[/syntax]")
 								If Pos1 > 0 Then wLet WebText, Mid(*WebText, 1, p1 - 1) + Mid(*WebText, Pos1 + Len("[/syntax]") )
 							End If
-							wLet WebHtmlSave, "<html><head><code><title>" + KeyTemp
+							wLet WebHtmlSave, "<html dir=""ltr"" lang=""en-gb""><head><code><title>" + KeyTemp
 							wAdd WebHtmlSave, "</title></code>" + Chr(13, 10) + "<link rel=""stylesheet"" type=""text/css"" href=""style.css""><meta charset=""UTF-8""></head>" + Chr(13, 10)
 							wAdd WebHtmlSave, "<body><div id=""fb_body_wrapper""><div id=""fb_tab""><code><div id=""fb_tab_l"">&nbsp;" + KeyTemp + "</div></code><div id=""fb_tab_r"">&nbsp;<img src=""images/fblogo_mini.gif""/></div></div>" + Chr(13, 10)
 							wAdd WebHtmlSave, "<div id=""fb_pg_wrapper""><div id=""fb_pg_body"">" + *WebText
@@ -4731,7 +4732,11 @@ Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 			'Close All TAB. 关闭所有已打开的标签页并关闭当前 Chrome 浏览器（如果开了多个浏览器，则只关闭当前的浏览器）。
 			'Ctrl + Shift + q  或 Alt + F4
 			'Close all Chrome    关闭所有 Chrome 浏览器。
-			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
+			
+			'Make sure the mousePointer inside the translator windows and very close the "stop" buttom of IDE setting windows incase you wanta abort the procedure
+			' Normaly the translator windows.width = screen.width- "stop" button.width
+			' the translator windows.Left = 0.  the "stop" buttom of IDE setting windows is on the right of the screen.
+			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 900 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
 			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
 			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
 			
@@ -4776,11 +4781,15 @@ Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 			keybd_event(VK_END, 0, KEYEVENTF_KEYUP, 0)
 			keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
 			Sleep(400)
-			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
+			'Make sure the mousePointer inside the translator windows and very close the "stop" buttom of IDE setting windows incase you wanta abort the procedure
+			' Normaly the translator windows.width = screen.width- "stop" button.width
+			' the translator windows.Left = 0.  the "stop" buttom of IDE setting windows is on the right of the screen.
+			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 900 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
 			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
 			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
 			
 			Act4 = False
+			' This is for Chrome which not automaticaly start translating. Need press key "T" on the menu
 			'	ElseIf Timer - mTimeStart > 1.5 AndAlso Act6 = False Then
 			'		Act6 = True
 			'		keybd_event(VK_T, 0, 0, 0)
@@ -4788,11 +4797,14 @@ Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 			'		Act5 = False
 		ElseIf Timer - mTimeStart > 0.5 AndAlso Act7 = False Then
 			Act7 = True
-			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
+			'Make sure the mousePointer inside the translator windows and very close the "stop" buttom of IDE setting windows incase you wanta abort the procedure
+			' Normaly the translator windows.width = screen.width- "stop" button.width
+			' the translator windows.Left = 0.  the "stop" buttom of IDE setting windows is on the right of the screen.
+			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 900 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
 			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
 			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
 			'Mouse Down
-			' THis is for Chrome which not automaticaly start translating. Need press key "T" on the menu
+			' This is for Chrome which not automaticaly start translating. Need press key "T" on the menu
 			'mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
 			'mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
 			'mouse_event(MOUSEEVENTF_RIGHTUP , 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
