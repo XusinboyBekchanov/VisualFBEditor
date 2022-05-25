@@ -1406,7 +1406,7 @@ pfOptions = @fOptions
 			.Text = ML("Scan and Update")
 			.TabIndex = 195
 			.Hint = ML("Scan the text string in source code and update languages files")
-			.SetBounds 270, 17, 132, 24
+			.SetBounds 270, 19, 132, 23
 			.Designer = @This
 			.OnClick = @cmdUpdateLng_Click_
 			.Parent = @grbLanguage
@@ -1421,179 +1421,19 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @grbLanguage
 		End With
-		' txtFoldsHtml(0)
-		With txtFoldsHtml(0)
-			.Name = "txtFoldsHtml(0)"
-			.Text = ""
-			.TabIndex = 197
-			.SetBounds 11, 140, 255, 24
-			.Hint = ML("You can input the path where the files extracted from") & " .\Help\freebasic_manual_html_english.zip"
-			.Designer = @This
-			.OnChange = @txtFoldsHtml_Change_
-			.Parent = @grbLanguage
-		End With
-		' txtFoldsHtml(1)
-		With txtFoldsHtml(1)
-			.Name = "txtFoldsHtml(1)"
-			.TabIndex = 208
-			.Text = ""
-			.SetBounds 10, 193, 255, 24
-			.Designer = @This
-			.OnChange = @txtFoldsHtml_Change_
-			.Parent = @grbLanguage
-		End With
 		' cmdUpdateLngVFPFolds1
-		With cmdUpdateLngHTMLFolds(0)
-			.Name = "cmdUpdateLngHTMLFolds(0)"
-			.Text = "..."
-			.TabIndex = 198
-			.SetBounds 272, 138, 30, 24
-			.Designer = @This
-			.OnClick = @cmdUpdateLngHTMLFolds_Click_
-			.Parent = @grbLanguage
-		End With
 		' cmdUpdateLngHTMLFolds1
-		With cmdUpdateLngHTMLFolds(1)
-			.Name = "cmdUpdateLngHTMLFolds(1)"
-			.Text = "..."
-			.TabIndex = 209
-			.SetBounds 270, 193, 30, 24
-			.Designer = @This
-			.OnClick = @cmdUpdateLngHTMLFolds_Click_
-			.Parent = @grbLanguage
-		End With
-		' Label11
-		With Label11
-			.Name = "Label11"
-			.Text = ML("The path of the HTML file(freeBasic Manual)") & "-" & ML("English")
-			.TabIndex = 199
-			.SetBounds 15, 120, 332, 15
-			.Designer = @This
-			.Parent = @grbLanguage
-		End With
-		' cmdUpdateKeywordsHelp
-		With cmdUpdateKeywordsHelp
-			.Name = "cmdUpdateKeywordsHelp"
-			.Text = ML("Update") & " " & "KeywordsHelp.txt"
-			.Hint = ML("Supports Add win32 and gtk API if the html in the same folds.")
-			.TabIndex = 200
-			.Enabled = False
-			.SetBounds 271, 80, 132, 24
-			.Designer = @This
-			.OnClick = @cmdUpdateKeywordsHelp_Click_
-			.Parent = @grbLanguage
-		End With
-		' cmdTranslateByEdge
-		With cmdTranslateByEdge
-			.Name = "cmdTranslateByEdge"
-			.Text = ML("Send to translator")
-			.TabIndex = 211
-			.SetBounds 269, 51, 132, 24
-			.Hint = ML("Send html files to Edge or Chrome for automatic translation every 10 seconds, and then save all the translated web pages.")
-			.Enabled = False
-			.Designer = @This
-			.OnClick = @_cmdTranslateByEdge_Click
-			.Parent = @grbLanguage
-		End With
-		' txtHtmlFind
-		With txtHtmlFind
-			.Name = "txtHtmlFind"
-			.TabIndex = 202
-			.ScrollBars = ScrollBarsType.Vertical
-			.ID = 1014
 			'.Hint = ML("Supports batch replacement by Enter key separation.")
-			.WordWraps = True
-			.WantReturn = True
-			.Multiline = True
-			.SetBounds 7, 241, 394, 40
-			.Designer = @This
-			.Parent = @grbLanguage
-		End With
-		' txtHtmlReplace
-		With txtHtmlReplace
-			.Name = "txtHtmlReplace"
-			.TabIndex = 203
-			.WordWraps = True
-			.ID = 1014
-			.ScrollBars = ScrollBarsType.Vertical
-			.Multiline = True
-			.WantReturn = True
-			.SetBounds 8, 309, 395, 40
-			.Designer = @This
-			.Parent = @grbLanguage
-		End With
-		' lblReplace
-		With lblReplace
-			.Name = "lblReplace"
-			.Text = ML("Replace") + ":"  + "     ($F$=FileName, $CRLF$=CRLF, $TAB$=TAB)"
 			
-			.TabIndex = 204
-			.SetBounds 8, 288, 387, 18
-			.Designer = @This
-			.Parent = @grbLanguage
-		End With
-		' lblFind
-		With lblFind
-			.Name = "lblFind"
-			.Text = ML("Find What") & ":" + "  " + ML("Supports batch replacement by Enter key separation.")
-			.TabIndex = 205
-			.SetBounds 12, 223, 383, 18
-			.Designer = @This
-			.Parent = @grbLanguage
-		End With
 		' cmdReplaceInFiles
-		With cmdReplaceInFiles(0)
-			.Name = "cmdReplaceInFiles(0)"
-			.Text = ML("Replace In Files")
-			.TabIndex = 206
-			.SetBounds 305, 138, 99, 24
-			.Designer = @This
-			.OnClick = @cmdReplaceInFiles_Click_
-			.Parent = @grbLanguage
-		End With
 		' cmdReplaceInFiles1
-		With cmdReplaceInFiles(1)
-			.Name = "cmdReplaceInFiles(1)"
-			.Text = ML("Replace In Files")
-			.TabIndex = 210
-			.SetBounds 302, 191, 101, 24
-			.Designer = @This
-			.OnClick = @cmdReplaceInFiles_Click_
-			.Parent = @grbLanguage
-		End With
 		' lblShowMsg
 		With lblShowMsg
 			.Name = "lblShowMsg"
-			.Text = ML("Make sure edge or Chrome's auto-translation feature is turned on before you start translating.")
-			.TabIndex = 206
-			.SetBounds 11, 364, 394, 24
-			.Designer = @This
-			.Parent = @grbLanguage
-		End With
-		' Label111
-		With Label111
-			.Name = "Label111"
-			.Text = ML("The path of the HTML file(freeBasic Manual)") & "-" & ML("localization")
-			.TabIndex = 211
-			.SetBounds 12, 173, 332, 15
-			.Designer = @This
-			.Parent = @grbLanguage
-		End With
-		' TimerMonitorEdge
-		With TimerMonitorEdge
-			.Name = "TimerMonitorEdge"
-			.SetBounds 212, 429, 16, 16
-			.Designer = @This
-			.OnTimer = @_TimerMonitorEdge_Timer
-			.Parent = @This
-		End With
-		' chkKeyWordsAllItems
-		With chkKeyWordsAllItems
-			.Name = "chkKeyWordsAllItems"
-			.Text = "All Items"
-			.TabIndex = 212
-			.Caption = "All Items"
-			.SetBounds 273, 106, 124, 19
+			.Text = ""
+			.TabIndex = 197
+			.Caption = ""
+			.SetBounds 12, 82, 390, 20
 			.Designer = @This
 			.Parent = @grbLanguage
 		End With
@@ -2692,7 +2532,6 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	fOptions.TimerMonitorEdge.Enabled = False
 	If newIndex <> oldIndex Then MsgBox ML("Localization changes will be applied the next time the application is run.")
 	If *InterfaceFontName <> *fOptions.oldInterfFontName OrElse InterfaceFontSize <> fOptions.oldInterfFontSize Then MsgBox ML("Interface font changes will be applied the next time the application is run.")
 	If DisplayMenuIcons <> fOptions.oldDisplayMenuIcons Then MsgBox ML("Display icons in the menu changes will be applied the next time the application is run.")
@@ -2704,18 +2543,6 @@ Private Sub frmOptions.Form_Show(ByRef Sender As Form)
 	With fOptions
 		.LoadSettings
 		cboDefaultProjectFileCheckEnable
-		.cmdTranslateByEdge.Enabled = False
-		.TimerMonitorEdge.Enabled = False
-		.cmdUpdateKeywordsHelp.Enabled = False
-		.cmdReplaceInFiles(0).Enabled  = False
-		.cmdReplaceInFiles(1).Enabled  = False
-		
-		.txtHtmlFind.Text =    "href = ""./$F$_files/"    '  $F$ replace with filename without ext
-		.txtHtmlReplace.Text = "href=""images/"
-		.txtHtmlFind.Text =       .txtHtmlFind.Text & Chr(13, 10) & "src=""./$F$_files/"  '  $F$ replace with filename without ext
-		.txtHtmlReplace.Text = .txtHtmlReplace.Text & Chr(13, 10) & "src="""
-		.txtHtmlFind.Text =       .txtHtmlFind.Text & Chr(13, 10) & "href=""file:///C:/freeBasic/VB7M/"
-		.txtHtmlReplace.Text = .txtHtmlReplace.Text & Chr(13, 10) & "href="""
 	End With
 End Sub
 
@@ -3701,475 +3528,6 @@ Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click(ByRef Sender As Che
 	chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Enabled = chkCreateNonStaticEventHandlers.Checked
 End Sub
 
-Private Sub frmOptions.cmdUpdateLngHTMLFolds_Click(ByRef Sender As Control)
-	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
-	'BrowsD.Filter = ML("Html files") & " (*.html)|*.html|" & ML("All Files") & "|*.*|"
-	If BrowsD.Execute Then
-		txtFoldsHtml(Index).Text = BrowsD.Directory
-	End If
-End Sub
-
-Private Sub frmOptions.cmdReplaceInFiles_Click(ByRef Sender As Control)
-	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
-	Dim As WString * MAX_PATH f, FileNameLng, FileNameNoExt
-	Dim As WString * 1024 ResFindStr, ResReplaceStr
-	Dim As WString Ptr WebHtml, WebHtmlSave, ResFind(Any), ResReplace(Any)
-	Dim As Integer ResFindCount, ResReplaceCount, FileIndex, P, P1
-	If Right(Trim(txtFoldsHtml(Index).Text), 1) <> "\" OrElse Right(Trim(txtFoldsHtml(Index).Text), 1) <> "/" Then
-		FileNameLng = Trim(txtFoldsHtml(Index).Text) & Slash
-	End If
-	Split txtHtmlFind.Text, Chr(13, 10), ResFind()
-	Split txtHtmlReplace.Text, Chr(13, 10), ResReplace()
-	ResFindCount = UBound(ResFind)
-	ResReplaceCount = UBound(ResReplace)
-	If ResFindCount > 0 AndAlso ResReplaceCount > 0  AndAlso ResFindCount <> ResReplaceCount Then
-		Msgbox "The count of items not match between finding text and replacing text."
-	Else
-		If ResFindCount > 0 AndAlso ResReplaceCount = 0 Then
-			ReDim ResReplace(ResFindCount)   'For replace all to ""
-		End If
-		f = Dir(FileNameLng & "*.htm*")
-		While f <> ""
-			FileNameNoExt = Mid(f, 1, Len(f) - 5)
-			wLet WebHtml, LoadFromFile(FileNameLng & f)
-			FileIndex += 1
-			lblShowMsg.Text = ML("Open") & ": NO. " & FileIndex & " " &  FileNameLng & f
-			If Len(Trim(*webHtml)) > 0 Then
-				'				p = InStr(LCase(*WebHtml), "<title>")   'Length 7
-				'				If p > 0 Then
-				'					p1 = InStr(p, LCase(*WebHtml), "</title>")
-				'					If p1 > 0 Then
-				'						WLetEx WebHtml, Mid(*WebHtml, 1, p - 1) & "</title>" & Mid(f, 1, Len(f) - 5) & "</title>" & Mid(*Webhtml, p1 + 8 ), True
-				'					End If
-				'				End If
-				If Len(txtHtmlFind.Text) > 0 Then
-					For i As Integer = 0 To ResFindCount
-						'Print Replace(*ResFind(i), "$F$", f), f
-						ResFindStr = Replace(*ResFind(i), "$F$", FileNameNoExt) 'Surport replace with current  file name
-						ResReplaceStr = Replace(*ResReplace(i), "$F$", FileNameNoExt) 'Surport replace with current  file name
-						ResFindStr = Replace(ResFindStr, "$CRLF$", Chr(13, 10)) 'Surport replace with CRLF
-						ResReplaceStr = Replace(ResReplaceStr, "$CRLF$", Chr(13, 10))
-						ResFindStr = Replace(ResFindStr, "$TAB$", Chr(9))  'Surport replace with TAB
-						ResReplaceStr = Replace(ResReplaceStr, "$TAB$", Chr(9))
-						wLet webHtml, Replace(*webHtml, ResFindStr, ResReplaceStr)
-					Next
-				End If
-				'Save the html after modify
-				App.DoEvents
-				If Not SaveToFile(FileNameLng & f, *WebHtml) Then
-					MsgBox ML("Save file failure!") & " " & Chr(13, 10) & FileNameLng & f
-					Exit While
-				End If
-			Else
-				MsgBox ML("Open file failure!") & " " & Chr(13, 10) & FileNameLng & f
-				Exit While
-			End If
-			f = Dir()
-			App.DoEvents
-		Wend
-	End If
-	lblShowMsg.Text = ML("Find In Files") & ": " & FileIndex
-	For i As Integer = 0 To ResFindCount
-		Deallocate ResFind(i)
-	Next
-	Erase ResFind
-	
-	For i As Integer = 0 To ResReplaceCount
-		Deallocate ResREplace(i)
-	Next
-	Erase ResReplace
-	Deallocate WebHtml
-End Sub
-
-Private Sub frmOptions.cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
-	
-	Dim As WString * 1024 Buff, FileNameLng, FileNameSrc
-	Dim As WString * 255 tKey, tText, f
-	Dim As Integer Pos1, p, p1, n, Result, Fn1, Fn2
-	Dim As Dictionary mlKeyWords
-	Dim As Boolean StartGeneral, StartKeyWords
-	cmdUpdateKeywordsHelp.Enabled = False
-	lblShowMsg.Visible =True
-	' Reading the language file first for got the local infomation of the keywords
-	p = InStr(cboLanguage.Text, "-")
-	If p > 0 Then FileNameLng = ExePath & "/Settings/Languages/" & Trim(Mid(cboLanguage.Text, p + 1)) & ".lng" Else Exit Sub
-	Fn1 = FreeFile
-	Result = Open(FileNameLng For Input Encoding "utf-8" As #Fn1)
-	If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-16" As #Fn1)
-	If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-32" As #Fn1)
-	If Result <> 0 Then Result = Open(FileNameLng For Input As #Fn1)
-	If Result = 0 Then
-		StartGeneral = True
-		lblShowMsg.Text  =  "Reading KeyWords from " & FileNameLng
-		Line Input #Fn1, Buff
-		Do Until EOF(Fn1)
-			Line Input #Fn1, Buff
-			If LCase(Trim(Buff)) = "[keywords]" Then
-				StartKeyWords = True
-				StartGeneral = False
-			ElseIf LCase(Trim(Buff)) = "[property]" Then
-				StartKeyWords = False
-				StartGeneral = False
-			ElseIf LCase(Trim(Buff)) = "[compiler]" Then
-				StartKeyWords = False
-				StartGeneral = False
-			ElseIf LCase(Trim(Buff)) = "[templates]" Then
-				StartKeyWords = False
-				StartGeneral = False
-			ElseIf LCase(Trim(Buff)) = "[general]" Then
-				StartKeyWords = False
-				StartGeneral = True
-			End If
-			Pos1 = InStr(Buff, "=")
-			If StartKeyWords AndAlso Len(Trim(Buff, Any !"\t ")) > 0 AndAlso Pos1 > 0 Then
-				'David Change For the Control Property's Language.
-				'note: "=" already converted to "~"
-				tKey = Trim(..Left(Buff, Pos1 - 1), Any !"\t ")
-				tText = Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
-				If Right(tText, 1) = "|" Then tText = ..Left(tText, Len(tText) - 1)
-				If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
-				If StartGeneral = True Then
-				ElseIf StartKeyWords = True Then
-					mlKeyWords.Add tKey, tText
-				End If
-			End If
-		Loop
-		Close Fn1
-		mlKeyWords.SortKeys
-	Else
-		lblShowMsg.Text = ML("File not found") & "! " & FileNameLng
-		Close Fn1
-		mlKeyWords.Clear
-		cmdUpdateKeywordsHelp.Enabled = True
-		Exit Sub
-	End If
-	
-	'' Got the local Keywords help contents from the html file that translated by Bing translating tools or Google.
-	'' Please using the batch replace tools at the this Tab to replace the what you do not like by any what you like it.
-	p = InStr(cboLanguage.Text, "-")
-	If p > 0 Then FileNameLng = ExePath & "/Settings/Others/KeywordsHelp." & Trim(Mid(cboLanguage.Text, p + 1)) & ".txt" Else Exit Sub
-	If Dir(FileNameLng) <> "" Then
-		FileCopy FileNameLng, FileNameLng & ".bak"
-		Kill FileNameLng
-	End If
-	If Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" Then txtFoldsHtml(1).Text = txtFoldsHtml(1).Text & Slash
-	
-	Dim As WString Ptr WebHtml, WebHtmlSave, WebText, BuffOut, LineParts(Any)
-	Dim As WString * 255 KeyTemp, KeyText, KeyTempIndex, TitleTemp
-	Dim As Integer tIndex, tIndexSpace
-	wLet BuffOut, " "
-	If Not FileExists(txtFoldsHtml(1).Text & "New") Then MkDir txtFoldsHtml(1).Text & "New"
-	
-	P1 = -5
-	txtHtmlFind.text = ML("The Keywords missed in your language file. (if it is english html files.)")
-	f = Dir(txtFoldsHtml(1).Text & "*.htm*")
-	While f <> ""
-		'Print f  ThreadSelf
-		FileNameSrc = txtFoldsHtml(1).Text & f
-		wLet webHtml, LoadFromFile(FileNameSrc)
-		Result += 1
-		APP.DoEvents
-		' Replace the keywords of translate by google which not good.
-		'<div id="fb_tab_l">__FB_ARGV__&nbsp;&nbsp;&nbsp;_编译传入值__</div>
-		p = InStr(LCase(*WebHtml), "<div id=""fb_tab_l"">&nbsp;")   'Length 19 This is a mark, meaning already change.
-		If p < 1 Then If Mid(LCase(f), 1, 6) = "keywin" Then p = 7 'It can be extracted derectly if the filename start with "Key"
-		If p < 1 Then If Right(LCase(f), 4) = ".htm" Then p = 1  'Other's  like Win32API, GTKAPI, the file externion is .htm, also as a mark.
-		If p < 1 Then If Mid(LCase(f), 1, 3) = "gtk" Then p = 2  'Other's  like GTK3API, the file externion is .htm, also as a mark.
-		If p = 0 OrElse InStr(LCase(cboLanguage.Text), "english") > 0 Then  ' not update the title.
-			'Replace title
-			'debug.Print "0"
-			p = InStr(LCase(*WebHtml), "<div id=""fb_tab_l"">")   'Length 19 This is a mark, meaning already change
-			If p > 0 Then
-				n = InStr(p + 18, LCase(*WebHtml), "</div>")
-				p1 = InStr(p + 18, LCase(*WebHtml), "&nbsp;")
-				If p1 > 0 AndAlso p1 < n Then n = p1  'no &nbsp; after the keywords. It is "</div>"
-				KeyTemp = Mid(*WebHtml, p + 19, n - p - 19)
-				tIndex = mlKeyWords.IndexOfKey(Trim(KeyTemp))
-				If tIndex < 0 Then
-					tIndexSpace = InStr(KeyTemp, " ")
-					KeyTempIndex = IIf(tIndexSpace> 0, ..Left(KeyTemp, tIndexSpace), KeyTemp)
-					tIndex = mlKeyWords.IndexOfKey(Trim(KeyTempIndex))
-				End If
-				If tIndex > -1 Then
-					KeyText = IIf(tIndex <> -1, mlKeyWords.item(tIndex)->Text, "")
-					If Right(KeyText, 1) = "|" Then KeyText = ..Left(KeyText, Len(KeyText) - 1)
-					'Print "KeyTemp ", KeyTemp
-					wLet WebHtml, ..Left(*WebHtml, p + 19 - 1) & KeyTemp & "&nbsp;&nbsp;&nbsp;" & KeyText & "</div><br \="""">" & Mid(*Webhtml, n + 6, Len(*Webhtml) - n + 1 - 6 )
-				Else
-					KeyText = ""
-				End If
-				'This function like the same in "Batch replace"
-				'<title>test   local words</title>
-				p = InStr(LCase(*WebHtml), "<title>")   'Length 7
-				If p > 0 Then
-					p1 = InStr(p, LCase(*WebHtml), "</title>")
-					If p1 > 0 Then
-						If InStr(LCase(cboLanguage.Text), "english")  OrElse KeyText = "" Then
-							WLet WebHtml, ..Left(*WebHtml, p + 7 - 1) & KeyTemp & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
-						Else
-							WLet WebHtml, ..Left(*WebHtml, p + 7 - 1) & KeyTemp & "&nbsp;-&nbsp;" & KeyText & Mid(*Webhtml, p1, Len(*Webhtml) - P1 + 1 )
-						End If
-					End If
-				End If
-				wLet WebHtml, Replace(*WebHtml, "<html>", "<html dir=""ltr"" lang=""en-gb"">")
-				'Else
-				'wLet WebHtml, "<html class=""translated-ltr""><head><meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8""><title>No Data</title><link rel=""stylesheet"" type=""text/css"" href=""style.css""><meta charset=""UTF-8""></head><body></body></html>"
-				' Save the html after modify
-				If SaveToFile(txtFoldsHtml(1).Text & "New/" & f, *WebHtml) = False Then
-					lblShowMsg.Text = ML("Save file failure!") &  txtFoldsHtml(1).Text & "New/" & f
-					Exit Sub
-				Else
-					lblShowMsg.Text = ML("Save") & ": NO." & Str(Result) & " " & txtFoldsHtml(1).Text & "New/" & f
-				End If
-			End If
-		ElseIf p = 1 Then 'Working For the orignal html file of Win32 SDK API.
-			' The following code is for Win32API
-			p = InStr(LCase(*WebHtml), "<title>")   'Length 7
-			If p > 0 Then
-				p1 = InStr(p, LCase(*WebHtml), "</title>")
-				If p1 > 0 Then
-					p1 = InStrRev(f, ".")
-					KeyTemp = ..Left(f, p1 - 1)
-					'KeyTemp = Trim(Mid(*WebHtml, p + 7, p1 - p - 7))
-					'For i As Integer = 0 To pGlobalFunctions->count - 1
-					'	debug.Print pGlobalFunctions->Item(i)
-					'Next
-					'tIndex = pGlobalFunctions->IndexOf(KeyTemp)
-					'debug.Print "pGlobalFunctions tIndex " + Str(tIndex)
-					'If tIndex <>-1 Then KeyText =
-					'debug.Print KeyTemp
-					f = "KeyWin32" + KeyTemp + ".htm"
-					'  <B>GetLocaleInfo</B>     <B>参数</B>
-					p = InStr(LCase(*WebHtml), LCase(KeyTemp)) 'Remove the usage, The first one is Title
-					If p > 0 Then p = InStr(p + Len(KeyTemp), LCase(*WebHtml), LCase(KeyTemp))
-					If p > 0 Then p = InStr(p + Len(KeyTemp), LCase(*WebHtml), LCase(KeyTemp)) 'Third times
-					If p > 0 Then p = InStr(p + Len(KeyTemp), LCase(*WebHtml), "</p><p><b>") '</P><P><B>
-					If p > 0 Then  'Insert keyWords "Syntax" for Win32 API. But the content is for C only not for freeBasic, so remove it.
-						p1 = InStr(p + Len(KeyTemp), LCase(*WebHtml), "<b>" + ML("parameters") + "</b>") 'Parameters
-						If p1 <= 0 Then p1 = InStr(p + Len(KeyTemp), LCase(*WebHtml), "<b>" + "parameters" + "</b>")
-						If p1 > 0 Then
-							' Remove the "Parameters" for it is for C and could add the Parameters of freeBasic in the functure
-							KeyText = IIf(InStr(LCase(cboLanguage.Text), "english"), "<br \=""""><br \=""""><B>" + "Syntax" + "</B><br \="""">", "<br \=""""><br \=""""><B>" + ML("Syntax") + "</B><br \="""">")
-							Wlet WebHtml, Mid(*WebHtml, 1, p + 3) + KeyText + Mid(*Webhtml, p1)
-						Else
-							txtHtmlFind.text = txtHtmlFind.text + Chr(13, 10) + "Missing <B>Parameters</B> " & KeyTemp
-						End If
-					End If
-					'Change the Parameters from two lines to one line
-					wLet WebHtml, Replace(*WebHtml, "</P><P><I>", "</P><P><li><code>")
-					wLet WebHtml, Replace(*WebHtml, "</I></P><P>", "</code>&nbsp;&nbsp;-&nbsp;&nbsp;" + Chr(9))
-					wLet WebHtml, Replace(*WebHtml, "<html>", "<html dir=""ltr"" lang=""en-gb"">")
-					' Save the html after modify
-					If SaveToFile(txtFoldsHtml(1).Text & "New/" & f, *WebHtml) = False Then
-						lblShowMsg.Text = ML("Save file failure!") &  txtFoldsHtml(1).Text & "New/" & f
-						Exit Sub
-					Else
-						lblShowMsg.Text = ML("Save") & ": NO." & Str(Result) & " " & txtFoldsHtml(1).Text & "New/" & f
-					End If
-				End If
-			End If
-			'This document is for the GTK+ 3 library, version 3.12.2 .  https://developer-old.gnome.org/gtk3/stable/
-			'The latest versions can be found online at http://developer.gnome.org/gtk3/.
-			'If you are looking for the older GTK+ 2 series of libraries, see https://developer-old.gnome.org/gtk2/stable/
-		ElseIf p = 2 Then  'Working For the orignal html file of GTK3 SDK API.
-			' The following code is for Win32API
-			p = InStr(LCase(*WebHtml), ".functions_details""></a><h2>functions</h2>")   'Length 7
-			If p > 0 Then
-				p += Len(".functions_details""></a><h2>functions</h2>") + 1
-				p1 = InStr(p, LCase(*WebHtml), "<div class=""refsect1"">")
-				If p1 > 0 Then
-					wLet WebHtml, Mid(*WebHtml, P, P1 - p)
-					WLet WebHtml, Replace(*WebHtml, "<h3>", "[br \=""""][br \=""""][code][title]")
-					wLet WebHtml, Replace(*WebHtml, "</h3>", "[/title][/code][br \=""""]")
-					wLet WebHtml, Replace(*WebHtml, "?()[/title]", "[/title]")
-					wLet WebHtml, Replace(*WebHtml, "<h4>", "[br \=""""]<h4>")
-					wLet WebHtml, Replace(*WebHtml, "</h4>", "</h4>[br \=""""]")
-					wLet WebHtml, Replace(*WebHtml, "<pre ", "[syntax]<pre ")
-					wLet WebHtml, Replace(*WebHtml, "</pre>", "</pre>[/syntax]")
-					wLet WebHtml, Replace(*WebHtml, "<h4>Parameters</h4>", "[br \=""""][p]Syntax[/p][br \=""""][p]Parameters[/p][br \=""""]")
-					wLet WebHtml, Replace(*WebHtml, "<span class=""type"">", "<span class=""type"">[code]")
-					wLet WebHtml, Replace(*WebHtml, "</span>", "[/code]</span>")
-					wLet WebHtml, Replace(*WebHtml, "<td class=""parameter_name"">", "[li][code]")
-					wLet WebHtml, Replace(*WebHtml, "<td class=""parameter_description"">", "[/code]&nbsp;&nbsp;-&nbsp;&nbsp;" + Chr(9))
-					wLet WebHtml, Replace(*WebHtml, "</tr>", "</tr>[br \=""""]")
-					wLet WebHtml, Replace(*WebHtml, "<p class=""since"">Since", "[li][br \=""""][br \=""""][p][/p]Since")
-					'<p class=""since"">Since
-					wLet WebHtml, Html2Text(*WebHtml)
-					wLet WebHtml, Replace(*WebHtml, Chr(13, 10) + "?" + Chr(13, 10), Chr(13, 10))
-					wLet WebHtml, Replace(*WebHtml, Chr(13, 10), "")
-					p = InStr(LCase(*WebHtml), "[code][title]")
-					Do While p > 0
-						p1 = InStr(p, LCase(*WebHtml), "[/title][/code]")
-						If p1 > 0 Then
-							KeyTemp = Mid(*WebHtml, p + Len("[code][title]"), p1 - p - Len("[code][title]"))
-							p1 = InStr(KeyTemp, "?()")
-							If p1 < 1 Then p1 = InStr(KeyTemp, "()")
-							If p1 > 0 Then KeyTemp = Mid(KeyTemp, 1, p1 - 1)
-						Else
-							KeyTemp = "0"
-						End If
-						p1 = InStr(p + Len("[code][title]"), LCase(*WebHtml), "[code][title]")
-						If p1 > 0 Then
-							wLet WebText, Mid(*WebHtml, p, p1 - p)
-							p = p1
-						Else
-							p1 = Len(*WebHtml)
-							wLet WebText, Mid(*WebHtml, p, p1 - p)
-							p = 0
-						End If
-						If Trim(*WebText, Any !"\t ") <> "" Then
-							'Remove the Syntax
-							p1 = InStr(LCase(*WebText), "[syntax]")
-							If p1 > 0 Then
-								Pos1 = InStr(p1, LCase(*WebText), "[/syntax]")
-								If Pos1 > 0 Then wLet WebText, Mid(*WebText, 1, p1 - 1) + Mid(*WebText, Pos1 + Len("[/syntax]") )
-							End If
-							wLet WebHtmlSave, "<html dir=""ltr"" lang=""en-gb""><head><code><title>" + KeyTemp
-							wAdd WebHtmlSave, "</title></code>" + Chr(13, 10) + "<link rel=""stylesheet"" type=""text/css"" href=""style.css""><meta charset=""UTF-8""></head>" + Chr(13, 10)
-							wAdd WebHtmlSave, "<body><div id=""fb_body_wrapper""><div id=""fb_tab""><code><div id=""fb_tab_l"">&nbsp;" + KeyTemp + "</div></code><div id=""fb_tab_r"">&nbsp;<img src=""images/fblogo_mini.gif""/></div></div>" + Chr(13, 10)
-							wAdd WebHtmlSave, "<div id=""fb_pg_wrapper""><div id=""fb_pg_body"">" + *WebText
-							p1 = InStrRev(f, ".")
-							wAdd WebHtmlSave, Chr(13, 10) + "</div>" + Chr(13, 10) + "<br \=""""><p>See Also</p><br \=""""><li> <a href=""" + Mid(f, 1, p1 - 1) + ".htm""><code>" + Mid(f, 1, p1 - 1) + "</code></a><br \=""""></div></div></body></html>"
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "[br \=""""]", "<br \="""">")
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "[/code]", "</code>")
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "[code]", "<code>")
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "[/title]", "</title>")
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "[title]", "<title>")
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "<br \="""">Returns<br \="""">", "<br \=""""><p>Returns</p><br \="""">")
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "  -  " + Chr(9), "&nbsp;&nbsp;-&nbsp;&nbsp;" + Chr(9))
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "[p]", "<p>")
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "[/p]", "</p>")
-							wLet WebHtmlSave, Replace(*WebHtmlSave, "[li]", "<li>")
-							
-							If SaveToFile(txtFoldsHtml(1).Text & "New/Key" & KeyTemp + ".htm" , *WebHtmlSave) = False Then
-								Debug.Print ML("Save file failure!") &  txtFoldsHtml(1).Text & "New/" & KeyTemp + ".htm", True
-							End If
-							wLet WebText, Replace(*WebText, "[/code]", "")
-							wLet WebText, Replace(*WebText, "[code]", "")
-							wLet WebText, Replace(*WebText, "[/title]", "")
-							wLet WebText, Replace(*WebText, "[title]", "")
-							wLet WebText, Replace(*WebText, "[syntax]", "")
-							wLet WebText, Replace(*WebText, "[/syntax]", Chr(13, 10))
-							
-							wLet WebText, Replace(*WebText, "[li]", "")
-							wLet WebText, Replace(*WebText, "[br \=""""]", Chr(13, 10))
-							wLet WebText, Replace(*WebText, "[p]", Chr(13, 10))
-							wLet WebText, Replace(*WebText, "[/p]", Chr(13, 10))
-							wLet WebText, Replace(*WebText, Chr(13, 10) + Chr(13, 10), Chr(13, 10))
-							Pos1 = Len(*WEbText)
-							wAdd BuffOut, Chr(13, 10)
-							wAdd BuffOut, Chr(13, 10) + "------------ KeyGTK3" & KeyTemp & " ----"
-							If chkKeyWordsAllItems.checked = True Then
-								wAdd BuffOut, Chr(13, 10) + *WebText
-							Else
-								wAdd BuffOut, Chr(13, 10) + ..Left (*WebText, Pos1)
-							End If
-							wAdd BuffOut, Chr(13, 10)
-						End If
-					Loop
-				End If
-			End If
-			lblShowMsg.Text = ML("Save") & ": NO." & Str(Result) & " " & txtFoldsHtml(1).Text & "New/" & f
-			APP.DoEvents
-			p = 5  'Marking this is GTK3, no need save as HTML file
-			f = "ending"
-		End If
-		APP.DoEvents
-		P1 = -5
-		If Mid(LCase(f), 1, 3) = "key" Then
-			If tIndex = -1 Then txtHtmlFind.text = txtHtmlFind.text & Chr(13, 10) & KeyTemp
-			'WebBrowser1.Navigate(txtFoldsHtml(1).Text & "New/"  & f)
-			wLet WebText, Html2Text(*WebHtml, "</title>") ' Remove the title
-			'Remove the extra space
-			Split(*WebText, Chr(10), LineParts())
-			For i As Integer = 0 To UBound(LineParts)
-				*LineParts(i) = Trim(*LineParts(i), Any !"\t\r ")
-				If i = 0 Then
-					wlet WebText, *LineParts(i)
-				Else
-					If Len(*LineParts(i)) > 0 Then
-						wAdd WebText, Chr(13, 10) & *LineParts(i)  'Remove the empty Line
-					End If
-				End If
-				Deallocate LineParts(i)
-			Next
-			Erase LineParts
-			If Len(*WebText) > 0 Then
-				wLet WebText, Replace(*WebText, Chr(13, 10) + Chr(13, 10), Chr(13, 10))
-				wLet WebText, Replace(*WebText, Chr(13, 10) + " " + Chr(13, 10), Chr(13, 10))
-				p = -1
-				If Right(LCase(f), 4) = ".htm" Then 'Other's  like Win32API, GTKAPI, the file externion is .htm, also as As mark. Then
-					Pos1 = InStr(LCase(*WebText), Chr(13, 10) & ML("parameters") & Chr(13, 10)) '  Description 描述      Example 例
-					If Pos1 < 1 Then
-						txtHtmlFind.text = txtHtmlFind.text + Chr(13, 10) + "No " + ML("parameters") + " " + f
-						Pos1 = InStr(LCase(*WebText), Chr(13, 10) & "parameters" & Chr(13, 10))
-					End If
-				Else
-					Pos1 = InStr(LCase(*WebText), Chr(13, 10) & ML("description") & Chr(13, 10)) '  Description 描述      Example 例
-					If Pos1 < 1 Then
-						txtHtmlFind.text = txtHtmlFind.text + Chr(13, 10) + "No " + ML("description") + " " + f
-						Pos1 = InStr(LCase(*WebText), Chr(13, 10) & "description" & Chr(13, 10))
-					End If
-					
-				End If
-				If Pos1 > 1  Then
-					p = InStr(Pos1, LCase(*WebText), Chr(13, 10) & ML("example") & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, LCase(*WebText), Chr(13, 10) & "example" & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, LCase(*WebText), Chr(13, 10) & ML("see also") & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, LCase(*WebText), Chr(13, 10) & "see also" & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, LCase(*WebText), ML("differences from qb") & Chr(13, 10))
-					If P < 1 Then p = InStr(Pos1, *WebText, "differences from qb" & Chr(13, 10))
-					If p > 0 Then
-						If p - pos1 < 100 Then Pos1 = p Else pos1 += 100
-					End If
-				Else
-					Pos1 = Len(*WebText)
-				End If
-				'Print "Pos1, p", Pos1, p
-				' Save the html for produce keywords text file. It is writed with append mode
-				Pos1 = Min(Pos1, Len(*WebText))
-				
-				p1 = InStrRev(f, ".")
-				wAdd BuffOut, Chr(13, 10)
-				wAdd BuffOut, Chr(13, 10) + "------------ " & ..Left(f, p1 - 1) & " ----"
-				If chkKeyWordsAllItems.checked = True Then
-					wAdd BuffOut, Chr(13, 10) + *WebText
-				Else
-					wAdd BuffOut, Chr(13, 10) + ..Left (*WebText, Pos1)
-				End If
-				wAdd BuffOut, Chr(13, 10)
-			Else
-				Pos1 = 0
-			End If
-			If Pos1 < 1 Then
-				p1 = InStrRev(f, ".")
-				wAdd BuffOut, Chr(13, 10)
-				wAdd BuffOut, Chr(13, 10) + "------------ " & ..Left(f, p1 - 1) & " ----"
-				wAdd BuffOut, Chr(13, 10) +  KeyTemp & "   " & KeyText
-				wAdd BuffOut, Chr(13, 10) +  "Description" & Chr(13, 10)
-				wAdd BuffOut, Chr(13, 10)
-			End If
-			lblShowMsg.Text = ML("Open") & ": NO." & Str(Result) & " " & txtFoldsHtml(1).Text & "/" & f
-		End If
-		f = Dir()
-	Wend
-	If Result > 0 Then
-		lblShowMsg.Text = ML("Find") & "： " & Str(Result)
-	Else
-		lblShowMsg.Text = ML("Find: No Results") & "! " & FileNameLng
-	End If
-	
-	If Not SaveToFile(FileNameLng, *BuffOut) Then lblShowMsg.Text = ML("Save file failure!") + " " + FileNameLng
-	Deallocate BuffOut: BuffOut = 0
-	Deallocate WebText: WebText = 0
-	Deallocate WebHtml: WebHtml = 0
-	Deallocate WebHtmlSave: WebHtmlSave= 0
-	mlKeyWords.Clear
-	
-	cmdUpdateKeywordsHelp.Enabled = True
-End Sub
-
-
 Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	Dim As WString Ptr lang_name
 	Dim As WString * 1024 Buff, FileNameLng, FileNameSrc
@@ -4178,7 +3536,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	Dim As Dictionary mlKeysGeneral, mlKeysCompiler, mlKeysProperty, mlKeysTemplates, mlKeyWords, mlKeysCompilerEnglish, mlKeysPropertyEnglish, mlKeysTemplatesEnglish, mlKeyWordsEnglish, mlKeysGeneralEnglish
 	Dim As Boolean StartGeneral, StartKeyWords, StartProperty, StartCompiler, StartTemplates, IsComment = False
 	cmdUpdateLng.Enabled = False
-	lblShowMsg.Visible = True
+	'lblShowMsg.Visible = True
 	' Produce English.lng from Projects at first
 	FileNameLng = ExePath & "/Settings/Languages/English.lng"
 	Fn1 = FreeFile
@@ -4462,58 +3820,58 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 			mlKeywords.SortKeys
 			APP.DoEvents
 			
-			'Add the not exist one
-			txtHtmlFind.Text = ""
-			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & *lang_name
-			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[KeyWords]"
-			For i As Integer = 0 To mlKeyWordsEnglish.Count - 1
-				tKey = mlKeyWordsEnglish.Item(i)->Key
-				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-				If Not mlKeyWords.ContainsKey(tKey) Then
-					mlKeyWords.Add tKey
-					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
-				End If
-			Next
-			APP.DoEvents
-			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Property]"
-			For i As Integer = 0 To mlKeysPropertyEnglish.Count - 1
-				tKey = mlKeysPropertyEnglish.Item(i)->Key
-				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-				If Not mlKeysProperty.ContainsKey(tKey) Then
-					mlKeysProperty.Add tKey
-					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
-				End If
-			Next
-			APP.DoEvents
-			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Templates]"
-			For i As Integer = 0 To mlKeysTemplatesEnglish.Count - 1
-				tKey = mlKeysTemplatesEnglish.Item(i)->Key
-				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-				If Not mlKeysTemplates.ContainsKey(tKey) Then
-					mlKeysTemplates.Add tKey
-					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
-				End If
-			Next
-			APP.DoEvents
-			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Compiler]"
-			For i As Integer = 0 To mlKeysCompilerEnglish.Count - 1
-				tKey = mlKeysCompilerEnglish.Item(i)->Key
-				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-				If Not mlKeysCompiler.ContainsKey(tKey) Then
-					mlKeysCompiler.Add tKey
-					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
-				End If
-			Next
-			APP.DoEvents
-			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[General]"
-			For i As Integer = 0 To mlKeysGeneralEnglish.Count - 1
-				tKey = mlKeysGeneralEnglish.Item(i)->Key
-				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-				If Not mlKeysGeneral.ContainsKey(tKey) Then
-					mlKeysGeneral.Add tKey
-					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
-				End If
-			Next
+'			'Add the not exist one
+'			txtHtmlFind.Text = ""
+'			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & *lang_name
+'			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[KeyWords]"
+'			For i As Integer = 0 To mlKeyWordsEnglish.Count - 1
+'				tKey = mlKeyWordsEnglish.Item(i)->Key
+'				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+'				If Not mlKeyWords.ContainsKey(tKey) Then
+'					mlKeyWords.Add tKey
+'					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+'				End If
+'			Next
+'			APP.DoEvents
+'			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Property]"
+'			For i As Integer = 0 To mlKeysPropertyEnglish.Count - 1
+'				tKey = mlKeysPropertyEnglish.Item(i)->Key
+'				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+'				If Not mlKeysProperty.ContainsKey(tKey) Then
+'					mlKeysProperty.Add tKey
+'					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+'				End If
+'			Next
+'			APP.DoEvents
+'			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Templates]"
+'			For i As Integer = 0 To mlKeysTemplatesEnglish.Count - 1
+'				tKey = mlKeysTemplatesEnglish.Item(i)->Key
+'				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+'				If Not mlKeysTemplates.ContainsKey(tKey) Then
+'					mlKeysTemplates.Add tKey
+'					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+'				End If
+'			Next
+'			APP.DoEvents
+'			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[Compiler]"
+'			For i As Integer = 0 To mlKeysCompilerEnglish.Count - 1
+'				tKey = mlKeysCompilerEnglish.Item(i)->Key
+'				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+'				If Not mlKeysCompiler.ContainsKey(tKey) Then
+'					mlKeysCompiler.Add tKey
+'					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+'				End If
+'			Next
+'			APP.DoEvents
+'			txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & "[General]"
+'			For i As Integer = 0 To mlKeysGeneralEnglish.Count - 1
+'				tKey = mlKeysGeneralEnglish.Item(i)->Key
+'				If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+'				If Not mlKeysGeneral.ContainsKey(tKey) Then
+'					mlKeysGeneral.Add tKey
+'					If Not chkAllLNG.Checked Then txtHtmlFind.Text = txtHtmlFind.Text & Chr(13, 10) & tKey
+'				End If
+'			Next
 		Else
 			lblShowMsg.Text = lblShowMsg.Text & Chr(13, 10) & "File not found！" & FileNameLng
 			mlKeysGeneral.Clear
@@ -4594,224 +3952,5 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	mlKeyWordsEnglish.Clear
 	cmdUpdateLng.Enabled = True
 	'WebBrowser1.Navigate("https://cn.bing.com/translator?ref=TThis&&text=&from=en&to=cn")
-	
-End Sub
-
-Private Sub frmOptions.txtFoldsHtml_Change(ByRef Sender As TextBox)
-	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
-	If FileExists(Trim(txtFoldsHtml(Index).Text)) Then
-		If Index = 1 Then
-			cmdUpdateKeywordsHelp.Enabled = True
-		Else
-			cmdTranslateByEdge.Enabled = True
-		End If
-		cmdReplaceInFiles(Index).Enabled = True
-	Else
-		If Index = 1 Then
-			cmdUpdateKeywordsHelp.Enabled = False
-		Else
-			cmdTranslateByEdge.Enabled = False
-		End If
-		cmdReplaceInFiles(Index).Enabled = False
-	End If
-End Sub
-
-Private Sub frmOptions.cmdTranslateByEdge_Click(ByRef Sender As Control)
-	Dim As WString * MAX_PATH f, FileNameLng
-	If cmdTranslateByEdge.Text = ML("Stop") Then
-		Act0 = True: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = True
-		TimerMonitorEdge.Enabled = False
-		Sleep(300)
-		cmdTranslateByEdge.Text = ML("Send to translator")
-		Exit Sub
-	Else
-		If Right(Trim(txtFoldsHtml(1).Text), 1) <> "\" AndAlso Right(Trim(txtFoldsHtml(1).Text), 1) <> "/" Then
-			txtFoldsHtml(1).Text = Trim(txtFoldsHtml(1).Text) & Slash
-			FileNameLng = txtFoldsHtml(1).Text 
-		End If
-		f = Dir(FileNameLng & "*.htm*")
-		While f <> ""
-			'wLet WebHtml, LoadFromFile(FileNameLng & f)
-			If f <> "" Then
-				MsgBox(Trim(txtFoldsHtml(1).Text) & Chr(13, 10) & ML("Must be empty!"), "Visual FB Editor")
-				Exit Sub
-			End If
-		Wend
-		cmdTranslateByEdge.Text = ML("Stop")
-		Select Case MsgBox(ML("Please move away any windows including Edge or Chrome that may avoid not being able to click the Stop button. Continue?"), "Visual FB Editor", mtWarning, btYesNo)
-		Case mrYES:
-		Case mrNO: cmdTranslateByEdge.Text = ML("Send to translator"): Exit Sub
-		End Select
-	End If
-	FilesFind.Clear
-	If Right(Trim(txtFoldsHtml(0).Text), 1) <> "\" AndAlso Right(Trim(txtFoldsHtml(0).Text), 1) <> "/" Then
-		txtFoldsHtml(0).Text = Trim(txtFoldsHtml(0).Text) & Slash
-		FileNameLng = txtFoldsHtml(0).Text 
-	End If
-	f = Dir(FileNameLng & "*.htm*")
-	While f <> ""
-		'wLet WebHtml, LoadFromFile(FileNameLng & f)
-		If f <> "" Then FilesFind.Add FileNameLng & f
-		f = Dir()
-		App.DoEvents
-	Wend
-	MkDir txtFoldsHtml(0).text + "backup"
-	FilesIndex = 0
-	Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
-	debug.Print FilesFind.Item(FilesIndex)
-	Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
-	If tFilelen > 200000 Then
-		mTimeFactor = 45
-	ElseIf tFilelen > 150000 Then
-		mTimeFactor = 30
-	ElseIf tFilelen > 100000 Then
-		mTimeFactor = 25
-	ElseIf tFilelen > 50000 Then
-		mTimeFactor = 10
-	ElseIf tFilelen > 20000 Then
-		mTimeFactor = 5
-	ElseIf tFilelen > 10000 Then
-		mTimeFactor = -2
-	Else
-		mTimeFactor = -5
-	End If
-	mTimeStart = Timer
-	TimerMonitorEdge.Enabled = True
-	Act0 = True: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = False
-	FilesIndex += 1
-	lblShowMsg.Text = FilesIndex & " / " & FilesFind.Count & " " & FilesFind.Item(FilesIndex)
-	cmdTranslateByEdge.Text = ML("Stop")
-End Sub
-
-Private Sub frmOptions.TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
-	#ifdef __USE_WINAPI__
-		If Timer - mTimeStart > (12 + mTimeFactor) AndAlso Act0 = False Then
-			If FilesIndex < FilesFind.count Then
-				txtHtmlFind.Text = "file:///" + Replace(txtFoldsHtml(0).text, "\", "/")
-				txtHtmlFind.Text = Chr(13, 10) + "./" + FilesFind.Item(FilesIndex) + "_files/"
-				txtHtmlReplace.Text  =  ""
-				FileCopy FilesFind.Item(FilesIndex - 1), txtFoldsHtml(0).text + "backup/" + getfilename(FilesFind.Item(FilesIndex - 1))
-				Kill FilesFind.Item(FilesIndex - 1)
-				Shell "explorer """ & FilesFind.Item(FilesIndex) & """"
-				debug.Print FilesFind.Item(FilesIndex)
-				FilesIndex += 1
-				Dim As Long tFilelen = FileLen(FilesFind.Item(FilesIndex))
-				If tFilelen > 200000 Then
-					mTimeFactor = 45
-				ElseIf tFilelen > 150000 Then
-					mTimeFactor = 30
-				ElseIf tFilelen > 100000 Then
-					mTimeFactor = 25
-				ElseIf tFilelen > 50000 Then
-					mTimeFactor = 10
-				ElseIf tFilelen > 20000 Then
-					mTimeFactor = 5
-				ElseIf tFilelen > 10000 Then
-					mTimeFactor = -2
-				Else
-					mTimeFactor = -5
-				End If
-				'Print "mTimeFactor, tFilelen " & " " & mTimeFactor & " " & tFilelen
-				mTimeStart = Timer
-				Act0 = True: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = False
-				lblShowMsg.Text = FilesIndex & " / " & FilesFind.Count & " " & FilesFind.Item(FilesIndex)
-				cmdTranslateByEdge.Text = ML("Stop")
-			Else
-				Act0 = True
-				FileCopy FilesFind.Item(FilesIndex - 1), txtFoldsHtml(0).text + "backup/" + getfilename(FilesFind.Item(FilesIndex - 1))
-				Kill FilesFind.Item(FilesIndex - 1)
-				cmdTranslateByEdge.Text = ML("Send to translator")
-				TimerMonitorEdge.Enabled = False
-			End If
-			
-		ElseIf Timer - mTimeStart > (10 + mTimeFactor) AndAlso Act1 = False Then
-			Act1 = True
-			'Ctrl + w 或 Ctrl + F4
-			'Close Current TAB  关闭当前标签页。（常用）
-			'Ctrl + Shift + w
-			'Close All TAB. 关闭所有已打开的标签页并关闭当前 Chrome 浏览器（如果开了多个浏览器，则只关闭当前的浏览器）。
-			'Ctrl + Shift + q  或 Alt + F4
-			'Close all Chrome    关闭所有 Chrome 浏览器。
-			
-			'Make sure the mousePointer inside the translator windows and very close the "stop" buttom of IDE setting windows incase you wanta abort the procedure
-			' Normaly the translator windows.width = screen.width- "stop" button.width
-			' the translator windows.Left = 0.  the "stop" buttom of IDE setting windows is on the right of the screen.
-			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 900 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
-			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
-			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
-			
-			keybd_event(VK_CONTROL, 0, 0, 0) '按下 shift =16  ctrl = 17 alt =18
-			'keybd_event(VK_SHIFT, 0, 0, 0)
-			keybd_event(VK_W, 0, 0, 0)
-			keybd_event(VK_W, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
-			keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
-			Sleep(200)
-			Act0 = False: Act1 = True: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = True
-			
-		ElseIf Timer - mTimeStart > (8 + mTimeFactor) AndAlso Act2 = False Then
-			Act2 = True
-			'ALT + S
-			keybd_event(VK_MENU, 0, 0, 0)
-			keybd_event(VK_S, 0, 0, 0)
-			keybd_event(VK_S, 0, KEYEVENTF_KEYUP, 0)
-			keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0)
-			Sleep(100)
-			keybd_event(VK_RETURN, 0, 0, 0) '释放 F4 115
-			keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0) '释放 F4 0x73/115
-			Act0 = True: Act1 = False: Act2 = True: Act3 = True: Act4 = True: Act5 = True: Act6 = True: Act7 = True
-			
-		ElseIf Timer - mTimeStart > (7 + mTimeFactor) AndAlso Act4 = False Then
-			Act4 = True
-			keybd_event(VK_CONTROL, 0, 0, 0)
-			keybd_event(VK_S, 0, 0, 0)
-			keybd_event(VK_S, 0, KEYEVENTF_KEYUP, 0) '释放 S
-			keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0) '释放
-			Act2 = False
-		ElseIf Timer - mTimeStart > 1.5 AndAlso Act5 = False Then
-			'Mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0,0)  'NOT WORKING
-			Act5 = True
-			mouse_event(MOUSEEVENTF_MOVE, -50, 20, 0,0)  'NOT WORKING
-			Do Until Timer - mTimeStart > (6 + mTimeFactor)
-				keybd_event(VK_NEXT, 0, 0, 0)    'PageDown
-				keybd_event(VK_NEXT, 0, KEYEVENTF_KEYUP, 0)
-				Sleep(400)
-			Loop
-			keybd_event(VK_CONTROL, 0, 0, 0)
-			keybd_event(VK_END, 0, 0, 0)
-			keybd_event(VK_END, 0, KEYEVENTF_KEYUP, 0)
-			keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
-			Sleep(400)
-			'Make sure the mousePointer inside the translator windows and very close the "stop" buttom of IDE setting windows incase you wanta abort the procedure
-			' Normaly the translator windows.width = screen.width- "stop" button.width
-			' the translator windows.Left = 0.  the "stop" buttom of IDE setting windows is on the right of the screen.
-			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 900 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
-			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
-			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
-			
-			Act4 = False
-			' This is for Chrome which not automaticaly start translating. Need press key "T" on the menu
-			'	ElseIf Timer - mTimeStart > 1.5 AndAlso Act6 = False Then
-			'		Act6 = True
-			'		keybd_event(VK_T, 0, 0, 0)
-			'		keybd_event(VK_T, 0, KEYEVENTF_KEYUP, 0)
-			'		Act5 = False
-		ElseIf Timer - mTimeStart > 0.5 AndAlso Act7 = False Then
-			Act7 = True
-			'Make sure the mousePointer inside the translator windows and very close the "stop" buttom of IDE setting windows incase you wanta abort the procedure
-			' Normaly the translator windows.width = screen.width- "stop" button.width
-			' the translator windows.Left = 0.  the "stop" buttom of IDE setting windows is on the right of the screen.
-			mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 900 * 65536 / 1024, 300 * 65536 / 768, 0, 0)
-			mouse_event(MOUSEEVENTF_LEFTDOWN , 0, 0, 0, 0)
-			mouse_event(MOUSEEVENTF_LEFTUP , 0, 0, 0, 0)
-			'Mouse Down
-			' This is for Chrome which not automaticaly start translating. Need press key "T" on the menu
-			'mouse_event(MOUSEEVENTF_MOVE Or MOUSEEVENTF_ABSOLUTE, 700 * 65536 / 1024, 600 * 65536 / 768, 0, 0)
-			'mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
-			'mouse_event(MOUSEEVENTF_RIGHTUP , 0, 0, 0,0) '按下 '按下 shift =16  ctrl = 17 alt =18
-			'https://blog.csdn.net/tianxw1209/article/details/6234386
-			Act6 = False
-			Act5 = False
-		End If
-	#endif
 	
 End Sub
