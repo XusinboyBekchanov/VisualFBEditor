@@ -3601,6 +3601,8 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 		tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
 		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelStartCharFunc)
 		tb->txtCode.SetFocus
+		If Key <> 0 Then OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
+	ElseIf Key = 0 Then
 		OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
 	End If
 End Sub
