@@ -7309,7 +7309,7 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 				cp = Mid(b, i - 1, 1)
 				If InStr("+-*/\<>&=',:;""()^", c) Then
 					If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(LCase(Mid(*ecl->Text, i, 2)) <> "/'") AndAlso _
-						CInt(LCase(Mid(*ecl->Text, i, 2)) <> "&h" AndAlso CInt(c <> """")) AndAlso CInt(c <> "'") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso _
+						CInt(LCase(Mid(*ecl->Text, i, 2)) <> "&h" AndAlso LCase(Mid(*ecl->Text, i, 2)) <> "&o" AndAlso CInt(c <> """")) AndAlso CInt(c <> "'") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso _
 						CInt(c <> "<" OrElse LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "type") AndAlso _
 						CInt(c <> ">" OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0) AndAlso _
 						CInt(c <> "-" OrElse InStr("([{,;:+-*/=<>eE", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return" AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "step") AndAlso _
