@@ -2364,6 +2364,7 @@ Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String
 End Sub
 
 Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	If Sender.Parent = 0 Then Exit Sub
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
 	If tb = 0 Then Exit Sub
 	Var ii = Sender.ItemIndex
@@ -2747,6 +2748,7 @@ End Sub
 
 Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	If bNotFunctionChange Then Exit Sub
+	If Sender.Parent = 0 Then Exit Sub
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
 	If tb = 0 Then Exit Sub
 	'If frmMain.ActiveControl AndAlso frmMain.ActiveControl->ClassName = "EditControl" Then Exit Sub
