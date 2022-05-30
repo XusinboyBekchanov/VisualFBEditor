@@ -1053,50 +1053,94 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes)
-		'Dim Buff As WString * 1024 '  for V1.07 Line Input not working fine
-		'Var Timer_ = Timer
-		Dim pBuff As WString Ptr
+		Dim As WString Ptr pBuff
+		Dim As String Buff, EncodingStr, NewLineStr
+		Dim As WString * 1024 BuffRead
 		Dim As Integer Result = -1, Fn = FreeFile_, FileSize
 		Dim As FileEncodings OldFileEncoding
 		Dim As Integer iC = 0, OldiC = 0, i = 0
 		Var InAsm = False
-		Result = Open(FileName For Input Encoding "utf-8" As #Fn): FileEncoding = FileEncodings.Utf8BOM
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn): FileEncoding = FileEncodings.Utf32BOM
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn): FileEncoding = FileEncodings.Utf16BOM
-		If Result <> 0 Then Result = Open(FileName For Input As #Fn): FileEncoding = FileEncodings.PlainText
-		If Result = 0 Then
-			OldFileEncoding = FileEncoding
-			FileSize = LOF(Fn) + 2
-			WReAllocate(pBuff, FileSize)
+		
+		'check the Newlinetype again for missing Cr in AsicII file
+		Fn = FreeFile_
+		If Open(FileName For Binary Access Read As #Fn) = 0 Then
+			FileSize = LOF(Fn) + 1
+			Buff = String(4, 0)
+			Get #Fn, , Buff
+			If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
+				FileEncoding = FileEncodings.Utf32BOM
+				EncodingStr = "utf-32"
+				Buff = String(1024, 0)
+				Get #Fn, 0, Buff
+				'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
+			ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
+				FileEncoding = FileEncodings.Utf16BOM
+				EncodingStr = "utf-16"
+				Buff = String(1024, 0)
+				Get #Fn, 0, Buff
+			ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
+				FileEncoding = FileEncodings.Utf8BOM
+				EncodingStr = "utf-8"
+				Buff = String(1024, 0)
+				Get #Fn, , Buff
+			Else
+				Buff = String(FileSize, 0)
+				Get #Fn, 0, Buff
+				If (CheckUTF8NoBOM(Buff)) Then
+					FileEncoding = FileEncodings.UTF8
+					EncodingStr = "ascii"
+					debug.Print "FileEncodings.UTF8"
+				Else
+					FileEncoding = FileEncodings.PlainText
+					EncodingStr = "ascii"
+					debug.Print "FileEncodings.PlainText"
+				End If
+			End If
+			'Debug.Print Str(Len(buffer))
+			If InStr(Buff, Chr(13, 10)) Then
+				NewLineType= NewLineTypes.WindowsCRLF
+				NewLineStr = Chr(10)
+			ElseIf InStr(Buff, Chr(10)) Then
+				NewLineType= NewLineTypes.LinuxLF
+				NewLineStr = Chr(10)
+			ElseIf InStr(Buff, Chr(13)) Then
+				NewLineType= NewLineTypes.MacOSCR
+				NewLineStr = Chr(13)
+			Else
+				NewLineType= NewLineTypes.WindowsCRLF
+				NewLineStr = Chr(10)
+			End If
 			For i As Integer = FLines.Count - 1 To 0 Step -1
 				Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			Next i
 			FLines.Clear
 			'VisibleLines.Clear
 			i = 0
+		Else
+			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
+			CloseFile_(Fn)
+			Exit Sub
+		End If
+		CloseFile_(Fn)
+		Fn = FreeFile_
+		Result = Open(FileName For Input Encoding EncodingStr As #Fn)
+		If Result = 0 Then
+			OldFileEncoding = FileEncoding
 			Do Until EOF(Fn)
-				'Line Input #Fn, Buff
-				LineInputWstr Fn, pBuff, FileSize
 				FECLine = New_( EditControlLine)
 				If FECLine = 0 Then
 					CloseFile_(Fn)
 					Return
 				End If
-				If OldFileEncoding = FileEncodings.PlainText Then
-					If FileEncoding = FileEncodings.UTF8 Then
-						Dim As String Buff = *pBuff
-						*pBuff = FromUtf8(StrPtr(Buff))
-					Else
-						Dim As String Buff = *pBuff
-						Dim As WString Ptr pBuff2: WLet pBuff2, FromUtf8(StrPtr(Buff))
-						If *pBuff <> *pBuff2 Then
-							*pBuff = *pBuff2
-							FileEncoding = FileEncodings.UTF8
-						End If
-					End If
-					'WDeallocate pBuff2
+				pBuff = 0
+				If OldFileEncoding = FileEncodings.UTF8 Then
+					Line Input #Fn, Buff
+					wLet pBuff, FromUtf8(StrPtr(Buff))
+				Else
+					Line Input #Fn, BuffRead
+					WLet pBuff, BuffRead
 				End If
-				WLet(FECLine->Text, *pBuff)
+				FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
 				iC = FindCommentIndex(*pBuff, OldiC)
 				FECLine->CommentIndex = iC
 				FECLine->InAsm = InAsm
@@ -1106,29 +1150,16 @@ Namespace My.Sys.Forms
 					InAsm = FECLine->ConstructionPart = 0
 				End If
 				FECLine->InAsm = InAsm
-				'If FECLine->Visible Then VisibleLines.Add(FECLine)
 				OldiC = iC
 				i += 1
 			Loop
-			NewLineType = NewLineTypes.WindowsCRLF
-			If i = 1 Then
-				If InStr(*pBuff, Chr(10)) > 0 Then
-					NewLineType = NewLineTypes.LinuxLF
-				ElseIf InStr(*pBuff, Chr(13)) > 0 Then
-					NewLineType = NewLineTypes.MacOSCR
-				End If
-			End If
+			
 			ScrollToCaret
-		Else
-			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13,10) & " " & FileName
 		End If
 		CloseFile_(Fn)
-		WDeAllocate pBuff
-		'?Timer - Timer_
-		'?FileName
 	End Sub
 	
-	Sub EditControl.SaveToFile(ByRef FILE As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
+	Sub EditControl.SaveToFile(ByRef FileName As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
 		Dim As Integer Fn = FreeFile_
 		Dim As Integer Result
 		Dim As String FileEncodingText, NewLine
@@ -1150,10 +1181,14 @@ Namespace My.Sys.Forms
 		Else
 			NewLine = Chr(13, 10)
 		End If
-		If Open(FILE For Output Encoding FileEncodingText As #Fn) = 0 Then
+		If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
 			If FileEncoding = FileEncodings.Utf8 Then
 				For i As Integer = 0 To FLines.Count - 1
 					Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine;
+				Next
+			ElseIf FileEncoding = FileEncodings.PlainText  Then
+				For i As Integer = 0 To FLines.Count - 1
+					Print #Fn, Str(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine;
 				Next
 			Else
 				For i As Integer = 0 To FLines.Count - 1
@@ -1161,7 +1196,7 @@ Namespace My.Sys.Forms
 				Next
 			End If
 		Else
-			MsgBox ML("Save file failure!") & Chr(13,10) & FILE
+			MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
 		End If
 		CloseFile_(Fn)
 	End Sub
@@ -4977,3 +5012,4 @@ Sub LoadKeyWords
 	'	Loop
 	'	Close #Fn
 End Sub
+

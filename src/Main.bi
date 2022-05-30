@@ -159,20 +159,6 @@ Enum LoadParam
 	FilePathAndIncludeFiles
 End Enum
 
-Enum FileEncodings
-	PlainText
-	Utf8
-	Utf8BOM
-	Utf16BOM
-	Utf32BOM
-End Enum
-
-Enum NewLineTypes
-	WindowsCRLF
-	LinuxLF
-	MacOSCR
-End Enum
-
 Declare Sub NewProject
 Declare Sub OpenProject
 Declare Sub AddNew(ByRef Template As WString = "")
