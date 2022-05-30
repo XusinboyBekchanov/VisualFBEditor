@@ -1063,7 +1063,7 @@ Namespace My.Sys.Forms
 		
 		'check the Newlinetype again for missing Cr in AsicII file
 		Fn = FreeFile_
-		If Dir(FileName) <> "" AndAlso Open(FileName For Binary As #Fn) = 0 Then
+		If Open(FileName For Binary Access Read As #Fn) = 0 Then
 			FileSize = LOF(Fn) + 1
 			Buff = String(4, 0)
 			Get #Fn, , Buff
