@@ -4293,8 +4293,8 @@ Sub LoadSettings
 	ReBar1.Visible = ShowMainToolbar
 	SetDarkMode DarkMode, False
 	
-	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-exx"))
-	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-exx"))
+	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-b {S} -exx"))
+	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-b {S} -exx"))
 	WLet(Make1Arguments, iniSettings.ReadString("Parameters", "Make1Arguments", ""))
 	WLet(Make2Arguments, iniSettings.ReadString("Parameters", "Make2Arguments", "clean"))
 	WLet(RunArguments, iniSettings.ReadString("Parameters", "RunArguments", ""))
