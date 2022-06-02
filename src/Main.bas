@@ -6938,6 +6938,7 @@ lvErrors.OnItemActivate = @lvErrors_ItemActivate
 
 Sub lvSearch_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSearch.ListItems.Item(itemIndex)
+    gSearchItemIndex = itemIndex
 	SelectSearchResult(item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(lvSearch.Text), item->Tag)
 	If pfFind->Visible Then 'David Change
 		pfFind->Caption = ML("Find")+": " + WStr(gSearchItemIndex+1) + " of " + WStr(lvSearch.ListItems.Count)
