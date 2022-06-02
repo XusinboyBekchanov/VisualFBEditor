@@ -2906,8 +2906,8 @@ Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Sender As Control)
 				.lvCompilerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
 				.lvCompilerPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
 				.lvCompilerPaths.SelectedItem->Text(2) = pfPath->txtCommandLine.Text
-				.lvCompilerPaths.SelectedItem->ImageKey = IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
-				.lvCompilerPaths.SelectedItem->SelectedImageKey = IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
+				.lvCompilerPaths.SelectedItem->ImageKey = IIf(FileExists(GetFullpath(pfPath->txtPath.Text)), "", "FileError")
+				.lvCompilerPaths.SelectedItem->SelectedImageKey = IIf(FileExists(GetFullpath(pfPath->txtPath.Text)), "", "FileError")
 			Else
 				MsgBox ML("This version is exists!")
 			End If
