@@ -882,7 +882,16 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CloseFile_(Fn)
 		#endif
 		ThreadsEnter()
+		StopProgress
 		ShowMessages("")
+		If lvErrors.ListItems.Count <> 0 Then
+			ptabBottom->Tabs[1]->Caption = IIf(NumberErr > 0, ML("Errors") & "(" & WStr(NumberErr) & " " & ML("Pos") & ") ", "")
+			ptabBottom->Tabs[1]->Caption = IIf(NumberWarning > 0, ptabBottom->Tabs[1]->Caption & ML("Warnings") & "(" & WStr(NumberWarning) & " " & ML("Pos") & " " & ")", ptabBottom->Tabs[1]->Caption) 
+			ptabBottom->Tabs[1]->Caption = IIf(NumberInfo > 0, ptabBottom->Tabs[1]->Caption & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & " " & ") ", ptabBottom->Tabs[1]->Caption)
+			ShowMessages(Str(Time) & ": " & ML("found") & " " & ptabBottom->Tabs[1]->Caption, False)
+		Else
+			ptabBottom->Tabs[1]->Caption = ML("Errors")
+		End If
 		ThreadsLeave()
 		For i As Integer = 0 To Tools.Count - 1
 			Tool = Tools.Item(i)
@@ -931,17 +940,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	WDeallocate LogFileName2
 	WDeallocate BatFileName
 	WDeallocate MainFile
-	ThreadsEnter()
-	If lvErrors.ListItems.Count <> 0 Then
-		Dim As WString * 100 tInfo = IIf(NumberInfo > 0, ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", WStr(""))
-		ptabBottom->Tabs[1]->Caption = IIf(NumberWarning + NumberErr = 0, tInfo, IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "") & _
-		IIf(NumberWarning > 0, IIf(NumberErr > 0, ", ", "") & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", ""))
-		ShowMessages(Str(Time) & ": " & ML("Found") & " " & ptabBottom->Tabs[1]->Caption, False)
-	Else
-		ptabBottom->Tabs[1]->Caption = ML("Errors")
-	End If
-	StopProgress
-	ThreadsLeave()
 	Return CompileResult
 	Exit Function
 	ErrorHandler:
