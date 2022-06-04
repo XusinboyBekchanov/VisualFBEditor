@@ -5142,6 +5142,7 @@ Sub CreateMenusAndToolBars
 	miRemoveFiles = mnuExplorer.Add(ML("&Remove"), "Remove", "RemoveFileFromProject", @mclick)
 	mnuExplorer.Add("-")
 	mnuExplorer.Add(ML("Open Project Folder"), "", "OpenProjectFolder", @mclick)
+	mnuExplorer.Add(ML("Close Project"), "", "CloseProject", @mclick)
 	mnuExplorer.Add("-")
 	mnuExplorer.Add(ML("Project &Properties") & "...", "", "ProjectProperties", @mclick)
 	
@@ -5204,8 +5205,15 @@ Sub CreateMenusAndToolBars
 	tbButton->DropDownMenu.Add ML("Procedure macro numbering"), "", "ProcedureMacroNumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Procedure numbering"), "", "ProcedureNumberOff", @mclick
 	tbButton->DropDownMenu.Add "-"
+	tbButton->DropDownMenu.Add ML("Project macro numbering"), "Numbering", "ProjectMacroNumberOn", @mclick
+	tbButton->DropDownMenu.Add ML("Project macro numbering: Starts of procedures"), "", "ProjectMacroNumberOnStartsOfProcs", @mclick
+	tbButton->DropDownMenu.Add ML("Remove Project numbering"), "", "ProjectNumberOff", @mclick
+	tbButton->DropDownMenu.Add "-"
 	tbButton->DropDownMenu.Add ML("Preprocessor Numbering"), "Numbering", "PreprocessorNumberOn", @mclick
 	tbButton->DropDownMenu.Add ML("Remove Preprocessor Numbering"), "", "PreprocessorNumberOff", @mclick
+	tbButton->DropDownMenu.Add "-"
+	tbButton->DropDownMenu.Add ML("Project preprocessor numbering"), "Numbering", "ProjectPreprocessorNumberOn", @mclick
+	tbButton->DropDownMenu.Add ML("Remove Project preprocessor numbering"), "", "ProjectPreprocessorNumberOff", @mclick
 	tbButton->DropDownMenu.Add "-"
 	tbButton->DropDownMenu.Add "On Error Resume Next", "", "OnErrorResumeNext", @mclick
 	tbButton->DropDownMenu.Add "On Error Goto ...", "", "OnErrorGoto", @mclick
@@ -6764,6 +6772,8 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 					SplitError(Trim(Buff), ErrFileName, ErrTitle, iLine)
 					WAdd LogText, *ErrTitle & !"\r"
 				Wend
+			Else
+				MsgBox ML("Open file failure!") & Chr(13,10) & "  " & ExePath & "/Temp/Compile1.log"
 			End If
 			CloseFile_(Fn)
 			Fn = FreeFile_
@@ -6775,8 +6785,11 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			If Result = 0 Then
 				While Not EOF(Fn)
 					Line Input #Fn, buff
+					SplitError(Trim(Buff), ErrFileName, ErrTitle, iLine)
 					WAdd LogText, Trim(Buff) & !"\r"
 				Wend
+			Else
+				MsgBox ML("Open file failure!") & Chr(13,10) & "  " & ExePath & "/Temp/debug_compil2.log"
 			End If
 			CloseFile_(Fn)
 			Key = 0
@@ -6801,6 +6814,8 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 						txtImmediate.Update
 						frmMain.Update
 					Wend
+				Else
+					MsgBox ML("Open file failure!") & Chr(13,10) & "  " & *EXEName
 				End If
 				CloseFile_(Fn)
 				Kill *ExeName
@@ -6823,7 +6838,7 @@ txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
 'txtImmediate.BackColor = NormalText.Background
 'txtImmediate.Font.Color = NormalText.Foreground
-txtImmediate.Text = "import #Include Once " + Chr(34) + "mff/SysUtils.bas" + Chr(34) & WChr(13, 10) & WChr(13, 10)
+txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + Slash + "MyFbFramework"+ Slash + "mff" + Slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
 txtImmediate.SetSel txtImmediate.GetTextLength, txtImmediate.GetTextLength
 
 Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -6930,7 +6945,7 @@ lvErrors.SmallImages = @imgList
 lvErrors.Align = DockStyle.alClient
 lvErrors.Columns.Add ML("Content"), , 500, cfLeft
 lvErrors.Columns.Add ML("Line"), , 50, cfRight
-lvErrors.Columns.Add ML("File"), , 300, cfLeft
+lvErrors.Columns.Add ML("File"), , 700, cfLeft
 lvErrors.OnItemActivate = @lvErrors_ItemActivate
 'lvErrors.OnKeyDown = @lvErrors_KeyDown
 
@@ -6956,7 +6971,7 @@ lvSearch.Align = DockStyle.alClient
 lvSearch.Columns.Add ML("Line Text"), , 500, cfLeft
 lvSearch.Columns.Add ML("Line"), , 50, cfRight
 lvSearch.Columns.Add ML("Column"), , 50, cfRight
-lvSearch.Columns.Add ML("File"), , 300, cfLeft
+lvSearch.Columns.Add ML("File"), , 700, cfLeft
 lvSearch.OnItemActivate = @lvSearch_ItemActivate
 'lvSearch.OnKeyDown = @lvSearch_KeyDown
 
