@@ -5899,7 +5899,12 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 	Pos3 = InStr(Pos1, sLine, ":")
 	If Pos3 > 0 Then
 		Pos2 = InStrRev(sLine, ",")
-		If Pos2 < 1 Then Pos2 = Len(sLine)
+		If Pos2 < 1 Then 
+			Pos2 = Len(sLine)
+		ElseIf Mid(sLine, Pos2 - 1, 3) = "','" Then
+			Pos1 = InStrRev(sLine, ",", Pos2 - 1)
+			If Pos1 > 1 Then Pos2 = Pos1
+		End If
 		If InStr(Mid(sLine, Pos2),", found") = 1 Then
 			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found"))))
 		ElseIf InStr(Mid(sLine, Pos2),", before") = 1 Then
@@ -5937,10 +5942,10 @@ Function Err2Description(Code As Integer) ByRef As WString
 	Case 0: Return ML("No error")
 	Case 1: Return ML("Illegal function call")
 	Case 2: Return ML("File not found signal")
-	Case 3: Return ML("File I/O error")
+	Case 3, 1073741819:  Return ML("File I/O error")
 	Case 4: Return ML("Out of memory")
 	Case 5: Return ML("Illegal resume")
-	Case 6: Return ML("Out of bounds array access")
+	Case 6, 3221226356: Return ML("Out of bounds array access")
 	Case 7: Return ML("Null Pointer Access")
 	Case 8: Return ML("No privileges")
 	Case 9: Return ML("Interrupted signal")
@@ -5952,6 +5957,8 @@ Function Err2Description(Code As Integer) ByRef As WString
 	Case 15: Return ML("Quit request signal")
 	Case 16: Return ML("Return without gosub")
 	Case 17: Return ML("End of file")
+	Case 193: Return ML("Could not execute:Bad executable format")
+	Case 3221225477: Return ML("Stack Overflow")
 	Case Else: Return WStr("")
 	End Select
 End Function
