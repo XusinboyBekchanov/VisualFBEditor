@@ -514,18 +514,6 @@ pfOptions = @fOptions
 		cmdMFFPath.SetBounds 377, 20, 24, 22
 		cmdMFFPath.OnClick = @cmdMFFPath_Click
 		cmdMFFPath.Parent = @grbIncludePaths
-		' chkEnableAutoComplete
-		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
-		chkEnableAutoComplete.Text = ML("Enable Auto Complete")
-		chkEnableAutoComplete.ExtraMargins.Top = 5
-		chkEnableAutoComplete.Align = DockStyle.alNone
-		chkEnableAutoComplete.SetBounds 10, 24, 416, 18
-		chkEnableAutoComplete.Parent = @pnlCodeEditor
-		' chkTabAsSpaces
-		chkTabAsSpaces.Name = "chkTabAsSpaces"
-		chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
-		chkTabAsSpaces.SetBounds 10, 195, 264, 18
-		chkTabAsSpaces.Parent = @pnlCodeEditor
 		' chkAutoIndentation
 		chkAutoIndentation.Name = "chkAutoIndentation"
 		chkAutoIndentation.Text = ML("Auto Indentation")
@@ -533,21 +521,132 @@ pfOptions = @fOptions
 		chkAutoIndentation.Align = DockStyle.alTop
 		chkAutoIndentation.SetBounds 10, 5, 416, 18
 		chkAutoIndentation.Parent = @pnlCodeEditor
+		' chkEnableAutoComplete
+		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
+		chkEnableAutoComplete.Text = ML("Enable Auto Complete")
+		chkEnableAutoComplete.ExtraMargins.Top = 2
+		chkEnableAutoComplete.Align = DockStyle.alTop
+		chkEnableAutoComplete.SetBounds 10, 26, 416, 18
+		chkEnableAutoComplete.Parent = @pnlCodeEditor
+		' chkShowSpaces
+		chkShowSpaces.Name = "chkShowSpaces"
+		chkShowSpaces.Text = ML("Show Spaces")
+		chkShowSpaces.Align = DockStyle.alTop
+		chkShowSpaces.ExtraMargins.Top = 2
+		chkShowSpaces.SetBounds 10, 47, 416, 18
+		chkShowSpaces.Parent = @pnlCodeEditor
+		' chkShowKeywordsTooltip
+		With chkShowKeywordsTooltip
+			.Name = "chkShowKeywordsTooltip"
+			.Text = ML("Show Keywords Tooltip")
+			.TabIndex = 170
+			.ExtraMargins.Top = 2
+			.Align = DockStyle.alTop
+			.SetBounds 10, 68, 416, 18
+			'.Caption = ML("Show Keywords Tooltip")
+			.Parent = @pnlCodeEditor
+		End With
+		' chkShowTooltipsAtTheTop
+		With chkShowTooltipsAtTheTop
+			.Name = "chkShowTooltipsAtTheTop"
+			.Text = ML("Show Tooltips at the Top")
+			.TabIndex = 192
+			.ExtraMargins.Top = 2
+			.Align = DockStyle.alTop
+			.SetBounds 10, 85, 416, 18
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
+		' chkHighlightCurrentWord
+		With chkHighlightCurrentWord
+			.Name = "chkHighlightCurrentWord"
+			.Text = ML("Highlight Current Word")
+			.ExtraMargins.Top = 2
+			.Align = DockStyle.alTop
+			.SetBounds 10, 105, 416, 18
+			.Parent = @pnlCodeEditor
+		End With
+		' chkHighlightCurrentLine
+		With chkHighlightCurrentLine
+			.Name = "chkHighlightCurrentLine"
+			.Text = ML("Highlight Current Line")
+			.ExtraMargins.Top = 2
+			.Align = DockStyle.alTop
+			.SetBounds 20, 105, 406, 18
+			.Parent = @pnlCodeEditor
+		End With
+		' chkHighlightBrackets
+		With chkHighlightBrackets
+			.Name = "chkHighlightBrackets"
+			.Text = ML("Highlight Brackets")
+			.ExtraMargins.Top = 2
+			.Align = DockStyle.alTop
+			.SetBounds 10, 145, 416, 18
+			.Parent = @pnlCodeEditor
+		End With
+		' chkAddSpacesToOperators
+		With chkAddSpacesToOperators
+			.Name = "chkAddSpacesToOperators"
+			.Text = ML("Add Spaces To Operators")
+			.TabIndex = 171
+			.ExtraMargins.Top = 2
+			.Align = DockStyle.alTop
+			.SetBounds 10, 165, 416, 18
+			'.Caption = ML("Add Spaces To Operators")
+			.Parent = @pnlCodeEditor
+		End With
+		' chkChangeKeywordsCase
+		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
+		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
+		chkChangeKeywordsCase.ExtraMargins.Top = 2
+		chkChangeKeywordsCase.Align = DockStyle.alTop
+		chkChangeKeywordsCase.ExtraMargins.Right = 230
+		chkChangeKeywordsCase.SetBounds 10, 208, 186, 18
+		chkChangeKeywordsCase.Parent = @pnlCodeEditor
+		' cboCase
+		cboCase.Name = "cboCase"
+		cboCase.Text = "ComboBoxEdit2"
+		cboCase.ExtraMargins.Right = 50
+		cboCase.ExtraMargins.Top = -18
+		cboCase.ExtraMargins.Left = 200
+		cboCase.Align = DockStyle.alTop
+		cboCase.SetBounds 210, 208, 166, 21
+		cboCase.Parent = @pnlCodeEditor
+		' chkTabAsSpaces
+		chkTabAsSpaces.Name = "chkTabAsSpaces"
+		chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
+		chkTabAsSpaces.ExtraMargins.Top = 2
+		chkTabAsSpaces.Align = DockStyle.alTop
+		chkTabAsSpaces.ExtraMargins.Right = 230
+		chkTabAsSpaces.SetBounds 10, 185, 186, 18
+		chkTabAsSpaces.Parent = @pnlCodeEditor
+		' cboTabStyle
+		cboTabStyle.Name = "cboTabStyle"
+		cboTabStyle.Text = "cboCase1"
+		cboTabStyle.ExtraMargins.Left = 200
+		cboTabStyle.ExtraMargins.Right = 50
+		cboTabStyle.Align = DockStyle.alTop
+		cboTabStyle.ExtraMargins.Top = -18
+		cboTabStyle.SetBounds 210, 185, 166, 21
+		cboTabStyle.Parent = @pnlCodeEditor
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
 		lblTabSize.Text = ML("Tab Size") & ":"
-		lblTabSize.SetBounds 66, 243, 138, 16
+		lblTabSize.ExtraMargins.Left = 60
+		lblTabSize.ExtraMargins.Right = 230
+		lblTabSize.Align = DockStyle.alTop
+		lblTabSize.ExtraMargins.Top = 2
+		lblTabSize.SetBounds 70, 231, 126, 18
 		lblTabSize.Parent = @pnlCodeEditor
 		' txtTabSize
 		txtTabSize.Name = "txtTabSize"
 		txtTabSize.Text = ""
-		txtTabSize.SetBounds 209, 241, 90, 20
+		txtTabSize.ExtraMargins.Left = 200
+		txtTabSize.ExtraMargins.Right = 130
+		txtTabSize.ExtraMargins.Top = -18
+		txtTabSize.Align = DockStyle.alTop
+		txtTabSize.SetBounds 210, 231, 86, 20
 		txtTabSize.Parent = @pnlCodeEditor
-		' chkShowSpaces
-		chkShowSpaces.Name = "chkShowSpaces"
-		chkShowSpaces.Text = ML("Show Spaces")
-		chkShowSpaces.SetBounds 10, 43, 264, 18
-		chkShowSpaces.Parent = @pnlCodeEditor
 		' lstIncludePaths
 		lstIncludePaths.Name = "lstIncludePaths"
 		lstIncludePaths.Text = "ListControl1"
@@ -608,11 +707,19 @@ pfOptions = @fOptions
 		' lblHistoryLimit
 		lblHistoryLimit.Name = "lblHistoryLimit"
 		lblHistoryLimit.Text = ML("History limit") & ":"
-		lblHistoryLimit.SetBounds 66, 266, 150, 17
+		lblHistoryLimit.ExtraMargins.Top = 2
+		lblHistoryLimit.ExtraMargins.Left = 60
+		lblHistoryLimit.ExtraMargins.Right = 230
+		lblHistoryLimit.Align = DockStyle.alTop
+		lblHistoryLimit.SetBounds 70, 253, 126, 18
 		lblHistoryLimit.Parent = @pnlCodeEditor
 		' txtHistoryLimit
 		txtHistoryLimit.Name = "txtHistoryLimit"
-		txtHistoryLimit.SetBounds 209, 264, 90, 20
+		txtHistoryLimit.ExtraMargins.Top = -18
+		txtHistoryLimit.ExtraMargins.Right = 130
+		txtHistoryLimit.ExtraMargins.Left = 200
+		txtHistoryLimit.Align = DockStyle.alTop
+		txtHistoryLimit.SetBounds 210, 253, 86, 20
 		txtHistoryLimit.Text = ""
 		txtHistoryLimit.Parent = @pnlCodeEditor
 		' grbGrid
@@ -641,21 +748,6 @@ pfOptions = @fOptions
 		chkSnapToGrid.Text = ML("Snap to Grid")
 		chkSnapToGrid.SetBounds 8, 19, 138, 24
 		chkSnapToGrid.Parent = @pnlGrid
-		' cboCase
-		cboCase.Name = "cboCase"
-		cboCase.Text = "ComboBoxEdit2"
-		cboCase.SetBounds 209, 217, 162, 21
-		cboCase.Parent = @pnlCodeEditor
-		' chkChangeKeywordsCase
-		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
-		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
-		chkChangeKeywordsCase.SetBounds 10, 218, 194, 18
-		chkChangeKeywordsCase.Parent = @pnlCodeEditor
-		' cboTabStyle
-		cboTabStyle.Name = "cboTabStyle"
-		cboTabStyle.Text = "cboCase1"
-		cboTabStyle.SetBounds 209, 193, 162, 21
-		cboTabStyle.Parent = @pnlCodeEditor
 		' grbColors
 		grbColors.Name = "grbColors"
 		grbColors.Text = ML("Colors")
@@ -1127,27 +1219,6 @@ pfOptions = @fOptions
 			.OnClick = @chkFrame_Click
 			.Parent = @pnlColors
 		End With
-		' chkHighlightCurrentWord
-		With chkHighlightCurrentWord
-			.Name = "chkHighlightCurrentWord"
-			.Text = ML("Highlight Current Word")
-			.SetBounds 10, 124, 192, 26
-			.Parent = @pnlCodeEditor
-		End With
-		' chkHighlightCurrentLine
-		With chkHighlightCurrentLine
-			.Name = "chkHighlightCurrentLine"
-			.Text = ML("Highlight Current Line")
-			.SetBounds 10, 106, 224, 16
-			.Parent = @pnlCodeEditor
-		End With
-		' chkHighlightBrackets
-		With chkHighlightBrackets
-			.Name = "chkHighlightBrackets"
-			.Text = ML("Highlight Brackets")
-			.SetBounds 10, 151, 154, 18
-			.Parent = @pnlCodeEditor
-		End With
 		' cmdChangeCompiler
 		With cmdChangeCompiler
 			.Name = "cmdChangeCompiler"
@@ -1523,24 +1594,6 @@ pfOptions = @fOptions
 			'.Caption = ML("Prompt To Save")
 			.Parent = @grbWhenCompiling
 		End With
-		' chkShowKeywordsTooltip
-		With chkShowKeywordsTooltip
-			.Name = "chkShowKeywordsTooltip"
-			.Text = ML("Show Keywords Tooltip")
-			.TabIndex = 170
-			.SetBounds 10, 63, 264, 18
-			'.Caption = ML("Show Keywords Tooltip")
-			.Parent = @pnlCodeEditor
-		End With
-		' chkAddSpacesToOperators
-		With chkAddSpacesToOperators
-			.Name = "chkAddSpacesToOperators"
-			.Text = ML("Add Spaces To Operators")
-			.TabIndex = 171
-			.SetBounds 10, 173, 194, 18
-			'.Caption = ML("Add Spaces To Operators")
-			.Parent = @pnlCodeEditor
-		End With
 		' cboOpenedFile
 		With cboOpenedFile
 			.Name = "cboOpenedFile"
@@ -1620,14 +1673,23 @@ pfOptions = @fOptions
 			.Text = ML("Intellisense limit") & ":"
 			.TabIndex = 180
 			'.Caption = ML("Intellisense limit") & ":"
-			.SetBounds 66, 289, 137, 17
+			.ExtraMargins.Top = 2
+			.ExtraMargins.Right = 230
+			.ExtraMargins.Left = 60
+			.Align = DockStyle.alTop
+			.SetBounds 70, 275, 126, 18
 			.Parent = @pnlCodeEditor
 		End With
 		' txtIntellisenseLimit
 		With txtIntellisenseLimit
 			.Name = "txtIntellisenseLimit"
 			.TabIndex = 181
-			.SetBounds 209, 287, 90, 20
+			.Text = ""
+			.ExtraMargins.Left = 200
+			.ExtraMargins.Top = -18
+			.ExtraMargins.Right = 130
+			.Align = DockStyle.alTop
+			.SetBounds 210, 275, 86, 20
 			.Parent = @pnlCodeEditor
 		End With
 		' chkTurnOnEnvironmentVariables
@@ -1726,12 +1788,16 @@ pfOptions = @fOptions
 			.SetBounds 20, 72, 416, 18
 			.Parent = @pnlGeneral
 		End With
-		' chkShowTooltipsAtTheTop
-		With chkShowTooltipsAtTheTop
-			.Name = "chkShowTooltipsAtTheTop"
-			.Text = ML("Show Tooltips at the Top")
-			.TabIndex = 192
-			.SetBounds 10, 84, 264, 18
+		' lblHistoryDay
+		With lblHistoryDay
+			.Name = "lblHistoryDay"
+			.Text = ML("History file saving days")
+			.TabIndex = 194
+			.ExtraMargins.Top = 2
+			.ExtraMargins.Right = 230
+			.ExtraMargins.Left = 60
+			.Align = DockStyle.alTop
+			.SetBounds 70, 297, 126, 18
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
@@ -1740,16 +1806,11 @@ pfOptions = @fOptions
 			.Name = "txtHistoryCodeDays"
 			.Text = "3"
 			.TabIndex = 193
-			.SetBounds 210, 312, 90, 20
-			.Designer = @This
-			.Parent = @pnlCodeEditor
-		End With
-		' lblHistoryDay
-		With lblHistoryDay
-			.Name = "lblHistoryDay"
-			.Text = ML("History file saving days")
-			.TabIndex = 194
-			.SetBounds 67, 314, 129, 17
+			.ExtraMargins.Top = -18
+			.ExtraMargins.Right = 130
+			.ExtraMargins.Left = 200
+			.Align = DockStyle.alTop
+			.SetBounds 210, 277, 86, 20
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
