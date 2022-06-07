@@ -2259,7 +2259,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	If tb->Des->DesignControl = 0 Then Exit Sub
 	If Ctrl = 0 Then Exit Sub
 	Dim NewName As String = WGet(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
-	tb->cboClass.Items.Add NewName, Ctrl, ClassName, ClassName, , 1
+	tb->cboClass.Items.Add NewName, Ctrl, ClassName, ClassName, , 1, tb->FindControlIndex(NewName)
 	Dim As EditControl txtCodeBi
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As Integer iStart, iEnd, j
@@ -4262,6 +4262,14 @@ End Sub
 	#endif
 #endif
 
+Function TabWindow.FindControlIndex(ArgName As String) As Integer
+	Dim i As Integer = 2
+	For i = 2 To cboClass.Items.Count - 1
+		If LCase(cboClass.Items.Item(i)->Text) > LCase(ArgName) Then Return i
+	Next
+	Return i
+End Function
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	If bNotDesign OrElse FormClosing Then Exit Sub
@@ -4919,7 +4927,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										If Ctrl = 0 Then
 											Ctrl = Des->CreateObjectFunc(TypeName)
 										End If
-										cboClass.Items.Add ArgName, Ctrl, TypeName, TypeName, , 1
+										cboClass.Items.Add ArgName, Ctrl, TypeName, TypeName, , 1, FindControlIndex(ArgName)
 									Next
 								Else
 									Ctrl = Des->CreateControl(TypeName, ArgName, ArgName, 0, 0, 0, 0, 0)
@@ -4929,7 +4937,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If Ctrl = 0 Then
 										Ctrl = Des->CreateObjectFunc(TypeName)
 									End If
-									cboClass.Items.Add ArgName, Ctrl, TypeName, TypeName, , 1
+									cboClass.Items.Add ArgName, Ctrl, TypeName, TypeName, , 1, FindControlIndex(ArgName)
 								End If
 								sText = Trim(Mid(sText, p + 1), Any !"\t ")
 								p = InStr(sText, ",")
@@ -4945,7 +4953,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If Ctrl = 0 Then
 										Ctrl = Des->CreateObjectFunc(TypeName)
 									End If
-									cboClass.Items.Add tCtrlName & "(" & Str(i) & ")", Ctrl, TypeName, TypeName,, 1
+									cboClass.Items.Add tCtrlName & "(" & Str(i) & ")", Ctrl, TypeName, TypeName, , 1, FindControlIndex(tCtrlName & "(" & Str(i) & ")")
 								Next
 							Else
 								Ctrl = Des->CreateControl(TypeName, sText, sText, 0, 0, 0, 0, 0)
@@ -4955,7 +4963,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Ctrl = 0 Then
 									Ctrl = Des->CreateObjectFunc(TypeName)
 								End If
-								cboClass.Items.Add sText, Ctrl, TypeName, TypeName, , 1
+								cboClass.Items.Add sText, Ctrl, TypeName, TypeName, , 1, FindControlIndex(sText)
 							End If
 						End If
 					End If
