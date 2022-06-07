@@ -93,12 +93,23 @@ pfOptions = @fOptions
 		' pnlGeneral
 		pnlGeneral.Name = "pnlGeneral"
 		pnlGeneral.Text = ""
-		pnlGeneral.SetBounds 190, 10, 426, 400
+		pnlGeneral.Margins.Left = 10
+		pnlGeneral.ExtraMargins.Top = 4
+		pnlGeneral.ExtraMargins.Bottom = 9
+		pnlGeneral.ExtraMargins.Right = 10
+		pnlGeneral.Align = DockStyle.alClient
+		pnlGeneral.Margins.Top = 0
+		pnlGeneral.SetBounds 188, -6, 426, 404
 		pnlGeneral.Parent = @This
 		' pnlCodeEditor
 		pnlCodeEditor.Name = "pnlCodeEditor"
 		pnlCodeEditor.Text = ""
-		pnlCodeEditor.SetBounds 190, 10, 426, 400
+		pnlCodeEditor.ExtraMargins.Top = 4
+		pnlCodeEditor.ExtraMargins.Bottom = 9
+		pnlCodeEditor.ExtraMargins.Right = 10
+		pnlCodeEditor.Margins.Left = 10
+		pnlCodeEditor.Align = DockStyle.alClient
+		pnlCodeEditor.SetBounds 188, 4, 426, 404
 		pnlCodeEditor.Parent = @This
 		' pnlColorsAndFonts
 		pnlColorsAndFonts.Name = "pnlColorsAndFonts"
@@ -426,12 +437,16 @@ pfOptions = @fOptions
 		' CheckBox1
 		CheckBox1.Name = "CheckBox1"
 		CheckBox1.Text = ML("Auto increment version")
-		CheckBox1.SetBounds 10, 0, 318, 18
+		CheckBox1.Align = DockStyle.alTop
+		CheckBox1.ExtraMargins.Top = 5
+		CheckBox1.SetBounds 10, 5, 416, 18
 		CheckBox1.Parent = @pnlGeneral
 		' chkAutoCreateRC
 		chkAutoCreateRC.Name = "chkAutoCreateRC"
 		chkAutoCreateRC.Text = ML("Auto create resource and manifest files (.rc, .xml)")
-		chkAutoCreateRC.SetBounds 10, 22, 300, 18
+		chkAutoCreateRC.ExtraMargins.Top = 5
+		chkAutoCreateRC.Align = DockStyle.alTop
+		chkAutoCreateRC.SetBounds 10, 28, 416, 18
 		chkAutoCreateRC.Parent = @pnlGeneral
 		' pnlIncludes
 		pnlIncludes.Name = "pnlIncludes"
@@ -502,7 +517,9 @@ pfOptions = @fOptions
 		' chkEnableAutoComplete
 		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
 		chkEnableAutoComplete.Text = ML("Enable Auto Complete")
-		chkEnableAutoComplete.SetBounds 10, 21, 264, 18
+		chkEnableAutoComplete.ExtraMargins.Top = 5
+		chkEnableAutoComplete.Align = DockStyle.alNone
+		chkEnableAutoComplete.SetBounds 10, 24, 416, 18
 		chkEnableAutoComplete.Parent = @pnlCodeEditor
 		' chkTabAsSpaces
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
@@ -512,7 +529,9 @@ pfOptions = @fOptions
 		' chkAutoIndentation
 		chkAutoIndentation.Name = "chkAutoIndentation"
 		chkAutoIndentation.Text = ML("Auto Indentation")
-		chkAutoIndentation.SetBounds 10, 0, 264, 18
+		chkAutoIndentation.ExtraMargins.Top = 5
+		chkAutoIndentation.Align = DockStyle.alTop
+		chkAutoIndentation.SetBounds 10, 5, 416, 18
 		chkAutoIndentation.Parent = @pnlCodeEditor
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
@@ -793,19 +812,27 @@ pfOptions = @fOptions
 		' txtProjectsPath
 		txtProjectsPath.Name = "txtProjectsPath"
 		txtProjectsPath.Text = "./Projects"
-		txtProjectsPath.SetBounds 10, 368, 390, 20
+		txtProjectsPath.Align = DockStyle.alBottom
+		txtProjectsPath.ExtraMargins.Bottom = 1
+		txtProjectsPath.ExtraMargins.Right = 26
+		txtProjectsPath.SetBounds 10, 383, 390, 20
 		txtProjectsPath.Parent = @pnlGeneral
 		' cmdProjectsPath
 		cmdProjectsPath.Name = "cmdProjectsPath"
 		cmdProjectsPath.Text = "..."
-		cmdProjectsPath.SetBounds 400, 367, 24, 22
+		cmdProjectsPath.Align = DockStyle.alBottom
+		cmdProjectsPath.ExtraMargins.Bottom = -21
+		cmdProjectsPath.ExtraMargins.Left = 392
+		cmdProjectsPath.SetBounds 402, 382, 24, 22
 		'cmdProjectsPath.Caption = "..."
 		cmdProjectsPath.OnClick = @cmdProjectsPath_Click
 		cmdProjectsPath.Parent = @pnlGeneral
 		' lblProjectsPath
 		lblProjectsPath.Name = "lblProjectsPath"
 		lblProjectsPath.Text = ML("Projects path") & ":"
-		lblProjectsPath.SetBounds 13, 350, 96, 16
+		lblProjectsPath.Align = DockStyle.alBottom
+		lblProjectsPath.ExtraMargins.Top = 15
+		lblProjectsPath.SetBounds 10, 366, 416, 16
 		lblProjectsPath.Parent = @pnlGeneral
 		' lblColorBackground
 		lblColorBackground.Name = "lblColorBackground"
@@ -1063,7 +1090,9 @@ pfOptions = @fOptions
 		With chkAutoCreateBakFiles
 			.Name = "chkAutoCreateBakFiles"
 			.Text = ML("Auto create bak files before saving")
-			.SetBounds 10, 46, 400, 16
+			.ExtraMargins.Top = 5
+			.Align = DockStyle.alTop
+			.SetBounds 10, 51, 416, 18
 			.ID = 1009
 			.Parent = @pnlGeneral
 		End With
@@ -1226,7 +1255,9 @@ pfOptions = @fOptions
 		With grbWhenCompiling
 			.Name = "grbWhenCompiling"
 			.Text = ML("When compiling") & ":"
-			.SetBounds 8, 221, 416, 120
+			.Align = DockStyle.alBottom
+			.ExtraMargins.Top = 5
+			.SetBounds 10, 231, 416, 120
 			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
@@ -1407,7 +1438,8 @@ pfOptions = @fOptions
 		With grbWhenVFBEStarts
 			.Name = "grbWhenVFBEStarts"
 			.Text = ML("When VisualFBEditor starts") & ":"
-			.SetBounds 8, 94, 416, 120
+			.Align = DockStyle.alBottom
+			.SetBounds 10, 116, 416, 120
 			.Parent = @pnlGeneral
 		End With
 		' optPromptForProjectAndFile
@@ -1689,7 +1721,9 @@ pfOptions = @fOptions
 			.Name = "chkAddRelativePathsToRecent"
 			.Text = ML("Add relative paths to recent")
 			.TabIndex = 191
-			.SetBounds 10, 69, 400, 16
+			.ExtraMargins.Top = 5
+			.Align = DockStyle.alTop
+			.SetBounds 20, 72, 416, 18
 			.Parent = @pnlGeneral
 		End With
 		' chkShowTooltipsAtTheTop
