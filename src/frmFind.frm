@@ -434,6 +434,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 							CloseFile_(Fn)
 						End If
 					End If
+					CloseFile_(Fn)
 				End If
 			End If
 		End If

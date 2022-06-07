@@ -456,6 +456,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 					CloseFile_(Fn)
 				End If
 			End If
+			CloseFile_(Fn)
 		End If
 		f = Dir(Attr)
 	Wend

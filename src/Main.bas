@@ -537,7 +537,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Parameter = "Check" Then
 			WLet(exename, "chk.dll")
 		End If
-		FileOut = FreeFile_
 		If Dir(*exename) <> "" Then 'delete exe if exist
 			If *exename = ExePath OrElse Kill(*exename) <> 0 Then
 				ThreadsEnter()
@@ -637,7 +636,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				gradlewFile = "./gradlew"
 			#endif
 			WLet(PipeCommand, gradlewFile & " " & gradlewCommand)
-			Dim As Integer Fn1 = FreeFile_, Fn2 = FreeFile_
+			Dim As Integer Fn1 = FreeFile_
 			Open gradlewFile For Input As #Fn1
 			Dim pBuff As WString Ptr
 			Dim As Integer FileSize
@@ -650,6 +649,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Loop
 			CloseFile_(Fn1)
 			WDeallocate pBuff
+			Dim As Integer Fn2 = FreeFile_
 			Open gradlewFile For Output As #Fn2
 			For i As Integer = 0 To Lines.Count - 1
 				If StartsWith(Lines.Item(i), "set FBC=") Then
@@ -673,7 +673,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		
 		Dim As Long nLen, nLen2
 		Dim As Boolean Log2_, ERRGoRc
-		Dim As Integer Result = -1, Fn = FreeFile_
+		Dim As Integer Result = -1
 		Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 		#ifdef __USE_GTK__
 			WLetEx(PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True)
@@ -689,6 +689,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim As Double CompileElapsedTime = Timer
 		'Dim As String TmpStr, TmpStrKey = "@freebasic compiler @copyright @standalone @creating import library @target @backend @compiling @compiling rc @compiling c @assembling @linking @line "
 		#ifdef __USE_GTK__
+			Dim As Integer Fn = FreeFile_
 			If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 				While Not EOF(Fn)
 					Line Input #Fn, Buff
@@ -1615,12 +1616,13 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		Loop
 		WDeallocate filn
 		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn ' For No MainFIle
-		CloseFile_(Fn)
 		For i As Integer = 0 To Files.Count - 1
 			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
 		Next
+		CloseFile_(Fn)
 		Return True
 	End If
+	CloseFile_(Fn)
 	Return False
 End Function
 
@@ -4540,6 +4542,7 @@ Sub LoadLanguageTexts
 			mpKeys.SortKeys
 			mlCompiler.SortKeys
 			mlTemplates.SortKeys
+			CloseFile_(Fn)
 			Exit Sub
 		Else
 			MsgBox ML("Open file failure!") &  " " & Chr(13, 10) & ML("in function") & " Main.LoadLanguageTexts" & Chr(13, 10) & "  " & ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
@@ -5018,7 +5021,6 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add(ML("&Tools") & "..." & HK("Tools"), "", "Tools", @mclick)
 	miXizmat->Add("-")
 	Dim As My.Sys.Drawing.BitmapType Bitm
-	Dim As Integer Fn = FreeFile_
 	Dim As WString * 1024 Buff
 	Dim As MenuItem Ptr mi
 	Dim As UserToolType Ptr tt
@@ -5029,6 +5031,7 @@ Sub CreateMenusAndToolBars
 		ToolsINI = ExePath & "/Tools/Tools.ini"
 	#endif
 	If FileExists(ToolsINI) Then
+		Dim As Integer Fn = FreeFile_
 		Open ToolsINI For Input Encoding "utf8" As #Fn
 		Do Until EOF(Fn)
 			Line Input #Fn, Buff

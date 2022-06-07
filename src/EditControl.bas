@@ -1056,7 +1056,7 @@ Namespace My.Sys.Forms
 		Dim As WString Ptr pBuff
 		Dim As String Buff, EncodingStr, NewLineStr
 		Dim As WString * 1024 BuffRead
-		Dim As Integer Result = -1, Fn = FreeFile_, FileSize
+		Dim As Integer Result = -1, Fn, FileSize
 		Dim As FileEncodings OldFileEncoding
 		Dim As Integer iC = 0, OldiC = 0, i = 0
 		Var InAsm = False

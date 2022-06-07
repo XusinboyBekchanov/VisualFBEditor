@@ -742,7 +742,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 			CBool(Not EndsWith(*ppe->FileName, ".vfp") AndAlso FileExists(*ppe->FileName & "/local.properties")) Then
 			WLet(ppe->AndroidSDKLocation, .txtAndroidSDKLocation.Text)
 			WLet(ppe->AndroidNDKLocation, .txtAndroidNDKLocation.Text)
-			Dim As Integer Fn1 = FreeFile_, Fn2 = FreeFile_
+			Dim As Integer Fn1 = FreeFile_
 			Open *ppe->FileName & "/local.properties" For Input As #Fn1
 			Dim pBuff As WString Ptr
 			Dim As Integer FileSize
@@ -755,6 +755,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 			Loop
 			CloseFile_(Fn1)
 			Dim As Boolean bFindSDK, bFindNDK
+			Dim As Integer Fn2 = FreeFile_
 			Open *ppe->FileName & "/local.properties" For Output As #Fn2
 			For i As Integer = 0 To Lines.Count - 1
 				If StartsWith(Lines.Item(i), "sdk.dir=") Then
@@ -778,7 +779,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		If CBool(Not EndsWith(*ppe->FileName, ".vfp") AndAlso FileExists(*ppe->FileName & "/gradle.properties")) AndAlso _
 			(*ppe->JDKLocation <> .txtJDKLocation.Text) Then
 			WLet(ppe->JDKLocation, .txtJDKLocation.Text)
-			Dim As Integer Fn1 = FreeFile_, Fn2 = FreeFile_
+			Dim As Integer Fn1 = FreeFile_
 			Open *ppe->FileName & "/gradle.properties" For Input As #Fn1
 			Dim pBuff As WString Ptr
 			Dim As Integer FileSize
@@ -791,6 +792,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 			Loop
 			CloseFile_(Fn1)
 			Dim As Boolean bFindJDK
+			Dim As Integer Fn2 = FreeFile_
 			Open *ppe->FileName & "/gradle.properties" For Output As #Fn2
 			For i As Integer = 0 To Lines.Count - 1
 				If StartsWith(Lines.Item(i), "org.gradle.java.home=") Then
