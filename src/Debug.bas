@@ -8667,7 +8667,7 @@ Sub RunWithDebug(Param As Any Ptr)
 	'				gtk_widget_show_all(lvGlobals.Handle)
 	'				lvGlobals.Parent->RequestAlign
 					ThreadsLeave()
-					If load_file(exename, *GDBDebuggerPath) Then
+					If load_file(exename, GetFullPath(*GDBDebuggerPath)) Then
 						ThreadsEnter()
 						ShowMessages(Time & ": " & ML("Debugging finished."))
 						ChangeEnabledDebug True, False, False
@@ -8720,7 +8720,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				lvThreads.Visible = True
 				tvWch.Visible = False
 				lvWatches.Visible = True
-				If load_file(exename, *GDBDebuggerPath) Then 
+				If load_file(exename, GetFullPath(*GDBDebuggerPath)) Then 
 					ShowMessages(Time & ": " & ML("Debugging finished."))
 					ChangeEnabledDebug True, False, False
 					Exit Sub
