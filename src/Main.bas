@@ -883,7 +883,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CloseFile_(Fn)
 		#endif
 		ThreadsEnter()
-		StopProgress
 		ShowMessages("")
 		If lvErrors.ListItems.Count <> 0 Then
 			ptabBottom->Tabs[1]->Caption = IIf(NumberErr > 0, ML("Errors") & "(" & WStr(NumberErr) & " " & ML("Pos") & ") ", "")
@@ -927,6 +926,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ThreadsLeave()
 		End If
 	Next k
+	ThreadsEnter()
+	StopProgress
+	ThreadsLeave()
 	WDeAllocate FbcExe
 	WDeAllocate PipeCommand
 	WDeAllocate ExeName
