@@ -169,9 +169,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Label lblInterfaceFont
 		Dim As CommandButton cmdInterfaceFont
 		Dim As Label lblInterfaceFontLabel
-		Dim As CheckBox chkDisplayIcons
-		Dim As CheckBox chkShowMainToolbar
-		Dim As CheckBox chkAutoCreateBakFiles
+		Dim As CheckBox chkDisplayIcons, chkShowMainToolbar, chkAutoCreateBakFiles, chkShowToolBoxLocal, chkShowPropLocal
 		Dim As Label lblFrame, lblDebugger32, lblDebugger64, lblFindCompilersFromComputer, lblOpenCommandPromptIn, lblIntellisenseLimit, lblDebugger321, lblDebugger641, lblHistoryDay, lblShowMsg
 		Dim As Picture lblColorFrame
 		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps, cmdAddEditor, cmdChangeEditor, cmdRemoveEditor, cmdClearEditor, cmdFindCompilers, cmdInFolder, cmdUpdateLng,  cmdUpdateLngHTMLFolds(0),  cmdReplaceInFiles(0)
