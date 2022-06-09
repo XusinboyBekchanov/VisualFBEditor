@@ -1703,6 +1703,13 @@ Sub frmOptions.LoadSettings()
 		AddColors ExecutionLine, , , , , False, False, False
 		AddColors FoldLines, , False, False, False, False, False, False
 		AddColors Identifiers, , , , False
+		AddColors ColorGlobalArgs, , , , False
+		AddColors ColorComps, , , , False
+		AddColors ColorGlobalFunctions, , , , False
+		AddColors ColorGlobalEnums, , , , False
+		AddColors ColorGlobalNamespaces, , , , False
+		AddColors ColorProperty, , , , False
+		AddColors ColorGlobalTypes, , , , False
 		AddColors IndicatorLines, , False, False, False, False, False, False
 		For k As Integer = 0 To UBound(Keywords)
 			'ReDim Preserve Keywords(k)
@@ -1712,18 +1719,11 @@ Sub frmOptions.LoadSettings()
 		AddColors LineNumbers, , , False, False
 		AddColors NormalText, , , , False
 		AddColors Numbers, , , , False
+		AddColors ColorOperators, , , , False
 		AddColors RealNumbers, , , , False
 		AddColors Selection, , , , False, False, False, False
 		AddColors SpaceIdentifiers, , False, False, False, False, False, False
 		AddColors Strings, , , , False
-		AddColors ColorOperators, , , , False
-		AddColors ColorProperty, , , , False
-		AddColors ColorComps, , , , False
-		AddColors ColorGlobalNamespaces, , , , False
-		AddColors ColorGlobalTypes, , , , False
-		AddColors ColorGlobalEnums, , , , False
-		AddColors ColorGlobalArgs, , , , False
-		AddColors ColorGlobalFunctions, , , , False
 		
 		.lstColorKeys.ItemIndex = 0
 		.lstColorKeys_Change(.lstColorKeys)
@@ -1894,6 +1894,13 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Executed Line")
 		.lstColorKeys.AddItem ML("Fold Lines")
 		.lstColorKeys.AddItem ML("Identifiers")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Args")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Components")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Functions")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Enums")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Namespaces")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Properties")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Types")
 		.lstColorKeys.AddItem ML("Indicator Lines")
 		For k As Integer = 0 To KeywordLists.Count - 1
 			.lstColorKeys.AddItem ML("Keywords") & ": " & KeywordLists.Item(k)
@@ -1901,19 +1908,12 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Line Numbers")
 		.lstColorKeys.AddItem ML("Normal Text")
 		.lstColorKeys.AddItem ML("Numbers")
+		.lstColorKeys.AddItem ML("Operators")
 		.lstColorKeys.AddItem ML("Real Numbers")
 		'		.lstColorKeys.AddItem ML("Preprocessors")
 		.lstColorKeys.AddItem ML("Selection")
 		.lstColorKeys.AddItem ML("Space Identifiers")
 		.lstColorKeys.AddItem ML("Strings")
-		.lstColorKeys.AddItem ML("Operator")
-		.lstColorKeys.AddItem ML("Properties")
-		.lstColorKeys.AddItem ML("Components")
-		.lstColorKeys.AddItem ML("Namespaces")
-		.lstColorKeys.AddItem ML("Types")
-		.lstColorKeys.AddItem ML("Enums")
-		.lstColorKeys.AddItem ML("Args")
-		.lstColorKeys.AddItem ML("Functions")
 		.lstColorKeys.ItemIndex = 0
 		.cboOpenedFile.AddItem ML("All file types")
 		.cboOpenedFile.AddItem ML("Session file")
@@ -1954,6 +1954,13 @@ Sub SetColors
 		SetColor ExecutionLine
 		SetColor FoldLines
 		SetColor Identifiers
+		SetColor ColorGlobalArgs
+		SetColor ColorComps
+		SetColor ColorGlobalFunctions
+		SetColor ColorGlobalEnums
+		SetColor ColorGlobalNamespaces
+		SetColor ColorProperty
+		SetColor ColorGlobalTypes
 		SetColor IndicatorLines
 		'		IndicatorLines.ForegroundOption = .Colors(8, 0)
 		For k As Integer = 0 To UBound(Keywords)
@@ -1963,18 +1970,11 @@ Sub SetColors
 		SetColor LineNumbers
 		SetColor NormalText
 		SetColor Numbers
+		SetColor ColorOperators
 		SetColor RealNumbers
 		SetColor Selection
 		SetColor SpaceIdentifiers
 		SetColor Strings
-		SetColor ColorOperators
-		SetColor ColorProperty
-		SetColor ColorComps
-		SetColor ColorGlobalNamespaces
-		SetColor ColorGlobalTypes
-		SetColor ColorGlobalEnums
-		SetColor ColorGlobalArgs
-		SetColor ColorGlobalFunctions
 		SetAutoColors
 	End With
 End Sub
@@ -2405,61 +2405,6 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "IdentifiersBold", Identifiers.Bold)
 		piniTheme->WriteInteger("FontStyles", "IdentifiersItalic", Identifiers.Italic)
 		piniTheme->WriteInteger("FontStyles", "IdentifiersUnderline", Identifiers.Underline)
-		piniTheme->WriteInteger("Colors", "IndicatorLinesForeground", IndicatorLines.ForegroundOption)
-		For k As Integer = 0 To UBound(Keywords)
-			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", Keywords(k).ForegroundOption)
-			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", Keywords(k).BackgroundOption)
-			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", Keywords(k).FrameOption)
-			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", Keywords(k).Bold)
-			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", Keywords(k).Italic)
-			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", Keywords(k).Underline)
-		Next k
-		piniTheme->WriteInteger("Colors", "LineNumbersForeground", LineNumbers.ForegroundOption)
-		piniTheme->WriteInteger("Colors", "LineNumbersBackground", LineNumbers.BackgroundOption)
-		piniTheme->WriteInteger("FontStyles", "LineNumbersBold", LineNumbers.Bold)
-		piniTheme->WriteInteger("FontStyles", "LineNumbersItalic", LineNumbers.Italic)
-		piniTheme->WriteInteger("FontStyles", "LineNumbersUnderline", LineNumbers.Underline)
-		piniTheme->WriteInteger("Colors", "NormalTextForeground", NormalText.ForegroundOption)
-		piniTheme->WriteInteger("Colors", "NormalTextBackground", NormalText.BackgroundOption)
-		piniTheme->WriteInteger("Colors", "NormalTextFrame", NormalText.FrameOption)
-		piniTheme->WriteInteger("FontStyles", "NormalTextBold", NormalText.Bold)
-		piniTheme->WriteInteger("FontStyles", "NormalTextItalic", NormalText.Italic)
-		piniTheme->WriteInteger("FontStyles", "NormalTextUnderline", NormalText.Underline)
-		'		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", Preprocessors.ForegroundOption)
-		'		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", Preprocessors.BackgroundOption)
-		'		piniTheme->WriteInteger("Colors", "PreprocessorsFrame", Preprocessors.FrameOption)
-		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
-		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
-		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
-		piniTheme->WriteInteger("Colors", "NumbersForeground", Numbers.ForegroundOption)
-		piniTheme->WriteInteger("Colors", "NumbersBackground", Numbers.BackgroundOption)
-		piniTheme->WriteInteger("Colors", "NumbersFrame", Numbers.FrameOption)
-		piniTheme->WriteInteger("FontStyles", "NumbersBold", Numbers.Bold)
-		piniTheme->WriteInteger("FontStyles", "NumbersItalic", Numbers.Italic)
-		piniTheme->WriteInteger("FontStyles", "NumbersUnderline", Numbers.Underline)
-		piniTheme->WriteInteger("Colors", "RealNumbersForeground", RealNumbers.ForegroundOption)
-		piniTheme->WriteInteger("Colors", "RealNumbersBackground", RealNumbers.BackgroundOption)
-		piniTheme->WriteInteger("Colors", "RealNumbersFrame", RealNumbers.FrameOption)
-		piniTheme->WriteInteger("FontStyles", "RealNumbersBold", RealNumbers.Bold)
-		piniTheme->WriteInteger("FontStyles", "RealNumbersItalic", RealNumbers.Italic)
-		piniTheme->WriteInteger("FontStyles", "RealNumbersUnderline", RealNumbers.Underline)
-		'		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
-		piniTheme->WriteInteger("Colors", "SelectionBackground", Selection.BackgroundOption)
-		piniTheme->WriteInteger("Colors", "SelectionFrame", Selection.FrameOption)
-		piniTheme->WriteInteger("Colors", "SpaceIdentifiersForeground", SpaceIdentifiers.ForegroundOption)
-		piniTheme->WriteInteger("Colors", "StringsForeground", Strings.ForegroundOption)
-		piniTheme->WriteInteger("Colors", "StringsBackground", Strings.BackgroundOption)
-		piniTheme->WriteInteger("Colors", "StringsFrame", Strings.FrameOption)
-		piniTheme->WriteInteger("FontStyles", "StringsBold", Strings.Bold)
-		piniTheme->WriteInteger("FontStyles", "StringsItalic", Strings.Italic)
-		piniTheme->WriteInteger("FontStyles", "StringsUnderline", Strings.Underline)
-		
-		piniTheme->WriteInteger("Colors", "OperatorsForeground", IIf(ColorOperators.ForegroundOption = Identifiers.ForegroundOption, -1, ColorOperators.ForegroundOption))
-		piniTheme->WriteInteger("Colors", "OperatorsBackground", IIf(ColorOperators.BackgroundOption = Identifiers.BackgroundOption, -1, ColorOperators.BackgroundOption))
-		piniTheme->WriteInteger("Colors", "OperatorsFrame", IIf(ColorOperators.FrameOption = Identifiers.FrameOption, -1, ColorOperators.FrameOption))
-		piniTheme->WriteInteger("FontStyles", "OperatorsBold", ColorOperators.Bold)
-		piniTheme->WriteInteger("FontStyles", "OperatorsItalic", ColorOperators.Italic)
-		piniTheme->WriteInteger("FontStyles", "OperatorsUnderline", ColorOperators.Underline)
 		piniTheme->WriteInteger("Colors", "PropertyForeground",  IIf(ColorProperty.ForegroundOption = Identifiers.ForegroundOption, -1, ColorProperty.ForegroundOption))
 		piniTheme->WriteInteger("Colors", "PropertyBackground", IIf(ColorProperty.BackgroundOption = Identifiers.BackgroundOption, -1, ColorProperty.BackgroundOption))
 		piniTheme->WriteInteger("Colors", "PropertyFrame", IIf(ColorProperty.FrameOption = Identifiers.FrameOption, -1, ColorProperty.FrameOption))
@@ -2508,6 +2453,61 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "GlobalFunctionsBold", ColorGlobalFunctions.Bold)
 		piniTheme->WriteInteger("FontStyles", "GlobalFunctionsItalic", ColorGlobalFunctions.Italic)
 		piniTheme->WriteInteger("FontStyles", "GlobalFunctionsUnderline", ColorGlobalFunctions.Underline)
+		
+		piniTheme->WriteInteger("Colors", "IndicatorLinesForeground", IndicatorLines.ForegroundOption)
+		For k As Integer = 0 To UBound(Keywords)
+			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", Keywords(k).ForegroundOption)
+			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", Keywords(k).BackgroundOption)
+			piniTheme->WriteInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", Keywords(k).FrameOption)
+			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", Keywords(k).Bold)
+			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", Keywords(k).Italic)
+			piniTheme->WriteInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", Keywords(k).Underline)
+		Next k
+		piniTheme->WriteInteger("Colors", "LineNumbersForeground", LineNumbers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "LineNumbersBackground", LineNumbers.BackgroundOption)
+		piniTheme->WriteInteger("FontStyles", "LineNumbersBold", LineNumbers.Bold)
+		piniTheme->WriteInteger("FontStyles", "LineNumbersItalic", LineNumbers.Italic)
+		piniTheme->WriteInteger("FontStyles", "LineNumbersUnderline", LineNumbers.Underline)
+		piniTheme->WriteInteger("Colors", "NormalTextForeground", NormalText.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "NormalTextBackground", NormalText.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "NormalTextFrame", NormalText.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "NormalTextBold", NormalText.Bold)
+		piniTheme->WriteInteger("FontStyles", "NormalTextItalic", NormalText.Italic)
+		piniTheme->WriteInteger("FontStyles", "NormalTextUnderline", NormalText.Underline)
+		'		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", Preprocessors.ForegroundOption)
+		'		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", Preprocessors.BackgroundOption)
+		'		piniTheme->WriteInteger("Colors", "PreprocessorsFrame", Preprocessors.FrameOption)
+		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
+		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
+		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
+		piniTheme->WriteInteger("Colors", "NumbersForeground", Numbers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "NumbersBackground", Numbers.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "NumbersFrame", Numbers.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "NumbersBold", Numbers.Bold)
+		piniTheme->WriteInteger("FontStyles", "NumbersItalic", Numbers.Italic)
+		piniTheme->WriteInteger("FontStyles", "NumbersUnderline", Numbers.Underline)
+		piniTheme->WriteInteger("Colors", "OperatorsForeground", IIf(ColorOperators.ForegroundOption = Identifiers.ForegroundOption, -1, ColorOperators.ForegroundOption))
+		piniTheme->WriteInteger("Colors", "OperatorsBackground", IIf(ColorOperators.BackgroundOption = Identifiers.BackgroundOption, -1, ColorOperators.BackgroundOption))
+		piniTheme->WriteInteger("Colors", "OperatorsFrame", IIf(ColorOperators.FrameOption = Identifiers.FrameOption, -1, ColorOperators.FrameOption))
+		piniTheme->WriteInteger("FontStyles", "OperatorsBold", ColorOperators.Bold)
+		piniTheme->WriteInteger("FontStyles", "OperatorsItalic", ColorOperators.Italic)
+		piniTheme->WriteInteger("FontStyles", "OperatorsUnderline", ColorOperators.Underline)
+		piniTheme->WriteInteger("Colors", "RealNumbersForeground", RealNumbers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "RealNumbersBackground", RealNumbers.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "RealNumbersFrame", RealNumbers.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "RealNumbersBold", RealNumbers.Bold)
+		piniTheme->WriteInteger("FontStyles", "RealNumbersItalic", RealNumbers.Italic)
+		piniTheme->WriteInteger("FontStyles", "RealNumbersUnderline", RealNumbers.Underline)
+		'		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "SelectionBackground", Selection.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "SelectionFrame", Selection.FrameOption)
+		piniTheme->WriteInteger("Colors", "SpaceIdentifiersForeground", SpaceIdentifiers.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "StringsForeground", Strings.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "StringsBackground", Strings.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "StringsFrame", Strings.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "StringsBold", Strings.Bold)
+		piniTheme->WriteInteger("FontStyles", "StringsItalic", Strings.Italic)
+		piniTheme->WriteInteger("FontStyles", "StringsUnderline", Strings.Underline)
 		
 		Dim As TabWindow Ptr tb
 		For jj As Integer = 0 To TabPanels.Count - 1
