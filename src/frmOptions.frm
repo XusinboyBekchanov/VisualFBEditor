@@ -591,6 +591,18 @@ pfOptions = @fOptions
 			'.Caption = ML("Add Spaces To Operators")
 			.Parent = @pnlCodeEditor
 		End With
+		' chkChangeIdentifiersCase
+		With chkChangeIdentifiersCase
+			.Name = "chkChangeIdentifiersCase"
+			.Text = ML("Change Identifiers Case")
+			.TabIndex = 200
+			.Align = DockStyle.alTop
+			.Caption = ML("Change Identifiers Case")
+			.ExtraMargins.Top = 2
+			.SetBounds 10, 185, 416, 18
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
 		' chkChangeKeywordsCase
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
 		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
