@@ -5653,6 +5653,13 @@ Destructor TabWindow
 	If FLine3 Then Deallocate_( FLine3)
 	If FLine4 Then Deallocate_( FLine4)
 	If FPath Then Deallocate_( FPath)
+	If pLocalTypes = @Types Then pLocalTypes = 0
+	If pLocalEnums = @Enums Then pLocalEnums = 0
+	If pLocalProcedures = @Procedures Then pLocalProcedures = 0
+	If pLocalFunctions = @Functions Then pLocalFunctions = 0
+	If pLocalFunctionsOthers = @FunctionsOthers Then pLocalFunctionsOthers = 0
+	If pLocalArgs = @Args Then pLocalArgs = 0
+	
 	If Des <> 0 Then
 		For i As Integer = cboClass.Items.Count - 1 To 1 Step -1
 			CurCtrl = 0
