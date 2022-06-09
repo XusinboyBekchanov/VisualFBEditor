@@ -126,18 +126,6 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Sub chkCreateNonStaticEventHandlers_Click(ByRef Sender As CheckBox)
 		Declare Static Sub cmdUpdateLng_Click_(ByRef Sender As Control)
 		Declare Sub cmdUpdateLng_Click(ByRef Sender As Control)
-		Declare Static Sub cmdUpdateLngHTMLFolds_Click_(ByRef Sender As Control)
-		Declare Sub cmdUpdateLngHTMLFolds_Click(ByRef Sender As Control)
-		Declare Static Sub cmdUpdateKeywordsHelp_Click_(ByRef Sender As Control)
-		Declare Sub cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
-		Declare Static Sub cmdReplaceInFiles_Click_(ByRef Sender As Control)
-		Declare Sub cmdReplaceInFiles_Click(ByRef Sender As Control)
-		Declare Static Sub txtFoldsHtml_Change_(ByRef Sender As TextBox)
-		Declare Sub txtFoldsHtml_Change(ByRef Sender As TextBox)
-		Declare Static Sub _cmdTranslateByEdge_Click(ByRef Sender As Control)
-		Declare Sub cmdTranslateByEdge_Click(ByRef Sender As Control)
-		Declare Static Sub _TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
-		Declare Sub TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 		Declare Constructor
 		Declare Destructor
 		

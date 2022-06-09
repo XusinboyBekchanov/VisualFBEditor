@@ -1451,29 +1451,9 @@ pfOptions = @fOptions
 		End With
 
 	End Constructor
-	
-	Private Sub frmOptions._cmdTranslateByEdge_Click(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdTranslateByEdge_Click(Sender)
-	End Sub
-	
-	Private Sub frmOptions.txtFoldsHtml_Change_(ByRef Sender As TextBox)
-		*Cast(frmOptions Ptr, Sender.Designer).txtFoldsHtml_Change(Sender)
-	End Sub
-	
+
 	Private Sub frmOptions.cmdUpdateLng_Click_(ByRef Sender As Control)
 		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateLng_Click(Sender)
-	End Sub
-	
-	Private Sub frmOptions.cmdUpdateLngHTMLFolds_Click_(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateLngHTMLFolds_Click(Sender)
-	End Sub
-	
-	Private Sub frmOptions.cmdUpdateKeywordsHelp_Click_(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateKeywordsHelp_Click(Sender)
-	End Sub
-	
-	Private Sub frmOptions.cmdReplaceInFiles_Click_(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdReplaceInFiles_Click(Sender)
 	End Sub
 	
 	Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click_(ByRef Sender As CheckBox)
