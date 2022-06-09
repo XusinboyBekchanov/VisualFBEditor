@@ -2425,19 +2425,28 @@ Namespace My.Sys.Forms
 																pkeywords = 0
 																tIndex = -1
 															Next
-															'Modules
-															'If tIndex = -1 AndAlso pArgs > 0 Then tIndex = pArgs->IndexOf(LCase(Matn))
-															'If tNotFound AndAlso tIndex <> -1 Then
-															'	sc = @ColorGlobalEnums
-															'	pkeywords = pArgs
-															'	tNotFound = False
-															'End If
-															'If tIndex = -1 AndAlso pProcedures > 0 Then tIndex = pProcedures->IndexOf(LCase(Matn))
-															'If tNotFound AndAlso tIndex <> -1 Then
-															'	sc = @ColorGlobalFunctions
-															'	pkeywords = GlobalProcedures
-															'	tNotFound = False
-															'End If
+															
+''															'Procedure
+''															If tIndex = -1 AndAlso FECLine->InConstruction > 0 Then tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
+''															If tNotFound AndAlso tIndex <> -1 Then
+''																sc = @ColorGlobalArgs
+''																pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+''																tNotFound = False
+''															End If
+''															
+''															'Module
+''															If tIndex = -1 AndAlso pLocalArgs > 0 Then tIndex = pLocalArgs->IndexOf(LCase(Matn))
+''															If tNotFound AndAlso tIndex <> -1 Then
+''																sc = @ColorGlobalArgs
+''																pkeywords = pLocalArgs
+''																tNotFound = False
+''															End If
+''															If tIndex = -1 AndAlso pLocalProcedures > 0 Then tIndex = pLocalProcedures->IndexOf(LCase(Matn))
+''															If tNotFound AndAlso tIndex <> -1 Then
+''																sc = @ColorGlobalFunctions
+''																pkeywords = pLocalProcedures
+''																tNotFound = False
+''															End If
 															
 															'Global
 															If tIndex = -1 AndAlso pComps > 0 Then tIndex = pComps->IndexOf(LCase(Matn))
@@ -4958,6 +4967,10 @@ Namespace My.Sys.Forms
 		WDeallocate FLineSpace
 		WDeallocate FHintWord
 		WDeallocate CurrentFontName
+	End Destructor
+	
+	Destructor TypeElement
+		Elements.Clear
 	End Destructor
 End Namespace
 

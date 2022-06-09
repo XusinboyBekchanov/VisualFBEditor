@@ -58,10 +58,6 @@ Destructor ProjectElement
 	Files.Clear
 End Destructor
 
-Destructor TypeElement
-	Elements.Clear
-End Destructor
-
 Public Sub MoveCloseButtons(ptabCode As TabControl Ptr)
 	Dim As Rect RR
 	For i As Integer = 0 To pTabCode->TabCount - 1
@@ -4399,6 +4395,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		End If
 		For i As Integer = iStart To iEnd
 			ECLine = ptxtCode->FLines.Items[i]
+			If InFunc Then ECLine->InConstruction = func
 			WLet(FLine, *ECLine->Text)
 			b1 = Replace(*ECLine->Text, !"\t", " ")
 			If StartsWith(Trim(b1), "'") Then
@@ -4525,8 +4522,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						te->ElementType = Trim(Constructions(ECLine->ConstructionIndex).Name0)
 						te->StartLine = i
-						te->TabPtr = @This
+						te->Tag = @This
 						te->FileName = FileName
+						ECLine->InConstruction = te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
 						LastIndexFunctions = Functions.Add(te->DisplayName, te)
 						If ECLine->ConstructionIndex = 14 Then
@@ -4584,7 +4582,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				ElseIf ECLine->ConstructionPart = 2 Then
 					If LastIndexFunctions >= 0 AndAlso LastIndexFunctions <= Functions.Count - 1 Then 
 						Cast(TypeElement Ptr, Functions.Object(LastIndexFunctions))->EndLine = i: inFunc = False
-						LastIndexFunctions=-1
+						LastIndexFunctions = -1
+						ECLine->InConstruction = Functions.Object(LastIndexFunctions)
 					End If
 				End If
 			ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
@@ -4672,8 +4671,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				End If
 				te->StartLine = i
 				te->EndLine = i
-				te->TabPtr = @This
+				te->Tag = @This
 				te->FileName = FileName
+				ECLine->InConstruction = te
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
 				If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 					func->Elements.Add te->Name, te
@@ -4754,7 +4754,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->EndLine = i
 						te->Parameters = res1(n) & " As " & CurType
 						te->FileName = FileName
-						te->TabPtr = @This
+						te->Tag = @This
 						If InFunc AndAlso func <> 0 Then
 							func->Elements.Add te->Name, te
 						Else
@@ -5126,7 +5126,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			For j As Integer = Functions.Count - 1 To 0 Step -1
 				te2 = Functions.Object(j)
 				If te2 = 0 Then Continue For
-				'If te2->TabPtr = @This Then
+				'If te2->Tag = @This Then
 				If CInt(Not te2->Find) AndAlso CInt(te2->DisplayName = cboFunction.Items.Item(i)->Text) Then 'CInt(Not te1->Find) AndAlso
 					te2->Find = True
 					cboFunction.Items.Item(i)->Object = te2
@@ -5141,7 +5141,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next i
 		For j As Integer = 0 To Functions.Count - 1
 			te2 = Functions.Object(j)
-			'If te2->TabPtr = @This Then
+			'If te2->Tag = @This Then
 			If Not te2->Find Then
 				Dim As String imgKey = "Sub"
 				If te2->ElementType = "Property" Then
@@ -7775,7 +7775,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 		Else
@@ -7785,7 +7785,7 @@ Sub TabWindow.Define
 				.Item(.Count - 1)->Text(2) = WStr(te2->StartLine + 1)
 				.Item(.Count - 1)->Text(3) = te2->FileName
 				.Item(.Count - 1)->Text(4) = te2->Comment
-				.Item(.Count - 1)->Tag = te2->TabPtr
+				.Item(.Count - 1)->Tag = te2->Tag
 			End If
 			If cboFunction.ItemIndex > -1 Then te1 = cboFunction.Items.Item(cboFunction.ItemIndex)->Object
 			Pos1 = InStr(cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(cboFunction.Text, Pos1 - 1)): TypeName = FuncName
@@ -7801,7 +7801,7 @@ Sub TabWindow.Define
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 						.Item(.Count - 1)->Text(3) = te->FileName
 						.Item(.Count - 1)->Text(4) = te->Comment
-						.Item(.Count - 1)->Tag = te->TabPtr
+						.Item(.Count - 1)->Tag = te->Tag
 					End If
 				Next
 			End If
@@ -7828,7 +7828,7 @@ Sub TabWindow.Define
 							.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 							.Item(.Count - 1)->Text(3) = te->FileName
 							.Item(.Count - 1)->Text(4) = te->Comment
-							.Item(.Count - 1)->Tag = te->TabPtr
+							.Item(.Count - 1)->Tag = te->Tag
 						End If
 					Next
 				End If
@@ -7844,7 +7844,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 			For i As Integer = 0 To Args.Count - 1
@@ -7857,7 +7857,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 			For i As Integer = 0 To pGlobalFunctions->Count - 1
@@ -7870,7 +7870,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 			For i As Integer = 0 To pGlobalArgs->Count - 1
@@ -7883,7 +7883,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 			For i As Integer = 0 To pComps->Count - 1
@@ -7896,7 +7896,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 			For i As Integer = 0 To pGlobalTypes->Count - 1
@@ -7908,7 +7908,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 			For i As Integer = 0 To pGlobalEnums->Count - 1
@@ -7920,7 +7920,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 					For j As Integer = 0 To te->Elements.Count - 1
 						te1 = te->Elements.Object(j)
 						If te1 <> 0 AndAlso LCase(Trim(te1->Name)) = LCase(sWord) Then
@@ -7930,7 +7930,7 @@ Sub TabWindow.Define
 							.Item(.Count - 1)->Text(2) = WStr(te1->StartLine + 1)
 							.Item(.Count - 1)->Text(3) = te1->FileName
 							.Item(.Count - 1)->Text(4) = te1->Comment
-							.Item(.Count - 1)->Tag = te1->TabPtr
+							.Item(.Count - 1)->Tag = te1->Tag
 						End If
 					Next
 				End If
@@ -7944,7 +7944,7 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
-					.Item(.Count - 1)->Tag = te->TabPtr
+					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 		End If

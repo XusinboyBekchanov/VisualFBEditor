@@ -77,6 +77,29 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	Type TypeElement
+		Name As String
+		DisplayName As String
+		EnumTypeName As String
+		TypeName As String
+		Value As UString
+		ElementType As String
+		Parameters As UString
+		Comment As UString
+		FileName As UString
+		IncludeFile As UString
+		TypeIsPointer As Boolean
+		Declaration As Boolean
+		Locals As Integer
+		StartLine As Integer
+		EndLine As Integer
+		ControlType As Integer
+		Find As Boolean
+		Tag As Any Ptr
+		Elements As WStringList
+		Declare Destructor
+	End Type
+	
 	Type EditControlLine
 		Bookmark As Boolean
 		Breakpoint As Boolean
@@ -87,6 +110,7 @@ Namespace My.Sys.Forms
 		ConstructionPart As Integer
 		InAsm As Boolean
 		InCollapse As Boolean
+		InConstruction As TypeElement Ptr
 		InConstructionIndex As Integer
 		InConstructionPart As Integer
 		Multiline As Boolean

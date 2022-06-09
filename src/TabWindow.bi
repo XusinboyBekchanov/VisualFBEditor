@@ -104,29 +104,6 @@ Type FileType
 	InProcess As Boolean
 End Type
 
-Type TypeElement
-	Name As String
-	DisplayName As String
-	EnumTypeName As String
-	TypeName As String
-	Value As UString
-	ElementType As String
-	Parameters As UString
-	Comment As UString
-	FileName As UString
-	IncludeFile As UString
-	TypeIsPointer As Boolean
-	Declaration As Boolean
-	Locals As Integer
-	StartLine As Integer
-	EndLine As Integer
-	ControlType As Integer
-	Find As Boolean
-	TabPtr As PTabWindow
-	Elements As WStringList
-	Declare Destructor
-End Type
-
 Declare Function Err2Description(Code As Integer) ByRef As WString
 
 #ifdef __USE_GTK__

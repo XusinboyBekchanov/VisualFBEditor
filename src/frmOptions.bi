@@ -126,18 +126,6 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Sub chkCreateNonStaticEventHandlers_Click(ByRef Sender As CheckBox)
 		Declare Static Sub cmdUpdateLng_Click_(ByRef Sender As Control)
 		Declare Sub cmdUpdateLng_Click(ByRef Sender As Control)
-		Declare Static Sub cmdUpdateLngHTMLFolds_Click_(ByRef Sender As Control)
-		Declare Sub cmdUpdateLngHTMLFolds_Click(ByRef Sender As Control)
-		Declare Static Sub cmdUpdateKeywordsHelp_Click_(ByRef Sender As Control)
-		Declare Sub cmdUpdateKeywordsHelp_Click(ByRef Sender As Control)
-		Declare Static Sub cmdReplaceInFiles_Click_(ByRef Sender As Control)
-		Declare Sub cmdReplaceInFiles_Click(ByRef Sender As Control)
-		Declare Static Sub txtFoldsHtml_Change_(ByRef Sender As TextBox)
-		Declare Sub txtFoldsHtml_Change(ByRef Sender As TextBox)
-		Declare Static Sub _cmdTranslateByEdge_Click(ByRef Sender As Control)
-		Declare Sub cmdTranslateByEdge_Click(ByRef Sender As Control)
-		Declare Static Sub _TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
-		Declare Sub TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
 		Declare Constructor
 		Declare Destructor
 		
@@ -169,9 +157,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Label lblInterfaceFont
 		Dim As CommandButton cmdInterfaceFont
 		Dim As Label lblInterfaceFontLabel
-		Dim As CheckBox chkDisplayIcons
-		Dim As CheckBox chkShowMainToolbar
-		Dim As CheckBox chkAutoCreateBakFiles
+		Dim As CheckBox chkDisplayIcons, chkShowMainToolbar, chkAutoCreateBakFiles, chkShowToolBoxLocal, chkShowPropLocal
 		Dim As Label lblFrame, lblDebugger32, lblDebugger64, lblFindCompilersFromComputer, lblOpenCommandPromptIn, lblIntellisenseLimit, lblDebugger321, lblDebugger641, lblHistoryDay, lblShowMsg
 		Dim As Picture lblColorFrame
 		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps, cmdAddEditor, cmdChangeEditor, cmdRemoveEditor, cmdClearEditor, cmdFindCompilers, cmdInFolder, cmdUpdateLng,  cmdUpdateLngHTMLFolds(0),  cmdReplaceInFiles(0)

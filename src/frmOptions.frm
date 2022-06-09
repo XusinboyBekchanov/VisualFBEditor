@@ -10,10 +10,6 @@
 
 Dim Shared Languages As WStringList
 Dim Shared fOptions As frmOptions
-Dim Shared As WStringList FilesFind
-Dim Shared As Integer FilesIndex
-Dim Shared As Double mTimeStart, mTimeFactor ' spend on a litter more time for big filesize
-Dim Shared As Boolean Act1, Act2, Act3, Act4, Act5, Act6, Act7, Act0
 pfOptions = @fOptions
 
 '#Region "Form"
@@ -1178,6 +1174,20 @@ pfOptions = @fOptions
 			.SetBounds 2, 18, 224, 24
 			.Parent = @pnlThemesCheckboxes
 		End With
+		'chkShowToolBoxLocal
+		With chkShowToolBoxLocal
+			.Name = "chkShowToolBoxLocal"
+			.Text = ML("Display ToolBox in localized language.")
+			.SetBounds 2, 64, 328, 24
+			.Parent = @pnlThemesCheckboxes
+		End With
+		'chkShowPropLocal
+		With chkShowPropLocal
+			.Name = "chkShowPropLocal"
+			.Text = ML("Display Property of Control in localized language.")
+			.SetBounds 2, 89, 328, 18
+			.Parent = @pnlThemesCheckboxes
+		End With
 		' chkAutoCreateBakFiles
 		With chkAutoCreateBakFiles
 			.Name = "chkAutoCreateBakFiles"
@@ -1860,32 +1870,8 @@ pfOptions = @fOptions
 		End With
 	End Constructor
 	
-	Private Sub frmOptions._TimerMonitorEdge_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmOptions Ptr, Sender.Designer).TimerMonitorEdge_Timer(Sender)
-	End Sub
-	
-	Private Sub frmOptions._cmdTranslateByEdge_Click(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdTranslateByEdge_Click(Sender)
-	End Sub
-	
-	Private Sub frmOptions.txtFoldsHtml_Change_(ByRef Sender As TextBox)
-		*Cast(frmOptions Ptr, Sender.Designer).txtFoldsHtml_Change(Sender)
-	End Sub
-	
 	Private Sub frmOptions.cmdUpdateLng_Click_(ByRef Sender As Control)
 		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateLng_Click(Sender)
-	End Sub
-	
-	Private Sub frmOptions.cmdUpdateLngHTMLFolds_Click_(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateLngHTMLFolds_Click(Sender)
-	End Sub
-	
-	Private Sub frmOptions.cmdUpdateKeywordsHelp_Click_(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateKeywordsHelp_Click(Sender)
-	End Sub
-	
-	Private Sub frmOptions.cmdReplaceInFiles_Click_(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdReplaceInFiles_Click(Sender)
 	End Sub
 	
 	Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click_(ByRef Sender As CheckBox)
@@ -1987,6 +1973,8 @@ Sub frmOptions.LoadSettings()
 		.chkDisplayIcons.Checked = DisplayMenuIcons
 		.chkShowMainToolbar.Checked = ShowMainToolbar
 		.chkDarkMode.Checked = DarkMode
+		'.chkShowToolBoxLocal.Checked = gLocalToolBox
+		.chkShowPropLocal.Checked = gLocalProperties
 		Dim As String f
 		Dim As Integer Fn, Result
 		Dim Buff As WString * 2048 '
@@ -2591,6 +2579,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		DisplayMenuIcons = .chkDisplayIcons.Checked
 		ShowMainToolbar = .chkShowMainToolbar.Checked
 		DarkMode = .chkDarkMode.Checked
+		'gLocalToolBox = .chkShowToolBoxLocal.Checked
+		gLocalProperties = .chkShowPropLocal.Checked
 		SetColors
 		If .HotKeysChanged Then
 			Dim As Integer Pos1, Fn = FreeFile_
@@ -2759,6 +2749,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "DisplayMenuIcons", DisplayMenuIcons
 		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolbar
 		piniSettings->WriteBool "Options", "DarkMode", DarkMode
+		'piniSettings->WriteBool "Options", "ShowToolBoxLocal",gLocalToolBox
+		piniSettings->WriteBool("Options", "PropertiesLocal", gLocalProperties) 'David Change
 		pfrmMain->Menu->ImagesList = IIf(DisplayMenuIcons, pimgList, 0)
 		ReBar1.Visible = ShowMainToolbar
 		pfrmMain->RequestAlign
@@ -3867,18 +3859,18 @@ Sub HistoryCodeClean(ByRef Path As WString)
 	Dim As WString * 1024 f, f1
 	Dim As Double d2
 	Dim As UInteger Attr, NameCount
-	If Path = "" Then Exit Sub
+	If Trim(Path) = "" Then Exit Sub
 	If FormClosing OrElse bStop Then Exit Sub
 	If EndsWith(Path, "\Windows") Then Exit Sub
-	f = Dir(Path & Slash & "*.bak", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
-	While f <> ""
+	f = Dir(Path & Slash & "*.bak", fbArchive, Attr)
+	While Len(Trim(f)) > 0
 		If FormClosing OrElse bStop Then Exit Sub
-		f1 = Mid(f, Len(f) - 16)
-		If Len(f1) > 16 Then
-			d2 = DateValue(Mid(f1, 1, 4) & "/" & Mid(f1, 5, 2) & "/" & Mid(f1, 7, 2))
+		F1 = Mid(f, Len(f) - 16)
+		If Len(F1) > 16 Then
+			d2 = DateValue(Mid(F1, 1, 4) & "/" & Mid(F1, 5, 2) & "/" & Mid(F1, 7, 2))
 			If DateDiff( "d", d2, Now()) > HistoryCodeDays Then Kill Path & Slash & f
 		End If
-		f = Dir(Attr)
+		f = Dir()
 	Wend
 	HistoryCodeCleanDay = DateValue(Format(Now, "yyyy/mm/dd"))
 End Sub
