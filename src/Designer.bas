@@ -154,7 +154,7 @@ Namespace My.Sys.Forms
 			SetROP2(FHDc, R2_NOT)
 			Rectangle(FHDc, ScaleX(R.Left), ScaleY(R.Top), ScaleX(R.Right), ScaleY(R.Bottom))
 			SelectObject(FHDc, PrevBrush)
-			ReleaseDc(FDialog, FHDc)
+			ReleaseDC(FDialog, FHDc)
 		#endif
 	End Sub
 	
@@ -219,8 +219,8 @@ Namespace My.Sys.Forms
 			Next i
 			Return Parent
 		#else
-			Dim ParentHwnd As Hwnd = *Cast(HWND Ptr, ReadPropertyFunc(Parent, "Handle"))
-			Dim Result As Hwnd = ChildWindowFromPoint(ParentHwnd, Type<..Point>(ScaleX(X), ScaleY(Y)))
+			Dim ParentHwnd As HWND = *Cast(HWND Ptr, ReadPropertyFunc(Parent, "Handle"))
+			Dim Result As HWND = ChildWindowFromPoint(ParentHwnd, Type<..Point>(ScaleX(X), ScaleY(Y)))
 			If GetControl(Result) = Parent Then Return Parent
 			If Result = 0 OrElse Result = ParentHwnd OrElse GetControl(Result) = 0 Then
 				Return Parent
@@ -281,7 +281,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				FDots(0, i) = gtk_layout_new(NULL, NULL)
 				'g_object_ref(FDots(i))
-				If gtk_is_widget(FDots(0, i)) Then gtk_layout_put(gtk_layout(ParentCtrl->layoutwidget), FDots(0, i), 0, 0)
+				If GTK_IS_WIDGET(FDots(0, i)) Then gtk_layout_put(GTK_LAYOUT(ParentCtrl->layoutwidget), FDots(0, i), 0, 0)
 				gtk_widget_set_size_request(FDots(0, i), FDotSize, FDotSize)
 				#ifdef __USE_GTK3__
 					g_signal_connect(FDots(0, i), "draw", G_CALLBACK(@Dot_Draw), @This)
@@ -298,7 +298,7 @@ Namespace My.Sys.Forms
 				End Select
 				gdk_window_set_cursor(gtk_widget_get_window(FDots(0, i)), gcurs)
 			#else
-				FDots(0, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), ParentCtrl->Handle, 0, instance, 0)
+				FDots(0, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), ParentCtrl->Handle, 0, Instance, 0)
 				If IsWindow(FDots(0, i)) Then
 					SetWindowLongPtr(FDots(0, i), GWLP_USERDATA, CInt(@This))
 				End If
@@ -311,7 +311,7 @@ Namespace My.Sys.Forms
 			For i As Integer = 7 To 0 Step -1
 				#ifdef __USE_GTK__
 					#ifndef __FB_WIN32__
-						If gtk_is_widget(FDots(j, i)) Then gtk_widget_destroy(FDots(j, i))
+						If GTK_IS_WIDGET(FDots(j, i)) Then gtk_widget_destroy(FDots(j, i))
 					#endif
 				#else
 					DestroyWindow(FDots(j, i))
@@ -324,7 +324,7 @@ Namespace My.Sys.Forms
 		For j As Integer = 0 To UBound(FDots)
 			For i As Integer = 0 To 7
 				#ifdef __USE_GTK__
-					If gtk_is_widget(FDots(j, i)) Then gtk_widget_set_visible(FDots(j, i), False)
+					If GTK_IS_WIDGET(FDots(j, i)) Then gtk_widget_set_visible(FDots(j, i), False)
 				#else
 					ShowWindow(FDots(j, i), SW_HIDE)
 				#endif
@@ -348,7 +348,7 @@ Namespace My.Sys.Forms
 			gtk_widget_get_allocation(widget, @allocation)
 			*x = *x + allocation.x
 			*y = *y + allocation.y
-			If gtk_is_frame(gtk_widget_get_parent(widget)) Then
+			If GTK_IS_FRAME(gtk_widget_get_parent(widget)) Then
 				gtk_widget_get_allocation(gtk_widget_get_parent(widget), @allocation)
 				*x = *x - allocation.x
 				*y = *y - allocation.y
@@ -374,7 +374,7 @@ Namespace My.Sys.Forms
 		#endif
 		ControlHandle = GetControlHandle(Control)
 		#ifdef __USE_GTK__
-			If gtk_is_widget(ControlHandle) Then
+			If GTK_IS_WIDGET(ControlHandle) Then
 		#else
 			If IsWindow(ControlHandle) Then
 		#endif
@@ -386,11 +386,11 @@ Namespace My.Sys.Forms
 			For j As Integer = DotsCount To SelectedControls.Count Step -1
 				For i As Integer = 7 To 0 Step -1
 					#ifdef __USE_GTK__
-						If gtk_is_widget(FDots(j, i)) Then
+						If GTK_IS_WIDGET(FDots(j, i)) Then
 							#ifdef __USE_GTK3__
 								gtk_widget_destroy(FDots(j, i))
 							#else
-								gtk_container_remove(gtk_container(FDialogParent), FDots(j, i))
+								gtk_container_remove(GTK_CONTAINER(FDialogParent), FDots(j, i))
 							#endif
 						End If
 					#else
@@ -439,12 +439,12 @@ Namespace My.Sys.Forms
 					Dim As GdkDisplay Ptr pdisplay
 					Dim As GdkCursor Ptr gcurs
 					For i As Integer = 0 To 7
-						If gtk_is_widget(FDots(j, i)) Then
+						If GTK_IS_WIDGET(FDots(j, i)) Then
 							#ifdef __USE_GTK3__
 								gtk_widget_destroy(FDots(j, i))
 								'gtk_container_remove(gtk_container(layout), FDots(j, i))
 							#else
-								gtk_container_remove(gtk_container(FDialogParent), FDots(j, i))
+								gtk_container_remove(GTK_CONTAINER(FDialogParent), FDots(j, i))
 							#endif
 						End If
 					Next i
@@ -481,10 +481,10 @@ Namespace My.Sys.Forms
 						Case 7: iLeft = P.X - FDotSize: iTop = P.Y + iHeight / 2 - 3
 						End Select
 						#ifdef __USE_GTK3__
-							If gtk_is_widget(FDots(j, i)) Then 'gtk_layout_put(gtk_layout(layout), FDots(j, i), iLeft, iTop) Then
+							If GTK_IS_WIDGET(FDots(j, i)) Then 'gtk_layout_put(gtk_layout(layout), FDots(j, i), iLeft, iTop) Then
 								g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Left", Cast(gpointer, iLeft))
 								g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Top", Cast(gpointer, iTop))
-								gtk_overlay_add_overlay(gtk_overlay(overlay), FDots(j, i))
+								gtk_overlay_add_overlay(GTK_OVERLAY(overlay), FDots(j, i))
 '								If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
 '								Else
 '									gtk_widget_set_margin_start(FDots(j, i), iLeft)
@@ -494,7 +494,7 @@ Namespace My.Sys.Forms
 '								End If
 							End If
 						#else
-							If gtk_is_widget(FDots(j, i)) Then gtk_layout_put(gtk_layout(FDialogParent), FDots(j, i), iLeft, iTop)
+							If GTK_IS_WIDGET(FDots(j, i)) Then gtk_layout_put(GTK_LAYOUT(FDialogParent), FDots(j, i), iLeft, iTop)
 						#endif
 						gtk_widget_realize(FDots(j, i))
 						pdisplay = gtk_widget_get_display(FDots(j, i))
@@ -525,7 +525,7 @@ Namespace My.Sys.Forms
 			#else
 				For j As Integer = DotsCount + 1 To SelectedControls.Count - 1
 					For i As Integer = 0 To 7
-						FDots(j, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), GetParent(FDialog), 0, instance, 0)
+						FDots(j, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), GetParent(FDialog), 0, Instance, 0)
 						SetWindowLongPtr(FDots(j, i), GWLP_USERDATA, CInt(@This))
 					Next
 				Next
@@ -567,7 +567,7 @@ Namespace My.Sys.Forms
 				'else
 				'   HideDots
 				'end If
-				If OnChangeSelection Then OnChangeSelection(This, SelectedControl, UnScaleX(p.x), UnScaleY(p.y), UnScaleX(iWidth), UnScaleY(iHeight))
+				If OnChangeSelection Then OnChangeSelection(This, SelectedControl, UnScaleX(P.x), UnScaleY(P.y), UnScaleX(iWidth), UnScaleY(iHeight))
 			End If
 		Else
 			HideDots

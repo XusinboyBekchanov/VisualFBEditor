@@ -2265,6 +2265,7 @@ Namespace My.Sys.Forms
 			CollapseIndex = 0
 			OldCollapseIndex = 0
 			'ChangeCase = False
+			OldMatn = ""
 			For z As Integer = 0 To FLines.Count - 1
 				FECLine = FLines.Items[z]
 				If FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
@@ -2405,35 +2406,41 @@ Namespace My.Sys.Forms
 														End If
 													Else
 														Dim As Boolean bKeyWord
-														Dim As String OriginalCaseWord
+														Dim As UString OriginalCaseWord
 														Dim As Integer tIndex  = -1
 														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
-															tIndex = pkeywordsAsm->IndexOf(LCase(Matn))
+															tIndex = pkeywordsAsm->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 															If tIndex > -1 Then
 																sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
-																OriginalCaseWord = pkeywordsAsm->Item(tIndex)
 																'pkeywords = pkeywordsAsm
 																bKeyWord = True
 															End If
 														Else
 															For k As Integer = 1 To KeywordLists.Count - 1
 																pkeywords = KeywordLists.Object(k)
-																tIndex = pkeywords->IndexOf(LCase(Matn))
-																If tIndex > -1 OrElse (StartsWith(Matn, "..") AndAlso pkeywords->Contains(LCase(Mid(Matn, 3)))) Then
+																tIndex = pkeywords->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+																If tIndex > -1 Then
 																	sc = @Keywords(k)
-																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	bKeyWord = True
 																	Exit For
+																ElseIf StartsWith(Matn, "..") Then
+																	tIndex = pkeywords->IndexOf(LCase(Mid(Matn, 3)), , , , OriginalCaseWord)
+																	If tIndex > -1 Then
+																		sc = @Keywords(k)
+																		bKeyWord = True
+																		Exit For
+																	End If
 																End If
 																pkeywords = 0
 																tIndex = -1
 															Next
 															
 															'Procedure
-															If tIndex = -1 AndAlso FECLine->InConstruction > 0 Then 
+															If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
 																tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	Select Case Cast(TypeElement Ptr, pkeywords->Object(tIndex))->ElementType
 																	Case "ByRefParameter"
 																		sc = @ColorByRefParameters
@@ -2442,81 +2449,150 @@ Namespace My.Sys.Forms
 																	Case Else
 																		sc = @ColorLocalVariables
 																	End Select
-																	OriginalCaseWord = pkeywords->Item(tIndex)
+																Else
+																	tIndex = InStr(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, ".")
+																	If tIndex > 0 Then
+																		OriginalCaseWord = ..Left(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, tIndex - 1)
+																		tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord), , , , OriginalCaseWord)
+																		If tIndex > -1 AndAlso pGlobalTypes->Object(tIndex) > 0 Then
+																			Var te = Cast(TypeElement Ptr, pGlobalTypes->Object(tIndex))
+																			tIndex = te->Elements.IndexOf(LCase(Matn))
+																			If tIndex <> -1 Then
+																				pkeywords = @te->Elements
+																				OriginalCaseWord = pkeywords->Item(tIndex)
+																				Select Case LCase(Cast(TypeElement Ptr, pkeywords->Object(tIndex))->ElementType)
+																				Case "sub"
+																					sc = @ColorSubs
+																				Case "function"
+																					sc = @ColorGlobalFunctions
+																				Case "property"
+																					sc = @ColorProperties
+																				Case "field", "event"
+																					sc = @ColorFields
+																				Case Else
+																					sc = @ColorLocalVariables
+																				End Select
+																			End If
+																		End If
+																	Else
+																		tIndex = -1
+																	End If
 																End If
 															End If
 															
 															'Module
-															If tIndex = -1 AndAlso pLocalArgs > 0 Then 
-																tIndex = pLocalArgs->IndexOf(LCase(Matn))
+															If tIndex = -1 AndAlso pLocalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
+																tIndex = pLocalArgs->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 																If tIndex <> -1 Then
-																	sc = @ColorSharedVariables
 																	'pkeywords = pLocalArgs
-																	OriginalCaseWord = pLocalArgs->Item(tIndex)
+																	Select Case Cast(TypeElement Ptr, pLocalArgs->Object(tIndex))->ElementType
+																	Case "EnumItem"
+																		sc = @ColorEnumMembers
+																	Case "CommonVariable"
+																		sc = @ColorCommonVariables
+																	Case "Constant"
+																		sc = @ColorConstants
+																	Case "SharedVariable"
+																		sc = @ColorSharedVariables
+																	Case Else
+																		sc = @ColorLocalVariables
+																	End Select
 																End If
 															End If
 															
 															If tIndex = -1 AndAlso pLocalProcedures > 0 Then 
-																tIndex = pLocalProcedures->IndexOf(LCase(Matn))
+																tIndex = pLocalProcedures->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 																If tIndex <> -1 Then
-																	sc = @ColorGlobalFunctions
 																	'pkeywords = pLocalProcedures
-																	OriginalCaseWord = pLocalProcedures->Item(tIndex)
+																	Select Case LCase(Cast(TypeElement Ptr, pLocalProcedures->Object(tIndex))->ElementType)
+																	Case "constructor", "destructor"
+																		sc = @ColorGlobalTypes
+																	Case "function"
+																		sc = @ColorGlobalFunctions
+																	Case "sub"
+																		sc = @ColorSubs
+																	Case "define"
+																		sc = @ColorDefines
+																	Case "macro"
+																		sc = @ColorMacros
+																	Case "property"
+																		sc = @ColorProperties
+																	End Select
 																End If
 															End If
 															
 															'Global
 															If tIndex = -1 AndAlso pComps > 0 Then 
-																tIndex = pComps->IndexOf(LCase(Matn))
+																tIndex = pComps->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 																If tIndex <> -1 Then
 																	sc = @ColorComps
 																	'pkeywords = pComps
-																	OriginalCaseWord = pComps->Item(tIndex)
 																End If
 															End If
 															
 															If tIndex = -1 AndAlso pGlobalTypes > 0 Then 
-																tIndex = pGlobalTypes->IndexOf(LCase(Matn))
+																tIndex = pGlobalTypes->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalTypes
 																	'pkeywords = pGlobalTypes
-																	OriginalCaseWord = pGlobalTypes->Item(tIndex)
 																End If
 															End If
 															
 															If tIndex = -1 AndAlso pGlobalEnums > 0 Then 
-																tIndex = pGlobalEnums->IndexOf(LCase(Matn))
+																tIndex = pGlobalEnums->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalEnums
 																	'pkeywords = pGlobalEnums
-																	OriginalCaseWord = pGlobalEnums->Item(tIndex)
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalArgs > 0 Then 
-																tIndex = pGlobalArgs->IndexOf(LCase(Matn))
+															If tIndex = -1 AndAlso pGlobalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
+																tIndex = pGlobalArgs->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 																If tIndex <> -1 Then
-																	sc = @ColorCommonVariables
 																	'pkeywords = pGlobalArgs
-																	OriginalCaseWord = pGlobalArgs->Item(tIndex)
+																	Select Case Cast(TypeElement Ptr, pGlobalArgs ->Object(tIndex))->ElementType
+																	Case "EnumItem"
+																		sc = @ColorEnumMembers
+																	Case "CommonVariable"
+																		sc = @ColorCommonVariables
+																	Case "Constant"
+																		sc = @ColorConstants
+																	Case "SharedVariable"
+																		sc = @ColorSharedVariables
+																	Case Else
+																		sc = @ColorLocalVariables
+																	End Select
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalFunctions > 0 Then 
-																tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
+															If tIndex = -1 AndAlso pGlobalFunctions > 0 Then
+																tIndex = pGlobalFunctions->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 																If tIndex <> -1 Then
-																	sc = @ColorGlobalFunctions
 																	'pkeywords = pGlobalFunctions
-																	OriginalCaseWord = pGlobalFunctions->Item(tIndex)
+																	Select Case LCase(Cast(TypeElement Ptr, pGlobalFunctions->Object(tIndex))->ElementType)
+																	Case "constructor", "destructor"
+																		sc = @ColorGlobalTypes
+																	Case "keyword"
+																		sc = @ColorGlobalFunctions
+																	Case "function"
+																		sc = @ColorGlobalFunctions
+																	Case "sub"
+																		sc = @ColorSubs
+																	Case "define"
+																		sc = @ColorDefines
+																	Case "macro"
+																		sc = @ColorMacros
+																	Case "property"
+																		sc = @ColorProperties
+																	End Select
 																End If
 															End If
-																
+															
 															If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then 
-																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
+																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn), , , , OriginalCaseWord)
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalNamespaces
 																	'pkeywords = pGlobalNamespaces
-																	OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
 																End If
 															End If
 														End If
@@ -2530,7 +2606,7 @@ Namespace My.Sys.Forms
 															If Keyword <> Matn Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = Keyword
 															End If
-														ElseIf pkeywords = 0 Then
+														ElseIf tIndex = -1 Then
 															If IsNumeric(Matn) Then
 																If InStr(Matn, ".") Then
 																	sc = @RealNumbers
@@ -2543,11 +2619,13 @@ Namespace My.Sys.Forms
 														End If
 													End If
 												End If
+												OldMatn = Matn
 												'If sc <> 0 Then
 												PaintText zz, i, *s, MatnBoshi - 1, j, *sc
 												'txtCode.SetSel ss + MatnBoshi - 1, ss + j
 												'txtCode.SelColor = sc
 												'End If
+												
 											End If
 											MatnBoshi = 0
 										End If

@@ -3178,8 +3178,34 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Name = Trim(Mid(bTrim, 9, Pos1 - 9))
 					End If
 					te->DisplayName = te->Name
-					te->ElementType = "#Define"
+					te->ElementType = "Define"
 					te->Parameters = Trim(Mid(bTrim, 9))
+					Pos4 = InStr(te->Parameters, "'")
+					If Pos4 > 0 Then
+						te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
+					End If
+					If Pos2 > 0 AndAlso Pos3 > 0 OrElse Pos1 > 0 Then
+						te->Value = Trim(Mid(bTrim, IIf(Pos2 > 0, Pos3 + 1, Pos1 + 1)))
+					End If
+					te->StartLine = i
+					te->EndLine = i
+					If Comment <> "" Then te->Comment= Comment: Comment = ""
+					te->FileName = PathFunction
+					LastIndexFunction = Functions.Add(te->Name, te)
+				ElseIf StartsWith(bTrimLCase & " ", "#macro ") Then
+					Pos1 = InStr(8, bTrim, " ")
+					Pos2 = InStr(8, bTrim, "(")
+					Pos3 = InStr(8, bTrim, ")")
+					If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
+					te = New_( TypeElement)
+					If Pos1 = 0 Then
+						te->Name = Trim(Mid(bTrim, 8))
+					Else
+						te->Name = Trim(Mid(bTrim, 8, Pos1 - 8))
+					End If
+					te->DisplayName = te->Name
+					te->ElementType = "Macro"
+					te->Parameters = Trim(Mid(bTrim, 8))
 					Pos4 = InStr(te->Parameters, "'")
 					If Pos4 > 0 Then
 						te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
@@ -3410,7 +3436,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 							te->TypeName = WithoutPointers(te->TypeName)
 							te->Value = ElementValue
-							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Field")
 							te->Locals = inPubProPri
 							te->StartLine = i
 							te->Parameters = res1(n) & " As " & CurType
@@ -3773,7 +3799,15 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							Var te = New_( TypeElement)
 							te->Name = res1(n)
 							te->DisplayName = te->Name
-							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							If StartsWith(bTrimLCase, "common ") Then
+								te->ElementType = "CommonVariable"
+							ElseIf StartsWith(bTrimLCase, "const ") Then
+								te->ElementType = "Constant"
+							ElseIf bShared Then
+								te->ElementType = "SharedVariable"
+							Else
+								te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							End If
 							te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 							te->TypeName = CurType
 							te->TypeName = WithoutPointers(te->TypeName)
@@ -4512,6 +4546,13 @@ Sub LoadSettings
 	ColorSharedVariables.Bold = iniTheme.ReadInteger("FontStyles", "SharedVariablesBold", NormalText.Bold)
 	ColorSharedVariables.Italic = iniTheme.ReadInteger("FontStyles", "SharedVariablesItalic", NormalText.Italic)
 	ColorSharedVariables.Underline = iniTheme.ReadInteger("FontStyles", "SharedVariablesUnderline", NormalText.Italic)
+	
+	ColorSubs.ForegroundOption = iniTheme.ReadInteger("Colors", "SubsForeground", NormalText.ForegroundOption)
+	ColorSubs.BackgroundOption = iniTheme.ReadInteger("Colors", "SubsBackground", -1)
+	ColorSubs.FrameOption = iniTheme.ReadInteger("Colors", "SubsFrame", -1)
+	ColorSubs.Bold = iniTheme.ReadInteger("FontStyles", "SubsBold", NormalText.Bold)
+	ColorSubs.Italic = iniTheme.ReadInteger("FontStyles", "SubsItalic", NormalText.Italic)
+	ColorSubs.Underline = iniTheme.ReadInteger("FontStyles", "SubsUnderline", NormalText.Italic)
 	
 	ColorGlobalTypes.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalTypesForeground", NormalText.ForegroundOption)
 	ColorGlobalTypes.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalTypesBackground", -1)
@@ -7395,6 +7436,7 @@ Sub SetAutoColors
 	GetColors ColorGlobalNamespaces, clBlack
 	GetColors ColorProperties, clBlack
 	GetColors ColorSharedVariables, clBlack
+	GetColors ColorSubs, clBlack
 	GetColors ColorGlobalTypes, clBlack
 	GetColors IndicatorLines, clBlack
 	For k As Integer = 0 To UBound(Keywords)

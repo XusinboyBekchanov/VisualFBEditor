@@ -42,7 +42,7 @@ Type ECColorScheme
 End Type
 
 Common Shared As ECColorScheme Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, RealNumbers, Selection, SpaceIdentifiers, Strings
-Common Shared As ECColorScheme ColorOperators, ColorProperties, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorEnumMembers, ColorConstants, ColorGlobalFunctions, ColorLocalVariables, ColorSharedVariables, ColorCommonVariables, ColorByRefParameters, ColorByValParameters, ColorFields, ColorDefines, ColorMacros
+Common Shared As ECColorScheme ColorOperators, ColorProperties, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorEnumMembers, ColorConstants, ColorGlobalFunctions, ColorLocalVariables, ColorSharedVariables, ColorCommonVariables, ColorByRefParameters, ColorByValParameters, ColorFields, ColorDefines, ColorMacros, ColorSubs
 Common Shared As Integer EditorFontSize
 Common Shared As WString Ptr EditorFontName
 Common Shared As WString Ptr CurrentTheme
@@ -243,7 +243,7 @@ Namespace My.Sys.Forms
 		Dim As Integer iCursorLineOld
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim As String KeyWord, Matn
+		Dim As String KeyWord, Matn, OldMatn
 		Dim As Integer OldPos
 		Dim pkeywords As WStringList Ptr
 		Dim LinePrinted As Boolean

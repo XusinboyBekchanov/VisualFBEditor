@@ -760,6 +760,10 @@ pfOptions = @fOptions
 		grbColors.Name = "grbColors"
 		grbColors.Text = ML("Colors")
 		grbColors.Align = DockStyle.alClient
+		grbColors.Margins.Top = 21
+		grbColors.Margins.Right = 15
+		grbColors.Margins.Left = 15
+		grbColors.Margins.Bottom = 15
 		grbColors.SetBounds 10, 0, 416, 343
 		grbColors.Parent = @pnlColorsAndFonts
 		' grbFont
@@ -863,13 +867,17 @@ pfOptions = @fOptions
 		' cboTheme
 		cboTheme.Name = "cboTheme"
 		cboTheme.Text = "ComboBoxEdit2"
-		cboTheme.SetBounds 18, 20, 224, 21
+		cboTheme.Align = DockStyle.alTop
+		cboTheme.ExtraMargins.Right = 160
+		cboTheme.ExtraMargins.Bottom = 15
+		cboTheme.SetBounds 15, 21, 226, 21
 		cboTheme.OnChange = @cboTheme_Change
 		cboTheme.Parent = @grbColors
 		' lstColorKeys
 		lstColorKeys.Name = "lstColorKeys"
 		lstColorKeys.Text = "ListControl1"
-		lstColorKeys.SetBounds 18, 55, 224, 267
+		lstColorKeys.Align = DockStyle.alLeft
+		lstColorKeys.SetBounds 15, 57, 226, 264
 		lstColorKeys.OnChange = @lstColorKeys_Change
 		lstColorKeys.Parent = @grbColors
 		' cmdAdd
@@ -2153,6 +2161,7 @@ Sub frmOptions.LoadSettings()
 		AddColors ColorGlobalNamespaces, , , , False
 		AddColors ColorProperties, , , , False
 		AddColors ColorSharedVariables, , , , False
+		AddColors ColorSubs, , , , False
 		AddColors ColorGlobalTypes, , , , False
 		AddColors IndicatorLines, , False, False, False, False, False, False
 		For k As Integer = 0 To UBound(Keywords)
@@ -2353,6 +2362,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Namespaces")
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Properties")
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Shared Variables")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Subs")
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Types")
 		.lstColorKeys.AddItem ML("Indicator Lines")
 		For k As Integer = 0 To KeywordLists.Count - 1
@@ -2377,7 +2387,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		For i As Integer = 0 To pfrmMain->Menu->Count - 1
 			AddShortcuts(pfrmMain->Menu->Item(i))
 		Next
-		ReDim .Colors(34 + KeywordLists.Count - 1, 7)
+		ReDim .Colors(35 + KeywordLists.Count - 1, 7)
 		.LoadSettings
 	End With
 End Sub
@@ -2422,6 +2432,7 @@ Sub SetColors
 		SetColor ColorGlobalNamespaces
 		SetColor ColorProperties
 		SetColor ColorSharedVariables
+		SetColor ColorSubs
 		SetColor ColorGlobalTypes
 		SetColor IndicatorLines
 		'		IndicatorLines.ForegroundOption = .Colors(8, 0)
@@ -2973,6 +2984,13 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "SharedVariablesBold", ColorSharedVariables.Bold)
 		piniTheme->WriteInteger("FontStyles", "SharedVariablesItalic", ColorSharedVariables.Italic)
 		piniTheme->WriteInteger("FontStyles", "SharedVariablesUnderline", ColorSharedVariables.Underline)
+		
+		piniTheme->WriteInteger("Colors", "SubsForeground", IIf(ColorSubs.ForegroundOption = Identifiers.ForegroundOption, -1, ColorSubs.ForegroundOption))
+		piniTheme->WriteInteger("Colors", "SubsBackground", IIf(ColorSubs.BackgroundOption = Identifiers.BackgroundOption, -1, ColorSubs.BackgroundOption))
+		piniTheme->WriteInteger("Colors", "SubsFrame", IIf(ColorSubs.FrameOption = Identifiers.FrameOption, -1, ColorSubs.FrameOption))
+		piniTheme->WriteInteger("FontStyles", "SubsBold", ColorSubs.Bold)
+		piniTheme->WriteInteger("FontStyles", "SubsItalic", ColorSubs.Italic)
+		piniTheme->WriteInteger("FontStyles", "SubsUnderline", ColorSubs.Underline)
 		
 		piniTheme->WriteInteger("Colors", "GlobalTypesForeground", IIf(ColorGlobalTypes.ForegroundOption = Identifiers.ForegroundOption, -1, ColorGlobalTypes.ForegroundOption))
 		piniTheme->WriteInteger("Colors", "GlobalTypesBackground", IIf(ColorGlobalTypes.BackgroundOption = Identifiers.BackgroundOption, -1, ColorGlobalTypes.BackgroundOption))
