@@ -4609,7 +4609,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					te->Name = Trim(Mid(bTrim, 9, Pos1 - 9))
 				End If
 				te->DisplayName = te->Name
-				te->ElementType = "#Define"
+				te->ElementType = "Define"
 				te->Parameters = bTrim
 				Pos4 = InStr(te->Parameters, "'")
 				If Pos4 > 0 Then
@@ -4691,6 +4691,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				If CInt(StartsWith(bTrimLCase, "as ")) OrElse _
 					CInt(InStr(bTrimLCase, " as ")) OrElse _
 					CInt(StartsWith(bTrimLCase, "const ")) OrElse _
+					CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 					CInt(StartsWith(bTrimLCase, "var ")) Then
 					Dim As UString b2 = bTrim
 					If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") Then
@@ -4747,7 +4748,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->Name = res1(n)
 						te->DisplayName = res1(n)
 						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-						te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+						If StartsWith(bTrimLCase, "common ") Then
+							te->ElementType = "CommonVariable"
+						ElseIf StartsWith(bTrimLCase, "const ") Then
+							te->ElementType = "Constant"
+						ElseIf bShared Then
+							te->ElementType = "SharedVariable"
+						Else
+							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+						End If
 						te->TypeName = CurType
 						te->TypeName = WithoutPointers(te->TypeName)
 						te->Value = ElementValue
