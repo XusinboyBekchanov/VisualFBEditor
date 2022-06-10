@@ -105,7 +105,7 @@ pfOptions = @fOptions
 		pnlCodeEditor.ExtraMargins.Right = 10
 		pnlCodeEditor.Margins.Left = 10
 		pnlCodeEditor.Align = DockStyle.alClient
-		pnlCodeEditor.SetBounds 188, 4, 426, 404
+		pnlCodeEditor.SetBounds 187, 4, 426, 404
 		pnlCodeEditor.Parent = @This
 		' pnlColorsAndFonts
 		pnlColorsAndFonts.Name = "pnlColorsAndFonts"
@@ -513,32 +513,32 @@ pfOptions = @fOptions
 		' chkAutoIndentation
 		chkAutoIndentation.Name = "chkAutoIndentation"
 		chkAutoIndentation.Text = ML("Auto Indentation")
-		chkAutoIndentation.ExtraMargins.Top = 5
+		chkAutoIndentation.ExtraMargins.Top = 2
 		chkAutoIndentation.Align = DockStyle.alTop
-		chkAutoIndentation.SetBounds 10, 5, 416, 18
+		chkAutoIndentation.SetBounds 10, 2, 416, 21
 		chkAutoIndentation.Parent = @pnlCodeEditor
 		' chkEnableAutoComplete
 		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
 		chkEnableAutoComplete.Text = ML("Enable Auto Complete")
-		chkEnableAutoComplete.ExtraMargins.Top = 2
+		chkEnableAutoComplete.ExtraMargins.Top = 0
 		chkEnableAutoComplete.Align = DockStyle.alTop
-		chkEnableAutoComplete.SetBounds 10, 26, 416, 18
+		chkEnableAutoComplete.SetBounds 10, 23, 416, 21
 		chkEnableAutoComplete.Parent = @pnlCodeEditor
 		' chkShowSpaces
 		chkShowSpaces.Name = "chkShowSpaces"
 		chkShowSpaces.Text = ML("Show Spaces")
 		chkShowSpaces.Align = DockStyle.alTop
-		chkShowSpaces.ExtraMargins.Top = 2
-		chkShowSpaces.SetBounds 10, 47, 416, 18
+		chkShowSpaces.ExtraMargins.Top = 0
+		chkShowSpaces.SetBounds 10, 46, 416, 21
 		chkShowSpaces.Parent = @pnlCodeEditor
 		' chkShowKeywordsTooltip
 		With chkShowKeywordsTooltip
 			.Name = "chkShowKeywordsTooltip"
 			.Text = ML("Show Keywords Tooltip")
 			.TabIndex = 170
-			.ExtraMargins.Top = 2
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 68, 416, 18
+			.SetBounds 10, 69, 416, 21
 			'.Caption = ML("Show Keywords Tooltip")
 			.Parent = @pnlCodeEditor
 		End With
@@ -547,9 +547,9 @@ pfOptions = @fOptions
 			.Name = "chkShowTooltipsAtTheTop"
 			.Text = ML("Show Tooltips at the Top")
 			.TabIndex = 192
-			.ExtraMargins.Top = 2
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 85, 416, 18
+			.SetBounds 10, 92, 416, 21
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
@@ -557,27 +557,27 @@ pfOptions = @fOptions
 		With chkHighlightCurrentWord
 			.Name = "chkHighlightCurrentWord"
 			.Text = ML("Highlight Current Word")
-			.ExtraMargins.Top = 2
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 105, 416, 18
+			.SetBounds 10, 115, 416, 21
 			.Parent = @pnlCodeEditor
 		End With
 		' chkHighlightCurrentLine
 		With chkHighlightCurrentLine
 			.Name = "chkHighlightCurrentLine"
 			.Text = ML("Highlight Current Line")
-			.ExtraMargins.Top = 2
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 20, 105, 406, 18
+			.SetBounds 10, 138, 416, 21
 			.Parent = @pnlCodeEditor
 		End With
 		' chkHighlightBrackets
 		With chkHighlightBrackets
 			.Name = "chkHighlightBrackets"
 			.Text = ML("Highlight Brackets")
-			.ExtraMargins.Top = 2
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 145, 416, 18
+			.SetBounds 10, 161, 416, 21
 			.Parent = @pnlCodeEditor
 		End With
 		' chkAddSpacesToOperators
@@ -585,9 +585,9 @@ pfOptions = @fOptions
 			.Name = "chkAddSpacesToOperators"
 			.Text = ML("Add Spaces To Operators")
 			.TabIndex = 171
-			.ExtraMargins.Top = 2
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 165, 416, 18
+			.SetBounds 10, 181, 416, 21
 			'.Caption = ML("Add Spaces To Operators")
 			.Parent = @pnlCodeEditor
 		End With
@@ -598,35 +598,35 @@ pfOptions = @fOptions
 			.TabIndex = 200
 			.Align = DockStyle.alTop
 			.Caption = ML("Change Identifiers Case")
-			.ExtraMargins.Top = 2
-			.SetBounds 10, 185, 416, 18
+			.ExtraMargins.Top = 0
+			.SetBounds 10, 201, 416, 21
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
 		' chkChangeKeywordsCase
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
 		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
-		chkChangeKeywordsCase.ExtraMargins.Top = 2
+		chkChangeKeywordsCase.ExtraMargins.Top = 0
 		chkChangeKeywordsCase.Align = DockStyle.alTop
 		chkChangeKeywordsCase.ExtraMargins.Right = 230
-		chkChangeKeywordsCase.SetBounds 10, 208, 186, 18
+		chkChangeKeywordsCase.SetBounds 10, 221, 186, 21
 		chkChangeKeywordsCase.Parent = @pnlCodeEditor
 		' cboCase
 		cboCase.Name = "cboCase"
 		cboCase.Text = "ComboBoxEdit2"
 		cboCase.ExtraMargins.Right = 50
-		cboCase.ExtraMargins.Top = -18
+		cboCase.ExtraMargins.Top = -21
 		cboCase.ExtraMargins.Left = 200
 		cboCase.Align = DockStyle.alTop
-		cboCase.SetBounds 210, 208, 166, 21
+		cboCase.SetBounds 210, 212, 166, 21
 		cboCase.Parent = @pnlCodeEditor
 		' chkTabAsSpaces
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
 		chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
-		chkTabAsSpaces.ExtraMargins.Top = 2
+		chkTabAsSpaces.ExtraMargins.Top = 0
 		chkTabAsSpaces.Align = DockStyle.alTop
 		chkTabAsSpaces.ExtraMargins.Right = 230
-		chkTabAsSpaces.SetBounds 10, 185, 186, 18
+		chkTabAsSpaces.SetBounds 10, 244, 186, 21
 		chkTabAsSpaces.Parent = @pnlCodeEditor
 		' cboTabStyle
 		cboTabStyle.Name = "cboTabStyle"
@@ -634,8 +634,8 @@ pfOptions = @fOptions
 		cboTabStyle.ExtraMargins.Left = 200
 		cboTabStyle.ExtraMargins.Right = 50
 		cboTabStyle.Align = DockStyle.alTop
-		cboTabStyle.ExtraMargins.Top = -18
-		cboTabStyle.SetBounds 210, 185, 166, 21
+		cboTabStyle.ExtraMargins.Top = -19
+		cboTabStyle.SetBounds 210, 238, 166, 21
 		cboTabStyle.Parent = @pnlCodeEditor
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
@@ -644,7 +644,7 @@ pfOptions = @fOptions
 		lblTabSize.ExtraMargins.Right = 230
 		lblTabSize.Align = DockStyle.alTop
 		lblTabSize.ExtraMargins.Top = 2
-		lblTabSize.SetBounds 70, 231, 126, 18
+		lblTabSize.SetBounds 70, 262, 126, 18
 		lblTabSize.Parent = @pnlCodeEditor
 		' txtTabSize
 		txtTabSize.Name = "txtTabSize"
@@ -653,7 +653,7 @@ pfOptions = @fOptions
 		txtTabSize.ExtraMargins.Right = 130
 		txtTabSize.ExtraMargins.Top = -18
 		txtTabSize.Align = DockStyle.alTop
-		txtTabSize.SetBounds 210, 231, 86, 20
+		txtTabSize.SetBounds 210, 256, 86, 20
 		txtTabSize.Parent = @pnlCodeEditor
 		' lstIncludePaths
 		lstIncludePaths.Name = "lstIncludePaths"
@@ -719,7 +719,7 @@ pfOptions = @fOptions
 		lblHistoryLimit.ExtraMargins.Left = 60
 		lblHistoryLimit.ExtraMargins.Right = 230
 		lblHistoryLimit.Align = DockStyle.alTop
-		lblHistoryLimit.SetBounds 70, 253, 126, 18
+		lblHistoryLimit.SetBounds 70, 287, 126, 18
 		lblHistoryLimit.Parent = @pnlCodeEditor
 		' txtHistoryLimit
 		txtHistoryLimit.Name = "txtHistoryLimit"
@@ -1176,28 +1176,32 @@ pfOptions = @fOptions
 		With chkDisplayIcons
 			.Name = "chkDisplayIcons"
 			.Text = ML("Display Icons in the Menu")
-			.SetBounds 2, 1, 216, 16
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 340, 20
 			.Parent = @pnlThemesCheckboxes
 		End With
 		' chkShowMainToolbar
 		With chkShowMainToolbar
 			.Name = "chkShowMainToolbar"
 			.Text = ML("Show main Toolbar")
-			.SetBounds 2, 18, 224, 24
+			.Align = DockStyle.alTop
+			.SetBounds 0, 18, 340, 20
 			.Parent = @pnlThemesCheckboxes
 		End With
 		'chkShowToolBoxLocal
 		With chkShowToolBoxLocal
 			.Name = "chkShowToolBoxLocal"
 			.Text = ML("Display ToolBox in localized language.")
-			.SetBounds 2, 64, 328, 24
+			.Align = DockStyle.alTop
+			.SetBounds 0, 36, 340, 20
 			.Parent = @pnlThemesCheckboxes
 		End With
 		'chkShowPropLocal
 		With chkShowPropLocal
 			.Name = "chkShowPropLocal"
 			.Text = ML("Display Property of Control in localized language.")
-			.SetBounds 2, 89, 328, 18
+			.Align = DockStyle.alTop
+			.SetBounds 0, 60, 340, 20
 			.Parent = @pnlThemesCheckboxes
 		End With
 		' chkAutoCreateBakFiles
@@ -1378,7 +1382,7 @@ pfOptions = @fOptions
 		With pnlThemesCheckboxes
 			.Name = "pnlThemesCheckboxes"
 			.Text = "Panel2"
-			.SetBounds 10, 63, 320, 198
+			.SetBounds 10, 63, 340, 198
 			.Parent = @grbThemes
 		End With
 		' pnlColors
@@ -1699,7 +1703,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Right = 230
 			.ExtraMargins.Left = 60
 			.Align = DockStyle.alTop
-			.SetBounds 70, 275, 126, 18
+			.SetBounds 70, 312, 126, 18
 			.Parent = @pnlCodeEditor
 		End With
 		' txtIntellisenseLimit
@@ -1779,7 +1783,8 @@ pfOptions = @fOptions
 			.TabIndex = 188
 			'.Caption = ML("Dark Mode")
 			.Caption = ML("Dark Mode (available for Linux, Windows 10 and above)")
-			.SetBounds 2, 38, 384, 24
+			.Align = DockStyle.alTop
+			.SetBounds 0, 84, 340, 20
 			.Parent = @pnlThemesCheckboxes
 		End With
 		' chkPlaceStaticEventHandlersAfterTheConstructor
@@ -1819,7 +1824,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Right = 230
 			.ExtraMargins.Left = 60
 			.Align = DockStyle.alTop
-			.SetBounds 70, 297, 126, 18
+			.SetBounds 70, 328, 126, 18
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
@@ -1858,7 +1863,7 @@ pfOptions = @fOptions
 			.Checked = False
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 5
-			.SetBounds 15, 49, 386, 18
+			.SetBounds 30, 71, 386, 20
 			.Designer = @This
 			.Parent = @grbLanguage
 		End With
@@ -1876,7 +1881,7 @@ pfOptions = @fOptions
 			.Caption = ""
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 10
-			.SetBounds 15, 77, 386, 20
+			.SetBounds 15, 79, 386, 20
 			.Designer = @This
 			.Parent = @grbLanguage
 		End With
@@ -2136,6 +2141,7 @@ Sub frmOptions.LoadSettings()
 		AddColors ColorComps, , , , False
 		AddColors ColorGlobalFunctions, , , , False
 		AddColors ColorGlobalEnums, , , , False
+		AddColors ColorLocalArgs, , , , False
 		AddColors ColorGlobalNamespaces, , , , False
 		AddColors ColorProperty, , , , False
 		AddColors ColorGlobalTypes, , , , False
@@ -2327,6 +2333,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Components")
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Functions")
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Enums")
+		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Local Args")
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Namespaces")
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Properties")
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Types")
@@ -2353,7 +2360,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		For i As Integer = 0 To pfrmMain->Menu->Count - 1
 			AddShortcuts(pfrmMain->Menu->Item(i))
 		Next
-		ReDim .Colors(25 + KeywordLists.Count - 1, 7)
+		ReDim .Colors(26 + KeywordLists.Count - 1, 7)
 		.LoadSettings
 	End With
 End Sub
@@ -2387,6 +2394,7 @@ Sub SetColors
 		SetColor ColorComps
 		SetColor ColorGlobalFunctions
 		SetColor ColorGlobalEnums
+		SetColor ColorLocalArgs
 		SetColor ColorGlobalNamespaces
 		SetColor ColorProperty
 		SetColor ColorGlobalTypes
@@ -2874,6 +2882,13 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "GlobalArgsBold", ColorGlobalArgs.Bold)
 		piniTheme->WriteInteger("FontStyles", "GlobalArgsItalic", ColorGlobalArgs.Italic)
 		piniTheme->WriteInteger("FontStyles", "GlobalArgsUnderline", ColorGlobalArgs.Underline)
+		
+		piniTheme->WriteInteger("Colors", "LocalArgsForeground", IIf(ColorLocalArgs.ForegroundOption = Identifiers.ForegroundOption, -1, ColorLocalArgs.ForegroundOption))
+		piniTheme->WriteInteger("Colors", "LocalArgsBackground", IIf(ColorLocalArgs.BackgroundOption = Identifiers.BackgroundOption, -1, ColorLocalArgs.BackgroundOption))
+		piniTheme->WriteInteger("Colors", "LocalArgsFrame", IIf(ColorLocalArgs.FrameOption = Identifiers.FrameOption, -1, ColorLocalArgs.FrameOption))
+		piniTheme->WriteInteger("FontStyles", "LocalArgsBold", ColorLocalArgs.Bold)
+		piniTheme->WriteInteger("FontStyles", "LocalArgsItalic", ColorLocalArgs.Italic)
+		piniTheme->WriteInteger("FontStyles", "LocalArgsUnderline", ColorLocalArgs.Underline)
 		
 		piniTheme->WriteInteger("Colors", "GlobalFunctionsForeground", IIf(ColorGlobalFunctions.ForegroundOption = Identifiers.ForegroundOption, -1, ColorGlobalFunctions.ForegroundOption))
 		piniTheme->WriteInteger("Colors", "GlobalFunctionsBackground", IIf(ColorGlobalFunctions.BackgroundOption = Identifiers.BackgroundOption, -1, ColorGlobalFunctions.BackgroundOption))

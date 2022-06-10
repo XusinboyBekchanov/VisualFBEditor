@@ -41,7 +41,7 @@ Type ECColorScheme
 End Type
 
 Common Shared As ECColorScheme Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, RealNumbers, Selection, SpaceIdentifiers, Strings
-Common Shared As ECColorScheme ColorOperators, ColorProperty, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorGlobalArgs, ColorGlobalFunctions
+Common Shared As ECColorScheme ColorOperators, ColorProperty, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorGlobalArgs, ColorGlobalFunctions, ColorLocalArgs
 Common Shared As Integer EditorFontSize
 Common Shared As WString Ptr EditorFontName
 Common Shared As WString Ptr CurrentTheme

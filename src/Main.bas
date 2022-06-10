@@ -4448,6 +4448,13 @@ Sub LoadSettings
 	ColorGlobalArgs.Italic = iniTheme.ReadInteger("FontStyles", "GlobalArgsItalic", NormalText.Italic)
 	ColorGlobalArgs.Underline = iniTheme.ReadInteger("FontStyles", "GlobalArgsUnderline", NormalText.Italic)
 	
+	ColorLocalArgs.ForegroundOption = iniTheme.ReadInteger("Colors", "LocalArgsForeground", NormalText.ForegroundOption)
+	ColorLocalArgs.BackgroundOption = iniTheme.ReadInteger("Colors", "LocalArgsBackground", -1)
+	ColorLocalArgs.FrameOption = iniTheme.ReadInteger("Colors", "LocalArgsFrame", -1)
+	ColorLocalArgs.Bold = iniTheme.ReadInteger("FontStyles", "LocalArgsBold", NormalText.Bold)
+	ColorLocalArgs.Italic = iniTheme.ReadInteger("FontStyles", "LocalArgsItalic", NormalText.Italic)
+	ColorLocalArgs.Underline = iniTheme.ReadInteger("FontStyles", "LocalArgsUnderline", NormalText.Italic)
+	
 	ColorGlobalFunctions.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsForeground", NormalText.ForegroundOption)
 	ColorGlobalFunctions.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsBackground", -1)
 	ColorGlobalFunctions.FrameOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsFrame", -1)
@@ -7332,6 +7339,7 @@ Sub SetAutoColors
 	GetColors ColorGlobalTypes, clBlack
 	GetColors ColorGlobalEnums, clBlack
 	GetColors ColorGlobalArgs, clBlack
+	GetColors ColorLocalArgs, clBlack
 	GetColors ColorGlobalFunctions, clBlack
 End Sub
 
