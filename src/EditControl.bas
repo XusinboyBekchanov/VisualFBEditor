@@ -2405,20 +2405,23 @@ Namespace My.Sys.Forms
 														End If
 													Else
 														Dim As Boolean bKeyWord
+														Dim As String OriginalCaseWord
+														Dim As Integer tIndex  = -1
 														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
-															If pkeywordsAsm->Contains(LCase(Matn)) Then
+															tIndex = pkeywordsAsm->IndexOf(LCase(Matn))
+															If tIndex > -1 Then
 																sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
-																pkeywords = pkeywordsAsm
+																OriginalCaseWord = pkeywordsAsm->Item(tIndex)
+																'pkeywords = pkeywordsAsm
 																bKeyWord = True
 															End If
 														Else
-															Dim As Integer tIndex  = -1
-															Dim As Boolean tNotFound = True
 															For k As Integer = 1 To KeywordLists.Count - 1
 																pkeywords = KeywordLists.Object(k)
-																If pkeywords->Contains(LCase(Matn)) OrElse (StartsWith(Matn, "..") AndAlso pkeywords->Contains(LCase(Mid(Matn, 3)))) Then
+																tIndex = pkeywords->IndexOf(LCase(Matn))
+																If tIndex > -1 OrElse (StartsWith(Matn, "..") AndAlso pkeywords->Contains(LCase(Mid(Matn, 3)))) Then
 																	sc = @Keywords(k)
-																	tNotFound = False
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	bKeyWord = True
 																	Exit For
 																End If
@@ -2427,67 +2430,103 @@ Namespace My.Sys.Forms
 															Next
 															
 															'Procedure
-															If tIndex = -1 AndAlso FECLine->InConstruction > 0 Then tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorLocalArgs
-																pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-																tNotFound = False
+															If tIndex = -1 AndAlso FECLine->InConstruction > 0 Then 
+																tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+																	Select Case Cast(TypeElement Ptr, pkeywords->Object(tIndex))->ElementType
+																	Case "ByRefParameter"
+																		sc = @ColorByRefParameters
+																	Case "ByValParameter"
+																		sc = @ColorByValParameters
+																	Case Else
+																		sc = @ColorLocalVariables
+																	End Select
+																	OriginalCaseWord = pkeywords->Item(tIndex)
+																End If
 															End If
 															
 															'Module
-															If tIndex = -1 AndAlso pLocalArgs > 0 Then tIndex = pLocalArgs->IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorGlobalArgs
-																pkeywords = pLocalArgs
-																tNotFound = False
+															If tIndex = -1 AndAlso pLocalArgs > 0 Then 
+																tIndex = pLocalArgs->IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	sc = @ColorSharedVariables
+																	'pkeywords = pLocalArgs
+																	OriginalCaseWord = pLocalArgs->Item(tIndex)
+																End If
 															End If
-															If tIndex = -1 AndAlso pLocalProcedures > 0 Then tIndex = pLocalProcedures->IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorGlobalFunctions
-																pkeywords = pLocalProcedures
-																tNotFound = False
+															
+															If tIndex = -1 AndAlso pLocalProcedures > 0 Then 
+																tIndex = pLocalProcedures->IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	sc = @ColorGlobalFunctions
+																	'pkeywords = pLocalProcedures
+																	OriginalCaseWord = pLocalProcedures->Item(tIndex)
+																End If
 															End If
 															
 															'Global
-															If tIndex = -1 AndAlso pComps > 0 Then tIndex = pComps->IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorComps
-																pkeywords = pComps
-																tNotFound = False
+															If tIndex = -1 AndAlso pComps > 0 Then 
+																tIndex = pComps->IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	sc = @ColorComps
+																	'pkeywords = pComps
+																	OriginalCaseWord = pComps->Item(tIndex)
+																End If
 															End If
-															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalTypes > 0 Then tIndex = pGlobalTypes->IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorGlobalTypes
-																pkeywords = pGlobalTypes
-																tNotFound = False
+															
+															If tIndex = -1 AndAlso pGlobalTypes > 0 Then 
+																tIndex = pGlobalTypes->IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	sc = @ColorGlobalTypes
+																	'pkeywords = pGlobalTypes
+																	OriginalCaseWord = pGlobalTypes->Item(tIndex)
+																End If
 															End If
-															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalEnums > 0 Then tIndex = pGlobalEnums->IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorGlobalEnums
-																pkeywords = pGlobalEnums
-																tNotFound = False
+															
+															If tIndex = -1 AndAlso pGlobalEnums > 0 Then 
+																tIndex = pGlobalEnums->IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	sc = @ColorGlobalEnums
+																	'pkeywords = pGlobalEnums
+																	OriginalCaseWord = pGlobalEnums->Item(tIndex)
+																End If
 															End If
-															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalArgs > 0 Then tIndex = pGlobalArgs->IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorGlobalArgs
-																pkeywords = pGlobalArgs
-																tNotFound = False
+															
+															If tIndex = -1 AndAlso pGlobalArgs > 0 Then 
+																tIndex = pGlobalArgs->IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	sc = @ColorCommonVariables
+																	'pkeywords = pGlobalArgs
+																	OriginalCaseWord = pGlobalArgs->Item(tIndex)
+																End If
 															End If
-															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalFunctions > 0 Then tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorGlobalFunctions
-																pkeywords = pGlobalFunctions
-																tNotFound = False
+															
+															If tIndex = -1 AndAlso pGlobalFunctions > 0 Then 
+																tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	sc = @ColorGlobalFunctions
+																	'pkeywords = pGlobalFunctions
+																	OriginalCaseWord = pGlobalFunctions->Item(tIndex)
+																End If
 															End If
-															If tNotFound AndAlso tIndex = -1 AndAlso pGlobalNamespaces > 0 Then tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
-															If tNotFound AndAlso tIndex <> -1 Then
-																sc = @ColorProperty
-																pkeywords = pGlobalNamespaces
-																tNotFound = False
+																
+															If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then 
+																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
+																If tIndex <> -1 Then
+																	sc = @ColorGlobalNamespaces
+																	'pkeywords = pGlobalNamespaces
+																	OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
+																End If
 															End If
 														End If
-														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso pkeywords <> 0 AndAlso FSelEndLine <> z Then
-															Keyword = GetKeyWordCase(Matn, pkeywords)
+														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso FSelEndLine <> z Then
+															Keyword = GetKeyWordCase(Matn, 0, OriginalCaseWord)
+															If Keyword <> Matn Then
+																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = Keyword
+															End If
+														ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
+															Keyword = GetKeyWordCase(Matn, 0, OriginalCaseWord)
 															If Keyword <> Matn Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = Keyword
 															End If
@@ -3281,10 +3320,11 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringList Ptr = 0) As String
+	Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringList Ptr = 0, OriginalCaseWord As String = "") As String
 		If ChangeKeyWordsCase Then
 			Select Case ChoosedKeyWordsCase
 			Case KeyWordsCase.OriginalCase
+				If OriginalCaseWord <> "" Then Return OriginalCaseWord
 				If KeyWordsList <> 0 Then
 					Var Idx = KeyWordsList->IndexOf(LCase(KeyWord))
 					If Idx <> -1 Then Return KeyWordsList->Item(Idx)

@@ -4264,6 +4264,7 @@ Sub LoadSettings
 	HistoryCodeDays = iniSettings.ReadInteger("Options", "HistoryCodeDays", 100)
 	HistoryCodeCleanDay = iniSettings.ReadInteger("Options", "HistoryCodeCleanDay", DateValue(Format(Now, "yyyy/mm/dd")))
 	If HistoryCodeCleanDay <> DateValue(Format(Now, "yyyy/mm/dd")) Then HistoryCodeClean(ExePath & "/Temp")
+	ChangeIdentifiersCase = iniSettings.ReadBool("Options", "ChangeIdentifiersCase", True)
 	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
 	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
 	AddSpacesToOperators = iniSettings.ReadBool("Options", "AddSpacesToOperators", True)
@@ -4406,12 +4407,27 @@ Sub LoadSettings
 	ColorOperators.Bold = iniTheme.ReadInteger("FontStyles", "OperatorBold", NormalText.Bold)
 	ColorOperators.Italic = iniTheme.ReadInteger("FontStyles", "OperatorItalic", NormalText.Italic)
 	ColorOperators.Underline = iniTheme.ReadInteger("FontStyles", "OperatorUnderline", NormalText.Underline)
-	ColorProperty.ForegroundOption = iniTheme.ReadInteger("Colors", "PropertyForeground", NormalText.ForegroundOption)
-	ColorProperty.BackgroundOption = iniTheme.ReadInteger("Colors", "PropertyBackground", -1)
-	ColorProperty.FrameOption = iniTheme.ReadInteger("Colors", "PropertyFrame", -1)
-	ColorProperty.Bold = iniTheme.ReadInteger("FontStyles", "PropertyBold", NormalText.Bold)
-	ColorProperty.Italic = iniTheme.ReadInteger("FontStyles", "PropertyItalic", NormalText.Italic)
-	ColorProperty.Underline = iniTheme.ReadInteger("FontStyles", "PropertyUnderline", NormalText.Italic)
+	
+	ColorByRefParameters.ForegroundOption = iniTheme.ReadInteger("Colors", "ByRefParametersForeground", NormalText.ForegroundOption)
+	ColorByRefParameters.BackgroundOption = iniTheme.ReadInteger("Colors", "ByRefParametersBackground", -1)
+	ColorByRefParameters.FrameOption = iniTheme.ReadInteger("Colors", "ByRefParametersFrame", -1)
+	ColorByRefParameters.Bold = iniTheme.ReadInteger("FontStyles", "ByRefParametersBold", NormalText.Bold)
+	ColorByRefParameters.Italic = iniTheme.ReadInteger("FontStyles", "ByRefParametersItalic", NormalText.Italic)
+	ColorByRefParameters.Underline = iniTheme.ReadInteger("FontStyles", "ByRefParametersUnderline", NormalText.Italic)
+	
+	ColorByValParameters.ForegroundOption = iniTheme.ReadInteger("Colors", "ByValParametersForeground", NormalText.ForegroundOption)
+	ColorByValParameters.BackgroundOption = iniTheme.ReadInteger("Colors", "ByValParametersBackground", -1)
+	ColorByValParameters.FrameOption = iniTheme.ReadInteger("Colors", "ByValParametersFrame", -1)
+	ColorByValParameters.Bold = iniTheme.ReadInteger("FontStyles", "ByValParametersBold", NormalText.Bold)
+	ColorByValParameters.Italic = iniTheme.ReadInteger("FontStyles", "ByValParametersItalic", NormalText.Italic)
+	ColorByValParameters.Underline = iniTheme.ReadInteger("FontStyles", "ByValParametersUnderline", NormalText.Italic)
+	
+	ColorCommonVariables.ForegroundOption = iniTheme.ReadInteger("Colors", "CommonVariablesForeground", NormalText.ForegroundOption)
+	ColorCommonVariables.BackgroundOption = iniTheme.ReadInteger("Colors", "CommonVariablesBackground", -1)
+	ColorCommonVariables.FrameOption = iniTheme.ReadInteger("Colors", "CommonVariablesFrame", -1)
+	ColorCommonVariables.Bold = iniTheme.ReadInteger("FontStyles", "CommonVariablesBold", NormalText.Bold)
+	ColorCommonVariables.Italic = iniTheme.ReadInteger("FontStyles", "CommonVariablesItalic", NormalText.Italic)
+	ColorCommonVariables.Underline = iniTheme.ReadInteger("FontStyles", "CommonVariablesUnderline", NormalText.Italic)
 	
 	ColorComps.ForegroundOption = iniTheme.ReadInteger("Colors", "ComponentsForeground", NormalText.ForegroundOption)
 	ColorComps.BackgroundOption = iniTheme.ReadInteger("Colors", "ComponentsBackground", -1)
@@ -4420,19 +4436,40 @@ Sub LoadSettings
 	ColorComps.Italic = iniTheme.ReadInteger("FontStyles", "ComponentsItalic", NormalText.Italic)
 	ColorComps.Underline = iniTheme.ReadInteger("FontStyles", "ComponentsUnderline", NormalText.Italic)
 	
-	ColorGlobalNamespaces.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesForeground", NormalText.ForegroundOption)
-	ColorGlobalNamespaces.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesBackground", -1)
-	ColorGlobalNamespaces.FrameOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesFrame", -1)
-	ColorGlobalNamespaces.Bold = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesBold", NormalText.Bold)
-	ColorGlobalNamespaces.Italic = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesItalic", NormalText.Italic)
-	ColorGlobalNamespaces.Underline = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesUnderline", NormalText.Italic)
+	ColorConstants.ForegroundOption = iniTheme.ReadInteger("Colors", "ConstantsForeground", NormalText.ForegroundOption)
+	ColorConstants.BackgroundOption = iniTheme.ReadInteger("Colors", "ConstantsBackground", -1)
+	ColorConstants.FrameOption = iniTheme.ReadInteger("Colors", "ConstantsFrame", -1)
+	ColorConstants.Bold = iniTheme.ReadInteger("FontStyles", "ConstantsBold", NormalText.Bold)
+	ColorConstants.Italic = iniTheme.ReadInteger("FontStyles", "ConstantsItalic", NormalText.Italic)
+	ColorConstants.Underline = iniTheme.ReadInteger("FontStyles", "ConstantsUnderline", NormalText.Italic)
 	
-	ColorGlobalTypes.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalTypesForeground", NormalText.ForegroundOption)
-	ColorGlobalTypes.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalTypesBackground", -1)
-	ColorGlobalTypes.FrameOption = iniTheme.ReadInteger("Colors", "GlobalTypesFrame", -1)
-	ColorGlobalTypes.Bold = iniTheme.ReadInteger("FontStyles", "GlobalTypesBold", NormalText.Bold)
-	ColorGlobalTypes.Italic = iniTheme.ReadInteger("FontStyles", "GlobalTypesItalic", NormalText.Italic)
-	ColorGlobalTypes.Underline = iniTheme.ReadInteger("FontStyles", "GlobalTypesUnderline", NormalText.Italic)
+	ColorDefines.ForegroundOption = iniTheme.ReadInteger("Colors", "DefinesForeground", NormalText.ForegroundOption)
+	ColorDefines.BackgroundOption = iniTheme.ReadInteger("Colors", "DefinesBackground", -1)
+	ColorDefines.FrameOption = iniTheme.ReadInteger("Colors", "DefinesFrame", -1)
+	ColorDefines.Bold = iniTheme.ReadInteger("FontStyles", "DefinesBold", NormalText.Bold)
+	ColorDefines.Italic = iniTheme.ReadInteger("FontStyles", "DefinesItalic", NormalText.Italic)
+	ColorDefines.Underline = iniTheme.ReadInteger("FontStyles", "DefinesUnderline", NormalText.Italic)
+	
+	ColorFields.ForegroundOption = iniTheme.ReadInteger("Colors", "FieldsForeground", NormalText.ForegroundOption)
+	ColorFields.BackgroundOption = iniTheme.ReadInteger("Colors", "FieldsBackground", -1)
+	ColorFields.FrameOption = iniTheme.ReadInteger("Colors", "FieldsFrame", -1)
+	ColorFields.Bold = iniTheme.ReadInteger("FontStyles", "FieldsBold", NormalText.Bold)
+	ColorFields.Italic = iniTheme.ReadInteger("FontStyles", "FieldsItalic", NormalText.Italic)
+	ColorFields.Underline = iniTheme.ReadInteger("FontStyles", "FieldsUnderline", NormalText.Italic)
+	
+	ColorGlobalFunctions.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsForeground", NormalText.ForegroundOption)
+	ColorGlobalFunctions.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsBackground", -1)
+	ColorGlobalFunctions.FrameOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsFrame", -1)
+	ColorGlobalFunctions.Bold = iniTheme.ReadInteger("FontStyles", "GlobalFunctionsBold", NormalText.Bold)
+	ColorGlobalFunctions.Italic = iniTheme.ReadInteger("FontStyles", "GlobalFunctionsItalic", NormalText.Italic)
+	ColorGlobalFunctions.Underline = iniTheme.ReadInteger("FontStyles", "GlobalFunctionsUnderline", NormalText.Italic)
+	
+	ColorEnumMembers.ForegroundOption = iniTheme.ReadInteger("Colors", "EnumMembersForeground", NormalText.ForegroundOption)
+	ColorEnumMembers.BackgroundOption = iniTheme.ReadInteger("Colors", "EnumMembersBackground", -1)
+	ColorEnumMembers.FrameOption = iniTheme.ReadInteger("Colors", "EnumMembersFrame", -1)
+	ColorEnumMembers.Bold = iniTheme.ReadInteger("FontStyles", "EnumMembersBold", NormalText.Bold)
+	ColorEnumMembers.Italic = iniTheme.ReadInteger("FontStyles", "EnumMembersItalic", NormalText.Italic)
+	ColorEnumMembers.Underline = iniTheme.ReadInteger("FontStyles", "EnumMembersUnderline", NormalText.Italic)
 	
 	ColorGlobalEnums.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalEnumsForeground", NormalText.ForegroundOption)
 	ColorGlobalEnums.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalEnumsBackground", -1)
@@ -4441,26 +4478,48 @@ Sub LoadSettings
 	ColorGlobalEnums.Italic = iniTheme.ReadInteger("FontStyles", "GlobalEnumsItalic", NormalText.Italic)
 	ColorGlobalEnums.Underline = iniTheme.ReadInteger("FontStyles", "GlobalEnumsUnderline", NormalText.Italic)
 	
-	ColorGlobalArgs.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalArgsForeground", NormalText.ForegroundOption)
-	ColorGlobalArgs.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalArgsBackground", -1)
-	ColorGlobalArgs.FrameOption = iniTheme.ReadInteger("Colors", "GlobalArgsFrame", -1)
-	ColorGlobalArgs.Bold = iniTheme.ReadInteger("FontStyles", "GlobalArgsBold", NormalText.Bold)
-	ColorGlobalArgs.Italic = iniTheme.ReadInteger("FontStyles", "GlobalArgsItalic", NormalText.Italic)
-	ColorGlobalArgs.Underline = iniTheme.ReadInteger("FontStyles", "GlobalArgsUnderline", NormalText.Italic)
+	ColorLocalVariables.ForegroundOption = iniTheme.ReadInteger("Colors", "LocalVariablesForeground", NormalText.ForegroundOption)
+	ColorLocalVariables.BackgroundOption = iniTheme.ReadInteger("Colors", "LocalVariablesBackground", -1)
+	ColorLocalVariables.FrameOption = iniTheme.ReadInteger("Colors", "LocalVariablesFrame", -1)
+	ColorLocalVariables.Bold = iniTheme.ReadInteger("FontStyles", "LocalVariablesBold", NormalText.Bold)
+	ColorLocalVariables.Italic = iniTheme.ReadInteger("FontStyles", "LocalVariablesItalic", NormalText.Italic)
+	ColorLocalVariables.Underline = iniTheme.ReadInteger("FontStyles", "LocalVariablesUnderline", NormalText.Italic)
 	
-	ColorLocalArgs.ForegroundOption = iniTheme.ReadInteger("Colors", "LocalArgsForeground", NormalText.ForegroundOption)
-	ColorLocalArgs.BackgroundOption = iniTheme.ReadInteger("Colors", "LocalArgsBackground", -1)
-	ColorLocalArgs.FrameOption = iniTheme.ReadInteger("Colors", "LocalArgsFrame", -1)
-	ColorLocalArgs.Bold = iniTheme.ReadInteger("FontStyles", "LocalArgsBold", NormalText.Bold)
-	ColorLocalArgs.Italic = iniTheme.ReadInteger("FontStyles", "LocalArgsItalic", NormalText.Italic)
-	ColorLocalArgs.Underline = iniTheme.ReadInteger("FontStyles", "LocalArgsUnderline", NormalText.Italic)
+	ColorMacros.ForegroundOption = iniTheme.ReadInteger("Colors", "MacrosForeground", NormalText.ForegroundOption)
+	ColorMacros.BackgroundOption = iniTheme.ReadInteger("Colors", "MacrosBackground", -1)
+	ColorMacros.FrameOption = iniTheme.ReadInteger("Colors", "MacrosFrame", -1)
+	ColorMacros.Bold = iniTheme.ReadInteger("FontStyles", "MacrosBold", NormalText.Bold)
+	ColorMacros.Italic = iniTheme.ReadInteger("FontStyles", "MacrosItalic", NormalText.Italic)
+	ColorMacros.Underline = iniTheme.ReadInteger("FontStyles", "MacrosUnderline", NormalText.Italic)
 	
-	ColorGlobalFunctions.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsForeground", NormalText.ForegroundOption)
-	ColorGlobalFunctions.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsBackground", -1)
-	ColorGlobalFunctions.FrameOption = iniTheme.ReadInteger("Colors", "GlobalFunctionsFrame", -1)
-	ColorGlobalFunctions.Bold = iniTheme.ReadInteger("FontStyles", "GlobalFunctionsBold", NormalText.Bold)
-	ColorGlobalFunctions.Italic = iniTheme.ReadInteger("FontStyles", "GlobalFunctionsItalic", NormalText.Italic)
-	ColorGlobalFunctions.Underline = iniTheme.ReadInteger("FontStyles", "GlobalFunctionsUnderline", NormalText.Italic)
+	ColorGlobalNamespaces.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesForeground", NormalText.ForegroundOption)
+	ColorGlobalNamespaces.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesBackground", -1)
+	ColorGlobalNamespaces.FrameOption = iniTheme.ReadInteger("Colors", "GlobalNamespacesFrame", -1)
+	ColorGlobalNamespaces.Bold = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesBold", NormalText.Bold)
+	ColorGlobalNamespaces.Italic = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesItalic", NormalText.Italic)
+	ColorGlobalNamespaces.Underline = iniTheme.ReadInteger("FontStyles", "GlobalNamespacesUnderline", NormalText.Italic)
+	
+	ColorProperties.ForegroundOption = iniTheme.ReadInteger("Colors", "PropertiesForeground", NormalText.ForegroundOption)
+	ColorProperties.BackgroundOption = iniTheme.ReadInteger("Colors", "PropertiesBackground", -1)
+	ColorProperties.FrameOption = iniTheme.ReadInteger("Colors", "PropertiesFrame", -1)
+	ColorProperties.Bold = iniTheme.ReadInteger("FontStyles", "PropertiesBold", NormalText.Bold)
+	ColorProperties.Italic = iniTheme.ReadInteger("FontStyles", "PropertiesItalic", NormalText.Italic)
+	ColorProperties.Underline = iniTheme.ReadInteger("FontStyles", "PropertiesUnderline", NormalText.Italic)
+	
+	ColorSharedVariables.ForegroundOption = iniTheme.ReadInteger("Colors", "SharedVariablesForeground", NormalText.ForegroundOption)
+	ColorSharedVariables.BackgroundOption = iniTheme.ReadInteger("Colors", "SharedVariablesBackground", -1)
+	ColorSharedVariables.FrameOption = iniTheme.ReadInteger("Colors", "SharedVariablesFrame", -1)
+	ColorSharedVariables.Bold = iniTheme.ReadInteger("FontStyles", "SharedVariablesBold", NormalText.Bold)
+	ColorSharedVariables.Italic = iniTheme.ReadInteger("FontStyles", "SharedVariablesItalic", NormalText.Italic)
+	ColorSharedVariables.Underline = iniTheme.ReadInteger("FontStyles", "SharedVariablesUnderline", NormalText.Italic)
+	
+	ColorGlobalTypes.ForegroundOption = iniTheme.ReadInteger("Colors", "GlobalTypesForeground", NormalText.ForegroundOption)
+	ColorGlobalTypes.BackgroundOption = iniTheme.ReadInteger("Colors", "GlobalTypesBackground", -1)
+	ColorGlobalTypes.FrameOption = iniTheme.ReadInteger("Colors", "GlobalTypesFrame", -1)
+	ColorGlobalTypes.Bold = iniTheme.ReadInteger("FontStyles", "GlobalTypesBold", NormalText.Bold)
+	ColorGlobalTypes.Italic = iniTheme.ReadInteger("FontStyles", "GlobalTypesItalic", NormalText.Italic)
+	ColorGlobalTypes.Underline = iniTheme.ReadInteger("FontStyles", "GlobalTypesUnderline", NormalText.Italic)
+	
 	SetAutoColors
 	
 End Sub
@@ -7321,6 +7380,22 @@ Sub SetAutoColors
 	GetColors ExecutionLine, clBlack, clYellow, , clYellow
 	GetColors FoldLines, clBtnShadow
 	GetColors Identifiers, clBlack, clWhite
+	GetColors ColorByRefParameters, clBlack
+	GetColors ColorByValParameters, clBlack
+	GetColors ColorCommonVariables, clBlack
+	GetColors ColorComps, clBlack
+	GetColors ColorConstants, clBlack
+	GetColors ColorDefines, clBlack
+	GetColors ColorFields, clBlack
+	GetColors ColorGlobalFunctions, clBlack
+	GetColors ColorEnumMembers, clBlack
+	GetColors ColorGlobalEnums, clBlack
+	GetColors ColorLocalVariables, clBlack
+	GetColors ColorMacros, clBlack
+	GetColors ColorGlobalNamespaces, clBlack
+	GetColors ColorProperties, clBlack
+	GetColors ColorSharedVariables, clBlack
+	GetColors ColorGlobalTypes, clBlack
 	GetColors IndicatorLines, clBlack
 	For k As Integer = 0 To UBound(Keywords)
 		GetColors Keywords(k), clBlue
@@ -7328,21 +7403,12 @@ Sub SetAutoColors
 	GetColors LineNumbers, clBlack, clBtnFace
 	GetColors NormalText, clBlack, clWhite
 	GetColors Numbers, clBlack, clWhite
+	GetColors ColorOperators, clRed
 	GetColors RealNumbers, clBlack, clWhite
 	'GetColors Preprocessors, clPurple
 	GetColors Selection, clHighlightText, clHighlight
 	GetColors SpaceIdentifiers, clLtGray
 	GetColors Strings, clMaroon
-	
-	GetColors ColorOperators, clRed
-	GetColors ColorProperty, clBlack
-	GetColors ColorComps, clBlack
-	GetColors ColorGlobalNamespaces, clBlack
-	GetColors ColorGlobalTypes, clBlack
-	GetColors ColorGlobalEnums, clBlack
-	GetColors ColorGlobalArgs, clBlack
-	GetColors ColorLocalArgs, clBlack
-	GetColors ColorGlobalFunctions, clBlack
 End Sub
 
 Sub frmMain_Create(ByRef Sender As Control)

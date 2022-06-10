@@ -4552,8 +4552,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									CurType = Trim(Mid(res1(n), Pos1 + 4))
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
-								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+								Var te = New_( TypeElement)
+								If res1(n).ToLower.StartsWith("byref") Then
 									res1(n) = Trim(Mid(res1(n), 6))
+									te->ElementType = "ByRefParameter"
+								ElseIf res1(n).ToLower.StartsWith("byval") Then
+									res1(n) = Trim(Mid(res1(n), 6))
+									te->ElementType = "ByValParameter"
+								Else
+									te->ElementType = "ByValParameter"
 								End If
 								Pos1 = InStr(res1(n), "(")
 								If Pos1 > 0 Then
@@ -4562,11 +4569,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								res1(n) = res1(n).TrimAll
 								Pos1 = InStrRev(CurType, ".")
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-								Var te = New_( TypeElement)
 								te->Name = res1(n)
 								te->DisplayName = res1(n)
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-								te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
 								te->TypeName = CurType
 								te->TypeName = WithoutPointers(te->TypeName)
 								te->Value = ElementValue
