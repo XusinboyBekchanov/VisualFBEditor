@@ -248,29 +248,9 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 	Folders.Clear
 End Sub
 
-Sub FindToDoSub(Param As Any Ptr)
-	MutexLock tlockToDo
-	ThreadsEnter
-	plvToDo->ListItems.Clear
-	StartProgress
-	ThreadsLeave
-	Dim As TreeNode Ptr ptn = Param
-	Dim As ExplorerElement Ptr ee = Cast(ExplorerElement Ptr, ptn->Tag)
-	If ptn->ImageKey = "Opened" Then
-		fFindFile.Find plvToDo, *ee->FileName, WChr(39) + WChr(84) + "ODO"
-	Else
-		fFindFile.Find plvToDo, GetFolderName(*ee->FileName), WChr(39) + WChr(84) + "ODO"
-	End If
-	ThreadsEnter
-	StopProgress
-	ptabBottom->Tabs[3]->Caption = ML("ToDo") & IIf(plvToDo->ListItems.Count = 0, "", " (" & plvToDo->ListItems.Count & " " & ML("Pos") & ")")
-	ThreadsLeave
-	MutexUnlock tlockToDo
-End Sub
-
 Sub FindSub(Param As Any Ptr)
 	ThreadsEnter
-	pTabBottom->Tabs[2]->SelectTab
+	ptabBottom->Tabs[2]->SelectTab
 	plvSearch->ListItems.Clear
 	StartProgress
 	With fFindFile
@@ -413,25 +393,25 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 							Var NumS = StringSubStringAll(Buff,tML, WChr(34) & ")",SubStr())
 							For i As Integer =0 To NumS-1
 								If InStr(*BuffOut, WChr(13,10) & *SubStr(i))<=0 Then
-									wAdd BuffOut, WChr(13,10) & *SubStr(i)
-									If InStr(*SubStr(i), "&")>0 Then wAdd BuffOut, WChr(13,10) & Replace(*SubStr(i),"&","")
+									WAdd BuffOut, WChr(13,10) & *SubStr(i)
+									If InStr(*SubStr(i), "&")>0 Then WAdd BuffOut, WChr(13,10) & Replace(*SubStr(i),"&","")
 								End If
 							Next
 							#ifndef __USE_MAKE__
-								WDeallocate(SubStr())
+								WDeAllocate(SubStr())
 							#endif
 						Else
 							If *BuffOut="" Then
-								wLet(BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked))
+								WLet(BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked))
 							Else
-								wAdd BuffOut, WChr(13,10) & Replace(Buff, tSearch, tReplace,,, chkMatchCase.Checked)
+								WAdd BuffOut, WChr(13,10) & Replace(Buff, tSearch, tReplace,,, chkMatchCase.Checked)
 							End If
 						End If
 					ElseIf LCase(tSearch) <> LCase(tReplace) Then
 						If *BuffOut="" Then
-							wLet(BuffOut, Buff)
+							WLet(BuffOut, Buff)
 						Else
-							wAdd BuffOut, WChr(13,10) & Buff
+							WAdd BuffOut, WChr(13,10) & Buff
 						End If
 					End If
 					While Pos1 > 0
@@ -445,15 +425,14 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 						Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
 					Wend
 				Loop
-				CloseFile_(Fn)
 				If LCase(tSearch) <> LCase(tReplace) Then
-					Fn = FreeFile_
-					If Open(Path & f For Output Encoding "utf-8" As #Fn) = 0 Then
-						Print #Fn, *BuffOut
+					Var Fn1 = FreeFile_
+					If Open(Path & f For Output Encoding "utf-8" As #Fn1) = 0 Then
+						Print #Fn1, *BuffOut
 					Else
 						MsgBox ML("Open file failure!") & " " & ML("in function") & " frmFindInFiles.ReplaceInFile" & WChr(13,10) & "  " & Path & f
 					End If
-					CloseFile_(Fn)
+					CloseFile_(Fn1)
 				End If
 			End If
 			CloseFile_(Fn)

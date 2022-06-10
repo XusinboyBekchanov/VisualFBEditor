@@ -423,15 +423,14 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 								Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
 							Wend
 						Loop
-						CloseFile_(Fn)
 						If LCase(tSearch) <> LCase(tReplace) Then
-							Fn = FreeFile_
-							If Open(f For Output Encoding "utf-8" As #Fn) = 0 Then
-								Print #Fn, *BuffOut
+							Var Fn1 = FreeFile_
+							If Open(f For Output Encoding "utf-8" As #Fn1) = 0 Then
+								Print #Fn1, *BuffOut
 							Else
 								MsgBox ML("Open file failure!") & " " & ML("in function") & " frmFindInFiles.ReplaceInFile" & Chr(13,10) & "  " & f
 							End If
-							CloseFile_(Fn)
+							CloseFile_(Fn1)
 						End If
 					End If
 					CloseFile_(Fn)

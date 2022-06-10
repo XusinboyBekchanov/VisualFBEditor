@@ -5660,7 +5660,8 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 					End If
 					mLoadLog = True
 				ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
-					ThreadCounter(ThreadCreate_(@FindToDoSub, ptn))
+					WLet gSearchSave, WChr(39)+ WChr(84)+"ODO"
+					ThreadCounter(ThreadCreate_(@FindSubProj, ptn))
 					mLoadToDo = True
 				End If
 			End If
@@ -6933,7 +6934,7 @@ lvToDo.Align = DockStyle.alClient
 lvToDo.Columns.Add ML("Content"), , 500, cfLeft
 lvToDo.Columns.Add ML("Line"), , 50, cfRight
 lvToDo.Columns.Add ML("Column"), , 50, cfRight
-lvToDo.Columns.Add ML("File"), , 300, cfLeft
+lvToDo.Columns.Add ML("File"), , 700, cfLeft
 lvToDo.OnItemActivate = @lvToDo_ItemActivate
 
 Sub lvErrors_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
@@ -7071,8 +7072,9 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 			End If
 			mLoadLog = True
 		ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDo Then
+			WLet gSearchSave, WChr(39) + WChr(84) + "ODO"
+			ThreadCounter(ThreadCreate_(@FindSubProj, MainNode))
 			mLoadToDo = True
-			ThreadCounter(ThreadCreate_(@FindToDoSub, MainNode))
 		End If
 	End If
 End Sub
