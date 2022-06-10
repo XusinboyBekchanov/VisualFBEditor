@@ -51,7 +51,6 @@ Using My.Sys.Forms
 '#End Region
 
 Declare Sub FindSub(Param As Any Ptr)
-Declare Sub FindToDoSub(Param As Any Ptr)
 Declare Sub FindInFiles()
 Declare Sub ReplaceSub(Param As Any Ptr)
 Declare Sub ReplaceInFiles()

@@ -2339,7 +2339,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Identifiers") & ": " & ML("Types")
 		.lstColorKeys.AddItem ML("Indicator Lines")
 		For k As Integer = 0 To KeywordLists.Count - 1
-			.lstColorKeys.AddItem ML("Keywords") & ": " & KeywordLists.Item(k)
+			.lstColorKeys.AddItem ML("Keywords") & ": " & ML(KeywordLists.Item(k))
 		Next k
 		.lstColorKeys.AddItem ML("Line Numbers")
 		.lstColorKeys.AddItem ML("Normal Text")
