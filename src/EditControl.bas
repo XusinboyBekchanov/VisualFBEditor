@@ -1089,11 +1089,9 @@ Namespace My.Sys.Forms
 				If (CheckUTF8NoBOM(Buff)) Then
 					FileEncoding = FileEncodings.UTF8
 					EncodingStr = "ascii"
-					debug.Print "FileEncodings.UTF8"
 				Else
 					FileEncoding = FileEncodings.PlainText
 					EncodingStr = "ascii"
-					debug.Print "FileEncodings.PlainText"
 				End If
 			End If
 			'Debug.Print Str(Len(buffer))
@@ -2134,6 +2132,7 @@ Namespace My.Sys.Forms
 		BracketsStartLine = -1
 		BracketsEnd = -1
 		BracketsEndLine = -1
+
 		If HighlightBrackets Then
 			Symb = Mid(Lines(iSelEndLine), iSelEndChar + 1, 1)
 			If InStr(OpenBrackets, Symb) Then
@@ -2387,14 +2386,15 @@ Namespace My.Sys.Forms
 										End If
 										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 										Exit Do
-									ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
+									ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") Then
 										If MatnBoshi = 0 Then MatnBoshi = j
 										If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso ((t >= 48 AndAlso t <= 57) OrElse t = 46))) Then
 											If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
+												OldMatn = Matn
 												sc = @Identifiers
 												'ss = NormalText.Background
-												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
+												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
 												If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
 												If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
 													pkeywords = 0
@@ -2405,28 +2405,36 @@ Namespace My.Sys.Forms
 															End If
 														End If
 													Else
-														Dim As Boolean bKeyWord
-														Dim As UString OriginalCaseWord
+														Dim As Boolean bKeyWord = False
+														Dim As WString * 200 OriginalCaseWord
 														Dim As Integer tIndex  = -1
+														u = InStr(*s, " ")
+					If u > 0 AndAlso j > u AndAlso InStr("declare dim var", Mid(LCase(Trim(*s, Any !"\t ")), 1, u - 1)) > 0 Then ChangeIdentifiersCase = False
+														' Like varStr as String
+														u = InStr(LCase(*s), " as ")
+														If u > 0 AndAlso j < u Then ChangeIdentifiersCase = False
+														
 														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
-															tIndex = pkeywordsAsm->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															tIndex = pkeywordsAsm->IndexOf(LCase(Matn))
 															If tIndex > -1 Then
 																sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
-																'pkeywords = pkeywordsAsm
+																pkeywords = pkeywordsAsm
 																bKeyWord = True
 															End If
 														Else
 															For k As Integer = 1 To KeywordLists.Count - 1
 																pkeywords = KeywordLists.Object(k)
-																tIndex = pkeywords->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+																tIndex = pkeywords->IndexOf(LCase(Matn))
 																If tIndex > -1 Then
 																	sc = @Keywords(k)
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	bKeyWord = True
 																	Exit For
 																ElseIf StartsWith(Matn, "..") Then
-																	tIndex = pkeywords->IndexOf(LCase(Mid(Matn, 3)), , , , OriginalCaseWord)
+																	tIndex = pkeywords->IndexOf(LCase(Mid(Matn, 3)))
 																	If tIndex > -1 Then
 																		sc = @Keywords(k)
+																		OriginalCaseWord = ".." + pkeywords->Item(tIndex)
 																		bKeyWord = True
 																		Exit For
 																	End If
@@ -2436,7 +2444,7 @@ Namespace My.Sys.Forms
 															Next
 															
 															'Procedure
-															If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
+															If tIndex = -1 AndAlso FECLine->InConstruction > 0 Then
 																tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
@@ -2453,7 +2461,7 @@ Namespace My.Sys.Forms
 																	tIndex = InStr(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, ".")
 																	If tIndex > 0 Then
 																		OriginalCaseWord = ..Left(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, tIndex - 1)
-																		tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord), , , , OriginalCaseWord)
+																		tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord))
 																		If tIndex > -1 AndAlso pGlobalTypes->Object(tIndex) > 0 Then
 																			Var te = Cast(TypeElement Ptr, pGlobalTypes->Object(tIndex))
 																			tIndex = te->Elements.IndexOf(LCase(Matn))
@@ -2481,10 +2489,11 @@ Namespace My.Sys.Forms
 															End If
 															
 															'Module
-															If tIndex = -1 AndAlso pLocalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = pLocalArgs->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pLocalArgs > 0 Then
+																tIndex = pLocalArgs->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
-																	'pkeywords = pLocalArgs
+																	pkeywords = pLocalArgs
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	Select Case Cast(TypeElement Ptr, pLocalArgs->Object(tIndex))->ElementType
 																	Case "EnumItem"
 																		sc = @ColorEnumMembers
@@ -2500,10 +2509,11 @@ Namespace My.Sys.Forms
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pLocalProcedures > 0 Then 
-																tIndex = pLocalProcedures->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pLocalProcedures > 0 Then
+																tIndex = pLocalProcedures->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
-																	'pkeywords = pLocalProcedures
+																	pkeywords = pLocalProcedures
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	Select Case LCase(Cast(TypeElement Ptr, pLocalProcedures->Object(tIndex))->ElementType)
 																	Case "constructor", "destructor"
 																		sc = @ColorGlobalTypes
@@ -2522,34 +2532,38 @@ Namespace My.Sys.Forms
 															End If
 															
 															'Global
-															If tIndex = -1 AndAlso pComps > 0 Then 
-																tIndex = pComps->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pComps > 0 Then
+																tIndex = pComps->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	sc = @ColorComps
-																	'pkeywords = pComps
+																	pkeywords = pComps
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalTypes > 0 Then 
-																tIndex = pGlobalTypes->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pGlobalTypes > 0 Then
+																tIndex = pGlobalTypes->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalTypes
-																	'pkeywords = pGlobalTypes
+																	pkeywords = pGlobalTypes
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalEnums > 0 Then 
-																tIndex = pGlobalEnums->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pGlobalEnums > 0 Then
+																tIndex = pGlobalEnums->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalEnums
-																	'pkeywords = pGlobalEnums
+																	pkeywords = pGlobalEnums
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = pGlobalArgs->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pGlobalArgs > 0 Then
+																tIndex = pGlobalArgs->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
-																	'pkeywords = pGlobalArgs
+																	pkeywords = pGlobalArgs
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	Select Case Cast(TypeElement Ptr, pGlobalArgs ->Object(tIndex))->ElementType
 																	Case "EnumItem"
 																		sc = @ColorEnumMembers
@@ -2566,9 +2580,10 @@ Namespace My.Sys.Forms
 															End If
 															
 															If tIndex = -1 AndAlso pGlobalFunctions > 0 Then
-																tIndex = pGlobalFunctions->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+																tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
-																	'pkeywords = pGlobalFunctions
+																	pkeywords = pGlobalFunctions
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	Select Case LCase(Cast(TypeElement Ptr, pGlobalFunctions->Object(tIndex))->ElementType)
 																	Case "constructor", "destructor"
 																		sc = @ColorGlobalTypes
@@ -2588,26 +2603,27 @@ Namespace My.Sys.Forms
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then 
-																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then
+																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalNamespaces
-																	'pkeywords = pGlobalNamespaces
+																	pkeywords = pGlobalNamespaces
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																End If
 															End If
 														End If
 														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso FSelEndLine <> z Then
-															Keyword = GetKeyWordCase(Matn, 0, OriginalCaseWord)
-															If Keyword <> Matn Then
-																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = Keyword
+															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
+															If KeyWord <> Matn Then
+																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 															End If
 														ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
-															Keyword = GetKeyWordCase(Matn, 0, OriginalCaseWord)
-															If Keyword <> Matn Then
-																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = Keyword
+															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
+															If KeyWord <> Matn Then
+																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 															End If
 														ElseIf tIndex = -1 Then
-															If IsNumeric(Matn) Then
+															If isNumeric(Matn) Then
 																If InStr(Matn, ".") Then
 																	sc = @RealNumbers
 																Else
@@ -2618,8 +2634,22 @@ Namespace My.Sys.Forms
 															End If
 														End If
 													End If
+												Else   '  Properties membership . ->    MatnOld is the parent
+													'TODO Only finding in the MatnOld's membership
+													Dim As Integer tIndex = pComps->IndexOf(LCase(Matn))
+													If tIndex <> -1 Then
+														sc = @ColorProperties
+														pkeywords = pComps
+														Dim As WString * 200 OriginalCaseWord = pComps->Item(tIndex)
+														'Debug.Print "pComps " + OriginalCaseWord
+														If ChangeIdentifiersCase AndAlso FSelEndLine <> z Then
+															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
+															If KeyWord <> Matn Then
+																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
+															End If
+														End If
+													End If
 												End If
-												OldMatn = Matn
 												'If sc <> 0 Then
 												PaintText zz, i, *s, MatnBoshi - 1, j, *sc
 												'txtCode.SetSel ss + MatnBoshi - 1, ss + j
@@ -2634,6 +2664,8 @@ Namespace My.Sys.Forms
 										'txtCode.SetSel ss + j - 1, ss + l
 										'txtCode.SelColor = clGreen
 										Exit Do
+									ElseIf CharType(Mid(*s, j, 1)) = 2 Then
+										PaintText zz, i, *s, j - 1, j, ColorOperators
 									ElseIf Chr(t) <> " " Then
 										PaintText zz, i, *s, j - 1, j, NormalText
 									End If
@@ -2668,7 +2700,7 @@ Namespace My.Sys.Forms
 								LineTo bufDC, rec.Right, rec.Top - 1
 							#endif
 						Else
-							rec = Type(ScaleX(Max(-1, LeftMargin + -HScrollPos * dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, This.Width)), ScaleY((i - VScrollPos) * dwCharY + dwCharY + 1 + CodePaneY))
+							rec = Type(ScaleX(Max(-1, leftMargin + -HScrollPos * dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, This.Width)), ScaleY((i - VScrollPos) * dwCharY + dwCharY + 1 + CodePaneY))
 							#ifdef __USE_GTK__
 								cairo_set_source_rgb(cr, CurrentLine.FrameRed, CurrentLine.FrameGreen, CurrentLine.FrameBlue)
 								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
