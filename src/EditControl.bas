@@ -173,12 +173,12 @@ Namespace My.Sys.Forms
 			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
 			If ec->InFocus Then
 				ec->CaretOn = Not ec->CaretOn
-				If gtk_is_widget(ec->widget) Then gtk_widget_queue_draw(ec->widget)
+				If GTK_IS_WIDGET(ec->widget) Then gtk_widget_queue_draw(ec->widget)
 				'gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
 				Return True
 			Else
 				ec->CaretOn = False
-				If gtk_is_widget(ec->widget) Then gtk_widget_queue_draw(ec->widget)
+				If GTK_IS_WIDGET(ec->widget) Then gtk_widget_queue_draw(ec->widget)
 				Return False
 			End If
 		End Function
@@ -301,7 +301,7 @@ Namespace My.Sys.Forms
 		Else
 			pVScrollPos = @VScrollPosBottom
 		End If
-		*pVScrollPos = Min(GetCaretPosY(Value), IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom))
+		*pVScrollPos = min(GetCaretPosY(Value), IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom))
 		#ifdef __USE_GTK__
 			gtk_adjustment_set_value(adjustmentv, *pVScrollPos)
 		#else
@@ -1089,11 +1089,9 @@ Namespace My.Sys.Forms
 				If (CheckUTF8NoBOM(Buff)) Then
 					FileEncoding = FileEncodings.UTF8
 					EncodingStr = "ascii"
-					debug.Print "FileEncodings.UTF8"
 				Else
 					FileEncoding = FileEncodings.PlainText
 					EncodingStr = "ascii"
-					debug.Print "FileEncodings.PlainText"
 				End If
 			End If
 			'Debug.Print Str(Len(buffer))
@@ -1135,7 +1133,7 @@ Namespace My.Sys.Forms
 				pBuff = 0
 				If OldFileEncoding = FileEncodings.UTF8 Then
 					Line Input #Fn, Buff
-					wLet pBuff, FromUtf8(StrPtr(Buff))
+					WLet pBuff, FromUtf8(StrPtr(Buff))
 				Else
 					Line Input #Fn, BuffRead
 					WLet pBuff, BuffRead
@@ -2381,8 +2379,8 @@ Namespace My.Sys.Forms
 									If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
 										If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) AndAlso pkeywords2 <> 0 Then
 											If Not CStyle Then
-												Keyword = GetKeyWordCase("rem", pkeywords2)
-												If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = Keyword
+												KeyWord = GetKeyWordCase("rem", pkeywords2)
+												If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = KeyWord
 											End If
 										End If
 										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
@@ -2600,16 +2598,16 @@ Namespace My.Sys.Forms
 															End If
 														End If
 														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso FSelEndLine <> z Then
-															Keyword = GetKeyWordCase(Matn, 0, OriginalCaseWord)
-															If Keyword <> Matn Then
-																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = Keyword
+															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
+															If KeyWord <> Matn Then
+																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 															End If
 														ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
 															If Matn <> OriginalCaseWord Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = OriginalCaseWord
 															End If
 														ElseIf tIndex = -1 Then
-															If IsNumeric(Matn) Then
+															If isNumeric(Matn) Then
 																If InStr(Matn, ".") Then
 																	sc = @RealNumbers
 																Else
@@ -2636,6 +2634,8 @@ Namespace My.Sys.Forms
 										'txtCode.SetSel ss + j - 1, ss + l
 										'txtCode.SelColor = clGreen
 										Exit Do
+									ElseIf CharType(Mid(*s, j, 1)) = 2 Then
+										PaintText zz, i, *s, j - 1, j, ColorOperators
 									ElseIf Chr(t) <> " " Then
 										PaintText zz, i, *s, j - 1, j, NormalText
 									End If
@@ -2805,7 +2805,7 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, LineNumbers.ForegroundRed, LineNumbers.ForegroundGreen, LineNumbers.ForegroundBlue)
 					pango_layout_set_text(layout, ToUtf8(*FLineLeft), Len(ToUtf8(*FLineLeft)))
 					pango_cairo_update_layout(cr, layout)
-					#ifdef PANGO_VERSION
+					#ifdef pango_version
 						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 					#else
 						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
@@ -2820,9 +2820,9 @@ Namespace My.Sys.Forms
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 					SetBkMode(bufDC, TRANSPARENT)
 					WLet(FLineLeft, WStr(z + 1))
-					GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
+					GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @sz)
 					SetTextColor(bufDC, LineNumbers.Foreground)
-					TextOut(bufDC, ScaleX(LeftMargin - 25 + CodePaneX) - Sz.cx, ScaleY((i - VScrollPos) * dwCharY + CodePaneY), FLineLeft, Len(*FLineLeft))
+					TextOut(bufDC, ScaleX(LeftMargin - 25 + CodePaneX) - sz.cx, ScaleY((i - VScrollPos) * dwCharY + CodePaneY), FLineLeft, Len(*FLineLeft))
 					SetBkMode(bufDC, OPAQUE)
 				#endif
 				This.Canvas.Brush.Color = NormalText.Background
@@ -3038,13 +3038,13 @@ Namespace My.Sys.Forms
 					'					SelectObject(bufDC, This.Canvas.Brush.Handle)
 					Ellipse bufDC, ScaleX(MButtonX + 10), ScaleY(MButtonY + 10), ScaleX(MButtonX + 14), ScaleY(MButtonY + 14)
 					Dim pPoint1(3) As ..Point = {(ScaleX(MButtonX + 11), ScaleY(MButtonY + 1)), (ScaleX(MButtonX + 7), ScaleY(MButtonY + 5)), (ScaleX(MButtonX + 16), ScaleY(MButtonY + 5)), (ScaleX(MButtonX + 12), ScaleY(MButtonY + 1))}
-					PolyGon(bufDC, @pPoint1(0), 4)
+					Polygon(bufDC, @pPoint1(0), 4)
 					Dim pPoint2(3) As ..Point = {(ScaleX(MButtonX + 11), ScaleY(MButtonY + 22)), (ScaleX(MButtonX + 7), ScaleY(MButtonY + 18)), (ScaleX(MButtonX + 16), ScaleY(MButtonY + 18)), (ScaleX(MButtonX + 12), ScaleY(MButtonY + 22))}
-					PolyGon(bufDC, @pPoint2(0), 4)
+					Polygon(bufDC, @pPoint2(0), 4)
 					Dim pPoint3(3) As ..Point = {(ScaleX(MButtonX + 1), ScaleY(MButtonY + 11)), (ScaleX(MButtonX + 5), ScaleY(MButtonY + 7)), (ScaleX(MButtonX + 5), ScaleY(MButtonY + 16)), (ScaleX(MButtonX + 1), ScaleY(MButtonY + 12))}
-					PolyGon(bufDC, @pPoint3(0), 4)
+					Polygon(bufDC, @pPoint3(0), 4)
 					Dim pPoint4(3) As ..Point = {(ScaleX(MButtonX + 22), ScaleY(MButtonY + 11)), (ScaleX(MButtonX + 18), ScaleY(MButtonY + 7)), (ScaleX(MButtonX + 18), ScaleY(MButtonY + 16)), (ScaleX(MButtonX + 22), ScaleY(MButtonY + 12))}
-					PolyGon(bufDC, @pPoint4(0), 4)
+					Polygon(bufDC, @pPoint4(0), 4)
 				#endif
 			End If
 			If bDividedX Then
@@ -3166,10 +3166,10 @@ Namespace My.Sys.Forms
 		_LoadFromHistory FHistory.Item(curHistory), False, FHistory.Item(curHistory - 1)
 	End Sub
 	
-	Function EditControl.CharType(ByRef ch As WString) As Integer '...'
+	Function EditControl.CharType(ByRef ch As WString) As Integer
 		If ch = " " Then: Return 0
 		ElseIf ch = Chr(13) Or ch = "" Then: Return 1
-		ElseIf Instr(Symbols, ch) > 0 Then: Return 2
+		ElseIf InStr(Symbols, ch) > 0 Then: Return 2
 		Else: Return 3
 		End If
 	End Function
