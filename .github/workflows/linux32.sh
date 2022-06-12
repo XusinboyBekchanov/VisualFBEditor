@@ -12,6 +12,8 @@ git clone https://github.com/XusinboyBekchanov/MyFbFramework
 cd src
 fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "../MyFbFramework" -d __USE_GTK3__
 cd ..
+which VisualFBEditor32_gtk3 >/dev/null 2>&1 || die "ERROR"
+
 cd MyFbFramework/mff
 fbc -b "mff.bi" -dll -x "../../libmff32_gtk3.so" -d __USE_GTK3__
 
