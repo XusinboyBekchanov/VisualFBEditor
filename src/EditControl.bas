@@ -2433,6 +2433,7 @@ Namespace My.Sys.Forms
 																ElseIf StartsWith(Matn, "..") Then
 																	tIndex = pkeywords->IndexOf(LCase(Mid(Matn, 3)))
 																	If tIndex > -1 Then
+																		OriginalCaseWord = ".." & OriginalCaseWord
 																		sc = @Keywords(k)
 																		OriginalCaseWord = ".." + pkeywords->Item(tIndex)
 																		bKeyWord = True
@@ -2454,6 +2455,8 @@ Namespace My.Sys.Forms
 																		sc = @ColorByRefParameters
 																	Case "ByValParameter"
 																		sc = @ColorByValParameters
+																	Case "Field"
+																		sc = @ColorFields
 																	Case Else
 																		sc = @ColorLocalVariables
 																	End Select
@@ -2617,10 +2620,9 @@ Namespace My.Sys.Forms
 															If KeyWord <> Matn Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 															End If
-														ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso ChangeIdentifiersCaseDim AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
-															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
-															If KeyWord <> Matn Then
-																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
+														ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
+															If Matn <> OriginalCaseWord Then
+																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = OriginalCaseWord
 															End If
 														ElseIf tIndex = -1 Then
 															If isNumeric(Matn) Then
@@ -5134,6 +5136,7 @@ Sub LoadKeyWords
 		k += 1
 		ReDim Preserve Keywords(k)
 		keywordlist = New WStringList
+		keywordlist->Sorted = True
 		KeywordLists.Add file, keywordlist
 		If Trim(file) = "Asm" Then
 			pkeywordsAsm = keywordlist
