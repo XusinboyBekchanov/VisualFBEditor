@@ -4623,7 +4623,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				Procedures.Add te->Name, te
 			ElseIf StartsWith(bTrimLCase, "declare ") Then
 				Pos1 = InStr(9, bTrim, " ")
+				Pos2 = InStrRev(bTrim, ")")
 				Pos3 = InStr(9, bTrim, "(")
+				Pos5 = Pos3
 				'n = Len(Trim(*FLine)) - Len(Trim(Mid(Trim(*FLine), Pos1)))
 				If StartsWith(Trim(Mid(bTrimLCase, 9), Any !"\t "), "static ") Then
 					Pos1 = InStr(Pos1 + 1, bTrim, " ")
@@ -4687,6 +4689,57 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					FunctionsOthers.Add te->DisplayName, te
 					Procedures.Add te->Name, te
 				End If
+				If Pos2 > 0 AndAlso Pos5 > 0 Then
+					Var teDeclare = te
+					Dim As UString CurType, res1(Any), ElementValue
+					?Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)
+					Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+					For n As Integer = 0 To UBound(res1)
+						res1(n) = Replace(res1(n), ";", ",")
+						Pos1 = InStr(res1(n), "=")
+						If Pos1 > 0 Then
+							ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+						Else
+							ElementValue = ""
+						End If
+						If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+						Pos1 = InStr(LCase(res1(n)), " as ")
+						If Pos1 > 0 Then
+							CurType = Trim(Mid(res1(n), Pos1 + 4))
+							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+						End If
+						Var te = New_( TypeElement)
+						If res1(n).ToLower.StartsWith("byref") Then
+							res1(n) = Trim(Mid(res1(n), 6))
+							te->ElementType = "ByRefParameter"
+						ElseIf res1(n).ToLower.StartsWith("byval") Then
+							res1(n) = Trim(Mid(res1(n), 6))
+							te->ElementType = "ByValParameter"
+						Else
+							te->ElementType = "ByValParameter"
+						End If
+						Pos1 = InStr(res1(n), "(")
+						If Pos1 > 0 Then
+							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+						End If
+						res1(n) = res1(n).TrimAll
+						Pos1 = InStrRev(CurType, ".")
+						If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+						te->Name = res1(n)
+						te->DisplayName = res1(n)
+						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+						'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+						te->TypeName = CurType
+						te->TypeName = WithoutPointers(te->TypeName)
+						te->Value = ElementValue
+						te->Locals = 0
+						te->StartLine = i
+						te->EndLine = i
+						te->Parameters = res1(n) & " As " & CurType
+						te->FileName = FileName
+						teDeclare->Elements.Add te->Name, te
+					Next
+				End If
 			Else
 				If CInt(StartsWith(bTrimLCase, "as ")) OrElse _
 					CInt(InStr(bTrimLCase, " as ")) OrElse _
@@ -4694,7 +4747,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 					CInt(StartsWith(bTrimLCase, "var ")) Then
 					Dim As UString b2 = bTrim
-					If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") Then
+					If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") Then
 						b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 					End If
 					Dim As UString CurType, ElementValue
@@ -4755,7 +4808,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						ElseIf bShared Then
 							te->ElementType = "SharedVariable"
 						Else
-							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", IIf(InFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
 						End If
 						te->TypeName = CurType
 						te->TypeName = WithoutPointers(te->TypeName)

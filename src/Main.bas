@@ -3370,6 +3370,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Dim As UString res1(Any)
 						If b2.ToLower.StartsWith("dim ") Then
 							b2 = Trim(Mid(b2, 4))
+						ElseIf b2.ToLower.StartsWith("redim ") Then
+							b2 = Trim(Mid(b2, 6))
 						ElseIf b2.ToLower.StartsWith("static ") Then
 							b2 = Trim(Mid(b2, 7))
 						End If
@@ -3747,6 +3749,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "static ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "const ")) OrElse _
+						CInt(StartsWith(bTrimLCase, "redim ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "var "))) Then
 						Dim As UString b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 						Dim As UString CurType, ElementValue
