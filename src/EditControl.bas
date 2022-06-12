@@ -2132,7 +2132,10 @@ Namespace My.Sys.Forms
 		BracketsStartLine = -1
 		BracketsEnd = -1
 		BracketsEndLine = -1
-
+		Dim As Integer PosiBD, tIndex
+		Dim As Boolean bKeyWord, ChangeIdentifiersCaseDim
+		Dim As WString * 200 OriginalCaseWord, tmpWord
+		Dim As TypeElement Ptr te
 		If HighlightBrackets Then
 			Symb = Mid(Lines(iSelEndLine), iSelEndChar + 1, 1)
 			If InStr(OpenBrackets, Symb) Then
@@ -2392,7 +2395,7 @@ Namespace My.Sys.Forms
 											If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 												sc = @Identifiers
-												'ss = NormalText.Background
+												OriginalCaseWord = "":   tmpWord = ""
 												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
 												If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
 												If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
@@ -2404,9 +2407,8 @@ Namespace My.Sys.Forms
 															End If
 														End If
 													Else
-														Dim As Boolean bKeyWord = False, ChangeIdentifiersCaseDim = True
-														Dim As WString * 200 OriginalCaseWord
-														Dim As Integer tIndex  = -1
+														bKeyWord = False: ChangeIdentifiersCaseDim = True
+														tIndex  = -1
 														u = InStr(*s, " ")
 														If u > 0 AndAlso j > u AndAlso InStr("declare dim var", Mid(LCase(Trim(*s, Any !"\t ")), 1, u - 1)) > 0 Then ChangeIdentifiersCaseDim = False
 														' Like varStr as String
@@ -2449,6 +2451,7 @@ Namespace My.Sys.Forms
 																If tIndex <> -1 Then
 																	pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
 																	OriginalCaseWord = pkeywords->Item(tIndex)
+																	If Cast(TypeElement Ptr, pkeywords->Object(tIndex)) > 0 Then
 																	Select Case Cast(TypeElement Ptr, pkeywords->Object(tIndex))->ElementType
 																	Case "ByRefParameter"
 																		sc = @ColorByRefParameters
@@ -2459,30 +2462,34 @@ Namespace My.Sys.Forms
 																	Case Else
 																		sc = @ColorLocalVariables
 																	End Select
+																	End If
 																Else
 																	tIndex = InStr(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, ".")
 																	If tIndex > 0 Then
-																		OriginalCaseWord = ..Left(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, tIndex - 1)
-																		tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord))
-																		If tIndex > -1 AndAlso pGlobalTypes->Object(tIndex) > 0 Then
-																			Var te = Cast(TypeElement Ptr, pGlobalTypes->Object(tIndex))
-																			tIndex = te->Elements.IndexOf(LCase(Matn))
-																			If tIndex <> -1 Then
-																				pkeywords = @te->Elements
-																				OriginalCaseWord = pkeywords->Item(tIndex)
-																				Select Case LCase(Cast(TypeElement Ptr, pkeywords->Object(tIndex))->ElementType)
-																				Case "sub"
-																					sc = @ColorSubs
-																				Case "function"
-																					sc = @ColorGlobalFunctions
-																				Case "property"
-																					sc = @ColorProperties
-																				Case "field", "event"
-																					sc = @ColorFields
-																				Case Else
-																					sc = @ColorLocalVariables
-																				End Select
-																			End If
+																		tmpWord = ..Left(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, tIndex - 1)
+																		'TODO will crash in bit 64. Matn maybe is cls , .cls, >cls
+'																		tIndex = pGlobalTypes->IndexOf(LCase(tmpWord))
+'																		If tIndex > -1 AndAlso pGlobalTypes->Object(tIndex) > 0 Then
+'																			te = Cast(TypeElement Ptr, pGlobalTypes->Object(tIndex)): tIndex = -1
+'																			If te->Elements.Count > 0 Then tIndex = te->Elements.IndexOf(LCase(Matn))
+'																			If tIndex <> -1 Then
+'																				pkeywords = @te->Elements
+'																				OriginalCaseWord = pkeywords->Item(tIndex)
+'																				If Cast(TypeElement Ptr, pkeywords->Object(tIndex)) > 0 Then
+'																					Select Case LCase(Cast(TypeElement Ptr, pkeywords->Object(tIndex))->ElementType)
+'																					Case "sub"
+'																						sc = @ColorSubs
+'																					Case "function"
+'																						sc = @ColorGlobalFunctions
+'																					Case "property"
+'																						sc = @ColorProperties
+'																					Case "field", "event"
+'																						sc = @ColorFields
+'																					Case Else
+'																						sc = @ColorLocalVariables
+'																					End Select
+'																				End If
+'																			End If
 																		End If
 																	Else
 																		tIndex = -1
@@ -2496,6 +2503,7 @@ Namespace My.Sys.Forms
 																If tIndex <> -1 Then
 																	pkeywords = pLocalArgs
 																	OriginalCaseWord = pkeywords->Item(tIndex)
+																	If Cast(TypeElement Ptr, pLocalArgs->Object(tIndex)) > 0 Then
 																	Select Case Cast(TypeElement Ptr, pLocalArgs->Object(tIndex))->ElementType
 																	Case "EnumItem"
 																		sc = @ColorEnumMembers
@@ -2510,12 +2518,14 @@ Namespace My.Sys.Forms
 																	End Select
 																End If
 															End If
+															End If
 															
 															If tIndex = -1 AndAlso pLocalProcedures > 0 Then
 																tIndex = pLocalProcedures->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	pkeywords = pLocalProcedures
 																	OriginalCaseWord = pkeywords->Item(tIndex)
+																	If Cast(TypeElement Ptr, pLocalProcedures->Object(tIndex)) > 0 Then
 																	Select Case LCase(Cast(TypeElement Ptr, pLocalProcedures->Object(tIndex))->ElementType)
 																	Case "constructor", "destructor"
 																		sc = @ColorGlobalTypes
@@ -2531,6 +2541,7 @@ Namespace My.Sys.Forms
 																		sc = @ColorProperties
 																	End Select
 																End If
+															End If
 															End If
 															
 															'Global
@@ -2614,7 +2625,7 @@ Namespace My.Sys.Forms
 																End If
 															End If
 														End If
-														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso FSelEndLine <> z Then
+														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
 															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
 															If KeyWord <> Matn Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
@@ -2646,6 +2657,7 @@ Namespace My.Sys.Forms
 											End If
 											MatnBoshi = 0
 										End If
+										
 									ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", IIf(FECLine->InAsm, Chr(t) = "#", Chr(t) = "'")) Then
 										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 										'txtCode.SetSel ss + j - 1, ss + l
