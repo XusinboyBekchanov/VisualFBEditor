@@ -2405,14 +2405,14 @@ Namespace My.Sys.Forms
 															End If
 														End If
 													Else
-														Dim As Boolean bKeyWord = False
+														Dim As Boolean bKeyWord = False, ChangeIdentifiersCaseDim = True
 														Dim As WString * 200 OriginalCaseWord
 														Dim As Integer tIndex  = -1
 														u = InStr(*s, " ")
-					If u > 0 AndAlso j > u AndAlso InStr("declare dim var", Mid(LCase(Trim(*s, Any !"\t ")), 1, u - 1)) > 0 Then ChangeIdentifiersCase = False
+														If u > 0 AndAlso j > u AndAlso InStr("declare dim var", Mid(LCase(Trim(*s, Any !"\t ")), 1, u - 1)) > 0 Then ChangeIdentifiersCaseDim = False
 														' Like varStr as String
 														u = InStr(LCase(*s), " as ")
-														If u > 0 AndAlso j < u Then ChangeIdentifiersCase = False
+														If u > 0 AndAlso j < u Then ChangeIdentifiersCaseDim = False
 														
 														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
 															tIndex = pkeywordsAsm->IndexOf(LCase(Matn))
@@ -2617,7 +2617,7 @@ Namespace My.Sys.Forms
 															If KeyWord <> Matn Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 															End If
-														ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
+														ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso ChangeIdentifiersCaseDim AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
 															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
 															If KeyWord <> Matn Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
