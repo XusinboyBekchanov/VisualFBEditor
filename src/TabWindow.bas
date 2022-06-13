@@ -1036,7 +1036,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 		Case "Event"
 			Var Idx = Events.IndexOfKey(PropertyName, Cpnt)
 			If Idx <> -1 Then WLet(FLine, Events.Item(Idx)->Text)
-		Case "Property"
+		Case "Property", "Field"
 			Var Pos1 = InStr(PropertyName, ".")
 			If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
 				pTemp = Des->ReadPropertyFunc(Cpnt, PropertyName)
@@ -1219,7 +1219,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 			Else
 				Events.Add PropertyName, Mid(Value, 2), Cpnt
 			End If
-		Case "Property"
+		Case "Property", "Field"
 			Select Case LCase(te->TypeName)
 			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype", "graphictype", "wstringlist", "dictionary"
 				'?"VFE2:" & *FLine
@@ -1422,7 +1422,7 @@ Sub TabWindow.FillAllProperties()
 		te = FPropertyItems.Object(lvPropertyCount)
 		If te = 0 Then Continue For
 		With *te
-			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso CInt(.ElementType = "Property") Then
+			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = "Property") OrElse CInt(.ElementType = "Field")) Then
 				If plvProperties->Nodes.Count <= lvPropertyCount Then
 					lvItem = plvProperties->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(.TypeIsPointer = False AndAlso pComps->Contains(.TypeName), 1, 0))
 					If .TypeIsPointer = False AndAlso pComps->Contains(.TypeName) Then lvItem->Nodes.Add
@@ -5225,7 +5225,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Exit For
 					End If
 				Next i
-				If Not T Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey
+				If Not t Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey
 			End If
 			'End If
 		Next
@@ -5926,7 +5926,7 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 			te = FPropertyItems.Object(lvPropertyCount)
 			If te = 0 Then Continue For
 			With *te
-				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso CInt(.ElementType = "Property") Then
+				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = "Property") OrElse CInt(.ElementType = "Field")) Then
 					lvItem = Item->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(pComps->Contains(.TypeName), 1, 0))
 					lvItem->Text(1) = ItemText 'tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
 					If pComps->Contains(.TypeName) Then
