@@ -4747,7 +4747,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 					CInt(StartsWith(bTrimLCase, "var ")) Then
 					Dim As UString b2 = bTrim
-					If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") Then
+					If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") OrElse b2.ToLower.StartsWith("for ") Then
 						b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 					End If
 					Dim As UString CurType, ElementValue
@@ -4808,7 +4808,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						ElseIf bShared Then
 							te->ElementType = "SharedVariable"
 						Else
-							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", IIf(InFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
+							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
 						End If
 						te->TypeName = CurType
 						te->TypeName = WithoutPointers(te->TypeName)
@@ -4823,7 +4823,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->Parameters = res1(n) & " As " & CurType
 						te->FileName = FileName
 						te->Tag = @This
-						If InFunc AndAlso func <> 0 Then
+						If inFunc AndAlso func <> 0 Then
 							func->Elements.Add te->Name, te
 						Else
 							Args.Add te->Name, te
