@@ -2415,6 +2415,8 @@ Namespace My.Sys.Forms
 																bKeyWord = True
 															End If
 														Else
+															Var TwoDots = StartsWith(Matn, "..")
+															If TwoDots Then Matn = Mid(Matn, 3)
 															For k As Integer = 1 To KeywordLists.Count - 1
 																pkeywords = KeywordLists.Object(k)
 																tIndex = pkeywords->IndexOf(LCase(Matn), , , , OriginalCaseWord)
@@ -2422,14 +2424,6 @@ Namespace My.Sys.Forms
 																	sc = @Keywords(k)
 																	bKeyWord = True
 																	Exit For
-																ElseIf StartsWith(Matn, "..") Then
-																	tIndex = pkeywords->IndexOf(LCase(Mid(Matn, 3)), , , , OriginalCaseWord)
-																	If tIndex > -1 Then
-																		OriginalCaseWord = ".." & OriginalCaseWord
-																		sc = @Keywords(k)
-																		bKeyWord = True
-																		Exit For
-																	End If
 																End If
 																pkeywords = 0
 																tIndex = -1
@@ -2614,6 +2608,8 @@ Namespace My.Sys.Forms
 																	'pkeywords = pGlobalNamespaces
 																End If
 															End If
+															
+															If TwoDots Then Matn = ".." & Matn: OriginalCaseWord = ".." & OriginalCaseWord
 														End If
 														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso FSelEndLine <> z Then
 															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
