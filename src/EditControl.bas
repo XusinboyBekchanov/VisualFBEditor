@@ -2727,11 +2727,7 @@ End Function
 																bKeyWord = True
 															End If
 														Else
-<<<<<<< master
 															TwoDots = StartsWith(Matn, "..")
-															If TwoDots Then Matn = Mid(Matn, 3)
-=======
-															Var TwoDots = StartsWith(Matn, "..")
 															If TwoDots Then
 																Matn = Mid(Matn, 3)
 															ElseIf StartsWith(Matn, ".") Then
@@ -2740,7 +2736,6 @@ End Function
 																	'?te->Name
 																End If
 															End If
->>>>>>> master
 															For k As Integer = 1 To KeywordLists.Count - 1
 																pkeywords = KeywordLists.Object(k)
 																tIndex = pkeywords->IndexOf(LCase(Matn))
