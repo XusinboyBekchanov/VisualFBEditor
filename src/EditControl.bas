@@ -2744,19 +2744,6 @@ End Function
 														Else
 															TwoDots = CBool(r = 46 AndAlso q = 46)
 															
-															For k As Integer = 1 To KeywordLists.Count - 1
-																pkeywords = KeywordLists.Object(k)
-																tIndex = pkeywords->IndexOf(LCase(Matn))
-																If tIndex > -1 Then
-																	OriginalCaseWord = pkeywords->Item(tIndex)
-																	sc = @Keywords(k)
-																	bKeyWord = True
-																	Exit For
-																End If
-																pkeywords = 0
-																tIndex = -1
-															Next
-															
 															'Membership
 															If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
 																'GetLeftArgTypeName(z, j, te)
@@ -2813,6 +2800,19 @@ End Function
 ''																End If
 '															End If
 															Else
+																' Keywords
+																For k As Integer = 1 To KeywordLists.Count - 1
+																	pkeywords = KeywordLists.Object(k)
+																	tIndex = pkeywords->IndexOf(LCase(Matn))
+																	If tIndex > -1 Then
+																		OriginalCaseWord = pkeywords->Item(tIndex)
+																		sc = @Keywords(k)
+																		bKeyWord = True
+																		Exit For
+																	End If
+																	pkeywords = 0
+																	tIndex = -1
+																Next
 																
 																'Procedure
 																If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
