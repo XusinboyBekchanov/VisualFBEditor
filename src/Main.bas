@@ -3091,7 +3091,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				End If
 			ElseIf LoadParameter <> LoadParam.OnlyIncludeFiles Then
 				Pos3 = InStr(bTrimLCase, " as ")
-				If CInt(StartsWith(bTrimLCase, "type ") OrElse StartsWith(bTrimLCase, "private type ") OrElse StartsWith(bTrimLCase, "public type ")) AndAlso CInt(IIf(InType, Pos3 = 0, True)) Then
+				If CInt(StartsWith(bTrimLCase, "type ") OrElse StartsWith(bTrimLCase, "private type ") OrElse StartsWith(bTrimLCase, "public type ")) AndAlso CInt(IIf(inType, Pos3 = 0, True)) Then
 					Pos1 = InStr(" " & bTrimLCase, " type ")
 					If Pos1 > 0 Then
 						Pos2 = InStr(bTrimLCase, " extends ")
@@ -3145,7 +3145,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				ElseIf StartsWith(bTrimLCase & " ", "end type ") Then
 					inType = False
 				ElseIf CInt(StartsWith(bTrimLCase, "union ")) Then
-					InUnion = True
+					inUnion = True
 					t = Trim(Mid(bTrim, 7))
 					Pos2 = InStr(t, "'")
 					If Pos2 > 0 Then t = Trim(Left(t, Pos2 - 1))
@@ -3165,7 +3165,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					End If
 					'End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end union")) Then
-					InUnion = False
+					inUnion = False
 				ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
 					Pos1 = InStr(9, bTrim, " ")
 					Pos2 = InStr(9, bTrim, "(")
@@ -3284,7 +3284,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Name = typ->Name
 						te->DisplayName = typ->Name & " [" & te->ElementType & "] [Declare]"
 						te->TypeName = typ->Name
-						te->Parameters = typ->Name & IIf(POs4 > 0, Mid(bTrim, Pos4), "()")
+						te->Parameters = typ->Name & IIf(Pos4 > 0, Mid(bTrim, Pos4), "()")
 					Else
 						If Pos3 = 0 Then
 							te->Name = Trim(Mid(bTrim, Pos1))
@@ -3447,8 +3447,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If tbi Then tbi->Elements.Add te->Name, te
 						Next
 					End If
-				ElseIf CInt(StartsWith(Trim(LCase(b)), "enum ")) OrElse CInt(StartsWith(Trim(LCase(b)), "public enum ")) OrElse CInt(StartsWith(Trim(LCase(b)), "private enum ")) Then
-					InEnum = True
+				ElseIf CInt(StartsWith(Trim(LCase(b)), "enum ")) OrElse CInt(StartsWith(Trim(LCase(b)), "public enum ")) OrElse CInt(StartsWith(Trim(LCase(b)), "private enum ")) OrElse CInt(Trim(LCase(b)) = "enum") Then
+					inEnum = True
 					Pos2 = InStr(" " & bTrimLCase, " enum")
 					t = Trim(Mid(" " & bTrim, Pos2 + 5))
 					Pos2 = InStr(t, "'")
@@ -3468,7 +3468,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 					End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end enum")) Then
-					InEnum = False
+					inEnum = False
 				ElseIf inEnum Then
 					If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
 					Dim As UString b2 = b, res1(), ElementValue
