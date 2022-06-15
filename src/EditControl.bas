@@ -1094,7 +1094,6 @@ Namespace My.Sys.Forms
 					EncodingStr = "ascii"
 				End If
 			End If
-			'Debug.Print Str(Len(buffer))
 			If InStr(Buff, Chr(13, 10)) Then
 				NewLineType= NewLineTypes.WindowsCRLF
 				NewLineStr = Chr(10)
@@ -2442,6 +2441,10 @@ End Function
 		BracketsStartLine = -1
 		BracketsEnd = -1
 		BracketsEndLine = -1
+		Dim As Integer PosiBD, tIndex
+		Dim As Boolean bKeyWord, TwoDots
+		Dim As WString * 255 OriginalCaseWord, tmpMember
+		Dim As TypeElement Ptr te, Oldte
 		If HighlightBrackets Then
 			Symb = Mid(Lines(iSelEndLine), iSelEndChar + 1, 1)
 			If InStr(OpenBrackets, Symb) Then
@@ -2695,14 +2698,14 @@ End Function
 										End If
 										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 										Exit Do
-									ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") Then
+									ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") OrElse t = Asc(">") Then
 										If MatnBoshi = 0 Then MatnBoshi = j
 										If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso ((t >= 48 AndAlso t <= 57) OrElse t = 46))) Then
-											If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
+										If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 												sc = @Identifiers
-												'ss = NormalText.Background
-												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0
+												OriginalCaseWord = "":   tmpMember = "" : te = 0
+												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
 												If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
 												If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
 													pkeywords = 0
@@ -2713,18 +2716,21 @@ End Function
 															End If
 														End If
 													Else
-														Dim As Boolean bKeyWord
-														Dim As UString OriginalCaseWord
-														Dim As Integer tIndex  = -1
-														Dim As TypeElement Ptr te
+														bKeyWord = False: 'ChangeIdentifiersCaseDim = True
+														tIndex  = -1
+														OriginalCaseWord = ""
 														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
-															tIndex = pkeywordsAsm->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															tIndex = pkeywordsAsm->IndexOf(LCase(Matn))
 															If tIndex > -1 Then
 																sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
-																'pkeywords = pkeywordsAsm
+																OriginalCaseWord = pkeywordsAsm->Item(tIndex)
 																bKeyWord = True
 															End If
 														Else
+<<<<<<< master
+															TwoDots = StartsWith(Matn, "..")
+															If TwoDots Then Matn = Mid(Matn, 3)
+=======
 															Var TwoDots = StartsWith(Matn, "..")
 															If TwoDots Then
 																Matn = Mid(Matn, 3)
@@ -2734,10 +2740,12 @@ End Function
 																	'?te->Name
 																End If
 															End If
+>>>>>>> master
 															For k As Integer = 1 To KeywordLists.Count - 1
 																pkeywords = KeywordLists.Object(k)
-																tIndex = pkeywords->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+																tIndex = pkeywords->IndexOf(LCase(Matn))
 																If tIndex > -1 Then
+																	OriginalCaseWord = pkeywords->Item(tIndex)
 																	sc = @Keywords(k)
 																	bKeyWord = True
 																	Exit For
@@ -2746,6 +2754,34 @@ End Function
 																tIndex = -1
 															Next
 															
+															'Membership
+															If tIndex = -1 AndAlso (StartsWith(Matn, ".") OrElse StartsWith(Matn, ">")) Then
+																'Matn = Mid(Matn, 2)
+																tIndex = 8888 : OriginalCaseWord = Matn
+																'tIndex = Oldte->Elements.IndexOf(LCase(Matn))
+																' We know the Wstrlist Ptr(pkeywords) or TypeElement Ptr (OldTe) of the Pareant and it's name(OldMatn)
+'																If tIndex <> -1 Then
+'																	pkeywords = te->Elements.Object(i)
+'																	OriginalCaseWord = pkeywords->Item(tIndex)
+'																	te = pkeywords->Object(tIndex)
+'																	If te > 0 Then
+'																		Select Case LCase(te->ElementType)
+'																		Case "EnumItem"
+'																			sc = @ColorEnumMembers
+'																		Case "sub"
+'																			sc = @ColorSubs
+'																		Case "function"
+'																			sc = @ColorGlobalFunctions
+'																		Case "property"
+'																			sc = @ColorProperties
+'																		Case "field", "event"
+'																			sc = @ColorFields
+'																		Case Else
+'																			sc = @ColorLocalVariables
+'																		End Select
+'																	End If
+'																End If
+															End If
 															'Procedure
 															If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
 																tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
@@ -2769,7 +2805,7 @@ End Function
 																	tIndex = InStr(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, ".")
 																	If tIndex > 0 Then
 																		OriginalCaseWord = ..Left(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, tIndex - 1)
-																		tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord), , , , OriginalCaseWord)
+																		tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord))
 																		If tIndex > -1 Then
 																			te = pGlobalTypes->Object(tIndex)
 																			If te > 0 Then
@@ -2800,9 +2836,10 @@ End Function
 															
 															'Module
 															If tIndex = -1 AndAlso pLocalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = pLocalArgs->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+																tIndex = pLocalArgs->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
-																	'pkeywords = pLocalArgs
+																	OriginalCaseWord = pLocalArgs->Item(tIndex)
+																	pkeywords = pLocalArgs
 																	te = pLocalArgs->Object(tIndex)
 																	If te > 0 Then
 																		Select Case te->ElementType
@@ -2821,10 +2858,11 @@ End Function
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pLocalProcedures > 0 Then 
-																tIndex = pLocalProcedures->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pLocalProcedures > 0 Then
+																tIndex = pLocalProcedures->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
-																	'pkeywords = pLocalProcedures
+																	OriginalCaseWord = pLocalProcedures->Item(tIndex)
+																	pkeywords = pLocalProcedures
 																	te = pLocalProcedures->Object(tIndex)
 																	If te > 0 Then
 																		Select Case LCase(te->ElementType)
@@ -2846,35 +2884,39 @@ End Function
 															End If
 															
 															'Global
-															If tIndex = -1 AndAlso pComps > 0 Then 
-																tIndex = pComps->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pComps > 0 Then
+																tIndex = pComps->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	sc = @ColorComps
-																	'pkeywords = pComps
+																	OriginalCaseWord = pComps->Item(tIndex)
+																	pkeywords = pComps
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalTypes > 0 Then 
-																tIndex = pGlobalTypes->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pGlobalTypes > 0 Then
+																tIndex = pGlobalTypes->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalTypes
-																	'pkeywords = pGlobalTypes
+																	OriginalCaseWord = pGlobalTypes->Item(tIndex)
+																	pkeywords = pGlobalTypes
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalEnums > 0 Then 
-																tIndex = pGlobalEnums->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pGlobalEnums > 0 Then
+																tIndex = pGlobalEnums->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalEnums
-																	'pkeywords = pGlobalEnums
+																	OriginalCaseWord = pGlobalEnums->Item(tIndex)
+																	pkeywords = pGlobalEnums
 																End If
 															End If
 															
 															If tIndex = -1 AndAlso pGlobalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = pGlobalArgs->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+																tIndex = pGlobalArgs->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	te = pGlobalArgs->Object(tIndex)
-																	'pkeywords = pGlobalArgs
+																	OriginalCaseWord = pGlobalArgs->Item(tIndex)
+																	pkeywords = pGlobalArgs
 																	If te > 0 Then
 																		Select Case te->ElementType
 																		Case "EnumItem"
@@ -2893,10 +2935,11 @@ End Function
 															End If
 															
 															If tIndex = -1 AndAlso pGlobalFunctions > 0 Then
-																tIndex = pGlobalFunctions->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+																tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	te = pGlobalFunctions->Object(tIndex)
-																	'pkeywords = pGlobalFunctions
+																	OriginalCaseWord = pGlobalFunctions->Item(tIndex)
+																	pkeywords = pGlobalFunctions
 																	If te > 0 Then
 																		Select Case LCase(te->ElementType)
 																		Case "constructor", "destructor"
@@ -2918,17 +2961,17 @@ End Function
 																End If
 															End If
 															
-															If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then 
-																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn), , , , OriginalCaseWord)
+															If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then
+																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
 																If tIndex <> -1 Then
 																	sc = @ColorGlobalNamespaces
-																	'pkeywords = pGlobalNamespaces
+																	OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
+																	pkeywords = pGlobalNamespaces
 																End If
 															End If
-															
 															If TwoDots Then Matn = ".." & Matn: OriginalCaseWord = ".." & OriginalCaseWord
 														End If
-														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso FSelEndLine <> z Then
+														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso LCase(Matn) = LCase(OriginalCaseWord) AndAlso FSelEndLine <> z Then
 															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
 															If KeyWord <> Matn Then
 																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
@@ -2950,7 +2993,7 @@ End Function
 														End If
 													End If
 												End If
-												OldMatn = Matn
+												OldMatn = Matn: Oldte = te
 												'If sc <> 0 Then
 												PaintText zz, i, *s, MatnBoshi - 1, j, *sc
 												'txtCode.SetSel ss + MatnBoshi - 1, ss + j
