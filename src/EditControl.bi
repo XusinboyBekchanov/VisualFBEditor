@@ -163,7 +163,7 @@ Namespace My.Sys.Forms
 		Dim As Integer iTemp
 		#ifndef __USE_GTK__
 			Dim As DWORD dwTemp
-			Dim As Points psPoints
+			Dim As POINTS psPoints
 			Dim As ..Point poPoint
 		#endif
 		Dim As Integer lParamLo, lParamHi
@@ -369,6 +369,8 @@ Namespace My.Sys.Forms
 		Declare Function GetWordAtCursor(WithDot As Boolean = False) As String
 		Declare Function GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
 		Declare Function GetCaretPosY(LineIndex As Integer) As Integer
+		Declare Function GetTypeFromValue(Value As String, iSelEndLine As Integer) As String
+		Declare Function GetLeftArgTypeName(iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
 		Declare Function CharIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		Declare Function LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		Declare Function LinesCount As Integer
