@@ -366,7 +366,7 @@ Namespace My.Sys.Forms
 			ElseIf Not q AndAlso ch = "/" AndAlso Mid(sLine, i + 1, 1) = "'" Then
 				c = True
 				cc += 1
-				result += " "
+				Result += " "
 			ElseIf Not q AndAlso ch = "'" AndAlso Mid(sLine, i + 1, 1) = "/" Then
 				cc -= 1
 				If cc = 0 Then
@@ -374,16 +374,16 @@ Namespace My.Sys.Forms
 				ElseIf cc < 0 Then
 					Exit For
 				End If
-				result += " "
+				Result += " "
 			ElseIf CInt(WithoutComments) AndAlso CInt(Not q) AndAlso CInt(ch = "'" OrElse LCase(Mid(sLine, i, 4)) = "rem ") Then
 				Exit For
 			ElseIf c OrElse q Then
-				result += " "
+				Result += " "
 			Else
-				result += ch
+				Result += ch
 			End If
 		Next
-		Return result
+		Return Result
 	End Function
 	
 	Function EditControl.GetConstruction(ByRef wLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0, InAsm As Boolean = False) As Integer
@@ -673,7 +673,7 @@ Namespace My.Sys.Forms
 				FSelStartLine = FSelEndLine
 				FSelStartChar = FSelEndChar
 			Else
-				FSelStartChar = MIN(FSelStartChar, FSelEndChar)
+				FSelStartChar = min(FSelStartChar, FSelEndChar)
 				FSelEndChar = FSelStartChar
 			End If
 		Else
@@ -749,7 +749,7 @@ Namespace My.Sys.Forms
 				iSelStartLine = FSelEndLine
 				iSelEndLine = FSelStartLine
 			Else
-				iSelStartChar = MIN(FSelStartChar, FSelEndChar)
+				iSelStartChar = min(FSelStartChar, FSelEndChar)
 				iSelEndChar = Max(FSelStartChar, FSelEndChar)
 				iSelStartLine = FSelStartLine
 				iSelEndLine = FSelEndLine
@@ -786,8 +786,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.SetSelection(iSelStartLine As Integer, iSelEndLine As Integer, iSelStartChar As Integer, iSelEndChar As Integer)
 		FSelStartChar = Max(0, iSelStartChar)
 		FSelEndChar = Max(0, iSelEndChar)
-		FSelStartLine = Min(FLines.Count - 1, Max(0, iSelStartLine))
-		FSelEndLine = Min(FLines.Count - 1, Max(0, iSelEndLine))
+		FSelStartLine = min(FLines.Count - 1, Max(0, iSelStartLine))
+		FSelEndLine = min(FLines.Count - 1, Max(0, iSelEndLine))
 		#ifdef __USE_GTK__
 			If Handle Then
 		#else
@@ -980,12 +980,12 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.PasteFromClipboard
 		Dim Value As WString Ptr
-		WLet(Value, pClipBoard->GetAsText)
+		WLet(Value, pClipboard->GetAsText)
 		If Value Then
 			WLetEx Value, Replace(*Value, Chr(13) & Chr(10), Chr(13)), True
 			WLetEx Value, Replace(*Value, Chr(10), Chr(13)), True
 			ChangeText *Value, 0, "Xotiradan qo`yildi"
-			WDeallocate Value
+			WDeAllocate Value
 		End If
 	End Sub
 	
@@ -1087,7 +1087,7 @@ Namespace My.Sys.Forms
 				Buff = String(FileSize, 0)
 				Get #Fn, 0, Buff
 				If (CheckUTF8NoBOM(Buff)) Then
-					FileEncoding = FileEncodings.UTF8
+					FileEncoding = FileEncodings.Utf8
 					EncodingStr = "ascii"
 				Else
 					FileEncoding = FileEncodings.PlainText
@@ -1130,7 +1130,7 @@ Namespace My.Sys.Forms
 					Return
 				End If
 				pBuff = 0
-				If OldFileEncoding = FileEncodings.UTF8 Then
+				If OldFileEncoding = FileEncodings.Utf8 Then
 					Line Input #Fn, Buff
 					WLet pBuff, FromUtf8(StrPtr(Buff))
 				Else
@@ -1274,7 +1274,7 @@ Namespace My.Sys.Forms
 		FLines.Remove IIf(Index = -1, FSelEndLine, Index)
 	End Sub
 	
-	Sub EditControl.UnFormatCode(WithoutUpdate As Boolean = False)
+	Sub EditControl.UnformatCode(WithoutUpdate As Boolean = False)
 		If Not WithoutUpdate Then UpdateLock
 		Changing("UnFormat")
 		For i As Integer = 0 To FLines.Count - 1
@@ -1408,9 +1408,9 @@ Namespace My.Sys.Forms
 	Function EditControl.LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		If bDividedY Then
 			If IIf(CodePane = -1, ActiveCodePane, CodePane) = 1 Then
-				Return GetLineIndex(0, Max(0, Min(Fix((Y - iDividedY - 7) / dwCharY) + VScrollPosBottom, LinesCount - 1)))
+				Return GetLineIndex(0, Max(0, min(Fix((Y - iDividedY - 7) / dwCharY) + VScrollPosBottom, LinesCount - 1)))
 			Else
-				Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + VScrollPosTop, LinesCount - 1)))
+				Return GetLineIndex(0, Max(0, min(Fix(Y / dwCharY) + VScrollPosTop, LinesCount - 1)))
 			End If
 		Else
 			Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + IIf(bDividedX AndAlso IIf(CodePane = -1, ActiveCodePane, CodePane) = 0, VScrollPosTop, VScrollPosBottom), LinesCount - 1)))
@@ -1683,7 +1683,7 @@ Namespace My.Sys.Forms
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		If FSelStartLine = FSelEndLine Then
-			n = Len(GetTabbedText(.Left(Lines(FSelStartLine), Min(FSelStartChar, FSelEndChar))))
+			n = Len(GetTabbedText(.Left(Lines(FSelStartLine), min(FSelStartChar, FSelEndChar))))
 			If TabAsSpaces AndAlso (ChoosedTabStyle = 0 OrElse Trim(.Left(Lines(iSelStartLine), iSelStartChar), Any !"\t ") <> "") Then
 				SelText = Space(TabWidth - (n Mod TabWidth))
 			Else
@@ -1720,7 +1720,7 @@ Namespace My.Sys.Forms
 		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 			FECLine = FLines.Items[i]
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-			n = MIN(n, TabWidth - (n Mod TabWidth))
+			n = min(n, TabWidth - (n Mod TabWidth))
 			If n = 0 AndAlso .Left(*FECLine->Text, 1) = !"\t" Then n = 1
 			WLet(FECLine->Text, Mid(*FECLine->Text, n + 1))
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar -= n
@@ -1956,7 +1956,7 @@ Namespace My.Sys.Forms
 			If cr Then
 				pango_cairo_update_layout(cr, layout)
 			End If
-			#ifdef PANGO_VERSION
+			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pll = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pll = pango_layout_get_line(layout, 0)
