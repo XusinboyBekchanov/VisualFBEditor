@@ -2103,34 +2103,22 @@ Namespace My.Sys.Forms
 		dwClientY = ClientHeight
 	End Sub
 	
-	Function EditControl.FillIntellisense(ByRef ClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False) As Boolean
+	Function EditControl.ContainsIn(ByRef ClassName As WString, ByRef ItemText As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
 		If ClassName = "" Then Return False
 		Var Index = pList->IndexOf(ClassName)
 		If Index = -1 Then Return False
 		Dim tbi As TypeElement Ptr = pList->Object(Index)
 		If tbi Then
-			Var i = 0
-			Do While i <= tbi->Elements.Count - 1
-				Dim te As TypeElement Ptr = tbi->Elements.Object(i)
-				If te Then
-					With *te
-						If (bLocal OrElse CBool(.Locals = 0)) AndAlso _
-							((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
-							If bAll OrElse Not FListItems.Contains(.Name) Then
-								FListItems.Add tbi->Elements.Item(i), te
-							End If
-						End If
-					End With
-				End If
-				i += 1
-			Loop
-			If FillIntellisense(tbi->TypeName, pList, bLocal, bAll, TypesOnly) Then
-			ElseIf FillIntellisense(tbi->TypeName, pLocalTypes, bLocal, bAll, TypesOnly) Then
-			ElseIf FillIntellisense(tbi->TypeName, pLocalEnums, bLocal, bAll, TypesOnly) Then
-			ElseIf FillIntellisense(tbi->TypeName, pComps, bLocal, bAll, TypesOnly) Then
-			ElseIf FillIntellisense(tbi->TypeName, pGlobalTypes, bLocal, bAll, TypesOnly) Then
-			ElseIf FillIntellisense(tbi->TypeName, pGlobalEnums, bLocal, bAll, TypesOnly) Then
-			ElseIf FillIntellisense(tbi->TypeName, pGlobalNamespaces, bLocal, bAll, TypesOnly) Then
+			Var Idx = -1
+			If tbi->Elements.Contains(ItemText, , , , Idx) Then
+				te = tbi->Elements.Object(Idx)
+			ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, pLocalTypes, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, pLocalEnums, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, pComps, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalTypes, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalEnums, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalNamespaces, bLocal, bAll, TypesOnly, te) Then
 			End If
 		End If
 		Return True
@@ -2176,32 +2164,27 @@ Namespace My.Sys.Forms
 			Dim As String TypeNameFromLine
 			Var teC = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine))->InConstruction
 			If teC > 0 Then
+				Var Pos1 = InStr(teC->DisplayName, ".")
+				If Pos1 > 0 Then
+					TypeNameFromLine = ..Left(teC->DisplayName, Pos1 - 1)
+				Else
+					TypeNameFromLine = teC->Name
+				End If
 				If CInt(LCase(sTemp) = "this") Then
-					Var Pos1 = InStr(teC->Name, ".")
-					If Pos1 > 0 Then
-						sTemp = ..Left(teC->Name, Pos1 - 1)
-					Else
-						sTemp = teC->Name
-					End If
-					TypeNameFromLine = sTemp
+					sTemp = TypeNameFromLine
 				End If
 			End If
 			Dim As TypeElement Ptr te, te1
 			Dim As Integer Pos1
+			Dim As Integer Idx = -1
 			If TypeName <> "" Then
-				If FillIntellisense(TypeName, pLocalTypes, True) Then
-				ElseIf FillIntellisense(TypeName, pLocalEnums, True) Then
-				ElseIf FillIntellisense(TypeName, pComps, True) Then
-				ElseIf FillIntellisense(TypeName, pGlobalTypes, True) Then
-				ElseIf FillIntellisense(TypeName, pGlobalEnums, True) Then
+				If ContainsIn(TypeName, sTemp, pLocalTypes, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pLocalEnums, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
 				End If
-				Var Idx = FListItems.IndexOf(sTemp)
-				If Idx > -1 Then
-					te = FListItems.Object(Idx)
-				End If
-				FListItems.Clear
 			Else
-				Var Idx = -1
 				te1 = teC
 				If teC > 0 Then TypeName = TypeNameFromLine
 				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
@@ -2215,16 +2198,12 @@ Namespace My.Sys.Forms
 				ElseIf pGlobalArgs->Contains(sTemp, , , , Idx) Then
 					te = pGlobalArgs->Object(Idx)
 				ElseIf TypeName <> "" Then
-					If FillIntellisense(TypeName, pLocalTypes, True) Then
-					ElseIf FillIntellisense(TypeName, pLocalEnums, True) Then
-					ElseIf FillIntellisense(TypeName, pComps, True) Then
-					ElseIf FillIntellisense(TypeName, pGlobalTypes, True) Then
-					ElseIf FillIntellisense(TypeName, pGlobalEnums, True) Then
+					If ContainsIn(TypeName, sTemp, pLocalTypes, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, pLocalEnums, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
 					End If
-					If FListItems.Contains(sTemp, , , , Idx) Then
-						te = FListItems.Object(Idx)
-					End If
-					FListItems.Clear
 				End If
 			End If
 			If te <> 0 Then
@@ -2237,17 +2216,17 @@ Namespace My.Sys.Forms
 		Return sTemp
 	End Function
 	
-	Function EditControl.GetLeftArgTypeName(iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
+	Function EditControl.GetLeftArgTypeName(ArgName As String, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
 		Dim As String sTemp, sTemp2, TypeName, BaseTypeName
 		Dim sLine As WString Ptr
 		Dim As Integer j, iCount, Pos1
 		Dim As String ch
 		Dim As Boolean b
-		For j As Integer = iSelEndLine To 0 Step -1
+		For j = iSelEndLine To 0 Step -1
 			sLine = @This.Lines(j)
 			If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine), " _") Then Exit For
 			For i As Integer = IIf(j = iSelEndLine, iSelEndChar, Len(*sLine)) To 1 Step -1
-				ch = Mid(*sLine, i, 1)
+				ch = Chr((*sLine)[i - 1])
 				If ch = ")" OrElse ch = "]" Then
 					iCount += 1
 					b = True
@@ -2259,9 +2238,9 @@ Namespace My.Sys.Forms
 						sTemp = ch & sTemp
 					ElseIf sTemp <> "" Then
 						If ch = "." Then
-							TypeName = GetLeftArgTypeName(j, i - 1, teEnumOld, , , Types)
+							TypeName = GetLeftArgTypeName(sTemp, j, i - 1, teEnumOld, , , Types)
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
-							TypeName = GetLeftArgTypeName(j, i - 2, teEnumOld, , , Types)
+							TypeName = GetLeftArgTypeName(sTemp, j, i - 2, teEnumOld, , , Types)
 						ElseIf CBool(CBool(ch = " ") OrElse CBool(ch = !"\t")) AndAlso CBool(i > 0) AndAlso EndsWith(RTrim(LCase(..Left(*sLine, i - 1)), Any "\t "), " as") Then
 							Types = True
 						End If
@@ -2293,7 +2272,7 @@ Namespace My.Sys.Forms
 						If WithCount < 0 Then
 							Return ""
 						ElseIf WithCount = 0 Then
-							TypeName = GetLeftArgTypeName(i, Len(*ECLine->Text), teEnumOld, , , Types)
+							TypeName = GetLeftArgTypeName("", i, Len(*ECLine->Text), teEnumOld, , , Types)
 							teEnum = teEnumOld
 							Return TypeName
 						End If
@@ -2304,14 +2283,14 @@ Namespace My.Sys.Forms
 		Dim As String TypeNameFromLine
 		Var teC = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine))->InConstruction
 		If teC > 0 Then
+			Var Pos1 = InStr(teC->DisplayName, ".")
+			If Pos1 > 0 Then
+				TypeNameFromLine = ..Left(teC->DisplayName, Pos1 - 1)
+			Else
+				TypeNameFromLine = teC->Name
+			End If
 			If CInt(LCase(sTemp) = "this") Then
-				Var Pos1 = InStr(teC->Name, ".")
-				If Pos1 > 0 Then
-					sTemp = ..Left(teC->Name, Pos1 - 1)
-				Else
-					sTemp = teC->Name
-				End If
-				TypeNameFromLine = sTemp
+				Return TypeNameFromLine
 			End If
 		End If
 		Var Idx = -1
@@ -2341,19 +2320,16 @@ Namespace My.Sys.Forms
 					Return BaseTypeName
 				End If
 			End If
-			If FillIntellisense(TypeName, pLocalTypes, True) Then
-			ElseIf FillIntellisense(TypeName, pLocalEnums, True) Then
-			ElseIf FillIntellisense(TypeName, pComps, True) Then
-			ElseIf FillIntellisense(TypeName, pGlobalTypes, True) Then
-			ElseIf FillIntellisense(TypeName, pGlobalEnums, True) Then
-			ElseIf FillIntellisense(TypeName, pGlobalNamespaces, True) Then
+			If ContainsIn(TypeName, sTemp, pLocalTypes, True, , , te) Then
+			ElseIf ContainsIn(TypeName, sTemp, pLocalEnums, True, , , te) Then
+			ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
+			ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
+			ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
+			ElseIf ContainsIn(TypeName, sTemp, pGlobalNamespaces, True, , , te) Then
 			End If
-			Var Idx = FListItems.IndexOf(sTemp)
-			If Idx > -1 Then
-				te = FListItems.Object(Idx)
+			If te Then
 				OldTypeName = TypeName
 			End If
-			FListItems.Clear
 		Else
 			te1 = teC
 			If teC > 0 Then TypeName = TypeNameFromLine
@@ -2398,18 +2374,16 @@ Namespace My.Sys.Forms
 			ElseIf pGlobalNamespaces->Contains(sTemp, , , , Idx) Then
 				te = pGlobalNamespaces->Object(Idx)
 			ElseIf TypeName <> "" Then
-				If FillIntellisense(TypeName, pLocalTypes, True) Then
-				ElseIf FillIntellisense(TypeName, pLocalEnums, True) Then
-				ElseIf FillIntellisense(TypeName, pComps, True) Then
-				ElseIf FillIntellisense(TypeName, pGlobalTypes, True) Then
-				ElseIf FillIntellisense(TypeName, pGlobalEnums, True) Then
-				ElseIf FillIntellisense(TypeName, pGlobalNamespaces, True) Then
+				If ContainsIn(TypeName, sTemp, pLocalTypes, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pLocalEnums, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, pGlobalNamespaces, True, , , te) Then
 				End If
-				If FListItems.Contains(sTemp, , , , Idx) Then
-					te = FListItems.Object(Idx)
+				If te Then
 					OldTypeName = TypeName
 				End If
-				FListItems.Clear
 			End If
 		End If
 		If te <> 0 Then
@@ -2746,7 +2720,7 @@ End Function
 															
 															'Membership
 															If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
-																'GetLeftArgTypeName(z, j, te)
+																GetLeftArgTypeName(Matn, z, j, te)
 																If te > 0 Then
 																	tIndex = 0
 																	OriginalCaseWord = te->Name
@@ -2771,48 +2745,22 @@ End Function
 																		sc = @ColorLocalVariables
 																	End Select
 																End If
-'															If tIndex = -1 AndAlso (StartsWith(Matn, ".") OrElse StartsWith(Matn, ">")) Then
-'																
-'																'Matn = Mid(Matn, 2)
-'																tIndex = 8888 : OriginalCaseWord = Matn
-'																'tIndex = Oldte->Elements.IndexOf(LCase(Matn))
-'																' We know the Wstrlist Ptr(pkeywords) or TypeElement Ptr (OldTe) of the Pareant and it's name(OldMatn)
-''																If tIndex <> -1 Then
-''																	pkeywords = te->Elements.Object(i)
-''																	OriginalCaseWord = pkeywords->Item(tIndex)
-''																	te = pkeywords->Object(tIndex)
-''																	If te > 0 Then
-''																		Select Case LCase(te->ElementType)
-''																		Case "EnumItem"
-''																			sc = @ColorEnumMembers
-''																		Case "sub"
-''																			sc = @ColorSubs
-''																		Case "function"
-''																			sc = @ColorGlobalFunctions
-''																		Case "property"
-''																			sc = @ColorProperties
-''																		Case "field", "event"
-''																			sc = @ColorFields
-''																		Case Else
-''																			sc = @ColorLocalVariables
-''																		End Select
-''																	End If
-''																End If
-'															End If
 															Else
 																' Keywords
-																For k As Integer = 1 To KeywordLists.Count - 1
-																	pkeywords = KeywordLists.Object(k)
-																	tIndex = pkeywords->IndexOf(LCase(Matn))
-																	If tIndex > -1 Then
-																		OriginalCaseWord = pkeywords->Item(tIndex)
-																		sc = @Keywords(k)
-																		bKeyWord = True
-																		Exit For
-																	End If
-																	pkeywords = 0
-																	tIndex = -1
-																Next
+																If tIndex = -1 Then
+																	For k As Integer = 1 To KeywordLists.Count - 1
+																		pkeywords = KeywordLists.Object(k)
+																		tIndex = pkeywords->IndexOf(LCase(Matn))
+																		If tIndex > -1 Then
+																			OriginalCaseWord = pkeywords->Item(tIndex)
+																			sc = @Keywords(k)
+																			bKeyWord = True
+																			Exit For
+																		End If
+																		pkeywords = 0
+																		tIndex = -1
+																	Next
+																End If
 																
 																'Procedure
 																If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
@@ -2834,34 +2782,36 @@ End Function
 																			End Select
 																		End If
 																	Else
-																		tIndex = InStr(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, ".")
-																		If tIndex > 0 Then
-																			OriginalCaseWord = ..Left(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, tIndex - 1)
-																			tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord))
-																			If tIndex > -1 Then
-																				te = pGlobalTypes->Object(tIndex)
-																				If te > 0 Then
-																					tIndex = te->Elements.IndexOf(LCase(Matn))
-																					If tIndex <> -1 Then
-																						pkeywords = @te->Elements
-																						OriginalCaseWord = pkeywords->Item(tIndex)
-																						Select Case LCase(te->ElementType)
-																						Case "sub"
-																							sc = @ColorSubs
-																						Case "function"
-																							sc = @ColorGlobalFunctions
-																						Case "property"
-																							sc = @ColorProperties
-																						Case "field", "event"
-																							sc = @ColorFields
-																						Case Else
-																							sc = @ColorLocalVariables
-																						End Select
-																					End If
-																				End If
+																		Dim As String TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+																		Var Pos1 = InStr(TypeName, ".")
+																		If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
+																			If Pos1 > 0 Then 
+																				TypeName = ..Left(TypeName, Pos1 - 1)
+																			Else
+																				TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
 																			End If
-																		Else
-																			tIndex = -1
+																			If ContainsIn(TypeName, Matn, pLocalTypes, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, pLocalEnums, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, pComps, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, pGlobalTypes, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, pGlobalEnums, True, , , te) Then
+																			End If
+																			If te > 0 Then
+																				OriginalCaseWord = te->Name
+																				tIndex = 0
+																				Select Case LCase(te->ElementType)
+																				Case "sub"
+																					sc = @ColorSubs
+																				Case "function"
+																					sc = @ColorGlobalFunctions
+																				Case "property"
+																					sc = @ColorProperties
+																				Case "field", "event"
+																					sc = @ColorFields
+																				Case Else
+																					sc = @ColorLocalVariables
+																				End Select
+																			End If
 																		End If
 																	End If
 																End If

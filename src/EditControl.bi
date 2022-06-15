@@ -166,8 +166,8 @@ Namespace My.Sys.Forms
 			Dim As POINTS psPoints
 			Dim As ..Point poPoint
 		#endif
-		Dim FListItems As WStringList
-		Declare Function FillIntellisense(ByRef ClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False) As Boolean
+		'Dim FListItems As WStringList
+		Declare Function ContainsIn(ByRef ClassName As WString, ByRef ItemText As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
 		Dim As Integer lParamLo, lParamHi
 		Dim FCurLine As Integer = 0
 		Dim FSelStartLine As Integer = 0
@@ -372,7 +372,7 @@ Namespace My.Sys.Forms
 		Declare Function GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
 		Declare Function GetCaretPosY(LineIndex As Integer) As Integer
 		Declare Function GetTypeFromValue(Value As String, iSelEndLine As Integer) As String
-		Declare Function GetLeftArgTypeName(iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
+		Declare Function GetLeftArgTypeName(ArgName As String, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
 		Declare Function CharIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		Declare Function LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		Declare Function LinesCount As Integer

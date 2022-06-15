@@ -148,13 +148,13 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.DrawBox(R As My.Sys.Drawing.Rect)
 		#ifndef __USE_GTK__
-			FHDc = GetDCEx(FDialog, 0, DCX_PARENTCLIP Or DCX_CACHE Or DCX_CLIPSIBLINGS)
+			FHDC = GetDCEx(FDialog, 0, DCX_PARENTCLIP Or DCX_CACHE Or DCX_CLIPSIBLINGS)
 			Brush = GetStockObject(NULL_BRUSH)
-			PrevBrush = SelectObject(FHDc, Brush)
-			SetROP2(FHDc, R2_NOT)
-			Rectangle(FHDc, ScaleX(R.Left), ScaleY(R.Top), ScaleX(R.Right), ScaleY(R.Bottom))
+			PrevBrush = SelectObject(FHDC, Brush)
+			SetROP2(FHDC, R2_NOT)
+			Rectangle(FHDC, ScaleX(R.Left), ScaleY(R.Top), ScaleX(R.Right), ScaleY(R.Bottom))
 			SelectObject(FHDc, PrevBrush)
-			ReleaseDC(FDialog, FHDc)
+			ReleaseDC(FDialog, FHDC)
 		#endif
 	End Sub
 	
