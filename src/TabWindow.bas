@@ -4692,7 +4692,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				If Pos2 > 0 AndAlso Pos5 > 0 Then
 					Var teDeclare = te
 					Dim As UString CurType, res1(Any), ElementValue
-					?Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)
 					Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
 					For n As Integer = 0 To UBound(res1)
 						res1(n) = Replace(res1(n), ";", ",")

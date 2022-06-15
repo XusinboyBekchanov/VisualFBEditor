@@ -2103,6 +2103,40 @@ Namespace My.Sys.Forms
 		dwClientY = ClientHeight
 	End Sub
 	
+	Function EditControl.FillIntellisense(ByRef ClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False) As Boolean
+		If ClassName = "" Then Return False
+		Var Index = pList->IndexOf(ClassName)
+		If Index = -1 Then Return False
+		Dim tbi As TypeElement Ptr = pList->Object(Index)
+		If tbi Then
+			Var i = 0
+			Do While i <= tbi->Elements.Count - 1
+				Dim te As TypeElement Ptr = tbi->Elements.Object(i)
+				If te Then
+					With *te
+						If (bLocal OrElse CBool(.Locals = 0)) AndAlso _
+							((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
+							If bAll OrElse Not FListItems.Contains(.Name) Then
+								FListItems.Add tbi->Elements.Item(i), te
+							End If
+						End If
+					End With
+				End If
+				i += 1
+			Loop
+			If FillIntellisense(tbi->TypeName, pList, bLocal, bAll, TypesOnly) Then
+			ElseIf FillIntellisense(tbi->TypeName, pLocalTypes, bLocal, bAll, TypesOnly) Then
+			ElseIf FillIntellisense(tbi->TypeName, pLocalEnums, bLocal, bAll, TypesOnly) Then
+			ElseIf FillIntellisense(tbi->TypeName, pComps, bLocal, bAll, TypesOnly) Then
+			ElseIf FillIntellisense(tbi->TypeName, pGlobalTypes, bLocal, bAll, TypesOnly) Then
+			ElseIf FillIntellisense(tbi->TypeName, pGlobalEnums, bLocal, bAll, TypesOnly) Then
+			ElseIf FillIntellisense(tbi->TypeName, pGlobalNamespaces, bLocal, bAll, TypesOnly) Then
+			End If
+		End If
+		Return True
+	End Function
+
+	
 	Function EditControl.GetTypeFromValue(Value As String, iSelEndLine As Integer) As String
 		Dim As String sTemp
 		If StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(") Then
@@ -2131,7 +2165,7 @@ Namespace My.Sys.Forms
 						If ch = "." Then
 							TypeName = GetTypeFromValue(..Left(Value, i - 1), iSelEndLine)
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(Value, i - 1, 1) = "-" Then
-							TypeName = GetTypeFromValue(..Left(Value, i - 2),iSelEndLine)
+							TypeName = GetTypeFromValue(..Left(Value, i - 2), iSelEndLine)
 						End If
 						Exit For
 					Else
@@ -2154,54 +2188,45 @@ Namespace My.Sys.Forms
 			End If
 			Dim As TypeElement Ptr te, te1
 			Dim As Integer Pos1
-'			If TypeName <> "" Then
-'				If pLocalTypes.Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, @tb->Types, True
-'				ElseIf pLocalEnums.Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, @tb->Enums, True
-'				ElseIf pComps->Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, pComps, True
-'				ElseIf pGlobalTypes->Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, pGlobalTypes, True
-'				ElseIf pGlobalEnums->Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, pGlobalEnums, True
-'				End If
-'				If FListItems.Contains(sTemp) Then
-'					te = FListItems.Object(FListItems.IndexOf(sTemp))
-'				End If
-'				FListItems.Clear
-'			Else
-'				te1 = teC
-'				If teC > 0 Then TypeName = TypeNameFromLine
-'				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
-'					te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
-'				ElseIf tb->Procedures.Contains(sTemp) Then
-'					te = tb->Procedures.Object(tb->Procedures.IndexOf(sTemp))
-'				ElseIf tb->Args.Contains(sTemp) Then
-'					te = tb->Args.Object(tb->Args.IndexOf(sTemp))
-'				ElseIf pGlobalFunctions->Contains(sTemp) Then
-'					te = pGlobalFunctions->Object(pGlobalFunctions->IndexOf(sTemp))
-'				ElseIf pGlobalArgs->Contains(sTemp) Then
-'					te = pGlobalArgs->Object(pGlobalArgs->IndexOf(sTemp))
-'				ElseIf TypeName <> "" Then
-'					If tb->Types.Contains(TypeName) Then
-'						'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
-'						tb->FillIntellisense TypeName, @tb->Types, True
-'					ElseIf tb->Enums.Contains(TypeName) Then
-'						tb->FillIntellisense TypeName, @tb->Enums, True
-'					ElseIf pComps->Contains(TypeName) Then
-'						tb->FillIntellisense TypeName, pComps, True
-'					ElseIf pGlobalTypes->Contains(TypeName) Then
-'						tb->FillIntellisense TypeName, pGlobalTypes, True
-'					ElseIf pGlobalEnums->Contains(TypeName) Then
-'						tb->FillIntellisense TypeName, pGlobalEnums, True
-'					End If
-'					If FListItems.Contains(sTemp) Then
-'						te = FListItems.Object(FListItems.IndexOf(sTemp))
-'					End If
-'					FListItems.Clear
-'				End If
-'			End If
+			If TypeName <> "" Then
+				If FillIntellisense(TypeName, pLocalTypes, True) Then
+				ElseIf FillIntellisense(TypeName, pLocalEnums, True) Then
+				ElseIf FillIntellisense(TypeName, pComps, True) Then
+				ElseIf FillIntellisense(TypeName, pGlobalTypes, True) Then
+				ElseIf FillIntellisense(TypeName, pGlobalEnums, True) Then
+				End If
+				Var Idx = FListItems.IndexOf(sTemp)
+				If Idx > -1 Then
+					te = FListItems.Object(Idx)
+				End If
+				FListItems.Clear
+			Else
+				Var Idx = -1
+				te1 = teC
+				If teC > 0 Then TypeName = TypeNameFromLine
+				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
+					te = te1->Elements.Object(Idx)
+				ElseIf pLocalProcedures->Contains(sTemp, , , , Idx) Then
+					te = pLocalProcedures->Object(Idx)
+				ElseIf pLocalArgs->Contains(sTemp, , , , Idx) Then
+					te = pLocalArgs->Object(Idx)
+				ElseIf pGlobalFunctions->Contains(sTemp, , , , Idx) Then
+					te = pGlobalFunctions->Object(Idx)
+				ElseIf pGlobalArgs->Contains(sTemp, , , , Idx) Then
+					te = pGlobalArgs->Object(Idx)
+				ElseIf TypeName <> "" Then
+					If FillIntellisense(TypeName, pLocalTypes, True) Then
+					ElseIf FillIntellisense(TypeName, pLocalEnums, True) Then
+					ElseIf FillIntellisense(TypeName, pComps, True) Then
+					ElseIf FillIntellisense(TypeName, pGlobalTypes, True) Then
+					ElseIf FillIntellisense(TypeName, pGlobalEnums, True) Then
+					End If
+					If FListItems.Contains(sTemp, , , , Idx) Then
+						te = FListItems.Object(Idx)
+					End If
+					FListItems.Clear
+				End If
+			End If
 			If te <> 0 Then
 				sTemp = te->TypeName
 				If sTemp = "" AndAlso te->Value <> "" Then
@@ -2218,7 +2243,7 @@ Namespace My.Sys.Forms
 		Dim As Integer j, iCount, Pos1
 		Dim As String ch
 		Dim As Boolean b
-		For j = iSelEndLine To 0 Step -1
+		For j As Integer = iSelEndLine To 0 Step -1
 			sLine = @This.Lines(j)
 			If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine), " _") Then Exit For
 			For i As Integer = IIf(j = iSelEndLine, iSelEndChar, Len(*sLine)) To 1 Step -1
@@ -2276,127 +2301,117 @@ Namespace My.Sys.Forms
 				End If
 			Next
 		End If
-'		If tb->Des AndAlso tb->Des->ReadPropertyFunc <> 0 Then
-'			If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) Then
-'				Dim As String frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
-'				If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
-'					sTemp = frmName
-'				ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
-'					sTemp = frmName & "Type"
-'				End If
-'			End If
-'		End If
+		Dim As String TypeNameFromLine
+		Var teC = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine))->InConstruction
+		If teC > 0 Then
+			If CInt(LCase(sTemp) = "this") Then
+				Var Pos1 = InStr(teC->Name, ".")
+				If Pos1 > 0 Then
+					sTemp = ..Left(teC->Name, Pos1 - 1)
+				Else
+					sTemp = teC->Name
+				End If
+				TypeNameFromLine = sTemp
+			End If
+		End If
+		Var Idx = -1
 		Dim As TypeElement Ptr te, te1, te2
-'		If TypeName <> "" Then
-'			If LCase(sTemp) = "base" Then
-'				If tb->Types.Contains(TypeName) Then
-'					te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
-'					If te2 <> 0 Then BaseTypeName = te2->TypeName
-'				ElseIf pComps->Contains(TypeName) Then
-'					te2 = pComps->Object(pComps->IndexOf(TypeName))
-'					If te2 <> 0 Then BaseTypeName = te2->TypeName
-'				ElseIf pGlobalTypes->Contains(TypeName) Then
-'					te2 = pGlobalTypes->Object(pGlobalTypes->IndexOf(TypeName))
-'					If te2 <> 0 Then BaseTypeName = te2->TypeName
-'				End If
-'				If BaseTypeName <> "" Then
-'					If tb->Types.Contains(BaseTypeName) Then
-'						teEnum = tb->Types.Object(tb->Types.IndexOf(BaseTypeName))
-'					ElseIf pComps->Contains(BaseTypeName) Then
-'						teEnum = pComps->Object(pComps->IndexOf(BaseTypeName))
-'					ElseIf pGlobalTypes->Contains(BaseTypeName) Then
-'						teEnum = pGlobalTypes->Object(pGlobalTypes->IndexOf(BaseTypeName))
-'					End If
-'					teEnumOld = 0
-'					OldTypeName = ""
-'					Return BaseTypeName
-'				End If
-'			End If
-'			If tb->Types.Contains(TypeName) Then
-'				tb->FillIntellisense TypeName, @tb->Types, True
-'			ElseIf tb->Enums.Contains(TypeName) Then
-'				tb->FillIntellisense TypeName, @tb->Enums, True
-'			ElseIf pComps->Contains(TypeName) Then
-'				tb->FillIntellisense TypeName, pComps, True
-'			ElseIf pGlobalTypes->Contains(TypeName) Then
-'				tb->FillIntellisense TypeName, pGlobalTypes, True
-'			ElseIf pGlobalEnums->Contains(TypeName) Then
-'				tb->FillIntellisense TypeName, pGlobalEnums, True
-'			ElseIf pGlobalNamespaces->Contains(TypeName) Then
-'				tb->FillIntellisense TypeName, pGlobalNamespaces, True
-'			End If
-'			If FListItems.Contains(sTemp) Then
-'				te = FListItems.Object(FListItems.IndexOf(sTemp))
-'				OldTypeName = TypeName
-'			End If
-'			FListItems.Clear
-'		Else
-'			Dim As String FuncName = tb->cboFunction.Text
-'			If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
-'			Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
-'			Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
-'			If LCase(sTemp) = "this" Then
-'				Return TypeName
-'			ElseIf LCase(sTemp) = "base" Then
-'				If tb->Types.Contains(TypeName) Then
-'					te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
-'					If te2 <> 0 Then BaseTypeName = te2->TypeName
-'				ElseIf pComps->Contains(TypeName) Then
-'					te2 = pComps->Object(pComps->IndexOf(TypeName))
-'					If te2 <> 0 Then BaseTypeName = te2->TypeName
-'				ElseIf pGlobalTypes->Contains(TypeName) Then
-'					te2 = pGlobalTypes->Object(pGlobalTypes->IndexOf(TypeName))
-'					If te2 <> 0 Then BaseTypeName = te2->TypeName
-'				End If
-'				If BaseTypeName <> "" Then
-'					If tb->Types.Contains(BaseTypeName) Then
-'						teEnum = tb->Types.Object(tb->Types.IndexOf(BaseTypeName))
-'					ElseIf pComps->Contains(BaseTypeName) Then
-'						teEnum = pComps->Object(pComps->IndexOf(BaseTypeName))
-'					ElseIf pGlobalTypes->Contains(BaseTypeName) Then
-'						teEnum = pGlobalTypes->Object(pGlobalTypes->IndexOf(BaseTypeName))
-'					End If
-'					teEnumOld = 0
-'					OldTypeName = ""
-'					Return BaseTypeName
-'				End If
-'			End If
-'			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
-'				te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
-'			ElseIf tb->Procedures.Contains(sTemp) Then
-'				te = tb->Procedures.Object(tb->Procedures.IndexOf(sTemp))
-'			ElseIf tb->Args.Contains(sTemp) Then
-'				te = tb->Args.Object(tb->Args.IndexOf(sTemp))
-'			ElseIf pGlobalFunctions->Contains(sTemp) Then
-'				te = pGlobalFunctions->Object(pGlobalFunctions->IndexOf(sTemp))
-'			ElseIf pGlobalArgs->Contains(sTemp) Then
-'				te = pGlobalArgs->Object(pGlobalArgs->IndexOf(sTemp))
-'			ElseIf pGlobalTypes->Contains(sTemp) Then
-'				te = pGlobalTypes->Object(pGlobalTypes->IndexOf(sTemp))
-'			ElseIf pGlobalNamespaces->Contains(sTemp) Then
-'				te = pGlobalNamespaces->Object(pGlobalNamespaces->IndexOf(sTemp))
-'			ElseIf TypeName <> "" Then
-'				If tb->Types.Contains(TypeName) Then
-'					'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
-'					tb->FillIntellisense TypeName, @tb->Types, True
-'				ElseIf tb->Enums.Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, @tb->Enums, True
-'				ElseIf pComps->Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, pComps, True
-'				ElseIf pGlobalTypes->Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, pGlobalTypes, True
-'				ElseIf pGlobalEnums->Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, pGlobalEnums, True
-'				ElseIf pGlobalNamespaces->Contains(TypeName) Then
-'					tb->FillIntellisense TypeName, pGlobalNamespaces, True
-'				End If
-'				If FListItems.Contains(sTemp) Then
-'					te = FListItems.Object(FListItems.IndexOf(sTemp))
-'					OldTypeName = TypeName
-'				End If
-'				FListItems.Clear
-'			End If
-'		End If
+		If TypeName <> "" Then
+			If LCase(sTemp) = "base" Then
+				If pLocalTypes->Contains(TypeName, , , , Idx) Then
+					te2 = pLocalTypes->Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf pComps->Contains(TypeName, , , , Idx) Then
+					te2 = pComps->Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf pGlobalTypes->Contains(TypeName, , , , Idx) Then
+					te2 = pGlobalTypes->Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				End If
+				If BaseTypeName <> "" Then
+					If pLocalTypes->Contains(BaseTypeName, , , , Idx) Then
+						teEnum = pLocalTypes->Object(Idx)
+					ElseIf pComps->Contains(BaseTypeName, , , , Idx) Then
+						teEnum = pComps->Object(Idx)
+					ElseIf pGlobalTypes->Contains(BaseTypeName, , , , Idx) Then
+						teEnum = pGlobalTypes->Object(Idx)
+					End If
+					teEnumOld = 0
+					OldTypeName = ""
+					Return BaseTypeName
+				End If
+			End If
+			If FillIntellisense(TypeName, pLocalTypes, True) Then
+			ElseIf FillIntellisense(TypeName, pLocalEnums, True) Then
+			ElseIf FillIntellisense(TypeName, pComps, True) Then
+			ElseIf FillIntellisense(TypeName, pGlobalTypes, True) Then
+			ElseIf FillIntellisense(TypeName, pGlobalEnums, True) Then
+			ElseIf FillIntellisense(TypeName, pGlobalNamespaces, True) Then
+			End If
+			Var Idx = FListItems.IndexOf(sTemp)
+			If Idx > -1 Then
+				te = FListItems.Object(Idx)
+				OldTypeName = TypeName
+			End If
+			FListItems.Clear
+		Else
+			te1 = teC
+			If teC > 0 Then TypeName = TypeNameFromLine
+			If LCase(sTemp) = "this" Then
+				Return TypeName
+			ElseIf LCase(sTemp) = "base" Then
+				If pLocalTypes->Contains(TypeName, , , , Idx) Then
+					te2 = pLocalTypes->Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf pComps->Contains(TypeName, , , , Idx) Then
+					te2 = pComps->Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf pGlobalTypes->Contains(TypeName, , , , Idx) Then
+					te2 = pGlobalTypes->Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				End If
+				If BaseTypeName <> "" Then
+					If pLocalTypes->Contains(BaseTypeName, , , , Idx) Then
+						teEnum = pLocalTypes->Object(Idx)
+					ElseIf pComps->Contains(BaseTypeName, , , , Idx) Then
+						teEnum = pComps->Object(Idx)
+					ElseIf pGlobalTypes->Contains(BaseTypeName, , , , Idx) Then
+						teEnum = pGlobalTypes->Object(Idx)
+					End If
+					teEnumOld = 0
+					OldTypeName = ""
+					Return BaseTypeName
+				End If
+			End If
+			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
+				te = te1->Elements.Object(Idx)
+			ElseIf pLocalProcedures->Contains(sTemp, , , , Idx) Then
+				te = pLocalProcedures->Object(Idx)
+			ElseIf pLocalArgs->Contains(sTemp, , , , Idx) Then
+				te = pLocalArgs->Object(Idx)
+			ElseIf pGlobalFunctions->Contains(sTemp, , , , Idx) Then
+				te = pGlobalFunctions->Object(Idx)
+			ElseIf pGlobalArgs->Contains(sTemp, , , , Idx) Then
+				te = pGlobalArgs->Object(Idx)
+			ElseIf pGlobalTypes->Contains(sTemp, , , , Idx) Then
+				te = pGlobalTypes->Object(Idx)
+			ElseIf pGlobalNamespaces->Contains(sTemp, , , , Idx) Then
+				te = pGlobalNamespaces->Object(Idx)
+			ElseIf TypeName <> "" Then
+				If FillIntellisense(TypeName, pLocalTypes, True) Then
+				ElseIf FillIntellisense(TypeName, pLocalEnums, True) Then
+				ElseIf FillIntellisense(TypeName, pComps, True) Then
+				ElseIf FillIntellisense(TypeName, pGlobalTypes, True) Then
+				ElseIf FillIntellisense(TypeName, pGlobalEnums, True) Then
+				ElseIf FillIntellisense(TypeName, pGlobalNamespaces, True) Then
+				End If
+				If FListItems.Contains(sTemp, , , , Idx) Then
+					te = FListItems.Object(Idx)
+					OldTypeName = TypeName
+				End If
+				FListItems.Clear
+			End If
+		End If
 		If te <> 0 Then
 			sTemp = te->TypeName
 			If te->ElementType = "Namespace" OrElse te->ElementType = "Type" OrElse te->ElementType = "TypeCopy" OrElse te->ElementType = "Union" OrElse te->ElementType = "Enum" Then
@@ -2441,7 +2456,7 @@ End Function
 		BracketsStartLine = -1
 		BracketsEnd = -1
 		BracketsEndLine = -1
-		Dim As Integer PosiBD, tIndex
+		Dim As Integer PosiBD, tIndex, i
 		Dim As Boolean bKeyWord, TwoDots
 		Dim As WString * 255 OriginalCaseWord, tmpMember
 		Dim As TypeElement Ptr te, Oldte
@@ -2698,16 +2713,16 @@ End Function
 										End If
 										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 										Exit Do
-									ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") OrElse t = Asc(".") OrElse t = Asc(">") Then
+									ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") Then
 										If MatnBoshi = 0 Then MatnBoshi = j
-										If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_") OrElse (u = Asc(".") AndAlso ((t >= 48 AndAlso t <= 57) OrElse t = 46))) Then
-										If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
+										If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
+											If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 												sc = @Identifiers
 												OriginalCaseWord = "":   tmpMember = "" : te = 0
 												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
 												If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
-												If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
+												'If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
 													pkeywords = 0
 													If CStyle Then
 														If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" Then
@@ -2727,15 +2742,8 @@ End Function
 																bKeyWord = True
 															End If
 														Else
-															TwoDots = StartsWith(Matn, "..")
-															If TwoDots Then
-																Matn = Mid(Matn, 3)
-															ElseIf StartsWith(Matn, ".") Then
-																'GetLeftArgTypeName(zz, j, te)
-																If te > 0 Then
-																	'?te->Name
-																End If
-															End If
+															TwoDots = CBool(r = 46 AndAlso q = 46)
+															
 															For k As Integer = 1 To KeywordLists.Count - 1
 																pkeywords = KeywordLists.Object(k)
 																tIndex = pkeywords->IndexOf(LCase(Matn))
@@ -2750,221 +2758,268 @@ End Function
 															Next
 															
 															'Membership
-															If tIndex = -1 AndAlso (StartsWith(Matn, ".") OrElse StartsWith(Matn, ">")) Then
-																'Matn = Mid(Matn, 2)
-																tIndex = 8888 : OriginalCaseWord = Matn
-																'tIndex = Oldte->Elements.IndexOf(LCase(Matn))
-																' We know the Wstrlist Ptr(pkeywords) or TypeElement Ptr (OldTe) of the Pareant and it's name(OldMatn)
-'																If tIndex <> -1 Then
-'																	pkeywords = te->Elements.Object(i)
-'																	OriginalCaseWord = pkeywords->Item(tIndex)
-'																	te = pkeywords->Object(tIndex)
-'																	If te > 0 Then
-'																		Select Case LCase(te->ElementType)
-'																		Case "EnumItem"
-'																			sc = @ColorEnumMembers
-'																		Case "sub"
-'																			sc = @ColorSubs
-'																		Case "function"
-'																			sc = @ColorGlobalFunctions
-'																		Case "property"
-'																			sc = @ColorProperties
-'																		Case "field", "event"
-'																			sc = @ColorFields
-'																		Case Else
-'																			sc = @ColorLocalVariables
-'																		End Select
-'																	End If
-'																End If
-															End If
-															'Procedure
-															If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-																	OriginalCaseWord = pkeywords->Item(tIndex)
-																	te = pkeywords->Object(tIndex)
-																	If te > 0 Then
-																		Select Case te->ElementType
-																		Case "ByRefParameter"
-																			sc = @ColorByRefParameters
-																		Case "ByValParameter"
-																			sc = @ColorByValParameters
-																		Case "Field"
-																			sc = @ColorFields
-																		Case Else
-																			sc = @ColorLocalVariables
-																		End Select
-																	End If
-																Else
-																	tIndex = InStr(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, ".")
-																	If tIndex > 0 Then
-																		OriginalCaseWord = ..Left(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, tIndex - 1)
-																		tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord))
-																		If tIndex > -1 Then
-																			te = pGlobalTypes->Object(tIndex)
-																			If te > 0 Then
-																				tIndex = te->Elements.IndexOf(LCase(Matn))
-																				If tIndex <> -1 Then
-																					pkeywords = @te->Elements
-																					OriginalCaseWord = pkeywords->Item(tIndex)
-																					Select Case LCase(te->ElementType)
-																					Case "sub"
-																						sc = @ColorSubs
-																					Case "function"
-																						sc = @ColorGlobalFunctions
-																					Case "property"
-																						sc = @ColorProperties
-																					Case "field", "event"
-																						sc = @ColorFields
-																					Case Else
-																						sc = @ColorLocalVariables
-																					End Select
-																				End If
-																			End If
+															If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
+																'GetLeftArgTypeName(z, j, te)
+																If te > 0 Then
+																	tIndex = 0
+																	OriginalCaseWord = te->Name
+																	Select Case LCase(te->ElementType)
+																	Case "enumitem"
+																		sc = @ColorEnumMembers
+																	Case "sub"
+																		sc = @ColorSubs
+																	Case "function"
+																		sc = @ColorGlobalFunctions
+																	Case "property"
+																		sc = @ColorProperties
+																	Case "field", "event"
+																		sc = @ColorFields
+																	Case "namespace"
+																		sc = @ColorGlobalNamespaces
+																	Case "type"
+																		sc = @ColorGlobalTypes
+																	Case "enum"
+																		sc = @ColorGlobalEnums
+																	Case Else
+																		sc = @ColorLocalVariables
+																	End Select
+																End If
+'															If tIndex = -1 AndAlso (StartsWith(Matn, ".") OrElse StartsWith(Matn, ">")) Then
+'																
+'																'Matn = Mid(Matn, 2)
+'																tIndex = 8888 : OriginalCaseWord = Matn
+'																'tIndex = Oldte->Elements.IndexOf(LCase(Matn))
+'																' We know the Wstrlist Ptr(pkeywords) or TypeElement Ptr (OldTe) of the Pareant and it's name(OldMatn)
+''																If tIndex <> -1 Then
+''																	pkeywords = te->Elements.Object(i)
+''																	OriginalCaseWord = pkeywords->Item(tIndex)
+''																	te = pkeywords->Object(tIndex)
+''																	If te > 0 Then
+''																		Select Case LCase(te->ElementType)
+''																		Case "EnumItem"
+''																			sc = @ColorEnumMembers
+''																		Case "sub"
+''																			sc = @ColorSubs
+''																		Case "function"
+''																			sc = @ColorGlobalFunctions
+''																		Case "property"
+''																			sc = @ColorProperties
+''																		Case "field", "event"
+''																			sc = @ColorFields
+''																		Case Else
+''																			sc = @ColorLocalVariables
+''																		End Select
+''																	End If
+''																End If
+'															End If
+															Else
+																
+																'Procedure
+																If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
+																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+																		OriginalCaseWord = pkeywords->Item(tIndex)
+																		te = pkeywords->Object(tIndex)
+																		If te > 0 Then
+																			Select Case te->ElementType
+																			Case "ByRefParameter"
+																				sc = @ColorByRefParameters
+																			Case "ByValParameter"
+																				sc = @ColorByValParameters
+																			Case "Field"
+																				sc = @ColorFields
+																			Case Else
+																				sc = @ColorLocalVariables
+																			End Select
 																		End If
 																	Else
-																		tIndex = -1
+																		tIndex = InStr(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, ".")
+																		If tIndex > 0 Then
+																			OriginalCaseWord = ..Left(Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName, tIndex - 1)
+																			tIndex = pGlobalTypes->IndexOf(LCase(OriginalCaseWord))
+																			If tIndex > -1 Then
+																				te = pGlobalTypes->Object(tIndex)
+																				If te > 0 Then
+																					tIndex = te->Elements.IndexOf(LCase(Matn))
+																					If tIndex <> -1 Then
+																						pkeywords = @te->Elements
+																						OriginalCaseWord = pkeywords->Item(tIndex)
+																						Select Case LCase(te->ElementType)
+																						Case "sub"
+																							sc = @ColorSubs
+																						Case "function"
+																							sc = @ColorGlobalFunctions
+																						Case "property"
+																							sc = @ColorProperties
+																						Case "field", "event"
+																							sc = @ColorFields
+																						Case Else
+																							sc = @ColorLocalVariables
+																						End Select
+																					End If
+																				End If
+																			End If
+																		Else
+																			tIndex = -1
+																		End If
+																	End If
+																End If
+																
+																'Module
+																If tIndex = -1 AndAlso pLocalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
+																	tIndex = pLocalArgs->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		OriginalCaseWord = pLocalArgs->Item(tIndex)
+																		pkeywords = pLocalArgs
+																		te = pLocalArgs->Object(tIndex)
+																		If te > 0 Then
+																			Select Case te->ElementType
+																			Case "EnumItem"
+																				sc = @ColorEnumMembers
+																			Case "CommonVariable"
+																				sc = @ColorCommonVariables
+																			Case "Constant"
+																				sc = @ColorConstants
+																			Case "SharedVariable"
+																				sc = @ColorSharedVariables
+																			Case Else
+																				sc = @ColorLocalVariables
+																			End Select
+																		End If
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pLocalProcedures > 0 Then
+																	tIndex = pLocalProcedures->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		OriginalCaseWord = pLocalProcedures->Item(tIndex)
+																		pkeywords = pLocalProcedures
+																		te = pLocalProcedures->Object(tIndex)
+																		If te > 0 Then
+																			Select Case LCase(te->ElementType)
+																			Case "constructor", "destructor"
+																				sc = @ColorGlobalTypes
+																			Case "function"
+																				sc = @ColorGlobalFunctions
+																			Case "sub"
+																				sc = @ColorSubs
+																			Case "define"
+																				sc = @ColorDefines
+																			Case "macro"
+																				sc = @ColorMacros
+																			Case "property"
+																				sc = @ColorProperties
+																			End Select
+																		End If
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pLocalTypes > 0 Then
+																	tIndex = pLocalTypes->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		sc = @ColorGlobalTypes
+																		OriginalCaseWord = pLocalTypes->Item(tIndex)
+																		pkeywords = pLocalTypes
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pLocalEnums > 0 Then
+																	tIndex = pLocalEnums->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		sc = @ColorGlobalEnums
+																		OriginalCaseWord = pLocalEnums->Item(tIndex)
+																		pkeywords = pLocalEnums
+																	End If
+																End If
+																
+																'Global
+																If tIndex = -1 AndAlso pComps > 0 Then
+																	tIndex = pComps->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		sc = @ColorComps
+																		OriginalCaseWord = pComps->Item(tIndex)
+																		pkeywords = pComps
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalTypes > 0 Then
+																	tIndex = pGlobalTypes->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		sc = @ColorGlobalTypes
+																		OriginalCaseWord = pGlobalTypes->Item(tIndex)
+																		pkeywords = pGlobalTypes
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalEnums > 0 Then
+																	tIndex = pGlobalEnums->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		sc = @ColorGlobalEnums
+																		OriginalCaseWord = pGlobalEnums->Item(tIndex)
+																		pkeywords = pGlobalEnums
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
+																	tIndex = pGlobalArgs->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		te = pGlobalArgs->Object(tIndex)
+																		OriginalCaseWord = pGlobalArgs->Item(tIndex)
+																		pkeywords = pGlobalArgs
+																		If te > 0 Then
+																			Select Case te->ElementType
+																			Case "EnumItem"
+																				sc = @ColorEnumMembers
+																			Case "CommonVariable"
+																				sc = @ColorCommonVariables
+																			Case "Constant"
+																				sc = @ColorConstants
+																			Case "SharedVariable"
+																				sc = @ColorSharedVariables
+																			Case Else
+																				sc = @ColorLocalVariables
+																			End Select
+																		End If
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalFunctions > 0 Then
+																	tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		te = pGlobalFunctions->Object(tIndex)
+																		OriginalCaseWord = pGlobalFunctions->Item(tIndex)
+																		pkeywords = pGlobalFunctions
+																		If te > 0 Then
+																			Select Case LCase(te->ElementType)
+																			Case "constructor", "destructor"
+																				sc = @ColorGlobalTypes
+																			Case "keyword"
+																				sc = @ColorGlobalFunctions
+																			Case "function"
+																				sc = @ColorGlobalFunctions
+																			Case "sub"
+																				sc = @ColorSubs
+																			Case "define"
+																				sc = @ColorDefines
+																			Case "macro"
+																				sc = @ColorMacros
+																			Case "property"
+																				sc = @ColorProperties
+																			End Select
+																		End If
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then
+																	tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		sc = @ColorGlobalNamespaces
+																		OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
+																		pkeywords = pGlobalNamespaces
 																	End If
 																End If
 															End If
-															
-															'Module
-															If tIndex = -1 AndAlso pLocalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = pLocalArgs->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	OriginalCaseWord = pLocalArgs->Item(tIndex)
-																	pkeywords = pLocalArgs
-																	te = pLocalArgs->Object(tIndex)
-																	If te > 0 Then
-																		Select Case te->ElementType
-																		Case "EnumItem"
-																			sc = @ColorEnumMembers
-																		Case "CommonVariable"
-																			sc = @ColorCommonVariables
-																		Case "Constant"
-																			sc = @ColorConstants
-																		Case "SharedVariable"
-																			sc = @ColorSharedVariables
-																		Case Else
-																			sc = @ColorLocalVariables
-																		End Select
-																	End If
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pLocalProcedures > 0 Then
-																tIndex = pLocalProcedures->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	OriginalCaseWord = pLocalProcedures->Item(tIndex)
-																	pkeywords = pLocalProcedures
-																	te = pLocalProcedures->Object(tIndex)
-																	If te > 0 Then
-																		Select Case LCase(te->ElementType)
-																		Case "constructor", "destructor"
-																			sc = @ColorGlobalTypes
-																		Case "function"
-																			sc = @ColorGlobalFunctions
-																		Case "sub"
-																			sc = @ColorSubs
-																		Case "define"
-																			sc = @ColorDefines
-																		Case "macro"
-																			sc = @ColorMacros
-																		Case "property"
-																			sc = @ColorProperties
-																		End Select
-																	End If
-																End If
-															End If
-															
-															'Global
-															If tIndex = -1 AndAlso pComps > 0 Then
-																tIndex = pComps->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	sc = @ColorComps
-																	OriginalCaseWord = pComps->Item(tIndex)
-																	pkeywords = pComps
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalTypes > 0 Then
-																tIndex = pGlobalTypes->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	sc = @ColorGlobalTypes
-																	OriginalCaseWord = pGlobalTypes->Item(tIndex)
-																	pkeywords = pGlobalTypes
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalEnums > 0 Then
-																tIndex = pGlobalEnums->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	sc = @ColorGlobalEnums
-																	OriginalCaseWord = pGlobalEnums->Item(tIndex)
-																	pkeywords = pGlobalEnums
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = pGlobalArgs->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	te = pGlobalArgs->Object(tIndex)
-																	OriginalCaseWord = pGlobalArgs->Item(tIndex)
-																	pkeywords = pGlobalArgs
-																	If te > 0 Then
-																		Select Case te->ElementType
-																		Case "EnumItem"
-																			sc = @ColorEnumMembers
-																		Case "CommonVariable"
-																			sc = @ColorCommonVariables
-																		Case "Constant"
-																			sc = @ColorConstants
-																		Case "SharedVariable"
-																			sc = @ColorSharedVariables
-																		Case Else
-																			sc = @ColorLocalVariables
-																		End Select
-																	End If
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalFunctions > 0 Then
-																tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	te = pGlobalFunctions->Object(tIndex)
-																	OriginalCaseWord = pGlobalFunctions->Item(tIndex)
-																	pkeywords = pGlobalFunctions
-																	If te > 0 Then
-																		Select Case LCase(te->ElementType)
-																		Case "constructor", "destructor"
-																			sc = @ColorGlobalTypes
-																		Case "keyword"
-																			sc = @ColorGlobalFunctions
-																		Case "function"
-																			sc = @ColorGlobalFunctions
-																		Case "sub"
-																			sc = @ColorSubs
-																		Case "define"
-																			sc = @ColorDefines
-																		Case "macro"
-																			sc = @ColorMacros
-																		Case "property"
-																			sc = @ColorProperties
-																		End Select
-																	End If
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then
-																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	sc = @ColorGlobalNamespaces
-																	OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
-																	pkeywords = pGlobalNamespaces
-																End If
-															End If
-															If TwoDots Then Matn = ".." & Matn: OriginalCaseWord = ".." & OriginalCaseWord
 														End If
 														If bKeyWord AndAlso ChangeKeyWordsCase AndAlso LCase(Matn) = LCase(OriginalCaseWord) AndAlso FSelEndLine <> z Then
 															KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
@@ -2987,7 +3042,7 @@ End Function
 															End If
 														End If
 													End If
-												End If
+												'End If
 												OldMatn = Matn: Oldte = te
 												'If sc <> 0 Then
 												PaintText zz, i, *s, MatnBoshi - 1, j, *sc

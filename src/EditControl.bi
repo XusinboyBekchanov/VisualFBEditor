@@ -166,6 +166,8 @@ Namespace My.Sys.Forms
 			Dim As POINTS psPoints
 			Dim As ..Point poPoint
 		#endif
+		Dim FListItems As WStringList
+		Declare Function FillIntellisense(ByRef ClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False) As Boolean
 		Dim As Integer lParamLo, lParamHi
 		Dim FCurLine As Integer = 0
 		Dim FSelStartLine As Integer = 0
