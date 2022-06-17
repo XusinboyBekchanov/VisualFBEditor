@@ -220,8 +220,8 @@ End Function
 
 Function MLCompilerFun(ByRef V As WString) ByRef As WString
 	If LCase(CurLanguage) = "english" Then Return V
-	Dim As Integer tIndex = MLCompiler.IndexOfKey(V) ' For improve the speed
-	If tIndex >= 0 Then Return MLCompiler.Item(tIndex)->Text Else Return V
+	Dim As Integer tIndex = mlCompiler.IndexOfKey(V) ' For improve the speed
+	If tIndex >= 0 Then Return mlCompiler.Item(tIndex)->Text Else Return V
 End Function
 
 'David Change For the comment of control's Properties
@@ -229,7 +229,7 @@ Function MC(ByRef V As WString) ByRef As WString
 	If (Not gLocalProperties) Then Return V
 	Dim As WString * 100 TempV = ""
 	Dim As Integer Posi = InStrRev(V, ".")
-	TempV = IIf(Posi > 0, Mid(V, posi + 1), V)
+	TempV = IIf(Posi > 0, Mid(V, Posi + 1), V)
 	Dim As Integer tIndex = mcKeys.IndexOfKey(TempV) 'David Changed
 	If tIndex >= 0 Then Return mcKeys.Item(tIndex)->Text
 	Return V
@@ -238,7 +238,7 @@ End Function
 Function MP(ByRef V As WString) ByRef As WString
 	If (Not gLocalProperties) OrElse LCase(CurLanguage) = "english" Then Return V
 	Dim As Integer tIndex = -1, tIndex2 = -1
-	If InStr(v,".") Then
+	If InStr(V,".") Then
 		Static As WString*50 TempWstr =""
 		Dim As UString LineParts(Any)
 		Split(V, ".", LineParts())
