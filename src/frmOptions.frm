@@ -892,12 +892,14 @@ pfOptions = @fOptions
 		cmdRemove.SetBounds 330, 20, 71, 23
 		cmdRemove.OnClick = @cmdRemove_Click
 		cmdRemove.Parent = @grbColors
-		' lblColorForeground
-		lblColorForeground.Name = "lblColorForeground"
-		lblColorForeground.Text = ""
-		lblColorForeground.SetBounds 258, 71, 72, 20
-		lblColorForeground.BackColor = 0
-		lblColorForeground.Parent = @grbColors
+		' txtColorForeground
+		txtColorForeground.Name = "txtColorForeground"
+		txtColorForeground.Text = ""
+		txtColorForeground.SetBounds 258, 71, 72, 20
+		txtColorForeground.BackColor = 0
+		txtColorForeground.Designer = @This
+		txtColorForeground.OnKeyPress = @_txtColorForeground_KeyPress
+		txtColorForeground.Parent = @grbColors
 		' cmdForeground
 		cmdForeground.Name = "cmdForeground"
 		cmdForeground.Text = "..."
@@ -942,12 +944,14 @@ pfOptions = @fOptions
 		lblProjectsPath.ExtraMargins.Top = 15
 		lblProjectsPath.SetBounds 10, 366, 416, 16
 		lblProjectsPath.Parent = @pnlGeneral
-		' lblColorBackground
-		lblColorBackground.Name = "lblColorBackground"
-		lblColorBackground.SetBounds 258, 113, 72, 20
-		lblColorBackground.BackColor = 0
-		lblColorBackground.Text = ""
-		lblColorBackground.Parent = @grbColors
+		' txtColorBackground
+		txtColorBackground.Name = "txtColorBackground"
+		txtColorBackground.SetBounds 258, 113, 72, 20
+		txtColorBackground.BackColor = 0
+		txtColorBackground.Text = ""
+		txtColorBackground.Designer = @This
+		txtColorBackground.OnKeyPress = @_txtColorBackground_KeyPress
+		txtColorBackground.Parent = @grbColors
 		' cmdBackground
 		cmdBackground.Name = "cmdBackground"
 		cmdBackground.Text = "..."
@@ -970,12 +974,14 @@ pfOptions = @fOptions
 		lblIndicator.Text = ML("Indicator") & ":"
 		lblIndicator.SetBounds 258, 176, 136, 16
 		lblIndicator.Parent = @grbColors
-		' lblColorIndicator
-		lblColorIndicator.Name = "lblColorIndicator"
-		lblColorIndicator.Text = ""
-		lblColorIndicator.SetBounds 258, 192, 72, 20
-		lblColorIndicator.BackColor = 0
-		lblColorIndicator.Parent = @grbColors
+		' txtColorIndicator
+		txtColorIndicator.Name = "txtColorIndicator"
+		txtColorIndicator.Text = ""
+		txtColorIndicator.SetBounds 258, 192, 72, 20
+		txtColorIndicator.BackColor = 0
+		txtColorIndicator.Designer = @This
+		txtColorIndicator.OnKeyPress = @_txtColorIndicator_KeyPress
+		txtColorIndicator.Parent = @grbColors
 		' cmdIndicator
 		cmdIndicator.Name = "cmdIndicator"
 		cmdIndicator.Text = "..."
@@ -1229,11 +1235,13 @@ pfOptions = @fOptions
 			.SetBounds 258, 136, 136, 16
 			.Parent = @grbColors
 		End With
-		' lblColorFrame
-		With lblColorFrame
-			.Name = "lblColorFrame"
+		' txtColorFrame
+		With txtColorFrame
+			.Name = "txtColorFrame"
 			.SetBounds 258, 152, 72, 20
 			.BackColor = 0
+			.Designer = @This
+			.OnKeyPress = @_txtColorFrame_KeyPress
 			.Parent = @grbColors
 		End With
 		' cmdFrame
@@ -1895,6 +1903,22 @@ pfOptions = @fOptions
 		End With
 	End Constructor
 	
+	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Byte)
+		*Cast(frmOptions Ptr, Sender.Designer).txtColorIndicator_KeyPress(Sender, Key)
+	End Sub
+	
+	Private Sub frmOptions._txtColorFrame_KeyPress(ByRef Sender As Control, Key As Byte)
+		*Cast(frmOptions Ptr, Sender.Designer).txtColorFrame_KeyPress(Sender, Key)
+	End Sub
+	
+	Private Sub frmOptions._txtColorBackground_KeyPress(ByRef Sender As Control, Key As Byte)
+		*Cast(frmOptions Ptr, Sender.Designer).txtColorBackground_KeyPress(Sender, Key)
+	End Sub
+	
+	Private Sub frmOptions._txtColorForeground_KeyPress(ByRef Sender As Control, Key As Byte)
+		*Cast(frmOptions Ptr, Sender.Designer).txtColorForeground_KeyPress(Sender, Key)
+	End Sub
+	
 	Private Sub frmOptions.cmdUpdateLng_Click_(ByRef Sender As Control)
 		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateLng_Click(Sender)
 	End Sub
@@ -1906,7 +1930,7 @@ pfOptions = @fOptions
 	Destructor frmOptions
 		FDisposing = True
 		WDeAllocate InterfFontName
-		WDeAllocate OldInterfFontName
+		WDeAllocate oldInterfFontName
 		WDeAllocate EditFontName
 	End Destructor
 	
@@ -3142,25 +3166,33 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
 		If UBound(.Colors, 1) < 0 Then Exit Sub
-		.lblColorForeground.BackColor = Max(0, .Colors(i, 0))
+		.txtColorForeground.BackColor = Max(0, .Colors(i, 0))
 		.chkForeground.Checked = .Colors(i, 0) = -1
+		.txtColorForeground.Text = Str(.txtColorForeground.BackColor)
+		.txtColorForeground.ForeColor = CInt(.txtColorForeground.BackColor) Shl 2
 		
-		.lblColorBackground.BackColor = Max(0, .Colors(i, 1))
-		.lblColorBackground.Visible = .Colors(i, 1) <> -2
+		.txtColorBackground.BackColor = Max(0, .Colors(i, 1))
+		.txtColorBackground.Visible = .Colors(i, 1) <> -2
+		.txtColorBackground.Text = Str(.txtColorBackground.BackColor)
+		.txtColorBackground.ForeColor = CInt(.txtColorBackground.BackColor) Shl 2
 		.lblBackground.Visible = .Colors(i, 1) <> -2
 		.cmdBackground.Visible = .Colors(i, 1) <> -2
 		.chkBackground.Visible = .Colors(i, 1) <> -2
 		.chkBackground.Checked = .Colors(i, 1) = -1
 		
-		.lblColorFrame.BackColor = Max(0, .Colors(i, 2))
-		.lblColorFrame.Visible = .Colors(i, 2) <> -2
+		.txtColorFrame.BackColor = Max(0, .Colors(i, 2))
+		.txtColorFrame.Visible = .Colors(i, 2) <> -2
+		.txtColorFrame.Text = Str(.txtColorFrame.BackColor)
+		.txtColorFrame.ForeColor = CInt(.txtColorFrame.BackColor) Shl 2
 		.lblFrame.Visible = .Colors(i, 2) <> -2
 		.cmdFrame.Visible = .Colors(i, 2) <> -2
 		.chkFrame.Visible = .Colors(i, 2) <> -2
 		.chkFrame.Checked = .Colors(i, 2) = -1
 		
-		.lblColorIndicator.BackColor = Max(0, .Colors(i, 3))
-		.lblColorIndicator.Visible = .Colors(i, 3) <> -2
+		.txtColorIndicator.BackColor = Max(0, .Colors(i, 3))
+		.txtColorIndicator.Visible = .Colors(i, 3) <> -2
+		.txtColorIndicator.Text = Str(.txtColorIndicator.BackColor)
+		.txtColorIndicator.ForeColor = CInt(.txtColorIndicator.BackColor) Shl 2
 		.lblIndicator.Visible = .Colors(i, 3) <> -2
 		.cmdIndicator.Visible = .Colors(i, 3) <> -2
 		.chkIndicator.Visible = .Colors(i, 3) <> -2
@@ -3181,7 +3213,7 @@ Private Sub frmOptions.cmdForeground_Click(ByRef Sender As Control)
 		If i = -1 Then Exit Sub
 		.Color = fOptions.Colors(i, 0)
 		If .Execute Then
-			fOptions.lblColorForeground.BackColor = .Color
+			fOptions.txtColorForeground.BackColor = .Color
 			fOptions.chkForeground.Checked = False
 			fOptions.Colors(i, 0) = .Color
 		End If
@@ -3194,7 +3226,7 @@ Private Sub frmOptions.cmdBackground_Click(ByRef Sender As Control)
 		If i = -1 Then Exit Sub
 		.Color = fOptions.Colors(i, 1)
 		If .Execute Then
-			fOptions.lblColorBackground.BackColor = .Color
+			fOptions.txtColorBackground.BackColor = .Color
 			fOptions.chkBackground.Checked = False
 			fOptions.Colors(i, 1) = .Color
 		End If
@@ -3207,7 +3239,7 @@ Private Sub frmOptions.cmdFrame_Click(ByRef Sender As Control)
 		If i = -1 Then Exit Sub
 		.Color = fOptions.Colors(i, 2)
 		If .Execute Then
-			fOptions.lblColorFrame.BackColor = .Color
+			fOptions.txtColorFrame.BackColor = .Color
 			fOptions.chkFrame.Checked = False
 			fOptions.Colors(i, 2) = .Color
 		End If
@@ -3220,7 +3252,7 @@ Private Sub frmOptions.cmdIndicator_Click(ByRef Sender As Control)
 		If i = -1 Then Exit Sub
 		.Color = fOptions.Colors(i, 3)
 		If .Execute Then
-			fOptions.lblColorIndicator.BackColor = .Color
+			fOptions.txtColorIndicator.BackColor = .Color
 			fOptions.chkIndicator.Checked = False
 			fOptions.Colors(i, 3) = .Color
 		End If
@@ -3346,7 +3378,7 @@ Private Sub frmOptions.chkForeground_Click(ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.Colors(i, 0) = IIf(.chkForeground.Checked, -1, .lblColorForeground.BackColor)
+		.Colors(i, 0) = IIf(.chkForeground.Checked, -1, .txtColorForeground.BackColor)
 	End With
 End Sub
 
@@ -3354,7 +3386,7 @@ Private Sub frmOptions.chkBackground_Click(ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.Colors(i, 1) = IIf(.chkBackground.Checked, -1, .lblColorBackground.BackColor)
+		.Colors(i, 1) = IIf(.chkBackground.Checked, -1, .txtColorBackground.BackColor)
 	End With
 End Sub
 
@@ -3362,7 +3394,7 @@ Private Sub frmOptions.chkFrame_Click(ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.Colors(i, 2) = IIf(.chkFrame.Checked, -1, .lblColorFrame.BackColor)
+		.Colors(i, 2) = IIf(.chkFrame.Checked, -1, .txtColorFrame.BackColor)
 	End With
 End Sub
 
@@ -3370,7 +3402,7 @@ Private Sub frmOptions.chkIndicator_Click(ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
-		.Colors(i, 3) = IIf(.chkIndicator.Checked, -1, .lblColorIndicator.BackColor)
+		.Colors(i, 3) = IIf(.chkIndicator.Checked, -1, .txtColorIndicator.BackColor)
 	End With
 End Sub
 
@@ -4447,40 +4479,40 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		APP.DoEvents
 		Print #Fn1, "[Keywords]"
 		For i As Integer = 0 To mlKeyWords.Count - 1
-			tKey = mlKeyWords.Item(i)->Key
+			tKey = mlKeyWords.item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeyWords.Item(i)->Text
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeyWords.item(i)->Text
 		Next
-		APP.DoEvents
+		App.DoEvents
 		Print #Fn1, "[Property]"
 		For i As Integer = 0 To mlKeysProperty.Count - 1
-			tKey = mlKeysProperty.Item(i)->Key
+			tKey = mlKeysProperty.item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysProperty.Item(i)->Text
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysProperty.item(i)->Text
 		Next
-		APP.DoEvents
+		App.DoEvents
 		Print #Fn1, "[Templates]"
 		For i As Integer = 0 To mlKeysTemplates.Count - 1
-			tKey = mlKeysTemplates.Item(i)->Key
+			tKey = mlKeysTemplates.item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysTemplates.Item(i)->Text
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysTemplates.item(i)->Text
 		Next
-		APP.DoEvents
+		App.DoEvents
 		Print #Fn1, "[Compiler]"
 		For i As Integer = 0 To mlKeysCompiler.Count - 1
-			tKey = mlKeysCompiler.Item(i)->Key
+			tKey = mlKeysCompiler.item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysCompiler.Item(i)->Text
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysCompiler.item(i)->Text
 		Next
-		APP.DoEvents
+		App.DoEvents
 		Print #Fn1, "[General]"
 		For i As Integer = 0 To mlKeysGeneral.Count - 1
-			tKey = mlKeysGeneral.Item(i)->Key
+			tKey = mlKeysGeneral.item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysGeneral.Item(i)->Text
+			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysGeneral.item(i)->Text
 		Next
 		Close #Fn1
-		APP.DoEvents
+		App.DoEvents
 		If chkAllLNG.Checked Then f = Dir() Else Exit While
 	Wend
 	App.DoEvents
@@ -4497,4 +4529,44 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	cmdUpdateLng.Enabled = True
 	'WebBrowser1.Navigate("https://cn.bing.com/translator?ref=TThis&&text=&from=en&to=cn")
 	
+End Sub
+
+Private Sub frmOptions.txtColorForeground_KeyPress(ByRef Sender As Control, Key As Byte)
+	If Key = 13 Then
+		Var i = fOptions.lstColorKeys.ItemIndex
+		If i = -1 Then Exit Sub
+		txtColorForeground.BackColor = Val(txtColorForeground.Text)
+		chkForeground.Checked = False
+		Colors(i, 0) = txtColorForeground.BackColor
+	End If
+End Sub
+
+Private Sub frmOptions.txtColorBackground_KeyPress(ByRef Sender As Control, Key As Byte)
+	If Key = 13 Then
+		Var i = fOptions.lstColorKeys.ItemIndex
+		If i = -1 Then Exit Sub
+		txtColorBackground.BackColor = Val(txtColorBackground.Text)
+		chkBackground.Checked = False
+		Colors(i, 1) = txtColorBackground.BackColor
+	End If
+End Sub
+
+Private Sub frmOptions.txtColorFrame_KeyPress(ByRef Sender As Control, Key As Byte)
+	If Key = 13 Then 
+		Var i = fOptions.lstColorKeys.ItemIndex
+		If i = -1 Then Exit Sub
+		txtColorFrame.BackColor = Val(txtColorFrame.Text)
+		chkFrame.Checked = False
+		Colors(i, 2) = txtColorFrame.BackColor
+	End If
+End Sub
+
+Private Sub frmOptions.txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Byte)
+	If Key = 13 Then 
+		Var i = fOptions.lstColorKeys.ItemIndex
+		If i = -1 Then Exit Sub
+		txtColorIndicator.BackColor = Val(txtColorIndicator.Text)
+		chkIndicator.Checked = False
+		Colors(i, 3) = txtColorIndicator.BackColor
+	End If
 End Sub
