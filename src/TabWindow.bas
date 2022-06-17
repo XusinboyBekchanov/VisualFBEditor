@@ -4622,12 +4622,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				FunctionsOthers.Add te->DisplayName, te
 				Procedures.Add te->Name, te
 			ElseIf StartsWith(bTrimLCase, "declare ") Then
+				iStart = 9
 				Pos1 = InStr(9, bTrim, " ")
 				Pos2 = InStrRev(bTrim, ")")
 				Pos3 = InStr(9, bTrim, "(")
 				Pos5 = Pos3
 				'n = Len(Trim(*FLine)) - Len(Trim(Mid(Trim(*FLine), Pos1)))
-				If StartsWith(Trim(Mid(bTrimLCase, 9), Any !"\t "), "static ") Then
+				If StartsWith(Trim(Mid(bTrimLCase, 9)), "static ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "virtual ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "abstract ") Then
+					iStart = Pos1
 					Pos1 = InStr(Pos1 + 1, bTrim, " ")
 				End If
 				Pos4 = InStr(Pos1 + 1, bTrim, " ")
@@ -4637,11 +4639,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te = New_( TypeElement)
 				te->Declaration = True
 				If Pos1 = 0 Then
-					te->ElementType = Trim(Mid(bTrim, 9))
+					te->ElementType = Trim(Mid(bTrim, iStart))
 				Else
-					te->ElementType = Trim(Mid(bTrim, 9, Pos1 - 9))
+					te->ElementType = Trim(Mid(bTrim, iStart, Pos1 - iStart))
 				End If
-				If StartsWith(LCase(te->ElementType), "static ") Then te->ElementType = Trim(Mid(te->ElementType, 8), Any !"\t")
 				If inFunc AndAlso func <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
 					te->Name = func->Name
 					te->DisplayName = func->Name & " [" & te->ElementType & "] [Declare]"
