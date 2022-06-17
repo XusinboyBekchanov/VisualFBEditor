@@ -4235,7 +4235,7 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 			If Graphic <> 0 Then
 				Dim As Any Ptr Bitm = Des->ReadPropertyFunc(Graphic, "Bitmap")
 				If Bitm <> 0 Then
-					Dim As HBitmap Ptr pHBitmap = Des->ReadPropertyFunc(Bitm, "Handle")
+					Dim As HBITMAP Ptr pHBitmap = Des->ReadPropertyFunc(Bitm, "Handle")
 					If pHBitmap <> 0 Then
 						Des->BitmapHandle = *pHBitmap
 					End If
@@ -4395,7 +4395,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		End If
 		For i As Integer = iStart To iEnd
 			ECLine = ptxtCode->FLines.Items[i]
-			If InFunc Then ECLine->InConstruction = func
+			If inFunc Then ECLine->InConstruction = func
 			WLet(FLine, *ECLine->Text)
 			b1 = Replace(*ECLine->Text, !"\t", " ")
 			If StartsWith(Trim(b1), "'") Then
@@ -4641,6 +4641,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				Else
 					te->ElementType = Trim(Mid(bTrim, 9, Pos1 - 9))
 				End If
+				If StartsWith(LCase(te->ElementType), "static ") Then te->ElementType = Trim(Mid(te->ElementType, 8), Any !"\t")
 				If inFunc AndAlso func <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
 					te->Name = func->Name
 					te->DisplayName = func->Name & " [" & te->ElementType & "] [Declare]"
@@ -4924,7 +4925,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If .WritePropertyFunc <> 0 Then
 							.WritePropertyFunc(.DesignControl, "IsChild", @bTrue)
 							#ifdef __USE_GTK__
-								.WritePropertyFunc(.DesignControl, "ParentWidget", pnlForm.Widget)
+								.WritePropertyFunc(.DesignControl, "ParentWidget", pnlForm.widget)
 							#else
 								Dim As HWND pnlFormHandle = pnlForm.Handle
 								.WritePropertyFunc(.DesignControl, "ParentHandle", @pnlFormHandle)
