@@ -2104,10 +2104,11 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function EditControl.ContainsIn(ByRef ClassName As WString, ByRef ItemText As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
-		If ClassName = "" Then Return False
+		If ClassName = "" OrElse pList = 0 Then Return False
 		Var Index = pList->IndexOf(ClassName)
 		If Index = -1 Then Return False
 		Dim tbi As TypeElement Ptr = pList->Object(Index)
+		te = 0
 		If tbi Then
 			Var Idx = -1
 			If tbi->Elements.Contains(ItemText, , , , Idx) Then
@@ -2121,11 +2122,12 @@ Namespace My.Sys.Forms
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalNamespaces, bLocal, bAll, TypesOnly, te) Then
 			End If
 		End If
-		Return True
+		If te > 0 Then Return True Else Return False
 	End Function
-
 	
-	Function EditControl.GetTypeFromValue(Value As String, iSelEndLine As Integer) As String
+	
+	Function EditControl.GetTypeFromValue(ByRef Value As String, iSelEndLine As Integer) As String
+		If Value= "" Then Return ""
 		Dim As String sTemp
 		If StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(") Then
 			Var Pos1 = InStr(Value, "(")
@@ -2206,7 +2208,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-			If te <> 0 Then
+			If te > 0 Then
 				sTemp = te->TypeName
 				If sTemp = "" AndAlso te->Value <> "" Then
 					sTemp = GetTypeFromValue(te->Value, iSelEndLine)
@@ -2430,9 +2432,9 @@ End Function
 		BracketsStartLine = -1
 		BracketsEnd = -1
 		BracketsEndLine = -1
-		Dim As Integer PosiBD, tIndex, i
+		Dim As Integer PosiBD, tIndex, i, Pos1
 		Dim As Boolean bKeyWord, TwoDots
-		Dim As WString * 255 OriginalCaseWord, tmpMember
+		Dim As WString * 255 OriginalCaseWord, TypeName
 		Dim As TypeElement Ptr te, Oldte
 		If HighlightBrackets Then
 			Symb = Mid(Lines(iSelEndLine), iSelEndChar + 1, 1)
@@ -2693,10 +2695,9 @@ End Function
 											If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 												sc = @Identifiers
-												OriginalCaseWord = "":   tmpMember = "" : te = 0
+												OriginalCaseWord = "":   TypeName = "" : te = 0
 												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
-												If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
-												'If CBool(r <> 46 OrElse q = 46) AndAlso CBool(r <> 62) Then ' . > THEN
+If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
 													pkeywords = 0
 													If CStyle Then
 														If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" Then
@@ -2705,7 +2706,7 @@ End Function
 															End If
 														End If
 													Else
-														bKeyWord = False: 'ChangeIdentifiersCaseDim = True
+														bKeyWord = False
 														tIndex  = -1
 														OriginalCaseWord = ""
 														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
@@ -2782,8 +2783,8 @@ End Function
 																			End Select
 																		End If
 																	Else
-																		Dim As String TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
-																		Var Pos1 = InStr(TypeName, ".")
+																		TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+																		Pos1 = InStr(TypeName, ".")
 																		If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
 																			If Pos1 > 0 Then 
 																				TypeName = ..Left(TypeName, Pos1 - 1)
@@ -2991,8 +2992,7 @@ End Function
 																sc = @Identifiers
 															End If
 														End If
-													End If
-												'End If
+												End If
 												OldMatn = Matn: Oldte = te
 												'If sc <> 0 Then
 												PaintText zz, i, *s, MatnBoshi - 1, j, *sc
