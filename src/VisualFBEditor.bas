@@ -25,7 +25,7 @@ On Error Goto AA
 #define FILENUMCHECK 1
 #define _L DebugPrint_ __LINE__ & ": " & __FILE__ & ": " & __FUNCTION__:
 
-Declare Sub DebugPrint_(ByRef Msg As WString)
+Declare Sub DebugPrint_(ByRef MSG As WString)
 
 #include once "Main.bi"
 #include once "Debug.bi"
@@ -704,10 +704,12 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "FreeBasicRepository":             OpenUrl "https://github.com/freebasic/fbc"
 	Case "VisualFBEditorRepository":        OpenUrl "https://github.com/XusinboyBekchanov/VisualFBEditor"
 	Case "VisualFBEditorWiKi":              OpenUrl "https://github.com/XusinboyBekchanov/VisualFBEditor/wiki"
+	Case "VisualFBEditorDiscussions":       OpenUrl "https://github.com/XusinboyBekchanov/VisualFBEditor/discussions"
 	Case "MyFbFrameworkRepository":         OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework"
 	Case "MyFbFrameworkWiKi":               OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework/wiki"
-	Case "About":                            pfAbout->Show *pfrmMain
-	Case "TipoftheDay":                      pfTipOfDay->ShowModal *pfrmMain
+	Case "MyFbFrameworkDiscussions":        OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework/discussions"
+	Case "About":                           pfAbout->Show *pfrmMain
+	Case "TipoftheDay":                     pfTipOfDay->ShowModal *pfrmMain
 	End Select
 End Sub
 
