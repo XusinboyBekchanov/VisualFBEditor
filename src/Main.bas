@@ -3389,7 +3389,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							If Pos1 > 0 Then
 								Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
-								CurType = Left(CurType, Pos1 - 1)
+								Pos2 = InStr(CurType, "*")  'David Change. Like Wstring * 200
+								If Pos2 > 1 Then Pos1 = Pos2
+								If Pos1 > 1 Then CurType = Left(CurType, Pos1 - 1)
 							End If
 						Else
 							Split GetChangedCommas(b2), ",", res1()
@@ -3406,7 +3408,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							Pos1 = InStr(LCase(res1(n)), " as ")
 							If Pos1 > 0 Then
-								CurType = Trim(Mid(res1(n), Pos1 + 4))
+								Pos2 = InStr(CurType, "*") 'David Change. Like Wstring * 200
+								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
@@ -3786,11 +3789,15 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Pos1 > 0 Then res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							Pos1 = InStr(LCase(res1(n)), " as ")
 							If Pos1 > 0 Then
-								CurType = Trim(Mid(res1(n), Pos1 + 4))
+								Pos2 = InStr(CurType, "*") 'David Change ,  a As WString *2
+								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
 								res1(n) = Trim(Mid(res1(n), 6))
+							Else
+								Pos1 = InStrRev(res1(n), " ") 'David Change,  a As WString*2
+								res1(n) = Trim(Mid(res1(n), Pos1 + 1))
 							End If
 							Pos1 = InStr(res1(n), "(")
 							If Pos1 > 0 Then

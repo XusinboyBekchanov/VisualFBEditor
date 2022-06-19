@@ -952,8 +952,9 @@ End Function
 
 Sub TabWindow.FillProperties(ByRef ClassName As WString)
 	If ClassName = "" Then Exit Sub
-	If pComps->Contains(ClassName) Then
-		tbi = pComps->Object(pComps->IndexOf(ClassName))
+	Dim As Integer i, iIndex
+	If pComps->Contains(ClassName, , , , iIndex) Then
+		If iIndex > -1 Then tbi = pComps->Object(iIndex) Else tbi = 0
 		If tbi Then
 			i = 0
 			Do While i <= tbi->Elements.Count - 1
@@ -981,8 +982,8 @@ Function GetPropertyType(ClassName As String, PropertyName As String) As TypeEle
 	Dim te As TypeElement Ptr
 	Dim TypeN As String = WithoutPointers(ClassName)
 	If InStr(TypeN, ".") AndAlso TypeN <> "My.Sys.Object" Then TypeN = Mid(TypeN, InStrRev(TypeN, ".") + 1)
-	If pComps->Contains(TypeN) Then
-		tbi = pComps->Object(pComps->IndexOf(TypeN))
+	If pComps->Contains(TypeN, , , , iIndex) Then
+		If iIndex > -1 Then tbi = pComps->Object(iIndex) Else tbi = 0
 		If tbi Then
 			Pos2 = InStr(PropertyName, ".")
 			If Pos2 > 0 Then
@@ -1008,8 +1009,8 @@ Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
 	Dim tbi As TypeElement Ptr
 	Dim TypeN As String = WithoutPointers(TypeName)
 	If InStr(TypeN, ".") AndAlso TypeN <> "My.Sys.Object" Then TypeN = Mid(TypeN, InStrRev(TypeN, ".") + 1)
-	If pComps->Contains(TypeN) Then
-		tbi = pComps->Object(pComps->IndexOf(TypeN))
+	If pComps->Contains(TypeN, , , , iIndex) Then
+		If iIndex > -1 Then tbi = pComps->Object(iIndex) Else tbi = 0
 		If tbi Then
 			If tbi->TypeName = BaseName Then
 				Return True
@@ -1031,6 +1032,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 	If Cpnt = 0 Then Return *FLine
 	te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 	If te = 0 Then Return *FLine
+	Dim As Integer iIndex = -1
 	With *te
 		Select Case te->ElementType
 		Case "Event"
@@ -1051,8 +1053,8 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 				Case "control ptr", "control": WLet(FLine, QWString(Des->ReadPropertyFunc(pTemp, "Name")))
 				Case "integer": iTemp = QInteger(pTemp)
 					WLet(FLine, WStr(iTemp))
-					If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
-						tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
+					If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName, , , , iIndex)) Then
+						If iIndex > -1 Then tbi = pGlobalEnums->Object(iIndex) Else tbi = 0
 						If tbi Then
 							Dim As TypeElement Ptr te1
 							For i As Integer = 0 To tbi->Elements.Count - 1
@@ -1070,9 +1072,9 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 				Case Else:
 					If CInt(IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(Des->ToStringFunc <> 0) Then
 						WLet(FLine, Des->ToStringFunc(pTemp))
-					ElseIf pGlobalEnums->Contains(.TypeName) Then
+					ElseIf pGlobalEnums->Contains(.TypeName, , , , iIndex) Then
 						iTemp = QInteger(pTemp)
-						tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(.TypeName))
+						If iIndex > -1 Then tbi = pGlobalEnums->Object(iIndex) Else tbi = 0
 						If tbi Then
 							Dim As TypeElement Ptr te1
 							For i As Integer = 0 To tbi->Elements.Count - 1
@@ -1111,9 +1113,10 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 	WLet(FLine, "")
 	If Cpnt = 0 Then Return *FLine
 	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return *FLine
+	Dim As Integer Pos1, iIndex = -1
 	Pos1 = InStr(PropertyName, ".")
 	pTemp = Des->ReadPropertyFunc(Cpnt, PropertyName)
-	te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 	If te = 0 Then Return *FLine
 	With *te
 		If pTemp <> 0 Then
@@ -1135,8 +1138,8 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 			Case "icon", "bitmaptype", "cursor", "graphictype": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
 			Case "integer": iTemp = QInteger(pTemp)
 				WLet(FLine, WStr(iTemp))
-				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
-					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
+				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName, , , , iIndex)) Then
+					If iIndex > -1 Then tbi = pGlobalEnums->Object(iIndex) Else tbi = 0
 					If tbi Then
 						Dim As TypeElement Ptr te1
 						For i As Integer = 0 To tbi->Elements.Count - 1
@@ -1152,8 +1155,8 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 			Case "double": iTemp = QDouble(pTemp): WLet(FLine, WStr(iTemp))
 			Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
 			Case Else
-				If pGlobalEnums->Contains(.TypeName) Then
-					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName))
+				If pGlobalEnums->Contains(.TypeName, , , , iIndex) Then
+					If iIndex > -1 Then tbi = pGlobalEnums->Object(iIndex) Else tbi = 0
 					iTemp = QInteger(pTemp)
 					If tbi Then
 						Dim As TypeElement Ptr te1
@@ -1166,9 +1169,10 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 				ElseIf CInt(IsBase(.TypeName, "Component")) Then
 					Dim As String pTempName = WGet(Des->ReadPropertyFunc(pTemp, "Name"))
 					If pTempName <> "" Then
-						If cboClass.Items.Contains(pTempName) OrElse PropertyName = "ParentMenu" Then
+						iIndex = cboClass.Items.IndexOf(pTempName)
+						If iIndex <> -1 OrElse PropertyName = "ParentMenu" Then
 							WLet(FLine, "@" & pTempName)
-							If cboClass.Items.IndexOf(pTempName) = 1 Then
+							If iIndex = 1 Then
 								WLet(FLine, "@This")
 							End If
 						End If
@@ -1200,10 +1204,9 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 	If Cpnt = 0 Then Return False
 	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return False
 	Dim Result As Boolean
-	Pos1 = InStr(PropertyName, ".")
-	te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	Dim As Integer iIndex = -1,  Pos1 = InStr(PropertyName, ".")
+	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 	If te <> 0 Then
-		'?"VFE1:" & Value
 		WLet(FLine3, Value)
 		#ifndef __USE_GTK__
 			Dim hwnd1 As HWND
@@ -1213,9 +1216,9 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 		#endif
 		Select Case te->ElementType
 		Case "Event"
-			Var Idx = Events.IndexOfKey(PropertyName, Cpnt)
-			If Idx <> -1 Then
-				Events.Item(Idx)->Text = Mid(Value, 2)
+			iIndex = Events.IndexOfKey(PropertyName, Cpnt)
+			If iIndex <> -1 Then
+				Events.Item(iIndex)->Text = Mid(Value, 2)
 			Else
 				Events.Add PropertyName, Mid(Value, 2), Cpnt
 			End If
@@ -1267,13 +1270,13 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				WDeallocate FLine5
 			Case "integer", "long", "ulong", "single", "double"
 				iTemp = Val(*FLine3)
-				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName)) Then
-					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->EnumTypeName))
+				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName, , , , iIndex)) Then
+					If iIndex > -1 Then tbi = pGlobalEnums->Object(iIndex) else tbi = 0
 					If tbi Then
-						If tbi->Elements.Contains(*FLine3) Then
-							iTemp = tbi->Elements.IndexOf(*FLine3)
-						ElseIf StartsWith(*FLine3, te->EnumTypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine3, Len(Trim(te->EnumTypeName)) + 2)) Then
-							iTemp = tbi->Elements.IndexOf(Mid(*FLine3, Len(Trim(te->EnumTypeName)) + 2))
+						If tbi->Elements.Contains(*FLine3, , , , iIndex) Then
+							If iIndex > -1 Then iTemp = iIndex
+						ElseIf StartsWith(*FLine3, te->EnumTypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine3, Len(Trim(te->EnumTypeName)) + 2), , , , iIndex) Then
+							If iIndex > -1 Then iTemp = iIndex
 						End If
 						If iTemp > -1 Then
 							Dim As TypeElement Ptr te1 = tbi->Elements.Object(iTemp)
@@ -1308,15 +1311,15 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @bTemp))
 				End If
 			Case Else:
-				If pGlobalEnums->Contains(te->TypeName) Then
-					tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName))
+				If pGlobalEnums->Contains(te->TypeName, , , , iIndex) Then
+					If iIndex > -1 Then tbi = pGlobalEnums->Object(pGlobalEnums->IndexOf(te->TypeName)) Else iIndex = 0
 					If tbi Then
 						Dim iTemp As Integer
 						iTemp = Val(*FLine3)
-						If tbi->Elements.Contains(*FLine3) Then
-							iTemp = tbi->Elements.IndexOf(*FLine3)
-						ElseIf StartsWith(*FLine3, te->TypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine3, Len(Trim(te->TypeName)) + 2)) Then
-							iTemp = tbi->Elements.IndexOf(Mid(*FLine3, Len(Trim(te->TypeName)) + 2))
+						If tbi->Elements.Contains(*FLine3, , , , iIndex) Then
+							If iIndex > -1 Then iTemp = iIndex
+						ElseIf StartsWith(*FLine3, te->TypeName & ".") AndAlso tbi->Elements.Contains(Mid(*FLine3, Len(Trim(te->TypeName)) + 2), , , , iIndex) Then
+							If iIndex > -1 Then iTemp = iIndex
 						End If
 						If iTemp > -1 Then
 							Dim As TypeElement Ptr te1 = tbi->Elements.Object(iTemp)
@@ -1336,8 +1339,9 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 						If hTemp <> 0 Then WLet(FLine3, QWString(hTemp))
 					End If
 					If *FLine3 <> "" Then
-						If CInt(cboClass.Items.Contains(Trim(*FLine3))) Then
-							PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(*FLine3)))->Object)
+						iIndex = cboClass.Items.IndexOf(Trim(*FLine3))
+						If iIndex <> -1 Then
+							PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
 							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
 								Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
 							End If
@@ -1345,11 +1349,14 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then Result = Des->WritePropertyFunc(Cpnt, PropertyName, 0)
 						Else
 							Dim Pos1 As Integer = InStr(*FLine3, ".")
-							If Pos1 > 0 AndAlso cboClass.Items.Contains(Trim(..Left(*FLine3, Pos1 - 1))) Then
-								PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(cboClass.Items.IndexOf(Trim(..Left(*FLine3, Pos1 - 1))))->Object)
-								Dim As Any Ptr Ctrl2 = Des->ReadPropertyFunc(PropertyCtrl, Trim(Mid(*FLine3, Pos1 + 1)))
-								If Ctrl2 <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-									Result = Des->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
+							If Pos1 > 0 Then
+								iIndex = cboClass.Items.IndexOf(Trim(..Left(*FLine3, Pos1 - 1)))
+								If iIndex > -1 Then
+									PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
+									Dim As Any Ptr Ctrl2 = Des->ReadPropertyFunc(PropertyCtrl, Trim(Mid(*FLine3, Pos1 + 1)))
+									If Ctrl2 <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
+										Result = Des->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
+									End If
 								End If
 							End If
 						End If
@@ -1424,8 +1431,9 @@ Sub TabWindow.FillAllProperties()
 		With *te
 			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = "Property") OrElse CInt(.ElementType = "Field")) Then
 				If plvProperties->Nodes.Count <= lvPropertyCount Then
-					lvItem = plvProperties->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(.TypeIsPointer = False AndAlso pComps->Contains(.TypeName), 1, 0))
-					If .TypeIsPointer = False AndAlso pComps->Contains(.TypeName) Then lvItem->Nodes.Add
+					Dim As Boolean iBool = pComps->Contains(.TypeName)
+					lvItem = plvProperties->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(.TypeIsPointer = False AndAlso iBool, 1, 0))
+					If .TypeIsPointer = False AndAlso iBool Then lvItem->Nodes.Add
 				Else
 					lvItem = plvProperties->Nodes.Item(lvPropertyCount)
 					lvItem->Text(0) = FPropertyItems.Item(lvPropertyCount)
@@ -3682,6 +3690,7 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 End Sub
 
 Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer) As String
+	If tb = 0 Then Return ""
 	Dim As String sTemp
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 	Dim j As Integer
@@ -3735,6 +3744,7 @@ Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As Str
 End Function
 
 Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
+	If tb = 0 OrElse Value= "" Then Return ""
 	Dim As String sTemp
 	If StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(") Then
 		Var Pos1 = InStr(Value, "(")
@@ -3838,9 +3848,10 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 End Function
 
 Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
+	If tb = 0 Then Return ""
 	Dim As String sTemp, sTemp2, TypeName, BaseTypeName
 	Dim sLine As WString Ptr
-	Dim As Integer j, iCount, Pos1
+	Dim As Integer j, iCount, Pos1, iIndex
 	Dim As String ch
 	Dim As Boolean b
 	For j = iSelEndLine To 0 Step -1
@@ -3914,23 +3925,23 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 	Dim As TypeElement Ptr te, te1, te2
 	If TypeName <> "" Then
 		If LCase(sTemp) = "base" Then
-			If tb->Types.Contains(TypeName) Then
-				te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
+			If tb->Types.Contains(TypeName, , , , iIndex) Then
+				If  iIndex > -1 Then te2 = tb->Types.Object(iIndex) Else te2 = 0
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			ElseIf pComps->Contains(TypeName) Then
-				te2 = pComps->Object(pComps->IndexOf(TypeName))
+			ElseIf pComps->Contains(TypeName, , , , iIndex) Then
+				If  iIndex > -1 Then te2 = pComps->Object(iIndex) Else te2 = 0
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			ElseIf pGlobalTypes->Contains(TypeName) Then
-				te2 = pGlobalTypes->Object(pGlobalTypes->IndexOf(TypeName))
+			ElseIf pGlobalTypes->Contains(TypeName, , , , iIndex) Then
+				If  iIndex > -1 Then te2 = pGlobalTypes->Object(iIndex) Else te2 = 0
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			End If
 			If BaseTypeName <> "" Then
-				If tb->Types.Contains(BaseTypeName) Then
-					teEnum = tb->Types.Object(tb->Types.IndexOf(BaseTypeName))
-				ElseIf pComps->Contains(BaseTypeName) Then
-					teEnum = pComps->Object(pComps->IndexOf(BaseTypeName))
-				ElseIf pGlobalTypes->Contains(BaseTypeName) Then
-					teEnum = pGlobalTypes->Object(pGlobalTypes->IndexOf(BaseTypeName))
+				If tb->Types.Contains(BaseTypeName, , , , iIndex) Then
+					If  iIndex > -1 Then teEnum = tb->Types.Object(iIndex) Else teEnum = 0
+				ElseIf pComps->Contains(BaseTypeName, , , , iIndex) Then
+					If  iIndex > -1 Then teEnum = pComps->Object(iIndex) Else teEnum = 0
+				ElseIf pGlobalTypes->Contains(BaseTypeName, , , , iIndex) Then
+					If  iIndex > -1 Then teEnum = pGlobalTypes->Object(iIndex) Else teEnum = 0
 				End If
 				teEnumOld = 0
 				OldTypeName = ""
@@ -3950,8 +3961,8 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		ElseIf pGlobalNamespaces->Contains(TypeName) Then
 			tb->FillIntellisense TypeName, pGlobalNamespaces, True
 		End If
-		If FListItems.Contains(sTemp) Then
-			te = FListItems.Object(FListItems.IndexOf(sTemp))
+		If FListItems.Contains(sTemp, , , , iIndex) Then
+			If iIndex > 0 Then te = FListItems.Object(iIndex) Else te = 0
 			OldTypeName = TypeName
 		End If
 		FListItems.Clear
@@ -3963,43 +3974,43 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		If LCase(sTemp) = "this" Then
 			Return TypeName
 		ElseIf LCase(sTemp) = "base" Then
-			If tb->Types.Contains(TypeName) Then
-				te2 = tb->Types.Object(tb->Types.IndexOf(TypeName))
+			If tb->Types.Contains(TypeName, , , , iIndex) Then
+				If iIndex > 0 Then te2 = tb->Types.Object(iIndex) Else te2 = 0
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			ElseIf pComps->Contains(TypeName) Then
-				te2 = pComps->Object(pComps->IndexOf(TypeName))
+			ElseIf pComps->Contains(TypeName, , , , iIndex) Then
+				If iIndex > 0 Then te2 = pComps->Object(iIndex) Else te2 = 0
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			ElseIf pGlobalTypes->Contains(TypeName) Then
-				te2 = pGlobalTypes->Object(pGlobalTypes->IndexOf(TypeName))
+			ElseIf pGlobalTypes->Contains(TypeName, , , , iIndex) Then
+				If iIndex > 0 Then te2 = pGlobalTypes->Object(iIndex) Else te2 = 0
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			End If
 			If BaseTypeName <> "" Then
-				If tb->Types.Contains(BaseTypeName) Then
-					teEnum = tb->Types.Object(tb->Types.IndexOf(BaseTypeName))
-				ElseIf pComps->Contains(BaseTypeName) Then
-					teEnum = pComps->Object(pComps->IndexOf(BaseTypeName))
-				ElseIf pGlobalTypes->Contains(BaseTypeName) Then
-					teEnum = pGlobalTypes->Object(pGlobalTypes->IndexOf(BaseTypeName))
+				If tb->Types.Contains(BaseTypeName, , , , iIndex) Then
+					If iIndex > 0 Then teEnum = tb->Types.Object(iIndex) Else teEnum = 0
+				ElseIf pComps->Contains(BaseTypeName, , , , iIndex) Then
+					If iIndex > 0 Then teEnum = pComps->Object(iIndex) Else teEnum = 0
+				ElseIf pGlobalTypes->Contains(BaseTypeName, , , , iIndex) Then
+					If iIndex > 0 Then teEnum = pGlobalTypes->Object(iIndex) Else teEnum = 0
 				End If
 				teEnumOld = 0
 				OldTypeName = ""
 				Return BaseTypeName
 			End If
 		End If
-		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
-			te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
-		ElseIf tb->Procedures.Contains(sTemp) Then
-			te = tb->Procedures.Object(tb->Procedures.IndexOf(sTemp))
-		ElseIf tb->Args.Contains(sTemp) Then
-			te = tb->Args.Object(tb->Args.IndexOf(sTemp))
-		ElseIf pGlobalFunctions->Contains(sTemp) Then
-			te = pGlobalFunctions->Object(pGlobalFunctions->IndexOf(sTemp))
-		ElseIf pGlobalArgs->Contains(sTemp) Then
-			te = pGlobalArgs->Object(pGlobalArgs->IndexOf(sTemp))
-		ElseIf pGlobalTypes->Contains(sTemp) Then
-			te = pGlobalTypes->Object(pGlobalTypes->IndexOf(sTemp))
-		ElseIf pGlobalNamespaces->Contains(sTemp) Then
-			te = pGlobalNamespaces->Object(pGlobalNamespaces->IndexOf(sTemp))
+		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , iIndex) Then
+			If iIndex > 0 Then te = te1->Elements.Object(iIndex) Else te = 0
+		ElseIf tb->Procedures.Contains(sTemp, , , , iIndex) Then
+			If iIndex > 0 Then te = tb->Procedures.Object(iIndex) Else te = 0
+		ElseIf tb->Args.Contains(sTemp, , , , iIndex) Then
+			If iIndex > 0 Then te = tb->Args.Object(iIndex) Else te = 0
+		ElseIf pGlobalFunctions->Contains(sTemp, , , , iIndex) Then
+			If iIndex > 0 Then te = pGlobalFunctions->Object(iIndex) Else te = 0
+		ElseIf pGlobalArgs->Contains(sTemp, , , , iIndex) Then
+			If iIndex > 0 Then te = pGlobalArgs->Object(iIndex) Else te = 0
+		ElseIf pGlobalTypes->Contains(sTemp, , , , iIndex) Then
+			If iIndex > 0 Then te = pGlobalTypes->Object(iIndex) Else te = 0
+		ElseIf pGlobalNamespaces->Contains(sTemp, , , , iIndex) Then
+			If iIndex > 0 Then te = pGlobalNamespaces->Object(iIndex) Else te = 0
 		ElseIf TypeName <> "" Then
 			If tb->Types.Contains(TypeName) Then
 				'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
@@ -4015,8 +4026,8 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 			ElseIf pGlobalNamespaces->Contains(TypeName) Then
 				tb->FillIntellisense TypeName, pGlobalNamespaces, True
 			End If
-			If FListItems.Contains(sTemp) Then
-				te = FListItems.Object(FListItems.IndexOf(sTemp))
+			If FListItems.Contains(sTemp, , , , iIndex) Then
+				If iIndex > 0 Then te = FListItems.Object(iIndex) Else te = 0
 				OldTypeName = TypeName
 			End If
 			FListItems.Clear
@@ -4065,7 +4076,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		FindComboIndex tb, *sLine, iSelEndChar
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	ElseIf CInt(Key = Asc("=")) Then
-		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iIndex
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		If iSelEndLine <= 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
@@ -4082,22 +4093,22 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		ElseIf TypeName = "Boolean" Then
 			AddSorted tb, GetKeyWordCase("False")
 			AddSorted tb, GetKeyWordCase("True")
-		ElseIf tb->Enums.Contains(TypeName) Then
-			te = tb->Enums.Object(tb->Enums.IndexOf(TypeName))
+		ElseIf tb->Enums.Contains(TypeName, , , , iIndex) Then
+			If iIndex > -1 Then te = tb->Enums.Object(iIndex) Else te = 0
 			If te <> 0 Then
 				For i As Integer = 0 To te->Elements.Count - 1
 					AddSorted tb, IIf(te->Name = "", "", te->Name & ".") & te->Elements.Item(i), te->Elements.Object(i)
 				Next
 			End If
-		ElseIf pGlobalEnums->Contains(TypeName) Then
-			te = pGlobalEnums->Object(pGlobalEnums->IndexOf(TypeName))
+		ElseIf pGlobalEnums->Contains(TypeName, , , , iIndex) Then
+			If iIndex > -1 Then te = pGlobalEnums->Object(iIndex) Else te = 0
 			If te <> 0 Then
 				For i As Integer = 0 To te->Elements.Count - 1
 					AddSorted tb, IIf(te->Name = "", "", te->Name & ".") & te->Elements.Item(i), te->Elements.Object(i)
 				Next
 			End If
-		ElseIf CInt(teEnum <> 0) AndAlso CInt(teEnum->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(teEnum->EnumTypeName)) Then
-			te = pGlobalEnums->Object(pGlobalEnums->IndexOf(teEnum->EnumTypeName))
+		ElseIf CInt(teEnum <> 0) AndAlso CInt(teEnum->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(teEnum->EnumTypeName, , , , iIndex)) Then
+			If iIndex > -1 Then te = pGlobalEnums->Object(iIndex) Else te = 0
 			If te <> 0 Then
 				For i As Integer = 0 To te->Elements.Count - 1
 					AddSorted tb, IIf(te->Name = "", "", te->Name & ".") & te->Elements.Item(i), te->Elements.Object(i)
@@ -4550,7 +4561,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Pos1 = InStr(LCase(res1(n)), " as ")
 								If Pos1 > 0 Then
 									CurType = Trim(Mid(res1(n), Pos1 + 4))
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
+									If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
+									If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								Var te = New_( TypeElement)
 								If res1(n).ToLower.StartsWith("byref") Then
@@ -4769,7 +4782,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						If Pos1 > 0 Then
 							Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
-							CurType = ..Left(CurType, Pos1 - 1)
+							Pos2 = InStr(CurType, "*")   'David Change,  As WString *2 a,b,c,
+							If Pos2 > 1 Then Pos1 = Pos2
+							If Pos1 > 1 Then CurType = Trim(..Left(CurType, Pos1 - 1))
 						End If
 					Else
 						Split GetChangedCommas(b2), ",", res1()
@@ -4786,6 +4801,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos1 = InStr(LCase(res1(n)), " as ")
 						If Pos1 > 0 Then
 							CurType = Trim(Mid(res1(n), Pos1 + 4))
+							Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
+							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
@@ -5303,9 +5320,9 @@ Sub TabWindow_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As 
 End Sub
 
 'mnuCode.ImagesList = pimgList '<m>
-mnuCode.Add(ML("Cut"), "Cut", "Cut", @mclick)
-mnuCode.Add(ML("Copy"), "Copy", "Copy", @mclick)
-mnuCode.Add(ML("Paste"), "Paste", "Paste", @mclick)
+mnuCode.Add(ML("Cu&t") & !"\tCtrl+X", "Cut", "Cut", @mClick)
+mnuCode.Add(ML("&Copy") & !"\tCtrl+C", "Copy", "Copy", @mClick)
+mnuCode.Add(ML("&Paste") & !"\tCtrl+P", "Paste", "Paste", @mClick)
 mnuCode.Add("-")
 Var miToogle = mnuCode.Add(ML("Toggle"), "", "Toggle")
 miToogle->Add(ML("Breakpoint"), "Breakpoint", "Breakpoint", @mclick)
@@ -5637,7 +5654,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlTopCombo.Add @cboFunction
 	If CInt(wFileName <> "") And CInt(bNew = False OrElse TreeN <> 0) Then
 		If bNew Then
-			FileName = TreeN->Text
+			If TreeN > 0 Then FileName = TreeN->Text
 			If EndsWith(FileName, "*") Then FileName = ..Left(FileName, Len(FileName) - 1)
 		Else
 			FileName = wFileName
