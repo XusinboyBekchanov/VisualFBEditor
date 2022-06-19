@@ -27,6 +27,49 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         // Example of a call to a native method
         //Button btn = findViewById(R.id.button7);
         //btn.setText(stringFromJNI());
+        Log.println(0, "log_tag", "onCreate()");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Log.println(0, "log_tag", "onStart()");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.println(0, "log_tag", "onResume()");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Log.println(0, "log_tag", "onPause()");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        Log.println(0, "log_tag", "onStop()");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        Log.println(0, "log_tag", "onRestart()");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        Log.println(0, "log_tag", "onDestroy()");
     }
 
     /**
