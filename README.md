@@ -1,4 +1,5 @@
-﻿# Visual FB Editor | <a href="README_CN.md">中文介绍</a>
+Language: <b>English</b> | <a href="README_CN.md">中文介绍</a>
+# Visual FB Editor
 ## IDE for FreeBasic
 
 #### Introduction
