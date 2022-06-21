@@ -243,7 +243,7 @@ Function MP(ByRef V As WString) ByRef As WString
 		Dim As UString LineParts(Any)
 		Split(V, ".", LineParts())
 		For k As Integer = 0 To UBound(LineParts)
-			tIndex = mpKeys.IndexOfkey(LineParts(k))
+			tIndex = mpKeys.IndexOfKey(LineParts(k))
 			If tIndex >=0 Then
 				If k=0 Then
 					TempWstr = mpKeys.Item(tIndex)->Text
@@ -373,7 +373,7 @@ Function GetFullPathInSystem(ByRef Path As WString) As UString
 		Dim As WString * MAX_PATH fullPath
 		#ifndef __USE_GTK__
 			Dim As WString Ptr lpFilePart
-			If SearchPath(null, Path, ".exe", MAX_PATH, @fullPath, @lpFilePart) = 0 Then
+			If SearchPath(NULL, Path, ".exe", MAX_PATH, @fullPath, @lpFilePart) = 0 Then
 				Print GetErrorString(GetLastError)
 			End If
 		#endif
@@ -497,7 +497,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim FileOut As Integer
 		ThreadsEnter()
 		ThreadsLeave()
-		WLet(exename, GetExeFileName(*MainFile, *FirstLine))
+		WLet(ExeName, GetExeFileName(*MainFile, *FirstLine))
 		If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
 			WLet FbcExe, GetFullPath(*Project->CompilerPath)
 		Else
@@ -535,12 +535,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim As Boolean Band, Yaratilmadi
 		ChDir(GetFolderName(*MainFile))
 		If Parameter = "Check" Then
-			WLet(exename, "chk.dll")
+			WLet(ExeName, "chk.dll")
 		End If
-		If Dir(*exename) <> "" Then 'delete exe if exist
-			If *exename = ExePath OrElse Kill(*exename) <> 0 Then
+		If Dir(*ExeName) <> "" Then 'delete exe if exist
+			If *ExeName = ExePath OrElse Kill(*ExeName) <> 0 Then
 				ThreadsEnter()
-				ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *exename) '
+				ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *ExeName) '
 				ThreadsLeave()
 				Band = True
 				CompileResult = 0
@@ -4308,6 +4308,7 @@ Sub LoadSettings
 	HistoryCodeDays = iniSettings.ReadInteger("Options", "HistoryCodeDays", 100)
 	HistoryCodeCleanDay = iniSettings.ReadInteger("Options", "HistoryCodeCleanDay", DateValue(Format(Now, "yyyy/mm/dd")))
 	If HistoryCodeCleanDay <> DateValue(Format(Now, "yyyy/mm/dd")) Then HistoryCodeClean(ExePath & "/Temp")
+	SyntaxHighlightingIdentifiers = iniSettings.ReadBool("Options", "SyntaxHighlightingIdentifiers", True)
 	ChangeIdentifiersCase = iniSettings.ReadBool("Options", "ChangeIdentifiersCase", True)
 	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
 	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
@@ -4323,7 +4324,7 @@ Sub LoadSettings
 		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 8)
 	#endif
 	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
-	ShowMainToolbar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
+	ShowMainToolBar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
 	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
 	#ifdef __USE_WINAPI__
 		If DarkMode Then

@@ -591,6 +591,17 @@ pfOptions = @fOptions
 			'.Caption = ML("Add Spaces To Operators")
 			.Parent = @pnlCodeEditor
 		End With
+		' chkSyntaxHighlightingIdentifiers
+		With chkSyntaxHighlightingIdentifiers
+			.Name = "chkSyntaxHighlightingIdentifiers"
+			.Text = ML("Syntax Highlighting Identifiers")
+			.TabIndex = 201
+			.Align = DockStyle.alTop
+			.Caption = ML("Syntax Highlighting Identifiers")
+			.SetBounds 10, 344, 416, 21
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
 		' chkChangeIdentifiersCase
 		With chkChangeIdentifiersCase
 			.Name = "chkChangeIdentifiersCase"
@@ -1970,6 +1981,7 @@ Sub frmOptions.LoadSettings()
 		.chkTabAsSpaces.Checked = TabAsSpaces
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
+		.chkSyntaxHighlightingIdentifiers.Checked = SyntaxHighlightingIdentifiers 
 		.chkChangeIdentifiersCase.Checked = ChangeIdentifiersCase
 		.chkChangeKeywordsCase.Checked = ChangeKeyWordsCase
 		.chkAddSpacesToOperators.Checked = AddSpacesToOperators
@@ -1981,7 +1993,7 @@ Sub frmOptions.LoadSettings()
 		.txtHistoryLimit.Text = Str(HistoryLimit)
 		.txtIntellisenseLimit.Text = Str(IntellisenseLimit)
 		.txtHistoryCodeDays.Text = Str(HistoryCodeDays)
-		.txtMFFPath.Text = *MFFPath
+		.txtMFFpath.Text = *MFFPath
 		.chkIncludeMFFPath.Checked = IncludeMFFPath
 		.txtProjectsPath.Text = *ProjectsPath
 		.CheckBox1.Checked = AutoIncrement
@@ -2648,9 +2660,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		GridSize = Val(.txtGridSize.Text)
 		ShowAlignmentGrid = .chkShowAlignmentGrid.Checked
 		SnapToGridOption = .chkSnapToGrid.Checked
+		SyntaxHighlightingIdentifiers = .chkSyntaxHighlightingIdentifiers.Checked
 		ChangeIdentifiersCase = .chkChangeIdentifiersCase.Checked
-		ChangeKeywordsCase = .chkChangeKeywordsCase.Checked
-		ChoosedKeywordsCase = .cboCase.ItemIndex
+		ChangeKeyWordsCase = .chkChangeKeywordsCase.Checked
+		ChoosedKeyWordsCase = .cboCase.ItemIndex
 		AddSpacesToOperators = .chkAddSpacesToOperators.Checked
 		WLet(CurrentTheme, .cboTheme.Text)
 		WLet(EditorFontName, *.EditFontName)
@@ -2658,7 +2671,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WLet(InterfaceFontName, *.InterfFontName)
 		InterfaceFontSize = .InterfFontSize
 		DisplayMenuIcons = .chkDisplayIcons.Checked
-		ShowMainToolbar = .chkShowMainToolbar.Checked
+		ShowMainToolBar = .chkShowMainToolbar.Checked
 		DarkMode = .chkDarkMode.Checked
 		'gLocalToolBox = .chkShowToolBoxLocal.Checked
 		gLocalProperties = .chkShowPropLocal.Checked
@@ -2802,7 +2815,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "WhenVisualFBEditorStarts", WhenVisualFBEditorStarts
 		piniSettings->WriteInteger "Options", "AutoSaveBeforeCompiling", AutoSaveBeforeCompiling
 		piniSettings->WriteBool "Options", "ShowSpaces", ShowSpaces
-		piniSettings->WriteBool "Options", "ShowKeywordsTooltip", ShowKeywordsTooltip
+		piniSettings->WriteBool "Options", "ShowKeywordsTooltip", ShowKeywordsToolTip
 		piniSettings->WriteBool "Options", "ShowTooltipsAtTheTop", ShowTooltipsAtTheTop
 		piniSettings->WriteBool "Options", "HighlightBrackets", HighlightBrackets
 		piniSettings->WriteBool "Options", "HighlightCurrentLine", HighlightCurrentLine
@@ -2817,9 +2830,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "CreateFormTypesWithoutTypeWord", CreateFormTypesWithoutTypeWord
 		piniSettings->WriteBool "Options", "OpenCommandPromptInMainFileFolder", OpenCommandPromptInMainFileFolder
 		piniSettings->WriteString "Options", "CommandPromptFolder", *CommandPromptFolder
+		piniSettings->WriteBool "Options", "SyntaxHighlightingIdentifiers", SyntaxHighlightingIdentifiers
 		piniSettings->WriteBool "Options", "ChangeIdentifiersCase", ChangeIdentifiersCase
-		piniSettings->WriteBool "Options", "ChangeKeywordsCase", ChangeKeywordsCase
-		piniSettings->WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeywordsCase
+		piniSettings->WriteBool "Options", "ChangeKeywordsCase", ChangeKeyWordsCase
+		piniSettings->WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeyWordsCase
 		piniSettings->WriteBool "Options", "AddSpacesToOperators", AddSpacesToOperators
 		
 		piniSettings->WriteString "Options", "CurrentTheme", *CurrentTheme
@@ -2829,12 +2843,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteString "Options", "InterfaceFontName", *InterfaceFontName
 		piniSettings->WriteInteger "Options", "InterfaceFontSize", InterfaceFontSize
 		piniSettings->WriteBool "Options", "DisplayMenuIcons", DisplayMenuIcons
-		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolbar
+		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolBar
 		piniSettings->WriteBool "Options", "DarkMode", DarkMode
 		'piniSettings->WriteBool "Options", "ShowToolBoxLocal",gLocalToolBox
 		piniSettings->WriteBool("Options", "PropertiesLocal", gLocalProperties) 'David Change
 		pfrmMain->Menu->ImagesList = IIf(DisplayMenuIcons, pimgList, 0)
-		ReBar1.Visible = ShowMainToolbar
+		ReBar1.Visible = ShowMainToolBar
 		pfrmMain->RequestAlign
 		SetDarkMode DarkMode, False
 		#ifdef __USE_WINAPI__

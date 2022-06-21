@@ -29,6 +29,7 @@ Common Shared As Integer IntellisenseLimit
 Common Shared As Integer TabAsSpaces
 Common Shared As KeyWordsCase ChoosedKeyWordsCase
 Common Shared As Integer ChoosedTabStyle
+Common Shared As Boolean SyntaxHighlightingIdentifiers
 Common Shared As Boolean ChangeIdentifiersCase
 Common Shared As Boolean ChangeKeyWordsCase
 Common Shared As Boolean AddSpacesToOperators
