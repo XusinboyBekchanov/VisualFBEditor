@@ -2103,17 +2103,17 @@ Namespace My.Sys.Forms
 		dwClientY = ClientHeight
 	End Sub
 	
-	Function EditControl.ContainsIn(ByRef ClassName As WString, ByRef ItemText As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
+	Function EditControl.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
 		If ClassName = "" OrElse pList = 0 Then Return False
 		Var Index = pList->IndexOf(ClassName)
 		If Index = -1 Then Return False
 		Dim tbi As TypeElement Ptr = pList->Object(Index)
 		te = 0
 		If tbi Then
-			Var Idx = -1
-			If tbi->Elements.Contains(ItemText, , , , Idx) Then
-				te = tbi->Elements.Object(Idx)
-			ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
+			Index = -1
+			If tbi->Elements.Contains(ItemText, , , , Index) Then
+				te = tbi->Elements.Object(Index)
+			'ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pLocalTypes, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pLocalEnums, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pComps, bLocal, bAll, TypesOnly, te) Then
@@ -2141,7 +2141,7 @@ Namespace My.Sys.Forms
 			Dim As String ch
 			Dim As Boolean b
 			For i As Integer = Len(Value) To 1 Step -1
-				ch = Mid(Value, i, 1)
+				ch = Chr(Value[i - 1]) 'Mid(Value, i, 1)
 				If ch = ")" Then
 					iCount += 1
 					b = True
@@ -2260,6 +2260,10 @@ Namespace My.Sys.Forms
 		If CInt(sTemp = "") AndAlso CInt(StartsWith(sTemp2, "(")) AndAlso CInt(EndsWith(sTemp2, ")")) Then
 			Return GetTypeFromValue(..Left(sTemp2, Len(sTemp2) - 1), iSelEndLine)
 		ElseIf sTemp = "" AndAlso sTemp2 = "" Then
+			If Cast(EditControlLine Ptr, FLines.Items[j])->InWithConstruction = WithOldI Then
+				teEnum = WithTeEnumOld
+				Return WithOldTypeName
+			End If
 			Var WithCount = 1
 			Dim As EditControlLine Ptr ECLine
 			For i As Integer = j - 1 To 0 Step -1
@@ -2275,6 +2279,9 @@ Namespace My.Sys.Forms
 							Return ""
 						ElseIf WithCount = 0 Then
 							TypeName = GetLeftArgTypeName("", i, Len(*ECLine->Text), teEnumOld, , , Types)
+							WithOldI = i
+							WithOldTypeName = TypeName
+							WithTeEnumOld = teEnumOld
 							teEnum = teEnumOld
 							Return TypeName
 						End If
@@ -2432,6 +2439,7 @@ End Function
 		BracketsStartLine = -1
 		BracketsEnd = -1
 		BracketsEndLine = -1
+		'WithOldI = -1
 		Dim As Integer PosiBD, tIndex, i, Pos1
 		Dim As Boolean bKeyWord, TwoDots
 		Dim As WString * 255 OriginalCaseWord, TypeName
@@ -2786,7 +2794,7 @@ End Function
 																				End Select
 																			End If
 																		Else
-																			TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+																			Dim As String TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
 																			Pos1 = InStr(TypeName, ".")
 																			If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
 																				If Pos1 > 0 Then 
@@ -3814,18 +3822,18 @@ End Function
 		Static bCtrl As Boolean
 		Static scrStyle As Integer, scrDirection As Integer
 		#ifdef __USE_GTK__
-			bShifted = msg.event->Key.state And GDK_Shift_MASK
-			bCtrl = msg.event->Key.state And GDK_Control_MASK
+			bShifted = msg.Event->key.state And GDK_SHIFT_MASK
+			bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
 		#else
 			bShifted = GetKeyState(VK_SHIFT) And 8000
 			bCtrl = GetKeyState(VK_CONTROL) And 8000
 		#endif
 		'Base.ProcessMessage(msg)
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = MSG.event
-			Select Case MSG.event->Type
+			Dim As GdkEvent Ptr e = msg.Event
+			Select Case msg.Event->type
 		#else
-			Select Case MSG.msg
+			Select Case msg.Msg
 			Case CM_CREATE
 				'FontSettings()
 				
@@ -3844,8 +3852,8 @@ End Function
 			Case WM_SIZE
 				Var dDividedX = iDividedX / dwClientX
 				Var dDividedY = iDividedY / dwClientY
-				dwClientX = UnScaleX(LoWord(MSG.lParam))
-				dwClientY = UnScaleY(HiWord(MSG.lParam))
+				dwClientX = UnScaleX(LoWord(msg.lParam))
+				dwClientY = UnScaleY(HiWord(msg.lParam))
 				If Not bDividedX Then
 					MoveWindow sbScrollBarhRight, ScaleX(7), ScaleY(dwClientY - 17), ScaleX(dwClientX - 17 - 7), ScaleY(17), False
 				Else

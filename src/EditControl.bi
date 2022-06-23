@@ -115,6 +115,7 @@ Namespace My.Sys.Forms
 		InConstruction As TypeElement Ptr
 		InConstructionIndex As Integer
 		InConstructionPart As Integer
+		InWithConstruction As Integer
 		Multiline As Boolean
 		Text As WString Ptr = 0
 		Visible As Boolean
@@ -152,6 +153,9 @@ Namespace My.Sys.Forms
 		Dim VScrollMaxBottom As Integer
 		Dim nCaretPosX As Integer = 0 ' горизонтальная координата каретки
 		Dim nCaretPosY As Integer = 0 ' вертикальная координата каретки
+		Dim WithOldI As Integer = -1
+		Dim WithOldTypeName As String
+		Dim WithTeEnumOld As TypeElement Ptr
 		Dim iPos As Integer
 		Dim iPP As Integer = 0
 		Dim jPos As Integer
@@ -168,7 +172,7 @@ Namespace My.Sys.Forms
 			Dim As ..Point poPoint
 		#endif
 		'Dim FListItems As WStringList
-		Declare Function ContainsIn(ByRef ClassName As WString, ByRef ItemText As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
+		Declare Function ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
 		Dim As Integer lParamLo, lParamHi
 		Dim FCurLine As Integer = 0
 		Dim FSelStartLine As Integer = 0

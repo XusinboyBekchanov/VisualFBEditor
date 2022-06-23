@@ -3089,9 +3089,9 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		tb->txtCode.cboIntellisense.Items.Clear
 	#endif
 	Dim c As Integer
-	If pKeywords1 <> 0 Then
-		For i As Integer = 0 To pKeywords1->Count - 1
-			AddSorted tb, GetKeyWordCase(pKeywords1->Item(i)), , Starts
+	If pkeywords1 <> 0 Then
+		For i As Integer = 0 To pkeywords1->Count - 1
+			AddSorted tb, GetKeyWordCase(pkeywords1->Item(i)), , Starts
 		Next
 	End If
 	AddSorted tb, GetKeyWordCase("Const"), , Starts
@@ -4380,6 +4380,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As UString Comments, b, b1, bTrim, bTrimLCase
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
 	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
+	Dim As Integer WithConstructionLine = -1, OldWithConstructionLine = -1
 	If IsBas Then
 		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
 		WLetEx FLine2, GetFileName(*FLine1), True
@@ -4468,6 +4469,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			'					End If
 			'				End If
 			'			End If
+			ECLine->InWithConstruction = WithConstructionLine
+			If ECLine->ConstructionIndex = 10 Then 
+				If ECLine->ConstructionPart = 0 Then
+					OldWithConstructionLine = WithConstructionLine
+					WithConstructionLine = i
+				Else
+					WithConstructionLine = OldWithConstructionLine
+				End If
+			End If
 			If StartsWith(bTrimLCase, "#include ") Then
 				#ifndef __USE_GTK__
 					Pos1 = InStr(b, """")
