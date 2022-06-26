@@ -2191,9 +2191,9 @@ Namespace My.Sys.Forms
 				If teC > 0 Then TypeName = TypeNameFromLine
 				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
 					te = te1->Elements.Object(Idx)
-				ElseIf pLocalProcedures->Contains(sTemp, , , , Idx) Then
+				ElseIf pLocalProcedures > 0 AndAlso pLocalProcedures->Contains(sTemp, , , , Idx) Then
 					te = pLocalProcedures->Object(Idx)
-				ElseIf pLocalArgs->Contains(sTemp, , , , Idx) Then
+				ElseIf pLocalArgs > 0 AndAlso pLocalArgs->Contains(sTemp, , , , Idx) Then
 					te = pLocalArgs->Object(Idx)
 				ElseIf pGlobalFunctions->Contains(sTemp, , , , Idx) Then
 					te = pGlobalFunctions->Object(Idx)
@@ -2306,7 +2306,7 @@ Namespace My.Sys.Forms
 		Dim As TypeElement Ptr te, te1, te2
 		If TypeName <> "" Then
 			If LCase(sTemp) = "base" Then
-				If pLocalTypes->Contains(TypeName, , , , Idx) Then
+				If pLocalTypes > 0 AndAlso pLocalTypes->Contains(TypeName, , , , Idx) Then
 					te2 = pLocalTypes->Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf pComps->Contains(TypeName, , , , Idx) Then
@@ -2317,7 +2317,7 @@ Namespace My.Sys.Forms
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				End If
 				If BaseTypeName <> "" Then
-					If pLocalTypes->Contains(BaseTypeName, , , , Idx) Then
+					If pLocalTypes > 0 AndAlso pLocalTypes->Contains(BaseTypeName, , , , Idx) Then
 						teEnum = pLocalTypes->Object(Idx)
 					ElseIf pComps->Contains(BaseTypeName, , , , Idx) Then
 						teEnum = pComps->Object(Idx)
@@ -2345,7 +2345,7 @@ Namespace My.Sys.Forms
 			If LCase(sTemp) = "this" Then
 				Return TypeName
 			ElseIf LCase(sTemp) = "base" Then
-				If pLocalTypes->Contains(TypeName, , , , Idx) Then
+				If pLocalTypes > 0 AndAlso pLocalTypes->Contains(TypeName, , , , Idx) Then
 					te2 = pLocalTypes->Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf pComps->Contains(TypeName, , , , Idx) Then
@@ -2356,7 +2356,7 @@ Namespace My.Sys.Forms
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				End If
 				If BaseTypeName <> "" Then
-					If pLocalTypes->Contains(BaseTypeName, , , , Idx) Then
+					If pLocalTypes > 0 AndAlso pLocalTypes->Contains(BaseTypeName, , , , Idx) Then
 						teEnum = pLocalTypes->Object(Idx)
 					ElseIf pComps->Contains(BaseTypeName, , , , Idx) Then
 						teEnum = pComps->Object(Idx)
@@ -2370,9 +2370,9 @@ Namespace My.Sys.Forms
 			End If
 			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
 				te = te1->Elements.Object(Idx)
-			ElseIf pLocalProcedures->Contains(sTemp, , , , Idx) Then
+			ElseIf pLocalProcedures > 0 AndAlso pLocalProcedures->Contains(sTemp, , , , Idx) Then
 				te = pLocalProcedures->Object(Idx)
-			ElseIf pLocalArgs->Contains(sTemp, , , , Idx) Then
+			ElseIf pLocalArgs > 0 AndAlso pLocalArgs->Contains(sTemp, , , , Idx) Then
 				te = pLocalArgs->Object(Idx)
 			ElseIf pGlobalFunctions->Contains(sTemp, , , , Idx) Then
 				te = pGlobalFunctions->Object(Idx)
