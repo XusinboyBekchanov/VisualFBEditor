@@ -2708,7 +2708,7 @@ End Function
 													If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
 													pkeywords = 0
 													If CStyle Then
-													If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" OrElse LCase(Matn) = "#macro" Then
+														If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" OrElse LCase(Matn) = "#macro" Then
 															If pkeywords0 <> 0 Then
 																sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
 															End If
@@ -2727,33 +2727,35 @@ End Function
 														Else
 															TwoDots = CBool(r = 46 AndAlso q = 46)
 															
-'Membership
+															'Membership
 														If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
-															GetLeftArgTypeName(Matn, z, j, te)
-															If te > 0 Then
-																tIndex = 0
-																OriginalCaseWord = te->Name
-																If SyntaxHighlightingIdentifiers Then
-																	Select Case LCase(te->ElementType)
-																	Case "enumitem"
-																		sc = @ColorEnumMembers
-																	Case "sub"
-																		sc = @ColorSubs
-																	Case "function"
-																		sc = @ColorGlobalFunctions
-																	Case "property"
-																		sc = @ColorProperties
-																	Case "field", "event"
-																		sc = @ColorFields
-																	Case "namespace"
-																		sc = @ColorGlobalNamespaces
-																	Case "type"
-																		sc = @ColorGlobalTypes
-																	Case "enum"
-																		sc = @ColorGlobalEnums
-																	Case Else
-																		sc = @ColorLocalVariables
-																	End Select
+															If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
+																GetLeftArgTypeName(Matn, z, j, te)
+																If te > 0 Then
+																	tIndex = 0
+																	OriginalCaseWord = te->Name
+																	If SyntaxHighlightingIdentifiers Then
+																		Select Case LCase(te->ElementType)
+																		Case "enumitem"
+																			sc = @ColorEnumMembers
+																		Case "sub"
+																			sc = @ColorSubs
+																		Case "function"
+																			sc = @ColorGlobalFunctions
+																		Case "property"
+																			sc = @ColorProperties
+																		Case "field", "event"
+																			sc = @ColorFields
+																		Case "namespace"
+																			sc = @ColorGlobalNamespaces
+																		Case "type"
+																			sc = @ColorGlobalTypes
+																		Case "enum"
+																			sc = @ColorGlobalEnums
+																		Case Else
+																			sc = @ColorLocalVariables
+																		End Select
+																	End If
 																End If
 															End If
 														Else
@@ -2773,213 +2775,215 @@ End Function
 																Next
 															End If
 															
-															'Procedure
-															If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-																	OriginalCaseWord = pkeywords->Item(tIndex)
-																	te = pkeywords->Object(tIndex)
-																	If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																		Select Case te->ElementType
-																		Case "ByRefParameter"
-																			sc = @ColorByRefParameters
-																		Case "ByValParameter"
-																			sc = @ColorByValParameters
-																		Case "Field"
-																			sc = @ColorFields
-																		Case Else
-																			sc = @ColorLocalVariables
-																		End Select
-																	End If
-																Else
-																	TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
-																	Pos1 = InStr(TypeName, ".")
-																	If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
-																		If Pos1 > 0 Then
-																			TypeName = ..Left(TypeName, Pos1 - 1)
-																		Else
-																			TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+															If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
+																'Procedure
+																If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
+																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+																		OriginalCaseWord = pkeywords->Item(tIndex)
+																		te = pkeywords->Object(tIndex)
+																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																			Select Case te->ElementType
+																			Case "ByRefParameter"
+																				sc = @ColorByRefParameters
+																			Case "ByValParameter"
+																				sc = @ColorByValParameters
+																			Case "Field"
+																				sc = @ColorFields
+																			Case Else
+																				sc = @ColorLocalVariables
+																			End Select
 																		End If
-																		If ContainsIn(TypeName, Matn, pLocalTypes, True, , , te) Then
-																		ElseIf ContainsIn(TypeName, Matn, pLocalEnums, True, , , te) Then
-																		ElseIf ContainsIn(TypeName, Matn, pComps, True, , , te) Then
-																		ElseIf ContainsIn(TypeName, Matn, pGlobalTypes, True, , , te) Then
-																		ElseIf ContainsIn(TypeName, Matn, pGlobalEnums, True, , , te) Then
-																		End If
-																		If te > 0 Then
-																			OriginalCaseWord = te->Name
-																			tIndex = 0
-																			If SyntaxHighlightingIdentifiers Then
-																				Select Case LCase(te->ElementType)
-																				Case "sub"
-																					sc = @ColorSubs
-																				Case "function"
-																					sc = @ColorGlobalFunctions
-																				Case "property"
-																					sc = @ColorProperties
-																				Case "field", "event"
-																					sc = @ColorFields
-																				Case Else
-																					sc = @ColorLocalVariables
-																				End Select
+																	Else
+																		TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+																		Pos1 = InStr(TypeName, ".")
+																		If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
+																			If Pos1 > 0 Then
+																				TypeName = ..Left(TypeName, Pos1 - 1)
+																			Else
+																				TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+																			End If
+																			If ContainsIn(TypeName, Matn, pLocalTypes, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, pLocalEnums, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, pComps, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, pGlobalTypes, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, pGlobalEnums, True, , , te) Then
+																			End If
+																			If te > 0 Then
+																				OriginalCaseWord = te->Name
+																				tIndex = 0
+																				If SyntaxHighlightingIdentifiers Then
+																					Select Case LCase(te->ElementType)
+																					Case "sub"
+																						sc = @ColorSubs
+																					Case "function"
+																						sc = @ColorGlobalFunctions
+																					Case "property"
+																						sc = @ColorProperties
+																					Case "field", "event"
+																						sc = @ColorFields
+																					Case Else
+																						sc = @ColorLocalVariables
+																					End Select
+																				End If
 																			End If
 																		End If
 																	End If
 																End If
-															End If
-															
-															'Module
-															If tIndex = -1 AndAlso pLocalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = pLocalArgs->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	OriginalCaseWord = pLocalArgs->Item(tIndex)
-																	pkeywords = pLocalArgs
-																	te = pLocalArgs->Object(tIndex)
-																	If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																		Select Case te->ElementType
-																		Case "EnumItem"
-																			sc = @ColorEnumMembers
-																		Case "CommonVariable"
-																			sc = @ColorCommonVariables
-																		Case "Constant"
-																			sc = @ColorConstants
-																		Case "SharedVariable"
-																			sc = @ColorSharedVariables
-																		Case Else
-																			sc = @ColorLocalVariables
-																		End Select
+																
+																'Module
+																If tIndex = -1 AndAlso pLocalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
+																	tIndex = pLocalArgs->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		OriginalCaseWord = pLocalArgs->Item(tIndex)
+																		pkeywords = pLocalArgs
+																		te = pLocalArgs->Object(tIndex)
+																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																			Select Case te->ElementType
+																			Case "EnumItem"
+																				sc = @ColorEnumMembers
+																			Case "CommonVariable"
+																				sc = @ColorCommonVariables
+																			Case "Constant"
+																				sc = @ColorConstants
+																			Case "SharedVariable"
+																				sc = @ColorSharedVariables
+																			Case Else
+																				sc = @ColorLocalVariables
+																			End Select
+																		End If
 																	End If
 																End If
-															End If
-															
-															If tIndex = -1 AndAlso pLocalProcedures > 0 Then
-																tIndex = pLocalProcedures->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	OriginalCaseWord = pLocalProcedures->Item(tIndex)
-																	pkeywords = pLocalProcedures
-																	te = pLocalProcedures->Object(tIndex)
-																	If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																		Select Case LCase(te->ElementType)
-																		Case "constructor", "destructor"
-																			sc = @ColorGlobalTypes
-																		Case "function"
-																			sc = @ColorGlobalFunctions
-																		Case "sub"
-																			sc = @ColorSubs
-																		Case "define"
-																			sc = @ColorDefines
-																		Case "macro"
-																			sc = @ColorMacros
-																		Case "property"
-																			sc = @ColorProperties
-																		End Select
+																
+																If tIndex = -1 AndAlso pLocalProcedures > 0 Then
+																	tIndex = pLocalProcedures->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		OriginalCaseWord = pLocalProcedures->Item(tIndex)
+																		pkeywords = pLocalProcedures
+																		te = pLocalProcedures->Object(tIndex)
+																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																			Select Case LCase(te->ElementType)
+																			Case "constructor", "destructor"
+																				sc = @ColorGlobalTypes
+																			Case "function"
+																				sc = @ColorGlobalFunctions
+																			Case "sub"
+																				sc = @ColorSubs
+																			Case "define"
+																				sc = @ColorDefines
+																			Case "macro"
+																				sc = @ColorMacros
+																			Case "property"
+																				sc = @ColorProperties
+																			End Select
+																		End If
 																	End If
 																End If
-															End If
-															
-															If tIndex = -1 AndAlso pLocalTypes > 0 Then
-																tIndex = pLocalTypes->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
-																	OriginalCaseWord = pLocalTypes->Item(tIndex)
-																	pkeywords = pLocalTypes
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pLocalEnums > 0 Then
-																tIndex = pLocalEnums->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
-																	OriginalCaseWord = pLocalEnums->Item(tIndex)
-																	pkeywords = pLocalEnums
-																End If
-															End If
-															
-															'Global
-															If tIndex = -1 AndAlso pComps > 0 Then
-																tIndex = pComps->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	If SyntaxHighlightingIdentifiers Then sc = @ColorComps
-																	OriginalCaseWord = pComps->Item(tIndex)
-																	pkeywords = pComps
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalTypes > 0 Then
-																tIndex = pGlobalTypes->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
-																	OriginalCaseWord = pGlobalTypes->Item(tIndex)
-																	pkeywords = pGlobalTypes
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalEnums > 0 Then
-																tIndex = pGlobalEnums->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
-																	OriginalCaseWord = pGlobalEnums->Item(tIndex)
-																	pkeywords = pGlobalEnums
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																tIndex = pGlobalArgs->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	te = pGlobalArgs->Object(tIndex)
-																	OriginalCaseWord = pGlobalArgs->Item(tIndex)
-																	pkeywords = pGlobalArgs
-																	If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																		Select Case te->ElementType
-																		Case "EnumItem"
-																			sc = @ColorEnumMembers
-																		Case "CommonVariable"
-																			sc = @ColorCommonVariables
-																		Case "Constant"
-																			sc = @ColorConstants
-																		Case "SharedVariable"
-																			sc = @ColorSharedVariables
-																		Case Else
-																			sc = @ColorLocalVariables
-																		End Select
+																
+																If tIndex = -1 AndAlso pLocalTypes > 0 Then
+																	tIndex = pLocalTypes->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
+																		OriginalCaseWord = pLocalTypes->Item(tIndex)
+																		pkeywords = pLocalTypes
 																	End If
 																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalFunctions > 0 Then
-																tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	te = pGlobalFunctions->Object(tIndex)
-																	OriginalCaseWord = pGlobalFunctions->Item(tIndex)
-																	pkeywords = pGlobalFunctions
-																	If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																		Select Case LCase(te->ElementType)
-																		Case "constructor", "destructor"
-																			sc = @ColorGlobalTypes
-																		Case "keyword"
-																			sc = @ColorGlobalFunctions
-																		Case "function"
-																			sc = @ColorGlobalFunctions
-																		Case "sub"
-																			sc = @ColorSubs
-																		Case "define"
-																			sc = @ColorDefines
-																		Case "macro"
-																			sc = @ColorMacros
-																		Case "property"
-																			sc = @ColorProperties
-																		End Select
+																
+																If tIndex = -1 AndAlso pLocalEnums > 0 Then
+																	tIndex = pLocalEnums->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
+																		OriginalCaseWord = pLocalEnums->Item(tIndex)
+																		pkeywords = pLocalEnums
 																	End If
 																End If
-															End If
-															
-															If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then
-																tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
-																If tIndex <> -1 Then
-																	If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
-																	OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
-																	pkeywords = pGlobalNamespaces
+																
+																'Global
+																If tIndex = -1 AndAlso pComps > 0 Then
+																	tIndex = pComps->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorComps
+																		OriginalCaseWord = pComps->Item(tIndex)
+																		pkeywords = pComps
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalTypes > 0 Then
+																	tIndex = pGlobalTypes->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
+																		OriginalCaseWord = pGlobalTypes->Item(tIndex)
+																		pkeywords = pGlobalTypes
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalEnums > 0 Then
+																	tIndex = pGlobalEnums->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
+																		OriginalCaseWord = pGlobalEnums->Item(tIndex)
+																		pkeywords = pGlobalEnums
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
+																	tIndex = pGlobalArgs->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		te = pGlobalArgs->Object(tIndex)
+																		OriginalCaseWord = pGlobalArgs->Item(tIndex)
+																		pkeywords = pGlobalArgs
+																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																			Select Case te->ElementType
+																			Case "EnumItem"
+																				sc = @ColorEnumMembers
+																			Case "CommonVariable"
+																				sc = @ColorCommonVariables
+																			Case "Constant"
+																				sc = @ColorConstants
+																			Case "SharedVariable"
+																				sc = @ColorSharedVariables
+																			Case Else
+																				sc = @ColorLocalVariables
+																			End Select
+																		End If
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalFunctions > 0 Then
+																	tIndex = pGlobalFunctions->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		te = pGlobalFunctions->Object(tIndex)
+																		OriginalCaseWord = pGlobalFunctions->Item(tIndex)
+																		pkeywords = pGlobalFunctions
+																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																			Select Case LCase(te->ElementType)
+																			Case "constructor", "destructor"
+																				sc = @ColorGlobalTypes
+																			Case "keyword"
+																				sc = @ColorGlobalFunctions
+																			Case "function"
+																				sc = @ColorGlobalFunctions
+																			Case "sub"
+																				sc = @ColorSubs
+																			Case "define"
+																				sc = @ColorDefines
+																			Case "macro"
+																				sc = @ColorMacros
+																			Case "property"
+																				sc = @ColorProperties
+																			End Select
+																		End If
+																	End If
+																End If
+																
+																If tIndex = -1 AndAlso pGlobalNamespaces > 0 Then
+																	tIndex = pGlobalNamespaces->IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
+																		OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
+																		pkeywords = pGlobalNamespaces
+																	End If
 																End If
 															End If
 														End If
@@ -3900,13 +3904,13 @@ End Function
 			#else
 				Var sbScrollBarv = IIf(ActiveCodePane = 0, sbScrollBarvTop, sbScrollBarvBottom)
 				#ifdef __FB_64BIT__
-					If MSG.wParam < 4000000000 Then
+					If msg.wParam < 4000000000 Then
 						scrDirection = 1
 					Else
 						scrDirection = -1
 					End If
 				#else
-					scrDirection = Sgn(MSG.wParam)
+					scrDirection = Sgn(msg.wParam)
 				#endif
 				si.cbSize = SizeOf (si)
 				si.fMask  = SIF_ALL
@@ -3920,7 +3924,7 @@ End Function
 			ElseIf VScrollMax <> 0 Then
 				#ifdef __USE_GTK__
 					If scrDirection = 1 Then
-						gtk_adjustment_set_value(adjustmentv, MIN(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
+						gtk_adjustment_set_value(adjustmentv, min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
 					ElseIf scrDirection = -1 Then
 						gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
 					End If
@@ -3928,11 +3932,11 @@ End Function
 					*pVScrollPos = gtk_adjustment_get_value(adjustmentv)
 					ShowCaretPos False
 					'PaintControl
-					If gtk_is_widget(widget) Then gtk_widget_queue_draw(widget)
+					If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 					'End If
 				#else
 					If scrDirection = -1 Then
-						si.nPos = MIN(si.nPos + 3, si.nMax)
+						si.nPos = min(si.nPos + 3, si.nMax)
 					Else
 						si.nPos = Max(si.nPos - 3, si.nMin)
 					End If
@@ -3952,8 +3956,8 @@ End Function
 							#else
 								dwTemp = GetMessagePos
 								psPoints = MAKEPOINTS(dwTemp)
-								poPoint.X = psPoints.X
-								poPoint.Y = psPoints.Y
+								poPoint.X = psPoints.x
+								poPoint.Y = psPoints.y
 								..ScreenToClient(Handle, @poPoint)
 								FSelEndLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
 								FSelEndChar = CharIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
