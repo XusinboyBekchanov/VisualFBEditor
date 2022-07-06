@@ -228,7 +228,7 @@ Namespace My.Sys.Forms
 				Dim As ..Rect R
 				GetWindowRect Result, @R
 				MapWindowPoints 0, ParentHwnd, Cast(..Point Ptr, @R), 2
-				Return ControlAt(GetControl(Result), UnScaleX(X - R.Left), UnScaleY(Y - R.Top))
+				Return ControlAt(GetControl(Result), X - UnScaleX(R.Left), Y - UnScaleY(R.Top))
 			End If
 			'		dim as RECT R
 			'		GetChilds(Parent)
@@ -636,8 +636,8 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.MouseDown(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 		#ifdef __USE_GTK__
-			Dim As Boolean bCtrl = Shift And GDK_Control_MASK
-			Dim As Boolean bShift = Shift And GDK_Shift_MASK
+			Dim As Boolean bCtrl = Shift And GDK_CONTROL_MASK
+			Dim As Boolean bShift = Shift And GDK_SHIFT_MASK
 		#else
 			Dim As Boolean bCtrl = GetKeyState(VK_CONTROL) And 8000
 			Dim As Boolean bShift = GetKeyState(VK_SHIFT) And 8000
@@ -645,13 +645,13 @@ Namespace My.Sys.Forms
 		pfrmMain->ActiveControl = GetControl(FDialogParent)
 		#ifndef __USE_GTK__
 			Dim As ..Point P
-			Dim As ..RECT R
+			Dim As ..Rect R
 		#endif
 		FDown   = True
 		FStepX = GridSize
 		FStepY = GridSize
 		FBeginX = IIf(SnapToGridOption, (X\FStepX)*FStepX,X)
-		FBeginy = IIf(SnapToGridOption, (Y\FStepY)*FStepY,y)
+		FBeginY = IIf(SnapToGridOption, (Y\FStepY)*FStepY,Y)
 		FEndX   = FBeginX
 		FEndY   = FBeginY
 		FNewX   = FBeginX
@@ -1859,18 +1859,18 @@ Namespace My.Sys.Forms
 					FillRect(FHDC, @R, FGridBrush)
 				End If
 			ElseIf Not WithGraphic Then
-				FillRect(Fhdc, @R, Brush) 'Cast(HBRUSH, 16))
+				FillRect(FHDC, @R, Brush) 'Cast(HBRUSH, 16))
 			End If
 			DeleteObject(Brush)
 			For j As Integer = 0 To SelectedControls.Count - 1
 				GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 				MapWindowPoints 0, FDialog, Cast(..Point Ptr, @R), 2
-				DrawFocusRect(Fhdc, @Type<..RECT>(R.Left - 2, R.Top - 2, R.Right + 2, R.Bottom + 2))
+				DrawFocusRect(FHDC, @Type<..Rect>(R.Left - 2, R.Top - 2, R.Right + 2, R.Bottom + 2))
 			Next j
 			If ShowAlignmentGrid Then
 				SelectObject(mDc, pBMP)
 				DeleteObject(mBMP)
-				DeleteDc(mDc)
+				DeleteDC(mDc)
 			End If
 			EndPaint FDialog,@Ps
 		#endif
@@ -1915,7 +1915,7 @@ Namespace My.Sys.Forms
 					Static LeavesCount As Integer
 					Select Case Event->Type
 					Case GDK_ENTER_NOTIFY
-						If gtk_is_event_box(widget) Then
+						If GTK_IS_EVENT_BOX(widget) Then
 							LeavesCount += 1
 							If LeavesCount = 2 Then
 								.MouseDown(0, 0, 0, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
@@ -1969,7 +1969,7 @@ Namespace My.Sys.Forms
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
 						.MouseDown(Event->button.x + x, Event->button.y + y, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
-						If gtk_is_notebook(widget) AndAlso Event->button.y < 20 Then
+						If GTK_IS_NOTEBOOK(widget) AndAlso Event->button.y < 20 Then
 							Return False
 						Else
 							Return True
@@ -1994,7 +1994,7 @@ Namespace My.Sys.Forms
 							.ChangeFirstMenuItem
 							mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
 						End If
-						If gtk_is_notebook(widget) AndAlso Event->button.y < 20 Then
+						If GTK_IS_NOTEBOOK(widget) AndAlso Event->button.y < 20 Then
 							Return False
 						Else
 							Return True
@@ -2028,12 +2028,12 @@ Namespace My.Sys.Forms
 					Case WM_RBUTTONUP
 						'if .FSelControl <> .FDialog then
 						Dim As ..Point P
-						P.x = LoWord(lParam)
-						P.y = HiWord(lParam)
+						P.X = LoWord(lParam)
+						P.Y = HiWord(lParam)
 						ClientToScreen(hDlg, @P)
 						'mnuDesigner.Popup(P.x, P.y)
 						.ChangeFirstMenuItem
-						TrackPopupMenu(mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
+						TrackPopupMenu(mnuDesigner.Handle, 0, P.X, P.Y, 0, hDlg, 0)
 						'end if
 						Return 0
 					#endif
@@ -2114,7 +2114,7 @@ Namespace My.Sys.Forms
 				Dim As Integer iLeft = QInteger(ReadPropertyFunc(SelectedControl, "Left")), iTop = QInteger(ReadPropertyFunc(SelectedControl, "Top"))
 				Dim As GtkWidget Ptr CtrlWidget = ReadPropertyFunc(SelectedControl, "widget")
 				Dim As GtkWidget Ptr LayoutWidget = ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")
-				If gtk_is_scrolled_window(gtk_widget_get_parent(CtrlWidget)) OrElse gtk_is_event_box(gtk_widget_get_parent(CtrlWidget)) Then
+				If GTK_IS_SCROLLED_WINDOW(gtk_widget_get_parent(CtrlWidget)) OrElse GTK_IS_EVENT_BOX(gtk_widget_get_parent(CtrlWidget)) Then
 					CtrlWidget = gtk_widget_get_parent(CtrlWidget)
 				End If
 				g_object_ref(CtrlWidget)
@@ -2187,8 +2187,8 @@ Namespace My.Sys.Forms
 		Static As Any Ptr Ctrl
 		Static As My.Sys.Forms.Designer Ptr Des
 		#ifdef __USE_GTK__
-			bShift = Event->Key.state And GDK_Shift_MASK
-			bCtrl = Event->Key.state And GDK_Control_MASK
+			bShift = Event->Key.state And GDK_SHIFT_MASK
+			bCtrl = Event->Key.state And GDK_CONTROL_MASK
 			Des = user_data
 			'If ReadPropertyFunc Then Des = ReadPropertyFunc(Ctrl, "ControlDesigner")
 		#else
@@ -2209,7 +2209,7 @@ Namespace My.Sys.Forms
 						.DrawThis
 						Return 1
 						'Exit Function
-					Case WM_NCHitTest
+					Case WM_NCHITTEST
 						Return HTTRANSPARENT
 					Case WM_NCCALCSIZE
 						If .TopMenuHeight <> 0 Then
@@ -2273,11 +2273,11 @@ Namespace My.Sys.Forms
 					Case WM_RBUTTONUP
 						'if .FSelControl <> .FDialog then
 						Dim As ..Point P
-						P.x = LoWord(lParam)
-						P.y = HiWord(lParam)
+						P.X = LoWord(lParam)
+						P.Y = HiWord(lParam)
 						ClientToScreen(hDlg, @P)
 						.ChangeFirstMenuItem
-						TrackPopupMenu(mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
+						TrackPopupMenu(mnuDesigner.Handle, 0, P.X, P.Y, 0, hDlg, 0)
 						'end if
 						Return 0
 					#endif
@@ -2460,7 +2460,7 @@ Namespace My.Sys.Forms
 								P.x = ScaleX(.Rects(CurRect).Left)
 								P.y = ScaleY(.Rects(CurRect).Bottom)
 								..ClientToScreen(hDlg, @P)
-								Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.x, P.y, 0, hDlg, 0)
+								Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.X, P.Y, 0, hDlg, 0)
 								.ActiveRect = 0
 								RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
 								UpdateWindow hDlg
@@ -2478,7 +2478,7 @@ Namespace My.Sys.Forms
 							event_.dwFlags = TME_LEAVE
 							event_.hwndTrack = hDlg
 							'event_.dwHoverTime = 10
-							TrackMouseEvent(@event_)
+							TRACKMOUSEEVENT(@event_)
 							Tracked = True
 						End If
 					Case WM_MOUSELEAVE
@@ -2515,7 +2515,7 @@ Namespace My.Sys.Forms
 					Select Case Event->Type
 				#else
 					Select Case uMsg
-					Case WM_NCHitTest
+					Case WM_NCHITTEST
 					Case WM_GETDLGCODE: 'Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
 				#endif
 					#ifdef __USE_GTK__
@@ -2568,12 +2568,12 @@ Namespace My.Sys.Forms
 					Case WM_RBUTTONUP
 						'if .FSelControl <> .FDialog then
 						Dim As ..Point P
-						P.x = LoWord(lParam)
-						P.y = HiWord(lParam)
+						P.X = LoWord(lParam)
+						P.Y = HiWord(lParam)
 						ClientToScreen(hDlg, @P)
 						'mnuDesigner.Popup(P.x, P.y)
 						.ChangeFirstMenuItem
-						TrackPopupMenu(mnuDesigner.Handle, 0, P.x, P.y, 0, hDlg, 0)
+						TrackPopupMenu(mnuDesigner.Handle, 0, P.X, P.Y, 0, hDlg, 0)
 						'end if
 						Return 0
 					#endif
