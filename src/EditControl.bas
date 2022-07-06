@@ -1856,7 +1856,7 @@ Namespace My.Sys.Forms
 						si.fMask  = SIF_RANGE Or SIF_PAGE
 						si.nMin   = 0
 						si.nMax   = HScrollMaxLeft
-						si.nPage  = 1
+						si.nPage  = 10
 						SetScrollInfo(sbScrollBarhLeft, SB_CTL, @si, True)
 					End If
 					'If OldHScrollEnabled <> HScrollEnabled Then
@@ -1884,7 +1884,7 @@ Namespace My.Sys.Forms
 					si.fMask  = SIF_RANGE Or SIF_PAGE
 					si.nMin   = 0
 					si.nMax   = VScrollMaxBottom
-					si.nPage  = 1
+					si.nPage  = 10
 					SetScrollInfo(sbScrollBarvBottom, SB_CTL, @si, True)
 				End If
 				'If OldVScrollEnabled <> VScrollEnabled Then
@@ -1912,7 +1912,7 @@ Namespace My.Sys.Forms
 						si.fMask  = SIF_RANGE Or SIF_PAGE
 						si.nMin   = 0
 						si.nMax   = VScrollMaxTop
-						si.nPage  = 1
+						si.nPage  = 10
 						SetScrollInfo(sbScrollBarvTop, SB_CTL, @si, True)
 					End If
 					'If OldVScrollEnabled <> VScrollEnabled Then
@@ -4032,7 +4032,7 @@ End Function
 					End If
 					Return
 				ElseIf InCollapseRect(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
-					msg.Result = Cast(LResult, SetCursor(crHand_.Handle))
+					msg.Result = Cast(LRESULT, SetCursor(crHand_.Handle))
 					Return
 				Else
 					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
@@ -4040,7 +4040,7 @@ End Function
 					iCursorLineOld = iCursorLine
 					bInIncludeFileRectOld = bInIncludeFileRect
 					If bInIncludeFileRect Then
-						msg.Result = Cast(LResult, SetCursor(crHand_.Handle))
+						msg.Result = Cast(LRESULT, SetCursor(crHand_.Handle))
 						Return
 					End If
 				End If
@@ -4053,7 +4053,7 @@ End Function
 			Case WM_HSCROLL, WM_VSCROLL
 				Dim As HWND ScrollBarHandle
 				Dim As Integer Ptr pVScrollPos, pHScrollPos
-				If msg.msg = WM_HSCROLL Then
+				If msg.Msg = WM_HSCROLL Then
 					scrStyle = SB_HORZ
 					If bDividedX Then
 						Dim As Point pt
@@ -4114,7 +4114,7 @@ End Function
 					si.nPos = si.nTrackPos
 				End Select
 				si.fMask = SIF_POS Or SIF_TRACKPOS
-				si.nPos = Min(Max(si.nPos, si.nMin), si.nMax)
+				si.nPos = min(Max(si.nPos, si.nMin), si.nMax)
 				'si.nTrackPos = si.nTrackPos
 				'If msg.wParamLo <> SB_THUMBTRACK Then
 				'?msg.wParamLo
