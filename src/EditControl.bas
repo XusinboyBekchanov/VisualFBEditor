@@ -3232,7 +3232,7 @@ End Function
 					SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				#endif
-				If FECLine->BreakPoint Then
+				If FECLine->Breakpoint Then
 					This.Canvas.Pen.Color = IndicatorLines.Foreground
 					This.Canvas.Brush.Color = Breakpoints.Indicator
 					#ifdef __USE_GTK__
@@ -5167,9 +5167,9 @@ End Function
 				cairo_set_font_size(cr, 11)
 				
 				Dim As PangoRectangle extend
-				pango_layout_set_text(ec->layout, ToUTF8("|"), 1)
+				pango_layout_set_text(ec->layout, ToUtf8("|"), 1)
 				pango_cairo_update_layout(cr, ec->layout)
-				#ifdef PANGO_VERSION
+				#ifdef pango_version
 					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(ec->layout, 0)
 				#else
 					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(ec->layout, 0)

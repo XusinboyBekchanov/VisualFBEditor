@@ -341,8 +341,8 @@ Namespace My.Sys.Forms
 		FocusedItemIndex As Integer
 		LastItemIndex As Integer
 		Dim As Integer m_lLastVertTime, m_lLastHorzTime
-		Dim As Integer dwCharX
-		Dim As Integer dwCharY
+		Dim As Single dwCharX
+		Dim As Single dwCharY
 		Dim As Boolean SyntaxEdit
 		Dim As Boolean CStyle
 		Dim LeftMargin As Integer
