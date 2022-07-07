@@ -1413,7 +1413,7 @@ Namespace My.Sys.Forms
 				Return GetLineIndex(0, Max(0, min(Fix(Y / dwCharY) + VScrollPosTop, LinesCount - 1)))
 			End If
 		Else
-			Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + IIf(bDividedX AndAlso IIf(CodePane = -1, ActiveCodePane, CodePane) = 0, VScrollPosTop, VScrollPosBottom), LinesCount - 1)))
+			Return GetLineIndex(0, Max(0, min(Fix(Y / dwCharY) + IIf(bDividedX AndAlso IIf(CodePane = -1, ActiveCodePane, CodePane) = 0, VScrollPosTop, VScrollPosBottom), LinesCount - 1)))
 		End If
 	End Function
 	
@@ -1821,8 +1821,10 @@ Namespace My.Sys.Forms
 		
 		Var OldHScrollEnabledRight = CBool(HScrollMaxRight)
 		Var OldHScrollMaxRight = HScrollMaxRight
+		Var OldHScrollVCRight = HScrollVCRight
 		HScrollMaxRight = 10000 'Max(0, (MaxLineWidth - (dwClientX - LeftMargin - dwCharX))) \ dwCharX
-		If OldHScrollMaxRight <> HScrollMaxRight Then
+		HScrollVCRight = 10
+		If OldHScrollMaxRight <> HScrollMaxRight OrElse OldHScrollVCRight <> HScrollVCRight Then
 			#ifdef __USE_GTK__
 				gtk_adjustment_set_upper(adjustmenth, HScrollMaxRight)
 				'gtk_adjustment_configure(adjustmenth, gtk_adjustment_get_value(adjustmenth), 0, HScrollMax, 1, 10, HScrollMax)
@@ -1832,7 +1834,7 @@ Namespace My.Sys.Forms
 				si.fMask  = SIF_RANGE Or SIF_PAGE
 				si.nMin   = 0
 				si.nMax   = HScrollMaxRight
-				si.nPage  = 10
+				si.nPage  = HScrollVCRight
 				SetScrollInfo(sbScrollBarhRight, SB_CTL, @si, True)
 				'End If
 				'EnableWindow sbScrollBarhRight, HScrollEnabledRight
@@ -1843,10 +1845,12 @@ Namespace My.Sys.Forms
 		If bDividedX Then
 			Var OldHScrollEnabledLeft = CBool(HScrollMaxLeft)
 			Var OldHScrollMaxLeft = HScrollMaxLeft
+			Var OldHScrollVCLeft = HScrollVCLeft
 			HScrollMaxLeft = 10000 'Max(0, (MaxLineWidth - (dwClientX - LeftMargin - dwCharX))) \ dwCharX
+			HScrollVCLeft = 10
 			Var HScrollEnabledLeft = CBool(HScrollMaxLeft)
 			
-			If OldHScrollMaxLeft <> HScrollMaxLeft Then
+			If OldHScrollMaxLeft <> HScrollMaxLeft OrElse OldHScrollVCLeft <> HScrollVCLeft Then
 				#ifdef __USE_GTK__
 					gtk_adjustment_set_upper(adjustmenth, HScrollMaxRight)
 					'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
@@ -1856,7 +1860,7 @@ Namespace My.Sys.Forms
 						si.fMask  = SIF_RANGE Or SIF_PAGE
 						si.nMin   = 0
 						si.nMax   = HScrollMaxLeft
-						si.nPage  = 10
+						si.nPage  = HScrollVCLeft
 						SetScrollInfo(sbScrollBarhLeft, SB_CTL, @si, True)
 					End If
 					'If OldHScrollEnabled <> HScrollEnabled Then
@@ -1869,11 +1873,13 @@ Namespace My.Sys.Forms
 		
 		Var OldVScrollEnabledBottom = CBool(VScrollMaxBottom)
 		Var OldVScrollMaxBottom = VScrollMaxBottom
-		VScrollMaxBottom = Max(0, LinesCount - VisibleLinesCount(1) + 1)
+		Var OldVScrollVCBottom = VScrollVCBottom
+		VScrollMaxBottom = LinesCount 'Max(0, LinesCount - VisibleLinesCount(1) + 1)
+		VScrollVCBottom = VisibleLinesCount(1)
 		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
 		Var VScrollEnabledBottom = CBool(VScrollMaxBottom)
 		
-		If OldVScrollMaxBottom <> VScrollMaxBottom Then
+		If OldVScrollMaxBottom <> VScrollMaxBottom OrElse OldVScrollVCBottom <> VScrollVCBottom Then
 			#ifdef __USE_GTK__
 				gtk_adjustment_set_upper(adjustmentv, VScrollMaxBottom)
 				gtk_adjustment_set_page_size(adjustmentv, 0)
@@ -1884,7 +1890,7 @@ Namespace My.Sys.Forms
 					si.fMask  = SIF_RANGE Or SIF_PAGE
 					si.nMin   = 0
 					si.nMax   = VScrollMaxBottom
-					si.nPage  = 10
+					si.nPage  = VScrollVCBottom
 					SetScrollInfo(sbScrollBarvBottom, SB_CTL, @si, True)
 				End If
 				'If OldVScrollEnabled <> VScrollEnabled Then
@@ -1897,11 +1903,13 @@ Namespace My.Sys.Forms
 		If bDividedY OrElse bDividedX Then
 			Var OldVScrollEnabledTop = CBool(VScrollMaxTop)
 			Var OldVScrollMaxTop = VScrollMaxTop
-			VScrollMaxTop = Max(0, LinesCount - VisibleLinesCount(0) + 1)
+			Var OldVScrollVCTop = VScrollVCTop
+			VScrollMaxTop = LinesCount 'Max(0, LinesCount - VisibleLinesCount(0) + 1)
+			VScrollVCTop = VisibleLinesCount(0)
 			LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
 			Var VScrollEnabledTop = CBool(VScrollMaxTop)
 			
-			If OldVScrollMaxTop <> VScrollMaxTop Then
+			If OldVScrollMaxTop <> VScrollMaxTop OrElse OldVScrollVCTop <> VScrollVCTop Then
 				#ifdef __USE_GTK__
 					gtk_adjustment_set_upper(adjustmentv, VScrollMaxTop)
 					gtk_adjustment_set_page_size(adjustmentv, 0)
@@ -1912,7 +1920,7 @@ Namespace My.Sys.Forms
 						si.fMask  = SIF_RANGE Or SIF_PAGE
 						si.nMin   = 0
 						si.nMax   = VScrollMaxTop
-						si.nPage  = 10
+						si.nPage  = VScrollVCTop
 						SetScrollInfo(sbScrollBarvTop, SB_CTL, @si, True)
 					End If
 					'If OldVScrollEnabled <> VScrollEnabled Then
@@ -3978,8 +3986,8 @@ End Function
 			End If
 			#ifndef __USE_GTK__
 			Case WM_NOTIFY
-				Dim As LPNMHDR lp = Cast(LPNMHDR, msg.LParam)
-				Select Case lp->Code
+				Dim As LPNMHDR lp = Cast(LPNMHDR, msg.lParam)
+				Select Case lp->code
 				Case TTN_LINKCLICK
 					Dim As PNMLINK pNMLink1 = Cast(PNMLINK, msg.lParam)
 					Dim As LITEM item = pNMLink1->item
@@ -3990,41 +3998,41 @@ End Function
 			Case WM_SETCURSOR
 				dwTemp = GetMessagePos
 				psPoints = MAKEPOINTS(dwTemp)
-				poPoint.X = psPoints.X
-				poPoint.Y = psPoints.Y
+				poPoint.X = psPoints.x
+				poPoint.Y = psPoints.y
 				..ScreenToClient(Handle, @poPoint)
 				iCursorLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y), IIf((bDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY) OrElse (bDividedX AndAlso UnScaleX(poPoint.X) <= iDividedX), 0, 1))
 				'If Cast(EditControlLine Ptr, FLines.Items[i])->Collapsible Then
 				'If p.X < LeftMargin AndAlso p.X > LeftMargin - 15 Then
 				If bDividedX AndAlso UnScaleX(poPoint.X) >= iDividedX AndAlso UnScaleX(poPoint.X) <= iDividedX + 7 Then
-					msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZEWE)))
+					msg.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_SIZEWE)))
 					Return
 				ElseIf bDividedY AndAlso UnScaleY(poPoint.Y) >= iDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY + 7 Then
-					msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZENS)))
+					msg.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_SIZENS)))
 					Return
 				ElseIf bDividedX AndAlso UnScaleX(poPoint.X) >= iDividedX - 17 AndAlso UnScaleX(poPoint.X) <= iDividedX Then
-					msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_ARROW)))
+					msg.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_ARROW)))
 					Return
 				ElseIf UnScaleX(poPoint.X) > dwClientX - 17 OrElse UnScaleY(poPoint.Y) > dwClientY - 17 Then
 					If UnScaleX(poPoint.X) < 7 AndAlso Not bDividedX Then
-						msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZEWE)))
+						msg.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_SIZEWE)))
 					ElseIf UnScaleY(poPoint.Y) < 7 AndAlso Not bDividedY Then
-						msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_SIZENS)))
+						msg.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_SIZENS)))
 					Else
-						msg.Result = Cast(LResult, SetCursor(LoadCursor(NULL, IDC_ARROW)))
+						msg.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_ARROW)))
 					End If
 					Return
 				ElseIf bInMiddleScroll Then
 					If Abs(UnScaleX(poPoint.X) - MButtonX) < 12 AndAlso Abs(UnScaleY(poPoint.Y) - MButtonY) < 12 Then
-						msg.Result = Cast(LResult, SetCursor(crScroll.Handle))
+						msg.Result = Cast(LRESULT, SetCursor(crScroll.Handle))
 					ElseIf UnScaleX(poPoint.X) < MButtonX AndAlso Abs(UnScaleY(poPoint.Y) - MButtonY) <= Abs(UnScaleX(poPoint.X) - MButtonX) Then
-						msg.Result = Cast(LResult, SetCursor(crScrollLeft.Handle))
+						msg.Result = Cast(LRESULT, SetCursor(crScrollLeft.Handle))
 					ElseIf UnScaleX(poPoint.X) > MButtonX AndAlso Abs(UnScaleY(poPoint.Y) - MButtonY) <= Abs(UnScaleX(poPoint.X) - MButtonX) Then
-						msg.Result = Cast(LResult, SetCursor(crScrollRight.Handle))
+						msg.Result = Cast(LRESULT, SetCursor(crScrollRight.Handle))
 					ElseIf UnScaleY(poPoint.Y) < MButtonY AndAlso Abs(UnScaleX(poPoint.X) - MButtonX) <= Abs(UnScaleY(poPoint.Y) - MButtonY) Then
-						msg.Result = Cast(LResult, SetCursor(crScrollUp.Handle))
+						msg.Result = Cast(LRESULT, SetCursor(crScrollUp.Handle))
 					ElseIf UnScaleY(poPoint.Y) > MButtonY AndAlso Abs(UnScaleX(poPoint.X) - MButtonX) <= Abs(UnScaleY(poPoint.Y) - MButtonY) Then
-						msg.Result = Cast(LResult, SetCursor(crScrollDown.Handle))
+						msg.Result = Cast(LRESULT, SetCursor(crScrollDown.Handle))
 					End If
 					If bScrollStarted Then
 						bScrollStarted = False

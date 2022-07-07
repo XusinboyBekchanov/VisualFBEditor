@@ -151,6 +151,10 @@ Namespace My.Sys.Forms
 		Dim HScrollMaxRight As Integer
 		Dim VScrollMaxTop As Integer
 		Dim VScrollMaxBottom As Integer
+		Dim HScrollVCLeft As Integer
+		Dim HScrollVCRight As Integer
+		Dim VScrollVCTop As Integer
+		Dim VScrollVCBottom As Integer
 		Dim nCaretPosX As Integer = 0 ' горизонтальная координата каретки
 		Dim nCaretPosY As Integer = 0 ' вертикальная координата каретки
 		Dim WithOldI As Integer = -1
