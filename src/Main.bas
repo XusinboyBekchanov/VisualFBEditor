@@ -6746,7 +6746,7 @@ tbRight.Parent = @pnlRightPin
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
 			allocation->x = x - tbRight.Width - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.Width - x1 + 1, 0)
 			allocation->y = y
-			allocation->width = tbRight.Width
+			allocation->Width = tbRight.Width
 			allocation->height = tbRight.Height
 			Return True
 		End Function
@@ -6802,20 +6802,20 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 		If tb->FindFormPosiTop > 0 Then pfFind->Top = tb->FindFormPosiTop
 	End If
 	tbOld = tb
-	If tb->cboClass.Items.Count < 2 Then
-		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-		SetRightClosedStyle True, True
-	Else
-		SetRightClosedStyle False, False
-		tabRight.SelectedTabIndex = 0
-	End If
+'	If tb->cboClass.Items.Count < 2 Then
+'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+'		SetRightClosedStyle True, True
+'	Else
+'		SetRightClosedStyle False, False
+'		tabRight.SelectedTabIndex = 0
+'	End If
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To sourcenb
 			If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
 		Next
 	#endif
 	MouseHoverTimerVal = Timer
-	If pfFind->CboFindRange.ItemIndex < 2 Then
+	If pfFind->cboFindRange.ItemIndex < 2 Then
 		WLet(gSearchSave, "")
 	End If
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus
