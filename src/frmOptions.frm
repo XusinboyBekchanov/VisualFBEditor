@@ -3182,37 +3182,37 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
 		If UBound(.Colors, 1) < 0 Then Exit Sub
-		.txtColorForeground.BackColor = Max(0, .Colors(i, 0))
-		.chkForeground.Checked = (.Colors(i, 0) = -1 OrElse .Colors(i, 0) = .Colors(0, 0))
+		.txtColorForeground.BackColor = Max(.Colors(0, 0), .Colors(i, 0))
+		.chkForeground.Checked = CBool(i <> 0) AndAlso (.Colors(i, 0) = -1 OrElse .Colors(i, 0) = .Colors(0, 0))
 		.txtColorForeground.Text = Str(.txtColorForeground.BackColor)
 		.txtColorForeground.ForeColor = CInt(.txtColorForeground.BackColor) Shl 2
 		
-		.txtColorBackground.BackColor = Max(0, .Colors(i, 1))
+		.txtColorBackground.BackColor = Max(.Colors(0, 1), .Colors(i, 1))
 		.txtColorBackground.Visible = .Colors(i, 1) <> -2
 		.txtColorBackground.Text = Str(.txtColorBackground.BackColor)
 		.txtColorBackground.ForeColor = CInt(.txtColorBackground.BackColor) Shl 2
 		.lblBackground.Visible = .Colors(i, 1) <> -2
 		.cmdBackground.Visible = .Colors(i, 1) <> -2
 		.chkBackground.Visible = .Colors(i, 1) <> -2
-		.chkBackground.Checked = (.Colors(i, 1) = -1 OrElse .Colors(i, 1) = .Colors(0, 1))
+		.chkBackground.Checked = CBool(i <> 0) AndAlso (.Colors(i, 1) = -1 OrElse .Colors(i, 1) = .Colors(0, 1))
 		
-		.txtColorFrame.BackColor = Max(0, .Colors(i, 2))
+		.txtColorFrame.BackColor = Max(.Colors(0, 2), .Colors(i, 2))
 		.txtColorFrame.Visible = .Colors(i, 2) <> -2
 		.txtColorFrame.Text = Str(.txtColorFrame.BackColor)
 		.txtColorFrame.ForeColor = CInt(.txtColorFrame.BackColor) Shl 2
 		.lblFrame.Visible = .Colors(i, 2) <> -2
 		.cmdFrame.Visible = .Colors(i, 2) <> -2
 		.chkFrame.Visible = .Colors(i, 2) <> -2
-		.chkFrame.Checked = .Colors(i, 2) = (.Colors(i, 2) = -1 OrElse .Colors(i, 2) = .Colors(0, 2))
+		.chkFrame.Checked = CBool(i <> 0) AndAlso .Colors(i, 2) = (.Colors(i, 2) = -1 OrElse .Colors(i, 2) = .Colors(0, 2))
 		
-		.txtColorIndicator.BackColor = Max(0, .Colors(i, 3))
+		.txtColorIndicator.BackColor = Max(.Colors(0, 3), .Colors(i, 3))
 		.txtColorIndicator.Visible = .Colors(i, 3) <> -2
 		.txtColorIndicator.Text = Str(.txtColorIndicator.BackColor)
 		.txtColorIndicator.ForeColor = CInt(.txtColorIndicator.BackColor) Shl 2
 		.lblIndicator.Visible = .Colors(i, 3) <> -2
 		.cmdIndicator.Visible = .Colors(i, 3) <> -2
 		.chkIndicator.Visible = .Colors(i, 3) <> -2
-		.chkIndicator.Checked = .Colors(i, 3) = (.Colors(i, 3) = -1 OrElse .Colors(i, 3) = .Colors(0, 3))
+		.chkIndicator.Checked = CBool(i <> 0) AndAlso .Colors(i, 3) = (.Colors(i, 3) = -1 OrElse .Colors(i, 3) = .Colors(0, 3))
 		
 		.chkBold.Visible = .Colors(i, 4) <> -2
 		.chkBold.Checked = .Colors(i, 4)
