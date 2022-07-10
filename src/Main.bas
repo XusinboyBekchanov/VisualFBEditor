@@ -4449,13 +4449,13 @@ Sub LoadSettings
 	Strings.Bold = iniTheme.ReadInteger("FontStyles", "StringsBold", 0)
 	Strings.Italic = iniTheme.ReadInteger("FontStyles", "StringsItalic", 0)
 	Strings.Underline = iniTheme.ReadInteger("FontStyles", "StringsUnderline", 0)
-	
-	ColorOperators.ForegroundOption = iniTheme.ReadInteger("Colors", "OperatorForeground", -1)
-	ColorOperators.BackgroundOption = iniTheme.ReadInteger("Colors", "OperatorBackground", -1)
-	ColorOperators.FrameOption = iniTheme.ReadInteger("Colors", "ColorOperatorFrame", -1)
-	ColorOperators.Bold = iniTheme.ReadInteger("FontStyles", "OperatorBold", 0)
-	ColorOperators.Italic = iniTheme.ReadInteger("FontStyles", "OperatorItalic", 0)
-	ColorOperators.Underline = iniTheme.ReadInteger("FontStyles", "OperatorUnderline", 0)
+
+	ColorOperators.ForegroundOption = iniTheme.ReadInteger("Colors", "OperatorsForeground", -1)
+	ColorOperators.BackgroundOption = iniTheme.ReadInteger("Colors", "OperatorsBackground", -1)
+	ColorOperators.FrameOption = iniTheme.ReadInteger("Colors", "ColorOperatorsFrame", -1)
+	ColorOperators.Bold = iniTheme.ReadInteger("FontStyles", "OperatorsBold", 0)
+	ColorOperators.Italic = iniTheme.ReadInteger("FontStyles", "OperatorsItalic", 0)
+	ColorOperators.Underline = iniTheme.ReadInteger("FontStyles", "OperatorsUnderline", 0)
 	
 	ColorByRefParameters.ForegroundOption = iniTheme.ReadInteger("Colors", "ByRefParametersForeground", -1)
 	ColorByRefParameters.BackgroundOption = iniTheme.ReadInteger("Colors", "ByRefParametersBackground", -1)
