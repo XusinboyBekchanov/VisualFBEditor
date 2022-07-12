@@ -504,7 +504,7 @@ Sub ReplaceSubProj(Param As Any Ptr)
 	fFind.btnReplace.Enabled = True
 	fFind.btnReplaceAll.Enabled = True
 	StopProgress
-	wLet(gSearchSave, fFind.txtFind.Text)
+	WLet(gSearchSave, fFind.txtFind.Text)
 	ptabBottom->Tabs[2]->Caption = ML("Replace") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
 	ThreadsLeave
 	MutexUnlock tlockToDo
@@ -512,6 +512,9 @@ End Sub
 
 Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
 	If Trim(txtFind.Text) = "" Then Exit Sub
+	If Not txtFind.Contains(txtFind.Text) Then
+		txtFind.AddItem txtFind.Text
+	End If
 	If CInt(*gSearchSave <> txtFind.Text) Then FindAll plvSearch, 2, , False
 	This.Caption = ML("Find: No Results")
 	If plvSearch->ListItems.Count < 1 Then Exit Sub
@@ -525,11 +528,11 @@ Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
 	If plvSearch->ListItems.Count > 0 Then
 		This.Caption = IIf(ActionReplace > 0, ML("Replace"), ML("Find")) + ": " + WStr(gSearchItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
 		Dim Item As ListViewItem Ptr = plvSearch->ListItems.Item(gSearchItemIndex)
-		If preLine = Val(item->Text(1)) AndAlso ActionReplace > 0 Then
-			SelectSearchResult (item->Text(3), Val(item->Text(1)), Val(item->Text(2)) + ActionReplace * (Len(txtReplace.Text) - Len(txtFind.Text)), Len(*gSearchSave), item->Tag)
+		If preLine = Val(Item->Text(1)) AndAlso ActionReplace > 0 Then
+			SelectSearchResult (Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)) + ActionReplace * (Len(txtReplace.Text) - Len(txtFind.Text)), Len(*gSearchSave), item->Tag)
 		Else
 			ActionReplace = 0
-			SelectSearchResult (item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(*gSearchSave), item->Tag)
+			SelectSearchResult (Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(*gSearchSave), Item->Tag)
 		End If
 	End If
 End Sub
@@ -545,7 +548,7 @@ Private Sub frmFind.btnFindPrev_Click(ByRef Sender As Control)
 	End If
 	If plvSearch->ListItems.Count>0 Then
 		Dim Item As ListViewItem Ptr = plvSearch->ListItems.Item(gSearchItemIndex)
-		SelectSearchResult(item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(*gSearchSave), item->Tag)
+		SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(*gSearchSave), Item->Tag)
 		This.Caption=ML("Find")+": " + WStr(gSearchItemIndex+1) + " of " + WStr(plvSearch->ListItems.Count)
 	End If
 End Sub
@@ -767,17 +770,28 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	'btnFindAll.Visible = False
 	Opacity = 230
 	TrackBar1.Position = 230
-	cboFindRange.ItemIndex = 1
-	lblTrack.Text = WStr(CUInt(TrackBar1.Position/2.55))
-	If txtFind.Contains(pClipboard->GetAsText) = False Then
-		'David Change For limited the Muilti Line
-		Var Posi=InStr(pClipboard->GetAsText,Chr(13))-1
-		If Posi < 1 Then Posi=InStr(pClipboard->GetAsText,Chr(10))-1
-		If Posi < 1 Then Posi= Len(pClipboard->GetAsText)
-		txtFind.AddItem ..Left(pClipboard->GetAsText, Posi)
-		txtFind.Text = ..Left(pClipboard->GetAsText,Posi)
-		txtFind.SetFocus
+	lblTrack.Text = WStr(CUInt(TrackBar1.Position / 2.55))
+	
+	Dim As UString SelText
+	If ptabCode Then
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb Then
+			SelText = tb->txtCode.SelText
+		End If
 	End If
+	If SelText = "" Then
+		SelText = pClipboard->GetAsText
+	End If
+	If SelText = "" Then
+		cboFindRange.ItemIndex = 1
+	Else
+		'David Change For limited the Muilti Line
+		Var Posi = InStr(SelText, Chr(13)) - 1
+		If Posi < 1 Then Posi = InStr(SelText, Chr(10)) - 1
+		If Posi < 1 Then Posi = Len(SelText)
+		txtFind.Text = ..Left(SelText, Posi)
+	End If
+	txtFind.SetFocus
 End Sub
 
 Private Sub frmFind.Form_Close(ByRef Sender As Control, ByRef Action As Integer)
@@ -807,6 +821,9 @@ Private Sub frmFind.TrackBar1_Change(ByRef Sender As TrackBar,Position As Intege
 End Sub
 
 Private Sub frmFind.btnFindAll_Click(ByRef Sender As Control)
+	If Not txtFind.Contains(txtFind.Text) Then
+		txtFind.AddItem txtFind.Text
+	End If
 	FindAll plvSearch, 2, , False
 End Sub
 
@@ -814,20 +831,20 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	Dim tmpStr As WString Ptr
 	For i As Integer =0 To 9
 		WLet(tmpStr, piniSettings->ReadString("Find", "Find_"+WStr(i), ""))
-		If CInt(Trim(*tmpstr)<>"") Then txtFind.AddItem *tmpstr
+		If CInt(Trim(*tmpStr)<>"") Then txtFind.AddItem *tmpStr
 	Next
 	For i As Integer =0 To 9
 		WLet(tmpStr, piniSettings->ReadString("Replace", "Replace_"+WStr(i), ""))
-		If CInt(Trim(*tmpstr)<>"") Then txtReplace.AddItem *tmpstr
+		If CInt(Trim(*tmpStr)<>"") Then txtReplace.AddItem *tmpStr
 	Next
 	cboFindRange.ItemIndex = 1
-	WDeallocate tmpstr
+	WDeAllocate tmpStr
 End Sub
 
 Private Sub frmFind.cboFindRange_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	Static As Integer ItemIndexSave
 	If ItemIndexSave <> ItemIndex Then
-		wLet(gSearchSave, "")
+		WLet(gSearchSave, "")
 		ItemIndexSave = ItemIndex
 	End If
 End Sub

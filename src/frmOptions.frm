@@ -3154,9 +3154,9 @@ End Sub
 
 Private Sub frmOptions.cmdMFFPath_Click(ByRef Sender As Control)
 	With fOptions
-		.BrowsD.InitialDir = GetFullPath(.txtMFFPath.Text)
+		.BrowsD.InitialDir = GetFullPath(.txtMFFpath.Text)
 		If .BrowsD.Execute Then
-			.txtMFFPath.Text = .BrowsD.Directory
+			.txtMFFpath.Text = .BrowsD.Directory
 		End If
 	End With
 End Sub
@@ -3181,7 +3181,7 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 		If UBound(.Colors, 1) < 0 Then Exit Sub
 		Dim As Integer NormOrIdentifiers = IIf(i > 9 AndAlso i < 27, 9, 0)
 		.txtColorForeground.BackColor = IIf(.Colors(i, 0) = -1, .Colors(NormOrIdentifiers, 0), .Colors(i, 0))
-		.chkForeground.Checked = CBool(i <> NormOrIdentifiers) AndAlso (.Colors(i, 0) = -1 OrElse .Colors(i, 0) = .Colors(NormOrIdentifiers, 0))
+		.chkForeground.Checked = CBool(i <> NormOrIdentifiers) AndAlso CBool(.Colors(i, 0) = -1 OrElse .Colors(i, 0) = .Colors(NormOrIdentifiers, 0))
 		.txtColorForeground.Text = Str(.txtColorForeground.BackColor)
 		.txtColorForeground.ForeColor = CInt(.txtColorForeground.BackColor) Shl 2
 		
@@ -3192,7 +3192,7 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 		.lblBackground.Visible = .Colors(i, 1) <> -2
 		.cmdBackground.Visible = .Colors(i, 1) <> -2
 		.chkBackground.Visible = .Colors(i, 1) <> -2
-		.chkBackground.Checked = CBool(i <> NormOrIdentifiers) AndAlso (.Colors(i, 1) = -1 OrElse .Colors(i, 1) = .Colors(NormOrIdentifiers, 1))
+		.chkBackground.Checked = CBool(i <> NormOrIdentifiers) AndAlso CBool(.Colors(i, 1) = -1 OrElse .Colors(i, 1) = .Colors(NormOrIdentifiers, 1))
 		
 		.txtColorFrame.BackColor = IIf(.Colors(i, 2) = -1, .Colors(NormOrIdentifiers, 2), .Colors(i, 2))
 		.txtColorFrame.Visible = .Colors(i, 2) <> -2
