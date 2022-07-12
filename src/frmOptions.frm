@@ -597,7 +597,7 @@ pfOptions = @fOptions
 			.Text = ML("Syntax Highlighting Identifiers")
 			.TabIndex = 201
 			.Align = DockStyle.alTop
-			.Caption = ML("Syntax Highlighting Identifiers")
+			'.Caption = ML("Syntax Highlighting Identifiers")
 			.SetBounds 10, 344, 416, 21
 			.Designer = @This
 			.Parent = @pnlCodeEditor
@@ -1958,6 +1958,8 @@ Private Sub frmOptions.cmdOK_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdCancel_Click(ByRef Sender As Control)
+	fOptions.cboTheme.ItemIndex = fOptions.cboTheme.IndexOf(*CurrentTheme)
+	fOptions.cboTheme_Change(Sender)
 	Cast(frmOptions Ptr, Sender.Parent)->CloseForm
 End Sub
 
@@ -2173,6 +2175,7 @@ Sub frmOptions.LoadSettings()
 			.lstLibraryPaths.AddItem pLibraryPaths->Item(i)
 		Next
 		.ColorsCount = 0
+		AddColors NormalText, , , , False
 		AddColors Bookmarks
 		AddColors Breakpoints
 		AddColors Comments, , , , False
@@ -2206,12 +2209,12 @@ Sub frmOptions.LoadSettings()
 		Next
 		
 		AddColors LineNumbers, , , False, False
-		AddColors NormalText, , , , False
+		AddColors Preprocessors, , , , False
 		AddColors Numbers, , , , False
-		AddColors ColorOperators, , , , False
 		AddColors RealNumbers, , , , False
+		AddColors ColorOperators, , , , False
 		AddColors Selection, , , , False, False, False, False
-		AddColors SpaceIdentifiers, , False, False, False, False, False, False
+		AddColors SpaceIdentifiers, , , , False, False, False, False
 		AddColors Strings, , , , False
 		
 		.lstColorKeys.ItemIndex = 0
@@ -2374,6 +2377,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.cboCase.AddItem ML("Upper Case")
 		.cboTabStyle.AddItem ML("Everywhere")
 		.cboTabStyle.AddItem ML("Only after the words")
+		.lstColorKeys.AddItem ML("Normal Text")
 		.lstColorKeys.AddItem ML("Bookmarks")
 		.lstColorKeys.AddItem ML("Breakpoints")
 		.lstColorKeys.AddItem ML("Comments")
@@ -2405,11 +2409,10 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 			.lstColorKeys.AddItem ML("Keywords") & ": " & ML(KeywordLists.Item(k))
 		Next k
 		.lstColorKeys.AddItem ML("Line Numbers")
-		.lstColorKeys.AddItem ML("Normal Text")
+		.lstColorKeys.AddItem ML("Preprocessors")
 		.lstColorKeys.AddItem ML("Numbers")
-		.lstColorKeys.AddItem ML("Operators")
 		.lstColorKeys.AddItem ML("Real Numbers")
-		'		.lstColorKeys.AddItem ML("Preprocessors")
+		.lstColorKeys.AddItem ML("Operators")
 		.lstColorKeys.AddItem ML("Selection")
 		.lstColorKeys.AddItem ML("Space Identifiers")
 		.lstColorKeys.AddItem ML("Strings")
@@ -2423,7 +2426,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		For i As Integer = 0 To pfrmMain->Menu->Count - 1
 			AddShortcuts(pfrmMain->Menu->Item(i))
 		Next
-		ReDim .Colors(35 + KeywordLists.Count - 1, 7)
+		ReDim .Colors(.lstColorKeys.Items.Count - 1, 7)
 		.LoadSettings
 	End With
 End Sub
@@ -2444,6 +2447,7 @@ End Sub
 Sub SetColors
 	With fOptions
 		.ColorsCount = 0
+		SetColor NormalText
 		SetColor Bookmarks
 		SetColor Breakpoints
 		SetColor Comments
@@ -2471,16 +2475,14 @@ Sub SetColors
 		SetColor ColorSubs
 		SetColor ColorGlobalTypes
 		SetColor IndicatorLines
-		'		IndicatorLines.ForegroundOption = .Colors(8, 0)
 		For k As Integer = 0 To UBound(Keywords)
 			SetColor Keywords(k)
 		Next k
-		
 		SetColor LineNumbers
-		SetColor NormalText
+		SetColor Preprocessors
 		SetColor Numbers
-		SetColor ColorOperators
 		SetColor RealNumbers
+		SetColor ColorOperators
 		SetColor Selection
 		SetColor SpaceIdentifiers
 		SetColor Strings
@@ -3059,21 +3061,21 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "NormalTextBold", NormalText.Bold)
 		piniTheme->WriteInteger("FontStyles", "NormalTextItalic", NormalText.Italic)
 		piniTheme->WriteInteger("FontStyles", "NormalTextUnderline", NormalText.Underline)
-		'		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", Preprocessors.ForegroundOption)
-		'		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", Preprocessors.BackgroundOption)
-		'		piniTheme->WriteInteger("Colors", "PreprocessorsFrame", Preprocessors.FrameOption)
-		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
-		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
-		'		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
+		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", Preprocessors.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", Preprocessors.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "PreprocessorsFrame", Preprocessors.FrameOption)
+		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
+		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
+		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
 		piniTheme->WriteInteger("Colors", "NumbersForeground", Numbers.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "NumbersBackground", Numbers.BackgroundOption)
 		piniTheme->WriteInteger("Colors", "NumbersFrame", Numbers.FrameOption)
 		piniTheme->WriteInteger("FontStyles", "NumbersBold", Numbers.Bold)
 		piniTheme->WriteInteger("FontStyles", "NumbersItalic", Numbers.Italic)
 		piniTheme->WriteInteger("FontStyles", "NumbersUnderline", Numbers.Underline)
-		piniTheme->WriteInteger("Colors", "OperatorsForeground", IIf(ColorOperators.ForegroundOption = Identifiers.ForegroundOption, -1, ColorOperators.ForegroundOption))
-		piniTheme->WriteInteger("Colors", "OperatorsBackground", IIf(ColorOperators.BackgroundOption = Identifiers.BackgroundOption, -1, ColorOperators.BackgroundOption))
-		piniTheme->WriteInteger("Colors", "OperatorsFrame", IIf(ColorOperators.FrameOption = Identifiers.FrameOption, -1, ColorOperators.FrameOption))
+		piniTheme->WriteInteger("Colors", "OperatorsForeground", ColorOperators.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "OperatorsBackground", ColorOperators.BackgroundOption)
+		piniTheme->WriteInteger("Colors", "OperatorsFrame", ColorOperators.FrameOption)
 		piniTheme->WriteInteger("FontStyles", "OperatorsBold", ColorOperators.Bold)
 		piniTheme->WriteInteger("FontStyles", "OperatorsItalic", ColorOperators.Italic)
 		piniTheme->WriteInteger("FontStyles", "OperatorsUnderline", ColorOperators.Underline)
@@ -3083,7 +3085,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "RealNumbersBold", RealNumbers.Bold)
 		piniTheme->WriteInteger("FontStyles", "RealNumbersItalic", RealNumbers.Italic)
 		piniTheme->WriteInteger("FontStyles", "RealNumbersUnderline", RealNumbers.Underline)
-		'		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
+		piniTheme->WriteInteger("Colors", "SelectionForeground", Selection.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "SelectionBackground", Selection.BackgroundOption)
 		piniTheme->WriteInteger("Colors", "SelectionFrame", Selection.FrameOption)
 		piniTheme->WriteInteger("Colors", "SpaceIdentifiersForeground", SpaceIdentifiers.ForegroundOption)
@@ -3180,37 +3182,38 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
 		If UBound(.Colors, 1) < 0 Then Exit Sub
-		.txtColorForeground.BackColor = Max(0, .Colors(i, 0))
-		.chkForeground.Checked = .Colors(i, 0) = -1
+		Dim As Integer NormOrIdentifiers = IIf(i > 9 AndAlso i < 27, 9, 0)
+		.txtColorForeground.BackColor = IIf(.Colors(i, 0) = -1, .Colors(NormOrIdentifiers, 0), .Colors(i, 0))
+		.chkForeground.Checked = CBool(i <> NormOrIdentifiers) AndAlso (.Colors(i, 0) = -1 OrElse .Colors(i, 0) = .Colors(NormOrIdentifiers, 0))
 		.txtColorForeground.Text = Str(.txtColorForeground.BackColor)
 		.txtColorForeground.ForeColor = CInt(.txtColorForeground.BackColor) Shl 2
 		
-		.txtColorBackground.BackColor = Max(0, .Colors(i, 1))
+		.txtColorBackground.BackColor = IIf(.Colors(i, 1) = -1, .Colors(NormOrIdentifiers, 1), .Colors(i, 1))
 		.txtColorBackground.Visible = .Colors(i, 1) <> -2
 		.txtColorBackground.Text = Str(.txtColorBackground.BackColor)
 		.txtColorBackground.ForeColor = CInt(.txtColorBackground.BackColor) Shl 2
 		.lblBackground.Visible = .Colors(i, 1) <> -2
 		.cmdBackground.Visible = .Colors(i, 1) <> -2
 		.chkBackground.Visible = .Colors(i, 1) <> -2
-		.chkBackground.Checked = .Colors(i, 1) = -1
+		.chkBackground.Checked = CBool(i <> NormOrIdentifiers) AndAlso (.Colors(i, 1) = -1 OrElse .Colors(i, 1) = .Colors(NormOrIdentifiers, 1))
 		
-		.txtColorFrame.BackColor = Max(0, .Colors(i, 2))
+		.txtColorFrame.BackColor = IIf(.Colors(i, 2) = -1, .Colors(NormOrIdentifiers, 2), .Colors(i, 2))
 		.txtColorFrame.Visible = .Colors(i, 2) <> -2
 		.txtColorFrame.Text = Str(.txtColorFrame.BackColor)
 		.txtColorFrame.ForeColor = CInt(.txtColorFrame.BackColor) Shl 2
 		.lblFrame.Visible = .Colors(i, 2) <> -2
 		.cmdFrame.Visible = .Colors(i, 2) <> -2
 		.chkFrame.Visible = .Colors(i, 2) <> -2
-		.chkFrame.Checked = .Colors(i, 2) = -1
+		.chkFrame.Checked = CBool(i <> NormOrIdentifiers) AndAlso .Colors(i, 2) = (.Colors(i, 2) = -1 OrElse .Colors(i, 2) = .Colors(NormOrIdentifiers, 2))
 		
-		.txtColorIndicator.BackColor = Max(0, .Colors(i, 3))
+		.txtColorIndicator.BackColor = IIf(.Colors(i, 3) = -1, .Colors(NormOrIdentifiers, 3), .Colors(i, 3))
 		.txtColorIndicator.Visible = .Colors(i, 3) <> -2
 		.txtColorIndicator.Text = Str(.txtColorIndicator.BackColor)
 		.txtColorIndicator.ForeColor = CInt(.txtColorIndicator.BackColor) Shl 2
 		.lblIndicator.Visible = .Colors(i, 3) <> -2
 		.cmdIndicator.Visible = .Colors(i, 3) <> -2
 		.chkIndicator.Visible = .Colors(i, 3) <> -2
-		.chkIndicator.Checked = .Colors(i, 3) = -1
+		.chkIndicator.Checked = CBool(i <> 0) AndAlso .Colors(i, 3) = (.Colors(i, 3) = -1 OrElse .Colors(i, 3) = .Colors(0, 3))
 		
 		.chkBold.Visible = .Colors(i, 4) <> -2
 		.chkBold.Checked = .Colors(i, 4)
@@ -3230,6 +3233,7 @@ Private Sub frmOptions.cmdForeground_Click(ByRef Sender As Control)
 			fOptions.txtColorForeground.BackColor = .Color
 			fOptions.chkForeground.Checked = False
 			fOptions.Colors(i, 0) = .Color
+			fOptions.txtColorForeground.Text = Str(.Color)
 		End If
 	End With
 End Sub
@@ -3243,6 +3247,7 @@ Private Sub frmOptions.cmdBackground_Click(ByRef Sender As Control)
 			fOptions.txtColorBackground.BackColor = .Color
 			fOptions.chkBackground.Checked = False
 			fOptions.Colors(i, 1) = .Color
+			fOptions.txtColorBackground.Text = Str(.Color)
 		End If
 	End With
 End Sub
@@ -3256,6 +3261,7 @@ Private Sub frmOptions.cmdFrame_Click(ByRef Sender As Control)
 			fOptions.txtColorFrame.BackColor = .Color
 			fOptions.chkFrame.Checked = False
 			fOptions.Colors(i, 2) = .Color
+			fOptions.txtColorFrame.Text = Str(.Color)
 		End If
 	End With
 End Sub
@@ -3269,6 +3275,7 @@ Private Sub frmOptions.cmdIndicator_Click(ByRef Sender As Control)
 			fOptions.txtColorIndicator.BackColor = .Color
 			fOptions.chkIndicator.Checked = False
 			fOptions.Colors(i, 3) = .Color
+			fOptions.txtColorIndicator.Text = Str(.Color)
 		End If
 	End With
 End Sub
@@ -3276,109 +3283,235 @@ End Sub
 Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 	With fOptions
 		piniTheme->Load ExePath & "/Settings/Themes/" & fOptions.cboTheme.Text & ".ini"
-		.Colors(0, 0) = piniTheme->ReadInteger("Colors", "BookmarksForeground", -1)
-		.Colors(0, 1) = piniTheme->ReadInteger("Colors", "BookmarksBackground", -1)
-		.Colors(0, 2) = piniTheme->ReadInteger("Colors", "BookmarksFrame", -1)
-		.Colors(0, 3) = piniTheme->ReadInteger("Colors", "BookmarksIndicator", -1)
-		.Colors(0, 4) = piniTheme->ReadInteger("FontStyles", "BookmarksBold", 0)
-		.Colors(0, 5) = piniTheme->ReadInteger("FontStyles", "BookmarksItalic", 0)
-		.Colors(0, 6) = piniTheme->ReadInteger("FontStyles", "BookmarksUnderline", 0)
-		.Colors(1, 0) = piniTheme->ReadInteger("Colors", "BreakpointsForeground", -1)
-		.Colors(1, 1) = piniTheme->ReadInteger("Colors", "BreakpointsBackground", -1)
-		.Colors(1, 2) = piniTheme->ReadInteger("Colors", "BreakpointsFrame", -1)
-		.Colors(1, 3) = piniTheme->ReadInteger("Colors", "BreakpointsIndicator", -1)
-		.Colors(1, 4) = piniTheme->ReadInteger("FontStyles", "BreakpointsBold", 0)
-		.Colors(1, 5) = piniTheme->ReadInteger("FontStyles", "BreakpointsItalic", 0)
-		.Colors(1, 6) = piniTheme->ReadInteger("FontStyles", "BreakpointsUnderline", 0)
-		.Colors(2, 0) = piniTheme->ReadInteger("Colors", "CommentsForeground", -1)
-		.Colors(2, 1) = piniTheme->ReadInteger("Colors", "CommentsBackground", -1)
-		.Colors(2, 2) = piniTheme->ReadInteger("Colors", "CommentsFrame", -1)
-		.Colors(2, 4) = piniTheme->ReadInteger("FontStyles", "CommentsBold", 0)
-		.Colors(2, 5) = piniTheme->ReadInteger("FontStyles", "CommentsItalic", 0)
-		.Colors(2, 6) = piniTheme->ReadInteger("FontStyles", "CommentsUnderline", 0)
-		.Colors(3, 0) = piniTheme->ReadInteger("Colors", "CurrentBracketsForeground", -1)
-		.Colors(3, 1) = piniTheme->ReadInteger("Colors", "CurrentBracketsBackground", -1)
-		.Colors(3, 2) = piniTheme->ReadInteger("Colors", "CurrentBracketsFrame", -1)
-		.Colors(3, 3) = piniTheme->ReadInteger("Colors", "CurrentBracketsIndicator", -1)
-		.Colors(3, 4) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsBold", 0)
-		.Colors(3, 5) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsItalic", 0)
-		.Colors(3, 6) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsUnderline", 0)
-		.Colors(4, 0) = piniTheme->ReadInteger("Colors", "CurrentLineForeground", -1)
-		.Colors(4, 1) = piniTheme->ReadInteger("Colors", "CurrentLineBackground", -1)
-		.Colors(4, 2) = piniTheme->ReadInteger("Colors", "CurrentLineFrame", -1)
-		.Colors(5, 0) = piniTheme->ReadInteger("Colors", "CurrentWordForeground", -1)
-		.Colors(5, 1) = piniTheme->ReadInteger("Colors", "CurrentWordBackground", -1)
-		.Colors(5, 2) = piniTheme->ReadInteger("Colors", "CurrentWordFrame", -1)
-		.Colors(5, 3) = piniTheme->ReadInteger("Colors", "CurrentWordIndicator", -1)
-		.Colors(5, 4) = piniTheme->ReadInteger("FontStyles", "CurrentWordBold", 0)
-		.Colors(5, 5) = piniTheme->ReadInteger("FontStyles", "CurrentWordItalic", 0)
-		.Colors(5, 6) = piniTheme->ReadInteger("FontStyles", "CurrentWordUnderline", 0)
-		.Colors(6, 0) = piniTheme->ReadInteger("Colors", "ExecutionLineForeground", -1)
-		.Colors(6, 1) = piniTheme->ReadInteger("Colors", "ExecutionLineBackground", -1)
-		.Colors(6, 2) = piniTheme->ReadInteger("Colors", "ExecutionLineFrame", -1)
-		.Colors(6, 3) = piniTheme->ReadInteger("Colors", "ExecutionLineIndicator", -1)
-		.Colors(7, 0) = piniTheme->ReadInteger("Colors", "FoldLinesForeground", -1)
-		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "IdentifiersForeground", piniTheme->ReadInteger("Colors", "NormalTextForeground", -1))
-		.Colors(8, 1) = piniTheme->ReadInteger("Colors", "IdentifiersBackground", piniTheme->ReadInteger("Colors", "NormalTextBackground", -1))
-		.Colors(8, 2) = piniTheme->ReadInteger("Colors", "IdentifiersFrame", piniTheme->ReadInteger("Colors", "NormalTextFrame", -1))
-		.Colors(8, 4) = piniTheme->ReadInteger("FontStyles", "IdentifiersBold", piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0))
-		.Colors(8, 5) = piniTheme->ReadInteger("FontStyles", "IdentifiersItalic", piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0))
-		.Colors(8, 6) = piniTheme->ReadInteger("FontStyles", "IdentifiersUnderline", piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0))
-		.Colors(9, 0) = piniTheme->ReadInteger("Colors", "IndicatorLinesForeground", -1)
+		.Colors(0, 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", IIf(g_darkModeEnabled, darkTextColor, clBlack))
+		.Colors(0, 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", IIf(g_darkModeEnabled, darkBkColor, clWhite))
+		.Colors(0, 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", IIf(g_darkModeEnabled, darkTextColor, clBlack))
+		.Colors(0, 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
+		.Colors(0, 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
+		.Colors(0, 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
+		.Colors(1, 0) = piniTheme->ReadInteger("Colors", "BookmarksForeground", -1)
+		.Colors(1, 1) = piniTheme->ReadInteger("Colors", "BookmarksBackground", -1)
+		.Colors(1, 2) = piniTheme->ReadInteger("Colors", "BookmarksFrame", -1)
+		.Colors(1, 3) = piniTheme->ReadInteger("Colors", "BookmarksIndicator", -1)
+		.Colors(1, 4) = piniTheme->ReadInteger("FontStyles", "BookmarksBold", 0)
+		.Colors(1, 5) = piniTheme->ReadInteger("FontStyles", "BookmarksItalic", 0)
+		.Colors(1, 6) = piniTheme->ReadInteger("FontStyles", "BookmarksUnderline", 0)
+		.Colors(2, 0) = piniTheme->ReadInteger("Colors", "BreakpointsForeground", -1)
+		.Colors(2, 1) = piniTheme->ReadInteger("Colors", "BreakpointsBackground", -1)
+		.Colors(2, 2) = piniTheme->ReadInteger("Colors", "BreakpointsFrame", -1)
+		.Colors(2, 3) = piniTheme->ReadInteger("Colors", "BreakpointsIndicator", -1)
+		.Colors(2, 4) = piniTheme->ReadInteger("FontStyles", "BreakpointsBold", 0)
+		.Colors(2, 5) = piniTheme->ReadInteger("FontStyles", "BreakpointsItalic", 0)
+		.Colors(2, 6) = piniTheme->ReadInteger("FontStyles", "BreakpointsUnderline", 0)
+		.Colors(3, 0) = piniTheme->ReadInteger("Colors", "CommentsForeground", -1)
+		.Colors(3, 1) = piniTheme->ReadInteger("Colors", "CommentsBackground", -1)
+		.Colors(3, 2) = piniTheme->ReadInteger("Colors", "CommentsFrame", -1)
+		.Colors(3, 4) = piniTheme->ReadInteger("FontStyles", "CommentsBold", 0)
+		.Colors(3, 5) = piniTheme->ReadInteger("FontStyles", "CommentsItalic", 0)
+		.Colors(3, 6) = piniTheme->ReadInteger("FontStyles", "CommentsUnderline", 0)
+		.Colors(4, 0) = piniTheme->ReadInteger("Colors", "CurrentBracketsForeground", -1)
+		.Colors(4, 1) = piniTheme->ReadInteger("Colors", "CurrentBracketsBackground", -1)
+		.Colors(4, 2) = piniTheme->ReadInteger("Colors", "CurrentBracketsFrame", -1)
+		.Colors(4, 3) = piniTheme->ReadInteger("Colors", "CurrentBracketsIndicator", -1)
+		.Colors(4, 4) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsBold", 0)
+		.Colors(4, 5) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsItalic", 0)
+		.Colors(4, 6) = piniTheme->ReadInteger("FontStyles", "CurrentBracketsUnderline", 0)
+		.Colors(5, 0) = piniTheme->ReadInteger("Colors", "CurrentLineForeground", -1)
+		.Colors(5, 1) = piniTheme->ReadInteger("Colors", "CurrentLineBackground", -1)
+		.Colors(5, 2) = piniTheme->ReadInteger("Colors", "CurrentLineFrame", -1)
+		.Colors(6, 0) = piniTheme->ReadInteger("Colors", "CurrentWordForeground", -1)
+		.Colors(6, 1) = piniTheme->ReadInteger("Colors", "CurrentWordBackground", -1)
+		.Colors(6, 2) = piniTheme->ReadInteger("Colors", "CurrentWordFrame", -1)
+		.Colors(6, 3) = piniTheme->ReadInteger("Colors", "CurrentWordIndicator", -1)
+		.Colors(6, 4) = piniTheme->ReadInteger("FontStyles", "CurrentWordBold", 0)
+		.Colors(6, 5) = piniTheme->ReadInteger("FontStyles", "CurrentWordItalic", 0)
+		.Colors(6, 6) = piniTheme->ReadInteger("FontStyles", "CurrentWordUnderline", 0)
+		.Colors(7, 0) = piniTheme->ReadInteger("Colors", "ExecutionLineForeground", -1)
+		.Colors(7, 1) = piniTheme->ReadInteger("Colors", "ExecutionLineBackground", -1)
+		.Colors(7, 2) = piniTheme->ReadInteger("Colors", "ExecutionLineFrame", -1)
+		.Colors(7, 3) = piniTheme->ReadInteger("Colors", "ExecutionLineIndicator", -1)
+		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "FoldLinesForeground", -1)
+		.Colors(9, 0) = piniTheme->ReadInteger("Colors", "IdentifiersForeground", .Colors(0, 0))
+		.Colors(9, 1) = piniTheme->ReadInteger("Colors", "IdentifiersBackground", .Colors(0, 1) )
+		.Colors(9, 2) = piniTheme->ReadInteger("Colors", "IdentifiersFrame", .Colors(0, 2))
+		.Colors(9, 4) = piniTheme->ReadInteger("FontStyles", "IdentifiersBold", 0)
+		.Colors(9, 5) = piniTheme->ReadInteger("FontStyles", "IdentifiersItalic", 0)
+		.Colors(9, 6) = piniTheme->ReadInteger("FontStyles", "IdentifiersUnderline", 0)
 		
+		.Colors(10, 0) = piniTheme->ReadInteger("Colors", "ByRefParametersForeground", .Colors(9, 0))
+		.Colors(10, 1) = piniTheme->ReadInteger("Colors", "ByRefParametersBackground", .Colors(9, 1))
+		.Colors(10, 2) = piniTheme->ReadInteger("Colors", "ByRefParametersFrame", .Colors(9, 2))
+		.Colors(10, 4) = piniTheme->ReadInteger("FontStyles", "ByRefParametersBold", 0)
+		.Colors(10, 5) = piniTheme->ReadInteger("FontStyles", "ByRefParametersItalic", 0)
+		.Colors(10, 6) = piniTheme->ReadInteger("FontStyles", "ByRefParametersUnderline", 0)
+		
+		.Colors(11, 0) = piniTheme->ReadInteger("Colors", "ByValParametersForeground", .Colors(9, 0))
+		.Colors(11, 1) = piniTheme->ReadInteger("Colors", "ByValParametersBackground", .Colors(9, 1))
+		.Colors(11, 2) = piniTheme->ReadInteger("Colors", "ByValParametersFrame", .Colors(9, 2))
+		.Colors(11, 4) = piniTheme->ReadInteger("FontStyles", "ByValParametersBold", 0)
+		.Colors(11, 5) = piniTheme->ReadInteger("FontStyles", "ByValParametersItalic", 0)
+		.Colors(11, 6) = piniTheme->ReadInteger("FontStyles", "ByValParametersUnderline", 0)
+		
+		.Colors(12, 0) = piniTheme->ReadInteger("Colors", "CommonVariablesForeground", .Colors(9, 0))
+		.Colors(12, 1) = piniTheme->ReadInteger("Colors", "CommonVariablesBackground", .Colors(9, 1))
+		.Colors(12, 2) = piniTheme->ReadInteger("Colors", "CommonVariablesFrame", .Colors(9, 2))
+		.Colors(12, 4) = piniTheme->ReadInteger("FontStyles", "CommonVariablesBold", 0)
+		.Colors(12, 5) = piniTheme->ReadInteger("FontStyles", "CommonVariablesItalic", 0)
+		.Colors(12, 6) = piniTheme->ReadInteger("FontStyles", "CommonVariablesUnderline", 0)
+		
+		.Colors(13, 0) = piniTheme->ReadInteger("Colors", "ComponentsForeground", .Colors(9, 0))
+		.Colors(13, 1) = piniTheme->ReadInteger("Colors", "ComponentsBackground", .Colors(9, 1))
+		.Colors(13, 2) = piniTheme->ReadInteger("Colors", "ComponentsFrame", .Colors(9, 2))
+		.Colors(13, 4) = piniTheme->ReadInteger("FontStyles", "ComponentsBold", 0)
+		.Colors(13, 5) = piniTheme->ReadInteger("FontStyles", "ComponentsItalic", 0)
+		.Colors(13, 6) = piniTheme->ReadInteger("FontStyles", "ComponentsUnderline", 0)
+		
+		.Colors(14, 0) = piniTheme->ReadInteger("Colors", "ConstantsForeground", .Colors(9, 0))
+		.Colors(14, 1) = piniTheme->ReadInteger("Colors", "ConstantsBackground", .Colors(9, 1))
+		.Colors(14, 2) = piniTheme->ReadInteger("Colors", "ConstantsFrame", .Colors(9, 2))
+		.Colors(14, 4) = piniTheme->ReadInteger("FontStyles", "ConstantsBold", 0)
+		.Colors(14, 5) = piniTheme->ReadInteger("FontStyles", "ConstantsItalic", 0)
+		.Colors(14, 6) = piniTheme->ReadInteger("FontStyles", "ConstantsUnderline", 0)
+		
+		.Colors(15, 0) = piniTheme->ReadInteger("Colors", "DefinesForeground", .Colors(9, 0))
+		.Colors(15, 1) = piniTheme->ReadInteger("Colors", "DefinesBackground", .Colors(9, 1))
+		.Colors(15, 2) = piniTheme->ReadInteger("Colors", "DefinesFrame", .Colors(9, 2))
+		.Colors(15, 4) = piniTheme->ReadInteger("FontStyles", "DefinesBold", 0)
+		.Colors(15, 5) = piniTheme->ReadInteger("FontStyles", "DefinesItalic", 0)
+		.Colors(15, 6) = piniTheme->ReadInteger("FontStyles", "DefinesUnderline", 0)
+		
+		.Colors(16, 0) = piniTheme->ReadInteger("Colors", "FieldsForeground", .Colors(9, 0))
+		.Colors(16, 1) = piniTheme->ReadInteger("Colors", "FieldsBackground", .Colors(9, 1))
+		.Colors(16, 2) = piniTheme->ReadInteger("Colors", "FieldsFrame", .Colors(9, 2))
+		.Colors(16, 4) = piniTheme->ReadInteger("FontStyles", "FieldsBold", 0)
+		.Colors(16, 5) = piniTheme->ReadInteger("FontStyles", "FieldsItalic", 0)
+		.Colors(16, 6) = piniTheme->ReadInteger("FontStyles", "FieldsUnderline", 0)
+		
+		.Colors(17, 0) = piniTheme->ReadInteger("Colors", "GlobalFunctionsForeground", .Colors(9, 0))
+		.Colors(17, 1) = piniTheme->ReadInteger("Colors", "GlobalFunctionsBackground", .Colors(9, 1))
+		.Colors(17, 2) = piniTheme->ReadInteger("Colors", "GlobalFunctionsFrame", .Colors(9, 2))
+		.Colors(17, 4) = piniTheme->ReadInteger("FontStyles", "GlobalFunctionsBold", 0)
+		.Colors(17, 5) = piniTheme->ReadInteger("FontStyles", "GlobalFunctionsItalic", 0)
+		.Colors(17, 6) = piniTheme->ReadInteger("FontStyles", "GlobalFunctionsUnderline", 0)
+		
+		.Colors(18, 0) = piniTheme->ReadInteger("Colors", "EnumMembersForeground", .Colors(9, 0))
+		.Colors(18, 1) = piniTheme->ReadInteger("Colors", "EnumMembersBackground", .Colors(9, 1))
+		.Colors(18, 2) = piniTheme->ReadInteger("Colors", "EnumMembersFrame", .Colors(9, 2))
+		.Colors(18, 4) = piniTheme->ReadInteger("FontStyles", "EnumMembersBold", 0)
+		.Colors(18, 5) = piniTheme->ReadInteger("FontStyles", "EnumMembersItalic", 0)
+		.Colors(18, 6) = piniTheme->ReadInteger("FontStyles", "EnumMembersUnderline", 0)
+		
+		.Colors(19, 0) = piniTheme->ReadInteger("Colors", "GlobalEnumsForeground", .Colors(9, 0))
+		.Colors(19, 1) = piniTheme->ReadInteger("Colors", "GlobalEnumsBackground", .Colors(9, 1))
+		.Colors(19, 2) = piniTheme->ReadInteger("Colors", "GlobalEnumsFrame", .Colors(9, 2))
+		.Colors(19, 4) = piniTheme->ReadInteger("FontStyles", "GlobalEnumsBold", 0)
+		.Colors(19, 5) = piniTheme->ReadInteger("FontStyles", "GlobalEnumsItalic", 0)
+		.Colors(19, 6) = piniTheme->ReadInteger("FontStyles", "GlobalEnumsUnderline", 0)
+		
+		.Colors(20, 0) = piniTheme->ReadInteger("Colors", "LocalVariablesForeground", .Colors(9, 0))
+		.Colors(20, 1) = piniTheme->ReadInteger("Colors", "LocalVariablesBackground", .Colors(9, 1))
+		.Colors(20, 2) = piniTheme->ReadInteger("Colors", "LocalVariablesFrame", .Colors(9, 2))
+		.Colors(20, 4) = piniTheme->ReadInteger("FontStyles", "LocalVariablesBold", 0)
+		.Colors(20, 5) = piniTheme->ReadInteger("FontStyles", "LocalVariablesItalic", 0)
+		.Colors(20, 6) = piniTheme->ReadInteger("FontStyles", "LocalVariablesUnderline", 0)
+		
+		.Colors(21, 0) = piniTheme->ReadInteger("Colors", "MacrosForeground", .Colors(9, 0))
+		.Colors(21, 1) = piniTheme->ReadInteger("Colors", "MacrosBackground", .Colors(9, 1))
+		.Colors(21, 2) = piniTheme->ReadInteger("Colors", "MacrosFrame", .Colors(9, 2))
+		.Colors(21, 4) = piniTheme->ReadInteger("FontStyles", "MacrosBold", 0)
+		.Colors(21, 5) = piniTheme->ReadInteger("FontStyles", "MacrosItalic", 0)
+		.Colors(21, 6) = piniTheme->ReadInteger("FontStyles", "MacrosUnderline", 0)
+		
+		.Colors(22, 0) = piniTheme->ReadInteger("Colors", "GlobalNamespacesForeground", .Colors(9, 0))
+		.Colors(22, 1) = piniTheme->ReadInteger("Colors", "GlobalNamespacesBackground", .Colors(9, 1))
+		.Colors(22, 2) = piniTheme->ReadInteger("Colors", "GlobalNamespacesFrame", .Colors(9, 2))
+		.Colors(22, 4) = piniTheme->ReadInteger("FontStyles", "GlobalNamespacesBold", 0)
+		.Colors(22, 5) = piniTheme->ReadInteger("FontStyles", "GlobalNamespacesItalic", 0)
+		.Colors(22, 6) = piniTheme->ReadInteger("FontStyles", "GlobalNamespacesUnderline", 0)
+		
+		.Colors(23, 0) = piniTheme->ReadInteger("Colors", "PropertiesForeground", .Colors(9, 0))
+		.Colors(23, 1) = piniTheme->ReadInteger("Colors", "PropertiesBackground", .Colors(9, 1))
+		.Colors(23, 2) = piniTheme->ReadInteger("Colors", "PropertiesFrame", .Colors(9, 2))
+		.Colors(23, 4) = piniTheme->ReadInteger("FontStyles", "PropertiesBold", 0)
+		.Colors(23, 5) = piniTheme->ReadInteger("FontStyles", "PropertiesItalic", 0)
+		.Colors(23, 6) = piniTheme->ReadInteger("FontStyles", "PropertiesUnderline", 0)
+		
+		.Colors(24, 0) = piniTheme->ReadInteger("Colors", "SharedVariablesForeground", .Colors(9, 0))
+		.Colors(24, 1) = piniTheme->ReadInteger("Colors", "SharedVariablesBackground", .Colors(9, 1))
+		.Colors(24, 2) = piniTheme->ReadInteger("Colors", "SharedVariablesFrame", .Colors(9, 2))
+		.Colors(24, 4) = piniTheme->ReadInteger("FontStyles", "SharedVariablesBold", 0)
+		.Colors(24, 5) = piniTheme->ReadInteger("FontStyles", "SharedVariablesItalic", 0)
+		.Colors(24, 6) = piniTheme->ReadInteger("FontStyles", "SharedVariablesUnderline", 0)
+		
+		.Colors(25, 0) = piniTheme->ReadInteger("Colors", "SubsForeground", .Colors(9, 0))
+		.Colors(25, 1) = piniTheme->ReadInteger("Colors", "SubsBackground", .Colors(9, 1))
+		.Colors(25, 2) = piniTheme->ReadInteger("Colors", "SubsFrame", .Colors(9, 2))
+		.Colors(25, 4) = piniTheme->ReadInteger("FontStyles", "SubsBold", 0)
+		.Colors(25, 5) = piniTheme->ReadInteger("FontStyles", "SubsItalic", 0)
+		.Colors(25, 6) = piniTheme->ReadInteger("FontStyles", "SubsUnderline", 0)
+		
+		.Colors(26, 0) = piniTheme->ReadInteger("Colors", "GlobalTypesForeground", .Colors(9, 0))
+		.Colors(26, 1) = piniTheme->ReadInteger("Colors", "GlobalTypesBackground", .Colors(9, 1))
+		.Colors(26, 2) = piniTheme->ReadInteger("Colors", "GlobalTypesFrame", .Colors(9, 2))
+		.Colors(26, 4) = piniTheme->ReadInteger("FontStyles", "GlobalTypesBold", 0)
+		.Colors(26, 5) = piniTheme->ReadInteger("FontStyles", "GlobalTypesItalic", 0)
+		.Colors(26, 6) = piniTheme->ReadInteger("FontStyles", "GlobalTypesUnderline", 0)
+		
+		.Colors(27, 0) = piniTheme->ReadInteger("Colors", "IndicatorLinesForeground", -1)
 		Dim As Integer k
 		For k = 0 To UBound(Keywords)
-			.Colors(10 + k, 0) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", piniTheme->ReadInteger("Colors", "KeywordsForeground", -1))
-			.Colors(10 + k, 1) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", piniTheme->ReadInteger("Colors", "KeywordsBackground", -1))
-			.Colors(10 + k, 2) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", piniTheme->ReadInteger("Colors", "KeywordsFrame", -1))
-			.Colors(10 + k, 4) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", piniTheme->ReadInteger("Colors", "KeywordsBold", 0))
-			.Colors(10 + k, 5) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", piniTheme->ReadInteger("Colors", "KeywordsItalic", 0))
-			.Colors(10 + k, 6) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", piniTheme->ReadInteger("Colors", "KeywordsUnderline", 0))
+			.Colors(28 + k, 0) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Foreground", piniTheme->ReadInteger("Colors", "KeywordsForeground", -1))
+			.Colors(28 + k, 1) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Background", piniTheme->ReadInteger("Colors", "KeywordsBackground", -1))
+			.Colors(28 + k, 2) = piniTheme->ReadInteger("Colors", Replace(KeywordLists.Item(k), " ", "") & "Frame", piniTheme->ReadInteger("Colors", "KeywordsFrame", -1))
+			.Colors(28 + k, 4) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Bold", piniTheme->ReadInteger("Colors", "KeywordsBold", 0))
+			.Colors(28 + k, 5) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Italic", piniTheme->ReadInteger("Colors", "KeywordsItalic", 0))
+			.Colors(28 + k, 6) = piniTheme->ReadInteger("FontStyles", Replace(KeywordLists.Item(k), " ", "") & "Underline", piniTheme->ReadInteger("Colors", "KeywordsUnderline", 0))
 		Next k
 		k = UBound(Keywords)
-		.Colors(11 + k, 0) = piniTheme->ReadInteger("Colors", "LineNumbersForeground", -1)
-		.Colors(11 + k, 1) = piniTheme->ReadInteger("Colors", "LineNumbersBackground", -1)
-		.Colors(11 + k, 4) = piniTheme->ReadInteger("FontStyles", "LineNumbersBold", 0)
-		.Colors(11 + k, 5) = piniTheme->ReadInteger("FontStyles", "LineNumbersItalic", 0)
-		.Colors(11 + k, 6) = piniTheme->ReadInteger("FontStyles", "LineNumbersUnderline", 0)
-		.Colors(12 + k, 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", -1)
-		.Colors(12 + k, 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", -1)
-		.Colors(12 + k, 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", -1)
-		.Colors(12 + k, 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
-		.Colors(12 + k, 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
-		.Colors(12 + k, 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
-		'		.Colors(12 + k, 0) = piniTheme->ReadInteger("Colors", "PreprocessorsForeground", -1)
-		'		.Colors(12 + k, 1) = piniTheme->ReadInteger("Colors", "PreprocessorsBackground", -1)
-		'		.Colors(12 + k, 2) = piniTheme->ReadInteger("Colors", "PreprocessorsFrame", -1)
-		'		.Colors(12 + k, 4) = piniTheme->ReadInteger("FontStyles", "PreprocessorsBold", 0)
-		'		.Colors(12 + k, 5) = piniTheme->ReadInteger("FontStyles", "PreprocessorsItalic", 0)
-		'		.Colors(12 + k, 6) = piniTheme->ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
-		.Colors(13 + k, 0) = piniTheme->ReadInteger("Colors", "NumbersForeground", piniTheme->ReadInteger("Colors", "NormalTextForeground", -1))
-		.Colors(13 + k, 1) = piniTheme->ReadInteger("Colors", "NumbersBackground", piniTheme->ReadInteger("Colors", "NormalTextBackground", -1))
-		.Colors(13 + k, 2) = piniTheme->ReadInteger("Colors", "NumbersFrame", piniTheme->ReadInteger("Colors", "NormalTextFrame", -1))
-		.Colors(13 + k, 4) = piniTheme->ReadInteger("FontStyles", "NumbersBold", piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0))
-		.Colors(13 + k, 5) = piniTheme->ReadInteger("FontStyles", "NumbersItalic", piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0))
-		.Colors(13 + k, 6) = piniTheme->ReadInteger("FontStyles", "NumbersUnderline", piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0))
-		.Colors(14 + k, 0) = piniTheme->ReadInteger("Colors", "RealNumbersForeground", piniTheme->ReadInteger("Colors", "NumbersForeground", -1))
-		.Colors(14 + k, 1) = piniTheme->ReadInteger("Colors", "RealNumbersBackground", piniTheme->ReadInteger("Colors", "NumbersBackground", -1))
-		.Colors(14 + k, 2) = piniTheme->ReadInteger("Colors", "RealNumbersFrame", piniTheme->ReadInteger("Colors", "NumbersFrame", -1))
-		.Colors(14 + k, 4) = piniTheme->ReadInteger("FontStyles", "RealNumbersBold", piniTheme->ReadInteger("FontStyles", "NumbersBold", 0))
-		.Colors(14 + k, 5) = piniTheme->ReadInteger("FontStyles", "RealNumbersItalic", piniTheme->ReadInteger("FontStyles", "NumbersItalic", 0))
-		.Colors(14 + k, 6) = piniTheme->ReadInteger("FontStyles", "RealNumbersUnderline", piniTheme->ReadInteger("FontStyles", "NumbersUnderline", 0))
-		.Colors(15 + k, 0) = piniTheme->ReadInteger("Colors", "SelectionForeground", -1)
-		.Colors(15 + k, 1) = piniTheme->ReadInteger("Colors", "SelectionBackground", -1)
-		.Colors(15 + k, 2) = piniTheme->ReadInteger("Colors", "SelectionFrame", -1)
-		.Colors(16 + k, 0) = piniTheme->ReadInteger("Colors", "SpaceIdentifiersForeground", -1)
-		.Colors(17 + k, 0) = piniTheme->ReadInteger("Colors", "StringsForeground", -1)
-		.Colors(17 + k, 1) = piniTheme->ReadInteger("Colors", "StringsBackground", -1)
-		.Colors(17 + k, 2) = piniTheme->ReadInteger("Colors", "StringsFrame", -1)
-		.Colors(17 + k, 4) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
-		.Colors(17 + k, 5) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
-		.Colors(17 + k, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
+		.Colors(29 + k, 0) = piniTheme->ReadInteger("Colors", "LineNumbersForeground", -1)
+		.Colors(29 + k, 1) = piniTheme->ReadInteger("Colors", "LineNumbersBackground", -1)
+		.Colors(29 + k, 2) = piniTheme->ReadInteger("Colors", "LineNumbersFrame", -1)
+		.Colors(29 + k, 4) = piniTheme->ReadInteger("FontStyles", "LineNumbersBold", 0)
+		.Colors(29 + k, 5) = piniTheme->ReadInteger("FontStyles", "LineNumbersItalic", 0)
+		.Colors(29 + k, 6) = piniTheme->ReadInteger("FontStyles", "LineNumbersUnderline", 0)
+		.Colors(30 + k, 0) = piniTheme->ReadInteger("Colors", "PreprocessorsForeground", -1)
+		.Colors(30 + k, 1) = piniTheme->ReadInteger("Colors", "PreprocessorsBackground", -1)
+		.Colors(30 + k, 2) = piniTheme->ReadInteger("Colors", "PreprocessorsFrame", -1)
+		.Colors(30 + k, 4) = piniTheme->ReadInteger("FontStyles", "PreprocessorsBold", 0)
+		.Colors(30 + k, 5) = piniTheme->ReadInteger("FontStyles", "PreprocessorsItalic", 0)
+		.Colors(30 + k, 6) = piniTheme->ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
+		.Colors(31 + k, 0) = piniTheme->ReadInteger("Colors", "NumbersForeground", -1)
+		.Colors(31 + k, 1) = piniTheme->ReadInteger("Colors", "NumbersBackground", -1)
+		.Colors(31 + k, 2) = piniTheme->ReadInteger("Colors", "NumbersFrame", -1)
+		.Colors(31 + k, 4) = piniTheme->ReadInteger("FontStyles", "NumbersBold", 0)
+		.Colors(31 + k, 5) = piniTheme->ReadInteger("FontStyles", "NumbersItalic", 0)
+		.Colors(31 + k, 6) = piniTheme->ReadInteger("FontStyles", "NumbersUnderline", 0)
+		.Colors(32 + k, 0) = piniTheme->ReadInteger("Colors", "RealNumbersForeground", -1)
+		.Colors(32 + k, 1) = piniTheme->ReadInteger("Colors", "RealNumbersBackground", -1)
+		.Colors(32 + k, 2) = piniTheme->ReadInteger("Colors", "RealNumbersFrame", -1)
+		.Colors(32 + k, 4) = piniTheme->ReadInteger("FontStyles", "RealNumbersBold", 0)
+		.Colors(32 + k, 5) = piniTheme->ReadInteger("FontStyles", "RealNumbersItalic", 0)
+		.Colors(32 + k, 6) = piniTheme->ReadInteger("FontStyles", "RealNumbersUnderline", 0)
+		.Colors(33 + k, 0) = piniTheme->ReadInteger("Colors", "OperatorsForeground", -1)
+		.Colors(33 + k, 1) = piniTheme->ReadInteger("Colors", "OperatorsBackground", -1)
+		.Colors(33 + k, 2) = piniTheme->ReadInteger("Colors", "OperatorsFrame", -1)
+		.Colors(33 + k, 4) = piniTheme->ReadInteger("FontStyles", "OperatorsBold", 0)
+		.Colors(33 + k, 5) = piniTheme->ReadInteger("FontStyles", "OperatorsItalic", 0)
+		.Colors(33 + k, 6) = piniTheme->ReadInteger("FontStyles", "OperatorsUnderline", 0)
+		.Colors(34 + k, 0) = piniTheme->ReadInteger("Colors", "SelectionForeground", -1)
+		.Colors(34 + k, 1) = piniTheme->ReadInteger("Colors", "SelectionBackground", -1)
+		.Colors(34 + k, 2) = piniTheme->ReadInteger("Colors", "SelectionFrame", -1)
+		.Colors(35 + k, 0) = piniTheme->ReadInteger("Colors", "SpaceIdentifiersForeground", -1)
+		.Colors(36 + k, 0) = piniTheme->ReadInteger("Colors", "StringsForeground", -1)
+		.Colors(36 + k, 1) = piniTheme->ReadInteger("Colors", "StringsBackground", -1)
+		.Colors(36 + k, 2) = piniTheme->ReadInteger("Colors", "StringsFrame", -1)
+		.Colors(36 + k, 4) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
+		.Colors(36 + k, 5) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
+		.Colors(36 + k, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
 		.lstColorKeys_Change(.lstColorKeys)
+		SetColors
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
-			SetColors
 			#ifdef __USE_GTK__
 				tb->txtCode.Update
 			#else
