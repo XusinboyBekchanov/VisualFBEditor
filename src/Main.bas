@@ -4433,12 +4433,6 @@ Sub LoadSettings
 	RealNumbers.Bold = iniTheme.ReadInteger("FontStyles", "RealNumbersBold", Numbers.Bold)
 	RealNumbers.Italic = iniTheme.ReadInteger("FontStyles", "RealNumbersItalic", Numbers.Italic)
 	RealNumbers.Underline = iniTheme.ReadInteger("FontStyles", "RealNumbersUnderline", Numbers.Underline)
-	Preprocessors.ForegroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsForeground", -1)
-	Preprocessors.BackgroundOption = iniTheme.ReadInteger("Colors", "PreprocessorsBackground", -1)
-	Preprocessors.FrameOption = iniTheme.ReadInteger("Colors", "PreprocessorsFrame", -1)
-	Preprocessors.Bold = iniTheme.ReadInteger("FontStyles", "PreprocessorsBold", 0)
-	Preprocessors.Italic = iniTheme.ReadInteger("FontStyles", "PreprocessorsItalic", 0)
-	Preprocessors.Underline = iniTheme.ReadInteger("FontStyles", "PreprocessorsUnderline", 0)
 	Selection.ForegroundOption = iniTheme.ReadInteger("Colors", "SelectionForeground", -1)
 	Selection.BackgroundOption = iniTheme.ReadInteger("Colors", "SelectionBackground", -1)
 	Selection.FrameOption = iniTheme.ReadInteger("Colors", "SelectionFrame", -1)
@@ -7510,23 +7504,23 @@ Sub frmMain_Create(ByRef Sender As Control)
 	WLet(RecentProject, iniSettings.ReadString("MainWindow", "RecentProject", ""))
 	WLet(RecentFolder, iniSettings.ReadString("MainWindow", "RecentFolder", ""))
 	WLet(RecentSession, iniSettings.ReadString("MainWindow", "RecentSession", ""))
-	ShowStandardToolbar = iniSettings.ReadBool("MainWindow", "ShowStandardToolBar", True)
-	ShowEditToolbar = iniSettings.ReadBool("MainWindow", "ShowEditToolBar", True)
-	ShowProjectToolbar = iniSettings.ReadBool("MainWindow", "ShowProjectToolbar", True)
-	ShowBuildToolbar = iniSettings.ReadBool("MainWindow", "ShowBuildToolbar", True)
-	ShowRunToolbar = iniSettings.ReadBool("MainWindow", "ShowRunToolbar", True)
+	ShowStandardToolBar = iniSettings.ReadBool("MainWindow", "ShowStandardToolBar", True)
+	ShowEditToolBar = iniSettings.ReadBool("MainWindow", "ShowEditToolBar", True)
+	ShowProjectToolBar = iniSettings.ReadBool("MainWindow", "ShowProjectToolbar", True)
+	ShowBuildToolBar = iniSettings.ReadBool("MainWindow", "ShowBuildToolbar", True)
+	ShowRunToolBar = iniSettings.ReadBool("MainWindow", "ShowRunToolbar", True)
 	ShowTipoftheDay = iniSettings.ReadBool("MainWindow", "ShowTipoftheDay", True)
 	ShowTipoftheDayIndex = iniSettings.ReadInteger("MainWindow", "ShowTipoftheDayIndex", 0)
-	ReBar1.Bands.Item(0)->Visible = ShowStandardToolbar
-	ReBar1.Bands.Item(1)->Visible = ShowEditToolbar
-	ReBar1.Bands.Item(2)->Visible = ShowProjectToolbar
-	ReBar1.Bands.Item(3)->Visible = ShowBuildToolbar
-	ReBar1.Bands.Item(4)->Visible = ShowRunToolbar
-	mnuStandardToolBar->Checked = ShowStandardToolbar
-	mnuEditToolbar->Checked = ShowEditToolbar
-	mnuProjectToolbar->Checked = ShowProjectToolbar
-	mnuBuildToolbar->Checked = ShowBuildToolbar
-	mnuRunToolbar->Checked = ShowRunToolbar
+	ReBar1.Bands.Item(0)->Visible = ShowStandardToolBar
+	ReBar1.Bands.Item(1)->Visible = ShowEditToolBar
+	ReBar1.Bands.Item(2)->Visible = ShowProjectToolBar
+	ReBar1.Bands.Item(3)->Visible = ShowBuildToolBar
+	ReBar1.Bands.Item(4)->Visible = ShowRunToolBar
+	mnuStandardToolBar->Checked = ShowStandardToolBar
+	mnuEditToolBar->Checked = ShowEditToolBar
+	mnuProjectToolBar->Checked = ShowProjectToolBar
+	mnuBuildToolBar->Checked = ShowBuildToolBar
+	mnuRunToolBar->Checked = ShowRunToolBar
 	Dim As Integer Subsystem = iniSettings.ReadInteger("MainWindow", "Subsystem", 0)
 	Select Case Subsystem
 	Case 0: tbtNotSetted->Checked = True
@@ -7536,10 +7530,10 @@ Sub frmMain_Create(ByRef Sender As Control)
 	#ifndef __USE_GTK__
 		windmain = frmMain.Handle
 		htab2    = ptabCode->Handle
-		tviewVar = tvVar.Handle
+		tviewvar = tvVar.Handle
 		'tviewPrc = tvPrc.Handle
-		tviewThd = tvThd.Handle
-		tviewWch = tvWch.Handle
+		tviewthd = tvThd.Handle
+		tviewwch = tvWch.Handle
 		DragAcceptFiles(frmMain.Handle, True)
 	#endif
 	'	If MainNode <> 0 Then
@@ -7582,7 +7576,7 @@ Function CheckCompilerPaths As Boolean
 				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
 			End If
 			#ifdef __USE_GTK__
-			ElseIf g_find_program_in_path(ToUTF8(GetFullPath(*CompilerPath))) = NULL Then
+			ElseIf g_find_program_in_path(ToUtf8(GetFullPath(*CompilerPath))) = NULL Then
 			#else
 			ElseIf Not FileExists(GetFullPath(*CompilerPath)) Then
 			#endif
