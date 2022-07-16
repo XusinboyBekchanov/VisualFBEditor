@@ -4145,8 +4145,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		End If
 	ElseIf tb->txtCode.DropDownShowed Then
 		#ifdef __USE_GTK__
-			If Key = GDK_KEY_Home OrElse Key = GDK_KEY_End OrElse Key = GDK_KEY_Left OrElse Key = GDK_KEY_RIGHT OrElse _
-				Key = GDK_KEY_Escape OrElse Key = GDK_KEY_Escape OrElse Key = GDK_KEY_UP OrElse Key = GDK_KEY_DOWN OrElse _
+			If Key = GDK_KEY_Home OrElse Key = GDK_KEY_End OrElse Key = GDK_KEY_Left OrElse Key = GDK_KEY_Right OrElse _
+				Key = GDK_KEY_Escape OrElse Key = GDK_KEY_Escape OrElse Key = GDK_KEY_Up OrElse Key = GDK_KEY_Down OrElse _
 				Key = GDK_KEY_Page_Up OrElse Key = GDK_KEY_Page_Down Then
 				Exit Sub
 			End If
@@ -4169,6 +4169,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		#else
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.cboIntellisense.ItemIndex = -1
 		#endif
+'	Else
+'		If AutoComplete Then CompleteWord
 	End If
 End Sub
 
