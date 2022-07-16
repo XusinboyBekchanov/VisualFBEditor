@@ -4169,6 +4169,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		#else
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.cboIntellisense.ItemIndex = -1
 		#endif
+	Else
+		If AutoComplete Then CompleteWord
 	End If
 End Sub
 
