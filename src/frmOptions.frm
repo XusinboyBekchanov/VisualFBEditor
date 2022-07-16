@@ -3179,7 +3179,7 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
 		If UBound(.Colors, 1) < 0 Then Exit Sub
-		Dim As Integer NormOrIdentifiers = IIf(i > 8 AndAlso i < 24, 8, 0)
+		Dim As Integer NormOrIdentifiers = IIf(i > 8 AndAlso i < 26, 8, 29)
 		.txtColorForeground.BackColor = IIf(.Colors(i, 0) = -1, .Colors(NormOrIdentifiers, 0), .Colors(i, 0))
 		.chkForeground.Checked = CBool(i <> NormOrIdentifiers) AndAlso CBool(.Colors(i, 0) = -1 OrElse .Colors(i, 0) = .Colors(NormOrIdentifiers, 0))
 		.txtColorForeground.Text = Str(.txtColorForeground.BackColor)
