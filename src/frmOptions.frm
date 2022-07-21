@@ -3058,12 +3058,6 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniTheme->WriteInteger("FontStyles", "NormalTextBold", NormalText.Bold)
 		piniTheme->WriteInteger("FontStyles", "NormalTextItalic", NormalText.Italic)
 		piniTheme->WriteInteger("FontStyles", "NormalTextUnderline", NormalText.Underline)
-		piniTheme->WriteInteger("Colors", "PreprocessorsForeground", Preprocessors.ForegroundOption)
-		piniTheme->WriteInteger("Colors", "PreprocessorsBackground", Preprocessors.BackgroundOption)
-		piniTheme->WriteInteger("Colors", "PreprocessorsFrame", Preprocessors.FrameOption)
-		piniTheme->WriteInteger("FontStyles", "PreprocessorsBold", Preprocessors.Bold)
-		piniTheme->WriteInteger("FontStyles", "PreprocessorsItalic", Preprocessors.Italic)
-		piniTheme->WriteInteger("FontStyles", "PreprocessorsUnderline", Preprocessors.Underline)
 		piniTheme->WriteInteger("Colors", "NumbersForeground", Numbers.ForegroundOption)
 		piniTheme->WriteInteger("Colors", "NumbersBackground", Numbers.BackgroundOption)
 		piniTheme->WriteInteger("Colors", "NumbersFrame", Numbers.FrameOption)
@@ -3179,7 +3173,7 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
 		If UBound(.Colors, 1) < 0 Then Exit Sub
-		Dim As Integer NormOrIdentifiers = IIf(i > 8 AndAlso i < 26, 8, 29)
+		Dim As Integer NormOrIdentifiers = IIf(i > 8 AndAlso i < 26, 8, 29 + UBound(Keywords))
 		.txtColorForeground.BackColor = IIf(.Colors(i, 0) = -1, .Colors(NormOrIdentifiers, 0), .Colors(i, 0))
 		.chkForeground.Checked = CBool(i <> NormOrIdentifiers) AndAlso CBool(.Colors(i, 0) = -1 OrElse .Colors(i, 0) = .Colors(NormOrIdentifiers, 0))
 		.txtColorForeground.Text = Str(.txtColorForeground.BackColor)
@@ -3280,12 +3274,12 @@ End Sub
 Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 	With fOptions
 		piniTheme->Load ExePath & "/Settings/Themes/" & fOptions.cboTheme.Text & ".ini"
-		.Colors(29, 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", IIf(g_darkModeEnabled, darkTextColor, clBlack))
-		.Colors(29, 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", IIf(g_darkModeEnabled, darkBkColor, clWhite))
-		.Colors(29, 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", IIf(g_darkModeEnabled, darkTextColor, clBlack))
-		.Colors(29, 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
-		.Colors(29, 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
-		.Colors(29, 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
+		.Colors(29 + UBound(Keywords), 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", IIf(g_darkModeEnabled, darkTextColor, clBlack))
+		.Colors(29 + UBound(Keywords), 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", IIf(g_darkModeEnabled, darkBkColor, clWhite))
+		.Colors(29 + UBound(Keywords), 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", IIf(g_darkModeEnabled, darkTextColor, clBlack))
+		.Colors(29 + UBound(Keywords), 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
+		.Colors(29 + UBound(Keywords), 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
+		.Colors(29 + UBound(Keywords), 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)
 		.Colors(0, 0) = piniTheme->ReadInteger("Colors", "BookmarksForeground", -1)
 		.Colors(0, 1) = piniTheme->ReadInteger("Colors", "BookmarksBackground", -1)
 		.Colors(0, 2) = piniTheme->ReadInteger("Colors", "BookmarksFrame", -1)
@@ -3328,9 +3322,9 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 		.Colors(6, 2) = piniTheme->ReadInteger("Colors", "ExecutionLineFrame", -1)
 		.Colors(6, 3) = piniTheme->ReadInteger("Colors", "ExecutionLineIndicator", -1)
 		.Colors(7, 0) = piniTheme->ReadInteger("Colors", "FoldLinesForeground", -1)
-		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "IdentifiersForeground", .Colors(29, 0))
-		.Colors(8, 1) = piniTheme->ReadInteger("Colors", "IdentifiersBackground", .Colors(29, 1) )
-		.Colors(8, 2) = piniTheme->ReadInteger("Colors", "IdentifiersFrame", .Colors(29, 2))
+		.Colors(8, 0) = piniTheme->ReadInteger("Colors", "IdentifiersForeground", .Colors(29 + UBound(Keywords), 0))
+		.Colors(8, 1) = piniTheme->ReadInteger("Colors", "IdentifiersBackground", .Colors(29 + UBound(Keywords), 1) )
+		.Colors(8, 2) = piniTheme->ReadInteger("Colors", "IdentifiersFrame", .Colors(29 + UBound(Keywords), 2))
 		.Colors(8, 4) = piniTheme->ReadInteger("FontStyles", "IdentifiersBold", 0)
 		.Colors(8, 5) = piniTheme->ReadInteger("FontStyles", "IdentifiersItalic", 0)
 		.Colors(8, 6) = piniTheme->ReadInteger("FontStyles", "IdentifiersUnderline", 0)
@@ -4286,7 +4280,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 				StartKeyWords = False
 				StartProperty = False
 				StartCompiler = False
-				Starttemplates = True
+				StartTemplates = True
 				StartGeneral = False
 			ElseIf LCase(Trim(Buff)) = "[general]" Then
 				StartKeyWords = False
@@ -4473,7 +4467,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 			StartGeneral = True
 			This.Text =  "******* Updating ... " & FileNameLng
 			Line Input #Fn1, Buff
-			wLet lang_name, Buff
+			WLet lang_name, Buff
 			Do Until EOF(Fn1)
 				Line Input #Fn1, Buff
 				If LCase(Trim(Buff)) = "[keywords]" Then
