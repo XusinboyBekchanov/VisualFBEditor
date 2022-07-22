@@ -1055,7 +1055,7 @@ Namespace My.Sys.Forms
 	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes)
 		Dim As WString Ptr pBuff
 		Dim As String Buff, EncodingStr, NewLineStr
-		Dim As WString * 1024 BuffRead
+		Dim As WString Ptr BuffRead
 		Dim As Integer Result = -1, Fn, FileSize
 		Dim As FileEncodings OldFileEncoding
 		Dim As Integer iC = 0, OldiC = 0, i = 0
@@ -1123,6 +1123,8 @@ Namespace My.Sys.Forms
 		Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 		If Result = 0 Then
 			OldFileEncoding = FileEncoding
+			Dim As Integer MaxChars = LOF(Fn)
+			WReAllocate BuffRead, MaxChars
 			Do Until EOF(Fn)
 				FECLine = New_( EditControlLine)
 				If FECLine = 0 Then
@@ -1134,8 +1136,8 @@ Namespace My.Sys.Forms
 					Line Input #Fn, Buff
 					WLet pBuff, FromUtf8(StrPtr(Buff))
 				Else
-					Line Input #Fn, BuffRead
-					WLet pBuff, BuffRead
+					LineInputWstr Fn, BuffRead, MaxChars
+					WLet pBuff, *BuffRead
 				End If
 				FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
 				iC = FindCommentIndex(*pBuff, OldiC)
