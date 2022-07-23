@@ -1720,6 +1720,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 					' Ctrl Array
 				ElseIf StartsWith(*FLine2, "dim as " & LCase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName"))) & " ") Then
 					d = True
+					If Len(*FLine2) > 1024 - Len(", " & CtrlName) Then d = False
 					If InStr(CtrlName, "(")  Then
 						CtrlNameBase = Trim(StringExtract(CtrlName, "("))
 					Else

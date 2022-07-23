@@ -1155,6 +1155,7 @@ Namespace My.Sys.Forms
 			
 			ScrollToCaret
 		End If
+		WDeAllocate(BuffRead)
 		CloseFile_(Fn)
 	End Sub
 	
