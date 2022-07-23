@@ -830,7 +830,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					Erase res
 					sOutput = Mid(sBuffer, Pos1 + 1)
 				Else
-					If FirstErrFlag < 1 AndAlso InStr(LCase(sOutput), "compiling") Then
+					If FirstErrFlag < 1 AndAlso (InStr(LCase(sOutput), "compiling") Orelse result_  = False) Then
 						sOutput +=  Chr(10) + sBuffer
 						FirstErrFlag +=1
 					Else
@@ -7456,7 +7456,6 @@ Sub SetAutoColors
 		GetColors Keywords(k), clBlue
 	Next k
 	GetColors LineNumbers, NormalText.Foreground
-	GetColors Preprocessors, clPurple
 	GetColors Numbers, NormalText.Foreground
 	GetColors RealNumbers, NormalText.Foreground
 	GetColors ColorOperators, NormalText.Foreground
