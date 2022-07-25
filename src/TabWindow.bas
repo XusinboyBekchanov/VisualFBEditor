@@ -1453,7 +1453,7 @@ Sub TabWindow.FillAllProperties()
 	'cboFunction.Items.Sort
 	'lvProperties.ListItems.Sort
 	'lvEvents.ListItems.Sort
-	ptabRight->UpdateUnlock
+	ptabRight->UpdateUnLock
 End Sub
 
 Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
@@ -1468,11 +1468,9 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	SelectedCtrl = Ctrl
 	SelectedCount = Sender.SelectedControls.Count
 	bNotFunctionChange = True
-	'	#ifndef __USE_GTK__
-	'		If tb->Des->ControlSetFocusSub <> 0 AndAlso tb->Des->DesignControl <> 0 Then tb->Des->ControlSetFocusSub(tb->Des->DesignControl)
-	'	#endif
 	If tb->Des->ReadPropertyFunc <> 0 Then tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(WGet(tb->Des->ReadPropertyFunc(Ctrl, "Name")))
 	tb->FillAllProperties
+	tb->pnlForm.SetFocus
 	bNotFunctionChange = False
 End Sub
 
