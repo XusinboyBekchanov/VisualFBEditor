@@ -1028,6 +1028,7 @@ Namespace My.Sys.Forms
 	
 	Property EditControl.HintDropDown(ByRef Value As WString)
 		WLet(FHintDropDown, Value)
+		
 	End Property
 	
 	Property EditControl.HintWord ByRef As WString
@@ -3690,7 +3691,6 @@ End Function
 			cboIntellisense.ShowDropDown True
 			If LastItemIndex = -1 Then cboIntellisense.ItemIndex = -1
 		#endif
-		HintDropDown = "fdfdfd"
 		ShowDropDownToolTipAt HCaretPos + 250, VCaretPos
 	End Sub
 	
@@ -3721,6 +3721,7 @@ End Function
 			DropDownToolTipItemIndex = cboIntellisense.ItemIndex
 		#endif
 		DropDownToolTipShowed = True
+		If *FHintDropDown = "" Then WLet FHintDropDown, " "
 		#ifdef __USE_GTK__
 			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(*FHintDropDown))
 			gtk_window_move(GTK_WINDOW(winDropDownTooltip), X, Y)
@@ -3762,6 +3763,7 @@ End Function
 			GetWindowRect(FHandle, @rc)
 			SendMessage(hwndTTDropDown, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(X), rc.Top + ScaleY(Y)))
 		#endif
+		This.SetFocus
 	End Sub
 	
 	Sub EditControl.ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
@@ -3813,6 +3815,28 @@ End Function
 			Dim As ..Rect rc, rc2
 			GetWindowRect(FHandle, @rc)
 			SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(HCaretPos), rc.Top + IIf(ShowTooltipsAtTheTop, ScaleY(VCaretPos - dwCharY) - HiWord(Result), ScaleY(VCaretPos + 5))))
+		#endif
+	End Sub
+	
+	Sub EditControl.UpdateDropDownToolTip()
+		#ifdef __USE_GTK__
+			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(*FHintDropDown))
+		#else
+			If hwndTTDropDown <> 0 Then
+				Dim As TOOLINFO    ti
+				ZeroMemory(@ti, SizeOf(ti))
+				
+				ti.cbSize = SizeOf(ti)
+				ti.hwnd   = FHandle
+				
+				SendMessage(hwndTTDropDown, TTM_GETTOOLINFO, 0, CInt(@ti))
+				
+				If *FHintDropDown = "" Then WLet FHintDropDown, " "
+				
+				ti.lpszText = FHintDropDown
+				
+				SendMessage(hwndTTDropDown, TTM_UPDATETIPTEXT, 0, CInt(@ti))
+			End If
 		#endif
 	End Sub
 	
@@ -5410,8 +5434,8 @@ End Function
 			#else
 				g_signal_connect(widget, "expose-event", G_CALLBACK(@EditControl_OnExposeEvent), @This)
 			#endif
-			pcontext = gtk_widget_create_pango_context(widget)
-			layout = pango_layout_new(pcontext)
+			PCONTEXT = gtk_widget_create_pango_context(widget)
+			layout = pango_layout_new(PCONTEXT)
 			Dim As PangoFontDescription Ptr desc
 			#ifdef __FB_WIN32__
 				desc = pango_font_description_from_string ("Courier 11")
@@ -5433,7 +5457,7 @@ End Function
 			gtk_widget_set_can_focus(scrollbarv, False)
 			g_signal_connect(adjustmentv, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
 			'gtk_widget_set_parent(scrollbarv, widget)
-			If gtk_is_widget(scrollbarv) Then gtk_layout_put(gtk_layout(widget), scrollbarv, 0, 0)
+			If GTK_IS_WIDGET(scrollbarv) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarv, 0, 0)
 			gtk_widget_show(scrollbarv)
 			adjustmenth = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 101.0, 1.0, 20.0, 20.0))
 			#ifdef __USE_GTK3__
@@ -5444,7 +5468,7 @@ End Function
 			gtk_widget_set_can_focus(scrollbarh, False)
 			g_signal_connect(adjustmenth, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
 			'gtk_widget_set_parent(scrollbarh, widget)
-			If gtk_is_widget(scrollbarh) Then gtk_layout_put(gtk_layout(widget), scrollbarh, 0, 0)
+			If GTK_IS_WIDGET(scrollbarh) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarh, 0, 0)
 			gtk_widget_show(scrollbarh)
 			Dim As GtkRequisition vminimum, hminimum, vrequisition, hrequisition
 			#ifdef __USE_GTK3__
@@ -5500,10 +5524,10 @@ End Function
 		'Text = ""
 		#ifdef __USE_GTK__
 			winIntellisense = gtk_window_new(GTK_WINDOW_POPUP)
-			gtk_scrolled_window_set_policy(gtk_scrolled_window(lvIntellisense.scrolledwidget), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC)
-			gtk_container_add(gtk_container(winIntellisense), lvIntellisense.scrolledwidget)
+			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(lvIntellisense.scrolledwidget), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC)
+			gtk_container_add(GTK_CONTAINER(winIntellisense), lvIntellisense.scrolledwidget)
 			'gtk_window_set_transient_for(gtk_window(winIntellisense), gtk_window(pfrmMain->widget))
-			gtk_window_resize(gtk_window(winIntellisense), 250, 7 * 22)
+			gtk_window_resize(GTK_WINDOW(winIntellisense), 250, 7 * 22)
 			lvIntellisense.Columns.Add "AutoComplete"
 			lvIntellisense.ColumnHeaderHidden = True
 			lvIntellisense.SingleClickActivate = True
@@ -5516,7 +5540,7 @@ End Function
 				gtk_widget_set_margin_right(lblTooltip, 1)
 				gtk_widget_set_margin_bottom(lblTooltip, 1)
 			#endif
-			gtk_container_add(gtk_container(winTooltip), lblTooltip)
+			gtk_container_add(GTK_CONTAINER(winTooltip), lblTooltip)
 			'gtk_window_set_transient_for(gtk_window(winTooltip), gtk_window(pfrmMain->widget))
 			g_signal_connect(lblTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
 			'gtk_window_resize(gtk_window(winTooltip), 1000, 21)

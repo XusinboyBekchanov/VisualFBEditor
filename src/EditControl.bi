@@ -302,7 +302,7 @@ Namespace My.Sys.Forms
 			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As cairo_t Ptr cr
 			Dim As GtkWidget Ptr wText
-			Dim As PangoContext Ptr pcontext
+			Dim As PangoContext Ptr PCONTEXT
 			Dim As PangoLayout Ptr layout
 			Dim As GdkDisplay Ptr pdisplay
 			Dim As GdkCursor Ptr gdkCursorIBeam
@@ -332,6 +332,7 @@ Namespace My.Sys.Forms
 			Dim As HWND sbScrollBarhLeft
 			Dim As HWND sbScrollBarhRight
 		#endif
+		Dim As TypeElement Ptr te
 		Dim As Integer ActiveCodePane
 		Dim As Integer dwClientX    ' ширина клиентской области
 		Dim As Integer dwClientY    ' Высота клиентской области
@@ -374,6 +375,7 @@ Namespace My.Sys.Forms
 		Declare Sub ShowDropDownToolTipAt(X As Integer, Y As Integer)
 		Declare Sub ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Declare Sub UpdateToolTip
+		Declare Sub UpdateDropDownToolTip
 		Declare Sub CloseDropDownToolTip()
 		Declare Sub CloseDropDown()
 		Declare Sub CloseToolTip()

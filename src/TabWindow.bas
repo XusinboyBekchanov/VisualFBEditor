@@ -2979,7 +2979,8 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 					iIndex = i: Exit For
 				End If
 			Next i
-			.Add Text, imgKeyNew, , , iIndex
+			Var item = .Add(Text, imgKeyNew, , , iIndex)
+			item->Tag = te
 		End With
 	#else
 		Dim iIndex As Integer = -1
@@ -3202,11 +3203,11 @@ Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Inte
 			End If
 		End If
 	End With
-	WDeallocate sTempRight
+	WDeAllocate sTempRight
 End Sub
 
 Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As String sTemp2 = TypeName
 	If tb->Des AndAlso tb->Des->ReadPropertyFunc <> 0 Then
@@ -3314,6 +3315,33 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 	Next i
 End Sub
 
+Declare Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElement Ptr) As UString
+
+Sub SetParametersFromDropDown()
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	#ifdef __USE_GTK__
+		If tb->txtCode.lvIntellisense.SelectedItemIndex = -1 Then Exit Sub
+		With *tb->txtCode.lvIntellisense.ListItems.Item(tb->txtCode.lvIntellisense.SelectedItemIndex)
+			tb->txtCode.HintDropDown = GetParameters(.Text(0), .Tag, tb->txtCode.te)
+		End With
+	#else
+		If tb->txtCode.cboIntellisense.ItemIndex = -1 Then Exit Sub
+		With tb->txtCode.cboIntellisense
+			tb->txtCode.HintDropDown = GetParameters(.Text, .ItemData(.ItemIndex), tb->txtCode.te)
+		End With
+	#endif
+	tb->txtCode.UpdateDropDownToolTip
+End Sub
+
+#ifdef __USE_GTK__
+	Sub Intellisense_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+#else
+	Sub Intellisense_SelectedItemChanged(ByRef Sender As ComboBoxEdit)
+#endif
+	SetParametersFromDropDown
+End Sub
+
 Sub CompleteWord
 	If FormClosing Then Exit Sub
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -3402,6 +3430,8 @@ Sub CompleteWord
 			tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
 			Exit Sub
 		End If
+		tb->txtCode.te = 0
+		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	End With
 End Sub
@@ -4076,7 +4106,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 			k = 2
 		End If
 		Dim As Boolean Types
-		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, , , , Types)
+		Dim As TypeElement Ptr te
+		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
 		If Trim(TypeName) = "" Then Exit Sub
 		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName, , , , , Types
 		#ifdef __USE_GTK__
@@ -4087,6 +4118,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		SelLinePos = iSelEndLine
 		SelCharPos = iSelEndChar
 		FindComboIndex tb, *sLine, iSelEndChar
+		tb->txtCode.te = te
+		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	ElseIf CInt(Key = Asc("=")) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iIndex
@@ -4137,6 +4170,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		#ifdef __USE_GTK__
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 		#endif
+		tb->txtCode.te = 0
+		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) OrElse CInt(Key = Asc("?")) OrElse CInt(Key = 5)  Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
@@ -4152,6 +4187,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 			#ifdef __USE_GTK__
 				If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 			#endif
+			tb->txtCode.te = 0
+			SetParametersFromDropDown
 			tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 		Else
 			ParameterInfo Key
@@ -4192,7 +4229,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		If Trim(*sLine, Any "\t ") <> "" AndAlso RTrim(LCase(..Left(*sLine, iSelEndChar)), Any "\t ") <> "" AndAlso iSelEndChar > 0 Then
 			Dim As String tmpChar = Mid(*sLine, iSelEndChar, 1)
-			If cbool(Trim(tmpChar) <> "") AndAlso cbool(InStr("!@#$~`'%^&*+-=()/\?<>.,;:[]{}""" & Chr(13) & Chr(10) & Chr(9), tmpChar) = 0) AndAlso AutoComplete Then CompleteWord
+			If CBool(Trim(tmpChar) <> "") AndAlso CBool(InStr("!@#$~`'%^&*+-=()/\?<>.,;:[]{}""" & Chr(13) & Chr(10) & Chr(9), tmpChar) = 0) AndAlso AutoComplete Then CompleteWord
 		End If
 	End If
 End Sub
@@ -5340,6 +5377,7 @@ Sub cboIntellisense_CloseUp(ByRef Sender As ComboBoxEdit)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	tb->txtCode.DropDownShowed = False
+	tb->txtCode.CloseDropDownToolTip
 End Sub
 
 Sub TabWindow_Destroy(ByRef Sender As Control)
@@ -5347,7 +5385,7 @@ Sub TabWindow_Destroy(ByRef Sender As Control)
 End Sub
 
 Sub TabWindow_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	If tb->pnlForm.Visible AndAlso tb->pnlForm.Align = 2 AndAlso tb->pnlForm.Width > tb->Width Then
 		tb->pnlForm.Width = tb->Width - tb->splForm.Width
@@ -5360,23 +5398,23 @@ mnuCode.Add(ML("&Copy") & !"\tCtrl+C", "Copy", "Copy", @mClick)
 mnuCode.Add(ML("&Paste") & !"\tCtrl+P", "Paste", "Paste", @mClick)
 mnuCode.Add("-")
 Var miToogle = mnuCode.Add(ML("Toggle"), "", "Toggle")
-miToogle->Add(ML("Breakpoint"), "Breakpoint", "Breakpoint", @mclick)
-miToogle->Add(ML("Bookmark"), "Bookmark", "ToggleBookmark", @mclick)
+miToogle->Add(ML("Breakpoint"), "Breakpoint", "Breakpoint", @mClick)
+miToogle->Add(ML("Bookmark"), "Bookmark", "ToggleBookmark", @mClick)
 mnuCode.Add("-")
-mnuCode.Add(ML("Add Watch"), "", "AddWatch", @mclick)
-mnuCode.Add(ML("Run To Cursor"), "", "RunToCursor", @mclick)
-mnuCode.Add(ML("Set Next Statement"), "", "SetNextStatement", @mclick)
+mnuCode.Add(ML("Add Watch"), "", "AddWatch", @mClick)
+mnuCode.Add(ML("Run To Cursor"), "", "RunToCursor", @mClick)
+mnuCode.Add(ML("Set Next Statement"), "", "SetNextStatement", @mClick)
 mnuCode.Add("-")
-mnuCode.Add(ML("Define"), "", "Define", @mclick)
+mnuCode.Add(ML("Define"), "", "Define", @mClick)
 mnuCode.Add("-")
-mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mclick)
+mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mClick)
 
 Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pnl->Parent)
 	If tb = 0 OrElse tb->Des = 0 Then Exit Sub
 	#ifndef __USE_GTK__
-		Select Case Msg.Msg
+		Select Case msg.Msg
 		Case WM_SIZE
 			Dim As Integer dwClientX = pnl->ClientWidth 'UnScaleX(LoWord(msg.lParam))
 			Dim As Integer dwClientY = pnl->ClientHeight 'UnScaleY(HiWord(msg.lParam))
@@ -5557,16 +5595,6 @@ Constructor TabPanel
 	This.Add @tabCode
 End Constructor
 
-#ifdef __USE_GTK__
-	Sub Intellisense_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		
-	End Sub
-#else
-	Sub Intellisense_SelectedItemChanged(ByRef Sender As ComboBoxEdit)
-		
-	End Sub
-#endif
-
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
 	WLet(FCaption, "")
 	WLet(FFileName, "")
@@ -5697,8 +5725,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlForm.Visible = False
 	pnlForm.OnMessage = @pnlForm_Message
 	splForm.Visible = False
-	pnlToolBar.Add @tbrTop
-	pnlTop.Add @pnlToolBar
+	pnlToolbar.Add @tbrTop
+	pnlTop.Add @pnlToolbar
 	pnlTop.Add @pnlTopCombo
 	pnlTopCombo.Add @cboClass
 	pnlTopCombo.Add @cboFunction
@@ -5718,16 +5746,16 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#ifdef __USE_GTK__
 		#ifdef __USE_GTK3__
 			pnlForm.overlaywidget = gtk_overlay_new()
-			gtk_container_add(gtk_container(pnlForm.overlaywidget), pnlForm.Handle)
+			gtk_container_add(GTK_CONTAINER(pnlForm.overlaywidget), pnlForm.Handle)
 			pnlForm.scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-			gtk_scrolled_window_set_policy(gtk_scrolled_window(pnlForm.scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
-			gtk_container_add(gtk_container(pnlForm.scrolledwidget), pnlForm.overlaywidget)
+			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pnlForm.scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_container_add(GTK_CONTAINER(pnlForm.scrolledwidget), pnlForm.overlaywidget)
 			'layout = gtk_layout_new(NULL, NULL)
 			'gtk_overlay_add_overlay(gtk_overlay(overlay), layout)
 		#else
 			pnlForm.scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
-			gtk_scrolled_window_set_policy(gtk_scrolled_window(pnlForm.scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
-			gtk_container_add(gtk_container(pnlForm.scrolledwidget), pnlForm.Handle)
+			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pnlForm.scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+			gtk_container_add(GTK_CONTAINER(pnlForm.scrolledwidget), pnlForm.Handle)
 		#endif
 	#else
 		pnlForm.Style = pnlForm.Style Or WS_HSCROLL Or WS_VSCROLL
@@ -7785,7 +7813,7 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			If StartsWith(LTrim(*FECLine->Text), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
+				If isNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
 			ElseIf StartsWith(LTrim(*FECLine->Text), "_L ") Then
@@ -7799,7 +7827,7 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 End Sub
 
 Sub TabWindow.NumberOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	NumberingOff StartLine, EndLine, tb->txtCode
 End Sub
@@ -7823,13 +7851,13 @@ Sub PreprocessorNumberingOff(ByRef txtCode As EditControl, WithoutUpdate As Bool
 End Sub
 
 Sub TabWindow.PreprocessorNumberOff()
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	PreprocessorNumberingOff tb->txtCode
 End Sub
 
 Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	With tb->txtCode
 		.UpdateLock
