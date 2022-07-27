@@ -2921,6 +2921,7 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 			CompleteWord
 		End If
 	#endif
+	If key = 32 andalso tb->txtCode.DropDownShowed Then tb->txtCode.CloseDropDown
 	'    If Key = 13 Then
 	'        If tb->txtCode.DropDownShowed Then
 	'            tb->txtCode.cboIntellisense.ShowDropDown False
@@ -3334,9 +3335,10 @@ Sub CompleteWord
 				sTemp = s & sTemp
 			End If
 			If f Then d = True
-		ElseIf CInt(s = " " OrElse s = !"\t") AndAlso CInt(Not d) AndAlso CInt(Not b) Then
+		ElseIf CInt(s = " " OrElse s = !"\t") AndAlso CInt(Not d) AndAlso CInt(Not b) AndAlso CInt(Not c) Then
 			If Not f Then SelCharPos = i
 			f = True
+			Exit For
 		ElseIf s = "." Then
 			b = True
 			TypeName = GetLeftArgTypeName(tb, iSelEndLine, i - 1, te, teOld)
@@ -4160,7 +4162,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), "->") Then
 			'FillIntellisenseByName GetLeftArg(tb, iSelEndLine, tb->txtCode.DropDownChar - 2)
 		Else
-			FillAllIntellisenses Mid(*sLine, tb->txtCode.DropDownChar + 1)
+			If Trim(Mid(*sLine, tb->txtCode.DropDownChar + 1)) = "" Then
+				tb->txtCode.CloseDropDown
+			Else
+				FillAllIntellisenses Mid(*sLine, tb->txtCode.DropDownChar + 1)
+			End If
 		End If
 		FindComboIndex tb, *sLine, tb->txtCode.DropDownChar
 		#ifdef __USE_GTK__
@@ -4168,8 +4174,14 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		#else
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.cboIntellisense.ItemIndex = -1
 		#endif
-'	Else
-'		If AutoComplete Then CompleteWord
+	Else
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+		If Trim(*sLine, Any "\t ") <> "" AndAlso RTrim(LCase(..Left(*sLine, iSelEndChar)), Any "\t ") <> "" AndAlso iSelEndChar > 0 Then
+			Dim As String tmpChar = Mid(*sLine, iSelEndChar, 1)
+			If cbool(Trim(tmpChar) <> "") AndAlso cbool(InStr("!@#$~`'%^&*+-=()/\?<>.,;:[]{}""" & Chr(13) & Chr(10) & Chr(9), tmpChar) = 0) AndAlso AutoComplete Then CompleteWord
+		End If
 	End If
 End Sub
 
