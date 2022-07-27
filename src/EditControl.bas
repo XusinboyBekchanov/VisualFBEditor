@@ -1022,6 +1022,14 @@ Namespace My.Sys.Forms
 		'ChangeText Value, "Matn almashtirildi"
 	End Property
 	
+	Property EditControl.HintDropDown ByRef As WString
+		Return WGet(FHintDropDown)
+	End Property
+	
+	Property EditControl.HintDropDown(ByRef Value As WString)
+		WLet(FHintDropDown, Value)
+	End Property
+	
 	Property EditControl.HintWord ByRef As WString
 		Return WGet(FHintWord)
 	End Property
@@ -3675,13 +3683,15 @@ End Function
 		#ifdef __USE_GTK__
 			Dim As gint x, y
 			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
-			gtk_window_move(gtk_window(winIntellisense), HCaretPos + x, VCaretPos + y)
+			gtk_window_move(GTK_WINDOW(winIntellisense), HCaretPos + x, VCaretPos + y)
 			gtk_widget_show_all(winIntellisense)
 		#else
 			pnlIntellisense.SetBounds HCaretPos, VCaretPos, 250, 0
 			cboIntellisense.ShowDropDown True
 			If LastItemIndex = -1 Then cboIntellisense.ItemIndex = -1
 		#endif
+		HintDropDown = "fdfdfd"
+		ShowDropDownToolTipAt HCaretPos + 250, VCaretPos
 	End Sub
 	
 	#ifdef __USE_WINAPI__
@@ -3704,6 +3714,56 @@ End Function
 		End Sub
 	#endif
 	
+	Sub EditControl.ShowDropDownToolTipAt(X As Integer, Y As Integer)
+		#ifdef __USE_GTK__
+			DropDownToolTipItemIndex = lvIntellisense.SelectedItemIndex
+		#else
+			DropDownToolTipItemIndex = cboIntellisense.ItemIndex
+		#endif
+		DropDownToolTipShowed = True
+		#ifdef __USE_GTK__
+			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(*FHintDropDown))
+			gtk_window_move(GTK_WINDOW(winDropDownTooltip), X, Y)
+			gtk_window_resize(GTK_WINDOW(winDropDownTooltip), 100, 25)
+			gtk_widget_show_all(winDropDownTooltip)
+		#else
+			Dim As TOOLINFO    ti
+			ZeroMemory(@ti, SizeOf(ti))
+			
+			ti.cbSize = SizeOf(ti)
+			ti.hwnd   = FHandle
+			'ti.uId    = Cast(UINT, FHandle)
+			
+			If hwndTT = 0 Then
+				TTDropDown.CreateWnd
+				hwndTTDropDown = TTDropDown.Handle 'CreateWindowW(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
+				If g_darkModeEnabled Then
+					SetWindowTheme(hwndTTDropDown, "DarkMode_Explorer", nullptr)
+				End If
+				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
+				ti.hinst  = GetModuleHandle(NULL)
+				ti.lpszText  = FHintDropDown
+				
+				SendMessage(hwndTTDropDown, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
+			Else
+				SendMessage(hwndTTDropDown, TTM_GETTOOLINFO, 0, CInt(@ti))
+				
+				ti.lpszText = FHintDropDown
+				
+				SendMessage(hwndTTDropDown, TTM_UPDATETIPTEXT, 0, CInt(@ti))
+			End If
+			
+			SendMessage(hwndTTDropDown, TTM_SETMAXTIPWIDTH, 0, 1000)
+			SendMessage(hwndTTDropDown, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
+			
+			Var Result = SendMessage(hwndTTDropDown, TTM_GETBUBBLESIZE, 0, Cast(LPARAM, @ti))
+			
+			Dim As ..Rect rc, rc2
+			GetWindowRect(FHandle, @rc)
+			SendMessage(hwndTTDropDown, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(X), rc.Top + ScaleY(Y)))
+		#endif
+	End Sub
+	
 	Sub EditControl.ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
 		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
@@ -3713,10 +3773,10 @@ End Function
 		ToolTipShowed = True
 		#ifdef __USE_GTK__
 			Dim As gint x, y
-			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint))
+			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(*FHint))
 			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
-			gtk_window_move(gtk_window(winTooltip), HCaretPos + x, VCaretPos + y)
-			gtk_window_resize(gtk_window(winTooltip), 100, 25)
+			gtk_window_move(GTK_WINDOW(winTooltip), HCaretPos + x, VCaretPos + y)
+			gtk_window_resize(GTK_WINDOW(winTooltip), 100, 25)
 			gtk_widget_show_all(winTooltip)
 		#else
 			Dim As TOOLINFO    ti
@@ -3750,7 +3810,7 @@ End Function
 			
 			Var Result = SendMessage(hwndTT, TTM_GETBUBBLESIZE, 0, Cast(LPARAM, @ti))
 			
-			Dim As ..RECT rc, rc2
+			Dim As ..Rect rc, rc2
 			GetWindowRect(FHandle, @rc)
 			SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(HCaretPos), rc.Top + IIf(ShowTooltipsAtTheTop, ScaleY(VCaretPos - dwCharY) - HiWord(Result), ScaleY(VCaretPos + 5))))
 		#endif
@@ -3758,7 +3818,7 @@ End Function
 	
 	Sub EditControl.UpdateToolTip()
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(gtk_label(lblTooltip), ToUTF8(*FHint))
+			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(*FHint))
 		#else
 			If hwndTT <> 0 Then
 				Dim As TOOLINFO    ti
@@ -3779,16 +3839,33 @@ End Function
 	Sub EditControl.CloseDropDown()
 		DropDownShowed = False
 		#ifdef __USE_GTK__
-			gtk_widget_hide(gtk_widget(winIntellisense))
+			gtk_widget_hide(GTK_WIDGET(winIntellisense))
 		#else
 			cboIntellisense.ShowDropDown False
+		#endif
+		CloseDropDownToolTip
+	End Sub
+	
+	Sub EditControl.CloseDropDownToolTip()
+		DropDownToolTipShowed = False
+		#ifdef __USE_GTK__
+			gtk_widget_hide(GTK_WIDGET(winDropDownTooltip))
+		#else
+			Dim As TOOLINFO    ti
+			ZeroMemory(@ti, SizeOf(ti))
+			
+			ti.cbSize = SizeOf(ti)
+			ti.hwnd   = FHandle
+			'ti.uId    = Cast(UINT, FHandle)
+			
+			SendMessage(hwndTTDropDown, TTM_TRACKACTIVATE, False, Cast(LPARAM, @ti))
 		#endif
 	End Sub
 	
 	Sub EditControl.CloseToolTip()
 		ToolTipShowed = False
 		#ifdef __USE_GTK__
-			gtk_widget_hide(gtk_widget(winTooltip))
+			gtk_widget_hide(GTK_WIDGET(winTooltip))
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))

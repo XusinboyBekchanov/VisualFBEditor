@@ -2921,7 +2921,7 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 			CompleteWord
 		End If
 	#endif
-	If key = 32 andalso tb->txtCode.DropDownShowed Then tb->txtCode.CloseDropDown
+	If Key = 32 AndAlso tb->txtCode.DropDownShowed Then tb->txtCode.CloseDropDown
 	'    If Key = 13 Then
 	'        If tb->txtCode.DropDownShowed Then
 	'            tb->txtCode.cboIntellisense.ShowDropDown False
@@ -3004,7 +3004,7 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 End Function
 
 Sub FillAllIntellisenses(ByRef Starts As WString = "")
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	#ifdef __USE_GTK__
 		tb->txtCode.lvIntellisense.ListItems.Clear
@@ -3316,7 +3316,7 @@ End Sub
 
 Sub CompleteWord
 	If FormClosing Then Exit Sub
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -3475,41 +3475,14 @@ Private Function GetFuncStartChar(sLine As WString Ptr, iSelEndChar As Integer, 
 	Return iSelStartCharFunc
 End Function
 
-Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndChar As Integer = -1, sWordAt As String = "")
-	If FormClosing Then Exit Sub
+Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElement Ptr) As UString
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If tb = 0 Then Exit Sub
-	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iSelStartCharFunc, iSelEndCharFunc
-	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+	If tb = 0 Then Return ""
+	Dim As Integer Index, iPos
 	Dim As WStringList ParametersList
-	Dim As String sWord, Symb, FuncName, Parameters, Parameter
+	Dim As String Symb, FuncName, Parameters, Parameter
 	Dim As UString Comments, Link1
-	Dim As Integer iCount, iPos
-	iSelEndCharFunc = iSelEndChar
-	If SelStartChar <> -1 Then
-		iSelStartCharFunc = SelStartChar
-		iSelEndCharFunc = SelEndChar
-		sWord = sWordAt
-	Else
-		If Key = Asc(",") Then
-			'If tb->txtCode.ToolTipShowed Then Exit Sub
-			iSelStartCharFunc = GetFuncStartChar(sLine, iSelEndChar, iSelEndCharFunc)
-		End If
-		If Key = Asc("?") OrElse Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar, 1) = "?" Then
-			sWord = "?"
-			iSelStartCharFunc = iSelEndChar - 1
-		ElseIf Mid(tb->txtCode.Lines(iSelEndLine), iSelStartCharFunc + 1, 1) = "?" Then
-			sWord = "?"
-		Else
-			sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - IIf(Key = 0, 0, 1), , True, iSelStartCharFunc)
-		End If
-	End If
-	Dim As TypeElement Ptr te, teOld
-	Dim As Integer Index
 	Dim As String TypeName
-	If sWord = "" Then Exit Sub
-	TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndCharFunc - 1, te, teOld)
 	If teOld <> 0 AndAlso teOld->TypeName <> "" Then
 		TypeName = teOld->TypeName
 		FListItems.Clear
@@ -3542,7 +3515,7 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 	Else
 		If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 			If Not ShowKeywordsToolTip Then
-				If te->ElementType = "Keyword" Then Exit Sub
+				If te->ElementType = "Keyword" Then Return ""
 			End If
 			Dim As UString res(Any)
 			Split te->Parameters, !"\r", res()
@@ -3604,8 +3577,47 @@ Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndCh
 		End If
 	End If
 	If Parameters <> "" Then
+		Parameters &= IIf(Comments <> "", !"\r_________________\r" & Comments, "")
+	End If
+	Return Parameters
+End Function
+
+Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndChar As Integer = -1, sWordAt As String = "")
+	If FormClosing Then Exit Sub
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iSelStartCharFunc, iSelEndCharFunc
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+	Dim As String sWord
+	Dim As Integer iCount, iPos
+	iSelEndCharFunc = iSelEndChar
+	If SelStartChar <> -1 Then
+		iSelStartCharFunc = SelStartChar
+		iSelEndCharFunc = SelEndChar
+		sWord = sWordAt
+	Else
+		If Key = Asc(",") Then
+			'If tb->txtCode.ToolTipShowed Then Exit Sub
+			iSelStartCharFunc = GetFuncStartChar(sLine, iSelEndChar, iSelEndCharFunc)
+		End If
+		If Key = Asc("?") OrElse Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar, 1) = "?" Then
+			sWord = "?"
+			iSelStartCharFunc = iSelEndChar - 1
+		ElseIf Mid(tb->txtCode.Lines(iSelEndLine), iSelStartCharFunc + 1, 1) = "?" Then
+			sWord = "?"
+		Else
+			sWord = tb->txtCode.GetWordAt(iSelEndLine, iSelEndCharFunc - IIf(Key = 0, 0, 1), , True, iSelStartCharFunc)
+		End If
+	End If
+	Dim As TypeElement Ptr te, teOld
+	Dim As String TypeName
+	If sWord = "" Then Exit Sub
+	TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndCharFunc - 1, te, teOld)
+	Dim Parameters As UString = GetParameters(sWord, te, teOld)
+	If Parameters <> "" Then
 		tb->txtCode.HintWord = sWord
-		tb->txtCode.Hint = Parameters & IIf(Comments <> "", !"\r_________________\r" & Comments, "")
+		tb->txtCode.Hint = Parameters
 		tb->txtCode.ShowToolTipAt(iSelEndLine, iSelStartCharFunc)
 		tb->txtCode.SetFocus
 		If Key <> 0 Then OnSelChangeEdit(tb->txtCode, iSelEndLine, iSelEndChar)
@@ -5527,7 +5539,7 @@ Sub tabPanel_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As I
 		Next
 		.RequestAlign
 		.OldWidth = NewWidth
-		.Oldheight = NewHeight
+		.OldHeight = NewHeight
 	End With
 End Sub
 
@@ -5545,11 +5557,21 @@ Constructor TabPanel
 	This.Add @tabCode
 End Constructor
 
+#ifdef __USE_GTK__
+	Sub Intellisense_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		
+	End Sub
+#else
+	Sub Intellisense_SelectedItemChanged(ByRef Sender As ComboBoxEdit)
+		
+	End Sub
+#endif
+
 Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0)
 	WLet(FCaption, "")
 	WLet(FFileName, "")
 	txtCode.Font.Name = *EditorFontName
-	txtCode.Font.Size = MAX(8, EditorFontSize)
+	txtCode.Font.Size = Max(8, EditorFontSize)
 	txtCode.Align = DockStyle.alClient
 	txtCode.OnChange = @OnChangeEdit
 	txtCode.OnLineChange = @OnLineChangeEdit
@@ -5563,6 +5585,11 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnSplitVerticallyChange = @OnSplitVerticallyChangeEdit
 	txtCode.Tag = @This
 	txtCode.ShowHint = False
+	#ifdef __USE_GTK__
+		txtCode.lvIntellisense.OnSelectedItemChanged = @Intellisense_SelectedItemChanged
+	#else
+		txtCode.cboIntellisense.OnChange = @Intellisense_SelectedItemChanged
+	#endif
 	'OnPaste = @OnPasteEdit
 	txtCode.OnMouseMove = @OnMouseMoveEdit
 	txtCode.OnMouseHover = @OnMouseHoverEdit

@@ -146,6 +146,7 @@ Namespace My.Sys.Forms
 		Dim FLineTemp As WString Ptr
 		Dim FLineTab As WString Ptr
 		Dim FLineSpace As WString Ptr
+		Dim FHintDropDown As WString Ptr
 		Dim FHintWord As WString Ptr
 		Dim HScrollMaxLeft As Integer
 		Dim HScrollMaxRight As Integer
@@ -206,10 +207,10 @@ Namespace My.Sys.Forms
 			Dim As HDC bufDC
 			Dim As HBITMAP bufBMP
 			Dim As TEXTMETRIC tm
-			Dim As HWND hwndTT
-			Dim As ToolTips TT
+			Dim As HWND hwndTT, hwndTTDropDown
+			Dim As ToolTips TT, TTDropDown
 		#endif
-		Dim As ..RECT rc
+		Dim As ..Rect rc
 		#ifndef __USE_GTK__
 			Dim sz As ..Size
 			Dim As SCROLLINFO si
@@ -317,6 +318,7 @@ Namespace My.Sys.Forms
 			Dim As GdkWindow Ptr win
 			Dim As GtkWidget Ptr winIntellisense
 			Dim As GtkWidget Ptr scrollwinIntellisense
+			Dim As GtkWidget Ptr winDropDownTooltip
 			Dim As GtkWidget Ptr winTooltip
 			Dim As Integer verticalScrollBarWidth
 			Dim As Integer horizontalScrollBarHeight
@@ -353,12 +355,15 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			lvIntellisense As ListView
 			lblTooltip As GtkWidget Ptr
+			lblDropDownTooltip As GtkWidget Ptr
 		#else
 			cboIntellisense As ComboBoxEx
 			pnlIntellisense As Panel
 		#endif
 		DropDownShowed As Boolean
 		DropDownChar As Integer
+		DropDownToolTipShowed As Boolean
+		DropDownToolTipItemIndex As Integer
 		ToolTipShowed As Boolean
 		ToolTipChar As Integer
 		Declare Function GetConstruction(ByRef sLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0, InAsm As Boolean = False) As Integer
@@ -366,8 +371,10 @@ Namespace My.Sys.Forms
 		Declare Sub ShowCaretPos(Scroll As Boolean = False)
 		Declare Function TextWidth(ByRef sText As WString) As Integer
 		Declare Sub ShowDropDownAt(iSelEndLine As Integer, iSelEndChar As Integer)
+		Declare Sub ShowDropDownToolTipAt(X As Integer, Y As Integer)
 		Declare Sub ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Declare Sub UpdateToolTip
+		Declare Sub CloseDropDownToolTip()
 		Declare Sub CloseDropDown()
 		Declare Sub CloseToolTip()
 		Declare Sub FormatCode(WithoutUpdate As Boolean = False)
@@ -390,6 +397,8 @@ Namespace My.Sys.Forms
 		Declare Function LineLength(Index As Integer) As Integer
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
+		Declare Property HintDropDown ByRef As WString
+		Declare Property HintDropDown(ByRef Value As WString)
 		Declare Property HintWord ByRef As WString
 		Declare Property HintWord(ByRef Value As WString)
 		Declare Property SelText ByRef As WString
@@ -442,8 +451,8 @@ Namespace My.Sys.Forms
 		OnValidate As Sub(ByRef Sender As EditControl)
 		OnSelChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
 		OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
-		OnLinkClicked As Sub(ByRef Sender As EditControl, ByRef Link As WString)
-		OnToolTipLinkClicked As Sub(ByRef Sender As EditControl, ByRef Link As WString)
+		OnLinkClicked As Sub(ByRef Sender As EditControl, ByRef link As WString)
+		OnToolTipLinkClicked As Sub(ByRef Sender As EditControl, ByRef link As WString)
 		OnSplitHorizontallyChange As Sub(ByRef Sender As EditControl, Splitted As Boolean)
 		OnSplitVerticallyChange As Sub(ByRef Sender As EditControl, Splitted As Boolean)
 	End Type
