@@ -3324,11 +3324,13 @@ Sub SetParametersFromDropDown()
 		If tb->txtCode.lvIntellisense.SelectedItemIndex = -1 Then Exit Sub
 		With *tb->txtCode.lvIntellisense.ListItems.Item(tb->txtCode.lvIntellisense.SelectedItemIndex)
 			tb->txtCode.HintDropDown = GetParameters(.Text(0), .Tag, tb->txtCode.te)
+			If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text(0)
 		End With
 	#else
 		If tb->txtCode.cboIntellisense.ItemIndex = -1 Then Exit Sub
 		With tb->txtCode.cboIntellisense
 			tb->txtCode.HintDropDown = GetParameters(.Text, .ItemData(.ItemIndex), tb->txtCode.te)
+			If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text
 		End With
 	#endif
 	tb->txtCode.UpdateDropDownToolTip
@@ -3606,8 +3608,8 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			Next
 		End If
 	End If
-	If Parameters <> "" Then
-		Parameters &= IIf(Comments <> "", !"\r_________________\r" & Comments, "")
+	If Comments <> "" Then
+		Parameters &= !"\r_________________\r" & Comments
 	End If
 	Return Parameters
 End Function
