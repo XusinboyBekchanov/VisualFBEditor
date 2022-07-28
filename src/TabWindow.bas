@@ -4225,14 +4225,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
 		#else
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.cboIntellisense.ItemIndex = -1
 		#endif
-	Else
-		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-		If Trim(*sLine, Any "\t ") <> "" AndAlso RTrim(LCase(..Left(*sLine, iSelEndChar)), Any "\t ") <> "" AndAlso iSelEndChar > 0 Then
-			Dim As String tmpChar = Mid(*sLine, iSelEndChar, 1)
-			If CBool(Trim(tmpChar) <> "") AndAlso CBool(InStr("!@#$~`'%^&*+-=()/\?<>.,;:[]{}""" & Chr(13) & Chr(10) & Chr(9), tmpChar) = 0) AndAlso AutoComplete Then CompleteWord
-		End If
+	ElseIf AutoComplete AndAlso Key > Asc("A") AndAlso Key < Asc("z") Then
+		CompleteWord
 	End If
 End Sub
 
