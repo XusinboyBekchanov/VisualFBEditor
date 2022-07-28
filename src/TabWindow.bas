@@ -3320,16 +3320,21 @@ Declare Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As 
 Sub SetParametersFromDropDown()
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
+	Dim As Integer Index
 	#ifdef __USE_GTK__
-		If tb->txtCode.lvIntellisense.SelectedItemIndex = -1 Then Exit Sub
-		With *tb->txtCode.lvIntellisense.ListItems.Item(tb->txtCode.lvIntellisense.SelectedItemIndex)
+		Index = tb->txtCode.lvIntellisense.SelectedItemIndex
+		If Index = -1 Then Exit Sub
+		With *tb->txtCode.lvIntellisense.ListItems.Item(Index)
 			tb->txtCode.HintDropDown = GetParameters(.Text(0), .Tag, tb->txtCode.te)
 			If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text(0)
 		End With
 	#else
-		If tb->txtCode.cboIntellisense.ItemIndex = -1 Then Exit Sub
+		Index = tb->txtCode.cboIntellisense.ItemIndex
+		If Index = -1 Then Exit Sub
 		With tb->txtCode.cboIntellisense
-			tb->txtCode.HintDropDown = GetParameters(.Text, .ItemData(.ItemIndex), tb->txtCode.te)
+			Dim As String sWord = .Item(Index)
+			Dim As TypeElement Ptr te = .ItemData(Index)
+			tb->txtCode.HintDropDown = GetParameters(sWord, te, tb->txtCode.te)
 			If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text
 		End With
 	#endif
@@ -4349,6 +4354,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim SelControlNames As WStringList
 	Dim bSelControlFind As Boolean
 	Dim As UString ResourceFile = GetResourceFile(True)
+	txtCode.te = 0
 	If CInt(NotForms = False) AndAlso CInt(Des) Then
 		With *Des
 			If pfImageListEditor->CurrentImageList <> 0 Then CurrentImageListName = WGet(.ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
