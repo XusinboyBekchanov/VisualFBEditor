@@ -2414,17 +2414,16 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Selection")
 		.lstColorKeys.AddItem ML("Space Identifiers")
 		.lstColorKeys.AddItem ML("Strings")
+		ReDim .Colors(.lstColorKeys.Items.Count - 1, 7)
 		.lstColorKeys.ItemIndex = 0
 		.cboOpenedFile.AddItem ML("All file types")
 		.cboOpenedFile.AddItem ML("Session file")
 		.cboOpenedFile.AddItem ML("Folder")
 		.cboOpenedFile.AddItem ML("Project file")
 		.cboOpenedFile.AddItem ML("Other file types")
-		
 		For i As Integer = 0 To pfrmMain->Menu->Count - 1
 			AddShortcuts(pfrmMain->Menu->Item(i))
 		Next
-		ReDim .Colors(.lstColorKeys.Items.Count - 1, 7)
 		.LoadSettings
 	End With
 End Sub
@@ -3273,6 +3272,7 @@ End Sub
 
 Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 	With fOptions
+		If UBound(.Colors) = -1 Then Exit Sub
 		piniTheme->Load ExePath & "/Settings/Themes/" & fOptions.cboTheme.Text & ".ini"
 		.Colors(29 + UBound(Keywords), 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", IIf(g_darkModeEnabled, darkTextColor, clBlack))
 		.Colors(29 + UBound(Keywords), 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", IIf(g_darkModeEnabled, darkBkColor, clWhite))
