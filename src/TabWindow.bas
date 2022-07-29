@@ -4099,7 +4099,7 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 	Return sTemp
 End Function
 
-Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
+Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	MouseHoverTimerVal = Timer
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub

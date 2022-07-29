@@ -6334,7 +6334,7 @@ Sub lvEvents_KeyDown(ByRef Sender As Control, ByRef Item As TreeListViewItem Ptr
 	
 End Sub
 
-Sub lvProperties_KeyPress(ByRef Sender As Control, Key As Byte)
+Sub lvProperties_KeyPress(ByRef Sender As Control, Key As Integer)
 	txtPropertyValue.Text = WChr(Key)
 	txtPropertyValue.SetFocus
 	txtPropertyValue.SetSel 1, 1
@@ -6344,8 +6344,8 @@ End Sub
 Sub lvProperties_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	#ifndef __USE_GTK__
 		Select Case Key
-		Case VK_Return: txtPropertyValue.SetFocus
-		Case VK_Left, VK_Right, VK_Up, VK_Down, VK_NEXT, VK_PRIOR
+		Case VK_RETURN: txtPropertyValue.SetFocus
+		Case VK_LEFT, VK_RIGHT, VK_UP, VK_DOWN, VK_NEXT, VK_PRIOR
 		End Select
 	#endif
 	'Key = 0
