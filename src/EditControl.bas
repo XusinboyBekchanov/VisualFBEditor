@@ -3807,7 +3807,7 @@ End Function
 			ti.hwnd   = FHandle
 			'ti.uId    = Cast(UINT, FHandle)
 			
-			If hwndTT = 0 Then
+			If hwndTTDropDown = 0 Then
 				TTDropDown.CreateWnd
 				hwndTTDropDown = TTDropDown.Handle 'CreateWindowW(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
 				If g_darkModeEnabled Then
