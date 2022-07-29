@@ -274,6 +274,7 @@ Namespace My.Sys.Forms
 	Protected:
 		Declare Function GetOldCharIndex() As Integer
 		Declare Function GetCharIndexFromOld() As Integer
+		Declare Function CountOfVisibleLines() As Integer
 		Declare Sub ChangeCollapsibility(LineIndex As Integer)
 		Declare Sub _FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString)
 		Declare Sub _LoadFromHistory(ByRef item As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr)
@@ -436,6 +437,10 @@ Namespace My.Sys.Forms
 		Declare Sub Bookmark
 		Declare Sub CollapseAll
 		Declare Sub UnCollapseAll
+		Declare Sub CollapseAllProcedures
+		Declare Sub UnCollapseAllProcedures
+		Declare Sub CollapseCurrent
+		Declare Sub UnCollapseCurrent
 		Declare Sub ClearAllBookmarks
 		Declare Sub SelectAll
 		Declare Sub ScrollToCaret

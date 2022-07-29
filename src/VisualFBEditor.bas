@@ -42,8 +42,8 @@ Declare Sub DebugPrint_(ByRef MSG As WString)
 #include once "frmAbout.bi"
 #include once "TabWindow.bi"
 
-Sub DebugPrint_(ByRef Msg As WString)
-	Debug.Print Msg, True, False, False, False
+Sub DebugPrint_(ByRef MSG As WString)
+	Debug.Print MSG, True, False, False, False
 End Sub
 
 Sub StartDebuggingWithCompile(Param As Any Ptr)
@@ -83,13 +83,13 @@ Sub RunCmd(Param As Any Ptr)
 		SInfo.dwFlags = STARTF_USESHOWWINDOW
 		SInfo.wShowWindow = SW_NORMAL
 		pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
-		If CreateProcessW(Null, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-			CloseHandle(pinfo.hProcess)
-			CloseHandle(pinfo.hThread)
+		If CreateProcessW(NULL, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then
+			CloseHandle(PInfo.hProcess)
+			CloseHandle(PInfo.hThread)
 		End If
 		If CmdL Then Deallocate_( CmdL)
 	#endif
-	If WorkDir Then Deallocate_( WorkDir)
+	If Workdir Then Deallocate_( Workdir)
 End Sub
 
 Sub FindInFiles
@@ -193,11 +193,11 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "WatchWindow":                         ptabBottom->Tab(9)->SelectTab
 	Case "ImageManager":                        pfImageManager->Show *pfrmMain
 	Case "Toolbars":                            'ShowMainToolbar = Not ShowMainToolbar: ReBar1.Visible = ShowMainToolbar: pfrmMain->RequestAlign
-	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: ReBar1.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolbar: pfrmMain->RequestAlign
-	Case "Edit":                                ShowEditToolBar = Not ShowEditToolBar: ReBar1.Bands.Item(1)->Visible = ShowEditToolBar: mnuEditToolBar->Checked = ShowEditToolbar: pfrmMain->RequestAlign
-	Case "Project":                             ShowProjectToolBar = Not ShowProjectToolBar: ReBar1.Bands.Item(2)->Visible = ShowProjectToolBar: mnuProjectToolBar->Checked = ShowProjectToolbar: pfrmMain->RequestAlign
-	Case "Build":                               ShowBuildToolBar = Not ShowBuildToolBar: ReBar1.Bands.Item(3)->Visible = ShowBuildToolBar: mnuBuildToolBar->Checked = ShowBuildToolbar: pfrmMain->RequestAlign
-	Case "Run":                                 ShowRunToolBar = Not ShowRunToolBar: ReBar1.Bands.Item(4)->Visible = ShowRunToolBar: mnuRunToolBar->Checked = ShowRunToolbar: pfrmMain->RequestAlign
+	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: ReBar1.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolBar: pfrmMain->RequestAlign
+	Case "Edit":                                ShowEditToolBar = Not ShowEditToolBar: ReBar1.Bands.Item(1)->Visible = ShowEditToolBar: mnuEditToolBar->Checked = ShowEditToolBar: pfrmMain->RequestAlign
+	Case "Project":                             ShowProjectToolBar = Not ShowProjectToolBar: ReBar1.Bands.Item(2)->Visible = ShowProjectToolBar: mnuProjectToolBar->Checked = ShowProjectToolBar: pfrmMain->RequestAlign
+	Case "Build":                               ShowBuildToolBar = Not ShowBuildToolBar: ReBar1.Bands.Item(3)->Visible = ShowBuildToolBar: mnuBuildToolBar->Checked = ShowBuildToolBar: pfrmMain->RequestAlign
+	Case "Run":                                 ShowRunToolBar = Not ShowRunToolBar: ReBar1.Bands.Item(4)->Visible = ShowRunToolBar: mnuRunToolBar->Checked = ShowRunToolBar: pfrmMain->RequestAlign
 	Case "TBUseDebugger":                       ChangeUseDebugger tbtUseDebugger->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder
@@ -614,8 +614,8 @@ Sub mClick(Sender As My.Sys.Object)
 		#endif
 	Case "Undo", "Redo", "CutCurrentLine", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
-		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", _
-		"CompleteWord", "ParameterInfo", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
+		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", "CollapseAllProcedures", "UnCollapseAllProcedures", _
+		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
 		If pfrmMain->ActiveControl = 0 Then Exit Sub
 		If pfrmMain->ActiveControl->ClassName <> "EditControl" AndAlso pfrmMain->ActiveControl->ClassName <> "TextBox" AndAlso pfrmMain->ActiveControl->ClassName <> "Panel" Then Exit Sub
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -672,9 +672,13 @@ Sub mClick(Sender As My.Sys.Object)
 							If InDebug Then: brk_set(1): End If
 						#endif
 					End If
-					ec->BreakPoint
+					ec->Breakpoint
 				Case "CollapseAll":             ec->CollapseAll
 				Case "UnCollapseAll":           ec->UnCollapseAll
+				Case "CollapseAllProcedures":   ec->CollapseAllProcedures
+				Case "UnCollapseAllProcedures": ec->UnCollapseAllProcedures
+				Case "CollapseCurrent":         ec->CollapseCurrent
+				Case "UnCollapseCurrent":       ec->UnCollapseCurrent
 				Case "CompleteWord":            CompleteWord
 				Case "ParameterInfo":           ParameterInfo 0
 				Case "ToggleBookmark":          ec->Bookmark

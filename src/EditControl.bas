@@ -34,20 +34,47 @@ Namespace My.Sys.Forms
 	End Destructor
 End Namespace
 
+Enum
+	C_If
+	C_P_If
+	C_P_Macro
+	C_Extern
+	C_Try
+	C_Asm
+	C_Select_Case
+	C_For
+	C_Do
+	C_While
+	C_With
+	C_Scope
+	C_P_Region
+	C_Namespace
+	C_Enum
+	C_Type
+	C_Union
+	C_Sub
+	C_Function
+	C_Property
+	C_Operator
+	C_Constructor
+	C_Destructor
+	C_Count
+End Enum
+
 ' Add Try End_Try
-ReDim Constructions(22) As Construction
-Constructions(0)  = Type<Construction>("If",            "",                     "",                     "",                 "ElseIf",   "Else",         "",         "End If",           "Then ",    False,  False)
-Constructions(1)  = Type<Construction>("#If",           "#IfDef",               "#IfNDef",              "",                 "#ElseIf",  "#Else",        "",         "#EndIf",           "",         False,  False)
-Constructions(2)  = Type<Construction>("#Macro",        "",                     "",                     "",                 "",         "",             "",         "#EndMacro",        "",         False,  False)
-Constructions(3)  = Type<Construction>("Extern",        "",                     "",                     "",                 "",         "",             "",         "End Extern",       "",         False,  False)
-Constructions(4)  = Type<Construction>("Try",           "",                     "",                     "",                 "Catch",    "Finally",      "",         "EndTry",           "",         False,  False)
-Constructions(5)  = Type<Construction>("Asm",           "",                     "",                     "",                 "",         "",             "",         "End Asm",          " ",        False,  False)
-Constructions(6)  = Type<Construction>("Select Case",   "",                     "",                     "",                 "Case",     "",             "",         "End Select",       "",         False,  False)
-Constructions(7)  = Type<Construction>("For",           "",                     "",                     "",                 "",         "",             "",         "Next",             "",         False,  False)
-Constructions(8)  = Type<Construction>("Do",            "",                     "",                     "",                 "",         "",             "",         "Loop",             "",         False,  False)
-Constructions(9)  = Type<Construction>("While",         "",                     "",                     "",                 "",         "",             "",         "Wend",             "",         False,  False)
-Constructions(10) = Type<Construction>("With",          "",                     "",                     "",                 "",         "",             "",         "End With",         "",         False,  False)
-Constructions(11) = Type<Construction>("Scope",         "",                     "",                     "",                 "",         "",             "",         "End Scope",        "",         False,  False)
+ReDim Constructions(C_Count - 1) As Construction
+Constructions(0)  = Type<Construction>("If",            "",                     "",                     "",                 "ElseIf",   "Else",         "",         "End If",           "Then ",    True,  False)
+Constructions(1)  = Type<Construction>("#If",           "#IfDef",               "#IfNDef",              "",                 "#ElseIf",  "#Else",        "",         "#EndIf",           "",         True,  False)
+Constructions(2)  = Type<Construction>("#Macro",        "",                     "",                     "",                 "",         "",             "",         "#EndMacro",        "",         True,  False)
+Constructions(3)  = Type<Construction>("Extern",        "",                     "",                     "",                 "",         "",             "",         "End Extern",       "",         True,  False)
+Constructions(4)  = Type<Construction>("Try",           "",                     "",                     "",                 "Catch",    "Finally",      "",         "EndTry",           "",         True,  False)
+Constructions(5)  = Type<Construction>("Asm",           "",                     "",                     "",                 "",         "",             "",         "End Asm",          " ",        True,  False)
+Constructions(6)  = Type<Construction>("Select Case",   "",                     "",                     "",                 "Case",     "",             "",         "End Select",       "",         True,  False)
+Constructions(7)  = Type<Construction>("For",           "",                     "",                     "",                 "",         "",             "",         "Next",             "",         True,  False)
+Constructions(8)  = Type<Construction>("Do",            "",                     "",                     "",                 "",         "",             "",         "Loop",             "",         True,  False)
+Constructions(9)  = Type<Construction>("While",         "",                     "",                     "",                 "",         "",             "",         "Wend",             "",         True,  False)
+Constructions(10) = Type<Construction>("With",          "",                     "",                     "",                 "",         "",             "",         "End With",         "",         True,  False)
+Constructions(11) = Type<Construction>("Scope",         "",                     "",                     "",                 "",         "",             "",         "End Scope",        "",         True,  False)
 Constructions(12) = Type<Construction>("'#Region",      "",                     "",                     "",                 "",         "",             "",         "'#End Region",     "",         True,   False)
 Constructions(13) = Type<Construction>("Namespace",     "",                     "",                     "",                 "",         "",             "",         "End Namespace",    "",         True,   False)
 Constructions(14) = Type<Construction>("Enum",          "Public Enum",          "Private Enum",         "",                 "",         "",             "",         "End Enum",         "",         True,   True)
@@ -599,6 +626,38 @@ Namespace My.Sys.Forms
 				If .Collapsible AndAlso .Collapsed Then ChangeCollapseState i, False
 			End With
 		Next
+		PaintControl
+	End Sub
+	
+	Sub EditControl.CollapseAllProcedures
+		For i As Integer = 0 To FLines.Count - 1
+			With *Cast(EditControlLine Ptr, FLines.Items[i])
+				If .Collapsible AndAlso CBool(.ConstructionIndex >= C_P_Region) AndAlso Not .Collapsed Then ChangeCollapseState i, True
+			End With
+		Next
+		PaintControl
+	End Sub
+	
+	Sub EditControl.UnCollapseAllProcedures
+		For i As Integer = 0 To FLines.Count - 1
+			With *Cast(EditControlLine Ptr, FLines.Items[i])
+				If .Collapsible AndAlso CBool(.ConstructionIndex >= C_P_Region) AndAlso .Collapsed Then ChangeCollapseState i, False
+			End With
+		Next
+		PaintControl
+	End Sub
+	
+	Sub EditControl.CollapseCurrent
+		With *Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])
+			If .Collapsible AndAlso Not .Collapsed Then ChangeCollapseState FSelEndLine, True
+		End With
+		PaintControl
+	End Sub
+	
+	Sub EditControl.UnCollapseCurrent
+		With *Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])
+			If .Collapsible AndAlso .Collapsed Then ChangeCollapseState FSelEndLine, False
+		End With
 		PaintControl
 	End Sub
 	
@@ -1388,6 +1447,14 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
+	Function EditControl.CountOfVisibleLines() As Integer
+		Dim As Integer cCount
+		For i As Integer = 0 To FLines.Count - 1
+			If Cast(EditControlLine Ptr, FLines.Item(i))->Visible Then cCount += 1
+		Next
+		Return cCount
+	End Function
+	
 	Function EditControl.VisibleLinesCount(CodePane As Integer = -1) As Integer
 		If bDividedY Then
 			If IIf(CodePane = -1, ActiveCodePane, CodePane) = 1 Then
@@ -1883,10 +1950,11 @@ Namespace My.Sys.Forms
 			End If
 		End If
 		
+		Var LinesCount_ = CountOfVisibleLines
 		Var OldVScrollEnabledBottom = CBool(VScrollMaxBottom)
 		Var OldVScrollMaxBottom = VScrollMaxBottom
 		Var OldVScrollVCBottom = VScrollVCBottom
-		VScrollMaxBottom = LinesCount 'Max(0, LinesCount - VisibleLinesCount(1) + 1)
+		VScrollMaxBottom = LinesCount_ 'Max(0, LinesCount - VisibleLinesCount(1) + 1)
 		VScrollVCBottom = VisibleLinesCount(1)
 		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
 		Var VScrollEnabledBottom = CBool(VScrollMaxBottom)
@@ -1916,7 +1984,7 @@ Namespace My.Sys.Forms
 			Var OldVScrollEnabledTop = CBool(VScrollMaxTop)
 			Var OldVScrollMaxTop = VScrollMaxTop
 			Var OldVScrollVCTop = VScrollVCTop
-			VScrollMaxTop = LinesCount 'Max(0, LinesCount - VisibleLinesCount(0) + 1)
+			VScrollMaxTop = LinesCount_ 'Max(0, LinesCount - VisibleLinesCount(0) + 1)
 			VScrollVCTop = VisibleLinesCount(0)
 			LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
 			Var VScrollEnabledTop = CBool(VScrollMaxTop)
@@ -3294,8 +3362,10 @@ End Function
 							cairo_rectangle(cr, LeftMargin - 15 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5, LeftMargin - 7 - 0.5, (i - VScrollPos) * dwCharY + 12 - 0.5, True)
 							cairo_move_to(cr, LeftMargin - 13 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
 							cairo_line_to(cr, LeftMargin - 9 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
-							cairo_move_to(cr, LeftMargin - 0.5, (i - VScrollPos) * dwCharY - 0.5)
-							cairo_line_to(cr, dwClientX - 0.5, (i - VScrollPos) * dwCharY - 0.5)
+							If  FECLine->ConstructionIndex >= C_P_Region Then
+								cairo_move_to(cr, LeftMargin - 0.5, (i - VScrollPos) * dwCharY - 0.5)
+								cairo_line_to(cr, dwClientX - 0.5, (i - VScrollPos) * dwCharY - 0.5)
+							End If
 							cairo_stroke (cr)
 						#else
 							This.Canvas.Pen.Color = FoldLines.Foreground
@@ -3304,8 +3374,10 @@ End Function
 							Rectangle bufDC, ScaleX(LeftMargin - 15 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY), ScaleX(LeftMargin - 6 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY)
 							MoveToEx bufDC, ScaleX(LeftMargin - 13 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY), 0
 							LineTo bufDC, ScaleX(LeftMargin - 8 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)
-							MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), 0
-							LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i - VScrollPos) * dwCharY + CodePaneY)
+							If  FECLine->ConstructionIndex >= C_P_Region Then
+								MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), 0
+								LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i - VScrollPos) * dwCharY + CodePaneY)
+							End If
 						#endif
 						If OldCollapseIndex > 0 Then
 							#ifdef __USE_GTK__
