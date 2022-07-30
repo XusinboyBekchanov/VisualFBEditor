@@ -3079,7 +3079,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		For j As Integer = 0 To UBound(res)
 			l = Len(res(j))
 			b = Mid(b1, k, l)
-			bTrim = DeleteSpaces(Trim(b))
+			bTrim = Trim(b, Any !"\t ") 'DeleteSpaces(Trim(b, Any !"\t "))
 			bTrimLCase = LCase(bTrim)
 			k = k + Len(res(j)) + 1
 			If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) AndAlso CInt(StartsWith(LTrim(LCase(b)), "#include ")) Then
