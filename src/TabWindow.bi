@@ -364,7 +364,7 @@ Declare Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar
 
 Declare Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False)
 
-Declare Sub OnKeyPressEdit(ByRef Sender As Control, Key As Byte)
+Declare Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 
 Declare Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
 

@@ -724,10 +724,10 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 	End Select
 End Sub
 
-Private Sub frmMenuEditor.Form_KeyPress_(ByRef Sender As Control, Key As Byte)
+Private Sub frmMenuEditor.Form_KeyPress_(ByRef Sender As Control, Key As Integer)
 	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_KeyPress(Sender, Key)
 End Sub
-Private Sub frmMenuEditor.Form_KeyPress(ByRef Sender As Control, Key As Byte)
+Private Sub frmMenuEditor.Form_KeyPress(ByRef Sender As Control, Key As Integer)
 	If ActiveRect <> 0 Then
 		EditRect ActiveRect
 		txtActive.Text = WChr(Key)

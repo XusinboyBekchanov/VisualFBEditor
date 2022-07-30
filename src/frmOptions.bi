@@ -126,14 +126,14 @@ Common Shared As Integer oldIndex, newIndex
 		Declare Sub chkCreateNonStaticEventHandlers_Click(ByRef Sender As CheckBox)
 		Declare Static Sub cmdUpdateLng_Click_(ByRef Sender As Control)
 		Declare Sub cmdUpdateLng_Click(ByRef Sender As Control)
-		Declare Static Sub _txtColorForeground_KeyPress(ByRef Sender As Control, Key As Byte)
-		Declare Sub txtColorForeground_KeyPress(ByRef Sender As Control, Key As Byte)
-		Declare Static Sub _txtColorBackground_KeyPress(ByRef Sender As Control, Key As Byte)
-		Declare Sub txtColorBackground_KeyPress(ByRef Sender As Control, Key As Byte)
-		Declare Static Sub _txtColorFrame_KeyPress(ByRef Sender As Control, Key As Byte)
-		Declare Sub txtColorFrame_KeyPress(ByRef Sender As Control, Key As Byte)
-		Declare Static Sub _txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Byte)
-		Declare Sub txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Byte)
+		Declare Static Sub _txtColorForeground_KeyPress(ByRef Sender As Control, Key As Integer)
+		Declare Sub txtColorForeground_KeyPress(ByRef Sender As Control, Key As Integer)
+		Declare Static Sub _txtColorBackground_KeyPress(ByRef Sender As Control, Key As Integer)
+		Declare Sub txtColorBackground_KeyPress(ByRef Sender As Control, Key As Integer)
+		Declare Static Sub _txtColorFrame_KeyPress(ByRef Sender As Control, Key As Integer)
+		Declare Sub txtColorFrame_KeyPress(ByRef Sender As Control, Key As Integer)
+		Declare Static Sub _txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
+		Declare Sub txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
 		Declare Constructor
 		Declare Destructor
 		

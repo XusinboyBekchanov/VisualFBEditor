@@ -1914,19 +1914,19 @@ pfOptions = @fOptions
 		End With
 	End Constructor
 	
-	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Byte)
+	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
 		*Cast(frmOptions Ptr, Sender.Designer).txtColorIndicator_KeyPress(Sender, Key)
 	End Sub
 	
-	Private Sub frmOptions._txtColorFrame_KeyPress(ByRef Sender As Control, Key As Byte)
+	Private Sub frmOptions._txtColorFrame_KeyPress(ByRef Sender As Control, Key As Integer)
 		*Cast(frmOptions Ptr, Sender.Designer).txtColorFrame_KeyPress(Sender, Key)
 	End Sub
 	
-	Private Sub frmOptions._txtColorBackground_KeyPress(ByRef Sender As Control, Key As Byte)
+	Private Sub frmOptions._txtColorBackground_KeyPress(ByRef Sender As Control, Key As Integer)
 		*Cast(frmOptions Ptr, Sender.Designer).txtColorBackground_KeyPress(Sender, Key)
 	End Sub
 	
-	Private Sub frmOptions._txtColorForeground_KeyPress(ByRef Sender As Control, Key As Byte)
+	Private Sub frmOptions._txtColorForeground_KeyPress(ByRef Sender As Control, Key As Integer)
 		*Cast(frmOptions Ptr, Sender.Designer).txtColorForeground_KeyPress(Sender, Key)
 	End Sub
 	
@@ -4663,7 +4663,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	
 End Sub
 
-Private Sub frmOptions.txtColorForeground_KeyPress(ByRef Sender As Control, Key As Byte)
+Private Sub frmOptions.txtColorForeground_KeyPress(ByRef Sender As Control, Key As Integer)
 	If Key = 13 Then
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4673,7 +4673,7 @@ Private Sub frmOptions.txtColorForeground_KeyPress(ByRef Sender As Control, Key 
 	End If
 End Sub
 
-Private Sub frmOptions.txtColorBackground_KeyPress(ByRef Sender As Control, Key As Byte)
+Private Sub frmOptions.txtColorBackground_KeyPress(ByRef Sender As Control, Key As Integer)
 	If Key = 13 Then
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4683,7 +4683,7 @@ Private Sub frmOptions.txtColorBackground_KeyPress(ByRef Sender As Control, Key 
 	End If
 End Sub
 
-Private Sub frmOptions.txtColorFrame_KeyPress(ByRef Sender As Control, Key As Byte)
+Private Sub frmOptions.txtColorFrame_KeyPress(ByRef Sender As Control, Key As Integer)
 	If Key = 13 Then 
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4693,7 +4693,7 @@ Private Sub frmOptions.txtColorFrame_KeyPress(ByRef Sender As Control, Key As By
 	End If
 End Sub
 
-Private Sub frmOptions.txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Byte)
+Private Sub frmOptions.txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
 	If Key = 13 Then 
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
