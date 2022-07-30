@@ -2877,7 +2877,7 @@ End Sub
 
 #ifdef __USE_GTK__
 	Sub lvIntellisense_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
 		Dim i As Integer = GetNextCharIndex(*sLine, SelCharPos)
@@ -2900,7 +2900,7 @@ End Sub
 #else
 	Sub cboIntellisense_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		If ItemIndex < 0 OrElse ItemIndex > Cast(ComboBoxEx Ptr, @Sender)->Items.Count - 1 Then Exit Sub
-		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
 		Dim i As Integer = GetNextCharIndex(*sLine, SelCharPos, True)
@@ -2914,10 +2914,10 @@ End Sub
 #endif
 
 Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	#ifdef __USE_GTK__
-		If Key = GDK_KEY_SPACE AndAlso (Shift And GDK_Control_MASK) Then
+		If Key = GDK_KEY_SPACE AndAlso (Shift And GDK_CONTROL_MASK) Then
 			CompleteWord
 		End If
 	#endif
@@ -3619,7 +3619,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 	Return Parameters
 End Function
 
-Sub ParameterInfo(Key As Byte = Asc(","), SelStartChar As Integer = -1, SelEndChar As Integer = -1, sWordAt As String = "")
+Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEndChar As Integer = -1, sWordAt As String = "")
 	If FormClosing Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
