@@ -5653,14 +5653,14 @@ End Function
 		#else
 			cboIntellisense.Items.Clear
 		#endif
-		WDeallocate FLine
-		WDeallocate FLineLeft
-		WDeallocate FLineRight
-		WDeallocate FLineTemp
-		WDeallocate FLineTab
-		WDeallocate FLineSpace
-		WDeallocate FHintWord
-		WDeallocate CurrentFontName
+		WDeAllocate FLine
+		WDeAllocate FLineLeft
+		WDeAllocate FLineRight
+		WDeAllocate FLineTemp
+		WDeAllocate FLineTab
+		WDeAllocate FLineSpace
+		WDeAllocate FHintWord
+		WDeAllocate CurrentFontName
 	End Destructor
 	
 	Destructor TypeElement

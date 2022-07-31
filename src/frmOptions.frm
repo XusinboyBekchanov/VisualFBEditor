@@ -3274,9 +3274,15 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 	With fOptions
 		If UBound(.Colors) = -1 Then Exit Sub
 		piniTheme->Load ExePath & "/Settings/Themes/" & fOptions.cboTheme.Text & ".ini"
-		.Colors(29 + UBound(Keywords), 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", IIf(g_darkModeEnabled, darkTextColor, clBlack))
-		.Colors(29 + UBound(Keywords), 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", IIf(g_darkModeEnabled, darkBkColor, clWhite))
-		.Colors(29 + UBound(Keywords), 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", IIf(g_darkModeEnabled, darkTextColor, clBlack))
+		#ifdef __USE_GTK__
+			.Colors(29 + UBound(Keywords), 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", clBlack)
+			.Colors(29 + UBound(Keywords), 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", clWhite)
+			.Colors(29 + UBound(Keywords), 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", clBlack)
+		#else
+			.Colors(29 + UBound(Keywords), 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", IIf(g_darkModeEnabled, darkTextColor, clBlack))
+			.Colors(29 + UBound(Keywords), 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", IIf(g_darkModeEnabled, darkBkColor, clWhite))
+			.Colors(29 + UBound(Keywords), 2) = piniTheme->ReadInteger("Colors", "NormalTextFrame", IIf(g_darkModeEnabled, darkTextColor, clBlack))
+		#endif
 		.Colors(29 + UBound(Keywords), 4) = piniTheme->ReadInteger("FontStyles", "NormalTextBold", 0)
 		.Colors(29 + UBound(Keywords), 5) = piniTheme->ReadInteger("FontStyles", "NormalTextItalic", 0)
 		.Colors(29 + UBound(Keywords), 6) = piniTheme->ReadInteger("FontStyles", "NormalTextUnderline", 0)

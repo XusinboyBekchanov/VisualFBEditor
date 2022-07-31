@@ -252,7 +252,7 @@ Sub mClick(Sender As My.Sys.Object)
 					#ifndef __USE_GTK__
 						runtype = RTFRUN
 						'runtype = RTRUN
-						CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+						CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 					#endif
 					ThreadCounter(ThreadCreate_(@StartDebuggingWithCompile))
 				Else
@@ -289,7 +289,7 @@ Sub mClick(Sender As My.Sys.Object)
 				#ifndef __USE_GTK__
 					runtype = RTFRUN
 					'runtype = RTRUN
-					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				#endif
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			Else
@@ -349,7 +349,7 @@ Sub mClick(Sender As My.Sys.Object)
 				End If
 				runtype = RTFRUN
 				'runtype = RTRUN
-				CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+				CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				Restarting = True
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			#endif
@@ -379,7 +379,7 @@ Sub mClick(Sender As My.Sys.Object)
 			Else
 				#ifndef __USE_GTK__
 					runtype = RTSTEP
-					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				#endif
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			End If
@@ -472,7 +472,7 @@ Sub mClick(Sender As My.Sys.Object)
 			ptabPanelNew->tabCode.Add @tb->btnClose
 			tp->RequestAlign
 			ptabCode = @ptabPanelNew->tabCode
-			tabPanels.Add ptabPanelNew
+			TabPanels.Add ptabPanelNew
 		Case "SetNextStatement":
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
@@ -505,7 +505,7 @@ Sub mClick(Sender As My.Sys.Object)
 					If InDebug Then
 						ChangeEnabledDebug False, True, True
 						If (threadcur<>0 AndAlso proc_find(thread(threadcur).id,KLAST)<>proc_find(thread(threadcur).id,KFIRST)) _
-							OrElse (threadcur=0 AndAlso proc(procr(proc_find(thread(0).id,KLAST)).idx).nm<>"main") Then 'impossible to go out first proc of thread, constructore for shared 22/12/2015
+							OrElse (threadcur=0 AndAlso PROC(procr(proc_find(thread(0).id,KLAST)).idx).nm<>"main") Then 'impossible to go out first proc of thread, constructore for shared 22/12/2015
 							procad = procsv
 							runtype = RTFRUN
 						End If
@@ -538,7 +538,7 @@ Sub mClick(Sender As My.Sys.Object)
 					RunningToCursor = True
 					runtype = RTFRUN
 					#ifndef __USE_GTK__
-						CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+						CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 					#endif
 					ThreadCounter(ThreadCreate_(@StartDebugging))
 				End If

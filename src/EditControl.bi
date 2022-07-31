@@ -333,7 +333,7 @@ Namespace My.Sys.Forms
 			Dim As HWND sbScrollBarhLeft
 			Dim As HWND sbScrollBarhRight
 		#endif
-		Dim As TypeElement Ptr te
+		Dim As TypeElement Ptr DropDownTypeElement
 		Dim As Integer ActiveCodePane
 		Dim As Integer dwClientX    ' ширина клиентской области
 		Dim As Integer dwClientY    ' Высота клиентской области

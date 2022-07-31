@@ -4355,8 +4355,13 @@ Sub LoadSettings
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")	
 	LoadKeyWords
 	iniTheme.Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
-	NormalText.ForegroundOption = iniTheme.ReadInteger("Colors", "NormalTextForeground", IIf(g_darkModeEnabled, darkTextColor, clBlack))
-	NormalText.BackgroundOption = iniTheme.ReadInteger("Colors", "NormalTextBackground", IIf(g_darkModeEnabled, darkBkColor, clWhite))
+	#ifdef __USE_GTK__
+		NormalText.ForegroundOption = iniTheme.ReadInteger("Colors", "NormalTextForeground", clBlack)
+		NormalText.BackgroundOption = iniTheme.ReadInteger("Colors", "NormalTextBackground", clWhite)
+	#else
+		NormalText.ForegroundOption = iniTheme.ReadInteger("Colors", "NormalTextForeground", IIf(g_darkModeEnabled, darkTextColor, clBlack))
+		NormalText.BackgroundOption = iniTheme.ReadInteger("Colors", "NormalTextBackground", IIf(g_darkModeEnabled, darkBkColor, clWhite))
+	#endif
 	NormalText.FrameOption = iniTheme.ReadInteger("Colors", "NormalTextFrame", -1)
 	NormalText.Bold = iniTheme.ReadInteger("FontStyles", "NormalTextBold", 0)
 	NormalText.Italic = iniTheme.ReadInteger("FontStyles", "NormalTextItalic", 0)
@@ -7405,7 +7410,7 @@ End Sub
 Sub UnLoadAddins
 	Dim As Any Ptr AddInDll
 	For i As Integer = 0 To AddIns.Count - 1
-		DisconnectAddIn AddIns.Item(i)
+		DisConnectAddIn AddIns.Item(i)
 	Next
 	AddIns.Clear
 End Sub
@@ -7430,7 +7435,11 @@ Sub GetColors(ByRef cs As ECColorScheme, DefaultForeground As Integer = -1, Defa
 End Sub
 
 Sub SetAutoColors
-	GetColors NormalText, IIf(g_darkModeEnabled, darkTextColor, clBlack), IIf(g_darkModeEnabled, darkBkColor, clWhite)
+	#ifdef __USE_GTK__
+		GetColors NormalText, clBlack, clWhite
+	#else
+		GetColors NormalText, IIf(g_darkModeEnabled, darkTextColor, clBlack), IIf(g_darkModeEnabled, darkBkColor, clWhite)
+	#endif
 	GetColors Bookmarks, , , , clAqua
 	GetColors Breakpoints, NormalText.Background, clMaroon, , clMaroon
 	GetColors Comments, clGreen

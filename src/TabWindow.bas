@@ -430,12 +430,12 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 		Var tb = Cast(TabWindow Ptr, Sender.Tag)
 		If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
 		If tb->txtCode.DropDownShowed Then Exit Sub
-		If tb->txtCode.ToolTipShowed And CBool((Abs(oldY - y) > 20 OrElse Abs(oldX - x) > 50)) Then
+		If tb->txtCode.ToolTipShowed And CBool((Abs(OldY - y) > 20 OrElse Abs(OldX - x) > 50)) Then
 			tb->txtCode.CloseToolTip
 			Exit Sub
 		End If
-		Oldy = y: Oldx = x
-		Dim As String sWord = tb->txtCode.GetWordAtPoint(UnScaleX(X), UnScaleY(Y), True)
+		OldY = y: OldX = x
+		Dim As String sWord = tb->txtCode.GetWordAtPoint(UnScaleX(x), UnScaleY(y), True)
 		If sWord <> "" Then
 			'			If Not InDebug Then
 			'				Dim As Integer iSelEndLine, iSelEndChar
@@ -446,7 +446,7 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 			'				Exit Sub
 			'			End If
 			Dim As WString * 250 Value
-			If InDebug Then Value = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(X, Y)) Else Exit Sub
+			If InDebug Then Value = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y)) Else Exit Sub
 			If Value <> "" Then
 				Dim ByRef As HWND hwndTT = tb->ToolTipHandle
 				Dim As TOOLINFO    ti
@@ -467,8 +467,8 @@ Sub OnMouseHoverEdit(ByRef Sender As Control, MouseButton As Integer, x As Integ
 					SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
 				End If
 				Dim As Point Pt
-				Pt.X = X
-				Pt.Y = Y
+				Pt.X = x
+				Pt.Y = y
 				ClientToScreen tb->txtCode.Handle, @Pt
 				SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(Pt.X, Pt.Y + 10))
 				SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
@@ -2407,7 +2407,7 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 End Sub
 
 Sub OnLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	AddTab GetRelativePath(Link1, tb->FileName)
 End Sub
@@ -2439,7 +2439,7 @@ Function GetCorrectParam(ByVal Param As String) As String
 End Function
 
 Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	bNotFunctionChange = True
 	If TextChanged AndAlso tb->txtCode.SyntaxEdit Then
@@ -3325,7 +3325,7 @@ Sub SetParametersFromDropDown()
 		Index = tb->txtCode.lvIntellisense.SelectedItemIndex
 		If Index = -1 Then Exit Sub
 		With *tb->txtCode.lvIntellisense.ListItems.Item(Index)
-			tb->txtCode.HintDropDown = GetParameters(.Text(0), .Tag, tb->txtCode.te)
+			tb->txtCode.HintDropDown = GetParameters(.Text(0), .Tag, tb->txtCode.DropDownTypeElement)
 			If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text(0)
 		End With
 	#else
@@ -3334,7 +3334,7 @@ Sub SetParametersFromDropDown()
 		With tb->txtCode.cboIntellisense
 			Dim As String sWord = .Item(Index)
 			Dim As TypeElement Ptr te = .ItemData(Index)
-			tb->txtCode.HintDropDown = GetParameters(sWord, te, tb->txtCode.te)
+			tb->txtCode.HintDropDown = GetParameters(sWord, te, tb->txtCode.DropDownTypeElement)
 			If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text
 		End With
 	#endif
@@ -3437,7 +3437,7 @@ Sub CompleteWord
 			tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
 			Exit Sub
 		End If
-		tb->txtCode.te = 0
+		tb->txtCode.DropDownTypeElement = 0
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	End With
@@ -4125,7 +4125,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		SelLinePos = iSelEndLine
 		SelCharPos = iSelEndChar
 		FindComboIndex tb, *sLine, iSelEndChar
-		tb->txtCode.te = te
+		tb->txtCode.DropDownTypeElement = te
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	ElseIf CInt(Key = Asc("=")) Then
@@ -4177,7 +4177,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		#ifdef __USE_GTK__
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 		#endif
-		tb->txtCode.te = 0
+		tb->txtCode.DropDownTypeElement = 0
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) OrElse CInt(Key = Asc("?")) OrElse CInt(Key = 5)  Then
@@ -4194,7 +4194,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			#ifdef __USE_GTK__
 				If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 			#endif
-			tb->txtCode.te = 0
+			tb->txtCode.DropDownTypeElement = 0
 			SetParametersFromDropDown
 			tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 		Else
@@ -4354,7 +4354,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim SelControlNames As WStringList
 	Dim bSelControlFind As Boolean
 	Dim As UString ResourceFile = GetResourceFile(True)
-	txtCode.te = 0
+	txtCode.DropDownTypeElement = 0
 	If CInt(NotForms = False) AndAlso CInt(Des) Then
 		With *Des
 			If pfImageListEditor->CurrentImageList <> 0 Then CurrentImageListName = WGet(.ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
@@ -5375,11 +5375,23 @@ Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
 	tb->txtCode.DropDownShowed = True
 End Sub
 
+Dim Shared As Long CurrentTimerCloseUp
+
+'#ifndef __USE_GTK__
+'	Sub TimerProcCloseUp(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+'		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+'		If tb = 0 Then Exit Sub
+'		tb->txtCode.CloseDropDownToolTip
+'		KillTimer 0, CurrentTimerCloseUp
+'	End Sub
+'#endif
+
 Sub cboIntellisense_CloseUp(ByRef Sender As ComboBoxEdit)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	tb->txtCode.DropDownShowed = False
 	tb->txtCode.CloseDropDownToolTip
+	'CurrentTimerCloseUp = SetTimer(0, 0, 1000, @TimerProcCloseUp)
 End Sub
 
 Sub TabWindow_Destroy(ByRef Sender As Control)
