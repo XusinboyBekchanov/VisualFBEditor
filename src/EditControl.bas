@@ -2206,7 +2206,7 @@ Namespace My.Sys.Forms
 			Index = -1
 			If tbi->Elements.Contains(ItemText, , , , Index) Then
 				te = tbi->Elements.Object(Index)
-			'ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
+				'ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, @Types, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, @Enums, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pComps, bLocal, bAll, TypesOnly, te) Then
@@ -2311,12 +2311,12 @@ Namespace My.Sys.Forms
 		Return sTemp
 	End Function
 	
-	Function EditControl.GetLeftArgTypeName(ArgName As String, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False) As String
+	Function EditControl.GetLeftArgTypeName(ArgName As String, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False, ByRef bWithoutWith As Boolean = False) As String
 		Dim As String sTemp, sTemp2, TypeName, BaseTypeName
 		Dim sLine As WString Ptr
 		Dim As Integer j, iCount, Pos1
 		Dim As String ch
-		Dim As Boolean b
+		Dim As Boolean b, OneDot
 		For j = iSelEndLine To 0 Step -1
 			sLine = @This.Lines(j)
 			If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine), " _") Then Exit For
@@ -2332,9 +2332,11 @@ Namespace My.Sys.Forms
 					If IsArg(Asc(ch)) Then
 						sTemp = ch & sTemp
 					ElseIf sTemp <> "" Then
-						If ch = "." Then
-							TypeName = GetLeftArgTypeName(sTemp, j, i - 1, teEnumOld, , , bTypes)
+						If ch = "." AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) <> "." Then
+							OneDot = True
+							TypeName = GetLeftArgTypeName(sTemp, j, i - 1, teEnumOld, , , bTypes, bWithoutWith)
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
+							OneDot = True
 							TypeName = GetLeftArgTypeName(sTemp, j, i - 2, teEnumOld, , , bTypes)
 						ElseIf CBool(CBool(ch = " ") OrElse CBool(ch = !"\t")) AndAlso CBool(i > 0) AndAlso EndsWith(RTrim(LCase(..Left(*sLine, i - 1)), Any "\t "), " as") Then
 							bTypes = True
@@ -2353,15 +2355,16 @@ Namespace My.Sys.Forms
 		If CInt(sTemp = "") AndAlso CInt(StartsWith(sTemp2, "(")) AndAlso CInt(EndsWith(sTemp2, ")")) Then
 			Return GetTypeFromValue(..Left(sTemp2, Len(sTemp2) - 1), iSelEndLine)
 		ElseIf sTemp = "" AndAlso sTemp2 = "" Then
-'			If Cast(EditControlLine Ptr, FLines.Items[j])->InWithConstruction = WithOldI Then
-'				teEnum = WithTeEnumOld
-'				Return WithOldTypeName
-'			End If
+			'			If Cast(EditControlLine Ptr, FLines.Items[j])->InWithConstruction = WithOldI Then
+			'				teEnum = WithTeEnumOld
+			'				Return WithOldTypeName
+			'			End If
 			Var WithCount = 1
 			Dim As EditControlLine Ptr ECLine
 			For i As Integer = j - 1 To 0 Step -1
 				ECLine = FLines.Items[i]
 				If ECLine->ConstructionIndex > 12 Then
+					bWithoutWith = True
 					Return ""
 				ElseIf ECLine->ConstructionIndex = 10 Then
 					If ECLine->ConstructionPart = 2 Then
@@ -2369,6 +2372,7 @@ Namespace My.Sys.Forms
 					ElseIf ECLine->ConstructionPart = 0 Then
 						WithCount -= 1
 						If WithCount < 0 Then
+							bWithoutWith = True
 							Return ""
 						ElseIf WithCount = 0 Then
 							TypeName = GetLeftArgTypeName("", i, Len(*ECLine->Text), teEnumOld, , , bTypes)
@@ -2503,8 +2507,8 @@ Namespace My.Sys.Forms
 		End If
 		teEnum = te
 		Return sTemp
-End Function
-
+	End Function
+	
 	Sub EditControl.PaintControlPriv
 		'	On Error Goto ErrHandler
 		#ifdef __USE_GTK__
@@ -2535,7 +2539,7 @@ End Function
 		BracketsEndLine = -1
 		'WithOldI = -1
 		Dim As Integer PosiBD, tIndex, i, Pos1
-		Dim As Boolean bKeyWord, TwoDots
+		Dim As Boolean bKeyWord, bWithoutWith, TwoDots, OneDot
 		Dim As WString * 255 OriginalCaseWord, TypeName
 		Dim As TypeElement Ptr te, Oldte
 		If HighlightBrackets Then
@@ -2799,33 +2803,39 @@ End Function
 												sc = @Identifiers
 												OriginalCaseWord = "":   TypeName = "" : te = 0
 												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
-													If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
-													pkeywords = 0
-													If CStyle Then
-														If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" OrElse LCase(Matn) = "#macro" Then
-															If pkeywords0 <> 0 Then
-																sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
-															End If
+												If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
+												pkeywords = 0
+												If CStyle Then
+													If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" OrElse LCase(Matn) = "#macro" Then
+														If pkeywords0 <> 0 Then
+															sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
+														End If
+													End If
+												Else
+													bKeyWord = False
+													tIndex  = -1
+													OriginalCaseWord = ""
+													If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
+														tIndex = pkeywordsAsm->IndexOf(LCase(Matn))
+														If tIndex > -1 Then
+															sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
+															OriginalCaseWord = pkeywordsAsm->Item(tIndex)
+															bKeyWord = True
 														End If
 													Else
-														bKeyWord = False
-														tIndex  = -1
-														OriginalCaseWord = ""
-														If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
-															tIndex = pkeywordsAsm->IndexOf(LCase(Matn))
-															If tIndex > -1 Then
-																sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
-																OriginalCaseWord = pkeywordsAsm->Item(tIndex)
-																bKeyWord = True
-															End If
-														Else
-															TwoDots = CBool(r = 46 AndAlso q = 46)
-															
-															'Membership
-														If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
-															If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
-																GetLeftArgTypeName(Matn, z, j, te)
-																If te > 0 Then
+														TwoDots = CBool(r = 46 AndAlso q = 46)
+														OneDot = False
+														bWithoutWith = False
+														
+														'Membership
+														If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
+															If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
+																OneDot = True
+																GetLeftArgTypeName(Matn, z, j, te, , , , bWithoutWith)
+																If bWithoutWith Then
+																	TwoDots = True
+																	OneDot = False
+																ElseIf te > 0 Then
 																	tIndex = 0
 																	OriginalCaseWord = te->Name
 																	If SyntaxHighlightingIdentifiers Then
@@ -2852,26 +2862,10 @@ End Function
 																	End If
 																End If
 															End If
-														Else
-															' Keywords
-															If tIndex = -1 Then
-																For k As Integer = 1 To KeywordLists.Count - 1
-																	pkeywords = KeywordLists.Object(k)
-																	tIndex = pkeywords->IndexOf(LCase(Matn))
-																	If tIndex > -1 Then
-																		OriginalCaseWord = pkeywords->Item(tIndex)
-																		sc = @Keywords(k)
-																		bKeyWord = True
-																		Exit For
-																	End If
-																	pkeywords = 0
-																	tIndex = -1
-																Next
-															End If
 															
-															If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
+															If Not OneDot Then
 																'Procedure
-																If tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
+																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
 																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
 																		pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
@@ -2925,7 +2919,29 @@ End Function
 																		End If
 																	End If
 																End If
-																
+															End If
+														End If
+															
+														If Not OneDot Then
+															' Keywords
+															If tIndex = -1 Then
+																For k As Integer = 1 To KeywordLists.Count - 1
+																	pkeywords = KeywordLists.Object(k)
+																	tIndex = pkeywords->IndexOf(LCase(Matn))
+																	If tIndex > -1 Then
+																		OriginalCaseWord = pkeywords->Item(tIndex)
+																		sc = @Keywords(k)
+																		bKeyWord = True
+																		Exit For
+																	End If
+																	pkeywords = 0
+																	tIndex = -1
+																Next
+															End If
+														End If
+														
+														If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
+															If Not OneDot Then
 																'Module
 																If tIndex = -1 AndAlso LCase(OldMatn) <> "as" Then
 																	tIndex = Args.IndexOf(LCase(Matn))
@@ -3087,21 +3103,21 @@ End Function
 														If KeyWord <> Matn Then
 															Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 														End If
-														ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso LCase(Matn) = LCase(OriginalCaseWord) AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
-															If Matn <> OriginalCaseWord Then
-																Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = OriginalCaseWord
-															End If
-														ElseIf tIndex = -1 Then
-															If isNumeric(Matn) Then
-																If InStr(Matn, ".") Then
-																	sc = @RealNumbers
-																Else
-																	sc = @Numbers
-																End If
-															Else
-																sc = @Identifiers
-															End If
+													ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso LCase(Matn) = LCase(OriginalCaseWord) AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
+														If Matn <> OriginalCaseWord Then
+															Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = OriginalCaseWord
 														End If
+													ElseIf tIndex = -1 Then
+														If isNumeric(Matn) Then
+															If InStr(Matn, ".") Then
+																sc = @RealNumbers
+															Else
+																sc = @Numbers
+															End If
+														Else
+															sc = @Identifiers
+														End If
+													End If
 												End If
 												OldMatn = Matn: Oldte = te
 												'If sc <> 0 Then
