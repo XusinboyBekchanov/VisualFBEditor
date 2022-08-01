@@ -3368,6 +3368,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Dim As UString b2 = bTrim
 						Dim As UString CurType, ElementValue
 						Dim As UString res1(Any)
+						Dim As Boolean bOldAs
 						If b2.ToLower.StartsWith("dim ") Then
 							b2 = Trim(Mid(b2, 4))
 						ElseIf b2.ToLower.StartsWith("redim ") Then
@@ -3375,10 +3376,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						ElseIf b2.ToLower.StartsWith("static ") Then
 							b2 = Trim(Mid(b2, 7))
 						End If
+						Pos1 = InStr(b2, "'")
+						If Pos1 > 0 Then b2 = Trim(Left(b2, Pos1 - 1))
 						Pos1 = InStr(b2, "=>")
 						If Pos1 > 0 Then b2 = Trim(Left(b2, Pos1 - 1))
 						If b2.ToLower.StartsWith("as ") Then
 							If b2.ToLower.StartsWith("as ") Then CurType = Trim(Mid(b2, 4)) Else CurType = Trim(b2)
+							bOldAs = True
 							Pos1 = InStr(CurType, " ")
 							Pos2 = InStr(CurType, " Ptr ")
 							Pos3 = InStr(CurType, " Pointer ")
@@ -3389,9 +3393,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							If Pos1 > 0 Then
 								Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
-								Pos2 = InStr(CurType, "*")  'David Change. Like Wstring * 200
-								If Pos2 > 1 Then Pos1 = Pos2
-								If Pos1 > 1 Then CurType = Left(CurType, Pos1 - 1)
+'								Pos2 = InStr(CurType, "*")  'David Change. Like Wstring * 200
+'								If Pos2 > 1 Then Pos1 = Pos2
+'								If Pos1 > 1 Then CurType = Left(CurType, Pos1 - 1)
+								If UBound(res1) > -1 Then 
+									CurType = ..Left(CurType, Pos1 + Len(res1(0)))
+								End If
 							End If
 						Else
 							Split GetChangedCommas(b2), ",", res1()
@@ -3408,8 +3415,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							Pos1 = InStr(LCase(res1(n)), " as ")
 							If Pos1 > 0 Then
-								Pos2 = InStr(CurType, "*") 'David Change. Like Wstring * 200
-								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
+								CurType = Trim(Mid(res1(n), Pos1 + 4))
+'								Pos2 = InStr(CurType, "*") 'David Change. Like Wstring * 200
+'								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
@@ -3420,6 +3428,11 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							res1(n) = res1(n).TrimAll
+							Pos1 = InStrRev(res1(n), " ")
+							If Pos1 > 0 Then res1(n) = Trim(Mid(res1(n), Pos1 + 1))
+							If CBool(n = 0) AndAlso bOldAs Then
+								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+							End If
 							If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
 								Pos1 = InStrRev(CurType, ".")
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
@@ -3524,7 +3537,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						CInt(StartsWith(bTrimLCase & " ", "end operator ")) OrElse _
 						CInt(StartsWith(bTrimLCase & " ", "end constructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase & " ", "end destructor ")) Then
-						inFunc = False
+						InFunc = False
 						If LastIndexFunction >= 0 Then
 							te = Cast(TypeElement Ptr, Functions.Object(LastIndexFunction))
 							te->EndLine = i
@@ -3533,11 +3546,11 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					ElseIf CInt(StartsWith(bTrimLCase, "operator ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private operator ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public operator ")) Then
-						inFunc = True
+						InFunc = True
 					ElseIf CInt(StartsWith(bTrimLCase, "constructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private constructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public constructor ")) Then
-						inFunc = True
+						InFunc = True
 						Pos3 = InStr(bTrim, "(")
 						Pos5 = InStr(bTrimLCase, " constructor ") + 12
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
@@ -3561,7 +3574,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					ElseIf CInt(StartsWith(bTrimLCase, "destructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private destructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public destructor ")) Then
-						inFunc = True
+						InFunc = True
 						Pos3 = InStr(bTrim, "(")
 						Pos5 = InStr(bTrimLCase, " destructor ") + 11
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5), Any !"\t "))
@@ -3585,7 +3598,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					ElseIf CInt(StartsWith(bTrimLCase, "sub ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private sub ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public sub ")) Then
-						inFunc = True
+						InFunc = True
 						Pos3 = InStr(bTrim, "(")
 						Pos5 = InStr(bTrimLCase, " sub ") + 4
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
@@ -3639,7 +3652,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					ElseIf CInt(StartsWith(bTrimLCase, "function ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private function ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public function ")) Then
-						inFunc = True
+						InFunc = True
 						Pos3 = InStr(bTrim, "(")
 						Pos5 = InStr(bTrimLCase, " function") + 9
 						If StartsWith(Trim(Mid(bTrim, Pos5)), "=") Then Continue For
@@ -3699,7 +3712,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					ElseIf CInt(StartsWith(bTrimLCase, "property ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private property ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public property ")) Then
-						inFunc = True
+						InFunc = True
 						Pos3 = InStr(bTrim, "(")
 						Pos5 = InStr(bTrimLCase, " property") + 9
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
@@ -3747,7 +3760,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
-					ElseIf CInt(Not inType) AndAlso CInt(Not inEnum) AndAlso CInt(Not inFunc) AndAlso _
+					ElseIf CInt(Not inType) AndAlso CInt(Not inEnum) AndAlso CInt(Not InFunc) AndAlso _
 						CInt(CInt(StartsWith(bTrimLCase, "dim ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "static ")) OrElse _
@@ -3757,11 +3770,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Dim As UString b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 						Dim As UString CurType, ElementValue
 						Dim As UString res1(Any)
-						Dim As Boolean bShared
+						Dim As Boolean bShared, bOldAs
 						Pos1 = InStr(b2, "'")
 						If Pos1 > 0 Then b2 = Trim(Left(b2, Pos1 - 1))
 						If b2.ToLower.StartsWith("shared ") Then bShared = True: b2 = Trim(Mid(b2, 7))
 						If b2.ToLower.StartsWith("as ") Then
+							bOldAs = True
 							CurType = Trim(Mid(b2, 4))
 							Pos1 = InStr(CurType, " ")
 							Pos2 = InStr(CurType, " Ptr ")
@@ -3773,7 +3787,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							If Pos1 > 0 Then
 								Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
-								CurType = Left(CurType, Pos1 - 1)
+								If UBound(res1) > -1 Then 
+									CurType = ..Left(CurType, Pos1 + Len(res1(0)))
+								End If
 							End If
 						Else
 							Split GetChangedCommas(b2), ",", res1()
@@ -3789,8 +3805,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Pos1 > 0 Then res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							Pos1 = InStr(LCase(res1(n)), " as ")
 							If Pos1 > 0 Then
-								Pos2 = InStr(CurType, "*") 'David Change ,  a As WString *2
-								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
+								CurType = Trim(Mid(res1(n), Pos1 + 4))
+'								Pos2 = InStr(CurType, "*") 'David Change ,  a As WString *2
+'								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
@@ -3804,6 +3821,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							res1(n) = res1(n).TrimAll
+							Pos1 = InStrRev(res1(n), " ")
+							If Pos1 > 0 Then
+								res1(n) = Trim(Mid(res1(n), Pos1 + 1))
+							End If
+							If CBool(n = 0) AndAlso bOldAs Then
+								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+							End If
 							Pos1 = InStrRev(CurType, ".")
 							If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 							Var te = New_( TypeElement)

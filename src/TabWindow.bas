@@ -4616,7 +4616,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							txtCode.Enums.Add te->Name, te
 						ElseIf ECLine->ConstructionIndex = 15 OrElse ECLine->ConstructionIndex = 16 Then
 							txtCode.Types.Add te->Name, te
-						Else
+						ElseIf InStr(te->DisplayName, ".") = 0 Then
 							txtCode.Procedures.Add te->Name, te
 						End If
 						func = te
@@ -4840,11 +4840,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					End If
 					Dim As UString CurType, ElementValue
 					Dim As UString res1(Any)
-					Dim As Boolean bShared
+					Dim As Boolean bShared, bOldAs
 					Pos1 = InStr(b2, "'")
 					If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
 					If b2.ToLower.StartsWith("shared ") Then bShared = True: b2 = Trim(Mid(b2, 7))
 					If b2.ToLower.StartsWith("as ") Then
+						bOldAs = True
 						CurType = Trim(Mid(b2, 4))
 						Pos1 = InStr(CurType, " ")
 						Pos2 = InStr(CurType, " Ptr ")
@@ -4856,9 +4857,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						If Pos1 > 0 Then
 							Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
-							Pos2 = InStr(CurType, "*")   'David Change,  As WString *2 a,b,c,
-							If Pos2 > 1 Then Pos1 = Pos2
-							If Pos1 > 1 Then CurType = Trim(..Left(CurType, Pos1 - 1))
+'							Pos2 = InStr(CurType, "*")   'David Change,  As WString *2 a,b,c,
+'							If Pos2 > 1 Then Pos1 = Pos2
+'							If Pos1 > 1 Then CurType = Trim(..Left(CurType, Pos1 - 1))
+							If UBound(res1) > -1 Then 
+								CurType = ..Left(CurType, Pos1 + Len(res1(0)))
+							End If
 						End If
 					Else
 						Split GetChangedCommas(b2), ",", res1()
@@ -4875,8 +4879,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos1 = InStr(LCase(res1(n)), " as ")
 						If Pos1 > 0 Then
 							CurType = Trim(Mid(res1(n), Pos1 + 4))
-							Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
-							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
+'							Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
+'							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
@@ -4887,6 +4891,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						res1(n) = res1(n).TrimAll
+						Pos1 = InStrRev(res1(n), " ")
+						If Pos1 > 0 Then
+							res1(n) = Trim(Mid(res1(n), Pos1 + 1))
+						End If
+						If CBool(n = 0) AndAlso bOldAs Then
+							CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+						End If
 						Pos1 = InStrRev(CurType, ".")
 						If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 						Var te = New_( TypeElement)

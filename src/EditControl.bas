@@ -389,7 +389,7 @@ Namespace My.Sys.Forms
 			ch = Mid(sLine, i, 1)
 			If Not c AndAlso ch = """" Then
 				q = Not q
-				result += """"
+				Result += """"
 			ElseIf Not q AndAlso ch = "/" AndAlso Mid(sLine, i + 1, 1) = "'" Then
 				c = True
 				cc += 1
