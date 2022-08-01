@@ -1812,13 +1812,17 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.CommentSingle
 		UpdateLock
-		Dim n As Integer
+		Dim As Integer n, nStart
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Changing("Izoh qilish")
 		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 			FECLine = FLines.Items[i]
-			WLet(FECLine->Text, "'" & *FECLine->Text)
+			If i = iSelStartLine Then
+				nStart = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
+			End If
+			n = min(nStart, Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t ")))
+			WLet(FECLine->Text, ..Left(*FECLine->Text, n) & "'" & Mid(*FECLine->Text, n + 1))
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += 1
 			If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += 1
 			ChangeCollapsibility i
@@ -1839,7 +1843,8 @@ Namespace My.Sys.Forms
 			FECLine = FLines.Items[i]
 			If i = iSelStartLine Or i = iSelEndLine Then
 				If i = iSelStartLine Then
-					WLet(FECLine->Text, "/'" & *FECLine->Text)
+					n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
+					WLet(FECLine->Text, ..Left(*FECLine->Text, n) & "/'" & Mid(*FECLine->Text, n + 1))
 					FECLine->CommentIndex += 1
 					If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += 2
 					If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += 2
