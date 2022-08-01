@@ -168,12 +168,6 @@ Private:
 	Declare Function SaveTab As Boolean
 	Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 Public:
-	Types As WStringList
-	Enums As WStringList
-	Procedures As WStringList
-	Functions As WStringList
-	FunctionsOthers As WStringList
-	Args As WStringList
 	AnyTexts As WStringList
 	Events As Dictionary
 	Declare Sub CheckExtension(ByRef FileName As WString)

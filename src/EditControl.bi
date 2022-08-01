@@ -299,6 +299,12 @@ Namespace My.Sys.Forms
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
 		Declare Sub MiddleScroll
 	Public:
+		Types As WStringList
+		Enums As WStringList
+		Procedures As WStringList
+		Functions As WStringList
+		FunctionsOthers As WStringList
+		Args As WStringList
 		#ifdef __USE_GTK__
 			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As cairo_t Ptr cr

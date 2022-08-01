@@ -328,7 +328,7 @@ Namespace My.Sys.Forms
 		Else
 			pVScrollPos = @VScrollPosBottom
 		End If
-		*pVScrollPos = min(GetCaretPosY(Value), IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom))
+		*pVScrollPos = min(GetCaretPosY(Value), Max(0, IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom) - VisibleLinesCount(ActiveCodePane)))
 		#ifdef __USE_GTK__
 			gtk_adjustment_set_value(adjustmentv, *pVScrollPos)
 		#else
@@ -2202,8 +2202,8 @@ Namespace My.Sys.Forms
 			If tbi->Elements.Contains(ItemText, , , , Index) Then
 				te = tbi->Elements.Object(Index)
 			'ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
-			ElseIf ContainsIn(tbi->TypeName, ItemText, pLocalTypes, bLocal, bAll, TypesOnly, te) Then
-			ElseIf ContainsIn(tbi->TypeName, ItemText, pLocalEnums, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, @Types, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, @Enums, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pComps, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalTypes, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalEnums, bLocal, bAll, TypesOnly, te) Then
@@ -2268,8 +2268,8 @@ Namespace My.Sys.Forms
 			Dim As Integer Pos1
 			Dim As Integer Idx = -1
 			If TypeName <> "" Then
-				If ContainsIn(TypeName, sTemp, pLocalTypes, True, , , te) Then
-				ElseIf ContainsIn(TypeName, sTemp, pLocalEnums, True, , , te) Then
+				If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2279,17 +2279,17 @@ Namespace My.Sys.Forms
 				If teC > 0 Then TypeName = TypeNameFromLine
 				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
 					te = te1->Elements.Object(Idx)
-				ElseIf pLocalProcedures > 0 AndAlso pLocalProcedures->Contains(sTemp, , , , Idx) Then
-					te = pLocalProcedures->Object(Idx)
-				ElseIf pLocalArgs > 0 AndAlso pLocalArgs->Contains(sTemp, , , , Idx) Then
-					te = pLocalArgs->Object(Idx)
+				ElseIf Procedures.Contains(sTemp, , , , Idx) Then
+					te = Procedures.Object(Idx)
+				ElseIf Args.Contains(sTemp, , , , Idx) Then
+					te = Args.Object(Idx)
 				ElseIf pGlobalFunctions->Contains(sTemp, , , , Idx) Then
 					te = pGlobalFunctions->Object(Idx)
 				ElseIf pGlobalArgs->Contains(sTemp, , , , Idx) Then
 					te = pGlobalArgs->Object(Idx)
 				ElseIf TypeName <> "" Then
-					If ContainsIn(TypeName, sTemp, pLocalTypes, True, , , te) Then
-					ElseIf ContainsIn(TypeName, sTemp, pLocalEnums, True, , , te) Then
+					If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2306,7 +2306,7 @@ Namespace My.Sys.Forms
 		Return sTemp
 	End Function
 	
-	Function EditControl.GetLeftArgTypeName(ArgName As String, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
+	Function EditControl.GetLeftArgTypeName(ArgName As String, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False) As String
 		Dim As String sTemp, sTemp2, TypeName, BaseTypeName
 		Dim sLine As WString Ptr
 		Dim As Integer j, iCount, Pos1
@@ -2328,11 +2328,11 @@ Namespace My.Sys.Forms
 						sTemp = ch & sTemp
 					ElseIf sTemp <> "" Then
 						If ch = "." Then
-							TypeName = GetLeftArgTypeName(sTemp, j, i - 1, teEnumOld, , , Types)
+							TypeName = GetLeftArgTypeName(sTemp, j, i - 1, teEnumOld, , , bTypes)
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
-							TypeName = GetLeftArgTypeName(sTemp, j, i - 2, teEnumOld, , , Types)
+							TypeName = GetLeftArgTypeName(sTemp, j, i - 2, teEnumOld, , , bTypes)
 						ElseIf CBool(CBool(ch = " ") OrElse CBool(ch = !"\t")) AndAlso CBool(i > 0) AndAlso EndsWith(RTrim(LCase(..Left(*sLine, i - 1)), Any "\t "), " as") Then
-							Types = True
+							bTypes = True
 						End If
 						Exit For, For
 					Else
@@ -2348,10 +2348,10 @@ Namespace My.Sys.Forms
 		If CInt(sTemp = "") AndAlso CInt(StartsWith(sTemp2, "(")) AndAlso CInt(EndsWith(sTemp2, ")")) Then
 			Return GetTypeFromValue(..Left(sTemp2, Len(sTemp2) - 1), iSelEndLine)
 		ElseIf sTemp = "" AndAlso sTemp2 = "" Then
-			If Cast(EditControlLine Ptr, FLines.Items[j])->InWithConstruction = WithOldI Then
-				teEnum = WithTeEnumOld
-				Return WithOldTypeName
-			End If
+'			If Cast(EditControlLine Ptr, FLines.Items[j])->InWithConstruction = WithOldI Then
+'				teEnum = WithTeEnumOld
+'				Return WithOldTypeName
+'			End If
 			Var WithCount = 1
 			Dim As EditControlLine Ptr ECLine
 			For i As Integer = j - 1 To 0 Step -1
@@ -2366,7 +2366,7 @@ Namespace My.Sys.Forms
 						If WithCount < 0 Then
 							Return ""
 						ElseIf WithCount = 0 Then
-							TypeName = GetLeftArgTypeName("", i, Len(*ECLine->Text), teEnumOld, , , Types)
+							TypeName = GetLeftArgTypeName("", i, Len(*ECLine->Text), teEnumOld, , , bTypes)
 							WithOldI = i
 							WithOldTypeName = TypeName
 							WithTeEnumOld = teEnumOld
@@ -2381,8 +2381,9 @@ Namespace My.Sys.Forms
 		Var teC = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine))->InConstruction
 		If teC > 0 Then
 			Var Pos1 = InStr(teC->DisplayName, ".")
+			If Pos1 = 0 Then Pos1 = InStr(teC->DisplayName, "[")
 			If Pos1 > 0 Then
-				TypeNameFromLine = ..Left(teC->DisplayName, Pos1 - 1)
+				TypeNameFromLine = Trim(..Left(teC->DisplayName, Pos1 - 1), Any !"\t ")
 			Else
 				TypeNameFromLine = teC->Name
 			End If
@@ -2394,8 +2395,8 @@ Namespace My.Sys.Forms
 		Dim As TypeElement Ptr te, te1, te2
 		If TypeName <> "" Then
 			If LCase(sTemp) = "base" Then
-				If pLocalTypes > 0 AndAlso pLocalTypes->Contains(TypeName, , , , Idx) Then
-					te2 = pLocalTypes->Object(Idx)
+				If Types.Contains(TypeName, , , , Idx) Then
+					te2 = Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf pComps > 0 AndAlso pComps->Contains(TypeName, , , , Idx) Then
 					te2 = pComps->Object(Idx)
@@ -2405,8 +2406,8 @@ Namespace My.Sys.Forms
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				End If
 				If BaseTypeName <> "" Then
-					If pLocalTypes > 0 AndAlso pLocalTypes->Contains(BaseTypeName, , , , Idx) Then
-						teEnum = pLocalTypes->Object(Idx)
+					If Types.Contains(BaseTypeName, , , , Idx) Then
+						teEnum = Types.Object(Idx)
 					ElseIf pComps > 0 AndAlso pComps->Contains(BaseTypeName, , , , Idx) Then
 						teEnum = pComps->Object(Idx)
 					ElseIf pGlobalTypes > 0 AndAlso pGlobalTypes->Contains(BaseTypeName, , , , Idx) Then
@@ -2417,8 +2418,8 @@ Namespace My.Sys.Forms
 					Return BaseTypeName
 				End If
 			End If
-			If ContainsIn(TypeName, sTemp, pLocalTypes, True, , , te) Then
-			ElseIf ContainsIn(TypeName, sTemp, pLocalEnums, True, , , te) Then
+			If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
+			ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2433,8 +2434,8 @@ Namespace My.Sys.Forms
 			If LCase(sTemp) = "this" Then
 				Return TypeName
 			ElseIf LCase(sTemp) = "base" Then
-				If pLocalTypes > 0  AndAlso pLocalTypes->Contains(TypeName, , , , Idx) Then
-					te2 = pLocalTypes->Object(Idx)
+				If Types.Contains(TypeName, , , , Idx) Then
+					te2 = Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf pComps > 0  AndAlso pComps->Contains(TypeName, , , , Idx) Then
 					te2 = pComps->Object(Idx)
@@ -2444,8 +2445,8 @@ Namespace My.Sys.Forms
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				End If
 				If BaseTypeName <> "" Then
-					If pLocalTypes > 0 AndAlso pLocalTypes->Contains(BaseTypeName, , , , Idx) Then
-						teEnum = pLocalTypes->Object(Idx)
+					If Types.Contains(BaseTypeName, , , , Idx) Then
+						teEnum = Types.Object(Idx)
 					ElseIf pComps > 0 AndAlso pComps->Contains(BaseTypeName, , , , Idx) Then
 						teEnum = pComps->Object(Idx)
 					ElseIf pGlobalTypes > 0 AndAlso pGlobalTypes->Contains(BaseTypeName, , , , Idx) Then
@@ -2458,10 +2459,10 @@ Namespace My.Sys.Forms
 			End If
 			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
 				te = te1->Elements.Object(Idx)
-			ElseIf pLocalProcedures > 0 AndAlso pLocalProcedures->Contains(sTemp, , , , Idx) Then
-				te = pLocalProcedures->Object(Idx)
-			ElseIf pLocalArgs > 0 AndAlso pLocalArgs->Contains(sTemp, , , , Idx) Then
-				te = pLocalArgs->Object(Idx)
+			ElseIf Procedures.Contains(sTemp, , , , Idx) Then
+				te = Procedures.Object(Idx)
+			ElseIf Args.Contains(sTemp, , , , Idx) Then
+				te = Args.Object(Idx)
 			ElseIf pGlobalFunctions > 0 AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) Then
 				te = pGlobalFunctions->Object(Idx)
 			ElseIf pGlobalArgs > 0 AndAlso pGlobalArgs->Contains(sTemp, , , , Idx) Then
@@ -2471,8 +2472,8 @@ Namespace My.Sys.Forms
 			ElseIf pGlobalNamespaces > 0 AndAlso pGlobalNamespaces->Contains(sTemp, , , , Idx) Then
 				te = pGlobalNamespaces->Object(Idx)
 			ElseIf TypeName <> "" Then
-				If ContainsIn(TypeName, sTemp, pLocalTypes, True, , , te) Then
-				ElseIf ContainsIn(TypeName, sTemp, pLocalEnums, True, , , te) Then
+				If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
+				ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2892,8 +2893,8 @@ End Function
 																			Else
 																				TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
 																			End If
-																			If ContainsIn(TypeName, Matn, pLocalTypes, True, , , te) Then
-																			ElseIf ContainsIn(TypeName, Matn, pLocalEnums, True, , , te) Then
+																			If ContainsIn(TypeName, Matn, @Types, True, , , te) Then
+																			ElseIf ContainsIn(TypeName, Matn, @Enums, True, , , te) Then
 																			ElseIf ContainsIn(TypeName, Matn, pComps, True, , , te) Then
 																			ElseIf ContainsIn(TypeName, Matn, pGlobalTypes, True, , , te) Then
 																			ElseIf ContainsIn(TypeName, Matn, pGlobalEnums, True, , , te) Then
@@ -2921,12 +2922,12 @@ End Function
 																End If
 																
 																'Module
-																If tIndex = -1 AndAlso pLocalArgs > 0 AndAlso LCase(OldMatn) <> "as" Then
-																	tIndex = pLocalArgs->IndexOf(LCase(Matn))
+																If tIndex = -1 AndAlso LCase(OldMatn) <> "as" Then
+																	tIndex = Args.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
-																		OriginalCaseWord = pLocalArgs->Item(tIndex)
-																		pkeywords = pLocalArgs
-																		te = pLocalArgs->Object(tIndex)
+																		OriginalCaseWord = Args.Item(tIndex)
+																		pkeywords = @Args
+																		te = Args.Object(tIndex)
 																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																			Select Case te->ElementType
 																			Case "EnumItem"
@@ -2944,12 +2945,12 @@ End Function
 																	End If
 																End If
 																
-																If tIndex = -1 AndAlso pLocalProcedures > 0 Then
-																	tIndex = pLocalProcedures->IndexOf(LCase(Matn))
+																If tIndex = -1 Then
+																	tIndex = Procedures.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
-																		OriginalCaseWord = pLocalProcedures->Item(tIndex)
-																		pkeywords = pLocalProcedures
-																		te = pLocalProcedures->Object(tIndex)
+																		OriginalCaseWord = Procedures.Item(tIndex)
+																		pkeywords = @Procedures
+																		te = Procedures.Object(tIndex)
 																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																			Select Case LCase(te->ElementType)
 																			Case "constructor", "destructor"
@@ -2969,21 +2970,21 @@ End Function
 																	End If
 																End If
 																
-																If tIndex = -1 AndAlso pLocalTypes > 0 Then
-																	tIndex = pLocalTypes->IndexOf(LCase(Matn))
+																If tIndex = -1 Then
+																	tIndex = Types.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
-																		OriginalCaseWord = pLocalTypes->Item(tIndex)
-																		pkeywords = pLocalTypes
+																		OriginalCaseWord = Types.Item(tIndex)
+																		pkeywords = @Types
 																	End If
 																End If
 																
-																If tIndex = -1 AndAlso pLocalEnums > 0 Then
-																	tIndex = pLocalEnums->IndexOf(LCase(Matn))
+																If tIndex = -1 Then
+																	tIndex = Enums.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
-																		OriginalCaseWord = pLocalEnums->Item(tIndex)
-																		pkeywords = pLocalEnums
+																		OriginalCaseWord = Enums.Item(tIndex)
+																		pkeywords = @Enums
 																	End If
 																End If
 																

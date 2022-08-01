@@ -2378,8 +2378,8 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 			.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
 			.ItemIndex = 0
 			Dim As String imgKey = "Sub"
-			For i As Integer = 0 To tb->Functions.Count - 1
-				Var te = Cast(TypeElement Ptr, tb->Functions.Object(i))
+			For i As Integer = 0 To tb->txtCode.Functions.Count - 1
+				Var te = Cast(TypeElement Ptr, tb->txtCode.Functions.Object(i))
 				If te->ElementType = "Property" Then imgKey = "Property" Else imgKey = "Sub"
 				.Items.Add te->DisplayName, te, imgKey, imgKey
 			Next
@@ -2500,8 +2500,8 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 	End If
 	Dim As TypeElement Ptr te1, te2
 	Dim t As Boolean
-	For i As Integer = 0 To tb->Functions.Count - 1
-		te2 = tb->Functions.Object(i)
+	For i As Integer = 0 To tb->txtCode.Functions.Count - 1
+		te2 = tb->txtCode.Functions.Object(i)
 		If te2 = 0 Then Continue For
 		If te2->StartLine <= CurrentLine And te2->EndLine >= CurrentLine Then
 			If tb->cboFunction.ItemIndex <> i + 1 Then tb->cboFunction.ItemIndex = i + 1
@@ -3032,17 +3032,17 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	'	For i As Integer = 0 To pKeyWords3->Count - 1
 	'		If Not AddSorted(tb, GetKeyWordCase(pKeyWords3->Item(i)), , Starts) Then Exit Sub
 	'	Next
-	For i As Integer = 0 To tb->Types.Count - 1
-		If Not AddSorted(tb, tb->Types.Item(i), tb->Types.Object(i), Starts) Then Exit Sub
+	For i As Integer = 0 To tb->txtCode.Types.Count - 1
+		If Not AddSorted(tb, tb->txtCode.Types.Item(i), tb->txtCode.Types.Object(i), Starts) Then Exit Sub
 	Next
-	For i As Integer = 0 To tb->Enums.Count - 1
-		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts, , "Enum") Then Exit Sub
+	For i As Integer = 0 To tb->txtCode.Enums.Count - 1
+		If Not AddSorted(tb, tb->txtCode.Enums.Item(i), tb->txtCode.Enums.Object(i), Starts, , "Enum") Then Exit Sub
 	Next
-	For i As Integer = 0 To tb->Procedures.Count - 1
-		If Not AddSorted(tb, tb->Procedures.Item(i), tb->Procedures.Object(i), Starts, , "Sub") Then Exit Sub
+	For i As Integer = 0 To tb->txtCode.Procedures.Count - 1
+		If Not AddSorted(tb, tb->txtCode.Procedures.Item(i), tb->txtCode.Procedures.Object(i), Starts, , "Sub") Then Exit Sub
 	Next
-	For i As Integer = 0 To tb->Args.Count - 1
-		If Not AddSorted(tb, tb->Args.Item(i), tb->Args.Object(i), Starts) Then Exit Sub
+	For i As Integer = 0 To tb->txtCode.Args.Count - 1
+		If Not AddSorted(tb, tb->txtCode.Args.Item(i), tb->txtCode.Args.Object(i), Starts) Then Exit Sub
 	Next
 	Dim As Integer Pos1
 	Dim As String TypeName
@@ -3082,7 +3082,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 End Sub
 
 Sub FillTypeIntellisenses(ByRef Starts As WString = "")
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	#ifdef __USE_GTK__
 		tb->txtCode.lvIntellisense.ListItems.Clear
@@ -3099,11 +3099,11 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 	AddSorted tb, GetKeyWordCase("TypeOf"), , Starts
 	AddSorted tb, GetKeyWordCase("Sub"), , Starts
 	AddSorted tb, GetKeyWordCase("Function"), , Starts
-	For i As Integer = 0 To tb->Types.Count - 1
-		If Not AddSorted(tb, tb->Types.Item(i), tb->Types.Object(i), Starts) Then Exit Sub
+	For i As Integer = 0 To tb->txtCode.Types.Count - 1
+		If Not AddSorted(tb, tb->txtCode.Types.Item(i), tb->txtCode.Types.Object(i), Starts) Then Exit Sub
 	Next
-	For i As Integer = 0 To tb->Enums.Count - 1
-		If Not AddSorted(tb, tb->Enums.Item(i), tb->Enums.Object(i), Starts, , "Type") Then Exit Sub
+	For i As Integer = 0 To tb->txtCode.Enums.Count - 1
+		If Not AddSorted(tb, tb->txtCode.Enums.Item(i), tb->txtCode.Enums.Object(i), Starts, , "Type") Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
 	For i As Integer = 0 To pComps->Count - 1
@@ -3142,8 +3142,8 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 			i += 1
 		Loop
 		If FillIntellisense(tbi->TypeName, pList, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, @Types, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, @Enums, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, @txtCode.Types, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, @txtCode.Enums, bLocal, bAll, TypesOnly) Then
 		ElseIf FillIntellisense(tbi->TypeName, pComps, bLocal, bAll, TypesOnly) Then
 		ElseIf FillIntellisense(tbi->TypeName, pGlobalTypes, bLocal, bAll, TypesOnly) Then
 		ElseIf FillIntellisense(tbi->TypeName, pGlobalEnums, bLocal, bAll, TypesOnly) Then
@@ -3271,10 +3271,10 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 		If pGlobalNamespaces->Contains(sTemp2) Then
 			tb->FillIntellisense sTemp2, pGlobalNamespaces, bLocal, bAll, TypesOnly
 		End If
-	ElseIf tb->Types.Contains(sTemp2) AndAlso Not TypesOnly Then
-		tb->FillIntellisense sTemp2, @tb->Types, bLocal, bAll
-	ElseIf tb->Enums.Contains(sTemp2) Then
-		tb->FillIntellisense sTemp2, @tb->Enums, bLocal, bAll
+	ElseIf tb->txtCode.Types.Contains(sTemp2) AndAlso Not TypesOnly Then
+		tb->FillIntellisense sTemp2, @tb->txtCode.Types, bLocal, bAll
+	ElseIf tb->txtCode.Enums.Contains(sTemp2) Then
+		tb->FillIntellisense sTemp2, @tb->txtCode.Enums, bLocal, bAll
 	ElseIf pComps->Contains(sTemp2) Then
 		tb->FillIntellisense sTemp2, pComps, bLocal, bAll
 	ElseIf pGlobalTypes->Contains(sTemp2) Then
@@ -3523,10 +3523,10 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 	If teOld <> 0 AndAlso teOld->TypeName <> "" Then
 		TypeName = teOld->TypeName
 		FListItems.Clear
-		If tb->Types.Contains(TypeName) Then
-			tb->FillIntellisense TypeName, @tb->Types, True, True
-		ElseIf tb->Enums.Contains(TypeName) Then
-			tb->FillIntellisense TypeName, @tb->Enums, True, True
+		If tb->txtCode.Types.Contains(TypeName) Then
+			tb->FillIntellisense TypeName, @tb->txtCode.Types, True, True
+		ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+			tb->FillIntellisense TypeName, @tb->txtCode.Enums, True, True
 		ElseIf pComps->Contains(TypeName) Then
 			tb->FillIntellisense TypeName, pComps, True, True
 		ElseIf pGlobalTypes->Contains(TypeName) Then
@@ -3572,10 +3572,10 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			ParametersList.Add te->Parameters
 			If te->Comment <> "" Then Comments &= "" & te->Comment
 		End If
-		Index = tb->Functions.IndexOf(sWord)
+		Index = tb->txtCode.Procedures.IndexOf(sWord)
 		If Index > -1 Then
-			For i As Integer = Index To tb->Procedures.Count - 1
-				te = tb->Procedures.Object(i)
+			For i As Integer = Index To tb->txtCode.Procedures.Count - 1
+				te = tb->txtCode.Procedures.Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 					Parameter = te->Parameters
 					iPos = InStr(LCase(Parameter), LCase(sWord))
@@ -3839,10 +3839,10 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 		Dim As Integer Pos1
 		Dim As String FuncName = tb->cboFunction.Text
 		If TypeName <> "" Then
-			If tb->Types.Contains(TypeName) Then
-				tb->FillIntellisense TypeName, @tb->Types, True
-			ElseIf tb->Enums.Contains(TypeName) Then
-				tb->FillIntellisense TypeName, @tb->Enums, True
+			If tb->txtCode.Types.Contains(TypeName) Then
+				tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+			ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+				tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
 			ElseIf pComps->Contains(TypeName) Then
 				tb->FillIntellisense TypeName, pComps, True
 			ElseIf pGlobalTypes->Contains(TypeName) Then
@@ -3860,20 +3860,20 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 			Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
 			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
 				te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
-			ElseIf tb->Procedures.Contains(sTemp) Then
-				te = tb->Procedures.Object(tb->Procedures.IndexOf(sTemp))
-			ElseIf tb->Args.Contains(sTemp) Then
-				te = tb->Args.Object(tb->Args.IndexOf(sTemp))
+			ElseIf tb->txtCode.Procedures.Contains(sTemp) Then
+				te = tb->txtCode.Procedures.Object(tb->txtCode.Procedures.IndexOf(sTemp))
+			ElseIf tb->txtCode.Args.Contains(sTemp) Then
+				te = tb->txtCode.Args.Object(tb->txtCode.Args.IndexOf(sTemp))
 			ElseIf pGlobalFunctions->Contains(sTemp) Then
 				te = pGlobalFunctions->Object(pGlobalFunctions->IndexOf(sTemp))
 			ElseIf pGlobalArgs->Contains(sTemp) Then
 				te = pGlobalArgs->Object(pGlobalArgs->IndexOf(sTemp))
 			ElseIf TypeName <> "" Then
-				If tb->Types.Contains(TypeName) Then
+				If tb->txtCode.Types.Contains(TypeName) Then
 					'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
-					tb->FillIntellisense TypeName, @tb->Types, True
-				ElseIf tb->Enums.Contains(TypeName) Then
-					tb->FillIntellisense TypeName, @tb->Enums, True
+					tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+				ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+					tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
 				ElseIf pComps->Contains(TypeName) Then
 					tb->FillIntellisense TypeName, pComps, True
 				ElseIf pGlobalTypes->Contains(TypeName) Then
@@ -3975,8 +3975,8 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 	Dim As TypeElement Ptr te, te1, te2
 	If TypeName <> "" Then
 		If LCase(sTemp) = "base" Then
-			If tb->Types.Contains(TypeName, , , , iIndex) Then
-				te2 = tb->Types.Object(iIndex)
+			If tb->txtCode.Types.Contains(TypeName, , , , iIndex) Then
+				te2 = tb->txtCode.Types.Object(iIndex)
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			ElseIf pComps->Contains(TypeName, , , , iIndex) Then
 				te2 = pComps->Object(iIndex)
@@ -3986,8 +3986,8 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			End If
 			If BaseTypeName <> "" Then
-				If tb->Types.Contains(BaseTypeName, , , , iIndex) Then
-					teEnum = tb->Types.Object(iIndex)
+				If tb->txtCode.Types.Contains(BaseTypeName, , , , iIndex) Then
+					teEnum = tb->txtCode.Types.Object(iIndex)
 				ElseIf pComps->Contains(BaseTypeName, , , , iIndex) Then
 					teEnum = pComps->Object(iIndex)
 				ElseIf pGlobalTypes->Contains(BaseTypeName, , , , iIndex) Then
@@ -3998,10 +3998,10 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 				Return BaseTypeName
 			End If
 		End If
-		If tb->Types.Contains(TypeName) Then
-			tb->FillIntellisense TypeName, @tb->Types, True
-		ElseIf tb->Enums.Contains(TypeName) Then
-			tb->FillIntellisense TypeName, @tb->Enums, True
+		If tb->txtCode.Types.Contains(TypeName) Then
+			tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+		ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+			tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
 		ElseIf pComps->Contains(TypeName) Then
 			tb->FillIntellisense TypeName, pComps, True
 		ElseIf pGlobalTypes->Contains(TypeName) Then
@@ -4024,8 +4024,8 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		If LCase(sTemp) = "this" Then
 			Return TypeName
 		ElseIf LCase(sTemp) = "base" Then
-			If tb->Types.Contains(TypeName, , , , iIndex) Then
-				te2 = tb->Types.Object(iIndex)
+			If tb->txtCode.Types.Contains(TypeName, , , , iIndex) Then
+				te2 = tb->txtCode.Types.Object(iIndex)
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			ElseIf pComps->Contains(TypeName, , , , iIndex) Then
 				te2 = pComps->Object(iIndex)
@@ -4035,8 +4035,8 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 				If te2 <> 0 Then BaseTypeName = te2->TypeName
 			End If
 			If BaseTypeName <> "" Then
-				If tb->Types.Contains(BaseTypeName, , , , iIndex) Then
-					teEnum = tb->Types.Object(iIndex)
+				If tb->txtCode.Types.Contains(BaseTypeName, , , , iIndex) Then
+					teEnum = tb->txtCode.Types.Object(iIndex)
 				ElseIf pComps->Contains(BaseTypeName, , , , iIndex) Then
 					teEnum = pComps->Object(iIndex)
 				ElseIf pGlobalTypes->Contains(BaseTypeName, , , , iIndex) Then
@@ -4049,10 +4049,10 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		End If
 		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , iIndex) Then
 			te = te1->Elements.Object(iIndex)
-		ElseIf tb->Procedures.Contains(sTemp, , , , iIndex) Then
-			te = tb->Procedures.Object(iIndex)
-		ElseIf tb->Args.Contains(sTemp, , , , iIndex) Then
-			te = tb->Args.Object(iIndex)
+		ElseIf tb->txtCode.Procedures.Contains(sTemp, , , , iIndex) Then
+			te = tb->txtCode.Procedures.Object(iIndex)
+		ElseIf tb->txtCode.Args.Contains(sTemp, , , , iIndex) Then
+			te = tb->txtCode.Args.Object(iIndex)
 		ElseIf pGlobalFunctions->Contains(sTemp, , , , iIndex) Then
 			te = pGlobalFunctions->Object(iIndex)
 		ElseIf pGlobalArgs->Contains(sTemp, , , , iIndex) Then
@@ -4062,11 +4062,11 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 		ElseIf pGlobalNamespaces->Contains(sTemp, , , , iIndex) Then
 			te = pGlobalNamespaces->Object(iIndex)
 		ElseIf TypeName <> "" Then
-			If tb->Types.Contains(TypeName) Then
+			If tb->txtCode.Types.Contains(TypeName) Then
 				'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
-				tb->FillIntellisense TypeName, @tb->Types, True
-			ElseIf tb->Enums.Contains(TypeName) Then
-				tb->FillIntellisense TypeName, @tb->Enums, True
+				tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+			ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+				tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
 			ElseIf pComps->Contains(TypeName) Then
 				tb->FillIntellisense TypeName, pComps, True
 			ElseIf pGlobalTypes->Contains(TypeName) Then
@@ -4146,8 +4146,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		ElseIf TypeName = "Boolean" Then
 			AddSorted tb, GetKeyWordCase("False")
 			AddSorted tb, GetKeyWordCase("True")
-		ElseIf tb->Enums.Contains(TypeName, , , , iIndex) Then
-			te = tb->Enums.Object(iIndex)
+		ElseIf tb->txtCode.Enums.Contains(TypeName, , , , iIndex) Then
+			te = tb->txtCode.Enums.Object(iIndex)
 			If te <> 0 Then
 				For i As Integer = 0 To te->Elements.Count - 1
 					AddSorted tb, IIf(te->Name = "", "", te->Name & ".") & te->Elements.Item(i), te->Elements.Object(i)
@@ -4407,29 +4407,29 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		cboClass.ItemIndex = 0
 	End If
 	Dim As TypeElement Ptr te, func
-	For i As Integer = Functions.Count - 1 To 0 Step -1
-		te = Functions.Object(i)
+	For i As Integer = txtCode.Functions.Count - 1 To 0 Step -1
+		te = txtCode.Functions.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, Functions.Object(i)))
+		Delete_( Cast(TypeElement Ptr, txtCode.Functions.Object(i)))
 		'Functions.Remove i
 	Next
-	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, FunctionsOthers.Object(i)))
+	For i As Integer = txtCode.FunctionsOthers.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, txtCode.FunctionsOthers.Object(i)))
 		'FunctionsOthers.Remove i
 	Next
-	For i As Integer = Args.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, Args.Object(i)))
+	For i As Integer = txtCode.Args.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, txtCode.Args.Object(i)))
 		'Args.Remove i
 	Next
-	Functions.Clear
-	FunctionsOthers.Clear
-	Types.Clear
-	Enums.Clear
-	Procedures.Clear
-	Args.Clear
+	txtCode.Functions.Clear
+	txtCode.FunctionsOthers.Clear
+	txtCode.Types.Clear
+	txtCode.Enums.Clear
+	txtCode.Procedures.Clear
+	txtCode.Args.Clear
 	'ThreadCreate_(@LoadFromTabWindow, @This)
 	'LoadFunctions FileName, OnlyFilePath, Types, Procedures, Args, @txtCode
 	t = False
@@ -4611,13 +4611,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->FileName = FileName
 						ECLine->InConstruction = te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
-						LastIndexFunctions = Functions.Add(te->DisplayName, te)
+						LastIndexFunctions = txtCode.Functions.Add(te->DisplayName, te)
 						If ECLine->ConstructionIndex = 14 Then
-							Enums.Add te->Name, te
+							txtCode.Enums.Add te->Name, te
 						ElseIf ECLine->ConstructionIndex = 15 OrElse ECLine->ConstructionIndex = 16 Then
-							Types.Add te->Name, te
+							txtCode.Types.Add te->Name, te
 						Else
-							Procedures.Add te->Name, te
+							txtCode.Procedures.Add te->Name, te
 						End If
 						func = te
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
@@ -4673,10 +4673,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					End If
 				ElseIf ECLine->ConstructionPart = 2 Then
-					If LastIndexFunctions >= 0 AndAlso LastIndexFunctions <= Functions.Count - 1 Then 
-						Cast(TypeElement Ptr, Functions.Object(LastIndexFunctions))->EndLine = i: inFunc = False
+					If LastIndexFunctions >= 0 AndAlso LastIndexFunctions <= txtCode.Functions.Count - 1 Then 
+						Cast(TypeElement Ptr, txtCode.Functions.Object(LastIndexFunctions))->EndLine = i: inFunc = False
 						LastIndexFunctions = -1
-						ECLine->InConstruction = Functions.Object(LastIndexFunctions)
+						ECLine->InConstruction = txtCode.Functions.Object(LastIndexFunctions)
 					End If
 				End If
 			ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
@@ -4706,8 +4706,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->EndLine = i
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
 				te->FileName = FileName
-				FunctionsOthers.Add te->DisplayName, te
-				Procedures.Add te->Name, te
+				txtCode.FunctionsOthers.Add te->DisplayName, te
+				txtCode.Procedures.Add te->Name, te
 			ElseIf StartsWith(bTrimLCase, "declare ") Then
 				iStart = 9
 				Pos1 = InStr(9, bTrim, " ")
@@ -4775,8 +4775,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 					func->Elements.Add te->Name, te
 				Else
-					FunctionsOthers.Add te->DisplayName, te
-					Procedures.Add te->Name, te
+					txtCode.FunctionsOthers.Add te->DisplayName, te
+					txtCode.Procedures.Add te->Name, te
 				End If
 				If Pos2 > 0 AndAlso Pos5 > 0 Then
 					Var teDeclare = te
@@ -4918,7 +4918,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If inFunc AndAlso func <> 0 Then
 							func->Elements.Add te->Name, te
 						Else
-							Args.Add te->Name, te
+							txtCode.Args.Add te->Name, te
 						End If
 					Next
 				End If
@@ -5243,7 +5243,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr Widget
 				If Des->ReadPropertyFunc <> 0 Then Widget = Des->ReadPropertyFunc(Des->SelectedControl, "Widget")
-				If Widget <> 0 Then gtk_widget_show_all(widget)
+				If Widget <> 0 Then gtk_widget_show_all(Widget)
 			#else
 				Dim As HWND Ptr DesCtrlHandle
 				If Des->ReadPropertyFunc <> 0 Then DesCtrlHandle = Des->ReadPropertyFunc(Des->DesignControl, "Handle")
@@ -5283,8 +5283,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Dim t As Boolean
 		For i As Integer = cboFunction.Items.Count - 1 To 1 Step -1
 			t = False
-			For j As Integer = Functions.Count - 1 To 0 Step -1
-				te2 = Functions.Object(j)
+			For j As Integer = txtCode.Functions.Count - 1 To 0 Step -1
+				te2 = txtCode.Functions.Object(j)
 				If te2 = 0 Then Continue For
 				'If te2->Tag = @This Then
 				If CInt(Not te2->Find) AndAlso CInt(te2->DisplayName = cboFunction.Items.Item(i)->Text) Then 'CInt(Not te1->Find) AndAlso
@@ -5299,8 +5299,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				cboFunction.Items.Remove i
 			End If
 		Next i
-		For j As Integer = 0 To Functions.Count - 1
-			te2 = Functions.Object(j)
+		For j As Integer = 0 To txtCode.Functions.Count - 1
+			te2 = txtCode.Functions.Object(j)
 			'If te2->Tag = @This Then
 			If Not te2->Find Then
 				Dim As String imgKey = "Sub"
@@ -5639,12 +5639,12 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	This.Width = 180
 	This.OnDestroy = @TabWindow_Destroy
 	This.OnResize = @TabWindow_Resize
-	Types.Sorted = True
-	Enums.Sorted = True
-	Procedures.Sorted = True
-	Functions.Sorted = True
-	FunctionsOthers.Sorted = True
-	Args.Sorted = True
+	txtCode.Types.Sorted = True
+	txtCode.Enums.Sorted = True
+	txtCode.Procedures.Sorted = True
+	txtCode.Functions.Sorted = True
+	txtCode.FunctionsOthers.Sorted = True
+	txtCode.Args.Sorted = True
 	lvPropertyWidth = 150
 	btnClose.tbParent = @This
 	#ifdef __USE_GTK__
@@ -5831,12 +5831,12 @@ Destructor TabWindow
 	If FLine3 Then Deallocate_( FLine3)
 	If FLine4 Then Deallocate_( FLine4)
 	If FPath Then Deallocate_( FPath)
-	If pLocalTypes = @Types Then pLocalTypes = 0
-	If pLocalEnums = @Enums Then pLocalEnums = 0
-	If pLocalProcedures = @Procedures Then pLocalProcedures = 0
-	If pLocalFunctions = @Functions Then pLocalFunctions = 0
-	If pLocalFunctionsOthers = @FunctionsOthers Then pLocalFunctionsOthers = 0
-	If pLocalArgs = @Args Then pLocalArgs = 0
+'	If pLocalTypes = @Types Then pLocalTypes = 0
+'	If pLocalEnums = @Enums Then pLocalEnums = 0
+'	If pLocalProcedures = @Procedures Then pLocalProcedures = 0
+'	If pLocalFunctions = @Functions Then pLocalFunctions = 0
+'	If pLocalFunctionsOthers = @FunctionsOthers Then pLocalFunctionsOthers = 0
+'	If pLocalArgs = @Args Then pLocalArgs = 0
 	
 	If Des <> 0 Then
 		For i As Integer = cboClass.Items.Count - 1 To 1 Step -1
@@ -5855,24 +5855,24 @@ Destructor TabWindow
 	cboClass.Items.Clear
 	cboFunction.Items.Clear
 	Dim As TypeElement Ptr te
-	For i As Integer = Functions.Count - 1 To 0 Step -1
-		te = Functions.Object(i)
+	For i As Integer = txtCode.Functions.Count - 1 To 0 Step -1
+		te = txtCode.Functions.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
-		Delete_( Cast(TypeElement Ptr, Functions.Object(i)))
+		Delete_( Cast(TypeElement Ptr, txtCode.Functions.Object(i)))
 	Next
-	For i As Integer = FunctionsOthers.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, FunctionsOthers.Object(i)))
+	For i As Integer = txtCode.FunctionsOthers.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, txtCode.FunctionsOthers.Object(i)))
 	Next
-	For i As Integer = Args.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, Args.Object(i)))
+	For i As Integer = txtCode.Args.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, txtCode.Args.Object(i)))
 	Next
-	Functions.Clear
-	FunctionsOthers.Clear
-	Types.Clear
-	Procedures.Clear
-	Args.Clear
+	txtCode.Functions.Clear
+	txtCode.FunctionsOthers.Clear
+	txtCode.Types.Clear
+	txtCode.Procedures.Clear
+	txtCode.Args.Clear
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0
 	'If tn <> 0 Then ptvExplorer->RemoveRoot ptvExplorer->IndexOfRoot(tn)
 End Destructor
@@ -7933,10 +7933,10 @@ Sub TabWindow.Define
 				TypeName = GetTypeFromValue(@This, teOld->Value)
 			End If
 			FListItems.Clear
-			If Types.Contains(TypeName) Then
-				FillIntellisense TypeName, @Types, True, True
-			ElseIf Enums.Contains(TypeName) Then
-				FillIntellisense TypeName, @Enums, True, True
+			If txtCode.Types.Contains(TypeName) Then
+				FillIntellisense TypeName, @txtCode.Types, True, True
+			ElseIf txtCode.Enums.Contains(TypeName) Then
+				FillIntellisense TypeName, @txtCode.Enums, True, True
 			ElseIf pComps->Contains(TypeName) Then
 				FillIntellisense TypeName, pComps, True, True
 			ElseIf pGlobalTypes->Contains(TypeName) Then
@@ -7984,10 +7984,10 @@ Sub TabWindow.Define
 				Next
 			End If
 			If TypeName <> "" Then
-				If Types.Contains(TypeName) Then
-					FillIntellisense TypeName, @Types, True
-				ElseIf Enums.Contains(TypeName) Then
-					FillIntellisense TypeName, @Enums, True
+				If txtCode.Types.Contains(TypeName) Then
+					FillIntellisense TypeName, @txtCode.Types, True
+				ElseIf txtCode.Enums.Contains(TypeName) Then
+					FillIntellisense TypeName, @txtCode.Enums, True
 				ElseIf pComps->Contains(TypeName) Then
 					FillIntellisense TypeName, pComps, True
 				ElseIf pGlobalTypes->Contains(TypeName) Then
@@ -8012,8 +8012,8 @@ Sub TabWindow.Define
 				End If
 				FListItems.Clear
 			End If
-			For i As Integer = 0 To Functions.Count - 1
-				te = Functions.Object(i)
+			For i As Integer = 0 To txtCode.Functions.Count - 1
+				te = txtCode.Functions.Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->StartLine = iSelEndLine Then Continue For
 					If te = te2 Then Continue For
@@ -8025,8 +8025,8 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
-			For i As Integer = 0 To Args.Count - 1
-				te = Args.Object(i)
+			For i As Integer = 0 To txtCode.Args.Count - 1
+				te = txtCode.Args.Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->StartLine = iSelEndLine Then Continue For
 					If te = te2 Then Continue For

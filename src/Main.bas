@@ -6789,12 +6789,12 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(newIndex))
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
-	pLocalTypes = @tb->Types
-	pLocalEnums = @tb->Enums
-	pLocalProcedures = @tb->Procedures
-	pLocalFunctions = @tb->Functions
-	pLocalFunctionsOthers = @tb->FunctionsOthers
-	pLocalArgs = @tb->Args
+'	pLocalTypes = @tb->Types
+'	pLocalEnums = @tb->Enums
+'	pLocalProcedures = @tb->Procedures
+'	pLocalFunctions = @tb->Functions
+'	pLocalFunctionsOthers = @tb->FunctionsOthers
+'	pLocalArgs = @tb->Args
 	tb->tn->SelectItem
 	For i As Integer = 3 To miWindow->Count - 1
 		miWindow->Item(i)->Checked = miWindow->Item(i) = tb->mi
