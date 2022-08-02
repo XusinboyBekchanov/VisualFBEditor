@@ -3550,6 +3550,64 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			Next
 		End If
 	Else
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Dim As EditControlLine Ptr FECLine = tb->txtCode.FLines.Item(iSelEndLine)
+		If FECLine > 0 Then
+			Index = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(sWord))
+			If Index <> -1 Then
+				Var lst = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+				For i As Integer = Index To lst->Count - 1
+					te = lst->Object(i)
+					If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+						Parameter = te->Parameters
+						iPos = InStr(LCase(Parameter), LCase(sWord))
+						FuncName = Mid(Parameter, iPos, Len(sWord))
+						Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+						ParametersList.Add te->Parameters
+						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+						If te->Comment <> "" Then Comments &= "" & te->Comment
+					End If
+				Next
+			End If
+			TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+			Var Pos1 = InStr(TypeName, ".")
+			If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
+				If Pos1 > 0 Then
+					TypeName = ..Left(TypeName, Pos1 - 1)
+				Else
+					TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+				End If
+				If TypeName <> "" Then
+					If tb->txtCode.Types.Contains(TypeName) Then
+						tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+					ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+						tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
+					ElseIf pComps->Contains(TypeName) Then
+						tb->FillIntellisense TypeName, pComps, True
+					ElseIf pGlobalTypes->Contains(TypeName) Then
+						tb->FillIntellisense TypeName, pGlobalTypes, True
+					ElseIf pGlobalEnums->Contains(TypeName) Then
+						tb->FillIntellisense TypeName, pGlobalEnums, True
+					End If
+					If FListItems.Contains(sWord) Then
+						For i As Integer = 0 To FListItems.Count - 1
+							te = FListItems.Object(i)
+							If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+								Parameter = te->Parameters
+								iPos = InStr(LCase(Parameter), LCase(sWord))
+								FuncName = Mid(Parameter, iPos, Len(sWord))
+								Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+								ParametersList.Add te->Parameters
+								Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+								If te->Comment <> "" Then Comments &= "" & te->Comment
+							End If
+						Next
+					End If
+					FListItems.Clear
+				End If
+			End If
+		End If
 		If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 			If Not ShowKeywordsToolTip Then
 				If te->ElementType = "Keyword" Then Return ""
@@ -4325,7 +4383,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5185,7 +5243,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Len(FLin) <> 0 Then
 									WLet(FLine2, Trim(Mid(b, p1 + 1), Any !"\t "))
 									'If StartsWith(*FLine2, "@") Then WLet(FLine3, Trim(Mid(*FLine2, 2), Any !"\t ")): WLet(FLine2, *FLine3)
-									If WriteObjProperty(Ctrl, PropertyName, *FLine2, True) Then
+									Dim As Boolean Result
+									Result = WriteObjProperty(Ctrl, PropertyName, *FLine2, True)
+									If Result Then
 										#ifdef __USE_GTK__
 											If LCase(PropertyName) = "parent" AndAlso Des->ReadPropertyFunc(Ctrl, "Widget") Then
 												Des->HookControl(Des->ReadPropertyFunc(Ctrl, "Widget"))
