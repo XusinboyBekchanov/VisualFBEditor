@@ -4445,6 +4445,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
 	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 	Dim As Integer WithConstructionLine = -1, OldWithConstructionLine = -1
+	Dim As List Constructs
 	If IsBas Then
 		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
 		WLetEx FLine2, GetFileName(*FLine1), True
@@ -4607,9 +4608,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						te->ElementType = Trim(Constructions(ECLine->ConstructionIndex).Name0)
 						te->StartLine = i
+						te->EndLine = i + 1
 						te->Tag = @This
 						te->FileName = FileName
 						ECLine->InConstruction = te
+						Constructs.Add te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
 						LastIndexFunctions = txtCode.Functions.Add(te->DisplayName, te)
 						If ECLine->ConstructionIndex = 14 Then
@@ -4673,10 +4676,17 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					End If
 				ElseIf ECLine->ConstructionPart = 2 Then
-					If LastIndexFunctions >= 0 AndAlso LastIndexFunctions <= txtCode.Functions.Count - 1 Then 
-						Cast(TypeElement Ptr, txtCode.Functions.Object(LastIndexFunctions))->EndLine = i: inFunc = False
+					If func <> 0 Then 
+						func->EndLine = i: inFunc = False
 						LastIndexFunctions = -1
-						ECLine->InConstruction = txtCode.Functions.Object(LastIndexFunctions)
+						If Constructs.Count > 0 Then Constructs.Remove Constructs.Count - 1
+						If Constructs.Count > 0 Then
+							ECLine->InConstruction = Constructs.Item(Constructs.Count - 1)
+							func = ECLine->InConstruction
+							inFunc = True
+						Else
+							ECLine->InConstruction = 0
+						End If
 					End If
 				End If
 			ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
