@@ -18,7 +18,7 @@
 		Declare Sub txtActive_Change(ByRef Sender As TextBox)
 		Declare Sub GetDropdowns(mi As Any Ptr)
 		Declare Sub SelectRect(Index As Integer)
-		Declare Sub EditRect(i As Integer)
+		Declare Sub EditRect(i As Integer, NewObject As Boolean = False)
 		Declare Static Sub Form_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Sub Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Static Sub Form_KeyPress_(ByRef Sender As Control, Key As Integer)
@@ -60,7 +60,9 @@
 	Common Shared pfMenuEditor As frmMenuEditor Ptr
 '#End Region
 
-Declare Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
+Declare Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", BeforeControl As Any Ptr = 0,  iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
+
+Declare Sub TabWindowFormDesign
 
 #ifndef __USE_MAKE__
 	#include once "frmMenuEditor.frm"

@@ -1033,7 +1033,7 @@ Namespace My.Sys.Forms
 				'#EndIf
 				If SelectedType = 3 Or SelectedType = 4 Then
 					Dim cpnt As Any Ptr = CreateComponent(SelectedClass, FName, ctr, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top))
-					If OnInsertComponent Then OnInsertComponent(This, FClass, cpnt, 0, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top))
+					If OnInsertComponent Then OnInsertComponent(This, FClass, cpnt, 0, 0, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top))
 					If FSelControl Then
 						SelectedControls.Clear
 					End If
@@ -1054,7 +1054,7 @@ Namespace My.Sys.Forms
 							LockWindowUpdate(FSelControl)
 							BringWindowToTop(FSelControl)
 						#endif
-						If OnInsertControl Then OnInsertControl(This, FClass, SelectedControl, 0, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
+						If OnInsertControl Then OnInsertControl(This, FClass, SelectedControl, 0, 0, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
 						#ifdef __USE_GTK__
 							MoveDots(SelectedControl, , FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
 						#else
@@ -1292,7 +1292,7 @@ Namespace My.Sys.Forms
 				LockWindowUpdate(FSelControl)
 				BringWindowToTop(FSelControl)
 			#endif
-			If OnInsertControl Then OnInsertControl(This, WGet(ReadPropertyFunc(Ctrl, "ClassName")), NewCtrl, Ctrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
+			If OnInsertControl Then OnInsertControl(This, WGet(ReadPropertyFunc(Ctrl, "ClassName")), NewCtrl, Ctrl, 0, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
 			If bStart Then SelectedControls.Add NewCtrl
 		End If
 		If Controls.Contains(Ctrl) Then

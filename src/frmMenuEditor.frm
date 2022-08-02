@@ -455,7 +455,7 @@ Private Sub frmMenuEditor.Form_MouseDown(ByRef Sender As Control, MouseButton As
 	Next i
 End Sub
 
-Sub frmMenuEditor.EditRect(i As Integer)
+Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 	With Rects(i)
 		ActiveRect = i
 		If CurrentToolBar <> 0 AndAlso ActiveRect <= TopCount Then
@@ -477,7 +477,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
 				Des->WritePropertyFunc(Obj, "Parent", CurrentToolBar)
 				ChangeControl *Des, Obj, "Parent"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj, 0)
+				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj, 0, Ctrls(i))
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
 				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
@@ -499,7 +499,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
 				Des->WritePropertyFunc(Obj, "Parent", CurrentStatusBar)
 				ChangeControl *Des, Obj, "Parent"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj, 0)
+				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj, 0, Ctrls(i))
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
 				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
@@ -510,7 +510,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 		Else
 			picActive.Left = .Left + 1
 			picActive.Top = .Top + 2
-			If Ctrls(i) = 0 Then
+			If CBool(Ctrls(i) = 0) OrElse NewObject Then
 				Dim As String FName = "MenuItem"
 				If Des->OnInsertingControl Then
 					Des->OnInsertingControl(*Des, FName, FName)
@@ -532,7 +532,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 					ChangeControl *Des, Obj, "Parent"
 				End If
 				ChangeControl *Des, Obj, "Caption"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj, 0)
+				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj, 0, Ctrls(i))
 				Ctrls(i) = Obj
 				ActiveCtrl = Obj
 				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
@@ -549,6 +549,7 @@ Sub frmMenuEditor.EditRect(i As Integer)
 			picActive.Height = .Bottom - .Top - 3
 		End If
 		picActive.Visible = True
+		If NewObject Then TabWindowFormDesign
 		Repaint
 		txtActive.SetFocus
 	End With
@@ -613,7 +614,9 @@ Sub frmMenuEditor.SelectRect(Index As Integer)
 End Sub
 
 Sub frmMenuEditor.InsertNewMenuItem
-	
+	If ActiveRect Then
+		EditRect ActiveRect, True
+	End If
 End Sub
 
 Sub frmMenuEditor.DeleteMenuItem
@@ -800,7 +803,7 @@ Private Sub frmMenuEditor.Form_MouseUp(ByRef Sender As Control, MouseButton As I
 		PopupMenu1.ParentWindow = @This
 		Dim As Point pt = Type(x, y)
 		ClientToScreen pt
-		PopupMenu1.Popup pt.x, pt.y
+		PopupMenu1.Popup pt.X, pt.Y
 	End If
 End Sub
 

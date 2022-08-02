@@ -1726,12 +1726,12 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		iStart = i
 		iEnd = i
 	Loop
-	WDeallocate FLine
+	WDeAllocate FLine
 	ptxtCode->Changed "Unsurni o`chirish"
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed "Unsurni o`chirish"
 End Sub
 
-Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
+Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", BeforeCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
 	On Error Goto ErrorHandler
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Return 0
@@ -1744,11 +1744,14 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	Dim frmTypeName As WString * 100
 	Dim CtrlName As WString * 100
 	Dim CtrlNameBase As WString * 100
+	Dim BeforeCtrlName As WString * 100
 	frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 	CtrlName = WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
+	If BeforeCtrl Then BeforeCtrlName = WGet(tb->Des->ReadPropertyFunc(BeforeCtrl, "Name"))
 	If CtrlName = frmName Then CtrlName = "This"
 	Dim InsLineCount As Integer
 	Dim As WStringList WithArgs
+	Dim As IntegerList CuttingLines
 	Dim As WString Ptr FLine, FLine1,FLine2
 	Var b = False, t = False
 	Var d = False, sl = 0, tp = 0, ep = 0, j = 0, n = 0
@@ -1837,6 +1840,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 		InsLineCount += 1
 	End If
 	Var sc = 0, se = 0
+	Var BeforeCtrlLine = 0
 	Var bWith = False
 	j = 0: n = 0
 	t = False
@@ -1849,11 +1853,26 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 				If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end constructor ") Then
 					se = k
 					Exit For, For
+				ElseIf BeforeCtrl AndAlso Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "' " & LCase(BeforeCtrlName) Then
+					BeforeCtrlLine = k
+				ElseIf Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "' " & LCase(CtrlName) Then
+					If BeforeCtrl Then CuttingLines.Add k, ptxtCode->FLines.Items[k]
 				ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "with ") Then
 					WithArgs.Add Trim(Mid(Trim(ptxtCode->Lines(k), Any !"\t "), 5), Any !"\t ")
+					If BeforeCtrl Then
+						If Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "with " & LCase(CtrlName) Then
+							CuttingLines.Add k, ptxtCode->FLines.Items[k]
+						End If
+					End If
 				ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "end with") Then
-					If WithArgs.Count > 0 Then WithArgs.Remove WithArgs.Count - 1
+					If WithArgs.Count > 0 Then
+						If BeforeCtrl AndAlso WithArgs.Item(WithArgs.Count - 1) = CtrlName Then
+							CuttingLines.Add k, ptxtCode->FLines.Items[k]
+						End If
+						WithArgs.Remove WithArgs.Count - 1
+					End If
 				ElseIf CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(CtrlName) & ".")) OrElse CInt(CInt(WithArgs.Count > 0) AndAlso CInt(WithArgs.Item(WithArgs.Count - 1) = CtrlName) AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
+					If BeforeCtrl Then CuttingLines.Add k, ptxtCode->FLines.Items[k]
 					j = k
 					bWith = WithArgs.Count > 0 AndAlso WithArgs.Item(WithArgs.Count - 1) = CtrlName
 					Var p = InStr(ptxtCode->Lines(k), ".")
@@ -1933,6 +1952,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 		se = sc + 1
 	End If
 	If j = 0 Then
+		If BeforeCtrlLine > 0 Then se = BeforeCtrlLine
 		CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 		Dim ParentName As String
 		If Cpnt <> 0 Then
@@ -2030,7 +2050,15 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			InsLineCount += q + 4
 			tb->ConstructorEnd += 1
 		End If
-	ElseIf Not t Then
+	Else
+		If BeforeCtrlLine > 0 AndAlso BeforeCtrlLine < j Then
+			For i As Integer = 0 To CuttingLines.Count - 1
+				j = BeforeCtrlLine + i
+				ptxtCode->InsertLine j, *Cast(EditControlLine Ptr, CuttingLines.Object(i))->Text
+				ptxtCode->DeleteLine CuttingLines.Item(i) + 1
+			Next
+		End If
+		If Not t Then
 		If PropertyName <> "" Then
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			WLet(FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName))
@@ -2045,12 +2073,13 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			End If
 		End If
 		InsLineCount += q
+		End If
 	End If
 	ptxtCode->Changed ""
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed ""
-	WDeallocate FLine
-	WDeallocate FLine1
-	WDeallocate FLine2 '
+	WDeAllocate FLine
+	WDeAllocate FLine1
+	WDeAllocate FLine2 '
 	Return InsLineCount
 	Exit Function
 	ErrorHandler:
@@ -2321,14 +2350,14 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 			Next i
 		End If
 		.Changing "Unsurni o`zgartirish"
-		ChangeControl(Sender, Ctrl, PropertyName, iLeft, iTop, iWidth, iHeight)
+		ChangeControl(Sender, Ctrl, PropertyName, 0, iLeft, iTop, iWidth, iHeight)
 		.Changed "Unsurni o`zgartirish"
 		tb->FormDesign True
 		pfrmMain->UpdateUnLock
 	End With
 End Sub
 
-Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
+Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, BeforeCtrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
 	On Error Goto ErrorHandler
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
@@ -2376,7 +2405,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 			tb->ConstructorEnd += 1
 		End If
 	End If
-	ChangeControl(Sender, Ctrl, , iLeft2, iTop2, iWidth2, iHeight2)
+	ChangeControl(Sender, Ctrl, , BeforeCtrl, iLeft2, iTop2, iWidth2, iHeight2)
 	If CopiedCtrl <> 0 Then
 		FPropertyItems.Clear
 		tb->FillProperties ClassName
@@ -2387,7 +2416,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 			Case Else
 				If Trim(tb->ReadObjProperty(Ctrl, FPropertyItems.Item(i))) <> Trim(tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i))) Then
 					tb->WriteObjProperty(Ctrl, FPropertyItems.Item(i), tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i)))
-					ChangeControl Sender, Ctrl, FPropertyItems.Item(i), iLeft2, iTop2, iWidth2, iHeight2
+					ChangeControl Sender, Ctrl, FPropertyItems.Item(i), 0, iLeft2, iTop2, iWidth2, iHeight2
 				End If
 			End Select
 		Next
@@ -2405,12 +2434,12 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	"in module " & ZGet(Ermn())
 End Sub
 
-Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
-	DesignerInsertControl(Sender, ClassName, Cpnt, CopiedCpnt, iLeft2, iTop2, 16, 16)
+Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, BeforeCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
+	DesignerInsertControl(Sender, ClassName, Cpnt, CopiedCpnt, BeforeCpnt, iLeft2, iTop2, 16, 16)
 End Sub
 
-Sub DesignerInsertObject(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr, CopiedObj As Any Ptr)
-	DesignerInsertControl(Sender, ClassName, Obj, CopiedObj, -1, -1, -1, -1)
+Sub DesignerInsertObject(ByRef Sender As Designer, ByRef ClassName As String, Obj As Any Ptr, CopiedObj As Any Ptr, BeforeObj As Any Ptr)
+	DesignerInsertControl(Sender, ClassName, Obj, CopiedObj, BeforeObj, -1, -1, -1, -1)
 End Sub
 
 Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String, ByRef AName As String)
@@ -4458,7 +4487,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -4473,6 +4502,12 @@ Function TabWindow.FindControlIndex(ArgName As String) As Integer
 	Return i
 End Function
 
+Sub TabWindowFormDesign
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	tb->FormDesign
+End Sub
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	If bNotDesign OrElse FormClosing Then Exit Sub
@@ -4484,6 +4519,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim CurrentToolBarName As String
 	Dim CurrentStatusBarName As String
 	Dim CurrentImageListName As String
+	Dim ActiveCtrlName As String
 	Dim SelControlNames As WStringList
 	Dim bSelControlFind As Boolean
 	Dim As UString ResourceFile = GetResourceFile(True)
@@ -4491,6 +4527,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	If CInt(NotForms = False) AndAlso CInt(Des) Then
 		With *Des
 			If pfImageListEditor->CurrentImageList <> 0 Then CurrentImageListName = WGet(.ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
+			If pfMenuEditor->ActiveCtrl <> 0 Then ActiveCtrlName = WGet(.ReadPropertyFunc(pfMenuEditor->ActiveCtrl, "Name"))
 			If pfMenuEditor->CurrentMenu <> 0 Then CurrentMenuName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentMenu, "Name"))
 			If pfMenuEditor->CurrentToolBar <> 0 Then CurrentToolBarName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentToolBar, "Name"))
 			If pfMenuEditor->CurrentStatusBar <> 0 Then CurrentStatusBarName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentStatusBar, "Name"))
@@ -5339,6 +5376,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 												bSelControlFind = True
 											End If
 											If CurrentImageListName = CtrlName Then pfImageManager->CurrentImageList = Ctrl
+											If ActiveCtrlName = CtrlName Then pfMenuEditor->ActiveCtrl = Ctrl
 											If CurrentMenuName = CtrlName Then pfMenuEditor->CurrentMenu = Ctrl
 											If CurrentToolBarName = CtrlName Then pfMenuEditor->CurrentToolBar = Ctrl
 											If CurrentStatusBarName = CtrlName Then pfMenuEditor->CurrentStatusBar = Ctrl
