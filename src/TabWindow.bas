@@ -5471,7 +5471,7 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 				si.nMax   = 0
 			End If
 			si.nPage  = 3
-			SetScrollInfo(msg.hwnd, SB_HORZ, @si, True)
+			SetScrollInfo(msg.hWnd, SB_HORZ, @si, True)
 			If si.nMax = 0 Then
 				ScrollWindowEx msg.hWnd, -tb->Des->OffsetX, 0, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
 				tb->Des->OffsetX = 0
@@ -5486,7 +5486,7 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 				si.nMax   = 0
 			End If
 			si.nPage  = 3
-			SetScrollInfo(msg.hwnd, SB_VERT, @si, True)
+			SetScrollInfo(msg.hWnd, SB_VERT, @si, True)
 			If si.nMax = 0 Then
 				ScrollWindowEx msg.hWnd, 0, -tb->Des->OffsetY, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
 				tb->Des->OffsetY = 0
@@ -5495,6 +5495,14 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 			Dim As Byte scrDirection
 			Dim si As SCROLLINFO
 			Dim As Integer OldPos
+			Dim scrStyle As Byte
+			Dim As Boolean bShifted
+			bShifted = GetKeyState(VK_SHIFT) And 8000
+			If bShifted Then
+				scrStyle = SB_HORZ
+			Else
+				scrStyle = SB_VERT
+			End If
 			#ifdef __FB_64BIT__
 				If msg.wParam < 4000000000 Then
 					scrDirection = 1
@@ -5506,7 +5514,7 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 			#endif
 			si.cbSize = SizeOf (si)
 			si.fMask  = SIF_ALL
-			GetScrollInfo (msg.hwnd, SB_VERT, @si)
+			GetScrollInfo (msg.hWnd, scrStyle, @si)
 			OldPos = si.nPos
 			If scrDirection = -1 Then
 				si.nPos = Min(si.nPos + 3, si.nMax)
@@ -5514,24 +5522,28 @@ Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 				si.nPos = Max(si.nPos - 3, si.nMin)
 			End If
 			si.fMask = SIF_POS
-			SetScrollInfo(msg.hwnd, SB_VERT, @si, True)
-			GetScrollInfo(msg.hwnd, SB_VERT, @si)
+			SetScrollInfo(msg.hWnd, scrStyle, @si, True)
+			GetScrollInfo(msg.hWnd, scrStyle, @si)
 			If (Not si.nPos = OldPos) Then
 				tb->Des->OffsetY += OldPos - si.nPos
-				ScrollWindowEx msg.hWnd, 0, OldPos - si.nPos, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
+				If bShifted Then
+					ScrollWindowEx msg.hWnd, OldPos - si.nPos, 0, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
+				Else
+					ScrollWindowEx msg.hWnd, 0, OldPos - si.nPos, 0, 0, 0, 0, SW_ERASE Or SW_SCROLLCHILDREN Or SW_INVALIDATE
+				End If
 			End If
 		Case WM_HSCROLL, WM_VSCROLL
 			Dim scrStyle As Byte
 			Dim si As SCROLLINFO
 			Dim As Integer OldPos
-			If msg.msg = WM_HSCROLL Then
+			If msg.Msg = WM_HSCROLL Then
 				scrStyle = SB_HORZ
 			Else
 				scrStyle = SB_VERT
 			End If
 			si.cbSize = SizeOf (si)
 			si.fMask  = SIF_ALL
-			GetScrollInfo (msg.hwnd, scrStyle, @si)
+			GetScrollInfo (msg.hWnd, scrStyle, @si)
 			OldPos = si.nPos
 			Select Case msg.wParamLo
 			Case SB_TOP, SB_LEFT
