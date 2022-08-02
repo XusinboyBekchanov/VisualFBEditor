@@ -4093,94 +4093,179 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEWHEEL
 			#endif
 			bInMiddleScroll = False
-			Var VScrollMax = IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom)
-			Dim As Integer Ptr pVScrollPos
-			If ActiveCodePane = 0 Then
-				pVScrollPos = @VScrollPosTop
+			Dim As Integer VScrollMax
+			Dim As Integer Ptr pVScrollPos, pHScrollPos
+			Dim As HWND sbScrollBarV, sbScrollBarH
+			If bShifted Then
+				VScrollMax = IIf(ActiveCodePane = 0, HScrollMaxLeft, HScrollMaxRight)
+				If ActiveCodePane = 0 Then
+					pHScrollPos = @HScrollPosLeft
+				Else
+					pHScrollPos = @HScrollPosRight
+				End If
+				#ifdef __USE_GTK__
+					OldPos = gtk_adjustment_get_value(adjustmenth)
+					#ifdef __USE_GTK3__
+						scrDirection = e->scroll.delta_y
+					#else
+						scrDirection = IIf(e->scroll.direction = GDK_SCROLL_UP, -1, 1)
+					#endif
+				#else
+					sbScrollBarH = IIf(ActiveCodePane = 0, sbScrollBarhLeft, sbScrollBarhRight)
+					#ifdef __FB_64BIT__
+						If msg.wParam < 4000000000 Then
+							scrDirection = 1
+						Else
+							scrDirection = -1
+						End If
+					#else
+						scrDirection = Sgn(msg.wParam)
+					#endif
+					si.cbSize = SizeOf (si)
+					si.fMask  = SIF_ALL
+					GetScrollInfo (sbScrollBarH, SB_CTL, @si)
+					'GetScrollInfo (FHandle, SB_VERT, @si)
+					OldPos = si.nPos
+				#endif
 			Else
-				pVScrollPos = @VScrollPosBottom
+				VScrollMax = IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom)
+				If ActiveCodePane = 0 Then
+					pVScrollPos = @VScrollPosTop
+				Else
+					pVScrollPos = @VScrollPosBottom
+				End If
+				#ifdef __USE_GTK__
+					OldPos = gtk_adjustment_get_value(adjustmentv)
+					#ifdef __USE_GTK3__
+						scrDirection = e->scroll.delta_y
+					#else
+						scrDirection = IIf(e->scroll.direction = GDK_SCROLL_UP, -1, 1)
+					#endif
+				#else
+					sbScrollBarV = IIf(ActiveCodePane = 0, sbScrollBarvTop, sbScrollBarvBottom)
+					#ifdef __FB_64BIT__
+						If msg.wParam < 4000000000 Then
+							scrDirection = 1
+						Else
+							scrDirection = -1
+						End If
+					#else
+						scrDirection = Sgn(msg.wParam)
+					#endif
+					si.cbSize = SizeOf (si)
+					si.fMask  = SIF_ALL
+					GetScrollInfo (sbScrollBarV, SB_CTL, @si)
+					'GetScrollInfo (FHandle, SB_VERT, @si)
+					OldPos = si.nPos
+				#endif
 			End If
-			#ifdef __USE_GTK__
-				OldPos = gtk_adjustment_get_value(adjustmentv)
-				#ifdef __USE_GTK3__
-					scrDirection = e->scroll.delta_y
-				#else
-					scrDirection = IIf(e->scroll.direction = GDK_SCROLL_UP, -1, 1)
-				#endif
-			#else
-				Var sbScrollBarv = IIf(ActiveCodePane = 0, sbScrollBarvTop, sbScrollBarvBottom)
-				#ifdef __FB_64BIT__
-					If msg.wParam < 4000000000 Then
-						scrDirection = 1
-					Else
-						scrDirection = -1
-					End If
-				#else
-					scrDirection = Sgn(msg.wParam)
-				#endif
-				si.cbSize = SizeOf (si)
-				si.fMask  = SIF_ALL
-				GetScrollInfo (sbScrollBarv, SB_CTL, @si)
-				'GetScrollInfo (FHandle, SB_VERT, @si)
-				OldPos = si.nPos
-			#endif
 			If bCtrl Then
 				EditorFontSize += scrDirection
 				PaintControl
 			ElseIf VScrollMax <> 0 Then
-				#ifdef __USE_GTK__
-					If scrDirection = 1 Then
-						gtk_adjustment_set_value(adjustmentv, min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
-					ElseIf scrDirection = -1 Then
-						gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
-					End If
-					'If Not gtk_adjustment_get_value(adjustmentv) = OldPos Then
-					*pVScrollPos = gtk_adjustment_get_value(adjustmentv)
-					ShowCaretPos False
-					'PaintControl
-					If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
-					'End If
-				#else
-					If scrDirection = -1 Then
-						si.nPos = min(si.nPos + 3, si.nMax)
-					Else
-						si.nPos = Max(si.nPos - 3, si.nMin)
-					End If
-					si.fMask = SIF_POS
-					SetScrollInfo(sbScrollBarv, SB_CTL, @si, True)
-					'SetScrollInfo(FHandle, SB_VERT, @si, True)
-					GetScrollInfo(sbScrollBarv, SB_CTL, @si)
-					'GetScrollInfo(FHandle, SB_VERT, @si)
-					If (Not si.nPos = OldPos) Then
-						*pVScrollPos = si.nPos
+				If bShifted Then
+					#ifdef __USE_GTK__
+						If scrDirection = 1 Then
+							gtk_adjustment_set_value(adjustmenth, min(OldPos + 3, gtk_adjustment_get_upper(adjustmenth)))
+						ElseIf scrDirection = -1 Then
+							gtk_adjustment_set_value(adjustmenth, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmenth)))
+						End If
+						'If Not gtk_adjustment_get_value(adjustmentv) = OldPos Then
+						*pHScrollPos = gtk_adjustment_get_value(adjustmenth)
 						ShowCaretPos False
-						If DownButton = 0 Then
-							#ifdef __USE_GTK__
-								FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-								FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-								If e->button.x < LeftMargin Then
-							#else
-								dwTemp = GetMessagePos
-								psPoints = MAKEPOINTS(dwTemp)
-								poPoint.X = psPoints.x
-								poPoint.Y = psPoints.y
-								..ScreenToClient(Handle, @poPoint)
-								FSelEndLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
-								FSelEndChar = CharIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
-								If poPoint.X < LeftMargin Then
-							#endif
-								If FSelEndLine < FSelStartLine Then
-									'FSelStart = LineFromCharIndex(FSelStart)
-									'FSelStart = CharIndexFromLine(FSelStart) + LineLength(FSelStart)
-									FSelStartChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text)
-								Else
-									FSelEndChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text)
+						'PaintControl
+						If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
+						'End If
+					#else
+						If scrDirection = -1 Then
+							si.nPos = min(si.nPos + 3, si.nMax)
+						Else
+							si.nPos = Max(si.nPos - 3, si.nMin)
+						End If
+						si.fMask = SIF_POS
+						SetScrollInfo(sbScrollBarH, SB_CTL, @si, True)
+						'SetScrollInfo(FHandle, SB_HORZ, @si, True)
+						GetScrollInfo(sbScrollBarH, SB_CTL, @si)
+						'GetScrollInfo(FHandle, SB_HORZ, @si)
+						If (Not si.nPos = OldPos) Then
+							*pHScrollPos = si.nPos
+							ShowCaretPos False
+							If DownButton = 0 Then
+								#ifdef __USE_GTK__
+									FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+									FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+									If e->button.x < LeftMargin Then
+								#else
+									dwTemp = GetMessagePos
+									psPoints = MAKEPOINTS(dwTemp)
+									poPoint.X = psPoints.x
+									poPoint.Y = psPoints.y
+									..ScreenToClient(Handle, @poPoint)
+									FSelEndLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
+									FSelEndChar = CharIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
+									If poPoint.X < LeftMargin Then
+								#endif
 								End If
 							End If
+							PaintControl
 						End If
-						PaintControl
-					End If
-				#endif
+					#endif
+				Else
+					#ifdef __USE_GTK__
+						If scrDirection = 1 Then
+							gtk_adjustment_set_value(adjustmentv, min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
+						ElseIf scrDirection = -1 Then
+							gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
+						End If
+						'If Not gtk_adjustment_get_value(adjustmentv) = OldPos Then
+						*pVScrollPos = gtk_adjustment_get_value(adjustmentv)
+						ShowCaretPos False
+						'PaintControl
+						If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
+						'End If
+					#else
+						If scrDirection = -1 Then
+							si.nPos = min(si.nPos + 3, si.nMax)
+						Else
+							si.nPos = Max(si.nPos - 3, si.nMin)
+						End If
+						si.fMask = SIF_POS
+						SetScrollInfo(sbScrollBarv, SB_CTL, @si, True)
+						'SetScrollInfo(FHandle, SB_VERT, @si, True)
+						GetScrollInfo(sbScrollBarv, SB_CTL, @si)
+						'GetScrollInfo(FHandle, SB_VERT, @si)
+						If (Not si.nPos = OldPos) Then
+							*pVScrollPos = si.nPos
+							ShowCaretPos False
+							If DownButton = 0 Then
+								#ifdef __USE_GTK__
+									FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+									FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+									If e->button.x < LeftMargin Then
+								#else
+									dwTemp = GetMessagePos
+									psPoints = MAKEPOINTS(dwTemp)
+									poPoint.X = psPoints.x
+									poPoint.Y = psPoints.y
+									..ScreenToClient(Handle, @poPoint)
+									FSelEndLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
+									FSelEndChar = CharIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
+									If poPoint.X < LeftMargin Then
+								#endif
+									If FSelEndLine < FSelStartLine Then
+										'FSelStart = LineFromCharIndex(FSelStart)
+										'FSelStart = CharIndexFromLine(FSelStart) + LineLength(FSelStart)
+										FSelStartChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelStartLine))->Text)
+									Else
+										FSelEndChar = Len(*Cast(EditControlLine Ptr, FLines.Item(FSelEndLine))->Text)
+									End If
+								End If
+							End If
+							PaintControl
+						End If
+					#endif
+				End If
+				
 			End If
 			#ifndef __USE_GTK__
 			Case WM_NOTIFY
@@ -5658,6 +5743,8 @@ Namespace My.Sys.Forms
 		WithHistory = True
 		VScrollMaxTop = -1
 		VScrollMaxBottom = -1
+		HScrollMaxLeft = -1
+		HScrollMaxRight = -1
 		ActiveCodePane = 1
 		'ClearUndo
 		'Brush.Color = clWindowColor
