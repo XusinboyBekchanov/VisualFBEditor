@@ -1194,7 +1194,7 @@ Namespace My.Sys.Forms
 			DeleteMenuItems pMenu, MenuItemByIndexFunc(mi, i)
 		Next
 		If OnDeleteControl Then OnDeleteControl(This, mi)
-		Dim As Any Ptr AParent = ReadPropertyFunc(mi, "Parent")
+		Dim As Any Ptr AParent = ReadPropertyFunc(mi, "ParentMenuItem")
 		If AParent Then
 			MenuItemRemoveSub(AParent, mi)
 		Else

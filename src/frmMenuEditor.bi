@@ -25,6 +25,14 @@
 		Declare Sub Form_KeyPress(ByRef Sender As Control, Key As Integer)
 		Declare Static Sub txtActive_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Sub txtActive_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
+		Declare Static Sub _Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Sub Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Static Sub _MenuItem2_Click(ByRef Sender As MenuItem)
+		Declare Sub MenuItem2_Click(ByRef Sender As MenuItem)
+		Declare Static Sub _MenuItem1_Click(ByRef Sender As MenuItem)
+		Declare Sub MenuItem1_Click(ByRef Sender As MenuItem)
+		Declare Sub InsertNewMenuItem
+		Declare Sub DeleteMenuItem
 		Declare Constructor
 		
 		Dim As Picture picActive
@@ -45,6 +53,8 @@
 		Dim ParentRect As Integer
 		Dim Dropdowns(Any) As Any Ptr
 		Dim DropdownsCount As Integer
+		Dim As PopupMenu PopupMenu1
+		Dim As MenuItem MenuItem1, MenuItem2
 	End Type
 	
 	Common Shared pfMenuEditor As frmMenuEditor Ptr

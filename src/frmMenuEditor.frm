@@ -18,6 +18,8 @@
 			.OnMouseDown = @Form_MouseDown_
 			.OnKeyDown = @Form_KeyDown_
 			.OnKeyPress = @Form_KeyPress_
+			.OnMouseUp = @_Form_MouseUp
+			.ContextMenu = @PopupMenu1
 			.SetBounds 0, 0, 850, 460
 		End With
 		' picActive
@@ -43,7 +45,42 @@
 			.OnKeyDown = @txtActive_KeyDown_
 			.Parent = @picActive
 		End With
+		' PopupMenu1
+		With PopupMenu1
+			.Name = "PopupMenu1"
+			.SetBounds 2, 23, 16, 16
+			.Designer = @This
+			.Parent = @This
+		End With
+		' MenuItem1
+		With MenuItem1
+			.Name = "MenuItem1"
+			.Designer = @This
+			.Caption = "Insert"
+			.onClick = @_MenuItem1_Click
+			.Parent = @PopupMenu1
+		End With
+		' MenuItem2
+		With MenuItem2
+			.Name = "MenuItem2"
+			.Designer = @This
+			.Caption = "Delete"
+			.onClick = @_MenuItem2_Click
+			.Parent = @PopupMenu1
+		End With
 	End Constructor
+	
+	Private Sub frmMenuEditor._MenuItem1_Click(ByRef Sender As MenuItem)
+		*Cast(frmMenuEditor Ptr, Sender.Designer).MenuItem1_Click(Sender)
+	End Sub
+	
+	Private Sub frmMenuEditor._MenuItem2_Click(ByRef Sender As MenuItem)
+		*Cast(frmMenuEditor Ptr, Sender.Designer).MenuItem2_Click(Sender)
+	End Sub
+	
+	Private Sub frmMenuEditor._Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		*Cast(frmMenuEditor Ptr, Sender.Designer).Form_MouseUp(Sender, MouseButton, x, y, Shift)
+	End Sub
 	
 	Dim Shared fMenuEditor As frmMenuEditor
 	pfMenuEditor = @fMenuEditor
@@ -69,6 +106,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 	Dim As Any Ptr ImagesList
 	Dim As Any Ptr ImagesListHandle
 	With Canvas
+		.Font = This.Font
 		If CurrentMenu <> 0 AndAlso QWString(Des->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
 		If IsPopup AndAlso CurrentToolBar = 0 Then
 			.Pen.Color = BGR(255, 255, 255)
@@ -179,9 +217,9 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 					.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
 				Else
 					If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
+						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
 					Else
-						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
 					End If
 				End If
 			Next i
@@ -399,6 +437,7 @@ Private Sub frmMenuEditor.Form_MouseDown_(ByRef Sender As Control, MouseButton A
 	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_MouseDown(Sender, MouseButton, x, y, Shift)
 End Sub
 Private Sub frmMenuEditor.Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 0 Then Exit Sub
 	picActive.Visible = False
 	For i As Integer = 1 To RectsCount
 		With Rects(i)
@@ -573,6 +612,57 @@ Sub frmMenuEditor.SelectRect(Index As Integer)
 	Repaint
 End Sub
 
+Sub frmMenuEditor.InsertNewMenuItem
+	
+End Sub
+
+Sub frmMenuEditor.DeleteMenuItem
+	If ActiveRect > 0 AndAlso Ctrls(ActiveRect) <> 0 Then
+		Dim As Any Ptr ParentMenu = Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent")
+		If CurrentToolBar Then
+			'Des->DeleteMenuItems(Des->ReadPropertyFunc(Ctrls(ActiveRect), "DropdownMenu"))
+			If Des->OnDeleteControl Then Des->OnDeleteControl(*Des, Ctrls(ActiveRect))
+			Des->ToolBarRemoveButtonSub(CurrentToolBar, ActiveRect - 1)
+			Des->DeleteComponentFunc(Ctrls(ActiveRect))
+		ElseIf CurrentStatusBar Then
+			If Des->OnDeleteControl Then Des->OnDeleteControl(*Des, Ctrls(ActiveRect))
+			Des->StatusBarRemovePanelSub(CurrentStatusBar, ActiveRect - 1)
+			Des->DeleteComponentFunc(Ctrls(ActiveRect))
+		Else
+			Des->DeleteMenuItems(CurrentMenu, Ctrls(ActiveRect))
+		End If
+		Dim As Integer First, Last, ParentRect
+		For i As Integer = 1 To RectsCount
+			If Parents(i) = Parents(ActiveRect) Then
+				If First = 0 Then First = i
+				Last = i
+			End If
+			If Parents(ActiveRect) = Ctrls(i) Then ParentRect = i
+		Next
+		If ActiveRect <= Last - 1 Then
+			Ctrls(ActiveRect) = Ctrls(ActiveRect + 1)
+			If Ctrls(ActiveRect) = 0 Then 
+				ActiveCtrl = Ctrls(ParentRect)
+				
+				Des->SelectedControl = CurrentMenu
+				If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, CurrentMenu)
+			End If
+			SelectRect ActiveRect
+		ElseIf ActiveRect > First Then
+			SelectRect ActiveRect - 1
+		ElseIf Parents(ActiveRect) <> 0 Then
+			SelectRect ParentRect
+		Else
+			ActiveCtrl = 0
+			ActiveRect = 0
+			Des->SelectedControl = CurrentMenu
+			If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, CurrentMenu)
+			Repaint
+		End If
+		If ParentMenu = 0 Then Des->TopMenu->Repaint
+	End If
+End Sub
+
 Private Sub frmMenuEditor.Form_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_KeyDown(Sender, Key, Shift)
 End Sub
@@ -679,50 +769,7 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 			End If
 		End If
 	Case Keys.Key_Delete
-		If ActiveRect > 0 AndAlso Ctrls(ActiveRect) <> 0 Then
-			Dim As Any Ptr ParentMenu = Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent")
-			If CurrentToolBar Then
-				'Des->DeleteMenuItems(Des->ReadPropertyFunc(Ctrls(ActiveRect), "DropdownMenu"))
-				If Des->OnDeleteControl Then Des->OnDeleteControl(*Des, Ctrls(ActiveRect))
-				Des->ToolBarRemoveButtonSub(CurrentToolBar, ActiveRect - 1)
-				Des->DeleteComponentFunc(Ctrls(ActiveRect))
-			ElseIf CurrentStatusBar Then
-				If Des->OnDeleteControl Then Des->OnDeleteControl(*Des, Ctrls(ActiveRect))
-				Des->StatusBarRemovePanelSub(CurrentStatusBar, ActiveRect - 1)
-				Des->DeleteComponentFunc(Ctrls(ActiveRect))
-			Else
-				Des->DeleteMenuItems(CurrentMenu, Ctrls(ActiveRect))
-			End If
-			Dim As Integer First, Last, ParentRect
-			For i As Integer = 1 To RectsCount
-				If Parents(i) = Parents(ActiveRect) Then
-					If First = 0 Then First = i
-					Last = i
-				End If
-				If Parents(ActiveRect) = Ctrls(i) Then ParentRect = i
-			Next
-			If ActiveRect <= Last - 1 Then
-				Ctrls(ActiveRect) = Ctrls(ActiveRect + 1)
-				If Ctrls(ActiveRect) = 0 Then 
-					ActiveCtrl = Ctrls(ParentRect)
-					
-					Des->SelectedControl = CurrentMenu
-					If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, CurrentMenu)
-				End If
-				SelectRect ActiveRect
-			ElseIf ActiveRect > First Then
-				SelectRect ActiveRect - 1
-			ElseIf Parents(ActiveRect) <> 0 Then
-				SelectRect ParentRect
-			Else
-				ActiveCtrl = 0
-				ActiveRect = 0
-				Des->SelectedControl = CurrentMenu
-				If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, CurrentMenu)
-				Repaint
-			End If
-			If ParentMenu = 0 Then Des->TopMenu->Repaint
-		End If
+		DeleteMenuItem
 	End Select
 End Sub
 
@@ -746,3 +793,22 @@ Private Sub frmMenuEditor.txtActive_KeyDown(ByRef Sender As Control, Key As Inte
 		SelectRect ActiveRect
 	End If
 End Sub
+
+Private Sub frmMenuEditor.Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 1 Then Exit Sub
+	If ActiveRect <> 0 Then
+		PopupMenu1.ParentWindow = @This
+		Dim As Point pt = Type(x, y)
+		ClientToScreen pt
+		PopupMenu1.Popup pt.x, pt.y
+	End If
+End Sub
+
+Private Sub frmMenuEditor.MenuItem1_Click(ByRef Sender As MenuItem)
+	InsertNewMenuItem
+End Sub
+
+Private Sub frmMenuEditor.MenuItem2_Click(ByRef Sender As MenuItem)
+	DeleteMenuItem
+End Sub
+

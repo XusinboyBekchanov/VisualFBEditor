@@ -1533,7 +1533,9 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	bNotFunctionChange = True
 	If tb->Des->ReadPropertyFunc <> 0 Then tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(WGet(tb->Des->ReadPropertyFunc(Ctrl, "Name")))
 	tb->FillAllProperties
-	tb->pnlForm.SetFocus
+	If Sender.SelectedControls.Contains(Sender.SelectedControl) Then
+		tb->pnlForm.SetFocus
+	End If
 	bNotFunctionChange = False
 End Sub
 
@@ -3626,7 +3628,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim As EditControlLine Ptr FECLine = tb->txtCode.FLines.Item(iSelEndLine)
-		If FECLine > 0 Then
+		If FECLine > 0 AndAlso FECLine->InConstruction > 0 Then
 			Index = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(sWord))
 			If Index <> -1 Then
 				Var lst = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
