@@ -3662,12 +3662,14 @@ Namespace My.Sys.Forms
 		If curHistory <= 0 Then Exit Sub
 		curHistory = curHistory - 1
 		_LoadFromHistory FHistory.Items[curHistory], True, FHistory.Items[curHistory + 1]
+		If OnLineChange Then OnLineChange(This, FSelEndLine, FSelEndLine)
 	End Sub
 	
 	Sub EditControl.Redo
 		If curHistory >= FHistory.Count - 1 Then Exit Sub
 		curHistory = curHistory + 1
 		_LoadFromHistory FHistory.Item(curHistory), False, FHistory.Item(curHistory - 1)
+		If OnLineChange Then OnLineChange(This, FSelEndLine, FSelEndLine)
 	End Sub
 	
 	Function EditControl.CharType(ByRef ch As WString) As Integer

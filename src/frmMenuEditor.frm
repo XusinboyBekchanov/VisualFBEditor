@@ -50,7 +50,7 @@
 '#End Region
 
 Sub frmMenuEditor.GetDropdowns(mi As Any Ptr)
-	Dim As Any Ptr miParent = Des->ReadPropertyFunc(mi, "Parent")
+	Dim As Any Ptr miParent = Des->ReadPropertyFunc(mi, "ParentMenuItem")
 	If miParent <> 0 Then
 		DropdownsCount += 1
 		ReDim Preserve Dropdowns(DropdownsCount)
@@ -291,7 +291,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 							rct.Top = Rects(ParentRect).Bottom
 						End If
 					Else
-						If Des->ReadPropertyFunc(CurrentMenuItem, "Parent") = 0 AndAlso Not IsPopup Then
+						If Des->ReadPropertyFunc(CurrentMenuItem, "ParentMenuItem") = 0 AndAlso Not IsPopup Then
 							rct.Left = Rects(CurRect).Left
 							rct.Top = Rects(CurRect).Bottom
 						Else
@@ -349,7 +349,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 										#ifdef __USE_GTK__
 											
 										#else
-											.DrawTransparent Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, *Cast(HBitmap Ptr, BitmapHandle)
+											.DrawTransparent Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, *Cast(HBITMAP Ptr, BitmapHandle)
 										#endif
 									End If
 								End If
@@ -402,10 +402,10 @@ Private Sub frmMenuEditor.Form_MouseDown(ByRef Sender As Control, MouseButton As
 	picActive.Visible = False
 	For i As Integer = 1 To RectsCount
 		With Rects(i)
-			If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
+			If x >= .Left And x <= .Right And y >= .Top And y <= .Bottom Then
 				If i = ActiveRect Then
 					EditRect i
-					txtActive.SelStart = (X - .Left) / This.Canvas.TextWidth("A")
+					txtActive.SelStart = (x - .Left) / This.Canvas.TextWidth("A")
 					txtActive.SelEnd = txtActive.SelStart
 				Else
 					SelectRect i
@@ -480,13 +480,15 @@ Sub frmMenuEditor.EditRect(i As Integer)
 				Dim Obj As Any Ptr = Des->CreateObjectFunc("MenuItem")
 				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
 				If Parents(i) = 0 Then
-					Des->WritePropertyFunc(Obj, "ParentMenu", CurrentMenu)
+					'Des->WritePropertyFunc(Obj, "ParentMenu", CurrentMenu)
+					Des->WritePropertyFunc(Obj, "Parent", CurrentMenu)
 				Else
 					Des->WritePropertyFunc(Obj, "Parent", Parents(i))
 				End If
 				Des->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
 				If Parents(i) = 0 Then
-					ChangeControl *Des, Obj, "ParentMenu"
+					'ChangeControl *Des, Obj, "ParentMenu"
+					ChangeControl *Des, Obj, "Parent"
 				Else
 					ChangeControl *Des, Obj, "Parent"
 				End If

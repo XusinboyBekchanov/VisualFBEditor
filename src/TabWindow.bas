@@ -919,8 +919,8 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 	pTabCode->Remove(@btnClose)
 	miWindow->Remove This.mi
 	btnClose.FreeWnd
-	pTabCode->DeleteTab(This.Index)
-	If pTabCode->TabCount = 0 Then
+	ptabCode->DeleteTab(This.Index)
+	If ptabCode->TabCount = 0 Then
 		mnuWindowSeparator->Visible = False
 	End If
 	If tn <> 0 AndAlso tn->ImageKey <> "Project" Then ', Will remove all project from tree
@@ -1090,7 +1090,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 				Case "double": iTemp = QDouble(pTemp): WLet(FLine, WStr(iTemp))
 				Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
 				Case Else:
-					If CInt(IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(Des->ToStringFunc <> 0) Then
+					If (CBool(.TypeName = "My.Sys.Object") OrElse IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(Des->ToStringFunc <> 0) Then
 						WLet(FLine, Des->ToStringFunc(pTemp))
 					ElseIf pGlobalEnums->Contains(.TypeName, , , , iIndex) Then
 						iTemp = QInteger(pTemp)
@@ -1113,7 +1113,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 						Return ReadObjProperty(Des->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
 					End If
 				End If
-			ElseIf IsBase(.TypeName, "Component") Then
+			ElseIf .TypeName = "Component" OrElse IsBase(.TypeName, "Component") Then
 				WLet(FLine, ML("(None)"))
 			End If
 		End Select
@@ -1426,6 +1426,24 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 	Return Result
 End Function
 
+Function GetTypeIsPointer(te As TypeElement Ptr) As Boolean
+	If Not te->TypeIsPointer Then
+		Dim iIndex As Integer
+		Dim tbi As TypeElement Ptr
+		Dim TypeN As String = WithoutPointers(te->TypeName)
+		If InStr(TypeN, ".") AndAlso TypeN <> "My.Sys.Object" Then TypeN = Mid(TypeN, InStrRev(TypeN, ".") + 1)
+		If pComps->Contains(TypeN, , , , iIndex) Then
+			tbi = pComps->Object(iIndex)
+			If tbi Then
+				If tbi->ElementType = "TypeCopy" Then
+					Return GetTypeIsPointer(tbi)
+				End If
+			End If
+		End If
+	End If
+	Return te->TypeIsPointer
+End Function
+
 Sub TabWindow.FillAllProperties()
 	If Des = 0 OrElse Des->SelectedControl = 0 Then Exit Sub
 	ptabRight->Tag = @This
@@ -1476,8 +1494,9 @@ Sub TabWindow.FillAllProperties()
 			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = "Property") OrElse CInt(.ElementType = "Field")) Then
 				If plvProperties->Nodes.Count <= lvPropertyCount Then
 					Dim As Boolean iBool = pComps->Contains(.TypeName)
-					lvItem = plvProperties->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(.TypeIsPointer = False AndAlso iBool, 1, 0))
-					If .TypeIsPointer = False AndAlso iBool Then lvItem->Nodes.Add
+					Dim As Boolean TypeIsPointer = GetTypeIsPointer(te)
+					lvItem = plvProperties->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(TypeIsPointer = False AndAlso iBool, 1, 0))
+					If TypeIsPointer = False AndAlso iBool Then lvItem->Nodes.Add
 				Else
 					lvItem = plvProperties->Nodes.Item(lvPropertyCount)
 					lvItem->Text(0) = FPropertyItems.Item(lvPropertyCount)

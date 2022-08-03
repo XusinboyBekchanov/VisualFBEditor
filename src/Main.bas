@@ -3321,7 +3321,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 						te->TypeName = WithoutPointers(te->TypeName)
 						Pos4 = InStrRev(te->TypeName, ".")
-						If Pos4 > 0 Then
+						If Pos4 > 0 AndAlso LCase(te->TypeName) <> "my.sys.object" Then
 							te->TypeName = Mid(te->TypeName, Pos4 + 1)
 						End If
 					End If
@@ -6141,7 +6141,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				cboPropertyValue.ItemIndex = Val(Item->Text(1))
 			End If
 		End If
-	ElseIf IsBase(te->TypeName, "Component") Then
+	ElseIf GetTypeIsPointer(te) AndAlso (CBool(te->TypeName = "My.Sys.Object") OrElse IsBase(te->TypeName, "My.Sys.Object")) Then
 		'CtrlEdit = @pnlPropertyValue
 		cboPropertyValue.Visible = True
 		cboPropertyValue.Clear
@@ -6153,7 +6153,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 					If (CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = Trim(te->EnumTypeName)) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)))) Then
 						cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 					End If
-				ElseIf CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = WithoutPointers(Trim(te->TypeName))) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), WithoutPointers(Trim(te->TypeName)))) Then
+				ElseIf CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = GetOriginalType(WithoutPointers(Trim(te->TypeName)))) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), GetOriginalType(WithoutPointers(Trim(te->TypeName))))) Then
 					cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 				End If
 			End If
@@ -7040,14 +7040,14 @@ Sub txtChangeLog_DblClick(ByRef Sender As Control)
 	If LEnd < 1 Then Exit Sub
 	Dim As WString Ptr FSelText
 	LStart = InStrRev(*txtChangeLogText, "{", LEnd)
-	LStart = MAX(1,LStart)
+	LStart = Max(1,LStart)
 	If LEnd > LStart Then
 		Dim As WString * 255 CodeFileName = Mid(*txtChangeLogText, LStart, LEnd - LStart + 1)
 		If Trim(CodeFileName) = "" Then Exit Sub
 		Dim As Integer iPos = InStrRev(CodeFileName, " ")
 		If iPos > 0 Then
-			Dim As Integer iLine = Val(Mid(CodeFileName, ipos + 3))
-			Dim As Integer iPos1 = InStr(ipos + 3, CodeFileName, Any !" }")
+			Dim As Integer iLine = Val(Mid(CodeFileName, iPos + 3))
+			Dim As Integer iPos1 = InStr(iPos + 3, CodeFileName, Any !" }")
 			'pClipboard->SetAsText Mid(CodeFileName,iPos+1,iPos1-ipos-1)
 			'' Will Search With find Function
 			'pfFind->txtFind.Text = Mid(CodeFileName,iPos+1,iPos1-ipos-1)
@@ -7068,7 +7068,7 @@ txtChangeLog.OnDblClick = @txtChangeLog_DblClick
 
 Sub lvToDo_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvToDo.ListItems.Item(itemIndex)
-	SelectSearchResult(item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(lvToDo.Text), item->Tag)
+	SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(lvToDo.Text), Item->Tag)
 End Sub
 
 lvToDo.Images = @imgList
