@@ -314,15 +314,13 @@ End Sub
 
 Dim Shared bNotChange As Boolean
 Sub cboPropertyValue_Change(ByRef Sender As Control)
-	#ifdef __USE_GTK__
-		If Trim(cboPropertyValue.Text) = "" Then
-			Exit Sub
-		End If
-		If bNotChange Then
-			bNotChange = False
-			Exit Sub
-		End If
-	#endif
+	If Trim(cboPropertyValue.Text) = "" Then
+		Exit Sub
+	End If
+	If bNotChange Then
+		bNotChange = False
+		Exit Sub
+	End If
 	PropertyChanged Sender, cboPropertyValue.Text, True
 End Sub
 
@@ -6111,8 +6109,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	pnlColor.Visible = False
 	#ifdef __USE_GTK__
 		Dim As GdkRectangle gdkRect
-		Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(lvProperties.TreeStore), @Item->TreeIter))
-		gtk_tree_view_get_cell_area(gtk_tree_view(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
+		Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(lvProperties.TreeStore), @Item->TreeIter))
+		gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 		gtk_tree_path_free(TreePath)
 		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
 	#else
@@ -6127,9 +6125,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		cboPropertyValue.Clear
 		cboPropertyValue.AddItem " false"
 		cboPropertyValue.AddItem " true"
-		#ifdef __USE_GTK__
-			bNotChange = True
-		#endif
+		bNotChange = True
 		cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Trim(Item->Text(1)))
 	ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(GlobalEnums.Contains(te->EnumTypeName)) Then
 		'CtrlEdit = @pnlPropertyValue
@@ -6141,9 +6137,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				cboPropertyValue.AddItem " " & i & " - " & MP(tbi->Elements.Item(i))
 			Next i
 			If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
-				#ifdef __USE_GTK__
-					bNotChange = True
-				#endif
+				bNotChange = True
 				cboPropertyValue.ItemIndex = Val(Item->Text(1))
 			End If
 		End If
@@ -6164,9 +6158,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				End If
 			End If
 		Next i
-		#ifdef __USE_GTK__
-			bNotChange = True
-		#endif
+		bNotChange = True
 		cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Item->Text(1))
 	Else
 		Dim tbi As TypeElement Ptr = 0
@@ -6183,9 +6175,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				cboPropertyValue.AddItem " " & i & " - " & MP(tbi->Elements.Item(i))
 			Next i
 			If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
-				#ifdef __USE_GTK__
-					bNotChange = True
-				#endif
+				bNotChange = True
 				cboPropertyValue.ItemIndex = Val(Item->Text(1))
 			End If
 		Else
@@ -6258,8 +6248,8 @@ Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
 		Dim As Rect lpRect
 		#ifdef __USE_GTK__
 			Dim As GdkRectangle gdkRect
-			Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_Tree_model(lvProperties.TreeStore), @lvProperties.SelectedItem->TreeIter))
-			gtk_tree_view_get_cell_area(gtk_tree_view(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
+			Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(lvProperties.TreeStore), @lvProperties.SelectedItem->TreeIter))
+			gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 			gtk_tree_path_free(TreePath)
 			lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
 		#else
