@@ -336,8 +336,8 @@ Namespace My.Sys.Forms
 		Sub ScreenToClient(widget As GtkWidget Ptr, P As Point Ptr)
 			Dim As gint x, y
 			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
-			P->x = P->x - x
-			P->y = P->y - y
+			P->X = P->X - x
+			P->Y = P->Y - y
 		End Sub
 	#endif
 	
@@ -533,8 +533,8 @@ Namespace My.Sys.Forms
 					GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 					iWidth  = R.Right  - R.Left
 					iHeight = R.Bottom - R.Top
-					P.x     = R.Left
-					P.y     = R.Top
+					P.X     = R.Left
+					P.Y     = R.Top
 					ScreenToClient(GetParent(FDialog), Cast(..Point Ptr, @P))
 					MoveWindow FDots(j, 0), P.X - ScaleX(FDotSize), P.Y - ScaleY(FDotSize), ScaleX(FDotSize), ScaleY(FDotSize), True
 					MoveWindow FDots(j, 1), P.X + iWidth / 2 - 3, P.Y - ScaleY(FDotSize), ScaleX(FDotSize), ScaleY(FDotSize), True
@@ -556,7 +556,7 @@ Namespace My.Sys.Forms
 				'SetROP2(hdc, R2_NOTXORPEN)
 				RedrawWindow(FDialog, NULL, NULL, RDW_INVALIDATE)
 				'DrawFocusRect(Fhdc, @type<RECT>(R.Left, R.Top, R.Right, R.Bottom + 10))
-				ReleaseDC(ControlHandle, Fhdc)
+				ReleaseDC(ControlHandle, FHDC)
 			#endif
 			If bSetFocus Then
 				#ifdef __USE_GTK__
@@ -567,7 +567,7 @@ Namespace My.Sys.Forms
 				'else
 				'   HideDots
 				'end If
-				If OnChangeSelection Then OnChangeSelection(This, SelectedControl, UnScaleX(P.x), UnScaleY(P.y), UnScaleX(iWidth), UnScaleY(iHeight))
+				If OnChangeSelection Then OnChangeSelection(This, SelectedControl, UnScaleX(P.X), UnScaleY(P.Y), UnScaleX(iWidth), UnScaleY(iHeight))
 			End If
 		Else
 			HideDots
@@ -1131,7 +1131,7 @@ Namespace My.Sys.Forms
 			Else
 				#ifdef __USE_GTK__
 					Dim As GtkWidget Ptr widget = ReadPropertyFunc(Ctrl, "widget")
-					If widget <> 0 Then gtk_widget_destroy(Widget)
+					If widget <> 0 Then gtk_widget_destroy(widget)
 				#else
 					Dim As HWND Ptr phWnd = ReadPropertyFunc(Ctrl, "Handle")
 					If phWnd <> 0 AndAlso *phWnd <> 0 Then DestroyWindow *phWnd
@@ -1151,7 +1151,21 @@ Namespace My.Sys.Forms
 				End If
 				Controls.Remove Controls.IndexOf(Ctrl)
 			End If
-			If Objects.Contains(Ctrl) Then Objects.Remove Objects.IndexOf(Ctrl)
+			If Objects.Contains(Ctrl) Then
+				If ReadPropertyFunc(DesignControl, "Menu") = Ctrl Then
+					WritePropertyFunc(DesignControl, "Menu", 0)
+					If OnModified Then OnModified(This, DesignControl, "Menu")
+				End If
+				For i As Integer = Objects.Count - 1 To 0 Step -1
+					If Objects.Item(i) > 0 AndAlso ReadPropertyFunc(Objects.Item(i), "Parent") = Ctrl Then
+						DeleteControls Objects.Item(i), EventOnly
+					End If
+					If Objects.Item(i) > 0 AndAlso ReadPropertyFunc(Objects.Item(i), "ParentMenu") = Ctrl Then
+						DeleteControls Objects.Item(i), EventOnly
+					End If
+				Next
+				Objects.Remove Objects.IndexOf(Ctrl)
+			End If
 			If DeleteComponentFunc Then
 				'If ReadPropertyFunc(Ctrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, ReadPropertyFunc(Ctrl, "Tag")))
 				DeleteComponentFunc(Ctrl)
@@ -1206,7 +1220,7 @@ Namespace My.Sys.Forms
 	Sub Designer.CopyControl()
 		CopyList.Clear
 		#ifdef __USE_GTK__
-			If gtk_is_widget(FSelControl) Then
+			If GTK_IS_WIDGET(FSelControl) Then
 		#else
 			If IsWindow(FSelControl) Then
 		#endif
@@ -1237,7 +1251,7 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.CutControl()
 		#ifdef __USE_GTK__
-			If gtk_is_widget(FSelControl) Then
+			If GTK_IS_WIDGET(FSelControl) Then
 		#else
 			If IsWindow(FSelControl) Then
 		#endif
@@ -1368,10 +1382,10 @@ Namespace My.Sys.Forms
 		Sub Designer.HookControl(Control As HWND)
 	#endif
 		#ifdef __USE_GTK__
-			If gtk_is_widget(Control) Then
+			If GTK_IS_WIDGET(Control) Then
 				g_signal_connect(Control, "event", G_CALLBACK(@HookChildProc), @This)
-				If gtk_is_bin(Control) AndAlso gtk_bin_get_child(gtk_bin(Control)) <> 0 Then 
-					g_signal_connect(gtk_bin_get_child(gtk_bin(Control)), "event", G_CALLBACK(@HookChildProc), @This)
+				If GTK_IS_BIN(Control) AndAlso gtk_bin_get_child(GTK_BIN(Control)) <> 0 Then 
+					g_signal_connect(gtk_bin_get_child(GTK_BIN(Control)), "event", G_CALLBACK(@HookChildProc), @This)
 				End If
 				#ifdef __USE_GTK3__
 					g_signal_connect(Control, "draw", G_CALLBACK(@HookChildDraw), @This)
@@ -1454,7 +1468,7 @@ Namespace My.Sys.Forms
 		End If
 		SelectedClass = ""
 		#ifdef __USE_GTK__
-			If gtk_is_widget(FSelControl) Then
+			If GTK_IS_WIDGET(FSelControl) Then
 				If Not bNotHook Then
 					If EventBox Then
 						HookControl(EventBox)
@@ -1542,7 +1556,7 @@ Namespace My.Sys.Forms
 							If AParent <> 0 Then Result = ReadPropertyFunc(AParent, "layoutwidget")
 							FSelControl = gtk_image_new()
 							WritePropertyFunc(Cpnt, "widget", FSelControl)
-							gtk_image_set_from_pixbuf(gtk_image(FSelControl), pBitmap.Handle)
+							gtk_image_set_from_pixbuf(GTK_IMAGE(FSelControl), pBitmap.Handle)
 							gtk_widget_set_size_request(FSelControl, 16, 16)
 							#ifdef __USE_GTK3__
 								g_signal_connect(FSelControl, "draw", G_CALLBACK(@DrawComponentBorder), @This)
@@ -1554,7 +1568,7 @@ Namespace My.Sys.Forms
 '							WritePropertyFunc(Cpnt, "Top", @y)
 '							WritePropertyFunc(Cpnt, "Width", @FWidth)
 '							WritePropertyFunc(Cpnt, "Height", @FHeight)
-							If gtk_is_widget(FSelControl) Then
+							If GTK_IS_WIDGET(FSelControl) Then
 								If AParent = 0 OrElse Result = 0 Then
 									gtk_layout_put(GTK_LAYOUT(ReadPropertyFunc(DesignControl, "layoutwidget")), FSelControl, x, y)
 								Else
@@ -1569,7 +1583,7 @@ Namespace My.Sys.Forms
 							If AParent = 0 OrElse Result = 0 OrElse *Result = 0 Then
 								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, ScaleX(x), ScaleY(y), ScaleX(16), ScaleY(16), *Cast(HWND Ptr, ReadPropertyFunc(DesignControl, "Handle")), Cast(HMENU, 1000), Instance, cpnt)
 							Else
-								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, ScaleX(x), ScaleY(y), ScaleX(16), ScaleY(16), *Result, Cast(HMENU, 1000), Instance, cpnt)
+								FSelControl = CreateWindowExW(0, "Button", @"", WS_CHILD Or BS_BITMAP, ScaleX(x), ScaleY(y), ScaleX(16), ScaleY(16), *Result, Cast(HMENU, 1000), Instance, Cpnt)
 							End If
 							WritePropertyFunc(Cpnt, "Handle", @FSelControl)
 							SetWindowLongPtr(FSelControl, GWLP_USERDATA, CInt(Cpnt))
@@ -1582,7 +1596,7 @@ Namespace My.Sys.Forms
 			End If
 		End If
 		#ifdef __USE_GTK__
-			If gtk_is_widget(FSelControl) Then
+			If GTK_IS_WIDGET(FSelControl) Then
 				If Not bNotHook Then
 					HookControl(FSelControl)
 					'AName = iif(AName="", AName = AClassName & ...)
@@ -1604,6 +1618,28 @@ Namespace My.Sys.Forms
 		Return Cpnt
 	End Function
 	
+	Function Designer.CreateObject(AClassName As String) As Any Ptr
+		Dim CreateObjectFunc As Function(ClassName As String) As Any Ptr
+		Dim MFF As Any Ptr
+		If FLibs.Contains(*MFFDll) Then
+			MFF = FLibs.Object(FLibs.IndexOf(*MFFDll))
+		Else
+			MFF = DyLibLoad(*MFFDll)
+			FLibs.Add *MFFDll, MFF
+		End If
+		Dim As Any Ptr Obj
+		If MFF Then
+			CreateObjectFunc = DyLibSymbol(MFF, "CreateObject")
+			If CreateObjectFunc <> 0 Then
+				Obj = CreateObjectFunc(AClassName)
+				If Obj Then
+					Objects.Add Obj
+				End If
+			End If
+		End If
+		Return Obj
+	End Function
+	
 	Sub Designer.UpdateGrid
 		#ifndef __USE_GTK__
 			InvalidateRect(FDialog, 0, True)
@@ -1613,14 +1649,14 @@ Namespace My.Sys.Forms
 	Sub Designer.DrawTopMenu()
 		#ifndef __USE_GTK__
 			Dim As HDC FHDc
-			Dim As ..RECT R
+			Dim As ..Rect R
 			Dim As PAINTSTRUCT Ps
 			FHDc = BeginPaint(TopMenu->Handle, @Ps)
-			Dim As HPen Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
-			Dim As HPen PrevPen = SelectObject(FHDc, Pen)
-			Dim As HBrush Brush = CreateSolidBrush(BGR(255, 255, 255))
-			Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
-			Dim Sz As ..SIZE
+			Dim As HPEN Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
+			Dim As HPEN PrevPen = SelectObject(FHDc, Pen)
+			Dim As HBRUSH Brush = CreateSolidBrush(BGR(255, 255, 255))
+			Dim As HBRUSH PrevBrush = SelectObject(FHDc, Brush)
+			Dim Sz As ..Size
 			GetClientRect(TopMenu->Handle, @R)
 			Dim As Any Ptr CurrentMenu = ReadPropertyFunc(DesignControl, "Menu")
 			If CurrentMenu <> 0 Then
@@ -2764,7 +2800,7 @@ Namespace My.Sys.Forms
 				EndIf
 			#else
 				Dim As ..Point P
-				Dim As ..RECT R
+				Dim As ..Rect R
 				Dim As HWND ControlHandle
 				For j As Integer = 0 To SelectedControls.Count - 1
 					ControlHandle = GetControlHandle(SelectedControls.Items[j])
@@ -2819,10 +2855,10 @@ Namespace My.Sys.Forms
 					Case WM_PAINT
 						Dim As PAINTSTRUCT Ps
 						Dim As HDC FHDc = BeginPaint(hDlg, @Ps)
-						Dim As HPen Pen = CreatePen(PS_SOLID, 0, IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetSysColor(COLOR_HIGHLIGHTTEXT), GetSysColor(COLOR_HIGHLIGHT)))
-						Dim As HPen PrevPen = SelectObject(FHDc, Pen)
-						Dim As HBrush Brush = CreateSolidBrush(IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetSysColor(COLOR_HIGHLIGHT), GetSysColor(COLOR_HIGHLIGHTTEXT)))
-						Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
+						Dim As HPEN Pen = CreatePen(PS_SOLID, 0, IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetSysColor(COLOR_HIGHLIGHTTEXT), GetSysColor(COLOR_HIGHLIGHT)))
+						Dim As HPEN PrevPen = SelectObject(FHDc, Pen)
+						Dim As HBRUSH Brush = CreateSolidBrush(IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetSysColor(COLOR_HIGHLIGHT), GetSysColor(COLOR_HIGHLIGHTTEXT)))
+						Dim As HBRUSH PrevBrush = SelectObject(FHDc, Brush)
 						Rectangle(FHDc, Ps.rcPaint.Left, Ps.rcPaint.Top, Ps.rcPaint.Right, Ps.rcPaint.Bottom)
 						SelectObject(FHDc, PrevBrush)
 						SelectObject(FHDc, PrevPen)
@@ -2930,7 +2966,7 @@ Namespace My.Sys.Forms
 			wcls.lpszClassName = @clsName
 			wcls.lpfnWndProc   = @DotWndProc
 			wcls.cbWndExtra   += 4
-			wcls.hInstance     = instance
+			wcls.hInstance     = Instance
 			RegisterClassEx(@wcls)
 		#endif
 	End Sub

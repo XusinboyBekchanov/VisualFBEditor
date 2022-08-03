@@ -200,11 +200,11 @@ Namespace My.Sys.Forms
 		ToolBarRemoveButtonSub As Sub(tb As Any Ptr, Index As Integer)
 		StatusBarPanelByIndexFunc As Function(sb As Any Ptr, Index As Integer) As Any Ptr
 		StatusBarRemovePanelSub As Sub(sb As Any Ptr, Index As Integer)
-		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
-		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef File As WString) As Boolean
-		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef File As WString, ByRef Key As WString = "")
+		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef FILE As WString, cx As Integer = 0, CY As Integer = 0) As Boolean
+		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef FILE As WString) As Boolean
+		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef FILE As WString, ByRef Key As WString = "")
 		ImageListIndexOfFunc As Function(imgList As Any Ptr, ByRef Key As WString) As Integer
 		ImageListClearSub As Sub(imgList As Any Ptr)
 		FLibs          As WStringList
@@ -249,7 +249,7 @@ Namespace My.Sys.Forms
 			FSelControl    As GtkWidget Ptr
 		#else
 			FSelControl    As HWND
-			BitmapHandle   As HBitmap
+			BitmapHandle   As HBITMAP
 		#endif
 		Dim Rects(Any) As ..Rect
 		Dim Ctrls(Any) As Any Ptr
@@ -272,6 +272,7 @@ Namespace My.Sys.Forms
 		Declare        Sub GetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
 		Declare        Function CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer,y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
 		Declare        Function CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
+		Declare        Function CreateObject(AClassName As String) As Any Ptr
 		OnChangeSelection  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 		OnDeleteControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
 		OnModified         As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)

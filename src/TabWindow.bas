@@ -1014,6 +1014,8 @@ Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
 		If tbi Then
 			If tbi->TypeName = BaseName Then
 				Return True
+			ElseIf tbi->TypeName = "My.Sys.Object" AndAlso BaseName = "Object" Then
+				Return True
 			ElseIf tbi->TypeName <> "" Then
 				Return IsBase(tbi->TypeName, BaseName)
 			Else
@@ -1022,6 +1024,24 @@ Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
 		End If
 	End If
 	Return False
+End Function
+
+Function GetOriginalType(ByRef TypeName As String) As String
+	Dim iIndex As Integer
+	Dim tbi As TypeElement Ptr
+	Dim TypeN As String = WithoutPointers(TypeName)
+	If InStr(TypeN, ".") AndAlso TypeN <> "My.Sys.Object" Then TypeN = Mid(TypeN, InStrRev(TypeN, ".") + 1)
+	If pComps->Contains(TypeN, , , , iIndex) Then
+		tbi = pComps->Object(iIndex)
+		If tbi Then
+			If tbi->ElementType = "TypeCopy" Then
+				Return GetOriginalType(tbi->TypeName)
+			Else
+				Return TypeName
+			End If
+		End If
+	End If
+	Return ""
 End Function
 
 Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String) ByRef As WString
@@ -1267,7 +1287,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				End If
 				If AnyTexts.ContainsObject(FLine5) Then AnyTexts.Item(AnyTexts.IndexOfObject(FLine5)) = *FLine5 Else AnyTexts.Add *FLine5, FLine5
 				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine5))
-				WDeallocate FLine5
+				WDeAllocate FLine5
 			Case "integer", "long", "ulong", "single", "double"
 				iTemp = Val(*FLine3)
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName, , , , iIndex)) Then
@@ -1343,7 +1363,16 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 						If iIndex <> -1 Then
 							PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
 							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-								Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
+								Var te = GetPropertyType(QWString(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+								If te <> 0 Then
+									Dim As String PropertyType = GetOriginalType(te->TypeName)
+									Dim As String PropertyCtrlType = QWString(Des->ReadPropertyFunc(PropertyCtrl, "ClassName"))
+									If CBool(PropertyCtrlType = PropertyType) OrElse IsBase(PropertyCtrlType, PropertyType) Then
+										Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
+									Else
+										MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(Des->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(Des->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
+									End If
+								End If
 							End If
 						ElseIf Trim(*FLine3) = ML("(None)") Then
 							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then Result = Des->WritePropertyFunc(Cpnt, PropertyName, 0)
@@ -1355,7 +1384,16 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 									PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
 									Dim As Any Ptr Ctrl2 = Des->ReadPropertyFunc(PropertyCtrl, Trim(Mid(*FLine3, Pos1 + 1)))
 									If Ctrl2 <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-										Result = Des->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
+										Var te = GetPropertyType(QWString(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+										If te <> 0 Then
+											Dim As String PropertyType = GetOriginalType(te->TypeName)
+											Dim As String PropertyCtrlType = QWString(Des->ReadPropertyFunc(PropertyCtrl, "ClassName"))
+											If CBool(PropertyCtrlType = PropertyType) OrElse IsBase(PropertyCtrlType, PropertyType) Then
+												Result = Des->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
+											Else
+												MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(Des->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(Des->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
+											End If
+										End If
 									End If
 								End If
 							End If
@@ -4383,7 +4421,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5164,7 +5202,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 											Ctrl = Des->CreateComponent(TypeName, ArgName, 0, 0, 0)
 										End If
 										If Ctrl = 0 Then
-											Ctrl = Des->CreateObjectFunc(TypeName)
+											Ctrl = Des->CreateObject(TypeName)
 										End If
 										cboClass.Items.Add ArgName, Ctrl, TypeName, TypeName, , 1, FindControlIndex(ArgName)
 									Next
@@ -5174,7 +5212,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										Ctrl = Des->CreateComponent(TypeName, ArgName, 0, 0, 0)
 									End If
 									If Ctrl = 0 Then
-										Ctrl = Des->CreateObjectFunc(TypeName)
+										Ctrl = Des->CreateObject(TypeName)
 									End If
 									cboClass.Items.Add ArgName, Ctrl, TypeName, TypeName, , 1, FindControlIndex(ArgName)
 								End If
@@ -5190,7 +5228,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										Ctrl = Des->CreateComponent(TypeName, tCtrlName & "(" & Str(i) & ")", 0, 0, 0)
 									End If
 									If Ctrl = 0 Then
-										Ctrl = Des->CreateObjectFunc(TypeName)
+										Ctrl = Des->CreateObject(TypeName)
 									End If
 									cboClass.Items.Add tCtrlName & "(" & Str(i) & ")", Ctrl, TypeName, TypeName, , 1, FindControlIndex(tCtrlName & "(" & Str(i) & ")")
 								Next
@@ -5200,7 +5238,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Ctrl = Des->CreateComponent(TypeName, sText, 0, 0, 0)
 								End If
 								If Ctrl = 0 Then
-									Ctrl = Des->CreateObjectFunc(TypeName)
+									Ctrl = Des->CreateObject(TypeName)
 								End If
 								cboClass.Items.Add sText, Ctrl, TypeName, TypeName, , 1, FindControlIndex(sText)
 							End If
@@ -7608,14 +7646,14 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 						CInt(c <> "<" OrElse LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "type") AndAlso _
 						CInt(c <> ">" OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0) AndAlso _
 						CInt(c <> "-" OrElse InStr("([{,;:+-*/=<>eE", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return" AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 3)) <> " to" AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 5)) <> " step") AndAlso _
-						CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse _
+						CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(isNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse _
 						CInt(InStr(",:;=", c) > 0 AndAlso (c <> "=" OrElse cn <> ">") AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") OrElse _
 						CInt(c = """" AndAlso IsArg(Asc(cn))) OrElse CInt(c = ")" AndAlso IsArg(Asc(cn))) Then
 						WLetEx ecl->Text, ..Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
 					End If
 					If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> """") AndAlso CInt(c <> "'") AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso _
 						CInt(c <> ";") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso _
-						CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) AndAlso _
+						CInt(CInt(c <> "*") OrElse CInt(isNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) AndAlso _
 						CInt(CInt(c <> ">") OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0)) AndAlso _
 						CInt(CInt(c <> "-") OrElse CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(c <> "'") AndAlso _
 						CInt(InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) > 0) AndAlso _
@@ -7671,7 +7709,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				bInFunction = FECLine->ConstructionPart <> 2
 				If bInFunction Then bFunctionStart = False
 				Continue For
-			ElseIf FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
+			ElseIf FECLine->ConstructionIndex >= 13 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
 				Continue For
 			ElseIf (NamespacesCount > 0 AndAlso Not bInFunction) OrElse NotNumberingScopesCount > 0 Then
 				Continue For
@@ -7686,7 +7724,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			If StartsWith(LTrim(*FECLine->Text), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
+				If isNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 				End If
 			ElseIf bMacro AndAlso StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
@@ -7719,7 +7757,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 End Sub
 
 Sub TabWindow.NumberOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, bMacro As Boolean = False)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	NumberingOn StartLine, EndLine, bMacro, tb->txtCode
 End Sub
@@ -7748,13 +7786,13 @@ Sub PreprocessorNumberingOn(ByRef txtCode As EditControl, ByRef FileName As WStr
 End Sub
 
 Sub TabWindow.PreprocessorNumberOn()
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	PreprocessorNumberingOn tb->txtCode, tb->FileName
 End Sub
 
 Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	With tb->txtCode
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, i

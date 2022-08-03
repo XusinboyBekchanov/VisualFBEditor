@@ -1796,8 +1796,8 @@ Function SaveSession() As Boolean
 		Next
 	End If
 	CloseFile_(Fn)
-	WDeallocate Temp
-	WDeallocate Temp2
+	WDeAllocate Temp
+	WDeAllocate Temp2
 	Return True
 End Function
 
@@ -1845,7 +1845,7 @@ Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, t
 			If pSaveD->Execute Then
 				WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
 				If FileExists(pSaveD->FileName) Then
-					Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", App.Title, mtWarning, btYesNoCancel)
+					Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->FileName & """?", App.Title, mtWarning, btYesNoCancel)
 					Case mrYes: Exit Do
 					Case mrCancel: Return False
 					Case mrNo:
@@ -1857,9 +1857,9 @@ Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, t
 				Return False
 			End If
 		Loop
-		If WGet(ppe->MainFileName) = WGet(ee->FileName) Then WLet(ppe->MainFileName, pSaveD->Filename)
-		If WGet(ppe->ResourceFileName) = WGet(ee->FileName) Then WLet(ppe->ResourceFileName, pSaveD->Filename)
-		If WGet(ppe->IconResourceFileName) = WGet(ee->FileName) Then WLet(ppe->IconResourceFileName, pSaveD->Filename)
+		If WGet(ppe->MainFileName) = WGet(ee->FileName) Then WLet(ppe->MainFileName, pSaveD->FileName)
+		If WGet(ppe->ResourceFileName) = WGet(ee->FileName) Then WLet(ppe->ResourceFileName, pSaveD->FileName)
+		If WGet(ppe->IconResourceFileName) = WGet(ee->FileName) Then WLet(ppe->IconResourceFileName, pSaveD->FileName)
 		WLet(ee->FileName, pSaveD->FileName)
 		tn->Text = GetFileName(*ee->FileName)
 		If WGet(ee->TemplateFileName) <> "" Then FileCopy WGet(ee->TemplateFileName), WGet(ee->FileName)
@@ -3116,7 +3116,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						bTypeIsPointer = EndsWith(LCase(e), " ptr") OrElse EndsWith(LCase(e), " pointer")
 						e = WithoutPointers(e)
-						If Not Comps.Contains(t) Then
+						If Not Types.Contains(t) Then
 							tOrig = t
 							If t = "Object" And e = "Object" Then
 								t = "My.Sys.Object"
