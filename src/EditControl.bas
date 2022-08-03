@@ -1343,6 +1343,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.DeleteLine(Index As Integer = -1)
 		Delete_( Cast(EditControlLine Ptr, FLines.Items[IIf(Index = -1, FSelEndLine, Index)]))
 		FLines.Remove IIf(Index = -1, FSelEndLine, Index)
+		If Index <= FSelEndLine Then FSelEndLine -= 1
+		If Index <= FSelStartLine Then FSelStartLine -= 1
 	End Sub
 	
 	Sub EditControl.UnformatCode(WithoutUpdate As Boolean = False)

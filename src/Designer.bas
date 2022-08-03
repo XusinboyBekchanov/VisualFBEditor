@@ -2164,12 +2164,14 @@ Namespace My.Sys.Forms
 				SetWindowPos *Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			End If
 		#endif
-		If CBool(Ctrl = 0) AndAlso CInt(ReadPropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) Then
+		If CBool(Ctrl = 0) AndAlso CInt(ReadPropertyFunc <> 0) AndAlso CInt(WritePropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) Then
 			Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), CtrlAfter
 			Dim As Integer ControlCount = QInteger(ReadPropertyFunc(ParentCtrl, "ControlCount"))
 			If ControlCount > 1 Then
-				CtrlAfter = ControlByIndexFunc(ParentCtrl, ControlCount - 1)
+				Dim As Integer NewIndex = ControlCount - 1
+				CtrlAfter = ControlByIndexFunc(ParentCtrl, NewIndex)
 				If SelectedControl <> CtrlAfter Then
+					WritePropertyFunc(SelectedControl, "ControlIndex", @NewIndex)
 					If OnModified Then OnModified(This, SelectedControl, , , CtrlAfter)
 				End If
 			End If
@@ -2205,11 +2207,13 @@ Namespace My.Sys.Forms
 				SetWindowPos *Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			End If
 		#endif
-		If CInt(ReadPropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) Then
+		If CInt(ReadPropertyFunc <> 0) AndAlso (WritePropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) Then
 			Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), Ctrl
 			If QInteger(ReadPropertyFunc(ParentCtrl, "ControlCount")) > 1 Then
-				Ctrl = ControlByIndexFunc(ParentCtrl, 0)
+				Dim As Integer NewIndex = 0
+				Ctrl = ControlByIndexFunc(ParentCtrl, NewIndex)
 				If SelectedControl <> Ctrl Then
+					WritePropertyFunc(SelectedControl, "ControlIndex", @NewIndex)
 					If OnModified Then OnModified(This, SelectedControl, , Ctrl)
 				End If
 			End If

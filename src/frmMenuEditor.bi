@@ -46,6 +46,7 @@
 		Dim Rects(Any) As My.Sys.Drawing.Rect
 		Dim Ctrls(Any) As Any Ptr
 		Dim Parents(Any) As Any Ptr
+		Dim Indexes(Any) As Integer
 		Dim RectsCount As Integer
 		Dim TopCount As Integer
 		Dim ActiveRect As Integer

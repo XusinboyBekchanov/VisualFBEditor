@@ -134,6 +134,8 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				ReDim Preserve Ctrls(RectsCount)
 				ReDim Preserve Rects(RectsCount)
 				ReDim Preserve Parents(RectsCount)
+				ReDim Preserve Indexes(RectsCount)
+				Indexes(RectsCount) = i
 				If CurrentToolBar Then
 					Ctrls(RectsCount) = Des->ToolBarButtonByIndexFunc(CurrentToolBar, i)
 				ElseIf CurrentStatusBar Then
@@ -227,6 +229,8 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 			ReDim Preserve Ctrls(RectsCount)
 			ReDim Preserve Rects(RectsCount)
 			ReDim Preserve Parents(RectsCount)
+			ReDim Preserve Indexes(RectsCount)
+			Indexes(RectsCount) = i
 			If RectsCount = 1 Then
 				Rects(RectsCount).Left = 1
 			Else
@@ -348,7 +352,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 					.Rectangle rct
 					iSubMenuHeight = 2
 					Dim As Integer iMenuHeight = .TextHeight("A") + 6
-					For i As Integer = 0 To QInteger(Des->ReadPropertyFunc(IIf(CurrentMenuItem = 0, CurrentMenu, CurrentMenuItem), "Count")) - 1
+					For i = 0 To QInteger(Des->ReadPropertyFunc(IIf(CurrentMenuItem = 0, CurrentMenu, CurrentMenuItem), "Count")) - 1
 						If CurrentMenuItem = 0 Then
 							mi = Des->MenuByIndexFunc(CurrentMenu, i)
 						Else
@@ -364,6 +368,8 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 							ReDim Preserve Ctrls(RectsCount)
 							ReDim Preserve Rects(RectsCount)
 							ReDim Preserve Parents(RectsCount)
+							ReDim Preserve Indexes(RectsCount)
+							Indexes(RectsCount) = i
 							Ctrls(RectsCount) = mi
 							Parents(RectsCount) = CurrentMenuItem
 							Rects(RectsCount).Left = rct.Left + 2
@@ -412,6 +418,8 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 					ReDim Preserve Ctrls(RectsCount)
 					ReDim Preserve Rects(RectsCount)
 					ReDim Preserve Parents(RectsCount)
+					ReDim Preserve Indexes(RectsCount)
+					Indexes(RectsCount) = i
 					Ctrls(RectsCount) = 0
 					Parents(RectsCount) = CurrentMenuItem
 					Rects(RectsCount).Left = rct.Left + 2
@@ -537,7 +545,7 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 				ActiveCtrl = Obj
 				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
 				'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
-				'Des->WritePropertyFunc(Obj, "MenuIndex", i)
+				If NewObject Then Des->WritePropertyFunc(Obj, "MenuIndex", @Indexes(i))
 				If i = 1 Then
 					Des->CheckTopMenuVisible , False
 				Else
@@ -550,7 +558,7 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 			picActive.Height = .Bottom - .Top - 3
 		End If
 		picActive.Visible = True
-		If NewObject Then TabWindowFormDesign
+		'If NewObject Then TabWindowFormDesign
 		Repaint
 		txtActive.SetFocus
 	End With

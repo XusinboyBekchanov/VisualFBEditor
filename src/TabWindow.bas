@@ -1857,7 +1857,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 					Exit For, For
 				ElseIf BeforeCtrl AndAlso Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "' " & LCase(BeforeCtrlName) Then
 					BeforeCtrlLine = k
-				ElseIf BeforeCtrl AndAlso BeforeCtrlLine = 0 AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(BeforeCtrlName) & ".")) OrElse Cint(Cint(WithArgs.Count > 0) AndAlso Cint(WithArgs.Item(WithArgs.Count - 1) = BeforeCtrlName) AndAlso Cint(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
+				ElseIf BeforeCtrl AndAlso BeforeCtrlLine = 0 AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(BeforeCtrlName) & ".")) OrElse CInt(CInt(WithArgs.Count > 0) AndAlso Cint(WithArgs.Item(WithArgs.Count - 1) = BeforeCtrlName) AndAlso Cint(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
 					AfterCtrlLine = k
 				ElseIf AfterCtrl AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(AfterCtrlName) & ".")) OrElse CInt(CInt(WithArgs.Count > 0) AndAlso CInt(WithArgs.Item(WithArgs.Count - 1) = AfterCtrlName) AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
 					AfterCtrlLine = k
@@ -2077,20 +2077,20 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			Next
 		End If
 		If Not t Then
-		If PropertyName <> "" Then
-			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-			WLet(FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName))
-			If *FLine <> "" Then
-				If bWith Then
-					ptxtCode->InsertLine j, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q += 1
-					tb->ConstructorEnd += 1
-				Else
-					ptxtCode->InsertLine j, *FLine1 & TabSpace & CtrlName & "." & PropertyName & " = " & *FLine: q += 1
-					tb->ConstructorEnd += 1
+			If PropertyName <> "" Then
+				CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+				WLet(FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName))
+				If *FLine <> "" Then
+					If bWith Then
+						ptxtCode->InsertLine j, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q += 1
+						tb->ConstructorEnd += 1
+					Else
+						ptxtCode->InsertLine j, *FLine1 & TabSpace & CtrlName & "." & PropertyName & " = " & *FLine: q += 1
+						tb->ConstructorEnd += 1
+					End If
 				End If
 			End If
-		End If
-		InsLineCount += q
+			InsLineCount += q
 		End If
 	End If
 	ptxtCode->Changed ""
