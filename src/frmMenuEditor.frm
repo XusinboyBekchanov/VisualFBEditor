@@ -218,11 +218,19 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 					#endif
 					.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
 				Else
-					If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
-					Else
-						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
-					End If
+					#ifdef __USE_GTK__
+						If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
+						Else
+							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+						End If
+					#else
+						If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
+						Else
+							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
+						End If
+					#endif
 				End If
 			Next i
 			RectsCount += 1
@@ -809,10 +817,12 @@ End Sub
 Private Sub frmMenuEditor.Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 1 Then Exit Sub
 	If ActiveRect <> 0 Then
-		PopupMenu1.ParentWindow = @This
-		Dim As Point pt = Type(x, y)
-		ClientToScreen pt
-		PopupMenu1.Popup pt.X, pt.Y
+		#ifndef __USE_GTK__
+			PopupMenu1.ParentWindow = @This
+			Dim As Point pt = Type(x, y)
+			ClientToScreen pt
+			PopupMenu1.Popup pt.X, pt.Y
+		#endif
 	End If
 End Sub
 

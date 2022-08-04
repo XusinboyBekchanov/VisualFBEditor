@@ -4099,7 +4099,9 @@ Namespace My.Sys.Forms
 			bInMiddleScroll = False
 			Dim As Integer VScrollMax
 			Dim As Integer Ptr pVScrollPos, pHScrollPos
+			#ifdef __USE_WINAPI__
 			Dim As HWND sbScrollBarV, sbScrollBarH
+			#endif
 			If bShifted Then
 				VScrollMax = IIf(ActiveCodePane = 0, HScrollMaxLeft, HScrollMaxRight)
 				If ActiveCodePane = 0 Then
