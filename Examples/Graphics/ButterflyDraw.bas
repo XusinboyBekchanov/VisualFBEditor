@@ -6,7 +6,7 @@
 	#include once "mff/Label.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Picture.bi"
-	#include once "mff/Textbox.bi"
+	#include once "mff/TextBox.bi"
 	
 	Using My.Sys.Forms
 	
@@ -169,7 +169,7 @@
 
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
     Dim As Double A(1), B(1), C(1), D(1), E(1), X, Y
-    Dim T As Long = GetTickCount
+    Dim T As Long = Timer
     Picture1.Style= 16
     
     ' Coordination  坐标系统
@@ -210,16 +210,18 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
     If E(0) < 1 Then E(0) = 1: If E(1) < 1 Then E(1) = 1
 
     For i As Long = -72000 To 72000 'Step  0.1
-        x = (Sin(i * A(0)) * (Exp(Cos(i)) - B(0) * Cos(C(0) * i) - Sin(i / D(0)) ^ E(0))) 
-        y = (Cos(i * A(1)) * (Exp(Cos(i)) - B(1) * Cos(C(1) * i) - Sin(i / D(1)) ^ E(1))) 
-        Picture1.Canvas.SetPixel x, y, clRed
+        X = (Sin(i * A(0)) * (Exp(Cos(i)) - B(0) * Cos(C(0) * i) - Sin(i / D(0)) ^ E(0))) 
+        Y = (Cos(i * A(1)) * (Exp(Cos(i)) - B(1) * Cos(C(1) * i) - Sin(i / D(1)) ^ E(1))) 
+        Picture1.Canvas.SetPixel X, Y, clRed
         'Picture1.Canvas.TextOut 20, 20, Str(i), clYellow, -1
     Next
-    Picture1.Canvas.TextOut - 9, -9, "Elapsed Time: " & GetTickCount - t & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1  
+    Picture1.Canvas.TextOut - 9, -9, "Elapsed Time: " & Timer - T & "ms", clGreen , -1 '"用时 " & GetTickCount - t & "毫秒", clGreen , -1  
     'Picture1.Visible = True
     Picture1.Canvas.TransferDoubleBuffer
     Picture1.Canvas.DeleteDoubleBuffer
-    Picture1.Canvas.ReleaseDevice
+    #ifndef __USE_GTK__
+        Picture1.Canvas.ReleaseDevice
+    #endif
     
     
     CommandButton1.Caption = "Start Draw" '"开始绘画"    '"Start Draw" '
