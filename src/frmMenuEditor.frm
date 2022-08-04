@@ -537,6 +537,7 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 				ActiveCtrl = Obj
 				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
 				'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
+				'Des->WritePropertyFunc(Obj, "MenuIndex", i)
 				If i = 1 Then
 					Des->CheckTopMenuVisible , False
 				Else

@@ -60,7 +60,7 @@
 	Common Shared pfMenuEditor As frmMenuEditor Ptr
 '#End Region
 
-Declare Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", BeforeControl As Any Ptr = 0,  iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
+Declare Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", BeforeControl As Any Ptr = 0, AfterControl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
 
 Declare Sub TabWindowFormDesign
 

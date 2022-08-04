@@ -67,14 +67,14 @@ Public Sub MoveCloseButtons(ptabCode As TabControl Ptr)
 			SendMessage(pTabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
 			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
 			If g_darkModeSupported AndAlso g_darkModeEnabled Then
-				UpdateWindow pTabCode->Handle
+				UpdateWindow ptabCode->Handle
 			End If
 		#endif
 	Next i
 End Sub
 
 Sub PopupClick(ByRef Sender As My.Sys.Object)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 Then Exit Sub
 	Select Case Sender.ToString
 	Case "Default":         DesignerDblClickControl(*tb->Des, tb->Des->SelectedControl)
@@ -1731,7 +1731,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed "Unsurni o`chirish"
 End Sub
 
-Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", BeforeCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
+Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", BeforeCtrl As Any Ptr = 0, AfterCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
 	On Error Goto ErrorHandler
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Return 0
@@ -1745,9 +1745,11 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	Dim CtrlName As WString * 100
 	Dim CtrlNameBase As WString * 100
 	Dim BeforeCtrlName As WString * 100
+	Dim AfterCtrlName As WString * 100
 	frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 	CtrlName = WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 	If BeforeCtrl Then BeforeCtrlName = WGet(tb->Des->ReadPropertyFunc(BeforeCtrl, "Name"))
+	If AfterCtrl Then AfterCtrlName = WGet(tb->Des->ReadPropertyFunc(AfterCtrl, "Name"))
 	If CtrlName = frmName Then CtrlName = "This"
 	Dim InsLineCount As Integer
 	Dim As WStringList WithArgs
@@ -1840,7 +1842,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 		InsLineCount += 1
 	End If
 	Var sc = 0, se = 0
-	Var BeforeCtrlLine = 0
+	Var BeforeCtrlLine = 0, AfterCtrlLine = 0
 	Var bWith = False
 	j = 0: n = 0
 	t = False
@@ -1855,24 +1857,34 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 					Exit For, For
 				ElseIf BeforeCtrl AndAlso Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "' " & LCase(BeforeCtrlName) Then
 					BeforeCtrlLine = k
+				ElseIf BeforeCtrl AndAlso BeforeCtrlLine = 0 AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(BeforeCtrlName) & ".")) OrElse Cint(Cint(WithArgs.Count > 0) AndAlso Cint(WithArgs.Item(WithArgs.Count - 1) = BeforeCtrlName) AndAlso Cint(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
+					AfterCtrlLine = k
+				ElseIf AfterCtrl AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(AfterCtrlName) & ".")) OrElse CInt(CInt(WithArgs.Count > 0) AndAlso CInt(WithArgs.Item(WithArgs.Count - 1) = AfterCtrlName) AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
+					AfterCtrlLine = k
 				ElseIf Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "' " & LCase(CtrlName) Then
-					If BeforeCtrl Then CuttingLines.Add k, ptxtCode->FLines.Items[k]
+					If BeforeCtrl OrElse AfterCtrl Then CuttingLines.Add k, ptxtCode->FLines.Items[k]
 				ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "with ") Then
 					WithArgs.Add Trim(Mid(Trim(ptxtCode->Lines(k), Any !"\t "), 5), Any !"\t ")
-					If BeforeCtrl Then
+					If BeforeCtrl OrElse AfterCtrl Then
 						If Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "with " & LCase(CtrlName) Then
 							CuttingLines.Add k, ptxtCode->FLines.Items[k]
 						End If
+						If BeforeCtrl AndAlso BeforeCtrlLine = 0 AndAlso Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "with " & LCase(BeforeCtrlName) Then BeforeCtrlLine = k
+						If AfterCtrl AndAlso Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "with " & LCase(AfterCtrlName) Then AfterCtrlLine = k
 					End If
 				ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "end with") Then
 					If WithArgs.Count > 0 Then
-						If BeforeCtrl AndAlso WithArgs.Item(WithArgs.Count - 1) = CtrlName Then
-							CuttingLines.Add k, ptxtCode->FLines.Items[k]
+						If BeforeCtrl OrElse AfterCtrl Then
+							If WithArgs.Item(WithArgs.Count - 1) = CtrlName Then
+								CuttingLines.Add k, ptxtCode->FLines.Items[k]
+							ElseIf AfterCtrl AndAlso WithArgs.Item(WithArgs.Count - 1) = AfterCtrlName Then
+								AfterCtrlLine = k
+							End If
 						End If
 						WithArgs.Remove WithArgs.Count - 1
 					End If
 				ElseIf CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(CtrlName) & ".")) OrElse CInt(CInt(WithArgs.Count > 0) AndAlso CInt(WithArgs.Item(WithArgs.Count - 1) = CtrlName) AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
-					If BeforeCtrl Then CuttingLines.Add k, ptxtCode->FLines.Items[k]
+					If BeforeCtrl OrElse AfterCtrl Then CuttingLines.Add k, ptxtCode->FLines.Items[k]
 					j = k
 					bWith = WithArgs.Count > 0 AndAlso WithArgs.Item(WithArgs.Count - 1) = CtrlName
 					Var p = InStr(ptxtCode->Lines(k), ".")
@@ -2056,6 +2068,12 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 				j = BeforeCtrlLine + i
 				ptxtCode->InsertLine j, *Cast(EditControlLine Ptr, CuttingLines.Object(i))->Text
 				ptxtCode->DeleteLine CuttingLines.Item(i) + 1
+			Next
+		ElseIf AfterCtrlLine > 0 AndAlso AfterCtrlLine > j Then
+			For i As Integer = 0 To CuttingLines.Count - 1
+				j = AfterCtrlLine + 1
+				ptxtCode->InsertLine j, *Cast(EditControlLine Ptr, CuttingLines.Object(i))->Text
+				ptxtCode->DeleteLine CuttingLines.Item(i) - i
 			Next
 		End If
 		If Not t Then
@@ -2328,7 +2346,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 	End With
 End Sub
 
-Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
+Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As String = "", BeforeCtrl As Any Ptr = 0, AfterCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	With tb->txtCode
@@ -2350,7 +2368,7 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 			Next i
 		End If
 		.Changing "Unsurni o`zgartirish"
-		ChangeControl(Sender, Ctrl, PropertyName, 0, iLeft, iTop, iWidth, iHeight)
+		ChangeControl(Sender, Ctrl, PropertyName, BeforeCtrl, AfterCtrl, iLeft, iTop, iWidth, iHeight)
 		.Changed "Unsurni o`zgartirish"
 		tb->FormDesign True
 		pfrmMain->UpdateUnLock
@@ -2405,7 +2423,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 			tb->ConstructorEnd += 1
 		End If
 	End If
-	ChangeControl(Sender, Ctrl, , BeforeCtrl, iLeft2, iTop2, iWidth2, iHeight2)
+	ChangeControl(Sender, Ctrl, , BeforeCtrl, , iLeft2, iTop2, iWidth2, iHeight2)
 	If CopiedCtrl <> 0 Then
 		FPropertyItems.Clear
 		tb->FillProperties ClassName
@@ -2416,7 +2434,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 			Case Else
 				If Trim(tb->ReadObjProperty(Ctrl, FPropertyItems.Item(i))) <> Trim(tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i))) Then
 					tb->WriteObjProperty(Ctrl, FPropertyItems.Item(i), tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i)))
-					ChangeControl Sender, Ctrl, FPropertyItems.Item(i), 0, iLeft2, iTop2, iWidth2, iHeight2
+					ChangeControl Sender, Ctrl, FPropertyItems.Item(i), 0, 0, iLeft2, iTop2, iWidth2, iHeight2
 				End If
 			End Select
 		Next

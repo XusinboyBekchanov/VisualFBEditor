@@ -1072,7 +1072,7 @@ Namespace My.Sys.Forms
 				FCanSize = False
 				If FBeginX <> FNewX OrElse FBeginY <> FNewY Then
 					For j As Integer = 0 To SelectedControls.Count - 1
-						If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
+						If OnModified Then OnModified(This, SelectedControls.Items[j], , , , FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
 					Next j
 				End If
 				MoveDots(SelectedControl)
@@ -1081,7 +1081,7 @@ Namespace My.Sys.Forms
 				FCanMove = False
 				If FBeginX <> FEndX OrElse FBeginY <> FEndY Then
 					For j As Integer = 0 To SelectedControls.Count - 1
-						If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeft(j) + (FEndX - FBeginX), FTop(j) + (FEndY - FBeginY), FWidth(j), FHeight(j))
+						If OnModified Then OnModified(This, SelectedControls.Items[j], , , , FLeft(j) + (FEndX - FBeginX), FTop(j) + (FEndY - FBeginY), FWidth(j), FHeight(j))
 					Next
 				End If
 				MoveDots(SelectedControl)
@@ -1171,7 +1171,7 @@ Namespace My.Sys.Forms
 				DeleteComponentFunc(Ctrl)
 			End If
 		End If
-		'if OnModified then OnModified(this, Ctrl, , -1, -1, -1, -1)
+		'if OnModified then OnModified(this, Ctrl, , , , -1, -1, -1, -1)
 	End Sub
 	
 	Sub Designer.DeleteControl()
@@ -2092,7 +2092,7 @@ Namespace My.Sys.Forms
 							For i As Integer = 0 To .FPopupMenuItems.Count -1
 								mi = .FPopupMenuItems.Items[i]
 								If mi->Command = LoWord(wParam) Then
-									If mi->OnClick Then mi->OnClick(*mi)
+									If mi->onClick Then mi->onClick(*mi)
 									Exit For
 								End If
 							Next i
@@ -2154,8 +2154,8 @@ Namespace My.Sys.Forms
 					CtrlWidget = gtk_widget_get_parent(CtrlWidget)
 				End If
 				g_object_ref(CtrlWidget)
-				gtk_container_remove(gtk_container(LayoutWidget), CtrlWidget)
-				gtk_layout_put(gtk_layout(LayoutWidget), CtrlWidget, iLeft, iTop)
+				gtk_container_remove(GTK_CONTAINER(LayoutWidget), CtrlWidget)
+				gtk_layout_put(GTK_LAYOUT(LayoutWidget), CtrlWidget, iLeft, iTop)
 			End If
 		#else
 			If Ctrl = 0 Then
@@ -2164,6 +2164,16 @@ Namespace My.Sys.Forms
 				SetWindowPos *Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			End If
 		#endif
+		If CBool(Ctrl = 0) AndAlso CInt(ReadPropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) Then
+			Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), CtrlAfter
+			Dim As Integer ControlCount = QInteger(ReadPropertyFunc(ParentCtrl, "ControlCount"))
+			If ControlCount > 1 Then
+				CtrlAfter = ControlByIndexFunc(ParentCtrl, ControlCount - 1)
+				If SelectedControl <> CtrlAfter Then
+					If OnModified Then OnModified(This, SelectedControl, , , CtrlAfter)
+				End If
+			End If
+		End If
 	End Sub
 	
 	Sub Designer.SendToBack(Ctrl As Any Ptr = 0)
@@ -2177,14 +2187,14 @@ Namespace My.Sys.Forms
 					Ctrl = ControlByIndexFunc(ParentCtrl, i)
 					CtrlWidget = ReadPropertyFunc(Ctrl, "widget")
 					If CurrentWidget <> CtrlWidget Then
-						If gtk_is_scrolled_window(gtk_widget_get_parent(CtrlWidget)) OrElse gtk_is_event_box(gtk_widget_get_parent(CtrlWidget)) Then
+						If GTK_IS_SCROLLED_WINDOW(gtk_widget_get_parent(CtrlWidget)) OrElse GTK_IS_EVENT_BOX(gtk_widget_get_parent(CtrlWidget)) Then
 							CtrlWidget = gtk_widget_get_parent(CtrlWidget)
 						End If
 						iLeft = QInteger(ReadPropertyFunc(Ctrl, "Left"))
 						iTop = QInteger(ReadPropertyFunc(Ctrl, "Top"))
 						g_object_ref(CtrlWidget)
-						gtk_container_remove(gtk_container(LayoutWidget), CtrlWidget)
-						gtk_layout_put(gtk_layout(LayoutWidget), CtrlWidget, iLeft, iTop)
+						gtk_container_remove(GTK_CONTAINER(LayoutWidget), CtrlWidget)
+						gtk_layout_put(GTK_LAYOUT(LayoutWidget), CtrlWidget, iLeft, iTop)
 					End If
 				Next
 			End If
@@ -2195,6 +2205,15 @@ Namespace My.Sys.Forms
 				SetWindowPos *Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			End If
 		#endif
+		If CInt(ReadPropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) Then
+			Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), Ctrl
+			If QInteger(ReadPropertyFunc(ParentCtrl, "ControlCount")) > 1 Then
+				Ctrl = ControlByIndexFunc(ParentCtrl, 0)
+				If SelectedControl <> Ctrl Then
+					If OnModified Then OnModified(This, SelectedControl, , Ctrl)
+				End If
+			End If
+		End If
 	End Sub
 	
 	Function Designer.EnumPopupMenuItems(ByRef Item As MenuItem) As Boolean
@@ -2795,7 +2814,7 @@ Namespace My.Sys.Forms
 						If CInt(ParentCtrl) AndAlso CInt(QWString(ReadPropertyFunc(ParentCtrl, "ClassName")) = "GroupBox") Then FrameTop = 20
 						pApp->DoEvents
 						MoveDots(SelectedControls.Items[j], , FLeft, FTop - FrameTop, FWidth, FHeight)
-						If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeft, FTop, FWidth, FHeight)
+						If OnModified Then OnModified(This, SelectedControls.Items[j], , , , FLeft, FTop, FWidth, FHeight)
 					Next
 				EndIf
 			#else
@@ -2828,7 +2847,7 @@ Namespace My.Sys.Forms
 						End Select
 					End If
 					MoveWindow(ControlHandle, ScaleX(FLeft), ScaleY(FTop), ScaleX(FWidth), ScaleY(FHeight), True)
-					If OnModified Then OnModified(This, SelectedControls.Items[j], , FLeft, FTop, FWidth, FHeight)
+					If OnModified Then OnModified(This, SelectedControls.Items[j], , , , FLeft, FTop, FWidth, FHeight)
 				Next
 				MoveDots(SelectedControl)
 			#endif

@@ -275,7 +275,7 @@ Namespace My.Sys.Forms
 		Declare        Function CreateObject(AClassName As String) As Any Ptr
 		OnChangeSelection  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 		OnDeleteControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
-		OnModified         As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, PropertyName As String = "", iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
+		OnModified         As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, PropertyName As String = "", BeforeCtrl As Any Ptr = 0, AfterCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 		OnInsertControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, BeforeCtrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
 		OnInsertComponent  As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, BeforeCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 		OnInsertObject     As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Obj As Any Ptr, CopiedObj As Any Ptr, BeforeObj As Any Ptr)
