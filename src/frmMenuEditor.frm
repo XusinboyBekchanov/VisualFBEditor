@@ -432,7 +432,8 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 										#ifdef __USE_GTK__
 											
 										#else
-											.DrawTransparent Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, *Cast(HBITMAP Ptr, BitmapHandle)
+											.DrawTransparent ScaleX(Rects(RectsCount).Left - 25 + 3), ScaleY(Rects(RectsCount).Top + 2), *Cast(HBITMAP Ptr, BitmapHandle)
+											'.DrawStretch Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, 16, 16, *Cast(HBITMAP Ptr, BitmapHandle)
 										#endif
 									End If
 								End If
