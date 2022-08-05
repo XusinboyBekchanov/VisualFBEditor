@@ -27,12 +27,18 @@
 		Declare Sub txtActive_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Static Sub _Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _MenuItem2_Click(ByRef Sender As MenuItem)
-		Declare Sub MenuItem2_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _MenuItem1_Click(ByRef Sender As MenuItem)
-		Declare Sub MenuItem1_Click(ByRef Sender As MenuItem)
+		Declare Static Sub _mnuDelete_Click(ByRef Sender As MenuItem)
+		Declare Sub mnuDelete_Click(ByRef Sender As MenuItem)
+		Declare Static Sub _mnuInsert_Click(ByRef Sender As MenuItem)
+		Declare Sub mnuInsert_Click(ByRef Sender As MenuItem)
 		Declare Sub InsertNewMenuItem
 		Declare Sub DeleteMenuItem
+		Declare Sub MoveUpMenuItem
+		Declare Sub MoveDownMenuItem
+		Declare Static Sub mnuMoveUp_Click_(ByRef Sender As MenuItem)
+		Declare Sub mnuMoveUp_Click(ByRef Sender As MenuItem)
+		Declare Static Sub mnuMoveDown_Click_(ByRef Sender As MenuItem)
+		Declare Sub mnuMoveDown_Click(ByRef Sender As MenuItem)
 		Declare Constructor
 		
 		Dim As Picture picActive
@@ -55,7 +61,7 @@
 		Dim Dropdowns(Any) As Any Ptr
 		Dim DropdownsCount As Integer
 		Dim As PopupMenu PopupMenu1
-		Dim As MenuItem MenuItem1, MenuItem2
+		Dim As MenuItem mnuInsert, mnuDelete, MenuItem3, mnuMoveUp, mnuMoveDown
 	End Type
 	
 	Common Shared pfMenuEditor As frmMenuEditor Ptr

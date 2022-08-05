@@ -52,30 +52,61 @@
 			.Designer = @This
 			.Parent = @This
 		End With
-		' MenuItem1
-		With MenuItem1
-			.Name = "MenuItem1"
+		' mnuInsert
+		With mnuInsert
+			.Name = "mnuInsert"
 			.Designer = @This
 			.Caption = "Insert"
-			.onClick = @_MenuItem1_Click
+			.onClick = @_mnuInsert_Click
 			.Parent = @PopupMenu1
 		End With
-		' MenuItem2
-		With MenuItem2
-			.Name = "MenuItem2"
+		' mnuDelete
+		With mnuDelete
+			.Name = "mnuDelete"
 			.Designer = @This
 			.Caption = "Delete"
-			.onClick = @_MenuItem2_Click
+			.onClick = @_mnuDelete_Click
+			.Parent = @PopupMenu1
+		End With
+		' MenuItem3
+		With MenuItem3
+			.Name = "MenuItem3"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @PopupMenu1
+		End With
+		' mnuMoveUp
+		With mnuMoveUp
+			.Name = "mnuMoveUp"
+			.Designer = @This
+			.Caption = "Move Up"
+			.onClick = @mnuMoveUp_Click_
+			.Parent = @PopupMenu1
+		End With
+		' mnuMoveDown
+		With mnuMoveDown
+			.Name = "mnuMoveDown"
+			.Designer = @This
+			.Caption = "Move Down"
+			.onClick = @mnuMoveDown_Click_
 			.Parent = @PopupMenu1
 		End With
 	End Constructor
 	
-	Private Sub frmMenuEditor._MenuItem1_Click(ByRef Sender As MenuItem)
-		*Cast(frmMenuEditor Ptr, Sender.Designer).MenuItem1_Click(Sender)
+	Private Sub frmMenuEditor.mnuMoveDown_Click_(ByRef Sender As MenuItem)
+		*Cast(frmMenuEditor Ptr, Sender.Designer).mnuMoveDown_Click(Sender)
 	End Sub
 	
-	Private Sub frmMenuEditor._MenuItem2_Click(ByRef Sender As MenuItem)
-		*Cast(frmMenuEditor Ptr, Sender.Designer).MenuItem2_Click(Sender)
+	Private Sub frmMenuEditor.mnuMoveUp_Click_(ByRef Sender As MenuItem)
+		*Cast(frmMenuEditor Ptr, Sender.Designer).mnuMoveUp_Click(Sender)
+	End Sub
+	
+	Private Sub frmMenuEditor._mnuInsert_Click(ByRef Sender As MenuItem)
+		*Cast(frmMenuEditor Ptr, Sender.Designer).mnuInsert_Click(Sender)
+	End Sub
+	
+	Private Sub frmMenuEditor._mnuDelete_Click(ByRef Sender As MenuItem)
+		*Cast(frmMenuEditor Ptr, Sender.Designer).mnuDelete_Click(Sender)
 	End Sub
 	
 	Private Sub frmMenuEditor._Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -683,6 +714,51 @@ Sub frmMenuEditor.DeleteMenuItem
 	End If
 End Sub
 
+Private Sub frmMenuEditor.MoveUpMenuItem
+	If Ctrls(ActiveRect) = 0 OrElse Indexes(ActiveRect) = 0 Then Exit Sub
+	If CurrentToolBar <> 0 AndAlso ActiveRect <= TopCount Then
+		
+	ElseIf CurrentStatusBar <> 0 AndAlso ActiveRect <= TopCount Then
+		
+	Else
+		Des->WritePropertyFunc(Ctrls(ActiveRect), "MenuIndex", @Indexes(ActiveRect) - 1)
+		ChangeControl *Des, Ctrls(ActiveRect), , Ctrls(ActiveRect - 1)
+		If ActiveRect = 1 Then
+			Des->CheckTopMenuVisible , False
+		Else
+			Des->TopMenu->Repaint
+		End If
+		ActiveRect -= 1
+	End If
+	Repaint
+End Sub
+
+Private Sub frmMenuEditor.MoveDownMenuItem
+	If Ctrls(ActiveRect) = 0 Then Exit Sub
+	If CurrentToolBar <> 0 AndAlso ActiveRect <= TopCount Then
+		
+	ElseIf CurrentStatusBar <> 0 AndAlso ActiveRect <= TopCount Then
+		
+	Else
+		Dim As Integer ItemCount
+		If Parents(ActiveRect) = 0 Then
+			ItemCount = QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count"))
+		Else
+			ItemCount = QInteger(Des->ReadPropertyFunc(Parents(ActiveRect), "Count"))
+		End If
+		If Indexes(ActiveRect) >= ItemCount - 1 Then Exit Sub
+		Des->WritePropertyFunc(Ctrls(ActiveRect), "MenuIndex", @Indexes(ActiveRect) + 1)
+		ChangeControl *Des, Ctrls(ActiveRect), , , Ctrls(ActiveRect + 1)
+		If ActiveRect = 1 Then
+			Des->CheckTopMenuVisible , False
+		Else
+			Des->TopMenu->Repaint
+		End If
+		ActiveRect += 1
+	End If
+	Repaint
+End Sub
+
 Private Sub frmMenuEditor.Form_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_KeyDown(Sender, Key, Shift)
 End Sub
@@ -826,11 +902,18 @@ Private Sub frmMenuEditor.Form_MouseUp(ByRef Sender As Control, MouseButton As I
 	End If
 End Sub
 
-Private Sub frmMenuEditor.MenuItem1_Click(ByRef Sender As MenuItem)
+Private Sub frmMenuEditor.mnuInsert_Click(ByRef Sender As MenuItem)
 	InsertNewMenuItem
 End Sub
 
-Private Sub frmMenuEditor.MenuItem2_Click(ByRef Sender As MenuItem)
+Private Sub frmMenuEditor.mnuDelete_Click(ByRef Sender As MenuItem)
 	DeleteMenuItem
 End Sub
 
+Private Sub frmMenuEditor.mnuMoveUp_Click(ByRef Sender As MenuItem)
+	MoveUpMenuItem
+End Sub
+
+Private Sub frmMenuEditor.mnuMoveDown_Click(ByRef Sender As MenuItem)
+	MoveDownMenuItem
+End Sub
