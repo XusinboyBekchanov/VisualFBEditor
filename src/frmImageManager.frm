@@ -616,28 +616,68 @@ End Sub
 Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
 	Select Case Button.Name
 	Case "Add"
-		pfrmPath->txtVersion.Text = ""
-		pfrmPath->txtPath.Text = ""
-		pfrmPath->lblCommandLine.Text = ML("Type") & ":"
-		pfrmPath->cboType.ItemIndex = 0
-		pfrmPath->WithType = True
-		pfrmPath->WithKey = CurrentImageList <> 0
-		pfrmPath->SetFileNameToVersion = True
-		pfrmPath->ExeFileName = ExeFileName
-		If pfrmPath->ShowModal() = ModalResults.OK Then
-			If lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
-				If pfrmPath->cboType.Text = ML("Resource") Then
-					ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+		If CurrentImageList = 0 Then
+			Dim OpenD As OpenFileDialog
+			OpenD.Options.Include ofOldStyleDialog
+			OpenD.MultiSelect = True
+			OpenD.Filter = ML("Image Files") & " (*.bmp, *.cur, *.ico, *.png)|*.bmp;*.cur;*.ico;*.png|" & ML("All Files") & "|*.*|"
+			If OpenD.Execute Then
+				For i As Integer = 0 To OpenD.FileNames.Count - 1
+					Dim As UString FileName = OpenD.FileNames.Item(i)
+					Dim As UString RelativePath = GetRelativePath(FileName, ResourceFile)
+					Dim As UString Key = GetFileName(FileName)
+					Dim As String FileExt, ResourceType
+					Var Pos1 = InStrRev(Key, ".")
+					If Pos1 > 0 Then
+						FileExt = Mid(Key, Pos1 + 1)
+						Key = ..Left(Key, Pos1 - 1)
+					End If
+					Select Case LCase(FileExt)
+					Case "bmp": ResourceType = "BITMAP"
+					Case "png": ResourceType = "PNG"
+					Case "ico": ResourceType = "ICON"
+					Case "cur": ResourceType = "CURSOR"
+					Case Else: ResourceType = "RCDATA"
+					End Select
+					Dim As String NewName = Key
+					Var n = 0
+					Do While lvImages.ListItems.IndexOf(NewName) > -1
+						n = n + 1
+						NewName = Key & Str(n)
+					Loop
+					Var iIndex = lvImages.ListItems.Count
+					ImageList1.AddFromFile RelativePath, NewName
+					lvImages.ListItems.Add NewName
+					lvImages.ListItems.Item(iIndex)->ImageIndex = iIndex
+					lvImages.ListItems.Item(iIndex)->Text(1) = ResourceType
+					lvImages.ListItems.Item(iIndex)->Text(2) = RelativePath
+					lvImages.SelectedItemIndex = iIndex
+				Next
+			End If
+		Else
+			pfrmPath->txtVersion.Text = ""
+			pfrmPath->txtPath.Text = ""
+			pfrmPath->lblCommandLine.Text = ML("Type") & ":"
+			pfrmPath->cboType.ItemIndex = 0
+			pfrmPath->WithType = True
+			pfrmPath->WithKey = CurrentImageList <> 0
+			pfrmPath->SetFileNameToVersion = True
+			pfrmPath->ExeFileName = ExeFileName
+			If pfrmPath->ShowModal() = ModalResults.OK Then
+				If lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
+					If pfrmPath->cboType.Text = ML("Resource") Then
+						ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+					Else
+						ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+					End If
+					lvImages.ListItems.Add pfrmPath->txtVersion.Text
+					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
+					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = pfrmPath->cboType.Text
+					lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = pfrmPath->txtPath.Text
+					lvImages.SelectedItemIndex = lvImages.ListItems.Count - 1
 				Else
-					ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+					MsgBox ML("This name is exists!")
 				End If
-				lvImages.ListItems.Add pfrmPath->txtVersion.Text
-				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
-				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = pfrmPath->cboType.Text
-				lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = pfrmPath->txtPath.Text
-				lvImages.SelectedItemIndex = lvImages.ListItems.Count - 1
-			Else
-				MsgBox ML("This name is exists!")
 			End If
 		End If
 	Case "Change": lvImages_ItemActivate(lvImages, lvImages.SelectedItemIndex)
