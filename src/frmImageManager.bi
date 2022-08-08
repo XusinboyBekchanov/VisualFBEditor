@@ -38,6 +38,8 @@
 		Declare Sub opt32x32_Click(ByRef Sender As RadioButton)
 		Declare Static Sub opt48x48_Click_(ByRef Sender As RadioButton)
 		Declare Sub opt48x48_Click(ByRef Sender As RadioButton)
+		Declare Static Sub MenuItemClick_(ByRef Sender As My.Sys.Object)
+		Declare Sub MenuItemClick(ByRef Sender As My.Sys.Object)
 		Declare Constructor
 		
 		Dim As ToolBar tbToolbar

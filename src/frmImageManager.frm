@@ -33,6 +33,11 @@
 			.ImagesList = @imgList
 			.HotImagesList = @imgList
 			.Buttons.Add , "Add", , , "Add"
+			Var AddButton = .Buttons.Add(tbsWholeDropdown, "Add", , , "AddDropdown")
+			Var AddFromResource = AddButton->DropdownMenu.Add(ML("Add From Resource"), "Add", "AddFromResource", @MenuItemClick_)
+			Var AddFromFile = AddButton->DropdownMenu.Add(ML("Add From File"), "Add", "AddFromFile", @MenuItemClick_)
+			AddFromResource->Designer = @This
+			AddFromFile->Designer = @This
 			.Buttons.Add , "Project", , , "Change"
 			.Buttons.Add , "Remove", , , "Remove"
 			.Buttons.Add tbsSeparator
@@ -610,6 +615,78 @@ Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListVie
 	End If
 End Sub
 
+Private Sub frmImageManager.MenuItemClick_(ByRef Sender As My.Sys.Object)
+	*Cast(frmImageManager Ptr, Sender.Designer).MenuItemClick(Sender)
+End Sub
+Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
+	Select Case Sender.ToString
+	Case "AddFromResource"
+		tbToolbar_ButtonClick tbToolbar, *tbToolbar.Buttons.Item("Add")
+		'If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
+		'		If pfImageManager->lvImages.SelectedItem <> 0 Then
+		'			.txtPath.Text = pfImageManager->lvImages.SelectedItem->Text(0)
+		'			.txtVersion.Text = .txtPath.Text
+		'		End If
+		'	End If
+		'	For i As Integer = 0 To OpenD.FileNames.Count - 1
+		'		Dim As UString FileName = OpenD.FileNames.Item(i)
+		'		Dim As UString RelativePath = GetRelativePath(FileName, ResourceFile)
+		'		Dim As UString Key = GetFileName(FileName)
+		'		Dim As String FileExt, ResourceType
+		'		Var Pos1 = InStrRev(Key, ".")
+		'		If Pos1 > 0 Then
+		'			FileExt = Mid(Key, Pos1 + 1)
+		'			Key = ..Left(Key, Pos1 - 1)
+		'		End If
+		'		Dim As String NewName = Key
+		'		Var n = 0
+		'		Do While lvImages.ListItems.IndexOf(NewName) > -1
+		'			n = n + 1
+		'			NewName = Key & Str(n)
+		'		Loop
+		'		Var iIndex = lvImages.ListItems.Count
+		'		ImageList1.AddFromFile RelativePath, NewName
+		'		lvImages.ListItems.Add NewName
+		'		lvImages.ListItems.Item(iIndex)->ImageIndex = iIndex
+		'		lvImages.ListItems.Item(iIndex)->Text(1) = "File"
+		'		lvImages.ListItems.Item(iIndex)->Text(2) = RelativePath
+		'		lvImages.SelectedItemIndex = iIndex
+		'	Next
+		'End If
+	Case "AddFromFile"
+		Dim OpenD As OpenFileDialog
+		OpenD.Options.Include ofOldStyleDialog
+		OpenD.MultiSelect = True
+		OpenD.Filter = ML("Image Files") & " (*.bmp, *.cur, *.ico, *.png)|*.bmp;*.cur;*.ico;*.png|" & ML("All Files") & "|*.*|"
+		If OpenD.Execute Then
+			For i As Integer = 0 To OpenD.FileNames.Count - 1
+				Dim As UString FileName = OpenD.FileNames.Item(i)
+				Dim As UString RelativePath = GetRelativePath(FileName, ResourceFile)
+				Dim As UString Key = GetFileName(FileName)
+				Dim As String FileExt, ResourceType
+				Var Pos1 = InStrRev(Key, ".")
+				If Pos1 > 0 Then
+					FileExt = Mid(Key, Pos1 + 1)
+					Key = ..Left(Key, Pos1 - 1)
+				End If
+				Dim As String NewName = Key
+				Var n = 0
+				Do While lvImages.ListItems.IndexOf(NewName) > -1
+					n = n + 1
+					NewName = Key & Str(n)
+				Loop
+				Var iIndex = lvImages.ListItems.Count
+				ImageList1.AddFromFile RelativePath, NewName
+				lvImages.ListItems.Add NewName
+				lvImages.ListItems.Item(iIndex)->ImageIndex = iIndex
+				lvImages.ListItems.Item(iIndex)->Text(1) = "File"
+				lvImages.ListItems.Item(iIndex)->Text(2) = RelativePath
+				lvImages.SelectedItemIndex = iIndex
+			Next
+		End If
+	End Select
+End Sub
+
 Private Sub frmImageManager.tbToolbar_ButtonClick_(ByRef Sender As ToolBar,ByRef Button As ToolButton)
 	*Cast(frmImageManager Ptr, Sender.Designer).tbToolbar_ButtonClick(Sender, Button)
 End Sub
@@ -725,12 +802,14 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 		gbImagePreview.Caption = ML("ImageList Properties")
 		pnlOptions.Visible = True
 		imgImage.Visible = False
+		tbToolbar.Buttons.Item("Add")->Visible = False
 		pfrmPath->cboType.Clear
 		pfrmPath->cboType.AddItem "Resource"
 		pfrmPath->cboType.AddItem "File"
 	Else
 		pfrmPath = pfPath
 		pnlOptions.Visible = False
+		tbToolbar.Buttons.Item("AddDropdown")->Visible = False
 		imgImage.Visible = True
 		pfrmPath->cboType.Clear
 		pfrmPath->cboType.AddItem "BITMAP"
