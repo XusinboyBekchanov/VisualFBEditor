@@ -42,6 +42,45 @@ Namespace My.Sys.Forms
 	
 	Dim Shared mnuDesigner As PopupMenu
 	
+	Type SymbolsType
+		Handle As Any Ptr
+		CreateControlFunc As Function(ByRef ClassName As String, ByRef Name As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As Any Ptr
+		CreateComponentFunc As Function(ClassName As String, ByRef Name As WString, lLeft As Integer, lTop As Integer, Parent As Any Ptr) As Any Ptr
+		DeleteComponentFunc As Function(Cpnt As Any Ptr) As Boolean
+		DeleteAllObjectsFunc As Function() As Boolean
+		ReadPropertyFunc As Function(Cpnt As Any Ptr, ByRef PropertyName As String) As Any Ptr
+		WritePropertyFunc As Function(Cpnt As Any Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean
+		RemoveControlSub As Sub(Parent As Any Ptr, Ctrl As Any Ptr)
+		ControlByIndexFunc As Function(Parent As Any Ptr, Index As Integer) As Any Ptr
+		Q_ComponentFunc As Function(Cpnt As Any Ptr) As Any Ptr
+		ComponentGetBoundsSub As Sub(Ctrl As Any Ptr, ByRef ALeft As Integer, ByRef ATop As Integer, ByRef AWidth As Integer, ByRef AHeight As Integer)
+		ComponentSetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
+		ControlIsContainerFunc As Function(Ctrl As Any Ptr) As Boolean
+		IsControlFunc As Function(Ctrl As Any Ptr) As Boolean
+		IsComponentFunc As Function(Ctrl As Any Ptr) As Boolean
+		ControlSetFocusSub As Sub(Ctrl As Any Ptr)
+		ControlFreeWndSub As Sub(Ctrl As Any Ptr)
+		ToStringFunc As Function(Obj As Any Ptr) ByRef As WString
+		CreateObjectFunc As Function(ByRef ClassName As String) As Any Ptr
+		ObjectDeleteFunc As Function(Obj As Any Ptr) As Boolean
+		MenuByIndexFunc As Function(ParentMenu As Any Ptr, Index As Integer) As Any Ptr
+		MenuItemByIndexFunc As Function(ParentMenuItem As Any Ptr, Index As Integer) As Any Ptr
+		MenuFindByCommandFunc As Function(PMenu As Any Ptr, FCommand As Integer) As Any Ptr
+		MenuRemoveSub As Sub(ParentMenu As Any Ptr, PMenuItem As Any Ptr)
+		MenuItemRemoveSub As Sub(ParentMenuItem As Any Ptr, PMenuItem As Any Ptr)
+		ToolBarButtonByIndexFunc As Function(tb As Any Ptr, Index As Integer) As Any Ptr
+		ToolBarRemoveButtonSub As Sub(tb As Any Ptr, Index As Integer)
+		StatusBarPanelByIndexFunc As Function(sb As Any Ptr, Index As Integer) As Any Ptr
+		StatusBarRemovePanelSub As Sub(sb As Any Ptr, Index As Integer)
+		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef FILE As WString, cx As Integer = 0, CY As Integer = 0) As Boolean
+		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef FILE As WString) As Boolean
+		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef FILE As WString, ByRef Key As WString = "")
+		ImageListIndexOfFunc As Function(imgList As Any Ptr, ByRef Key As WString) As Integer
+		ImageListClearSub As Sub(imgList As Any Ptr)
+	End Type
+	
 	Type Designer Extends My.Sys.Object
 	Private:
 		#ifdef __USE_GTK__
@@ -125,6 +164,10 @@ Namespace My.Sys.Forms
 			Brush         As HBRUSH
 			PrevBrush     As HBRUSH
 		#endif
+		As Any Ptr OldCtrl
+		As String OldClassName
+		As Library Ptr OldLibrary
+		As SymbolsType Ptr OldSymbols, OldCtrlSymbols
 	Protected:
 		Declare Sub ProcessMessage(ByRef Message As Message)
 		FPopupMenuItems    As List
@@ -170,45 +213,10 @@ Namespace My.Sys.Forms
 		Declare        Sub MouseUp(X As Integer, Y As Integer, Shift As Integer)
 		Declare        Sub MouseMove(X As Integer, Y As Integer, Shift As Integer)
 		Declare        Sub KeyDown(Key As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
+		FLibs          As List
+		FSymbols       As List
 	Public:
 		Tag As Any Ptr
-		CreateControlFunc As Function(ByRef ClassName As String, ByRef Name As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As Any Ptr
-		CreateComponentFunc As Function(ClassName As String, ByRef Name As WString, lLeft As Integer, lTop As Integer, Parent As Any Ptr) As Any Ptr
-		DeleteComponentFunc As Function(Cpnt As Any Ptr) As Boolean
-		DeleteAllObjectsFunc As Function() As Boolean
-		ReadPropertyFunc As Function(Cpnt As Any Ptr, ByRef PropertyName As String) As Any Ptr
-		WritePropertyFunc As Function(Cpnt As Any Ptr, ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		RemoveControlSub As Sub(Parent As Any Ptr, Ctrl As Any Ptr)
-		ControlByIndexFunc As Function(Parent As Any Ptr, Index As Integer) As Any Ptr
-		Q_ComponentFunc As Function(Cpnt As Any Ptr) As Any Ptr
-		ComponentGetBoundsSub As Sub(Ctrl As Any Ptr, ByRef ALeft As Integer, ByRef ATop As Integer, ByRef AWidth As Integer, ByRef AHeight As Integer)
-		ComponentSetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
-		ControlIsContainerFunc As Function(Ctrl As Any Ptr) As Boolean
-		IsControlFunc As Function(Ctrl As Any Ptr) As Boolean
-		IsComponentFunc As Function(Ctrl As Any Ptr) As Boolean
-		ControlSetFocusSub As Sub(Ctrl As Any Ptr)
-		ControlFreeWndSub As Sub(Ctrl As Any Ptr)
-		ToStringFunc As Function(Obj As Any Ptr) ByRef As WString
-		CreateObjectFunc As Function(ByRef ClassName As String) As Any Ptr
-		ObjectDeleteFunc As Function(Obj As Any Ptr) As Boolean
-		MenuByIndexFunc As Function(ParentMenu As Any Ptr, Index As Integer) As Any Ptr
-		MenuItemByIndexFunc As Function(ParentMenuItem As Any Ptr, Index As Integer) As Any Ptr
-		MenuFindByCommandFunc As Function(PMenu As Any Ptr, FCommand As Integer) As Any Ptr
-		MenuRemoveSub As Sub(ParentMenu As Any Ptr, PMenuItem As Any Ptr)
-		MenuItemRemoveSub As Sub(ParentMenuItem As Any Ptr, PMenuItem As Any Ptr)
-		ToolBarButtonByIndexFunc As Function(tb As Any Ptr, Index As Integer) As Any Ptr
-		ToolBarRemoveButtonSub As Sub(tb As Any Ptr, Index As Integer)
-		StatusBarPanelByIndexFunc As Function(sb As Any Ptr, Index As Integer) As Any Ptr
-		StatusBarRemovePanelSub As Sub(sb As Any Ptr, Index As Integer)
-		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef FILE As WString, cx As Integer = 0, CY As Integer = 0) As Boolean
-		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef FILE As WString) As Boolean
-		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef FILE As WString, ByRef Key As WString = "")
-		ImageListIndexOfFunc As Function(imgList As Any Ptr, ByRef Key As WString) As Integer
-		ImageListClearSub As Sub(imgList As Any Ptr)
-		FLibs          As WStringList
-		Dim MFF As Any Ptr
 		Parent As Control Ptr
 		TopMenu As Panel Ptr
 		#ifdef __USE_GTK__
@@ -241,6 +249,7 @@ Namespace My.Sys.Forms
 		SelectedControls As List
 		Objects As List
 		Controls As List
+		CtrlSymbols As List
 		#ifdef __USE_GTK__
 			cr As cairo_t Ptr
 			'layoutwidget As GtkWidget Ptr
@@ -261,6 +270,10 @@ Namespace My.Sys.Forms
 		Declare        Sub DrawTopMenu
 		Declare        Sub DrawToolBar(Handle As Any Ptr)
 		Declare        Sub DrawThis() 'DC as HDC, R as RECT)
+		Declare Function Symbols(AClassName As String) As SymbolsType Ptr
+		Declare Function Symbols(Ctrl As Any Ptr) As SymbolsType Ptr
+		Declare Function SymbolsReadProperty(Ctrl As Any Ptr) As SymbolsType Ptr
+		Declare Function SymbolsWriteProperty(Ctrl As Any Ptr) As SymbolsType Ptr
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
 			Declare    Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)

@@ -49,7 +49,7 @@
 #endif
 
 Extern "rtlib"
-   Declare Function LineInputWstr Alias "fb_FileLineInputWstr"(ByVal filenumber As Long, ByVal dst As WString Ptr, ByVal maxchars As Integer) As Long
+	Declare Function LineInputWstr Alias "fb_FileLineInputWstr"(ByVal filenumber As Long, ByVal dst As WString Ptr, ByVal maxchars As Integer) As Long
 End Extern
 
 Using My.Sys.Forms
@@ -87,7 +87,7 @@ Declare Sub LoadLanguageTexts
 
 Common Shared As Form Ptr pfrmMain
 Common Shared As SaveFileDialog Ptr pSaveD
-Common Shared As ListView Ptr plvSearch, plvToDo 
+Common Shared As ListView Ptr plvSearch, plvToDo
 Common Shared As StatusBar Ptr pstBar 'David Changed
 Common Shared As TreeListView Ptr plvProperties, plvEvents
 Common Shared As ImageList Ptr pimgList, pimgListTools
@@ -140,6 +140,17 @@ Common Shared As WString Ptr MakeToolPath1, MakeToolPath2, Debugger32Path, Debug
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, Debug32Arguments, Debug64Arguments
 Common Shared As Any Ptr tlock, tlockSave, tlockToDo, tlockGDB
 
+Type Library
+	Name As UString
+	Tips As UString
+	Path As UString
+	HeadersFolder As UString
+	SourcesFolder As UString
+	IncludeFolder As UString
+	Enabled As Boolean
+	Handle As Any Ptr
+End Type
+
 Type ToolType
 	Name As UString
 	Path As UString
@@ -148,9 +159,9 @@ Type ToolType
 	Declare Function GetCommand(ByRef FileName As WString = "", WithoutProgram As Boolean = False) As UString
 End Type
 
-Common Shared As List Ptr pTools
+Common Shared As List Ptr pTools, pControlLibraries
 Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
-'Common Shared As WStringList Ptr pLocalTypes, pLocalEnums, pLocalProcedures, pLocalFunctions, pLocalFunctionsOthers, pLocalArgs, 
+'Common Shared As WStringList Ptr pLocalTypes, pLocalEnums, pLocalProcedures, pLocalFunctions, pLocalFunctionsOthers, pLocalArgs,
 Common Shared As Dictionary Ptr pHelps, pCompilers, pMakeTools, pDebuggers, pTerminals, pOtherEditors
 
 Enum LoadParam
@@ -237,7 +248,7 @@ Declare Function GetXY(XorY As Integer) As Integer
 #endif
 Declare Function FolderExists(ByRef FolderName As WString) As Boolean
 Declare Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
-Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0)
+Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0)
 Declare Sub LoadFunctionsSub(Param As Any Ptr)
 Declare Sub LoadOnlyFilePath(Param As Any Ptr)
 Declare Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)

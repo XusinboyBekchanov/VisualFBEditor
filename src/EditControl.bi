@@ -13,7 +13,7 @@
 #include once "mff/Application.bi"
 #include once "mff/ListView.bi"
 #include once "mff/ToolTips.bi"
-#include once "Main.bi"
+'#include once "Main.bi"
 
 Enum KeyWordsCase
 	OriginalCase

@@ -118,12 +118,15 @@
 '#End Region
 
 Sub frmMenuEditor.GetDropdowns(mi As Any Ptr)
-	Dim As Any Ptr miParent = Des->ReadPropertyFunc(mi, "ParentMenuItem")
-	If miParent <> 0 Then
-		DropdownsCount += 1
-		ReDim Preserve Dropdowns(DropdownsCount)
-		Dropdowns(DropdownsCount) = miParent
-		GetDropdowns miParent
+	Dim As SymbolsType Ptr st = Des->Symbols(mi)
+	If st AndAlso st->ReadPropertyFunc Then
+		Dim As Any Ptr miParent = st->ReadPropertyFunc(mi, "ParentMenuItem")
+		If miParent <> 0 Then
+			DropdownsCount += 1
+			ReDim Preserve Dropdowns(DropdownsCount)
+			Dropdowns(DropdownsCount) = miParent
+			GetDropdowns miParent
+		End If
 	End If
 End Sub
 
@@ -136,9 +139,12 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 	Dim As Boolean IsPopup, IsToolBarList
 	Dim As Any Ptr ImagesList
 	Dim As Any Ptr ImagesListHandle
+	Dim As SymbolsType Ptr stCurrentMenu = Des->Symbols(CurrentMenu)
+	Dim As SymbolsType Ptr stCurrentToolBar = Des->Symbols(CurrentToolBar)
+	Dim As SymbolsType Ptr stCurrentStatusBar = Des->Symbols(CurrentStatusBar)
 	With Canvas
 		.Font = This.Font
-		If CurrentMenu <> 0 AndAlso QWString(Des->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
+		If CurrentMenu <> 0 AndAlso stCurrentMenu AndAlso stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc AndAlso QWString(stCurrentMenu->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
 		If IsPopup AndAlso CurrentToolBar = 0 Then
 			.Pen.Color = BGR(255, 255, 255)
 			.Brush.Color = BGR(255, 255, 255)
@@ -147,20 +153,35 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 			.Pen.Color = BGR(255, 255, 255)
 			.Brush.Color = BGR(255, 255, 255)
 			If CurrentToolBar Then
-				ImagesList = Des->ReadPropertyFunc(CurrentToolBar, "ImagesList")
-				If ImagesList <> 0 Then ImagesListHandle = Des->ReadPropertyFunc(ImagesList, "ImageListHandle")
-				BitmapWidth = QInteger(Des->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
-				BitmapHeight = QInteger(Des->ReadPropertyFunc(CurrentToolBar, "BitmapHeight"))
-				IsToolBarList = QBoolean(Des->ReadPropertyFunc(CurrentToolBar, "List"))
-				.Rectangle 0, QInteger(Des->ReadPropertyFunc(CurrentToolBar, "ButtonHeight")), Canvas.Width, Canvas.Height
+				If stCurrentToolBar AndAlso stCurrentToolBar->ReadPropertyFunc Then
+					ImagesList = stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "ImagesList")
+					If ImagesList <> 0 Then 
+						Dim As SymbolsType Ptr st = Des->Symbols(ImagesList)
+						If st AndAlso st->ReadPropertyFunc Then ImagesListHandle = st->ReadPropertyFunc(ImagesList, "ImageListHandle")
+					End If
+					BitmapWidth = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
+					BitmapHeight = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "BitmapHeight"))
+					IsToolBarList = QBoolean(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "List"))
+					.Rectangle 0, QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "ButtonHeight")), Canvas.Width, Canvas.Height
+				End If
 			ElseIf CurrentStatusBar Then
-				.Rectangle 0, QInteger(Des->ReadPropertyFunc(CurrentStatusBar, "Height")), Canvas.Width, Canvas.Height
+				If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then
+					.Rectangle 0, QInteger(stCurrentStatusBar->ReadPropertyFunc(CurrentStatusBar, "Height")), Canvas.Width, Canvas.Height
+				End If
 				.Pen.Color = BGR(215, 215, 215)
 				.Line 0, 0, Canvas.Width, 0
 			Else
 				.Rectangle 0, .TextHeight("A") + 9, Canvas.Width, Canvas.Height
 			End If
-			For i = 0 To QInteger(IIf(CurrentToolBar, Des->ReadPropertyFunc(CurrentToolBar, "ButtonsCount"), IIf(CurrentStatusBar, Des->ReadPropertyFunc(CurrentStatusBar, "Count"), Des->ReadPropertyFunc(CurrentMenu, "Count")))) - 1
+			Dim As Integer ItemsCount
+			If CurrentToolBar Then
+				If stCurrentToolBar AndAlso stCurrentToolBar->ReadPropertyFunc Then ItemsCount = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "ButtonsCount"))
+			ElseIf CurrentStatusBar Then
+				If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then ItemsCount = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentStatusBar, "Count"))
+			Else
+				If stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc Then ItemsCount = QInteger(stCurrentMenu->ReadPropertyFunc(CurrentMenu, "Count"))
+			End If
+			For i = 0 To ItemsCount - 1
 				RectsCount += 1
 				ReDim Preserve Ctrls(RectsCount)
 				ReDim Preserve Rects(RectsCount)
@@ -168,11 +189,11 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				ReDim Preserve Indexes(RectsCount)
 				Indexes(RectsCount) = i
 				If CurrentToolBar Then
-					Ctrls(RectsCount) = Des->ToolBarButtonByIndexFunc(CurrentToolBar, i)
+					If stCurrentToolBar AndAlso stCurrentToolBar->ToolBarButtonByIndexFunc Then Ctrls(RectsCount) = stCurrentToolBar->ToolBarButtonByIndexFunc(CurrentToolBar, i)
 				ElseIf CurrentStatusBar Then
-					Ctrls(RectsCount) = Des->StatusBarPanelByIndexFunc(CurrentStatusBar, i)
+					If stCurrentStatusBar AndAlso stCurrentStatusBar->StatusBarPanelByIndexFunc Then Ctrls(RectsCount) = stCurrentStatusBar->StatusBarPanelByIndexFunc(CurrentStatusBar, i)
 				Else
-					Ctrls(RectsCount) = Des->MenuByIndexFunc(CurrentMenu, i)
+					If stCurrentMenu AndAlso stCurrentMenu->MenuByIndexFunc Then Ctrls(RectsCount) = stCurrentMenu->MenuByIndexFunc(CurrentMenu, i)
 				End If
 				If RectsCount = 1 Then
 					Rects(RectsCount).Left = 1
@@ -181,14 +202,20 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				End If
 				Rects(RectsCount).Top = 1
 				If CurrentToolBar Then
-					Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Width"))
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Height")) - 1
+					If stCurrentToolBar AndAlso stCurrentToolBar->ReadPropertyFunc Then
+						Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Width"))
+						Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Height")) - 1
+					End If
 				ElseIf CurrentStatusBar Then
-					Rects(RectsCount).Right = Rects(RectsCount).Left + IIf(QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "RealWidth")) = 0, 3, QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "RealWidth")))
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(Des->ReadPropertyFunc(CurrentStatusBar, "Height")) - 1
+					If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then
+						Rects(RectsCount).Right = Rects(RectsCount).Left + IIf(QInteger(stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "RealWidth")) = 0, 3, QInteger(stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "RealWidth")))
+						Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(stCurrentStatusBar->ReadPropertyFunc(CurrentStatusBar, "Height")) - 1
+					End If
 				Else
-					Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
+					If stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc Then
+						Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) + 10
+						Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
+					End If
 				End If
 				If RectsCount = ActiveRect Then
 					.Pen.Color = BGR(0, 120, 215)
@@ -196,72 +223,80 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 					.Rectangle Rects(RectsCount)
 				End If
 				If CurrentToolBar Then
-					If RectsCount = ActiveRect AndAlso QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown Then
-						.Pen.Color = BGR(0, 120, 215)
-						.Line Rects(RectsCount).Right - 16, Rects(RectsCount).Top, Rects(RectsCount).Right - 16, Rects(RectsCount).Bottom
-					End If
-					Select Case QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style"))
-					Case ToolButtonStyle.tbsDropDown, ToolButtonStyle.tbsWholeDropdown
-						.Pen.Color = BGR(0, 0, 0)
-						.Brush.Color = BGR(0, 0, 0)
-						.Line Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1, Rects(RectsCount).Right - 5, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
-						.Line Rects(RectsCount).Right - 5, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1, Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2
-						.Line Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2, Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
-						.FloodFill Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2), 0, fsBorder
-					End Select
-					If ImagesListHandle <> 0 Then
-						Dim As Any Ptr Image
-						Dim As UString ImageKey = WGet(Des->ReadPropertyFunc(Ctrls(RectsCount), "ImageKey"))
-						Dim As Integer ImageIndex = QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "ImageIndex"))
-						If ImageKey <> "" Then ImageIndex = Des->ImageListIndexOfFunc(ImagesList, ImageKey)
-						If ImageIndex > -1 Then
-							#ifdef __USE_GTK__
-								
-							#else
-								ImageList_Draw(ImagesListHandle, ImageIndex, .Handle, Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0) - IIf(QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsWholeDropdown, 10, 0)) / 2), Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3), ILD_TRANSPARENT)
-							#endif
+					If stCurrentToolBar AndAlso stCurrentToolBar->ReadPropertyFunc Then
+						If RectsCount = ActiveRect AndAlso QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown Then
+							.Pen.Color = BGR(0, 120, 215)
+							.Line Rects(RectsCount).Right - 16, Rects(RectsCount).Top, Rects(RectsCount).Right - 16, Rects(RectsCount).Bottom
 						End If
-					End If
-					If QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsSeparator Then
-						.Pen.Color = BGR(0, 0, 0)
-						.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Bottom - 5
-						.Pen.Color = BGR(255, 255, 255)
-						.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom - 5
-					Else
-						.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(Des->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
-							IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+						
+						Select Case QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style"))
+						Case ToolButtonStyle.tbsDropDown, ToolButtonStyle.tbsWholeDropdown
+							.Pen.Color = BGR(0, 0, 0)
+							.Brush.Color = BGR(0, 0, 0)
+							.Line Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1, Rects(RectsCount).Right - 5, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
+							.Line Rects(RectsCount).Right - 5, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1, Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2
+							.Line Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2, Rects(RectsCount).Right - 11, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1
+							.FloodFill Rects(RectsCount).Right - 8, Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2), 0, fsBorder
+						End Select
+						If ImagesListHandle <> 0 Then
+							Dim As Any Ptr Image
+							Dim As UString ImageKey = WGet(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "ImageKey"))
+							Dim As Integer ImageIndex = QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "ImageIndex"))
+							Dim As SymbolsType Ptr st = Des->Symbols(ImagesList)
+							If ImageKey <> "" AndAlso st <> 0 AndAlso st->ImageListIndexOfFunc <> 0 Then ImageIndex = st->ImageListIndexOfFunc(ImagesList, ImageKey)
+							If ImageIndex > -1 Then
+								#ifdef __USE_GTK__
+									
+								#else
+									ImageList_Draw(ImagesListHandle, ImageIndex, .Handle, Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsWholeDropdown, 10, 0)) / 2), Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3), ILD_TRANSPARENT)
+								#endif
+							End If
+						End If
+						If QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsSeparator Then
+							.Pen.Color = BGR(0, 0, 0)
+							.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2, Rects(RectsCount).Bottom - 5
+							.Pen.Color = BGR(255, 255, 255)
+							.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom - 5
+						Else
+							.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
+								IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+						End If
 					End If
 				ElseIf CurrentStatusBar Then
 					If i > 0 Then
 						.Pen.Color = BGR(215, 215, 215)
 						.Line Rects(RectsCount).Left - 1, 2, Rects(RectsCount).Left - 1, Rects(RectsCount).Bottom - 1
 					End If
-					Dim As Any Ptr Icon = Des->ReadPropertyFunc(Ctrls(RectsCount), "Icon")
-					Dim As Any Ptr IconHandle
-					#ifndef __USE_GTK__
-						If Icon <> 0 Then
-							IconHandle = Des->ReadPropertyFunc(Icon, "Handle")
-							If IconHandle Then IconHandle = *Cast(HICON Ptr, IconHandle)
-							If IconHandle Then
-								DrawIconEx .Handle, Rects(RectsCount).Left + 3, 3, IconHandle, 16, 16, 0, 0, DI_NORMAL
+					If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then
+						Dim As Any Ptr Icon = stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "Icon")
+						Dim As Any Ptr IconHandle
+						#ifndef __USE_GTK__
+							If Icon <> 0 Then
+								IconHandle = stCurrentStatusBar->ReadPropertyFunc(Icon, "Handle")
+								If IconHandle Then IconHandle = *Cast(HICON Ptr, IconHandle)
+								If IconHandle Then
+									DrawIconEx .Handle, Rects(RectsCount).Left + 3, 3, IconHandle, 16, 16, 0, 0, DI_NORMAL
+								End If
 							End If
-						End If
-					#endif
-					.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+						#endif
+						.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+					End If
 				Else
-					#ifdef __USE_GTK__
-						If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
-						Else
-							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
-						End If
-					#else
-						If QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
-						Else
-							.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
-						End If
-					#endif
+					If stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc Then
+						#ifdef __USE_GTK__
+							If QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
+							Else
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+							End If
+						#else
+							If QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
+							Else
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
+							End If
+						#endif
+					End If
 				End If
 			Next i
 			RectsCount += 1
@@ -286,11 +321,15 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				.Brush.Color = BGR(255, 255, 255)
 			End If
 			If CurrentToolBar Then
-				Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(Des->ReadPropertyFunc(CurrentToolBar, "ButtonWidth"))
-				Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(Des->ReadPropertyFunc(CurrentToolBar, "ButtonHeight"))
+				If stCurrentToolBar AndAlso stCurrentToolBar->ReadPropertyFunc Then
+					Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "ButtonWidth"))
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "ButtonHeight"))
+				End If
 			ElseIf CurrentStatusBar Then
-				Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(ML("Type here")) + 10
-				Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(Des->ReadPropertyFunc(CurrentStatusBar, "Height")) - 1
+				If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then
+					Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(ML("Type here")) + 10
+					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(stCurrentStatusBar->ReadPropertyFunc(CurrentStatusBar, "Height")) - 1
+				End If
 			Else
 				Rects(RectsCount).Right = Rects(RectsCount).Left + .TextWidth(ML("Type here")) + 10
 				Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight(ML("Type here")) + 6
@@ -322,7 +361,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 		If CurrentStatusBar = 0 AndAlso (ActiveCtrl <> 0 OrElse IsPopup) Then
 			DropdownsCount = 0
 			ReDim Dropdowns(DropdownsCount)
-			If ActiveCtrl <> 0 AndAlso QWString(Des->ReadPropertyFunc(ActiveCtrl, "ClassName")) = "ToolButton" Then
+			If ActiveCtrl <> 0 AndAlso stCurrentToolBar AndAlso stCurrentToolBar->ReadPropertyFunc AndAlso QWString(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "ClassName")) = "ToolButton" Then
 				Dropdowns(DropdownsCount) = 0
 			Else
 				Dropdowns(DropdownsCount) = ActiveCtrl
@@ -337,7 +376,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				Dim As Any Ptr mi, CurrentMenuItem = Dropdowns(j)
 				Dim As Integer CurRect, iSubMenuHeight = .TextHeight("A") + 6 + 4, MaxWidth = 100, CurWidth
 				If CurrentMenuItem <> 0 Then
-					If QWString(Des->ReadPropertyFunc(CurrentMenuItem, "Caption")) = "-" Then Exit For
+					If stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc AndAlso QWString(stCurrentMenu->ReadPropertyFunc(CurrentMenuItem, "Caption")) = "-" Then Exit For
 					For i As Integer = 1 To RectsCount
 						If Ctrls(i) = CurrentMenuItem Then
 							CurRect = i
@@ -346,135 +385,137 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 					Next
 				End If
 				If CurRect <> 0 OrElse IsPopup Then
-					For i As Integer = 0 To QInteger(Des->ReadPropertyFunc(IIf(CurrentMenuItem = 0, CurrentMenu, CurrentMenuItem), "Count")) - 1
+					If stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc AndAlso stCurrentMenu->MenuByIndexFunc AndAlso stCurrentMenu->MenuItemByIndexFunc Then
+						For i As Integer = 0 To QInteger(stCurrentMenu->ReadPropertyFunc(IIf(CurrentMenuItem = 0, CurrentMenu, CurrentMenuItem), "Count")) - 1
+							If CurrentMenuItem = 0 Then
+								mi = stCurrentMenu->MenuByIndexFunc(CurrentMenu, i)
+							Else
+								mi = stCurrentMenu->MenuItemByIndexFunc(CurrentMenuItem, i)
+							End If
+							If mi <> 0 Then
+								If QWString(stCurrentMenu->ReadPropertyFunc(mi, "Caption")) = "-" Then
+									iSubMenuHeight += 5
+								Else
+									iSubMenuHeight += .TextHeight("A") + 6
+								End If
+								CurWidth = .TextWidth(Replace(QWString(stCurrentMenu->ReadPropertyFunc(mi, "Caption")), !"\t", Space(6))) + 50
+								If CurWidth > MaxWidth Then MaxWidth = CurWidth
+							End If
+						Next
+						Dim As My.Sys.Drawing.Rect rct
 						If CurrentMenuItem = 0 Then
-							mi = Des->MenuByIndexFunc(CurrentMenu, i)
-						Else
-							mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
-						End If
-						If mi <> 0 Then
-							If QWString(Des->ReadPropertyFunc(mi, "Caption")) = "-" Then
-								iSubMenuHeight += 5
+							If ParentRect = 0 Then
+								rct.Left = 1
+								rct.Top = 0
 							Else
-								iSubMenuHeight += .TextHeight("A") + 6
+								rct.Left = Rects(ParentRect).Left
+								rct.Top = Rects(ParentRect).Bottom
 							End If
-							CurWidth = .TextWidth(Replace(QWString(Des->ReadPropertyFunc(mi, "Caption")), !"\t", Space(6))) + 50
-							If CurWidth > MaxWidth Then MaxWidth = CurWidth
-						End If
-					Next
-					Dim As My.Sys.Drawing.Rect rct
-					If CurrentMenuItem = 0 Then
-						If ParentRect = 0 Then
-							rct.Left = 1
-							rct.Top = 0
 						Else
-							rct.Left = Rects(ParentRect).Left
-							rct.Top = Rects(ParentRect).Bottom
-						End If
-					Else
-						If Des->ReadPropertyFunc(CurrentMenuItem, "ParentMenuItem") = 0 AndAlso Not IsPopup Then
-							rct.Left = Rects(CurRect).Left
-							rct.Top = Rects(CurRect).Bottom
-						Else
-							rct.Left = Rects(CurRect).Right + 1
-							rct.Top = Rects(CurRect).Top - 2
-						End If
-					End If
-					rct.Right = rct.Left + 25
-					rct.Bottom = rct.Top + iSubMenuHeight
-					.Pen.Color = BGR(197, 194, 184)
-					.Brush.Color = BGR(241, 241, 241)
-					.Rectangle rct
-					rct.Left = rct.Left + 24
-					rct.Right = rct.Left + MaxWidth
-					.Brush.Color = BGR(252, 252, 249)
-					.Rectangle rct
-					iSubMenuHeight = 2
-					Dim As Integer iMenuHeight = .TextHeight("A") + 6
-					For i = 0 To QInteger(Des->ReadPropertyFunc(IIf(CurrentMenuItem = 0, CurrentMenu, CurrentMenuItem), "Count")) - 1
-						If CurrentMenuItem = 0 Then
-							mi = Des->MenuByIndexFunc(CurrentMenu, i)
-						Else
-							mi = Des->MenuItemByIndexFunc(CurrentMenuItem, i)
-						End If
-						If mi <> 0 Then
-							If QWString(Des->ReadPropertyFunc(mi, "Caption")) = "-" Then
-								iMenuHeight = 5
+							If stCurrentMenu->ReadPropertyFunc(CurrentMenuItem, "ParentMenuItem") = 0 AndAlso Not IsPopup Then
+								rct.Left = Rects(CurRect).Left
+								rct.Top = Rects(CurRect).Bottom
 							Else
-								iMenuHeight = .TextHeight("A") + 6
+								rct.Left = Rects(CurRect).Right + 1
+								rct.Top = Rects(CurRect).Top - 2
 							End If
-							RectsCount += 1
-							ReDim Preserve Ctrls(RectsCount)
-							ReDim Preserve Rects(RectsCount)
-							ReDim Preserve Parents(RectsCount)
-							ReDim Preserve Indexes(RectsCount)
-							Indexes(RectsCount) = i
-							Ctrls(RectsCount) = mi
-							Parents(RectsCount) = CurrentMenuItem
-							Rects(RectsCount).Left = rct.Left + 2
-							Rects(RectsCount).Top = rct.Top + iSubMenuHeight
-							Rects(RectsCount).Right = Rects(RectsCount).Left + MaxWidth - 4
-							Rects(RectsCount).Bottom = Rects(RectsCount).Top + iMenuHeight
-							If RectsCount = ActiveRect Then
-								.Pen.Color = BGR(0, 120, 215)
-								.Brush.Color = BGR(174, 215, 247)
-								.Rectangle Rects(RectsCount)
-							End If
-							If iMenuHeight = 5 Then
-								.Pen.Color = BGR(197, 194, 184)
-								.Line Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 2, Rects(RectsCount).Right - 1, Rects(RectsCount).Top + 2
+						End If
+						rct.Right = rct.Left + 25
+						rct.Bottom = rct.Top + iSubMenuHeight
+						.Pen.Color = BGR(197, 194, 184)
+						.Brush.Color = BGR(241, 241, 241)
+						.Rectangle rct
+						rct.Left = rct.Left + 24
+						rct.Right = rct.Left + MaxWidth
+						.Brush.Color = BGR(252, 252, 249)
+						.Rectangle rct
+						iSubMenuHeight = 2
+						Dim As Integer iMenuHeight = .TextHeight("A") + 6
+						For i = 0 To QInteger(stCurrentMenu->ReadPropertyFunc(IIf(CurrentMenuItem = 0, CurrentMenu, CurrentMenuItem), "Count")) - 1
+							If CurrentMenuItem = 0 Then
+								mi = stCurrentMenu->MenuByIndexFunc(CurrentMenu, i)
 							Else
-								Dim As Any Ptr pBitmap = Des->ReadPropertyFunc(Ctrls(RectsCount), "Image")
-								Dim As Any Ptr BitmapHandle
-								If pBitmap <> 0 Then
-									BitmapHandle = Des->ReadPropertyFunc(pBitmap, "Handle")
-									If BitmapHandle <> 0 Then
-										#ifdef __USE_GTK__
-											
-										#else
-											.DrawTransparent ScaleX(Rects(RectsCount).Left - 25 + 3), ScaleY(Rects(RectsCount).Top + 2), *Cast(HBITMAP Ptr, BitmapHandle)
-											'.DrawStretch Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, 16, 16, *Cast(HBITMAP Ptr, BitmapHandle)
-										#endif
+								mi = stCurrentMenu->MenuItemByIndexFunc(CurrentMenuItem, i)
+							End If
+							If mi <> 0 Then
+								If QWString(stCurrentMenu->ReadPropertyFunc(mi, "Caption")) = "-" Then
+									iMenuHeight = 5
+								Else
+									iMenuHeight = .TextHeight("A") + 6
+								End If
+								RectsCount += 1
+								ReDim Preserve Ctrls(RectsCount)
+								ReDim Preserve Rects(RectsCount)
+								ReDim Preserve Parents(RectsCount)
+								ReDim Preserve Indexes(RectsCount)
+								Indexes(RectsCount) = i
+								Ctrls(RectsCount) = mi
+								Parents(RectsCount) = CurrentMenuItem
+								Rects(RectsCount).Left = rct.Left + 2
+								Rects(RectsCount).Top = rct.Top + iSubMenuHeight
+								Rects(RectsCount).Right = Rects(RectsCount).Left + MaxWidth - 4
+								Rects(RectsCount).Bottom = Rects(RectsCount).Top + iMenuHeight
+								If RectsCount = ActiveRect Then
+									.Pen.Color = BGR(0, 120, 215)
+									.Brush.Color = BGR(174, 215, 247)
+									.Rectangle Rects(RectsCount)
+								End If
+								If iMenuHeight = 5 Then
+									.Pen.Color = BGR(197, 194, 184)
+									.Line Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 2, Rects(RectsCount).Right - 1, Rects(RectsCount).Top + 2
+								Else
+									Dim As Any Ptr pBitmap = stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Image")
+									Dim As Any Ptr BitmapHandle
+									If pBitmap <> 0 Then
+										BitmapHandle = stCurrentMenu->ReadPropertyFunc(pBitmap, "Handle")
+										If BitmapHandle <> 0 Then
+											#ifdef __USE_GTK__
+												
+											#else
+												.DrawTransparent ScaleX(Rects(RectsCount).Left - 25 + 3), ScaleY(Rects(RectsCount).Top + 2), *Cast(HBITMAP Ptr, BitmapHandle)
+												'.DrawStretch Rects(RectsCount).Left - 25 + 3, Rects(RectsCount).Top + 2, 16, 16, *Cast(HBITMAP Ptr, BitmapHandle)
+											#endif
+										End If
+									End If
+									Dim As WString Ptr pCaption = stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")
+									Dim As Integer Pos1 = InStr(*pCaption, !"\t")
+									If Pos1 > 0 Then
+										.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ..Left(*pCaption, Pos1 - 1), BGR(0, 0, 0), -1
+										.TextOut Rects(RectsCount).Right - 10 - 5 - .TextWidth(Mid(*pCaption, Pos1 + 1)), Rects(RectsCount).Top + 3, Mid(*pCaption, Pos1 + 1), BGR(0, 0, 0), -1
+									Else
+										.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, *pCaption, BGR(0, 0, 0), -1
 									End If
 								End If
-								Dim As WString Ptr pCaption = Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")
-								Dim As Integer Pos1 = InStr(*pCaption, !"\t")
-								If Pos1 > 0 Then
-									.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ..Left(*pCaption, Pos1 - 1), BGR(0, 0, 0), -1
-									.TextOut Rects(RectsCount).Right - 10 - 5 - .TextWidth(Mid(*pCaption, Pos1 + 1)), Rects(RectsCount).Top + 3, Mid(*pCaption, Pos1 + 1), BGR(0, 0, 0), -1
-								Else
-									.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, *pCaption, BGR(0, 0, 0), -1
+								If QInteger(stCurrentMenu->ReadPropertyFunc(mi, "Count")) > 0 Then
+									.Pen.Color = BGR(0, 0, 0)
+									.Line Rects(RectsCount).Right - 10, Rects(RectsCount).Top + 6, Rects(RectsCount).Right - 10 + 3, Rects(RectsCount).Top + 6 + 3
+									.Line Rects(RectsCount).Right - 10 + 3, Rects(RectsCount).Top + 6 + 3, Rects(RectsCount).Right - 10 - 1, Rects(RectsCount).Top + 6 + 7
 								End If
+								iSubMenuHeight += iMenuHeight
 							End If
-							If QInteger(Des->ReadPropertyFunc(mi, "Count")) > 0 Then
-								.Pen.Color = BGR(0, 0, 0)
-								.Line Rects(RectsCount).Right - 10, Rects(RectsCount).Top + 6, Rects(RectsCount).Right - 10 + 3, Rects(RectsCount).Top + 6 + 3
-								.Line Rects(RectsCount).Right - 10 + 3, Rects(RectsCount).Top + 6 + 3, Rects(RectsCount).Right - 10 - 1, Rects(RectsCount).Top + 6 + 7
-							End If
-							iSubMenuHeight += iMenuHeight
+						Next
+						RectsCount += 1
+						ReDim Preserve Ctrls(RectsCount)
+						ReDim Preserve Rects(RectsCount)
+						ReDim Preserve Parents(RectsCount)
+						ReDim Preserve Indexes(RectsCount)
+						Indexes(RectsCount) = i
+						Ctrls(RectsCount) = 0
+						Parents(RectsCount) = CurrentMenuItem
+						Rects(RectsCount).Left = rct.Left + 2
+						Rects(RectsCount).Top = rct.Top + iSubMenuHeight
+						If RectsCount = ActiveRect Then
+							.Pen.Color = BGR(0, 120, 215)
+							.Brush.Color = BGR(174, 215, 247)
+						Else
+							.Pen.Color = BGR(109, 109, 109)
+							.Brush.Color = BGR(255, 255, 255)
 						End If
-					Next
-					RectsCount += 1
-					ReDim Preserve Ctrls(RectsCount)
-					ReDim Preserve Rects(RectsCount)
-					ReDim Preserve Parents(RectsCount)
-					ReDim Preserve Indexes(RectsCount)
-					Indexes(RectsCount) = i
-					Ctrls(RectsCount) = 0
-					Parents(RectsCount) = CurrentMenuItem
-					Rects(RectsCount).Left = rct.Left + 2
-					Rects(RectsCount).Top = rct.Top + iSubMenuHeight
-					If RectsCount = ActiveRect Then
-						.Pen.Color = BGR(0, 120, 215)
-						.Brush.Color = BGR(174, 215, 247)
-					Else
-						.Pen.Color = BGR(109, 109, 109)
-						.Brush.Color = BGR(255, 255, 255)
+						Rects(RectsCount).Right = Rects(RectsCount).Left + MaxWidth - 4
+						Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
+						.Rectangle Rects(RectsCount)
+						.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
 					End If
-					Rects(RectsCount).Right = Rects(RectsCount).Left + MaxWidth - 4
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + .TextHeight("A") + 6
-					.Rectangle Rects(RectsCount)
-					.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
 				End If
 			Next
 		End If
@@ -507,93 +548,102 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 	With Rects(i)
 		ActiveRect = i
 		If CurrentToolBar <> 0 AndAlso ActiveRect <= TopCount Then
-			If QBoolean(Des->ReadPropertyFunc(CurrentToolBar, "List")) Then
-				Dim As Integer BitmapWidth = QInteger(Des->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
-				picActive.Left = .Left + 1 + BitmapWidth
-				picActive.Top = .Top + (.Bottom - .Top - This.Canvas.TextHeight("A")) / 2 - 1
-			Else
-				picActive.Left = .Left + 1
-				picActive.Top = .Bottom - This.Canvas.TextHeight("A") - 6
-			End If
-			If Ctrls(i) = 0 Then
-				Dim As String FName = "ToolButton"
-				If Des->OnInsertingControl Then
-					Des->OnInsertingControl(*Des, FName, FName)
+			Dim As SymbolsType Ptr st = Des->Symbols(CurrentToolBar)
+			If st AndAlso st->ReadPropertyFunc Then
+				If QBoolean(st->ReadPropertyFunc(CurrentToolBar, "List")) Then
+					Dim As Integer BitmapWidth = QInteger(st->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
+					picActive.Left = .Left + 1 + BitmapWidth
+					picActive.Top = .Top + (.Bottom - .Top - This.Canvas.TextHeight("A")) / 2 - 1
+				Else
+					picActive.Left = .Left + 1
+					picActive.Top = .Bottom - This.Canvas.TextHeight("A") - 6
 				End If
-				Dim As UString FCaption = FName
-				Dim Obj As Any Ptr = Des->CreateObjectFunc("ToolButton")
-				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
-				Des->WritePropertyFunc(Obj, "Parent", CurrentToolBar)
-				ChangeControl *Des, Obj, "Parent"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj, 0, Ctrls(i))
-				Ctrls(i) = Obj
-				ActiveCtrl = Obj
-				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-				'Des->TopMenu->Repaint
-			Else
-				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
+				If Ctrls(i) = 0 Then
+					Dim As String FName = "ToolButton"
+					If Des->OnInsertingControl Then
+						Des->OnInsertingControl(*Des, FName, FName)
+					End If
+					Dim As UString FCaption = FName
+					Dim Obj As Any Ptr = Des->CreateObject("ToolButton")
+					st->WritePropertyFunc(Obj, "Name", FCaption.vptr)
+					st->WritePropertyFunc(Obj, "Parent", CurrentToolBar)
+					ChangeControl *Des, Obj, "Parent"
+					If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj, 0, Ctrls(i))
+					Ctrls(i) = Obj
+					ActiveCtrl = Obj
+					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
+					'Des->TopMenu->Repaint
+				Else
+					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
+				End If
 			End If
 			picActive.Height = This.Canvas.TextHeight("A")
 		ElseIf CurrentStatusBar <> 0 AndAlso ActiveRect <= TopCount Then
-			picActive.Left = .Left + 1
-			picActive.Top = .Top + 2
-			If Ctrls(i) = 0 Then
-				Dim As String FName = "StatusPanel"
-				If Des->OnInsertingControl Then
-					Des->OnInsertingControl(*Des, FName, FName)
+			Dim As SymbolsType Ptr st = Des->Symbols(CurrentStatusBar)
+			If st AndAlso st->ReadPropertyFunc Then
+				picActive.Left = .Left + 1
+				picActive.Top = .Top + 2
+				If Ctrls(i) = 0 Then
+					Dim As String FName = "StatusPanel"
+					If Des->OnInsertingControl Then
+						Des->OnInsertingControl(*Des, FName, FName)
+					End If
+					Dim As UString FCaption = FName
+					Dim Obj As Any Ptr = Des->CreateObject("StatusPanel")
+					st->WritePropertyFunc(Obj, "Name", FCaption.vptr)
+					st->WritePropertyFunc(Obj, "Parent", CurrentStatusBar)
+					ChangeControl *Des, Obj, "Parent"
+					If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj, 0, Ctrls(i))
+					Ctrls(i) = Obj
+					ActiveCtrl = Obj
+					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
+				Else
+					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
 				End If
-				Dim As UString FCaption = FName
-				Dim Obj As Any Ptr = Des->CreateObjectFunc("StatusPanel")
-				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
-				Des->WritePropertyFunc(Obj, "Parent", CurrentStatusBar)
-				ChangeControl *Des, Obj, "Parent"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj, 0, Ctrls(i))
-				Ctrls(i) = Obj
-				ActiveCtrl = Obj
-				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-			Else
-				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
 			End If
 			picActive.Height = This.Canvas.TextHeight("A")
 		Else
+			Dim As SymbolsType Ptr st = Des->Symbols(CurrentMenu)
 			picActive.Left = .Left + 1
 			picActive.Top = .Top + 2
-			If CBool(Ctrls(i) = 0) OrElse NewObject Then
-				Dim As String FName = "MenuItem"
-				If Des->OnInsertingControl Then
-					Des->OnInsertingControl(*Des, FName, FName)
-				End If
-				Dim As UString FCaption = FName
-				Dim Obj As Any Ptr = Des->CreateObjectFunc("MenuItem")
-				Des->WritePropertyFunc(Obj, "Name", FCaption.vptr)
-				If Parents(i) = 0 Then
-					'Des->WritePropertyFunc(Obj, "ParentMenu", CurrentMenu)
-					Des->WritePropertyFunc(Obj, "Parent", CurrentMenu)
+			If st AndAlso st->ReadPropertyFunc Then
+				If CBool(Ctrls(i) = 0) OrElse NewObject Then
+					Dim As String FName = "MenuItem"
+					If Des->OnInsertingControl Then
+						Des->OnInsertingControl(*Des, FName, FName)
+					End If
+					Dim As UString FCaption = FName
+					Dim Obj As Any Ptr = Des->CreateObject("MenuItem")
+					st->WritePropertyFunc(Obj, "Name", FCaption.vptr)
+					If Parents(i) = 0 Then
+						'Des->WritePropertyFunc(Obj, "ParentMenu", CurrentMenu)
+						st->WritePropertyFunc(Obj, "Parent", CurrentMenu)
+					Else
+						st->WritePropertyFunc(Obj, "Parent", Parents(i))
+					End If
+					st->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
+					If Parents(i) = 0 Then
+						'ChangeControl *Des, Obj, "ParentMenu"
+						ChangeControl *Des, Obj, "Parent"
+					Else
+						ChangeControl *Des, Obj, "Parent"
+					End If
+					ChangeControl *Des, Obj, "Caption"
+					If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj, 0, Ctrls(i))
+					Ctrls(i) = Obj
+					ActiveCtrl = Obj
+					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
+					'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
+					If NewObject Then st->WritePropertyFunc(Obj, "MenuIndex", @Indexes(i))
+					If i = 1 Then
+						Des->CheckTopMenuVisible , False
+					Else
+						Des->TopMenu->Repaint
+					End If
 				Else
-					Des->WritePropertyFunc(Obj, "Parent", Parents(i))
+					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
+					'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
 				End If
-				Des->WritePropertyFunc(Obj, "Caption", FCaption.vptr)
-				If Parents(i) = 0 Then
-					'ChangeControl *Des, Obj, "ParentMenu"
-					ChangeControl *Des, Obj, "Parent"
-				Else
-					ChangeControl *Des, Obj, "Parent"
-				End If
-				ChangeControl *Des, Obj, "Caption"
-				If Des->OnInsertObject Then Des->OnInsertObject(*Des, "MenuItem", Obj, 0, Ctrls(i))
-				Ctrls(i) = Obj
-				ActiveCtrl = Obj
-				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-				'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
-				If NewObject Then Des->WritePropertyFunc(Obj, "MenuIndex", @Indexes(i))
-				If i = 1 Then
-					Des->CheckTopMenuVisible , False
-				Else
-					Des->TopMenu->Repaint
-				End If
-			Else
-				txtActive.Text = QWString(Des->ReadPropertyFunc(Ctrls(i), "Caption"))
-				'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
 			End If
 			picActive.Height = .Bottom - .Top - 3
 		End If
@@ -609,23 +659,25 @@ Private Sub frmMenuEditor.txtActive_Change_(ByRef Sender As TextBox)
 End Sub
 Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 	If ActiveRect <> 0 Then
-		If Ctrls(ActiveRect) <> 0 AndAlso QWString(Des->ReadPropertyFunc(Ctrls(ActiveRect), "Caption")) <> txtActive.Text Then
-			Des->WritePropertyFunc(Ctrls(ActiveRect), "Caption", @txtActive.Text)
+		Dim As SymbolsType Ptr st = Des->Symbols(Ctrls(ActiveRect))
+		If Ctrls(ActiveRect) <> 0 AndAlso st <> 0 AndAlso st->ReadPropertyFunc <> 0 AndAlso QWString(st->ReadPropertyFunc(Ctrls(ActiveRect), "Caption")) <> txtActive.Text Then
+			st->WritePropertyFunc(Ctrls(ActiveRect), "Caption", @txtActive.Text)
 			ChangeControl *Des, Ctrls(ActiveRect), "Caption"
 			If Parents(ActiveRect) = 0 Then Des->TopMenu->Repaint
 		End If
 		Repaint
-		If CBool(CurrentToolBar <> 0) AndAlso CBool(ActiveRect < TopCount) AndAlso QBoolean(Des->ReadPropertyFunc(CurrentToolBar, "List")) Then
-			Dim As Integer BitmapWidth = QInteger(Des->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
+		Dim As SymbolsType Ptr stCurrentToolBar = Des->Symbols(CurrentToolBar)
+		If CBool(CurrentToolBar <> 0) AndAlso CBool(ActiveRect < TopCount) AndAlso CBool(stCurrentToolBar <> 0) AndAlso CBool(stCurrentToolBar->ReadPropertyFunc <> 0) AndAlso QBoolean(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "List")) Then
+			Dim As Integer BitmapWidth = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
 			picActive.Left = Rects(ActiveRect).Left + 3 + BitmapWidth
-			If ActiveCtrl <> 0 AndAlso QInteger(Des->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(Des->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown Then
+			If ActiveCtrl <> 0 AndAlso QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown Then
 				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - 15 - BitmapWidth - 3
 			Else
 				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - BitmapWidth - 3
 			End If
 		Else
 			picActive.Left = Rects(ActiveRect).Left + 1
-			If CurrentToolBar AndAlso ActiveRect < TopCount AndAlso ActiveCtrl <> 0 AndAlso (QInteger(Des->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(Des->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown) Then
+			If CurrentToolBar AndAlso ActiveRect < TopCount AndAlso ActiveCtrl <> 0 AndAlso stCurrentToolBar <> 0 AndAlso stCurrentToolBar->ReadPropertyFunc <> 0 AndAlso (QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown) Then
 				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - 15
 			Else
 				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2
@@ -642,12 +694,16 @@ Sub frmMenuEditor.SelectRect(Index As Integer)
 		If CurrentToolBar AndAlso Index = TopCount Then CurrentMenu = 0
 	Else
 		ActiveCtrl = Ctrls(Index)
-		txtActive.Text = QWString(Des->ReadPropertyFunc(ActiveCtrl, "Caption"))
-		If CurrentToolBar AndAlso QWString(Des->ReadPropertyFunc(ActiveCtrl, "ClassName")) = "ToolButton" Then
+		Dim As SymbolsType Ptr st = Des->Symbols(ActiveCtrl)
+		If st AndAlso st->ReadPropertyFunc Then
+			txtActive.Text = QWString(st->ReadPropertyFunc(ActiveCtrl, "Caption"))
+		End If
+		st = Des->Symbols(CurrentToolBar)
+		If CurrentToolBar AndAlso st AndAlso st->ReadPropertyFunc AndAlso QWString(st->ReadPropertyFunc(ActiveCtrl, "ClassName")) = "ToolButton" Then
 			Dim As Integer ButStyle
-			ButStyle = QInteger(Des->ReadPropertyFunc(ActiveCtrl, "Style"))
+			ButStyle = QInteger(st->ReadPropertyFunc(ActiveCtrl, "Style"))
 			If ButStyle = ToolButtonStyle.tbsDropDown OrElse ButStyle = ToolButtonStyle.tbsWholeDropdown Then
-				CurrentMenu = Des->ReadPropertyFunc(ActiveCtrl, "DropDownMenu")
+				CurrentMenu = st->ReadPropertyFunc(ActiveCtrl, "DropDownMenu")
 				ParentRect = Index
 			Else
 				CurrentMenu = 0
@@ -670,16 +726,22 @@ End Sub
 
 Sub frmMenuEditor.DeleteMenuItem
 	If ActiveRect > 0 AndAlso Ctrls(ActiveRect) <> 0 Then
-		Dim As Any Ptr ParentMenu = Des->ReadPropertyFunc(Ctrls(ActiveRect), "Parent")
+		Dim As SymbolsType Ptr st = Des->Symbols(Ctrls(ActiveRect))
+		Dim As Any Ptr ParentMenu
+		If st AndAlso st->ReadPropertyFunc Then
+			ParentMenu = st->ReadPropertyFunc(Ctrls(ActiveRect), "Parent")
+		End If
 		If CurrentToolBar Then
+			Dim As SymbolsType Ptr stCurrentToolBar = Des->Symbols(CurrentToolBar)
 			'Des->DeleteMenuItems(Des->ReadPropertyFunc(Ctrls(ActiveRect), "DropdownMenu"))
 			If Des->OnDeleteControl Then Des->OnDeleteControl(*Des, Ctrls(ActiveRect))
-			Des->ToolBarRemoveButtonSub(CurrentToolBar, ActiveRect - 1)
-			Des->DeleteComponentFunc(Ctrls(ActiveRect))
+			If stCurrentToolBar AndAlso stCurrentToolBar->ToolBarRemoveButtonSub Then stCurrentToolBar->ToolBarRemoveButtonSub(CurrentToolBar, ActiveRect - 1)
+			If st AndAlso st->DeleteComponentFunc Then st->DeleteComponentFunc(Ctrls(ActiveRect))
 		ElseIf CurrentStatusBar Then
+			Dim As SymbolsType Ptr stCurrentStatusBar = Des->Symbols(CurrentStatusBar)
 			If Des->OnDeleteControl Then Des->OnDeleteControl(*Des, Ctrls(ActiveRect))
-			Des->StatusBarRemovePanelSub(CurrentStatusBar, ActiveRect - 1)
-			Des->DeleteComponentFunc(Ctrls(ActiveRect))
+			If stCurrentStatusBar AndAlso stCurrentStatusBar->StatusBarRemovePanelSub Then stCurrentStatusBar->StatusBarRemovePanelSub(CurrentStatusBar, ActiveRect - 1)
+			If st AndAlso st->DeleteComponentFunc Then st->DeleteComponentFunc(Ctrls(ActiveRect))
 		Else
 			Des->DeleteMenuItems(CurrentMenu, Ctrls(ActiveRect))
 		End If
@@ -722,7 +784,8 @@ Private Sub frmMenuEditor.MoveUpMenuItem
 	ElseIf CurrentStatusBar <> 0 AndAlso ActiveRect <= TopCount Then
 		
 	Else
-		Des->WritePropertyFunc(Ctrls(ActiveRect), "MenuIndex", @Indexes(ActiveRect) - 1)
+		Dim As SymbolsType Ptr st = Des->Symbols(Ctrls(ActiveRect))
+		If st AndAlso st->WritePropertyFunc Then st->WritePropertyFunc(Ctrls(ActiveRect), "MenuIndex", @Indexes(ActiveRect) - 1)
 		ChangeControl *Des, Ctrls(ActiveRect), , Ctrls(ActiveRect - 1)
 		If ActiveRect = 1 Then
 			Des->CheckTopMenuVisible , False
@@ -742,13 +805,16 @@ Private Sub frmMenuEditor.MoveDownMenuItem
 		
 	Else
 		Dim As Integer ItemCount
-		If Parents(ActiveRect) = 0 Then
-			ItemCount = QInteger(Des->ReadPropertyFunc(CurrentMenu, "Count"))
-		Else
-			ItemCount = QInteger(Des->ReadPropertyFunc(Parents(ActiveRect), "Count"))
+		Dim As SymbolsType Ptr st = Des->Symbols(CurrentMenu)
+		If st AndAlso st->ReadPropertyFunc Then
+			If Parents(ActiveRect) = 0 Then
+				ItemCount = QInteger(st->ReadPropertyFunc(CurrentMenu, "Count"))
+			Else
+				ItemCount = QInteger(st->ReadPropertyFunc(Parents(ActiveRect), "Count"))
+			End If
 		End If
 		If Indexes(ActiveRect) >= ItemCount - 1 Then Exit Sub
-		Des->WritePropertyFunc(Ctrls(ActiveRect), "MenuIndex", @Indexes(ActiveRect) + 1)
+		If st AndAlso st->WritePropertyFunc Then st->WritePropertyFunc(Ctrls(ActiveRect), "MenuIndex", @Indexes(ActiveRect) + 1)
 		ChangeControl *Des, Ctrls(ActiveRect), , , Ctrls(ActiveRect + 1)
 		If ActiveRect = 1 Then
 			Des->CheckTopMenuVisible , False
@@ -765,7 +831,7 @@ Private Sub frmMenuEditor.Form_KeyDown_(ByRef Sender As Control, Key As Integer,
 End Sub
 Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Dim As Boolean IsPopup
-	If CurrentMenu <> 0 AndAlso QWString(Des->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
+	If CurrentMenu <> 0 AndAlso Des->Symbols(CurrentMenu) AndAlso QWString(Des->Symbols(CurrentMenu)->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
 	Select Case Key
 	Case Keys.F2
 		If ActiveRect <> 0 Then EditRect ActiveRect
