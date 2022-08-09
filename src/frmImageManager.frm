@@ -734,30 +734,30 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 				Next
 			End If
 			'Else
-			'	pfrmPath->txtVersion.Text = ""
-			'	pfrmPath->txtPath.Text = ""
-			'	pfrmPath->lblCommandLine.Text = ML("Type") & ":"
-			'	pfrmPath->cboType.ItemIndex = 0
-			'	pfrmPath->WithType = True
-			'	pfrmPath->WithKey = CurrentImageList <> 0
-			'	pfrmPath->SetFileNameToVersion = True
-			'	pfrmPath->ExeFileName = ExeFileName
-			'	If pfrmPath->ShowModal() = ModalResults.OK Then
-			'		If lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
-			'			If pfrmPath->cboType.Text = ML("Resource") Then
-			'				ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
-			'			Else
-			'				ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
-			'			End If
-			'			lvImages.ListItems.Add pfrmPath->txtVersion.Text
-			'			lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
-			'			lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = pfrmPath->cboType.Text
-			'			lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = pfrmPath->txtPath.Text
-			'			lvImages.SelectedItemIndex = lvImages.ListItems.Count - 1
+			'pfrmPath->txtVersion.Text = ""
+			'pfrmPath->txtPath.Text = ""
+			'pfrmPath->lblCommandLine.Text = ML("Type") & ":"
+			'pfrmPath->cboType.ItemIndex = 0
+			'pfrmPath->WithType = True
+			'pfrmPath->WithKey = CurrentImageList <> 0
+			'pfrmPath->SetFileNameToVersion = True
+			'pfrmPath->ExeFileName = ExeFileName
+			'If pfrmPath->ShowModal() = ModalResults.OK Then
+			'	If lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
+			'		If pfrmPath->cboType.Text = ML("Resource") Then
+			'			ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
 			'		Else
-			'			MsgBox ML("This name is exists!")
+			'			ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
 			'		End If
+			'		lvImages.ListItems.Add pfrmPath->txtVersion.Text
+			'		lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
+			'		lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = pfrmPath->cboType.Text
+			'		lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = pfrmPath->txtPath.Text
+			'		lvImages.SelectedItemIndex = lvImages.ListItems.Count - 1
+			'	Else
+			'		MsgBox ML("This name is exists!")
 			'	End If
+			'End If
 		End If
 	Case "Change": lvImages_ItemActivate(lvImages, lvImages.SelectedItemIndex)
 	Case "Remove": If lvImages.SelectedItem <> 0 Then lvImages.ListItems.Remove lvImages.SelectedItemIndex
