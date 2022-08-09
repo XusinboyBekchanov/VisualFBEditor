@@ -1047,10 +1047,12 @@ End Function
 Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String) ByRef As WString
 	On Error Goto ErrorHandler
 	WLet(FLine, "")
-	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return ""
+	If Des = 0 Then Return ""
+	Dim As SymbolsType Ptr st = Des->Symbols(Obj)
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Return ""
 	Dim Cpnt As Any Ptr = Obj
 	If Cpnt = 0 Then Return *FLine
-	te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 	If te = 0 Then Return *FLine
 	Dim As Integer iIndex = -1
 	With *te
@@ -1060,8 +1062,8 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 			If Idx <> -1 Then WLet(FLine, Events.Item(Idx)->Text)
 		Case "Property", "Field"
 			Var Pos1 = InStr(PropertyName, ".")
-			If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-				pTemp = Des->ReadPropertyFunc(Cpnt, PropertyName)
+			If Des <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
+				pTemp = st->ReadPropertyFunc(Cpnt, PropertyName)
 			Else
 				pTemp = 0
 			End If
@@ -1070,7 +1072,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 				Case "wstring", "wstring ptr", "wstringlist", "dictionary": WLet(FLine, QWString(pTemp))
 				Case "string", "zstring": WLet(FLine, QZString(pTemp))
 				Case "any", "any ptr": If AnyTexts.ContainsObject(pTemp) Then WLet(FLine, AnyTexts.Item(AnyTexts.IndexOfObject(pTemp))) Else WLet(FLine, "")
-				Case "control ptr", "control": WLet(FLine, QWString(Des->ReadPropertyFunc(pTemp, "Name")))
+				Case "control ptr", "control": WLet(FLine, QWString(st->ReadPropertyFunc(pTemp, "Name")))
 				Case "integer": iTemp = QInteger(pTemp)
 					WLet(FLine, WStr(iTemp))
 					If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName, , , , iIndex)) Then
@@ -1090,8 +1092,8 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 				Case "double": iTemp = QDouble(pTemp): WLet(FLine, WStr(iTemp))
 				Case "boolean": WLet(FLine, WStr(QBoolean(pTemp)))
 				Case Else:
-					If (CBool(.TypeName = "My.Sys.Object") OrElse IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(Des->ToStringFunc <> 0) Then
-						WLet(FLine, Des->ToStringFunc(pTemp))
+					If (CBool(.TypeName = "My.Sys.Object") OrElse IsBase(.TypeName, "My.Sys.Object")) AndAlso CInt(st->ToStringFunc <> 0) Then
+						WLet(FLine, st->ToStringFunc(pTemp))
 					ElseIf pGlobalEnums->Contains(.TypeName, , , , iIndex) Then
 						iTemp = QInteger(pTemp)
 						tbi = pGlobalEnums->Object(iIndex)
@@ -1106,11 +1108,11 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 					End If
 				End Select
 			ElseIf Pos1 > 0 Then
-				te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
+				te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 				If te = 0 Then Return *FLine
 				If IsBase(te->TypeName, "My.Sys.Object") Then
-					If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-						Return ReadObjProperty(Des->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
+					If Des <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
+						Return ReadObjProperty(st->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
 					End If
 				End If
 			ElseIf .TypeName = "Component" OrElse IsBase(.TypeName, "Component") Then
@@ -1132,11 +1134,13 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 	On Error Goto ErrorHandler
 	WLet(FLine, "")
 	If Cpnt = 0 Then Return *FLine
-	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return *FLine
+	If Des = 0 Then Return *FLine
+	Dim As SymbolsType Ptr st = Des->Symbols(Cpnt)
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Return *FLine
 	Dim As Integer Pos1, iIndex = -1
 	Pos1 = InStr(PropertyName, ".")
-	pTemp = Des->ReadPropertyFunc(Cpnt, PropertyName)
-	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	pTemp = st->ReadPropertyFunc(Cpnt, PropertyName)
+	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 	If te = 0 Then Return *FLine
 	With *te
 		If pTemp <> 0 Then
@@ -1155,7 +1159,7 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 				Else
 					WLetEx FLine, "@""" & Replace(*FLine, """", """""") & """", True
 				End If
-			Case "icon", "bitmaptype", "cursor", "graphictype": If Des->ToStringFunc <> 0 Then WLet(FLine, """" & Des->ToStringFunc(pTemp) & """")
+			Case "icon", "bitmaptype", "cursor", "graphictype": If st->ToStringFunc <> 0 Then WLet(FLine, """" & st->ToStringFunc(pTemp) & """")
 			Case "integer": iTemp = QInteger(pTemp)
 				WLet(FLine, WStr(iTemp))
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName, , , , iIndex)) Then
@@ -1187,7 +1191,7 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 						If iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, te->TypeName & "." & tbi->Elements.Item(iTemp))
 					End If
 				ElseIf CInt(IsBase(.TypeName, "Component")) Then
-					Dim As String pTempName = WGet(Des->ReadPropertyFunc(pTemp, "Name"))
+					Dim As String pTempName = WGet(st->ReadPropertyFunc(pTemp, "Name"))
 					If pTempName <> "" Then
 						iIndex = cboClass.Items.IndexOf(pTempName)
 						If iIndex <> -1 OrElse PropertyName = "ParentMenu" Then
@@ -1200,11 +1204,11 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 				End If
 			End Select
 		ElseIf Pos1 > 0 Then
-			te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
+			te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 			If te = 0 Then Return *FLine
 			If IsBase(te->TypeName, "My.Sys.Object") Then
-				If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-					Return GetFormattedPropertyValue(Des->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
+				If st <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
+					Return GetFormattedPropertyValue(st->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
 				End If
 			End If
 		ElseIf IsBase(.TypeName, "Component") Then
@@ -1222,16 +1226,18 @@ End Function
 
 Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False) As Boolean
 	If Cpnt = 0 Then Return False
-	If Des = 0 OrElse Des->ReadPropertyFunc = 0 Then Return False
+	If Des = 0 Then Return False
+	Dim As SymbolsType Ptr st = Des->Symbols(Cpnt)
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Return False
 	Dim Result As Boolean
 	Dim As Integer iIndex = -1,  Pos1 = InStr(PropertyName, ".")
-	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 	If te <> 0 Then
 		WLet(FLine3, Value)
 		#ifndef __USE_GTK__
 			Dim hwnd1 As HWND
 			Dim hTemp As Any Ptr
-			If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Cpnt, "Handle")
+			If st <> 0 AndAlso st->ReadPropertyFunc <> 0 Then hTemp = st->ReadPropertyFunc(Cpnt, "Handle")
 			If hTemp Then hwnd1 = *Cast(HWND Ptr, hTemp)
 		#endif
 		Select Case te->ElementType
@@ -1259,8 +1265,8 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				'WLetEx FLine4, Replace(*FLine3, """""", """"), True
 				'WLetEx FLine4, *FLine3, True
 				'?"VFE3:" & *FLine
-				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine4))
+				If Des <> 0 AndAlso st->WritePropertyFunc <> 0 Then
+					Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine4))
 				End If
 				'            Case "control ptr", "control pointer"
 				'                If LCase(*FLine2) = "this" Then
@@ -1286,7 +1292,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 					WLet(FLine5, *FLine3)
 				End If
 				If AnyTexts.ContainsObject(FLine5) Then AnyTexts.Item(AnyTexts.IndexOfObject(FLine5)) = *FLine5 Else AnyTexts.Add *FLine5, FLine5
-				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine5))
+				If st <> 0 AndAlso st->WritePropertyFunc <> 0 Then Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine5))
 				WDeAllocate FLine5
 			Case "integer", "long", "ulong", "single", "double"
 				iTemp = Val(*FLine3)
@@ -1306,29 +1312,29 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 						End If
 					End If
 				End If
-				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
+				If Des <> 0 AndAlso st->WritePropertyFunc <> 0 Then
 					Select Case LCase(te->TypeName)
 					Case "integer"
 						Dim As Integer intTemp = iTemp
-						Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @intTemp))
+						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @intTemp))
 					Case "long"
 						Dim As Long iTemp = Val(*FLine3)
-						Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
 					Case "ulong"
 						Dim As ULong iTemp = Val(*FLine3)
-						Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
 					Case "double"
 						Dim As Double iTemp = Val(*FLine3)
-						Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
 					Case "single"
 						Dim As Single iTemp = Val(*FLine3)
-						Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
 					End Select
 				End If
 			Case "boolean"
 				bTemp = Cast(Boolean, Trim(*FLine3))
-				If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-					Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @bTemp))
+				If Des <> 0 AndAlso st->WritePropertyFunc <> 0 Then
+					Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @bTemp))
 				End If
 			Case Else:
 				If pGlobalEnums->Contains(te->TypeName, , , , iIndex) Then
@@ -1347,51 +1353,51 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 								iTemp = Val(te1->Value)
 							End If
 						End If
-						If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 AndAlso iTemp > -1 Then
-							Result = Des->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						If st <> 0 AndAlso st->WritePropertyFunc <> 0 AndAlso iTemp > -1 Then
+							Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
 						End If
 					End If
 				Else
 					If StartsWith(*FLine3, "@") Then WLetEx(FLine3, Mid(*FLine3, 2), True)
-					If Des AndAlso LCase(*FLine3) = "this" Then
+					If st AndAlso LCase(*FLine3) = "this" Then
 						Dim hTemp As Any Ptr
-						If Des->ReadPropertyFunc <> 0 Then hTemp = Des->ReadPropertyFunc(Des->DesignControl, "Name")
+						If st->ReadPropertyFunc <> 0 Then hTemp = st->ReadPropertyFunc(Des->DesignControl, "Name")
 						If hTemp <> 0 Then WLet(FLine3, QWString(hTemp))
 					End If
 					If *FLine3 <> "" Then
 						iIndex = cboClass.Items.IndexOf(Trim(*FLine3))
 						If iIndex <> -1 Then
 							PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
-							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-								Var te = GetPropertyType(QWString(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+							If Des <> 0 AndAlso st->WritePropertyFunc <> 0 Then
+								Var te = GetPropertyType(QWString(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 								If te <> 0 Then
 									Dim As String PropertyType = GetOriginalType(te->TypeName)
-									Dim As String PropertyCtrlType = QWString(Des->ReadPropertyFunc(PropertyCtrl, "ClassName"))
+									Dim As String PropertyCtrlType = QWString(st->ReadPropertyFunc(PropertyCtrl, "ClassName"))
 									If CBool(PropertyCtrlType = PropertyType) OrElse IsBase(PropertyCtrlType, PropertyType) Then
-										Result = Des->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
+										Result = st->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
 									Else
-										MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(Des->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(Des->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
+										MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(st->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(st->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
 									End If
 								End If
 							End If
 						ElseIf Trim(*FLine3) = ML("(None)") Then
-							If Des <> 0 AndAlso Des->WritePropertyFunc <> 0 Then Result = Des->WritePropertyFunc(Cpnt, PropertyName, 0)
+							If st <> 0 AndAlso st->WritePropertyFunc <> 0 Then Result = st->WritePropertyFunc(Cpnt, PropertyName, 0)
 						Else
 							Dim Pos1 As Integer = InStr(*FLine3, ".")
 							If Pos1 > 0 Then
 								iIndex = cboClass.Items.IndexOf(Trim(..Left(*FLine3, Pos1 - 1)))
 								If iIndex > -1 Then
 									PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
-									Dim As Any Ptr Ctrl2 = Des->ReadPropertyFunc(PropertyCtrl, Trim(Mid(*FLine3, Pos1 + 1)))
-									If Ctrl2 <> 0 AndAlso Des->WritePropertyFunc <> 0 Then
-										Var te = GetPropertyType(QWString(Des->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+									Dim As Any Ptr Ctrl2 = st->ReadPropertyFunc(PropertyCtrl, Trim(Mid(*FLine3, Pos1 + 1)))
+									If Ctrl2 <> 0 AndAlso st->WritePropertyFunc <> 0 Then
+										Var te = GetPropertyType(QWString(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
 										If te <> 0 Then
 											Dim As String PropertyType = GetOriginalType(te->TypeName)
-											Dim As String PropertyCtrlType = QWString(Des->ReadPropertyFunc(PropertyCtrl, "ClassName"))
+											Dim As String PropertyCtrlType = QWString(st->ReadPropertyFunc(PropertyCtrl, "ClassName"))
 											If CBool(PropertyCtrlType = PropertyType) OrElse IsBase(PropertyCtrlType, PropertyType) Then
-												Result = Des->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
+												Result = st->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
 											Else
-												MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(Des->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(Des->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
+												MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(st->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(st->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
 											End If
 										End If
 									End If
@@ -1413,11 +1419,11 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 		#endif
 	End If
 	If CInt(Pos1 > 0) AndAlso CInt(Result = False) Then
-		te = GetPropertyType(WGet(Des->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
+		te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 		If te = 0 Then Return False
 		If IsBase(te->TypeName, "My.Sys.Object") Then
-			If Des <> 0 AndAlso Des->ReadPropertyFunc <> 0 Then
-				Return WriteObjProperty(Des->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1), Value)
+			If Des <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
+				Return WriteObjProperty(st->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1), Value)
 			End If
 		Else
 			Return False
@@ -1447,7 +1453,6 @@ End Function
 Sub TabWindow.FillAllProperties()
 	If Des = 0 OrElse Des->SelectedControl = 0 Then Exit Sub
 	ptabRight->Tag = @This
-	If Des->ReadPropertyFunc = 0 Then Exit Sub
 	ptabRight->UpdateLock
 	cboFunction.Items.Clear
 	cboFunction.Items.Add "(" & ML("Events") & ")", , "Event", "Event"
@@ -1462,9 +1467,11 @@ Sub TabWindow.FillAllProperties()
 	For i As Integer = 0 To SelCount - 1
 		FPropertyItems.Clear
 		If OnlySelected Then
-			FillProperties WGet(Des->ReadPropertyFunc(Des->SelectedControl, "ClassName"))
+			Dim As SymbolsType Ptr st = Des->Symbols(Des->SelectedControl)
+			If st AndAlso st->ReadPropertyFunc Then FillProperties WGet(st->ReadPropertyFunc(Des->SelectedControl, "ClassName"))
 		Else
-			FillProperties WGet(Des->ReadPropertyFunc(Des->SelectedControls.Item(i), "ClassName"))
+			Dim As SymbolsType Ptr st = Des->Symbols(Des->SelectedControls.Item(i))
+			If st AndAlso st->ReadPropertyFunc Then FillProperties WGet(st->ReadPropertyFunc(Des->SelectedControls.Item(i), "ClassName"))
 		End If
 		If SelCount > 1 Then
 			For lvPropertyCount As Integer = 0 To FPropertyItems.Count - 1
@@ -1531,7 +1538,7 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	SelectedCtrl = Ctrl
 	SelectedCount = Sender.SelectedControls.Count
 	bNotFunctionChange = True
-	If tb->Des->ReadPropertyFunc <> 0 Then tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(WGet(tb->Des->ReadPropertyFunc(Ctrl, "Name")))
+	If tb->Des->Symbols(Ctrl) AndAlso tb->Des->Symbols(Ctrl)->ReadPropertyFunc <> 0 Then tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(WGet(tb->Des->Symbols(Ctrl)->ReadPropertyFunc(Ctrl, "Name")))
 	tb->FillAllProperties
 	If Sender.SelectedControls.Contains(Sender.SelectedControl) Then
 		tb->pnlForm.SetFocus
@@ -1541,12 +1548,15 @@ End Sub
 
 Sub GetControls(Des As Designer Ptr, ByRef lst As List, Ctrl As Any Ptr)
 	lst.Add Ctrl
+	Dim As SymbolsType Ptr st = Des->Symbols(Ctrl)
 	If Des->Controls.Contains(Ctrl) Then
-		Dim j As Integer Ptr = Des->ReadPropertyFunc(Ctrl, "ControlCount")
-		If j <> 0 Then
-			For i As Integer = 0 To *j - 1
-				GetControls Des, lst, Des->ControlByIndexFunc(Ctrl, i)
-			Next
+		If st AndAlso st->ReadPropertyFunc AndAlso st->ControlByIndexFunc Then
+			Dim j As Integer Ptr = st->ReadPropertyFunc(Ctrl, "ControlCount")
+			If j <> 0 Then
+				For i As Integer = 0 To *j - 1
+					GetControls Des, lst, st->ControlByIndexFunc(Ctrl, i)
+				Next
+			End If
 		End If
 	End If
 End Sub
@@ -1602,9 +1612,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
-	If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
 	If tb->Des->DesignControl = 0 Then Exit Sub
-	If tb->Des->ControlByIndexFunc = 0 Then Exit Sub
 	If Ctrl = 0 Then Exit Sub
 	'
 	Dim FLine As WString Ptr
@@ -1612,10 +1620,12 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim frmTypeName As WString * 100
 	Dim CtrlName As WString * 100
 	Dim CtrlNameNew As WString * 100
-	If tb->Des->ReadPropertyFunc <> 0 Then
-		frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
-		CtrlName = WGet(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
-	End If
+	Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+	Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
+	If stDesignControl = 0 OrElse stDesignControl->ReadPropertyFunc = 0 Then Exit Sub
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+	frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+	CtrlName = WGet(st->ReadPropertyFunc(Ctrl, "Name"))
 	Dim ECLine As EditControlLine Ptr
 	Var b = False
 	Var w = False
@@ -1640,7 +1650,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 				s = k
 				Exit Do, Do
 			ElseIf b AndAlso StartsWith(*FLine, "dim as ") Then
-				If StartsWith(*FLine, "dim as " & LCase(WGet(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))) & " ") Then
+				If StartsWith(*FLine, "dim as " & LCase(WGet(st->ReadPropertyFunc(Ctrl, "ClassName"))) & " ") Then
 					Var p = InStr(LCase(RTrim(ptxtCode->Lines(k), Any !"\t ")) & ",", " " & LCase(CtrlName) & ",")
 					' ,  No Space after ","
 					If p = 0 Then p = InStr(LCase(RTrim(ptxtCode->Lines(k), Any !"\t ")) & ",", "," & LCase(CtrlName) & ",")
@@ -1654,7 +1664,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 							ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p) & " " & CtrlNameNew &  Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 1)
 							WDeallocate Temp
 						Else
-							If Trim(..Left(LCase(ptxtCode->Lines(k)), p), Any !"\t ") = "dim as " & LCase(WGet(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))) AndAlso Trim(Mid(ptxtCode->Lines(k), p + Len(LCase(CtrlName)) + 1), Any !"\t ") = "" Then
+							If Trim(..Left(LCase(ptxtCode->Lines(k)), p), Any !"\t ") = "dim as " & LCase(WGet(st->ReadPropertyFunc(Ctrl, "ClassName"))) AndAlso Trim(Mid(ptxtCode->Lines(k), p + Len(LCase(CtrlName)) + 1), Any !"\t ") = "" Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 								ptxtCode->DeleteLine k
 								k = k - 1
@@ -1736,7 +1746,6 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Return 0
 	If tb->Des = 0 Then Return 0
-	If tb->Des->ReadPropertyFunc = 0 Then Return 0
 	If Cpnt = 0 Then Return 0
 	If tb->Des->DesignControl = 0 Then Return 0
 	'Dim As Integer iLeft, iTop, iWidth, iHeight
@@ -1746,10 +1755,16 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	Dim CtrlNameBase As WString * 100
 	Dim BeforeCtrlName As WString * 100
 	Dim AfterCtrlName As WString * 100
-	frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
-	CtrlName = WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
-	If BeforeCtrl Then BeforeCtrlName = WGet(tb->Des->ReadPropertyFunc(BeforeCtrl, "Name"))
-	If AfterCtrl Then AfterCtrlName = WGet(tb->Des->ReadPropertyFunc(AfterCtrl, "Name"))
+	Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+	Dim As SymbolsType Ptr st = tb->Des->Symbols(Cpnt)
+	Dim As SymbolsType Ptr stBeforeCtrl = tb->Des->Symbols(BeforeCtrl)
+	Dim As SymbolsType Ptr stAfterCtrl = tb->Des->Symbols(AfterCtrl)
+	If stDesignControl = 0 OrElse stDesignControl->ReadPropertyFunc = 0 Then Return 0
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Return 0
+	frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+	CtrlName = WGet(st->ReadPropertyFunc(Cpnt, "Name"))
+	If BeforeCtrl AndAlso stBeforeCtrl AndAlso stBeforeCtrl->ReadPropertyFunc Then BeforeCtrlName = WGet(stBeforeCtrl->ReadPropertyFunc(BeforeCtrl, "Name"))
+	If AfterCtrl AndAlso stAfterCtrl AndAlso stAfterCtrl->ReadPropertyFunc Then AfterCtrlName = WGet(stAfterCtrl->ReadPropertyFunc(AfterCtrl, "Name"))
 	If CtrlName = frmName Then CtrlName = "This"
 	Dim InsLineCount As Integer
 	Dim As WStringList WithArgs
@@ -1786,7 +1801,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 					j = k
 					Exit For, For
 					' Ctrl Array
-				ElseIf StartsWith(*FLine2, "dim as " & LCase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName"))) & " ") Then
+				ElseIf StartsWith(*FLine2, "dim as " & LCase(WGet(st->ReadPropertyFunc(Cpnt, "ClassName"))) & " ") Then
 					d = True
 					If Len(*FLine2) > 1024 - Len(", " & CtrlName) Then d = False
 					If InStr(CtrlName, "(")  Then
@@ -1820,7 +1835,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			If d Then
 				ptxtCode->ReplaceLine dj - 1, RTrim(ptxtCode->Lines(dj - 1)) & ", " & CtrlName
 			Else
-				ptxtCode->InsertLine j, *FLine1 & TabSpace & "Dim As " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) & " " & CtrlName
+				ptxtCode->InsertLine j, *FLine1 & TabSpace & "Dim As " & WGet(st->ReadPropertyFunc(Cpnt, "ClassName")) & " " & CtrlName
 				InsLineCount += 1
 				tb->ConstructorStart += 1
 				tb->ConstructorEnd += 1
@@ -1943,9 +1958,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 		ptxtCode->InsertLine ep + 4, *FLine1 & TabSpace & "' " & frmName
 		ptxtCode->InsertLine ep + 5, *FLine1 & TabSpace & "With This"
 		ptxtCode->InsertLine ep + 6, *FLine1 & TabSpace & TabSpace & ".Name = """ & frmName & """"
-		If tb->Des->ReadPropertyFunc <> 0 Then
-			ptxtCode->InsertLine ep + 7, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Text")) & """"
-		End If
+		ptxtCode->InsertLine ep + 7, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Text")) & """"
 		If PropertyName <> "" AndAlso PropertyName <> "Text" AndAlso PropertyName <> "Name" Then
 			WLet(FLine, tb->GetFormattedPropertyValue(tb->Des->DesignControl, PropertyName))
 			If *FLine <> "" Then ptxtCode->InsertLine ep + 8, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q = 1
@@ -1968,27 +1981,33 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 		CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 		Dim ParentName As String
 		If Cpnt <> 0 Then
-			If tb->Des->ReadPropertyFunc(Cpnt, "Parent") Then
-				If tb->Des->ReadPropertyFunc(Cpnt, "Parent") = tb->Des->DesignControl Then ParentName = "This" Else ParentName = WGet(tb->Des->ReadPropertyFunc(tb->Des->ReadPropertyFunc(Cpnt, "Parent"), "Name"))
+			If st->ReadPropertyFunc(Cpnt, "Parent") Then
+				If st->ReadPropertyFunc(Cpnt, "Parent") = tb->Des->DesignControl Then 
+					ParentName = "This"
+				Else
+					Dim ParentCtrl As Any Ptr = st->ReadPropertyFunc(Cpnt, "Parent")
+					Dim As SymbolsType Ptr stParent = tb->Des->Symbols(ParentCtrl)
+					If stParent AndAlso stParent->ReadPropertyFunc Then ParentName = WGet(stParent->ReadPropertyFunc(ParentCtrl, "Name"))
+				End If
 			End If
 		End If
-		If tb->Des->IsControlFunc <> 0 AndAlso CInt(tb->Des->IsControlFunc(Cpnt)) Then
+		If st->IsControlFunc <> 0 AndAlso CInt(st->IsControlFunc(Cpnt)) Then
 			ptxtCode->InsertLine se, *FLine1 & TabSpace & "' " & CtrlName
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
 			tb->ConstructorEnd += 3
 			InsLineCount += 3
 			q = 0
-			If WGet(tb->Des->ReadPropertyFunc(Cpnt, "Text")) <> "" Then
+			If WGet(st->ReadPropertyFunc(Cpnt, "Text")) <> "" Then
 				'				WLet FLine, CtrlName
 				'				If tb->Des->WritePropertyFunc <> 0 Then tb->Des->WritePropertyFunc(Cpnt, "Text", FLine)
-				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Text")) & """"
+				ptxtCode->InsertLine se + 3, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(st->ReadPropertyFunc(Cpnt, "Text")) & """"
 				InsLineCount += 1
 				tb->ConstructorEnd += 1
 				q = 1
 			End If
-			If tb->Des->ReadPropertyFunc(Cpnt, "TabIndex") <> 0 Then
-				ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & ".TabIndex = " & QInteger(tb->Des->ReadPropertyFunc(Cpnt, "TabIndex"))
+			If st->ReadPropertyFunc(Cpnt, "TabIndex") <> 0 Then
+				ptxtCode->InsertLine se + q + 3, *FLine1 & TabSpace & TabSpace & ".TabIndex = " & QInteger(st->ReadPropertyFunc(Cpnt, "TabIndex"))
 				InsLineCount += 1
 				tb->ConstructorEnd += 1
 				q += 1
@@ -2018,7 +2037,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			If Cpnt <> tb->Des->DesignControl Then ptxtCode->InsertLine se + q + 5, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: InsLineCount += 1: q += 1
 			ptxtCode->InsertLine se + q + 5, *FLine1 & TabSpace & "End With": InsLineCount += 1
 			tb->ConstructorEnd += 1
-		ElseIf tb->Des->IsComponentFunc <> 0 AndAlso CInt(tb->Des->IsComponentFunc(Cpnt)) Then
+		ElseIf st->IsComponentFunc <> 0 AndAlso CInt(st->IsComponentFunc(Cpnt)) Then
 			q = 0
 			If iLeft <> -1 AndAlso iTop <> -1 AndAlso iWidth <> -1 AndAlso iHeight <> - 1 Then
 				iLeft1 = iLeft
@@ -2116,11 +2135,12 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 	Dim iIndex As Integer = cboClass.Items.IndexOf(OldName)
 	If Des = 0 Then Exit Sub
 	If Des->DesignControl = 0 Then Exit Sub
+	Dim As SymbolsType Ptr stDesignControl = Des->Symbols(Des->DesignControl)
 	Dim frmName As String
-	If Des->ReadPropertyFunc <> 0 Then
-		frmName = WGet(Des->ReadPropertyFunc(Des->DesignControl, "Name"))
+	If stDesignControl AndAlso stDesignControl->ReadPropertyFunc <> 0 Then
+		frmName = WGet(stDesignControl->ReadPropertyFunc(Des->DesignControl, "Name"))
 	End If
-	If iIndex = 1 AndAlso Des->WritePropertyFunc <> 0 Then Des->WritePropertyFunc(Des->DesignControl, "Name", @NewName)
+	If iIndex = 1 AndAlso stDesignControl AndAlso stDesignControl->WritePropertyFunc <> 0 Then stDesignControl->WritePropertyFunc(Des->DesignControl, "Name", @NewName)
 	Dim As Boolean b, c
 	If iIndex > -1 Then cboClass.Items.Item(iIndex)->Text = NewName
 	Dim As TabWindow Ptr tb = @This
@@ -2279,23 +2299,26 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			If PropertyName = "Name" Then tb->ChangeName tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName), SenderText
 			For i As Integer = 0 To SelCount - 1
 				Dim As Integer iLeft, iTop, iWidth, iHeight
-				If tb->Des->IsComponentFunc(pSelectedControls->Item(i)) Then
-					tb->Des->ComponentGetBoundsSub(pSelectedControls->Item(i), iLeft, iTop, iWidth, iHeight)
+				Dim As SymbolsType Ptr st = tb->Des->Symbols(pSelectedControls->Item(i))
+				If st AndAlso st->IsComponentFunc AndAlso CInt(st->IsComponentFunc(pSelectedControls->Item(i))) Then
+					If st->ComponentGetBoundsSub Then st->ComponentGetBoundsSub(pSelectedControls->Item(i), iLeft, iTop, iWidth, iHeight)
 				End If
 				#ifdef __USE_GTK__
-					Dim As GtkWidget Ptr tmpWidget = tb->Des->ReadPropertyFunc(pSelectedControls->Item(i), "widget")
+					Dim As GtkWidget Ptr tmpWidget
+					If st AndAlso st->ReadPropertyFunc Then tmpWidget = st->ReadPropertyFunc(pSelectedControls->Item(i), "widget")
 				#endif
 				tb->WriteObjProperty(pSelectedControls->Item(i), PropertyName, Sender_Text)
 				#ifdef __USE_GTK__
 					pApp->DoEvents
 				#endif
 				Dim As Integer iLeft2, iTop2, iWidth2, iHeight2
-				If tb->Des->IsComponentFunc(pSelectedControls->Item(i)) Then
-					tb->Des->ComponentGetBoundsSub(pSelectedControls->Item(i), iLeft2, iTop2, iWidth2, iHeight2)
+				If st AndAlso st->IsComponentFunc AndAlso Cint(st->IsComponentFunc(pSelectedControls->Item(i))) Then
+					If st->ComponentGetBoundsSub Then st->ComponentGetBoundsSub(pSelectedControls->Item(i), iLeft2, iTop2, iWidth2, iHeight2)
 					If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots pSelectedControls->Item(i), False
 				End If
 				#ifdef __USE_GTK__
-					Dim As GtkWidget Ptr tmpChangedWidget = tb->Des->ReadPropertyFunc(pSelectedControls->Item(i), "widget")
+					Dim As GtkWidget Ptr tmpChangedWidget
+					If st AndAlso st->ReadPropertyFunc Then tmpChangedWidget = st->ReadPropertyFunc(pSelectedControls->Item(i), "widget")
 					If tmpWidget <> tmpChangedWidget Then
 						tb->Des->HookControl(tmpChangedWidget)
 						tb->Des->FSelControl = tmpChangedWidget
@@ -2332,11 +2355,14 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 					Next i
 				End If
 				#ifndef __USE_GTK__
-					If QWString(tb->Des->ReadPropertyFunc(pSelectedControls->Item(j), "ClassName")) = "MenuItem" Then
-						tb->Des->TopMenu->Repaint
-						If pfMenuEditor->Visible Then pfMenuEditor->Repaint
-					ElseIf QWString(tb->Des->ReadPropertyFunc(pSelectedControls->Item(j), "ClassName")) = "ToolButton" Then
-						If pfMenuEditor->Visible Then pfMenuEditor->Repaint
+					Dim As SymbolsType Ptr st = tb->Des->Symbols(pSelectedControls->Item(j))
+					If st AndAlso st->ReadPropertyFunc Then
+						If QWString(st->ReadPropertyFunc(pSelectedControls->Item(j), "ClassName")) = "MenuItem" Then
+							tb->Des->TopMenu->Repaint
+							If pfMenuEditor->Visible Then pfMenuEditor->Repaint
+						ElseIf QWString(st->ReadPropertyFunc(pSelectedControls->Item(j), "ClassName")) = "ToolButton" Then
+							If pfMenuEditor->Visible Then pfMenuEditor->Repaint
+						End If
 					End If
 				#endif
 			Next j
@@ -2380,10 +2406,13 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
-	If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
 	If tb->Des->DesignControl = 0 Then Exit Sub
 	If Ctrl = 0 Then Exit Sub
-	Dim NewName As String = WGet(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+	Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+	Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
+	If stDesignControl = 0 OrElse stDesignControl->ReadPropertyFunc = 0 Then Exit Sub
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+	Dim NewName As String = WGet(st->ReadPropertyFunc(Ctrl, "Name"))
 	tb->cboClass.Items.Add NewName, Ctrl, ClassName, ClassName, , 1, tb->FindControlIndex(NewName)
 	Dim As EditControl txtCodeBi
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
@@ -2393,9 +2422,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 		SelectedTool->Checked = False
 		Var tbi = Cast(TypeElement Ptr, SelectedTool->Tag)
 		Dim As String frmName
-		If tb->Des->ReadPropertyFunc <> 0 Then
-			frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
-		End If
+		frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 		Var t = False, b = False
 		Var k = 0
 		tb->txtCode.Changing "Unsur qo`shish"
@@ -2439,7 +2466,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 			End Select
 		Next
 	End If
-	If tb->Des->ControlSetFocusSub <> 0 Then tb->Des->ControlSetFocusSub(tb->Des->DesignControl)
+	If stDesignControl->ControlSetFocusSub <> 0 Then stDesignControl->ControlSetFocusSub(tb->Des->DesignControl)
 	tb->txtCode.Changed "Unsur qo`shish"
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed "Unsur qo`shish"
 	tb->FormDesign True
@@ -2511,7 +2538,8 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		If Ctrl = 0 Then Exit Sub
 		'If Not Sender.Focused Then Exit Sub
 		If tb->Des = 0 Then Exit Sub
-		If tb->Des->ReadPropertyFunc <> 0 Then
+		Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
+		If st AndAlso st->ReadPropertyFunc <> 0 Then
 			#ifdef __USE_GTK__
 				'tb->Des->SelectedControl = Ctrl
 				'tb->Des->MoveDots(tb->Des->ReadPropertyFunc(Ctrl, "Widget"))
@@ -2520,7 +2548,7 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 				If iParentCtrl <> 0 Then tb->Des->BringToFront iParentCtrl
 				tb->Des->SelectedControls.Clear
 				tb->Des->SelectedControl = Ctrl
-				Dim As HWND Ptr hw = tb->Des->ReadPropertyFunc(Ctrl, "Handle")
+				Dim As HWND Ptr hw = st->ReadPropertyFunc(Ctrl, "Handle")
 				If hw <> 0 Then tb->Des->MoveDots(Ctrl, False) Else tb->Des->MoveDots(0, False)
 				DesignerChangeSelection *tb->Des, Ctrl
 			#endif
@@ -2676,12 +2704,15 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
 	If tb->Des->DesignControl = 0 Then Exit Sub
-	If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
+	Dim As SymbolsType Ptr st = tb->Des->Symbols(Cpnt)
+	Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+	If stDesignControl = 0 OrElse stDesignControl->ReadPropertyFunc = 0 Then Exit Sub
 	Dim frmName As String
 	Dim frmTypeName As String
-	frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+	frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 	If Cpnt = 0 Then Exit Sub
-	Dim CtrlName As String = WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
+	Dim CtrlName As String = WGet(st->ReadPropertyFunc(Cpnt, "Name"))
 	If Cpnt = tb->Des->DesignControl Then CtrlName = "This"
 	Dim As String CtrlName2 = CtrlName
 	If InStr(CtrlName, "(") Then
@@ -2788,7 +2819,7 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 		iEnd = i + 1
 	Next i
 	If Not t Then
-		Dim As TypeElement Ptr te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), EventName)
+		Dim As TypeElement Ptr te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), EventName)
 		Dim As Integer q1, q2, q
 		If te = 0 Then Exit Sub
 		If Not td Then
@@ -2878,7 +2909,7 @@ Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	If tb = 0 Then Exit Sub
 	'If frmMain.ActiveControl AndAlso frmMain.ActiveControl->ClassName = "EditControl" Then Exit Sub
 	Dim frmName As String
-	If tb->Des <> 0 AndAlso tb->Des->ReadPropertyFunc <> 0 AndAlso tb->Des->DesignControl <> 0 Then frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+	If tb->Des <> 0 AndAlso tb->Des->Symbols(tb->Des->DesignControl) AndAlso tb->Des->Symbols(tb->Des->DesignControl)->ReadPropertyFunc <> 0 AndAlso tb->Des->DesignControl <> 0 Then frmName = WGet(tb->Des->Symbols(tb->Des->DesignControl)->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 	Var ii = tb->cboClass.ItemIndex
 	Var jj = tb->cboFunction.ItemIndex
 	If ii < 0 Then Exit Sub
@@ -2930,7 +2961,9 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	frmMain.UpdateLock
-	Select Case QWString(tb->Des->ReadPropertyFunc(Ctrl, "ClassName"))
+	Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+	Select Case QWString(st->ReadPropertyFunc(Ctrl, "ClassName"))
 	Case "MainMenu", "PopupMenu"
 		pfMenuEditor->tb = tb
 		pfMenuEditor->Des = @Sender
@@ -2938,7 +2971,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfMenuEditor->CurrentToolBar = 0
 		pfMenuEditor->CurrentStatusBar = 0
 		pfMenuEditor->ParentRect = 0
-		pfMenuEditor->Caption = ML("Menu Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->Caption = ML("Menu Editor") & ": " & QWString(st->ReadPropertyFunc(Ctrl, "Name"))
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "ToolBar"
@@ -2947,7 +2980,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfMenuEditor->CurrentMenu = 0
 		pfMenuEditor->CurrentToolBar = Ctrl
 		pfMenuEditor->CurrentStatusBar = 0
-		pfMenuEditor->Caption = ML("ToolBar Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->Caption = ML("ToolBar Editor") & ": " & QWString(st->ReadPropertyFunc(Ctrl, "Name"))
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "StatusBar"
@@ -2956,14 +2989,14 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfMenuEditor->CurrentMenu = 0
 		pfMenuEditor->CurrentToolBar = 0
 		pfMenuEditor->CurrentStatusBar = Ctrl
-		pfMenuEditor->Caption = ML("StatusBar Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->Caption = ML("StatusBar Editor") & ": " & QWString(st->ReadPropertyFunc(Ctrl, "Name"))
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "ImageList"
 		pfImageListEditor->tb = tb
 		pfImageListEditor->Des = @Sender
 		pfImageListEditor->CurrentImageList = Ctrl
-		pfImageListEditor->Caption = ML("ImageList Editor") & ": " & QWString(tb->Des->ReadPropertyFunc(Ctrl, "Name"))
+		pfImageListEditor->Caption = ML("ImageList Editor") & ": " & QWString(st->ReadPropertyFunc(Ctrl, "Name"))
 		pfImageListEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then

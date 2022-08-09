@@ -326,72 +326,77 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 		CloseFile_(Fn)
 		lblResourceFile.Text = ML("File") & ": " & ResourceFile
 	Else
+		Dim As SymbolsType Ptr st = Des->Symbols(CurrentImageList)
 		lblResourceFile.Text = ""
 		lvImages.Columns.Column(0)->Text = ML("Key")
 		lvImages.Columns.Column(2)->Text = ML("Resource Name / Path")
-		txtWidth.Text = Str(QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageWidth")))
-		txtHeight.Text = Str(QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageHeight")))
-		opt16x16.Checked = False
-		opt32x32.Checked = False
-		opt48x48.Checked = False
-		optCustom.Checked = False
-		If Val(txtWidth.Text) = 16 AndAlso Val(txtHeight.Text) = 16 Then
-			opt16x16.Checked = True
-		ElseIf Val(txtWidth.Text) = 32 AndAlso Val(txtHeight.Text) = 32 Then
-			opt32x32.Checked = True
-		ElseIf Val(txtWidth.Text) = 48 AndAlso Val(txtHeight.Text) = 48 Then
-			opt48x48.Checked = True
-		Else
-			optCustom.Checked = True
-		End If
-		optCustom_Click(optCustom)
-		If tb Then
-			Dim As EditControlLine Ptr ECLine
-			Dim As Boolean bStarted, bInWith
-			Dim As Integer p1
-			Dim As String sRight, sText
-			Dim As UString DesignControlName = QWString(Des->ReadPropertyFunc(Des->DesignControl, "Name"))
-			Dim As UString ImageListName = QWString(Des->ReadPropertyFunc(CurrentImageList, "Name"))
-			Dim As UString b, bOrig
-			For i As Integer = 0 To tb->txtCode.FLines.Count - 1
-				ECLine = tb->txtCode.FLines.Items[i]
-				b = LTrim(LCase(*ECLine->Text), Any !"\t ")
-				bOrig = LTrim(*ECLine->Text, Any !"\t ")
-				If StartsWith(b, LCase("Constructor " & DesignControlName)) Then
-					bStarted = True
-				ElseIf bStarted Then
-					If StartsWith(b, LCase("End Constructor")) Then
-						Exit For
-					ElseIf StartsWith(b & " ", LCase("With " & ImageListName & " ")) Then
-						bInWith = True
-					ElseIf bInWith AndAlso StartsWith(b, LCase("End With")) Then
-						bInWith = False
-					ElseIf StartsWith(b, LCase(ImageListName & ".Add ")) OrElse StartsWith(b, LCase(ImageListName & ".AddFromFile ")) OrElse bInWith AndAlso (StartsWith(b, LCase(".Add ")) OrElse StartsWith(b, LCase(".AddFromFile "))) Then
-						p1 = InStr(bOrig, " ")
-						sRight = ""
-						sText = Mid(bOrig, p1 + 1)
-						p1 = InStr(sText, ",")
-						If p1 > 0 Then
-							sRight = Trim(Mid(sText, p1 + 1))
-							sText = Trim(..Left(sText, p1 - 1))
+		If st AndAlso st->ReadPropertyFunc Then
+			txtWidth.Text = Str(QInteger(st->ReadPropertyFunc(CurrentImageList, "ImageWidth")))
+			txtHeight.Text = Str(QInteger(st->ReadPropertyFunc(CurrentImageList, "ImageHeight")))
+			opt16x16.Checked = False
+			opt32x32.Checked = False
+			opt48x48.Checked = False
+			optCustom.Checked = False
+			If Val(txtWidth.Text) = 16 AndAlso Val(txtHeight.Text) = 16 Then
+				opt16x16.Checked = True
+			ElseIf Val(txtWidth.Text) = 32 AndAlso Val(txtHeight.Text) = 32 Then
+				opt32x32.Checked = True
+			ElseIf Val(txtWidth.Text) = 48 AndAlso Val(txtHeight.Text) = 48 Then
+				opt48x48.Checked = True
+			Else
+				optCustom.Checked = True
+			End If
+			optCustom_Click(optCustom)
+			If tb Then
+				Dim As EditControlLine Ptr ECLine
+				Dim As Boolean bStarted, bInWith
+				Dim As Integer p1
+				Dim As String sRight, sText
+				Dim As SymbolsType Ptr stDesignControl = Des->Symbols(Des->DesignControl)
+				Dim As UString DesignControlName
+				If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then DesignControlName = QWString(stDesignControl->ReadPropertyFunc(Des->DesignControl, "Name"))
+				Dim As UString ImageListName = QWString(st->ReadPropertyFunc(CurrentImageList, "Name"))
+				Dim As UString b, bOrig
+				For i As Integer = 0 To tb->txtCode.FLines.Count - 1
+					ECLine = tb->txtCode.FLines.Items[i]
+					b = LTrim(LCase(*ECLine->Text), Any !"\t ")
+					bOrig = LTrim(*ECLine->Text, Any !"\t ")
+					If StartsWith(b, LCase("Constructor " & DesignControlName)) Then
+						bStarted = True
+					ElseIf bStarted Then
+						If StartsWith(b, LCase("End Constructor")) Then
+							Exit For
+						ElseIf StartsWith(b & " ", LCase("With " & ImageListName & " ")) Then
+							bInWith = True
+						ElseIf bInWith AndAlso StartsWith(b, LCase("End With")) Then
+							bInWith = False
+						ElseIf StartsWith(b, LCase(ImageListName & ".Add ")) OrElse StartsWith(b, LCase(ImageListName & ".AddFromFile ")) OrElse bInWith AndAlso (StartsWith(b, LCase(".Add ")) OrElse StartsWith(b, LCase(".AddFromFile "))) Then
+							p1 = InStr(bOrig, " ")
+							sRight = ""
+							sText = Mid(bOrig, p1 + 1)
+							p1 = InStr(sText, ",")
+							If p1 > 0 Then
+								sRight = Trim(Mid(sText, p1 + 1))
+								sText = Trim(..Left(sText, p1 - 1))
+							End If
+							If StartsWith(sRight, """") Then sRight = Mid(sRight, 2)
+							If EndsWith(sRight, """") Then sRight = ..Left(sRight, Len(sRight) - 1)
+							If StartsWith(sText, """") Then sText = Mid(sText, 2)
+							If EndsWith(sText, """") Then sText = ..Left(sText, Len(sText) - 1)
+							lvImages.ListItems.Add sRight
+							If InStr(b, LCase(".AddFromFile ")) Then
+								ImageList1.AddFromFile GetRelativePath(sText, ResourceFile), sRight
+								lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = "File"
+							Else
+								ImageList1.AddFromFile GetResNamePath(sText, ResourceFile), sRight
+								lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = "Resource"
+							End If
+							lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
+							lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = sText
 						End If
-						If StartsWith(sRight, """") Then sRight = Mid(sRight, 2)
-						If EndsWith(sRight, """") Then sRight = ..Left(sRight, Len(sRight) - 1)
-						If StartsWith(sText, """") Then sText = Mid(sText, 2)
-						If EndsWith(sText, """") Then sText = ..Left(sText, Len(sText) - 1)
-						lvImages.ListItems.Add sRight
-						If InStr(b, LCase(".AddFromFile ")) Then
-							ImageList1.AddFromFile GetRelativePath(sText, ResourceFile), sRight
-							lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = "File"
-						Else
-							ImageList1.AddFromFile GetResNamePath(sText, ResourceFile), sRight
-							lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = "Resource"
-						End If
-						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
-						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = sText
 					End If
-				End If
-			Next i
+				Next i
+			End If
 		End If
 	End If
 End Sub
@@ -418,22 +423,27 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 		End If
 	End If
 	If CurrentImageList Then
+		Dim As SymbolsType Ptr st = Des->Symbols(CurrentImageList)
 		Dim As Integer iWidth = Val(txtWidth.Text), iHeight = Val(txtHeight.Text)
-		If QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageWidth")) <> iWidth Then
-			Des->WritePropertyFunc(CurrentImageList, "ImageWidth", @iWidth)
-			ChangeControl *Des, CurrentImageList, "ImageWidth"
+		If st AndAlso st->ReadPropertyFunc AndAlso st->WritePropertyFunc Then
+			If QInteger(st->ReadPropertyFunc(CurrentImageList, "ImageWidth")) <> iWidth Then
+				st->WritePropertyFunc(CurrentImageList, "ImageWidth", @iWidth)
+				ChangeControl *Des, CurrentImageList, "ImageWidth"
+			End If
+			If QInteger(st->ReadPropertyFunc(CurrentImageList, "ImageHeight")) <> iHeight Then
+				st->WritePropertyFunc(CurrentImageList, "ImageHeight", @iHeight)
+				ChangeControl *Des, CurrentImageList, "ImageHeight"
+			End If
 		End If
-		If QInteger(Des->ReadPropertyFunc(CurrentImageList, "ImageHeight")) <> iHeight Then
-			Des->WritePropertyFunc(CurrentImageList, "ImageHeight", @iHeight)
-			ChangeControl *Des, CurrentImageList, "ImageHeight"
-		End If
-		If tb Then
+		If tb AndAlso st AndAlso st->ReadPropertyFunc Then
 			Dim As EditControlLine Ptr ECLine
 			Dim As Boolean bStarted, bInWith, bFirstAddPosInWith, bLastPropertyPosInWith
 			Dim As Integer p1, EndConstructorPos, LastPropertyPos, FirstAddPos, PosForAdd
 			Dim As String sLeft, sText, sRight, sLeftEndConstructorPos, sLeftFirstAddPos, sLeftLastPropertyPos
-			Dim As UString DesignControlName = QWString(Des->ReadPropertyFunc(Des->DesignControl, "Name"))
-			Dim As UString ImageListName = QWString(Des->ReadPropertyFunc(CurrentImageList, "Name"))
+			Dim As UString DesignControlName
+			Dim As SymbolsType Ptr stDesignControl = Des->Symbols(Des->DesignControl)
+			If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then DesignControlName = QWString(stDesignControl->ReadPropertyFunc(Des->DesignControl, "Name"))
+			Dim As UString ImageListName = QWString(st->ReadPropertyFunc(CurrentImageList, "Name"))
 			Dim As UString b, bOrig
 			Dim As IntegerList iList
 			tb->txtCode.Changing("ImageList")
@@ -476,15 +486,17 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 				bInWith = False
 				sLeft = sLeftEndConstructorPos
 			End If
-			Des->ImageListClearSub(CurrentImageList)
-			For i As Integer = 0 To lvImages.ListItems.Count - 1
-				tb->txtCode.InsertLine PosForAdd + i, sLeft & IIf(bInWith, "", ImageListName) & ".Add" & IIf(lvImages.ListItems.Item(i)->Text(1) = "File", "FromFile", "") & " """ & lvImages.ListItems.Item(i)->Text(2) & """, """ & lvImages.ListItems.Item(i)->Text(0) & """"
-				If lvImages.ListItems.Item(i)->Text(1) = "File" Then
-					Des->ImageListAddFromFileSub(CurrentImageList, GetRelativePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
-				Else
-					Des->ImageListAddFromFileSub(CurrentImageList, GetResNamePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
-				End If
-			Next i
+			If st AndAlso st->ImageListClearSub AndAlso st->ImageListAddFromFileSub Then
+				st->ImageListClearSub(CurrentImageList)
+				For i As Integer = 0 To lvImages.ListItems.Count - 1
+					tb->txtCode.InsertLine PosForAdd + i, sLeft & IIf(bInWith, "", ImageListName) & ".Add" & IIf(lvImages.ListItems.Item(i)->Text(1) = "File", "FromFile", "") & " """ & lvImages.ListItems.Item(i)->Text(2) & """, """ & lvImages.ListItems.Item(i)->Text(0) & """"
+					If lvImages.ListItems.Item(i)->Text(1) = "File" Then
+						st->ImageListAddFromFileSub(CurrentImageList, GetRelativePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
+					Else
+						st->ImageListAddFromFileSub(CurrentImageList, GetResNamePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
+					End If
+				Next i
+			End If
 			tb->txtCode.Changed("ImageList")
 		End If
 	Else

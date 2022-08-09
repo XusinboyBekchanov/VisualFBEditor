@@ -7,6 +7,7 @@
 '#########################################################
 
 #include once "Designer.bi"
+#include once "EditControl.bi"
 
 #ifdef __USE_GTK__
 	#define CtrlHandle GtkWindow Ptr
@@ -1568,6 +1569,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Function Designer.Symbols(Ctrl As Any Ptr) As SymbolsType Ptr
+		If Ctrl = 0 Then Return 0
 		If Ctrl = OldCtrl Then Return OldCtrlSymbols
 		Var Idx = 0
 		If Objects.Contains(Ctrl, Idx) Then
@@ -1767,57 +1769,63 @@ Namespace My.Sys.Forms
 			Dim As HBRUSH PrevBrush = SelectObject(FHDc, Brush)
 			Dim Sz As ..Size
 			GetClientRect(TopMenu->Handle, @R)
-			Dim As Any Ptr CurrentMenu = ReadPropertyFunc(DesignControl, "Menu")
-			If CurrentMenu <> 0 Then
-				RectsCount = 0
-				SelectObject(FHDc, TopMenu->Font.Handle)
-				Rectangle FHDc, 0, 0, ScaleX(TopMenu->Width), ScaleY(TopMenu->Height)
-				DeleteObject(Pen)
-				DeleteObject(Brush)
-				For i As Integer = 0 To QInteger(ReadPropertyFunc(CurrentMenu, "Count")) - 1
-					RectsCount += 1
-					ReDim Preserve Ctrls(RectsCount)
-					ReDim Preserve Rects(RectsCount)
-					Ctrls(RectsCount) = MenuByIndexFunc(CurrentMenu, i)
-					If RectsCount = 1 Then
-						Rects(RectsCount).Left = 0
-					Else
-						Rects(RectsCount).Left = Rects(RectsCount - 1).Right
+			Dim As SymbolsType Ptr st = Symbols(DesignControl)
+			If st AndAlso st->ReadPropertyFunc Then
+				Dim As Any Ptr CurrentMenu = st->ReadPropertyFunc(DesignControl, "Menu")
+				If CurrentMenu <> 0 Then
+					RectsCount = 0
+					SelectObject(FHDc, TopMenu->Font.Handle)
+					Rectangle FHDc, 0, 0, ScaleX(TopMenu->Width), ScaleY(TopMenu->Height)
+					DeleteObject(Pen)
+					DeleteObject(Brush)
+					Dim As SymbolsType Ptr st = Symbols(CurrentMenu)
+					If st AndAlso st->ReadPropertyFunc AndAlso st->MenuByIndexFunc Then
+						For i As Integer = 0 To QInteger(st->ReadPropertyFunc(CurrentMenu, "Count")) - 1
+							RectsCount += 1
+							ReDim Preserve Ctrls(RectsCount)
+							ReDim Preserve Rects(RectsCount)
+							Ctrls(RectsCount) = st->MenuByIndexFunc(CurrentMenu, i)
+							If RectsCount = 1 Then
+								Rects(RectsCount).Left = 0
+							Else
+								Rects(RectsCount).Left = Rects(RectsCount - 1).Right
+							End If
+							Rects(RectsCount).Top = 0
+							GetTextExtentPoint32(FHDc, st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
+							Rects(RectsCount).Right = Rects(RectsCount).Left + UnScaleX(Sz.cx) + 16
+							Rects(RectsCount).Bottom = Rects(RectsCount).Top + UnScaleY(Sz.cy) + 6
+							If RectsCount = ActiveRect Then
+								Pen = CreatePen(PS_SOLID, 0, BGR(153, 209, 255))
+								Brush = CreateSolidBrush(BGR(204, 232, 255))
+								SelectObject(FHDc, Pen)
+								SelectObject(FHDc, Brush)
+								Rectangle FHDc, ScaleX(Rects(RectsCount).Left), 0, ScaleX(Rects(RectsCount).Right), ScaleY(TopMenu->Height)
+								DeleteObject(Pen)
+								DeleteObject(Brush)
+							ElseIf RectsCount = MouseRect Then
+								Pen = CreatePen(PS_SOLID, 0, BGR(204, 232, 255))
+								Brush = CreateSolidBrush(BGR(229, 243, 255))
+								SelectObject(FHDc, Pen)
+								SelectObject(FHDc, Brush)
+								Rectangle FHDc, ScaleX(Rects(RectsCount).Left), 0, ScaleX(Rects(RectsCount).Right), ScaleY(TopMenu->Height)
+								DeleteObject(Pen)
+								DeleteObject(Brush)
+							End If
+							SetBkMode(FHDc, TRANSPARENT)
+							SetTextColor(FHDc, BGR(0, 0, 0))
+							If QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
+								.TextOut(FHDc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), @"|", 1)
+							Else
+								.TextOut(FHDc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+							End If
+							SetBkMode(FHDc, OPAQUE)
+							'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+						Next i
 					End If
-					Rects(RectsCount).Top = 0
-					GetTextExtentPoint32(FHdc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
-					Rects(RectsCount).Right = Rects(RectsCount).Left + UnScaleX(Sz.cx) + 16
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + UnScaleY(Sz.cy) + 6
-					If RectsCount = ActiveRect Then
-						Pen = CreatePen(PS_SOLID, 0, BGR(153, 209, 255))
-						Brush = CreateSolidBrush(BGR(204, 232, 255))
-						SelectObject(FHDc, Pen)
-						SelectObject(FHDc, Brush)
-						Rectangle FHdc, ScaleX(Rects(RectsCount).Left), 0, ScaleX(Rects(RectsCount).Right), ScaleY(TopMenu->Height)
-						DeleteObject(Pen)
-						DeleteObject(Brush)
-					ElseIf RectsCount = MouseRect Then
-						Pen = CreatePen(PS_SOLID, 0, BGR(204, 232, 255))
-						Brush = CreateSolidBrush(BGR(229, 243, 255))
-						SelectObject(FHDc, Pen)
-						SelectObject(FHDc, Brush)
-						Rectangle FHdc, ScaleX(Rects(RectsCount).Left), 0, ScaleX(Rects(RectsCount).Right), ScaleY(TopMenu->Height)
-						DeleteObject(Pen)
-						DeleteObject(Brush)
-					End If
-					SetBKMode(FHdc, TRANSPARENT)
-					SetTextColor(FHdc, BGR(0, 0, 0))
-					If QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-						.TextOut(FHdc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), @"|", 1)
-					Else
-						.TextOut(FHdc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
-					End If
-					SetBKMode(FHdc, OPAQUE)
-					'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
-				Next i
+				End If
 			End If
-			SelectObject(FHdc, PrevPen)
-			SelectObject(FHdc, PrevBrush)
+			SelectObject(FHDc, PrevPen)
+			SelectObject(FHDc, PrevBrush)
 			EndPaint TopMenu->Handle, @Ps
 		#endif
 	End Sub
@@ -1825,14 +1833,14 @@ Namespace My.Sys.Forms
 	Sub Designer.DrawToolBar(Handle As Any Ptr)
 		#ifndef __USE_GTK__
 			Dim As HDC FHDc
-			Dim As ..RECT R
+			Dim As ..Rect R
 			Dim As PAINTSTRUCT Ps
 			FHDc = BeginPaint(Handle, @Ps)
-			Dim As HPen Pen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNFACE))
-			Dim As HPen PrevPen = SelectObject(FHDc, Pen)
-			Dim As HBrush Brush = CreateSolidBrush(GetSysColor(COLOR_BTNFACE))
-			Dim As HBrush PrevBrush = SelectObject(FHDc, Brush)
-			Dim Sz As ..SIZE
+			Dim As HPEN Pen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNFACE))
+			Dim As HPEN PrevPen = SelectObject(FHDc, Pen)
+			Dim As HBRUSH Brush = CreateSolidBrush(GetSysColor(COLOR_BTNFACE))
+			Dim As HBRUSH PrevBrush = SelectObject(FHDc, Brush)
+			Dim Sz As ..Size
 			Dim As Any Ptr ImagesList
 			Dim As Any Ptr ImagesListHandle
 			GetClientRect(Handle, @R)
@@ -1842,81 +1850,87 @@ Namespace My.Sys.Forms
 				Dim Ctrls(Any) As Any Ptr
 				Dim As Integer RectsCount, BitmapWidth, BitmapHeight
 				Dim As Boolean IsToolBarList
-				BitmapWidth = QInteger(ReadPropertyFunc(Ctrl, "BitmapWidth"))
-				BitmapHeight = QInteger(ReadPropertyFunc(Ctrl, "BitmapHeight"))
-				IsToolBarList = QBoolean(ReadPropertyFunc(Ctrl, "List"))
-				ImagesList = ReadPropertyFunc(Ctrl, "ImagesList")
-				If ImagesList <> 0 Then ImagesListHandle = ReadPropertyFunc(ImagesList, "ImageListHandle")
-				RectsCount = 0
-				SelectObject(FHdc, TopMenu->Font.Handle)
-				Rectangle FHdc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
-				DeleteObject(Pen)
-				DeleteObject(Brush)
-				For i As Integer = 0 To QInteger(ReadPropertyFunc(Ctrl, "ButtonsCount")) - 1
-					RectsCount += 1
-					ReDim Preserve Rects(RectsCount)
-					ReDim Preserve Ctrls(RectsCount)
-					Ctrls(RectsCount) = ToolBarButtonByIndexFunc(Ctrl, i)
-					If RectsCount = 1 Then
-						Rects(RectsCount).Left = 0
-					Else
-						Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 1
-					End If
-					Rects(RectsCount).Top = 0
-					Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Width"))
-					Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Height")) - 1
-					'					If RectsCount = ActiveRect Then
-					'						.Pen.Color = BGR(0, 120, 215)
-					'						.Brush.Color = BGR(174, 215, 247)
-					'						.Rectangle Rects(RectsCount)
-					'					End If
-					If ImagesListHandle <> 0 Then
-						Dim As UString ImageKey = WGet(ReadPropertyFunc(Ctrls(RectsCount), "ImageKey"))
-						Dim As Integer ImageIndex = QInteger(ReadPropertyFunc(Ctrls(RectsCount), "ImageIndex"))
-						If ImageKey <> "" Then ImageIndex = ImageListIndexOfFunc(ImagesList, ImageKey)
-						If ImageIndex > -1 Then
-							#ifdef __USE_GTK__
-							#else
-								ImageList_Draw(ImagesListHandle, ImageIndex, FHDc, ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0) - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsWholeDropdown, 10, 0)) / 2)), ScaleY(Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3)), ILD_TRANSPARENT)
-							#endif
+				Dim As SymbolsType Ptr st = Symbols(Ctrl)
+				If st AndAlso st->ReadPropertyFunc AndAlso st->ToolBarButtonByIndexFunc Then
+					BitmapWidth = QInteger(st->ReadPropertyFunc(Ctrl, "BitmapWidth"))
+					BitmapHeight = QInteger(st->ReadPropertyFunc(Ctrl, "BitmapHeight"))
+					IsToolBarList = QBoolean(st->ReadPropertyFunc(Ctrl, "List"))
+					ImagesList = st->ReadPropertyFunc(Ctrl, "ImagesList")
+					If ImagesList <> 0 Then ImagesListHandle = st->ReadPropertyFunc(ImagesList, "ImageListHandle")
+					RectsCount = 0
+					SelectObject(FHDc, TopMenu->Font.Handle)
+					Rectangle FHDc, 0, 0, R.Right - R.Left, R.Bottom - R.Top
+					DeleteObject(Pen)
+					DeleteObject(Brush)
+					For i As Integer = 0 To QInteger(st->ReadPropertyFunc(Ctrl, "ButtonsCount")) - 1
+						RectsCount += 1
+						ReDim Preserve Rects(RectsCount)
+						ReDim Preserve Ctrls(RectsCount)
+						Ctrls(RectsCount) = st->ToolBarButtonByIndexFunc(Ctrl, i)
+						If RectsCount = 1 Then
+							Rects(RectsCount).Left = 0
+						Else
+							Rects(RectsCount).Left = Rects(RectsCount - 1).Right + 1
 						End If
-					End If
-					Select Case QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style"))
-					Case ToolButtonStyle.tbsDropDown, ToolButtonStyle.tbsWholeDropdown
-						Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
-						SelectObject(FHDc, Pen)
-						Brush = CreateSolidBrush(BGR(0, 0, 0))
-						SelectObject(FHDc, Brush)
-						.MoveToEx FHdc, ScaleX(Rects(RectsCount).Right - 11), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1), 0
-						.LineTo FHdc, ScaleX(Rects(RectsCount).Right - 5), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1)
-						.LineTo FHdc, ScaleX(Rects(RectsCount).Right - 8), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2)
-						.LineTo FHdc, ScaleX(Rects(RectsCount).Right - 11), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1)
-						.ExtFloodFill FHdc, ScaleX(Rects(RectsCount).Right - 8), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2)), 0, FLOODFILLBORDER
-						DeleteObject(Pen)
-						DeleteObject(Brush)
-					End Select
-					GetTextExtentPoint32(FHdc, ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
-					SetBKMode(FHdc, TRANSPARENT)
-					SetTextColor(FHdc, BGR(0, 0, 0))
-					If QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = 7 Then
-						Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
-						SelectObject(FHDc, Pen)
-						.MoveToEx FHdc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2), ScaleY(Rects(RectsCount).Top + 5), 0
-						.LineTo FHdc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2), ScaleY(Rects(RectsCount).Bottom)
-						DeleteObject(Pen)
-						Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
-						SelectObject(FHDc, Pen)
-						.MoveToEx FHdc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1), ScaleY(Rects(RectsCount).Top + 5), 0
-						.LineTo FHdc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1), ScaleY(Rects(RectsCount).Bottom)
-						DeleteObject(Pen)
-					Else
-						.TextOut(FHdc, ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - UnScaleX(Sz.cx) - IIf(QInteger(ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2)), _
-						ScaleY(IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - UnScaleY(Sz.cy)) / 2, Rects(RectsCount).Bottom - UnScaleY(Sz.cy) - 6)), ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
-					End If
-				Next i
+						Rects(RectsCount).Top = 0
+						Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "Width"))
+						Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "Height")) - 1
+						'					If RectsCount = ActiveRect Then
+						'						.Pen.Color = BGR(0, 120, 215)
+						'						.Brush.Color = BGR(174, 215, 247)
+						'						.Rectangle Rects(RectsCount)
+						'					End If
+						If ImagesListHandle <> 0 Then
+							Dim As UString ImageKey = WGet(st->ReadPropertyFunc(Ctrls(RectsCount), "ImageKey"))
+							Dim As Integer ImageIndex = QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "ImageIndex"))
+							If ImageKey <> "" Then
+								Dim As SymbolsType Ptr st = Symbols(ImagesList)
+								If st AndAlso st->ImageListIndexOfFunc Then ImageIndex = st->ImageListIndexOfFunc(ImagesList, ImageKey)
+							End If
+							If ImageIndex > -1 Then
+								#ifdef __USE_GTK__
+								#else
+									ImageList_Draw(ImagesListHandle, ImageIndex, FHDc, ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0) - IIf(QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsWholeDropdown, 10, 0)) / 2)), ScaleY(Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3)), ILD_TRANSPARENT)
+								#endif
+							End If
+						End If
+						Select Case QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "Style"))
+						Case ToolButtonStyle.tbsDropDown, ToolButtonStyle.tbsWholeDropdown
+							Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
+							SelectObject(FHDc, Pen)
+							Brush = CreateSolidBrush(BGR(0, 0, 0))
+							SelectObject(FHDc, Brush)
+							.MoveToEx FHDc, ScaleX(Rects(RectsCount).Right - 11), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1), 0
+							.LineTo FHDc, ScaleX(Rects(RectsCount).Right - 5), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1)
+							.LineTo FHDc, ScaleX(Rects(RectsCount).Right - 8), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) + 2)
+							.LineTo FHDc, ScaleX(Rects(RectsCount).Right - 11), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2) - 1)
+							.ExtFloodFill FHDc, ScaleX(Rects(RectsCount).Right - 8), ScaleY(Rects(RectsCount).Top + Fix((Rects(RectsCount).Bottom - Rects(RectsCount).Top) / 2)), 0, FLOODFILLBORDER
+							DeleteObject(Pen)
+							DeleteObject(Brush)
+						End Select
+						GetTextExtentPoint32(FHDc, st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
+						SetBkMode(FHDc, TRANSPARENT)
+						SetTextColor(FHDc, BGR(0, 0, 0))
+						If QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = 7 Then
+							Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
+							SelectObject(FHDc, Pen)
+							.MoveToEx FHDc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2), ScaleY(Rects(RectsCount).Top + 5), 0
+							.LineTo FHDc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2), ScaleY(Rects(RectsCount).Bottom)
+							DeleteObject(Pen)
+							Pen = CreatePen(PS_SOLID, 0, BGR(255, 255, 255))
+							SelectObject(FHDc, Pen)
+							.MoveToEx FHDc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1), ScaleY(Rects(RectsCount).Top + 5), 0
+							.LineTo FHDc, ScaleX(Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1), ScaleY(Rects(RectsCount).Bottom)
+							DeleteObject(Pen)
+						Else
+							.TextOut(FHDc, ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - UnScaleX(Sz.cx) - IIf(QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2)), _
+							ScaleY(IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - UnScaleY(Sz.cy)) / 2, Rects(RectsCount).Bottom - UnScaleY(Sz.cy) - 6)), st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+						End If
+					Next i
+				End If
 			End If
-			SelectObject(FHdc, PrevPen)
-			SelectObject(FHdc, PrevBrush)
+			SelectObject(FHDc, PrevPen)
+			SelectObject(FHDc, PrevBrush)
 			EndPaint Handle, @Ps
 		#endif
 	End Sub
@@ -1926,7 +1940,7 @@ Namespace My.Sys.Forms
 		FStepY = GridSize
 		#ifdef __USE_GTK__
 			Dim As GtkWidget Ptr CtrlParent = gtk_widget_get_parent(layoutwidget)
-			If gtk_is_box(CtrlParent) = 0 Then CtrlParent = layoutwidget
+			If GTK_IS_BOX(CtrlParent) = 0 Then CtrlParent = layoutwidget
 			Dim As Integer iWidth, iHeight
 			#ifdef __USE_GTK3__
 				Dim As Integer iWidthOverlay, iHeightOverlay
@@ -1966,18 +1980,20 @@ Namespace My.Sys.Forms
 		#else
 			Dim As HDC mDc
 			Dim As HBITMAP mBMP, pBMP
-			Dim As ..RECT R, BrushRect = Type(0, 0, ScaleX(FStepX), ScaleY(FStepY))
+			Dim As ..Rect R, BrushRect = Type(0, 0, ScaleX(FStepX), ScaleY(FStepY))
 			Dim As PAINTSTRUCT Ps
 			Dim As Boolean WithGraphic
-			Dim As Integer BackColor = QInteger(ReadPropertyFunc(DesignControl, "BackColor"))
+			Dim As Integer BackColor
+			Dim As SymbolsType Ptr st = Symbols(DesignControl)
+			If st AndAlso st->ReadPropertyFunc Then BackColor = QInteger(st->ReadPropertyFunc(DesignControl, "BackColor"))
 			Dim As HBRUSH Brush = CreateSolidBrush(BackColor)
-			FHDc = BeginPaint(FDialog,@Ps)
+			FHDC = BeginPaint(FDialog,@Ps)
 			GetClientRect(FDialog, @R)
 			If BitmapHandle <> 0 Then
-				FillRect(Fhdc, @R, Brush) 'Cast(HBRUSH, 16))
+				FillRect(FHDC, @R, Brush) 'Cast(HBRUSH, 16))
 				With Parent->Canvas
 					.HandleSetted = True
-					.Handle = Fhdc
+					.Handle = FHDC
 					.Draw 0, 0, BitmapHandle
 					.HandleSetted = False
 					WithGraphic = True
@@ -1987,14 +2003,14 @@ Namespace My.Sys.Forms
 				If WithGraphic Then
 					For i As Integer = R.Left To R.Right Step ScaleX(FStepX)
 						For j As Integer = R.Top To R.Bottom Step ScaleY(FStepX)
-							SetPixel(FHDc, i, j, 0)
+							SetPixel(FHDC, i, j, 0)
 						Next
 					Next
 				Else
 					If FGridBrush Then
 						DeleteObject(FGridBrush)
 					End If
-					mDc   = CreateCompatibleDc(FHDC)
+					mDc   = CreateCompatibleDC(FHDC)
 					mBMP  = CreateCompatibleBitmap(FHDC, ScaleX(FStepX), ScaleY(FStepY))
 					pBMP  = SelectObject(mDc, mBMP)
 					FillRect(mDc, @BrushRect, Brush) 'Cast(HBRUSH, 16))
@@ -2254,75 +2270,91 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub Designer.BringToFront(Ctrl As Any Ptr = 0)
+		Dim As SymbolsType Ptr st = Symbols(SelectedControl)
 		#ifdef __USE_GTK__
-			If CInt(ReadPropertyFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) AndAlso CInt(ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")) Then
-				Dim As Integer iLeft = QInteger(ReadPropertyFunc(SelectedControl, "Left")), iTop = QInteger(ReadPropertyFunc(SelectedControl, "Top"))
-				Dim As GtkWidget Ptr CtrlWidget = ReadPropertyFunc(SelectedControl, "widget")
-				Dim As GtkWidget Ptr LayoutWidget = ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")
-				If GTK_IS_SCROLLED_WINDOW(gtk_widget_get_parent(CtrlWidget)) OrElse GTK_IS_EVENT_BOX(gtk_widget_get_parent(CtrlWidget)) Then
-					CtrlWidget = gtk_widget_get_parent(CtrlWidget)
+			If st <> 0 AndAlso CInt(st->ReadPropertyFunc <> 0) AndAlso CInt(st->ReadPropertyFunc(SelectedControl, "Parent")) AndAlso CInt(st->ReadPropertyFunc(st->ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")) Then
+				Dim As Integer iLeft = QInteger(st->ReadPropertyFunc(SelectedControl, "Left")), iTop = QInteger(st->ReadPropertyFunc(SelectedControl, "Top"))
+				Dim As GtkWidget Ptr CtrlWidget = st->ReadPropertyFunc(SelectedControl, "widget")
+				Dim As Any Ptr ParentCtrl = st->ReadPropertyFunc(SelectedControl, "Parent")
+				Dim As SymbolsType Ptr stParent = Symbols(ParentCtrl)
+				If stParent->ReadPropertyFunc Then
+					Dim As GtkWidget Ptr LayoutWidget = stParent->ReadPropertyFunc(ParentCtrl, "layoutwidget")
+					If GTK_IS_SCROLLED_WINDOW(gtk_widget_get_parent(CtrlWidget)) OrElse GTK_IS_EVENT_BOX(gtk_widget_get_parent(CtrlWidget)) Then
+						CtrlWidget = gtk_widget_get_parent(CtrlWidget)
+					End If
+					g_object_ref(CtrlWidget)
+					gtk_container_remove(GTK_CONTAINER(LayoutWidget), CtrlWidget)
+					gtk_layout_put(GTK_LAYOUT(LayoutWidget), CtrlWidget, iLeft, iTop)
 				End If
-				g_object_ref(CtrlWidget)
-				gtk_container_remove(GTK_CONTAINER(LayoutWidget), CtrlWidget)
-				gtk_layout_put(GTK_LAYOUT(LayoutWidget), CtrlWidget, iLeft, iTop)
 			End If
 		#else
 			If Ctrl = 0 Then
 				SetWindowPos FSelControl, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
-			ElseIf CInt(ReadPropertyFunc <> 0) Then
-				SetWindowPos *Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			ElseIf Symbols(Ctrl) AndAlso Symbols(Ctrl)->ReadPropertyFunc Then
+				SetWindowPos *Cast(HWND Ptr, Symbols(Ctrl)->ReadPropertyFunc(Ctrl, "Handle")), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			End If
 		#endif
-		If CBool(Ctrl = 0) AndAlso CInt(ReadPropertyFunc <> 0) AndAlso CInt(WritePropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) Then
-			Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), CtrlAfter
-			Dim As Integer ControlCount = QInteger(ReadPropertyFunc(ParentCtrl, "ControlCount"))
-			If ControlCount > 1 Then
-				Dim As Integer NewIndex = ControlCount - 1
-				CtrlAfter = ControlByIndexFunc(ParentCtrl, NewIndex)
-				If SelectedControl <> CtrlAfter Then
-					WritePropertyFunc(SelectedControl, "ControlIndex", @NewIndex)
-					If OnModified Then OnModified(This, SelectedControl, , , CtrlAfter)
+		If Ctrl = 0 AndAlso st AndAlso st->ReadPropertyFunc AndAlso st->WritePropertyFunc AndAlso st->ReadPropertyFunc(SelectedControl, "Parent") Then
+			Dim As Any Ptr ParentCtrl = st->ReadPropertyFunc(SelectedControl, "Parent"), CtrlAfter
+			Dim As SymbolsType Ptr stParent = Symbols(ParentCtrl)
+			If stParent->ReadPropertyFunc AndAlso stParent->ControlByIndexFunc Then
+				Dim As Integer ControlCount = QInteger(stParent->ReadPropertyFunc(ParentCtrl, "ControlCount"))
+				If ControlCount > 1 Then
+					Dim As Integer newIndex = ControlCount - 1
+					CtrlAfter = stParent->ControlByIndexFunc(ParentCtrl, newIndex)
+					If SelectedControl <> CtrlAfter Then
+						st->WritePropertyFunc(SelectedControl, "ControlIndex", @newIndex)
+						If OnModified Then OnModified(This, SelectedControl, , , CtrlAfter)
+					End If
 				End If
 			End If
 		End If
 	End Sub
 	
 	Sub Designer.SendToBack(Ctrl As Any Ptr = 0)
+		Dim As SymbolsType Ptr st = Symbols(SelectedControl)
 		#ifdef __USE_GTK__
-			If CInt(ReadPropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) AndAlso CInt(ReadPropertyFunc(ReadPropertyFunc(SelectedControl, "Parent"), "layoutwidget")) Then
+			If st AndAlso st->ReadPropertyFunc AndAlso st->ReadPropertyFunc(SelectedControl, "Parent") Then
 				Dim As Integer iLeft, iTop
-				Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), Ctrl
-				Dim As GtkWidget Ptr CtrlWidget, CurrentWidget = ReadPropertyFunc(SelectedControl, "widget")
-				Dim As GtkWidget Ptr LayoutWidget = ReadPropertyFunc(ParentCtrl, "layoutwidget")
-				For i As Integer = 0 To QInteger(ReadPropertyFunc(ParentCtrl, "ControlCount")) - 1
-					Ctrl = ControlByIndexFunc(ParentCtrl, i)
-					CtrlWidget = ReadPropertyFunc(Ctrl, "widget")
-					If CurrentWidget <> CtrlWidget Then
-						If GTK_IS_SCROLLED_WINDOW(gtk_widget_get_parent(CtrlWidget)) OrElse GTK_IS_EVENT_BOX(gtk_widget_get_parent(CtrlWidget)) Then
-							CtrlWidget = gtk_widget_get_parent(CtrlWidget)
+				Dim As Any Ptr ParentCtrl = st->ReadPropertyFunc(SelectedControl, "Parent"), Ctrl
+				Dim As SymbolsType Ptr stParent = Symbols(ParentCtrl)
+				Dim As GtkWidget Ptr CtrlWidget, CurrentWidget = st->ReadPropertyFunc(SelectedControl, "widget")
+				If stParent AndAlso stParent->ReadPropertyFunc AndAlso stParent->ControlByIndexFunc Then
+					Dim As GtkWidget Ptr LayoutWidget = stParent->ReadPropertyFunc(ParentCtrl, "layoutwidget")
+					For i As Integer = 0 To QInteger(stParent->ReadPropertyFunc(ParentCtrl, "ControlCount")) - 1
+						Ctrl = stParent->ControlByIndexFunc(ParentCtrl, i)
+						Dim As SymbolsType Ptr st = Symbols(Ctrl)
+						If st AndAlso st->ReadPropertyFunc Then
+							CtrlWidget = st->ReadPropertyFunc(Ctrl, "widget")
+							If CurrentWidget <> CtrlWidget Then
+								If GTK_IS_SCROLLED_WINDOW(gtk_widget_get_parent(CtrlWidget)) OrElse GTK_IS_EVENT_BOX(gtk_widget_get_parent(CtrlWidget)) Then
+									CtrlWidget = gtk_widget_get_parent(CtrlWidget)
+								End If
+								iLeft = QInteger(st->ReadPropertyFunc(Ctrl, "Left"))
+								iTop = QInteger(st->ReadPropertyFunc(Ctrl, "Top"))
+								g_object_ref(CtrlWidget)
+								gtk_container_remove(GTK_CONTAINER(LayoutWidget), CtrlWidget)
+								gtk_layout_put(GTK_LAYOUT(LayoutWidget), CtrlWidget, iLeft, iTop)
+							End If
 						End If
-						iLeft = QInteger(ReadPropertyFunc(Ctrl, "Left"))
-						iTop = QInteger(ReadPropertyFunc(Ctrl, "Top"))
-						g_object_ref(CtrlWidget)
-						gtk_container_remove(GTK_CONTAINER(LayoutWidget), CtrlWidget)
-						gtk_layout_put(GTK_LAYOUT(LayoutWidget), CtrlWidget, iLeft, iTop)
-					End If
-				Next
+					Next
+				End If
 			End If
 		#else
 			If Ctrl = 0 Then
 				SetWindowPos FSelControl, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
-			ElseIf CInt(ReadPropertyFunc <> 0) Then
-				SetWindowPos *Cast(HWND Ptr, ReadPropertyFunc(Ctrl, "Handle")), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			ElseIf Symbols(Ctrl) AndAlso Symbols(Ctrl)->ReadPropertyFunc Then
+				SetWindowPos *Cast(HWND Ptr, Symbols(Ctrl)->ReadPropertyFunc(Ctrl, "Handle")), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 			End If
 		#endif
-		If CInt(ReadPropertyFunc <> 0) AndAlso (WritePropertyFunc <> 0) AndAlso CInt(ControlByIndexFunc <> 0) AndAlso CInt(ReadPropertyFunc(SelectedControl, "Parent")) Then
-			Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControl, "Parent"), Ctrl
-			If QInteger(ReadPropertyFunc(ParentCtrl, "ControlCount")) > 1 Then
+		If st AndAlso st->ReadPropertyFunc AndAlso st->WritePropertyFunc AndAlso st->ReadPropertyFunc(SelectedControl, "Parent") Then
+			Dim As Any Ptr ParentCtrl = st->ReadPropertyFunc(SelectedControl, "Parent"), Ctrl
+			Dim As SymbolsType Ptr stParent = Symbols(ParentCtrl)
+			If stParent AndAlso stParent->ReadPropertyFunc AndAlso stParent->ControlByIndexFunc AndAlso QInteger(stParent->ReadPropertyFunc(ParentCtrl, "ControlCount")) > 1 Then
 				Dim As Integer NewIndex = 0
-				Ctrl = ControlByIndexFunc(ParentCtrl, NewIndex)
+				Ctrl = stParent->ControlByIndexFunc(ParentCtrl, NewIndex)
 				If SelectedControl <> Ctrl Then
-					WritePropertyFunc(SelectedControl, "ControlIndex", @NewIndex)
+					st->WritePropertyFunc(SelectedControl, "ControlIndex", @NewIndex)
 					If OnModified Then OnModified(This, SelectedControl, , Ctrl)
 				End If
 			End If
@@ -2547,7 +2579,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	#ifndef __USE_GTK__
-		Function Designer.HookTopMenuProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+		Function Designer.HookTopMenuProc(hDlg As HWND, uMsg As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
 			Static As My.Sys.Forms.Designer Ptr Des
 			Des = GetProp(hDlg, "@@@Designer")
 			If Des Then
@@ -2558,7 +2590,7 @@ Namespace My.Sys.Forms
 						.DrawTopMenu
 						Return 1
 					Case WM_LBUTTONDOWN
-						Dim As Integer X = UnScaleX(LoWord(lParam)), Y = UnScaleY(HiWord(lParam)), i, CurRect
+						Dim As Integer X = UnScaleX(LoWord(LPARAM)), Y = UnScaleY(HiWord(LPARAM)), i, CurRect
 						For i = 1 To .RectsCount
 							With .Rects(i)
 								If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
@@ -2567,43 +2599,52 @@ Namespace My.Sys.Forms
 								End If
 							End With
 						Next i
-						If CurRect <> 0 AndAlso .Ctrls(CurRect) <> 0 AndAlso QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
+						Dim As SymbolsType Ptr st = .Symbols(.Ctrls(CurRect))
+						If CurRect AndAlso .Ctrls(CurRect) AndAlso st AndAlso st->ReadPropertyFunc AndAlso QWString(st->ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
 							CurRect = 0
 						ElseIf .ActiveRect <> 0 Then
 							.ActiveRect = 0
 							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
 							UpdateWindow hDlg
 						ElseIf CurRect <> 0 Then
-							If QInteger(.ReadPropertyFunc(.Ctrls(CurRect), "Count")) = 0 Then
+							If st AndAlso st->ReadPropertyFunc AndAlso QInteger(st->ReadPropertyFunc(.Ctrls(CurRect), "Count")) = 0 Then
 								If .OnClickMenuItem Then .OnClickMenuItem(*Des, .Ctrls(CurRect))
 							Else
 								.ActiveRect = CurRect
 								RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
 								UpdateWindow hDlg
-								Dim As HMENU Ptr pHandle = Cast(HMENU Ptr, .ReadPropertyFunc(.Ctrls(.ActiveRect), "Handle"))
-								If pHandle <> 0 Then
-									Dim As ..Point P
-									P.x = ScaleX(.Rects(.ActiveRect).Left)
-									P.y = ScaleY(.Rects(.ActiveRect).Bottom)
-									..ClientToScreen(hDlg, @P)
-									Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.x, P.y, 0, hDlg, 0)
-									Dim As Any Ptr CurrentMenu = .ReadPropertyFunc(.DesignControl, "Menu")
-									If CurrentMenu <> 0 Then
-										Dim As Any Ptr mi = .MenuFindByCommandFunc(CurrentMenu, b)
-										If mi <> 0 Then
-											If .OnClickMenuItem Then .OnClickMenuItem(*Des, mi)
+								If st AndAlso st->ReadPropertyFunc Then
+									Dim As HMENU Ptr PHANDLE = Cast(HMENU Ptr, st->ReadPropertyFunc(.Ctrls(.ActiveRect), "Handle"))
+									If PHANDLE <> 0 Then
+										Dim As ..Point P
+										P.X = ScaleX(.Rects(.ActiveRect).Left)
+										P.Y = ScaleY(.Rects(.ActiveRect).Bottom)
+										..ClientToScreen(hDlg, @P)
+										Var b = TrackPopupMenu(*PHANDLE, TPM_RETURNCMD, P.X, P.Y, 0, hDlg, 0)
+										Dim As SymbolsType Ptr stDesignControl = .Symbols(.DesignControl)
+										If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
+											Dim As Any Ptr CurrentMenu = stDesignControl->ReadPropertyFunc(.DesignControl, "Menu")
+											If CurrentMenu <> 0 Then
+												Dim As SymbolsType Ptr st = .Symbols(CurrentMenu)
+												If st AndAlso st->MenuFindByCommandFunc Then
+													Dim As Any Ptr mi = st->MenuFindByCommandFunc(CurrentMenu, b)
+													If mi <> 0 Then
+														If .OnClickMenuItem Then .OnClickMenuItem(*Des, mi)
+													End If
+												End If
+											End If
 										End If
+										.ActiveRect = 0
+										RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+										UpdateWindow hDlg
 									End If
-									.ActiveRect = 0
-									RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
-									UpdateWindow hDlg
 								End If
 							End If
 						End If
 					Case WM_COMMAND
 					Case WM_LBUTTONUP
 					Case WM_MOUSEMOVE
-						Dim As Integer X = UnScaleX(LoWord(lParam)), Y = UnScaleY(HiWord(lParam)), i, CurRect
+						Dim As Integer X = UnScaleX(LoWord(LPARAM)), Y = UnScaleY(HiWord(LPARAM)), i, CurRect
 						For i = 1 To .RectsCount
 							With .Rects(i)
 								If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
@@ -2612,26 +2653,29 @@ Namespace My.Sys.Forms
 								End If
 							End With
 						Next i
-						If CurRect <> 0 AndAlso .Ctrls(CurRect) <> 0 AndAlso QWString(.ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
+						Dim As SymbolsType Ptr st = .Symbols(.Ctrls(CurRect))
+						If CurRect AndAlso .Ctrls(CurRect) AndAlso st AndAlso st->ReadPropertyFunc AndAlso QWString(st->ReadPropertyFunc(.Ctrls(CurRect), "Caption")) = "-" Then
 							CurRect = 0
 							.ActiveRect = 0
 							.MouseRect = 0
 							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
 							UpdateWindow hDlg
 						ElseIf .ActiveRect <> 0 AndAlso CurRect <> 0 AndAlso CurRect <> .ActiveRect AndAlso .Ctrls(CurRect) <> 0 Then
-							Dim As HMENU Ptr pHandle = Cast(HMENU Ptr, .ReadPropertyFunc(.Ctrls(CurRect), "Handle"))
-							.ActiveRect = CurRect
-							RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
-							UpdateWindow hDlg
-							If pHandle <> 0 Then
-								Dim As ..Point P
-								P.x = ScaleX(.Rects(CurRect).Left)
-								P.y = ScaleY(.Rects(CurRect).Bottom)
-								..ClientToScreen(hDlg, @P)
-								Var b = TrackPopupMenu(*pHandle, TPM_RETURNCMD, P.X, P.Y, 0, hDlg, 0)
-								.ActiveRect = 0
+							If st AndAlso st->ReadPropertyFunc Then
+								Dim As HMENU Ptr PHANDLE = Cast(HMENU Ptr, st->ReadPropertyFunc(.Ctrls(CurRect), "Handle"))
+								.ActiveRect = CurRect
 								RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
 								UpdateWindow hDlg
+								If PHANDLE <> 0 Then
+									Dim As ..Point P
+									P.X = ScaleX(.Rects(CurRect).Left)
+									P.Y = ScaleY(.Rects(CurRect).Bottom)
+									..ClientToScreen(hDlg, @P)
+									Var b = TrackPopupMenu(*PHANDLE, TPM_RETURNCMD, P.X, P.Y, 0, hDlg, 0)
+									.ActiveRect = 0
+									RedrawWindow hDlg, 0, 0, RDW_INVALIDATE
+									UpdateWindow hDlg
+								End If
 							End If
 						ElseIf CurRect <> 0 OrElse .MouseRect <> 0 Then
 							If CurRect <> .MouseRect Then
@@ -2659,7 +2703,7 @@ Namespace My.Sys.Forms
 					End Select
 				End With
 			End If
-			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
+			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, WPARAM, LPARAM)
 		End Function
 	#endif
 	
@@ -2808,7 +2852,7 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.Hook
 		#ifdef __USE_GTK__
-			If gtk_is_widget(FDialog) Then
+			If GTK_IS_WIDGET(FDialog) Then
 		#else
 			If IsWindow(FDialog) Then
 		#endif
@@ -2843,7 +2887,7 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.HookParent
 		#ifdef __USE_GTK__
-			If gtk_is_widget(FDialogParent) Then
+			If GTK_IS_WIDGET(FDialogParent) Then
 				g_signal_connect(FDialogParent, "event", G_CALLBACK(@HookDialogParentProc), @This)
 				'				#ifdef __USE_GTK3__
 				'					gtk_widget_set_events(layout, _
@@ -2887,8 +2931,8 @@ Namespace My.Sys.Forms
 		Static bShift As Boolean
 		Static bCtrl As Boolean
 		#ifdef __USE_GTK__
-			bShift = Shift And GDK_Shift_MASK
-			bCtrl = Shift And GDK_Control_MASK
+			bShift = Shift And GDK_SHIFT_MASK
+			bCtrl = Shift And GDK_CONTROL_MASK
 		#else
 			bShift = GetKeyState(VK_SHIFT) And 8000
 			bCtrl = GetKeyState(VK_CONTROL) And 8000
@@ -3380,15 +3424,20 @@ Namespace My.Sys.Forms
 		#endif
 		DestroyDots
 		#ifndef __USE_GTK__
-			UnregisterClass("DOT", instance)
+			UnregisterClass("DOT", Instance)
 		#endif
 		'If DeleteAllObjectsFunc <> 0 Then DeleteAllObjectsFunc()
-		For i As Integer = 0 To FLibs.Count - 1
-			If FLibs.Object(i) <> 0 Then DyLibFree(FLibs.Object(i))
+		For i As Integer = 0 To FSymbols.Count - 1
+			Dim As SymbolsType Ptr st = FSymbols.Item(i)
+			If st Then
+				If st->Handle Then DyLibFree(st->Handle)
+				Delete_(st)
+			End If
 		Next
-		If MFF <> 0 Then DyLibFree(MFF)
+		FSymbols.Clear
+		FLibs.Clear
 		If pApp = 0 Then pApp = @VisualFBEditorApp
-		WDeallocate FClassName
-		WDeallocate FTemp
+		WDeAllocate FClassName
+		WDeAllocate FTemp
 	End Destructor
 End Namespace

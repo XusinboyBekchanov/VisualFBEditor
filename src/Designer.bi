@@ -173,8 +173,6 @@ Namespace My.Sys.Forms
 		FPopupMenuItems    As List
 		Declare Function EnumPopupMenuItems(ByRef Item As MenuItem) As Boolean
 		Declare Sub GetPopupMenuItems
-		Declare Function Symbols(AClassName As String) As SymbolsType Ptr
-		Declare Function Symbols(Ctrl As Any Ptr) As SymbolsType Ptr
 		#ifdef __USE_GTK__
 			Declare        Function IsDot(hDlg As GtkWidget Ptr) As Integer
 		#else
@@ -272,6 +270,8 @@ Namespace My.Sys.Forms
 		Declare        Sub DrawTopMenu
 		Declare        Sub DrawToolBar(Handle As Any Ptr)
 		Declare        Sub DrawThis() 'DC as HDC, R as RECT)
+		Declare Function Symbols(AClassName As String) As SymbolsType Ptr
+		Declare Function Symbols(Ctrl As Any Ptr) As SymbolsType Ptr
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
 			Declare    Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)
