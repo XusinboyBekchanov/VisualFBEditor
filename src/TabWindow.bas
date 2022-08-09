@@ -4831,10 +4831,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								Var te = New_( TypeElement)
-								If res1(n).ToLower.StartsWith("byref") Then
+								If res1(n).tolower.StartsWith("byref") Then
 									res1(n) = Trim(Mid(res1(n), 6))
 									te->ElementType = "ByRefParameter"
-								ElseIf res1(n).ToLower.StartsWith("byval") Then
+								ElseIf res1(n).tolower.StartsWith("byval") Then
 									res1(n) = Trim(Mid(res1(n), 6))
 									te->ElementType = "ByValParameter"
 								Else
@@ -4849,7 +4849,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 								te->Name = res1(n)
 								te->DisplayName = res1(n)
-								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+								te->TypeIsPointer = CurType.tolower.EndsWith(" pointer") OrElse CurType.tolower.EndsWith(" ptr")
 								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
 								te->TypeName = CurType
 								te->TypeName = WithoutPointers(te->TypeName)
@@ -4995,10 +4995,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						Var te = New_( TypeElement)
-						If res1(n).ToLower.StartsWith("byref") Then
+						If res1(n).tolower.StartsWith("byref") Then
 							res1(n) = Trim(Mid(res1(n), 6))
 							te->ElementType = "ByRefParameter"
-						ElseIf res1(n).ToLower.StartsWith("byval") Then
+						ElseIf res1(n).tolower.StartsWith("byval") Then
 							res1(n) = Trim(Mid(res1(n), 6))
 							te->ElementType = "ByValParameter"
 						Else
@@ -5013,7 +5013,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 						te->Name = res1(n)
 						te->DisplayName = res1(n)
-						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+						te->TypeIsPointer = CurType.tolower.EndsWith(" pointer") OrElse CurType.tolower.EndsWith(" ptr")
 						'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
 						te->TypeName = CurType
 						te->TypeName = WithoutPointers(te->TypeName)
@@ -5081,7 +5081,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 '							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
-						If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+						If res1(n).tolower.StartsWith("byref") OrElse res1(n).tolower.StartsWith("byval") Then
 							res1(n) = Trim(Mid(res1(n), 6))
 						End If
 						Pos1 = InStr(res1(n), "(")
@@ -5101,7 +5101,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Var te = New_( TypeElement)
 						te->Name = res1(n)
 						te->DisplayName = res1(n)
-						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+						te->TypeIsPointer = CurType.tolower.EndsWith(" pointer") OrElse CurType.tolower.EndsWith(" ptr")
 						If StartsWith(bTrimLCase, "common ") Then
 							te->ElementType = "CommonVariable"
 						ElseIf StartsWith(bTrimLCase, "const ") Then
@@ -5157,42 +5157,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Des->OnClickMenuItem = @DesignerClickMenuItem
 					Des->OnClickProperties = @DesignerClickProperties
 					Des->OnModified = @DesignerModified
-					Des->MFF = DyLibLoad(*MFFDll)
-					Des->CreateControlFunc = DyLibSymbol(Des->MFF, "CreateControl")
-					Des->CreateComponentFunc = DyLibSymbol(Des->MFF, "CreateComponent")
-					Des->ReadPropertyFunc = DyLibSymbol(Des->MFF, "ReadProperty")
-					Des->WritePropertyFunc = DyLibSymbol(Des->MFF, "WriteProperty")
-					Des->DeleteComponentFunc = DyLibSymbol(Des->MFF, "DeleteComponent")
-					Des->DeleteAllObjectsFunc = DyLibSymbol(Des->MFF, "DeleteAllObjects")
-					Des->RemoveControlSub = DyLibSymbol(Des->MFF, "RemoveControl")
-					Des->ControlByIndexFunc = DyLibSymbol(Des->MFF, "ControlByIndex")
-					Des->Q_ComponentFunc = DyLibSymbol(Des->MFF, "Q_Component")
-					Des->ComponentGetBoundsSub = DyLibSymbol(Des->MFF, "ComponentGetBounds")
-					Des->ComponentSetBoundsSub = DyLibSymbol(Des->MFF, "ComponentSetBounds")
-					Des->ControlIsContainerFunc = DyLibSymbol(Des->MFF, "ControlIsContainer")
-					Des->IsControlFunc = DyLibSymbol(Des->MFF, "IsControl")
-					Des->IsComponentFunc = DyLibSymbol(Des->MFF, "IsComponent")
-					Des->ControlSetFocusSub = DyLibSymbol(Des->MFF, "ControlSetFocus")
-					Des->ControlFreeWndSub = DyLibSymbol(Des->MFF, "ControlFreeWnd")
-					Des->ToStringFunc = DyLibSymbol(Des->MFF, "ToString")
-					Des->CreateObjectFunc = DyLibSymbol(Des->MFF, "CreateObject")
-					Des->ObjectDeleteFunc = DyLibSymbol(Des->MFF, "ObjectDelete")
-					Des->MenuByIndexFunc = DyLibSymbol(Des->MFF, "MenuByIndex")
-					Des->MenuItemByIndexFunc = DyLibSymbol(Des->MFF, "MenuItemByIndex")
-					Des->MenuFindByCommandFunc = DyLibSymbol(Des->MFF, "MenuFindByCommand")
-					Des->MenuRemoveSub = DyLibSymbol(Des->MFF, "MenuRemove")
-					Des->MenuItemRemoveSub = DyLibSymbol(Des->MFF, "MenuItemRemove")
-					Des->ToolBarButtonByIndexFunc = DyLibSymbol(Des->MFF, "ToolBarButtonByIndex")
-					Des->ToolBarRemoveButtonSub = DyLibSymbol(Des->MFF, "ToolBarRemoveButton")
-					Des->StatusBarPanelByIndexFunc = DyLibSymbol(Des->MFF, "StatusBarPanelByIndex")
-					Des->StatusBarRemovePanelSub = DyLibSymbol(Des->MFF, "StatusBarRemovePanel")
-					Des->GraphicTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "GraphicTypeLoadFromFile")
-					Des->BitmapTypeLoadFromFileFunc = DyLibSymbol(Des->MFF, "BitmapTypeLoadFromFile")
-					Des->IconLoadFromFileFunc = DyLibSymbol(Des->MFF, "IconLoadFromFile")
-					Des->CursorLoadFromFileFunc = DyLibSymbol(Des->MFF, "CursorLoadFromFile")
-					Des->ImageListAddFromFileSub = DyLibSymbol(Des->MFF, "ImageListAddFromFile")
-					Des->ImageListIndexOfFunc = DyLibSymbol(Des->MFF, "ImageListIndexOf")
-					Des->ImageListClearSub = DyLibSymbol(Des->MFF, "ImageListClear")
+					'Des->MFF = DyLibLoad(*MFFDll)
 					Des->TopMenu = @pnlTopMenu
 					#ifdef __USE_GTK3__
 						Des->overlay = pnlForm.overlaywidget

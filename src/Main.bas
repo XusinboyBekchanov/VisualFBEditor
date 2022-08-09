@@ -75,7 +75,7 @@ Dim Shared As ReBar ReBar1
 	Dim Shared As PrintPreviewDialog PrintPreviewD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
-Dim Shared As List Tools, TabPanels
+Dim Shared As List Tools, TabPanels, ControlLibraries
 Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
@@ -110,6 +110,7 @@ pGlobalFunctions = @GlobalFunctions
 pGlobalArgs = @GlobalArgs
 pAddIns = @AddIns
 pTools = @Tools
+pControlLibraries = @ControlLibraries
 pCompilers = @Compilers
 pMakeTools = @MakeTools
 pDebuggers = @Debuggers
@@ -1644,7 +1645,7 @@ Sub OpenSession()
 	WLet(LastOpenPath, GetFolderName(OpenD.FileName))
 	AddSession OpenD.FileName
 	WLet(RecentSession, OpenD.FileName)
-	TabLeft.Tabs[0]->SelectTab
+	tabLeft.Tabs[0]->SelectTab
 End Sub
 
 Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList, miRecentFilesFolders As MenuItem Ptr, ByRef MRUType As String)
@@ -2995,7 +2996,7 @@ Function DeleteSpaces(b As String) As String
 	Return bNew
 End Function
 
-Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0)
+Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Any Ptr = 0)
 	If FormClosing Then Exit Sub
 	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
@@ -3132,6 +3133,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							tbi->FileName = PathFunction
 							tbi->IncludeFile = "mff/" & GetFileName(PathFunction)
 							tbi->Parameters = Trim(Mid(bTrim, Pos1 + 5))
+							tbi->Tag = CtlLibrary
 							Types.Add t, tbi
 							typ = tbi
 							If Namespaces.Count > 0 Then
@@ -3840,7 +3842,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							Else
 								te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
 							End If
-							te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+							te->TypeIsPointer = CurType.tolower.EndsWith(" pointer") OrElse CurType.tolower.EndsWith(" ptr")
 							te->TypeName = CurType
 							te->TypeName = WithoutPointers(te->TypeName)
 							te->Value = ElementValue
@@ -4087,50 +4089,26 @@ Sub LoadToolBox
 	Dim As Integer i, j
 	Dim As My.Sys.Drawing.Cursor cur
 	Dim As String IncludePath
-	Dim MFF As Any Ptr
+	Dim As UString Temp
+	Dim As UInteger Attr
 	IncludeMFFPath = iniSettings.ReadBool("Options", "IncludeMFFPath", True)
-	WLet(MFFPath, iniSettings.ReadString("Options", "MFFPath", "./MyFbFramework"))
-	#ifndef __USE_GTK__
-		#ifdef __FB_64BIT__
-			WLet(MFFDll, GetFullPath(*MFFPath) & "\mff64.dll")
-		#else
-			WLet(MFFDll, GetFullPath(*MFFPath) & "\mff32.dll")
-		#endif
-	#else
-		#ifdef __USE_GTK3__
-			#ifdef __FB_WIN32__
-				#ifdef __FB_64BIT__
-					WLet(MFFDll, GetFullPath(*MFFPath) & "/mff64_gtk3.dll")
-				#else
-					WLet(MFFDll, GetFullPath(*MFFPath) & "/mff32_gtk3.dll")
-				#endif
-			#else
-				#ifdef __FB_64BIT__
-					WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk3.so")
-				#else
-					WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk3.so")
-				#endif
-			#endif
-		#else
-			#ifdef __FB_WIN32__
-				#ifdef __FB_64BIT__
-					WLet(MFFDll, GetFullPath(*MFFPath) & "/mff64_gtk2.dll")
-				#else
-					WLet(MFFDll, GetFullPath(*MFFPath) & "/mff32_gtk2.dll")
-				#endif
-			#else
-				#ifdef __FB_64BIT__
-					WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff64_gtk2.so")
-				#else
-					WLet(MFFDll, GetFullPath(*MFFPath) & "/libmff32_gtk2.so")
-				#endif
-			#endif
-		#endif
-	#endif
-	If Not FileExists(*MFFDll) Then '
-		MsgBox ML("File not found") & ": " & WChr(13,10) & WChr(13,10) & *MFFDll & WChr(13,10) & WChr(13,10) & ML("Can not load control to toolbox")
-	End If
-	MFF = DyLibLoad(*MFFDll)
+	WLet(MFFPath, iniSettings.ReadString("Options", "MFFPath", "./Controls/MyFbFramework"))
+	Do Until iniSettings.KeyExists("ControlLibraries", "Path_" & WStr(i)) = -1
+		Dim As IniFile ini
+		Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), "")
+		ini.Load GetFolderName(GetFullPath(Temp)) & "Settings.ini"
+		Var CtlLibrary = New_(Library)
+		CtlLibrary->Name = ini.ReadString("Setup", "Name")
+		CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
+		CtlLibrary->Path = Temp
+		CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
+		CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
+		CtlLibrary->IncludeFolder = ini.ReadString("Setup", "IncludeFolder")
+		CtlLibrary->Enabled = iniSettings.ReadBool("ControlLibraries", "Enabled_" & WStr(i), False)
+		ControlLibraries.Add CtlLibrary
+		i += 1
+	Loop
+	f = Dir("Controls" & Slash & "*", fbDirectory, Attr)
 	Dim As TypeElement Ptr tbi
 	#ifndef __USE_GTK__
 		cur = crArrow
@@ -4138,6 +4116,7 @@ Sub LoadToolBox
 	Dim cl As Integer = clSilver
 	#ifdef __USE_GTK__
 		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFullPath(*MFFPath) & "/resources"))
+		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFullPath(*MFFPath) & "/Resources"))
 		tbToolBox.Align = DockStyle.alClient
 	#else
 		imgListTools.Add "DropDown", "DropDown"
@@ -4156,17 +4135,23 @@ Sub LoadToolBox
 	tbToolBox.ImagesList = @imgListTools
 	tbToolBox.HotImagesList = @imgListTools
 	LoadHelp
-	IncludePath = GetFolderName(*MFFDll) & "mff/"
-	f = Dir(IncludePath & "*.bi")
-	While f <> ""
-		LoadFunctions GetOSPath(GetFullPath(IncludePath) & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs
-		f = Dir()
-	Wend
-	f = Dir(IncludePath & "*.bas")
-	While f <> ""
-		LoadFunctions GetOSPath(GetFullPath(IncludePath) & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs
-		f = Dir()
-	Wend
+	Dim As Library Ptr CtlLibrary
+	For i = 0 To ControlLibraries.Count - 1
+		CtlLibrary = ControlLibraries.Item(i)
+		CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
+		IncludePath = GetFullPath(GetFullPath(CtlLibrary->HeadersFolder, CtlLibrary->Path)) & "/"
+		f = Dir(IncludePath & "*.bi")
+		While f <> ""
+			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs, , CtlLibrary
+			f = Dir()
+		Wend
+		IncludePath = GetFullPath(GetFullPath(CtlLibrary->SourcesFolder, CtlLibrary->Path)) & "/"
+		f = Dir(IncludePath & "*.bas")
+		While f <> ""
+			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs, , CtlLibrary
+			f = Dir()
+		Wend
+	Next i
 	Comps.Sort
 	Var iOld = -1, iNew = 0
 	Dim As String it = "Cursor", g(1 To 4): g(1) = ML("Controls"): g(2) = ML("Containers"): g(3) = ML("Components"): g(4) = ML("Dialogs")
@@ -4185,16 +4170,18 @@ Sub LoadToolBox
 	For i = 0 To Comps.Count - 1
 		If LCase(Comps.Item(i)) = "control" Or LCase(Comps.Item(i)) = "containercontrol" Or LCase(Comps.Item(i)) = "menu" Or LCase(Comps.Item(i)) = "component" Or LCase(Comps.Item(i)) = "dialog" Then Continue For
 		iNew = GetTypeControl(Comps.Item(i))
+		Dim As Any Ptr LibHandle
 		If Comps.Contains(Comps.Item(i)) Then
 			Var tbi = Cast(TypeElement Ptr, Comps.Object(Comps.IndexOf(Comps.Item(i))))
 			If tbi->ElementType = "TypeCopy" Then Continue For
 			tbi->ControlType = iNew
+			LibHandle = Cast(Library Ptr, tbi->Tag)->Handle
 		End If
 		If iNew = 0 Then Continue For
 		'If iNew <> j Then Continue For
 		it = Comps.Item(i)
 		#ifndef __USE_GTK__
-			imgListTools.Add it, it, MFF
+			imgListTools.Add it, it, LibHandle
 		#endif
 		Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup,it,,@ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap)
 		toolb->Tag = Comps.Object(i)
@@ -4204,7 +4191,10 @@ Sub LoadToolBox
 	'    If .State = tstEnabled Then .State = tstEnabled Or tstWrap
 	'End With
 	'Next j
-	If MFF Then DyLibFree(MFF)
+	For i = 0 To ControlLibraries.Count - 1
+		CtlLibrary = ControlLibraries.Item(i)
+		If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
+	Next i
 End Sub
 
 Sub LoadSettings

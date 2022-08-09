@@ -621,13 +621,16 @@ End Sub
 Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
 	Select Case Sender.ToString
 	Case "AddFromResource"
-		tbToolbar_ButtonClick tbToolbar, *tbToolbar.Buttons.Item("Add")
-		'If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
-		'		If pfImageManager->lvImages.SelectedItem <> 0 Then
-		'			.txtPath.Text = pfImageManager->lvImages.SelectedItem->Text(0)
-		'			.txtVersion.Text = .txtPath.Text
-		'		End If
-		'	End If
+		'tbToolbar_ButtonClick tbToolbar, *tbToolbar.Buttons.Item("Add")
+		With *pfImageManager
+			.lvImages.MultiSelect = True
+		If .ShowModal(*pfrmMain) = ModalResults.OK Then
+			If .lvImages.SelectedItem <> 0 Then
+				'.txtPath.Text = .lvImages.SelectedItem->Text(0)
+				'.txtVersion.Text = .txtPath.Text
+			End If
+		End If
+		End With
 		'	For i As Integer = 0 To OpenD.FileNames.Count - 1
 		'		Dim As UString FileName = OpenD.FileNames.Item(i)
 		'		Dim As UString RelativePath = GetRelativePath(FileName, ResourceFile)
