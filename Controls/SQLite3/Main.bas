@@ -1,7 +1,7 @@
 ﻿#ifdef __FB_64BIT__
-	#cmdline "-dll -x SQLite3Component_x64.dll"
+	#cmdline "SQLite3Component.rc -dll -x SQLite3Component_x64.dll"
 #else
-	#cmdline "-dll -x SQLite3Component_x32.dll"
+	#cmdline "SQLite3Component.rc -dll -x SQLite3Component_x32.dll"
 #endif
 #define __EXPORT_PROCS__
 

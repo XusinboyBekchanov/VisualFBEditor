@@ -231,6 +231,8 @@ Namespace My.Sys.Forms
 		#else
 			Dim As SymbolsType Ptr st = Symbols(Parent)
 			If st AndAlso st->ReadPropertyFunc Then
+				Dim ParentHwndPtr As HWND Ptr = Cast(HWND Ptr, st->ReadPropertyFunc(Parent, "Handle"))
+				If ParentHwndPtr = 0 Then Return Parent
 				Dim ParentHwnd As HWND = *Cast(HWND Ptr, st->ReadPropertyFunc(Parent, "Handle"))
 				Dim Result As HWND = ChildWindowFromPoint(ParentHwnd, Type<..Point>(ScaleX(X), ScaleY(Y)))
 				If GetControl(Result) = Parent Then Return Parent
@@ -1479,7 +1481,7 @@ Namespace My.Sys.Forms
 				AParent)
 				If Ctrl Then
 					Objects.Add Ctrl
-					FCtrlSymbols.Add st
+					CtrlSymbols.Add st
 					Controls.Add Ctrl
 					SelectedControl = Ctrl
 					If st->ReadPropertyFunc Then
@@ -1573,7 +1575,7 @@ Namespace My.Sys.Forms
 		If Ctrl = OldCtrl Then Return OldCtrlSymbols
 		Var Idx = 0
 		If Objects.Contains(Ctrl, Idx) Then
-			OldCtrlSymbols = FCtrlSymbols.Item(Idx)
+			OldCtrlSymbols = CtrlSymbols.Item(Idx)
 			OldCtrl = Ctrl
 			Return OldCtrlSymbols
 		End If
@@ -1582,10 +1584,20 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
+	Function Designer.SymbolsReadProperty(Ctrl As Any Ptr) As SymbolsType Ptr
+		Dim As SymbolsType Ptr st = Symbols(Ctrl)
+		If st AndAlso st->ReadPropertyFunc Then Return st Else Return 0
+	End Function
+	
+	Function Designer.SymbolsWriteProperty(Ctrl As Any Ptr) As SymbolsType Ptr
+		Dim As SymbolsType Ptr st = Symbols(Ctrl)
+		If st AndAlso st->WritePropertyFunc Then Return st Else Return 0
+	End Function
+	
 	Function Designer.Symbols(AClassName As String) As SymbolsType Ptr
 		If OldClassName = AClassName Then Return OldSymbols
 		Var Idx = 0
-		If Comps.Contains(AClassName, , , Idx) Then
+		If Comps.Contains(AClassName, , , , Idx) Then
 			Dim As TypeElement Ptr te = Comps.Object(Idx)
 			If te <> 0 AndAlso te->Tag <> 0 Then
 				If OldLibrary = te->Tag Then Return OldSymbols
@@ -1659,7 +1671,7 @@ Namespace My.Sys.Forms
 				Cpnt = st->CreateComponentFunc(AClassName, AName, x, y, AParent)
 				If Cpnt Then
 					Objects.Add Cpnt
-					FCtrlSymbols.Add st
+					CtrlSymbols.Add st
 					SelectedControl = Cpnt
 					If st->WritePropertyFunc Then
 						Dim As Boolean bTrue = True
@@ -1744,7 +1756,7 @@ Namespace My.Sys.Forms
 				Obj = st->CreateObjectFunc(AClassName)
 				If Obj Then
 					Objects.Add Obj
-					FCtrlSymbols.Add st
+					CtrlSymbols.Add st
 				End If
 			End If
 		End If

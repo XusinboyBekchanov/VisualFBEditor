@@ -17,14 +17,14 @@ End Extern
 
 Private Function SQLite3Component.ReadProperty(PropertyName As String) As Any Ptr
 	Select Case LCase(PropertyName)
-	Case Else: Return 0
+	Case Else: Return Base.ReadProperty(PropertyName)
 	End Select
 	Return 0
 End Function
 
 Private Function SQLite3Component.WriteProperty(PropertyName As String, Value As Any Ptr) As Boolean
 	Select Case LCase(PropertyName)
-	Case Else: Return True
+	Case Else: Return Base.WriteProperty(PropertyName, Value)
 	End Select
 	Return True
 End Function

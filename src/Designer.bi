@@ -215,7 +215,6 @@ Namespace My.Sys.Forms
 		Declare        Sub KeyDown(Key As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 		FLibs          As List
 		FSymbols       As List
-		FCtrlSymbols    As List
 	Public:
 		Tag As Any Ptr
 		Parent As Control Ptr
@@ -250,6 +249,7 @@ Namespace My.Sys.Forms
 		SelectedControls As List
 		Objects As List
 		Controls As List
+		CtrlSymbols As List
 		#ifdef __USE_GTK__
 			cr As cairo_t Ptr
 			'layoutwidget As GtkWidget Ptr
@@ -272,6 +272,8 @@ Namespace My.Sys.Forms
 		Declare        Sub DrawThis() 'DC as HDC, R as RECT)
 		Declare Function Symbols(AClassName As String) As SymbolsType Ptr
 		Declare Function Symbols(Ctrl As Any Ptr) As SymbolsType Ptr
+		Declare Function SymbolsReadProperty(Ctrl As Any Ptr) As SymbolsType Ptr
+		Declare Function SymbolsWriteProperty(Ctrl As Any Ptr) As SymbolsType Ptr
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
 			Declare    Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)

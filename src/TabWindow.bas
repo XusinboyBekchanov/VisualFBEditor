@@ -3365,13 +3365,16 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As String sTemp2 = TypeName
-	If tb->Des AndAlso tb->Des->ReadPropertyFunc <> 0 Then
-		If CInt(LCase(Value) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) Then
-			Dim As String frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
-			If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
-				sTemp2 = frmName
-			ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
-				sTemp2 = frmName & "Type"
+	If tb->Des Then
+		Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+		If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
+			If CInt(LCase(Value) = "this") AndAlso CInt(tb->Des->DesignControl) Then
+				Dim As String frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+				If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
+					sTemp2 = frmName
+				ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
+					sTemp2 = frmName & "Type"
+				End If
 			End If
 		End If
 	End If
@@ -4043,9 +4046,12 @@ Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 				End If
 			End If
 		Next
-		If tb->Des AndAlso tb->Des->ReadPropertyFunc <> 0 Then
-			If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) AndAlso CInt(StartsWith(tb->cboFunction.Text, WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & " ") OrElse StartsWith(tb->cboFunction.Text, WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & ".")) Then
-				sTemp = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+		If tb->Des Then
+			Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+			If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
+				If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des->DesignControl) AndAlso CInt(StartsWith(tb->cboFunction.Text, WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & " ") OrElse StartsWith(tb->cboFunction.Text, WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & ".")) Then
+					sTemp = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+				End If
 			End If
 		End If
 		Dim As TypeElement Ptr te, te1
@@ -4175,13 +4181,16 @@ Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEnd
 			End If
 		Next
 	End If
-	If tb->Des AndAlso tb->Des->ReadPropertyFunc <> 0 Then
-		If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des) AndAlso CInt(tb->Des->DesignControl) Then
-			Dim As String frmName = WGet(tb->Des->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
-			If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
-				sTemp = frmName
-			ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
-				sTemp = frmName & "Type"
+	If tb->Des Then
+		Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+		If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
+			If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des->DesignControl) Then
+				Dim As String frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+				If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
+					sTemp = frmName
+				ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
+					sTemp = frmName & "Type"
+				End If
 			End If
 		End If
 	End If
@@ -4485,22 +4494,24 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 End Function
 
 Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
-	If Des = 0 OrElse Des->GraphicTypeLoadFromFileFunc = 0 Then Exit Sub
-	Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Ctrl, PropertyName)
+	If Des = 0 Then Exit Sub
+	Dim As SymbolsType Ptr st = Des->Symbols(Ctrl)
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+	Dim As Any Ptr Graphic = st->ReadPropertyFunc(Ctrl, PropertyName)
 	If Graphic = 0 Then Exit Sub
 	If ResName = "" Then
 		Select Case LCase(TypeName)
 		Case "graphictype"
-			Des->GraphicTypeLoadFromFileFunc(Graphic, "")
+			If st->GraphicTypeLoadFromFileFunc Then st->GraphicTypeLoadFromFileFunc(Graphic, "")
 			#ifndef __USE_GTK__
 				Des->BitmapHandle = 0
 			#endif
 		Case "bitmaptype"
-			Des->BitmapTypeLoadFromFileFunc(Graphic, "")
+			If st->BitmapTypeLoadFromFileFunc Then st->BitmapTypeLoadFromFileFunc(Graphic, "")
 		Case "icon"
-			Des->IconLoadFromFileFunc(Graphic, "")
+			If st->IconLoadFromFileFunc Then st->IconLoadFromFileFunc(Graphic, "")
 		Case "cursor"
-			Des->CursorLoadFromFileFunc(Graphic, "")
+			If st->CursorLoadFromFileFunc Then st->CursorLoadFromFileFunc(Graphic, "")
 		End Select
 		Exit Sub
 	End If
@@ -4508,23 +4519,26 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 	Dim As WString * 1024 FilePath = GetResNamePath(ResName, ResourceFile)
 	Select Case LCase(TypeName)
 	Case "graphictype"
-		Des->GraphicTypeLoadFromFileFunc(Graphic, FilePath)
+		If st->GraphicTypeLoadFromFileFunc Then st->GraphicTypeLoadFromFileFunc(Graphic, FilePath)
 	Case "bitmaptype"
-		Des->BitmapTypeLoadFromFileFunc(Graphic, FilePath)
+		If st->BitmapTypeLoadFromFileFunc Then st->BitmapTypeLoadFromFileFunc(Graphic, FilePath)
 	Case "icon"
-		Des->IconLoadFromFileFunc(Graphic, FilePath)
+		If st->IconLoadFromFileFunc Then st->IconLoadFromFileFunc(Graphic, FilePath)
 	Case "cursor"
-		Des->CursorLoadFromFileFunc(Graphic, FilePath)
+		If st->CursorLoadFromFileFunc Then st->CursorLoadFromFileFunc(Graphic, FilePath)
 	End Select
 	#ifndef __USE_GTK__
 		If Ctrl = Des->DesignControl AndAlso StartsWith(PropertyName, "Graphic") Then
-			Dim As Any Ptr Graphic = Des->ReadPropertyFunc(Des->DesignControl, "Graphic")
-			If Graphic <> 0 Then
-				Dim As Any Ptr Bitm = Des->ReadPropertyFunc(Graphic, "Bitmap")
-				If Bitm <> 0 Then
-					Dim As HBITMAP Ptr pHBitmap = Des->ReadPropertyFunc(Bitm, "Handle")
-					If pHBitmap <> 0 Then
-						Des->BitmapHandle = *pHBitmap
+			Dim As SymbolsType Ptr stDesignControl = Des->Symbols(Des->DesignControl)
+			If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
+				Dim As Any Ptr Graphic = stDesignControl->ReadPropertyFunc(Des->DesignControl, "Graphic")
+				If Graphic <> 0 Then
+					Dim As Any Ptr Bitm = stDesignControl->ReadPropertyFunc(Graphic, "Bitmap")
+					If Bitm <> 0 Then
+						Dim As HBITMAP Ptr pHBitmap = stDesignControl->ReadPropertyFunc(Bitm, "Handle")
+						If pHBitmap <> 0 Then
+							Des->BitmapHandle = *pHBitmap
+						End If
 					End If
 				End If
 			End If
@@ -4577,48 +4591,59 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	txtCode.DropDownTypeElement = 0
 	If CInt(NotForms = False) AndAlso CInt(Des) Then
 		With *Des
-			If pfImageListEditor->CurrentImageList <> 0 Then CurrentImageListName = WGet(.ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
-			If pfMenuEditor->ActiveCtrl <> 0 Then ActiveCtrlName = WGet(.ReadPropertyFunc(pfMenuEditor->ActiveCtrl, "Name"))
-			If pfMenuEditor->CurrentMenu <> 0 Then CurrentMenuName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentMenu, "Name"))
-			If pfMenuEditor->CurrentToolBar <> 0 Then CurrentToolBarName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentToolBar, "Name"))
-			If pfMenuEditor->CurrentStatusBar <> 0 Then CurrentStatusBarName = WGet(.ReadPropertyFunc(pfMenuEditor->CurrentStatusBar, "Name"))
-			If .SelectedControl <> 0 Then SelControlName = WGet(.ReadPropertyFunc(.SelectedControl, "Name"))
+			If Des->SymbolsReadProperty(pfImageListEditor->CurrentImageList) Then CurrentImageListName = WGet(Des->Symbols(pfImageListEditor->CurrentImageList)->ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
+			If Des->SymbolsReadProperty(pfMenuEditor->ActiveCtrl) Then ActiveCtrlName = WGet(Des->Symbols(pfMenuEditor->ActiveCtrl)->ReadPropertyFunc(pfMenuEditor->ActiveCtrl, "Name"))
+			If Des->SymbolsReadProperty(pfMenuEditor->ActiveCtrl) Then CurrentMenuName = WGet(Des->Symbols(pfMenuEditor->CurrentMenu)->ReadPropertyFunc(pfMenuEditor->CurrentMenu, "Name"))
+			If Des->SymbolsReadProperty(pfMenuEditor->CurrentToolBar) Then CurrentToolBarName = WGet(Des->Symbols(pfMenuEditor->CurrentToolBar)->ReadPropertyFunc(pfMenuEditor->CurrentToolBar, "Name"))
+			If Des->SymbolsReadProperty(pfMenuEditor->CurrentStatusBar) Then CurrentStatusBarName = WGet(Des->Symbols(pfMenuEditor->CurrentStatusBar)->ReadPropertyFunc(pfMenuEditor->CurrentStatusBar, "Name"))
+			If .SelectedControl <> 0 AndAlso Des->SymbolsReadProperty(.SelectedControl) Then SelControlName = WGet(Des->Symbols(.SelectedControl)->ReadPropertyFunc(.SelectedControl, "Name"))
 			For j As Integer = 0 To .SelectedControls.Count - 1
-				If .SelectedControls.Items[j] <> 0 Then SelControlNames.Add WGet(.ReadPropertyFunc(.SelectedControls.Items[j], "Name"))
+				If Des->SymbolsReadProperty(.SelectedControls.Items[j]) Then SelControlNames.Add WGet(Des->Symbols(.SelectedControls.Items[j])->ReadPropertyFunc(.SelectedControls.Items[j], "Name"))
 			Next
-			.SelectedControls.Clear
-			.Objects.Clear
-			.Controls.Clear
-			Events.Clear
 			'If .SelectedControl = .DesignControl Then bSelControlFind = True
 			If .DesignControl Then
 				.UnHook
-				If iGet(.ReadPropertyFunc(.DesignControl, "ControlCount")) > 0 Then
-					For i As Integer = iGet(.ReadPropertyFunc(.DesignControl, "ControlCount")) - 1 To 0 Step -1
-						If .RemoveControlSub AndAlso .ControlByIndexFunc Then .RemoveControlSub(.DesignControl, .ControlByIndexFunc(.DesignControl, i))
+				Dim As SymbolsType Ptr stDesignControl = Des->SymbolsReadProperty(.DesignControl)
+				If stDesignControl AndAlso iGet(stDesignControl->ReadPropertyFunc(.DesignControl, "ControlCount")) > 0 Then
+					For i As Integer = iGet(stDesignControl->ReadPropertyFunc(.DesignControl, "ControlCount")) - 1 To 0 Step -1
+						If stDesignControl->RemoveControlSub AndAlso stDesignControl->ControlByIndexFunc Then stDesignControl->RemoveControlSub(.DesignControl, stDesignControl->ControlByIndexFunc(.DesignControl, i))
 					Next i
 				End If
-				Des->WritePropertyFunc(Des->DesignControl, "Menu", 0)
+				If stDesignControl AndAlso stDesignControl->WritePropertyFunc Then stDesignControl->WritePropertyFunc(Des->DesignControl, "Menu", 0)
 				For i As Integer = 2 To cboClass.Items.Count - 1
 					CurCtrl = 0
 					CBItem = cboClass.Items.Item(i)
 					If CBItem <> 0 Then CurCtrl = CBItem->Object
 					If CurCtrl <> 0 Then
+						Dim As SymbolsType Ptr st = Des->Symbols(CurCtrl)
 						'TODO Hange here with ctrl RichEdit
-						If WGet(.ReadPropertyFunc(CurCtrl, "ClassName"))<>"RichTextBox" Then
+						If st AndAlso st->ReadPropertyFunc AndAlso WGet(st->ReadPropertyFunc(CurCtrl, "ClassName")) <> "RichTextBox" Then
 							'If .ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrl, "Tag")))
-							.DeleteComponentFunc(CurCtrl)
+							If st->DeleteComponentFunc Then st->DeleteComponentFunc(CurCtrl)
 						Else
 							''Delete the last one not current one. But still one more remain exist
 							If CurCtrlRichedit <> 0 Then
+								Dim As SymbolsType Ptr st = Des->Symbols(CurCtrlRichedit)
 								'If .ReadPropertyFunc(CurCtrlRichedit, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrlRichedit, "Tag")))
-								.DeleteComponentFunc(CurCtrlRichedit)
+								If st AndAlso st->DeleteComponentFunc Then st->DeleteComponentFunc(CurCtrlRichedit)
 							End If
 							CurCtrlRichedit = CurCtrl
 						End If
 					End If
 				Next i
 				.Hook
+			End If
+			.SelectedControls.Clear
+			.Objects.Clear
+			.Controls.Clear
+			Events.Clear
+			If .DesignControl Then
+				.Objects.Add .DesignControl
+				Dim As Any Ptr st = .CtrlSymbols.Item(0)
+				.CtrlSymbols.Clear
+				.CtrlSymbols.Add st
+			Else
+				.CtrlSymbols.Clear
 			End If
 		End With
 	End If
@@ -4864,10 +4889,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								Var te = New_( TypeElement)
-								If res1(n).tolower.StartsWith("byref") Then
+								If res1(n).ToLower.StartsWith("byref") Then
 									res1(n) = Trim(Mid(res1(n), 6))
 									te->ElementType = "ByRefParameter"
-								ElseIf res1(n).tolower.StartsWith("byval") Then
+								ElseIf res1(n).ToLower.StartsWith("byval") Then
 									res1(n) = Trim(Mid(res1(n), 6))
 									te->ElementType = "ByValParameter"
 								Else
@@ -4882,7 +4907,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 								te->Name = res1(n)
 								te->DisplayName = res1(n)
-								te->TypeIsPointer = CurType.tolower.EndsWith(" pointer") OrElse CurType.tolower.EndsWith(" ptr")
+								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
 								te->TypeName = CurType
 								te->TypeName = WithoutPointers(te->TypeName)
@@ -5028,10 +5053,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						Var te = New_( TypeElement)
-						If res1(n).tolower.StartsWith("byref") Then
+						If res1(n).ToLower.StartsWith("byref") Then
 							res1(n) = Trim(Mid(res1(n), 6))
 							te->ElementType = "ByRefParameter"
-						ElseIf res1(n).tolower.StartsWith("byval") Then
+						ElseIf res1(n).ToLower.StartsWith("byval") Then
 							res1(n) = Trim(Mid(res1(n), 6))
 							te->ElementType = "ByValParameter"
 						Else
@@ -5046,7 +5071,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 						te->Name = res1(n)
 						te->DisplayName = res1(n)
-						te->TypeIsPointer = CurType.tolower.EndsWith(" pointer") OrElse CurType.tolower.EndsWith(" ptr")
+						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 						'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
 						te->TypeName = CurType
 						te->TypeName = WithoutPointers(te->TypeName)
@@ -5114,7 +5139,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 '							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
-						If res1(n).tolower.StartsWith("byref") OrElse res1(n).tolower.StartsWith("byval") Then
+						If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
 							res1(n) = Trim(Mid(res1(n), 6))
 						End If
 						Pos1 = InStr(res1(n), "(")
@@ -5134,7 +5159,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Var te = New_( TypeElement)
 						te->Name = res1(n)
 						te->DisplayName = res1(n)
-						te->TypeIsPointer = CurType.tolower.EndsWith(" pointer") OrElse CurType.tolower.EndsWith(" ptr")
+						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 						If StartsWith(bTrimLCase, "common ") Then
 							te->ElementType = "CommonVariable"
 						ElseIf StartsWith(bTrimLCase, "const ") Then
@@ -5221,28 +5246,29 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						'.FLibs.Add *MFFDll, MFF
 						'ReadPropertyFunc = DylibSymbol(MFF, "ReadProperty")
 						'WritePropertyFunc = DylibSymbol(MFF, "WriteProperty")
-						If .WritePropertyFunc <> 0 Then
-							.WritePropertyFunc(.DesignControl, "IsChild", @bTrue)
+						Dim As SymbolsType Ptr stDesignControl = Des->Symbols(.DesignControl)
+						If stDesignControl AndAlso stDesignControl->WritePropertyFunc Then
+							stDesignControl->WritePropertyFunc(.DesignControl, "IsChild", @bTrue)
 							#ifdef __USE_GTK__
-								.WritePropertyFunc(.DesignControl, "ParentWidget", pnlForm.widget)
+								stDesignControl->WritePropertyFunc(.DesignControl, "ParentWidget", pnlForm.widget)
 							#else
 								Dim As HWND pnlFormHandle = pnlForm.Handle
-								.WritePropertyFunc(.DesignControl, "ParentHandle", @pnlFormHandle)
+								stDesignControl->WritePropertyFunc(.DesignControl, "ParentHandle", @pnlFormHandle)
 								
 								'.ComponentSetBoundsSub(.DesignControl, 0, 0, 350, 300)
 							#endif
-							.WritePropertyFunc(.DesignControl, "DesignMode", @bTrue)
-							.WritePropertyFunc(.DesignControl, "Visible", @bTrue)
+							stDesignControl->WritePropertyFunc(.DesignControl, "DesignMode", @bTrue)
+							stDesignControl->WritePropertyFunc(.DesignControl, "Visible", @bTrue)
 							'.DesignControl->Parent = @pnlForm
 						End If
-						If .ReadPropertyFunc <> 0 Then
+						If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
 							#ifdef __USE_GTK__
-								Dim As GtkWidget Ptr DCLayoutWidget = .ReadPropertyFunc(.DesignControl, "LayoutWidget")
+								Dim As GtkWidget Ptr DCLayoutWidget = stDesignControl->ReadPropertyFunc(.DesignControl, "LayoutWidget")
 								If DCLayoutWidget <> 0 Then
 									.layoutwidget = DCLayoutWidget
 									gtk_widget_set_can_focus(.layoutwidget, True)
 								End If
-								Dim As GtkWidget Ptr DCWidget = .ReadPropertyFunc(.DesignControl, "Widget")
+								Dim As GtkWidget Ptr DCWidget = stDesignControl->ReadPropertyFunc(.DesignControl, "Widget")
 								If DCWidget <> 0 Then
 									'										Dim As GtkStyleContext Ptr context
 									'										context = gtk_widget_get_style_context(DCWidget)
@@ -5251,7 +5277,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									'gtk_widget_set_can_focus(DCWidget, True)
 								End If
 							#else
-								Dim As HWND Ptr DCHandle = .ReadPropertyFunc(.DesignControl, "Handle")
+								Dim As HWND Ptr DCHandle = stDesignControl->ReadPropertyFunc(.DesignControl, "Handle")
 								If DCHandle <> 0 Then
 									SetParent *DCHandle, pnlForm.Handle
 									.Dialog = *DCHandle
@@ -5364,6 +5390,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							If CBItem <> 0 Then Ctrl = Cast(Any Ptr, CBItem->Object)
 						End If
 						If Ctrl Then
+							Dim As SymbolsType Ptr st = Des->Symbols(Ctrl)
 							If p1 Then
 								PropertyName = Trim(Mid(*FLine, p + 1, p1 - p - 1), Any !"\t ")
 								FLin = Mid(b, p1 + 1)
@@ -5374,32 +5401,34 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Dim As Boolean Result
 									Result = WriteObjProperty(Ctrl, PropertyName, *FLine2, True)
 									If Result Then
-										#ifdef __USE_GTK__
-											If LCase(PropertyName) = "parent" AndAlso Des->ReadPropertyFunc(Ctrl, "Widget") Then
-												Des->HookControl(Des->ReadPropertyFunc(Ctrl, "Widget"))
-										#else
-											Dim hwnd1 As HWND Ptr = Des->ReadPropertyFunc(Ctrl, "Handle")
-											If LCase(PropertyName) = "parent" AndAlso hwnd1 AndAlso *hwnd1 Then
-												Des->HookControl(*hwnd1)
-										#endif
-											If SelControlNames.Contains(QWString(Des->ReadPropertyFunc(Ctrl, "Name"))) Then
-												Des->SelectedControls.Add Ctrl
+										If st AndAlso st->ReadPropertyFunc Then
+											#ifdef __USE_GTK__
+												If LCase(PropertyName) = "parent" AndAlso st->ReadPropertyFunc(Ctrl, "Widget") Then
+													Des->HookControl(st->ReadPropertyFunc(Ctrl, "Widget"))
+											#else
+												Dim hwnd1 As HWND Ptr = st->ReadPropertyFunc(Ctrl, "Handle")
+												If LCase(PropertyName) = "parent" AndAlso hwnd1 AndAlso *hwnd1 Then
+													Des->HookControl(*hwnd1)
+											#endif
+												If SelControlNames.Contains(QWString(st->ReadPropertyFunc(Ctrl, "Name"))) Then
+													Des->SelectedControls.Add Ctrl
+												End If
+												CtrlName = QWString(st->ReadPropertyFunc(Ctrl, "Name"))
+												If SelControlName = CtrlName Then
+													Des->SelectedControl = Ctrl
+													Des->MoveDots Des->SelectedControl, False
+													bSelControlFind = True
+												End If
+												If CurrentImageListName = CtrlName Then pfImageManager->CurrentImageList = Ctrl
+												If ActiveCtrlName = CtrlName Then pfMenuEditor->ActiveCtrl = Ctrl
+												If CurrentMenuName = CtrlName Then pfMenuEditor->CurrentMenu = Ctrl
+												If CurrentToolBarName = CtrlName Then pfMenuEditor->CurrentToolBar = Ctrl
+												If CurrentStatusBarName = CtrlName Then pfMenuEditor->CurrentStatusBar = Ctrl
 											End If
-											CtrlName = QWString(Des->ReadPropertyFunc(Ctrl, "Name"))
-											If SelControlName = CtrlName Then
-												Des->SelectedControl = Ctrl
-												Des->MoveDots Des->SelectedControl, False
-												bSelControlFind = True
-											End If
-											If CurrentImageListName = CtrlName Then pfImageManager->CurrentImageList = Ctrl
-											If ActiveCtrlName = CtrlName Then pfMenuEditor->ActiveCtrl = Ctrl
-											If CurrentMenuName = CtrlName Then pfMenuEditor->CurrentMenu = Ctrl
-											If CurrentToolBarName = CtrlName Then pfMenuEditor->CurrentToolBar = Ctrl
-											If CurrentStatusBarName = CtrlName Then pfMenuEditor->CurrentStatusBar = Ctrl
+											#ifdef __USE_GTK__
+												gtk_widget_show(st->ReadPropertyFunc(Ctrl, "Widget"))
+											#endif
 										End If
-										#ifdef __USE_GTK__
-											gtk_widget_show(Des->ReadPropertyFunc(Ctrl, "Widget"))
-										#endif
 									End If
 								End If
 							ElseIf LCase(Mid(*FLine, p + 1, 10)) = "setbounds " Then
@@ -5421,7 +5450,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								End If
 								Des->MoveControl(Ctrl, lLeft, lTop, lWidth, lHeight)
-							ElseIf (LCase(Mid(*FLine, p + 1, 4)) = "add " OrElse LCase(Mid(*FLine, p + 1, 12)) = "addfromfile ") AndAlso WGet(Des->ReadPropertyFunc(Ctrl, "ClassName")) = "ImageList" Then
+							ElseIf (LCase(Mid(*FLine, p + 1, 4)) = "add " OrElse LCase(Mid(*FLine, p + 1, 12)) = "addfromfile ") AndAlso st AndAlso st->ReadPropertyFunc AndAlso WGet(st->ReadPropertyFunc(Ctrl, "ClassName")) = "ImageList" Then
 								p1 = InStr(p + 1, *FLine, " ")
 								sRight = ""
 								sText = Mid(*FLine, p1 + 1)
@@ -5434,10 +5463,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If EndsWith(sRight, """") Then sRight = ..Left(sRight, Len(sRight) - 1)
 								If StartsWith(sText, """") Then sText = Mid(sText, 2)
 								If EndsWith(sText, """") Then sText = ..Left(sText, Len(sText) - 1)
-								If LCase(Mid(*FLine, p + 1, 4)) = "add " Then
-									Des->ImageListAddFromFileSub(Ctrl, GetResNamePath(sText, ResourceFile), sRight)
-								Else
-									Des->ImageListAddFromFileSub(Ctrl, GetRelativePath(sText, ResourceFile), sRight)
+								If st->ImageListAddFromFileSub Then
+									If LCase(Mid(*FLine, p + 1, 4)) = "add " Then
+										st->ImageListAddFromFileSub(Ctrl, GetResNamePath(sText, ResourceFile), sRight)
+									Else
+										st->ImageListAddFromFileSub(Ctrl, GetRelativePath(sText, ResourceFile), sRight)
+									End If
 								End If
 							End If
 						End If
@@ -5452,11 +5483,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			Des->SelectedControl = Des->DesignControl
 			#ifdef __USE_GTK__
 				Dim As GtkWidget Ptr Widget
-				If Des->ReadPropertyFunc <> 0 Then Widget = Des->ReadPropertyFunc(Des->SelectedControl, "Widget")
+				If Des->SymbolsReadProperty(Des->SelectedControl) Then Widget = Des->Symbols(Des->SelectedControl)->ReadPropertyFunc(Des->SelectedControl, "Widget")
 				If Widget <> 0 Then gtk_widget_show_all(Widget)
 			#else
 				Dim As HWND Ptr DesCtrlHandle
-				If Des->ReadPropertyFunc <> 0 Then DesCtrlHandle = Des->ReadPropertyFunc(Des->DesignControl, "Handle")
+				If Des->SymbolsReadProperty(Des->SelectedControl) Then DesCtrlHandle = Des->Symbols(Des->SelectedControl)->ReadPropertyFunc(Des->DesignControl, "Handle")
 				Des->MoveDots Des->DesignControl, False
 			#endif
 			If Des->SelectedControls.Count > 1 Then Des->MoveDots Des->SelectedControl, False
@@ -6067,8 +6098,9 @@ Destructor TabWindow
 			If CBItem <> 0 Then CurCtrl = CBItem->Object
 			If CurCtrl <> 0 Then
 				#ifndef __USE_GTK__
+					Dim As SymbolsType Ptr st = Des->Symbols(CurCtrl)
 					'If Des->ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, Des->ReadPropertyFunc(CurCtrl, "Tag")))
-					Des->DeleteComponentFunc(CurCtrl)
+					If st AndAlso st->DeleteComponentFunc Then st->DeleteComponentFunc(CurCtrl)
 				#endif
 			End If
 		Next i
@@ -6233,10 +6265,11 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabRight->Tag)
 		If tb = 0 Then Exit Sub
 		If tb->Des = 0 Then Exit Sub
-		If tb->Des->ReadPropertyFunc = 0 Then Exit Sub
 		If tb->Des->SelectedControl = 0 Then Exit Sub
+		Dim As SymbolsType Ptr st = tb->Des->Symbols(tb->Des->SelectedControl)
+		If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
 		Dim PropertyName As String = GetItemText(Item)
-		Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
+		Var te = GetPropertyType(WGet(st->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
 		If te = 0 Then Exit Sub
 		ptabRight->UpdateLock
 		Dim lvItem As TreeListViewItem Ptr
@@ -6268,7 +6301,7 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 			End With
 		Next
 		Item->Nodes.Remove 0
-		ptabRight->UpdateUnlock
+		ptabRight->UpdateUnLock
 	End If
 End Sub
 

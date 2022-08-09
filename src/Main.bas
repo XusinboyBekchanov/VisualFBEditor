@@ -562,7 +562,18 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			WLet(CompileWith, CompilerTool->GetCommand(, True))
 		End If
 		WAdd(CompileWith, " " & *FirstLine)
-		If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
+		'If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
+		Dim CtlLibrary As Library Ptr
+		For i As Integer = 0 To ControlLibraries.Count - 1
+			CtlLibrary = ControlLibraries.Item(i)
+			If CtlLibrary <> 0 AndAlso CtlLibrary->Enabled Then
+				If EndsWith(CtlLibrary->IncludeFolder, Slash) Then
+					WAdd CompileWith, " -i """ & Left(CtlLibrary->IncludeFolder, Len(CtlLibrary->IncludeFolder) - 1) & """"
+				Else
+					WAdd CompileWith, " -i """ & CtlLibrary->IncludeFolder & """"
+				End If
+			End If
+		Next
 		For i As Integer = 0 To pIncludePaths->Count - 1
 			WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
 		Next
@@ -596,18 +607,18 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			WLet(fbcCommand, """" & GetFileName(*MainFile) & """" & OtherModuleFiles & " " & *CompileWith)
 		End If
 		If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
-			If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *exename & """"
+			If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
 		End If
 		If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile"))) Then
 			Dim As String Colon = ""
 			#ifdef __USE_GTK__
 				Colon = ":"
 			#endif
-			WLet(PipeCommand, """" & *MakeToolPath1 & """ FBC" & Colon & "=""""""" & *fbcexe & """"""" XFLAG" & Colon & "=""-x """"" & *exename & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
+			WLet(PipeCommand, """" & *MakeToolPath1 & """ FBC" & Colon & "=""""""" & *FbcExe & """"""" XFLAG" & Colon & "=""-x """"" & *ExeName & """""""" & IIf(UseDebugger, " GFLAG" & Colon & "=-g", "") & " " & *Make1Arguments)
 		ElseIf Parameter = "MakeClean" Then
 			WLet(PipeCommand, """" & *MakeToolPath2 & """ " & *Make2Arguments)
 		Else
-			WLet(PipeCommand, """" & *fbcexe & """ " & *fbcCommand)
+			WLet(PipeCommand, """" & *FbcExe & """ " & *fbcCommand)
 		End If
 		'	' for better showing
 		'	#ifdef __USE_GTK__
@@ -641,13 +652,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Dim As Integer FileSize
 			Dim As WStringList Lines
 			FileSize = LOF(Fn1)
-			WReallocate(pBuff, FileSize)
+			WReAllocate(pBuff, FileSize)
 			Do Until EOF(Fn1)
 				LineInputWstr Fn1, pBuff, FileSize
 				Lines.Add *pBuff
 			Loop
 			CloseFile_(Fn1)
-			WDeallocate pBuff
+			WDeAllocate pBuff
 			Dim As Integer Fn2 = FreeFile_
 			Open gradlewFile For Output As #Fn2
 			For i As Integer = 0 To Lines.Count - 1
@@ -716,7 +727,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
 						OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
 						OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") _
-						OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:")) Then
+						OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:") OrElse StartsWith(Buff, "Restarting fbc")) Then
 						bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
 							NumberErr += 1
@@ -751,7 +762,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Dim result_ As Integer
 			
 			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
-			sa.lpSecurityDescriptor = Null
+			sa.lpSecurityDescriptor = NULL
 			sa.bInheritHandle = True
 			
 			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
@@ -807,7 +818,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 							OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 							OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
-							OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse InStr(*res(i), "ld.exe") > 0) Then
+							OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse InStr(*res(i), "ld.exe") > 0) Then
 							bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 							If bFlagErr = 2 Then
 								NumberErr += 1
@@ -2996,7 +3007,11 @@ Function DeleteSpaces(b As String) As String
 	Return bNew
 End Function
 
-Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Any Ptr = 0)
+Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
+	If StartsWith(FileName, FromFile) Then Return Mid(FileName, Len(FromFile) + 1) Else Return FileName
+End Function
+
+Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0)
 	If FormClosing Then Exit Sub
 	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
@@ -3131,7 +3146,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							tbi->ElementType = IIf(Pos3 > 0, "TypeCopy", "Type")
 							tbi->StartLine = i
 							tbi->FileName = PathFunction
-							tbi->IncludeFile = "mff/" & GetFileName(PathFunction)
+							If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
 							tbi->Parameters = Trim(Mid(bTrim, Pos1 + 5))
 							tbi->Tag = CtlLibrary
 							Types.Add t, tbi
@@ -4103,7 +4118,7 @@ Sub LoadToolBox
 		CtlLibrary->Path = Temp
 		CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
 		CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
-		CtlLibrary->IncludeFolder = ini.ReadString("Setup", "IncludeFolder")
+		CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), Temp))
 		CtlLibrary->Enabled = iniSettings.ReadBool("ControlLibraries", "Enabled_" & WStr(i), False)
 		ControlLibraries.Add CtlLibrary
 		i += 1
@@ -4139,13 +4154,15 @@ Sub LoadToolBox
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
-		IncludePath = GetFullPath(GetFullPath(CtlLibrary->HeadersFolder, CtlLibrary->Path)) & "/"
+		IncludePath = GetFullPath(GetFullPath(CtlLibrary->HeadersFolder, CtlLibrary->Path))
+		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
 		f = Dir(IncludePath & "*.bi")
 		While f <> ""
 			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs, , CtlLibrary
 			f = Dir()
 		Wend
-		IncludePath = GetFullPath(GetFullPath(CtlLibrary->SourcesFolder, CtlLibrary->Path)) & "/"
+		IncludePath = GetFullPath(GetFullPath(CtlLibrary->SourcesFolder, CtlLibrary->Path))
+		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
 		f = Dir(IncludePath & "*.bas")
 		While f <> ""
 			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs, , CtlLibrary
@@ -6009,39 +6026,41 @@ Sub btnPropertyValue_Click(ByRef Sender As Control)
 		pfImageManager->WithoutMainNode = False
 	Case "font"
 		Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
+		If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
+		Dim As SymbolsType Ptr st = tb->Des->Symbols(tb->Des->SelectedControl)
+		If st = 0 OrElse st->ReadPropertyFunc = 0 OrElse st->WritePropertyFunc = 0 Then Exit Sub
 		Dim As Any Ptr SelFont = txtPropertyValue.Tag
 		If SelFont = 0 Then Exit Sub
 		Dim As FontDialog fd
-		Dim As UString FontName = QWString(tb->Des->ReadPropertyFunc(SelFont, "Name"))
-		Dim As Integer FontColor = QInteger(tb->Des->ReadPropertyFunc(SelFont, "Color"))
-		Dim As Integer FontSize = QInteger(tb->Des->ReadPropertyFunc(SelFont, "Size"))
-		Dim As Integer FontCharset_ = QInteger(tb->Des->ReadPropertyFunc(SelFont, "Charset"))
-		Dim As Boolean FontBold = QBoolean(tb->Des->ReadPropertyFunc(SelFont, "Bold"))
-		Dim As Boolean FontItalic = QBoolean(tb->Des->ReadPropertyFunc(SelFont, "Italic"))
-		Dim As Boolean FontUnderline = QBoolean(tb->Des->ReadPropertyFunc(SelFont, "Underline"))
-		Dim As Boolean FontStrikeout = QBoolean(tb->Des->ReadPropertyFunc(SelFont, "Strikeout"))
-		Dim As Integer FontOrientation = QInteger(tb->Des->ReadPropertyFunc(SelFont, "Orientation"))
+		Dim As UString FontName = QWString(st->ReadPropertyFunc(SelFont, "Name"))
+		Dim As Integer FontColor = QInteger(st->ReadPropertyFunc(SelFont, "Color"))
+		Dim As Integer FontSize = QInteger(st->ReadPropertyFunc(SelFont, "Size"))
+		Dim As Integer FontCharset_ = QInteger(st->ReadPropertyFunc(SelFont, "Charset"))
+		Dim As Boolean FontBold = QBoolean(st->ReadPropertyFunc(SelFont, "Bold"))
+		Dim As Boolean FontItalic = QBoolean(st->ReadPropertyFunc(SelFont, "Italic"))
+		Dim As Boolean FontUnderline = QBoolean(st->ReadPropertyFunc(SelFont, "Underline"))
+		Dim As Boolean FontStrikeout = QBoolean(st->ReadPropertyFunc(SelFont, "Strikeout"))
+		Dim As Integer FontOrientation = QInteger(st->ReadPropertyFunc(SelFont, "Orientation"))
 		fd.Font.Name = FontName
 		fd.Font.Color = FontColor
 		fd.Font.Size = FontSize
-		fd.Font.Charset = FontCharset_
+		fd.Font.CharSet = FontCharset_
 		fd.Font.Bold = FontBold
 		fd.Font.Italic = FontItalic
 		fd.Font.Underline = FontUnderline
-		fd.Font.Strikeout = FontStrikeout
+		fd.Font.StrikeOut = FontStrikeout
 		fd.Font.Orientation = FontOrientation
 		If fd.Execute Then
-			If fd.Font.Name <> FontName Then FontName = fd.Font.Name: tb->Des->WritePropertyFunc(SelFont, "Name", FontName.vptr): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Name")
-			If fd.Font.Color <> FontColor Then FontColor = fd.Font.Color: tb->Des->WritePropertyFunc(SelFont, "Color", @FontColor): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Color")
-			If fd.Font.Size <> FontSize Then FontSize = fd.Font.Size: tb->Des->WritePropertyFunc(SelFont, "Size", @FontSize): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Size")
-			If fd.Font.Charset <> FontCharset_ Then FontCharset_ = fd.Font.Charset: tb->Des->WritePropertyFunc(SelFont, "Charset", @FontCharset_): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Charset")
-			If fd.Font.Bold <> FontBold Then FontBold = fd.Font.Bold: tb->Des->WritePropertyFunc(SelFont, "Bold", @FontBold): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Bold")
-			If fd.Font.Italic <> FontItalic Then FontItalic = fd.Font.Italic: tb->Des->WritePropertyFunc(SelFont, "Italic", @FontItalic): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Italic")
-			If fd.Font.Underline <> FontUnderline Then FontUnderline = fd.Font.Underline: tb->Des->WritePropertyFunc(SelFont, "Underline", @FontUnderline): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Underline")
-			If fd.Font.Strikeout <> FontStrikeout Then FontStrikeout = fd.Font.Strikeout: tb->Des->WritePropertyFunc(SelFont, "Strikeout", @FontStrikeout): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Strikeout")
-			If fd.Font.Orientation <> FontOrientation Then FontOrientation = fd.Font.Orientation: tb->Des->WritePropertyFunc(SelFont, "Orientation", @FontOrientation): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Orientation")
-			txtPropertyValue.Text = tb->Des->ToStringFunc(SelFont)
+			If fd.Font.Name <> FontName Then FontName = fd.Font.Name: st->WritePropertyFunc(SelFont, "Name", FontName.vptr): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Name")
+			If fd.Font.Color <> FontColor Then FontColor = fd.Font.Color: st->WritePropertyFunc(SelFont, "Color", @FontColor): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Color")
+			If fd.Font.Size <> FontSize Then FontSize = fd.Font.Size: st->WritePropertyFunc(SelFont, "Size", @FontSize): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Size")
+			If fd.Font.CharSet <> FontCharset_ Then FontCharset_ = fd.Font.CharSet: st->WritePropertyFunc(SelFont, "Charset", @FontCharset_): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Charset")
+			If fd.Font.Bold <> FontBold Then FontBold = fd.Font.Bold: st->WritePropertyFunc(SelFont, "Bold", @FontBold): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Bold")
+			If fd.Font.Italic <> FontItalic Then FontItalic = fd.Font.Italic: st->WritePropertyFunc(SelFont, "Italic", @FontItalic): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Italic")
+			If fd.Font.Underline <> FontUnderline Then FontUnderline = fd.Font.Underline: st->WritePropertyFunc(SelFont, "Underline", @FontUnderline): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Underline")
+			If fd.Font.StrikeOut <> FontStrikeout Then FontStrikeout = fd.Font.StrikeOut: st->WritePropertyFunc(SelFont, "Strikeout", @FontStrikeout): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Strikeout")
+			If fd.Font.Orientation <> FontOrientation Then FontOrientation = fd.Font.Orientation: st->WritePropertyFunc(SelFont, "Orientation", @FontOrientation): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Orientation")
+			If st->ToStringFunc Then txtPropertyValue.Text = st->ToStringFunc(SelFont)
 			If lvProperties.SelectedItem <> 0 Then lvProperties.SelectedItem->Text(1) = txtPropertyValue.Text
 		End If
 	Case Else
@@ -6087,7 +6106,9 @@ pnlPropertyValue.Add @cboPropertyValue
 Dim Shared Cpnt As Component Ptr
 Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
+	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
+	Dim As SymbolsType Ptr st = tb->Des->Symbols(tb->Des->SelectedControl)
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
 	Dim As Rect lpRect
 	Dim As String PropertyName = GetItemText(Item)
 	'Dim As TreeListViewItem Ptr Item = lvProperties.ListItems.Item(ItemIndex)
@@ -6102,11 +6123,11 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(lvProperties.TreeStore), @Item->TreeIter))
 		gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 		gtk_tree_path_free(TreePath)
-		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
+		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.Width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
 	#else
 		ListView_GetSubItemRect(lvProperties.Handle, Item->GetItemIndex, 1, LVIR_BOUNDS, @lpRect)
 	#endif
-	Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
+	Var te = GetPropertyType(WGet(st->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), PropertyName)
 	If te = 0 Then Exit Sub
 	'#ifndef __USE_GTK__
 	If LCase(te->TypeName) = "boolean" Then
@@ -6139,12 +6160,15 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		For i As Integer = 1 To tb->cboClass.Items.Count - 1
 			Cpnt = tb->cboClass.Items.Item(i)->Object
 			If Cpnt <> 0 Then
-				If CInt(te->EnumTypeName <> "") Then
-					If (CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = Trim(te->EnumTypeName)) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)))) Then
-						cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
+				Dim As SymbolsType Ptr st = tb->Des->Symbols(Cpnt)
+				If st AndAlso st->ReadPropertyFunc Then
+					If CInt(te->EnumTypeName <> "") Then
+						If (CInt(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")) = Trim(te->EnumTypeName)) OrElse CInt(IsBase(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)))) Then
+							cboPropertyValue.AddItem " " & WGet(st->ReadPropertyFunc(Cpnt, "Name"))
+						End If
+					ElseIf CInt(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")) = GetOriginalType(WithoutPointers(Trim(te->TypeName)))) OrElse CInt(IsBase(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), GetOriginalType(WithoutPointers(Trim(te->TypeName))))) Then
+						cboPropertyValue.AddItem " " & WGet(st->ReadPropertyFunc(Cpnt, "Name"))
 					End If
-				ElseIf CInt(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")) = GetOriginalType(WithoutPointers(Trim(te->TypeName)))) OrElse CInt(IsBase(WGet(tb->Des->ReadPropertyFunc(Cpnt, "ClassName")), GetOriginalType(WithoutPointers(Trim(te->TypeName))))) Then
-					cboPropertyValue.AddItem " " & WGet(tb->Des->ReadPropertyFunc(Cpnt, "Name"))
 				End If
 			End If
 		Next i
@@ -6185,7 +6209,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		btnPropertyValue.Visible = True
 		btnPropertyValue.Tag = te
 		If teTypeName = "font" Then
-			txtPropertyValue.Tag = tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
+			txtPropertyValue.Tag = st->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		ElseIf EndsWith(LCase(PropertyName), "color") Then
 			pnlColor.BackColor = Val(Item->Text(1))
 			pnlColor.Visible = True
@@ -6209,8 +6233,10 @@ End Sub
 
 Sub lvEvents_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 OrElse tb->Des->ReadPropertyFunc = 0 Then Exit Sub
-	Var te = GetPropertyType(WGet(tb->Des->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), GetItemText(Item))
+	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
+	Dim As SymbolsType Ptr st = tb->Des->Symbols(tb->Des->SelectedControl)
+	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+	Var te = GetPropertyType(WGet(st->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), GetItemText(Item))
 	'If te = 0 Then Exit Sub
 	'If te->Comment <> 0 Then
 	txtLabelEvent.Text = MC(Item->Text(0)) 'te->Comment
