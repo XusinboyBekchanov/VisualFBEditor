@@ -3010,7 +3010,12 @@ Function DeleteSpaces(b As String) As String
 End Function
 
 Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
-	If StartsWith(FileName, FromFile) Then Return Mid(FileName, Len(FromFile) + 1) Else Return FileName
+	If StartsWith(FileName, FromFile) Then 
+		Dim As UString Path = Mid(FileName, Len(FromFile) + 1)
+		If StartsWith(Path, "\") OrElse StartsWith(Path, "/") Then Path = Mid(Path, 2)
+		Return Path
+	Else Return FileName
+	End If
 End Function
 
 Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0)

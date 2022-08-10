@@ -245,7 +245,26 @@
 '#End Region
 
 Private Sub frmComponentsType.cmdApply_Click(ByRef Sender As Control)
-	
+	Dim As Library Ptr CtlLibrary
+	Dim bFinded As Boolean
+	For i As Integer = 0 To chlControls.ItemCount - 1
+		bFinded = False
+		For j As Integer = 0 To ControlLibraries.Count - 1
+			CtlLibrary = ControlLibraries.Item(j)
+			If GetFullPath(CtlLibrary->Path) = Paths.Item(i) Then
+				bFinded = True
+				CtlLibrary->Enabled = chlControls.Checked(i)
+				Exit For
+			End If
+		Next
+		If Not bFinded Then
+			If chlControls.Checked(i) Then
+				
+			End If
+		End If
+		iniSettings.WriteString("ControlLibraries", "Path_" & Str(i), GetRelative(Paths.Item(i), ExePath))
+		iniSettings.WriteBool("ControlLibraries", "Enabled_" & Str(i), chlControls.Checked(i))
+	Next
 End Sub
 
 Private Sub frmComponentsType.cmdOK_Click(ByRef Sender As Control)
