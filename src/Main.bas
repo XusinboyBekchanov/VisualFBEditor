@@ -164,6 +164,7 @@ LoadSettings
 #include once "frmProjectProperties.bi"
 #include once "frmSave.bi"
 #include once "frmTipOfDay.frm"
+#include once "frmComponents.frm"
 #include once "Debug.bi"
 
 Namespace VisualFBEditor
@@ -5494,6 +5495,8 @@ Sub tbFormClick(ByRef Sender As My.Sys.Object)
 			tbToolBox.Style = tpsIcons
 		End If
 		'tbToolBox.RecreateWnd
+	Case "Components"
+		frmComponents.Show frmMain
 	End Select
 	pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
 End Sub
@@ -5505,7 +5508,7 @@ tbForm.Align = DockStyle.alTop
 tbForm.Flat = True
 tbForm.Buttons.Add tbsCheck, "Label", , @tbFormClick, "Text", "", ML("Text"), , tstChecked Or tstEnabled
 tbForm.Buttons.Add tbsSeparator
-tbForm.Buttons.Add , "Component", , ,"", "", ML("Add Components")
+tbForm.Buttons.Add , "Component", , @tbFormClick, "Components", "", ML("Add Components")
 
 tabLeftWidth = 150
 tabRightWidth = 150
