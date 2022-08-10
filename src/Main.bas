@@ -2261,6 +2261,7 @@ Sub AddFromTemplate(ByRef Template As WString)
 			If Not ptn->IsExpanded Then ptn->Expand
 			If Not tn1->IsExpanded Then tn1->Expand
 			tn3->SelectItem
+			AddTab *ee->TemplateFileName, True, tn3
 		End If
 	End If
 	If tn3 = 0 Then AddNew Template
@@ -5710,8 +5711,8 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	Dim t As Boolean
 	Dim As TabWindow Ptr tb
 	Dim As TabControl Ptr ptabCode
-	For j As Integer = 0 To tabPanels.Count - 1
-		ptabCode = @Cast(tabpanel Ptr, tabPanels.Item(j))->tabCode
+	For j As Integer = 0 To TabPanels.Count - 1
+		ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 			If tb->tn = @Item Then

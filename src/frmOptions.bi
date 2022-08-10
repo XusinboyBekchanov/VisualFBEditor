@@ -32,7 +32,7 @@
 #include once "mff/RadioButton.bi"
 #include once "mff/HotKey.bi"
 #include once "mff/TimerComponent.bi"
-#include once "mff/ScrollableWindow.bi"
+#include once "mff/ScrollControl.bi"
 
 Using My.Sys.Forms
 
