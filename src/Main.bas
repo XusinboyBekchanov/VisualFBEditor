@@ -3864,7 +3864,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							Else
 								te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
 							End If
-							te->TypeIsPointer = CurType.tolower.EndsWith(" pointer") OrElse CurType.tolower.EndsWith(" ptr")
+							te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 							te->TypeName = CurType
 							te->TypeName = WithoutPointers(te->TypeName)
 							te->Value = ElementValue
@@ -3951,7 +3951,7 @@ Sub LoadHelp
 	If Result <> 0 Then Result = Open(*KeywordsHelpPath For Input As #Fn): tEncode= 1
 	If Result = 0 Then
 		#ifdef __FB_WIN32__
-			If tEncode = 1 AndAlso Not InEnglish Then Msgbox ML("The file encoding is not UTF-8 (BOM). You should convert it to UTF-8 (BOM).") & Chr(13, 10) & *KeywordsHelpPath
+			If tEncode = 1 AndAlso Not InEnglish Then MsgBox ML("The file encoding is not UTF-8 (BOM). You should convert it to UTF-8 (BOM).") & Chr(13, 10) & *KeywordsHelpPath
 		#endif
 		Dim As TypeElement Ptr te, te1
 		Dim As WString * 1024 Buff, StartBuff, bTrim
@@ -4136,31 +4136,16 @@ Sub LoadToolBox
 		cur = crArrow
 	#endif
 	Dim cl As Integer = clSilver
-	#ifdef __USE_GTK__
-		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFullPath(*MFFPath) & "/resources"))
-		gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFullPath(*MFFPath) & "/Resources"))
-		tbToolBox.Align = DockStyle.alClient
-	#else
-		imgListTools.Add "DropDown", "DropDown"
-		imgListTools.Add "DropRight", "DropRight"
-		imgListTools.Add "Kursor", "Cursor"
-	#endif
-	tbToolBox.Top = tbForm.Height
-	tbToolBox.Flat = True
-	tbToolBox.Wrapable = True
-	tbToolBox.BorderStyle = 0
-	tbToolBox.List = True
-	tbToolBox.Style = tpsBothHorizontal
-	#ifndef __USE_GTK__
-		tbToolBox.OnMouseWheel = @tbToolBox_MouseWheel
-	#endif
-	tbToolBox.ImagesList = @imgListTools
-	tbToolBox.HotImagesList = @imgListTools
 	LoadHelp
 	Dim As Library Ptr CtlLibrary
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
+		If Not CtlLibrary->Enabled Then Continue For
+		#ifdef __USE_GTK__
+			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/resources"))
+			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/Resources"))
+		#endif
 		IncludePath = GetFullPath(GetFullPath(CtlLibrary->HeadersFolder, CtlLibrary->Path))
 		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
 		f = Dir(IncludePath & "*.bi")
@@ -4179,14 +4164,6 @@ Sub LoadToolBox
 	Comps.Sort
 	Var iOld = -1, iNew = 0
 	Dim As String it = "Cursor", g(1 To 4): g(1) = ML("Controls"): g(2) = ML("Containers"): g(3) = ML("Components"): g(4) = ML("Dialogs")
-	tbToolBox.Groups.Add ML("Controls")
-	tbToolBox.Groups.Add ML("Containers")
-	tbToolBox.Groups.Add ML("Components")
-	tbToolBox.Groups.Add ML("Dialogs")
-	tbToolBox.Groups.Item(0)->Buttons.Add(tbsCheckGroup,it,,@ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
-	tbToolBox.Groups.Item(1)->Buttons.Add(tbsCheckGroup,it,,@ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
-	tbToolBox.Groups.Item(2)->Buttons.Add(tbsCheckGroup,it,,@ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
-	tbToolBox.Groups.Item(3)->Buttons.Add(tbsCheckGroup,it,,@ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
 	'For j As Integer = 1 To 4
 	'    If j > 1 Then tbToolBox.Buttons.Add tbsSeparator,,,,,,,,tstHidden
 	'    tbToolBox.Buttons.Add tbsCheck,"DropDown",,@ToolBoxClick,g(j),g(j),,,tstEnabled Or tstChecked Or tstWrap
@@ -7518,6 +7495,37 @@ Sub SetAutoColors
 	GetColors Strings, clMaroon
 End Sub
 
+#ifdef __USE_GTK__
+	tbToolBox.Align = DockStyle.alClient
+#else
+	imgListTools.Add "DropDown", "DropDown"
+	imgListTools.Add "DropRight", "DropRight"
+	imgListTools.Add "Kursor", "Cursor"
+#endif
+tbToolBox.Top = tbForm.Height
+tbToolBox.Flat = True
+tbToolBox.Wrapable = True
+tbToolBox.BorderStyle = 0
+tbToolBox.List = True
+tbToolBox.Style = tpsBothHorizontal
+#ifndef __USE_GTK__
+	tbToolBox.OnMouseWheel = @tbToolBox_MouseWheel
+#endif
+tbToolBox.ImagesList = @imgListTools
+tbToolBox.HotImagesList = @imgListTools
+
+LoadHelp
+
+Dim As String it = "Cursor"
+tbToolBox.Groups.Add ML("Controls")
+tbToolBox.Groups.Add ML("Containers")
+tbToolBox.Groups.Add ML("Components")
+tbToolBox.Groups.Add ML("Dialogs")
+tbToolBox.Groups.Item(0)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
+tbToolBox.Groups.Item(1)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
+tbToolBox.Groups.Item(2)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
+tbToolBox.Groups.Item(3)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
+
 Sub frmMain_Create(ByRef Sender As Control)
 	#ifdef __USE_GTK__
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), "VisualFBEditor1")
@@ -7693,7 +7701,7 @@ Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boo
 			If t[i] = dot Then
 				If CInt(Not hasDot) AndAlso (base_ = 10) Then
 					hasDot = True
-					IsValid = True
+					isValid = True
 					Exit For
 				End If
 				Return False ' either more than one dot or not base 10
@@ -7844,28 +7852,28 @@ End Sub
 
 Sub SaveMRU
 	Dim As Integer i, MRUStart
-	MRUStart = max(MRUFiles.Count - miRecentMax, 0)
+	MRUStart = Max(MRUFiles.Count - miRecentMax, 0)
 	For i = MRUStart To MRUFiles.Count - 1
 		iniSettings.WriteString("MRUFiles", "MRUFile_0" & WStr(i - MRUStart), MRUFiles.Item(i))
 	Next
 	For i = i To miRecentMax
 		iniSettings.KeyRemove("MRUFiles", "MRUFile_0" & WStr(i))
 	Next
-	MRUStart = max(MRUFolders.Count - miRecentMax, 0)
+	MRUStart = Max(MRUFolders.Count - miRecentMax, 0)
 	For i = MRUStart To MRUFolders.Count - 1
 		iniSettings.WriteString("MRUFolders", "MRUFolder_0" & WStr(i - MRUStart), MRUFolders.Item(i))
 	Next
 	For i = i To miRecentMax
 		iniSettings.KeyRemove("MRUFolders", "MRUFolder_0" & WStr(i))
 	Next
-	MRUStart = max(MRUProjects.Count - miRecentMax, 0)
+	MRUStart = Max(MRUProjects.Count - miRecentMax, 0)
 	For i = MRUStart To MRUProjects.Count - 1
 		iniSettings.WriteString("MRUProjects", "MRUProject_0" & WStr(i - MRUStart), MRUProjects.Item(i))
 	Next
 	For i = i To miRecentMax
 		iniSettings.KeyRemove("MRUProjects", "MRUProject_0" & WStr(i))
 	Next
-	MRUStart = max(MRUSessions.Count - miRecentMax, 0)
+	MRUStart = Max(MRUSessions.Count - miRecentMax, 0)
 	For i = MRUStart To MRUSessions.Count - 1
 		iniSettings.WriteString("MRUSessions", "MRUSession_0" & WStr(i - MRUStart), MRUSessions.Item(i))
 	Next
@@ -8000,7 +8008,7 @@ tbProject.OnMouseUp = @ToolBar_MouseUp
 tbBuild.OnMouseUp = @ToolBar_MouseUp
 tbRun.OnMouseUp = @ToolBar_MouseUp
 
-Rebar1.Align = DockStyle.alTop
+ReBar1.Align = DockStyle.alTop
 
 frmMain.Name = "frmMain"
 #ifdef __USE_GTK__
@@ -8016,7 +8024,7 @@ frmMain.MainForm = True
 	frmMain.Text = "Visual FB Editor (x32)"
 #endif
 frmMain.OnActiveControlChange = @frmMain_ActiveControlChanged
-frmMain.OnActivAteApp = @frmMain_ActivateApp
+frmMain.OnActivateApp = @frmMain_ActivateApp
 frmMain.OnResize = @frmMain_Resize
 frmMain.OnCreate = @frmMain_Create
 frmMain.OnShow = @frmMain_Show
@@ -8050,52 +8058,52 @@ Sub OnProgramStart() Constructor
 End Sub
 
 Sub OnProgramQuit() Destructor
-	WDeallocate ProjectsPath
-	WDeallocate LastOpenPath
-	WDeallocate DefaultMakeTool
-	WDeallocate CurrentMakeTool1
-	WDeallocate CurrentMakeTool2
-	WDeallocate MakeToolPath1
-	WDeallocate MakeToolPath2
-	WDeallocate DefaultDebugger32
-	WDeallocate DefaultDebugger64
-	WDeallocate GDBDebugger32
-	WDeallocate GDBDebugger64
-	WDeallocate CurrentDebugger32
-	WDeallocate CurrentDebugger64
-	WDeallocate Debugger32Path
-	WDeallocate Debugger64Path
-	WDeallocate DefaultTerminal
-	WDeallocate CurrentTerminal
-	WDeallocate TerminalPath
-	WDeallocate DefaultCompiler32
-	WDeallocate CurrentCompiler32
-	WDeallocate DefaultCompiler64
-	WDeallocate CurrentCompiler64
-	WDeallocate Compiler32Path
-	WDeallocate Compiler64Path
-	WDeallocate Compiler32Arguments
-	WDeallocate Compiler64Arguments
-	WDeallocate Make1Arguments
-	WDeallocate Make2Arguments
-	WDeallocate RunArguments
-	WDeallocate Debug32Arguments
-	WDeallocate Debug64Arguments
-	WDeallocate RecentFiles '
-	WDeallocate RecentFile '
-	WDeallocate RecentProject '
-	WDeallocate RecentFolder '
-	WDeallocate RecentSession '
-	WDeallocate DefaultHelp
-	WDeallocate HelpPath
-	WDeallocate KeywordsHelpPath
-	WDeallocate CurrentTheme
-	WDeallocate DefaultProjectFile
-	WDeallocate EditorFontName
-	WDeallocate InterfaceFontName
-	WDeallocate MFFPath
-	WDeallocate MFFDll
-	WDeallocate gSearchSave
+	WDeAllocate ProjectsPath
+	WDeAllocate LastOpenPath
+	WDeAllocate DefaultMakeTool
+	WDeAllocate CurrentMakeTool1
+	WDeAllocate CurrentMakeTool2
+	WDeAllocate MakeToolPath1
+	WDeAllocate MakeToolPath2
+	WDeAllocate DefaultDebugger32
+	WDeAllocate DefaultDebugger64
+	WDeAllocate GDBDebugger32
+	WDeAllocate GDBDebugger64
+	WDeAllocate CurrentDebugger32
+	WDeAllocate CurrentDebugger64
+	WDeAllocate Debugger32Path
+	WDeAllocate Debugger64Path
+	WDeAllocate DefaultTerminal
+	WDeAllocate CurrentTerminal
+	WDeAllocate TerminalPath
+	WDeAllocate DefaultCompiler32
+	WDeAllocate CurrentCompiler32
+	WDeAllocate DefaultCompiler64
+	WDeAllocate CurrentCompiler64
+	WDeAllocate Compiler32Path
+	WDeAllocate Compiler64Path
+	WDeAllocate Compiler32Arguments
+	WDeAllocate Compiler64Arguments
+	WDeAllocate Make1Arguments
+	WDeAllocate Make2Arguments
+	WDeAllocate RunArguments
+	WDeAllocate Debug32Arguments
+	WDeAllocate Debug64Arguments
+	WDeAllocate RecentFiles '
+	WDeAllocate RecentFile '
+	WDeAllocate RecentProject '
+	WDeAllocate RecentFolder '
+	WDeAllocate RecentSession '
+	WDeAllocate DefaultHelp
+	WDeAllocate HelpPath
+	WDeAllocate KeywordsHelpPath
+	WDeAllocate CurrentTheme
+	WDeAllocate DefaultProjectFile
+	WDeAllocate EditorFontName
+	WDeAllocate InterfaceFontName
+	WDeAllocate MFFPath
+	WDeAllocate MFFDll
+	WDeAllocate gSearchSave
 	'	For i As Integer = 0 To Threads.Count - 1
 	'		If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
 	'	Next
