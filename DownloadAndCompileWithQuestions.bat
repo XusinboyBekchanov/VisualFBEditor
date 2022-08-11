@@ -71,7 +71,7 @@ Rename VisualFBEditor-master VisualFBEditor
 
 curl -L -O https://github.com/XusinboyBekchanov/MyFbFramework/archive/master.zip
 
-PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEditor" -Force
+PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEditor\Controls" -Force
 
 if "%DownloadCompiler%" == "no" goto label7z
 
@@ -87,21 +87,21 @@ if "%Download7Zip%" == "no" goto start
 
 :start
 
-cd VisualFBEditor
+cd VisualFBEditor\Controls
 
 Rename MyFbFramework-master MyFbFramework
 
-cd ..\
+cd ..\..\
 
 if "%Bit%" == "64" goto compile64
 
-cd VisualFBEditor\MyFbFramework\mff
+cd VisualFBEditor\Controls\MyFbFramework\mff
 
 "%FBC32%" -b "mff.bi" "mff.rc" -dll -x "../mff32.dll" -v
 
-cd ..\..\..\VisualFBEditor\src
+cd ..\..\..\..\VisualFBEditor\src
 
-"%FBC32%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\MyFbFramework" -v
+"%FBC32%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
 
 cd ..\..\
 
@@ -109,14 +109,14 @@ if "%Bit%" == "32" goto finish
 
 :compile64
 
-cd VisualFBEditor\MyFbFramework\mff
+cd VisualFBEditor\Controls\MyFbFramework\mff
 
 "%FBC64%" -b "mff.bi" "mff.rc" -dll -x "../mff64.dll" -v
 
-cd ..\..\..\VisualFBEditor\src
+cd ..\..\..\..\VisualFBEditor\src
 
-"%FBC64%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "..\MyFbFramework" -v
+"%FBC64%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
 
-cd ..\..\
+cd ..\..\..\
 
 :finish

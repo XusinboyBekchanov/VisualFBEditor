@@ -6,9 +6,9 @@ Rename VisualFBEditor-master VisualFBEditor
 
 curl -L -O https://github.com/XusinboyBekchanov/MyFbFramework/archive/master.zip
 
-PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEditor" -Force
+PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEditor\Controls" -Force
 
-cd VisualFBEditor
+cd VisualFBEditor\Controls
 
 Rename MyFbFramework-master MyFbFramework
 
@@ -18,8 +18,8 @@ set FBC=D:\FreeBasic\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
 
 "%FBC%" -b "mff.bi" "mff.rc" -dll -x "../mff32.dll" -v
 
-cd ..\..\..\VisualFBEditor\src
+cd ..\..\..\..\VisualFBEditor\src
 
-"%FBC%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\MyFbFramework" -v
+"%FBC%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
 
 cd ..\..\
