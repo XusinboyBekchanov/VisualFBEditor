@@ -4106,40 +4106,37 @@ Sub LoadHelp
 	CloseFile_(Fn)
 End Sub
 
-Sub LoadToolBox
+Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Dim As String f
 	Dim As Integer i, j
 	Dim As My.Sys.Drawing.Cursor cur
 	Dim As String IncludePath
 	Dim As UString Temp
 	Dim As UInteger Attr
-	IncludeMFFPath = iniSettings.ReadBool("Options", "IncludeMFFPath", True)
-	WLet(MFFPath, iniSettings.ReadString("Options", "MFFPath", "./Controls/MyFbFramework"))
-	Do Until iniSettings.KeyExists("ControlLibraries", "Path_" & WStr(i)) = -1
-		Dim As IniFile ini
-		Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), "")
-		ini.Load GetFolderName(GetFullPath(Temp)) & "Settings.ini"
-		Var CtlLibrary = New_(Library)
-		CtlLibrary->Name = ini.ReadString("Setup", "Name")
-		CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
-		CtlLibrary->Path = Temp
-		CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
-		CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
-		CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), Temp))
-		CtlLibrary->Enabled = iniSettings.ReadBool("ControlLibraries", "Enabled_" & WStr(i), False)
-		ControlLibraries.Add CtlLibrary
-		i += 1
-	Loop
-	f = Dir("Controls" & Slash & "*", fbDirectory, Attr)
-	Dim As TypeElement Ptr tbi
-	#ifndef __USE_GTK__
-		cur = crArrow
-	#endif
-	Dim cl As Integer = clSilver
-	LoadHelp
+	If ForLibrary = 0 Then
+		IncludeMFFPath = iniSettings.ReadBool("Options", "IncludeMFFPath", True)
+		WLet(MFFPath, iniSettings.ReadString("Options", "MFFPath", "./Controls/MyFbFramework"))
+		Do Until iniSettings.KeyExists("ControlLibraries", "Path_" & WStr(i)) = -1
+			Dim As IniFile ini
+			Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), "")
+			ini.Load GetFolderName(GetFullPath(Temp)) & "Settings.ini"
+			Var CtlLibrary = New_(Library)
+			CtlLibrary->Name = ini.ReadString("Setup", "Name")
+			CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
+			CtlLibrary->Path = Temp
+			CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
+			CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
+			CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), Temp))
+			CtlLibrary->Enabled = iniSettings.ReadBool("ControlLibraries", "Enabled_" & WStr(i), False)
+			ControlLibraries.Add CtlLibrary
+			i += 1
+		Loop
+		LoadHelp
+	End If
 	Dim As Library Ptr CtlLibrary
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
+		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
 		CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
 		If Not CtlLibrary->Enabled Then Continue For
 		#ifdef __USE_GTK__
@@ -4163,37 +4160,28 @@ Sub LoadToolBox
 	Next i
 	Comps.Sort
 	Var iOld = -1, iNew = 0
-	Dim As String it = "Cursor", g(1 To 4): g(1) = ML("Controls"): g(2) = ML("Containers"): g(3) = ML("Components"): g(4) = ML("Dialogs")
-	'For j As Integer = 1 To 4
-	'    If j > 1 Then tbToolBox.Buttons.Add tbsSeparator,,,,,,,,tstHidden
-	'    tbToolBox.Buttons.Add tbsCheck,"DropDown",,@ToolBoxClick,g(j),g(j),,,tstEnabled Or tstChecked Or tstWrap
-	'    tbToolBox.Buttons.Add tbsSeparator
+	Dim As String it, g(1 To 4): g(1) = ML("Controls"): g(2) = ML("Containers"): g(3) = ML("Components"): g(4) = ML("Dialogs")
 	For i = 0 To Comps.Count - 1
 		If LCase(Comps.Item(i)) = "control" Or LCase(Comps.Item(i)) = "containercontrol" Or LCase(Comps.Item(i)) = "menu" Or LCase(Comps.Item(i)) = "component" Or LCase(Comps.Item(i)) = "dialog" Then Continue For
+		Var tbi = Cast(TypeElement Ptr, Comps.Object(i))
+		If tbi->ElementType = "TypeCopy" Then Continue For
+		If ForLibrary <> 0 AndAlso tbi->Tag <> ForLibrary Then Continue For
 		iNew = GetTypeControl(Comps.Item(i))
-		Dim As Any Ptr LibHandle
-		If Comps.Contains(Comps.Item(i)) Then
-			Var tbi = Cast(TypeElement Ptr, Comps.Object(Comps.IndexOf(Comps.Item(i))))
-			If tbi->ElementType = "TypeCopy" Then Continue For
-			tbi->ControlType = iNew
-			LibHandle = Cast(Library Ptr, tbi->Tag)->Handle
-		End If
+		tbi->ControlType = iNew
 		If iNew = 0 Then Continue For
-		'If iNew <> j Then Continue For
 		it = Comps.Item(i)
 		#ifndef __USE_GTK__
+			Dim As Any Ptr LibHandle
+			LibHandle = Cast(Library Ptr, tbi->Tag)->Handle
 			imgListTools.Add it, it, LibHandle
 		#endif
 		Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup,it,,@ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap)
 		toolb->Tag = Comps.Object(i)
 		iOld = iNew
 	Next i
-	'With *tbToolBox.Buttons.Button(tbToolBox.Buttons.Count - 1)
-	'    If .State = tstEnabled Then .State = tstEnabled Or tstWrap
-	'End With
-	'Next j
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
+		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
 		If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
 	Next i
 End Sub
@@ -5942,10 +5930,10 @@ pnlLeftPin.Parent = @pnlLeft
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
 		Dim As GtkWidget Ptr overlayLeft = gtk_overlay_new()
-		gtk_container_add(gtk_container(overlayLeft), pnlLeft.Handle)
+		gtk_container_add(GTK_CONTAINER(overlayLeft), pnlLeft.Handle)
 		g_object_ref(pnlLeftPin.Handle)
-		gtk_container_remove(gtk_container(pnlLeft.Handle), pnlLeftPin.Handle)
-		gtk_overlay_add_overlay(gtk_overlay(overlayLeft), pnlLeftPin.Handle)
+		gtk_container_remove(GTK_CONTAINER(pnlLeft.Handle), pnlLeftPin.Handle)
+		gtk_overlay_add_overlay(GTK_OVERLAY(overlayLeft), pnlLeftPin.Handle)
 		g_signal_connect(overlayLeft, "get-child-position", G_CALLBACK(@OverlayLeft_get_child_position), @pnlLeft)
 		pnlLeft.WriteProperty("overlaywidget", overlayLeft)
 	#endif
@@ -5963,7 +5951,7 @@ pnlToolBox.Add @tbToolBox
 #ifndef __USE_GTK__
 	pnlToolBox.Add @scrTool
 #endif
-pnlToolBox.OnReSize = @pnlToolBox_Resize
+pnlToolBox.OnResize = @pnlToolBox_Resize
 
 tpShakl->Add @pnlToolBox 'tbToolBox
 tpShakl->Add @tbForm

@@ -255,6 +255,7 @@ Declare Sub LoadOnlyFilePath(Param As Any Ptr)
 Declare Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 Declare Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 Declare Sub LoadFromTabWindow(Param As Any Ptr)
+Declare Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 Declare Sub CloseAllTabs(WithoutCurrent As Boolean = False)
 Declare Sub RunHelp(Param As Any Ptr)
 
@@ -262,6 +263,7 @@ Common Shared As Integer tabLeftWidth, tabRightWidth, tabBottomHeight
 Declare Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
+Declare Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 
 Dim Shared symbols(0 To 15) As UByte
 Const plus  As UByte = 43

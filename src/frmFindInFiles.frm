@@ -84,11 +84,11 @@ pfFindFile = @fFindFile
 		chkMatchCase.Caption = ML("Match Case")
 		chkMatchCase.SetBounds 92, 38, 148, 22
 		chkMatchCase.Parent =  @Panel1
-		chkSearchinSub.Name = "chkSearchinSub"
-		chkSearchinSub.Caption = ML("Search Subfolders")
-		chkSearchinSub.SetBounds 92, 63, 200, 22
-		chkSearchinSub.Checked = True
-		chkSearchinSub.Parent =  @Panel1
+		chkSearchInSub.Name = "chkSearchInSub"
+		chkSearchInSub.Caption = ML("Search Subfolders")
+		chkSearchInSub.SetBounds 92, 63, 200, 22
+		chkSearchInSub.Checked = True
+		chkSearchInSub.Parent =  @Panel1
 		'btnFind
 		With btnFind
 			.Name = "btnFind"
@@ -180,7 +180,7 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 	Else
 		f = Dir(Path & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
 	End If
-	wLet(gSearchSave, tSearch)
+	WLet(gSearchSave, tSearch)
 	While f <> ""
 		If FormClosing Then Exit Sub
 		If (Attr And fbDirectory) <> 0 Then
@@ -346,13 +346,13 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 	Dim As WString Ptr Temp
 	Dim As WString * 5 tML = WChr(77) & WChr(76) & WChr(40)& WChr(34)
 	If Path = "" OrElse tSearch="" OrElse (tSearch = tReplace AndAlso LCase(tML) <> LCase(tReplace)) Then Exit Sub
-	If LCase(tSearch) = LCase(tReplace) Then wLet(BuffOut, "File")
-	If chkSearchinSub.Checked Then
+	If LCase(tSearch) = LCase(tReplace) Then WLet(BuffOut, "File")
+	If chkSearchInSub.Checked Then
 		f = Dir(Path & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
 	Else
 		f = Dir(Path & "*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)
 	End If
-	wLet(gSearchSave, tSearch)
+	WLet(gSearchSave, tSearch)
 	While f <> ""
 		If (Attr And fbDirectory) <> 0 Then
 			If f <> "." AndAlso f <> ".." Then Folders.Add  Path & f
@@ -379,7 +379,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 			If Result <> 0 Then Result = Open(FNameOpen For Input As #Fn)
 			If Result = 0 Then
 				iLine = 0
-				If LCase(tSearch) <> LCase(tReplace) Then wLet(BuffOut, "")
+				If LCase(tSearch) <> LCase(tReplace) Then WLet(BuffOut, "")
 				Do Until EOF(Fn)
 					Line Input #Fn, Buff
 					iLine += 1
@@ -439,7 +439,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 		End If
 		f = Dir(Attr)
 	Wend
-	If chkSearchinSub.Checked Then
+	If chkSearchInSub.Checked Then
 		For i As Integer = 0 To Folders.Count - 1
 			ReplaceInFile Folders.Item(i), tSearch, tReplace
 		Next
@@ -452,9 +452,9 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 		End If
 		CloseFile_(Fn)
 	End If
-	wDeallocate BuffOut
+	WDeAllocate BuffOut
 	Folders.Clear
-	WDeallocate Temp
+	WDeAllocate Temp
 End Sub
 
 Private Sub frmFindInFiles.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)

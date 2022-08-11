@@ -268,30 +268,46 @@ Private Sub frmComponentsType.cmdApply_Click(ByRef Sender As Control)
 		For j As Integer = 0 To ControlLibraries.Count - 1
 			CtlLibrary = ControlLibraries.Item(j)
 			If GetFullPath(CtlLibrary->Path) = Paths.Item(i) Then
-				bChanged = True
 				bFinded = True
+				bChanged = CtlLibrary->Enabled <> chlControls.Checked(i)
 				CtlLibrary->Enabled = chlControls.Checked(i)
 				Exit For
 			End If
 		Next
 		If bChanged Then
 			If chlControls.Checked(i) Then
-				'LoadToolBox 
+				LoadToolBox CtlLibrary
 			Else
 				Dim As TypeElement Ptr te
 				For i As Integer = tbToolBox.Groups.Count - 1 To 0 Step -1
 					For j As Integer = tbToolBox.Groups.Item(i)->Buttons.Count - 1 To 0 Step -1
 						te = tbToolBox.Groups.Item(i)->Buttons.Item(j)->Tag
-						If te AndAlso te->Tag = CtlLibrary Then tbToolBox.Groups.Item(i)->Buttons.Remove j
+						If te AndAlso te->Tag <> 0 AndAlso te->Tag = CtlLibrary Then tbToolBox.Groups.Item(i)->Buttons.Remove j
 					Next
 				Next
 			End If
 		ElseIf Not bFinded Then
-			
+			If chlControls.Checked(i) Then
+				Dim As IniFile ini
+				ini.Load GetFolderName(Paths.Item(i)) & "Settings.ini"
+				Var CtlLibrary = New_(Library)
+				CtlLibrary->Name = ini.ReadString("Setup", "Name")
+				CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
+				CtlLibrary->Path = Paths.Item(i)
+				CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
+				CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
+				CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), Paths.Item(i)))
+				CtlLibrary->Enabled = True
+				ControlLibraries.Add CtlLibrary
+				LoadToolBox CtlLibrary
+			End If
 		End If
 		iniSettings.WriteString("ControlLibraries", "Path_" & Str(i), GetRelative(Paths.Item(i), ExePath))
 		iniSettings.WriteBool("ControlLibraries", "Enabled_" & Str(i), chlControls.Checked(i))
 	Next
+	pnlToolBox.RequestAlign
+	pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
+	pnlToolBox.RequestAlign
 End Sub
 
 Private Sub frmComponentsType.cmdOK_Click(ByRef Sender As Control)
