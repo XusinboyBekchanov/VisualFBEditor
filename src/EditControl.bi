@@ -277,7 +277,7 @@ Namespace My.Sys.Forms
 		Declare Function CountOfVisibleLines() As Integer
 		Declare Sub ChangeCollapsibility(LineIndex As Integer)
 		Declare Sub _FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString)
-		Declare Sub _LoadFromHistory(ByRef item As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr)
+		Declare Sub _LoadFromHistory(ByRef item As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr, bWithoutPaint As Boolean = False)
 		Declare Sub _ClearHistory(Index As Integer = 0)
 		Declare Sub ChangeSelPos(bLeft As Boolean)
 		Declare Sub ChangePos(CharTo As Integer)

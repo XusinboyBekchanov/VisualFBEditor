@@ -3606,7 +3606,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr)
+	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr, bWithoutPaint As Boolean = False)
 		For i As Integer = FLines.Count - 1 To 0 Step -1
 			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 		Next i
@@ -3652,7 +3652,7 @@ Namespace My.Sys.Forms
 		#else
 			If Handle Then
 		#endif
-			ScrollToCaret
+			If Not bWithoutPaint Then ScrollToCaret
 		End If
 		OldnCaretPosX = nCaretPosX
 		OldCharIndex = GetOldCharIndex
@@ -3663,15 +3663,17 @@ Namespace My.Sys.Forms
 	Sub EditControl.Undo
 		If curHistory <= 0 Then Exit Sub
 		curHistory = curHistory - 1
-		_LoadFromHistory FHistory.Items[curHistory], True, FHistory.Items[curHistory + 1]
-		If OnLineChange Then OnLineChange(This, FSelEndLine, FSelEndLine)
+		_LoadFromHistory FHistory.Items[curHistory], True, FHistory.Items[curHistory + 1], True
+		If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
+		ScrollToCaret
 	End Sub
 	
 	Sub EditControl.Redo
 		If curHistory >= FHistory.Count - 1 Then Exit Sub
 		curHistory = curHistory + 1
-		_LoadFromHistory FHistory.Item(curHistory), False, FHistory.Item(curHistory - 1)
-		If OnLineChange Then OnLineChange(This, FSelEndLine, FSelEndLine)
+		_LoadFromHistory FHistory.Item(curHistory), False, FHistory.Item(curHistory - 1), True
+		If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
+		ScrollToCaret
 	End Sub
 	
 	Function EditControl.CharType(ByRef ch As WString) As Integer

@@ -2595,7 +2595,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 	If TextChanged AndAlso tb->txtCode.SyntaxEdit Then
 		With tb->txtCode
 			If Not .Focused Then bNotFunctionChange = False: Exit Sub
-			If OldLine < .FLines.Count Then
+			If OldLine > -1 AndAlso OldLine < .FLines.Count Then
 				Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .FLines.Items[OldLine])
 				If CInt(ecl->CommentIndex = 0) Then
 					If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg(Asc(Mid(RTrim(*ecl->Text), Len(RTrim(*ecl->Text)) - 2, 1)))) Then
@@ -2636,7 +2636,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 					End If
 				End If
 			End If
-			tb->FormDesign bNotDesignForms Or tb->tbrTop.Buttons.Item(1)->Checked Or OldLine < tb->ConstructorStart Or OldLine > tb->ConstructorEnd 'Not EndsWith(tb->cboFunction.Text, " [Constructor]")
+			tb->FormDesign bNotDesignForms OrElse tb->tbrTop.Buttons.Item(1)->Checked OrElse (CBool(OldLine < tb->ConstructorStart) AndAlso CBool(OldLine <> -1)) OrElse CBool(OldLine > tb->ConstructorEnd) 'Not EndsWith(tb->cboFunction.Text, " [Constructor]")
 		End With
 		TextChanged = False
 	End If

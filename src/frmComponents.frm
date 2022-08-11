@@ -261,20 +261,22 @@
 
 Private Sub frmComponentsType.cmdApply_Click(ByRef Sender As Control)
 	Dim As Library Ptr CtlLibrary
-	Dim bChanged As Boolean
+	Dim As Boolean bFinded, bChanged
 	For i As Integer = 0 To chlControls.ItemCount - 1
+		bFinded = False
 		bChanged = False
 		For j As Integer = 0 To ControlLibraries.Count - 1
 			CtlLibrary = ControlLibraries.Item(j)
 			If GetFullPath(CtlLibrary->Path) = Paths.Item(i) Then
 				bChanged = True
+				bFinded = True
 				CtlLibrary->Enabled = chlControls.Checked(i)
 				Exit For
 			End If
 		Next
 		If bChanged Then
 			If chlControls.Checked(i) Then
-				
+				'LoadToolBox 
 			Else
 				Dim As TypeElement Ptr te
 				For i As Integer = tbToolBox.Groups.Count - 1 To 0 Step -1
@@ -284,6 +286,8 @@ Private Sub frmComponentsType.cmdApply_Click(ByRef Sender As Control)
 					Next
 				Next
 			End If
+		ElseIf Not bFinded Then
+			
 		End If
 		iniSettings.WriteString("ControlLibraries", "Path_" & Str(i), GetRelative(Paths.Item(i), ExePath))
 		iniSettings.WriteBool("ControlLibraries", "Enabled_" & Str(i), chlControls.Checked(i))
