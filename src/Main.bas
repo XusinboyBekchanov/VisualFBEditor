@@ -2949,28 +2949,30 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 	If FileExists(Result) Then
 		Return Result
 	Else
-		Result = GetOSPath(GetFullPath(*MFFPath) & Slash & Path)
+		Dim As Library Ptr CtlLibrary
+		For i As Integer = 0 To ControlLibraries.Count - 1
+			CtlLibrary = ControlLibraries.Item(i)
+			If Not CtlLibrary->Enabled Then Continue For
+			Result = GetOSPath(GetFullPath(GetFullPath(CtlLibrary->IncludeFolder, CtlLibrary->Path)) & Slash & Path)
+			If FileExists(Result) Then Return Result
+		Next
+		#ifdef __USE_GTK__
+			Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic/" & Path)
+		#else
+			Result = GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc\" & Path)
+		#endif
 		If FileExists(Result) Then
 			Return Result
 		Else
 			#ifdef __USE_GTK__
-				Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic/" & Path)
+				Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic/" & Path)
 			#else
-				Result = GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc\" & Path)
+				Result = GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc\" & Path)
 			#endif
 			If FileExists(Result) Then
 				Return Result
 			Else
-				#ifdef __USE_GTK__
-					Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic/" & Path)
-				#else
-					Result = GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc\" & Path)
-				#endif
-				If FileExists(Result) Then
-					Return Result
-				Else
-					Return GetOSPath(Path)
-				End If
+				Return GetOSPath(Path)
 			End If
 		End If
 	End If
@@ -6126,7 +6128,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				cboPropertyValue.ItemIndex = Val(Item->Text(1))
 			End If
 		End If
-	ElseIf GetTypeIsPointer(te) AndAlso (CBool(te->TypeName = "My.Sys.Object") OrElse IsBase(te->TypeName, "My.Sys.Object")) Then
+	ElseIf GetTypeIsPointer(te) AndAlso IsBase(te->TypeName, "My.Sys.Object") Then
 		'CtrlEdit = @pnlPropertyValue
 		cboPropertyValue.Visible = True
 		cboPropertyValue.Clear
@@ -6137,10 +6139,10 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 				Dim As SymbolsType Ptr st = tb->Des->Symbols(Cpnt)
 				If st AndAlso st->ReadPropertyFunc Then
 					If CInt(te->EnumTypeName <> "") Then
-						If (CInt(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")) = Trim(te->EnumTypeName)) OrElse CInt(IsBase(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)))) Then
+						If IsBase(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), Trim(te->EnumTypeName)) Then
 							cboPropertyValue.AddItem " " & WGet(st->ReadPropertyFunc(Cpnt, "Name"))
 						End If
-					ElseIf CInt(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")) = GetOriginalType(WithoutPointers(Trim(te->TypeName)))) OrElse CInt(IsBase(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), GetOriginalType(WithoutPointers(Trim(te->TypeName))))) Then
+					ElseIf IsBase(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), GetOriginalType(WithoutPointers(Trim(te->TypeName)))) Then
 						cboPropertyValue.AddItem " " & WGet(st->ReadPropertyFunc(Cpnt, "Name"))
 					End If
 				End If
