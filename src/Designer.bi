@@ -83,20 +83,6 @@ Namespace My.Sys.Forms
 	
 	Type Designer Extends My.Sys.Object
 	Private:
-		#ifdef __USE_GTK__
-			Declare Static Function HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
-			Declare Static Function HookChildProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-			Declare Static Function HookDialogProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-			Declare Static Function HookDialogParentProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-			Declare Static Function DotWndProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-		#else
-			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Declare Static Function HookDialogProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Declare Static Function HookDialogParentProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Declare Static Function DotWndProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			Declare Static Function HookTopMenuProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
-			'FPopupMenu     As HMENU
-		#endif
 		FActive        As Boolean
 		FStepX         As Integer
 		FStepY         As Integer
@@ -168,54 +154,91 @@ Namespace My.Sys.Forms
 		As String OldClassName
 		As Library Ptr OldLibrary
 		As SymbolsType Ptr OldSymbols, OldCtrlSymbols
+		#ifdef __USE_GTK__
+			Declare Static Function HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			Declare Static Function HookChildProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Function HookDialogProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Function HookDialogParentProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			Declare Static Function DotWndProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+		#else
+			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookDialogProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookDialogParentProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function DotWndProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			Declare Static Function HookTopMenuProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			'FPopupMenu     As HMENU
+		#endif
 	Protected:
-		Declare Sub ProcessMessage(ByRef Message As Message)
+		FLibs          As List
+		FSymbols       As List
 		FPopupMenuItems    As List
+		Declare Sub ProcessMessage(ByRef Message As Message)
 		Declare Function EnumPopupMenuItems(ByRef Item As MenuItem) As Boolean
 		Declare Sub GetPopupMenuItems
 		#ifdef __USE_GTK__
-			Declare        Function IsDot(hDlg As GtkWidget Ptr) As Integer
+			Declare Function IsDot(hDlg As GtkWidget Ptr) As Integer
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Function EnumChildsProc(hDlg As HWND, lParam As LPARAM) As Boolean
-			Declare        Function IsDot(hDlg As HWND) As Integer
+			Declare Function IsDot(hDlg As HWND) As Integer
 		#endif
 		Declare Function GetContainerControl(Ctrl As Any Ptr) As Any Ptr
-		Declare        Sub HookParent
-		Declare        Sub UnHookParent
-		Declare        Sub RegisterDotClass(ByRef clsName As WString)
-		Declare        Sub CreateDots(Parent As Control Ptr)
-		Declare        Sub DestroyDots
+		Declare Sub HookParent
+		Declare Sub UnHookParent
+		Declare Sub RegisterDotClass(ByRef clsName As WString)
+		Declare Sub CreateDots(Parent As Control Ptr)
+		Declare Sub DestroyDots
 		#ifdef __USE_GTK__
 			Declare Function GetControlHandle(Control As Any Ptr) As GtkWidget Ptr
 		#else
 			Declare Function GetControlHandle(Control As Any Ptr) As HWND
 		#endif
 		'#IfDef __USE_GTK__
-		Declare        Function ControlAt(Parent As Any Ptr, X As Integer, Y As Integer, Ctrl As Any Ptr = 0) As Any Ptr
+		Declare Function ControlAt(Parent As Any Ptr, X As Integer, Y As Integer, Ctrl As Any Ptr = 0) As Any Ptr
 		'#Else
 		'	declare        function ControlAt(Parent as HWND,X as integer,Y as integer) as HWND
 		'#EndIf
 		#ifndef __USE_GTK__
-			Declare        Sub GetChilds(Parent As HWND = 0)
+			Declare Sub GetChilds(Parent As HWND = 0)
 		#endif
-		Declare        Sub UpdateGrid
-		Declare        Sub PaintGrid
+		Declare Sub UpdateGrid
+		Declare Sub PaintGrid
 		#ifndef __USE_GTK__
-			Declare        Sub ClipCursor(hDlg As HWND)
+			Declare Sub ClipCursor(hDlg As HWND)
 		#endif
-		Declare        Sub DrawBox(R As My.Sys.Drawing.Rect)
-		Declare        Sub DrawBoxs(R() As My.Sys.Drawing.Rect)
-		Declare        Sub Clear
-		Declare        Function GetClassAcceptControls(AClassName As String) As Boolean
-		Declare        Sub DblClick(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
-		Declare        Sub MouseDown(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
-		Declare        Sub MouseUp(X As Integer, Y As Integer, Shift As Integer)
-		Declare        Sub MouseMove(X As Integer, Y As Integer, Shift As Integer)
-		Declare        Sub KeyDown(Key As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
-		FLibs          As List
-		FSymbols       As List
+		Declare Sub DrawBox(R As My.Sys.Drawing.Rect)
+		Declare Sub DrawBoxs(R() As My.Sys.Drawing.Rect)
+		Declare Sub Clear
+		Declare Function GetClassAcceptControls(AClassName As String) As Boolean
+		Declare Sub DblClick(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
+		Declare Sub MouseDown(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
+		Declare Sub MouseUp(X As Integer, Y As Integer, Shift As Integer)
+		Declare Sub MouseMove(X As Integer, Y As Integer, Shift As Integer)
+		Declare Sub KeyDown(Key As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 	Public:
+		DesignControl As Any Ptr
+		SelectedControl As Any Ptr
+		SelectedControls As List
+		Objects As List
+		Controls As List
+		CtrlSymbols As List
+		#ifdef __USE_GTK__
+			cr As cairo_t Ptr
+			'layoutwidget As GtkWidget Ptr
+			overlay As GtkWidget Ptr
+			layout As GtkWidget Ptr
+			FSelControl    As GtkWidget Ptr
+		#else
+			FSelControl    As HWND
+			BitmapHandle   As HBITMAP
+		#endif
+		Dim Rects(Any) As ..Rect
+		Dim Ctrls(Any) As Any Ptr
+		Dim RectsCount As Integer
+		Dim ActiveRect As Integer
+		Dim MouseRect  As Integer
+		Dim imgList As ImageList
+		Dim Canvas As Canvas
 		Tag As Any Ptr
 		Parent As Control Ptr
 		TopMenu As Panel Ptr
@@ -244,69 +267,35 @@ Namespace My.Sys.Forms
 		Declare Sub BringToFront(Ctrl As Any Ptr = 0)
 		Declare Sub SendToBack(Ctrl As Any Ptr = 0)
 		Declare Function GetParentControl(iControl As Any Ptr, ByVal toRoot As Boolean = True) As Any Ptr
-		DesignControl As Any Ptr
-		SelectedControl As Any Ptr
-		SelectedControls As List
-		Objects As List
-		Controls As List
-		CtrlSymbols As List
-		#ifdef __USE_GTK__
-			cr As cairo_t Ptr
-			'layoutwidget As GtkWidget Ptr
-			overlay As GtkWidget Ptr
-			layout As GtkWidget Ptr
-			FSelControl    As GtkWidget Ptr
-		#else
-			FSelControl    As HWND
-			BitmapHandle   As HBITMAP
-		#endif
-		Dim Rects(Any) As ..Rect
-		Dim Ctrls(Any) As Any Ptr
-		Dim RectsCount As Integer
-		Dim ActiveRect As Integer
-		Dim MouseRect  As Integer
-		Dim imgList As ImageList
-		Dim Canvas As Canvas
-		Declare        Sub DrawTopMenu
-		Declare        Sub DrawToolBar(Handle As Any Ptr)
-		Declare        Sub DrawThis() 'DC as HDC, R as RECT)
+		Declare Sub DrawTopMenu
+		Declare Sub DrawToolBar(Handle As Any Ptr)
+		Declare Sub DrawThis() 'DC as HDC, R as RECT)
 		Declare Function Symbols(AClassName As String) As SymbolsType Ptr
 		Declare Function Symbols(Ctrl As Any Ptr) As SymbolsType Ptr
 		Declare Function SymbolsReadProperty(Ctrl As Any Ptr) As SymbolsType Ptr
 		Declare Function SymbolsWriteProperty(Ctrl As Any Ptr) As SymbolsType Ptr
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
-			Declare    Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)
+			Declare Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)
 		#else
 			Declare Function GetControl(CtrlHandle As HWND) As Any Ptr
-			Declare    Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
+			Declare Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
 		#endif
-		Declare        Sub MoveControl(Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
-		Declare        Sub GetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
-		Declare        Function CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer,y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
-		Declare        Function CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
-		Declare        Function CreateObject(AClassName As String) As Any Ptr
-		OnChangeSelection  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
-		OnDeleteControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
-		OnModified         As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, PropertyName As String = "", BeforeCtrl As Any Ptr = 0, AfterCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
-		OnInsertControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, BeforeCtrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
-		OnInsertComponent  As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, BeforeCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
-		OnInsertObject     As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Obj As Any Ptr, CopiedObj As Any Ptr, BeforeObj As Any Ptr)
-		OnInsertingControl As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, ByRef sName As String)
-		OnMouseMove        As Sub(ByRef Sender As My.Sys.Forms.Designer, X As Integer, Y As Integer, ByRef Over As Any Ptr)
-		OnDblClickControl  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
-		OnClickMenuItem    As Sub(ByRef Sender As My.Sys.Forms.Designer, MenuItem As Any Ptr)
-		OnClickProperties  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
-		Declare            Function ClassExists() As Boolean
+		Declare Sub MoveControl(Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+		Declare Sub GetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
+		Declare Function CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer, y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
+		Declare Function CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
+		Declare Function CreateObject(AClassName As String) As Any Ptr
+		Declare Function ClassExists() As Boolean
 		'declare static     function GetClassName(hDlg as HWND) as string
 		#ifdef __USE_GTK__
 			Declare Property Dialog As GtkWidget Ptr
 			Declare Property Dialog(value As GtkWidget Ptr)
-			Declare            Sub HookControl(Control As GtkWidget Ptr)
-			Declare            Sub UnHookControl(Control As GtkWidget Ptr)
+			Declare Sub HookControl(Control As GtkWidget Ptr)
+			Declare Sub UnHookControl(Control As GtkWidget Ptr)
 		#else
-			Declare            Sub HookControl(Control As HWND)
-			Declare            Sub UnHookControl(Control As HWND)
+			Declare Sub HookControl(Control As HWND)
+			Declare Sub UnHookControl(Control As HWND)
 			Declare Property Dialog As HWND
 			Declare Property Dialog(value As HWND)
 			Declare Property TopMenuHeight As Integer
@@ -338,6 +327,17 @@ Namespace My.Sys.Forms
 		Declare Operator Cast As Control Ptr
 		Declare Constructor(ParentControl As Control Ptr)
 		Declare Destructor
+		OnChangeSelection  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
+		OnDeleteControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
+		OnModified         As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr, PropertyName As String = "", BeforeCtrl As Any Ptr = 0, AfterCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
+		OnInsertControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, BeforeCtrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+		OnInsertComponent  As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, BeforeCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
+		OnInsertObject     As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Obj As Any Ptr, CopiedObj As Any Ptr, BeforeObj As Any Ptr)
+		OnInsertingControl As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, ByRef sName As String)
+		OnMouseMove        As Sub(ByRef Sender As My.Sys.Forms.Designer, X As Integer, Y As Integer, ByRef Over As Any Ptr)
+		OnDblClickControl  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
+		OnClickMenuItem    As Sub(ByRef Sender As My.Sys.Forms.Designer, MenuItem As Any Ptr)
+		OnClickProperties  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
 	End Type
 End Namespace
 

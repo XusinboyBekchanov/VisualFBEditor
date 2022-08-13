@@ -268,7 +268,7 @@ Namespace My.Sys.Forms
 			Else
 				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
 			End If
-			cairo_rectangle(cr, 0, 0, Des->DotSize, Des->DotSize)
+			.cairo_rectangle(cr, 0, 0, Des->DotSize, Des->DotSize)
 			cairo_fill_preserve(cr)
 			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") Then
 				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
@@ -378,7 +378,7 @@ Namespace My.Sys.Forms
 		Sub Designer.MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top1 As Integer = -1, Width1 As Integer = -1, Height1 As Integer = -1)
 	#else
 		Sub Designer.MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
-			Dim As ..RECT R
+			Dim As ..Rect R
 	#endif
 		Dim As My.Sys.Drawing.Point P
 		Dim As Integer iWidth, iHeight
@@ -438,19 +438,19 @@ Namespace My.Sys.Forms
 					If ControlHandle2 = ControlHandle Then
 						If Width1 <> -1 Then iWidth = Width1
 						If Height1 <> -1 Then iHeight = Height1
-						If ReadPropertyFunc(SelectedControls.Items[j], "Parent") Then
+						'If ReadPropertyFunc(SelectedControls.Items[j], "Parent") Then
 							'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
 							gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
-						Else
-							'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, 0
-							gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
-						End If
+						'Else
+						'	'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, 0
+						'	gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						'End If
 					Else
 						gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
 						'GetPosToClient ControlHandle2, FDialogParent, @x, @y
 					End If
-					P.x     = NewX
-					P.y     = NewY
+					P.X     = NewX
+					P.Y     = NewY
 					Dim As GdkDisplay Ptr pdisplay
 					Dim As GdkCursor Ptr gcurs
 					For i As Integer = 0 To 7
@@ -720,7 +720,7 @@ Namespace My.Sys.Forms
 			ReDim As Integer FLeftNew(iCount), FTopNew(iCount), FWidthNew(iCount), FHeightNew(iCount)
 			For j As Integer = 0 To iCount
 				#ifdef __USE_GTK__
-					ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft(j), FTop(j), FWidth(j), FHeight(j))
+					GetControlBounds(SelectedControls.Items[j], FLeft(j), FTop(j), FWidth(j), FHeight(j))
 				#else
 					GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 					P.X         = R.Left
@@ -772,7 +772,7 @@ Namespace My.Sys.Forms
 					ReDim As Integer FLeftNew(iCount), FTopNew(iCount), FWidthNew(iCount), FHeightNew(iCount)
 					For j As Integer = 0 To iCount
 						#ifdef __USE_GTK__
-							ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft(j), FTop(j), FWidth(j), FHeight(j))
+							GetControlBounds(SelectedControls.Items[j], FLeft(j), FTop(j), FWidth(j), FHeight(j))
 						#else
 							GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 							P.X         = R.Left
@@ -850,7 +850,7 @@ Namespace My.Sys.Forms
 						Case 6: FLeftNew(j) = FLeft(j) + (FNewX - FBeginX): FWidthNew(j) = FWidth(j) - (FNewX - FBeginX): FHeightNew(j) = FHeight(j) + (FNewY - FBeginY)
 						Case 7: FLeftNew(j) = FLeft(j) - (FBeginX - FNewX): FWidthNew(j) = FWidth(j) + (FBeginX - FNewX)
 						End Select
-						ComponentSetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
+						GetControlBounds(SelectedControls.Items[j], FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
 					#else
 						Select Case FDotIndex
 						Case 0: FLeftNew(j) = FLeft(j) + (FNewX - FBeginX): FTopNew(j) = FTop(j) + (FNewY - FBeginY): FWidthNew(j) = FWidth(j) - (FNewX - FBeginX): FHeightNew(j) = FHeight(j) - (FNewY - FBeginY)
@@ -874,7 +874,7 @@ Namespace My.Sys.Forms
 				If FBeginX <> FEndX Or FBeginY <> FEndY Then
 					For j As Integer = 0 To SelectedControls.Count - 1
 						#ifdef __USE_GTK__
-							ComponentSetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j))
+							GetControlBounds(SelectedControls.Items[j], FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j))
 						#else
 							MoveWindow(GetControlHandle(SelectedControls.Items[j]), ScaleX(FLeft(j) + (FNewX - FBeginX)), ScaleY(FTop(j) + (FNewY - FBeginY)), ScaleX(FWidth(j)), ScaleY(FHeight(j)), True)
 						#endif
@@ -975,12 +975,10 @@ Namespace My.Sys.Forms
 					For i As Integer = Objects.Count - 1 To 0 Step -1
 						Ctrl = Objects.Item(i)
 						If Ctrl Then
-							ALeft = QInteger(ReadPropertyFunc(Ctrl, "Left"))
-							ATop = QInteger(ReadPropertyFunc(Ctrl, "Top"))
-							AWidth = QInteger(ReadPropertyFunc(Ctrl, "Width"))
-							AHeight = QInteger(ReadPropertyFunc(Ctrl, "Height"))
+							GetControlBounds(Ctrl, ALeft, ATop, AWidth, AHeight)
 							If (ALeft > FBeginX And ALeft + AWidth < FNewX) And (ATop > FBeginY And ATop + AHeight < FNewY) Then
-								If SelectedControls.Count = 0 OrElse (ReadPropertyFunc <> 0 AndAlso ReadPropertyFunc(SelectedControls.Items[0], "Parent") = ReadPropertyFunc(Ctrl, "Parent")) Then
+								Dim As SymbolsType Ptr stCtrl = Symbols(Ctrl), st0 = Symbols(SelectedControls.Items[0])
+								If SelectedControls.Count = 0 OrElse (stCtrl AndAlso st0 AndAlso st0->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = stCtrl->ReadPropertyFunc(Ctrl, "Parent")) Then
 									SelectedControls.Add Ctrl
 								End If
 							End If
@@ -1020,9 +1018,9 @@ Namespace My.Sys.Forms
 			If FCanInsert Then
 				If FBeginX > FNewX Then Swap FBeginX, FNewX
 				If FBeginY > FNewY Then Swap FBeginY, FNewY
-				DrawBox(Type<My.Sys.Drawing.RECT>(FBeginX, FBeginY, FNewX, FNewY))
+				DrawBox(Type<My.Sys.Drawing.Rect>(FBeginX, FBeginY, FNewX, FNewY))
 				#ifdef __USE_GTK__
-					If gtk_is_widget(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
+					If GTK_IS_WIDGET(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
 				#endif
 				'if GetClassAcceptControls(GetClassName(FSelControl)) Then
 				'R.Left   = FBeginX
@@ -1074,7 +1072,7 @@ Namespace My.Sys.Forms
 						SelectedControls.Clear
 						#ifdef __USE_GTK__
 							Dim bTrue As Boolean = True
-							WritePropertyFunc(SelectedControl, "Visible", @bTrue)
+							If Symbols(SelectedControl) Then Symbols(SelectedControl)->WritePropertyFunc(SelectedControl, "Visible", @bTrue)
 						#else
 							LockWindowUpdate(FSelControl)
 							BringWindowToTop(FSelControl)
@@ -1556,7 +1554,7 @@ Namespace My.Sys.Forms
 			#else
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
 			#endif
-			cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
+			.cairo_rectangle(cr, 0.0, 0.0, AllocatedWidth, AllocatedHeight)
 			cairo_set_source_rgb(cr, 173 / 255.0, 173 / 255.0, 173 / 255.0)
 			cairo_stroke(cr)
 			Return False
@@ -1681,7 +1679,8 @@ Namespace My.Sys.Forms
 							pBitmap.LoadFromFile(*MFFPath & "/resources/" & AClassName &".png")
 							Dim As GtkWidget Ptr Result
 							Dim As Integer FWidth = 16, FHeight = 16
-							If AParent <> 0 Then Result = ReadPropertyFunc(AParent, "layoutwidget")
+							Dim As SymbolsType Ptr stParentCtrl = Symbols(AParent)
+							If AParent <> 0 AndAlso stParentCtrl <> 0 Then Result = stParentCtrl->ReadPropertyFunc(AParent, "layoutwidget")
 							FSelControl = gtk_image_new()
 							st->WritePropertyFunc(Cpnt, "widget", FSelControl)
 							gtk_image_set_from_pixbuf(GTK_IMAGE(FSelControl), pBitmap.Handle)
@@ -1971,7 +1970,7 @@ Namespace My.Sys.Forms
 				cairo_set_source_rgb(cr, 0, 0, 0)
 				For i As Integer = 0 To iWidth Step FStepX
 					For j As Integer = 0 To iHeight Step FStepY
-						cairo_rectangle(cr, i, j, 1, 1)
+						.cairo_rectangle(cr, i, j, 1, 1)
 						cairo_fill(cr)
 					Next j
 				Next i
@@ -1982,10 +1981,11 @@ Namespace My.Sys.Forms
 			cairo_set_line_width (cr, 0.1)
 			cairo_set_dash(cr, @dashed, 0.5, 1.5)
 			For j As Integer = 0 To SelectedControls.Count - 1
-				If ReadPropertyFunc(SelectedControls.Items[j], "Parent") = DesignControl Then
-					ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft, FTop, FWidth, FHeight)
+				Dim As SymbolsType Ptr st = Symbols(SelectedControls.Items[j])
+				If st AndAlso st->ReadPropertyFunc(SelectedControls.Items[j], "Parent") = DesignControl Then
+					GetControlBounds(SelectedControls.Items[j], FLeft, FTop, FWidth, FHeight)
 					'GetPosToClient ReadPropertyFunc(SelectedControls.Items[j], "widget"), layoutwidget, @FLeft, @FTop
-					cairo_rectangle(cr, FLeft - 2, FTop - 2, FWidth + 4, FHeight + 4)
+					.cairo_rectangle(cr, FLeft - 2, FTop - 2, FWidth + 4, FHeight + 4)
 					cairo_stroke(cr)
 				End If
 			Next j
@@ -2961,7 +2961,8 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If SelectedControl <> 0 Then
 					For j As Integer = 0 To SelectedControls.Count - 1
-						ComponentGetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft, FTop, FWidth, FHeight)
+						Dim As SymbolsType Ptr st = Symbols(SelectedControls.Items[j])
+						GetControlBounds(SelectedControls.Items[j], FLeft, FTop, FWidth, FHeight)
 						If bShift Then
 							Select Case KeyCode
 							Case Keys.Key_Left: FWidth = FWidth - FStepX1
@@ -2977,10 +2978,12 @@ Namespace My.Sys.Forms
 							Case Keys.Key_Down: FTop = FTop + FStepY1
 							End Select
 						End If
-						ComponentSetBoundsSub(Q_ComponentFunc(SelectedControls.Items[j]), FLeft, FTop, FWidth, FHeight)
+						If st Then st->ComponentSetBoundsSub(SelectedControls.Items[j], FLeft, FTop, FWidth, FHeight)
 						Dim As Integer FrameTop
-						Dim As Any Ptr ParentCtrl = ReadPropertyFunc(SelectedControls.Items[j], "Parent")
-						If CInt(ParentCtrl) AndAlso CInt(QWString(ReadPropertyFunc(ParentCtrl, "ClassName")) = "GroupBox") Then FrameTop = 20
+						Dim As Any Ptr ParentCtrl
+						If st AndAlso st->ReadPropertyFunc Then ParentCtrl = st->ReadPropertyFunc(SelectedControls.Items[j], "Parent")
+						Dim As SymbolsType Ptr stParentCtrl = Symbols(ParentCtrl)
+						If CInt(ParentCtrl) AndAlso stParentCtrl AndAlso stParentCtrl->ReadPropertyFunc AndAlso CInt(QWString(stParentCtrl->ReadPropertyFunc(ParentCtrl, "ClassName")) = "GroupBox") Then FrameTop = 20
 						pApp->DoEvents
 						MoveDots(SelectedControls.Items[j], , FLeft, FTop - FrameTop, FWidth, FHeight)
 						If OnModified Then OnModified(This, SelectedControls.Items[j], , , , FLeft, FTop, FWidth, FHeight)
@@ -3173,7 +3176,7 @@ Namespace My.Sys.Forms
 		If FDown AndAlso ((FCanInsert) OrElse (FCanMove = False AndAlso FCanSize = False)) Then
 			#ifdef __USE_GTK__
 				cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
-				cairo_rectangle(cr, FBeginX, FBeginY, FNewX - FBeginX, FNewY - FBeginY)
+				.cairo_rectangle(cr, FBeginX, FBeginY, FNewX - FBeginX, FNewY - FBeginY)
 				cairo_stroke(cr)
 			#endif
 		End If
