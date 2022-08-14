@@ -328,7 +328,7 @@ Namespace My.Sys.Forms
 		Else
 			pVScrollPos = @VScrollPosBottom
 		End If
-		*pVScrollPos = min(GetCaretPosY(Value), Max(0, IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom) - VisibleLinesCount(ActiveCodePane)))
+		*pVScrollPos = Min(GetCaretPosY(Value), Max(0, IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom) - VisibleLinesCount(ActiveCodePane)))
 		#ifdef __USE_GTK__
 			gtk_adjustment_set_value(adjustmentv, *pVScrollPos)
 		#else
@@ -497,6 +497,7 @@ Namespace My.Sys.Forms
 		Dim As Integer j, Idx
 		Dim FECLine As EditControlLine Ptr = FLines.Items[LineIndex]
 		Dim As EditControlLine Ptr FECLine2
+		OlddwClientX = 0
 		FECLine->Collapsed = Value
 		If FECLine->Collapsed Then
 			If Not EndsWith(*FECLine->Text, "'...'") Then
@@ -732,7 +733,7 @@ Namespace My.Sys.Forms
 				FSelStartLine = FSelEndLine
 				FSelStartChar = FSelEndChar
 			Else
-				FSelStartChar = min(FSelStartChar, FSelEndChar)
+				FSelStartChar = Min(FSelStartChar, FSelEndChar)
 				FSelEndChar = FSelStartChar
 			End If
 		Else
@@ -808,7 +809,7 @@ Namespace My.Sys.Forms
 				iSelStartLine = FSelEndLine
 				iSelEndLine = FSelStartLine
 			Else
-				iSelStartChar = min(FSelStartChar, FSelEndChar)
+				iSelStartChar = Min(FSelStartChar, FSelEndChar)
 				iSelEndChar = Max(FSelStartChar, FSelEndChar)
 				iSelStartLine = FSelStartLine
 				iSelEndLine = FSelEndLine
@@ -845,8 +846,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.SetSelection(iSelStartLine As Integer, iSelEndLine As Integer, iSelStartChar As Integer, iSelEndChar As Integer)
 		FSelStartChar = Max(0, iSelStartChar)
 		FSelEndChar = Max(0, iSelEndChar)
-		FSelStartLine = min(FLines.Count - 1, Max(0, iSelStartLine))
-		FSelEndLine = min(FLines.Count - 1, Max(0, iSelEndLine))
+		FSelStartLine = Min(FLines.Count - 1, Max(0, iSelStartLine))
+		FSelEndLine = Min(FLines.Count - 1, Max(0, iSelEndLine))
 		#ifdef __USE_GTK__
 			If Handle Then
 		#else
@@ -940,6 +941,7 @@ Namespace My.Sys.Forms
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
 			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			FLines.Remove i
+			OlddwClientX = 0
 		Next i
 		If iSelStartLine > 0 Then iC = Cast(EditControlLine Ptr, FLines.Item(iSelStartLine - 1))->CommentIndex
 		Do
@@ -957,6 +959,7 @@ Namespace My.Sys.Forms
 			Else
 				FECLine = New_( EditControlLine)
 				WLet(FECLine->Text, Mid(Value, p, l))
+				OlddwClientX = 0
 				'ecItem->CharIndex = p - 1
 				'ecItem->LineIndex = c - 1
 			End If
@@ -1061,6 +1064,7 @@ Namespace My.Sys.Forms
 		'Changed "Matn almashtirildi"
 		If FLines.Count = 0 Then
 			FECLine = New_( EditControlLine)
+			OlddwClientX = 0
 			WLet(FECLine->Text, "")
 			FLines.Add(FECLine)
 		End If
@@ -1195,6 +1199,7 @@ Namespace My.Sys.Forms
 			WReAllocate BuffRead, MaxChars
 			Do Until EOF(Fn)
 				FECLine = New_( EditControlLine)
+				OlddwClientX = 0
 				If FECLine = 0 Then
 					CloseFile_(Fn)
 					Return
@@ -1285,6 +1290,7 @@ Namespace My.Sys.Forms
 		End If
 		FECLine = New_( EditControlLine)
 		WLet(FECLine->Text, sLine)
+		OlddwClientX = 0
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
 		FECLine->InAsm = InAsm
@@ -1325,6 +1331,7 @@ Namespace My.Sys.Forms
 			InAsm = Cast(EditControlLine Ptr, FLines.Items[Idx])->InAsm
 		End If
 		FECLine = New_( EditControlLine)
+		OlddwClientX = 0
 		WLet(FECLine->Text, *Cast(EditControlLine Ptr, FLines.Items[Idx])->Text)
 		iC = FindCommentIndex(*FECLine->Text, OldiC)
 		FECLine->CommentIndex = iC
@@ -1345,6 +1352,7 @@ Namespace My.Sys.Forms
 		FLines.Remove IIf(Index = -1, FSelEndLine, Index)
 		If Index <= FSelEndLine Then FSelEndLine -= 1
 		If Index <= FSelStartLine Then FSelStartLine -= 1
+		OlddwClientX = 0
 	End Sub
 	
 	Sub EditControl.UnformatCode(WithoutUpdate As Boolean = False)
@@ -1489,12 +1497,12 @@ Namespace My.Sys.Forms
 	Function EditControl.LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		If bDividedY Then
 			If IIf(CodePane = -1, ActiveCodePane, CodePane) = 1 Then
-				Return GetLineIndex(0, Max(0, min(Fix((Y - iDividedY - 7) / dwCharY) + VScrollPosBottom, LinesCount - 1)))
+				Return GetLineIndex(0, Max(0, Min(Fix((Y - iDividedY - 7) / dwCharY) + VScrollPosBottom, LinesCount - 1)))
 			Else
-				Return GetLineIndex(0, Max(0, min(Fix(Y / dwCharY) + VScrollPosTop, LinesCount - 1)))
+				Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + VScrollPosTop, LinesCount - 1)))
 			End If
 		Else
-			Return GetLineIndex(0, Max(0, min(Fix(Y / dwCharY) + IIf(bDividedX AndAlso IIf(CodePane = -1, ActiveCodePane, CodePane) = 0, VScrollPosTop, VScrollPosBottom), LinesCount - 1)))
+			Return GetLineIndex(0, Max(0, Min(Fix(Y / dwCharY) + IIf(bDividedX AndAlso IIf(CodePane = -1, ActiveCodePane, CodePane) = 0, VScrollPosTop, VScrollPosBottom), LinesCount - 1)))
 		End If
 	End Function
 	
@@ -1509,7 +1517,7 @@ Namespace My.Sys.Forms
 	Function EditControl.GetCaretPosY(LineIndex As Integer) As Integer
 		Static As Integer i, j
 		j = 0
-		For i = 1 To min(FLines.Count - 1, LineIndex)
+		For i = 1 To Min(FLines.Count - 1, LineIndex)
 			If Cast(EditControlLine Ptr, FLines.Items[i])->Visible Then j = j + 1
 		Next
 		Return j
@@ -1764,7 +1772,7 @@ Namespace My.Sys.Forms
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		If FSelStartLine = FSelEndLine Then
-			n = Len(GetTabbedText(.Left(Lines(FSelStartLine), min(FSelStartChar, FSelEndChar))))
+			n = Len(GetTabbedText(.Left(Lines(FSelStartLine), Min(FSelStartChar, FSelEndChar))))
 			If TabAsSpaces AndAlso (ChoosedTabStyle = 0 OrElse Trim(.Left(Lines(iSelStartLine), iSelStartChar), Any !"\t ") <> "") Then
 				SelText = Space(TabWidth - (n Mod TabWidth))
 			Else
@@ -1801,7 +1809,7 @@ Namespace My.Sys.Forms
 		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 			FECLine = FLines.Items[i]
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-			n = min(n, TabWidth - (n Mod TabWidth))
+			n = Min(n, TabWidth - (n Mod TabWidth))
 			If n = 0 AndAlso .Left(*FECLine->Text, 1) = !"\t" Then n = 1
 			WLet(FECLine->Text, Mid(*FECLine->Text, n + 1))
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar -= n
@@ -1823,7 +1831,7 @@ Namespace My.Sys.Forms
 			If i = iSelStartLine Then
 				nStart = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
 			End If
-			n = min(nStart, Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t ")))
+			n = Min(nStart, Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t ")))
 			WLet(FECLine->Text, ..Left(*FECLine->Text, n) & "'" & Mid(*FECLine->Text, n + 1))
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += 1
 			If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += 1
@@ -2522,12 +2530,25 @@ Namespace My.Sys.Forms
 				This.Font.Size = EditorFontSize
 				FontSettings
 			End If
-			bufDC = CreateCompatibleDC(hd)
-			bufBMP = CreateCompatibleBitmap(hd, ScaleX(dwClientX), ScaleY(dwClientY))
+			If bufDC = 0 Then
+				bufDC = CreateCompatibleDC(hd)
+				bufBMP = CreateCompatibleBitmap(hd, ScaleX(dwClientX), ScaleY(dwClientY))
+				This.Canvas.Handle = bufDC
+				This.Canvas.HandleSetted = True
+				SelectObject(bufDC, This.Font.Handle)
+				SelectObject(bufDC, bufBMP)
+			ElseIf OlddwClientX <> dwClientX OrElse OlddwClientY <> dwClientY Then
+				DeleteDC bufDC
+				DeleteObject bufBMP
+				bufDC = CreateCompatibleDC(hd)
+				bufBMP = CreateCompatibleBitmap(hd, ScaleX(dwClientX), ScaleY(dwClientY))
+				This.Canvas.Handle = bufDC
+				This.Canvas.HandleSetted = True
+				SelectObject(bufDC, This.Font.Handle)
+				SelectObject(bufDC, bufBMP)
+			End If
 			This.Canvas.Handle = bufDC
 			This.Canvas.HandleSetted = True
-			SelectObject(bufDC, This.Font.Handle)
-			SelectObject(bufDC, bufBMP)
 			HideCaret(FHandle)
 		#endif
 		'iMin = Min(FSelEnd, FSelStart)
@@ -2629,7 +2650,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			iC = 0
-			vlc = min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
+			vlc = Min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
 			vlc1 = VisibleLinesCount(zz)
 			IzohBoshi = 0
 			QavsBoshi = 0
@@ -2668,7 +2689,9 @@ Namespace My.Sys.Forms
 				'			SelectObject(bufDC, This.Canvas.Font.Handle)
 				'			SelectObject(bufDC, This.Canvas.Pen.Handle)
 				'			SetROP2 bufDC, This.Canvas.Pen.Mode
-				FillRect bufDC, @rc, This.Canvas.Brush.Handle
+				If OlddwClientX <> dwClientX OrElse OlddwClientY <> dwClientY OrElse OldPaintedVScrollPos(zz) <> VScrollPos OrElse OldPaintedHScrollPos(zz) <> HScrollPos Then
+					FillRect bufDC, @rc, This.Canvas.Brush.Handle
+				End If
 			#endif
 			i = -1
 			If VScrollPos > 0 AndAlso VScrollPos <= FLines.Count Then iC = Cast(EditControlLine Ptr, FLines.Items[VScrollPos - 1])->CommentIndex
@@ -2678,6 +2701,11 @@ Namespace My.Sys.Forms
 			OldMatn = ""
 			For z As Integer = 0 To FLines.Count - 1
 				FECLine = FLines.Items[z]
+				If z < FLines.Count - 1 Then
+					FECLineNext = FLines.Items[z + 1]
+				Else
+					FECLineNext = 0
+				End If
 				If FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
 					If FECLine->ConstructionPart = 0 Then
 						CollapseIndex += 1
@@ -2688,6 +2716,23 @@ Namespace My.Sys.Forms
 				If Not FECLine->Visible Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
 				i = i + 1
 				If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
+				#ifdef __USE_WINAPI__
+					If OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos Then
+						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso (z <> FSelEndLine + 1) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z Then
+							If CurWord <> "" OrElse OldCurWord <> "" Then
+								If (CurWord = "" OrElse CurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(CurWord)) = 0) AndAlso (OldCurWord = "" OrElse OldCurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(OldCurWord)) = 0) Then
+									OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
+								End If
+							Else
+								OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
+							End If
+						End If
+						This.Canvas.Brush.Color = NormalText.Background
+						This.Canvas.Pen.Color = FoldLines.Foreground
+						rc = Type(ScaleX(Max(-1, LeftMargin + -HScrollPos * dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, This.Width)), ScaleY((i - VScrollPos) * dwCharY + dwCharY + 1 + CodePaneY))
+						FillRect bufDC, @rc, This.Canvas.Brush.Handle
+					End If
+				#endif
 				If z > 0 Then iC = Cast(EditControlLine Ptr, FLines.Items[z - 1])->CommentIndex
 				'If FECLine->Visible = False Then Continue For
 				'SelectObject(bufDC, This.Canvas.Brush.Handle)
@@ -3380,13 +3425,24 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
 				#endif
 				If SyntaxEdit AndAlso Not CStyle Then
+					If CBool(FECLineNext <> 0) AndAlso FECLineNext->Visible AndAlso FECLineNext->Collapsible AndAlso CBool(FECLineNext->ConstructionIndex >= C_P_Region) Then
+						#ifdef __USE_GTK__
+							cairo_move_to(cr, LeftMargin - 0.5, (i + 1 - VScrollPos) * dwCharY - 0.5)
+							cairo_line_to(cr, dwClientX - 0.5, (i + 1 - VScrollPos) * dwCharY - 0.5)
+							cairo_stroke (cr)
+						#else
+							This.Canvas.Pen.Color = FoldLines.Foreground
+							MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i + 1 - VScrollPos) * dwCharY + CodePaneY), 0
+							LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i + 1 - VScrollPos) * dwCharY + CodePaneY)
+						#endif
+					End If
 					If FECLine->Collapsible Then
 						#ifdef __USE_GTK__
 							'cairo_set_source_rgb(cr, abs(GetRed(clGray) / 255.0), abs(GetGreen(clGray) / 255.0), abs(GetBlue(clGray) / 255.0))
 							cairo_rectangle(cr, LeftMargin - 15 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5, LeftMargin - 7 - 0.5, (i - VScrollPos) * dwCharY + 12 - 0.5, True)
 							cairo_move_to(cr, LeftMargin - 13 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
 							cairo_line_to(cr, LeftMargin - 9 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
-							If  FECLine->ConstructionIndex >= C_P_Region Then
+							If FECLine->ConstructionIndex >= C_P_Region Then
 								cairo_move_to(cr, LeftMargin - 0.5, (i - VScrollPos) * dwCharY - 0.5)
 								cairo_line_to(cr, dwClientX - 0.5, (i - VScrollPos) * dwCharY - 0.5)
 							End If
@@ -3452,10 +3508,10 @@ Namespace My.Sys.Forms
 							#endif
 						Else
 							#ifdef __USE_GTK__
-								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos + 1) * dwCharY + dwCharY - 0.5)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY - 0.5)
 								cairo_stroke (cr)
 							#else
-								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY + dwCharY + CodePaneY)
+								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY)
 							#endif
 						End If
 						If FECLine->ConstructionIndex >= 0 AndAlso CInt(Constructions(FECLine->ConstructionIndex).Collapsible) And CInt(FECLine->ConstructionPart = 2) Then
@@ -3499,6 +3555,8 @@ Namespace My.Sys.Forms
 				This.Canvas.Brush.Color = NormalText.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			#endif
+			OldPaintedVScrollPos(zz) = VScrollPos
+			OldPaintedHScrollPos(zz) = HScrollPos
 		Next zz
 		#ifdef __USE_WINAPI__
 			If Not bDividedX Then
@@ -3582,12 +3640,19 @@ Namespace My.Sys.Forms
 				InvertRect bufDC, @rc
 			End If
 			BitBlt(hd, 0, 0, ScaleX(dwClientX), ScaleY(dwClientY), bufDC, 0, 0, SRCCOPY)
-			DeleteDC bufDC
-			DeleteObject bufBMP
+			'DeleteDC bufDC
+			'DeleteObject bufBMP
 			ReleaseDC FHandle, hd
 			ShowCaret(FHandle)
 		#endif
 		This.Canvas.HandleSetted = False
+		OlddwClientX = dwClientX
+		OlddwClientY = dwClientY
+		iOldSelStartLine = iSelStartLine
+		iOldSelEndLine = iSelEndLine
+		OldBracketsStartLine = BracketsStartLine
+		OldBracketsEndLine = BracketsEndLine
+		OldCurWord = CurWord
 		Exit Sub
 		ErrHandler:
 		?ErrDescription(Err) & " (" & Err & ") " & _
@@ -3613,6 +3678,7 @@ Namespace My.Sys.Forms
 		FLines.Clear
 		For i As Integer = 0 To HistoryItem->Lines.Count - 1
 			FECLine = New_( EditControlLine)
+			OlddwClientX = 0
 			With *Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
 				WLet(FECLine->Text, *.Text)
 				FECLine->Breakpoint = .Breakpoint
@@ -3632,6 +3698,7 @@ Namespace My.Sys.Forms
 		Next i
 		If FLines.Count = 0 Then
 			FECLine = New_( EditControlLine)
+			OlddwClientX = 0
 			WLet(FECLine->Text, "")
 			FLines.Add FECLine
 		End If
@@ -4174,7 +4241,7 @@ Namespace My.Sys.Forms
 				If bShifted Then
 					#ifdef __USE_GTK__
 						If scrDirection = 1 Then
-							gtk_adjustment_set_value(adjustmenth, min(OldPos + 3, gtk_adjustment_get_upper(adjustmenth)))
+							gtk_adjustment_set_value(adjustmenth, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmenth)))
 						ElseIf scrDirection = -1 Then
 							gtk_adjustment_set_value(adjustmenth, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmenth)))
 						End If
@@ -4186,7 +4253,7 @@ Namespace My.Sys.Forms
 						'End If
 					#else
 						If scrDirection = -1 Then
-							si.nPos = min(si.nPos + 3, si.nMax)
+							si.nPos = Min(si.nPos + 3, si.nMax)
 						Else
 							si.nPos = Max(si.nPos - 3, si.nMin)
 						End If
@@ -4221,7 +4288,7 @@ Namespace My.Sys.Forms
 				Else
 					#ifdef __USE_GTK__
 						If scrDirection = 1 Then
-							gtk_adjustment_set_value(adjustmentv, min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
+							gtk_adjustment_set_value(adjustmentv, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
 						ElseIf scrDirection = -1 Then
 							gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
 						End If
@@ -4233,14 +4300,14 @@ Namespace My.Sys.Forms
 						'End If
 					#else
 						If scrDirection = -1 Then
-							si.nPos = min(si.nPos + 3, si.nMax)
+							si.nPos = Min(si.nPos + 3, si.nMax)
 						Else
 							si.nPos = Max(si.nPos - 3, si.nMin)
 						End If
 						si.fMask = SIF_POS
-						SetScrollInfo(sbScrollBarv, SB_CTL, @si, True)
+						SetScrollInfo(sbScrollBarV, SB_CTL, @si, True)
 						'SetScrollInfo(FHandle, SB_VERT, @si, True)
-						GetScrollInfo(sbScrollBarv, SB_CTL, @si)
+						GetScrollInfo(sbScrollBarV, SB_CTL, @si)
 						'GetScrollInfo(FHandle, SB_VERT, @si)
 						If (Not si.nPos = OldPos) Then
 							*pVScrollPos = si.nPos
@@ -4413,7 +4480,7 @@ Namespace My.Sys.Forms
 					si.nPos = si.nTrackPos
 				End Select
 				si.fMask = SIF_POS Or SIF_TRACKPOS
-				si.nPos = min(Max(si.nPos, si.nMin), si.nMax)
+				si.nPos = Min(Max(si.nPos, si.nMin), si.nMax)
 				'si.nTrackPos = si.nTrackPos
 				'If msg.wParamLo <> SB_THUMBTRACK Then
 				'?msg.wParamLo
@@ -4500,7 +4567,7 @@ Namespace My.Sys.Forms
 				OldnCaretPosX = nCaretPosX
 				OldCharIndex = GetOldCharIndex
 				#ifdef __USE_GTK__
-				Case GDK_KEY_END
+				Case GDK_KEY_End
 				#else
 				Case VK_END
 				#endif
@@ -4594,7 +4661,7 @@ Namespace My.Sys.Forms
 					OldCharIndex = GetOldCharIndex
 				End If
 				#ifdef __USE_GTK__
-				Case GDK_KEY_RIGHT
+				Case GDK_KEY_Right
 					msg.Result = True
 				#else
 				Case VK_RIGHT
@@ -4619,7 +4686,7 @@ Namespace My.Sys.Forms
 					OldCharIndex = GetOldCharIndex
 				End If
 				#ifdef __USE_GTK__
-				Case GDK_KEY_UP
+				Case GDK_KEY_Up
 					msg.Result = True
 				#else
 				Case VK_UP
@@ -4896,7 +4963,7 @@ Namespace My.Sys.Forms
 					msg.Result = True
 				Case GDK_KEY_ISO_Left_Tab ', 65056
 					Outdent
-					Msg.Result = True
+					msg.Result = True
 				#endif
 				#ifdef __USE_GTK__
 				Case Else
@@ -4937,7 +5004,7 @@ Namespace My.Sys.Forms
 				#ifndef __USE_GTK__
 					MessageBeep(-1)
 				#endif
-				MSG.Result = 0
+				msg.Result = 0
 			Case 9:  ' tab
 				If DropDownShowed Then
 					CloseDropDown()
@@ -4961,11 +5028,11 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						ChangeText *e->Key.string
 					#else
-						ChangeText WChr(MSG.wParam)
+						ChangeText WChr(msg.wParam)
 					#endif
 				End If
 				'End If
-				MSG.Result = True
+				msg.Result = True
 			Case 13:  ' возврат каретки
 				If ToolTipShowed Then CloseToolTip
 				If DropDownShowed Then
@@ -5104,7 +5171,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						If *e->Key.string = " " Then
 					#else
-						If MSG.wParam = Asc(" ") Then
+						If msg.wParam = Asc(" ") Then
 					#endif
 						If DropDownShowed Then
 							CloseDropDown()
@@ -5119,38 +5186,38 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						ChangeText *e->Key.string
 					#else
-						ChangeText WChr(MSG.wParam)
+						ChangeText WChr(msg.wParam)
 					#endif
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 26 Then
 					#else
-					ElseIf MSG.wParam = 26 Then
+					ElseIf msg.wParam = 26 Then
 					#endif
 					Undo
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 25 Then
 					#else
-					ElseIf MSG.wParam = 25 Then
+					ElseIf msg.wParam = 25 Then
 					#endif
 					Redo
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 24 Then
 					#else
-					ElseIf MSG.wParam = 24 Then
+					ElseIf msg.wParam = 24 Then
 					#endif
-					CutToClipBoard
+					CutToClipboard
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 3 Then
 					#else
 					ElseIf msg.wParam = 3 Then
 					#endif
-					CopyToClipBoard
+					CopyToClipboard
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 22 Then
 					#else
 					ElseIf msg.wParam = 22 Then
 					#endif
-					PasteFromClipBoard
+					PasteFromClipboard
 					#ifdef __USE_GTK__
 					ElseIf Asc(*e->Key.string) = 127 Then
 					#else
@@ -5418,18 +5485,18 @@ Namespace My.Sys.Forms
 		If Sender.Child Then
 			With QEditControl(Sender.Child)
 				#ifdef __USE_WINAPI__
-					.sbscrollbarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
-					.sbscrollbarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
-					.sbscrollbarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
-					.sbscrollbarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
-					ShowWindow .sbscrollbarvTop, SW_HIDE
-					ShowWindow .sbscrollbarvBottom, SW_SHOW
-					ShowWindow .sbscrollbarhLeft, SW_HIDE
-					ShowWindow .sbscrollbarhRight, SW_SHOW
+					.sbScrollBarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
+					.sbScrollBarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
+					.sbScrollBarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
+					.sbScrollBarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
+					ShowWindow .sbScrollBarvTop, SW_HIDE
+					ShowWindow .sbScrollBarvBottom, SW_SHOW
+					ShowWindow .sbScrollBarhLeft, SW_HIDE
+					ShowWindow .sbScrollBarhRight, SW_SHOW
 					If g_darkModeEnabled Then
-						SetWindowTheme(.sbscrollbarvTop, "DarkMode_Explorer", nullptr)
-						SetWindowTheme(.sbscrollbarvBottom, "DarkMode_Explorer", nullptr)
-						SetWindowTheme(.sbscrollbarhLeft, "DarkMode_Explorer", nullptr)
+						SetWindowTheme(.sbScrollBarvTop, "DarkMode_Explorer", nullptr)
+						SetWindowTheme(.sbScrollBarvBottom, "DarkMode_Explorer", nullptr)
+						SetWindowTheme(.sbScrollBarhLeft, "DarkMode_Explorer", nullptr)
 						SetWindowTheme(.sbscrollbarhRight, "DarkMode_Explorer", nullptr)
 						'						.FDarkMode = True
 						'						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
@@ -5769,6 +5836,8 @@ Namespace My.Sys.Forms
 			lvIntellisense.ListItems.Clear
 		#else
 			cboIntellisense.Items.Clear
+			If bufDC Then DeleteDC bufDC
+			If bufBMP Then DeleteObject bufBMP
 		#endif
 		WDeAllocate FLine
 		WDeAllocate FLineLeft

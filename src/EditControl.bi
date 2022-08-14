@@ -128,6 +128,7 @@ Namespace My.Sys.Forms
 		Dim FHistory As List
 		Dim FVisibleLinesCount As Integer
 		Dim FECLine As EditControlLine Ptr
+		Dim FECLineNext As EditControlLine Ptr
 		Dim bAddText As Boolean
 		Dim bOldCommented As Boolean
 		Dim curHistory As Integer
@@ -166,11 +167,12 @@ Namespace My.Sys.Forms
 		Dim jPos As Integer
 		Dim jPP As Integer = 0
 		Dim iPPos As Integer
-		Dim As Integer iCount, BracketsStart, BracketsStartLine, BracketsEnd, BracketsEndLine, iStartBS, iStartBE
+		Dim As Integer iCount, BracketsStart, BracketsStartLine, BracketsEnd, BracketsEndLine, iStartBS, iStartBE, OldBracketsStartLine, OldBracketsEndLine
 		Dim As String BracketsLine, Symb, SymbOpenBrackets, SymbCloseBrackets, OpenBrackets = "([{", CloseBrackets = ")]}"
 		Dim As Boolean bFinded
-		Dim As String CurWord
+		Dim As String CurWord, OldCurWord
 		Dim As Integer iTemp
+		Dim As Integer OldPaintedVScrollPos(1), OldPaintedHScrollPos(1)
 		#ifndef __USE_GTK__
 			Dim As DWORD dwTemp
 			Dim As POINTS psPoints
@@ -188,6 +190,8 @@ Namespace My.Sys.Forms
 		Dim FOldSelEndLine As Integer = 0
 		Dim FOldSelStartChar As Integer = 0
 		Dim FOldSelEndChar As Integer = 0
+		Dim iOldSelStartLine As Integer = 0
+		Dim iOldSelEndLine As Integer = 0
 		Dim vlc1 As Integer
 		Dim sChar As WString * 2
 		'Dim FSelStart As Integer
@@ -341,8 +345,8 @@ Namespace My.Sys.Forms
 		#endif
 		Dim As TypeElement Ptr DropDownTypeElement
 		Dim As Integer ActiveCodePane
-		Dim As Integer dwClientX    ' ширина клиентской области
-		Dim As Integer dwClientY    ' Высота клиентской области
+		Dim As Integer dwClientX, OlddwClientX    ' ширина клиентской области
+		Dim As Integer dwClientY, OlddwClientY    ' Высота клиентской области
 		Modified As Boolean
 		WithHistory As Boolean
 		FLines As List

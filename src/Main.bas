@@ -76,7 +76,7 @@ Dim Shared As ReBar ReBar1
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalFunctionsHelp, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
@@ -142,6 +142,7 @@ Comps.Sorted = True
 GlobalTypes.Sorted = True
 GlobalEnums.Sorted = True
 GlobalFunctions.Sorted = True
+GlobalFunctionsHelp.Sorted = True
 GlobalArgs.Sorted = True
 
 'LoadLanguageTexts
@@ -3938,6 +3939,7 @@ Sub LoadHelp
 		parDifferencesFromQB
 		parSeeAlso
 	End Enum
+	Dim As WStringList Ptr pFunctions = @GlobalFunctions
 	Dim As Boolean InEnglish
 	Dim As Integer Fn = FreeFile_, tEncode
 	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt") = "" Then
@@ -3967,6 +3969,9 @@ Sub LoadHelp
 			Line Input #Fn, Buff
 			If Trim(Buff) = "" Then Continue Do
 			If StartsWith(Buff, "---") Then
+				If StartsWith(Buff, "------------ KeyWin32AbnormalTermination") Then 
+					pFunctions = @GlobalFunctionsHelp
+				End If
 				bStart = True : bDescriptionStart = False : bReturnValueStart = False
 				Parag = parStart
 			ElseIf Buff = "Syntax" OrElse Buff = MLSyntax Then
@@ -4007,7 +4012,7 @@ Sub LoadHelp
 					te->DisplayName = Trim(Buff)
 					te->ElementType = "Keyword"
 					te->FileName = *KeywordsHelpPath
-					GlobalFunctions.Add te->Name, te
+					pFunctions->Add te->Name, te
 					bStartEnd = False
 					bDescriptionEnd = False
 					te->Comment = "<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & IIf(Pos2 = 0, Trim(Buff), Left(Trim(Buff), Pos2)) & !"</a>\r   " & IIf(Pos2 = 0, "", LTrim(Mid(Trim(Buff), Pos2)))
@@ -4098,7 +4103,7 @@ Sub LoadHelp
 						te1->FileName = te->FileName
 						te1->Parameters = te->Parameters
 						te1->Comment = te->Comment
-						GlobalFunctions.Add te1->Name, te1
+						pFunctions->Add te1->Name, te1
 					End If
 				End If
 				bStart = False
