@@ -4431,6 +4431,13 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			ParameterInfo Key
 		End If
 	ElseIf tb->txtCode.DropDownShowed Then
+		If Key <> 8 Then
+			#ifdef __USE_GTK__
+				If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
+			#else
+				If tb->txtCode.cboIntellisense.ItemCount = 0 Then Exit Sub
+			#endif
+		End If
 		#ifdef __USE_GTK__
 			If Key = GDK_KEY_Home OrElse Key = GDK_KEY_End OrElse Key = GDK_KEY_Left OrElse Key = GDK_KEY_Right OrElse _
 				Key = GDK_KEY_Escape OrElse Key = GDK_KEY_Escape OrElse Key = GDK_KEY_Up OrElse Key = GDK_KEY_Down OrElse _

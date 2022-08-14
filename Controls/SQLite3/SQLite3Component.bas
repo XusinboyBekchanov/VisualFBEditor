@@ -960,9 +960,9 @@ End Function
 Private Function SQLite3Component.Event_Send(code As Long, ByRef Event_Data As WString) As Long
 	Select Case code
 	Case 11
-		If OnErrorOut Then OnErrorOut(This, Event_Data)
-	Case 12
 		If OnSQLString Then Return OnSQLString(This, Event_Data)
+	Case 12
+		If OnErrorOut Then OnErrorOut(This, Event_Data)
 	End Select
 	Return 0
 End Function
