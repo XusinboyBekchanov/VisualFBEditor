@@ -57,7 +57,7 @@ Function SQLite3Component.Open(ByRef FileName As WString, ByRef Password As WStr
 	End If
 	Dim rs() As String
 	EventsEn = 1
-	If SqlFind("PRAGMA database_list", rs()) Then
+	If SQLFind("PRAGMA database_list", rs()) Then
 		If UBound(rs) = -1 Or UBound(rs, 2) = -1 Then
 			ErrStr = "Not found base": This.Event_Send(12, ErrStr)
 			sqlite3_close(FSQLite3)
@@ -958,7 +958,12 @@ Function SQLite3Component.CreateIndexUtf(Table_Utf8 As String,IndexName_Utf8 As 
 End Function
 
 Private Function SQLite3Component.Event_Send(code As Long, ByRef Event_Data As WString) As Long
-	?Str(code) & ":" & Event_Data
+	Select Case code
+	Case 11
+		If OnErrorOut Then OnErrorOut(This, Event_Data)
+	Case 12
+		If OnSQLString Then Return OnSQLString(This, Event_Data)
+	End Select
 	Return 0
 End Function
 

@@ -77,13 +77,15 @@ Public:
 	
 	Declare Sub TransactionBegin()
 	Declare Function TransactionEnd()        As Long
-	Declare Function VERSION()               As String
+	Declare Function Version()               As String
 	Declare Function ErrMsg()                As String
 	Declare Function SetKey(newkey As UString) As Boolean
 	Declare Sub Close()
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor
+	OnSQLString As Function(ByRef Sender As SQLite3Component, Sql_Utf8 As String) As Long
+	OnErrorOut As Sub(ByRef Sender As SQLite3Component, ErrorTxt As String)
 End Type
 
 #ifndef __USE_MAKE__

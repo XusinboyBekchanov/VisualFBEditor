@@ -2754,12 +2754,12 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 			ElseIf b Then
 				If Not e Then
 					If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end type ") Then
-						e = True: LineEndType = K
+						e = True: LineEndType = k
 					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare constructor") Then
 						j = k
 					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare static") Then
 						l = k
-						If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare static sub " & LCase(SubName)) Then
+						If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare static sub " & LCase(SubName)) OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare static function " & LCase(SubName)) Then
 							td = True
 						End If
 					End If
@@ -2800,7 +2800,13 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Sub " & frmTypeName & "." & SubName)) OrElse _
 								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Sub " & frmTypeName & "._" & SubName)) OrElse _
 								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Private Sub " & frmTypeName & "._" & SubName)) OrElse _
-								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Sub " & frmTypeName & "._" & SubName)) Then
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Sub " & frmTypeName & "._" & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Function " & frmTypeName & "." & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Private Function " & frmTypeName & "." & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Function " & frmTypeName & "." & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Public Function " & frmTypeName & "._" & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Private Function " & frmTypeName & "._" & SubName)) OrElse _
+								StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), LCase("Function " & frmTypeName & "._" & SubName)) Then
 								Var n = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
 								ptxtCode->SetSelection k + 1, k + 1, n + Len(TabSpace), n + Len(TabSpace)
 								ptxtCode->TopLine = k
@@ -2823,28 +2829,29 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 		Dim As TypeElement Ptr te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), EventName)
 		Dim As Integer q1, q2, q
 		If te = 0 Then Exit Sub
+		Var Pos1 = InStr(te->TypeName, "(")
 		If Not td Then
 			ptxtCode = ptxtCodeType
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			If CreateNonStaticEventHandlers Then
 				If PlaceStaticEventHandlersAfterTheConstructor Then
-					ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & IIf(CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & SubName & IIf(Not CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & Mid(te->TypeName, 4)
+					ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static " & Left(te->TypeName, Pos1 - 1) & " " & IIf(CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & SubName & IIf(Not CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & Mid(te->TypeName, Pos1)
 				Else
-					ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & IIf(CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & SubName & IIf(Not CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & Mid(te->TypeName, 4)
+					ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static " & Left(te->TypeName, Pos1 - 1) & " " & IIf(CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & SubName & IIf(Not CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, "_", "") & Mid(te->TypeName, Pos1)
 				End If
-				ptxtCode->InsertLine j + 1, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Sub " & SubName & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine j + 1, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare " & Left(te->TypeName, Pos1 - 1) & " " & SubName & Mid(te->TypeName, Pos1)
 				tb->ConstructorStart += 2
 				tb->ConstructorEnd += 2
 				If ptxtCode = @tb->txtCode Then q1 = 1 Else q2 = 1
 			Else
-				ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static Sub " & SubName & Mid(te->TypeName, 4)
+				ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j), Len(ptxtCode->Lines(j)) - Len(LTrim(ptxtCode->Lines(j), Any !"\t "))) & "Declare Static " & Left(te->TypeName, Pos1 - 1) & " " & SubName & Mid(te->TypeName, Pos1)
 				tb->ConstructorStart += 1
 				tb->ConstructorEnd += 1
 			End If
 			If ptxtCode = @tb->txtCode Then q1 += 1 Else q2 += 1
 		End If
 		If Not tt Then
-			If C Then ptxtCode = ptxtCodeConstructor
+			If c Then ptxtCode = ptxtCodeConstructor
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			q = IIf(ptxtCode = @tb->txtCode, q1, q2)
 			If bWith Then WithCtrlName = "" Else WithCtrlName = CtrlName
@@ -2863,24 +2870,24 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 			If PlaceStaticEventHandlersAfterTheConstructor Then
 				Dim As String LeftTabSpace = ..Left(ptxtCode->Lines(LineEndConstructor + q), Len(ptxtCode->Lines(LineEndConstructor + q)) - Len(LTrim(ptxtCode->Lines(LineEndConstructor + q), Any !"\t ")))
 				ptxtCode->InsertLine LineEndConstructor + 1 + q, LeftTabSpace
-				ptxtCode->InsertLine LineEndConstructor + q + 1, LeftTabSpace & "Private Sub " & frmTypeName & "." & SubNameNew & Mid(te->TypeName, 4)
-				ptxtCode->InsertLine LineEndConstructor + q + 2, LeftTabSpace & TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
-				ptxtCode->InsertLine LineEndConstructor + q + 3, LeftTabSpace & "End Sub"
+				ptxtCode->InsertLine LineEndConstructor + q + 1, LeftTabSpace & "Private " & Left(te->TypeName, Pos1 - 1) & " " & frmTypeName & "." & SubNameNew & Mid(te->TypeName, Pos1)
+				ptxtCode->InsertLine LineEndConstructor + q + 2, LeftTabSpace & TabSpace & IIf(Pos1 = 4, "", "Return ") & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, Pos1))
+				ptxtCode->InsertLine LineEndConstructor + q + 3, LeftTabSpace & "End " & Left(te->TypeName, Pos1 - 1)
 				q += 4
 			Else
-				ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubNameNew & Mid(te->TypeName, 4)
-				ptxtCode->InsertLine i + q + 2, TabSpace & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, 4))
-				ptxtCode->InsertLine i + q + 3, "End Sub"
+				ptxtCode->InsertLine i + q + 1, "Private " & Left(te->TypeName, Pos1 - 1) & " " & frmTypeName & "." & SubNameNew & Mid(te->TypeName, Pos1)
+				ptxtCode->InsertLine i + q + 2, TabSpace & IIf(Pos1 = 4, "", "Return ") & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, Pos1))
+				ptxtCode->InsertLine i + q + 3, "End " & Left(te->TypeName, Pos1 - 1)
 				q += 3
 			End If
 		End If
-		ptxtCode->InsertLine i + q + 1, "Private Sub " & frmTypeName & "." & SubName & Mid(te->TypeName, 4)
+		ptxtCode->InsertLine i + q + 1, "Private " & Left(te->TypeName, Pos1 - 1) & " " & frmTypeName & "." & SubName & Mid(te->TypeName, Pos1)
 		If InStr(CtrlName, "(") Then
 			ptxtCode->InsertLine i + q + 2, TabSpace & "Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, ""("") + 1))"
 		Else
 			ptxtCode->InsertLine i + q + 2, TabSpace
 		End If
-		ptxtCode->InsertLine i + q + 3, "End Sub"
+		ptxtCode->InsertLine i + q + 3, "End " & Left(te->TypeName, Pos1 - 1)
 		bNotDesignForms = True
 		ptxtCode->SetSelection i + q + 2, i + q + 2, Len(TabSpace), Len(TabSpace)
 		ptxtCode->TopLine = i + q + 1
@@ -5168,7 +5175,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						ElseIf bShared Then
 							te->ElementType = "SharedVariable"
 						Else
-							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
+							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), "Event", IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
 						End If
 						te->TypeName = CurType
 						te->TypeName = WithoutPointers(te->TypeName)
@@ -7406,7 +7413,7 @@ Sub RunLogCat(Param As Any Ptr)
 			CloseHandle pi.hThread
 			CloseHandle hReadPipe
 		Next
-		WDeallocate(CmdL)
+		WDeAllocate(CmdL)
 	#endif
 End Sub
 
@@ -7430,7 +7437,7 @@ Sub RunPr(Debugger As String = "")
 		Dim pBuff As WString Ptr
 		Dim As Integer FileSize
 		FileSize = LOF(Fn)
-		WReallocate(pBuff, FileSize)
+		WReAllocate(pBuff, FileSize)
 		Do Until EOF(Fn)
 			LineInputWstr Fn, pBuff, FileSize
 			If StartsWith(*pBuff, "sdk.dir=") Then
@@ -7451,7 +7458,7 @@ Sub RunPr(Debugger As String = "")
 		Open *Project->FileName & "/app/build.gradle" For Input As #Fn
 		Dim applicationId As String
 		FileSize = LOF(Fn)
-		WReallocate(pBuff, FileSize)
+		WReAllocate(pBuff, FileSize)
 		Do Until EOF(Fn)
 			LineInputWstr Fn, pBuff, FileSize
 			If StartsWith(Trim(*pBuff), "applicationId ") Then
@@ -7488,7 +7495,7 @@ Sub RunPr(Debugger As String = "")
 				Dim Buff As WString * 2048
 				
 				sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
-				sa.lpSecurityDescriptor = Null
+				sa.lpSecurityDescriptor = NULL
 				sa.bInheritHandle = True
 				
 				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
@@ -7537,7 +7544,7 @@ Sub RunPr(Debugger As String = "")
 				CloseHandle hReadPipe
 			Next
 		#endif
-		If WorkDir Then Deallocate_( WorkDir)
+		If Workdir Then Deallocate_( Workdir)
 		If CmdL Then Deallocate_(CmdL)
 	Else
 		WLet(ExeFileName, (GetExeFileName(MainFile, FirstLine & CompileLine)))
@@ -7585,7 +7592,7 @@ Sub RunPr(Debugger As String = "")
 				ThreadsLeave()
 				Result = Shell(CommandLine)
 			End If
-			WDeallocate Arguments
+			WDeAllocate Arguments
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 			ThreadsLeave()
@@ -7635,7 +7642,7 @@ Sub RunPr(Debugger As String = "")
 				
 				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Pipe"), False)
-					If WorkDir Then Deallocate WorkDir
+					If Workdir Then Deallocate Workdir
 					If CmdL Then Deallocate CmdL
 					ChangeEnabledDebug True, False, False
 					Exit Sub
@@ -7650,7 +7657,7 @@ Sub RunPr(Debugger As String = "")
 				ChDir(GetFolderName(*ExeFileName))
 				If CreateProcess(0, *CmdL, @sa, @sa, 1, pClass, 0, 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process"), False)
-					If WorkDir Then Deallocate WorkDir
+					If Workdir Then Deallocate Workdir
 					If CmdL Then Deallocate CmdL
 					ChangeEnabledDebug True, False, False
 					Exit Sub
@@ -7682,7 +7689,7 @@ Sub RunPr(Debugger As String = "")
 				CloseHandle pi.hThread
 				CloseHandle hReadPipe
 				result1 = GetLastError()
-				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & result1  & " - " & Err2Description(result1))
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & IIf(result1 = ERROR_BROKEN_PIPE, "0 - " & Err2Description(0), result1  & " - " & GetErrorString(result1)))
 			Else
 				Dim SInfo As STARTUPINFO
 				Dim PInfo As PROCESS_INFORMATION
@@ -7691,13 +7698,13 @@ Sub RunPr(Debugger As String = "")
 				SInfo.wShowWindow = SW_NORMAL
 				pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
 				ChDir(GetFolderName(*ExeFileName))
-				If CreateProcessW(NULL, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-					dbghand = pinfo.hProcess
+				If CreateProcessW(NULL, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then
+					dbghand = PInfo.hProcess
 					prun = True
-					WaitForSingleObject pinfo.hProcess, INFINITE
-					GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-					CloseHandle(pinfo.hProcess)
-					CloseHandle(pinfo.hThread)
+					WaitForSingleObject PInfo.hProcess, INFINITE
+					GetExitCodeProcess(PInfo.hProcess, @ExitCode)
+					CloseHandle(PInfo.hProcess)
+					CloseHandle(PInfo.hThread)
 					prun = False
 					Result = ExitCode
 					'Result = Shell(Debugger & """" & *ExeFileName + """")
@@ -7716,7 +7723,7 @@ Sub RunPr(Debugger As String = "")
 			ChangeEnabledDebug True, False, False
 			'End If
 			pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
-			If WorkDir Then Deallocate WorkDir
+			If Workdir Then Deallocate Workdir
 			If CmdL Then Deallocate CmdL
 		#endif
 	End If
