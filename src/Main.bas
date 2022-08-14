@@ -4120,7 +4120,44 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		WLet(MFFPath, iniSettings.ReadString("Options", "MFFPath", "./Controls/MyFbFramework"))
 		Do Until iniSettings.KeyExists("ControlLibraries", "Path_" & WStr(i)) = -1
 			Dim As IniFile ini
-			Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), "")
+			#ifndef __USE_GTK__
+				#ifdef __FB_64BIT__
+					Temp = IIf(i = 0, "Controls\MyFbFramework\mff64.DLL", "")
+				#else
+					Temp = IIf(i = 0, "Controls\MyFbFramework\mff32.DLL", "")
+				#endif
+			#else
+				#ifdef __USE_GTK3__
+					#ifdef __FB_WIN32__
+						#ifdef __FB_64BIT_
+							Temp = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk3.dll", "")
+						#else
+							Temp = IIf(i = 0, "Controls/MyFbFramework/mff32_gtk3.dll", "")
+						#endif
+					#else
+						#ifdef __FB_64BIT__
+							Temp = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk3.so", "")
+						#else
+							Temp = IIf(i = 0, "Controls/MyFbFramework/libmff32_gtk3.so", "")
+						#endif
+					#endif
+				#else
+					#ifdef __FB_WIN32__
+						#ifdef __FB_64BIT_
+							Temp = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk2.dll", "")
+						#else
+							Temp = IIf(i = 0, "Controls/MyFbFramework/mff32_gtk2.dll", "")
+						#endif
+					#else
+						#ifdef __FB_64BIT__
+							Temp = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk2.so", "")
+						#else
+							Temp = IIf(i = 0, "Controls/MyFbFramework/libmff32_gtk2.so", "")
+						#endif
+					#endif
+				#endif
+			#endif
+			Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), Temp)
 			ini.Load GetFolderName(GetFullPath(Temp)) & "Settings.ini"
 			Var CtlLibrary = New_(Library)
 			CtlLibrary->Name = ini.ReadString("Setup", "Name")
@@ -4139,6 +4176,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
+		If Not FileExists(GetFullPath(CtlLibrary->Path)) Then
+			MsgBox ML("File not found") & ": " & WChr(13, 10) & WChr(13, 10) & GetFullPath(CtlLibrary->Path) & WChr(13, 10) & WChr(13, 10) & ML("Can not load control to toolbox")
+		End If
 		CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
 		If Not CtlLibrary->Enabled Then Continue For
 		#ifdef __USE_GTK__
