@@ -3516,6 +3516,7 @@ End Sub
 End Sub
 
 Sub CompleteWord
+	Static OldWord As String
 	If FormClosing Then Exit Sub
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -3557,6 +3558,7 @@ Sub CompleteWord
 			Exit For
 		End If
 	Next
+	If OldWord <> "" AndAlso StartsWith(sTemp, OldWord) Then Exit Sub
 	'If teOld <> 0 OrElse OldTypeName <> "" Then
 	'		If OldTypeName <> "" Then
 	'			TypeName = OldTypeName
@@ -3576,10 +3578,10 @@ Sub CompleteWord
 		End If
 	End If
 	#ifdef __USE_GTK__
-		If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
+		If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then OldWord = sTemp: Exit Sub
 		With tb->txtCode.lvIntellisense
 	#else
-		If tb->txtCode.cboIntellisense.Items.Count = 0 Then Exit Sub
+		If tb->txtCode.cboIntellisense.Items.Count = 0 Then OldWord = sTemp: Exit Sub
 		With tb->txtCode.cboIntellisense
 	#endif
 		FindComboIndex(tb, *sLine, SelCharPos)
@@ -4431,7 +4433,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			ParameterInfo Key
 		End If
 	ElseIf tb->txtCode.DropDownShowed Then
-		If Key <> 8 Then
+		If Key <> 8 AndAlso Key <> 127 Then
 			#ifdef __USE_GTK__
 				If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
 			#else
@@ -4448,8 +4450,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+		Dim sTemp As String = Mid(*sLine, tb->txtCode.DropDownChar + 1, iSelEndChar + 1 - (tb->txtCode.DropDownChar + 1))
+		Static OldWord As String
+		If OldWord <> "" AndAlso StartsWith(sTemp, OldWord) Then Exit Sub
 		If EndsWith(RTrim(..Left(LCase(*sLine), tb->txtCode.DropDownChar)), " as") Then
-			FillTypeIntellisenses Mid(*sLine, tb->txtCode.DropDownChar + 1)
+			FillTypeIntellisenses sTemp
 		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), ".") Then
 			'FillIntellisenseByName GetLeftArg(tb, iSelEndLine, tb->txtCode.DropDownChar - 1)
 		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), "->") Then
@@ -4458,9 +4463,14 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			If Trim(Mid(*sLine, tb->txtCode.DropDownChar + 1)) = "" Then
 				tb->txtCode.CloseDropDown
 			Else
-				FillAllIntellisenses Mid(*sLine, tb->txtCode.DropDownChar + 1)
+				FillAllIntellisenses sTemp
 			End If
 		End If
+		#ifdef __USE_GTK__
+			If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then OldWord = sTemp: Exit Sub
+		#else
+			If tb->txtCode.cboIntellisense.ItemCount = 0 Then OldWord = sTemp: Exit Sub
+		#endif
 		FindComboIndex tb, *sLine, tb->txtCode.DropDownChar
 		#ifdef __USE_GTK__
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
