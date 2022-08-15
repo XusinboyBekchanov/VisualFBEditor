@@ -5706,7 +5706,7 @@ End Sub
 'mnuCode.ImagesList = pimgList '<m>
 mnuCode.Add(ML("Cu&t") & !"\tCtrl+X", "Cut", "Cut", @mClick)
 mnuCode.Add(ML("&Copy") & !"\tCtrl+C", "Copy", "Copy", @mClick)
-mnuCode.Add(ML("&Paste") & !"\tCtrl+P", "Paste", "Paste", @mClick)
+mnuCode.Add(ML("&Paste") & !"\tCtrl+V", "Paste", "Paste", @mClick)
 mnuCode.Add("-")
 Var miToogle = mnuCode.Add(ML("Toggle"), "", "Toggle")
 miToogle->Add(ML("Breakpoint"), "Breakpoint", "Breakpoint", @mClick)
