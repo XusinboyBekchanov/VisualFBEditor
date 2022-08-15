@@ -571,6 +571,8 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 					If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj, 0, Ctrls(i))
 					Ctrls(i) = Obj
 					ActiveCtrl = Obj
+					Des->SelectedControl = ActiveCtrl
+					If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, ActiveCtrl)
 					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
 					'Des->TopMenu->Repaint
 				Else
@@ -596,6 +598,8 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 					If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj, 0, Ctrls(i))
 					Ctrls(i) = Obj
 					ActiveCtrl = Obj
+					Des->SelectedControl = ActiveCtrl
+					If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, ActiveCtrl)
 					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
 				Else
 					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
@@ -635,6 +639,8 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
 					'picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left
 					If NewObject Then st->WritePropertyFunc(Obj, "MenuIndex", @Indexes(i))
+					Des->SelectedControl = ActiveCtrl
+					If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, ActiveCtrl)
 					If i = 1 Then
 						Des->CheckTopMenuVisible , False
 					Else
