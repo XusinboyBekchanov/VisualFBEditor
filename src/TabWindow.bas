@@ -8004,7 +8004,7 @@ Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
 End Sub
 
 Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
-	Var tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	With tb->txtCode
 		.UpdateLock
@@ -8022,12 +8022,12 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 				If FECLine->ConstructionPart = 0 Then
 					ehStart = i + 1
 					Select Case FECLine->ConstructionIndex
-					Case 16: ExitLine = "Exit Sub"
-					Case 17: ExitLine = "Exit Function"
-					Case 18: ExitLine = "Exit Property"
-					Case 19: ExitLine = "Exit Operator"
-					Case 20: ExitLine = "Exit Constructor"
-					Case 21: ExitLine = "Exit Destructor"
+					Case C_Sub: ExitLine = "Exit Sub"
+					Case C_Function: ExitLine = "Exit Function"
+					Case C_Property: ExitLine = "Exit Property"
+					Case C_Operator: ExitLine = "Exit Operator"
+					Case C_Constructor: ExitLine = "Exit Constructor"
+					Case C_Destructor: ExitLine = "Exit Destructor"
 					End Select
 					n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text)) + 4
 					Exit For
