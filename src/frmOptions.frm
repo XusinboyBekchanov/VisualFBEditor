@@ -34,6 +34,20 @@ pfOptions = @fOptions
 		'This.DefaultButton = @cmdOK
 		This.Designer = @This
 		This.BorderStyle = FormBorderStyle.FixedDialog
+		' pnlCommands
+		With pnlCommands
+			.Name = "pnlCommands"
+			.Text = "Panel1"
+			.TabIndex = 202
+			.Align = DockStyle.alBottom
+			.Margins.Top = 5
+			.Margins.Right = 5
+			.Margins.Left = 5
+			.Margins.Bottom = 5
+			.SetBounds 0, 429, 624, 30
+			.Designer = @This
+			.Parent = @This
+		End With
 		' tvOptions
 		tvOptions.Name = "tvOptions"
 		tvOptions.Text = "TreeView1"
@@ -45,35 +59,38 @@ pfOptions = @fOptions
 		tvOptions.HideSelection = False
 		tvOptions.OnSelChanged = @TreeView1_SelChange
 		tvOptions.Parent = @This
+		'cmdOK.Caption = ML("OK")
+		' cmdApply
+		cmdApply.Name = "cmdApply"
+		cmdApply.Text = ML("Apply")
+		cmdApply.Align = DockStyle.alRight
+		cmdApply.SetBounds 529, 5, 90, 20
+		cmdApply.OnClick = @cmdApply_Click
+		cmdApply.Parent = @pnlCommands
+		' cmdCancel
+		cmdCancel.Name = "cmdCancel"
+		cmdCancel.Text = ML("Cancel")
+		cmdCancel.Align = DockStyle.alRight
+		cmdCancel.SetBounds 534, 0, 90, 30
+		cmdCancel.OnClick = @cmdCancel_Click
+		cmdCancel.Parent = @pnlCommands
 		' cmdOK
 		cmdOK.Name = "cmdOK"
 		cmdOK.Text = ML("OK")
 		cmdOK.Default = True
-		cmdOK.SetBounds 347, 427, 90, 24
+		cmdOK.Align = DockStyle.alRight
+		cmdOK.SetBounds 349, 5, 90, 20
 		cmdOK.OnClick = @cmdOK_Click
-		'cmdOK.Caption = ML("OK")
-		cmdOK.Parent = @This
-		' cmdCancel
-		cmdCancel.Name = "cmdCancel"
-		cmdCancel.Text = ML("Cancel")
-		cmdCancel.SetBounds 436, 427, 90, 24
-		cmdCancel.OnClick = @cmdCancel_Click
-		cmdCancel.Parent = @This
-		' cmdApply
-		cmdApply.Name = "cmdApply"
-		cmdApply.Text = ML("Apply")
-		cmdApply.SetBounds 525, 427, 90, 24
-		cmdApply.OnClick = @cmdApply_Click
-		cmdApply.Parent = @This
+		cmdOK.Parent = @pnlCommands
 		' lblWhite
 		lblWhite.Name = "lblWhite"
 		lblWhite.Text = ""
 		lblWhite.BackColor = 16777215
 		lblWhite.ExtraMargins.Left = 10
 		lblWhite.ExtraMargins.Right = 10
-		lblWhite.ExtraMargins.Bottom = 40
+		lblWhite.ExtraMargins.Bottom = 0
 		lblWhite.Align = DockStyle.alBottom
-		lblWhite.SetBounds 10, 418, 604, 2
+		lblWhite.SetBounds 10, 387, 604, 2
 		lblWhite.Parent = @This
 		' lblBlack
 		lblBlack.Name = "lblBlack"
@@ -90,12 +107,12 @@ pfOptions = @fOptions
 		pnlGeneral.Name = "pnlGeneral"
 		pnlGeneral.Text = ""
 		pnlGeneral.Margins.Left = 10
-		pnlGeneral.ExtraMargins.Top = 4
+		pnlGeneral.ExtraMargins.Top = 0
 		pnlGeneral.ExtraMargins.Bottom = 9
 		pnlGeneral.ExtraMargins.Right = 10
 		pnlGeneral.Align = DockStyle.alClient
 		pnlGeneral.Margins.Top = 0
-		pnlGeneral.SetBounds 188, -6, 426, 404
+		pnlGeneral.SetBounds 188, 0, 416, 408
 		pnlGeneral.Parent = @This
 		' pnlCodeEditor
 		pnlCodeEditor.Name = "pnlCodeEditor"
@@ -430,20 +447,40 @@ pfOptions = @fOptions
 		cmdAddCompiler.SetBounds 14, 222, 97, 24
 		cmdAddCompiler.OnClick = @cmdAddCompiler_Click
 		cmdAddCompiler.Parent = @grbCompilerPaths
-		' CheckBox1
-		CheckBox1.Name = "CheckBox1"
-		CheckBox1.Text = ML("Auto increment version")
-		CheckBox1.Align = DockStyle.alTop
-		CheckBox1.ExtraMargins.Top = 5
-		CheckBox1.SetBounds 10, 5, 416, 18
-		CheckBox1.Parent = @pnlGeneral
+		' chkAutoCreateBakFiles
+		With chkAutoCreateBakFiles
+			.Name = "chkAutoCreateBakFiles"
+			.Text = ML("Auto create bak files before saving")
+			.ExtraMargins.Top = 5
+			.Align = DockStyle.alTop
+			.SetBounds 10, 74, 416, 18
+			.ID = 1009
+			.Parent = @pnlGeneral
+		End With
 		' chkAutoCreateRC
 		chkAutoCreateRC.Name = "chkAutoCreateRC"
 		chkAutoCreateRC.Text = ML("Auto create resource and manifest files (.rc, .xml)")
 		chkAutoCreateRC.ExtraMargins.Top = 5
 		chkAutoCreateRC.Align = DockStyle.alTop
-		chkAutoCreateRC.SetBounds 10, 28, 416, 18
+		chkAutoCreateRC.SetBounds 10, 28, 406, 18
 		chkAutoCreateRC.Parent = @pnlGeneral
+		' CheckBox1
+		CheckBox1.Name = "CheckBox1"
+		CheckBox1.Text = ML("Auto increment version")
+		CheckBox1.Align = DockStyle.alTop
+		CheckBox1.ExtraMargins.Top = 5
+		CheckBox1.SetBounds 10, 28, 416, 18
+		CheckBox1.Parent = @pnlGeneral
+		' chkAddRelativePathsToRecent
+		With chkAddRelativePathsToRecent
+			.Name = "chkAddRelativePathsToRecent"
+			.Text = ML("Add relative paths to recent")
+			.TabIndex = 191
+			.ExtraMargins.Top = 5
+			.Align = DockStyle.alTop
+			.SetBounds 10, 194, 416, 18
+			.Parent = @pnlGeneral
+		End With
 		' pnlIncludes
 		pnlIncludes.Name = "pnlIncludes"
 		pnlIncludes.ExtraMargins.Bottom = 9
@@ -930,31 +967,7 @@ pfOptions = @fOptions
 		lblFont.Text = ML("Font")
 		lblFont.SetBounds 23, 23, 344, 16
 		lblFont.Parent = @grbFont
-		' txtProjectsPath
-		txtProjectsPath.Name = "txtProjectsPath"
-		txtProjectsPath.Text = "./Projects"
-		txtProjectsPath.Align = DockStyle.alBottom
-		txtProjectsPath.ExtraMargins.Bottom = 1
-		txtProjectsPath.ExtraMargins.Right = 26
-		txtProjectsPath.SetBounds 10, 383, 390, 20
-		txtProjectsPath.Parent = @pnlGeneral
-		' cmdProjectsPath
-		cmdProjectsPath.Name = "cmdProjectsPath"
-		cmdProjectsPath.Text = "..."
-		cmdProjectsPath.Align = DockStyle.alBottom
-		cmdProjectsPath.ExtraMargins.Bottom = -21
-		cmdProjectsPath.ExtraMargins.Left = 392
-		cmdProjectsPath.SetBounds 402, 382, 24, 22
 		'cmdProjectsPath.Caption = "..."
-		cmdProjectsPath.OnClick = @cmdProjectsPath_Click
-		cmdProjectsPath.Parent = @pnlGeneral
-		' lblProjectsPath
-		lblProjectsPath.Name = "lblProjectsPath"
-		lblProjectsPath.Text = ML("Projects path") & ":"
-		lblProjectsPath.Align = DockStyle.alBottom
-		lblProjectsPath.ExtraMargins.Top = 15
-		lblProjectsPath.SetBounds 10, 366, 416, 16
-		lblProjectsPath.Parent = @pnlGeneral
 		' txtColorBackground
 		txtColorBackground.Name = "txtColorBackground"
 		txtColorBackground.SetBounds 258, 113, 72, 20
@@ -1229,16 +1242,6 @@ pfOptions = @fOptions
 			.SetBounds 0, 60, 340, 20
 			.Parent = @pnlThemesCheckboxes
 		End With
-		' chkAutoCreateBakFiles
-		With chkAutoCreateBakFiles
-			.Name = "chkAutoCreateBakFiles"
-			.Text = ML("Auto create bak files before saving")
-			.ExtraMargins.Top = 5
-			.Align = DockStyle.alTop
-			.SetBounds 10, 51, 416, 18
-			.ID = 1009
-			.Parent = @pnlGeneral
-		End With
 		' lblFrame
 		With lblFrame
 			.Name = "lblFrame"
@@ -1374,15 +1377,6 @@ pfOptions = @fOptions
 			.SetBounds 305, 296, 97, 24
 			.OnClick = @cmdClearHelps_Click
 			.Parent = @grbHelpPaths
-		End With
-		' grbWhenCompiling
-		With grbWhenCompiling
-			.Name = "grbWhenCompiling"
-			.Text = ML("When compiling") & ":"
-			.Align = DockStyle.alBottom
-			.ExtraMargins.Top = 5
-			.SetBounds 10, 231, 416, 120
-			.Parent = @pnlGeneral
 		End With
 		' optSaveCurrentFile
 		With optSaveCurrentFile
@@ -1562,10 +1556,45 @@ pfOptions = @fOptions
 		With grbWhenVFBEStarts
 			.Name = "grbWhenVFBEStarts"
 			.Text = ML("When VisualFBEditor starts") & ":"
-			.Align = DockStyle.alBottom
-			.SetBounds 10, 116, 416, 120
+			.Align = DockStyle.alTop
+			.ExtraMargins.Top = 5
+			.SetBounds 10, 92, 416, 120
 			.Parent = @pnlGeneral
 		End With
+		' grbWhenCompiling
+		With grbWhenCompiling
+			.Name = "grbWhenCompiling"
+			.Text = ML("When compiling") & ":"
+			.Align = DockStyle.alTop
+			.ExtraMargins.Top = 5
+			.SetBounds 10, 97, 416, 120
+			.Parent = @pnlGeneral
+		End With
+		' lblProjectsPath
+		lblProjectsPath.Name = "lblProjectsPath"
+		lblProjectsPath.Text = ML("Projects path") & ":"
+		lblProjectsPath.Align = DockStyle.alTop
+		lblProjectsPath.ExtraMargins.Top = 5
+		lblProjectsPath.SetBounds 10, 357, 399, 16
+		lblProjectsPath.Parent = @pnlGeneral
+		' txtProjectsPath
+		txtProjectsPath.Name = "txtProjectsPath"
+		txtProjectsPath.Text = "./Projects"
+		txtProjectsPath.Align = DockStyle.alTop
+		txtProjectsPath.ExtraMargins.Bottom = 1
+		txtProjectsPath.ExtraMargins.Right = 26
+		txtProjectsPath.SetBounds 10, 363, 373, 20
+		txtProjectsPath.Parent = @pnlGeneral
+		' cmdProjectsPath
+		cmdProjectsPath.Name = "cmdProjectsPath"
+		cmdProjectsPath.Text = "..."
+		cmdProjectsPath.Align = DockStyle.alTop
+		cmdProjectsPath.ExtraMargins.Bottom = 0
+		cmdProjectsPath.ExtraMargins.Left = 392
+		cmdProjectsPath.ExtraMargins.Top = -22
+		cmdProjectsPath.SetBounds 390, 362, 36, 22
+		cmdProjectsPath.OnClick = @cmdProjectsPath_Click
+		cmdProjectsPath.Parent = @pnlGeneral
 		' optPromptForProjectAndFile
 		With optPromptForProjectAndFile
 			.Name = "optPromptForProjectAndFile"
@@ -1832,16 +1861,6 @@ pfOptions = @fOptions
 			.SetBounds 32, 195, 380, 24
 			.Parent = @pnlDesigner
 		End With
-		' chkAddRelativePathsToRecent
-		With chkAddRelativePathsToRecent
-			.Name = "chkAddRelativePathsToRecent"
-			.Text = ML("Add relative paths to recent")
-			.TabIndex = 191
-			.ExtraMargins.Top = 5
-			.Align = DockStyle.alTop
-			.SetBounds 20, 72, 416, 18
-			.Parent = @pnlGeneral
-		End With
 		' lblHistoryDay
 		With lblHistoryDay
 			.Name = "lblHistoryDay"
@@ -1954,13 +1973,13 @@ pfOptions = @fOptions
 
 Private Sub frmOptions.cmdOK_Click(ByRef Sender As Control)
 	cmdApply_Click(Sender)
-	Cast(frmOptions Ptr, Sender.Parent)->CloseForm
+	fOptions.CloseForm
 End Sub
 
 Private Sub frmOptions.cmdCancel_Click(ByRef Sender As Control)
 	fOptions.cboTheme.ItemIndex = fOptions.cboTheme.IndexOf(*CurrentTheme)
 	fOptions.cboTheme_Change(Sender)
-	Cast(frmOptions Ptr, Sender.Parent)->CloseForm
+	fOptions.CloseForm
 End Sub
 
 Sub AddColors(ByRef cs As ECColorScheme, Foreground As Boolean = True, Background As Boolean = True, Frame As Boolean = True, Indicator As Boolean = True, Bold As Boolean = True, Italic As Boolean = True, Underline As Boolean = True)
