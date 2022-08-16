@@ -6019,15 +6019,19 @@ End Sub
 
 tbProperties.ImagesList = @imgList
 tbProperties.Align = DockStyle.alTop
-tbProperties.Buttons.Add tbsCheck, "Categorized", , @tbProperties_ButtonClick, "PropertyCategory", "", ML("Categorized"), , tstEnabled Or tstChecked
+tbProperties.List = True
+tbProperties.Buttons.Add tbsCheck Or tbsAutosize, "Categorized", , @tbProperties_ButtonClick, "PropertyCategory", "", ML("Categorized"), , tstEnabled Or tstChecked
 tbProperties.Buttons.Add tbsSeparator
-tbProperties.Buttons.Add , "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
+tbProperties.Buttons.Add tbsAutosize, "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
+tbProperties.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
 tbProperties.Flat = True
 
 tbEvents.ImagesList = @imgList
 tbEvents.Align = DockStyle.alTop
-tbEvents.Buttons.Add tbsCheck, "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
+tbEvents.List = True
+tbEvents.Buttons.Add tbsAutosize Or tbsCheck, "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
 tbEvents.Buttons.Add tbsSeparator
+tbEvents.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
 tbEvents.Flat = True
 
 Sub txtPropertyValue_Activate(ByRef Sender As Control)

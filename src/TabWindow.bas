@@ -916,7 +916,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		End Select
 	End If
 	Var ptabCode = Cast(TabControl Ptr, This.Parent)
-	pTabCode->Remove(@btnClose)
+	ptabCode->Remove(@btnClose)
 	miWindow->Remove This.mi
 	btnClose.FreeWnd
 	ptabCode->DeleteTab(This.Index)
@@ -1539,7 +1539,12 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	SelectedCtrl = Ctrl
 	SelectedCount = Sender.SelectedControls.Count
 	bNotFunctionChange = True
-	If tb->Des->Symbols(Ctrl) AndAlso tb->Des->Symbols(Ctrl)->ReadPropertyFunc <> 0 Then tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(WGet(tb->Des->Symbols(Ctrl)->ReadPropertyFunc(Ctrl, "Name")))
+	If tb->Des->Symbols(Ctrl) AndAlso tb->Des->Symbols(Ctrl)->ReadPropertyFunc <> 0 Then 
+		Dim As String SelControlName = WGet(tb->Des->Symbols(Ctrl)->ReadPropertyFunc(Ctrl, "Name"))
+		tbProperties.Buttons.Item("SelControlName")->Caption = SelControlName
+		tbEvents.Buttons.Item("SelControlName")->Caption = SelControlName
+		tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(SelControlName)
+	End If
 	tb->FillAllProperties
 	If Sender.SelectedControls.Contains(Sender.SelectedControl) Then
 		tb->pnlForm.SetFocus
@@ -4608,7 +4613,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
