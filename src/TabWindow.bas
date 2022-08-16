@@ -1541,9 +1541,14 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	bNotFunctionChange = True
 	If tb->Des->Symbols(Ctrl) AndAlso tb->Des->Symbols(Ctrl)->ReadPropertyFunc <> 0 Then 
 		Dim As String SelControlName = WGet(tb->Des->Symbols(Ctrl)->ReadPropertyFunc(Ctrl, "Name"))
-		tbProperties.Buttons.Item("SelControlName")->Caption = SelControlName
-		tbEvents.Buttons.Item("SelControlName")->Caption = SelControlName
+		Dim As String SelControlNames = SelControlName
 		tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(SelControlName)
+		For i As Integer = 0 To SelectedCount - 1
+			If Sender.SelectedControls.Item(i) = Sender.SelectedControl Then Continue For
+			SelControlNames = SelControlNames & ", " & WGet(tb->Des->Symbols(Sender.SelectedControls.Item(i))->ReadPropertyFunc(Sender.SelectedControls.Item(i), "Name"))
+		Next
+		tbProperties.Buttons.Item("SelControlName")->Caption = SelControlNames
+		tbEvents.Buttons.Item("SelControlName")->Caption = SelControlNames
 	End If
 	tb->FillAllProperties
 	If Sender.SelectedControls.Contains(Sender.SelectedControl) Then
