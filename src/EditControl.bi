@@ -255,6 +255,9 @@ Namespace My.Sys.Forms
 		Dim As Boolean bInDivideY, bDividedY
 		Dim As Integer iDivideY, iDividedY
 		Dim As Integer iDivideX, iDividedX
+		Dim As Integer iOldDivideY, iOldDividedY
+		Dim As Integer iOldDivideX, iOldDividedX
+		Dim As Boolean bOldDividedX, bOldDividedY
 		Dim As Integer iCursorLine
 		Dim As Integer iCursorLineOld
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi

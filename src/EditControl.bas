@@ -2689,7 +2689,7 @@ Namespace My.Sys.Forms
 				'			SelectObject(bufDC, This.Canvas.Font.Handle)
 				'			SelectObject(bufDC, This.Canvas.Pen.Handle)
 				'			SetROP2 bufDC, This.Canvas.Pen.Mode
-				If OlddwClientX <> dwClientX OrElse OlddwClientY <> dwClientY OrElse OldPaintedVScrollPos(zz) <> VScrollPos OrElse OldPaintedHScrollPos(zz) <> HScrollPos Then
+				If OlddwClientX <> dwClientX OrElse OlddwClientY <> dwClientY OrElse OldPaintedVScrollPos(zz) <> VScrollPos OrElse OldPaintedHScrollPos(zz) <> HScrollPos OrElse iOldDivideY <> iDivideY OrElse iOldDividedY <> iDividedY OrElse iOldDivideX <> iDivideX OrElse iOldDividedX <> iDividedX OrElse CInt(bOldDividedX <> bDividedX) OrElse CInt(bOldDividedY <> bDividedY) Then
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				End If
 			#endif
@@ -2716,8 +2716,9 @@ Namespace My.Sys.Forms
 				If Not FECLine->Visible Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
 				i = i + 1
 				If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
+				If i - VScrollPos > vlc1 - 1 Then Exit For
 				#ifdef __USE_WINAPI__
-					If OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos Then
+					If OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso Cint(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
 						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso (z <> FSelEndLine + 1) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z Then
 							If CurWord <> "" OrElse OldCurWord <> "" Then
 								If (CurWord = "" OrElse CurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(CurWord)) = 0) AndAlso (OldCurWord = "" OrElse OldCurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(OldCurWord)) = 0) Then
@@ -3378,7 +3379,7 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 					cairo_fill (cr)
 				#else
-					SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY + CodePaneY))
+					SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin + CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, (i - VScrollPos + 1) * dwCharY), (i - VScrollPos + 1) * dwCharY) + CodePaneY))
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				#endif
 				If FECLine->Breakpoint Then
@@ -3526,7 +3527,7 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				End If
-				If i - VScrollPos > vlc1 Then Exit For 'AndAlso Not ChangeCase
+				'If i - VScrollPos > vlc1 Then Exit For 'AndAlso Not ChangeCase
 				OldCollapseIndex = CollapseIndex
 			Next z
 			#ifdef __USE_GTK__
@@ -3548,10 +3549,10 @@ Namespace My.Sys.Forms
 				End If
 				'cairo_paint(cr)
 			#else
-				SetRect(@rc, ScaleX(CodePaneX), ScaleY((Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY), ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
+				SetRect(@rc, ScaleX(CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY)), ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
 				This.Canvas.Brush.Color = LineNumbers.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
-				SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY), ScaleX(LeftMargin + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
+				SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY)), ScaleX(LeftMargin + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
 				This.Canvas.Brush.Color = NormalText.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			#endif
@@ -3653,6 +3654,12 @@ Namespace My.Sys.Forms
 		OldBracketsStartLine = BracketsStartLine
 		OldBracketsEndLine = BracketsEndLine
 		OldCurWord = CurWord
+		iOldDivideY = iDivideY
+		iOldDividedY = iDividedY
+		iOldDivideX = iDivideX
+		iOldDividedX = iDividedX
+		bOldDividedX = bDividedX
+		bOldDividedY = bDividedY
 		Exit Sub
 		ErrHandler:
 		?ErrDescription(Err) & " (" & Err & ") " & _
