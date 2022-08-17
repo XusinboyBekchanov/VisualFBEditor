@@ -2323,7 +2323,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 					pApp->DoEvents
 				#endif
 				Dim As Integer iLeft2, iTop2, iWidth2, iHeight2
-				If st AndAlso st->IsComponentFunc AndAlso Cint(st->IsComponentFunc(pSelectedControls->Item(i))) Then
+				If st AndAlso st->IsComponentFunc AndAlso CInt(st->IsComponentFunc(pSelectedControls->Item(i))) Then
 					If st->ComponentGetBoundsSub Then st->ComponentGetBoundsSub(pSelectedControls->Item(i), iLeft2, iTop2, iWidth2, iHeight2)
 					If iLeft <> iLeft2 OrElse iTop <> iTop2 OrElse iWidth <> iWidth2 OrElse iHeight <> iHeight2 Then tb->Des->MoveDots pSelectedControls->Item(i), False
 				End If
@@ -2380,6 +2380,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 			.Changed "Unsurni o`zgartirish"
 			pfrmMain->UpdateUnLock
 		End If
+		.PaintControl(True)
 	End With
 End Sub
 

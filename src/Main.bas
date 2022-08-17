@@ -5194,6 +5194,8 @@ Sub CreateMenusAndToolBars
 	mnuRestart->Enabled = False
 	
 	miXizmat = mnuMain.Add(ML("Servi&ce"), "", "Service")
+	miXizmat->Add(ML("Add &Procedure") & "..." & HK("AddProcedure"), "", "AddProcedure", @mClick)
+	miXizmat->Add("-")
 	miXizmat->Add(ML("&Add-Ins") & "..." & HK("AddIns"), "", "AddIns", @mClick)
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Tools") & "..." & HK("Tools"), "", "Tools", @mClick)

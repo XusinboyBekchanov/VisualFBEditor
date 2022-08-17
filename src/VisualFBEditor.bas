@@ -30,6 +30,7 @@ Declare Sub DebugPrint_(ByRef MSG As WString)
 #include once "Main.bi"
 #include once "Debug.bi"
 #include once "Designer.bi"
+#include once "frmAddProcedure.frm"
 #include once "frmOptions.bi"
 #include once "frmGoto.bi"
 #include once "frmFind.bi"
@@ -408,14 +409,14 @@ Sub mClick(Sender As My.Sys.Object)
 				#ifndef __USE_GTK__
 					procin = procsk
 					runtype = RTFRUN
-					CurrentTimer = SetTimer(0, 0, 1, @TimerProc)
+					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				#endif
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			End If
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "SplitHorizontally", "SplitVertically", _
 		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
-		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm" '
+		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "AddProcedure" '
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
@@ -556,6 +557,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "Code":                        tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 		Case "Form":                        tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
 		Case "CodeAndForm":                 tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
+		Case "AddProcedure":                frmAddProcedure.ShowModal frmMain
 		End Select
 	Case "SaveAll":                         SaveAll
 	Case "CloseAll":                        CloseAllTabs

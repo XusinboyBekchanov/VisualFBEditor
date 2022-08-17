@@ -2519,7 +2519,7 @@ Namespace My.Sys.Forms
 		Return sTemp
 	End Function
 	
-	Sub EditControl.PaintControlPriv
+	Sub EditControl.PaintControlPriv(bFull As Boolean = False)
 		'	On Error Goto ErrHandler
 		#ifdef __USE_GTK__
 			If cr = 0 Then Exit Sub
@@ -2689,7 +2689,7 @@ Namespace My.Sys.Forms
 				'			SelectObject(bufDC, This.Canvas.Font.Handle)
 				'			SelectObject(bufDC, This.Canvas.Pen.Handle)
 				'			SetROP2 bufDC, This.Canvas.Pen.Mode
-				If OlddwClientX <> dwClientX OrElse OlddwClientY <> dwClientY OrElse OldPaintedVScrollPos(zz) <> VScrollPos OrElse OldPaintedHScrollPos(zz) <> HScrollPos OrElse iOldDivideY <> iDivideY OrElse iOldDividedY <> iDividedY OrElse iOldDivideX <> iDivideX OrElse iOldDividedX <> iDividedX OrElse CInt(bOldDividedX <> bDividedX) OrElse CInt(bOldDividedY <> bDividedY) Then
+				If bFull OrElse OlddwClientX <> dwClientX OrElse OlddwClientY <> dwClientY OrElse OldPaintedVScrollPos(zz) <> VScrollPos OrElse OldPaintedHScrollPos(zz) <> HScrollPos OrElse iOldDivideY <> iDivideY OrElse iOldDividedY <> iDividedY OrElse iOldDivideX <> iDivideX OrElse iOldDividedX <> iDividedX OrElse CInt(bOldDividedX <> bDividedX) OrElse CInt(bOldDividedY <> bDividedY) Then
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				End If
 			#endif
@@ -2718,7 +2718,7 @@ Namespace My.Sys.Forms
 				If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
 				If i - VScrollPos > vlc1 - 1 Then Exit For
 				#ifdef __USE_WINAPI__
-					If OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso Cint(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
+					If bFull = False AndAlso OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso Cint(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
 						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso (z <> FSelEndLine + 1) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z Then
 							If CurWord <> "" OrElse OldCurWord <> "" Then
 								If (CurWord = "" OrElse CurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(CurWord)) = 0) AndAlso (OldCurWord = "" OrElse OldCurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(OldCurWord)) = 0) Then
@@ -3668,13 +3668,13 @@ Namespace My.Sys.Forms
 		"in line " & Erl()
 	End Sub
 	
-	Sub EditControl.PaintControl
+	Sub EditControl.PaintControl(bFull As Boolean = False)
 		#ifdef __USE_GTK__
 			'PaintControlPriv
 			bChanged = True
 			If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 		#else
-			PaintControlPriv
+			PaintControlPriv(bFull)
 		#endif
 	End Sub
 	
