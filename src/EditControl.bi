@@ -118,6 +118,8 @@ Namespace My.Sys.Forms
 		InWithConstruction As Integer
 		Multiline As Boolean
 		Text As WString Ptr = 0
+		Ends As IntegerList
+		EndsCompleted As Boolean
 		Visible As Boolean
 		Declare Constructor
 		Declare Destructor
@@ -179,7 +181,6 @@ Namespace My.Sys.Forms
 			Dim As ..Point poPoint
 		#endif
 		'Dim FListItems As WStringList
-		Declare Function ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
 		Dim As Integer lParamLo, lParamHi
 		Dim FCurLine As Integer = 0
 		Dim FSelStartLine As Integer = 0
@@ -246,7 +247,6 @@ Namespace My.Sys.Forms
 		Dim vlc As Integer
 		Dim As Integer CurrentFontSize
 		Dim As WString Ptr CurrentFontName
-		Dim As Boolean bInIncludeFileRect
 		Dim As Boolean bInIncludeFileRectOld
 		Dim As Boolean bScrollStarted
 		Dim As Boolean bInMiddleScroll
@@ -270,7 +270,6 @@ Namespace My.Sys.Forms
 		Dim CollapseIndex As Integer
 		Dim OldCollapseIndex As Integer
 		Declare Sub FontSettings
-		Declare Function CharType(ByRef ch As WString) As Integer
 		Declare Function MaxLineWidth() As Integer
 		Declare Sub PaintText(CodePane As Integer, iLine As Integer, ByRef s As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
 		Declare Function GetLineIndex(Index As Integer, iTo As Integer = 0) As Integer
@@ -312,6 +311,9 @@ Namespace My.Sys.Forms
 		Functions As WStringList
 		FunctionsOthers As WStringList
 		Args As WStringList
+		Dim As Boolean bInIncludeFileRect
+		Declare Function CharType(ByRef ch As WString) As Integer
+		Declare Function ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
 		#ifdef __USE_GTK__
 			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As cairo_t Ptr cr

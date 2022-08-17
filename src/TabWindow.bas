@@ -4619,7 +4619,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -4785,6 +4785,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		End If
 		For i As Integer = iStart To iEnd
 			ECLine = ptxtCode->FLines.Items[i]
+			ECLine->Ends.Clear
+			ECLine->EndsCompleted = False
 			If inFunc Then ECLine->InConstruction = func
 			WLet(FLine, *ECLine->Text)
 			b1 = Replace(*ECLine->Text, !"\t", " ")

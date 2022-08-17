@@ -2117,7 +2117,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend, extend2
 			Dim As Double iRED, iGREEN, iBLUE
-			extend.width = TextWidth(*FLineLeft)
+			extend.Width = TextWidth(*FLineLeft)
 			pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
 			pango_cairo_update_layout(cr, layout)
 			#ifdef pango_version
@@ -2129,16 +2129,16 @@ Namespace My.Sys.Forms
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.Width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			ElseIf Colors.Background <> -1 Then
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, Colors.BackgroundRed, Colors.BackgroundGreen, Colors.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.Width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			End If
-			cairo_move_to(cr, LeftMargin - HScrollPosRight * dwCharX + extend.width - 0.5, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
+			cairo_move_to(cr, LeftMargin - HScrollPosRight * dwCharX + extend.Width - 0.5, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
 			'GetColor TextColor, iRed, iGreen, iBlue
 			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
@@ -2182,6 +2182,9 @@ Namespace My.Sys.Forms
 				SelectObject(bufDC, This.Canvas.Font.Handle)
 			End If
 		#endif
+		If Not FECLine->EndsCompleted Then
+			FECLine->Ends.Add iEnd, @Colors
+		End If
 		'WDeallocate s
 	End Sub
 	
@@ -2661,7 +2664,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK3__
 					cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), True)
 				#else
-					cairo_rectangle (cr, 0.0, 0.0, widget->allocation.width, widget->allocation.height, True)
+					cairo_rectangle (cr, 0.0, 0.0, widget->allocation.Width, widget->allocation.height, True)
 				#endif
 				cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 				cairo_fill (cr)
@@ -2719,7 +2722,8 @@ Namespace My.Sys.Forms
 				If i - VScrollPos > vlc1 - 1 Then Exit For
 				#ifdef __USE_WINAPI__
 					If bFull = False AndAlso OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso Cint(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
-						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso (z <> FSelEndLine + 1) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z Then
+						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z Then
+							' AndAlso (z <> FSelEndLine + 1)
 							If CurWord <> "" OrElse OldCurWord <> "" Then
 								If (CurWord = "" OrElse CurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(CurWord)) = 0) AndAlso (OldCurWord = "" OrElse OldCurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(OldCurWord)) = 0) Then
 									OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
@@ -2794,6 +2798,15 @@ Namespace My.Sys.Forms
 						LinePrinted = True
 					End If
 					If Not LinePrinted Then
+						If FECLine->EndsCompleted Then
+							Var OldJ = 0
+							Dim As ECColorScheme Ptr ecc
+							For j As Integer = 0 To FECLine->Ends.Count - 1
+								ecc = FECLine->Ends.Object(j)
+								PaintText zz, i, *s, OldJ, FECLine->Ends.Item(j), *ecc, , ecc->Bold, ecc->Italic, CBool(ecc->Underline) Or CBool(bInIncludeFileRect) And CBool(iCursorLine = z)
+								OldJ = FECLine->Ends.Item(j)
+							Next
+						Else
 						'					Canvas.Font.Bold = False
 						'					Canvas.Font.Italic = False
 						'					Canvas.Font.Underline = False
@@ -3201,6 +3214,8 @@ Namespace My.Sys.Forms
 							'						If StringsItalic Then Canvas.Font.Italic = True
 							'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
 							PaintText zz, i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, Strings.Underline Or bInIncludeFileRect And CBool(iCursorLine = z)
+						End If
+						FECLine->EndsCompleted = True
 						End If
 					End If
 					If zz = ActiveCodePane AndAlso CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine)) Then ' AndAlso z = FLines.Count - 1
