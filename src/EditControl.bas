@@ -955,6 +955,8 @@ Namespace My.Sys.Forms
 			FECLine->InAsm = InAsm
 			If c = 1 Then
 				WLet(FECLine->Text, *FECLine->Text & Mid(Value, p, l))
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
 				ChangeCollapsibility iSelStartLine
 			Else
 				FECLine = New_( EditControlLine)
@@ -1312,6 +1314,8 @@ Namespace My.Sys.Forms
 		End If
 		FECLine = FLines.Items[Index]
 		WLet(FECLine->Text, sLine)
+		FECLine->Ends.Clear
+		FECLine->EndsCompleted = False
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
 		FECLine->InAsm = InAsm
