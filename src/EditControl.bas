@@ -2130,7 +2130,7 @@ Namespace My.Sys.Forms
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			#endif
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
-			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
+			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = Trim(*FLineRight) AndAlso CurWord <> "" Then
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
 				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.Width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
@@ -2147,7 +2147,12 @@ Namespace My.Sys.Forms
 			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
 		#else
-			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = *FLineRight Then
+			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = Trim(*FLineRight) AndAlso CurWord <> "" Then
+				If StartsWith(*FLineRight, " ") Then
+					Var n = Len(*FLineRight) - Len(Trim(*FLineRight))
+					PaintText(CodePane, iLine, sText, iStart + n, iEnd, Colors, addit, Bold, Italic, Underline)
+					Exit Sub
+				End If
 				SetBkColor(bufDC, CurrentWord.Background)
 				'ElseIf @Colors = @NormalText Then
 				'	SetBKMode(bufDC, TRANSPARENT)
