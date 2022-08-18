@@ -11,6 +11,10 @@
 	Using My.Sys.Forms
 	
 	Type frmAddProcedureType Extends Form
+		Declare Static Sub cmdCancel_Click_(ByRef Sender As Control)
+		Declare Sub cmdCancel_Click(ByRef Sender As Control)
+		Declare Static Sub cmdOK_Click_(ByRef Sender As Control)
+		Declare Sub cmdOK_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As Label lblName, lblParameters, lblType
@@ -62,6 +66,7 @@
 			.Caption = ML("OK")
 			.SetBounds 150, 340, 80, 20
 			.Designer = @This
+			.OnClick = @cmdOK_Click_
 			.Parent = @This
 		End With
 		' cmdCancel
@@ -73,6 +78,7 @@
 			.Caption = ML("Cancel")
 			.SetBounds 240, 340, 80, 20
 			.Designer = @This
+			.OnClick = @cmdCancel_Click_
 			.Parent = @This
 		End With
 		' grbType
@@ -275,6 +281,14 @@
 		End With
 	End Constructor
 	
+	Private Sub frmAddProcedureType.cmdOK_Click_(ByRef Sender As Control)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).cmdOK_Click(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.cmdCancel_Click_(ByRef Sender As Control)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).cmdCancel_Click(Sender)
+	End Sub
+	
 	Dim Shared frmAddProcedure As frmAddProcedureType
 	
 	#ifndef _NOT_AUTORUN_FORMS_
@@ -285,3 +299,11 @@
 		App.Run
 	#endif
 '#End Region
+
+Private Sub frmAddProcedureType.cmdCancel_Click(ByRef Sender As Control)
+	This.CloseForm
+End Sub
+
+Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
+	This.CloseForm
+End Sub

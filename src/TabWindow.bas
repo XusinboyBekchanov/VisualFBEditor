@@ -4785,10 +4785,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		End If
 		For i As Integer = iStart To iEnd
 			ECLine = ptxtCode->FLines.Items[i]
-			If i >= iSelStartLine Then
+			'If i >= iSelStartLine Then
 				ECLine->Ends.Clear
 				ECLine->EndsCompleted = False
-			End If
+			'End If
 			If inFunc Then ECLine->InConstruction = func
 			WLet(FLine, *ECLine->Text)
 			b1 = Replace(*ECLine->Text, !"\t", " ")
