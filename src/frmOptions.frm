@@ -1555,10 +1555,11 @@ pfOptions = @fOptions
 		' grbWhenVFBEStarts
 		With grbWhenVFBEStarts
 			.Name = "grbWhenVFBEStarts"
-			.Text = ML("When VisualFBEditor starts") & ":"
+			.Text = ML("When Visual FB Editor starts") & ":"
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 5
-			.SetBounds 10, 92, 416, 120
+			.Caption = ML("When Visual FB Editor starts") & ":"
+			.SetBounds 10, 97, 416, 120
 			.Parent = @pnlGeneral
 		End With
 		' grbWhenCompiling

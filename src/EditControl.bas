@@ -1372,6 +1372,7 @@ Namespace My.Sys.Forms
 		If Not WithoutUpdate Then
 			UpdateUnLock
 			ShowCaretPos True
+			PaintControl True
 		End If
 	End Sub
 	
@@ -1461,6 +1462,7 @@ Namespace My.Sys.Forms
 		If Not WithoutUpdate Then
 			UpdateUnLock
 			ShowCaretPos True
+			PaintControl True
 		End If
 	End Sub
 	

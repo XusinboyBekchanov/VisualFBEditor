@@ -156,7 +156,7 @@ pfFind = @fFind
 	End Sub
 	
 	Private Sub frmFind.btnFind_Click_(ByRef Sender As Control)
-		fFind.BtnFind_Click(Sender)
+		fFind.btnFind_Click(Sender)
 	End Sub
 	
 	Private Sub frmFind.btnFindAll_Click_(ByRef Sender As Control)
@@ -665,7 +665,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 	Dim tReplace As WString Ptr =@txtReplace.Text
 	Dim As Integer Pos1 = 0, l = Len(*tReplace)
 	If cboFindRange.ItemIndex = 2  Then
-		Dim As TreeNode Ptr Tn =IIf(pTabLeft->SelectedTabIndex =2, MainNode, MainNode)
+		Dim As TreeNode Ptr Tn =IIf(ptabLeft->SelectedTabIndex =2, MainNode, MainNode)
 		If Tn > 0 Then
 			Dim As ExplorerElement Ptr ee = Tn->Tag
 			If ee > 0 AndAlso *ee->FileName <> "" Then
@@ -695,6 +695,8 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(3) = tb->FileName
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Tag = tb
 				WLet(ECLine->Text, ..Left(*buff, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search)))
+				ECLine->Ends.Clear
+				ECLine->EndsCompleted = False
 				buff = @tb->txtCode.Lines(i)
 				If bMatchCase Then
 					Pos1 = InStr(Pos1 + Len(*tReplace), *buff, *Search)
@@ -710,7 +712,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 			This.Caption=ML("Replace") + ": 1 of " + WStr(plvSearch->ListItems.Count)
 		End If
 	End If
-	wLet(gSearchSave, *Search)
+	WLet(gSearchSave, *Search)
 	btnFind.SetFocus  'David Change
 End Sub
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
