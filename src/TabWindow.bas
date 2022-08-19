@@ -7941,6 +7941,8 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 					WLet(FECLine->Text, "_L " & *FECLine->Text) '& IIf(StartsWith(*FECLine->Text, " ") OrElse StartsWith(*FECLine->Text, !"\t"), "", " ")
 				Else
 					WLet(FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text)
+					FECLine->Ends.Clear
+					FECLine->EndsCompleted = False
 					'WLet FECLine->Text, "DebugPrint(__FILE__ & " & Chr(34) & " Line " & Chr(34) & " & __LINE__, True, False) : " & Trim(*FECLine->Text, Any !" \t ")
 				End If
 			End If
@@ -8155,9 +8157,13 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
 				If isNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
+					FECLine->Ends.Clear
+					FECLine->EndsCompleted = False
 				End If
 			ElseIf StartsWith(LTrim(*FECLine->Text), "_L ") Then
 				WLet(FECLine->Text, Mid(LTrim(*FECLine->Text), 4))
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
 			End If
 		Next i
 		.Changed("Raqamlarni olish")

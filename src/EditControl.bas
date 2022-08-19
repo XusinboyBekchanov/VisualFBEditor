@@ -673,6 +673,8 @@ Namespace My.Sys.Forms
 		i = GetConstruction(*ecl->Text, j, , ecl->InAsm)
 		ecl->ConstructionIndex = i
 		ecl->ConstructionPart = j
+		ecl->Ends.Clear
+		ecl->EndsCompleted = False
 		ecl->Multiline = InStr(*ecl->Text, ":") > 0
 		OldCollapsed = ecl->Collapsed
 		If i > -1 And j = 0 Then
@@ -1382,7 +1384,8 @@ Namespace My.Sys.Forms
 		Changing("Format")
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
-			'
+			FECLine->Ends.Clear
+			FECLine->EndsCompleted = False
 			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet(FECLine->Text, Trim(*FECLine->Text, Any !"\t "))
 			'If *FECLine->Text = "" Then Continue For
 			If .Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then WLet(FECLine->Text, "If (" & Mid(*FECLine->Text, 4))
@@ -1797,6 +1800,8 @@ Namespace My.Sys.Forms
 				End If
 				If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += n
 				If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += n
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
 			Next i
 			Changed("Oldga surish")
 			UpdateUnLock
@@ -1818,6 +1823,8 @@ Namespace My.Sys.Forms
 			WLet(FECLine->Text, Mid(*FECLine->Text, n + 1))
 			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar -= n
 			If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar -= n
+			FECLine->Ends.Clear
+			FECLine->EndsCompleted = False
 		Next i
 		Changed("Ortga surish")
 		UpdateUnLock
