@@ -2824,10 +2824,10 @@ Namespace My.Sys.Forms
 						'#endif
 						IzohBoshi = 1
 						Do While j <= l
-							If LeftMargin + (-HScrollPos + j) * dwCharX > dwClientX AndAlso Mid(*s, j, 1) = " " Then
-								If iC = 0 AndAlso FECLine->CommentIndex > 0 Then IzohBoshi = j + 1
-								OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Exit Do
-							End If
+							'If LeftMargin + (-HScrollPos + j) * dwCharX > dwClientX AndAlso Mid(*s, j, 1) = " " Then
+							'	If iC = 0 AndAlso FECLine->CommentIndex > 0 Then IzohBoshi = j + 1
+							'	OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Exit Do
+							'End If
 							If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
 								bQ = Not bQ
 								If bQ Then
