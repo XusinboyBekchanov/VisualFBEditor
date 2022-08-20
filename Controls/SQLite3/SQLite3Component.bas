@@ -42,7 +42,7 @@ Function SQLite3Component.Open(ByRef FileName As WString, ByRef Password As WStr
 	r = sqlite3_open(StrPtr(sFileName_Utf8), @FSQLite3)
 	If r Then
 		ErrStr = *sqlite3_errmsg(FSQLite3)
-		ErrStr = FromUtf8(ErrStr): This.Event_Send(12, ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)): This.Event_Send(12, ErrStr)
 		sqlite3_close(FSQLite3)
 		Return False
 	End If
@@ -50,7 +50,7 @@ Function SQLite3Component.Open(ByRef FileName As WString, ByRef Password As WStr
 		Dim Password_Utf8 As String = ToUtf8(Password)
 		If sqlite3_key(FSQLite3, StrPtr(Password_Utf8), Len(Password_Utf8)) Then
 			ErrStr =  *sqlite3_errmsg(FSQLite3)
-			ErrStr = FromUtf8(ErrStr) : This.Event_Send(12, ErrStr)
+			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
 			sqlite3_close(FSQLite3)
 			Return False
 		End If
@@ -65,7 +65,7 @@ Function SQLite3Component.Open(ByRef FileName As WString, ByRef Password As WStr
 		End If
 	Else
 		ErrStr =  *sqlite3_errmsg(FSQLite3)
-		ErrStr = FromUtf8(ErrStr): This.Event_Send(12, ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)): This.Event_Send(12, ErrStr)
 		sqlite3_close(FSQLite3)
 		Return False
 	End If
@@ -83,7 +83,7 @@ Function SQLite3Component.MemOpen(sFileName As UString, Password As UString = ""
 	
 	If r Then
 		ErrStr = *sqlite3_errmsg(FSQLite3)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12, ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
 		sqlite3_close(FSQLite3)
 		Return False
 	End If
@@ -92,7 +92,7 @@ Function SQLite3Component.MemOpen(sFileName As UString, Password As UString = ""
 		r = sqlite3_open(StrPtr(sFileName_Utf8), @FSQLite3Mem)
 		If r Then
 			ErrStr = *sqlite3_errmsg(FSQLite3Mem)
-			ErrStr = FromUtf8(ErrStr): This.Event_Send(12, ErrStr)
+			ErrStr = FromUtf8(Str(ErrStr)): This.Event_Send(12, ErrStr)
 			sqlite3_close(FSQLite3)
 			sqlite3_close(FSQLite3Mem)
 			Return False
@@ -101,7 +101,7 @@ Function SQLite3Component.MemOpen(sFileName As UString, Password As UString = ""
 			Dim Password_Utf8 As String = ToUtf8(Password)
 			If sqlite3_key(FSQLite3Mem,StrPtr(Password_Utf8),Len(Password_Utf8)) Then
 				ErrStr = *sqlite3_errmsg(FSQLite3Mem)
-				ErrStr = FromUtf8(ErrStr): This.Event_Send(12, ErrStr)
+				ErrStr = FromUtf8(Str(ErrStr)): This.Event_Send(12, ErrStr)
 				sqlite3_close(FSQLite3)
 				sqlite3_close(FSQLite3Mem)
 				Return False
@@ -118,7 +118,7 @@ Function SQLite3Component.MemOpen(sFileName As UString, Password As UString = ""
 			End If
 		Else
 			ErrStr = *sqlite3_errmsg(Cast(Any Ptr,FSQLite3))
-			ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 			sqlite3_close(FSQLite3)
 			sqlite3_close(FSQLite3Mem)
 			Return False
@@ -130,7 +130,7 @@ Function SQLite3Component.MemOpen(sFileName As UString, Password As UString = ""
 			sqlite3_backup_finish(pBackup)
 		Else
 			ErrStr = *sqlite3_errmsg(Cast(Any Ptr,FSQLite3))
-			ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 			sqlite3_close(FSQLite3)
 			sqlite3_close(FSQLite3Mem)
 			Return False
@@ -153,7 +153,7 @@ Function SQLite3Component.MemSave() As Boolean
 		sqlite3_backup_finish(pBackup)
 	Else
 		ErrStr = *sqlite3_errmsg(FSQLite3Mem)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 		Return False
 	End If
 	ErrStr = "" ' ОЮґнОу
@@ -194,7 +194,7 @@ Function SQLite3Component.SetKey(newkey As UString) As Boolean   'ЙиЦГГЬВ
 	If Len(newkey) = 0 Then
 		If sqlite3_rekey(m_DB, NULL, 0) Then
 			ErrStr = *sqlite3_errmsg(m_DB)
-			ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 			Return False
 		Else
 			If FSQLite3Mem <> 0 And FSynchronization <> 0 Then sqlite3_rekey(FSQLite3Mem, NULL, 0)
@@ -204,7 +204,7 @@ Function SQLite3Component.SetKey(newkey As UString) As Boolean   'ЙиЦГГЬВ
 		Dim snewkey  As String = ToUtf8(newkey)
 		If sqlite3_rekey(m_DB, StrPtr(snewkey), Len(snewkey)) Then
 			ErrStr = *sqlite3_errmsg(m_DB)
-			ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 			Return False
 		Else
 			If FSQLite3Mem <> 0 And FSynchronization <> 0 Then sqlite3_rekey(FSQLite3Mem, StrPtr(snewkey), Len(snewkey))
@@ -225,7 +225,7 @@ Function SQLite3Component.SQLFind(Sql_Utf8 As String, rs() As String) As Long
 	Dim As Long u,i
 	If ppStmt = 0 Then
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12, ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
 		Return 0
 	End If
 	u = sqlite3_column_count(ppStmt)
@@ -275,7 +275,7 @@ Function SQLite3Component.SQLFind(Sql_Utf8 As String, rs() As String) As Long
 	Else
 		nRows = 0
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr): This.Event_Send(12, ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)): This.Event_Send(12, ErrStr)
 	End If
 	sqlite3_finalize(ppStmt)
 	sqlite3_free_table lpTable
@@ -290,7 +290,7 @@ Function SQLite3Component.SQLFindOne(Sql_Utf8 As String, rs() As String) As Long
 	Dim As Long i
 	If ppStmt = 0 Then
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 		Return 0
 	End If
 	
@@ -334,7 +334,7 @@ Function SQLite3Component.SQLFindOne(Sql_Utf8 As String, rs() As String) As Long
 	Else
 		nColumns = 0
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 	End If
 	sqlite3_finalize(ppStmt)
 	sqlite3_free_table lpTable
@@ -395,7 +395,7 @@ Function SQLite3Component.FindByteUtf(Table_Utf8 As String,Cond_Utf8 As String,r
 	Dim As Long u,i,yu,yi
 	If ppStmt = 0 Then
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 		Return 0
 	End If
 	
@@ -491,7 +491,7 @@ Function SQLite3Component.FindOneByteUtf(Table_Utf8 As String,Cond_Utf8 As Strin
 	Dim As Long u,i
 	If ppStmt = 0 Then
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 		Return 0
 	End If
 	
@@ -667,7 +667,7 @@ Function SQLite3Component.Exec(Sql_Utf8 As String) As Long
 	'НЁіЈЗйїцПВsqlite3_exec·µ»ШSQLITE_OK=0µДЅб№ыЈ¬·З0Ѕб№ыїЙТФНЁ№эerrmsgАґ»сИЎ¶ФУ¦µДґнОуГиКцЎЈ
 	If r <> 0 Then
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
 		Return -1
 	End If
 	If FSynchronization <> 0 And FSQLite3Mem <> 0 Then 'µ±К№УГДЪґжКэѕЭївК±Ј¬РЮёДОДјюЅшРРН¬ІЅРЮёДЎЈ
@@ -719,7 +719,7 @@ Function SQLite3Component.UpdateByteUtf(Table_Utf8 As String,Cond_Utf8 As String
 	Dim As Long u,i
 	If ppStmt = 0 Then
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 		Return -1
 	End If
 	If sqlite3_bind_blob(ppStmt,1,nByte,nLen,NULL) = 0 Then
@@ -729,7 +729,7 @@ Function SQLite3Component.UpdateByteUtf(Table_Utf8 As String,Cond_Utf8 As String
 			sqlite3_finalize(ppStmt) 'КН·Е
 			sqlite3_prepare(FSQLite3Mem,StrPtr(Sql_Utf8), -1,@ppStmt,@pzTail)
 			If ppStmt Then
-				If sqlite3_bind_blob(ppStmt,1,nByte,nLen,NULL) = 0 Then sqlite3_step(ppStmt) 'ЦґРР
+				If sqlite3_bind_blob(ppStmt, 1, nByte, nLen, NULL) = 0 Then sqlite3_step(ppStmt) 'ЦґРР
 			End If
 		End If
 		If Transaction = 0 Then
@@ -740,7 +740,7 @@ Function SQLite3Component.UpdateByteUtf(Table_Utf8 As String,Cond_Utf8 As String
 		End If
 	Else
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 		Function = -1
 	End If
 	sqlite3_finalize(ppStmt) 'КН·Е
@@ -760,7 +760,7 @@ Function SQLite3Component.UpdateTextUtf(Table_Utf8 As String,Cond_Utf8 As String
 	Dim As Long u,i
 	If ppStmt = 0 Then
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 		Return -1
 	End If
 	If sqlite3_bind_text(ppStmt,1,StrPtr(Text_Utf8),Len(Text_Utf8),NULL) = 0 Then
@@ -781,7 +781,7 @@ Function SQLite3Component.UpdateTextUtf(Table_Utf8 As String,Cond_Utf8 As String
 		End If
 	Else
 		ErrStr = *sqlite3_errmsg(m_DB)
-		ErrStr = FromUtf8(ErrStr) : This.Event_Send(12,ErrStr)
+		ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
 		Function = -1
 	End If
 	sqlite3_finalize(ppStmt) 'КН·Е
