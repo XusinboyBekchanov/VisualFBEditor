@@ -6,7 +6,7 @@ Dim dbname As String
 db = mysql_init( NULL )
 
 dbname = "test"
-Var link = mysql_real_connect( db, NULL, "root", "16974823", NULL, 3306, NULL, 0 )
+Var link = mysql_real_connect( db, NULL, "root", "111", NULL, MYSQL_PORT, NULL, 0 )
 If link = 0 Then
 	Print "Can't connect to the mysql server on port"; MYSQL_PORT
 	mysql_close( db )

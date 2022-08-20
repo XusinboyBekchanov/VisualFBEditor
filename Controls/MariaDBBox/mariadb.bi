@@ -1084,7 +1084,7 @@ Type st_mysql_stmt
 	sqlstate As ZString * 5 + 1
 	update_max_length As Byte
 	prefetch_rows As culong
-	list As LIST
+	list As _LIST
 	cursor_exists As Byte
 	extension As Any Ptr
 	fetch_row_func As mysql_stmt_fetch_row_func
