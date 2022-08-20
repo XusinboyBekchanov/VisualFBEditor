@@ -20,7 +20,7 @@ Private Function MariaDBBox.WriteProperty(PropertyName As String, Value As Any P
 End Function
 
 #ifndef __EXPORT_PROCS__
-	Function MariaDBBox.Open(ByRef FileName As WString, ByRef Password As WString = "") As Boolean
+	Function MariaDBBox.Open(ByRef FileName As WString, ByRef UserName As WString, ByRef Password As WString = "", Port As Integer = MYSQL_PORT) As Boolean
 		If FMYSQL Then mysql_close(FMYSQL)
 		FMYSQL = 0
 		If Len(FileName) = 0 Then
@@ -29,9 +29,9 @@ End Function
 		End If
 		Dim r As Long, sFileName_Utf8 As String = ToUtf8(FileName)
 		FMYSQL = mysql_init(NULL)
-		Var link = mysql_real_connect(FMYSQL, NULL, "root", Password, NULL, MYSQL_PORT, NULL, 0)
+		Var link = mysql_real_connect(FMYSQL, NULL, UserName, Password, NULL, Port, NULL, 0)
 		If link = 0 Then
-			ErrStr = "Can't connect to the mysql server on port" & Str(MYSQL_PORT): This.Event_Send(12, ErrStr)
+			ErrStr = "Can't connect to the mysql server on port " & Str(Port): This.Event_Send(12, ErrStr)
 			mysql_close(FMYSQL)
 			FMYSQL = 0
 			Return False
