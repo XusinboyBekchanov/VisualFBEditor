@@ -2540,16 +2540,19 @@ Namespace My.Sys.Forms
 		Return sTemp
 	End Function
 	
-	Sub EditControl.PaintControlPriv(bFull As Boolean = False)
+	Sub EditControl.PaintControlPriv(Full As Boolean = False)
 		'	On Error Goto ErrHandler
+		Dim As Boolean bFull = Full
 		#ifdef __USE_GTK__
 			If cr = 0 Then Exit Sub
 		#else
+			Dim As Boolean bFontChanged
 			hd = GetDC(FHandle)
 			If CurrentFontSize <> EditorFontSize OrElse *CurrentFontName <> *EditorFontName Then
 				This.Font.Name = *EditorFontName
 				This.Font.Size = EditorFontSize
 				FontSettings
+				bFull = True
 			End If
 			If bufDC = 0 Then
 				bufDC = CreateCompatibleDC(hd)
