@@ -295,7 +295,9 @@ End Function
 				Case MYSQL_TYPE_VARCHAR, MYSQL_TYPE_JSON, MYSQL_TYPE_VAR_STRING, MYSQL_TYPE_STRING
 					rs_Utf8(j) = *row[j]
 				Case MYSQL_TYPE_TINY_BLOB, MYSQL_TYPE_MEDIUM_BLOB, MYSQL_TYPE_LONG_BLOB, MYSQL_TYPE_BLOB
-					rs_Utf8(j) = *row[j]
+					Var iLen = *mysql_fetch_lengths(res)
+					rs_Utf8(j) = String(iLen, 0)
+					memcpy StrPtr(rs_Utf8(j)), row[j], iLen
 				Case MYSQL_TYPE_NULL
 				End Select
 			Next
