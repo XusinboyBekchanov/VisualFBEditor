@@ -4,7 +4,9 @@
 '################################################################################
 
 #include once "mff/Component.bi"
-#include once "mariadb.bi"
+#ifndef __EXPORT_PROCS__
+	#include once "mariadb.bi"
+#endif
 
 Using My.Sys.ComponentModel
 
@@ -14,16 +16,15 @@ Private:
 	Transaction     As Long
 	EventsEn        As Long
 Protected:
-	FMYSQL As MYSQL Ptr
-	FMYSQLMem As MYSQL Ptr
+	#ifndef __EXPORT_PROCS__
+		FMYSQL As MYSQL Ptr
+	#endif
 	FSynchronization As Integer
 	Declare Function Event_Send(code As Long, ByRef Event_Data As WString) As Long
 Public:
 	Declare Function ReadProperty(PropertyName As String) As Any Ptr
 	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 	Declare Function Open(ByRef FileName As WString, ByRef Password As WString = "") As Boolean
-	Declare Function MemOpen(sFileName As UString = "", Password As UString = "", Synchronization As Boolean = 0) As Boolean
-	Declare Function MemSave() As Boolean
 	Declare Function Find(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
 	Declare Function FindUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
 	Declare Function FindByte(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0)                        As Long
@@ -67,7 +68,9 @@ Public:
 	Declare Function AddField(Table As UString, nField As UString, nType As UString, Default As UString = "", nNull As Boolean = 0)          As Long
 	
 	Declare Function Vacuum()                        As Long
-	Declare Function GetSQLitePtr(Index As Long = 0) As sqlite3 Ptr
+	#ifndef __EXPORT_PROCS__
+		Declare Function GetMySQLPtr() As MYSQL Ptr
+	#endif
 	
 	Declare Sub TransactionBegin()
 	Declare Function TransactionEnd()        As Long
@@ -78,8 +81,8 @@ Public:
 	Declare Operator Cast As Any Ptr
 	Declare Constructor
 	Declare Destructor
-	OnSQLString As Function(ByRef Sender As SQLite3Component, Sql_Utf8 As String) As Long
-	OnErrorOut As Sub(ByRef Sender As SQLite3Component, ErrorTxt As String)
+	OnSQLString As Function(ByRef Sender As MariaDBBox, Sql_Utf8 As String) As Long
+	OnErrorOut As Sub(ByRef Sender As MariaDBBox, ErrorTxt As String)
 End Type
 
 #ifndef __USE_MAKE__

@@ -40,37 +40,37 @@
 ''     variable mysql_port => mysql_port_
 
 #ifdef __FB_UNIX__
-	extern "C"
+	Extern "C"
 #else
-	extern "Windows"
+	Extern "Windows"
 #endif
 
 #define _mysql_h
 #define LIBMARIADB
 #define MYSQL_CLIENT
-type my_bool as zstring
-type my_ulonglong as ulongint
+Type my_bool As ZString
+Type my_ulonglong As ULongInt
 #define my_socket_defined
 
 #ifdef __FB_UNIX__
-	type my_socket as long
-#elseif defined(__FB_WIN32__) and (not defined(__FB_64BIT__))
-	type my_socket as ulong
+	Type my_socket As Long
+#elseif defined(__FB_WIN32__) And (Not defined(__FB_64BIT__))
+	Type my_socket As ULong
 #else
-	type my_socket as ulongint
+	Type my_socket As ULongInt
 #endif
 
 #define _mysql_com_h
-const NAME_CHAR_LEN = 64
-const NAME_LEN = 256
-const HOSTNAME_LENGTH = 255
-const SYSTEM_MB_MAX_CHAR_LENGTH = 4
-const USERNAME_CHAR_LENGTH = 128
-const USERNAME_LENGTH = USERNAME_CHAR_LENGTH * SYSTEM_MB_MAX_CHAR_LENGTH
-const SERVER_VERSION_LENGTH = 60
-const SQLSTATE_LENGTH = 5
-const SCRAMBLE_LENGTH = 20
-const SCRAMBLE_LENGTH_323 = 8
+Const NAME_CHAR_LEN = 64
+Const NAME_LEN = 256
+Const HOSTNAME_LENGTH = 255
+Const SYSTEM_MB_MAX_CHAR_LENGTH = 4
+Const USERNAME_CHAR_LENGTH = 128
+Const USERNAME_LENGTH = USERNAME_CHAR_LENGTH * SYSTEM_MB_MAX_CHAR_LENGTH
+Const SERVER_VERSION_LENGTH = 60
+Const SQLSTATE_LENGTH = 5
+Const SCRAMBLE_LENGTH = 20
+Const SCRAMBLE_LENGTH_323 = 8
 #define LOCAL_HOST "localhost"
 #define LOCAL_HOST_NAMEDPIPE "."
 
@@ -80,17 +80,17 @@ const SCRAMBLE_LENGTH_323 = 8
 #endif
 
 #define MYSQL_AUTODETECT_CHARSET_NAME "auto"
-const BINCMP_FLAG = 131072
+Const BINCMP_FLAG = 131072
 
-type mysql_enum_shutdown_level as long
-enum
+Type mysql_enum_shutdown_level As Long
+Enum
 	SHUTDOWN_DEFAULT = 0
 	KILL_QUERY = 254
 	KILL_CONNECTION = 255
 end enum
 
-type enum_server_command as long
-enum
+Type enum_server_command As Long
+Enum
 	COM_SLEEP = 0
 	COM_QUIT
 	COM_INIT_DB
@@ -126,179 +126,179 @@ enum
 	COM_STMT_BULK_EXECUTE = 250
 	COM_RESERVED_1 = 254
 	COM_END
-end enum
+End Enum
 
-const NOT_NULL_FLAG = 1
-const PRI_KEY_FLAG = 2
-const UNIQUE_KEY_FLAG = 4
-const MULTIPLE_KEY_FLAG = 8
-const BLOB_FLAG = 16
-const UNSIGNED_FLAG = 32
-const ZEROFILL_FLAG = 64
-const BINARY_FLAG = 128
-const ENUM_FLAG = 256
-const AUTO_INCREMENT_FLAG = 512
-const TIMESTAMP_FLAG = 1024
-const SET_FLAG = 2048
-const NO_DEFAULT_VALUE_FLAG = 4096
-const ON_UPDATE_NOW_FLAG = 8192
-const NUM_FLAG = 32768
-const PART_KEY_FLAG = 16384
-const GROUP_FLAG = 32768
-const UNIQUE_FLAG = 65536
-const REFRESH_GRANT = 1
-const REFRESH_LOG = 2
-const REFRESH_TABLES = 4
-const REFRESH_HOSTS = 8
-const REFRESH_STATUS = 16
-const REFRESH_THREADS = 32
-const REFRESH_SLAVE = 64
-const REFRESH_MASTER = 128
-const REFRESH_READ_LOCK = 16384
-const REFRESH_FAST = 32768
-const CLIENT_MYSQL = 1
-const CLIENT_FOUND_ROWS = 2
-const CLIENT_LONG_FLAG = 4
-const CLIENT_CONNECT_WITH_DB = 8
-const CLIENT_NO_SCHEMA = 16
-const CLIENT_COMPRESS = 32
-const CLIENT_ODBC = 64
-const CLIENT_LOCAL_FILES = 128
-const CLIENT_IGNORE_SPACE = 256
-const CLIENT_INTERACTIVE = 1024
-const CLIENT_SSL = 2048
+Const NOT_NULL_FLAG = 1
+Const PRI_KEY_FLAG = 2
+Const UNIQUE_KEY_FLAG = 4
+Const MULTIPLE_KEY_FLAG = 8
+Const BLOB_FLAG = 16
+Const UNSIGNED_FLAG = 32
+Const ZEROFILL_FLAG = 64
+Const BINARY_FLAG = 128
+Const ENUM_FLAG = 256
+Const AUTO_INCREMENT_FLAG = 512
+Const TIMESTAMP_FLAG = 1024
+Const SET_FLAG = 2048
+Const NO_DEFAULT_VALUE_FLAG = 4096
+Const ON_UPDATE_NOW_FLAG = 8192
+Const NUM_FLAG = 32768
+Const PART_KEY_FLAG = 16384
+Const GROUP_FLAG = 32768
+Const UNIQUE_FLAG = 65536
+Const REFRESH_GRANT = 1
+Const REFRESH_LOG = 2
+Const REFRESH_TABLES = 4
+Const REFRESH_HOSTS = 8
+Const REFRESH_STATUS = 16
+Const REFRESH_THREADS = 32
+Const REFRESH_SLAVE = 64
+Const REFRESH_MASTER = 128
+Const REFRESH_READ_LOCK = 16384
+Const REFRESH_FAST = 32768
+Const CLIENT_MYSQL = 1
+Const CLIENT_FOUND_ROWS = 2
+Const CLIENT_LONG_FLAG = 4
+Const CLIENT_CONNECT_WITH_DB = 8
+Const CLIENT_NO_SCHEMA = 16
+Const CLIENT_COMPRESS = 32
+Const CLIENT_ODBC = 64
+Const CLIENT_LOCAL_FILES = 128
+Const CLIENT_IGNORE_SPACE = 256
+Const CLIENT_INTERACTIVE = 1024
+Const CLIENT_SSL = 2048
 const CLIENT_IGNORE_SIGPIPE = 4096
-const CLIENT_TRANSACTIONS = 8192
-const CLIENT_PROTOCOL_41 = 512
-const CLIENT_RESERVED = 16384
-const CLIENT_SECURE_CONNECTION = 32768
-const CLIENT_MULTI_STATEMENTS = cast(culong, 1) shl 16
-const CLIENT_MULTI_RESULTS = cast(culong, 1) shl 17
-const CLIENT_PS_MULTI_RESULTS = cast(culong, 1) shl 18
-const CLIENT_PLUGIN_AUTH = cast(culong, 1) shl 19
-const CLIENT_CONNECT_ATTRS = cast(culong, 1) shl 20
-const CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA = cast(culong, 1) shl 21
-const CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS = cast(culong, 1) shl 22
-const CLIENT_SESSION_TRACKING = cast(culong, 1) shl 23
-const CLIENT_ZSTD_COMPRESSION = cast(culong, 1) shl 26
-const CLIENT_PROGRESS = cast(culong, 1) shl 29
-const CLIENT_PROGRESS_OBSOLETE = CLIENT_PROGRESS
-const CLIENT_SSL_VERIFY_SERVER_CERT = cast(culong, 1) shl 30
-const CLIENT_REMEMBER_OPTIONS = cast(culong, 1) shl 31
-const MARIADB_CLIENT_FLAGS = &hFFFFFFFF00000000ull
-const MARIADB_CLIENT_PROGRESS = 1ull shl 32
-const MARIADB_CLIENT_RESERVED_1 = 1ull shl 33
-const MARIADB_CLIENT_STMT_BULK_OPERATIONS = 1ull shl 34
-const MARIADB_CLIENT_EXTENDED_METADATA = 1ull shl 35
-const MARIADB_CLIENT_CACHE_METADATA = 1ull shl 36
-#define IS_MARIADB_EXTENDED_SERVER(mysql) ((mysql->server_capabilities and CLIENT_MYSQL) = 0)
-const MARIADB_CLIENT_SUPPORTED_FLAGS = ((MARIADB_CLIENT_PROGRESS or MARIADB_CLIENT_STMT_BULK_OPERATIONS) or MARIADB_CLIENT_EXTENDED_METADATA) or MARIADB_CLIENT_CACHE_METADATA
-const CLIENT_SUPPORTED_FLAGS = ((((((((((((((((((((((CLIENT_MYSQL or CLIENT_FOUND_ROWS) or CLIENT_LONG_FLAG) or CLIENT_CONNECT_WITH_DB) or CLIENT_NO_SCHEMA) or CLIENT_COMPRESS) or CLIENT_ODBC) or CLIENT_LOCAL_FILES) or CLIENT_IGNORE_SPACE) or CLIENT_INTERACTIVE) or CLIENT_SSL) or CLIENT_IGNORE_SIGPIPE) or CLIENT_TRANSACTIONS) or CLIENT_PROTOCOL_41) or CLIENT_RESERVED) or CLIENT_SECURE_CONNECTION) or CLIENT_MULTI_STATEMENTS) or CLIENT_MULTI_RESULTS) or CLIENT_PROGRESS) or CLIENT_SSL_VERIFY_SERVER_CERT) or CLIENT_REMEMBER_OPTIONS) or CLIENT_PLUGIN_AUTH) or CLIENT_SESSION_TRACKING) or CLIENT_CONNECT_ATTRS
-const CLIENT_CAPABILITIES = (((((((((CLIENT_MYSQL or CLIENT_LONG_FLAG) or CLIENT_TRANSACTIONS) or CLIENT_SECURE_CONNECTION) or CLIENT_MULTI_RESULTS) or CLIENT_PS_MULTI_RESULTS) or CLIENT_PROTOCOL_41) or CLIENT_PLUGIN_AUTH) or CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA) or CLIENT_SESSION_TRACKING) or CLIENT_CONNECT_ATTRS
-const CLIENT_DEFAULT_FLAGS = (CLIENT_SUPPORTED_FLAGS and (not CLIENT_COMPRESS)) and (not CLIENT_SSL)
-const SERVER_STATUS_IN_TRANS = 1
-const SERVER_STATUS_AUTOCOMMIT = 2
-const SERVER_MORE_RESULTS_EXIST = 8
-const SERVER_QUERY_NO_GOOD_INDEX_USED = 16
-const SERVER_QUERY_NO_INDEX_USED = 32
-const SERVER_STATUS_CURSOR_EXISTS = 64
-const SERVER_STATUS_LAST_ROW_SENT = 128
-const SERVER_STATUS_DB_DROPPED = 256
-const SERVER_STATUS_NO_BACKSLASH_ESCAPES = 512
-const SERVER_STATUS_METADATA_CHANGED = 1024
-const SERVER_QUERY_WAS_SLOW = 2048
-const SERVER_PS_OUT_PARAMS = 4096
-const SERVER_STATUS_IN_TRANS_READONLY = 8192
-const SERVER_SESSION_STATE_CHANGED = 16384
-const SERVER_STATUS_ANSI_QUOTES = 32768
-const MYSQL_ERRMSG_SIZE = 512
-const NET_READ_TIMEOUT = 30
-const NET_WRITE_TIMEOUT = 60
-const NET_WAIT_TIMEOUT = (8 * 60) * 60
-const LIST_PROCESS_HOST_LEN = 64
+Const CLIENT_TRANSACTIONS = 8192
+Const CLIENT_PROTOCOL_41 = 512
+Const CLIENT_RESERVED = 16384
+Const CLIENT_SECURE_CONNECTION = 32768
+Const CLIENT_MULTI_STATEMENTS = Cast(culong, 1) Shl 16
+Const CLIENT_MULTI_RESULTS = Cast(culong, 1) Shl 17
+Const CLIENT_PS_MULTI_RESULTS = Cast(culong, 1) Shl 18
+Const CLIENT_PLUGIN_AUTH = Cast(culong, 1) Shl 19
+Const CLIENT_CONNECT_ATTRS = Cast(culong, 1) Shl 20
+Const CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA = Cast(culong, 1) Shl 21
+Const CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS = Cast(culong, 1) Shl 22
+Const CLIENT_SESSION_TRACKING = Cast(culong, 1) Shl 23
+Const CLIENT_ZSTD_COMPRESSION = Cast(culong, 1) Shl 26
+Const CLIENT_PROGRESS = Cast(culong, 1) Shl 29
+Const CLIENT_PROGRESS_OBSOLETE = CLIENT_PROGRESS
+Const CLIENT_SSL_VERIFY_SERVER_CERT = Cast(culong, 1) Shl 30
+Const CLIENT_REMEMBER_OPTIONS = Cast(culong, 1) Shl 31
+Const MARIADB_CLIENT_FLAGS = &hFFFFFFFF00000000ull
+Const MARIADB_CLIENT_PROGRESS = 1ull Shl 32
+Const MARIADB_CLIENT_RESERVED_1 = 1ull Shl 33
+Const MARIADB_CLIENT_STMT_BULK_OPERATIONS = 1ull Shl 34
+Const MARIADB_CLIENT_EXTENDED_METADATA = 1ull Shl 35
+Const MARIADB_CLIENT_CACHE_METADATA = 1ull Shl 36
+#define IS_MARIADB_EXTENDED_SERVER(MYSQL) ((MYSQL->server_capabilities And CLIENT_MYSQL) = 0)
+Const MARIADB_CLIENT_SUPPORTED_FLAGS = ((MARIADB_CLIENT_PROGRESS Or MARIADB_CLIENT_STMT_BULK_OPERATIONS) Or MARIADB_CLIENT_EXTENDED_METADATA) Or MARIADB_CLIENT_CACHE_METADATA
+Const CLIENT_SUPPORTED_FLAGS = ((((((((((((((((((((((CLIENT_MYSQL Or CLIENT_FOUND_ROWS) Or CLIENT_LONG_FLAG) Or CLIENT_CONNECT_WITH_DB) Or CLIENT_NO_SCHEMA) Or CLIENT_COMPRESS) Or CLIENT_ODBC) Or CLIENT_LOCAL_FILES) Or CLIENT_IGNORE_SPACE) Or CLIENT_INTERACTIVE) Or CLIENT_SSL) Or CLIENT_IGNORE_SIGPIPE) Or CLIENT_TRANSACTIONS) Or CLIENT_PROTOCOL_41) Or CLIENT_RESERVED) Or CLIENT_SECURE_CONNECTION) Or CLIENT_MULTI_STATEMENTS) Or CLIENT_MULTI_RESULTS) Or CLIENT_PROGRESS) Or CLIENT_SSL_VERIFY_SERVER_CERT) Or CLIENT_REMEMBER_OPTIONS) Or CLIENT_PLUGIN_AUTH) Or CLIENT_SESSION_TRACKING) Or CLIENT_CONNECT_ATTRS
+Const CLIENT_CAPABILITIES = (((((((((CLIENT_MYSQL Or CLIENT_LONG_FLAG) Or CLIENT_TRANSACTIONS) Or CLIENT_SECURE_CONNECTION) Or CLIENT_MULTI_RESULTS) Or CLIENT_PS_MULTI_RESULTS) Or CLIENT_PROTOCOL_41) Or CLIENT_PLUGIN_AUTH) Or CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA) Or CLIENT_SESSION_TRACKING) Or CLIENT_CONNECT_ATTRS
+Const CLIENT_DEFAULT_FLAGS = (CLIENT_SUPPORTED_FLAGS And (Not CLIENT_COMPRESS)) And (Not CLIENT_SSL)
+Const SERVER_STATUS_IN_TRANS = 1
+Const SERVER_STATUS_AUTOCOMMIT = 2
+Const SERVER_MORE_RESULTS_EXIST = 8
+Const SERVER_QUERY_NO_GOOD_INDEX_USED = 16
+Const SERVER_QUERY_NO_INDEX_USED = 32
+Const SERVER_STATUS_CURSOR_EXISTS = 64
+Const SERVER_STATUS_LAST_ROW_SENT = 128
+Const SERVER_STATUS_DB_DROPPED = 256
+Const SERVER_STATUS_NO_BACKSLASH_ESCAPES = 512
+Const SERVER_STATUS_METADATA_CHANGED = 1024
+Const SERVER_QUERY_WAS_SLOW = 2048
+Const SERVER_PS_OUT_PARAMS = 4096
+Const SERVER_STATUS_IN_TRANS_READONLY = 8192
+Const SERVER_SESSION_STATE_CHANGED = 16384
+Const SERVER_STATUS_ANSI_QUOTES = 32768
+Const MYSQL_ERRMSG_SIZE = 512
+Const NET_READ_TIMEOUT = 30
+Const NET_WRITE_TIMEOUT = 60
+Const NET_WAIT_TIMEOUT = (8 * 60) * 60
+Const LIST_PROCESS_HOST_LEN = 64
 #define MYSQL50_TABLE_NAME_PREFIX "#mysql50#"
-#define MYSQL50_TABLE_NAME_PREFIX_LENGTH (sizeof(MYSQL50_TABLE_NAME_PREFIX) - 1)
+#define MYSQL50_TABLE_NAME_PREFIX_LENGTH (SizeOf(MYSQL50_TABLE_NAME_PREFIX) - 1)
 #define SAFE_NAME_LEN (NAME_LEN + MYSQL50_TABLE_NAME_PREFIX_LENGTH)
-type MARIADB_PVIO as st_ma_pvio
-const MAX_CHAR_WIDTH = 255
-const MAX_BLOB_WIDTH = 8192
-const MAX_TINYINT_WIDTH = 3
-const MAX_SMALLINT_WIDTH = 5
-const MAX_MEDIUMINT_WIDTH = 8
-const MAX_INT_WIDTH = 10
-const MAX_BIGINT_WIDTH = 20
-type st_mariadb_net_extension as st_mariadb_net_extension_
+Type MARIADB_PVIO As st_ma_pvio
+Const MAX_CHAR_WIDTH = 255
+Const MAX_BLOB_WIDTH = 8192
+Const MAX_TINYINT_WIDTH = 3
+Const MAX_SMALLINT_WIDTH = 5
+Const MAX_MEDIUMINT_WIDTH = 8
+Const MAX_INT_WIDTH = 10
+Const MAX_BIGINT_WIDTH = 20
+Type st_mariadb_net_extension As st_mariadb_net_extension_
 
-type st_net
-	pvio as MARIADB_PVIO ptr
-	buff as ubyte ptr
-	buff_end as ubyte ptr
-	write_pos as ubyte ptr
-	read_pos as ubyte ptr
+Type st_net
+	pvio As MARIADB_PVIO Ptr
+	buff As UByte Ptr
+	buff_end As UByte Ptr
+	write_pos As UByte Ptr
+	read_pos As UByte Ptr
 
 	#ifdef __FB_UNIX__
-		fd as my_socket
-	#elseif defined(__FB_WIN32__) and (not defined(__FB_64BIT__))
-		fd as ulong
+		fd As my_socket
+	#elseif defined(__FB_WIN32__) And (Not defined(__FB_64BIT__))
+		fd As ULong
 	#else
-		fd as ulongint
+		fd As ULongInt
 	#endif
 
-	remain_in_buf as culong
-	length as culong
-	buf_length as culong
+	remain_in_buf As culong
+	length As culong
+	buf_length As culong
 	where_b as culong
-	max_packet as culong
-	max_packet_size as culong
-	pkt_nr as ulong
-	compress_pkt_nr as ulong
-	write_timeout as ulong
-	read_timeout as ulong
-	retry_count as ulong
-	fcntl as long
-	return_status as ulong ptr
-	reading_or_writing as ubyte
-	save_char as byte
-	unused_1 as byte
-	unused_2 as byte
-	compress as byte
-	unused_3 as byte
-	unused_4 as any ptr
-	last_errno as ulong
-	error as ubyte
-	unused_5 as byte
-	unused_6 as byte
-	last_error as zstring * 512
-	sqlstate as zstring * 5 + 1
-	extension as st_mariadb_net_extension ptr
-end type
+	max_packet As culong
+	max_packet_size As culong
+	pkt_nr As ULong
+	compress_pkt_nr As ULong
+	write_timeout As ULong
+	read_timeout As ULong
+	retry_count As ULong
+	fcntl As Long
+	return_status As ULong Ptr
+	reading_or_writing As UByte
+	save_char As Byte
+	unused_1 As Byte
+	unused_2 As Byte
+	compress As Byte
+	unused_3 As Byte
+	unused_4 As Any Ptr
+	last_errno As ULong
+	error As UByte
+	unused_5 As Byte
+	unused_6 As Byte
+	last_error As ZString * 512
+	sqlstate As ZString * 5 + 1
+	extension As st_mariadb_net_extension Ptr
+End Type
 
-type NET as st_net
-const packet_error = culng(-1)
+Type NET As st_net
+Const packet_error = CULng(-1)
 
-type enum_mysql_set_option as long
-enum
+Type enum_mysql_set_option As Long
+Enum
 	MYSQL_OPTION_MULTI_STATEMENTS_ON
 	MYSQL_OPTION_MULTI_STATEMENTS_OFF
-end enum
+End Enum
 
-type enum_session_state_type as long
-enum
+Type enum_session_state_type As Long
+Enum
 	SESSION_TRACK_SYSTEM_VARIABLES = 0
 	SESSION_TRACK_SCHEMA
 	SESSION_TRACK_STATE_CHANGE
 	SESSION_TRACK_GTIDS
 	SESSION_TRACK_TRANSACTION_CHARACTERISTICS
 	SESSION_TRACK_TRANSACTION_STATE
-end enum
+End Enum
 
-const SESSION_TRACK_BEGIN = 0
-const SESSION_TRACK_END = SESSION_TRACK_TRANSACTION_STATE
-const SESSION_TRACK_TYPES = SESSION_TRACK_END + 1
-const SESSION_TRACK_TRANSACTION_TYPE = SESSION_TRACK_TRANSACTION_STATE
+Const SESSION_TRACK_BEGIN = 0
+Const SESSION_TRACK_END = SESSION_TRACK_TRANSACTION_STATE
+Const SESSION_TRACK_TYPES = SESSION_TRACK_END + 1
+Const SESSION_TRACK_TRANSACTION_TYPE = SESSION_TRACK_TRANSACTION_STATE
 
-type enum_field_types as long
-enum
+Type enum_field_types As Long
+Enum
 	MYSQL_TYPE_DECIMAL
 	MYSQL_TYPE_TINY
 	MYSQL_TYPE_SHORT
@@ -331,116 +331,116 @@ enum
 	MYSQL_TYPE_STRING = 254
 	MYSQL_TYPE_GEOMETRY = 255
 	MAX_NO_FIELD_TYPES
-end enum
+End Enum
 
-const FIELD_TYPE_DECIMAL = MYSQL_TYPE_DECIMAL
-const FIELD_TYPE_NEWDECIMAL = MYSQL_TYPE_NEWDECIMAL
-const FIELD_TYPE_TINY = MYSQL_TYPE_TINY
-const FIELD_TYPE_CHAR = FIELD_TYPE_TINY
-const FIELD_TYPE_SHORT = MYSQL_TYPE_SHORT
-const FIELD_TYPE_LONG = MYSQL_TYPE_LONG
-const FIELD_TYPE_FLOAT = MYSQL_TYPE_FLOAT
-const FIELD_TYPE_DOUBLE = MYSQL_TYPE_DOUBLE
-const FIELD_TYPE_NULL = MYSQL_TYPE_NULL
-const FIELD_TYPE_TIMESTAMP = MYSQL_TYPE_TIMESTAMP
+Const FIELD_TYPE_DECIMAL = MYSQL_TYPE_DECIMAL
+Const FIELD_TYPE_NEWDECIMAL = MYSQL_TYPE_NEWDECIMAL
+Const FIELD_TYPE_TINY = MYSQL_TYPE_TINY
+Const FIELD_TYPE_CHAR = FIELD_TYPE_TINY
+Const FIELD_TYPE_SHORT = MYSQL_TYPE_SHORT
+Const FIELD_TYPE_LONG = MYSQL_TYPE_LONG
+Const FIELD_TYPE_FLOAT = MYSQL_TYPE_FLOAT
+Const FIELD_TYPE_DOUBLE = MYSQL_TYPE_DOUBLE
+Const FIELD_TYPE_NULL = MYSQL_TYPE_NULL
+Const FIELD_TYPE_TIMESTAMP = MYSQL_TYPE_TIMESTAMP
 const FIELD_TYPE_LONGLONG = MYSQL_TYPE_LONGLONG
-const FIELD_TYPE_INT24 = MYSQL_TYPE_INT24
-const FIELD_TYPE_DATE = MYSQL_TYPE_DATE
-const FIELD_TYPE_TIME = MYSQL_TYPE_TIME
-const FIELD_TYPE_DATETIME = MYSQL_TYPE_DATETIME
-const FIELD_TYPE_YEAR = MYSQL_TYPE_YEAR
-const FIELD_TYPE_NEWDATE = MYSQL_TYPE_NEWDATE
-const FIELD_TYPE_ENUM = MYSQL_TYPE_ENUM
-const FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM
-const FIELD_TYPE_SET = MYSQL_TYPE_SET
-const FIELD_TYPE_TINY_BLOB = MYSQL_TYPE_TINY_BLOB
-const FIELD_TYPE_MEDIUM_BLOB = MYSQL_TYPE_MEDIUM_BLOB
-const FIELD_TYPE_LONG_BLOB = MYSQL_TYPE_LONG_BLOB
-const FIELD_TYPE_BLOB = MYSQL_TYPE_BLOB
-const FIELD_TYPE_VAR_STRING = MYSQL_TYPE_VAR_STRING
-const FIELD_TYPE_STRING = MYSQL_TYPE_STRING
-const FIELD_TYPE_GEOMETRY = MYSQL_TYPE_GEOMETRY
-const FIELD_TYPE_BIT = MYSQL_TYPE_BIT
-extern max_allowed_packet as culong
-extern net_buffer_length as culong
-#define net_new_transaction(net) scope : (net)->pkt_nr = 0 : end scope
+Const FIELD_TYPE_INT24 = MYSQL_TYPE_INT24
+Const FIELD_TYPE_DATE = MYSQL_TYPE_DATE
+Const FIELD_TYPE_TIME = MYSQL_TYPE_TIME
+Const FIELD_TYPE_DATETIME = MYSQL_TYPE_DATETIME
+Const FIELD_TYPE_YEAR = MYSQL_TYPE_YEAR
+Const FIELD_TYPE_NEWDATE = MYSQL_TYPE_NEWDATE
+Const FIELD_TYPE_ENUM = MYSQL_TYPE_ENUM
+Const FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM
+Const FIELD_TYPE_SET = MYSQL_TYPE_SET
+Const FIELD_TYPE_TINY_BLOB = MYSQL_TYPE_TINY_BLOB
+Const FIELD_TYPE_MEDIUM_BLOB = MYSQL_TYPE_MEDIUM_BLOB
+Const FIELD_TYPE_LONG_BLOB = MYSQL_TYPE_LONG_BLOB
+Const FIELD_TYPE_BLOB = MYSQL_TYPE_BLOB
+Const FIELD_TYPE_VAR_STRING = MYSQL_TYPE_VAR_STRING
+Const FIELD_TYPE_STRING = MYSQL_TYPE_STRING
+Const FIELD_TYPE_GEOMETRY = MYSQL_TYPE_GEOMETRY
+Const FIELD_TYPE_BIT = MYSQL_TYPE_BIT
+Extern max_allowed_packet As culong
+Extern net_buffer_length As culong
+#define net_new_transaction(NET) Scope : (NET)->pkt_nr = 0 : End Scope
 
-declare function ma_net_init cdecl(byval net as NET ptr, byval pvio as MARIADB_PVIO ptr) as long
-declare sub ma_net_end cdecl(byval net as NET ptr)
-declare sub ma_net_clear cdecl(byval net as NET ptr)
-declare function ma_net_flush cdecl(byval net as NET ptr) as long
-declare function ma_net_write cdecl(byval net as NET ptr, byval packet as const ubyte ptr, byval len as uinteger) as long
-declare function ma_net_write_command cdecl(byval net as NET ptr, byval command as ubyte, byval packet as const zstring ptr, byval len as uinteger, byval disable_flush as byte) as long
-declare function ma_net_real_write cdecl(byval net as NET ptr, byval packet as const zstring ptr, byval len as uinteger) as long
-declare function ma_net_read cdecl(byval net as NET ptr) as culong
+Declare Function ma_net_init cdecl(ByVal net As NET Ptr, ByVal pvio As MARIADB_PVIO Ptr) As Long
+Declare Sub ma_net_end cdecl(ByVal net As NET Ptr)
+Declare Sub ma_net_clear cdecl(ByVal net As NET Ptr)
+Declare Function ma_net_flush cdecl(ByVal net As NET Ptr) As Long
+Declare Function ma_net_write cdecl(ByVal net As NET Ptr, ByVal packet As Const UByte Ptr, ByVal len As UInteger) As Long
+Declare Function ma_net_write_command cdecl(ByVal net As NET Ptr, ByVal command As UByte, ByVal packet As Const ZString Ptr, ByVal len As UInteger, ByVal disable_flush As Byte) As Long
+Declare Function ma_net_real_write cdecl(ByVal net As NET Ptr, ByVal packet As Const ZString Ptr, ByVal len As UInteger) As Long
+Declare Function ma_net_read cdecl(ByVal net As NET Ptr) As culong
 
-type rand_struct
-	seed1 as culong
-	seed2 as culong
-	max_value as culong
-	max_value_dbl as double
-end type
+Type rand_struct
+	seed1 As culong
+	seed2 As culong
+	max_value As culong
+	max_value_dbl As Double
+End Type
 
-type Item_result as long
-enum
+Type Item_result As Long
+Enum
 	STRING_RESULT
 	REAL_RESULT
 	INT_RESULT
 	ROW_RESULT
 	DECIMAL_RESULT
-end enum
+End Enum
 
-type st_udf_args
-	arg_count as ulong
-	arg_type as Item_result ptr
-	args as zstring ptr ptr
-	lengths as culong ptr
-	maybe_null as zstring ptr
-end type
+Type st_udf_args
+	arg_count As ULong
+	arg_type As Item_result Ptr
+	args As ZString Ptr Ptr
+	lengths As culong Ptr
+	maybe_null As ZString Ptr
+End Type
 
-type UDF_ARGS as st_udf_args
+Type UDF_ARGS As st_udf_args
 
-type st_udf_init
-	maybe_null as byte
-	decimals as ulong
-	max_length as ulong
-	ptr as zstring ptr
-	const_item as byte
-end type
+Type st_udf_init
+	maybe_null As Byte
+	decimals As ULong
+	max_length As ULong
+	ptr As ZString ptr
+	const_item As Byte
+End Type
 
-type UDF_INIT as st_udf_init
-const MARIADB_CONNECTION_UNIXSOCKET = 0
-const MARIADB_CONNECTION_TCP = 1
-const MARIADB_CONNECTION_NAMEDPIPE = 2
-const MARIADB_CONNECTION_SHAREDMEM = 3
-const NET_HEADER_SIZE = 4
-const COMP_HEADER_SIZE = 3
+Type UDF_INIT As st_udf_init
+Const MARIADB_CONNECTION_UNIXSOCKET = 0
+Const MARIADB_CONNECTION_TCP = 1
+Const MARIADB_CONNECTION_NAMEDPIPE = 2
+Const MARIADB_CONNECTION_SHAREDMEM = 3
+Const NET_HEADER_SIZE = 4
+Const COMP_HEADER_SIZE = 3
 #define native_password_plugin_name "mysql_native_password"
 #define old_password_plugin_name "mysql_old_password"
 
-declare function ma_scramble_323 cdecl(byval to as zstring ptr, byval message as const zstring ptr, byval password as const zstring ptr) as zstring ptr
-declare sub ma_scramble_41 cdecl(byval buffer as const ubyte ptr, byval scramble as const zstring ptr, byval password as const zstring ptr)
-declare sub ma_hash_password cdecl(byval result as culong ptr, byval password as const zstring ptr, byval len as uinteger)
-declare sub ma_make_scrambled_password cdecl(byval to as zstring ptr, byval password as const zstring ptr)
-declare sub mariadb_load_defaults cdecl(byval conf_file as const zstring ptr, byval groups as const zstring ptr ptr, byval argc as long ptr, byval argv as zstring ptr ptr ptr)
-declare function ma_thread_init cdecl() as byte
-declare sub ma_thread_end cdecl()
+Declare Function ma_scramble_323 cdecl(ByVal to As ZString Ptr, ByVal message As Const ZString Ptr, ByVal password As Const ZString Ptr) As ZString Ptr
+Declare Sub ma_scramble_41 cdecl(ByVal buffer As Const UByte Ptr, ByVal scramble As Const ZString Ptr, ByVal password As Const ZString Ptr)
+Declare Sub ma_hash_password cdecl(ByVal result As culong Ptr, ByVal password As Const ZString Ptr, ByVal len As UInteger)
+Declare Sub ma_make_scrambled_password cdecl(ByVal to As ZString Ptr, ByVal password As Const ZString Ptr)
+Declare Sub mariadb_load_defaults cdecl(ByVal conf_file As Const ZString Ptr, ByVal groups As Const ZString Ptr Ptr, ByVal argc As Long Ptr, ByVal argv As ZString Ptr Ptr Ptr)
+Declare Function ma_thread_init cdecl() As Byte
+Declare Sub ma_thread_end cdecl()
 
-const NULL_LENGTH = cast(culong, not 0)
+Const NULL_LENGTH = Cast(culong, Not 0)
 #define _mariadb_version_h_
-const PROTOCOL_VERSION = 10
+Const PROTOCOL_VERSION = 10
 #define MARIADB_CLIENT_VERSION_STR "10.6.8"
 #define MARIADB_BASE_VERSION "mariadb-10.6"
-const MARIADB_VERSION_ID = 100608
-const MARIADB_PORT = 3306
+Const MARIADB_VERSION_ID = 100608
+Const MARIADB_PORT = 3306
 #define MARIADB_UNIX_ADDR "/tmp/mysql.sock"
 #define MYSQL_UNIX_ADDR MARIADB_UNIX_ADDR
-const MYSQL_PORT = MARIADB_PORT
+Const MYSQL_PORT = MARIADB_PORT
 #define MYSQL_CONFIG_NAME "my"
-const MYSQL_VERSION_ID = 100608
+Const MYSQL_VERSION_ID = 100608
 #define MYSQL_SERVER_VERSION "10.6.8-MariaDB"
 #define MARIADB_PACKAGE_VERSION "3.3.1"
-const MARIADB_PACKAGE_VERSION_ID = 30301
+Const MARIADB_PACKAGE_VERSION_ID = 30301
 #define MARIADB_SYSTEM_TYPE "Linux"
 #define MARIADB_MACHINE_TYPE "x86_64"
 #define MARIADB_PLUGINDIR "/usr/local/lib/mariadb/plugin"
@@ -448,182 +448,182 @@ const MARIADB_PACKAGE_VERSION_ID = 30301
 #define CC_SOURCE_REVISION "5e94e7c27ffad7e76665b1333a67975316b9c3c2"
 #define _list_h_
 
-type st_list
-	prev as st_list ptr
-	next as st_list ptr
-	data as any ptr
-end type
+Type st_list
+	prev As st_list Ptr
+	next As st_list Ptr
+	data As Any Ptr
+End Type
 
-type LIST as st_list
-type list_walk_action as function cdecl(byval as any ptr, byval as any ptr) as long
-declare function list_add cdecl(byval root as LIST ptr, byval element as LIST ptr) as LIST ptr
-declare function list_delete cdecl(byval root as LIST ptr, byval element as LIST ptr) as LIST ptr
-declare function list_cons cdecl(byval data as any ptr, byval root as LIST ptr) as LIST ptr
-declare function list_reverse cdecl(byval root as LIST ptr) as LIST ptr
-declare sub list_free cdecl(byval root as LIST ptr, byval free_data as ulong)
-declare function list_length cdecl(byval list as LIST ptr) as ulong
-declare function list_walk cdecl(byval list as LIST ptr, byval action as list_walk_action, byval argument as zstring ptr) as long
+Type _LIST As st_list
+Type list_walk_action As Function cdecl(ByVal As Any Ptr, ByVal As Any Ptr) As Long
+Declare Function list_add cdecl(ByVal root As _LIST Ptr, ByVal element As _LIST Ptr) As _LIST Ptr
+Declare Function list_delete cdecl(ByVal root As _LIST Ptr, ByVal element As _LIST Ptr) As _LIST Ptr
+Declare Function list_cons cdecl(ByVal data As Any Ptr, ByVal root As _LIST Ptr) As _LIST Ptr
+Declare Function list_reverse cdecl(ByVal root As _LIST Ptr) As _LIST Ptr
+Declare Sub list_free cdecl(ByVal root As _LIST Ptr, ByVal free_data As ULong)
+Declare Function list_length cdecl(ByVal _LIST As _LIST Ptr) As ULong
+Declare Function list_walk cdecl(ByVal _LIST As _LIST Ptr, ByVal action As list_walk_action, ByVal argument As ZString Ptr) As Long
 
 #define list_rest(a) (a)->next
-#define list_push(a, b) scope : (a) = list_cons((b), (a)) : end scope
+#define list_push(a, b) Scope : (a) = list_cons((b), (a)) : End Scope
 #macro list_pop(A)
-	scope
-		dim old as LIST ptr = (A)
+	Scope
+		Dim old As _LIST Ptr = (A)
 		(A) = list_delete(old, old)
-		ma_free(cptr(zstring ptr, old), MYF(MY_FAE))
-	end scope
+		ma_free(CPtr(ZString Ptr, old), MYF(MY_FAE))
+	End Scope
 #endmacro
 #define _mariadb_ctype_h
 #define CHARSET_DIR_ "charsets/"
-const MY_CS_NAME_SIZE = 32
+Const MY_CS_NAME_SIZE = 32
 #define MADB_DEFAULT_CHARSET_NAME "latin1"
 #define MADB_DEFAULT_COLLATION_NAME "latin1_swedish_ci"
 #define MADB_AUTODETECT_CHARSET_NAME "auto"
 
-type ma_charset_info_st
-	nr as ulong
-	state as ulong
-	csname as const zstring ptr
-	name as const zstring ptr
-	dir as const zstring ptr
-	codepage as ulong
-	encoding as const zstring ptr
-	char_minlen as ulong
-	char_maxlen as ulong
-	mb_charlen as function cdecl(byval c as ulong) as ulong
-	mb_valid as function cdecl(byval start as const zstring ptr, byval end as const zstring ptr) as ulong
-end type
+Type ma_charset_info_st
+	nr As ULong
+	state As ULong
+	csname As Const ZString Ptr
+	name As Const ZString Ptr
+	dir As Const ZString Ptr
+	codepage As ULong
+	encoding As Const ZString Ptr
+	char_minlen As ULong
+	char_maxlen As ULong
+	mb_charlen As Function cdecl(ByVal c As ULong) As ULong
+	mb_valid As Function cdecl(ByVal start As Const ZString Ptr, ByVal End As Const ZString Ptr) As ULong
+End Type
 
-type MARIADB_CHARSET_INFO as ma_charset_info_st
-extern mariadb_compiled_charsets as const MARIADB_CHARSET_INFO ptr
-extern ma_default_charset_info as MARIADB_CHARSET_INFO ptr
-extern ma_charset_bin as MARIADB_CHARSET_INFO ptr
-extern ma_charset_latin1 as MARIADB_CHARSET_INFO ptr
-extern ma_charset_utf8_general_ci as MARIADB_CHARSET_INFO ptr
-extern ma_charset_utf16le_general_ci as MARIADB_CHARSET_INFO ptr
+Type MARIADB_CHARSET_INFO As ma_charset_info_st
+Extern mariadb_compiled_charsets As Const MARIADB_CHARSET_INFO Ptr
+Extern ma_default_charset_info As MARIADB_CHARSET_INFO Ptr
+Extern ma_charset_bin As MARIADB_CHARSET_INFO Ptr
+Extern ma_charset_latin1 As MARIADB_CHARSET_INFO Ptr
+Extern ma_charset_utf8_general_ci As MARIADB_CHARSET_INFO Ptr
+Extern ma_charset_utf16le_general_ci As MARIADB_CHARSET_INFO Ptr
 
-declare function find_compiled_charset cdecl(byval cs_number as ulong) as MARIADB_CHARSET_INFO ptr
-declare function find_compiled_charset_by_name cdecl(byval name as const zstring ptr) as MARIADB_CHARSET_INFO ptr
-declare function mysql_cset_escape_quotes cdecl(byval cset as const MARIADB_CHARSET_INFO ptr, byval newstr as zstring ptr, byval escapestr as const zstring ptr, byval escapestr_len as uinteger) as uinteger
-declare function mysql_cset_escape_slashes cdecl(byval cset as const MARIADB_CHARSET_INFO ptr, byval newstr as zstring ptr, byval escapestr as const zstring ptr, byval escapestr_len as uinteger) as uinteger
-declare function madb_get_os_character_set cdecl() as const zstring ptr
+Declare Function find_compiled_charset cdecl(ByVal cs_number As ULong) As MARIADB_CHARSET_INFO Ptr
+Declare Function find_compiled_charset_by_name cdecl(ByVal name As Const ZString Ptr) As MARIADB_CHARSET_INFO Ptr
+Declare Function mysql_cset_escape_quotes cdecl(ByVal cset As Const MARIADB_CHARSET_INFO Ptr, ByVal newstr As ZString Ptr, ByVal escapestr As Const ZString Ptr, ByVal escapestr_len As UInteger) As UInteger
+Declare Function mysql_cset_escape_slashes cdecl(ByVal cset As Const MARIADB_CHARSET_INFO Ptr, ByVal newstr As ZString Ptr, ByVal escapestr As Const ZString Ptr, ByVal escapestr_len As UInteger) As UInteger
+Declare Function madb_get_os_character_set cdecl() As Const ZString Ptr
 
 #ifdef __FB_WIN32__
-	declare function madb_get_windows_cp cdecl(byval charset as const zstring ptr) as long
+	Declare Function madb_get_windows_cp cdecl(ByVal charset As Const ZString Ptr) As Long
 #endif
 
-type st_ma_const_string
-	str as const zstring ptr
-	length as uinteger
-end type
+Type st_ma_const_string
+	str As Const ZString Ptr
+	length As UInteger
+End Type
 
-type MARIADB_CONST_STRING as st_ma_const_string
+Type MARIADB_CONST_STRING As st_ma_const_string
 #define ST_MA_USED_MEM_DEFINED
 
-type st_ma_used_mem
-	next as st_ma_used_mem ptr
-	left as uinteger
-	size as uinteger
-end type
+Type st_ma_used_mem
+	next As st_ma_used_mem Ptr
+	left As UInteger
+	size As UInteger
+End Type
 
-type MA_USED_MEM as st_ma_used_mem
+Type MA_USED_MEM As st_ma_used_mem
 
-type st_ma_mem_root
-	free as MA_USED_MEM ptr
-	used as MA_USED_MEM ptr
-	pre_alloc as MA_USED_MEM ptr
-	min_malloc as uinteger
-	block_size as uinteger
-	block_num as ulong
-	first_block_usage as ulong
-	error_handler as sub cdecl()
-end type
+Type st_ma_mem_root
+	free As MA_USED_MEM Ptr
+	used As MA_USED_MEM Ptr
+	pre_alloc As MA_USED_MEM Ptr
+	min_malloc As UInteger
+	block_size As UInteger
+	block_num As ULong
+	first_block_usage As ULong
+	error_handler As Sub cdecl()
+End Type
 
-type MA_MEM_ROOT as st_ma_mem_root
-extern mysql_port_ alias "mysql_port" as ulong
-extern mysql_unix_port as zstring ptr
-extern mariadb_deinitialize_ssl as ulong
+Type MA_MEM_ROOT As st_ma_mem_root
+Extern mysql_port_ Alias "mysql_port" As ULong
+Extern mysql_unix_port As ZString Ptr
+Extern mariadb_deinitialize_ssl As ULong
 
-#define IS_PRI_KEY(n) ((n) and PRI_KEY_FLAG)
-#define IS_NOT_NULL(n) ((n) and NOT_NULL_FLAG)
-#define IS_BLOB(n) ((n) and BLOB_FLAG)
-#define IS_NUM(t) (((((t) <= MYSQL_TYPE_INT24) andalso ((t) <> MYSQL_TYPE_TIMESTAMP)) orelse ((t) = MYSQL_TYPE_YEAR)) orelse ((t) = MYSQL_TYPE_NEWDECIMAL))
-#define IS_NUM_FIELD(f) ((f)->flags and NUM_FLAG)
-#define INTERNAL_NUM_FIELD(f) ((((((f)->type <= MYSQL_TYPE_INT24) andalso ((((f)->type <> MYSQL_TYPE_TIMESTAMP) orelse ((f)->length = 14)) orelse ((f)->length = 8))) orelse ((f)->type = MYSQL_TYPE_YEAR)) orelse ((f)->type = MYSQL_TYPE_NEWDECIMAL)) orelse ((f)->type = MYSQL_TYPE_DECIMAL))
+#define IS_PRI_KEY(n) ((n) And PRI_KEY_FLAG)
+#define IS_NOT_NULL(n) ((n) And NOT_NULL_FLAG)
+#define IS_BLOB(n) ((n) And BLOB_FLAG)
+#define IS_NUM(t) (((((t) <= MYSQL_TYPE_INT24) AndAlso ((t) <> MYSQL_TYPE_TIMESTAMP)) OrElse ((t) = MYSQL_TYPE_YEAR)) OrElse ((t) = MYSQL_TYPE_NEWDECIMAL))
+#define IS_NUM_FIELD(f) ((f)->flags And NUM_FLAG)
+#define INTERNAL_NUM_FIELD(f) ((((((f)->type <= MYSQL_TYPE_INT24) AndAlso ((((f)->type <> MYSQL_TYPE_TIMESTAMP) OrElse ((f)->length = 14)) OrElse ((f)->length = 8))) OrElse ((f)->type = MYSQL_TYPE_YEAR)) OrElse ((f)->type = MYSQL_TYPE_NEWDECIMAL)) OrElse ((f)->type = MYSQL_TYPE_DECIMAL))
 
 type st_mysql_field
-	name as zstring ptr
-	org_name as zstring ptr
-	table as zstring ptr
-	org_table as zstring ptr
-	db as zstring ptr
-	catalog as zstring ptr
-	def as zstring ptr
-	length as culong
-	max_length as culong
-	name_length as ulong
-	org_name_length as ulong
-	table_length as ulong
-	org_table_length as ulong
-	db_length as ulong
-	catalog_length as ulong
-	def_length as ulong
-	flags as ulong
-	decimals as ulong
-	charsetnr as ulong
-	as enum_field_types type
-	extension as any ptr
-end type
+	name As ZString Ptr
+	org_name As ZString Ptr
+	table As ZString Ptr
+	org_table As ZString Ptr
+	db As ZString Ptr
+	catalog As ZString Ptr
+	def As ZString Ptr
+	length As culong
+	max_length As culong
+	name_length As ULong
+	org_name_length As ULong
+	table_length As ULong
+	org_table_length As ULong
+	db_length As ULong
+	catalog_length As ULong
+	def_length As ULong
+	flags As ULong
+	decimals As ULong
+	charsetnr As ULong
+	As enum_field_types type
+	extension As Any Ptr
+End Type
 
-type MYSQL_FIELD as st_mysql_field
-type MYSQL_ROW as zstring ptr ptr
-type MYSQL_FIELD_OFFSET as ulong
+Type MYSQL_FIELD As st_mysql_field
+Type MYSQL_ROW As ZString Ptr Ptr
+Type MYSQL_FIELD_OFFSET As ULong
 #macro SET_CLIENT_ERROR(a, b, c, d)
-	scope
+	Scope
 		(a)->net.last_errno = (b)
-		strncpy((a)->net.sqlstate, (c), SQLSTATE_LENGTH)
+		StrNCpy((a)->net.sqlstate, (c), SQLSTATE_LENGTH)
 		(a)->net.sqlstate[SQLSTATE_LENGTH] = 0
-		strncpy((a)->net.last_error, iif((d), (d), ER((b))), MYSQL_ERRMSG_SIZE - 1)
+		StrNCpy((a)->net.last_error, IIf((d), (d), ER((b))), MYSQL_ERRMSG_SIZE - 1)
 		(a)->net.last_error[(MYSQL_ERRMSG_SIZE - 1)] = 0
-	end scope
+	End Scope
 #endmacro
 #define set_mariadb_error(A, B, C) SET_CLIENT_ERROR((A), (B), (C), 0)
-extern SQLSTATE_UNKNOWN as const zstring ptr
-extern unknown_sqlstate alias "SQLSTATE_UNKNOWN" as const zstring ptr
+Extern SQLSTATE_UNKNOWN As Const ZString Ptr
+Extern unknown_sqlstate Alias "SQLSTATE_UNKNOWN" As Const ZString Ptr
 #macro CLEAR_CLIENT_ERROR(a)
-	scope
+	Scope
 		(a)->net.last_errno = 0
-		strcpy((a)->net.sqlstate, "00000")
-		(a)->net.last_error[0] = asc(!"\0")
-		if (a)->net.extension then
+		StrCpy((a)->net.sqlstate, "00000")
+		(a)->net.last_error[0] = Asc(!"\0")
+		If (a)->net.extension Then
 			(a)->net.extension->extended_errno = 0
-		end if
-	end scope
+		End If
+	End Scope
 #endmacro
-const MYSQL_COUNT_ERROR = not culngint(0)
+Const MYSQL_COUNT_ERROR = Not CULngInt(0)
 
-type st_mysql_rows
-	next as st_mysql_rows ptr
-	data as MYSQL_ROW
-	length as culong
-end type
+Type st_mysql_rows
+	next As st_mysql_rows Ptr
+	data As MYSQL_ROW
+	length As culong
+End Type
 
-type MYSQL_ROWS as st_mysql_rows
-type MYSQL_ROW_OFFSET as MYSQL_ROWS ptr
+Type MYSQL_ROWS As st_mysql_rows
+Type MYSQL_ROW_OFFSET As MYSQL_ROWS Ptr
 
-type st_mysql_data
-	data as MYSQL_ROWS ptr
-	embedded_info as any ptr
-	alloc as MA_MEM_ROOT
-	rows as ulongint
-	fields as ulong
-	extension as any ptr
-end type
+Type st_mysql_data
+	data As MYSQL_ROWS Ptr
+	embedded_info As Any Ptr
+	alloc As MA_MEM_ROOT
+	rows As ULongInt
+	fields As ULong
+	extension As Any Ptr
+End Type
 
-type MYSQL_DATA as st_mysql_data
+Type MYSQL_DATA As st_mysql_data
 
-type mysql_option as long
-enum
+Type mysql_option As Long
+Enum
 	MYSQL_OPT_CONNECT_TIMEOUT
 	MYSQL_OPT_COMPRESS
 	MYSQL_OPT_NAMED_PIPE
@@ -695,10 +695,10 @@ enum
 	MARIADB_OPT_IO_WAIT
 	MARIADB_OPT_SKIP_READ_RESPONSE
 	MARIADB_OPT_RESTRICTED_AUTH
-end enum
+End Enum
 
-type mariadb_value as long
-enum
+Type mariadb_value As Long
+Enum
 	MARIADB_CHARSET_ID
 	MARIADB_CHARSET_NAME
 	MARIADB_CLIENT_ERRORS
@@ -735,10 +735,10 @@ enum
 	MARIADB_CONNECTION_CLIENT_CAPABILITIES
 	MARIADB_CONNECTION_BYTES_READ
 	MARIADB_CONNECTION_BYTES_SENT
-end enum
+End Enum
 
-type mysql_status as long
-enum
+Type mysql_status As Long
+Enum
 	MYSQL_STATUS_READY
 	MYSQL_STATUS_GET_RESULT
 	MYSQL_STATUS_USE_RESULT
@@ -748,218 +748,218 @@ enum
 	MYSQL_STATUS_NEXT_RESULT_PENDING
 	MYSQL_STATUS_QUIT_SENT
 	MYSQL_STATUS_STMT_RESULT
-end enum
+End Enum
 
-type mysql_protocol_type as long
-enum
+Type mysql_protocol_type As Long
+Enum
 	MYSQL_PROTOCOL_DEFAULT
 	MYSQL_PROTOCOL_TCP
 	MYSQL_PROTOCOL_SOCKET
 	MYSQL_PROTOCOL_PIPE
 	MYSQL_PROTOCOL_MEMORY
-end enum
+End Enum
 
-type st_dynamic_array as st_dynamic_array_
-type st_mysql_options_extension as st_mysql_options_extension_
+Type st_dynamic_array As st_dynamic_array_
+Type st_mysql_options_extension As st_mysql_options_extension_
 
-type st_mysql_options
-	connect_timeout as ulong
-	read_timeout as ulong
-	write_timeout as ulong
-	port as ulong
-	protocol as ulong
-	client_flag as culong
-	host as zstring ptr
-	user as zstring ptr
-	password as zstring ptr
-	unix_socket as zstring ptr
-	db as zstring ptr
-	init_command as st_dynamic_array ptr
-	my_cnf_file as zstring ptr
-	my_cnf_group as zstring ptr
-	charset_dir as zstring ptr
-	charset_name as zstring ptr
-	ssl_key as zstring ptr
-	ssl_cert as zstring ptr
-	ssl_ca as zstring ptr
-	ssl_capath as zstring ptr
-	ssl_cipher as zstring ptr
-	shared_memory_base_name as zstring ptr
-	max_allowed_packet as culong
-	use_ssl as byte
-	compress as byte
-	named_pipe as byte
-	reconnect as byte
-	unused_1 as byte
-	unused_2 as byte
-	unused_3 as byte
-	methods_to_use as mysql_option
-	bind_address as zstring ptr
-	secure_auth as byte
-	report_data_truncation as byte
-	local_infile_init as function cdecl(byval as any ptr ptr, byval as const zstring ptr, byval as any ptr) as long
-	local_infile_read as function cdecl(byval as any ptr, byval as zstring ptr, byval as ulong) as long
-	local_infile_end as sub cdecl(byval as any ptr)
-	local_infile_error as function cdecl(byval as any ptr, byval as zstring ptr, byval as ulong) as long
-	local_infile_userdata as any ptr
-	extension as st_mysql_options_extension ptr
-end type
+Type st_mysql_options
+	connect_timeout As ULong
+	read_timeout As ULong
+	write_timeout As ULong
+	port As ULong
+	protocol As ULong
+	client_flag As culong
+	host As ZString Ptr
+	user As ZString Ptr
+	password As ZString Ptr
+	unix_socket As ZString Ptr
+	db As ZString Ptr
+	init_command As st_dynamic_array Ptr
+	my_cnf_file As ZString Ptr
+	my_cnf_group As ZString Ptr
+	charset_dir As ZString Ptr
+	charset_name As ZString Ptr
+	ssl_key As ZString Ptr
+	ssl_cert As ZString Ptr
+	ssl_ca As ZString Ptr
+	ssl_capath As ZString Ptr
+	ssl_cipher As ZString Ptr
+	shared_memory_base_name As ZString Ptr
+	max_allowed_packet As culong
+	use_ssl As Byte
+	compress As Byte
+	named_pipe As Byte
+	reconnect As Byte
+	unused_1 As Byte
+	unused_2 As Byte
+	unused_3 As Byte
+	methods_to_use As mysql_option
+	bind_address As ZString Ptr
+	secure_auth As Byte
+	report_data_truncation As Byte
+	local_infile_init As Function cdecl(ByVal As Any Ptr Ptr, ByVal As Const ZString Ptr, ByVal As Any Ptr) As Long
+	local_infile_read As Function cdecl(ByVal As Any Ptr, ByVal As ZString Ptr, ByVal As ULong) As Long
+	local_infile_end As Sub cdecl(ByVal As Any Ptr)
+	local_infile_error As Function cdecl(ByVal As Any Ptr, ByVal As ZString Ptr, ByVal As ULong) As Long
+	local_infile_userdata As Any Ptr
+	extension As st_mysql_options_extension Ptr
+End Type
 
-type st_mariadb_methods as st_mariadb_methods_
-type st_mariadb_extension as st_mariadb_extension_
+Type st_mariadb_methods As st_mariadb_methods_
+Type st_mariadb_extension As st_mariadb_extension_
 
-type st_mysql
-	net as NET
-	unused_0 as any ptr
-	host as zstring ptr
-	user as zstring ptr
-	passwd as zstring ptr
-	unix_socket as zstring ptr
-	server_version as zstring ptr
-	host_info as zstring ptr
-	info as zstring ptr
-	db as zstring ptr
-	charset as const ma_charset_info_st ptr
-	fields as MYSQL_FIELD ptr
-	field_alloc as MA_MEM_ROOT
-	affected_rows as ulongint
-	insert_id as ulongint
-	extra_info as ulongint
-	thread_id as culong
-	packet_length as culong
-	port as ulong
-	client_flag as culong
-	server_capabilities as culong
-	protocol_version as ulong
-	field_count as ulong
-	server_status as ulong
-	server_language as ulong
-	warning_count as ulong
-	options as st_mysql_options
-	status as mysql_status
-	free_me as byte
-	unused_1 as byte
-	scramble_buff as zstring * 20 + 1
-	unused_2 as byte
-	unused_3 as any ptr
-	unused_4 as any ptr
-	unused_5 as any ptr
-	unused_6 as any ptr
-	stmts as LIST ptr
-	methods as const st_mariadb_methods ptr
-	thd as any ptr
-	unbuffered_fetch_owner as my_bool ptr
-	info_buffer as zstring ptr
-	extension as st_mariadb_extension ptr
-end type
+Type st_mysql
+	net As NET
+	unused_0 As Any Ptr
+	host As ZString Ptr
+	user As ZString Ptr
+	passwd As ZString Ptr
+	unix_socket As ZString Ptr
+	server_version As ZString Ptr
+	host_info As ZString Ptr
+	info As ZString Ptr
+	db As ZString Ptr
+	charset As Const ma_charset_info_st Ptr
+	fields As MYSQL_FIELD Ptr
+	field_alloc As MA_MEM_ROOT
+	affected_rows As ULongInt
+	insert_id As ULongInt
+	extra_info As ULongInt
+	thread_id As culong
+	packet_length As culong
+	port As ULong
+	client_flag As culong
+	server_capabilities As culong
+	protocol_version As ULong
+	field_count As ULong
+	server_status As ULong
+	server_language As ULong
+	warning_count As ULong
+	options As st_mysql_options
+	status As mysql_status
+	free_me As Byte
+	unused_1 As Byte
+	scramble_buff As ZString * 20 + 1
+	unused_2 As Byte
+	unused_3 As Any Ptr
+	unused_4 As Any Ptr
+	unused_5 As Any Ptr
+	unused_6 As Any Ptr
+	stmts As _LIST Ptr
+	methods As Const st_mariadb_methods Ptr
+	thd As Any Ptr
+	unbuffered_fetch_owner As my_bool Ptr
+	info_buffer As ZString Ptr
+	extension As st_mariadb_extension Ptr
+End Type
 
-type MYSQL as st_mysql
+Type MYSQL As st_mysql
 
-type st_mysql_res
-	row_count as ulongint
-	field_count as ulong
-	current_field as ulong
-	fields as MYSQL_FIELD ptr
-	data as MYSQL_DATA ptr
-	data_cursor as MYSQL_ROWS ptr
-	field_alloc as MA_MEM_ROOT
-	row as MYSQL_ROW
-	current_row as MYSQL_ROW
-	lengths as culong ptr
-	handle as MYSQL ptr
-	eof as byte
-	is_ps as byte
-end type
+Type st_mysql_res
+	row_count As ULongInt
+	field_count As ULong
+	current_field As ULong
+	fields As MYSQL_FIELD Ptr
+	data As MYSQL_DATA Ptr
+	data_cursor As MYSQL_ROWS Ptr
+	field_alloc As MA_MEM_ROOT
+	row As MYSQL_ROW
+	current_row As MYSQL_ROW
+	lengths As culong Ptr
+	handle As MYSQL Ptr
+	eof As Byte
+	is_ps As Byte
+End Type
 
-type MYSQL_RES as st_mysql_res
+Type MYSQL_RES As st_mysql_res
 
-type MYSQL_PARAMETERS
-	p_max_allowed_packet as culong ptr
-	p_net_buffer_length as culong ptr
-	extension as any ptr
-end type
+Type MYSQL_PARAMETERS
+	p_max_allowed_packet As culong Ptr
+	p_net_buffer_length As culong Ptr
+	extension As Any Ptr
+End Type
 
-type mariadb_field_attr_t as long
-enum
+Type mariadb_field_attr_t As Long
+Enum
 	MARIADB_FIELD_ATTR_DATA_TYPE_NAME = 0
 	MARIADB_FIELD_ATTR_FORMAT_NAME = 1
-end enum
+End Enum
 
-const MARIADB_FIELD_ATTR_LAST = MARIADB_FIELD_ATTR_FORMAT_NAME
-declare function mariadb_field_attr(byval attr as MARIADB_CONST_STRING ptr, byval field as const MYSQL_FIELD ptr, byval type as mariadb_field_attr_t) as long
+Const MARIADB_FIELD_ATTR_LAST = MARIADB_FIELD_ATTR_FORMAT_NAME
+Declare Function mariadb_field_attr(ByVal attr As MARIADB_CONST_STRING Ptr, ByVal field As Const MYSQL_FIELD Ptr, ByVal type As mariadb_field_attr_t) As Long
 
-type enum_mysql_timestamp_type as long
-enum
+Type enum_mysql_timestamp_type As Long
+Enum
 	MYSQL_TIMESTAMP_NONE = -2
 	MYSQL_TIMESTAMP_ERROR = -1
 	MYSQL_TIMESTAMP_DATE = 0
 	MYSQL_TIMESTAMP_DATETIME = 1
 	MYSQL_TIMESTAMP_TIME = 2
-end enum
+End Enum
 
-type st_mysql_time
-	year as ulong
-	month as ulong
-	day as ulong
-	hour as ulong
-	minute as ulong
-	second as ulong
-	second_part as culong
-	neg as byte
-	time_type as enum_mysql_timestamp_type
-end type
+Type st_mysql_time
+	year As ULong
+	month As ULong
+	day As ULong
+	hour As ULong
+	minute As ULong
+	second As ULong
+	second_part As culong
+	neg As Byte
+	time_type As enum_mysql_timestamp_type
+End Type
 
-type MYSQL_TIME as st_mysql_time
-const AUTO_SEC_PART_DIGITS = 39
-const SEC_PART_DIGITS = 6
-const MARIADB_INVALID_SOCKET = -1
-const MYSQL_WAIT_READ = 1
-const MYSQL_WAIT_WRITE = 2
-const MYSQL_WAIT_EXCEPT = 4
-const MYSQL_WAIT_TIMEOUT = 8
+Type MYSQL_TIME As st_mysql_time
+Const AUTO_SEC_PART_DIGITS = 39
+Const SEC_PART_DIGITS = 6
+Const MARIADB_INVALID_SOCKET = -1
+Const MYSQL_WAIT_READ = 1
+Const MYSQL_WAIT_WRITE = 2
+Const MYSQL_WAIT_EXCEPT = 4
+Const MYSQL_WAIT_TIMEOUT = 8
 
-type character_set
-	number as ulong
-	state as ulong
-	csname as const zstring ptr
-	name as const zstring ptr
-	comment as const zstring ptr
-	dir as const zstring ptr
-	mbminlen as ulong
-	mbmaxlen as ulong
-end type
+Type character_set
+	number As ULong
+	state As ULong
+	csname As Const ZString Ptr
+	name As Const ZString Ptr
+	comment As Const ZString Ptr
+	dir As Const ZString Ptr
+	mbminlen As ULong
+	mbmaxlen As ULong
+End Type
 
-type MY_CHARSET_INFO as character_set
-const LOCAL_INFILE_ERROR_LEN = 512
-const MYSQL_NO_DATA = 100
-const MYSQL_DATA_TRUNCATED = 101
-const MYSQL_DEFAULT_PREFETCH_ROWS = cast(culong, 1)
-const MADB_BIND_DUMMY = 1
-#define MARIADB_STMT_BULK_SUPPORTED(stmt) ((stmt)->mysql andalso ((((stmt)->mysql->server_capabilities and CLIENT_MYSQL) = 0) andalso ((stmt)->mysql->extension->mariadb_server_capabilities and (MARIADB_CLIENT_STMT_BULK_OPERATIONS shr 32))))
+Type MY_CHARSET_INFO As character_set
+Const LOCAL_INFILE_ERROR_LEN = 512
+Const MYSQL_NO_DATA = 100
+Const MYSQL_DATA_TRUNCATED = 101
+Const MYSQL_DEFAULT_PREFETCH_ROWS = Cast(culong, 1)
+Const MADB_BIND_DUMMY = 1
+#define MARIADB_STMT_BULK_SUPPORTED(stmt) ((stmt)->mysql AndAlso ((((stmt)->mysql->server_capabilities And CLIENT_MYSQL) = 0) AndAlso ((stmt)->mysql->extension->mariadb_server_capabilities And (MARIADB_CLIENT_STMT_BULK_OPERATIONS Shr 32))))
 #macro SET_CLIENT_STMT_ERROR(a, b, c, d)
-	scope
+	Scope
 		(a)->last_errno = (b)
-		strncpy((a)->sqlstate, (c), SQLSTATE_LENGTH)
+		StrNCpy((a)->sqlstate, (c), SQLSTATE_LENGTH)
 		(a)->sqlstate[SQLSTATE_LENGTH] = 0
-		strncpy((a)->last_error, iif((d), (d), ER((b))), MYSQL_ERRMSG_SIZE)
+		StrNCpy((a)->last_error, IIf((d), (d), ER((b))), MYSQL_ERRMSG_SIZE)
 		(a)->last_error[(MYSQL_ERRMSG_SIZE - 1)] = 0
-	end scope
+	End Scope
 #endmacro
 #macro CLEAR_CLIENT_STMT_ERROR(a)
-	scope
+	Scope
 		(a)->last_errno = 0
-		strcpy((a)->sqlstate, "00000")
+		StrCpy((a)->sqlstate, "00000")
 		(a)->last_error[0] = 0
-	end scope
+	End Scope
 #endmacro
-const MYSQL_PS_SKIP_RESULT_W_LEN = -1
-const MYSQL_PS_SKIP_RESULT_STR = -2
-const STMT_ID_LENGTH = 4
-type MYSQL_STMT as st_mysql_stmt
-type mysql_stmt_use_or_store_func as function cdecl(byval as MYSQL_STMT ptr) as MYSQL_RES ptr
+Const MYSQL_PS_SKIP_RESULT_W_LEN = -1
+Const MYSQL_PS_SKIP_RESULT_STR = -2
+Const STMT_ID_LENGTH = 4
+Type MYSQL_STMT As st_mysql_stmt
+Type mysql_stmt_use_or_store_func As Function cdecl(ByVal As MYSQL_STMT Ptr) As MYSQL_RES Ptr
 
-type enum_stmt_attr_type as long
-enum
+Type enum_stmt_attr_type As Long
+Enum
 	STMT_ATTR_UPDATE_MAX_LENGTH
 	STMT_ATTR_CURSOR_TYPE
 	STMT_ATTR_PREFETCH_ROWS
@@ -970,31 +970,31 @@ enum
 	STMT_ATTR_CB_USER_DATA
 	STMT_ATTR_CB_PARAM
 	STMT_ATTR_CB_RESULT
-end enum
+End Enum
 
-type enum_cursor_type as long
-enum
+Type enum_cursor_type As Long
+Enum
 	CURSOR_TYPE_NO_CURSOR = 0
 	CURSOR_TYPE_READ_ONLY = 1
 	CURSOR_TYPE_FOR_UPDATE = 2
 	CURSOR_TYPE_SCROLLABLE = 4
-end enum
+End Enum
 
-type enum_indicator_type as long
-enum
+Type enum_indicator_type As Long
+Enum
 	STMT_INDICATOR_NTS = -1
 	STMT_INDICATOR_NONE = 0
 	STMT_INDICATOR_NULL = 1
 	STMT_INDICATOR_DEFAULT = 2
 	STMT_INDICATOR_IGNORE = 3
 	STMT_INDICATOR_IGNORE_ROW = 4
-end enum
+End Enum
 
-const STMT_BULK_FLAG_CLIENT_SEND_TYPES = 128
-const STMT_BULK_FLAG_INSERT_ID_REQUEST = 64
+Const STMT_BULK_FLAG_CLIENT_SEND_TYPES = 128
+Const STMT_BULK_FLAG_INSERT_ID_REQUEST = 64
 
-type mysql_stmt_state as long
-enum
+Type mysql_stmt_state As Long
+Enum
 	MYSQL_STMT_INITTED = 0
 	MYSQL_STMT_PREPARED
 	MYSQL_STMT_EXECUTED
@@ -1002,496 +1002,496 @@ enum
 	MYSQL_STMT_USE_OR_STORE_CALLED
 	MYSQL_STMT_USER_FETCHING
 	MYSQL_STMT_FETCH_DONE
-end enum
+End Enum
 
-type enum_mysqlnd_stmt_state as mysql_stmt_state
+Type enum_mysqlnd_stmt_state As mysql_stmt_state
 
-union st_mysql_bind_u
-	row_ptr as ubyte ptr
-	indicator as zstring ptr
-end union
+Union st_mysql_bind_u
+	row_ptr As UByte Ptr
+	indicator As ZString Ptr
+End Union
 
-type st_mysql_bind
-	length as culong ptr
-	is_null as my_bool ptr
-	buffer as any ptr
-	error as my_bool ptr
-	u as st_mysql_bind_u
-	store_param_func as sub cdecl(byval net as NET ptr, byval param as st_mysql_bind ptr)
-	fetch_result as sub cdecl(byval as st_mysql_bind ptr, byval as MYSQL_FIELD ptr, byval row as ubyte ptr ptr)
-	skip_result as sub cdecl(byval as st_mysql_bind ptr, byval as MYSQL_FIELD ptr, byval row as ubyte ptr ptr)
-	buffer_length as culong
-	offset as culong
-	length_value as culong
-	flags as ulong
-	pack_length as ulong
-	buffer_type as enum_field_types
-	error_value as byte
-	is_unsigned as byte
-	long_data_used as byte
-	is_null_value as byte
-	extension as any ptr
-end type
+Type st_mysql_bind
+	length As culong Ptr
+	is_null As my_bool Ptr
+	buffer As Any Ptr
+	error As my_bool Ptr
+	u As st_mysql_bind_u
+	store_param_func As Sub cdecl(ByVal NET As NET Ptr, ByVal param As st_mysql_bind Ptr)
+	fetch_result As Sub cdecl(ByVal As st_mysql_bind Ptr, ByVal As MYSQL_FIELD Ptr, ByVal row As UByte Ptr Ptr)
+	skip_result As Sub cdecl(ByVal As st_mysql_bind Ptr, ByVal As MYSQL_FIELD Ptr, ByVal row As UByte Ptr Ptr)
+	buffer_length As culong
+	offset As culong
+	length_value As culong
+	flags As ULong
+	pack_length As ULong
+	buffer_type As enum_field_types
+	error_value As Byte
+	is_unsigned As Byte
+	long_data_used As Byte
+	is_null_value As Byte
+	extension As Any Ptr
+End Type
 
-type MYSQL_BIND as st_mysql_bind
+Type MYSQL_BIND As st_mysql_bind
 
-type st_mysqlnd_upsert_result
-	warning_count as ulong
-	server_status as ulong
-	affected_rows as ulongint
-	last_insert_id as ulongint
-end type
+Type st_mysqlnd_upsert_result
+	warning_count As ULong
+	server_status As ULong
+	affected_rows As ULongInt
+	last_insert_id As ULongInt
+End Type
 
-type mysql_upsert_status as st_mysqlnd_upsert_result
+Type mysql_upsert_status As st_mysqlnd_upsert_result
 
-type st_mysql_cmd_buffer
-	buffer as ubyte ptr
-	length as uinteger
-end type
+Type st_mysql_cmd_buffer
+	buffer As UByte Ptr
+	length As UInteger
+End Type
 
-type MYSQL_CMD_BUFFER as st_mysql_cmd_buffer
+Type MYSQL_CMD_BUFFER As st_mysql_cmd_buffer
 
-type st_mysql_error_info
-	error_no as ulong
-	error as zstring * 512 + 1
-	sqlstate as zstring * 5 + 1
-end type
+Type st_mysql_error_info
+	error_no As ULong
+	error As ZString * 512 + 1
+	sqlstate As ZString * 5 + 1
+End Type
 
-type mysql_error_info as st_mysql_error_info
-type mysql_stmt_fetch_row_func as function cdecl(byval stmt as MYSQL_STMT ptr, byval row as ubyte ptr ptr) as long
-type ps_result_callback as sub cdecl(byval data as any ptr, byval column as ulong, byval row as ubyte ptr ptr)
-type ps_param_callback as function cdecl(byval data as any ptr, byval bind as MYSQL_BIND ptr, byval row_nr as ulong) as my_bool ptr
+Type mysql_error_info As st_mysql_error_info
+Type mysql_stmt_fetch_row_func As Function cdecl(ByVal stmt As MYSQL_STMT Ptr, ByVal row As UByte Ptr Ptr) As Long
+Type ps_result_callback As Sub cdecl(ByVal Data As Any Ptr, ByVal column As ULong, ByVal row As UByte Ptr Ptr)
+Type ps_param_callback As Function cdecl(ByVal Data As Any Ptr, ByVal bind As MYSQL_BIND Ptr, ByVal row_nr As ULong) As my_bool Ptr
 
-type st_mysql_stmt
-	mem_root as MA_MEM_ROOT
-	mysql as MYSQL ptr
-	stmt_id as culong
-	flags as culong
-	state as enum_mysqlnd_stmt_state
-	fields as MYSQL_FIELD ptr
-	field_count as ulong
-	param_count as ulong
-	send_types_to_server as ubyte
-	params as MYSQL_BIND ptr
-	bind as MYSQL_BIND ptr
-	result as MYSQL_DATA
-	result_cursor as MYSQL_ROWS ptr
-	bind_result_done as byte
-	bind_param_done as byte
-	upsert_status as mysql_upsert_status
-	last_errno as ulong
-	last_error as zstring * 512 + 1
-	sqlstate as zstring * 5 + 1
-	update_max_length as byte
-	prefetch_rows as culong
-	list as LIST
-	cursor_exists as byte
-	extension as any ptr
-	fetch_row_func as mysql_stmt_fetch_row_func
-	execute_count as ulong
-	default_rset_handler as mysql_stmt_use_or_store_func
-	request_buffer as ubyte ptr
-	array_size as ulong
-	row_size as uinteger
-	prebind_params as ulong
-	user_data as any ptr
-	result_callback as ps_result_callback
-	param_callback as ps_param_callback
-	request_length as uinteger
-end type
+Type st_mysql_stmt
+	mem_root As MA_MEM_ROOT
+	mysql As MYSQL Ptr
+	stmt_id As culong
+	flags As culong
+	state As enum_mysqlnd_stmt_state
+	fields As MYSQL_FIELD Ptr
+	field_count As ULong
+	param_count As ULong
+	send_types_to_server As UByte
+	params As MYSQL_BIND Ptr
+	bind As MYSQL_BIND Ptr
+	result As MYSQL_DATA
+	result_cursor As MYSQL_ROWS Ptr
+	bind_result_done As Byte
+	bind_param_done As Byte
+	upsert_status As mysql_upsert_status
+	last_errno As ULong
+	last_error As ZString * 512 + 1
+	sqlstate As ZString * 5 + 1
+	update_max_length As Byte
+	prefetch_rows As culong
+	list As LIST
+	cursor_exists As Byte
+	extension As Any Ptr
+	fetch_row_func As mysql_stmt_fetch_row_func
+	execute_count As ULong
+	default_rset_handler As mysql_stmt_use_or_store_func
+	request_buffer As UByte Ptr
+	array_size As ULong
+	row_size As UInteger
+	prebind_params As ULong
+	user_data As Any Ptr
+	result_callback As ps_result_callback
+	param_callback As ps_param_callback
+	request_length As UInteger
+End Type
 
-type ps_field_fetch_func as sub cdecl(byval r_param as MYSQL_BIND ptr, byval field as const MYSQL_FIELD ptr, byval row as ubyte ptr ptr)
+Type ps_field_fetch_func As Sub cdecl(ByVal r_param As MYSQL_BIND Ptr, ByVal Field As Const MYSQL_FIELD Ptr, ByVal row As UByte Ptr Ptr)
 
-type st_mysql_perm_bind
-	func as ps_field_fetch_func
-	pack_len as long
-	max_len as culong
-end type
+Type st_mysql_perm_bind
+	func As ps_field_fetch_func
+	pack_len As Long
+	max_len As culong
+End Type
 
-type MYSQL_PS_CONVERSION as st_mysql_perm_bind
-extern mysql_ps_fetch_functions(0 to (MYSQL_TYPE_GEOMETRY + 1) - 1) as MYSQL_PS_CONVERSION
-declare function ma_net_safe_read cdecl(byval mysql as MYSQL ptr) as culong
-declare sub mysql_init_ps_subsystem cdecl()
-declare function net_field_length cdecl(byval packet as ubyte ptr ptr) as culong
-declare function ma_simple_command cdecl(byval mysql as MYSQL ptr, byval command as enum_server_command, byval arg as const zstring ptr, byval length as uinteger, byval skipp_check as byte, byval opt_arg as any ptr) as long
-declare function mysql_stmt_init(byval mysql as MYSQL ptr) as MYSQL_STMT ptr
-declare function mysql_stmt_prepare(byval stmt as MYSQL_STMT ptr, byval query as const zstring ptr, byval length as culong) as long
-declare function mysql_stmt_execute(byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_fetch(byval stmt as MYSQL_STMT ptr) as long
+Type MYSQL_PS_CONVERSION As st_mysql_perm_bind
+Extern mysql_ps_fetch_functions(0 To (MYSQL_TYPE_GEOMETRY + 1) - 1) As MYSQL_PS_CONVERSION
+Declare Function ma_net_safe_read cdecl(ByVal mysql As MYSQL Ptr) As culong
+Declare Sub mysql_init_ps_subsystem cdecl()
+Declare Function net_field_length cdecl(ByVal packet As UByte Ptr Ptr) As culong
+Declare Function ma_simple_command cdecl(ByVal mysql As MYSQL Ptr, ByVal command As enum_server_command, ByVal arg As Const ZString Ptr, ByVal length As UInteger, ByVal skipp_check As Byte, ByVal opt_arg As Any Ptr) As Long
+Declare Function mysql_stmt_init(ByVal mysql As MYSQL Ptr) As MYSQL_STMT Ptr
+Declare Function mysql_stmt_prepare(ByVal stmt As MYSQL_STMT Ptr, ByVal query As Const ZString Ptr, ByVal length As culong) As Long
+Declare Function mysql_stmt_execute(ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_fetch(ByVal stmt As MYSQL_STMT Ptr) As Long
 declare function mysql_stmt_fetch_column(byval stmt as MYSQL_STMT ptr, byval bind_arg as MYSQL_BIND ptr, byval column as ulong, byval offset as culong) as long
-declare function mysql_stmt_store_result(byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_param_count(byval stmt as MYSQL_STMT ptr) as culong
-declare function mysql_stmt_attr_set(byval stmt as MYSQL_STMT ptr, byval attr_type as enum_stmt_attr_type, byval attr as const any ptr) as byte
-declare function mysql_stmt_attr_get(byval stmt as MYSQL_STMT ptr, byval attr_type as enum_stmt_attr_type, byval attr as any ptr) as byte
-declare function mysql_stmt_bind_param(byval stmt as MYSQL_STMT ptr, byval bnd as MYSQL_BIND ptr) as byte
-declare function mysql_stmt_bind_result(byval stmt as MYSQL_STMT ptr, byval bnd as MYSQL_BIND ptr) as byte
-declare function mysql_stmt_close(byval stmt as MYSQL_STMT ptr) as byte
-declare function mysql_stmt_reset(byval stmt as MYSQL_STMT ptr) as byte
-declare function mysql_stmt_free_result(byval stmt as MYSQL_STMT ptr) as byte
-declare function mysql_stmt_send_long_data(byval stmt as MYSQL_STMT ptr, byval param_number as ulong, byval data as const zstring ptr, byval length as culong) as byte
-declare function mysql_stmt_result_metadata(byval stmt as MYSQL_STMT ptr) as MYSQL_RES ptr
-declare function mysql_stmt_param_metadata(byval stmt as MYSQL_STMT ptr) as MYSQL_RES ptr
-declare function mysql_stmt_errno(byval stmt as MYSQL_STMT ptr) as ulong
-declare function mysql_stmt_error(byval stmt as MYSQL_STMT ptr) as const zstring ptr
-declare function mysql_stmt_sqlstate(byval stmt as MYSQL_STMT ptr) as const zstring ptr
-declare function mysql_stmt_row_seek(byval stmt as MYSQL_STMT ptr, byval offset as MYSQL_ROW_OFFSET) as MYSQL_ROW_OFFSET
-declare function mysql_stmt_row_tell(byval stmt as MYSQL_STMT ptr) as MYSQL_ROW_OFFSET
-declare sub mysql_stmt_data_seek(byval stmt as MYSQL_STMT ptr, byval offset as ulongint)
-declare function mysql_stmt_num_rows(byval stmt as MYSQL_STMT ptr) as ulongint
-declare function mysql_stmt_affected_rows(byval stmt as MYSQL_STMT ptr) as ulongint
-declare function mysql_stmt_insert_id(byval stmt as MYSQL_STMT ptr) as ulongint
-declare function mysql_stmt_field_count(byval stmt as MYSQL_STMT ptr) as ulong
-declare function mysql_stmt_next_result(byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_more_results(byval stmt as MYSQL_STMT ptr) as byte
-declare function mariadb_stmt_execute_direct(byval stmt as MYSQL_STMT ptr, byval stmt_str as const zstring ptr, byval length as uinteger) as long
-declare function mariadb_stmt_fetch_fields(byval stmt as MYSQL_STMT ptr) as MYSQL_FIELD ptr
+Declare Function mysql_stmt_store_result(ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_param_count(ByVal stmt As MYSQL_STMT Ptr) As culong
+Declare Function mysql_stmt_attr_set(ByVal stmt As MYSQL_STMT Ptr, ByVal attr_type As enum_stmt_attr_type, ByVal attr As Const Any Ptr) As Byte
+Declare Function mysql_stmt_attr_get(ByVal stmt As MYSQL_STMT Ptr, ByVal attr_type As enum_stmt_attr_type, ByVal attr As Any Ptr) As Byte
+Declare Function mysql_stmt_bind_param(ByVal stmt As MYSQL_STMT Ptr, ByVal bnd As MYSQL_BIND Ptr) As Byte
+Declare Function mysql_stmt_bind_result(ByVal stmt As MYSQL_STMT Ptr, ByVal bnd As MYSQL_BIND Ptr) As Byte
+Declare Function mysql_stmt_close(ByVal stmt As MYSQL_STMT Ptr) As Byte
+Declare Function mysql_stmt_reset(ByVal stmt As MYSQL_STMT Ptr) As Byte
+Declare Function mysql_stmt_free_result(ByVal stmt As MYSQL_STMT Ptr) As Byte
+Declare Function mysql_stmt_send_long_data(ByVal stmt As MYSQL_STMT Ptr, ByVal param_number As ULong, ByVal data As Const ZString Ptr, ByVal length As culong) As Byte
+Declare Function mysql_stmt_result_metadata(ByVal stmt As MYSQL_STMT Ptr) As MYSQL_RES Ptr
+Declare Function mysql_stmt_param_metadata(ByVal stmt As MYSQL_STMT Ptr) As MYSQL_RES Ptr
+Declare Function mysql_stmt_errno(ByVal stmt As MYSQL_STMT Ptr) As ULong
+Declare Function mysql_stmt_error(ByVal stmt As MYSQL_STMT Ptr) As Const ZString Ptr
+Declare Function mysql_stmt_sqlstate(ByVal stmt As MYSQL_STMT Ptr) As Const ZString Ptr
+Declare Function mysql_stmt_row_seek(ByVal stmt As MYSQL_STMT Ptr, ByVal offset As MYSQL_ROW_OFFSET) As MYSQL_ROW_OFFSET
+Declare Function mysql_stmt_row_tell(ByVal stmt As MYSQL_STMT Ptr) As MYSQL_ROW_OFFSET
+Declare Sub mysql_stmt_data_seek(ByVal stmt As MYSQL_STMT Ptr, ByVal offset As ULongInt)
+Declare Function mysql_stmt_num_rows(ByVal stmt As MYSQL_STMT Ptr) As ULongInt
+Declare Function mysql_stmt_affected_rows(ByVal stmt As MYSQL_STMT Ptr) As ULongInt
+Declare Function mysql_stmt_insert_id(ByVal stmt As MYSQL_STMT Ptr) As ULongInt
+Declare Function mysql_stmt_field_count(ByVal stmt As MYSQL_STMT Ptr) As ULong
+Declare Function mysql_stmt_next_result(ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_more_results(ByVal stmt As MYSQL_STMT Ptr) As Byte
+Declare Function mariadb_stmt_execute_direct(ByVal stmt As MYSQL_STMT Ptr, ByVal stmt_str As Const ZString Ptr, ByVal length As UInteger) As Long
+Declare Function mariadb_stmt_fetch_fields(ByVal stmt As MYSQL_STMT Ptr) As MYSQL_FIELD Ptr
 
 type st_mysql_client_plugin
-	as long type
-	interface_version as ulong
-	name as const zstring ptr
-	author as const zstring ptr
-	desc as const zstring ptr
-	version(0 to 2) as ulong
-	license as const zstring ptr
-	mysql_api as any ptr
-	init as function cdecl(byval as zstring ptr, byval as uinteger, byval as long, byval as va_list) as long
-	deinit as function cdecl() as long
-	options as function cdecl(byval option as const zstring ptr, byval as const any ptr) as long
+	As Long type
+	interface_version As ULong
+	name As Const ZString Ptr
+	author As Const ZString Ptr
+	desc As Const ZString Ptr
+	version(0 To 2) As ULong
+	license As Const ZString Ptr
+	mysql_api As Any Ptr
+	init As Function cdecl(ByVal As ZString Ptr, ByVal As UInteger, ByVal As Long, ByVal As va_list) As Long
+	deinit As Function cdecl() As Long
+	options As Function cdecl(ByVal Option As Const ZString Ptr, ByVal As Const Any Ptr) As Long
 end type
 
-declare function mysql_load_plugin cdecl(byval mysql as st_mysql ptr, byval name as const zstring ptr, byval type as long, byval argc as long, ...) as st_mysql_client_plugin ptr
-declare function mysql_load_plugin_v(byval mysql as st_mysql ptr, byval name as const zstring ptr, byval type as long, byval argc as long, byval args as va_list) as st_mysql_client_plugin ptr
-declare function mysql_client_find_plugin(byval mysql as st_mysql ptr, byval name as const zstring ptr, byval type as long) as st_mysql_client_plugin ptr
-declare function mysql_client_register_plugin(byval mysql as st_mysql ptr, byval plugin as st_mysql_client_plugin ptr) as st_mysql_client_plugin ptr
-declare sub mysql_set_local_infile_handler(byval mysql as MYSQL ptr, byval local_infile_init as function cdecl(byval as any ptr ptr, byval as const zstring ptr, byval as any ptr) as long, byval local_infile_read as function cdecl(byval as any ptr, byval as zstring ptr, byval as ulong) as long, byval local_infile_end as sub cdecl(byval as any ptr), byval local_infile_error as function cdecl(byval as any ptr, byval as zstring ptr, byval as ulong) as long, byval as any ptr)
-declare sub mysql_set_local_infile_default cdecl(byval mysql as MYSQL ptr)
-declare sub my_set_error cdecl(byval mysql as MYSQL ptr, byval error_nr as ulong, byval sqlstate as const zstring ptr, byval format as const zstring ptr, ...)
-declare function mysql_num_rows(byval res as MYSQL_RES ptr) as my_ulonglong
-declare function mysql_num_fields(byval res as MYSQL_RES ptr) as ulong
-declare function mysql_eof(byval res as MYSQL_RES ptr) as byte
-declare function mysql_fetch_field_direct(byval res as MYSQL_RES ptr, byval fieldnr as ulong) as MYSQL_FIELD ptr
-declare function mysql_fetch_fields(byval res as MYSQL_RES ptr) as MYSQL_FIELD ptr
-declare function mysql_row_tell(byval res as MYSQL_RES ptr) as MYSQL_ROWS ptr
-declare function mysql_field_tell(byval res as MYSQL_RES ptr) as ulong
-declare function mysql_field_count(byval mysql as MYSQL ptr) as ulong
-declare function mysql_more_results(byval mysql as MYSQL ptr) as byte
-declare function mysql_next_result(byval mysql as MYSQL ptr) as long
-declare function mysql_affected_rows(byval mysql as MYSQL ptr) as my_ulonglong
-declare function mysql_autocommit(byval mysql as MYSQL ptr, byval mode as byte) as byte
-declare function mysql_commit(byval mysql as MYSQL ptr) as byte
-declare function mysql_rollback(byval mysql as MYSQL ptr) as byte
-declare function mysql_insert_id(byval mysql as MYSQL ptr) as my_ulonglong
-declare function mysql_errno(byval mysql as MYSQL ptr) as ulong
-declare function mysql_error(byval mysql as MYSQL ptr) as const zstring ptr
-declare function mysql_info(byval mysql as MYSQL ptr) as const zstring ptr
-declare function mysql_thread_id(byval mysql as MYSQL ptr) as culong
-declare function mysql_character_set_name(byval mysql as MYSQL ptr) as const zstring ptr
-declare sub mysql_get_character_set_info(byval mysql as MYSQL ptr, byval cs as MY_CHARSET_INFO ptr)
-declare function mysql_set_character_set(byval mysql as MYSQL ptr, byval csname as const zstring ptr) as long
-declare function mariadb_get_infov cdecl(byval mysql as MYSQL ptr, byval value as mariadb_value, byval arg as any ptr, ...) as byte
-declare function mariadb_get_info(byval mysql as MYSQL ptr, byval value as mariadb_value, byval arg as any ptr) as byte
-declare function mysql_init(byval mysql as MYSQL ptr) as MYSQL ptr
-declare function mysql_ssl_set(byval mysql as MYSQL ptr, byval key as const zstring ptr, byval cert as const zstring ptr, byval ca as const zstring ptr, byval capath as const zstring ptr, byval cipher as const zstring ptr) as long
-declare function mysql_get_ssl_cipher(byval mysql as MYSQL ptr) as const zstring ptr
-declare function mysql_change_user(byval mysql as MYSQL ptr, byval user as const zstring ptr, byval passwd as const zstring ptr, byval db as const zstring ptr) as byte
-declare function mysql_real_connect(byval mysql as MYSQL ptr, byval host as const zstring ptr, byval user as const zstring ptr, byval passwd as const zstring ptr, byval db as const zstring ptr, byval port as ulong, byval unix_socket as const zstring ptr, byval clientflag as culong) as MYSQL ptr
-declare sub mysql_close(byval sock as MYSQL ptr)
-declare function mysql_select_db(byval mysql as MYSQL ptr, byval db as const zstring ptr) as long
-declare function mysql_query(byval mysql as MYSQL ptr, byval q as const zstring ptr) as long
-declare function mysql_send_query(byval mysql as MYSQL ptr, byval q as const zstring ptr, byval length as culong) as long
-declare function mysql_read_query_result(byval mysql as MYSQL ptr) as byte
-declare function mysql_real_query(byval mysql as MYSQL ptr, byval q as const zstring ptr, byval length as culong) as long
-declare function mysql_shutdown(byval mysql as MYSQL ptr, byval shutdown_level as mysql_enum_shutdown_level) as long
-declare function mysql_dump_debug_info(byval mysql as MYSQL ptr) as long
-declare function mysql_refresh(byval mysql as MYSQL ptr, byval refresh_options as ulong) as long
-declare function mysql_kill(byval mysql as MYSQL ptr, byval pid as culong) as long
-declare function mysql_ping(byval mysql as MYSQL ptr) as long
-declare function mysql_stat(byval mysql as MYSQL ptr) as zstring ptr
-declare function mysql_get_server_info(byval mysql as MYSQL ptr) as zstring ptr
-declare function mysql_get_server_version(byval mysql as MYSQL ptr) as culong
-declare function mysql_get_host_info(byval mysql as MYSQL ptr) as zstring ptr
-declare function mysql_get_proto_info(byval mysql as MYSQL ptr) as ulong
-declare function mysql_list_dbs(byval mysql as MYSQL ptr, byval wild as const zstring ptr) as MYSQL_RES ptr
-declare function mysql_list_tables(byval mysql as MYSQL ptr, byval wild as const zstring ptr) as MYSQL_RES ptr
-declare function mysql_list_fields(byval mysql as MYSQL ptr, byval table as const zstring ptr, byval wild as const zstring ptr) as MYSQL_RES ptr
-declare function mysql_list_processes(byval mysql as MYSQL ptr) as MYSQL_RES ptr
-declare function mysql_store_result(byval mysql as MYSQL ptr) as MYSQL_RES ptr
-declare function mysql_use_result(byval mysql as MYSQL ptr) as MYSQL_RES ptr
-declare function mysql_options(byval mysql as MYSQL ptr, byval option as mysql_option, byval arg as const any ptr) as long
-declare function mysql_options4(byval mysql as MYSQL ptr, byval option as mysql_option, byval arg1 as const any ptr, byval arg2 as const any ptr) as long
-declare sub mysql_free_result(byval result as MYSQL_RES ptr)
-declare sub mysql_data_seek(byval result as MYSQL_RES ptr, byval offset as ulongint)
-declare function mysql_row_seek(byval result as MYSQL_RES ptr, byval as MYSQL_ROW_OFFSET) as MYSQL_ROW_OFFSET
-declare function mysql_field_seek(byval result as MYSQL_RES ptr, byval offset as MYSQL_FIELD_OFFSET) as MYSQL_FIELD_OFFSET
-declare function mysql_fetch_row(byval result as MYSQL_RES ptr) as MYSQL_ROW
-declare function mysql_fetch_lengths(byval result as MYSQL_RES ptr) as culong ptr
-declare function mysql_fetch_field(byval result as MYSQL_RES ptr) as MYSQL_FIELD ptr
-declare function mysql_escape_string(byval to as zstring ptr, byval from as const zstring ptr, byval from_length as culong) as culong
-declare function mysql_real_escape_string(byval mysql as MYSQL ptr, byval to as zstring ptr, byval from as const zstring ptr, byval length as culong) as culong
-declare function mysql_thread_safe() as ulong
-declare function mysql_warning_count(byval mysql as MYSQL ptr) as ulong
-declare function mysql_sqlstate(byval mysql as MYSQL ptr) as const zstring ptr
-declare function mysql_server_init(byval argc as long, byval argv as zstring ptr ptr, byval groups as zstring ptr ptr) as long
-declare sub mysql_server_end()
-declare sub mysql_thread_end()
-declare function mysql_thread_init() as byte
-declare function mysql_set_server_option(byval mysql as MYSQL ptr, byval option as enum_mysql_set_option) as long
-declare function mysql_get_client_info() as const zstring ptr
-declare function mysql_get_client_version() as culong
-declare function mariadb_connection(byval mysql as MYSQL ptr) as byte
-declare function mysql_get_server_name(byval mysql as MYSQL ptr) as const zstring ptr
-declare function mariadb_get_charset_by_name(byval csname as const zstring ptr) as MARIADB_CHARSET_INFO ptr
-declare function mariadb_get_charset_by_nr(byval csnr as ulong) as MARIADB_CHARSET_INFO ptr
-declare function mariadb_convert_string(byval from as const zstring ptr, byval from_len as uinteger ptr, byval from_cs as MARIADB_CHARSET_INFO ptr, byval to as zstring ptr, byval to_len as uinteger ptr, byval to_cs as MARIADB_CHARSET_INFO ptr, byval errorcode as long ptr) as uinteger
-declare function mysql_optionsv cdecl(byval mysql as MYSQL ptr, byval option as mysql_option, ...) as long
-declare function mysql_get_optionv cdecl(byval mysql as MYSQL ptr, byval option as mysql_option, byval arg as any ptr, ...) as long
-declare function mysql_get_option(byval mysql as MYSQL ptr, byval option as mysql_option, byval arg as any ptr) as long
-declare function mysql_hex_string(byval to as zstring ptr, byval from as const zstring ptr, byval len as culong) as culong
+Declare Function mysql_load_plugin cdecl(ByVal mysql As st_mysql Ptr, ByVal name As Const ZString Ptr, ByVal type As Long, ByVal argc As Long, ...) As st_mysql_client_plugin Ptr
+Declare Function mysql_load_plugin_v(ByVal mysql As st_mysql Ptr, ByVal name As Const ZString Ptr, ByVal type As Long, ByVal argc As Long, ByVal args As va_list) As st_mysql_client_plugin Ptr
+Declare Function mysql_client_find_plugin(ByVal mysql As st_mysql Ptr, ByVal name As Const ZString Ptr, ByVal type As Long) As st_mysql_client_plugin Ptr
+Declare Function mysql_client_register_plugin(ByVal mysql As st_mysql Ptr, ByVal plugin As st_mysql_client_plugin Ptr) As st_mysql_client_plugin Ptr
+Declare Sub mysql_set_local_infile_handler(ByVal mysql As MYSQL Ptr, ByVal local_infile_init As Function cdecl(ByVal As Any Ptr Ptr, ByVal As Const ZString Ptr, ByVal As Any Ptr) As Long, ByVal local_infile_read As Function cdecl(ByVal As Any Ptr, ByVal As ZString Ptr, ByVal As ULong) As Long, ByVal local_infile_end As Sub cdecl(ByVal As Any Ptr), ByVal local_infile_error As Function cdecl(ByVal As Any Ptr, ByVal As ZString Ptr, ByVal As ULong) As Long, ByVal As Any Ptr)
+Declare Sub mysql_set_local_infile_default cdecl(ByVal mysql As MYSQL Ptr)
+Declare Sub my_set_error cdecl(ByVal mysql As MYSQL Ptr, ByVal error_nr As ULong, ByVal sqlstate As Const ZString Ptr, ByVal format As Const ZString Ptr, ...)
+Declare Function mysql_num_rows(ByVal res As MYSQL_RES Ptr) As my_ulonglong
+Declare Function mysql_num_fields(ByVal res As MYSQL_RES Ptr) As ULong
+Declare Function mysql_eof(ByVal res As MYSQL_RES Ptr) As Byte
+Declare Function mysql_fetch_field_direct(ByVal res As MYSQL_RES Ptr, ByVal fieldnr As ULong) As MYSQL_FIELD Ptr
+Declare Function mysql_fetch_fields(ByVal res As MYSQL_RES Ptr) As MYSQL_FIELD Ptr
+Declare Function mysql_row_tell(ByVal res As MYSQL_RES Ptr) As MYSQL_ROWS Ptr
+Declare Function mysql_field_tell(ByVal res As MYSQL_RES Ptr) As ULong
+Declare Function mysql_field_count(ByVal mysql As MYSQL Ptr) As ULong
+Declare Function mysql_more_results(ByVal mysql As MYSQL Ptr) As Byte
+Declare Function mysql_next_result(ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_affected_rows(ByVal mysql As MYSQL Ptr) As my_ulonglong
+Declare Function mysql_autocommit(ByVal mysql As MYSQL Ptr, ByVal mode As Byte) As Byte
+Declare Function mysql_commit(ByVal mysql As MYSQL Ptr) As Byte
+Declare Function mysql_rollback(ByVal mysql As MYSQL Ptr) As Byte
+Declare Function mysql_insert_id(ByVal mysql As MYSQL Ptr) As my_ulonglong
+Declare Function mysql_errno(ByVal mysql As MYSQL Ptr) As ULong
+Declare Function mysql_error(ByVal mysql As MYSQL Ptr) As Const ZString Ptr
+Declare Function mysql_info(ByVal mysql As MYSQL Ptr) As Const ZString Ptr
+Declare Function mysql_thread_id(ByVal mysql As MYSQL Ptr) As culong
+Declare Function mysql_character_set_name(ByVal mysql As MYSQL Ptr) As Const ZString Ptr
+Declare Sub mysql_get_character_set_info(ByVal mysql As MYSQL Ptr, ByVal cs As MY_CHARSET_INFO Ptr)
+Declare Function mysql_set_character_set(ByVal mysql As MYSQL Ptr, ByVal csname As Const ZString Ptr) As Long
+Declare Function mariadb_get_infov cdecl(ByVal mysql As MYSQL Ptr, ByVal value As mariadb_value, ByVal arg As Any Ptr, ...) As Byte
+Declare Function mariadb_get_info(ByVal mysql As MYSQL Ptr, ByVal value As mariadb_value, ByVal arg As Any Ptr) As Byte
+Declare Function mysql_init(ByVal mysql As MYSQL Ptr) As MYSQL Ptr
+Declare Function mysql_ssl_set(ByVal mysql As MYSQL Ptr, ByVal key As Const ZString Ptr, ByVal cert As Const ZString Ptr, ByVal ca As Const ZString Ptr, ByVal capath As Const ZString Ptr, ByVal cipher As Const ZString Ptr) As Long
+Declare Function mysql_get_ssl_cipher(ByVal mysql As MYSQL Ptr) As Const ZString Ptr
+Declare Function mysql_change_user(ByVal mysql As MYSQL Ptr, ByVal user As Const ZString Ptr, ByVal passwd As Const ZString Ptr, ByVal db As Const ZString Ptr) As Byte
+Declare Function mysql_real_connect(ByVal mysql As MYSQL Ptr, ByVal host As Const ZString Ptr, ByVal user As Const ZString Ptr, ByVal passwd As Const ZString Ptr, ByVal db As Const ZString Ptr, ByVal port As ULong, ByVal unix_socket As Const ZString Ptr, ByVal clientflag As culong) As MYSQL Ptr
+Declare Sub mysql_close(ByVal sock As MYSQL Ptr)
+Declare Function mysql_select_db(ByVal mysql As MYSQL Ptr, ByVal db As Const ZString Ptr) As Long
+Declare Function mysql_query(ByVal mysql As MYSQL Ptr, ByVal q As Const ZString Ptr) As Long
+Declare Function mysql_send_query(ByVal mysql As MYSQL Ptr, ByVal q As Const ZString Ptr, ByVal length As culong) As Long
+Declare Function mysql_read_query_result(ByVal mysql As MYSQL Ptr) As Byte
+Declare Function mysql_real_query(ByVal mysql As MYSQL Ptr, ByVal q As Const ZString Ptr, ByVal length As culong) As Long
+Declare Function mysql_shutdown(ByVal mysql As MYSQL Ptr, ByVal shutdown_level As mysql_enum_shutdown_level) As Long
+Declare Function mysql_dump_debug_info(ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_refresh(ByVal mysql As MYSQL Ptr, ByVal refresh_options As ULong) As Long
+Declare Function mysql_kill(ByVal mysql As MYSQL Ptr, ByVal pid As culong) As Long
+Declare Function mysql_ping(ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_stat(ByVal mysql As MYSQL Ptr) As ZString Ptr
+Declare Function mysql_get_server_info(ByVal mysql As MYSQL Ptr) As ZString Ptr
+Declare Function mysql_get_server_version(ByVal mysql As MYSQL Ptr) As culong
+Declare Function mysql_get_host_info(ByVal mysql As MYSQL Ptr) As ZString Ptr
+Declare Function mysql_get_proto_info(ByVal mysql As MYSQL Ptr) As ULong
+Declare Function mysql_list_dbs(ByVal mysql As MYSQL Ptr, ByVal wild As Const ZString Ptr) As MYSQL_RES Ptr
+Declare Function mysql_list_tables(ByVal mysql As MYSQL Ptr, ByVal wild As Const ZString Ptr) As MYSQL_RES Ptr
+Declare Function mysql_list_fields(ByVal mysql As MYSQL Ptr, ByVal table As Const ZString Ptr, ByVal wild As Const ZString Ptr) As MYSQL_RES Ptr
+Declare Function mysql_list_processes(ByVal mysql As MYSQL Ptr) As MYSQL_RES Ptr
+Declare Function mysql_store_result(ByVal mysql As MYSQL Ptr) As MYSQL_RES Ptr
+Declare Function mysql_use_result(ByVal mysql As MYSQL Ptr) As MYSQL_RES Ptr
+Declare Function mysql_options(ByVal mysql As MYSQL Ptr, ByVal option As mysql_option, ByVal arg As Const Any Ptr) As Long
+Declare Function mysql_options4(ByVal mysql As MYSQL Ptr, ByVal option As mysql_option, ByVal arg1 As Const Any Ptr, ByVal arg2 As Const Any Ptr) As Long
+Declare Sub mysql_free_result(ByVal result As MYSQL_RES Ptr)
+Declare Sub mysql_data_seek(ByVal result As MYSQL_RES Ptr, ByVal offset As ULongInt)
+Declare Function mysql_row_seek(ByVal result As MYSQL_RES Ptr, ByVal As MYSQL_ROW_OFFSET) As MYSQL_ROW_OFFSET
+Declare Function mysql_field_seek(ByVal result As MYSQL_RES Ptr, ByVal offset As MYSQL_FIELD_OFFSET) As MYSQL_FIELD_OFFSET
+Declare Function mysql_fetch_row(ByVal result As MYSQL_RES Ptr) As MYSQL_ROW
+Declare Function mysql_fetch_lengths(ByVal result As MYSQL_RES Ptr) As culong Ptr
+Declare Function mysql_fetch_field(ByVal result As MYSQL_RES Ptr) As MYSQL_FIELD Ptr
+Declare Function mysql_escape_string(ByVal to As ZString Ptr, ByVal from As Const ZString Ptr, ByVal from_length As culong) As culong
+Declare Function mysql_real_escape_string(ByVal mysql As MYSQL Ptr, ByVal to As ZString Ptr, ByVal from As Const ZString Ptr, ByVal length As culong) As culong
+Declare Function mysql_thread_safe() As ULong
+Declare Function mysql_warning_count(ByVal mysql As MYSQL Ptr) As ULong
+Declare Function mysql_sqlstate(ByVal mysql As MYSQL Ptr) As Const ZString Ptr
+Declare Function mysql_server_init(ByVal argc As Long, ByVal argv As ZString Ptr Ptr, ByVal groups As ZString Ptr Ptr) As Long
+Declare Sub mysql_server_end()
+Declare Sub mysql_thread_end()
+Declare Function mysql_thread_init() As Byte
+Declare Function mysql_set_server_option(ByVal mysql As MYSQL Ptr, ByVal option As enum_mysql_set_option) As Long
+Declare Function mysql_get_client_info() As Const ZString Ptr
+Declare Function mysql_get_client_version() As culong
+Declare Function mariadb_connection(ByVal mysql As MYSQL Ptr) As Byte
+Declare Function mysql_get_server_name(ByVal mysql As MYSQL Ptr) As Const ZString Ptr
+Declare Function mariadb_get_charset_by_name(ByVal csname As Const ZString Ptr) As MARIADB_CHARSET_INFO Ptr
+Declare Function mariadb_get_charset_by_nr(ByVal csnr As ULong) As MARIADB_CHARSET_INFO Ptr
+Declare Function mariadb_convert_string(ByVal from As Const ZString Ptr, ByVal from_len As UInteger Ptr, ByVal from_cs As MARIADB_CHARSET_INFO Ptr, ByVal to As ZString Ptr, ByVal to_len As UInteger Ptr, ByVal to_cs As MARIADB_CHARSET_INFO Ptr, ByVal errorcode As Long Ptr) As UInteger
+Declare Function mysql_optionsv cdecl(ByVal mysql As MYSQL Ptr, ByVal option As mysql_option, ...) As Long
+Declare Function mysql_get_optionv cdecl(ByVal mysql As MYSQL Ptr, ByVal option As mysql_option, ByVal arg As Any Ptr, ...) As Long
+Declare Function mysql_get_option(ByVal mysql As MYSQL Ptr, ByVal option As mysql_option, ByVal arg As Any Ptr) As Long
+Declare Function mysql_hex_string(ByVal to As ZString Ptr, ByVal from As Const ZString Ptr, ByVal len As culong) As culong
 
 #ifdef __FB_UNIX__
-	declare function mysql_get_socket(byval mysql as MYSQL ptr) as my_socket
-#elseif defined(__FB_WIN32__) and (not defined(__FB_64BIT__))
-	declare function mysql_get_socket(byval mysql as MYSQL ptr) as ulong
+	Declare Function mysql_get_socket(ByVal mysql As MYSQL Ptr) As my_socket
+#elseif defined(__FB_WIN32__) And (Not defined(__FB_64BIT__))
+	Declare Function mysql_get_socket(ByVal mysql As MYSQL Ptr) As ULong
 #else
-	declare function mysql_get_socket(byval mysql as MYSQL ptr) as ulongint
+	Declare Function mysql_get_socket(ByVal mysql As MYSQL Ptr) As ULongInt
 #endif
 
-declare function mysql_get_timeout_value(byval mysql as const MYSQL ptr) as ulong
-declare function mysql_get_timeout_value_ms(byval mysql as const MYSQL ptr) as ulong
-declare function mariadb_reconnect(byval mysql as MYSQL ptr) as byte
-declare function mariadb_cancel(byval mysql as MYSQL ptr) as long
-declare sub mysql_debug(byval debug as const zstring ptr)
-declare function mysql_net_read_packet(byval mysql as MYSQL ptr) as culong
-declare function mysql_net_field_length(byval packet as ubyte ptr ptr) as culong
-declare function mysql_embedded() as byte
-declare function mysql_get_parameters() as MYSQL_PARAMETERS ptr
-declare function mysql_close_start(byval sock as MYSQL ptr) as long
-declare function mysql_close_cont(byval sock as MYSQL ptr, byval status as long) as long
-declare function mysql_commit_start(byval ret as my_bool ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_commit_cont(byval ret as my_bool ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_dump_debug_info_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval ready_status as long) as long
-declare function mysql_dump_debug_info_start(byval ret as long ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_rollback_start(byval ret as my_bool ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_rollback_cont(byval ret as my_bool ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_autocommit_start(byval ret as my_bool ptr, byval mysql as MYSQL ptr, byval auto_mode as byte) as long
-declare function mysql_list_fields_cont(byval ret as MYSQL_RES ptr ptr, byval mysql as MYSQL ptr, byval ready_status as long) as long
-declare function mysql_list_fields_start(byval ret as MYSQL_RES ptr ptr, byval mysql as MYSQL ptr, byval table as const zstring ptr, byval wild as const zstring ptr) as long
-declare function mysql_autocommit_cont(byval ret as my_bool ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_next_result_start(byval ret as long ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_next_result_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_select_db_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval db as const zstring ptr) as long
-declare function mysql_select_db_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval ready_status as long) as long
-declare function mysql_stmt_warning_count(byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_next_result_start(byval ret as long ptr, byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_next_result_cont(byval ret as long ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_set_character_set_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval csname as const zstring ptr) as long
-declare function mysql_set_character_set_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_change_user_start(byval ret as my_bool ptr, byval mysql as MYSQL ptr, byval user as const zstring ptr, byval passwd as const zstring ptr, byval db as const zstring ptr) as long
-declare function mysql_change_user_cont(byval ret as my_bool ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_real_connect_start(byval ret as MYSQL ptr ptr, byval mysql as MYSQL ptr, byval host as const zstring ptr, byval user as const zstring ptr, byval passwd as const zstring ptr, byval db as const zstring ptr, byval port as ulong, byval unix_socket as const zstring ptr, byval clientflag as culong) as long
-declare function mysql_real_connect_cont(byval ret as MYSQL ptr ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_query_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval q as const zstring ptr) as long
-declare function mysql_query_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_send_query_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval q as const zstring ptr, byval length as culong) as long
-declare function mysql_send_query_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_real_query_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval q as const zstring ptr, byval length as culong) as long
-declare function mysql_real_query_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_store_result_start(byval ret as MYSQL_RES ptr ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_store_result_cont(byval ret as MYSQL_RES ptr ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_shutdown_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval shutdown_level as mysql_enum_shutdown_level) as long
-declare function mysql_shutdown_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_refresh_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval refresh_options as ulong) as long
-declare function mysql_refresh_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_kill_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval pid as culong) as long
-declare function mysql_kill_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_set_server_option_start(byval ret as long ptr, byval mysql as MYSQL ptr, byval option as enum_mysql_set_option) as long
-declare function mysql_set_server_option_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_ping_start(byval ret as long ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_ping_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_stat_start(byval ret as const zstring ptr ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_stat_cont(byval ret as const zstring ptr ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_free_result_start(byval result as MYSQL_RES ptr) as long
-declare function mysql_free_result_cont(byval result as MYSQL_RES ptr, byval status as long) as long
-declare function mysql_fetch_row_start(byval ret as MYSQL_ROW ptr, byval result as MYSQL_RES ptr) as long
-declare function mysql_fetch_row_cont(byval ret as MYSQL_ROW ptr, byval result as MYSQL_RES ptr, byval status as long) as long
-declare function mysql_read_query_result_start(byval ret as my_bool ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_read_query_result_cont(byval ret as my_bool ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_reset_connection_start(byval ret as long ptr, byval mysql as MYSQL ptr) as long
-declare function mysql_reset_connection_cont(byval ret as long ptr, byval mysql as MYSQL ptr, byval status as long) as long
-declare function mysql_session_track_get_next(byval mysql as MYSQL ptr, byval type as enum_session_state_type, byval data as const zstring ptr ptr, byval length as uinteger ptr) as long
-declare function mysql_session_track_get_first(byval mysql as MYSQL ptr, byval type as enum_session_state_type, byval data as const zstring ptr ptr, byval length as uinteger ptr) as long
-declare function mysql_stmt_prepare_start(byval ret as long ptr, byval stmt as MYSQL_STMT ptr, byval query as const zstring ptr, byval length as culong) as long
-declare function mysql_stmt_prepare_cont(byval ret as long ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_stmt_execute_start(byval ret as long ptr, byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_execute_cont(byval ret as long ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_stmt_fetch_start(byval ret as long ptr, byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_fetch_cont(byval ret as long ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_stmt_store_result_start(byval ret as long ptr, byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_store_result_cont(byval ret as long ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_stmt_close_start(byval ret as my_bool ptr, byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_close_cont(byval ret as my_bool ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_stmt_reset_start(byval ret as my_bool ptr, byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_reset_cont(byval ret as my_bool ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_stmt_free_result_start(byval ret as my_bool ptr, byval stmt as MYSQL_STMT ptr) as long
-declare function mysql_stmt_free_result_cont(byval ret as my_bool ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_stmt_send_long_data_start(byval ret as my_bool ptr, byval stmt as MYSQL_STMT ptr, byval param_number as ulong, byval data as const zstring ptr, byval len as culong) as long
-declare function mysql_stmt_send_long_data_cont(byval ret as my_bool ptr, byval stmt as MYSQL_STMT ptr, byval status as long) as long
-declare function mysql_reset_connection(byval mysql as MYSQL ptr) as long
+Declare Function mysql_get_timeout_value(ByVal mysql As Const mysql Ptr) As ULong
+Declare Function mysql_get_timeout_value_ms(ByVal mysql As Const mysql Ptr) As ULong
+Declare Function mariadb_reconnect(ByVal mysql As MYSQL Ptr) As Byte
+Declare Function mariadb_cancel(ByVal mysql As MYSQL Ptr) As Long
+Declare Sub mysql_debug(ByVal debug As Const ZString Ptr)
+Declare Function mysql_net_read_packet(ByVal mysql As MYSQL Ptr) As culong
+Declare Function mysql_net_field_length(ByVal packet As UByte Ptr Ptr) As culong
+Declare Function mysql_embedded() As Byte
+Declare Function mysql_get_parameters() As MYSQL_PARAMETERS Ptr
+Declare Function mysql_close_start(ByVal sock As MYSQL Ptr) As Long
+Declare Function mysql_close_cont(ByVal sock As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_commit_start(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_commit_cont(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_dump_debug_info_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal ready_status As Long) As Long
+Declare Function mysql_dump_debug_info_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_rollback_start(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_rollback_cont(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_autocommit_start(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr, ByVal auto_mode As Byte) As Long
+Declare Function mysql_list_fields_cont(ByVal ret As MYSQL_RES Ptr Ptr, ByVal mysql As MYSQL Ptr, ByVal ready_status As Long) As Long
+Declare Function mysql_list_fields_start(ByVal ret As MYSQL_RES Ptr Ptr, ByVal mysql As MYSQL Ptr, ByVal table As Const ZString Ptr, ByVal wild As Const ZString Ptr) As Long
+Declare Function mysql_autocommit_cont(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_next_result_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_next_result_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_select_db_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal db As Const ZString Ptr) As Long
+Declare Function mysql_select_db_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal ready_status As Long) As Long
+Declare Function mysql_stmt_warning_count(ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_next_result_start(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_next_result_cont(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_set_character_set_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal csname As Const ZString Ptr) As Long
+Declare Function mysql_set_character_set_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_change_user_start(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr, ByVal user As Const ZString Ptr, ByVal passwd As Const ZString Ptr, ByVal db As Const ZString Ptr) As Long
+Declare Function mysql_change_user_cont(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_real_connect_start(ByVal ret As MYSQL Ptr Ptr, ByVal mysql As MYSQL Ptr, ByVal host As Const ZString Ptr, ByVal user As Const ZString Ptr, ByVal passwd As Const ZString Ptr, ByVal db As Const ZString Ptr, ByVal port As ULong, ByVal unix_socket As Const ZString Ptr, ByVal clientflag As culong) As Long
+Declare Function mysql_real_connect_cont(ByVal ret As MYSQL Ptr Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_query_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal q As Const ZString Ptr) As Long
+Declare Function mysql_query_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_send_query_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal q As Const ZString Ptr, ByVal length As culong) As Long
+Declare Function mysql_send_query_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_real_query_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal q As Const ZString Ptr, ByVal length As culong) As Long
+Declare Function mysql_real_query_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_store_result_start(ByVal ret As MYSQL_RES Ptr Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_store_result_cont(ByVal ret As MYSQL_RES Ptr Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_shutdown_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal shutdown_level As mysql_enum_shutdown_level) As Long
+Declare Function mysql_shutdown_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_refresh_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal refresh_options As ULong) As Long
+Declare Function mysql_refresh_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_kill_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal pid As culong) As Long
+Declare Function mysql_kill_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_set_server_option_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal option As enum_mysql_set_option) As Long
+Declare Function mysql_set_server_option_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_ping_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_ping_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_stat_start(ByVal ret As Const ZString Ptr Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_stat_cont(ByVal ret As Const ZString Ptr Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_free_result_start(ByVal result As MYSQL_RES Ptr) As Long
+Declare Function mysql_free_result_cont(ByVal result As MYSQL_RES Ptr, ByVal status As Long) As Long
+Declare Function mysql_fetch_row_start(ByVal ret As MYSQL_ROW Ptr, ByVal result As MYSQL_RES Ptr) As Long
+Declare Function mysql_fetch_row_cont(ByVal ret As MYSQL_ROW Ptr, ByVal result As MYSQL_RES Ptr, ByVal status As Long) As Long
+Declare Function mysql_read_query_result_start(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_read_query_result_cont(ByVal ret As my_bool Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_reset_connection_start(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr) As Long
+Declare Function mysql_reset_connection_cont(ByVal ret As Long Ptr, ByVal mysql As MYSQL Ptr, ByVal status As Long) As Long
+Declare Function mysql_session_track_get_next(ByVal mysql As MYSQL Ptr, ByVal type As enum_session_state_type, ByVal data As Const ZString Ptr Ptr, ByVal length As UInteger Ptr) As Long
+Declare Function mysql_session_track_get_first(ByVal mysql As MYSQL Ptr, ByVal type As enum_session_state_type, ByVal data As Const ZString Ptr Ptr, ByVal length As UInteger Ptr) As Long
+Declare Function mysql_stmt_prepare_start(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal query As Const ZString Ptr, ByVal length As culong) As Long
+Declare Function mysql_stmt_prepare_cont(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_stmt_execute_start(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_execute_cont(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_stmt_fetch_start(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_fetch_cont(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_stmt_store_result_start(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_store_result_cont(ByVal ret As Long Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_stmt_close_start(ByVal ret As my_bool Ptr, ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_close_cont(ByVal ret As my_bool Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_stmt_reset_start(ByVal ret As my_bool Ptr, ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_reset_cont(ByVal ret As my_bool Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_stmt_free_result_start(ByVal ret As my_bool Ptr, ByVal stmt As MYSQL_STMT Ptr) As Long
+Declare Function mysql_stmt_free_result_cont(ByVal ret As my_bool Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_stmt_send_long_data_start(ByVal ret As my_bool Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal param_number As ULong, ByVal data As Const ZString Ptr, ByVal len As culong) As Long
+Declare Function mysql_stmt_send_long_data_cont(ByVal ret As my_bool Ptr, ByVal stmt As MYSQL_STMT Ptr, ByVal status As Long) As Long
+Declare Function mysql_reset_connection(ByVal mysql As MYSQL Ptr) As Long
 
-type st_mariadb_api
-	mysql_num_rows as function(byval res as MYSQL_RES ptr) as ulongint
-	mysql_num_fields as function(byval res as MYSQL_RES ptr) as ulong
-	mysql_eof as function(byval res as MYSQL_RES ptr) as byte
-	mysql_fetch_field_direct as function(byval res as MYSQL_RES ptr, byval fieldnr as ulong) as MYSQL_FIELD ptr
-	mysql_fetch_fields as function(byval res as MYSQL_RES ptr) as MYSQL_FIELD ptr
-	mysql_row_tell as function(byval res as MYSQL_RES ptr) as MYSQL_ROWS ptr
-	mysql_field_tell as function(byval res as MYSQL_RES ptr) as ulong
-	mysql_field_count as function(byval mysql as MYSQL ptr) as ulong
-	mysql_more_results as function(byval mysql as MYSQL ptr) as byte
-	mysql_next_result as function(byval mysql as MYSQL ptr) as long
-	mysql_affected_rows as function(byval mysql as MYSQL ptr) as ulongint
-	mysql_autocommit as function(byval mysql as MYSQL ptr, byval mode as byte) as byte
-	mysql_commit as function(byval mysql as MYSQL ptr) as byte
-	mysql_rollback as function(byval mysql as MYSQL ptr) as byte
-	mysql_insert_id as function(byval mysql as MYSQL ptr) as ulongint
-	mysql_errno as function(byval mysql as MYSQL ptr) as ulong
-	mysql_error as function(byval mysql as MYSQL ptr) as const zstring ptr
-	mysql_info as function(byval mysql as MYSQL ptr) as const zstring ptr
-	mysql_thread_id as function(byval mysql as MYSQL ptr) as culong
-	mysql_character_set_name as function(byval mysql as MYSQL ptr) as const zstring ptr
-	mysql_get_character_set_info as sub(byval mysql as MYSQL ptr, byval cs as MY_CHARSET_INFO ptr)
-	mysql_set_character_set as function(byval mysql as MYSQL ptr, byval csname as const zstring ptr) as long
-	mariadb_get_infov as function cdecl(byval mysql as MYSQL ptr, byval value as mariadb_value, byval arg as any ptr, ...) as byte
-	mariadb_get_info as function(byval mysql as MYSQL ptr, byval value as mariadb_value, byval arg as any ptr) as byte
-	mysql_init as function(byval mysql as MYSQL ptr) as MYSQL ptr
-	mysql_ssl_set as function(byval mysql as MYSQL ptr, byval key as const zstring ptr, byval cert as const zstring ptr, byval ca as const zstring ptr, byval capath as const zstring ptr, byval cipher as const zstring ptr) as long
-	mysql_get_ssl_cipher as function(byval mysql as MYSQL ptr) as const zstring ptr
-	mysql_change_user as function(byval mysql as MYSQL ptr, byval user as const zstring ptr, byval passwd as const zstring ptr, byval db as const zstring ptr) as byte
-	mysql_real_connect as function(byval mysql as MYSQL ptr, byval host as const zstring ptr, byval user as const zstring ptr, byval passwd as const zstring ptr, byval db as const zstring ptr, byval port as ulong, byval unix_socket as const zstring ptr, byval clientflag as culong) as MYSQL ptr
-	mysql_close as sub(byval sock as MYSQL ptr)
-	mysql_select_db as function(byval mysql as MYSQL ptr, byval db as const zstring ptr) as long
-	mysql_query as function(byval mysql as MYSQL ptr, byval q as const zstring ptr) as long
-	mysql_send_query as function(byval mysql as MYSQL ptr, byval q as const zstring ptr, byval length as culong) as long
-	mysql_read_query_result as function(byval mysql as MYSQL ptr) as byte
-	mysql_real_query as function(byval mysql as MYSQL ptr, byval q as const zstring ptr, byval length as culong) as long
-	mysql_shutdown as function(byval mysql as MYSQL ptr, byval shutdown_level as mysql_enum_shutdown_level) as long
-	mysql_dump_debug_info as function(byval mysql as MYSQL ptr) as long
-	mysql_refresh as function(byval mysql as MYSQL ptr, byval refresh_options as ulong) as long
-	mysql_kill as function(byval mysql as MYSQL ptr, byval pid as culong) as long
-	mysql_ping as function(byval mysql as MYSQL ptr) as long
-	mysql_stat as function(byval mysql as MYSQL ptr) as zstring ptr
-	mysql_get_server_info as function(byval mysql as MYSQL ptr) as zstring ptr
-	mysql_get_server_version as function(byval mysql as MYSQL ptr) as culong
-	mysql_get_host_info as function(byval mysql as MYSQL ptr) as zstring ptr
-	mysql_get_proto_info as function(byval mysql as MYSQL ptr) as ulong
-	mysql_list_dbs as function(byval mysql as MYSQL ptr, byval wild as const zstring ptr) as MYSQL_RES ptr
-	mysql_list_tables as function(byval mysql as MYSQL ptr, byval wild as const zstring ptr) as MYSQL_RES ptr
-	mysql_list_fields as function(byval mysql as MYSQL ptr, byval table as const zstring ptr, byval wild as const zstring ptr) as MYSQL_RES ptr
-	mysql_list_processes as function(byval mysql as MYSQL ptr) as MYSQL_RES ptr
-	mysql_store_result as function(byval mysql as MYSQL ptr) as MYSQL_RES ptr
-	mysql_use_result as function(byval mysql as MYSQL ptr) as MYSQL_RES ptr
-	mysql_options as function(byval mysql as MYSQL ptr, byval option as mysql_option, byval arg as const any ptr) as long
-	mysql_free_result as sub(byval result as MYSQL_RES ptr)
-	mysql_data_seek as sub(byval result as MYSQL_RES ptr, byval offset as ulongint)
-	mysql_row_seek as function(byval result as MYSQL_RES ptr, byval as MYSQL_ROW_OFFSET) as MYSQL_ROW_OFFSET
-	mysql_field_seek as function(byval result as MYSQL_RES ptr, byval offset as MYSQL_FIELD_OFFSET) as MYSQL_FIELD_OFFSET
-	mysql_fetch_row as function(byval result as MYSQL_RES ptr) as MYSQL_ROW
+Type st_mariadb_api
+	mysql_num_rows As Function(ByVal res As MYSQL_RES Ptr) As ULongInt
+	mysql_num_fields As Function(ByVal res As MYSQL_RES Ptr) As ULong
+	mysql_eof As Function(ByVal res As MYSQL_RES Ptr) As Byte
+	mysql_fetch_field_direct As Function(ByVal res As MYSQL_RES Ptr, ByVal fieldnr As ULong) As MYSQL_FIELD Ptr
+	mysql_fetch_fields As Function(ByVal res As MYSQL_RES Ptr) As MYSQL_FIELD Ptr
+	mysql_row_tell As Function(ByVal res As MYSQL_RES Ptr) As MYSQL_ROWS Ptr
+	mysql_field_tell As Function(ByVal res As MYSQL_RES Ptr) As ULong
+	mysql_field_count As Function(ByVal MYSQL As MYSQL Ptr) As ULong
+	mysql_more_results As Function(ByVal MYSQL As MYSQL Ptr) As Byte
+	mysql_next_result As Function(ByVal MYSQL As MYSQL Ptr) As Long
+	mysql_affected_rows As Function(ByVal MYSQL As MYSQL Ptr) As ULongInt
+	mysql_autocommit As Function(ByVal MYSQL As MYSQL Ptr, ByVal mode As Byte) As Byte
+	mysql_commit As Function(ByVal MYSQL As MYSQL Ptr) As Byte
+	mysql_rollback As Function(ByVal MYSQL As MYSQL Ptr) As Byte
+	mysql_insert_id As Function(ByVal MYSQL As MYSQL Ptr) As ULongInt
+	mysql_errno As Function(ByVal MYSQL As MYSQL Ptr) As ULong
+	mysql_error As Function(ByVal MYSQL As MYSQL Ptr) As Const ZString Ptr
+	mysql_info As Function(ByVal MYSQL As MYSQL Ptr) As Const ZString Ptr
+	mysql_thread_id As Function(ByVal MYSQL As MYSQL Ptr) As culong
+	mysql_character_set_name As Function(ByVal MYSQL As MYSQL Ptr) As Const ZString Ptr
+	mysql_get_character_set_info As Sub(ByVal MYSQL As MYSQL Ptr, ByVal cs As MY_CHARSET_INFO Ptr)
+	mysql_set_character_set As Function(ByVal MYSQL As MYSQL Ptr, ByVal csname As Const ZString Ptr) As Long
+	mariadb_get_infov As Function cdecl(ByVal MYSQL As MYSQL Ptr, ByVal value As mariadb_value, ByVal arg As Any Ptr, ...) As Byte
+	mariadb_get_info As Function(ByVal MYSQL As MYSQL Ptr, ByVal value As mariadb_value, ByVal arg As Any Ptr) As Byte
+	mysql_init As Function(ByVal MYSQL As MYSQL Ptr) As MYSQL Ptr
+	mysql_ssl_set As Function(ByVal MYSQL As MYSQL Ptr, ByVal key As Const ZString Ptr, ByVal cert As Const ZString Ptr, ByVal ca As Const ZString Ptr, ByVal capath As Const ZString Ptr, ByVal cipher As Const ZString Ptr) As Long
+	mysql_get_ssl_cipher As Function(ByVal MYSQL As MYSQL Ptr) As Const ZString Ptr
+	mysql_change_user As Function(ByVal MYSQL As MYSQL Ptr, ByVal user As Const ZString Ptr, ByVal passwd As Const ZString Ptr, ByVal db As Const ZString Ptr) As Byte
+	mysql_real_connect As Function(ByVal MYSQL As MYSQL Ptr, ByVal host As Const ZString Ptr, ByVal user As Const ZString Ptr, ByVal passwd As Const ZString Ptr, ByVal db As Const ZString Ptr, ByVal port As ULong, ByVal unix_socket As Const ZString Ptr, ByVal clientflag As culong) As MYSQL Ptr
+	mysql_close As Sub(ByVal sock As MYSQL Ptr)
+	mysql_select_db As Function(ByVal MYSQL As MYSQL Ptr, ByVal db As Const ZString Ptr) As Long
+	mysql_query As Function(ByVal MYSQL As MYSQL Ptr, ByVal q As Const ZString Ptr) As Long
+	mysql_send_query As Function(ByVal MYSQL As MYSQL Ptr, ByVal q As Const ZString Ptr, ByVal length As culong) As Long
+	mysql_read_query_result As Function(ByVal MYSQL As MYSQL Ptr) As Byte
+	mysql_real_query As Function(ByVal MYSQL As MYSQL Ptr, ByVal q As Const ZString Ptr, ByVal length As culong) As Long
+	mysql_shutdown As Function(ByVal MYSQL As MYSQL Ptr, ByVal shutdown_level As mysql_enum_shutdown_level) As Long
+	mysql_dump_debug_info As Function(ByVal MYSQL As MYSQL Ptr) As Long
+	mysql_refresh As Function(ByVal MYSQL As MYSQL Ptr, ByVal refresh_options As ULong) As Long
+	mysql_kill As Function(ByVal MYSQL As MYSQL Ptr, ByVal pid As culong) As Long
+	mysql_ping As Function(ByVal MYSQL As MYSQL Ptr) As Long
+	mysql_stat As Function(ByVal MYSQL As MYSQL Ptr) As ZString Ptr
+	mysql_get_server_info As Function(ByVal MYSQL As MYSQL Ptr) As ZString Ptr
+	mysql_get_server_version As Function(ByVal MYSQL As MYSQL Ptr) As culong
+	mysql_get_host_info As Function(ByVal MYSQL As MYSQL Ptr) As ZString Ptr
+	mysql_get_proto_info As Function(ByVal MYSQL As MYSQL Ptr) As ULong
+	mysql_list_dbs As Function(ByVal MYSQL As MYSQL Ptr, ByVal wild As Const ZString Ptr) As MYSQL_RES Ptr
+	mysql_list_tables As Function(ByVal MYSQL As MYSQL Ptr, ByVal wild As Const ZString Ptr) As MYSQL_RES Ptr
+	mysql_list_fields As Function(ByVal MYSQL As MYSQL Ptr, ByVal table As Const ZString Ptr, ByVal wild As Const ZString Ptr) As MYSQL_RES Ptr
+	mysql_list_processes As Function(ByVal MYSQL As MYSQL Ptr) As MYSQL_RES Ptr
+	mysql_store_result As Function(ByVal MYSQL As MYSQL Ptr) As MYSQL_RES Ptr
+	mysql_use_result As Function(ByVal MYSQL As MYSQL Ptr) As MYSQL_RES Ptr
+	mysql_options As Function(ByVal MYSQL As MYSQL Ptr, ByVal Option As mysql_option, ByVal arg As Const Any Ptr) As Long
+	mysql_free_result As Sub(ByVal Result As MYSQL_RES Ptr)
+	mysql_data_seek As Sub(ByVal Result As MYSQL_RES Ptr, ByVal offset As ULongInt)
+	mysql_row_seek As Function(ByVal Result As MYSQL_RES Ptr, ByVal As MYSQL_ROW_OFFSET) As MYSQL_ROW_OFFSET
+	mysql_field_seek As Function(ByVal Result As MYSQL_RES Ptr, ByVal offset As MYSQL_FIELD_OFFSET) As MYSQL_FIELD_OFFSET
+	mysql_fetch_row As Function(ByVal Result As MYSQL_RES Ptr) As MYSQL_ROW
 	mysql_fetch_lengths as function(byval result as MYSQL_RES ptr) as culong ptr
-	mysql_fetch_field as function(byval result as MYSQL_RES ptr) as MYSQL_FIELD ptr
-	mysql_escape_string as function(byval to as zstring ptr, byval from as const zstring ptr, byval from_length as culong) as culong
-	mysql_real_escape_string as function(byval mysql as MYSQL ptr, byval to as zstring ptr, byval from as const zstring ptr, byval length as culong) as culong
-	mysql_thread_safe as function() as ulong
-	mysql_warning_count as function(byval mysql as MYSQL ptr) as ulong
-	mysql_sqlstate as function(byval mysql as MYSQL ptr) as const zstring ptr
-	mysql_server_init as function(byval argc as long, byval argv as zstring ptr ptr, byval groups as zstring ptr ptr) as long
-	mysql_server_end as sub()
-	mysql_thread_end as sub()
-	mysql_thread_init as function() as byte
-	mysql_set_server_option as function(byval mysql as MYSQL ptr, byval option as enum_mysql_set_option) as long
-	mysql_get_client_info as function() as const zstring ptr
-	mysql_get_client_version as function() as culong
-	mariadb_connection as function(byval mysql as MYSQL ptr) as byte
-	mysql_get_server_name as function(byval mysql as MYSQL ptr) as const zstring ptr
-	mariadb_get_charset_by_name as function(byval csname as const zstring ptr) as MARIADB_CHARSET_INFO ptr
-	mariadb_get_charset_by_nr as function(byval csnr as ulong) as MARIADB_CHARSET_INFO ptr
-	mariadb_convert_string as function(byval from as const zstring ptr, byval from_len as uinteger ptr, byval from_cs as MARIADB_CHARSET_INFO ptr, byval to as zstring ptr, byval to_len as uinteger ptr, byval to_cs as MARIADB_CHARSET_INFO ptr, byval errorcode as long ptr) as uinteger
-	mysql_optionsv as function cdecl(byval mysql as MYSQL ptr, byval option as mysql_option, ...) as long
-	mysql_get_optionv as function cdecl(byval mysql as MYSQL ptr, byval option as mysql_option, byval arg as any ptr, ...) as long
-	mysql_get_option as function(byval mysql as MYSQL ptr, byval option as mysql_option, byval arg as any ptr) as long
-	mysql_hex_string as function(byval to as zstring ptr, byval from as const zstring ptr, byval len as culong) as culong
+	mysql_fetch_field As Function(ByVal Result As MYSQL_RES Ptr) As MYSQL_FIELD Ptr
+	mysql_escape_string As Function(ByVal To As ZString Ptr, ByVal from As Const ZString Ptr, ByVal from_length As culong) As culong
+	mysql_real_escape_string As Function(ByVal MYSQL As MYSQL Ptr, ByVal To As ZString Ptr, ByVal from As Const ZString Ptr, ByVal length As culong) As culong
+	mysql_thread_safe As Function() As ULong
+	mysql_warning_count As Function(ByVal MYSQL As MYSQL Ptr) As ULong
+	mysql_sqlstate As Function(ByVal MYSQL As MYSQL Ptr) As Const ZString Ptr
+	mysql_server_init As Function(ByVal argc As Long, ByVal argv As ZString Ptr Ptr, ByVal groups As ZString Ptr Ptr) As Long
+	mysql_server_end As Sub()
+	mysql_thread_end As Sub()
+	mysql_thread_init As Function() As Byte
+	mysql_set_server_option As Function(ByVal MYSQL As MYSQL Ptr, ByVal Option As enum_mysql_set_option) As Long
+	mysql_get_client_info As Function() As Const ZString Ptr
+	mysql_get_client_version As Function() As culong
+	mariadb_connection As Function(ByVal MYSQL As MYSQL Ptr) As Byte
+	mysql_get_server_name As Function(ByVal MYSQL As MYSQL Ptr) As Const ZString Ptr
+	mariadb_get_charset_by_name As Function(ByVal csname As Const ZString Ptr) As MARIADB_CHARSET_INFO Ptr
+	mariadb_get_charset_by_nr As Function(ByVal csnr As ULong) As MARIADB_CHARSET_INFO Ptr
+	mariadb_convert_string As Function(ByVal from As Const ZString Ptr, ByVal from_len As UInteger Ptr, ByVal from_cs As MARIADB_CHARSET_INFO Ptr, ByVal To As ZString Ptr, ByVal to_len As UInteger Ptr, ByVal to_cs As MARIADB_CHARSET_INFO Ptr, ByVal errorcode As Long Ptr) As UInteger
+	mysql_optionsv As Function cdecl(ByVal MYSQL As MYSQL Ptr, ByVal Option As mysql_option, ...) As Long
+	mysql_get_optionv As Function cdecl(ByVal MYSQL As MYSQL Ptr, ByVal Option As mysql_option, ByVal arg As Any Ptr, ...) As Long
+	mysql_get_option As Function(ByVal MYSQL As MYSQL Ptr, ByVal Option As mysql_option, ByVal arg As Any Ptr) As Long
+	mysql_hex_string As Function(ByVal To As ZString Ptr, ByVal from As Const ZString Ptr, ByVal Len As culong) As culong
 
 	#ifdef __FB_UNIX__
-		mysql_get_socket as function(byval mysql as MYSQL ptr) as my_socket
-	#elseif defined(__FB_WIN32__) and (not defined(__FB_64BIT__))
-		mysql_get_socket as function(byval mysql as MYSQL ptr) as ulong
+		mysql_get_socket As Function(ByVal MYSQL As MYSQL Ptr) As my_socket
+	#elseif defined(__FB_WIN32__) And (Not defined(__FB_64BIT__))
+		mysql_get_socket As Function(ByVal MYSQL As MYSQL Ptr) As ULong
 	#else
-		mysql_get_socket as function(byval mysql as MYSQL ptr) as ulongint
+		mysql_get_socket As Function(ByVal MYSQL As MYSQL Ptr) As ULongInt
 	#endif
 
-	mysql_get_timeout_value as function(byval mysql as const MYSQL ptr) as ulong
-	mysql_get_timeout_value_ms as function(byval mysql as const MYSQL ptr) as ulong
-	mariadb_reconnect as function(byval mysql as MYSQL ptr) as byte
-	mysql_stmt_init as function(byval mysql as MYSQL ptr) as MYSQL_STMT ptr
-	mysql_stmt_prepare as function(byval stmt as MYSQL_STMT ptr, byval query as const zstring ptr, byval length as culong) as long
-	mysql_stmt_execute as function(byval stmt as MYSQL_STMT ptr) as long
-	mysql_stmt_fetch as function(byval stmt as MYSQL_STMT ptr) as long
-	mysql_stmt_fetch_column as function(byval stmt as MYSQL_STMT ptr, byval bind_arg as MYSQL_BIND ptr, byval column as ulong, byval offset as culong) as long
+	mysql_get_timeout_value As Function(ByVal MYSQL As Const MYSQL Ptr) As ULong
+	mysql_get_timeout_value_ms As Function(ByVal MYSQL As Const MYSQL Ptr) As ULong
+	mariadb_reconnect As Function(ByVal MYSQL As MYSQL Ptr) As Byte
+	mysql_stmt_init As Function(ByVal MYSQL As MYSQL Ptr) As MYSQL_STMT Ptr
+	mysql_stmt_prepare As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal query As Const ZString Ptr, ByVal length As culong) As Long
+	mysql_stmt_execute As Function(ByVal stmt As MYSQL_STMT Ptr) As Long
+	mysql_stmt_fetch As Function(ByVal stmt As MYSQL_STMT Ptr) As Long
+	mysql_stmt_fetch_column As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal bind_arg As MYSQL_BIND Ptr, ByVal column As ULong, ByVal offset As culong) As Long
 	mysql_stmt_store_result as function(byval stmt as MYSQL_STMT ptr) as long
-	mysql_stmt_param_count as function(byval stmt as MYSQL_STMT ptr) as culong
-	mysql_stmt_attr_set as function(byval stmt as MYSQL_STMT ptr, byval attr_type as enum_stmt_attr_type, byval attr as const any ptr) as byte
-	mysql_stmt_attr_get as function(byval stmt as MYSQL_STMT ptr, byval attr_type as enum_stmt_attr_type, byval attr as any ptr) as byte
-	mysql_stmt_bind_param as function(byval stmt as MYSQL_STMT ptr, byval bnd as MYSQL_BIND ptr) as byte
-	mysql_stmt_bind_result as function(byval stmt as MYSQL_STMT ptr, byval bnd as MYSQL_BIND ptr) as byte
-	mysql_stmt_close as function(byval stmt as MYSQL_STMT ptr) as byte
-	mysql_stmt_reset as function(byval stmt as MYSQL_STMT ptr) as byte
-	mysql_stmt_free_result as function(byval stmt as MYSQL_STMT ptr) as byte
-	mysql_stmt_send_long_data as function(byval stmt as MYSQL_STMT ptr, byval param_number as ulong, byval data as const zstring ptr, byval length as culong) as byte
-	mysql_stmt_result_metadata as function(byval stmt as MYSQL_STMT ptr) as MYSQL_RES ptr
-	mysql_stmt_param_metadata as function(byval stmt as MYSQL_STMT ptr) as MYSQL_RES ptr
-	mysql_stmt_errno as function(byval stmt as MYSQL_STMT ptr) as ulong
-	mysql_stmt_error as function(byval stmt as MYSQL_STMT ptr) as const zstring ptr
-	mysql_stmt_sqlstate as function(byval stmt as MYSQL_STMT ptr) as const zstring ptr
-	mysql_stmt_row_seek as function(byval stmt as MYSQL_STMT ptr, byval offset as MYSQL_ROW_OFFSET) as MYSQL_ROW_OFFSET
-	mysql_stmt_row_tell as function(byval stmt as MYSQL_STMT ptr) as MYSQL_ROW_OFFSET
-	mysql_stmt_data_seek as sub(byval stmt as MYSQL_STMT ptr, byval offset as ulongint)
-	mysql_stmt_num_rows as function(byval stmt as MYSQL_STMT ptr) as ulongint
-	mysql_stmt_affected_rows as function(byval stmt as MYSQL_STMT ptr) as ulongint
-	mysql_stmt_insert_id as function(byval stmt as MYSQL_STMT ptr) as ulongint
-	mysql_stmt_field_count as function(byval stmt as MYSQL_STMT ptr) as ulong
-	mysql_stmt_next_result as function(byval stmt as MYSQL_STMT ptr) as long
-	mysql_stmt_more_results as function(byval stmt as MYSQL_STMT ptr) as byte
-	mariadb_stmt_execute_direct as function(byval stmt as MYSQL_STMT ptr, byval stmtstr as const zstring ptr, byval length as uinteger) as long
-	mysql_reset_connection as function(byval mysql as MYSQL ptr) as long
-end type
+	mysql_stmt_param_count As Function(ByVal stmt As MYSQL_STMT Ptr) As culong
+	mysql_stmt_attr_set As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal attr_type As enum_stmt_attr_type, ByVal attr As Const Any Ptr) As Byte
+	mysql_stmt_attr_get As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal attr_type As enum_stmt_attr_type, ByVal attr As Any Ptr) As Byte
+	mysql_stmt_bind_param As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal bnd As MYSQL_BIND Ptr) As Byte
+	mysql_stmt_bind_result As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal bnd As MYSQL_BIND Ptr) As Byte
+	mysql_stmt_close As Function(ByVal stmt As MYSQL_STMT Ptr) As Byte
+	mysql_stmt_reset As Function(ByVal stmt As MYSQL_STMT Ptr) As Byte
+	mysql_stmt_free_result As Function(ByVal stmt As MYSQL_STMT Ptr) As Byte
+	mysql_stmt_send_long_data As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal param_number As ULong, ByVal Data As Const ZString Ptr, ByVal length As culong) As Byte
+	mysql_stmt_result_metadata As Function(ByVal stmt As MYSQL_STMT Ptr) As MYSQL_RES Ptr
+	mysql_stmt_param_metadata As Function(ByVal stmt As MYSQL_STMT Ptr) As MYSQL_RES Ptr
+	mysql_stmt_errno As Function(ByVal stmt As MYSQL_STMT Ptr) As ULong
+	mysql_stmt_error As Function(ByVal stmt As MYSQL_STMT Ptr) As Const ZString Ptr
+	mysql_stmt_sqlstate As Function(ByVal stmt As MYSQL_STMT Ptr) As Const ZString Ptr
+	mysql_stmt_row_seek As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal offset As MYSQL_ROW_OFFSET) As MYSQL_ROW_OFFSET
+	mysql_stmt_row_tell As Function(ByVal stmt As MYSQL_STMT Ptr) As MYSQL_ROW_OFFSET
+	mysql_stmt_data_seek As Sub(ByVal stmt As MYSQL_STMT Ptr, ByVal offset As ULongInt)
+	mysql_stmt_num_rows As Function(ByVal stmt As MYSQL_STMT Ptr) As ULongInt
+	mysql_stmt_affected_rows As Function(ByVal stmt As MYSQL_STMT Ptr) As ULongInt
+	mysql_stmt_insert_id As Function(ByVal stmt As MYSQL_STMT Ptr) As ULongInt
+	mysql_stmt_field_count As Function(ByVal stmt As MYSQL_STMT Ptr) As ULong
+	mysql_stmt_next_result As Function(ByVal stmt As MYSQL_STMT Ptr) As Long
+	mysql_stmt_more_results As Function(ByVal stmt As MYSQL_STMT Ptr) As Byte
+	mariadb_stmt_execute_direct As Function(ByVal stmt As MYSQL_STMT Ptr, ByVal stmtstr As Const ZString Ptr, ByVal length As UInteger) As Long
+	mysql_reset_connection As Function(ByVal MYSQL As MYSQL Ptr) As Long
+End Type
 
-type st_mariadb_methods_
-	db_connect as function cdecl(byval mysql as MYSQL ptr, byval host as const zstring ptr, byval user as const zstring ptr, byval passwd as const zstring ptr, byval db as const zstring ptr, byval port as ulong, byval unix_socket as const zstring ptr, byval clientflag as culong) as MYSQL ptr
-	db_close as sub cdecl(byval mysql as MYSQL ptr)
-	db_command as function cdecl(byval mysql as MYSQL ptr, byval command as enum_server_command, byval arg as const zstring ptr, byval length as uinteger, byval skipp_check as byte, byval opt_arg as any ptr) as long
-	db_skip_result as sub cdecl(byval mysql as MYSQL ptr)
-	db_read_query_result as function cdecl(byval mysql as MYSQL ptr) as long
-	db_read_rows as function cdecl(byval mysql as MYSQL ptr, byval fields as MYSQL_FIELD ptr, byval field_count as ulong) as MYSQL_DATA ptr
-	db_read_one_row as function cdecl(byval mysql as MYSQL ptr, byval fields as ulong, byval row as MYSQL_ROW, byval lengths as culong ptr) as long
-	db_supported_buffer_type as function cdecl(byval type as enum_field_types) as byte
-	db_read_prepare_response as function cdecl(byval stmt as MYSQL_STMT ptr) as byte
-	db_read_stmt_result as function cdecl(byval mysql as MYSQL ptr) as long
-	db_stmt_get_result_metadata as function cdecl(byval stmt as MYSQL_STMT ptr) as byte
+Type st_mariadb_methods_
+	db_connect As Function cdecl(ByVal MYSQL As MYSQL Ptr, ByVal host As Const ZString Ptr, ByVal user As Const ZString Ptr, ByVal passwd As Const ZString Ptr, ByVal db As Const ZString Ptr, ByVal port As ULong, ByVal unix_socket As Const ZString Ptr, ByVal clientflag As culong) As MYSQL Ptr
+	db_close As Sub cdecl(ByVal MYSQL As MYSQL Ptr)
+	db_command As Function cdecl(ByVal MYSQL As MYSQL Ptr, ByVal Command As enum_server_command, ByVal arg As Const ZString Ptr, ByVal length As UInteger, ByVal skipp_check As Byte, ByVal opt_arg As Any Ptr) As Long
+	db_skip_result As Sub cdecl(ByVal MYSQL As MYSQL Ptr)
+	db_read_query_result As Function cdecl(ByVal MYSQL As MYSQL Ptr) As Long
+	db_read_rows As Function cdecl(ByVal MYSQL As MYSQL Ptr, ByVal fields As MYSQL_FIELD Ptr, ByVal field_count As ULong) As MYSQL_DATA Ptr
+	db_read_one_row As Function cdecl(ByVal MYSQL As MYSQL Ptr, ByVal fields As ULong, ByVal row As MYSQL_ROW, ByVal lengths As culong Ptr) As Long
+	db_supported_buffer_type As Function cdecl(ByVal Type As enum_field_types) As Byte
+	db_read_prepare_response As Function cdecl(ByVal stmt As MYSQL_STMT Ptr) As Byte
+	db_read_stmt_result As Function cdecl(ByVal MYSQL As MYSQL Ptr) As Long
+	db_stmt_get_result_metadata As Function cdecl(ByVal stmt As MYSQL_STMT Ptr) As Byte
 	db_stmt_get_param_metadata as function cdecl(byval stmt as MYSQL_STMT ptr) as byte
-	db_stmt_read_all_rows as function cdecl(byval stmt as MYSQL_STMT ptr) as long
-	db_stmt_fetch as function cdecl(byval stmt as MYSQL_STMT ptr, byval row as ubyte ptr ptr) as long
-	db_stmt_fetch_to_bind as function cdecl(byval stmt as MYSQL_STMT ptr, byval row as ubyte ptr) as long
-	db_stmt_flush_unbuffered as sub cdecl(byval stmt as MYSQL_STMT ptr)
-	set_error as sub cdecl(byval mysql as MYSQL ptr, byval error_nr as ulong, byval sqlstate as const zstring ptr, byval format as const zstring ptr, ...)
-	invalidate_stmts as sub cdecl(byval mysql as MYSQL ptr, byval function_name as const zstring ptr)
-	api as st_mariadb_api ptr
-	db_read_execute_response as function cdecl(byval stmt as MYSQL_STMT ptr) as long
-	db_execute_generate_request as function cdecl(byval stmt as MYSQL_STMT ptr, byval request_len as uinteger ptr, byval internal as byte) as ubyte ptr
-end type
+	db_stmt_read_all_rows As Function cdecl(ByVal stmt As MYSQL_STMT Ptr) As Long
+	db_stmt_fetch As Function cdecl(ByVal stmt As MYSQL_STMT Ptr, ByVal row As UByte Ptr Ptr) As Long
+	db_stmt_fetch_to_bind As Function cdecl(ByVal stmt As MYSQL_STMT Ptr, ByVal row As UByte Ptr) As Long
+	db_stmt_flush_unbuffered As Sub cdecl(ByVal stmt As MYSQL_STMT Ptr)
+	set_error As Sub cdecl(ByVal MYSQL As MYSQL Ptr, ByVal error_nr As ULong, ByVal sqlstate As Const ZString Ptr, ByVal Format As Const ZString Ptr, ...)
+	invalidate_stmts As Sub cdecl(ByVal MYSQL As MYSQL Ptr, ByVal function_name As Const ZString Ptr)
+	api As st_mariadb_api Ptr
+	db_read_execute_response As Function cdecl(ByVal stmt As MYSQL_STMT Ptr) As Long
+	db_execute_generate_request As Function cdecl(ByVal stmt As MYSQL_STMT Ptr, ByVal request_len As UInteger Ptr, ByVal internal As Byte) As UByte Ptr
+End Type
 
-#define mysql_reload(mysql) mysql_refresh((mysql), REFRESH_GRANT)
-declare function mysql_library_init alias "mysql_server_init"(byval argc as long, byval argv as zstring ptr ptr, byval groups as zstring ptr ptr) as long
-declare sub mysql_library_end alias "mysql_server_end"()
+#define mysql_reload(MYSQL) mysql_refresh((MYSQL), REFRESH_GRANT)
+Declare Function mysql_library_init Alias "mysql_server_init"(ByVal argc As Long, ByVal argv As ZString Ptr Ptr, ByVal groups As ZString Ptr Ptr) As Long
+Declare Sub mysql_library_end Alias "mysql_server_end"()
 #define mariadb_connect(hdl, conn_str) mysql_real_connect((hdl), (conn_str), NULL, NULL, NULL, 0, NULL, 0)
 #define HAVE_MYSQL_REAL_CONNECT
 

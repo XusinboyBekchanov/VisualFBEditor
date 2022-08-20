@@ -9,13 +9,13 @@
 
 #ifdef __EXPORT_PROCS__
 	#include once "mff/List.bi"
-	Dim Shared Objects As List
+	Dim Shared Objects As LIST
 	
 	Common Shared Cpnt As Component Ptr
 	Function CreateComponent Alias "CreateComponent" (ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Component Ptr) As Component Ptr Export
 		Cpnt = 0
 		Select Case LCase(ClassName)
-		Case "mariadbbox": Cpnt = New_(SQLite3Component)
+		Case "mariadbbox": Cpnt = New_(MariaDBBox)
 		End Select
 		If Cpnt Then
 			Cpnt->Name = sName
@@ -48,7 +48,7 @@
 		End Select
 		If bNotRemoveObject = False Then 
 			If Objects.Contains(Ctrl) Then
-				Objects.Remove Objects.IndexOf(Ctrl)
+				Objects.remove Objects.IndexOf(Ctrl)
 			End If
 		End If
 		Return True
@@ -61,7 +61,7 @@
 		End Select
 		If bNotRemoveObject = False Then
 			If Objects.Contains(Obj) Then
-				Objects.Remove Objects.IndexOf(Obj)
+				Objects.remove Objects.IndexOf(Obj)
 			End If
 		End If
 		Return True
