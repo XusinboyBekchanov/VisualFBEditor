@@ -20,7 +20,7 @@ Private Function MariaDBBox.WriteProperty(PropertyName As String, Value As Any P
 End Function
 
 #ifndef __EXPORT_PROCS__
-	Function MariaDBBox.Open(ByRef DataBaseName As WString, ByRef UserName As WString, ByRef Password As WString = "", ByVal host As Const ZString Ptr, Port As ULong = MYSQL_PORT, ByVal unix_socket As Const ZString Ptr, ByVal clientflag As culong) As Boolean
+	Function MariaDBBox.Open(ByRef DataBaseName As WString, ByRef UserName As WString, ByRef Password As WString = "", ByVal host As Const ZString Ptr = NULL, Port As ULong = MYSQL_PORT, ByVal unix_socket As Const ZString Ptr = NULL, ByVal clientflag As culong = 0) As Boolean
 		If FMYSQL Then mysql_close(FMYSQL)
 		FMYSQL = 0
 		If Len(DataBaseName) = 0 Then

@@ -24,7 +24,7 @@ Protected:
 Public:
 	Declare Function ReadProperty(PropertyName As String) As Any Ptr
 	Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-	Declare Function Open(ByRef FileName As WString, ByRef UserName As WString, ByRef Password As WString = "", ByVal host As Const ZString Ptr, Port As ULong = MYSQL_PORT, ByVal unix_socket As Const ZString Ptr, ByVal clientflag As culong) As Boolean
+	Declare Function Open(ByRef FileName As WString, ByRef UserName As WString, ByRef Password As WString = "", ByVal host As Const ZString Ptr = NULL, Port As ULong = MYSQL_PORT, ByVal unix_socket As Const ZString Ptr = NULL, ByVal clientflag As culong = 0) As Boolean
 	Declare Function Find(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
 	Declare Function FindUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
 	Declare Function FindByte(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0)                        As Long
@@ -74,7 +74,7 @@ Public:
 	
 	Declare Sub TransactionBegin()
 	Declare Function TransactionEnd()        As Long
-	Declare Function VERSION()               As String
+	Declare Function Version()               As String
 	Declare Function ErrMsg()                As String
 	Declare Function SetKey(newkey As UString) As Boolean
 	Declare Sub Close()
