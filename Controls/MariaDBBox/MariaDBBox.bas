@@ -20,16 +20,16 @@ Private Function MariaDBBox.WriteProperty(PropertyName As String, Value As Any P
 End Function
 
 #ifndef __EXPORT_PROCS__
-	Function MariaDBBox.Open(ByRef FileName As WString, ByRef UserName As WString, ByRef Password As WString = "", Port As Integer = MYSQL_PORT) As Boolean
+	Function MariaDBBox.Open(ByRef DataBaseName As WString, ByRef UserName As WString, ByRef Password As WString = "", ByVal host As Const ZString Ptr, Port As ULong = MYSQL_PORT, ByVal unix_socket As Const ZString Ptr, ByVal clientflag As culong) As Boolean
 		If FMYSQL Then mysql_close(FMYSQL)
 		FMYSQL = 0
-		If Len(FileName) = 0 Then
-			ErrStr = "File name is empty": This.Event_Send(12, ErrStr)
+		If Len(DataBaseName) = 0 Then
+			ErrStr = "Database name is empty": This.Event_Send(12, ErrStr)
 			Return False
 		End If
-		Dim r As Long, sFileName_Utf8 As String = ToUtf8(FileName)
+		Dim r As Long, sFileName_Utf8 As String = ToUtf8(DataBaseName)
 		FMYSQL = mysql_init(NULL)
-		Var link = mysql_real_connect(FMYSQL, NULL, UserName, Password, NULL, Port, NULL, 0)
+		Var link = mysql_real_connect(FMYSQL, host, UserName, Password, NULL, Port, unix_socket, clientflag)
 		If link = 0 Then
 			ErrStr = "Can't connect to the mysql server on port " & Str(Port): This.Event_Send(12, ErrStr)
 			mysql_close(FMYSQL)
@@ -39,7 +39,7 @@ End Function
 		r = mysql_select_db(FMYSQL, sFileName_Utf8)
 		If r <> 0 Then
 			ErrStr = *mysql_error(FMYSQL)
-			ErrStr = ErrStr & "Can't select the " & FileName & " database!": This.Event_Send(12, ErrStr)
+			ErrStr = ErrStr & "Can't select the " & DataBaseName & " database!": This.Event_Send(12, ErrStr)
 			mysql_close(FMYSQL)
 			FMYSQL = 0
 			Return False
