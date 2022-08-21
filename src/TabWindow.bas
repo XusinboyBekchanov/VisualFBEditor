@@ -3564,6 +3564,8 @@ Sub CompleteWord
 			TypeName = GetLeftArgTypeName(tb, iSelEndLine, i - 1, te, teOld, OldTypeName)
 			b = True
 			Exit For
+		ElseIf s = Chr(34) Then
+			Exit Sub
 		Else
 			If SelCharPos = 0 Then SelCharPos = i
 			Exit For
