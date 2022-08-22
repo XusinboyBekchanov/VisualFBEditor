@@ -3378,6 +3378,8 @@ Namespace My.Sys.Forms
 	mnuDesigner.Add(ML("Paste"), "Paste", "Paste", @PopupClick)
 	mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
 	mnuDesigner.Add("-")
+	mnuDesigner.Add(ML("Duplicate"), "", "Duplicate", @mClick)
+	mnuDesigner.Add("-")
 	mnuDesigner.Add(ML("Bring to Front"), "", "BringToFront", @PopupClick)
 	mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
 	mnuDesigner.Add("-")
