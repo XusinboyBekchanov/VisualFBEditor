@@ -2349,7 +2349,7 @@ Namespace My.Sys.Forms
 		Dim sLine As WString Ptr
 		Dim As Integer j, iCount, Pos1
 		Dim As String ch
-		Dim As Boolean b, OneDot
+		Dim As Boolean b, OneDot, TwoDots
 		For j = iSelEndLine To 0 Step -1
 			sLine = @This.Lines(j)
 			If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine), " _") Then Exit For
@@ -2365,9 +2365,13 @@ Namespace My.Sys.Forms
 					If IsArg(Asc(ch)) Then
 						sTemp = ch & sTemp
 					ElseIf sTemp <> "" Then
-						If ch = "." AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) <> "." Then
-							OneDot = True
-							TypeName = GetLeftArgTypeName(sTemp, j, i - 1, teEnumOld, , , bTypes, bWithoutWith)
+						If ch = "." Then
+							If i > 0 AndAlso Mid(*sLine, i - 1, 1) = "." Then
+								TwoDots = True
+							Else
+								OneDot = True
+								TypeName = GetLeftArgTypeName(sTemp, j, i - 1, teEnumOld, , , bTypes, bWithoutWith)
+							End If
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
 							OneDot = True
 							TypeName = GetLeftArgTypeName(sTemp, j, i - 2, teEnumOld, , , bTypes)
@@ -2420,7 +2424,7 @@ Namespace My.Sys.Forms
 			Next
 		End If
 		Dim As String TypeNameFromLine
-		Var teC = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine))->InConstruction
+		Dim teC As TypeElement Ptr = Cast(EditControlLine Ptr, FLines.Item(iSelEndLine))->InConstruction
 		If teC > 0 Then
 			Var Pos1 = InStr(teC->DisplayName, ".")
 			If Pos1 = 0 Then Pos1 = InStr(teC->DisplayName, "[")
@@ -2499,30 +2503,66 @@ Namespace My.Sys.Forms
 					Return BaseTypeName
 				End If
 			End If
-			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
-				te = te1->Elements.Object(Idx)
-			ElseIf Procedures.Contains(sTemp, , , , Idx) Then
-				te = Procedures.Object(Idx)
-			ElseIf Args.Contains(sTemp, , , , Idx) Then
-				te = Args.Object(Idx)
-			ElseIf pGlobalFunctions > 0 AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) Then
-				te = pGlobalFunctions->Object(Idx)
-			ElseIf pGlobalArgs > 0 AndAlso pGlobalArgs->Contains(sTemp, , , , Idx) Then
-				te = pGlobalArgs->Object(Idx)
-			ElseIf pGlobalTypes > 0 AndAlso pGlobalTypes->Contains(sTemp, , , , Idx) Then
-				te = pGlobalTypes->Object(Idx)
-			ElseIf pGlobalNamespaces > 0 AndAlso pGlobalNamespaces->Contains(sTemp, , , , Idx) Then
-				te = pGlobalNamespaces->Object(Idx)
-			ElseIf TypeName <> "" Then
-				If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
-				ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
-				ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
-				ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
-				ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
-				ElseIf ContainsIn(TypeName, sTemp, pGlobalNamespaces, True, , , te) Then
+			Var tIndex = -1
+			If (Not TwoDots) AndAlso tIndex = -1 AndAlso teC > 0 Then 'AndAlso LCase(OldMatn) <> "as"
+				Var tIndex = teC->Elements.IndexOf(LCase(sTemp))
+				If tIndex <> -1 Then
+					Var pkeywords = @teC->Elements
+					teEnum = pkeywords->Object(tIndex)
+					teEnumOld = teC
+					OldTypeName = "" 'teC->DisplayName
+					Return teEnum->TypeName
+				Else
+					TypeName = teC->DisplayName
+					Pos1 = InStr(TypeName, ".")
+					If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
+						If Pos1 > 0 Then
+							TypeName = ..Left(TypeName, Pos1 - 1)
+						Else
+							TypeName = teC->Name
+						End If
+						If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
+						ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
+						ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
+						ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
+						ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
+						End If
+						If te > 0 Then
+							tIndex = 0
+							teEnum = te
+							teEnumOld = teC
+							OldTypeName = TypeName
+							Return teEnum->TypeName
+						End If
+					End If
 				End If
-				If te Then
-					OldTypeName = TypeName
+			End If
+			If tIndex = -1 Then
+				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
+					te = te1->Elements.Object(Idx)
+				ElseIf Procedures.Contains(sTemp, , , , Idx) Then
+					te = Procedures.Object(Idx)
+				ElseIf Args.Contains(sTemp, , , , Idx) Then
+					te = Args.Object(Idx)
+				ElseIf pGlobalFunctions > 0 AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) Then
+					te = pGlobalFunctions->Object(Idx)
+				ElseIf pGlobalArgs > 0 AndAlso pGlobalArgs->Contains(sTemp, , , , Idx) Then
+					te = pGlobalArgs->Object(Idx)
+				ElseIf pGlobalTypes > 0 AndAlso pGlobalTypes->Contains(sTemp, , , , Idx) Then
+					te = pGlobalTypes->Object(Idx)
+				ElseIf pGlobalNamespaces > 0 AndAlso pGlobalNamespaces->Contains(sTemp, , , , Idx) Then
+					te = pGlobalNamespaces->Object(Idx)
+				ElseIf TypeName <> "" Then
+					If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, pGlobalNamespaces, True, , , te) Then
+					End If
+					If te Then
+						OldTypeName = TypeName
+					End If
 				End If
 			End If
 		End If
@@ -2744,7 +2784,7 @@ Namespace My.Sys.Forms
 				If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
 				If i - VScrollPos > vlc1 - 1 Then Exit For
 				#ifdef __USE_WINAPI__
-					If bFull = False AndAlso OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso Cint(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
+					If bFull = False AndAlso OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso CInt(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
 						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z Then
 							' AndAlso (z <> FSelEndLine + 1)
 							If CurWord <> "" OrElse OldCurWord <> "" Then

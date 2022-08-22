@@ -4390,7 +4390,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		End If
 		Dim As Boolean Types
 		Dim As TypeElement Ptr te
-		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
+		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName("", iSelEndLine, iSelEndChar - k, te, , , Types) 'GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
 		If Trim(TypeName) = "" Then Exit Sub
 		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName, , , , , Types
 		#ifdef __USE_GTK__
