@@ -1367,6 +1367,8 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To FLines.Count - 1
 			FECLine = FLines.Items[i]
 			WLet(FECLine->Text, LTrim(*FECLine->Text, Any !"\t "))
+			FECLine->Ends.Clear
+			FECLine->EndsCompleted = False
 		Next i
 		Changed("UnFormat")
 		If Not WithoutUpdate Then

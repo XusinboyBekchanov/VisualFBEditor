@@ -7,6 +7,7 @@
 	#include once "mff/RadioButton.bi"
 	#include once "mff/CheckBox.bi"
 	#include once "mff/ComboBoxEdit.bi"
+	#include once "mff/UpDown.bi"
 	
 	Using My.Sys.Forms
 	
@@ -19,15 +20,30 @@
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Static Sub cboType_Change_(ByRef Sender As ComboBoxEdit)
 		Declare Sub cboType_Change(ByRef Sender As ComboBoxEdit)
+		Declare Static Sub optConstructor_Click_(ByRef Sender As RadioButton)
+		Declare Sub optConstructor_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optSub_Click_(ByRef Sender As RadioButton)
+		Declare Sub optSub_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optFunction_Click_(ByRef Sender As RadioButton)
+		Declare Sub optFunction_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optProperty_Click_(ByRef Sender As RadioButton)
+		Declare Sub optProperty_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optOperator_Click_(ByRef Sender As RadioButton)
+		Declare Sub optOperator_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optDestructor_Click_(ByRef Sender As RadioButton)
+		Declare Sub optDestructor_Click(ByRef Sender As RadioButton)
+		Declare Static Sub txtParameters_Change_(ByRef Sender As TextBox)
+		Declare Sub txtParameters_Change(ByRef Sender As TextBox)
 		Declare Constructor
 		
-		Dim As Label lblName, lblParameters, lblType, lblParameters1
-		Dim As TextBox txtName, txtParameters, txtDescription
+		Dim As Label lblName, lblParameters, lblType, lblParameters1, lblPriority, lblAlias
+		Dim As TextBox txtName, txtParameters, txtDescription, txtPriority, txtAlias
 		Dim As CommandButton cmdOK, cmdCancel
 		Dim As GroupBox grbType, grbScope, grbAccessControl
 		Dim As RadioButton optSub, optFunction, optProperty, optPublicScope, optPrivateScope, optOperator, optPublicAccess, optProtectedAccess, optPrivateAccess, optConstructor, optDestructor
-		Dim As CheckBox chkStatic
+		Dim As CheckBox chkStatic, chkStaticProcedure
 		Dim As ComboBoxEdit cboType
+		Dim As UpDown updPriority
 	End Type
 	
 	Constructor frmAddProcedureType
@@ -42,13 +58,13 @@
 			.MinimizeBox = False
 			.Icon = "1"
 			.OnShow = @Form_Show_
-			.SetBounds 0, 0, 340, 450
+			.SetBounds 0, 0, 340, 480
 		End With
 		' lblName
 		With lblName
 			.Name = "lblName"
 			.Text = ML("Name") & ":"
-			.TabIndex = 4
+			.TabIndex = 22
 			.Caption = ML("Name") & ":"
 			.SetBounds 10, 10, 90, 20
 			.Designer = @This
@@ -67,9 +83,9 @@
 		With cmdOK
 			.Name = "cmdOK"
 			.Text = ML("OK")
-			.TabIndex = 5
+			.TabIndex = 20
 			.Caption = ML("OK")
-			.SetBounds 150, 390, 80, 20
+			.SetBounds 150, 420, 80, 20
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
 			.Parent = @This
@@ -78,10 +94,10 @@
 		With cmdCancel
 			.Name = "cmdCancel"
 			.Text = ML("Cancel")
-			.TabIndex = 6
+			.TabIndex = 21
 			.ControlIndex = 2
 			.Caption = ML("Cancel")
-			.SetBounds 240, 390, 80, 20
+			.SetBounds 240, 420, 80, 20
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
 			.Parent = @This
@@ -90,9 +106,9 @@
 		With grbType
 			.Name = "grbType"
 			.Text = ML("Type")
-			.TabIndex = 7
+			.TabIndex = 23
 			.Caption = ML("Type")
-			.SetBounds 10, 210, 310, 80
+			.SetBounds 10, 240, 310, 80
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -104,6 +120,7 @@
 			.Caption = ML("Sub")
 			.SetBounds 10, 20, 100, 20
 			.Designer = @This
+			.OnClick = @optSub_Click_
 			.Parent = @grbType
 		End With
 		' optFunction
@@ -115,6 +132,7 @@
 			.Caption = ML("Function")
 			.SetBounds 110, 20, 100, 20
 			.Designer = @This
+			.OnClick = @optFunction_Click_
 			.Parent = @grbType
 		End With
 		' optProperty
@@ -126,15 +144,16 @@
 			.Caption = ML("Property")
 			.SetBounds 210, 20, 90, 20
 			.Designer = @This
+			.OnClick = @optProperty_Click_
 			.Parent = @grbType
 		End With
 		' grbScope
 		With grbScope
 			.Name = "grbScope"
 			.Text = ML("Scope")
-			.TabIndex = 11
+			.TabIndex = 24
 			.Caption = ML("Scope")
-			.SetBounds 10, 300, 310, 50
+			.SetBounds 10, 330, 200, 50
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -142,7 +161,7 @@
 		With optPublicScope
 			.Name = "optPublicScope"
 			.Text = ML("Public")
-			.TabIndex = 12
+			.TabIndex = 14
 			.Caption = ML("Public")
 			.SetBounds 10, 20, 90, 20
 			.Designer = @This
@@ -152,20 +171,19 @@
 		With optPrivateScope
 			.Name = "optPrivateScope"
 			.Text = ML("Private")
-			.TabIndex = 13
+			.TabIndex = 15
 			.ControlIndex = 0
 			.Caption = ML("Private")
-			.SetBounds 110, 20, 90, 20
+			.SetBounds 110, 20, 80, 20
 			.Designer = @This
 			.Parent = @grbScope
 		End With
 		' chkStatic
 		With chkStatic
 			.Name = "chkStatic"
-			.Text = ML("Static")
-			.TabIndex = 14
-			.Caption = ML("Static")
-			.SetBounds 10, 360, 140, 20
+			.Text = ML("All Local variables as Statics")
+			.TabIndex = 17
+			.SetBounds 10, 390, 170, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -173,42 +191,44 @@
 		With optOperator
 			.Name = "optOperator"
 			.Text = ML("Operator")
-			.TabIndex = 15
+			.TabIndex = 11
 			.ControlIndex = 1
 			.Caption = ML("Operator")
 			.SetBounds 10, 50, 100, 20
 			.Designer = @This
+			.OnClick = @optOperator_Click_
 			.Parent = @grbType
 		End With
 		' lblParameters
 		With lblParameters
 			.Name = "lblParameters"
 			.Text = ML("Parameters") & ":"
-			.TabIndex = 16
+			.TabIndex = 25
 			.ControlIndex = 0
 			.Caption = ML("Parameters") & ":"
-			.SetBounds 10, 40, 90, 20
+			.SetBounds 10, 70, 90, 20
 			.Designer = @This
 			.Parent = @This
 		End With
 		' txtParameters
 		With txtParameters
 			.Name = "txtParameters"
-			.TabIndex = 1
+			.TabIndex = 2
 			.ControlIndex = 2
 			.Text = ""
-			.SetBounds 110, 40, 210, 20
+			.SetBounds 110, 70, 210, 20
 			.Designer = @This
+			.OnChange = @txtParameters_Change_
 			.Parent = @This
 		End With
 		' lblType
 		With lblType
 			.Name = "lblType"
 			.Text = ML("Type") & ":"
-			.TabIndex = 17
+			.TabIndex = 26
 			.ControlIndex = 0
 			.Caption = ML("Type") & ":"
-			.SetBounds 10, 120, 90, 20
+			.SetBounds 10, 150, 90, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -216,8 +236,8 @@
 		With cboType
 			.Name = "cboType"
 			.Text = ""
-			.TabIndex = 3
-			.SetBounds 110, 120, 210, 21
+			.TabIndex = 4
+			.SetBounds 110, 150, 210, 21
 			.Designer = @This
 			.OnChange = @cboType_Change_
 			.Parent = @This
@@ -226,10 +246,10 @@
 		With grbAccessControl
 			.Name = "grbAccessControl"
 			.Text = ML("Access Control")
-			.TabIndex = 18
+			.TabIndex = 27
 			.ControlIndex = 7
 			.Caption = ML("Access Control")
-			.SetBounds 10, 150, 310, 50
+			.SetBounds 10, 180, 310, 50
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -237,7 +257,7 @@
 		With optPublicAccess
 			.Name = "optPublicAccess"
 			.Text = ML("Public")
-			.TabIndex = 19
+			.TabIndex = 5
 			.Caption = ML("Public")
 			.SetBounds 10, 20, 100, 20
 			.Designer = @This
@@ -247,7 +267,7 @@
 		With optProtectedAccess
 			.Name = "optProtectedAccess"
 			.Text = ML("Protected")
-			.TabIndex = 20
+			.TabIndex = 6
 			.Caption = ML("Protected")
 			.SetBounds 110, 20, 100, 20
 			.Designer = @This
@@ -257,7 +277,7 @@
 		With optPrivateAccess
 			.Name = "optPrivateAccess"
 			.Text = ML("Private")
-			.TabIndex = 21
+			.TabIndex = 7
 			.Caption = ML("Private")
 			.SetBounds 210, 20, 80, 20
 			.Designer = @This
@@ -267,48 +287,145 @@
 		With optConstructor
 			.Name = "optConstructor"
 			.Text = ML("Constructor")
-			.TabIndex = 22
+			.TabIndex = 12
 			.ControlIndex = 3
 			.Caption = ML("Constructor")
 			.SetBounds 110, 50, 100, 20
 			.Designer = @This
+			.OnClick = @optConstructor_Click_
 			.Parent = @grbType
 		End With
 		' optDestructor
 		With optDestructor
 			.Name = "optDestructor"
 			.Text = ML("Destructor")
-			.TabIndex = 23
+			.TabIndex = 13
 			.ControlIndex = 3
 			.Caption = ML("Destructor")
 			.SetBounds 210, 50, 90, 20
 			.Designer = @This
+			.OnClick = @optDestructor_Click_
 			.Parent = @grbType
 		End With
 		' lblParameters1
 		With lblParameters1
 			.Name = "lblParameters1"
 			.Text = ML("Description") & ":"
-			.TabIndex = 24
+			.TabIndex = 28
 			.ControlIndex = 7
 			.Caption = ML("Description") & ":"
-			.SetBounds 10, 70, 90, 20
+			.SetBounds 10, 100, 90, 20
 			.Designer = @This
 			.Parent = @This
 		End With
 		' txtDescription
 		With txtDescription
 			.Name = "txtDescription"
-			.TabIndex = 2
+			.TabIndex = 3
 			.ControlIndex = 9
 			.ScrollBars = ScrollBarsType.Vertical
 			.WantReturn = True
 			.Multiline = True
-			.SetBounds 110, 70, 210, 40
+			.Text = ""
+			.SetBounds 110, 100, 210, 40
+			.Designer = @This
+			.Parent = @This
+		End With
+		' lblPriority
+		With lblPriority
+			.Name = "lblPriority"
+			.Text = ML("Priority") & ":"
+			.TabIndex = 29
+			.ControlIndex = 0
+			.Caption = ML("Priority") & ":"
+			.SetBounds 190, 393, 60, 20
+			.Designer = @This
+			.Parent = @This
+		End With
+		' updPriority
+		With updPriority
+			.Name = "updPriority"
+			.Text = "UpDown1"
+			.TabIndex = 19
+			.Associate = @txtPriority
+			.SetBounds 300, 390, 17, 20
+			.Designer = @This
+			.MinValue = 101
+			.MaxValue = 65535
+			.Parent = @This
+		End With
+		' txtPriority
+		With txtPriority
+			.Name = "txtPriority"
+			.Text = "101"
+			.TabIndex = 18
+			.NumbersOnly = True
+			.Alignment = AlignmentConstants.taRight
+			.SetBounds 260, 390, 40, 20
+			.Designer = @This
+			.Parent = @This
+		End With
+		' chkStaticProcedure
+		With chkStaticProcedure
+			.Name = "chkStaticProcedure"
+			.Text = ML("Static")
+			.TabIndex = 16
+			.ControlIndex = 6
+			.Caption = ML("Static")
+			.SetBounds 220, 350, 100, 20
+			.Designer = @This
+			.Parent = @This
+		End With
+		' lblAlias
+		With lblAlias
+			.Name = "lblAlias"
+			.Text = ML("Alias") & ":"
+			.TabIndex = 30
+			.ControlIndex = 0
+			.Caption = ML("Alias") & ":"
+			.SetBounds 10, 40, 90, 20
+			.Designer = @This
+			.Parent = @This
+		End With
+		' txtAlias
+		With txtAlias
+			.Name = "txtAlias"
+			.TabIndex = 1
+			.ControlIndex = 2
+			.Text = ""
+			.SetBounds 110, 40, 210, 20
 			.Designer = @This
 			.Parent = @This
 		End With
 	End Constructor
+	
+	Private Sub frmAddProcedureType.txtParameters_Change_(ByRef Sender As TextBox)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).txtParameters_Change(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.optDestructor_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optDestructor_Click(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.optOperator_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optOperator_Click(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.optProperty_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optProperty_Click(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.optFunction_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optFunction_Click(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.optSub_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optSub_Click(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.optConstructor_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optConstructor_Click(Sender)
+	End Sub
 	
 	Private Sub frmAddProcedureType.cboType_Change_(ByRef Sender As ComboBoxEdit)
 		*Cast(frmAddProcedureType Ptr, Sender.Designer).cboType_Change(Sender)
@@ -348,45 +465,139 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 	End If
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
-	Dim As String sType
+	Dim As String sType, sTypeName, sTypeNameDot, sConstructorDestructor
+	Dim As Boolean bInsideType = cboType.ItemIndex <> 0
 	Select Case True
 	Case optSub.Checked: sType = "Sub"
 	Case optFunction.Checked: sType = "Function"
 	Case optProperty.Checked: sType = "Property"
 	Case optOperator.Checked: sType = "Operator"
 	Case Else
-		Select Case True
-		Case optConstructor.Checked: sType = "Constructor"
-		Case optDestructor.Checked: sType = "Destructor"
-		End Select
+		If bInsideType Then
+			Select Case True
+			Case optConstructor.Checked: sType = "Constructor"
+			Case optDestructor.Checked: sType = "Destructor"
+			End Select
+		Else
+			Select Case True
+			Case optConstructor.Checked: sType = "Sub": sConstructorDestructor = " Constructor" & IIf(txtPriority.Text = "0", "", " " & Trim(txtPriority.Text))
+			Case optDestructor.Checked: sType = "Sub": sConstructorDestructor = " Destructor" & IIf(txtPriority.Text = "0", "", " " & Trim(txtPriority.Text))
+			End Select
+		End If
 	End Select
-	Dim As Integer i = tb->txtCode.LinesCount, q
-	If cboType.ItemIndex = 0 Then
-		tb->txtCode.Changing "Insert procedure"
+	Dim As Integer i = tb->txtCode.LinesCount, q1, q2
+	tb->txtCode.Changing "Insert procedure"
+	If Not bInsideType Then
 		tb->txtCode.InsertLine i, ""
 		If txtDescription.Text <> "" Then
 			Dim As UString res()
 			Split(txtDescription.Text, Chr(13) & Chr(10), res())
-			q = UBound(res) + 1
+			q1 = UBound(res) + 1
 			For j As Integer = 0 To UBound(res)
 				tb->txtCode.InsertLine i + j + 1, "'" & res(j)
 			Next
 		End If
-		tb->txtCode.InsertLine i + q + 1, IIf(optPublicScope.Checked, "Public", "Private") & " " & sType & " " & txtName.Text & txtParameters.Text
-		tb->txtCode.InsertLine i + q + 2, !"\t"
-		tb->txtCode.InsertLine i + q + 3, "End " & sType
-		tb->txtCode.Changed "Insert procedure"
-		tb->txtCode.SetSelection i + q + 2, i + q + 2, 1, 1
-		tb->txtCode.TopLine = i + q + 1
-		tb->txtCode.SetFocus
-		OnLineChangeEdit tb->txtCode, i + q + 3, i + q + 3
+	Else
+		sTypeName = cboType.Text
+		sTypeNameDot = sTypeName & "."
+		Dim As String SpaceStr
+		Dim As Integer iStart, iEnd, LineToAdd, LineEndPublic = -1, LineEndProtected = -1, LineEndPrivate = -1, LineEndType = -1
+		Dim As EditControl Ptr ptxtCode, ptxtCodeBi
+		Dim As EditControl txtCodeBi
+		Dim As Boolean bFind, b, bPublic = True, bPrivate, bProtected, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
+		For i As Integer = 0 To tb->txtCode.LinesCount - 1
+			GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
+			For k As Integer = iStart To iEnd
+				If (Not b) AndAlso StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "type " & LCase(sTypeName) & " ") Then
+					b = True
+				ElseIf b Then
+					If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end type ") Then
+						If bPrivate Then LineEndPrivate = k
+						If bProtected Then LineEndProtected = k
+						If bPublic Then LineEndPublic = k
+						LineEndType = k
+						SpaceStr = .Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t ")))
+						Exit For
+					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "public:") Then
+						bPublic = True
+						If bPrivate Then LineEndPrivate = k: bPrivate = False
+						If bProtected Then LineEndProtected = k: bProtected = False
+					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "protected:") Then
+						bProtected = True
+						If bPrivate Then LineEndPrivate = k: bPrivate = False
+						If bPublic Then LineEndPublic = k: bPublic = False
+					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "private:") Then
+						bPrivate = True
+						If bProtected Then LineEndProtected = k: bProtected = False
+						If bPublic Then LineEndPublic = k: bPublic = False
+					End If
+				End If
+			Next
+			ptxtCode = @tb->txtCode
+			iStart = i + 1
+			iEnd = i + 1
+		Next
+		If LineEndType > -1 Then
+			If optPublicAccess.Checked Then
+				If LineEndPublic = -1 Then
+					ptxtCode->InsertLine LineEndType, SpaceStr & "Public:"
+					q2 += 1
+					If ptxtCode = @tb->txtCode Then q1 += 1
+					LineToAdd = LineEndType
+				Else
+					LineToAdd = LineEndPublic
+				End If
+			ElseIf optProtectedAccess.Checked Then
+				If LineEndProtected = -1 Then
+					ptxtCode->InsertLine LineEndType, SpaceStr & "Protected:"
+					q2 += 1
+					If ptxtCode = @tb->txtCode Then q1 += 1
+					LineToAdd = LineEndType
+				Else
+					LineToAdd = LineEndProtected
+				End If
+			ElseIf optPrivateAccess.Checked Then
+				If LineEndPrivate = -1 Then
+					ptxtCode->InsertLine LineEndType, SpaceStr & "Private:"
+					q2 += 1
+					If ptxtCode = @tb->txtCode Then q1 += 1
+					LineToAdd = LineEndType
+				Else
+					LineToAdd = LineEndPrivate
+				End If
+			End If
+			If txtDescription.Text <> "" Then
+				Dim As UString res()
+				Split(txtDescription.Text, Chr(13) & Chr(10), res())
+				For j As Integer = 0 To UBound(res)
+					ptxtCode->InsertLine LineToAdd + q2 + j, SpaceStr & !"\t'" & res(j)
+				Next
+				q2 += UBound(res) + 1
+				If ptxtCode = @tb->txtCode Then q1 += UBound(res) + 1
+			End If
+			ptxtCode->InsertLine LineToAdd + q2, SpaceStr & !"\tDeclare" & IIf(chkStaticProcedure.Checked, " Static", "") & " " & sType & IIf(optConstructor.Checked OrElse optDestructor.Checked, "", txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")")
+			If ptxtCode = @tb->txtCode Then q1 += 1
+		End If
+		tb->txtCode.InsertLine i + q1, ""
 	End If
+	tb->txtCode.InsertLine i + q1 + 1, IIf(optPublicScope.Checked, "Public", "Private") & " " & sType & " " & IIf(bInsideType AndAlso (optConstructor.Checked OrElse optDestructor.Checked), txtName.Text, sTypeNameDot & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")") & sConstructorDestructor & IIf(chkStatic.Checked, " Static", "")
+	tb->txtCode.InsertLine i + q1 + 2, !"\t"
+	tb->txtCode.InsertLine i + q1 + 3, "End " & sType
+	tb->txtCode.Changed "Insert procedure"
+	tb->txtCode.SetSelection i + q1 + 2, i + q1 + 2, 1, 1
+	tb->txtCode.TopLine = i + q1 + 1
+	tb->txtCode.SetFocus
+	OnLineChangeEdit tb->txtCode, i + q1 + 3, i + q1 + 3
 	This.CloseForm
 End Sub
 
 Private Sub frmAddProcedureType.Form_Show(ByRef Sender As Form)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
+	txtName.Text = ""
+	txtAlias.Text = ""
+	txtDescription.Text = ""
+	txtParameters.Text = ""
 	cboType.Clear
 	cboType.AddItem "(not selected)"
 	For i As Integer = 0 To tb->txtCode.Types.Count - 1
@@ -394,8 +605,19 @@ Private Sub frmAddProcedureType.Form_Show(ByRef Sender As Form)
 	Next
 	cboType.ItemIndex = 0
 	optPublicAccess.Checked = True
+	optProtectedAccess.Checked = False
+	optPrivateAccess.Checked = False
 	optSub.Checked = True
+	optFunction.Checked = False
+	optProperty.Checked = False
+	optOperator.Checked = False
+	optConstructor.Checked = False
+	optDestructor.Checked = False
 	optPublicScope.Checked = True
+	optPrivateScope.Checked = False
+	chkStatic.Checked = False
+	chkStaticProcedure.Checked = False
+	txtPriority.Text = "0"
 End Sub
 
 Private Sub frmAddProcedureType.cboType_Change(ByRef Sender As ComboBoxEdit)
@@ -404,4 +626,69 @@ Private Sub frmAddProcedureType.cboType_Change(ByRef Sender As ComboBoxEdit)
 	optProtectedAccess.Enabled = bEnabled
 	optPrivateAccess.Enabled = bEnabled
 	optProperty.Enabled = bEnabled
+	If optProperty.Checked Then
+		optProperty.Checked = False
+		optSub.Checked = True
+	End If
+	chkStaticProcedure.Enabled = bEnabled
+	optConstructor_Click(optConstructor)
+End Sub
+
+Private Sub frmAddProcedureType.optConstructor_Click(ByRef Sender As RadioButton)
+	Dim As Boolean bVisible = (optConstructor.Checked OrElse optDestructor.Checked) AndAlso cboType.ItemIndex = 0
+	lblPriority.Visible = bVisible
+	txtPriority.Visible = bVisible
+	updPriority.Visible = bVisible
+	If cboType.ItemIndex <> 0 Then
+		txtName.Text = cboType.Text
+		txtName.Enabled = False
+	Else
+		txtName.Enabled = True
+	End If
+	If bVisible Then
+		txtParameters.Text = ""
+		txtParameters.Enabled = False
+	Else
+		txtParameters.Enabled = True
+	End If
+End Sub
+
+Private Sub frmAddProcedureType.optSub_Click(ByRef Sender As RadioButton)
+	optConstructor_Click(Sender)
+End Sub
+
+Private Sub frmAddProcedureType.optFunction_Click(ByRef Sender As RadioButton)
+	optConstructor_Click(Sender)
+End Sub
+
+Private Sub frmAddProcedureType.optProperty_Click(ByRef Sender As RadioButton)
+	optConstructor_Click(Sender)
+End Sub
+
+Private Sub frmAddProcedureType.optOperator_Click(ByRef Sender As RadioButton)
+	optConstructor_Click(Sender)
+End Sub
+
+Private Sub frmAddProcedureType.optDestructor_Click(ByRef Sender As RadioButton)
+	optConstructor_Click(Sender)
+End Sub
+
+Private Sub frmAddProcedureType.txtParameters_Change(ByRef Sender As TextBox)
+	If cboType.ItemIndex <> 0 Then
+		If Trim(txtParameters.Text) = "" Then
+			optProtectedAccess.Enabled = False
+			optPrivateAccess.Enabled = False
+			If optProtectedAccess.Checked Then
+				optProtectedAccess.Checked = False
+				optPublicAccess.Checked = True
+			End If
+			If optPrivateAccess.Checked Then
+				optPrivateAccess.Checked = False
+				optPublicAccess.Checked = True
+			End If
+		Else
+			optProtectedAccess.Enabled = True
+			optPrivateAccess.Enabled = True
+		End If
+	End If
 End Sub
