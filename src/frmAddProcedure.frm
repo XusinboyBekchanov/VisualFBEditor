@@ -575,7 +575,7 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 				q2 += UBound(res) + 1
 				If ptxtCode = @tb->txtCode Then q1 += UBound(res) + 1
 			End If
-			ptxtCode->InsertLine LineToAdd + q2, SpaceStr & !"\tDeclare" & IIf(chkStaticProcedure.Checked, " Static", "") & " " & sType & IIf(optConstructor.Checked OrElse optDestructor.Checked, "", txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")")
+			ptxtCode->InsertLine LineToAdd + q2, SpaceStr & !"\tDeclare" & IIf(chkStaticProcedure.Checked, " Static", "") & " " & sType & IIf(optConstructor.Checked OrElse optDestructor.Checked, "", " " & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")")
 			If ptxtCode = @tb->txtCode Then q1 += 1
 		End If
 		tb->txtCode.InsertLine i + q1, ""
@@ -626,7 +626,7 @@ Private Sub frmAddProcedureType.cboType_Change(ByRef Sender As ComboBoxEdit)
 	optProtectedAccess.Enabled = bEnabled
 	optPrivateAccess.Enabled = bEnabled
 	optProperty.Enabled = bEnabled
-	If optProperty.Checked Then
+	If optProperty.Checked AndAlso Not bEnabled Then
 		optProperty.Checked = False
 		optSub.Checked = True
 	End If
@@ -639,7 +639,7 @@ Private Sub frmAddProcedureType.optConstructor_Click(ByRef Sender As RadioButton
 	lblPriority.Visible = bVisible
 	txtPriority.Visible = bVisible
 	updPriority.Visible = bVisible
-	If cboType.ItemIndex <> 0 Then
+	If (optConstructor.Checked OrElse optDestructor.Checked) AndAlso cboType.ItemIndex <> 0 Then
 		txtName.Text = cboType.Text
 		txtName.Enabled = False
 	Else
@@ -651,6 +651,7 @@ Private Sub frmAddProcedureType.optConstructor_Click(ByRef Sender As RadioButton
 	Else
 		txtParameters.Enabled = True
 	End If
+	txtParameters_Change(txtParameters)
 End Sub
 
 Private Sub frmAddProcedureType.optSub_Click(ByRef Sender As RadioButton)
@@ -675,7 +676,11 @@ End Sub
 
 Private Sub frmAddProcedureType.txtParameters_Change(ByRef Sender As TextBox)
 	If cboType.ItemIndex <> 0 Then
-		If Trim(txtParameters.Text) = "" Then
+		Dim As UString Parameters = Trim(txtParameters.Text)
+		If StartsWith(Parameters, "(") AndAlso EndsWith(Parameters, ")") Then
+			Parameters = Trim(Mid(Parameters, 2, Len(Parameters) - 2))
+		End If
+		If Parameters = "" AndAlso (optConstructor.Checked OrElse optDestructor.Checked) Then
 			optProtectedAccess.Enabled = False
 			optPrivateAccess.Enabled = False
 			If optProtectedAccess.Checked Then
