@@ -3014,7 +3014,7 @@ Namespace My.Sys.Forms
 																	Else
 																		TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
 																		Pos1 = InStr(TypeName, ".")
-																		If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
+																		If (CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]")) AndAlso FECLine->InConstruction->StartLine <> z Then
 																			If Pos1 > 0 Then
 																				TypeName = ..Left(TypeName, Pos1 - 1)
 																			Else
