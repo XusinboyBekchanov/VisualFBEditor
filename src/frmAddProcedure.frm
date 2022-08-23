@@ -508,7 +508,7 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 		For i As Integer = 0 To tb->txtCode.LinesCount - 1
 			GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 			For k As Integer = iStart To iEnd
-				If (Not b) AndAlso StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "type " & LCase(sTypeName) & " ") Then
+				If (Not b) AndAlso StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "type " & LCase(sTypeName) & " ") Then
 					b = True
 				ElseIf b Then
 					If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end type ") Then
@@ -587,7 +587,7 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 	tb->txtCode.SetSelection i + q1 + 2, i + q1 + 2, 1, 1
 	tb->txtCode.TopLine = i + q1 + 1
 	tb->txtCode.SetFocus
-	OnLineChangeEdit tb->txtCode, i + q1 + 3, i + q1 + 3
+	OnLineChangeEdit tb->txtCode, i + q1 + 2, i + q1 + 2
 	This.CloseForm
 End Sub
 

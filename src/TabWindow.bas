@@ -1883,7 +1883,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 					Exit For, For
 				ElseIf BeforeCtrl AndAlso Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") = "' " & LCase(BeforeCtrlName) Then
 					BeforeCtrlLine = k
-				ElseIf BeforeCtrl AndAlso BeforeCtrlLine = 0 AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(BeforeCtrlName) & ".")) OrElse CInt(CInt(WithArgs.Count > 0) AndAlso Cint(WithArgs.Item(WithArgs.Count - 1) = BeforeCtrlName) AndAlso Cint(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
+				ElseIf BeforeCtrl AndAlso BeforeCtrlLine = 0 AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(BeforeCtrlName) & ".")) OrElse CInt(CInt(WithArgs.Count > 0) AndAlso CInt(WithArgs.Item(WithArgs.Count - 1) = BeforeCtrlName) AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
 					AfterCtrlLine = k
 				ElseIf AfterCtrl AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(AfterCtrlName) & ".")) OrElse CInt(CInt(WithArgs.Count > 0) AndAlso CInt(WithArgs.Item(WithArgs.Count - 1) = AfterCtrlName) AndAlso CInt(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "."))) Then
 					AfterCtrlLine = k
@@ -2607,7 +2607,7 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 	bNotFunctionChange = True
 	If TextChanged AndAlso tb->txtCode.SyntaxEdit Then
 		With tb->txtCode
-			If Not .Focused Then bNotFunctionChange = False: Exit Sub
+			'If Not .Focused Then bNotFunctionChange = False: Exit Sub
 			If OldLine > -1 AndAlso OldLine < .FLines.Count Then
 				Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .FLines.Items[OldLine])
 				If CInt(ecl->CommentIndex = 0) Then
@@ -2649,7 +2649,10 @@ Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVa
 					End If
 				End If
 			End If
-			tb->FormDesign bNotDesignForms OrElse tb->tbrTop.Buttons.Item(1)->Checked OrElse (CBool(OldLine < tb->ConstructorStart) AndAlso CBool(OldLine <> -1)) OrElse CBool(OldLine > tb->ConstructorEnd) 'Not EndsWith(tb->cboFunction.Text, " [Constructor]")
+			If tb->tbrTop.Buttons.Item("Code")->Checked AndAlso CBool(OldLine = -1 OrElse (OldLine >= tb->ConstructorStart AndAlso OldLine <= tb->ConstructorEnd)) Then
+				tb->FormNeedDesign = True
+			End If
+			tb->FormDesign bNotDesignForms OrElse tb->tbrTop.Buttons.Item("Code")->Checked OrElse (CBool(OldLine < tb->ConstructorStart) AndAlso CBool(OldLine <> -1)) OrElse CBool(OldLine > tb->ConstructorEnd) 'Not EndsWith(tb->cboFunction.Text, " [Constructor]")
 		End With
 		TextChanged = False
 	End If
@@ -5668,7 +5671,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			.pnlForm.Align = DockStyle.alClient
 			.pnlForm.Visible = True
 			.splForm.Visible = False
-			If .bNotDesign = False Then .FormDesign
+			If (.bNotDesign = False) AndAlso tb->FormNeedDesign Then .FormDesign: tb->FormNeedDesign = False
 			ptabLeft->SelectedTabIndex = 1
 		Case "CodeAndForm"
 			'If tb->cboClass.Items.Count < 2 Then Exit Sub
@@ -5677,7 +5680,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			.pnlForm.Visible = True
 			.splForm.Visible = True
 			.pnlCode.Visible = True
-			If .bNotDesign = False Then .FormDesign
+			If (.bNotDesign = False) AndAlso tb->FormNeedDesign Then .FormDesign: tb->FormNeedDesign = False
 			ptabLeft->SelectedTabIndex = 1
 		End Select
 		.RequestAlign
