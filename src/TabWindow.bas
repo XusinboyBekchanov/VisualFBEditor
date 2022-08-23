@@ -4417,6 +4417,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	ElseIf CInt(Key = Asc("=")) Then
+		If iSelEndLine <= 0 Then Exit Sub
 		Dim As TypeElement Ptr teEnum
 		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
 		#ifdef __USE_GTK__
