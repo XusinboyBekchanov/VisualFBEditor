@@ -3539,7 +3539,9 @@ Sub CompleteWord
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	SelLinePos = iSelEndLine
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-	Dim As String s, sTemp, sTemp2, TypeName, OldTypeName
+	If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
+	k = InStrRev(*sLine, "'")
+	If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
 	Dim As TypeElement Ptr te, te1, teOld
 	Dim As Boolean b, c, d, f
 	SelCharPos = 0
@@ -3900,6 +3902,9 @@ Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEn
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iSelStartCharFunc, iSelEndCharFunc
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+	If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
+	k = InStrRev(*sLine, "'")
+	If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
 	Dim As String sWord
 	Dim As Integer iCount, iPos
 	iSelEndCharFunc = iSelEndChar
@@ -4383,10 +4388,13 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	MouseHoverTimerVal = Timer
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iIndex
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+	If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
+	k = InStrRev(*sLine, "'")
+	If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
 	If CInt(Key = Asc(".")) OrElse CInt(Key = Asc(">")) Then
-		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
-		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		k = 1
 		If Key = Asc(">") Then
 			If Mid(*sLine, iSelEndChar - 1, 1) <> "-" Then Exit Sub
@@ -4409,10 +4417,6 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	ElseIf CInt(Key = Asc("=")) Then
-		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iIndex
-		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		If iSelEndLine <= 0 Then Exit Sub
-		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		Dim As TypeElement Ptr teEnum
 		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
 		#ifdef __USE_GTK__
@@ -4461,9 +4465,6 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) OrElse CInt(Key = Asc("?")) OrElse CInt(Key = 5)  Then
-		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
-		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		If CInt(Key = Asc(" ")) AndAlso (CInt(EndsWith(RTrim(LCase(..Left(*sLine, iSelEndChar))), " as")) OrElse _
 			CInt(EndsWith(RTrim(LCase(..Left(*sLine, iSelEndChar))), !"\tas"))OrElse _
 			CInt(RTrim(LCase(..Left(*sLine, iSelEndChar))) = "as")) Then
@@ -4495,11 +4496,9 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 				Exit Sub
 			End If
 		#endif
-		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
-		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-		Dim sTemp As String = Mid(*sLine, tb->txtCode.DropDownChar + 1, iSelEndChar + 1 - (tb->txtCode.DropDownChar + 1))
-		Static OldWord As String
+		Dim sTemp As WString * 1024
+		sTemp = Mid(*sLine, tb->txtCode.DropDownChar + 1, iSelEndChar + 1 - (tb->txtCode.DropDownChar + 1))
+		Static OldWord As WString * 200
 		If OldWord <> "" AndAlso StartsWith(sTemp, OldWord) Then Exit Sub
 		If EndsWith(RTrim(..Left(LCase(*sLine), tb->txtCode.DropDownChar)), " as") Then
 			FillTypeIntellisenses sTemp
