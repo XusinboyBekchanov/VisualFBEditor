@@ -9,7 +9,7 @@
 
 #ifdef __EXPORT_PROCS__
 	#include once "mff/List.bi"
-	Dim Shared Objects As LIST
+	Dim Shared Objects As List
 	
 	Common Shared Cpnt As Component Ptr
 	Function CreateComponent Alias "CreateComponent" (ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Component Ptr) As Component Ptr Export

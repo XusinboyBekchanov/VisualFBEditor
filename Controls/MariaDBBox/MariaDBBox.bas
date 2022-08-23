@@ -20,7 +20,7 @@ Private Function MariaDBBox.WriteProperty(PropertyName As String, Value As Any P
 End Function
 
 #ifndef __EXPORT_PROCS__
-	Function MariaDBBox.Open(ByRef DataBaseName As WString, ByRef UserName As WString, ByRef Password As WString = "", ByVal host As Const ZString Ptr = NULL, Port As ULong = MYSQL_PORT, ByVal unix_socket As Const ZString Ptr = NULL, ByVal clientflag As culong = 0) As Boolean
+	Function MariaDBBox.Open(ByRef DataBaseName As WString, ByRef UserName As WString, ByRef Password As WString = "", ByVal host As Const ZString Ptr = NULL, Port As ULong = MARIADB_PORT, ByVal unix_socket As Const ZString Ptr = NULL, ByVal clientflag As culong = 0) As Boolean
 		If FMYSQL Then mysql_close(FMYSQL)
 		FMYSQL = 0
 		If Len(DataBaseName) = 0 Then
@@ -62,14 +62,14 @@ End Function
 	Function MariaDBBox.ErrMsg() As String
 		Function = ErrStr
 	End Function
-	Function MariaDBBox.Version() As String                                             '°ж±ѕєЕ
+	Function MariaDBBox.Version() As String
 		Function = MARIADB_CLIENT_VERSION_STR
 	End Function
 	
-	Function MariaDBBox.SetKey(newkey As UString) As Boolean   'ЙиЦГГЬВлЈ¬Из№ыОЄїХЈ¬ИЎПыГЬВл
+	Function MariaDBBox.SetKey(newkey As UString) As Boolean
 		Dim m_DB As MYSQL Ptr = FMYSQL
 		If m_DB = NULL Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr)  : Return False
-		ErrStr = "" ' ОЮґнОу"
+		ErrStr = ""
 		Dim snewkey As String = ToUtf8(newkey)
 		If This.Exec("SET PASSWORD FOR 'root'@'localhost' = PASSWORD('" & newkey & "');") = 0 Then
 			ErrStr = *mysql_error(m_DB)
@@ -151,10 +151,10 @@ End Function
 		Function = nColumns
 	End Function
 	
-	Function MariaDBBox.Find(Table As UString,Cond As UString,rs() As String,Col As UString = "*",Orderby As UString = "",Page As Long = 1,Pagesize As Long = 0) As Long
+	Function MariaDBBox.Find(Table As UString, Cond As UString, rs() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
-		If m_DB = NULL    Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr)  : Return 0
-		If Len(Table) = 0 Then ErrStr = "ОЮ±нГы" :This.Event_Send(12,ErrStr)       : Return 0 ' ОЮ±нГы"
+		If m_DB = NULL    Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		If Len(Table) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
 		Dim Col_Utf8 As String = ToUtf8(Col)
 		Dim Sql_Utf8 As String = "SELECT " & Col_Utf8 & " FROM " & ToUtf8(Table)
 		
@@ -164,14 +164,12 @@ End Function
 			Dim n As Long = (Page -1) * Pagesize
 			Sql_Utf8 &= " LIMIT " & n & "," & Pagesize
 		End If
-		'   Print "Find=" & Sql_Utf8
-		
-		Function = SQLFind(Sql_Utf8,rs())
+		Function = SQLFind(Sql_Utf8, rs())
 	End Function
 	Function MariaDBBox.FindUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
-		If m_DB = NULL         Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr)  : Return 0
-		If Len(Table_Utf8) = 0 Then ErrStr = "ОЮ±нГы" : This.Event_Send(12, ErrStr)       : Return 0 ' ОЮ±нГы"
+		If m_DB = NULL         Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty" : This.Event_Send(12, ErrStr): Return 0
 		Dim Sql_Utf8 As String = "SELECT " & Col_Utf8 & " FROM " & Table_Utf8
 		
 		If Len(Cond_Utf8)    Then Sql_Utf8 &= " WHERE "    & Cond_Utf8
@@ -180,17 +178,15 @@ End Function
 			Dim n As Long = (Page -1) * Pagesize
 			Sql_Utf8 &= " LIMIT " & n & "," & Pagesize
 		End If
-		'   Print "Find=" & Sql_Utf8
-		
 		Function = SQLFind(Sql_Utf8,rs_Utf8())
 	End Function
-	Function MariaDBBox.FindByte(Table As UString,Cond As UString,rs() As String,Col As UString = "*",Orderby As UString = "",Page As Long = 1,Pagesize As Long = 0) As Long
-		Function = This.FindByteUtf(ToUtf8(Table),ToUtf8(Cond),rs(),ToUtf8(Col),ToUtf8(Orderby),Page,Pagesize)
+	Function MariaDBBox.FindByte(Table As UString, Cond As UString, rs() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
+		Function = This.FindByteUtf(ToUtf8(Table), ToUtf8(Cond), rs(), ToUtf8(Col), ToUtf8(Orderby), Page, Pagesize)
 	End Function
-	Function MariaDBBox.FindByteUtf(Table_Utf8 As String,Cond_Utf8 As String,rs_Utf8() As String,Col_Utf8 As String = "*",Orderby_Utf8 As String = "",Page As Long = 1,Pagesize As Long = 0) As Long
+	Function MariaDBBox.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
-		If m_DB = NULL         Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return 0
-		If Len(Table_Utf8) = 0 Then ErrStr = "ОЮ±нГы": This.Event_Send(12, ErrStr)        : Return 0 ' ОЮ±нГы"
+		If m_DB = NULL         Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
 		Dim Sql_Utf8 As String = "SELECT " & Col_Utf8 & " FROM " & Table_Utf8
 		If Len(Cond_Utf8)    Then Sql_Utf8 &= " WHERE "    & Cond_Utf8
 		If Len(Orderby_Utf8) Then Sql_Utf8 &= " ORDER BY " & Orderby_Utf8
@@ -250,10 +246,10 @@ End Function
 	Function MariaDBBox.FindOneByte(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "") As Long
 		Function = This.FindOneByteUtf(ToUtf8(Table),ToUtf8(Cond),rs_Utf8(),ToUtf8(Col),ToUtf8(Orderby))
 	End Function
-	Function MariaDBBox.FindOneByteUtf(Table_Utf8 As String,Cond_Utf8 As String,rs_Utf8() As String,Col_Utf8 As String = "*",Orderby_Utf8 As String = "") As Long
+	Function MariaDBBox.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
-		If m_DB = NULL         Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return 0
-		If Len(Table_Utf8) = 0 Then ErrStr = "ОЮ±нГы": This.Event_Send(12, ErrStr)        : Return 0 ' ОЮ±нГы"
+		If m_DB = NULL         Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
 		Dim Sql_Utf8 As String = "SELECT " & Col_Utf8 & " FROM " & Table_Utf8
 		If Len(Cond_Utf8)    Then Sql_Utf8 &= " WHERE "    & Cond_Utf8
 		If Len(Orderby_Utf8) Then Sql_Utf8 &= " ORDER BY " & Orderby_Utf8
@@ -309,78 +305,76 @@ End Function
 	End Function
 	
 	Function MariaDBBox.FindOne(Table As UString,Cond As UString,rs() As String,Col As UString = "*",Orderby As UString = "") As Long
-		If FMYSQL = 0 Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return 0
+		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
 		
-		If Len(Table) = 0 Then ErrStr = "ОЮ±нГы": This.Event_Send(12, ErrStr)  : Return 0 ' ОЮ±нГы"
+		If Len(Table) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
 		Dim Col_Utf8 As String = "*"
 		If Col Then Col_Utf8 = ToUtf8(Col)
 		Dim Sql_Utf8 As String = "SELECT " & Col_Utf8 & " FROM " & ToUtf8(Table)
 		If Len(Cond) > 0 Then Sql_Utf8 &= " WHERE "    & ToUtf8(Cond)
 		If Len(Orderby)  Then Sql_Utf8 &= " ORDER BY " & ToUtf8(Orderby)
 		Sql_Utf8 &= " LIMIT 1"
-		'   Print FromUTF8(Sql_Utf8)
-		Function = SQLFindOne(Sql_Utf8,rs())
+		Function = SQLFindOne(Sql_Utf8, rs())
 	End Function
 	Function MariaDBBox.FindOneUtf(Table_Utf8 As String,Cond_Utf8 As String,rs_Utf8() As String,Col_Utf8 As String = "*",Orderby_Utf8 As String = "") As Long
-		If  FMYSQL = 0  Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return 0
+		If  FMYSQL = 0  Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
 		
-		If Len(Table_Utf8) = 0 Then ErrStr = "ОЮ±нГы" : This.Event_Send(12, ErrStr) : Return 0 ' ОЮ±нГы"
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty" : This.Event_Send(12, ErrStr): Return 0
 		Dim Sql_Utf8 As String = "SELECT " & Col_Utf8 & " FROM " & Table_Utf8
 		If Len(Cond_Utf8) > 0 Then Sql_Utf8 &= " WHERE "    & Cond_Utf8
 		If Len(Orderby_Utf8)  Then Sql_Utf8 &= " ORDER BY " & Orderby_Utf8
 		Sql_Utf8 &= " LIMIT 1"
 		Function = SQLFindOne(Sql_Utf8,rs_Utf8())
 	End Function
-	Function MariaDBBox.FindOnly(Table As UString,Cond As UString,Col As UString = "*",Orderby As UString = "") As String
+	Function MariaDBBox.FindOnly(Table As UString, Cond As UString, Col As UString = "*", Orderby As UString = "") As String
 		Dim rs() As String
 		If This.FindOne(Table, Cond, rs(), Col, Orderby) Then
 			Return rs(0)
 		End If
 	End Function
-	Function MariaDBBox.FindOnlyUtf(Table_Utf8 As String,Cond_Utf8 As String,Col_Utf8 As String = "*",Orderby_Utf8 As String = "") As String
+	Function MariaDBBox.FindOnlyUtf(Table_Utf8 As String, Cond_Utf8 As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As String
 		Dim rs() As String
-		If This.FindOneUtf(Table_Utf8,Cond_Utf8,rs(),Col_Utf8,Orderby_Utf8) Then
+		If This.FindOneUtf(Table_Utf8, Cond_Utf8, rs(), Col_Utf8, Orderby_Utf8) Then
 			Return rs(0)
 		End If
 	End Function
-	Function MariaDBBox.Insert(Table As UString, nList As UString) As Long    'ІеИлТ»МхјЗВјЈ¬іЙ№¦·µ»ШІеИлµД IDЈ¬К§°Ь·µ»Ш FALSEЎЈ
-		'nList   ТЄРВФцµДБР±нЈ¬ЧЦ¶ОГы=Цµ Ј¬ИзЈє  ЧЦ¶ОГы1=1,ЧЦ¶ОГы2= 'dd'  ЧЦ·ыУГµҐТэєЕЈ¬2ёцµҐТэєЕ±нКѕ 1ёцµҐТэєЕЧЦ·ы
+	Function MariaDBBox.Insert(Table As UString, nList As UString) As Long
 		Dim Table_Utf8 As String = ToUtf8(Table)
 		Dim nList_Utf8 As String = ToUtf8(nList)
-		Function = This.InsertUtf(Table_Utf8,nList_Utf8)
+		Function = This.InsertUtf(Table_Utf8, nList_Utf8)
 	End Function
-	Function MariaDBBox.InsertUtf(Table_Utf8 As String,nList_Utf8 As String)                                       As Long    'ІеИлТ»МхјЗВјЈ¬іЙ№¦·µ»ШІеИлµД IDЈ¬К§°Ь·µ»Ш FALSEЎЈ
+	Function MariaDBBox.InsertUtf(Table_Utf8 As String, nList_Utf8 As String) As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
-		If m_DB = NULL Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return 0
-		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr)  : Return 0   ' ОЮ±нГы"
-		If Len(nList_Utf8) = 0 Then ErrStr = "List is empty": This.Event_Send(12, ErrStr)  : Return 0
+		If m_DB = NULL Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
+		If Len(nList_Utf8) = 0 Then ErrStr = "List is empty": This.Event_Send(12, ErrStr): Return 0
 		Dim zd As String = nList_Utf8, vl As String = ")VALUES(" & nList_Utf8
 		Dim i As Long, zdi As Long = 1, vli As Long = 8, zv As Long
-		zd[0] = 40 ' (
-		Dim zz As Long 'ЧЦ·ыЧґМ¬
-		For i = 0 To Len(nList_Utf8) -1
-			If zz <> 0 Then 'ЧЦ·ыЧґМ¬
-				If zv = 0 Then ErrStr = "КэѕЭіцґн":This.Event_Send(12,ErrStr)  : Return 0 ' "
+		zd[0] = 40 ' "("
+		Dim zz As Long
+		For i = 0 To Len(nList_Utf8) - 1
+			If zz <> 0 Then
+				If zv = 0 Then ErrStr = "Field name cannot contain an apostrophe": This.Event_Send(12, ErrStr): Return 0
 				If nList_Utf8[i] = 39 Then
-					zz = 0 'НЛіцЧЦ·ыЧґМ¬
+					zz = 0
 				End If
 				vl[vli] = nList_Utf8[i]
 				vli += 1
 			Else
 				Select Case nList_Utf8[i]
-				Case 39 ' µҐТэєЕ
-					zz = 1 'ЅшИлЧЦ·ыЧґМ¬
-					If zv = 0 Then ErrStr = "КэѕЭіцґн":This.Event_Send(12,ErrStr)  : Return 0   ' КэѕЭіцґн"
+				Case 39 ' "'"
+					zz = 1
+					If zv = 0 Then ErrStr = "Field name cannot contain an apostrophe": This.Event_Send(12, ErrStr): Return 0
 					vl[vli] = nList_Utf8[i]
 					vli += 1
-				Case 44 ',
-					zv = 0 'ЅшИлПВТ»ЧЦ¶О
+				Case 44 ' ","
+					zv = 0
 					zd[zdi] = 44
 					zdi += 1
 					vl[vli] = 44
 					vli += 1
-				Case 61 ' =
-					zv = 1 'ЅшИлЦµДЈКЅ
+				Case 61 ' "="
+					zv = 1
 				Case Else
 					If zv = 0 Then
 						zd[zdi] = nList_Utf8[i]
@@ -392,12 +386,12 @@ End Function
 				End Select
 			End If
 		Next
-		vl[vli] = 41 ' )
+		vl[vli] = 41 ' ")"
 		vli += 1
 		Dim Sql_Utf8 As String = "INSERT INTO " & Table_Utf8 & ..Left(zd, zdi) & ..Left(vl, vli)
 		
-		If This.Exec(Sql_Utf8 ) = -1 Then
-			ErrStr = "КэѕЭіцґн" :This.Event_Send(12,ErrStr) ' КэѕЭіцґн"
+		If This.Exec(Sql_Utf8) = -1 Then
+			ErrStr = "Request failed": This.Event_Send(12, ErrStr)
 			Return 0
 		End If
 		'Function = MYSQL_last_insert_rowid(m_DB)
@@ -422,35 +416,35 @@ End Function
 		End If
 		Function = mysql_affected_rows(m_DB)
 	End Function
-	Function MariaDBBox.AddItem(Table As UString,nList As UString) As Long   'РВФцТ»МхјЗВј(Улinsert()ПаН¬)Ј¬іЙ№¦·µ»ШІеИлµД ID
-		Function = This.Insert(Table,nList)
+	Function MariaDBBox.AddItem(Table As UString, nList As UString) As Long
+		Function = This.Insert(Table, nList)
 	End Function
-	Function MariaDBBox.AddItemUtf(Table_Utf8 As String,nList_Utf8 As String) As Long   'РВФцТ»МхјЗВј(Улinsert()ПаН¬)Ј¬іЙ№¦·µ»ШІеИлµД ID
-		Function = This.InsertUtf(Table_Utf8,nList_Utf8)
+	Function MariaDBBox.AddItemUtf(Table_Utf8 As String, nList_Utf8 As String) As Long
+		Function = This.InsertUtf(Table_Utf8, nList_Utf8)
 	End Function
-	Function MariaDBBox.Update(Table As UString,Cond As UString,upList As UString) As Long    'ёьРВјЗВјЈ¬іЙ№¦·µ»ШКЬУ°ПмµДРРКэЈ¬К§°Ь·µ»Ш -1ЎЈ
+	Function MariaDBBox.Update(Table As UString, Cond As UString, upList As UString) As Long
 		Dim Table_Utf8  As String = ToUtf8(Table)
 		Dim Cond_Utf8   As String = ToUtf8(Cond)
 		Dim upList_Utf8 As String = ToUtf8(upList)
-		Function = This.UpdateUtf(Table_Utf8,Cond_Utf8,upList_Utf8)
+		Function = This.UpdateUtf(Table_Utf8, Cond_Utf8, upList_Utf8)
 	End Function
-	Function MariaDBBox.UpdateUtf(Table_Utf8 As String,Cond_Utf8 As String,upList_Utf8 As String) As Long 'ёьРВјЗВјЈ¬іЙ№¦·µ»ШКЬУ°ПмµДРРКэЈ¬К§°Ь·µ»Ш -1ЎЈ
-		If FMYSQL = 0   Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return -1
-		If Len(Table_Utf8) = 0  Then ErrStr = "ОЮ±нГы" :This.Event_Send(12,ErrStr)       : Return -1 ' ОЮ±нГы"
-		If Len(Cond_Utf8) = 0   Then ErrStr = "ОЮМхјю" : This.Event_Send(12, ErrStr)       : Return -1 ' "
-		If Len(upList_Utf8) = 0 Then ErrStr = "ОЮДЪИЭ" :This.Event_Send(12,ErrStr)       : Return -1 ' "
+	Function MariaDBBox.UpdateUtf(Table_Utf8 As String, Cond_Utf8 As String, upList_Utf8 As String) As Long
+		If FMYSQL = 0   Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return -1
+		If Len(Table_Utf8) = 0  Then ErrStr = "Table name is empty" : This.Event_Send(12, ErrStr): Return -1
+		If Len(Cond_Utf8) = 0   Then ErrStr = "Condition is empty" : This.Event_Send(12, ErrStr): Return -1
+		If Len(upList_Utf8) = 0 Then ErrStr = "List is empty" : This.Event_Send(12, ErrStr): Return -1
 		Dim Sql_Utf8 As String = "UPDATE " & Table_Utf8 & " SET " & upList_Utf8 & " WHERE " & Cond_Utf8
 		Function = This.Exec(Sql_Utf8)
 	End Function
-	Function MariaDBBox.UpdateByte(Table As UString, Cond As UString, ColName As UString, nByte As Any Ptr, nLen As Long) As Long    'РґИл2ЅшЦЖКэѕЭЈ¬іЙ№¦·µ»ШКЬУ°ПмµДРРКэЈ¬К§°Ь·µ»Ш -1ЎЈ
-		Function = This.UpdateByteUtf(ToUtf8(Table),ToUtf8(Cond),ToUtf8(ColName),nByte,nLen)
+	Function MariaDBBox.UpdateByte(Table As UString, Cond As UString, ColName As UString, nByte As Any Ptr, nLen As Long) As Long
+		Function = This.UpdateByteUtf(ToUtf8(Table), ToUtf8(Cond), ToUtf8(ColName), nByte, nLen)
 	End Function
-	Function MariaDBBox.UpdateByteUtf(Table_Utf8 As String,Cond_Utf8 As String,ColName_Utf8 As String,nByte As Any Ptr,nLen As Long) As Long 'РґИл2ЅшЦЖКэѕЭЈ¬іЙ№¦·µ»ШКЬУ°ПмµДРРКэЈ¬К§°Ь·µ»Ш -1ЎЈ
+	Function MariaDBBox.UpdateByteUtf(Table_Utf8 As String, Cond_Utf8 As String, ColName_Utf8 As String, nByte As Any Ptr, nLen As Long) As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
-		If m_DB = NULL           Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return -1
-		If Len(Table_Utf8) = 0   Then ErrStr = "ОЮ±нГы"  : This.Event_Send(12, ErrStr)      : Return -1 ' ОЮ±нГы"
-		If Len(Cond_Utf8) = 0    Then ErrStr = "ОЮМхјю"  :This.Event_Send(12,ErrStr)      : Return -1 ' "
-		If Len(ColName_Utf8) = 0 Then ErrStr = "ОЮЧЦ¶ОГы" :This.Event_Send(12,ErrStr)     : Return -1 ' ОЮЧЦ¶ОГы"
+		If m_DB = NULL           Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return -1
+		If Len(Table_Utf8) = 0   Then ErrStr = "Table name is empty"  : This.Event_Send(12, ErrStr): Return -1
+		If Len(Cond_Utf8) = 0    Then ErrStr = "Condition is empty"  : This.Event_Send(12, ErrStr): Return -1
+		If Len(ColName_Utf8) = 0 Then ErrStr = "List is empty" : This.Event_Send(12, ErrStr): Return -1
 		Dim Sql_Utf8 As String = "UPDATE " & Table_Utf8 & " SET " & ColName_Utf8 & "=? WHERE " & Cond_Utf8
 		Dim ppStmt As MYSQL_STMT Ptr = mysql_stmt_init(FMYSQL)
 		If ppStmt = 0 Then
@@ -481,21 +475,21 @@ End Function
 		Function  = 0
 	End Function
 	
-	Function MariaDBBox.UpdateText(Table As UString,Cond As UString,ColName As UString,Text_Utf8 As String) As Long
-		Function = This.UpdateTextUtf(ToUtf8(Table),ToUtf8(Cond),ToUtf8(ColName),Text_Utf8)
+	Function MariaDBBox.UpdateText(Table As UString, Cond As UString, ColName As UString, Text_Utf8 As String) As Long
+		Function = This.UpdateTextUtf(ToUtf8(Table), ToUtf8(Cond), ToUtf8(ColName), Text_Utf8)
 	End Function
 	
-	Function MariaDBBox.UpdateTextUtf(Table_Utf8 As String,Cond_Utf8 As String,ColName_Utf8 As String,Text_Utf8 As String) As Long
+	Function MariaDBBox.UpdateTextUtf(Table_Utf8 As String, Cond_Utf8 As String, ColName_Utf8 As String, Text_Utf8 As String) As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
-		If m_DB = NULL           Then ErrStr = "Base not opened" :This.Event_Send(12,ErrStr) : Return -1
-		If Len(Table_Utf8) = 0   Then ErrStr = "ОЮ±нГы" : This.Event_Send(12, ErrStr)       : Return -1 ' ОЮ±нГы"
-		If Len(Cond_Utf8) = 0    Then ErrStr = "ОЮМхјю"  :This.Event_Send(12,ErrStr)      : Return -1 ' "
-		If Len(ColName_Utf8) = 0 Then ErrStr = "ОЮЧЦ¶ОГы" :This.Event_Send(12,ErrStr)     : Return -1 ' ОЮЧЦ¶ОГы"
+		If m_DB = NULL           Then ErrStr = "Base not opened" : This.Event_Send(12, ErrStr): Return -1
+		If Len(Table_Utf8) = 0   Then ErrStr = "Table name is empty" : This.Event_Send(12, ErrStr): Return -1
+		If Len(Cond_Utf8) = 0    Then ErrStr = "Condition is empty"  : This.Event_Send(12, ErrStr): Return -1
+		If Len(ColName_Utf8) = 0 Then ErrStr = "Column name is empty" : This.Event_Send(12, ErrStr): Return -1
 		Dim Sql_Utf8 As String = "UPDATE " & Table_Utf8 & " SET " & ColName_Utf8 & "=? WHERE " & Cond_Utf8
 		Dim ppStmt As MYSQL_STMT Ptr = mysql_stmt_init(FMYSQL)
 		If ppStmt = 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
+			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
 			Return -1
 		End If
 		Dim rr     As Long = mysql_stmt_prepare(ppStmt, StrPtr(Sql_Utf8), -1)
@@ -523,42 +517,40 @@ End Function
 		Function  = 0
 	End Function
 	
-	Function MariaDBBox.DeleteItem(Table As UString, Cond As UString) As Long    'ЙѕіэјЗВјЈ¬іЙ№¦·µ»ШКЬУ°ПмµДРРКэЈ¬К§°Ь·µ»Ш -1ЎЈ
-		Function = This.DeleteItemUtf(ToUtf8(Table),ToUtf8(Cond))
+	Function MariaDBBox.DeleteItem(Table As UString, Cond As UString) As Long
+		Function = This.DeleteItemUtf(ToUtf8(Table), ToUtf8(Cond))
 	End Function
 	
 	Function MariaDBBox.DeleteItemUtf(Table_Utf8 As String,Cond_Utf8 As String) As Long
-		If FMYSQL = 0  Then ErrStr = "Base not opened" :This.Event_Send(12,ErrStr) : Return -1
-		If Len(Table_Utf8) = 0 Then ErrStr = "ОЮ±нГы" : This.Event_Send(12, ErrStr)       : Return -1 ' ОЮ±нГы"
-		If Len(Cond_Utf8) = 0  Then ErrStr = "ОЮМхјю" : This.Event_Send(12, ErrStr)       : Return -1 ' "
+		If FMYSQL = 0  Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return -1
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return -1
+		If Len(Cond_Utf8) = 0  Then ErrStr = "Condition is empty": This.Event_Send(12, ErrStr): Return -1
 		Dim Sql_Utf8 As String = "DELETE FROM  " & Table_Utf8 & " WHERE " & Cond_Utf8
 		Function = This.Exec(Sql_Utf8)
-		'("DELETE FROM test WHERE name='Jerry'")
-		'("DELETE FROM test WHERE id IN('003','005'")
 	End Function
-	Function MariaDBBox.Count(Table As UString,Cond As UString = "") As Long '
-		Function = This.CountUtf(ToUtf8(Table),ToUtf8(Cond))
+	Function MariaDBBox.Count(Table As UString, Cond As UString = "") As Long
+		Function = This.CountUtf(ToUtf8(Table), ToUtf8(Cond))
 	End Function
-	Function MariaDBBox.CountUtf(Table_Utf8 As String,Cond_Utf8 As String = "") As Long
-		If FMYSQL = 0  Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return 0
-		If Len(Table_Utf8) = 0 Then ErrStr = "ОЮ±нГы"    :This.Event_Send(12,ErrStr)    : Return 0 ' ОЮ±нГы"
+	Function MariaDBBox.CountUtf(Table_Utf8 As String, Cond_Utf8 As String = "") As Long
+		If FMYSQL = 0  Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
 		Dim Sql_Utf8 As String = "SELECT count(*) As mcount FROM " & Table_Utf8
 		If Len(Cond_Utf8) > 0 Then Sql_Utf8 &= " WHERE " & Cond_Utf8
 		Dim rs_Utf8() As String
 		EventsEn = 1
-		If This.SQLFindOne(Sql_Utf8,rs_Utf8()) = 0 Then
+		If This.SQLFindOne(Sql_Utf8, rs_Utf8()) = 0 Then
 			Function = 0
 		Else
 			Function = ValInt(rs_Utf8(0))
 		End If
 		EventsEn = 0
 	End Function
-	Function MariaDBBox.Sum(Table As UString,Cond As UString,ColName As UString) As LongInt
-		Function = This.SumUtf(ToUtf8(Table),ToUtf8(Cond),ToUtf8(ColName))
+	Function MariaDBBox.Sum(Table As UString, Cond As UString, ColName As UString) As LongInt
+		Function = This.SumUtf(ToUtf8(Table), ToUtf8(Cond), ToUtf8(ColName))
 	End Function
-	Function MariaDBBox.SumUtf(Table_Utf8 As String,Cond_Utf8 As String,ColName_Utf8 As String) As LongInt
-		If FMYSQL = 0  Then ErrStr = "Base not opened" :This.Event_Send(12,ErrStr) : Return 0
-		If Len(Table_Utf8) = 0 Then ErrStr = "ОЮ±нГы"    :This.Event_Send(12,ErrStr)    : Return 0 ' ОЮ±нГы"
+	Function MariaDBBox.SumUtf(Table_Utf8 As String, Cond_Utf8 As String, ColName_Utf8 As String) As LongInt
+		If FMYSQL = 0  Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
 		Dim Sql_Utf8 As String = "SELECT sum(" & ColName_Utf8 & ") As mcount FROM " & Table_Utf8
 		If Len(Cond_Utf8) > 0 Then Sql_Utf8 &= " WHERE " & Cond_Utf8
 		Dim rs_Utf8() As String
@@ -566,17 +558,17 @@ End Function
 		If This.SQLFindOne(Sql_Utf8,rs_Utf8()) = 0 Then
 			Function = 0
 		Else
-			Function = ValLng (rs_Utf8(0))
+			Function = ValLng(rs_Utf8(0))
 		End If
 		EventsEn = 0
 	End Function
-	Function MariaDBBox.INIGetKey(lSection As UString,lKeyName As UString,lDefault As UString = "") As UString '¶БИЎЕдЦГЈ¬УГКэѕЭїв±ЈґжИнјюЕдЦГЈ¬АаЛЖINIОДјю¶БИЎЕдЦГЦµЎЈ
+	Function MariaDBBox.INIGetKey(lSection As UString, lKeyName As UString, lDefault As UString = "") As UString
 		If FMYSQL = 0 Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return ""
-		Dim rs_Utf8() As String,ot As UString,Sql_Utf8 As String
+		Dim rs_Utf8() As String, ot As UString, Sql_Utf8 As String
 		If Len(lSection) = 0 Then Return lDefault
 		If Len(lKeyName) = 0 Then Return lDefault
 		Dim tlKeyName As String = Replace(ToUtf8(lKeyName), "'", "''")
-		Sql_Utf8 = ToUtf8("SELECT [Цµ] FROM [") & ToUtf8(lSection) & ToUtf8("] WHERE [ПоДї]='") & tlKeyName & "' LIMIT 1"
+		Sql_Utf8 = ToUtf8("SELECT [Value] FROM [") & ToUtf8(lSection) & ToUtf8("] WHERE [Key]='") & tlKeyName & "' LIMIT 1"
 		EventsEn = 1
 		If This.SQLFindOne(Sql_Utf8,rs_Utf8()) > 0 Then
 			ot = FromUtf8(rs_Utf8(0))
@@ -589,9 +581,9 @@ End Function
 		End If
 		
 	End Function
-	Function MariaDBBox.INISetKey(lSection As UString,lKeyName As UString,nValue As UString) As Boolean 'РґЕдЦГЈ¬УГКэѕЭїв±ЈґжИнјюЕдЦГЈ¬АаЛЖINIОДјю±ЈґжЕдЦГЦµ іЙ№¦·µ»Ш·З0 Ј¬К§°Ь·µ»Ш FALSEЎЈ
-		If FMYSQL = 0 Then ErrStr = "Base not opened" :This.Event_Send(12,ErrStr) : Return False
-		Dim rs_Utf8() As String,Sql_Utf8 As String
+	Function MariaDBBox.INISetKey(lSection As UString, lKeyName As UString, nValue As UString) As Boolean
+		If FMYSQL = 0 Then ErrStr = "Base not opened" : This.Event_Send(12, ErrStr): Return False
+		Dim rs_Utf8() As String, Sql_Utf8 As String
 		If Len(lSection) = 0 Then Return False
 		If Len(lKeyName) = 0 Then Return False
 		Dim lSection_utf8 As String = ToUtf8(lSection)
@@ -599,92 +591,84 @@ End Function
 		Dim tnValue   As String
 		If Len(nValue) Then tnValue = Replace(ToUtf8(nValue), "'", "''")
 		
-		'ЕР¶ПµД±нГыКЗІ»КЗґжФЪ ---------
-		'select * from sqlite_master where name='ІОКэ'
 		Sql_Utf8 = "select * from sqlite_master where name='" & lSection_utf8 & "'"
 		EventsEn = 1
-		If This.SQLFindOne(Sql_Utf8,rs_Utf8()) <= 0 Then '±нІ»ґжФЪЈ¬ґґФмёц±н
-			'CREATE TABLE [ІОКэ] (ID INTEGER PRIMARY KEY AUTOINCREMENT,[ПоДї] TEXT NOT NULL,[Цµ] TEXT NOT NULL)
-			Sql_Utf8 = "CREATE TABLE [" & lSection_utf8 & ToUtf8("] (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,[ПоДї] TEXT NOT NULL,[Цµ] TEXT NOT NULL) ")
+		If This.SQLFindOne(Sql_Utf8, rs_Utf8()) <= 0 Then
+			Sql_Utf8 = "CREATE TABLE [" & lSection_utf8 & ToUtf8("] (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,[Key] TEXT NOT NULL,[Value] TEXT NOT NULL) ")
 			This.Exec(Sql_Utf8)
 		End If
-		'ЕР¶ПµДПоДїКЗІ»КЗґжФЪ ---------
-		Sql_Utf8 = "SELECT [ID] FROM [" & lSection_utf8 & ToUtf8("] WHERE [ПоДї]='") & tlKeyName & "' LIMIT 1"
-		If This.SQLFindOne(Sql_Utf8,rs_Utf8()) <= 0 Then 'І»ґжФЪЈ¬
-			'INSERT INTO [ІОКэ]([ПоДї],[Цµ]) VALUES('µҐО»','ОЄ¶шИЛ')
-			Sql_Utf8 = "INSERT INTO [" & lSection_utf8 & ToUtf8("]([ПоДї],[Цµ]) VALUES('") & tlKeyName & "','" & tnValue & "')"
+		Sql_Utf8 = "SELECT [ID] FROM [" & lSection_utf8 & ToUtf8("] WHERE [Key]='") & tlKeyName & "' LIMIT 1"
+		If This.SQLFindOne(Sql_Utf8, rs_Utf8()) <= 0 Then
+			Sql_Utf8 = "INSERT INTO [" & lSection_utf8 & ToUtf8("]([Key],[Value]) VALUES('") & tlKeyName & "','" & tnValue & "')"
 		Else
 			If tnValue = "" Then
 				Sql_Utf8 = "DELETE FROM [" & lSection_utf8 & "] WHERE ID=" & rs_Utf8(0)
 			Else
-				'UPDATE [ІОКэ] SET [Цµ]='"µДОпЖ·' WHERE ID=1
-				Sql_Utf8 = "UPDATE [" & lSection_utf8 & ToUtf8("] SET [Цµ]='") & tnValue & "' WHERE ID=" & rs_Utf8(0)
+				Sql_Utf8 = "UPDATE [" & lSection_utf8 & ToUtf8("] SET [Value]='") & tnValue & "' WHERE ID=" & rs_Utf8(0)
 			End If
 		End If
 		EventsEn = 0
 		Function = This.Exec(Sql_Utf8)
 		
 	End Function
-	Function MariaDBBox.MaxID(Table As UString,nField As UString,Cond As UString = "") As Long 'ІйХТ±нЦРДіБРЧоґуЦµЈ¬іЙ№¦·µ»ШЧоґуЦµЈ¬К§°Ь·µ»Ш FALSEЎЈ
-		Function = This.MaxIDUtf(ToUtf8(Table),ToUtf8(nField),ToUtf8(Cond))
+	Function MariaDBBox.MaxID(Table As UString, nField As UString, Cond As UString = "") As Long
+		Function = This.MaxIDUtf(ToUtf8(Table), ToUtf8(nField), ToUtf8(Cond))
 	End Function
-	Function MariaDBBox.MaxIDUtf(Table_Utf8 As String,nField_Utf8 As String,Cond_Utf8 As String = "") As Long
-		If FMYSQL = 0 Then ErrStr = "Base not opened" :This.Event_Send(12,ErrStr) : Return False
+	Function MariaDBBox.MaxIDUtf(Table_Utf8 As String, nField_Utf8 As String, Cond_Utf8 As String = "") As Long
+		If FMYSQL = 0 Then ErrStr = "Base not opened" : This.Event_Send(12, ErrStr): Return False
 		Dim rs_Utf8() As String
-		If Len(Table_Utf8) = 0  Then ErrStr = "ОЮ±нГы": This.Event_Send(12, ErrStr)  : Return 0 ' ОЮ±нГы"
-		If Len(nField_Utf8) = 0 Then ErrStr = "ОЮЧЦ¶О" :This.Event_Send(12,ErrStr) : Return 0 ' "
+		If Len(Table_Utf8) = 0  Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
+		If Len(nField_Utf8) = 0 Then ErrStr = "ОЮЧЦ¶О" : This.Event_Send(12, ErrStr): Return 0
 		Dim Sql_Utf8 As String = "SELECT MAX(" & nField_Utf8 & ") As mid FROM " & Table_Utf8
 		If Len(Cond_Utf8) > 0 Then Sql_Utf8 &= " WHERE " & Cond_Utf8
 		EventsEn = 1
-		If This.SQLFindOne(Sql_Utf8,rs_Utf8()) = 0 Then Return 0
+		If This.SQLFindOne(Sql_Utf8, rs_Utf8()) = 0 Then Return 0
 		EventsEn = 0
 		Function = ValInt(rs_Utf8(0))
 	End Function
 	
-	Sub MariaDBBox.TransactionBegin() 'КВОсїЄКјЈЁУГУЪЕъБїЦґРРSQLЈ¬МбёЯSQLР§ВКЈ©
-		If FMYSQL = 0 Then ErrStr = "Base not opened" :This.Event_Send(12,ErrStr) : Return
+	Sub MariaDBBox.TransactionBegin()
+		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return
 		Transaction = 1
 		This.Exec("BEGIN TRANSACTION")
 	End Sub
-	Function MariaDBBox.TransactionEnd() As Long 'КВОсЦґРРІўЗТЅбКш
-		If FMYSQL = 0 Then ErrStr = "Base not opened" :This.Event_Send(12,ErrStr) : Return 0
-		'This.Exec("COMMIT TRANSACTION") ' ЦґРРКВОс
-		This.Exec("END TRANSACTION")    ' ЅбКшКВОс
-		Function    = Transaction -3
+	Function MariaDBBox.TransactionEnd() As Long
+		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		This.Exec("END TRANSACTION")
+		Function = Transaction - 3
 		Transaction = 0
 	End Function
-	Function MariaDBBox.CreateTable(Table As UString) As Long 'ґґЅЁ1ХЕ±нЈЁД¬ИПМнјУ ID ЦчјьЧЦ¶ОЈ©
+	Function MariaDBBox.CreateTable(Table As UString) As Long
 		Function = This.CreateTableUtf(ToUtf8(Table))
 	End Function
 	Function MariaDBBox.CreateTableUtf(Table_Utf8 As String) As Long
-		If FMYSQL = 0  Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return -1
-		If Len(Table_Utf8) = 0 Then ErrStr = "ОЮ±нГы"   :This.Event_Send(12,ErrStr)     : Return -1 ' ОЮ±нГы"
+		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return -1
+		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return -1
 		Dim Sql_Utf8 As String = "CREATE TABLE " & Table_Utf8 & " (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL )"
 		Function = This.Exec(Sql_Utf8)
 	End Function
-	Function MariaDBBox.AddField(Table As UString,nField As UString,nType As UString,default As UString = "",nNull As Boolean = 0) As Long 'РВФцЧЦ¶О
-		If FMYSQL = 0 Then ErrStr = "Base not opened":This.Event_Send(12,ErrStr)  : Return -1
-		If Len(Table) = 0     Then ErrStr = "ОЮ±нГы"  :This.Event_Send(12,ErrStr)      : Return -1 ' ОЮ±нГы"
-		If Len(nField) = 0    Then ErrStr = "ОЮЧЦ¶ОГы" : This.Event_Send(12, ErrStr)     : Return -1 ' ОЮЧЦ¶ОГы"
-		If Len(nType) = 0     Then ErrStr = "ОЮАаРНГы" :This.Event_Send(12,ErrStr)     : Return -1 ' "
+	Function MariaDBBox.AddField(Table As UString, nField As UString, nType As UString, default As UString = "", nNull As Boolean = 0) As Long
+		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return -1
+		If Len(Table) = 0     Then ErrStr = "Table name is empty"  : This.Event_Send(12, ErrStr): Return -1
+		If Len(nField) = 0    Then ErrStr = "Column name is empty" : This.Event_Send(12, ErrStr): Return -1
+		If Len(nType) = 0     Then ErrStr = "Type is empty": This.Event_Send(12, ErrStr): Return -1 ' "
 		Dim Sql_Utf8 As String = "ALTER TABLE " & ToUtf8(Table) & " ADD " & ToUtf8(nField) & " " & ToUtf8(nType)
 		Dim tdefault As String
-		If Len(default) > 0 AndAlso Len(nType) > 0 Then tdefault = Replace(ToUtf8(default),"'","''")
+		If Len(default) > 0 AndAlso Len(nType) > 0 Then tdefault = Replace(ToUtf8(default), "'", "''")
 		If Len(tdefault) > 0 Then Sql_Utf8                       &= " DEFAULT " & tdefault
 		If nNull = 0         Then Sql_Utf8                       &= " NOT NULL "
-		'Print Sql_Utf8
 		Function = This.Exec(Sql_Utf8)
 	End Function
-	Function MariaDBBox.Vacuum() As Long   '¶ФКэѕЭївОДјюЦШРВХыАнЈ¬јхЙЩОДјюіЯґзЈ¬±ЬГвКэѕЭУ·ЦЧЈ¬У°ПмР§ВКЎЈК§°Ь·µ»Ш -1
+	Function MariaDBBox.Vacuum() As Long
 		Function = This.Exec("VACUUM")
 	End Function
-	Function MariaDBBox.CreateIndex(Table As UString,IndexName As UString,FieldList As UString,Unique As Boolean = 0)As Long  'ґґЅЁЛчТэЈ¬ЛчТэМбёЯІйСЇЛЩ¶И·ЗіЈГчПФЈ¬Н¬К±ЅµµНБЛёьРВУлІеИлКэѕЭЛЩ¶ИЎЈ К§°Ь·µ»Ш -1
-		Function = This.CreateIndexUtf(ToUtf8(Table),ToUtf8(IndexName),ToUtf8(FieldList),Unique)
+	Function MariaDBBox.CreateIndex(Table As UString, IndexName As UString, FieldList As UString, Unique As Boolean = 0) As Long
+		Function = This.CreateIndexUtf(ToUtf8(Table), ToUtf8(IndexName), ToUtf8(FieldList), Unique)
 	End Function
-	Function MariaDBBox.CreateIndexUtf(Table_Utf8 As String,IndexName_Utf8 As String,FieldList_Utf8 As String,Unique As Boolean = 0) As Long 'ґґЅЁЛчТэЈ¬ЛчТэМбёЯІйСЇЛЩ¶И·ЗіЈГчПФЈ¬Н¬К±ЅµµНБЛёьРВУлІеИлКэѕЭЛЩ¶ИЎЈ К§°Ь·µ»Ш -1
-		If FMYSQL = 0      Then ErrStr = "Base not opened" :This.Event_Send(12,ErrStr) : Return -1
-		If Len(Table_Utf8) = 0     Then ErrStr = "ОЮ±нГы"   :This.Event_Send(12,ErrStr)     : Return -1 ' ОЮ±нГы"
-		If Len(FieldList_Utf8) = 0 Then ErrStr = "ОЮЧЦ¶ОГы" : This.Event_Send(12, ErrStr)     : Return -1 ' ОЮЧЦ¶ОГы"
+	Function MariaDBBox.CreateIndexUtf(Table_Utf8 As String, IndexName_Utf8 As String, FieldList_Utf8 As String, Unique As Boolean = 0) As Long
+		If FMYSQL = 0      Then ErrStr = "Base not opened" : This.Event_Send(12, ErrStr): Return -1
+		If Len(Table_Utf8) = 0     Then ErrStr = "Table name is empty"   : This.Event_Send(12, ErrStr): Return -1
+		If Len(FieldList_Utf8) = 0 Then ErrStr = "Column name is empty" : This.Event_Send(12, ErrStr): Return -1
 		Dim Sql_Utf8 As String
 		If Unique Then
 			Sql_Utf8 = "CREATE UNIQUE INDEX "
