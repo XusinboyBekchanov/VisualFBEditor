@@ -2252,6 +2252,7 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 			End If
 		Next
 	Next
+	FormDesign True
 End Sub
 
 Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
@@ -3554,14 +3555,14 @@ Sub CompleteWord
 			Exit For
 		ElseIf s = "." Then
 			b = True
-			TypeName = GetLeftArgTypeName(tb, iSelEndLine, i - 1, te, teOld)
+			TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, i - 1, te, teOld)
 			SelCharPos = i
 			Exit For
 		ElseIf s = ">" Then
 			c = True
 			SelCharPos = i
 		ElseIf CInt(c) AndAlso CInt(s = "-") Then
-			TypeName = GetLeftArgTypeName(tb, iSelEndLine, i - 1, te, teOld, OldTypeName)
+			TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, i - 1, te, teOld, OldTypeName)
 			b = True
 			Exit For
 		ElseIf s = Chr(34) Then
@@ -3579,7 +3580,7 @@ Sub CompleteWord
 	'			TypeName = teOld->TypeName
 	'		End If
 	If TypeName = "" AndAlso teOld <> 0 AndAlso teOld->Value <> "" Then
-		TypeName = GetTypeFromValue(tb, teOld->Value)
+		TypeName = tb->txtCode.GetTypeFromValue(teOld->Value, SelLinePos)
 	End If
 	If TypeName <> "" Then
 		FillIntellisenseByName sTemp, TypeName
@@ -3642,7 +3643,7 @@ Private Function GetFuncStartChar(sLine As WString Ptr, iSelEndChar As Integer, 
 		End If
 	Next
 	iSelEndCharFunc = iSelEndChar
-	For i As Integer = iSelEndChar + 1 To 1 Step -1
+	For i As Integer = iSelEndChar To 1 Step -1
 		Symb = Mid(b, i, 1)
 		If bStartedFunc Then
 			If (Not IsArg(Asc(Symb))) AndAlso (Symb <> "?") Then
@@ -3920,7 +3921,7 @@ Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEn
 	Dim As TypeElement Ptr te, teOld
 	Dim As String TypeName
 	If sWord = "" Then Exit Sub
-	TypeName = GetLeftArgTypeName(tb, iSelEndLine, iSelEndCharFunc - 1, te, teOld)
+	TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld)
 	Dim Parameters As UString = GetParameters(sWord, te, teOld)
 	If Parameters <> "" Then
 		tb->txtCode.HintWord = sWord
@@ -4009,38 +4010,38 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 	End If
 End Sub
 
-Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer) As String
-	If tb = 0 Then Return ""
-	Dim As String sTemp
-	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-	Dim j As Integer
-	For i As Integer = iSelEndChar To 1 Step -1
-		If IsArg(Asc(Mid(*sLine, i, 1))) Then sTemp = Mid(*sLine, i, 1) & sTemp Else Exit For
-	Next
-	If sTemp = "" Then
-		Var WithCount = 1
-		Dim As EditControlLine Ptr ECLine
-		For i As Integer = iSelEndLine To 0 Step -1
-			ECLine = tb->txtCode.FLines.Items[i]
-			If ECLine->ConstructionIndex > 12 Then
-				Return ""
-			ElseIf ECLine->ConstructionIndex = 10 Then
-				If ECLine->ConstructionPart = 2 Then
-					WithCount += 1
-				ElseIf ECLine->ConstructionPart = 0 Then
-					WithCount -= 1
-					If WithCount < 0 Then
-						Return ""
-					ElseIf WithCount = 0 Then
-						sTemp = Trim(Mid(Trim(*ECLine->Text, Any !"\t "), 5), Any !"\t ")
-						Exit For
-					End If
-				End If
-			End If
-		Next
-	End If
-	Return sTemp
-End Function
+'Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer) As String
+'	If tb = 0 Then Return ""
+'	Dim As String sTemp
+'	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+'	Dim j As Integer
+'	For i As Integer = iSelEndChar To 1 Step -1
+'		If IsArg(Asc(Mid(*sLine, i, 1))) Then sTemp = Mid(*sLine, i, 1) & sTemp Else Exit For
+'	Next
+'	If sTemp = "" Then
+'		Var WithCount = 1
+'		Dim As EditControlLine Ptr ECLine
+'		For i As Integer = iSelEndLine To 0 Step -1
+'			ECLine = tb->txtCode.FLines.Items[i]
+'			If ECLine->ConstructionIndex > 12 Then
+'				Return ""
+'			ElseIf ECLine->ConstructionIndex = 10 Then
+'				If ECLine->ConstructionPart = 2 Then
+'					WithCount += 1
+'				ElseIf ECLine->ConstructionPart = 0 Then
+'					WithCount -= 1
+'					If WithCount < 0 Then
+'						Return ""
+'					ElseIf WithCount = 0 Then
+'						sTemp = Trim(Mid(Trim(*ECLine->Text, Any !"\t "), 5), Any !"\t ")
+'						Exit For
+'					End If
+'				End If
+'			End If
+'		Next
+'	End If
+'	Return sTemp
+'End Function
 
 Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As String
 	Dim As String ch, Text
@@ -4063,317 +4064,317 @@ Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As Str
 	Return Text
 End Function
 
-Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
-	If tb = 0 OrElse Value= "" Then Return ""
-	Dim As String sTemp
-	If StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(") Then
-		Var Pos1 = InStr(Value, "(")
-		Var Pos2 = InStr(Value, ",")
-		If Pos2 > 0 Then
-			sTemp = WithoutPointers(Trim(Mid(Value, Pos1 + 1, Pos2 - Pos1 - 1)))
-		End If
-	Else
-		Dim As String TypeName
-		Dim As Integer j, iCount
-		Dim As String ch
-		Dim As Boolean b
-		For i As Integer = Len(Value) To 1 Step -1
-			ch = Mid(Value, i, 1)
-			If ch = ")" Then
-				iCount += 1
-				b = True
-			ElseIf b AndAlso ch = "(" Then
-				iCount -= 1
-				If iCount = 0 Then b = False
-			ElseIf Not b Then
-				If IsArg(Asc(ch)) Then
-					sTemp = ch & sTemp
-				ElseIf sTemp <> "" Then
-					If ch = "." Then
-						TypeName = GetTypeFromValue(tb, ..Left(Value, i - 1))
-					ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(Value, i - 1, 1) = "-" Then
-						TypeName = GetTypeFromValue(tb, ..Left(Value, i - 2))
-					End If
-					Exit For
-				Else
-					Exit For
-				End If
-			End If
-		Next
-		If tb->Des Then
-			Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
-			If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
-				If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des->DesignControl) AndAlso CInt(StartsWith(tb->cboFunction.Text, WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & " ") OrElse StartsWith(tb->cboFunction.Text, WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & ".")) Then
-					sTemp = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
-				End If
-			End If
-		End If
-		Dim As TypeElement Ptr te, te1
-		Dim As Integer Pos1
-		Dim As String FuncName = tb->cboFunction.Text
-		If TypeName <> "" Then
-			If tb->txtCode.Types.Contains(TypeName) Then
-				tb->FillIntellisense TypeName, @tb->txtCode.Types, True
-			ElseIf tb->txtCode.Enums.Contains(TypeName) Then
-				tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
-			ElseIf pComps->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pComps, True
-			ElseIf pGlobalTypes->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pGlobalTypes, True
-			ElseIf pGlobalEnums->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pGlobalEnums, True
-			End If
-			If FListItems.Contains(sTemp) Then
-				te = FListItems.Object(FListItems.IndexOf(sTemp))
-			End If
-			FListItems.Clear
-		Else
-			If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
-			Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
-			Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
-			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
-				te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
-			ElseIf tb->txtCode.Procedures.Contains(sTemp) Then
-				te = tb->txtCode.Procedures.Object(tb->txtCode.Procedures.IndexOf(sTemp))
-			ElseIf tb->txtCode.Args.Contains(sTemp) Then
-				te = tb->txtCode.Args.Object(tb->txtCode.Args.IndexOf(sTemp))
-			ElseIf pGlobalFunctions->Contains(sTemp) Then
-				te = pGlobalFunctions->Object(pGlobalFunctions->IndexOf(sTemp))
-			ElseIf pGlobalArgs->Contains(sTemp) Then
-				te = pGlobalArgs->Object(pGlobalArgs->IndexOf(sTemp))
-			ElseIf TypeName <> "" Then
-				If tb->txtCode.Types.Contains(TypeName) Then
-					'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
-					tb->FillIntellisense TypeName, @tb->txtCode.Types, True
-				ElseIf tb->txtCode.Enums.Contains(TypeName) Then
-					tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
-				ElseIf pComps->Contains(TypeName) Then
-					tb->FillIntellisense TypeName, pComps, True
-				ElseIf pGlobalTypes->Contains(TypeName) Then
-					tb->FillIntellisense TypeName, pGlobalTypes, True
-				ElseIf pGlobalEnums->Contains(TypeName) Then
-					tb->FillIntellisense TypeName, pGlobalEnums, True
-				End If
-				If FListItems.Contains(sTemp) Then
-					te = FListItems.Object(FListItems.IndexOf(sTemp))
-				End If
-				FListItems.Clear
-			End If
-		End If
-		If te <> 0 Then
-			sTemp = te->TypeName
-			If sTemp = "" AndAlso te->Value <> "" Then
-				sTemp = GetTypeFromValue(tb, te->Value)
-			End If
-		End If
-	End If
-	Return sTemp
-End Function
+'Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
+'	If tb = 0 OrElse Value= "" Then Return ""
+'	Dim As String sTemp
+'	If StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(") Then
+'		Var Pos1 = InStr(Value, "(")
+'		Var Pos2 = InStr(Value, ",")
+'		If Pos2 > 0 Then
+'			sTemp = WithoutPointers(Trim(Mid(Value, Pos1 + 1, Pos2 - Pos1 - 1)))
+'		End If
+'	Else
+'		Dim As String TypeName
+'		Dim As Integer j, iCount
+'		Dim As String ch
+'		Dim As Boolean b
+'		For i As Integer = Len(Value) To 1 Step -1
+'			ch = Mid(Value, i, 1)
+'			If ch = ")" Then
+'				iCount += 1
+'				b = True
+'			ElseIf b AndAlso ch = "(" Then
+'				iCount -= 1
+'				If iCount = 0 Then b = False
+'			ElseIf Not b Then
+'				If IsArg(Asc(ch)) Then
+'					sTemp = ch & sTemp
+'				ElseIf sTemp <> "" Then
+'					If ch = "." Then
+'						TypeName = GetTypeFromValue(tb, ..Left(Value, i - 1))
+'					ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(Value, i - 1, 1) = "-" Then
+'						TypeName = GetTypeFromValue(tb, ..Left(Value, i - 2))
+'					End If
+'					Exit For
+'				Else
+'					Exit For
+'				End If
+'			End If
+'		Next
+'		If tb->Des Then
+'			Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+'			If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
+'				If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des->DesignControl) AndAlso CInt(StartsWith(tb->cboFunction.Text, WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & " ") OrElse StartsWith(tb->cboFunction.Text, WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name")) & ".")) Then
+'					sTemp = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+'				End If
+'			End If
+'		End If
+'		Dim As TypeElement Ptr te, te1
+'		Dim As Integer Pos1
+'		Dim As String FuncName = tb->cboFunction.Text
+'		If TypeName <> "" Then
+'			If tb->txtCode.Types.Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+'			ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
+'			ElseIf pComps->Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, pComps, True
+'			ElseIf pGlobalTypes->Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, pGlobalTypes, True
+'			ElseIf pGlobalEnums->Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, pGlobalEnums, True
+'			End If
+'			If FListItems.Contains(sTemp) Then
+'				te = FListItems.Object(FListItems.IndexOf(sTemp))
+'			End If
+'			FListItems.Clear
+'		Else
+'			If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
+'			Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
+'			Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
+'			If te1 <> 0 AndAlso te1->Elements.Contains(sTemp) Then
+'				te = te1->Elements.Object(te1->Elements.IndexOf(sTemp))
+'			ElseIf tb->txtCode.Procedures.Contains(sTemp) Then
+'				te = tb->txtCode.Procedures.Object(tb->txtCode.Procedures.IndexOf(sTemp))
+'			ElseIf tb->txtCode.Args.Contains(sTemp) Then
+'				te = tb->txtCode.Args.Object(tb->txtCode.Args.IndexOf(sTemp))
+'			ElseIf pGlobalFunctions->Contains(sTemp) Then
+'				te = pGlobalFunctions->Object(pGlobalFunctions->IndexOf(sTemp))
+'			ElseIf pGlobalArgs->Contains(sTemp) Then
+'				te = pGlobalArgs->Object(pGlobalArgs->IndexOf(sTemp))
+'			ElseIf TypeName <> "" Then
+'				If tb->txtCode.Types.Contains(TypeName) Then
+'					'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
+'					tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+'				ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+'					tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
+'				ElseIf pComps->Contains(TypeName) Then
+'					tb->FillIntellisense TypeName, pComps, True
+'				ElseIf pGlobalTypes->Contains(TypeName) Then
+'					tb->FillIntellisense TypeName, pGlobalTypes, True
+'				ElseIf pGlobalEnums->Contains(TypeName) Then
+'					tb->FillIntellisense TypeName, pGlobalEnums, True
+'				End If
+'				If FListItems.Contains(sTemp) Then
+'					te = FListItems.Object(FListItems.IndexOf(sTemp))
+'				End If
+'				FListItems.Clear
+'			End If
+'		End If
+'		If te <> 0 Then
+'			sTemp = te->TypeName
+'			If sTemp = "" AndAlso te->Value <> "" Then
+'				sTemp = GetTypeFromValue(tb, te->Value)
+'			End If
+'		End If
+'	End If
+'	Return sTemp
+'End Function
 
-Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
-	If tb = 0 Then Return ""
-	Dim As String sTemp, sTemp2, TypeName, BaseTypeName
-	Dim sLine As WString Ptr
-	Dim As Integer j, iCount, Pos1, iIndex
-	Dim As String ch
-	Dim As Boolean b
-	For j = iSelEndLine To 0 Step -1
-		sLine = @tb->txtCode.Lines(j)
-		If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine), " _") Then Exit For
-		For i As Integer = IIf(j = iSelEndLine, iSelEndChar, Len(*sLine)) To 1 Step -1
-			ch = Mid(*sLine, i, 1)
-			If ch = ")" OrElse ch = "]" Then
-				iCount += 1
-				b = True
-			ElseIf CInt(b) AndAlso CInt(ch = "(" OrElse ch = "[") Then
-				iCount -= 1
-				If iCount = 0 Then b = False
-			ElseIf Not b Then
-				If IsArg(Asc(ch)) Then
-					sTemp = ch & sTemp
-				ElseIf sTemp <> "" Then
-					If ch = "." Then
-						TypeName = GetLeftArgTypeName(tb, j, i - 1, teEnumOld, , , Types)
-					ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
-						TypeName = GetLeftArgTypeName(tb, j, i - 2, teEnumOld, , , Types)
-					ElseIf CBool(CBool(ch = " ") OrElse CBool(ch = !"\t")) AndAlso CBool(i > 0) AndAlso EndsWith(RTrim(LCase(Left(*sLine, i - 1)), Any "\t "), " as") Then
-						Types = True
-					End If
-					Exit For, For
-				Else
-					Exit For, For
-				End If
-			End If
-			sTemp2 = ch & sTemp2
-		Next
-	Next
-	If StartsWith(LCase(sTemp2), "cast") Then
-		Return GetTypeFromValue(tb, sTemp2)
-	End If
-	If CInt(sTemp = "") AndAlso CInt(StartsWith(sTemp2, "(")) AndAlso CInt(EndsWith(sTemp2, ")")) Then
-		Return GetTypeFromValue(tb, Left(sTemp2, Len(sTemp2) - 1))
-	ElseIf sTemp = "" AndAlso sTemp2 = "" Then
-		Var WithCount = 1
-		Dim As EditControlLine Ptr ECLine
-		For i As Integer = j - 1 To 0 Step -1
-			ECLine = tb->txtCode.FLines.Items[i]
-			If ECLine->ConstructionIndex > 12 Then
-				Return ""
-			ElseIf ECLine->ConstructionIndex = 10 Then
-				If ECLine->ConstructionPart = 2 Then
-					WithCount += 1
-				ElseIf ECLine->ConstructionPart = 0 Then
-					WithCount -= 1
-					If WithCount < 0 Then
-						Return ""
-					ElseIf WithCount = 0 Then
-						TypeName = GetLeftArgTypeName(tb, i, Len(*ECLine->Text), teEnumOld, , , Types)
-						teEnum = teEnumOld
-						Return TypeName
-					End If
-				End If
-			End If
-		Next
-	End If
-	If tb->Des Then
-		Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
-		If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
-			If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des->DesignControl) Then
-				Dim As String frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
-				If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
-					sTemp = frmName
-				ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
-					sTemp = frmName & "Type"
-				End If
-			End If
-		End If
-	End If
-	Dim As TypeElement Ptr te, te1, te2
-	If TypeName <> "" Then
-		If LCase(sTemp) = "base" Then
-			If tb->txtCode.Types.Contains(TypeName, , , , iIndex) Then
-				te2 = tb->txtCode.Types.Object(iIndex)
-				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			ElseIf pComps->Contains(TypeName, , , , iIndex) Then
-				te2 = pComps->Object(iIndex)
-				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			ElseIf pGlobalTypes->Contains(TypeName, , , , iIndex) Then
-				te2 = pGlobalTypes->Object(iIndex)
-				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			End If
-			If BaseTypeName <> "" Then
-				If tb->txtCode.Types.Contains(BaseTypeName, , , , iIndex) Then
-					teEnum = tb->txtCode.Types.Object(iIndex)
-				ElseIf pComps->Contains(BaseTypeName, , , , iIndex) Then
-					teEnum = pComps->Object(iIndex)
-				ElseIf pGlobalTypes->Contains(BaseTypeName, , , , iIndex) Then
-					teEnum = pGlobalTypes->Object(iIndex)
-				End If
-				teEnumOld = 0
-				OldTypeName = ""
-				Return BaseTypeName
-			End If
-		End If
-		If tb->txtCode.Types.Contains(TypeName) Then
-			tb->FillIntellisense TypeName, @tb->txtCode.Types, True
-		ElseIf tb->txtCode.Enums.Contains(TypeName) Then
-			tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
-		ElseIf pComps->Contains(TypeName) Then
-			tb->FillIntellisense TypeName, pComps, True
-		ElseIf pGlobalTypes->Contains(TypeName) Then
-			tb->FillIntellisense TypeName, pGlobalTypes, True
-		ElseIf pGlobalEnums->Contains(TypeName) Then
-			tb->FillIntellisense TypeName, pGlobalEnums, True
-		ElseIf pGlobalNamespaces->Contains(TypeName) Then
-			tb->FillIntellisense TypeName, pGlobalNamespaces, True
-		End If
-		If FListItems.Contains(sTemp, , , , iIndex) Then
-			te = FListItems.Object(iIndex)
-			OldTypeName = TypeName
-		End If
-		FListItems.Clear
-	Else
-		Dim As String FuncName = tb->cboFunction.Text
-		If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
-		Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
-		Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
-		If LCase(sTemp) = "this" Then
-			Return TypeName
-		ElseIf LCase(sTemp) = "base" Then
-			If tb->txtCode.Types.Contains(TypeName, , , , iIndex) Then
-				te2 = tb->txtCode.Types.Object(iIndex)
-				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			ElseIf pComps->Contains(TypeName, , , , iIndex) Then
-				te2 = pComps->Object(iIndex)
-				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			ElseIf pGlobalTypes->Contains(TypeName, , , , iIndex) Then
-				te2 = pGlobalTypes->Object(iIndex)
-				If te2 <> 0 Then BaseTypeName = te2->TypeName
-			End If
-			If BaseTypeName <> "" Then
-				If tb->txtCode.Types.Contains(BaseTypeName, , , , iIndex) Then
-					teEnum = tb->txtCode.Types.Object(iIndex)
-				ElseIf pComps->Contains(BaseTypeName, , , , iIndex) Then
-					teEnum = pComps->Object(iIndex)
-				ElseIf pGlobalTypes->Contains(BaseTypeName, , , , iIndex) Then
-					teEnum = pGlobalTypes->Object(iIndex)
-				End If
-				teEnumOld = 0
-				OldTypeName = ""
-				Return BaseTypeName
-			End If
-		End If
-		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , iIndex) Then
-			te = te1->Elements.Object(iIndex)
-		ElseIf tb->txtCode.Procedures.Contains(sTemp, , , , iIndex) Then
-			te = tb->txtCode.Procedures.Object(iIndex)
-		ElseIf tb->txtCode.Args.Contains(sTemp, , , , iIndex) Then
-			te = tb->txtCode.Args.Object(iIndex)
-		ElseIf pGlobalFunctions->Contains(sTemp, , , , iIndex) Then
-			te = pGlobalFunctions->Object(iIndex)
-		ElseIf pGlobalArgs->Contains(sTemp, , , , iIndex) Then
-			te = pGlobalArgs->Object(iIndex)
-		ElseIf pGlobalTypes->Contains(sTemp, , , , iIndex) Then
-			te = pGlobalTypes->Object(iIndex)
-		ElseIf pGlobalNamespaces->Contains(sTemp, , , , iIndex) Then
-			te = pGlobalNamespaces->Object(iIndex)
-		ElseIf TypeName <> "" Then
-			If tb->txtCode.Types.Contains(TypeName) Then
-				'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
-				tb->FillIntellisense TypeName, @tb->txtCode.Types, True
-			ElseIf tb->txtCode.Enums.Contains(TypeName) Then
-				tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
-			ElseIf pComps->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pComps, True
-			ElseIf pGlobalTypes->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pGlobalTypes, True
-			ElseIf pGlobalEnums->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pGlobalEnums, True
-			ElseIf pGlobalNamespaces->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pGlobalNamespaces, True
-			End If
-			If FListItems.Contains(sTemp, , , , iIndex) Then
-				te = FListItems.Object(iIndex)
-				OldTypeName = TypeName
-			End If
-			FListItems.Clear
-		End If
-	End If
-	If te <> 0 Then
-		sTemp = te->TypeName
-		If te->ElementType = "Namespace" OrElse te->ElementType = "Type" OrElse te->ElementType = "TypeCopy" OrElse te->ElementType = "Union" OrElse te->ElementType = "Enum" Then
-			sTemp = te->Name
-		Else
-			Pos1 = InStrRev(sTemp, ".")
-			If Pos1 > 0 Then sTemp = Mid(sTemp, Pos1 + 1)
-		End If
-		If sTemp = "" AndAlso te->Value <> "" Then
-			sTemp = GetTypeFromValue(tb, te->Value)
-		End If
-	End If
-	teEnum = te
-	Return sTemp
-End Function
+'Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
+'	If tb = 0 Then Return ""
+'	Dim As String sTemp, sTemp2, TypeName, BaseTypeName
+'	Dim sLine As WString Ptr
+'	Dim As Integer j, iCount, Pos1, iIndex
+'	Dim As String ch
+'	Dim As Boolean b
+'	For j = iSelEndLine To 0 Step -1
+'		sLine = @tb->txtCode.Lines(j)
+'		If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine), " _") Then Exit For
+'		For i As Integer = IIf(j = iSelEndLine, iSelEndChar, Len(*sLine)) To 1 Step -1
+'			ch = Mid(*sLine, i, 1)
+'			If ch = ")" OrElse ch = "]" Then
+'				iCount += 1
+'				b = True
+'			ElseIf CInt(b) AndAlso CInt(ch = "(" OrElse ch = "[") Then
+'				iCount -= 1
+'				If iCount = 0 Then b = False
+'			ElseIf Not b Then
+'				If IsArg(Asc(ch)) Then
+'					sTemp = ch & sTemp
+'				ElseIf sTemp <> "" Then
+'					If ch = "." Then
+'						TypeName = GetLeftArgTypeName(tb, j, i - 1, teEnumOld, , , Types)
+'					ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
+'						TypeName = GetLeftArgTypeName(tb, j, i - 2, teEnumOld, , , Types)
+'					ElseIf CBool(CBool(ch = " ") OrElse CBool(ch = !"\t")) AndAlso CBool(i > 0) AndAlso EndsWith(RTrim(LCase(Left(*sLine, i - 1)), Any "\t "), " as") Then
+'						Types = True
+'					End If
+'					Exit For, For
+'				Else
+'					Exit For, For
+'				End If
+'			End If
+'			sTemp2 = ch & sTemp2
+'		Next
+'	Next
+'	If StartsWith(LCase(sTemp2), "cast") Then
+'		Return GetTypeFromValue(tb, sTemp2)
+'	End If
+'	If CInt(sTemp = "") AndAlso CInt(StartsWith(sTemp2, "(")) AndAlso CInt(EndsWith(sTemp2, ")")) Then
+'		Return GetTypeFromValue(tb, Left(sTemp2, Len(sTemp2) - 1))
+'	ElseIf sTemp = "" AndAlso sTemp2 = "" Then
+'		Var WithCount = 1
+'		Dim As EditControlLine Ptr ECLine
+'		For i As Integer = j - 1 To 0 Step -1
+'			ECLine = tb->txtCode.FLines.Items[i]
+'			If ECLine->ConstructionIndex > 12 Then
+'				Return ""
+'			ElseIf ECLine->ConstructionIndex = 10 Then
+'				If ECLine->ConstructionPart = 2 Then
+'					WithCount += 1
+'				ElseIf ECLine->ConstructionPart = 0 Then
+'					WithCount -= 1
+'					If WithCount < 0 Then
+'						Return ""
+'					ElseIf WithCount = 0 Then
+'						TypeName = GetLeftArgTypeName(tb, i, Len(*ECLine->Text), teEnumOld, , , Types)
+'						teEnum = teEnumOld
+'						Return TypeName
+'					End If
+'				End If
+'			End If
+'		Next
+'	End If
+'	If tb->Des Then
+'		Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
+'		If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
+'			If CInt(LCase(sTemp) = "this") AndAlso CInt(tb->Des->DesignControl) Then
+'				Dim As String frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
+'				If CInt(StartsWith(tb->cboFunction.Text, frmName & " ") OrElse StartsWith(tb->cboFunction.Text, frmName & ".")) Then
+'					sTemp = frmName
+'				ElseIf CInt(StartsWith(tb->cboFunction.Text, frmName & "Type ") OrElse StartsWith(tb->cboFunction.Text, frmName & "Type.")) Then
+'					sTemp = frmName & "Type"
+'				End If
+'			End If
+'		End If
+'	End If
+'	Dim As TypeElement Ptr te, te1, te2
+'	If TypeName <> "" Then
+'		If LCase(sTemp) = "base" Then
+'			If tb->txtCode.Types.Contains(TypeName, , , , iIndex) Then
+'				te2 = tb->txtCode.Types.Object(iIndex)
+'				If te2 <> 0 Then BaseTypeName = te2->TypeName
+'			ElseIf pComps->Contains(TypeName, , , , iIndex) Then
+'				te2 = pComps->Object(iIndex)
+'				If te2 <> 0 Then BaseTypeName = te2->TypeName
+'			ElseIf pGlobalTypes->Contains(TypeName, , , , iIndex) Then
+'				te2 = pGlobalTypes->Object(iIndex)
+'				If te2 <> 0 Then BaseTypeName = te2->TypeName
+'			End If
+'			If BaseTypeName <> "" Then
+'				If tb->txtCode.Types.Contains(BaseTypeName, , , , iIndex) Then
+'					teEnum = tb->txtCode.Types.Object(iIndex)
+'				ElseIf pComps->Contains(BaseTypeName, , , , iIndex) Then
+'					teEnum = pComps->Object(iIndex)
+'				ElseIf pGlobalTypes->Contains(BaseTypeName, , , , iIndex) Then
+'					teEnum = pGlobalTypes->Object(iIndex)
+'				End If
+'				teEnumOld = 0
+'				OldTypeName = ""
+'				Return BaseTypeName
+'			End If
+'		End If
+'		If tb->txtCode.Types.Contains(TypeName) Then
+'			tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+'		ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+'			tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
+'		ElseIf pComps->Contains(TypeName) Then
+'			tb->FillIntellisense TypeName, pComps, True
+'		ElseIf pGlobalTypes->Contains(TypeName) Then
+'			tb->FillIntellisense TypeName, pGlobalTypes, True
+'		ElseIf pGlobalEnums->Contains(TypeName) Then
+'			tb->FillIntellisense TypeName, pGlobalEnums, True
+'		ElseIf pGlobalNamespaces->Contains(TypeName) Then
+'			tb->FillIntellisense TypeName, pGlobalNamespaces, True
+'		End If
+'		If FListItems.Contains(sTemp, , , , iIndex) Then
+'			te = FListItems.Object(iIndex)
+'			OldTypeName = TypeName
+'		End If
+'		FListItems.Clear
+'	Else
+'		Dim As String FuncName = tb->cboFunction.Text
+'		If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
+'		Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
+'		Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
+'		If LCase(sTemp) = "this" Then
+'			Return TypeName
+'		ElseIf LCase(sTemp) = "base" Then
+'			If tb->txtCode.Types.Contains(TypeName, , , , iIndex) Then
+'				te2 = tb->txtCode.Types.Object(iIndex)
+'				If te2 <> 0 Then BaseTypeName = te2->TypeName
+'			ElseIf pComps->Contains(TypeName, , , , iIndex) Then
+'				te2 = pComps->Object(iIndex)
+'				If te2 <> 0 Then BaseTypeName = te2->TypeName
+'			ElseIf pGlobalTypes->Contains(TypeName, , , , iIndex) Then
+'				te2 = pGlobalTypes->Object(iIndex)
+'				If te2 <> 0 Then BaseTypeName = te2->TypeName
+'			End If
+'			If BaseTypeName <> "" Then
+'				If tb->txtCode.Types.Contains(BaseTypeName, , , , iIndex) Then
+'					teEnum = tb->txtCode.Types.Object(iIndex)
+'				ElseIf pComps->Contains(BaseTypeName, , , , iIndex) Then
+'					teEnum = pComps->Object(iIndex)
+'				ElseIf pGlobalTypes->Contains(BaseTypeName, , , , iIndex) Then
+'					teEnum = pGlobalTypes->Object(iIndex)
+'				End If
+'				teEnumOld = 0
+'				OldTypeName = ""
+'				Return BaseTypeName
+'			End If
+'		End If
+'		If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , iIndex) Then
+'			te = te1->Elements.Object(iIndex)
+'		ElseIf tb->txtCode.Procedures.Contains(sTemp, , , , iIndex) Then
+'			te = tb->txtCode.Procedures.Object(iIndex)
+'		ElseIf tb->txtCode.Args.Contains(sTemp, , , , iIndex) Then
+'			te = tb->txtCode.Args.Object(iIndex)
+'		ElseIf pGlobalFunctions->Contains(sTemp, , , , iIndex) Then
+'			te = pGlobalFunctions->Object(iIndex)
+'		ElseIf pGlobalArgs->Contains(sTemp, , , , iIndex) Then
+'			te = pGlobalArgs->Object(iIndex)
+'		ElseIf pGlobalTypes->Contains(sTemp, , , , iIndex) Then
+'			te = pGlobalTypes->Object(iIndex)
+'		ElseIf pGlobalNamespaces->Contains(sTemp, , , , iIndex) Then
+'			te = pGlobalNamespaces->Object(iIndex)
+'		ElseIf TypeName <> "" Then
+'			If tb->txtCode.Types.Contains(TypeName) Then
+'				'teEnumOld = tb->Types.Object(tb->Types.IndexOf(TypeName))
+'				tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+'			ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
+'			ElseIf pComps->Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, pComps, True
+'			ElseIf pGlobalTypes->Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, pGlobalTypes, True
+'			ElseIf pGlobalEnums->Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, pGlobalEnums, True
+'			ElseIf pGlobalNamespaces->Contains(TypeName) Then
+'				tb->FillIntellisense TypeName, pGlobalNamespaces, True
+'			End If
+'			If FListItems.Contains(sTemp, , , , iIndex) Then
+'				te = FListItems.Object(iIndex)
+'				OldTypeName = TypeName
+'			End If
+'			FListItems.Clear
+'		End If
+'	End If
+'	If te <> 0 Then
+'		sTemp = te->TypeName
+'		If te->ElementType = "Namespace" OrElse te->ElementType = "Type" OrElse te->ElementType = "TypeCopy" OrElse te->ElementType = "Union" OrElse te->ElementType = "Enum" Then
+'			sTemp = te->Name
+'		Else
+'			Pos1 = InStrRev(sTemp, ".")
+'			If Pos1 > 0 Then sTemp = Mid(sTemp, Pos1 + 1)
+'		End If
+'		If sTemp = "" AndAlso te->Value <> "" Then
+'			sTemp = GetTypeFromValue(tb, te->Value)
+'		End If
+'	End If
+'	teEnum = te
+'	Return sTemp
+'End Function
 
 Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	MouseHoverTimerVal = Timer
@@ -4390,7 +4391,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		End If
 		Dim As Boolean Types
 		Dim As TypeElement Ptr te
-		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName("", iSelEndLine, iSelEndChar - k, te, , , Types) 'GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
+		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, iSelEndChar - k, te, , , Types) 'GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
 		If Trim(TypeName) = "" Then Exit Sub
 		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName, , , , , Types
 		#ifdef __USE_GTK__
@@ -4410,7 +4411,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		If iSelEndLine <= 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		Dim As TypeElement Ptr teEnum
-		Dim As String TypeName = GetLeftArgTypeName(tb, iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
+		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
 		#ifdef __USE_GTK__
 			tb->txtCode.lvIntellisense.ListItems.Clear
 		#else
@@ -4521,7 +4522,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		#else
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.cboIntellisense.ItemIndex = -1
 		#endif
-	ElseIf AutoComplete AndAlso Key > Asc("A") AndAlso Key < Asc("z") Then
+	ElseIf AutoComplete AndAlso Key >= Asc("A") AndAlso Key <= Asc("z") Then
 		CompleteWord
 	End If
 End Sub
@@ -8256,7 +8257,7 @@ Sub TabWindow.Define
 	If sWord = "" Then Exit Sub
 	With pfTrek->lvTrek.ListItems
 		.Clear
-		GetLeftArgTypeName(@This, iSelEndLine, GetNextCharIndex(*sLine, iSelEndChar), te2, teOld, OldTypeName)
+		txtCode.GetLeftArgTypeName(iSelEndLine, GetNextCharIndex(*sLine, iSelEndChar), te2, teOld, OldTypeName)
 		If teOld <> 0 OrElse OldTypeName <> "" Then
 			If OldTypeName <> "" Then
 				TypeName = OldTypeName
@@ -8264,7 +8265,7 @@ Sub TabWindow.Define
 				TypeName = teOld->TypeName
 			End If
 			If TypeName = "" AndAlso teOld <> 0 AndAlso teOld->Value <> "" Then
-				TypeName = GetTypeFromValue(@This, teOld->Value)
+				TypeName = txtCode.GetTypeFromValue(teOld->Value, iSelEndLine)
 			End If
 			FListItems.Clear
 			If txtCode.Types.Contains(TypeName) Then

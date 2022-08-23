@@ -368,9 +368,9 @@ Declare Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
 
 Declare Sub cboIntellisense_CloseUp(ByRef Sender As ComboBoxEdit)
 
-Declare Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
+'Declare Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
 
-Declare Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
+'Declare Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 
 Declare Sub TabWindow_Destroy(ByRef Sender As Control)
 

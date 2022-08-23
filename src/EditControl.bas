@@ -2344,7 +2344,7 @@ Namespace My.Sys.Forms
 		Return sTemp
 	End Function
 	
-	Function EditControl.GetLeftArgTypeName(ArgName As String, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False, ByRef bWithoutWith As Boolean = False) As String
+	Function EditControl.GetLeftArgTypeName(iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False, ByRef bWithoutWith As Boolean = False) As String
 		Dim As String sTemp, sTemp2, TypeName, BaseTypeName
 		Dim sLine As WString Ptr
 		Dim As Integer j, iCount, Pos1
@@ -2370,11 +2370,11 @@ Namespace My.Sys.Forms
 								TwoDots = True
 							Else
 								OneDot = True
-								TypeName = GetLeftArgTypeName(sTemp, j, i - 1, teEnumOld, , , bTypes, bWithoutWith)
+								TypeName = GetLeftArgTypeName(j, i - 1, teEnumOld, , , bTypes, bWithoutWith)
 							End If
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
 							OneDot = True
-							TypeName = GetLeftArgTypeName(sTemp, j, i - 2, teEnumOld, , , bTypes)
+							TypeName = GetLeftArgTypeName(j, i - 2, teEnumOld, , , bTypes)
 						ElseIf CBool(CBool(ch = " ") OrElse CBool(ch = !"\t")) AndAlso CBool(i > 0) AndAlso EndsWith(RTrim(LCase(..Left(*sLine, i - 1)), Any "\t "), " as") Then
 							bTypes = True
 						End If
@@ -2412,7 +2412,7 @@ Namespace My.Sys.Forms
 							bWithoutWith = True
 							Return ""
 						ElseIf WithCount = 0 Then
-							TypeName = GetLeftArgTypeName("", i, Len(*ECLine->Text), teEnumOld, , , bTypes)
+							TypeName = GetLeftArgTypeName(i, Len(*ECLine->Text), teEnumOld, , , bTypes)
 							WithOldI = i
 							WithOldTypeName = TypeName
 							WithTeEnumOld = teEnumOld
@@ -2955,7 +2955,7 @@ Namespace My.Sys.Forms
 														If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
 															If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
 																OneDot = True
-																GetLeftArgTypeName(Matn, z, j, te, , , , bWithoutWith)
+																GetLeftArgTypeName(z, j, te, , , , bWithoutWith)
 																If bWithoutWith Then
 																	TwoDots = True
 																	OneDot = False
