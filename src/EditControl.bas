@@ -2508,7 +2508,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			Var tIndex = -1
-			If (Not TwoDots) AndAlso tIndex = -1 AndAlso teC > 0 Then 'AndAlso LCase(OldMatn) <> "as"
+			If (Not TwoDots) AndAlso tIndex = -1 AndAlso teC > 0 AndAlso teC->StartLine <> iSelEndLine Then 'AndAlso LCase(OldMatn) <> "as"
 				Var tIndex = teC->Elements.IndexOf(LCase(sTemp))
 				If tIndex <> -1 Then
 					Var pkeywords = @teC->Elements

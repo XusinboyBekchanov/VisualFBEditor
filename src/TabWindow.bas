@@ -4625,7 +4625,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5205,12 +5205,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos1 = InStr(res1(n), "=")
 						If Pos1 > 0 Then
 							ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+							If CBool(n = 0) AndAlso bOldAs Then
+								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
+							End If 
 						Else
 							ElementValue = ""
 						End If
 						If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						Pos1 = InStr(LCase(res1(n)), " as ")
-						If Pos1 > 0 Then
+						If Pos1 > 0 AndAlso Not bOldAs Then
 							CurType = Trim(Mid(res1(n), Pos1 + 4))
 '							Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
 '							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
