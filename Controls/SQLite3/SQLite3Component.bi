@@ -77,6 +77,7 @@ Public:
 	
 	Declare Sub TransactionBegin()
 	Declare Function TransactionEnd()        As Long
+	Declare Function TransactionRollback()   As Long
 	Declare Function Version()               As String
 	Declare Function ErrMsg()                As String
 	Declare Function SetKey(newkey As UString) As Boolean

@@ -890,6 +890,12 @@ Function SQLite3Component.TransactionEnd() As Long
 	Function    = Transaction - 3
 	Transaction = 0
 End Function
+Function SQLite3Component.TransactionRollback() As Long
+	If FSQLite3 = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+	This.Exec("ROLLBACK")
+	Function = Transaction - 3
+	Transaction = 0
+End Function
 Function SQLite3Component.CreateTable(Table As UString) As Long
 	Function = This.CreateTableUtf(ToUtf8(Table))
 End Function

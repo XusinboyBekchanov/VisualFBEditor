@@ -634,7 +634,13 @@ End Function
 	End Sub
 	Function MariaDBBox.TransactionEnd() As Long
 		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
-		This.Exec("END TRANSACTION")
+		This.Exec("COMMIT")
+		Function = Transaction - 3
+		Transaction = 0
+	End Function
+	Function MariaDBBox.TransactionRollback() As Long
+		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
+		This.Exec("ROLLBACK")
 		Function = Transaction - 3
 		Transaction = 0
 	End Function
