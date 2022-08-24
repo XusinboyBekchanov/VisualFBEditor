@@ -385,7 +385,7 @@
 			.TabIndex = 16
 			.ControlIndex = 6
 			.Caption = ML("Static member")
-			.Hint = ML("Static member declaration")
+			.Hint = ML("Member procedure with a Static declaration")
 			.SetBounds 10, 390, 100, 20
 			.Designer = @This
 			.OnClick = @chkStaticMember_Click_
@@ -444,7 +444,7 @@
 			.TabIndex = 33
 			.ControlIndex = 17
 			.Caption = ML("Procedure also")
-			.Hint = ML("Procedure also with Static keyword")
+			.Hint = ML("Procedure body also with Static keyword, for improved code readability")
 			.SetBounds 120, 390, 100, 20
 			.Designer = @This
 			.Parent = @This
