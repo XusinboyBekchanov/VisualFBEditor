@@ -171,6 +171,7 @@
 			.Text = ML("Public")
 			.TabIndex = 14
 			.Caption = ML("Public")
+			.Hint = ML("With Public scope")
 			.SetBounds 10, 20, 90, 20
 			.Designer = @This
 			.OnClick = @optPublicScope_Click_
@@ -183,6 +184,7 @@
 			.TabIndex = 15
 			.ControlIndex = 0
 			.Caption = ML("Private")
+			.Hint = ML("With Private scope")
 			.SetBounds 110, 20, 80, 20
 			.Designer = @This
 			.OnClick = @optPrivateScope_Click_
@@ -193,6 +195,7 @@
 			.Name = "chkStatic"
 			.Text = ML("All Local variables as Statics")
 			.TabIndex = 17
+			.Hint = ML("Static specifies static storage for all local variables, objects and arrays, except temporary types and internal variables (objects not explicitly declared)")
 			.SetBounds 10, 420, 170, 20
 			.Designer = @This
 			.Parent = @This
@@ -382,6 +385,7 @@
 			.TabIndex = 16
 			.ControlIndex = 6
 			.Caption = ML("Static member")
+			.Hint = ML("Static member declaration")
 			.SetBounds 10, 390, 100, 20
 			.Designer = @This
 			.OnClick = @chkStaticMember_Click_
@@ -415,6 +419,7 @@
 			.TabIndex = 31
 			.ControlIndex = 17
 			.Caption = ML("Export")
+			.Hint = ML("Procedure will be added to the public export table")
 			.SetBounds 220, 390, 100, 20
 			.Designer = @This
 			.Parent = @This
@@ -426,6 +431,7 @@
 			.TabIndex = 32
 			.ControlIndex = 1
 			.Caption = ML("Default")
+			.Hint = ML("Without Public or Private scope")
 			.SetBounds 210, 20, 90, 20
 			.Designer = @This
 			.OnClick = @optDefaultScope_Click_
