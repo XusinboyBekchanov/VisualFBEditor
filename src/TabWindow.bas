@@ -46,25 +46,25 @@ Destructor ProjectElement
 	WDeAllocate LegalTrademarks
 	WDeAllocate OriginalFilename
 	WDeAllocate ProductName
-	WDeallocate CompilationArguments32Windows
-	WDeallocate CompilationArguments64Windows
-	WDeallocate CompilationArguments32Linux
-	WDeallocate CompilationArguments64Linux
-	WDeallocate CompilerPath
-	WDeallocate CommandLineArguments
-	WDeallocate AndroidSDKLocation
-	WDeallocate AndroidNDKLocation
-	WDeallocate JDKLocation
+	WDeAllocate CompilationArguments32Windows
+	WDeAllocate CompilationArguments64Windows
+	WDeAllocate CompilationArguments32Linux
+	WDeAllocate CompilationArguments64Linux
+	WDeAllocate CompilerPath
+	WDeAllocate CommandLineArguments
+	WDeAllocate AndroidSDKLocation
+	WDeAllocate AndroidNDKLocation
+	WDeAllocate JDKLocation
 	Files.Clear
 End Destructor
 
 Public Sub MoveCloseButtons(ptabCode As TabControl Ptr)
 	Dim As Rect RR
-	For i As Integer = 0 To pTabCode->TabCount - 1
-		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, pTabCode->Tabs[i])
+	For i As Integer = 0 To ptabCode->TabCount - 1
+		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 		If tb = 0 Then Continue For
 		#ifndef __USE_GTK__
-			SendMessage(pTabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
+			SendMessage(ptabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
 			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
 			If g_darkModeSupported AndAlso g_darkModeEnabled Then
 				UpdateWindow ptabCode->Handle
@@ -1587,7 +1587,7 @@ Sub CheckBi(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, B
 End Sub
 
 Sub GetBiFile(ByRef ptxtCode As EditControl Ptr, ByRef txtCodeBi As EditControl, ByRef ptxtCodeBi As EditControl Ptr, tb As TabWindow Ptr, IsBas As Boolean, ByRef bFind As Boolean, i As Integer, ByRef iStart As Integer, ByRef iEnd As Integer)
-	If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
+	If tb = 0 OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
 	If CInt(IsBas) AndAlso CInt(Not bFind) AndAlso CInt(StartsWith(Trim(LCase(tb->txtCode.Lines(i)), Any !"\t "), "#include once """ & LCase(GetFileName(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")) & """")) Then
 		Var tbBi = GetTab(..Left(tb->FileName, Len(tb->FileName) - 4) & ".bi")
 		Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
@@ -3984,7 +3984,7 @@ Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal
 		Lines(i) = ..Left(Lines(i), iPos - 1) & LinkParse(2) & Mid(Lines(i), iPos2 + 4)
 		Split GetChangedCommas(Replace(Lines(i), """", "”"), True), ",", Params()
 		For j As Integer = 0 To UBound(Params)
-			Params(j) = Replace(Params(j), ";", ",")
+			Params(j) = Replace(Replace(Params(j), ";", ","), "`", "=")
 			iPos = InStr(Params(j), "(")
 			iPos1 = InStr(Params(j), ")")
 			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso Mid(Params(0), InStr(LCase(Params(0)), LCase(sWord)) + Len(sWord), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then 'AndAlso (Mid(Params(0), InStr(LCase(Params(0)), LCase(sWord)) + Len(sWord), 1) <> " " OrElse CBool(iSelEndChar = iSelEndCharFunc))) Then
@@ -4066,6 +4066,9 @@ Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As Str
 			If iCount = 0 Then b = False
 		ElseIf b AndAlso ch = "," Then
 			Text &= ";"
+			Continue For
+		ElseIf b AndAlso ch = "=" Then
+			Text &= "`"
 			Continue For
 		End If
 		Text &= ch
@@ -4641,7 +4644,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -4741,9 +4744,16 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		cboClass.Items.Add "(" & ML("General") & ")" & Chr(0), , "DropDown", "DropDown"
 		cboClass.ItemIndex = 0
 	End If
+	txtCode.Types.Clear
 	Dim As TypeElement Ptr te, func
 	For i As Integer = txtCode.Functions.Count - 1 To 0 Step -1
 		te = txtCode.Functions.Object(i)
+		If NotForms Then
+			If te->ElementType = "Type" AndAlso te->FileName <> FileName Then
+				txtCode.Types.Add te->Name, te
+				Continue For
+			End If
+		End If
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
@@ -4761,7 +4771,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Next
 	txtCode.Functions.Clear
 	txtCode.FunctionsOthers.Clear
-	txtCode.Types.Clear
 	txtCode.Enums.Clear
 	txtCode.Procedures.Clear
 	txtCode.Args.Clear
@@ -4808,6 +4817,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		For i As Integer = iStart To iEnd
 			ECLine = ptxtCode->FLines.Items[i]
 			'If i >= iSelStartLine Then
+				ECLine->Args.Clear
 				ECLine->Ends.Clear
 				ECLine->EndsCompleted = False
 			'End If
@@ -4949,7 +4959,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->StartLine = i
 						te->EndLine = i + 1
 						te->Tag = @This
-						te->FileName = FileName
+						If ptxtCode = @txtCode Then
+							te->FileName = FileName
+						Else
+							te->FileName = *FLine1
+						End If
 						ECLine->InConstruction = te
 						Constructs.Add te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
@@ -4977,6 +4991,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Pos1 = InStr(LCase(res1(n)), " as ")
 								If Pos1 > 0 Then
 									CurType = Trim(Mid(res1(n), Pos1 + 4))
+									CurType = Replace(CurType, "`", "=")
 									Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
 									If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
 									If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
@@ -4996,8 +5011,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								res1(n) = res1(n).TrimAll
-								Pos1 = InStrRev(CurType, ".")
-								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+									Pos1 = InStrRev(CurType, ".")
+									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+								End If
 								te->Name = res1(n)
 								te->DisplayName = res1(n)
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
@@ -5119,7 +5136,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->EndLine = i
 				te->Tag = @This
 				te->FileName = FileName
-				ECLine->InConstruction = te
+				'ECLine->InConstruction = te
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
 				If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 					func->Elements.Add te->Name, te
@@ -5128,6 +5145,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					txtCode.Procedures.Add te->Name, te
 				End If
 				If Pos2 > 0 AndAlso Pos5 > 0 Then
+					ECLine->Args.Add te
 					Var teDeclare = te
 					Dim As UString CurType, res1(Any), ElementValue
 					Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -5143,6 +5161,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos1 = InStr(LCase(res1(n)), " as ")
 						If Pos1 > 0 Then
 							CurType = Trim(Mid(res1(n), Pos1 + 4))
+							CurType = Replace(CurType, "`", "=")
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						Var te = New_( TypeElement)
@@ -5160,8 +5179,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 						End If
 						res1(n) = res1(n).TrimAll
-						Pos1 = InStrRev(CurType, ".")
-						If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+						If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+							Pos1 = InStrRev(CurType, ".")
+							If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+						End If
 						te->Name = res1(n)
 						te->DisplayName = res1(n)
 						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
@@ -5223,6 +5244,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							ElementValue = Trim(Mid(res1(n), Pos1 + 1))
 							If CBool(n = 0) AndAlso bOldAs Then
 								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
+								CurType = Replace(CurType, "`", "=")
 							End If 
 						Else
 							ElementValue = ""
@@ -5231,6 +5253,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos1 = InStr(LCase(res1(n)), " as ")
 						If Pos1 > 0 AndAlso Not bOldAs Then
 							CurType = Trim(Mid(res1(n), Pos1 + 4))
+							CurType = Replace(CurType, "`", "=")
 '							Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
 '							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
 							res1(n) = Trim(..Left(res1(n), Pos1 - 1))
@@ -5250,12 +5273,16 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If CBool(n = 0) AndAlso bOldAs Then
 							CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
 						End If
-						Pos1 = InStrRev(CurType, ".")
-						If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+						If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+							Pos1 = InStrRev(CurType, ".")
+							If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+						End If
 						Var te = New_( TypeElement)
 						te->Name = res1(n)
 						te->DisplayName = res1(n)
 						te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+						te->TypeName = CurType
+						te->TypeName = WithoutPointers(te->TypeName)
 						If StartsWith(bTrimLCase, "common ") Then
 							te->ElementType = "CommonVariable"
 						ElseIf StartsWith(bTrimLCase, "const ") Then
@@ -5265,8 +5292,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Else
 							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), "Event", IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
 						End If
-						te->TypeName = CurType
-						te->TypeName = WithoutPointers(te->TypeName)
 						te->Value = ElementValue
 						If inFunc Then
 							te->Locals = inPubProPri
@@ -5282,6 +5307,65 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							func->Elements.Add te->Name, te
 						Else
 							txtCode.Args.Add te->Name, te
+						End If
+						If te->ElementType = "Event" Then
+							Dim As UString bTrim = CurType
+							Pos2 = InStrRev(bTrim, ")")
+							Pos5 = InStr(bTrim, "(")
+							If Pos2 > 0 AndAlso Pos5 > 0 Then
+								ECLine->Args.Add te
+								Var teDeclare = te
+								Dim As UString CurType, res1(Any), ElementValue
+								Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+								For n As Integer = 0 To UBound(res1)
+									res1(n) = Replace(res1(n), ";", ",")
+									Pos1 = InStr(res1(n), "=")
+									If Pos1 > 0 Then
+										ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+									Else
+										ElementValue = ""
+									End If
+									If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									Pos1 = InStr(LCase(res1(n)), " as ")
+									If Pos1 > 0 Then
+										CurType = Trim(Mid(res1(n), Pos1 + 4))
+										CurType = Replace(CurType, "`", "=")
+										res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									End If
+									Var te = New_( TypeElement)
+									If res1(n).ToLower.StartsWith("byref") Then
+										res1(n) = Trim(Mid(res1(n), 6))
+										te->ElementType = "ByRefParameter"
+									ElseIf res1(n).ToLower.StartsWith("byval") Then
+										res1(n) = Trim(Mid(res1(n), 6))
+										te->ElementType = "ByValParameter"
+									Else
+										te->ElementType = "ByValParameter"
+									End If
+									Pos1 = InStr(res1(n), "(")
+									If Pos1 > 0 Then
+										res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									End If
+									res1(n) = res1(n).TrimAll
+									If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+										Pos1 = InStrRev(CurType, ".")
+										If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+									End If
+									te->Name = res1(n)
+									te->DisplayName = res1(n)
+									te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+									'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+									te->TypeName = CurType
+									te->TypeName = WithoutPointers(te->TypeName)
+									te->Value = ElementValue
+									te->Locals = 0
+									te->StartLine = i
+									te->EndLine = i
+									te->Parameters = res1(n) & " As " & CurType
+									te->FileName = FileName
+									teDeclare->Elements.Add te->Name, te
+								Next
+							End If
 						End If
 					Next
 				End If

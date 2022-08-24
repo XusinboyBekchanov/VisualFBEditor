@@ -34,14 +34,20 @@
 		Declare Sub optDestructor_Click(ByRef Sender As RadioButton)
 		Declare Static Sub txtParameters_Change_(ByRef Sender As TextBox)
 		Declare Sub txtParameters_Change(ByRef Sender As TextBox)
+		Declare Static Sub optPublicScope_Click_(ByRef Sender As RadioButton)
+		Declare Sub optPublicScope_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optPrivateScope_Click_(ByRef Sender As RadioButton)
+		Declare Sub optPrivateScope_Click(ByRef Sender As RadioButton)
+		Declare Static Sub optDefaultScope_Click_(ByRef Sender As RadioButton)
+		Declare Sub optDefaultScope_Click(ByRef Sender As RadioButton)
 		Declare Constructor
 		
 		Dim As Label lblName, lblParameters, lblType, lblParameters1, lblPriority, lblAlias
 		Dim As TextBox txtName, txtParameters, txtDescription, txtPriority, txtAlias
 		Dim As CommandButton cmdOK, cmdCancel
 		Dim As GroupBox grbType, grbScope, grbAccessControl
-		Dim As RadioButton optSub, optFunction, optProperty, optPublicScope, optPrivateScope, optOperator, optPublicAccess, optProtectedAccess, optPrivateAccess, optConstructor, optDestructor
-		Dim As CheckBox chkStatic, chkStaticProcedure
+		Dim As RadioButton optSub, optFunction, optProperty, optPublicScope, optPrivateScope, optOperator, optPublicAccess, optProtectedAccess, optPrivateAccess, optConstructor, optDestructor, optDefaultScope
+		Dim As CheckBox chkStatic, chkStaticProcedure, chkExport
 		Dim As ComboBoxEdit cboType
 		Dim As UpDown updPriority
 	End Type
@@ -58,7 +64,7 @@
 			.MinimizeBox = False
 			.Icon = "1"
 			.OnShow = @Form_Show_
-			.SetBounds 0, 0, 340, 480
+			.SetBounds 0, 0, 340, 510
 		End With
 		' lblName
 		With lblName
@@ -85,7 +91,7 @@
 			.Text = ML("OK")
 			.TabIndex = 20
 			.Caption = ML("OK")
-			.SetBounds 150, 420, 80, 20
+			.SetBounds 150, 450, 80, 20
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
 			.Parent = @This
@@ -97,7 +103,7 @@
 			.TabIndex = 21
 			.ControlIndex = 2
 			.Caption = ML("Cancel")
-			.SetBounds 240, 420, 80, 20
+			.SetBounds 240, 450, 80, 20
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
 			.Parent = @This
@@ -153,7 +159,7 @@
 			.Text = ML("Scope")
 			.TabIndex = 24
 			.Caption = ML("Scope")
-			.SetBounds 10, 330, 200, 50
+			.SetBounds 10, 330, 310, 50
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -165,6 +171,7 @@
 			.Caption = ML("Public")
 			.SetBounds 10, 20, 90, 20
 			.Designer = @This
+			.OnClick = @optPublicScope_Click_
 			.Parent = @grbScope
 		End With
 		' optPrivateScope
@@ -176,6 +183,7 @@
 			.Caption = ML("Private")
 			.SetBounds 110, 20, 80, 20
 			.Designer = @This
+			.OnClick = @optPrivateScope_Click_
 			.Parent = @grbScope
 		End With
 		' chkStatic
@@ -338,7 +346,7 @@
 			.TabIndex = 29
 			.ControlIndex = 0
 			.Caption = ML("Priority") & ":"
-			.SetBounds 190, 393, 60, 20
+			.SetBounds 10, 423, 60, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -348,7 +356,7 @@
 			.Text = "UpDown1"
 			.TabIndex = 19
 			.Associate = @txtPriority
-			.SetBounds 300, 390, 17, 20
+			.SetBounds 120, 420, 17, 20
 			.Designer = @This
 			.MinValue = 101
 			.MaxValue = 65535
@@ -361,7 +369,7 @@
 			.TabIndex = 18
 			.NumbersOnly = True
 			.Alignment = AlignmentConstants.taRight
-			.SetBounds 260, 390, 40, 20
+			.SetBounds 80, 420, 40, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -372,7 +380,7 @@
 			.TabIndex = 16
 			.ControlIndex = 6
 			.Caption = ML("Static")
-			.SetBounds 220, 350, 100, 20
+			.SetBounds 190, 390, 70, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -397,7 +405,42 @@
 			.Designer = @This
 			.Parent = @This
 		End With
+		' chkExport
+		With chkExport
+			.Name = "chkExport"
+			.Text = ML("Export")
+			.TabIndex = 31
+			.ControlIndex = 17
+			.Caption = ML("Export")
+			.SetBounds 260, 390, 60, 20
+			.Designer = @This
+			.Parent = @This
+		End With
+		' optDefaultScope
+		With optDefaultScope
+			.Name = "optDefaultScope"
+			.Text = ML("Default")
+			.TabIndex = 32
+			.ControlIndex = 1
+			.Caption = ML("Default")
+			.SetBounds 210, 20, 90, 20
+			.Designer = @This
+			.OnClick = @optDefaultScope_Click_
+			.Parent = @grbScope
+		End With
 	End Constructor
+	
+	Private Sub frmAddProcedureType.optDefaultScope_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optDefaultScope_Click(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.optPrivateScope_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optPrivateScope_Click(Sender)
+	End Sub
+	
+	Private Sub frmAddProcedureType.optPublicScope_Click_(ByRef Sender As RadioButton)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).optPublicScope_Click(Sender)
+	End Sub
 	
 	Private Sub frmAddProcedureType.txtParameters_Change_(ByRef Sender As TextBox)
 		*Cast(frmAddProcedureType Ptr, Sender.Designer).txtParameters_Change(Sender)
@@ -502,13 +545,14 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 		sTypeNameDot = sTypeName & "."
 		Dim As String SpaceStr
 		Dim As Integer iStart, iEnd, LineToAdd, LineEndPublic = -1, LineEndProtected = -1, LineEndPrivate = -1, LineEndType = -1
-		Dim As EditControl Ptr ptxtCode, ptxtCodeBi
+		Dim As EditControl Ptr ptxtCode, ptxtCodeBi, ptxtCodeType
 		Dim As EditControl txtCodeBi
 		Dim As Boolean bFind, b, bPublic = True, bPrivate, bProtected, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 		For i As Integer = 0 To tb->txtCode.LinesCount - 1
 			GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 			For k As Integer = iStart To iEnd
 				If (Not b) AndAlso StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "type " & LCase(sTypeName) & " ") Then
+					ptxtCodeType = ptxtCode
 					b = True
 				ElseIf b Then
 					If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end type ") Then
@@ -575,12 +619,14 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 				q2 += UBound(res) + 1
 				If ptxtCode = @tb->txtCode Then q1 += UBound(res) + 1
 			End If
+			ptxtCode = ptxtCodeType
+			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 			ptxtCode->InsertLine LineToAdd + q2, SpaceStr & !"\tDeclare" & IIf(chkStaticProcedure.Checked, " Static", "") & " " & sType & IIf(optConstructor.Checked OrElse optDestructor.Checked, "", " " & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")")
 			If ptxtCode = @tb->txtCode Then q1 += 1
 		End If
 		tb->txtCode.InsertLine i + q1, ""
 	End If
-	tb->txtCode.InsertLine i + q1 + 1, IIf(optPublicScope.Checked, "Public", "Private") & " " & sType & " " & IIf(bInsideType AndAlso (optConstructor.Checked OrElse optDestructor.Checked), txtName.Text, sTypeNameDot & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")") & sConstructorDestructor & IIf(chkStatic.Checked, " Static", "")
+	tb->txtCode.InsertLine i + q1 + 1, IIf(optPublicScope.Checked, "Public ", IIf(optPrivateScope.Checked, "Private ", "")) & sType & " " & IIf(bInsideType AndAlso (optConstructor.Checked OrElse optDestructor.Checked), txtName.Text, sTypeNameDot & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")") & sConstructorDestructor & IIf(chkStatic.Checked, " Static", "") & IIf(chkExport.Checked, " Export", "")
 	tb->txtCode.InsertLine i + q1 + 2, !"\t"
 	tb->txtCode.InsertLine i + q1 + 3, "End " & sType
 	tb->txtCode.Changed "Insert procedure"
@@ -696,4 +742,17 @@ Private Sub frmAddProcedureType.txtParameters_Change(ByRef Sender As TextBox)
 			optPrivateAccess.Enabled = True
 		End If
 	End If
+End Sub
+
+Private Sub frmAddProcedureType.optPublicScope_Click(ByRef Sender As RadioButton)
+	chkExport.Enabled = Not optPrivateScope.Checked
+	If chkExport.Enabled = False Then chkExport.Checked = False
+End Sub
+
+Private Sub frmAddProcedureType.optPrivateScope_Click(ByRef Sender As RadioButton)
+	optPublicScope_Click(Sender)
+End Sub
+
+Private Sub frmAddProcedureType.optDefaultScope_Click(ByRef Sender As RadioButton)
+	optPublicScope_Click(Sender)
 End Sub

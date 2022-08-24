@@ -72,11 +72,11 @@ Namespace My.Sys.Forms
 		ToolBarRemoveButtonSub As Sub(tb As Any Ptr, Index As Integer)
 		StatusBarPanelByIndexFunc As Function(sb As Any Ptr, Index As Integer) As Any Ptr
 		StatusBarRemovePanelSub As Sub(sb As Any Ptr, Index As Integer)
-		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef FILE As WString, cx As Integer = 0, CY As Integer = 0) As Boolean
-		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef FILE As WString) As Boolean
-		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef FILE As WString, ByRef Key As WString = "")
+		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
+		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef File As WString) As Boolean
+		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef File As WString, ByRef Key As WString = "")
 		ImageListIndexOfFunc As Function(imgList As Any Ptr, ByRef Key As WString) As Integer
 		ImageListClearSub As Sub(imgList As Any Ptr)
 	End Type
@@ -334,7 +334,7 @@ Namespace My.Sys.Forms
 		OnInsertComponent  As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, BeforeCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 		OnInsertObject     As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Obj As Any Ptr, CopiedObj As Any Ptr, BeforeObj As Any Ptr)
 		OnInsertingControl As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, ByRef sName As String)
-		OnMouseMove        As Sub(ByRef Sender As My.Sys.Forms.Designer, X As Integer, Y As Integer, ByRef Over As Any Ptr)
+		OnMouseMove        As Sub(ByRef Sender As My.Sys.Forms.Designer, x As Integer, Y As Integer, ByRef Over As Any Ptr)
 		OnDblClickControl  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)
 		OnClickMenuItem    As Sub(ByRef Sender As My.Sys.Forms.Designer, MenuItem As Any Ptr)
 		OnClickProperties  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)

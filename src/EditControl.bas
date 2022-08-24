@@ -2992,6 +2992,30 @@ Namespace My.Sys.Forms
 															End If
 															
 															If Not OneDot Then
+																If tIndex = -1 Then
+																	For i As Integer = 0 To FECLine->Args.Count - 1
+																		tIndex = Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements.IndexOf(LCase(Matn))
+																		If tIndex <> -1 Then
+																			pkeywords = @Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements
+																			OriginalCaseWord = pkeywords->Item(tIndex)
+																			te = pkeywords->Object(tIndex)
+																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																				Select Case te->ElementType
+																				Case "ByRefParameter"
+																					sc = @ColorByRefParameters
+																				Case "ByValParameter"
+																					sc = @ColorByValParameters
+																				Case "Field", "Event"
+																					sc = @ColorFields
+																				Case Else
+																					sc = @ColorLocalVariables
+																				End Select
+																			End If
+																			Exit For
+																		End If
+																	Next
+																End If
+																
 																'Procedure
 																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
 																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
@@ -3000,48 +3024,56 @@ Namespace My.Sys.Forms
 																		OriginalCaseWord = pkeywords->Item(tIndex)
 																		te = pkeywords->Object(tIndex)
 																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																			Select Case te->ElementType
-																			Case "ByRefParameter"
+																			Select Case LCase(te->ElementType)
+																			Case "sub"
+																				sc = @ColorSubs
+																			Case "function"
+																				sc = @ColorGlobalFunctions
+																			Case "property"
+																				sc = @ColorProperties
+																			Case "byrefparameter"
 																				sc = @ColorByRefParameters
-																			Case "ByValParameter"
+																			Case "byvalparameter"
 																				sc = @ColorByValParameters
-																			Case "Field"
+																			Case "field", "event"
 																				sc = @ColorFields
 																			Case Else
 																				sc = @ColorLocalVariables
 																			End Select
 																		End If
 																	Else
-																		TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
-																		Pos1 = InStr(TypeName, ".")
-																		If (CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]")) AndAlso FECLine->InConstruction->StartLine <> z Then
-																			If Pos1 > 0 Then
-																				TypeName = ..Left(TypeName, Pos1 - 1)
-																			Else
-																				TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
-																			End If
-																			If ContainsIn(TypeName, Matn, @Types, True, , , te) Then
-																			ElseIf ContainsIn(TypeName, Matn, @Enums, True, , , te) Then
-																			ElseIf ContainsIn(TypeName, Matn, pComps, True, , , te) Then
-																			ElseIf ContainsIn(TypeName, Matn, pGlobalTypes, True, , , te) Then
-																			ElseIf ContainsIn(TypeName, Matn, pGlobalEnums, True, , , te) Then
-																			End If
-																			If te > 0 Then
-																				OriginalCaseWord = te->Name
-																				tIndex = 0
-																				If SyntaxHighlightingIdentifiers Then
-																					Select Case LCase(te->ElementType)
-																					Case "sub"
-																						sc = @ColorSubs
-																					Case "function"
-																						sc = @ColorGlobalFunctions
-																					Case "property"
-																						sc = @ColorProperties
-																					Case "field", "event"
-																						sc = @ColorFields
-																					Case Else
-																						sc = @ColorLocalVariables
-																					End Select
+																		If tIndex = -1 Then
+																			TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+																			Pos1 = InStr(TypeName, ".")
+																			If (CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+																				If Pos1 > 0 Then
+																					TypeName = ..Left(TypeName, Pos1 - 1)
+																				Else
+																					TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+																				End If
+																				If ContainsIn(TypeName, Matn, @Types, True, , , te) Then
+																				ElseIf ContainsIn(TypeName, Matn, @Enums, True, , , te) Then
+																				ElseIf ContainsIn(TypeName, Matn, pComps, True, , , te) Then
+																				ElseIf ContainsIn(TypeName, Matn, pGlobalTypes, True, , , te) Then
+																				ElseIf ContainsIn(TypeName, Matn, pGlobalEnums, True, , , te) Then
+																				End If
+																				If te > 0 Then
+																					OriginalCaseWord = te->Name
+																					tIndex = 0
+																					If SyntaxHighlightingIdentifiers Then
+																						Select Case LCase(te->ElementType)
+																						Case "sub"
+																							sc = @ColorSubs
+																						Case "function"
+																							sc = @ColorGlobalFunctions
+																						Case "property"
+																							sc = @ColorProperties
+																						Case "field", "event"
+																							sc = @ColorFields
+																						Case Else
+																							sc = @ColorLocalVariables
+																						End Select
+																					End If
 																				End If
 																			End If
 																		End If

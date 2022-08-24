@@ -3457,6 +3457,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Pos1 > 0 Then res1(n) = Trim(Mid(res1(n), Pos1 + 1))
 							If CBool(n = 0) AndAlso bOldAs Then
 								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+								CurType = Replace(CurType, "`", "=")
 							End If
 							If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
 								Pos1 = InStrRev(CurType, ".")
@@ -3831,6 +3832,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							Pos1 = InStr(LCase(res1(n)), " as ")
 							If Pos1 > 0 Then
 								CurType = Trim(Mid(res1(n), Pos1 + 4))
+								CurType = Replace(CurType, "`", "=")
 '								Pos2 = InStr(CurType, "*") 'David Change ,  a As WString *2
 '								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
@@ -3852,9 +3854,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							If CBool(n = 0) AndAlso bOldAs Then
 								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+								CurType = Replace(CurType, "`", "=")
 							End If
-							Pos1 = InStrRev(CurType, ".")
-							If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+							If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+								Pos1 = InStrRev(CurType, ".")
+								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+							End If
 							Var te = New_( TypeElement)
 							te->Name = res1(n)
 							te->DisplayName = te->Name

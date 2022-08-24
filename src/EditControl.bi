@@ -118,6 +118,7 @@ Namespace My.Sys.Forms
 		InWithConstruction As Integer
 		Multiline As Boolean
 		Text As WString Ptr = 0
+		Args As List
 		Ends As IntegerList
 		EndsCompleted As Boolean
 		Visible As Boolean
