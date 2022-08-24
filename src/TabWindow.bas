@@ -3539,6 +3539,7 @@ Sub CompleteWord
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	SelLinePos = iSelEndLine
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+	Dim As String s, sTemp, sTemp2, TypeName, OldTypeName
 	If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
 	k = InStrRev(*sLine, "'")
 	If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
