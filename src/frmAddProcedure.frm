@@ -438,6 +438,7 @@
 			.TabIndex = 33
 			.ControlIndex = 17
 			.Caption = ML("Procedure also")
+			.Hint = ML("Procedure also with Static keyword")
 			.SetBounds 120, 390, 100, 20
 			.Designer = @This
 			.Parent = @This
