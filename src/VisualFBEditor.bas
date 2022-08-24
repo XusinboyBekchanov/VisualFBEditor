@@ -194,11 +194,11 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "WatchWindow":                         ptabBottom->Tab(9)->SelectTab
 	Case "ImageManager":                        pfImageManager->Show *pfrmMain
 	Case "Toolbars":                            'ShowMainToolbar = Not ShowMainToolbar: ReBar1.Visible = ShowMainToolbar: pfrmMain->RequestAlign
-	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: ReBar1.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolBar: pfrmMain->RequestAlign
-	Case "Edit":                                ShowEditToolBar = Not ShowEditToolBar: ReBar1.Bands.Item(1)->Visible = ShowEditToolBar: mnuEditToolBar->Checked = ShowEditToolBar: pfrmMain->RequestAlign
-	Case "Project":                             ShowProjectToolBar = Not ShowProjectToolBar: ReBar1.Bands.Item(2)->Visible = ShowProjectToolBar: mnuProjectToolBar->Checked = ShowProjectToolBar: pfrmMain->RequestAlign
-	Case "Build":                               ShowBuildToolBar = Not ShowBuildToolBar: ReBar1.Bands.Item(3)->Visible = ShowBuildToolBar: mnuBuildToolBar->Checked = ShowBuildToolBar: pfrmMain->RequestAlign
-	Case "Run":                                 ShowRunToolBar = Not ShowRunToolBar: ReBar1.Bands.Item(4)->Visible = ShowRunToolBar: mnuRunToolBar->Checked = ShowRunToolBar: pfrmMain->RequestAlign
+	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: MainReBar.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolBar: pfrmMain->RequestAlign
+	Case "Edit":                                ShowEditToolBar = Not ShowEditToolBar: MainReBar.Bands.Item(1)->Visible = ShowEditToolBar: mnuEditToolBar->Checked = ShowEditToolBar: pfrmMain->RequestAlign
+	Case "Project":                             ShowProjectToolBar = Not ShowProjectToolBar: MainReBar.Bands.Item(2)->Visible = ShowProjectToolBar: mnuProjectToolBar->Checked = ShowProjectToolBar: pfrmMain->RequestAlign
+	Case "Build":                               ShowBuildToolBar = Not ShowBuildToolBar: MainReBar.Bands.Item(3)->Visible = ShowBuildToolBar: mnuBuildToolBar->Checked = ShowBuildToolBar: pfrmMain->RequestAlign
+	Case "Run":                                 ShowRunToolBar = Not ShowRunToolBar: MainReBar.Bands.Item(4)->Visible = ShowRunToolBar: mnuRunToolBar->Checked = ShowRunToolBar: pfrmMain->RequestAlign
 	Case "TBUseDebugger":                       ChangeUseDebugger tbtUseDebugger->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
 	Case "Folder":                              WithFolder

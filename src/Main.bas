@@ -67,7 +67,7 @@ Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
 Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
-Dim Shared As ReBar ReBar1
+Dim Shared As ReBar MainReBar
 #ifndef __USE_GTK__
 	Dim Shared As ScrollBarControl scrTool
 	Dim Shared As PageSetupDialog PageSetupD
@@ -4395,7 +4395,7 @@ Sub LoadSettings
 	
 	mnuMain.DisplayIcons = DisplayMenuIcons
 	mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
-	ReBar1.Visible = ShowMainToolBar
+	MainReBar.Visible = ShowMainToolBar
 	SetDarkMode DarkMode, False
 	
 	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-b {S} -exx"))
@@ -7618,11 +7618,11 @@ Sub frmMain_Create(ByRef Sender As Control)
 	ShowRunToolBar = iniSettings.ReadBool("MainWindow", "ShowRunToolbar", True)
 	ShowTipoftheDay = iniSettings.ReadBool("MainWindow", "ShowTipoftheDay", True)
 	ShowTipoftheDayIndex = iniSettings.ReadInteger("MainWindow", "ShowTipoftheDayIndex", 0)
-	ReBar1.Bands.Item(0)->Visible = ShowStandardToolBar
-	ReBar1.Bands.Item(1)->Visible = ShowEditToolBar
-	ReBar1.Bands.Item(2)->Visible = ShowProjectToolBar
-	ReBar1.Bands.Item(3)->Visible = ShowBuildToolBar
-	ReBar1.Bands.Item(4)->Visible = ShowRunToolBar
+	MainReBar.Bands.Item(0)->Visible = ShowStandardToolBar
+	MainReBar.Bands.Item(1)->Visible = ShowEditToolBar
+	MainReBar.Bands.Item(2)->Visible = ShowProjectToolBar
+	MainReBar.Bands.Item(3)->Visible = ShowBuildToolBar
+	MainReBar.Bands.Item(4)->Visible = ShowRunToolBar
 	mnuStandardToolBar->Checked = ShowStandardToolBar
 	mnuEditToolBar->Checked = ShowEditToolBar
 	mnuProjectToolBar->Checked = ShowProjectToolBar
@@ -8054,7 +8054,8 @@ tbProject.OnMouseUp = @ToolBar_MouseUp
 tbBuild.OnMouseUp = @ToolBar_MouseUp
 tbRun.OnMouseUp = @ToolBar_MouseUp
 
-ReBar1.Align = DockStyle.alTop
+MainReBar.Name = "MainReBar"
+MainReBar.Align = DockStyle.alTop
 
 frmMain.Name = "frmMain"
 #ifdef __USE_GTK__
@@ -8078,12 +8079,12 @@ frmMain.OnClose = @frmMain_Close
 frmMain.OnDropFile = @frmMain_DropFile
 frmMain.Menu = @mnuMain
 '#ifndef __USE_GTK__
-ReBar1.Add @tbStandard
-ReBar1.Add @tbEdit
-ReBar1.Add @tbProject
-ReBar1.Add @tbBuild
-ReBar1.Add @tbRun
-frmMain.Add @ReBar1
+MainReBar.Add @tbStandard
+MainReBar.Add @tbEdit
+MainReBar.Add @tbProject
+MainReBar.Add @tbBuild
+MainReBar.Add @tbRun
+frmMain.Add @MainReBar
 '#else
 '	tbStandard.Align = DockStyle.alTop
 '	frmMain.Add @tbStandard

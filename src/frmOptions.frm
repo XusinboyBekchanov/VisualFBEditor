@@ -2866,7 +2866,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		'piniSettings->WriteBool "Options", "ShowToolBoxLocal",gLocalToolBox
 		piniSettings->WriteBool("Options", "PropertiesLocal", gLocalProperties) 'David Change
 		pfrmMain->Menu->ImagesList = IIf(DisplayMenuIcons, pimgList, 0)
-		ReBar1.Visible = ShowMainToolBar
+		MainReBar.Visible = ShowMainToolBar
 		pfrmMain->RequestAlign
 		SetDarkMode DarkMode, False
 		#ifdef __USE_WINAPI__
