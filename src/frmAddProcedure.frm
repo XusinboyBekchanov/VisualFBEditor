@@ -40,6 +40,8 @@
 		Declare Sub optPrivateScope_Click(ByRef Sender As RadioButton)
 		Declare Static Sub optDefaultScope_Click_(ByRef Sender As RadioButton)
 		Declare Sub optDefaultScope_Click(ByRef Sender As RadioButton)
+		Declare Static Sub chkStaticMember_Click_(ByRef Sender As CheckBox)
+		Declare Sub chkStaticMember_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
 		Dim As Label lblName, lblParameters, lblType, lblParameters1, lblPriority, lblAlias
@@ -47,7 +49,7 @@
 		Dim As CommandButton cmdOK, cmdCancel
 		Dim As GroupBox grbType, grbScope, grbAccessControl
 		Dim As RadioButton optSub, optFunction, optProperty, optPublicScope, optPrivateScope, optOperator, optPublicAccess, optProtectedAccess, optPrivateAccess, optConstructor, optDestructor, optDefaultScope
-		Dim As CheckBox chkStatic, chkStaticProcedure, chkExport
+		Dim As CheckBox chkStatic, chkStaticMember, chkExport, chkProcedureAlso
 		Dim As ComboBoxEdit cboType
 		Dim As UpDown updPriority
 	End Type
@@ -191,7 +193,7 @@
 			.Name = "chkStatic"
 			.Text = ML("All Local variables as Statics")
 			.TabIndex = 17
-			.SetBounds 10, 390, 170, 20
+			.SetBounds 10, 420, 170, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -346,7 +348,7 @@
 			.TabIndex = 29
 			.ControlIndex = 0
 			.Caption = ML("Priority") & ":"
-			.SetBounds 10, 423, 60, 20
+			.SetBounds 190, 423, 60, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -356,7 +358,7 @@
 			.Text = "UpDown1"
 			.TabIndex = 19
 			.Associate = @txtPriority
-			.SetBounds 120, 420, 17, 20
+			.SetBounds 300, 420, 17, 20
 			.Designer = @This
 			.MinValue = 101
 			.MaxValue = 65535
@@ -369,19 +371,20 @@
 			.TabIndex = 18
 			.NumbersOnly = True
 			.Alignment = AlignmentConstants.taRight
-			.SetBounds 80, 420, 40, 20
+			.SetBounds 260, 420, 40, 20
 			.Designer = @This
 			.Parent = @This
 		End With
-		' chkStaticProcedure
-		With chkStaticProcedure
-			.Name = "chkStaticProcedure"
-			.Text = ML("Static")
+		' chkStaticMember
+		With chkStaticMember
+			.Name = "chkStaticMember"
+			.Text = ML("Static member")
 			.TabIndex = 16
 			.ControlIndex = 6
-			.Caption = ML("Static")
-			.SetBounds 190, 390, 70, 20
+			.Caption = ML("Static member")
+			.SetBounds 10, 390, 100, 20
 			.Designer = @This
+			.OnClick = @chkStaticMember_Click_
 			.Parent = @This
 		End With
 		' lblAlias
@@ -412,7 +415,7 @@
 			.TabIndex = 31
 			.ControlIndex = 17
 			.Caption = ML("Export")
-			.SetBounds 260, 390, 60, 20
+			.SetBounds 220, 390, 100, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -428,7 +431,22 @@
 			.OnClick = @optDefaultScope_Click_
 			.Parent = @grbScope
 		End With
+		' chkProcedureAlso
+		With chkProcedureAlso
+			.Name = "chkProcedureAlso"
+			.Text = ML("Procedure also")
+			.TabIndex = 33
+			.ControlIndex = 17
+			.Caption = ML("Procedure also")
+			.SetBounds 120, 390, 100, 20
+			.Designer = @This
+			.Parent = @This
+		End With
 	End Constructor
+	
+	Private Sub frmAddProcedureType.chkStaticMember_Click_(ByRef Sender As CheckBox)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).chkStaticMember_Click(Sender)
+	End Sub
 	
 	Private Sub frmAddProcedureType.optDefaultScope_Click_(ByRef Sender As RadioButton)
 		*Cast(frmAddProcedureType Ptr, Sender.Designer).optDefaultScope_Click(Sender)
@@ -621,12 +639,12 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 			End If
 			ptxtCode = ptxtCodeType
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-			ptxtCode->InsertLine LineToAdd + q2, SpaceStr & !"\tDeclare" & IIf(chkStaticProcedure.Checked, " Static", "") & " " & sType & IIf(optConstructor.Checked OrElse optDestructor.Checked, "", " " & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")")
+			ptxtCode->InsertLine LineToAdd + q2, SpaceStr & !"\tDeclare" & IIf(chkStaticMember.Checked, " Static", "") & " " & sType & IIf(optConstructor.Checked OrElse optDestructor.Checked, "", " " & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")")
 			If ptxtCode = @tb->txtCode Then q1 += 1
 		End If
 		tb->txtCode.InsertLine i + q1, ""
 	End If
-	tb->txtCode.InsertLine i + q1 + 1, IIf(optPublicScope.Checked, "Public ", IIf(optPrivateScope.Checked, "Private ", "")) & sType & " " & IIf(bInsideType AndAlso (optConstructor.Checked OrElse optDestructor.Checked), txtName.Text, sTypeNameDot & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")") & sConstructorDestructor & IIf(chkStatic.Checked, " Static", "") & IIf(chkExport.Checked, " Export", "")
+	tb->txtCode.InsertLine i + q1 + 1, IIf(optPublicScope.Checked, "Public ", IIf(optPrivateScope.Checked, "Private ", "")) & IIf(chkProcedureAlso.Checked, "Static ", "") & sType & " " & IIf(bInsideType AndAlso (optConstructor.Checked OrElse optDestructor.Checked), txtName.Text, sTypeNameDot & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")") & sConstructorDestructor & IIf(chkStatic.Checked, " Static", "") & IIf(chkExport.Checked, " Export", "")
 	tb->txtCode.InsertLine i + q1 + 2, !"\t"
 	tb->txtCode.InsertLine i + q1 + 3, "End " & sType
 	tb->txtCode.Changed "Insert procedure"
@@ -662,7 +680,8 @@ Private Sub frmAddProcedureType.Form_Show(ByRef Sender As Form)
 	optPublicScope.Checked = True
 	optPrivateScope.Checked = False
 	chkStatic.Checked = False
-	chkStaticProcedure.Checked = False
+	chkStaticMember.Checked = False
+	chkProcedureAlso.Checked = False
 	txtPriority.Text = "0"
 End Sub
 
@@ -676,8 +695,9 @@ Private Sub frmAddProcedureType.cboType_Change(ByRef Sender As ComboBoxEdit)
 		optProperty.Checked = False
 		optSub.Checked = True
 	End If
-	chkStaticProcedure.Enabled = bEnabled
+	chkStaticMember.Enabled = bEnabled
 	optConstructor_Click(optConstructor)
+	chkStaticMember_Click(chkStaticMember)
 End Sub
 
 Private Sub frmAddProcedureType.optConstructor_Click(ByRef Sender As RadioButton)
@@ -755,4 +775,11 @@ End Sub
 
 Private Sub frmAddProcedureType.optDefaultScope_Click(ByRef Sender As RadioButton)
 	optPublicScope_Click(Sender)
+End Sub
+
+Private Sub frmAddProcedureType.chkStaticMember_Click(ByRef Sender As CheckBox)
+	chkProcedureAlso.Enabled = chkStaticMember.Checked AndAlso chkStaticMember.Enabled
+	If Not chkProcedureAlso.Enabled Then
+		chkProcedureAlso.Checked = False
+	End If
 End Sub
