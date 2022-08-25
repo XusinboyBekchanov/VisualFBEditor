@@ -630,7 +630,7 @@ End Function
 	Sub MariaDBBox.TransactionBegin()
 		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return
 		Transaction = 1
-		This.Exec("BEGIN TRANSACTION")
+		This.Exec("BEGIN")
 	End Sub
 	Function MariaDBBox.TransactionEnd() As Long
 		If FMYSQL = 0 Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
