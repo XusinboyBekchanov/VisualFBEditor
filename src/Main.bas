@@ -1530,6 +1530,44 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					WLet(ppe->AndroidNDKLocation, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "JDKLocation" Then
 					WLet(ppe->JDKLocation, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
+				ElseIf Parameter = "ControlLibrary" Then
+					Dim As Library Ptr CtlLibrary
+					Dim As Boolean bFinded, bChanged
+					Dim As UString LibraryPath = Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					For i As Integer = 0 To ControlLibraries.Count - 1
+						CtlLibrary = ControlLibraries.Item(i)
+						If Replace(GetFolderName(CtlLibrary->Path, False), "\", "/") = LibraryPath Then
+							bFinded = True
+							Exit For
+						End If
+					Next
+					If bFinded Then
+						If Not CtlLibrary->Enabled Then
+							CtlLibrary->Enabled = True
+							LoadToolBox CtlLibrary
+							bChanged = True
+						End If
+					Else
+						Dim LibKey As String = GetLibKey
+						Dim As IniFile ini
+						ini.Load GetRelativePath(LibraryPath) & Slash & "Settings.ini"
+						Var CtlLibrary = New_(Library)
+						CtlLibrary->Name = ini.ReadString("Setup", "Name")
+						CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
+						CtlLibrary->Path = Replace(LibraryPath, BackSlash, Slash) & ini.ReadString("Setup", LibKey)
+						CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
+						CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
+						CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), CtlLibrary->Path))
+						CtlLibrary->Enabled = True
+						ControlLibraries.Add CtlLibrary
+						LoadToolBox CtlLibrary
+						bChanged = True
+					End If
+					If bChanged Then
+						pnlToolBox.RequestAlign
+						pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
+						pnlToolBox.RequestAlign
+					End If
 				End If
 			Loop
 		End If
@@ -1553,7 +1591,7 @@ Sub OpenFolder()
 	If Not BrowseD.Execute Then Exit Sub
 	AddFolder BrowseD.Directory
 	WLet(RecentFolder, BrowseD.Directory)
-	TabLeft.Tabs[0]->SelectTab
+	tabLeft.Tabs[0]->SelectTab
 End Sub
 
 Sub OpenProject()
@@ -1563,7 +1601,7 @@ Sub OpenProject()
 	If Not OpenD.Execute Then Exit Sub
 	AddProject OpenD.FileName
 	WLet(RecentProject, OpenD.FileName)
-	TabLeft.Tabs[0]->SelectTab
+	tabLeft.Tabs[0]->SelectTab
 End Sub
 
 Sub OpenUrl(ByVal url As String)
@@ -1628,7 +1666,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 				End If
 			End If
 		Loop
-		WDeallocate filn
+		WDeAllocate filn
 		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn ' For No MainFIle
 		For i As Integer = 0 To Files.Count - 1
 			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
@@ -1900,10 +1938,10 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
 		WLet(LastOpenPath, GetFolderName(SaveD.FileName))
-		If FileExists(SaveD.Filename) Then
-			Select Case MsgBox(ML("Are you sure you want to overwrite the project") & "?" & WChr(13,10) & SaveD.Filename, "Visual FB Editor", mtWarning, btYesNo)
-			Case mrYES:
-			Case mrNO: Return SaveProject(tnPr, bWithQuestion)
+		If FileExists(SaveD.FileName) Then
+			Select Case MsgBox(ML("Are you sure you want to overwrite the project") & "?" & WChr(13,10) & SaveD.FileName, "Visual FB Editor", mtWarning, btYesNo)
+			Case mrYes:
+			Case mrNo: Return SaveProject(tnPr, bWithQuestion)
 			End Select
 		End If
 		If ppe = 0 Then ppe = New_( ProjectElement)
@@ -2002,6 +2040,13 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "AndroidSDKLocation=""" & *ppe->AndroidSDKLocation & """"
 	Print #Fn, "AndroidNDKLocation=""" & *ppe->AndroidNDKLocation & """"
 	Print #Fn, "JDKLocation=""" & *ppe->JDKLocation & """"
+	Dim As Library Ptr CtlLibrary
+	For i As Integer = 0 To ControlLibraries.Count - 1
+		CtlLibrary = ControlLibraries.Item(i)
+		If CtlLibrary->Enabled Then 
+			Print #Fn, "ControlLibrary=""" & Replace(GetFolderName(CtlLibrary->Path, False), "\", "/") & """"
+		End If
+	Next
 	CloseFile_(Fn)
 	'Else
 	'	MsgBox ML("Save file failure!") & Chr(13,10) & *ppe->FileName
