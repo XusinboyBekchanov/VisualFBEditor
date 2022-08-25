@@ -1,7 +1,7 @@
-﻿#ifdef __FB_WIN32__
-	#cmdline "Form1.rc"
-#endif
-'#Region "Form"
+﻿'#Region "Form"
+	#if defined(__FB_WIN32__) AndAlso defined(__FB_MAIN__)
+		#cmdline "Form1.rc"
+	#endif
 	#include once "mff/Form.bi"
 	
 	Using My.Sys.Forms
@@ -12,9 +12,7 @@
 	
 	Dim Shared Form1 As Form1Type
 	
-	#ifndef _NOT_AUTORUN_FORMS_
-		#define _NOT_AUTORUN_FORMS_
-		
+	#ifdef __FB_MAIN__
 		Form1.Show
 		
 		App.Run

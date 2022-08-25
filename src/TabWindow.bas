@@ -3571,8 +3571,8 @@ Sub CompleteWord
 			TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, i - 1, te, teOld, OldTypeName)
 			b = True
 			Exit For
-		ElseIf s = Chr(34) Then
-			Exit Sub
+		'ElseIf s = Chr(34) Then
+		'	Exit Sub
 		Else
 			If SelCharPos = 0 Then SelCharPos = i
 			Exit For
@@ -3903,9 +3903,9 @@ Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEn
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iSelStartCharFunc, iSelEndCharFunc
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-	If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
-	k = InStrRev(*sLine, "'")
-	If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
+	'If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
+	'k = InStrRev(*sLine, "'")
+	'If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
 	Dim As String sWord
 	Dim As Integer iCount, iPos
 	iSelEndCharFunc = iSelEndChar
@@ -4396,9 +4396,9 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-		If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
-		k = InStrRev(*sLine, "'")
-		If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
+		'If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
+		'k = InStrRev(*sLine, "'")
+		'If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
 		k = 1
 		If Key = Asc(">") Then
 			If Mid(*sLine, iSelEndChar - 1, 1) <> "-" Then Exit Sub
@@ -4425,9 +4425,9 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		If iSelEndLine <= 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-		If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
-		k = InStrRev(*sLine, "'")
-		If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
+		'If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
+		'k = InStrRev(*sLine, "'")
+		'If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
 		Dim As TypeElement Ptr teEnum
 		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
 		#ifdef __USE_GTK__
@@ -4482,9 +4482,9 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		If CInt(Key = Asc(" ")) AndAlso (CInt(EndsWith(RTrim(LCase(..Left(*sLine, iSelEndChar))), " as")) OrElse _
 			CInt(EndsWith(RTrim(LCase(..Left(*sLine, iSelEndChar))), !"\tas"))OrElse _
 			CInt(RTrim(LCase(..Left(*sLine, iSelEndChar))) = "as")) Then
-			If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
-			k = InStrRev(*sLine, "'")
-			If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
+			'If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
+			'k = InStrRev(*sLine, "'")
+			'If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
 			FillTypeIntellisenses
 			SelLinePos = iSelEndLine
 			SelCharPos = iSelEndChar
@@ -6970,7 +6970,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 			Return *ee->FileName
 		End If
 	Else
-		tb = Cast(TabWindow Ptr, pTabCode->SelectedTab)
+		tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 OrElse tb->tn = 0 Then
 			Dim As TreeNode Ptr tn
 			If tvExplorer.SelectedNode = 0 Then
@@ -7043,8 +7043,8 @@ Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As 
 			Pos1 = InStr(Pos1 + 1, *Buff, SearchSymbol)
 		Loop
 	Next
-	WDeallocate Buff
-	WDeallocate File
+	WDeAllocate Buff
+	WDeAllocate File
 	If FirstLine <> "" Then Return *ResourceFile.vptr
 	If ResourceFile = "" Then
 		Var Pos1 = InStrRev(MainFile, ".")
@@ -7376,7 +7376,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			End If
 			If StartsWith(LTrim(LCase(sLine), Any !"\t "), "'") AndAlso Not StartsWith(LTrim(LCase(sLine), Any !"\t "), "'#compile ") Then
 				Continue Do
-			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_win32__") Then
+			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_win32__") OrElse StartsWith(LTrim(LCase(sLine), Any !"\t "), "#if defined(__fb_win32__) andalso defined(__fb_main__)") Then
 				l = l + 1
 				If ForWindows Then
 					k(l) = True
