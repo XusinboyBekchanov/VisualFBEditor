@@ -180,10 +180,10 @@ End Function
 		End If
 		Function = SQLFind(Sql_Utf8,rs_Utf8())
 	End Function
-	Function MariaDBBox.FindByte(Table As UString, Cond As UString, rs() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
-		Function = This.FindByteUtf(ToUtf8(Table), ToUtf8(Cond), rs(), ToUtf8(Col), ToUtf8(Orderby), Page, Pagesize)
+	Function MariaDBBox.FindByte(Table As UString, Cond As UString, rs() As String, rs_Types() As Long, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
+		Function = This.FindByteUtf(ToUtf8(Table), ToUtf8(Cond), rs(), rs_Types(), ToUtf8(Col), ToUtf8(Orderby), Page, Pagesize)
 	End Function
-	Function MariaDBBox.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
+	Function MariaDBBox.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, rs_Types() As Long, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
 		If m_DB = NULL         Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
 		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
@@ -209,7 +209,12 @@ End Function
 			yu = mysql_num_rows(res)
 			If yu = 0 Then ErrStr = "Not found": This.Event_Send(12, ErrStr): Return 0
 			ReDim rs_Utf8(yu, u - 1)
+			ReDim rs_Types(u - 1)
 			If UBound(rs_Utf8) = -1 Then
+				ErrStr = "ReDim not works": This.Event_Send(12, ErrStr)
+				Return 0
+			End If
+			If UBound(rs_Types) = -1 Then
 				ErrStr = "ReDim not works": This.Event_Send(12, ErrStr)
 				Return 0
 			End If
@@ -225,7 +230,10 @@ End Function
 					If fd = NULL Then
 						Exit For, For
 					End If
-					rs_Utf8(0, i) = *fd->name
+					If i = 1 Then
+						rs_Types(j) = fd->type
+						rs_Utf8(0, j) = *fd->name
+					End If
 					Select Case fd->type
 					Case MYSQL_TYPE_DECIMAL, MYSQL_TYPE_TINY, MYSQL_TYPE_SHORT, MYSQL_TYPE_LONG, MYSQL_TYPE_FLOAT, MYSQL_TYPE_DOUBLE, MYSQL_TYPE_TIMESTAMP, MYSQL_TYPE_LONGLONG, MYSQL_TYPE_INT24, MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, MYSQL_TYPE_YEAR, MYSQL_TYPE_NEWDATE, MYSQL_TYPE_BIT, MYSQL_TYPE_TIMESTAMP2, MYSQL_TYPE_DATETIME2, MYSQL_TYPE_TIME2, MYSQL_TYPE_NEWDECIMAL, MYSQL_TYPE_ENUM, MYSQL_TYPE_SET, MYSQL_TYPE_GEOMETRY
 						rs_Utf8(i - 1, j) = *row[j]
@@ -243,10 +251,10 @@ End Function
 		mysql_free_result(res)
 		Function = yu
 	End Function
-	Function MariaDBBox.FindOneByte(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "") As Long
-		Function = This.FindOneByteUtf(ToUtf8(Table),ToUtf8(Cond),rs_Utf8(),ToUtf8(Col),ToUtf8(Orderby))
+	Function MariaDBBox.FindOneByte(Table As UString, Cond As UString, rs_Utf8() As String, rs_Types() As Long, Col As UString = "*", Orderby As UString = "") As Long
+		Function = This.FindOneByteUtf(ToUtf8(Table), ToUtf8(Cond), rs_Utf8(), rs_Types(), ToUtf8(Col), ToUtf8(Orderby))
 	End Function
-	Function MariaDBBox.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As Long
+	Function MariaDBBox.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, rs_Types() As Long, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As Long
 		Dim m_DB As MYSQL Ptr = FMYSQL
 		If m_DB = NULL         Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
 		If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
@@ -270,7 +278,12 @@ End Function
 			yu = mysql_num_rows(res)
 			If yu = 0 Then ErrStr = "Not found": This.Event_Send(12, ErrStr): Return 0
 			ReDim rs_Utf8(u - 1)
+			ReDim rs_Types(u - 1)
 			If UBound(rs_Utf8) = -1 Then
+				ErrStr = "ReDim not works": This.Event_Send(12, ErrStr)
+				Return 0
+			End If
+			If UBound(rs_Types) = -1 Then
 				ErrStr = "ReDim not works": This.Event_Send(12, ErrStr)
 				Return 0
 			End If
@@ -285,6 +298,7 @@ End Function
 				If fd = NULL Then
 					Exit For
 				End If
+				rs_Types(j) = fd->type
 				Select Case fd->type
 				Case MYSQL_TYPE_DECIMAL, MYSQL_TYPE_TINY, MYSQL_TYPE_SHORT, MYSQL_TYPE_LONG, MYSQL_TYPE_FLOAT, MYSQL_TYPE_DOUBLE, MYSQL_TYPE_TIMESTAMP, MYSQL_TYPE_LONGLONG, MYSQL_TYPE_INT24, MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, MYSQL_TYPE_YEAR, MYSQL_TYPE_NEWDATE, MYSQL_TYPE_BIT, MYSQL_TYPE_TIMESTAMP2, MYSQL_TYPE_DATETIME2, MYSQL_TYPE_TIME2, MYSQL_TYPE_NEWDECIMAL, MYSQL_TYPE_ENUM, MYSQL_TYPE_SET, MYSQL_TYPE_GEOMETRY
 					rs_Utf8(j) = *row[j]

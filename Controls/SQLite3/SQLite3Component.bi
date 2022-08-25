@@ -32,12 +32,12 @@ Public:
 	Declare Function MemSave() As Boolean
 	Declare Function Find(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
 	Declare Function FindUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
-	Declare Function FindByte(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0)                        As Long
-	Declare Function FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
+	Declare Function FindByte(Table As UString, Cond As UString, rs_Utf8() As String, rs_Types() As Long, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0)                        As Long
+	Declare Function FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, rs_Types() As Long, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
 	Declare Function FindOne(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "") As Long
 	Declare Function FindOneUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As Long
-	Declare Function FindOneByte(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "")                        As Long
-	Declare Function FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As Long
+	Declare Function FindOneByte(Table As UString, Cond As UString, rs_Utf8() As String, rs_Types() As Long, Col As UString = "*", Orderby As UString = "")                        As Long
+	Declare Function FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, rs_Types() As Long, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As Long
 	Declare Function FindOnly(Table As UString, Cond As UString, Col As UString = "*", Orderby As UString = "") As String
 	Declare Function FindOnlyUtf(Table_Utf8 As String, Cond_Utf8 As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As String
 	Declare Function Insert(Table As UString, nList As UString)                                                                           As Long

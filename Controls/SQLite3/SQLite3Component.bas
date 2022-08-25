@@ -371,10 +371,10 @@ Function SQLite3Component.FindUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_
 	
 	Function = SQLFind(Sql_Utf8,rs_Utf8())
 End Function
-Function SQLite3Component.FindByte(Table As UString, Cond As UString, rs() As String, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
-	Function = This.FindByteUtf(ToUtf8(Table), ToUtf8(Cond), rs(), ToUtf8(Col), ToUtf8(Orderby), Page, Pagesize)
+Function SQLite3Component.FindByte(Table As UString, Cond As UString, rs() As String, rs_Types() As Long, Col As UString = "*", Orderby As UString = "", Page As Long = 1, Pagesize As Long = 0) As Long
+	Function = This.FindByteUtf(ToUtf8(Table), ToUtf8(Cond), rs(), rs_Types(), ToUtf8(Col), ToUtf8(Orderby), Page, Pagesize)
 End Function
-Function SQLite3Component.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
+Function SQLite3Component.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, rs_Types() As Long, Col_Utf8 As String = "*", Orderby_Utf8 As String = "", Page As Long = 1, Pagesize As Long = 0) As Long
 	Dim m_DB As sqlite3 Ptr = FSQLite3
 	If m_DB = NULL         Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
 	If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty": This.Event_Send(12, ErrStr): Return 0
@@ -398,9 +398,14 @@ Function SQLite3Component.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String,
 	u = sqlite3_column_count(ppStmt)
 	If u > 0 Then
 		yu = This.CountUtf(Table_Utf8,Cond_Utf8)
-		ReDim rs_Utf8(yu,u -1)
+		ReDim rs_Utf8(yu, u - 1)
+		ReDim rs_Types(u - 1)
 		If UBound(rs_Utf8) = -1 Then
-			ErrStr = "·µ»ШКэЧй±»ЛшЈ¬ОЮ·ЁК№УГ ReDim":This.Event_Send(12,ErrStr)
+			ErrStr = "ReDim not works": This.Event_Send(12, ErrStr)
+			Return 0
+		End If
+		If UBound(rs_Types) = -1 Then
+			ErrStr = "ReDim not works": This.Event_Send(12, ErrStr)
 			Return 0
 		End If
 		For i = 0 To u -1
@@ -410,6 +415,7 @@ Function SQLite3Component.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String,
 			'4 - SQLITE_BLOB
 			'5 - SQLITE_NULL
 			rs_Utf8(0, i) = *sqlite3_column_name(ppStmt, i)
+			rs_Types(i) = sqlite3_column_type(ppStmt, i)
 		Next
 		Dim value As Any Ptr
 		Dim siz   As Long
@@ -466,10 +472,10 @@ Function SQLite3Component.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String,
 	sqlite3_finalize(ppStmt)
 	Function = yu
 End Function
-Function SQLite3Component.FindOneByte(Table As UString, Cond As UString, rs_Utf8() As String, Col As UString = "*", Orderby As UString = "") As Long
-	Function = This.FindOneByteUtf(ToUtf8(Table), ToUtf8(Cond), rs_Utf8(), ToUtf8(Col), ToUtf8(Orderby))
+Function SQLite3Component.FindOneByte(Table As UString, Cond As UString, rs_Utf8() As String, rs_Types() As Long, Col As UString = "*", Orderby As UString = "") As Long
+	Function = This.FindOneByteUtf(ToUtf8(Table), ToUtf8(Cond), rs_Utf8(), rs_Types(), ToUtf8(Col), ToUtf8(Orderby))
 End Function
-Function SQLite3Component.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As Long
+Function SQLite3Component.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As String, rs_Utf8() As String, rs_Types() As Long, Col_Utf8 As String = "*", Orderby_Utf8 As String = "") As Long
 	Dim m_DB As sqlite3 Ptr = FSQLite3
 	If m_DB = NULL         Then ErrStr = "Base not opened": This.Event_Send(12, ErrStr): Return 0
 	If Len(Table_Utf8) = 0 Then ErrStr = "Table name is empty"  : This.Event_Send(12, ErrStr): Return 0
@@ -489,8 +495,13 @@ Function SQLite3Component.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As Stri
 	
 	u = sqlite3_column_count(ppStmt)
 	If u > 0 Then
-		ReDim rs_Utf8(u -1)
+		ReDim rs_Utf8(u - 1)
+		ReDim rs_Types(u - 1)
 		If UBound(rs_Utf8) = -1 Then
+			ErrStr = "ReDim not works": This.Event_Send(12, ErrStr)
+			Return 0
+		End If
+		If UBound(rs_Types) = -1 Then
 			ErrStr = "ReDim not works": This.Event_Send(12, ErrStr)
 			Return 0
 		End If
@@ -499,7 +510,8 @@ Function SQLite3Component.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As Stri
 		Dim siz   As Long
 		Dim r     As Long
 		If (sqlite3_step(ppStmt) = SQLITE_ROW) Then
-			For i = 0 To u -1
+			For i = 0 To u - 1
+				rs_Types(i) = sqlite3_column_type(ppStmt, i)
 				Select Case sqlite3_column_type(ppStmt, i) '»сИЎЖдЙщГчК±µДАаРНЎЈ
 					'Case 1 ' SQLITE_INTEGER
 					'rs_Utf8(i) = Str(sqlite3_column_int(ppStmt, i))
