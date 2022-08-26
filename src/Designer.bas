@@ -998,7 +998,7 @@ Namespace My.Sys.Forms
 						Ctrl = Objects.Item(i)
 						'If IsWindowVisible(FChilds.Child[i]) Then
 						Dim As SymbolsType Ptr st = Symbols(Ctrl)
-						If Ctrl AndAlso st AndAlso st->ReadPropertyFunc <> 0 AndAlso IsWindowVisible(*Cast(HWND Ptr, st->ReadPropertyFunc(Ctrl, "Handle"))) Then
+						If Ctrl AndAlso st AndAlso st->ReadPropertyFunc <> 0 AndAlso st->ReadPropertyFunc(Ctrl, "Handle") AndAlso IsWindowVisible(*Cast(HWND Ptr, st->ReadPropertyFunc(Ctrl, "Handle"))) Then
 							GetWindowRect(*Cast(HWND Ptr, st->ReadPropertyFunc(Ctrl, "Handle")), @R)
 							MapWindowPoints(0, FDialog, Cast(..Point Ptr, @R) ,2)
 							If (UnScaleX(R.Left) > FBeginX And UnScaleX(R.Right) < FNewX) And (UnScaleY(R.Top) > FBeginY And UnScaleY(R.Bottom) < FNewY) Then
