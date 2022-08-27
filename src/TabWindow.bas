@@ -3546,8 +3546,11 @@ Sub CompleteWord
 		k += 1
 	Loop
 	If k Mod 2 = 1 Then Exit Sub
-	k = InStrRev(*sLine, "'"): posL = InStrRev(*sLine, " """, k) : posR = InStr(k, *sLine+ " ", """ ")
-	If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (posL < k AndAlso (posR > k OrElse posR < 1))) Then Exit Sub
+	k = InStrRev(*sLine, "'", iSelEndChar)
+	If k > 0 Then
+		posL = InStrRev(*sLine, """", k) : posR = InStr(k, *sLine, """")
+		If Not (posL  > 0 AndAlso (posL < k AndAlso posR > k)) Then Exit Sub
+	End If
 	Dim As String s, sTemp, sTemp2, TypeName, OldTypeName
 
 	Dim As TypeElement Ptr te, te1, teOld
@@ -4410,7 +4413,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			k += 1
 		Loop
 		If k Mod 2 = 1 Then Exit Sub
-		If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (posL < k AndAlso (posR > k OrElse posR < 1))) Then Exit Sub
+		k = InStrRev(*sLine, "'", iSelEndChar)
+		If k > 0 Then
+			posL = InStrRev(*sLine, """", k) : posR = InStr(k, *sLine, """")
+			If Not (posL  > 0 AndAlso (posL < k AndAlso posR > k)) Then Exit Sub
+		End If
 		k = 1
 		If Key = Asc(">") Then
 			If Mid(*sLine, iSelEndChar - 1, 1) <> "-" Then Exit Sub
@@ -4444,8 +4451,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			k += 1
 		Loop
 		If k Mod 2 = 1 Then Exit Sub
-		k = InStrRev(*sLine, "'"): posL = InStrRev(*sLine, " """, k) : posR = InStr(k, *sLine+ " ", """ ")
-		If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (posL < k AndAlso (posR > k OrElse posR < 1))) Then Exit Sub
+		k = InStrRev(*sLine, "'", iSelEndChar)
+		If k > 0 Then
+			posL = InStrRev(*sLine, """", k) : posR = InStr(k, *sLine, """")
+			If Not (posL  > 0 AndAlso (posL < k AndAlso posR > k)) Then Exit Sub
+		End If
 		Dim As TypeElement Ptr teEnum
 		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
 		#ifdef __USE_GTK__
@@ -4504,8 +4514,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			k += 1
 		Loop
 		If k Mod 2 = 1 Then Exit Sub
-		k = InStrRev(*sLine, "'"): posL = InStrRev(*sLine, " """, k) : posR = InStr(k, *sLine+ " ", """ ")
-		If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (posL < k AndAlso (posR > k OrElse posR < 1))) Then Exit Sub
+		k = InStrRev(*sLine, "'", iSelEndChar)
+		If k > 0 Then
+			posL = InStrRev(*sLine, """", k) : posR = InStr(k, *sLine, """")
+			If Not (posL  > 0 AndAlso (posL < k AndAlso posR > k)) Then Exit Sub
+		End If
 		If CInt(Key = Asc(" ")) AndAlso (CInt(EndsWith(RTrim(LCase(..Left(*sLine, iSelEndChar))), " as")) OrElse _
 			CInt(EndsWith(RTrim(LCase(..Left(*sLine, iSelEndChar))), !"\tas"))OrElse _
 			CInt(RTrim(LCase(..Left(*sLine, iSelEndChar))) = "as")) Then
