@@ -6189,7 +6189,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	Dim As Rect lpRect
 	Dim As String PropertyName = GetItemText(Item)
 	'Dim As TreeListViewItem Ptr Item = lvProperties.ListItems.Item(ItemIndex)
-	lvProperties.SetFocus
+	'lvProperties.SetFocus
 	pnlPropertyValue.Visible = False
 	txtPropertyValue.Visible = False
 	btnPropertyValue.Visible = False
