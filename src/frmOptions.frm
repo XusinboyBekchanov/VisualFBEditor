@@ -27,6 +27,7 @@ pfOptions = @fOptions
 		#endif
 		This.MinimizeBox = False
 		This.MaximizeBox = False
+		This.ExtraMargins.Bottom = -1
 		This.SetBounds 0, 0, 630, 488
 		This.StartPosition = FormStartPosition.CenterParent
 		'This.Caption = ML("Options")
@@ -40,11 +41,12 @@ pfOptions = @fOptions
 			.Text = "Panel1"
 			.TabIndex = 202
 			.Align = DockStyle.alBottom
-			.Margins.Top = 5
-			.Margins.Right = 5
-			.Margins.Left = 5
-			.Margins.Bottom = 5
-			.SetBounds 0, 429, 624, 30
+			.Margins.Top = 10
+			.Margins.Right = 10
+			.Margins.Left = 10
+			.Margins.Bottom = 10
+			.AutoSize = True
+			.SetBounds 0, 419, 624, 40
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -82,27 +84,19 @@ pfOptions = @fOptions
 		cmdOK.SetBounds 349, 5, 90, 20
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @pnlCommands
-		' lblWhite
-		lblWhite.Name = "lblWhite"
-		lblWhite.Text = ""
-		lblWhite.BackColor = 16777215
-		lblWhite.ExtraMargins.Left = 10
-		lblWhite.ExtraMargins.Right = 10
-		lblWhite.ExtraMargins.Bottom = 0
-		lblWhite.Align = DockStyle.alBottom
-		lblWhite.SetBounds 10, 387, 604, 2
-		lblWhite.Parent = @This
 		' lblBlack
 		lblBlack.Name = "lblBlack"
 		lblBlack.Text = ""
 		lblBlack.BorderStyle = 2
 		lblBlack.BackColor = 8421504
-		lblBlack.ExtraMargins.Right = 11
-		lblBlack.ExtraMargins.Left = 10
-		lblBlack.Align = DockStyle.alBottom
-		lblBlack.ExtraMargins.Bottom = -1
-		lblBlack.SetBounds 10, 417, 603, 1
-		lblBlack.Parent = @This
+		lblBlack.ExtraMargins.Right = 1
+		lblBlack.ExtraMargins.Left = 0
+		lblBlack.Align = DockStyle.alClient
+		lblBlack.ExtraMargins.Bottom = 1
+		lblBlack.Anchor.Right = 1
+		lblBlack.Anchor.Left = 1
+		lblBlack.SetBounds 10, 0, 593, 1
+		lblBlack.Parent = @pnlLine
 		' pnlGeneral
 		pnlGeneral.Name = "pnlGeneral"
 		pnlGeneral.Text = ""
@@ -122,7 +116,7 @@ pfOptions = @fOptions
 		pnlCodeEditor.ExtraMargins.Right = 10
 		pnlCodeEditor.Margins.Left = 10
 		pnlCodeEditor.Align = DockStyle.alClient
-		pnlCodeEditor.SetBounds 187, 4, 426, 404
+		pnlCodeEditor.SetBounds 188, 4, 426, 424
 		pnlCodeEditor.Parent = @This
 		' pnlColorsAndFonts
 		pnlColorsAndFonts.Name = "pnlColorsAndFonts"
@@ -238,6 +232,7 @@ pfOptions = @fOptions
 		With grbDefaultCompilers
 			.Name = "grbDefaultCompilers"
 			.Text = ML("Default Compilers")
+			.AutoSize = True
 			.Align = DockStyle.alTop
 			.ExtraMargins.Left = 0
 			.Margins.Top = 20
@@ -276,28 +271,31 @@ pfOptions = @fOptions
 		' lblShortcut
 		lblShortcut.Name = "lblShortcut"
 		lblShortcut.Text = ML("Select shortcut") & ":"
-		lblShortcut.ExtraMargins.Right = 250
-		lblShortcut.Align = DockStyle.alBottom
-		lblShortcut.SetBounds 15, 371, 136, 18
-		lblShortcut.Parent = @grbShortcuts
+		lblShortcut.ExtraMargins.Right = 0
+		lblShortcut.Align = DockStyle.alLeft
+		lblShortcut.CenterImage = true
+		lblShortcut.SetBounds 0, 0, 126, 20
+		lblShortcut.Parent = @pnlSelectShortcut
 		' hkShortcut
 		hkShortcut.Name = "hkShortcut"
-		hkShortcut.ExtraMargins.Left = 130
-		hkShortcut.ExtraMargins.Bottom = -18
-		hkShortcut.ExtraMargins.Right = 60
-		hkShortcut.Align = DockStyle.alBottom
-		hkShortcut.SetBounds 145, 369, 196, 19
-		hkShortcut.Parent = @grbShortcuts
+		hkShortcut.ExtraMargins.Left = 0
+		hkShortcut.ExtraMargins.Bottom = 0
+		hkShortcut.ExtraMargins.Right = 0
+		hkShortcut.Align = DockStyle.alClient
+		hkShortcut.SetBounds -224, 0, 205, 20
+		hkShortcut.Parent = @pnlSelectShortcut
 		' cmdSetShortcut
 		cmdSetShortcut.Name = "cmdSetShortcut"
 		cmdSetShortcut.Text = ML("Set")
-		cmdSetShortcut.ExtraMargins.Bottom = -20
-		cmdSetShortcut.ExtraMargins.Right = -1
-		cmdSetShortcut.ExtraMargins.Left = 330
-		cmdSetShortcut.Align = DockStyle.alBottom
-		cmdSetShortcut.SetBounds 345, 369, 57, 21
+		#ifdef __USE_WINAPI__
+			cmdSetShortcut.ExtraMargins.Top = -1
+			cmdSetShortcut.ExtraMargins.Bottom = -1
+			cmdSetShortcut.ExtraMargins.Right = -1
+		#endif
+		cmdSetShortcut.Align = DockStyle.alRight
+		cmdSetShortcut.SetBounds 330, -1, 56, 23
 		cmdSetShortcut.OnClick = @cmdSetShortcut_Click
-		cmdSetShortcut.Parent = @grbShortcuts
+		cmdSetShortcut.Parent = @pnlSelectShortcut
 		' lvShortcuts
 		With lvShortcuts
 			.Name = "lvShortcuts"
@@ -419,7 +417,7 @@ pfOptions = @fOptions
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
-			.SetBounds 10, 0, 416, 404
+			.SetBounds 10, 0, 416, 414
 			.Parent = @pnlLocalization
 		End With
 		' grbThemes
@@ -427,16 +425,32 @@ pfOptions = @fOptions
 			.Name = "grbThemes"
 			.Text = ML("Themes")
 			.Align = DockStyle.alClient
-			.SetBounds 10, 0, 416, 404
+			.Margins.Top = 20
+			.Margins.Right = 10
+			.Margins.Left = 10
+			.Margins.Bottom = 10
+			.SetBounds 10, 0, 416, 424
 			.Parent = @pnlThemes
+		End With
+		' pnlLanguage
+		With pnlLanguage
+			.Name = "pnlLanguage"
+			.Text = "Panel1"
+			.AutoSize = True
+			.TabIndex = 204
+			.Align = DockStyle.alTop
+			.SetBounds 15, 22, 386, 20
+			.Designer = @This
+			.Parent = @grbLanguage
 		End With
 		' cboLanguage
 		cboLanguage.Name = "cboLanguage"
 		'ComboBoxEdit1.Text = "russian"
-		cboLanguage.Align = DockStyle.alTop
-		cboLanguage.ExtraMargins.Right = 140
-		cboLanguage.SetBounds 15, 22, 246, 21
-		cboLanguage.Parent = @grbLanguage
+		cboLanguage.Align = DockStyle.alClient
+		cboLanguage.ExtraMargins.Right = 0
+		cboLanguage.ControlIndex = 0
+		cboLanguage.SetBounds 0, 0, 110, 21
+		cboLanguage.Parent = @pnlLanguage
 		' cmdAddCompiler
 		cmdAddCompiler.Name = "cmdAddCompiler"
 		cmdAddCompiler.Text = ML("&Add")
@@ -655,54 +669,55 @@ pfOptions = @fOptions
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
 		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
 		chkChangeKeywordsCase.ExtraMargins.Top = 0
-		chkChangeKeywordsCase.Align = DockStyle.alTop
-		chkChangeKeywordsCase.ExtraMargins.Right = 230
-		chkChangeKeywordsCase.SetBounds 10, 221, 186, 21
-		chkChangeKeywordsCase.Parent = @pnlCodeEditor
+		chkChangeKeywordsCase.Align = DockStyle.alLeft
+		chkChangeKeywordsCase.ExtraMargins.Right = 0
+		chkChangeKeywordsCase.SetBounds 0, 0, 200, 21
+		chkChangeKeywordsCase.Parent = @pnlChangeKeywordsCase
 		' cboCase
 		cboCase.Name = "cboCase"
 		cboCase.Text = "ComboBoxEdit2"
-		cboCase.ExtraMargins.Right = 50
-		cboCase.ExtraMargins.Top = -21
-		cboCase.ExtraMargins.Left = 200
-		cboCase.Align = DockStyle.alTop
-		cboCase.SetBounds 210, 212, 166, 21
-		cboCase.Parent = @pnlCodeEditor
+		cboCase.ExtraMargins.Right = 20
+		cboCase.ExtraMargins.Top = 0
+		cboCase.ExtraMargins.Left = 0
+		cboCase.Align = DockStyle.alRight
+		cboCase.SetBounds 60, 0, 190, 21
+		cboCase.Parent = @pnlChangeKeywordsCase
 		' chkTabAsSpaces
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
 		chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
 		chkTabAsSpaces.ExtraMargins.Top = 0
-		chkTabAsSpaces.Align = DockStyle.alTop
-		chkTabAsSpaces.ExtraMargins.Right = 230
-		chkTabAsSpaces.SetBounds 10, 244, 186, 21
-		chkTabAsSpaces.Parent = @pnlCodeEditor
+		chkTabAsSpaces.Align = DockStyle.alLeft
+		chkTabAsSpaces.ExtraMargins.Right = 0
+		chkTabAsSpaces.Caption = ML("Treat Tab as Spaces") & ":"
+		chkTabAsSpaces.SetBounds 0, 0, 206, 21
+		chkTabAsSpaces.Parent = @pnlTreatTabAsSpaces
 		' cboTabStyle
 		cboTabStyle.Name = "cboTabStyle"
 		cboTabStyle.Text = "cboCase1"
-		cboTabStyle.ExtraMargins.Left = 200
-		cboTabStyle.ExtraMargins.Right = 50
-		cboTabStyle.Align = DockStyle.alTop
-		cboTabStyle.ExtraMargins.Top = -19
-		cboTabStyle.SetBounds 210, 238, 166, 21
-		cboTabStyle.Parent = @pnlCodeEditor
+		cboTabStyle.ExtraMargins.Left = 0
+		cboTabStyle.ExtraMargins.Right = 20
+		cboTabStyle.Align = DockStyle.alRight
+		cboTabStyle.ExtraMargins.Top = 0
+		cboTabStyle.SetBounds 206, 0, 190, 20
+		cboTabStyle.Parent = @pnlTreatTabAsSpaces
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
 		lblTabSize.Text = ML("Tab Size") & ":"
 		lblTabSize.ExtraMargins.Left = 60
-		lblTabSize.ExtraMargins.Right = 230
-		lblTabSize.Align = DockStyle.alTop
+		lblTabSize.ExtraMargins.Right = 0
+		lblTabSize.Align = DockStyle.alClient
 		lblTabSize.ExtraMargins.Top = 2
-		lblTabSize.SetBounds 70, 262, 126, 18
-		lblTabSize.Parent = @pnlCodeEditor
+		lblTabSize.SetBounds 60, 2, 146, 18
+		lblTabSize.Parent = @pnlTabSize
 		' txtTabSize
 		txtTabSize.Name = "txtTabSize"
 		txtTabSize.Text = ""
-		txtTabSize.ExtraMargins.Left = 200
+		txtTabSize.ExtraMargins.Left = 0
 		txtTabSize.ExtraMargins.Right = 130
-		txtTabSize.ExtraMargins.Top = -18
-		txtTabSize.Align = DockStyle.alTop
-		txtTabSize.SetBounds 210, 256, 86, 20
-		txtTabSize.Parent = @pnlCodeEditor
+		txtTabSize.ExtraMargins.Top = 0
+		txtTabSize.Align = DockStyle.alRight
+		txtTabSize.SetBounds 196, 0, 80, 21
+		txtTabSize.Parent = @pnlTabSize
 		' lstIncludePaths
 		lstIncludePaths.Name = "lstIncludePaths"
 		lstIncludePaths.Text = "ListControl1"
@@ -765,19 +780,19 @@ pfOptions = @fOptions
 		lblHistoryLimit.Text = ML("History limit") & ":"
 		lblHistoryLimit.ExtraMargins.Top = 2
 		lblHistoryLimit.ExtraMargins.Left = 60
-		lblHistoryLimit.ExtraMargins.Right = 230
-		lblHistoryLimit.Align = DockStyle.alTop
-		lblHistoryLimit.SetBounds 70, 287, 126, 18
-		lblHistoryLimit.Parent = @pnlCodeEditor
+		lblHistoryLimit.ExtraMargins.Right = 0
+		lblHistoryLimit.Align = DockStyle.alClient
+		lblHistoryLimit.SetBounds 60, 2, 146, 18
+		lblHistoryLimit.Parent = @pnlHistoryLimit
 		' txtHistoryLimit
 		txtHistoryLimit.Name = "txtHistoryLimit"
-		txtHistoryLimit.ExtraMargins.Top = -18
+		txtHistoryLimit.ExtraMargins.Top = 0
 		txtHistoryLimit.ExtraMargins.Right = 130
-		txtHistoryLimit.ExtraMargins.Left = 200
-		txtHistoryLimit.Align = DockStyle.alTop
-		txtHistoryLimit.SetBounds 210, 253, 86, 20
+		txtHistoryLimit.ExtraMargins.Left = 0
+		txtHistoryLimit.Align = DockStyle.alRight
+		txtHistoryLimit.SetBounds 210, 0, 80, 17
 		txtHistoryLimit.Text = ""
-		txtHistoryLimit.Parent = @pnlCodeEditor
+		txtHistoryLimit.Parent = @pnlHistoryLimit
 		' grbGrid
 		grbGrid.Name = "grbGrid"
 		grbGrid.Text = ML("Grid")
@@ -891,6 +906,7 @@ pfOptions = @fOptions
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
+			.AutoSize = true
 			.SetBounds 10, 0, 416, 64
 			.Parent = @pnlMake
 		End With
@@ -898,8 +914,8 @@ pfOptions = @fOptions
 		With cboMakeTool
 			.Name = "cboMakeTool"
 			.Text = "cboMakeTool"
-			.Align = DockStyle.alBottom
-			.SetBounds 15, 28, 386, 21
+			.Align = DockStyle.alTop
+			.SetBounds 15, 20, 386, 21
 			.Parent = @grbDefaultMakeTool
 		End With
 		' cmdChangeMakeTool
@@ -1077,35 +1093,35 @@ pfOptions = @fOptions
 			.OnItemActivate = @lvCompilerPaths_ItemActivate_
 			.Parent = @grbCompilerPaths
 		End With
-		' cboCompiler64
-		With cboCompiler64
-			.Name = "cboCompiler64"
-			.Text = "ComboBoxEdit21"
-			.Align = DockStyle.alBottom
-			.SetBounds 15, 92, 386, 21
+		' lblCompiler32
+		lblCompiler32.Name = "lblCompiler32"
+		lblCompiler32.Text = ML("Compiler") & " " & ML("32-bit")
+		lblCompiler32.Align = DockStyle.alTop
+		lblCompiler32.SetBounds 15, 20, 386, 18
+		lblCompiler32.Parent = @grbDefaultCompilers
+		' cboCompiler32
+		With cboCompiler32
+			.Name = "cboCompiler32"
+			.Text = "ComboBoxEdit2"
+			.Align = DockStyle.alTop
+			.SetBounds 15, 87, 386, 21
 			.Parent = @grbDefaultCompilers
 		End With
 		' lblCompiler64
 		lblCompiler64.Name = "lblCompiler64"
 		lblCompiler64.Text = ML("Compiler") & " " & ML("64-bit")
-		lblCompiler64.Align = DockStyle.alBottom
+		lblCompiler64.Align = DockStyle.alTop
 		lblCompiler64.ExtraMargins.Top = 10
-		lblCompiler64.SetBounds 15, 74, 386, 18
+		lblCompiler64.SetBounds 15, 69, 386, 18
 		lblCompiler64.Parent = @grbDefaultCompilers
-		' cboCompiler32
-		With cboCompiler32
-			.Name = "cboCompiler32"
-			.Text = "ComboBoxEdit2"
-			.Align = DockStyle.alBottom
-			.SetBounds 15, 92, 386, 21
+		' cboCompiler64
+		With cboCompiler64
+			.Name = "cboCompiler64"
+			.Text = "ComboBoxEdit21"
+			.Align = DockStyle.alTop
+			.SetBounds 15, 38, 386, 21
 			.Parent = @grbDefaultCompilers
 		End With
-		' lblCompiler32
-		lblCompiler32.Name = "lblCompiler32"
-		lblCompiler32.Text = ML("Compiler") & " " & ML("32-bit")
-		lblCompiler32.Align = DockStyle.alBottom
-		lblCompiler32.SetBounds 15, 74, 386, 18
-		lblCompiler32.Parent = @grbDefaultCompilers
 		' cmdRemoveCompiler
 		With cmdRemoveCompiler
 			.Name = "cmdRemoveCompiler"
@@ -1186,61 +1202,77 @@ pfOptions = @fOptions
 			.OnClick = @cmdClearDebuggers_Click
 			.Parent = @grbDebuggerPaths
 		End With
-		' lblInterfaceFont
-		With lblInterfaceFont
-			.Name = "lblInterfaceFont"
-			.Text = "Tahoma, 8 pt"
-			.SetBounds 145, 20, 264, 16
-			'.Caption = "Tahoma, 8 pt"
-			.Parent = @grbThemes
-		End With
-		' cmdInterfaceFont
-		With cmdInterfaceFont
-			.Name = "cmdInterfaceFont"
-			.Text = "..."
-			.SetBounds 376, 20, 24, 22
-			'.Caption = "..."
-			.OnClick = @cmdInterfaceFont_Click
+		' pnlInterfaceFont
+		With pnlInterfaceFont
+			.Name = "pnlInterfaceFont"
+			.Text = "Panel2"
+			.Align = DockStyle.alTop
+			.ExtraMargins.Bottom = 20
+			.AutoSize = True
+			.SetBounds 10, 20, 396, 20
 			.Parent = @grbThemes
 		End With
 		' lblInterfaceFontLabel
 		With lblInterfaceFontLabel
 			.Name = "lblInterfaceFontLabel"
 			.Text = ML("Interface font") & ":"
-			.SetBounds 10, 20, 108, 16
-			.Parent = @grbThemes
+			.ControlIndex = 6
+			.Align = DockStyle.alLeft
+			.SetBounds 0, 0, 108, 20
+			.Parent = @pnlInterfaceFont
+		End With
+		' lblInterfaceFont
+		With lblInterfaceFont
+			.Name = "lblInterfaceFont"
+			.Text = "Tahoma, 8 pt"
+			.ControlIndex = 5
+			.Align = DockStyle.alLeft
+			.SetBounds 0, 0, 264, 20
+			'.Caption = "Tahoma, 8 pt"
+			.Parent = @pnlInterfaceFont
+		End With
+		' cmdInterfaceFont
+		With cmdInterfaceFont
+			.Name = "cmdInterfaceFont"
+			.Text = "..."
+			.ControlIndex = 7
+			.Align = DockStyle.alRight
+			.SetBounds 108, 0, 24, 24
+			'.Caption = "..."
+			.OnClick = @cmdInterfaceFont_Click
+			.Parent = @pnlInterfaceFont
 		End With
 		' chkDisplayIcons
 		With chkDisplayIcons
 			.Name = "chkDisplayIcons"
 			.Text = ML("Display Icons in the Menu")
 			.Align = DockStyle.alTop
-			.SetBounds 0, 0, 340, 20
-			.Parent = @pnlThemesCheckboxes
+			.SetBounds 0, 80, 416, 20
+			.Parent = @grbThemes
 		End With
 		' chkShowMainToolbar
 		With chkShowMainToolbar
 			.Name = "chkShowMainToolbar"
 			.Text = ML("Show main Toolbar")
 			.Align = DockStyle.alTop
-			.SetBounds 0, 18, 340, 20
-			.Parent = @pnlThemesCheckboxes
+			.SetBounds 0, 60, 416, 20
+			.Parent = @grbThemes
 		End With
 		'chkShowToolBoxLocal
 		With chkShowToolBoxLocal
 			.Name = "chkShowToolBoxLocal"
 			.Text = ML("Display ToolBox in localized language.")
 			.Align = DockStyle.alTop
-			.SetBounds 0, 36, 340, 20
-			.Parent = @pnlThemesCheckboxes
+			.SetBounds 0, 40, 416, 20
+			.Parent = @grbThemes
 		End With
 		'chkShowPropLocal
 		With chkShowPropLocal
 			.Name = "chkShowPropLocal"
 			.Text = ML("Display Property of Control in localized language.")
 			.Align = DockStyle.alTop
-			.SetBounds 0, 60, 340, 20
-			.Parent = @pnlThemesCheckboxes
+			.SetBounds 0, 20, 416, 20
+			.Parent = @grbThemes
 		End With
 		' lblFrame
 		With lblFrame
@@ -1296,6 +1328,7 @@ pfOptions = @fOptions
 			.Margins.Left = 15
 			.Margins.Bottom = 18
 			.Margins.Right = 15
+			.AutoSize = true
 			.SetBounds 10, 0, 416, 64
 			.Parent = @pnlHelp
 		End With
@@ -1303,8 +1336,8 @@ pfOptions = @fOptions
 		With cboHelp
 			.Name = "cboHelp"
 			.Text = "cboHelp"
-			.Align = DockStyle.alBottom
-			.SetBounds 15, 25, 386, 21
+			.Align = DockStyle.alTop
+			.SetBounds 15, 22, 386, 21
 			.Parent = @grbDefaultHelp
 		End With
 		' grbHelpPaths
@@ -1398,13 +1431,6 @@ pfOptions = @fOptions
 			.Text = ML("Save All Files")
 			.SetBounds 18, 45, 184, 16
 			.Parent = @grbWhenCompiling
-		End With
-		' pnlThemesCheckboxes
-		With pnlThemesCheckboxes
-			.Name = "pnlThemesCheckboxes"
-			.Text = "Panel2"
-			.SetBounds 10, 63, 340, 198
-			.Parent = @grbThemes
 		End With
 		' pnlColors
 		With pnlColors
@@ -1581,21 +1607,25 @@ pfOptions = @fOptions
 		' txtProjectsPath
 		txtProjectsPath.Name = "txtProjectsPath"
 		txtProjectsPath.Text = "./Projects"
-		txtProjectsPath.Align = DockStyle.alTop
-		txtProjectsPath.ExtraMargins.Bottom = 1
-		txtProjectsPath.ExtraMargins.Right = 26
-		txtProjectsPath.SetBounds 10, 363, 373, 20
-		txtProjectsPath.Parent = @pnlGeneral
+		txtProjectsPath.Align = DockStyle.alClient
+		txtProjectsPath.ExtraMargins.Bottom = 0
+		txtProjectsPath.ExtraMargins.Right = 0
+		txtProjectsPath.ControlIndex = 0
+		txtProjectsPath.SetBounds 0, 0, 366, 19
+		txtProjectsPath.Parent = @pnlProjectsPath
 		' cmdProjectsPath
 		cmdProjectsPath.Name = "cmdProjectsPath"
 		cmdProjectsPath.Text = "..."
-		cmdProjectsPath.Align = DockStyle.alTop
-		cmdProjectsPath.ExtraMargins.Bottom = 0
-		cmdProjectsPath.ExtraMargins.Left = 392
-		cmdProjectsPath.ExtraMargins.Top = -22
-		cmdProjectsPath.SetBounds 390, 362, 36, 22
+		cmdProjectsPath.Align = DockStyle.alRight
+		#ifdef __USE_WINAPI__
+			cmdProjectsPath.ExtraMargins.Bottom = -1
+			cmdProjectsPath.ExtraMargins.Top = -1
+			cmdProjectsPath.ExtraMargins.Right = -1
+		#endif
+		cmdProjectsPath.ControlIndex = 1
+		cmdProjectsPath.SetBounds 392, -22, 24, 42
 		cmdProjectsPath.OnClick = @cmdProjectsPath_Click
-		cmdProjectsPath.Parent = @pnlGeneral
+		cmdProjectsPath.Parent = @pnlProjectsPath
 		' optPromptForProjectAndFile
 		With optPromptForProjectAndFile
 			.Name = "optPromptForProjectAndFile"
@@ -1757,23 +1787,24 @@ pfOptions = @fOptions
 			.TabIndex = 180
 			'.Caption = ML("Intellisense limit") & ":"
 			.ExtraMargins.Top = 2
-			.ExtraMargins.Right = 230
+			.ExtraMargins.Right = 0
 			.ExtraMargins.Left = 60
-			.Align = DockStyle.alTop
-			.SetBounds 70, 312, 126, 18
-			.Parent = @pnlCodeEditor
+			.Align = DockStyle.alClient
+			.SetBounds 60, 2, 146, 18
+			.Parent = @pnlIntellisenseLimit
 		End With
 		' txtIntellisenseLimit
 		With txtIntellisenseLimit
 			.Name = "txtIntellisenseLimit"
 			.TabIndex = 181
 			.Text = ""
-			.ExtraMargins.Left = 200
-			.ExtraMargins.Top = -18
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Top = 0
 			.ExtraMargins.Right = 130
-			.Align = DockStyle.alTop
-			.SetBounds 210, 275, 86, 20
-			.Parent = @pnlCodeEditor
+			.Align = DockStyle.alRight
+			.ControlIndex = 2
+			.SetBounds 210, 0, 80, 20
+			.Parent = @pnlIntellisenseLimit
 		End With
 		' chkTurnOnEnvironmentVariables
 		With chkTurnOnEnvironmentVariables
@@ -1841,8 +1872,8 @@ pfOptions = @fOptions
 			'.Caption = ML("Dark Mode")
 			.Caption = ML("Dark Mode (available for Linux, Windows 10 and above)")
 			.Align = DockStyle.alTop
-			.SetBounds 0, 84, 340, 20
-			.Parent = @pnlThemesCheckboxes
+			.SetBounds 0, 0, 416, 20
+			.Parent = @grbThemes
 		End With
 		' chkPlaceStaticEventHandlersAfterTheConstructor
 		With chkPlaceStaticEventHandlersAfterTheConstructor
@@ -1862,31 +1893,18 @@ pfOptions = @fOptions
 			.SetBounds 32, 195, 380, 24
 			.Parent = @pnlDesigner
 		End With
-		' lblHistoryDay
-		With lblHistoryDay
-			.Name = "lblHistoryDay"
-			.Text = ML("History file saving days")
-			.TabIndex = 194
-			.ExtraMargins.Top = 2
-			.ExtraMargins.Right = 230
-			.ExtraMargins.Left = 60
-			.Align = DockStyle.alTop
-			.SetBounds 70, 328, 126, 18
-			.Designer = @This
-			.Parent = @pnlCodeEditor
-		End With
 		' txtHistoryCodeDays
 		With txtHistoryCodeDays
 			.Name = "txtHistoryCodeDays"
 			.Text = "3"
 			.TabIndex = 193
-			.ExtraMargins.Top = -18
+			.ExtraMargins.Top = 0
 			.ExtraMargins.Right = 130
-			.ExtraMargins.Left = 200
-			.Align = DockStyle.alTop
-			.SetBounds 210, 277, 86, 20
+			.ExtraMargins.Left = 0
+			.Align = DockStyle.alRight
+			.SetBounds 196, 0, 80, 21
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @pnlHistoryFileSavingDays
 		End With
 		' cmdUpdateLng
 		With cmdUpdateLng
@@ -1894,13 +1912,17 @@ pfOptions = @fOptions
 			.Text = ML("Scan and Update")
 			.TabIndex = 195
 			.Hint = ML("Scan the text string in source code and update languages files")
-			.ExtraMargins.Top = -22
-			.ExtraMargins.Left = 250
-			.Align = DockStyle.alTop
-			.SetBounds 265, 21, 136, 23
+			#ifdef __USE_WINAPI__
+				.ExtraMargins.Top = -1
+				.ExtraMargins.Bottom = -1
+			#endif
+			.ExtraMargins.Left = 0
+			.Align = DockStyle.alRight
+			.ExtraMargins.Right = 0
+			.SetBounds 256, -1, 130, 21
 			.Designer = @This
 			.OnClick = @cmdUpdateLng_Click_
-			.Parent = @grbLanguage
+			.Parent = @pnlLanguage
 		End With
 		' chkAllLNG
 		With chkAllLNG
@@ -1931,6 +1953,121 @@ pfOptions = @fOptions
 			.SetBounds 15, 79, 386, 20
 			.Designer = @This
 			.Parent = @grbLanguage
+		End With
+		' pnlLine
+		With pnlLine
+			.Name = "pnlLine"
+			.Text = "Panel2"
+			.TabIndex = 204
+			.Align = DockStyle.alBottom
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Left = 10
+			.BackColor = 16777215
+			.SetBounds 10, 447, 604, 2
+			.Designer = @This
+			.Parent = @This
+		End With
+		' pnlProjectsPath
+		With pnlProjectsPath
+			.Name = "pnlProjectsPath"
+			.Text = "Panel1"
+			.TabIndex = 205
+			.Align = DockStyle.alTop
+			.AutoSize = true
+			.SetBounds 10, 363, 416, 20
+			.Designer = @This
+			.Parent = @pnlGeneral
+		End With
+		' pnlSelectShortcut
+		With pnlSelectShortcut
+			.Name = "pnlSelectShortcut"
+			.Text = "Panel1"
+			.TabIndex = 205
+			.Align = DockStyle.alBottom
+			.AutoSize = true
+			.SetBounds 15, 389, 386, 20
+			.Designer = @This
+			.Parent = @grbShortcuts
+		End With
+		' pnlChangeKeywordsCase
+		With pnlChangeKeywordsCase
+			.Name = "pnlChangeKeywordsCase"
+			.Text = "Panel1"
+			.TabIndex = 206
+			.Align = DockStyle.alTop
+			.AutoSize = true
+			.SetBounds 10, 233, 416, 21
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
+		' lblHistoryDay
+		With lblHistoryDay
+			.Name = "lblHistoryDay"
+			.Text = ML("History file saving days")
+			.TabIndex = 194
+			.ExtraMargins.Top = 2
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 60
+			.Align = DockStyle.alClient
+			.ControlIndex = 0
+			.SetBounds 60, 2, 146, 18
+			.Designer = @This
+			.Parent = @pnlHistoryFileSavingDays
+		End With
+		' pnlTreatTabAsSpaces
+		With pnlTreatTabAsSpaces
+			.Name = "pnlTreatTabAsSpaces"
+			.Text = "Panel1"
+			.TabIndex = 209
+			.Align = DockStyle.alTop
+			.AutoSize = True
+			.SetBounds 10, 254, 416, 20
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
+		' pnlTabSize
+		With pnlTabSize
+			.Name = "pnlTabSize"
+			.Text = "Panel1"
+			.TabIndex = 212
+			.Align = DockStyle.alTop
+			.AutoSize = True
+			.SetBounds 10, 275, 416, 20
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
+		' pnlHistoryLimit
+		With pnlHistoryLimit
+			.Name = "pnlHistoryLimit"
+			.Text = "Panel1"
+			.TabIndex = 215
+			.Align = DockStyle.alTop
+			.AutoSize = True
+			.SetBounds 10, 295, 416, 20
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
+		' pnlIntellisenseLimit
+		With pnlIntellisenseLimit
+			.Name = "pnlIntellisenseLimit"
+			.Text = "Panel1"
+			.TabIndex = 218
+			.Align = DockStyle.alTop
+			.AutoSize = true
+			.SetBounds 10, 315, 416, 20
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
+		' pnlHistoryFileSavingDays
+		With pnlHistoryFileSavingDays
+			.Name = "pnlHistoryFileSavingDays"
+			.Text = "Panel1"
+			.TabIndex = 221
+			.Align = DockStyle.alTop
+			.AutoSize = true
+			.SetBounds 10, 335, 416, 20
+			.Designer = @This
+			.Parent = @pnlCodeEditor
 		End With
 	End Constructor
 	

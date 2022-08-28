@@ -3974,12 +3974,13 @@ Namespace My.Sys.Forms
 			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
 			gtk_window_move(GTK_WINDOW(winIntellisense), HCaretPos + x, VCaretPos + y)
 			gtk_widget_show_all(winIntellisense)
+			ShowDropDownToolTipAt HCaretPos + 250 + x, VCaretPos + y
 		#else
 			pnlIntellisense.SetBounds HCaretPos, VCaretPos, 250, 0
 			cboIntellisense.ShowDropDown True
 			If LastItemIndex = -1 Then cboIntellisense.ItemIndex = -1
+			ShowDropDownToolTipAt HCaretPos + 250, VCaretPos
 		#endif
-		ShowDropDownToolTipAt HCaretPos + 250, VCaretPos
 	End Sub
 	
 	#ifdef __USE_WINAPI__
@@ -4653,7 +4654,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			Case GDK_KEY_PRESS
 				'bInMButtonClicked = False
-				Select Case e->Key.keyval
+				Select Case e->key.keyval
 			#else
 			Case WM_KEYDOWN
 				bInMiddleScroll = False
@@ -5089,7 +5090,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 				Case Else
 					
-					Select Case (Asc(*e->Key.string))
+					Select Case (Asc(*e->key.string))
 				#else
 				End Select
 			Case WM_CHAR
@@ -5147,7 +5148,7 @@ Namespace My.Sys.Forms
 					Indent
 				Else
 					#ifdef __USE_GTK__
-						ChangeText *e->Key.string
+						ChangeText *e->key.string
 					#else
 						ChangeText WChr(msg.wParam)
 					#endif
@@ -5285,38 +5286,38 @@ Namespace My.Sys.Forms
 				'End If
 			Case Else:    ' отображаемые символы
 				#ifdef __USE_GTK__
-					If CInt(Not bCtrl) AndAlso CInt(*e->Key.string <> "") Then
+					If CInt(Not bCtrl) AndAlso CInt(*e->key.string <> "") Then
 				#else
 					If GetKeyState(VK_CONTROL) >= 0 OrElse GetKeyState(VK_RMENU) < 0 Then
 				#endif
-					#ifdef __USE_GTK__
-						If *e->Key.string = " " Then
-					#else
-						If msg.wParam = Asc(" ") Then
-					#endif
-						If DropDownShowed Then
-							CloseDropDown()
-							#ifdef __USE_GTK__
-								If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
-							#else
-								If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
-							#endif
-						End If
-					End If
+					'#ifdef __USE_GTK__
+					'	If *e->key.string = " " Then
+					'#else
+					'	If msg.wParam = Asc(" ") Then
+					'#endif
+					'	If DropDownShowed Then
+					'		CloseDropDown()
+					'		#ifdef __USE_GTK__
+					'			If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
+					'		#else
+					'			If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
+					'		#endif
+					'	End If
+					'End If
 					bAddText = True
 					#ifdef __USE_GTK__
-						ChangeText *e->Key.string
+						ChangeText *e->key.string
 					#else
 						ChangeText WChr(msg.wParam)
 					#endif
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->Key.string) = 26 Then
+					ElseIf Asc(*e->key.string) = 26 Then
 					#else
 					ElseIf msg.wParam = 26 Then
 					#endif
 					Undo
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->Key.string) = 25 Then
+					ElseIf Asc(*e->key.string) = 25 Then
 					#else
 					ElseIf msg.wParam = 25 Then
 					#endif
@@ -5666,7 +5667,7 @@ Namespace My.Sys.Forms
 				ec->gdkCursorIBeam = gdk_cursor_new_for_display(ec->pdisplay, GDK_XTERM)
 				ec->gdkCursorHand = gdk_cursor_new_from_name(ec->pdisplay, "pointer")
 				#ifdef __USE_GTK3__
-					ec->win = gtk_layout_get_bin_window(gtk_layout(widget))
+					ec->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 				#endif
 				gdk_window_set_cursor(ec->win, ec->gdkCursorIBeam)
 				
@@ -5677,8 +5678,9 @@ Namespace My.Sys.Forms
 				End If
 				'ec->VScrollPos = 0
 				
-				gtk_window_set_transient_for(gtk_window(ec->winIntellisense), gtk_window(pfrmMain->Handle))
-				gtk_window_set_transient_for(gtk_window(ec->winTooltip), gtk_window(pfrmMain->Handle))
+				gtk_window_set_transient_for(GTK_WINDOW(ec->winIntellisense), GTK_WINDOW(pfrmMain->Handle))
+				gtk_window_set_transient_for(GTK_WINDOW(ec->winTooltip), GTK_WINDOW(pfrmMain->Handle))
+				gtk_window_set_transient_for(GTK_WINDOW(ec->winDropDownTooltip), GTK_WINDOW(pfrmMain->Handle))
 				
 			End If
 			#ifdef __USE_GTK3__
@@ -5697,9 +5699,9 @@ Namespace My.Sys.Forms
 				ec->dwClientY = AllocatedHeight
 				
 				#ifdef __USE_GTK3__
-					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
+					gtk_layout_move(GTK_LAYOUT(ec->Handle), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
 					gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
-					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
+					gtk_layout_move(GTK_LAYOUT(ec->Handle), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
 					gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
 				#else
 					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth + 2, 0)
@@ -5919,6 +5921,16 @@ Namespace My.Sys.Forms
 			'gtk_window_set_transient_for(gtk_window(winTooltip), gtk_window(pfrmMain->widget))
 			g_signal_connect(lblTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
 			'gtk_window_resize(gtk_window(winTooltip), 1000, 21)
+			winDropDownTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			lblDropDownTooltip = gtk_label_new(NULL)
+			#ifdef __USE_GTK3__
+				gtk_widget_set_margin_left(lblDropDownTooltip, 1)
+				gtk_widget_set_margin_top(lblDropDownTooltip, 1)
+				gtk_widget_set_margin_right(lblDropDownTooltip, 1)
+				gtk_widget_set_margin_bottom(lblDropDownTooltip, 1)
+			#endif
+			gtk_container_add(GTK_CONTAINER(winDropDownTooltip), lblDropDownTooltip)
+			g_signal_connect(lblDropDownTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
 		#else
 			pnlIntellisense.SetBounds 0, -50, 250, 0
 			'cboIntellisense.Visible = False
