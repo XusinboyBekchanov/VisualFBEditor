@@ -4594,7 +4594,11 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 		Return FilePath
 	Else
 		Var Fn = FreeFile_
-		If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
+		Var Result = Open(ResourceFile For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input As #Fn)
+		If Result = 0 Then
 			Dim As WString * 1024 sLine
 			Dim As Integer Pos1
 			Dim As String Image

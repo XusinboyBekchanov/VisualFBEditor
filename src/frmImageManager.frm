@@ -290,8 +290,12 @@ Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	If FolderName = "" Then ExeFileName = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ExeFileName
 	Dim As Dictionary ResNamePaths
 	If CurrentImageList = 0 Then
-		Var Fn = FreeFile_, Pos1 = 0
-		If Open(ResourceFile For Input Encoding "utf-8" As #Fn) = 0 Then
+		Var Fn = FreeFile_, Pos1 = 0, Result = 0
+		Result = Open(ResourceFile For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(ResourceFile For Input As #Fn)
+		If Result = 0 Then
 			Dim As WString * 1024 FilePath
 			Dim As WString * 1024 sLine
 			Dim As String Image
