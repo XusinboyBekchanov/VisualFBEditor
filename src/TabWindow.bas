@@ -8020,9 +8020,10 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 		End If
 		Dim As EditControlLine Ptr FECLine
 		Dim As Integer n, NotNumberingScopesCount, NamespacesCount
-		Dim As Boolean bNotNumberNext, bNotNumberThis, bInFunction, bInType, bFunctionStart
+		Dim As Boolean bNotNumberNext, bNotNumberThis, bInFunction, bInType, bFunctionStart, bChanged
 		For i As Integer = StartLine To EndLine
 			FECLine = .FLines.Items[i]
+			bChanged = False
 			bNotNumberThis = bNotNumberNext
 			bNotNumberNext = False
 			If EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") OrElse EndsWith(RTrim(*FECLine->Text, Any !"\t "), ",_") Then
@@ -8067,11 +8068,13 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
 				If isNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
+					bChanged = True
 				End If
 			ElseIf bMacro AndAlso StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
 				bNotNumberThis = True
 			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") AndAlso Not bMacro Then 'OrElse StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "dim ") Then
 				WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), 4))
+				bChanged = True
 				'			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "debugprint") Then
 				'				bNotNumberThis = True
 				'			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "?") Then
@@ -8087,14 +8090,18 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 					WLet(FECLine->Text, "_L " & *FECLine->Text) '& IIf(StartsWith(*FECLine->Text, " ") OrElse StartsWith(*FECLine->Text, !"\t"), "", " ")
 				Else
 					WLet(FECLine->Text, "?" & WStr(i + 1) & ":" & *FECLine->Text)
-					FECLine->Ends.Clear
-					FECLine->EndsCompleted = False
 					'WLet FECLine->Text, "DebugPrint(__FILE__ & " & Chr(34) & " Line " & Chr(34) & " & __LINE__, True, False) : " & Trim(*FECLine->Text, Any !" \t ")
 				End If
+				bChanged = True
+			End If
+			If bChanged Then
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
 			End If
 		Next i
 		.Changed("Raqamlash")
 		If Not WithoutUpdate Then .UpdateUnLock
+		.PaintControl True
 		'.ShowCaretPos True
 	End With
 End Sub
@@ -8315,6 +8322,7 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 		.Changed("Raqamlarni olish")
 		If Not WithoutUpdate Then .UpdateUnLock
 		'.ShowCaretPos True
+		.PaintControl True
 	End With
 End Sub
 
