@@ -2999,7 +2999,7 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 		For i As Integer = 0 To ControlLibraries.Count - 1
 			CtlLibrary = ControlLibraries.Item(i)
 			If Not CtlLibrary->Enabled Then Continue For
-			Result = GetOSPath(GetFullPath(GetFullPath(CtlLibrary->IncludeFolder, CtlLibrary->Path)) & Slash & Path)
+			Result = GetOSPath(GetFullPath(GetFullPath(CtlLibrary->IncludeFolder, CtlLibrary->Path)) & IIf(EndsWith(CtlLibrary->IncludeFolder, "\") OrElse EndsWith(CtlLibrary->IncludeFolder, "/"), "", Slash) & Path)
 			If FileExists(Result) Then Return Result
 		Next
 		#ifdef __USE_GTK__
