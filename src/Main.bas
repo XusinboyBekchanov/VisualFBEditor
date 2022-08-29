@@ -4225,7 +4225,6 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			ControlLibraries.Add CtlLibrary
 			i += 1
 		Loop
-		LoadHelp
 	End If
 	Dim As Library Ptr CtlLibrary
 	For i = 0 To ControlLibraries.Count - 1
