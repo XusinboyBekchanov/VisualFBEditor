@@ -36,6 +36,7 @@ pfGoto = @fGoto
 		lblFind.Caption = ML("Line") & ":"
 		lblFind.SetBounds 10, 10, 80, 20
 		lblFind.Parent = @This
+		txtFind.NumbersOnly = True
 		txtFind.SetBounds 90, 10, 204, 20
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Anchor.Right = asAnchor
