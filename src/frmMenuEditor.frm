@@ -57,7 +57,7 @@
 			.Name = "mnuInsert"
 			.Designer = @This
 			.Caption = "Insert"
-			.onClick = @_mnuInsert_Click
+			.OnClick = @_mnuInsert_Click
 			.Parent = @PopupMenu1
 		End With
 		' mnuDelete
@@ -65,7 +65,7 @@
 			.Name = "mnuDelete"
 			.Designer = @This
 			.Caption = "Delete"
-			.onClick = @_mnuDelete_Click
+			.OnClick = @_mnuDelete_Click
 			.Parent = @PopupMenu1
 		End With
 		' MenuItem3
@@ -80,7 +80,7 @@
 			.Name = "mnuMoveUp"
 			.Designer = @This
 			.Caption = "Move Up"
-			.onClick = @mnuMoveUp_Click_
+			.OnClick = @mnuMoveUp_Click_
 			.Parent = @PopupMenu1
 		End With
 		' mnuMoveDown
@@ -88,7 +88,7 @@
 			.Name = "mnuMoveDown"
 			.Designer = @This
 			.Caption = "Move Down"
-			.onClick = @mnuMoveDown_Click_
+			.OnClick = @mnuMoveDown_Click_
 			.Parent = @PopupMenu1
 		End With
 	End Constructor
@@ -177,7 +177,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 			If CurrentToolBar Then
 				If stCurrentToolBar AndAlso stCurrentToolBar->ReadPropertyFunc Then ItemsCount = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "ButtonsCount"))
 			ElseIf CurrentStatusBar Then
-				If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then ItemsCount = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentStatusBar, "Count"))
+				If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then ItemsCount = QInteger(stCurrentStatusBar->ReadPropertyFunc(CurrentStatusBar, "Count"))
 			Else
 				If stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc Then ItemsCount = QInteger(stCurrentMenu->ReadPropertyFunc(CurrentMenu, "Count"))
 			End If
@@ -259,7 +259,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 							.Line Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Top + 5, Rects(RectsCount).Left + (Rects(RectsCount).Right - Rects(RectsCount).Left) / 2 + 1, Rects(RectsCount).Bottom - 5
 						Else
 							.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
-								IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+								IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
 						End If
 					End If
 				ElseIf CurrentStatusBar Then
@@ -279,7 +279,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 								End If
 							End If
 						#endif
-						.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+						.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
 					End If
 				Else
 					If stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc Then
@@ -558,7 +558,7 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 					picActive.Left = .Left + 1
 					picActive.Top = .Bottom - This.Canvas.TextHeight("A") - 6
 				End If
-				If Ctrls(i) = 0 Then
+				If Ctrls(i) = 0 OrElse NewObject Then
 					Dim As String FName = "ToolButton"
 					If Des->OnInsertingControl Then
 						Des->OnInsertingControl(*Des, FName, FName)
@@ -571,9 +571,10 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 					If Des->OnInsertObject Then Des->OnInsertObject(*Des, "ToolButton", Obj, 0, Ctrls(i))
 					Ctrls(i) = Obj
 					ActiveCtrl = Obj
+					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
+					If NewObject Then st->WritePropertyFunc(Obj, "ButtonIndex", @Indexes(i))
 					Des->SelectedControl = ActiveCtrl
 					If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, ActiveCtrl)
-					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
 					'Des->TopMenu->Repaint
 				Else
 					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
@@ -585,7 +586,7 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 			If st AndAlso st->ReadPropertyFunc Then
 				picActive.Left = .Left + 1
 				picActive.Top = .Top + 2
-				If Ctrls(i) = 0 Then
+				If Ctrls(i) = 0 OrElse NewObject Then
 					Dim As String FName = "StatusPanel"
 					If Des->OnInsertingControl Then
 						Des->OnInsertingControl(*Des, FName, FName)
@@ -598,9 +599,10 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 					If Des->OnInsertObject Then Des->OnInsertObject(*Des, "StatusPanel", Obj, 0, Ctrls(i))
 					Ctrls(i) = Obj
 					ActiveCtrl = Obj
+					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
+					If NewObject Then st->WritePropertyFunc(Obj, "PanelIndex", @Indexes(i))
 					Des->SelectedControl = ActiveCtrl
 					If Des->OnChangeSelection Then Des->OnChangeSelection(*Des, ActiveCtrl)
-					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
 				Else
 					txtActive.Text = QWString(st->ReadPropertyFunc(Ctrls(i), "Caption"))
 				End If
@@ -786,9 +788,20 @@ End Sub
 Private Sub frmMenuEditor.MoveUpMenuItem
 	If Ctrls(ActiveRect) = 0 OrElse Indexes(ActiveRect) = 0 Then Exit Sub
 	If CurrentToolBar <> 0 AndAlso ActiveRect <= TopCount Then
-		
+		Dim As SymbolsType Ptr st = Des->Symbols(Ctrls(ActiveRect))
+		If st AndAlso st->WritePropertyFunc Then st->WritePropertyFunc(Ctrls(ActiveRect), "ButtonIndex", @Indexes(ActiveRect) - 1)
+		ChangeControl *Des, Ctrls(ActiveRect), , Ctrls(ActiveRect - 1)
+		st = Des->Symbols(CurrentToolBar)
+		If st AndAlso st->ControlRepaintSub Then st->ControlRepaintSub(CurrentToolBar)
+		ActiveRect -= 1
 	ElseIf CurrentStatusBar <> 0 AndAlso ActiveRect <= TopCount Then
-		
+		Dim As SymbolsType Ptr st = Des->Symbols(Ctrls(ActiveRect))
+		If st AndAlso st->WritePropertyFunc Then 
+			st->WritePropertyFunc(Ctrls(ActiveRect), "PanelIndex", @Indexes(ActiveRect) - 1)
+			If st->ReadPropertyFunc Then st->WritePropertyFunc(Ctrls(ActiveRect), "Caption", st->ReadPropertyFunc(Ctrls(ActiveRect), "Caption"))
+		End If
+		ChangeControl *Des, Ctrls(ActiveRect), , Ctrls(ActiveRect - 1)
+		ActiveRect -= 1
 	Else
 		Dim As SymbolsType Ptr st = Des->Symbols(Ctrls(ActiveRect))
 		If st AndAlso st->WritePropertyFunc Then st->WritePropertyFunc(Ctrls(ActiveRect), "MenuIndex", @Indexes(ActiveRect) - 1)
@@ -806,9 +819,30 @@ End Sub
 Private Sub frmMenuEditor.MoveDownMenuItem
 	If Ctrls(ActiveRect) = 0 Then Exit Sub
 	If CurrentToolBar <> 0 AndAlso ActiveRect <= TopCount Then
-		
+		Dim As Integer ItemCount
+		Dim As SymbolsType Ptr st = Des->Symbols(CurrentToolBar)
+		If st AndAlso st->ReadPropertyFunc Then
+			ItemCount = QInteger(st->ReadPropertyFunc(CurrentToolBar, "ButtonsCount"))
+		End If
+		If Indexes(ActiveRect) >= ItemCount - 1 Then Exit Sub
+		If st AndAlso st->WritePropertyFunc Then st->WritePropertyFunc(Ctrls(ActiveRect), "ButtonIndex", @Indexes(ActiveRect) + 1)
+		ChangeControl *Des, Ctrls(ActiveRect), , , Ctrls(ActiveRect + 1)
+		st = Des->Symbols(CurrentToolBar)
+		If st AndAlso st->ControlRepaintSub Then st->ControlRepaintSub(CurrentToolBar)
+		ActiveRect += 1
 	ElseIf CurrentStatusBar <> 0 AndAlso ActiveRect <= TopCount Then
-		
+		Dim As Integer ItemCount
+		Dim As SymbolsType Ptr st = Des->Symbols(CurrentStatusBar)
+		If st AndAlso st->ReadPropertyFunc Then
+			ItemCount = QInteger(st->ReadPropertyFunc(CurrentStatusBar, "Count"))
+		End If
+		If Indexes(ActiveRect) >= ItemCount - 1 Then Exit Sub
+		If st AndAlso st->WritePropertyFunc Then 
+			st->WritePropertyFunc(Ctrls(ActiveRect), "PanelIndex", @Indexes(ActiveRect) + 1)
+			If st->ReadPropertyFunc Then st->WritePropertyFunc(Ctrls(ActiveRect), "Caption", st->ReadPropertyFunc(Ctrls(ActiveRect), "Caption"))
+		End If
+		ChangeControl *Des, Ctrls(ActiveRect), , , Ctrls(ActiveRect + 1)
+		ActiveRect += 1
 	Else
 		Dim As Integer ItemCount
 		Dim As SymbolsType Ptr st = Des->Symbols(CurrentMenu)

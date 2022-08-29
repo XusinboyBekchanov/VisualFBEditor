@@ -60,6 +60,7 @@ Namespace My.Sys.Forms
 		IsComponentFunc As Function(Ctrl As Any Ptr) As Boolean
 		ControlSetFocusSub As Sub(Ctrl As Any Ptr)
 		ControlFreeWndSub As Sub(Ctrl As Any Ptr)
+		ControlRepaintSub As Sub(Ctrl As Any Ptr)
 		ToStringFunc As Function(Obj As Any Ptr) ByRef As WString
 		CreateObjectFunc As Function(ByRef ClassName As String) As Any Ptr
 		ObjectDeleteFunc As Function(Obj As Any Ptr) As Boolean
@@ -72,11 +73,11 @@ Namespace My.Sys.Forms
 		ToolBarRemoveButtonSub As Sub(tb As Any Ptr, Index As Integer)
 		StatusBarPanelByIndexFunc As Function(sb As Any Ptr, Index As Integer) As Any Ptr
 		StatusBarRemovePanelSub As Sub(sb As Any Ptr, Index As Integer)
-		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef File As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
-		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef File As WString, cx As Integer = 0, cy As Integer = 0) As Boolean
-		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef File As WString) As Boolean
-		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef File As WString, ByRef Key As WString = "")
+		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
+		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef FILE As WString, cx As Integer = 0, CY As Integer = 0) As Boolean
+		CursorLoadFromFileFunc As Function(Cur As Any Ptr, ByRef FILE As WString) As Boolean
+		ImageListAddFromFileSub As Sub(imgList As Any Ptr, ByRef FILE As WString, ByRef Key As WString = "")
 		ImageListIndexOfFunc As Function(imgList As Any Ptr, ByRef Key As WString) As Integer
 		ImageListClearSub As Sub(imgList As Any Ptr)
 	End Type
