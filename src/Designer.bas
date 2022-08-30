@@ -1824,7 +1824,7 @@ Namespace My.Sys.Forms
 								DeleteObject(Brush)
 							End If
 							SetBkMode(FHDc, TRANSPARENT)
-							SetTextColor(FHDc, BGR(0, 0, 0))
+							SetTextColor(FHDc, IIf(QBoolean(st->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), BGR(0, 0, 0), BGR(109, 109, 109)))
 							If QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
 								.TextOut(FHDc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), @"|", 1)
 							Else
@@ -1922,7 +1922,7 @@ Namespace My.Sys.Forms
 						End Select
 						GetTextExtentPoint32(FHDc, st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
 						SetBkMode(FHDc, TRANSPARENT)
-						SetTextColor(FHDc, BGR(0, 0, 0))
+						SetTextColor(FHDc, IIf(QBoolean(st->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), BGR(0, 0, 0), BGR(109, 109, 109)))
 						If QInteger(st->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = 7 Then
 							Pen = CreatePen(PS_SOLID, 0, BGR(0, 0, 0))
 							SelectObject(FHDc, Pen)

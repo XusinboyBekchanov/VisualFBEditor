@@ -260,10 +260,10 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 						Else
 							#ifdef __USE_GTK__
 								.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
-									IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+									IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), BGR(0, 0, 0), BGR(109, 109, 109)), -1
 							#else
 								.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
-									IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
+									IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), BGR(109, 109, 109)), -1
 							#endif
 						End If
 					End If
@@ -294,13 +294,13 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 							If QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
 								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
 							Else
-								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), BGR(0, 0, 0), BGR(109, 109, 109)), -1
 							End If
 						#else
 							If QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
 								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
 							Else
-								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), BGR(109, 109, 109)), -1
 							End If
 						#endif
 					End If
@@ -486,11 +486,12 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 									End If
 									Dim As WString Ptr pCaption = stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")
 									Dim As Integer Pos1 = InStr(*pCaption, !"\t")
+									Dim As Integer sColor = IIf(QBoolean(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), BGR(0, 0, 0), BGR(109, 109, 109))
 									If Pos1 > 0 Then
-										.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ..Left(*pCaption, Pos1 - 1), BGR(0, 0, 0), -1
-										.TextOut Rects(RectsCount).Right - 10 - 5 - .TextWidth(Mid(*pCaption, Pos1 + 1)), Rects(RectsCount).Top + 3, Mid(*pCaption, Pos1 + 1), BGR(0, 0, 0), -1
+										.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ..Left(*pCaption, Pos1 - 1), sColor, -1
+										.TextOut Rects(RectsCount).Right - 10 - 5 - .TextWidth(Mid(*pCaption, Pos1 + 1)), Rects(RectsCount).Top + 3, Mid(*pCaption, Pos1 + 1), sColor, -1
 									Else
-										.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, *pCaption, BGR(0, 0, 0), -1
+										.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, *pCaption, sColor, -1
 									End If
 								End If
 								If QInteger(stCurrentMenu->ReadPropertyFunc(mi, "Count")) > 0 Then
