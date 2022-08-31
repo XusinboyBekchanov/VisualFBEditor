@@ -7460,7 +7460,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 					ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#cmdline ") Then
 						CompileLine = CompileLine & " " & WithoutQuotes(Trim(Mid(Trim(sLine, Any !"\t "), 10), Any !"\t "))
 					End If
-					Exit Do
+					'Exit Do
 				End If
 			End If
 			If l >= 10 Then Exit Do
