@@ -162,7 +162,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 					BitmapWidth = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
 					BitmapHeight = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "BitmapHeight"))
 					IsToolBarList = QBoolean(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "List"))
-					.Rectangle 0, QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "ButtonHeight")), Canvas.Width, Canvas.Height
+					.Rectangle 0, QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "ButtonHeight")) + 2, Canvas.Width, Canvas.Height
 				End If
 			ElseIf CurrentStatusBar Then
 				If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then
@@ -204,7 +204,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				If CurrentToolBar Then
 					If stCurrentToolBar AndAlso stCurrentToolBar->ReadPropertyFunc Then
 						Rects(RectsCount).Right = Rects(RectsCount).Left + QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Width"))
-						Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Height")) - 1
+						Rects(RectsCount).Bottom = Rects(RectsCount).Top + QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Height")) '- 1
 					End If
 				ElseIf CurrentStatusBar Then
 					If stCurrentStatusBar AndAlso stCurrentStatusBar->ReadPropertyFunc Then
@@ -248,7 +248,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 								#ifdef __USE_GTK__
 									
 								#else
-									ImageList_Draw(ImagesListHandle, ImageIndex, .Handle, Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsWholeDropdown, 10, 0)) / 2), Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3), ILD_TRANSPARENT)
+									ImageList_Draw(ImagesListHandle, ImageIndex, .Handle, ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsWholeDropdown, 10, 0)) / 2)), ScaleY(Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3)), ILD_TRANSPARENT)
 								#endif
 							End If
 						End If
@@ -348,7 +348,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				#ifdef __USE_GTK__
 					
 				#else
-					.DrawTransparent Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth) / 2), Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3), AddButton.Handle
+					.DrawTransparent ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth) / 2)), ScaleY(Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3)), AddButton.Handle
 				#endif
 			Else
 				.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, ML("Type here"), BGR(109, 109, 109), -1
