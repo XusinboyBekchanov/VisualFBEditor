@@ -1085,8 +1085,22 @@ Namespace My.Sys.Forms
 							LockWindowUpdate(0)
 						#endif
 					Else
-						SelectedControl = DesignControl
-						MoveDots(SelectedControl)
+						Dim cpnt As Any Ptr = CreateComponent(FClass, FName, ctr, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top))
+						If cpnt Then
+							If OnInsertComponent Then OnInsertComponent(This, FClass, cpnt, 0, 0, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top))
+							If FSelControl Then
+								SelectedControls.Clear
+							End If
+							#ifdef __USE_GTK__
+								MoveDots(cpnt, , FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), 16, 16)
+							#else
+								MoveDots(cpnt)
+								'LockWindowUpdate(0)
+							#endif
+						Else
+							SelectedControl = DesignControl
+							MoveDots(SelectedControl)
+						End If
 					End If
 				End If
 				FCanInsert = False
