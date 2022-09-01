@@ -1818,8 +1818,8 @@ Namespace My.Sys.Forms
 							End If
 							Rects(RectsCount).Top = 0
 							GetTextExtentPoint32(FHDc, st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))), @Sz)
-							Rects(RectsCount).Right = Rects(RectsCount).Left + UnScaleX(Sz.cx) + 16
-							Rects(RectsCount).Bottom = Rects(RectsCount).Top + UnScaleY(Sz.cy) + 6
+							Rects(RectsCount).Right = Rects(RectsCount).Left + UnScaleX(Sz.cx + 16)
+							Rects(RectsCount).Bottom = Rects(RectsCount).Top + UnScaleY(Sz.cy + 6)
 							If RectsCount = ActiveRect Then
 								Pen = CreatePen(PS_SOLID, 0, BGR(153, 209, 255))
 								Brush = CreateSolidBrush(BGR(204, 232, 255))
@@ -1840,9 +1840,9 @@ Namespace My.Sys.Forms
 							SetBkMode(FHDc, TRANSPARENT)
 							SetTextColor(FHDc, IIf(QBoolean(st->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), BGR(0, 0, 0), BGR(109, 109, 109)))
 							If QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-								.TextOut(FHDc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), @"|", 1)
+								.TextOut(FHDc, ScaleX(Rects(RectsCount).Left) + 8, ScaleY(Rects(RectsCount).Top + 3), @"|", 1)
 							Else
-								.TextOut(FHDc, ScaleX(Rects(RectsCount).Left + 8), ScaleY(Rects(RectsCount).Top + 3), st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
+								.TextOut(FHDc, ScaleX(Rects(RectsCount).Left) + 8, ScaleY(Rects(RectsCount).Top + 3), st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"), Len(QWString(st->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))))
 							End If
 							SetBkMode(FHDc, OPAQUE)
 							'.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(Des->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
