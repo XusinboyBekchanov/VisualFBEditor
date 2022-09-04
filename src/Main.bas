@@ -897,9 +897,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		ThreadsEnter()
 		ShowMessages("")
 		If lvErrors.ListItems.Count <> 0 Then
-			ptabBottom->Tabs[1]->Caption = IIf(NumberErr > 0, ML("Errors") & "(" & WStr(NumberErr) & " " & ML("Pos") & ") ", "")
-			ptabBottom->Tabs[1]->Caption = IIf(NumberWarning > 0, ptabBottom->Tabs[1]->Caption & ML("Warnings") & "(" & WStr(NumberWarning) & " " & ML("Pos") & " " & ")", ptabBottom->Tabs[1]->Caption) 
-			ptabBottom->Tabs[1]->Caption = IIf(NumberInfo > 0, ptabBottom->Tabs[1]->Caption & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & " " & ") ", ptabBottom->Tabs[1]->Caption)
+			ptabBottom->Tabs[1]->Caption = IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "")
+			ptabBottom->Tabs[1]->Caption = IIf(NumberWarning > 0, ptabBottom->Tabs[1]->Caption & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", ptabBottom->Tabs[1]->Caption)
+			ptabBottom->Tabs[1]->Caption = IIf(NumberInfo > 0, ptabBottom->Tabs[1]->Caption & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", ptabBottom->Tabs[1]->Caption)
 			ShowMessages(Str(Time) & ": " & ML("found") & " " & ptabBottom->Tabs[1]->Caption, False)
 		Else
 			ptabBottom->Tabs[1]->Caption = ML("Errors")
@@ -1548,20 +1548,22 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							bChanged = True
 						End If
 					Else
-						Dim LibKey As String = GetLibKey
-						Dim As IniFile ini
-						ini.Load GetRelativePath(LibraryPath) & Slash & "Settings.ini"
-						Var CtlLibrary = New_(Library)
-						CtlLibrary->Name = ini.ReadString("Setup", "Name")
-						CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
-						CtlLibrary->Path = Replace(LibraryPath, BackSlash, Slash) & ini.ReadString("Setup", LibKey)
-						CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
-						CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
-						CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), CtlLibrary->Path))
-						CtlLibrary->Enabled = True
-						ControlLibraries.Add CtlLibrary
-						LoadToolBox CtlLibrary
-						bChanged = True
+						If LibraryPath <> "" Then
+							Dim LibKey As String = GetLibKey
+							Dim As IniFile ini
+							ini.Load GetRelativePath(LibraryPath) & Slash & "Settings.ini"
+							Var CtlLibrary = New_(Library)
+							CtlLibrary->Name = ini.ReadString("Setup", "Name")
+							CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
+							CtlLibrary->Path = Replace(LibraryPath, BackSlash, Slash) & ini.ReadString("Setup", LibKey)
+							CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
+							CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
+							CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), CtlLibrary->Path))
+							CtlLibrary->Enabled = True
+							ControlLibraries.Add CtlLibrary
+							LoadToolBox CtlLibrary
+							bChanged = True
+						End If
 					End If
 					If bChanged Then
 						pnlToolBox.RequestAlign
@@ -2043,7 +2045,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Dim As Library Ptr CtlLibrary
 	For i As Integer = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
-		If CtlLibrary->Enabled Then 
+		If CtlLibrary->Enabled Then
 			Print #Fn, "ControlLibrary=""" & Replace(GetFolderName(CtlLibrary->Path, False), "\", "/") & """"
 		End If
 	Next
