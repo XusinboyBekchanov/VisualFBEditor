@@ -15,7 +15,7 @@
 	
 	Dim Shared Form1 As Form1Type
 	
-	#ifdef __MAIN_FILE__ = __FILE__
+	#if __MAIN_FILE__ = __FILE__
 		Form1.Show
 		
 		App.Run
