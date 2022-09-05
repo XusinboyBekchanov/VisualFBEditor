@@ -71,7 +71,7 @@
 		
 		Dim As MainMenu MainMenu1
 		Dim As MenuItem mnuFile, mnuFileNew, mnuFileOpen, mnuFileBar1, mnuFileSave, mnuFileSaveAs, mnuFileSaveAll, mnuFileBar2, mnuFileBrowse, mnuFileBar3, mnuFilePrintSetup, mnuFilePrintPreview, mnuFilePrint, mnuFileBar4, mnuFileExit
-		Dim As MenuItem mnuEdit, mnuEditRedo, mnuEditUndo, mnuEditBar1, mnuEditCut, mnuEditCopy, mnuEditPaste, mnuEditDelete, mnuEditBar2, mnuEditFind, mnuEditFindNext, mnuEditFindPrevious, mnuEditReplace, mnuEditGoto, mnuEditBar3, mnuEditDSelectAll, mnuEditDateTime
+		Dim As MenuItem mnuEdit, mnuEditRedo, mnuEditUndo, mnuEditBar1, mnuEditCut, mnuEditCopy, mnuEditPaste, mnuEditDelete, mnuEditBar2, mnuEditFileInsert, mnuEditBar3, mnuEditFind, mnuEditFindNext, mnuEditFindPrevious, mnuEditReplace, mnuEditGoto, mnuEditBar4, mnuEditDSelectAll, mnuEditDateTime
 		Dim As MenuItem mnuView, mnuViewToolbar, mnuViewStatusBar, mnuViewBar1, mnuViewDarkMode, mnuViewBar2, mnuViewWordWarps, mnuViewFont, mnuViewAllFont, mnuViewBackColor, mnuViewAllBackColor
 		Dim As MenuItem mnuEncoding, mnuEncodingPlainText, mnuEncodingUtf8, mnuEncodingUtf8BOM, mnuEncodingUtf16BOM, mnuEncodingUtf32BOM, mnuEncodingBar1, mnuEncodingCRLF, mnuEncodingLF, mnuEncodingCR
 		Dim As MenuItem mnuConvert, mnuConvertTraditional, mnuConvertSimplified, mnuConvertBar1, mnuConvertFullWidth, mnuConvertHalfWidth, mnuConvertLowerCase, mnuConvertUpperCase, mnuConvertTitleCase, mnuConvertBar2, mnuConvertBIG5ToGB, mnuConvertGBToBIG5
@@ -380,6 +380,21 @@
 			.Caption = "-"
 			.Parent = @mnuEdit
 		End With
+		' mnuEditFileInsert
+		With mnuEditFileInsert
+			.Name = "mnuEditFileInsert"
+			.Designer = @This
+			.Caption = "File Insert..."
+			.OnClick = @_mnuEdit_Click
+			.Parent = @mnuEdit
+		End With
+		' mnuEditBar3
+		With mnuEditBar3
+			.Name = "mnuEditBar3"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuEdit
+		End With
 		' mnuEditFind
 		With mnuEditFind
 			.Name = "mnuEditFind"
@@ -420,9 +435,9 @@
 			.OnClick = @_mnuEdit_Click
 			.Parent = @mnuEdit
 		End With
-		' mnuEditBar3
-		With mnuEditBar3
-			.Name = "mnuEditBar3"
+		' mnuEditBar4
+		With mnuEditBar4
+			.Name = "mnuEditBar4"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuEdit
@@ -946,6 +961,7 @@ Private Sub MDIMainType.mnuFile_Click(ByRef Sender As MenuItem)
 			mnuFile_Click mnuFileSave
 		Next
 	Case "mnuFileOpen"
+		OpenFileDialog1.Filter = "All Files (*.*)|*.*"
 		If OpenFileDialog1.Execute() Then
 			FileOpen(OpenFileDialog1.FileName)
 		End If
@@ -963,7 +979,7 @@ End Sub
 Private Sub MDIMainType.FileOpen(ByRef FileName As Const WString)
 	Dim Encode As FileEncodings = -1
 	Dim CodePage As Integer = -1
-	Dim NewLine As NewLineTypes = -1 
+	Dim NewLine As NewLineTypes = -1
 	
 	TextGetEncode(FileName, Encode)
 	If Encode = FileEncodings.PlainText Then
@@ -976,21 +992,21 @@ Private Sub MDIMainType.FileOpen(ByRef FileName As Const WString)
 			frmCodePage.lblFile.Text = "" + FileName
 			frmCodePage.ShowModal(MDIMain)
 			If frmCodePage.ModalResult <> ModalResults.OK Then Exit Sub
-			Encode = frmCodePage.cobEncod.ItemIndex 
+			Encode = frmCodePage.cobEncod.ItemIndex
 			CodePage = Cast(Integer, frmCodePage.lstCodePage.ItemData(frmCodePage.lstCodePage.ItemIndex))
 		End If
 	End If
-
+	
 	Dim a As MDIChildType Ptr
 	Dim i As Integer = MDIChildFind(FileName)
 	If i < 0 Then
 		a = MDIChildNew()
 		a->CreateWnd
 		a->SetFile(FileName)
+		a->TextBox1.Text = TextFromFile(FileName, Encode, NewLine, CodePage)
 		a->Encode = Encode
 		a->NewLine = NewLine
 		a->CodePage = CodePage
-		a->TextBox1.Text = TextFromFile(FileName, a->Encode, a->NewLine, a->CodePage)
 		a->Show(MDIMain)
 	Else
 		a = lstMdiChild.Item(i)
@@ -1000,6 +1016,7 @@ End Sub
 
 Private Sub MDIMainType.FileInsert(ByRef FileName As Const WString, Child As Any Ptr)
 	Dim Encode As FileEncodings = -1
+	Dim NewLine As NewLineTypes = -1 
 	Dim CodePage As Integer = -1
 	TextGetEncode(FileName, Encode)
 	If Encode = FileEncodings.PlainText Then
@@ -1012,15 +1029,15 @@ Private Sub MDIMainType.FileInsert(ByRef FileName As Const WString, Child As Any
 			frmCodePage.lblFile.Text = "" + FileName
 			frmCodePage.ShowModal(MDIMain)
 			If frmCodePage.ModalResult <> ModalResults.OK Then Exit Sub
-			Encode = frmCodePage.cobEncod.ItemIndex 
+			Encode = frmCodePage.cobEncod.ItemIndex
 			CodePage = Cast(Integer, frmCodePage.lstCodePage.ItemData(frmCodePage.lstCodePage.ItemIndex))
 		End If
 	End If
-
+	
 	Dim a As MDIChildType Ptr = Child
-	'a->TextBox1.SelText = "Drop File Start: " & FileName & !"!\r\n"
-	a->TextBox1.SelText = TextFromFile(FileName, a->Encode, a->NewLine, a->CodePage)
-	'a->TextBox1.SelText = !"\r\nDrop File End: " & FileName
+	a->TextBox1.SelText = "File Insert Start Here: " & FileName & !"!\r\n"
+	a->TextBox1.SelText = TextFromFile(FileName, Encode, NewLine, CodePage)
+	a->TextBox1.SelText = !"\r\nFile Insert End Here: " & FileName
 End Sub
 
 Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
@@ -1057,6 +1074,11 @@ Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
 		frmFindReplace.txtReplace.Visible = False
 		frmFindReplace.btnFindReplace_Click(frmFindReplace.btnShowHide)
 		frmFindReplace.Show(MDIMain)
+	Case "mnuEditFileInsert"
+		OpenFileDialog1.Filter = "All Files (*.*)|*.*"
+		If OpenFileDialog1.Execute() Then
+			FileInsert(OpenFileDialog1.FileName, a)
+		End If
 	Case "mnuEditGoto"
 		frmGoto.Show(MDIMain)
 	Case "mnuEditDSelectAll"
@@ -1344,7 +1366,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 		Dim a As MDIChildType Ptr = lstMdiChild.Item(actMdiChildIdx)
 		
 		mnuViewWordWarps.Checked = a->TextBox1.WordWraps
-
+		
 		
 		mnuEncodingPlainText.Caption = !"Plain Text\tCP:" & IIf(a->CodePage< 0, GetACP(), a->CodePage)
 		mnuEncodingPlainText.Checked = IIf(a->Encode = FileEncodings.PlainText, True, False)
@@ -1519,7 +1541,7 @@ Private Sub MDIMainType.MDIChildClick(Child As Any Ptr)
 	Case Else
 		spEOL.Caption = "Windows CRLF"
 	End Select
-
+	
 	spFileName.Caption = a->Text
 	
 	a->TextBox1.GetSel(sy, sx, ey, ex)

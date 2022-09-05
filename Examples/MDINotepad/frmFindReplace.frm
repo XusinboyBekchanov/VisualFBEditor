@@ -39,10 +39,11 @@
 			.Name = "txtFind"
 			.Text = ""
 			.TabIndex = 0
-			.Multiline = False
+			.Multiline = True
 			.ScrollBars = ScrollBarsType.Both
 			.HideSelection = True
-			.SetBounds 0, 10, 260, 60
+			.ID = 1009
+			.SetBounds 10, 10, 260, 60
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -77,7 +78,7 @@
 			.ScrollBars = ScrollBarsType.Both
 			.ID = 1008
 			.HideSelection = True
-			.SetBounds 0, 100, 260, 60
+			.SetBounds 10, 100, 260, 60
 			.Designer = @This
 			.Parent = @This
 		End With
