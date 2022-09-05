@@ -928,6 +928,7 @@ Private Sub MDIMainType.mnuFile_Click(ByRef Sender As MenuItem)
 			a->Changed = False
 		End If
 	Case "mnuFileSaveAs"
+		SaveFileDialog1.Filter = "All Files (*.*)|*.*"
 		If SaveFileDialog1.Execute() Then
 			If PathFileExists(SaveFileDialog1.FileName) Then
 				If MsgBox(!"Overwrite file?\r\n" & SaveFileDialog1.FileName, "Confirm", mtQuestion, btYesNo) <> mrYes Then
