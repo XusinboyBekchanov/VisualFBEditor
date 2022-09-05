@@ -7342,15 +7342,6 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 				Result += " " & IIf(Bit32, *Project->CompilationArguments32Windows, WGet(Project->CompilationArguments64Windows))
 			#endif
 		End If
-		If ForWindows Then
-			If WGet(Project->ResourceFileName) <> "" Then Result += " """ & GetShortFileName(WGet(Project->ResourceFileName), FileName) & """"
-		Else
-			#ifdef __FB_WIN32__
-				If WGet(Project->ResourceFileName) <> "" Then Result += " """ & GetShortFileName(WGet(Project->ResourceFileName), FileName) & """"
-			#else
-				If WGet(Project->IconResourceFileName) <> "" Then Result += " """ & GetShortFileName(WGet(Project->IconResourceFileName), FileName) & """"
-			#endif
-		End If
 		Select Case Project->ProjectType
 		Case 0
 		Case 1: Result += " -dll"
@@ -7469,6 +7460,21 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 	If Not bFromTab Then
 		CloseFile_(Fn)
 	End If
+	If Project Then
+		Dim As UString ResourceFileName
+		If ForWindows Then
+			If WGet(Project->ResourceFileName) <> "" Then ResourceFileName = GetShortFileName(WGet(Project->ResourceFileName), FileName)
+		Else
+			#ifdef __FB_WIN32__
+				If WGet(Project->ResourceFileName) <> "" Then ResourceFileName = GetShortFileName(WGet(Project->ResourceFileName), FileName)
+			#else
+				If WGet(Project->IconResourceFileName) <> "" Then ResourceFileName = GetShortFileName(WGet(Project->IconResourceFileName), FileName)
+			#endif
+		End If
+		If ResourceFileName <> "" AndAlso InStr(Result & CompileLine, ResourceFileName) = 0 Then
+			Result += " """ & ResourceFileName & """"
+		End If
+	End If
 	Return Result
 End Function
 
@@ -7498,7 +7504,7 @@ Sub RunEmulator(Param As Any Ptr)
 			Dim Buff As WString * 2048
 			
 			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
-			sa.lpSecurityDescriptor = Null
+			sa.lpSecurityDescriptor = NULL
 			sa.bInheritHandle = True
 			
 			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then

@@ -2276,7 +2276,6 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Return True
 		#else
-			'?GetMessageName(uMsg), uMsg, GetClassNameOf(hDlg), GetProp(hDlg, "@@@Proc")
 			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
 		#endif
 		'#Else
