@@ -1003,11 +1003,11 @@ Private Sub MDIMainType.FileOpen(ByRef FileName As Const WString)
 		a = MDIChildNew()
 		a->CreateWnd
 		a->SetFile(FileName)
-		a->TextBox1.Text = TextFromFile(FileName, Encode, NewLine, CodePage)
 		a->Encode = Encode
 		a->NewLine = NewLine
 		a->CodePage = CodePage
 		a->Show(MDIMain)
+		a->TextBox1.Text = TextFromFile(FileName, Encode, NewLine, CodePage)
 	Else
 		a = lstMdiChild.Item(i)
 		a->SetFocus()
