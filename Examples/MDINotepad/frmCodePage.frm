@@ -17,7 +17,7 @@
 	Using My.Sys.Forms
 	
 	Type frmCodePageType Extends Form
-		Dim As Integer CodePage = -1
+		Dim CodePage As Integer = -1
 		Declare Sub SetMode(ModeNo As Integer)
 		Declare Sub SetCodePage(CP As Integer)
 		
@@ -38,7 +38,7 @@
 		Dim As ListControl lstCodePage
 		Dim As CheckBox chkPreview, chkSystemCP, chkDontShow
 		Dim As TextBox txtPreview
-		Dim As Panel Panel1, Panel2
+		Dim As Panel Panel2
 		Dim As ComboBoxEdit cobEncod
 		Dim As CommandButton cmdOK
 		
@@ -368,27 +368,17 @@
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterParent
 			.OnShow = @_Form_Show
-			.SetBounds 0, 0, 660, 320
-		End With
-		' Panel1
-		With Panel1
-			.Name = "Panel1"
-			.Text = "Panel1"
-			.TabIndex = 0
-			.Align = DockStyle.alTop
-			.SetBounds 0, 0, 424, 40
-			.Designer = @This
-			.Parent = @This
+			.SetBounds 0, 0, 660, 440
 		End With
 		' cobEncod
 		With cobEncod
 			.Name = "cobEncod"
 			.Text = "ComboBoxEdit1"
-			.TabIndex = 5
+			.TabIndex = 0
 			.SetBounds 10, 10, 160, 21
 			.Designer = @This
 			.OnSelected = @_cobEncod_Selected
-			.Parent = @Panel1
+			.Parent = @This
 			.AddItem("Plain Text")
 			.AddItem("Utf8")
 			.AddItem("Utf8 (BOM)")
@@ -403,11 +393,10 @@
 			.TabIndex = 1
 			.ControlIndex = 0
 			.Caption = "System Code Page"
-			.Align = DockStyle.alNone
 			.SetBounds 184, 10, 110, 20
 			.Designer = @This
 			.OnClick = @_chkSystemCP_Click
-			.Parent = @Panel1
+			.Parent = @This
 		End With
 		' chkPreview
 		With chkPreview
@@ -415,7 +404,6 @@
 			.Text = "Preview"
 			.TabIndex = 2
 			.Caption = "Preview"
-			.Align = DockStyle.alNone
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Top = 10
@@ -424,7 +412,7 @@
 			.SetBounds 304, 10, 110, 20
 			.Designer = @This
 			.OnClick = @_chkPreview_Click
-			.Parent = @Panel1
+			.Parent = @This
 		End With
 		' lblFile
 		With lblFile
@@ -434,19 +422,18 @@
 			.Caption = ""
 			.SetBounds 370, 13, 270, 20
 			.Designer = @This
-			.Parent = @Panel1
+			.Parent = @This
 		End With
 		' lstCodePage
 		With lstCodePage
 			.Name = "lstCodePage"
 			.Text = "ListControl1"
 			.TabIndex = 4
-			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 0
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 10, 40, 634, 112
+			.SetBounds 10, 40, 634, 160
 			.Designer = @This
 			.OnClick = @_lstCodePage_Click
 			.Parent = @This
@@ -463,11 +450,10 @@
 			.Multiline = True
 			.HideSelection = False
 			.ScrollBars = ScrollBarsType.Both
-			.Align = DockStyle.alClient
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 10, 162, 634, 89
+			.SetBounds 10, 207, 634, 160
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -570,9 +556,11 @@ End Sub
 
 Private Sub frmCodePageType.Form_Show(ByRef Sender As Form)
 	SetCodePage(CodePage)
+	chkPreview_Click(chkPreview)
 End Sub
 
 Private Sub frmCodePageType.chkPreview_Click(ByRef Sender As CheckBox)
+	If Visible = False Or Handle = null Then Exit Sub 
 	Dim NewLine As NewLineTypes = -1
 	Dim Encode As FileEncodings = cobEncod.ItemIndex
 	If chkPreview.Checked = False Then Exit Sub
@@ -595,15 +583,15 @@ Private Sub frmCodePageType.SetMode(ModeNo As Integer)
 	Select Case ModeNo
 	Case 0
 		b = True
-		Height = 320
+		Height = 440
 	Case 1
 		b = False
-		Height = 210
+		Height = 270
 		lblFile.Text = ""
 	End Select
-	chkPreview.Checked = False 
+	txtPreview.Text =""
 	chkPreview.Visible = b
+	chkDontShow.Visible = b
 	txtPreview.Visible = b
-	chkDontShow.Visible= b
 End Sub
 
