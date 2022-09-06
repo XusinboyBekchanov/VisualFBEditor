@@ -327,7 +327,7 @@ Private Function TextGetEncode(ByRef FileName As Const WString, ByRef FileEncodi
 	Return FileSize
 End Function
 
-Private Function TextFromFile(ByRef FileName As Const WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF, ByRef nCodePage As UINT = -1) ByRef As WString
+Private Function TextFromFile(ByRef FileName As Const WString, ByRef FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByRef NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF, ByRef nCodePage As Integer = -1) ByRef As WString
 	Dim As String Buff
 	Dim As Integer Result
 	Dim As Integer Fn = FreeFile
@@ -391,7 +391,7 @@ Private Function TextFromFile(ByRef FileName As Const WString, ByRef FileEncodin
 	Return *pBuff
 End Function
 
-Private Function TextToFile(ByRef FileName As Const WString, ByRef SourceText As Const WString, ByVal FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByVal NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF, ByVal nCodePage As UINT = -1) As Boolean
+Private Function TextToFile(ByRef FileName As Const WString, ByRef SourceText As Const WString, ByVal FileEncoding As FileEncodings = FileEncodings.Utf8BOM, ByVal NewLineType As NewLineTypes = NewLineTypes.WindowsCRLF, ByVal nCodePage As Integer = -1) As Boolean
 	Dim As Integer Fn = FreeFile
 	Dim As Integer Result
 	Dim As LongInt FileSize = Len(SourceText)
