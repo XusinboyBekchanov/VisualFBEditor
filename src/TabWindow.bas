@@ -7471,7 +7471,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 				If WGet(Project->IconResourceFileName) <> "" Then ResourceFileName = GetShortFileName(WGet(Project->IconResourceFileName), FileName)
 			#endif
 		End If
-		If ResourceFileName <> "" AndAlso InStr(Result & CompileLine, ResourceFileName) = 0 Then
+		If ResourceFileName <> "" Then 'AndAlso InStr(Result & CompileLine, ResourceFileName) = 0
 			Result += " """ & ResourceFileName & """"
 		End If
 	End If
