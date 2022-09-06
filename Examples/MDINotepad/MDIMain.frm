@@ -1271,6 +1271,7 @@ Private Sub MDIMainType.FileOpen(ByRef FileName As Const WString)
 				frmCodePage.chkSystemCP_Click(frmCodePage.chkSystemCP)
 				frmCodePage.SetCodePage(-1)
 				frmCodePage.lblFile.Text = "" + FileName
+				frmCodePage.ModalResult = ModalResults.None
 				frmCodePage.ShowModal(MDIMain)
 				If frmCodePage.ModalResult <> ModalResults.OK Then Exit Sub
 				Encode = frmCodePage.cobEncod.ItemIndex
@@ -1278,13 +1279,13 @@ Private Sub MDIMainType.FileOpen(ByRef FileName As Const WString)
 			End If
 		End If
 		a = MDIChildNew()
-		a->CreateWnd
+		a->Show(MDIMain)
+		a->TextBox1.Text = TextFromFile(FileName, Encode, NewLine, CodePage)
 		a->SetFile(FileName)
 		a->Encode = Encode
 		a->NewLine = NewLine
 		a->CodePage = CodePage
-		a->Show(MDIMain)
-		a->TextBox1.Text = TextFromFile(FileName, Encode, NewLine, CodePage)
+		MDIChildActivate(a)
 	Else
 		a = lstMdiChild.Item(i)
 		a->SetFocus()
@@ -1511,7 +1512,7 @@ Private Sub MDIMainType.mnuEncoding_Click(ByRef Sender As MenuItem)
 	End Select
 	
 	a->Changed = True
-	MDIChildMenuUpdate()
+	MDIChildActivate(a)
 End Sub
 
 Private Sub MDIMainType.mnuConvert_Click(ByRef Sender As MenuItem)

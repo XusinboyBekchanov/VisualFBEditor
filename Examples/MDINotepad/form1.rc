@@ -40,8 +40,8 @@ Vertical PNG ".\Resources\Vertical.png"
 #define APP_TITLE_STR               "MDINotepad\0"
 #define VER_FILEDESCRIPTION_STR     "MDINotepad\0"
 
-#define VER_FILEVERSION             0,0,0,873
-#define VER_FILEVERSION_STR         "0.0.0.873\0"
+#define VER_FILEVERSION             0,0,0,892
+#define VER_FILEVERSION_STR         "0.0.0.892\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

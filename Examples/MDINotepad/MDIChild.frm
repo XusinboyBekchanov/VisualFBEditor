@@ -12,7 +12,7 @@
 	
 	Type MDIChildType Extends Form
 		Dim Index As Integer = -1
-		Dim CodePage As UINT = GetACP()
+		Dim CodePage As Integer = GetACP()
 		Dim Encode As FileEncodings = -1 
 		Dim NewLine As NewLineTypes = -1 
 		Dim mFile As WString Ptr = NULL
