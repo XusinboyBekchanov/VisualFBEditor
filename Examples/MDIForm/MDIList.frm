@@ -1,7 +1,7 @@
-﻿#ifdef __FB_WIN32__
-	#cmdline "Form1.rc"
-#endif
-'#Region "Form"
+﻿'#Region "Form"
+	#if defined(__FB_WIN32__) AndAlso defined(__FB_MAIN__)
+		#cmdline "Form1.rc"
+	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/ListControl.bi"
 	#include once "mff/Panel.bi"
@@ -57,22 +57,21 @@
 		*Cast(MDIListType Ptr, Sender.Designer).Form_Create(Sender)
 	End Sub
 	
-	'Dim Shared MDIList As MDIListType
-	'
-	'#ifndef _NOT_AUTORUN_FORMS_
-	'	#define _NOT_AUTORUN_FORMS_
-	'	
-	'	MDIList.Show
-	'	
-	'	App.Run
-	'#endif
+	Dim Shared MDIList As MDIListType
+	
+	#ifdef __FB_MAIN__
+		MDIList.Show
+		
+		App.Run
+	#endif
 '#End Region
 
 Private Sub MDIListType.Form_Create(ByRef Sender As Control)
+	ListControl1.Clear
 	If MDIMain.lstMdiChild.Count < 1 Then Exit Sub
 	Dim i As Integer
 	For i = 0 To MDIMain.lstMdiChild.Count - 1
-		ListControl1.AddItem (Cast(MDIChildType Ptr, MDIMain.lstMdiChild.Item(i))->Text, MDIMain.lstMdiChild.Item(i))
+		ListControl1.AddItem (Cast(MDIChildType Ptr, MDIMain.lstMdiChild.Item(i))->Text)
 	Next
 	ListControl1.ItemIndex = MDIMain.actMidChildIdx
 End Sub
