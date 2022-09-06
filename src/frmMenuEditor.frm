@@ -143,6 +143,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 	Dim As SymbolsType Ptr stCurrentToolBar = Des->Symbols(CurrentToolBar)
 	Dim As SymbolsType Ptr stCurrentStatusBar = Des->Symbols(CurrentStatusBar)
 	With Canvas
+		.CreateDoubleBuffer
 		.Font = This.Font
 		If CurrentMenu <> 0 AndAlso stCurrentMenu AndAlso stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc AndAlso QWString(stCurrentMenu->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
 		If IsPopup AndAlso CurrentToolBar = 0 Then
@@ -527,6 +528,8 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				End If
 			Next
 		End If
+		.TransferDoubleBuffer
+		.DeleteDoubleBuffer
 	End With
 End Sub
 
