@@ -1,6 +1,9 @@
 ﻿'#Region "Form"
-	#if defined(__FB_WIN32__) AndAlso defined(__FB_MAIN__)
-		#cmdline "Form1.rc"
+	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
+		#define __MAIN_FILE__ __FILE__
+		#ifdef __FB_WIN32__
+			#cmdline "Form1.rc"
+		#endif
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/TextBox.bi"
@@ -149,7 +152,7 @@
 	
 	Dim Shared frmFindReplace As frmFindReplaceType
 	
-	#ifdef __FB_MAIN__
+	#if __MAIN_FILE__ = __FILE__
 		frmFindReplace.Show
 		
 		App.Run
