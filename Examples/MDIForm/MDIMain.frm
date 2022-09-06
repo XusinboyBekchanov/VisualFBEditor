@@ -1,13 +1,13 @@
-#ifdef __FB_WIN32__
-	#cmdline "Form1.rc"
-#endif
 '#Region "Form"
+	#if defined(__FB_WIN32__) AndAlso defined(__FB_MAIN__)
+		#cmdline "Form1.rc"
+	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/Menus.bi"
-	#include once "mff/ReBar.bi"
 	#include once "mff/ImageList.bi"
 	#include once "mff/StatusBar.bi"
 	#include once "mff/List.bi"
+	#include once "mff/ToolBar.bi"
 	
 	Using My.Sys.Forms
 	
@@ -22,7 +22,7 @@
 		
 		Dim mnuWindowCount As Integer = -1
 		Dim mnuWindows(Any) As MenuItem Ptr
-
+		
 		Declare Sub MDIChildNew()
 		Declare Sub MDIChildActivate(Child As Any Ptr)
 		Declare Sub MDIChildDestroy(Child As Any Ptr)
@@ -38,17 +38,20 @@
 		Declare Sub mnuView_Click(ByRef Sender As MenuItem)
 		Declare Static Sub _mnuHelp_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuHelp_Click(ByRef Sender As MenuItem)
+		Declare Static Sub _ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
+		Declare Sub ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 		Declare Constructor
 		
 		Dim As MainMenu MainMenu1
-		Dim As MenuItem mnuFile, mnuFileNew, mnuFileOpen, mnuFileSave, mnuFileSaveAs, mnuFileBar1, mnuFileBar2, mnuFileClose, mnuFileSaveAll, mnuFileBar3, mnuFileProperties, mnuFilePrintSetup, mnuFilePrintPreview, mnuFilePrint, mnuFileBar4, mnuFileSend, mnuFileBar5, mnuFileExit
-		Dim As MenuItem mnuEdit, mnuEditUndo, mnuRedo, mnuEditCopy, mnuEditCut, mnuEditPaste, mnuEditBar1, mnuEditPasteSpecial, mnuEditBar2, mnuEditDSelectAll, mnuEditInvertSelection
-		Dim As MenuItem mnuView, mnuViewToolbar, mnuViewStatusBar, mnuViewBar1, mnuViewLargeIcons, mnuViewSmallIcons, mnuViewList, mnuViewDetails, mnuViewBar2, mnuViewArrangeIcons, mnuVAIByName, mnuVAIByType, mnuVAIBySize, mnuVAIByDate, mnuViewLineUpIcons, mnuViewBar3, mnuViewRefresh , mnuViewOptions
-		Dim As MenuItem mnuHelp, mnuHelpContent, mnuHelpAbout, mnuHelpSearch, mnuHelpBar1
-		Dim As MenuItem mnuWindow, mnuWindowCascade, mnuWindowTileHorizontal, mnuWindowTileVertical, mnuWindowArrangeIcons, MenuItem1, MenuItem2, MenuItem3, MenuItem4
-		Dim As ReBar ReBar1
+		Dim As MenuItem mnuFile, mnuFileNew, mnuFileOpen, mnuFileSave, mnuFileSaveAs, mnuFileBar1, mnuFileBar2, mnuFileSaveAll, mnuFileBar3, mnuFileProperties, mnuFilePrintSetup, mnuFilePrintPreview, mnuFilePrint, mnuFileBar4, mnuFileExit
+		Dim As MenuItem mnuEdit, mnuEditUndo, mnuRedo, mnuEditCopy, mnuEditCut, mnuEditPaste, mnuEditBar1, mnuEditDelete, mnuEditBar2, mnuEditSelectAll
+		Dim As MenuItem mnuView, mnuViewToolbar, mnuViewStatusBar, mnuViewBar1, mnuViewRefresh
+		Dim As MenuItem mnuHelp, mnuHelpAbout
+		Dim As MenuItem mnuWindow, mnuWindowCascade, mnuWindowTileHorizontal, mnuWindowTileVertical, mnuWindowArrangeIcons, mnuWindowClose, mnuWindowCloseAll, MenuItem3, mnuViewDarkMode
 		Dim As ImageList ImageList1
 		Dim As StatusBar StatusBar1
+		Dim As ToolBar ToolBar1
+		Dim As ToolButton tbFileNew, tbFileOpen, tbFileSave, tbFileSaveAll
 	End Type
 	
 	Constructor MDIMainType
@@ -76,7 +79,7 @@
 			.ImageHeight = 16
 			.SetBounds 116, 70, 16, 16
 			.Designer = @This
-			.Add "New ", "New"
+			.Add "New", "New"
 			.Add "About", "About"
 			.Add "Cut", " Cut"
 			.Add "Exit", "Exit"
@@ -105,7 +108,7 @@
 		With mnuFileNew
 			.Name = "mnuFileNew"
 			.Designer = @This
-			.Caption = "&New" & !"\tCtrl+N"
+			.Caption = !"&New\tCtrl+N"
 			.ImageKey = "New"
 			.OnClick = @_mnuFile_Click
 			.Parent = @mnuFile
@@ -114,16 +117,8 @@
 		With mnuFileOpen
 			.Name = "mnuFileOpen"
 			.Designer = @This
-			.Caption = "&Open" & !"\tCtrl+O"
+			.Caption = !"&Open\tCtrl+O"
 			.ImageKey = "Open"
-			.OnClick = @_mnuFile_Click
-			.Parent = @mnuFile
-		End With
-		' mnuFileClose
-		With mnuFileClose
-			.Name = "mnuFileClose"
-			.Designer = @This
-			.Caption = "&Close"
 			.OnClick = @_mnuFile_Click
 			.Parent = @mnuFile
 		End With
@@ -138,7 +133,7 @@
 		With mnuFileSave
 			.Name = "mnuFileSave"
 			.Designer = @This
-			.Caption = "Save"  & !"\tCtrl+S"
+			.Caption = !"Save\tCtrl+S"
 			.ImageKey = "Save"
 			.OnClick = @_mnuFile_Click
 			.Parent = @mnuFile
@@ -204,28 +199,13 @@
 		With mnuFilePrint
 			.Name = "mnuFilePrint"
 			.Designer = @This
-			.Caption = "&Print..." & !"\tCtrl+P"
+			.Caption = !"&Print...\tCtrl+P"
 			.OnClick = @_mnuFile_Click
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar4
 		With mnuFileBar4
 			.Name = "mnuFileBar4"
-			.Designer = @This
-			.Caption = "-"
-			.Parent = @mnuFile
-		End With
-		' mnuFileSend
-		With mnuFileSend
-			.Name = "mnuFileSend"
-			.Designer = @This
-			.Caption = "Sen&d..."
-			.OnClick = @_mnuFile_Click
-			.Parent = @mnuFile
-		End With
-		' mnuFileBar5
-		With mnuFileBar5
-			.Name = "mnuFileBar5"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuFile
@@ -258,7 +238,7 @@
 		With mnuEditUndo
 			.Name = "mnuEditUndo"
 			.Designer = @This
-			.Caption = "&Undo"
+			.Caption = !"&Undo\tCtrl+Z"
 			.OnClick = @_mnuEdit_Click
 			.Parent = @mnuEdit
 		End With
@@ -272,7 +252,7 @@
 		With mnuEditCut
 			.Name = "mnuEditCut"
 			.Designer = @This
-			.Caption = "Cu&t"
+			.Caption = !"Cu&t\tCtrl+X"
 			.ImageKey = "Cut"
 			.OnClick = @_mnuEdit_Click
 			.Parent =  @mnuEdit
@@ -281,7 +261,7 @@
 		With mnuEditCopy
 			.Name = "mnuEditCopy"
 			.Designer = @This
-			.Caption = "&Copy"
+			.Caption = !"&Copy\tCtrl+C"
 			.ImageKey = "Copy"
 			.OnClick = @_mnuEdit_Click
 			.Parent = @mnuEdit
@@ -290,16 +270,16 @@
 		With mnuEditPaste
 			.Name = "mnuEditPaste"
 			.Designer = @This
-			.Caption = "&Paste"
+			.Caption = !"&Paste\tCtrl+V"
 			.ImageKey = "Paste"
 			.OnClick = @_mnuEdit_Click
 			.Parent = @mnuEdit
 		End With
-		' mnuEditPasteSpecial
-		With mnuEditPasteSpecial
-			.Name = "mnuEditPasteSpecial"
+		' mnuEditDelete
+		With mnuEditDelete
+			.Name = "mnuEditDelete"
 			.Designer = @This
-			.Caption = "Paste &Special..."
+			.Caption = !"Delete\tDel"
 			.OnClick = @_mnuEdit_Click
 			.Parent = @mnuEdit
 		End With
@@ -310,19 +290,11 @@
 			.Caption = "-"
 			.Parent = @mnuEdit
 		End With
-		' mnuEditDSelectAll
-		With mnuEditDSelectAll
-			.Name = "mnuEditDSelectAll"
+		' mnuEditSelectAll
+		With mnuEditSelectAll
+			.Name = "mnuEditSelectAll"
 			.Designer = @This
 			.Caption = "Select &All"
-			.OnClick = @_mnuEdit_Click
-			.Parent = @mnuEdit
-		End With
-		' mnuEditInvertSelection
-		With mnuEditInvertSelection
-			.Name = "mnuEditInvertSelection"
-			.Designer = @This
-			.Caption = "&Invert Selection"
 			.OnClick = @_mnuEdit_Click
 			.Parent = @mnuEdit
 		End With
@@ -338,6 +310,7 @@
 			.Caption = "&Toolbar"
 			.Designer = @This
 			.OnClick = @_mnuView_Click
+			.Checked = True
 			.Parent = @mnuView
 		End With
 		With mnuViewStatusBar
@@ -345,7 +318,7 @@
 			.Caption = "Status &Bar"
 			.Designer = @This
 			.OnClick = @_mnuView_Click
-			.Checked = true
+			.Checked = True
 			.Parent = @mnuView
 		End With
 		With mnuViewBar1
@@ -354,101 +327,12 @@
 			.Designer = @This
 			.Parent = @mnuView
 		End With
-		' MenuItem4
-		With MenuItem4
-			.Name = "MenuItem4"
+		' mnuViewDarkMode
+		With mnuViewDarkMode
+			.Name = "mnuViewDarkMode"
 			.Designer = @This
 			.Caption = "Dark Mode"
 			.Checked = False
-			.OnClick = @_mnuView_Click
-			.Parent = @mnuView
-		End With
-		With mnuViewLargeIcons
-			.Name = "mnuViewLargeIcons"
-			.Caption = "Lar&ge Icons"
-			.Designer = @This
-			.Parent = @mnuView
-		End With
-		With mnuViewSmallIcons
-			.Name = "mnuViewSmallIcons"
-			.Caption = "S&mall Icons"
-			.Designer = @This
-			.Parent = @mnuView
-		End With
-		With mnuViewList
-			.Name = "mnuViewList"
-			.Caption = "&List"
-			.Designer = @This
-			.Parent = @mnuView
-		End With
-		With mnuViewDetails
-			.Name = "mnuViewDetails"
-			.Caption = "&Details"
-			.Designer = @This
-			.OnClick = @_mnuView_Click
-			.Parent = @mnuView
-		End With
-		With mnuViewBar2
-			.Name = "mnuViewBar2"
-			.Caption = "-"
-			.Designer = @This
-			.Parent = @mnuView
-		End With
-		With mnuViewArrangeIcons
-			.Name = "mnuViewArrangeIcons"
-			.Caption = "Arrange &Icons"
-			.Designer = @This
-			.OnClick = @_mnuView_Click
-			.Parent = @mnuView
-		End With
-		With mnuVAIByName
-			.Name = "mnuVAIByName"
-			.Caption = "by &Name"
-			.Designer = @This
-			.Parent = @mnuViewArrangeIcons
-		End With
-		With mnuVAIByType
-			.Name = "mnuVAIByType"
-			.Caption = "by &Type"
-			.Designer = @This
-			.Parent = @mnuViewArrangeIcons
-		End With
-		With mnuVAIBySize
-			.Name = "mnuVAIBySize"
-			.Caption = "by Si&ze"
-			.Designer = @This
-			.Parent = @mnuViewArrangeIcons
-		End With
-		With mnuVAIByDate
-			.Name = "mnuVAIByDate"
-			.Caption = "by &Date"
-			.Designer = @This
-			.Parent = @mnuViewArrangeIcons
-		End With
-		With mnuViewLineUpIcons
-			.Name = "mnuViewLineUpIcons"
-			.Caption = "Li&ne Up Icons"
-			.Designer = @This
-			.OnClick = @_mnuView_Click
-			.Parent = @mnuView
-		End With
-		With mnuViewBar3
-			.Name = "mnuViewBar3"
-			.Caption = "-"
-			.Designer = @This
-			.Parent = @mnuView
-		End With
-		With mnuViewRefresh
-			.Name = "mnuViewRefresh"
-			.Caption = "&Refresh"
-			.Designer = @This
-			.OnClick = @_mnuView_Click
-			.Parent = @mnuView
-		End With
-		With mnuViewOptions
-			.Name = "mnuViewOptions"
-			.Caption = "&Options..."
-			.Designer = @This
 			.OnClick = @_mnuView_Click
 			.Parent = @mnuView
 		End With
@@ -495,17 +379,17 @@
 			.Caption = "-"
 			.Parent = @mnuWindow
 		End With
-		' MenuItem1
-		With MenuItem1
-			.Name = "MenuItem1"
+		' mnuWindowClose
+		With mnuWindowClose
+			.Name = "mnuWindowClose"
 			.Designer = @This
 			.Caption = "Close"
 			.OnClick = @_mnuWindow_Click
 			.Parent = @mnuWindow
 		End With
-		' MenuItem2
-		With MenuItem2
-			.Name = "MenuItem2"
+		' mnuWindowCloseAll
+		With mnuWindowCloseAll
+			.Name = "mnuWindowCloseAll"
 			.Designer = @This
 			.Caption = "Close All"
 			.OnClick = @_mnuWindow_Click
@@ -518,29 +402,6 @@
 			.Caption = "&Help"
 			.Parent = @MainMenu1
 		End With
-		' mnuHelpContent
-		With mnuHelpContent
-			.Name = "mnuHelpContent"
-			.Designer = @This
-			.Caption = "&Contents"
-			.OnClick = @_mnuHelp_Click
-			.Parent = @mnuHelp
-		End With
-		' mnuHelpSearch
-		With mnuHelpSearch
-			.Name = "mnuHelpSearch"
-			.Designer = @This
-			.Caption = "&Search For Help On..."
-			.OnClick = @_mnuHelp_Click
-			.Parent = @mnuHelp
-		End With
-		' mnuHelpBar1
-		With mnuHelpBar1
-			.Name = "mnuHelpBar1"
-			.Designer = @This
-			.Caption = "-"
-			.Parent = @mnuHelp
-		End With
 		' mnuHelpAbout
 		With mnuHelpAbout
 			.Name = "mnuHelpAbout"
@@ -550,15 +411,6 @@
 			.OnClick = @_mnuHelp_Click
 			.Parent = @mnuHelp
 		End With
-		' ReBar1
-		With ReBar1
-			.Name = "ReBar1"
-			.Text = "ReBar1"
-			.SetBounds 0, 0, 334, 30
-			.Designer = @This
-			.Parent = @This
-		End With
-		
 		' StatusBar1
 		With StatusBar1
 			.Name = "StatusBar1"
@@ -568,8 +420,53 @@
 			.Designer = @This
 			.Parent = @This
 		End With
+		' ToolBar1
+		With ToolBar1
+			.Name = "ToolBar1"
+			.Text = "ToolBar1"
+			.Align = DockStyle.alTop
+			.HotImagesList = @ImageList1
+			.ImagesList = @ImageList1
+			.DisabledImagesList = @ImageList1
+			.SetBounds 0, 0, 334, 26
+			.Designer = @This
+			.OnButtonClick = @_ToolBar1_ButtonClick
+			.Parent = @This
+		End With
+		' tbFileNew
+		With tbFileNew
+			.Name = "tbFileNew"
+			.Designer = @This
+			.ImageKey = "New"
+			.Parent = @ToolBar1
+		End With
+		' tbFileOpen
+		With tbFileOpen
+			.Name = "tbFileOpen"
+			.Designer = @This
+			.ImageKey = "Open"
+			.Parent = @ToolBar1
+		End With
+		' tbFileSave
+		With tbFileSave
+			.Name = "tbFileSave"
+			.Designer = @This
+			.ImageKey = "Save"
+			.Parent = @ToolBar1
+		End With
+		' tbFileSaveAll
+		With tbFileSaveAll
+			.Name = "tbFileSaveAll"
+			.Designer = @This
+			.ImageKey = "SaveAll"
+			.Parent = @ToolBar1
+		End With
 	End Constructor
-
+	
+	Private Sub MDIMainType._ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
+		*Cast(MDIMainType Ptr, Sender.Designer).ToolBar1_ButtonClick(Sender, Button)
+	End Sub
+	
 	Private Sub MDIMainType._mnuFile_Click(ByRef Sender As MenuItem)
 		*Cast(MDIMainType Ptr, Sender.Designer).mnuFile_Click(Sender)
 	End Sub
@@ -592,9 +489,7 @@
 	
 	Dim Shared MDIMain As MDIMainType
 	
-	#ifndef _NOT_AUTORUN_FORMS_
-		#define _NOT_AUTORUN_FORMS_
-		
+	#ifdef __FB_MAIN__
 		MDIMain.Show
 		
 		App.Run
@@ -605,86 +500,105 @@
 #include once "MDIList.frm"
 
 Private Sub MDIMainType.mnuFile_Click(ByRef Sender As MenuItem)
-	Select Case Sender.Caption
-	Case "&New" & !"\tCtrl+N"
+	Select Case Sender.Name
+	Case "mnuFileNew"
 		MDIChildNew()
-	Case "E&xit"
+	Case "mnuFileExit"
 		ModalResult = ModalResults.OK
 		CloseForm
 	Case Else
-		MsgBox Sender.Caption & !"\r\nThis function is under construction", "File"
+		MsgBox Sender.Name & !"\r\nThis function is under construction", "File"
 	End Select
 End Sub
 
 Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
-	Select Case Sender.Caption
+	Select Case Sender.Name
 	Case Else
-		MsgBox Sender.Caption & !"\r\nThis function is under construction", "Edit"
+		MsgBox Sender.Name & !"\r\nThis function is under construction", "Edit"
 	End Select
 End Sub
 
 Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
-	Select Case Sender.Caption
-	Case "Dark Mode"
+	Select Case Sender.Name
+	Case "mnuViewToolbar"
 		If Sender.Checked Then
 			Sender.Checked = False
 		Else
 			Sender.Checked = True
 		End If
-		SetDarkMode(Sender.Checked, Sender.Checked)
-	Case "Status &Bar"
+		ToolBar1.Visible = Sender.Checked = True
+	Case "mnuViewStatusBar"
 		If Sender.Checked Then
 			Sender.Checked = False
 		Else
 			Sender.Checked = True
 		End If
 		StatusBar1.Visible = Sender.Checked = True
+	Case "mnuViewDarkMode"
+		If Sender.Checked Then
+			Sender.Checked = False
+		Else
+			Sender.Checked = True
+		End If
+		SetDarkMode(Sender.Checked, Sender.Checked)
 	Case Else
-		MsgBox Sender.Caption & !"\r\nThis function is under construction", "View"
+		MsgBox Sender.Name & !"\r\nThis function is under construction", "View"
 	End Select
+	RequestAlign
+	InvalidateRect(Handle, NULL, False)
+	UpdateWindow(Handle)
 End Sub
 
 Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
 	Dim h As HWND
 	
-	Select Case Sender.Caption
-	Case "Close"
+	Select Case Sender.Name
+	Case "mnuWindowClose"
 		h = SendMessage(FClient, WM_MDIGETACTIVE, 0, 0)
 		If h Then SendMessage(h, WM_CLOSE, 0, 0)
-	Case "Close All"
+	Case "mnuWindowCloseAll"
 		Do
 			h = SendMessage(FClient, WM_MDIGETACTIVE, 0, 0)
 			If h Then SendMessage(h, WM_CLOSE, 0, 0)
 		Loop While (h)
-	Case "&Cascade"
+	Case "mnuWindowCascade"
 		SendMessage FClient, WM_MDICASCADE, 0, 0
-	Case "&Arrange Icons"
+	Case "mnuWindowArrangeIcons"
 		SendMessage FClient, WM_MDIICONARRANGE, 0, 0
-	Case "Tile &Horizontal"
+	Case "mnuWindowTileHorizontal"
 		SendMessage FClient, WM_MDITILE, MDITILE_HORIZONTAL, 0
-	Case "Tile &Vertical"
+	Case "mnuWindowTileVertical"
 		SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
-	Case "More Windows..."
-		Dim frm As MDIListType Ptr
-		frm = New MDIListType
-		frm->ShowModal(MDIMain)
-		If frm->ModalResult = ModalResults.OK Then
-			If frm->Tag Then
-				Cast(MDIChildType Ptr, frm->Tag)->SetFocus()
-			End If
+	Case "mnuWindowMore"
+		MDIList.ShowModal(MDIMain)
+		If MDIList.ModalResult = ModalResults.OK Then
+			If MDIList.Tag = 0 Then Exit Sub
+			Cast(MDIChildType Ptr, MDIList.Tag)->SetFocus()
 		End If
-		Delete frm
 	Case Else
 		Cast(MDIChildType Ptr, Sender.Tag)->SetFocus()
 	End Select
 End Sub
 
 Private Sub MDIMainType.mnuHelp_Click(ByRef Sender As MenuItem)
-	Select Case Sender.Caption
-	Case "About"
+	Select Case Sender.Name
+	Case "mnuHelpAbout"
 		MsgBox(!"Visual FB Editor MDI Demo\r\nBy Cm Wang", "MDI Demo")
 	Case Else
-		MsgBox Sender.Caption & !"\r\nThis function is under construction", "Edit"
+		MsgBox Sender.Name & !"\r\nThis function is under construction", "Edit"
+	End Select
+End Sub
+
+Private Sub MDIMainType.ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
+	Select Case Button.Name
+	Case "tbFileNew"
+		mnuFile_Click(mnuFileNew)
+	Case "tbFileOpen"
+		mnuFile_Click(mnuFileOpen)
+	Case "tbFileSave"
+		mnuFile_Click(mnuFileSave)
+	Case "tbFileSaveAll"
+		mnuFile_Click(mnuFileSaveAs)
 	End Select
 End Sub
 
@@ -692,7 +606,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	Dim mMax As Integer = 5
 	Dim i As Integer
 	Dim j As Integer
-
+	
 	'delete and release menu
 	For i = mnuWindowCount To 0 Step -1
 		mnuWindow.Remove(mnuWindows(i))
@@ -701,13 +615,13 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	Erase mnuWindows
 	
 	mnuWindowCount = lstMdiChild.Count
-	If mnuWindowCount = 0 Then 
+	If mnuWindowCount = 0 Then
 		mnuWindowCount = -1
 		mnuWindow.Enabled = False
 		Exit Sub
 	End If
 	mnuWindow.Enabled = True
-
+	
 	
 	If mnuWindowCount > mMax Then
 		j = mMax
@@ -717,7 +631,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	End If
 	
 	ReDim mnuWindows(mnuWindowCount)
-
+	
 	'create a split bar menu
 	i = 0
 	mnuWindows(i) = New MenuItem
@@ -727,6 +641,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	'create child list menu
 	For i = 1 To j
 		mnuWindows(i) = New MenuItem
+		mnuWindows(i)->Name = "mnuWindow" & i - 1
 		mnuWindows(i)->Tag = lstMdiChild.Item(i - 1)
 		mnuWindows(i)->Caption = Cast(MDIChildType Ptr, lstMdiChild.Item(i - 1))->Text
 		mnuWindows(i)->OnClick = @_mnuWindow_Click
@@ -737,6 +652,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	If j < mnuWindowCount Then
 		i = mnuWindowCount
 		mnuWindows(i) = New MenuItem
+		mnuWindows(i)->Name = "mnuWindowMore"
 		mnuWindows(i)->Caption = "More Windows..."
 		mnuWindows(i)->OnClick = @_mnuWindow_Click
 		mnuWindow.Add mnuWindows(i)
@@ -746,7 +662,7 @@ End Sub
 Private Sub MDIMainType.MDIChildNew()
 	Static ChildIdx As Integer = 0
 	Dim frm As MDIChildType Ptr
-
+	
 	ChildIdx += 1
 	frm = New MDIChildType
 	frm->Text = "Untitled - " & ChildIdx
@@ -777,3 +693,4 @@ Private Sub MDIMainType.MDIChildDestroy(Child As Any Ptr)
 	MDIChildMenuUpdate()
 	Delete Child
 End Sub
+
