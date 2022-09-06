@@ -1278,6 +1278,8 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				'                End If
 				Select Case LCase(te->TypeName)
 				Case "icon", "cursor", "bitmaptype", "graphictype": SetGraphicProperty Cpnt, PropertyName, te->TypeName, *FLine4
+				Case Else
+					If PropertyName = "ImageKey" Then SetGraphicProperty Cpnt, "Image", "BitmapType", *FLine4
 				End Select
 			Case "any", "any ptr"
 				Dim As WString Ptr FLine5
