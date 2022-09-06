@@ -65,7 +65,8 @@
 			.ScrollBars = ScrollBarsType.Both
 			.Align = DockStyle.alClient
 			.HideSelection = False
-			.SetBounds 0, 0, 244, 151
+			.MaxLength = -1
+			.SetBounds 0, 0, 624, 441
 			.Designer = @This
 			.OnChange = @_TextBox1_Change
 			.OnClick = @_TextBox1_Click

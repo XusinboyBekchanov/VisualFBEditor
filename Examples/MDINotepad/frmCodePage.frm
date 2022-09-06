@@ -570,8 +570,10 @@ Private Sub frmCodePageType.Form_Show(ByRef Sender As Form)
 End Sub
 
 Private Sub frmCodePageType.chkPreview_Click(ByRef Sender As CheckBox)
+	Dim NewLine As NewLineTypes = -1
+	Dim Encode As FileEncodings = cobEncod.ItemIndex
 	If chkPreview.Checked = False Then Exit Sub
-	txtPreview.Text = TextFromFile(lblFile.Text, cobEncod.ItemIndex, -1, CodePage)
+	txtPreview.Text = TextFromFile(lblFile.Text, Encode, NewLine, CodePage)
 End Sub
 
 Private Sub frmCodePageType.SetCodePage(CP As Integer)

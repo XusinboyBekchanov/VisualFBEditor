@@ -82,7 +82,7 @@
 		Dim As ToolBar ToolBar1
 		Dim As OpenFileDialog OpenFileDialog1
 		Dim As SaveFileDialog SaveFileDialog1
-		Dim As ToolButton tbFileNew, tbFileOpen, tbFileSave, tbFileSaveAll
+		Dim As ToolButton tbFileNew, tbFileOpen, tbFileSave, tbFileSaveAll, ToolButton1, tbEditRedo, tbEditUndo, tbEditCut, tbEditCopy, tbEditPaste, ToolButton2, tbEditFind, tbEditFindNext, tbEditFindBack, tbEditReplace, ToolButton3, tbViewFont, tbViewBColor, tbViewDarkMode, ToolButton4, tbWindowHorizontal, tbWindowVertical, tbWindowCascade, tbWindowsIcon, tbWindowClose, tbWindowCloseAll
 		Dim As ColorDialog ColorDialog1
 		Dim As FontDialog FontDialog1
 		Dim As StatusPanel spFileName, spLocation, spEncode, spEOL
@@ -130,15 +130,42 @@
 			.ImageHeight = 16
 			.SetBounds 20, 40, 16, 16
 			.Designer = @This
-			.Add "New", "New"
 			.Add "About", "About"
+			.Add "Add", "Add"
+			.Add "Browser", "Browser"
+			.Add "Cascade", "Cascade"
+			.Add "Close", "Close"
+			.Add "CloseAll", "CloseAll"
+			.Add "Color", "Color"
+			.Add "Copy", "Copy"
 			.Add "Cut", "Cut"
+			.Add "DarkMode", "DarkMode"
+			.Add "Deleted", "Deleted"
 			.Add "Exit", "Exit"
 			.Add "File", "File"
+			.Add "Find", "Find"
+			.Add "FindBack", "FindBack"
+			.Add "FindNext", "FindNext"
+			.Add "Fonts", "Fonts"
+			.Add "Horizontal", "Horizontal"
+			.Add "Icons", "Icons"
+			.Add "New", "New"
 			.Add "Open", "Open"
 			.Add "Paste", "Paste"
+			.Add "Print", "Print"
+			.Add "PrintPreview", "PrintPreview"
+			.Add "PrintSetup", "PrintSetup"
+			.Add "Redo", "Redo"
+			.Add "Replace", "Replace"
+			.Add "ReplaceAll", "ReplaceAll"
+			.Add "ReplaceFile", "ReplaceFile"
 			.Add "Save", "Save"
 			.Add "SaveAll", "SaveAll"
+			.Add "SaveAs", "SaveAs"
+			.Add "StatusBar", "StatusBar"
+			.Add "ToolBar", "ToolBar"
+			.Add "Undo", "Undo"
+			.Add "Vertical", "Vertical"
 			.Parent = @This
 		End With
 		' ColorDialog1
@@ -258,6 +285,7 @@
 			.Designer = @This
 			.Caption = "Browse"
 			.OnClick = @_mnuFile_Click
+			.ImageKey = "Browse"
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar3
@@ -273,6 +301,7 @@
 			.Designer = @This
 			.Caption = "Print Set&up..."
 			.OnClick = @_mnuFile_Click
+			.ImageKey = "PrintSetup"
 			.Parent = @mnuFile
 		End With
 		' mnuFilePrintPreview
@@ -282,6 +311,7 @@
 			.Caption = "Print Pre&view"
 			.MenuIndex = 11
 			.OnClick = @_mnuFile_Click
+			.ImageKey = "PrintPreview"
 			.Parent = @mnuFile
 		End With
 		' mnuFilePrint
@@ -290,6 +320,7 @@
 			.Designer = @This
 			.Caption = !"&Print...\tCtrl+P"
 			.OnClick = @_mnuFile_Click
+			.ImageKey = "Print"
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar4
@@ -313,15 +344,8 @@
 			.Name = "mnuEdit"
 			.Designer = @This
 			.Caption = "&Edit"
+			.ImageKey = ""
 			.Parent = @MainMenu1
-		End With
-		' mnuEditRedo
-		With mnuEditRedo
-			.Name = "mnuEditRedo"
-			.Designer = @This
-			.Caption = "&Redo"
-			.OnClick = @_mnuEdit_Click
-			.Parent = @mnuEdit
 		End With
 		' mnuEditUndo
 		With mnuEditUndo
@@ -329,6 +353,16 @@
 			.Designer = @This
 			.Caption = !"&Undo\tCtrl+Z"
 			.OnClick = @_mnuEdit_Click
+			.ImageKey = "Undo"
+			.Parent = @mnuEdit
+		End With
+		' mnuEditRedo
+		With mnuEditRedo
+			.Name = "mnuEditRedo"
+			.Designer = @This
+			.Caption = "&Redo"
+			.OnClick = @_mnuEdit_Click
+			.ImageKey = "Redo"
 			.Parent = @mnuEdit
 		End With
 		' mnuEditBar1
@@ -371,6 +405,7 @@
 			.Designer = @This
 			.Caption = !"Delete\tDel"
 			.OnClick = @_mnuEdit_Click
+			.ImageKey = "Delete"
 			.Parent = @mnuEdit
 		End With
 		' mnuEditBar2
@@ -386,6 +421,7 @@
 			.Designer = @This
 			.Caption = "File Insert..."
 			.OnClick = @_mnuEdit_Click
+			.ImageKey = "Add"
 			.Parent = @mnuEdit
 		End With
 		' mnuEditBar3
@@ -401,6 +437,7 @@
 			.Designer = @This
 			.Caption = !"Find...\tCtrl+F"
 			.OnClick = @_mnuEdit_Click
+			.ImageKey = "Find"
 			.Parent = @mnuEdit
 		End With
 		' mnuEditFindNext
@@ -409,6 +446,7 @@
 			.Designer = @This
 			.Caption = !"Find Next\tF3"
 			.OnClick = @_mnuEdit_Click
+			.ImageKey = "FindNext"
 			.Parent = @mnuEdit
 		End With
 		' mnuEditFindPrevious
@@ -417,6 +455,7 @@
 			.Designer = @This
 			.Caption = !"Find Previous\tShift+F3"
 			.OnClick = @_mnuEdit_Click
+			.ImageKey = "FindBack"
 			.Parent = @mnuEdit
 		End With
 		' mnuEditReplace
@@ -425,6 +464,7 @@
 			.Designer = @This
 			.Caption = !"Replace...\tCtrl+H"
 			.OnClick = @_mnuEdit_Click
+			.ImageKey = "Replace"
 			.Parent = @mnuEdit
 		End With
 		' mnuEditGoto
@@ -433,6 +473,7 @@
 			.Designer = @This
 			.Caption = !"Goto...\tCtrl+G"
 			.OnClick = @_mnuEdit_Click
+			.ImageKey = "Goto"
 			.Parent = @mnuEdit
 		End With
 		' mnuEditBar4
@@ -472,6 +513,7 @@
 			.Designer = @This
 			.OnClick = @_mnuView_Click
 			.Checked = True
+			.ImageKey = "ToolBar"
 			.Parent = @mnuView
 		End With
 		' mnuViewStatusBar
@@ -481,6 +523,7 @@
 			.Designer = @This
 			.OnClick = @_mnuView_Click
 			.Checked = True
+			.ImageKey = "StatusBar"
 			.Parent = @mnuView
 		End With
 		' mnuViewBar1
@@ -497,6 +540,7 @@
 			.Caption = "Dark Mode"
 			.Checked = False
 			.OnClick = @_mnuView_Click
+			.ImageKey = "DarkMode"
 			.Parent = @mnuView
 		End With
 		' mnuViewBar2
@@ -512,6 +556,7 @@
 			.Designer = @This
 			.Caption = "Word Warps"
 			.OnClick = @_mnuView_Click
+			.ImageKey = "WorkWarps"
 			.Parent = @mnuView
 		End With
 		' mnuViewFont
@@ -520,6 +565,7 @@
 			.Caption = "Font..."
 			.Designer = @This
 			.OnClick = @_mnuView_Click
+			.ImageKey = "Fonts"
 			.Parent = @mnuView
 		End With
 		' mnuViewBackColor
@@ -528,6 +574,7 @@
 			.Designer = @This
 			.Caption = "Back Color..."
 			.OnClick = @_mnuView_Click
+			.ImageKey = "Color"
 			.Parent = @mnuView
 		End With
 		' mnuViewAllFont
@@ -733,6 +780,7 @@
 			.Caption = "Tile &Horizontal"
 			.Designer = @This
 			.OnClick = @_mnuWindow_Click
+			.ImageKey = "Horizontal"
 			.Parent = @mnuWindow
 		End With
 		' mnuWindowTileVertical
@@ -741,6 +789,7 @@
 			.Caption = "Tile &Vertical"
 			.Designer = @This
 			.OnClick = @_mnuWindow_Click
+			.ImageKey = "Vertical"
 			.Parent = @mnuWindow
 		End With
 		' mnuWindowCascade
@@ -749,6 +798,7 @@
 			.Caption = "&Cascade"
 			.Designer = @This
 			.OnClick = @_mnuWindow_Click
+			.ImageKey = "Cascade"
 			.Parent = @mnuWindow
 		End With
 		' mnuWindowArrangeIcons
@@ -757,6 +807,7 @@
 			.Caption = "&Arrange Icons"
 			.Designer = @This
 			.OnClick = @_mnuWindow_Click
+			.ImageKey = "Icons"
 			.Parent = @mnuWindow
 		End With
 		' mnuWindowBar1
@@ -772,6 +823,7 @@
 			.Designer = @This
 			.Caption = "Close"
 			.OnClick = @_mnuWindow_Click
+			.ImageKey = "Close"
 			.Parent = @mnuWindow
 		End With
 		' mnuWindowCloseAll
@@ -780,6 +832,7 @@
 			.Designer = @This
 			.Caption = "Close All"
 			.OnClick = @_mnuWindow_Click
+			.ImageKey = "CloseAll"
 			.Parent = @mnuWindow
 		End With
 		With mnuHelp
@@ -802,6 +855,7 @@
 			.Name = "tbFileNew"
 			.Designer = @This
 			.ImageKey = "New"
+			.Hint = "New text window"
 			.Parent = @ToolBar1
 		End With
 		' tbFileOpen
@@ -809,6 +863,7 @@
 			.Name = "tbFileOpen"
 			.Designer = @This
 			.ImageKey = "Open"
+			.Hint = "Open text file"
 			.Parent = @ToolBar1
 		End With
 		' tbFileSave
@@ -816,6 +871,7 @@
 			.Name = "tbFileSave"
 			.Designer = @This
 			.ImageKey = "Save"
+			.Hint = "Save text file"
 			.Parent = @ToolBar1
 		End With
 		' tbFileSaveAll
@@ -823,6 +879,185 @@
 			.Name = "tbFileSaveAll"
 			.Designer = @This
 			.ImageKey = "SaveAll"
+			.Hint = "Save all text file"
+			.Parent = @ToolBar1
+		End With
+		' ToolButton1
+		With ToolButton1
+			.Name = "ToolButton1"
+			.Designer = @This
+			.Style = ToolButtonStyle.tbsSeparator
+			.Width = -1
+			.Parent = @ToolBar1
+		End With
+		' tbEditUndo
+		With tbEditUndo
+			.Name = "tbEditUndo"
+			.Designer = @This
+			.Hint = "Undo"
+			.ImageKey = "Undo"
+			.Parent = @ToolBar1
+		End With
+		' tbEditRedo
+		With tbEditRedo
+			.Name = "tbEditRedo"
+			.Designer = @This
+			.Hint = "Redo"
+			.ImageKey = "Redo"
+			.Parent = @ToolBar1
+		End With
+		' tbEditCut
+		With tbEditCut
+			.Name = "tbEditCut"
+			.Designer = @This
+			.ImageKey = "Cut"
+			.Hint = "Cut"
+			.Parent = @ToolBar1
+		End With
+		' tbEditCopy
+		With tbEditCopy
+			.Name = "tbEditCopy"
+			.Designer = @This
+			.ImageKey = "Copy"
+			.Hint = "Copy"
+			.Parent = @ToolBar1
+		End With
+		' tbEditPaste
+		With tbEditPaste
+			.Name = "tbEditPaste"
+			.Designer = @This
+			.ImageKey = "Paste"
+			.Hint = "Paste"
+			.Parent = @ToolBar1
+		End With
+		' ToolButton2
+		With ToolButton2
+			.Name = "ToolButton2"
+			.Designer = @This
+			.Style = ToolButtonStyle.tbsSeparator
+			.Width = -1
+			.Parent = @ToolBar1
+		End With
+		' tbEditFind
+		With tbEditFind
+			.Name = "tbEditFind"
+			.Designer = @This
+			.ImageKey = "Find"
+			.Hint = "Find..."
+			.Parent = @ToolBar1
+		End With
+		' tbEditFindNext
+		With tbEditFindNext
+			.Name = "tbEditFindNext"
+			.Designer = @This
+			.ImageKey = "FindNext"
+			.Hint = "Find Next"
+			.Parent = @ToolBar1
+		End With
+		' tbEditFindBack
+		With tbEditFindBack
+			.Name = "tbEditFindBack"
+			.Designer = @This
+			.ImageKey = "FindBack"
+			.Hint = "Find Back"
+			.Parent = @ToolBar1
+		End With
+		' tbEditReplace
+		With tbEditReplace
+			.Name = "tbEditReplace"
+			.Designer = @This
+			.ImageKey = "Replace"
+			.Hint = "Replace"
+			.Parent = @ToolBar1
+		End With
+		' ToolButton3
+		With ToolButton3
+			.Name = "ToolButton3"
+			.Designer = @This
+			.Style = ToolButtonStyle.tbsSeparator
+			.Width = -1
+			.Parent = @ToolBar1
+		End With
+		' tbViewFont
+		With tbViewFont
+			.Name = "tbViewFont"
+			.Designer = @This
+			.ImageKey = "Fonts"
+			.Hint = "Font..."
+			.Parent = @ToolBar1
+		End With
+		' tbViewBColor
+		With tbViewBColor
+			.Name = "tbViewBColor"
+			.Designer = @This
+			.ImageKey = "Color"
+			.Hint = "Back Color..."
+			.Parent = @ToolBar1
+		End With
+		' tbViewDarkMode
+		With tbViewDarkMode
+			.Name = "tbViewDarkMode"
+			.Designer = @This
+			.ImageKey = "DarkMode"
+			.Hint = "Dark Mode"
+			.Style = ToolButtonStyle.tbsCheck
+			.Parent = @ToolBar1
+		End With
+		' ToolButton4
+		With ToolButton4
+			.Name = "ToolButton4"
+			.Designer = @This
+			.Style = ToolButtonStyle.tbsSeparator
+			.Width = -1
+			.Parent = @ToolBar1
+		End With
+		' tbWindowHorizontal
+		With tbWindowHorizontal
+			.Name = "tbWindowHorizontal"
+			.Designer = @This
+			.ImageKey = "Horizontal"
+			.Hint = "Window Horizontal"
+			.Parent = @ToolBar1
+		End With
+		' tbWindowVertical
+		With tbWindowVertical
+			.Name = "tbWindowVertical"
+			.Designer = @This
+			.ImageKey = "Vertical"
+			.Hint = "Window Vertical"
+			.Parent = @ToolBar1
+		End With
+		' tbWindowCascade
+		With tbWindowCascade
+			.Name = "tbWindowCascade"
+			.Designer = @This
+			.ImageKey = "Cascade"
+			.Hint = "Window Cascade"
+			.Parent = @ToolBar1
+		End With
+		' tbWindowsIcon
+		With tbWindowsIcon
+			.Name = "tbWindowsIcon"
+			.Designer = @This
+			.ImageKey = "Icons"
+			.Hint = "Window Icon"
+			.Parent = @ToolBar1
+		End With
+		' tbWindowClose
+		With tbWindowClose
+			.Name = "tbWindowClose"
+			.Designer = @This
+			.ButtonIndex = 16
+			.ImageKey = "Close"
+			.Hint = "Window Close"
+			.Parent = @ToolBar1
+		End With
+		' tbWindowCloseAll
+		With tbWindowCloseAll
+			.Name = "tbWindowCloseAll"
+			.Designer = @This
+			.ImageKey = "CloseAll"
+			.Hint = "Window Close All"
 			.Parent = @ToolBar1
 		End With
 		' spFileName
@@ -915,13 +1150,53 @@
 Private Sub MDIMainType.ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 	Select Case Button.Name
 	Case "tbFileNew"
-		mnuFile_Click mnuFileNew
-	Case "tbFileSave"
-		mnuFile_Click mnuFileSave
-	Case "tbFileSaveAll"
-		mnuFile_Click mnuFileSaveAll
+		mnuFile_Click(mnuFileNew)
 	Case "tbFileOpen"
-		mnuFile_Click mnuFileOpen
+		mnuFile_Click(mnuFileOpen)
+	Case "tbFileSave"
+		mnuFile_Click(mnuFileSave)
+	Case "tbFileSaveAll"
+		mnuFile_Click(mnuFileSaveAll)
+		
+	Case "tbEditUndo"
+		mnuEdit_Click(mnuEditUndo)
+	Case "tbEditRedo"
+		mnuEdit_Click(mnuEditRedo)
+	Case "tbEditCut"
+		mnuEdit_Click(mnuEditCut)
+	Case "tbEditCopy"
+		mnuEdit_Click(mnuEditCopy)
+	Case "tbEditPaste"
+		mnuEdit_Click(mnuEditPaste)
+		
+	Case "tbEditFind"
+		mnuEdit_Click(mnuEditFind)
+	Case "tbEditFindNext"
+		mnuEdit_Click(mnuEditFindNext)
+	Case "tbEditFindBack"
+		mnuEdit_Click(mnuEditFindPrevious)
+	Case "tbEditReplace"
+		mnuEdit_Click(mnuEditReplace)
+		
+	Case "tbViewFont"
+		mnuView_Click(mnuViewFont)
+	Case "tbViewBColor"
+		mnuView_Click(mnuViewBackColor)
+	Case "tbViewDarkMode"
+		mnuView_Click(mnuViewDarkMode)
+		
+	Case "tbWindowHorizontal"
+		mnuWindow_Click(mnuWindowTileHorizontal)
+	Case "tbWindowVertical"
+		mnuWindow_Click(mnuWindowTileVertical)
+	Case "tbWindowCascade"
+		mnuWindow_Click(mnuWindowCascade)
+	Case "tbWindowsIcon"
+		mnuWindow_Click(mnuWindowArrangeIcons)
+	Case "tbWindowClose"
+		mnuWindow_Click(mnuWindowClose)
+	Case "tbWindowCloseAll"
+		mnuWindow_Click(mnuWindowCloseAll)
 	Case Else
 		MsgBox Button.Name & !"\r\nThis function is under construction", "ToolBar"
 	End Select
@@ -977,29 +1252,28 @@ Private Sub MDIMainType.mnuFile_Click(ByRef Sender As MenuItem)
 End Sub
 
 Private Sub MDIMainType.FileOpen(ByRef FileName As Const WString)
-	Dim Encode As FileEncodings = -1
-	Dim CodePage As Integer = -1
-	Dim NewLine As NewLineTypes = -1
-	
-	TextGetEncode(FileName, Encode)
-	If Encode = FileEncodings.PlainText Then
-		If frmCodePage.chkDontShow.Checked = False Then
-			frmCodePage.SetMode(0)
-			frmCodePage.cobEncod.ItemIndex = 0
-			frmCodePage.cobEncod_Selected(frmCodePage.cobEncod, 0)
-			frmCodePage.chkSystemCP_Click(frmCodePage.chkSystemCP)
-			frmCodePage.SetCodePage(-1)
-			frmCodePage.lblFile.Text = "" + FileName
-			frmCodePage.ShowModal(MDIMain)
-			If frmCodePage.ModalResult <> ModalResults.OK Then Exit Sub
-			Encode = frmCodePage.cobEncod.ItemIndex
-			CodePage = Cast(Integer, frmCodePage.lstCodePage.ItemData(frmCodePage.lstCodePage.ItemIndex))
-		End If
-	End If
-	
 	Dim a As MDIChildType Ptr
 	Dim i As Integer = MDIChildFind(FileName)
 	If i < 0 Then
+		Dim Encode As FileEncodings = -1
+		Dim CodePage As Integer = -1
+		Dim NewLine As NewLineTypes = -1
+		
+		TextGetEncode(FileName, Encode)
+		If Encode = FileEncodings.PlainText Then
+			If frmCodePage.chkDontShow.Checked = False Then
+				frmCodePage.SetMode(0)
+				frmCodePage.cobEncod.ItemIndex = 0
+				frmCodePage.cobEncod_Selected(frmCodePage.cobEncod, 0)
+				frmCodePage.chkSystemCP_Click(frmCodePage.chkSystemCP)
+				frmCodePage.SetCodePage(-1)
+				frmCodePage.lblFile.Text = "" + FileName
+				frmCodePage.ShowModal(MDIMain)
+				If frmCodePage.ModalResult <> ModalResults.OK Then Exit Sub
+				Encode = frmCodePage.cobEncod.ItemIndex
+				CodePage = Cast(Integer, frmCodePage.lstCodePage.ItemData(frmCodePage.lstCodePage.ItemIndex))
+			End If
+		End If
 		a = MDIChildNew()
 		a->CreateWnd
 		a->SetFile(FileName)
@@ -1016,7 +1290,7 @@ End Sub
 
 Private Sub MDIMainType.FileInsert(ByRef FileName As Const WString, Child As Any Ptr)
 	Dim Encode As FileEncodings = -1
-	Dim NewLine As NewLineTypes = -1 
+	Dim NewLine As NewLineTypes = -1
 	Dim CodePage As Integer = -1
 	TextGetEncode(FileName, Encode)
 	If Encode = FileEncodings.PlainText Then
@@ -1037,7 +1311,7 @@ Private Sub MDIMainType.FileInsert(ByRef FileName As Const WString, Child As Any
 	Dim a As MDIChildType Ptr = Child
 	a->TextBox1.SelText = "File Insert Start Here: " & FileName & !"!\r\n"
 	a->TextBox1.SelText = TextFromFile(FileName, Encode, NewLine, CodePage)
-	a->TextBox1.SelText = !"\r\nFile Insert End Here: " & FileName
+	a->TextBox1.SelText = !"\r\nFile Insert End Here: " & FileName & !"!\r\n"
 End Sub
 
 Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
@@ -1063,11 +1337,12 @@ Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
 		frmFindReplace.txtReplace.Visible= True
 		frmFindReplace.btnFindReplace_Click(frmFindReplace.btnShowHide)
 		frmFindReplace.Show(MDIMain)
+		MDIChildClick(a)
 	Case "mnuEditFindNext"
-		If a->TextBox1.SelText = "" Then mnuEdit_Click(mnuEditFind)
+		If frmFindReplace.Handle= Null AndAlso frmFindReplace.txtFind.Text = "" Then mnuEdit_Click(mnuEditFind)
 		Find(frmFindReplace.txtFind.Text, frmFindReplace.chkCase.Checked, frmFindReplace.chkWarp.Checked, False)
 	Case "mnuEditFindPrevious"
-		If a->TextBox1.SelText = "" Then mnuEdit_Click(mnuEditFind)
+		If frmFindReplace.Handle= Null AndAlso frmFindReplace.txtFind.Text = "" Then mnuEdit_Click(mnuEditFind)
 		Find(frmFindReplace.txtFind.Text, frmFindReplace.chkCase.Checked, frmFindReplace.chkWarp.Checked, True)
 	Case "mnuEditReplace"
 		If a->TextBox1.SelText <> "" Then frmFindReplace.txtFind.Text = a->TextBox1.SelText
@@ -1081,6 +1356,7 @@ Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
 		End If
 	Case "mnuEditGoto"
 		frmGoto.Show(MDIMain)
+		MDIChildClick(a)
 	Case "mnuEditDSelectAll"
 		SendMessage(a->TextBox1.Handle, EM_SETSEL, 0, -1)
 	Case "mnuEditDateTime"
@@ -1114,6 +1390,7 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 		Else
 			Sender.Checked = True
 		End If
+		tbViewDarkMode.Checked = Sender.Checked
 		SetDarkMode(Sender.Checked, Sender.Checked)
 	Case "mnuViewWordWarps"
 		If Sender.Checked Then
@@ -1269,11 +1546,13 @@ Private Sub MDIMainType.mnuConvert_Click(ByRef Sender As MenuItem)
 		Dim d As WString Ptr = Allocate(k)
 		TextAnsi2Unicode(b, d, CodePage_BIG5)
 		TextConvert(*d, c, LCMAP_SIMPLIFIED_CHINESE)
+		If d Then Deallocate(d)
 	Case "mnuConvertGBToBIG5"
 		Dim d As WString Ptr = Allocate(k)
 		TextConvert(*a, d, LCMAP_TRADITIONAL_CHINESE)
 		Dim As String b = TextUnicode2Ansi(*d, CodePage_BIG5)
 		TextAnsi2Unicode(b, c, CodePage_GB2312)
+		If d Then Deallocate(d)
 	Case Else
 		MsgBox Sender.Name & !"\r\nThis function is under construction", "Convert"
 	End Select
@@ -1286,6 +1565,7 @@ Private Sub MDIMainType.mnuConvert_Click(ByRef Sender As MenuItem)
 		frm->TextBox1.Text = *c
 		frm->TextBox1.SelStart = s
 	End If
+	
 	frm->TextBox1.ScrollToCaret()
 	frm->Changed
 	If c Then Deallocate(c)
@@ -1313,25 +1593,12 @@ Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
 		SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
 	Case "mnuWindowMore"
 		With MDIList
-			.ShowModal()
+			.ShowModal(MDIMain)
 			If .ModalResult = ModalResults.OK Then
 				If .Tag = 0 Then Exit Sub
 				Cast(MDIChildType Ptr, .Tag)->SetFocus()
 			End If
 		End With
-		
-		'Dim frm As MDIListType Ptr
-		'frm = New MDIListType
-		'With *frm
-		'	.ShowModal(MDIMain)
-		'	If .ModalResult = ModalResults.OK Then
-		'		Debug.Print "OK"
-		'		Debug.Print "Select: " & .ListControl1.ItemIndex
-		'		If .ListControl1.ItemIndex < 0 Then Exit Sub
-		'		Cast(MDIChildType Ptr, .ListControl1.ItemData(.ListControl1.ItemIndex))->SetFocus()
-		'	End If
-		'End With
-		'Delete frm
 		
 	Case Else
 		Cast(MDIChildType Ptr, Sender.Tag)->SetFocus()
@@ -1341,7 +1608,7 @@ End Sub
 Private Sub MDIMainType.mnuHelp_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
 	Case "mnuHelpAbout"
-		MsgBox(!"Visual FB Editor\r\n\r\nMDI Notepad\r\nBy Cm Wang", "MDI Notepad")
+		MsgBox(!"Visual FB Editor\r\n\r\nMDI Notepad\r\nBy Cm Wang", "MDI Notepad Example")
 	Case Else
 		MsgBox Sender.Name & !"\r\nThis function is under construction", "Edit"
 	End Select
@@ -1366,7 +1633,6 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 		Dim a As MDIChildType Ptr = lstMdiChild.Item(actMdiChildIdx)
 		
 		mnuViewWordWarps.Checked = a->TextBox1.WordWraps
-		
 		
 		mnuEncodingPlainText.Caption = !"Plain Text\tCP:" & IIf(a->CodePage< 0, GetACP(), a->CodePage)
 		mnuEncodingPlainText.Checked = IIf(a->Encode = FileEncodings.PlainText, True, False)
@@ -1481,6 +1747,27 @@ Private Sub MDIMainType.ControlEnabled(Enabled As Boolean)
 	tbFileSave.Enabled = Enabled
 	tbFileSaveAll.Enabled = Enabled
 	
+	tbEditRedo.Enabled = Enabled
+	tbEditUndo.Enabled = Enabled
+	tbEditCut.Enabled = Enabled
+	tbEditCopy.Enabled = Enabled
+	tbEditPaste.Enabled = Enabled
+	
+	tbEditFind.Enabled = Enabled
+	tbEditFindNext.Enabled = Enabled
+	tbEditFindBack.Enabled = Enabled
+	tbEditReplace.Enabled = Enabled
+	
+	tbViewFont.Enabled = Enabled
+	tbViewBColor.Enabled = Enabled
+	
+	tbWindowHorizontal.Enabled = Enabled
+	tbWindowVertical.Enabled = Enabled
+	tbWindowCascade.Enabled = Enabled
+	tbWindowsIcon.Enabled = Enabled
+	tbWindowClose.Enabled = Enabled
+	tbWindowCloseAll.Enabled = Enabled
+	
 	UpdateWindow(Handle)
 End Sub
 
@@ -1551,13 +1838,13 @@ Private Sub MDIMainType.MDIChildClick(Child As Any Ptr)
 		spLocation.Caption = "Locate at (" & sy & ":" & sx & ") " & s
 	Else
 		spLocation.Caption = "Selected at (" & sy & ":" & sx & ") - (" & ey & ":" & ex & ") " & s & ":" & e & "(" & e - s & ")"
-		If frmFindReplace.Visible = True Then
+		If frmFindReplace.Handle Then
 			frmFindReplace.txtFind.Text = a->TextBox1.SelText
 		Else
 		End If
 	End If
 	
-	If frmGoto.Visible = True Then
+	If frmGoto.Handle Then
 		frmGoto.lblMsg.Text = "Line number (1 -" & a->TextBox1.LinesCount & ")"
 		frmGoto.txtLineNo.Text = "" & sy + 1
 	Else
