@@ -69,6 +69,7 @@
 			.Align = DockStyle.alClient
 			.HideSelection = False
 			.MaxLength = -1
+			.WantTab = true
 			.SetBounds 0, 0, 624, 441
 			.Designer = @This
 			.OnChange = @_TextBox1_Change
