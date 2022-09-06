@@ -3,6 +3,7 @@
 #else
 	'#Compile -exx
 #endif
+Common Shared As ListViewItem Ptr pfrmImageSelectItem
 '#Region "Form"
 	#include once "frmImageManager.bi"
 	#include once "frmPath.bi"
@@ -573,6 +574,7 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 		'	End If
 	End If
 	ModalResult = ModalResults.OK
+	pfrmImageSelectItem = pfImageManager->lvImages.SelectedItem
 	Me.CloseForm
 End Sub
 

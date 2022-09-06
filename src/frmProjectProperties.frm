@@ -239,6 +239,7 @@ pfProjectProperties = @fProjectProperties
 		' grbCompileToGCC
 		grbCompileToGCC.Name = "grbCompileToGCC"
 		grbCompileToGCC.Text = ""
+		grbCompileToGCC.Enabled = False
 		grbCompileToGCC.SetBounds 10, 35, 469, 101
 		grbCompileToGCC.Parent = @tpCompile
 		' optCompileToGas
@@ -438,6 +439,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "optCompileByDefault"
 			.Text = ML("Compile by default")
 			.TabIndex = 69
+			.Checked = true
 			.SetBounds 16, 15, 150, 16
 			'.Caption = ML("Compile by default")
 			.Designer = @This
@@ -1109,10 +1111,10 @@ Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
 	pfImageManager->OnlyIcons = True
 	pfImageManager->WithoutMainNode = True
 	If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
-		If pfImageManager->lvImages.SelectedItem <> 0 Then
-			txtIcon.Text = pfImageManager->lvImages.SelectedItem->Text(0)
+		If pfrmImageSelectItem <> 0 Then
+			txtIcon.Text = pfrmImageSelectItem->Text(0)
 			'#ifdef __USE_GTK__
-				imgIcon.Graphic.Icon.LoadFromFile(GetRelativePath(pfImageManager->lvImages.SelectedItem->Text(2), pfImageManager->ResourceFile), 32, 32)
+				imgIcon.Graphic.Icon.LoadFromFile(GetRelativePath(pfrmImageSelectItem->Text(2), pfImageManager->ResourceFile), 32, 32)
 			'#else
 			'	DrawIconEx GetDC(picApplication.Handle), 0, 0, imgIcon.Graphic.Icon.Handle, 32, 32, 0, 0, DI_NORMAL
 			'#endif
