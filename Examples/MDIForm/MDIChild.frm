@@ -1,7 +1,7 @@
-﻿#ifdef __FB_WIN32__
-	#cmdline "Form1.rc"
-#endif
-'#Region "Form"
+﻿'#Region "Form"
+	#if defined(__FB_WIN32__) AndAlso defined(__FB_MAIN__)
+		#cmdline "Form1.rc"
+	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/TextBox.bi"
 	
@@ -51,15 +51,13 @@
 		*Cast(MDIChildType Ptr, Sender.Designer).Form_Destroy(Sender)
 	End Sub
 	
-	'Dim Shared MDIChild As MDIChildType
-	'
-	'#ifndef _NOT_AUTORUN_FORMS_
-	'	#define _NOT_AUTORUN_FORMS_
-	'	
-	'	MDIChild.Show
-	'	
-	'	App.Run
-	'#endif
+	Dim Shared MDIChild As MDIChildType
+	
+	#ifdef __FB_MAIN__
+		MDIChild.Show
+		
+		App.Run
+	#endif
 '#End Region
 
 Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
