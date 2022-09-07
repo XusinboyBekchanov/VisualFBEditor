@@ -19,7 +19,7 @@
 		Dim mChanged As Boolean = False
 		
 		Declare Property Changed(Val As Boolean)
-		Declare Property Changed() As Boolean
+		Declare Property Changed As Boolean
 		
 		Declare Sub SetFile(ByRef FileName As Const WString)
 		
@@ -120,44 +120,9 @@
 	'#endif
 '#End Region
 
-Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
-	MDIMain.MDIChildDestroy(@This)
-End Sub
-
-Private Sub MDIChildType.Form_Activate(ByRef Sender As Form)
-	If Encode < 0 Then Encode = FileEncodings.Utf8
-	If NewLine< 0 Then NewLine = NewLineTypes.WindowsCRLF
-	Changed = False
-	MDIMain.MDIChildActivate(@This)
-End Sub
-
-Private Sub MDIChildType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-	'Todo: MDIChildType Form_DropFile
-	Debug.Print "MDIChildType:" & Filename
-
-	'Dim As Integer a = -1, b = -1
-	'TextBox1.SelText = "Drop File Start: " & Filename & !"!\r\n"
-	'TextBox1.SelText = TextFromFile(Filename, a, b)
-	'TextBox1.SelText = !"\r\nDrop File End: " & Filename
-	
-	MDIMain.FileInsert(Filename, @This)
-End Sub
-
 Private Sub MDIChildType.SetFile(ByRef FileName As Const WString)
 	Text = FullName2File("" + FileName)
 	WStr2Ptr("" + FileName, mFile)
-End Sub
-
-Private Sub MDIChildType.TextBox1_Change(ByRef Sender As TextBox)
-	Changed = True
-End Sub
-
-Private Sub MDIChildType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	If mChanged Then
-		If MsgBox(!"Save Chanages?\r\n" & Text, "Comfirm", mtQuestion, btYesNo) = mrYes Then
-			MDIMain.mnuFile_Click(MDIMain.mnuFileSave)
-		End If
-	End If
 End Sub
 
 Private Property MDIChildType.Changed(val As Boolean)
@@ -166,7 +131,7 @@ Private Property MDIChildType.Changed(val As Boolean)
 	
 	Dim sHead As WString Ptr
 	If mChanged Then
-		sHead = @WStr("*")
+		sHead = @WStr("* ")
 	Else
 		sHead = @WStr("")
 	End If
@@ -181,6 +146,30 @@ End Property
 Private Property MDIChildType.Changed() As Boolean
 	Return mChanged
 End Property
+
+Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
+	MDIMain.MDIChildDestroy(@This)
+End Sub
+
+Private Sub MDIChildType.Form_Activate(ByRef Sender As Form)
+	If Encode < 0 Then Encode = FileEncodings.Utf8
+	If NewLine< 0 Then NewLine = NewLineTypes.WindowsCRLF
+	MDIMain.MDIChildActivate(@This)
+End Sub
+
+Private Sub MDIChildType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
+	MDIMain.FileInsert(Filename, @This)
+End Sub
+
+Private Sub MDIChildType.TextBox1_Change(ByRef Sender As TextBox)
+	Changed = True
+End Sub
+
+Private Sub MDIChildType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	If MDIMain.MDIChildClose(@This) = MessageResult.mrCancel Then 
+		Action = False
+	End If
+End Sub
 
 Private Sub MDIChildType.TextBox1_Click(ByRef Sender As Control)
 	MDIMain.MDIChildClick(@This)

@@ -67,6 +67,7 @@
 			.Text = "Wrap around"
 			.TabIndex = 2
 			.Caption = "Wrap around"
+			.Checked = true
 			.SetBounds 110, 70, 90, 20
 			.Designer = @This
 			.OnClick = @_chkFindReplace_Click

@@ -368,7 +368,7 @@
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterParent
 			.OnShow = @_Form_Show
-			.SetBounds 0, 0, 660, 440
+			.SetBounds 0, 0, 660, 460
 		End With
 		' cobEncod
 		With cobEncod
@@ -393,42 +393,17 @@
 			.TabIndex = 1
 			.ControlIndex = 0
 			.Caption = "System Code Page"
+			.Checked = true
 			.SetBounds 184, 10, 110, 20
 			.Designer = @This
 			.OnClick = @_chkSystemCP_Click
-			.Parent = @This
-		End With
-		' chkPreview
-		With chkPreview
-			.Name = "chkPreview"
-			.Text = "Preview"
-			.TabIndex = 2
-			.Caption = "Preview"
-			.ExtraMargins.Right = 10
-			.ExtraMargins.Left = 10
-			.ExtraMargins.Top = 10
-			.ExtraMargins.Bottom = 10
-			.ControlIndex = 0
-			.SetBounds 304, 10, 110, 20
-			.Designer = @This
-			.OnClick = @_chkPreview_Click
-			.Parent = @This
-		End With
-		' lblFile
-		With lblFile
-			.Name = "lblFile"
-			.Text = ""
-			.TabIndex = 3
-			.Caption = ""
-			.SetBounds 370, 13, 270, 20
-			.Designer = @This
 			.Parent = @This
 		End With
 		' lstCodePage
 		With lstCodePage
 			.Name = "lstCodePage"
 			.Text = "ListControl1"
-			.TabIndex = 4
+			.TabIndex = 2
 			.ExtraMargins.Top = 0
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
@@ -442,6 +417,33 @@
 				.AddItem(CodePageStr(i), Cast(Any Ptr, CodePageNum(i)))
 			Next
 		End With
+		' chkPreview
+		With chkPreview
+			.Name = "chkPreview"
+			.Text = "Preview"
+			.TabIndex = 3
+			.Caption = "Preview"
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Left = 10
+			.ExtraMargins.Top = 10
+			.ExtraMargins.Bottom = 10
+			.ControlIndex = 0
+			.Checked = True
+			.SetBounds 14, 200, 70, 20
+			.Designer = @This
+			.OnClick = @_chkPreview_Click
+			.Parent = @This
+		End With
+		' lblFile
+		With lblFile
+			.Name = "lblFile"
+			.Text = ""
+			.TabIndex = 4
+			.Caption = ""
+			.SetBounds 90, 203, 550, 20
+			.Designer = @This
+			.Parent = @This
+		End With
 		' txtPreview
 		With txtPreview
 			.Name = "txtPreview"
@@ -453,7 +455,7 @@
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 10, 207, 634, 160
+			.SetBounds 10, 227, 634, 160
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -470,10 +472,10 @@
 		' chkDontShow
 		With chkDontShow
 			.Name = "chkDontShow"
-			.Text = "Don't Show"
+			.Text = "Don't show again when open plain text"
 			.TabIndex = 7
-			.Caption = "Don't Show"
-			.SetBounds 10, -1, 130, 20
+			.Caption = "Don't show again when open plain text"
+			.SetBounds 10, -1, 210, 20
 			.Designer = @This
 			.Parent = @Panel2
 		End With
@@ -583,15 +585,14 @@ Private Sub frmCodePageType.SetMode(ModeNo As Integer)
 	Select Case ModeNo
 	Case 0
 		b = True
-		Height = 440
+		Height = 460
 	Case 1
 		b = False
-		Height = 270
+		Height = 260
 		lblFile.Text = ""
 	End Select
 	txtPreview.Text =""
 	chkPreview.Visible = b
-	chkDontShow.Visible = b
 	txtPreview.Visible = b
 End Sub
 

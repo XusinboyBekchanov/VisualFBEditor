@@ -36,12 +36,35 @@ StatusBar PNG ".\Resources\StatusBar.png"
 ToolBar PNG ".\Resources\ToolBar.png"
 Undo PNG ".\Resources\Undo.png"
 Vertical PNG ".\Resources\Vertical.png"
+CascadeD PNG ".\Resources\CascadeD.png"
+CloseAllD PNG ".\Resources\CloseAllD.png"
+CloseD PNG ".\Resources\CloseD.png"
+ColorD PNG ".\Resources\ColorD.png"
+CopyD PNG ".\Resources\CopyD.png"
+CutD PNG ".\Resources\CutD.png"
+DarkModeD PNG ".\Resources\DarkModeD.png"
+FindBackD PNG ".\Resources\FindBackD.png"
+FindD PNG ".\Resources\FindD.png"
+FindNextD PNG ".\Resources\FindNextD.png"
+FontsD PNG ".\Resources\FontsD.png"
+HorizontalD PNG ".\Resources\HorizontalD.png"
+IconsD PNG ".\Resources\IconsD.png"
+NewD PNG ".\Resources\NewD.png"
+OpenD PNG ".\Resources\OpenD.png"
+PasteD PNG ".\Resources\PasteD.png"
+RedoD PNG ".\Resources\RedoD.png"
+ReplaceD PNG ".\Resources\ReplaceD.png"
+SaveAllD PNG ".\Resources\SaveAllD.png"
+SaveD PNG ".\Resources\SaveD.png"
+UndoD PNG ".\Resources\UndoD.png"
+VerticalD PNG ".\Resources\VerticalD.png"
+
 
 #define APP_TITLE_STR               "MDINotepad\0"
 #define VER_FILEDESCRIPTION_STR     "MDINotepad\0"
 
-#define VER_FILEVERSION             0,0,0,892
-#define VER_FILEVERSION_STR         "0.0.0.892\0"
+#define VER_FILEVERSION             0,0,0,975
+#define VER_FILEVERSION_STR         "0.0.0.975\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
