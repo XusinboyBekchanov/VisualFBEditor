@@ -2412,6 +2412,7 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 		ChangeControl(Sender, Ctrl, PropertyName, BeforeCtrl, AfterCtrl, iLeft, iTop, iWidth, iHeight)
 		.Changed "Unsurni o`zgartirish"
 		tb->FormDesign True
+		tb->txtCode.PaintControl True
 		pfrmMain->UpdateUnLock
 	End With
 End Sub
