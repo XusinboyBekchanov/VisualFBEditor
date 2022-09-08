@@ -4,9 +4,9 @@
 '#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
-#ifndef __FB_WIN32__
-	#cmdline "-gen gas64"
-#endif
+'#ifndef __FB_WIN32__
+'	#cmdline "-gen gas64"
+'#endif
 '#define __USE_GTK__
 #ifndef __USE_MAKE__
 	'#define __USE_GTK3__

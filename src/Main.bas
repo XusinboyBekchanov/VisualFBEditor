@@ -4708,31 +4708,31 @@ Sub LoadLanguageTexts
 					StartKeyWords = True
 					StartProperty = False
 					StartCompiler = False
-					Starttemplates = False
+					StartTemplates = False
 					StartGeneral = False
 				ElseIf LCase(Trim(Buff)) = "[property]" Then
 					StartKeyWords = False
 					StartProperty = True
 					StartCompiler = False
-					Starttemplates = False
+					StartTemplates = False
 					StartGeneral = False
 				ElseIf LCase(Trim(Buff)) = "[compiler]" Then
 					StartKeyWords = False
 					StartProperty = False
 					StartCompiler = True
-					Starttemplates = False
+					StartTemplates = False
 					StartGeneral = False
 				ElseIf LCase(Trim(Buff)) = "[templates]" Then
 					StartKeyWords = False
 					StartProperty = False
 					StartCompiler = False
-					Starttemplates = True
+					StartTemplates = True
 					StartGeneral = False
 				ElseIf LCase(Trim(Buff)) = "[general]" Then
 					StartKeyWords = False
 					StartProperty = False
 					StartCompiler = False
-					Starttemplates = False
+					StartTemplates = False
 					StartGeneral = True
 				End If
 				Pos1 = InStr(Buff, "=")
@@ -4741,7 +4741,8 @@ Sub LoadLanguageTexts
 					'David Change For the Control Property's Language.
 					'note: "=" already convert To "~"
 					tKey = Trim(Mid(Buff, 1, Pos1 - 1), Any !"\t ")
-					If InStr(Buff, "~") < Pos1 Then Buff = Replace(Buff, "~", "=")
+					Var Pos3 = InStr(Buff, "~")
+					If Pos3 > 0 AndAlso Pos3 < Pos1 Then Buff = Replace(Buff, "~", "=")
 					If StartGeneral = True Then
 						If Trim(Mid(Buff, Pos1 + 1), Any !"\t ") <> "" Then mlKeys.Add Trim(Left(Buff, Pos1 - 1), Any !"\t "), Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
 					ElseIf StartProperty = True Then
