@@ -3438,7 +3438,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Comment = ""
 					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse InStr(bTrimLCase, " as ") Then
 						Dim As UString b2 = bTrim
-						Dim As UString CurType, ElementValue
+						Dim As UString CurType, ElementValue, TypeComment
 						Dim As UString res1(Any)
 						Dim As Boolean bOldAs
 						If b2.ToLower.StartsWith("dim ") Then
@@ -3449,7 +3449,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							b2 = Trim(Mid(b2, 7))
 						End If
 						Pos1 = InStr(b2, "'")
-						If Pos1 > 0 Then b2 = Trim(Left(b2, Pos1 - 1))
+						If Pos1 > 0 Then
+							TypeComment = Trim(Mid(b2, Pos1 + 1))
+							b2 = Trim(Left(b2, Pos1 - 1))
+						End If
 						Pos1 = InStr(b2, "=>")
 						If Pos1 > 0 Then b2 = Trim(Left(b2, Pos1 - 1))
 						If b2.ToLower.StartsWith("as ") Then
@@ -3523,6 +3526,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 									te->EnumTypeName = Trim(Mid(te->TypeName, Pos4 + 1))
 								End If
 								te->TypeName = Trim(Left(te->TypeName, Pos4 - 1))
+							ElseIf TypeComment <> "" Then
+								te->EnumTypeName = TypeComment
 							End If
 							te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 							te->TypeName = WithoutPointers(te->TypeName)
