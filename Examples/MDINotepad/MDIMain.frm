@@ -1,10 +1,5 @@
 #include once "Text.bi"
 #include once "vbcompat.bi"
-#include once "mff/ImageList.bi"
-#include once "mff/PrintDialog.bi"
-#include once "mff/PrintPreviewDialog.bi"
-#include once "mff/Printer.bi"
-#include once "mff/PageSetupDialog.bi"
 
 '#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
@@ -22,6 +17,10 @@
 	#include once "mff/List.bi"
 	#include once "mff/ToolBar.bi"
 	#include once "mff/Dialogs.bi"
+	#include once "mff/PrintDialog.bi"
+	#include once "mff/PrintPreviewDialog.bi"
+	#include once "mff/Printer.bi"
+	#include once "mff/PageSetupDialog.bi"
 	
 	Using My.Sys.Forms
 	#ifdef __USE_WINAPI__
@@ -81,6 +80,8 @@
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Static Sub _Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Constructor
 		
 		Dim As MainMenu MainMenu1
@@ -99,7 +100,7 @@
 		Dim As ToolButton tbFileNew, tbFileOpen, tbFileSave, tbFileSaveAll, ToolButton1, tbEditRedo, tbEditUndo, tbEditCut, tbEditCopy, tbEditPaste, ToolButton2, tbEditFind, tbEditFindNext, tbEditFindBack, tbEditReplace, ToolButton3, tbViewFont, tbViewBColor, tbViewDarkMode, ToolButton4, tbWindowHorizontal, tbWindowVertical, tbWindowCascade, tbWindowIcon, tbWindowClose, tbWindowCloseAll
 		Dim As ColorDialog ColorDialog1
 		Dim As FontDialog FontDialog1
-		Dim As StatusPanel spFileName, spLocation, spEncode, spEOL
+		Dim As StatusPanel spFileName, spSpace, spLocation, spEncode, spEOL
 		Dim As PrintDialog PrintDialog1
 		Dim As PrintPreviewDialog PrintPreviewDialog1
 		Dim As PageSetupDialog PageSetupDialog1
@@ -118,13 +119,19 @@
 			#else
 				This.Icon.LoadFromResourceID(1)
 			#endif
-			'.WindowState = WindowStates.wsMaximized
-			.Caption = "VFBE MDI Notepad"
+			#ifdef __FB_64BIT__
+				'...instructions for 64bit OSes...
+				.Caption = "VFBE MDI Notepad64"
+			#else
+				'...instructions for other OSes
+				.Caption = "VFBE MDI Notepad32"
+			#endif
 			.StartPosition = FormStartPosition.CenterScreen
 			.AllowDrop = True
 			.OnDropFile = @_Form_DropFile
 			.OnCreate = @_Form_Create
 			.OnClose = @_Form_Close
+			.OnResize = @_Form_Resize
 			.SetBounds 0, 0, 1024, 720
 		End With
 		' ImageList1
@@ -695,7 +702,7 @@
 		With mnuEncodingUtf8
 			.Name = "mnuEncodingUtf8"
 			.Designer = @This
-			.Caption = "Utf8"
+			.Caption = "UTF-8"
 			.OnClick = @_mnuEncoding_Click
 			.Parent = @mnuEncoding
 		End With
@@ -703,7 +710,7 @@
 		With mnuEncodingUtf8BOM
 			.Name = "mnuEncodingUtf8BOM"
 			.Designer = @This
-			.Caption = "Utf8 (BOM)"
+			.Caption = "UTF-8 (BOM)"
 			.OnClick = @_mnuEncoding_Click
 			.Parent = @mnuEncoding
 		End With
@@ -711,7 +718,7 @@
 		With mnuEncodingUtf16BOM
 			.Name = "mnuEncodingUtf16BOM"
 			.Designer = @This
-			.Caption = "Utf16 (BOM)"
+			.Caption = "UTF-16 (BOM)"
 			.OnClick = @_mnuEncoding_Click
 			.Parent = @mnuEncoding
 		End With
@@ -719,7 +726,7 @@
 		With mnuEncodingUtf32BOM
 			.Name = "mnuEncodingUtf32BOM"
 			.Designer = @This
-			.Caption = "Utf32 (BOM)"
+			.Caption = "UTF-23 (BOM)"
 			.OnClick = @_mnuEncoding_Click
 			.Parent = @mnuEncoding
 		End With
@@ -1150,11 +1157,18 @@
 			.Caption = ""
 			.Parent = @StatusBar1
 		End With
+		' spSpace
+		With spSpace
+			.Name = "spSpace"
+			.Designer = @This
+			.Width = 200
+			.Parent = @StatusBar1
+		End With
 		' spLocation
 		With spLocation
 			.Name = "spLocation"
 			.Designer = @This
-			.Width = 300
+			.Width = 200
 			.Caption = ""
 			.Parent = @StatusBar1
 		End With
@@ -1162,17 +1176,21 @@
 		With spEOL
 			.Name = "spEOL"
 			.Designer = @This
-			.Width = 100
+			.Width = 120
 			.Parent = @StatusBar1
 		End With
 		' spEncode
 		With spEncode
 			.Name = "spEncode"
 			.Designer = @This
-			.Width = 100
+			.Width = 130
 			.Parent = @StatusBar1
 		End With
 	End Constructor
+	
+	Private Sub MDIMainType._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		*Cast(MDIMainType Ptr, Sender.Designer).Form_Resize(Sender, NewWidth, NewHeight)
+	End Sub
 	
 	Private Sub MDIMainType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		*Cast(MDIMainType Ptr, Sender.Designer).Form_Close(Sender, Action)
@@ -1307,6 +1325,7 @@ Private Sub MDIMainType.mnuFile_Click(ByRef Sender As MenuItem)
 			FileSave(lstMdiChild.Item(i))
 		Next
 	Case "mnuFileOpen"
+		'OpenFileDialog1.MultiSelect = True 
 		OpenFileDialog1.Filter = "All Files (*.*)|*.*"
 		If OpenFileDialog1.Execute() Then
 			FileOpen(OpenFileDialog1.FileName)
@@ -1458,10 +1477,10 @@ Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
 		frmFindReplace.Show(MDIMain)
 		MDIChildClick(a)
 	Case "mnuEditFindNext"
-		If frmFindReplace.Handle= Null AndAlso frmFindReplace.txtFind.Text = "" Then mnuEdit_Click(mnuEditFind)
+		If frmFindReplace.Handle= NULL AndAlso frmFindReplace.txtFind.Text = "" Then mnuEdit_Click(mnuEditFind)
 		Find(frmFindReplace.txtFind.Text, frmFindReplace.chkCase.Checked, frmFindReplace.chkWarp.Checked, False)
 	Case "mnuEditFindBack"
-		If frmFindReplace.Handle= Null AndAlso frmFindReplace.txtFind.Text = "" Then mnuEdit_Click(mnuEditFind)
+		If frmFindReplace.Handle= NULL AndAlso frmFindReplace.txtFind.Text = "" Then mnuEdit_Click(mnuEditFind)
 		Find(frmFindReplace.txtFind.Text, frmFindReplace.chkCase.Checked, frmFindReplace.chkWarp.Checked, True)
 	Case "mnuEditReplace"
 		If a->TextBox1.SelText <> "" Then frmFindReplace.txtFind.Text = a->TextBox1.SelText
@@ -1744,6 +1763,10 @@ Private Sub MDIMainType.Form_Close(ByRef Sender As Form, ByRef Action As Integer
 	If CloseResult = ModalResults.Cancel Then Action = False
 End Sub
 
+Private Sub MDIMainType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	spFileName.Width = NewWidth - (spEOL.width + spEncode.width + spLocation.width + spSpace.width)
+End Sub
+
 Private Function MDIMainType.MDIChildFind(ByRef newName As Const WString) As Integer
 	Dim i As Integer
 	Dim a As MDIChildType Ptr
@@ -1822,9 +1845,9 @@ Private Function MDIMainType.MDIChildNew() As Any Ptr
 End Function
 
 Private Sub MDIMainType.MDIChildDestroy(Child As Any Ptr)
-	Delete Child
+	Delete Cast(MDIChildType Ptr, Child)
 	lstMdiChild.Remove(lstMdiChild.IndexOf(Child))
-
+	
 	If lstMdiChild.Count > 0 Then Exit Sub
 	actMdiChildIdx = -1
 	MDIChildMenuUpdate()
@@ -1842,9 +1865,9 @@ End Sub
 
 Private Function MDIMainType.MDIChildClose(Child As Any Ptr) As MessageResult
 	Dim a As MDIChildType Ptr = Child
-	Dim msr As MessageResult = mrYes 
+	Dim msr As MessageResult = mrYes
 	If a->Changed Then
-		msr = MsgBox(!"Do you want to save the changes to?\r\n" & a->Text, "Confirm Close", mtQuestion, btYesNoCancel) 
+		msr = MsgBox(!"Do you want to save the changes to?\r\n" & a->Text, "Confirm Close", mtQuestion, btYesNoCancel)
 		Select Case msr
 		Case mrYes
 			msr = FileSave(Child)
@@ -1862,24 +1885,24 @@ Private Sub MDIMainType.MDIChildClick(Child As Any Ptr)
 	
 	Select Case a->Encode
 	Case FileEncodings.Utf8
-		spEncode.Caption = "Utf8"
+		spEncode.Caption = "UTF-8"
 	Case FileEncodings.Utf8BOM
-		spEncode.Caption = "Utf8 (BOM)"
+		spEncode.Caption = "UTF-8 (BOM)"
 	Case FileEncodings.Utf16BOM
-		spEncode.Caption = "Utf16 (BOM)"
+		spEncode.Caption = "UTF-16 (BOM)"
 	Case FileEncodings.Utf32BOM
-		spEncode.Caption = "Utf32 (BOM)"
+		spEncode.Caption = "UTF-32 (BOM)"
 	Case Else
-		spEncode.Caption = "Plain Text CP:" & IIf(a->CodePage< 0, GetACP(), a->CodePage)
+		spEncode.Caption = "Plain Text CP: " & IIf(a->CodePage< 0, GetACP(), a->CodePage)
 	End Select
 	
 	Select Case a->NewLine
 	Case NewLineTypes.LinuxLF
-		spEOL.Caption = "Linux LF"
+		spEOL.Caption = "Unix (LF)"
 	Case NewLineTypes.MacOSCR
-		spEOL.Caption = "MacOS CR"
+		spEOL.Caption = "Macintosh (CR)"
 	Case Else
-		spEOL.Caption = "Windows CRLF"
+		spEOL.Caption = "Windows (CR LF)"
 	End Select
 	
 	spFileName.Caption = a->Text
@@ -1887,15 +1910,20 @@ Private Sub MDIMainType.MDIChildClick(Child As Any Ptr)
 	a->TextBox1.GetSel(sy, sx, ey, ex)
 	a->TextBox1.GetSel(s, e)
 	
+	spSpace.Caption = "Length: " & Format(Len(a->TextBox1.Text), "#,#0") & "  Lines: " & Format(a->TextBox1.LinesCount, "#,#0")
+	
+	
 	If s = e Then
-		spLocation.Caption = "Locate at (" & sy & ":" & sx & ") " & s
+		spLocation.Caption = "Ln: " & Format(sy + 1, "#,#0") & "  Col: " & Format(sx + 1, "#,#0") & "  Pos: " & Format(s + 1, "#,#0")
 	Else
-		spLocation.Caption = "Selected at (" & sy & ":" & sx & ") - (" & ey & ":" & ex & ") " & s & ":" & e & "(" & e - s & ")"
+		spLocation.Caption = "Ln: " & Format(sy + 1, "#,#0") & "  Col: " & Format(sx + 1, "#,#0") & "  Sel: " & Format(e - s, "#,#0") & "|" & Format(ey - sy + 1, "#,#0")
+		'spLocation.Caption = "Selected at (" & sy & ":" & sx & ") - (" & ey & ":" & ex & ") " & s & ":" & e & "(" & e - s & ")"
 		If frmFindReplace.Handle Then
 			frmFindReplace.txtFind.Text = a->TextBox1.SelText
 		Else
 		End If
 	End If
+	
 	
 	If frmGoto.Handle Then
 		frmGoto.lblMsg.Text = "Line number (1 -" & a->TextBox1.LinesCount & ")"
@@ -1916,7 +1944,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 		
 		mnuViewWordWarps.Checked = a->TextBox1.WordWraps
 		
-		mnuEncodingPlainText.Caption = !"Plain Text\tCP:" & IIf(a->CodePage< 0, GetACP(), a->CodePage)
+		mnuEncodingPlainText.Caption = !"Plain Text\tCP: " & IIf(a->CodePage< 0, GetACP(), a->CodePage)
 		mnuEncodingPlainText.Checked = IIf(a->Encode = FileEncodings.PlainText, True, False)
 		mnuEncodingUtf8.Checked = IIf(a->Encode = FileEncodings.Utf8, True, False)
 		mnuEncodingUtf8BOM.Checked = IIf(a->Encode = FileEncodings.Utf8BOM, True, False)

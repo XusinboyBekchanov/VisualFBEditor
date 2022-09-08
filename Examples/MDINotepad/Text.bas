@@ -196,7 +196,7 @@ Private Function TextUnicode2Ansi(UnicodeStr As WString, ByVal nCodePage As UINT
 	Dim CodePage As UINT = IIf(nCodePage= -1, GetACP(), nCodePage)
 
 	Static ansiStr As String
-	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL)
+	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
 	ansiStr = String(nLength, 0)
 	Dim DataSize As LongInt = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), nLength, StrPtr(ansiStr), nLength, NULL, NULL)
 	Return ansiStr
@@ -205,7 +205,7 @@ End Function
 Private Sub TextAnsi2Unicode(ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As UINT = -1)
 	Dim CodePage As UINT = IIf(nCodePage= -1, GetACP(), nCodePage)
 	
-	Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0)
+	Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0) - 1
 	MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
 End Sub
 
