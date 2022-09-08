@@ -729,7 +729,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
 						OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
 						OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") _
-						OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:") OrElse StartsWith(Buff, "Restarting fbc")) Then
+						OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:") OrElse StartsWith(Buff, "Restarting fbc") OrElse StartsWith(Buff, "archiving:") OrElse StartsWith(Buff, "creating:")) Then
 						bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 						If bFlagErr = 2 Then
 							NumberErr += 1
@@ -820,7 +820,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 							OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 							OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
-							OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse InStr(*res(i), "ld.exe") > 0) Then
+							OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse StartsWith(*res(i), "creating:") OrElse StartsWith(*res(i), "archiving:") OrElse InStr(*res(i), "ld.exe") > 0) Then
 							bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 							If bFlagErr = 2 Then
 								NumberErr += 1
@@ -842,7 +842,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					Erase res
 					sOutput = Mid(sBuffer, Pos1 + 1)
 				Else
-					If FirstErrFlag < 1 AndAlso (InStr(LCase(sOutput), "compiling") Orelse result_  = False) Then
+					If FirstErrFlag < 1 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
 						sOutput +=  Chr(10) + sBuffer
 						FirstErrFlag +=1
 					Else
@@ -856,9 +856,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CloseHandle hReadPipe
 		#endif
 		#ifdef __USE_GTK__
-			Yaratilmadi = g_find_program_in_path(ToUtf8(*exename)) = NULL
+			Yaratilmadi = g_find_program_in_path(ToUtf8(*ExeName)) = NULL
 		#else
-			Yaratilmadi = Dir(*exename) = ""
+			Yaratilmadi = Dir(*ExeName) = ""
 		#endif
 		'Delete the default ManifestFile And IcoFile
 		'If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
@@ -945,16 +945,16 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	WDeAllocate PipeCommand
 	WDeAllocate ExeName
 	WDeAllocate LogText
-	WDeallocate fbcCommand
-	WDeallocate CompileWith
-	WDeallocate MFFPathC
-	WDeallocate FirstLine
-	WDeallocate ErrTitle
-	WDeallocate ErrFileName
-	WDeallocate LogFileName
-	WDeallocate LogFileName2
-	WDeallocate BatFileName
-	WDeallocate MainFile
+	WDeAllocate fbcCommand
+	WDeAllocate CompileWith
+	WDeAllocate MFFPathC
+	WDeAllocate FirstLine
+	WDeAllocate ErrTitle
+	WDeAllocate ErrFileName
+	WDeAllocate LogFileName
+	WDeAllocate LogFileName2
+	WDeAllocate BatFileName
+	WDeAllocate MainFile
 	Return CompileResult
 	Exit Function
 	ErrorHandler:
