@@ -7386,6 +7386,10 @@ tbBottom.Flat = True
 tbBottom.Wrapable = True
 tbBottom.Width = tbBottom.Height
 tbBottom.Parent = @pnlBottomPin
+#ifdef __USE_GTK__
+	gtk_orientable_set_orientation(GTK_ORIENTABLE(tbBottom.Handle), GTK_ORIENTATION_VERTICAL)
+	gtk_toolbar_set_style(GTK_TOOLBAR(tbBottom.Handle), GTK_TOOLBAR_ICONS)
+#endif
 
 'ptabBottom->Images.AddIcon bmp
 ptabBottom->Name = "tabBottom"
@@ -7842,6 +7846,10 @@ Sub frmMain_Show(ByRef Sender As Control)
 		If Not GetRightClosedStyle Then pnlRightPin.Top = tabItemHeight
 		pnlBottomPin.Width = tabItemHeight
 		pnlPropertyValue.Visible = False
+		tbBottom.Buttons.Item("EraseImmediateWindow")->Visible = False
+		tbBottom.Buttons.Item("AddWatch")->Visible = False
+		tbBottom.Buttons.Item("RemoveWatch")->Visible = False
+		tbBottom.Buttons.Item("Update")->Visible = False
 	#else
 		pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
 	#endif
