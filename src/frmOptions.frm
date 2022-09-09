@@ -2064,11 +2064,31 @@ pfOptions = @fOptions
 			.Text = "Panel1"
 			.TabIndex = 221
 			.Align = DockStyle.alTop
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 335, 416, 20
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
+		lvShortcuts.Columns.Add ML("Action"), , 250
+		lvShortcuts.Columns.Add ML("Shortcut"), , 100
+		lvOtherEditors.Columns.Add ML("Version"), , 126
+		lvOtherEditors.Columns.Add ML("Extensions"), , 126
+		lvOtherEditors.Columns.Add ML("Path"), , 126
+		lvOtherEditors.Columns.Add ML("Commad line"), , 80
+		lvCompilerPaths.Columns.Add ML("Version"), , 190
+		lvCompilerPaths.Columns.Add ML("Path"), , 190
+		lvCompilerPaths.Columns.Add ML("Command line"), , 80
+		lvMakeToolPaths.Columns.Add ML("Version"), , 190
+		lvMakeToolPaths.Columns.Add ML("Path"), , 190
+		lvMakeToolPaths.Columns.Add ML("Command line"), , 80
+		lvDebuggerPaths.Columns.Add ML("Version"), , 190
+		lvDebuggerPaths.Columns.Add ML("Path"), , 190
+		lvDebuggerPaths.Columns.Add ML("Command line"), , 80
+		lvTerminalPaths.Columns.Add ML("Version"), , 190
+		lvTerminalPaths.Columns.Add ML("Path"), , 190
+		lvTerminalPaths.Columns.Add ML("Command line"), , 80
+		lvHelpPaths.Columns.Add ML("Version"), , 190
+		lvHelpPaths.Columns.Add ML("Path"), , 190
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
@@ -2508,31 +2528,14 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		tnDebugger->Nodes.Add(ML("Terminal"), "Terminal")
 		.tvOptions.Nodes.Add(ML("Help"), "Help")
 		.tvOptions.ExpandAll
-		.lvShortcuts.Columns.Add ML("Action"), , 250
-		.lvShortcuts.Columns.Add ML("Shortcut"), , 100
-		.lvOtherEditors.Columns.Add ML("Version"), , 126
-		.lvOtherEditors.Columns.Add ML("Extensions"), , 126
-		.lvOtherEditors.Columns.Add ML("Path"), , 126
-		.lvOtherEditors.Columns.Add ML("Commad line"), , 80
-		.lvCompilerPaths.Columns.Add ML("Version"), , 190
-		.lvCompilerPaths.Columns.Add ML("Path"), , 190
-		.lvCompilerPaths.Columns.Add ML("Command line"), , 80
-		.lvMakeToolPaths.Columns.Add ML("Version"), , 190
-		.lvMakeToolPaths.Columns.Add ML("Path"), , 190
-		.lvMakeToolPaths.Columns.Add ML("Command line"), , 80
-		.lvDebuggerPaths.Columns.Add ML("Version"), , 190
-		.lvDebuggerPaths.Columns.Add ML("Path"), , 190
-		.lvDebuggerPaths.Columns.Add ML("Command line"), , 80
-		.lvTerminalPaths.Columns.Add ML("Version"), , 190
-		.lvTerminalPaths.Columns.Add ML("Path"), , 190
-		.lvTerminalPaths.Columns.Add ML("Command line"), , 80
-		.lvHelpPaths.Columns.Add ML("Version"), , 190
-		.lvHelpPaths.Columns.Add ML("Path"), , 190
+		.cboCase.Clear
 		.cboCase.AddItem ML("Original Case")
 		.cboCase.AddItem ML("Lower Case")
 		.cboCase.AddItem ML("Upper Case")
+		.cboTabStyle.Clear
 		.cboTabStyle.AddItem ML("Everywhere")
 		.cboTabStyle.AddItem ML("Only after the words")
+		.lstColorKeys.Clear
 		.lstColorKeys.AddItem ML("Bookmarks")
 		.lstColorKeys.AddItem ML("Breakpoints")
 		.lstColorKeys.AddItem ML("Comments")
@@ -2573,6 +2576,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 		.lstColorKeys.AddItem ML("Strings")
 		ReDim .Colors(.lstColorKeys.Items.Count - 1, 7)
 		.lstColorKeys.ItemIndex = 0
+		.cboOpenedFile.Clear
 		.cboOpenedFile.AddItem ML("All file types")
 		.cboOpenedFile.AddItem ML("Session file")
 		.cboOpenedFile.AddItem ML("Folder")

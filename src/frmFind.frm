@@ -831,8 +831,10 @@ End Sub
 
 Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	Dim tmpStr As WString Ptr
+	txtFind.Clear
+	txtReplace.Clear
 	For i As Integer =0 To 9
-		WLet(tmpStr, piniSettings->ReadString("Find", "Find_"+WStr(i), ""))
+		WLet(tmpStr, piniSettings->ReadString("Find", "Find_" + WStr(i), ""))
 		If CInt(Trim(*tmpStr)<>"") Then txtFind.AddItem *tmpStr
 	Next
 	For i As Integer =0 To 9

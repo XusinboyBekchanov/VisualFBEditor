@@ -33,6 +33,8 @@ pAvailableAddIns = @AvailableAddIns
 		lvAddIns.OnSelectedItemChanged = @lvAddIns_SelectedItemChanged
 		lvAddIns.OnItemClick = @lvAddIns_ItemClick
 		lvAddIns.Parent = @This
+		lvAddIns.Columns.Add ML("Available Add-Ins"), , 250
+		lvAddIns.Columns.Add ML("Load Behavior"), , 100
 		' cmdOK
 		cmdOK.Name = "cmdOK"
 		cmdOK.Text = ML("OK")
@@ -95,8 +97,8 @@ pAvailableAddIns = @AvailableAddIns
 '#End Region
 
 Destructor AddInType
-	WDeallocate Description
-	WDeallocate Path
+	WDeAllocate Description
+	WDeAllocate Path
 End Destructor
 
 Destructor frmAddIns
@@ -150,8 +152,6 @@ End Sub
 Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 	With fAddIns
 		With .lvAddIns
-			.Columns.Add ML("Available Add-Ins"), , 250
-			.Columns.Add ML("Load Behavior"), , 100
 			Dim As AddInType Ptr Add_In
 			Dim As ListViewItem Ptr Item
 			Dim As String f, AddIn
@@ -159,6 +159,7 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 				Delete_( Cast(AddInType Ptr, AvailableAddIns.Item(i)))
 			Next
 			AvailableAddIns.Clear
+			.ListItems.Clear
 			#ifdef __FB_WIN32__
 				f = Dir(ExePath & "/AddIns/*.dll")
 			#else
