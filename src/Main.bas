@@ -6900,6 +6900,7 @@ pnlRightPin.Parent = @pnlRight
 
 Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	Static tbOld As TabWindow Ptr
+	If newIndex = -1 Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(newIndex))
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub

@@ -3117,6 +3117,7 @@ Declare Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 Sub OnGotFocusEdit(ByRef Sender As Control)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
+	If tb->Index = -1 Then Exit Sub
 	If ptabCode <> tb->Parent Then
 		ptabCode = tb->Parent
 		tabCode_SelChange *ptabCode, tb->Index
@@ -4688,7 +4689,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -6999,9 +7000,9 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 			End If
 		ElseIf ee = 0 OrElse ee->FileName = 0 OrElse *ee->FileName = "" Then
 			For j As Integer = 0 To TabPanels.Count - 1
-				Var ptabCode = @Cast(tabPanel Ptr, tabPanels.Item(j))->tabCode
-				For i As Integer = 0 To pTabCode->TabCount - 1
-					tb = Cast(TabWindow Ptr, pTabCode->Tabs[i])
+				Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+				For i As Integer = 0 To ptabCode->TabCount - 1
+					tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 					If tb AndAlso tb->tn = Node Then
 						If bSaveTab Then
 							If tb->Modified Then tb->Save
