@@ -53,6 +53,11 @@ Type Construction
 	Name01 As String * 50
 	Name02 As String * 50
 	Name03 As String * 50
+	Name04 As String * 50
+	Name05 As String * 50
+	Name06 As String * 50
+	Name07 As String * 50
+	Name08 As String * 50
 	Name1 As String * 50
 	Name2 As String * 50
 	Name3 As String * 50
