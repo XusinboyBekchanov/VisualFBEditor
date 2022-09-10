@@ -13,15 +13,16 @@
 	Type MDIChildType Extends Form
 		Dim Index As Integer = -1
 		Dim CodePage As Integer = GetACP()
-		Dim Encode As FileEncodings = -1 
-		Dim NewLine As NewLineTypes = -1 
+		Dim Encode As FileEncodings = -1
+		Dim NewLine As NewLineTypes = -1
 		Dim mFile As WString Ptr = NULL
 		Dim mChanged As Boolean = False
 		
 		Declare Property Changed(Val As Boolean)
 		Declare Property Changed As Boolean
-		
-		Declare Sub SetFile(ByRef FileName As Const WString)
+		Declare Property File(ByRef FileName As Const WString)
+		Declare Property File ByRef As WString
+		Declare Property Title(ByRef TitleName As Const WString)
 		
 		Declare Static Sub _Form_Destroy(ByRef Sender As Control)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
@@ -69,7 +70,7 @@
 			.Align = DockStyle.alClient
 			.HideSelection = False
 			.MaxLength = -1
-			.WantTab = true
+			.WantTab = True
 			.SetBounds 0, 0, 624, 441
 			.Designer = @This
 			.OnChange = @_TextBox1_Change
@@ -116,18 +117,12 @@
 	'
 	'#if __MAIN_FILE__ = __FILE__
 	'	MDIChild.Show
-	'	
+	'
 	'	App.Run
 	'#endif
 '#End Region
 
-Private Sub MDIChildType.SetFile(ByRef FileName As Const WString)
-	Text = FullName2File("" + FileName)
-	WStr2Ptr("" + FileName, mFile)
-End Sub
-
 Private Property MDIChildType.Changed(val As Boolean)
-	'If mChanged = val Then Exit Property
 	mChanged = val
 	
 	Dim sHead As WString Ptr
@@ -137,15 +132,32 @@ Private Property MDIChildType.Changed(val As Boolean)
 		sHead = @WStr("")
 	End If
 	If *mFile = "" Then
-		Text = *sHead & WStr("Untitled - ") & Index
+		Title = *sHead & WStr("Untitled - ") & Index
 	Else
-		Text = *sHead & FullName2File(*mFile)
+		Title = *sHead & FullName2File(*mFile)
 	End If
-	MDIMain.spFileName.Caption = Text
 End Property
 
-Private Property MDIChildType.Changed() As Boolean
+Private Property MDIChildType.Changed As Boolean
 	Return mChanged
+End Property
+
+Private Property MDIChildType.Title(ByRef TitleName As Const WString)
+	If Text = TitleName Then Exit Property
+	Text = "" + TitleName
+	MDIMain.MDIChildActivate(@This)
+End Property
+
+Private Property MDIChildType.File(ByRef FileName As Const WString)
+	WStr2Ptr(FileName, mFile)
+	Changed = mChanged
+	Dim FileInfo As SHFILEINFO
+	Dim h As Any Ptr = Cast(Any Ptr, SHGetFileInfo(*mFile, 0, @FileInfo, SizeOf(FileInfo), SHGFI_SYSICONINDEX))
+	SendMessage(Handle, WM_SETICON, 0, Cast(LPARAM, ImageList_GetIcon(h, FileInfo.iIcon, 0)))
+End Property
+
+Private Property MDIChildType.File ByRef As WString
+	Return *mFile
 End Property
 
 Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
@@ -154,7 +166,7 @@ End Sub
 
 Private Sub MDIChildType.Form_Activate(ByRef Sender As Form)
 	If Encode < 0 Then Encode = FileEncodings.Utf8
-	If NewLine< 0 Then NewLine = NewLineTypes.WindowsCRLF
+	If NewLine < 0 Then NewLine = NewLineTypes.WindowsCRLF
 	MDIMain.MDIChildActivate(@This)
 End Sub
 
@@ -167,8 +179,10 @@ Private Sub MDIChildType.TextBox1_Change(ByRef Sender As TextBox)
 End Sub
 
 Private Sub MDIChildType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	If MDIMain.MDIChildClose(@This) = MessageResult.mrCancel Then 
+	If MDIMain.MDIChildClose(@This) = MessageResult.mrCancel Then
 		Action = False
+	Else
+		If mFile Then Deallocate mFile
 	End If
 End Sub
 
