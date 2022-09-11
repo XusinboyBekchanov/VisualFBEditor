@@ -620,10 +620,11 @@ Sub mClick(Sender As My.Sys.Object)
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", "CollapseAllProcedures", "UnCollapseAllProcedures", _
 		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
-		If pfrmMain->ActiveControl = 0 Then Exit Sub
-		If pfrmMain->ActiveControl->ClassName <> "EditControl" AndAlso pfrmMain->ActiveControl->ClassName <> "TextBox" AndAlso pfrmMain->ActiveControl->ClassName <> "Panel" Then Exit Sub
+		Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
+		If ActiveForm = 0 OrElse ActiveForm->ActiveControl = 0 Then Exit Sub
+		If ActiveForm->ActiveControl->ClassName <> "EditControl" AndAlso ActiveForm->ActiveControl->ClassName <> "TextBox" AndAlso ActiveForm->ActiveControl->ClassName <> "Panel" AndAlso ActiveForm->ActiveControl->ClassName <> "ComboBoxEdit" AndAlso ActiveForm->ActiveControl->ClassName <> "ComboBoxEx" Then Exit Sub
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If pfrmMain->ActiveControl->ClassName = "TextBox" Then
+		If ActiveForm->ActiveControl->ClassName = "TextBox" Then
 			Dim txt As TextBox Ptr = Cast(TextBox Ptr, pfrmMain->ActiveControl)
 			Select Case Sender.ToString
 			Case "Undo":                    txt->Undo
@@ -631,6 +632,15 @@ Sub mClick(Sender As My.Sys.Object)
 			Case "Copy":                    txt->CopyToClipboard
 			Case "Paste":                   txt->PasteFromClipboard
 			Case "SelectAll":               txt->SelectAll
+			End Select
+		ElseIf ActiveForm->ActiveControl->ClassName = "ComboBoxEdit" OrElse ActiveForm->ActiveControl->ClassName = "ComboBoxEx" Then
+			Dim cbo As ComboBoxEdit Ptr = Cast(ComboBoxEdit Ptr, ActiveForm->ActiveControl)
+			Select Case Sender.ToString
+			Case "Undo":                    cbo->Undo
+			Case "Cut":                     cbo->CutToClipboard
+			Case "Copy":                    cbo->CopyToClipboard
+			Case "Paste":                   cbo->PasteFromClipboard
+			Case "SelectAll":               cbo->SelectAll
 			End Select
 		ElseIf tb <> 0 Then
 			If tb->cboClass.ItemIndex > 0 Then
@@ -644,7 +654,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "Duplicate":               des->DuplicateControl
 				Case "SelectAll":               des->SelectAllControls
 				End Select
-			ElseIf pfrmMain->ActiveControl->ClassName = "EditControl" OrElse pfrmMain->ActiveControl->ClassName = "Panel" Then
+			ElseIf ActiveForm->ActiveControl->ClassName = "EditControl" OrElse ActiveForm->ActiveControl->ClassName = "Panel" Then
 				Dim ec As EditControl Ptr = @tb->txtCode
 				Select Case Sender.ToString
 				Case "Redo":                    ec->Redo
