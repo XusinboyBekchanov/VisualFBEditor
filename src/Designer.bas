@@ -686,7 +686,7 @@ Namespace My.Sys.Forms
 				If SelectedControls.Contains(SelCtrl) Then
 					If SelectedControls.Count > 1 Then SelectedControls.Remove SelectedControls.IndexOf(SelCtrl)
 					SelectedControl = SelectedControls.Items[0]
-				ElseIf SelectedControls.Count = 0 OrElse (Symbols(SelectedControls.Items[0]) AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc AndAlso Symbols(SelCtrl) AndAlso Symbols(SelCtrl)->ReadPropertyFunc AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = symbols(Selctrl)->ReadPropertyFunc(SelCtrl, "Parent")) Then
+				ElseIf SelectedControls.Count = 0 OrElse (Symbols(SelectedControls.Items[0]) AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc AndAlso Symbols(SelCtrl) AndAlso Symbols(SelCtrl)->ReadPropertyFunc AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = Symbols(SelCtrl)->ReadPropertyFunc(SelCtrl, "Parent")) Then
 					SelectedControls.Add SelCtrl
 					SelectedControl = SelCtrl
 				End If
@@ -820,8 +820,8 @@ Namespace My.Sys.Forms
 		#endif
 		FStepX = GridSize
 		FStepY = GridSize
-		FNewX = IIf(SnapToGridOption,(X\FStepX)*FStepX,X)
-		FNewY = IIf(SnapToGridOption,(Y\FStepY)*FStepY,Y)
+		FNewX = IIf(SnapToGridOption, (X \ FStepX) * FStepX, X)
+		FNewY = IIf(SnapToGridOption, (Y \ FStepY) * FStepY, Y)
 		'dim hdc As HDC = GetDC(FHandle)
 		If FDown Then
 			If FCanInsert Then
@@ -2115,7 +2115,10 @@ Namespace My.Sys.Forms
 				#else
 					Select Case uMsg
 					Case WM_NCHITTEST
-						'Return HTTRANSPARENT
+						Dim As SymbolsType Ptr st = .Symbols(.SelectedControl)
+						If st AndAlso st->IsControlFunc AndAlso CInt(Not st->IsControlFunc(.SelectedControl)) Then
+							Return HTTRANSPARENT
+						End If
 					Case WM_GETDLGCODE: 'Return DLGC_WANTCHARS Or DLGC_WANTALLKEYS Or DLGC_WANTARROWS Or DLGC_WANTTAB
 				#endif
 					#ifdef __USE_GTK__
