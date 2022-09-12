@@ -4630,6 +4630,13 @@ Sub LoadSettings
 	ColorGlobalEnums.Italic = iniTheme.ReadInteger("FontStyles", "GlobalEnumsItalic", 0)
 	ColorGlobalEnums.Underline = iniTheme.ReadInteger("FontStyles", "GlobalEnumsUnderline", 0)
 	
+	ColorLineLabels.ForegroundOption = iniTheme.ReadInteger("Colors", "LineLabelsForeground", Identifiers.ForegroundOption)
+	ColorLineLabels.BackgroundOption = iniTheme.ReadInteger("Colors", "LineLabelsBackground", Identifiers.BackgroundOption)
+	ColorLineLabels.FrameOption = iniTheme.ReadInteger("Colors", "LineLabelsFrame", Identifiers.FrameOption)
+	ColorLineLabels.Bold = iniTheme.ReadInteger("FontStyles", "LineLabelsBold", 0)
+	ColorLineLabels.Italic = iniTheme.ReadInteger("FontStyles", "LineLabelsItalic", 0)
+	ColorLineLabels.Underline = iniTheme.ReadInteger("FontStyles", "LineLabelsUnderline", 0)
+	
 	ColorLocalVariables.ForegroundOption = iniTheme.ReadInteger("Colors", "LocalVariablesForeground", Identifiers.ForegroundOption)
 	ColorLocalVariables.BackgroundOption = iniTheme.ReadInteger("Colors", "LocalVariablesBackground", Identifiers.BackgroundOption)
 	ColorLocalVariables.FrameOption = iniTheme.ReadInteger("Colors", "LocalVariablesFrame", Identifiers.FrameOption)
@@ -7578,6 +7585,7 @@ Sub SetAutoColors
 	GetColors ColorGlobalFunctions, Identifiers.Foreground
 	GetColors ColorEnumMembers, Identifiers.Foreground
 	GetColors ColorGlobalEnums, Identifiers.Foreground
+	GetColors ColorLineLabels, Identifiers.Foreground
 	GetColors ColorLocalVariables, Identifiers.Foreground
 	GetColors ColorMacros, Identifiers.Foreground
 	GetColors ColorGlobalNamespaces, Identifiers.Foreground

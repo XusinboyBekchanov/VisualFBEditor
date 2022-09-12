@@ -3260,6 +3260,24 @@ Namespace My.Sys.Forms
 																		pkeywords = pGlobalNamespaces
 																	End If
 																End If
+																
+																If tIndex = -1 Then
+																	tIndex = LineLabels.IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorLineLabels
+																		OriginalCaseWord = LineLabels.Item(tIndex)
+																		pkeywords = @LineLabels
+																	End If
+																	If tIndex = -1 AndAlso Trim(*s, Any !"\t ") = Matn & ":" Then
+																		LineLabels.Add Matn
+																		tIndex = LineLabels.IndexOf(LCase(Matn))
+																		?Matn
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorLineLabels
+																		?ColorLineLabels.Foreground
+																		OriginalCaseWord = Matn
+																		pkeywords = @LineLabels
+																	End If
+																End If
 															End If
 														End If
 													End If
