@@ -4035,7 +4035,7 @@ Namespace My.Sys.Forms
 		DropDownToolTipShowed = True
 		If *FHintDropDown = "" Then WLet FHintDropDown, " "
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(*FHintDropDown))
+			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(Replace(*FHintDropDown, "<=", "\u003c=")))
 			gtk_window_move(GTK_WINDOW(winDropDownTooltip), X, Y)
 			gtk_window_resize(GTK_WINDOW(winDropDownTooltip), 100, 25)
 			gtk_widget_show_all(winDropDownTooltip)
@@ -4087,7 +4087,7 @@ Namespace My.Sys.Forms
 		ToolTipShowed = True
 		#ifdef __USE_GTK__
 			Dim As gint x, y
-			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(*FHint))
+			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(Replace(*FHint, "<=", "\u003c=")))
 			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
 			gtk_window_move(GTK_WINDOW(winTooltip), HCaretPos + x, VCaretPos + y)
 			gtk_window_resize(GTK_WINDOW(winTooltip), 100, 25)
@@ -4132,7 +4132,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.UpdateDropDownToolTip()
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(*FHintDropDown))
+			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(Replace(*FHintDropDown, "<=", "\u003c=")))
 		#else
 			If hwndTTDropDown <> 0 Then
 				Dim As TOOLINFO    ti
@@ -4154,7 +4154,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.UpdateToolTip()
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(*FHint))
+			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(Replace(*FHint, "<=", "\u003c=")))
 		#else
 			If hwndTT <> 0 Then
 				Dim As TOOLINFO    ti
