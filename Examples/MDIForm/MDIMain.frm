@@ -1,6 +1,9 @@
 '#Region "Form"
-	#if defined(__FB_WIN32__) AndAlso defined(__FB_MAIN__)
-		#cmdline "Form1.rc"
+	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
+		#define __MAIN_FILE__ __FILE__
+		#ifdef __FB_WIN32__
+			#cmdline "Form1.rc"
+		#endif
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/Menus.bi"
@@ -489,11 +492,11 @@
 	
 	Dim Shared MDIMain As MDIMainType
 	
-	#ifdef __FB_MAIN__
+	#if __MAIN_FILE__ = __FILE__
 		MDIMain.Show
 		
 		App.Run
-	#endif
+	#endif	
 '#End Region
 
 #include once "MDIChild.frm"
@@ -554,11 +557,11 @@ Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
 	
 	Select Case Sender.Name
 	Case "mnuWindowClose"
-		h = SendMessage(FClient, WM_MDIGETACTIVE, 0, 0)
+		h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
 		If h Then SendMessage(h, WM_CLOSE, 0, 0)
 	Case "mnuWindowCloseAll"
 		Do
-			h = SendMessage(FClient, WM_MDIGETACTIVE, 0, 0)
+			h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
 			If h Then SendMessage(h, WM_CLOSE, 0, 0)
 		Loop While (h)
 	Case "mnuWindowCascade"
@@ -691,6 +694,6 @@ Private Sub MDIMainType.MDIChildDestroy(Child As Any Ptr)
 		StatusBar1.Text = ""
 	End If
 	MDIChildMenuUpdate()
-	Delete Child
+	Delete Cast(MDIChildType Ptr, Child)
 End Sub
 
