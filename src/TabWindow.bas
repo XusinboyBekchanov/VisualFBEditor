@@ -3068,9 +3068,11 @@ End Sub
 		With tb->txtCode.lvIntellisense
 			'        If CInt(*sTempRight = "") OrElse CInt(Not StartsWith(LCase(.Items.Item(.ItemIndex)->Text), LCase(*sTempRight))) Then
 			'        Else
-			tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Mid(*sLine, i + 1)
-			i = SelCharPos + Len(.ListItems.Item(ItemIndex)->Text(0))
-			tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
+			If .ListItems.Item(ItemIndex) Then
+				tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Mid(*sLine, i + 1)
+				i = SelCharPos + Len(.ListItems.Item(ItemIndex)->Text(0))
+				tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
+			End If
 			tb->txtCode.SetFocus
 			#ifdef __USE_GTK__
 				tb->txtCode.CloseDropDown
