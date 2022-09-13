@@ -2625,8 +2625,8 @@ Sub SetColors
 		SetColor ColorFields
 		SetColor ColorGlobalFunctions
 		SetColor ColorEnumMembers
-		SetColor ColorLineLabels
 		SetColor ColorGlobalEnums
+		SetColor ColorLineLabels
 		SetColor ColorLocalVariables
 		SetColor ColorMacros
 		SetColor ColorGlobalNamespaces

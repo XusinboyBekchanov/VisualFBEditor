@@ -4691,7 +4691,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -4812,6 +4812,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Delete_( Cast(TypeElement Ptr, txtCode.FunctionsOthers.Object(i)))
 		'FunctionsOthers.Remove i
 	Next
+	For i As Integer = txtCode.LineLabels.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, txtCode.LineLabels.Object(i)))
+	Next
 	For i As Integer = txtCode.Args.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Args.Object(i)))
 		'Args.Remove i
@@ -4820,6 +4823,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	txtCode.FunctionsOthers.Clear
 	txtCode.Enums.Clear
 	txtCode.Procedures.Clear
+	txtCode.LineLabels.Clear
 	txtCode.Args.Clear
 	'ThreadCreate_(@LoadFromTabWindow, @This)
 	'LoadFunctions FileName, OnlyFilePath, Types, Procedures, Args, @txtCode
@@ -5244,6 +5248,22 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->FileName = FileName
 						teDeclare->Elements.Add te->Name, te
 					Next
+				End If
+			ElseIf EndsWith(bTrim, ":") AndAlso IsArg2(.Left(bTrim, Len(bTrim) - 1)) AndAlso Not txtCode.Functions.Contains(.Left(bTrim, Len(bTrim) - 1)) Then
+				Var te = New_(TypeElement)
+				te->Name = .Left(bTrim, Len(bTrim) - 1)
+				te->DisplayName = bTrim
+				te->ElementType = "LineLabel"
+				te->TypeName = ""
+				te->Locals = 0
+				te->StartLine = i
+				te->EndLine = i
+				te->Parameters = te->DisplayName
+				te->FileName = FileName
+				If inFunc AndAlso func <> 0 Then
+					func->Elements.Add te->Name, te
+				Else
+					txtCode.LineLabels.Add te->Name, te
 				End If
 			Else
 				If CInt(StartsWith(bTrimLCase, "as ")) OrElse _

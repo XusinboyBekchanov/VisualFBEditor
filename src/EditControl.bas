@@ -3042,6 +3042,8 @@ Namespace My.Sys.Forms
 																				sc = @ColorByValParameters
 																			Case "field", "event"
 																				sc = @ColorFields
+																			Case "linelabel"
+																				sc = @ColorLineLabels
 																			Case Else
 																				sc = @ColorLocalVariables
 																			End Select
@@ -3266,15 +3268,6 @@ Namespace My.Sys.Forms
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorLineLabels
 																		OriginalCaseWord = LineLabels.Item(tIndex)
-																		pkeywords = @LineLabels
-																	End If
-																	If tIndex = -1 AndAlso Trim(*s, Any !"\t ") = Matn & ":" Then
-																		LineLabels.Add Matn
-																		tIndex = LineLabels.IndexOf(LCase(Matn))
-																		?Matn
-																		If SyntaxHighlightingIdentifiers Then sc = @ColorLineLabels
-																		?ColorLineLabels.Foreground
-																		OriginalCaseWord = Matn
 																		pkeywords = @LineLabels
 																	End If
 																End If
