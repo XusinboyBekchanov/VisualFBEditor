@@ -2187,6 +2187,13 @@ Namespace My.Sys.Forms
 			Dim As Double iRED, iGREEN, iBLUE
 			extend.Width = TextWidth(*FLineLeft)
 			pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
+			Dim As PangoAttrList Ptr attribs = pango_attr_list_new()
+			If Underline Then
+				Dim As PangoAttribute Ptr pUnderline = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE)
+				pango_attr_list_insert(attribs, pUnderline)
+			End If
+			pango_layout_set_attributes(layout, attribs)
+			pango_attr_list_unref(attribs)
 			pango_cairo_update_layout(cr, layout)
 			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -2871,7 +2878,7 @@ Namespace My.Sys.Forms
 				OldI = i
 				#ifdef __USE_WINAPI__
 					If bFull = False AndAlso OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso CInt(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
-						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z Then
+						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z AndAlso CInt(bInIncludeFileRectOld = bInIncludeFileRect) Then
 							' AndAlso (z <> FSelEndLine + 1)
 							If CurWord <> "" OrElse OldCurWord <> "" Then
 								If (CurWord = "" OrElse CurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(CurWord)) = 0) AndAlso (OldCurWord = "" OrElse OldCurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(OldCurWord)) = 0) Then
@@ -2952,7 +2959,7 @@ Namespace My.Sys.Forms
 							Dim As ECColorScheme Ptr ecc
 							For j As Integer = 0 To FECLine->Ends.Count - 1
 								ecc = FECLine->Ends.Object(j)
-								PaintText zz, i, *s, OldJ, FECLine->Ends.Item(j), *ecc, , ecc->Bold, ecc->Italic, CBool(ecc->Underline) Or CBool(bInIncludeFileRect) And CBool(iCursorLine = z)
+								PaintText zz, i, *s, OldJ, FECLine->Ends.Item(j), *ecc, , ecc->Bold, ecc->Italic, CBool(ecc->Underline) OrElse CBool(ecc = @Strings) AndAlso CBool(bInIncludeFileRect) AndAlso CBool(iCursorLine = z)
 								OldJ = FECLine->Ends.Item(j)
 							Next
 						Else
