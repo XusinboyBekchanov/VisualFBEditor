@@ -4424,8 +4424,8 @@ Namespace My.Sys.Forms
 		Static bCtrl As Boolean
 		Static scrStyle As Integer, scrDirection As Integer
 		#ifdef __USE_GTK__
-			bShifted = msg.Event->key.state And GDK_SHIFT_MASK
-			bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
+			bShifted = msg.Event->button.state And GDK_SHIFT_MASK
+			bCtrl = msg.Event->button.state And GDK_CONTROL_MASK
 		#else
 			bShifted = GetKeyState(VK_SHIFT) And 8000
 			bCtrl = GetKeyState(VK_CONTROL) And 8000
@@ -4855,6 +4855,8 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			Case GDK_KEY_PRESS
 				'bInMButtonClicked = False
+				bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
+				bShifted = msg.Event->key.state And GDK_SHIFT_MASK
 				Select Case e->key.keyval
 			#else
 			Case WM_KEYDOWN
@@ -5552,7 +5554,9 @@ Namespace My.Sys.Forms
 			End Select
 			#ifdef __USE_GTK__
 			End Select
-		Case GDK_KEY_RELEASE
+			Case GDK_KEY_RELEASE
+			bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
+			bShifted = msg.Event->key.state And GDK_SHIFT_MASK
 			#else
 			Case WM_KEYUP
 			#endif
