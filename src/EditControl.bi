@@ -298,6 +298,8 @@ Namespace My.Sys.Forms
 		Declare Sub ProcessMessage(ByRef msg As Message)
 		#ifdef __USE_GTK__
 			Declare Static Function Blink_cb(user_data As gpointer) As gboolean
+			Declare Static Function EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+			Declare Static Function EditControl_OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 		#else
 			Dim lXOffset As Long
 			Dim lYOffset As Long
@@ -305,7 +307,7 @@ Namespace My.Sys.Forms
 			Dim lVertOffset As Long
 			Dim lHorzOffset As Long
 			Dim As ..Point m_tP
-			Declare Static Sub EC_TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+			Declare Static Sub EC_TimerProc(hwnd As hwnd, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Sub SetDark(Value As Boolean)
 		#endif
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
@@ -330,14 +332,20 @@ Namespace My.Sys.Forms
 			Dim As GdkDisplay Ptr pdisplay
 			Dim As GdkCursor Ptr gdkCursorIBeam
 			Dim As GdkCursor Ptr gdkCursorHand
+			Dim As GdkCursor Ptr gdkCursorSIZEWE
+			Dim As GdkCursor Ptr gdkCursorSIZENS
+			Dim As GdkCursor Ptr gdkCursorARROW
 			#ifdef __USE_GTK3__
 				Dim As GtkStyleContext Ptr scontext
 			#endif
 			Dim As GtkWidget Ptr scrollbarvTop
-			Dim As GtkWidget Ptr scrollbarv
-			Dim As GtkWidget Ptr scrollbarh
-			Dim As GtkAdjustment Ptr adjustmentv
-			Dim As GtkAdjustment Ptr adjustmenth
+			Dim As GtkWidget Ptr scrollbarvBottom
+			Dim As GtkWidget Ptr scrollbarhLeft
+			Dim As GtkWidget Ptr scrollbarhRight
+			Dim As GtkAdjustment Ptr adjustmentvTop
+			Dim As GtkAdjustment Ptr adjustmentvBottom
+			Dim As GtkAdjustment Ptr adjustmenthLeft
+			Dim As GtkAdjustment Ptr adjustmenthRight
 			Dim As GdkWindow Ptr win
 			Dim As GtkWidget Ptr winIntellisense
 			Dim As GtkWidget Ptr scrollwinIntellisense

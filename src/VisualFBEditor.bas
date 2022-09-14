@@ -469,11 +469,21 @@ Sub mClick(Sender As My.Sys.Object)
 					tp->Controls[i]->Width = (tp->Width - ptabPanelNew->splGroup.Width * SplitterCount) / (SplitterCount + 1)
 				End If
 			Next
+			#ifdef __USE_GTK__
+				g_object_ref(tb->Handle)
+				g_object_ref(tb->btnClose.Handle)
+				gtk_container_remove(GTK_CONTAINER(tb->_Box), tb->btnClose.Handle)
+			#endif
 			ptabPanel->tabCode.DeleteTab tb
 			tb->Parent = @ptabPanelNew->tabCode
-			tb->ImageKey = tb->ImageKey
-			ptabPanelNew->tabCode.Add @tb->btnClose
-			tp->RequestAlign
+			#ifdef __USE_GTK__
+				tb->txtCode.cr = 0
+				gtk_box_pack_end(GTK_BOX(tb->_Box), tb->btnClose.Handle, False, False, 0)
+			#else
+				tb->ImageKey = tb->ImageKey
+				ptabPanelNew->tabCode.Add @tb->btnClose
+				tp->RequestAlign
+			#endif
 			ptabCode = @ptabPanelNew->tabCode
 			TabPanels.Add ptabPanelNew
 		Case "SetNextStatement":

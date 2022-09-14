@@ -253,6 +253,10 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property EditControl.SplittedVertically(Value As Boolean)
+		Var iOffset = 0
+		#ifdef __USE_GTK2__
+			iOffset = 2
+		#endif
 		If Not Value Then
 			bDividedX = False
 			bInDivideX = False
@@ -263,6 +267,11 @@ Namespace My.Sys.Forms
 				ShowWindow sbScrollBarvTop, SW_HIDE
 				ShowWindow sbScrollBarhLeft, SW_HIDE
 				MoveWindow sbScrollBarhRight, ScaleX(7), ScaleY(dwClientY - 17), ScaleX(dwClientX - 17 - 7), ScaleY(17), True
+			#else
+				gtk_widget_hide(scrollbarvTop)
+				gtk_widget_hide(scrollbarhLeft)
+				gtk_layout_move(GTK_LAYOUT(FHandle), scrollbarhRight, 7, dwClientY - horizontalScrollBarHeight + iOffset)
+				gtk_widget_set_size_request(scrollbarhRight, dwClientX - verticalScrollBarWidth - 7, horizontalScrollBarHeight)
 			#endif
 		Else
 			If bDividedY Then SplittedHorizontally = False
@@ -277,6 +286,15 @@ Namespace My.Sys.Forms
 				MoveWindow sbScrollBarhRight, ScaleX(iDivideX + 7), ScaleY(dwClientY - 17), ScaleX(dwClientX - iDivideX - 7 - 17), ScaleY(17), True
 				ShowWindow sbScrollBarvTop, SW_SHOW
 				ShowWindow sbScrollBarhLeft, SW_SHOW
+			#else
+				gtk_layout_move(GTK_LAYOUT(FHandle), scrollbarvTop, iDividedX - verticalScrollBarWidth + iOffset, 0)
+				gtk_widget_set_size_request(scrollbarvTop, verticalScrollBarWidth, dwClientY - horizontalScrollBarHeight)
+				gtk_layout_move(GTK_LAYOUT(FHandle), scrollbarhLeft, 0, dwClientY - horizontalScrollBarHeight + iOffset)
+				gtk_widget_set_size_request(scrollbarhLeft, iDivideX - verticalScrollBarWidth, horizontalScrollBarHeight)
+				gtk_layout_move(GTK_LAYOUT(FHandle), scrollbarhRight, iDivideX + 7, dwClientY - horizontalScrollBarHeight + iOffset)
+				gtk_widget_set_size_request(scrollbarhRight, dwClientX - iDivideX - 7 - verticalScrollBarWidth, horizontalScrollBarHeight)
+				gtk_widget_show(scrollbarvTop)
+				gtk_widget_show(scrollbarhLeft)
 			#endif
 		End If
 		If OnSplitVerticallyChange Then OnSplitVerticallyChange(This, Value)
@@ -287,6 +305,10 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property EditControl.SplittedHorizontally(Value As Boolean)
+		Var iOffset = 0
+		#ifdef __USE_GTK2__
+			iOffset = 2
+		#endif
 		If Not Value Then
 			bDividedY = False
 			bInDivideY = False
@@ -296,6 +318,10 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WINAPI__
 				ShowWindow sbScrollBarvTop, SW_HIDE
 				MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
+			#else
+				gtk_widget_hide(scrollbarvTop)
+				gtk_layout_move(GTK_LAYOUT(FHandle), scrollbarvBottom, dwClientX - verticalScrollBarWidth + iOffset, 7)
+				gtk_widget_set_size_request(scrollbarvBottom, verticalScrollBarWidth, dwClientY - horizontalScrollBarHeight - 7)
 			#endif
 		Else
 			If bDividedX Then SplittedVertically = False
@@ -308,6 +334,12 @@ Namespace My.Sys.Forms
 				ShowWindow sbScrollBarvTop, SW_SHOW
 				MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), True
 				MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
+			#else
+				gtk_widget_show(scrollbarvTop)
+				gtk_layout_move(GTK_LAYOUT(FHandle), scrollbarvTop, dwClientX - verticalScrollBarWidth + iOffset, 0)
+				gtk_widget_set_size_request(scrollbarvTop, verticalScrollBarWidth, iDivideY)
+				gtk_layout_move(GTK_LAYOUT(FHandle), scrollbarvBottom, dwClientX - verticalScrollBarWidth + iOffset, iDivideY + 7)
+				gtk_widget_set_size_request(scrollbarvBottom, verticalScrollBarWidth, dwClientY - iDivideY - 7 - horizontalScrollBarHeight)
 			#endif
 		End If
 		If OnSplitHorizontallyChange Then OnSplitHorizontallyChange(This, Value)
@@ -330,7 +362,11 @@ Namespace My.Sys.Forms
 		End If
 		*pVScrollPos = Min(GetCaretPosY(Value), Max(0, IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom) - VisibleLinesCount(ActiveCodePane)))
 		#ifdef __USE_GTK__
-			gtk_adjustment_set_value(adjustmentv, *pVScrollPos)
+			If ActiveCodePane = 0 Then
+				gtk_adjustment_set_value(adjustmentvTop, *pVScrollPos)
+			Else
+				gtk_adjustment_set_value(adjustmentvBottom, *pVScrollPos)
+			End If
 		#else
 			si.cbSize = SizeOf (si)
 			si.fMask = SIF_POS
@@ -1720,7 +1756,11 @@ Namespace My.Sys.Forms
 			
 			If OldHScrollPos <> *pHScrollPos Then
 				#ifdef __USE_GTK__
-					gtk_adjustment_set_value(adjustmenth, *pHScrollPos)
+					If bDividedX AndAlso ActiveCodePane = 0 Then
+						gtk_adjustment_set_value(adjustmenthLeft, *pHScrollPos)
+					Else
+						gtk_adjustment_set_value(adjustmenthRight, *pHScrollPos)
+					End If
 				#else
 					si.cbSize = SizeOf (si)
 					si.fMask = SIF_POS
@@ -1735,7 +1775,11 @@ Namespace My.Sys.Forms
 			End If
 			If OldVScrollPos <> *pVScrollPos Then
 				#ifdef __USE_GTK__
-					gtk_adjustment_set_value(adjustmentv, *pVScrollPos)
+					If ActiveCodePane = 0 Then
+						gtk_adjustment_set_value(adjustmentvTop, *pVScrollPos)
+					Else
+						gtk_adjustment_set_value(adjustmentvBottom, *pVScrollPos)
+					End If
 				#else
 					si.cbSize = SizeOf (si)
 					si.fMask = SIF_POS
@@ -1944,7 +1988,7 @@ Namespace My.Sys.Forms
 		HScrollVCRight = 10
 		If OldHScrollMaxRight <> HScrollMaxRight OrElse OldHScrollVCRight <> HScrollVCRight Then
 			#ifdef __USE_GTK__
-				gtk_adjustment_set_upper(adjustmenth, HScrollMaxRight)
+				gtk_adjustment_set_upper(adjustmenthRight, HScrollMaxRight)
 				'gtk_adjustment_configure(adjustmenth, gtk_adjustment_get_value(adjustmenth), 0, HScrollMax, 1, 10, HScrollMax)
 			#else
 				'If HScrollEnabledRight Then
@@ -1970,7 +2014,7 @@ Namespace My.Sys.Forms
 			
 			If OldHScrollMaxLeft <> HScrollMaxLeft OrElse OldHScrollVCLeft <> HScrollVCLeft Then
 				#ifdef __USE_GTK__
-					gtk_adjustment_set_upper(adjustmenth, HScrollMaxRight)
+					gtk_adjustment_set_upper(adjustmenthLeft, HScrollMaxRight)
 					'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
 				#else
 					If HScrollEnabledLeft Then
@@ -2000,8 +2044,8 @@ Namespace My.Sys.Forms
 		
 		If OldVScrollMaxBottom <> VScrollMaxBottom OrElse OldVScrollVCBottom <> VScrollVCBottom Then
 			#ifdef __USE_GTK__
-				gtk_adjustment_set_upper(adjustmentv, VScrollMaxBottom)
-				gtk_adjustment_set_page_size(adjustmentv, 0)
+				gtk_adjustment_set_upper(adjustmentvBottom, VScrollMaxBottom)
+				gtk_adjustment_set_page_size(adjustmentvBottom, 0)
 				'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
 			#else
 				If VScrollEnabledBottom Then
@@ -2030,8 +2074,8 @@ Namespace My.Sys.Forms
 			
 			If OldVScrollMaxTop <> VScrollMaxTop OrElse OldVScrollVCTop <> VScrollVCTop Then
 				#ifdef __USE_GTK__
-					gtk_adjustment_set_upper(adjustmentv, VScrollMaxTop)
-					gtk_adjustment_set_page_size(adjustmentv, 0)
+					gtk_adjustment_set_upper(adjustmentvTop, VScrollMaxTop)
+					gtk_adjustment_set_page_size(adjustmentvTop, 0)
 					'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
 				#else
 					If VScrollEnabledTop Then
@@ -2153,16 +2197,17 @@ Namespace My.Sys.Forms
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = Trim(*FLineRight) AndAlso CurWord <> "" Then
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.Width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + extend.Width + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0), (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			ElseIf Colors.Background <> -1 Then
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, Colors.BackgroundRed, Colors.BackgroundGreen, Colors.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin - HScrollPosRight * dwCharX + extend.Width, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + extend.Width + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0), (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			End If
-			cairo_move_to(cr, LeftMargin - HScrollPosRight * dwCharX + extend.Width - 0.5, (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
+			cairo_move_to(cr, LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0) + extend.Width - 0.5, _
+			 (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
 			'GetColor TextColor, iRed, iGreen, iBlue
 			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
@@ -2733,11 +2778,41 @@ Namespace My.Sys.Forms
 			Matn = ""
 			#ifdef __USE_GTK__
 				Dim As Double iRED, iGREEN, iBLUE
-				#ifdef __USE_GTK3__
-					cairo_rectangle (cr, 0.0, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), True)
-				#else
-					cairo_rectangle (cr, 0.0, 0.0, widget->allocation.Width, widget->allocation.height, True)
-				#endif
+				If bDividedY Then
+					If zz = 0 Then
+						#ifdef __USE_GTK3__
+							cairo_rectangle (cr, LeftMargin, 0.0, gtk_widget_get_allocated_width (widget), iDividedY, True)
+						#else
+							cairo_rectangle (cr, LeftMargin, 0.0, widget->allocation.Width, iDividedY, True)
+						#endif
+					Else
+						#ifdef __USE_GTK3__
+							cairo_rectangle (cr, LeftMargin, iDividedY + 7, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height(widget), True)
+						#else
+							cairo_rectangle (cr, LeftMargin, iDividedY + 7, widget->allocation.Width, widget->allocation.Height, True)
+						#endif
+					End If
+				ElseIf bDividedX Then
+					If zz = 0 Then
+						#ifdef __USE_GTK3__
+							cairo_rectangle (cr, LeftMargin, 0, iDividedX, gtk_widget_get_allocated_height(widget), True)
+						#else
+							cairo_rectangle (cr, LeftMargin, 0, iDividedX, widget->allocation.Height, True)
+						#endif
+					Else
+						#ifdef __USE_GTK3__
+							cairo_rectangle (cr, iDividedX + 7 + LeftMargin, 0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height(widget), True)
+						#else
+							cairo_rectangle (cr, iDividedX + 7 + LeftMargin, 0, widget->allocation.Width, widget->allocation.Height, True)
+						#endif
+					End If
+				Else
+					#ifdef __USE_GTK3__
+						cairo_rectangle (cr, LeftMargin, 0.0, gtk_widget_get_allocated_width (widget), gtk_widget_get_allocated_height (widget), True)
+					#else
+						cairo_rectangle (cr, LeftMargin, 0.0, widget->allocation.Width, widget->allocation.height, True)
+					#endif
+				End If
 				cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 				cairo_fill (cr)
 			#else
@@ -2769,6 +2844,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 			i = -1
+			Var OldI = i
 			If VScrollPos > 0 AndAlso VScrollPos <= FLines.Count Then iC = Cast(EditControlLine Ptr, FLines.Items[VScrollPos - 1])->CommentIndex
 			CollapseIndex = 0
 			OldCollapseIndex = 0
@@ -2792,6 +2868,7 @@ Namespace My.Sys.Forms
 				i = i + 1
 				If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
 				If i - VScrollPos > vlc1 - 1 Then Exit For
+				OldI = i
 				#ifdef __USE_WINAPI__
 					If bFull = False AndAlso OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso CInt(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
 						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z Then
@@ -3430,7 +3507,7 @@ Namespace My.Sys.Forms
 								If LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 > 0 Then
 									'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
 									#ifdef __USE_GTK__
-										.cairo_rectangle(cr, LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, 1, 1)
+										.cairo_rectangle(cr, LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY, 1, 1)
 										cairo_fill(cr)
 									#else
 										'GetTextExtentPoint32(bufDC, @Wstr(Left(*FLineLeft, jj - 1)), jj - 1, @Sz) 'Len(*FLineLeft)
@@ -3443,12 +3520,12 @@ Namespace My.Sys.Forms
 								If LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX > 0 Then
 									'WLet FLineLeft, GetTabbedText(Left(*s, jj - 1))
 									#ifdef __USE_GTK__
-										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 3 - 0.5)
-										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) +jPP * dwCharX - 7 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 + 3 - 0.5)
-										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + 2 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5 + CodePaneY)
+										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 3 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5 + CodePaneY)
+										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 - 3 - 0.5 + CodePaneY)
+										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5 + CodePaneY)
+										cairo_move_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 7 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 + 3 - 0.5 + CodePaneY)
+										cairo_line_to(cr, LeftMargin + -HScrollPos * dwCharX + jPos * (dwCharX) + jPP * dwCharX - 4 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5 + CodePaneY)
 										cairo_stroke (cr)
 									#else
 										'GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @Sz)
@@ -3473,13 +3550,13 @@ Namespace My.Sys.Forms
 				'Loop While Pos1 > 0
 				'Canvas.Font.Bold = False
 				#ifdef __USE_GTK__
-					cairo_rectangle (cr, 0.0, (i - VScrollPos) * dwCharY, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, True)
+					cairo_rectangle (cr, CodePaneX, (i - VScrollPos) * dwCharY + CodePaneY, LeftMargin - 25 + CodePaneX, (i - VScrollPos + 1) * dwCharY + CodePaneY, True)
 					cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
 					cairo_fill (cr)
 					WLet(FLineLeft, WStr(z + 1))
 					'Dim extend As cairo_text_extents_t
 					'cairo_text_extents (cr, *FLineLeft, @extend)
-					cairo_move_to(cr, LeftMargin - 30 - TextWidth(ToUtf8(*FLineLeft)), (i - VScrollPos) * dwCharY + dwCharY - 5)
+					cairo_move_to(cr, LeftMargin - 30 - TextWidth(ToUtf8(*FLineLeft)) + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY - 5 + CodePaneY)
 					cairo_set_source_rgb(cr, LineNumbers.ForegroundRed, LineNumbers.ForegroundGreen, LineNumbers.ForegroundBlue)
 					pango_layout_set_text(layout, ToUtf8(*FLineLeft), Len(ToUtf8(*FLineLeft)))
 					pango_cairo_update_layout(cr, layout)
@@ -3505,7 +3582,7 @@ Namespace My.Sys.Forms
 				#endif
 				This.Canvas.Brush.Color = NormalText.Background
 				#ifdef __USE_GTK__
-					cairo_rectangle(cr, LeftMargin - 25, (i - VScrollPos) * dwCharY, LeftMargin, (i - VScrollPos + 1) * dwCharY, True)
+					cairo_rectangle(cr, LeftMargin - 25 + CodePaneX, (i - VScrollPos) * dwCharY + CodePaneY, LeftMargin + CodePaneX, (i - VScrollPos + 1) * dwCharY + CodePaneY, True)
 					cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 					cairo_fill (cr)
 				#else
@@ -3517,7 +3594,7 @@ Namespace My.Sys.Forms
 					This.Canvas.Brush.Color = Breakpoints.Indicator
 					#ifdef __USE_GTK__
 						cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
-						cairo_arc(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5, 5, 0, 2 * G_PI)
+						cairo_arc(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 8 - 0.5 + CodePaneY, 5, 0, 2 * G_PI)
 						cairo_fill_preserve(cr)
 						cairo_set_source_rgb(cr, Breakpoints.IndicatorRed, Breakpoints.IndicatorGreen, Breakpoints.IndicatorBlue)
 						cairo_stroke(cr)
@@ -3534,14 +3611,14 @@ Namespace My.Sys.Forms
 						Var x = LeftMargin - 18, y = (i - VScrollPos) * dwCharY + 3
 						Var width1 = 14, height1 = 10, radius = 2
 						cairo_set_source_rgb(cr, Bookmarks.IndicatorRed, Bookmarks.IndicatorGreen, Bookmarks.IndicatorBlue)
-						cairo_move_to cr, x - 0.5, y + radius - 0.5
-						cairo_arc (cr, x + radius - 0.5, y + radius - 0.5, radius, G_PI, -G_PI / 2)
-						cairo_line_to (cr, x + width1 - radius - 0.5, y - 0.5)
-						cairo_arc (cr, x + width1 - radius - 0.5, y + radius - 0.5, radius, -G_PI / 2, 0)
-						cairo_line_to (cr, x + width1 - 0.5, y + height1 - radius - 0.5)
-						cairo_arc (cr, x + width1 - radius - 0.5, y + height1 - radius - 0.5, radius, 0, G_PI / 2)
-						cairo_line_to (cr, x + radius - 0.5, y + height1 - 0.5)
-						cairo_arc (cr, x + radius - 0.5, y + height1 - radius - 0.5, radius, G_PI / 2, G_PI)
+						cairo_move_to cr, x - 0.5 + CodePaneX, y + radius - 0.5 + CodePaneY
+						cairo_arc (cr, x + radius - 0.5 + CodePaneX, y + radius - 0.5 + CodePaneY, radius, G_PI, -G_PI / 2)
+						cairo_line_to (cr, x + width1 - radius - 0.5 + CodePaneX, y - 0.5 + CodePaneY)
+						cairo_arc (cr, x + width1 - radius - 0.5 + CodePaneX, y + radius - 0.5 + CodePaneY, radius, -G_PI / 2, 0)
+						cairo_line_to (cr, x + width1 - 0.5 + CodePaneX, y + height1 - radius - 0.5 + CodePaneY)
+						cairo_arc (cr, x + width1 - radius - 0.5 + CodePaneX, y + height1 - radius - 0.5 + CodePaneY, radius, 0, G_PI / 2)
+						cairo_line_to (cr, x + radius - 0.5 + CodePaneX, y + height1 - 0.5 + CodePaneY)
+						cairo_arc (cr, x + radius - 0.5 + CodePaneX, y + height1 - radius - 0.5 + CodePaneY, radius, G_PI / 2, G_PI)
 						cairo_close_path cr
 						cairo_fill_preserve(cr)
 						cairo_set_source_rgb(cr, IndicatorLines.ForegroundRed, IndicatorLines.ForegroundGreen, IndicatorLines.ForegroundBlue)
@@ -3558,8 +3635,8 @@ Namespace My.Sys.Forms
 				If SyntaxEdit AndAlso Not CStyle Then
 					If CBool(FECLineNext <> 0) AndAlso FECLineNext->Visible AndAlso FECLineNext->Collapsible AndAlso CBool(FECLineNext->ConstructionIndex >= C_P_Region) Then
 						#ifdef __USE_GTK__
-							cairo_move_to(cr, LeftMargin - 0.5, (i + 1 - VScrollPos) * dwCharY - 0.5)
-							cairo_line_to(cr, dwClientX - 0.5, (i + 1 - VScrollPos) * dwCharY - 0.5)
+							cairo_move_to(cr, LeftMargin - 0.5 + CodePaneX, (i + 1 - VScrollPos) * dwCharY - 0.5 + CodePaneY)
+							cairo_line_to(cr, IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX) - 0.5, (i + 1 - VScrollPos) * dwCharY - 0.5 + CodePaneY)
 							cairo_stroke (cr)
 						#else
 							This.Canvas.Pen.Color = FoldLines.Foreground
@@ -3570,12 +3647,12 @@ Namespace My.Sys.Forms
 					If FECLine->Collapsible Then
 						#ifdef __USE_GTK__
 							'cairo_set_source_rgb(cr, abs(GetRed(clGray) / 255.0), abs(GetGreen(clGray) / 255.0), abs(GetBlue(clGray) / 255.0))
-							cairo_rectangle(cr, LeftMargin - 15 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5, LeftMargin - 7 - 0.5, (i - VScrollPos) * dwCharY + 12 - 0.5, True)
-							cairo_move_to(cr, LeftMargin - 13 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
-							cairo_line_to(cr, LeftMargin - 9 - 0.5, (i - VScrollPos) * dwCharY + 8 - 0.5)
+							cairo_rectangle(cr, LeftMargin - 15 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 4 - 0.5 + CodePaneY, LeftMargin - 7 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 12 - 0.5 + CodePaneY, True)
+							cairo_move_to(cr, LeftMargin - 13 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 8 - 0.5 + CodePaneY)
+							cairo_line_to(cr, LeftMargin - 9 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 8 - 0.5 + CodePaneY)
 							If FECLine->ConstructionIndex >= C_P_Region Then
-								cairo_move_to(cr, LeftMargin - 0.5, (i - VScrollPos) * dwCharY - 0.5)
-								cairo_line_to(cr, dwClientX - 0.5, (i - VScrollPos) * dwCharY - 0.5)
+								cairo_move_to(cr, LeftMargin - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY - 0.5 + CodePaneY)
+								cairo_line_to(cr, dwClientX - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY - 0.5 + CodePaneY)
 							End If
 							cairo_stroke (cr)
 						#else
@@ -3592,8 +3669,8 @@ Namespace My.Sys.Forms
 						#endif
 						If OldCollapseIndex > 0 Then
 							#ifdef __USE_GTK__
-								cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 0 - 0.5)
-								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 4 - 0.5)
+								cairo_move_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 0 - 0.5 + CodePaneY)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 4 - 0.5 + CodePaneY)
 								cairo_stroke (cr)
 							#else
 								MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 0 + CodePaneY), 0
@@ -3602,8 +3679,8 @@ Namespace My.Sys.Forms
 						End If
 						If FECLine->Collapsed Then
 							#ifdef __USE_GTK__
-								cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 6 - 0.5)
-								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 10 - 0.5)
+								cairo_move_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 6 - 0.5 + CodePaneY)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 10 - 0.5 + CodePaneY)
 								cairo_stroke (cr)
 							#else
 								MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 5 + CodePaneY), 0
@@ -3612,8 +3689,8 @@ Namespace My.Sys.Forms
 						End If
 						If CInt(CInt(OldCollapseIndex = 0) And CInt(Not FECLine->Collapsed)) OrElse CInt(OldCollapseIndex > 0) Then
 							#ifdef __USE_GTK__
-								cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 12 - 0.5)
-								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY - 0.5)
+								cairo_move_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 12 - 0.5 + CodePaneY)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY - 0.5 + CodePaneY)
 								cairo_stroke (cr)
 							#else
 								MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY), 0
@@ -3623,7 +3700,7 @@ Namespace My.Sys.Forms
 					ElseIf OldCollapseIndex > 0 Then
 						#ifdef __USE_GTK__
 							cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
-							cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + 0 - 0.5)
+							cairo_move_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 0 - 0.5 + CodePaneY)
 						#else
 							This.Canvas.Pen.Color = FoldLines.Foreground
 							'						SelectObject(bufDC, This.Canvas.Brush.Handle)
@@ -3632,14 +3709,14 @@ Namespace My.Sys.Forms
 						#endif
 						If CollapseIndex = 0 Then
 							#ifdef __USE_GTK__
-								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5 + CodePaneY)
 								cairo_stroke (cr)
 							#else
 								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY)
 							#endif
 						Else
 							#ifdef __USE_GTK__
-								cairo_line_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY - 0.5)
+								cairo_line_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY - 0.5 + CodePaneY)
 								cairo_stroke (cr)
 							#else
 								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY)
@@ -3647,8 +3724,8 @@ Namespace My.Sys.Forms
 						End If
 						If FECLine->ConstructionIndex >= 0 AndAlso CInt(Constructions(FECLine->ConstructionIndex).Collapsible) And CInt(FECLine->ConstructionPart = 2) Then
 							#ifdef __USE_GTK__
-								cairo_move_to(cr, LeftMargin - 11 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
-								cairo_line_to(cr, LeftMargin - 6 - 0.5, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5)
+								cairo_move_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5 + CodePaneY)
+								cairo_line_to(cr, LeftMargin - 6 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY / 2 - 0.5 + CodePaneY)
 								cairo_stroke (cr)
 							#else
 								MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY / 2 + CodePaneY), 0
@@ -3661,10 +3738,10 @@ Namespace My.Sys.Forms
 				OldCollapseIndex = CollapseIndex
 			Next z
 			#ifdef __USE_GTK__
-				cairo_rectangle (cr, 0, (i - VScrollPos + 1) * dwCharY, LeftMargin - 25, dwClientY, True)
+				cairo_rectangle (cr, CodePaneX, Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (OldI - VScrollPos + 1) * dwCharY + CodePaneY), LeftMargin - 25 + CodePaneX, IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), True)
 				cairo_set_source_rgb(cr, LineNumbers.BackgroundRed, LineNumbers.BackgroundGreen, LineNumbers.BackgroundBlue)
 				cairo_fill (cr)
-				cairo_rectangle (cr, LeftMargin - 25, (i - VScrollPos + 1) * dwCharY, LeftMargin, dwClientY, True)
+				cairo_rectangle (cr, LeftMargin - 25 + CodePaneX, Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (Max(0, OldI - VScrollPos + 1)) * dwCharY + CodePaneY), LeftMargin + CodePaneX, IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), True)
 				cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 				cairo_fill (cr)
 				If CaretOn Then
@@ -3679,18 +3756,33 @@ Namespace My.Sys.Forms
 				End If
 				'cairo_paint(cr)
 			#else
-				SetRect(@rc, ScaleX(CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY)), ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
+				SetRect(@rc, ScaleX(CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (Max(0, OldI - VScrollPos + 1)) * dwCharY + CodePaneY)), ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
 				This.Canvas.Brush.Color = LineNumbers.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
-				SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (Max(0, i - VScrollPos + 1)) * dwCharY + CodePaneY)), ScaleX(LeftMargin + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
+				SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (Max(0, OldI - VScrollPos + 1)) * dwCharY + CodePaneY)), ScaleX(LeftMargin + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)))
 				This.Canvas.Brush.Color = NormalText.Background
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			#endif
 			OldPaintedVScrollPos(zz) = VScrollPos
 			OldPaintedHScrollPos(zz) = HScrollPos
 		Next zz
-		#ifdef __USE_WINAPI__
-			If Not bDividedX Then
+		If Not bDividedX Then
+			#ifdef __USE_GTK__
+				cairo_rectangle(cr, 0, dwClientY - horizontalScrollBarHeight, 7, dwClientY, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, Abs(GetRed(darkBkColor) / 255.0), Abs(GetGreen(darkBkColor) / 255.0), Abs(GetBlue(darkBkColor) / 255.0))
+				Else
+					cairo_set_source_rgb(cr, Abs(GetRed(clBtnFace) / 255.0), Abs(GetGreen(clBtnFace) / 255.0), Abs(GetBlue(clBtnFace) / 255.0))
+				End If
+				cairo_fill (cr)
+				cairo_rectangle(cr, 0 + 0.5, dwClientY - horizontalScrollBarHeight + 0.5, 7 - 0.5, dwClientY - 0.5, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, 23 / 255.0, 23 / 255.0, 23 / 255.0)
+				Else
+					cairo_set_source_rgb(cr, 217 / 255.0, 217 / 255.0, 217 / 255.0)
+				End If
+				cairo_stroke (cr)
+			#else
 				SetRect(@rc, 0, ScaleY(dwClientY - 17), ScaleX(7), ScaleY(dwClientY))
 				If g_darkModeEnabled Then
 					This.Canvas.Pen.Color = BGR(23, 23, 23)
@@ -3700,8 +3792,25 @@ Namespace My.Sys.Forms
 					This.Canvas.Brush.Color = clBtnFace
 				End If
 				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
-			End If
-			If Not bDividedY Then
+			#endif
+		End If
+		If Not bDividedY Then
+			#ifdef __USE_GTK__
+				cairo_rectangle(cr, dwClientX - verticalScrollBarWidth, 0, dwClientX, 7, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, Abs(GetRed(darkBkColor) / 255.0), Abs(GetGreen(darkBkColor) / 255.0), Abs(GetBlue(darkBkColor) / 255.0))
+				Else
+					cairo_set_source_rgb(cr, Abs(GetRed(clBtnFace) / 255.0), Abs(GetGreen(clBtnFace) / 255.0), Abs(GetBlue(clBtnFace) / 255.0))
+				End If
+				cairo_fill (cr)
+				cairo_rectangle(cr, dwClientX - verticalScrollBarWidth + 0.5, 0 + 0.5, dwClientX - 0.5, 7 - 0.5, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, 23 / 255.0, 23 / 255.0, 23 / 255.0)
+				Else
+					cairo_set_source_rgb(cr, 217 / 255.0, 217 / 255.0, 217 / 255.0)
+				End If
+				cairo_stroke (cr)
+			#else
 				SetRect(@rc, ScaleX(dwClientX - 17), 0, ScaleX(dwClientX), ScaleY(7))
 				If g_darkModeEnabled Then
 					This.Canvas.Pen.Color = BGR(23, 23, 23)
@@ -3711,14 +3820,36 @@ Namespace My.Sys.Forms
 					This.Canvas.Brush.Color = clBtnFace
 				End If
 				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
+			#endif
+		End If
+		#ifdef __USE_GTK__
+			cairo_rectangle(cr, dwClientX - verticalScrollBarWidth, dwClientY - horizontalScrollBarHeight, dwClientX, dwClientY, True)
+			If g_darkModeEnabled Then
+				cairo_set_source_rgb(cr, 23 / 255.0, 23 / 255.0, 23 / 255.0)
+			Else
+				cairo_set_source_rgb(cr, 217 / 255.0, 217 / 255.0, 217 / 255.0)
 			End If
+			cairo_fill (cr)
+		#else
 			'FillRect bufDC, @rc, This.Canvas.Brush.Handle
 			SetRect(@rc, ScaleX(dwClientX - 17), ScaleY(dwClientY - 17), ScaleX(dwClientX), ScaleY(dwClientY))
 			FillRect bufDC, @rc, This.Canvas.Brush.Handle
-			If bDividedX Then
+		#endif
+		If bDividedX Then
+			#ifdef __USE_GTK__
+				cairo_rectangle(cr, iDividedX - verticalScrollBarWidth, dwClientY - horizontalScrollBarHeight, iDividedX, dwClientY, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, 23 / 255.0, 23 / 255.0, 23 / 255.0)
+				Else
+					cairo_set_source_rgb(cr, 217 / 255.0, 217 / 255.0, 217 / 255.0)
+				End If
+				cairo_fill (cr)
+			#else
 				SetRect(@rc, ScaleX(iDividedX - 17), ScaleY(dwClientY - 17), ScaleX(iDividedX), ScaleY(dwClientY))
 				FillRect bufDC, @rc, This.Canvas.Brush.Handle
-			End If
+			#endif
+		End If
+		#ifdef __USE_WINAPI__
 			If bInMiddleScroll Then
 				#ifdef __USE_GTK__
 					'					cairo_set_source_rgb(cr, Abs(GetRed(clMaroon) / 255.0), Abs(GetGreen(clMaroon) / 255.0), Abs(GetBlue(clMaroon) / 255.0))
@@ -3742,7 +3873,24 @@ Namespace My.Sys.Forms
 					Polygon(bufDC, @pPoint4(0), 4)
 				#endif
 			End If
-			If bDividedX Then
+		#endif
+		If bDividedX Then
+			#ifdef __USE_GTK__
+				cairo_rectangle(cr, iDividedX, -1, iDividedX + 7, dwClientY + 1, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, Abs(GetRed(darkBkColor) / 255.0), Abs(GetGreen(darkBkColor) / 255.0), Abs(GetBlue(darkBkColor) / 255.0))
+				Else
+					cairo_set_source_rgb(cr, Abs(GetRed(clBtnFace) / 255.0), Abs(GetGreen(clBtnFace) / 255.0), Abs(GetBlue(clBtnFace) / 255.0))
+				End If
+				cairo_fill (cr)
+				cairo_rectangle(cr, iDividedX + 0.5, -1 + 0.5, iDividedX + 7 - 0.5, dwClientY + 1 - 0.5, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, 23 / 255.0, 23 / 255.0, 23 / 255.0)
+				Else
+					cairo_set_source_rgb(cr, 217 / 255.0, 217 / 255.0, 217 / 255.0)
+				End If
+				cairo_stroke (cr)
+			#else
 				SetRect(@rc, ScaleX(iDividedX), -1, ScaleX(iDividedX + 7), ScaleY(dwClientY) + 1)
 				If g_darkModeEnabled Then
 					This.Canvas.Pen.Color = BGR(130, 135, 144)
@@ -3752,7 +3900,24 @@ Namespace My.Sys.Forms
 					This.Canvas.Brush.Color = clBtnFace
 				End If
 				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
-			ElseIf bDividedY Then
+			#endif
+		ElseIf bDividedY Then
+			#ifdef __USE_GTK__
+				cairo_rectangle(cr, -1, iDividedY, dwClientX + 1, iDividedY + 7, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, Abs(GetRed(darkBkColor) / 255.0), Abs(GetGreen(darkBkColor) / 255.0), Abs(GetBlue(darkBkColor) / 255.0))
+				Else
+					cairo_set_source_rgb(cr, Abs(GetRed(clBtnFace) / 255.0), Abs(GetGreen(clBtnFace) / 255.0), Abs(GetBlue(clBtnFace) / 255.0))
+				End If
+				cairo_fill (cr)
+				cairo_rectangle(cr, -1 + 0.5, iDividedY + 0.5, dwClientX + 1 - 0.5, iDividedY + 7 - 0.5, True)
+				If g_darkModeEnabled Then
+					cairo_set_source_rgb(cr, 23 / 255.0, 23 / 255.0, 23 / 255.0)
+				Else
+					cairo_set_source_rgb(cr, 217 / 255.0, 217 / 255.0, 217 / 255.0)
+				End If
+				cairo_stroke (cr)
+			#else
 				SetRect(@rc, -1, ScaleY(iDividedY), ScaleX(dwClientX) + 1, ScaleY(iDividedY + 7))
 				If g_darkModeEnabled Then
 					This.Canvas.Pen.Color = BGR(130, 135, 144)
@@ -3762,14 +3927,30 @@ Namespace My.Sys.Forms
 					This.Canvas.Brush.Color = clBtnFace
 				End If
 				Rectangle bufDC, rc.Left, rc.Top, rc.Right, rc.Bottom
-			End If
-			If bInDivideX Then
+			#endif
+		End If
+		If bInDivideX Then
+			#ifdef __USE_GTK__
+				cairo_rectangle(cr, iDivideX, 0, iDivideX + 5, dwClientY, True)
+				cairo_set_source_rgb (cr, 1.0, 1.0, 1.0)
+				cairo_set_operator (cr, CAIRO_OPERATOR_DIFFERENCE)
+				cairo_fill(cr)
+			#else
 				SetRect(@rc, ScaleX(iDivideX), 0, ScaleX(iDivideX + 5), ScaleY(dwClientY))
 				InvertRect bufDC, @rc
-			ElseIf bInDivideY Then
+			#endif
+		ElseIf bInDivideY Then
+			#ifdef __USE_GTK__
+				cairo_rectangle(cr, 0, iDivideY, dwClientX, iDivideY + 5, True)
+				cairo_set_source_rgb (cr, 1.0, 1.0, 1.0)
+				cairo_set_operator (cr, CAIRO_OPERATOR_DIFFERENCE)
+				cairo_fill(cr)
+			#else
 				SetRect(@rc, 0, ScaleY(iDivideY), ScaleX(dwClientX), ScaleY(iDivideY + 5))
 				InvertRect bufDC, @rc
-			End If
+			#endif
+		End If
+		#ifdef __USE_WINAPI__
 			BitBlt(hd, 0, 0, ScaleX(dwClientX), ScaleY(dwClientY), bufDC, 0, 0, SRCCOPY)
 			'DeleteDC bufDC
 			'DeleteObject bufBMP
@@ -4308,6 +4489,8 @@ Namespace My.Sys.Forms
 			Dim As Integer Ptr pVScrollPos, pHScrollPos
 			#ifdef __USE_WINAPI__
 			Dim As HWND sbScrollBarV, sbScrollBarH
+			#else
+			Dim As GtkAdjustment Ptr adjustmentv, adjustmenth
 			#endif
 			If bShifted Then
 				VScrollMax = IIf(ActiveCodePane = 0, HScrollMaxLeft, HScrollMaxRight)
@@ -4317,6 +4500,7 @@ Namespace My.Sys.Forms
 					pHScrollPos = @HScrollPosRight
 				End If
 				#ifdef __USE_GTK__
+					adjustmenth = IIf(ActiveCodePane = 0, adjustmenthLeft, adjustmenthRight)
 					OldPos = gtk_adjustment_get_value(adjustmenth)
 					#ifdef __USE_GTK3__
 						scrDirection = e->scroll.delta_y
@@ -4348,6 +4532,7 @@ Namespace My.Sys.Forms
 					pVScrollPos = @VScrollPosBottom
 				End If
 				#ifdef __USE_GTK__
+					adjustmentv = IIf(ActiveCodePane = 0, adjustmentvTop, adjustmentvBottom)
 					OldPos = gtk_adjustment_get_value(adjustmentv)
 					#ifdef __USE_GTK3__
 						scrDirection = e->scroll.delta_y
@@ -5339,25 +5524,25 @@ Namespace My.Sys.Forms
 					#endif
 					Redo
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->Key.string) = 24 Then
+					ElseIf Asc(*e->key.string) = 24 Then
 					#else
 					ElseIf msg.wParam = 24 Then
 					#endif
 					CutToClipboard
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->Key.string) = 3 Then
+					ElseIf Asc(*e->key.string) = 3 Then
 					#else
 					ElseIf msg.wParam = 3 Then
 					#endif
 					CopyToClipboard
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->Key.string) = 22 Then
+					ElseIf Asc(*e->key.string) = 22 Then
 					#else
 					ElseIf msg.wParam = 22 Then
 					#endif
 					PasteFromClipboard
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->Key.string) = 127 Then
+					ElseIf Asc(*e->key.string) = 127 Then
 					#else
 					ElseIf msg.wParam = 127 Then
 					#endif
@@ -5379,22 +5564,22 @@ Namespace My.Sys.Forms
 			#endif
 			bInMiddleScroll = False
 			#ifdef __USE_GTK__
-				Var X = e->button.x, Y = e->button.y
+				Var X = e->button.x, y = e->button.y
 			#else
-				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
+				Var X = UnScaleX(msg.lParamLo), y = UnScaleY(msg.lParamHi)
 			#endif
-			FSelEndLine = LineIndexFromPoint(X, Y)
+			FSelEndLine = LineIndexFromPoint(X, y)
 			If bDividedX AndAlso X >= iDividedX AndAlso X <= iDividedX + 7 Then
 				SplittedVertically = False
-			ElseIf bDividedY AndAlso Y >= iDividedY AndAlso Y <= iDividedY + 7 Then
+			ElseIf bDividedY AndAlso y >= iDividedY AndAlso y <= iDividedY + 7 Then
 				SplittedHorizontally = False
-			ElseIf (Not bDividedX) AndAlso Y >= dwClientY - 17 AndAlso X <= 7 Then
+			ElseIf (Not bDividedX) AndAlso y >= dwClientY - 17 AndAlso X <= 7 Then
 				SplittedVertically = True
-			ElseIf (Not bDividedY) AndAlso X >= dwClientX - 17 AndAlso Y <= 7 Then
+			ElseIf (Not bDividedY) AndAlso X >= dwClientX - 17 AndAlso y <= 7 Then
 				SplittedHorizontally = True
-			ElseIf InCollapseRect(FSelEndLine, X, Y) Then
+			ElseIf InCollapseRect(FSelEndLine, X, y) Then
 			Else
-				FSelEndChar = CharIndexFromPoint(X, Y)
+				FSelEndChar = CharIndexFromPoint(X, y)
 				If CInt(Not bShifted) And CInt(FSelEndLine <> FSelStartLine Or FSelEndChar <> FSelStartChar) Then
 					FSelStartLine = FSelEndLine
 					FSelStartChar = FSelEndChar
@@ -5419,16 +5604,16 @@ Namespace My.Sys.Forms
 			bInMiddleScroll = False
 			DownButton = 0
 			#ifdef __USE_GTK__
-				Var X = e->button.x, Y = e->button.y
+				Var X = e->button.x, y = e->button.y
 			#else
-				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
+				Var X = UnScaleX(msg.lParamLo), y = UnScaleY(msg.lParamHi)
 			#endif
-			If (X > dwClientX - 17 AndAlso Y < 7) OrElse (bDividedY AndAlso Y >= iDividedY AndAlso Y <= iDividedY + 7) Then
+			If (X > dwClientX - 17 AndAlso y < 7) OrElse (bDividedY AndAlso y >= iDividedY AndAlso y <= iDividedY + 7) Then
 				bInDivideY = True
 				#ifndef __USE_GTK__
 					SetCapture FHandle
 				#endif
-			ElseIf (Y > dwClientY - 17 AndAlso X < 7) OrElse (bDividedX AndAlso X >= iDividedX AndAlso X <= iDividedX + 7) Then
+			ElseIf (y > dwClientY - 17 AndAlso X < 7) OrElse (bDividedX AndAlso X >= iDividedX AndAlso X <= iDividedX + 7) Then
 				bInDivideX = True
 				#ifndef __USE_GTK__
 					SetCapture FHandle
@@ -5437,12 +5622,12 @@ Namespace My.Sys.Forms
 				If bDividedX Then
 					ActiveCodePane = IIf(X <= iDividedX, 0, 1)
 				ElseIf bDividedY Then
-					ActiveCodePane = IIf(Y <= iDividedY, 0, 1)
+					ActiveCodePane = IIf(y <= iDividedY, 0, 1)
 				Else
 					ActiveCodePane = 1
 				End If
-				FSelEndLine = LineIndexFromPoint(X, Y)
-				If InCollapseRect(FSelEndLine, X, Y) Then
+				FSelEndLine = LineIndexFromPoint(X, y)
+				If InCollapseRect(FSelEndLine, X, y) Then
 					FSelStartLine = FSelEndLine
 					FSelEndLine = FSelEndLine
 					FSelStartChar = 0
@@ -5453,7 +5638,7 @@ Namespace My.Sys.Forms
 					OldnCaretPosX = nCaretPosX
 					OldCharIndex = GetOldCharIndex
 				Else
-					FSelEndChar = CharIndexFromPoint(X, Y)
+					FSelEndChar = CharIndexFromPoint(X, y)
 					If Not bShifted Then
 						FSelStartLine = FSelEndLine
 						FSelStartChar = FSelEndChar
@@ -5471,7 +5656,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			#ifdef __USE_GTK__
-			Case GDK_KEY_RELEASE
+			Case GDK_BUTTON_RELEASE
 			#else
 			Case WM_LBUTTONUP
 				ReleaseCapture
@@ -5534,11 +5719,33 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEMOVE
 			#endif
 			#ifdef __USE_GTK__
-				iTemp = LineIndexFromPoint(e->button.x, e->button.y, ActiveCodePane)
-				If InCollapseRect(iTemp, e->button.x, e->button.y) Then
+				iCursorLine = LineIndexFromPoint(e->button.x, e->button.y, IIf((bDividedY AndAlso e->button.y <= iDividedY) OrElse (bDividedX AndAlso e->button.x <= iDividedX), 0, 1))
+				If bDividedX AndAlso e->button.x >= iDividedX AndAlso e->button.x <= iDividedX + 7 Then
+					gdk_window_set_cursor(win, gdkCursorSIZEWE)
+				ElseIf bDividedY AndAlso e->button.y >= iDividedY AndAlso e->button.y <= iDividedY + 7 Then
+					gdk_window_set_cursor(win, gdkCursorSIZENS)
+				ElseIf bDividedX AndAlso e->button.x >= iDividedX - verticalScrollBarWidth AndAlso e->button.x <= iDividedX Then
+					gdk_window_set_cursor(win, gdkCursorARROW)
+				ElseIf e->button.x > dwClientX - verticalScrollBarWidth OrElse e->button.y > dwClientY - horizontalScrollBarHeight Then
+					If e->button.x < 7 AndAlso Not bDividedX Then
+						gdk_window_set_cursor(win, gdkCursorSIZEWE)
+					ElseIf e->button.y < 7 AndAlso Not bDividedY Then
+						gdk_window_set_cursor(win, gdkCursorSIZENS)
+					Else
+						gdk_window_set_cursor(win, gdkCursorARROW)
+					End If
+				ElseIf InCollapseRect(iCursorLine, e->button.x, e->button.y) Then
 					gdk_window_set_cursor(win, gdkCursorHand)
 				Else
-					gdk_window_set_cursor(win, gdkCursorIBeam)
+					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, e->button.x, e->button.y)
+					If bInIncludeFileRectOld <> bInIncludeFileRect OrElse iCursorLineOld <> iCursorLine Then PaintControl
+					iCursorLineOld = iCursorLine
+					bInIncludeFileRectOld = bInIncludeFileRect
+					If bInIncludeFileRect Then
+						gdk_window_set_cursor(win, gdkCursorHand)
+					Else
+						gdk_window_set_cursor(win, gdkCursorIBeam)
+					End If
 				End If
 			#endif
 			'			#ifdef __USE_GTK__
@@ -5624,9 +5831,9 @@ Namespace My.Sys.Forms
 			With QEditControl(Sender.Child)
 				#ifdef __USE_WINAPI__
 					.sbScrollBarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
-					.sbScrollBarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, instance, 0)
-					.sbScrollBarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
-					.sbScrollBarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, instance, 0)
+					.sbScrollBarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
+					.sbScrollBarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, Instance, 0)
+					.sbScrollBarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, Instance, 0)
 					ShowWindow .sbScrollBarvTop, SW_HIDE
 					ShowWindow .sbScrollBarvBottom, SW_SHOW
 					ShowWindow .sbScrollBarhLeft, SW_HIDE
@@ -5635,7 +5842,7 @@ Namespace My.Sys.Forms
 						SetWindowTheme(.sbScrollBarvTop, "DarkMode_Explorer", nullptr)
 						SetWindowTheme(.sbScrollBarvBottom, "DarkMode_Explorer", nullptr)
 						SetWindowTheme(.sbScrollBarhLeft, "DarkMode_Explorer", nullptr)
-						SetWindowTheme(.sbscrollbarhRight, "DarkMode_Explorer", nullptr)
+						SetWindowTheme(.sbScrollBarhRight, "DarkMode_Explorer", nullptr)
 						'						.FDarkMode = True
 						'						SetWindowTheme(.FHandle, "DarkMode_Explorer", nullptr)
 						'						SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
@@ -5651,7 +5858,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Function EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+		Function EditControl.EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Dim As EditControl Ptr ec = Cast(Any Ptr, data1)
 			If ec->cr = 0 Then
 				ec->cr = cr
@@ -5682,6 +5889,9 @@ Namespace My.Sys.Forms
 				ec->pdisplay = gtk_widget_get_display(widget)
 				ec->gdkCursorIBeam = gdk_cursor_new_for_display(ec->pdisplay, GDK_XTERM)
 				ec->gdkCursorHand = gdk_cursor_new_from_name(ec->pdisplay, "pointer")
+				ec->gdkCursorSIZENS = gdk_cursor_new_from_name(ec->pdisplay, crSizeNS)
+				ec->gdkCursorSIZEWE = gdk_cursor_new_from_name(ec->pdisplay, crSizeWE)
+				ec->gdkCursorARROW = gdk_cursor_new_from_name(ec->pdisplay, crArrow)
 				#ifdef __USE_GTK3__
 					ec->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 				#endif
@@ -5711,20 +5921,41 @@ Namespace My.Sys.Forms
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
 			#endif
 			If AllocatedWidth <> ec->dwClientX Or AllocatedHeight <> ec->dwClientY Then
+				Var dDividedX = ec->iDividedX / ec->dwClientX
+				Var dDividedY = ec->iDividedY / ec->dwClientY
+				
 				ec->dwClientX = AllocatedWidth
 				ec->dwClientY = AllocatedHeight
 				
-				#ifdef __USE_GTK3__
-					gtk_layout_move(GTK_LAYOUT(ec->Handle), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
-					gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
-					gtk_layout_move(GTK_LAYOUT(ec->Handle), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight)
-					gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
-				#else
-					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth + 2, 0)
-					gtk_widget_set_size_request(ec->scrollbarv, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
-					gtk_layout_move(gtk_layout(ec->Handle), ec->scrollbarh, 0, ec->dwClientY - ec->horizontalScrollBarHeight + 2)
-					gtk_widget_set_size_request(ec->scrollbarh, ec->dwClientX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
+				Var iOffset = 0
+				#ifdef __USE_GTK2__
+					iOffset = 2
 				#endif
+				If Not ec->bDividedX Then
+					gtk_layout_move(GTK_LAYOUT(ec->FHandle), ec->scrollbarhRight, 7, ec->dwClientY - ec->horizontalScrollBarHeight + iOffset)
+					gtk_widget_set_size_request(ec->scrollbarhRight, ec->dwClientX - ec->verticalScrollBarWidth - 7, ec->horizontalScrollBarHeight)
+				Else
+					ec->iDividedX = ec->dwClientX * dDividedX
+					ec->iDivideX = ec->iDividedX
+					gtk_layout_move(GTK_LAYOUT(ec->FHandle), ec->scrollbarvTop, ec->iDividedX - ec->verticalScrollBarWidth + iOffset, 0)
+					gtk_widget_set_size_request(ec->scrollbarvTop, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight)
+					gtk_layout_move(GTK_LAYOUT(ec->FHandle), ec->scrollbarhLeft, 0, ec->dwClientY - ec->horizontalScrollBarHeight + iOffset)
+					gtk_widget_set_size_request(ec->scrollbarhLeft, ec->iDivideX - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
+					gtk_layout_move(GTK_LAYOUT(ec->FHandle), ec->scrollbarhRight, ec->iDivideX + 7, ec->dwClientY - ec->horizontalScrollBarHeight + iOffset)
+					gtk_widget_set_size_request(ec->scrollbarhRight, ec->dwClientX - ec->iDivideX - 7 - ec->verticalScrollBarWidth, ec->horizontalScrollBarHeight)
+				End If
+				If Not ec->bDividedY Then
+					gtk_layout_move(GTK_LAYOUT(ec->FHandle), ec->scrollbarvBottom, ec->dwClientX - ec->verticalScrollBarWidth + iOffset, 7)
+					gtk_widget_set_size_request(ec->scrollbarvBottom, ec->verticalScrollBarWidth, ec->dwClientY - ec->horizontalScrollBarHeight - 7)
+				Else
+					ec->iDividedY = ec->dwClientY * dDividedY
+					ec->iDivideY = ec->iDividedY
+					gtk_layout_move(GTK_LAYOUT(ec->FHandle), ec->scrollbarvTop, ec->dwClientX - ec->verticalScrollBarWidth + iOffset, 0)
+					gtk_widget_set_size_request(ec->scrollbarvTop, ec->verticalScrollBarWidth, ec->iDivideY)
+					gtk_layout_move(GTK_LAYOUT(ec->FHandle), ec->scrollbarvBottom, ec->dwClientX - ec->verticalScrollBarWidth + iOffset, ec->iDivideY + 7)
+					gtk_widget_set_size_request(ec->scrollbarvBottom, ec->verticalScrollBarWidth, ec->dwClientY - ec->iDivideY - 7 - ec->horizontalScrollBarHeight)
+				End If
+				
 				'Ctrl->RequestAlign AllocatedWidth, AllocatedHeight
 				ec->SetScrollsInfo
 			End If
@@ -5734,11 +5965,11 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 		
-		Function EditControl_OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+		Function EditControl.EditControl_OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Dim As EditControl Ptr ec = Cast(Any Ptr, data1)
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
 			ec->win = Event->window
-			EditControl_OnDraw widget, cr, data1
+			ec->EditControl_OnDraw widget, cr, data1
 			cairo_destroy(cr)
 			Return False
 		End Function
@@ -5758,11 +5989,12 @@ Namespace My.Sys.Forms
 		
 		Sub EditControl_ScrollValueChanged(widget As GtkAdjustment Ptr, user_data As Any Ptr)
 			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
-			If widget = ec->adjustmentv Then
-				ec->VScrollPosBottom = gtk_adjustment_get_value(ec->adjustmentv)
-			Else
-				ec->HScrollPosRight = gtk_adjustment_get_value(ec->adjustmenth)
-			End If
+			Select Case widget
+			Case ec->adjustmenthLeft: ec->HScrollPosLeft = gtk_adjustment_get_value(ec->adjustmenthLeft)
+			Case ec->adjustmentvTop: ec->VScrollPosTop = gtk_adjustment_get_value(ec->adjustmentvTop)
+			Case ec->adjustmenthRight: ec->HScrollPosRight = gtk_adjustment_get_value(ec->adjustmenthRight)
+			Case ec->adjustmentvBottom: ec->VScrollPosBottom = gtk_adjustment_get_value(ec->adjustmentvBottom)
+			End Select
 			#ifdef __USE_GTK3__
 				ec->ShowCaretPos False
 				ec->PaintControl
@@ -5841,35 +6073,59 @@ Namespace My.Sys.Forms
 			g_object_get(G_OBJECT(gtk_settings_get_default()), "gtk-cursor-blink-time", @BlinkTime, NULL)
 			'BlinkTime = BlinkTime / 1.75
 			'gdk_threads_add_timeout(BlinkTime, @Blink_cb, @This)
-			adjustmentv = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 201.0, 1.0, 20.0, 20.0))
+			adjustmentvTop = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 201.0, 1.0, 20.0, 20.0))
 			#ifdef __USE_GTK3__
-				scrollbarv = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT(adjustmentv))
+				scrollbarvTop = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT(adjustmentvTop))
 			#else
-				scrollbarv = gtk_vscrollbar_new(GTK_ADJUSTMENT(adjustmentv))
+				scrollbarvTop = gtk_vscrollbar_new(GTK_ADJUSTMENT(adjustmentvTop))
 			#endif
-			gtk_widget_set_can_focus(scrollbarv, False)
-			g_signal_connect(adjustmentv, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
+			gtk_widget_set_can_focus(scrollbarvTop, False)
+			g_signal_connect(adjustmentvTop, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
 			'gtk_widget_set_parent(scrollbarv, widget)
-			If GTK_IS_WIDGET(scrollbarv) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarv, 0, 0)
-			gtk_widget_show(scrollbarv)
-			adjustmenth = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 101.0, 1.0, 20.0, 20.0))
+			If GTK_IS_WIDGET(scrollbarvTop) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarvTop, 0, 0)
+			'gtk_widget_show(scrollbarvTop)
+			gtk_widget_set_no_show_all(scrollbarvTop, True)
+			adjustmentvBottom = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 201.0, 1.0, 20.0, 20.0))
 			#ifdef __USE_GTK3__
-				scrollbarh = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT(adjustmenth))
+				scrollbarvBottom = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT(adjustmentvBottom))
 			#else
-				scrollbarh = gtk_hscrollbar_new(GTK_ADJUSTMENT(adjustmenth))
+				scrollbarvBottom = gtk_vscrollbar_new(GTK_ADJUSTMENT(adjustmentvBottom))
 			#endif
-			gtk_widget_set_can_focus(scrollbarh, False)
-			g_signal_connect(adjustmenth, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
+			gtk_widget_set_can_focus(scrollbarvBottom, False)
+			g_signal_connect(adjustmentvBottom, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
+			'gtk_widget_set_parent(scrollbarv, widget)
+			If GTK_IS_WIDGET(scrollbarvBottom) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarvBottom, 0, 0)
+			gtk_widget_show(scrollbarvBottom)
+			adjustmenthLeft = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 101.0, 1.0, 20.0, 20.0))
+			#ifdef __USE_GTK3__
+				scrollbarhLeft = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT(adjustmenthLeft))
+			#else
+				scrollbarhLeft = gtk_hscrollbar_new(GTK_ADJUSTMENT(adjustmenthLeft))
+			#endif
+			gtk_widget_set_can_focus(scrollbarhLeft, False)
+			g_signal_connect(adjustmenthLeft, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
 			'gtk_widget_set_parent(scrollbarh, widget)
-			If GTK_IS_WIDGET(scrollbarh) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarh, 0, 0)
-			gtk_widget_show(scrollbarh)
+			If GTK_IS_WIDGET(scrollbarhLeft) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarhLeft, 0, 0)
+			'gtk_widget_show(scrollbarhLeft)
+			gtk_widget_set_no_show_all(scrollbarhLeft, True)
+			adjustmenthRight = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 101.0, 1.0, 20.0, 20.0))
+			#ifdef __USE_GTK3__
+				scrollbarhRight = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT(adjustmenthRight))
+			#else
+				scrollbarhRight = gtk_hscrollbar_new(GTK_ADJUSTMENT(adjustmenthRight))
+			#endif
+			gtk_widget_set_can_focus(scrollbarhRight, False)
+			g_signal_connect(adjustmenthRight, "value_changed", G_CALLBACK(@EditControl_ScrollValueChanged), @This)
+			'gtk_widget_set_parent(scrollbarh, widget)
+			If GTK_IS_WIDGET(scrollbarhRight) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarhRight, 0, 0)
+			gtk_widget_show(scrollbarhRight)
 			Dim As GtkRequisition vminimum, hminimum, vrequisition, hrequisition
 			#ifdef __USE_GTK3__
-				gtk_widget_get_preferred_size(scrollbarv, @vminimum, @vrequisition)
-				gtk_widget_get_preferred_size(scrollbarh, @hminimum, @hrequisition)
+				gtk_widget_get_preferred_size(scrollbarvBottom, @vminimum, @vrequisition)
+				gtk_widget_get_preferred_size(scrollbarhRight, @hminimum, @hrequisition)
 			#else
-				gtk_widget_size_request(scrollbarv, @vrequisition)
-				gtk_widget_size_request(scrollbarh, @hrequisition)
+				gtk_widget_size_request(scrollbarvBottom, @vrequisition)
+				gtk_widget_size_request(scrollbarhRight, @hrequisition)
 			#endif
 			Var minVScrollBarHeight = hminimum.height
 			Var minHScrollBarWidth = vminimum.width

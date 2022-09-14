@@ -6162,8 +6162,8 @@ Dim Shared As Long iCounterUpdateVariables, iFlagStartDebug, iStateMenu = 1
 
 Sub DeleteDebugCursor
 	If CurEC <> 0 Then
-		Var curEC2 = curEC
-		Fcurlig = -1
+		Var curEC2 = CurEC
+		fcurlig = -1
 		CurEC->CurExecutedLine = -1
 		CurEC = 0
 		curEC2->Repaint

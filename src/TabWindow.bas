@@ -256,8 +256,8 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	If EndsWith(FileNameNew, ":") Then FileNameNew = ..Left(FileNameNew, Len(FileNameNew) - 1)
 	If FileName <> "" Then
 		Dim As TabControl Ptr ptabCode
-		For j As Integer = 0 To tabPanels.Count - 1
-			ptabCode = @Cast(tabPanel Ptr, tabPanels.Item(j))->tabCode
+		For j As Integer = 0 To TabPanels.Count - 1
+			ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
 			For i As Integer = 0 To ptabCode->TabCount - 1
 				If EqualPaths(Cast(TabWindow Ptr, ptabCode->Tabs[i])->FileName, FileNameNew) Then
 					bFind = True
@@ -300,8 +300,8 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				'.layout = gtk_layout_new(NULL, NULL)
 				'gtk_widget_set_size_request(.layout, 16, 16)
 				'gtk_layout_put(gtk_layout(.layout), .btnClose.widget, 0, 0)
-				gtk_box_pack_end (GTK_BOX (._box), .btnClose.Handle, False, False, 0)
-				gtk_widget_show_all(._box)
+				gtk_box_pack_end (GTK_BOX (._Box), .btnClose.Handle, False, False, 0)
+				gtk_widget_show_all(._Box)
 			#else
 				ptabCode->Add(@.btnClose)
 			#endif
@@ -806,15 +806,15 @@ Function TabWindow.SaveAs As Boolean
 	If pSaveD->Execute Then
 		WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
 		If FileExists(pSaveD->FileName) Then
-			Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->Filename & """?", App.Title, mtWarning, btYesNoCancel)
-			Case mrCANCEL: Return False
-			Case mrNO: Return SaveAs
+			Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->FileName & """?", App.Title, mtWarning, btYesNoCancel)
+			Case mrCancel: Return False
+			Case mrNo: Return SaveAs
 			End Select
 		End If
-		Caption = GetFileName(pSaveD->Filename)
+		Caption = GetFileName(pSaveD->FileName)
 		tn->Text = Caption
 		mi->Caption = Caption
-		WLet(FFileName, pSaveD->Filename)
+		WLet(FFileName, pSaveD->FileName)
 		CheckExtension *FFileName
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
@@ -825,14 +825,14 @@ Function TabWindow.SaveAs As Boolean
 		If ptn <> 0 AndAlso ptn->ImageKey = "Project" Then
 			Dim As ProjectElement Ptr pee = ptn->Tag
 			If pee <> 0 Then
-				If WGet(pee->MainFileName) = WGet(ee->FileName) Then WLet(pee->MainFileName, pSaveD->Filename)
-				If WGet(pee->ResourceFileName) = WGet(ee->FileName) Then WLet(pee->ResourceFileName, pSaveD->Filename)
-				If WGet(pee->IconResourceFileName) = WGet(ee->FileName) Then WLet(pee->IconResourceFileName, pSaveD->Filename)
+				If WGet(pee->MainFileName) = WGet(ee->FileName) Then WLet(pee->MainFileName, pSaveD->FileName)
+				If WGet(pee->ResourceFileName) = WGet(ee->FileName) Then WLet(pee->ResourceFileName, pSaveD->FileName)
+				If WGet(pee->IconResourceFileName) = WGet(ee->FileName) Then WLet(pee->IconResourceFileName, pSaveD->FileName)
 				If Not EndsWith(ptn->Text, "*") Then ptn->Text & = "*"
 			End If
 		End If
-		WLet(ee->FileName, pSaveD->Filename)
-		AddMRUFile pSaveD->Filename
+		WLet(ee->FileName, pSaveD->FileName)
+		AddMRUFile pSaveD->FileName
 		Return SaveTab
 	End If
 	Return False
@@ -858,6 +858,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 				ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
 				pParentTabCode->Visible = False
 				ptabCode = @ptabPanelChild->tabCode
+				mnuTabs.ParentWindow = ptabCode
 				ptabPanelParent->RequestAlign
 			Else
 				Var ptabPanel = ptabPanelParent
@@ -873,6 +874,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 						Delete_(ptabPanel)
 						ptabPanelParent->RequestAlign
 						ptabCode = @ptabPanelChild->tabCode
+						mnuTabs.ParentWindow = ptabCode
 						ptabPanel = 0
 						Exit Do
 					ElseIf ptabPanel->Align <> DockStyle.alClient Then
@@ -881,6 +883,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 						Else
 							ptabCode = @Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx + 2])->tabCode
 						End If
+						mnuTabs.ParentWindow = ptabCode
 						ptabPanelParent->Remove ptabPanelParent->Controls[Idx + 1]
 						ptabPanelParent->Remove ptabPanel
 						TabPanels.Remove TabPanels.IndexOf(ptabPanel)
@@ -898,6 +901,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 				If ptabPanel > 0 AndAlso ptabPanel->Parent = pfrmMain Then
 					ptabPanel->tabCode.Visible = True
 					ptabCode = @ptabPanel->tabCode
+					mnuTabs.ParentWindow = ptabCode
 				End If
 			End If
 		End If
@@ -6089,7 +6093,7 @@ Sub tabPanel_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As I
 				End If
 			End If
 		Next
-		.RequestAlign
+		.RequestAlign NewWidth, NewHeight, True
 		.OldWidth = NewWidth
 		.OldHeight = NewHeight
 	End With
