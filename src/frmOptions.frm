@@ -3684,7 +3684,8 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 			#ifdef __USE_GTK__
 				tb->txtCode.Update
 			#else
-				RedrawWindow tb->txtCode.Handle, NULL, NULL, RDW_INVALIDATE
+				tb->txtCode.PaintControl True
+				'RedrawWindow tb->txtCode.Handle, NULL, NULL, RDW_INVALIDATE
 			#endif
 		End If
 	End With
