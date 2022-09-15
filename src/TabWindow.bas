@@ -5038,7 +5038,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->DisplayName = te->Name
 						End If
 						Pos1 = InStr(te->Name, ".")
-						If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1)
+						If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): te->TypeProcedure = True
 						Pos2 = InStr(bTrim, ")")
 						If ECLine->ConstructionIndex = 21 OrElse ECLine->ConstructionIndex = 22 Then
 							te->TypeName = te->Name
@@ -5069,7 +5069,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							txtCode.Enums.Add te->Name, te
 						ElseIf ECLine->ConstructionIndex = 15 OrElse ECLine->ConstructionIndex = 16 Then
 							txtCode.Types.Add te->Name, te
-						ElseIf InStr(te->DisplayName, ".") = 0 Then
+						ElseIf Not te->TypeProcedure Then
 							txtCode.Procedures.Add te->Name, te
 						End If
 						func = te
@@ -8676,7 +8676,7 @@ Sub TabWindow.Define
 			Next
 			For i As Integer = 0 To pGlobalFunctions->Count - 1
 				te = pGlobalFunctions->Object(i)
-				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+				If CBool(te <> 0) AndAlso CBool(LCase(Trim(te->Name)) = LCase(sWord)) AndAlso CBool(Not te->TypeProcedure) Then
 					If te->FileName = FileName Then Continue For
 					If te = te2 Then Continue For
 					.Add te->DisplayName

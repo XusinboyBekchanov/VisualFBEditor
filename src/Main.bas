@@ -3715,6 +3715,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
+							te->TypeProcedure = True
 							'n = Types.IndexOf(bt)
 							'If n > -1 Then
 							'	Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
@@ -3776,6 +3777,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
+							te->TypeProcedure = True
 							'n = Types.IndexOf(bt)
 							'If n > -1 Then
 							'	Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
@@ -3837,6 +3839,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
+							te->TypeProcedure = True
 							'n = Types.IndexOf(bt)
 							'If n > -1 Then Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
 							'If n = -1 Then

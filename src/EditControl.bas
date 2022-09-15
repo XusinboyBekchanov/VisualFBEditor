@@ -2610,7 +2610,7 @@ Namespace My.Sys.Forms
 					te = Procedures.Object(Idx)
 				ElseIf Args.Contains(sTemp, , , , Idx) Then
 					te = Args.Object(Idx)
-				ElseIf pGlobalFunctions > 0 AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) Then
+				ElseIf CBool(pGlobalFunctions > 0) AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) AndAlso CBool(Not Cast(TypeElement Ptr, pGlobalFunctions->Object(Idx))->TypeProcedure) Then
 					te = pGlobalFunctions->Object(Idx)
 				ElseIf pGlobalArgs > 0 AndAlso pGlobalArgs->Contains(sTemp, , , , Idx) Then
 					te = pGlobalArgs->Object(Idx)

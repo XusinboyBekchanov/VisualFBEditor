@@ -97,6 +97,7 @@ Namespace My.Sys.Forms
 		IncludeFile As UString
 		TypeIsPointer As Boolean
 		Declaration As Boolean
+		TypeProcedure As Boolean
 		Locals As Integer
 		StartLine As Integer
 		EndLine As Integer
