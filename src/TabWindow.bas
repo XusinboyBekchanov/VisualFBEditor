@@ -3746,7 +3746,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		If Index > -1 Then
 			For i As Integer = Index To FListItems.Count - 1
 				te = FListItems.Object(i)
-				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+				If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 					Parameter = te->Parameters
 					iPos = InStr(LCase(Parameter), LCase(sWord))
 					FuncName = Mid(Parameter, iPos, Len(sWord))
@@ -3767,7 +3767,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 				Var lst = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
 				For i As Integer = Index To lst->Count - 1
 					te = lst->Object(i)
-					If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+					If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 						Parameter = te->Parameters
 						iPos = InStr(LCase(Parameter), LCase(sWord))
 						FuncName = Mid(Parameter, iPos, Len(sWord))
@@ -3801,7 +3801,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 					If FListItems.Contains(sWord) Then
 						For i As Integer = 0 To FListItems.Count - 1
 							te = FListItems.Object(i)
-							If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+							If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 								Parameter = te->Parameters
 								iPos = InStr(LCase(Parameter), LCase(sWord))
 								FuncName = Mid(Parameter, iPos, Len(sWord))
@@ -3816,7 +3816,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 				End If
 			End If
 		End If
-		If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+		If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 			If Not ShowKeywordsToolTip Then
 				If te->ElementType = "Keyword" Then Return ""
 			End If
@@ -3842,7 +3842,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		If Index > -1 Then
 			For i As Integer = Index To tb->txtCode.Procedures.Count - 1
 				te = tb->txtCode.Procedures.Object(i)
-				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+				If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) Then
 					If CInt(Not ParametersList.Contains(te->Parameters)) Then
 						Parameter = te->Parameters
 						iPos = InStr(LCase(Parameter), LCase(sWord))
@@ -3861,7 +3861,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		If Index > -1 Then
 			For i As Integer = Index To pGlobalFunctions->Count - 1
 				te = pGlobalFunctions->Object(i)
-				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+				If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) Then
 					If CInt(Not ParametersList.Contains(te->Parameters)) Then
 						Dim As UString res(Any)
 						Split te->Parameters, !"\r", res()
@@ -3883,7 +3883,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Index = GlobalFunctionsHelp.IndexOf(sWord)
 						If Index > -1 Then
 							te = GlobalFunctionsHelp.Object(Index)
-							If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+							If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 								Dim As UString res(Any)
 								Split te->Parameters, !"\r", res()
 								For n As Integer = 0 To UBound(res)
@@ -8462,7 +8462,9 @@ Sub TabWindow.Define
 		If teOld <> 0 OrElse OldTypeName <> "" Then
 			If OldTypeName <> "" Then
 				TypeName = OldTypeName
-			Else
+			ElseIf teOld->ElementType = "Type" Then
+					TypeName = teOld->Name
+				Else
 				TypeName = teOld->TypeName
 			End If
 			If TypeName = "" AndAlso teOld <> 0 AndAlso teOld->Value <> "" Then
@@ -8481,6 +8483,35 @@ Sub TabWindow.Define
 						.Item(.Count - 1)->Tag = te->Tag
 					End If
 				Next
+				'For i As Integer = 0 To txtCode.Functions.Count - 1
+				'	te = txtCode.Functions.Object(i)
+				'	If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+				'		Var Pos1 = InStr(te->DisplayName, ".")
+				'		If Pos1 > 0 AndAlso IsBase(teOld->Name, ..Left(te->DisplayName, Pos1 - 1)) Then
+				'			.Add te->DisplayName
+				'			.Item(.Count - 1)->Text(1) = te->Parameters
+				'			.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
+				'			.Item(.Count - 1)->Text(3) = te->FileName
+				'			.Item(.Count - 1)->Text(4) = te->Comment
+				'			.Item(.Count - 1)->Tag = te->Tag
+				'		End If
+				'	End If
+				'Next
+				'For i As Integer = 0 To pGlobalFunctions->Count - 1
+				'	te = pGlobalFunctions->Object(i)
+				'	If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+				'		Var Pos1 = InStr(te->DisplayName, ".")
+				'		?teOld->Name, ..Left(te->DisplayName, Pos1 - 1), IsBase(teOld->Name, ..Left(te->DisplayName, Pos1 - 1))
+				'		If Pos1 > 0 AndAlso IsBase(teOld->Name, ..Left(te->DisplayName, Pos1 - 1)) Then
+				'			.Add te->DisplayName
+				'			.Item(.Count - 1)->Text(1) = te->Parameters
+				'			.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
+				'			.Item(.Count - 1)->Text(3) = te->FileName
+				'			.Item(.Count - 1)->Text(4) = te->Comment
+				'			.Item(.Count - 1)->Tag = te->Tag
+				'		End If
+				'	End If
+				'Next
 			End If
 			FListItems.Clear
 			If txtCode.Types.Contains(TypeName) Then
