@@ -135,7 +135,7 @@ Sub FormatProject(UnFormat As Any Ptr)
 						Else
 							ptxt = @tb->txtCode
 						End If
-						If UnFormat Then ptxt->UnFormatCode(True) Else ptxt->FormatCode(True)
+						If UnFormat Then ptxt->UnformatCode(True) Else ptxt->FormatCode(True)
 						If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 					End If
 				End If
@@ -148,7 +148,7 @@ Sub FormatProject(UnFormat As Any Ptr)
 			Else
 				ptxt = @tb->txtCode
 			End If
-			If UnFormat Then ptxt->UnFormatCode(True) Else ptxt->FormatCode(True)
+			If UnFormat Then ptxt->UnformatCode(True) Else ptxt->FormatCode(True)
 			If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 		End If
 	Next
@@ -5019,7 +5019,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos2 = InStr(Pos1 + l, bTrim, "(")
 						Pos5 = Pos2
 						Pos3 = InStr(Pos1 + l, bTrim, " ")
-						If Pos2 = 0 OrElse Pos3 < Pos2 Then Pos2 = Pos3
+						If Pos2 = 0 OrElse Pos3 > 0 AndAlso Pos3 < Pos2 Then Pos2 = Pos3
 						te = New_( TypeElement)
 						If Pos2 > 0 Then
 							te->Name = Trim(Mid(bTrim, Pos1 + l, Pos2 - Pos1 - l))
