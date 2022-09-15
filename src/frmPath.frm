@@ -137,6 +137,9 @@ Private Sub frmPath.cmdOK_Click(ByRef Sender As Control)
 		This.BringToFront()
 		Exit Sub
 	End If
+	txtCommandLineText = txtCommandLine.Text
+	txtExtensionsText = txtExtensions.Text
+	cboTypeText = cboType.Text
 	This.ModalResult = ModalResults.OK
 	This.CloseForm
 End Sub
@@ -156,8 +159,8 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	With This
 		If .WithKey AndAlso .cboType.ItemIndex = 0 Then
 			If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
-				If pfImageManager->lvImages.SelectedItem <> 0 Then
-					.txtPath.Text = pfImageManager->lvImages.SelectedItem->Text(0)
+				If pfImageManager->SelectedItem <> 0 Then
+					.txtPath.Text = pfImageManager->SelectedItem->Text(0)
 					.txtVersion.Text = .txtPath.Text
 				End If
 			End If
@@ -227,6 +230,9 @@ Private Sub frmPath.Form_Show(ByRef Sender As Form)
 	lblPath.Text = IIf(WithKey, ML("Resource Name / Path") & ":", ML("Path") & ":")
 	lblVersion.Text = IIf(WithType, IIf(WithKey, ML("Key") & ":", ML("Resource Name") & ":"), ML("Version") & ":")
 	lblCommandLine.Text = IIf(WithType, ML("Type") & ":", ML("Command line") & ":")
+	txtCommandLineText = ""
+	txtExtensionsText = ""
+	cboTypeText = ""
 End Sub
 
 Private Sub frmPath.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)

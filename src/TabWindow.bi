@@ -290,7 +290,7 @@ Declare Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean =
 
 Declare Function GetPropertyType(ClassName As String, PropertyName As String) As TypeElement Ptr
 
-Declare Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
+Declare Function IsBase(ByRef TypeName As String, ByRef BaseName As String, tb As TabWindow Ptr = 0) As Boolean
 
 Common Shared bNotFunctionChange As Boolean
 Declare Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)

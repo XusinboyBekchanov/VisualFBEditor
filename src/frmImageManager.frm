@@ -278,6 +278,8 @@ Private Sub frmImageManager.Form_Show_(ByRef Sender As Form)
 	*Cast(frmImageManager Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
+	SelectedItem = 0
+	SelectedItems.Clear
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
 	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode), FolderName
@@ -601,7 +603,7 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 			If lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
 				Var ImageIndex = ImageList1.IndexOf(pfrmPath->txtVersion.Text)
 				If ImageIndex = -1 Then
-					If pfrmPath->cboType.Text = ML("Resource") Then
+					If pfrmPath->cboTypeText = ML("Resource") Then
 						ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
 					Else
 						ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
@@ -611,7 +613,7 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 					lvImages.SelectedItem->ImageIndex = ImageIndex
 				End If
 				lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text
-				lvImages.SelectedItem->Text(1) = pfrmPath->cboType.Text
+				lvImages.SelectedItem->Text(1) = pfrmPath->cboTypeText
 				lvImages.SelectedItem->Text(2) = pfrmPath->txtPath.Text
 			Else
 				MsgBox ML("This name is exists!")

@@ -35,6 +35,7 @@ Using My.Sys.Forms
 		Dim As Boolean ChooseFolder, SetFileNameToVersion, WithoutVersion, WithoutCommandLine, WithExtensions, WithType, WithKey
 		Dim As UString ExeFileName
 		Dim As ComboBoxEdit cboType
+		Dim As UString cboTypeText, txtCommandLineText, txtExtensionsText
 	End Type
 	
 	Common Shared pfPath As frmPath Ptr

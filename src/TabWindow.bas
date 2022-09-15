@@ -1008,7 +1008,7 @@ Function GetPropertyType(ClassName As String, PropertyName As String) As TypeEle
 	Return 0
 End Function
 
-Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
+Function IsBase(ByRef TypeName As String, ByRef BaseName As String, tb As TabWindow Ptr = 0) As Boolean
 	Dim iIndex As Integer
 	Dim tbi As TypeElement Ptr
 	Dim TypeN As String = WithoutPointers(TypeName)
@@ -1022,9 +1022,50 @@ Function IsBase(ByRef TypeName As String, ByRef BaseName As String) As Boolean
 			ElseIf tbi->TypeName = "My.Sys.Object" AndAlso BaseName = "Object" Then
 				Return True
 			ElseIf tbi->TypeName <> "" Then
-				Return IsBase(tbi->TypeName, BaseName)
+				Return IsBase(tbi->TypeName, BaseName, tb)
 			Else
 				Return False
+			End If
+		End If
+	ElseIf tb Then
+		If tb->txtCode.Types.Contains(TypeN, , , , iIndex) Then
+			tbi = tb->txtCode.Types.Object(iIndex)
+			If tbi Then
+				If tbi->TypeName = BaseName Then
+					Return True
+				ElseIf tbi->TypeName = "My.Sys.Object" AndAlso BaseName = "Object" Then
+					Return True
+				ElseIf tbi->TypeName <> "" Then
+					Return IsBase(tbi->TypeName, BaseName, tb)
+				Else
+					Return False
+				End If
+			End If
+		ElseIf pGlobalTypes->Contains(TypeN, , , , iIndex) Then
+			tbi = pGlobalTypes->Object(iIndex)
+			If tbi Then
+				If tbi->TypeName = BaseName Then
+					Return True
+				ElseIf tbi->TypeName = "My.Sys.Object" AndAlso BaseName = "Object" Then
+					Return True
+				ElseIf tbi->TypeName <> "" Then
+					Return IsBase(tbi->TypeName, BaseName, tb)
+				Else
+					Return False
+				End If
+			End If
+		ElseIf pGlobalEnums->Contains(TypeN, , , , iIndex) Then
+			tbi = pGlobalEnums->Object(iIndex)
+			If tbi Then
+				If tbi->TypeName = BaseName Then
+					Return True
+				ElseIf tbi->TypeName = "My.Sys.Object" AndAlso BaseName = "Object" Then
+					Return True
+				ElseIf tbi->TypeName <> "" Then
+					Return IsBase(tbi->TypeName, BaseName, tb)
+				Else
+					Return False
+				End If
 			End If
 		End If
 	End If
@@ -3090,7 +3131,7 @@ End Sub
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
-		Dim i As Integer = GetNextCharIndex(*sLine, SelCharPos, True)
+		Dim i As Integer = GetNextCharIndex(*sLine, SelCharPos)
 		With tb->txtCode.cboIntellisense
 			tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .Items.Item(ItemIndex)->Text & Mid(*sLine, i + 1)
 			i = SelCharPos + Len(.Items.Item(ItemIndex)->Text)
@@ -4410,7 +4451,7 @@ End Function
 
 Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	MouseHoverTimerVal = Timer
-	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	If CInt(Key = Asc(".")) OrElse CInt(Key = Asc(">")) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
@@ -4695,7 +4736,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -8483,35 +8524,6 @@ Sub TabWindow.Define
 						.Item(.Count - 1)->Tag = te->Tag
 					End If
 				Next
-				'For i As Integer = 0 To txtCode.Functions.Count - 1
-				'	te = txtCode.Functions.Object(i)
-				'	If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
-				'		Var Pos1 = InStr(te->DisplayName, ".")
-				'		If Pos1 > 0 AndAlso IsBase(teOld->Name, ..Left(te->DisplayName, Pos1 - 1)) Then
-				'			.Add te->DisplayName
-				'			.Item(.Count - 1)->Text(1) = te->Parameters
-				'			.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-				'			.Item(.Count - 1)->Text(3) = te->FileName
-				'			.Item(.Count - 1)->Text(4) = te->Comment
-				'			.Item(.Count - 1)->Tag = te->Tag
-				'		End If
-				'	End If
-				'Next
-				'For i As Integer = 0 To pGlobalFunctions->Count - 1
-				'	te = pGlobalFunctions->Object(i)
-				'	If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
-				'		Var Pos1 = InStr(te->DisplayName, ".")
-				'		?teOld->Name, ..Left(te->DisplayName, Pos1 - 1), IsBase(teOld->Name, ..Left(te->DisplayName, Pos1 - 1))
-				'		If Pos1 > 0 AndAlso IsBase(teOld->Name, ..Left(te->DisplayName, Pos1 - 1)) Then
-				'			.Add te->DisplayName
-				'			.Item(.Count - 1)->Text(1) = te->Parameters
-				'			.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-				'			.Item(.Count - 1)->Text(3) = te->FileName
-				'			.Item(.Count - 1)->Text(4) = te->Comment
-				'			.Item(.Count - 1)->Tag = te->Tag
-				'		End If
-				'	End If
-				'Next
 			End If
 			FListItems.Clear
 			If txtCode.Types.Contains(TypeName) Then
@@ -8535,6 +8547,36 @@ Sub TabWindow.Define
 					.Item(.Count - 1)->Text(3) = te->FileName
 					.Item(.Count - 1)->Text(4) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
+				End If
+			Next
+			For i As Integer = 0 To txtCode.Functions.Count - 1
+				te = txtCode.Functions.Object(i)
+				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+					If te->StartLine = iSelEndLine Then Continue For
+					Var Pos1 = InStr(te->DisplayName, ".")
+					If Pos1 > 0 AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), @This) Then
+						.Add te->DisplayName
+						.Item(.Count - 1)->Text(1) = te->Parameters
+						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
+						.Item(.Count - 1)->Text(3) = te->FileName
+						.Item(.Count - 1)->Text(4) = te->Comment
+						.Item(.Count - 1)->Tag = te->Tag
+					End If
+				End If
+			Next
+			For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
+				te = pGlobalFunctions->Object(i)
+				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+					If te->StartLine = iSelEndLine Then Continue For
+					Var Pos1 = InStr(te->DisplayName, ".")
+					If CBool(Pos1 > 0) AndAlso CBool(te->FileName <> FileName) AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), @This) Then
+						.Add te->DisplayName
+						.Item(.Count - 1)->Text(1) = te->Parameters
+						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
+						.Item(.Count - 1)->Text(3) = te->FileName
+						.Item(.Count - 1)->Text(4) = te->Comment
+						.Item(.Count - 1)->Tag = te->Tag
+					End If
 				End If
 			Next
 		Else

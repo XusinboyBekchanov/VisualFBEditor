@@ -55,6 +55,10 @@
 
 
 Private Sub frmTheme.cmdOK_Click(ByRef Sender As Control)
+	If fTheme.txtThemeName.Text = "" Then
+		MsgBox "Theme name is empty"
+		Exit Sub
+	End If
 	fTheme.ModalResult = ModalResults.OK
 	fTheme.CloseForm
 End Sub

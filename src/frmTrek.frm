@@ -104,6 +104,7 @@ End Sub
 Private Sub frmTrek.Form_Show(ByRef Sender As Form)
 	fTrek.lvTrek.SetFocus
 	fTrek.lvTrek.SelectedItemIndex = 0
+	fTrek.SelectedItem = 0
 End Sub
 
 Private Sub frmTrek.lvTrek_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)

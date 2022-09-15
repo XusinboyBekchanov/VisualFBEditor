@@ -3696,6 +3696,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->DisplayName = te->Name
 						Pos1 = InStr(te->Name, ".")
 						If Pos1 > 0 Then
+							
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
 							te->Locals = 2
@@ -3714,24 +3715,25 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
-							n = Types.IndexOf(bt)
-							If n > -1 Then
-								Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
-							ElseIf n = -1 Then
-								If bt = "Object" Then
-									n = Comps.IndexOf("My.Sys.Object")
-								Else
-									n = Comps.IndexOf(bt)
-								End If
-								If n > -1 AndAlso Comps.Object(n) <> 0 Then
-									Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
-								Else
-									'?bTrim
-								End If
-							End If
-						Else
-							LastIndexFunction = Functions.Add(te->Name, te)
+							'n = Types.IndexOf(bt)
+							'If n > -1 Then
+							'	Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
+							'ElseIf n = -1 Then
+							'	If bt = "Object" Then
+							'		n = Comps.IndexOf("My.Sys.Object")
+							'	Else
+							'		n = Comps.IndexOf(bt)
+							'	End If
+							'	If n > -1 AndAlso Comps.Object(n) <> 0 Then
+							'		Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
+							'	Else
+							'		'?bTrim
+							'	End If
+							'End If
+						'Else
+							'LastIndexFunction = Functions.Add(te->Name, te)
 						End If
+						LastIndexFunction = Functions.Add(te->Name, te)
 					ElseIf CInt(StartsWith(bTrimLCase, "function ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private function ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public function ")) Then
@@ -3774,24 +3776,25 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
-							n = Types.IndexOf(bt)
-							If n > -1 Then
-								Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
-							ElseIf n = -1 Then
-								If bt = "Object" Then
-									n = Comps.IndexOf("My.Sys.Object")
-								Else
-									n = Comps.IndexOf(bt)
-								End If
-								If n > -1 AndAlso Comps.Object(n) <> 0 Then
-									Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
-								Else
-									'?bTrim
-								End If
-							End If
-						Else
-							LastIndexFunction = Functions.Add(te->Name, te)
+							'n = Types.IndexOf(bt)
+							'If n > -1 Then
+							'	Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
+							'ElseIf n = -1 Then
+							'	If bt = "Object" Then
+							'		n = Comps.IndexOf("My.Sys.Object")
+							'	Else
+							'		n = Comps.IndexOf(bt)
+							'	End If
+							'	If n > -1 AndAlso Comps.Object(n) <> 0 Then
+							'		Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
+							'	Else
+							'		'?bTrim
+							'	End If
+							'End If
+						'Else
+							'LastIndexFunction = Functions.Add(te->Name, te)
 						End If
+						LastIndexFunction = Functions.Add(te->Name, te)
 					ElseIf CInt(StartsWith(bTrimLCase, "property ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private property ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public property ")) Then
@@ -3834,15 +3837,16 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
-							n = Types.IndexOf(bt)
-							If n > -1 Then Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
-							If n = -1 Then
-								n = Comps.IndexOf(bt)
-								If n > -1 AndAlso Comps.Object(n) <> 0 Then Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
-							End If
-						Else
-							LastIndexFunction = Functions.Add(te->Name, te)
+							'n = Types.IndexOf(bt)
+							'If n > -1 Then Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
+							'If n = -1 Then
+							'	n = Comps.IndexOf(bt)
+							'	If n > -1 AndAlso Comps.Object(n) <> 0 Then Cast(TypeElement Ptr, Comps.Object(n))->Elements.Add te->Name, te
+							'End If
+						'Else
+						'	LastIndexFunction = Functions.Add(te->Name, te)
 						End If
+						LastIndexFunction = Functions.Add(te->Name, te)
 					ElseIf CInt(Not inType) AndAlso CInt(Not inEnum) AndAlso CInt(Not InFunc) AndAlso _
 						CInt(CInt(StartsWith(bTrimLCase, "dim ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "common ")) OrElse _

@@ -2495,6 +2495,7 @@ Namespace My.Sys.Forms
 				TypeNameFromLine = teC->Name
 			End If
 			If CInt(LCase(sTemp) = "this") Then
+				teEnum = teC
 				Return TypeNameFromLine
 			End If
 		End If
