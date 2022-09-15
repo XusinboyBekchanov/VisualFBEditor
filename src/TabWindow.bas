@@ -4451,7 +4451,7 @@ End Function
 
 Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	MouseHoverTimerVal = Timer
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	If CInt(Key = Asc(".")) OrElse CInt(Key = Asc(">")) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k

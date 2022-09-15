@@ -2573,7 +2573,11 @@ Namespace My.Sys.Forms
 					teEnum = pkeywords->Object(tIndex)
 					teEnumOld = teC
 					OldTypeName = "" 'teC->DisplayName
-					Return teEnum->TypeName
+					sTemp = teEnum->TypeName
+					If sTemp = "" AndAlso teEnum->Value <> "" Then
+						sTemp = GetTypeFromValue(teEnum->Value, iSelEndLine)
+					End If
+					Return sTemp
 				Else
 					TypeName = teC->DisplayName
 					Pos1 = InStr(TypeName, ".")
