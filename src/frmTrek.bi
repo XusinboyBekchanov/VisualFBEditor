@@ -19,6 +19,7 @@ Using My.Sys.Forms
 		Dim As CommandButton cmdOK
 		Dim As CommandButton cmdCancel
 		Dim As Label lblComment, lblLabelComment
+		Dim As ListViewItem Ptr SelectedItem
 	End Type
 	
 	Common Shared pfTrek As frmTrek Ptr

@@ -1555,7 +1555,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							Var CtlLibrary = New_(Library)
 							CtlLibrary->Name = ini.ReadString("Setup", "Name")
 							CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
-							CtlLibrary->Path = Replace(LibraryPath, BackSlash, Slash) & ini.ReadString("Setup", LibKey)
+							CtlLibrary->Path = LibraryPath & Slash & ini.ReadString("Setup", LibKey)
 							CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
 							CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
 							CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), CtlLibrary->Path))
@@ -2993,34 +2993,39 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 	ElseIf StartsWith(Path, "../") OrElse StartsWith(Path, "..\") Then
 		Return GetOSPath(GetFolderName(GetFolderName(FromFile)) & Mid(Path, 4))
 	End If
-	Dim Result As UString = GetOSPath(GetFolderName(FromFile) & Path)
-	If FileExists(Result) Then
+	Dim Result As UString = GetOSPath(ExePath & Slash & Path)
+	If FromFile = "" AndAlso FileExists(Result) Then
 		Return Result
 	Else
-		Dim As Library Ptr CtlLibrary
-		For i As Integer = 0 To ControlLibraries.Count - 1
-			CtlLibrary = ControlLibraries.Item(i)
-			If Not CtlLibrary->Enabled Then Continue For
-			Result = GetOSPath(GetFullPath(GetFullPath(CtlLibrary->IncludeFolder, CtlLibrary->Path)) & IIf(EndsWith(CtlLibrary->IncludeFolder, "\") OrElse EndsWith(CtlLibrary->IncludeFolder, "/"), "", Slash) & Path)
-			If FileExists(Result) Then Return Result
-		Next
-		#ifdef __USE_GTK__
-			Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic/" & Path)
-		#else
-			Result = GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc\" & Path)
-		#endif
+		Dim Result As UString = GetOSPath(GetFolderName(FromFile) & Path)
 		If FileExists(Result) Then
 			Return Result
 		Else
+			Dim As Library Ptr CtlLibrary
+			For i As Integer = 0 To ControlLibraries.Count - 1
+				CtlLibrary = ControlLibraries.Item(i)
+				If Not CtlLibrary->Enabled Then Continue For
+				Result = GetOSPath(GetFullPath(GetFullPath(CtlLibrary->IncludeFolder, CtlLibrary->Path)) & IIf(EndsWith(CtlLibrary->IncludeFolder, "\") OrElse EndsWith(CtlLibrary->IncludeFolder, "/"), "", Slash) & Path)
+				If FileExists(Result) Then Return Result
+			Next
 			#ifdef __USE_GTK__
-				Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic/" & Path)
+				Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic/" & Path)
 			#else
-				Result = GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc\" & Path)
+				Result = GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc\" & Path)
 			#endif
 			If FileExists(Result) Then
 				Return Result
 			Else
-				Return GetOSPath(Path)
+				#ifdef __USE_GTK__
+					Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic/" & Path)
+				#else
+					Result = GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc\" & Path)
+				#endif
+				If FileExists(Result) Then
+					Return Result
+				Else
+					Return GetOSPath(Path)
+				End If
 			End If
 		End If
 	End If
@@ -4220,7 +4225,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				#endif
 			#endif
 			Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), Temp)
-			ini.Load GetFolderName(GetFullPath(Temp)) & "Settings.ini"
+			ini.Load GetFolderName(GetRelativePath(Temp)) & "Settings.ini"
 			Var CtlLibrary = New_(Library)
 			CtlLibrary->Name = ini.ReadString("Setup", "Name")
 			CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
@@ -6110,8 +6115,8 @@ Sub btnPropertyValue_Click(ByRef Sender As Control)
 	Case "icon", "cursor", "bitmaptype", "graphictype"
 		pfImageManager->WithoutMainNode = True
 		If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
-			If pfImageManager->lvImages.SelectedItem = 0 Then Exit Sub
-			txtPropertyValue.Text = pfImageManager->lvImages.SelectedItem->Text(0)
+			If pfImageManager->SelectedItem = 0 Then Exit Sub
+			txtPropertyValue.Text = pfImageManager->SelectedItem->Text(0)
 			PropertyChanged txtPropertyValue, txtPropertyValue.Text, False
 		End If
 		pfImageManager->WithoutMainNode = False

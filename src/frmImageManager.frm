@@ -3,7 +3,6 @@
 #else
 	'#Compile -exx
 #endif
-Common Shared As ListViewItem Ptr pfrmImageSelectItem
 '#Region "Form"
 	#include once "frmImageManager.bi"
 	#include once "frmPath.bi"
@@ -574,7 +573,11 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 		'	End If
 	End If
 	ModalResult = ModalResults.OK
-	pfrmImageSelectItem = pfImageManager->lvImages.SelectedItem
+	SelectedItem = lvImages.SelectedItem
+	SelectedItems.Clear
+	For i As Integer = 0 To lvImages.ListItems.Count - 1
+		If lvImages.ListItems.Item(i)->Selected Then SelectedItems.Add lvImages.ListItems.Item(i)
+	Next
 	Me.CloseForm
 End Sub
 
@@ -642,9 +645,8 @@ Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
 		'tbToolbar_ButtonClick tbToolbar, *tbToolbar.Buttons.Item("Add")
 		pfImageManager->lvImages.MultiSelect = True
 		If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
-			For i As Integer = 0 To pfImageManager->lvImages.ListItems.Count - 1
-				If Not pfImageManager->lvImages.ListItems.Item(i)->Selected Then Continue For
-				Dim As UString ResourceName = pfImageManager->lvImages.ListItems.Item(i)->Text(0)
+			For i As Integer = 0 To pfImageManager->SelectedItems.Count - 1
+				Dim As UString ResourceName = Cast(ListViewItem Ptr, pfImageManager->SelectedItems.Item(i))->Text(0)
 				Dim As UString RelativePath = GetResNamePath(ResourceName, ResourceFile)
 				Dim As String NewName = ResourceName
 				Var n = 0

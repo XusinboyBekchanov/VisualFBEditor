@@ -59,6 +59,8 @@
 		Dim As My.Sys.Forms.Designer Ptr Des
 		Dim As frmPathP pfrmPath
 		Dim As TextBox txtWidth, txtHeight
+		Dim As ListViewItem Ptr SelectedItem
+		Dim As List SelectedItems
 	End Type
 	
 	Dim Shared pfImageManager As frmImageManager Ptr

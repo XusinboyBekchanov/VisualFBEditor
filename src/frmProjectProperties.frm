@@ -1111,10 +1111,10 @@ Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
 	pfImageManager->OnlyIcons = True
 	pfImageManager->WithoutMainNode = True
 	If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
-		If pfrmImageSelectItem <> 0 Then
-			txtIcon.Text = pfrmImageSelectItem->Text(0)
+		If pfImageManager->SelectedItem <> 0 Then
+			txtIcon.Text = pfImageManager->SelectedItem->Text(0)
 			'#ifdef __USE_GTK__
-				imgIcon.Graphic.Icon.LoadFromFile(GetRelativePath(pfrmImageSelectItem->Text(2), pfImageManager->ResourceFile), 32, 32)
+				imgIcon.Graphic.Icon.LoadFromFile(GetRelativePath(pfImageManager->SelectedItem->Text(2), pfImageManager->ResourceFile), 32, 32)
 			'#else
 			'	DrawIconEx GetDC(picApplication.Handle), 0, 0, imgIcon.Graphic.Icon.Handle, 32, 32, 0, 0, DI_NORMAL
 			'#endif

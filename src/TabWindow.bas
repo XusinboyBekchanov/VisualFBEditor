@@ -8694,7 +8694,7 @@ Sub TabWindow.Define
 			SelectSearchResult .Item(0)->Text(3), Val(.Item(0)->Text(2)), , , .Item(0)->Tag, sWord
 		Else
 			If pfTrek->ShowModal = ModalResults.OK Then
-				Var item = pfTrek->lvTrek.SelectedItem
+				Var item = pfTrek->SelectedItem
 				If item <> 0 Then
 					SelectSearchResult item->Text(3), Val(item->Text(2)), , , item->Tag, sWord
 				End If

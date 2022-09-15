@@ -86,6 +86,7 @@
 
 
 Private Sub frmTrek.cmdOK_Click(ByRef Sender As Control)
+	fTrek.SelectedItem = fTrek.lvTrek.SelectedItem
 	fTrek.ModalResult = ModalResults.OK
 	fTrek.CloseForm
 End Sub
