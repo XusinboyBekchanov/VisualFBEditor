@@ -97,6 +97,7 @@ Private Sub frmTrek.cmdCancel_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmTrek.lvTrek_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	fTrek.SelectedItem = fTrek.lvTrek.SelectedItem
 	fTrek.ModalResult = ModalResults.OK
 	fTrek.CloseForm
 End Sub
