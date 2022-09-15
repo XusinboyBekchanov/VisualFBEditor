@@ -4852,9 +4852,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		WLet(FLine1, "")
 		WLet(FLine2, "")
 	End If
+	Dim As UString sFileName = FileName
+	Dim As TabWindow Ptr tb
 	For j As Integer = 0 To txtCode.LinesCount - 1
 		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
-			Var tb = GetTab(*FLine1)
+			sFileName = *FLine1
+			tb = GetTab(sFileName)
 			If tb = 0 Then
 				txtCodeBi.LoadFromFile *FLine1, FileEncoding, NewLineType
 				ptxtCode = @txtCodeBi
@@ -4865,6 +4868,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			iStart = 0
 			iEnd = ptxtCode->LinesCount - 1
 		Else
+			sFileName = FileName
+			tb = @This
 			ptxtCode = @txtCode
 			iStart = j
 			iEnd = j
@@ -5013,12 +5018,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->ElementType = Trim(Constructions(ECLine->ConstructionIndex).Name0)
 						te->StartLine = i
 						te->EndLine = i + 1
-						te->Tag = @This
-						If ptxtCode = @txtCode Then
-							te->FileName = FileName
-						Else
-							te->FileName = *FLine1
-						End If
+						te->FileName = sFileName
+						te->Tag = tb
 						ECLine->InConstruction = te
 						Constructs.Add te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
@@ -5081,7 +5082,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->StartLine = i
 								te->EndLine = i
 								te->Parameters = res1(n) & " As " & CurType
-								te->FileName = FileName
+								te->FileName = sFileName
+								te->Tag = tb
 								func->Elements.Add te->Name, te
 							Next
 						End If
@@ -5126,7 +5128,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->StartLine = i
 				te->EndLine = i
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
-				te->FileName = FileName
+				te->FileName = sFileName
+				te->Tag = tb
 				txtCode.FunctionsOthers.Add te->DisplayName, te
 				txtCode.Procedures.Add te->Name, te
 			ElseIf StartsWith(bTrimLCase, "declare ") Then
@@ -5189,8 +5192,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				End If
 				te->StartLine = i
 				te->EndLine = i
-				te->Tag = @This
-				te->FileName = FileName
+				te->FileName = sFileName
+				te->Tag = tb
 				'ECLine->InConstruction = te
 				If Comments <> "" Then te->Comment = Comments: Comments = ""
 				If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
@@ -5249,7 +5252,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->StartLine = i
 						te->EndLine = i
 						te->Parameters = res1(n) & " As " & CurType
-						te->FileName = FileName
+						te->FileName = sFileName
+						te->Tag = tb
 						teDeclare->Elements.Add te->Name, te
 					Next
 				End If
@@ -5263,7 +5267,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				te->StartLine = i
 				te->EndLine = i
 				te->Parameters = te->DisplayName
-				te->FileName = FileName
+				te->FileName = sFileName
+				te->Tag = tb
 				If inFunc AndAlso func <> 0 Then
 					func->Elements.Add te->Name, te
 				Else
@@ -5372,8 +5377,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->StartLine = i
 						te->EndLine = i
 						te->Parameters = res1(n) & " As " & CurType
-						te->FileName = FileName
-						te->Tag = @This
+						te->FileName = sFileName
+						te->Tag = tb
 						If inFunc AndAlso func <> 0 Then
 							func->Elements.Add te->Name, te
 						Else
@@ -5433,7 +5438,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									te->StartLine = i
 									te->EndLine = i
 									te->Parameters = res1(n) & " As " & CurType
-									te->FileName = FileName
+									te->FileName = sFileName
+									te->Tag = tb
 									teDeclare->Elements.Add te->Name, te
 								Next
 							End If
@@ -6370,6 +6376,9 @@ Destructor TabWindow
 	For i As Integer = txtCode.FunctionsOthers.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.FunctionsOthers.Object(i)))
 	Next
+	For i As Integer = txtCode.LineLabels.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, txtCode.LineLabels.Object(i)))
+	Next
 	For i As Integer = txtCode.Args.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Args.Object(i)))
 	Next
@@ -6377,6 +6386,7 @@ Destructor TabWindow
 	txtCode.FunctionsOthers.Clear
 	txtCode.Types.Clear
 	txtCode.Procedures.Clear
+	txtCode.LineLabels.Clear
 	txtCode.Args.Clear
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0
 	'If tn <> 0 Then ptvExplorer->RemoveRoot ptvExplorer->IndexOfRoot(tn)
@@ -8458,6 +8468,20 @@ Sub TabWindow.Define
 			If TypeName = "" AndAlso teOld <> 0 AndAlso teOld->Value <> "" Then
 				TypeName = txtCode.GetTypeFromValue(teOld->Value, iSelEndLine)
 			End If
+			If teOld <> 0 Then
+				For i As Integer = 0 To teOld->Elements.Count - 1
+					te = teOld->Elements.Object(i)
+					If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+						If te->StartLine = iSelEndLine Then Continue For
+						.Add te->DisplayName
+						.Item(.Count - 1)->Text(1) = te->Parameters
+						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
+						.Item(.Count - 1)->Text(3) = te->FileName
+						.Item(.Count - 1)->Text(4) = te->Comment
+						.Item(.Count - 1)->Tag = te->Tag
+					End If
+				Next
+			End If
 			FListItems.Clear
 			If txtCode.Types.Contains(TypeName) Then
 				FillIntellisense TypeName, @txtCode.Types, True, True
@@ -8540,6 +8564,19 @@ Sub TabWindow.Define
 			End If
 			For i As Integer = 0 To txtCode.Functions.Count - 1
 				te = txtCode.Functions.Object(i)
+				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
+					If te->StartLine = iSelEndLine Then Continue For
+					If te = te2 Then Continue For
+					.Add te->DisplayName
+					.Item(.Count - 1)->Text(1) = te->Parameters
+					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
+					.Item(.Count - 1)->Text(3) = te->FileName
+					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Tag = te->Tag
+				End If
+			Next
+			For i As Integer = 0 To txtCode.LineLabels.Count - 1
+				te = txtCode.LineLabels.Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->StartLine = iSelEndLine Then Continue For
 					If te = te2 Then Continue For
