@@ -5019,7 +5019,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos2 = InStr(Pos1 + l, bTrim, "(")
 						Pos5 = Pos2
 						Pos3 = InStr(Pos1 + l, bTrim, " ")
-						If Pos2 = 0 OrElse Pos3 > 0 AndAlso Pos3 < Pos2 Then Pos2 = Pos3
+						If Pos3 > 0 AndAlso (Pos2 = 0 OrElse Pos3 < Pos2) Then Pos2 = Pos3
 						te = New_( TypeElement)
 						If Pos2 > 0 Then
 							te->Name = Trim(Mid(bTrim, Pos1 + l, Pos2 - Pos1 - l))
