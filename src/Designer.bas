@@ -142,7 +142,7 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Sub Designer.ClipCursor(hDlg As HWND)
-			Dim As ..RECT R
+			Dim As ..Rect R
 			If IsWindow(hDlg) Then
 				GetClientRect(hDlg, @R)
 				MapWindowPoints(hDlg, 0,Cast(..Point Ptr, @R), 2)
@@ -160,7 +160,7 @@ Namespace My.Sys.Forms
 			PrevBrush = SelectObject(FHDC, Brush)
 			SetROP2(FHDC, R2_NOT)
 			Rectangle(FHDC, ScaleX(R.Left), ScaleY(R.Top), ScaleX(R.Right), ScaleY(R.Bottom))
-			SelectObject(FHDc, PrevBrush)
+			SelectObject(FHDC, PrevBrush)
 			ReleaseDC(FDialog, FHDC)
 		#endif
 	End Sub
@@ -603,6 +603,13 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
+	Sub Designer.SetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
+		Dim As SymbolsType Ptr st = Symbols(Control)
+		If st AndAlso st->ComponentSetBoundsSub AndAlso st->Q_ComponentFunc Then
+			st->ComponentSetBoundsSub(st->Q_ComponentFunc(Control), iLeft, iTop, iWidth, iHeight)
+		End If
+	End Sub
+	
 	#ifdef __USE_GTK__
 		Function Designer.IsDot(hDlg As GtkWidget Ptr) As Integer
 			Dim As String s
@@ -874,7 +881,7 @@ Namespace My.Sys.Forms
 				If FBeginX <> FEndX Or FBeginY <> FEndY Then
 					For j As Integer = 0 To SelectedControls.Count - 1
 						#ifdef __USE_GTK__
-							GetControlBounds(SelectedControls.Items[j], FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j))
+							SetControlBounds(SelectedControls.Items[j], FLeft(j) + (FNewX - FBeginX), FTop(j) + (FNewY - FBeginY), FWidth(j), FHeight(j))
 						#else
 							MoveWindow(GetControlHandle(SelectedControls.Items[j]), ScaleX(FLeft(j) + (FNewX - FBeginX)), ScaleY(FTop(j) + (FNewY - FBeginY)), ScaleX(FWidth(j)), ScaleY(FHeight(j)), True)
 						#endif

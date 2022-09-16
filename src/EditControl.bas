@@ -1173,7 +1173,7 @@ Namespace My.Sys.Forms
 		ChangeText Value, 0, "Matn qo`shildi"
 	End Property
 	
-	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes)
+	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes, WithoutScroll As Boolean = False)
 		Dim As WString Ptr pBuff
 		Dim As String Buff, EncodingStr, NewLineStr
 		Dim As WString Ptr BuffRead
@@ -1181,7 +1181,6 @@ Namespace My.Sys.Forms
 		Dim As FileEncodings OldFileEncoding
 		Dim As Integer iC = 0, OldiC = 0, i = 0
 		Var InAsm = False
-		
 		'check the Newlinetype again for missing Cr in AsicII file
 		Fn = FreeFile_
 		If Open(FileName For Binary Access Read As #Fn) = 0 Then
@@ -1274,8 +1273,8 @@ Namespace My.Sys.Forms
 				OldiC = iC
 				i += 1
 			Loop
-			
-			ScrollToCaret
+			LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
+			If Not WithoutScroll Then ScrollToCaret
 		End If
 		WDeAllocate(BuffRead)
 		CloseFile_(Fn)

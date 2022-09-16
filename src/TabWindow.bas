@@ -294,7 +294,6 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			tb->UseVisualStyleBackColor = True
 			tb->CheckExtension FileName
 			'.txtCode.ContextMenu = @mnuCode
-			If Not mnuWindowSeparator->Visible Then mnuWindowSeparator->Visible = True
 			ptabCode->AddTab(Cast(TabPage Ptr, tb))
 			#ifdef __USE_GTK__
 				'.layout = gtk_layout_new(NULL, NULL)
@@ -311,7 +310,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			If FileName <> "" Then
 				pApp = @VisualFBEditorApp
 				pApp->MainForm = @frmMain
-				.txtCode.LoadFromFile(FileNameNew, tb->FileEncoding, tb->NewLineType)
+				.txtCode.LoadFromFile(FileNameNew, tb->FileEncoding, tb->NewLineType, True)
 				If bNew Then
 					Dim As String NewFormName
 					If TreeN <> 0 Then
@@ -346,8 +345,6 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 						End If
 					Next
 				End If
-				.txtCode.ClearUndo
-				.Modified = bNew
 				'				If Not EndsWith(LCase(FileNameNew), ".frm") Then
 				'					tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 				'					SetRightClosedStyle True, True
@@ -364,6 +361,12 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			ChangeNewLineType tb->NewLineType
 			.FormDesign(bNoActivate)
 			pApp->MainForm = @frmMain
+			If FileName <> "" Then
+				.txtCode.ClearUndo
+				.Modified = bNew
+			End If
+			.txtCode.ScrollToCaret
+			If Not mnuWindowSeparator->Visible Then mnuWindowSeparator->Visible = True
 		End With
 		'If tb->cboClass.Items.Count < 2 Then
 		'	tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")

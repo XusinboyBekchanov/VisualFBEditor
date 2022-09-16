@@ -475,7 +475,7 @@ Namespace My.Sys.Forms
 		Declare Sub ClearAllBookmarks
 		Declare Sub SelectAll
 		Declare Sub ScrollToCaret
-		Declare Sub LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes)
+		Declare Sub LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes, WithoutScroll As Boolean = False)
 		Declare Sub SaveToFile(ByRef FileName As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
 		Declare Sub Indent
 		Declare Sub Outdent
