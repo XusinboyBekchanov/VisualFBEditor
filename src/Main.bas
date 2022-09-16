@@ -3024,6 +3024,10 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 				If FileExists(Result) Then
 					Return Result
 				Else
+					For i As Integer = 0 To pIncludePaths->Count - 1
+						Result = GetOSPath(pIncludePaths->Item(i) & IIf(EndsWith(pIncludePaths->Item(i), "\") OrElse EndsWith(pIncludePaths->Item(i), "/"), "", Slash) & Path)
+						If FileExists(Result) Then Return Result
+					Next
 					Return GetOSPath(Path)
 				End If
 			End If
