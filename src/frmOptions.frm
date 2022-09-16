@@ -28,13 +28,153 @@ pfOptions = @fOptions
 		This.MinimizeBox = False
 		This.MaximizeBox = False
 		This.ExtraMargins.Bottom = -1
-		This.SetBounds 0, 0, 630, 488
+		This.SetBounds 0, 0, 631, 488
 		This.StartPosition = FormStartPosition.CenterParent
 		'This.Caption = ML("Options")
 		This.CancelButton = @cmdCancel
 		'This.DefaultButton = @cmdOK
 		This.Designer = @This
 		This.BorderStyle = FormBorderStyle.FixedDialog
+		' pnlCompiler
+		pnlCompiler.Name = "pnlCompiler"
+		pnlCompiler.Text = ""
+		pnlCompiler.Align = DockStyle.alClient
+		pnlCompiler.ExtraMargins.Bottom = 9
+		pnlCompiler.ExtraMargins.Top = 4
+		pnlCompiler.ExtraMargins.Right = 10
+		pnlCompiler.Margins.Left = 10
+		pnlCompiler.SetBounds 188, 4, 427, 400
+		pnlCompiler.Parent = @This
+		' pnlMake
+		pnlMake.Name = "pnlMake"
+		pnlMake.Text = ""
+		pnlMake.ExtraMargins.Top = 4
+		pnlMake.ExtraMargins.Bottom = 9
+		pnlMake.ExtraMargins.Right = 10
+		pnlMake.Margins.Left = 10
+		pnlMake.Align = DockStyle.alClient
+		pnlMake.SetBounds 188, 4, 427, 400
+		pnlMake.Parent = @This
+		' pnlDebugger
+		pnlDebugger.Name = "pnlDebugger"
+		pnlDebugger.Text = ""
+		pnlDebugger.ExtraMargins.Top = 4
+		pnlDebugger.ExtraMargins.Bottom = 9
+		pnlDebugger.ExtraMargins.Right = 10
+		pnlDebugger.Margins.Left = 10
+		pnlDebugger.Align = DockStyle.alClient
+		pnlDebugger.SetBounds 188, 4, 427, 400
+		pnlDebugger.Parent = @This
+		' pnlTerminal
+		pnlTerminal.Name = "pnlTerminal"
+		pnlTerminal.Text = ""
+		pnlTerminal.Margins.Left = 10
+		pnlTerminal.ExtraMargins.Top = 4
+		pnlTerminal.ExtraMargins.Right = 10
+		pnlTerminal.ExtraMargins.Bottom = 9
+		pnlTerminal.Align = DockStyle.alClient
+		pnlTerminal.SetBounds 188, 4, 427, 400
+		pnlTerminal.Parent = @This
+		' pnlDesigner
+		pnlDesigner.Name = "pnlDesigner"
+		pnlDesigner.Text = ""
+		pnlDesigner.ExtraMargins.Top = 4
+		pnlDesigner.ExtraMargins.Right = 10
+		pnlDesigner.ExtraMargins.Bottom = 9
+		pnlDesigner.Align = DockStyle.alClient
+		pnlDesigner.Margins.Left = 10
+		pnlDesigner.SetBounds 188, 4, 427, 400
+		pnlDesigner.Parent = @This
+		' pnlLocalization
+		pnlLocalization.Name = "pnlLocalization"
+		pnlLocalization.Text = ""
+		pnlLocalization.ExtraMargins.Top = 4
+		pnlLocalization.ExtraMargins.Bottom = 9
+		pnlLocalization.ExtraMargins.Right = 10
+		pnlLocalization.Align = DockStyle.alClient
+		pnlLocalization.Margins.Left = 10
+		pnlLocalization.SetBounds 188, 4, 427, 400
+		pnlLocalization.Parent = @This
+		' pnlThemes
+		pnlThemes.Name = "pnlThemes"
+		pnlThemes.Text = ""
+		pnlThemes.ExtraMargins.Top = 4
+		pnlThemes.ExtraMargins.Bottom = 9
+		pnlThemes.ExtraMargins.Right = 10
+		pnlThemes.Margins.Left = 10
+		pnlThemes.Align = DockStyle.alClient
+		pnlThemes.SetBounds 188, 4, 427, 400
+		pnlThemes.Parent = @This
+		' pnlShortcuts
+		pnlShortcuts.Name = "pnlShortcuts"
+		pnlShortcuts.Text = ""
+		pnlShortcuts.Margins.Left = 10
+		pnlShortcuts.Margins.Right = 0
+		pnlShortcuts.ExtraMargins.Bottom = 9
+		pnlShortcuts.ExtraMargins.Top = 4
+		pnlShortcuts.ExtraMargins.Right = 10
+		pnlShortcuts.Align = DockStyle.alClient
+		pnlShortcuts.SetBounds 188, 4, 427, 400
+		pnlShortcuts.Parent = @This
+		' pnlHelp
+		pnlHelp.Name = "pnlHelp"
+		pnlHelp.Text = ""
+		pnlHelp.ExtraMargins.Top = 4
+		pnlHelp.ExtraMargins.Right = 10
+		pnlHelp.ExtraMargins.Bottom = 9
+		pnlHelp.Margins.Left = 10
+		pnlHelp.Align = DockStyle.alClient
+		pnlHelp.SetBounds 188, 4, 427, 400
+		pnlHelp.Parent = @This
+		' pnlOtherEditors
+		pnlOtherEditors.Name = "pnlOtherEditors"
+		pnlOtherEditors.Text = ""
+		pnlOtherEditors.ExtraMargins.Right = 10
+		pnlOtherEditors.Align = DockStyle.alClient
+		pnlOtherEditors.ExtraMargins.Bottom = 9
+		pnlOtherEditors.ExtraMargins.Top = 4
+		pnlOtherEditors.SetBounds 188, 4, 427, 400
+		pnlOtherEditors.Parent = @This
+		' pnlIncludes
+		pnlIncludes.Name = "pnlIncludes"
+		pnlIncludes.ExtraMargins.Bottom = 9
+		pnlIncludes.ExtraMargins.Right = 10
+		pnlIncludes.Align = DockStyle.alClient
+		pnlIncludes.ExtraMargins.Top = 4
+		pnlIncludes.SetBounds 188, 4, 427, 400
+		pnlIncludes.Text = ""
+		pnlIncludes.Parent = @This
+		' pnlGeneral
+		pnlGeneral.Name = "pnlGeneral"
+		pnlGeneral.Text = ""
+		pnlGeneral.Margins.Left = 10
+		pnlGeneral.ExtraMargins.Top = 0
+		pnlGeneral.ExtraMargins.Bottom = 9
+		pnlGeneral.ExtraMargins.Right = 10
+		pnlGeneral.Align = DockStyle.alClient
+		pnlGeneral.Margins.Top = 0
+		pnlGeneral.SetBounds 188, 0, 427, 404
+		pnlGeneral.Parent = @This
+		' pnlCodeEditor
+		pnlCodeEditor.Name = "pnlCodeEditor"
+		pnlCodeEditor.Text = ""
+		pnlCodeEditor.ExtraMargins.Top = 4
+		pnlCodeEditor.ExtraMargins.Bottom = 9
+		pnlCodeEditor.ExtraMargins.Right = 10
+		pnlCodeEditor.Margins.Left = 10
+		pnlCodeEditor.Align = DockStyle.alClient
+		pnlCodeEditor.SetBounds 188, 4, 427, 400
+		pnlCodeEditor.Parent = @This
+		' pnlColorsAndFonts
+		pnlColorsAndFonts.Name = "pnlColorsAndFonts"
+		pnlColorsAndFonts.Text = ""
+		pnlColorsAndFonts.ExtraMargins.Top = 4
+		pnlColorsAndFonts.ExtraMargins.Right = 10
+		pnlColorsAndFonts.ExtraMargins.Bottom = 9
+		pnlColorsAndFonts.Margins.Left = 10
+		pnlColorsAndFonts.Align = DockStyle.alClient
+		pnlColorsAndFonts.SetBounds 188, 4, 427, 400
+		pnlColorsAndFonts.Parent = @This
 		' pnlCommands
 		With pnlCommands
 			.Name = "pnlCommands"
@@ -46,7 +186,7 @@ pfOptions = @fOptions
 			.Margins.Left = 10
 			.Margins.Bottom = 10
 			.AutoSize = True
-			.SetBounds 0, 419, 624, 40
+			.SetBounds 0, 415, 624, 44
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -97,137 +237,6 @@ pfOptions = @fOptions
 		lblBlack.Anchor.Left = 1
 		lblBlack.SetBounds 10, 0, 593, 1
 		lblBlack.Parent = @pnlLine
-		' pnlGeneral
-		pnlGeneral.Name = "pnlGeneral"
-		pnlGeneral.Text = ""
-		pnlGeneral.Margins.Left = 10
-		pnlGeneral.ExtraMargins.Top = 0
-		pnlGeneral.ExtraMargins.Bottom = 9
-		pnlGeneral.ExtraMargins.Right = 10
-		pnlGeneral.Align = DockStyle.alClient
-		pnlGeneral.Margins.Top = 0
-		pnlGeneral.SetBounds 188, 0, 416, 408
-		pnlGeneral.Parent = @This
-		' pnlCodeEditor
-		pnlCodeEditor.Name = "pnlCodeEditor"
-		pnlCodeEditor.Text = ""
-		pnlCodeEditor.ExtraMargins.Top = 4
-		pnlCodeEditor.ExtraMargins.Bottom = 9
-		pnlCodeEditor.ExtraMargins.Right = 10
-		pnlCodeEditor.Margins.Left = 10
-		pnlCodeEditor.Align = DockStyle.alClient
-		pnlCodeEditor.SetBounds 188, 4, 426, 424
-		pnlCodeEditor.Parent = @This
-		' pnlColorsAndFonts
-		pnlColorsAndFonts.Name = "pnlColorsAndFonts"
-		pnlColorsAndFonts.Text = ""
-		pnlColorsAndFonts.ExtraMargins.Top = 4
-		pnlColorsAndFonts.ExtraMargins.Right = 10
-		pnlColorsAndFonts.ExtraMargins.Bottom = 9
-		pnlColorsAndFonts.Margins.Left = 10
-		pnlColorsAndFonts.Align = DockStyle.alClient
-		pnlColorsAndFonts.SetBounds 188, 4, 426, 404
-		pnlColorsAndFonts.Parent = @This
-		' pnlCompiler
-		pnlCompiler.Name = "pnlCompiler"
-		pnlCompiler.Text = ""
-		pnlCompiler.Align = DockStyle.alClient
-		pnlCompiler.ExtraMargins.Bottom = 9
-		pnlCompiler.ExtraMargins.Top = 4
-		pnlCompiler.ExtraMargins.Right = 10
-		pnlCompiler.Margins.Left = 10
-		pnlCompiler.SetBounds 188, 4, 426, 404
-		pnlCompiler.Parent = @This
-		' pnlMake
-		pnlMake.Name = "pnlMake"
-		pnlMake.Text = ""
-		pnlMake.ExtraMargins.Top = 4
-		pnlMake.ExtraMargins.Bottom = 9
-		pnlMake.ExtraMargins.Right = 10
-		pnlMake.Margins.Left = 10
-		pnlMake.Align = DockStyle.alClient
-		pnlMake.SetBounds 188, 4, 426, 404
-		pnlMake.Parent = @This
-		' pnlDebugger
-		pnlDebugger.Name = "pnlDebugger"
-		pnlDebugger.Text = ""
-		pnlDebugger.ExtraMargins.Top = 4
-		pnlDebugger.ExtraMargins.Bottom = 9
-		pnlDebugger.ExtraMargins.Right = 10
-		pnlDebugger.Margins.Left = 10
-		pnlDebugger.Align = DockStyle.alClient
-		pnlDebugger.SetBounds 188, 4, 426, 404
-		pnlDebugger.Parent = @This
-		' pnlTerminal
-		pnlTerminal.Name = "pnlTerminal"
-		pnlTerminal.Text = ""
-		pnlTerminal.Margins.Left = 10
-		pnlTerminal.ExtraMargins.Top = 4
-		pnlTerminal.ExtraMargins.Right = 10
-		pnlTerminal.ExtraMargins.Bottom = 9
-		pnlTerminal.Align = DockStyle.alClient
-		pnlTerminal.SetBounds 188, 4, 426, 404
-		pnlTerminal.Parent = @This
-		' pnlDesigner
-		pnlDesigner.Name = "pnlDesigner"
-		pnlDesigner.Text = ""
-		pnlDesigner.ExtraMargins.Top = 4
-		pnlDesigner.ExtraMargins.Right = 10
-		pnlDesigner.ExtraMargins.Bottom = 9
-		pnlDesigner.Align = DockStyle.alClient
-		pnlDesigner.Margins.Left = 10
-		pnlDesigner.SetBounds 188, 4, 426, 404
-		pnlDesigner.Parent = @This
-		' pnlLocalization
-		pnlLocalization.Name = "pnlLocalization"
-		pnlLocalization.Text = ""
-		pnlLocalization.ExtraMargins.Top = 4
-		pnlLocalization.ExtraMargins.Bottom = 9
-		pnlLocalization.ExtraMargins.Right = 10
-		pnlLocalization.Align = DockStyle.alClient
-		pnlLocalization.Margins.Left = 10
-		pnlLocalization.SetBounds 188, 4, 426, 404
-		pnlLocalization.Parent = @This
-		' pnlThemes
-		pnlThemes.Name = "pnlThemes"
-		pnlThemes.Text = ""
-		pnlThemes.ExtraMargins.Top = 4
-		pnlThemes.ExtraMargins.Bottom = 9
-		pnlThemes.ExtraMargins.Right = 10
-		pnlThemes.Margins.Left = 10
-		pnlThemes.Align = DockStyle.alClient
-		pnlThemes.SetBounds 188, 4, 426, 404
-		pnlThemes.Parent = @This
-		' pnlShortcuts
-		pnlShortcuts.Name = "pnlShortcuts"
-		pnlShortcuts.Text = ""
-		pnlShortcuts.Margins.Left = 10
-		pnlShortcuts.Margins.Right = 0
-		pnlShortcuts.ExtraMargins.Bottom = 9
-		pnlShortcuts.ExtraMargins.Top = 4
-		pnlShortcuts.ExtraMargins.Right = 10
-		pnlShortcuts.Align = DockStyle.alClient
-		pnlShortcuts.SetBounds 188, 4, 426, 404
-		pnlShortcuts.Parent = @This
-		' pnlHelp
-		pnlHelp.Name = "pnlHelp"
-		pnlHelp.Text = ""
-		pnlHelp.ExtraMargins.Top = 4
-		pnlHelp.ExtraMargins.Right = 10
-		pnlHelp.ExtraMargins.Bottom = 9
-		pnlHelp.Margins.Left = 10
-		pnlHelp.Align = DockStyle.alClient
-		pnlHelp.SetBounds 188, 4, 426, 404
-		pnlHelp.Parent = @This
-		' pnlOtherEditors
-		pnlOtherEditors.Name = "pnlOtherEditors"
-		pnlOtherEditors.Text = ""
-		pnlOtherEditors.ExtraMargins.Right = 10
-		pnlOtherEditors.Align = DockStyle.alClient
-		pnlOtherEditors.ExtraMargins.Bottom = 9
-		pnlOtherEditors.ExtraMargins.Top = 4
-		pnlOtherEditors.SetBounds 188, 4, 426, 404
-		pnlOtherEditors.Parent = @This
 		' grbDefaultCompilers
 		With grbDefaultCompilers
 			.Name = "grbDefaultCompilers"
@@ -324,7 +333,7 @@ pfOptions = @fOptions
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
-			.SetBounds 10, 203, 416, 201
+			.SetBounds 10, 202, 417, 197
 			.Parent = @pnlDebugger
 		End With
 		' cboDebugger32
@@ -359,7 +368,7 @@ pfOptions = @fOptions
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
-			.SetBounds 10, 168, 416, 236
+			.SetBounds 10, 167, 417, 232
 			.Parent = @pnlTerminal
 		End With
 		' lvTerminalPath
@@ -373,41 +382,52 @@ pfOptions = @fOptions
 			.OnItemActivate = @lvTerminalPaths_ItemActivate_
 			.Parent = @grbTerminalPaths
 		End With
-		' cmdAddTerminal
-		With cmdAddTerminal
-			.Name = "cmdAddTerminal"
-			.Text = ML("&Add")
-			.ExtraMargins.Left = -1
-			.ExtraMargins.Right = 290
-			.Align = DockStyle.alBottom
-			.SetBounds 14, 197, 97, 24
-			.OnClick = @cmdAddTerminal_Click
-			.Parent = @grbTerminalPaths
+		With cmdClearTerminals
+			.Name = "cmdClearTerminals"
+			.Text = ML("&Clear")
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
+			.OnClick = @cmdClearTerminals_Click
+			.Parent = @hbxTerminal
 		End With
 		' cmdRemoveTerminal
 		With cmdRemoveTerminal
 			.Name = "cmdRemoveTerminal"
 			.Text = ML("&Remove")
-			.ExtraMargins.Right = 96
-			.ExtraMargins.Left = 193
-			.ExtraMargins.Bottom = -24
-			.Align = DockStyle.alBottom
-			.SetBounds 208, 197, 97, 24
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
 			.OnClick = @cmdRemoveTerminal_Click
-			.Parent = @grbTerminalPaths
+			.Parent = @hbxTerminal
+		End With
+		' cmdChangeTerminal
+		cmdChangeTerminal.Name = "cmdChangeTerminal"
+		cmdChangeTerminal.Text = ML("Chan&ge")
+		cmdChangeTerminal.ExtraMargins.Right = 0
+		cmdChangeTerminal.ExtraMargins.Bottom = 0
+		cmdChangeTerminal.ExtraMargins.Left = 0
+		cmdChangeTerminal.Align = DockStyle.alRight
+		cmdChangeTerminal.SetBounds 290, 0, 97, 24
+		cmdChangeTerminal.OnClick = @cmdChangeTerminal_Click
+		cmdChangeTerminal.Parent = @hbxTerminal
+		' cmdAddTerminal
+		With cmdAddTerminal
+			.Name = "cmdAddTerminal"
+			.Text = ML("&Add")
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Right = 0
+			.Align = DockStyle.alRight
+			.ExtraMargins.Bottom = 0
+			.SetBounds 289, 0, 97, 24
+			.OnClick = @cmdAddTerminal_Click
+			.Parent = @hbxTerminal
 		End With
 		' cmdClearDebuggers1
-		With cmdClearTerminals
-			.Name = "cmdClearTerminals"
-			.Text = ML("&Clear")
-			.ExtraMargins.Right = -1
-			.ExtraMargins.Left = 290
-			.ExtraMargins.Bottom = -24
-			.Align = DockStyle.alBottom
-			.SetBounds 305, 197, 97, 24
-			.OnClick = @cmdClearTerminals_Click
-			.Parent = @grbTerminalPaths
-		End With
 		' grbLanguage
 		With grbLanguage
 			.Name = "grbLanguage"
@@ -451,40 +471,86 @@ pfOptions = @fOptions
 		cboLanguage.ControlIndex = 0
 		cboLanguage.SetBounds 0, 0, 110, 21
 		cboLanguage.Parent = @pnlLanguage
+		' cmdClearCompilers
+		With cmdClearCompilers
+			.Name = "cmdClearCompilers"
+			.Text = ML("&Clear")
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.Align = DockStyle.alRight
+			.SetBounds 289, 0, 97, 24
+			.OnClick = @cmdClearCompilers_Click
+			.Parent = @hbxCompilers
+		End With
+		' cmdRemoveCompiler
+		With cmdRemoveCompiler
+			.Name = "cmdRemoveCompiler"
+			.Text = ML("&Remove")
+			.ExtraMargins.Bottom = 0
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.Align = DockStyle.alRight
+			.SetBounds 191, 0, 97, 24
+			.OnClick = @cmdRemoveCompiler_Click
+			.Parent = @hbxCompilers
+		End With
+		' cmdChangeCompiler
+		With cmdChangeCompiler
+			.Name = "cmdChangeCompiler"
+			.Text = ML("Chan&ge")
+			.ExtraMargins.Bottom = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Right = 0
+			.Align = DockStyle.alRight
+			.SetBounds 93, 0, 97, 24
+			.OnClick = @cmdChangeCompiler_Click
+			.Parent = @hbxCompilers
+		End With
 		' cmdAddCompiler
 		cmdAddCompiler.Name = "cmdAddCompiler"
 		cmdAddCompiler.Text = ML("&Add")
-		cmdAddCompiler.ExtraMargins.Left = -1
+		cmdAddCompiler.ExtraMargins.Left = 0
 		cmdAddCompiler.ExtraMargins.Bottom = 0
-		cmdAddCompiler.ExtraMargins.Right = 290
-		cmdAddCompiler.Align = DockStyle.alBottom
-		cmdAddCompiler.SetBounds 14, 222, 97, 24
+		cmdAddCompiler.ExtraMargins.Right = 0
+		cmdAddCompiler.Align = DockStyle.alRight
+		cmdAddCompiler.SetBounds -5, 0, 97, 24
 		cmdAddCompiler.OnClick = @cmdAddCompiler_Click
-		cmdAddCompiler.Parent = @grbCompilerPaths
+		cmdAddCompiler.Parent = @hbxCompilers
+		' vbxGeneral
+		With vbxGeneral
+			.Name = "vbxGeneral"
+			.Text = "VerticalBox1"
+			.TabIndex = 213
+			.Align = DockStyle.alTop
+			.SetBounds 10, 0, 416, 18
+			.Designer = @This
+			.Parent = @pnlGeneral
+		End With
 		' chkAutoCreateBakFiles
 		With chkAutoCreateBakFiles
 			.Name = "chkAutoCreateBakFiles"
 			.Text = ML("Auto create bak files before saving")
 			.ExtraMargins.Top = 5
 			.Align = DockStyle.alTop
-			.SetBounds 10, 74, 416, 18
+			.SetBounds 0, 5, 416, 18
 			.ID = 1009
-			.Parent = @pnlGeneral
+			.Parent = @vbxGeneral
 		End With
 		' chkAutoCreateRC
 		chkAutoCreateRC.Name = "chkAutoCreateRC"
 		chkAutoCreateRC.Text = ML("Auto create resource and manifest files (.rc, .xml)")
 		chkAutoCreateRC.ExtraMargins.Top = 5
 		chkAutoCreateRC.Align = DockStyle.alTop
-		chkAutoCreateRC.SetBounds 10, 28, 406, 18
-		chkAutoCreateRC.Parent = @pnlGeneral
+		chkAutoCreateRC.SetBounds 0, 28, 416, 18
+		chkAutoCreateRC.Parent = @vbxGeneral
 		' CheckBox1
 		CheckBox1.Name = "CheckBox1"
 		CheckBox1.Text = ML("Auto increment version")
 		CheckBox1.Align = DockStyle.alTop
 		CheckBox1.ExtraMargins.Top = 5
-		CheckBox1.SetBounds 10, 28, 416, 18
-		CheckBox1.Parent = @pnlGeneral
+		CheckBox1.SetBounds 0, 51, 416, 18
+		CheckBox1.Parent = @vbxGeneral
 		' chkAddRelativePathsToRecent
 		With chkAddRelativePathsToRecent
 			.Name = "chkAddRelativePathsToRecent"
@@ -492,18 +558,9 @@ pfOptions = @fOptions
 			.TabIndex = 191
 			.ExtraMargins.Top = 5
 			.Align = DockStyle.alTop
-			.SetBounds 10, 194, 416, 18
-			.Parent = @pnlGeneral
+			.SetBounds 0, 74, 416, 18
+			.Parent = @vbxGeneral
 		End With
-		' pnlIncludes
-		pnlIncludes.Name = "pnlIncludes"
-		pnlIncludes.ExtraMargins.Bottom = 9
-		pnlIncludes.ExtraMargins.Right = 10
-		pnlIncludes.Align = DockStyle.alClient
-		pnlIncludes.ExtraMargins.Top = 4
-		pnlIncludes.SetBounds 188, 4, 426, 404
-		pnlIncludes.Text = ""
-		pnlIncludes.Parent = @This
 		' grbIncludePaths
 		With grbIncludePaths
 			.Name = "grbIncludePaths"
@@ -561,27 +618,37 @@ pfOptions = @fOptions
 		cmdMFFPath.SetBounds 377, 20, 24, 22
 		cmdMFFPath.OnClick = @cmdMFFPath_Click
 		cmdMFFPath.Parent = @grbIncludePaths
+		' vbxCodeEditor
+		With vbxCodeEditor
+			.Name = "vbxCodeEditor"
+			.Text = "HorizontalBox1"
+			.TabIndex = 212
+			.Align = DockStyle.alTop
+			.SetBounds 10, 0, 416, 250
+			.Designer = @This
+			.Parent = @pnlCodeEditor
+		End With
 		' chkAutoIndentation
 		chkAutoIndentation.Name = "chkAutoIndentation"
 		chkAutoIndentation.Text = ML("Auto Indentation")
 		chkAutoIndentation.ExtraMargins.Top = 2
 		chkAutoIndentation.Align = DockStyle.alTop
-		chkAutoIndentation.SetBounds 10, 2, 416, 21
-		chkAutoIndentation.Parent = @pnlCodeEditor
+		chkAutoIndentation.SetBounds 0, 2, 73, 21
+		chkAutoIndentation.Parent = @vbxCodeEditor
 		' chkEnableAutoComplete
 		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
 		chkEnableAutoComplete.Text = ML("Enable Auto Complete")
 		chkEnableAutoComplete.ExtraMargins.Top = 0
 		chkEnableAutoComplete.Align = DockStyle.alTop
-		chkEnableAutoComplete.SetBounds 10, 23, 416, 21
-		chkEnableAutoComplete.Parent = @pnlCodeEditor
+		chkEnableAutoComplete.SetBounds 0, 23, 416, 21
+		chkEnableAutoComplete.Parent = @vbxCodeEditor
 		' chkShowSpaces
 		chkShowSpaces.Name = "chkShowSpaces"
 		chkShowSpaces.Text = ML("Show Spaces")
 		chkShowSpaces.Align = DockStyle.alTop
 		chkShowSpaces.ExtraMargins.Top = 0
-		chkShowSpaces.SetBounds 10, 46, 416, 21
-		chkShowSpaces.Parent = @pnlCodeEditor
+		chkShowSpaces.SetBounds 0, 44, 416, 21
+		chkShowSpaces.Parent = @vbxCodeEditor
 		' chkShowKeywordsTooltip
 		With chkShowKeywordsTooltip
 			.Name = "chkShowKeywordsTooltip"
@@ -589,9 +656,9 @@ pfOptions = @fOptions
 			.TabIndex = 170
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 69, 416, 21
+			.SetBounds 0, 65, 416, 21
 			'.Caption = ML("Show Keywords Tooltip")
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' chkShowTooltipsAtTheTop
 		With chkShowTooltipsAtTheTop
@@ -600,9 +667,9 @@ pfOptions = @fOptions
 			.TabIndex = 192
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 92, 416, 21
+			.SetBounds 0, 86, 416, 21
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' chkHighlightCurrentWord
 		With chkHighlightCurrentWord
@@ -610,8 +677,8 @@ pfOptions = @fOptions
 			.Text = ML("Highlight Current Word")
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 115, 416, 21
-			.Parent = @pnlCodeEditor
+			.SetBounds 0, 107, 416, 21
+			.Parent = @vbxCodeEditor
 		End With
 		' chkHighlightCurrentLine
 		With chkHighlightCurrentLine
@@ -619,8 +686,8 @@ pfOptions = @fOptions
 			.Text = ML("Highlight Current Line")
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 138, 416, 21
-			.Parent = @pnlCodeEditor
+			.SetBounds 0, 128, 416, 21
+			.Parent = @vbxCodeEditor
 		End With
 		' chkHighlightBrackets
 		With chkHighlightBrackets
@@ -628,8 +695,8 @@ pfOptions = @fOptions
 			.Text = ML("Highlight Brackets")
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 161, 416, 21
-			.Parent = @pnlCodeEditor
+			.SetBounds 0, 149, 416, 21
+			.Parent = @vbxCodeEditor
 		End With
 		' chkAddSpacesToOperators
 		With chkAddSpacesToOperators
@@ -638,9 +705,9 @@ pfOptions = @fOptions
 			.TabIndex = 171
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 10, 181, 416, 21
+			.SetBounds 0, 170, 416, 21
 			'.Caption = ML("Add Spaces To Operators")
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' chkSyntaxHighlightingIdentifiers
 		With chkSyntaxHighlightingIdentifiers
@@ -649,9 +716,9 @@ pfOptions = @fOptions
 			.TabIndex = 201
 			.Align = DockStyle.alTop
 			'.Caption = ML("Syntax Highlighting Identifiers")
-			.SetBounds 10, 344, 416, 21
+			.SetBounds 0, 191, 416, 21
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' chkChangeIdentifiersCase
 		With chkChangeIdentifiersCase
@@ -661,9 +728,9 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.Caption = ML("Change Identifiers Case")
 			.ExtraMargins.Top = 0
-			.SetBounds 10, 201, 416, 21
+			.SetBounds 0, 212, 416, 21
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' chkChangeKeywordsCase
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
@@ -680,7 +747,8 @@ pfOptions = @fOptions
 		cboCase.ExtraMargins.Top = 0
 		cboCase.ExtraMargins.Left = 0
 		cboCase.Align = DockStyle.alRight
-		cboCase.SetBounds 60, 0, 190, 21
+		cboCase.ExtraMargins.Bottom = 2
+		cboCase.SetBounds 213, 0, 182, 21
 		cboCase.Parent = @pnlChangeKeywordsCase
 		' chkTabAsSpaces
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
@@ -698,16 +766,17 @@ pfOptions = @fOptions
 		cboTabStyle.ExtraMargins.Right = 20
 		cboTabStyle.Align = DockStyle.alRight
 		cboTabStyle.ExtraMargins.Top = 0
-		cboTabStyle.SetBounds 206, 0, 190, 20
+		cboTabStyle.ExtraMargins.Bottom = 2
+		cboTabStyle.SetBounds 213, 0, 182, 21
 		cboTabStyle.Parent = @pnlTreatTabAsSpaces
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
 		lblTabSize.Text = ML("Tab Size") & ":"
-		lblTabSize.ExtraMargins.Left = 60
+		lblTabSize.ExtraMargins.Left = 40
 		lblTabSize.ExtraMargins.Right = 0
 		lblTabSize.Align = DockStyle.alClient
 		lblTabSize.ExtraMargins.Top = 2
-		lblTabSize.SetBounds 60, 2, 146, 18
+		lblTabSize.SetBounds 50, 2, 164, 18
 		lblTabSize.Parent = @pnlTabSize
 		' txtTabSize
 		txtTabSize.Name = "txtTabSize"
@@ -716,7 +785,8 @@ pfOptions = @fOptions
 		txtTabSize.ExtraMargins.Right = 130
 		txtTabSize.ExtraMargins.Top = 0
 		txtTabSize.Align = DockStyle.alRight
-		txtTabSize.SetBounds 196, 0, 80, 21
+		txtTabSize.ExtraMargins.Bottom = 2
+		txtTabSize.SetBounds 213, 0, 72, 18
 		txtTabSize.Parent = @pnlTabSize
 		' lstIncludePaths
 		lstIncludePaths.Name = "lstIncludePaths"
@@ -765,24 +835,14 @@ pfOptions = @fOptions
 		cmdRemoveLibrary.SetBounds 376, 42, 24, 22
 		cmdRemoveLibrary.OnClick = @cmdRemoveLibrary_Click
 		cmdRemoveLibrary.Parent = @grbLibraryPaths
-		' cmdChangeTerminal
-		cmdChangeTerminal.Name = "cmdChangeTerminal"
-		cmdChangeTerminal.Text = ML("Chan&ge")
-		cmdChangeTerminal.ExtraMargins.Right = 193
-		cmdChangeTerminal.ExtraMargins.Bottom = -24
-		cmdChangeTerminal.ExtraMargins.Left = 96
-		cmdChangeTerminal.Align = DockStyle.alBottom
-		cmdChangeTerminal.SetBounds 111, 197, 97, 24
-		cmdChangeTerminal.OnClick = @cmdChangeTerminal_Click
-		cmdChangeTerminal.Parent = @grbTerminalPaths
 		' lblHistoryLimit
 		lblHistoryLimit.Name = "lblHistoryLimit"
 		lblHistoryLimit.Text = ML("History limit") & ":"
 		lblHistoryLimit.ExtraMargins.Top = 2
-		lblHistoryLimit.ExtraMargins.Left = 60
+		lblHistoryLimit.ExtraMargins.Left = 40
 		lblHistoryLimit.ExtraMargins.Right = 0
 		lblHistoryLimit.Align = DockStyle.alClient
-		lblHistoryLimit.SetBounds 60, 2, 146, 18
+		lblHistoryLimit.SetBounds 50, 2, 164, 18
 		lblHistoryLimit.Parent = @pnlHistoryLimit
 		' txtHistoryLimit
 		txtHistoryLimit.Name = "txtHistoryLimit"
@@ -790,7 +850,8 @@ pfOptions = @fOptions
 		txtHistoryLimit.ExtraMargins.Right = 130
 		txtHistoryLimit.ExtraMargins.Left = 0
 		txtHistoryLimit.Align = DockStyle.alRight
-		txtHistoryLimit.SetBounds 210, 0, 80, 17
+		txtHistoryLimit.ExtraMargins.Bottom = 2
+		txtHistoryLimit.SetBounds 213, 0, 72, 18
 		txtHistoryLimit.Text = ""
 		txtHistoryLimit.Parent = @pnlHistoryLimit
 		' grbGrid
@@ -859,44 +920,54 @@ pfOptions = @fOptions
 			.OnItemActivate = @lvMakeToolPaths_ItemActivate_
 			.Parent = @grbMakeToolPaths
 		End With
-		' cmdAddMakeTool
-		With cmdAddMakeTool
-			.Name = "cmdAddMakeTool"
-			.Text = ML("&Add")
-			.ExtraMargins.Left = -1
+		With cmdClearMakeTools
+			.Name = "cmdClearMakeTools"
+			.Text = ML("&Clear")
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
 			.ExtraMargins.Bottom = 0
-			.ExtraMargins.Right = 290
-			.Align = DockStyle.alBottom
-			.SetBounds 14, 265, 97, 24
-			.OnClick = @cmdAddMakeTool_Click
-			.IsChild = True
-			.ID = 1010
-			.Parent = @grbMakeToolPaths
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
+			.OnClick = @cmdClearMakeTools_Click
+			.Parent = @hbxMakeTool
 		End With
 		' cmdRemoveMakeTool
 		With cmdRemoveMakeTool
 			.Name = "cmdRemoveMakeTool"
 			.Text = ML("&Remove")
-			.ExtraMargins.Right = 96
-			.ExtraMargins.Left = 193
-			.ExtraMargins.Bottom = -24
-			.Align = DockStyle.alBottom
-			.SetBounds 208, 265, 97, 24
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
 			.OnClick = @cmdRemoveMakeTool_Click
-			.Parent = @grbMakeToolPaths
+			.Parent = @hbxMakeTool
+		End With
+		' cmdChangeMakeTool
+		cmdChangeMakeTool.Name = "cmdChangeMakeTool"
+		cmdChangeMakeTool.Text = ML("Chan&ge")
+		cmdChangeMakeTool.ExtraMargins.Left = 0
+		cmdChangeMakeTool.ExtraMargins.Right = 0
+		cmdChangeMakeTool.ExtraMargins.Bottom = 0
+		cmdChangeMakeTool.Align = DockStyle.alRight
+		cmdChangeMakeTool.SetBounds 290, 0, 97, 24
+		cmdChangeMakeTool.OnClick = @cmdChangeMakeTool_Click
+		cmdChangeMakeTool.Parent = @hbxMakeTool
+		' cmdAddMakeTool
+		With cmdAddMakeTool
+			.Name = "cmdAddMakeTool"
+			.Text = ML("&Add")
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.ExtraMargins.Right = 0
+			.Align = DockStyle.alRight
+			.SetBounds 289, 0, 97, 24
+			.OnClick = @cmdAddMakeTool_Click
+			.IsChild = True
+			.ID = 1010
+			.Parent = @hbxMakeTool
 		End With
 		' cmdClearMakeTool
-		With cmdClearMakeTools
-			.Name = "cmdClearMakeTools"
-			.Text = ML("&Clear")
-			.ExtraMargins.Right = -1
-			.ExtraMargins.Left = 290
-			.ExtraMargins.Bottom = -24
-			.Align = DockStyle.alBottom
-			.SetBounds 305, 265, 97, 24
-			.OnClick = @cmdClearMakeTools_Click
-			.Parent = @grbMakeToolPaths
-		End With
 		' grbDefaultMakeTool
 		With grbDefaultMakeTool
 			.Name = "grbDefaultMakeTool"
@@ -906,7 +977,7 @@ pfOptions = @fOptions
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 0, 416, 64
 			.Parent = @pnlMake
 		End With
@@ -918,16 +989,6 @@ pfOptions = @fOptions
 			.SetBounds 15, 20, 386, 21
 			.Parent = @grbDefaultMakeTool
 		End With
-		' cmdChangeMakeTool
-		cmdChangeMakeTool.Name = "cmdChangeMakeTool"
-		cmdChangeMakeTool.Text = ML("Chan&ge")
-		cmdChangeMakeTool.ExtraMargins.Left = 96
-		cmdChangeMakeTool.ExtraMargins.Right = 193
-		cmdChangeMakeTool.ExtraMargins.Bottom = -24
-		cmdChangeMakeTool.Align = DockStyle.alBottom
-		cmdChangeMakeTool.SetBounds 111, 265, 97, 24
-		cmdChangeMakeTool.OnClick = @cmdChangeMakeTool_Click
-		cmdChangeMakeTool.Parent = @grbMakeToolPaths
 		' cboTheme
 		cboTheme.Name = "cboTheme"
 		cboTheme.Text = "ComboBoxEdit2"
@@ -1122,30 +1183,6 @@ pfOptions = @fOptions
 			.SetBounds 15, 38, 386, 21
 			.Parent = @grbDefaultCompilers
 		End With
-		' cmdRemoveCompiler
-		With cmdRemoveCompiler
-			.Name = "cmdRemoveCompiler"
-			.Text = ML("&Remove")
-			.ExtraMargins.Bottom = -24
-			.ExtraMargins.Right = 96
-			.ExtraMargins.Left = 193
-			.Align = DockStyle.alBottom
-			.SetBounds 209, 232, 96, 24
-			.OnClick = @cmdRemoveCompiler_Click
-			.Parent = @grbCompilerPaths
-		End With
-		' cmdClearCompilers
-		With cmdClearCompilers
-			.Name = "cmdClearCompilers"
-			.Text = ML("&Clear")
-			.ExtraMargins.Right = -1
-			.ExtraMargins.Left = 290
-			.ExtraMargins.Bottom = -24
-			.Align = DockStyle.alBottom
-			.SetBounds 305, 232, 97, 24
-			.OnClick = @cmdClearCompilers_Click
-			.Parent = @grbCompilerPaths
-		End With
 		' lvDebuggerPaths
 		With lvDebuggerPaths
 			.Name = "lvDebuggerPaths"
@@ -1157,50 +1194,51 @@ pfOptions = @fOptions
 			.OnItemActivate = @lvDebuggerPaths_ItemActivate_
 			.Parent = @grbDebuggerPaths
 		End With
-		' cmdAddDebugger
-		With cmdAddDebugger
-			.Name = "cmdAddDebugger"
-			.Text = ML("&Add")
-			.ExtraMargins.Left = -1
-			.ExtraMargins.Right = 290
-			.Align = DockStyle.alBottom
-			.SetBounds 14, 162, 97, 24
-			.OnClick = @cmdAddDebugger_Click
-			.Parent = @grbDebuggerPaths
-		End With
-		' cmdChangeDebugger
-		cmdChangeDebugger.Name = "cmdChangeDebugger"
-		cmdChangeDebugger.Text = ML("Chan&ge")
-		cmdChangeDebugger.ExtraMargins.Left = 96
-		cmdChangeDebugger.ExtraMargins.Right = 193
-		cmdChangeDebugger.Align = DockStyle.alBottom
-		cmdChangeDebugger.ExtraMargins.Bottom = -24
-		cmdChangeDebugger.SetBounds 111, 186, 97, 24
-		cmdChangeDebugger.OnClick = @cmdChangeDebugger_Click
-		cmdChangeDebugger.Parent = @grbDebuggerPaths
-		' cmdRemoveDebugger
-		With cmdRemoveDebugger
-			.Name = "cmdRemoveDebugger"
-			.Text = ML("&Remove")
-			.ExtraMargins.Right = 96
-			.ExtraMargins.Left = 193
-			.ExtraMargins.Bottom = -24
-			.Align = DockStyle.alBottom
-			.SetBounds 208, 162, 97, 24
-			.OnClick = @cmdRemoveDebugger_Click
-			.Parent = @grbDebuggerPaths
-		End With
 		' cmdClearDebuggers
 		With cmdClearDebuggers
 			.Name = "cmdClearDebuggers"
 			.Text = ML("&Clear")
-			.ExtraMargins.Bottom = -24
-			.ExtraMargins.Right = -1
-			.ExtraMargins.Left = 290
-			.Align = DockStyle.alBottom
-			.SetBounds 305, 162, 97, 24
+			.ExtraMargins.Bottom = 0
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
 			.OnClick = @cmdClearDebuggers_Click
-			.Parent = @grbDebuggerPaths
+			.Parent = @hbxDebugger
+		End With
+		' cmdRemoveDebugger
+		With cmdRemoveDebugger
+			.Name = "cmdRemoveDebugger"
+			.Text = ML("&Remove")
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
+			.OnClick = @cmdRemoveDebugger_Click
+			.Parent = @hbxDebugger
+		End With
+		' cmdChangeDebugger
+		cmdChangeDebugger.Name = "cmdChangeDebugger"
+		cmdChangeDebugger.Text = ML("Chan&ge")
+		cmdChangeDebugger.ExtraMargins.Left = 0
+		cmdChangeDebugger.ExtraMargins.Right = 0
+		cmdChangeDebugger.Align = DockStyle.alRight
+		cmdChangeDebugger.ExtraMargins.Bottom = 0
+		cmdChangeDebugger.SetBounds 290, 0, 97, 24
+		cmdChangeDebugger.OnClick = @cmdChangeDebugger_Click
+		cmdChangeDebugger.Parent = @hbxDebugger
+		' cmdAddDebugger
+		With cmdAddDebugger
+			.Name = "cmdAddDebugger"
+			.Text = ML("&Add")
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Right = 0
+			.Align = DockStyle.alRight
+			.ExtraMargins.Bottom = 0
+			.SetBounds 0, 0, 97, 24
+			.OnClick = @cmdAddDebugger_Click
+			.Parent = @hbxDebugger
 		End With
 		' pnlInterfaceFont
 		With pnlInterfaceFont
@@ -1307,18 +1345,6 @@ pfOptions = @fOptions
 			.OnClick = @chkFrame_Click
 			.Parent = @pnlColors
 		End With
-		' cmdChangeCompiler
-		With cmdChangeCompiler
-			.Name = "cmdChangeCompiler"
-			.Text = ML("Chan&ge")
-			.ExtraMargins.Bottom = -24
-			.ExtraMargins.Left = 96
-			.ExtraMargins.Right = 193
-			.Align = DockStyle.alBottom
-			.SetBounds 111, 232, 97, 24
-			.OnClick = @cmdChangeCompiler_Click
-			.Parent = @grbCompilerPaths
-		End With
 		' grbDefaultHelp
 		With grbDefaultHelp
 			.Name = "grbDefaultHelp"
@@ -1328,7 +1354,7 @@ pfOptions = @fOptions
 			.Margins.Left = 15
 			.Margins.Bottom = 18
 			.Margins.Right = 15
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 0, 416, 64
 			.Parent = @pnlHelp
 		End With
@@ -1364,53 +1390,54 @@ pfOptions = @fOptions
 			.OnItemActivate = @lvHelpPaths_ItemActivate_
 			.Parent = @grbHelpPaths
 		End With
-		' cmdAddHelp
-		With cmdAddHelp
-			.Name = "cmdAddHelp"
-			.Text = ML("&Add")
-			.ExtraMargins.Right = 290
-			.ExtraMargins.Left = -1
-			.Align = DockStyle.alBottom
-			.SetBounds 14, 296, 97, 24
-			.OnClick = @cmdAddHelp_Click
-			.Parent = @grbHelpPaths
-		End With
-		' cmdChangeHelp
-		With cmdChangeHelp
-			.Name = "cmdChangeHelp"
-			.Text = ML("Chan&ge")
-			.ExtraMargins.Bottom = -24
-			.ExtraMargins.Left = 96
-			.ExtraMargins.Right = 193
-			.Align = DockStyle.alBottom
-			.SetBounds 111, 296, 97, 24
-			.OnClick = @cmdChangeHelp_Click
-			.Parent = @grbHelpPaths
+		With cmdClearHelps
+			.Name = "cmdClearHelps"
+			.Text = ML("&Clear")
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
+			.OnClick = @cmdClearHelps_Click
+			.Parent = @hbxHelp
 		End With
 		' cmdRemoveHelp
 		With cmdRemoveHelp
 			.Name = "cmdRemoveHelp"
 			.Text = ML("&Remove")
-			.ExtraMargins.Right = 96
-			.ExtraMargins.Left = 193
-			.ExtraMargins.Bottom = -24
-			.Align = DockStyle.alBottom
-			.SetBounds 208, 296, 97, 24
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
 			.OnClick = @cmdRemoveHelp_Click
-			.Parent = @grbHelpPaths
+			.Parent = @hbxHelp
+		End With
+		' cmdChangeHelp
+		With cmdChangeHelp
+			.Name = "cmdChangeHelp"
+			.Text = ML("Chan&ge")
+			.ExtraMargins.Bottom = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Right = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
+			.OnClick = @cmdChangeHelp_Click
+			.Parent = @hbxHelp
+		End With
+		' cmdAddHelp
+		With cmdAddHelp
+			.Name = "cmdAddHelp"
+			.Text = ML("&Add")
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
+			.Align = DockStyle.alRight
+			.ExtraMargins.Bottom = 0
+			.SetBounds 289, 0, 97, 11
+			.OnClick = @cmdAddHelp_Click
+			.Parent = @hbxHelp
 		End With
 		' cmdClearHelp
-		With cmdClearHelps
-			.Name = "cmdClearHelps"
-			.Text = ML("&Clear")
-			.ExtraMargins.Right = -1
-			.ExtraMargins.Left = 290
-			.ExtraMargins.Bottom = -24
-			.Align = DockStyle.alBottom
-			.SetBounds 305, 296, 97, 24
-			.OnClick = @cmdClearHelps_Click
-			.Parent = @grbHelpPaths
-		End With
 		' optSaveCurrentFile
 		With optSaveCurrentFile
 			.Name = "optSaveCurrentFile"
@@ -1505,7 +1532,7 @@ pfOptions = @fOptions
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
-			.SetBounds 10, 0, 416, 404
+			.SetBounds 10, 0, 412, 424
 			.Parent = @pnlOtherEditors
 		End With
 		' lvOtherEditors
@@ -1522,62 +1549,62 @@ pfOptions = @fOptions
 			.OnItemActivate = @lvOtherEditors_ItemActivate_
 			.Parent = @grbOtherEditors
 		End With
-		' cmdAddEditor
-		With cmdAddEditor
-			.Name = "cmdAddEditor"
-			.Text = ML("&Add")
-			.Align = DockStyle.alBottom
-			.ExtraMargins.Left = -1
+		' cmdClearEditor
+		With cmdClearEditor
+			.Name = "cmdClearEditor"
+			.Text = ML("&Clear")
 			.ExtraMargins.Bottom = 0
-			.ExtraMargins.Right = 290
-			.SetBounds 15, 365, 98, 24
-			'.Caption = "Add"
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Right = 0
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
 			.Designer = @This
-			.OnClick = @cmdAddEditor_Click_
-			.Parent = @grbOtherEditors
-		End With
-		' cmdChangeEditor
-		With cmdChangeEditor
-			.Name = "cmdChangeEditor"
-			.Text = ML("Chan&ge")
-			.Align = DockStyle.alBottom
-			.ExtraMargins.Bottom = -24
-			.ExtraMargins.Left = 96
-			.ExtraMargins.Right = 193
-			.SetBounds 113, 365, 96, 24
-			'.Caption = "Change"
-			.Designer = @This
-			.OnClick = @cmdChangeEditor_Click_
-			.Parent = @grbOtherEditors
+			.OnClick = @cmdClearEditor_Click_
+			.Parent = @hbxEditors
 		End With
 		' cmdRemoveEditor
 		With cmdRemoveEditor
 			.Name = "cmdRemoveEditor"
 			.Text = ML("&Remove")
-			.Align = DockStyle.alBottom
-			.ExtraMargins.Bottom = -24
-			.ExtraMargins.Left = 193
-			.ExtraMargins.Right = 96
-			.SetBounds 208, 365, 97, 24
-			'.Caption = "Remove"
+			.Align = DockStyle.alRight
+			.ExtraMargins.Bottom = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Right = 0
+			.SetBounds 289, 0, 97, 27
 			.Designer = @This
 			.OnClick = @cmdRemoveEditor_Click_
-			.Parent = @grbOtherEditors
+			.Parent = @hbxEditors
 		End With
-		' cmdClearEditor
-		With cmdClearEditor
-			.Name = "cmdClearEditor"
-			.Text = ML("&Clear")
-			.ExtraMargins.Bottom = -24
-			.ExtraMargins.Left = 290
-			.ExtraMargins.Right = -1
-			.Align = DockStyle.alBottom
-			.SetBounds 305, 365, 96, 24
-			'.Caption = "Clear"
+		' cmdChangeEditor
+		With cmdChangeEditor
+			.Name = "cmdChangeEditor"
+			.Text = ML("Chan&ge")
+			.Align = DockStyle.alRight
+			.ExtraMargins.Bottom = 0
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Right = 0
+			.SetBounds 289, 0, 97, 27
 			.Designer = @This
-			.OnClick = @cmdClearEditor_Click_
-			.Parent = @grbOtherEditors
+			.OnClick = @cmdChangeEditor_Click_
+			.Parent = @hbxEditors
 		End With
+		' cmdAddEditor
+		With cmdAddEditor
+			.Name = "cmdAddEditor"
+			.Text = ML("&Add")
+			.Align = DockStyle.alRight
+			.ExtraMargins.Left = 0
+			.ExtraMargins.Bottom = 0
+			.ExtraMargins.Right = 0
+			.SetBounds -1, 0, 97, 24
+			'.Caption = "Add"
+			.Designer = @This
+			.OnClick = @cmdAddEditor_Click_
+			.Parent = @hbxEditors
+		End With
+			'.Caption = "Change"
+			'.Caption = "Remove"
+			'.Caption = "Clear"
 		' grbWhenVFBEStarts
 		With grbWhenVFBEStarts
 			.Name = "grbWhenVFBEStarts"
@@ -1585,8 +1612,8 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 5
 			.Caption = ML("When Visual FB Editor starts") & ":"
-			.SetBounds 10, 97, 416, 120
-			.Parent = @pnlGeneral
+			.SetBounds 0, 97, 416, 120
+			.Parent = @vbxGeneral
 		End With
 		' grbWhenCompiling
 		With grbWhenCompiling
@@ -1594,16 +1621,16 @@ pfOptions = @fOptions
 			.Text = ML("When compiling") & ":"
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 5
-			.SetBounds 10, 97, 416, 120
-			.Parent = @pnlGeneral
+			.SetBounds 0, 222, 416, 120
+			.Parent = @vbxGeneral
 		End With
 		' lblProjectsPath
 		lblProjectsPath.Name = "lblProjectsPath"
 		lblProjectsPath.Text = ML("Projects path") & ":"
 		lblProjectsPath.Align = DockStyle.alTop
 		lblProjectsPath.ExtraMargins.Top = 5
-		lblProjectsPath.SetBounds 10, 357, 399, 16
-		lblProjectsPath.Parent = @pnlGeneral
+		lblProjectsPath.SetBounds 0, 347, 416, 16
+		lblProjectsPath.Parent = @vbxGeneral
 		' txtProjectsPath
 		txtProjectsPath.Name = "txtProjectsPath"
 		txtProjectsPath.Text = "./Projects"
@@ -1788,9 +1815,9 @@ pfOptions = @fOptions
 			'.Caption = ML("Intellisense limit") & ":"
 			.ExtraMargins.Top = 2
 			.ExtraMargins.Right = 0
-			.ExtraMargins.Left = 60
+			.ExtraMargins.Left = 40
 			.Align = DockStyle.alClient
-			.SetBounds 60, 2, 146, 18
+			.SetBounds 50, 2, 164, 18
 			.Parent = @pnlIntellisenseLimit
 		End With
 		' txtIntellisenseLimit
@@ -1803,7 +1830,8 @@ pfOptions = @fOptions
 			.ExtraMargins.Right = 130
 			.Align = DockStyle.alRight
 			.ControlIndex = 2
-			.SetBounds 210, 0, 80, 20
+			.ExtraMargins.Bottom = 2
+			.SetBounds 213, 0, 72, 18
 			.Parent = @pnlIntellisenseLimit
 		End With
 		' chkTurnOnEnvironmentVariables
@@ -1902,7 +1930,8 @@ pfOptions = @fOptions
 			.ExtraMargins.Right = 130
 			.ExtraMargins.Left = 0
 			.Align = DockStyle.alRight
-			.SetBounds 196, 0, 80, 21
+			.ExtraMargins.Bottom = 2
+			.SetBounds 213, 0, 72, 18
 			.Designer = @This
 			.Parent = @pnlHistoryFileSavingDays
 		End With
@@ -1974,9 +2003,10 @@ pfOptions = @fOptions
 			.TabIndex = 205
 			.Align = DockStyle.alTop
 			.AutoSize = true
-			.SetBounds 10, 363, 416, 20
+			.ControlIndex = 7
+			.SetBounds 0, 363, 416, 20
 			.Designer = @This
-			.Parent = @pnlGeneral
+			.Parent = @vbxGeneral
 		End With
 		' pnlSelectShortcut
 		With pnlSelectShortcut
@@ -1996,21 +2026,22 @@ pfOptions = @fOptions
 			.TabIndex = 206
 			.Align = DockStyle.alTop
 			.AutoSize = true
-			.SetBounds 10, 233, 416, 21
+			.SetBounds 0, 233, 416, 21
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' lblHistoryDay
 		With lblHistoryDay
 			.Name = "lblHistoryDay"
-			.Text = ML("History file saving days")
+			.Text = ML("History file saving days") & ":"
 			.TabIndex = 194
 			.ExtraMargins.Top = 2
 			.ExtraMargins.Right = 0
-			.ExtraMargins.Left = 60
+			.ExtraMargins.Left = 40
 			.Align = DockStyle.alClient
 			.ControlIndex = 0
-			.SetBounds 60, 2, 146, 18
+			.Caption = ML("History file saving days") & ":"
+			.SetBounds 50, 2, 164, 18
 			.Designer = @This
 			.Parent = @pnlHistoryFileSavingDays
 		End With
@@ -2021,9 +2052,9 @@ pfOptions = @fOptions
 			.TabIndex = 209
 			.Align = DockStyle.alTop
 			.AutoSize = True
-			.SetBounds 10, 254, 416, 20
+			.SetBounds 0, 254, 416, 21
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' pnlTabSize
 		With pnlTabSize
@@ -2032,9 +2063,9 @@ pfOptions = @fOptions
 			.TabIndex = 212
 			.Align = DockStyle.alTop
 			.AutoSize = True
-			.SetBounds 10, 275, 416, 20
+			.SetBounds 0, 275, 416, 20
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' pnlHistoryLimit
 		With pnlHistoryLimit
@@ -2043,9 +2074,9 @@ pfOptions = @fOptions
 			.TabIndex = 215
 			.Align = DockStyle.alTop
 			.AutoSize = True
-			.SetBounds 10, 295, 416, 20
+			.SetBounds 0, 295, 416, 20
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' pnlIntellisenseLimit
 		With pnlIntellisenseLimit
@@ -2054,9 +2085,9 @@ pfOptions = @fOptions
 			.TabIndex = 218
 			.Align = DockStyle.alTop
 			.AutoSize = true
-			.SetBounds 10, 315, 416, 20
+			.SetBounds 0, 315, 416, 20
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		' pnlHistoryFileSavingDays
 		With pnlHistoryFileSavingDays
@@ -2065,9 +2096,9 @@ pfOptions = @fOptions
 			.TabIndex = 221
 			.Align = DockStyle.alTop
 			.AutoSize = True
-			.SetBounds 10, 335, 416, 20
+			.SetBounds 0, 339, 416, 20
 			.Designer = @This
-			.Parent = @pnlCodeEditor
+			.Parent = @vbxCodeEditor
 		End With
 		lvShortcuts.Columns.Add ML("Action"), , 250
 		lvShortcuts.Columns.Add ML("Shortcut"), , 100
@@ -2089,6 +2120,66 @@ pfOptions = @fOptions
 		lvTerminalPaths.Columns.Add ML("Command line"), , 80
 		lvHelpPaths.Columns.Add ML("Version"), , 190
 		lvHelpPaths.Columns.Add ML("Path"), , 190
+		' hbxEditors
+		With hbxEditors
+			.Name = "hbxEditors"
+			.Text = "HorizontalBox1"
+			.TabIndex = 214
+			.Align = DockStyle.alBottom
+			.SetBounds 15, 385, 386, 24
+			.Designer = @This
+			.Parent = @grbOtherEditors
+		End With
+		' hbxCompilers
+		With hbxCompilers
+			.Name = "hbxCompilers"
+			.Text = "HorizontalBox1"
+			.TabIndex = 215
+			.Align = DockStyle.alBottom
+			.SetBounds 15, 222, 387, 24
+			.Designer = @This
+			.Parent = @grbCompilerPaths
+		End With
+		' hbxHelp
+		With hbxHelp
+			.Name = "hbxHelp"
+			.Text = "HorizontalBox1"
+			.TabIndex = 216
+			.Align = DockStyle.alBottom
+			.SetBounds 15, 284, 387, 24
+			.Designer = @This
+			.Parent = @grbHelpPaths
+		End With
+		' hbxTerminal
+		With hbxTerminal
+			.Name = "hbxTerminal"
+			.Text = "HorizontalBox1"
+			.TabIndex = 217
+			.Align = DockStyle.alBottom
+			.SetBounds 15, 193, 387, 24
+			.Designer = @This
+			.Parent = @grbTerminalPaths
+		End With
+		' hbxDebugger
+		With hbxDebugger
+			.Name = "hbxDebugger"
+			.Text = "HorizontalBox1"
+			.TabIndex = 218
+			.Align = DockStyle.alBottom
+			.SetBounds 15, 147, 387, 24
+			.Designer = @This
+			.Parent = @grbDebuggerPaths
+		End With
+		' hbxMakeTool
+		With hbxMakeTool
+			.Name = "hbxMakeTool"
+			.Text = "HorizontalBox1"
+			.TabIndex = 219
+			.Align = DockStyle.alBottom
+			.SetBounds 15, 245, 387, 24
+			.Designer = @This
+			.Parent = @grbMakeToolPaths
+		End With
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
