@@ -28,6 +28,8 @@ pfOptions = @fOptions
 		This.MinimizeBox = False
 		This.MaximizeBox = False
 		This.ExtraMargins.Bottom = -1
+		This.ExtraMargins.Left = 0
+		This.ExtraMargins.Top = 0
 		This.SetBounds 0, 0, 631, 488
 		This.StartPosition = FormStartPosition.CenterParent
 		'This.Caption = ML("Options")
@@ -35,6 +37,17 @@ pfOptions = @fOptions
 		'This.DefaultButton = @cmdOK
 		This.Designer = @This
 		This.BorderStyle = FormBorderStyle.FixedDialog
+		' pnlGeneral
+		pnlGeneral.Name = "pnlGeneral"
+		pnlGeneral.Text = ""
+		pnlGeneral.Margins.Left = 10
+		pnlGeneral.ExtraMargins.Top = 0
+		pnlGeneral.ExtraMargins.Bottom = 9
+		pnlGeneral.ExtraMargins.Right = 10
+		pnlGeneral.Align = DockStyle.alClient
+		pnlGeneral.Margins.Top = 0
+		pnlGeneral.SetBounds 188, 0, 427, 404
+		pnlGeneral.Parent = @This
 		' pnlCompiler
 		pnlCompiler.Name = "pnlCompiler"
 		pnlCompiler.Text = ""
@@ -144,17 +157,6 @@ pfOptions = @fOptions
 		pnlIncludes.SetBounds 188, 4, 427, 400
 		pnlIncludes.Text = ""
 		pnlIncludes.Parent = @This
-		' pnlGeneral
-		pnlGeneral.Name = "pnlGeneral"
-		pnlGeneral.Text = ""
-		pnlGeneral.Margins.Left = 10
-		pnlGeneral.ExtraMargins.Top = 0
-		pnlGeneral.ExtraMargins.Bottom = 9
-		pnlGeneral.ExtraMargins.Right = 10
-		pnlGeneral.Align = DockStyle.alClient
-		pnlGeneral.Margins.Top = 0
-		pnlGeneral.SetBounds 188, 0, 427, 404
-		pnlGeneral.Parent = @This
 		' pnlCodeEditor
 		pnlCodeEditor.Name = "pnlCodeEditor"
 		pnlCodeEditor.Text = ""
@@ -181,12 +183,12 @@ pfOptions = @fOptions
 			.Text = "Panel1"
 			.TabIndex = 202
 			.Align = DockStyle.alBottom
-			.Margins.Top = 10
-			.Margins.Right = 10
-			.Margins.Left = 10
-			.Margins.Bottom = 10
+			.Margins.Top = 0
+			.Margins.Right = 0
+			.Margins.Left = 0
+			.Margins.Bottom = 0
 			.AutoSize = True
-			.SetBounds 0, 415, 624, 44
+			.SetBounds 0, 415, 625, 44
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -206,14 +208,19 @@ pfOptions = @fOptions
 		cmdApply.Name = "cmdApply"
 		cmdApply.Text = ML("Apply")
 		cmdApply.Align = DockStyle.alRight
-		cmdApply.SetBounds 529, 5, 90, 20
+		cmdApply.ExtraMargins.Bottom = 10
+		cmdApply.ExtraMargins.Right = 10
+		cmdApply.ExtraMargins.Top = 10
+		cmdApply.SetBounds 525, 10, 90, 24
 		cmdApply.OnClick = @cmdApply_Click
 		cmdApply.Parent = @pnlCommands
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
 		cmdCancel.Text = ML("Cancel")
 		cmdCancel.Align = DockStyle.alRight
-		cmdCancel.SetBounds 534, 0, 90, 30
+		cmdCancel.ExtraMargins.Bottom = 10
+		cmdCancel.ExtraMargins.Top = 10
+		cmdCancel.SetBounds 435, 10, 90, 24
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @pnlCommands
 		' cmdOK
@@ -221,7 +228,9 @@ pfOptions = @fOptions
 		cmdOK.Text = ML("OK")
 		cmdOK.Default = True
 		cmdOK.Align = DockStyle.alRight
-		cmdOK.SetBounds 349, 5, 90, 20
+		cmdOK.ExtraMargins.Bottom = 10
+		cmdOK.ExtraMargins.Top = 10
+		cmdOK.SetBounds 345, 10, 90, 24
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @pnlCommands
 		' lblBlack
@@ -895,7 +904,8 @@ pfOptions = @fOptions
 		grbFont.Text = ML("Font (applies to all styles)")
 		grbFont.Align = DockStyle.alBottom
 		grbFont.ExtraMargins.Top = 5
-		grbFont.SetBounds 10, 348, 416, 56
+		grbFont.AutoSize = true
+		grbFont.SetBounds 10, 344, 417, 46
 		grbFont.Parent = @pnlColorsAndFonts
 		' grbMakeToolPaths
 		With grbMakeToolPaths
@@ -993,140 +1003,250 @@ pfOptions = @fOptions
 		cboTheme.Name = "cboTheme"
 		cboTheme.Text = "ComboBoxEdit2"
 		cboTheme.Align = DockStyle.alTop
-		cboTheme.ExtraMargins.Right = 160
+		cboTheme.ExtraMargins.Right = 15
 		cboTheme.ExtraMargins.Bottom = 15
-		cboTheme.SetBounds 15, 21, 226, 21
+		cboTheme.SetBounds 0, 0, 73, 21
 		cboTheme.OnChange = @cboTheme_Change
-		cboTheme.Parent = @grbColors
+		cboTheme.Parent = @vbxTheme
 		' lstColorKeys
 		lstColorKeys.Name = "lstColorKeys"
 		lstColorKeys.Text = "ListControl1"
-		lstColorKeys.Align = DockStyle.alLeft
-		lstColorKeys.SetBounds 15, 57, 226, 264
+		lstColorKeys.Align = DockStyle.alClient
+		lstColorKeys.ExtraMargins.Right = 15
+		lstColorKeys.ControlIndex = 2
+		lstColorKeys.TabIndex = 228
+		lstColorKeys.SetBounds 0, 36, 212, 224
 		lstColorKeys.OnChange = @lstColorKeys_Change
-		lstColorKeys.Parent = @grbColors
+		lstColorKeys.Parent = @vbxTheme
 		' cmdAdd
 		cmdAdd.Name = "cmdAdd"
 		cmdAdd.Text = ML("&Add")
-		cmdAdd.SetBounds 258, 20, 71, 23
+		cmdAdd.ControlIndex = 1
+		cmdAdd.Align = DockStyle.alClient
+		cmdAdd.ExtraMargins.Bottom = 0
+		cmdAdd.SetBounds 0, 0, 83, 23
 		cmdAdd.OnClick = @cmdAdd_Click
-		cmdAdd.Parent = @grbColors
+		cmdAdd.Parent = @hbxThemeCommands
 		' cmdRemove
 		cmdRemove.Name = "cmdRemove"
 		cmdRemove.Text = ML("&Remove")
-		cmdRemove.SetBounds 330, 20, 71, 23
+		cmdRemove.ControlIndex = 0
+		cmdRemove.Align = DockStyle.alRight
+		cmdRemove.SetBounds 83, 0, 71, 23
 		cmdRemove.OnClick = @cmdRemove_Click
-		cmdRemove.Parent = @grbColors
+		cmdRemove.Parent = @hbxThemeCommands
+		' chkForeground
+		chkForeground.Name = "chkForeground"
+		chkForeground.Text = ML("Auto")
+		chkForeground.Align = DockStyle.alRight
+		chkForeground.ExtraMargins.Left = 5
+		chkForeground.SetBounds 106, 0, 48, 24
+		chkForeground.OnClick = @chkForeground_Click
+		chkForeground.Parent = @hbxForeground
 		' txtColorForeground
 		txtColorForeground.Name = "txtColorForeground"
 		txtColorForeground.Text = ""
-		txtColorForeground.SetBounds 258, 71, 72, 20
+		txtColorForeground.Align = DockStyle.alClient
+		txtColorForeground.SetBounds 0, 0, 77, 24
 		txtColorForeground.BackColor = 0
 		txtColorForeground.Designer = @This
 		txtColorForeground.OnKeyPress = @_txtColorForeground_KeyPress
-		txtColorForeground.Parent = @grbColors
+		txtColorForeground.Parent = @hbxForeground
 		' cmdForeground
 		cmdForeground.Name = "cmdForeground"
 		cmdForeground.Text = "..."
-		cmdForeground.SetBounds 330, 70, 24, 22
+		cmdForeground.Align = DockStyle.alRight
+		cmdForeground.SetBounds 77, 0, 24, 24
 		'cmdForeground.Caption = "..."
 		cmdForeground.OnClick = @cmdForeground_Click
-		cmdForeground.Parent = @grbColors
+		cmdForeground.Parent = @hbxForeground
 		' cmdFont
 		cmdFont.Name = "cmdFont"
 		cmdFont.Text = "..."
-		cmdFont.SetBounds 376, 18, 24, 22
+		cmdFont.ExtraMargins.Bottom = 10
+		cmdFont.ExtraMargins.Right = 10
+		cmdFont.Align = DockStyle.alRight
+		cmdFont.ExtraMargins.Top = 20
+		cmdFont.SetBounds 383, 15, 24, 21
 		'cmdFont.Caption = "..."
 		cmdFont.OnClick = @cmdFont_Click
 		cmdFont.Parent = @grbFont
 		' lblFont
 		lblFont.Name = "lblFont"
 		lblFont.Text = ML("Font")
-		lblFont.SetBounds 23, 23, 344, 16
+		lblFont.Align = DockStyle.alClient
+		lblFont.ExtraMargins.Left = 10
+		lblFont.ExtraMargins.Top = 20
+		lblFont.ExtraMargins.Bottom = 10
+		lblFont.CenterImage = true
+		lblFont.SetBounds 10, 15, 373, 21
 		lblFont.Parent = @grbFont
 		'cmdProjectsPath.Caption = "..."
+		' chkBackground
+		chkBackground.Name = "chkBackground"
+		chkBackground.Text = ML("Auto")
+		chkBackground.Align = DockStyle.alRight
+		chkBackground.ExtraMargins.Left = 5
+		chkBackground.SetBounds 106, 0, 48, 24
+		chkBackground.OnClick = @chkBackground_Click
+		chkBackground.Parent = @hbxBackground
 		' txtColorBackground
 		txtColorBackground.Name = "txtColorBackground"
-		txtColorBackground.SetBounds 258, 113, 72, 20
+		txtColorBackground.Align = DockStyle.alClient
+		txtColorBackground.SetBounds 0, 0, 77, 24
 		txtColorBackground.BackColor = 0
 		txtColorBackground.Text = ""
 		txtColorBackground.Designer = @This
 		txtColorBackground.OnKeyPress = @_txtColorBackground_KeyPress
-		txtColorBackground.Parent = @grbColors
+		txtColorBackground.Parent = @hbxBackground
 		' cmdBackground
 		cmdBackground.Name = "cmdBackground"
 		cmdBackground.Text = "..."
-		cmdBackground.SetBounds 330, 112, 24, 22
+		cmdBackground.Align = DockStyle.alRight
+		cmdBackground.SetBounds 77, 0, 24, 24
 		'cmdBackground.Caption = "..."
 		cmdBackground.OnClick = @cmdBackground_Click
-		cmdBackground.Parent = @grbColors
+		cmdBackground.Parent = @hbxBackground
+		' hbxThemeCommands
+		With hbxThemeCommands
+			.Name = "hbxThemeCommands"
+			.Text = "HorizontalBox1"
+			.TabIndex = 221
+			.ControlIndex = 0
+			.Align = DockStyle.alTop
+			.ExtraMargins.Bottom = 14
+			.SetBounds 0, 0, 154, 23
+			.Designer = @This
+			.Parent = @vbxColors
+		End With
 		' lblForeground
 		lblForeground.Name = "lblForeground"
 		lblForeground.Text = ML("Foreground") & ":"
-		lblForeground.SetBounds 258, 55, 136, 16
-		lblForeground.Parent = @grbColors
+		lblForeground.ControlIndex = 1
+		lblForeground.Align = DockStyle.alTop
+		lblForeground.SetBounds 0, 0, 154, 16
+		lblForeground.Parent = @vbxColors
+		' hbxForeground
+		With hbxForeground
+			.Name = "hbxForeground"
+			.Text = "HorizontalBox1"
+			.TabIndex = 232
+			.ControlIndex = 2
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 154, 22
+			.Designer = @This
+			.Parent = @vbxColors
+		End With
 		' lblBackground
 		lblBackground.Name = "lblBackground"
 		lblBackground.Text = ML("Background") & ":"
-		lblBackground.SetBounds 258, 96, 136, 16
-		lblBackground.Parent = @grbColors
+		lblBackground.ControlIndex = 3
+		lblBackground.Align = DockStyle.alTop
+		lblBackground.ExtraMargins.Top = 2
+		lblBackground.SetBounds 0, 75, 154, 16
+		lblBackground.Parent = @vbxColors
+		' hbxBackground
+		With hbxBackground
+			.Name = "hbxBackground"
+			.Text = "HorizontalBox1"
+			.TabIndex = 233
+			.ControlIndex = 4
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 154, 24
+			.Designer = @This
+			.Parent = @vbxColors
+		End With
+		' lblFrame
+		With lblFrame
+			.Name = "lblFrame"
+			.Text = ML("Frame") & ":"
+			.ControlIndex = 5
+			.Align = DockStyle.alTop
+			.ExtraMargins.Top = 2
+			.SetBounds 0, 117, 154, 16
+			.Parent = @vbxColors
+		End With
+		' hbxFrame
+		With hbxFrame
+			.Name = "hbxFrame"
+			.Text = "HorizontalBox1"
+			.TabIndex = 234
+			.ControlIndex = 6
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 154, 23
+			.Designer = @This
+			.Parent = @vbxColors
+		End With
 		' lblIndicator
 		lblIndicator.Name = "lblIndicator"
 		lblIndicator.Text = ML("Indicator") & ":"
-		lblIndicator.SetBounds 258, 176, 136, 16
-		lblIndicator.Parent = @grbColors
-		' txtColorIndicator
-		txtColorIndicator.Name = "txtColorIndicator"
-		txtColorIndicator.Text = ""
-		txtColorIndicator.SetBounds 258, 192, 72, 20
-		txtColorIndicator.BackColor = 0
-		txtColorIndicator.Designer = @This
-		txtColorIndicator.OnKeyPress = @_txtColorIndicator_KeyPress
-		txtColorIndicator.Parent = @grbColors
-		' cmdIndicator
-		cmdIndicator.Name = "cmdIndicator"
-		cmdIndicator.Text = "..."
-		cmdIndicator.SetBounds 330, 191, 24, 22
-		'cmdIndicator.Caption = "..."
-		cmdIndicator.OnClick = @cmdIndicator_Click
-		cmdIndicator.Parent = @grbColors
-		'
-		' chkForeground
-		chkForeground.Name = "chkForeground"
-		chkForeground.Text = ML("Auto")
-		chkForeground.SetBounds 0, 9, 48, 16
-		chkForeground.OnClick = @chkForeground_Click
-		chkForeground.Parent = @pnlColors
-		' chkBackground
-		chkBackground.Name = "chkBackground"
-		chkBackground.Text = ML("Auto")
-		chkBackground.SetBounds 0, 51, 48, 16
-		chkBackground.OnClick = @chkBackground_Click
-		chkBackground.Parent = @pnlColors
-		' chkIndicator
-		chkIndicator.Name = "chkIndicator"
-		chkIndicator.Text = ML("Auto")
-		chkIndicator.SetBounds 0, 130, 48, 16
-		chkIndicator.OnClick = @chkIndicator_Click
-		chkIndicator.Parent = @pnlColors
+		lblIndicator.ControlIndex = 7
+		lblIndicator.Align = DockStyle.alTop
+		lblIndicator.ExtraMargins.Top = 2
+		lblIndicator.SetBounds 0, 158, 154, 16
+		lblIndicator.Parent = @vbxColors
+		' hbxIndicator
+		With hbxIndicator
+			.Name = "hbxIndicator"
+			.Text = "HorizontalBox1"
+			.TabIndex = 235
+			.ControlIndex = 11
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 154, 23
+			.Designer = @This
+			.Parent = @vbxColors
+		End With
 		' chkBold
 		chkBold.Name = "chkBold"
 		chkBold.Text = ML("Bold")
-		chkBold.SetBounds 268, 251, 107, 16
+		chkBold.ControlIndex = 8
+		chkBold.Align = DockStyle.alTop
+		chkBold.ExtraMargins.Top = 5
+		chkBold.SetBounds 0, 201, 154, 16
 		chkBold.OnClick = @chkBold_Click
-		chkBold.Parent = @pnlColorsAndFonts
+		chkBold.Parent = @vbxColors
 		' chkItalic
 		chkItalic.Name = "chkItalic"
 		chkItalic.Text = ML("Italic")
-		chkItalic.SetBounds 268, 275, 99, 16
+		chkItalic.ControlIndex = 9
+		chkItalic.Align = DockStyle.alTop
+		chkItalic.SetBounds 0, 215, 154, 16
 		chkItalic.OnClick = @chkItalic_Click
-		chkItalic.Parent = @pnlColorsAndFonts
+		chkItalic.Parent = @vbxColors
 		' chkUnderline
 		chkUnderline.Name = "chkUnderline"
 		chkUnderline.Text = ML("Underline")
-		chkUnderline.SetBounds 268, 299, 107, 16
+		chkUnderline.ControlIndex = 10
+		chkUnderline.Align = DockStyle.alTop
+		chkUnderline.SetBounds 0, 215, 154, 16
 		chkUnderline.OnClick = @chkUnderline_Click
-		chkUnderline.Parent = @pnlColorsAndFonts
+		chkUnderline.Parent = @vbxColors
+		' chkIndicator
+		chkIndicator.Name = "chkIndicator"
+		chkIndicator.Text = ML("Auto")
+		chkIndicator.Align = DockStyle.alRight
+		chkIndicator.ExtraMargins.Left = 5
+		chkIndicator.SetBounds 106, 0, 48, 23
+		chkIndicator.OnClick = @chkIndicator_Click
+		chkIndicator.Parent = @hbxIndicator
+		' txtColorIndicator
+		txtColorIndicator.Name = "txtColorIndicator"
+		txtColorIndicator.Text = ""
+		txtColorIndicator.Align = DockStyle.alClient
+		txtColorIndicator.SetBounds 0, 0, 77, 23
+		txtColorIndicator.BackColor = 0
+		txtColorIndicator.Designer = @This
+		txtColorIndicator.OnKeyPress = @_txtColorIndicator_KeyPress
+		txtColorIndicator.Parent = @hbxIndicator
+		' cmdIndicator
+		cmdIndicator.Name = "cmdIndicator"
+		cmdIndicator.Text = "..."
+		cmdIndicator.Align = DockStyle.alRight
+		cmdIndicator.SetBounds 77, 0, 24, 23
+		'cmdIndicator.Caption = "..."
+		cmdIndicator.OnClick = @cmdIndicator_Click
+		cmdIndicator.Parent = @hbxIndicator
+		'
 		' chkUseMakeOnStartWithCompile
 		chkUseMakeOnStartWithCompile.Name = "chkUseMakeOnStartWithCompile"
 		chkUseMakeOnStartWithCompile.Text = ML("Use make on start with compile (if exists makefile)")
@@ -1312,38 +1432,35 @@ pfOptions = @fOptions
 			.SetBounds 0, 20, 416, 20
 			.Parent = @grbThemes
 		End With
-		' lblFrame
-		With lblFrame
-			.Name = "lblFrame"
-			.Text = ML("Frame") & ":"
-			.SetBounds 258, 136, 136, 16
-			.Parent = @grbColors
+		' chkFrame
+		With chkFrame
+			.Name = "chkFrame"
+			.Text = ML("Auto")
+			.Align = DockStyle.alRight
+			.ExtraMargins.Left = 5
+			.SetBounds 106, 0, 48, 23
+			.OnClick = @chkFrame_Click
+			.Parent = @hbxFrame
 		End With
 		' txtColorFrame
 		With txtColorFrame
 			.Name = "txtColorFrame"
-			.SetBounds 258, 152, 72, 20
+			.Align = DockStyle.alClient
+			.SetBounds 0, 0, 77, 23
 			.BackColor = 0
 			.Designer = @This
 			.OnKeyPress = @_txtColorFrame_KeyPress
-			.Parent = @grbColors
+			.Parent = @hbxFrame
 		End With
 		' cmdFrame
 		With cmdFrame
 			.Name = "cmdFrame"
 			.Text = "..."
-			.SetBounds 330, 151, 24, 22
+			.Align = DockStyle.alRight
+			.SetBounds 77, 0, 24, 23
 			'.Caption = "..."
 			.OnClick = @cmdFrame_Click
-			.Parent = @grbColors
-		End With
-		' chkFrame
-		With chkFrame
-			.Name = "chkFrame"
-			.Text = ML("Auto")
-			.SetBounds 0, 90, 48, 16
-			.OnClick = @chkFrame_Click
-			.Parent = @pnlColors
+			.Parent = @hbxFrame
 		End With
 		' grbDefaultHelp
 		With grbDefaultHelp
@@ -1458,13 +1575,6 @@ pfOptions = @fOptions
 			.Text = ML("Save All Files")
 			.SetBounds 18, 45, 184, 16
 			.Parent = @grbWhenCompiling
-		End With
-		' pnlColors
-		With pnlColors
-			.Name = "pnlColors"
-			.Text = "Panel2"
-			.SetBounds 360, 64, 40, 160
-			.Parent = @grbColors
 		End With
 		' pnlGrid
 		With pnlGrid
@@ -2179,6 +2289,47 @@ pfOptions = @fOptions
 			.SetBounds 15, 245, 387, 24
 			.Designer = @This
 			.Parent = @grbMakeToolPaths
+		End With
+		' hbxColors
+		With hbxColors
+			.Name = "hbxColors"
+			.Text = "HorizontalBox1"
+			.TabIndex = 220
+			.Align = DockStyle.alClient
+			.SetBounds 15, 24, 387, 544
+			.Designer = @This
+			.Parent = @grbColors
+		End With
+		' vbxTheme
+		With vbxTheme
+			.Name = "vbxTheme"
+			.Text = "VerticalBox1"
+			.TabIndex = 230
+			.Align = DockStyle.alClient
+			.SetBounds 0, 0, 227, 226
+			.Designer = @This
+			.Parent = @hbxColors
+		End With
+		' vbxColors
+		With vbxColors
+			.Name = "vbxColors"
+			.Text = "VerticalBox1"
+			.TabIndex = 231
+			.ControlIndex = 0
+			.Align = DockStyle.alNone
+			.SetBounds 0, 0, 154, 242
+			.Designer = @This
+			.Parent = @sccColors
+		End With
+		' sccColors
+		With sccColors
+			.Name = "sccColors"
+			.Text = "ScrollControl1"
+			.TabIndex = 227
+			.Align = DockStyle.alRight
+			.SetBounds 227, 0, 160, 260
+			.Designer = @This
+			.Parent = @hbxColors
 		End With
 	End Constructor
 	
