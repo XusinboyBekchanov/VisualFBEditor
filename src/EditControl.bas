@@ -65,7 +65,7 @@ End Enum
 ReDim Constructions(C_Count - 1) As Construction
 Constructions(0)  = Type<Construction>("If",            "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "ElseIf",   "Else",       "",        "End If",          "Then ", True,  False)
 Constructions(1)  = Type<Construction>("#If",           "#IfDef",             "#IfNDef",             "",                   "",                          "",                           "",                "",                       "",                        "#ElseIf",  "#Else",      "",        "#EndIf",          "",      True,  False)
-Constructions(2)  = Type<Construction>("#Macro",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "#EndMacro",       "",      True,  False)
+Constructions(2)  = Type<Construction>("#Macro",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "#EndMacro",       "",      True,  True)
 Constructions(3)  = Type<Construction>("Extern",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Extern",      "",      True,  False)
 Constructions(4)  = Type<Construction>("Try",           "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "Catch",    "Finally",    "",        "EndTry",          "",      True,  False)
 Constructions(5)  = Type<Construction>("Asm",           "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Asm",         " ",     True,  False)
@@ -2302,6 +2302,7 @@ Namespace My.Sys.Forms
 				'ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, @Types, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, @Enums, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, @Namespaces, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pComps, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalTypes, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalEnums, bLocal, bAll, TypesOnly, te) Then
@@ -2527,6 +2528,7 @@ Namespace My.Sys.Forms
 			End If
 			If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
+			ElseIf ContainsIn(TypeName, sTemp, @Namespaces, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2609,6 +2611,8 @@ Namespace My.Sys.Forms
 					te = Procedures.Object(Idx)
 				ElseIf Args.Contains(sTemp, , , , Idx) Then
 					te = Args.Object(Idx)
+				ElseIf Namespaces.Contains(sTemp, , , , Idx) Then
+					te = Namespaces.Object(Idx)
 				ElseIf CBool(pGlobalFunctions > 0) AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) AndAlso CBool(Not Cast(TypeElement Ptr, pGlobalFunctions->Object(Idx))->TypeProcedure) Then
 					te = pGlobalFunctions->Object(Idx)
 				ElseIf pGlobalArgs > 0 AndAlso pGlobalArgs->Contains(sTemp, , , , Idx) Then
@@ -2620,6 +2624,7 @@ Namespace My.Sys.Forms
 				ElseIf TypeName <> "" Then
 					If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
+					ElseIf ContainsIn(TypeName, sTemp, @Namespaces, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -3261,6 +3266,15 @@ Namespace My.Sys.Forms
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
 																		OriginalCaseWord = Enums.Item(tIndex)
 																		pkeywords = @Enums
+																	End If
+																End If
+																
+																If tIndex = -1 Then
+																	tIndex = Namespaces.IndexOf(LCase(Matn))
+																	If tIndex <> -1 Then
+																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
+																		OriginalCaseWord = Namespaces.Item(tIndex)
+																		pkeywords = @Namespaces
 																	End If
 																End If
 																
