@@ -145,6 +145,12 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 	With Canvas
 		.CreateDoubleBuffer
 		.Font = This.Font
+		If g_darkModeEnabled Then
+			.Brush.Color = darkBkColor
+		Else
+			.Brush.Color = clBtnFace
+		End If
+		.Rectangle 0, 0, Canvas.Width, Canvas.Height
 		If CurrentMenu <> 0 AndAlso stCurrentMenu AndAlso stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc AndAlso QWString(stCurrentMenu->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
 		If IsPopup AndAlso CurrentToolBar = 0 Then
 			.Pen.Color = BGR(255, 255, 255)
