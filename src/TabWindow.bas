@@ -5494,7 +5494,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							If inFunc Then
 								te->Locals = inPubProPri
 							Else
-								te->Locals = IIf(bShared, 0, 2)
+								te->Locals = 0 'IIf(bShared, 0, 2)
 							End If
 							te->StartLine = i
 							te->EndLine = i
