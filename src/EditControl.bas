@@ -442,6 +442,8 @@ Namespace My.Sys.Forms
 				Exit For
 			ElseIf c OrElse q Then
 				Result += " "
+			ElseIf ch = "(" Then
+				Exit For
 			Else
 				Result += ch
 			End If
