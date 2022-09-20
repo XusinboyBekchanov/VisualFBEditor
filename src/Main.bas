@@ -3735,8 +3735,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							'		'?bTrim
 							'	End If
 							'End If
-						'Else
+						Else
 							'LastIndexFunction = Functions.Add(te->Name, te)
+							If Namespaces.Count > 0 Then
+								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+							End If
 						End If
 						LastIndexFunction = Functions.Add(te->Name, te)
 					ElseIf CInt(StartsWith(bTrimLCase, "function ")) OrElse _
@@ -3797,8 +3801,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							'		'?bTrim
 							'	End If
 							'End If
-						'Else
+						Else
 							'LastIndexFunction = Functions.Add(te->Name, te)
+							If Namespaces.Count > 0 Then
+								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+							End If
 						End If
 						LastIndexFunction = Functions.Add(te->Name, te)
 					ElseIf CInt(StartsWith(bTrimLCase, "property ")) OrElse _
@@ -3950,6 +3958,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->FileName = PathFunction
 							If Comment <> "" Then te->Comment = Comment: Comment = ""
 							Args.Add te->Name, te
+							If Namespaces.Count > 0 Then
+								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+							End If
 						Next
 					End If
 				End If

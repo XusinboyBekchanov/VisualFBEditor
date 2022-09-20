@@ -3776,24 +3776,11 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 	Dim As String Symb, FuncName, Parameters, Parameter
 	Dim As UString Comments, Link1
 	Dim As String TypeName
-	If teOld <> 0 AndAlso teOld->TypeName <> "" Then
-		TypeName = teOld->TypeName
-		FListItems.Clear
-		If tb->txtCode.Types.Contains(TypeName) Then
-			tb->FillIntellisense TypeName, @tb->txtCode.Types, True, True
-		ElseIf tb->txtCode.Enums.Contains(TypeName) Then
-			tb->FillIntellisense TypeName, @tb->txtCode.Enums, True, True
-		ElseIf pComps->Contains(TypeName) Then
-			tb->FillIntellisense TypeName, pComps, True, True
-		ElseIf pGlobalTypes->Contains(TypeName) Then
-			tb->FillIntellisense TypeName, pGlobalTypes, True, True
-		ElseIf pGlobalEnums->Contains(TypeName) Then
-			tb->FillIntellisense TypeName, pGlobalEnums, True, True
-		End If
-		Index = FListItems.IndexOf(sWord)
+	If teOld <> 0 Then
+		Index = teOld->Elements.IndexOf(sWord)
 		If Index > -1 Then
-			For i As Integer = Index To FListItems.Count - 1
-				te = FListItems.Object(i)
+			For i As Integer = Index To teOld->Elements.Count - 1
+				te = teOld->Elements.Object(i)
 				If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 					Parameter = te->Parameters
 					iPos = InStr(LCase(Parameter), LCase(sWord))
@@ -3804,6 +3791,36 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 					If te->Comment <> "" Then Comments &= "" & te->Comment
 				End If
 			Next
+		End If
+		If teOld->TypeName <> "" Then
+			TypeName = teOld->TypeName
+			FListItems.Clear
+			If tb->txtCode.Types.Contains(TypeName) Then
+				tb->FillIntellisense TypeName, @tb->txtCode.Types, True, True
+			ElseIf tb->txtCode.Enums.Contains(TypeName) Then
+				tb->FillIntellisense TypeName, @tb->txtCode.Enums, True, True
+			ElseIf pComps->Contains(TypeName) Then
+				tb->FillIntellisense TypeName, pComps, True, True
+			ElseIf pGlobalTypes->Contains(TypeName) Then
+				tb->FillIntellisense TypeName, pGlobalTypes, True, True
+			ElseIf pGlobalEnums->Contains(TypeName) Then
+				tb->FillIntellisense TypeName, pGlobalEnums, True, True
+			End If
+			Index = FListItems.IndexOf(sWord)
+			If Index > -1 Then
+				For i As Integer = Index To FListItems.Count - 1
+					te = FListItems.Object(i)
+					If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+						Parameter = te->Parameters
+						iPos = InStr(LCase(Parameter), LCase(sWord))
+						FuncName = Mid(Parameter, iPos, Len(sWord))
+						Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+						ParametersList.Add te->Parameters
+						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+						If te->Comment <> "" Then Comments &= "" & te->Comment
+					End If
+				Next
+			End If
 		End If
 	Else
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -4743,7 +4760,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5488,6 +5505,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								func->Elements.Add te->Name, te
 							Else
 								txtCode.Args.Add te->Name, te
+								If Namespaces.Count > 0 Then
+									Var Index = txtCode.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+									If Index > -1 Then Cast(TypeElement Ptr, txtCode.Namespaces.Object(Index))->Elements.Add te->Name, te
+								End If
 							End If
 							If te->ElementType = "Event" Then
 								Dim As UString bTrim = CurType
