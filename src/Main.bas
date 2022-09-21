@@ -467,7 +467,7 @@ End Function
 Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	On Error Goto ErrorHandler
 	Dim As WString Ptr MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeCommand
-	Dim As WString Ptr CompileWith, MFFPathC, ErrFileName, ErrTitle, ExeName, FirstLine
+	Dim As WString Ptr CompileWith, MFFPathC, ErrFileName, ErrTitle, ExeName, FirstLine, ProjectPath
 	Dim As Integer NumberErr, NumberWarning, NumberInfo, NodesCount, CompileResult = 1
 	Dim As UString CompileLine
 	Dim As ProjectElement Ptr Project
@@ -485,6 +485,15 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		ThreadsEnter()
 		If bAll Then ProjectNode = tvExplorer.Nodes.Item(k) Else ProjectNode = 0
 		WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
+		If Project Then
+			If EndsWith(*Project->FileName, ".vfp") Then
+				WLet ProjectPath, GetFolderName(*Project->FileName)
+			Else
+				WLet ProjectPath, *Project->FileName
+			End If
+		Else
+			WLet ProjectPath, GetFolderName(*MainFile)
+		End If
 		ThreadsLeave()
 		If Len(*MainFile) <= 0 Then
 			ThreadsEnter()
@@ -611,7 +620,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 			If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
 		End If
-		If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile"))) Then
+		If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile") OrElse FileExists(*ProjectPath & "/makefile"))) Then
 			Dim As String Colon = ""
 			#ifdef __USE_GTK__
 				Colon = ":"
@@ -676,7 +685,15 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Next i
 			CloseFile_(Fn2)
 		Else
-			ChDir(GetFolderName(*MainFile))
+			If CInt(Parameter = "Make") OrElse CInt(Parameter = "MakeClean") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile") OrElse FileExists(*ProjectPath & "/makefile"))) Then
+				If FileExists(GetFolderName(*MainFile) & "/makefile") Then
+					ChDir(GetFolderName(*MainFile))
+				Else
+					ChDir(*ProjectPath)
+				End If
+			Else
+				ChDir(GetFolderName(*MainFile))
+			End If
 		End If
 		'Shell(*fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """")
 		'Open Pipe *fbcCommand  + "> """ + *LogFileName + """" + " 2> """ + *LogFileName2 + """" For Input As #Fn
@@ -955,6 +972,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	WDeAllocate LogFileName2
 	WDeAllocate BatFileName
 	WDeAllocate MainFile
+	WDeAllocate ProjectPath
 	Return CompileResult
 	Exit Function
 	ErrorHandler:
