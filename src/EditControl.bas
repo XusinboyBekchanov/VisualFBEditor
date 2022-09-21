@@ -545,6 +545,8 @@ Namespace My.Sys.Forms
 		If FECLine->Collapsed Then
 			If Not EndsWith(*FECLine->Text, "'...'") Then
 				WLetEx(FECLine->Text, *FECLine->Text & " '...'", True)
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
 			End If
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
 				FECLine2 = FLines.Items[i]
@@ -565,6 +567,8 @@ Namespace My.Sys.Forms
 		Else
 			If EndsWith(*FECLine->Text, "'...'") Then
 				WLetEx(FECLine->Text, RTrim(.Left(*FECLine->Text, Len(*FECLine->Text) - 5)), True)
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
 			End If
 			Dim As EditControlLine Ptr OldCollapsed
 			For i As Integer = LineIndex + 1 To FLines.Count - 1
