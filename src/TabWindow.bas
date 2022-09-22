@@ -3376,6 +3376,7 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 		If FillIntellisense(tbi->TypeName, pList, bLocal, bAll, TypesOnly) Then
 		ElseIf FillIntellisense(tbi->TypeName, @txtCode.Types, bLocal, bAll, TypesOnly) Then
 		ElseIf FillIntellisense(tbi->TypeName, @txtCode.Enums, bLocal, bAll, TypesOnly) Then
+		ElseIf FillIntellisense(tbi->TypeName, @txtCode.Namespaces, bLocal, bAll, TypesOnly) Then
 		ElseIf FillIntellisense(tbi->TypeName, pComps, bLocal, bAll, TypesOnly) Then
 		ElseIf FillIntellisense(tbi->TypeName, pGlobalTypes, bLocal, bAll, TypesOnly) Then
 		ElseIf FillIntellisense(tbi->TypeName, pGlobalEnums, bLocal, bAll, TypesOnly) Then
@@ -3514,6 +3515,7 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 		tb->FillIntellisense sTemp2, @tb->txtCode.Enums, bLocal, bAll
 	ElseIf tb->txtCode.Namespaces.Contains(sTemp2) Then
 		tb->FillIntellisense sTemp2, @tb->txtCode.Namespaces, bLocal, bAll
+		tb->FillIntellisense sTemp2, pGlobalNamespaces, bLocal, bAll
 	ElseIf pComps->Contains(sTemp2) Then
 		tb->FillIntellisense sTemp2, pComps, bLocal, bAll
 	ElseIf pGlobalTypes->Contains(sTemp2) Then
@@ -4760,7 +4762,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5106,9 +5108,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							ElseIf Not te->TypeProcedure Then
 								txtCode.Procedures.Add te->Name, te
 							End If
-							If Namespaces.Count > 0 Then
-								Var Index = txtCode.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, txtCode.Namespaces.Object(Index))->Elements.Add te->Name, te
+							If Not te->TypeProcedure Then
+								If Namespaces.Count > 0 Then
+									Var Index = txtCode.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+									If Index > -1 Then Cast(TypeElement Ptr, txtCode.Namespaces.Object(Index))->Elements.Add te->Name, te
+								End If
 							End If
 							func = te
 							If Pos2 > 0 AndAlso Pos5 > 0 Then
