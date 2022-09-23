@@ -443,7 +443,7 @@ Namespace My.Sys.Forms
 			ElseIf c OrElse q Then
 				Result += " "
 			ElseIf ch = "(" Then
-				Exit For
+				Result += " "
 			Else
 				Result += ch
 			End If
