@@ -5237,6 +5237,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
 					Pos1 = InStr(9, bTrim, " ")
 					Pos2 = InStr(9, bTrim, "(")
+					Pos5 = Pos2
 					If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
 					te = New_( TypeElement)
 					If Pos1 = 0 Then
@@ -5258,6 +5259,62 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					te->Tag = tb
 					txtCode.FunctionsOthers.Add te->DisplayName, te
 					txtCode.Procedures.Add te->Name, te
+					Pos2 = InStr(bTrim, ")")
+					If Pos2 > 0 AndAlso Pos5 > 0 Then
+						ECLine->Args.Add te
+						Var teDeclare = te
+						Dim As UString CurType, res1(Any), ElementValue
+						Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+						For n As Integer = 0 To UBound(res1)
+							res1(n) = Replace(res1(n), ";", ",")
+							Pos1 = InStr(res1(n), "=")
+							If Pos1 > 0 Then
+								ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+							Else
+								ElementValue = ""
+							End If
+							If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							Pos1 = InStr(LCase(res1(n)), " as ")
+							If Pos1 > 0 Then
+								CurType = Trim(Mid(res1(n), Pos1 + 4))
+								CurType = Replace(CurType, "`", "=")
+								res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							End If
+							Var te = New_( TypeElement)
+							If res1(n).ToLower.StartsWith("byref") Then
+								res1(n) = Trim(Mid(res1(n), 6))
+								te->ElementType = "ByRefParameter"
+							ElseIf res1(n).ToLower.StartsWith("byval") Then
+								res1(n) = Trim(Mid(res1(n), 6))
+								te->ElementType = "ByValParameter"
+							Else
+								te->ElementType = "ByValParameter"
+							End If
+							Pos1 = InStr(res1(n), "(")
+							If Pos1 > 0 Then
+								res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							End If
+							res1(n) = res1(n).TrimAll
+							If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+								Pos1 = InStrRev(CurType, ".")
+								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+							End If
+							te->Name = res1(n)
+							te->DisplayName = res1(n)
+							te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+							'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							te->TypeName = CurType
+							te->TypeName = WithoutPointers(te->TypeName)
+							te->Value = ElementValue
+							te->Locals = 0
+							te->StartLine = i
+							te->EndLine = i
+							te->Parameters = res1(n) & " As " & CurType
+							te->FileName = sFileName
+							te->Tag = tb
+							teDeclare->Elements.Add te->Name, te
+						Next
+					End If
 				ElseIf StartsWith(bTrimLCase, "declare ") Then
 					iStart = 9
 					Pos1 = InStr(9, bTrim, " ")
@@ -5641,7 +5698,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								#else
 									Dim As HWND pnlFormHandle = pnlForm.Handle
 									stDesignControl->WritePropertyFunc(.DesignControl, "ParentHandle", @pnlFormHandle)
-									
 									'.ComponentSetBoundsSub(.DesignControl, 0, 0, 350, 300)
 								#endif
 								stDesignControl->WritePropertyFunc(.DesignControl, "DesignMode", @bTrue)
