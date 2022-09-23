@@ -63,7 +63,7 @@ End Enum
 
 ' Add Try End_Try
 ReDim Constructions(C_Count - 1) As Construction
-Constructions(0)  = Type<Construction>("If",            "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "ElseIf",   "Else",       "",        "End If",          "Then", True,  False)
+Constructions(0)  = Type<Construction>("If",            "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "ElseIf",   "Else",       "",        "End If",          "Then ", True,  False)
 Constructions(1)  = Type<Construction>("#If",           "#IfDef",             "#IfNDef",             "",                   "",                          "",                           "",                "",                       "",                        "#ElseIf",  "#Else",      "",        "#EndIf",          "",      True,  False)
 Constructions(2)  = Type<Construction>("#Macro",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "#EndMacro",       "",      True,  True)
 Constructions(3)  = Type<Construction>("Extern",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Extern",      "",      True,  False)
