@@ -1440,9 +1440,9 @@ Namespace My.Sys.Forms
 			FECLine->Ends.Clear
 			FECLine->EndsCompleted = False
 			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet(FECLine->Text, Trim(*FECLine->Text, Any !"\t "))
-			'If *FECLine->Text = "" Then Continue For
+			If *FECLine->Text = "" Then Continue For
 			If .Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then WLet(FECLine->Text, "If (" & Mid(*FECLine->Text, 4))
-			'If LCase(*FECLine->Text) = "endif" Then wLet FECLine->Text,"End If"
+			If LCase(Trim(*FECLine->Text, Any !"\t ")) = "endif" Then WLet FECLine->Text, "End If"
 			If iComment = 0 Then
 				If FECLine->Multiline Then
 					Split(*FECLine->Text, """", LineQuotes())
