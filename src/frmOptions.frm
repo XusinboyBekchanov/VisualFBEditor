@@ -4682,7 +4682,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	If Result = 0 Then
 		StartGeneral = True
 		Line Input #Fn1, Buff
-		WLet lang_name, Buff
+		WLet(lang_name, Buff)
 		Do Until EOF(Fn1)
 			Line Input #Fn1, Buff
 			If LCase(Trim(Buff)) = "[keywords]" Then
@@ -4894,7 +4894,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 			StartGeneral = True
 			This.Text =  "******* Updating ... " & FileNameLng
 			Line Input #Fn1, Buff
-			WLet lang_name, Buff
+			WLet(lang_name, Buff)
 			Do Until EOF(Fn1)
 				Line Input #Fn1, Buff
 				If LCase(Trim(Buff)) = "[keywords]" Then

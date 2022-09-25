@@ -6,7 +6,8 @@ MyFbFramework
 Projects/*.exe
 lib*.dll*
 zlib*.dll*
-*_gtk*
+VisualFBEditor64_gtk2
+VisualFBEditor64_gtk3
 *.so
 *.o
 lib

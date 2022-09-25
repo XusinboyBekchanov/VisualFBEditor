@@ -335,6 +335,23 @@ Function GetShortFileName(ByRef FileName As WString, ByRef FilePath As WString) 
 	End If
 End Function
 
+Function GetFullPathInSystem(ByRef Path As WString) As UString
+	If InStr(Path, ":") > 0 OrElse Path = "" Then
+		Return Path
+	Else
+		Dim As WString * MAX_PATH fullPath
+		#ifdef __USE_GTK__
+			fullPath = WStr(*g_find_program_in_path(Path))
+		#else
+			Dim As WString Ptr lpFilePart
+			If SearchPath(NULL, Path, ".exe", MAX_PATH - 1, @fullPath, 0) = 0 Then
+				Print GetErrorString(GetLastError)
+			End If
+		#endif
+		Return fullPath
+	End If
+End Function
+
 Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 	If CInt(InStr(Path, ":") > 0) OrElse CInt(StartsWith(Path, "/")) OrElse CInt(StartsWith(Path, "\")) Then
 		If EndsWith(Path, "\..") OrElse EndsWith(Path, "/..") Then
@@ -360,25 +377,15 @@ Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As U
 		End If
 	Else
 		If FromFile = "" Then
-			Return ExePath & Slash & Path
+			Dim As UString Path_ = GetFullPathInSystem(Path)
+			If Path_ <> "" Then
+				Return Path_
+			Else
+				Return ExePath & Slash & Path
+			End If
 		Else
 			Return GetFolderName(FromFile) & Path
 		End If
-	End If
-End Function
-
-Function GetFullPathInSystem(ByRef Path As WString) As UString
-	If InStr(Path, ":") > 0 Then
-		Return Path
-	Else
-		Dim As WString * MAX_PATH fullPath
-		#ifndef __USE_GTK__
-			Dim As WString Ptr lpFilePart
-			If SearchPath(NULL, Path, ".exe", MAX_PATH, @fullPath, @lpFilePart) = 0 Then
-				Print GetErrorString(GetLastError)
-			End If
-		#endif
-		Return fullPath
 	End If
 End Function
 
@@ -487,12 +494,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
 		If Project Then
 			If EndsWith(*Project->FileName, ".vfp") Then
-				WLet ProjectPath, GetFolderName(*Project->FileName)
+				WLet(ProjectPath, GetFolderName(*Project->FileName))
 			Else
-				WLet ProjectPath, *Project->FileName
+				WLet(ProjectPath, *Project->FileName)
 			End If
 		Else
-			WLet ProjectPath, GetFolderName(*MainFile)
+			WLet(ProjectPath, GetFolderName(*MainFile))
 		End If
 		ThreadsLeave()
 		If Len(*MainFile) <= 0 Then
@@ -509,9 +516,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		ThreadsLeave()
 		WLet(ExeName, GetExeFileName(*MainFile, *FirstLine))
 		If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
-			WLet FbcExe, GetFullPath(*Project->CompilerPath)
+			WLet(FbcExe, GetFullPath(*Project->CompilerPath))
 		Else
-			WLet FbcExe, GetFullPath(IIf(Bit32, *Compiler32Path, *Compiler64Path))
+			WLet(FbcExe, GetFullPath(IIf(Bit32, *Compiler32Path, *Compiler64Path)))
 		End If
 		If *FbcExe = "" Then
 			ThreadsEnter()
@@ -757,7 +764,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						End If
 						If 	bFlagErr >= 0 Then
 							ThreadsEnter()
-							If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet ErrFileName, GetFolderName(*MainFile) & *ErrFileName
+							If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 							lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
 							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
@@ -1573,7 +1580,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							Var CtlLibrary = New_(Library)
 							CtlLibrary->Name = ini.ReadString("Setup", "Name")
 							CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
-							CtlLibrary->Path = LibraryPath & Slash & ini.ReadString("Setup", LibKey)
+							CtlLibrary->Path = LibraryPath & Slash & ini.ReadString("Setup", LibKey, " ")
 							CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
 							CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
 							CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), CtlLibrary->Path))
@@ -5927,7 +5934,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		'MainNode = ptn
 		'lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 		mLoadLog = False
-		mLoadToDO = False
+		mLoadToDo = False
 		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" Then  'David Change For compile Single .bas file
 			'			MainNode = 0
 			'			lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
@@ -5951,8 +5958,8 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 						txtChangeLog.Text = ""
 					End If
 					mLoadLog = True
-				ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDO Then
-					WLet gSearchSave, WChr(39)+ WChr(84)+"ODO"
+				ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDo Then
+					WLet(gSearchSave, WChr(39) + WChr(84) + "ODO")
 					ThreadCounter(ThreadCreate_(@FindSubProj, ptn))
 					mLoadToDo = True
 				End If
@@ -7034,12 +7041,12 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 	Dim As WString Ptr sLine ' = @txtImmediate.Lines(iLine) '  for got wrong value
 	Dim bCtrl As Boolean
 	#ifdef __USE_GTK__
-		bCtrl = Shift And GDK_Control_MASK
+		bCtrl = Shift And GDK_CONTROL_MASK
 	#else
 		bCtrl = GetKeyState(VK_CONTROL) And 8000
 	#endif
 	'
-	wLet(sLine, txtImmediate.Lines(iLine))
+	WLet(sLine, txtImmediate.Lines(iLine))
 	If CInt(Not bCtrl) AndAlso CInt(WGet(sLine) <> "") AndAlso CInt(Not StartsWith(Trim(WGet(sLine)),"'")) Then
 		If Key = Keys.Key_Enter Then
 			'
@@ -7060,9 +7067,9 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			CloseFile_(Fn)
 			Dim As WString Ptr FbcExe, ExeName
 			If tbt32Bit->Checked Then
-				WLet FbcExe, GetFullPath(*Compiler32Path)
+				WLet(FbcExe, GetFullPath(*Compiler32Path))
 			Else
-				WLet FbcExe, GetFullPath(*Compiler32Path)
+				WLet(FbcExe, GetFullPath(*Compiler32Path))
 			End If
 			PipeCmd "", """" & *FbcExe & """ -b """ & ExePath & "/Temp/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & ExePath & "/Temp/Compile1.log"" 2> """ & ExePath & "/Temp/Compile2.log"""
 			Dim As WString Ptr LogText
@@ -7094,7 +7101,7 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile2.log" For Input As #Fn)
 			If Result = 0 Then
 				While Not EOF(Fn)
-					Line Input #Fn, buff
+					Line Input #Fn, Buff
 					SplitError(Trim(Buff), ErrFileName, ErrTitle, iLine)
 					WAdd LogText, Trim(Buff) & !"\r"
 				Wend
@@ -7125,20 +7132,20 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 						frmMain.Update
 					Wend
 				Else
-					MsgBox ML("Open file failure!") & Chr(13,10) & "  " & *EXEName
+					MsgBox ML("Open file failure!") & Chr(13,10) & "  " & *ExeName
 				End If
 				CloseFile_(Fn)
 				Kill *ExeName
 			End If
-			WDeallocate FbcExe
-			WDeallocate ExeName
-			WDeallocate LogText
-			WDeallocate ErrFileName
-			WDeallocate ErrTitle
+			WDeAllocate FbcExe
+			WDeAllocate ExeName
+			WDeAllocate LogText
+			WDeAllocate ErrFileName
+			WDeAllocate ErrTitle
 		End If
 	End If
-	WDeallocate sLine '
-	If Not EndsWith(txtImmediate.Text, !"\r") Then txtImmediate.Text &= !"\r"
+	WDeAllocate sLine '
+	'If Not EndsWith(txtImmediate.Text, !"\r") Then txtImmediate.Text &= !"\r"
 End Sub
 
 txtImmediate.Align = DockStyle.alClient
@@ -7148,21 +7155,21 @@ txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
 'txtImmediate.BackColor = NormalText.Background
 'txtImmediate.Font.Color = NormalText.Foreground
-txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + Slash + "MyFbFramework"+ Slash + "mff" + Slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
+txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + Slash + "Controls" + Slash + "MyFbFramework"+ Slash + "mff" + Slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
 txtImmediate.SetSel txtImmediate.GetTextLength, txtImmediate.GetTextLength
 
 Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Dim bCtrl As Boolean
 	#ifdef __USE_GTK__
-		bCtrl = Shift And GDK_Control_MASK
+		bCtrl = Shift And GDK_CONTROL_MASK
 	#else
 		bCtrl = GetKeyState(VK_CONTROL) And 8000
 	#endif
 	If CInt(Not bCtrl) OrElse Shift <> 1 Then mChangeLogEdited = True
-	If CInt(bCtrl) And key =13 Then
+	If CInt(bCtrl) And Key =13 Then
 		txtChangeLog.SelText = __DATE_ISO__ & " " & Time & !"\t" & !"\t"  'Format(Now, "yyyy/mm/dd hh:mm:ss") & !"\t" & !"\t"
 		mChangeLogEdited = True
-	ElseIf CInt(bCtrl) And Shift And (key =108 Or key =76) Then
+	ElseIf CInt(bCtrl) And Shift And (Key =108 Or Key =76) Then
 		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
 			Dim As WString Ptr sTmp
@@ -7370,7 +7377,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 			End If
 			mLoadLog = True
 		ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDo Then
-			WLet gSearchSave, WChr(39) + WChr(84) + "ODO"
+			WLet(gSearchSave, WChr(39) + WChr(84) + "ODO")
 			ThreadCounter(ThreadCreate_(@FindSubProj, MainNode))
 			mLoadToDo = True
 		End If
@@ -8090,13 +8097,11 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 			.lstFiles.SelectAll
 			Select Case .ShowModal(*pfrmMain)
 			Case ModalResults.Yes
-				For i As Integer = .lstFiles.ItemCount - 1 To 0 Step -1
-					If .lstFiles.Selected(i) Then
-						If tvExplorer.Nodes.Contains(.lstFiles.ItemData(i)) Then
-							If Not SaveProject(.lstFiles.ItemData(i)) Then Action = 0: Return
-						Else
-							If Not Cast(TabWindow Ptr, .lstFiles.ItemData(i))->Save Then Action = 0: Return
-						End If
+				For i As Integer = .SelectedItems.Count - 1 To 0 Step -1
+					If tvExplorer.Nodes.Contains(.SelectedItems.Item(i)) Then
+						If Not SaveProject(.SelectedItems.Item(i)) Then Action = 0: Return
+					Else
+						If Not Cast(TabWindow Ptr, .SelectedItems.Item(i))->Save Then Action = 0: Return
 					End If
 				Next
 			Case ModalResults.No

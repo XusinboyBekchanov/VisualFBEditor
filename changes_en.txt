@@ -1,4 +1,172 @@
-﻿Version 1.3.2 (April 16, 2022)
+﻿Version 1.3.3 (September 23, 2022)
+- Fixed: Namespace intellisense
+- Improved: Make and Make clean functions
+- Fixed: Intellisense for variables inside Namespace
+- Improved: Include paths also added to Auto Complete
+- Fixed: Showing Options Controls on Linux
+- Fixed: Define function on Linux
+- Fixed: Var Intellisense
+- Fixed: Define function
+- Fixed: Ctrl+Click on Include File in Linux
+- Added: Split functions on Linux
+- Fixed: Warnings when showing tooltips on Linux
+- Fixed: Crashing IDE on Linux
+- Added: Line Labels syntax highlighting
+- Fixed: Showing bottom pin button on Linux
+- Fixed: Designing Menu Item Images
+- Added: Double Buffer to Menu Editor
+- Added: MDI Notepad Example
+- Fixed: Showing ToolBar in Designer and Menu Editor on High DPI
+- Fixed: Adding ToolTips control as component
+- Improved: Disabled menu items and tool buttons will be colored correctly in design mode.
+- Improved: It is only possible to enter a number in the Goto form.
+- Fixed: Focus changing on edit items in Menu Editor
+- Added: Insert, Move Up and Move Down functions to ToolBar Editor and StatusBar Editor
+- Fixed: Opening StatusBar Editor
+- Fixed: Updating Edit Control after Numbering or Remove numbering
+- Fixed: Showing Drop down tooltips on Linux
+- Improved: Showing Options window on Linux
+- Fixed: Error on Design ToolBar
+- Fixed: IntelliSense
+- Changed: Form templates
+- Improved: When opening a project, all used controls are loaded into the Toolbox.
+- Added: MDIForm example
+- Added: rs_Types parameter to FindByte(Utf) and FindOneByte(Utf) functions of MariaDBBox and SQLite3Component
+- Fixed: TransactionBegin method of MariaDBBox
+- Added: TransactionRollback function to SQLite3Component and MariaDBBox
+- Fixed: TransactionEnd function of MariaDBBox
+- Fixed: Auto CompleteWord and ParameterInfo inside string and comments
+- Fixed: Errors in SQLite3Component and MariaDBBox
+- Improved: "Form" and "Code and Form" functions
+- Added: Add Procedure function
+- Added: Duplicate Menu item to Designer Context Menu
+- Added: host, unix_socket, clientflag parameters to Open method of MariaDBBox component
+- Fixed: Auto Complete Word inside String
+- Added: UserName and Port parameters to Open function of MariaDBBox
+- Fixed: Reading blob columns with MariaDBBox
+- Fixed: Changing Font size and Font name in the Edit Control
+- Added: MariaDBBox component
+- Fixed: Numbering, Format Code, Comment, Uncomment, Indent and Outdent functions
+- Improved: Speed updating Of Edit Control
+- Improved: The names of all selected controls are displayed in the Properties and Events window.
+- Added: Showing Selected Control Name in Properties and Events Windows
+- Fixed: Updating Edit Control on Divided Mode
+- Fixed: The Error Handling function will fire the correct exit operator.
+- Fixed: Updating values in the Properties Window after insert a new Menu Item on Menu Editor.
+- Improved: Edit Control updates faster
+- Improved: Speed of Auto complete
+- Added: OnSQLString function event and OnErrorOut sub event to SQLite3Component.
+- Added: Ability to process function events in the IDE.
+- Fixed: Return of error ERROR_BROKEN_PIPE (109) when closing started without a console program.
+- Fixed: Set Parent to Components in Designer
+- Fixed: Opening Files with Ctrl + Click for another components
+- Improved: Checking and unchecking libraries in Components Window adds components to ToolBox and deletes from it.
+- Fixed: Undo and Redo functions of Code Editor
+- Improved: Components Window
+- Added: Saving Components library settings
+- Added: Showing Control libraries in Components window
+- Added: Components Form
+- Improved: Add Form, Module, etc. template to the Project auto opens the new tab on the IDE
+- Added: Designing controls from multiple libraries
+- Added: Multiple add resources and files to ImageList in ImageList Editor
+- Improved: ImageList Editor
+- Improved: Image Manager
+- Fixed: Menu Editor on High DPI
+- Added: Move Up and Move Down functions to Menu Editor
+- Fixed: Butterfly Draw Example on Linux
+- Improved: Send to Back and Bring to Front functions of Designer
+- Added: "Delete menu item" Context menu to Menu Editor
+- Fixed: Changing MenuItem properties with Property Window
+- Fixed: Remove MainMenu with MenuItems
+- Fixed: Numbering with collapsible lines
+- Fixed: On set wrong Component values on Design shows Message to User
+- Added: Insert menu item to Menu Editor
+- Added: Shift Mouse Wheel for Code Editor to horizontal scrolling
+- Added: Shift Mouse Wheel for Designer to horizontal scrolling
+- Fixed: IntelliSense with nested constructions
+- Improved: Syntax Highlighting Identifiers with One Dot and Two Dot
+- Improved: Comment Single And Comment Block
+- Fixed: Syntax Highlighting Members of Types
+- Changed: Type of Key parameter of KeyPress event from Byte To Integer
+- Added: Collapsing If, For, Select Case and etc.
+- Fixed: Vertical Scroll on Code Editor Folding.
+- Added: Collapse and Uncollapse Current, All Procedures menu items
+- Fixed: Auto Complete words by press Enter Key.
+- Improved: Showing Edit Control DropDown with ToolTips
+- Fixed: Focus when copying and selecting controls when designing.
+- Fixed: Loading codes longer than 1024 symbols
+- Added: IDE creates a new line if the string of controls exceeds 1024 characters when adding new control
+- Fixed: Starting programs with a space in the name using cmd.exe
+- Fixed: Showing brackets by position on High DPI
+- Fixed: Scrolling to the end line of the Edit Control
+- Fixed: Find Control at Cursor in Designer on High DPI
+- Added: Syntax Highlighting Identifiers option
+- Changed: Macro identifier color
+- Added: VisualFBEditor and MyFbFramework Discussions menu item to Help menu
+- Added: Input the integer value of color to change color setting directly
+- Fixed: Syntax Highlighting Static Subs and Functions
+- Changed: Syntax Color of Shared and Common Variables on Dark theme
+- Added: Syntax Highlighting Member Identifiers
+- Added: Syntax Highlighting Identifiers with membership
+- Fixed: Syntax Highlighting Identifiers with two dots on start
+- Fixed: Syntax Highlighting For Next local variable
+- Added: Syntax Highlighting Operators
+- Improved: Change Identifiers Case
+- Improved: Syntax Highlighting Identifiers
+- Added: Local Args Syntax Highlighting
+- Added: Change Identifiers Case option
+- Improved: Sorted Add Controls to Class List on Design
+- Fixed: Integrated GDB Debugger
+- Fixed: Add space after keyword "To"
+- Added: DownloadAndCompileForRaspbian.sh
+- Fixed: Crashing IDE when start on Linux
+- Fixed: UTF8 support on function LoadFromFile
+- Fixed: Add space to Oct Value &O
+- Improved: Showing WinAPI and GTK API tooltips
+- Improved: Showing keyword tooltips
+- Added: GTK API Functions to KeyWordsHelp.txt
+- Fixed: Run compiled program
+- Added: Windows SDK API functions to Keywords Help
+- Added: Automatic change of Parameter Info when changing the selection while the tooltip is open.
+- Fixed: Functions list
+- Added: Syntax Highlighting Namespaces, Components, Types, Enums, Functions, Args
+- Fixed: Properties Window on High DPI
+- Fixed: Size of Menu images on High DPI
+- Fixed: Crashing when showing Parameter Info
+- Fixed: Showing Parameter info
+- Improved: Show Tooltip for functions.
+- Fixed: IDE closing when waiting for a running program.
+- Improved: Showing Keywords parameter info
+- Added: Cut Current Line to Edit Menu
+- Added: Erase Immediate Window button
+- Fixed: Namespace intellisense
+- Added: Compiling programs with _DebugWindow_ define
+- Fixed: File number leak
+- Fixed: Double clicking on an event in the Event window shows the Code editor
+- Fixed: Displaying the FBMemCheckAssist Add-In Menu Item in the Service Menu
+- Added: Install git and wget to DownloadAndCompile.sh
+- Added: DownloadAndCompile.sh for Linux
+- Improved: DownloadAndCompileWithQuestion.bat adds Compilers and Debuggers folder
+- Added: Download GDB question to DownloadAndCompileWithQuestion.bat
+- Added: Default Compiler and GDB path settings to VisualFBEditor folder
+- Fixed: Compiling 64-bit with DownloadAndCompileWithQuestions.bat
+- Fixed: EditControl LoadFromFile
+- Fixed: TabPage on Design Mode
+- Improved: Closing split tabs removes empty space too.
+- Fixed: Ctrl + MouseMove on Edit Control on Vertically Split Mode
+- Fixed: Reload History Code function, now Open File Dialog opens the Temp folder
+- Added: Localization the help of Keywords
+- Fixed: Activating Tab
+- Added: Split Up, Split Down, Split Left and Split Right functionality to Tab Page menu
+- Added: DownloadAndCompileWithQuestions.bat
+- Fixed: GridData example: sorting by numbers
+- Fixed: Limit debug to the directory of the main file option
+- Added: DownloadAndCompile.bat
+- Added: Manage the history backup file.
+- Added: Show Tooltips at the Top option
+- Fixed: Showing Edit control tooltips
+- Fixed: Edit control lose focus on mouse move to tooltip hyperlink
+Version 1.3.2 (April 16, 2022)
 - Fixed: Click Set As Main menu item from Tab Window
 - Fixed: Showing Functions List and Form/Code view toolbar on Windows XP and Classic without manifest mode
 - Added: Bass examples

@@ -90,6 +90,12 @@ Private Sub frmSave.cmdYes_Click_(ByRef Sender As Control)
 End Sub
 Private Sub frmSave.cmdYes_Click(ByRef Sender As Control)
 	ModalResult = ModalResults.Yes
+	SelectedItems.Clear
+	For i As Integer = lstFiles.ItemCount - 1 To 0 Step -1
+		If lstFiles.Selected(i) Then
+			SelectedItems.Add lstFiles.ItemData(i)
+		End If
+	Next
 	Me.CloseForm
 End Sub
 
@@ -113,7 +119,7 @@ Private Sub frmSave.Form_Show_(ByRef Sender As Form)
 	*Cast(frmSave Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub frmSave.Form_Show(ByRef Sender As Form)
-	
+	SelectedItems.Clear
 End Sub
 
 Private Sub frmSave.Form_Create_(ByRef Sender As Control)

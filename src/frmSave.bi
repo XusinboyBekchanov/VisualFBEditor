@@ -22,6 +22,7 @@
 		Dim As ListControl lstFiles
 		Dim As Label lblMessage
 		Dim As CommandButton cmdYes, cmdNo, cmdCancel
+		Dim As List SelectedItems
 	End Type
 
 	Common Shared pfSave As frmSave Ptr

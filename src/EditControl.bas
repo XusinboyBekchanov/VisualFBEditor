@@ -413,7 +413,7 @@ Namespace My.Sys.Forms
 		If Index = 0 Then FHistory.Clear
 	End Sub
 	
-	Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True) As String
+	Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True, WithoutBracket As Boolean = False) As String
 		Dim As String Result, ch, sLine = subject
 		Dim As Integer cc, iPos = -1
 		Dim As Boolean q, c
@@ -442,7 +442,7 @@ Namespace My.Sys.Forms
 				Exit For
 			ElseIf c OrElse q Then
 				Result += " "
-			ElseIf ch = "(" Then
+			ElseIf WithoutBracket AndAlso ch = "(" Then
 				Result += " "
 			Else
 				Result += ch
@@ -463,7 +463,7 @@ Namespace My.Sys.Forms
 		'		Next
 		'		If iPos = 0 Then Return -1 Else sLine = Mid(sLine, iPos + 2)
 		'		iPos = InStr(sLine, "/'")
-		sLine = TextWithoutQuotesAndComments(sLine, OldCommentIndex, False)
+		sLine = TextWithoutQuotesAndComments(sLine, OldCommentIndex, False, True)
 		iPos = InStr(sLine, "'")
 		If iPos = 0 Then iPos = Len(sLine) Else iPos -= 1
 		For i As Integer = 0 To UBound(Constructions)
@@ -1250,7 +1250,7 @@ Namespace My.Sys.Forms
 		If Result = 0 Then
 			OldFileEncoding = FileEncoding
 			Dim As Integer MaxChars = LOF(Fn)
-			WReAllocate BuffRead, MaxChars
+			WReAllocate(BuffRead, MaxChars)
 			Do Until EOF(Fn)
 				FECLine = New_( EditControlLine)
 				OlddwClientX = 0
@@ -1261,10 +1261,10 @@ Namespace My.Sys.Forms
 				pBuff = 0
 				If OldFileEncoding = FileEncodings.Utf8 Then
 					Line Input #Fn, Buff
-					WLet pBuff, FromUtf8(StrPtr(Buff))
+					WLet(pBuff, FromUtf8(StrPtr(Buff)))
 				Else
 					LineInputWstr Fn, BuffRead, MaxChars
-					WLet pBuff, *BuffRead
+					WLet(pBuff, *BuffRead)
 				End If
 				FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
 				iC = FindCommentIndex(*pBuff, OldiC)
@@ -1442,7 +1442,7 @@ Namespace My.Sys.Forms
 			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet(FECLine->Text, Trim(*FECLine->Text, Any !"\t "))
 			'If *FECLine->Text = "" Then Continue For
 			If .Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then WLet(FECLine->Text, "If (" & Mid(*FECLine->Text, 4))
-			If LCase(Trim(*FECLine->Text, Any !"\t ")) = "endif" Then WLet FECLine->Text, "End If"
+			If LCase(Trim(*FECLine->Text, Any !"\t ")) = "endif" Then WLet(FECLine->Text, "End If")
 			If iComment = 0 Then
 				If FECLine->Multiline Then
 					Split(*FECLine->Text, """", LineQuotes())
@@ -4238,7 +4238,7 @@ Namespace My.Sys.Forms
 			DropDownToolTipItemIndex = cboIntellisense.ItemIndex
 		#endif
 		DropDownToolTipShowed = True
-		If *FHintDropDown = "" Then WLet FHintDropDown, " "
+		If *FHintDropDown = "" Then WLet(FHintDropDown, " ")
 		#ifdef __USE_GTK__
 			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(Replace(*FHintDropDown, "<=", "\u003c=")))
 			gtk_window_move(GTK_WINDOW(winDropDownTooltip), X, Y)
@@ -4348,7 +4348,7 @@ Namespace My.Sys.Forms
 				
 				SendMessage(hwndTTDropDown, TTM_GETTOOLINFO, 0, CInt(@ti))
 				
-				If *FHintDropDown = "" Then WLet FHintDropDown, " "
+				If *FHintDropDown = "" Then WLet(FHintDropDown, " ")
 				
 				ti.lpszText = FHintDropDown
 				
