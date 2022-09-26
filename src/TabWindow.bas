@@ -3990,9 +3990,18 @@ Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEn
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iSelStartCharFunc, iSelEndCharFunc
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
-	'If InStr(iSelEndChar, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, iSelEndChar) < iSelEndChar AndAlso (InStr(iSelEndChar, *sLine, """ ") > iSelEndChar OrElse InStr(iSelEndChar, *sLine, """ ") < 1)) Then Exit Sub
-	'k = InStrRev(*sLine, "'")
-	'If k > 0 AndAlso (iSelEndChar >= k) AndAlso Not (InStr(k, *sLine, """") > 0 AndAlso (InStrRev(*sLine, " """, k) < k AndAlso (InStr(k, *sLine, """ ") > k OrElse InStr(k, *sLine, """ ") < 1))) Then Exit Sub
+	Dim As Integer posL, posR = 0: k = 0
+	Do
+		posR = InStr(posR + 1, *sLine, """")
+		If posR >= iSelEndChar OrElse posR < 1 Then Exit Do
+		k += 1
+	Loop
+	If k Mod 2 = 1 Then Exit Sub
+	k = InStrRev(*sLine, "'", iSelEndChar)
+	If k > 0 Then
+		posL = InStrRev(*sLine, """", k) : posR = InStr(k, *sLine, """")
+		If Not (posL  > 0 AndAlso (posL < k AndAlso posR > k)) Then Exit Sub
+	End If
 	Dim As String sWord
 	Dim As Integer iCount, iPos
 	iSelEndCharFunc = iSelEndChar
