@@ -335,6 +335,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 								.txtCode.ReplaceLine(i, Chr(9) & "Dim Shared f" & NewFormName & " As " & NewFormName)
 							ElseIf .txtCode.Lines(i) = Chr(9) & "Dim Shared Form1 As Form1Type" Then
 								.txtCode.ReplaceLine(i, Chr(9) & "Dim Shared " & NewFormName & " As " & NewFormName & "Type")
+							ElseIf .txtCode.Lines(i) = Chr(9) & Chr(9) & "fForm1.MainForm = True" Then
+								.txtCode.ReplaceLine(i, Chr(9) & Chr(9) & "f" & NewFormName & ".MainForm = True")
+							ElseIf .txtCode.Lines(i) = Chr(9) & Chr(9) & "Form1.MainForm = True" Then
+								.txtCode.ReplaceLine(i, Chr(9) & Chr(9) & NewFormName & ".MainForm = True")
 							ElseIf .txtCode.Lines(i) = Chr(9) & Chr(9) & "fForm1.Show" Then
 								.txtCode.ReplaceLine(i, Chr(9) & Chr(9) & "f" & NewFormName & ".Show")
 								Exit For
