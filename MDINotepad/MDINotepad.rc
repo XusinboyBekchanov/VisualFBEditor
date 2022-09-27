@@ -1,0 +1,115 @@
+﻿1 24 "Manifest.xml"
+1 ICON "MDINotepad.ico"
+About PNG ".\Resources\About.png"
+Add PNG ".\Resources\Add.png"
+Browser PNG ".\Resources\Browser.png"
+Cascade PNG ".\Resources\Cascade.png"
+Close PNG ".\Resources\Close.png"
+CloseAll PNG ".\Resources\CloseAll.png"
+Color PNG ".\Resources\Color.png"
+Copy PNG ".\Resources\Copy.png"
+Cut PNG ".\Resources\Cut.png"
+DarkMode PNG ".\Resources\DarkMode.png"
+Deleted PNG ".\Resources\Deleted.png"
+Exit PNG ".\Resources\Exit.png"
+File PNG ".\Resources\File.png"
+Find PNG ".\Resources\Find.png"
+FindBack PNG ".\Resources\FindBack.png"
+FindNext PNG ".\Resources\FindNext.png"
+Fonts PNG ".\Resources\Fonts.png"
+Horizontal PNG ".\Resources\Horizontal.png"
+Icons PNG ".\Resources\Icons.png"
+New PNG ".\Resources\New.png"
+Open PNG ".\Resources\Open.png"
+Paste PNG ".\Resources\Paste.png"
+Print PNG ".\Resources\Print.png"
+PrintPreview PNG ".\Resources\PrintPreview.png"
+PrintSetup PNG ".\Resources\PrintSetup.png"
+Redo PNG ".\Resources\Redo.png"
+Replace PNG ".\Resources\Replace.png"
+ReplaceAll PNG ".\Resources\ReplaceAll.png"
+ReplaceFile PNG ".\Resources\ReplaceFile.png"
+Save PNG ".\Resources\Save.png"
+SaveAll PNG ".\Resources\SaveAll.png"
+SaveAs PNG ".\Resources\SaveAs.png"
+StatusBar PNG ".\Resources\StatusBar.png"
+ToolBar PNG ".\Resources\ToolBar.png"
+Undo PNG ".\Resources\Undo.png"
+Vertical PNG ".\Resources\Vertical.png"
+FileSearch PNG ".\Resources\FileSearch.png"
+FileSync PNG ".\Resources\FileSync.png"
+Hash PNG ".\Resources\Hash.png"
+
+CascadeD PNG ".\Resources\CascadeD.png"
+CloseAllD PNG ".\Resources\CloseAllD.png"
+CloseD PNG ".\Resources\CloseD.png"
+ColorD PNG ".\Resources\ColorD.png"
+CopyD PNG ".\Resources\CopyD.png"
+CutD PNG ".\Resources\CutD.png"
+DarkModeD PNG ".\Resources\DarkModeD.png"
+FindBackD PNG ".\Resources\FindBackD.png"
+FindD PNG ".\Resources\FindD.png"
+FindNextD PNG ".\Resources\FindNextD.png"
+FontsD PNG ".\Resources\FontsD.png"
+HorizontalD PNG ".\Resources\HorizontalD.png"
+IconsD PNG ".\Resources\IconsD.png"
+NewD PNG ".\Resources\NewD.png"
+OpenD PNG ".\Resources\OpenD.png"
+PasteD PNG ".\Resources\PasteD.png"
+RedoD PNG ".\Resources\RedoD.png"
+ReplaceD PNG ".\Resources\ReplaceD.png"
+SaveAllD PNG ".\Resources\SaveAllD.png"
+SaveD PNG ".\Resources\SaveD.png"
+UndoD PNG ".\Resources\UndoD.png"
+VerticalD PNG ".\Resources\VerticalD.png"
+
+
+#define APP_TITLE_STR               "MDINotepad\0"
+#define VER_FILEDESCRIPTION_STR     "MDINotepad\0"
+
+#define VER_FILEVERSION             0,0,0,1271
+#define VER_FILEVERSION_STR         "0.0.0.1271\0"
+
+#define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
+
+#define VER_INTERNALNAME_STR        "Cm.Wang\0"
+#define VER_ORIGINALFILENAME_STR    "MDINotepad\0"
+#define VER_PRODUCTNAME_STR         "MDINotepad\0"
+
+#define VER_PRODUCTVERSION          1,0,0,0
+#define VER_PRODUCTVERSION_STR      "1.0.0\0"
+#define VER_COMPANYNAME_STR         "Visual FB Editor\0"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     VER_FILEVERSION
+PRODUCTVERSION  VER_PRODUCTVERSION
+FILEOS          VOS__WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+        	VALUE "ApplicationTitle", APP_TITLE_STR
+            VALUE "FileDescription",  VER_FILEDESCRIPTION_STR
+            VALUE "FileVersion",      VER_FILEVERSION_STR
+            VALUE "InternalName",     VER_INTERNALNAME_STR
+            VALUE "LegalCopyright",   VER_LEGALCOPYRIGHT_STR
+            VALUE "OriginalFilename", VER_ORIGINALFILENAME_STR
+            VALUE "ProductName",      VER_PRODUCTNAME_STR
+            VALUE "ProductVersion",   VER_PRODUCTVERSION_STR
+            VALUE "CompanyName",      VER_COMPANYNAME_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        /* The following line should only be modified for localized versions.     */
+        /* It consists of any number of WORD,WORD pairs, with each pair           */
+        /* describing a language,codepage combination supported by the file.      */
+        /*                                                                        */
+        /* For example, a file might have values "0x409,1252" indicating that it  */
+        /* supports English language (0x409) in the Windows ANSI codepage (1252). */
+        VALUE "Translation", 0x409, 1252
+    END
+END
