@@ -1,13 +1,14 @@
 ﻿'#Compile "Form1.rc"
+#define UNICODE
 #include once "windows.bi"
 #include once "win\commctrl.bi"
 
 Dim msg As MSG
 Dim As WNDCLASSEX wc
-Dim As String NameClass = "MyClass"
+Dim As WString * 100 NameClass = "MyClass"
 Dim As HINSTANCE HInst = GetModuleHandle(0)
 
-Function WndProc(hwnd As HWND, msg As UInteger, wparam As WPARAM, lparam As LPARAM) As Integer
+Function WndProc(ByVal hwnd As HWND, ByVal msg As UINT, ByVal wparam As WPARAM, ByVal lparam As LPARAM) As LRESULT
 	Select Case msg
 	Case WM_CREATE
 		
@@ -21,7 +22,7 @@ End Function
 
 With wc
 	.cbSize = SizeOf(WNDCLASSEX)
-	.Style = CS_HREDRAW Or CS_VREDRAW
+	.style = CS_HREDRAW Or CS_VREDRAW
 	.lpfnWndProc = @WndProc
 	.hInstance = HInst
 	.hIcon = LoadIcon(0, IDI_QUESTION)
