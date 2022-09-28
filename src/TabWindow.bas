@@ -349,10 +349,6 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 						End If
 					Next
 				End If
-				'				If Not EndsWith(LCase(FileNameNew), ".frm") Then
-				'					tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-				'					SetRightClosedStyle True, True
-				'				End If
 			Else
 				#ifdef __FB_WIN32__
 					tb->NewLineType = NewLineTypes.WindowsCRLF
@@ -372,13 +368,17 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			.txtCode.ScrollToCaret
 			If Not mnuWindowSeparator->Visible Then mnuWindowSeparator->Visible = True
 		End With
-		'If tb->cboClass.Items.Count < 2 Then
-		'	tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-		'	SetRightClosedStyle True, True
-		'Else
-		'	SetRightClosedStyle False, False
-		'	tabRight.SelectedTabIndex = 0
-		'End If
+		If tb->cboClass.Items.Count < 2 Then
+			tb->tbrTop.Buttons.Item("Form")->Enabled = False
+			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
+			tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+			SetRightClosedStyle True, True
+		Else
+			SetRightClosedStyle False, False
+			tb->tbrTop.Buttons.Item("Form")->Enabled = True
+			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
+			tabRight.SelectedTabIndex = 0
+		End If
 		MoveCloseButtons ptabCode
 	End If
 	tb->txtCode.SetFocus

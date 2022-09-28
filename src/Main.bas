@@ -6994,13 +6994,6 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 		If tb->FindFormPosiTop > 0 Then pfFind->Top = tb->FindFormPosiTop
 	End If
 	tbOld = tb
-'	If tb->cboClass.Items.Count < 2 Then
-'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-'		SetRightClosedStyle True, True
-'	Else
-'		SetRightClosedStyle False, False
-'		tabRight.SelectedTabIndex = 0
-'	End If
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To sourcenb
 			If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
@@ -7014,14 +7007,18 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	txtLabelProperty.Text = ""
 	txtLabelEvent.Text = ""
 	pnlPropertyValue.Visible = False
-	'If CBool(tb->FileName <> "") AndAlso EndsWith(LCase(tb->FileName), ".frm") = False Then
-	'		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-	'		SetRightClosedStyle True, True
 	If tb->cboClass.Items.Count > 1 Then
 		tb->FillAllProperties
+		tabRight.SelectedTabIndex = 0
+		tb->tbrTop.Buttons.Item("Form")->Enabled = True
+		tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
 	Else
 		lvProperties.Nodes.Clear
 		lvEvents.Nodes.Clear
+		tb->tbrTop.Buttons.Item("Form")->Enabled = False 
+		tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
+		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+		SetRightClosedStyle True, True
 	End If
 	If tb->FileName = "" Then
 		frmMain.Caption = tb->Caption & " - " & App.Title
