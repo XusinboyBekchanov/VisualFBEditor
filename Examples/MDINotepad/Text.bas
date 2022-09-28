@@ -1,15 +1,44 @@
-﻿#include once "Text.bi"
+﻿#pragma once
+' Text 文本处理
+' Copyright (c) 2021 CM.Wang
+' Freeware. Use at your own risk.
+
+#include once "Text.bi"
 
 Const As Long  mGrowSize = 32768
 
-Private Function WStr2Ptr(ByRef SourceText As Const WString, ByRef rtnptr As WString Ptr) As Long
+Private Function WStr2Ptr Overload (ByRef SourceText As Const WString, ByRef RtnPtr As WString Ptr) As Integer
 	Dim i As Integer = Len(SourceText) + 1
-	If rtnptr Then Deallocate(rtnptr)
-	rtnptr = CAllocate (i * 2)
-	*rtnptr = SourceText
+	If RtnPtr Then Deallocate(RtnPtr)
+	RtnPtr = CAllocate(i * 2)
+	*RtnPtr = SourceText
 	Return i
 End Function
 
+Private Function WStr2Ptr Overload (ByVal SourceText As WString Ptr, ByRef RtnPtr As WString Ptr) As Integer
+	Dim i As Integer = Len(*SourceText) + 1
+	If RtnPtr Then Deallocate(RtnPtr)
+	RtnPtr = CAllocate(i * 2)
+	*RtnPtr = *SourceText
+	Return i
+End Function
+
+Private Sub WStrTitle(ByVal iCount As Integer = 80, ByRef ch As Const WString = " ", ByRef LW As Const WString = "", ByRef MW As Const WString = "" , ByRef RW As Const WString = "", ByRef RtnPtr As WString Ptr)
+	Dim tl As Integer = iCount
+	Dim ll As Integer = Len(LW)
+	Dim rl As Integer = Len(RW)
+	Dim ml As Integer = Len(MW)
+
+	If tl < ll + ml + rl Then tl = ll + ml + rl
+	
+	If RtnPtr Then Deallocate(RtnPtr)
+	RtnPtr = CAllocate(tl * 2 + 2)
+	*RtnPtr = WString(tl, ch)
+	
+	If ll Then Mid(*RtnPtr, 1, ll) = LW
+	If ml Then Mid(*RtnPtr, tl / 2, ml) = MW
+	If rl Then Mid(*RtnPtr, tl - rl + 1, rl) = RW
+End Sub
 
 Private Function InWStr Overload (ByVal StartPos As Integer, ByRef Source As Const WString, ByRef Find As Const WString) As Integer
 	Dim lenSource As Integer = Len(Source)
@@ -185,15 +214,15 @@ Private Function FullName2Path(ByRef FullName As Const WString) ByRef As WString
 	Static rtn As WString Ptr
 	Dim i As Integer = InStrRev(FullName, WStr("\"))
 	If i Then
-		WStr2Ptr(Left(FullName, i), rtn)
+		WStr2Ptr(Left(FullName, i - 1), rtn)
 		Return *rtn
 	Else
 		Return WStr("")
 	End If
 End Function
 
-Private Function TextUnicode2Ansi(UnicodeStr As WString, ByVal nCodePage As UINT = -1) ByRef As String
-	Dim CodePage As UINT = IIf(nCodePage= -1, GetACP(), nCodePage)
+Private Function TextUnicode2Ansi(ByRef UnicodeStr As Const WString, ByVal nCodePage As Integer = -1) ByRef As String
+	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
 
 	Static ansiStr As String
 	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
@@ -202,8 +231,8 @@ Private Function TextUnicode2Ansi(UnicodeStr As WString, ByVal nCodePage As UINT
 	Return ansiStr
 End Function
 
-Private Sub TextAnsi2Unicode(ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As UINT = -1)
-	Dim CodePage As UINT = IIf(nCodePage= -1, GetACP(), nCodePage)
+Private Sub TextAnsi2Unicode(ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As Integer = -1)
+	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
 	
 	Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0) - 1
 	MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
@@ -344,7 +373,7 @@ Private Function TextFromFile(ByRef FileName As Const WString, ByRef FileEncodin
 			Get #Fn, 0, Buff
 			Close(Fn)
 			If FileEncoding = FileEncodings.PlainText Then
-				Dim CodePage As UINT = IIf(nCodePage= -1, GetACP(), nCodePage)
+				Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
 				TextAnsi2Unicode(Buff, pBuff, CodePage)
 			Else
 				UTFToWChar(UTF_ENCOD_UTF8, StrPtr(Buff), *pBuff, @FileSize)
@@ -421,7 +450,7 @@ Private Function TextToFile(ByRef FileName As Const WString, ByRef SourceText As
 		If Result = 0 Then
 			Dim pData As String
 			If FileEncoding = FileEncodings.PlainText Then
-				Dim CodePage As UINT = IIf(nCodePage= -1, GetACP(), nCodePage)
+				Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
 				pData = TextUnicode2Ansi(*pTmp, CodePage)
 			Else
 				Dim dSize As Integer
@@ -442,3 +471,271 @@ Private Function TextToFile(ByRef FileName As Const WString, ByRef SourceText As
 	Return False
 End Function
 
+Private Sub ArrayDeallocate(Target(Any) As Any Ptr)
+	Dim Ub As Integer = UBound(Target)
+	Dim Lb As Integer = LBound(Target)
+	Dim i As Integer
+	If Ub - Lb Then
+		For i = Lb To Ub
+			If Target(i) Then Deallocate(Target(i))
+			Target(i) = NULL
+		Next
+	End If
+	Erase Target
+End Sub
+
+Private Function SplitWStr(ByRef Source As Const WString, ByRef Deli As Const WString, Target(Any) As WString Ptr) As Integer
+	ArrayDeallocate(Target())
+	Dim Finds As Integer Ptr = 0
+	Dim FindCount As Integer = FindCountWStr(Source, Deli, Finds)
+	
+	ReDim Target(FindCount)
+	If FindCount < 1 Then
+		WStr2Ptr(Source, Target(0))
+	Else
+		Dim i As Integer
+		Dim lenFind As Integer = Len(Deli)
+		Dim j As Integer
+		Dim l As Integer = 0
+		
+		Target(0) = CAllocate((* Finds) * 2 + 2)
+		For i = 0 To * Finds - 1
+			(* Target(0))[i] = Source[i]
+		Next
+		
+		Dim iSt As Integer
+		Dim iEn As Integer
+		
+		For j = 0 To FindCount - 1
+			iSt = * (Finds + j) + lenFind
+			iEn = * (Finds + j + 1)
+			Target(j + 1) = CAllocate((iEn - iSt) * 2 + 2)
+			iEn -= 1
+			l = 0
+			For i = iSt To iEn
+				(* Target(j + 1))[l] = Source[i]
+				l += 1
+			Next
+		Next
+	End If
+	
+	If Finds Then Deallocate(Finds)
+	Return FindCount
+End Function
+
+Private Function JoinWStr(Source(Any) As WString Ptr, ByRef Deli As Const WString, ByRef Target As WString Ptr, ByVal defLb As Integer = -1, ByVal defUb As Integer = -1) As Integer
+	Dim Ub As Integer = UBound(Source)
+	Dim Lb As Integer = LBound(Source)
+
+	If deflb >= Lb And deflb <= Ub Then Lb = deflb
+	If defub >= Lb And defub <= Ub Then Ub = defub
+		
+	If Target Then Deallocate(Target)
+	If Ub < Lb Then Return -1
+	
+	Dim lenTarget As Integer = 0
+	Dim lenSplit As Integer = Len(Deli)
+	Dim lenSource() As Integer
+	ReDim lenSource(Lb To Ub)
+	Dim i As Integer
+	For i = Lb To Ub
+		lenSource(i) = Len(*Source(i))
+		lenTarget += lenSource(i)
+	Next
+	lenTarget += (Ub - Lb)*lenSplit
+	If lenTarget > -1 Then
+		Target = CAllocate(lenTarget * 2 + 2)
+	Else
+		Target = CAllocate(2)
+	End If
+	Dim j As Integer
+	For j = 0 To lenSource(Lb) - 1
+		(*Target)[j] = (* Source(Lb))[j]
+	Next
+	Dim l As Integer = lenSource(Lb)
+	For i = Lb + 1 To Ub
+		For j = 0 To lenSplit - 1
+			(*Target)[l + j] = Deli[j]
+		Next
+		l += lenSplit
+		For j = 0 To lenSource(i) - 1
+			(*Target)[l + j] = (*Source(i))[j]
+		Next
+		l += lenSource(i)
+	Next
+	Return lenTarget
+End Function
+
+
+Function FindLinesWStr Overload (ByRef Source As Const WString, ByRef Find As Const WString, ByRef LinesPtr As WString Ptr, ByVal CaseSensitive As Integer = False) As Integer
+	Dim Finds As Integer Ptr = 0
+	Dim Lines As Integer Ptr = 0
+	Dim lenFind As Integer = Len(Find)
+	Dim pFindCount As Integer
+	If CaseSensitive Then
+		pFindCount = FindCountWStr(Source, Find, Finds)
+	Else
+		pFindCount = FindCountWStr(LCase(Source), LCase(Find), Finds)
+	End If
+	Dim pLineCount As Integer
+	Dim pLineSize As Integer = 0
+	Dim i As Integer
+	Dim j As Integer = 0
+	Dim k As Integer = 0
+	Dim m As Integer
+	Dim n As Integer = -1
+	Dim iSt As Integer
+	Dim iEn As Integer
+	
+	If LinesPtr Then Deallocate(LinesPtr)
+	Dim pTmp As WString Ptr = CAllocate(2)
+	If pFindCount Then
+		pLineCount = FindCountWStr(Source, vbCrLf, Lines)
+		
+		'		第一行
+		For i = 0 To pFindCount - 1
+			If * (Finds + i) <= *Lines Then
+				iSt = 0
+				iEn = *Lines
+				If n > 0 Then
+					pLineSize = pLineSize + iEn - iSt + 3
+					pTmp = Reallocate(pTmp, pLineSize * 2 + 2)
+					n += 1
+					(*pTmp)[n] = 13
+					n += 1
+					(*pTmp)[n] = 10
+				Else
+					pLineSize = pLineSize + iEn - iSt + 1
+					pTmp = Reallocate(pTmp, pLineSize * 2 + 2)
+				End If
+				For m = iSt To iEn
+					n += 1
+					(*pTmp)[n] = Source[m]
+				Next
+			Else
+				k = i
+				Exit For
+			End If
+		Next
+		
+		'		第一行之外
+		For i = k To pFindCount - 1
+			Do
+				If (* (Finds + i) >= * (Lines + j)) And (* (Finds + i) <= * (Lines + j + 1 )) Then
+					If n > 0 Then
+						iSt = * (Lines + j)
+					Else
+						iSt = * (Lines + j) + 2
+					End If
+					iEn = * (Lines + j + 1)
+					pLineSize = pLineSize + iEn - iSt + 1
+					pTmp = Reallocate(pTmp, pLineSize * 2 + 2)
+					For m = iSt To iEn
+						n += 1
+						(*pTmp)[n] = Source[m]
+					Next
+					Exit Do
+				Else
+					j += 1
+					If j >= pLineCount Then Exit For
+				End If
+			Loop
+		Next
+		
+		LinesPtr = CAllocate(pLineSize * 2 + 2)
+		*LinesPtr = Left(*pTmp, pLineSize)
+	Else
+		LinesPtr = CAllocate(2)
+		*LinesPtr = ""
+	End If
+	Deallocate(pTmp)
+	
+	If Finds Then Deallocate(Finds)
+	If Lines Then Deallocate(Lines)
+	
+	Return pFindCount
+End Function
+
+Private Function FindLinesWStr Overload (ByRef Source As Const WString, ByRef Find As Const WString, ByRef LinesPtr As WString Ptr, ByRef Finds As Integer Ptr, ByVal CaseSensitive As Integer = False) As Integer
+	'	Dim Finds As Integer Ptr = 0
+	Dim Lines As Integer Ptr = 0
+	Dim lenFind As Integer = Len(Find)
+	Dim pFindCount As Integer
+	If CaseSensitive Then
+		pFindCount = FindCountWStr(Source, Find, Finds)
+	Else
+		pFindCount = FindCountWStr(LCase(Source), LCase(Find), Finds)
+	End If
+	Dim pLineCount As Integer
+	Dim pLineSize As Integer = 0
+	Dim i As Integer
+	Dim j As Integer = 0
+	Dim k As Integer = 0
+	Dim m As Integer
+	Dim n As Integer = -1
+	Dim iSt As Integer
+	Dim iEn As Integer
+	
+	If pFindCount Then
+		If LinesPtr Then Deallocate(LinesPtr)
+		Dim pTmp As WString Ptr = CAllocate(2)
+		pLineCount = FindCountWStr(Source, vbCrLf, Lines)
+		
+		'		第一行
+		For i = 0 To pFindCount - 1
+			If * (Finds + i) <= *Lines Then
+				iSt = 0
+				iEn = *Lines
+				If n > 0 Then
+					pLineSize = pLineSize + iEn - iSt + 2
+					pTmp = Reallocate(pTmp, pLineSize * 2 + 2)
+					n += 1
+					(*pTmp)[n] = 13
+					n += 1
+					(*pTmp)[n] = 10
+				Else
+					pLineSize = pLineSize + iEn - iSt
+					pTmp = Reallocate(pTmp, pLineSize * 2 + 2)
+				End If
+				For m = iSt To iEn - 1
+					n += 1
+					(*pTmp)[n] = Source[m]
+				Next
+			Else
+				k = i
+				Exit For
+			End If
+		Next
+		
+		'		第一行之外
+		For i = k To pFindCount - 1
+			Do
+				If (* (Finds + i) >= * (Lines + j)) And (* (Finds + i) <= * (Lines + j + 1 )) Then
+					If n > 0 Then
+						iSt = * (Lines + j)
+					Else
+						iSt = * (Lines + j) + 2
+					End If
+					iEn = * (Lines + j + 1)
+					pLineSize = pLineSize + iEn - iSt
+					pTmp = Reallocate(pTmp, pLineSize * 2 + 2)
+					For m = iSt To iEn - 1
+						n += 1
+						(*pTmp)[n] = Source[m]
+					Next
+					Exit Do
+				Else
+					j += 1
+					If j >= pLineCount Then Exit For
+				End If
+			Loop
+		Next
+		
+		LinesPtr = CAllocate(pLineSize * 2 + 2)
+		*LinesPtr = Left(*pTmp, pLineSize)
+		Deallocate(pTmp)
+	End If
+	
+	If Lines Then Deallocate(Lines)
+	Return pFindCount
+End Function

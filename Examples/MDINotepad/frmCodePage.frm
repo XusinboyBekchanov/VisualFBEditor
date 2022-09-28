@@ -1,6 +1,7 @@
 ﻿'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
-		#define __MAIN_FILE__ __FILE__
+		#define __MAIN_FILE__
+		Const _MAIN_FILE_ = __FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "Form1.rc"
 		#endif
@@ -393,7 +394,7 @@
 			.TabIndex = 1
 			.ControlIndex = 0
 			.Caption = "System Code Page"
-			.Checked = true
+			.Checked = True
 			.SetBounds 184, 10, 110, 20
 			.Designer = @This
 			.OnClick = @_chkSystemCP_Click
@@ -521,7 +522,8 @@
 	
 	Dim Shared frmCodePage As frmCodePageType
 	
-	#if __MAIN_FILE__ = __FILE__
+	#if _MAIN_FILE_ = __FILE__
+		frmCodePage.MainForm = True
 		frmCodePage.Show
 		
 		App.Run
@@ -557,12 +559,13 @@ Private Sub frmCodePageType.chkSystemCP_Click(ByRef Sender As CheckBox)
 End Sub
 
 Private Sub frmCodePageType.Form_Show(ByRef Sender As Form)
+	ModalResult = ModalResults.Cancel
 	SetCodePage(CodePage)
 	chkPreview_Click(chkPreview)
 End Sub
 
 Private Sub frmCodePageType.chkPreview_Click(ByRef Sender As CheckBox)
-	If Visible = False Or Handle = null Then Exit Sub 
+	If Visible = False Or Handle = NULL Then Exit Sub 
 	Dim NewLine As NewLineTypes = -1
 	Dim Encode As FileEncodings = cobEncod.ItemIndex
 	If chkPreview.Checked = False Then Exit Sub

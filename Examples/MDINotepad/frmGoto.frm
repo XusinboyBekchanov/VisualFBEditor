@@ -1,6 +1,7 @@
 ﻿'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
-		#define __MAIN_FILE__ __FILE__
+		#define __MAIN_FILE__
+		Const _MAIN_FILE_ = __FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "Form1.rc"
 		#endif
@@ -75,7 +76,8 @@
 	
 	Dim Shared frmGoto As frmGotoType
 	
-	#if __MAIN_FILE__ = __FILE__
+	#if _MAIN_FILE_ = __FILE__
+		frmGoto.MainForm = True
 		frmGoto.Show
 		
 		App.Run
