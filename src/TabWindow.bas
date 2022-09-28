@@ -5272,6 +5272,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					te->Tag = tb
 					txtCode.FunctionsOthers.Add te->DisplayName, te
 					txtCode.Procedures.Add te->Name, te
+					If Namespaces.Count > 0 Then
+						Var Index = txtCode.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+						If Index > -1 Then Cast(TypeElement Ptr, txtCode.Namespaces.Object(Index))->Elements.Add te->Name, te
+					End If
 					Pos2 = InStr(bTrim, ")")
 					If Pos2 > 0 AndAlso Pos5 > 0 Then
 						ECLine->Args.Add te

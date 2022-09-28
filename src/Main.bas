@@ -3298,6 +3298,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					LastIndexFunction = Functions.Add(te->Name, te)
+					If Namespaces.Count > 0 Then
+						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+						If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+					End If
 				ElseIf StartsWith(bTrimLCase & " ", "#macro ") Then
 					Pos1 = InStr(8, bTrim, " ")
 					Pos2 = InStr(8, bTrim, "(")
@@ -3324,6 +3328,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					LastIndexFunction = Functions.Add(te->Name, te)
+					If Namespaces.Count > 0 Then
+						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+						If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+					End If
 				ElseIf StartsWith(bTrimLCase & " ", "namespace ") AndAlso Pos3 = 0 Then
 					InNamespace = True
 					Pos1 = InStr(11, bTrim, " ")

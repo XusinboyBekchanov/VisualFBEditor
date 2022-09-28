@@ -3088,6 +3088,10 @@ Namespace My.Sys.Forms
 																			sc = @ColorGlobalTypes
 																		Case "enum"
 																			sc = @ColorGlobalEnums
+																		Case "define"
+																			sc = @ColorDefines
+																		Case "macro"
+																			sc = @ColorMacros
 																		Case Else
 																			sc = @ColorLocalVariables
 																		End Select
