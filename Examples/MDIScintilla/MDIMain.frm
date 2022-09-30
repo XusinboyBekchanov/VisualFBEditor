@@ -10,7 +10,8 @@
 
 '#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
-		#define __MAIN_FILE__ __FILE__
+		#define __MAIN_FILE__
+		Const _MAIN_FILE_ = __FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "Form1.rc"
 		#endif
@@ -561,9 +562,9 @@
 	
 	Dim Shared MDIMain As MDIMainType
 	
-	#if __MAIN_FILE__ = __FILE__
+	#if _MAIN_FILE_ = __FILE__
+		MDIMain.MainForm = True
 		MDIMain.Show
-		
 		App.Run
 	#endif
 '#End Region

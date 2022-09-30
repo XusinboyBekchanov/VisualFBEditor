@@ -1286,123 +1286,130 @@ Extern "C" {
 /' These structures are defined to be exactly the same shape as the Win32
  * CHARRANGE, TEXTRANGE, FINDTEXTEX, FORMATRANGE, and NMHDR structs.
  * So older code that treats Scintilla as a RichEdit will work. '/
-/''
-struct Sci_CharacterRange {
-	Sci_PositionCR cpMin;
-	Sci_PositionCR cpMax;
-};
 
-struct Sci_CharacterRangeFull {
-	Sci_Position cpMin;
-	Sci_Position cpMax;
-};
+Type uptr_t As UInteger
+Type sptr_t As Integer
 
-struct Sci_TextRange {
-	struct Sci_CharacterRange chrg;
-	char *lpstrText;
-};
+Type Sci_Position As Integer
+Type Sci_PositionU As UInteger
+Type Sci_PositionCR As Integer
 
-struct Sci_TextRangeFull {
-	struct Sci_CharacterRangeFull chrg;
-	char *lpstrText;
-};
+Type Sci_CharacterRange
+	Dim As Sci_PositionCR cpMin
+	Dim As Sci_PositionCR cpMax
+End Type
 
-struct Sci_TextToFind {
-	struct Sci_CharacterRange chrg;
-	Const char *lpstrText;
-	struct Sci_CharacterRange chrgText;
-};
+Type Sci_CharacterRangeFull
+	Dim As Sci_Position cpMin
+	Dim As Sci_Position cpMax
+End Type
 
-struct Sci_TextToFindFull {
-	struct Sci_CharacterRangeFull chrg;
-	Const char *lpstrText;
-	struct Sci_CharacterRangeFull chrgText;
-};
+Type Sci_TextRange
+	Dim As Sci_CharacterRange chrg
+	Dim As ZString Ptr lpstrText
+End Type
 
-typedef void *Sci_SurfaceID;
+Type Sci_TextRangeFull
+	Dim As Sci_CharacterRangeFull chrg
+	Dim As ZString Ptr lpstrText
+End Type
 
-struct Sci_Rectangle {
-	Int Left;
-	Int Top;
-	Int Right;
-	Int bottom;
-};
+Type Sci_TextToFind
+	Dim As Sci_CharacterRange chrg
+	Dim As ZString Ptr lpstrText
+	Dim As Sci_CharacterRange chrgText
+End Type
 
-/' This structure is used in printing and requires some of the graphics types
- * from Platform.h.  Not needed by most client code. '/
+Type Sci_TextToFindFull
+	Dim As Sci_CharacterRangeFull chrg
+	Dim As ZString Ptr lpstrText
+	Dim As Sci_CharacterRangeFull chrgText
+End Type
 
-struct Sci_RangeToFormat {
-	Sci_SurfaceID hdc;
-	Sci_SurfaceID hdcTarget;
-	struct Sci_Rectangle rc;
-	struct Sci_Rectangle rcPage;
-	struct Sci_CharacterRange chrg;
-};
+Type Sci_SurfaceID As Any Ptr
 
-struct Sci_RangeToFormatFull {
-	Sci_SurfaceID hdc;
-	Sci_SurfaceID hdcTarget;
-	struct Sci_Rectangle rc;
-	struct Sci_Rectangle rcPage;
-	struct Sci_CharacterRangeFull chrg;
-};
+Type Sci_Rectangle
+	Dim As Long Left
+	Dim As Long Top
+	Dim As Long Right
+	Dim As Long bottom
+End Type
 
-#ifndef __cplusplus
-/' For the GTK+ platform, g-ir-scanner needs to have these typedefs. This
- * is not required in C++ code and actually seems to break ScintillaEditPy '/
-typedef struct Sci_NotifyHeader Sci_NotifyHeader;
-typedef struct SCNotification SCNotification;
-#endif
+' This structure Is used in printing And requires some of the graphics types
+' * from Platform.h.  Not needed by most client code.
 
-struct Sci_NotifyHeader {
-	/' Compatible with Windows NMHDR.
-	 * hwndFrom is really an environment specific window handle or pointer
-	 * but most clients of Scintilla.h do not have this type visible. '/
-	void *hwndFrom;
-	uptr_t idFrom;
-	Unsigned Int code;
-};
+Type Sci_RangeToFormat
+	Dim As Sci_SurfaceID HDC
+	Dim As Sci_SurfaceID hdcTarget
+	Dim As Sci_Rectangle rc
+	Dim As Sci_Rectangle rcPage
+	Dim As Sci_CharacterRange chrg
+End Type
 
-struct SCNotification {
-	Sci_NotifyHeader nmhdr;
-	Sci_Position Position;
-	/' SCN_STYLENEEDED, SCN_DOUBLECLICK, SCN_MODIFIED, SCN_MARGINCLICK, '/
-	/' SCN_NEEDSHOWN, SCN_DWELLSTART, SCN_DWELLEND, SCN_CALLTIPCLICK, '/
-	/' SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, '/
-	/' SCN_INDICATORCLICK, SCN_INDICATORRELEASE, '/
-	/' SCN_USERLISTSELECTION, SCN_AUTOCSELECTION '/
+Type Sci_RangeToFormatFull
+	Dim As Sci_SurfaceID HDC
+	Dim As Sci_SurfaceID hdcTarget
+	Dim As Sci_Rectangle rc
+	Dim As Sci_Rectangle rcPage
+	Dim As Sci_CharacterRangeFull chrg
+End Type
 
-	Int ch;
-	/' SCN_CHARADDED, SCN_KEY, SCN_AUTOCCOMPLETED, SCN_AUTOCSELECTION, '/
-	/' SCN_USERLISTSELECTION '/
-	Int modifiers;
-	/' SCN_KEY, SCN_DOUBLECLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, '/
-	/' SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE, '/
+'#ifndef __cplusplus
+'' For the GTK+ Platform, g-ir-scanner needs To have these typedefs. This
+' * Is Not required in C++ code And actually seems To Break ScintillaEditPy
+'typedef Type Sci_NotifyHeader Sci_NotifyHeader
+'typedef Type SCNotification SCNotification
+'#endif
 
-	Int modificationType;	/' SCN_MODIFIED '/
-	Const char *Text;
-	/' SCN_MODIFIED, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION, SCN_URIDROPPED '/
+Type Sci_NotifyHeader
+	'' Compatible With Windows NMHDR.
+	' * hwndFrom Is really an environment specific Window HANDLE Or Pointer
+	' * but most clients of Scintilla.h Do Not have This Type Visible.
+	Dim As Any Ptr hwndFrom
+	Dim As uptr_t idFrom
+	Dim As ULong code
+End Type
 
-	Sci_Position Length;		/' SCN_MODIFIED '/
-	Sci_Position linesAdded;	/' SCN_MODIFIED '/
-	Int Message;	/' SCN_MACRORECORD '/
-	uptr_t wParam;	/' SCN_MACRORECORD '/
-	sptr_t lParam;	/' SCN_MACRORECORD '/
-	Sci_Position Line;		/' SCN_MODIFIED '/
-	Int foldLevelNow;	/' SCN_MODIFIED '/
-	Int foldLevelPrev;	/' SCN_MODIFIED '/
-	Int margin;		/' SCN_MARGINCLICK '/
-	Int listType;	/' SCN_USERLISTSELECTION '/
-	Int x;			/' SCN_DWELLSTART, SCN_DWELLEND '/
-	Int y;		/' SCN_DWELLSTART, SCN_DWELLEND '/
-	Int token;		/' SCN_MODIFIED with SC_MOD_CONTAINER '/
-	Sci_Position annotationLinesAdded;	/' SCN_MODIFIED with SC_MOD_CHANGEANNOTATION '/
-	Int updated;	/' SCN_UPDATEUI '/
-	Int listCompletionMethod;
-	/' SCN_AUTOCSELECTION, SCN_AUTOCCOMPLETED, SCN_USERLISTSELECTION, '/
-	Int characterSource;	/' SCN_CHARADDED '/
-};
-''/
+Type SCNotification
+	Dim As Sci_NotifyHeader hdr
+	Dim As Sci_Position Position
+	' SCN_STYLENEEDED, SCN_DOUBLECLICK, SCN_MODIFIED, SCN_MARGINCLICK,
+	' SCN_NEEDSHOWN, SCN_DWELLSTART, SCN_DWELLEND, SCN_CALLTIPCLICK,
+	' SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK,
+	' SCN_INDICATORCLICK, SCN_INDICATORRELEASE,
+	' SCN_USERLISTSELECTION, SCN_AUTOCSELECTION
+
+	Dim As Long ch
+	' SCN_CHARADDED, SCN_KEY, SCN_AUTOCCOMPLETED, SCN_AUTOCSELECTION,
+	' SCN_USERLISTSELECTION
+	Dim As Long modifiers
+	' SCN_KEY, SCN_DOUBLECLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK,
+	' SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE,
+
+	Dim As Long modificationType    ' SCN_MODIFIED
+	Dim As ZString Ptr lptText
+	' SCN_MODIFIED, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION, SCN_URIDROPPED
+
+	Dim As Sci_Position Length      ' SCN_MODIFIED
+	Dim As Sci_Position linesAdded  ' SCN_MODIFIED
+	Dim As Long Message             ' SCN_MACRORECORD
+	Dim As uptr_t WPARAM            ' SCN_MACRORECORD
+	Dim As sptr_t LPARAM            ' SCN_MACRORECORD
+	Dim As Sci_Position Line    ' SCN_MODIFIED
+	Dim As Long foldLevelNow    ' SCN_MODIFIED
+	Dim As Long foldLevelPrev   ' SCN_MODIFIED
+	Dim As Long margin          ' SCN_MARGINCLICK
+	Dim As Long listType        ' SCN_USERLISTSELECTION
+	Dim As Long x               ' SCN_DWELLSTART, SCN_DWELLEND
+	Dim As Long y               ' SCN_DWELLSTART, SCN_DWELLEND
+	Dim As Long token           ' SCN_MODIFIED With SC_MOD_CONTAINER
+	Dim As Sci_Position annotationLinesAdded    ' SCN_MODIFIED With SC_MOD_CHANGEANNOTATION
+	Dim As Long updated         ' SCN_UPDATEUI
+	Dim As Long listCompletionMethod
+	' SCN_AUTOCSELECTION, SCN_AUTOCCOMPLETED, SCN_USERLISTSELECTION,
+	Dim As Long characterSource ' SCN_CHARADDED
+End Type
+
 #ifdef INCLUDE_DEPRECATED_FEATURES
 
 #define SCI_SETKEYSUNICODE 2521
