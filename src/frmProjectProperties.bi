@@ -60,6 +60,8 @@ Using My.Sys.Forms
 		Declare Sub cboCompiler_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Static Sub chkManifest_Click_(ByRef Sender As CheckBox)
 		Declare Sub chkManifest_Click(ByRef Sender As CheckBox)
+		Declare Static Sub _cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		Declare Sub cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Constructor
 		
 		Dim As TabControl tabProperties

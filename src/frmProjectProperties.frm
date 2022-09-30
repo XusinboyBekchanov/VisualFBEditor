@@ -318,6 +318,8 @@ pfProjectProperties = @fProjectProperties
 		cboOptimizationLevel.AddItem "0"
 		cboOptimizationLevel.AddItem "1"
 		cboOptimizationLevel.AddItem "2"
+		cboOptimizationLevel.Designer = @This
+		cboOptimizationLevel.OnSelected = @_cboOptimizationLevel_Selected
 		cboOptimizationLevel.AddItem "3"
 		' cmdAdvancedOptions
 		cmdAdvancedOptions.Name = "cmdAdvancedOptions"
@@ -667,6 +669,10 @@ pfProjectProperties = @fProjectProperties
 		End With
 	End Constructor
 	
+	Private Sub frmProjectProperties._cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).cboOptimizationLevel_Selected(Sender, ItemIndex)
+	End Sub
+	
 	Private Sub frmProjectProperties.chkManifest_Click_(ByRef Sender As CheckBox)
 		*Cast(frmProjectProperties Ptr, Sender.Designer).chkManifest_Click(Sender)
 	End Sub
@@ -924,14 +930,14 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.Types.Set ML("Original Filename"), *ppe->OriginalFilename
 				.Types.Set ML("Product Name"), *ppe->ProductName
 				.optCompileByDefault.Checked = False
-				.optCompileToGAS.Checked = False
+				.optCompileToGas.Checked = False
 				.optCompileToLLVM.Checked = False
-				.optCompileToGCC.Checked = False
+				.optCompileToGcc.Checked = False
 				Select Case ppe->CompileTo
 				Case ByDefault: .optCompileByDefault.Checked = True
-				Case ToGAS: .optCompileToGAS.Checked = True
+				Case ToGAS: .optCompileToGas.Checked = True
 				Case ToLLVM: .optCompileToLLVM.Checked = True
-				Case ToGCC: .optCompileToGCC.Checked = True
+				Case ToGCC: .optCompileToGcc.Checked = True
 				End Select
 				.optCompileToGas_Click(.optCompileToGas)
 				.optNoOptimization.Checked = ppe->OptimizationLevel = 0
@@ -954,7 +960,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 					Dim pBuff As WString Ptr
 					Dim As Integer FileSize
 					FileSize = LOF(Fn)
-					WReallocate(pBuff, FileSize)
+					WReAllocate(pBuff, FileSize)
 					Do Until EOF(Fn)
 						LineInputWstr Fn, pBuff, FileSize
 						If StartsWith(*pBuff, "sdk.dir=") Then
@@ -1190,4 +1196,8 @@ End Sub
 
 Private Sub frmProjectProperties.chkManifest_Click(ByRef Sender As CheckBox)
 	chkRunAsAdministrator.Enabled = chkManifest.Checked
+End Sub
+
+Private Sub frmProjectProperties.cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	optOptimizationLevel.Checked = True
 End Sub
