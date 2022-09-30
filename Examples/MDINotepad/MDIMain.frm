@@ -1489,7 +1489,7 @@ Private Function MDIMainType.FileSave(Child As Any Ptr) As MessageResult
 		timr.Start
 		TextToFile(a->File, a->TextBox1.Text, a->Encode, a->NewLine, a->CodePage)
 		a->Changed = False
-		spSpeed.Caption = "Save " & Format(timr.Passed, "#,#0.000") & " ms."
+		spSpeed.Caption = "Save " & Format(timr.Passed, "#,#0.000") & " sec."
 	End If
 	If msr = MessageResult.mrCancel Then CloseResult = ModalResults.Cancel
 	Return msr
@@ -1528,7 +1528,7 @@ Private Sub MDIMainType.FileOpen(ByRef FileName As Const WString)
 		a->NewLine = NewLine
 		a->CodePage = CodePage
 		MDIChildActivate(a)
-		spSpeed.Caption = "Open " & Format(timr.Passed, "#,#0.000") & " ms."
+		spSpeed.Caption = "Open " & Format(timr.Passed, "#,#0.000") & " sec."
 	Else
 		a = lstMdiChild.Item(i)
 		a->SetFocus()
@@ -1556,7 +1556,7 @@ Private Sub MDIMainType.FileInsert(ByRef FileName As Const WString, Child As Any
 	End If
 	timr.Start
 	MDIChildInsertText(Child, !"\r\nFile Insert Start Here: " & FileName & !"\r\n" & TextFromFile(FileName, Encode, NewLine, CodePage) & !"\r\nFile Insert End Here: " & FileName & !"!\r\n")
-	spSpeed.Caption = "Insert " & Format(timr.Passed, "#,#0.000") & " ms."
+	spSpeed.Caption = "Insert " & Format(timr.Passed, "#,#0.000") & " sec."
 End Sub
 
 Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
@@ -2176,7 +2176,7 @@ Private Sub MDIMainType.Find(ByRef FindStr As Const WString, ByVal MatchCase As 
 		End If
 	End If
 	MDIChildClick(a)
-	spSpeed.Caption = "Find " & Format(timr.Passed, "#,#0.000") & " ms."
+	spSpeed.Caption = "Find " & Format(timr.Passed, "#,#0.000") & " sec."
 End Sub
 
 Private Sub MDIMainType.Replace(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True)
@@ -2195,7 +2195,7 @@ Private Sub MDIMainType.Replace(ByRef FindStr As Const WString, ByRef ReplaceStr
 	End If
 	Find(FindStr, MatchCase, FindWarp, mFindBack)
 	MDIChildClick(a)
-	spSpeed.Caption = "Replace " & Format(t.Passed, "#,#0.000") & " ms."
+	spSpeed.Caption = "Replace " & Format(t.Passed, "#,#0.000") & " sec."
 End Sub
 
 Private Sub MDIMainType.ReplaceAll(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal MatchCase As Boolean = False)
@@ -2221,7 +2221,7 @@ Private Sub MDIMainType.ReplaceAll(ByRef FindStr As Const WString, ByRef Replace
 		a->TextBox1.SelStart = s
 	End If
 	MDIChildClick(a)
-	spSpeed.Caption = "ReplaceAll " & Format(timr.Passed, "#,#0.000") & " ms."
+	spSpeed.Caption = "ReplaceAll " & Format(timr.Passed, "#,#0.000") & " sec."
 End Sub
 
 Private Sub MDIMainType.GotoLineNo(ByVal LineNumber As Integer)
@@ -2241,5 +2241,5 @@ Private Sub MDIMainType.GotoLineNo(ByVal LineNumber As Integer)
 	a->TextBox1.SelStart = l - 1
 	a->TextBox1.SelEnd = l - 1
 	MDIChildClick(a)
-	spSpeed.Caption = "Goto " & Format(timr.Passed, "#,#0.000") & " ms."
+	spSpeed.Caption = "Goto " & Format(timr.Passed, "#,#0.000") & " sec."
 End Sub
