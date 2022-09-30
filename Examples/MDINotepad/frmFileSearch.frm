@@ -519,7 +519,7 @@ Private Sub frmFileSearchType.TimerComponent1_Timer(ByRef Sender As TimerCompone
 	Dim st As String
 	Select Case Sender.Name
 	Case "TimerComponent1"
-		st = "File count " & Format(ffs.FileCount, "#,#0") & ", File size " & Number2Str(ffs.FileSize) & " (" & Format(ffs.FileSize, "#,#0") & "), Take (" & Format(timr.Passed, "#,#0.000") & " Sec.) " & Sec2Time(timr.Passed, , , "#00.000")
+		st = "File count " & Format(ffs.FileCount, "#,#0") & ", File size " & Number2Str(ffs.FileSize) & " (" & Format(ffs.FileSize, "#,#0") & "), Take (" & Format(timr.Passed, "#,#0.000") & " sec.) " & Sec2Time(timr.Passed, , , "#00.000")
 	Case "TimerComponent2"
 		TimerComponent2.Enabled = False
 		Dim srs As WString Ptr

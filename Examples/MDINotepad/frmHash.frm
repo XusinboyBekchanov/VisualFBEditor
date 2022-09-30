@@ -490,7 +490,7 @@ Private Sub frmHashType.HashFile()
 		If PathFileExists(a(i)) Then
 			s = GetFileData(*a(i), m)
 			ts = timr.Passed
-			WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - ta, "#,#0.000") & "ms.", d(k))
+			WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - ta, "#,#0.000") & " sec."", d(k))
 			ta = ts
 			Dim l As Long
 			For l = 0 To 5
@@ -498,7 +498,7 @@ Private Sub frmHashType.HashFile()
 					k += 1
 					WStr2Ptr(GetHash(m, s, l), c)
 					ts = timr.Passed
-					WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - ta, "#,#0.000") & "ms.", d(k))
+					WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - ta, "#,#0.000") & " sec."", d(k))
 					ta = ts
 				End If
 			Next
@@ -560,7 +560,7 @@ Private Sub frmHashType.HashText()
 		m = StrPtr(tmp)
 		s = Len(tmp)
 		ts = timr.Passed
-		WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - ta, "#,#0.000") & "ms.", d(k))
+		WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - ta, "#,#0.000") & " sec."", d(k))
 		ta = ts
 		Dim l As Long
 		For l = 0 To 5
@@ -568,7 +568,7 @@ Private Sub frmHashType.HashText()
 				k += 1
 				WStr2Ptr(GetHash(m, s, l), c)
 				ts = timr.Passed
-				WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - ta, "#,#0.000") & "ms.", d(k))
+				WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - ta, "#,#0.000") & " sec."", d(k))
 				ta = ts
 			End If
 		Next
