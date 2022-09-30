@@ -1,6 +1,7 @@
 ﻿'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
-		#define __MAIN_FILE__ __FILE__
+		#define __MAIN_FILE__
+		Const _MAIN_FILE_ = __FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "Form1.rc"
 		#endif
@@ -54,13 +55,13 @@
 		*Cast(MDIChildType Ptr, Sender.Designer).Form_Destroy(Sender)
 	End Sub
 	
-	'Dim Shared MDIChild As MDIChildType
-	'
-	'#if __MAIN_FILE__ = __FILE__
-	'	MDIChild.Show
-	'
-	'	App.Run
-	'#endif
+	Dim Shared MDIChild As MDIChildType
+	
+	#if _MAIN_FILE_ = __FILE__
+		MDIChild.MainForm = True
+		MDIChild.Show
+		App.Run
+	#endif
 '#End Region
 
 Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
