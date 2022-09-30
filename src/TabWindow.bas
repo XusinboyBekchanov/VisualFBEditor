@@ -8461,7 +8461,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 					Exit For
 				Else
 					Bosh = True
-					If StartsWith(.Lines(0), "'#Compile ") Then
+					If StartsWith(Trim(.Lines(0), Any "\t "), "'#Compile ") Then
 						ehStart = 1
 					Else
 						ehStart = 0
@@ -8513,7 +8513,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 				If FECLine->ConstructionIndex >= 17 Then
 					p = i
 					Exit For
-				ElseIf StartsWith(.Lines(i), Space(n) & ExitLine) Then
+				ElseIf StartsWith(Trim(.Lines(i), Any "\t "),  ExitLine) Then
 					p = i
 					t = True
 					Exit For
