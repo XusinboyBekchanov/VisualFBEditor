@@ -1076,6 +1076,7 @@ Private Sub frmProjectProperties.Form_Show(ByRef Sender As Form)
 		fProjectProperties.cboCompiler.AddItem pCompilers->Item(i)->Key
 	Next
 	fProjectProperties.cboCompiler.AddItem ML("Custom")
+	fProjectProperties.tabProperties.SelectedTabIndex = 0
 	fProjectProperties.RefreshProperties
 End Sub
 
@@ -1094,7 +1095,6 @@ End Sub
 Private Sub frmProjectProperties.optCompileToGcc_Click(ByRef Sender As RadioButton)
 	frmProjectProperties.optCompileToGas_Click Sender
 End Sub
-
 
 Private Sub frmProjectProperties.optCompileByDefault_Click_(ByRef Sender As RadioButton)
 	*Cast(frmProjectProperties Ptr, Sender.Designer).optCompileByDefault_Click(Sender)
