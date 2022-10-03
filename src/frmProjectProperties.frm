@@ -1076,7 +1076,6 @@ Private Sub frmProjectProperties.Form_Show(ByRef Sender As Form)
 		fProjectProperties.cboCompiler.AddItem pCompilers->Item(i)->Key
 	Next
 	fProjectProperties.cboCompiler.AddItem ML("Custom")
-	fProjectProperties.tabProperties.SelectedTabIndex = 0
 	fProjectProperties.RefreshProperties
 End Sub
 
