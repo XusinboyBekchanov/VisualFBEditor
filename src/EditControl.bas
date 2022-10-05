@@ -4593,7 +4593,7 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 			If bCtrl Then
-				EditorFontSize += scrDirection
+				EditorFontSize = Max(1, EditorFontSize + scrDirection)
 				PaintControl
 			ElseIf VScrollMax <> 0 Then
 				If bShifted Then
