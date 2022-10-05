@@ -4671,7 +4671,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		#else
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.cboIntellisense.ItemIndex = -1
 		#endif
-	ElseIf AutoComplete AndAlso (CBool(Key >= Asc("A") AndAlso Key <= Asc("Z")) OrElse CBool(Key >= Asc("_") AndAlso Key <= Asc("z"))) Then
+	ElseIf AutoComplete AndAlso (CBool(Key >= Asc("A") AndAlso Key <= Asc("Z")) OrElse CBool(Key >= Asc("a") AndAlso Key <= Asc("z")) OrElse CBool(Key = Asc("_"))) Then
 		CompleteWord
 	End If
 End Sub
