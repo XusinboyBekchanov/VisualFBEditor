@@ -4775,7 +4775,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5098,6 +5098,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Pos3 = 0 Then Pos3 = InStr(Pos2 + 1, bTrimLCase, " extends "): If Pos3 > 0 Then Pos3 += 5
 								If Pos3 = 0 Then Pos3 = Len(b)
 								te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
+								If te->Name = "Object" And te->TypeName = "Object" Then
+									te->Name = "My.Sys.Object"
+									te->TypeName = ""
+								End If
 								Pos4 = InStr(te->TypeName, "'")
 								If Pos4 > 0 Then
 									te->TypeName = Trim(..Left(te->TypeName, Pos4 - 1))
