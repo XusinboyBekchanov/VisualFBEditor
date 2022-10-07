@@ -1315,7 +1315,7 @@ Namespace My.Sys.Forms
 				Next
 			ElseIf FileEncoding = FileEncodings.PlainText  Then
 				For i As Integer = 0 To FLines.Count - 1
-					Print #Fn, Str(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine;
+					Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
 				Next
 			Else
 				For i As Integer = 0 To FLines.Count - 1
