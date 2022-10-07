@@ -4965,6 +4965,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				ECLine->Ends.Clear
 				ECLine->EndsCompleted = False
 			'End If
+			ECLine->InConstruction = 0
 			If inFunc Then ECLine->InConstruction = func
 			WLet(FLine, *ECLine->Text)
 			b1 = Replace(*ECLine->Text, !"\t", " ")
