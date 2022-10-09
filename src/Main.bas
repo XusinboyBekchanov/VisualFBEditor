@@ -5856,9 +5856,9 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 			For i As Integer = 0 To pOtherEditors->Count - 1
 				Dim As ToolType Ptr Tool = pOtherEditors->Item(i)->Object
 				If InStr(" " & LCase(Tool->Extensions) & ",", " " & LCase(Extension) & ",") > 0 Then
-					If Not FileExists(Tool->Path) Then Continue For
+					If Not FileExists(GetFullPath(Tool->Path)) Then Continue For
 					'Shell """" & Tool->GetCommand(*ee->FileName) & """"
-					PipeCmd "", """" & Tool->GetCommand(*ee->FileName) & """"
+					PipeCmd "", Tool->GetCommand(*ee->FileName)
 					Exit Sub
 				End If
 			Next
