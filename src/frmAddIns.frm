@@ -29,6 +29,7 @@ pAvailableAddIns = @AvailableAddIns
 		' lvAddIns
 		lvAddIns.Name = "lvAddIns"
 		lvAddIns.Text = "ListView1"
+		lvAddIns.TabIndex = 0
 		lvAddIns.SetBounds 12, 12, 366, 198
 		lvAddIns.OnSelectedItemChanged = @lvAddIns_SelectedItemChanged
 		lvAddIns.OnItemClick = @lvAddIns_ItemClick
@@ -38,46 +39,54 @@ pAvailableAddIns = @AvailableAddIns
 		' cmdOK
 		cmdOK.Name = "cmdOK"
 		cmdOK.Text = ML("OK")
+		cmdOK.TabIndex = 1
 		cmdOK.SetBounds 390, 12, 78, 24
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @This
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
 		cmdCancel.Text = ML("Cancel")
+		cmdCancel.TabIndex = 2
 		cmdCancel.SetBounds 390, 40, 78, 24
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
 		' cmdHelp
 		cmdHelp.Name = "cmdHelp"
 		cmdHelp.Text = ML("Help")
+		cmdHelp.TabIndex = 3
 		cmdHelp.SetBounds 390, 180, 78, 24
 		cmdHelp.Parent = @This
 		' lblDescription
 		lblDescription.Name = "lblDescription"
 		lblDescription.Text = ML("Description") & ":"
+		lblDescription.TabIndex = 4
 		lblDescription.SetBounds 12, 216, 162, 18
 		lblDescription.Parent = @This
 		' txtDescription
 		txtDescription.Name = "txtDescription"
 		txtDescription.Text = ""
 		txtDescription.ReadOnly = True
+		txtDescription.TabIndex = 5
 		txtDescription.SetBounds 12, 234, 264, 84
 		txtDescription.BackColor = 15790320
 		txtDescription.Parent = @This
 		' grbLoadBehavior
 		grbLoadBehavior.Name = "grbLoadBehavior"
 		grbLoadBehavior.Text = ML("Load Behavior")
+		grbLoadBehavior.TabIndex = 6
 		grbLoadBehavior.SetBounds 288, 225, 180, 93
 		grbLoadBehavior.Parent = @This
 		' chkLoaded
 		chkLoaded.Name = "chkLoaded"
 		chkLoaded.Text = ML("Loaded/Unloaded")
+		chkLoaded.TabIndex = 7
 		chkLoaded.SetBounds 4, 3, 140, 18
 		chkLoaded.OnClick = @chkLoaded_Click
 		chkLoaded.Parent = @pnlLoadBehavior
 		' chkLoadOnStartup
 		chkLoadOnStartup.Name = "chkLoadOnStartup"
 		chkLoadOnStartup.Text = ML("Load on Startup")
+		chkLoadOnStartup.TabIndex = 8
 		chkLoadOnStartup.SetBounds 4, 28, 156, 18
 		chkLoadOnStartup.OnClick = @chkLoadOnStartup_Click
 		chkLoadOnStartup.Caption = ML("Load on Startup")
@@ -85,6 +94,7 @@ pAvailableAddIns = @AvailableAddIns
 		' pnlLoadBehavior
 		pnlLoadBehavior.Name = "pnlLoadBehavior"
 		pnlLoadBehavior.Text = ""
+		pnlLoadBehavior.TabIndex = 9
 		pnlLoadBehavior.SetBounds 304, 247, 144, 56
 		pnlLoadBehavior.Parent = @This
 	End Constructor

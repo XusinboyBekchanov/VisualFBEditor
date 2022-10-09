@@ -34,6 +34,7 @@ pfFind = @fFind
 		
 		' lblFind
 		lblFind.Name = "lblFind"
+		lblFind.TabIndex = 1
 		lblFind.SetBounds 21, 4, 40, 18
 		lblFind.Text = ML("Find") & ":"
 		lblFind.Parent = @This
@@ -41,7 +42,8 @@ pfFind = @fFind
 		' txtFind
 		txtFind.Name = "txtFind"
 		txtFind.Style = cbDropDown
-		txtFind.SetBounds 66, 4, 142, 18
+		txtFind.TabIndex = 2
+		txtFind.SetBounds 66, 4, 142, 21
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Text = ""
 		txtFind.Parent = @This
@@ -50,11 +52,13 @@ pfFind = @fFind
 		txtReplace.Name = "txtReplace"
 		txtReplace.Style = cbDropDown
 		txtReplace.Text = ""
-		txtReplace.SetBounds 66, 35, 142, 18
+		txtReplace.TabIndex = 11
+		txtReplace.SetBounds 66, 35, 142, 21
 		txtReplace.Anchor.Left = asAnchor
 		txtReplace.Parent = @This
 		
 		chkMatchCase.Name = "chkMatchCase"
+		chkMatchCase.TabIndex = 4
 		chkMatchCase.SetBounds 283, 3, 34, 21
 		chkMatchCase.Text = "Aa"
 		chkMatchCase.Parent = @This
@@ -63,19 +67,22 @@ pfFind = @fFind
 		btnFind.Name = "btnFind"
 		btnFind.Text = ">"
 		btnFind.Default = True
-		btnFind.SetBounds  359, 4, 40, 24
+		btnFind.TabIndex = 6
+		btnFind.SetBounds 359, 4, 40, 24
 		btnFind.Parent = @This
 		
 		' btnFindPrev
 		btnFindPrev.Name = "btnFindPrev"
 		btnFindPrev.Text = "<"
-		btnFindPrev.SetBounds  317, 4, 40, 24
+		btnFindPrev.TabIndex = 5
+		btnFindPrev.SetBounds 317, 4, 40, 24
 		btnFindPrev.Parent = @This
 		
 		' btnCancel
 		btnCancel.Name = "btnCancel"
 		btnCancel.Text = ML("&Cancel")
 		btnCancel.Anchor.Right = asAnchor
+		btnCancel.TabIndex = 14
 		btnCancel.SetBounds 250, 500, 100, 30
 		btnCancel.Parent = @This
 		btnFind.OnClick = @btnFind_Click_
@@ -87,7 +94,8 @@ pfFind = @fFind
 		
 		' lblTrack
 		lblTrack.Name = "lblTrack"
-		lblTrack.SetBounds  45, 22, 20, 17
+		lblTrack.TabIndex = 9
+		lblTrack.SetBounds 45, 22, 20, 17
 		lblTrack.Parent = @This
 		
 		' TrackBar1
@@ -96,31 +104,36 @@ pfFind = @fFind
 		TrackBar1.OnChange = @TrackBar1_Change_
 		TrackBar1.MinValue = 150
 		TrackBar1.MaxValue = 255
-		TrackBar1.SetBounds  0, 22, 44, 14
+		TrackBar1.TabIndex = 8
+		TrackBar1.SetBounds 0, 22, 44, 14
 		TrackBar1.Position = 210 ' This.Opacity
 		TrackBar1.Parent = @This
 		lblTrack.Text = WStr(CUInt(TrackBar1.Position/2.55))
 		' lblReplace
 		lblReplace.Name = "lblReplace"
 		lblReplace.Text = ML("Replace") & ":"
+		lblReplace.TabIndex = 10
 		lblReplace.SetBounds 22, 42, 38, 18
 		lblReplace.Parent = @This
 		
 		' btnReplace
 		btnReplace.Name = "btnReplace"
 		btnReplace.Text = ML("&Replace")
+		btnReplace.TabIndex = 12
 		btnReplace.SetBounds 215, 34, 99, 24
 		btnReplace.Parent = @This
 		
 		' btnReplaceAll
 		btnReplaceAll.Name = "btnReplaceAll"
 		btnReplaceAll.Text = ML("Replace &All")
+		btnReplaceAll.TabIndex = 13
 		btnReplaceAll.SetBounds 317, 34, 124, 24
 		btnReplaceAll.Parent = @This
 		
 		' btnReplaceShow
 		btnReplaceShow.Name = "btnReplaceShow"
 		btnReplaceShow.Text = ">"
+		btnReplaceShow.TabIndex = 0
 		btnReplaceShow.SetBounds 0, 0, 16, 24
 		btnReplaceShow.Parent = @This
 		
@@ -132,6 +145,7 @@ pfFind = @fFind
 		' btnFindAll
 		btnFindAll.Name = "btnFindAll"
 		btnFindAll.Text = ML("All")
+		btnFindAll.TabIndex = 7
 		btnFindAll.SetBounds 401, 4, 40, 24
 		btnFindAll.OnClick = @btnFindAll_Click_
 		btnFindAll.Parent = @This
@@ -143,8 +157,8 @@ pfFind = @fFind
 			.AddItem ML("Procedure")
 			.AddItem ML("Module")
 			.AddItem ML("Project")
-			.TabIndex = 17
-			.SetBounds 215, 4, 62, 18
+			.TabIndex = 3
+			.SetBounds 215, 4, 62, 21
 			.OnSelected = @cboFindRange_Selected_
 			.Parent = @This
 		End With

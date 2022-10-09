@@ -26,6 +26,7 @@
 		With cmdCancel
 			.Name = "cmdCancel"
 			.Text = ML("Cancel")
+			.TabIndex = 10
 			.SetBounds 336, 116, 112, 24
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
@@ -35,6 +36,7 @@
 		With txtVersion
 			.Name = "txtVersion"
 			.Text = ""
+			.TabIndex = 4
 			.SetBounds 100, 48, 348, 24
 			.Parent = @This
 		End With
@@ -42,6 +44,7 @@
 		With lblVersion
 			.Name = "lblVersion"
 			.Text = ML("Version") & ":"
+			.TabIndex = 3
 			.SetBounds 8, 50, 84, 24
 			.Parent = @This
 		End With
@@ -49,6 +52,7 @@
 		With lblPath
 			.Name = "lblPath"
 			.Text = ML("Path") & ":"
+			.TabIndex = 0
 			.SetBounds 8, 18, 84, 24
 			.Parent = @This
 		End With
@@ -56,6 +60,7 @@
 		With txtPath
 			.Name = "txtPath"
 			.Text = ""
+			.TabIndex = 1
 			.SetBounds 100, 16, 316, 24
 			.Parent = @This
 		End With
@@ -63,6 +68,7 @@
 		With cmdPath
 			.Name = "cmdPath"
 			.Text = "..."
+			.TabIndex = 2
 			.SetBounds 416, 16, 32, 24
 			.Caption = "..."
 			.Designer = @This
@@ -73,6 +79,7 @@
 		With cmdOK
 			.Name = "cmdOK"
 			.Text = ML("OK")
+			.TabIndex = 9
 			.SetBounds 216, 116, 112, 24
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
@@ -82,12 +89,14 @@
 		With lblCommandLine
 			.Name = "lblCommandLine"
 			.Text = ML("Command line") & ":"
+			.TabIndex = 5
 			.SetBounds 8, 82, 88, 24
 			.Parent = @This
 		End With
 		' txtCommandLine
 		With txtCommandLine
 			.Name = "txtCommandLine"
+			.TabIndex = 11
 			.SetBounds 100, 80, 128, 24
 			.Text = ""
 			.Parent = @This
@@ -96,6 +105,7 @@
 		With lblExtensions
 			.Name = "lblExtensions"
 			.Text = ML("Extensions") & ":"
+			.TabIndex = 7
 			.SetBounds 238, 82, 88, 24
 			.Caption = ML("Extensions") & ":"
 			.Parent = @This
@@ -103,6 +113,7 @@
 		' txtExtensions
 		With txtExtensions
 			.Name = "txtExtensions"
+			.TabIndex = 8
 			.SetBounds 320, 80, 128, 24
 			.Text = ""
 			.Parent = @This
@@ -111,9 +122,23 @@
 		With cboType
 			.Name = "cboType"
 			.Text = ""
-			.TabIndex = 11
+			.TabIndex = 6
 			.SetBounds 100, 80, 130, 21
 			.Visible = False
+			.Parent = @This
+		End With
+		' BrowseD
+		With BrowseD
+			.Name = "BrowseD"
+			.SetBounds 0, 0, 16, 16
+			.Designer = @This
+			.Parent = @This
+		End With
+		' OpenD
+		With OpenD
+			.Name = "OpenD"
+			.SetBounds 0, 0, 16, 16
+			.Designer = @This
 			.Parent = @This
 		End With
 	End Constructor

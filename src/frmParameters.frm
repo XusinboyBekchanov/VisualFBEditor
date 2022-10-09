@@ -23,58 +23,68 @@
 		' grbCompile
 		grbCompile.Name = "grbCompile"
 		grbCompile.Text = ML("Compile")
+		grbCompile.TabIndex = 0
 		grbCompile.SetBounds 8, 8, 712, 88
 		grbCompile.Parent = @This
 		' grbMake
 		grbMake.Name = "grbMake"
 		grbMake.Text = ML("Make")
+		grbMake.TabIndex = 7
 		grbMake.SetBounds 8, 96, 712, 88
 		grbMake.Parent = @This
 		' grbRun
 		grbRun.Name = "grbRun"
 		grbRun.Text = ML("Run")
+		grbRun.TabIndex = 14
 		grbRun.SetBounds 8, 184, 712, 58
 		grbRun.Parent = @This
 		' cmdOK
 		cmdOK.Name = "cmdOK"
 		cmdOK.Default = True
 		cmdOK.Text = ML("OK")
+		cmdOK.TabIndex = 25
 		cmdOK.SetBounds 528, 340, 96, 24
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @This
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
 		cmdCancel.Text = ML("Cancel")
+		cmdCancel.TabIndex = 26
 		cmdCancel.SetBounds 624, 340, 96, 24
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
 		' txtfbc64
 		With txtfbc64
 			.Name = "txtfbc64"
+			.TabIndex = 6
 			.SetBounds 376, 48, 321, 21
 			.Parent = @grbCompile
 		End With
 		' txtfbc32
 		With txtfbc32
 			.Name = "txtfbc32"
+			.TabIndex = 3
 			.SetBounds 376, 24, 321, 21
 			.Parent = @grbCompile
 		End With
 		' txtMake1
 		With txtMake1
 			.Name = "txtMake1"
+			.TabIndex = 10
 			.SetBounds 376, 24, 321, 21
 			.Parent = @grbMake
 		End With
 		' txtMake2
 		With txtMake2
 			.Name = "txtMake2"
+			.TabIndex = 13
 			.SetBounds 376, 48, 321, 21
 			.Parent = @grbMake
 		End With
 		' txtRun
 		With txtRun
 			.Name = "txtRun"
+			.TabIndex = 17
 			.SetBounds 376, 24, 321, 21
 			.Parent = @grbRun
 		End With
@@ -82,6 +92,7 @@
 		With lblfbc32
 			.Name = "lblfbc32"
 			.Text = "fbc" & " " & ML("32-bit") & ":"
+			.TabIndex = 1
 			.SetBounds 16, 24, 66, 16
 			.Caption = "fbc" & " " & ML("32-bit") & ":"
 			.Parent = @grbCompile
@@ -90,6 +101,7 @@
 		With lblfbc64
 			.Name = "lblfbc64"
 			.Text = "fbc" & " " & ML("64-bit") & ":"
+			.TabIndex = 4
 			.SetBounds 16, 48, 66, 16
 			.Caption = "fbc" & " " & ML("64-bit") & ":"
 			.Parent = @grbCompile
@@ -98,6 +110,7 @@
 		With lblMake1
 			.Name = "lblMake1"
 			.Text = ML("make") & " 1:"
+			.TabIndex = 8
 			.SetBounds 16, 24, 76, 16
 			.Parent = @grbMake
 		End With
@@ -105,6 +118,7 @@
 		With llblMake2
 			.Name = "llblMake2"
 			.Text = ML("make") & " 2:"
+			.TabIndex = 11
 			.SetBounds 16, 48, 76, 16
 			.Parent = @grbMake
 		End With
@@ -112,6 +126,7 @@
 		With lblRun
 			.Name = "lblRun"
 			.Text = ML("run") & ":"
+			.TabIndex = 15
 			.SetBounds 16, 24, 66, 16
 			.Parent = @grbRun
 		End With
@@ -119,6 +134,7 @@
 		With cboCompiler32
 			.Name = "cboCompiler32"
 			.Text = "ComboBoxEdit1"
+			.TabIndex = 2
 			.SetBounds 90, 24, 278, 21
 			.Parent = @grbCompile
 		End With
@@ -126,6 +142,7 @@
 		With cboCompiler64
 			.Name = "cboCompiler64"
 			.Text = "ComboBoxEdit11"
+			.TabIndex = 5
 			.SetBounds 90, 48, 278, 21
 			.Parent = @grbCompile
 		End With
@@ -133,6 +150,7 @@
 		With cboMake1
 			.Name = "cboMake1"
 			.Text = "ComboBoxEdit12"
+			.TabIndex = 9
 			.SetBounds 90, 24, 278, 21
 			.Parent = @grbMake
 		End With
@@ -140,6 +158,7 @@
 		With cboMake2
 			.Name = "cboMake2"
 			.Text = "ComboBoxEdit111"
+			.TabIndex = 12
 			.SetBounds 90, 48, 278, 21
 			.Parent = @grbMake
 		End With
@@ -147,6 +166,7 @@
 		With cboRun
 			.Name = "cboRun"
 			.Text = "ComboBoxEdit13"
+			.TabIndex = 16
 			.SetBounds 90, 24, 278, 21
 			.Parent = @grbRun
 		End With
@@ -154,6 +174,7 @@
 		With cboDebug32
 			.Name = "cboDebug32"
 			.Text = "ComboBoxEdit112"
+			.TabIndex = 20
 			.SetBounds 90, 24, 278, 21
 			.Parent = @grbDebug
 		End With
@@ -161,6 +182,7 @@
 		With grbDebug
 			.Name = "grbDebug"
 			.Text = ML("Debug")
+			.TabIndex = 18
 			.SetBounds 8, 244, 712, 88
 			.Parent = @This
 		End With
@@ -168,6 +190,7 @@
 		With txtDebug32
 			.Name = "txtDebug32"
 			.Text = ""
+			.TabIndex = 21
 			.SetBounds 376, 24, 321, 21
 			.Parent = @grbDebug
 		End With
@@ -175,6 +198,7 @@
 		With lblDebug32
 			.Name = "lblDebug32"
 			.Text = ML("debug") & " " & ML("32-bit") & ":"
+			.TabIndex = 19
 			.SetBounds 16, 28, 66, 16
 			.Parent = @grbDebug
 		End With
@@ -182,18 +206,21 @@
 		With lblDebug64
 			.Name = "lblDebug64"
 			.Text = ML("debug") & " " & ML("64-bit") & ":"
+			.TabIndex = 22
 			.SetBounds 16, 51, 66, 17
 			.Parent = @grbDebug
 		End With
 		' txtDebug64
 		With txtDebug64
 			.Name = "txtDebug64"
+			.TabIndex = 24
 			.SetBounds 376, 48, 321, 21
 			.Parent = @grbDebug
 		End With
 		' cboDebug64
 		With cboDebug64
 			.Name = "cboDebug64"
+			.TabIndex = 23
 			.SetBounds 90, 48, 278, 21
 			.Parent = @grbDebug
 		End With

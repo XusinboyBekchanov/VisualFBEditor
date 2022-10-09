@@ -47,6 +47,7 @@ pfFindFile = @fFindFile
 		With Panel1
 			.Name = "Panel1"
 			.Text = ""
+			.TabIndex = 13
 			.SetBounds 6, 64, 416, 180
 			.Anchor.Left = asAnchor
 			.Anchor.Right = asAnchor
@@ -54,10 +55,12 @@ pfFindFile = @fFindFile
 		End With
 		lblFind.Name = "lblFind"
 		lblFind.Caption = ML("Find What") & ":"
+		lblFind.TabIndex = 0
 		lblFind.SetBounds 10, 11, 85, 20
 		lblFind.Parent = @This
 		
 		txtFind.Name = "txtFind"
+		txtFind.TabIndex = 1
 		txtFind.SetBounds 97, 8, 318, 26
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Anchor.Right = asAnchor
@@ -65,16 +68,19 @@ pfFindFile = @fFindFile
 		
 		lblPath.Name = "lblPath"
 		lblPath.Caption = ML("In Folder") & ":"
+		lblPath.TabIndex = 4
 		lblPath.SetBounds 4, 9, 85, 20
 		lblPath.Parent =  @Panel1
 		
 		btnBrowse.Name = "btnBrowse"
 		btnBrowse.Caption = "..."
+		btnBrowse.TabIndex = 6
 		btnBrowse.SetBounds 376, 3, 34, 28
 		btnBrowse.Anchor.Right = asAnchor
 		btnBrowse.Parent =  @Panel1
 		
 		txtPath.Name = "txtPath"
+		txtPath.TabIndex = 5
 		txtPath.SetBounds 91, 4, 282, 26
 		txtPath.Anchor.Left = asAnchor
 		txtPath.Anchor.Right = asAnchor
@@ -82,10 +88,12 @@ pfFindFile = @fFindFile
 		
 		chkMatchCase.Name = "chkMatchCase"
 		chkMatchCase.Caption = ML("Match Case")
+		chkMatchCase.TabIndex = 7
 		chkMatchCase.SetBounds 92, 38, 148, 22
 		chkMatchCase.Parent =  @Panel1
 		chkSearchInSub.Name = "chkSearchInSub"
 		chkSearchInSub.Caption = ML("Search Subfolders")
+		chkSearchInSub.TabIndex = 9
 		chkSearchInSub.SetBounds 92, 63, 200, 22
 		chkSearchInSub.Checked = True
 		chkSearchInSub.Parent =  @Panel1
@@ -94,6 +102,7 @@ pfFindFile = @fFindFile
 			.Name = "btnFind"
 			.Caption = ML("&Find")
 			.Default = True
+			.TabIndex = 10
 			.SetBounds 90, 92, 106, 30
 			.Anchor.Left = asAnchor
 			.Parent =  @Panel1
@@ -104,6 +113,7 @@ pfFindFile = @fFindFile
 		With btnReplace
 			.Name = "btnReplace"
 			.Text = ML("&Replace")
+			.TabIndex = 11
 			.SetBounds 199, 92, 106, 30
 			.Anchor.Right = asAnchor
 			.OnClick = @btnReplace_Click
@@ -114,6 +124,7 @@ pfFindFile = @fFindFile
 		With btnCancel
 			.Name="btnCancel"
 			.Caption = ML("&Cancel")
+		btnCancel.TabIndex = 12
 			.SetBounds 308, 92, 104, 30
 			.Anchor.Right = asAnchor
 			.Parent = @Panel1
@@ -131,6 +142,7 @@ pfFindFile = @fFindFile
 		With lblReplace
 			.Name = "lblReplace"
 			.Text = ML("Replace")+":"
+			.TabIndex = 2
 			.SetBounds 10, 41, 82, 25
 			.Parent =  @This
 		End With
@@ -139,6 +151,7 @@ pfFindFile = @fFindFile
 		With txtReplace
 			.Name = "txtReplace"
 			.Text = ""
+			.TabIndex = 3
 			.SetBounds 97, 38, 318, 26
 			.Anchor.Left = asAnchor
 			.Anchor.Right = asAnchor
@@ -149,10 +162,17 @@ pfFindFile = @fFindFile
 		With chkUsePatternMatching
 			.Name = "chkUsePatternMatching"
 			.Text = ML("Use Pattern Matching")
-			.TabIndex = 13
+			.TabIndex = 8
 			.Caption = ML("Use Pattern Matching")
 			.SetBounds 222, 38, 188, 22
 			.Parent = @Panel1
+		End With
+		' FolderDialog
+		With FolderDialog
+			.Name = "FolderDialog"
+			.SetBounds 0, 0, 16, 16
+			.Designer = @This
+			.Parent = @This
 		End With
 	End Constructor
 	

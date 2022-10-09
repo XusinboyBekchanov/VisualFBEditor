@@ -17,7 +17,7 @@
 		With Label1
 			.Name = "Label1"
 			.Text = "Warning: enabling the following optimizatons will help reduce unused code"
-			.TabIndex = 1
+			.TabIndex = 0
 			.SetBounds 10, 10, 320, 30
 			.Parent = @This
 		End With
@@ -25,7 +25,7 @@
 		With chkShowUnusedLabelWarnings
 			.Name = "chkShowUnusedLabelWarnings"
 			.Text = "Show unused label warnings"
-			.TabIndex = 0
+			.TabIndex = 1
 			.SetBounds 10, 50, 240, 20
 			.Caption = "Show unused label warnings"
 			.Parent = @This
@@ -71,7 +71,7 @@
 			.Name = "pnlCommands"
 			.Text = "pnlCommands"
 			.TabIndex = 6
-			.SetBounds 0, 397, 344, 42
+			.SetBounds 0, 397, 334, 42
 			.Align = DockStyle.alBottom
 			.Parent = @This
 		End With

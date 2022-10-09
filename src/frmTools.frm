@@ -31,6 +31,7 @@ pfTools = @fTools
 		' lvTools
 		lvTools.Name = "lvTools"
 		lvTools.Text = "ListView1"
+		lvTools.TabIndex = 0
 		lvTools.SetBounds 12, 12, 366, 198
 		lvTools.OnSelectedItemChanged = @lvTools_SelectedItemChanged
 		lvTools.OnItemClick = @lvTools_ItemClick
@@ -40,24 +41,28 @@ pfTools = @fTools
 		' cmdOK
 		cmdOK.Name = "cmdOK"
 		cmdOK.Text = ML("OK")
+		cmdOK.TabIndex = 18
 		cmdOK.SetBounds 302, 392, 78, 24
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @This
 		' cmdCancel
 		cmdCancel.Name = "cmdCancel"
 		cmdCancel.Text = ML("Cancel")
+		cmdCancel.TabIndex = 19
 		cmdCancel.SetBounds 390, 392, 78, 24
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
 		' cmdHelp
 		cmdHelp.Name = "cmdHelp"
 		cmdHelp.Text = ML("Help")
+		cmdHelp.TabIndex = 6
 		cmdHelp.SetBounds 390, 186, 78, 24
 		cmdHelp.Parent = @This
 		' cmdAdd
 		With cmdAdd
 			.Name = "cmdAdd"
 			.Text = ML("&Add")
+			.TabIndex = 1
 			.SetBounds 390, 12, 78, 24
 			.OnClick = @cmdAdd_Click
 			.Parent = @This
@@ -66,6 +71,7 @@ pfTools = @fTools
 		With cmdChange
 			.Name = "cmdChange"
 			.Text = ML("Chan&ge")
+			.TabIndex = 2
 			.SetBounds 390, 41, 78, 24
 			.OnClick = @cmdChange_Click
 			.Parent = @This
@@ -74,6 +80,7 @@ pfTools = @fTools
 		With cmdRemove
 			.Name = "cmdRemove"
 			.Text = ML("&Remove")
+			.TabIndex = 3
 			.SetBounds 390, 72, 78, 24
 			.OnClick = @cmdRemove_Click
 			.Parent = @This
@@ -82,6 +89,7 @@ pfTools = @fTools
 		With lblParameters
 			.Name = "lblParameters"
 			.Text = ML("Parameters") & ":"
+			.TabIndex = 7
 			.SetBounds 16, 224, 104, 16
 			.Parent = @This
 		End With
@@ -89,6 +97,7 @@ pfTools = @fTools
 		With txtParameters
 			.Name = "txtParameters"
 			.Text = ""
+			.TabIndex = 8
 			.SetBounds 128, 221, 250, 21
 			.OnChange = @txtParameters_Change
 			.Parent = @This
@@ -97,6 +106,7 @@ pfTools = @fTools
 		With lblInfo
 			.Name = "lblInfo"
 			.Text = "{F} " & ML("Current File") & " {P} " & ML("Project Name") & " {S} " & ML("Main Source File") & " {W} " & ML("Current Word") & " {E} " & ML("EXE/DLL Name")
+			.TabIndex = 9
 			.SetBounds 136, 248, 240, 29
 			.Parent = @This
 		End With
@@ -104,12 +114,14 @@ pfTools = @fTools
 		With lblWorkingFolder
 			.Name = "lblWorkingFolder"
 			.Text = ML("Working Folder") & ":"
+			.TabIndex = 10
 			.SetBounds 16, 288, 104, 16
 			.Parent = @This
 		End With
 		' txtWorkingFolder
 		With txtWorkingFolder
 			.Name = "txtWorkingFolder"
+			.TabIndex = 11
 			.SetBounds 128, 285, 252, 21
 			.OnChange = @txtWorkingFolder_Change
 			.Parent = @This
@@ -118,6 +130,7 @@ pfTools = @fTools
 		With lblTrigger
 			.Name = "lblTrigger"
 			.Text = ML("Start on event") & ":"
+			.TabIndex = 13
 			.SetBounds 16, 315, 112, 16
 			.Parent = @This
 		End With
@@ -125,6 +138,7 @@ pfTools = @fTools
 		With cboEvent
 			.Name = "cboEvent"
 			.Text = "ComboBoxEdit1"
+			.TabIndex = 14
 			.SetBounds 128, 312, 144, 21
 			.OnChange = @cboEvent_Change
 			.Parent = @This
@@ -137,6 +151,7 @@ pfTools = @fTools
 		With lblShortcut
 			.Name = "lblShortcut"
 			.Text = ML("Shortcuts") & ":"
+			.TabIndex = 15
 			.SetBounds 16, 343, 80, 16
 			.Parent = @This
 		End With
@@ -144,6 +159,7 @@ pfTools = @fTools
 		With hkShortcut
 			.Name = "hkShortcut"
 			.Text = ""
+			.TabIndex = 16
 			.SetBounds 128, 340, 144, 21
 			.OnChange = @hkShortcut_Change
 			.Parent = @This
@@ -152,6 +168,7 @@ pfTools = @fTools
 		With chkWaitComplete
 			.Name = "chkWaitComplete"
 			.Text = ML("Wait until tool quits")
+			.TabIndex = 17
 			.SetBounds 16, 372, 256, 16
 			.OnClick = @chkWaitComplete_Click
 			.Parent = @This
@@ -160,6 +177,7 @@ pfTools = @fTools
 		With cmdWorkingFolder
 			.Name = "cmdWorkingFolder"
 			.Text = ML("Browse") & " ..."
+			.TabIndex = 12
 			.SetBounds 390, 284, 78, 24
 			.Parent = @This
 		End With
@@ -167,6 +185,7 @@ pfTools = @fTools
 		With cmdMoveUp
 			.Name = "cmdMoveUp"
 			.Text = ML("Move Up")
+			.TabIndex = 4
 			.SetBounds 390, 112, 78, 24
 			.OnClick = @cmdMoveUp_Click
 			.Parent = @This
@@ -175,6 +194,7 @@ pfTools = @fTools
 		With cmdMoveDown
 			.Name = "cmdMoveDown"
 			.Text = ML("Move Down")
+			.TabIndex = 5
 			.SetBounds 390, 144, 78, 24
 			.OnClick = @cmdMoveDown_Click
 			.Parent = @This

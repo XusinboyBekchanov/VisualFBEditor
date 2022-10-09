@@ -33,15 +33,15 @@
 		With lstFiles
 			.Name = "lstFiles"
 			.SelectionMode = SelectionModes.smMultiExtended
-			.TabIndex = 0
-			.SetBounds 10, 30, 290, 230
+			.TabIndex = 1
+			.SetBounds 10, 30, 290, 225
 			.Parent = @This
 		End With
 		' lblMessage
 		With lblMessage
 			.Name = "lblMessage"
 			.Text = ML("Save changes to the following files?")
-			.TabIndex = 1
+			.TabIndex = 0
 			.SetBounds 10, 10, 240, 20
 			.Parent = @This
 		End With

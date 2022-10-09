@@ -61,7 +61,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		With cmdPreviousTip
 			.Name = "cmdPreviousTip"
 			.Text = ML("Previous Tip")
-			.TabIndex = 0
+			.TabIndex = 2
 			.SetBounds 220, 280, 90, 24
 			.Designer = @This
 			.OnClick = @cmdPreviousTip_Click_
@@ -71,7 +71,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		With cmdNextTip
 			.Name = "cmdNextTip"
 			.Text = ML("Next Tip")
-			.TabIndex = 1
+			.TabIndex = 3
 			.SetBounds 320, 280, 90, 24
 			.Designer = @This
 			.OnClick = @cmdNextTip_Click_
@@ -81,7 +81,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		With cmdClose
 			.Name = "cmdClose"
 			.Text = ML("Close")
-			.TabIndex = 2
+			.TabIndex = 4
 			.SetBounds 420, 280, 90, 24
 			.Designer = @This
 			.OnClick = @cmdClose_Click_
@@ -91,7 +91,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		With chkDoNotShow
 			.Name = "chkDoNotShow"
 			.Text = ML("Don't show tips")
-			.TabIndex = 3
+			.TabIndex = 1
 			.SetBounds 20, 282, 180, 20
 			.Designer = @This
 			.OnClick = @chkDoNotShow_Click_
@@ -101,7 +101,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		With lblTips
 			.Name = "lblTips"
 			.Text = "Input Tips here"
-			.TabIndex = 4
+			.TabIndex = 0
 			.Font.Size = 10
 			.SetBounds 20, 10, 480, 70
 			.Designer = @This

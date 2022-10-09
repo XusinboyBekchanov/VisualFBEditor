@@ -98,7 +98,7 @@
 		With imgImage
 			.Name = "imgImage"
 			.Text = "ImageBox1"
-			.SetBounds 10, 10, 300, 383
+			.SetBounds 10, 15, 300, 378
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 15
 			.ExtraMargins.Right = 10
@@ -115,15 +115,15 @@
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
-			.TabIndex = 6
-			.SetBounds -1, 9, 20, 20
+			.TabIndex = 2
+			.SetBounds 10, 15, 300, 378
 			.Parent = @gbImagePreview
 		End With
 		' pnlCommands
 		With pnlCommands
 			.Name = "pnlCommands"
 			.Text = "pnlCommands"
-			.TabIndex = 4
+			.TabIndex = 14
 			.SetBounds 0, 429, 611, 42
 			.Align = DockStyle.alBottom
 			.Parent = @This
@@ -132,7 +132,7 @@
 		With cmdCancel
 			.Name = "cmdCancel"
 			.Text = ML("Cancel")
-			.TabIndex = 3
+			.TabIndex = 13
 			.SetBounds 521, 10, 80, 22
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 10
@@ -148,7 +148,7 @@
 		With cmdOK
 			.Name = "cmdOK"
 			.Text = ML("OK")
-			.TabIndex = 2
+			.TabIndex = 12
 			.SetBounds 431, 10, 80, 22
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 10
@@ -164,7 +164,7 @@
 		With lblResourceFile
 			.Name = "lblResourceFile"
 			.Text = ML("File") & ":"
-			.TabIndex = 5
+			.TabIndex = 15
 			.SetBounds 10, 10, 411, 22
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Right = 10
@@ -184,7 +184,7 @@
 		With lblSize
 			.Name = "lblSize"
 			.Text = ML("Size") & ":"
-			.TabIndex = 8
+			.TabIndex = 3
 			.SetBounds 9, 9, 120, 18
 			.Parent = @pnlOptions
 		End With
@@ -192,7 +192,7 @@
 		With opt16x16
 			.Name = "opt16x16"
 			.Text = "16 x 16"
-			.TabIndex = 7
+			.TabIndex = 4
 			.SetBounds 19, 27, 90, 20
 			.Caption = "16 x 16"
 			.Designer = @This
@@ -203,7 +203,7 @@
 		With opt32x32
 			.Name = "opt32x32"
 			.Text = "32 x 32"
-			.TabIndex = 9
+			.TabIndex = 5
 			.SetBounds 19, 47, 90, 20
 			.Caption = "32 x 32"
 			.Designer = @This
@@ -214,7 +214,7 @@
 		With opt48x48
 			.Name = "opt48x48"
 			.Text = "48 x 48"
-			.TabIndex = 10
+			.TabIndex = 6
 			.SetBounds 19, 67, 90, 20
 			.Caption = "48 x 48"
 			.Designer = @This
@@ -225,7 +225,7 @@
 		With optCustom
 			.Name = "optCustom"
 			.Text = ML("Custom")
-			.TabIndex = 11
+			.TabIndex = 7
 			.SetBounds 19, 87, 110, 20
 			.Caption = ML("Custom")
 			.Designer = @This
@@ -236,7 +236,7 @@
 		With lblWidth
 			.Name = "lblWidth"
 			.Text = ML("Width") & ":"
-			.TabIndex = 12
+			.TabIndex = 8
 			.SetBounds 39, 110, 80, 18
 			.Caption = ML("Width") & ":"
 			.Parent = @pnlOptions
@@ -245,7 +245,7 @@
 		With lblHeight
 			.Name = "lblHeight"
 			.Text = ML("Height") & ":"
-			.TabIndex = 13
+			.TabIndex = 10
 			.SetBounds 39, 134, 80, 18
 			.Caption = ML("Height") & ":"
 			.Parent = @pnlOptions
@@ -254,14 +254,14 @@
 		With txtWidth
 			.Name = "txtWidth"
 			.Text = ""
-			.TabIndex = 14
+			.TabIndex = 9
 			.SetBounds 119, 107, 90, 20
 			.Parent = @pnlOptions
 		End With
 		' txtHeight
 		With txtHeight
 			.Name = "txtHeight"
-			.TabIndex = 15
+			.TabIndex = 11
 			.SetBounds 119, 132, 90, 20
 			.Text = ""
 			.Parent = @pnlOptions

@@ -60,7 +60,7 @@
 		With pnlCommands
 			.Name = "pnlCommands"
 			.Text = "Panel1"
-			.TabIndex = 0
+			.TabIndex = 8
 			.Align = DockStyle.alBottom
 			.SetBounds 0, 341, 444, 30
 			.Designer = @This
@@ -70,7 +70,7 @@
 		With cmdApply
 			.Name = "cmdApply"
 			.Text = "Apply"
-			.TabIndex = 1
+			.TabIndex = 11
 			.Caption = "Apply"
 			.Align = DockStyle.alRight
 			.ExtraMargins.Right = 5
@@ -85,7 +85,7 @@
 		With cmdCancel
 			.Name = "cmdCancel"
 			.Text = "Cancel"
-			.TabIndex = 2
+			.TabIndex = 10
 			.Align = DockStyle.alRight
 			.ControlIndex = 0
 			.ExtraMargins.Top = 5
@@ -101,7 +101,7 @@
 		With cmdOK
 			.Name = "cmdOK"
 			.Text = "OK"
-			.TabIndex = 3
+			.TabIndex = 9
 			.Align = DockStyle.alRight
 			.ControlIndex = 0
 			.ExtraMargins.Top = 5
@@ -117,7 +117,7 @@
 		With tabComponents
 			.Name = "tabComponents"
 			.Text = "TabControl1"
-			.TabIndex = 4
+			.TabIndex = 0
 			.Align = DockStyle.alClient
 			.ExtraMargins.Left = 5
 			.ExtraMargins.Right = 5
@@ -130,10 +130,10 @@
 		With tbpControls
 			.Name = "tbpControls"
 			.Text = "Controls"
-			.TabIndex = 5
+			.TabIndex = 1
 			.Caption = "Controls"
 			.UseVisualStyleBackColor = True
-			.SetBounds 2, 22, 428, 311
+			.SetBounds 1, 22, 428, 311
 			.Designer = @This
 			.Parent = @tabComponents
 		End With
@@ -155,9 +155,9 @@
 		With pnlRight
 			.Name = "pnlRight"
 			.Text = ""
-			.TabIndex = 7
+			.TabIndex = 3
 			.Align = DockStyle.alRight
-			.SetBounds 278, 0, 150, 221
+			.SetBounds 278, 0, 150, 241
 			.Designer = @This
 			.Parent = @tbpControls
 		End With
@@ -165,7 +165,7 @@
 		With chlControls
 			.Name = "chlControls"
 			.Text = "CheckedListBox1"
-			.TabIndex = 8
+			.TabIndex = 2
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Right = 0
@@ -179,7 +179,7 @@
 		With lblLocation
 			.Name = "lblLocation"
 			.Text = "Location: "
-			.TabIndex = 9
+			.TabIndex = 7
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 25
 			.ExtraMargins.Bottom = 10
@@ -187,7 +187,7 @@
 			.ExtraMargins.Right = 10
 			.Caption = "Location: "
 			.WordWraps = False
-			.SetBounds 10, 30, 388, 20
+			.SetBounds 10, 25, 388, 25
 			.Designer = @This
 			.Parent = @grbInformation
 		End With
@@ -195,7 +195,7 @@
 		With cmdBrowse
 			.Name = "cmdBrowse"
 			.Text = "Browse..."
-			.TabIndex = 10
+			.TabIndex = 4
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Right = 10
@@ -210,7 +210,7 @@
 		With chkSelectedItemsOnly
 			.Name = "chkSelectedItemsOnly"
 			.Text = "Selected Items Only"
-			.TabIndex = 11
+			.TabIndex = 5
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Right = 10

@@ -33,6 +33,7 @@
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
 			.SelectedTabIndex = 2
+			.TabIndex = 0
 			.SetBounds 10, 10, 621, 351
 			.Designer = @This
 			.OnSelChange = @TabControl1_SelChange_
@@ -41,7 +42,8 @@
 		' tpNew
 		With tpNew
 			.Name = "tpNew"
-			.SetBounds 2, 22, 498, 275
+			.TabIndex = 1
+			.SetBounds 2, 22, 615, 326
 			.Text = ML("New")
 			.UseVisualStyleBackColor = True
 			.Parent = @TabControl1
@@ -54,7 +56,8 @@
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 0, 10, 180, 206
+			.TabIndex = 2
+			.SetBounds 10, 10, 180, 306
 			.Designer = @This
 			.OnSelChanged = @tvTemplates_SelChanged_
 			.Parent = @tpNew
@@ -70,6 +73,7 @@
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Bottom = 10
+			.TabIndex = 3
 			.SetBounds 200, 10, 405, 306
 			.Designer = @This
 			.Columns.Add ML("Template"), , 500, cfLeft
@@ -85,7 +89,8 @@
 			.ExtraMargins.Bottom = 10
 			.ExtraMargins.Top = 0
 			.ExtraMargins.Right = 10
-			.SetBounds 382, 274, 88, 21
+			.TabIndex = 18
+			.SetBounds 543, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
 			.Parent = @pnlBottom
@@ -98,7 +103,8 @@
 			.ExtraMargins.Top = 0
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 290, 274, 88, 21
+			.TabIndex = 16
+			.SetBounds 445, 0, 88, 20
 			'.Caption = ML("OK")
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
@@ -108,18 +114,18 @@
 		With tpExisting
 			.Name = "tpExisting"
 			.Text = ML("Existing")
-			.TabIndex = 6
+			.TabIndex = 4
 			.UseVisualStyleBackColor = True
-			.SetBounds 0, -10, 496, 275
+			.SetBounds 2, 22, 615, 326
 			.Parent = @TabControl1
 		End With
 		' tpRecent
 		With tpRecent
 			.Name = "tpRecent"
 			.Text = ML("Recent")
-			.TabIndex = 7
+			.TabIndex = 6
 			.UseVisualStyleBackColor = True
-			.SetBounds 0, 0, 446, 255
+			.SetBounds 2, 22, 615, 326
 			.Parent = @TabControl1
 		End With
 		' lvRecent
@@ -146,6 +152,7 @@
 			.Name = "OpenFileControl1"
 			.Text = "OpenFileControl1"
 			.Align = DockStyle.alClient
+			.TabIndex = 5
 			.SetBounds 0, 0, 615, 326
 			.Designer = @This
 			.InitialDir = GetFullPath(*ProjectsPath)
@@ -159,14 +166,14 @@
 			.Text = "Panel1"
 			.TabIndex = 9
 			.Align = DockStyle.alBottom
-			.SetBounds 20, 290, 450, 30
+			.SetBounds 0, 371, 641, 30
 			.Parent = @This
 		End With
 		' tvRecent
 		With tvRecent
 			.Name = "tvRecent"
 			.Text = "tvRecent"
-			.TabIndex = 10
+			.TabIndex = 7
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Left = 10
@@ -185,7 +192,7 @@
 		With pnlSaveLocation
 			.Name = "pnlSaveLocation"
 			.Text = "Panel1"
-			.TabIndex = 12
+			.TabIndex = 15
 			.SetBounds 10, -1, 410, 30
 			.Visible = False
 			.Parent = @pnlBottom
@@ -194,7 +201,7 @@
 		With lblSaveLocation
 			.Name = "lblSaveLocation"
 			.Text = ML("Save location:")
-			.TabIndex = 13
+			.TabIndex = 17
 			.Caption = ML("Save location:")
 			.SetBounds 10, 3, 110, 20
 			.Parent = @pnlSaveLocation
@@ -203,7 +210,7 @@
 		With txtSaveLocation
 			.Name = "txtSaveLocation"
 			.Text = "./Projects/Project1"
-			.TabIndex = 14
+			.TabIndex = 19
 			.SetBounds 120, 1, 204, 20
 			.Parent = @pnlSaveLocation
 		End With
@@ -211,7 +218,7 @@
 		With cmdSaveLocation
 			.Name = "cmdSaveLocation"
 			.Text = "..."
-			.TabIndex = 15
+			.TabIndex = 20
 			.Caption = "..."
 			.SetBounds 325, 0, 30, 22
 			.Designer = @This
@@ -222,7 +229,7 @@
 		With pnlRecent
 			.Name = "pnlRecent"
 			.Text = "Panel1"
-			.TabIndex = 16
+			.TabIndex = 10
 			.SetBounds 10, 0, 420, 30
 			.Designer = @This
 			.Parent = @pnlBottom
@@ -231,7 +238,7 @@
 		With cmdAdd
 			.Name = "cmdAdd"
 			.Text = ML("&Add")
-			.TabIndex = 20
+			.TabIndex = 11
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
@@ -244,7 +251,7 @@
 		With cmdChange
 			.Name = "cmdChange"
 			.Text = ML("Chan&ge")
-			.TabIndex = 19
+			.TabIndex = 12
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
@@ -257,7 +264,7 @@
 		With cmdRemove
 			.Name = "cmdRemove"
 			.Text = ML("&Remove")
-			.TabIndex = 18
+			.TabIndex = 13
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
@@ -270,11 +277,11 @@
 		With cmdClear
 			.Name = "cmdClear"
 			.Text = ML("&Clear")
-			.TabIndex = 17
+			.TabIndex = 14
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 0, 0, 88, 20
+			.SetBounds 294, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdClear_Click_
 			.Parent = @pnlRecent

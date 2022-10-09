@@ -23,6 +23,7 @@
 		' lvTrek
 		With lvTrek
 			.Name = "lvTrek"
+			.TabIndex = 0
 			.SetBounds 8, 8, 808, 168
 			.Columns.Add ML("Name"), , 150, cfLeft
 			.Columns.Add ML("Parameters"), , 150, cfLeft
@@ -41,6 +42,7 @@
 		With cmdOK
 			.Name = "cmdOK"
 			.Text = ML("OK")
+			.TabIndex = 3
 			.SetBounds 650, 208, 80, 24
 			.Default = True
 			.OnClick = @cmdOK_Click
@@ -52,6 +54,7 @@
 		With cmdCancel
 			.Name = "cmdCancel"
 			.Text = ML("Cancel")
+			.TabIndex = 4
 			.SetBounds 736, 208, 80, 24
 			.OnClick = @cmdCancel_Click
 			.Anchor.Right = AnchorStyle.asAnchor
@@ -62,6 +65,7 @@
 		With lblComment
 			.Name = "lblComment"
 			.Text = ""
+			.TabIndex = 2
 			.SetBounds 80, 184, 736, 16
 			.Caption = ""
 			.Anchor.Bottom = AnchorStyle.asAnchor
@@ -73,6 +77,7 @@
 		With lblLabelComment
 			.Name = "lblLabelComment"
 			.Text = ML("Comment") & ":"
+			.TabIndex = 1
 			.SetBounds 8, 184, 64, 16
 			.Anchor.Top = AnchorStyle.asNone
 			.Anchor.Bottom = AnchorStyle.asAnchor
