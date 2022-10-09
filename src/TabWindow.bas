@@ -849,10 +849,25 @@ Function TabWindow.Save As Boolean
 	If InStr(*FFileName, "/") > 0 OrElse InStr(*FFileName, "\") > 0 Then Return SaveTab Else Return SaveAs
 End Function
 
+Sub ChangeMenuItemsEnabled
+	Dim bEnabled As Boolean = tvExplorer.SelectedNode <> 0
+	miSave->Enabled = bEnabled
+	miSaveAs->Enabled = bEnabled
+	miSaveAll->Enabled = bEnabled
+	miClose->Enabled = bEnabled
+	miCloseAll->Enabled = bEnabled
+	miPrint->Enabled = bEnabled
+	miPrintPreview->Enabled = bEnabled
+	miPageSetup->Enabled = bEnabled
+	miOpenProjectFolder->Enabled = bEnabled
+	miExplorerOpenProjectFolder->Enabled = bEnabled
+End Sub
+
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
 	If tb = 0 Then Return False
 	Dim As TabControl Ptr pParentTabCode = tb->Parent
 	If tb->CloseTab(WithoutMessage) Then
+		ChangeMenuItemsEnabled
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
 		Delete_(tb)
@@ -1704,7 +1719,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		k = iStart
 		Do While k <= iEnd
-			wLet(FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
+			WLet(FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
 			If Not b AndAlso StartsWith(*FLine, "type " & LCase(frmName) & " ") Then
 				b = True
 				frmTypeName = frmName

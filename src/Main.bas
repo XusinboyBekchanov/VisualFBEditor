@@ -65,6 +65,9 @@ Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlR
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
+Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miPrint, miPrintPreview, miPageSetup
+Dim Shared As MenuItem Ptr mi
+Dim Shared As MenuItem Ptr miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerProjectProperties, miExplorerCloseProject
 Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar MainReBar
@@ -1303,8 +1306,16 @@ End Sub
 
 Sub CloseFolder(ByRef tn As TreeNode Ptr)
 	ClearTreeNode tn
+	miSaveProject->Enabled = False
+	miSaveProjectAs->Enabled = False
+	miCloseProject->Enabled = False
+	miCloseFolder->Enabled = False
+	miExplorerCloseProject->Enabled = False
+	miProjectProperties->Enabled = False
+	miExplorerProjectProperties->Enabled = False
 	Var Index = tvExplorer.Nodes.IndexOf(tn)
 	If Index <> -1 Then tvExplorer.Nodes.Remove Index
+	ChangeMenuItemsEnabled
 	'Delete tn
 End Sub
 
@@ -2660,7 +2671,15 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 	'	End If
 	If tn = MainNode Then SetMainNode 0
 	If tn->Tag <> 0 Then Delete_(Cast(ProjectElement Ptr, tn->Tag))
+	miSaveProject->Enabled = False
+	miSaveProjectAs->Enabled = False
+	miCloseProject->Enabled = False
+	miCloseFolder->Enabled = False
+	miExplorerCloseProject->Enabled = False
+	miProjectProperties->Enabled = False
+	miExplorerProjectProperties->Enabled = False
 	If tvExplorer.Nodes.IndexOf(tn) <> -1 Then tvExplorer.Nodes.Remove tvExplorer.Nodes.IndexOf(tn)
+	ChangeMenuItemsEnabled
 	Return True
 End Function
 
@@ -5052,26 +5071,26 @@ Sub CreateMenusAndToolBars
 	'miFile->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mClick)
 	'miFile->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mClick)
 	miFile->Add("-")
-	miFile->Add(ML("Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mClick)
-	miFile->Add(ML("Save Project As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mClick)
-	miFile->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mClick)
+	miSaveProject = miFile->Add(ML("Save Project") & "..." & HK("SaveProject", "Ctrl+Shift+S"), "SaveAll", "SaveProject", @mClick, , , False)
+	miSaveProjectAs = miFile->Add(ML("Save Project As") & "..." & HK("SaveProjectAs"), "", "SaveProjectAs", @mClick, , , False)
+	miCloseProject = miFile->Add(ML("Close Project") & HK("CloseProject", "Ctrl+Shift+F4"), "", "CloseProject", @mClick, , , False)
 	miFile->Add("-")
 	miFile->Add(ML("Open Session") & HK("OpenSession", "Ctrl+Alt+O"), "", "OpenSession", @mClick)
 	miFile->Add(ML("Save Session") & HK("SaveFolder", "Ctrl+Alt+S"), "", "SaveSession", @mClick)
 	miFile->Add("-")
 	miFile->Add(ML("Open Folder") & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mClick)
-	miFile->Add(ML("Close Folder") & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mClick)
+	miCloseFolder = miFile->Add(ML("Close Folder") & HK("CloseFolder", "Alt+F4"), "", "CloseFolder", @mClick, , , False)
 	miFile->Add("-")
-	miFile->Add(ML("&Save") & "..." & HK("Save", "Ctrl+S"), "Save", "Save", @mClick)
-	miFile->Add(ML("Save &As") & "..." & HK("SaveAs"), "", "SaveAs", @mClick)
-	miFile->Add(ML("Save All") & HK("SaveAll", "Ctrl+Alt+Shift+S"), "SaveAll", "SaveAll", @mClick)
+	miSave = miFile->Add(ML("&Save") & "..." & HK("Save", "Ctrl+S"), "Save", "Save", @mClick, , , False)
+	miSaveAs = miFile->Add(ML("Save &As") & "..." & HK("SaveAs"), "", "SaveAs", @mClick, , , False)
+	miSaveAll = miFile->Add(ML("Save All") & HK("SaveAll", "Ctrl+Alt+Shift+S"), "SaveAll", "SaveAll", @mClick, , , False)
 	miFile->Add("-")
-	miFile->Add(ML("&Close") & HK("Close", "Ctrl+F4"), "Close", "Close", @mClick)
-	miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Alt+Shift+F4"), "", "CloseAll", @mClick)
+	miClose = miFile->Add(ML("&Close") & HK("Close", "Ctrl+F4"), "Close", "Close", @mClick, , , False)
+	miCloseAll = miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Alt+Shift+F4"), "", "CloseAll", @mClick, , , False)
 	miFile->Add("-")
-	miFile->Add(ML("&Print") & HK("Print", "Ctrl+P"), "Print", "Print", @mClick)
-	miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mClick)
-	miFile->Add(ML("Page Set&up") & "..." & HK("PageSetup"), "", "PageSetup", @mClick)
+	miPrint = miFile->Add(ML("&Print") & HK("Print", "Ctrl+P"), "Print", "Print", @mClick, , , False)
+	miPrintPreview = miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mClick, , , False)
+	miPageSetup = miFile->Add(ML("Page Set&up") & "..." & HK("PageSetup"), "", "PageSetup", @mClick, , , False)
 	miFile->Add("-")
 	Var miFileFormat = miFile->Add(ML("File format"))
 	miPlainText = miFileFormat->Add(ML("Encoding") & ": " & ML("Plain text") & HK("PlainText"), "", "PlainText", @mClick, True)
@@ -5266,10 +5285,10 @@ Sub CreateMenusAndToolBars
 	miProject->Add("-")
 	miProject->Add(ML("&Remove") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mClick)
 	miProject->Add("-")
-	miProject->Add(ML("&Open Project Folder") & HK("OpenProjectFolder"), "", "OpenProjectFolder", @mClick)
+	miOpenProjectFolder = miProject->Add(ML("&Open Project Folder") & HK("OpenProjectFolder"), "", "OpenProjectFolder", @mClick, , , False)
 	miProject->Add(ML("Import from Folder") & "..." & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mClick)
 	miProject->Add("-")
-	miProject->Add(ML("&Project Properties") & "..." & HK("ProjectProperties"), "", "ProjectProperties", @mClick)
+	miProjectProperties = miProject->Add(ML("&Project Properties") & "..." & HK("ProjectProperties"), "", "ProjectProperties", @mClick, , , False)
 	
 	Var miBuild = mnuMain.Add(ML("&Build"), "", "Build")
 	miBuild->Add(ML("&Syntax Check") & HK("SyntaxCheck"), "SyntaxCheck", "SyntaxCheck", @mClick)
@@ -5311,12 +5330,9 @@ Sub CreateMenusAndToolBars
 	Var miRun = mnuMain.Add(ML("&Run"), "", "Run")
 	mnuStartWithCompile = miRun->Add(ML("Start With &Compile") & HK("StartWithCompile", "F5"), "StartWithCompile", "StartWithCompile", @mClick)
 	mnuStart = miRun->Add(ML("&Start") & HK("Start", "Ctrl+F5"), "Start", "Start", @mClick)
-	mnuBreak = miRun->Add(ML("&Break") & HK("Break", "Ctrl+Break"), "Break", "Break", @mClick)
-	mnuEnd = miRun->Add(ML("&End") & HK("End"), "EndProgram", "End", @mClick)
-	mnuRestart = miRun->Add(ML("&Restart") & HK("Restart", "Shift+F5"), "", "Restart", @mClick)
-	mnuBreak->Enabled = False
-	mnuEnd->Enabled = False
-	mnuRestart->Enabled = False
+	mnuBreak = miRun->Add(ML("&Break") & HK("Break", "Ctrl+Break"), "Break", "Break", @mClick, , , False)
+	mnuEnd = miRun->Add(ML("&End") & HK("End"), "EndProgram", "End", @mClick, , , False)
+	mnuRestart = miRun->Add(ML("&Restart") & HK("Restart", "Shift+F5"), "", "Restart", @mClick, , , False)
 	
 	miXizmat = mnuMain.Add(ML("Servi&ce"), "", "Service")
 	miXizmat->Add(ML("Add &Procedure") & "..." & HK("AddProcedure"), "", "AddProcedure", @mClick)
@@ -5451,10 +5467,10 @@ Sub CreateMenusAndToolBars
 	miAdd->Add(ML("Add Files") & "...", "", "AddFilesToProject", @mClick)
 	miRemoveFiles = mnuExplorer.Add(ML("&Remove"), "Remove", "RemoveFileFromProject", @mClick)
 	mnuExplorer.Add("-")
-	mnuExplorer.Add(ML("Open Project Folder"), "", "OpenProjectFolder", @mClick)
-	mnuExplorer.Add(ML("Close Project"), "", "CloseProject", @mClick)
+	miExplorerOpenProjectFolder = mnuExplorer.Add(ML("Open Project Folder"), "", "OpenProjectFolder", @mClick, , , False)
+	miExplorerCloseProject = mnuExplorer.Add(ML("Close Project"), "", "CloseProject", @mClick, , , False)
 	mnuExplorer.Add("-")
-	mnuExplorer.Add(ML("Project &Properties") & "...", "", "ProjectProperties", @mClick)
+	miExplorerProjectProperties = mnuExplorer.Add(ML("Project &Properties") & "...", "", "ProjectProperties", @mClick, , , False)
 	
 	'txtCommands.Left = 300
 	'txtCommands.AnchorRight = asAnchor
@@ -5507,28 +5523,28 @@ Sub CreateMenusAndToolBars
 	tbEdit.Buttons.Add , "SyntaxCheck", , @mClick, "SyntaxCheck", , ML("Syntax Check"), True
 	Var tbButton = tbEdit.Buttons.Add(tbsWholeDropdown, "List", , @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
 	'tbButton->DropDownMenu.ImagesList = @imgList
-	tbButton->DropDownMenu.Add ML("Numbering"), "Numbering", "NumberOn", @mclick
-	tbButton->DropDownMenu.Add ML("Macro numbering"), "", "MacroNumberOn", @mclick
-	tbButton->DropDownMenu.Add ML("Remove Numbering"), "", "NumberOff", @mclick
+	tbButton->DropDownMenu.Add ML("Numbering"), "Numbering", "NumberOn", @mClick
+	tbButton->DropDownMenu.Add ML("Macro numbering"), "", "MacroNumberOn", @mClick
+	tbButton->DropDownMenu.Add ML("Remove Numbering"), "", "NumberOff", @mClick
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Procedure numbering"), "Numbering", "ProcedureNumberOn", @mclick
-	tbButton->DropDownMenu.Add ML("Procedure macro numbering"), "", "ProcedureMacroNumberOn", @mclick
-	tbButton->DropDownMenu.Add ML("Remove Procedure numbering"), "", "ProcedureNumberOff", @mclick
+	tbButton->DropDownMenu.Add ML("Procedure numbering"), "Numbering", "ProcedureNumberOn", @mClick
+	tbButton->DropDownMenu.Add ML("Procedure macro numbering"), "", "ProcedureMacroNumberOn", @mClick
+	tbButton->DropDownMenu.Add ML("Remove Procedure numbering"), "", "ProcedureNumberOff", @mClick
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Project macro numbering"), "Numbering", "ProjectMacroNumberOn", @mclick
-	tbButton->DropDownMenu.Add ML("Project macro numbering: Starts of procedures"), "", "ProjectMacroNumberOnStartsOfProcs", @mclick
-	tbButton->DropDownMenu.Add ML("Remove Project numbering"), "", "ProjectNumberOff", @mclick
+	tbButton->DropDownMenu.Add ML("Project macro numbering"), "Numbering", "ProjectMacroNumberOn", @mClick
+	tbButton->DropDownMenu.Add ML("Project macro numbering: Starts of procedures"), "", "ProjectMacroNumberOnStartsOfProcs", @mClick
+	tbButton->DropDownMenu.Add ML("Remove Project numbering"), "", "ProjectNumberOff", @mClick
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Preprocessor Numbering"), "Numbering", "PreprocessorNumberOn", @mclick
-	tbButton->DropDownMenu.Add ML("Remove Preprocessor Numbering"), "", "PreprocessorNumberOff", @mclick
+	tbButton->DropDownMenu.Add ML("Preprocessor Numbering"), "Numbering", "PreprocessorNumberOn", @mClick
+	tbButton->DropDownMenu.Add ML("Remove Preprocessor Numbering"), "", "PreprocessorNumberOff", @mClick
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Project preprocessor numbering"), "Numbering", "ProjectPreprocessorNumberOn", @mclick
-	tbButton->DropDownMenu.Add ML("Remove Project preprocessor numbering"), "", "ProjectPreprocessorNumberOff", @mclick
+	tbButton->DropDownMenu.Add ML("Project preprocessor numbering"), "Numbering", "ProjectPreprocessorNumberOn", @mClick
+	tbButton->DropDownMenu.Add ML("Remove Project preprocessor numbering"), "", "ProjectPreprocessorNumberOff", @mClick
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add "On Error Resume Next", "", "OnErrorResumeNext", @mclick
-	tbButton->DropDownMenu.Add "On Error Goto ...", "", "OnErrorGoto", @mclick
-	tbButton->DropDownMenu.Add "On Error Goto ... Resume Next", "", "OnErrorGotoResumeNext", @mclick
-	tbButton->DropDownMenu.Add ML("Remove Error Handling"), "", "RemoveErrorHandling", @mclick
+	tbButton->DropDownMenu.Add "On Error Resume Next", "", "OnErrorResumeNext", @mClick
+	tbButton->DropDownMenu.Add "On Error Goto ...", "", "OnErrorGoto", @mClick
+	tbButton->DropDownMenu.Add "On Error Goto ... Resume Next", "", "OnErrorGotoResumeNext", @mClick
+	tbButton->DropDownMenu.Add ML("Remove Error Handling"), "", "RemoveErrorHandling", @mClick
 	'tbStandard.Buttons.Add tbsSeparator
 	tbBuild.Name = "Build"
 	tbBuild.ImagesList = @imgList
@@ -5943,10 +5959,25 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		'lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 		mLoadLog = False
 		mLoadToDo = False
-		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" Then  'David Change For compile Single .bas file
+		ChangeMenuItemsEnabled
+		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" AndAlso ptn->ImageKey <> "Folder" Then  'David Change For compile Single .bas file Then
+			miSaveProject->Enabled = False
+			miSaveProjectAs->Enabled = False
+			miCloseProject->Enabled = False
+			miCloseFolder->Enabled = False
+			miExplorerCloseProject->Enabled = False
+			miProjectProperties->Enabled = False
+			miExplorerProjectProperties->Enabled = False
 			'			MainNode = 0
 			'			lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
 		Else
+			miSaveProject->Enabled = True
+			miSaveProjectAs->Enabled = True
+			miCloseProject->Enabled = True
+			miCloseFolder->Enabled = True
+			miExplorerCloseProject->Enabled = True
+			miProjectProperties->Enabled = True
+			miExplorerProjectProperties->Enabled = True
 			'			MainNode->ImageKey = "MainProject"
 			'			MainNode->Bold = True
 			If mStartLoadSession = False Then
