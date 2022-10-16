@@ -1,8 +1,9 @@
 ﻿Русский
 [Keywords]
 [Property]
-[Templates]
-[Compiler]
+[Templates]	
+This is Example = Это пример
+[Compiler]	
 'IF' statement found directly after multi-line 'ELSE'  = Оператор IF обнаружен сразу после многострочного ELSE
 'SUB' or 'FUNCTION' without 'END SUB' or 'END FUNCTION'  = SUB или FUNCTION использованы без END SUB или без END FUNCTION
 -asm att used for -gen gas, but -gen gas only supports -asm intel  = -asm att использован для -gen gas, но -gen gas поддерживает только -asm intel
@@ -344,6 +345,33 @@ Too many levels of pointer indirection  = Слишком много уровне
 Too many parameters  = Слишком много параметров
 Type mismatch  = Несоответствие типов
 Type mismatch in byref function result assignment  = Несоответствие типов в назначении результата функции byref
+TYPE or CLASS has no default constructor  = TYPE или CLASS не имеют конструктора по умолчанию
+Types have no hierarchical relation  = Типы не имеют иерархической связи
+UDT function results cannot be passed by reference  = Результаты функции UDT не могут быть переданы по ссылке
+UDT has unimplemented abstract methods  = UDT имеет нереализованные абстрактные методы
+UDT with pointer, var-len string, or var-len array fields  = UDT имеет поля с указателем, с динамической строкой или с динамическим массивом
+UDT's containing var-len string fields cannot be initialized  = UDT, имеющие поля с  динамическими строками, не могут быть инициализированы
+UDT's with methods must have unique names  = UDT с методами должны иметь уникальные имена
+Undefined label  = Неопределенный ярлык
+Undefined symbol  = Неопределенный символ
+UNIONs are not allowed  = UNION(ы) не допускаются
+Unsupported function  = Неподдерживаемая функция
+Unsupported statement in -gen gcc mode  = Неподдерживаемый оператор в режиме -gen gcc
+User Defined Type too big  = UDT слишком большой
+Var-len arrays cannot be initialized  = Динамические массивы не могут быть инициализированы
+Var-len strings cannot be initialized  = Динамические строки не могут быть инициализированы
+Var-len strings cannot be part of UNION's or nested TYPE's  = Динамические строки не могут быть частью UNION или вложенных TYPE
+Vararg parameters are not allowed in overloaded functions  = Параметры VARARG не допускаются в перегруженных функциях
+vararg parameters are only allowed in CDECL procedures  = Параметры VARARG не допускаются в CDECL процедурах
+Variable following NEXT is meaningless  = Переменная после NEXT бессмысленна
+Variable not declared  = Переменная не объявлена
+Variable required  = Требуется переменная
+Variable too large for stack, consider making it SHARED  = Переменная слишком велика для стека, рассмотрите возможность сделать ее SHARED 
+VIRTUAL used here, but not the in the DECLARE statement  = VIRTUAL используется здесь, но не в операторе DECLARE
+VIRTUAL used on non-member procedure  = VIRTUAL использован в процедуре, членом которой не является
+WEND without WHILE  = WEND без WHILE 
+Wrong number of dimensions  = Неверное количество измерений
+~' parsed as equality operator in function argument, not assignment to BYREF function result  = ~' анализируется как оператор равенства в аргументе функции, а не присваивается результату функции с параметром, передаваемым по ссылке
 [General]
 &Cancel = &Отмена
 &Close = &Закрыть
