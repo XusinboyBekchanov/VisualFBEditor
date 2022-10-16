@@ -44,6 +44,7 @@ Namespace My.Sys.Forms
 	
 	Type SymbolsType
 		Handle As Any Ptr
+		Path As UString
 		CreateControlFunc As Function(ByRef ClassName As String, ByRef Name As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As Any Ptr
 		CreateComponentFunc As Function(ClassName As String, ByRef Name As WString, lLeft As Integer, lTop As Integer, Parent As Any Ptr) As Any Ptr
 		DeleteComponentFunc As Function(Cpnt As Any Ptr) As Boolean

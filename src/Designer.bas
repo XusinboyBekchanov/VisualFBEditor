@@ -1490,6 +1490,7 @@ Namespace My.Sys.Forms
 		#endif
 		If st Then
 			If st->CreateControlFunc <> 0 Then
+				ChDir GetFolderName(st->Path)
 				Ctrl = st->CreateControlFunc(AClassName, _
 				AName, _
 				AText, _
@@ -1629,6 +1630,7 @@ Namespace My.Sys.Forms
 					Dim As Library Ptr CtlLib = te->Tag
 					Var st = New SymbolsType
 					st->Handle = DyLibLoad(GetFullPath(CtlLib->Path))
+					st->Path = GetFullPath(CtlLib->Path)
 					st->CreateControlFunc = DyLibSymbol(st->Handle, "CreateControl")
 					st->CreateComponentFunc = DyLibSymbol(st->Handle, "CreateComponent")
 					st->ReadPropertyFunc = DyLibSymbol(st->Handle, "ReadProperty")
@@ -1688,6 +1690,7 @@ Namespace My.Sys.Forms
 		#endif
 		If st Then
 			If st->CreateComponentFunc <> 0 Then
+				ChDir GetFolderName(st->Path)
 				Cpnt = st->CreateComponentFunc(AClassName, AName, x, y, AParent)
 				If Cpnt Then
 					Objects.Add Cpnt
@@ -1774,6 +1777,7 @@ Namespace My.Sys.Forms
 		Dim As Any Ptr Obj
 		If st Then
 			If st->CreateObjectFunc <> 0 Then
+				ChDir GetFolderName(st->Path)
 				Obj = st->CreateObjectFunc(AClassName)
 				If Obj Then
 					Objects.Add Obj
