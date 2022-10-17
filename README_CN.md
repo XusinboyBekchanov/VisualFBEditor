@@ -15,10 +15,10 @@ FreeBASIC编译器其他下载地址1：<a href="http://users.freebasic-portal.d
 #### 屏幕截图
 ![ScreenShot](https://www.cyberforum.ru/blog_attachment.php?attachmentid=4921&d=1531765249)
 ![ScreenShot](https://www.cyberforum.ru/blog_attachment.php?attachmentid=5144&d=1545153885)
-![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/master/Resources/VisualFBEditor.png)
-![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/master/Resources/VisualFBEditor1.png)
-![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/master/Resources/VisualFBEditor2.png)
-![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/master/Resources/VisualFBEditor3.png)
+![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/600312498d1df6c7354c6039e1af50241ea1fbb9/Resources/VisualFBEditor.png)
+![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/600312498d1df6c7354c6039e1af50241ea1fbb9/Resources/VisualFBEditor1.png)
+![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/600312498d1df6c7354c6039e1af50241ea1fbb9/Resources/VisualFBEditor2.png)
+![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/600312498d1df6c7354c6039e1af50241ea1fbb9/Resources/VisualFBEditor3.png)
 
 #### 程序编译方法:
 你可以使用下面提供的方法用命令行进行程序编译，也可以在VisualFBEditor可视化编辑器中打开源程序进行编译。在编译项目之前要在“设置”里配置好编译器的路径，还要设置 MyFbFramework框架的路径。
