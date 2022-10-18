@@ -1,5 +1,9 @@
 #include once "mff/Control.bi"
 #include once "Scintilla.bi"
+#include once "Scilexer.bi"
+#include once "utf_conv.bi"
+#include once "vbcompat.bi"
+#include once "Scintilla.bi"
 
 Using My.Sys.Forms
 
@@ -14,7 +18,7 @@ Private:
 Protected:
 	Declare Virtual Sub ProcessMessage(ByRef msg As Message)
 Public:
-	Dim Handle As Any Ptr = NULL
+	'Dim Handle As Any Ptr = NULL
 	Dim mDarkMode As Boolean = False
 	#ifndef ReadProperty_Off
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
@@ -149,6 +153,10 @@ Public:
 	Declare Property PosX(ByVal val As Integer)
 	Declare Property PosY As Integer
 	Declare Property PosY(ByVal val As Integer)
+	
+	OnUpdate As Sub(ByRef Sender As ScintillaControl)
+	OnModify As Sub(ByRef Sender As ScintillaControl)
+	OnDblClick As Sub(ByRef Sender As ScintillaControl)
 	
 	Declare Constructor
 	Declare Destructor
