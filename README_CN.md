@@ -121,84 +121,86 @@ cd "C:\FreeBasic\Projects\VisualFBEditor-master\MyFbFramework\mff"
 
 # MyFbFramework介绍
 MyFbFramework是类Basic语言的freeBASIC编程语言编写的公用，基本控件库，目前共有83个公用类，控件。语法在本质上类似于编程语言 vb.net， 使用这些类即可快速、轻松地创建类型安全软件产品。
-```shell
-Animate.bas            动画控件
-Application.bas        应用程序模块              提供与当前应用程序相关的属性、方法和事件。
-Bitmap.bas             位图控件
-Brush.bas              画笔控件
-Canvas.bas             画布模块
-Chart.bas              图标控件
-CheckBox.bas           多选框控件
-CheckedListBox.bas     多选框列表控件
-Classes.bas            类管理模块
-Clipboard.bas          剪切板控件
-ComboBoxEdit.bas       组合框控件
-ComboBoxEx.bas         超级组合框控件
-CommandButton.bas      命令按钮控件
-Component.bas          容器控件
-ContainerControl.bas   容器管理控件            为可用作其他控件的容器的控件提供焦点管理功能。
-Control.bas            控件管理控件
-Cursor.bas             鼠标指针模块             用于绘制鼠标指针的图像。
-DateTimePicker.bas     日期时间控件
-Dialogs.bas            对话选择框控件
-Dictionary.bas         字典模块
-DoubleList.bas         双精度链表
-Font.bas               字体模块
-Form.bas               窗体控件
-Graphic.bas            图像模块
-Graphics.bas           图像类模块
-Grid.bas               表格控件
-GroupBox.bas           组合框容器              用于对控件集合进行分组。
-Header.bas             标题控件
-HotKey.bas             热键控件
-HScrollBar.bas         水平滚动条控件
-Icon.bas               Icon图标模块
-ImageBox.bas           图像框控件 
-ImageList.bas          图像列表模块
-IniFile.bas            配置文件模块
-IntegerList.bas        整型链表
-IPAddress.bas          IP地址控件
-Label.bas              标签控件
-LinkLabel.bas          超链接标签控件
-List.bas               顺序链表
-ListControl.bas        控件链表             为 ListBox 类和 ComboBox 类提供一个共同的成员实现方法。
-ListView.bas           列表视图控件         该控件显示可用四种不同视图之一显示的项集合。
-Menus.bas              菜单控件
-MonthCalendar.bas      月历日期控件        该控件使用户能够使用可视月历显示来选择日期。
-NativeFontControl.bas  字体控件
-Object.bas             对象模块
-OpenFileControl.bas    标准文件打开对话模块  显示一个标准对话框，提示用户打开文件。 
-PageScroller.bas       翻页模块
-PageSetupDialog.bas    页面设置模块
-Panel.bas              面板容器            用于对控件集合进行分组。
-Pen.bas                画笔控件
-Picture.bas            图片框控件            表示用于显示或绘制图像的图片框控件。
-PrintDialog.bas        打印对话框
-Printer.bas            打印机管理控件    
-PrintPreviewDialog.bas 打印预览控件
-ProgressBar.bas        进度栏控件。
-RadioButton.bas        单选控件            当与其他 RadioButton 控件成对出现时，使用户能够从一组选项中选择一个选项。
-ReBar.bas              窗体容器
-Registry.bas            注册表模块
-RichTextBox.bas        超文本框控件
-ScrollBarControl.bas   自动滚动模块      为支持自动滚动行为的控件定义一个基类。
-Splitter.bas           拆分器控件       表示允许用户调整停靠控件大小的拆分器控件。
-StatusBar.bas          状态栏控件
-StringList.bas         文本链表
-SysUtils.bas           公用系统模块
-TabControl.bas         选项卡控件
-TextBox.bas            文本控件
-TimerComponent.bas    定时器模块
-ToolBar.bas            工具栏控件
-ToolPalette.bas         工具栏容器
-ToolTips.bas            文本提示框控件
-TrackBar.bas            跟踪条控件
-TreeListView.bas        树形列表控件
-TreeView.bas            树形控件
-UpDown.bas               上下选择框
-UserControl.bas        用户自定义模块
-UString.bas           宽字符模块
-VScrollBar.bas        垂直滚动条
-WebBrowser.bas        网页浏览器控件
-WStringList.bas       宽字符链表
-```
+
+|文件|功能|说明|
+| ---------- | ----------- | ----------- |
+|Animate.bas|动画控件||
+|Application.bas|应用程序模块|提供与当前应用程序相关的属性、方法和事件。|
+|Bitmap.bas|位图控件||
+|Brush.bas|画笔控件||
+|Canvas.bas|画布模块||
+|Chart.bas|图标控件||
+|CheckBox.bas|多选框控件||
+|CheckedListBox.bas|多选框列表控件||
+|Classes.bas|类管理模块||
+|Clipboard.bas|剪切板控件||
+|ComboBoxEdit.bas|组合框控件||
+|ComboBoxEx.bas|超级组合框控件||
+|CommandButton.bas|命令按钮控件||
+|Component.bas|容器控件||
+|ContainerControl.bas|容器管理控件|为可用作其他控件的容器的控件提供焦点管理功能。|
+|Control.bas|控件管理控件||
+|Cursor.bas|鼠标指针模块|用于绘制鼠标指针的图像。|
+|DateTimePicker.bas|日期时间控件||
+|Dialogs.bas|对话选择框控件||
+|Dictionary.bas|字典模块||
+|DoubleList.bas|双精度链表||
+|Font.bas|字体模块||
+|Form.bas|窗体控件||
+|Graphic.bas|图像模块||
+|Graphics.bas|图像类模块||
+|Grid.bas|表格控件||
+|GroupBox.bas|组合框容器|用于对控件集合进行分组。|
+|Header.bas|标题控件||
+|HotKey.bas|热键控件||
+|HScrollBar.bas|水平滚动条控件||
+|Icon.bas|Icon图标模块||
+|ImageBox.bas|图像框控件|| 
+|ImageList.bas|图像列表模块||
+|IniFile.bas|配置文件模块||
+|IntegerList.bas|整型链表||
+|IPAddress.bas|IP地址控件||
+|Label.bas|标签控件||
+|LinkLabel.bas|超链接标签控件||
+|List.bas|顺序链表||
+|ListControl.bas|控件链表|为 ListBox 类和 ComboBox 类提供一个共同的成员实现方法。|
+|ListView.bas|列表视图控件|该控件显示可用四种不同视图之一显示的项集合。|
+|Menus.bas|菜单控件||
+|MonthCalendar.bas|月历日期控件|该控件使用户能够使用可视月历显示来选择日期。|
+|NativeFontControl.bas|字体控件|
+|Object.bas|对象模块||
+|OpenFileControl.bas|标准文件打开对话模块|显示一个标准对话框，提示用户打开文件。|
+|PageScroller.bas|翻页模块||
+|PageSetupDialog.bas|页面设置模块||
+|Panel.bas|面板容器|用于对控件集合进行分组。|
+|Pen.bas|画笔控件||
+|Picture.bas|图片框控件|表示用于显示或绘制图像的图片框控件。|
+|PrintDialog.bas|打印对话框||
+|Printer.bas|打印机管理控件||  
+|PrintPreviewDialog.bas|打印预览控件||
+|ProgressBar.bas|进度栏控件||
+|RadioButton.bas|单选控件|当与其他 RadioButton 控件成对出现时，使用户能够从一组选项中选择一个选项。|
+|ReBar.bas|窗体容器||
+|Registry.bas|注册表模块||
+|RichTextBox.bas|超文本框控件||
+|ScrollBarControl.bas|自动滚动模块|为支持自动滚动行为的控件定义一个基类。|
+|Splitter.bas|拆分器控件|表示允许用户调整停靠控件大小的拆分器控件。|
+|StatusBar.bas|状态栏控件||
+|StringList.bas|文本链表||
+|SysUtils.bas|公用系统模块||
+|TabControl.bas|选项卡控件||
+|TextBox.bas|文本控件||
+|TimerComponent.bas|定时器模块||
+|ToolBar.bas|工具栏控件||
+|ToolPalette.bas|工具栏容器||
+|ToolTips.bas|文本提示框控件||
+|TrackBar.bas|跟踪条控件||
+|TreeListView.bas|树形列表控件||
+|TreeView.bas|树形控件||
+|UpDown.bas|上下选择框||
+|UserControl.bas|用户自定义模块||
+|UString.bas|宽字符模块||
+|VScrollBar.bas|垂直滚动条||
+|WebBrowser.bas|网页浏览器控件||
+|WStringList.bas|宽字符链表||
+
