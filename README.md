@@ -10,12 +10,12 @@ VisualFBEditor is the IDE for FreeBasic with visual designer, debugger, project 
 * FreeBASIC Compiler: http://www.freebasic.net/
 
 #### Screenshots
-![ScreenShot](https://www.cyberforum.ru/blog_attachment.php?attachmentid=4921&d=1531765249)
-![ScreenShot](https://www.cyberforum.ru/blog_attachment.php?attachmentid=5144&d=1545153885)
-![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/600312498d1df6c7354c6039e1af50241ea1fbb9/Resources/VisualFBEditor.png)
-![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/600312498d1df6c7354c6039e1af50241ea1fbb9/Resources/VisualFBEditor1.png)
-![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/600312498d1df6c7354c6039e1af50241ea1fbb9/Resources/VisualFBEditor2.png)
-![ScreenShot](https://github.com/XusinboyBekchanov/VisualFBEditor/blob/600312498d1df6c7354c6039e1af50241ea1fbb9/Resources/VisualFBEditor3.png)
+![VisualFBEditor-1](https://user-images.githubusercontent.com/35757455/197079538-16cc5d7d-150e-46f1-b673-f9fe7352ad17.png)
+![VisualFBEditor-2](https://user-images.githubusercontent.com/35757455/197079581-596100e9-86be-4469-8aae-104309845b2c.png)
+![VisualFBEditor-3](https://user-images.githubusercontent.com/35757455/197079617-4c4d6902-3809-40da-a746-46bcdf993a75.png)
+![VisualFBEditor-4](https://user-images.githubusercontent.com/35757455/197079674-2a2a685e-2403-4b8b-9b3b-95c4cc8bf5dc.png)
+![VisualFBEditor-5](https://user-images.githubusercontent.com/35757455/197079706-5419cc84-db93-48b2-93f9-456db2414956.png)
+![VisualFBEditor-6](https://user-images.githubusercontent.com/35757455/197079725-a88431cb-34e7-4a75-be8f-cd7f3f845ce5.png)
 
 #### Compilation:
 
