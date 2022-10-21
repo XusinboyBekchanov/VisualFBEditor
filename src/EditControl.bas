@@ -2283,6 +2283,7 @@ Namespace My.Sys.Forms
 			SelectObject(hd, This.Font.Handle)
 			GetTextMetrics(hd, @tm)
 			'ReleaseDC(FHandle, hd)
+			If bufDC <> 0 Then SelectObject(bufDC, This.Font.Handle)
 			
 			dwCharX = UnScaleX(tm.tmAveCharWidth)
 			dwCharY = UnScaleY(tm.tmHeight)
