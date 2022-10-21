@@ -246,6 +246,73 @@ Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 	Return 0
 End Function
 
+Sub ChangeMenuItemsEnabled
+	Dim bEnabled As Boolean = tvExplorer.Nodes.Count > 0
+	Dim bEnabledTab As Boolean = miWindow->Count > 3
+	mnuWindowSeparator->Visible = bEnabledTab
+	miCode->Enabled = bEnabledTab
+	miGoto->Enabled = bEnabledTab
+	miDefine->Enabled = bEnabledTab
+	miAddProcedure->Enabled = bEnabledTab
+	mnuSplitHorizontally->Enabled = bEnabledTab
+	mnuSplitVertically->Enabled = bEnabledTab
+	miSave->Enabled = bEnabled
+	tbtSave->Enabled = bEnabled
+	miSaveAs->Enabled = bEnabled
+	miSaveAll->Enabled = bEnabled
+	tbtSaveAll->Enabled = bEnabled
+	miClose->Enabled = bEnabled
+	miCloseAll->Enabled = bEnabled
+	miPrint->Enabled = bEnabled
+	miPrintPreview->Enabled = bEnabled
+	miPageSetup->Enabled = bEnabled
+	miOpenProjectFolder->Enabled = bEnabled
+	miExplorerOpenProjectFolder->Enabled = bEnabled
+	miImageManager->Enabled = bEnabled
+	miRemoveFileFromProject->Enabled = bEnabled
+	tbtRemoveFileFromProject->Enabled = bEnabled
+	miFind->Enabled = bEnabled
+	miFindNext->Enabled = bEnabled
+	miFindPrevious->Enabled = bEnabled
+	miReplace->Enabled = bEnabled
+	miNextBookmark->Enabled = bEnabled
+	miPreviousBookmark->Enabled = bEnabled
+	miClearAllBookmarks->Enabled = bEnabled
+	miClearAllBreakpoints->Enabled = bEnabled
+	mnuStart->Enabled = bEnabled
+	mnuStartWithCompile->Enabled = bEnabled
+	tbtFind->Enabled = bEnabled
+	tbtStart->Enabled = bEnabled
+	tbtStartWithCompile->Enabled = bEnabled
+	miSyntaxCheck->Enabled = bEnabled
+	tbtSyntaxCheck->Enabled = bEnabled
+	miCompile->Enabled = bEnabled
+	tbtCompile->Enabled = bEnabled
+	miCompileAll->Enabled = bEnabled
+	miBuildBundle->Enabled = bEnabled
+	miBuildAPK->Enabled = bEnabled
+	miGenerateSignedBundle->Enabled = bEnabled
+	miGenerateSignedAPK->Enabled = bEnabled
+	miMake->Enabled = bEnabled
+	miMakeClean->Enabled = bEnabled
+	dmiMake->Enabled = bEnabled
+	dmiMakeClean->Enabled = bEnabled
+	miFormatProject->Enabled = bEnabled
+	miUnformatProject->Enabled = bEnabled
+	miProjectMacroNumbering->Enabled = bEnabled
+	miProjectMacroNumberingStartsOfProcedures->Enabled = bEnabled
+	miRemoveProjectNumbering->Enabled = bEnabled
+	miProjectPreprocessorNumbering->Enabled = bEnabled
+	miRemoveProjectPreprocessorNumbering->Enabled = bEnabled
+	dmiProjectMacroNumbering->Enabled = bEnabled
+	dmiProjectMacroNumberingStartsOfProcedures->Enabled = bEnabled
+	dmiRemoveProjectNumbering->Enabled = bEnabled
+	dmiProjectPreprocessorNumbering->Enabled = bEnabled
+	dmiRemoveProjectPreprocessorNumbering->Enabled = bEnabled
+	miStepInto->Enabled = bEnabled
+	miStepOver->Enabled = bEnabled
+End Sub
+
 Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 	On Error Goto ErrorHandler
 	MouseHoverTimerVal = Timer
@@ -366,15 +433,19 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				.Modified = bNew
 			End If
 			.txtCode.ScrollToCaret
-			If Not mnuWindowSeparator->Visible Then mnuWindowSeparator->Visible = True
+			ChangeMenuItemsEnabled
 		End With
 		If tb->cboClass.Items.Count < 2 Then
+			miForm->Enabled = False
+			miCodeAndForm->Enabled = False
 			tb->tbrTop.Buttons.Item("Form")->Enabled = False
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
 			tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 			SetRightClosedStyle True, True
 		Else
 			SetRightClosedStyle False, False
+			miForm->Enabled = True
+			miCodeAndForm->Enabled = True
 			tb->tbrTop.Buttons.Item("Form")->Enabled = True
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
 			tabRight.SelectedTabIndex = 0
@@ -616,9 +687,9 @@ End Sub
 			cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
 		End If
 		Dim As PangoRectangle extend
-		pango_layout_set_text(cb->layout, ToUTF8("×"), Len(ToUTF8("×")))
+		pango_layout_set_text(cb->layout, ToUtf8("×"), Len(ToUtf8("×")))
 		pango_cairo_update_layout(cr, cb->layout)
-		#ifdef PANGO_VERSION
+		#ifdef pango_version
 			Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(cb->layout, 0)
 		#else
 			Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(cb->layout, 0)
@@ -849,20 +920,6 @@ Function TabWindow.Save As Boolean
 	If InStr(*FFileName, "/") > 0 OrElse InStr(*FFileName, "\") > 0 Then Return SaveTab Else Return SaveAs
 End Function
 
-Sub ChangeMenuItemsEnabled
-	Dim bEnabled As Boolean = tvExplorer.SelectedNode <> 0
-	miSave->Enabled = bEnabled
-	miSaveAs->Enabled = bEnabled
-	miSaveAll->Enabled = bEnabled
-	miClose->Enabled = bEnabled
-	miCloseAll->Enabled = bEnabled
-	miPrint->Enabled = bEnabled
-	miPrintPreview->Enabled = bEnabled
-	miPageSetup->Enabled = bEnabled
-	miOpenProjectFolder->Enabled = bEnabled
-	miExplorerOpenProjectFolder->Enabled = bEnabled
-End Sub
-
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
 	If tb = 0 Then Return False
 	Dim As TabControl Ptr pParentTabCode = tb->Parent
@@ -946,9 +1003,6 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 	miWindow->Remove This.mi
 	btnClose.FreeWnd
 	ptabCode->DeleteTab(This.Index)
-	If ptabCode->TabCount = 0 Then
-		mnuWindowSeparator->Visible = False
-	End If
 	If tn <> 0 AndAlso tn->ImageKey <> "Project" Then ', Will remove all project from tree
 		If ptvExplorer->Nodes.IndexOf(tn) <> -1 Then
 			If tn->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Tag))

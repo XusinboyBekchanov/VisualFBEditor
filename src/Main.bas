@@ -65,10 +65,12 @@ Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlR
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
-Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miPrint, miPrintPreview, miPageSetup
-Dim Shared As MenuItem Ptr mi
-Dim Shared As MenuItem Ptr miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerProjectProperties, miExplorerCloseProject
-Dim Shared As ToolButton Ptr tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
+Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miPrint, miPrintPreview, miPageSetup, miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerProjectProperties, miExplorerCloseProject, miRemoveFileFromProject
+Dim Shared As MenuItem Ptr miUndo, miRedo, miCutCurrentLine, miCut, miCopy, miPaste, miSingleComment, miBlockComment, miUncommentBlock, miDuplicate, miSelectAll, miIndent, miOutdent, miFormat, miUnformat, miFormatProject, miUnformatProject, miAddSpaces, miCompleteWord, miParameterInfo, miStepInto, miStepOver, miStepOut, miRunToCursor, miGDBCommand, miAddWatch, miToggleBreakpoint, miClearAllBreakpoints, miSetNextStatement, miShowNextStatement
+Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miProcedureNumbering, miProcedureMacroNumbering, miRemoveProcedureNumbering, miProjectMacroNumbering, miProjectMacroNumberingStartsOfProcedures, miRemoveProjectNumbering, miPreprocessorNumbering, miRemovePreprocessorNumbering, miProjectPreprocessorNumbering, miRemoveProjectPreprocessorNumbering, miOnErrorResumeNext, miOnErrorGoto, miOnErrorGotoResumeNext, miRemoveErrorHandling
+Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiProjectMacroNumbering, dmiProjectMacroNumberingStartsOfProcedures, dmiRemoveProjectNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiProjectPreprocessorNumbering, dmiRemoveProjectPreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
+Dim Shared As MenuItem Ptr miCode, miForm, miCodeAndForm, miCollapseCurrent, miCollapseAllProcedures, miCollapseAll, miUnCollapseCurrent, miUnCollapseAllProcedures, miUnCollapseAll, miImageManager, miAddProcedure, miFind, miReplace, miFindNext, miFindPrevious, miGoto, miDefine, miToggleBookmark, miNextBookmark, miPreviousBookmark, miClearAllBookmarks, miSyntaxCheck, miCompile, miCompileAll, miBuildBundle, miBuildAPK, miGenerateSignedBundle, miGenerateSignedAPK, miMake, miMakeClean
+Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar MainReBar
 #ifndef __USE_GTK__
@@ -2784,32 +2786,36 @@ Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	mnuBreak->Enabled = bBreak
 	mnuEnd->Enabled = bEnd
 	mnuRestart->Enabled = bStart
+	miGDBCommand->Enabled = bEnd
+	miAddWatch->Enabled = bEnd
+	miStepOut->Enabled = bEnd
+	miShowNextStatement->Enabled = bEnd
 End Sub
 
 #ifndef __USE_GTK__
 	Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
-		If FnTab < 0 Or Fcurlig < 1 Then Exit Sub
-		If source(Fntab) = "" Then Exit Sub
-		shwtab = Fntab
+		If fntab < 0 Or fcurlig < 1 Then Exit Sub
+		If source(fntab) = "" Then Exit Sub
+		shwtab = fntab
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If tb = 0 OrElse Not EqualPaths(tb->FileName, source(Fntab)) Then
-			tb = AddTab(LCase(source(Fntab)))
+		If tb = 0 OrElse Not EqualPaths(tb->FileName, source(fntab)) Then
+			tb = AddTab(LCase(source(fntab)))
 		End If
 		If tb = 0 Then Exit Sub
 		ChangeEnabledDebug True, False, True
 		CurEC = @tb->txtCode
-		tb->txtCode.CurExecutedLine = Fcurlig - 1
-		tb->txtCode.SetSelection Fcurlig - 1, Fcurlig - 1, 0, 0
+		tb->txtCode.CurExecutedLine = fcurlig - 1
+		tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
 		tb->txtCode.PaintControl
 		'SetForegroundWindow frmMain.Handle
-		FnTab = 0
-		Fcurlig = -1
+		fntab = 0
+		fcurlig = -1
 	End Sub
 #endif
 
 #if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 	Function TimerProcGDB() As Integer
-		If Fcurlig < 1 Then Return 1
+		If fcurlig < 1 Then Return 1
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 OrElse Not EqualPaths(tb->FileName, CurrentFile) Then
 			tb = AddTab(CurrentFile)
@@ -2817,14 +2823,14 @@ End Sub
 		If tb Then
 			ChangeEnabledDebug True, False, True
 			CurEC = @tb->txtCode
-			tb->txtCode.CurExecutedLine = Fcurlig - 1
-			tb->txtCode.SetSelection Fcurlig - 1, Fcurlig - 1, 0, 0
+			tb->txtCode.CurExecutedLine = fcurlig - 1
+			tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
 			tb->txtCode.PaintControl
 			'info_all_variables_debug()
 			#ifdef __USE_WINAPI__
 				SetForegroundWindow pApp->MainForm->Handle
 			#endif
-			Fcurlig = -1
+			fcurlig = -1
 		End If
 		Return 1
 	End Function
@@ -5163,89 +5169,89 @@ Sub CreateMenusAndToolBars
 	miFile->Add(ML("&Exit") & HK("Exit", "Alt+F4"), "Exit", "Exit", @mClick)
 	
 	Var miEdit = mnuMain.Add(ML("&Edit"), "", "Tahrir")
-	miEdit->Add(ML("Undo") & HK("Undo", "Ctrl+Z"), "Undo", "Undo", @mClick)
-	miEdit->Add(ML("Redo") & HK("Redo", "Ctrl+Shift+Z"), "Redo", "Redo", @mClick)
+	miUndo = miEdit->Add(ML("Undo") & HK("Undo", "Ctrl+Z"), "Undo", "Undo", @mClick, , , False)
+	miRedo = miEdit->Add(ML("Redo") & HK("Redo", "Ctrl+Shift+Z"), "Redo", "Redo", @mClick, , , False)
 	miEdit->Add("-")
-	miEdit->Add(ML("C&ut Current Line") & HK("CutCurrentLine", "Ctrl+Y"), "", "CutCurrentLine", @mClick)
-	miEdit->Add(ML("Cu&t") & HK("Cut", "Ctrl+X"), "Cut", "Cut", @mClick)
-	miEdit->Add(ML("&Copy") & HK("Copy", "Ctrl+C"), "Copy", "Copy", @mClick)
-	miEdit->Add(ML("&Paste") & HK("Paste", "Ctrl+V"), "Paste", "Paste", @mClick)
+	miCutCurrentLine = miEdit->Add(ML("C&ut Current Line") & HK("CutCurrentLine", "Ctrl+Y"), "", "CutCurrentLine", @mClick, , , False)
+	miCut = miEdit->Add(ML("Cu&t") & HK("Cut", "Ctrl+X"), "Cut", "Cut", @mClick, , , False)
+	miCopy = miEdit->Add(ML("&Copy") & HK("Copy", "Ctrl+C"), "Copy", "Copy", @mClick, , , False)
+	miPaste = miEdit->Add(ML("&Paste") & HK("Paste", "Ctrl+V"), "Paste", "Paste", @mClick, , , False)
 	miEdit->Add("-")
-	miEdit->Add(ML("&Single Comment") & HK("SingleComment", "Ctrl+I"), "Comment", "SingleComment", @mClick)
-	miEdit->Add(ML("&Block Comment") & HK("BlockComment", "Ctrl+Alt+I"), "", "BlockComment", @mClick)
-	miEdit->Add(ML("&Uncomment Block") & HK("UnComment", "Ctrl+Shift+I"), "UnComment", "UnComment", @mClick)
+	miSingleComment = miEdit->Add(ML("&Single Comment") & HK("SingleComment", "Ctrl+I"), "Comment", "SingleComment", @mClick, , , False)
+	miBlockComment = miEdit->Add(ML("&Block Comment") & HK("BlockComment", "Ctrl+Alt+I"), "", "BlockComment", @mClick, , , False)
+	miUncommentBlock = miEdit->Add(ML("&Uncomment Block") & HK("UnComment", "Ctrl+Shift+I"), "UnComment", "UnComment", @mClick, , , False)
 	miEdit->Add("-")
-	miEdit->Add(ML("&Duplicate") & HK("Duplicate", "Ctrl+D"), "", "Duplicate", @mClick)
+	miDuplicate = miEdit->Add(ML("&Duplicate") & HK("Duplicate", "Ctrl+D"), "", "Duplicate", @mClick, , , False)
 	miEdit->Add("-")
-	miEdit->Add(ML("Select &All") & HK("SelectAll", "Ctrl+A"), "", "SelectAll", @mClick)
+	miSelectAll = miEdit->Add(ML("Select &All") & HK("SelectAll", "Ctrl+A"), "", "SelectAll", @mClick, , , False)
 	miEdit->Add("-")
-	miEdit->Add(ML("&Indent") & HK("Indent", "Tab"), "", "Indent", @mClick)
-	miEdit->Add(ML("&Outdent") & HK("Outdent", "Shift+Tab"), "", "Outdent", @mClick)
+	miIndent = miEdit->Add(ML("&Indent") & HK("Indent", "Tab"), "", "Indent", @mClick, , , False)
+	miOutdent = miEdit->Add(ML("&Outdent") & HK("Outdent", "Shift+Tab"), "", "Outdent", @mClick, , , False)
 	miEdit->Add("-")
-	miEdit->Add(ML("&Format") & HK("Format", "Ctrl+Tab"), "Format", "Format", @mClick)
-	miEdit->Add(ML("&Unformat") & HK("Unformat", "Ctrl+Shift+Tab"), "Unformat", "Unformat", @mClick)
-	miEdit->Add(ML("&Format Project") & HK("FormatProject"), "", "FormatProject", @mClick)
-	miEdit->Add(ML("&Unformat Project") & HK("UnformatProject"), "", "UnformatProject", @mClick)
-	miEdit->Add(ML("Add &Spaces") & HK("AddSpaces"), "", "AddSpaces", @mClick)
+	miFormat = miEdit->Add(ML("&Format") & HK("Format", "Ctrl+Tab"), "Format", "Format", @mClick, , , False)
+	miUnformat = miEdit->Add(ML("&Unformat") & HK("Unformat", "Ctrl+Shift+Tab"), "Unformat", "Unformat", @mClick, , , False)
+	miFormatProject = miEdit->Add(ML("&Format Project") & HK("FormatProject"), "", "FormatProject", @mClick, , , False)
+	miUnformatProject = miEdit->Add(ML("&Unformat Project") & HK("UnformatProject"), "", "UnformatProject", @mClick, , , False)
+	miAddSpaces = miEdit->Add(ML("Add &Spaces") & HK("AddSpaces"), "", "AddSpaces", @mClick, , , False)
 	miEdit->Add("-")
-	miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+Space"), "CompleteWord", "CompleteWord", @mClick)
-	miEdit->Add(ML("Parameter Info") & HK("ParameterInfo", "Ctrl+J"), "ParameterInfo", "ParameterInfo", @mClick)
+	miCompleteWord = miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+Space"), "CompleteWord", "CompleteWord", @mClick, , , False)
+	miParameterInfo = miEdit->Add(ML("Parameter Info") & HK("ParameterInfo", "Ctrl+J"), "ParameterInfo", "ParameterInfo", @mClick, , , False)
 	miEdit->Add("-")
 	Var miTry = miEdit->Add(ML("Error Handling"), "", "Try")
-	miTry->Add(ML("Numbering") & HK("NumberOn"), "Numbering", "NumberOn", @mClick)
-	miTry->Add(ML("Macro numbering") & HK("MacroNumberOn"), "", "MacroNumberOn", @mClick)
-	miTry->Add(ML("Remove Numbering") & HK("NumberOff"), "", "NumberOff", @mClick)
+	miNumbering = miTry->Add(ML("Numbering") & HK("NumberOn"), "Numbering", "NumberOn", @mClick, , , False)
+	miMacroNumbering = miTry->Add(ML("Macro numbering") & HK("MacroNumberOn"), "", "MacroNumberOn", @mClick, , , False)
+	miRemoveNumbering = miTry->Add(ML("Remove Numbering") & HK("NumberOff"), "", "NumberOff", @mClick, , , False)
 	miTry->Add("-")
-	miTry->Add(ML("Procedure numbering") & HK("ProcedureNumberOn"), "Numbering", "ProcedureNumberOn", @mClick)
-	miTry->Add(ML("Procedure macro numbering") & HK("ProcedureMacroNumberOn"), "", "ProcedureMacroNumberOn", @mClick)
-	miTry->Add(ML("Remove Procedure numbering") & HK("ProcedureNumberOff"), "", "ProcedureNumberOff", @mClick)
+	miProcedureNumbering = miTry->Add(ML("Procedure numbering") & HK("ProcedureNumberOn"), "Numbering", "ProcedureNumberOn", @mClick, , , False)
+	miProcedureMacroNumbering = miTry->Add(ML("Procedure macro numbering") & HK("ProcedureMacroNumberOn"), "", "ProcedureMacroNumberOn", @mClick, , , False)
+	miRemoveProcedureNumbering = miTry->Add(ML("Remove Procedure numbering") & HK("ProcedureNumberOff"), "", "ProcedureNumberOff", @mClick, , , False)
 	miTry->Add("-")
-	miTry->Add(ML("Project macro numbering") & HK("ProjectMacroNumberOn"), "Numbering", "ProjectMacroNumberOn", @mClick)
-	miTry->Add(ML("Project macro numbering: Starts of procedures") & HK("ProjectMacroNumberOnStartsOfProcs"), "", "ProjectMacroNumberOnStartsOfProcs", @mClick)
-	miTry->Add(ML("Remove Project numbering") & HK("ProjectNumberOff"), "", "ProjectNumberOff", @mClick)
+	miProjectMacroNumbering = miTry->Add(ML("Project macro numbering") & HK("ProjectMacroNumberOn"), "Numbering", "ProjectMacroNumberOn", @mClick, , , False)
+	miProjectMacroNumberingStartsOfProcedures = miTry->Add(ML("Project macro numbering: Starts of procedures") & HK("ProjectMacroNumberOnStartsOfProcs"), "", "ProjectMacroNumberOnStartsOfProcs", @mClick, , , False)
+	miRemoveProjectNumbering = miTry->Add(ML("Remove Project numbering") & HK("ProjectNumberOff"), "", "ProjectNumberOff", @mClick, , , False)
 	miTry->Add("-")
-	miTry->Add(ML("Preprocessor numbering") & HK("PreprocessorNumberOn"), "Numbering", "PreprocessorNumberOn", @mClick)
-	miTry->Add(ML("Remove Preprocessor numbering") & HK("PreprocessorNumberOff"), "", "PreprocessorNumberOff", @mClick)
+	miPreprocessorNumbering = miTry->Add(ML("Preprocessor numbering") & HK("PreprocessorNumberOn"), "Numbering", "PreprocessorNumberOn", @mClick, , , False)
+	miRemovePreprocessorNumbering = miTry->Add(ML("Remove Preprocessor numbering") & HK("PreprocessorNumberOff"), "", "PreprocessorNumberOff", @mClick, , , False)
 	miTry->Add("-")
-	miTry->Add(ML("Project preprocessor numbering") & HK("ProjectPreprocessorNumberOn"), "Numbering", "ProjectPreprocessorNumberOn", @mClick)
-	miTry->Add(ML("Remove Project preprocessor numbering") & HK("ProjectPreprocessorNumberOff"), "", "ProjectPreprocessorNumberOff", @mClick)
+	miProjectPreprocessorNumbering = miTry->Add(ML("Project preprocessor numbering") & HK("ProjectPreprocessorNumberOn"), "Numbering", "ProjectPreprocessorNumberOn", @mClick, , , False)
+	miRemoveProjectPreprocessorNumbering = miTry->Add(ML("Remove Project preprocessor numbering") & HK("ProjectPreprocessorNumberOff"), "", "ProjectPreprocessorNumberOff", @mClick, , , False)
 	miTry->Add("-")
-	miTry->Add("On Error Resume Next" & HK("OnErrorResumeNext"), "", "OnErrorResumeNext", @mClick)
-	miTry->Add("On Error Goto ..." & HK("OnErrorGoto"), "", "OnErrorGoto", @mClick)
-	miTry->Add("On Error Goto ... Resume Next" & HK("OnErrorGotoResumeNext"), "", "OnErrorGotoResumeNext", @mClick)
-	miTry->Add(ML("Remove Error Handling") & HK("RemoveErrorHandling"), "", "RemoveErrorHandling", @mClick)
+	miOnErrorResumeNext = miTry->Add("On Error Resume Next" & HK("OnErrorResumeNext"), "", "OnErrorResumeNext", @mClick, , , False)
+	miOnErrorGoto = miTry->Add("On Error Goto ..." & HK("OnErrorGoto"), "", "OnErrorGoto", @mClick, , , False)
+	miOnErrorGotoResumeNext = miTry->Add("On Error Goto ... Resume Next" & HK("OnErrorGotoResumeNext"), "", "OnErrorGotoResumeNext", @mClick, , , False)
+	miRemoveErrorHandling = miTry->Add(ML("Remove Error Handling") & HK("RemoveErrorHandling"), "", "RemoveErrorHandling", @mClick, , , False)
 	
 	Var miSearch = mnuMain.Add(ML("&Search"), "", "Search")
-	miSearch->Add(ML("&Find") & "..." & HK("Find", "Ctrl+F"), "Find", "Find", @mClick)
-	miSearch->Add(ML("&Replace") & "..."  & HK("Replace", "Ctrl+H"), "", "Replace", @mClick)
-	miSearch->Add(ML("Find &Next") & HK("FindNext", "F3"), "", "FindNext", @mClick)
-	miSearch->Add(ML("Find &Previous") & HK("FindPrev", "Shift+F3"), "", "FindPrev", @mClick)
+	miFind = miSearch->Add(ML("&Find") & "..." & HK("Find", "Ctrl+F"), "Find", "Find", @mClick, , , False)
+	miReplace = miSearch->Add(ML("&Replace") & "..."  & HK("Replace", "Ctrl+H"), "", "Replace", @mClick, , , False)
+	miFindNext = miSearch->Add(ML("Find &Next") & HK("FindNext", "F3"), "", "FindNext", @mClick, , , False)
+	miFindPrevious = miSearch->Add(ML("Find &Previous") & HK("FindPrev", "Shift+F3"), "", "FindPrev", @mClick, , , False)
 	miSearch->Add("-")
 	miSearch->Add(ML("Find In Files") & "..." & HK("FindInFiles", "Ctrl+Shift+F"), "", "FindInFiles", @mClick)
 	miSearch->Add(ML("Replace In Files") & "..." & HK("ReplaceInFiles", "Ctrl+Shift+H"), "", "ReplaceInFiles", @mClick)
 	miSearch->Add("-")
-	miSearch->Add(ML("&Goto") & HK("Goto", "Ctrl+G"), "", "Goto", @mClick)
+	miGoto = miSearch->Add(ML("&Goto") & HK("Goto", "Ctrl+G"), "", "Goto", @mClick, , , False)
 	miSearch->Add("-")
-	miSearch->Add(ML("&Define") & HK("Define", "F2"), "", "Define", @mClick)
+	miDefine = miSearch->Add(ML("&Define") & HK("Define", "F2"), "", "Define", @mClick, , , False)
 	Var miBookmark = miSearch->Add(ML("Bookmarks"), "", "Bookmarks")
-	miBookmark->Add(ML("Toggle Bookmark") & HK("ToggleBookmark", "F6"), "Bookmark", "ToggleBookmark", @mClick)
-	miBookmark->Add(ML("Next Bookmark") & HK("NextBookmark", "Ctrl+F6"), "", "NextBookmark", @mClick)
-	miBookmark->Add(ML("Previous Bookmark") & HK("PreviousBookmark", "Ctrl+Shift+F6"), "", "PreviousBookmark", @mClick)
-	miBookmark->Add(ML("Clear All Bookmarks") & HK("ClearAllBookmarks"), "", "ClearAllBookmarks", @mClick)
+	miToggleBookmark = miBookmark->Add(ML("Toggle Bookmark") & HK("ToggleBookmark", "F6"), "Bookmark", "ToggleBookmark", @mClick, , , False)
+	miNextBookmark = miBookmark->Add(ML("Next Bookmark") & HK("NextBookmark", "Ctrl+F6"), "", "NextBookmark", @mClick, , , False)
+	miPreviousBookmark = miBookmark->Add(ML("Previous Bookmark") & HK("PreviousBookmark", "Ctrl+Shift+F6"), "", "PreviousBookmark", @mClick, , , False)
+	miClearAllBookmarks = miBookmark->Add(ML("Clear All Bookmarks") & HK("ClearAllBookmarks"), "", "ClearAllBookmarks", @mClick, , , False)
 	
 	Var miView = mnuMain.Add(ML("&View"), "", "View")
-	miView->Add(ML("Code") & HK("Code"), "Code", "Code", @mClick)
-	miView->Add(ML("Form") & HK("Form"), "Form", "Form", @mClick)
-	miView->Add(ML("Code And Form") & HK("CodeAndForm"), "CodeAndForm", "CodeAndForm", @mClick)
+	miCode = miView->Add(ML("Code") & HK("Code"), "Code", "Code", @mClick, , , False)
+	miForm = miView->Add(ML("Form") & HK("Form"), "Form", "Form", @mClick, , , False)
+	miCodeAndForm = miView->Add(ML("Code And Form") & HK("CodeAndForm"), "CodeAndForm", "CodeAndForm", @mClick, , , False)
 	miView->Add("-")
 	Var miCollapse = miView->Add(ML("Collapse") & HK("Collapse"), "", "Collapse", @mClick)
-	miCollapse->Add(ML("Current") & HK("CollapseCurrent"), "", "CollapseCurrent", @mClick)
-	miCollapse->Add(ML("All procedures") & HK("CollapseAllProcedures"), "", "CollapseAllProcedures", @mClick)
-	miCollapse->Add(ML("All") & HK("CollapseAll"), "", "CollapseAll", @mClick)
+	miCollapseCurrent = miCollapse->Add(ML("Current") & HK("CollapseCurrent"), "", "CollapseCurrent", @mClick, , , False)
+	miCollapseAllProcedures = miCollapse->Add(ML("All procedures") & HK("CollapseAllProcedures"), "", "CollapseAllProcedures", @mClick, , , False)
+	miCollapseAll = miCollapse->Add(ML("All") & HK("CollapseAll"), "", "CollapseAll", @mClick, , , False)
 	Var miUnCollapse = miView->Add(ML("Uncollapse") & HK("UnCollapse"), "", "UnCollapse", @mClick)
-	miUnCollapse->Add(ML("Current") & HK("UnCollapseCurrent"), "", "UnCollapseCurrent", @mClick)
-	miUnCollapse->Add(ML("All procedures") & HK("UnCollapseAllProcedures"), "", "UnCollapseAllProcedures", @mClick)
-	miUnCollapse->Add(ML("All") & HK("UnCollapseAll"), "", "UnCollapseAll", @mClick)
+	miUnCollapseCurrent = miUnCollapse->Add(ML("Current") & HK("UnCollapseCurrent"), "", "UnCollapseCurrent", @mClick, , , False)
+	miUnCollapseAllProcedures = miUnCollapse->Add(ML("All procedures") & HK("UnCollapseAllProcedures"), "", "UnCollapseAllProcedures", @mClick, , , False)
+	miUnCollapseAll = miUnCollapse->Add(ML("All") & HK("UnCollapseAll"), "", "UnCollapseAll", @mClick, , , False)
 	miView->Add("-")
 	miView->Add(ML("Project Explorer") & HK("ProjectExplorer", "Ctrl+R"), "Project", "ProjectExplorer", @mClick)
 	miView->Add(ML("Properties Window") & HK("PropertiesWindow", "F4"), "Property", "PropertiesWindow", @mClick)
@@ -5264,7 +5270,7 @@ Sub CreateMenusAndToolBars
 	miOtherWindows->Add(ML("Threads Window") & HK("ThreadsWindow"), "", "ThreadsWindow", @mClick)
 	miOtherWindows->Add(ML("Watch Window") & HK("WatchWindow"), "", "WatchWindow", @mClick)
 	miView->Add("-")
-	miView->Add(ML("Image Manager") & HK("ImageManager"), "", "ImageManager", @mClick)
+	miImageManager = miView->Add(ML("Image Manager") & HK("ImageManager"), "", "ImageManager", @mClick, , , False)
 	miView->Add("-")
 	miToolBars = miView->Add(ML("Toolbars") & HK("Toolbars"), "", "Toolbars", @mClick)
 	mnuStandardToolBar = miToolBars->Add(ML("Standard") & HK("Standard"), "", "Standard", @mClick, True)
@@ -5283,7 +5289,7 @@ Sub CreateMenusAndToolBars
 	miProject->Add(ML("Add From Templates") & "..." & HK("AddFromTemplates"), "Add", "AddFromTemplates", @mClick)
 	miProject->Add(ML("Add Files") & "..." & HK("AddFilesToProject"), "Add", "AddFilesToProject", @mClick)
 	miProject->Add("-")
-	miProject->Add(ML("&Remove") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mClick)
+	miRemoveFileFromProject = miProject->Add(ML("&Remove") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mClick, , , False)
 	miProject->Add("-")
 	miOpenProjectFolder = miProject->Add(ML("&Open Project Folder") & HK("OpenProjectFolder"), "", "OpenProjectFolder", @mClick, , , False)
 	miProject->Add(ML("Import from Folder") & "..." & HK("OpenFolder", "Alt+O"), "", "OpenFolder", @mClick)
@@ -5291,51 +5297,51 @@ Sub CreateMenusAndToolBars
 	miProjectProperties = miProject->Add(ML("&Project Properties") & "..." & HK("ProjectProperties"), "", "ProjectProperties", @mClick, , , False)
 	
 	Var miBuild = mnuMain.Add(ML("&Build"), "", "Build")
-	miBuild->Add(ML("&Syntax Check") & HK("SyntaxCheck"), "SyntaxCheck", "SyntaxCheck", @mClick)
+	miSyntaxCheck = miBuild->Add(ML("&Syntax Check") & HK("SyntaxCheck"), "SyntaxCheck", "SyntaxCheck", @mClick, , , False)
 	miBuild->Add("-")
-	miBuild->Add(ML("&Compile") & HK("Compile", "Ctrl+F9"), "Compile", "Compile", @mClick)
-	miBuild->Add(ML("Compile &All") & HK("CompileAll", "Ctrl+Alt+F9"), "", "CompileAll", @mClick)
+	miCompile = miBuild->Add(ML("&Compile") & HK("Compile", "Ctrl+F9"), "Compile", "Compile", @mClick, , , False)
+	miCompileAll = miBuild->Add(ML("Compile &All") & HK("CompileAll", "Ctrl+Alt+F9"), "", "CompileAll", @mClick, , , False)
 	miBuild->Add("-")
 	Var miBuildBundleAPK = miBuild->Add(ML("&Build Bundle / APK") & HK("BuildBundleAPK"), "", "BuildBundleAPK", @mClick)
-	miBuildBundleAPK->Add(ML("Build &Bundle") & HK("BuildBundle"), "", "BuildBundle", @mClick)
-	miBuildBundleAPK->Add(ML("Build &APK") & HK("BuildAPK"), "", "BuildAPK", @mClick)
+	miBuildBundle = miBuildBundleAPK->Add(ML("Build &Bundle") & HK("BuildBundle"), "", "BuildBundle", @mClick, , , False)
+	miBuildAPK = miBuildBundleAPK->Add(ML("Build &APK") & HK("BuildAPK"), "", "BuildAPK", @mClick, , , False)
 	Var miGenerateSignedBundleAPK = miBuild->Add(ML("&Generate Signed Bundle / APK") & HK("GenerateSignedBundleAPK"), "", "GenerateSignedBundleAPK", @mClick)
 	miGenerateSignedBundleAPK->Add(ML("Create Key Store") & HK("CreateKeyStore"), "", "CreateKeyStore", @mClick)
 	miGenerateSignedBundleAPK->Add("-")
-	miGenerateSignedBundleAPK->Add(ML("Generate Signed &Bundle") & HK("GenerateSignedBundle"), "", "GenerateSignedBundle", @mClick)
-	miGenerateSignedBundleAPK->Add(ML("Generate Signed &APK") & HK("GenerateSignedAPK"), "", "GenerateSignedAPK", @mClick)
+	miGenerateSignedBundle = miGenerateSignedBundleAPK->Add(ML("Generate Signed &Bundle") & HK("GenerateSignedBundle"), "", "GenerateSignedBundle", @mClick, , , False)
+	miGenerateSignedAPK = miGenerateSignedBundleAPK->Add(ML("Generate Signed &APK") & HK("GenerateSignedAPK"), "", "GenerateSignedAPK", @mClick, , , False)
 	miBuild->Add("-")
-	miBuild->Add(ML("&Make") & HK("Make"), "Make", "Make", @mClick)
-	miBuild->Add(ML("Make Clea&n") & HK("MakeClean"), "", "MakeClean", @mClick)
+	miMake = miBuild->Add(ML("&Make") & HK("Make"), "Make", "Make", @mClick, , , False)
+	miMakeClean = miBuild->Add(ML("Make Clea&n") & HK("MakeClean"), "", "MakeClean", @mClick, , , False)
 	miBuild->Add("-")
 	miBuild->Add(ML("&Parameters") & HK("Parameters"), "Parameters", "Parameters", @mClick)
 	
 	Var miDebug = mnuMain.Add(ML("&Debug"), "", "Debug")
 	mnuUseDebugger = miDebug->Add(ML("&Use Debugger") & HK("UseDebugger"), "", "UseDebugger", @mClick, True)
 	miDebug->Add("-")
-	miDebug->Add(ML("Step &Into")& HK("StepInto", "F8"), "", "StepInto", @mClick)
-	miDebug->Add(ML("Step &Over") & HK("StepOver", "Shift+F8"), "", "StepOver", @mClick)
-	miDebug->Add(ML("Step O&ut") & HK("StepOut", "Ctrl+Shift+F8"), "", "StepOut", @mClick)
-	miDebug->Add(ML("&Run To Cursor") & HK("RunToCursor", "Ctrl+F8"), "", "RunToCursor", @mClick)
+	miStepInto = miDebug->Add(ML("Step &Into") & HK("StepInto", "F8"), "", "StepInto", @mClick, , , False)
+	miStepOver = miDebug->Add(ML("Step &Over") & HK("StepOver", "Shift+F8"), "", "StepOver", @mClick, , , False)
+	miStepOut = miDebug->Add(ML("Step O&ut") & HK("StepOut", "Ctrl+Shift+F8"), "", "StepOut", @mClick, , , False)
+	miRunToCursor = miDebug->Add(ML("&Run To Cursor") & HK("RunToCursor", "Ctrl+F8"), "", "RunToCursor", @mClick, , , False)
 	miDebug->Add("-")
-	miDebug->Add(ML("&GDB Command") & HK("GDBCommand"), "", "GDBCommand", @mClick)
-	miDebug->Add(ML("&Add Watch") & HK("AddWatch"), "", "AddWatch", @mClick)
+	miGDBCommand = miDebug->Add(ML("&GDB Command") & HK("GDBCommand"), "", "GDBCommand", @mClick, , , False)
+	miAddWatch = miDebug->Add(ML("&Add Watch") & HK("AddWatch"), "", "AddWatch", @mClick, , , False)
 	miDebug->Add("-")
-	miDebug->Add(ML("&Toggle Breakpoint") & HK("Breakpoint", "F9"), "Breakpoint", "Breakpoint", @mClick)
-	miDebug->Add(ML("&Clear All Breakpoints") & HK("ClearAllBreakpoints", "Ctrl+Shift+F9"), "", "ClearAllBreakpoints", @mClick)
+	miToggleBreakpoint = miDebug->Add(ML("&Toggle Breakpoint") & HK("Breakpoint", "F9"), "Breakpoint", "Breakpoint", @mClick, , , False)
+	miClearAllBreakpoints = miDebug->Add(ML("&Clear All Breakpoints") & HK("ClearAllBreakpoints", "Ctrl+Shift+F9"), "", "ClearAllBreakpoints", @mClick, , , False)
 	miDebug->Add("-")
-	miDebug->Add(ML("Set &Next Statement") & HK("SetNextStatement"), "", "SetNextStatement", @mClick)
-	miDebug->Add(ML("Show Ne&xt Statement") & HK("ShowNextStatement"), "", "ShowNextStatement", @mClick)
+	miSetNextStatement = miDebug->Add(ML("Set &Next Statement") & HK("SetNextStatement"), "", "SetNextStatement", @mClick, , , False)
+	miShowNextStatement = miDebug->Add(ML("Show Ne&xt Statement") & HK("ShowNextStatement"), "", "ShowNextStatement", @mClick, , , False)
 	
 	Var miRun = mnuMain.Add(ML("&Run"), "", "Run")
-	mnuStartWithCompile = miRun->Add(ML("Start With &Compile") & HK("StartWithCompile", "F5"), "StartWithCompile", "StartWithCompile", @mClick)
-	mnuStart = miRun->Add(ML("&Start") & HK("Start", "Ctrl+F5"), "Start", "Start", @mClick)
+	mnuStartWithCompile = miRun->Add(ML("Start With &Compile") & HK("StartWithCompile", "F5"), "StartWithCompile", "StartWithCompile", @mClick, , , False)
+	mnuStart = miRun->Add(ML("&Start") & HK("Start", "Ctrl+F5"), "Start", "Start", @mClick, , , False)
 	mnuBreak = miRun->Add(ML("&Break") & HK("Break", "Ctrl+Break"), "Break", "Break", @mClick, , , False)
 	mnuEnd = miRun->Add(ML("&End") & HK("End"), "EndProgram", "End", @mClick, , , False)
 	mnuRestart = miRun->Add(ML("&Restart") & HK("Restart", "Shift+F5"), "", "Restart", @mClick, , , False)
 	
 	miXizmat = mnuMain.Add(ML("Servi&ce"), "", "Service")
-	miXizmat->Add(ML("Add &Procedure") & "..." & HK("AddProcedure"), "", "AddProcedure", @mClick)
+	miAddProcedure = miXizmat->Add(ML("Add &Procedure") & "..." & HK("AddProcedure"), "", "AddProcedure", @mClick, , , False)
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Add-Ins") & "..." & HK("AddIns"), "", "AddIns", @mClick)
 	miXizmat->Add("-")
@@ -5392,8 +5398,8 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add(ML("&Options") & HK("Options"), "Tools", "Options", @mClick)
 	
 	miWindow = mnuMain.Add(ML("&Window"), "", "Window")
-	mnuSplitHorizontally = miWindow->Add(ML("Split &Horizontally") & HK("SplitHorizontally"), "", "SplitHorizontally", @mClick, True)
-	mnuSplitVertically = miWindow->Add(ML("Split &Vertically") & HK("SplitVertically"), "", "SplitVertically", @mClick, True)
+	mnuSplitHorizontally = miWindow->Add(ML("Split &Horizontally") & HK("SplitHorizontally"), "", "SplitHorizontally", @mClick, True, , False)
+	mnuSplitVertically = miWindow->Add(ML("Split &Vertically") & HK("SplitVertically"), "", "SplitVertically", @mClick, True, , False)
 	mnuWindowSeparator = miWindow->Add("-")
 	mnuWindowSeparator->Visible = False
 	
@@ -5482,7 +5488,7 @@ Sub CreateMenusAndToolBars
 	tbStandard.Name = "Standard"
 	tbStandard.ImagesList = @imgList
 	tbStandard.HotImagesList = @imgList
-	tbStandard.DisabledImagesList = @imgListD
+	'tbStandard.DisabledImagesList = @imgListD
 	'	#ifdef __USE_GTK__
 	'		tbStandard.Align = 3
 	'	#endif
@@ -5490,96 +5496,96 @@ Sub CreateMenusAndToolBars
 	tbStandard.List = True
 	tbStandard.Buttons.Add tbsAutosize, "New", , @mClick, "New", , ML("New") & " (Ctrl+N)", True
 	tbStandard.Buttons.Add , "Open",, @mClick, "Open", , ML("Open") & " (Ctrl+O)", True
-	tbStandard.Buttons.Add , "Save",, @mClick, "Save", , ML("Save") & "..." & " (Ctrl+S)", True
-	tbStandard.Buttons.Add , "SaveAll", , @mClick, "SaveAll", , ML("Save &All") & " (Shift+Ctrl+S)", True
+	tbtSave = tbStandard.Buttons.Add(, "Save", , @mClick, "Save", , ML("Save") & "..." & " (Ctrl+S)", True, 0)
+	tbtSaveAll = tbStandard.Buttons.Add(, "SaveAll", , @mClick, "SaveAll", , ML("Save &All") & " (Shift+Ctrl+S)", True, 0)
 	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "Undo",, @mClick, "Undo", , ML("Undo") & " (Ctrl+Z)", True
-	tbStandard.Buttons.Add , "Redo",, @mClick, "Redo", , ML("Redo") & " (Ctrl+Y)", True
+	tbtUndo = tbStandard.Buttons.Add(, "Undo", , @mClick, "Undo", , ML("Undo") & " (Ctrl+Z)", True, 0)
+	tbtRedo = tbStandard.Buttons.Add(, "Redo", , @mClick, "Redo", , ML("Redo") & " (Ctrl+Y)", True, 0)
 	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "Cut",, @mClick, "Cut", , ML("Cut") & " (Ctrl+X)", True
-	tbStandard.Buttons.Add , "Copy",, @mClick, "Copy", , ML("Copy") & " (Ctrl+C)", True
-	tbStandard.Buttons.Add , "Paste", , @mClick, "Paste", , ML("Paste") & " (Ctrl+V)", True
+	tbtCut = tbStandard.Buttons.Add(, "Cut", , @mClick, "Cut", , ML("Cut") & " (Ctrl+X)", True, 0)
+	tbtCopy = tbStandard.Buttons.Add(, "Copy", , @mClick, "Copy", , ML("Copy") & " (Ctrl+C)", True, 0)
+	tbtPaste = tbStandard.Buttons.Add(, "Paste", , @mClick, "Paste", , ML("Paste") & " (Ctrl+V)", True, 0)
 	tbStandard.Buttons.Add tbsSeparator
-	tbStandard.Buttons.Add , "Find", , @mClick, "Find", , ML("Find") & " (Ctrl+F)", True
+	tbtFind = tbStandard.Buttons.Add(, "Find", , @mClick, "Find", , ML("Find") & " (Ctrl+F)", True, 0)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbEdit.Name = "Edit"
 	tbEdit.ImagesList = @imgList
 	tbEdit.HotImagesList = @imgList
-	tbEdit.DisabledImagesList = @imgListD
+	'tbEdit.DisabledImagesList = @imgListD
 	'	#ifdef __USE_GTK__
 	'		tbEdit.Align = 3
 	'	#endif
 	tbEdit.Flat = True
 	tbEdit.List = True
-	tbEdit.Buttons.Add , "Format", , @mClick, "Format", , ML("Format") & " (Ctrl+Tab)", True
-	tbEdit.Buttons.Add , "Unformat", , @mClick, "Unformat", , ML("Unformat") & " (Shift+Ctrl+Tab)", True
+	tbtFormat = tbEdit.Buttons.Add(, "Format", , @mClick, "Format", , ML("Format") & " (Ctrl+Tab)", True, 0)
+	tbtUnformat = tbEdit.Buttons.Add(, "Unformat", , @mClick, "Unformat", , ML("Unformat") & " (Shift+Ctrl+Tab)", True, 0)
 	tbEdit.Buttons.Add tbsSeparator
-	tbEdit.Buttons.Add , "Comment", , @mClick, "SingleComment", , ML("Single comment") & " (Ctrl+I)", True
-	tbEdit.Buttons.Add , "UnComment", , @mClick, "UnComment", , ML("UnComment") & " (Shift+Ctrl+I)", True
+	tbtSingleComment = tbEdit.Buttons.Add(, "Comment", , @mClick, "SingleComment", , ML("Single comment") & " (Ctrl+I)", True, 0)
+	tbtUncommentBlock = tbEdit.Buttons.Add(, "UnComment", , @mClick, "UnComment", , ML("UnComment") & " (Shift+Ctrl+I)", True, 0)
 	tbEdit.Buttons.Add tbsSeparator
-	tbEdit.Buttons.Add , "CompleteWord", , @mClick, "CompleteWord", , ML("Complete Word") & " (Ctrl+Space)", True
-	tbEdit.Buttons.Add , "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & " (Ctrl+J)", True
+	tbtCompleteWord = tbEdit.Buttons.Add(, "CompleteWord", , @mClick, "CompleteWord", , ML("Complete Word") & " (Ctrl+Space)", True, 0)
+	tbtParameterInfo = tbEdit.Buttons.Add(, "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & " (Ctrl+J)", True)
 	tbEdit.Buttons.Add tbsSeparator
-	tbEdit.Buttons.Add , "SyntaxCheck", , @mClick, "SyntaxCheck", , ML("Syntax Check"), True
+	tbtSyntaxCheck = tbEdit.Buttons.Add(, "SyntaxCheck", , @mClick, "SyntaxCheck", , ML("Syntax Check"), True, 0)
 	Var tbButton = tbEdit.Buttons.Add(tbsWholeDropdown, "List", , @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
 	'tbButton->DropDownMenu.ImagesList = @imgList
-	tbButton->DropDownMenu.Add ML("Numbering"), "Numbering", "NumberOn", @mClick
-	tbButton->DropDownMenu.Add ML("Macro numbering"), "", "MacroNumberOn", @mClick
-	tbButton->DropDownMenu.Add ML("Remove Numbering"), "", "NumberOff", @mClick
+	dmiNumbering = tbButton->DropDownMenu.Add(ML("Numbering"), "Numbering", "NumberOn", @mClick, , , False)
+	dmiMacroNumbering = tbButton->DropDownMenu.Add(ML("Macro numbering"), "", "MacroNumberOn", @mClick, , , False)
+	dmiRemoveNumbering = tbButton->DropDownMenu.Add(ML("Remove Numbering"), "", "NumberOff", @mClick, , , False)
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Procedure numbering"), "Numbering", "ProcedureNumberOn", @mClick
-	tbButton->DropDownMenu.Add ML("Procedure macro numbering"), "", "ProcedureMacroNumberOn", @mClick
-	tbButton->DropDownMenu.Add ML("Remove Procedure numbering"), "", "ProcedureNumberOff", @mClick
+	dmiProcedureNumbering = tbButton->DropDownMenu.Add(ML("Procedure numbering"), "Numbering", "ProcedureNumberOn", @mClick, , , False)
+	dmiProcedureMacroNumbering = tbButton->DropDownMenu.Add(ML("Procedure macro numbering"), "", "ProcedureMacroNumberOn", @mClick, , , False)
+	dmiRemoveProcedureNumbering = tbButton->DropDownMenu.Add(ML("Remove Procedure numbering"), "", "ProcedureNumberOff", @mClick, , , False)
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Project macro numbering"), "Numbering", "ProjectMacroNumberOn", @mClick
-	tbButton->DropDownMenu.Add ML("Project macro numbering: Starts of procedures"), "", "ProjectMacroNumberOnStartsOfProcs", @mClick
-	tbButton->DropDownMenu.Add ML("Remove Project numbering"), "", "ProjectNumberOff", @mClick
+	dmiProjectMacroNumbering = tbButton->DropDownMenu.Add(ML("Project macro numbering"), "Numbering", "ProjectMacroNumberOn", @mClick, , , False)
+	dmiProjectMacroNumberingStartsOfProcedures = tbButton->DropDownMenu.Add(ML("Project macro numbering: Starts of procedures"), "", "ProjectMacroNumberOnStartsOfProcs", @mClick, , , False)
+	dmiRemoveProjectNumbering = tbButton->DropDownMenu.Add(ML("Remove Project numbering"), "", "ProjectNumberOff", @mClick, , , False)
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Preprocessor Numbering"), "Numbering", "PreprocessorNumberOn", @mClick
-	tbButton->DropDownMenu.Add ML("Remove Preprocessor Numbering"), "", "PreprocessorNumberOff", @mClick
+	dmiPreprocessorNumbering = tbButton->DropDownMenu.Add(ML("Preprocessor Numbering"), "Numbering", "PreprocessorNumberOn", @mClick, , , False)
+	dmiRemovePreprocessorNumbering = tbButton->DropDownMenu.Add(ML("Remove Preprocessor Numbering"), "", "PreprocessorNumberOff", @mClick, , , False)
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add ML("Project preprocessor numbering"), "Numbering", "ProjectPreprocessorNumberOn", @mClick
-	tbButton->DropDownMenu.Add ML("Remove Project preprocessor numbering"), "", "ProjectPreprocessorNumberOff", @mClick
+	dmiProjectPreprocessorNumbering = tbButton->DropDownMenu.Add(ML("Project preprocessor numbering"), "Numbering", "ProjectPreprocessorNumberOn", @mClick, , , False)
+	dmiRemoveProjectPreprocessorNumbering = tbButton->DropDownMenu.Add(ML("Remove Project preprocessor numbering"), "", "ProjectPreprocessorNumberOff", @mClick, , , False)
 	tbButton->DropDownMenu.Add "-"
-	tbButton->DropDownMenu.Add "On Error Resume Next", "", "OnErrorResumeNext", @mClick
-	tbButton->DropDownMenu.Add "On Error Goto ...", "", "OnErrorGoto", @mClick
-	tbButton->DropDownMenu.Add "On Error Goto ... Resume Next", "", "OnErrorGotoResumeNext", @mClick
-	tbButton->DropDownMenu.Add ML("Remove Error Handling"), "", "RemoveErrorHandling", @mClick
+	dmiOnErrorResumeNext = tbButton->DropDownMenu.Add("On Error Resume Next", "", "OnErrorResumeNext", @mClick, , , False)
+	dmiOnErrorGoto = tbButton->DropDownMenu.Add("On Error Goto ...", "", "OnErrorGoto", @mClick, , , False)
+	dmiOnErrorGotoResumeNext = tbButton->DropDownMenu.Add("On Error Goto ... Resume Next", "", "OnErrorGotoResumeNext", @mClick, , , False)
+	dmiRemoveErrorHandling = tbButton->DropDownMenu.Add(ML("Remove Error Handling"), "", "RemoveErrorHandling", @mClick, , , False)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbBuild.Name = "Build"
 	tbBuild.ImagesList = @imgList
 	tbBuild.HotImagesList = @imgList
-	tbBuild.DisabledImagesList = @imgListD
+	'tbBuild.DisabledImagesList = @imgListD
 	'	#ifdef __USE_GTK__
 	'		tbBuild.Align = 3
 	'	#endif
 	tbBuild.Flat = True
 	tbBuild.List = True
 	tbtUseDebugger = tbBuild.Buttons.Add(tbsCheck Or tbsAutosize, "UseDebugger", , @mClick, "TBUseDebugger", , ML("Use Debugger"), True)
-	tbBuild.Buttons.Add , "Compile", , @mClick, "Compile", , ML("Compile") & " (Ctrl+F9)", True
+	tbtCompile = tbBuild.Buttons.Add(, "Compile", , @mClick, "Compile", , ML("Compile") & " (Ctrl+F9)", True, 0)
 	Var tbMake = tbBuild.Buttons.Add(tbsAutosize Or tbsWholeDropdown, "Make", , @mClick, "Make", , ML("Make"), True)
-	tbMake->DropDownMenu.Add "Make", "", "Make", @mClick
-	tbMake->DropDownMenu.Add "Make clean", "", "MakeClean", @mClick
+	dmiMake = tbMake->DropDownMenu.Add("Make", "", "Make", @mClick, , , False)
+	dmiMakeClean = tbMake->DropDownMenu.Add("Make clean", "", "MakeClean", @mClick, , , False)
 	tbBuild.Buttons.Add , "Parameters", , @mClick, "Parameters", , ML("Parameters"), True
 	'tbStandard.Buttons.Add tbsSeparator
 	tbRun.Name = "Run"
 	tbRun.ImagesList = @imgList
 	tbRun.HotImagesList = @imgList
-	tbRun.DisabledImagesList = @imgListD
+	'tbRun.DisabledImagesList = @imgListD
 	'	#ifdef __USE_GTK__
 	'		tbRun.Align = 3
 	'	#endif
 	tbRun.Flat = True
 	tbRun.List = True
-	tbtStartWithCompile = tbRun.Buttons.Add( , "StartWithCompile", , @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True)
-	tbtStart = tbRun.Buttons.Add( , "Start", , @mClick, "Start", , ML("Start") & " (Ctrl+F5)", True)
+	tbtStartWithCompile = tbRun.Buttons.Add( , "StartWithCompile", , @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True, 0)
+	tbtStart = tbRun.Buttons.Add( , "Start", , @mClick, "Start", , ML("Start") & " (Ctrl+F5)", True, 0)
 	tbtBreak = tbRun.Buttons.Add( , "Break", , @mClick, "Break", , ML("Break") & " (Ctrl+Pause)", True, 0)
 	tbtEnd = tbRun.Buttons.Add( , "EndProgram", , @mClick, "End", , ML("End"), True, 0)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbProject.Name = "Run"
 	tbProject.ImagesList = @imgList
 	tbProject.HotImagesList = @imgList
-	tbProject.DisabledImagesList = @imgListD
+	'tbProject.DisabledImagesList = @imgListD
 	'	#ifdef __USE_GTK__
 	'		tbProject.Align = 3
 	'	#endif
@@ -5637,11 +5643,11 @@ CreateMenusAndToolBars
 
 tbExplorer.ImagesList = @imgList
 tbExplorer.HotImagesList = @imgList
-tbExplorer.DisabledImagesList = @imgList
+'tbExplorer.DisabledImagesList = @imgList
 tbExplorer.Flat = True
 tbExplorer.Align = DockStyle.alTop
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
-tbExplorer.Buttons.Add , "Remove", , @mClick, "RemoveFileFromProject", , ML("&Remove"), True
+tbtRemoveFileFromProject = tbExplorer.Buttons.Add(, "Remove", , @mClick, "RemoveFileFromProject", , ML("&Remove"), True, 0)
 tbExplorer.Buttons.Add tbsSeparator
 tbExplorer.Buttons.Add tbsCheck, "Folder", , @mClick, "Folder", , ML("Show Folders"), True
 
@@ -5663,7 +5669,7 @@ End Sub
 
 tbForm.ImagesList = @imgList
 tbForm.HotImagesList = @imgList
-tbForm.DisabledImagesList = @imgListD
+'tbForm.DisabledImagesList = @imgListD
 tbForm.Align = DockStyle.alTop
 tbForm.Flat = True
 tbForm.Buttons.Add tbsCheck, "Label", , @tbFormClick, "Text", "", ML("Text"), , tstChecked Or tstEnabled
@@ -6088,7 +6094,7 @@ End Sub
 pnlLeft.Name = "pnlLeft"
 pnlLeft.Align = DockStyle.alLeft
 pnlLeft.Width = tabLeftWidth
-pnlLeft.OnReSize = @pnlLeft_Resize
+pnlLeft.OnResize = @pnlLeft_Resize
 
 tabLeft.Name = "tabLeft"
 tabLeft.Width = tabLeftWidth
@@ -6968,7 +6974,7 @@ tbRight.Parent = @pnlRightPin
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
 			allocation->x = x - tbRight.Width - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.Width - x1 + 1, 0)
 			allocation->y = y
-			allocation->Width = tbRight.Width
+			allocation->width = tbRight.Width
 			allocation->height = tbRight.Height
 			Return True
 		End Function
@@ -7041,11 +7047,15 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	If tb->cboClass.Items.Count > 1 Then
 		tb->FillAllProperties
 		tabRight.SelectedTabIndex = 0
+		miForm->Enabled = True
+		miCodeAndForm->Enabled = True
 		tb->tbrTop.Buttons.Item("Form")->Enabled = True
 		tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
 	Else
 		lvProperties.Nodes.Clear
 		lvEvents.Nodes.Clear
+		miForm->Enabled = False
+		miCodeAndForm->Enabled = False
 		tb->tbrTop.Buttons.Item("Form")->Enabled = False 
 		tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
 		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
@@ -7557,6 +7567,82 @@ Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 			CloseBottom
 		End If
 	End If
+	Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
+	If ActiveForm = 0 OrElse ActiveForm->ActiveControl = 0 Then Exit Sub
+	Dim As Boolean bEnabled, bEnabledEditControl, bEnabledPanel
+	Select Case ActiveForm->ActiveControl->ClassName
+	Case "EditControl"
+		bEnabled = True
+		bEnabledEditControl = True
+	Case "Panel"
+		bEnabled = True
+		bEnabledPanel = True
+	Case "TextBox", "ComboBoxEdit", "ComboBoxEx"
+		bEnabled = True
+	End Select
+	miUndo->Enabled = bEnabled
+	tbtUndo->Enabled = bEnabled
+	miRedo->Enabled = bEnabled
+	tbtRedo->Enabled = bEnabled
+	miCutCurrentLine->Enabled = bEnabledEditControl
+	miCut->Enabled = bEnabled
+	tbtCut->Enabled = bEnabled
+	miCopy->Enabled = bEnabled
+	tbtCopy->Enabled = bEnabled
+	miPaste->Enabled = bEnabled
+	tbtPaste->Enabled = bEnabled
+	miSingleComment->Enabled = bEnabledEditControl
+	tbtSingleComment->Enabled = bEnabledEditControl
+	miBlockComment->Enabled = bEnabledEditControl
+	miUncommentBlock->Enabled = bEnabledEditControl
+	tbtUncommentBlock->Enabled = bEnabledEditControl
+	miDuplicate->Enabled = bEnabledEditControl Or bEnabledPanel
+	miSelectAll->Enabled = bEnabled
+	miIndent->Enabled = bEnabledEditControl
+	miOutdent->Enabled = bEnabledEditControl
+	miFormat->Enabled = bEnabledEditControl
+	tbtFormat->Enabled = bEnabledEditControl
+	miUnformat->Enabled = bEnabledEditControl
+	tbtUnformat->Enabled = bEnabledEditControl
+	miAddSpaces->Enabled = bEnabledEditControl
+	miCompleteWord->Enabled = bEnabledEditControl
+	tbtCompleteWord->Enabled = bEnabledEditControl
+	miParameterInfo->Enabled = bEnabledEditControl
+	tbtParameterInfo->Enabled = bEnabledEditControl
+	miNumbering->Enabled = bEnabledEditControl
+	dmiNumbering->Enabled = bEnabledEditControl
+	miMacroNumbering->Enabled = bEnabledEditControl
+	dmiMacroNumbering->Enabled = bEnabledEditControl
+	miRemoveNumbering->Enabled = bEnabledEditControl
+	dmiRemoveNumbering->Enabled = bEnabledEditControl
+	miProcedureNumbering->Enabled = bEnabledEditControl
+	dmiProcedureNumbering->Enabled = bEnabledEditControl
+	miProcedureMacroNumbering->Enabled = bEnabledEditControl
+	dmiProcedureMacroNumbering->Enabled = bEnabledEditControl
+	miRemoveProcedureNumbering->Enabled = bEnabledEditControl
+	dmiRemoveProcedureNumbering->Enabled = bEnabledEditControl
+	miPreprocessorNumbering->Enabled = bEnabledEditControl
+	dmiPreprocessorNumbering->Enabled = bEnabledEditControl
+	miRemovePreprocessorNumbering->Enabled = bEnabledEditControl
+	dmiRemovePreprocessorNumbering->Enabled = bEnabledEditControl
+	miOnErrorResumeNext->Enabled = bEnabledEditControl
+	dmiOnErrorResumeNext->Enabled = bEnabledEditControl
+	miOnErrorGoto->Enabled = bEnabledEditControl
+	dmiOnErrorGoto->Enabled = bEnabledEditControl
+	miOnErrorGotoResumeNext->Enabled = bEnabledEditControl
+	dmiOnErrorGotoResumeNext->Enabled = bEnabledEditControl
+	miRemoveErrorHandling->Enabled = bEnabledEditControl
+	dmiRemoveErrorHandling->Enabled = bEnabledEditControl
+	miCollapseCurrent->Enabled = bEnabledEditControl
+	miCollapseAllProcedures->Enabled = bEnabledEditControl
+	miCollapseAll->Enabled = bEnabledEditControl
+	miUnCollapseCurrent->Enabled = bEnabledEditControl
+	miUnCollapseAllProcedures->Enabled = bEnabledEditControl
+	miUnCollapseAll->Enabled = bEnabledEditControl
+	miSetNextStatement->Enabled = bEnabledEditControl AndAlso mnuEnd->Enabled AndAlso Not mnuBreak->Enabled
+	miRunToCursor->Enabled = bEnabledEditControl
+	miToggleBookmark->Enabled = bEnabledEditControl
+	miToggleBreakpoint->Enabled = bEnabledEditControl
 End Sub
 
 Sub frmMain_Resize(ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
