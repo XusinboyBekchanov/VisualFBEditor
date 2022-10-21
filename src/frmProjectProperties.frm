@@ -806,9 +806,9 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->ProductName, .Types.Get(ML("Product Name")))
 		Select Case True
 		Case .optCompileByDefault.Checked: ppe->CompileTo = ByDefault
-		Case .optCompileToGAS.Checked: ppe->CompileTo = ToGAS
+		Case .optCompileToGas.Checked: ppe->CompileTo = ToGAS
 		Case .optCompileToLLVM.Checked: ppe->CompileTo = ToLLVM
-		Case .optCompileToGCC.Checked: ppe->CompileTo = ToGCC
+		Case .optCompileToGcc.Checked: ppe->CompileTo = ToGCC
 		End Select
 		ppe->OptimizationFastCode = .optOptimizationFastCode.Checked
 		ppe->OptimizationSmallCode = .optOptimizationSmallCode.Checked
@@ -830,7 +830,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 			Dim As Integer FileSize
 			Dim As WStringList Lines
 			FileSize = LOF(Fn1)
-			WReallocate(pBuff, FileSize)
+			WReAllocate(pBuff, FileSize)
 			Do Until EOF(Fn1)
 				LineInputWstr Fn1, pBuff, FileSize
 				Lines.Add *pBuff
@@ -867,7 +867,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 			Dim As Integer FileSize
 			Dim As WStringList Lines
 			FileSize = LOF(Fn1)
-			WReallocate(pBuff, FileSize)
+			WReAllocate(pBuff, FileSize)
 			Do Until EOF(Fn1)
 				LineInputWstr Fn1, pBuff, FileSize
 				Lines.Add *pBuff

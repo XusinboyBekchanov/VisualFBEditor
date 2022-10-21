@@ -7958,41 +7958,6 @@ Sub frmMain_Create(ByRef Sender As Control)
 	
 	bSharedFind = CheckCompilerPaths
 	
-	Var File = Command(-1)
-	Var Pos1 = InStr(File, "2>CON")
-	If Pos1 > 0 Then File = Left(File, Pos1 - 1)
-	If File <> "" AndAlso Right(LCase(File), 4) <> ".exe" Then
-		OpenFiles GetFullPath(File)
-	ElseIf bSharedFind Then
-		Select Case WhenVisualFBEditorStarts
-		Case 1: NewProject 'pfTemplates->ShowModal
-		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
-		Case 3:
-			Select Case LastOpenedFileType
-			Case 0: OpenFiles GetFullPath(*RecentFiles)
-			Case 1: OpenFiles GetFullPath(*RecentSession)
-			Case 2: OpenFiles GetFullPath(*RecentFolder)
-			Case 3: OpenFiles GetFullPath(*RecentProject)
-			Case 4: OpenFiles GetFullPath(*RecentFile)
-			End Select
-		End Select
-	End If
-	'	Var FILE = Command(-1)
-	'	Var Pos1 = InStr(file, "2>CON")
-	'	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
-	'	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
-	'		OpenFiles GetFullPath(FILE)
-	'	ElseIf bFind Then
-	'		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
-	'		Select Case WhenVisualFBEditorStarts
-	'		Case 1: NewProject 'pfTemplates->ShowModal
-	'		Case 2: AddNew WGet(DefaultProjectFile)
-	'		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
-	'			'Auto Load the last one.
-	'			OpenFiles GetFullPath(*RecentFiles)
-	'		End Select
-	'	End If
-	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
 	gLocalProperties = True
 	
 	mStartLoadSession = False
@@ -8101,6 +8066,42 @@ Sub frmMain_Show(ByRef Sender As Control)
 	#endif
 	
 	pfSplash->CloseForm
+	
+	Var File = Command(-1)
+	Var Pos1 = InStr(File, "2>CON")
+	If Pos1 > 0 Then File = Left(File, Pos1 - 1)
+	If File <> "" AndAlso Right(LCase(File), 4) <> ".exe" Then
+		OpenFiles GetFullPath(File)
+	ElseIf bSharedFind Then
+		Select Case WhenVisualFBEditorStarts
+		Case 1: NewProject 'pfTemplates->ShowModal
+		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
+		Case 3:
+			Select Case LastOpenedFileType
+			Case 0: OpenFiles GetFullPath(*RecentFiles)
+			Case 1: OpenFiles GetFullPath(*RecentSession)
+			Case 2: OpenFiles GetFullPath(*RecentFolder)
+			Case 3: OpenFiles GetFullPath(*RecentProject)
+			Case 4: OpenFiles GetFullPath(*RecentFile)
+			End Select
+		End Select
+	End If
+	'	Var FILE = Command(-1)
+	'	Var Pos1 = InStr(file, "2>CON")
+	'	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
+	'	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
+	'		OpenFiles GetFullPath(FILE)
+	'	ElseIf bFind Then
+	'		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+	'		Select Case WhenVisualFBEditorStarts
+	'		Case 1: NewProject 'pfTemplates->ShowModal
+	'		Case 2: AddNew WGet(DefaultProjectFile)
+	'		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+	'			'Auto Load the last one.
+	'			OpenFiles GetFullPath(*RecentFiles)
+	'		End Select
+	'	End If
+	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
 	
 End Sub
 
