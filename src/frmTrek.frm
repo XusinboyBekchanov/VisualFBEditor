@@ -18,6 +18,8 @@
 			.OnShow = @Form_Show
 			.DefaultButton = @cmdOK
 			.CancelButton = @cmdCancel
+			.Designer = @This
+			.OnCreate = @_Form_Create
 			.SetBounds 0, 0, 840, 276
 		End With
 		' lvTrek
@@ -85,6 +87,10 @@
 		End With
 	End Constructor
 	
+	Private Sub frmTrek._Form_Create(ByRef Sender As Control)
+		*Cast(frmTrek Ptr, Sender.Designer).Form_Create(Sender)
+	End Sub
+	
 	Dim Shared fTrek As frmTrek
 	pfTrek = @fTrek
 '#End Region
@@ -109,10 +115,13 @@ End Sub
 
 Private Sub frmTrek.Form_Show(ByRef Sender As Form)
 	fTrek.lvTrek.SetFocus
-	fTrek.lvTrek.SelectedItemIndex = 0
-	fTrek.SelectedItem = 0
 End Sub
 
 Private Sub frmTrek.lvTrek_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	If ItemIndex <> -1 Then fTrek.lblComment.Caption = fTrek.lvTrek.ListItems.Item(ItemIndex)->Text(4) Else fTrek.lblComment.Caption = ""
+End Sub
+
+Private Sub frmTrek.Form_Create(ByRef Sender As Control)
+	fTrek.lvTrek.SelectedItemIndex = 0
+	fTrek.SelectedItem = 0
 End Sub

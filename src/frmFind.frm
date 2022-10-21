@@ -757,56 +757,6 @@ Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmFind.Form_Show(ByRef Sender As Form)
-	If mFormFind = True Then
-		This.Caption=ML("Find")
-		#ifdef __USE_GTK__
-			This.Height = 58
-			SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 58
-		#else
-			This.Height = 65
-			SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 65
-		#endif
-		btnReplace.Enabled = False
-		btnReplaceAll.Enabled = False
-	Else
-		This.Caption=ML("Replace")
-		This.Height = 95
-		SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 95
-		btnReplace.Enabled = True
-		btnReplaceAll.Enabled = True
-	End If
-	'TODO David Change For couldn't minimize Width of the Command buttom
-	#ifdef __USE_GTK__
-		btnReplaceShow.Visible = False
-		TrackBar1.Visible = False
-		lblTrack.Visible = False
-	#else
-		btnReplaceShow.Width=18
-	#endif
-	'btnFindAll.Visible = False
-	Opacity = 230
-	TrackBar1.Position = 230
-	lblTrack.Text = WStr(CUInt(TrackBar1.Position / 2.55))
-	
-	Dim As UString SelText
-	If ptabCode Then
-		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If tb Then
-			SelText = tb->txtCode.SelText
-		End If
-	End If
-	If SelText = "" Then
-		SelText = pClipboard->GetAsText
-	End If
-	If SelText = "" Then
-		cboFindRange.ItemIndex = 1
-	Else
-		'David Change For limited the Muilti Line
-		Var Posi = InStr(SelText, Chr(13)) - 1
-		If Posi < 1 Then Posi = InStr(SelText, Chr(10)) - 1
-		If Posi < 1 Then Posi = Len(SelText)
-		txtFind.Text = ..Left(SelText, Posi)
-	End If
 	txtFind.SetFocus
 End Sub
 
@@ -857,6 +807,56 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	Next
 	cboFindRange.ItemIndex = 1
 	WDeAllocate tmpStr
+	If mFormFind = True Then
+		This.Caption=ML("Find")
+		#ifdef __USE_GTK__
+			This.Height = 58
+			SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 58
+		#else
+			This.Height = 65
+			SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 65
+		#endif
+		btnReplace.Enabled = False
+		btnReplaceAll.Enabled = False
+	Else
+		This.Caption=ML("Replace")
+		This.Height = 95
+		SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, 95
+		btnReplace.Enabled = True
+		btnReplaceAll.Enabled = True
+	End If
+	'TODO David Change For couldn't minimize Width of the Command buttom
+	#ifdef __USE_GTK__
+		btnReplaceShow.Visible = False
+		TrackBar1.Visible = False
+		lblTrack.Visible = False
+	#else
+		btnReplaceShow.Width=18
+	#endif
+	'btnFindAll.Visible = False
+	Opacity = 230
+	TrackBar1.Position = 230
+	lblTrack.Text = WStr(CUInt(TrackBar1.Position / 2.55))
+	
+	Dim As UString SelText
+	If ptabCode Then
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb Then
+			SelText = tb->txtCode.SelText
+		End If
+	End If
+	If SelText = "" Then
+		SelText = pClipboard->GetAsText
+	End If
+	If SelText = "" Then
+		cboFindRange.ItemIndex = 1
+	Else
+		'David Change For limited the Muilti Line
+		Var Posi = InStr(SelText, Chr(13)) - 1
+		If Posi < 1 Then Posi = InStr(SelText, Chr(10)) - 1
+		If Posi < 1 Then Posi = Len(SelText)
+		txtFind.Text = ..Left(SelText, Posi)
+	End If
 End Sub
 
 Private Sub frmFind.cboFindRange_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)

@@ -48,6 +48,8 @@
 		Declare Sub optAbstractMember_Click(ByRef Sender As RadioButton)
 		Declare Static Sub optVirtualMember_Click_(ByRef Sender As RadioButton)
 		Declare Sub optVirtualMember_Click(ByRef Sender As RadioButton)
+		Declare Static Sub _Form_Create(ByRef Sender As Control)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As Label lblName, lblParameters, lblType, lblParameters1, lblPriority, lblAlias
@@ -72,6 +74,7 @@
 			.MinimizeBox = False
 			.Icon = "1"
 			.OnShow = @Form_Show_
+			.OnCreate = @_Form_Create
 			.SetBounds 0, 0, 340, 600
 		End With
 		' lblName
@@ -500,6 +503,10 @@
 		End With
 	End Constructor
 	
+	Private Sub frmAddProcedureType._Form_Create(ByRef Sender As Control)
+		*Cast(frmAddProcedureType Ptr, Sender.Designer).Form_Create(Sender)
+	End Sub
+	
 	Private Sub frmAddProcedureType.optVirtualMember_Click_(ByRef Sender As RadioButton)
 		*Cast(frmAddProcedureType Ptr, Sender.Designer).optVirtualMember_Click(Sender)
 	End Sub
@@ -726,36 +733,7 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmAddProcedureType.Form_Show(ByRef Sender As Form)
-	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If tb = 0 Then Exit Sub
-	txtName.Text = ""
-	txtAlias.Text = ""
-	txtDescription.Text = ""
-	txtParameters.Text = ""
-	cboType.Clear
-	cboType.AddItem "(not selected)"
-	For i As Integer = 0 To tb->txtCode.Types.Count - 1
-		cboType.AddItem tb->txtCode.Types.Item(i)
-	Next
-	cboType.ItemIndex = 0
-	optPublicAccess.Checked = True
-	optProtectedAccess.Checked = False
-	optPrivateAccess.Checked = False
-	optSub.Checked = True
-	optFunction.Checked = False
-	optProperty.Checked = False
-	optOperator.Checked = False
-	optConstructor.Checked = False
-	optDestructor.Checked = False
-	optPublicScope.Checked = True
-	optPrivateScope.Checked = False
-	chkStatic.Checked = False
-	optNormalMember.Checked = True
-	optAbstractMember.Checked = False
-	optVirtualMember.Checked = False
-	optStaticMember.Checked = False
-	chkProcedureAlso.Checked = False
-	txtPriority.Text = "0"
+	
 End Sub
 
 Private Sub frmAddProcedureType.cboType_Change(ByRef Sender As ComboBoxEdit)
@@ -870,4 +848,37 @@ End Sub
 
 Private Sub frmAddProcedureType.optVirtualMember_Click(ByRef Sender As RadioButton)
 	optStaticMember_Click(Sender)
+End Sub
+
+Private Sub frmAddProcedureType.Form_Create(ByRef Sender As Control)
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	txtName.Text = ""
+	txtAlias.Text = ""
+	txtDescription.Text = ""
+	txtParameters.Text = ""
+	cboType.Clear
+	cboType.AddItem "(not selected)"
+	For i As Integer = 0 To tb->txtCode.Types.Count - 1
+		cboType.AddItem tb->txtCode.Types.Item(i)
+	Next
+	cboType.ItemIndex = 0
+	optPublicAccess.Checked = True
+	optProtectedAccess.Checked = False
+	optPrivateAccess.Checked = False
+	optSub.Checked = True
+	optFunction.Checked = False
+	optProperty.Checked = False
+	optOperator.Checked = False
+	optConstructor.Checked = False
+	optDestructor.Checked = False
+	optPublicScope.Checked = True
+	optPrivateScope.Checked = False
+	chkStatic.Checked = False
+	optNormalMember.Checked = True
+	optAbstractMember.Checked = False
+	optVirtualMember.Checked = False
+	optStaticMember.Checked = False
+	chkProcedureAlso.Checked = False
+	txtPriority.Text = "0"
 End Sub

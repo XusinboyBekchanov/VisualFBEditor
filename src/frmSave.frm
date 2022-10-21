@@ -9,13 +9,9 @@
 			.Caption = "Visual FB Editor"
 			.BorderStyle = FormBorderStyle.FixedDialog
 			#ifdef __USE_GTK__
-
 				This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
-
 			#else
-
 				This.Icon.LoadFromResourceID(1)
-
 			#endif
 			.FormStyle = FormStyles.fsStayOnTop
 			.MaximizeBox = False
@@ -119,12 +115,13 @@ Private Sub frmSave.Form_Show_(ByRef Sender As Form)
 	*Cast(frmSave Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub frmSave.Form_Show(ByRef Sender As Form)
-	SelectedItems.Clear
+	
 End Sub
 
 Private Sub frmSave.Form_Create_(ByRef Sender As Control)
 	*Cast(frmSave Ptr, Sender.Designer).Form_Create(Sender)
 End Sub
 Private Sub frmSave.Form_Create(ByRef Sender As Control)
+	SelectedItems.Clear
 	lstFiles.SelectAll
 End Sub

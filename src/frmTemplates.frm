@@ -21,6 +21,7 @@
 			.BorderStyle = FormBorderStyle.Sizable
 			.OnShow = @Form_Show_
 			.OnClose = @Form_Close_
+			.OnCreate = @_Form_Create
 			.SetBounds 0, 0, 657, 440
 		End With
 		' TabControl1
@@ -288,6 +289,10 @@
 		End With
 	End Constructor
 	
+	Private Sub frmTemplates._Form_Create(ByRef Sender As Control)
+		*Cast(frmTemplates Ptr, Sender.Designer).Form_Create(Sender)
+	End Sub
+	
 	Private Sub frmTemplates.cmdAdd_Click_(ByRef Sender As Control)
 		*Cast(frmTemplates Ptr, Sender.Designer).cmdAdd_Click(Sender)
 	End Sub
@@ -445,25 +450,7 @@ Private Sub frmTemplates.Form_Show_(ByRef Sender As Form)
 	*Cast(frmTemplates Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
-	ModalResult = ModalResults.Cancel
-	tvTemplates.Nodes.Clear
-	If OnlyFiles = False Then
-		tvTemplates.Nodes.Add ML("Projects"), "Projects"
-	End If
-	tvTemplates.Nodes.Add ML("Files"), "Files"
-	tvTemplates_SelChanged tvTemplates, *tvTemplates.Nodes.Item(0)
-	tvRecent_SelChanged tvRecent, *tvRecent.Nodes.Item(0)
-	RecentChanged = False
-	TabControl1.SelectedTabIndex = 0
-	'This.Width = This.Width + 1
-	Var n = 0
-	Dim As String ProjectName = "Project"
-	Dim NewName As String
-	Do
-		n = n + 1
-		NewName = ProjectName & Str(n)
-	Loop While FolderExists(*ProjectsPath & Slash & NewName)
-	txtSaveLocation.Text = Replace(*ProjectsPath, BackSlash, Slash) & Slash & NewName
+	
 End Sub
 
 Private Sub frmTemplates.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
@@ -655,4 +642,26 @@ Private Sub frmTemplates.cmdAdd_Click(ByRef Sender As Control)
 	Var Item = lvRecent.ListItems.Add(GetFileName(Path), GetIconName(Path), , , 0)
 	Item->Text(1) = Path
 	RecentChanged = True
+End Sub
+
+Private Sub frmTemplates.Form_Create(ByRef Sender As Control)
+	ModalResult = ModalResults.Cancel
+	tvTemplates.Nodes.Clear
+	If OnlyFiles = False Then
+		tvTemplates.Nodes.Add ML("Projects"), "Projects"
+	End If
+	tvTemplates.Nodes.Add ML("Files"), "Files"
+	tvTemplates_SelChanged tvTemplates, *tvTemplates.Nodes.Item(0)
+	tvRecent_SelChanged tvRecent, *tvRecent.Nodes.Item(0)
+	RecentChanged = False
+	TabControl1.SelectedTabIndex = 0
+	'This.Width = This.Width + 1
+	Var n = 0
+	Dim As String ProjectName = "Project"
+	Dim NewName As String
+	Do
+		n = n + 1
+		NewName = ProjectName & Str(n)
+	Loop While FolderExists(*ProjectsPath & Slash & NewName)
+	txtSaveLocation.Text = Replace(*ProjectsPath, BackSlash, Slash) & Slash & NewName
 End Sub

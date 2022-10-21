@@ -349,7 +349,35 @@ Function GetLibKey As String
 End Function
 
 Private Sub frmComponentsType.Form_Create(ByRef Sender As Control)
-	
+	Dim As UInteger Attr
+	Dim f As WString * 1024
+	Dim LibKey As String = GetLibKey
+	chlControls.Clear
+	Paths.Clear
+	f = Dir(ExePath & Slash & "Controls" & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
+	While f <> ""
+		If (Attr And fbDirectory) <> 0 Then
+			If f <> "." AndAlso f <> ".." Then
+				Dim As IniFile ini
+				ini.Load ExePath & Slash & "Controls" & Slash & f & Slash & "Settings.ini"
+				Dim FileName As UString = ini.ReadString("Setup", LibKey)
+				If FileName <> "" Then
+					chlControls.AddItem ini.ReadString("Setup", "Name")
+					Paths.Add ExePath & Slash & "Controls" & Slash & f & Slash & FileName
+					Dim As Library Ptr CtlLibrary
+					For i As Integer = 0 To ControlLibraries.Count - 1
+						CtlLibrary = ControlLibraries.Item(i)
+						If CtlLibrary->Path = "Controls" & Slash & f & Slash & FileName Then
+							If CtlLibrary->Enabled Then chlControls.Checked(chlControls.ItemCount - 1) = True
+							Exit For
+						End If
+					Next
+				End If
+			End If
+		End If
+		f = Dir(Attr)
+	Wend
+	If chlControls.ItemCount > 0 Then chlControls.ItemIndex = 0: chlControls_Change(chlControls)
 End Sub
 
 Private Sub frmComponentsType.chlControls_Change(ByRef Sender As ListControl)
@@ -415,33 +443,5 @@ Private Sub frmComponentsType.chkSelectedItemsOnly_Click(ByRef Sender As CheckBo
 End Sub
 
 Private Sub frmComponentsType.Form_Show(ByRef Sender As Form)
-	Dim As UInteger Attr
-	Dim f As WString * 1024
-	Dim LibKey As String = GetLibKey
-	chlControls.Clear
-	Paths.Clear
-	f = Dir(ExePath & Slash & "Controls" & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
-	While f <> ""
-		If (Attr And fbDirectory) <> 0 Then
-			If f <> "." AndAlso f <> ".." Then
-				Dim As IniFile ini
-				ini.Load ExePath & Slash & "Controls" & Slash & f & Slash & "Settings.ini"
-				Dim FileName As UString = ini.ReadString("Setup", LibKey)
-				If FileName <> "" Then
-					chlControls.AddItem ini.ReadString("Setup", "Name")
-					Paths.Add ExePath & Slash & "Controls" & Slash & f & Slash & FileName
-					Dim As Library Ptr CtlLibrary
-					For i As Integer = 0 To ControlLibraries.Count - 1
-						CtlLibrary = ControlLibraries.Item(i)
-						If CtlLibrary->Path = "Controls" & Slash & f & Slash & FileName Then
-							If CtlLibrary->Enabled Then chlControls.Checked(chlControls.ItemCount - 1) = True
-							Exit For
-						End If
-					Next
-				End If
-			End If
-		End If
-		f = Dir(Attr)
-	Wend
-	If chlControls.ItemCount > 0 Then chlControls.ItemIndex = 0: chlControls_Change(chlControls)
+	
 End Sub

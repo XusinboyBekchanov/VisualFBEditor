@@ -2272,10 +2272,10 @@ Sub RunHelp(Param As Any Ptr)
 								Else
 									.pszKeywords  = @wszKeywordUpper
 								End If
-								.pszUrl       = Null
-								.pszMsgText   = Null
-								.pszMsgTitle  = Null
-								.pszWindow    = Null
+								.pszUrl       = NULL
+								.pszMsgText   = NULL
+								.pszMsgTitle  = NULL
+								.pszWindow    = NULL
 								.fIndexOnFail = False
 							End With
 							If HtmlHelpW(0, CurrentHelpPath, HH_KEYWORD_LOOKUP, Cast(DWORD_PTR, @li)) <> 0 Then
@@ -2285,7 +2285,7 @@ Sub RunHelp(Param As Any Ptr)
 						Next
 					End If
 				Next
-				If Not bFind Then HtmlHelpW(0, *HelpPath, HH_DISPLAY_TOC, Null) 'MsgBox ML("Keyword") & " """ & wszKeyword & """ " & ML("not found in Help") & "!"
+				If Not bFind Then HtmlHelpW(0, *HelpPath, HH_DISPLAY_TOC, NULL) 'MsgBox ML("Keyword") & " """ & wszKeyword & """ " & ML("not found in Help") & "!"
 			End If
 			'DyLibFree(gpHelpLib)
 		End If
@@ -7812,6 +7812,49 @@ tbToolBox.Groups.Item(1)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it
 tbToolBox.Groups.Item(2)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
 tbToolBox.Groups.Item(3)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap Or tstChecked)
 
+Function CheckCompilerPaths As Boolean
+	Dim As Boolean bFind
+	For i As Integer = 0 To pCompilers->Count - 1
+		If FileExists(GetFullPath(pCompilers->Item(i)->Text)) Then
+			bFind = True
+			Exit For
+		End If
+	Next
+	Dim As WString Ptr CompilerPath
+	#ifdef __FB_64BIT__
+		CompilerPath = Compiler64Path
+	#else
+		CompilerPath = Compiler32Path
+	#endif
+	If Not bFind Then
+		If MsgBox(ML("Invalid defined compiler path.") & !"\r" & ML("Find Compilers from Computer?"), , mtQuestion, btYesNo) = mrYes Then
+			pfOptions->Show *pfrmMain
+			pfOptions->tvOptions.Nodes.Item(2)->SelectItem
+			pfOptions->cmdFindCompilers_Click(pfOptions->cmdFindCompilers)
+		End If
+	Else
+		If *CompilerPath = "" Then
+			If MsgBox(ML("Invalid defined compiler path.") & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
+				pfOptions->Show *pfrmMain
+				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
+			End If
+			#ifdef __USE_GTK__
+			ElseIf g_find_program_in_path(ToUtf8(GetFullPath(*CompilerPath))) = NULL Then
+			#else
+			ElseIf Not FileExists(GetFullPath(*CompilerPath)) Then
+			#endif
+			If MsgBox(ML("File") & " """ & *CompilerPath & """ " & ML("not found") & "." & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
+				pfOptions->Show *pfrmMain
+				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
+			End If
+		End If
+	End If
+	Return bFind
+End Function
+
+pfTemplates->Visible = False: pfTemplates->CreateWnd
+
+Dim Shared As Boolean bSharedFind
 Sub frmMain_Create(ByRef Sender As Control)
 	#ifdef __USE_GTK__
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), "VisualFBEditor1")
@@ -7819,6 +7862,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 	#else
 		tabItemHeight = tabLeft.ItemHeight(0) + 4
 		pnlPropertyValue.SendToBack
+		pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
 	#endif
 	
 	LoadToolBox
@@ -7893,54 +7937,72 @@ Sub frmMain_Create(ByRef Sender As Control)
 	'		End If
 	'	End If
 	
+	#ifdef __FB_64BIT__
+		App.Title = App.Title & " (" & ML("64-bit") & ")"
+	#else
+		App.Title = App.Title & " (" & ML("32-bit") & ")"
+	#endif
+	frmMain.Text = App.Title
+	pfAbout->Label1.Text = App.Title
+	#ifdef __FB_WIN32__
+		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
+	#else
+		pfAbout->Label11.Text = ML("Version") & " " & WStr(VERSION)
+	#endif
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Check compiler paths")
+	
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Add-Ins")
+	LoadAddIns
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Tools")
+	LoadTools
+	
+	bSharedFind = CheckCompilerPaths
+	
+	Var File = Command(-1)
+	Var Pos1 = InStr(File, "2>CON")
+	If Pos1 > 0 Then File = Left(File, Pos1 - 1)
+	If File <> "" AndAlso Right(LCase(File), 4) <> ".exe" Then
+		OpenFiles GetFullPath(File)
+	ElseIf bSharedFind Then
+		Select Case WhenVisualFBEditorStarts
+		Case 1: NewProject 'pfTemplates->ShowModal
+		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
+		Case 3:
+			Select Case LastOpenedFileType
+			Case 0: OpenFiles GetFullPath(*RecentFiles)
+			Case 1: OpenFiles GetFullPath(*RecentSession)
+			Case 2: OpenFiles GetFullPath(*RecentFolder)
+			Case 3: OpenFiles GetFullPath(*RecentProject)
+			Case 4: OpenFiles GetFullPath(*RecentFile)
+			End Select
+		End Select
+	End If
+	'	Var FILE = Command(-1)
+	'	Var Pos1 = InStr(file, "2>CON")
+	'	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
+	'	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
+	'		OpenFiles GetFullPath(FILE)
+	'	ElseIf bFind Then
+	'		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+	'		Select Case WhenVisualFBEditorStarts
+	'		Case 1: NewProject 'pfTemplates->ShowModal
+	'		Case 2: AddNew WGet(DefaultProjectFile)
+	'		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
+	'			'Auto Load the last one.
+	'			OpenFiles GetFullPath(*RecentFiles)
+	'		End Select
+	'	End If
+	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
+	gLocalProperties = True
+	
 	mStartLoadSession = False
 End Sub
 
-Function CheckCompilerPaths As Boolean
-	Dim As Boolean bFind
-	For i As Integer = 0 To pCompilers->Count - 1
-		If FileExists(GetFullPath(pCompilers->Item(i)->Text)) Then
-			bFind = True
-			Exit For
-		End If
-	Next
-	Dim As WString Ptr CompilerPath
-	#ifdef __FB_64BIT__
-		CompilerPath = Compiler64Path
-	#else
-		CompilerPath = Compiler32Path
-	#endif
-	If Not bFind Then
-		If MsgBox(ML("Invalid defined compiler path.") & !"\r" & ML("Find Compilers from Computer?"), , mtQuestion, btYesNo) = mrYes Then
-			pfOptions->Show *pfrmMain
-			pfOptions->tvOptions.Nodes.Item(2)->SelectItem
-			pfOptions->cmdFindCompilers_Click(pfOptions->cmdFindCompilers)
-		End If
-	Else
-		If *CompilerPath = "" Then
-			If MsgBox(ML("Invalid defined compiler path.") & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
-				pfOptions->Show *pfrmMain
-				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
-			End If
-			#ifdef __USE_GTK__
-			ElseIf g_find_program_in_path(ToUtf8(GetFullPath(*CompilerPath))) = NULL Then
-			#else
-			ElseIf Not FileExists(GetFullPath(*CompilerPath)) Then
-			#endif
-			If MsgBox(ML("File") & " """ & *CompilerPath & """ " & ML("not found") & "." & !"\r" & ML("Do you want to choose from the available compilers?"), , mtQuestion, btYesNo) = mrYes Then
-				pfOptions->Show *pfrmMain
-				pfOptions->tvOptions.Nodes.Item(2)->SelectItem
-			End If
-		End If
-	End If
-	Return bFind
-End Function
-
 For i As Integer = 48 To 57
-	symbols(i - 48) = i
+	Symbols(i - 48) = i
 Next
 For i As Integer = 97 To 102
-	symbols(i - 87) = i
+	Symbols(i - 87) = i
 Next
 
 Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
@@ -7980,7 +8042,7 @@ Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boo
 		isValid = False
 		
 		For j As Integer = 0 To base_ - 1
-			If t[i] = symbols(j) Then
+			If t[i] = Symbols(j) Then
 				isValid = True
 				Exit For
 			End If
@@ -8035,65 +8097,11 @@ Sub frmMain_Show(ByRef Sender As Control)
 		tbBottom.Buttons.Item("RemoveWatch")->Visible = False
 		tbBottom.Buttons.Item("Update")->Visible = False
 	#else
-		pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
+		
 	#endif
-	#ifdef __FB_64BIT__
-		App.Title = App.Title & " (" & ML("64-bit") & ")"
-	#else
-		App.Title = App.Title & " (" & ML("32-bit") & ")"
-	#endif
-	frmMain.Text = App.Title
-	pfAbout->Label1.Text = App.Title
-	#ifdef __FB_WIN32__
-		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
-	#else
-		pfAbout->Label11.Text = ML("Version") & " " & WStr(VERSION)
-	#endif
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Check compiler paths")
-	Var bFind = CheckCompilerPaths
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Add-Ins")
-	LoadAddIns
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Tools")
-	LoadTools
 	
 	pfSplash->CloseForm
 	
-	Var file = Command(-1)
-	Var Pos1 = InStr(file, "2>CON")
-	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
-	If file <> "" AndAlso Right(LCase(file), 4) <> ".exe" Then
-		OpenFiles GetFullPath(file)
-	ElseIf bFind Then
-		Select Case WhenVisualFBEditorStarts
-		Case 1: NewProject 'pfTemplates->ShowModal
-		Case 2: AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
-		Case 3:
-			Select Case LastOpenedFileType
-			Case 0: OpenFiles GetFullPath(*RecentFiles)
-			Case 1: OpenFiles GetFullPath(*RecentSession)
-			Case 2: OpenFiles GetFullPath(*RecentFolder)
-			Case 3: OpenFiles GetFullPath(*RecentProject)
-			Case 4: OpenFiles GetFullPath(*RecentFile)
-			End Select
-		End Select
-	End If
-	'	Var FILE = Command(-1)
-	'	Var Pos1 = InStr(file, "2>CON")
-	'	If Pos1 > 0 Then file = Left(file, Pos1 - 1)
-	'	If FILE <> "" AndAlso Right(LCase(FILE), 4) <> ".exe" Then
-	'		OpenFiles GetFullPath(FILE)
-	'	ElseIf bFind Then
-	'		WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
-	'		Select Case WhenVisualFBEditorStarts
-	'		Case 1: NewProject 'pfTemplates->ShowModal
-	'		Case 2: AddNew WGet(DefaultProjectFile)
-	'		Case 3: WLet RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", "")
-	'			'Auto Load the last one.
-	'			OpenFiles GetFullPath(*RecentFiles)
-	'		End Select
-	'	End If
-	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
-	gLocalProperties = True
 End Sub
 
 #ifndef __USE_GTK__

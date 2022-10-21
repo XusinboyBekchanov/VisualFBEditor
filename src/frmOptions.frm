@@ -2996,6 +2996,7 @@ Private Sub frmOptions.Form_Create(ByRef Sender As Control)
 			AddShortcuts(pfrmMain->Menu->Item(i))
 		Next
 		.LoadSettings
+		cboDefaultProjectFileCheckEnable
 	End With
 End Sub
 
@@ -3693,10 +3694,7 @@ Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 End Sub
 
 Private Sub frmOptions.Form_Show(ByRef Sender As Form)
-	With fOptions
-		.LoadSettings
-		cboDefaultProjectFileCheckEnable
-	End With
+	
 End Sub
 
 Private Sub frmOptions.TreeView1_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)

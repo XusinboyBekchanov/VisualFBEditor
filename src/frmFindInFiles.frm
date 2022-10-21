@@ -42,6 +42,8 @@ pfFindFile = @fFindFile
 		This.ID = 1000
 		'This.IsChild = True
 		This.OnResize = @Form_Resize
+		This.Designer = @This
+		This.OnCreate = @_Form_Create
 		This.SetBounds 0, 0, 440, 224
 		' Panel1
 		With Panel1
@@ -175,6 +177,10 @@ pfFindFile = @fFindFile
 			.Parent = @This
 		End With
 	End Constructor
+	
+	Private Sub frmFindInFiles._Form_Create(ByRef Sender As Control)
+		*Cast(frmFindInFiles Ptr, Sender.Designer).Form_Create(Sender)
+	End Sub
 	
 	Destructor frmFindInFiles
 		
@@ -323,25 +329,8 @@ Private Sub frmFindInFiles.btnBrowse_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmFindInFiles.Form_Show(ByRef Sender As Form)
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	' for limited the Muilti line
-	Var Posi = InStr(pClipboard->GetAsText, WChr(13)) - 1
-	If Posi < 1 Then Posi = InStr(pClipboard->GetAsText, WChr(10)) - 1
-	If Posi < 1 Then Posi= Len(pClipboard->GetAsText)
-	fFindFile.txtFind.Text = ..Left(pClipboard->GetAsText, Posi)
-	If tb <> 0 AndAlso tb->FileName <> "" Then
-		fFindFile.txtPath.Text = GetFolderName(tb->FileName)
-	Else
-		fFindFile.txtPath.Text = ExePath
-	End If
 	fFindFile.txtFind.SelectAll
 	fFindFile.txtFind.SetFocus
-	fFindFile.Panel1.Top =IIf(mFormFindInFile,35,64)
-	fFindFile.Height=IIf(mFormFindInFile,208,236)
-	fFindFile.Caption=IIf(mFormFindInFile,ML("Find In Files"),ML("Replace In Files"))
-	fFindFile.btnReplace.Visible =Not mFormFindInFile
-	fFindFile.lblReplace.Visible =Not mFormFindInFile
-	fFindFile.txtReplace.Visible =Not mFormFindInFile
 End Sub
 
 Private Sub frmFindInFiles.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
@@ -480,4 +469,24 @@ End Sub
 Private Sub frmFindInFiles.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	fFindFile.Panel1.Height =NewHeight - 30
 	fFindFile.Panel1.Width = NewWidth - 25
+End Sub
+
+Private Sub frmFindInFiles.Form_Create(ByRef Sender As Control)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	' for limited the Muilti line
+	Var Posi = InStr(pClipboard->GetAsText, WChr(13)) - 1
+	If Posi < 1 Then Posi = InStr(pClipboard->GetAsText, WChr(10)) - 1
+	If Posi < 1 Then Posi= Len(pClipboard->GetAsText)
+	fFindFile.txtFind.Text = ..Left(pClipboard->GetAsText, Posi)
+	If tb <> 0 AndAlso tb->FileName <> "" Then
+		fFindFile.txtPath.Text = GetFolderName(tb->FileName)
+	Else
+		fFindFile.txtPath.Text = ExePath
+	End If
+	fFindFile.Panel1.Top = IIf(mFormFindInFile, 35, 64)
+	fFindFile.Height=IIf(mFormFindInFile,208,236)
+	fFindFile.Caption=IIf(mFormFindInFile,ML("Find In Files"),ML("Replace In Files"))
+	fFindFile.btnReplace.Visible =Not mFormFindInFile
+	fFindFile.lblReplace.Visible =Not mFormFindInFile
+	fFindFile.txtReplace.Visible =Not mFormFindInFile
 End Sub

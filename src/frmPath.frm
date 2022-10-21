@@ -20,6 +20,7 @@
 			.Designer = @This
 			.OnShow = @Form_Show_
 			.OnClose = @Form_Close_
+			.OnCreate = @_Form_Create
 			.SetBounds 0, 0, 462, 177
 		End With
 		' cmdCancel
@@ -143,6 +144,10 @@
 		End With
 	End Constructor
 	
+	Private Sub frmPath._Form_Create(ByRef Sender As Control)
+		*Cast(frmPath Ptr, Sender.Designer).Form_Create(Sender)
+	End Sub
+	
 	Dim Shared frPath As frmPath
 	Dim Shared frPathImageList As frmPath
 	pfPath = @frPath
@@ -245,6 +250,21 @@ Private Sub frmPath.Form_Show_(ByRef Sender As Form)
 	*Cast(frmPath Ptr, Sender.Designer).Form_Show(Sender)
 End Sub
 Private Sub frmPath.Form_Show(ByRef Sender As Form)
+	
+End Sub
+
+Private Sub frmPath.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+	*Cast(frmPath Ptr, Sender.Designer).Form_Close(Sender, Action)
+End Sub
+Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	ChooseFolder = False
+	WithoutVersion = False
+	WithoutCommandLine = False
+	WithExtensions = False
+	WithType = False
+End Sub
+
+Private Sub frmPath.Form_Create(ByRef Sender As Control)
 	lblVersion.Visible = (Not WithoutVersion) AndAlso Not ChooseFolder
 	txtVersion.Visible = (Not WithoutVersion) AndAlso Not ChooseFolder
 	lblCommandLine.Visible = Not (WithoutCommandLine OrElse ChooseFolder)
@@ -258,15 +278,4 @@ Private Sub frmPath.Form_Show(ByRef Sender As Form)
 	txtCommandLineText = ""
 	txtExtensionsText = ""
 	cboTypeText = ""
-End Sub
-
-Private Sub frmPath.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
-	*Cast(frmPath Ptr, Sender.Designer).Form_Close(Sender, Action)
-End Sub
-Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	ChooseFolder = False
-	WithoutVersion = False
-	WithoutCommandLine = False
-	WithExtensions = False
-	WithType = False
 End Sub

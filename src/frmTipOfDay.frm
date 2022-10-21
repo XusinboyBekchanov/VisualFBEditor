@@ -28,6 +28,8 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		Declare Sub chkDoNotShow_Click(ByRef Sender As CheckBox)
 		Declare Static Sub cmdNextTip_Click_(ByRef Sender As Control)
 		Declare Sub cmdNextTip_Click(ByRef Sender As Control)
+		Declare Static Sub _Form_Create(ByRef Sender As Control)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As CommandButton cmdPreviousTip, cmdNextTip, cmdClose
@@ -55,6 +57,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 				.CancelButton = @cmdClose
 			#endif
 			.OnShow = @Form_Show_
+			.OnCreate = @_Form_Create
 			.SetBounds 0, 0, 540, 350
 		End With
 		' cmdPreviousTip
@@ -117,6 +120,10 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		End With
 	End Constructor
 	
+	Private Sub frmTipOfDayType._Form_Create(ByRef Sender As Control)
+		*Cast(frmTipOfDayType Ptr, Sender.Designer).Form_Create(Sender)
+	End Sub
+	
 	Private Sub frmTipOfDayType.cmdNextTip_Click_(ByRef Sender As Control)
 		*Cast(frmTipOfDayType Ptr, Sender.Designer).cmdNextTip_Click(Sender)
 	End Sub
@@ -157,29 +164,7 @@ Private Sub frmTipOfDayType.cmdClose_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
-	Dim As Integer Fn = FreeFile_, Result = -1, i = 0
-	Dim Buff As WString * 1024
-	Dim As WString * MAX_Path FileName = ExePath & "/Help/Tip of the Day/" & CurLanguage & ".tip"
-	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
-	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
-	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
-	If Result <> 0 Then Result = Open(FileName For Input As #Fn)
-	If Result = 0 Then
-		Do Until EOF(Fn)
-			Line Input #Fn, Buff
-			Buff = Replace(Buff, "<br>", Chr(13, 10))
-			ReDim Preserve BuffTips(i)
-			wLet(BuffTips(i), Buff)
-			i += 1
-		Loop
-		If ShowTipoftheDayIndex < i AndAlso ShowTipoftheDayIndex >= 0 Then lblTips.Text = *BuffTips(ShowTipoftheDayIndex)
-		Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & Right("0000" & ShowTipoftheDayIndex, 4) & IIf(g_darkModeEnabled, "D", "") & ".png"
-		If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
-	Else
-		Msgbox ML("File") & " """ & GetOSPath(ExePath & "/Help/Tip of the Day/") & CurLanguage & ".tip"" " & ML("not found!")
-	End If
-	CloseFile_(Fn)
-	chkDoNotShow.Checked = Not ShowTipoftheDay 
+	
 End Sub
 
 Private Sub frmTipOfDayType.chkDoNotShow_Click(ByRef Sender As CheckBox)
@@ -204,3 +189,28 @@ Private Sub frmTipOfDayType.cmdNextTip_Click(ByRef Sender As Control)
 	
 End Sub
 
+Private Sub frmTipOfDayType.Form_Create(ByRef Sender As Control)
+	Dim As Integer Fn = FreeFile_, Result = -1, i = 0
+	Dim Buff As WString * 1024
+	Dim As WString * MAX_PATH FileName = ExePath & "/Help/Tip of the Day/" & CurLanguage & ".tip"
+	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
+	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
+	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
+	If Result <> 0 Then Result = Open(FileName For Input As #Fn)
+	If Result = 0 Then
+		Do Until EOF(Fn)
+			Line Input #Fn, Buff
+			Buff = Replace(Buff, "<br>", Chr(13, 10))
+			ReDim Preserve BuffTips(i)
+			WLet(BuffTips(i), Buff)
+			i += 1
+		Loop
+		If ShowTipoftheDayIndex < i AndAlso ShowTipoftheDayIndex >= 0 Then lblTips.Text = *BuffTips(ShowTipoftheDayIndex)
+		Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & Right("0000" & ShowTipoftheDayIndex, 4) & IIf(g_darkModeEnabled, "D", "") & ".png"
+		If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
+	Else
+		MsgBox ML("File") & " """ & GetOSPath(ExePath & "/Help/Tip of the Day/") & CurLanguage & ".tip"" " & ML("not found!")
+	End If
+	CloseFile_(Fn)
+	chkDoNotShow.Checked = Not ShowTipoftheDay 
+End Sub

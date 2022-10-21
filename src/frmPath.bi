@@ -25,6 +25,8 @@ Using My.Sys.Forms
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Static Sub Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Static Sub _Form_Create(ByRef Sender As Control)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As CommandButton cmdPath, cmdOK, cmdCancel

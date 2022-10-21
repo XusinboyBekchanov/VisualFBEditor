@@ -297,7 +297,7 @@ Private Sub frmParameters.Form_Create(ByRef Sender As Control)
 End Sub
 
 Private Sub frmParameters.Form_Show(ByRef Sender As Form)
-	fParameters.LoadSettings
+	
 End Sub
 
 Private Sub frmParameters.cmdOK_Click(ByRef Sender As Control)

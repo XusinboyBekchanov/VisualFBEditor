@@ -13,6 +13,8 @@ Using My.Sys.Forms
 		Declare Static Sub lvTrek_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Static Sub Form_Show(ByRef Sender As Form)
 		Declare Static Sub lvTrek_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub _Form_Create(ByRef Sender As Control)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As ListView lvTrek

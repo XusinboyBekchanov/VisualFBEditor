@@ -31,6 +31,8 @@ pfProjectProperties = @fProjectProperties
 		#ifdef __USE_GTK__
 			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 		#else
+			This.Designer = @This
+			This.OnCreate = @_Form_Create
 			This.Icon.LoadFromResourceID(1)
 		#endif
 		' tabProperties
@@ -737,6 +739,10 @@ pfProjectProperties = @fProjectProperties
 		End With
 	End Constructor
 	
+	Private Sub frmProjectProperties._Form_Create(ByRef Sender As Control)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).Form_Create(Sender)
+	End Sub
+	
 	Private Sub frmProjectProperties._cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		*Cast(frmProjectProperties Ptr, Sender.Designer).cboOptimizationLevel_Selected(Sender, ItemIndex)
 	End Sub
@@ -1138,13 +1144,7 @@ Private Sub frmProjectProperties.cmdAdvancedOptions_Click(ByRef Sender As Contro
 End Sub
 
 Private Sub frmProjectProperties.Form_Show(ByRef Sender As Form)
-	fProjectProperties.cboCompiler.Clear
-	fProjectProperties.cboCompiler.AddItem ML("Default")
-	For i As Integer = 0 To pCompilers->Count - 1
-		fProjectProperties.cboCompiler.AddItem pCompilers->Item(i)->Key
-	Next
-	fProjectProperties.cboCompiler.AddItem ML("Custom")
-	fProjectProperties.RefreshProperties
+	
 End Sub
 
 Private Sub frmProjectProperties.optCompileToGas_Click(ByRef Sender As RadioButton)
@@ -1267,4 +1267,14 @@ End Sub
 
 Private Sub frmProjectProperties.cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	optOptimizationLevel.Checked = True
+End Sub
+
+Private Sub frmProjectProperties.Form_Create(ByRef Sender As Control)
+	fProjectProperties.cboCompiler.Clear
+	fProjectProperties.cboCompiler.AddItem ML("Default")
+	For i As Integer = 0 To pCompilers->Count - 1
+		fProjectProperties.cboCompiler.AddItem pCompilers->Item(i)->Key
+	Next
+	fProjectProperties.cboCompiler.AddItem ML("Custom")
+	fProjectProperties.RefreshProperties
 End Sub

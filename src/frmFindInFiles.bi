@@ -35,6 +35,8 @@ Using My.Sys.Forms
 		Declare Sub ReplaceInFile(ByRef Path As WString ="", ByRef tSearch As WString="", ByRef tReplace As WString="")
 		Declare Static Sub btnReplace_Click(ByRef Sender As Control)
 		Declare Static Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Static Sub _Form_Create(ByRef Sender As Control)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		Declare Destructor
 		

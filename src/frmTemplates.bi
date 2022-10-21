@@ -18,7 +18,7 @@
 		Declare Sub cmdOK_Click(ByRef Sender As Control)
 		Declare Static Sub tvTemplates_SelChanged_(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		Declare Sub tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef Item As TreeNode)
-		Declare Static Sub Form_Create_(ByRef Sender As Control)
+		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Static Sub lvTemplates_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Sub lvTemplates_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
