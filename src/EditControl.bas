@@ -2268,7 +2268,7 @@ Namespace My.Sys.Forms
 				SelectObject(bufDC, This.Canvas.Font.Handle)
 			End If
 		#endif
-		If Not FECLine->EndsCompleted Then
+		If CBool(CurExecutedLine <> iLine) AndAlso CBool(OldExecutedLine <> iLine) AndAlso CBool(Not FECLine->EndsCompleted) Then
 			FECLine->Ends.Add iEnd, @Colors
 		End If
 		'WDeallocate s
@@ -3443,7 +3443,7 @@ Namespace My.Sys.Forms
 							'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
 							PaintText zz, i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, Strings.Underline Or bInIncludeFileRect And CBool(iCursorLine = z)
 						End If
-						FECLine->EndsCompleted = True
+						If CurExecutedLine <> i AndAlso OldExecutedLine <> i Then FECLine->EndsCompleted = True
 						End If
 					End If
 					If zz = ActiveCodePane AndAlso CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine)) Then ' AndAlso z = FLines.Count - 1
@@ -4000,6 +4000,7 @@ Namespace My.Sys.Forms
 		iOldSelEndLine = iSelEndLine
 		OldBracketsStartLine = BracketsStartLine
 		OldBracketsEndLine = BracketsEndLine
+		OldExecutedLine = CurExecutedLine
 		OldCurWord = CurWord
 		iOldDivideY = iDivideY
 		iOldDividedY = iDividedY

@@ -2807,7 +2807,7 @@ End Sub
 		tb->txtCode.CurExecutedLine = fcurlig - 1
 		tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
 		tb->txtCode.PaintControl
-		'SetForegroundWindow frmMain.Handle
+		SetForegroundWindow frmMain.Handle
 		fntab = 0
 		fcurlig = -1
 	End Sub

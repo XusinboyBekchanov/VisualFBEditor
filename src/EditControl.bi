@@ -374,6 +374,7 @@ Namespace My.Sys.Forms
 		FLines As List
 		'VisibleLines As List
 		CurExecutedLine As Integer = -1
+		OldExecutedLine As Integer = -1
 		FocusedItemIndex As Integer
 		LastItemIndex As Integer
 		Dim As Integer m_lLastVertTime, m_lLastHorzTime
