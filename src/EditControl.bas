@@ -2894,7 +2894,7 @@ Namespace My.Sys.Forms
 				OldI = i
 				#ifdef __USE_WINAPI__
 					If bFull = False AndAlso OlddwClientX = dwClientX AndAlso OlddwClientY = dwClientY AndAlso OldPaintedVScrollPos(zz) = VScrollPos AndAlso OldPaintedHScrollPos(zz) = HScrollPos AndAlso iOldDivideY = iDivideY AndAlso iOldDividedY = iDividedY AndAlso iOldDivideX = iDivideX AndAlso iOldDividedX = iDividedX AndAlso CInt(bOldDividedX = bDividedX) AndAlso CInt(bOldDividedY = bDividedY) Then
-						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z AndAlso CInt(bInIncludeFileRectOld = bInIncludeFileRect) Then
+						If (z < iSelStartLine OrElse z > iSelEndLine) AndAlso (z < iOldSelStartLine OrElse z > iOldSelEndLine) AndAlso BracketsStartLine <> z AndAlso BracketsEndLine <> z AndAlso OldBracketsStartLine <> z AndAlso OldBracketsEndLine <> z AndAlso OldExecutedLine <> z AndAlso CInt(bInIncludeFileRectOld = bInIncludeFileRect) Then
 							' AndAlso (z <> FSelEndLine + 1)
 							If CurWord <> "" OrElse OldCurWord <> "" Then
 								If (CurWord = "" OrElse CurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(CurWord)) = 0) AndAlso (OldCurWord = "" OrElse OldCurWord <> "" AndAlso InStr(LCase(*FECLine->Text), LCase(OldCurWord)) = 0) Then
