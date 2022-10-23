@@ -5062,10 +5062,11 @@ Sub CreateMenusAndToolBars
 	imgList.Add "EnumItem", "EnumItem"
 	imgList.Add "Update", "Update"
 	imgList.Add "Forum", "Forum"
-	imgListD.Add "StartWithCompileD", "StartWithCompile"
-	imgListD.Add "StartD", "Start"
-	imgListD.Add "BreakD", "Break"
-	imgListD.Add "EndD", "EndProgram"
+	imgList.Add "Fixme", "Fixme"
+	'imgListD.Add "StartWithCompileD", "StartWithCompile"
+	'imgListD.Add "StartD", "Start"
+	'imgListD.Add "BreakD", "Break"
+	'imgListD.Add "EndD", "EndProgram"
 	
 	'mnuMain.ImagesList = @imgList
 	
@@ -7201,7 +7202,7 @@ txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
 'txtImmediate.BackColor = NormalText.Background
 'txtImmediate.Font.Color = NormalText.Foreground
-txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + Slash + "Controls" + Slash + "MyFbFramework"+ Slash + "mff" + Slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
+txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + slash + "Controls" + slash + "MyFbFramework"+ slash + "mff" + slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
 txtImmediate.SetSel txtImmediate.GetTextLength, txtImmediate.GetTextLength
 
 Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -7225,7 +7226,7 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			WDeAllocate sTmp
 			mChangeLogEdited = True
 		End If
-	ElseIf CInt(bCtrl) And Shift And (key =99 Or key =67) Then 'Ctrl+Shift+C
+	ElseIf CInt(bCtrl) And Shift And (Key =99 Or Key =67) Then 'Ctrl+Shift+C
 		Dim As TabWindow Ptr tb= Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
 			Dim As WString Ptr txtChangeLogText =@txtChangeLog.Text
@@ -7279,7 +7280,7 @@ Sub lvToDo_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 End Sub
 
 lvToDo.Images = @imgList
-lvToDo.StateImages = @imgList
+'lvToDo.StateImages = @imgList
 lvToDo.SmallImages = @imgList
 lvToDo.Align = DockStyle.alClient
 lvToDo.Columns.Add ML("Content"), , 500, cfLeft
@@ -7303,7 +7304,7 @@ End Sub
 'End Sub
 
 lvErrors.Images = @imgList
-lvErrors.StateImages = @imgList
+'lvErrors.StateImages = @imgList
 lvErrors.SmallImages = @imgList
 lvErrors.Align = DockStyle.alClient
 lvErrors.Columns.Add ML("Content"), , 500, cfLeft
@@ -7315,7 +7316,7 @@ lvErrors.OnItemActivate = @lvErrors_ItemActivate
 Sub lvSearch_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSearch.ListItems.Item(itemIndex)
     gSearchItemIndex = itemIndex
-	SelectSearchResult(item->Text(3), Val(item->Text(1)), Val(item->Text(2)), Len(lvSearch.Text), item->Tag)
+	SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(lvSearch.Text), Item->Tag)
 	If pfFind->Visible Then 'David Change
 		pfFind->Caption = ML("Find")+": " + WStr(gSearchItemIndex+1) + " of " + WStr(lvSearch.ListItems.Count)
 	End If
@@ -7411,7 +7412,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 				mChangeLogEdited = False
 			End If
-			mChangelogName = ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log"
+			mChangelogName = ExePath & slash & StringExtract(MainNode->Text, ".") & "_Change.log"
 			txtChangeLog.Text = "Waiting...... "
 			If Dir(mChangelogName)<>"" AndAlso mChangelogName<> "" Then
 				txtChangeLog.LoadFromFile(mChangelogName) ' David Change
@@ -7422,7 +7423,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 				txtChangeLog.Text = ""
 			End If
 			mLoadLog = True
-		ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDo Then
+		ElseIf ptabBottom->SelectedTabIndex = 3 AndAlso Not mLoadToDo Then
 			WLet(gSearchSave, WChr(39) + WChr(84) + "ODO")
 			ThreadCounter(ThreadCreate_(@FindSubProj, MainNode))
 			mLoadToDo = True

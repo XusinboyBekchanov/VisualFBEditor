@@ -4908,7 +4908,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					If CBItem <> 0 Then CurCtrl = CBItem->Object
 					If CurCtrl <> 0 Then
 						Dim As SymbolsType Ptr st = Des->Symbols(CurCtrl)
-						'TODO Hange here with ctrl RichEdit
+						'Fixme Hange here with ctrl RichEdit
 						If st AndAlso st->ReadPropertyFunc AndAlso WGet(st->ReadPropertyFunc(CurCtrl, "ClassName")) <> "RichTextBox" Then
 							'If .ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrl, "Tag")))
 							If st->DeleteComponentFunc Then st->DeleteComponentFunc(CurCtrl)

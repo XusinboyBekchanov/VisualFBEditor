@@ -302,7 +302,7 @@ End Function
 Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WString="", ByRef tn As TreeNode Ptr)
 	Dim As WString * MAX_PATH f
 	Dim As WString Ptr Buffout
-	Dim As Integer Result, Pos1
+	Dim As Integer Result, Pos1, Pos2
 	Dim As WString * 1024 Buff
 	Dim As Integer iLine, iStart, Fn
 	If tSearch = "" OrElse tn < 1 Then Exit Sub
@@ -327,21 +327,35 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 						Do Until EOF(Fn)
 							Line Input #Fn, Buff
 							iLine += 1
-							If chkMatchCase.Checked Then
-								Pos1 = InStr(Buff, tSearch)
+							If lvSearchResult = @lvToDo Then
+								Pos1 = InStr(LCase(Buff), "'" + "todo")
+								Pos2 = InStr(LCase(Buff), "'" + "fixme")
+								If Pos1 > 0 OrElse Pos2 > 0 Then
+									ThreadsEnter
+									lvToDo.ListItems.Add Buff, IIf(Pos1 > 0, "Bookmark", "Fixme")
+									lvToDo.ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(1) = WStr(iLine)
+									lvToDo.ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(2) = WStr(Pos1)
+									lvToDo.ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(3) = f
+									pfrmMain->Update
+									ThreadsLeave
+								End If
 							Else
-								Pos1 = InStr(LCase(Buff), LCase(tSearch))
+								If chkMatchCase.Checked Then
+									Pos1 = InStr(Buff, tSearch)
+								Else
+									Pos1 = InStr(LCase(Buff), LCase(tSearch))
+								End If
+								While Pos1 > 0
+									ThreadsEnter
+									lvSearchResult->ListItems.Add Buff, "Bookmark"
+									lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(1) = WStr(iLine)
+									lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(2) = WStr(Pos1)
+									lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(3) = f
+									pfrmMain->Update
+									ThreadsLeave
+									Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
+								Wend
 							End If
-							While Pos1 > 0
-								ThreadsEnter
-								lvSearchResult->ListItems.Add Buff
-								lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(1) = WStr(iLine)
-								lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(2) = WStr(Pos1)
-								lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(3) = f
-								pfrmMain->Update
-								ThreadsLeave
-								Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
-							Wend
 						Loop
 					Else
 						'MsgBox ML("Open file failure!") &  " " & ML("in function") & " frmFindInFiles.Find"  & Chr(13,10) & "  " & Path & f
@@ -466,7 +480,6 @@ End Sub
 Sub FindSubProj(Param As Any Ptr)
 	MutexLock tlockToDo
 	ThreadsEnter
-	plvSearch->ListItems.Clear
 	StartProgress
 	With fFind
 		.btnFind.Enabled = False
@@ -475,8 +488,14 @@ Sub FindSubProj(Param As Any Ptr)
 		.btnReplaceAll.Enabled = False 
 		ThreadsLeave
 		If *gSearchSave = WChr(39) + WChr(84) + "ODO" Then
+			ThreadsEnter
+			plvToDo->ListItems.Clear
+			ThreadsLeave
 			.FindInProj plvToDo, *gSearchSave, Cast(TreeNode Ptr,Param)
 		Else
+			ThreadsEnter
+			plvSearch->ListItems.Clear
+			ThreadsLeave
 			.FindInProj plvSearch, .txtFind.Text, Cast(TreeNode Ptr,Param)
 		End If
 		ThreadsEnter
@@ -486,7 +505,7 @@ Sub FindSubProj(Param As Any Ptr)
 		.btnReplaceAll.Enabled = True
 		StopProgress
 		If *gSearchSave = WChr(39)+ WChr(84)+"ODO" Then
-			ptabBottom->Tabs[3]->Caption = ML("TODO") & " (" & plvToDo->ListItems.Count & " " & ML("Pos") & ")"
+			ptabBottom->Tabs[3]->Caption = ML("ToDo") & " (" & plvToDo->ListItems.Count & " " & ML("Pos") & ")"
 			WLet(gSearchSave, "")
 			.cboFindRange.ItemIndex = 2
 		Else
@@ -578,22 +597,22 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex
 	If tTabIndex =2 Then
 		ptabBottom->Tabs[tTabIndex]->Caption = ML("Find")
 	Else
-		ptabBottom->Tabs[tTabIndex]->Caption = ML("TODO")
+		ptabBottom->Tabs[tTabIndex]->Caption = ML("ToDo")
 	End If
 	gSearchTabIndex = ptabCode->SelectedTabIndex
-	pTabBottom->Tabs[tTabIndex]->SelectTab
-	Dim As treenode Ptr tn = IIf(pTabLeft->SelectedTabIndex = 2, MainNode, MainNode)
+	ptabBottom->Tabs[tTabIndex]->SelectTab
+	Dim As TreeNode Ptr tn = IIf(ptabLeft->SelectedTabIndex = 2, MainNode, MainNode)
 	Dim bMatchCase As Boolean = chkMatchCase.Checked
 	Dim As WString Ptr buff
 	Dim As Integer Pos1=0
 	If cboFindRange.ItemIndex = 2 Then
 		If tn > 0 Then
-			Dim As ExplorerElement Ptr ee = Tn->Tag
+			Dim As ExplorerElement Ptr ee = tn->Tag
 			If ee > 0 AndAlso *ee->FileName <> "" Then
 				lvSearchResult->ListItems.Clear
 				gSearchItemIndex = 0
-				ThreadCreate_(@FindSubProj, Tn)
-				wLet(gSearchSave, *Search)
+				ThreadCreate_(@FindSubProj, tn)
+				WLet(gSearchSave, *Search)
 			End If
 		End If
 	Else
@@ -648,13 +667,13 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex
 		If tTabIndex =2 Then
 			ptabBottom->Tabs[tTabIndex]->Caption = ML("Find") & " (" & lvSearchResult->ListItems.Count & " " & ML("Pos") & ")"
 		Else
-			ptabBottom->Tabs[tTabIndex]->Caption = ML("TODO") & " (" & lvSearchResult->ListItems.Count & " " & ML("Pos") & ")"
+			ptabBottom->Tabs[tTabIndex]->Caption = ML("ToDo") & " (" & lvSearchResult->ListItems.Count & " " & ML("Pos") & ")"
 		End If
 	End If
 End Function
 
 Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
-	If Len(txtFind.Text)<1 Then Exit Sub
+	If Len(txtFind.Text) < 1 Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim txt As EditControl Ptr = @tb->txtCode
