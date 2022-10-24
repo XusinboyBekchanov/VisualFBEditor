@@ -6385,7 +6385,9 @@ End Sub
 
 Constructor TabPanel
 	tabCode.Images = @imgList
+	tabCode.GroupName = "tabCode"
 	tabCode.Align = DockStyle.alClient
+	tabCode.Detachable = True
 	tabCode.Reorderable = True
 	tabCode.OnPaint = @tabCode_Paint
 	tabCode.OnSelChange = @tabCode_SelChange

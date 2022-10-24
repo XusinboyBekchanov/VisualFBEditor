@@ -6098,8 +6098,10 @@ pnlLeft.Width = tabLeftWidth
 pnlLeft.OnResize = @pnlLeft_Resize
 
 tabLeft.Name = "tabLeft"
+tabLeft.GroupName = "ToolWindow"
 tabLeft.Width = tabLeftWidth
 tabLeft.Align = DockStyle.alClient
+tabLeft.Detachable = True
 tabLeft.Reorderable = True
 tabLeft.OnClick = @tabLeft_Click
 tabLeft.OnDblClick = @tabLeft_DblClick
@@ -6934,6 +6936,7 @@ pnlRight.Align = DockStyle.alRight
 pnlRight.Width = tabRightWidth
 pnlRight.OnResize = @pnlRight_Resize
 
+tabRight.GroupName = "ToolWindow"
 tabRight.Width = tabRightWidth
 #ifdef __USE_GTK__
 	tabRight.Align = DockStyle.alRight
@@ -6943,6 +6946,7 @@ tabRight.Width = tabRightWidth
 tabRight.OnClick = @tabRight_Click
 tabRight.OnDblClick = @tabRight_DblClick
 tabRight.OnSelChange = @tabRight_SelChange
+tabRight.Detachable = True
 tabRight.Reorderable = True
 'tabRight.TabPosition = tpRight
 tpProperties = tabRight.AddTab(ML("Properties"))
@@ -7504,6 +7508,7 @@ tbBottom.Parent = @pnlBottomPin
 
 'ptabBottom->Images.AddIcon bmp
 ptabBottom->Name = "tabBottom"
+ptabBottom->GroupName = "ToolWindow"
 ptabBottom->Height = tabBottomHeight
 #ifdef __USE_GTK__
 	ptabBottom->Align = DockStyle.alBottom
@@ -7511,6 +7516,7 @@ ptabBottom->Height = tabBottomHeight
 	ptabBottom->Align = DockStyle.alClient
 #endif
 'ptabBottom->TabPosition = tpBottom
+ptabBottom->Detachable = True
 ptabBottom->Reorderable = True
 tpOutput = ptabBottom->AddTab(ML("Output"))
 tpErrors = ptabBottom->AddTab(ML("Errors"))
