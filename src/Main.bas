@@ -97,6 +97,7 @@ Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvThd, tvWch ', tvPrc
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
+Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpErrors, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpThreads, tpWatches
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
@@ -491,7 +492,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	NodesCount = IIf(bAll, tvExplorer.Nodes.Count, 1)
 	StartProgress
 	lvErrors.ListItems.Clear
-	ptabBottom->Tabs[1]->Caption = ML("Errors") '    'Inits
+	tpErrors->Caption = ML("Errors") '    'Inits
 	ThreadsLeave()
 	For k As Integer = 0 To NodesCount - 1
 		ThreadsEnter()
@@ -926,12 +927,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		ThreadsEnter()
 		ShowMessages("")
 		If lvErrors.ListItems.Count <> 0 Then
-			ptabBottom->Tabs[1]->Caption = IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "")
-			ptabBottom->Tabs[1]->Caption = IIf(NumberWarning > 0, ptabBottom->Tabs[1]->Caption & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", ptabBottom->Tabs[1]->Caption)
-			ptabBottom->Tabs[1]->Caption = IIf(NumberInfo > 0, ptabBottom->Tabs[1]->Caption & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", ptabBottom->Tabs[1]->Caption)
-			ShowMessages(Str(Time) & ": " & ML("found") & " " & ptabBottom->Tabs[1]->Caption, False)
+			tpErrors->Caption = IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "")
+			tpErrors->Caption = IIf(NumberWarning > 0, tpErrors->Caption & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", tpErrors->Caption)
+			tpErrors->Caption = IIf(NumberInfo > 0, tpErrors->Caption & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", tpErrors->Caption)
+			ShowMessages(Str(Time) & ": " & ML("found") & " " & tpErrors->Caption, False)
 		Else
-			ptabBottom->Tabs[1]->Caption = ML("Errors")
+			tpErrors->Caption = ML("Errors")
 		End If
 		ThreadsLeave()
 		For i As Integer = 0 To Tools.Count - 1
@@ -942,10 +943,10 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ThreadsEnter()
 			If Parameter <> "Check" Then
 				ShowMessages(Str(Time) & ": " & ML("Do not build file.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-				If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then ptabBottom->Tabs[1]->SelectTab
+				If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then tpErrors->SelectTab
 			ElseIf lvErrors.ListItems.Count <> 0 Then
 				ShowMessages(Str(Time) & ": " & ML("Checking ended.")) & " " & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-				ptabBottom->Tabs[1]->SelectTab
+				tpErrors->SelectTab
 			Else
 				ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
 			End If
@@ -1149,11 +1150,11 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 			OpenD.Filter = ML("Key files") & " (*.jks)|*.jks|" & ML("All Files") & "|*.*|"
 			If Not OpenD.Execute Then Exit Sub
 			WLet(CmdL, Environ("COMSPEC") & " /K cd /D """ & *Project->FileName & "/app/build/outputs/apk/release"" & " & SDKDir & "/build-tools/" & buildToolsVersion & "/apksigner sign --ks " & OpenD.FileName & " --out ../../../../release/app-release.apk app-release-unsigned-aligned.apk")
-			If CreateProcessW(Null, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-				WaitForSingleObject pinfo.hProcess, INFINITE
-				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-				CloseHandle(pinfo.hProcess)
-				CloseHandle(pinfo.hThread)
+			If CreateProcessW(NULL, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject PInfo.hProcess, INFINITE
+				GetExitCodeProcess(PInfo.hProcess, @ExitCode)
+				CloseHandle(PInfo.hProcess)
+				CloseHandle(PInfo.hThread)
 				Result = ExitCode
 				'Result = Shell(Debugger & """" & *ExeFileName + """")
 				ShowMessages(Time & ": " & ML("Signed APK file generated") & "!")
@@ -1161,7 +1162,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 				Result = GetLastError()
 				ShowMessages(Time & ": " & ML("APK signer do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
 			End If
-			WDeallocate CmdL
+			WDeAllocate CmdL
 		Else
 			
 		End If
@@ -1190,7 +1191,7 @@ End Sub
 
 Sub txtOutput_DblClick(ByRef Sender As Control)
 	Dim Buff As WString Ptr = @txtOutput.Lines(txtOutput.GetLineFromCharIndex)
-	If Buff > 0 AndAlso InStr(LCase(*buff), ML("debugprint")) > 1 Then Exit Sub
+	If Buff > 0 AndAlso InStr(LCase(*Buff), ML("debugprint")) > 1 Then Exit Sub
 	Dim As WString Ptr ErrFileName, ErrTitle
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
@@ -1631,7 +1632,7 @@ Sub OpenFolder()
 	If Not BrowseD.Execute Then Exit Sub
 	AddFolder BrowseD.Directory
 	WLet(RecentFolder, BrowseD.Directory)
-	tabLeft.Tabs[0]->SelectTab
+	tpProject->SelectTab
 End Sub
 
 Sub OpenProject()
@@ -1641,7 +1642,7 @@ Sub OpenProject()
 	If Not OpenD.Execute Then Exit Sub
 	AddProject OpenD.FileName
 	WLet(RecentProject, OpenD.FileName)
-	tabLeft.Tabs[0]->SelectTab
+	tpProject->SelectTab
 End Sub
 
 Sub OpenUrl(ByVal url As String)
@@ -1736,7 +1737,7 @@ Sub OpenSession()
 	WLet(LastOpenPath, GetFolderName(OpenD.FileName))
 	AddSession OpenD.FileName
 	WLet(RecentSession, OpenD.FileName)
-	tabLeft.Tabs[0]->SelectTab
+	tpProject->SelectTab
 End Sub
 
 Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList, miRecentFilesFolders As MenuItem Ptr, ByRef MRUType As String)
@@ -1831,7 +1832,7 @@ Sub OpenFiles(ByRef FileName As WString)
 		AddTab FileName
 		WLet(RecentFile, FileName)
 	End If
-	wLet(RecentFiles, FileName)
+	WLet(RecentFiles, FileName)
 End Sub
 
 Sub OpenProgram()
@@ -1844,10 +1845,10 @@ Sub OpenProgram()
 	'  Add *.inc
 	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
-		WLet(LastOpenPath, GetFolderName(OpenD.Filename))
-		OpenFiles(GetFullPath(OpenD.Filename))
+		WLet(LastOpenPath, GetFolderName(OpenD.FileName))
+		OpenFiles(GetFullPath(OpenD.FileName))
 	End If
-	TabLeft.Tabs[0]->SelectTab
+	tpProject->SelectTab
 End Sub
 
 Function SaveSession() As Boolean
@@ -1862,10 +1863,10 @@ Function SaveSession() As Boolean
 	End If
 	If Not SaveD.Execute Then Return False
 	WLet(LastOpenPath, GetFolderName(SaveD.FileName))
-	If FileExists(SaveD.Filename) Then
-		Select Case MsgBox(ML("Are you sure you want to overwrite the session") & "?" & WChr(13,10) & SaveD.Filename, "Visual FB Editor", mtWarning, btYesNo)
-		Case mrYES:
-		Case mrNO: Return SaveSession()
+	If FileExists(SaveD.FileName) Then
+		Select Case MsgBox(ML("Are you sure you want to overwrite the session") & "?" & WChr(13,10) & SaveD.FileName, "Visual FB Editor", mtWarning, btYesNo)
+		Case mrYes:
+		Case mrNo: Return SaveSession()
 		End Select
 	End If
 	Dim As TreeNode Ptr tn1
@@ -2998,8 +2999,6 @@ Function GetTypeControl(ControlType As String) As Integer
 		Return 0
 	End If
 End Function
-
-Dim Shared tpShakl As TabPage Ptr
 
 Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifdef __USE_GTK__
@@ -5257,7 +5256,7 @@ Sub CreateMenusAndToolBars
 	miView->Add(ML("Project Explorer") & HK("ProjectExplorer", "Ctrl+R"), "Project", "ProjectExplorer", @mClick)
 	miView->Add(ML("Properties Window") & HK("PropertiesWindow", "F4"), "Property", "PropertiesWindow", @mClick)
 	miView->Add(ML("Events Window") & HK("EventsWindow"), "Event", "EventsWindow", @mClick)
-	miView->Add(ML("ToolBox") & HK("ToolBox"), "Tools", "ToolBox", @mClick)
+	miView->Add(ML("Toolbox") & HK("Toolbox"), "Tools", "Toolbox", @mClick)
 	Var miOtherWindows = miView->Add(ML("Other Windows"))
 	miOtherWindows->Add(ML("Output Window") & HK("OutputWindow"), "", "OutputWindow", @mClick)
 	miOtherWindows->Add(ML("Errors Window") & HK("ErrorsWindow"), "", "ErrorsWindow", @mClick)
@@ -5988,7 +5987,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 			'			MainNode->ImageKey = "MainProject"
 			'			MainNode->Bold = True
 			If mStartLoadSession = False Then
-				If ptabBottom->SelectedTabIndex = 4 AndAlso Not mLoadLog Then
+				If tpChangeLog->IsSelected AndAlso Not mLoadLog Then
 					If mChangeLogEdited AndAlso mChangelogName<> "" Then
 						txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 						mChangeLogEdited = False
@@ -6004,7 +6003,8 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 						txtChangeLog.Text = ""
 					End If
 					mLoadLog = True
-				ElseIf ptabBottom->SelectedTabIndex = 3  AndAlso Not mLoadToDo Then
+				End If
+				If tpToDo->IsSelected AndAlso Not mLoadToDo Then
 					WLet(gSearchSave, WChr(39) + WChr(84) + "ODO")
 					ThreadCounter(ThreadCreate_(@FindSubProj, ptn))
 					mLoadToDo = True
@@ -6100,6 +6100,7 @@ pnlLeft.OnResize = @pnlLeft_Resize
 tabLeft.Name = "tabLeft"
 tabLeft.Width = tabLeftWidth
 tabLeft.Align = DockStyle.alClient
+tabLeft.Reorderable = True
 tabLeft.OnClick = @tabLeft_Click
 tabLeft.OnDblClick = @tabLeft_DblClick
 tabLeft.OnSelChange = @tabLeft_SelChange
@@ -6112,16 +6113,16 @@ tbLeft.Flat = True
 tbLeft.Width = 23
 tbLeft.Parent = @pnlLeftPin
 
-Var tpLoyiha = tabLeft.AddTab(ML("Project"))
+tpProject = tabLeft.AddTab(ML("Project"))
 
-tpShakl = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
-tpShakl->Name = "tpShakl"
+tpToolbox = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
+tpToolbox->Name = "Toolbox"
 
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y
-			Dim As Control Ptr tb = IIf(tabLeft.SelectedTabIndex = 0, @tbExplorer, @tbForm)
+			Dim As Control Ptr tb = IIf(tabLeft.SelectedTab = tpProject, @tbExplorer, @tbForm)
 			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, pnlLeft.Width, 0, @x, @y)
 			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
 			allocation->x = x - tbLeft.Width - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.Width, 0)
@@ -6154,9 +6155,9 @@ pnlLeftPin.Parent = @pnlLeft
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
 lblLeft.Align = DockStyle.alBottom
 
-tpLoyiha->Add @tbExplorer
-tpLoyiha->Add @lblLeft
-tpLoyiha->Add @tvExplorer
+tpProject->Add @tbExplorer
+tpProject->Add @lblLeft
+tpProject->Add @tvExplorer
 
 pnlToolBox.Align = DockStyle.alClient
 pnlToolBox.Add @tbToolBox
@@ -6165,9 +6166,9 @@ pnlToolBox.Add @tbToolBox
 #endif
 pnlToolBox.OnResize = @pnlToolBox_Resize
 
-tpShakl->Add @pnlToolBox 'tbToolBox
-tpShakl->Add @tbForm
-'tabLeft.Tabs[1]->Style = tabLeft.Tabs[1]->Style Or ES_AUTOVSCROLL or WS_VSCROLL
+tpToolbox->Add @pnlToolBox 'tbToolBox
+tpToolbox->Add @tbForm
+'tpToolbox->Style = tpToolbox->Style Or ES_AUTOVSCROLL or WS_VSCROLL
 
 'pnlLeft.Width = 153
 'pnlLeft.Align = 1
@@ -6313,7 +6314,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(lvProperties.TreeStore), @Item->TreeIter))
 		gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 		gtk_tree_path_free(TreePath)
-		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.Width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
+		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
 	#else
 		ListView_GetSubItemRect(lvProperties.Handle, Item->GetItemIndex, 1, LVIR_BOUNDS, @lpRect)
 	#endif
@@ -6768,8 +6769,8 @@ tvWch.EditLabels = True
 tvWch.Nodes.Add
 
 Sub lvThreads_ItemActivate(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-	If Val(item->Text(1)) = 0 Then Exit Sub
-	SelectSearchResult(item->Text(2), Val(item->Text(1)))
+	If Val(Item->Text(1)) = 0 Then Exit Sub
+	SelectSearchResult(Item->Text(2), Val(Item->Text(1)))
 End Sub
 
 lvThreads.Align = DockStyle.alClient
@@ -6784,7 +6785,7 @@ Sub tvVar_Message(ByRef Sender As Control, ByRef message As Message)
 	#ifndef __USE_GTK__
 		Select Case message.Msg
 		Case CM_NOTIFY
-			Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lparam)
+			Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lParam)
 			If tvp <> 0 Then
 				Select Case tvp->hdr.code
 				Case TVN_ITEMEXPANDING: UpdateItems(TreeView_GetNextItem(tviewvar, tvp->itemNew.hItem, TVGN_CHILD))
@@ -6837,7 +6838,7 @@ Sub lvVar_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListView
 			End If
 		Next
 		'Item->Nodes.Remove 0
-		ptabBottom->UpdateUnlock
+		ptabBottom->UpdateUnLock
 	End If
 End Sub
 
@@ -6889,9 +6890,9 @@ Sub lvWatches_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListVie
 		End If
 	#endif
 	If lvWatches.Nodes.Count = 1 Then
-		ptabBottom->Tabs[9]->Caption = ML("Watches")
+		tpWatches->Caption = ML("Watches")
 	Else
-		ptabBottom->Tabs[9]->Caption = ML("Watches") & " (" & Str(lvWatches.Nodes.Count - 1) & " " & ML("Pos") & ")"
+		tpWatches->Caption = ML("Watches") & " (" & Str(lvWatches.Nodes.Count - 1) & " " & ML("Pos") & ")"
 	End If
 End Sub
 
@@ -6942,20 +6943,21 @@ tabRight.Width = tabRightWidth
 tabRight.OnClick = @tabRight_Click
 tabRight.OnDblClick = @tabRight_DblClick
 tabRight.OnSelChange = @tabRight_SelChange
+tabRight.Reorderable = True
 'tabRight.TabPosition = tpRight
-tabRight.AddTab(ML("Properties"))
-tabRight.Tabs[0]->Add @tbProperties
-tabRight.Tabs[0]->Add @txtLabelProperty
-tabRight.Tabs[0]->Add @splProperties
-tabRight.Tabs[0]->Add @lvProperties
-tabRight.AddTab(ML("Events"))
-tabRight.Tabs[1]->Add @tbEvents
-tabRight.Tabs[1]->Add @txtLabelEvent
-tabRight.Tabs[1]->Add @splEvents
-tabRight.Tabs[1]->Add @lvEvents
+tpProperties = tabRight.AddTab(ML("Properties"))
+tpProperties->Add @tbProperties
+tpProperties->Add @txtLabelProperty
+tpProperties->Add @splProperties
+tpProperties->Add @lvProperties
+tpEvents = tabRight.AddTab(ML("Events"))
+tpEvents->Add @tbEvents
+tpEvents->Add @txtLabelEvent
+tpEvents->Add @splEvents
+tpEvents->Add @lvEvents
 pnlRight.Add @tabRight
 #ifdef __USE_GTK__
-	tabRight.Tabs[0]->Add @pnlPropertyValue
+	tpProperties->Add @pnlPropertyValue
 #endif
 
 tbRight.ImagesList = @imgList
@@ -6968,9 +6970,9 @@ tbRight.Parent = @pnlRightPin
 	#ifdef __USE_GTK3__
 		Function OverlayRight_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y, x1, y1
-			Dim As Control Ptr tb = IIf(tabRight.SelectedTabIndex = 0, @tbProperties, @tbEvents)
+			Dim As Control Ptr tb = IIf(tabRight.SelectedTab = tpProperties, @tbProperties, @tbEvents)
 			gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, pnlRight.Width, 0, @x, @y)
-			Dim As Control Ptr lv = IIf(tabRight.SelectedTabIndex = 0, @lvProperties, @lvEvents)
+			Dim As Control Ptr lv = IIf(tabRight.SelectedTab = tpProperties, @lvProperties, @lvEvents)
 			gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, lv->Width, 0, @x1, @y1)
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
 			allocation->x = x - tbRight.Width - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.Width - x1 + 1, 0)
@@ -7047,7 +7049,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	pnlPropertyValue.Visible = False
 	If tb->cboClass.Items.Count > 1 Then
 		tb->FillAllProperties
-		tabRight.SelectedTabIndex = 0
+		tpProperties->SelectTab
 		miForm->Enabled = True
 		miCodeAndForm->Enabled = True
 		tb->tbrTop.Buttons.Item("Form")->Enabled = True
@@ -7202,7 +7204,7 @@ txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
 'txtImmediate.BackColor = NormalText.Background
 'txtImmediate.Font.Color = NormalText.Foreground
-txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + slash + "Controls" + slash + "MyFbFramework"+ slash + "mff" + slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
+txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + Slash + "Controls" + Slash + "MyFbFramework"+ Slash + "mff" + Slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
 txtImmediate.SetSel txtImmediate.GetTextLength, txtImmediate.GetTextLength
 
 Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -7400,19 +7402,20 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 		'		splBottom.Visible = True
 		'		frmMain.RequestAlign '<bp>
 	End If
-	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = newIndex = 0
-	tbBottom.Buttons.Item("EraseImmediateWindow")->Visible = newIndex = 5
-	tbBottom.Buttons.Item("AddWatch")->Visible = newIndex = 9
-	tbBottom.Buttons.Item("RemoveWatch")->Visible = newIndex = 9
-	tbBottom.Buttons.Item("Update")->Visible = newIndex = 7
+	Dim As TabPage Ptr tp = ptabBottom->SelectedTab
+	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = tp = tpOutput
+	tbBottom.Buttons.Item("EraseImmediateWindow")->Visible = tp = tpImmediate
+	tbBottom.Buttons.Item("AddWatch")->Visible = tp = tpWatches
+	tbBottom.Buttons.Item("RemoveWatch")->Visible = tp = tpWatches
+	tbBottom.Buttons.Item("Update")->Visible = tp = tpGlobals
 	If newIndex = 9 Then tbBottom.Buttons.Item("AddWatch")->State = tbBottom.Buttons.Item("AddWatch")->State Or ToolButtonState.tstWrap
 	If MainNode <> 0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text, ".") Then
-		If ptabBottom->SelectedTabIndex = 4 AndAlso CInt(Not mLoadLog) Then ' AndAlso CInt(Not mLoadToDo)
+		If ptabBottom->SelectedTab = tpChangeLog AndAlso CInt(Not mLoadLog) Then ' AndAlso CInt(Not mLoadToDo)
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
 				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 				mChangeLogEdited = False
 			End If
-			mChangelogName = ExePath & slash & StringExtract(MainNode->Text, ".") & "_Change.log"
+			mChangelogName = ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log"
 			txtChangeLog.Text = "Waiting...... "
 			If Dir(mChangelogName)<>"" AndAlso mChangelogName<> "" Then
 				txtChangeLog.LoadFromFile(mChangelogName) ' David Change
@@ -7423,7 +7426,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 				txtChangeLog.Text = ""
 			End If
 			mLoadLog = True
-		ElseIf ptabBottom->SelectedTabIndex = 3 AndAlso Not mLoadToDo Then
+		ElseIf ptabBottom->SelectedTab = tpToDo AndAlso Not mLoadToDo Then
 			WLet(gSearchSave, WChr(39) + WChr(84) + "ODO")
 			ThreadCounter(ThreadCreate_(@FindSubProj, MainNode))
 			mLoadToDo = True
@@ -7449,7 +7452,7 @@ End Sub
 Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 	If ChangeTab Then
 		tabBottom_SelChange(*ptabBottom, 0)
-		tabBottom.SelectedTabIndex = 0
+		tpOutput->SelectTab
 	End If
 	txtOutput.SetSel txtOutput.GetTextLength, txtOutput.GetTextLength
 	txtOutput.SelText = msg & WChr(13) & WChr(10)
@@ -7508,31 +7511,32 @@ ptabBottom->Height = tabBottomHeight
 	ptabBottom->Align = DockStyle.alClient
 #endif
 'ptabBottom->TabPosition = tpBottom
-ptabBottom->AddTab(ML("Output"))
-ptabBottom->AddTab(ML("Errors"))
-ptabBottom->AddTab(ML("Find"))
-ptabBottom->AddTab(ML("ToDo"))
-ptabBottom->AddTab(ML("Change Log"))
-ptabBottom->AddTab(ML("Immediate"))
-ptabBottom->AddTab(ML("Locals"))
-ptabBottom->AddTab(ML("Globals"))
-'ptabBottom->AddTab(ML("Procedures"))
-ptabBottom->AddTab(ML("Threads"))
-ptabBottom->AddTab(ML("Watches"))
-ptabBottom->Tabs[0]->Add @txtOutput
-ptabBottom->Tabs[1]->Add @lvErrors
-ptabBottom->Tabs[2]->Add @lvSearch
-ptabBottom->Tabs[3]->Add @lvToDo
-ptabBottom->Tabs[4]->Add @txtChangeLog
-ptabBottom->Tabs[5]->Add @txtImmediate
-ptabBottom->Tabs[6]->Add @lvLocals
-ptabBottom->Tabs[6]->Add @tvVar
-ptabBottom->Tabs[7]->Add @lvGlobals
-'ptabBottom->Tabs[8]->Add @tvPrc
-ptabBottom->Tabs[8]->Add @lvThreads
-ptabBottom->Tabs[8]->Add @tvThd
-ptabBottom->Tabs[9]->Add @lvWatches
-ptabBottom->Tabs[9]->Add @tvWch
+ptabBottom->Reorderable = True
+tpOutput = ptabBottom->AddTab(ML("Output"))
+tpErrors = ptabBottom->AddTab(ML("Errors"))
+tpFind = ptabBottom->AddTab(ML("Find"))
+tpToDo = ptabBottom->AddTab(ML("ToDo"))
+tpChangeLog = ptabBottom->AddTab(ML("Change Log"))
+tpImmediate = ptabBottom->AddTab(ML("Immediate"))
+tpLocals = ptabBottom->AddTab(ML("Locals"))
+tpGlobals = ptabBottom->AddTab(ML("Globals"))
+'tpImmediate = ptabBottom->AddTab(ML("Procedures"))
+tpThreads = ptabBottom->AddTab(ML("Threads"))
+tpWatches = ptabBottom->AddTab(ML("Watches"))
+tpOutput->Add @txtOutput
+tpErrors->Add @lvErrors
+tpFind->Add @lvSearch
+tpToDo->Add @lvToDo
+tpChangeLog->Add @txtChangeLog
+tpImmediate->Add @txtImmediate
+tpLocals->Add @lvLocals
+tpLocals->Add @tvVar
+tpGlobals->Add @lvGlobals
+'tpProcedures->Add @tvPrc
+tpThreads->Add @lvThreads
+tpThreads->Add @tvThd
+tpWatches->Add @lvWatches
+tpWatches->Add @tvWch
 ptabBottom->OnClick = @tabBottom_Click
 ptabBottom->OnDblClick = @tabBottom_DblClick
 ptabBottom->OnSelChange = @tabBottom_SelChange

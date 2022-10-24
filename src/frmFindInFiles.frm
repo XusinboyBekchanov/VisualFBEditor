@@ -276,7 +276,7 @@ End Sub
 
 Sub FindSub(Param As Any Ptr)
 	ThreadsEnter
-	ptabBottom->Tabs[2]->SelectTab
+	tpFind->SelectTab
 	plvSearch->ListItems.Clear
 	StartProgress
 	With fFindFile
@@ -289,7 +289,7 @@ Sub FindSub(Param As Any Ptr)
 		.btnFind.Enabled = True
 	End With
 	StopProgress
-	ptabBottom->Tabs[2]->Caption = ML("Find") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
+	tpFind->Caption = ML("Find") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
 	ThreadsLeave
 End Sub
 
@@ -309,7 +309,7 @@ Sub ReplaceSub(Param As Any Ptr)
 		.btnReplace.Enabled = True
 	End With
 	StopProgress
-	ptabBottom->Tabs[2]->Caption = ML("Replace") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
+	tpFind->Caption = ML("Replace") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
 	ThreadsLeave
 End Sub
 

@@ -7130,7 +7130,7 @@ Function get_global_variables_from_exe(sBuf As String) As Long
 		
 	Loop
 	
-	ptabBottom->Tabs[7]->Caption = ML("Globals") & " (" & lvGlobals.Nodes.Count & " " & ML("Pos") & ")"
+	tpGlobals->Caption = ML("Globals") & " (" & lvGlobals.Nodes.Count & " " & ML("Pos") & ")"
 	
 	Return iIndex
 	
@@ -7227,7 +7227,7 @@ Function fill_threads(sBuf As String, iFlagAutoUpdate As Long = 0) As Long
 	Next
 	
 	lvThreads.ExpandAll
-	ptabBottom->Tabs[8]->Caption = ML("Threads") & " (" & lvThreads.Nodes.Count & " " & ML("Pos") & ")"
+	tpThreads->Caption = ML("Threads") & " (" & lvThreads.Nodes.Count & " " & ML("Pos") & ")"
 	
 	Return 1
 	
@@ -7411,7 +7411,7 @@ Function fill_locals_variables(sBuf As String , iFlagAutoUpdate As Long = 0) As 
 		
 	Loop
 	
-	ptabBottom->Tabs[6]->Caption = ML("Locals") & " (" & lvLocals.Nodes.Count & " " & ML("Pos") & ")"
+	tpLocals->Caption = ML("Locals") & " (" & lvLocals.Nodes.Count & " " & ML("Pos") & ")"
 	
 	Return 1
 	
@@ -8587,7 +8587,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			For i As Integer = 0 To ptabCode->TabCount - 1
 				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 				For j As Integer = 0 To tb->txtCode.FLines.Count - 1
-					If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->BreakPoint Then Continue For
+					If Not Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[j])->Breakpoint Then Continue For
 					Print #Fn, "b """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1)
 				Next
 			Next i
@@ -8608,7 +8608,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		re_ini
 	#endif
 	ThreadsEnter()
-	ptabBottom->Tabs[6]->SelectTab
+	tpLocals->SelectTab
 	ThreadsLeave()
 	Var Pos1 = 0
 	While InStr(Pos1 + 1, exename, "\")
@@ -8675,7 +8675,7 @@ Sub RunWithDebug(Param As Any Ptr)
 						Exit Sub
 					End If
 					ThreadsEnter()
-					ptabBottom->Tabs[6]->SelectTab
+					tpLocals->SelectTab
 					ThreadsLeave()
 					iFlagStartDebug = 1
 					run_debug(1)
@@ -8691,7 +8691,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			ChangeEnabledDebug True, False, False
 			ThreadsLeave()
 		End If
-		WDeallocate Arguments
+		WDeAllocate Arguments
 		'Shell "gdb " & CmdL
 	#else
 		ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
@@ -8704,9 +8704,9 @@ Sub RunWithDebug(Param As Any Ptr)
 			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
 			If CreateProcessW(@exename, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
 				WaitForSingleObject pinfo.hProcess, INFINITE
-				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-				CloseHandle(pinfo.hProcess)
-				CloseHandle(pinfo.hThread)
+				GetExitCodeProcess(PInfo.hProcess, @ExitCode)
+				CloseHandle(PInfo.hProcess)
+				CloseHandle(PInfo.hThread)
 			End If
 			Result = ExitCode
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
@@ -8725,7 +8725,7 @@ Sub RunWithDebug(Param As Any Ptr)
 					ChangeEnabledDebug True, False, False
 					Exit Sub
 				End If
-				ptabBottom->Tabs[6]->SelectTab
+				tpLocals->SelectTab
 				iFlagStartDebug = 1
 				run_debug(1)
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
@@ -8738,14 +8738,14 @@ Sub RunWithDebug(Param As Any Ptr)
 				lvWatches.Visible = False
 				tvWch.Visible = True
 				InDebug = True
-				ptabBottom->Tab(6)->SelectTab
+				tpLocals->SelectTab
 				pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE Or DEBUG_PROCESS Or DEBUG_ONLY_THIS_PROCESS
-				If CreateProcessW(@exename, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-					WaitForSingleObject pinfo.hProcess, 10
-					dbgprocId = pinfo.dwProcessId
-					dbgthreadID = pinfo.dwThreadId
-					dbghand = pinfo.hProcess
-					dbghthread = pinfo.hThread
+				If CreateProcessW(@exename, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then
+					WaitForSingleObject PInfo.hProcess, 10
+					dbgprocid = PInfo.dwProcessId
+					dbgthreadID = PInfo.dwThreadId
+					dbghand = PInfo.hProcess
+					dbghthread = PInfo.hThread
 					prun = True
 					Wait_Debug
 				End If
@@ -8753,7 +8753,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				InDebug = False
 				DeleteDebugCursor
 				Dim As Unsigned Long ExitCode
-				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+				GetExitCodeProcess(PInfo.hProcess, @ExitCode)
 				Result = ExitCode
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 				ChangeEnabledDebug True, False, False

@@ -448,7 +448,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			miCodeAndForm->Enabled = True
 			tb->tbrTop.Buttons.Item("Form")->Enabled = True
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
-			tabRight.SelectedTabIndex = 0
+			tpProperties->SelectTab
 		End If
 		MoveCloseButtons ptabCode
 	End If
@@ -3155,7 +3155,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 '			tb->pnlCode.Visible = True
 '			tb->pnlForm.Visible = False
 '			tb->splForm.Visible = False
-'			ptabLeft->SelectedTabIndex = 0
+'			tpProject->SelectTab
 '			tb->RequestAlign
 		End If
 	End Select
@@ -3174,7 +3174,7 @@ End Sub
 Sub DesignerClickProperties(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
-	ptabRight->Tab(0)->SelectTab
+	tpProperties->SelectTab
 End Sub
 
 #ifdef __USE_GTK__
@@ -6122,7 +6122,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			.pnlCode.Visible = True
 			.pnlForm.Visible = False
 			.splForm.Visible = False
-			ptabLeft->SelectedTabIndex = 0
+			tpProject->SelectTab
 		Case "Form"
 			'If tb->cboClass.Items.Count < 2 Then Exit Sub
 			.pnlCode.Visible = False
@@ -6130,7 +6130,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			.pnlForm.Visible = True
 			.splForm.Visible = False
 			If (.bNotDesign = False) AndAlso tb->FormNeedDesign Then .FormDesign: tb->FormNeedDesign = False
-			ptabLeft->SelectedTabIndex = 1
+			tpToolbox->SelectTab
 		Case "CodeAndForm"
 			'If tb->cboClass.Items.Count < 2 Then Exit Sub
 			.pnlForm.Align = DockStyle.alRight
@@ -6139,7 +6139,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			.splForm.Visible = True
 			.pnlCode.Visible = True
 			If (.bNotDesign = False) AndAlso tb->FormNeedDesign Then .FormDesign: tb->FormNeedDesign = False
-			ptabLeft->SelectedTabIndex = 1
+			tpToolbox->SelectTab
 		End Select
 		.RequestAlign
 	End With

@@ -132,7 +132,7 @@ Common Shared As Integer WhenVisualFBEditorStarts, ShowTipoftheDayIndex
 Common Shared As Integer AutoSaveBeforeCompiling, HistoryCodeDays
 Common Shared As Double  HistoryCodeCleanDay
 Common Shared As Integer IncludeMFFPath
-Common Shared As Integer gSearchItemIndex, gSearchTabIndex
+Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
 Common Shared As Integer LastOpenedFileType
 Common Shared As String CurLanguage, UseDefine

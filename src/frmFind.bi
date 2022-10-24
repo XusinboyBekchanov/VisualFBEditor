@@ -35,7 +35,7 @@ Using My.Sys.Forms
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Sub Form_Close(ByRef Sender As Control, ByRef Action As Integer)
 		Declare Sub btnFind_Click(ByRef Sender As Control)
-		Declare Function FindAll(ByRef lvSearchResult As ListView Ptr, tTabIndex As Integer =2, ByRef tSearch As WString ="", bNotShowResults As Boolean = False) As Integer
+		Declare Function FindAll(ByRef lvSearchResult As ListView Ptr, tTab As TabPage Ptr = tpFind, ByRef tSearch As WString = "", bNotShowResults As Boolean = False) As Integer
 		Declare Sub FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WString="", ByRef tn As TreeNode Ptr)
 		Declare Sub ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As WString="", ByRef tn As TreeNode Ptr)
 		Declare Sub btnFindPrev_Click(ByRef Sender As Control)

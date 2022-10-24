@@ -179,21 +179,21 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "ProjectProperties":                   pfProjectProperties->ShowModal *pfrmMain
 	Case "SetAsMain":                           SetAsMain @Sender = miTabSetAsMain
 	Case "ReloadHistoryCode":                   ReloadHistoryCode 
-	Case "ProjectExplorer":                     ptabLeft->Tab(0)->SelectTab
-	Case "PropertiesWindow":                    ptabRight->Tab(0)->SelectTab
-	Case "EventsWindow":                        ptabRight->Tab(1)->SelectTab
-	Case "ToolBox":                             ptabLeft->Tab(1)->SelectTab
-	Case "OutputWindow":                        ptabBottom->Tab(0)->SelectTab
-	Case "ErrorsWindow":                        ptabBottom->Tab(1)->SelectTab
-	Case "FindWindow":                          ptabBottom->Tab(2)->SelectTab
-	Case "ToDoWindow":                          ptabBottom->Tab(3)->SelectTab
-	Case "ChangeLogWindow":                     ptabBottom->Tab(4)->SelectTab
-	Case "ImmediateWindow":                     ptabBottom->Tab(5)->SelectTab
-	Case "LocalsWindow":                        ptabBottom->Tab(6)->SelectTab
-	Case "GlobalsWindow":                       ptabBottom->Tab(7)->SelectTab
-	'Case "ProceduresWindow":                    ptabBottom->Tab(8)->SelectTab
-	Case "ThreadsWindow":                       ptabBottom->Tab(8)->SelectTab
-	Case "WatchWindow":                         ptabBottom->Tab(9)->SelectTab
+	Case "ProjectExplorer":                     tpProject->SelectTab
+	Case "PropertiesWindow":                    tpProperties->SelectTab
+	Case "EventsWindow":                        tpEvents->SelectTab
+	Case "Toolbox":                             tpToolbox->SelectTab
+	Case "OutputWindow":                        tpOutput->SelectTab
+	Case "ErrorsWindow":                        tpErrors->SelectTab
+	Case "FindWindow":                          tpFind->SelectTab
+	Case "ToDoWindow":                          tpToDo->SelectTab
+	Case "ChangeLogWindow":                     tpChangeLog->SelectTab
+	Case "ImmediateWindow":                     tpImmediate->SelectTab
+	Case "LocalsWindow":                        tpLocals->SelectTab
+	Case "GlobalsWindow":                       tpGlobals->SelectTab
+	'Case "ProceduresWindow":                    tpProcedures->SelectTab
+	Case "ThreadsWindow":                       tpThreads->SelectTab
+	Case "WatchWindow":                         tpWatches->SelectTab
 	Case "ImageManager":                        pfImageManager->Show *pfrmMain
 	Case "Toolbars":                            'ShowMainToolbar = Not ShowMainToolbar: ReBar1.Visible = ShowMainToolbar: pfrmMain->RequestAlign
 	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: MainReBar.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolBar: pfrmMain->RequestAlign
