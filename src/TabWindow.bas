@@ -920,6 +920,65 @@ Function TabWindow.Save As Boolean
 	If InStr(*FFileName, "/") > 0 OrElse InStr(*FFileName, "\") > 0 Then Return SaveTab Else Return SaveAs
 End Function
 
+Sub TabWindowRemovedCheck(pParentTabCode As TabControl Ptr)
+	If pParentTabCode->TabCount = 0 Then
+		Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, pParentTabCode->Parent)
+		Var Idx = ptabPanelParent->IndexOf(pParentTabCode)
+		If Idx >= 2 Then
+			Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
+			ptabPanelChild->Align = DockStyle.alClient
+			ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
+			pParentTabCode->Visible = False
+			ptabCode = @ptabPanelChild->tabCode
+			mnuTabs.ParentWindow = ptabCode
+			ptabPanelParent->RequestAlign
+		Else
+			Var ptabPanel = ptabPanelParent
+			Do While *ptabPanel->Parent Is TabPanel
+				Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, ptabPanel->Parent)
+				Var Idx = ptabPanelParent->IndexOf(ptabPanel)
+				If Idx >= 2 AndAlso ptabPanel->Align = DockStyle.alClient Then
+					Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
+					ptabPanelChild->Align = DockStyle.alClient
+					ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
+					ptabPanelParent->Remove ptabPanel
+					TabPanels.Remove TabPanels.IndexOf(ptabPanel)
+					Delete_(ptabPanel)
+					ptabPanelParent->RequestAlign
+					ptabCode = @ptabPanelChild->tabCode
+					mnuTabs.ParentWindow = ptabCode
+					ptabPanel = 0
+					Exit Do
+				ElseIf ptabPanel->Align <> DockStyle.alClient Then
+					If ptabPanelParent->tabCode.Visible Then
+						ptabCode = @ptabPanelParent->tabCode
+					Else
+						ptabCode = @Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx + 2])->tabCode
+					End If
+					mnuTabs.ParentWindow = ptabCode
+					ptabPanelParent->Remove ptabPanelParent->Controls[Idx + 1]
+					ptabPanelParent->Remove ptabPanel
+					TabPanels.Remove TabPanels.IndexOf(ptabPanel)
+					Delete_(ptabPanel)
+					ptabPanelParent->RequestAlign
+					ptabPanel = 0
+					Exit Do
+				Else
+					ptabPanelParent->Remove ptabPanel
+					TabPanels.Remove TabPanels.IndexOf(ptabPanel)
+					Delete_(ptabPanel)
+					ptabPanel = ptabPanelParent
+				End If
+			Loop
+			If ptabPanel > 0 AndAlso ptabPanel->Parent = pfrmMain Then
+				ptabPanel->tabCode.Visible = True
+				ptabCode = @ptabPanel->tabCode
+				mnuTabs.ParentWindow = ptabCode
+			End If
+		End If
+	End If
+End Sub
+
 Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
 	If tb = 0 Then Return False
 	Dim As TabControl Ptr pParentTabCode = tb->Parent
@@ -928,62 +987,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
 		Delete_(tb)
-		If pParentTabCode->TabCount = 0 Then
-			Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, pParentTabCode->Parent)
-			Var Idx = ptabPanelParent->IndexOf(pParentTabCode)
-			If Idx >= 2 Then
-				Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
-				ptabPanelChild->Align = DockStyle.alClient
-				ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
-				pParentTabCode->Visible = False
-				ptabCode = @ptabPanelChild->tabCode
-				mnuTabs.ParentWindow = ptabCode
-				ptabPanelParent->RequestAlign
-			Else
-				Var ptabPanel = ptabPanelParent
-				Do While *ptabPanel->Parent Is TabPanel
-					Dim As TabPanel Ptr ptabPanelParent = Cast(TabPanel Ptr, ptabPanel->Parent)
-					Var Idx = ptabPanelParent->IndexOf(ptabPanel)
-					If Idx >= 2 AndAlso ptabPanel->Align = DockStyle.alClient Then
-						Dim As TabPanel Ptr ptabPanelChild = Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx - 2])
-						ptabPanelChild->Align = DockStyle.alClient
-						ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
-						ptabPanelParent->Remove ptabPanel
-						TabPanels.Remove TabPanels.IndexOf(ptabPanel)
-						Delete_(ptabPanel)
-						ptabPanelParent->RequestAlign
-						ptabCode = @ptabPanelChild->tabCode
-						mnuTabs.ParentWindow = ptabCode
-						ptabPanel = 0
-						Exit Do
-					ElseIf ptabPanel->Align <> DockStyle.alClient Then
-						If ptabPanelParent->tabCode.Visible Then
-							ptabCode = @ptabPanelParent->tabCode
-						Else
-							ptabCode = @Cast(TabPanel Ptr, ptabPanelParent->Controls[Idx + 2])->tabCode
-						End If
-						mnuTabs.ParentWindow = ptabCode
-						ptabPanelParent->Remove ptabPanelParent->Controls[Idx + 1]
-						ptabPanelParent->Remove ptabPanel
-						TabPanels.Remove TabPanels.IndexOf(ptabPanel)
-						Delete_(ptabPanel)
-						ptabPanelParent->RequestAlign
-						ptabPanel = 0
-						Exit Do
-					Else
-						ptabPanelParent->Remove ptabPanel
-						TabPanels.Remove TabPanels.IndexOf(ptabPanel)
-						Delete_(ptabPanel)
-						ptabPanel = ptabPanelParent
-					End If
-				Loop
-				If ptabPanel > 0 AndAlso ptabPanel->Parent = pfrmMain Then
-					ptabPanel->tabCode.Visible = True
-					ptabCode = @ptabPanel->tabCode
-					mnuTabs.ParentWindow = ptabCode
-				End If
-			End If
-		End If
+		TabWindowRemovedCheck(pParentTabCode)
 		Return True
 	Else
 		Return False
@@ -6122,7 +6126,7 @@ Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 			.pnlCode.Visible = True
 			.pnlForm.Visible = False
 			.splForm.Visible = False
-			tpProject->SelectTab
+			'tpProject->SelectTab
 		Case "Form"
 			'If tb->cboClass.Items.Count < 2 Then Exit Sub
 			.pnlCode.Visible = False
@@ -6366,6 +6370,24 @@ Sub tabCode_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas
 	MoveCloseButtons Cast(TabControl Ptr, @Sender)
 End Sub
 
+Dim Shared As TabControl Ptr RemovedFromTabCode
+Sub tabCode_TabAdded(ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
+	#ifdef __USE_WINAPI__
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Page)
+		If tb->btnClose.Parent <> @Sender Then
+			Dim As TabControl Ptr OldtabCode = Cast(TabControl Ptr, tb->btnClose.Parent)
+			Sender.Add @tb->btnClose
+			If OldtabCode Then TabWindowRemovedCheck(OldtabCode)
+		End If
+	#else
+		If RemovedFromTabCode Then TabWindowRemovedCheck(RemovedFromTabCode)
+	#endif
+End Sub
+
+Sub tabCode_TabRemoved(ByRef Sender As TabControl, Page As TabPage Ptr, FromIndex As Integer)
+	RemovedFromTabCode = @Sender
+End Sub
+
 Sub tabPanel_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	With *Cast(TabPanel Ptr, @Sender)
 		For i As Integer = 0 To .ControlCount - 1
@@ -6392,6 +6414,8 @@ Constructor TabPanel
 	tabCode.OnPaint = @tabCode_Paint
 	tabCode.OnSelChange = @tabCode_SelChange
 	tabCode.OnMouseUp = @tabCode_MouseUp
+	tabCode.OnTabAdded = @tabCode_TabAdded
+	tabCode.OnTabRemoved = @tabCode_TabRemoved
 	tabCode.ContextMenu = @mnuTabs
 	This.OldWidth = This.Width
 	This.OldHeight = This.Height

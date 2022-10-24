@@ -474,7 +474,7 @@ Sub mClick(Sender As My.Sys.Object)
 				g_object_ref(tb->btnClose.Handle)
 				gtk_container_remove(GTK_CONTAINER(tb->_Box), tb->btnClose.Handle)
 			#endif
-			ptabPanel->tabCode.DeleteTab tb
+			'ptabPanel->tabCode.DeleteTab tb
 			tb->Parent = @ptabPanelNew->tabCode
 			#ifdef __USE_GTK__
 				tb->txtCode.cr = 0
