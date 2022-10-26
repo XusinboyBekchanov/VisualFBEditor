@@ -79,9 +79,11 @@ Public Sub TabCtl.MoveCloseButtons(ptabCode As TabControl Ptr)
 			'End If
 		#endif
 	Next i
-	If g_darkModeSupported AndAlso g_darkModeEnabled Then
-		UpdateWindow ptabCode->Handle
-	End If
+	#ifndef __USE_GTK__
+		If g_darkModeSupported AndAlso g_darkModeEnabled Then
+			UpdateWindow ptabCode->Handle
+		End If
+	#endif
 End Sub
 
 Sub PopupClick(ByRef Sender As My.Sys.Object)
