@@ -71,7 +71,7 @@ Public Sub TabCtl.MoveCloseButtons(ptabCode As TabControl Ptr)
 		#ifndef __USE_GTK__
 			SendMessage(ptabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
 			bVisible = True
-			If ptabCode->UpDownControl.Handle AndAlso ptabCode->UpDownControl.Visible AndAlso RR.Right - ScaleX(18) + ScaleX(14) > ptabCode->UpDownControl.Left Then bVisible = False
+			If ptabCode->UpDownControl.Handle AndAlso CInt(ptabCode->UpDownControl.Visible) AndAlso RR.Right - ScaleX(18) + ScaleX(14) > ptabCode->UpDownControl.Left Then bVisible = False
 			tb->btnClose.Visible = bVisible
 			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
 			'If g_darkModeSupported AndAlso g_darkModeEnabled Then
@@ -6385,7 +6385,7 @@ Dim Shared As TabControl Ptr RemovedFromTabCode
 Sub tabCode_TabAdded(ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
 	#ifdef __USE_WINAPI__
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Page)
-		If tb->btnClose.Parent <> @Sender Then
+		If tb->btnClose.Parent <> 0 AndAlso tb->btnClose.Parent <> @Sender Then
 			Dim As TabControl Ptr OldtabCode = Cast(TabControl Ptr, tb->btnClose.Parent)
 			Sender.Add @tb->btnClose
 			If OldtabCode Then TabWindowRemovedCheck(OldtabCode)

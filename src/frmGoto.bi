@@ -6,7 +6,7 @@
 
 #include once "mff/Form.bi"
 #include once "mff/Label.bi"
-#include once "mff/TextBox.bi"
+#include once "mff/NumericUpDown.bi"
 #include once "mff/CommandButton.bi"
 #include once "TabWindow.bi"
 
@@ -27,7 +27,7 @@ Using My.Sys.Forms
 		Declare Destructor
 		
 		Dim As Label lblFind
-		Dim As TextBox txtFind
+		Dim As NumericUpDown txtFind
 		Dim As CommandButton btnFind, btnCancel
 	End Type
 	
