@@ -249,8 +249,6 @@ End Type
 
 Common Shared As PopupMenu Ptr pmnuCode
 
-Declare Sub MoveCloseButtons(ptabCode As TabControl Ptr)
-
 Declare Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString) As UString
 	
 Declare Function FileNameExists(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr

@@ -58,19 +58,30 @@ Destructor ProjectElement
 	Files.Clear
 End Destructor
 
-Public Sub MoveCloseButtons(ptabCode As TabControl Ptr)
+Type TabCtl Extends TabControl
+	Declare Static Sub MoveCloseButtons(ptabCode As TabControl Ptr)
+End Type
+
+Public Sub TabCtl.MoveCloseButtons(ptabCode As TabControl Ptr)
 	Dim As Rect RR
 	For i As Integer = 0 To ptabCode->TabCount - 1
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+		Dim As Boolean bVisible
 		If tb = 0 Then Continue For
 		#ifndef __USE_GTK__
 			SendMessage(ptabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
+			bVisible = True
+			If ptabCode->UpDownControl.Handle AndAlso RR.Right - ScaleX(18) + ScaleX(14) > ptabCode->UpDownControl.Left Then bVisible = False
+			tb->btnClose.Visible = bVisible
 			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
-			If g_darkModeSupported AndAlso g_darkModeEnabled Then
-				UpdateWindow ptabCode->Handle
-			End If
+			'If g_darkModeSupported AndAlso g_darkModeEnabled Then
+			'	UpdateWindow ptabCode->Handle
+			'End If
 		#endif
 	Next i
+	If g_darkModeSupported AndAlso g_darkModeEnabled Then
+		UpdateWindow ptabCode->Handle
+	End If
 End Sub
 
 Sub PopupClick(ByRef Sender As My.Sys.Object)
@@ -450,7 +461,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
 			tpProperties->SelectTab
 		End If
-		MoveCloseButtons ptabCode
+		TabCtl.MoveCloseButtons ptabCode
 	End If
 	tb->txtCode.SetFocus
 	ptabCode->UpdateUnLock
@@ -593,7 +604,7 @@ Property TabWindow.Modified(Value As Boolean)
 	If Value Then
 		If Not EndsWith(Caption, "*") Then
 			Caption = Caption + "*"
-			MoveCloseButtons Cast(TabControl Ptr, This.Parent)
+			TabCtl.MoveCloseButtons Cast(TabControl Ptr, This.Parent)
 		End If
 	Else
 		If EndsWith(Caption, "*") Then
@@ -1025,7 +1036,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		pnlPropertyValue.Visible = False
 	End If
 	If ptabCode->TabCount = 0 Then pfrmMain->Caption = App.Title
-	MoveCloseButtons ptabCode
+	TabCtl.MoveCloseButtons ptabCode
 	FreeWnd
 	Return True
 End Function
@@ -6367,7 +6378,7 @@ Sub tabCode_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Intege
 End Sub
 
 Sub tabCode_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	MoveCloseButtons Cast(TabControl Ptr, @Sender)
+	TabCtl.MoveCloseButtons Cast(TabControl Ptr, @Sender)
 End Sub
 
 Dim Shared As TabControl Ptr RemovedFromTabCode
