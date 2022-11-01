@@ -1,6 +1,6 @@
 ﻿#pragma once
 ' ITL3 ITaskbarList3
-' Copyright (c) 2012 CM.Wang
+' Copyright (c) 2022 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "ITL3.bi"

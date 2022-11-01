@@ -1,4 +1,9 @@
-﻿#include once "Download.bi"
+﻿#pragma once
+' Download 下载
+' Copyright (c) 2022 CM.Wang
+' Freeware. Use at your own risk.
+
+#include once "Download.bi"
 
 Constructor Download()
 	hLib = DyLibLoad("urlmon.dll")
@@ -28,14 +33,6 @@ Destructor Download()
 	If hLib Then DyLibFree(hLib)
 End Destructor
 
-Private Property Download.DeleteCacheEntry(nVal As Boolean)
-	mDeleteCache = nVal
-End Property
-
-Private Property Download.DeleteCacheEntry() As Boolean
-	Return mDeleteCache
-End Property
-
 Sub Download.DownloadUrl(ByVal Owner As Any Ptr, ByRef Url As Const WString, ByRef FileName As Const WString)
 	mBSC->pOwner = Owner
 	mOwner = Owner
@@ -52,7 +49,7 @@ Sub Download.DownloadUrl(ByVal Owner As Any Ptr, ByRef Url As Const WString, ByR
 	DonePercent = 0
 	DownloadSpeed = 0
 	
-	If mDeleteCache Then DeleteUrlCacheEntry(mUrl)
+	If DeleteCacheEntry Then DeleteUrlCacheEntry(mUrl)
 	mThread = ThreadCreate(Cast(Any Ptr, @DownloadThread), @This)
 End Sub
 
@@ -70,14 +67,6 @@ Private Sub Download.DownloadDoing()
 	End If
 	Done = True
 End Sub
-
-'Private Property Download.Cancel() As Boolean
-'	Return Cancel
-'End Property
-'
-'Private Property Download.Cancel(ByVal nVal As Boolean)
-'	Cancel = nVal
-'End Property
 
 Private Property Download.ElapsedTime() As Double
 	If mTimeStart Then
@@ -98,14 +87,6 @@ Private Property Download.Done(ByVal nVal As Integer)
 	mDone = nVal
 	If mDone<> NULL AndAlso OnDone<> NULL Then OnDone(mOwner)
 End Property
-
-'Private Property Download.Status() As Integer
-'	Return mStatus
-'End Property
-'
-'Private Property Download.Status(ByVal nVal As Integer)
-'	mStatus = nVal
-'End Property
 
 Private Function Download.OnStartBinding(ByVal IBSCO As IBindStatusCallback_CM Ptr, ByVal dwReserved As DWORD, ByVal pib As IBinding Ptr) As HRESULT
 	Dim d As Download Ptr = IBSCO->pThis

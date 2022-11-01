@@ -1,9 +1,15 @@
-﻿#include once "win/wininet.bi"
+﻿#pragma once
+' Download 下载
+' Copyright (c) 2022 CM.Wang
+' Freeware. Use at your own risk.
+
+#include once "win/wininet.bi"
 #include once "win/urlmon.bi"
 #include once "../MDINotepad/Text.bi"
 #include once "../MDINotepad/TimeMeter.bi"
 
 'https://forum.powerbasic.com/forum/user-to-user-discussions/programming/20626-using-the-urldownloadtofile-api
+'https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/ms775123(v=vs.85)
 
 Type IBindStatusCallback_CM
 	lpVtbl   As IBindStatusCallbackVtbl Ptr  'lpVtbl
@@ -24,7 +30,6 @@ Private:
 	mFileName As WString Ptr = NULL
 	
 	mDone As Boolean = False
-	mDeleteCache As Boolean = False
 	TiMtr As TimeMeter
 	mElapsedTime As Double
 	mTimeStart As Boolean
@@ -57,6 +62,7 @@ Public:
 	DownloadSize As ULong
 	DonePercent As Double
 	DownloadSpeed As Double
+	DeleteCacheEntry As Boolean = False
 	
 Public:
 	
@@ -66,16 +72,10 @@ Public:
 	OnMsg As Sub(Owner As Any Ptr, ByRef MsgStr As Const WString)
 	OnCacheFile As Sub(Owner As Any Ptr, ByRef CacheFile As Const WString)
 	OnReDir As Sub(Owner As Any Ptr, ByRef Url As Const WString)
-	'Declare Property Cancel() As Boolean
-	'Declare Property Cancel(ByVal nVal As Boolean)
 	Declare Property Done() As Integer
 	Declare Property Done(ByVal nVal As Integer)
 	Declare Property ElapsedTime() As Double
-	'Declare Property Status() As Integer
-	'Declare Property Status(ByVal nVal As Integer)
 	Declare Sub DownloadUrl(ByVal Owner As Any Ptr, ByRef Url As Const WString, ByRef FileName As Const WString)
-	Declare Property DeleteCacheEntry() As Boolean
-	Declare Property DeleteCacheEntry(ByVal nVal As Boolean)
 End Type
 
 #ifndef __USE_MAKE__
