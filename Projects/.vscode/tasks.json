@@ -13,7 +13,7 @@
                     "${fileBasenameNoExtension}.bas",
                     //"${fileBasenameNoExtension}.rc",
                     "-i",
-                    "../MyFbFramework"
+                    "../Controls/MyFbFramework"
                 ],
             },
             "linux": {
@@ -22,7 +22,7 @@
                     "-g",
                     "${fileBasenameNoExtension}.bas",
                     "-i",
-                    "../MyFbFramework"
+                    "../Controls/MyFbFramework"
                 ], 
             },
             "options": {

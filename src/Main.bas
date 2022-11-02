@@ -3220,22 +3220,25 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				End If
 			ElseIf LoadParameter <> LoadParam.OnlyIncludeFiles Then
 				Pos3 = InStr(bTrimLCase, " as ")
-				If CInt(StartsWith(bTrimLCase, "type ") OrElse StartsWith(bTrimLCase, "private type ") OrElse StartsWith(bTrimLCase, "public type ")) AndAlso CInt(IIf(inType, Pos3 = 0, True)) Then
+				If CInt(StartsWith(bTrimLCase, "type ") OrElse StartsWith(bTrimLCase, "private type ") OrElse StartsWith(bTrimLCase, "public type ") OrElse _
+					StartsWith(bTrimLCase, "class ") OrElse StartsWith(bTrimLCase, "private class ") OrElse StartsWith(bTrimLCase, "public class ")) AndAlso CInt(IIf(inType, Pos3 = 0, True)) Then
 					Pos1 = InStr(" " & bTrimLCase, " type ")
+					Pos5 = 5
+					If Pos1 = 0 Then Pos1 = InStr(" " & bTrimLCase, " class "): Pos5 = 6
 					If Pos1 > 0 Then
 						Pos2 = InStr(bTrimLCase, " extends ")
 						If Pos2 > 0 Then
-							t = Trim(Mid(bTrim, Pos1 + 5, Pos2 - Pos1 - 5))
+							t = Trim(Mid(bTrim, Pos1 + Pos5, Pos2 - Pos1 - Pos5))
 							e = Trim(Mid(bTrim, Pos2 + 9))
 						ElseIf Pos3 > 0 Then
-							t = Trim(Mid(bTrim, Pos1 + 5, Pos3 - Pos1 - 5))
+							t = Trim(Mid(bTrim, Pos1 + Pos5, Pos3 - Pos1 - Pos5))
 							e = Trim(Mid(bTrim, Pos3 + 4))
 						Else
-							Pos2 = InStr(Pos1 + 5, bTrim, " ")
+							Pos2 = InStr(Pos1 + Pos5, bTrim, " ")
 							If Pos2 > 0 Then
-								t = Trim(Mid(bTrim, Pos1 + 5, Pos2 - Pos1 - 5))
+								t = Trim(Mid(bTrim, Pos1 + Pos5, Pos2 - Pos1 - Pos5))
 							Else
-								t = Trim(Mid(bTrim, Pos1 + 5))
+								t = Trim(Mid(bTrim, Pos1 + Pos5))
 							End If
 							e = ""
 						End If
@@ -3255,14 +3258,14 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							inPubProPri = 0
 							tbi = New_( TypeElement)
 							tbi->Name = t
-							tbi->DisplayName = t & " [Type]"
+							tbi->DisplayName = t & IIf(Pos5 = 5, " [Type]", " [Class]")
 							tbi->TypeIsPointer = bTypeIsPointer
 							tbi->TypeName = e
 							tbi->ElementType = IIf(Pos3 > 0, "TypeCopy", "Type")
 							tbi->StartLine = i
 							tbi->FileName = PathFunction
 							If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
-							tbi->Parameters = Trim(Mid(bTrim, Pos1 + 5))
+							tbi->Parameters = Trim(Mid(bTrim, Pos1 + Pos5))
 							tbi->Tag = CtlLibrary
 							Types.Add t, tbi
 							typ = tbi
@@ -3272,7 +3275,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 						End If
 					End If
-				ElseIf StartsWith(bTrimLCase & " ", "end type ") Then
+				ElseIf StartsWith(bTrimLCase & " ", "end type ") OrElse StartsWith(bTrimLCase & " ", "end class ") OrElse StartsWith(bTrimLCase & " ", "__StartOfClassBody__ ") Then
 					inType = False
 				ElseIf CInt(StartsWith(bTrimLCase, "union ")) Then
 					inUnion = True

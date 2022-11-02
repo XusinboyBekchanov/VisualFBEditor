@@ -50,6 +50,7 @@ Enum
 	C_P_Region
 	C_Namespace
 	C_Enum
+	C_Class
 	C_Type
 	C_Union
 	C_Sub
@@ -78,14 +79,15 @@ Constructions(11) = Type<Construction>("Scope",         "",                   ""
 Constructions(12) = Type<Construction>("'#Region",      "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "'#End Region",    "",      True,  False)
 Constructions(13) = Type<Construction>("Namespace",     "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Namespace",   "",      True,  False)
 Constructions(14) = Type<Construction>("Enum",          "Public Enum",        "Private Enum",        "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Enum",        "",      True,  True)
-Constructions(15) = Type<Construction>("Type",          "Public Type",        "Private Type",        "",                   "",                          "",                           "",                "",                       "",                        "Private:", "Protected:", "Public:", "End Type",        "As ",   True,  True)
-Constructions(16) = Type<Construction>("Union",         "Public Union",       "Private Union",       "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Union",       "",      True,  True)
-Constructions(17) = Type<Construction>("Sub",           "Public Sub",         "Private Sub",         "Virtual Sub",        "Public Virtual Sub",        "Private Virtual Sub",        "Static Sub",      "Public Static Sub",      "Private Static Sub",      "",         "",           "",        "End Sub",         "",      True,  True)
-Constructions(18) = Type<Construction>("Function",      "Public Function",    "Private Function",    "Virtual Function",   "Public Virtual Function",   "Private Virtual Function",   "Static Function", "Public Static Function", "Private Static Function", "",         "",           "",        "End Function",    "",      True,  True)
-Constructions(19) = Type<Construction>("Property",      "Public Property",    "Private Property",    "Virtual Property",   "Public Virtual Property",   "Private Virtual Property",   "",                "",                       "",                        "",         "",           "",        "End Property",    "",      True,  True)
-Constructions(20) = Type<Construction>("Operator",      "Public Operator",    "Private Operator",    "Virtual Operator",   "Public Virtual Operator",   "Private Virtual Operator",   "",                "",                       "",                        "",         "",           "",        "End Operator",    "",      True,  True)
-Constructions(21) = Type<Construction>("Constructor",   "Public Constructor", "Private Constructor", "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Constructor", "",      True,  True)
-Constructions(22) = Type<Construction>("Destructor",    "Public Destructor",  "Private Destructor",  "Virtual Destructor", "Public Virtual Destructor", "Private Virtual Destructor", "",                "",                       "",                        "",         "",           "",        "End Destructor",  "",      True,  True)
+Constructions(15) = Type<Construction>("Class",         "Public Class",       "Private Class",       "",                   "",                          "",                           "",                "",                       "",                        "Private:", "Protected:", "Public:", "End Class",       "As ",   True,  True)
+Constructions(16) = Type<Construction>("Type",          "Public Type",        "Private Type",        "",                   "",                          "",                           "",                "",                       "",                        "Private:", "Protected:", "Public:", "End Type",        "As ",   True,  True)
+Constructions(17) = Type<Construction>("Union",         "Public Union",       "Private Union",       "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Union",       "",      True,  True)
+Constructions(18) = Type<Construction>("Sub",           "Public Sub",         "Private Sub",         "Virtual Sub",        "Public Virtual Sub",        "Private Virtual Sub",        "Static Sub",      "Public Static Sub",      "Private Static Sub",      "",         "",           "",        "End Sub",         "",      True,  True)
+Constructions(19) = Type<Construction>("Function",      "Public Function",    "Private Function",    "Virtual Function",   "Public Virtual Function",   "Private Virtual Function",   "Static Function", "Public Static Function", "Private Static Function", "",         "",           "",        "End Function",    "",      True,  True)
+Constructions(20) = Type<Construction>("Property",      "Public Property",    "Private Property",    "Virtual Property",   "Public Virtual Property",   "Private Virtual Property",   "",                "",                       "",                        "",         "",           "",        "End Property",    "",      True,  True)
+Constructions(21) = Type<Construction>("Operator",      "Public Operator",    "Private Operator",    "Virtual Operator",   "Public Virtual Operator",   "Private Virtual Operator",   "",                "",                       "",                        "",         "",           "",        "End Operator",    "",      True,  True)
+Constructions(22) = Type<Construction>("Constructor",   "Public Constructor", "Private Constructor", "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Constructor", "",      True,  True)
+Constructions(23) = Type<Construction>("Destructor",    "Public Destructor",  "Private Destructor",  "Virtual Destructor", "Public Virtual Destructor", "Private Virtual Destructor", "",                "",                       "",                        "",         "",           "",        "End Destructor",  "",      True,  True)
 
 Namespace My.Sys.Forms
 	Function EditControl.deltaToScrollAmount(lDelta As Integer) As Integer
@@ -826,7 +828,7 @@ Namespace My.Sys.Forms
 			iSelStartLine = 0
 			For lLineCount = FSelStartLine To 1 Step -1
 				FECLine = FLines.Items[lLineCount]
-				If FECLine->ConstructionIndex > 12  Then
+				If FECLine->ConstructionIndex >= C_Sub Then
 					If FECLine->ConstructionPart = 0 Then
 						iSelStartLine = lLineCount
 						Exit For
@@ -837,7 +839,7 @@ Namespace My.Sys.Forms
 			iSelEndLine = FLines.Count - 1
 			For lLineCount = FSelStartLine To FLines.Count - 1
 				FECLine = FLines.Items[lLineCount]
-				If FECLine->ConstructionIndex > 12  Then
+				If FECLine->ConstructionIndex >= C_Sub Then
 					If FECLine->ConstructionPart = 0 Then
 						iSelEndLine = lLineCount
 						Exit For
@@ -1026,7 +1028,7 @@ Namespace My.Sys.Forms
 				FLines.Insert iSelStartLine + c - 1, FECLine
 				ChangeCollapsibility iSelStartLine + c - 1
 			End If
-			If FECLine->ConstructionIndex = 5 Then
+			If FECLine->ConstructionIndex = C_Asm Then
 				InAsm = FECLine->ConstructionPart = 0
 			End If
 			FECLine->InAsm = InAsm
@@ -1053,7 +1055,7 @@ Namespace My.Sys.Forms
 		If OldInAsm <> InAsm Then
 			For i As Integer = iSelStartLine To FLines.Count - 1
 				FECLine = Cast(EditControlLine Ptr, FLines.Item(i))
-				If FECLine->ConstructionIndex = 5 Then
+				If FECLine->ConstructionIndex = C_Asm Then
 					InAsm = FECLine->ConstructionPart = 0
 				End If
 				FECLine->InAsm = InAsm
@@ -1272,7 +1274,7 @@ Namespace My.Sys.Forms
 				FECLine->InAsm = InAsm
 				FLines.Add(FECLine)
 				ChangeCollapsibility i
-				If FECLine->ConstructionIndex = 5 Then
+				If FECLine->ConstructionIndex = C_Asm Then
 					InAsm = FECLine->ConstructionPart = 0
 				End If
 				FECLine->InAsm = InAsm
@@ -1350,7 +1352,7 @@ Namespace My.Sys.Forms
 		FECLine->InAsm = InAsm
 		FLines.Insert Index, FECLine
 		ChangeCollapsibility Index
-		If FECLine->ConstructionIndex = 5 Then
+		If FECLine->ConstructionIndex = C_Asm Then
 			InAsm = FECLine->ConstructionPart = 0
 		End If
 		FECLine->InAsm = InAsm
@@ -1372,7 +1374,7 @@ Namespace My.Sys.Forms
 		FECLine->CommentIndex = iC
 		FECLine->InAsm = InAsm
 		ChangeCollapsibility Index
-		If FECLine->ConstructionIndex = 5 Then
+		If FECLine->ConstructionIndex = C_Asm Then
 			InAsm = FECLine->ConstructionPart = 0
 		End If
 		FECLine->InAsm = InAsm
@@ -1394,7 +1396,7 @@ Namespace My.Sys.Forms
 		FECLine->InAsm = InAsm
 		FLines.Insert Idx + 1, FECLine
 		ChangeCollapsibility Idx + 1
-		If FECLine->ConstructionIndex = 5 Then
+		If FECLine->ConstructionIndex = C_Asm Then
 			InAsm = FECLine->ConstructionPart = 0
 		End If
 		FECLine->InAsm = InAsm
@@ -1463,11 +1465,11 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				CurIndents = iIndents
-				If FECLine->ConstructionIndex = 1 AndAlso FECLine->ConstructionPart > 0 Then
+				If FECLine->ConstructionIndex = C_P_If AndAlso FECLine->ConstructionPart > 0 Then
 					iCount = 0
 					For j As Integer = i - 1 To 0 Step -1
 						ECLine2 = FLines.Items[j]
-						If ECLine2->ConstructionIndex >= 1 AndAlso ECLine2->ConstructionIndex <= 3 Then
+						If ECLine2->ConstructionIndex = C_P_If Then
 							If ECLine2->ConstructionPart = 2 Then
 								iCount += 1
 							ElseIf ECLine2->ConstructionPart = 0 Then
@@ -1481,7 +1483,7 @@ Namespace My.Sys.Forms
 							End If
 						End If
 					Next
-				ElseIf FECLine->ConstructionIndex = 7 AndAlso FECLine->ConstructionPart = 2 Then
+				ElseIf FECLine->ConstructionIndex = C_For AndAlso FECLine->ConstructionPart = 2 Then
 					iPos = InStr(*FECLine->Text, "'") - 1
 					If iPos = -1 Then iPos = Len(*FECLine->Text)
 					iPos = InStrCount(.Left(*FECLine->Text, iPos), ",")
@@ -2468,10 +2470,10 @@ Namespace My.Sys.Forms
 			Dim As EditControlLine Ptr ECLine
 			For i As Integer = j - 1 To 0 Step -1
 				ECLine = FLines.Items[i]
-				If ECLine->ConstructionIndex > 12 Then
+				If ECLine->ConstructionIndex > C_P_Region Then
 					bWithoutWith = True
 					Return ""
-				ElseIf ECLine->ConstructionIndex = 10 Then
+				ElseIf ECLine->ConstructionIndex = C_With Then
 					If ECLine->ConstructionPart = 2 Then
 						WithCount += 1
 					ElseIf ECLine->ConstructionPart = 0 Then
@@ -5071,7 +5073,7 @@ Namespace My.Sys.Forms
 					Dim bFind As Boolean
 					For i As Integer = FSelEndLine - 1 To 1 Step -1
 						With *Cast(EditControlLine Ptr, FLines.Item(i - 1))
-							If .ConstructionIndex > 13 AndAlso .ConstructionPart = 0 Then
+							If .ConstructionIndex > C_Enum AndAlso .ConstructionPart = 0 Then
 								FSelEndLine = i
 								'FSelEndChar = Len(*.Text)
 								bFind = True
@@ -5142,7 +5144,7 @@ Namespace My.Sys.Forms
 					Dim bFind As Boolean
 					For i As Integer = FSelEndLine + 1 To GetLineIndex(FLines.Count - 1) - 1
 						With *Cast(EditControlLine Ptr, FLines.Item(i))
-							If .ConstructionIndex > 13 AndAlso .ConstructionPart = 0 Then
+							If .ConstructionIndex > C_Enum AndAlso .ConstructionPart = 0 Then
 								FSelEndLine = i + 1
 								'FSelEndChar = Len(*.Text)
 								bFind = True
@@ -5197,7 +5199,7 @@ Namespace My.Sys.Forms
 					Dim bFind As Boolean
 					For i As Integer = FSelEndLine - 1 To 0 Step -1
 						With *Cast(EditControlLine Ptr, FLines.Item(i))
-							If .ConstructionIndex > 13 AndAlso .ConstructionPart = 0 Then
+							If .ConstructionIndex > C_Enum AndAlso .ConstructionPart = 0 Then
 								FSelEndLine = i
 								bFind = True
 								Exit For
@@ -5242,7 +5244,7 @@ Namespace My.Sys.Forms
 					Dim bFind As Boolean
 					For i As Integer = FSelEndLine + 1 To GetLineIndex(FLines.Count - 1)
 						With *Cast(EditControlLine Ptr, FLines.Item(i))
-							If .ConstructionIndex > 13 AndAlso .ConstructionPart = 0 Then
+							If .ConstructionIndex > C_Enum AndAlso .ConstructionPart = 0 Then
 								FSelEndLine = i
 								bFind = True
 								Exit For

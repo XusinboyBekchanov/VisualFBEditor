@@ -5120,7 +5120,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				'				End If
 				'			End If
 				ECLine->InWithConstruction = WithConstructionLine
-				If ECLine->ConstructionIndex = 10 Then 
+				If ECLine->ConstructionIndex = C_With Then 
 					If ECLine->ConstructionPart = 0 Then
 						OldWithConstructionLine = WithConstructionLine
 						WithConstructionLine = i
@@ -5161,13 +5161,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Else
 								te->Name = Trim(Mid(bTrim, Pos1 + l))
 							End If
-							If ECLine->ConstructionIndex = 19 Then
+							If ECLine->ConstructionIndex = C_Property Then
 								If EndsWith(bTrim, ")") Then
 									te->DisplayName = te->Name & " [Let]"
 								Else
 									te->DisplayName = te->Name & " [Get]"
 								End If
-							ElseIf CInt(ECLine->ConstructionIndex >= 14 AndAlso ECLine->ConstructionIndex <= 16) OrElse CInt(ECLine->ConstructionIndex >= 20 AndAlso ECLine->ConstructionIndex <= 22) Then
+							ElseIf CInt(ECLine->ConstructionIndex >= C_Enum AndAlso ECLine->ConstructionIndex <= C_Union) OrElse CInt(ECLine->ConstructionIndex >= C_Operator AndAlso ECLine->ConstructionIndex <= C_Destructor) Then
 								te->DisplayName = te->Name & " [" & Trim(Constructions(ECLine->ConstructionIndex).Name0) & "]"
 							Else
 								te->DisplayName = te->Name
@@ -5175,7 +5175,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Pos1 = InStr(te->Name, ".")
 							If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): te->TypeProcedure = True
 							Pos2 = InStr(bTrim, ")")
-							If ECLine->ConstructionIndex = 21 OrElse ECLine->ConstructionIndex = 22 Then
+							If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
 								te->TypeName = te->Name
 								te->Parameters = te->Name & IIf(Pos5 > 0, Mid(bTrim, Pos5), "()")
 							Else
@@ -5195,7 +5195,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								te->TypeName = WithoutPointers(te->TypeName)
 							End If
-							te->ElementType = Trim(Constructions(ECLine->ConstructionIndex).Name0)
+							If ECLine->ConstructionIndex = C_Class Then
+								te->ElementType = "Type"
+							Else
+								te->ElementType = Trim(Constructions(ECLine->ConstructionIndex).Name0)
+							End If
 							If ECLine->ConstructionIndex = C_P_Macro Then te->ElementType = Mid(te->ElementType, 2)
 							te->StartLine = i
 							te->EndLine = i + 1
@@ -5207,7 +5211,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							LastIndexFunctions = txtCode.Functions.Add(te->DisplayName, te)
 							If ECLine->ConstructionIndex = C_Enum Then
 								txtCode.Enums.Add te->Name, te
-							ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Union Then
+							ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
 								txtCode.Types.Add te->Name, te
 							ElseIf Not te->TypeProcedure Then
 								txtCode.Procedures.Add te->Name, te
@@ -5742,7 +5746,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Next
 					End If
 				End If
-				If CInt(NotForms = False) AndAlso CInt(Not b) AndAlso CInt(ECLine->ConstructionIndex = 15) AndAlso _
+				If CInt(NotForms = False) AndAlso CInt(Not b) AndAlso CInt((ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class)) AndAlso _
 					CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends form") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends form '...'")))) OrElse _
 					CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends usercontrol") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends usercontrol '...'")))) Then
 					If Des = 0 Then
@@ -8404,25 +8408,25 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				Continue For
 			ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
 				bNotNumberNext = True
-			ElseIf FECLine->ConstructionIndex = 13 Then
+			ElseIf FECLine->ConstructionIndex = C_Namespace Then
 				If FECLine->ConstructionPart = 0 Then
 					NamespacesCount += 1
 				ElseIf FECLine->ConstructionPart = 2 Then
 					NamespacesCount -= 1
 				End If
 				Continue For
-			ElseIf FECLine->ConstructionIndex = 3 OrElse FECLine->ConstructionIndex = 5 OrElse FECLine->ConstructionIndex >= 14 AndAlso FECLine->ConstructionIndex <= 16 Then
+			ElseIf FECLine->ConstructionIndex = C_Extern OrElse FECLine->ConstructionIndex = C_Asm OrElse FECLine->ConstructionIndex >= C_Enum AndAlso FECLine->ConstructionIndex <= C_Union Then
 				If FECLine->ConstructionPart = 0 Then
 					NotNumberingScopesCount += 1
 				ElseIf FECLine->ConstructionPart = 2 Then
 					NotNumberingScopesCount -= 1
 				End If
 				Continue For
-			ElseIf FECLine->ConstructionIndex >= 17 Then
+			ElseIf FECLine->ConstructionIndex >= C_Sub Then
 				bInFunction = FECLine->ConstructionPart <> 2
 				If bInFunction Then bFunctionStart = False
 				Continue For
-			ElseIf FECLine->ConstructionIndex >= 13 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
+			ElseIf FECLine->ConstructionIndex >= C_Namespace AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
 				Continue For
 			ElseIf (NamespacesCount > 0 AndAlso Not bInFunction) OrElse NotNumberingScopesCount > 0 Then
 				Continue For
@@ -8452,8 +8456,8 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				'				bNotNumberThis = True
 			ElseIf IsLabel(*FECLine->Text) Then
 				bNotNumberThis = True
-			ElseIf FECLine->InConstructionIndex = 5 OrElse FECLine->InConstructionIndex = 6 AndAlso FECLine->InConstructionPart = 0 OrElse _
-				FECLine->InConstructionIndex >= 13 AndAlso FECLine->InConstructionIndex <= 16 Then
+			ElseIf FECLine->InConstructionIndex = C_Asm OrElse FECLine->InConstructionIndex = C_Select_Case AndAlso FECLine->InConstructionPart = 0 OrElse _
+				FECLine->InConstructionIndex >= C_Namespace AndAlso FECLine->InConstructionIndex <= C_Union Then
 				bNotNumberThis = True
 			End If
 			If Not bNotNumberThis Then
@@ -8521,7 +8525,7 @@ Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
 		Dim As EditControlLine Ptr FECLine
 		For i = iSelStartLine To 0 Step -1
 			FECLine = .FLines.Items[i]
-			If FECLine->ConstructionIndex >= 17  Then
+			If FECLine->ConstructionIndex >= C_Sub  Then
 				If FECLine->ConstructionPart = 0 Then
 					ehStart = i + 1
 					Exit For
@@ -8534,7 +8538,7 @@ Sub GetProcedureLines(ByRef ehStart As Integer, ByRef ehEnd As Integer)
 		Dim As Boolean t
 		For i = iSelStartLine To .FLines.Count - 1
 			FECLine = .FLines.Items[i]
-			If FECLine->ConstructionIndex >= 17 Then
+			If FECLine->ConstructionIndex >= C_Sub Then
 				t = True
 				ehEnd = i - 1
 				Exit For
@@ -8559,7 +8563,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 		Dim ExitLine As String
 		For i As Integer = iSelStartLine To 0 Step -1
 			FECLine = .FLines.Items[i]
-			If FECLine->ConstructionIndex >= 17  Then
+			If FECLine->ConstructionIndex >= C_Sub  Then
 				If FECLine->ConstructionPart = 0 Then
 					ehStart = i + 1
 					Select Case FECLine->ConstructionIndex
@@ -8603,7 +8607,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 			Else
 				For i As Integer = iSelStartLine To .FLines.Count - 1
 					FECLine = .FLines.Items[i]
-					If FECLine->ConstructionIndex >= 17  Then
+					If FECLine->ConstructionIndex >= C_Sub  Then
 						If FECLine->ConstructionPart = 2 Then
 							t = True
 							ehEnd = i - 1
@@ -8623,7 +8627,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 			Dim p As Integer
 			For i As Integer = ehEnd - 1 To ehStart Step -1
 				FECLine = .FLines.Items[i]
-				If FECLine->ConstructionIndex >= 17 Then
+				If FECLine->ConstructionIndex >= C_Sub Then
 					p = i
 					Exit For
 				ElseIf StartsWith(Trim(.Lines(i), Any "\t "),  ExitLine) Then
@@ -8634,7 +8638,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 			Next i
 			If t Then
 				FECLine = .FLines.Items[ehEnd]
-				If FECLine->ConstructionIndex >= 17 Then
+				If FECLine->ConstructionIndex >= C_Sub Then
 					ehEnd -= 1
 				End If
 				For j As Integer = ehEnd To p Step -1

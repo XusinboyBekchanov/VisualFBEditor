@@ -15,7 +15,7 @@
                     "-x",
                     "../VisualFBEditor32.exe",
                     "-i",
-                    "../MyFbFramework"
+                    "../Controls/MyFbFramework"
                 ],
             },
             "linux": {
@@ -28,7 +28,7 @@
                     //"-i",
                     //"/media/FreeBasic/FreeBASIC-1.07.1-linux-x86_64/inc"
                     "-i",
-                    "../MyFbFramework"
+                    "../Controls/MyFbFramework"
                 ], 
             },
             "options": {
