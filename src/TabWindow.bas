@@ -1797,7 +1797,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 			ElseIf Not b AndAlso StartsWith(*FLine, "type " & LCase(frmName & "Type ")) Then
 				b = True
 				frmTypeName = frmName & "Type"
-			ElseIf b AndAlso StartsWith(*FLine & " ", "end type ") Then
+			ElseIf b AndAlso (StartsWith(*FLine & " ", "end type ") OrElse StartsWith(*FLine & " ", "end class ") OrElse StartsWith(*FLine & " ", "__startofclassbody__ ")) Then
 				s = k
 				Exit Do, Do
 			ElseIf b AndAlso StartsWith(*FLine, "dim as ") Then
@@ -1813,7 +1813,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 							CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 							CtrlNameNew = CtrlNameNew & "(" & WStr(Val(StringExtract(CtrlName,"(",")"))-1) & ")"
 							ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p) & " " & CtrlNameNew &  Mid(ptxtCode->Lines(k), p + Len(CtrlName) + 1)
-							WDeallocate Temp
+							WDeAllocate Temp
 						Else
 							If Trim(..Left(LCase(ptxtCode->Lines(k)), p), Any !"\t ") = "dim as " & LCase(WGet(st->ReadPropertyFunc(Ctrl, "ClassName"))) AndAlso Trim(Mid(ptxtCode->Lines(k), p + Len(LCase(CtrlName)) + 1), Any !"\t ") = "" Then
 								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
@@ -1920,7 +1920,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	Dim InsLineCount As Integer
 	Dim As WStringList WithArgs
 	Dim As IntegerList CuttingLines
-	Dim As WString Ptr FLine, FLine1,FLine2
+	Dim As WString Ptr FLine, FLine1, FLine2, FLineType
 	Var b = False, t = False
 	Var d = False, sl = 0, tp = 0, ep = 0, j = 0, n = 0
 	Dim As Integer iLeft1, iTop1, iWidth1, iHeight1
@@ -1935,21 +1935,23 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			If ptxtCode->Lines(k) = "" Then Continue For
 			' for Muilt line for the same control, sometimes No Space after ","
 			WLet(FLine2, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
-			If StartsWith(*FLine2, "type " & LCase(frmName) & " ") Then
+			If StartsWith(*FLine2, "type " & LCase(frmName) & " ") OrElse StartsWith(*FLine2, "class " & LCase(frmName) & " ") Then
 				sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
-				WLet(FLine1, ..Left(ptxtCode->Lines(k), sl))
+				WLet(FLineType, ..Left(ptxtCode->Lines(k), sl))
 				tp = k
 				b = True
 				frmTypeName = frmName
-			ElseIf StartsWith(*FLine2, "type " & LCase(frmName) & "type ") Then
+			ElseIf StartsWith(*FLine2, "type " & LCase(frmName) & "type ") OrElse StartsWith(*FLine2, "class " & LCase(frmName) & "type ") Then
 				sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
-				WLet(FLine1, ..Left(ptxtCode->Lines(k), sl))
+				WLet(FLineType, ..Left(ptxtCode->Lines(k), sl))
 				tp = k
 				b = True
 				frmTypeName = frmName & "Type"
 			ElseIf b Then
-				If StartsWith(*FLine2 & " ", "end type ") Then
+				If StartsWith(*FLine2 & " ", "end type ") OrElse StartsWith(*FLine2 & " ", "end class ") OrElse StartsWith(*FLine2 & " ", "__startofclassbody__ ") Then
 					j = k
+					sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
+					WLet(FLine1, ..Left(ptxtCode->Lines(k), sl))
 					Exit For, For
 					' Ctrl Array
 				ElseIf StartsWith(*FLine2, "dim as " & LCase(WGet(st->ReadPropertyFunc(Cpnt, "ClassName"))) & " ") Then
@@ -1986,7 +1988,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			If d Then
 				ptxtCode->ReplaceLine dj - 1, RTrim(ptxtCode->Lines(dj - 1)) & ", " & CtrlName
 			Else
-				ptxtCode->InsertLine j, *FLine1 & TabSpace & "Dim As " & WGet(st->ReadPropertyFunc(Cpnt, "ClassName")) & " " & CtrlName
+				ptxtCode->InsertLine j, *FLineType & TabSpace & "Dim As " & WGet(st->ReadPropertyFunc(Cpnt, "ClassName")) & " " & CtrlName
 				InsLineCount += 1
 				tb->ConstructorStart += 1
 				tb->ConstructorEnd += 1
@@ -1997,14 +1999,14 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	For l As Integer = tp + 1 To ptxtCode->LinesCount - 1
 		If StartsWith(LTrim(LCase(ptxtCode->Lines(l)), Any !"\t ") & " ", "declare constructor ") Then
 			t = True
-		ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(l)), Any !"\t ") & " ", "end type ") Then
+		ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(l)), Any !"\t ") & " ", "end type ") OrElse StartsWith(LTrim(LCase(ptxtCode->Lines(l)), Any !"\t ") & " ", "end class ") OrElse StartsWith(LTrim(LCase(ptxtCode->Lines(l)), Any !"\t ") & " ", "__startofclassbody__ ") Then
 			ep = l
 			Exit For
 		End If
 	Next
 	If Not t Then
 		CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-		ptxtCode->InsertLine tp + 1, *FLine1 & TabSpace & "Declare Constructor"
+		ptxtCode->InsertLine tp + 1, *FLineType & TabSpace & "Declare Constructor"
 		InsLineCount += 1
 	End If
 	Var sc = 0, se = 0
@@ -2302,20 +2304,20 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 	For i As Integer = 0 To tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		For k As Integer = iStart To iEnd
-			If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "type " & LCase(frmName) & " ") Then
+			If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "type " & LCase(frmName) & " ") OrElse StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "class " & LCase(frmName) & " ") Then
 				c = True
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName) + 6)
 				End If
-			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "type " & LCase(frmName) & "type ") Then
+			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "type " & LCase(frmName) & "type ") OrElse StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "class " & LCase(frmName) & "type ") Then
 				c = True
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName & "Type") + 6)
 				End If
 			ElseIf c Then
-				If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "end type ") Then
+				If StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "end type ") OrElse StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "end class ") OrElse StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "__startofclassbody__ ") Then
 					c = False
 				ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "dim as ") Then
 					Var Pos1 = InStr(LCase(RTrim(ptxtCode->Lines(k))) & ",", " " & LCase(OldName) & ",")
@@ -2899,17 +2901,17 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 	For i = 0 To tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		For k As Integer = iStart To iEnd
-			If (Not b) AndAlso StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "type " & LCase(frmName) & " ") Then
+			If (Not b) AndAlso (StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "type " & LCase(frmName) & " ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "class " & LCase(frmName) & " ")) Then
 				b = True
 				ptxtCodeType = ptxtCode
 				frmTypeName = frmName
-			ElseIf (Not b) AndAlso StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "type " & LCase(frmName) & "type ") Then
+			ElseIf (Not b) AndAlso (StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "type " & LCase(frmName) & "type ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "class " & LCase(frmName) & "type ")) Then
 				b = True
 				ptxtCodeType = ptxtCode
 				frmTypeName = frmName & "Type"
 			ElseIf b Then
 				If Not e Then
-					If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end type ") Then
+					If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end type ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end class ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "__startofclassbody__ ") Then
 						e = True: LineEndType = k
 					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "declare constructor") Then
 						j = k
@@ -4861,7 +4863,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5784,7 +5786,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						pnlTopMenu.Visible = False
 					End If
 					Pos1 = InStr(Trim(LCase(*FLine), Any !"\t "), " extends ")
-					frmTypeName = Mid(Trim(*FLine, Any !"\t "), 6, Pos1 - 6)
+					Pos5 = 6
+					If ECLine->ConstructionIndex = C_Class Then
+						Pos5 = 7
+					End If
+					frmTypeName = Mid(Trim(*FLine, Any !"\t "), Pos5, Pos1 - Pos5)
 					If EndsWith(LCase(frmTypeName), "type") Then
 						frmName = ..Left(frmTypeName, Len(frmTypeName) - 4)
 					Else
@@ -5845,7 +5851,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					cboClass.Items.Add(frmName, Des->DesignControl, "Form", "Form")
 					bT = True
 				ElseIf bT Then
-					If Trim(LCase(*FLine), Any !"\t ") = "end type" Then
+					If Trim(LCase(*FLine), Any !"\t ") = "end type" OrElse Trim(LCase(*FLine), Any !"\t ") = "end class" OrElse Trim(LCase(*FLine), Any !"\t ") = "__startofclassbody__" Then
 						t = True
 					ElseIf Not t Then
 						If StartsWith(Trim(LCase(*FLine), Any !"\t "), "dim as ") Then
