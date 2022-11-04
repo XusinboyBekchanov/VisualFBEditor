@@ -7,7 +7,9 @@
 		#endif
 	#endif
 	#include once "mff/Form.bi"
+	
 	RedefineClassKeyword
+	
 	Using My.Sys.Forms
 	
 	Class Form1Type Extends Form
