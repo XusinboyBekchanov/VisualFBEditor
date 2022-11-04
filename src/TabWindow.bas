@@ -1791,10 +1791,10 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		k = iStart
 		Do While k <= iEnd
 			WLet(FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
-			If Not b AndAlso StartsWith(*FLine, "type " & LCase(frmName) & " ") Then
+			If Not b AndAlso (StartsWith(*FLine, "type " & LCase(frmName) & " ") OrElse StartsWith(*FLine, "class " & LCase(frmName) & " ")) Then
 				b = True
 				frmTypeName = frmName
-			ElseIf Not b AndAlso StartsWith(*FLine, "type " & LCase(frmName & "Type ")) Then
+			ElseIf Not b AndAlso (StartsWith(*FLine, "type " & LCase(frmName & "Type ")) OrElse StartsWith(*FLine, "class " & LCase(frmName & "Type "))) Then
 				b = True
 				frmTypeName = frmName & "Type"
 			ElseIf b AndAlso (StartsWith(*FLine & " ", "end type ") OrElse StartsWith(*FLine & " ", "end class ") OrElse StartsWith(*FLine & " ", "__startofclassbody__ ")) Then
