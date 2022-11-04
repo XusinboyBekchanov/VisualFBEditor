@@ -3336,10 +3336,20 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	#else
 		tb->txtCode.cboIntellisense.Items.Clear
 	#endif
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim c As Integer
+	Dim As EditControlLine Ptr ECLine = tb->txtCode.FLines.Item(iSelEndLine)
 	Dim As WStringList Ptr keywordlist
 	For k As Integer = 0 To KeywordLists.Count - 1
 		keywordlist = KeywordLists.Object(k)
+		If ECLine <> 0 AndAlso (ECLine->InAsm OrElse StartsWith(LCase(Left(*ECLine->Text, iSelStartChar)), "asm ")) Then
+			If keywordlist <> pkeywordsAsm Then
+				Continue For
+			End If
+		ElseIf keywordlist = pkeywordsAsm Then
+			Continue For
+		End If
 		For i As Integer = 0 To keywordlist->Count - 1
 			If Not AddSorted(tb, GetKeyWordCase(keywordlist->Item(i)), , Starts) Then Exit Sub
 		Next
@@ -3398,6 +3408,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalFunctions->Count - 1
+		If Cast(TypeElement Ptr, pGlobalFunctions->Object(i))->TypeProcedure Then Continue For
 		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub") Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalArgs->Count - 1
@@ -4020,7 +4031,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		If Index > -1 Then
 			For i As Integer = Index To pGlobalFunctions->Count - 1
 				te = pGlobalFunctions->Object(i)
-				If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) Then
+				If CBool(te <> 0) AndAlso CBool(LCase(te->Name) = LCase(sWord)) AndAlso CBool(Not te->TypeProcedure) Then
 					If CInt(Not ParametersList.Contains(te->Parameters)) Then
 						Dim As UString res(Any)
 						Split te->Parameters, !"\r", res()
