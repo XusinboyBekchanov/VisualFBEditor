@@ -3408,7 +3408,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalFunctions->Count - 1
-		If Cast(TypeElement Ptr, pGlobalFunctions->Object(i))->TypeProcedure Then Continue For
+		'If Cast(TypeElement Ptr, pGlobalFunctions->Object(i))->TypeProcedure Then Continue For
 		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub") Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalArgs->Count - 1
@@ -3897,8 +3897,12 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 				End If
 			Next
 		End If
-		If teOld->TypeName <> "" Then
+		If teOld->ElementType = "Type" Then
+			TypeName = teOld->Name
+		Else
 			TypeName = teOld->TypeName
+		End If
+		If TypeName <> "" Then
 			FListItems.Clear
 			If tb->txtCode.Types.Contains(TypeName) Then
 				tb->FillIntellisense TypeName, @tb->txtCode.Types, True, True
@@ -3926,6 +3930,36 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 					End If
 				Next
 			End If
+			For i As Integer = 0 To tb->txtCode.Functions.Count - 1
+				te = tb->txtCode.Functions.Object(i)
+				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+					Var Pos1 = InStr(te->DisplayName, ".")
+					If Pos1 > 0 AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), tb) Then
+						Parameter = te->Parameters
+						iPos = InStr(LCase(Parameter), LCase(sWord))
+						FuncName = Mid(Parameter, iPos, Len(sWord))
+						Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+						ParametersList.Add te->Parameters
+						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+						If te->Comment <> "" Then Comments &= "" & te->Comment
+					End If
+				End If
+			Next
+			For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
+				te = pGlobalTypeProcedures->Object(i)
+				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+					Var Pos1 = InStr(te->DisplayName, ".")
+					If CBool(Pos1 > 0) AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), tb) Then
+						Parameter = te->Parameters
+						iPos = InStr(LCase(Parameter), LCase(sWord))
+						FuncName = Mid(Parameter, iPos, Len(sWord))
+						Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+						ParametersList.Add te->Parameters
+						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+						If te->Comment <> "" Then Comments &= "" & te->Comment
+					End If
+				End If
+			Next
 		End If
 	Else
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -3983,6 +4017,36 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Next
 					End If
 					FListItems.Clear
+					For i As Integer = 0 To tb->txtCode.Functions.Count - 1
+						te = tb->txtCode.Functions.Object(i)
+						If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+							Var Pos1 = InStr(te->DisplayName, ".")
+							If Pos1 > 0 AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), tb) Then
+								Parameter = te->Parameters
+								iPos = InStr(LCase(Parameter), LCase(sWord))
+								FuncName = Mid(Parameter, iPos, Len(sWord))
+								Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+								ParametersList.Add te->Parameters
+								Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+								If te->Comment <> "" Then Comments &= "" & te->Comment
+							End If
+						End If
+					Next
+					For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
+						te = pGlobalTypeProcedures->Object(i)
+						If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+							Var Pos1 = InStr(te->DisplayName, ".")
+							If CBool(Pos1 > 0) AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), tb) Then
+								Parameter = te->Parameters
+								iPos = InStr(LCase(Parameter), LCase(sWord))
+								FuncName = Mid(Parameter, iPos, Len(sWord))
+								Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+								ParametersList.Add te->Parameters
+								Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+								If te->Comment <> "" Then Comments &= "" & te->Comment
+							End If
+						End If
+					Next
 				End If
 			End If
 		End If
@@ -4031,7 +4095,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		If Index > -1 Then
 			For i As Integer = Index To pGlobalFunctions->Count - 1
 				te = pGlobalFunctions->Object(i)
-				If CBool(te <> 0) AndAlso CBool(LCase(te->Name) = LCase(sWord)) AndAlso CBool(Not te->TypeProcedure) Then
+				If CBool(te <> 0) AndAlso CBool(LCase(te->Name) = LCase(sWord)) Then 'AndAlso CBool(Not te->TypeProcedure)
 					If CInt(Not ParametersList.Contains(te->Parameters)) Then
 						Dim As UString res(Any)
 						Split te->Parameters, !"\r", res()
@@ -5186,7 +5250,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->DisplayName = te->Name
 							End If
 							Pos1 = InStr(te->Name, ".")
-							If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): te->TypeProcedure = True
+							Dim As Boolean TypeProcedure
+							If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True
 							Pos2 = InStr(bTrim, ")")
 							If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
 								te->TypeName = te->Name
@@ -5226,10 +5291,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								txtCode.Enums.Add te->Name, te
 							ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
 								txtCode.Types.Add te->Name, te
-							ElseIf Not te->TypeProcedure Then
+							ElseIf Not TypeProcedure Then
 								txtCode.Procedures.Add te->Name, te
 							End If
-							If Not te->TypeProcedure Then
+							If Not TypeProcedure Then
 								If Namespaces.Count > 0 Then
 									Var Index = txtCode.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 									If Index > -1 Then Cast(TypeElement Ptr, txtCode.Namespaces.Object(Index))->Elements.Add te->Name, te
@@ -8795,7 +8860,7 @@ Sub TabWindow.Define
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, Pos1
 	txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim sLine As WString Ptr = @txtCode.Lines(iSelEndLine)
-	Dim As String FuncName, TypeName, OldTypeName, Parameters, sWord = txtCode.GetWordAt(iSelEndLine, iSelEndChar - 1)
+	Dim As String FuncName, TypeName, OldTypeName, Parameters, sWord = txtCode.GetWordAt(iSelEndLine, iSelEndChar)
 	Dim As TypeElement Ptr te, te1, te2, teOld
 	If sWord = "" Then Exit Sub
 	With pfTrek->lvTrek.ListItems
@@ -8865,8 +8930,8 @@ Sub TabWindow.Define
 					End If
 				End If
 			Next
-			For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
-				te = pGlobalFunctions->Object(i)
+			For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
+				te = pGlobalTypeProcedures->Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->StartLine = iSelEndLine Then Continue For
 					Var Pos1 = InStr(te->DisplayName, ".")
@@ -8977,7 +9042,7 @@ Sub TabWindow.Define
 			Next
 			For i As Integer = 0 To pGlobalFunctions->Count - 1
 				te = pGlobalFunctions->Object(i)
-				If CBool(te <> 0) AndAlso CBool(LCase(Trim(te->Name)) = LCase(sWord)) AndAlso CBool(Not te->TypeProcedure) Then
+				If CBool(te <> 0) AndAlso CBool(LCase(Trim(te->Name)) = LCase(sWord)) Then 'AndAlso CBool(Not te->TypeProcedure)
 					If te->FileName = FileName Then Continue For
 					If te = te2 Then Continue For
 					.Add te->DisplayName

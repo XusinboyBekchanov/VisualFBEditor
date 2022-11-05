@@ -81,7 +81,7 @@ Dim Shared As ReBar MainReBar
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalFunctionsHelp, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
+Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
 Dim Shared As ListView lvErrors, lvSearch, lvToDo
@@ -113,6 +113,7 @@ pGlobalNamespaces = @GlobalNamespaces
 pGlobalTypes = @GlobalTypes
 pGlobalEnums = @GlobalEnums
 pGlobalFunctions = @GlobalFunctions
+pGlobalTypeProcedures = @GlobalTypeProcedures
 pGlobalArgs = @GlobalArgs
 pAddIns = @AddIns
 pTools = @Tools
@@ -351,7 +352,7 @@ Function GetFullPathInSystem(ByRef Path As WString) As UString
 		#else
 			Dim As WString Ptr lpFilePart
 			If SearchPath(NULL, Path, ".exe", MAX_PATH - 1, @fullPath, 0) = 0 Then
-				Print GetErrorString(GetLastError)
+				
 			End If
 		#endif
 		Return fullPath
@@ -3126,7 +3127,7 @@ Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As US
 	End If
 End Function
 
-Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0)
+Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef TypeProcedures As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0)
 	If FormClosing Then Exit Sub
 	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
@@ -3151,7 +3152,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Dim As UString b1, Comment, PathFunction, LoadFunctionPath
 	Dim As String t, e, tOrig, bt
 	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, Index, iStart
-	Dim As TypeElement Ptr te, tbi, typ
+	Dim As TypeElement Ptr te, tbi, typ, lastfunctionte
 	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace
 	Dim As Boolean bTypeIsPointer
 	Dim As Integer inPubProPri = 0
@@ -3325,6 +3326,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					LastIndexFunction = Functions.Add(te->Name, te)
+					lastfunctionte = te
 					If Namespaces.Count > 0 Then
 						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 						If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
@@ -3355,6 +3357,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					LastIndexFunction = Functions.Add(te->Name, te)
+					lastfunctionte = te
 					If Namespaces.Count > 0 Then
 						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 						If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
@@ -3486,6 +3489,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						typ->Elements.Add te->Name, te
 					Else
 						LastIndexFunction = Functions.Add(te->Name, te)
+						lastfunctionte = te
 						If Not inType Then
 							If Namespaces.Count > 0 Then
 								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
@@ -3685,9 +3689,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						CInt(StartsWith(bTrimLCase & " ", "end constructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase & " ", "end destructor ")) Then
 						InFunc = False
-						If LastIndexFunction >= 0 Then
-							te = Cast(TypeElement Ptr, Functions.Object(LastIndexFunction))
-							te->EndLine = i
+						If lastfunctionte <> 0 Then
+							lastfunctionte->EndLine = i
 							LastIndexFunction = -1
 						End If
 					ElseIf CInt(StartsWith(bTrimLCase, "operator ")) OrElse _
@@ -3718,6 +3721,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
 						LastIndexFunction = Functions.Add(te->Name, te)
+						lastfunctionte = te
 					ElseIf CInt(StartsWith(bTrimLCase, "destructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private destructor ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public destructor ")) Then
@@ -3742,6 +3746,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
 						LastIndexFunction = Functions.Add(te->Name, te)
+						lastfunctionte = te
 					ElseIf CInt(StartsWith(bTrimLCase, "sub ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private sub ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public sub ")) Then
@@ -3779,7 +3784,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
-							te->TypeProcedure = True
+							'te->TypeProcedure = True
 							'n = Types.IndexOf(bt)
 							'If n > -1 Then
 							'	Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
@@ -3795,14 +3800,16 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							'		'?bTrim
 							'	End If
 							'End If
+							LastIndexFunction = TypeProcedures.Add(te->Name, te)
 						Else
 							'LastIndexFunction = Functions.Add(te->Name, te)
 							If Namespaces.Count > 0 Then
 								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
 							End If
+							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
-						LastIndexFunction = Functions.Add(te->Name, te)
+						lastfunctionte = te
 					ElseIf CInt(StartsWith(bTrimLCase, "function ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private function ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public function ")) Then
@@ -3845,7 +3852,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
-							te->TypeProcedure = True
+							'te->TypeProcedure = True
 							'n = Types.IndexOf(bt)
 							'If n > -1 Then
 							'	Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
@@ -3861,14 +3868,16 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							'		'?bTrim
 							'	End If
 							'End If
+							LastIndexFunction = TypeProcedures.Add(te->Name, te)
 						Else
 							'LastIndexFunction = Functions.Add(te->Name, te)
 							If Namespaces.Count > 0 Then
 								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
 							End If
+							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
-						LastIndexFunction = Functions.Add(te->Name, te)
+						lastfunctionte = te
 					ElseIf CInt(StartsWith(bTrimLCase, "property ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "private property ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "public property ")) Then
@@ -3911,7 +3920,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
-							te->TypeProcedure = True
+							'te->TypeProcedure = True
 							'n = Types.IndexOf(bt)
 							'If n > -1 Then Cast(TypeElement Ptr, Types.Object(n))->Elements.Add te->Name, te
 							'If n = -1 Then
@@ -3921,7 +3930,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						'Else
 						'	LastIndexFunction = Functions.Add(te->Name, te)
 						End If
-						LastIndexFunction = Functions.Add(te->Name, te)
+						LastIndexFunction = TypeProcedures.Add(te->Name, te)
+						lastfunctionte = te
 					ElseIf CInt(Not inType) AndAlso CInt(Not inEnum) AndAlso CInt(Not InFunc) AndAlso _
 						CInt(CInt(StartsWith(bTrimLCase, "dim ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "common ")) OrElse _
@@ -4031,7 +4041,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Next
 	MutexUnlock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	For i As Integer = 0 To Files.Count - 1
-		LoadFunctions Files.Item(i), , Types, Enums, Functions, Args
+		LoadFunctions Files.Item(i), , Types, Enums, Functions, TypeProcedures, Args
 		If FormClosing Then Exit Sub
 	Next
 End Sub
@@ -4043,7 +4053,7 @@ tlockGDB = MutexCreate()
 Sub LoadFunctionsSub(Param As Any Ptr)
 	MutexLock tlock
 	If Not FormClosing Then
-		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
+		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
 End Sub
@@ -4051,7 +4061,7 @@ End Sub
 Sub LoadOnlyFilePath(Param As Any Ptr)
 	MutexLock tlock
 	If Not FormClosing Then
-		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
+		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
 End Sub
@@ -4059,7 +4069,7 @@ End Sub
 Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 	MutexLock tlock
 	If Not FormClosing Then
-		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
+		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
 End Sub
@@ -4067,7 +4077,7 @@ End Sub
 Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 	MutexLock tlock
 	If Not FormClosing Then
-		LoadFunctions QWString(Param), LoadParam.OnlyIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalArgs
+		LoadFunctions QWString(Param), LoadParam.OnlyIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
 End Sub
@@ -4338,14 +4348,14 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
 		f = Dir(IncludePath & "*.bi")
 		While f <> ""
-			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs, , CtlLibrary
+			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs, , CtlLibrary
 			f = Dir()
 		Wend
 		IncludePath = GetFullPath(GetFullPath(CtlLibrary->SourcesFolder, CtlLibrary->Path))
 		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
 		f = Dir(IncludePath & "*.bas")
 		While f <> ""
-			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalArgs, , CtlLibrary
+			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs, , CtlLibrary
 			f = Dir()
 		Wend
 	Next i

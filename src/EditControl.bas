@@ -2606,7 +2606,7 @@ Namespace My.Sys.Forms
 						If te > 0 Then
 							tIndex = 0
 							teEnum = te
-							teEnumOld = teC
+							'teEnumOld = teC
 							OldTypeName = TypeName
 							Return teEnum->TypeName
 						End If
@@ -2622,7 +2622,7 @@ Namespace My.Sys.Forms
 					te = Args.Object(Idx)
 				ElseIf Namespaces.Contains(sTemp, , , , Idx) Then
 					te = Namespaces.Object(Idx)
-				ElseIf CBool(pGlobalFunctions > 0) AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) AndAlso CBool(Not Cast(TypeElement Ptr, pGlobalFunctions->Object(Idx))->TypeProcedure) Then
+				ElseIf CBool(pGlobalFunctions > 0) AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) Then
 					te = pGlobalFunctions->Object(Idx)
 				ElseIf pGlobalArgs > 0 AndAlso pGlobalArgs->Contains(sTemp, , , , Idx) Then
 					te = pGlobalArgs->Object(Idx)
@@ -3087,7 +3087,7 @@ Namespace My.Sys.Forms
 																			sc = @ColorFields
 																		Case "namespace"
 																			sc = @ColorGlobalNamespaces
-																		Case "type"
+																		Case "type", "typecopy"
 																			sc = @ColorGlobalTypes
 																		Case "enum"
 																			sc = @ColorGlobalEnums
