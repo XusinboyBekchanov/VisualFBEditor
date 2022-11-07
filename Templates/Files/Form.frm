@@ -14,6 +14,16 @@
 		
 	End Type
 	
+	Constructor Form1Type
+		' Form1
+		With This
+			.Name = "Form1"
+			.Text = "Form1"
+			.Designer = @This
+			.SetBounds 0, 0, 350, 300
+		End With
+	
+	End Constructor
 	Dim Shared Form1 As Form1Type
 	
 	#if _MAIN_FILE_ = __FILE__
