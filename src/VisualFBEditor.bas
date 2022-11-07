@@ -184,7 +184,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "EventsWindow":                        tpEvents->SelectTab
 	Case "Toolbox":                             tpToolbox->SelectTab
 	Case "OutputWindow":                        tpOutput->SelectTab
-	Case "ErrorsWindow":                        tpErrors->SelectTab
+	Case "ProblemsWindow":                        tpProblems->SelectTab
 	Case "FindWindow":                          tpFind->SelectTab
 	Case "ToDoWindow":                          tpToDo->SelectTab
 	Case "ChangeLogWindow":                     tpChangeLog->SelectTab

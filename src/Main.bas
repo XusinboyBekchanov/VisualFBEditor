@@ -84,7 +84,7 @@ Dim Shared As List Tools, TabPanels, ControlLibraries
 Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
-Dim Shared As ListView lvErrors, lvSearch, lvToDo
+Dim Shared As ListView lvProblems, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
 Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
@@ -97,7 +97,7 @@ Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvThd, tvWch ', tvPrc
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
-Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpErrors, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpThreads, tpWatches
+Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpThreads, tpWatches
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
@@ -492,8 +492,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	ClearMessages
 	NodesCount = IIf(bAll, tvExplorer.Nodes.Count, 1)
 	StartProgress
-	lvErrors.ListItems.Clear
-	tpErrors->Caption = ML("Errors") '    'Inits
+	lvProblems.ListItems.Clear
+	tpProblems->Caption = ML("Problems") '    'Inits
 	ThreadsLeave()
 	For k As Integer = 0 To NodesCount - 1
 		ThreadsEnter()
@@ -772,9 +772,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						If 	bFlagErr >= 0 Then
 							ThreadsEnter()
 							If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-							lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
-							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-							lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+							lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
+							lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
+							lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
 							'ShowMessages(Buff, False)
 							ThreadsLeave()
 						End If
@@ -862,9 +862,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							End If
 							If 	bFlagErr >= 0 Then
 								If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-								lvErrors.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
-								lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-								lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+								lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
+								lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
+								lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
 							End If
 						End If
 						Deallocate res(i): res(i) = 0
@@ -914,9 +914,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					End If
 					ThreadsEnter()
 					If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-					lvErrors.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
-					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-					lvErrors.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+					lvProblems.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
+					lvProblems.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
+					lvProblems.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
 					ShowMessages(Buff, False)
 					ThreadsLeave()
 					'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
@@ -927,13 +927,15 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		#endif
 		ThreadsEnter()
 		ShowMessages("")
-		If lvErrors.ListItems.Count <> 0 Then
-			tpErrors->Caption = IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "")
-			tpErrors->Caption = IIf(NumberWarning > 0, tpErrors->Caption & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", tpErrors->Caption)
-			tpErrors->Caption = IIf(NumberInfo > 0, tpErrors->Caption & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", tpErrors->Caption)
-			ShowMessages(Str(Time) & ": " & ML("found") & " " & tpErrors->Caption, False)
+		If lvProblems.ListItems.Count <> 0 Then
+			tpProblems->Caption = ML("Problems") & IIf(NumberErr + NumberWarning + NumberInfo > 0, " (" & WStr(NumberErr + NumberWarning + NumberInfo) & " " & ML("Pos") & ")", "")
+			Dim As UString Problems
+			Problems = IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "")
+			Problems &= IIf(NumberWarning > 0, IIf(Problems = "", "", ", ") & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", "")
+			Problems &= IIf(NumberInfo > 0, IIf(Problems = "", "", ", ") & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", "")
+			ShowMessages(Str(Time) & ": " & ML("Found") & " " & Problems, False)
 		Else
-			tpErrors->Caption = ML("Errors")
+			tpProblems->Caption = ML("Problems")
 		End If
 		ThreadsLeave()
 		For i As Integer = 0 To Tools.Count - 1
@@ -944,10 +946,10 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ThreadsEnter()
 			If Parameter <> "Check" Then
 				ShowMessages(Str(Time) & ": " & ML("Do not build file.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-				If (Not Log2_) AndAlso lvErrors.ListItems.Count <> 0 Then tpErrors->SelectTab
-			ElseIf lvErrors.ListItems.Count <> 0 Then
+				If (Not Log2_) AndAlso lvProblems.ListItems.Count <> 0 Then tpProblems->SelectTab
+			ElseIf lvProblems.ListItems.Count <> 0 Then
 				ShowMessages(Str(Time) & ": " & ML("Checking ended.")) & " " & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
-				tpErrors->SelectTab
+				tpProblems->SelectTab
 			Else
 				ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
 			End If
@@ -5272,7 +5274,7 @@ Sub CreateMenusAndToolBars
 	miView->Add(ML("Toolbox") & HK("Toolbox"), "Tools", "Toolbox", @mClick)
 	Var miOtherWindows = miView->Add(ML("Other Windows"))
 	miOtherWindows->Add(ML("Output Window") & HK("OutputWindow"), "", "OutputWindow", @mClick)
-	miOtherWindows->Add(ML("Errors Window") & HK("ErrorsWindow"), "", "ErrorsWindow", @mClick)
+	miOtherWindows->Add(ML("Problems Window") & HK("ProblemsWindow"), "", "ProblemsWindow", @mClick)
 	miOtherWindows->Add(ML("Find Window") & HK("FindWindow"), "", "FindWindow", @mClick)
 	miOtherWindows->Add(ML("ToDo Window") & HK("ToDoWindow"), "", "ToDoWindow", @mClick)
 	miOtherWindows->Add(ML("Change Log Window") & HK("ChangeLogWindow"), "", "ChangeLogWindow", @mClick)
@@ -7308,8 +7310,8 @@ lvToDo.Columns.Add ML("Column"), , 50, cfRight
 lvToDo.Columns.Add ML("File"), , 700, cfLeft
 lvToDo.OnItemActivate = @lvToDo_ItemActivate
 
-Sub lvErrors_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
-	Dim Item As ListViewItem Ptr = lvErrors.ListItems.Item(itemIndex)
+Sub lvProblems_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
+	Dim Item As ListViewItem Ptr = lvProblems.ListItems.Item(itemIndex)
 	SelectError(GetFullPath(Item->Text(2)), Val(Item->Text(1)), Item->Tag)
 End Sub
 
@@ -7322,15 +7324,15 @@ End Sub
 '	#EndIf
 'End Sub
 
-lvErrors.Images = @imgList
+lvProblems.Images = @imgList
 'lvErrors.StateImages = @imgList
-lvErrors.SmallImages = @imgList
-lvErrors.Align = DockStyle.alClient
-lvErrors.Columns.Add ML("Content"), , 500, cfLeft
-lvErrors.Columns.Add ML("Line"), , 50, cfRight
-lvErrors.Columns.Add ML("File"), , 700, cfLeft
-lvErrors.OnItemActivate = @lvErrors_ItemActivate
-'lvErrors.OnKeyDown = @lvErrors_KeyDown
+lvProblems.SmallImages = @imgList
+lvProblems.Align = DockStyle.alClient
+lvProblems.Columns.Add ML("Content"), , 500, cfLeft
+lvProblems.Columns.Add ML("Line"), , 50, cfRight
+lvProblems.Columns.Add ML("File"), , 700, cfLeft
+lvProblems.OnItemActivate = @lvProblems_ItemActivate
+'lvProblems.OnKeyDown = @lvErrors_KeyDown
 
 Sub lvSearch_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSearch.ListItems.Item(itemIndex)
@@ -7532,7 +7534,7 @@ ptabBottom->Height = tabBottomHeight
 ptabBottom->Detachable = True
 ptabBottom->Reorderable = True
 tpOutput = ptabBottom->AddTab(ML("Output"))
-tpErrors = ptabBottom->AddTab(ML("Errors"))
+tpProblems = ptabBottom->AddTab(ML("Problems"))
 tpFind = ptabBottom->AddTab(ML("Find"))
 tpToDo = ptabBottom->AddTab(ML("ToDo"))
 tpChangeLog = ptabBottom->AddTab(ML("Change Log"))
@@ -7543,7 +7545,7 @@ tpGlobals = ptabBottom->AddTab(ML("Globals"))
 tpThreads = ptabBottom->AddTab(ML("Threads"))
 tpWatches = ptabBottom->AddTab(ML("Watches"))
 tpOutput->Add @txtOutput
-tpErrors->Add @lvErrors
+tpProblems->Add @lvProblems
 tpFind->Add @lvSearch
 tpToDo->Add @lvToDo
 tpChangeLog->Add @txtChangeLog
