@@ -11,6 +11,7 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
+		Declare Constructor
 		
 	End Type
 	
