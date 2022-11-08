@@ -394,6 +394,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				If bNew Then
 					Dim As String NewFormName, LeftSpace
 					Dim As UString LineTrim
+					Dim bChanged As Boolean
 					If TreeN <> 0 Then
 						NewFormName = ..Left(TreeN->Text, Len(TreeN->Text) - 5)
 					End If
@@ -401,20 +402,32 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 						Dim ByRef As WString FLine = .txtCode.Lines(i)
 						LeftSpace = Left(FLine, Len(FLine) - Len(Trim(FLine, Any !"\t ")))
 						LineTrim = Trim(FLine, Any !"\t ")
+						bChanged = False
 						If CreateFormTypesWithoutTypeWord Then
 							If LineTrim = "Type Form1Type Extends Form" Then
 								.txtCode.ReplaceLine(i, LeftSpace & "Type Form1 Extends Form")
+								bChanged = True
+							ElseIf LineTrim = "Class Form1Type Extends Form" Then
+								.txtCode.ReplaceLine(i, LeftSpace & "Class Form1 Extends Form")
+								bChanged = True
 							ElseIf LineTrim = "Dim Shared Form1 As Form1Type" Then
 								.txtCode.ReplaceLine(i, LeftSpace & "Dim Shared fForm1 As Form1")
+								bChanged = True
 							ElseIf LineTrim = "Form1.Show" Then
 								.txtCode.ReplaceLine(i, LeftSpace & "fForm1.Show")
+								bChanged = True
 							End If
+							If bChanged Then LineTrim = .txtCode.Lines(i)
 						End If
 						If TreeN Then
 							If LineTrim = "Type Form1 Extends Form" Then
 								.txtCode.ReplaceLine(i, LeftSpace & "Type " & NewFormName & " Extends Form")
 							ElseIf LineTrim = "Type Form1Type Extends Form" Then
 								.txtCode.ReplaceLine(i, LeftSpace & "Type " & NewFormName & "Type Extends Form")
+							ElseIf LineTrim = "Class Form1 Extends Form" Then
+								.txtCode.ReplaceLine(i, LeftSpace & "Class " & NewFormName & " Extends Form")
+							ElseIf LineTrim = "Class Form1Type Extends Form" Then
+								.txtCode.ReplaceLine(i, LeftSpace & "Class " & NewFormName & "Type Extends Form")
 							ElseIf LineTrim = "Constructor Form1Type" Then
 								.txtCode.ReplaceLine(i, LeftSpace & "Constructor " & NewFormName & "Type")
 							ElseIf LineTrim = "Constructor Form1" Then
