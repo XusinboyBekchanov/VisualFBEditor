@@ -613,13 +613,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			For i As Integer = 0 To ProjectNode->Nodes.Count - 1
 				If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Text), ".bas") Then
 					If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Text) Then
-						OtherModuleFiles &= " """ & ProjectNode->Nodes.Item(i)->Text & """"
+						OtherModuleFiles &= " """ & GetRelative(*Cast(ExplorerElement Ptr, ProjectNode->Nodes.Item(i)->Tag)->FileName, GetFolderName(*Project->MainFileName)) & """"
 					End If
 				Else
 					For j As Integer = 0 To ProjectNode->Nodes.Item(i)->Nodes.Count - 1
 						If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text), ".bas") Then
 							If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text) Then
-								OtherModuleFiles &= " """ & ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text & """"
+								OtherModuleFiles &= " """ & GetRelative(*Cast(ExplorerElement Ptr, ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Tag)->FileName, GetFolderName(*Project->MainFileName)) & """"
 							End If
 						End If
 					Next
