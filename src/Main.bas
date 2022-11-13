@@ -3050,7 +3050,7 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 		Return Result
 	Else
 		Dim Result As UString = GetOSPath(GetFolderName(FromFile) & Path)
-		If FileExists(Result) Then
+		If GetFolderName(FromFile) <> "" AndAlso FileExists(Result) Then
 			Return Result
 		Else
 			Dim As Library Ptr CtlLibrary
