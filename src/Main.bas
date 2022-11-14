@@ -144,6 +144,7 @@ pLoadPaths = @LoadPaths
 pIncludePaths = @IncludePaths
 pLibraryPaths = @LibraryPaths
 pfSplash->lblProcess.Text = ML("Load On Startup") & ": LoadKeyWords"
+IncludePaths.Sorted = True
 GlobalNamespaces.Sorted = True
 Comps.Sorted = True
 GlobalTypes.Sorted = True
@@ -3129,8 +3130,9 @@ Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As US
 	End If
 End Function
 
-Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef TypeProcedures As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0)
+Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef TypeProcedures As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As FileType Ptr = 0)
 	If FormClosing Then Exit Sub
+	Dim As FileType Ptr File
 	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 		If ec = 0 Then
@@ -3138,7 +3140,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				MutexUnlock tlockSave
 				Exit Sub
 			Else
-				IncludeFiles.Add Path
+				File = New FileType
+				File->FileName = Path
+				IncludeFiles.Add Path, File
+				Var Idx = -1
+				If OldFile <> 0 AndAlso OldFile->Includes.Contains(Path, , , , Idx) Then
+					OldFile->Includes.Object(Idx) = File
+				End If
 			End If
 		End If
 		If @Types = @Comps Then
@@ -3162,7 +3170,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Dim As WString * 2048 bTrim, bTrimLCase
 	Dim b As WString * 2048 ' for V1.07 Line Input not working fine
 	Dim As Integer LastIndexFunction
-	Dim As WStringList Lines, Files, Namespaces
+	Dim As WStringList Lines, Namespaces
 	PathFunction = Path
 	If ec <> 0 Then
 		With *Cast(EditControl Ptr, ec)
@@ -3214,12 +3222,17 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			bTrim = Trim(b, Any !"\t ") 'DeleteSpaces(Trim(b, Any !"\t "))
 			bTrimLCase = LCase(bTrim)
 			k = k + Len(res(j)) + 1
-			If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) AndAlso CInt(StartsWith(LTrim(LCase(b)), "#include ")) Then
+			If CInt(StartsWith(LTrim(LCase(b)), "#include ")) Then
 				Pos1 = InStr(b, """")
 				If Pos1 > 0 Then
 					Pos2 = InStr(Pos1 + 1, b, """")
 					LoadFunctionPath = GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), PathFunction)
-					Files.Add LoadFunctionPath
+					Var Idx = IncludeFiles.IndexOf(LoadFunctionPath)
+					If Idx <> -1 Then
+						File->Includes.Add LoadFunctionPath, IncludeFiles.Object(Idx)
+					Else
+						File->Includes.Add LoadFunctionPath
+					End If
 				End If
 			ElseIf LoadParameter <> LoadParam.OnlyIncludeFiles Then
 				Pos3 = InStr(bTrimLCase, " as ")
@@ -4042,10 +4055,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		If FormClosing Then MutexUnlock tlockSave: Exit Sub
 	Next
 	MutexUnlock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
-	For i As Integer = 0 To Files.Count - 1
-		LoadFunctions Files.Item(i), , Types, Enums, Functions, TypeProcedures, Args
-		If FormClosing Then Exit Sub
-	Next
+	If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) Then
+		For i As Integer = 0 To File->Includes.Count - 1
+			LoadFunctions File->Includes.Item(i), , Types, Enums, Functions, TypeProcedures, Args
+			If FormClosing Then Exit Sub
+		Next
+	End If
 End Sub
 
 tlock = MutexCreate()

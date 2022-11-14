@@ -313,6 +313,8 @@ Namespace My.Sys.Forms
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
 		Declare Sub MiddleScroll
 	Public:
+		Includes As WStringList
+		IncludeLines As IntegerList
 		Namespaces As WStringList
 		Types As WStringList
 		Enums As WStringList

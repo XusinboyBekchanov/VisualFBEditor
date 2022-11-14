@@ -3293,9 +3293,10 @@ Sub OnGotFocusEdit(ByRef Sender As Control)
 	End If
 End Sub
 
-Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Sub") As Boolean
+Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Sub", Files As WStringList Ptr = 0) As Boolean
 	On Error Goto ErrorHandler
 	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
+	If Files <> 0 AndAlso Not Files->Contains(te->FileName) Then Return True
 	c += 1
 	If c > IntellisenseLimit Then Return False
 	Dim As String imgKeyNew = imgKey
@@ -3355,6 +3356,26 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Function
 
+Sub AddAllIncludedFiles(ByRef Files As WStringList, ByRef Path As WString, OldFile As FileType Ptr = 0)
+	If Not Files.Contains(Path) Then
+		Files.Add Path
+		Var Idx = -1
+		Dim As FileType Ptr File = 0
+		If OldFile = 0 Then
+			If IncludeFiles.Contains(Path, , , , Idx) Then
+				File = IncludeFiles.Object(Idx)
+			End If
+		Else
+			File = OldFile
+		End If
+		If File <> 0 Then
+			For i As Integer = 0 To File->Includes.Count - 1
+				AddAllIncludedFiles Files, File->Includes.Item(i), File->Includes.Object(i)
+			Next
+		End If
+	End If
+End Sub
+
 Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -3394,15 +3415,19 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	'		If Not AddSorted(tb, GetKeyWordCase(pKeyWords3->Item(i)), , Starts) Then Exit Sub
 	'	Next
 	For i As Integer = 0 To tb->txtCode.Types.Count - 1
+		If tb->txtCode.Types.Object(i) <> 0 AndAlso Cast(TypeElement Ptr, tb->txtCode.Types.Object(i))->StartLine > iSelStartLine Then Continue For
 		If Not AddSorted(tb, tb->txtCode.Types.Item(i), tb->txtCode.Types.Object(i), Starts) Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->txtCode.Enums.Count - 1
+		If tb->txtCode.Enums.Object(i) <> 0 AndAlso Cast(TypeElement Ptr, tb->txtCode.Enums.Object(i))->StartLine > iSelStartLine Then Continue For
 		If Not AddSorted(tb, tb->txtCode.Enums.Item(i), tb->txtCode.Enums.Object(i), Starts, , "Enum") Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->txtCode.Procedures.Count - 1
+		If tb->txtCode.Procedures.Object(i) <> 0 AndAlso Cast(TypeElement Ptr, tb->txtCode.Procedures.Object(i))->StartLine > iSelStartLine Then Continue For
 		If Not AddSorted(tb, tb->txtCode.Procedures.Item(i), tb->txtCode.Procedures.Object(i), Starts, , "Sub") Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->txtCode.Args.Count - 1
+		If tb->txtCode.Args.Object(i) <> 0 AndAlso Cast(TypeElement Ptr, tb->txtCode.Args.Object(i))->StartLine > iSelStartLine Then Continue For
 		If Not AddSorted(tb, tb->txtCode.Args.Item(i), tb->txtCode.Args.Object(i), Starts) Then Exit Sub
 	Next
 	Dim As Integer Pos1
@@ -3421,25 +3446,30 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 			End If
 		Next
 	End If
+	Dim As WStringList Files
+	Files.Sorted = True
+	For i As Integer = 0 To tb->txtCode.Includes.Count - 1
+		If tb->txtCode.IncludeLines.Item(i) > iSelStartLine Then Exit For
+		AddAllIncludedFiles Files, tb->txtCode.Includes.Item(i)
+	Next
 	For i As Integer = 0 To pGlobalNamespaces->Count - 1
-		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, "Sub") Then Exit Sub
+		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, "Sub", @Files) Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
 	For i As Integer = 0 To pComps->Count - 1
-		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , @Files) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalTypes->Count - 1
-		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , @Files) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalEnums->Count - 1
-		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , @Files) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalFunctions->Count - 1
-		'If Cast(TypeElement Ptr, pGlobalFunctions->Object(i))->TypeProcedure Then Continue For
-		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub") Then Exit Sub
+		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub", @Files) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalArgs->Count - 1
-		If Not AddSorted(tb, pGlobalArgs->Item(i), pGlobalArgs->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pGlobalArgs->Item(i), pGlobalArgs->Object(i), Starts, c, , @Files) Then Exit Sub
 	Next
 End Sub
 
@@ -3451,6 +3481,8 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 	#else
 		tb->txtCode.cboIntellisense.Items.Clear
 	#endif
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim c As Integer
 	If pkeywords1 <> 0 Then
 		For i As Integer = 0 To pkeywords1->Count - 1
@@ -3462,23 +3494,31 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 	AddSorted tb, GetKeyWordCase("Sub"), , Starts
 	AddSorted tb, GetKeyWordCase("Function"), , Starts
 	For i As Integer = 0 To tb->txtCode.Types.Count - 1
+		If tb->txtCode.Types.Object(i) <> 0 AndAlso Cast(TypeElement Ptr, tb->txtCode.Types.Object(i))->StartLine > iSelStartLine Then Continue For
 		If Not AddSorted(tb, tb->txtCode.Types.Item(i), tb->txtCode.Types.Object(i), Starts) Then Exit Sub
 	Next
 	For i As Integer = 0 To tb->txtCode.Enums.Count - 1
+		If tb->txtCode.Enums.Object(i) <> 0 AndAlso Cast(TypeElement Ptr, tb->txtCode.Enums.Object(i))->StartLine > iSelStartLine Then Continue For
 		If Not AddSorted(tb, tb->txtCode.Enums.Item(i), tb->txtCode.Enums.Object(i), Starts, , "Type") Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
+	Dim As WStringList Files
+	Files.Sorted = True
+	For i As Integer = 0 To tb->txtCode.Includes.Count - 1
+		If tb->txtCode.IncludeLines.Item(i) > iSelStartLine Then Exit For
+		AddAllIncludedFiles Files, tb->txtCode.Includes.Item(i)
+	Next
 	For i As Integer = 0 To pComps->Count - 1
-		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , @Files) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalTypes->Count - 1
-		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , @Files) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalEnums->Count - 1
-		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , @Files) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalNamespaces->Count - 1
-		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c) Then Exit Sub
+		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, , @Files) Then Exit Sub
 	Next
 End Sub
 
@@ -4965,7 +5005,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5096,6 +5136,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Delete_( Cast(TypeElement Ptr, txtCode.Args.Object(i)))
 		'Args.Remove i
 	Next
+	txtCode.Includes.Clear
+	txtCode.IncludeLines.Clear
 	txtCode.Functions.Clear
 	txtCode.FunctionsOthers.Clear
 	txtCode.Namespaces.Clear
@@ -5131,6 +5173,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	For j As Integer = 0 To txtCode.LinesCount - 1
 		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
 			sFileName = *FLine1
+			txtCode.Includes.Add sFileName
+			txtCode.IncludeLines.Add j
 			tb = GetTab(sFileName)
 			If tb = 0 Then
 				txtCodeBi.LoadFromFile *FLine1, FileEncoding, NewLineType
@@ -5238,6 +5282,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If Pos1 > 0 Then
 							Pos2 = InStr(Pos1 + 1, b, """")
 							WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+							If ptxtCode = @txtCode Then
+								txtCode.Includes.Add *FPath
+								txtCode.IncludeLines.Add j
+							End If
 							If Not pLoadPaths->Contains(*FPath) Then
 								Var AddedIndex = pLoadPaths->Add(*FPath)
 								ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))

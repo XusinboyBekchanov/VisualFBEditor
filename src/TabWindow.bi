@@ -93,17 +93,6 @@ End Type
 
 Type PTabWindow As TabWindow Ptr
 
-Type FileType
-	FileName As UString
-	DateChanged As Double
-	Namespaces As WStringList
-	Types As WStringList
-	Enums As WStringList
-	Procedures As WStringList
-	Args As WStringList
-	InProcess As Boolean
-End Type
-
 Declare Function Err2Description(Code As Integer) ByRef As WString
 
 #ifdef __USE_GTK__
