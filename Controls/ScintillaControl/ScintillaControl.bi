@@ -3,7 +3,6 @@
 #include once "Scilexer.bi"
 #include once "utf_conv.bi"
 #include once "vbcompat.bi"
-#include once "Scintilla.bi"
 
 Using My.Sys.Forms
 
@@ -91,6 +90,16 @@ Public:
 	Declare Property CaretLineBackAlpha(ByVal val As Integer)
 	Declare Property CaretLineBackColor As Integer
 	Declare Property CaretLineBackColor(ByVal val As Integer)
+	
+	'Tabs and Indentation
+	Declare Property UseTabs As Boolean
+	Declare Property UseTabs (uTabs As Boolean)
+	Declare Property TabWidth As Integer
+	Declare Property TabWidth (tWidth As Integer)
+	Declare Property IndentSize As Integer
+	Declare Property IndentSize (iSize As Integer)
+	Declare Property TabIndents As Boolean
+	Declare Property TabIndents (tIndents As Boolean)
 	
 	'text
 	Declare Property LineCount As Integer

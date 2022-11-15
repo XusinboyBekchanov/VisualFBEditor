@@ -906,3 +906,35 @@ End Property
 Private Property ScintillaControl.PosY(ByVal val As Integer)
 	Pos = SendMessage(FHandle, SCI_POSITIONFROMLINE, val, 0) + PosX
 End Property
+
+Private Property ScintillaControl.UseTabs As Boolean
+	Return SendMessage(Handle, SCI_GETUSETABS, 0, 0)
+End Property
+
+Private Property ScintillaControl.UseTabs (uTabs As Boolean)
+	SendMessage(Handle, SCI_SETUSETABS, uTabs, 0)
+End Property
+
+Private Property ScintillaControl.TabWidth As Integer
+	Return SendMessage(Handle, SCI_GETTABWIDTH, Pos, 0)
+End Property
+
+Private Property ScintillaControl.TabWidth (tWidth As Integer)
+	SendMessage(Handle, SCI_SETTABWIDTH, tWidth, 0)
+End Property
+
+Private Property ScintillaControl.IndentSize As Integer
+	Return SendMessage(Handle, SCI_GETINDENT, 0, 0)
+End Property
+
+Private Property ScintillaControl.IndentSize (iSize As Integer)
+	SendMessage(Handle, SCI_SETINDENT, iSize, 0)
+End Property
+
+Private Property ScintillaControl.TabIndents As Boolean
+	Return SendMessage(Handle, SCI_GETTABINDENTS, 0, 0)
+End Property
+
+Private Property ScintillaControl.TabIndents (tIndents As Boolean)
+	SendMessage(Handle, SCI_SETTABINDENTS, tIndents, 0)
+End Property
