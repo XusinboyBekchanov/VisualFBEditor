@@ -3143,10 +3143,6 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				File = New FileType
 				File->FileName = Path
 				IncludeFiles.Add Path, File
-				Var Idx = -1
-				If OldFile <> 0 AndAlso OldFile->Includes.Contains(Path, , , , Idx) Then
-					OldFile->Includes.Object(Idx) = File
-				End If
 			End If
 		End If
 		If @Types = @Comps Then
@@ -3155,6 +3151,25 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				pApp->DoEvents
 			#endif
 		End If
+	End If
+	If File = 0 Then
+		Var Idx = -1
+		If IncludeFiles.Contains(Path, , , , Idx) Then
+			File = IncludeFiles.Object(Idx)
+			If File = 0 Then
+				File = New FileType
+				File->FileName = Path
+				IncludeFiles.Object(Idx) = File
+			End If
+		Else
+			File = New FileType
+			File->FileName = Path
+			IncludeFiles.Add Path, File
+		End If
+	End If
+	Var Idx = -1
+	If OldFile <> 0 AndAlso OldFile->Includes.Contains(Path, , , , Idx) Then
+		OldFile->Includes.Object(Idx) = File
 	End If
 	'	#ifdef __US_GTK__
 	'		Exit Sub
