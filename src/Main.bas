@@ -4367,10 +4367,12 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
+		CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
 		If Not FileExists(GetFullPath(CtlLibrary->Path)) Then
 			MsgBox ML("File not found") & ": " & WChr(13, 10) & WChr(13, 10) & GetFullPath(CtlLibrary->Path) & WChr(13, 10) & WChr(13, 10) & ML("Can not load control to toolbox")
+		ElseIf CtlLibrary->Handle = 0 Then
+			MsgBox ML("File not loaded") & ": " & WChr(13, 10) & WChr(13, 10) & GetFullPath(CtlLibrary->Path) & WChr(13, 10) & WChr(13, 10) & ML("Can not load control to toolbox")
 		End If
-		CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
 		If Not CtlLibrary->Enabled Then Continue For
 		#ifdef __USE_GTK__
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/resources"))
