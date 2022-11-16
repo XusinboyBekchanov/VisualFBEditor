@@ -16,7 +16,7 @@
 		' Label1
 		With Label1
 			.Name = "Label1"
-			.Text = "Warning: enabling the following optimizatons will help reduce unused code"
+			.Text = ML("Warning: enabling the following optimizatons will help reduce unused code")
 			.TabIndex = 0
 			.SetBounds 10, 10, 320, 30
 			.Parent = @This
@@ -24,46 +24,41 @@
 		' chkShowUnusedLabelWarnings
 		With chkShowUnusedLabelWarnings
 			.Name = "chkShowUnusedLabelWarnings"
-			.Text = "Show unused label warnings"
+			.Text = ML("Show unused label warnings")
 			.TabIndex = 1
 			.SetBounds 10, 50, 240, 20
-			.Caption = "Show unused label warnings"
 			.Parent = @This
 		End With
 		' chkShowUnusedFunctionWarnings
 		With chkShowUnusedFunctionWarnings
 			.Name = "chkShowUnusedFunctionWarnings"
-			.Text = "Show unused function warnings"
+			.Text = ML("Show unused function warnings")
 			.TabIndex = 2
 			.SetBounds 10, 70, 240, 20
-			.Caption = "Show unused function warnings"
 			.Parent = @This
 		End With
 		' chkShowUnusedVariableWarnings
 		With chkShowUnusedVariableWarnings
 			.Name = "chkShowUnusedVariableWarnings"
-			.Text = "Show unused variable warnings"
+			.Text = ML("Show unused variable warnings")
 			.TabIndex = 3
 			.SetBounds 10, 90, 240, 20
-			.Caption = "Show unused variable warnings"
 			.Parent = @This
 		End With
 		' chkShowUnusedButSetVariableWarnings
 		With chkShowUnusedButSetVariableWarnings
 			.Name = "chkShowUnusedButSetVariableWarnings"
-			.Text = "Show unused but set variable warnings"
+			.Text = ML("Show unused but set variable warnings")
 			.TabIndex = 4
 			.SetBounds 10, 110, 240, 20
-			.Caption = "Show unused but set variable warnings"
 			.Parent = @This
 		End With
 		' chkShowMainWarnings
 		With chkShowMainWarnings
 			.Name = "chkShowMainWarnings"
-			.Text = "Show main warnings"
+			.Text = ML("Show main warnings")
 			.TabIndex = 5
 			.SetBounds 10, 130, 240, 20
-			.Caption = "Show main warnings"
 			.Parent = @This
 		End With
 		' pnlCommands
@@ -78,7 +73,7 @@
 		' cmdCancel
 		With cmdCancel
 			.Name = "cmdCancel"
-			.Text = ML("Cancel")
+			.Text = ML("&Cancel")
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 10
 			.ExtraMargins.Right = 10
@@ -92,7 +87,7 @@
 		' cmdOK
 		With cmdOK
 			.Name = "cmdOK"
-			.Text = ML("OK")
+			.Text = ML("&OK")
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 10
 			.ExtraMargins.Right = 10

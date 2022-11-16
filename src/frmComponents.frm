@@ -47,9 +47,8 @@
 		' frmComponents
 		With This
 			.Name = "frmComponents"
-			.Text = "Components"
+			.Text = ML("Components")
 			.Designer = @This
-			.Caption = "Components"
 			.OnCreate = @Form_Create_
 			.ControlBox = True
 			.Icon = "1"
@@ -69,9 +68,8 @@
 		' cmdApply
 		With cmdApply
 			.Name = "cmdApply"
-			.Text = "Apply"
+			.Text = ML("&Apply")
 			.TabIndex = 11
-			.Caption = "Apply"
 			.Align = DockStyle.alRight
 			.ExtraMargins.Right = 5
 			.ExtraMargins.Top = 5
@@ -84,14 +82,13 @@
 		' cmdCancel
 		With cmdCancel
 			.Name = "cmdCancel"
-			.Text = "Cancel"
+			.Text = ML("&Cancel")
 			.TabIndex = 10
 			.Align = DockStyle.alRight
 			.ControlIndex = 0
 			.ExtraMargins.Top = 5
 			.ExtraMargins.Right = 5
 			.ExtraMargins.Bottom = 5
-			.Caption = "Cancel"
 			.SetBounds 254, 5, 90, 20
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
@@ -100,14 +97,13 @@
 		' cmdOK
 		With cmdOK
 			.Name = "cmdOK"
-			.Text = "OK"
+			.Text = ML("&OK")
 			.TabIndex = 9
 			.Align = DockStyle.alRight
 			.ControlIndex = 0
 			.ExtraMargins.Top = 5
 			.ExtraMargins.Right = 5
 			.ExtraMargins.Bottom = 5
-			.Caption = "OK"
 			.SetBounds 159, 5, 90, 20
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
@@ -129,9 +125,8 @@
 		' tbpControls
 		With tbpControls
 			.Name = "tbpControls"
-			.Text = "Controls"
+			.Text = ML("Controls")
 			.TabIndex = 1
-			.Caption = "Controls"
 			.UseVisualStyleBackColor = True
 			.SetBounds 1, 22, 428, 311
 			.Designer = @This
@@ -146,7 +141,6 @@
 			.ExtraMargins.Bottom = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Right = 10
-			.Caption = "MyFbFramework"
 			.SetBounds 10, 241, 408, 60
 			.Designer = @This
 			.Parent = @tbpControls
@@ -178,14 +172,13 @@
 		' lblLocation
 		With lblLocation
 			.Name = "lblLocation"
-			.Text = "Location: "
+			.Text = ML("Location") & ": "
 			.TabIndex = 7
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 25
 			.ExtraMargins.Bottom = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Right = 10
-			.Caption = "Location: "
 			.WordWraps = False
 			.SetBounds 10, 25, 388, 25
 			.Designer = @This
@@ -194,13 +187,12 @@
 		' cmdBrowse
 		With cmdBrowse
 			.Name = "cmdBrowse"
-			.Text = "Browse..."
+			.Text = ML("Browse") & "..."
 			.TabIndex = 4
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
-			.Caption = "Browse..."
 			.SetBounds 10, 10, 130, 20
 			.Designer = @This
 			.OnClick = @cmdBrowse_Click_
@@ -209,13 +201,12 @@
 		' chkSelectedItemsOnly
 		With chkSelectedItemsOnly
 			.Name = "chkSelectedItemsOnly"
-			.Text = "Selected Items Only"
+			.Text = ML("Selected Items Only")
 			.TabIndex = 5
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
-			.Caption = "Selected Items Only"
 			.SetBounds 10, 40, 130, 20
 			.Designer = @This
 			.OnClick = @chkSelectedItemsOnly_Click_
