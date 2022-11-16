@@ -2321,15 +2321,20 @@ Namespace My.Sys.Forms
 		If te > 0 Then Return True Else Return False
 	End Function
 	
-	
 	Function EditControl.GetTypeFromValue(ByRef Value As String, iSelEndLine As Integer) As String
 		If Value= "" Then Return ""
 		Dim As String sTemp
-		If StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(") Then
+		If (StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(")) AndAlso EndsWith(LCase(Value), ")") Then
 			Var Pos1 = InStr(Value, "(")
 			Var Pos2 = InStr(Value, ",")
 			If Pos2 > 0 Then
 				sTemp = WithoutPointers(Trim(Mid(Value, Pos1 + 1, Pos2 - Pos1 - 1)))
+			End If
+		ElseIf StartsWith(LCase(Value), "new_(") Then
+			Var Pos1 = InStr(Value, "(")
+			Var Pos2 = InStr(Value, ")")
+			If Pos2 > 0 Then
+				sTemp = Trim(Mid(Value, Pos1 + 1, Pos2 - Pos1 - 1))
 			End If
 		Else
 			Dim As String TypeName
