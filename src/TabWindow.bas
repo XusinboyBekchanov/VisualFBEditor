@@ -5143,6 +5143,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Delete_( Cast(TypeElement Ptr, txtCode.Args.Object(i)))
 		'Args.Remove i
 	Next
+	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
+		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
+	Next
 	txtCode.Includes.Clear
 	txtCode.IncludeLines.Clear
 	txtCode.Functions.Clear
@@ -6871,7 +6874,7 @@ Destructor TabWindow
 		Delete_( Cast(TypeElement Ptr, txtCode.Args.Object(i)))
 	Next
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, AnyTexts.Object(i)))
+		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
 	txtCode.Functions.Clear
 	txtCode.FunctionsOthers.Clear
@@ -6879,7 +6882,8 @@ Destructor TabWindow
 	txtCode.Types.Clear
 	txtCode.Procedures.Clear
 	txtCode.LineLabels.Clear
-	txtCode.FileList.Clear	
+	txtCode.Args.Clear
+	txtCode.FileList.Clear
 	AnyTexts.Clear
 	Events.Clear
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0
