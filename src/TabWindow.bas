@@ -807,7 +807,7 @@ Property TabWindow.FileName ByRef As WString
 End Property
 
 Property TabWindow.FileName(ByRef Value As WString)
-	wLet(FFileName,  Value)
+	WLet(FFileName,  Value)
 End Property
 
 Operator TabWindow.Cast As TabPage Ptr
@@ -6870,13 +6870,18 @@ Destructor TabWindow
 	For i As Integer = txtCode.Args.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Args.Object(i)))
 	Next
+	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, AnyTexts.Object(i)))
+	Next
 	txtCode.Functions.Clear
 	txtCode.FunctionsOthers.Clear
 	txtCode.Namespaces.Clear
 	txtCode.Types.Clear
 	txtCode.Procedures.Clear
 	txtCode.LineLabels.Clear
-	txtCode.Args.Clear
+	txtCode.FileList.Clear	
+	AnyTexts.Clear
+	Events.Clear
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0
 	'If tn <> 0 Then ptvExplorer->RemoveRoot ptvExplorer->IndexOfRoot(tn)
 End Destructor
@@ -7770,7 +7775,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							Pos1 = InStr(LTrim(sLine, Any !"\t "), " ")
 							If Pos1 > 0 Then
 								ResNameOrID = Trim(..Left(LTrim(sLine, Any !"\t "), Pos1 - 1), Any !"\t ")
-								If IsNumeric(ResNameOrID) Then
+								If isNumeric(ResNameOrID) Then
 									If MinResID = 0 OrElse MinResID > Val(ResNameOrID) Then MinResID = Val(ResNameOrID)
 								Else
 									If MinResName = "" OrElse LCase(MinResName) > LCase(ResNameOrID) Then MinResName = ResNameOrID
@@ -7798,7 +7803,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 				If n = 1 Then NewLine = WChr(13) & WChr(10)
 			Loop
 			If Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" Then
-				If IsNumeric(*Project->ApplicationIcon) Then
+				If isNumeric(*Project->ApplicationIcon) Then
 					If MinResName <> "" OrElse (MinResID <> 0 AndAlso Val(*Project->ApplicationIcon) > MinResID) Then
 						bChangeIcon = True
 						bFinded = True
@@ -8089,7 +8094,7 @@ Sub RunEmulator(Param As Any Ptr)
 				Exit For
 			End If
 		Next
-		WDeallocate(CmdL)
+		WDeAllocate(CmdL)
 	#endif
 End Sub
 
@@ -8100,8 +8105,8 @@ Sub RunLogCat(Param As Any Ptr)
 		#define BufferSize 2048
 		For i As Integer = 0 To 1
 			Select Case i
-			Case 0: WLet(CmdL, *SDKDir & "\platform-tools\adb logcat -c")
-			Case 1: WLet(CmdL, *SDKDir & "\platform-tools\adb logcat")
+			Case 0: WLet(CmdL, *SdkDir & "\platform-tools\adb logcat -c")
+			Case 1: WLet(CmdL, *SdkDir & "\platform-tools\adb logcat")
 			End Select
 			Dim si As STARTUPINFO
 			Dim pi As PROCESS_INFORMATION
@@ -8115,7 +8120,7 @@ Sub RunLogCat(Param As Any Ptr)
 			Dim Buff As WString * 2048
 			
 			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
-			sa.lpSecurityDescriptor = Null
+			sa.lpSecurityDescriptor = NULL
 			sa.bInheritHandle = True
 			
 			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
