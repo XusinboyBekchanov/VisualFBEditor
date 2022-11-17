@@ -3619,6 +3619,8 @@ End Sub
 Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim As String sTemp2 = TypeName
 	If tb->Des Then
 		Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
@@ -3680,17 +3682,18 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 	If TypeName <> "" AndAlso LCase(Value) = "base" Then
 		FListItems.Add "Base"
 	End If
+	Var Idx = -1
 	If TypesOnly Then
-		If tb->txtCode.Namespaces.Contains(sTemp2) Then
+		If tb->txtCode.Namespaces.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Namespaces.Object(Idx))->StartLine <= iSelStartLine Then
 			tb->FillIntellisense sTemp2, @tb->txtCode.Namespaces, bLocal, bAll, TypesOnly
 		ElseIf pGlobalNamespaces->Contains(sTemp2) Then
 			tb->FillIntellisense sTemp2, pGlobalNamespaces, bLocal, bAll, TypesOnly
 		End If
-	ElseIf tb->txtCode.Types.Contains(sTemp2) AndAlso Not TypesOnly Then
+	ElseIf tb->txtCode.Types.Contains(sTemp2, , , , Idx) AndAlso CBool(Cast(TypeElement Ptr, tb->txtCode.Types.Object(Idx))->StartLine <= iSelStartLine) AndAlso Not TypesOnly Then
 		tb->FillIntellisense sTemp2, @tb->txtCode.Types, bLocal, bAll
-	ElseIf tb->txtCode.Enums.Contains(sTemp2) Then
+	ElseIf tb->txtCode.Enums.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Enums.Object(Idx))->StartLine <= iSelStartLine Then
 		tb->FillIntellisense sTemp2, @tb->txtCode.Enums, bLocal, bAll
-	ElseIf tb->txtCode.Namespaces.Contains(sTemp2) Then
+	ElseIf tb->txtCode.Namespaces.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Namespaces.Object(Idx))->StartLine <= iSelStartLine Then
 		tb->FillIntellisense sTemp2, @tb->txtCode.Namespaces, bLocal, bAll
 		tb->FillIntellisense sTemp2, pGlobalNamespaces, bLocal, bAll
 	ElseIf pComps->Contains(sTemp2) Then

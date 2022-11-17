@@ -2298,20 +2298,21 @@ Namespace My.Sys.Forms
 		dwClientY = ClientHeight
 	End Sub
 	
-	Function EditControl.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0) As Boolean
+	Function EditControl.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean
 		If ClassName = "" OrElse pList = 0 Then Return False
 		Var Index = pList->IndexOf(ClassName)
 		If Index = -1 Then Return False
 		Dim tbi As TypeElement Ptr = pList->Object(Index)
 		te = 0
 		If tbi Then
+			If LineIndex <>-1 AndAlso tbi->StartLine > LineIndex Then Return False
 			Index = -1
 			If tbi->Elements.Contains(ItemText, , , , Index) Then
 				te = tbi->Elements.Object(Index)
 				'ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
-			ElseIf ContainsIn(tbi->TypeName, ItemText, @Types, bLocal, bAll, TypesOnly, te) Then
-			ElseIf ContainsIn(tbi->TypeName, ItemText, @Enums, bLocal, bAll, TypesOnly, te) Then
-			ElseIf ContainsIn(tbi->TypeName, ItemText, @Namespaces, bLocal, bAll, TypesOnly, te) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, @Types, bLocal, bAll, TypesOnly, te, LineIndex) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, @Enums, bLocal, bAll, TypesOnly, te, LineIndex) Then
+			ElseIf ContainsIn(tbi->TypeName, ItemText, @Namespaces, bLocal, bAll, TypesOnly, te, LineIndex) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pComps, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalTypes, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, pGlobalEnums, bLocal, bAll, TypesOnly, te) Then
@@ -2381,8 +2382,8 @@ Namespace My.Sys.Forms
 			Dim As Integer Pos1
 			Dim As Integer Idx = -1
 			If TypeName <> "" Then
-				If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
-				ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
+				If ContainsIn(TypeName, sTemp, @Types, True, , , te, iSelEndLine) Then
+				ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te, iSelEndLine) Then
 				ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2390,19 +2391,19 @@ Namespace My.Sys.Forms
 			Else
 				te1 = teC
 				If teC > 0 Then TypeName = TypeNameFromLine
-				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
+				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, te1->Elements.Object(Idx))->StartLine <= iSelEndLine Then
 					te = te1->Elements.Object(Idx)
-				ElseIf Procedures.Contains(sTemp, , , , Idx) Then
+				ElseIf Procedures.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Procedures.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Procedures.Object(Idx)
-				ElseIf Args.Contains(sTemp, , , , Idx) Then
+				ElseIf Args.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Args.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Args.Object(Idx)
 				ElseIf pGlobalFunctions->Contains(sTemp, , , , Idx) Then
 					te = pGlobalFunctions->Object(Idx)
 				ElseIf pGlobalArgs->Contains(sTemp, , , , Idx) Then
 					te = pGlobalArgs->Object(Idx)
 				ElseIf TypeName <> "" Then
-					If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
-					ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
+					If ContainsIn(TypeName, sTemp, @Types, True, , , te, iSelEndLine) Then
+					ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te, iSelEndLine) Then
 					ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2517,7 +2518,7 @@ Namespace My.Sys.Forms
 		Dim As TypeElement Ptr te, te1, te2
 		If TypeName <> "" Then
 			If LCase(sTemp) = "base" Then
-				If Types.Contains(TypeName, , , , Idx) Then
+				If Types.Contains(TypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 					te2 = Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf pComps > 0 AndAlso pComps->Contains(TypeName, , , , Idx) Then
@@ -2528,7 +2529,7 @@ Namespace My.Sys.Forms
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				End If
 				If BaseTypeName <> "" Then
-					If Types.Contains(BaseTypeName, , , , Idx) Then
+					If Types.Contains(BaseTypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 						teEnum = Types.Object(Idx)
 					ElseIf pComps > 0 AndAlso pComps->Contains(BaseTypeName, , , , Idx) Then
 						teEnum = pComps->Object(Idx)
@@ -2540,9 +2541,9 @@ Namespace My.Sys.Forms
 					Return BaseTypeName
 				End If
 			End If
-			If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
-			ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
-			ElseIf ContainsIn(TypeName, sTemp, @Namespaces, True, , , te) Then
+			If ContainsIn(TypeName, sTemp, @Types, True, , , te, iSelEndLine) Then
+			ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te, iSelEndLine) Then
+			ElseIf ContainsIn(TypeName, sTemp, @Namespaces, True, , , te, iSelEndLine) Then
 			ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2557,7 +2558,7 @@ Namespace My.Sys.Forms
 			If LCase(sTemp) = "this" Then
 				Return TypeName
 			ElseIf LCase(sTemp) = "base" Then
-				If Types.Contains(TypeName, , , , Idx) Then
+				If Types.Contains(TypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 					te2 = Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf pComps > 0  AndAlso pComps->Contains(TypeName, , , , Idx) Then
@@ -2568,7 +2569,7 @@ Namespace My.Sys.Forms
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				End If
 				If BaseTypeName <> "" Then
-					If Types.Contains(BaseTypeName, , , , Idx) Then
+					If Types.Contains(BaseTypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 						teEnum = Types.Object(Idx)
 					ElseIf pComps > 0 AndAlso pComps->Contains(BaseTypeName, , , , Idx) Then
 						teEnum = pComps->Object(Idx)
@@ -2602,8 +2603,8 @@ Namespace My.Sys.Forms
 						Else
 							TypeName = teC->Name
 						End If
-						If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
-						ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
+						If ContainsIn(TypeName, sTemp, @Types, True, , , te, iSelEndLine) Then
+						ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te, iSelEndLine) Then
 						ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 						ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 						ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -2619,13 +2620,13 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			If tIndex = -1 Then
-				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) Then
+				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, te1->Elements.Object(Idx))->StartLine <= iSelEndLine Then
 					te = te1->Elements.Object(Idx)
-				ElseIf Procedures.Contains(sTemp, , , , Idx) Then
+				ElseIf Procedures.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Procedures.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Procedures.Object(Idx)
-				ElseIf Args.Contains(sTemp, , , , Idx) Then
+				ElseIf Args.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Args.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Args.Object(Idx)
-				ElseIf Namespaces.Contains(sTemp, , , , Idx) Then
+				ElseIf Namespaces.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Namespaces.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Namespaces.Object(Idx)
 				ElseIf CBool(pGlobalFunctions > 0) AndAlso pGlobalFunctions->Contains(sTemp, , , , Idx) Then
 					te = pGlobalFunctions->Object(Idx)
@@ -2636,9 +2637,9 @@ Namespace My.Sys.Forms
 				ElseIf pGlobalNamespaces > 0 AndAlso pGlobalNamespaces->Contains(sTemp, , , , Idx) Then
 					te = pGlobalNamespaces->Object(Idx)
 				ElseIf TypeName <> "" Then
-					If ContainsIn(TypeName, sTemp, @Types, True, , , te) Then
-					ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te) Then
-					ElseIf ContainsIn(TypeName, sTemp, @Namespaces, True, , , te) Then
+					If ContainsIn(TypeName, sTemp, @Types, True, , , te, iSelEndLine) Then
+					ElseIf ContainsIn(TypeName, sTemp, @Enums, True, , , te, iSelEndLine) Then
+					ElseIf ContainsIn(TypeName, sTemp, @Namespaces, True, , , te, iSelEndLine) Then
 					ElseIf ContainsIn(TypeName, sTemp, pComps, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, True, , , te) Then
@@ -3136,28 +3137,32 @@ Namespace My.Sys.Forms
 																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
 																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
-																		pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-																		OriginalCaseWord = pkeywords->Item(tIndex)
-																		te = pkeywords->Object(tIndex)
-																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																			Select Case LCase(te->ElementType)
-																			Case "sub"
-																				sc = @ColorSubs
-																			Case "function"
-																				sc = @ColorGlobalFunctions
-																			Case "property"
-																				sc = @ColorProperties
-																			Case "byrefparameter"
-																				sc = @ColorByRefParameters
-																			Case "byvalparameter"
-																				sc = @ColorByValParameters
-																			Case "field", "event"
-																				sc = @ColorFields
-																			Case "linelabel"
-																				sc = @ColorLineLabels
-																			Case Else
-																				sc = @ColorLocalVariables
-																			End Select
+																		If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z Then
+																			tIndex = -1
+																		Else
+																			pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+																			OriginalCaseWord = pkeywords->Item(tIndex)
+																			te = pkeywords->Object(tIndex)
+																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																				Select Case LCase(te->ElementType)
+																				Case "sub"
+																					sc = @ColorSubs
+																				Case "function"
+																					sc = @ColorGlobalFunctions
+																				Case "property"
+																					sc = @ColorProperties
+																				Case "byrefparameter"
+																					sc = @ColorByRefParameters
+																				Case "byvalparameter"
+																					sc = @ColorByValParameters
+																				Case "field", "event"
+																					sc = @ColorFields
+																				Case "linelabel"
+																					sc = @ColorLineLabels
+																				Case Else
+																					sc = @ColorLocalVariables
+																				End Select
+																			End If
 																		End If
 																	Else
 																		If tIndex = -1 Then
@@ -3169,8 +3174,8 @@ Namespace My.Sys.Forms
 																				Else
 																					TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
 																				End If
-																				If ContainsIn(TypeName, Matn, @Types, True, , , te) Then
-																				ElseIf ContainsIn(TypeName, Matn, @Enums, True, , , te) Then
+																				If ContainsIn(TypeName, Matn, @Types, True, , , te, z) Then
+																				ElseIf ContainsIn(TypeName, Matn, @Enums, True, , , te, z) Then
 																				ElseIf ContainsIn(TypeName, Matn, pComps, True, , , te) Then
 																				ElseIf ContainsIn(TypeName, Matn, pGlobalTypes, True, , , te) Then
 																				ElseIf ContainsIn(TypeName, Matn, pGlobalEnums, True, , , te) Then
@@ -3224,22 +3229,26 @@ Namespace My.Sys.Forms
 																If tIndex = -1 AndAlso LCase(OldMatn) <> "as" Then
 																	tIndex = Args.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
-																		OriginalCaseWord = Args.Item(tIndex)
-																		pkeywords = @Args
-																		te = Args.Object(tIndex)
-																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																			Select Case te->ElementType
-																			Case "EnumItem"
-																				sc = @ColorEnumMembers
-																			Case "CommonVariable"
-																				sc = @ColorCommonVariables
-																			Case "Constant"
-																				sc = @ColorConstants
-																			Case "SharedVariable"
-																				sc = @ColorSharedVariables
-																			Case Else
-																				sc = @ColorLocalVariables
-																			End Select
+																		If Cast(TypeElement Ptr, Args.Object(tIndex))->StartLine > z Then
+																			tIndex = -1
+																		Else
+																			OriginalCaseWord = Args.Item(tIndex)
+																			pkeywords = @Args
+																			te = Args.Object(tIndex)
+																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																				Select Case te->ElementType
+																				Case "EnumItem"
+																					sc = @ColorEnumMembers
+																				Case "CommonVariable"
+																					sc = @ColorCommonVariables
+																				Case "Constant"
+																					sc = @ColorConstants
+																				Case "SharedVariable"
+																					sc = @ColorSharedVariables
+																				Case Else
+																					sc = @ColorLocalVariables
+																				End Select
+																			End If
 																		End If
 																	End If
 																End If
@@ -3247,24 +3256,28 @@ Namespace My.Sys.Forms
 																If tIndex = -1 Then
 																	tIndex = Procedures.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
-																		OriginalCaseWord = Procedures.Item(tIndex)
-																		pkeywords = @Procedures
-																		te = Procedures.Object(tIndex)
-																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																			Select Case LCase(te->ElementType)
-																			Case "constructor", "destructor"
-																				sc = @ColorGlobalTypes
-																			Case "function"
-																				sc = @ColorGlobalFunctions
-																			Case "sub"
-																				sc = @ColorSubs
-																			Case "define"
-																				sc = @ColorDefines
-																			Case "macro"
-																				sc = @ColorMacros
-																			Case "property"
-																				sc = @ColorProperties
-																			End Select
+																		If Cast(TypeElement Ptr, Procedures.Object(tIndex))->StartLine > z Then
+																			tIndex = -1
+																		Else
+																			OriginalCaseWord = Procedures.Item(tIndex)
+																			pkeywords = @Procedures
+																			te = Procedures.Object(tIndex)
+																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																				Select Case LCase(te->ElementType)
+																				Case "constructor", "destructor"
+																					sc = @ColorGlobalTypes
+																				Case "function"
+																					sc = @ColorGlobalFunctions
+																				Case "sub"
+																					sc = @ColorSubs
+																				Case "define"
+																					sc = @ColorDefines
+																				Case "macro"
+																					sc = @ColorMacros
+																				Case "property"
+																					sc = @ColorProperties
+																				End Select
+																			End If
 																		End If
 																	End If
 																End If
@@ -3272,9 +3285,13 @@ Namespace My.Sys.Forms
 																If tIndex = -1 Then
 																	tIndex = Types.IndexOf(LCase(Matn))
 																	If tIndex <> -1 Then
-																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
-																		OriginalCaseWord = Types.Item(tIndex)
-																		pkeywords = @Types
+																		If Cast(TypeElement Ptr, Types.Object(tIndex))->StartLine > z Then
+																			tIndex = -1
+																		Else
+																			If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
+																			OriginalCaseWord = Types.Item(tIndex)
+																			pkeywords = @Types
+																		End If
 																	End If
 																End If
 																
