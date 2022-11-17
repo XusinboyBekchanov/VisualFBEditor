@@ -2774,6 +2774,7 @@ End Function
 Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
+	tb->bLineChanged = True
 	bNotFunctionChange = True
 	If TextChanged AndAlso tb->txtCode.SyntaxEdit Then
 		With tb->txtCode
@@ -3446,30 +3447,33 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 			End If
 		Next
 	End If
-	Dim As WStringList Files
-	Files.Sorted = True
-	For i As Integer = 0 To tb->txtCode.Includes.Count - 1
-		If tb->txtCode.IncludeLines.Item(i) > iSelStartLine Then Exit For
-		AddAllIncludedFiles Files, tb->txtCode.Includes.Item(i)
-	Next
+	Dim As WStringList Ptr pFiles = @tb->txtCode.FileList
+	If tb->bLineChanged Then
+		pFiles->Clear
+		For i As Integer = 0 To tb->txtCode.Includes.Count - 1
+			If tb->txtCode.IncludeLines.Item(i) > iSelStartLine Then Exit For
+			AddAllIncludedFiles *pFiles, tb->txtCode.Includes.Item(i)
+		Next
+		tb->bLineChanged = False
+	End If
 	For i As Integer = 0 To pGlobalNamespaces->Count - 1
-		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, "Sub", @Files) Then Exit Sub
+		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, "Sub", pFiles) Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
 	For i As Integer = 0 To pComps->Count - 1
-		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , @Files) Then Exit Sub
+		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , pFiles) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalTypes->Count - 1
-		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , @Files) Then Exit Sub
+		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , pFiles) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalEnums->Count - 1
-		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , @Files) Then Exit Sub
+		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , pFiles) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalFunctions->Count - 1
-		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub", @Files) Then Exit Sub
+		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub", pFiles) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalArgs->Count - 1
-		If Not AddSorted(tb, pGlobalArgs->Item(i), pGlobalArgs->Object(i), Starts, c, , @Files) Then Exit Sub
+		If Not AddSorted(tb, pGlobalArgs->Item(i), pGlobalArgs->Object(i), Starts, c, , pFiles) Then Exit Sub
 	Next
 End Sub
 
@@ -3502,23 +3506,26 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		If Not AddSorted(tb, tb->txtCode.Enums.Item(i), tb->txtCode.Enums.Object(i), Starts, , "Type") Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
-	Dim As WStringList Files
-	Files.Sorted = True
-	For i As Integer = 0 To tb->txtCode.Includes.Count - 1
-		If tb->txtCode.IncludeLines.Item(i) > iSelStartLine Then Exit For
-		AddAllIncludedFiles Files, tb->txtCode.Includes.Item(i)
-	Next
+	Dim As WStringList Ptr pFiles = @tb->txtCode.FileList
+	If tb->bLineChanged Then
+		pFiles->Clear
+		For i As Integer = 0 To tb->txtCode.Includes.Count - 1
+			If tb->txtCode.IncludeLines.Item(i) > iSelStartLine Then Exit For
+			AddAllIncludedFiles *pFiles, tb->txtCode.Includes.Item(i)
+		Next
+		tb->bLineChanged = False
+	End If
 	For i As Integer = 0 To pComps->Count - 1
-		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , @Files) Then Exit Sub
+		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , pFiles) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalTypes->Count - 1
-		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , @Files) Then Exit Sub
+		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , pFiles) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalEnums->Count - 1
-		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , @Files) Then Exit Sub
+		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , pFiles) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalNamespaces->Count - 1
-		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, , @Files) Then Exit Sub
+		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, , pFiles) Then Exit Sub
 	Next
 End Sub
 

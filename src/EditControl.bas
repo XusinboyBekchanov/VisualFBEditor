@@ -6265,6 +6265,7 @@ Namespace My.Sys.Forms
 		Var item = New_( EditControlLine)
 		WLet(item->Text, "")
 		FLines.Add item
+		FileList.Sorted = True
 		bOldCommented = True
 		ChangeText "", 0, "Bo`sh"
 		ShowHint = False
