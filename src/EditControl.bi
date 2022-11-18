@@ -317,6 +317,7 @@ Namespace My.Sys.Forms
 		FileListLines As IntegerList
 		Includes As WStringList
 		IncludeLines As IntegerList
+		CheckedFiles As WStringList
 		ExternalIncludes As WStringList
 		ExternalIncludedLines As IntegerList
 		Namespaces As WStringList

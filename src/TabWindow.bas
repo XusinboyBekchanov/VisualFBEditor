@@ -3404,6 +3404,8 @@ Function AddExternalIncludes(tb As TabWindow Ptr, File As FileType Ptr, ByRef Fi
 			Return True
 		End If
 		For i As Integer = 0 To File->Includes.Count - 1
+			If tb->txtCode.CheckedFiles.Contains(File->Includes.Item(i)) Then Continue For
+			tb->txtCode.CheckedFiles.Add File->Includes.Item(i)
 			If AddExternalIncludes(tb, File->Includes.Object(i), FileName) Then
 				Var IncludedLine = File->IncludeLines.Item(i)
 				tb->txtCode.ExternalIncludes.Add File->FileName
@@ -5185,6 +5187,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
+	txtCode.CheckedFiles.Clear
 	txtCode.ExternalIncludes.Clear
 	txtCode.ExternalIncludedLines.Clear
 	txtCode.Includes.Clear
