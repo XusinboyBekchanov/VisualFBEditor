@@ -828,6 +828,11 @@ Function TabWindow.SaveTab As Boolean
 	Var FileIndex = IncludeFiles.IndexOf(FileName)
 	If FileIndex <> 0 Then
 		MutexLock tlockSave
+		Dim As FileType Ptr File = IncludeFiles.Object(FileIndex)
+		If File Then
+			File->Includes.Clear
+			File->IncludeLines.Clear
+		End If
 		Dim As TypeElement Ptr te, te1
 		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 			te = pGlobalNamespaces->Object(i)
@@ -3288,6 +3293,7 @@ Sub OnGotFocusEdit(ByRef Sender As Control)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	If tb->Index = -1 Then Exit Sub
+	tb->bLineChanged = True
 	If ptabCode <> tb->Parent Then
 		ptabCode = tb->Parent
 		tabCode_SelChange *ptabCode, tb->Index
@@ -3298,10 +3304,7 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 	On Error Goto ErrorHandler
 	Var Idx = -1
 	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
-	'If FileLines <> 0 AndAlso Files->Contains(te->FileName, , , , Idx) Then
-	'	?te->Name, te->FileName, te->StartLine, FileLines->Item(Idx)
-	'End If
-	If Files <> 0 AndAlso ((Not Files->Contains(te->FileName, , , , Idx)) OrElse FileLines AndAlso FileLines->Item(Idx) <> -1 AndAlso te->StartLine > FileLines->Item(Idx)) Then Return True
+	If Files <> 0 AndAlso ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx)) Then Return True
 	c += 1
 	If c > IntellisenseLimit Then Return False
 	Dim As String imgKeyNew = imgKey
@@ -3363,10 +3366,8 @@ End Function
 
 Sub AddAllIncludedFiles(ByRef Files As WStringList, ByRef FileLines As IntegerList, ByRef Path As WString, OldFile As FileType Ptr = 0)
 	If Not Files.Contains(Path) Then
-		?Path
-		Files.Add Path
-		FileLines.Add - 1
-		Var Idx = -1
+		Var Idx = Files.Add(Path)
+		FileLines.Insert Idx, -1
 		Dim As FileType Ptr File = 0
 		If OldFile = 0 Then
 			If IncludeFiles.Contains(Path, , , , Idx) Then
@@ -3387,8 +3388,8 @@ Sub UpdateIncludedFilesList(tb As TabWindow Ptr, iSelStartLine As Integer)
 	With tb->txtCode
 		.FileList.Clear
 		For i As Integer = 0 To .ExternalIncludes.Count - 1
-			.FileList.Add .ExternalIncludes.Item(i)
-			.FileListLines.Add .ExternalIncludedLines.Item(i)
+			Var Idx = .FileList.Add(.ExternalIncludes.Item(i))
+			.FileListLines.Insert Idx, .ExternalIncludedLines.Item(i)
 		Next
 		For i As Integer = 0 To .Includes.Count - 1
 			If .IncludeLines.Item(i) > iSelStartLine Then Exit For
@@ -3405,7 +3406,6 @@ Function AddExternalIncludes(tb As TabWindow Ptr, File As FileType Ptr, ByRef Fi
 		For i As Integer = 0 To File->Includes.Count - 1
 			If AddExternalIncludes(tb, File->Includes.Object(i), FileName) Then
 				Var IncludedLine = File->IncludeLines.Item(i)
-				?File->FileName, IncludedLine - 1
 				tb->txtCode.ExternalIncludes.Add File->FileName
 				tb->txtCode.ExternalIncludedLines.Add IncludedLine - 1
 				For j As Integer = 0 To File->Includes.Count - 1
@@ -5051,7 +5051,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5185,6 +5185,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
+	txtCode.ExternalIncludes.Clear
+	txtCode.ExternalIncludedLines.Clear
 	txtCode.Includes.Clear
 	txtCode.IncludeLines.Clear
 	txtCode.Functions.Clear
@@ -5222,8 +5224,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
 	Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
-	txtCode.Includes.Add sFileName
-	txtCode.IncludeLines.Add 0
+	txtCode.ExternalIncludes.Add sFileName
+	txtCode.ExternalIncludedLines.Add 0
 	Dim As FileType Ptr File = 0
 	Var Idx = -1
 	If IncludeFiles.Contains(MainFile, , , , Idx) Then
