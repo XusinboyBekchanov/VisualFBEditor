@@ -314,8 +314,11 @@ Namespace My.Sys.Forms
 		Declare Sub MiddleScroll
 	Public:
 		FileList As WStringList
+		FileListLines As IntegerList
 		Includes As WStringList
 		IncludeLines As IntegerList
+		ExternalIncludes As WStringList
+		ExternalIncludedLines As IntegerList
 		Namespaces As WStringList
 		Types As WStringList
 		Enums As WStringList

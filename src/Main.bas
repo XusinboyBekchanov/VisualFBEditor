@@ -3248,6 +3248,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					Else
 						File->Includes.Add LoadFunctionPath
 					End If
+					File->IncludeLines.Add i
 				End If
 			ElseIf LoadParameter <> LoadParam.OnlyIncludeFiles Then
 				Pos3 = InStr(bTrimLCase, " as ")

@@ -171,11 +171,13 @@ Type FileType
 	FileName As UString
 	DateChanged As Double
 	Includes As WStringList
+	IncludeLines As IntegerList
 	Namespaces As WStringList
 	Types As WStringList
 	Enums As WStringList
 	Procedures As WStringList
 	Args As WStringList
+	LinesCount As Integer
 	InProcess As Boolean
 End Type
 
