@@ -122,6 +122,8 @@ Namespace My.Sys.Forms
 		InConstructionPart As Integer
 		InWithConstruction As Integer
 		Multiline As Boolean
+		FileList As WStringList Ptr
+		FileListLines As IntegerList Ptr
 		Text As WString Ptr = 0
 		Args As List
 		Ends As IntegerList
@@ -313,8 +315,8 @@ Namespace My.Sys.Forms
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
 		Declare Sub MiddleScroll
 	Public:
-		FileList As WStringList
-		FileListLines As IntegerList
+		FileLists As List
+		FileListsLines As List
 		Includes As WStringList
 		IncludeLines As IntegerList
 		CheckedFiles As WStringList
@@ -330,7 +332,9 @@ Namespace My.Sys.Forms
 		LineLabels As WStringList
 		Dim As Boolean bInIncludeFileRect
 		Declare Function CharType(ByRef ch As WString) As Integer
-		Declare Function ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean
+		Declare Function ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean
+		Declare Function IndexOfInListFiles(pList As WStringList Ptr, ByRef Matn As String, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Integer
+		Declare Function ContainsInListFiles(pList As WStringList Ptr, ByRef Matn As String, ByRef Index As Integer, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Boolean
 		#ifdef __USE_GTK__
 			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As cairo_t Ptr cr
