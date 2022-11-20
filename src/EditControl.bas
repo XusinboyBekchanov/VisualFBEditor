@@ -2923,7 +2923,7 @@ Namespace My.Sys.Forms
 			CollapseIndex = 0
 			OldCollapseIndex = 0
 			'ChangeCase = False
-			OldMatn = ""
+			OldMatnLCase = ""
 			For z As Integer = 0 To FLines.Count - 1
 				FECLine = FLines.Items[z]
 				Dim As WStringList Ptr pFiles = FECLine->FileList
@@ -3086,13 +3086,23 @@ Namespace My.Sys.Forms
 										If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
 											'If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
+												MatnLCase = LCase(Matn)
+												If InStr("#$", .Left(Matn, 1)) Then
+													MatnLCaseWithoutOldSymbol = Mid(MatnLCase, 2)
+													MatnWithoutOldSymbol = Mid(Matn, 2)
+													WithOldSymbol = True
+												Else
+													MatnLCaseWithoutOldSymbol = MatnLCase
+													MatnWithoutOldSymbol = Matn
+													WithOldSymbol = False
+												End If
 												sc = @Identifiers
 												OriginalCaseWord = "":   TypeName = "" : te = 0
 												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
 												If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
 												pkeywords = 0
 												If CStyle Then
-													If LCase(Matn) = "#define" OrElse LCase(Matn) = "#include" OrElse LCase(Matn) = "#macro" Then
+													If MatnLCase = "#define" OrElse MatnLCase = "#include" OrElse MatnLCase = "#macro" Then
 														If pkeywords0 <> 0 Then
 															sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
 														End If
@@ -3101,8 +3111,8 @@ Namespace My.Sys.Forms
 													bKeyWord = False
 													tIndex  = -1
 													OriginalCaseWord = ""
-													If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(LCase(Matn) <> "asm") Then
-														tIndex = pkeywordsAsm->IndexOf(LCase(Matn))
+													If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(MatnLCase <> "asm") Then
+														tIndex = pkeywordsAsm->IndexOf(MatnLCase)
 														If tIndex > -1 Then
 															sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
 															OriginalCaseWord = pkeywordsAsm->Item(tIndex)
@@ -3156,7 +3166,7 @@ Namespace My.Sys.Forms
 															If Not OneDot Then
 																If tIndex = -1 Then
 																	For i As Integer = 0 To FECLine->Args.Count - 1
-																		tIndex = Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements.IndexOf(LCase(Matn))
+																		tIndex = Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements.IndexOf(MatnLCase)
 																		If tIndex <> -1 Then
 																			pkeywords = @Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements
 																			OriginalCaseWord = pkeywords->Item(tIndex)
@@ -3179,10 +3189,10 @@ Namespace My.Sys.Forms
 																End If
 																
 																'Procedure
-																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso LCase(OldMatn) <> "as" Then
-																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(Matn))
+																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso OldMatnLCase <> "as" Then
+																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
 																	If tIndex <> -1 Then
-																		If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z Then
+																		If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
 																			tIndex = -1
 																		Else
 																			pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
@@ -3202,6 +3212,8 @@ Namespace My.Sys.Forms
 																					sc = @ColorByValParameters
 																				Case "field", "event"
 																					sc = @ColorFields
+																				Case "enumitem"
+																					sc = @ColorEnumMembers
 																				Case "linelabel"
 																					sc = @ColorLineLabels
 																				Case Else
@@ -3219,11 +3231,11 @@ Namespace My.Sys.Forms
 																				Else
 																					TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
 																				End If
-																				If ContainsIn(TypeName, Matn, @Types, pFiles, pFileLines, True, , , te, z) Then
-																				ElseIf ContainsIn(TypeName, Matn, @Enums, pFiles, pFileLines, True, , , te, z) Then
-																				ElseIf ContainsIn(TypeName, Matn, pComps, pFiles, pFileLines, True, , , te) Then
-																				ElseIf ContainsIn(TypeName, Matn, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
-																				ElseIf ContainsIn(TypeName, Matn, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
+																				If ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Types, pFiles, pFileLines, True, , , te, z) Then
+																				ElseIf ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Enums, pFiles, pFileLines, True, , , te, z) Then
+																				ElseIf ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
+																				ElseIf ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
+																				ElseIf ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
 																				End If
 																				If te > 0 Then
 																					OriginalCaseWord = te->Name
@@ -3255,7 +3267,7 @@ Namespace My.Sys.Forms
 															If tIndex = -1 Then
 																For k As Integer = 1 To KeywordLists.Count - 1
 																	pkeywords = KeywordLists.Object(k)
-																	tIndex = pkeywords->IndexOf(LCase(Matn))
+																	tIndex = pkeywords->IndexOf(MatnLCase)
 																	If tIndex > -1 Then
 																		OriginalCaseWord = pkeywords->Item(tIndex)
 																		sc = @Keywords(k)
@@ -3268,11 +3280,13 @@ Namespace My.Sys.Forms
 															End If
 														End If
 														
+														If WithOldSymbol Then MatnLCase = MatnLCaseWithoutOldSymbol
+														
 														If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
 															If Not OneDot Then
 																'Module
-																If tIndex = -1 AndAlso LCase(OldMatn) <> "as" Then
-																	tIndex = Args.IndexOf(LCase(Matn))
+																If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
+																	tIndex = Args.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
 																		If Cast(TypeElement Ptr, Args.Object(tIndex))->StartLine > z Then
 																			tIndex = -1
@@ -3299,7 +3313,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = Procedures.IndexOf(LCase(Matn))
+																	tIndex = Procedures.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
 																		If Cast(TypeElement Ptr, Procedures.Object(tIndex))->StartLine > z Then
 																			tIndex = -1
@@ -3328,7 +3342,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = Types.IndexOf(LCase(Matn))
+																	tIndex = Types.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
 																		If Cast(TypeElement Ptr, Types.Object(tIndex))->StartLine > z Then
 																			tIndex = -1
@@ -3341,8 +3355,9 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = Enums.IndexOf(LCase(Matn))
+																	tIndex = Enums.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
+																		?MatnLCase
 																		If Cast(TypeElement Ptr, Enums.Object(tIndex))->StartLine > z Then
 																			tIndex = -1
 																		Else
@@ -3354,7 +3369,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = Namespaces.IndexOf(LCase(Matn))
+																	tIndex = Namespaces.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
 																		If Cast(TypeElement Ptr, Namespaces.Object(tIndex))->StartLine > z Then
 																			tIndex = -1
@@ -3368,7 +3383,7 @@ Namespace My.Sys.Forms
 																
 																'Global
 																If tIndex = -1 Then
-																	tIndex = IndexOfInListFiles(pComps, LCase(Matn), pFiles, pFileLines)
+																	tIndex = IndexOfInListFiles(pComps, MatnLCase, pFiles, pFileLines)
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorComps
 																		OriginalCaseWord = pComps->Item(tIndex)
@@ -3377,7 +3392,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = IndexOfInListFiles(pGlobalTypes, LCase(Matn), pFiles, pFileLines)
+																	tIndex = IndexOfInListFiles(pGlobalTypes, MatnLCase, pFiles, pFileLines)
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
 																		OriginalCaseWord = pGlobalTypes->Item(tIndex)
@@ -3386,7 +3401,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = IndexOfInListFiles(pGlobalEnums, LCase(Matn), pFiles, pFileLines)
+																	tIndex = IndexOfInListFiles(pGlobalEnums, MatnLCase, pFiles, pFileLines)
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
 																		OriginalCaseWord = pGlobalEnums->Item(tIndex)
@@ -3394,8 +3409,8 @@ Namespace My.Sys.Forms
 																	End If
 																End If
 																
-																If tIndex = -1 AndAlso LCase(OldMatn) <> "as" Then
-																	tIndex = IndexOfInListFiles(pGlobalArgs, LCase(Matn), pFiles, pFileLines)
+																If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
+																	tIndex = IndexOfInListFiles(pGlobalArgs, MatnLCase, pFiles, pFileLines)
 																	If tIndex <> -1 Then
 																		te = pGlobalArgs->Object(tIndex)
 																		OriginalCaseWord = pGlobalArgs->Item(tIndex)
@@ -3418,7 +3433,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = IndexOfInListFiles(pGlobalFunctions, LCase(Matn), pFiles, pFileLines)
+																	tIndex = IndexOfInListFiles(pGlobalFunctions, MatnLCase, pFiles, pFileLines)
 																	If tIndex <> -1 Then
 																		te = pGlobalFunctions->Object(tIndex)
 																		OriginalCaseWord = pGlobalFunctions->Item(tIndex)
@@ -3445,7 +3460,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = IndexOfInListFiles(pGlobalNamespaces, LCase(Matn), pFiles, pFileLines)
+																	tIndex = IndexOfInListFiles(pGlobalNamespaces, MatnLCase, pFiles, pFileLines)
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
 																		OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
@@ -3454,7 +3469,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = LineLabels.IndexOf(LCase(Matn))
+																	tIndex = LineLabels.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorLineLabels
 																		OriginalCaseWord = LineLabels.Item(tIndex)
@@ -3464,14 +3479,14 @@ Namespace My.Sys.Forms
 															End If
 														End If
 													End If
-													If bKeyWord AndAlso ChangeKeyWordsCase AndAlso LCase(Matn) = LCase(OriginalCaseWord) AndAlso FSelEndLine <> z Then
+													If bKeyWord AndAlso ChangeKeyWordsCase AndAlso MatnLCase = LCase(OriginalCaseWord) AndAlso FSelEndLine <> z Then
 														KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
 														If KeyWord <> Matn Then
 															Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 														End If
-													ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso LCase(Matn) = LCase(OriginalCaseWord) AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
-														If Matn <> OriginalCaseWord Then
-															Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = OriginalCaseWord
+													ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso MatnLCase = LCase(OriginalCaseWord) AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
+														If MatnWithoutOldSymbol <> OriginalCaseWord Then
+															Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
 														End If
 													ElseIf tIndex = -1 Then
 														If isNumeric(Matn) Then
@@ -3485,13 +3500,13 @@ Namespace My.Sys.Forms
 														End If
 													End If
 												End If
-												OldMatn = Matn: Oldte = te
-												'If sc <> 0 Then
-												PaintText zz, i, *s, MatnBoshi - 1, j, *sc
-												'txtCode.SetSel ss + MatnBoshi - 1, ss + j
-												'txtCode.SelColor = sc
-												'End If
-												
+												OldMatnLCase = MatnLCase: Oldte = te
+												If (Not bKeyWord) AndAlso WithOldSymbol Then
+													PaintText zz, i, *s, MatnBoshi - 1, MatnBoshi, NormalText
+													PaintText zz, i, *s, MatnBoshi, j, *sc
+												Else
+													PaintText zz, i, *s, MatnBoshi - 1, j, *sc
+												End If
 											'End If
 											MatnBoshi = 0
 										End If

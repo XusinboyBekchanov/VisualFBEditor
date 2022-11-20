@@ -5428,7 +5428,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							l = 0
 							inPubProPri = 0
 							inFunc = True
-							Pos1 = InStr(" " & bTrimLCase, " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
+							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
 							If Pos1 > 0 Then
 								l = Len(Trim(Constructions(ECLine->ConstructionIndex).Name0)) + 1
 								Pos4 = Pos1 + l
@@ -5709,6 +5709,53 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								teDeclare->Elements.Add te->Name, te
 							Next
 						End If
+					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
+						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
+						Dim As String t
+						Dim As UString b2 = b, res1(), ElementValue
+						Pos2 = InStr(b2, "'")
+						If Pos2 > 0 Then b2 = Trim(.Left(b2, Pos2 - 1))
+						Split b2, ",", res1()
+						For n As Integer = 0 To UBound(res1)
+							Pos3 = InStr(res1(n), "=")
+							If Pos3 > 0 Then
+								ElementValue = Trim(Mid(res1(n), Pos3 + 1))
+							Else
+								ElementValue = ""
+							End If
+							Var te = New_( TypeElement)
+							If Pos3 > 0 Then
+								t = Trim(.Left(res1(n), Pos3 - 1))
+							Else
+								t = Trim(res1(n))
+							End If
+							te->Name = t
+							If func->Name <> "" Then
+								te->DisplayName = func->Name & "." & te->Name
+							Else
+								te->DisplayName = te->Name
+							End If
+							te->ElementType = "EnumItem"
+							te->Value = ElementValue
+							te->StartLine = i
+							te->EndLine = i
+							te->Parameters = Trim(res1(n))
+							te->FileName = sFileName
+							If func Then func->Elements.Add te->Name, te
+							te = New_( TypeElement)
+							te->Name = t
+							If tbi AndAlso tbi->Name <> "" Then
+								te->DisplayName = tbi->Name & "." & te->Name
+							Else
+								te->DisplayName = te->Name
+							End If
+							te->ElementType = "EnumItem"
+							te->Value = ElementValue
+							te->StartLine = i
+							te->Parameters = Trim(res1(n))
+							te->FileName = sFileName
+							txtCode.Args.Add te->Name, te
+						Next n
 					ElseIf StartsWith(bTrimLCase, "declare ") Then
 						iStart = 9
 						Pos1 = InStr(9, bTrim, " ")
@@ -8861,7 +8908,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 		Dim As Integer ehStart, ehEnd
 		Dim Bosh As Boolean
 		Dim n As Integer
-		Dim ExitLine As String
+		Dim As String ExitLine, LeftSpace
 		For i As Integer = iSelStartLine To 0 Step -1
 			FECLine = .FLines.Items[i]
 			If FECLine->ConstructionIndex >= C_Sub  Then
@@ -8875,7 +8922,8 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 					Case C_Constructor: ExitLine = "Exit Constructor"
 					Case C_Destructor: ExitLine = "Exit Destructor"
 					End Select
-					n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text)) + 4
+					n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
+					LeftSpace = ..Left(*FECLine->Text, n)
 					Exit For
 				Else
 					Bosh = True
@@ -8891,15 +8939,15 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 			End If
 		Next i
 		If ExitLine <> "" Then
-			If CInt(.FLines.Count - 1 >= ehStart) AndAlso CInt(StartsWith(LTrim(.Lines(ehStart), " "), "On Error ")) Then
+			If CInt(.FLines.Count - 1 >= ehStart) AndAlso CInt(StartsWith(LTrim(.Lines(ehStart), Any !"\t "), "On Error ")) Then
 				If StartLine <> "" Then
-					.ReplaceLine ehStart, Space(n) & StartLine
+					.ReplaceLine ehStart, LeftSpace & !"\t" & StartLine
 				Else
 					.DeleteLine ehStart
 					If iSelStartLine > ehStart Then iSelStartLine -= 1
 				End If
 			ElseIf StartLine <> "" Then
-				.InsertLine ehStart, Space(n) & StartLine
+				.InsertLine ehStart, LeftSpace & !"\t" & StartLine
 				iSelStartLine += 1
 			End If
 			Dim t As Boolean
@@ -8931,7 +8979,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 				If FECLine->ConstructionIndex >= C_Sub Then
 					p = i
 					Exit For
-				ElseIf StartsWith(Trim(.Lines(i), Any "\t "),  ExitLine) Then
+				ElseIf StartsWith(Trim(.Lines(i), Any !"\t "),  ExitLine) Then
 					p = i
 					t = True
 					Exit For
@@ -8948,13 +8996,13 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 				Next j
 			End If
 			If StartLine <> "" And StartLine <> "On Error Resume Next" Then
-				.InsertLine ehEnd + 1, Space(n) & ExitLine
-				.InsertLine ehEnd + 2, Space(Max(0, n - 4)) & "ErrorHandler:"
-				.InsertLine ehEnd + 3, Space(n) & "MsgBox ErrDescription(Err) & "" ("" & Err & "") "" & _"
-				.InsertLine ehEnd + 4, Space(n + 4) & """in line "" & Erl() & "" (Handler line: "" & __LINE__ & "") "" & _"
-				.InsertLine ehEnd + 5, Space(n + 4) & """in function "" & ZGet(Erfn()) & "" (Handler function: "" & __FUNCTION__ & "") "" & _"
-				.InsertLine ehEnd + 6, Space(n + 4) & """in module "" & ZGet(Ermn()) & "" (Handler file: "" & __FILE__ & "") """
-				If EndLine <> "" Then .InsertLine ehEnd + 7, Space(n) & EndLine
+				.InsertLine ehEnd + 1, LeftSpace & !"\t" & ExitLine
+				.InsertLine ehEnd + 2, LeftSpace & "ErrorHandler:"
+				.InsertLine ehEnd + 3, LeftSpace & !"\t" & "MsgBox ErrDescription(Err) & "" ("" & Err & "") "" & _"
+				.InsertLine ehEnd + 4, LeftSpace & !"\t\t" & """in line "" & Erl() & "" (Handler line: "" & __LINE__ & "") "" & _"
+				.InsertLine ehEnd + 5, LeftSpace & !"\t\t" & """in function "" & ZGet(Erfn()) & "" (Handler function: "" & __FUNCTION__ & "") "" & _"
+				.InsertLine ehEnd + 6, LeftSpace & !"\t\t" & """in module "" & ZGet(Ermn()) & "" (Handler file: "" & __FILE__ & "") """
+				If EndLine <> "" Then .InsertLine ehEnd + 7, LeftSpace & !"\t" & EndLine
 			End If
 		End If
 		.Changed("Error handling")

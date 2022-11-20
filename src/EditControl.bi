@@ -270,7 +270,8 @@ Namespace My.Sys.Forms
 		Dim As Integer iCursorLineOld
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim As String KeyWord, Matn, OldMatn
+		Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol
+		Dim As Boolean WithOldSymbol
 		Dim As Integer OldPos, OldLinesCount
 		Dim pkeywords As WStringList Ptr
 		Dim LinePrinted As Boolean
