@@ -3413,6 +3413,7 @@ Function AddExternalIncludes(tb As TabWindow Ptr, ItemFile As FileType Ptr, ByRe
 			Return True
 		End If
 		For i As Integer = 0 To File->Includes.Count - 1
+			If GetFolderName(File->Includes.Item(i)) <> GetFolderName(FileName) Then Continue For
 			If tb->txtCode.CheckedFiles.Contains(File->Includes.Item(i)) Then Continue For
 			tb->txtCode.CheckedFiles.Add File->Includes.Item(i)
 			If AddExternalIncludes(tb, File->Includes.Object(i), File->Includes.Item(i), FileName) Then
