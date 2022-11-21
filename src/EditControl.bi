@@ -321,8 +321,9 @@ Namespace My.Sys.Forms
 		Includes As WStringList
 		IncludeLines As IntegerList
 		CheckedFiles As WStringList
+		ExternalFiles As WStringList
+		ExternalFileLines As IntegerList
 		ExternalIncludes As WStringList
-		ExternalIncludedLines As IntegerList
 		Namespaces As WStringList
 		Types As WStringList
 		Enums As WStringList

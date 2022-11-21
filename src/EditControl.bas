@@ -2687,27 +2687,26 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControl.IndexOfInListFiles(pList As WStringList Ptr, ByRef Matn As String, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Integer
-		If pList = 0 Then Return -1
+		If pList = 0 OrElse Files = 0 OrElse FileLines = 0 Then Return -1
 		Dim As Integer tIndex = pList->IndexOf(Matn)
+		Var Idx = -1, iLine = -1
 		If tIndex > -1 Then
-			Dim As TypeElement Ptr te = pList->Object(tIndex)
-			Var Idx = -1
-			If Files = 0 OrElse ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx)) Then Return -1
+			Dim As TypeElement Ptr te
+			For i As Integer = tIndex To pList->Count - 1
+				te = pList->Object(i)
+				If LCase(te->Name) <> LCase(Matn) Then Return -1
+				If Not Files->Contains(te->FileName, , , , Idx) Then Continue For
+				iLine = FileLines->Item(Idx)
+				If iLine <> -1 AndAlso te->StartLine > iLine Then Continue For
+				Return i
+			Next
 		End If
-		Return tIndex
+		Return -1
 	End Function
 	
 	Function EditControl.ContainsInListFiles(pList As WStringList Ptr, ByRef Matn As String, ByRef Index As Integer, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Boolean
-		If pList = 0 Then Return False
-		Index = pList->IndexOf(Matn)
-		If Index > -1 Then
-			Dim As TypeElement Ptr te = pList->Object(Index)
-			Var Idx = -1
-			If Files = 0 OrElse ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx)) Then Return False
-			Return True
-		Else
-			Return False
-		End If
+		Index = IndexOfInListFiles(pList, Matn, Files, FileLines)
+		Return Index <> -1
 	End Function
 	
 	Sub EditControl.PaintControlPriv(Full As Boolean = False)

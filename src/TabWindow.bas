@@ -3386,9 +3386,13 @@ End Sub
 Sub UpdateIncludedFilesList(tb As TabWindow Ptr, ByRef Files As WStringList, ByRef FileLines As IntegerList, iSelStartLine As Integer)
 	With tb->txtCode
 		Files.Clear
+		FileLines.Clear
+		For i As Integer = 0 To .ExternalFiles.Count - 1
+			Var Idx = Files.Add(.ExternalFiles.Item(i))
+			FileLines.Insert Idx, .ExternalFileLines.Item(i)
+		Next
 		For i As Integer = 0 To .ExternalIncludes.Count - 1
-			Var Idx = Files.Add(.ExternalIncludes.Item(i))
-			FileLines.Insert Idx, .ExternalIncludedLines.Item(i)
+			AddAllIncludedFiles Files, FileLines, .ExternalIncludes.Item(i)
 		Next
 		For i As Integer = 0 To .Includes.Count - 1
 			If .IncludeLines.Item(i) > iSelStartLine Then Exit For
@@ -3398,31 +3402,30 @@ Sub UpdateIncludedFilesList(tb As TabWindow Ptr, ByRef Files As WStringList, ByR
 End Sub
 
 Function AddExternalIncludes(tb As TabWindow Ptr, ItemFile As FileType Ptr, ByRef Path As WString, ByRef FileName As WString) As Boolean
-	Dim As FileType Ptr File
+	Dim As FileType Ptr FILE
 	If ItemFile = 0 Then
 		Var Idx = -1
 		If IncludeFiles.Contains(Path, , , , Idx) Then
-			File = IncludeFiles.Object(Idx)
+			FILE = IncludeFiles.Object(Idx)
 		End If
 	Else
-		File = ItemFile
+		FILE = ItemFile
 	End If
-	If File Then
-		If File->FileName = FileName Then
+	If FILE Then
+		If FILE->FileName = FileName Then
 			Return True
 		End If
-		For i As Integer = 0 To File->Includes.Count - 1
-			If GetFolderName(File->Includes.Item(i)) <> GetFolderName(FileName) Then Continue For
-			If tb->txtCode.CheckedFiles.Contains(File->Includes.Item(i)) Then Continue For
-			tb->txtCode.CheckedFiles.Add File->Includes.Item(i)
-			If AddExternalIncludes(tb, File->Includes.Object(i), File->Includes.Item(i), FileName) Then
-				Var IncludedLine = File->IncludeLines.Item(i)
-				tb->txtCode.ExternalIncludes.Add File->FileName
-				tb->txtCode.ExternalIncludedLines.Add IncludedLine - 1
-				For j As Integer = 0 To File->Includes.Count - 1
-					If File->IncludeLines.Item(j) > IncludedLine Then Exit For
-					tb->txtCode.Includes.Add File->Includes.Item(j)
-					tb->txtCode.IncludeLines.Add 0
+		For i As Integer = 0 To FILE->Includes.Count - 1
+			If GetFolderName(FILE->Includes.Item(i)) <> GetFolderName(FileName) Then Continue For
+			If tb->txtCode.CheckedFiles.Contains(FILE->Includes.Item(i)) Then Continue For
+			tb->txtCode.CheckedFiles.Add FILE->Includes.Item(i)
+			If AddExternalIncludes(tb, FILE->Includes.Object(i), FILE->Includes.Item(i), FileName) Then
+				Var IncludedLine = FILE->IncludeLines.Item(i)
+				tb->txtCode.ExternalFiles.Add FILE->FileName
+				tb->txtCode.ExternalFileLines.Add IncludedLine - 1
+				For j As Integer = 0 To FILE->Includes.Count - 1
+					If FILE->IncludeLines.Item(j) > IncludedLine Then Exit For
+					tb->txtCode.ExternalIncludes.Add FILE->Includes.Item(j)
 				Next
 				Return True
 			End If
@@ -5254,7 +5257,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		WLet(FLine1, "")
 		WLet(FLine2, "")
 	End If
-	Dim As Integer OldIncludeLine = -1
+	Dim As Integer OldIncludeLine = 0
 	Dim As WStringList Ptr LastFileList
 	Dim As IntegerList Ptr LastFileListLines
 	Dim As UString sFileName = FileName
@@ -5263,12 +5266,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Dim As ProjectElement Ptr Project
 		Dim As TreeNode Ptr ProjectNode
 		Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
+		txtCode.ExternalFiles.Clear
+		txtCode.ExternalFileLines.Clear
 		txtCode.ExternalIncludes.Clear
-		txtCode.ExternalIncludedLines.Clear
-		txtCode.ExternalIncludes.Add sFileName
-		txtCode.ExternalIncludedLines.Add 0
+		txtCode.ExternalFiles.Add sFileName
+		txtCode.ExternalFileLines.Add 0
 		AddExternalIncludes @This, 0, MainFile, sFileName
-		bExternalIncludesLoaded = False
+		bExternalIncludesLoaded = True
 	End If
 	For j As Integer = 0 To txtCode.LinesCount - 1
 		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
@@ -7061,6 +7065,9 @@ Destructor TabWindow
 	txtCode.FileLists.Clear
 	txtCode.FileListsLines.Clear
 	txtCode.CheckedFiles.Clear
+	txtCode.ExternalFiles.Clear
+	txtCode.ExternalFileLines.Clear
+	txtCode.ExternalIncludes.Clear
 	AnyTexts.Clear
 	Events.Clear
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0
