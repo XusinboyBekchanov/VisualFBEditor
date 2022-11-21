@@ -3300,11 +3300,11 @@ Sub OnGotFocusEdit(ByRef Sender As Control)
 	End If
 End Sub
 
-Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Sub", Files As WStringList Ptr = 0, FileLines As IntegerList Ptr = 0) As Boolean
+Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Sub", bKeywords As Boolean = True, Files As WStringList Ptr = 0, FileLines As IntegerList Ptr = 0) As Boolean
 	On Error Goto ErrorHandler
 	Var Idx = -1
 	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
-	If Files <> 0 AndAlso ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx)) Then Return True
+	If (Not bKeywords) AndAlso CBool(Files = 0 OrElse ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx))) Then Return True
 	c += 1
 	If c > IntellisenseLimit Then Return False
 	Dim As String imgKeyNew = imgKey
@@ -3513,23 +3513,23 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 		pFileLines = ECLine->FileListLines
 	End If
 	For i As Integer = 0 To pGlobalNamespaces->Count - 1
-		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, "Sub", pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, "Sub", False, pFiles, pFileLines) Then Exit Sub
 	Next
 	'If Len(Starts) < 3 Then Exit Sub
 	For i As Integer = 0 To pComps->Count - 1
-		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , False, pFiles, pFileLines) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalTypes->Count - 1
-		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , False, pFiles, pFileLines) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalEnums->Count - 1
-		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , False, pFiles, pFileLines) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalFunctions->Count - 1
-		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub", pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pGlobalFunctions->Item(i), pGlobalFunctions->Object(i), Starts, c, "Sub", False, pFiles, pFileLines) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalArgs->Count - 1
-		If Not AddSorted(tb, pGlobalArgs->Item(i), pGlobalArgs->Object(i), Starts, c, , pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pGlobalArgs->Item(i), pGlobalArgs->Object(i), Starts, c, , False, pFiles, pFileLines) Then Exit Sub
 	Next
 End Sub
 
@@ -3574,16 +3574,16 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 		pFileLines = ECLine->FileListLines
 	End If
 	For i As Integer = 0 To pComps->Count - 1
-		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pComps->Item(i), pComps->Object(i), Starts, c, , False, pFiles, pFileLines) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalTypes->Count - 1
-		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pGlobalTypes->Item(i), pGlobalTypes->Object(i), Starts, c, , False, pFiles, pFileLines) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalEnums->Count - 1
-		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pGlobalEnums->Item(i), pGlobalEnums->Object(i), Starts, c, , False, pFiles, pFileLines) Then Exit Sub
 	Next
 	For i As Integer = 0 To pGlobalNamespaces->Count - 1
-		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, , pFiles, pFileLines) Then Exit Sub
+		If Not AddSorted(tb, pGlobalNamespaces->Item(i), pGlobalNamespaces->Object(i), Starts, c, , False, pFiles, pFileLines) Then Exit Sub
 	Next
 End Sub
 

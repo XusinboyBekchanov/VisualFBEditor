@@ -2692,7 +2692,7 @@ Namespace My.Sys.Forms
 		If tIndex > -1 Then
 			Dim As TypeElement Ptr te = pList->Object(tIndex)
 			Var Idx = -1
-			If Files <> 0 AndAlso ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx)) Then Return -1
+			If Files = 0 OrElse ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx)) Then Return -1
 		End If
 		Return tIndex
 	End Function
@@ -2703,7 +2703,7 @@ Namespace My.Sys.Forms
 		If Index > -1 Then
 			Dim As TypeElement Ptr te = pList->Object(Index)
 			Var Idx = -1
-			If Files <> 0 AndAlso ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx)) Then Return False
+			If Files = 0 OrElse ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx)) Then Return False
 			Return True
 		Else
 			Return False
