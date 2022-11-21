@@ -2779,7 +2779,6 @@ End Function
 Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
-	tb->bLineChanged = True
 	bNotFunctionChange = True
 	If TextChanged AndAlso tb->txtCode.SyntaxEdit Then
 		With tb->txtCode
@@ -3293,7 +3292,7 @@ Sub OnGotFocusEdit(ByRef Sender As Control)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	If tb->Index = -1 Then Exit Sub
-	tb->bLineChanged = True
+	tb->bExternalIncludesLoaded = False
 	If ptabCode <> tb->Parent Then
 		ptabCode = tb->Parent
 		tabCode_SelChange *ptabCode, tb->Index
@@ -5223,8 +5222,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	txtCode.FileLists.Clear
 	txtCode.FileListsLines.Clear
 	txtCode.CheckedFiles.Clear
-	txtCode.ExternalIncludes.Clear
-	txtCode.ExternalIncludedLines.Clear
 	txtCode.Includes.Clear
 	txtCode.IncludeLines.Clear
 	txtCode.Functions.Clear
@@ -5262,13 +5259,17 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As IntegerList Ptr LastFileListLines
 	Dim As UString sFileName = FileName
 	Dim As TabWindow Ptr tb
-	Dim As ProjectElement Ptr Project
-	Dim As TreeNode Ptr ProjectNode
-	Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
-	txtCode.ExternalIncludes.Add sFileName
-	txtCode.ExternalIncludedLines.Add 0
-	Dim As FileType Ptr FILE = 0
-	AddExternalIncludes @This, 0, MainFile, sFileName
+	If Not bExternalIncludesLoaded Then
+		Dim As ProjectElement Ptr Project
+		Dim As TreeNode Ptr ProjectNode
+		Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
+		txtCode.ExternalIncludes.Clear
+		txtCode.ExternalIncludedLines.Clear
+		txtCode.ExternalIncludes.Add sFileName
+		txtCode.ExternalIncludedLines.Add 0
+		AddExternalIncludes @This, 0, MainFile, sFileName
+		bExternalIncludesLoaded = False
+	End If
 	For j As Integer = 0 To txtCode.LinesCount - 1
 		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
 			sFileName = *FLine1
