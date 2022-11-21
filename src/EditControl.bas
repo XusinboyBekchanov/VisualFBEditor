@@ -2691,7 +2691,8 @@ Namespace My.Sys.Forms
 		Dim As Integer tIndex = pList->IndexOf(Matn)
 		Var Idx = -1, iLine = -1
 		If tIndex > -1 Then
-			Dim As TypeElement Ptr te
+			Dim As TypeElement Ptr te = pList->Object(tIndex)
+			If te->ElementType = "Namespace" Then Return tIndex
 			For i As Integer = tIndex To pList->Count - 1
 				te = pList->Object(i)
 				If LCase(te->Name) <> LCase(Matn) Then Return -1
