@@ -5257,7 +5257,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		WLet(FLine1, "")
 		WLet(FLine2, "")
 	End If
-	Dim As Integer OldIncludeLine = 0
+	Dim As Integer OldIncludeLine = -1
 	Dim As WStringList Ptr LastFileList
 	Dim As IntegerList Ptr LastFileListLines
 	Dim As UString sFileName = FileName
@@ -5305,6 +5305,31 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			ECLine->Ends.Clear
 			ECLine->EndsCompleted = False
 			'End If
+			If ptxtCode = @txtCode Then
+				If OldIncludeLine = i - 1 Then
+					Var FileList = New WStringList
+					Var FileListLines = New IntegerList
+					txtCode.FileLists.Add FileList
+					txtCode.FileListsLines.Add FileListLines
+					FileList->Sorted = True
+					If LastFileList = 0 Then
+						UpdateIncludedFilesList @This, *FileList, *FileListLines, j
+					Else
+						For i As Integer = 0 To LastFileList->Count - 1
+							FileList->Add LastFileList->Item(i)
+							FileListLines->Add LastFileListLines->Item(i)
+						Next
+						For i As Integer = 0 To Includes.Count - 1
+							AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
+						Next i
+					End If
+					LastFileList = FileList
+					LastFileListLines = FileListLines
+					ECLine->FileList = LastFileList
+					ECLine->FileListLines = LastFileListLines
+					Includes.Clear
+				End If
+			End If
 			ECLine->FileList = LastFileList
 			ECLine->FileListLines = LastFileListLines
 			ECLine->InConstruction = 0
@@ -5403,30 +5428,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					#endif
 				Else
-					If ptxtCode = @txtCode Then
-						If OldIncludeLine > -1 Then
-							Var FileList = New WStringList
-							Var FileListLines = New IntegerList
-							txtCode.FileLists.Add FileList
-							txtCode.FileListsLines.Add FileListLines
-							FileList->Sorted = True
-							If LastFileList = 0 Then
-								UpdateIncludedFilesList @This, *FileList, *FileListLines, j
-							Else
-								For i As Integer = 0 To LastFileList->Count - 1
-									FileList->Add LastFileList->Item(i)
-									FileListLines->Add LastFileListLines->Item(i)
-								Next
-								For i As Integer = 0 To Includes.Count - 1
-									AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
-								Next i
-							End If
-							OldIncludeLine = -1
-							LastFileList = FileList
-							LastFileListLines = FileListLines
-							Includes.Clear
-						End If
-					End If
 					If ECLine->ConstructionIndex >= 0 AndAlso Constructions(ECLine->ConstructionIndex).Accessible Then
 						If ECLine->ConstructionPart = 0 Then
 							Pos1 = 0
