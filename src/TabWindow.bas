@@ -9005,11 +9005,11 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 					ehEnd -= 1
 				Next j
 			End If
+			If StartsWith(Trim(.Lines(ehEnd), Any !"\t "),  "On Local Error Goto 0") Then
+				.DeleteLine ehEnd
+				ehEnd -= 1
+			End If
 			If StartLine <> "" And StartLine <> "On Error Resume Next" Then
-				If StartsWith(Trim(.Lines(ehEnd), Any !"\t "),  "On Local Error Goto 0") Then
-					.DeleteLine ehEnd
-					ehEnd -= 1
-				End If
 				If StartLine = "On Local Error Goto ErrorHandler" Then .InsertLine ehEnd + 1, LeftSpace & !"\t" & "On Local Error Goto 0": ehEnd += 1
 				.InsertLine ehEnd + 1, LeftSpace & !"\t" & ExitLine
 				.InsertLine ehEnd + 2, LeftSpace & "ErrorHandler:"
