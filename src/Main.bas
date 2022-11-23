@@ -67,8 +67,8 @@ Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
 Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miPrint, miPrintPreview, miPageSetup, miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerProjectProperties, miExplorerCloseProject, miRemoveFileFromProject
 Dim Shared As MenuItem Ptr miUndo, miRedo, miCutCurrentLine, miCut, miCopy, miPaste, miSingleComment, miBlockComment, miUncommentBlock, miDuplicate, miSelectAll, miIndent, miOutdent, miFormat, miUnformat, miFormatProject, miUnformatProject, miAddSpaces, miCompleteWord, miParameterInfo, miStepInto, miStepOver, miStepOut, miRunToCursor, miGDBCommand, miAddWatch, miToggleBreakpoint, miClearAllBreakpoints, miSetNextStatement, miShowNextStatement
-Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miProcedureNumbering, miProcedureMacroNumbering, miRemoveProcedureNumbering, miProjectMacroNumbering, miProjectMacroNumberingStartsOfProcedures, miRemoveProjectNumbering, miPreprocessorNumbering, miRemovePreprocessorNumbering, miProjectPreprocessorNumbering, miRemoveProjectPreprocessorNumbering, miOnErrorResumeNext, miOnErrorGoto, miOnErrorGotoResumeNext, miRemoveErrorHandling
-Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiProjectMacroNumbering, dmiProjectMacroNumberingStartsOfProcedures, dmiRemoveProjectNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiProjectPreprocessorNumbering, dmiRemoveProjectPreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
+Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miProcedureNumbering, miProcedureMacroNumbering, miRemoveProcedureNumbering, miProjectMacroNumbering, miProjectMacroNumberingStartsOfProcedures, miRemoveProjectNumbering, miPreprocessorNumbering, miRemovePreprocessorNumbering, miProjectPreprocessorNumbering, miRemoveProjectPreprocessorNumbering, miOnErrorResumeNext, miOnErrorGoto, miOnErrorGotoResumeNext, miOnLocalErrorGoto, miOnLocalErrorGotoResumeNext, miRemoveErrorHandling
+Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiProjectMacroNumbering, dmiProjectMacroNumberingStartsOfProcedures, dmiRemoveProjectNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiProjectPreprocessorNumbering, dmiRemoveProjectPreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiOnLocalErrorGoto, dmiOnLocalErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
 Dim Shared As MenuItem Ptr miCode, miForm, miCodeAndForm, miCollapseCurrent, miCollapseAllProcedures, miCollapseAll, miUnCollapseCurrent, miUnCollapseAllProcedures, miUnCollapseAll, miImageManager, miAddProcedure, miFind, miReplace, miFindNext, miFindPrevious, miGoto, miDefine, miToggleBookmark, miNextBookmark, miPreviousBookmark, miClearAllBookmarks, miSyntaxCheck, miCompile, miCompileAll, miBuildBundle, miBuildAPK, miGenerateSignedBundle, miGenerateSignedAPK, miMake, miMakeClean
 Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
@@ -5264,9 +5264,11 @@ Sub CreateMenusAndToolBars
 	miProjectPreprocessorNumbering = miTry->Add(ML("Project preprocessor numbering") & HK("ProjectPreprocessorNumberOn"), "Numbering", "ProjectPreprocessorNumberOn", @mClick, , , False)
 	miRemoveProjectPreprocessorNumbering = miTry->Add(ML("Remove Project preprocessor numbering") & HK("ProjectPreprocessorNumberOff"), "", "ProjectPreprocessorNumberOff", @mClick, , , False)
 	miTry->Add("-")
-	miOnErrorResumeNext = miTry->Add("On Error Resume Next" & HK("OnErrorResumeNext"), "", "OnErrorResumeNext", @mClick, , , False)
+	'miOnErrorResumeNext = miTry->Add("On Error Resume Next" & HK("OnErrorResumeNext"), "", "OnErrorResumeNext", @mClick, , , False)
 	miOnErrorGoto = miTry->Add("On Error Goto ..." & HK("OnErrorGoto"), "", "OnErrorGoto", @mClick, , , False)
 	miOnErrorGotoResumeNext = miTry->Add("On Error Goto ... Resume Next" & HK("OnErrorGotoResumeNext"), "", "OnErrorGotoResumeNext", @mClick, , , False)
+	miOnLocalErrorGoto = miTry->Add("On Local Error Goto ..." & HK("OnLocalErrorGoto"), "", "OnLocalErrorGoto", @mClick, , , False)
+	miOnLocalErrorGotoResumeNext = miTry->Add("On Local Error Goto ... Resume Next" & HK("OnLocalErrorGotoResumeNext"), "", "OnLocalErrorGotoResumeNext", @mClick, , , False)
 	miRemoveErrorHandling = miTry->Add(ML("Remove Error Handling") & HK("RemoveErrorHandling"), "", "RemoveErrorHandling", @mClick, , , False)
 	
 	Var miSearch = mnuMain.Add(ML("&Search"), "", "Search")
@@ -5595,9 +5597,11 @@ Sub CreateMenusAndToolBars
 	dmiProjectPreprocessorNumbering = tbButton->DropDownMenu.Add(ML("Project preprocessor numbering"), "Numbering", "ProjectPreprocessorNumberOn", @mClick, , , False)
 	dmiRemoveProjectPreprocessorNumbering = tbButton->DropDownMenu.Add(ML("Remove Project preprocessor numbering"), "", "ProjectPreprocessorNumberOff", @mClick, , , False)
 	tbButton->DropDownMenu.Add "-"
-	dmiOnErrorResumeNext = tbButton->DropDownMenu.Add("On Error Resume Next", "", "OnErrorResumeNext", @mClick, , , False)
+	'dmiOnErrorResumeNext = tbButton->DropDownMenu.Add("On Error Resume Next", "", "OnErrorResumeNext", @mClick, , , False)
 	dmiOnErrorGoto = tbButton->DropDownMenu.Add("On Error Goto ...", "", "OnErrorGoto", @mClick, , , False)
 	dmiOnErrorGotoResumeNext = tbButton->DropDownMenu.Add("On Error Goto ... Resume Next", "", "OnErrorGotoResumeNext", @mClick, , , False)
+	dmiOnLocalErrorGoto = tbButton->DropDownMenu.Add("On Local Error Goto ...", "", "OnLocalErrorGoto", @mClick, , , False)
+	dmiOnLocalErrorGotoResumeNext = tbButton->DropDownMenu.Add("On Local Error Goto ... Resume Next", "", "OnLocalErrorGotoResumeNext", @mClick, , , False)
 	dmiRemoveErrorHandling = tbButton->DropDownMenu.Add(ML("Remove Error Handling"), "", "RemoveErrorHandling", @mClick, , , False)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbBuild.Name = "Build"
@@ -7684,12 +7688,16 @@ Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 	dmiPreprocessorNumbering->Enabled = bEnabledEditControl
 	miRemovePreprocessorNumbering->Enabled = bEnabledEditControl
 	dmiRemovePreprocessorNumbering->Enabled = bEnabledEditControl
-	miOnErrorResumeNext->Enabled = bEnabledEditControl
-	dmiOnErrorResumeNext->Enabled = bEnabledEditControl
+	'miOnErrorResumeNext->Enabled = bEnabledEditControl
+	'dmiOnErrorResumeNext->Enabled = bEnabledEditControl
 	miOnErrorGoto->Enabled = bEnabledEditControl
 	dmiOnErrorGoto->Enabled = bEnabledEditControl
 	miOnErrorGotoResumeNext->Enabled = bEnabledEditControl
 	dmiOnErrorGotoResumeNext->Enabled = bEnabledEditControl
+	miOnLocalErrorGoto->Enabled = bEnabledEditControl
+	dmiOnLocalErrorGoto->Enabled = bEnabledEditControl
+	miOnLocalErrorGotoResumeNext->Enabled = bEnabledEditControl
+	dmiOnLocalErrorGotoResumeNext->Enabled = bEnabledEditControl
 	miRemoveErrorHandling->Enabled = bEnabledEditControl
 	dmiRemoveErrorHandling->Enabled = bEnabledEditControl
 	miCollapseCurrent->Enabled = bEnabledEditControl

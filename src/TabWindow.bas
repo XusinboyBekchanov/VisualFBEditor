@@ -8949,7 +8949,7 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 			End If
 		Next i
 		If ExitLine <> "" Then
-			If CInt(.FLines.Count - 1 >= ehStart) AndAlso CInt(StartsWith(LTrim(.Lines(ehStart), Any !"\t "), "On Error ")) Then
+			If CInt(.FLines.Count - 1 >= ehStart) AndAlso (CInt(StartsWith(LTrim(.Lines(ehStart), Any !"\t "), "On Error ")) OrElse CInt(StartsWith(LTrim(.Lines(ehStart), Any !"\t "), "On Local Error "))) Then
 				If StartLine <> "" Then
 					.ReplaceLine ehStart, LeftSpace & !"\t" & StartLine
 				Else
@@ -9006,6 +9006,11 @@ Sub TabWindow.SetErrorHandling(StartLine As String, EndLine As String)
 				Next j
 			End If
 			If StartLine <> "" And StartLine <> "On Error Resume Next" Then
+				If StartsWith(Trim(.Lines(ehEnd), Any !"\t "),  "On Local Error Goto 0") Then
+					.DeleteLine ehEnd
+					ehEnd -= 1
+				End If
+				If StartLine = "On Local Error Goto ErrorHandler" Then .InsertLine ehEnd + 1, LeftSpace & !"\t" & "On Local Error Goto 0": ehEnd += 1
 				.InsertLine ehEnd + 1, LeftSpace & !"\t" & ExitLine
 				.InsertLine ehEnd + 2, LeftSpace & "ErrorHandler:"
 				.InsertLine ehEnd + 3, LeftSpace & !"\t" & "MsgBox ErrDescription(Err) & "" ("" & Err & "") "" & _"

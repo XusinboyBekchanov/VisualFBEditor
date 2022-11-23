@@ -629,7 +629,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Undo", "Redo", "CutCurrentLine", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", "CollapseAllProcedures", "UnCollapseAllProcedures", _
-		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorResumeNext", "OnErrorGoto", "OnErrorGotoResumeNext", "RemoveErrorHandling", "Define"
+		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorGoto", "OnErrorGotoResumeNext", "OnLocalErrorGoto", "OnLocalErrorGotoResumeNext", "RemoveErrorHandling", "Define" '"OnErrorResumeNext", 
 		Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
 		If ActiveForm = 0 OrElse ActiveForm->ActiveControl = 0 Then Exit Sub
 		If ActiveForm->ActiveControl->ClassName <> "EditControl" AndAlso ActiveForm->ActiveControl->ClassName <> "TextBox" AndAlso ActiveForm->ActiveControl->ClassName <> "Panel" AndAlso ActiveForm->ActiveControl->ClassName <> "ComboBoxEdit" AndAlso ActiveForm->ActiveControl->ClassName <> "ComboBoxEx" Then Exit Sub
@@ -715,9 +715,11 @@ Sub mClick(Sender As My.Sys.Object)
 				Case "ProcedureNumberOff":      tb->ProcedureNumberOff
 				Case "PreprocessorNumberOn":    tb->PreprocessorNumberOn
 				Case "PreprocessorNumberOff":   tb->PreprocessorNumberOff
-				Case "OnErrorResumeNext":       tb->SetErrorHandling "On Error Resume Next", ""
+				'Case "OnErrorResumeNext":       tb->SetErrorHandling "On Error Resume Next", ""
 				Case "OnErrorGoto":             tb->SetErrorHandling "On Error Goto ErrorHandler", ""
 				Case "OnErrorGotoResumeNext":   tb->SetErrorHandling "On Error Goto ErrorHandler", "Resume Next"
+				Case "OnLocalErrorGoto":           tb->SetErrorHandling "On Local Error Goto ErrorHandler", ""
+				Case "OnLocalErrorGotoResumeNext": tb->SetErrorHandling "On Local Error Goto ErrorHandler", "Resume Next"
 				Case "RemoveErrorHandling":     tb->RemoveErrorHandling
 				End Select
 			End If
