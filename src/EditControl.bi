@@ -320,7 +320,6 @@ Namespace My.Sys.Forms
 		FileListsLines As List
 		Includes As WStringList
 		IncludeLines As IntegerList
-		CheckedFiles As WStringList
 		ExternalFiles As WStringList
 		ExternalFileLines As IntegerList
 		ExternalIncludes As WStringList

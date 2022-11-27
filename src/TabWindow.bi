@@ -169,6 +169,9 @@ Public:
 	Dim As Integer ConstructorStart, ConstructorEnd, lvPropertyWidth, FindFormPosiLeft, FindFormPosiTop, RightSelectedIndex
 	tn As TreeNode Ptr
 	mi As MenuItem Ptr
+	CheckedFiles As WStringList
+	OldIncludes As WStringList
+	OldIncludeLines As IntegerList
 	DownLine As Integer
 	DownLineSelStart As Integer
 	DownLineSelEnd As Integer

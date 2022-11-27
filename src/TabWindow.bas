@@ -3417,8 +3417,8 @@ Function AddExternalIncludes(tb As TabWindow Ptr, ItemFile As FileType Ptr, ByRe
 		End If
 		For i As Integer = 0 To FILE->Includes.Count - 1
 			If GetFolderName(FILE->Includes.Item(i)) <> GetFolderName(FileName) Then Continue For
-			If tb->txtCode.CheckedFiles.Contains(FILE->Includes.Item(i)) Then Continue For
-			tb->txtCode.CheckedFiles.Add FILE->Includes.Item(i)
+			If tb->CheckedFiles.Contains(FILE->Includes.Item(i)) Then Continue For
+			tb->CheckedFiles.Add FILE->Includes.Item(i)
 			If AddExternalIncludes(tb, FILE->Includes.Object(i), FILE->Includes.Item(i), FileName) Then
 				Var IncludedLine = FILE->IncludeLines.Item(i)
 				tb->txtCode.ExternalFiles.Add FILE->FileName
@@ -5216,17 +5216,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
-	For i As Integer = txtCode.FileLists.Count - 1 To 0 Step -1
-		Delete_( Cast(WStringList Ptr, txtCode.FileLists.Item(i)))
-	Next
-	For i As Integer = txtCode.FileListsLines.Count - 1 To 0 Step -1
-		Delete_( Cast(IntegerList Ptr, txtCode.FileListsLines.Item(i)))
-	Next
-	txtCode.FileLists.Clear
-	txtCode.FileListsLines.Clear
-	txtCode.CheckedFiles.Clear
-	txtCode.Includes.Clear
-	txtCode.IncludeLines.Clear
 	txtCode.Functions.Clear
 	txtCode.FunctionsOthers.Clear
 	txtCode.Namespaces.Clear
@@ -5262,10 +5251,28 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As IntegerList Ptr LastFileListLines
 	Dim As UString sFileName = FileName
 	Dim As TabWindow Ptr tb
+	Dim As Integer IncludesCount
+	Dim As Boolean IncludesChanged
+	For i As Integer = 0 To txtCode.LinesCount - 1
+		b = txtCode.Lines(i)
+		If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then
+			Pos1 = InStr(b, """")
+			If Pos1 > 0 Then
+				Pos2 = InStr(Pos1 + 1, b, """")
+				WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+				IncludesCount += 1
+				If IncludesCount > OldIncludes.Count OrElse *FPath <> OldIncludes.Item(IncludesCount - 1) OrElse i <> OldIncludeLines.Item(IncludesCount - 1) Then
+					IncludesChanged = True
+					Exit For
+				End If
+			End If
+		End If
+	Next
 	If Not bExternalIncludesLoaded Then
 		Dim As ProjectElement Ptr Project
 		Dim As TreeNode Ptr ProjectNode
 		Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
+		CheckedFiles.Clear
 		txtCode.ExternalFiles.Clear
 		txtCode.ExternalFileLines.Clear
 		txtCode.ExternalIncludes.Clear
@@ -5273,13 +5280,31 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		txtCode.ExternalFileLines.Add 0
 		AddExternalIncludes @This, 0, MainFile, sFileName
 		bExternalIncludesLoaded = True
+		IncludesChanged = True
 	End If
+	If IncludesChanged Then
+		For i As Integer = txtCode.FileLists.Count - 1 To 0 Step -1
+			Delete_( Cast(WStringList Ptr, txtCode.FileLists.Item(i)))
+		Next
+		For i As Integer = txtCode.FileListsLines.Count - 1 To 0 Step -1
+			Delete_( Cast(IntegerList Ptr, txtCode.FileListsLines.Item(i)))
+		Next
+		txtCode.FileLists.Clear
+		txtCode.FileListsLines.Clear
+		txtCode.Includes.Clear
+		txtCode.IncludeLines.Clear
+		OldIncludes.Clear
+		OldIncludeLines.Clear
+	End If
+	IncludesCount = 0
 	For j As Integer = 0 To txtCode.LinesCount - 1
 		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
 			sFileName = *FLine1
-			txtCode.Includes.Add sFileName
-			txtCode.IncludeLines.Add j
-			Includes.Add sFileName
+			If IncludesChanged Then
+				txtCode.Includes.Add sFileName
+				txtCode.IncludeLines.Add j
+				Includes.Add sFileName
+			End If
 			OldIncludeLine = j
 			tb = GetTab(sFileName)
 			If tb = 0 Then
@@ -5307,27 +5332,37 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			'End If
 			If ptxtCode = @txtCode Then
 				If OldIncludeLine = i - 1 Then
-					Var FileList = New WStringList
-					Var FileListLines = New IntegerList
-					txtCode.FileLists.Add FileList
-					txtCode.FileListsLines.Add FileListLines
-					FileList->Sorted = True
-					If LastFileList = 0 Then
-						UpdateIncludedFilesList @This, *FileList, *FileListLines, j
+					Dim As WStringList Ptr FileList
+					Dim As IntegerList Ptr FileListLines
+					IncludesCount += 1
+					If IncludesChanged Then
+						FileList = New WStringList
+						FileListLines = New IntegerList
+						txtCode.FileLists.Add FileList
+						txtCode.FileListsLines.Add FileListLines
+						FileList->Sorted = True
+						If LastFileList = 0 Then
+							UpdateIncludedFilesList @This, *FileList, *FileListLines, j
+						Else
+							For i As Integer = 0 To LastFileList->Count - 1
+								FileList->Add LastFileList->Item(i)
+								FileListLines->Add LastFileListLines->Item(i)
+							Next
+							For i As Integer = 0 To Includes.Count - 1
+								AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
+								OldIncludes.Add Includes.Item(i)
+								OldIncludeLines.Add OldIncludeLine
+							Next i
+						End If
+						Includes.Clear
 					Else
-						For i As Integer = 0 To LastFileList->Count - 1
-							FileList->Add LastFileList->Item(i)
-							FileListLines->Add LastFileListLines->Item(i)
-						Next
-						For i As Integer = 0 To Includes.Count - 1
-							AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
-						Next i
+						FileList = txtCode.FileLists.Item(IncludesCount - 1)
+						FileListLines = txtCode.FileListsLines.Item(IncludesCount - 1)
 					End If
 					LastFileList = FileList
 					LastFileListLines = FileListLines
 					ECLine->FileList = LastFileList
 					ECLine->FileListLines = LastFileListLines
-					Includes.Clear
 				End If
 			End If
 			ECLine->FileList = LastFileList
@@ -5416,9 +5451,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Pos2 = InStr(Pos1 + 1, b, """")
 							WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
 							If ptxtCode = @txtCode Then
-								txtCode.Includes.Add *FPath
-								txtCode.IncludeLines.Add j
-								Includes.Add *FPath
+								If IncludesChanged Then
+									txtCode.Includes.Add *FPath
+									txtCode.IncludeLines.Add j
+									Includes.Add *FPath
+								End If
 								OldIncludeLine = j
 							End If
 							If Not pLoadPaths->Contains(*FPath) Then
@@ -6804,6 +6841,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnSplitVerticallyChange = @OnSplitVerticallyChangeEdit
 	txtCode.Tag = @This
 	txtCode.ShowHint = False
+	CheckedFiles.Sorted = True
 	#ifdef __USE_GTK__
 		txtCode.lvIntellisense.OnSelectedItemChanged = @Intellisense_SelectedItemChanged
 	#else
@@ -7070,10 +7108,10 @@ Destructor TabWindow
 	txtCode.Args.Clear
 	txtCode.FileLists.Clear
 	txtCode.FileListsLines.Clear
-	txtCode.CheckedFiles.Clear
 	txtCode.ExternalFiles.Clear
 	txtCode.ExternalFileLines.Clear
 	txtCode.ExternalIncludes.Clear
+	CheckedFiles.Clear
 	AnyTexts.Clear
 	Events.Clear
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0

@@ -6347,7 +6347,6 @@ Namespace My.Sys.Forms
 			pnlIntellisense.Add @cboIntellisense
 			This.Add @pnlIntellisense
 		#endif
-		CheckedFiles.Sorted = True
 		Var item = New_( EditControlLine)
 		WLet(item->Text, "")
 		FLines.Add item
