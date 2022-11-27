@@ -5921,6 +5921,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Pos1 = InStr(b2, "'")
 							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
 							If b2.ToLower.StartsWith("shared ") Then bShared = True: b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("import ") Then b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("as ") Then
 								bOldAs = True
 								CurType = Trim(Mid(b2, 4))
@@ -5969,6 +5970,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
 								Pos1 = InStr(res1(n), "(")
+								If Pos1 > 0 Then
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								Pos1 = InStr(LCase(res1(n)), " alias ")
 								If Pos1 > 0 Then
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
