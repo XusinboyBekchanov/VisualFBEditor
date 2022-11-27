@@ -3969,6 +3969,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						CInt(StartsWith(bTrimLCase, "static ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "const ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "redim ")) OrElse _
+						CInt(StartsWith(bTrimLCase, "extern ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "var "))) Then
 						Dim As UString b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 						Dim As UString CurType, ElementValue
