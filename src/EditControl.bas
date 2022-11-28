@@ -3357,7 +3357,6 @@ Namespace My.Sys.Forms
 																If tIndex = -1 Then
 																	tIndex = Enums.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
-																		?MatnLCase
 																		If Cast(TypeElement Ptr, Enums.Object(tIndex))->StartLine > z Then
 																			tIndex = -1
 																		Else

@@ -1047,6 +1047,11 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		Case mrCancel: Return False
 		End Select
 	End If
+	If LastThread Then
+		bQuitThread = True
+		ThreadWait LastThread
+		LastThread = 0
+	End If
 	Var ptabCode = Cast(TabControl Ptr, This.Parent)
 	ptabCode->Remove(@btnClose)
 	miWindow->Remove This.mi
@@ -3510,7 +3515,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	'End If
 	Dim As WStringList Ptr pFiles '= @tb->txtCode.FileList
 	Dim As IntegerList Ptr pFileLines '= @tb->txtCode.FileListLines
-	If ECLine Then 
+	If ECLine Then
 		pFiles = ECLine->FileList
 		pFileLines = ECLine->FileListLines
 	End If
@@ -5103,11 +5108,528 @@ Sub TabWindowFormDesign
 	tb->FormDesign
 End Sub
 
+Sub AnalyzeTab(Param As Any Ptr)
+	Dim As TabWindow Ptr tb = Param
+	If tb = 0 Then Exit Sub
+	Dim As EditControlLine Ptr FECLine
+	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1
+	Dim As WString Ptr s
+	Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol, OriginalCaseWord, TypeName
+	Dim As Boolean bQ, LinePrinted, WithOldSymbol, bKeyWord, TwoDots, OneDot, bWithoutWith, CStyle
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	Dim As ECColorScheme Ptr sc
+	Dim As TypeElement Ptr te, Oldte
+	Dim As WStringList Ptr pkeywords
+	CStyle = tb->txtCode.CStyle
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	For z As Integer = 0 To tb->txtCode.FLines.Count - 1
+		If tb->bQuitThread Then Exit Sub
+		FECLine = tb->txtCode.FLines.Items[z]
+		Dim As WStringList Ptr pFiles = FECLine->FileList
+		Dim As IntegerList Ptr pFileLines = FECLine->FileListLines
+		i = i + 1
+		If z > 0 Then iC = Cast(EditControlLine Ptr, tb->txtCode.FLines.Items[z - 1])->CommentIndex
+		s = FECLine->Text
+		l = Len(*s)
+		bQ = False
+		j = 1
+		IzohBoshi = 0
+		QavsBoshi = 0
+		MatnBoshi = 0
+		IzohBoshi = 1
+		Do While j <= l
+			If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
+				bQ = Not bQ
+				If bQ Then
+					QavsBoshi = j
+				Else
+					'FECLine->Ends.Add j, @Strings
+				End If
+			ElseIf Not bQ Then
+				If Mid(*s, j, 2) = IIf(CStyle, "/*", "/'") Then
+					iC = iC + 1
+					If iC = 1 Then
+						IzohBoshi = j
+					End If
+					j = j + 1
+				ElseIf iC > 0 AndAlso Mid(*s, j, 2) = IIf(CStyle, "*/", "'/") Then
+					iC = iC - 1
+					j = j + 1
+					If iC = 0 Then
+						'FECLine->Ends.Add j, @Comments
+					End If
+				ElseIf iC = 0 Then
+					t = Asc(Mid(*s, j, 1))
+					u = Asc(Mid(*s, j + 1, 1))
+					If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
+						If CInt(ChangeKeyWordsCase) AndAlso CInt(iSelEndLine <> z) AndAlso pkeywords2 <> 0 Then
+							'If Not CStyle Then
+							'	KeyWord = GetKeyWordCase("rem", pkeywords2)
+							'	If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = KeyWord
+							'End If
+						End If
+						'FECLine->Ends.Add l, @Comments
+						Exit Do
+					ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") Then
+						If MatnBoshi = 0 Then MatnBoshi = j
+						If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
+							Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
+							MatnLCase = LCase(Matn)
+							If InStr("#$", .Left(Matn, 1)) Then
+								MatnLCaseWithoutOldSymbol = Mid(MatnLCase, 2)
+								MatnWithoutOldSymbol = Mid(Matn, 2)
+								WithOldSymbol = True
+							Else
+								MatnLCaseWithoutOldSymbol = MatnLCase
+								MatnWithoutOldSymbol = Matn
+								WithOldSymbol = False
+							End If
+							sc = @Identifiers
+							OriginalCaseWord = "":   TypeName = "" : te = 0
+							If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
+							If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
+							pkeywords = 0
+							If CStyle Then
+								If MatnLCase = "#define" OrElse MatnLCase = "#include" OrElse MatnLCase = "#macro" Then
+									If pkeywords0 <> 0 Then
+										sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
+									End If
+								End If
+							Else
+								bKeyWord = False
+								tIndex = -1
+								OriginalCaseWord = ""
+								If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(MatnLCase <> "asm") Then
+									tIndex = pkeywordsAsm->IndexOf(MatnLCase)
+									If tIndex > -1 Then
+										sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
+										OriginalCaseWord = pkeywordsAsm->Item(tIndex)
+										bKeyWord = True
+									End If
+								Else
+									TwoDots = CBool(r = 46 AndAlso q = 46)
+									OneDot = False
+									bWithoutWith = False
+									
+									'Membership
+									If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
+										If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
+											OneDot = True
+											tb->txtCode.GetLeftArgTypeName(z, j, te, , , , bWithoutWith)
+											If bWithoutWith Then
+												TwoDots = True
+												OneDot = False
+											ElseIf te > 0 Then
+												tIndex = 0
+												OriginalCaseWord = te->Name
+												If SyntaxHighlightingIdentifiers Then
+													Select Case LCase(te->ElementType)
+													Case "enumitem"
+														sc = @ColorEnumMembers
+													Case "sub"
+														sc = @ColorSubs
+													Case "function"
+														sc = @ColorGlobalFunctions
+													Case "property"
+														sc = @ColorProperties
+													Case "field", "event"
+														sc = @ColorFields
+													Case "namespace"
+														sc = @ColorGlobalNamespaces
+													Case "type", "typecopy"
+														sc = @ColorGlobalTypes
+													Case "enum"
+														sc = @ColorGlobalEnums
+													Case "define"
+														sc = @ColorDefines
+													Case "macro"
+														sc = @ColorMacros
+													Case Else
+														sc = @ColorLocalVariables
+													End Select
+												End If
+											End If
+										End If
+										
+										If Not OneDot Then
+											If tIndex = -1 Then
+												For i As Integer = 0 To FECLine->Args.Count - 1
+													tIndex = Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements.IndexOf(MatnLCase)
+													If tIndex <> -1 Then
+														pkeywords = @Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements
+														OriginalCaseWord = pkeywords->Item(tIndex)
+														te = pkeywords->Object(tIndex)
+														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+															Select Case te->ElementType
+															Case "ByRefParameter"
+																sc = @ColorByRefParameters
+															Case "ByValParameter"
+																sc = @ColorByValParameters
+															Case "Field", "Event"
+																sc = @ColorFields
+															Case Else
+																sc = @ColorLocalVariables
+															End Select
+														End If
+														Exit For
+													End If
+												Next
+											End If
+											
+											'Procedure
+											If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso OldMatnLCase <> "as" Then
+												tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
+												If tIndex <> -1 Then
+													If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
+														tIndex = -1
+													Else
+														pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+														OriginalCaseWord = pkeywords->Item(tIndex)
+														te = pkeywords->Object(tIndex)
+														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+															Select Case LCase(te->ElementType)
+															Case "sub"
+																sc = @ColorSubs
+															Case "function"
+																sc = @ColorGlobalFunctions
+															Case "property"
+																sc = @ColorProperties
+															Case "byrefparameter"
+																sc = @ColorByRefParameters
+															Case "byvalparameter"
+																sc = @ColorByValParameters
+															Case "field", "event"
+																sc = @ColorFields
+															Case "enumitem"
+																sc = @ColorEnumMembers
+															Case "linelabel"
+																sc = @ColorLineLabels
+															Case Else
+																sc = @ColorLocalVariables
+															End Select
+														End If
+													End If
+												Else
+													If tIndex = -1 Then
+														TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+														Pos1 = InStr(TypeName, ".")
+														If (CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+															If Pos1 > 0 Then
+																TypeName = ..Left(TypeName, Pos1 - 1)
+															Else
+																TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+															End If
+															If tb->txtCode.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @tb->txtCode.Types, pFiles, pFileLines, True, , , te, z) Then
+															ElseIf tb->txtCode.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @tb->txtCode.Enums, pFiles, pFileLines, True, , , te, z) Then
+															ElseIf tb->txtCode.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
+															ElseIf tb->txtCode.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
+															ElseIf tb->txtCode.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
+															End If
+															If te > 0 Then
+																OriginalCaseWord = te->Name
+																tIndex = 0
+																If SyntaxHighlightingIdentifiers Then
+																	Select Case LCase(te->ElementType)
+																	Case "sub"
+																		sc = @ColorSubs
+																	Case "function"
+																		sc = @ColorGlobalFunctions
+																	Case "property"
+																		sc = @ColorProperties
+																	Case "field", "event"
+																		sc = @ColorFields
+																	Case Else
+																		sc = @ColorLocalVariables
+																	End Select
+																End If
+															End If
+														End If
+													End If
+												End If
+											End If
+										End If
+									End If
+									
+									If Not OneDot Then
+										' Keywords
+										If tIndex = -1 Then
+											For k As Integer = 1 To KeywordLists.Count - 1
+												pkeywords = KeywordLists.Object(k)
+												tIndex = pkeywords->IndexOf(MatnLCase)
+												If tIndex > -1 Then
+													OriginalCaseWord = pkeywords->Item(tIndex)
+													sc = @Keywords(k)
+													bKeyWord = True
+													Exit For
+												End If
+												pkeywords = 0
+												tIndex = -1
+											Next
+										End If
+									End If
+									
+									If WithOldSymbol Then MatnLCase = MatnLCaseWithoutOldSymbol
+									
+									If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
+										If Not OneDot Then
+											'Module
+											If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
+												tIndex = tb->txtCode.Args.IndexOf(MatnLCase)
+												If tIndex <> -1 Then
+													If Cast(TypeElement Ptr, tb->txtCode.Args.Object(tIndex))->StartLine > z Then
+														tIndex = -1
+													Else
+														OriginalCaseWord = tb->txtCode.Args.Item(tIndex)
+														pkeywords = @tb->txtCode.Args
+														te = tb->txtCode.Args.Object(tIndex)
+														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+															Select Case te->ElementType
+															Case "EnumItem"
+																sc = @ColorEnumMembers
+															Case "CommonVariable"
+																sc = @ColorCommonVariables
+															Case "Constant"
+																sc = @ColorConstants
+															Case "SharedVariable"
+																sc = @ColorSharedVariables
+															Case Else
+																sc = @ColorLocalVariables
+															End Select
+														End If
+													End If
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.Procedures.IndexOf(MatnLCase)
+												If tIndex <> -1 Then
+													If Cast(TypeElement Ptr, tb->txtCode.Procedures.Object(tIndex))->StartLine > z Then
+														tIndex = -1
+													Else
+														OriginalCaseWord = tb->txtCode.Procedures.Item(tIndex)
+														pkeywords = @tb->txtCode.Procedures
+														te = tb->txtCode.Procedures.Object(tIndex)
+														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+															Select Case LCase(te->ElementType)
+															Case "constructor", "destructor"
+																sc = @ColorGlobalTypes
+															Case "function"
+																sc = @ColorGlobalFunctions
+															Case "sub"
+																sc = @ColorSubs
+															Case "define"
+																sc = @ColorDefines
+															Case "macro"
+																sc = @ColorMacros
+															Case "property"
+																sc = @ColorProperties
+															End Select
+														End If
+													End If
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.Types.IndexOf(MatnLCase)
+												If tIndex <> -1 Then
+													If Cast(TypeElement Ptr, tb->txtCode.Types.Object(tIndex))->StartLine > z Then
+														tIndex = -1
+													Else
+														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
+														OriginalCaseWord = tb->txtCode.Types.Item(tIndex)
+														pkeywords = @tb->txtCode.Types
+													End If
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.Enums.IndexOf(MatnLCase)
+												If tIndex <> -1 Then
+													If Cast(TypeElement Ptr, tb->txtCode.Enums.Object(tIndex))->StartLine > z Then
+														tIndex = -1
+													Else
+														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
+														OriginalCaseWord = tb->txtCode.Enums.Item(tIndex)
+														pkeywords = @tb->txtCode.Enums
+													End If
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.Namespaces.IndexOf(MatnLCase)
+												If tIndex <> -1 Then
+													If Cast(TypeElement Ptr, tb->txtCode.Namespaces.Object(tIndex))->StartLine > z Then
+														tIndex = -1
+													Else
+														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
+														OriginalCaseWord = tb->txtCode.Namespaces.Item(tIndex)
+														pkeywords = @tb->txtCode.Namespaces
+													End If
+												End If
+											End If
+											
+											'Global
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.IndexOfInListFiles(pComps, MatnLCase, pFiles, pFileLines)
+												If tIndex <> -1 Then
+													If SyntaxHighlightingIdentifiers Then sc = @ColorComps
+													OriginalCaseWord = pComps->Item(tIndex)
+													pkeywords = pComps
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.IndexOfInListFiles(pGlobalTypes, MatnLCase, pFiles, pFileLines)
+												If tIndex <> -1 Then
+													If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
+													OriginalCaseWord = pGlobalTypes->Item(tIndex)
+													pkeywords = pGlobalTypes
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.IndexOfInListFiles(pGlobalEnums, MatnLCase, pFiles, pFileLines)
+												If tIndex <> -1 Then
+													If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
+													OriginalCaseWord = pGlobalEnums->Item(tIndex)
+													pkeywords = pGlobalEnums
+												End If
+											End If
+											
+											If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
+												tIndex = tb->txtCode.IndexOfInListFiles(pGlobalArgs, MatnLCase, pFiles, pFileLines)
+												If tIndex <> -1 Then
+													te = pGlobalArgs->Object(tIndex)
+													OriginalCaseWord = pGlobalArgs->Item(tIndex)
+													pkeywords = pGlobalArgs
+													If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+														Select Case te->ElementType
+														Case "EnumItem"
+															sc = @ColorEnumMembers
+														Case "CommonVariable"
+															sc = @ColorCommonVariables
+														Case "Constant"
+															sc = @ColorConstants
+														Case "SharedVariable"
+															sc = @ColorSharedVariables
+														Case Else
+															sc = @ColorLocalVariables
+														End Select
+													End If
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.IndexOfInListFiles(pGlobalFunctions, MatnLCase, pFiles, pFileLines)
+												If tIndex <> -1 Then
+													te = pGlobalFunctions->Object(tIndex)
+													OriginalCaseWord = pGlobalFunctions->Item(tIndex)
+													pkeywords = pGlobalFunctions
+													If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+														Select Case LCase(te->ElementType)
+														Case "constructor", "destructor"
+															sc = @ColorGlobalTypes
+														Case "keyword"
+															sc = @ColorGlobalFunctions
+														Case "function"
+															sc = @ColorGlobalFunctions
+														Case "sub"
+															sc = @ColorSubs
+														Case "define"
+															sc = @ColorDefines
+														Case "macro"
+															sc = @ColorMacros
+														Case "property"
+															sc = @ColorProperties
+														End Select
+													End If
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.IndexOfInListFiles(pGlobalNamespaces, MatnLCase, pFiles, pFileLines)
+												If tIndex <> -1 Then
+													If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
+													OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
+													pkeywords = pGlobalNamespaces
+												End If
+											End If
+											
+											If tIndex = -1 Then
+												tIndex = tb->txtCode.LineLabels.IndexOf(MatnLCase)
+												If tIndex <> -1 Then
+													If SyntaxHighlightingIdentifiers Then sc = @ColorLineLabels
+													OriginalCaseWord = tb->txtCode.LineLabels.Item(tIndex)
+													pkeywords = @tb->txtCode.LineLabels
+												End If
+											End If
+										End If
+									End If
+								End If
+								If bKeyWord AndAlso ChangeKeyWordsCase AndAlso MatnLCase = LCase(OriginalCaseWord) AndAlso iSelEndLine <> z Then
+									'KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
+									'If KeyWord <> Matn Then
+									'	Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
+									'End If
+								ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso MatnLCase = LCase(OriginalCaseWord) AndAlso tIndex <> -1 AndAlso iSelEndLine <> z Then
+									If MatnWithoutOldSymbol <> OriginalCaseWord Then
+										'Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
+									End If
+								ElseIf tIndex = -1 Then
+									If isNumeric(Matn) Then
+										If InStr(Matn, ".") Then
+											sc = @RealNumbers
+										Else
+											sc = @Numbers
+										End If
+									Else
+										sc = @Identifiers
+										'?Matn
+									End If
+								End If
+							End If
+							OldMatnLCase = MatnLCase: Oldte = te
+							If (Not bKeyWord) AndAlso WithOldSymbol Then
+								'FECLine->Ends.Add MatnBoshi, @NormalText
+								'FECLine->Ends.Add j, sc
+							Else
+								'FECLine->Ends.Add j, sc
+							End If
+							'End If
+							MatnBoshi = 0
+						End If
+					ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", IIf(FECLine->InAsm, Chr(t) = "#", Chr(t) = "'")) Then
+						'FECLine->Ends.Add l, @Comments
+						Exit Do
+					ElseIf tb->txtCode.CharType(Mid(*s, j, 1)) = 2 Then
+						'FECLine->Ends.Add j, @ColorOperators
+					ElseIf Chr(t) <> " " Then
+						'FECLine->Ends.Add j, @NormalText
+					End If
+				End If
+			End If
+			j = j + 1
+		Loop
+		If iC > 0 Then
+			'FECLine->Ends.Add l, @Comments
+		ElseIf bQ Then
+			'FECLine->Ends.Add j, @Strings
+		End If
+		'If CurExecutedLine <> i AndAlso OldExecutedLine <> i Then FECLine->EndsCompleted = True
+	Next z
+	tb->LastThread = 0
+End Sub
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	If bNotDesign OrElse FormClosing Then Exit Sub
 	pfrmMain->UpdateLock
 	bNotDesign = True
+	If LastThread Then
+		bQuitThread = True
+		ThreadWait LastThread
+		LastThread = 0
+	End If
 	Dim CtrlName As String
 	Dim SelControlName As String
 	Dim CurrentMenuName As String
@@ -6509,6 +7031,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	SelControlNames.Clear
 	bNotDesign = False
 	pfrmMain->UpdateUnLock
+	'ThreadCreate(@AnalyzeTab, @This)
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
