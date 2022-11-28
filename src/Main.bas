@@ -4091,6 +4091,20 @@ tlockToDo = MutexCreate()
 tlockGDB = MutexCreate()
 tlockSuggestions = MutexCreate()
 
+Sub EndOfLoadFunctions
+	LoadFunctionsCount -= 1
+	If LoadFunctionsCount = 0 Then
+		Dim As TabWindow Ptr tb
+		For j As Integer = TabPanels.Count - 1 To 0 Step -1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+				If tb Then tb->FormDesign
+			Next i
+		Next j
+	End If
+End Sub
+
 Sub LoadFunctionsSub(Param As Any Ptr)
 	LoadFunctionsCount += 1
 	MutexLock tlock
@@ -4098,7 +4112,7 @@ Sub LoadFunctionsSub(Param As Any Ptr)
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
-	LoadFunctionsCount -= 1
+	EndOfLoadFunctions
 End Sub
 
 Sub LoadOnlyFilePath(Param As Any Ptr)
@@ -4108,7 +4122,7 @@ Sub LoadOnlyFilePath(Param As Any Ptr)
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
-	LoadFunctionsCount -= 1
+	EndOfLoadFunctions
 End Sub
 
 Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
@@ -4118,7 +4132,7 @@ Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
-	LoadFunctionsCount -= 1
+	EndOfLoadFunctions
 End Sub
 
 Sub LoadOnlyIncludeFiles(Param As Any Ptr)
@@ -4128,7 +4142,7 @@ Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 		LoadFunctions QWString(Param), LoadParam.OnlyIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
-	LoadFunctionsCount -= 1
+	EndOfLoadFunctions
 End Sub
 
 Sub LoadHelp
@@ -7390,7 +7404,7 @@ lvProblems.OnItemActivate = @lvProblems_ItemActivate
 
 Sub lvSuggestions_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSuggestions.ListItems.Item(itemIndex)
-	SelectError(GetFullPath(Item->Text(2)), Val(Item->Text(1)), Item->Tag)
+	SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(lvSuggestions.Text), Item->Tag)
 End Sub
 
 lvSuggestions.Images = @imgList
@@ -7399,6 +7413,7 @@ lvSuggestions.SmallImages = @imgList
 lvSuggestions.Align = DockStyle.alClient
 lvSuggestions.Columns.Add ML("Content"), , 500, cfLeft
 lvSuggestions.Columns.Add ML("Line"), , 50, cfRight
+lvSuggestions.Columns.Add ML("Column"), , 50, cfRight
 lvSuggestions.Columns.Add ML("File"), , 700, cfLeft
 lvSuggestions.OnItemActivate = @lvSuggestions_ItemActivate
 

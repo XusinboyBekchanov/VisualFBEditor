@@ -5124,7 +5124,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	CStyle = tb->txtCode.CStyle
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	For z As Integer = 0 To tb->txtCode.FLines.Count - 1
-		If tb->bQuitThread Then Exit Sub
+		If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
 		FECLine = tb->txtCode.FLines.Items[z]
 		Dim As WStringList Ptr pFiles = FECLine->FileList
 		Dim As IntegerList Ptr pFileLines = FECLine->FileListLines
@@ -5587,9 +5587,12 @@ Sub AnalyzeTab(Param As Any Ptr)
 										sc = @Identifiers
 										If Matn <> "_" AndAlso OldMatnLCase <> "defined" AndAlso OldMatnLCase <> "ifdef" AndAlso OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") Then
 											MutexLock tlockSuggestions
-											lvSuggestions.ListItems.Add "Error: Identifier not declared, " & Matn, "Error"
-											lvSuggestions.ListItems.Item(lvSuggestions.ListItems.Count - 1)->Text(1) = WStr(z + 1)
-											lvSuggestions.ListItems.Item(lvSuggestions.ListItems.Count - 1)->Text(2) = tb->FileName
+											With *lvSuggestions.ListItems.Add("Error: Identifier not declared, " & Matn, "Error")
+												.Text(1) = WStr(z + 1)
+												.Text(2) = WStr(MatnBoshi)
+												.Text(3) = tb->FileName
+												.Tag = tb
+											End With
 											tpSuggestions->Caption = ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")"
 											MutexUnlock tlockSuggestions
 										End If
@@ -5644,7 +5647,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	bNotDesign = True
 	If LastThread Then
 		bQuitThread = True
-		ThreadWait LastThread
+		If LastThread <> 0 Then ThreadWait LastThread
 		bQuitThread = False
 		LastThread = 0
 	End If
