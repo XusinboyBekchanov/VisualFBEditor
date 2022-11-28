@@ -84,7 +84,7 @@ Dim Shared As List Tools, TabPanels, ControlLibraries
 Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
-Dim Shared As ListView lvProblems, lvSearch, lvToDo
+Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
 Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
@@ -97,7 +97,7 @@ Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvThd, tvWch ', tvPrc
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
-Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpThreads, tpWatches
+Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpThreads, tpWatches
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
@@ -4089,36 +4089,46 @@ tlock = MutexCreate()
 tlockSave = MutexCreate()
 tlockToDo = MutexCreate()
 tlockGDB = MutexCreate()
+tlockSuggestions = MutexCreate()
+
 Sub LoadFunctionsSub(Param As Any Ptr)
+	LoadFunctionsCount += 1
 	MutexLock tlock
 	If Not FormClosing Then
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
+	LoadFunctionsCount -= 1
 End Sub
 
 Sub LoadOnlyFilePath(Param As Any Ptr)
+	LoadFunctionsCount += 1
 	MutexLock tlock
 	If Not FormClosing Then
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
+	LoadFunctionsCount -= 1
 End Sub
 
 Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
+	LoadFunctionsCount += 1
 	MutexLock tlock
 	If Not FormClosing Then
 		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
+	LoadFunctionsCount -= 1
 End Sub
 
 Sub LoadOnlyIncludeFiles(Param As Any Ptr)
+	LoadFunctionsCount += 1
 	MutexLock tlock
 	If Not FormClosing Then
 		LoadFunctions QWString(Param), LoadParam.OnlyIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	MutexUnlock tlock
+	LoadFunctionsCount -= 1
 End Sub
 
 Sub LoadHelp
@@ -5316,6 +5326,7 @@ Sub CreateMenusAndToolBars
 	Var miOtherWindows = miView->Add(ML("Other Windows"))
 	miOtherWindows->Add(ML("Output Window") & HK("OutputWindow"), "", "OutputWindow", @mClick)
 	miOtherWindows->Add(ML("Problems Window") & HK("ProblemsWindow"), "", "ProblemsWindow", @mClick)
+	miOtherWindows->Add(ML("Suggestions Window") & HK("SuggestionsWindow"), "", "SuggestionsWindow", @mClick)
 	miOtherWindows->Add(ML("Find Window") & HK("FindWindow"), "", "FindWindow", @mClick)
 	miOtherWindows->Add(ML("ToDo Window") & HK("ToDoWindow"), "", "ToDoWindow", @mClick)
 	miOtherWindows->Add(ML("Change Log Window") & HK("ChangeLogWindow"), "", "ChangeLogWindow", @mClick)
@@ -7377,6 +7388,20 @@ lvProblems.Columns.Add ML("File"), , 700, cfLeft
 lvProblems.OnItemActivate = @lvProblems_ItemActivate
 'lvProblems.OnKeyDown = @lvErrors_KeyDown
 
+Sub lvSuggestions_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
+	Dim Item As ListViewItem Ptr = lvSuggestions.ListItems.Item(itemIndex)
+	SelectError(GetFullPath(Item->Text(2)), Val(Item->Text(1)), Item->Tag)
+End Sub
+
+lvSuggestions.Images = @imgList
+'lvErrors.StateImages = @imgList
+lvSuggestions.SmallImages = @imgList
+lvSuggestions.Align = DockStyle.alClient
+lvSuggestions.Columns.Add ML("Content"), , 500, cfLeft
+lvSuggestions.Columns.Add ML("Line"), , 50, cfRight
+lvSuggestions.Columns.Add ML("File"), , 700, cfLeft
+lvSuggestions.OnItemActivate = @lvSuggestions_ItemActivate
+
 Sub lvSearch_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSearch.ListItems.Item(itemIndex)
     gSearchItemIndex = itemIndex
@@ -7578,6 +7603,7 @@ ptabBottom->Detachable = True
 ptabBottom->Reorderable = True
 tpOutput = ptabBottom->AddTab(ML("Output"))
 tpProblems = ptabBottom->AddTab(ML("Problems"))
+tpSuggestions = ptabBottom->AddTab(ML("Suggestions"))
 tpFind = ptabBottom->AddTab(ML("Find"))
 tpToDo = ptabBottom->AddTab(ML("ToDo"))
 tpChangeLog = ptabBottom->AddTab(ML("Change Log"))
@@ -7589,6 +7615,7 @@ tpThreads = ptabBottom->AddTab(ML("Threads"))
 tpWatches = ptabBottom->AddTab(ML("Watches"))
 tpOutput->Add @txtOutput
 tpProblems->Add @lvProblems
+tpSuggestions->Add @lvSuggestions
 tpFind->Add @lvSearch
 tpToDo->Add @lvToDo
 tpChangeLog->Add @txtChangeLog
@@ -8482,6 +8509,7 @@ Sub OnProgramQuit() Destructor
 	MutexDestroy tlock
 	MutexDestroy tlockSave
 	MutexDestroy tlockGDB
+	MutexDestroy tlockSuggestions
 	Dim As UserToolType Ptr tt
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To Tools.Count - 1

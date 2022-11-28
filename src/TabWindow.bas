@@ -5087,7 +5087,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5109,6 +5109,7 @@ Sub TabWindowFormDesign
 End Sub
 
 Sub AnalyzeTab(Param As Any Ptr)
+    On Error Goto ErrorHandler
 	Dim As TabWindow Ptr tb = Param
 	If tb = 0 Then Exit Sub
 	Dim As EditControlLine Ptr FECLine
@@ -5584,7 +5585,14 @@ Sub AnalyzeTab(Param As Any Ptr)
 										End If
 									Else
 										sc = @Identifiers
-										'?Matn
+										If Matn <> "_" AndAlso OldMatnLCase <> "defined" AndAlso OldMatnLCase <> "ifdef" AndAlso OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") Then
+											MutexLock tlockSuggestions
+											lvSuggestions.ListItems.Add "Error: Identifier not declared, " & Matn, "Error"
+											lvSuggestions.ListItems.Item(lvSuggestions.ListItems.Count - 1)->Text(1) = WStr(z + 1)
+											lvSuggestions.ListItems.Item(lvSuggestions.ListItems.Count - 1)->Text(2) = tb->FileName
+											tpSuggestions->Caption = ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")"
+											MutexUnlock tlockSuggestions
+										End If
 									End If
 								End If
 							End If
@@ -5617,7 +5625,16 @@ Sub AnalyzeTab(Param As Any Ptr)
 		End If
 		'If CurExecutedLine <> i AndAlso OldExecutedLine <> i Then FECLine->EndsCompleted = True
 	Next z
+	MutexLock tlockSuggestions
+	tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count = 0, "", " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")")
+	MutexUnlock tlockSuggestions
 	tb->LastThread = 0
+    Exit Sub
+ErrorHandler:
+    MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+        "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+        "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+        "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
@@ -5628,6 +5645,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	If LastThread Then
 		bQuitThread = True
 		ThreadWait LastThread
+		bQuitThread = False
 		LastThread = 0
 	End If
 	Dim CtrlName As String
@@ -7031,7 +7049,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	SelControlNames.Clear
 	bNotDesign = False
 	pfrmMain->UpdateUnLock
-	'ThreadCreate(@AnalyzeTab, @This)
+	'If LoadFunctionsCount = 0 Then LastThread = ThreadCreate(@AnalyzeTab, @This)
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
