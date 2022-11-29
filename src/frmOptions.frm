@@ -4853,7 +4853,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	'lblShowMsg.Visible = True
 	' Produce English.lng from Projects at first
 	FileNameLng = ExePath & "/Settings/Languages/English.lng"
-	Fn1 = FreeFile
+	Fn1 = FreeFile_
 	Result = Open(FileNameLng For Input Encoding "utf-8" As #Fn1)
 	If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-16" As #Fn1)
 	If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-32" As #Fn1)
@@ -4914,7 +4914,6 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 				End If
 			End If
 		Loop
-		Close Fn1
 		mlKeysGeneralEnglish.SortKeys
 		mlKeysPropertyEnglish.SortKeys
 		mlKeysCompilerEnglish.SortKeys
@@ -4935,7 +4934,8 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		cmdUpdateLng.Enabled = True
 		Exit Sub
 	End If
-	Fn1= FreeFile
+	CloseFile_(Fn1)
+	Fn1 = FreeFile_
 	If Open(ExePath & "/VisualFBEditor.vfp" For Input Encoding "utf-8" As #Fn1) = 0 Then
 		IsComment = False
 		Do Until EOF(Fn1)
@@ -4954,7 +4954,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 				Else
 					FileNameSrc = ExePath & "/" & Buff
 				End If
-				Fn2 = FreeFile
+				Fn2 = FreeFile_
 				If Open(FileNameSrc For Input Encoding "utf-8" As #Fn2) = 0 Then
 					Print "FileNameSrc: " & FileNameSrc
 					lblShowMsg.Text = ML("Open") & "...  " & FileNameSrc
@@ -4976,14 +4976,13 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 							p = InStr(p1 + 1, LCase(Buff), "ml(""")
 						Loop
 					Loop
-					Close #Fn2
 					App.DoEvents
 				Else
 					lblShowMsg.Text = ML("File not found") & "! " & FileNameSrc
 				End If
+				CloseFile_(Fn2)
 			End If
 		Loop
-		Close #Fn1
 	Else
 		lblShowMsg.Text = ML("File not found") & "! " & ExePath & "/VisualFBEditor.vfp"
 		mlKeysGeneral.Clear
@@ -4994,10 +4993,11 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		cmdUpdateLng.Enabled = True
 		Exit Sub
 	End If
+	CloseFile_(Fn1)
 	App.DoEvents
 	mlKeysGeneralEnglish.SortKeys
 	lblShowMsg.Text = ML("Save") & " " & FileNameLng
-	Fn1 = FreeFile
+	Fn1 = FreeFile_
 	Open FileNameLng For Output Encoding "utf-8" As #Fn1
 	Print #Fn1, *lang_name
 	App.DoEvents
@@ -5035,7 +5035,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
 		If tKey <> "" Then Print #Fn1, tKey & " = " '& mlKeysGeneral.Item(i)->Text
 	Next
-	Close #Fn1
+	CloseFile_(Fn1)
 	App.DoEvents
 	' Produce other Language .lng file from Projects.
 	mlKeysGeneral.Clear
@@ -5063,7 +5063,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 				Exit Sub
 			End If
 		End If
-		Fn1 = FreeFile
+		Fn1 = FreeFile_
 		FileNameLng = ExePath & "/Settings/Languages/" & f
 		Result = Open(FileNameLng For Input Encoding "utf-8" As #Fn1)
 		If Result <> 0 Then Result = Open(FileNameLng For Input Encoding "utf-16" As #Fn1)
@@ -5126,7 +5126,6 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 					End If
 				End If
 			Loop
-			Close Fn1
 			mlKeysGeneral.SortKeys
 			mlKeysProperty.SortKeys
 			mlKeysCompiler.SortKeys
@@ -5201,6 +5200,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 			cmdUpdateLng.Enabled = True
 			Exit Sub
 		End If
+		CloseFile_(Fn1)
 		App.DoEvents
 		
 		mlKeysGeneral.SortKeys
@@ -5210,7 +5210,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		mlKeyWords.SortKeys
 		
 		'Save the Language file
-		Fn1 = FreeFile
+		Fn1 = FreeFile_
 		Open FileNameLng For Output Encoding "utf-8" As #Fn1
 		Print #Fn1, *lang_name
 		lblShowMsg.Text = " Saving ... " & FileNameLng
@@ -5249,7 +5249,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
 			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysGeneral.Item(i)->Text
 		Next
-		Close #Fn1
+		CloseFile_(Fn1)
 		App.DoEvents
 		If chkAllLNG.Checked Then f = Dir() Else Exit While
 	Wend
