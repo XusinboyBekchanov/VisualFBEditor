@@ -3639,7 +3639,7 @@ Dim Shared exedate As Double 'serial date
 		'+Chr(13)+"Objdump is also needed if case -gcc and -gas mixed code"):Return 0
 		If Dir(ExePath+"\objdump.exe")="" Then Return 0 '11/01/2015
 		
-		dwff=FreeFile
+		dwff = FreeFile_
 		'dissas_command=""""""+ExePath+"\objdump.exe"""+" --dwarf=info " """"+nfile+""""""
 		dissas_command=""""""+ExePath+"\objdump.exe"" --dwarf=info """+nfile+"""""" '19/04/2015  (by marpon)
 		counter=Open Pipe( dissas_command For Input As #dwff)
@@ -3685,14 +3685,14 @@ Dim Shared exedate As Double 'serial date
 			If InStr(dwln,"(DW_TAG_form") Then dw_prm_parse:Continue Do     '(DW_TAG_formal_parameter)
 			If InStr(dwln,"(DW_TAG_cons") Then dw_const_parse:Continue Do
 			If InStr(dwln,": Abbrev Number: 0") Then Continue Do 'I don't what that is
-			If InStr(dwln,"><") Then msgbox(ML("Dwarf parsing: Not managed") & " "+dwln+Chr(10)+Chr(13)+ML("Please report"))
+			If InStr(dwln,"><") Then MsgBox(ML("Dwarf parsing: Not managed") & " "+dwln+Chr(10)+Chr(13)+ML("Please report"))
 		Loop
-		Close #dwff
+		CloseFile_(dwff)
 		'lines
 		''=================== 2016/03/24
 		''first pass for retrieving  the last line of each proc
 		dissas_command=""""""+ExePath+"\objdump.exe"" --dwarf=decodedline """+nfile+"""""" '19/04/2015  (by marpon)
-		dwff=FreeFile
+		dwff = FreeFile_
 		counter=Open Pipe( dissas_command For Input As #dwff)
 		Dim As UString LastPath, LastFolder
 		Do Until EOF(dwff)
@@ -3713,12 +3713,12 @@ Dim Shared exedate As Double 'serial date
 				dw_lastline_procs()
 			End If
 		Loop
-		Close #dwff
+		CloseFile_(dwff)
 		''===================
 		'lines
 		'dissas_command=""""""+ExePath+"\objdump.exe"""+" --dwarf=decodedline " """"+nfile+""""""
 		dissas_command=""""""+ExePath+"\objdump.exe"" --dwarf=decodedline """+nfile+"""""" '19/04/2015  (by marpon)
-		dwff=FreeFile
+		dwff = FreeFile_
 		counter=Open Pipe( dissas_command For Input As #dwff)
 		dw_lines_parse(adrdiff,1) 'reset some values 14/08/2015
 		Do Until EOF(dwff)
@@ -3735,7 +3735,7 @@ Dim Shared exedate As Double 'serial date
 				dw_lines_parse(adrdiff)
 			End If
 		Loop
-		Close #dwff
+		CloseFile_(dwff)
 		If srcprevnb=sourcenb Then Return 0 'if module not found so sourecnb is equal otherwise return 1
 		dw_procend():dwlastprc=0
 		dw_replace_index 'replacing all dwarf index by array index
