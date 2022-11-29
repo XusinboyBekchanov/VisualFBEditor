@@ -5113,7 +5113,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	Dim As TabWindow Ptr tb = Param
 	If tb = 0 Then Exit Sub
 	Dim As EditControlLine Ptr FECLine
-	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1
+	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1, LastIndex
 	Dim As WString Ptr s
 	Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol, OriginalCaseWord, TypeName
 	Dim As Boolean bQ, LinePrinted, WithOldSymbol, bKeyWord, TwoDots, OneDot, bWithoutWith, CStyle
@@ -5587,12 +5587,30 @@ Sub AnalyzeTab(Param As Any Ptr)
 										sc = @Identifiers
 										If Matn <> "_" AndAlso OldMatnLCase <> "defined" AndAlso OldMatnLCase <> "ifdef" AndAlso OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") Then
 											MutexLock tlockSuggestions
-											With *lvSuggestions.ListItems.Add("Error: Identifier not declared, " & Matn, "Error")
-												.Text(1) = WStr(z + 1)
-												.Text(2) = WStr(MatnBoshi)
-												.Text(3) = tb->FileName
-												.Tag = tb
-											End With
+											Dim As Integer ii = LastIndex, AddIndex = -1
+											Dim As Boolean bNotAdd
+											Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & Matn
+											Do While ii < lvSuggestions.ListItems.Count
+												LastIndex = ii
+												With *lvSuggestions.ListItems.Item(ii)
+													If .Text(3) < tb->FileName Then ii += 1: Continue Do
+													If .Text(3) > tb->FileName Then AddIndex = ii: Exit Do
+													If Val(.Text(1)) > z + 1 Then AddIndex = ii: Exit Do
+													If Val(.Text(2)) > MatnBoshi Then AddIndex = ii: Exit Do
+													If .Text(0) > ErrorText Then AddIndex = ii: Exit Do
+													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = tb->FileName AndAlso .Tag = tb Then bNotAdd = True: Exit Do
+												End With
+												lvSuggestions.ListItems.Remove ii
+											Loop
+											If Not bNotAdd Then
+												With *lvSuggestions.ListItems.Add(ErrorText, "Error", , , AddIndex)
+													.Text(1) = WStr(z + 1)
+													.Text(2) = WStr(MatnBoshi)
+													.Text(3) = tb->FileName
+													.Tag = tb
+													If AddIndex = -1 Then LastIndex = lvSuggestions.ListItems.Count - 1
+												End With
+											End If
 											tpSuggestions->Caption = ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")"
 											MutexUnlock tlockSuggestions
 										End If
@@ -5629,6 +5647,11 @@ Sub AnalyzeTab(Param As Any Ptr)
 		'If CurExecutedLine <> i AndAlso OldExecutedLine <> i Then FECLine->EndsCompleted = True
 	Next z
 	MutexLock tlockSuggestions
+	Dim As Integer ii = LastIndex + 1
+	Do While ii < lvSuggestions.ListItems.Count
+		If lvSuggestions.ListItems.Item(ii)->Text(3) > tb->FileName Then Exit Do
+		lvSuggestions.ListItems.Remove ii
+	Loop
 	tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count = 0, "", " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")")
 	MutexUnlock tlockSuggestions
 	tb->LastThread = 0
