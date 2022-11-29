@@ -969,9 +969,9 @@ Namespace My.Sys.Forms
 		End If
 		If OnChange Then OnChange(This)
 		Modified = True
-		'If OldLinesCount <> LinesCount Then
-		'	If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
-		'End If
+		If OldLinesCount <> LinesCount Then
+			If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
+		End If
 		#ifdef __USE_GTK__
 			If widget AndAlso cr Then
 		#else

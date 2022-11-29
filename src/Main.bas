@@ -4093,13 +4093,23 @@ tlockSuggestions = MutexCreate()
 
 Sub EndOfLoadFunctions
 	LoadFunctionsCount -= 1
-	If LoadFunctionsCount = 0 Then
+	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
+		Return
 		Dim As TabWindow Ptr tb
 		For j As Integer = TabPanels.Count - 1 To 0 Step -1
 			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
 			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-				If tb Then tb->FormDesign
+				If tb Then
+					If tb->LastThread Then
+						tb->bQuitThread = True
+						Do While tb->LastThread <> 0
+							App.DoEvents
+						Loop
+						tb->bQuitThread = False
+					End If
+					tb->LastThread = ThreadCreate(@AnalyzeTab, tb)
+				End If
 			Next i
 		Next j
 	End If
@@ -4560,6 +4570,7 @@ Sub LoadSettings
 	WLet(DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm"))
 	LastOpenedFileType = iniSettings.ReadInteger("Options", "LastOpenedFileType", 0)
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
+	AutoSuggestions = iniSettings.ReadBool("Options", "AutoSuggestions", True)
 	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
 	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "ShowKeywordsTooltip", True)

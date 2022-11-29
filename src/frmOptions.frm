@@ -313,7 +313,7 @@ pfOptions = @fOptions
 		lblShortcut.Text = ML("Select shortcut") & ":"
 		lblShortcut.ExtraMargins.Right = 0
 		lblShortcut.Align = DockStyle.alLeft
-		lblShortcut.CenterImage = true
+		lblShortcut.CenterImage = True
 		lblShortcut.TabIndex = 20
 		lblShortcut.SetBounds 0, 0, 126, 20
 		lblShortcut.Parent = @pnlSelectShortcut
@@ -704,8 +704,20 @@ pfOptions = @fOptions
 		chkEnableAutoComplete.ExtraMargins.Top = 0
 		chkEnableAutoComplete.Align = DockStyle.alTop
 		chkEnableAutoComplete.TabIndex = 112
-		chkEnableAutoComplete.SetBounds 0, 23, 417, 21
+		chkEnableAutoComplete.SetBounds 0, 0, 417, 21
 		chkEnableAutoComplete.Parent = @vbxCodeEditor
+		' chkEnableAutoSuggestions
+		With chkEnableAutoSuggestions
+			.Name = "chkEnableAutoSuggestions"
+			.Text = ML("Enable Auto Suggestions")
+			.TabIndex = 228
+		.Align = DockStyle.alTop
+		.ControlIndex = 1
+		.Caption = ML("Enable Auto Suggestions")
+			.SetBounds 0, 0, 427, 21
+			.Designer = @This
+			.Parent = @vbxCodeEditor
+		End With
 		' chkShowSpaces
 		chkShowSpaces.Name = "chkShowSpaces"
 		chkShowSpaces.Text = ML("Show Spaces")
@@ -2585,6 +2597,7 @@ Sub frmOptions.LoadSettings()
 		.txtProjectsPath.Text = *ProjectsPath
 		.CheckBox1.Checked = AutoIncrement
 		.chkEnableAutoComplete.Checked = AutoComplete
+		.chkEnableAutoSuggestions.Checked = AutoSuggestions
 		.chkAutoIndentation.Checked = AutoIndentation
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
@@ -3203,6 +3216,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoIncrement = .CheckBox1.Checked
 		AutoIndentation = .chkAutoIndentation.Checked
 		AutoComplete = .chkEnableAutoComplete.Checked
+		AutoSuggestions = .chkEnableAutoSuggestions.Checked
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		AddRelativePathsToRecent = .chkAddRelativePathsToRecent.Checked
@@ -3378,6 +3392,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "AutoIncrement", AutoIncrement
 		piniSettings->WriteBool "Options", "AutoIndentation", AutoIndentation
 		piniSettings->WriteBool "Options", "AutoComplete", AutoComplete
+		piniSettings->WriteBool "Options", "AutoSuggestions", AutoSuggestions
 		piniSettings->WriteBool "Options", "AutoCreateRC", AutoCreateRC
 		piniSettings->WriteBool "Options", "AutoCreateBakFiles", AutoCreateBakFiles
 		piniSettings->WriteBool "Options", "AddRelativePathsToRecent", AddRelativePathsToRecent

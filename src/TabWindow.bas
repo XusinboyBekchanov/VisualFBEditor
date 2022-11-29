@@ -821,6 +821,7 @@ Function TabWindow.SaveTab As Boolean
 		FileCopy *FFileName, Str(GetBakFileName(*FFileName)) '
 	End If
 	txtCode.SaveToFile(*FFileName, FileEncoding, NewLineType) ', False
+	IsNew = False
 	Modified = False
 	#ifndef __USE_GTK__
 		DateFileTime = GetFileLastWriteTime(*FFileName)
@@ -1049,8 +1050,20 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 	End If
 	If LastThread Then
 		bQuitThread = True
-		ThreadWait LastThread
-		LastThread = 0
+		Do While LastThread <> 0
+			App.DoEvents
+		Loop
+		bQuitThread = False
+	End If
+	If IsNew Then
+		MutexLock tlockSuggestions
+		For i As Integer = lvSuggestions.ListItems.Count - 1 To 0 Step -1
+			If lvSuggestions.ListItems.Item(i)->Tag = @This Then
+				lvSuggestions.ListItems.Remove i
+			End If
+		Next
+		tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count = 0, "", " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")")
+		MutexUnlock tlockSuggestions
 	End If
 	Var ptabCode = Cast(TabControl Ptr, This.Parent)
 	ptabCode->Remove(@btnClose)
@@ -5113,11 +5126,12 @@ Sub AnalyzeTab(Param As Any Ptr)
 	Dim As TabWindow Ptr tb = Param
 	If tb = 0 Then Exit Sub
 	Dim As EditControlLine Ptr FECLine
-	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1, LastIndex
+	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1
 	Dim As WString Ptr s
 	Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol, OriginalCaseWord, TypeName
-	Dim As Boolean bQ, LinePrinted, WithOldSymbol, bKeyWord, TwoDots, OneDot, bWithoutWith, CStyle
+	Dim As Boolean bQ, LinePrinted, WithOldSymbol, bKeyWord, TwoDots, OneDot, bWithoutWith, CStyle, ContinueFromNext
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	Dim As ListViewItem Ptr LastItem
 	Dim As ECColorScheme Ptr sc
 	Dim As TypeElement Ptr te, Oldte
 	Dim As WStringList Ptr pkeywords
@@ -5139,6 +5153,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 		MatnBoshi = 0
 		IzohBoshi = 1
 		Do While j <= l
+			If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
 			If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
 				bQ = Not bQ
 				If bQ Then
@@ -5585,33 +5600,43 @@ Sub AnalyzeTab(Param As Any Ptr)
 										End If
 									Else
 										sc = @Identifiers
-										If Matn <> "_" AndAlso OldMatnLCase <> "defined" AndAlso OldMatnLCase <> "ifdef" AndAlso OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") Then
+										If (Not CStyle) AndAlso Matn <> "_" AndAlso OldMatnLCase <> "defined" AndAlso OldMatnLCase <> "ifdef" AndAlso OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") Then
 											MutexLock tlockSuggestions
-											Dim As Integer ii = LastIndex, AddIndex = -1
-											Dim As Boolean bNotAdd
-											Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & Matn
+											Dim As Integer ii = 0, AddIndex = -1
+											Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & Matn & ". " & ML("Declare it")
+											If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
+											ContinueFromNext = False
 											Do While ii < lvSuggestions.ListItems.Count
-												LastIndex = ii
-												With *lvSuggestions.ListItems.Item(ii)
+												If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
+												LastItem = lvSuggestions.ListItems.Item(ii)
+												With *LastItem
 													If .Text(3) < tb->FileName Then ii += 1: Continue Do
 													If .Text(3) > tb->FileName Then AddIndex = ii: Exit Do
-													If Val(.Text(1)) > z + 1 Then AddIndex = ii: Exit Do
-													If Val(.Text(2)) > MatnBoshi Then AddIndex = ii: Exit Do
-													If .Text(0) > ErrorText Then AddIndex = ii: Exit Do
-													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = tb->FileName AndAlso .Tag = tb Then bNotAdd = True: Exit Do
-												End With
-												lvSuggestions.ListItems.Remove ii
-											Loop
-											If Not bNotAdd Then
-												With *lvSuggestions.ListItems.Add(ErrorText, "Error", , , AddIndex)
+													If tb->IsNew AndAlso .Tag < tb Then ii += 1: Continue Do
+													If tb->IsNew AndAlso .Tag > tb Then AddIndex = ii: Exit Do
+													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = tb->FileName Then ContinueFromNext = True: Exit Do
+													.Text(0) = ErrorText
 													.Text(1) = WStr(z + 1)
 													.Text(2) = WStr(MatnBoshi)
 													.Text(3) = tb->FileName
 													.Tag = tb
-													If AddIndex = -1 Then LastIndex = lvSuggestions.ListItems.Count - 1
+													ContinueFromNext = True
+													Exit Do
+												End With
+											Loop
+											If Not ContinueFromNext Then
+												LastItem = *lvSuggestions.ListItems.Add(ErrorText, "Error", , , AddIndex)
+												With *LastItem
+													.Text(1) = WStr(z + 1)
+													.Text(2) = WStr(MatnBoshi)
+													.Text(3) = tb->FileName
+													.Tag = tb
+													ContinueFromNext = True
 												End With
 											End If
-											tpSuggestions->Caption = ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")"
+											If tpSuggestions->Caption <> ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")" Then
+												tpSuggestions->Caption = ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")"
+											End If
 											MutexUnlock tlockSuggestions
 										End If
 									End If
@@ -5647,12 +5672,18 @@ Sub AnalyzeTab(Param As Any Ptr)
 		'If CurExecutedLine <> i AndAlso OldExecutedLine <> i Then FECLine->EndsCompleted = True
 	Next z
 	MutexLock tlockSuggestions
-	Dim As Integer ii = LastIndex + 1
+	Dim As Integer ii = 0
+	If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 	Do While ii < lvSuggestions.ListItems.Count
+		If lvSuggestions.ListItems.Item(ii)->Text(3) < tb->FileName Then ii += 1: Continue Do
 		If lvSuggestions.ListItems.Item(ii)->Text(3) > tb->FileName Then Exit Do
+		If tb->IsNew AndAlso lvSuggestions.ListItems.Item(ii)->Tag < tb Then ii += 1: Continue Do
+		If tb->IsNew AndAlso lvSuggestions.ListItems.Item(ii)->Tag > tb Then Exit Do
 		lvSuggestions.ListItems.Remove ii
 	Loop
-	tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count = 0, "", " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")")
+	If tpSuggestions->Caption <> ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")" Then
+		tpSuggestions->Caption = ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")"
+	End If
 	MutexUnlock tlockSuggestions
 	tb->LastThread = 0
     Exit Sub
@@ -5670,9 +5701,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	bNotDesign = True
 	If LastThread Then
 		bQuitThread = True
-		If LastThread <> 0 Then ThreadWait LastThread
+		Do While LastThread <> 0
+			App.DoEvents
+		Loop
 		bQuitThread = False
-		LastThread = 0
 	End If
 	Dim CtrlName As String
 	Dim SelControlName As String
@@ -7075,7 +7107,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	SelControlNames.Clear
 	bNotDesign = False
 	pfrmMain->UpdateUnLock
-	'If LoadFunctionsCount = 0 Then LastThread = ThreadCreate(@AnalyzeTab, @This)
+	'If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then LastThread = ThreadCreate(@AnalyzeTab, @This)
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
@@ -7538,6 +7570,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	Else
 		This.Caption = ML("Untitled") & "*"
 	End If
+	IsNew = bNew OrElse wFileName = ""
 	pnlForm.Top = -500
 	#ifdef __USE_GTK__
 		#ifdef __USE_GTK3__
