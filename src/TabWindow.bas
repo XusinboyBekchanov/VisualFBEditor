@@ -3420,30 +3420,30 @@ Sub UpdateIncludedFilesList(tb As TabWindow Ptr, ByRef Files As WStringList, ByR
 End Sub
 
 Function AddExternalIncludes(tb As TabWindow Ptr, ItemFile As FileType Ptr, ByRef Path As WString, ByRef FileName As WString) As Boolean
-	Dim As FileType Ptr FILE
+	Dim As FileType Ptr File
 	If ItemFile = 0 Then
 		Var Idx = -1
 		If IncludeFiles.Contains(Path, , , , Idx) Then
-			FILE = IncludeFiles.Object(Idx)
+			File = IncludeFiles.Object(Idx)
 		End If
 	Else
-		FILE = ItemFile
+		File = ItemFile
 	End If
-	If FILE Then
-		If FILE->FileName = FileName Then
+	If File Then
+		If File->FileName = FileName Then
 			Return True
 		End If
-		For i As Integer = 0 To FILE->Includes.Count - 1
-			If GetFolderName(FILE->Includes.Item(i)) <> GetFolderName(FileName) Then Continue For
-			If tb->CheckedFiles.Contains(FILE->Includes.Item(i)) Then Continue For
-			tb->CheckedFiles.Add FILE->Includes.Item(i)
-			If AddExternalIncludes(tb, FILE->Includes.Object(i), FILE->Includes.Item(i), FileName) Then
-				Var IncludedLine = FILE->IncludeLines.Item(i)
-				tb->txtCode.ExternalFiles.Add FILE->FileName
+		For i As Integer = 0 To File->Includes.Count - 1
+			If GetFolderName(File->Includes.Item(i)) <> GetFolderName(FileName) Then Continue For
+			If tb->CheckedFiles.Contains(File->Includes.Item(i)) Then Continue For
+			tb->CheckedFiles.Add File->Includes.Item(i)
+			If AddExternalIncludes(tb, File->Includes.Object(i), File->Includes.Item(i), FileName) Then
+				Var IncludedLine = File->IncludeLines.Item(i)
+				tb->txtCode.ExternalFiles.Add File->FileName
 				tb->txtCode.ExternalFileLines.Add IncludedLine - 1
-				For j As Integer = 0 To FILE->Includes.Count - 1
-					If FILE->IncludeLines.Item(j) > IncludedLine Then Exit For
-					tb->txtCode.ExternalIncludes.Add FILE->Includes.Item(j)
+				For j As Integer = 0 To File->Includes.Count - 1
+					If File->IncludeLines.Item(j) > IncludedLine Then Exit For
+					tb->txtCode.ExternalIncludes.Add File->Includes.Item(j)
 				Next
 				Return True
 			End If
@@ -5851,48 +5851,53 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As TabWindow Ptr tb
 	Dim As Integer IncludesCount
 	Dim As Boolean IncludesChanged
-	For i As Integer = 0 To txtCode.LinesCount - 1
-		b = txtCode.Lines(i)
-		If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then
-			Pos1 = InStr(b, """")
-			If Pos1 > 0 Then
-				Pos2 = InStr(Pos1 + 1, b, """")
-				WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
-				IncludesCount += 1
-				If IncludesCount > OldIncludes.Count OrElse *FPath <> OldIncludes.Item(IncludesCount - 1) OrElse i <> OldIncludeLines.Item(IncludesCount - 1) Then
-					IncludesChanged = True
-					Exit For
+	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
+		For i As Integer = 0 To txtCode.LinesCount - 1
+			b = txtCode.Lines(i)
+			If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then
+				Pos1 = InStr(b, """")
+				If Pos1 > 0 Then
+					Pos2 = InStr(Pos1 + 1, b, """")
+					WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+					IncludesCount += 1
+					If IncludesCount > OldIncludes.Count OrElse *FPath <> OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
+						IncludesChanged = True
+						Exit For
+					End If
 				End If
 			End If
+		Next
+		If IncludesCount <> OldIncludes.Count Then
+			IncludesChanged = True
 		End If
-	Next
-	If Not bExternalIncludesLoaded Then
-		Dim As ProjectElement Ptr Project
-		Dim As TreeNode Ptr ProjectNode
-		Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
-		CheckedFiles.Clear
-		txtCode.ExternalFiles.Clear
-		txtCode.ExternalFileLines.Clear
-		txtCode.ExternalIncludes.Clear
-		txtCode.ExternalFiles.Add sFileName
-		txtCode.ExternalFileLines.Add 0
-		AddExternalIncludes @This, 0, MainFile, sFileName
-		bExternalIncludesLoaded = True
-		IncludesChanged = True
-	End If
-	If IncludesChanged Then
-		For i As Integer = txtCode.FileLists.Count - 1 To 0 Step -1
-			Delete_( Cast(WStringList Ptr, txtCode.FileLists.Item(i)))
-		Next
-		For i As Integer = txtCode.FileListsLines.Count - 1 To 0 Step -1
-			Delete_( Cast(IntegerList Ptr, txtCode.FileListsLines.Item(i)))
-		Next
-		txtCode.FileLists.Clear
-		txtCode.FileListsLines.Clear
-		txtCode.Includes.Clear
-		txtCode.IncludeLines.Clear
-		OldIncludes.Clear
-		OldIncludeLines.Clear
+		If Not bExternalIncludesLoaded Then
+			Dim As ProjectElement Ptr Project
+			Dim As TreeNode Ptr ProjectNode
+			Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
+			CheckedFiles.Clear
+			txtCode.ExternalFiles.Clear
+			txtCode.ExternalFileLines.Clear
+			txtCode.ExternalIncludes.Clear
+			txtCode.ExternalFiles.Add sFileName
+			txtCode.ExternalFileLines.Add 0
+			AddExternalIncludes @This, 0, MainFile, sFileName
+			bExternalIncludesLoaded = True
+			IncludesChanged = True
+		End If
+		If IncludesChanged Then
+			For i As Integer = txtCode.FileLists.Count - 1 To 0 Step -1
+				Delete_( Cast(WStringList Ptr, txtCode.FileLists.Item(i)))
+			Next
+			For i As Integer = txtCode.FileListsLines.Count - 1 To 0 Step -1
+				Delete_( Cast(IntegerList Ptr, txtCode.FileListsLines.Item(i)))
+			Next
+			txtCode.FileLists.Clear
+			txtCode.FileListsLines.Clear
+			txtCode.Includes.Clear
+			txtCode.IncludeLines.Clear
+			OldIncludes.Clear
+			OldIncludeLines.Clear
+		End If
 	End If
 	IncludesCount = 0
 	For j As Integer = 0 To txtCode.LinesCount - 1
@@ -5928,39 +5933,41 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			ECLine->Ends.Clear
 			ECLine->EndsCompleted = False
 			'End If
-			If ptxtCode = @txtCode Then
-				If OldIncludeLine = i - 1 Then
-					Dim As WStringList Ptr FileList
-					Dim As IntegerList Ptr FileListLines
-					IncludesCount += 1
-					If IncludesChanged Then
-						FileList = New WStringList
-						FileListLines = New IntegerList
-						txtCode.FileLists.Add FileList
-						txtCode.FileListsLines.Add FileListLines
-						FileList->Sorted = True
-						If LastFileList = 0 Then
-							UpdateIncludedFilesList @This, *FileList, *FileListLines, j
+			If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
+				If ptxtCode = @txtCode Then
+					If OldIncludeLine = i - 1 Then
+						Dim As WStringList Ptr FileList
+						Dim As IntegerList Ptr FileListLines
+						IncludesCount += 1
+						If IncludesChanged Then
+							FileList = New WStringList
+							FileListLines = New IntegerList
+							txtCode.FileLists.Add FileList
+							txtCode.FileListsLines.Add FileListLines
+							FileList->Sorted = True
+							If LastFileList = 0 Then
+								UpdateIncludedFilesList @This, *FileList, *FileListLines, j
+							Else
+								For i As Integer = 0 To LastFileList->Count - 1
+									FileList->Add LastFileList->Item(i)
+									FileListLines->Add LastFileListLines->Item(i)
+								Next
+								For i As Integer = 0 To Includes.Count - 1
+									AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
+									OldIncludes.Add Includes.Item(i)
+									OldIncludeLines.Add OldIncludeLine
+								Next i
+							End If
+							Includes.Clear
 						Else
-							For i As Integer = 0 To LastFileList->Count - 1
-								FileList->Add LastFileList->Item(i)
-								FileListLines->Add LastFileListLines->Item(i)
-							Next
-							For i As Integer = 0 To Includes.Count - 1
-								AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
-								OldIncludes.Add Includes.Item(i)
-								OldIncludeLines.Add OldIncludeLine
-							Next i
+							FileList = txtCode.FileLists.Item(IncludesCount - 1)
+							FileListLines = txtCode.FileListsLines.Item(IncludesCount - 1)
 						End If
-						Includes.Clear
-					Else
-						FileList = txtCode.FileLists.Item(IncludesCount - 1)
-						FileListLines = txtCode.FileListsLines.Item(IncludesCount - 1)
+						LastFileList = FileList
+						LastFileListLines = FileListLines
+						ECLine->FileList = LastFileList
+						ECLine->FileListLines = LastFileListLines
 					End If
-					LastFileList = FileList
-					LastFileListLines = FileListLines
-					ECLine->FileList = LastFileList
-					ECLine->FileListLines = LastFileListLines
 				End If
 			End If
 			ECLine->FileList = LastFileList
