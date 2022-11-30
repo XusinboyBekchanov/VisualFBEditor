@@ -1048,12 +1048,17 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		Case mrCancel: Return False
 		End Select
 	End If
-	If LastThread Then
-		bQuitThread = True
-		Do While LastThread <> 0
-			App.DoEvents
-		Loop
-		bQuitThread = False
+	If LastThread <> 0 Then
+		#ifndef __USE_GTK__
+			Dim As MSG M
+			While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
+				If LastThread = 0 Then Exit While
+				If M.hwnd = lvSuggestions.Handle Then
+					TranslateMessage @M
+					DispatchMessage @M
+				End If
+			Wend
+		#endif
 	End If
 	If IsNew Then
 		MutexLock tlockSuggestions
@@ -5122,9 +5127,9 @@ Sub TabWindowFormDesign
 End Sub
 
 Sub AnalyzeTab(Param As Any Ptr)
-    On Error Goto ErrorHandler
 	Dim As TabWindow Ptr tb = Param
 	If tb = 0 Then Exit Sub
+	If tb->bQuitThread Then Exit Sub
 	Dim As EditControlLine Ptr FECLine
 	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1
 	Dim As WString Ptr s
@@ -5601,24 +5606,25 @@ Sub AnalyzeTab(Param As Any Ptr)
 									Else
 										sc = @Identifiers
 										If (Not CStyle) AndAlso Matn <> "_" AndAlso OldMatnLCase <> "defined" AndAlso OldMatnLCase <> "ifdef" AndAlso OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") Then
+											If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
 											MutexLock tlockSuggestions
 											Dim As Integer ii = 0, AddIndex = -1
 											Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & Matn & ". " & ML("Declare it")
+												Dim As UString FileName = tb->FileName
 											If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 											ContinueFromNext = False
 											Do While ii < lvSuggestions.ListItems.Count
-												If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
 												LastItem = lvSuggestions.ListItems.Item(ii)
 												With *LastItem
-													If .Text(3) < tb->FileName Then ii += 1: Continue Do
-													If .Text(3) > tb->FileName Then AddIndex = ii: Exit Do
+													If .Text(3) < FileName Then ii += 1: Continue Do
+													If .Text(3) > FileName Then AddIndex = ii: Exit Do
 													If tb->IsNew AndAlso .Tag < tb Then ii += 1: Continue Do
 													If tb->IsNew AndAlso .Tag > tb Then AddIndex = ii: Exit Do
-													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = tb->FileName Then ContinueFromNext = True: Exit Do
+													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = FileName Then ContinueFromNext = True: Exit Do
 													.Text(0) = ErrorText
 													.Text(1) = WStr(z + 1)
 													.Text(2) = WStr(MatnBoshi)
-													.Text(3) = tb->FileName
+													.Text(3) = FileName
 													.Tag = tb
 													ContinueFromNext = True
 													Exit Do
@@ -5629,7 +5635,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 												With *LastItem
 													.Text(1) = WStr(z + 1)
 													.Text(2) = WStr(MatnBoshi)
-													.Text(3) = tb->FileName
+													.Text(3) = FileName
 													.Tag = tb
 													ContinueFromNext = True
 												End With
@@ -5686,12 +5692,6 @@ Sub AnalyzeTab(Param As Any Ptr)
 	End If
 	MutexUnlock tlockSuggestions
 	tb->LastThread = 0
-    Exit Sub
-ErrorHandler:
-    MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-        "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-        "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-        "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
@@ -5699,12 +5699,18 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	If bNotDesign OrElse FormClosing Then Exit Sub
 	pfrmMain->UpdateLock
 	bNotDesign = True
-	If LastThread Then
-		bQuitThread = True
-		Do While LastThread <> 0
-			App.DoEvents
-		Loop
-		bQuitThread = False
+	bQuitThread = True
+	If LastThread <> 0 Then
+		#ifndef __USE_GTK__
+			Dim As MSG M
+			While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
+				If LastThread = 0 Then Exit While
+				If M.hwnd = lvSuggestions.Handle Then
+					TranslateMessage @M
+					DispatchMessage @M
+				End If
+			Wend
+		#endif
 	End If
 	Dim CtrlName As String
 	Dim SelControlName As String
@@ -5852,25 +5858,26 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As Integer IncludesCount
 	Dim As Boolean IncludesChanged
 	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
-		For i As Integer = 0 To txtCode.LinesCount - 1
-			b = txtCode.Lines(i)
-			If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then
-				Pos1 = InStr(b, """")
-				If Pos1 > 0 Then
-					Pos2 = InStr(Pos1 + 1, b, """")
-					WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
-					IncludesCount += 1
-					If IncludesCount > OldIncludes.Count OrElse *FPath <> OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
-						IncludesChanged = True
-						Exit For
+		If bExternalIncludesLoaded Then
+			For i As Integer = 0 To txtCode.LinesCount - 1
+				b = txtCode.Lines(i)
+				If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then
+					Pos1 = InStr(b, """")
+					If Pos1 > 0 Then
+						Pos2 = InStr(Pos1 + 1, b, """")
+						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+						IncludesCount += 1
+						If IncludesCount > OldIncludes.Count OrElse *FPath <> OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
+							IncludesChanged = True
+							Exit For
+						End If
 					End If
 				End If
+			Next
+			If IncludesCount <> OldIncludes.Count Then
+				IncludesChanged = True
 			End If
-		Next
-		If IncludesCount <> OldIncludes.Count Then
-			IncludesChanged = True
-		End If
-		If Not bExternalIncludesLoaded Then
+		Else
 			Dim As ProjectElement Ptr Project
 			Dim As TreeNode Ptr ProjectNode
 			Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
@@ -7114,7 +7121,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	SelControlNames.Clear
 	bNotDesign = False
 	pfrmMain->UpdateUnLock
-	'If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then LastThread = ThreadCreate(@AnalyzeTab, @This)
+	bQuitThread = False
+	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then 
+		'LastThread = ThreadCreate(@AnalyzeTab, @This)
+	End If
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
@@ -7659,7 +7669,6 @@ Destructor TabWindow
 	'	If pLocalFunctions = @Functions Then pLocalFunctions = 0
 	'	If pLocalFunctionsOthers = @FunctionsOthers Then pLocalFunctionsOthers = 0
 	'	If pLocalArgs = @Args Then pLocalArgs = 0
-	
 	If Des <> 0 Then
 		For i As Integer = cboClass.Items.Count - 1 To 1 Step -1
 			CurCtrl = 0
@@ -9743,6 +9752,16 @@ Sub TabWindow.PreprocessorNumberOff()
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	PreprocessorNumberingOff tb->txtCode
+End Sub
+
+Sub TabWindow.ProcessMessage(ByRef msg As Message)
+	#ifndef __USE_GTK__
+		Select Case msg.Msg
+		Case EM_SETMODIFY
+			FormDesign
+		End Select
+	#endif
+	Base.ProcessMessage(msg)
 End Sub
 
 Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)

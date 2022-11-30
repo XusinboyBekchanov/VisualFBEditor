@@ -157,6 +157,7 @@ Private:
 	Declare Function SaveTab As Boolean
 	Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 Public:
+	Declare Sub ProcessMessage(ByRef msg As Message)
 	AnyTexts As WStringList
 	Events As Dictionary
 	Declare Sub CheckExtension(ByRef FileName As WString)
@@ -263,7 +264,7 @@ Declare Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 
 Declare Sub m(ByRef msg As WString, Debug As Boolean = False)
 
-Common Shared TextChanged As Boolean
+Common Shared As Boolean TextChanged
 Declare Sub OnChangeEdit(ByRef Sender As Control)
 
 Declare Function IsLabel(ByRef LeftA As WString) As Boolean

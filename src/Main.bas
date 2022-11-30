@@ -4094,21 +4094,16 @@ tlockSuggestions = MutexCreate()
 Sub EndOfLoadFunctions
 	LoadFunctionsCount -= 1
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
-		Return
 		Dim As TabWindow Ptr tb
 		For j As Integer = TabPanels.Count - 1 To 0 Step -1
 			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
 			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 				If tb Then
-					If tb->LastThread Then
-						tb->bQuitThread = True
-						Do While tb->LastThread <> 0
-							App.DoEvents
-						Loop
-						tb->bQuitThread = False
-					End If
-					tb->LastThread = ThreadCreate(@AnalyzeTab, tb)
+					tb->bExternalIncludesLoaded = False
+					#ifndef __USE_GTK__
+						PostMessage tb->Handle, EM_SETMODIFY, 0, 0
+					#endif
 				End If
 			Next i
 		Next j
