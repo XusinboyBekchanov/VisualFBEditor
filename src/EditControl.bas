@@ -26,6 +26,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Constructor EditControlLine
+		WLet(Text, "")
 		Visible = True
 	End Constructor
 	
@@ -969,9 +970,9 @@ Namespace My.Sys.Forms
 		End If
 		If OnChange Then OnChange(This)
 		Modified = True
-		'If OldLinesCount <> LinesCount Then
-		'	If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
-		'End If
+		If OldLinesCount <> LinesCount Then
+			If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
+		End If
 		#ifdef __USE_GTK__
 			If widget AndAlso cr Then
 		#else
@@ -1028,7 +1029,9 @@ Namespace My.Sys.Forms
 			FECLine->CommentIndex = iC
 			FECLine->InAsm = InAsm
 			If c > 1 Then
+				If OnLineAdding Then OnLineAdding(This, iSelStartLine + c - 1)
 				FLines.Insert iSelStartLine + c - 1, FECLine
+				If OnLineAdded Then OnLineAdded(This, iSelStartLine + c - 1)
 				ChangeCollapsibility iSelStartLine + c - 1
 			End If
 			If FECLine->ConstructionIndex = C_Asm Then
@@ -1353,6 +1356,7 @@ Namespace My.Sys.Forms
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
 		FECLine->InAsm = InAsm
+		If OnLineAdding Then OnLineAdding(This, Index)
 		FLines.Insert Index, FECLine
 		ChangeCollapsibility Index
 		If FECLine->ConstructionIndex = C_Asm Then
@@ -1361,6 +1365,7 @@ Namespace My.Sys.Forms
 		FECLine->InAsm = InAsm
 		If Index <= FSelEndLine Then FSelEndLine += 1
 		If Index <= FSelStartLine Then FSelStartLine += 1
+		If OnLineAdded Then OnLineAdded(This, Index)
 	End Sub
 	
 	Sub EditControl.ReplaceLine(Index As Integer, ByRef sLine As WString)
@@ -1397,6 +1402,7 @@ Namespace My.Sys.Forms
 		iC = FindCommentIndex(*FECLine->Text, OldiC)
 		FECLine->CommentIndex = iC
 		FECLine->InAsm = InAsm
+		If OnLineAdding Then OnLineAdding(This, Idx + 1)
 		FLines.Insert Idx + 1, FECLine
 		ChangeCollapsibility Idx + 1
 		If FECLine->ConstructionIndex = C_Asm Then
@@ -1405,6 +1411,7 @@ Namespace My.Sys.Forms
 		FECLine->InAsm = InAsm
 		If FSelStartLine = FSelEndLine Then FSelStartLine += 1
 		FSelEndLine += 1
+		If OnLineAdded Then OnLineAdded(This, Idx + 1)
 		Changed "Duplicate line"
 	End Sub
 	

@@ -908,6 +908,13 @@ Function TabWindow.SaveTab As Boolean
 				pGlobalFunctions->Remove i
 			End If
 		Next
+		For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
+			te = pGlobalTypeProcedures->Object(i)
+			If te->FileName = FileName Then
+				Delete_(Cast(TypeElement Ptr, pGlobalTypeProcedures->Object(i)))
+				pGlobalTypeProcedures->Remove i
+			End If
+		Next
 		For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
 			te = pGlobalArgs->Object(i)
 			If te->FileName = FileName Then
@@ -2812,16 +2819,16 @@ Sub OnRedoEdit(ByRef Sender As Control)
 	tb->FormDesign
 End Sub
 
-Sub OnLineRemovingEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
+Sub OnLineAddingEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	tb->QuitThread
 End Sub
 
-Sub OnLineRemovedEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
+Sub OnLineRemovingEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
-	tb->FormDesign
+	tb->QuitThread
 End Sub
 
 Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
@@ -5130,7 +5137,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->Width = Des->DotSize
+			allocation->width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5262,6 +5269,9 @@ Sub AnalyzeTab(Param As Any Ptr)
 										If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
 											OneDot = True
 											tb->txtCode.GetLeftArgTypeName(z, j, te, , , , bWithoutWith)
+											If te = 0 Then
+												'?Matn
+											End If
 											If bWithoutWith Then
 												TwoDots = True
 												OneDot = False
@@ -5639,6 +5649,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 											ContinueFromNext = False
 											Do While ii < lvSuggestions.ListItems.Count
+												If tb->bQuitThread Then MutexUnlock tlockSuggestions: tb->LastThread = 0: Exit Sub
 												LastItem = lvSuggestions.ListItems.Item(ii)
 												With *LastItem
 													If .Text(3) < FileName Then ii += 1: Continue Do
@@ -5646,6 +5657,9 @@ Sub AnalyzeTab(Param As Any Ptr)
 													If tb->IsNew AndAlso .Tag < tb Then ii += 1: Continue Do
 													If tb->IsNew AndAlso .Tag > tb Then AddIndex = ii: Exit Do
 													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = FileName Then ContinueFromNext = True: Exit Do
+													If Not .Text(0) = ErrorText Then
+														'?WStr(z + 1), ii, .Text(0), ErrorText, GetCurrentThreadId
+													End If
 													.Text(0) = ErrorText
 													.Text(1) = WStr(z + 1)
 													.Text(2) = WStr(MatnBoshi)
@@ -5664,9 +5678,9 @@ Sub AnalyzeTab(Param As Any Ptr)
 													.Tag = tb
 													ContinueFromNext = True
 												End With
-											End If
-											If tpSuggestions->Caption <> ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")" Then
-												tpSuggestions->Caption = ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")"
+												If tpSuggestions->Caption <> ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "") Then
+													tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "")
+												End If
 											End If
 											MutexUnlock tlockSuggestions
 										End If
@@ -5705,7 +5719,6 @@ Sub AnalyzeTab(Param As Any Ptr)
 	MutexLock tlockSuggestions
 	Dim As Integer ii = 0
 	If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
-	?"dsdsd", ii
 	Do While ii < lvSuggestions.ListItems.Count
 		If lvSuggestions.ListItems.Item(ii)->Text(3) < tb->FileName Then ii += 1: Continue Do
 		If lvSuggestions.ListItems.Item(ii)->Text(3) > tb->FileName Then Exit Do
@@ -5713,8 +5726,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 		If tb->IsNew AndAlso lvSuggestions.ListItems.Item(ii)->Tag > tb Then Exit Do
 		lvSuggestions.ListItems.Remove ii
 	Loop
-	If tpSuggestions->Caption <> ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")" Then
-		tpSuggestions->Caption = ML("Suggestions") & " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")"
+	If tpSuggestions->Caption <> ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "") Then
+		tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "")
 	End If
 	MutexUnlock tlockSuggestions
 	tb->LastThread = 0
@@ -7477,8 +7490,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.Align = DockStyle.alClient
 	txtCode.OnChange = @OnChangeEdit
 	txtCode.OnLineChange = @OnLineChangeEdit
+	txtCode.OnLineAdding = @OnLineAddingEdit
 	txtCode.OnLineRemoving = @OnLineRemovingEdit
-	txtCode.OnLineRemoved = @OnLineRemovedEdit
 	txtCode.OnLineChange = @OnLineChangeEdit
 	txtCode.OnSelChange = @OnSelChangeEdit
 	txtCode.OnLinkClicked = @OnLinkClickedEdit

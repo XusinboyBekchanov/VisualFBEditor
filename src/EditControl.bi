@@ -502,6 +502,8 @@ Namespace My.Sys.Forms
 		OnValidate As Sub(ByRef Sender As EditControl)
 		OnSelChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
 		OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
+		OnLineAdding As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer)
+		OnLineAdded As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer)
 		OnLineRemoving As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer)
 		OnLineRemoved As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer)
 		OnUndoing As Sub(ByRef Sender As EditControl)
