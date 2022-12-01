@@ -240,6 +240,7 @@ Public:
 	Declare Sub Outdent
 	Declare Sub Define
 	Declare Sub FormDesign(NotForms As Boolean = False)
+	Declare Sub QuitThread
 	Declare Constructor(ByRef wFileName As WString = "", bNewForm As Boolean = False, TreeN As TreeNode Ptr = 0)
 	Declare Destructor
 End Type

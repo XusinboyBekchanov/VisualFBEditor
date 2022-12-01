@@ -1048,18 +1048,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		Case mrCancel: Return False
 		End Select
 	End If
-	If LastThread <> 0 Then
-		#ifndef __USE_GTK__
-			Dim As MSG M
-			While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
-				If LastThread = 0 Then Exit While
-				If M.hwnd = lvSuggestions.Handle Then
-					TranslateMessage @M
-					DispatchMessage @M
-				End If
-			Wend
-		#endif
-	End If
+	QuitThread
 	If IsNew Then
 		MutexLock tlockSuggestions
 		For i As Integer = lvSuggestions.ListItems.Count - 1 To 0 Step -1
@@ -2768,7 +2757,7 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 End Sub
 
 Sub OnLinkClickedEdit(ByRef Sender As Control, ByRef Link1 As WString)
-	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	AddTab GetRelativePath(Link1, tb->FileName)
 End Sub
@@ -2799,8 +2788,44 @@ Function GetCorrectParam(ByVal Param As String) As String
 	Return Param
 End Function
 
+Sub OnUndoingEdit(ByRef Sender As Control)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0 Then Exit Sub
+	tb->QuitThread
+End Sub
+
+Sub OnUndoEdit(ByRef Sender As Control)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0 Then Exit Sub
+	tb->FormDesign
+End Sub
+
+Sub OnRedoingEdit(ByRef Sender As Control)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0 Then Exit Sub
+	tb->QuitThread
+End Sub
+
+Sub OnRedoEdit(ByRef Sender As Control)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0 Then Exit Sub
+	tb->FormDesign
+End Sub
+
+Sub OnLineRemovingEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0 Then Exit Sub
+	tb->QuitThread
+End Sub
+
+Sub OnLineRemovedEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0 Then Exit Sub
+	tb->FormDesign
+End Sub
+
 Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
-	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	bNotFunctionChange = True
 	If TextChanged AndAlso tb->txtCode.SyntaxEdit Then
@@ -3292,7 +3317,7 @@ End Sub
 #endif
 
 Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	#ifdef __USE_GTK__
 		If Key = GDK_KEY_SPACE AndAlso (Shift And GDK_CONTROL_MASK) Then
@@ -4374,7 +4399,7 @@ Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEn
 End Sub
 
 Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
-	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	MouseHoverTimerVal = Timer
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
@@ -4820,7 +4845,7 @@ End Function
 
 Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	MouseHoverTimerVal = Timer
-	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	If CInt(Key = Asc(".")) OrElse CInt(Key = Asc(">")) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
@@ -5105,7 +5130,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5129,7 +5154,7 @@ End Sub
 Sub AnalyzeTab(Param As Any Ptr)
 	Dim As TabWindow Ptr tb = Param
 	If tb = 0 Then Exit Sub
-	If tb->bQuitThread Then Exit Sub
+	If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
 	Dim As EditControlLine Ptr FECLine
 	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1
 	Dim As WString Ptr s
@@ -5610,7 +5635,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											MutexLock tlockSuggestions
 											Dim As Integer ii = 0, AddIndex = -1
 											Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & Matn & ". " & ML("Declare it")
-												Dim As UString FileName = tb->FileName
+											Dim As UString FileName = tb->FileName
 											If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 											ContinueFromNext = False
 											Do While ii < lvSuggestions.ListItems.Count
@@ -5680,6 +5705,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	MutexLock tlockSuggestions
 	Dim As Integer ii = 0
 	If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
+	?"dsdsd", ii
 	Do While ii < lvSuggestions.ListItems.Count
 		If lvSuggestions.ListItems.Item(ii)->Text(3) < tb->FileName Then ii += 1: Continue Do
 		If lvSuggestions.ListItems.Item(ii)->Text(3) > tb->FileName Then Exit Do
@@ -5694,11 +5720,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	tb->LastThread = 0
 End Sub
 
-Sub TabWindow.FormDesign(NotForms As Boolean = False)
-	On Error Goto ErrorHandler
-	If bNotDesign OrElse FormClosing Then Exit Sub
-	pfrmMain->UpdateLock
-	bNotDesign = True
+Sub TabWindow.QuitThread()
 	bQuitThread = True
 	If LastThread <> 0 Then
 		#ifndef __USE_GTK__
@@ -5712,6 +5734,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			Wend
 		#endif
 	End If
+End Sub
+
+Sub TabWindow.FormDesign(NotForms As Boolean = False)
+	On Error Goto ErrorHandler
+	If bNotDesign OrElse FormClosing Then Exit Sub
+	pfrmMain->UpdateLock
+	bNotDesign = True
+	QuitThread
 	Dim CtrlName As String
 	Dim SelControlName As String
 	Dim CurrentMenuName As String
@@ -7447,12 +7477,19 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.Align = DockStyle.alClient
 	txtCode.OnChange = @OnChangeEdit
 	txtCode.OnLineChange = @OnLineChangeEdit
+	txtCode.OnLineRemoving = @OnLineRemovingEdit
+	txtCode.OnLineRemoved = @OnLineRemovedEdit
+	txtCode.OnLineChange = @OnLineChangeEdit
 	txtCode.OnSelChange = @OnSelChangeEdit
 	txtCode.OnLinkClicked = @OnLinkClickedEdit
 	txtCode.OnToolTipLinkClicked = @OnToolTipLinkClickedEdit
 	txtCode.OnGotFocus = @OnGotFocusEdit
 	txtCode.OnKeyDown = @OnKeyDownEdit
 	txtCode.OnKeyPress = @OnKeyPressEdit
+	txtCode.OnUndoing = @OnUndoingEdit
+	txtCode.OnUndo = @OnUndoEdit
+	txtCode.OnRedoing = @OnRedoingEdit
+	txtCode.OnRedo = @OnRedoEdit
 	txtCode.OnSplitHorizontallyChange = @OnSplitHorizontallyChangeEdit
 	txtCode.OnSplitVerticallyChange = @OnSplitVerticallyChangeEdit
 	txtCode.Tag = @This

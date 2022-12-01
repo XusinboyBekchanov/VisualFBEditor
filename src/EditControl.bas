@@ -969,9 +969,9 @@ Namespace My.Sys.Forms
 		End If
 		If OnChange Then OnChange(This)
 		Modified = True
-		If OldLinesCount <> LinesCount Then
-			If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
-		End If
+		'If OldLinesCount <> LinesCount Then
+		'	If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
+		'End If
 		#ifdef __USE_GTK__
 			If widget AndAlso cr Then
 		#else
@@ -986,7 +986,7 @@ Namespace My.Sys.Forms
 		ChangePos CharTo
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim As EditControlLine Ptr ecStartLine = FLines.Item(iSelStartLine), ecEndLine = FLines.Item(iSelEndLine), ecOldLine
+		Dim As EditControlLine Ptr ecStartLine = FLines.Item(iSelStartLine), ecEndLine = FLines.Item(iSelEndLine), ecOldLine, ecRemovingLine
 		FECLine = ecStartLine
 		'If iSelStartLine <> iSelEndLine Or iSelStartChar <> iSelEndChar Then AddHistory
 		WLet(FLine, Mid(*ecEndLine->Text, iSelEndChar + 1))
@@ -994,8 +994,11 @@ Namespace My.Sys.Forms
 		Var iC = 0, OldiC = ecEndLine->CommentIndex, OldPreviC = 0, PreviC = 0, InAsm = False, OldInAsm = ecEndLine->InAsm, Pos1 = 0, p = 1, c = 0, l = 0
 		If iSelEndLine > 0 Then ecOldLine = FLines.Item(iSelEndLine - 1): PreviC = ecOldLine->CommentIndex: OldPreviC = PreviC: InAsm = ecOldLine->InAsm
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
-			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
+			ecRemovingLine = FLines.Items[i]
+			If OnLineRemoving Then OnLineRemoving(This, i)
 			FLines.Remove i
+			If OnLineRemoved Then OnLineRemoved(This, i)
+			Delete_(ecRemovingLine)
 			OlddwClientX = 0
 		Next i
 		If iSelStartLine > 0 Then iC = Cast(EditControlLine Ptr, FLines.Item(iSelStartLine - 1))->CommentIndex
@@ -1406,8 +1409,12 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.DeleteLine(Index As Integer = -1)
-		Delete_( Cast(EditControlLine Ptr, FLines.Items[IIf(Index = -1, FSelEndLine, Index)]))
-		FLines.Remove IIf(Index = -1, FSelEndLine, Index)
+		Dim As Integer i = IIf(Index = -1, FSelEndLine, Index)
+		If OnLineRemoving Then OnLineRemoving(This, i)
+		Dim As EditControlLine Ptr ecRemovingLine = FLines.Items[i]
+		FLines.Remove i
+		If OnLineRemoved Then OnLineRemoved(This, i)
+		Delete_(ecRemovingLine)
 		If Index <= FSelEndLine Then FSelEndLine -= 1
 		If Index <= FSelStartLine Then FSelStartLine -= 1
 		OlddwClientX = 0
@@ -4175,17 +4182,19 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.Undo
 		If curHistory <= 0 Then Exit Sub
+		If OnUndoing Then OnUndoing(This)
 		curHistory = curHistory - 1
 		_LoadFromHistory FHistory.Items[curHistory], True, FHistory.Items[curHistory + 1], True
-		If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
+		If OnUndo Then OnUndo(This)
 		ScrollToCaret
 	End Sub
 	
 	Sub EditControl.Redo
 		If curHistory >= FHistory.Count - 1 Then Exit Sub
+		If OnRedoing Then OnRedoing(This)
 		curHistory = curHistory + 1
 		_LoadFromHistory FHistory.Item(curHistory), False, FHistory.Item(curHistory - 1), True
-		If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
+		If OnRedo Then OnRedo(This)
 		ScrollToCaret
 	End Sub
 	
