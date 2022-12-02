@@ -290,12 +290,14 @@ Namespace My.Sys.Forms
 		Declare Function GetOldCharIndex() As Integer
 		Declare Function GetCharIndexFromOld() As Integer
 		Declare Function CountOfVisibleLines() As Integer
+		Declare Sub CalculateLeftMargin
 		Declare Sub ChangeCollapsibility(LineIndex As Integer)
 		Declare Sub _FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString)
 		Declare Sub _LoadFromHistory(ByRef item As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr, bWithoutPaint As Boolean = False)
 		Declare Sub _ClearHistory(Index As Integer = 0)
 		Declare Sub ChangeSelPos(bLeft As Boolean)
 		Declare Sub ChangePos(CharTo As Integer)
+		Declare Function InStartOfLine(i As Integer, X As Integer, Y As Integer) As Boolean
 		Declare Function InCollapseRect(i As Integer, X As Integer, Y As Integer) As Boolean
 		Declare Function InIncludeFileRect(i As Integer, X As Integer, Y As Integer) As Boolean
 		Declare Sub ProcessMessage(ByRef msg As Message)

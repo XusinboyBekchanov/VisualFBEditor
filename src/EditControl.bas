@@ -1287,11 +1287,15 @@ Namespace My.Sys.Forms
 				OldiC = iC
 				i += 1
 			Loop
-			LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
+			CalculateLeftMargin
 			If Not WithoutScroll Then ScrollToCaret
 		End If
 		WDeAllocate(BuffRead)
 		CloseFile_(Fn)
+	End Sub
+	
+	Sub EditControl.CalculateLeftMargin
+		LeftMargin = Len(Str(LinesCount)) * dwCharX + dwCharY + 30 '5 * dwCharX
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef FileName As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
@@ -2060,7 +2064,7 @@ Namespace My.Sys.Forms
 		Var OldVScrollVCBottom = VScrollVCBottom
 		VScrollMaxBottom = LinesCount_ 'Max(0, LinesCount - VisibleLinesCount(1) + 1)
 		VScrollVCBottom = VisibleLinesCount(1)
-		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
+		CalculateLeftMargin
 		Var VScrollEnabledBottom = CBool(VScrollMaxBottom)
 		
 		If OldVScrollMaxBottom <> VScrollMaxBottom OrElse OldVScrollVCBottom <> VScrollVCBottom Then
@@ -2090,7 +2094,7 @@ Namespace My.Sys.Forms
 			Var OldVScrollVCTop = VScrollVCTop
 			VScrollMaxTop = LinesCount_ 'Max(0, LinesCount - VisibleLinesCount(0) + 1)
 			VScrollVCTop = VisibleLinesCount(0)
-			LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
+			CalculateLeftMargin
 			Var VScrollEnabledTop = CBool(VScrollMaxTop)
 			
 			If OldVScrollMaxTop <> VScrollMaxTop OrElse OldVScrollVCTop <> VScrollVCTop Then
@@ -2306,7 +2310,7 @@ Namespace My.Sys.Forms
 			CreateCaret(FHandle, 0, 0, ScaleY(dwCharY))
 			ShowCaret FHandle
 		#endif
-		LeftMargin = Len(Str(LinesCount)) * dwCharX + 30 '5 * dwCharX
+		CalculateLeftMargin
 		
 		dwClientX = ClientWidth
 		dwClientY = ClientHeight
@@ -3742,7 +3746,7 @@ Namespace My.Sys.Forms
 					#else
 						SelectObject(bufDC, This.Canvas.Brush.Handle)
 						SelectObject(bufDC, This.Canvas.Pen.Handle)
-						Ellipse bufDC, ScaleX(LeftMargin - 16 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(LeftMargin - 5 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 13 + CodePaneY)
+						Ellipse bufDC, ScaleX(2 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(dwCharY - 2 + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY - 2 + CodePaneY)
 					#endif
 				End If
 				If FECLine->Bookmark Then
@@ -3767,7 +3771,7 @@ Namespace My.Sys.Forms
 					#else
 						'					SelectObject(bufDC, This.Canvas.Brush.Handle)
 						'					SelectObject(bufDC, This.Canvas.Pen.Handle)
-						RoundRect bufDC, ScaleX(LeftMargin - 18 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 2 + CodePaneY), ScaleX(LeftMargin - 3 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 13 + CodePaneY), ScaleX(5), ScaleY(5)
+						RoundRect bufDC, ScaleX(2 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 4 + CodePaneY), ScaleX(dwCharY - 2 + CodePaneX), ScaleY((i - VScrollPos + 1) * dwCharY - 4 + CodePaneY), ScaleX(5), ScaleY(5)
 					#endif
 				End If
 				#ifdef __USE_GTK__
@@ -3798,6 +3802,7 @@ Namespace My.Sys.Forms
 							cairo_stroke (cr)
 						#else
 							This.Canvas.Pen.Color = FoldLines.Foreground
+							This.Canvas.Brush.Color = NormalText.Background
 							'						SelectObject(bufDC, This.Canvas.Brush.Handle)
 							'						SelectObject(bufDC, This.Canvas.Pen.Handle)
 							Rectangle bufDC, ScaleX(LeftMargin - 15 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY), ScaleX(LeftMargin - 6 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY)
@@ -3844,6 +3849,7 @@ Namespace My.Sys.Forms
 							cairo_move_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 0 - 0.5 + CodePaneY)
 						#else
 							This.Canvas.Pen.Color = FoldLines.Foreground
+							This.Canvas.Brush.Color = NormalText.Background
 							'						SelectObject(bufDC, This.Canvas.Brush.Handle)
 							'						SelectObject(bufDC, This.Canvas.Pen.Handle)
 							MoveToEx bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 0 + CodePaneY), 0
@@ -4274,6 +4280,11 @@ Namespace My.Sys.Forms
 		Return CInt(X >= LeftMargin - 15 + CodePaneX AndAlso X <= LeftMargin - 6 + CodePaneX) AndAlso _
 		CInt(Cast(EditControlLine Ptr, FLines.Items[i])->Collapsible)
 		'Y >= (i - VScrollPos) * dwCharY + 3 AndAlso Y <= (i - VScrollPos) * dwCharY + 12) AndAlso _
+	End Function
+	
+	Function EditControl.InStartOfLine(i As Integer, X As Integer, Y As Integer) As Boolean
+		Var CodePaneX = IIf(bDividedX AndAlso X > iDividedX, iDividedX + 7, 0)
+		Return CInt(X > CodePaneX AndAlso X <= dwCharY + CodePaneX)
 	End Function
 	
 	Function EditControl.InIncludeFileRect(i As Integer, X As Integer, Y As Integer) As Boolean
@@ -4863,6 +4874,9 @@ Namespace My.Sys.Forms
 						bScrollStarted = False
 						PaintControl
 					End If
+					Return
+				ElseIf InStartOfLine(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
+					msg.Result = Cast(LRESULT, SetCursor(crHand_.Handle))
 					Return
 				ElseIf InCollapseRect(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
 					msg.Result = Cast(LRESULT, SetCursor(crHand_.Handle))
@@ -5809,6 +5823,11 @@ Namespace My.Sys.Forms
 			Case WM_LBUTTONUP
 				ReleaseCapture
 			#endif
+			#ifdef __USE_GTK__
+				Var X = e->button.x, y = e->button.y
+			#else
+				Var X = UnScaleX(msg.lParamLo), y = UnScaleY(msg.lParamHi)
+			#endif
 			If bInDivideY Then
 				bInDivideY = False
 				iDividedY = iDivideY
@@ -5828,6 +5847,7 @@ Namespace My.Sys.Forms
 				End If
 				PaintControl
 			End If
+			DownButton = -1
 			If bInIncludeFileRect Then
 				FECLine = FLines.Items[FSelEndLine]
 				Var Pos1 = InStr(*FECLine->Text, """")
@@ -5837,8 +5857,9 @@ Namespace My.Sys.Forms
 						If OnLinkClicked Then OnLinkClicked(This, Mid(*FECLine->Text, Pos1 + 1, Pos2 - Pos1 - 1))
 					End If
 				End If
+			ElseIf InStartOfLine(FSelEndLine, X, y) AndAlso FSelEndLine = FSelStartLine Then
+				Breakpoint
 			End If
-			DownButton = -1
 			#ifdef __USE_GTK__
 			Case GDK_BUTTON_PRESS
 				'				gtk_widget_grab_focus(widget)
@@ -6032,7 +6053,7 @@ Namespace My.Sys.Forms
 				'Dim extend As cairo_text_extents_t
 				'cairo_text_extents (cr, "|", @extend)
 				
-				ec->LeftMargin = Len(Str(ec->LinesCount)) * ec->dwCharX + 30 '5 * dwCharX
+				ec->CalculateLeftMargin
 				
 				ec->pdisplay = gtk_widget_get_display(widget)
 				ec->gdkCursorIBeam = gdk_cursor_new_for_display(ec->pdisplay, GDK_XTERM)
