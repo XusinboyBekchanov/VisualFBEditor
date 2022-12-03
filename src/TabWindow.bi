@@ -86,6 +86,7 @@ Type ProjectElement Extends ExplorerElement
 	AndroidSDKLocation As WString Ptr
 	AndroidNDKLocation As WString Ptr
 	JDKLocation As WString Ptr
+	LastThread As Any Ptr
 	Files As WStringList
 	Declare Constructor
 	Declare Destructor
@@ -173,6 +174,7 @@ Public:
 	mi As MenuItem Ptr
 	bQuitThread As Boolean
 	LastThread As Any Ptr
+	Project As ProjectElement Ptr
 	CheckedFiles As WStringList
 	OldIncludes As WStringList
 	OldIncludeLines As IntegerList

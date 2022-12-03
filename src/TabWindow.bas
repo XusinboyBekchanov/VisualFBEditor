@@ -5137,7 +5137,7 @@ End Sub
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
 			allocation->y = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Top"))
-			allocation->width = Des->DotSize
+			allocation->Width = Des->DotSize
 			allocation->height = Des->DotSize
 			Return True
 		End Function
@@ -5657,9 +5657,9 @@ Sub AnalyzeTab(Param As Any Ptr)
 													If tb->IsNew AndAlso .Tag < tb Then ii += 1: Continue Do
 													If tb->IsNew AndAlso .Tag > tb Then AddIndex = ii: Exit Do
 													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = FileName Then ContinueFromNext = True: Exit Do
-													If Not .Text(0) = ErrorText Then
-														'?WStr(z + 1), ii, .Text(0), ErrorText, GetCurrentThreadId
-													End If
+													'If Not .Text(0) = ErrorText Then
+													'	?WStr(z + 1), ii, .Text(0), ErrorText, GetCurrentThreadId
+													'End If
 													.Text(0) = ErrorText
 													.Text(1) = WStr(z + 1)
 													.Text(2) = WStr(MatnBoshi)
@@ -5738,7 +5738,7 @@ Sub TabWindow.QuitThread()
 	If LastThread <> 0 Then
 		#ifndef __USE_GTK__
 			Dim As MSG M
-			While PeekMessage(@M, NULL, 0, 0, PM_REMOVE)
+			While GetMessage(@M, NULL, 0, 0)
 				If LastThread = 0 Then Exit While
 				If M.hwnd = lvSuggestions.Handle Then
 					TranslateMessage @M
@@ -5921,7 +5921,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				IncludesChanged = True
 			End If
 		Else
-			Dim As ProjectElement Ptr Project
 			Dim As TreeNode Ptr ProjectNode
 			Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
 			CheckedFiles.Clear
@@ -7165,8 +7164,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	bNotDesign = False
 	pfrmMain->UpdateUnLock
 	bQuitThread = False
-	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then 
-		'LastThread = ThreadCreate(@AnalyzeTab, @This)
+	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
+		LastThread = ThreadCreate(@AnalyzeTab, @This)
 	End If
 	Exit Sub
 	ErrorHandler:
