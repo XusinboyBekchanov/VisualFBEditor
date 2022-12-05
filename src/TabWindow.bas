@@ -5429,15 +5429,15 @@ Sub AnalyzeTab(Param As Any Ptr)
 									If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
 										If Not OneDot Then
 											'Module
-											If tIndex = -1 AndAlso tb->OldMatnLCase <> "as" Then
+											If (tIndex = -1) AndAlso (tb->OldMatnLCase <> "as") Then
 												tIndex = tb->txtCode.Args.IndexOf(tb->MatnLCase)
 												If tIndex <> -1 Then
 													If Cast(TypeElement Ptr, tb->txtCode.Args.Object(tIndex))->StartLine > z Then
 														tIndex = -1
 													Else
-														tb->OriginalCaseWord = tb->txtCode.Args.Item(tIndex)
+														'tb->OriginalCaseWord = tb->txtCode.Args.Item(tIndex)
 														pkeywords = @tb->txtCode.Args
-														te = tb->txtCode.Args.Object(tIndex)
+														te = Cast(TypeElement Ptr, tb->txtCode.Args.Object(tIndex))
 														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 															Select Case te->ElementType
 															Case "EnumItem"
@@ -5462,9 +5462,9 @@ Sub AnalyzeTab(Param As Any Ptr)
 													If Cast(TypeElement Ptr, tb->txtCode.Procedures.Object(tIndex))->StartLine > z Then
 														tIndex = -1
 													Else
-														tb->OriginalCaseWord = tb->txtCode.Procedures.Item(tIndex)
+														'tb->OriginalCaseWord = tb->txtCode.Procedures.Item(tIndex)
 														pkeywords = @tb->txtCode.Procedures
-														te = tb->txtCode.Procedures.Object(tIndex)
+														te = Cast(TypeElement Ptr, tb->txtCode.Procedures.Object(tIndex))
 														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 															Select Case LCase(te->ElementType)
 															Case "constructor", "destructor"
@@ -5492,7 +5492,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														tIndex = -1
 													Else
 														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
-														tb->OriginalCaseWord = tb->txtCode.Types.Item(tIndex)
+														'tb->OriginalCaseWord = tb->txtCode.Types.Item(tIndex)
 														pkeywords = @tb->txtCode.Types
 													End If
 												End If
@@ -5505,7 +5505,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														tIndex = -1
 													Else
 														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
-														tb->OriginalCaseWord = tb->txtCode.Enums.Item(tIndex)
+														'tb->OriginalCaseWord = tb->txtCode.Enums.Item(tIndex)
 														pkeywords = @tb->txtCode.Enums
 													End If
 												End If
@@ -5518,7 +5518,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														tIndex = -1
 													Else
 														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
-														tb->OriginalCaseWord = tb->txtCode.Namespaces.Item(tIndex)
+														'tb->OriginalCaseWord = tb->txtCode.Namespaces.Item(tIndex)
 														pkeywords = @tb->txtCode.Namespaces
 													End If
 												End If
@@ -5849,12 +5849,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As TypeElement Ptr te, te1, func
 	For i As Integer = txtCode.Functions.Count - 1 To 0 Step -1
 		te = txtCode.Functions.Object(i)
-		If NotForms Then
-			If te->ElementType = "Type" AndAlso te->FileName <> FileName Then
-				txtCode.Types.Add te->Name, te
-				Continue For
-			End If
-		End If
+		'If NotForms Then
+		'	If te->ElementType = "Type" AndAlso te->FileName <> FileName Then
+		'		txtCode.Types.Add te->Name, te
+		'		Continue For
+		'	End If
+		'End If
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
@@ -5980,7 +5980,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	End If
 	IncludesCount = 0
 	For j As Integer = 0 To txtCode.LinesCount - 1
-		If Not bFind AndAlso NotForms = False AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
+		If (Not bFind) AndAlso (NotForms = False) AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
 			sFileName = *FLine1
 			If IncludesChanged Then
 				txtCode.Includes.Add sFileName
@@ -7195,7 +7195,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	pfrmMain->UpdateUnLock
 	bQuitThread = False
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
-		SetLastThread ThreadCreate(@AnalyzeTab, @This)
+		'SetLastThread ThreadCreate(@AnalyzeTab, @This)
 	End If
 	Exit Sub
 	ErrorHandler:
