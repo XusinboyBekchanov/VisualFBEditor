@@ -3482,7 +3482,7 @@ Namespace My.Sys.Forms
 		FSymbols.Clear
 		FLibs.Clear
 		If pApp = 0 Then pApp = @VisualFBEditorApp
-		WDeAllocate FClassName
-		WDeAllocate FTemp
+		WDeAllocate(FClassName)
+		WDeAllocate(FTemp)
 	End Destructor
 End Namespace

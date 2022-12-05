@@ -433,7 +433,7 @@ Sub mClick(Sender As My.Sys.Object)
 			Var ptabCode = Cast(TabControl Ptr, mnuTabs.ParentWindow)
 			Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 			Var tp = Cast(TabPanel Ptr, tb->Parent->Parent)
-			Var ptabPanelNew = New TabPanel
+			Var ptabPanelNew = New_(TabPanel)
 			Var bUpDown = False
 			Select Case Sender.ToString
 			Case "SplitUp"

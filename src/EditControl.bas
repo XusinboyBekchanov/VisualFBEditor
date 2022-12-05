@@ -26,7 +26,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Constructor EditControlLine
-		WLet(Text, "")
+		'WLet(Text, "")
 		Visible = True
 	End Constructor
 	
@@ -1110,7 +1110,7 @@ Namespace My.Sys.Forms
 			WLetEx Value, Replace(*Value, Chr(13) & Chr(10), Chr(13)), True
 			WLetEx Value, Replace(*Value, Chr(10), Chr(13)), True
 			ChangeText *Value, 0, "Xotiradan qo`yildi"
-			WDeAllocate Value
+			WDeAllocate(Value)
 		End If
 	End Sub
 	
@@ -6413,14 +6413,14 @@ Namespace My.Sys.Forms
 			If bufDC Then DeleteDC bufDC
 			If bufBMP Then DeleteObject bufBMP
 		#endif
-		WDeAllocate FLine
-		WDeAllocate FLineLeft
-		WDeAllocate FLineRight
-		WDeAllocate FLineTemp
-		WDeAllocate FLineTab
-		WDeAllocate FLineSpace
-		WDeAllocate FHintWord
-		WDeAllocate CurrentFontName
+		WDeAllocate(FLine)
+		WDeAllocate(FLineLeft)
+		WDeAllocate(FLineRight)
+		WDeAllocate(FLineTemp)
+		WDeAllocate(FLineTab)
+		WDeAllocate(FLineSpace)
+		WDeAllocate(FHintWord)
+		WDeAllocate(CurrentFontName)
 	End Destructor
 	
 	Destructor TypeElement
@@ -6437,7 +6437,7 @@ Sub LoadKeyWords
 	Do Until file = ""
 		k += 1
 		ReDim Preserve Keywords(k)
-		keywordlist = New WStringList
+		keywordlist = New_(WStringList)
 		keywordlist->Sorted = True
 		KeywordLists.Add file, keywordlist
 		If Trim(file) = "Asm" Then

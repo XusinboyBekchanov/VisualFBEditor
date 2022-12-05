@@ -824,7 +824,7 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 		If CInt(Trim(*tmpStr)<>"") Then txtReplace.AddItem *tmpStr
 	Next
 	cboFindRange.ItemIndex = 1
-	WDeAllocate tmpStr
+	WDeAllocate(tmpStr)
 	If mFormFind = True Then
 		This.Caption=ML("Find")
 		#ifdef __USE_GTK__

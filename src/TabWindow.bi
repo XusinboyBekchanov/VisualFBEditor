@@ -133,8 +133,6 @@ Private:
 	tbi As TypeElement Ptr
 	tbi2 As TypeElement Ptr
 	Dim As Any Ptr Ctrl, CurCtrl, CurCtrlRichedit
-	i As Integer
-	j As Integer
 	lvItem As TreeListViewItem Ptr
 	iTemp As Long
 	pTemp As Any Ptr
@@ -158,6 +156,7 @@ Private:
 	Declare Function SaveTab As Boolean
 	Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 Public:
+	Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol, OriginalCaseWord, TypeName1
 	Declare Sub ProcessMessage(ByRef msg As Message)
 	AnyTexts As WStringList
 	Events As Dictionary

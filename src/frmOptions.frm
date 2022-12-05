@@ -2537,9 +2537,9 @@ pfOptions = @fOptions
 	
 	Destructor frmOptions
 		FDisposing = True
-		WDeAllocate InterfFontName
-		WDeAllocate oldInterfFontName
-		WDeAllocate EditFontName
+		WDeAllocate(InterfFontName)
+		WDeAllocate(oldInterfFontName)
+		WDeAllocate(EditFontName)
 	End Destructor
 	
 	#ifndef _NOT_AUTORUN_FORMS_

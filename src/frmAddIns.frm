@@ -107,8 +107,8 @@ pAvailableAddIns = @AvailableAddIns
 '#End Region
 
 Destructor AddInType
-	WDeAllocate Description
-	WDeAllocate Path
+	WDeAllocate(Description)
+	WDeAllocate(Path)
 End Destructor
 
 Destructor frmAddIns

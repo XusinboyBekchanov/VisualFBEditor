@@ -684,7 +684,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Lines.Add *pBuff
 			Loop
 			CloseFile_(Fn1)
-			WDeAllocate pBuff
+			WDeAllocate(pBuff)
 			Dim As Integer Fn2 = FreeFile_
 			Open gradlewFile For Output As #Fn2
 			For i As Integer = 0 To Lines.Count - 1
@@ -975,21 +975,21 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	ThreadsEnter()
 	StopProgress
 	ThreadsLeave()
-	WDeAllocate FbcExe
-	WDeAllocate PipeCommand
-	WDeAllocate ExeName
-	WDeAllocate LogText
-	WDeAllocate fbcCommand
-	WDeAllocate CompileWith
-	WDeAllocate MFFPathC
-	WDeAllocate FirstLine
-	WDeAllocate ErrTitle
-	WDeAllocate ErrFileName
-	WDeAllocate LogFileName
-	WDeAllocate LogFileName2
-	WDeAllocate BatFileName
-	WDeAllocate MainFile
-	WDeAllocate ProjectPath
+	WDeAllocate(FbcExe)
+	WDeAllocate(PipeCommand)
+	WDeAllocate(ExeName)
+	WDeAllocate(LogText)
+	WDeAllocate(fbcCommand)
+	WDeAllocate(CompileWith)
+	WDeAllocate(MFFPathC)
+	WDeAllocate(FirstLine)
+	WDeAllocate(ErrTitle)
+	WDeAllocate(ErrFileName)
+	WDeAllocate(LogFileName)
+	WDeAllocate(LogFileName2)
+	WDeAllocate(BatFileName)
+	WDeAllocate(MainFile)
+	WDeAllocate(ProjectPath)
 	Return CompileResult
 	Exit Function
 	ErrorHandler:
@@ -1136,11 +1136,11 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 			SInfo.dwFlags = STARTF_USESHOWWINDOW
 			SInfo.wShowWindow = SW_NORMAL
 			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
-			If CreateProcessW(Null, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-				WaitForSingleObject pinfo.hProcess, INFINITE
-				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-				CloseHandle(pinfo.hProcess)
-				CloseHandle(pinfo.hThread)
+			If CreateProcessW(NULL, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject PInfo.hProcess, INFINITE
+				GetExitCodeProcess(PInfo.hProcess, @ExitCode)
+				CloseHandle(PInfo.hProcess)
+				CloseHandle(PInfo.hThread)
 				Result = ExitCode
 				'Result = Shell(Debugger & """" & *ExeFileName + """")
 			Else
@@ -1166,7 +1166,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 				Result = GetLastError()
 				ShowMessages(Time & ": " & ML("APK signer do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))
 			End If
-			WDeAllocate CmdL
+			WDeAllocate(CmdL)
 		Else
 			
 		End If
@@ -1204,8 +1204,8 @@ Sub txtOutput_DblClick(ByRef Sender As Control)
 	SplitError(*Buff, ErrFileName, ErrTitle, iLine)
 	Dim MainFile As WString Ptr: WLet(MainFile, GetMainFile(False, Project, ProjectNode))
 	If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-	WDeallocate Temp
-	WDeallocate MainFile
+	WDeAllocate(Temp)
+	WDeAllocate(MainFile)
 	SelectError(*ErrFileName, iLine)
 End Sub
 
@@ -1711,7 +1711,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 				End If
 			End If
 		Loop
-		WDeAllocate filn
+		WDeAllocate(filn)
 		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn ' For No MainFIle
 		For i As Integer = 0 To Files.Count - 1
 			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
@@ -1877,22 +1877,22 @@ Function SaveSession() As Boolean
 	Dim As Integer p
 	Dim As String Zv
 	Dim As Integer Fn = FreeFile_
-	If Open(SaveD.Filename For Output Encoding "utf-8" As #Fn) = 0 Then
+	If Open(SaveD.FileName For Output Encoding "utf-8" As #Fn) = 0 Then
 		For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 			tn1 = tvExplorer.Nodes.Item(i)
 			ee = tn1->Tag
 			If ee = 0 Then Continue For
 			Zv = IIf(tn1 = MainNode, "*", "")
-			If StartsWith(*ee->FileName & Slash, GetFolderName(SaveD.Filename)) Then
-				Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(SaveD.Filename)) + 1), "\", "/")
+			If StartsWith(*ee->FileName & Slash, GetFolderName(SaveD.FileName)) Then
+				Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(SaveD.FileName)) + 1), "\", "/")
 			Else
 				Print #Fn, Zv & "File=" & *ee->FileName
 			End If
 		Next
 	End If
 	CloseFile_(Fn)
-	WDeAllocate Temp
-	WDeAllocate Temp2
+	WDeAllocate(Temp)
+	WDeAllocate(Temp2)
 	Return True
 End Function
 
@@ -2844,12 +2844,12 @@ End Sub
 Function EqualPaths(ByRef a As WString, ByRef b As WString) As Boolean
 	Dim FileNameLeft As WString Ptr
 	Dim FileNameRight As WString Ptr
-	WLetEx FileNameLeft, Replace(a, "\", "/"), True
+	WLet(FileNameLeft, Replace(a, "\", "/"))
 	If EndsWith(*FileNameLeft, ":") Then *FileNameLeft = Left(*FileNameLeft, Len(*FileNameLeft) - 1)
-	WLetEx FileNameRight, Replace(b, "\", "/"), True
+	WLet(FileNameRight, Replace(b, "\", "/"))
 	EqualPaths = LCase(*FileNameLeft) = LCase(*FileNameRight)
-	WDeallocate FileNameLeft
-	WDeallocate FileNameRight
+	WDeAllocate(FileNameLeft)
+	WDeAllocate(FileNameRight)
 End Function
 
 Sub ChangeTabsTn(TnPrev As TreeNode Ptr, Tn As TreeNode Ptr)
@@ -3140,7 +3140,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				MutexUnlock tlockSave
 				Exit Sub
 			Else
-				File = New FileType
+				File = New_(FileType)
 				File->FileName = Path
 				IncludeFiles.Add Path, File
 			End If
@@ -3157,12 +3157,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		If IncludeFiles.Contains(Path, , , , Idx) Then
 			File = IncludeFiles.Object(Idx)
 			If File = 0 Then
-				File = New FileType
+				File = New_(FileType)
 				File->FileName = Path
 				IncludeFiles.Object(Idx) = File
 			End If
 		Else
-			File = New FileType
+			File = New_(FileType)
 			File->FileName = Path
 			IncludeFiles.Add Path, File
 		End If
@@ -4076,6 +4076,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		Next
 		If FormClosing Then MutexUnlock tlockSave: Exit Sub
 	Next
+	Lines.Clear
 	MutexUnlock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) Then
 		For i As Integer = 0 To File->Includes.Count - 1
@@ -7167,7 +7168,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 	tbOld = tb
 End Sub
 
-Var ptabPanel = New TabPanel
+Var ptabPanel = New_(TabPanel)
 ptabPanel->Align = DockStyle.alClient
 TabPanels.Add ptabPanel
 ptabCode = @ptabPanel->tabCode
@@ -7279,14 +7280,14 @@ Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 				CloseFile_(Fn)
 				Kill *ExeName
 			End If
-			WDeAllocate FbcExe
-			WDeAllocate ExeName
-			WDeAllocate LogText
-			WDeAllocate ErrFileName
-			WDeAllocate ErrTitle
+			WDeAllocate(FbcExe)
+			WDeAllocate(ExeName)
+			WDeAllocate(LogText)
+			WDeAllocate(ErrFileName)
+			WDeAllocate(ErrTitle)
 		End If
 	End If
-	WDeAllocate sLine '
+	WDeAllocate(sLine) '
 	'If Not EndsWith(txtImmediate.Text, !"\r") Then txtImmediate.Text &= !"\r"
 End Sub
 
@@ -7318,7 +7319,7 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 			WLet(sTmp, " {" & Replace(tb->Caption, "*", ""))
 			WAdd sTmp, "|" & tb->cboFunction.Text & " Ln" & Val(Trim(Replace(pstBar->Panels[1]->Caption,ML("Row"),""))) & "}"
 			txtChangeLog.SelText = *sTmp
-			WDeAllocate sTmp
+			WDeAllocate(sTmp)
 			mChangeLogEdited = True
 		End If
 	ElseIf CInt(bCtrl) And Shift And (Key =99 Or Key =67) Then 'Ctrl+Shift+C
@@ -8085,10 +8086,10 @@ Sub frmMain_Create(ByRef Sender As Control)
 End Sub
 
 For i As Integer = 48 To 57
-	Symbols(i - 48) = i
+	symbols(i - 48) = i
 Next
 For i As Integer = 97 To 102
-	Symbols(i - 87) = i
+	symbols(i - 87) = i
 Next
 
 Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
@@ -8477,52 +8478,57 @@ Sub OnProgramStart() Constructor
 End Sub
 
 Sub OnProgramQuit() Destructor
-	WDeAllocate ProjectsPath
-	WDeAllocate LastOpenPath
-	WDeAllocate DefaultMakeTool
-	WDeAllocate CurrentMakeTool1
-	WDeAllocate CurrentMakeTool2
-	WDeAllocate MakeToolPath1
-	WDeAllocate MakeToolPath2
-	WDeAllocate DefaultDebugger32
-	WDeAllocate DefaultDebugger64
-	WDeAllocate GDBDebugger32
-	WDeAllocate GDBDebugger64
-	WDeAllocate CurrentDebugger32
-	WDeAllocate CurrentDebugger64
-	WDeAllocate Debugger32Path
-	WDeAllocate Debugger64Path
-	WDeAllocate DefaultTerminal
-	WDeAllocate CurrentTerminal
-	WDeAllocate TerminalPath
-	WDeAllocate DefaultCompiler32
-	WDeAllocate CurrentCompiler32
-	WDeAllocate DefaultCompiler64
-	WDeAllocate CurrentCompiler64
-	WDeAllocate Compiler32Path
-	WDeAllocate Compiler64Path
-	WDeAllocate Compiler32Arguments
-	WDeAllocate Compiler64Arguments
-	WDeAllocate Make1Arguments
-	WDeAllocate Make2Arguments
-	WDeAllocate RunArguments
-	WDeAllocate Debug32Arguments
-	WDeAllocate Debug64Arguments
-	WDeAllocate RecentFiles '
-	WDeAllocate RecentFile '
-	WDeAllocate RecentProject '
-	WDeAllocate RecentFolder '
-	WDeAllocate RecentSession '
-	WDeAllocate DefaultHelp
-	WDeAllocate HelpPath
-	WDeAllocate KeywordsHelpPath
-	WDeAllocate CurrentTheme
-	WDeAllocate DefaultProjectFile
-	WDeAllocate EditorFontName
-	WDeAllocate InterfaceFontName
-	WDeAllocate MFFPath
-	WDeAllocate MFFDll
-	WDeAllocate gSearchSave
+	WDeAllocate(ProjectsPath)
+	WDeAllocate(LastOpenPath)
+	WDeAllocate(DefaultMakeTool)
+	WDeAllocate(CurrentMakeTool1)
+	WDeAllocate(CurrentMakeTool2)
+	WDeAllocate(MakeToolPath1)
+	WDeAllocate(MakeToolPath2)
+	WDeAllocate(DefaultDebugger32)
+	WDeAllocate(DefaultDebugger64)
+	WDeAllocate(GDBDebugger32)
+	WDeAllocate(GDBDebugger64)
+	WDeAllocate(CurrentDebugger32)
+	WDeAllocate(CurrentDebugger64)
+	WDeAllocate(Debugger32Path)
+	WDeAllocate(Debugger64Path)
+	WDeAllocate(GDBDebugger32Path)
+	WDeAllocate(GDBDebugger64Path)
+	WDeAllocate(DefaultTerminal)
+	WDeAllocate(CurrentTerminal)
+	WDeAllocate(TerminalPath)
+	WDeAllocate(DefaultCompiler32)
+	WDeAllocate(CurrentCompiler32)
+	WDeAllocate(DefaultCompiler64)
+	WDeAllocate(CurrentCompiler64)
+	WDeAllocate(Compiler32Path)
+	WDeAllocate(Compiler64Path)
+	WDeAllocate(Compiler32Arguments)
+	WDeAllocate(Compiler64Arguments)
+	WDeAllocate(Make1Arguments)
+	WDeAllocate(Make2Arguments)
+	WDeAllocate(RunArguments)
+	WDeAllocate(Debug32Arguments)
+	WDeAllocate(Debug64Arguments)
+	WDeAllocate(RecentFiles) '
+	WDeAllocate(RecentFile) '
+	WDeAllocate(RecentProject) '
+	WDeAllocate(RecentFolder) '
+	WDeAllocate(RecentSession) '
+	WDeAllocate(DefaultHelp)
+	WDeAllocate(HelpPath)
+	WDeAllocate(KeywordsHelpPath)
+	WDeAllocate(CurrentTheme)
+	WDeAllocate(DefaultProjectFile)
+	WDeAllocate(EditorFontName)
+	WDeAllocate(InterfaceFontName)
+	WDeAllocate(MFFPath)
+	WDeAllocate(MFFDll)
+	WDeAllocate(gSearchSave)
+	WDeAllocate(EnvironmentVariables)
+	WDeAllocate(CommandPromptFolder)
+	Deallocate_(filenumbers)
 	'	For i As Integer = 0 To Threads.Count - 1
 	'		If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
 	'	Next
@@ -8563,6 +8569,22 @@ Sub OnProgramQuit() Destructor
 		keywordlist = KeywordLists.Object(i)
 		Delete_(keywordlist)
 	Next i
+	Dim As TabPanel Ptr tp
+	For i As Integer = 0 To TabPanels.Count - 1
+		tp = TabPanels.Item(i)
+		Delete_(tp)
+	Next i
+	Dim As FileType Ptr File
+	For i As Integer = IncludeFiles.Count - 1 To 0 Step -1
+		File = IncludeFiles.Object(i)
+		If File Then Delete_(File)
+	Next
+	IncludeFiles.Clear
+	Dim As Library Ptr CtlLibrary
+	For i As Integer = 0 To ControlLibraries.Count - 1
+		CtlLibrary = ControlLibraries.Item(i)
+		Delete_(CtlLibrary)
+	Next
 	Dim As TypeElement Ptr te, te1
 	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 		te = pGlobalNamespaces->Object(i)
@@ -8602,6 +8624,16 @@ Sub OnProgramQuit() Destructor
 	For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
 		te = pGlobalFunctions->Object(i)
 		Delete_( Cast(TypeElement Ptr, pGlobalFunctions->Object(i)))
+		'pGlobalFunctions->Remove i
+	Next
+	For i As Integer = GlobalFunctionsHelp.Count - 1 To 0 Step -1
+		te = GlobalFunctionsHelp.Object(i)
+		Delete_( Cast(TypeElement Ptr, GlobalFunctionsHelp.Object(i)))
+		'GlobalFunctionsHelp.Remove i
+	Next
+	For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
+		te = pGlobalTypeProcedures->Object(i)
+		Delete_( Cast(TypeElement Ptr, pGlobalTypeProcedures->Object(i)))
 		'pGlobalFunctions->Remove i
 	Next
 	For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1

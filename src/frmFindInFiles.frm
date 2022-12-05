@@ -407,7 +407,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 								End If
 							Next
 							#ifndef __USE_MAKE__
-								WDeAllocate(SubStr())
+								WDeAllocateEx(SubStr())
 							#endif
 						Else
 							If *BuffOut="" Then
@@ -461,9 +461,9 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 		End If
 		CloseFile_(Fn)
 	End If
-	WDeAllocate BuffOut
+	WDeAllocate(BuffOut)
 	Folders.Clear
-	WDeAllocate Temp
+	WDeAllocate(Temp)
 End Sub
 
 Private Sub frmFindInFiles.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
