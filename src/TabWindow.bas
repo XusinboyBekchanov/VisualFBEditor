@@ -5161,11 +5161,11 @@ End Sub
 Sub AnalyzeTab(Param As Any Ptr)
 	Dim As TabWindow Ptr tb = Param
 	If tb = 0 Then Exit Sub
-	If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
+	If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
+	Dim As UString KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol, OriginalCaseWord, TypeName
 	Dim As EditControlLine Ptr FECLine
 	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1
 	Dim As WString Ptr s
-	Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol, OriginalCaseWord, TypeName
 	Dim As Boolean bQ, LinePrinted, WithOldSymbol, bKeyWord, TwoDots, OneDot, bWithoutWith, CStyle, ContinueFromNext
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim As ListViewItem Ptr LastItem
@@ -5175,7 +5175,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	CStyle = tb->txtCode.CStyle
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	For z As Integer = 0 To tb->txtCode.FLines.Count - 1
-		If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
+		If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
 		FECLine = tb->txtCode.FLines.Items[z]
 		Dim As WStringList Ptr pFiles = FECLine->FileList
 		Dim As IntegerList Ptr pFileLines = FECLine->FileListLines
@@ -5190,7 +5190,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 		MatnBoshi = 0
 		IzohBoshi = 1
 		Do While j <= l
-			If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
+			If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
 			If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
 				bQ = Not bQ
 				If bQ Then
@@ -5641,29 +5641,29 @@ Sub AnalyzeTab(Param As Any Ptr)
 									Else
 										sc = @Identifiers
 										If (Not CStyle) AndAlso Matn <> "_" AndAlso OldMatnLCase <> "defined" AndAlso OldMatnLCase <> "ifdef" AndAlso OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") Then
-											If tb->bQuitThread Then tb->LastThread = 0: Exit Sub
+											If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
 											MutexLock tlockSuggestions
 											Dim As Integer ii = 0, AddIndex = -1
 											Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & Matn & ". " & ML("Declare it")
-											Dim As UString FileName = tb->FileName
+											Dim As UString FileName_ = tb->FileName
 											If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 											ContinueFromNext = False
 											Do While ii < lvSuggestions.ListItems.Count
-												If tb->bQuitThread Then MutexUnlock tlockSuggestions: tb->LastThread = 0: Exit Sub
+												If tb->bQuitThread Then MutexUnlock tlockSuggestions: tb->SetLastThread 0: Exit Sub
 												LastItem = lvSuggestions.ListItems.Item(ii)
 												With *LastItem
-													If .Text(3) < FileName Then ii += 1: Continue Do
-													If .Text(3) > FileName Then AddIndex = ii: Exit Do
+													If .Text(3) < FileName_ Then ii += 1: Continue Do
+													If .Text(3) > FileName_ Then AddIndex = ii: Exit Do
 													If tb->IsNew AndAlso .Tag < tb Then ii += 1: Continue Do
 													If tb->IsNew AndAlso .Tag > tb Then AddIndex = ii: Exit Do
-													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = FileName Then ContinueFromNext = True: Exit Do
+													If .Text(0) = ErrorText AndAlso .Text(1) = WStr(z + 1) AndAlso .Text(2) = WStr(MatnBoshi) AndAlso .Text(3) = FileName_ Then ContinueFromNext = True: Exit Do
 													'If Not .Text(0) = ErrorText Then
 													'	?WStr(z + 1), ii, .Text(0), ErrorText, GetCurrentThreadId
 													'End If
 													.Text(0) = ErrorText
 													.Text(1) = WStr(z + 1)
 													.Text(2) = WStr(MatnBoshi)
-													.Text(3) = FileName
+													.Text(3) = FileName_
 													.Tag = tb
 													ContinueFromNext = True
 													Exit Do
@@ -5674,7 +5674,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 												With *LastItem
 													.Text(1) = WStr(z + 1)
 													.Text(2) = WStr(MatnBoshi)
-													.Text(3) = FileName
+													.Text(3) = FileName_
 													.Tag = tb
 													ContinueFromNext = True
 												End With
@@ -5730,22 +5730,38 @@ Sub AnalyzeTab(Param As Any Ptr)
 		tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "")
 	End If
 	MutexUnlock tlockSuggestions
-	tb->LastThread = 0
+	tb->SetLastThread 0
 End Sub
 
 Sub TabWindow.QuitThread()
 	bQuitThread = True
-	If LastThread <> 0 Then
+	If GetLastThread <> 0 Then
 		#ifndef __USE_GTK__
 			Dim As MSG M
 			While GetMessage(@M, NULL, 0, 0)
-				If LastThread = 0 Then Exit While
+				If GetLastThread = 0 Then Exit While
 				If M.hwnd = lvSuggestions.Handle Then
 					TranslateMessage @M
 					DispatchMessage @M
 				End If
 			Wend
 		#endif
+	End If
+End Sub
+
+Function TabWindow.GetLastThread() As Any Ptr
+	If Project Then
+		Return Project->LastThread
+	Else
+		Return LastThread
+	End If
+End Function
+
+Sub TabWindow.SetLastThread(ThreadID As Any Ptr)
+	If Project Then
+		Project->LastThread = ThreadID
+	Else
+		LastThread = ThreadID
 	End If
 End Sub
 
@@ -7165,7 +7181,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	pfrmMain->UpdateUnLock
 	bQuitThread = False
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
-		LastThread = ThreadCreate(@AnalyzeTab, @This)
+		'SetLastThread ThreadCreate(@AnalyzeTab, @This)
 	End If
 	Exit Sub
 	ErrorHandler:

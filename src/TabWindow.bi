@@ -144,13 +144,13 @@ Private:
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim frmName As String
 	Dim frmTypeName As String
+	Dim TypeName As String
 	Dim As Boolean b, t, c
 	Dim As Integer Pos1, Pos2, l, p, p1
 	Dim As Integer lvPropertyCount, lvEventCount
 	Dim As String ArgName, PropertyName, FLin
 	Dim sText As String
 	Dim sRight As String
-	Dim TypeName As String
 	Dim As ComboBoxItem Ptr CBItem
 	Dim bTemp As Boolean
 	Dim As Integer lLeft, lTop, lWidth, lHeight
@@ -243,6 +243,8 @@ Public:
 	Declare Sub Define
 	Declare Sub FormDesign(NotForms As Boolean = False)
 	Declare Sub QuitThread
+	Declare Sub SetLastThread(ThreadID As Any Ptr)
+	Declare Function GetLastThread As Any Ptr
 	Declare Constructor(ByRef wFileName As WString = "", bNewForm As Boolean = False, TreeN As TreeNode Ptr = 0)
 	Declare Destructor
 End Type
