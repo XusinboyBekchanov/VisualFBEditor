@@ -276,6 +276,7 @@ Sub ChangeMenuItemsEnabled
 	tbtSaveAll->Enabled = bEnabled
 	miClose->Enabled = bEnabled
 	miCloseAll->Enabled = bEnabled
+	miCloseSession->Enabled = bEnabled
 	miPrint->Enabled = bEnabled
 	miPrintPreview->Enabled = bEnabled
 	miPageSetup->Enabled = bEnabled

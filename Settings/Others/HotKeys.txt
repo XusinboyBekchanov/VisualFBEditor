@@ -8,7 +8,6 @@ SaveAll=Ctrl+Alt+Shift+S
 SaveSession=Ctrl+Alt+S
 Close=Ctrl+F4
 CloseFolder=Alt+F4
-CloseAll=Ctrl+Alt+Shift+F4
 Print=Ctrl+P
 PrintPreview=
 PageSetup=

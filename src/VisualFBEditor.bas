@@ -574,6 +574,7 @@ Sub mClick(Sender As My.Sys.Object)
 		End Select
 	Case "SaveAll":                         SaveAll
 	Case "CloseAll":                        CloseAllTabs
+	Case "CloseSession":                    CloseSession
 	Case "CloseAllWithoutCurrent":          CloseAllTabs(True)
 	Case "Exit":                            pfrmMain->CloseForm
 	Case "Find":                            mFormFind = True: pfFind->Show *pfrmMain

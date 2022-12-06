@@ -65,7 +65,7 @@ Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlR
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
-Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miPrint, miPrintPreview, miPageSetup, miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerProjectProperties, miExplorerCloseProject, miRemoveFileFromProject
+Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miCloseSession, miPrint, miPrintPreview, miPageSetup, miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerProjectProperties, miExplorerCloseProject, miRemoveFileFromProject
 Dim Shared As MenuItem Ptr miUndo, miRedo, miCutCurrentLine, miCut, miCopy, miPaste, miSingleComment, miBlockComment, miUncommentBlock, miDuplicate, miSelectAll, miIndent, miOutdent, miFormat, miUnformat, miFormatProject, miUnformatProject, miAddSpaces, miCompleteWord, miParameterInfo, miStepInto, miStepOver, miStepOut, miRunToCursor, miGDBCommand, miAddWatch, miToggleBreakpoint, miClearAllBreakpoints, miSetNextStatement, miShowNextStatement
 Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miProcedureNumbering, miProcedureMacroNumbering, miRemoveProcedureNumbering, miProjectMacroNumbering, miProjectMacroNumberingStartsOfProcedures, miRemoveProjectNumbering, miPreprocessorNumbering, miRemovePreprocessorNumbering, miProjectPreprocessorNumbering, miRemoveProjectPreprocessorNumbering, miOnErrorResumeNext, miOnErrorGoto, miOnErrorGotoResumeNext, miOnLocalErrorGoto, miOnLocalErrorGotoResumeNext, miRemoveErrorHandling
 Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiProjectMacroNumbering, dmiProjectMacroNumberingStartsOfProcedures, dmiRemoveProjectNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiProjectPreprocessorNumbering, dmiRemoveProjectPreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiOnLocalErrorGoto, dmiOnLocalErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
@@ -2207,6 +2207,76 @@ Sub CloseAllTabs(WithoutCurrent As Boolean = False)
 		Next i
 	Next jj
 End Sub
+
+Function CloseSession() As Boolean
+	#ifndef __USE_GTK__
+		If prun AndAlso kill_process("Trying to launch but debuggee still running") = False Then
+			Return False
+		End If
+	#endif
+	Dim tb As TabWindow Ptr
+	Dim tn As TreeNode Ptr
+	Dim tnP As TreeNode Ptr
+	Dim Index As Integer
+	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+		If iFlagStartDebug = 1 Then
+			NewCommand = !"q\n"
+			MutexUnlock tlockGDB
+		End If
+	#endif
+	With *pfSave
+		.lstFiles.Clear
+		For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
+			tn = tvExplorer.Nodes.Item(i)
+			If CInt(tn->ImageKey = "Project") AndAlso EndsWith(tn->Text, "*") Then
+				.lstFiles.AddItem tn->Text, tn
+			End If
+			'If CInt(tn->ImageKey = "Project") AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
+		Next i
+		For j As Integer = TabPanels.Count - 1 To 0 Step -1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+				If tb->Modified Then
+					tnP = GetParentNode(tb->tn)
+					Index = .lstFiles.IndexOfData(tnP)
+					If Index <> -1 Then
+						.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
+					Else
+						.lstFiles.AddItem tb->Caption, tb
+					End If
+				End If
+			Next i
+		Next j
+		If .lstFiles.ItemCount > 0 Then
+			.lstFiles.SelectAll
+			Select Case .ShowModal(*pfrmMain)
+			Case ModalResults.Yes
+				For i As Integer = .SelectedItems.Count - 1 To 0 Step -1
+					If tvExplorer.Nodes.Contains(.SelectedItems.Item(i)) Then
+						If Not SaveProject(.SelectedItems.Item(i)) Then Return False
+					Else
+						If Not Cast(TabWindow Ptr, .SelectedItems.Item(i))->Save Then Return False
+					End If
+				Next
+			Case ModalResults.No
+			Case ModalResults.Cancel: Return False
+			End Select
+		End If
+	End With
+	For j As Integer = TabPanels.Count - 1 To 0 Step -1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			CloseTab(tb, True)
+		Next i
+	Next j
+	For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
+		tn = tvExplorer.Nodes.Item(i)
+		If CInt(tn->ImageKey = "Project") Then CloseProject(tn, True)
+	Next i
+	Return True
+End Function
 
 Sub RunHelp(Param As Any Ptr)
 	Type HH_AKLINK
@@ -5177,7 +5247,8 @@ Sub CreateMenusAndToolBars
 	miSaveAll = miFile->Add(ML("Save All") & HK("SaveAll", "Ctrl+Alt+Shift+S"), "SaveAll", "SaveAll", @mClick, , , False)
 	miFile->Add("-")
 	miClose = miFile->Add(ML("&Close") & HK("Close", "Ctrl+F4"), "Close", "Close", @mClick, , , False)
-	miCloseAll = miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Alt+Shift+F4"), "", "CloseAll", @mClick, , , False)
+	miCloseAll = miFile->Add(ML("Close All") & HK("CloseAll", "Ctrl+Shift+F4"), "", "CloseAll", @mClick, , , False)
+	miCloseSession = miFile->Add(ML("Close Session") & HK("CloseSession", "Ctrl+Alt+Shift+F4"), "", "CloseSession", @mClick, , , False)
 	miFile->Add("-")
 	miPrint = miFile->Add(ML("&Print") & HK("Print", "Ctrl+P"), "Print", "Print", @mClick, , , False)
 	miPrintPreview = miFile->Add(ML("Print P&review") & HK("PrintPreview"), "PrintPreview", "PrintPreview", @mClick, , , False)
@@ -8305,74 +8376,9 @@ End Sub
 
 Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
-	#ifndef __USE_GTK__
-		If prun AndAlso kill_process("Trying to launch but debuggee still running") = False Then
-			Exit Sub
-		End If
-	#endif
 	FormClosing = True
-	Dim tb As TabWindow Ptr
-	Dim tn As TreeNode Ptr
-	Dim tnP As TreeNode Ptr
-	Dim Index As Integer
-	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
-		If iFlagStartDebug = 1 Then
-			NewCommand = !"q\n"
-			MutexUnlock tlockGDB
-		End If
-	#endif
-	With *pfSave
-		.lstFiles.Clear
-		For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
-			tn = tvExplorer.Nodes.Item(i)
-			If CInt(tn->ImageKey = "Project") AndAlso EndsWith(tn->Text, "*") Then
-				.lstFiles.AddItem tn->Text, tn
-			End If
-			'If CInt(tn->ImageKey = "Project") AndAlso CInt(Not CloseProject(tn)) Then Action = 0: Return
-		Next i
-		For j As Integer = TabPanels.Count - 1 To 0 Step -1
-			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
-			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
-				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-				If tb->Modified Then
-					tnP = GetParentNode(tb->tn)
-					Index = .lstFiles.IndexOfData(tnP)
-					If Index <> -1 Then
-						.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
-					Else
-						.lstFiles.AddItem tb->Caption, tb
-					End If
-				End If
-				'If Not CloseTab(tb) Then Action = 0: Return
-			Next i
-		Next j
-		If .lstFiles.ItemCount > 0 Then
-			.lstFiles.SelectAll
-			Select Case .ShowModal(*pfrmMain)
-			Case ModalResults.Yes
-				For i As Integer = .SelectedItems.Count - 1 To 0 Step -1
-					If tvExplorer.Nodes.Contains(.SelectedItems.Item(i)) Then
-						If Not SaveProject(.SelectedItems.Item(i)) Then Action = 0: Return
-					Else
-						If Not Cast(TabWindow Ptr, .SelectedItems.Item(i))->Save Then Action = 0: Return
-					End If
-				Next
-			Case ModalResults.No
-			Case ModalResults.Cancel: Action = 0: Return
-			End Select
-		End If
-	End With
-	For j As Integer = TabPanels.Count - 1 To 0 Step -1
-		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
-		For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
-			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-			CloseTab(tb, True)
-		Next i
-	Next j
-	For i As Integer = tvExplorer.Nodes.Count - 1 To 0 Step -1
-		tn = tvExplorer.Nodes.Item(i)
-		If CInt(tn->ImageKey = "Project") Then CloseProject(tn, True)
-	Next i
+	If Not CloseSession Then Action = 0: Return
+	
 	If frmMain.WindowState <> WindowStates.wsMaximized Then
 		iniSettings.WriteInteger("MainWindow", "Width", frmMain.Width)
 		iniSettings.WriteInteger("MainWindow", "Height", frmMain.Height)
