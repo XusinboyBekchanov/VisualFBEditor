@@ -328,16 +328,16 @@ Dim Shared exedate As Double 'serial date
 		If fileSizeLo = 0 And fileSizeHi=0 Then Return "Empty file." ' cannot map an 0 byte file
 		hfileMap = CreateFileMapping(FileHandle,0,PAGE_READONLY, 0, 1, NULL)
 		If hfileMap Then
-			pMem = MapViewOfFile(hfileMap,FILE_MAP_READ, 0, 0, 1)
-			If pMem Then
-				GetMappedFileName(GetCurrentProcess(), pMem, @fileName, 250)
-				UnmapViewOfFile(pMem)
+			pmem = MapViewOfFile(hfileMap,FILE_MAP_READ, 0, 0, 1)
+			If pmem Then
+				GetMappedFileName(GetCurrentProcess(), pmem, @fileName, 250)
+				UnmapViewOfFile(pmem)
 				CloseHandle(hfileMap)
 				If Len(fileName) > 0 Then
-					getlogicaldrivestrings(511,zstr)'get all the device letters c:\ d:\ etc separate by null
+					GetLogicalDriveStrings(511,zstr)'get all the device letters c:\ d:\ etc separate by null
 					While zstr[p]
 						tzstr[0]=zstr[p]'replace space by letter
-						querydosdevice(tzstr,dn,511)'get corresponding device name
+						QueryDosDevice(tzstr,dn,511)'get corresponding device name
 						If InStr(fileName,dn) Then
 							tstring=fileName
 							str_replace(tstring,dn,tzstr)
@@ -915,7 +915,7 @@ Dim Shared exedate As Double 'serial date
 		udtidx=Val(Mid(readl,p,q-p))
 		If tnm="OBJECT" OrElse tnm="$fb_Object" Then udt(15).index=udtidx:Exit Sub
 		udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
-		If udtmax > TYPEMAX-1 Then Msgbox(ML("Storing UDT: Max limit reached")+" "+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX-1 Then MsgBox(ML("Storing UDT: Max limit reached")+" "+Str(TYPEMAX)):Exit Sub
 		udt(udtidx).nm=tnm
 		If Left(tnm,4)="TMP$" Then Exit Sub 'gcc redim
 		p=q+2
@@ -1002,7 +1002,7 @@ Dim Shared exedate As Double 'serial date
 		Select Case gv
 		Case Asc("S"),Asc("G")     'shared/common
 			If gv=Asc("G") Then If Common_exist(ad) Then Return 0 'to indicate that no needed to continue
-			If vrbgbl=VGBLMAX Then Msgbox (ML("Init Globals: Reached limit")+" "+Str(VGBLMAX)):Exit Function
+			If vrbgbl=VGBLMAX Then MsgBox (ML("Init Globals: Reached limit")+" "+Str(VGBLMAX)):Exit Function
 			vrbgbl+=1
 			vrb(vrbgbl).adr=ad
 			vrbptr=@vrbgbl
@@ -1533,7 +1533,7 @@ Dim Shared exedate As Double 'serial date
 		tvI.cchTextMax      =  Len(Text)
 		tvI.lParam          =  Param
 		tvIns.item          =  tvI
-		tvIns.hinsertAfter  =  hInsAfter
+		tvIns.hInsertAfter  =  hInsAfter
 		tvIns.hParent       =  hParent
 		'Pour hinsertafter soit hitem soit :
 		'TVI_FIRST	Inserts the item at the beginning of the list.
@@ -1542,7 +1542,7 @@ Dim Shared exedate As Double 'serial date
 		
 		hItem = Cast(HTREEITEM,SendMessage(hTV,TVM_INSERTITEM,0,Cast(LPARAM,@tvIns)))
 		' SendMessage(htv,TVM_SORTCHILDREN ,0,byval hparent) 'Activate to sort elements
-		SendMessage(htv,TVM_EXPAND,TVE_COLLAPSE,Cast(LPARAM,hparent))
+		SendMessage(hTV,TVM_EXPAND,TVE_COLLAPSE,Cast(LPARAM,hParent))
 		' SendMessage(htv,TVM_EXPAND,TVE_EXPAND,hparent)
 		Return hItem
 	End Function
@@ -1639,12 +1639,12 @@ Dim Shared exedate As Double 'serial date
 	
 	Private Sub var_iniudt(Vrbe As UInteger,adr As UInteger,tv As HTREEITEM,voffset As UInteger,mem As UByte)'store udt components '05/05/2014 '09/07/2015 scope added
 		Dim ad As UInteger,text As String,vadr As UInteger
-		For i As Integer =udt(Vrbe).lb To udt(vrbe).ub
+		For i As Integer =udt(Vrbe).lb To udt(Vrbe).ub
 			vadr=adr
 			With cudt(i)
 				'dbg_prt2("var ini="+.nm+" "+Str(.ofs)+" "+Str(voffset)+" "+Str(adr))
 				vrrnb+=1
-				If vrrnb > vrrmax Then MsgBox ML("Max number of vars reached"): vrrnb = vrrmax: Exit Sub
+				If vrrnb > VRRMAX Then MsgBox ML("Max number of vars reached"): vrrnb = VRRMAX: Exit Sub
 				vrr(vrrnb).vr=-i
 				ad=.ofs+voffset 'offset of current element + offset all levels above
 				vrr(vrrnb).gofs=ad 'however keep (global) offset
@@ -1695,7 +1695,7 @@ Dim Shared exedate As Double 'serial date
 					adr=.adr
 				End If
 				vrrnb+=1
-				If vrrnb >= VRRMAX Then msgbox(ML("Too many variables: --> lost")):Exit Sub
+				If vrrnb >= VRRMAX Then MsgBox(ML("Too many variables: --> lost")):Exit Sub
 				vrr(vrrnb).vr=i
 				vrr(vrrnb).ad=adr
 				If .arr Then
@@ -1888,7 +1888,7 @@ Dim Shared exedate As Double 'serial date
 		If var_find2(tv)=-1 Then Exit Sub 'search index variable under cursor
 		
 		If varfind.ty<>4 And varfind.ty<>13 And varfind.ty<>14 And varfind.ty <>6 Then 'or ty<>15
-			msgbox("Show string error: Select only a string variable")
+			MsgBox("Show string error: Select only a string variable")
 			Exit Sub
 		End If
 		stringadr=varfind.ad
@@ -1916,7 +1916,7 @@ Dim Shared exedate As Double 'serial date
 			buf(f-stringadr+1)=0 'end of string if length >32000
 			
 			frm.Show *pfrmMain
-			setWindowTextA(txt.Handle,@buf(0))
+			SetWindowTextA(txt.Handle,@buf(0))
 			'txt.Text = *Cast(String Ptr, @buf(0))
 			'If helpbx=0 Then helptyp=4:fb_Dialog(@help_box,"String : "+varfind.nm+"       (To change value use dump)" ,windmain,2,2,400,260)
 		Else
@@ -1928,7 +1928,7 @@ Dim Shared exedate As Double 'serial date
 				If inc=32000 Then Exit While 'limit if wstring >32000
 				ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr+inc*2),@bufw,2,0)
 			Wend
-			WStrg[inc]=0 'end of wstring
+			wstrg[inc]=0 'end of wstring
 			txt.Text = wstrg
 			frm.Show *pfrmMain
 			'SendMessage (hedit1,WM_SETFONT,Cast(WPARAM,fonthdl),0)
@@ -1943,7 +1943,7 @@ Dim Shared exedate As Double 'serial date
 		
 		If tview=tviewvar Then 'if not called from tviewvar not usefull to search return value
 			'get current hitem in tree
-			hitem=sendmessage(tviewcur,TVM_GETNEXTITEM,TVGN_CARET,0)
+			hitem=SendMessage(tviewcur,TVM_GETNEXTITEM,TVGN_CARET,0)
 			'search procr index
 			For i As Integer =1 To procrnb
 				If procr(i).tv=hitem Then
@@ -1960,7 +1960,7 @@ Dim Shared exedate As Double 'serial date
 			#ifdef dbg_prt2
 				dbg_prt2("show ret="+proc(temp).nm+" "+Str(typ)+" "+Str(pt))
 			#endif
-			If typ=7 AndAlso pt=0 Then msgbox(ML("Return value: Select a function not a sub!")):Exit Sub
+			If typ=7 AndAlso pt=0 Then MsgBox(ML("Return value: Select a function not a sub!")):Exit Sub
 			If rvadr<>0 Then 'gcc/dwarf 19/08/2015
 				'addr+=rvadr
 				#ifdef dbg_prt2
@@ -2007,14 +2007,14 @@ Dim Shared exedate As Double 'serial date
 			'fb_Dialog(@shwexp_box,"Show/expand : "+varfind.nm,windmain,283,25,350,200)
 		Else
 			'no free slot
-			msgbox(ML("Show/Expand variable or memory: Max number of windows reached") & " ("+Str(SHWEXPMAX)+Chr(13)+ML("Close one window and try again"))
+			MsgBox(ML("Show/Expand variable or memory: Max number of windows reached") & " ("+Str(SHWEXPMAX)+Chr(13)+ML("Close one window and try again"))
 		End If
 	End Sub
 	
 	Private Function enum_find(t As Integer,v As Integer) As String
 		'find the text associated with an enum value
 		For i As Integer =udt(t).lb To udt(t).ub
-			If cudt(i).val=v Then  Return cudt(i).nm
+			If cudt(i).Val=v Then  Return cudt(i).nm
 		Next
 		Return "Unknown Enum value"
 	End Function
@@ -2044,7 +2044,7 @@ Dim Shared exedate As Double 'serial date
 			pany As Any Ptr
 		End Union
 		Dim Ptrs As pointers,recup(71) As Byte
-		ptrs.pany=@recup(0)
+		Ptrs.pany=@recup(0)
 		If p Then
 			If p>220 Then
 				varlib=String(p-220, Str("*"))+" Function>"
@@ -2058,9 +2058,9 @@ Dim Shared exedate As Double 'serial date
 			If pany Then
 				ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),SizeOf(Integer),0) '25/07/2015
 				If p>200 Then
-					varlib+="="+proc_name(*ptrs.puinteger) 'proc name
+					varlib+="="+proc_name(*Ptrs.puinteger) 'proc name
 				Else
-					varlib+="="+Str(*ptrs.puinteger) 'just the value
+					varlib+="="+Str(*Ptrs.puinteger) 'just the value
 				End If
 			Else
 				varlib+=" No valid value"
@@ -2074,13 +2074,13 @@ Dim Shared exedate As Double 'serial date
 					Select Case t
 					Case 1 'integer32/long
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),4,0)
-						varlib+=Str(*ptrs.pinteger)
+						varlib+=Str(*Ptrs.pinteger)
 					Case 2 'byte
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),1,0)
-						varlib+=Str(*ptrs.pbyte)
+						varlib+=Str(*Ptrs.pbyte)
 					Case 3 'ubyte
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),1,0)
-						varlib+=Str(*ptrs.pubyte)
+						varlib+=Str(*Ptrs.pubyte)
 					Case 4,13,14 'stringSSSS
 						If t=13 Then  ' normal string
 							ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@adr,SizeOf(Integer),0) 'address ptr 25/07/2015
@@ -2089,42 +2089,42 @@ Dim Shared exedate As Double 'serial date
 						End If
 						Clear recup(0),0,71 'max 70 char
 						ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@recup(0),70,0) 'value
-						varlib+=*ptrs.pzstring
+						varlib+=*Ptrs.pzstring
 					Case 5 'short
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),2,0)
-						varlib+=Str(*ptrs.pshort)
+						varlib+=Str(*Ptrs.pshort)
 					Case 6 'ushort
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),2,0)
-						varlib+=Str(*ptrs.pushort)
+						varlib+=Str(*Ptrs.pushort)
 					Case 7 'void  '25/07/2015
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),SizeOf(Integer),0)
-						varlib+=Str(*ptrs.pvoid)
+						varlib+=Str(*Ptrs.pvoid)
 					Case 8 'uinteger/ulong
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),4,0)
-						varlib+=Str(*ptrs.puinteger)
+						varlib+=Str(*Ptrs.puinteger)
 					Case 9 'longint/integer64
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),8,0)
-						varlib+=Str(*ptrs.plongint)
+						varlib+=Str(*Ptrs.pLongint)
 					Case 10 'ulongint/uinteger64
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),8,0)
-						varlib+=Str(*ptrs.pulongint)
+						varlib+=Str(*Ptrs.puLongint)
 					Case 11 'single
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),4,0)
-						varlib+=Str(*ptrs.psingle)
+						varlib+=Str(*Ptrs.psingle)
 					Case 12 'double
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),8,0)
-						varlib+=Str(*ptrs.pdouble)
+						varlib+=Str(*Ptrs.pdouble)
 					Case 16 'boolean '20/082015 boolean
 						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),1,0)
 						''varlib+=Cast(boolean,*ptrs.pbyte)
-						varlib+=IIf(*ptrs.pbyte,"True","False")
+						varlib+=IIf(*Ptrs.pbyte,"True","False")
 						'Case Else
 						'Return "Unmanaged Type>"
 					End Select
 				Else
 					If udt(t).en Then
 						If pany Then ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),4,0)
-						varlib+="="+Str(*ptrs.pinteger)+" >> "+enum_find(t,*ptrs.pinteger) 'value/enum text
+						varlib+="="+Str(*Ptrs.pinteger)+" >> "+enum_find(t,*Ptrs.pinteger) 'value/enum text
 					End If
 				End If
 			Else
@@ -2536,7 +2536,7 @@ Dim Shared exedate As Double 'serial date
 				procr(procrnb).tv= Tree_AddItem(NULL,"Globals (shared/common) in : main ", 0, tviewvar, 0) 'only first time
 				var_ini(procrnb,1,vrbgbl)'add vrbgblprev instead 1
 				'dbg_prt2("procrnb="+Str(procrnb))
-				'procr(procrnb+1).vr=vrrnb+1 'to avoid removal of global vars when the first executed proc is not the main one reactivate line 08/06/2014
+				procr(procrnb+1).vr=vrrnb+1 'to avoid removal of global vars when the first executed proc is not the main one reactivate line 08/06/2014
 			Else
 				If procrnb=PROCRMAX Then MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): DestroyWindow (windmain):Exit Sub
 				procrnb+=1
@@ -2568,8 +2568,8 @@ Dim Shared exedate As Double 'serial date
 							End If
 						ElseIf wtch(i).psk=-4 Then 'session watch
 							If wtch(i).idx=0 Then 'shared dll
-								vridx=var_search(procrnb,wtch(i).vnm(),wtch(i).vnb,wtch(i).var,wtch(i).pnt)
-								If vridx=-1 Then msgbox(ML("Proc watch: Running var not found")):Continue For
+								vridx=var_search(procrnb,wtch(i).vnm(),wtch(i).vnb,wtch(i).Var,wtch(i).pnt)
+								If vridx=-1 Then MsgBox(ML("Proc watch: Running var not found")):Continue For
 								var_fill(vridx)
 								watch_add(wtch(i).tad,i)
 							End If
@@ -3142,14 +3142,14 @@ Dim Shared exedate As Double 'serial date
 				vrb(vrbloc).typ=vrtyp
 			Else
 				
-				If vrbloc=VARMAX Then msgbox(ML("Init locals: Reached limit") & " "+Str(VARMAX-3000)):Exit Sub
+				If vrbloc=VARMAX Then MsgBox(ML("Init locals: Reached limit") & " "+Str(VARMAX-3000)):Exit Sub
 				vrbloc+=1
 				proc(procnb+1).vr=vrbloc+1 'just to have the next beginning
 				vrb(vrbloc).nm=vrnm:vrb(vrbloc).typ=vrtyp:vrb(vrbloc).adr=vradr:vrb(vrbloc).mem=vrmem
 				local_exist ''2016/08/12
 			End If
 		Else
-			If vrbgbl=VGBLMAX Then msgbox(ML("Init Globals: Reached limit") & " "+Str(VGBLMAX)):Exit Sub
+			If vrbgbl=VGBLMAX Then MsgBox(ML("Init Globals: Reached limit") & " "+Str(VGBLMAX)):Exit Sub
 			vrbgbl+=1
 			vrb(vrbgbl).nm=vrnm:vrb(vrbgbl).typ=vrtyp:vrb(vrbgbl).adr=vradr:vrb(vrbgbl).mem=vrmem
 		End If
@@ -3199,7 +3199,7 @@ Dim Shared exedate As Double 'serial date
 				Line Input #dwff, dwln
 			Loop Until InStr(dwln,"<1>")
 			If excldnb=EXCLDMAX Then
-				msgbox(ML("Excluding lines (Dll case): Limit reached") & " EXCLDMAX="+Str(EXCLDMAX)+Chr(10)+ML("No problem to continue but the error message below could be displayed several times") & "."+Chr(10)+"""" & ML("Line adr doesn't match proc") & """")
+				MsgBox(ML("Excluding lines (Dll case): Limit reached") & " EXCLDMAX="+Str(EXCLDMAX)+Chr(10)+ML("No problem to continue but the error message below could be displayed several times") & "."+Chr(10)+"""" & ML("Line adr doesn't match proc") & """")
 			Else
 				excldnb+=1
 				excldlines(excldnb).db=proc(procnb).db
@@ -3221,7 +3221,7 @@ Dim Shared exedate As Double 'serial date
 	'   <2c7>   DW_AT_location    : 2 byte block: 91 5c         (DW_OP_fbreg: -36)
 	Private Sub dw_prm_parse
 		Dim As Long p
-		If vrbloc=VARMAX Then msgbox(ML("Init locals: Reached limit") & " "+Str(VARMAX-3000)):Exit Sub
+		If vrbloc=VARMAX Then MsgBox(ML("Init locals: Reached limit") & " "+Str(VARMAX-3000)):Exit Sub
 		vrbloc+=1
 		proc(procnb+1).vr=vrbloc+1 'just to have the next beginning
 		Line Input #dwff, dwln
@@ -3866,7 +3866,7 @@ Dim Shared exedate As Double 'serial date
 								If InStr(procnmt,"@") Then
 									procnmt=Left(procnmt,InStr(procnmt,"@")-1)
 								End If
-								proc(procnb).nm=procnmt
+								proc(procnb).nm = procnmt
 								' :F --> public / :f --> private then return value
 								Dim As String recupbis
 								If gengcc=1 Then recupbis=recup:translate_gcc(recupbis):recup=recupbis
@@ -3874,7 +3874,7 @@ Dim Shared exedate As Double 'serial date
 								proc(procnb).st=1 'state no checked
 								proc(procnb).nu=recupstab.nline:lastline=0
 								proc(procnb+1).vr=proc(procnb).vr 'in case there is not param nor local var
-								proc(procnb).rvadr=0 'for now only used in gcc case 19/08/2015
+								proc(procnb).rvadr = 0 'for now only used in gcc case 19/08/2015
 							End If
 						End If
 					Case 32,38,40,128,160 'init common/ var / uninit var / local / parameter
@@ -4313,11 +4313,11 @@ Dim Shared exedate As Double 'serial date
 				temp=SendMessage(tviewcur,TVM_GETNEXTITEM,TVGN_PARENT,hitem)
 			Loop While temp
 			
-			tvI.mask       = TVIF_TEXT Or TVIF_STATE
-			tvI.hitem      = Cast(HTREEITEM,hitem)
-			tvI.pszText    = @(text)
-			tvI.cchTextMax = 99
-			sendmessage(tviewthd,TVM_GETITEM,0,Cast(LPARAM,@tvi))
+			tvi.mask       = TVIF_TEXT Or TVIF_STATE
+			tvi.hItem      = Cast(HTREEITEM,hitem)
+			tvi.pszText    = @(text)
+			tvi.cchTextMax = 99
+			SendMessage(tviewthd,TVM_GETITEM,0,Cast(LPARAM,@tvi))
 			thid=ValInt(Mid(text,10,6))
 		Else
 			thid=id
@@ -4332,7 +4332,7 @@ Dim Shared exedate As Double 'serial date
 		Dim As String text
 		' delete procr in treeview
 		If SendMessage(tviewvar,TVM_DELETEITEM,0,Cast(LPARAM,procr(j).tv))=0 Then
-			msgbox(ML("DELETE TREEVIEW ITEM") & ": " & ML("Not ok (not blocking) for proc") & " "+proc(procr(j).idx).nm)
+			MsgBox(ML("DELETE TREEVIEW ITEM") & ": " & ML("Not ok (not blocking) for proc") & " "+proc(procr(j).idx).nm)
 		End If
 		
 		'delete watch
@@ -4361,8 +4361,8 @@ Dim Shared exedate As Double 'serial date
 		
 		
 		' compress running variables
-		tempo=procr(j+1).vr-procr(j).vr
-		vrrnb-=tempo
+		tempo = procr(j + 1).vr - procr(j).vr
+		vrrnb -= tempo
 		For i As Integer = procr(j).vr To vrrnb
 			vrr(i)=vrr(i+tempo)
 		Next
@@ -4370,14 +4370,14 @@ Dim Shared exedate As Double 'serial date
 		
 		If t=1 Then 'not dll
 			th=thread_select(procr(j).thid) 'find thread index
-			parent=Cast(HTREEITEM,sendmessage(tviewthd,TVM_GETNEXTITEM,TVGN_PARENT,Cast(LPARAM,thread(th).ptv))) 'find parent of last proc item
-			sendmessage(tviewthd,TVM_DELETEITEM,0,Cast(LPARAM,thread(th).ptv)) 'delete item
+			parent=Cast(HTREEITEM,SendMessage(tviewthd,TVM_GETNEXTITEM,TVGN_PARENT,Cast(LPARAM,thread(th).ptv))) 'find parent of last proc item
+			SendMessage(tviewthd,TVM_DELETEITEM,0,Cast(LPARAM,thread(th).ptv)) 'delete item
 			thread(th).ptv=parent 'parent becomes the last
 			thread_text(th) 'update thread text
 		End If
 		
 		' compress procr and update vrr index
-		procrnb-=1
+		procrnb -= 1
 		For i As Integer =j To procrnb
 			procr(i)=procr(i+1)
 			procr(i).vr-=tempo
@@ -4399,7 +4399,7 @@ Dim Shared exedate As Double 'serial date
 			End If
 		Next
 		''delete all elements (treeview, varr, ) until the limit
-		For j As Long =procrnb To max(0, limit) Step -1
+		For j As Long =procrnb To Max(0, limit) Step -1
 			If procr(j).thid = thid Then
 				proc_del(j)
 			End If
@@ -4475,7 +4475,7 @@ Dim Shared exedate As Double 'serial date
 		Dim As Long child
 		Dim As Integer arradr=vrr(midx).ad
 		
-		child=sendmessage(tviewvar,TVM_GETNEXTITEM,TVGN_CHILD,Cast(LPARAM,vrr(midx).tv))'first child (at least one as it's an udt)
+		child=SendMessage(tviewvar,TVM_GETNEXTITEM,TVGN_CHILD,Cast(LPARAM,vrr(midx).tv))'first child (at least one as it's an udt)
 		
 		For i As Long = midx+1 To vrrnb
 			If vrr(i).tv=child Then ''only done with direct child not with the childs of a child
@@ -4489,7 +4489,7 @@ Dim Shared exedate As Double 'serial date
 						''vrr(i).ad=0
 					End If
 				End If
-				child=sendmessage(tviewvar,TVM_GETNEXTITEM,TVGN_NEXT,Cast(LPARAM,child))
+				child=SendMessage(tviewvar,TVM_GETNEXTITEM,TVGN_NEXT,Cast(LPARAM,child))
 				If child=0 Then Exit For ''no more child
 			End If
 		Next
@@ -4500,19 +4500,18 @@ Dim Shared exedate As Double 'serial date
 		Dim As Integer temp1,temp2,temp3,vlbound(4),vubound(4)
 		Dim As tarr Ptr arradr
 		Dim As Long vflong,udtlg,nbdim,typ
-		
-		If vrr(i).vr<0 Then ''field
+		If vrr(i).vr < 0 Then ''field
 			text=cudt(Abs(vrr(i).vr)).nm+" "
 			arradr=cudt(Abs(vrr(i).vr)).arr
 			udtlg=udt(cudt(Abs(vrr(i).vr)).typ).lg
 			If Cast(Integer,cudt(Abs(vrr(i).vr)).arr)>0 Then nbdim=cudt(Abs(vrr(i).vr)).arr->dm-1 ''only used in case of fixed-lenght array
-			typ=cudt(Abs(vrr(i).vr)).typ
+			typ = cudt(Abs(vrr(i).vr)).typ
 		Else
 			text=vrb(vrr(i).vr).nm+" "
 			arradr=vrb(vrr(i).vr).arr
 			udtlg=udt(vrb(vrr(i).vr).typ).lg
 			If Cast(Integer,vrb(vrr(i).vr).arr)>0 Then nbdim=vrb(vrr(i).vr).arr->dm-1 ''only used in case of fixed-lenght array
-			typ=vrb(vrr(i).vr).typ
+			typ = vrb(vrr(i).vr).typ
 		End If
 		If arradr Then ''fixed lenght or dynamic array
 			If Cast(Integer, arradr)=-1 Then ''dynamic
@@ -4724,7 +4723,7 @@ Dim Shared exedate As Double 'serial date
 			tvi.hItem = node
 			TreeView_GetItem(tviewvar, @tvi)
 			If tvi.lParam <> 0 Then Tree_upditem(node, var_sh1(tvi.lParam), tviewvar)
-			If tvi.State = 96 OrElse tvi.State = 98 Then UpdateItems(TreeView_GetNextItem(tviewvar, node, TVGN_CHILD))
+			If tvi.state = 96 OrElse tvi.state = 98 Then UpdateItems(TreeView_GetNextItem(tviewvar, node, TVGN_CHILD))
 			node = TreeView_GetNextItem(tviewvar, node, TVGN_NEXT)
 		Wend
 	End Sub
@@ -5036,8 +5035,8 @@ Dim Shared exedate As Double 'serial date
 				End If
 			ElseIf wtch(i).psk=-4 Then 'session watch
 				If wtch(i).idx=prcidx Then
-					vridx=var_search(procridx,wtch(i).vnm(),wtch(i).vnb,wtch(i).var,wtch(i).pnt)
-					If vridx=-1 Then msgbox(ML("Proc watch: Running var not found")):Continue For
+					vridx=var_search(procridx,wtch(i).vnm(),wtch(i).vnb,wtch(i).Var,wtch(i).pnt)
+					If vridx=-1 Then MsgBox(ML("Proc watch: Running var not found")):Continue For
 					var_fill(vridx)
 					watch_add(wtch(i).tad,i)
 				End If
@@ -5080,7 +5079,7 @@ Dim Shared exedate As Double 'serial date
 		var_ini(procrnb,proc(procr(procrnb).idx).vr,proc(procr(procrnb).idx+1).vr-1)
 		procr(procrnb+1).vr=vrrnb+1
 		If proc(procsv).nm="main" Then
-			procr(procrnb).vr=1 'constructors for shared are executed before main so reset index for first variable of main 04/02/2014
+			'procr(procrnb).vr=1 'constructors for shared are executed before main so reset index for first variable of main 04/02/2014
 		End If
 		proc_watch(procrnb) 'reactivate watched var
 		RedrawWindow tviewvar, 0, 0, 1
@@ -5246,7 +5245,7 @@ Dim Shared exedate As Double 'serial date
 				threadsup=i
 				If thread(i).sv<>-1 Then
 					'delete thread item and child
-					sendmessage(tviewthd,TVM_DELETEITEM,0,Cast(LPARAM,thread(i).tv))
+					SendMessage(tviewthd,TVM_DELETEITEM,0,Cast(LPARAM,thread(i).tv))
 					'proc delete
 					For j As Integer = procrnb To 2 Step -1 'always keep procr(1)=main
 						If procr(j).thid=thid Then
@@ -5454,7 +5453,7 @@ Dim Shared exedate As Double 'serial date
 				thread(i).ptv=Tree_AddItem(thread(i).ptv,proc(pridx(k)).nm,TVI_FIRST,tviewthd, 0)
 				var_ini(procrnb,proc(procr(procrnb).idx).vr,proc(procr(procrnb).idx+1).vr-1)
 				procr(procrnb+1).vr=vrrnb+1
-				If proc(procsv).nm="main" Then procr(procrnb).vr=1 'constructors for shared they are executed before main so reset index for first variable of main 04/02/2014
+				'If proc(procsv).nm="main" Then procr(procrnb).vr=1 'constructors for shared they are executed before main so reset index for first variable of main 04/02/2014
 				proc_watch(procrnb) 'reactivate watched var
 			Next
 			RedrawWindow tviewthd, 0, 0, 1
