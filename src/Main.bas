@@ -916,8 +916,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					ThreadsEnter()
 					If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 					lvProblems.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
-					lvProblems.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(1) = WStr(iLine)
-					lvProblems.ListItems.Item(lvErrors.ListItems.Count - 1)->Text(2) = *ErrFileName
+					lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
+					lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
 					ShowMessages(Buff, False)
 					ThreadsLeave()
 					'*LogText = *LogText & *Buff & WChr(13) & WChr(10)
