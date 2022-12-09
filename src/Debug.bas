@@ -4142,17 +4142,17 @@ Dim Shared exedate As Double 'serial date
 	End Sub
 	
 	Sub thread_rsm()
-		WriteProcessMemory(dbghand,Cast(LPVOID,rLine(thread(threadcur).sv).ad),@rLine(thread(threadcur).sv).sv,1,0) 'restore old value for execution
-		resumethread(threadhs)
+		WriteProcessMemory(dbghand,Cast(LPVOID,rline(thread(threadcur).sv).ad),@rline(thread(threadcur).sv).sv,1,0) 'restore old value for execution
+		ResumeThread(threadhs)
 	End Sub
 	
 	Private Function kill_process(text As String) As Integer
 		Dim As Long retcode,lasterr
-		If msgbox(ML("Kill current running Program?") & text + Chr(10)+Chr(10) + _
+		If MsgBox(ML("Kill current running Program?") & text + Chr(10)+Chr(10) + _
 			ML("USE CARREFULLY SYSTEM CAN BECOME UNSTABLE, LOSS OF DATA, MEMORY LEAK")+Chr(10)+ _
 			ML("Try to close your program first"), , mtWarning, btYesNo) = mrYes Then
 			flagkill=True
-			retcode=terminateprocess(dbghand,999)
+			retcode=TerminateProcess(dbghand,999)
 			lasterr=GetLastError
 			#ifdef fulldbg_prt
 				dbg_prt ("return code terminate process ="+Str(retcode)+" lasterror="+GetErrorString(lasterr))
@@ -5930,7 +5930,7 @@ Dim Shared exedate As Double 'serial date
 				End If
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 			Case UNLOAD_DLL_DEBUG_EVENT:
-				Dim unloaddll As UNLOAD_DLL_DEBUG_INFO = DebugEv.u.unloaddll
+				Dim unloaddll As UNLOAD_DLL_DEBUG_INFO = DebugEv.u.UnloadDll
 				For i As Integer = 1 To dllnb
 					If dlldata(i).bse = unloaddll.lpBaseOfDll Then
 						CloseHandle dlldata(i).hdl
@@ -5939,7 +5939,7 @@ Dim Shared exedate As Double 'serial date
 				Next i
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 			Case OUTPUT_DEBUG_STRING_EVENT:
-				debugstring_read(debugev)
+				debugstring_read(DebugEv)
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 			Case RIP_EVENT
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
@@ -6039,6 +6039,45 @@ Dim Shared exedate As Double 'serial date
 		Next
 	End Sub
 #endif
+'================================================================
+'' check if exe bitness if not wrong 32bit<>64bit windows only
+'================================================================
+Private Function check_bitness(ByRef fullname As WString) As Integer
+	#Ifdef __FB_WIN32__
+		Dim As Long bintype
+		GetBinaryType(@fullname, @bintype) ''a control to prevent 32bit<>64bit
+		#Ifdef __FB_64BIT__
+			If bintype=SCS_32BIT_BINARY Then
+			   MsgBox(ML("Can not be used for debugging 32bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
+				Return 0
+			End If
+		#else
+			If bintype=SCS_64BIT_BINARY Then
+				MsgBox(ML("Can not be used for debugging 64bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
+				Return 0
+			End If
+		#endif
+	#else
+		Dim As UByte ubyt
+		Open fullname For binary As #1
+		Get #1,5,ubyt ''offset=4 32bit or 64bit
+		Close #1
+		#Ifdef __FB_64BIT__
+			If ubyt<>2 Then
+				MsgBox(ML("Can not be used for debugging 32bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
+				'close #1
+				Return 0
+			End If
+		#else
+			If ubyt<>1 Then
+				MsgBox(ML("Can not be used for debugging 64bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
+				'close #1
+				Return 0
+			End If
+		#endif
+	#endif
+	Return -1
+End Function
 
 #if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 Dim Shared As Long pIn, pOut
@@ -8701,8 +8740,8 @@ Sub RunWithDebug(Param As Any Ptr)
 			Dim As Unsigned Long ExitCode
 			exename = GetFullPath(WGet(DebuggerPath))
 			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
-			If CreateProcessW(@exename, CmdL, ByVal Null, ByVal Null, False, pClass, Null, Workdir, @SInfo, @PInfo) Then
-				WaitForSingleObject pinfo.hProcess, INFINITE
+			If CreateProcessW(@exename, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then
+				WaitForSingleObject PInfo.hProcess, INFINITE
 				GetExitCodeProcess(PInfo.hProcess, @ExitCode)
 				CloseHandle(PInfo.hProcess)
 				CloseHandle(PInfo.hThread)
@@ -8730,6 +8769,8 @@ Sub RunWithDebug(Param As Any Ptr)
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 				ChangeEnabledDebug True, False, False
 			Else
+				If check_bitness(exename) = 0 Then Exit Sub ''bitness of debuggee and Integrated IDE Debugger not corresponding
+				flagrestart = -1
 				lvLocals.Visible = False
 				tvVar.Visible = True
 				lvThreads.Visible = False
@@ -8763,7 +8804,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			End If
 		End If
 	#endif
-	If WorkDir <> 0 Then Deallocate_( WorkDir)
+	If Workdir <> 0 Then Deallocate_( Workdir)
 	If CmdL <> 0 Then Deallocate_( CmdL)
 	Exit Sub
 	ErrorHandler:
