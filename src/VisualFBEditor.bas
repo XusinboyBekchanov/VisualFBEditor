@@ -745,8 +745,8 @@ Sub mClick(Sender As My.Sys.Object)
 	End Select
 End Sub
 
-App.MainForm = @frmMain
-App.Run
+pApp->MainForm = @frmMain
+pApp->Run
 
 End
 AA:
