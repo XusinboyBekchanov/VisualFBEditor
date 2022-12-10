@@ -349,7 +349,11 @@ Function GetFullPathInSystem(ByRef Path As WString) As UString
 	Else
 		Dim As WString * MAX_PATH fullPath
 		#ifdef __USE_GTK__
-			fullPath = WStr(*g_find_program_in_path(Path))
+			If FileExists(ExePath & Slash & Path) Then
+				fullPath = ExePath & Slash & Path
+			Else
+				fullPath = WStr(*g_find_program_in_path(Path))
+			End If
 		#else
 			Dim As WString Ptr lpFilePart
 			If SearchPath(NULL, Path, ".exe", MAX_PATH - 1, @fullPath, 0) = 0 Then
@@ -7756,7 +7760,7 @@ Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 			CloseBottom
 		End If
 	End If
-	Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
+	Dim As Form Ptr ActiveForm = Cast(Form Ptr, App.ActiveForm)
 	If ActiveForm = 0 OrElse ActiveForm->ActiveControl = 0 Then Exit Sub
 	Dim As Boolean bEnabled, bEnabledEditControl, bEnabledPanel
 	Select Case ActiveForm->ActiveControl->ClassName
@@ -8119,6 +8123,13 @@ Sub frmMain_Create(ByRef Sender As Control)
 		tviewthd = tvThd.Handle
 		tviewwch = tvWch.Handle
 		DragAcceptFiles(frmMain.Handle, True)
+	#else
+		windmain = frmMain.Handle
+		'htab2    = ptabCode->Handle
+		tviewvar = @tvVar
+		'tviewPrc = @tvPrc
+		tviewthd = @tvThd
+		tviewwch = @tvWch
 	#endif
 	'	If MainNode <> 0 Then
 	'		' Should have changelog file for every project
