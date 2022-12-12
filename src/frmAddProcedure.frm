@@ -728,7 +728,10 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 		tb->txtCode.TopLine = i + q1 + 1
 	End If
 	tb->txtCode.SetFocus
-	OnLineChangeEdit tb->txtCode, i + q1 + 2, i + q1 + 2
+	bNotDesignForms = True
+	tb->txtCode.Changed "Insert procedure"
+	'OnLineChangeEdit tb->txtCode, i + q1 + 2, i + q1 + 2
+	bNotDesignForms = False
 	This.CloseForm
 End Sub
 

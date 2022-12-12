@@ -1805,7 +1805,6 @@ Sub DesignerBringToFront(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Sender.BringToFront
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 OrElse Ctrl = 0 OrElse tb->Des = 0 Then Exit Sub
-	
 End Sub
 
 Sub DesignerSendToBack(ByRef Sender As Designer, Ctrl As Any Ptr)
@@ -1941,8 +1940,10 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		iEnd = i
 	Loop
 	WDeAllocate(FLine)
+	bNotDesignForms = True
 	ptxtCode->Changed "Unsurni o`chirish"
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed "Unsurni o`chirish"
+	bNotDesignForms = False
 End Sub
 
 Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", BeforeCtrl As Any Ptr = 0, AfterCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
@@ -1980,6 +1981,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As EditControl txtCodeBi
 	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
+	Dim As Boolean bOldChangingStarted = tb->txtCode.ChangingStarted
 	Dim As Integer iStart, iEnd, i, k, dj
 	WLet(FLine1, "")
 	For i = 0 To tb->txtCode.LinesCount - 1
@@ -2318,8 +2320,12 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			InsLineCount += q
 		End If
 	End If
-	ptxtCode->Changed ""
-	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed ""
+	If Not bOldChangingStarted Then
+		bNotDesignForms = True
+		ptxtCode->Changed ""
+		If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed ""
+		bNotDesignForms = False
+	End If
 	WDeAllocate(FLine)
 	WDeAllocate(FLine1)
 	WDeAllocate(FLine2) '
@@ -2542,6 +2548,19 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 				For i As Integer = 2 To tb->cboClass.ItemCount - 1
 					ChangeControl(*tb->Des, tb->cboClass.Items.Item(i)->Object, "TabIndex")
 				Next
+			ElseIf PropertyName = "ControlIndex" Then
+				For i As Integer = 0 To SelCount - 1
+					Dim As SymbolsType Ptr st = tb->Des->Symbols(pSelectedControls->Item(i))
+					Dim As Any Ptr BeforeCtrl
+					If st AndAlso st->ReadPropertyFunc AndAlso st->WritePropertyFunc AndAlso st->ReadPropertyFunc(pSelectedControls->Item(i), "Parent") Then
+						Dim As Any Ptr ParentCtrl = st->ReadPropertyFunc(pSelectedControls->Item(i), "Parent")
+						Dim As SymbolsType Ptr stParent = tb->Des->Symbols(ParentCtrl)
+						If stParent AndAlso stParent->ReadPropertyFunc AndAlso stParent->ControlByIndexFunc AndAlso QInteger(stParent->ReadPropertyFunc(ParentCtrl, "ControlCount")) > 1 Then
+							BeforeCtrl = stParent->ControlByIndexFunc(ParentCtrl, Val(SenderText) + 1)
+						End If
+					End If
+					ChangeControl(*tb->Des, pSelectedControls->Item(i), PropertyName, BeforeCtrl)
+				Next i
 			Else
 				For i As Integer = 0 To SelCount - 1
 					ChangeControl(*tb->Des, pSelectedControls->Item(i), PropertyName)
@@ -2573,7 +2592,9 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 					End If
 				#endif
 			Next j
+			bNotDesignForms = True
 			.Changed "Unsurni o`zgartirish"
+			bNotDesignForms = False
 			pfrmMain->UpdateUnLock
 		End If
 		.PaintControl(True)
@@ -2603,8 +2624,10 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 		End If
 		.Changing "Unsurni o`zgartirish"
 		ChangeControl(Sender, Ctrl, PropertyName, BeforeCtrl, AfterCtrl, iLeft, iTop, iWidth, iHeight)
+		bNotDesignForms = True
 		.Changed "Unsurni o`zgartirish"
-		tb->FormDesign True
+		bNotDesignForms = False
+		'tb->FormDesign True
 		tb->txtCode.PaintControl True
 		pfrmMain->UpdateUnLock
 	End With
@@ -2676,9 +2699,10 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 		Next
 	End If
 	If stDesignControl->ControlSetFocusSub <> 0 Then stDesignControl->ControlSetFocusSub(tb->Des->DesignControl)
+	bNotDesignForms = True
 	tb->txtCode.Changed "Unsur qo`shish"
 	If ptxtCodeBi <> 0 Then ptxtCodeBi->Changed "Unsur qo`shish"
-	tb->FormDesign True
+	bNotDesignForms = False
 	ToolGroupsToCursor
 	Exit Sub
 	ErrorHandler:

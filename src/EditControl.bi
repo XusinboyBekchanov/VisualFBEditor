@@ -408,6 +408,7 @@ Namespace My.Sys.Forms
 			cboIntellisense As ComboBoxEx
 			pnlIntellisense As Panel
 		#endif
+		ChangingStarted As Boolean
 		DropDownShowed As Boolean
 		DropDownChar As Integer
 		DropDownToolTipShowed As Boolean

@@ -912,6 +912,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.Changing(ByRef Comment As WString = "")
+		ChangingStarted = True
 		FOldSelStartLine = FSelStartLine
 		FOldSelEndLine = FSelEndLine
 		FOldSelStartChar = FSelStartChar
@@ -980,6 +981,7 @@ Namespace My.Sys.Forms
 		#endif
 			ScrollToCaret
 		End If
+		ChangingStarted = False
 	End Sub
 	
 	Sub EditControl.ChangeText(ByRef Value As WString, CharTo As Integer = 0, ByRef Comment As WString = "", SelStartLine As Integer = -1, SelStartChar As Integer = -1)
