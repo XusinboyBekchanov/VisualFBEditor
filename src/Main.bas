@@ -7761,7 +7761,7 @@ Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 			CloseBottom
 		End If
 	End If
-	Dim As Form Ptr ActiveForm = Cast(Form Ptr, App.ActiveForm)
+	Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
 	If ActiveForm = 0 OrElse ActiveForm->ActiveControl = 0 Then Exit Sub
 	Dim As Boolean bEnabled, bEnabledEditControl, bEnabledPanel
 	Select Case ActiveForm->ActiveControl->ClassName
