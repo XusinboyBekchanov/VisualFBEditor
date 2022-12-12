@@ -748,6 +748,18 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
+		' chkShowHorizontalSeparatorLines
+		With chkShowHorizontalSeparatorLines
+			.Name = "chkShowHorizontalSeparatorLines"
+			.Text = ML("Show Horizontal Separator Lines")
+			.TabIndex = 230
+			.Align = DockStyle.alTop
+			.ControlIndex = 6
+			.Caption = ML("Show Horizontal Separator Lines")
+			.SetBounds 0, 128, 417, 21
+			.Designer = @This
+			.Parent = @vbxCodeEditor
+		End With
 		' chkHighlightCurrentWord
 		With chkHighlightCurrentWord
 			.Name = "chkHighlightCurrentWord"
@@ -2625,6 +2637,7 @@ Sub frmOptions.LoadSettings()
 		.chkShowSpaces.Checked = ShowSpaces
 		.chkShowKeywordsTooltip.Checked = ShowKeywordsToolTip
 		.chkShowTooltipsAtTheTop.Checked = ShowTooltipsAtTheTop
+		.chkShowHorizontalSeparatorLines.Checked = ShowHorizontalSeparatorLines
 		.chkHighlightBrackets.Checked = HighlightBrackets
 		.chkHighlightCurrentLine.Checked = HighlightCurrentLine
 		.chkHighlightCurrentWord.Checked = HighlightCurrentWord
@@ -3237,6 +3250,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		ShowSpaces = .chkShowSpaces.Checked
 		ShowKeywordsToolTip = .chkShowKeywordsTooltip.Checked
 		ShowTooltipsAtTheTop = .chkShowTooltipsAtTheTop.Checked
+		ShowHorizontalSeparatorLines = .chkShowHorizontalSeparatorLines.Checked
 		HighlightBrackets = .chkHighlightBrackets.Checked
 		HighlightCurrentLine = .chkHighlightCurrentLine.Checked
 		HighlightCurrentWord = .chkHighlightCurrentWord.Checked
@@ -3403,6 +3417,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "ShowSpaces", ShowSpaces
 		piniSettings->WriteBool "Options", "ShowKeywordsTooltip", ShowKeywordsToolTip
 		piniSettings->WriteBool "Options", "ShowTooltipsAtTheTop", ShowTooltipsAtTheTop
+		piniSettings->WriteBool "Options", "ShowHorizontalSeparatorLines", ShowHorizontalSeparatorLines
 		piniSettings->WriteBool "Options", "HighlightBrackets", HighlightBrackets
 		piniSettings->WriteBool "Options", "HighlightCurrentLine", HighlightCurrentLine
 		piniSettings->WriteBool "Options", "HighlightCurrentWord", HighlightCurrentWord

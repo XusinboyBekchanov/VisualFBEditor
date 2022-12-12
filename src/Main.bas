@@ -2545,7 +2545,7 @@ Sub ReloadHistoryCode()
 	End If
 	Dim As OpenFileDialog OpenD
 	OpenD.InitialDir = ExePath & Slash & "Temp"
-	OpenD.Filter = ML("Backup Files") & " (*.bak)|" & getFilename(tb->FileName) & "*.bak|" & ML("All Files") & "|*.*|"
+	OpenD.Filter = ML("Backup Files") & " (*.bak)|" & GetFileName(tb->FileName) & "*.bak|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute AndAlso Trim(OpenD.FileName) <> "" Then
 		tb->txtCode.Changing "Reload"
 		tb->txtCode.LoadFromFile(OpenD.FileName, tb->FileEncoding, tb->NewLineType)
@@ -4645,6 +4645,7 @@ Sub LoadSettings
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
 	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "ShowKeywordsTooltip", True)
 	ShowTooltipsAtTheTop = iniSettings.ReadBool("Options", "ShowTooltipsAtTheTop", False)
+	ShowHorizontalSeparatorLines = iniSettings.ReadBool("Options", "ShowHorizontalSeparatorLines", True)
 	HighlightBrackets = iniSettings.ReadBool("Options", "HighlightBrackets", True)
 	HighlightCurrentLine = iniSettings.ReadBool("Options", "HighlightCurrentLine", True)
 	HighlightCurrentWord = iniSettings.ReadBool("Options", "HighlightCurrentWord", True)
