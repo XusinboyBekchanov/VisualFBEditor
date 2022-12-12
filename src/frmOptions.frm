@@ -37,18 +37,6 @@ pfOptions = @fOptions
 		'This.DefaultButton = @cmdOK
 		This.Designer = @This
 		This.BorderStyle = FormBorderStyle.FixedDialog
-		' pnlGeneral
-		pnlGeneral.Name = "pnlGeneral"
-		pnlGeneral.Text = ""
-		pnlGeneral.Margins.Left = 10
-		pnlGeneral.ExtraMargins.Top = 0
-		pnlGeneral.ExtraMargins.Bottom = 9
-		pnlGeneral.ExtraMargins.Right = 10
-		pnlGeneral.Align = DockStyle.alClient
-		pnlGeneral.Margins.Top = 0
-		pnlGeneral.TabIndex = 1
-		pnlGeneral.SetBounds 188, 0, 427, 404
-		pnlGeneral.Parent = @This
 		' pnlCompiler
 		pnlCompiler.Name = "pnlCompiler"
 		pnlCompiler.Text = ""
@@ -191,6 +179,18 @@ pfOptions = @fOptions
 		pnlColorsAndFonts.TabIndex = 79
 		pnlColorsAndFonts.SetBounds 188, 4, 427, 400
 		pnlColorsAndFonts.Parent = @This
+		' pnlGeneral
+		pnlGeneral.Name = "pnlGeneral"
+		pnlGeneral.Text = ""
+		pnlGeneral.Margins.Left = 10
+		pnlGeneral.ExtraMargins.Top = 0
+		pnlGeneral.ExtraMargins.Bottom = 9
+		pnlGeneral.ExtraMargins.Right = 10
+		pnlGeneral.Align = DockStyle.alClient
+		pnlGeneral.Margins.Top = 0
+		pnlGeneral.TabIndex = 1
+		pnlGeneral.SetBounds 188, 0, 427, 404
+		pnlGeneral.Parent = @This
 		' pnlCommands
 		With pnlCommands
 			.Name = "pnlCommands"
@@ -587,7 +587,9 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 5
 			.Align = DockStyle.alTop
 			.TabIndex = 100
-			.SetBounds 0, 5, 417, 18
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 5, 223, 21
 			.ID = 1009
 			.Parent = @vbxGeneral
 		End With
@@ -597,7 +599,9 @@ pfOptions = @fOptions
 		chkAutoCreateRC.ExtraMargins.Top = 5
 		chkAutoCreateRC.Align = DockStyle.alTop
 		chkAutoCreateRC.TabIndex = 101
-		chkAutoCreateRC.SetBounds 0, 28, 417, 18
+		chkAutoCreateRC.Constraints.Height = 21
+		chkAutoCreateRC.AutoSize = true
+		chkAutoCreateRC.SetBounds 0, 28, 295, 21
 		chkAutoCreateRC.Parent = @vbxGeneral
 		' CheckBox1
 		CheckBox1.Name = "CheckBox1"
@@ -605,7 +609,9 @@ pfOptions = @fOptions
 		CheckBox1.Align = DockStyle.alTop
 		CheckBox1.ExtraMargins.Top = 5
 		CheckBox1.TabIndex = 102
-		CheckBox1.SetBounds 0, 51, 417, 18
+		CheckBox1.Constraints.Height = 21
+		CheckBox1.AutoSize = true
+		CheckBox1.SetBounds 0, 51, 166, 21
 		CheckBox1.Parent = @vbxGeneral
 		' chkAddRelativePathsToRecent
 		With chkAddRelativePathsToRecent
@@ -614,7 +620,9 @@ pfOptions = @fOptions
 			.TabIndex = 103
 			.ExtraMargins.Top = 5
 			.Align = DockStyle.alTop
-			.SetBounds 0, 74, 417, 18
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 74, 190, 21
 			.Parent = @vbxGeneral
 		End With
 		' grbIncludePaths
@@ -696,7 +704,9 @@ pfOptions = @fOptions
 		chkAutoIndentation.ExtraMargins.Top = 2
 		chkAutoIndentation.Align = DockStyle.alTop
 		chkAutoIndentation.TabIndex = 111
-		chkAutoIndentation.SetBounds 0, 2, 417, 21
+		chkAutoIndentation.Constraints.Height = 21
+		chkAutoIndentation.AutoSize = true
+		chkAutoIndentation.SetBounds 0, 2, 137, 21
 		chkAutoIndentation.Parent = @vbxCodeEditor
 		' chkEnableAutoComplete
 		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
@@ -704,7 +714,9 @@ pfOptions = @fOptions
 		chkEnableAutoComplete.ExtraMargins.Top = 0
 		chkEnableAutoComplete.Align = DockStyle.alTop
 		chkEnableAutoComplete.TabIndex = 112
-		chkEnableAutoComplete.SetBounds 0, 0, 417, 21
+		chkEnableAutoComplete.Constraints.Height = 21
+		chkEnableAutoComplete.AutoSize = true
+		chkEnableAutoComplete.SetBounds 0, 23, 161, 21
 		chkEnableAutoComplete.Parent = @vbxCodeEditor
 		' chkEnableAutoSuggestions
 		With chkEnableAutoSuggestions
@@ -714,7 +726,9 @@ pfOptions = @fOptions
 		.Align = DockStyle.alTop
 		.ControlIndex = 1
 		.Caption = ML("Enable Auto Suggestions")
-			.SetBounds 0, 0, 427, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 44, 174, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
@@ -724,7 +738,9 @@ pfOptions = @fOptions
 		chkShowSpaces.Align = DockStyle.alTop
 		chkShowSpaces.ExtraMargins.Top = 0
 		chkShowSpaces.TabIndex = 113
-		chkShowSpaces.SetBounds 0, 44, 417, 21
+		chkShowSpaces.Constraints.Height = 21
+		chkShowSpaces.AutoSize = true
+		chkShowSpaces.SetBounds 0, 65, 118, 21
 		chkShowSpaces.Parent = @vbxCodeEditor
 		' chkShowKeywordsTooltip
 		With chkShowKeywordsTooltip
@@ -733,7 +749,9 @@ pfOptions = @fOptions
 			.TabIndex = 114
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 0, 65, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 86, 166, 21
 			'.Caption = ML("Show Keywords Tooltip")
 			.Parent = @vbxCodeEditor
 		End With
@@ -744,7 +762,9 @@ pfOptions = @fOptions
 			.TabIndex = 115
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 0, 86, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 107, 174, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
@@ -756,7 +776,9 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.ControlIndex = 6
 			.Caption = ML("Show Horizontal Separator Lines")
-			.SetBounds 0, 128, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 128, 210, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
@@ -767,7 +789,9 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.TabIndex = 116
-			.SetBounds 0, 107, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 149, 165, 21
 			.Parent = @vbxCodeEditor
 		End With
 		' chkHighlightCurrentLine
@@ -777,7 +801,9 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.TabIndex = 117
-			.SetBounds 0, 128, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 170, 158, 21
 			.Parent = @vbxCodeEditor
 		End With
 		' chkHighlightBrackets
@@ -787,7 +813,9 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.TabIndex = 118
-			.SetBounds 0, 149, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 191, 140, 21
 			.Parent = @vbxCodeEditor
 		End With
 		' chkAddSpacesToOperators
@@ -797,7 +825,9 @@ pfOptions = @fOptions
 			.TabIndex = 119
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
-			.SetBounds 0, 170, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 212, 178, 21
 			'.Caption = ML("Add Spaces To Operators")
 			.Parent = @vbxCodeEditor
 		End With
@@ -808,7 +838,9 @@ pfOptions = @fOptions
 			.TabIndex = 121
 			.Align = DockStyle.alTop
 			'.Caption = ML("Syntax Highlighting Identifiers")
-			.SetBounds 0, 191, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 233, 199, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
@@ -820,7 +852,9 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.Caption = ML("Change Identifiers Case")
 			.ExtraMargins.Top = 0
-			.SetBounds 0, 212, 417, 21
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 0, 254, 171, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
@@ -831,7 +865,9 @@ pfOptions = @fOptions
 		chkChangeKeywordsCase.Align = DockStyle.alLeft
 		chkChangeKeywordsCase.ExtraMargins.Right = 0
 		chkChangeKeywordsCase.TabIndex = 31
-		chkChangeKeywordsCase.SetBounds 0, 0, 200, 23
+		chkChangeKeywordsCase.Constraints.Height = 21
+		chkChangeKeywordsCase.AutoSize = true
+		chkChangeKeywordsCase.SetBounds 0, 0, 202, 21
 		chkChangeKeywordsCase.Parent = @pnlChangeKeywordsCase
 		' cboCase
 		cboCase.Name = "cboCase"
@@ -852,7 +888,9 @@ pfOptions = @fOptions
 		chkTabAsSpaces.ExtraMargins.Right = 0
 		chkTabAsSpaces.Caption = ML("Treat Tab as Spaces") & ":"
 		chkTabAsSpaces.TabIndex = 33
-		chkTabAsSpaces.SetBounds 0, 0, 206, 23
+		chkTabAsSpaces.Constraints.Height = 21
+		chkTabAsSpaces.AutoSize = true
+		chkTabAsSpaces.SetBounds 0, 0, 171, 21
 		chkTabAsSpaces.Parent = @pnlTreatTabAsSpaces
 		' cboTabStyle
 		cboTabStyle.Name = "cboTabStyle"
@@ -1331,7 +1369,9 @@ pfOptions = @fOptions
 		chkBold.Align = DockStyle.alTop
 		chkBold.ExtraMargins.Top = 5
 		chkBold.TabIndex = 58
-		chkBold.SetBounds 0, 204, 154, 16
+		chkBold.Constraints.Height = 21
+		chkBold.AutoSize = true
+		chkBold.SetBounds 0, 204, 75, 21
 		chkBold.OnClick = @chkBold_Click
 		chkBold.Parent = @vbxColors
 		' chkItalic
@@ -1340,7 +1380,9 @@ pfOptions = @fOptions
 		chkItalic.ControlIndex = 9
 		chkItalic.Align = DockStyle.alTop
 		chkItalic.TabIndex = 59
-		chkItalic.SetBounds 0, 220, 154, 16
+		chkItalic.Constraints.Height = 21
+		chkItalic.AutoSize = true
+		chkItalic.SetBounds 0, 225, 78, 21
 		chkItalic.OnClick = @chkItalic_Click
 		chkItalic.Parent = @vbxColors
 		' chkUnderline
@@ -1349,7 +1391,9 @@ pfOptions = @fOptions
 		chkUnderline.ControlIndex = 10
 		chkUnderline.Align = DockStyle.alTop
 		chkUnderline.TabIndex = 60
-		chkUnderline.SetBounds 0, 236, 154, 16
+		chkUnderline.Constraints.Height = 21
+		chkUnderline.AutoSize = true
+		chkUnderline.SetBounds 0, 246, 100, 21
 		chkUnderline.OnClick = @chkUnderline_Click
 		chkUnderline.Parent = @vbxColors
 		' chkIndicator
@@ -1389,7 +1433,9 @@ pfOptions = @fOptions
 		chkUseMakeOnStartWithCompile.ExtraMargins.Bottom = 10
 		chkUseMakeOnStartWithCompile.ExtraMargins.Left = 15
 		chkUseMakeOnStartWithCompile.TabIndex = 140
-		chkUseMakeOnStartWithCompile.SetBounds 25, 66, 402, 16
+		chkUseMakeOnStartWithCompile.Constraints.Height = 21
+		chkUseMakeOnStartWithCompile.AutoSize = true
+		chkUseMakeOnStartWithCompile.SetBounds 25, 66, 293, 21
 		'chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
 		chkUseMakeOnStartWithCompile.Parent = @pnlMake
 		' lvCompilerPaths
@@ -1555,7 +1601,9 @@ pfOptions = @fOptions
 			.Text = ML("Display Icons in the Menu")
 			.Align = DockStyle.alTop
 			.TabIndex = 151
-			.SetBounds 10, 60, 397, 20
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 10, 60, 177, 21
 			.Parent = @grbThemes
 		End With
 		' chkShowMainToolbar
@@ -1564,7 +1612,9 @@ pfOptions = @fOptions
 			.Text = ML("Show main Toolbar")
 			.Align = DockStyle.alTop
 			.TabIndex = 152
-			.SetBounds 10, 80, 397, 20
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 10, 81, 145, 21
 			.Parent = @grbThemes
 		End With
 		'chkShowToolBoxLocal
@@ -1573,7 +1623,9 @@ pfOptions = @fOptions
 			.Text = ML("Display ToolBox in localized language.")
 			.Align = DockStyle.alTop
 			.TabIndex = 153
-			.SetBounds 10, 100, 397, 20
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 10, 102, 235, 21
 			.Parent = @grbThemes
 		End With
 		'chkShowPropLocal
@@ -1582,7 +1634,9 @@ pfOptions = @fOptions
 			.Text = ML("Display Property of Control in localized language.")
 			.Align = DockStyle.alTop
 			.TabIndex = 154
-			.SetBounds 10, 120, 397, 20
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 10, 122, 290, 21
 			.Parent = @grbThemes
 		End With
 		' chkFrame
@@ -1758,7 +1812,9 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 10
 			.TabIndex = 160
-			.SetBounds 10, 138, 417, 16
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 10, 138, 261, 21
 			.Parent = @pnlDebugger
 		End With
 		' chkDisplayWarningsInDebug
@@ -1768,7 +1824,9 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 5
 			.Align = DockStyle.alTop
 			.TabIndex = 161
-			.SetBounds 10, 159, 417, 16
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 10, 159, 179, 21
 			.Parent = @pnlDebugger
 		End With
 		' chkCreateNonStaticEventHandlers
@@ -2143,7 +2201,9 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 5
 			.Align = DockStyle.alTop
 			.ExtraMargins.Right = 170
-			.SetBounds 10, 180, 247, 16
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 10, 180, 219, 21
 			.Parent = @pnlDebugger
 		End With
 		' txtEnvironmentVariables
@@ -2155,7 +2215,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = -18
 			.ExtraMargins.Left = 230
 			.ExtraMargins.Right = 15
-			.SetBounds 240, 178, 172, 20
+			.SetBounds 240, 178, 172, 21
 			.Parent = @pnlDebugger
 		End With
 		' lblDebugger321
@@ -2200,7 +2260,9 @@ pfOptions = @fOptions
 			'.Caption = ML("Dark Mode")
 			.Caption = ML("Dark Mode (available for Linux, Windows 10 and above)")
 			.Align = DockStyle.alTop
-			.SetBounds 10, 140, 397, 20
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 10, 142, 323, 21
 			.Parent = @grbThemes
 		End With
 		' chkPlaceStaticEventHandlersAfterTheConstructor
@@ -2261,7 +2323,9 @@ pfOptions = @fOptions
 			.Checked = False
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 5
-			.SetBounds 15, 48, 387, 20
+			.Constraints.Height = 21
+			.AutoSize = true
+			.SetBounds 15, 48, 217, 21
 			.Designer = @This
 			.Parent = @grbLanguage
 		End With
