@@ -2074,6 +2074,8 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & " ") Or StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & "type ") Then
 				sc = k
 				b = True
+				sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
+				WLet(FLine1, ..Left(ptxtCode->Lines(k), sl))
 			ElseIf b Then
 				If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "end constructor ") Then
 					se = k
