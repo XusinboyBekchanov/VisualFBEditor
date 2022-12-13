@@ -1830,7 +1830,11 @@ Sub OpenFiles(ByRef FileName As WString)
 		AddSession FileName
 		WLet(RecentSession, FileName)
 	ElseIf EndsWith(FileName, ".vfp") Then
-		AddProject FileName
+		If (GetFileName(GetFolderName(FileName, False)) & ".vfp" = GetFileName(FileName)) AndAlso (MsgBox(ML("Root folder with this name, open as a folder?"), , mtQuestion, btYesNo) = mrYes) Then
+			AddFolder(GetFolderName(FileName, False))
+		Else
+			AddProject FileName
+		End If
 		WLet(RecentProject, FileName)
 	ElseIf FolderExists(FileName) Then
 		AddFolder FileName
