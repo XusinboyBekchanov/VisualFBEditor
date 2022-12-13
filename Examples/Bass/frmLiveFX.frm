@@ -25,7 +25,7 @@
 		rchan As HRECORD = 0	' recording channel
 		chan As HSTREAM = 0		' playback stream
 		fx(3) As HFX			' FX handles
-		Input As Integer		' current Input source
+		Input As DWORD		' current Input source
 		volume As Single = 0.5	' volume level
 		
 		#define DEFAULTRATE 44100
