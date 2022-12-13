@@ -1,3 +1,9 @@
+#pragma once
+' ScintillaControl
+' https://www.ScintillaControl.org/
+' Copyright (c) 2022 CM.Wang
+' Freeware. Use at your own risk.
+
 #include once "mff/Control.bi"
 #include once "Scintilla.bi"
 #include once "Scilexer.bi"
@@ -8,6 +14,8 @@ Using My.Sys.Forms
 
 Type ScintillaControl Extends Control
 Private:
+	Dim mStf As Sci_TextToFind
+	Dim mDarkMode As Boolean = False
 	Dim As Any Ptr pLibLexilla
 	Dim As Any Ptr pLibScintilla
 	#ifndef __USE_GTK__
@@ -17,8 +25,6 @@ Private:
 Protected:
 	Declare Virtual Sub ProcessMessage(ByRef msg As Message)
 Public:
-	'Dim Handle As Any Ptr = NULL
-	Dim mDarkMode As Boolean = False
 	#ifndef ReadProperty_Off
 		Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 	#endif
@@ -39,7 +45,6 @@ Public:
 	Declare Sub GotoLine(ByVal val As Integer)
 	
 	'search & replace
-	Dim mStf As Sci_TextToFind
 	Dim FindData As ZString Ptr = NULL
 	Dim FindLength As Integer
 	Dim FindPoses(Any) As Integer

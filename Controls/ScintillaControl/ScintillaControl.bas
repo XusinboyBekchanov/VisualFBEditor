@@ -224,7 +224,7 @@ End Destructor
 
 Private Sub ScintillaControl.CreateWnd()
 	Base.CreateWnd
-	' Creates a ScintillaControl editing window
+	'Creates a ScintillaControl editing window
 	'Dim rt As Rect
 	'GetClientRect(This.Parent->Handle, @rt)
 	'Dim As Integer lExStyle = 0
@@ -793,19 +793,23 @@ Private Property ScintillaControl.ViewCaretLine(ByVal bVal As Boolean)
 End Property
 
 Private Property ScintillaControl.ViewLineNo As Integer
-	Return SendMessage(FHandle, SCI_GETMARGINWIDTHN, 0, 0)
+	Return MarginWidth(0)
+	'Return SendMessage(Handle, SCI_GETMARGINWIDTHN, 0, 0)
 End Property
 
 Private Property ScintillaControl.ViewLineNo(ByVal iSize As Integer)
-	SendMessage(FHandle, SCI_SETMARGINWIDTHN, 0, iSize)
+	MarginWidth(0) = iSize
+	'SendMessage(Handle, SCI_SETMARGINWIDTHN, 0, iSize)
 End Property
 
 Private Property ScintillaControl.ViewFold As Integer
-	Return SendMessage(FHandle, SCI_GETMARGINWIDTHN, 2, 0)
+	Return MarginWidth(1)
+	'Return SendMessage(Handle, SCI_GETMARGINWIDTHN, 2, 0)
 End Property
 
 Private Property ScintillaControl.ViewFold(ByVal iSize As Integer)
-	SendMessage(FHandle, SCI_SETMARGINWIDTHN, 2, iSize)
+	MarginWidth(1) = iSize
+	'SendMessage(Handle, SCI_SETMARGINWIDTHN, 2, iSize)
 End Property
 
 Private Property ScintillaControl.MarginWidth(margin As Integer) As Integer
