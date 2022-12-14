@@ -334,12 +334,14 @@ Private Sub frmTools.lvTools_SelectedItemChanged(ByRef Sender As ListView, ItemI
 			.cmdWorkingFolder.Enabled = False
 			.cboEvent.ItemIndex = -1
 			.cboEvent.Enabled = False 
-			.hkSHortcut.Text = ""
-			.hkSHortcut.Enabled = False 
+			.hkShortcut.Text = ""
+			.hkShortcut.Enabled = False 
 			.chkWaitComplete.Checked = False
 			.chkWaitComplete.Enabled = False
 		Else
+			If Sender.ListItems.Item(i) = 0 Then Exit Sub
 			Dim As UserToolType Ptr tt = Sender.ListItems.Item(i)->Tag
+			If tt = 0 Then Exit Sub
 			.txtParameters.Text = tt->Parameters
 			.txtParameters.Enabled = True
 			.txtWorkingFolder.Text = tt->WorkingFolder
@@ -347,8 +349,8 @@ Private Sub frmTools.lvTools_SelectedItemChanged(ByRef Sender As ListView, ItemI
 			.cmdWorkingFolder.Enabled = True
 			.cboEvent.ItemIndex = tt->LoadType
 			.cboEvent.Enabled = True
-			.hkSHortcut.Text = tt->Accelerator
-			.hkSHortcut.Enabled = True
+			.hkShortcut.Text = tt->Accelerator
+			.hkShortcut.Enabled = True
 			.chkWaitComplete.Checked = tt->WaitComplete
 			.chkWaitComplete.Enabled = True
 		End If
