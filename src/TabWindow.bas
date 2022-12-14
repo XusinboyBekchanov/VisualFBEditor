@@ -6107,6 +6107,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			If Pos1 > 0 Then
 				b2 = ..Left(b2, Pos1 - 1)
 			End If
+			If inFunc AndAlso func <> 0 AndAlso (func->ElementType = "Type" OrElse func->ElementType = "Union") Then
+				b2 = Replace(b2, ":", "%")
+			End If
 			Split(b2, ":", res())
 			Dim k As Integer = 1
 			For jj As Integer = 0 To UBound(res)
@@ -6712,6 +6715,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									CurType = Replace(CurType, "`", "=")
 									'							Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
 									'							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								Pos1 = InStr(res1(n), ":")
+								If Pos1 > 0 Then
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then

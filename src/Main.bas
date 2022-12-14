@@ -3307,6 +3307,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				b &= """" & WSpace(Len(res(j)))
 			End If
 		Next
+		If inType Then
+			b = Replace(b, ":", "%")
+		End If
 		Split(b, ":", res())
 		Dim k As Integer = 1
 		For j As Integer = 0 To UBound(res)
@@ -3675,6 +3678,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								CurType = Trim(Mid(res1(n), Pos1 + 4))
 '								Pos2 = InStr(CurType, "*") 'David Change. Like Wstring * 200
 '								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
+								res1(n) = Trim(Left(res1(n), Pos1 - 1))
+							End If
+							Pos1 = InStr(res1(n), ":")
+							If Pos1 > 0 Then
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
