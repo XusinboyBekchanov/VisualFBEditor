@@ -13,7 +13,25 @@
 	#include once "mff/ComboBoxEdit.bi"
 	#include once "mff/CheckBox.bi"
 	#include once "mff/ListControl.bi"
-
+	
+	'EnumDisplayDevices
+	'	  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaydevicesa
+	'
+	'EnumDisplaySettingsEx
+	'	  https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaysettingsexa
+	'
+	'ChangeDisplaySettingsEx
+	'    https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-changedisplaysettingsexw
+	'
+	'SetDisplayConfig
+	'	  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setdisplayconfig
+	'
+	'QueryDisplayConfig
+	'    https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-querydisplayconfig
+	'
+	'GetDisplayConfigBufferSizes
+	'    https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdisplayconfigbuffersizes
+	
 	Const EDS_ROTATEDMODE = &H00000004
 	Const QDC_VIRTUAL_MODE_AWARE= &h00000010
 	Const QDC_INCLUDE_HMD = &h00000020
@@ -260,6 +278,50 @@
 		End With
 	End Constructor
 	
+	Private Sub frmDisplayType._Form_Create(ByRef Sender As Control)
+		*Cast(frmDisplayType Ptr, Sender.Designer).Form_Create(Sender)
+	End Sub
+	
+	Private Sub frmDisplayType._CommandButton5_Click(ByRef Sender As Control)
+		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton5_Click(Sender)
+	End Sub
+	
+	Private Sub frmDisplayType._CommandButton4_Click(ByRef Sender As Control)
+		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton4_Click(Sender)
+	End Sub
+	
+	Private Sub frmDisplayType._ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		*Cast(frmDisplayType Ptr, Sender.Designer).ComboBoxEdit3_Selected(Sender, ItemIndex)
+	End Sub
+	
+	Private Sub frmDisplayType._CommandButton3_Click(ByRef Sender As Control)
+		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton3_Click(Sender)
+	End Sub
+	
+	Private Sub frmDisplayType._CommandButton1_Click(ByRef Sender As Control)
+		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton1_Click(Sender)
+	End Sub
+	
+	Private Sub frmDisplayType.ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		EnumDisplayMode(ComboBoxEdit3.ItemIndex, ItemIndex)
+	End Sub
+	
+	Private Sub frmDisplayType._CommandButton6_Click(ByRef Sender As Control)
+		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton6_Click(Sender)
+	End Sub
+	
+	Private Sub frmDisplayType._ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		*Cast(frmDisplayType Ptr, Sender.Designer).ComboBoxEdit4_Selected(Sender, ItemIndex)
+	End Sub
+	
+	Private Sub frmDisplayType._ListControl2_Click(ByRef Sender As Control)
+		*Cast(frmDisplayType Ptr, Sender.Designer).ListControl2_Click(Sender)
+	End Sub
+	
+	Private Sub frmDisplayType._CommandButton2_Click(ByRef Sender As Control)
+		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton2_Click(Sender)
+	End Sub
+	
 	Dim Shared frmDisplay As frmDisplayType
 	
 	#if _MAIN_FILE_ = __FILE__
@@ -356,14 +418,14 @@ Private Function OutPutWStr(tpy As DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY) ByRef 
 		Return "UDI_EMBEDDED"
 	Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SDTVDONGLE
 		Return "SDTVDONGLE"
-	'Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_MIRACAST
-	'	Return "MIRACAST"
-	'Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_WIRED
-	'	Return "INDIRECT_WIRED"
-	'Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_VIRTUAL
-	'	Return "INDIRECT_VIRTUAL"
-	'Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_USB_TUNNEL
-	'	Return "DISPLAYPORT_USB_TUNNEL"
+		'Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_MIRACAST
+		'	Return "MIRACAST"
+		'Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_WIRED
+		'	Return "INDIRECT_WIRED"
+		'Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_VIRTUAL
+		'	Return "INDIRECT_VIRTUAL"
+		'Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_USB_TUNNEL
+		'	Return "DISPLAYPORT_USB_TUNNEL"
 	Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INTERNAL
 		Return "INTERNAL"
 	Case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_FORCE_UINT32
@@ -530,7 +592,7 @@ End Function
 
 Private Sub frmDisplayType.GetDisplayMode(ByVal NameIndex As Integer, ByVal FlagIndex As Integer, ByVal Index As Integer)
 	If NameIndex < 0 Or FlagIndex < 0 Then Exit Sub
-
+	
 	Dim dmDevMode() As DEVMODE
 	Dim dmDevModeCur As DEVMODE
 	Dim iModeCur As Integer = -1
@@ -538,7 +600,7 @@ Private Sub frmDisplayType.GetDisplayMode(ByVal NameIndex As Integer, ByVal Flag
 	Dim i As Long
 	Dim tmpi As WString Ptr
 	Dim tmpc As WString Ptr
-
+	
 	Dim dwFlags As DWORD = EDSEdwFlags(FlagIndex)
 	
 	memset (@dmDevModeCur, 0, SizeOf(DEVMODE))
@@ -558,7 +620,7 @@ End Sub
 Private Sub frmDisplayType.EnumDisplayMode(ByVal NameIndex As Integer, ByVal FlagIndex As Integer)
 	ListControl2.Clear
 	If NameIndex < 0 Or FlagIndex < 0 Then Exit Sub
-
+	
 	Dim dmDevMode() As DEVMODE
 	Dim dmDevModeCur As DEVMODE
 	Dim iModeCur As Integer = -1
@@ -566,7 +628,7 @@ Private Sub frmDisplayType.EnumDisplayMode(ByVal NameIndex As Integer, ByVal Fla
 	Dim i As Long
 	Dim tmpi As String
 	Dim tmpc As String
-
+	
 	Dim dwFlags As DWORD = EDSEdwFlags(FlagIndex)
 	
 	memset (@dmDevModeCur, 0, SizeOf(DEVMODE))
@@ -600,9 +662,6 @@ Private Sub frmDisplayType.EnumDisplayMode(ByVal NameIndex As Integer, ByVal Fla
 	DM2WStr(dmDevModeCur, @TextBox1)
 End Sub
 
-Private Sub frmDisplayType._Form_Create(ByRef Sender As Control)
-	*Cast(frmDisplayType Ptr, Sender.Designer).Form_Create(Sender)
-End Sub
 Private Sub frmDisplayType.Form_Create(ByRef Sender As Control)
 	ComboBoxEdit1.AddItem "QDC_ALL_PATHS"
 	ComboBoxEdit1.AddItem "QDC_ONLY_ACTIVE_PATHS"
@@ -654,13 +713,7 @@ Private Function frmDisplayType.MonitorEnumProc(ByVal hMtr As HMONITOR , ByVal h
 	Return True
 End Function
 
-Private Sub frmDisplayType._CommandButton2_Click(ByRef Sender As Control)
-	*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton2_Click(Sender)
-End Sub
 Private Sub frmDisplayType.CommandButton2_Click(ByRef Sender As Control)
-	'SetDisplayConfig
-	'https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setdisplayconfig
-	
 	Dim flag As UINT32
 	Select Case ComboBoxEdit2.ItemIndex
 	Case 0
@@ -681,22 +734,11 @@ Private Sub frmDisplayType.CommandButton2_Click(ByRef Sender As Control)
 	TextBox1.AddLine QDCrtn2WStr(rtn)
 End Sub
 
-Private Sub frmDisplayType._CommandButton5_Click(ByRef Sender As Control)
-	*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton5_Click(Sender)
-End Sub
 Private Sub frmDisplayType.CommandButton5_Click(ByRef Sender As Control)
 	EnumDisplayMode(ComboBoxEdit3.ItemIndex, ComboBoxEdit4.ItemIndex)
 End Sub
 
-Private Sub frmDisplayType._CommandButton4_Click(ByRef Sender As Control)
-	*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton4_Click(Sender)
-End Sub
 Private Sub frmDisplayType.CommandButton4_Click(ByRef Sender As Control)
-	'EnumDisplayDevices
-	'https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaydevicesa
-	'EnumDisplaySettingsEx
-	'https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-enumdisplaysettingsexa
-	
 	ListControl2.Clear
 	ComboBoxEdit3.Clear
 	
@@ -739,16 +781,10 @@ Private Sub frmDisplayType.CommandButton4_Click(ByRef Sender As Control)
 	Deallocate (tmp)
 End Sub
 
-Private Sub frmDisplayType._ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	*Cast(frmDisplayType Ptr, Sender.Designer).ComboBoxEdit3_Selected(Sender, ItemIndex)
-End Sub
 Private Sub frmDisplayType.ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	EnumDisplayMode(ItemIndex, ComboBoxEdit4.ItemIndex)
 End Sub
 
-Private Sub frmDisplayType._CommandButton3_Click(ByRef Sender As Control)
-	*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton3_Click(Sender)
-End Sub
 Private Sub frmDisplayType.CommandButton3_Click(ByRef Sender As Control)
 	mtrCount = -1
 	Erase mtrMI
@@ -779,14 +815,7 @@ Private Sub frmDisplayType.CommandButton3_Click(ByRef Sender As Control)
 	Deallocate(tmp)
 End Sub
 
-Private Sub frmDisplayType._CommandButton1_Click(ByRef Sender As Control)
-	*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton1_Click(Sender)
-End Sub
 Private Sub frmDisplayType.CommandButton1_Click(ByRef Sender As Control)
-	'QueryDisplayConfig
-	'https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-querydisplayconfig
-	'GetDisplayConfigBufferSizes
-	'https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdisplayconfigbuffersizes
 	Dim rtn As Long
 	
 	Dim PathArraySize As UINT32 = 0
@@ -849,9 +878,6 @@ Private Sub frmDisplayType.CommandButton1_Click(ByRef Sender As Control)
 	Deallocate(tmp)
 End Sub
 
-Private Sub frmDisplayType._CommandButton6_Click(ByRef Sender As Control)
-	*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton6_Click(Sender)
-End Sub
 Private Sub frmDisplayType.CommandButton6_Click(ByRef Sender As Control)
 	Dim dmDevMode As DEVMODEW
 	memset(@dmDevMode, 0, SizeOf(dmDevMode))
@@ -866,17 +892,7 @@ Private Sub frmDisplayType.CommandButton6_Click(ByRef Sender As Control)
 	TextBox1.AddLine CDSErtnWstr(rtn)
 End Sub
 
-Private Sub frmDisplayType._ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	*Cast(frmDisplayType Ptr, Sender.Designer).ComboBoxEdit4_Selected(Sender, ItemIndex)
-End Sub
-Private Sub frmDisplayType.ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	EnumDisplayMode(ComboBoxEdit3.ItemIndex, ItemIndex)
-End Sub
-
-Private Sub frmDisplayType._ListControl2_Click(ByRef Sender As Control)
-	*Cast(frmDisplayType Ptr, Sender.Designer).ListControl2_Click(Sender)
-End Sub
 Private Sub frmDisplayType.ListControl2_Click(ByRef Sender As Control)
 	GetDisplayMode(ComboBoxEdit3.ItemIndex, ComboBoxEdit4.ItemIndex, ListControl2.ItemIndex)
 End Sub
- 
+
