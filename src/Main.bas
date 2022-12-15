@@ -3612,13 +3612,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 					End If
 				ElseIf inType OrElse inUnion Then
-					If bTrimLCase = "public" Then
+					If bTrimLCase = "public:" Then
 						inPubProPri = 0
 						Comment = ""
-					ElseIf bTrimLCase = "protected" Then
+					ElseIf bTrimLCase = "protected:" Then
 						inPubProPri = 1
 						Comment = ""
-					ElseIf bTrimLCase = "private" Then
+					ElseIf bTrimLCase = "private:" Then
 						inPubProPri = 2
 						Comment = ""
 					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse InStr(bTrimLCase, " as ") Then
@@ -4188,7 +4188,7 @@ Sub EndOfLoadFunctions
 				If tb Then
 					tb->bExternalIncludesLoaded = False
 					#ifndef __USE_GTK__
-						PostMessage tb->Handle, EM_SETMODIFY, 0, 0
+						'PostMessage tb->Handle, EM_SETMODIFY, 0, 0
 					#endif
 				End If
 			Next i

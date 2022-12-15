@@ -6843,9 +6843,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					End If
 				End If
-				If CInt(NotForms = False) AndAlso CInt(Not b) AndAlso CInt((ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class)) AndAlso _
-					CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends form") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends form '...'")))) OrElse _
-					CInt((EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends usercontrol") OrElse (EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends usercontrol '...'")))) Then
+				If CInt(NotForms = False) AndAlso CInt(Not bT) AndAlso CInt((ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class)) AndAlso _
+					CInt(EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends form") OrElse EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends form '...'") OrElse _
+					EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends usercontrol") OrElse EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends usercontrol '...'")) Then
 					If Des = 0 Then
 						This.Visible = True
 						pnlForm.Visible = True
