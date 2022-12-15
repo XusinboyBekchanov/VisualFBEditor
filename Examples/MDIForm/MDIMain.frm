@@ -22,7 +22,8 @@
 	
 	Type MDIMainType Extends Form
 		Dim lstMdiChild As List
-		Dim actMidChildIdx As Integer
+		Dim actMdiChild As Any Ptr
+		'Dim actMidChildIdx As Integer
 		
 		Dim mnuWindowCount As Integer = -1
 		Dim mnuWindows(Any) As MenuItem Ptr
@@ -676,7 +677,7 @@ Private Sub MDIMainType.MDIChildNew()
 End Sub
 
 Private Sub MDIMainType.MDIChildActivate(Child As Any Ptr)
-	actMidChildIdx = lstMdiChild.IndexOf(Child)
+	actMdiChild = Child
 	Dim i As Integer
 	For i = 0 To mnuWindowCount
 		If mnuWindows(i)->Tag = Child Then
@@ -691,7 +692,7 @@ End Sub
 Private Sub MDIMainType.MDIChildDestroy(Child As Any Ptr)
 	lstMdiChild.Remove(lstMdiChild.IndexOf(Child))
 	If lstMdiChild.Count < 1 Then
-		actMidChildIdx = -1
+		actMdiChild = null
 		StatusBar1.Text = ""
 	End If
 	MDIChildMenuUpdate()

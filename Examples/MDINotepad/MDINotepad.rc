@@ -67,8 +67,8 @@ VerticalD PNG ".\Resources\VerticalD.png"
 #define APP_TITLE_STR               "MDINotepad\0"
 #define VER_FILEDESCRIPTION_STR     "MDINotepad\0"
 
-#define VER_FILEVERSION             0,0,0,1271
-#define VER_FILEVERSION_STR         "0.0.0.1271\0"
+#define VER_FILEVERSION             1,0,0,8
+#define VER_FILEVERSION_STR         "1.0.0.8\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

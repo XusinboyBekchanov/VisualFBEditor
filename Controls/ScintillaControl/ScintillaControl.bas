@@ -100,6 +100,8 @@ Private Property ScintillaControl.TabStop(Value As Boolean)
 	ChangeTabStop Value
 End Property
 
+Namespace My.Sys.Forms
+
 Private Function TextUnicode2Ansi(ByRef UnicodeStr As Const WString, ByVal nCodePage As Integer = -1) ByRef As String
 	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
 
@@ -174,6 +176,8 @@ Function TextToSciData(ByRef txtWStr As Const WString, ByVal CodePage As Integer
 	End If
 End Function
 
+End Namespace
+
 #ifndef __USE_GTK__
 	Private Sub ScintillaControl.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
@@ -236,12 +240,12 @@ Private Sub ScintillaControl.CreateWnd()
 	
 	'set margin 0 as linenumber
 	SendMessage(FHandle, SCI_SETMARGINTYPEN, 0, SC_MARGIN_NUMBER)
-	SendMessage(FHandle, SCI_SETMARGINMASKN, 0, STYLE_LINENUMBER)
+	'SendMessage(FHandle, SCI_SETMARGINMASKN, 0, STYLE_LINENUMBER)
 	MarginWidth(0) = 35
 	
 	'set margin 1 as fold
-	SendMessage(FHandle, SCI_SETMARGINTYPEN, 2, SC_MARGIN_SYMBOL)
-	SendMessage(FHandle, SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS)
+	SendMessage(FHandle, SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL)
+	'SendMessage(FHandle, SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS)
 	MarginWidth(1) = 0
 	
 	'set when text is pasted any line ends are converted to match the document's end of line mode
@@ -254,19 +258,16 @@ Private Sub ScintillaControl.CreateWnd()
 	'indicator 0 for find
 	SendMessage(FHandle, SCI_INDICSETUNDER, 0, True)
 	SendMessage(FHandle, SCI_INDICSETSTYLE, 0, INDIC_FULLBOX)
-	'SendMessage(FHandle, SCI_INDICSETFORE, 0, RGB(0, 255, 0))
 	SendMessage(FHandle, SCI_INDICSETALPHA, 0, &h40)
 	SendMessage(FHandle, SCI_INDICSETOUTLINEALPHA, 0, &hff)
 	
 	'set select style
-	SendMessage(FHandle, SCI_HIDESELECTION, False, 0)
-	SendMessage(FHandle, SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT, 0)
-	'SendMessage(FHandle, SCI_SETSELFORE, True, RGB(&hff, &hff, &hff))
-	'SendMessage(FHandle, SCI_SETSELBACK, True, RGB(&hff, &h40, &h40))
-	'SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
-	'SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
-	'SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
-	'SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
+	SendMessage(Handle, SCI_HIDESELECTION, False, 0)
+	SendMessage(Handle, SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT, 0)
+	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
+	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
+	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
+	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
 	
 	'set white space
 	'SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h80, &h80, &h80, &h80))
@@ -278,7 +279,6 @@ Private Sub ScintillaControl.CreateWnd()
 	SendMessage(FHandle, SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT Or SC_MOD_DELETETEXT, 0)
 	
 	DarkMode = False
-	
 End Sub
 
 Private Function ScintillaControl.IndexFind(ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False) As Integer
@@ -731,39 +731,31 @@ End Property
 Private Property ScintillaControl.DarkMode (ByVal bVal As Boolean)
 	mDarkMode = bVal
 	If bVal Then
-		'indicator 0 for find
-		SendMessage(FHandle, SCI_INDICSETFORE, 0, RGB(0, 255, 0))
-		'set select style
-		SendMessage(FHandle, SCI_SETSELFORE, True, RGB(&hff, &hff, &hff))
-		SendMessage(FHandle, SCI_SETSELBACK, True, RGB(&hff, &h40, &h40))
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
 		'set white space
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h80, &h80, &h80, &h80))
+		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h40, &h40, &h40, &hff))
+		'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, RGBA(&h40, &h40, &h40, &h40))
 		
 		ForeColor(STYLE_DEFAULT) = RGB(&ha0, &ha0, &ha0)
 		BackColor(STYLE_DEFAULT) = RGB(0, 0, 0)
-		ForeColor(STYLE_LINENUMBER) = RGB(&h80, &h80, &h80)
+
+		'ForeColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h40, &h40, &h40)
+		'BackColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h10, &h10, &h10)
+		
+		ForeColor(STYLE_LINENUMBER) = RGB(&hFF, &h80, &h80)
 		BackColor(STYLE_LINENUMBER) = RGB(&h20, &h20, &h20)
 	Else
-		'indicator 0 for find
-		SendMessage(FHandle, SCI_INDICSETFORE, 0, RGB(0, 255, 0))
-		'set select style
-		SendMessage(FHandle, SCI_SETSELFORE, True, RGB(&hff, &hff, &hff))
-		SendMessage(FHandle, SCI_SETSELBACK, True, RGB(&hff, &h40, &h40))
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
 		'set white space
-		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h80, &h80, &h80, &h80))
+		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h40, &h40, &h40, &hff))
+		'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, RGBA(&h40, &h40, &h40, &h40))
 		
 		ForeColor(STYLE_DEFAULT) = RGB(0, 0, 0)
 		BackColor(STYLE_DEFAULT) = RGB(255, 255, 255)
-		ForeColor(STYLE_LINENUMBER) = RGB(&h40, &h40, &h40)
-		BackColor(STYLE_LINENUMBER) = RGB(&hf0, &hf0, &hf0)
+		
+		'ForeColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h10, &h10, &h10)
+		'BackColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h70, &h70, &h70)
+		
+		ForeColor(STYLE_LINENUMBER) = RGB(&hFF, &h00, &h00)
+		BackColor(STYLE_LINENUMBER) = RGB(&hE0, &hE0, &hE0)
 	End If
 End Property
 
@@ -942,3 +934,5 @@ End Property
 Private Property ScintillaControl.TabIndents (tIndents As Boolean)
 	SendMessage(Handle, SCI_SETTABINDENTS, tIndents, 0)
 End Property
+
+

@@ -67,18 +67,18 @@ VerticalD PNG ".\Resources\VerticalD.png"
 #define APP_TITLE_STR               "MDIScintilla\0"
 #define VER_FILEDESCRIPTION_STR     "MDIScintilla\0"
 
-#define VER_FILEVERSION             0,0,0,1099
-#define VER_FILEVERSION_STR         "0.0.0.1099\0"
+#define VER_FILEVERSION             0,0,0,1151
+#define VER_FILEVERSION_STR         "0.0.0.1151\0"
 
-#define VER_LEGALCOPYRIGHT_STR      "\0"
+#define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
-#define VER_INTERNALNAME_STR        "\0"
-#define VER_ORIGINALFILENAME_STR    "\0"
+#define VER_INTERNALNAME_STR        "MDIScintilla\0"
+#define VER_ORIGINALFILENAME_STR    "MDIScintilla\0"
 #define VER_PRODUCTNAME_STR         "MDIScintilla\0"
 
 #define VER_PRODUCTVERSION          0,0,0,0
 #define VER_PRODUCTVERSION_STR      "0.0.0\0"
-#define VER_COMPANYNAME_STR         "\0"
+#define VER_COMPANYNAME_STR         "Visual FB Editor\0"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION     VER_FILEVERSION

@@ -123,9 +123,12 @@ Type Scintilla
 	Declare Property ViewLineNo(ByVal val As Integer)
 	Declare Property ViewFold As Integer
 	Declare Property ViewFold(ByVal val As Integer)
+	
+	Declare Property Margins() As Integer
+	Declare Property Margins(margin As Integer)
 	Declare Property MarginWidth(margin As Integer) As Integer
 	Declare Property MarginWidth(margin As Integer, Val As Integer)
-	Declare Sub MarginColor(ByVal margin As Integer = 0, ByVal fore As Integer = -1, ByVal back As Integer = -1)
+	Declare Sub MarginColor(ByVal margin As Integer = -1, ByVal fore As Integer = -1, ByVal back As Integer = -1)
 	
 	'selection
 	Declare Sub SelColor(ByVal fore As Integer = -1, ByVal back As Integer = -1)
@@ -164,23 +167,23 @@ End Destructor
 
 Private Sub Scintilla.Create(ParentHandle As Any Ptr)
 	' Creates a Scintilla editing window
-	Dim rt As Rect
+	Dim rt As RECT
 	GetClientRect(ParentHandle, @rt)
 	Dim As Integer lExStyle = 0
 	Dim As Integer lStyle = WS_CHILD Or WS_VISIBLE Or WS_TABSTOP Or WS_BORDER
-	Handle = CreateWindowEx(lExStyle, "Scintilla", 0, lStyle, 0, 0, rt.Right - rt.Left, rt.Bottom - rt.Top, ParentHandle, NULL, 0, 0)
+	Handle = CreateWindowEx(lExStyle, "Scintilla", 0, lStyle, 0, 0, rt.right - rt.left, rt.bottom - rt.top, ParentHandle, NULL, 0, 0)
 	
 	'font quality (antialiasing method)
 	'SendMessage(Handle, SCI_SETFONTQUALITY, SC_EFF_QUALITY_LCD_OPTIMIZED, 0)
 	
 	'set margin 0 as linenumber
 	SendMessage(Handle, SCI_SETMARGINTYPEN, 0, SC_MARGIN_NUMBER)
-	SendMessage(Handle, SCI_SETMARGINMASKN, 0, STYLE_LINENUMBER)
+	'SendMessage(Handle, SCI_SETMARGINMASKN, 0, STYLE_LINENUMBER)
 	MarginWidth(0) = 35
 	
 	'set margin 1 as fold
-	SendMessage(Handle, SCI_SETMARGINTYPEN, 2, SC_MARGIN_SYMBOL)
-	SendMessage(Handle, SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS)
+	SendMessage(Handle, SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL)
+	'SendMessage(Handle, SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS)
 	MarginWidth(1) = 0
 	
 	'set when text is pasted any line ends are converted to match the document's end of line mode
@@ -189,23 +192,20 @@ Private Sub Scintilla.Create(ParentHandle As Any Ptr)
 	CodePage = 0
 	CharSet(STYLE_DEFAULT) = SC_CHARSET_DEFAULT
 	
-	'set indicator style
+	'set indicator style & color
 	'indicator 0 for find
 	SendMessage(Handle, SCI_INDICSETUNDER, 0, True)
 	SendMessage(Handle, SCI_INDICSETSTYLE, 0, INDIC_FULLBOX)
-	'SendMessage(Handle, SCI_INDICSETFORE, 0, RGB(0, 255, 0))
 	SendMessage(Handle, SCI_INDICSETALPHA, 0, &h40)
 	SendMessage(Handle, SCI_INDICSETOUTLINEALPHA, 0, &hff)
 	
 	'set select style
 	SendMessage(Handle, SCI_HIDESELECTION, False, 0)
 	SendMessage(Handle, SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT, 0)
-	'SendMessage(Handle, SCI_SETSELFORE, True, RGB(&hff, &hff, &hff))
-	'SendMessage(Handle, SCI_SETSELBACK, True, RGB(&hff, &h40, &h40))
-	'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
-	'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
-	'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
-	'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
+	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
+	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
+	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
+	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
 	
 	'set white space
 	'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h80, &h80, &h80, &h80))
@@ -651,39 +651,29 @@ End Property
 Private Property Scintilla.DarkMode (ByVal bVal As Boolean)
 	mDarkMode = bVal
 	If bVal Then
-		'indicator 0 for find
-		SendMessage(Handle, SCI_INDICSETFORE, 0, RGB(0, 255, 0))
-		'set select style
-		SendMessage(Handle, SCI_SETSELFORE, True, RGB(&hff, &hff, &hff))
-		SendMessage(Handle, SCI_SETSELBACK, True, RGB(&hff, &h40, &h40))
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
 		'set white space
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h80, &h80, &h80, &h80))
+		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h40, &h40, &h40, &h40))
 		
 		ForeColor(STYLE_DEFAULT) = RGB(&ha0, &ha0, &ha0)
 		BackColor(STYLE_DEFAULT) = RGB(0, 0, 0)
-		ForeColor(STYLE_LINENUMBER) = RGB(&h80, &h80, &h80)
+
+		'ForeColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h40, &h40, &h40)
+		'BackColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h10, &h10, &h10)
+		
+		ForeColor(STYLE_LINENUMBER) = RGB(&hFF, &h80, &h80)
 		BackColor(STYLE_LINENUMBER) = RGB(&h20, &h20, &h20)
 	Else
-		'indicator 0 for find
-		SendMessage(Handle, SCI_INDICSETFORE, 0, RGB(0, 255, 0))
-		'set select style
-		SendMessage(Handle, SCI_SETSELFORE, True, RGB(&hff, &hff, &hff))
-		SendMessage(Handle, SCI_SETSELBACK, True, RGB(&hff, &h40, &h40))
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
 		'set white space
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h80, &h80, &h80, &h80))
+		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h40, &h40, &h40, &h40))
 		
 		ForeColor(STYLE_DEFAULT) = RGB(0, 0, 0)
 		BackColor(STYLE_DEFAULT) = RGB(255, 255, 255)
-		ForeColor(STYLE_LINENUMBER) = RGB(&h40, &h40, &h40)
-		BackColor(STYLE_LINENUMBER) = RGB(&hf0, &hf0, &hf0)
+		
+		'ForeColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h10, &h10, &h10)
+		'BackColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h70, &h70, &h70)
+		
+		ForeColor(STYLE_LINENUMBER) = RGB(&hFF, &h00, &h00)
+		BackColor(STYLE_LINENUMBER) = RGB(&hE0, &hE0, &hE0)
 	End If
 End Property
 
@@ -713,19 +703,31 @@ Private Property Scintilla.ViewCaretLine(ByVal bVal As Boolean)
 End Property
 
 Private Property Scintilla.ViewLineNo As Integer
-	Return SendMessage(Handle, SCI_GETMARGINWIDTHN, 0, 0)
+	Return MarginWidth(0)
+	'Return SendMessage(Handle, SCI_GETMARGINWIDTHN, 0, 0)
 End Property
 
 Private Property Scintilla.ViewLineNo(ByVal iSize As Integer)
-	SendMessage(Handle, SCI_SETMARGINWIDTHN, 0, iSize)
+	MarginWidth(0) = iSize
+	'SendMessage(Handle, SCI_SETMARGINWIDTHN, 0, iSize)
 End Property
 
 Private Property Scintilla.ViewFold As Integer
-	Return SendMessage(Handle, SCI_GETMARGINWIDTHN, 2, 0)
+	Return MarginWidth(1)
+	'Return SendMessage(Handle, SCI_GETMARGINWIDTHN, 2, 0)
 End Property
 
 Private Property Scintilla.ViewFold(ByVal iSize As Integer)
-	SendMessage(Handle, SCI_SETMARGINWIDTHN, 2, iSize)
+	MarginWidth(1) = iSize
+	'SendMessage(Handle, SCI_SETMARGINWIDTHN, 2, iSize)
+End Property
+
+Private Property Scintilla.Margins() As Integer
+	Return SendMessage(Handle, SCI_GETMARGINS, 0, 0)
+End Property
+
+Private Property Scintilla.Margins(margin As Integer)
+	SendMessage(Handle, SCI_SETMARGINS, margin, 0)
 End Property
 
 Private Property Scintilla.MarginWidth(margin As Integer) As Integer
@@ -735,16 +737,18 @@ End Property
 Private Property Scintilla.MarginWidth(margin As Integer, Val As Integer)
 	If margin = 0 And Val <> 0 Then
 		Dim s As String = Format(SendMessage(Handle, SCI_GETFIRSTVISIBLELINE, 0, 0) + SendMessage(Handle, SCI_LINESONSCREEN, 0, 0), "#0")
-		SendMessage(HANDLE, SCI_SETMARGINWIDTHN, margin, SendMessage(HANDLE, SCI_TEXTWIDTH, STYLE_DEFAULT, Cast(LPARAM, StrPtr(s))) + 5)
+		SendMessage(Handle, SCI_SETMARGINWIDTHN, margin, SendMessage(Handle, SCI_TEXTWIDTH, STYLE_LINENUMBER, Cast(LPARAM, StrPtr(s))) + 5)
 	Else
 		SendMessage(Handle, SCI_SETMARGINWIDTHN, margin, Val)
 	End If
 End Property
 
-Private Sub Scintilla.MarginColor(ByVal margin As Integer = 0, ByVal fore As Integer = -1, ByVal back As Integer = -1)
-	SendMessage(Handle, SCI_SETMARGINS, margin, 0)
-	If fore <> -1 Then SendMessage(Handle, SCI_SETFOLDMARGINHICOLOUR, True, fore)
-	If back <> -1 Then SendMessage(Handle, SCI_SETFOLDMARGINCOLOUR, True, back)
+Private Sub Scintilla.MarginColor(ByVal margin As Integer = -1, ByVal fore As Integer = -1, ByVal back As Integer = -1)
+	If margin <>-1 Then Margins = margin
+	If fore <> -1 Then SendMessage(Handle, SC_MARGIN_FORE, fore, 0)
+	If back <> -1 Then SendMessage(Handle, SC_MARGIN_BACK, back, 0)
+	'If fore <> -1 Then SendMessage(Handle, SCI_SETFOLDMARGINHICOLOUR, True, fore)
+	'If back <> -1 Then SendMessage(Handle, SCI_SETFOLDMARGINCOLOUR, True, back)
 End Sub
 
 Private Sub Scintilla.SelColor(ByVal fore As Integer = -1, ByVal back As Integer = -1)

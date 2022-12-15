@@ -231,12 +231,53 @@ Private Function TextUnicode2Ansi(ByRef UnicodeStr As Const WString, ByVal nCode
 	Return ansiStr
 End Function
 
-Private Sub TextAnsi2Unicode(ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As Integer = -1)
+Private Function TextAnsi2Unicode (ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As Integer = -1) ByRef As WString
 	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
 	
 	Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0) - 1
 	MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
-End Sub
+	Return ""
+End Function
+
+Private Function TextFromAnsi (ByRef AnsiStr As Const String, ByVal nCodePage As Integer = -1) ByRef As WString
+	Static UnicodeStr As WString Ptr
+	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
+	
+	Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0) - 1
+	If UnicodeStr Then Deallocate(UnicodeStr)
+	UnicodeStr = CAllocate(nLength * 2 + 2)
+	
+	MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
+	Return *UnicodeStr
+End Function
+
+Private Function TextToAnsi(ByRef UnicodeStr As Const WString, ByVal nCodePage As Integer = -1) ByRef As String
+	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
+
+	Static ansiStr As String
+	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
+	ansiStr = String(nLength+1, 0)
+	Dim DataSize As LongInt = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), nLength, StrPtr(ansiStr), nLength, NULL, NULL)
+	Return ansiStr
+End Function
+
+Private Function TextFromUtf8(ByRef pZString As Const ZString) ByRef As WString
+	Static As WString Ptr buffer
+	Dim m_BufferLen As Integer = Len(pZString) + 1
+	If buffer Then Deallocate(buffer)
+	buffer = CAllocate(m_BufferLen * 2)
+	Return *UTFToWChar(1, StrPtr(pZString), buffer, @m_BufferLen)
+End Function
+
+Private Function TextToUtf8(ByRef nWString As Const WString) ByRef As String
+	Static As String ansiStr
+	Dim As Integer m_BufferLen = Len(nWString)
+	Dim i1 As ULong = m_BufferLen * 5 + 1
+	ansiStr = String(i1, 0)
+	'Return *Cast(String Ptr, WCharToUTF(1, StrPtr(nWString), m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1)))
+	WCharToUTF(1, StrPtr(nWString), m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1))
+	Return ansiStr
+End Function
 
 Private Sub TextConvert(ByRef SourceText As Const WString, ByRef Target As WString Ptr, ByVal CnvCode As DWORD)
 	Dim lid As LCID = MAKELCID(MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED), SORT_CHINESE_PRC)
@@ -274,7 +315,7 @@ Private Function TextFileGetEncode(ByRef FileName As WString, ByRef FileEncoding
 			End If
 		End If
 	End If
-	Return FileSize	
+	Return FileSize
 End Function
 
 Private Function TextChangeEOL(ByRef SourceText As Const WString, SrcEOF As NewLineTypes, NewEOF As NewLineTypes) ByRef As WString Ptr

@@ -20,8 +20,8 @@
 	#include once "mff/Printer.bi"
 	#include once "mff/PageSetupDialog.bi"
 	
-	#include once "Text.bi"
-	#include once "TimeMeter.bi"
+	#include once "../MDINotepad/Text.bi"
+	#include once "../MDINotepad/TimeMeter.bi"
 	
 	Using My.Sys.Forms
 	#ifdef __USE_WINAPI__
@@ -1782,13 +1782,13 @@
 '#End Region
 
 #include once "MDIChild.frm"
-#include once "MDIList.frm"
-#include once "frmCodePage.frm"
-#include once "frmGoto.frm"
 #include once "frmFindReplace.frm"
-#include once "frmFileSync.frm"
-#include once "frmFileSearch.frm"
-#include once "frmHash.frm"
+#include once "../MDINotepad/MDIList.frm"
+#include once "../MDINotepad/frmCodePage.frm"
+#include once "../MDINotepad/frmGoto.frm"
+#include once "../MDINotepad/frmFileSync.frm"
+#include once "../MDINotepad/frmFileSearch.frm"
+#include once "../MDINotepad/frmHash.frm"
 
 Private Sub MDIMainType.FileInsert(ByRef FileName As Const WString, Child As Any Ptr)
 	Dim Encode As FileEncodings = -1
@@ -1878,7 +1878,6 @@ Private Sub MDIMainType.FileOpen(ByRef FileName As Const WString)
 		End If
 		timr.Start
 		a = MDIChildNew()
-		a->Show(MDIMain)
 		a->Sci.Text = TextFromFile(FileName, Encode, NewLine, CodePage)
 		a->File = FileName
 		a->Encode = Encode
@@ -1987,6 +1986,8 @@ Private Function MDIMainType.MDIChildNew() As Any Ptr
 	a = New MDIChildType
 	lstMdiChild.Add a
 	a->Index = ChildIdx
+	a->Show(MDIMain)
+	a->Sci.DarkMode = mnuViewDarkMode.Checked
 	Return a
 End Function
 
@@ -2248,7 +2249,6 @@ Private Sub MDIMainType.mnuFile_Click(ByRef Sender As MenuItem)
 	Case "mnuFileNew"
 		a = MDIChildNew()
 		a->Changed = False
-		a->Show(MDIMain)
 	Case "mnuFileSave"
 		'a = lstMdiChild.Item(actMdiChildIdx)
 		FileSave(ActMdiChild)

@@ -66,23 +66,26 @@
 	#if _MAIN_FILE_ = __FILE__
 		MDIList.MainForm = True
 		MDIList.Show
+		
 		App.Run
 	#endif
 '#End Region
 
 Private Sub MDIListType.Form_Create(ByRef Sender As Control)
 	ListControl1.Clear
-	If MDIMain.lstMdiChild.Count < 1 Then Exit Sub
-	Dim i As Integer
-	For i = 0 To MDIMain.lstMdiChild.Count - 1
-		ListControl1.AddItem (Cast(MDIChildType Ptr, MDIMain.lstMdiChild.Item(i))->Text)
-	Next
-	ListControl1.ItemIndex = MDIMain.actMidChildIdx
+	With MDIMain
+		If .lstMdiChild.Count < 1 Then Exit Sub
+		Dim i As Integer
+		For i = 0 To .lstMdiChild.Count - 1
+			ListControl1.AddItem (Cast(MDIChildType Ptr, .lstMdiChild.Item(i))->Text)
+			If .ActMdiChild = .lstMdiChild.Item(i) Then ListControl1.ItemIndex = i
+		Next
+	End With
 End Sub
 
 Private Sub MDIListType.ListControl1_DblClick(ByRef Sender As Control)
 	If ListControl1.ItemIndex < 0 Then Exit Sub
-	Tag = MDIMain.lstMdiChild.Item(ListControl1.ItemIndex)
 	ModalResult = ModalResults.OK
+	Tag = MDIMain.lstMdiChild.Item(ListControl1.ItemIndex)
 	CloseForm
 End Sub

@@ -1345,9 +1345,9 @@
 '#End Region
 
 #include once "MDIChild.frm"
+#include once "frmFindReplace.frm"
 #include once "MDIList.frm"
 #include once "frmGoto.frm"
-#include once "frmFindReplace.frm"
 #include once "frmCodePage.frm"
 #include once "frmFileSync.frm"
 #include once "frmFileSearch.frm"
