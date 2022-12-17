@@ -51,6 +51,7 @@ Type ProjectElement Extends ExplorerElement
 	HelpFileName As WString Ptr
 	ProjectDescription As WString Ptr
 	PassAllModuleFilesToCompiler As Boolean
+	OpenProjectAsFolder As Boolean
 	MajorVersion As Integer
 	MinorVersion As Integer
 	RevisionVersion As Integer

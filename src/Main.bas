@@ -1395,6 +1395,22 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					Return tvExplorer.Nodes.Item(i)
 				End If
 			Next
+			Dim Buff As WString * 1024 ' for V1.07 Line Input not working fine
+			Dim As Integer Fn = FreeFile_
+			Dim Result As Integer = -1
+			Result = Open(FileName For Input Encoding "utf-8" As #Fn)
+			If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result = Open(FileName For Input As #Fn)
+			If Result = 0 Then
+				Do Until EOF(Fn)
+					Line Input #Fn, Buff
+					If Buff = "OpenProjectAsFolder=true" Then
+						Return AddFolder(GetFolderName(FileName, False))
+					End If
+				Loop
+			End If
+			CloseFile_(Fn)
 			tn = tvExplorer.Nodes.Add(GetFileName(FileName), , FileName, "Project", "Project")
 		Else
 			Var n = 0
@@ -1437,10 +1453,10 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		Dim As String Parameter
 		Dim As String IconName
 		Dim As String ZvFile
+		If bNew Then ZvFile = "*" Else ZvFile = ""
 		Dim Buff As WString * 1024 ' for V1.07 Line Input not working fine
 		Dim As Integer Fn = FreeFile_
 		Dim Result As Integer = -1
-		If bNew Then ZvFile = "*" Else ZvFile = ""
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
@@ -1517,6 +1533,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					WLet(ppe->ProjectDescription, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "PassAllModuleFilesToCompiler" Then
 					ppe->PassAllModuleFilesToCompiler = CBool(Mid(Buff, Pos1 + 1))
+				ElseIf Parameter = "OpenProjectAsFolder" Then
+					ppe->OpenProjectAsFolder = CBool(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "MajorVersion" Then
 					ppe->MajorVersion = Val(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "MinorVersion" Then
@@ -1830,11 +1848,7 @@ Sub OpenFiles(ByRef FileName As WString)
 		AddSession FileName
 		WLet(RecentSession, FileName)
 	ElseIf EndsWith(FileName, ".vfp") Then
-		If (GetFileName(GetFolderName(FileName, False)) & ".vfp" = GetFileName(FileName)) AndAlso (MsgBox(ML("Root folder with this name, open as a folder?"), , mtQuestion, btYesNo) = mrYes) Then
-			AddFolder(GetFolderName(FileName, False))
-		Else
-			AddProject FileName
-		End If
+		AddProject FileName
 		WLet(RecentProject, FileName)
 	ElseIf FolderExists(FileName) Then
 		AddFolder FileName
@@ -2063,6 +2077,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "HelpFileName=""" & *ppe->HelpFileName & """"
 	Print #Fn, "ProjectDescription=""" & *ppe->ProjectDescription & """"
 	Print #Fn, "PassAllModuleFilesToCompiler=" & ppe->PassAllModuleFilesToCompiler
+	Print #Fn, "OpenProjectAsFolder=" & ppe->OpenProjectAsFolder
 	Print #Fn, "MajorVersion=" & ppe->MajorVersion
 	Print #Fn, "MinorVersion=" & ppe->MinorVersion
 	Print #Fn, "RevisionVersion=" & ppe->RevisionVersion

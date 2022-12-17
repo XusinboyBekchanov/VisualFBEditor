@@ -45,7 +45,7 @@ pfProjectProperties = @fProjectProperties
 		tpGeneral.Name = "tpGeneral"
 		tpGeneral.Text = ML("General")
 		tpGeneral.TabIndex = 1
-		tpGeneral.SetBounds 2, 22, 487, 316
+		tpGeneral.SetBounds -288, 22, 487, 316
 		tpGeneral.UseVisualStyleBackColor = True
 		tpGeneral.Parent = @tabProperties
 		' tpMake
@@ -552,7 +552,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "chkPassAllModuleFilesToCompiler"
 			.Text = ML("Pass All Module Files To Compiler")
 			.TabIndex = 16
-			.SetBounds 225, 200, 252, 22
+			.SetBounds 225, 180, 252, 22
 			'.Caption = ML("Pass All Module Files To Compiler")
 			.Parent = @tpGeneral
 		End With
@@ -737,6 +737,17 @@ pfProjectProperties = @fProjectProperties
 			.Designer = @This
 			.Parent = @picApplication
 		End With
+		' chkOpenProjectAsFolder
+		With chkOpenProjectAsFolder
+			.Name = "chkOpenProjectAsFolder"
+			.Text = ML("Open Project As Folder")
+			.TabIndex = 90
+			.ControlIndex = 14
+			.Caption = ML("Open Project As Folder")
+			.SetBounds 225, 210, 252, 22
+			.Designer = @This
+			.Parent = @tpGeneral
+		End With
 	End Constructor
 	
 	Private Sub frmProjectProperties._Form_Create(ByRef Sender As Control)
@@ -788,6 +799,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->HelpFileName, .txtHelpFileName.Text)
 		WLet(ppe->ProjectDescription, .txtProjectDescription.Text)
 		ppe->PassAllModuleFilesToCompiler = .chkPassAllModuleFilesToCompiler.Checked
+		ppe->OpenProjectAsFolder = .chkOpenProjectAsFolder.Checked
 		ppe->MajorVersion = Val(.txtMajor.Text)
 		ppe->MinorVersion = Val(.txtMinor.Text)
 		ppe->RevisionVersion = Val(.txtRevision.Text)
@@ -979,6 +991,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.txtHelpFileName.Text = *ppe->HelpFileName
 				.txtProjectDescription.Text = *ppe->ProjectDescription
 				.chkPassAllModuleFilesToCompiler.Checked = ppe->PassAllModuleFilesToCompiler
+				.chkOpenProjectAsFolder.Checked = ppe->OpenProjectAsFolder
 				.txtMajor.Text = WStr(ppe->MajorVersion)
 				.txtMinor.Text = WStr(ppe->MinorVersion)
 				.txtRevision.Text = WStr(ppe->RevisionVersion)
@@ -1083,6 +1096,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 			.txtHelpFileName.Text = ""
 			.txtProjectDescription.Text = ""
 			.chkPassAllModuleFilesToCompiler.Checked = False
+			.chkOpenProjectAsFolder.Checked = False
 			.txtMajor.Text = ""
 			.txtMinor.Text = ""
 			.txtRevision.Text = ""
