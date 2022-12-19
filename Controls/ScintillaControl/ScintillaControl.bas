@@ -416,31 +416,26 @@ Private Function ScintillaControl.Find(ByRef toFind As Const ZString Ptr, ByVal 
 End Function
 
 Private Function ScintillaControl.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal MatchCase As Boolean = False) As Integer
+	SendMessage(Handle, SCI_TARGETWHOLEDOCUMENT, 0, 0)
 	If MatchCase Then
-		SendMessage(FHandle, SCI_SETSEARCHFLAGS, SCFIND_MATCHCASE, 0)
+		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_MATCHCASE, 0)
 	Else
-		SendMessage(FHandle, SCI_SETSEARCHFLAGS, SCFIND_NONE, 0)
+		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_NONE, 0)
 	End If
 	Dim targetstart As Integer = 0
 	Dim targetend As Integer = Length
-	
 	Dim lenSearch As Integer = Len(*FindData)
 	Dim lenReplace As Integer = Len(*ReplaceData)
-	Dim replacecount As Integer = 0
-	
+	Dim replacecount As Integer = -1
 	Dim findpos As Integer
 	Do
-		SendMessage(FHandle, SCI_SETTARGETSTART, targetstart, 0)
-		SendMessage(FHandle, SCI_SETTARGETEND, targetend, 0)
-		findpos = SendMessage(FHandle, SCI_SEARCHINTARGET, lenSearch, Cast(LPARAM, FindData))
+		SendMessage(Handle, SCI_SETTARGETSTART, targetstart, 0)
+		SendMessage(Handle, SCI_SETTARGETEND, targetend, 0)
+		findpos = SendMessage(Handle, SCI_SEARCHINTARGET, lenSearch, Cast(LPARAM, FindData))
 		If findpos < 0 Then Exit Do
-		
+		SendMessage(Handle, SCI_REPLACETARGET, lenReplace, Cast(LPARAM, ReplaceData))
 		replacecount += 1
-		targetstart = SendMessage(FHandle, SCI_GETTARGETSTART, 0, 0)
-		targetend = SendMessage(FHandle, SCI_GETTARGETEND, 0, 0)
-		SendMessage(FHandle, SCI_REPLACETARGET, lenReplace, Cast(LPARAM, ReplaceData))
-		
-		targetstart += lenReplace
+		targetstart = findpos + lenReplace
 		targetend = Length
 	Loop While findpos > -1
 	Return replacecount
@@ -489,7 +484,6 @@ End Property
 
 Private Property ScintillaControl.CodePage(ByVal val As Integer)
 	SendMessage(FHandle, SCI_SETCODEPAGE, val, 0)
-	'SendMessage(FHandle, SCI_STYLECLEARALL, 0, 0)
 End Property
 
 Private Property ScintillaControl.CharSet(ByVal sty As Integer) As Integer
@@ -498,7 +492,6 @@ End Property
 
 Private Property ScintillaControl.CharSet(ByVal sty As Integer, ByVal Val As Integer)
 	SendMessage(FHandle, SCI_STYLESETCHARACTERSET, sty, Val)
-	'SendMessage(FHandle, SCI_STYLECLEARALL, 0, 0)
 End Property
 
 Private Property ScintillaControl.BackColor(ByVal sty As Integer) As Integer
