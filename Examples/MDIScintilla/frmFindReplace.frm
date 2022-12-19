@@ -197,6 +197,7 @@ Private Sub frmFindReplaceType.cmdFindReplace_Click(ByRef Sender As Control)
 		MDIMain.Replace(txtFind.Text, txtReplace.Text, chkCase.Checked, chkWarp.Checked)
 	Case "cmdReplaceAll"
 		Dim i As Integer = MDIMain.ReplaceAll(txtFind.Text, txtReplace.Text, chkCase.Checked)
+		If i >-1 Then MDIMain.Find(txtFind.Text, chkCase.Checked, chkWarp.Checked, False, True)
 		lblMsg.Text = "Replace count: " & i + 1
 		Exit Sub
 	End Select

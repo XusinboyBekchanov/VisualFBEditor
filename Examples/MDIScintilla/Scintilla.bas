@@ -167,11 +167,11 @@ End Destructor
 
 Private Sub Scintilla.Create(ParentHandle As Any Ptr)
 	' Creates a Scintilla editing window
-	Dim rt As RECT
+	Dim rt As Rect
 	GetClientRect(ParentHandle, @rt)
 	Dim As Integer lExStyle = 0
 	Dim As Integer lStyle = WS_CHILD Or WS_VISIBLE Or WS_TABSTOP Or WS_BORDER
-	Handle = CreateWindowEx(lExStyle, "Scintilla", 0, lStyle, 0, 0, rt.right - rt.left, rt.bottom - rt.top, ParentHandle, NULL, 0, 0)
+	Handle = CreateWindowEx(lExStyle, "Scintilla", 0, lStyle, 0, 0, rt.Right - rt.Left, rt.Bottom - rt.Top, ParentHandle, NULL, 0, 0)
 	
 	'font quality (antialiasing method)
 	'SendMessage(Handle, SCI_SETFONTQUALITY, SC_EFF_QUALITY_LCD_OPTIMIZED, 0)
@@ -336,6 +336,7 @@ Private Function Scintilla.Find(ByRef toFind As Const ZString Ptr, ByVal MatchCa
 End Function
 
 Private Function Scintilla.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal MatchCase As Boolean = False) As Integer
+	SendMessage(Handle, SCI_TARGETWHOLEDOCUMENT, 0, 0)
 	If MatchCase Then
 		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_MATCHCASE, 0)
 	Else
@@ -343,24 +344,18 @@ Private Function Scintilla.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef
 	End If
 	Dim targetstart As Integer = 0
 	Dim targetend As Integer = Length
-	
 	Dim lenSearch As Integer = Len(*FindData)
 	Dim lenReplace As Integer = Len(*ReplaceData)
-	Dim replacecount As Integer = 0
-	
+	Dim replacecount As Integer = -1
 	Dim findpos As Integer
 	Do
 		SendMessage(Handle, SCI_SETTARGETSTART, targetstart, 0)
 		SendMessage(Handle, SCI_SETTARGETEND, targetend, 0)
 		findpos = SendMessage(Handle, SCI_SEARCHINTARGET, lenSearch, Cast(LPARAM, FindData))
 		If findpos < 0 Then Exit Do
-		
-		replacecount += 1
-		targetstart = SendMessage(Handle, SCI_GETTARGETSTART, 0, 0)
-		targetend = SendMessage(Handle, SCI_GETTARGETEND, 0, 0)
 		SendMessage(Handle, SCI_REPLACETARGET, lenReplace, Cast(LPARAM, ReplaceData))
-		
-		targetstart += lenReplace
+		replacecount += 1
+		targetstart = findpos + lenReplace
 		targetend = Length
 	Loop While findpos > -1
 	Return replacecount
@@ -409,7 +404,6 @@ End Property
 
 Private Property Scintilla.CodePage(ByVal val As Integer)
 	SendMessage(Handle, SCI_SETCODEPAGE, val, 0)
-	'SendMessage(Handle, SCI_STYLECLEARALL, 0, 0)
 End Property
 
 Private Property Scintilla.CharSet(ByVal sty As Integer) As Integer
@@ -418,7 +412,6 @@ End Property
 
 Private Property Scintilla.CharSet(ByVal sty As Integer, ByVal Val As Integer)
 	SendMessage(Handle, SCI_STYLESETCHARACTERSET, sty, Val)
-	'SendMessage(Handle, SCI_STYLECLEARALL, 0, 0)
 End Property
 
 Private Property Scintilla.BackColor(ByVal sty As Integer) As Integer
