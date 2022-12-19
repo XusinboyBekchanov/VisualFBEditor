@@ -2185,9 +2185,11 @@ Private Sub MDIMainType.Find(ByRef FindStr As Const WString, ByVal MatchCase As 
 	a->Sci.Find(t, MatchCase, FindWarp , FindBack, True, FindForce)
 	If a->Sci.FindCount < 0 Then Exit Sub
 	
+	SendMessage(a->Sci.Handle, SCI_GOTOPOS, a->Sci.FindPoses(a->Sci.FindIndex), 0)
 	a->Sci.SelStart = a->Sci.FindPoses(a->Sci.FindIndex)
 	a->Sci.SelLength = a->Sci.FindLength
-	SendMessage(a->Sci.Handle, SCI_SCROLLCARET, 0, 0)
+	'SendMessage(a->Sci.Handle, SCI_SCROLLCARET, 0, 0)
+
 	spSpeed.Caption = "Find " & Format(timr.Passed, "#,#0.000") & " sec."
 End Sub
 
@@ -2207,10 +2209,9 @@ End Sub
 Private Function MDIMainType.ReplaceAll(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal MatchCase As Boolean = False) As Integer
 	timr.Start
 	Dim a As MDIChildType Ptr = ActMdiChild
-	Dim f As ZString Ptr = StrPtr(TextToSciData(FindStr, a->Sci.CodePage))
-	Dim r As ZString Ptr = StrPtr(TextToSciData(ReplaceStr, a->Sci.CodePage))
-
-	Dim i As Integer = a->Sci.ReplaceAll(f, r, MatchCase)
+	Dim f As String = TextToSciData(FindStr, a->Sci.CodePage)
+	Dim r As String = TextToSciData(ReplaceStr, a->Sci.CodePage)
+	Dim i As Integer = a->Sci.ReplaceAll(Cast(ZString Ptr, StrPtr(f)), Cast(ZString Ptr, StrPtr(r)), MatchCase)
 	MDIChildClick(a)
 	spSpeed.Caption = "Replace All " & Format(timr.Passed, "#,#0.000") & " sec."
 	Return i
