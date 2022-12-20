@@ -5,6 +5,7 @@ ProjectName=""
 HelpFileName=""
 ProjectDescription=""
 PassAllModuleFilesToCompiler=false
+OpenProjectAsFolder=true
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
