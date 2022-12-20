@@ -34,6 +34,8 @@ Destructor ProjectElement
 	WDeAllocate(MainFileName)
 	WDeAllocate(ResourceFileName)
 	WDeAllocate(IconResourceFileName)
+	WDeAllocate(BatchCompilationFileNameWindows)
+	WDeAllocate(BatchCompilationFileNameLinux)
 	WDeAllocate(ProjectName)
 	WDeAllocate(HelpFileName)
 	WDeAllocate(ProjectDescription)
@@ -260,8 +262,17 @@ Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 End Function
 
 Sub ChangeMenuItemsEnabled
+	Dim As TreeNode Ptr ptn = GetParentNode(tvExplorer.SelectedNode)
 	Dim bEnabled As Boolean = tvExplorer.Nodes.Count > 0
 	Dim bEnabledTab As Boolean = miWindow->Count > 3
+	Dim bEnabledProject As Boolean = ptn AndAlso (ptn->ImageKey = "Project" OrElse ptn->ImageKey = "MainProject" OrElse ptn->ImageKey = "Folder")
+	miSaveProject->Enabled = bEnabledProject
+	miSaveProjectAs->Enabled = bEnabledProject
+	miCloseProject->Enabled = bEnabledProject
+	miCloseFolder->Enabled = bEnabledProject
+	miExplorerCloseProject->Enabled = bEnabledProject
+	miProjectProperties->Enabled = bEnabledProject
+	miExplorerProjectProperties->Enabled = bEnabledProject
 	mnuWindowSeparator->Visible = bEnabledTab
 	miCode->Enabled = bEnabledTab
 	miGoto->Enabled = bEnabledTab
@@ -960,6 +971,8 @@ Function TabWindow.SaveAs As Boolean
 				If WGet(pee->MainFileName) = WGet(ee->FileName) Then WLet(pee->MainFileName, pSaveD->FileName)
 				If WGet(pee->ResourceFileName) = WGet(ee->FileName) Then WLet(pee->ResourceFileName, pSaveD->FileName)
 				If WGet(pee->IconResourceFileName) = WGet(ee->FileName) Then WLet(pee->IconResourceFileName, pSaveD->FileName)
+				If WGet(pee->BatchCompilationFileNameWindows) = WGet(ee->FileName) Then WLet(pee->BatchCompilationFileNameWindows, pSaveD->FileName)
+				If WGet(pee->BatchCompilationFileNameLinux) = WGet(ee->FileName) Then WLet(pee->BatchCompilationFileNameLinux, pSaveD->FileName)
 				If Not EndsWith(ptn->Text, "*") Then ptn->Text & = "*"
 			End If
 		End If

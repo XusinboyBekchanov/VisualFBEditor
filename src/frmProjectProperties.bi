@@ -69,15 +69,15 @@ Using My.Sys.Forms
 		Dim As TabControl tabProperties
 		Dim As TabPage tpGeneral, tpMake, tpCompile, tpDebugging, tpAndroidSettings
 		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions, CommandButton1, cmdAndroidSDKLocation, cmdAndroidNDKLocation, cmdJDKLocation, cmdCompiler
-		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321, lblSubsystem, lblAndroidSDKLocation, lblAndroidNDKLocation, lblJDKLocation, lblCompiler
+		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321, lblSubsystem, lblAndroidSDKLocation, lblAndroidNDKLocation, lblJDKLocation, lblCompiler, lblBatchCompilationFileWindows, lblBatchCompilationFileLinux
 		Dim As Picture picCompileToGCC, picVersionNumber, picApplication, picVersionInformation, picCompilationArguments
-		Dim As ComboBoxEdit cboProjectType, cboMainFile, cboResourceFile, cboIconResourceFile, cboOptimizationLevel, cboSubsystem, cboCompiler
+		Dim As ComboBoxEdit cboProjectType, cboMainFile, cboResourceFile, cboIconResourceFile, cboOptimizationLevel, cboSubsystem, cboCompiler, cboBatchCompilationFileWindows, cboBatchCompilationFileLinux
 		Dim As TextBox txtProjectName, txtProjectDescription, txtCompilationArguments32Windows, txtCompilationArguments64Windows, txtIcon, txtTitle, txtMajor, txtMinor, txtRevision, txtBuild, txtCompilationArguments32Linux, txtValue, txtHelpFileName, txtCommandLineArguments, txtCompilationArguments64Linux, txtAndroidSDKLocation, txtAndroidNDKLocation, txtJDKLocation, txtCompilerPath
 		Dim As GroupBox grbVersionNumber, grbApplication, grbVersionInformation, grbCompilationArguments, grbCompileToGCC
 		Dim As CheckBox chkAutoIncrementVersion, chkCreateDebugInfo, chkPassAllModuleFilesToCompiler, chkManifest, chkRunAsAdministrator, chkOpenProjectAsFolder
 		Dim As ListControl lstType
 		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization, optCompileByDefault, optCompileToLLVM
-		Dim As Dictionary Types, MainFiles, ResourceFiles, IconResourceFiles
+		Dim As Dictionary Types, MainFiles, ResourceFiles, IconResourceFiles, BatchCompilationFilesWindows, BatchCompilationFilesLinux
 		Dim As TreeNode Ptr ProjectTreeNode
 		Dim As ImageBox imgIcon
 		Dim As FolderBrowserDialog BrowseD

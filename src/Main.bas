@@ -660,24 +660,34 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		'Print #FileOut, *fbcCommand  + " > """ + *LogFileName + """" + " 2>""" + *LogFileName2 + """"
 		'Close #FileOut
 		'Shell("""" + BatFileName + """")
-		If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
-			Dim As String gradlewFile, gradlewCommand
-			If Parameter = "Bundle" Then
-				gradlewCommand = "bundleRelease"
-			ElseIf Parameter = "APK" Then
-				gradlewCommand = "assembleRelease"
+		Dim As WString Ptr BatchCompilationFileName
+		#ifdef __FB_WIN32__
+			If Project Then BatchCompilationFileName = Project->BatchCompilationFileNameWindows
+		#else
+			If Project Then BatchCompilationFileName = Project->BatchCompilationFileNameLinux
+		#EndIf
+		If WGet(BatchCompilationFileName) <> "" Then 'CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
+			If EndsWith(*BatchCompilationFileName, "gradlew.bat") OrElse EndsWith(*BatchCompilationFileName, "/gradlew") Then
+				Dim As String gradlewFile, gradlewCommand
+				If Parameter = "Bundle" Then
+					gradlewCommand = "bundleRelease"
+				ElseIf Parameter = "APK" Then
+					gradlewCommand = "assembleRelease"
+				Else
+					gradlewCommand = "assembleDebug"
+				End If
+				#ifdef __FB_WIN32__
+					gradlewFile = "gradlew.bat"
+				#else
+					gradlewFile = "./gradlew"
+				#endif
+				WLet(PipeCommand, gradlewFile & " " & gradlewCommand)
 			Else
-				gradlewCommand = "assembleDebug"
+				WLet(PipeCommand, *BatchCompilationFileName)
 			End If
-			ChDir(*Project->FileName)
-			#ifdef __FB_WIN32__
-				gradlewFile = "gradlew.bat"
-			#else
-				gradlewFile = "./gradlew"
-			#endif
-			WLet(PipeCommand, gradlewFile & " " & gradlewCommand)
+			ChDir(GetFolderName(*BatchCompilationFileName))
 			Dim As Integer Fn1 = FreeFile_
-			Open gradlewFile For Input As #Fn1
+			Open *BatchCompilationFileName For Input As #Fn1
 			Dim pBuff As WString Ptr
 			Dim As Integer FileSize
 			Dim As WStringList Lines
@@ -690,7 +700,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CloseFile_(Fn1)
 			WDeAllocate(pBuff)
 			Dim As Integer Fn2 = FreeFile_
-			Open gradlewFile For Output As #Fn2
+			Open *BatchCompilationFileName For Output As #Fn2
 			For i As Integer = 0 To Lines.Count - 1
 				If StartsWith(Lines.Item(i), "set FBC=") Then
 					Print #Fn2, "set FBC=" & *FbcExe
@@ -1242,7 +1252,7 @@ End Sub
 Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) As String
 	Dim As String sMain = ""
 	If ppe <> 0 Then
-		If FileName = WGet(ppe->MainFileName) OrElse FileName = WGet(ppe->ResourceFileName) OrElse FileName = WGet(ppe->IconResourceFileName) Then
+		If FileName = WGet(ppe->MainFileName) OrElse FileName = WGet(ppe->ResourceFileName) OrElse FileName = WGet(ppe->IconResourceFileName) OrElse FileName = WGet(ppe->BatchCompilationFileNameWindows) OrElse FileName = WGet(ppe->BatchCompilationFileNameLinux) Then
 			sMain = "Main"
 		End If
 	End If
@@ -1317,13 +1327,13 @@ End Sub
 
 Sub CloseFolder(ByRef tn As TreeNode Ptr)
 	ClearTreeNode tn
-	miSaveProject->Enabled = False
-	miSaveProjectAs->Enabled = False
-	miCloseProject->Enabled = False
-	miCloseFolder->Enabled = False
-	miExplorerCloseProject->Enabled = False
-	miProjectProperties->Enabled = False
-	miExplorerProjectProperties->Enabled = False
+	'miSaveProject->Enabled = False
+	'miSaveProjectAs->Enabled = False
+	'miCloseProject->Enabled = False
+	'miCloseFolder->Enabled = False
+	'miExplorerCloseProject->Enabled = False
+	'miProjectProperties->Enabled = False
+	'miExplorerProjectProperties->Enabled = False
 	Var Index = tvExplorer.Nodes.IndexOf(tn)
 	If Index <> -1 Then tvExplorer.Nodes.Remove Index
 	ChangeMenuItemsEnabled
@@ -1448,6 +1458,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		Else
 			WLet(ppe->FileName, FileName)
 		End If
+		ppe->ProjectIsFolder = inFolder
 		tn->Tag = ppe
 		If pFilesList = 0 Then pFiles = @Files Else pFiles = pFilesList
 		Dim As String Parameter
@@ -1494,8 +1505,12 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					If bMain Then
 						If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".res") Then  ' Then
 							WLet(ppe->ResourceFileName, *ee->FileName)
-						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then  '
+						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then
 							WLet(ppe->IconResourceFileName, *ee->FileName)
+						ElseIf EndsWith(LCase(*ee->FileName), ".bat") Then
+							WLet(ppe->BatchCompilationFileNameWindows, *ee->FileName)
+						ElseIf EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
+							WLet(ppe->BatchCompilationFileNameLinux, *ee->FileName)
 						Else
 							WLet(ppe->MainFileName, *ee->FileName)
 						End If
@@ -1977,6 +1992,8 @@ Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, t
 		If WGet(ppe->MainFileName) = WGet(ee->FileName) Then WLet(ppe->MainFileName, pSaveD->FileName)
 		If WGet(ppe->ResourceFileName) = WGet(ee->FileName) Then WLet(ppe->ResourceFileName, pSaveD->FileName)
 		If WGet(ppe->IconResourceFileName) = WGet(ee->FileName) Then WLet(ppe->IconResourceFileName, pSaveD->FileName)
+		If WGet(ppe->BatchCompilationFileNameWindows) = WGet(ee->FileName) Then WLet(ppe->BatchCompilationFileNameWindows, pSaveD->FileName)
+		If WGet(ppe->BatchCompilationFileNameLinux) = WGet(ee->FileName) Then WLet(ppe->BatchCompilationFileNameLinux, pSaveD->FileName)
 		WLet(ee->FileName, pSaveD->FileName)
 		tn->Text = GetFileName(*ee->FileName)
 		If WGet(ee->TemplateFileName) <> "" Then FileCopy WGet(ee->TemplateFileName), WGet(ee->FileName)
@@ -2036,7 +2053,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	If Not EndsWith(*ppe->FileName, ".vfp") Then
 		Open *ppe->FileName & "/" & GetFileName(*ppe->FileName) & ".vfp" For Output Encoding "utf-8" As #Fn
 		For i As Integer = 0 To ppe->Files.Count - 1
-			Zv = IIf(ppe AndAlso (ppe->Files.Item(i) = *ppe->MainFileName OrElse ppe->Files.Item(i) = *ppe->ResourceFileName OrElse ppe->Files.Item(i) = *ppe->IconResourceFileName), "*", "")
+			Zv = IIf(ppe AndAlso (ppe->Files.Item(i) = *ppe->MainFileName OrElse ppe->Files.Item(i) = *ppe->ResourceFileName OrElse ppe->Files.Item(i) = *ppe->IconResourceFileName OrElse ppe->Files.Item(i) = *ppe->BatchCompilationFileNameWindows OrElse ppe->Files.Item(i) = *ppe->BatchCompilationFileNameLinux), "*", "")
 			If StartsWith(ppe->Files.Item(i), *ppe->FileName & "\") Then
 				Print #Fn, Zv & "File=" & Replace(Mid(ppe->Files.Item(i), Len(*ppe->FileName & "\") + 1), "\", "/")
 			Else
@@ -2049,7 +2066,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 			tn1 = tnPr->Nodes.Item(i)
 			ee = tn1->Tag
 			If ee <> 0 Then
-				Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
+				Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName OrElse ppe->Files.Item(i) = *ppe->BatchCompilationFileNameWindows OrElse ppe->Files.Item(i) = *ppe->BatchCompilationFileNameLinux), "*", "")
 				If StartsWith(*ee->FileName, GetFolderName(*ppe->FileName)) Then
 					Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
 				Else
@@ -2060,7 +2077,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 					tn2 = tn1->Nodes.Item(j)
 					ee = tn2->Tag
 					If ee <> 0 Then
-						Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName), "*", "")
+						Zv = IIf(ppe AndAlso (*ee->FileName = *ppe->MainFileName OrElse *ee->FileName = *ppe->ResourceFileName OrElse *ee->FileName = *ppe->IconResourceFileName OrElse ppe->Files.Item(i) = *ppe->BatchCompilationFileNameWindows OrElse ppe->Files.Item(i) = *ppe->BatchCompilationFileNameLinux), "*", "")
 						If StartsWith(Replace(*ee->FileName, "\", "/"), Replace(GetFolderName(*ppe->FileName), "\", "/")) Then
 							Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(*ppe->FileName)) + 1), "\", "/")
 						Else
@@ -2608,18 +2625,26 @@ Sub SetAsMain(IsTab As Boolean)
 				ptn->Tag = ppe
 				ptn->ImageKey = "Project"
 				ptn->SelectedImageKey = "Project"
+				ppe->ProjectIsFolder = True
+				ChangeMenuItemsEnabled
 			End If
 			If ee <> 0 AndAlso ppe <> 0 Then
 				'David Change
 				'If *ee->FileName = *pee->Project->MainFileName OrElse *ee->FileName = *pee->Project->ResourceFileName Then Exit Sub
-				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") _
-					OrElse EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".inc") Then
+				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".xpm") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") _
+					OrElse EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".bat") OrElse EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
 					Dim As TreeNode Ptr tn1, tn2
 					Dim As Integer tIndex
 					Dim As String IconName
 					If Not EndsWith(ptn->Text, "*") Then ptn->Text &= "*"
 					If EndsWith(LCase(*ee->FileName), ".rc") Then
 						WLet(ppe->ResourceFileName, *ee->FileName)
+					ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then
+						WLet(ppe->IconResourceFileName, *ee->FileName)
+					ElseIf EndsWith(LCase(*ee->FileName), ".bat") Then
+						WLet(ppe->BatchCompilationFileNameWindows, *ee->FileName)
+					ElseIf EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
+						WLet(ppe->BatchCompilationFileNameLinux, *ee->FileName)
 					Else
 						WLet(ppe->MainFileName, *ee->FileName)
 					End If
@@ -2771,13 +2796,13 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 	'	End If
 	If tn = MainNode Then SetMainNode 0
 	If tn->Tag <> 0 Then Delete_(Cast(ProjectElement Ptr, tn->Tag))
-	miSaveProject->Enabled = False
-	miSaveProjectAs->Enabled = False
-	miCloseProject->Enabled = False
-	miCloseFolder->Enabled = False
-	miExplorerCloseProject->Enabled = False
-	miProjectProperties->Enabled = False
-	miExplorerProjectProperties->Enabled = False
+	'miSaveProject->Enabled = False
+	'miSaveProjectAs->Enabled = False
+	'miCloseProject->Enabled = False
+	'miCloseFolder->Enabled = False
+	'miExplorerCloseProject->Enabled = False
+	'miProjectProperties->Enabled = False
+	'miExplorerProjectProperties->Enabled = False
 	If tvExplorer.Nodes.IndexOf(tn) <> -1 Then tvExplorer.Nodes.Remove tvExplorer.Nodes.IndexOf(tn)
 	ChangeMenuItemsEnabled
 	Return True
@@ -6127,11 +6152,11 @@ End Sub
 Sub tvExplorer_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
 	#ifdef __USE_GTK__
 		Select Case Key
-		Case GDK_KEY_LEFT
+		Case GDK_KEY_Left
 			
 		End Select
 	#else
-		If Key = VK_Return Then tvExplorer_DblClick Sender
+		If Key = VK_RETURN Then tvExplorer_DblClick Sender
 	#endif
 End Sub
 
@@ -6159,23 +6184,23 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		mLoadToDo = False
 		ChangeMenuItemsEnabled
 		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" AndAlso ptn->ImageKey <> "Folder" Then  'David Change For compile Single .bas file Then
-			miSaveProject->Enabled = False
-			miSaveProjectAs->Enabled = False
-			miCloseProject->Enabled = False
-			miCloseFolder->Enabled = False
-			miExplorerCloseProject->Enabled = False
-			miProjectProperties->Enabled = False
-			miExplorerProjectProperties->Enabled = False
+			'miSaveProject->Enabled = False
+			'miSaveProjectAs->Enabled = False
+			'miCloseProject->Enabled = False
+			'miCloseFolder->Enabled = False
+			'miExplorerCloseProject->Enabled = False
+			'miProjectProperties->Enabled = False
+			'miExplorerProjectProperties->Enabled = False
 			'			MainNode = 0
 			'			lblLeft.Text = ML("Main Project") & ": " & ML("Automatic")
 		Else
-			miSaveProject->Enabled = True
-			miSaveProjectAs->Enabled = True
-			miCloseProject->Enabled = True
-			miCloseFolder->Enabled = True
-			miExplorerCloseProject->Enabled = True
-			miProjectProperties->Enabled = True
-			miExplorerProjectProperties->Enabled = True
+			'miSaveProject->Enabled = True
+			'miSaveProjectAs->Enabled = True
+			'miCloseProject->Enabled = True
+			'miCloseFolder->Enabled = True
+			'miExplorerCloseProject->Enabled = True
+			'miProjectProperties->Enabled = True
+			'miExplorerProjectProperties->Enabled = True
 			'			MainNode->ImageKey = "MainProject"
 			'			MainNode->Bold = True
 			If mStartLoadSession = False Then

@@ -45,6 +45,8 @@ Type ProjectElement Extends ExplorerElement
 	MainFileName As WString Ptr
 	ResourceFileName As WString Ptr
 	IconResourceFileName As WString Ptr
+	BatchCompilationFileNameWindows As WString Ptr
+	BatchCompilationFileNameLinux As WString Ptr
 	ProjectType As Integer
 	Subsystem As Integer
 	ProjectName As WString Ptr
@@ -52,6 +54,7 @@ Type ProjectElement Extends ExplorerElement
 	ProjectDescription As WString Ptr
 	PassAllModuleFilesToCompiler As Boolean
 	OpenProjectAsFolder As Boolean
+	ProjectIsFolder As Boolean
 	MajorVersion As Integer
 	MinorVersion As Integer
 	RevisionVersion As Integer

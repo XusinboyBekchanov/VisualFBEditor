@@ -27,7 +27,7 @@ pfProjectProperties = @fProjectProperties
 		This.OnShow       = @Form_Show
 		This.DefaultButton = @cmdOK
 		This.CancelButton = @cmdCancel
-		This.SetBounds 0, 0, 510, 428
+		This.SetBounds 0, 0, 510, 458
 		#ifdef __USE_GTK__
 			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 		#else
@@ -39,13 +39,13 @@ pfProjectProperties = @fProjectProperties
 		tabProperties.Name = "tabProperties"
 		tabProperties.Text = "TabControl1"
 		tabProperties.TabIndex = 0
-		tabProperties.SetBounds 6, 6, 493, 341
+		tabProperties.SetBounds 6, 6, 493, 381
 		tabProperties.Parent = @This
 		' tpGeneral
 		tpGeneral.Name = "tpGeneral"
 		tpGeneral.Text = ML("General")
 		tpGeneral.TabIndex = 1
-		tpGeneral.SetBounds -288, 22, 487, 316
+		tpGeneral.SetBounds 2, 22, 487, 356
 		tpGeneral.UseVisualStyleBackColor = True
 		tpGeneral.Parent = @tabProperties
 		' tpMake
@@ -60,7 +60,7 @@ pfProjectProperties = @fProjectProperties
 		tpCompile.Name = "tpCompile"
 		tpCompile.Text = ML("Compile")
 		tpCompile.TabIndex = 44
-		tpCompile.SetBounds 2, 22, 487, 316
+		tpCompile.SetBounds 2, 22, 487, 346
 		tpCompile.Visible = True
 		tpCompile.UseVisualStyleBackColor = True
 		tpCompile.OnClick = @tpCompile_Click
@@ -69,7 +69,7 @@ pfProjectProperties = @fProjectProperties
 		cmdOK.Name = "cmdOK"
 		cmdOK.Text = ML("OK")
 		cmdOK.TabIndex = 84
-		cmdOK.SetBounds 161, 359, 106, 34
+		cmdOK.SetBounds 161, 389, 106, 34
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Default = True
 		cmdOK.Parent = @This
@@ -77,14 +77,14 @@ pfProjectProperties = @fProjectProperties
 		cmdCancel.Name = "cmdCancel"
 		cmdCancel.Text = ML("Cancel")
 		cmdCancel.TabIndex = 85
-		cmdCancel.SetBounds 269, 359, 120, 34
+		cmdCancel.SetBounds 269, 389, 120, 34
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
 		' cmdHelp
 		cmdHelp.Name = "cmdHelp"
 		cmdHelp.Text = ML("Help")
 		cmdHelp.TabIndex = 86
-		cmdHelp.SetBounds 391, 359, 106, 34
+		cmdHelp.SetBounds 391, 389, 106, 34
 		cmdHelp.Parent = @This
 		' lblProjectType
 		lblProjectType.Name = "lblProjectType"
@@ -115,25 +115,25 @@ pfProjectProperties = @fProjectProperties
 		lblProjectName.Name = "lblProjectName"
 		lblProjectName.Text = ML("Project Name") & ":"
 		lblProjectName.TabIndex = 10
-		lblProjectName.SetBounds 10, 124, 204, 18
+		lblProjectName.SetBounds 10, 182, 204, 18
 		lblProjectName.Parent = @tpGeneral
 		' txtProjectName
 		txtProjectName.Name = "txtProjectName"
 		txtProjectName.Text = ""
 		txtProjectName.TabIndex = 11
-		txtProjectName.SetBounds 10, 142, 202, 21
+		txtProjectName.SetBounds 10, 200, 202, 21
 		txtProjectName.Parent = @tpGeneral
 		' lblProjectDescription
 		lblProjectDescription.Name = "lblProjectDescription"
 		lblProjectDescription.Text = ML("Project Description") & ":"
 		lblProjectDescription.TabIndex = 17
-		lblProjectDescription.SetBounds 10, 240, 220, 18
+		lblProjectDescription.SetBounds 10, 298, 220, 18
 		lblProjectDescription.Parent = @tpGeneral
 		' txtProjectDescription
 		txtProjectDescription.Name = "txtProjectDescription"
 		txtProjectDescription.Text = ""
 		txtProjectDescription.TabIndex = 18
-		txtProjectDescription.SetBounds 10, 258, 466, 24
+		txtProjectDescription.SetBounds 10, 316, 466, 24
 		txtProjectDescription.Parent = @tpGeneral
 		' grbVersionNumber
 		grbVersionNumber.Name = "grbVersionNumber"
@@ -151,7 +151,7 @@ pfProjectProperties = @fProjectProperties
 		grbVersionInformation.Name = "grbVersionInformation"
 		grbVersionInformation.Text = ML("Version Information")
 		grbVersionInformation.TabIndex = 38
-		grbVersionInformation.SetBounds 9, 136, 469, 171
+		grbVersionInformation.SetBounds 9, 136, 469, 211
 		grbVersionInformation.Parent = @tpMake
 		' grbCompilationArguments
 		grbCompilationArguments.Name = "grbCompilationArguments"
@@ -267,14 +267,14 @@ pfProjectProperties = @fProjectProperties
 		' txtHelpFileName
 		txtHelpFileName.Name = "txtHelpFileName"
 		txtHelpFileName.TabIndex = 15
-		txtHelpFileName.SetBounds 10, 200, 202, 21
+		txtHelpFileName.SetBounds 10, 258, 202, 21
 		txtHelpFileName.Text = ""
 		txtHelpFileName.Parent = @tpGeneral
 		' lblHelpFileName
 		lblHelpFileName.Name = "lblHelpFileName"
 		lblHelpFileName.Text = ML("Help File") & ":"
 		lblHelpFileName.TabIndex = 14
-		lblHelpFileName.SetBounds 10, 182, 172, 18
+		lblHelpFileName.SetBounds 10, 240, 172, 18
 		lblHelpFileName.Parent = @tpGeneral
 		' grbCompileToGCC
 		grbCompileToGCC.Name = "grbCompileToGCC"
@@ -414,7 +414,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "lstType"
 			.Text = "lstType"
 		lstType.TabIndex = 41
-			.SetBounds 7, 16, 214, 121
+			.SetBounds 7, 16, 214, 167
 			.OnChange = @lstType_Change
 			.Parent = @picVersionInformation
 		End With
@@ -422,7 +422,7 @@ pfProjectProperties = @fProjectProperties
 		With txtValue
 			.Name = "txtValue"
 			.TabIndex = 43
-			.SetBounds 237, 16, 212, 122
+			.SetBounds 237, 16, 212, 162
 			.OnLostFocus = @txtValue_LostFocus
 			.Parent = @picVersionInformation
 		End With
@@ -495,7 +495,7 @@ pfProjectProperties = @fProjectProperties
 		With picVersionInformation
 			.Name = "picVersionInformation"
 			.TabIndex = 39
-			.SetBounds 16, 155, 450, 141
+			.SetBounds 16, 155, 450, 181
 			.Parent = @tpMake
 		End With
 		' picCompilationArguments
@@ -552,7 +552,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "chkPassAllModuleFilesToCompiler"
 			.Text = ML("Pass All Module Files To Compiler")
 			.TabIndex = 16
-			.SetBounds 225, 180, 252, 22
+			.SetBounds 11, 120, 192, 22
 			'.Caption = ML("Pass All Module Files To Compiler")
 			.Parent = @tpGeneral
 		End With
@@ -668,13 +668,13 @@ pfProjectProperties = @fProjectProperties
 		' BrowseD
 		With BrowseD
 			.Name = "BrowseD"
-			.SetBounds 60, 370, 16, 16
+			.SetBounds 60, 400, 16, 16
 			.Parent = @This
 		End With
 		' OpenD
 		With OpenD
 			.Name = "OpenD"
-			.SetBounds 80, 370, 16, 16
+			.SetBounds 80, 400, 16, 16
 			.Parent = @This
 		End With
 		' lblCompiler
@@ -744,7 +744,49 @@ pfProjectProperties = @fProjectProperties
 			.TabIndex = 90
 			.ControlIndex = 14
 			.Caption = ML("Open Project As Folder")
-			.SetBounds 225, 210, 252, 22
+			.SetBounds 11, 147, 192, 22
+			.Designer = @This
+			.Parent = @tpGeneral
+		End With
+		' lblBatchCompilationFileWindows
+		With lblBatchCompilationFileWindows
+			.Name = "lblBatchCompilationFileWindows"
+			.Text = ML("Batch Compilation File") & " (" & ML("For Windows") & "):"
+			.TabIndex = 91
+			.ControlIndex = 9
+			.Caption = ML("Batch Compilation File") & " (" & ML("For Windows") & "):"
+			.SetBounds 224, 182, 262, 18
+			.Designer = @This
+			.Parent = @tpGeneral
+		End With
+		' cboBatchСompilationFileWindows
+		With cboBatchCompilationFileWindows
+			.Name = "cboBatchCompilationFileWindows"
+			.Text = "cboMainFile1"
+			.TabIndex = 92
+			.ControlIndex = 8
+			.SetBounds 224, 200, 252, 21
+			.Designer = @This
+			.Parent = @tpGeneral
+		End With
+		' lblBatchCompilationFileLinux
+		With lblBatchCompilationFileLinux
+			.Name = "lblBatchCompilationFileLinux"
+			.Text = ML("Batch Compilation File") & " (" & ML("For *nix/*bsd") & "):"
+			.TabIndex = 93
+			.ControlIndex = 12
+			.Caption = ML("Batch Compilation File") & " (" & ML("For *nix/*bsd") & "):"
+			.SetBounds 224, 240, 262, 18
+			.Designer = @This
+			.Parent = @tpGeneral
+		End With
+		' cboBatchCompilationFileLinux
+		With cboBatchCompilationFileLinux
+			.Name = "cboBatchCompilationFileLinux"
+			.Text = "cboResourceFile1"
+			.TabIndex = 94
+			.ControlIndex = 14
+			.SetBounds 224, 258, 252, 21
 			.Designer = @This
 			.Parent = @tpGeneral
 		End With
@@ -793,6 +835,8 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->MainFileName, .MainFiles.Get(.cboMainFile.Text))
 		WLet(ppe->ResourceFileName, .ResourceFiles.Get(.cboResourceFile.Text))
 		WLet(ppe->IconResourceFileName, .IconResourceFiles.Get(.cboIconResourceFile.Text))
+		WLet(ppe->BatchCompilationFileNameWindows, .BatchCompilationFilesWindows.Get(.cboBatchCompilationFileWindows.Text))
+		WLet(ppe->BatchCompilationFileNameLinux, .BatchCompilationFilesLinux.Get(.cboBatchCompilationFileLinux.Text))
 		ppe->ProjectType = .cboProjectType.ItemIndex
 		ppe->Subsystem = .cboSubsystem.ItemIndex
 		WLet(ppe->ProjectName, .txtProjectName.Text)
@@ -919,6 +963,12 @@ Sub AddToCombo(ByRef tn As TreeNode Ptr)
 		ElseIf EndsWith(LCase(tn->Text), ".xpm") Then
 			.cboIconResourceFile.AddItem tn->Text
 			.IconResourceFiles.Add tn->Text, IIf(ee, *ee->FileName, "")
+		ElseIf EndsWith(LCase(tn->Text), ".bat") Then
+			.cboBatchCompilationFileWindows.AddItem tn->Text
+			.BatchCompilationFilesWindows.Add tn->Text, IIf(ee, *ee->FileName, "")
+		ElseIf EndsWith(LCase(tn->Text), ".sh") OrElse InStr(tn->Text, ".") = 0 Then
+			.cboBatchCompilationFileLinux.AddItem tn->Text
+			.BatchCompilationFilesLinux.Add tn->Text, IIf(ee, *ee->FileName, "")
 		Else
 			.cboMainFile.AddItem tn->Text
 			.MainFiles.Add tn->Text, IIf(ee, *ee->FileName, "")
@@ -935,6 +985,12 @@ Sub AddToComboFileName(ByRef FileName As WString)
 		ElseIf EndsWith(LCase(Text), ".xpm") Then
 			.cboIconResourceFile.AddItem Text
 			.IconResourceFiles.Add Text, FileName
+		ElseIf EndsWith(LCase(Text), ".bat") Then
+			.cboBatchCompilationFileWindows.AddItem Text
+			.BatchCompilationFilesWindows.Add Text, FileName
+		ElseIf EndsWith(LCase(Text), ".sh") OrElse InStr(Text, ".") = 0 Then
+			.cboBatchCompilationFileLinux.AddItem Text
+			.BatchCompilationFilesLinux.Add Text, FileName
 		Else
 			.cboMainFile.AddItem Text
 			.MainFiles.Add Text, FileName
@@ -953,17 +1009,23 @@ Public Sub frmProjectProperties.RefreshProperties()
 		.cboMainFile.Clear
 		.cboResourceFile.Clear
 		.cboIconResourceFile.Clear
+		.cboBatchCompilationFileWindows.Clear
+		.cboBatchCompilationFileLinux.Clear
 		.MainFiles.Clear
 		.ResourceFiles.Clear
 		.IconResourceFiles.Clear
+		.BatchCompilationFilesWindows.Clear
+		.BatchCompilationFilesLinux.Clear
 		.cboMainFile.AddItem ML("(not selected)")
 		.cboResourceFile.AddItem ML("(not selected)")
 		.cboIconResourceFile.AddItem ML("(not selected)")
+		.cboBatchCompilationFileWindows.AddItem ML("(not selected)")
+		.cboBatchCompilationFileLinux.AddItem ML("(not selected)")
 		Dim As Boolean bSetted = False
 		If ptn->ImageKey = "Project" OrElse ee AndAlso *ee Is ProjectElement Then
 			.ProjectTreeNode = ptn
 			ppe = Cast(ProjectElement Ptr, ee)
-			If ptn->ImageKey = "Project" AndAlso (EndsWith(ptn->Text, ".vfp") OrElse EndsWith(ptn->Text, "*")) Then
+			If ptn->ImageKey = "Project" AndAlso Not ppe->ProjectIsFolder Then
 				For i As Integer = 0 To ptn->Nodes.Count - 1
 					tn1 = ptn->Nodes.Item(i)
 					If tn1->Tag <> 0 Then
@@ -987,6 +1049,8 @@ Public Sub frmProjectProperties.RefreshProperties()
 				If .MainFiles.IndexOf(*ppe->MainFileName) > -1 Then .cboMainFile.Text = .MainFiles.Item(.MainFiles.IndexOf(*ppe->MainFileName))->Key Else .cboMainFile.ItemIndex = 0
 				If .ResourceFiles.IndexOf(*ppe->ResourceFileName) > -1 Then .cboResourceFile.Text = .ResourceFiles.Item(.ResourceFiles.IndexOf(*ppe->ResourceFileName))->Key Else .cboResourceFile.ItemIndex = 0
 				If .IconResourceFiles.IndexOf(*ppe->IconResourceFileName) > -1 Then .cboIconResourceFile.Text = .IconResourceFiles.Item(.IconResourceFiles.IndexOf(*ppe->IconResourceFileName))->Key Else .cboIconResourceFile.ItemIndex = 0
+				If .BatchCompilationFilesWindows.IndexOf(*ppe->BatchCompilationFileNameWindows) > -1 Then .cboBatchCompilationFileWindows.Text = .BatchCompilationFilesWindows.Item(.BatchCompilationFilesWindows.IndexOf(*ppe->BatchCompilationFileNameWindows))->Key Else .cboBatchCompilationFileWindows.ItemIndex = 0
+				If .BatchCompilationFilesLinux.IndexOf(*ppe->BatchCompilationFileNameLinux) > -1 Then .cboBatchCompilationFileLinux.Text = .BatchCompilationFilesLinux.Item(.BatchCompilationFilesLinux.IndexOf(*ppe->BatchCompilationFileNameLinux))->Key Else .cboBatchCompilationFileLinux.ItemIndex = 0
 				.txtProjectName.Text = *ppe->ProjectName
 				.txtHelpFileName.Text = *ppe->HelpFileName
 				.txtProjectDescription.Text = *ppe->ProjectDescription
@@ -1070,7 +1134,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 					Dim pBuff As WString Ptr
 					Dim As Integer FileSize
 					FileSize = LOF(Fn)
-					WReallocate(pBuff, FileSize)
+					WReAllocate(pBuff, FileSize)
 					Do Until EOF(Fn)
 						LineInputWstr Fn, pBuff, FileSize
 						If StartsWith(*pBuff, "org.gradle.java.home=") Then
@@ -1092,6 +1156,8 @@ Public Sub frmProjectProperties.RefreshProperties()
 			.cboMainFile.ItemIndex = -1
 			.cboResourceFile.ItemIndex = -1
 			.cboIconResourceFile.ItemIndex = -1
+			.cboBatchCompilationFileWindows.ItemIndex = -1
+			.cboBatchCompilationFileLinux.ItemIndex = -1
 			.txtProjectName.Text = ""
 			.txtHelpFileName.Text = ""
 			.txtProjectDescription.Text = ""
