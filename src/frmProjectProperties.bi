@@ -64,18 +64,30 @@ Using My.Sys.Forms
 		Declare Sub cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
+		Declare Static Sub _cmdAddComponent_Click(ByRef Sender As Control)
+		Declare Sub cmdAddComponent_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdRemoveComponent_Click(ByRef Sender As Control)
+		Declare Sub cmdRemoveComponent_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdAddOtherInclude_Click(ByRef Sender As Control)
+		Declare Sub cmdAddOtherInclude_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdRemoveOtherInclude_Click(ByRef Sender As Control)
+		Declare Sub cmdRemoveOtherInclude_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdAddLibrary_Click(ByRef Sender As Control)
+		Declare Sub cmdAddLibrary_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdRemoveLibrary_Click(ByRef Sender As Control)
+		Declare Sub cmdRemoveLibrary_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As TabControl tabProperties
-		Dim As TabPage tpGeneral, tpMake, tpCompile, tpDebugging, tpAndroidSettings
-		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions, CommandButton1, cmdAndroidSDKLocation, cmdAndroidNDKLocation, cmdJDKLocation, cmdCompiler
-		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321, lblSubsystem, lblAndroidSDKLocation, lblAndroidNDKLocation, lblJDKLocation, lblCompiler, lblBatchCompilationFileWindows, lblBatchCompilationFileLinux
-		Dim As Picture picCompileToGCC, picVersionNumber, picApplication, picVersionInformation, picCompilationArguments
+		Dim As TabPage tpGeneral, tpMake, tpCompile, tpDebugging, tpAndroidSettings, tpIncludes
+		Dim As CommandButton cmdOK, cmdCancel, cmdHelp, cmdAdvancedOptions, CommandButton1, cmdAndroidSDKLocation, cmdAndroidNDKLocation, cmdJDKLocation, cmdCompiler, cmdAddComponent, cmdRemoveComponent, cmdAddOtherInclude, cmdRemoveOtherInclude, cmdAddLibrary, cmdRemoveLibrary
+		Dim As Label lblProjectType, lblMainFile, lblProjectName, lblProjectDescription, lblCompilationArguments64, lblIcon, lblTitle, lblMajor, lblMinor, lblRevision, lblBuild, lblResourceFile, lblIconResourceFile, lblCompilationArguments32Linux, lblCompilationArguments64Linux, lblCompilationArguments32, lblType, lblValue, lblHelpFileName, lblCompilationArguments321, lblSubsystem, lblAndroidSDKLocation, lblAndroidNDKLocation, lblJDKLocation, lblCompiler, lblBatchCompilationFileWindows, lblBatchCompilationFileLinux, lblComponents, lblOthers
+		Dim As Picture picCompileToGCC, picVersionNumber, picApplication, picVersionInformation, picCompilationArguments, picComponents, picOtherIncludes
 		Dim As ComboBoxEdit cboProjectType, cboMainFile, cboResourceFile, cboIconResourceFile, cboOptimizationLevel, cboSubsystem, cboCompiler, cboBatchCompilationFileWindows, cboBatchCompilationFileLinux
 		Dim As TextBox txtProjectName, txtProjectDescription, txtCompilationArguments32Windows, txtCompilationArguments64Windows, txtIcon, txtTitle, txtMajor, txtMinor, txtRevision, txtBuild, txtCompilationArguments32Linux, txtValue, txtHelpFileName, txtCommandLineArguments, txtCompilationArguments64Linux, txtAndroidSDKLocation, txtAndroidNDKLocation, txtJDKLocation, txtCompilerPath
-		Dim As GroupBox grbVersionNumber, grbApplication, grbVersionInformation, grbCompilationArguments, grbCompileToGCC
+		Dim As GroupBox grbVersionNumber, grbApplication, grbVersionInformation, grbCompilationArguments, grbCompileToGCC, grbIncludePaths, grbLibraryPaths
 		Dim As CheckBox chkAutoIncrementVersion, chkCreateDebugInfo, chkPassAllModuleFilesToCompiler, chkManifest, chkRunAsAdministrator, chkOpenProjectAsFolder
-		Dim As ListControl lstType
+		Dim As ListControl lstType, lstComponents, lstOtherIncludes, lstLibraryPaths
 		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization, optCompileByDefault, optCompileToLLVM
 		Dim As Dictionary Types, MainFiles, ResourceFiles, IconResourceFiles, BatchCompilationFilesWindows, BatchCompilationFilesLinux
 		Dim As TreeNode Ptr ProjectTreeNode

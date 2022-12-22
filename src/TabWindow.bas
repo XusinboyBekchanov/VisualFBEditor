@@ -479,6 +479,9 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
 			.FormDesign(bNoActivate)
+			If CBool(FileName <> "") AndAlso CBool(tb->Project <> 0) AndAlso (EndsWith(FileName, "Form.frm") OrElse EndsWith(FileName, "UserControl.bas")) Then
+				If Not tb->Project->Components.Contains("Controls/MyFbFramework") Then tb->Project->Components.Add "Controls/MyFbFramework"
+			End If
 			pApp->MainForm = @frmMain
 			If FileName <> "" Then
 				.txtCode.ClearUndo
@@ -2659,6 +2662,8 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
 	If stDesignControl = 0 OrElse stDesignControl->ReadPropertyFunc = 0 Then Exit Sub
 	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+	Dim As UString LibraryPath = Replace(GetRelative(GetFolderName(st->Path, False), ExePath), "\", "/")
+	If tb->Project <> 0 AndAlso Not tb->Project->Components.Contains(LibraryPath) Then tb->Project->Components.Add LibraryPath
 	Dim NewName As String = WGet(st->ReadPropertyFunc(Ctrl, "Name"))
 	tb->cboClass.Items.Add NewName, Ctrl, ClassName, ClassName, , 1, tb->FindControlIndex(NewName)
 	Dim As EditControl txtCodeBi

@@ -35,12 +35,6 @@ pfProjectProperties = @fProjectProperties
 			This.OnCreate = @_Form_Create
 			This.Icon.LoadFromResourceID(1)
 		#endif
-		' tabProperties
-		tabProperties.Name = "tabProperties"
-		tabProperties.Text = "TabControl1"
-		tabProperties.TabIndex = 0
-		tabProperties.SetBounds 6, 6, 493, 381
-		tabProperties.Parent = @This
 		' tpGeneral
 		tpGeneral.Name = "tpGeneral"
 		tpGeneral.Text = ML("General")
@@ -86,6 +80,12 @@ pfProjectProperties = @fProjectProperties
 		cmdHelp.TabIndex = 86
 		cmdHelp.SetBounds 391, 389, 106, 34
 		cmdHelp.Parent = @This
+		' tabProperties
+		tabProperties.Name = "tabProperties"
+		tabProperties.Text = "TabControl1"
+		tabProperties.TabIndex = 0
+		tabProperties.SetBounds 6, 6, 493, 381
+		tabProperties.Parent = @This
 		' lblProjectType
 		lblProjectType.Name = "lblProjectType"
 		lblProjectType.Text = ML("Project Type") & ":"
@@ -297,6 +297,17 @@ pfProjectProperties = @fProjectProperties
 		optCompileToGcc.SetBounds 16, 34, 132, 16
 		optCompileToGcc.OnClick = @optCompileToGcc_Click
 		optCompileToGcc.Parent = @tpCompile
+		' tpIncludes
+		With tpIncludes
+			.Name = "tpIncludes"
+			.Text = ML("Includes")
+			.TabIndex = 95
+			.Caption = ML("Includes")
+			.UseVisualStyleBackColor = True
+			.SetBounds 65182, 22, 487, 356
+			.Designer = @This
+			.Parent = @tabProperties
+		End With
 		' tpDebugging
 		tpDebugging.Name = "tpDebugging"
 		tpDebugging.TabIndex = 70
@@ -511,7 +522,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "optCompileByDefault"
 			.Text = ML("Compile by default")
 			.TabIndex = 45
-			.Checked = true
+			.Checked = True
 			.SetBounds 16, 15, 150, 16
 			'.Caption = ML("Compile by default")
 			.Designer = @This
@@ -790,7 +801,202 @@ pfProjectProperties = @fProjectProperties
 			.Designer = @This
 			.Parent = @tpGeneral
 		End With
+		' grbIncludePaths
+		With grbIncludePaths
+			.Name = "grbIncludePaths"
+			.Text = ML("Include Paths")
+			.TabIndex = 96
+			.Caption = ML("Include Paths")
+			.Margins.Top = 20
+			.Margins.Right = 15
+			.Margins.Left = 15
+			.Margins.Bottom = 15
+			.SetBounds 10, 8, 467, 225
+			.Designer = @This
+			.Parent = @tpIncludes
+		End With
+		' grbLibraryPaths
+		With grbLibraryPaths
+			.Name = "grbLibraryPaths"
+			.Text = ML("Library Paths")
+			.TabIndex = 97
+			.Caption = ML("Library Paths")
+			.Margins.Top = 22
+			.Margins.Right = 15
+			.Margins.Left = 15
+			.Margins.Bottom = 15
+			.SetBounds 10, 240, 467, 107
+			.Designer = @This
+			.Parent = @tpIncludes
+		End With
+		' lblComponents
+		With lblComponents
+			.Name = "lblComponents"
+			.Text = ML("Components") & ":"
+			.TabIndex = 101
+			.Caption = ML("Components") & ":"
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 440, 20
+			.Designer = @This
+			.Parent = @picComponents
+		End With
+		' lstComponents
+		With lstComponents
+			.Name = "lstComponents"
+			.Text = "ListControl1"
+			.TabIndex = 98
+			.Align = DockStyle.alClient
+			.ExtraMargins.Right = 25
+			.SetBounds 0, 20, 425, 56
+			.Designer = @This
+			.Parent = @picComponents
+		End With
+		' lblOthers
+		With lblOthers
+			.Name = "lblOthers"
+			.Text = ML("Others") & ":"
+			.TabIndex = 102
+			.Caption = ML("Others") & ":"
+			.Align = DockStyle.alTop
+			.ExtraMargins.Top = 0
+			.SetBounds 0, 10, 437, 20
+			.Designer = @This
+			.Parent = @picOtherIncludes
+		End With
+		' lstOtherIncludes
+		With lstOtherIncludes
+			.Name = "lstOtherIncludes"
+			.Text = "ListControl2"
+			.TabIndex = 99
+			.Align = DockStyle.alClient
+			.ExtraMargins.Right = 25
+			.SetBounds 0, 30, 412, 56
+			.Designer = @This
+			.Parent = @picOtherIncludes
+		End With
+		' lstLibraryPaths
+		With lstLibraryPaths
+			.Name = "lstLibraryPaths"
+			.Text = "ListControl3"
+			.TabIndex = 100
+			.Align = DockStyle.alClient
+			.ExtraMargins.Right = 25
+			.SetBounds 15, 22, 412, 69
+			.Designer = @This
+			.Parent = @grbLibraryPaths
+		End With
+		' cmdAddComponent
+		With cmdAddComponent
+			.Name = "cmdAddComponent"
+			.Text = "+"
+			.TabIndex = 103
+			.Caption = "+"
+			.SetBounds 413, 19, 24, 22
+			.Designer = @This
+			.OnClick = @_cmdAddComponent_Click
+			.Parent = @picComponents
+		End With
+		' cmdRemoveComponent
+		With cmdRemoveComponent
+			.Name = "cmdRemoveComponent"
+			.Text = "-"
+			.TabIndex = 104
+			.ControlIndex = 4
+			.Caption = "-"
+			.SetBounds 413, 41, 24, 22
+			.Designer = @This
+			.OnClick = @_cmdRemoveComponent_Click
+			.Parent = @picComponents
+		End With
+		' cmdAddOtherInclude
+		With cmdAddOtherInclude
+			.Name = "cmdAddOtherInclude"
+			.Text = "+"
+			.TabIndex = 105
+			.ControlIndex = 5
+			.SetBounds 413, 19, 24, 22
+			.Designer = @This
+			.OnClick = @_cmdAddOtherInclude_Click
+			.Parent = @picOtherIncludes
+		End With
+		' cmdRemoveOtherInclude
+		With cmdRemoveOtherInclude
+			.Name = "cmdRemoveOtherInclude"
+			.Text = "-"
+			.TabIndex = 106
+			.ControlIndex = 4
+			.SetBounds 413, 41, 24, 22
+			.Designer = @This
+			.OnClick = @_cmdRemoveOtherInclude_Click
+			.Parent = @picOtherIncludes
+		End With
+		' cmdAddLibrary
+		With cmdAddLibrary
+			.Name = "cmdAddLibrary"
+			.Text = "+"
+			.TabIndex = 107
+			.ControlIndex = 1
+			.SetBounds 428, 21, 24, 22
+			.Designer = @This
+			.OnClick = @_cmdAddLibrary_Click
+			.Parent = @grbLibraryPaths
+		End With
+		' cmdRemoveLibrary
+		With cmdRemoveLibrary
+			.Name = "cmdRemoveLibrary"
+			.Text = "-"
+			.TabIndex = 108
+			.ControlIndex = 2
+			.SetBounds 428, 43, 24, 22
+			.Designer = @This
+			.OnClick = @_cmdRemoveLibrary_Click
+			.Parent = @grbLibraryPaths
+		End With
+		' picComponents
+		With picComponents
+			.Name = "picComponents"
+			.Text = ""
+			.TabIndex = 109
+			.ControlIndex = 2
+			.SetBounds 25, 27, 437, 90
+			.Designer = @This
+			.Parent = @tpIncludes
+		End With
+		' picOtherIncludes
+		With picOtherIncludes
+			.Name = "picOtherIncludes"
+			.Text = ""
+			.TabIndex = 119
+			.ControlIndex = 3
+			.SetBounds 25, 127, 437, 90
+			.Designer = @This
+			.Parent = @tpIncludes
+		End With
 	End Constructor
+	
+	Private Sub frmProjectProperties._cmdRemoveLibrary_Click(ByRef Sender As Control)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdRemoveLibrary_Click(Sender)
+	End Sub
+	
+	Private Sub frmProjectProperties._cmdAddLibrary_Click(ByRef Sender As Control)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAddLibrary_Click(Sender)
+	End Sub
+	
+	Private Sub frmProjectProperties._cmdRemoveOtherInclude_Click(ByRef Sender As Control)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdRemoveOtherInclude_Click(Sender)
+	End Sub
+	
+	Private Sub frmProjectProperties._cmdAddOtherInclude_Click(ByRef Sender As Control)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAddOtherInclude_Click(Sender)
+	End Sub
+	
+	Private Sub frmProjectProperties._cmdRemoveComponent_Click(ByRef Sender As Control)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdRemoveComponent_Click(Sender)
+	End Sub
+	
+	Private Sub frmProjectProperties._cmdAddComponent_Click(ByRef Sender As Control)
+		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAddComponent_Click(Sender)
+	End Sub
 	
 	Private Sub frmProjectProperties._Form_Create(ByRef Sender As Control)
 		*Cast(frmProjectProperties Ptr, Sender.Designer).Form_Create(Sender)
@@ -874,6 +1080,18 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		WLet(ppe->CompilationArguments32Linux, .txtCompilationArguments32Linux.Text)
 		WLet(ppe->CompilationArguments64Linux, .txtCompilationArguments64Linux.Text)
 		WLet(ppe->CompilerPath, .txtCompilerPath.Text)
+		ppe->Components.Clear
+		For i As Integer = 0 To .lstComponents.ItemCount - 1
+			ppe->Components.Add .lstComponents.Item(i)
+		Next
+		ppe->IncludePaths.Clear
+		For i As Integer = 0 To .lstOtherIncludes.ItemCount - 1
+			ppe->IncludePaths.Add .lstOtherIncludes.Item(i)
+		Next
+		ppe->LibraryPaths.Clear
+		For i As Integer = 0 To .lstLibraryPaths.ItemCount - 1
+			ppe->LibraryPaths.Add .lstLibraryPaths.Item(i)
+		Next
 		WLet(ppe->CommandLineArguments, .txtCommandLineArguments.Text)
 		ppe->CreateDebugInfo = .chkCreateDebugInfo.Checked
 		If CBool(*ppe->AndroidSDKLocation <> .txtAndroidSDKLocation.Text OrElse *ppe->AndroidNDKLocation <> .txtAndroidNDKLocation.Text) AndAlso _
@@ -1006,6 +1224,9 @@ Public Sub frmProjectProperties.RefreshProperties()
 		ptn = GetParentNode(ptn)
 		Dim As ExplorerElement Ptr ee = ptn->Tag
 		Dim As ProjectElement Ptr ppe
+		.lstComponents.Clear
+		.lstOtherIncludes.Clear
+		.lstLibraryPaths.Clear
 		.cboMainFile.Clear
 		.cboResourceFile.Clear
 		.cboIconResourceFile.Clear
@@ -1101,6 +1322,15 @@ Public Sub frmProjectProperties.RefreshProperties()
 				.txtCompilationArguments32Linux.Text = *ppe->CompilationArguments32Linux
 				.txtCompilationArguments64Linux.Text = *ppe->CompilationArguments64Linux
 				.txtCompilerPath.Text = *ppe->CompilerPath
+				For i As Integer = 0 To ppe->Components.Count - 1
+					.lstComponents.AddItem ppe->Components.Item(i)
+				Next
+				For i As Integer = 0 To ppe->IncludePaths.Count - 1
+					.lstOtherIncludes.AddItem ppe->IncludePaths.Item(i)
+				Next
+				For i As Integer = 0 To ppe->LibraryPaths.Count - 1
+					.lstLibraryPaths.AddItem ppe->LibraryPaths.Item(i)
+				Next
 				.txtCommandLineArguments.Text = *ppe->CommandLineArguments
 				.chkCreateDebugInfo.Checked = ppe->CreateDebugInfo
 				If Not EndsWith(*ppe->FileName, ".vfp") AndAlso FileExists(*ppe->FileName & "/local.properties") Then
@@ -1357,4 +1587,55 @@ Private Sub frmProjectProperties.Form_Create(ByRef Sender As Control)
 	Next
 	fProjectProperties.cboCompiler.AddItem ML("Custom")
 	fProjectProperties.RefreshProperties
+End Sub
+
+Private Sub frmProjectProperties.cmdAddComponent_Click(ByRef Sender As Control)
+	pfPath->txtPath.Text = ""
+	pfPath->ChooseFolder = True
+	If pfPath->ShowModal() = ModalResults.OK Then
+		If Not lstComponents.Items.Contains(pfPath->txtPath.Text) Then
+			lstComponents.AddItem pfPath->txtPath.Text
+		Else
+			MsgBox ML("This path is exists!")
+		End If
+	End If
+End Sub
+
+Private Sub frmProjectProperties.cmdRemoveComponent_Click(ByRef Sender As Control)
+	Var Index = lstComponents.ItemIndex
+	If Index <> -1 Then lstComponents.RemoveItem Index
+End Sub
+
+Private Sub frmProjectProperties.cmdAddOtherInclude_Click(ByRef Sender As Control)
+	pfPath->txtPath.Text = ""
+	pfPath->ChooseFolder = True
+	If pfPath->ShowModal() = ModalResults.OK Then
+		If Not lstOtherIncludes.Items.Contains(pfPath->txtPath.Text) Then
+			lstOtherIncludes.AddItem pfPath->txtPath.Text
+		Else
+			MsgBox ML("This path is exists!")
+		End If
+	End If
+End Sub
+
+Private Sub frmProjectProperties.cmdRemoveOtherInclude_Click(ByRef Sender As Control)
+	Var Index = lstOtherIncludes.ItemIndex
+	If Index <> -1 Then lstOtherIncludes.RemoveItem Index
+End Sub
+
+Private Sub frmProjectProperties.cmdAddLibrary_Click(ByRef Sender As Control)
+	pfPath->txtPath.Text = ""
+	pfPath->ChooseFolder = True
+	If pfPath->ShowModal() = ModalResults.OK Then
+		If Not lstLibraryPaths.Items.Contains(pfPath->txtPath.Text) Then
+			lstLibraryPaths.AddItem pfPath->txtPath.Text
+		Else
+			MsgBox ML("This path is exists!")
+		End If
+	End If
+End Sub
+
+Private Sub frmProjectProperties.cmdRemoveLibrary_Click(ByRef Sender As Control)
+	Var Index = lstLibraryPaths.ItemIndex
+	If Index <> -1 Then lstLibraryPaths.RemoveItem Index
 End Sub

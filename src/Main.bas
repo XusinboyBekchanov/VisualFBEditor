@@ -593,17 +593,27 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		End If
 		WAdd(CompileWith, " " & *FirstLine)
 		'If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
-		Dim CtlLibrary As Library Ptr
-		For i As Integer = 0 To ControlLibraries.Count - 1
-			CtlLibrary = ControlLibraries.Item(i)
-			If CtlLibrary <> 0 AndAlso CtlLibrary->Enabled Then
-				If EndsWith(CtlLibrary->IncludeFolder, Slash) Then
-					WAdd CompileWith, " -i """ & Left(CtlLibrary->IncludeFolder, Len(CtlLibrary->IncludeFolder) - 1) & """"
+		If Project Then
+			For i As Integer = 0 To Project->Components.Count - 1
+				If EndsWith(Project->Components.Item(i), Slash) Then
+					WAdd CompileWith, " -i """ & GetRelativePath(Left(Project->Components.Item(i), Len(Project->Components.Item(i)) - 1)) & """"
 				Else
-					WAdd CompileWith, " -i """ & CtlLibrary->IncludeFolder & """"
+					WAdd CompileWith, " -i """ & GetRelativePath(Project->Components.Item(i)) & """"
 				End If
-			End If
-		Next
+			Next
+		Else
+			Dim CtlLibrary As Library Ptr
+			For i As Integer = 0 To ControlLibraries.Count - 1
+				CtlLibrary = ControlLibraries.Item(i)
+				If CtlLibrary <> 0 AndAlso CtlLibrary->Enabled Then
+					If EndsWith(CtlLibrary->IncludeFolder, Slash) Then
+						WAdd CompileWith, " -i """ & Left(CtlLibrary->IncludeFolder, Len(CtlLibrary->IncludeFolder) - 1) & """"
+					Else
+						WAdd CompileWith, " -i """ & CtlLibrary->IncludeFolder & """"
+					End If
+				End If
+			Next
+		End If
 		For i As Integer = 0 To pIncludePaths->Count - 1
 			WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
 		Next
@@ -1610,10 +1620,15 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					WLet(ppe->AndroidNDKLocation, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "JDKLocation" Then
 					WLet(ppe->JDKLocation, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
+				ElseIf Parameter = "IncludePath" Then
+					ppe->IncludePaths.Add Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+				ElseIf Parameter = "LibraryPath" Then
+					ppe->LibraryPaths.Add Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
 				ElseIf Parameter = "ControlLibrary" Then
 					Dim As Library Ptr CtlLibrary
 					Dim As Boolean bFinded, bChanged
 					Dim As UString LibraryPath = Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2)
+					ppe->Components.Add LibraryPath
 					For i As Integer = 0 To ControlLibraries.Count - 1
 						CtlLibrary = ControlLibraries.Item(i)
 						If Replace(GetFolderName(CtlLibrary->Path, False), "\", "/") = LibraryPath Then
@@ -2125,13 +2140,22 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 	Print #Fn, "AndroidSDKLocation=""" & *ppe->AndroidSDKLocation & """"
 	Print #Fn, "AndroidNDKLocation=""" & *ppe->AndroidNDKLocation & """"
 	Print #Fn, "JDKLocation=""" & *ppe->JDKLocation & """"
-	Dim As Library Ptr CtlLibrary
-	For i As Integer = 0 To ControlLibraries.Count - 1
-		CtlLibrary = ControlLibraries.Item(i)
-		If CtlLibrary->Enabled Then
-			Print #Fn, "ControlLibrary=""" & Replace(GetFolderName(CtlLibrary->Path, False), "\", "/") & """"
-		End If
+	For i As Integer = 0 To ppe->Components.Count - 1
+		Print #Fn, "ControlLibrary=""" & Replace(ppe->Components.Item(i), "\", "/") & """"
 	Next
+	For i As Integer = 0 To ppe->IncludePaths.Count - 1
+		Print #Fn, "IncludePath=""" & Replace(ppe->IncludePaths.Item(i), "\", "/") & """"
+	Next
+	For i As Integer = 0 To ppe->LibraryPaths.Count - 1
+		Print #Fn, "LibraryPath=""" & Replace(ppe->LibraryPaths.Item(i), "\", "/") & """"
+	Next
+	'Dim As Library Ptr CtlLibrary
+	'For i As Integer = 0 To ControlLibraries.Count - 1
+	'	CtlLibrary = ControlLibraries.Item(i)
+	'	If CtlLibrary->Enabled Then
+	'		Print #Fn, "ControlLibrary=""" & Replace(GetFolderName(CtlLibrary->Path, False), "\", "/") & """"
+	'	End If
+	'Next
 	CloseFile_(Fn)
 	'Else
 	'	MsgBox ML("Save file failure!") & Chr(13,10) & *ppe->FileName

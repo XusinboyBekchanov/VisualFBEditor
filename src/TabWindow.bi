@@ -92,6 +92,9 @@ Type ProjectElement Extends ExplorerElement
 	JDKLocation As WString Ptr
 	LastThread As Any Ptr
 	Files As WStringList
+	Components As WStringList
+	IncludePaths As WStringList
+	LibraryPaths As WStringList
 	Declare Constructor
 	Declare Destructor
 End Type

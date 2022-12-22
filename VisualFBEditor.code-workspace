@@ -7,7 +7,7 @@
 			"path": "."
 		},
 		{
-			"path": "MyFbFramework"
+			"path": "Controls/MyFbFramework"
 		}
 	],
 	"settings": {}
