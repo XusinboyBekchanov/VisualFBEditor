@@ -2191,7 +2191,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 		ptxtCode->InsertLine ep + 5, *FLine1 & TabSpace & "With This"
 		ptxtCode->InsertLine ep + 6, *FLine1 & TabSpace & TabSpace & ".Name = """ & frmName & """"
 		ptxtCode->InsertLine ep + 7, *FLine1 & TabSpace & TabSpace & ".Text = """ & WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Text")) & """"
-		If PropertyName <> "" AndAlso PropertyName <> "Text" AndAlso PropertyName <> "Name" Then
+		If PropertyName <> "" AndAlso PropertyName <> "Text" AndAlso PropertyName <> "Name" AndAlso PropertyName <> "Location.X" AndAlso PropertyName <> "Location.Y" AndAlso PropertyName <> "Size.Width" AndAlso PropertyName <> "Size.Height" Then
 			WLet(FLine, tb->GetFormattedPropertyValue(tb->Des->DesignControl, PropertyName))
 			If *FLine <> "" Then ptxtCode->InsertLine ep + 8, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & *FLine: q = 1
 		End If
@@ -2244,7 +2244,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 				tb->ConstructorEnd += 1
 				q += 1
 			End If
-			If PropertyName <> "" AndAlso PropertyName <> "Text" AndAlso PropertyName <> "TabIndex" Then
+			If PropertyName <> "" AndAlso PropertyName <> "Text" AndAlso PropertyName <> "TabIndex" AndAlso PropertyName <> "Location.X" AndAlso PropertyName <> "Location.Y" AndAlso PropertyName <> "Size.Width" AndAlso PropertyName <> "Size.Height" Then
 				WLet(FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName))
 				'  Confuse the formatcode function
 				If *FLine <> "" Then
@@ -2305,7 +2305,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			If PropertyName = "Parent" Then
 				ptxtCode->InsertLine se + 4, *FLine1 & TabSpace & TabSpace & ".Parent = @" & ParentName: q += 1
 				tb->ConstructorEnd += 1
-			ElseIf PropertyName <> "" AndAlso PropertyName <> "Name" Then
+			ElseIf PropertyName <> "" AndAlso PropertyName <> "Name" AndAlso PropertyName <> "Location.X" AndAlso PropertyName <> "Location.Y" AndAlso PropertyName <> "Size.Width" AndAlso PropertyName <> "Size.Height" Then
 				ptxtCode->InsertLine se + 4, *FLine1 & TabSpace & TabSpace & "." & PropertyName & " = " & tb->GetFormattedPropertyValue(Cpnt, PropertyName): q += 1
 				tb->ConstructorEnd += 1
 			End If
@@ -2328,7 +2328,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 			Next
 		End If
 		If Not t Then
-			If PropertyName <> "" Then
+			If PropertyName <> "" AndAlso PropertyName <> "Location.X" AndAlso PropertyName <> "Location.Y" AndAlso PropertyName <> "Size.Width" AndAlso PropertyName <> "Size.Height" Then
 				CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 				WLet(FLine, tb->GetFormattedPropertyValue(Cpnt, PropertyName))
 				If *FLine <> "" Then
