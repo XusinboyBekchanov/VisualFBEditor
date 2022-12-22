@@ -1277,7 +1277,7 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 			End If
 			If pTemp <> 0 Then
 				Select Case LCase(.TypeName)
-				Case "wstring", "wstring ptr", "wstringlist", "dictionary": WLet(FLine, QWString(pTemp))
+				Case "wstring", "wstring ptr", "wstringlist", "dictionary", "point", "size": WLet(FLine, QWString(pTemp))
 				Case "string", "zstring": WLet(FLine, QZString(pTemp))
 				Case "any", "any ptr": If AnyTexts.ContainsObject(pTemp) Then WLet(FLine, AnyTexts.Item(AnyTexts.IndexOfObject(pTemp))) Else WLet(FLine, "")
 				Case "control ptr", "control": WLet(FLine, QWString(st->ReadPropertyFunc(pTemp, "Name")))
@@ -1361,6 +1361,10 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Obj As Any Ptr, ByRef Propert
 				Else
 					WLetEx FLine, """" & Replace(*FLine, """", """""") & """", True
 				End If
+			Case "point"
+				WLetEx FLine, "Type<My.Sys.Drawing.Point>(" & QWString(pTemp) & ")", True
+			Case "size"
+				WLetEx FLine, "Type<My.Sys.Drawing.Size>(" & QWString(pTemp) & ")", True
 			Case "any", "any ptr"
 				If AnyTexts.ContainsObject(pTemp) Then WLet(FLine, AnyTexts.Item(AnyTexts.IndexOfObject(pTemp))) Else WLet(FLine, "")
 				If Len(Trim(*FLine)) > 1 AndAlso StartsWith(*FLine, "=") Then
