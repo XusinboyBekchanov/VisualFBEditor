@@ -229,9 +229,9 @@ Public:
 	Declare Function SaveAs As Boolean
 	Declare Sub FillAllProperties
 	Declare Sub ChangeName(ByRef OldName As WString, ByRef NewName As WString)
-	Declare Function ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String) ByRef As WString
-	Declare Function WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False) As Boolean
-	Declare Function GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef PropertyName As String) ByRef As WString
+	Declare Function ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String, Cpnt As Any Ptr = 0) ByRef As WString
+	Declare Function WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False, Cpnt As Any Ptr = 0) As Boolean
+	Declare Function GetFormattedPropertyValue(ByRef Obj As Any Ptr, ByRef PropertyName As String, Cpnt As Any Ptr = 0) ByRef As WString
 	Declare Sub SetErrorHandling(StartLine As String, EndLine As String)
 	Declare Sub RemoveErrorHandling
 	Declare Sub AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)

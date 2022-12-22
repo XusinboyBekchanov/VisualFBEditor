@@ -1252,26 +1252,26 @@ Function GetOriginalType(ByRef TypeName As String) As String
 	Return ""
 End Function
 
-Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String) ByRef As WString
+Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String, Cpnt As Any Ptr = 0) ByRef As WString
 	On Error Goto ErrorHandler
 	WLet(FLine, "")
 	If Des = 0 Then Return ""
 	Dim As SymbolsType Ptr st = Des->Symbols(Obj)
+	If st = 0 AndAlso Cpnt <> 0 Then st = Des->Symbols(Cpnt)
 	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Return ""
-	Dim Cpnt As Any Ptr = Obj
-	If Cpnt = 0 Then Return *FLine
-	te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	If Obj = 0 Then Return *FLine
+	te = GetPropertyType(WGet(st->ReadPropertyFunc(Obj, "ClassName")), PropertyName)
 	If te = 0 Then Return *FLine
 	Dim As Integer iIndex = -1
 	With *te
 		Select Case te->ElementType
 		Case "Event"
-			Var Idx = Events.IndexOfKey(PropertyName, Cpnt)
+			Var Idx = Events.IndexOfKey(PropertyName, Obj)
 			If Idx <> -1 Then WLet(FLine, Events.Item(Idx)->Text)
 		Case "Property", "Field"
 			Var Pos1 = InStr(PropertyName, ".")
 			If Des <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
-				pTemp = st->ReadPropertyFunc(Cpnt, PropertyName)
+				pTemp = st->ReadPropertyFunc(Obj, PropertyName)
 			Else
 				pTemp = 0
 			End If
@@ -1316,11 +1316,11 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 					End If
 				End Select
 			ElseIf Pos1 > 0 Then
-				te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
+				te = GetPropertyType(WGet(st->ReadPropertyFunc(Obj, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 				If te = 0 Then Return *FLine
 				If IsBase(te->TypeName, "My.Sys.Object") Then
 					If Des <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
-						Return ReadObjProperty(st->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
+						Return ReadObjProperty(st->ReadPropertyFunc(Obj, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1), IIf(Cpnt = 0, Obj, Cpnt))
 					End If
 				End If
 			ElseIf IsBase(.TypeName, "Component") Then
@@ -1338,17 +1338,18 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 	"in module " & ZGet(Ermn())
 End Function
 
-Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef PropertyName As String) ByRef As WString
+Function TabWindow.GetFormattedPropertyValue(ByRef Obj As Any Ptr, ByRef PropertyName As String, Cpnt As Any Ptr = 0) ByRef As WString
 	On Error Goto ErrorHandler
 	WLet(FLine, "")
-	If Cpnt = 0 Then Return *FLine
+	If Obj = 0 Then Return *FLine
 	If Des = 0 Then Return *FLine
-	Dim As SymbolsType Ptr st = Des->Symbols(Cpnt)
+	Dim As SymbolsType Ptr st = Des->Symbols(Obj)
+	If st = 0 AndAlso Cpnt <> 0 Then st = Des->Symbols(Cpnt)
 	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Return *FLine
 	Dim As Integer Pos1, iIndex = -1
 	Pos1 = InStr(PropertyName, ".")
-	pTemp = st->ReadPropertyFunc(Cpnt, PropertyName)
-	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	pTemp = st->ReadPropertyFunc(Obj, PropertyName)
+	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(st->ReadPropertyFunc(Obj, "ClassName")), PropertyName)
 	If te = 0 Then Return *FLine
 	With *te
 		If pTemp <> 0 Then
@@ -1412,11 +1413,11 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 				End If
 			End Select
 		ElseIf Pos1 > 0 Then
-			te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
+			te = GetPropertyType(WGet(st->ReadPropertyFunc(Obj, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 			If te = 0 Then Return *FLine
 			If IsBase(te->TypeName, "My.Sys.Object") Then
 				If st <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
-					Return GetFormattedPropertyValue(st->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1))
+					Return GetFormattedPropertyValue(st->ReadPropertyFunc(Obj, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1), IIf(Cpnt = 0, Obj, Cpnt))
 				End If
 			End If
 		ElseIf IsBase(.TypeName, "Component") Then
@@ -1432,29 +1433,30 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Cpnt As Any Ptr, ByRef Proper
 	"in module " & ZGet(Ermn())
 End Function
 
-Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False) As Boolean
-	If Cpnt = 0 Then Return False
+Function TabWindow.WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False, Cpnt As Any Ptr = 0) As Boolean
+	If Obj = 0 Then Return False
 	If Des = 0 Then Return False
-	Dim As SymbolsType Ptr st = Des->Symbols(Cpnt)
+	Dim As SymbolsType Ptr st = Des->Symbols(Obj)
+	If st = 0 AndAlso Cpnt <> 0 Then st = Des->Symbols(Cpnt)
 	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Return False
 	Dim Result As Boolean
 	Dim As Integer iIndex = -1,  Pos1 = InStr(PropertyName, ".")
-	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+	Dim As TypeElement Ptr tbi, te = GetPropertyType(WGet(st->ReadPropertyFunc(Obj, "ClassName")), PropertyName)
 	If te <> 0 Then
 		WLet(FLine3, Value)
 		#ifndef __USE_GTK__
 			Dim hwnd1 As HWND
 			Dim hTemp As Any Ptr
-			If st <> 0 AndAlso st->ReadPropertyFunc <> 0 Then hTemp = st->ReadPropertyFunc(Cpnt, "Handle")
+			If st <> 0 AndAlso st->ReadPropertyFunc <> 0 Then hTemp = st->ReadPropertyFunc(Obj, "Handle")
 			If hTemp Then hwnd1 = *Cast(HWND Ptr, hTemp)
 		#endif
 		Select Case te->ElementType
 		Case "Event"
-			iIndex = Events.IndexOfKey(PropertyName, Cpnt)
+			iIndex = Events.IndexOfKey(PropertyName, Obj)
 			If iIndex <> -1 Then
 				Events.Item(iIndex)->Text = Mid(Value, 2)
 			Else
-				Events.Add PropertyName, Mid(Value, 2), Cpnt
+				Events.Add PropertyName, Mid(Value, 2), Obj
 			End If
 		Case "Property", "Field"
 			Select Case LCase(te->TypeName)
@@ -1474,7 +1476,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				'WLetEx FLine4, *FLine3, True
 				'?"VFE3:" & *FLine
 				If Des <> 0 AndAlso st->WritePropertyFunc <> 0 Then
-					Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine4))
+					Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, FLine4))
 				End If
 				'            Case "control ptr", "control pointer"
 				'                If LCase(*FLine2) = "this" Then
@@ -1484,9 +1486,9 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 				'                    Result = Cpnt->WriteProperty(PropertyName, PropertyCtrl)
 				'                End If
 				Select Case LCase(te->TypeName)
-				Case "icon", "cursor", "bitmaptype", "graphictype": SetGraphicProperty Cpnt, PropertyName, te->TypeName, *FLine4
+				Case "icon", "cursor", "bitmaptype", "graphictype": SetGraphicProperty Obj, PropertyName, te->TypeName, *FLine4
 				Case Else
-					If PropertyName = "ImageKey" Then SetGraphicProperty Cpnt, "Image", "BitmapType", *FLine4
+					If PropertyName = "ImageKey" Then SetGraphicProperty Obj, "Image", "BitmapType", *FLine4
 				End Select
 			Case "any", "any ptr"
 				Dim As WString Ptr FLine5
@@ -1502,7 +1504,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 					WLet(FLine5, *FLine3)
 				End If
 				If AnyTexts.ContainsObject(FLine5) Then AnyTexts.Item(AnyTexts.IndexOfObject(FLine5)) = *FLine5 Else AnyTexts.Add *FLine5, FLine5
-				If st <> 0 AndAlso st->WritePropertyFunc <> 0 Then Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, FLine5))
+				If st <> 0 AndAlso st->WritePropertyFunc <> 0 Then Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, FLine5))
 				WDeAllocate(FLine5)
 			Case "integer", "long", "ulong", "single", "double"
 				iTemp = Val(*FLine3)
@@ -1526,25 +1528,25 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 					Select Case LCase(te->TypeName)
 					Case "integer"
 						Dim As Integer intTemp = iTemp
-						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @intTemp))
+						Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, @intTemp))
 					Case "long"
 						Dim As Long iTemp = Val(*FLine3)
-						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, @iTemp))
 					Case "ulong"
 						Dim As ULong iTemp = Val(*FLine3)
-						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, @iTemp))
 					Case "double"
 						Dim As Double iTemp = Val(*FLine3)
-						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, @iTemp))
 					Case "single"
 						Dim As Single iTemp = Val(*FLine3)
-						Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+						Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, @iTemp))
 					End Select
 				End If
 			Case "boolean"
 				bTemp = Cast(Boolean, Trim(*FLine3))
 				If Des <> 0 AndAlso st->WritePropertyFunc <> 0 Then
-					Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @bTemp))
+					Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, @bTemp))
 				End If
 			Case Else:
 				If pGlobalEnums->Contains(te->TypeName, , , , iIndex) Then
@@ -1564,7 +1566,7 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 							End If
 						End If
 						If st <> 0 AndAlso st->WritePropertyFunc <> 0 AndAlso iTemp > -1 Then
-							Result = st->WritePropertyFunc(Cpnt, PropertyName, Cast(Any Ptr, @iTemp))
+							Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, @iTemp))
 						End If
 					End If
 				Else
@@ -1579,19 +1581,19 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 						If iIndex <> -1 Then
 							PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
 							If Des <> 0 AndAlso st->WritePropertyFunc <> 0 Then
-								Var te = GetPropertyType(QWString(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+								Var te = GetPropertyType(QWString(st->ReadPropertyFunc(Obj, "ClassName")), PropertyName)
 								If te <> 0 Then
 									Dim As String PropertyType = GetOriginalType(te->TypeName)
 									Dim As String PropertyCtrlType = QWString(st->ReadPropertyFunc(PropertyCtrl, "ClassName"))
 									If IsBase(PropertyCtrlType, PropertyType) Then
-										Result = st->WritePropertyFunc(Cpnt, PropertyName, PropertyCtrl)
+										Result = st->WritePropertyFunc(Obj, PropertyName, PropertyCtrl)
 									Else
 										MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(st->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(st->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
 									End If
 								End If
 							End If
 						ElseIf Trim(*FLine3) = ML("(None)") Then
-							If st <> 0 AndAlso st->WritePropertyFunc <> 0 Then Result = st->WritePropertyFunc(Cpnt, PropertyName, 0)
+							If st <> 0 AndAlso st->WritePropertyFunc <> 0 Then Result = st->WritePropertyFunc(Obj, PropertyName, 0)
 						Else
 							Dim Pos1 As Integer = InStr(*FLine3, ".")
 							If Pos1 > 0 Then
@@ -1600,14 +1602,14 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 									PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
 									Dim As Any Ptr Ctrl2 = st->ReadPropertyFunc(PropertyCtrl, Trim(Mid(*FLine3, Pos1 + 1)))
 									If Ctrl2 <> 0 AndAlso st->WritePropertyFunc <> 0 Then
-										Var te = GetPropertyType(QWString(st->ReadPropertyFunc(Cpnt, "ClassName")), PropertyName)
+										Var te = GetPropertyType(QWString(st->ReadPropertyFunc(Obj, "ClassName")), PropertyName)
 										If te <> 0 Then
 											Dim As String PropertyType = GetOriginalType(te->TypeName)
 											Dim As String PropertyCtrlType = QWString(st->ReadPropertyFunc(PropertyCtrl, "ClassName"))
 											If IsBase(PropertyCtrlType, PropertyType) Then
-												Result = st->WritePropertyFunc(Cpnt, PropertyName, Ctrl2)
+												Result = st->WritePropertyFunc(Obj, PropertyName, Ctrl2)
 											Else
-												MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(st->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(st->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
+												MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(st->ReadPropertyFunc(Obj, "Name")) & " to " & QWString(st->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
 											End If
 										End If
 									End If
@@ -1629,11 +1631,11 @@ Function TabWindow.WriteObjProperty(ByRef Cpnt As Any Ptr, ByRef PropertyName As
 		#endif
 	End If
 	If CInt(Pos1 > 0) AndAlso CInt(Result = False) Then
-		te = GetPropertyType(WGet(st->ReadPropertyFunc(Cpnt, "ClassName")), ..Left(PropertyName, Pos1 - 1))
+		te = GetPropertyType(WGet(st->ReadPropertyFunc(Obj, "ClassName")), ..Left(PropertyName, Pos1 - 1))
 		If te = 0 Then Return False
 		If IsBase(te->TypeName, "My.Sys.Object") Then
 			If Des <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
-				Return WriteObjProperty(st->ReadPropertyFunc(Cpnt, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1), Value)
+				Return WriteObjProperty(st->ReadPropertyFunc(Obj, ..Left(PropertyName, Pos1 - 1)), Mid(PropertyName, Pos1 + 1), Value, , IIf(Cpnt = 0, Obj, Cpnt))
 			End If
 		Else
 			Return False
