@@ -485,7 +485,7 @@ End Function
 
 Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	On Error Goto ErrorHandler
-	Dim As WString Ptr MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeCommand
+	Dim As WString Ptr MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeApplicationName, PipeCommand
 	Dim As WString Ptr CompileWith, MFFPathC, ErrFileName, ErrTitle, ExeName, FirstLine, ProjectPath
 	Dim As Integer NumberErr, NumberWarning, NumberInfo, NodesCount, CompileResult = 1
 	Dim As UString CompileLine
@@ -676,7 +676,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		#else
 			If Project Then BatchCompilationFileName = Project->BatchCompilationFileNameLinux
 		#EndIf
-		If WGet(BatchCompilationFileName) <> "" Then 'CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
+		If WGet(BatchCompilationFileName) <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then 'CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
 			If EndsWith(*BatchCompilationFileName, "gradlew.bat") OrElse EndsWith(*BatchCompilationFileName, "/gradlew") Then
 				Dim As String gradlewFile, gradlewCommand
 				If Parameter = "Bundle" Then
@@ -692,6 +692,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					gradlewFile = "./gradlew"
 				#endif
 				WLet(PipeCommand, gradlewFile & " " & gradlewCommand)
+			ElseIf LCase(GetFileName(*BatchCompilationFileName)) = "makefile" Then
+				WLet(PipeCommand, "make")
 			Else
 				WLet(PipeCommand, *BatchCompilationFileName)
 			End If
@@ -835,7 +837,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			si.hStdError = hWritePipe
 			si.wShowWindow = 0
 			
-			If CreateProcess(0, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS, 0, 0, @si, @pi) = 0 Then
+			If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
 				ShowMessages(ML("Error: Couldn't Create Process"), False)
 				CompileResult = 0
 				Continue For
@@ -1000,6 +1002,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	StopProgress
 	ThreadsLeave()
 	WDeAllocate(FbcExe)
+	WDeAllocate(PipeApplicationName)
 	WDeAllocate(PipeCommand)
 	WDeAllocate(ExeName)
 	WDeAllocate(LogText)
@@ -1517,6 +1520,9 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							WLet(ppe->ResourceFileName, *ee->FileName)
 						ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then
 							WLet(ppe->IconResourceFileName, *ee->FileName)
+						ElseIf LCase(GetFileName(*ee->FileName)) = "makefile" Then
+							If WGet(ppe->BatchCompilationFileNameWindows) = "" Then WLet(ppe->BatchCompilationFileNameWindows, *ee->FileName)
+							If WGet(ppe->BatchCompilationFileNameLinux) = "" Then WLet(ppe->BatchCompilationFileNameLinux, *ee->FileName)
 						ElseIf EndsWith(LCase(*ee->FileName), ".bat") Then
 							WLet(ppe->BatchCompilationFileNameWindows, *ee->FileName)
 						ElseIf EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
@@ -2655,8 +2661,8 @@ Sub SetAsMain(IsTab As Boolean)
 			If ee <> 0 AndAlso ppe <> 0 Then
 				'David Change
 				'If *ee->FileName = *pee->Project->MainFileName OrElse *ee->FileName = *pee->Project->ResourceFileName Then Exit Sub
-				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".xpm") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") _
-					OrElse EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".bat") OrElse EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
+				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".xpm") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".frm") _
+					OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".bat") OrElse CBool(LCase(GetFileName(*ee->FileName)) = "makefile") OrElse EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
 					Dim As TreeNode Ptr tn1, tn2
 					Dim As Integer tIndex
 					Dim As String IconName
@@ -2665,6 +2671,9 @@ Sub SetAsMain(IsTab As Boolean)
 						WLet(ppe->ResourceFileName, *ee->FileName)
 					ElseIf EndsWith(LCase(*ee->FileName), ".xpm") Then
 						WLet(ppe->IconResourceFileName, *ee->FileName)
+					ElseIf LCase(GetFileName(*ee->FileName)) = "makefile" Then
+						WLet(ppe->BatchCompilationFileNameWindows, *ee->FileName)
+						WLet(ppe->BatchCompilationFileNameLinux, *ee->FileName)
 					ElseIf EndsWith(LCase(*ee->FileName), ".bat") Then
 						WLet(ppe->BatchCompilationFileNameWindows, *ee->FileName)
 					ElseIf EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then

@@ -1181,6 +1181,11 @@ Sub AddToCombo(ByRef tn As TreeNode Ptr)
 		ElseIf EndsWith(LCase(tn->Text), ".xpm") Then
 			.cboIconResourceFile.AddItem tn->Text
 			.IconResourceFiles.Add tn->Text, IIf(ee, *ee->FileName, "")
+		ElseIf LCase(tn->Text) = "makefile" Then
+			.cboBatchCompilationFileWindows.AddItem tn->Text
+			.BatchCompilationFilesWindows.Add tn->Text, IIf(ee, *ee->FileName, "")
+			.cboBatchCompilationFileLinux.AddItem tn->Text
+			.BatchCompilationFilesLinux.Add tn->Text, IIf(ee, *ee->FileName, "")
 		ElseIf EndsWith(LCase(tn->Text), ".bat") Then
 			.cboBatchCompilationFileWindows.AddItem tn->Text
 			.BatchCompilationFilesWindows.Add tn->Text, IIf(ee, *ee->FileName, "")
@@ -1203,6 +1208,11 @@ Sub AddToComboFileName(ByRef FileName As WString)
 		ElseIf EndsWith(LCase(Text), ".xpm") Then
 			.cboIconResourceFile.AddItem Text
 			.IconResourceFiles.Add Text, FileName
+		ElseIf LCase(Text) = "makefile" Then
+			.cboBatchCompilationFileWindows.AddItem Text
+			.BatchCompilationFilesWindows.Add Text, FileName
+			.cboBatchCompilationFileLinux.AddItem Text
+			.BatchCompilationFilesLinux.Add Text, FileName
 		ElseIf EndsWith(LCase(Text), ".bat") Then
 			.cboBatchCompilationFileWindows.AddItem Text
 			.BatchCompilationFilesWindows.Add Text, FileName
