@@ -179,7 +179,7 @@ pfFindFile = @fFindFile
 	End Constructor
 	
 	Private Sub frmFindInFiles._Form_Create(ByRef Sender As Control)
-		*Cast(frmFindInFiles Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmFindInFiles Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Destructor frmFindInFiles

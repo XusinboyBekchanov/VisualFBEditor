@@ -10,7 +10,7 @@
 #include once "mff/CommandButton.bi"
 #include once "TabWindow.bi"
 
-#define Me3 *Cast(frmGoto Ptr, Sender.GetForm)
+#define Me3 (*Cast(frmGoto Ptr, Sender.GetForm))
 
 Using My.Sys.Forms
 

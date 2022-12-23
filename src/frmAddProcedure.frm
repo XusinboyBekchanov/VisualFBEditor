@@ -504,79 +504,79 @@
 	End Constructor
 	
 	Private Sub frmAddProcedureType._Form_Create(ByRef Sender As Control)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optVirtualMember_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optVirtualMember_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optVirtualMember_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optAbstractMember_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optAbstractMember_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optAbstractMember_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optNormalMember_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optNormalMember_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optNormalMember_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optStaticMember_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optStaticMember_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optStaticMember_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optDefaultScope_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optDefaultScope_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optDefaultScope_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optPrivateScope_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optPrivateScope_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optPrivateScope_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optPublicScope_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optPublicScope_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optPublicScope_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.txtParameters_Change_(ByRef Sender As TextBox)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).txtParameters_Change(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).txtParameters_Change(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optDestructor_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optDestructor_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optDestructor_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optOperator_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optOperator_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optOperator_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optProperty_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optProperty_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optProperty_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optFunction_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optFunction_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optFunction_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optSub_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optSub_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optSub_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.optConstructor_Click_(ByRef Sender As RadioButton)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).optConstructor_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optConstructor_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.cboType_Change_(ByRef Sender As ComboBoxEdit)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).cboType_Change(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).cboType_Change(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.Form_Show_(ByRef Sender As Form)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).Form_Show(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.cmdOK_Click_(ByRef Sender As Control)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).cmdOK_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).cmdOK_Click(Sender)
 	End Sub
 	
 	Private Sub frmAddProcedureType.cmdCancel_Click_(ByRef Sender As Control)
-		*Cast(frmAddProcedureType Ptr, Sender.Designer).cmdCancel_Click(Sender)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 	End Sub
 	
 	Dim Shared frmAddProcedure As frmAddProcedureType

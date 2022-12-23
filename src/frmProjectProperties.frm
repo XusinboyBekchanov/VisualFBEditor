@@ -975,52 +975,52 @@ pfProjectProperties = @fProjectProperties
 	End Constructor
 	
 	Private Sub frmProjectProperties._cmdRemoveLibrary_Click(ByRef Sender As Control)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdRemoveLibrary_Click(Sender)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdRemoveLibrary_Click(Sender)
 	End Sub
 	
 	Private Sub frmProjectProperties._cmdAddLibrary_Click(ByRef Sender As Control)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAddLibrary_Click(Sender)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAddLibrary_Click(Sender)
 	End Sub
 	
 	Private Sub frmProjectProperties._cmdRemoveOtherInclude_Click(ByRef Sender As Control)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdRemoveOtherInclude_Click(Sender)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdRemoveOtherInclude_Click(Sender)
 	End Sub
 	
 	Private Sub frmProjectProperties._cmdAddOtherInclude_Click(ByRef Sender As Control)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAddOtherInclude_Click(Sender)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAddOtherInclude_Click(Sender)
 	End Sub
 	
 	Private Sub frmProjectProperties._cmdRemoveComponent_Click(ByRef Sender As Control)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdRemoveComponent_Click(Sender)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdRemoveComponent_Click(Sender)
 	End Sub
 	
 	Private Sub frmProjectProperties._cmdAddComponent_Click(ByRef Sender As Control)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAddComponent_Click(Sender)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAddComponent_Click(Sender)
 	End Sub
 	
 	Private Sub frmProjectProperties._Form_Create(ByRef Sender As Control)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmProjectProperties._cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).cboOptimizationLevel_Selected(Sender, ItemIndex)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cboOptimizationLevel_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmProjectProperties.chkManifest_Click_(ByRef Sender As CheckBox)
-		*Cast(frmProjectProperties Ptr, Sender.Designer).chkManifest_Click(Sender)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).chkManifest_Click(Sender)
 	End Sub
 	
-Private Sub frmProjectProperties.cboCompiler_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).cboCompiler_Selected(Sender, ItemIndex)
-End Sub
+	Private Sub frmProjectProperties.cboCompiler_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cboCompiler_Selected(Sender, ItemIndex)
+	End Sub
 
-Private Sub frmProjectProperties.txtCompilerPath_Change_(ByRef Sender As TextBox)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).txtCompilerPath_Change(Sender)
-End Sub
-
-Private Sub frmProjectProperties.cmdCompiler_Click_(ByRef Sender As Control)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).cmdCompiler_Click(Sender)
-End Sub
+	Private Sub frmProjectProperties.txtCompilerPath_Change_(ByRef Sender As TextBox)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).txtCompilerPath_Change(Sender)
+	End Sub
+	
+	Private Sub frmProjectProperties.cmdCompiler_Click_(ByRef Sender As Control)
+		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdCompiler_Click(Sender)
+	End Sub
 
 	#ifndef _NOT_AUTORUN_FORMS_
 		fProjectProperties.Show
@@ -1484,21 +1484,21 @@ Private Sub frmProjectProperties.optCompileToGcc_Click(ByRef Sender As RadioButt
 End Sub
 
 Private Sub frmProjectProperties.optCompileByDefault_Click_(ByRef Sender As RadioButton)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).optCompileByDefault_Click(Sender)
+	(*Cast(frmProjectProperties Ptr, Sender.Designer)).optCompileByDefault_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.optCompileByDefault_Click(ByRef Sender As RadioButton)
 	frmProjectProperties.optCompileToGas_Click Sender
 End Sub
 
 Private Sub frmProjectProperties.optCompileToLLVM_Click_(ByRef Sender As RadioButton)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).optCompileToLLVM_Click(Sender)
+	(*Cast(frmProjectProperties Ptr, Sender.Designer)).optCompileToLLVM_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.optCompileToLLVM_Click(ByRef Sender As RadioButton)
 	frmProjectProperties.optCompileToGas_Click Sender
 End Sub
 
 Private Sub frmProjectProperties.CommandButton1_Click_(ByRef Sender As Control)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).CommandButton1_Click(Sender)
+	(*Cast(frmProjectProperties Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
 	pfImageManager->OnlyIcons = True
@@ -1517,14 +1517,14 @@ Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmProjectProperties.tpDebugging_Click_(ByRef Sender As Control)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).tpDebugging_Click(Sender)
+	(*Cast(frmProjectProperties Ptr, Sender.Designer)).tpDebugging_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.tpDebugging_Click(ByRef Sender As Control)
 	
 End Sub
 
 Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click_(ByRef Sender As Control)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAndroidSDKLocation_Click(Sender)
+	(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAndroidSDKLocation_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click(ByRef Sender As Control)
 	BrowseD.InitialDir = txtAndroidSDKLocation.Text
@@ -1534,7 +1534,7 @@ Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click(ByRef Sender As Con
 End Sub
 
 Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click_(ByRef Sender As Control)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).cmdAndroidNDKLocation_Click(Sender)
+	(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAndroidNDKLocation_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click(ByRef Sender As Control)
 	BrowseD.InitialDir = txtAndroidNDKLocation.Text
@@ -1544,7 +1544,7 @@ Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click(ByRef Sender As Con
 End Sub
 
 Private Sub frmProjectProperties.cmdJDKLocation_Click_(ByRef Sender As Control)
-	*Cast(frmProjectProperties Ptr, Sender.Designer).cmdJDKLocation_Click(Sender)
+	(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdJDKLocation_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.cmdJDKLocation_Click(ByRef Sender As Control)
 	BrowseD.InitialDir = txtJDKLocation.Text

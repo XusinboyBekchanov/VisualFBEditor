@@ -112,7 +112,7 @@
 '#End Region
 
 Private Sub frmAdvancedOptions.cmdOK_Click_(ByRef Sender As Control)
-	*Cast(frmAdvancedOptions Ptr, Sender.Designer).cmdOK_Click(Sender)
+	(*Cast(frmAdvancedOptions Ptr, Sender.Designer)).cmdOK_Click(Sender)
 End Sub
 Private Sub frmAdvancedOptions.cmdOK_Click(ByRef Sender As Control)
 	If ProjectTreeNode <> 0 Then
@@ -132,7 +132,7 @@ Private Sub frmAdvancedOptions.cmdOK_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmAdvancedOptions.cmdCancel_Click_(ByRef Sender As Control)
-	*Cast(frmAdvancedOptions Ptr, Sender.Designer).cmdCancel_Click(Sender)
+	(*Cast(frmAdvancedOptions Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmAdvancedOptions.cmdCancel_Click(ByRef Sender As Control)
 	Me.CloseForm

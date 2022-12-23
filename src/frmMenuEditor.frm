@@ -94,23 +94,23 @@
 	End Constructor
 	
 	Private Sub frmMenuEditor.mnuMoveDown_Click_(ByRef Sender As MenuItem)
-		*Cast(frmMenuEditor Ptr, Sender.Designer).mnuMoveDown_Click(Sender)
+		(*Cast(frmMenuEditor Ptr, Sender.Designer)).mnuMoveDown_Click(Sender)
 	End Sub
 	
 	Private Sub frmMenuEditor.mnuMoveUp_Click_(ByRef Sender As MenuItem)
-		*Cast(frmMenuEditor Ptr, Sender.Designer).mnuMoveUp_Click(Sender)
+		(*Cast(frmMenuEditor Ptr, Sender.Designer)).mnuMoveUp_Click(Sender)
 	End Sub
 	
 	Private Sub frmMenuEditor._mnuInsert_Click(ByRef Sender As MenuItem)
-		*Cast(frmMenuEditor Ptr, Sender.Designer).mnuInsert_Click(Sender)
+		(*Cast(frmMenuEditor Ptr, Sender.Designer)).mnuInsert_Click(Sender)
 	End Sub
 	
 	Private Sub frmMenuEditor._mnuDelete_Click(ByRef Sender As MenuItem)
-		*Cast(frmMenuEditor Ptr, Sender.Designer).mnuDelete_Click(Sender)
+		(*Cast(frmMenuEditor Ptr, Sender.Designer)).mnuDelete_Click(Sender)
 	End Sub
 	
 	Private Sub frmMenuEditor._Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		*Cast(frmMenuEditor Ptr, Sender.Designer).Form_MouseUp(Sender, MouseButton, x, y, Shift)
+		(*Cast(frmMenuEditor Ptr, Sender.Designer)).Form_MouseUp(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
 	Dim Shared fMenuEditor As frmMenuEditor
@@ -131,7 +131,7 @@ Sub frmMenuEditor.GetDropdowns(mi As Any Ptr)
 End Sub
 
 Private Sub frmMenuEditor.Form_Paint_(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_Paint(Sender, Canvas)
+	(*Cast(frmMenuEditor Ptr, Sender.Designer)).Form_Paint(Sender, Canvas)
 End Sub
 Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	RectsCount = 0
@@ -540,7 +540,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 End Sub
 
 Private Sub frmMenuEditor.Form_MouseDown_(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_MouseDown(Sender, MouseButton, x, y, Shift)
+	(*Cast(frmMenuEditor Ptr, Sender.Designer)).Form_MouseDown(Sender, MouseButton, x, y, Shift)
 End Sub
 Private Sub frmMenuEditor.Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 0 Then Exit Sub
@@ -680,7 +680,7 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 End Sub
 
 Private Sub frmMenuEditor.txtActive_Change_(ByRef Sender As TextBox)
-	*Cast(frmMenuEditor Ptr, Sender.Designer).txtActive_Change(Sender)
+	(*Cast(frmMenuEditor Ptr, Sender.Designer)).txtActive_Change(Sender)
 End Sub
 Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 	If ActiveRect <> 0 Then
@@ -884,7 +884,7 @@ Private Sub frmMenuEditor.MoveDownMenuItem
 End Sub
 
 Private Sub frmMenuEditor.Form_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_KeyDown(Sender, Key, Shift)
+	(*Cast(frmMenuEditor Ptr, Sender.Designer)).Form_KeyDown(Sender, Key, Shift)
 End Sub
 Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Dim As Boolean IsPopup
@@ -994,7 +994,7 @@ Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, 
 End Sub
 
 Private Sub frmMenuEditor.Form_KeyPress_(ByRef Sender As Control, Key As Integer)
-	*Cast(frmMenuEditor Ptr, Sender.Designer).Form_KeyPress(Sender, Key)
+	(*Cast(frmMenuEditor Ptr, Sender.Designer)).Form_KeyPress(Sender, Key)
 End Sub
 Private Sub frmMenuEditor.Form_KeyPress(ByRef Sender As Control, Key As Integer)
 	If ActiveRect <> 0 Then
@@ -1006,7 +1006,7 @@ Private Sub frmMenuEditor.Form_KeyPress(ByRef Sender As Control, Key As Integer)
 End Sub
 
 Private Sub frmMenuEditor.txtActive_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	*Cast(frmMenuEditor Ptr, Sender.Designer).txtActive_KeyDown(Sender, Key, Shift)
+	(*Cast(frmMenuEditor Ptr, Sender.Designer)).txtActive_KeyDown(Sender, Key, Shift)
 End Sub
 Private Sub frmMenuEditor.txtActive_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	If Key = Keys.Key_Enter Then

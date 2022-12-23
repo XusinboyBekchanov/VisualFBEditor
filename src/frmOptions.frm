@@ -2588,27 +2588,27 @@ pfOptions = @fOptions
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
-		*Cast(frmOptions Ptr, Sender.Designer).txtColorIndicator_KeyPress(Sender, Key)
+		(*Cast(frmOptions Ptr, Sender.Designer)).txtColorIndicator_KeyPress(Sender, Key)
 	End Sub
 	
 	Private Sub frmOptions._txtColorFrame_KeyPress(ByRef Sender As Control, Key As Integer)
-		*Cast(frmOptions Ptr, Sender.Designer).txtColorFrame_KeyPress(Sender, Key)
+		(*Cast(frmOptions Ptr, Sender.Designer)).txtColorFrame_KeyPress(Sender, Key)
 	End Sub
 	
 	Private Sub frmOptions._txtColorBackground_KeyPress(ByRef Sender As Control, Key As Integer)
-		*Cast(frmOptions Ptr, Sender.Designer).txtColorBackground_KeyPress(Sender, Key)
+		(*Cast(frmOptions Ptr, Sender.Designer)).txtColorBackground_KeyPress(Sender, Key)
 	End Sub
 	
 	Private Sub frmOptions._txtColorForeground_KeyPress(ByRef Sender As Control, Key As Integer)
-		*Cast(frmOptions Ptr, Sender.Designer).txtColorForeground_KeyPress(Sender, Key)
+		(*Cast(frmOptions Ptr, Sender.Designer)).txtColorForeground_KeyPress(Sender, Key)
 	End Sub
 	
 	Private Sub frmOptions.cmdUpdateLng_Click_(ByRef Sender As Control)
-		*Cast(frmOptions Ptr, Sender.Designer).cmdUpdateLng_Click(Sender)
+		(*Cast(frmOptions Ptr, Sender.Designer)).cmdUpdateLng_Click(Sender)
 	End Sub
 	
 	Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click_(ByRef Sender As CheckBox)
-		*Cast(frmOptions Ptr, Sender.Designer).chkCreateNonStaticEventHandlers_Click(Sender)
+		(*Cast(frmOptions Ptr, Sender.Designer)).chkCreateNonStaticEventHandlers_Click(Sender)
 	End Sub
 	
 	Destructor frmOptions
@@ -4651,7 +4651,7 @@ Private Sub frmOptions.cmdSetShortcut_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdAddEditor_Click_(ByRef Sender As Control)
-	*Cast(frmOptions Ptr, Sender.Designer).cmdAddEditor_Click(Sender)
+	(*Cast(frmOptions Ptr, Sender.Designer)).cmdAddEditor_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdAddEditor_Click(ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
@@ -4675,7 +4675,7 @@ Private Sub frmOptions.cmdAddEditor_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdChangeEditor_Click_(ByRef Sender As Control)
-	*Cast(frmOptions Ptr, Sender.Designer).cmdChangeEditor_Click(Sender)
+	(*Cast(frmOptions Ptr, Sender.Designer)).cmdChangeEditor_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdChangeEditor_Click(ByRef Sender As Control)
 	With lvOtherEditors
@@ -4700,7 +4700,7 @@ Private Sub frmOptions.cmdChangeEditor_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdRemoveEditor_Click_(ByRef Sender As Control)
-	*Cast(frmOptions Ptr, Sender.Designer).cmdRemoveEditor_Click(Sender)
+	(*Cast(frmOptions Ptr, Sender.Designer)).cmdRemoveEditor_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdRemoveEditor_Click(ByRef Sender As Control)
 	With lvOtherEditors
@@ -4710,7 +4710,7 @@ Private Sub frmOptions.cmdRemoveEditor_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdClearEditor_Click_(ByRef Sender As Control)
-	*Cast(frmOptions Ptr, Sender.Designer).cmdClearEditor_Click(Sender)
+	(*Cast(frmOptions Ptr, Sender.Designer)).cmdClearEditor_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdClearEditor_Click(ByRef Sender As Control)
 	lvOtherEditors.ListItems.Clear
@@ -4856,7 +4856,7 @@ Sub HistoryCodeClean(ByRef Path As WString)
 End Sub
 
 Private Sub frmOptions.cmdFindCompilers_Click_(ByRef Sender As Control)
-	*Cast(frmOptions Ptr, Sender.Designer).cmdFindCompilers_Click(Sender)
+	(*Cast(frmOptions Ptr, Sender.Designer)).cmdFindCompilers_Click(Sender)
 End Sub
 
 Private Sub frmOptions.cmdFindCompilers_Click(ByRef Sender As Control)
@@ -4865,49 +4865,49 @@ Private Sub frmOptions.cmdFindCompilers_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.lvOtherEditors_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	*Cast(frmOptions Ptr, Sender.Designer).lvOtherEditors_ItemActivate(Sender, ItemIndex)
+	(*Cast(frmOptions Ptr, Sender.Designer)).lvOtherEditors_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvOtherEditors_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeEditor_Click cmdChangeEditor
 End Sub
 
 Private Sub frmOptions.lvTerminalPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	*Cast(frmOptions Ptr, Sender.Designer).lvTerminalPaths_ItemActivate(Sender, ItemIndex)
+	(*Cast(frmOptions Ptr, Sender.Designer)).lvTerminalPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvTerminalPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeTerminal_Click cmdChangeTerminal
 End Sub
 
 Private Sub frmOptions.lvDebuggerPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	*Cast(frmOptions Ptr, Sender.Designer).lvDebuggerPaths_ItemActivate(Sender, ItemIndex)
+	(*Cast(frmOptions Ptr, Sender.Designer)).lvDebuggerPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvDebuggerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeDebugger_Click cmdChangeDebugger
 End Sub
 
 Private Sub frmOptions.lvHelpPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	*Cast(frmOptions Ptr, Sender.Designer).lvHelpPaths_ItemActivate(Sender, ItemIndex)
+	(*Cast(frmOptions Ptr, Sender.Designer)).lvHelpPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvHelpPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeHelp_Click cmdChangeHelp
 End Sub
 
 Private Sub frmOptions.lvMakeToolPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	*Cast(frmOptions Ptr, Sender.Designer).lvMakeToolPaths_ItemActivate(Sender, ItemIndex)
+	(*Cast(frmOptions Ptr, Sender.Designer)).lvMakeToolPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvMakeToolPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeMakeTool_Click cmdChangeMakeTool
 End Sub
 
 Private Sub frmOptions.lvCompilerPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	*Cast(frmOptions Ptr, Sender.Designer).lvCompilerPaths_ItemActivate(Sender, ItemIndex)
+	(*Cast(frmOptions Ptr, Sender.Designer)).lvCompilerPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvCompilerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeCompiler_Click cmdChangeCompiler
 End Sub
 
 Private Sub frmOptions.cmdInFolder_Click_(ByRef Sender As Control)
-	*Cast(frmOptions Ptr, Sender.Designer).cmdInFolder_Click(Sender)
+	(*Cast(frmOptions Ptr, Sender.Designer)).cmdInFolder_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdInFolder_Click(ByRef Sender As Control)
 	BrowsD.InitialDir = GetFullPath(txtInFolder.Text)

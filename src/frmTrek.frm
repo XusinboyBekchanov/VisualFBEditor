@@ -88,7 +88,7 @@
 	End Constructor
 	
 	Private Sub frmTrek._Form_Create(ByRef Sender As Control)
-		*Cast(frmTrek Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmTrek Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Dim Shared fTrek As frmTrek

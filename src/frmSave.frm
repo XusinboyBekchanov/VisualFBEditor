@@ -82,7 +82,7 @@
 '#End Region
 
 Private Sub frmSave.cmdYes_Click_(ByRef Sender As Control)
-	*Cast(frmSave Ptr, Sender.Designer).cmdYes_Click(Sender)
+	(*Cast(frmSave Ptr, Sender.Designer)).cmdYes_Click(Sender)
 End Sub
 Private Sub frmSave.cmdYes_Click(ByRef Sender As Control)
 	ModalResult = ModalResults.Yes
@@ -96,7 +96,7 @@ Private Sub frmSave.cmdYes_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmSave.cmdNo_Click_(ByRef Sender As Control)
-	*Cast(frmSave Ptr, Sender.Designer).cmdNo_Click(Sender)
+	(*Cast(frmSave Ptr, Sender.Designer)).cmdNo_Click(Sender)
 End Sub
 Private Sub frmSave.cmdNo_Click(ByRef Sender As Control)
 	ModalResult = ModalResults.No
@@ -104,7 +104,7 @@ Private Sub frmSave.cmdNo_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmSave.cmdCancel_Click_(ByRef Sender As Control)
-	*Cast(frmSave Ptr, Sender.Designer).cmdCancel_Click(Sender)
+	(*Cast(frmSave Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmSave.cmdCancel_Click(ByRef Sender As Control)
 	ModalResult = ModalResults.Cancel
@@ -112,14 +112,14 @@ Private Sub frmSave.cmdCancel_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmSave.Form_Show_(ByRef Sender As Form)
-	*Cast(frmSave Ptr, Sender.Designer).Form_Show(Sender)
+	(*Cast(frmSave Ptr, Sender.Designer)).Form_Show(Sender)
 End Sub
 Private Sub frmSave.Form_Show(ByRef Sender As Form)
 	
 End Sub
 
 Private Sub frmSave.Form_Create_(ByRef Sender As Control)
-	*Cast(frmSave Ptr, Sender.Designer).Form_Create(Sender)
+	(*Cast(frmSave Ptr, Sender.Designer)).Form_Create(Sender)
 End Sub
 Private Sub frmSave.Form_Create(ByRef Sender As Control)
 	SelectedItems.Clear

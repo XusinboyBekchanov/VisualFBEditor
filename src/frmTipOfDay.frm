@@ -121,27 +121,27 @@ Dim Shared  As WString Ptr BuffTips(Any)
 	End Constructor
 	
 	Private Sub frmTipOfDayType._Form_Create(ByRef Sender As Control)
-		*Cast(frmTipOfDayType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmTipOfDayType.cmdNextTip_Click_(ByRef Sender As Control)
-		*Cast(frmTipOfDayType Ptr, Sender.Designer).cmdNextTip_Click(Sender)
+		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).cmdNextTip_Click(Sender)
 	End Sub
 	
 	Private Sub frmTipOfDayType.chkDoNotShow_Click_(ByRef Sender As CheckBox)
-		*Cast(frmTipOfDayType Ptr, Sender.Designer).chkDoNotShow_Click(Sender)
+		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).chkDoNotShow_Click(Sender)
 	End Sub
 	
 	Private Sub frmTipOfDayType.cmdPreviousTip_Click_(ByRef Sender As Control)
-		*Cast(frmTipOfDayType Ptr, Sender.Designer).cmdPreviousTip_Click(Sender)
+		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).cmdPreviousTip_Click(Sender)
 	End Sub
 	
 	Private Sub frmTipOfDayType.Form_Show_(ByRef Sender As Form)
-		*Cast(frmTipOfDayType Ptr, Sender.Designer).Form_Show(Sender)
+		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
 	Private Sub frmTipOfDayType.cmdClose_Click_(ByRef Sender As Control)
-		*Cast(frmTipOfDayType Ptr, Sender.Designer).cmdClose_Click(Sender)
+		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).cmdClose_Click(Sender)
 	End Sub
 	
 	#ifndef _NOT_AUTORUN_FORMS_

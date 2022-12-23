@@ -215,35 +215,35 @@
 	End Constructor
 	
 	Private Sub frmComponentsType.Form_Show_(ByRef Sender As Form)
-		*Cast(frmComponentsType Ptr, Sender.Designer).Form_Show(Sender)
+		(*Cast(frmComponentsType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
 	Private Sub frmComponentsType.chkSelectedItemsOnly_Click_(ByRef Sender As CheckBox)
-		*Cast(frmComponentsType Ptr, Sender.Designer).chkSelectedItemsOnly_Click(Sender)
+		(*Cast(frmComponentsType Ptr, Sender.Designer)).chkSelectedItemsOnly_Click(Sender)
 	End Sub
 	
 	Private Sub frmComponentsType.cmdBrowse_Click_(ByRef Sender As Control)
-		*Cast(frmComponentsType Ptr, Sender.Designer).cmdBrowse_Click(Sender)
+		(*Cast(frmComponentsType Ptr, Sender.Designer)).cmdBrowse_Click(Sender)
 	End Sub
 	
 	Private Sub frmComponentsType.chlControls_Change_(ByRef Sender As ListControl)
-		*Cast(frmComponentsType Ptr, Sender.Designer).chlControls_Change(Sender)
+		(*Cast(frmComponentsType Ptr, Sender.Designer)).chlControls_Change(Sender)
 	End Sub
 	
 	Private Sub frmComponentsType.Form_Create_(ByRef Sender As Control)
-		*Cast(frmComponentsType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmComponentsType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmComponentsType.cmdCancel_Click_(ByRef Sender As Control)
-		*Cast(frmComponentsType Ptr, Sender.Designer).cmdCancel_Click(Sender)
+		(*Cast(frmComponentsType Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 	End Sub
 	
 	Private Sub frmComponentsType.cmdOK_Click_(ByRef Sender As Control)
-		*Cast(frmComponentsType Ptr, Sender.Designer).cmdOK_Click(Sender)
+		(*Cast(frmComponentsType Ptr, Sender.Designer)).cmdOK_Click(Sender)
 	End Sub
 	
 	Private Sub frmComponentsType.cmdApply_Click_(ByRef Sender As Control)
-		*Cast(frmComponentsType Ptr, Sender.Designer).cmdApply_Click(Sender)
+		(*Cast(frmComponentsType Ptr, Sender.Designer)).cmdApply_Click(Sender)
 	End Sub
 	
 	Dim Shared frmComponents As frmComponentsType

@@ -210,7 +210,7 @@ pfFind = @fFind
 	End Sub
 	
 	Private Sub frmFind.cboFindRange_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmFind Ptr, Sender.Designer).cboFindRange_Selected(Sender, ItemIndex)
+		(*Cast(frmFind Ptr, Sender.Designer)).cboFindRange_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Destructor frmFind

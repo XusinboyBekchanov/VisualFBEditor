@@ -275,14 +275,14 @@
 '#End Region
 
 Private Sub frmImageManager.Form_Show_(ByRef Sender As Form)
-	*Cast(frmImageManager Ptr, Sender.Designer).Form_Show(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).Form_Show(Sender)
 End Sub
 Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	
 End Sub
 
 Private Sub frmImageManager.cmdCancel_Click_(ByRef Sender As Control)
-	*Cast(frmImageManager Ptr, Sender.Designer).cmdCancel_Click(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmImageManager.cmdCancel_Click(ByRef Sender As Control)
 	ModalResult = ModalResults.Cancel
@@ -290,7 +290,7 @@ Private Sub frmImageManager.cmdCancel_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmImageManager.cmdOK_Click_(ByRef Sender As Control)
-	*Cast(frmImageManager Ptr, Sender.Designer).cmdOK_Click(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).cmdOK_Click(Sender)
 End Sub
 Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 	If WithoutMainNode Then
@@ -458,7 +458,7 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmImageManager.lvImages_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	*Cast(frmImageManager Ptr, Sender.Designer).lvImages_ItemActivate(Sender, ItemIndex)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).lvImages_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	If WithoutMainNode Then
@@ -497,7 +497,7 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 End Sub
 
 Private Sub frmImageManager.lvImages_SelectedItemChanged_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	*Cast(frmImageManager Ptr, Sender.Designer).lvImages_SelectedItemChanged(Sender, ItemIndex)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).lvImages_SelectedItemChanged(Sender, ItemIndex)
 End Sub
 Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	If CurrentImageList = 0 Then
@@ -513,7 +513,7 @@ Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListVie
 End Sub
 
 Private Sub frmImageManager.MenuItemClick_(ByRef Sender As My.Sys.Object)
-	*Cast(frmImageManager Ptr, Sender.Designer).MenuItemClick(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).MenuItemClick(Sender)
 End Sub
 Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
 	Select Case Sender.ToString
@@ -574,7 +574,7 @@ Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
 End Sub
 
 Private Sub frmImageManager.tbToolbar_ButtonClick_(ByRef Sender As ToolBar,ByRef Button As ToolButton)
-	*Cast(frmImageManager Ptr, Sender.Designer).tbToolbar_ButtonClick(Sender, Button)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).tbToolbar_ButtonClick(Sender, Button)
 End Sub
 Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
 	Select Case Button.Name
@@ -680,7 +680,7 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 End Sub
 
 Private Sub frmImageManager.Form_Create_(ByRef Sender As Control)
-	*Cast(frmImageManager Ptr, Sender.Designer).Form_Create(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).Form_Create(Sender)
 End Sub
 Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 	If CurrentImageList Then
@@ -834,7 +834,7 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 End Sub
 
 Private Sub frmImageManager.optCustom_Click_(ByRef Sender As RadioButton)
-	*Cast(frmImageManager Ptr, Sender.Designer).optCustom_Click(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).optCustom_Click(Sender)
 End Sub
 Private Sub frmImageManager.optCustom_Click(ByRef Sender As RadioButton)
 	txtWidth.Enabled = optCustom.Checked
@@ -844,7 +844,7 @@ Private Sub frmImageManager.optCustom_Click(ByRef Sender As RadioButton)
 End Sub
 
 Private Sub frmImageManager.opt16x16_Click_(ByRef Sender As RadioButton)
-	*Cast(frmImageManager Ptr, Sender.Designer).opt16x16_Click(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).opt16x16_Click(Sender)
 End Sub
 Private Sub frmImageManager.opt16x16_Click(ByRef Sender As RadioButton)
 	txtWidth.Text = "16"
@@ -853,7 +853,7 @@ Private Sub frmImageManager.opt16x16_Click(ByRef Sender As RadioButton)
 End Sub
 
 Private Sub frmImageManager.opt32x32_Click_(ByRef Sender As RadioButton)
-	*Cast(frmImageManager Ptr, Sender.Designer).opt32x32_Click(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).opt32x32_Click(Sender)
 End Sub
 Private Sub frmImageManager.opt32x32_Click(ByRef Sender As RadioButton)
 	txtWidth.Text = "32"
@@ -862,7 +862,7 @@ Private Sub frmImageManager.opt32x32_Click(ByRef Sender As RadioButton)
 End Sub
 
 Private Sub frmImageManager.opt48x48_Click_(ByRef Sender As RadioButton)
-	*Cast(frmImageManager Ptr, Sender.Designer).opt48x48_Click(Sender)
+	(*Cast(frmImageManager Ptr, Sender.Designer)).opt48x48_Click(Sender)
 End Sub
 Private Sub frmImageManager.opt48x48_Click(ByRef Sender As RadioButton)
 	txtWidth.Text = "48"
