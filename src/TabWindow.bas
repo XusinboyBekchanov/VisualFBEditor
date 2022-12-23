@@ -211,7 +211,10 @@ Sub NumberingProject(pSender As Any Ptr)
 						Else
 							If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
 						End If
-						If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
+						If tb = 0 Then
+							FileCopy  *ee->FileName, GetBakFileName(*ee->FileName)
+							ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
+						End If
 					End If
 				End If
 			Next
@@ -228,7 +231,10 @@ Sub NumberingProject(pSender As Any Ptr)
 			Else
 				If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
 			End If
-			If tb = 0 Then ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
+			If tb = 0 Then 
+				FileCopy  *ee->FileName, GetBakFileName(*ee->FileName)
+				ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
+			End If
 		End If
 	Next
 	StopProgress
