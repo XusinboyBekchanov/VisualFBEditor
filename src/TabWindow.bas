@@ -2458,12 +2458,24 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "public sub " & LCase(OldName) & "type.") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 11) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 12)
+				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "cast(" & LCase(OldName) & " ") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 6)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "*cast(" & LCase(OldName) & " ") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 7)
+				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "(*cast(" & LCase(OldName) & " ") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 7) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName) + 8)
+				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "cast(" & LCase(OldName) & "type ") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 5) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 6)
 				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "*cast(" & LCase(OldName) & "type ") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 6) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 7)
+				ElseIf StartsWith(LTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), "(*cast(" & LCase(OldName) & "type ") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 7) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(OldName & "Type") + 8)
 				End If
 			End If
 			If iIndex = 1 Then
@@ -2476,6 +2488,9 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 				ElseIf EndsWith(RTrim(LCase(ptxtCode->Lines(k)), Any !"\t "), " as " & LCase(OldName)) Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName)) & NewName
+				ElseIf EndsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(OldName) & ".mainform = true") Then
+					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) - 16) & NewName & ".MainForm = True"
 				ElseIf EndsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), LCase(OldName) & ".show") Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(OldName) - 5) & NewName & ".Show"
@@ -3174,12 +3189,12 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 				Dim As String LeftTabSpace = ..Left(ptxtCode->Lines(LineEndConstructor + q), Len(ptxtCode->Lines(LineEndConstructor + q)) - Len(LTrim(ptxtCode->Lines(LineEndConstructor + q), Any !"\t ")))
 				ptxtCode->InsertLine LineEndConstructor + 1 + q, LeftTabSpace
 				ptxtCode->InsertLine LineEndConstructor + q + 1, LeftTabSpace & "Private " & Left(te->TypeName, Pos1 - 1) & " " & frmTypeName & "." & SubNameNew & Mid(te->TypeName, Pos1)
-				ptxtCode->InsertLine LineEndConstructor + q + 2, LeftTabSpace & TabSpace & IIf(Pos1 = 4, "", "Return ") & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, Pos1))
+				ptxtCode->InsertLine LineEndConstructor + q + 2, LeftTabSpace & TabSpace & IIf(Pos1 = 4, "", "Return ") & "(*Cast(" & frmTypeName & " Ptr, Sender.Designer))." & SubName & GetOnlyArguments(Mid(te->TypeName, Pos1))
 				ptxtCode->InsertLine LineEndConstructor + q + 3, LeftTabSpace & "End " & Left(te->TypeName, Pos1 - 1)
 				q += 4
 			Else
 				ptxtCode->InsertLine i + q + 1, "Private " & Left(te->TypeName, Pos1 - 1) & " " & frmTypeName & "." & SubNameNew & Mid(te->TypeName, Pos1)
-				ptxtCode->InsertLine i + q + 2, TabSpace & IIf(Pos1 = 4, "", "Return ") & "*Cast(" & frmTypeName & " Ptr, Sender.Designer)." & SubName & GetOnlyArguments(Mid(te->TypeName, Pos1))
+				ptxtCode->InsertLine i + q + 2, TabSpace & IIf(Pos1 = 4, "", "Return ") & "(*Cast(" & frmTypeName & " Ptr, Sender.Designer))." & SubName & GetOnlyArguments(Mid(te->TypeName, Pos1))
 				ptxtCode->InsertLine i + q + 3, "End " & Left(te->TypeName, Pos1 - 1)
 				q += 3
 			End If

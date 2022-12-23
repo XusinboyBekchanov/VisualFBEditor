@@ -2350,8 +2350,8 @@ Namespace My.Sys.Forms
 	Function EditControl.GetTypeFromValue(ByRef Value As String, iSelEndLine As Integer) As String
 		If Value= "" Then Return ""
 		Dim As String sTemp
-		If (StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(")) AndAlso EndsWith(LCase(Value), ")") Then
-			Var Pos1 = InStr(Value, "(")
+		If (StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "*cast(") OrElse StartsWith(LCase(Value), "(*cast(")) AndAlso EndsWith(LCase(Value), ")") Then
+			Var Pos1 = InStr(2, Value, "(")
 			Var Pos2 = InStr(Value, ",")
 			If Pos2 > 0 Then
 				sTemp = WithoutPointers(Trim(Mid(Value, Pos1 + 1, Pos2 - Pos1 - 1)))
