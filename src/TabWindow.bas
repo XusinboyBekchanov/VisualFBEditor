@@ -8098,7 +8098,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		ErrorLine = Val(Mid(sLine, Pos2 + 5, Pos3 - Pos2 - 1))
 		Pos2 = InStr(Pos3, sLine, ")")
 		WLet(ErrFileName, Mid(sLine, Pos3 + 21, Pos2 - Pos3 - 21))
-	ElseIf InStr(LCase(sLine), "fatal error") Then
+	ElseIf InStr(LCase(sLine), "fatal error") OrElse InStr(LCase(sLine), ": error:") Then
 		Pos2 = InStr(3, sLine, ":")
 		WLet(ErrFileName, Left(sLine, Pos2 - 1))
 		Pos3 = InStr(Pos2 + 1, sLine, ":")
