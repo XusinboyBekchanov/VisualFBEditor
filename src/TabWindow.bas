@@ -198,7 +198,7 @@ Sub NumberingProject(pSender As Any Ptr)
 				tn1 = tn->Nodes.Item(j)
 				If tn1 <> 0 Then
 					ee = tn1->Tag
-					If ee <> 0 AndAlso (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") OrElse EndsWith(*ee->FileName, ".frm")) Then
+					If ee <> 0 AndAlso (EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".frm")) Then
 						tb = GetTab(*ee->FileName)
 						If tb = 0 Then
 							txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
@@ -218,7 +218,7 @@ Sub NumberingProject(pSender As Any Ptr)
 					End If
 				End If
 			Next
-		ElseIf (EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") OrElse EndsWith(*ee->FileName, ".frm")) Then
+		ElseIf (EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".frm")) Then
 			tb = GetTab(*ee->FileName)
 			If tb = 0 Then
 				txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
