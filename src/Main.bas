@@ -1370,6 +1370,7 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 			tn = tvExplorer.Nodes.Add(GetFileName(FolderName), , FolderName, IconName, IconName)
 			AddProject FolderName & Slash & GetFileName(FolderName) & ".vfp", , tn
 			WLet(Cast(ExplorerElement Ptr, tn->Tag)->FileName, FolderName)
+			If MainNode = 0 Then SetMainNode tn
 		Else
 			IconName = "Opened"
 			tn = tvExplorer.Nodes.Add(GetFileName(FolderName), , FolderName, IconName, IconName)

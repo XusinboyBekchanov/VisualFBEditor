@@ -8066,7 +8066,7 @@ End Sub
 
 Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer) As UShort
 	Dim As Integer Pos1, Pos2, Pos3 'David Change for ML
-	Dim As WString * 50 bFlagErr =""
+	Dim As WString * 50 bFlagErr = ""
 	WLet(ErrFileName, "")
 	WLet(ErrTitle, sLine)
 	ErrorLine = 0
@@ -8076,7 +8076,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error!")
 	If Pos1 = 0 Then
 		Pos1 = InStr(LCase(sLine), " warning")
-		If Pos1>0 Then bFlagErr = "Warning"
+		If Pos1 > 0 Then bFlagErr = "Warning"
 	Else
 		bFlagErr = "Error"
 	End If
@@ -8098,42 +8098,53 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		ErrorLine = Val(Mid(sLine, Pos2 + 5, Pos3 - Pos2 - 1))
 		Pos2 = InStr(Pos3, sLine, ")")
 		WLet(ErrFileName, Mid(sLine, Pos3 + 21, Pos2 - Pos3 - 21))
+	ElseIf InStr(LCase(sLine), "fatal error") Then
+		Pos2 = InStr(3, sLine, ":")
+		WLet(ErrFileName, Left(sLine, Pos2 - 1))
+		Pos3 = InStr(Pos2 + 1, sLine, ":")
+		ErrorLine = Val(Mid(sLine, Pos2 + 1, Pos3 - Pos2 - 1))
 	Else
 		ErrorLine = Val(Mid(sLine, Pos2 + 1, Pos1 - Pos2 - 1))
 		'If ErrorLine = 0 Then Return 0
 		WLet(ErrFileName, Left(sLine, Pos2 - 1))
 	End If
-	Pos3 = InStr(Pos1, sLine, ":")
-	If Pos3 > 0 Then
-		Pos2 = InStrRev(sLine, ",")
-		If Pos2 < 1 Then
-			Pos2 = Len(sLine)
-		ElseIf Mid(sLine, Pos2 - 1, 3) = "','" Then
-			Pos1 = InStrRev(sLine, ",", Pos2 - 1)
-			If Pos1 > 1 Then Pos2 = Pos1
-		End If
-		If InStr(Mid(sLine, Pos2),", found") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found"))))
-		ElseIf InStr(Mid(sLine, Pos2),", before") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before"))))
-		ElseIf InStr(Mid(sLine, Pos2),", after") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("after") + (Mid(sLine, Pos2 + Len(", after"))))
-		ElseIf InStr(Mid(sLine, Pos2),", exiting") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("Exit") + (Mid(sLine, Pos2 + Len(", exiting"))))
-		ElseIf InStr(Mid(sLine, Pos2),", at parameter") = 1 Then
-			WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("at parameter") + (Mid(sLine, Pos2 + Len(", at parameter"))))
-			'at parameter
-		Else
-			If Pos2 > Pos3 Then
-				Dim As WString * 250 tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3))
-				If Right(tStr, 1) = "," Then tStr = Trim(Mid(sLine, POS3 + 1, Pos2 - Pos3 - 1)) 'Strange. Sometime got letter ","
-				WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 2)), "")) '& Mid(sLine, Pos2+1)
-			Else
-				WLet(ErrTitle, ML(bFlagErr) + ": " + MLCompilerFun(Trim(Mid(sLine, POS3 + 1))))
-			End If
-		End If
+	If StartsWith(*ErrFileName, "In file included from ") Then
+		WLet(ErrTitle, Left(sLine, 22))
+		WLetEx(ErrFileName, Mid(*ErrFileName, 23), True)
 	Else
-		WLet(ErrTitle, Mid(sLine, Pos1 + 1))
+		Pos3 = InStr(Pos1, sLine, ":")
+		If Pos3 > 0 Then
+			Dim As String Dots = IIf(bFlagErr = "", "", ": ")
+			Pos2 = InStrRev(sLine, ",")
+			If Pos2 < 1 Then
+				Pos2 = Len(sLine)
+			ElseIf Mid(sLine, Pos2 - 1, 3) = "','" Then
+				Pos1 = InStrRev(sLine, ",", Pos2 - 1)
+				If Pos1 > 1 Then Pos2 = Pos1
+			End If
+			If InStr(Mid(sLine, Pos2),", found") = 1 Then
+				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found"))))
+			ElseIf InStr(Mid(sLine, Pos2),", before") = 1 Then
+				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before"))))
+			ElseIf InStr(Mid(sLine, Pos2),", after") = 1 Then
+				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("after") + (Mid(sLine, Pos2 + Len(", after"))))
+			ElseIf InStr(Mid(sLine, Pos2),", exiting") = 1 Then
+				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("Exit") + (Mid(sLine, Pos2 + Len(", exiting"))))
+			ElseIf InStr(Mid(sLine, Pos2),", at parameter") = 1 Then
+				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("at parameter") + (Mid(sLine, Pos2 + Len(", at parameter"))))
+				'at parameter
+			Else
+				If Pos2 > Pos3 Then
+					Dim As WString * 250 tStr = Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3))
+					If Right(tStr, 1) = "," Then tStr = Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1)) 'Strange. Sometime got letter ","
+					WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 2)), "")) '& Mid(sLine, Pos2+1)
+				Else
+					WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1))))
+				End If
+			End If
+		Else
+			WLet(ErrTitle, Mid(sLine, Pos1 + 1))
+		End If
 	End If
 	If bFlagErr = "Warning"  Then
 		Return 1
