@@ -256,6 +256,7 @@ Sub mClick(Sender As My.Sys.Object)
 					#ifndef __USE_GTK__
 						runtype = RTFRUN
 						'runtype = RTRUN
+						SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 						CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 					#endif
 					ThreadCounter(ThreadCreate_(@StartDebuggingWithCompile))
@@ -293,6 +294,7 @@ Sub mClick(Sender As My.Sys.Object)
 				#ifndef __USE_GTK__
 					runtype = RTFRUN
 					'runtype = RTRUN
+					SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				#endif
 				ThreadCounter(ThreadCreate_(@StartDebugging))
@@ -335,7 +337,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Next
 				runtype = RTFREE
 				'but_enable()
-				thread_rsm()
+				thread_resume()
 				DeleteDebugCursor
 				ChangeEnabledDebug True, False, False
 			#endif
@@ -353,6 +355,7 @@ Sub mClick(Sender As My.Sys.Object)
 				End If
 				runtype = RTFRUN
 				'runtype = RTRUN
+				SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 				CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				Restarting = True
 				ThreadCounter(ThreadCreate_(@StartDebugging))
@@ -375,10 +378,11 @@ Sub mClick(Sender As My.Sys.Object)
 			If InDebug Then
 				ChangeEnabledDebug False, True, True
 				#ifndef __USE_GTK__
+					runtype = RTSTEP
 					stopcode=0
 					'bcktrk_close
 					SetFocus(windmain)
-					thread_rsm
+					thread_resume
 				#endif
 			Else
 				#ifndef __USE_GTK__
@@ -413,6 +417,7 @@ Sub mClick(Sender As My.Sys.Object)
 				#ifndef __USE_GTK__
 					procin = procsk
 					runtype = RTFRUN
+					SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				#endif
 				ThreadCounter(ThreadCreate_(@StartDebugging))

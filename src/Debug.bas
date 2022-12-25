@@ -9283,16 +9283,28 @@ Private Sub process_terminated()
 	'watch_sav()
 	brk_sav()
 	runtype=RTEND
+	KillTimer 0, 0
+	InDebug = False
+	DeleteDebugCursor
+	Dim As Unsigned Long ExitCode
+	GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+	Var Result = ExitCode
+	ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+	ChangeEnabledDebug True, False, False
+	#ifndef __USE_GTK__
+		If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer
+		CurrentTimer = 0
+	#endif
 	'but_enable()
 	'menu_enable()
 	'shortcut_enable()
 	
 	#ifdef __FB_WIN32__
-		MsgBox("", "END OF DEBUGGED PROCESS", MB_SYSTEMMODAL)
+		MsgBox(ML("END OF DEBUGGED PROCESS"), App.Title)
 		MutexUnlock blocker
 		MutexLock blocker
 	#else
-		MsgBox("", "END OF DEBUGGED PROCESS " + "afterkilled code=" + Str(afterkilled))
+		MsgBox(ML("END OF DEBUGGED PROCESS") + " " + ML("afterkilled code=") + Str(afterkilled), App.Title)
 		Select case As Const afterkilled
 		case KDONOTHING
 			Exit Sub
@@ -11671,7 +11683,7 @@ dbg_prt2 "rLine(thread(threadcur).sv).nu=";rline(thread(threadcur).sv).nu
 				End If
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 			Case EXIT_PROCESS_DEBUG_EVENT:
-				MsgBox(ML("END OF DEBUGGED PROCESS"), "Visual FB Editor")
+				'MsgBox(ML("END OF DEBUGGED PROCESS"), "Visual FB Editor")
 				CloseHandle(dbghand)
 				CloseHandle(dbghfile)
 				CloseHandle(dbghthread)
