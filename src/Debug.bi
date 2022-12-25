@@ -200,8 +200,8 @@ Declare Sub DeleteDebugCursor
 	Declare Sub output_lnx(As String)
 	Declare Function ReadProcessMemory(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr =0) As Integer
 	Declare Function ReadProcessMemory_th2(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0) As Integer
-	Declare Function readmemlongint(child As Long,addrdbge As Integer)As LongInt
-	Declare Function writeprocessmemory(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr =0) As Integer
+	Declare Function ReadMemLongInt(child As Long, addrdbge As Integer) As LongInt
+	Declare Function WriteProcessMemory(child As Long, addrdbge As Any Ptr, addrdbgr As Any Ptr, lg As Long, rd As Any Ptr = 0) As Integer
 	Declare Sub thread_rsm()
 	Declare Function elf_extract(As String)As Integer
 	Declare Function pthread_kill Alias "pthread_kill"(As Long,As Long) As Long

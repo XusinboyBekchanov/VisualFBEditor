@@ -383,6 +383,7 @@ Sub mClick(Sender As My.Sys.Object)
 			Else
 				#ifndef __USE_GTK__
 					runtype = RTSTEP
+					SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				#endif
 				ThreadCounter(ThreadCreate_(@StartDebugging))
