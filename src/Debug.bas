@@ -670,13 +670,13 @@ Private Function brk_test Overload (adr1 As Integer, adr2 As Integer = 0, dataty
 	#Ifdef __FB_WIN32__
 		ReadProcessMemory(dbghand,Cast(LPCVOID,adr1),@recup1,8,0)
 	#else
-		recup1.vlongint=readmemlongint(thread(threadcur).id, adr1)
+		recup1.vlongint=ReadMemLongInt(thread(threadcur).id, adr1)
 	#endif
 	If adr2 Then
 		#Ifdef __FB_WIN32__
 			ReadProcessMemory(dbghand,Cast(LPCVOID,adr2),@recup2,8,0)
 		#else
-			recup2.vlongint=readmemlongint(thread(threadcur).id, adr2)
+			recup2.vlongint=ReadMemLongInt(thread(threadcur).id, adr2)
 		#endif
 	Else
 		recup2=data2
@@ -3621,7 +3621,7 @@ runtype = RTOFF
 				dbg_prt ("hand "+Str(dbghand)+" Pid "+Str(dbgprocid))
 			#EndIf
 			prun=True
-			runtype=RTSTEP
+			'runtype=RTSTEP
 			wait_debug()
 		Else
 			MsgBox("PROBLEM", "no debugged pgm -->" + exename+ Chr(10) + "error :" + Str(GetLastError()), MB_SYSTEMMODAL)
@@ -3682,7 +3682,7 @@ runtype = RTOFF
 			''normally done during debug_extract
 			For i As Integer=dlldata(dllnb).lnb To dlldata(dllnb).lnb+dlldata(dllnb).lnb-1
 				ReadProcessMemory(dbghand,Cast(LPCVOID,rline(i).ad),@rline(i).sv,1,0) 'sav 1 byte before writing breakcpu
-				writeprocessmemory(dbghand,Cast(LPVOID,rline(i).ad),@breakcpu,1,0)
+				WriteProcessMemory(dbghand,Cast(LPVOID,rline(i).ad),@breakcpu,1,0)
 			Next
 			globals_load(d)
 			brk_apply()
@@ -8701,6 +8701,7 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 					hard_closing("Attaching running program" + Chr(10) + "No information for Debugging")
 				End If
 			End If
+			RestoreStatusText
 			Return -1
 		End If
 	Else
@@ -9077,7 +9078,7 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 	'	End If
 	'#endif
 	'
-	'RestoreStatusText
+	RestoreStatusText
 	
 End Function
 
@@ -11255,7 +11256,16 @@ dbg_prt2 "rLine(thread(threadcur).sv).nu=";rline(thread(threadcur).sv).nu
 				End If
 			End If
 		End If
-   End If
+	End If
+	If runtype=RTFRUN Then
+	'	fasttimer=Timer-fasttimer
+		For i As Integer = 1 To linenb 'restore CC
+			If LimitDebug AndAlso Not EqualPaths(GetFolderName(source(rline(i).sx)), mainfolder) Then
+			Else
+				WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @breakcpu, 1, 0)
+			End If
+		Next
+	End If
 		'ElseIf proccurad=proc(procsv).fn Then
 		'	thread(threadcur).pe=True        'is last instruction ?
 		'End If

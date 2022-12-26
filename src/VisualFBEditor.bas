@@ -248,9 +248,20 @@ Sub mClick(Sender As My.Sys.Object)
 				If InDebug Then
 					#ifndef __USE_GTK__
 						ChangeEnabledDebug False, True, True
+						'brk_set(12)
+						'runtype=RTAUTO
+						'#ifdef __FB_WIN32__
+						'	set_cc()
+						'#else
+						'	If ccstate=KCC_NONE Then
+						'		msgdata=1 ''CC everywhere
+						'		exec_order(KPT_CCALL)
+						'	End If
+						'#EndIf
+						'thread_set()
 						fastrun()
 						'runtype = RTRUN
-						'thread_rsm()
+						'thread_resume()
 					#endif
 				ElseIf UseDebugger Then
 					#ifndef __USE_GTK__
@@ -287,8 +298,8 @@ Sub mClick(Sender As My.Sys.Object)
 				#ifndef __USE_GTK__
 					ChangeEnabledDebug False, True, True
 					fastrun()
-	'				runtype = RTRUN
-	'				thread_rsm()
+					'runtype = RTRUN
+					'thread_resume()
 				#endif
 			ElseIf UseDebugger Then
 				#ifndef __USE_GTK__
@@ -378,11 +389,24 @@ Sub mClick(Sender As My.Sys.Object)
 			If InDebug Then
 				ChangeEnabledDebug False, True, True
 				#ifndef __USE_GTK__
-					runtype = RTSTEP
+					'runtype = RTSTEP
+					'stopcode=0
+					''bcktrk_close
+					'SetFocus(windmain)
+					'thread_resume
+					#ifdef __FB_WIN32__
+						set_cc()
+					#else
+						If ccstate=KCC_NONE Then
+							msgdata=1 ''CC everywhere
+							exec_order(KPT_CCALL)
+						End If
+					#EndIf
+					dbg_prt2 "=============== STEP =================================="
 					stopcode=0
-					'bcktrk_close
-					SetFocus(windmain)
-					thread_resume
+					runtype=RTSTEP
+					thread_set()
+					'thread_resume()
 				#endif
 			Else
 				#ifndef __USE_GTK__
