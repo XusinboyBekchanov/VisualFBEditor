@@ -318,13 +318,13 @@ Declare Sub DeleteDebugCursor
 #endif
 ''====================== end for linux =========================
 
+Declare Sub string_sh(tv As Any Ptr)
+Declare Sub shwexp_new(tview As Any Ptr)
 #ifndef __USE_GTK__
 	Declare Sub fastrun()
 	Declare Sub thread_rsm()
 	Declare Sub exe_mod()
 	Declare Sub brk_set(t As Integer)
-	Declare Sub string_sh(tv As HWND)
-	Declare Sub shwexp_new(tview As HWND)
 	Declare Function var_sh1(i As Integer) As String
 	
 	Common Shared windmain As HWND
@@ -333,7 +333,7 @@ Declare Sub DeleteDebugCursor
 	'Common Shared As Integer linenb
 	Common Shared tviewcur As HWND  'TV1 ou TV2 ou TV3
 	Common Shared tviewvar As HWND 'running proc/var
-	'Common Shared tviewprc As HWND 'all proc
+	Common Shared tviewprc As HWND 'all proc
 	Common Shared tviewthd As HWND 'all threads
 	Common Shared tviewwch As HWND 'watched variables
 
@@ -345,7 +345,7 @@ Declare Sub DeleteDebugCursor
 	Common Shared windmain As Any Ptr
 	Common Shared tviewcur As TreeView Ptr  'TV1 ou TV2 ou TV3
 	Common Shared tviewvar As TreeView Ptr 'running proc/var
-	'Common Shared tviewprc As TreeView Ptr 'all proc
+	Common Shared tviewprc As TreeView Ptr 'all proc
 	Common Shared tviewthd As TreeView Ptr 'all threads
 	Common Shared tviewwch As TreeView Ptr 'watched variables
 #endif

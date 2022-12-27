@@ -654,7 +654,12 @@ Sub mClick(Sender As My.Sys.Object)
 			tb->NewLineType = NewLineType
 			tb->Modified = True
 		End If
+		Case "VariableDump":                var_dump(tviewvar)
+		Case "PointedDataDump":             var_dump(tviewvar, 1)
+		Case "MemoryDumpWatch":             var_dump(tviewwch)
 		#ifndef __USE_GTK__
+		Case "ShowStringWatch":             string_sh(tviewwch)
+		Case "ShowExpandVariableWatch":     shwexp_new(tviewwch)
 		Case "ShowString":                  string_sh(tviewvar)
 		Case "ShowExpandVariable":          shwexp_new(tviewvar)
 		#endif

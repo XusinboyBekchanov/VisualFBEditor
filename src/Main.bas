@@ -84,20 +84,20 @@ Dim Shared As List Tools, TabPanels, ControlLibraries
 Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
-Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo
+Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
 Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
-Dim Shared As PopupMenu mnuForm, mnuVars, mnuExplorer, mnuTabs
+Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
 Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
-Dim Shared As TreeView tvExplorer, tvVar, tvThd, tvWch ', tvPrc
+Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
-Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpThreads, tpWatches
+Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
@@ -5705,8 +5705,21 @@ Sub CreateMenusAndToolBars
 	mnuTabs.Add(ML("Split &Vertically"), "", "SplitVertically", @mClick)
 	
 	'mnuVars.ImagesList = @imgList '<m>
+	mnuVars.Add(ML("Variable Dump"), "", "VariableDump", @mClick)
+	mnuVars.Add(ML("Pointed data Dump"), "", "PointedDataDump", @mClick)
+	mnuVars.Add("-")
 	mnuVars.Add(ML("Show String"), "", "ShowString", @mClick)
 	mnuVars.Add(ML("Show/Expand Variable"), "", "ShowExpandVariable", @mClick)
+	
+	mnuWatch.Add(ML("Memory Dump"), "", "MemoryDumpWatch", @mClick)
+	mnuWatch.Add("-")
+	mnuWatch.Add(ML("Show String"), "", "ShowStringWatch", @mClick)
+	mnuWatch.Add(ML("Show/Expand Variable"), "", "ShowExpandVariableWatch", @mClick)
+	
+	mnuProcedures.Add(ML("Locate procedure (source)"), "", "LocateProcedure", @mClick)
+	mnuProcedures.Add(ML("Toggle sort by module or by procedure"), "", "ToggleSort", @mClick)
+	mnuProcedures.Add("-")
+	mnuProcedures.Add(ML("Enable/disable"), "", "EnableDisable", @mClick)
 	
 	'mnuExplorer.ImagesList = @imgList '<m>
 	miSetAsMain = mnuExplorer.Add(ML("&Set As Main"), "", "SetAsMain", @mClick)
@@ -7013,9 +7026,11 @@ End Sub
 
 tvVar.Visible = False
 tvVar.Align = DockStyle.alClient
-'tvPrc.Align = DockStyle.alClient
+tvPrc.Align = DockStyle.alClient
+tvPrc.ContextMenu = @mnuProcedures
 tvThd.Visible = False
 tvThd.Align = DockStyle.alClient
+tvWch.ContextMenu = @mnuWatch
 tvWch.Visible = False
 tvWch.Align = DockStyle.alClient
 tvWch.EditLabels = True
@@ -7164,6 +7179,14 @@ lvWatches.OnCellEditing = @lvWatches_CellEditing
 lvWatches.OnCellEdited = @lvWatches_CellEdited
 lvWatches.Nodes.Add
 
+lvMemory.Align = DockStyle.alClient
+lvMemory.ContextMenu = @mnuVars
+lvMemory.Columns.Add ML("Address / delta"), , 150
+lvMemory.Columns.Add ML("Ascii value"), , 150
+lvMemory.StateImages = @imgListStates
+lvMemory.Images = @imgListStates
+
+
 Sub tabRight_Click(ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
 		ShowRight
@@ -7232,7 +7255,7 @@ tbRight.Parent = @pnlRightPin
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
 			allocation->x = x - tbRight.Width - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.Width - x1 + 1, 0)
 			allocation->y = y
-			allocation->width = tbRight.Width
+			allocation->Width = tbRight.Width
 			allocation->height = tbRight.Height
 			Return True
 		End Function
@@ -7679,6 +7702,9 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 	tbBottom.Buttons.Item("RemoveWatch")->Visible = tp = tpWatches
 	tbBottom.Buttons.Item("Update")->Visible = tp = tpGlobals
 	If newIndex = 9 Then tbBottom.Buttons.Item("AddWatch")->State = tbBottom.Buttons.Item("AddWatch")->State Or ToolButtonState.tstWrap
+	If ptabBottom->SelectedTab = tpProcedures Then
+		proc_sh
+	End If
 	If MainNode <> 0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text, ".") Then
 		If ptabBottom->SelectedTab = tpChangeLog AndAlso CInt(Not mLoadLog) Then ' AndAlso CInt(Not mLoadToDo)
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
@@ -7793,9 +7819,10 @@ tpChangeLog = ptabBottom->AddTab(ML("Change Log"))
 tpImmediate = ptabBottom->AddTab(ML("Immediate"))
 tpLocals = ptabBottom->AddTab(ML("Locals"))
 tpGlobals = ptabBottom->AddTab(ML("Globals"))
-'tpImmediate = ptabBottom->AddTab(ML("Procedures"))
+tpProcedures = ptabBottom->AddTab(ML("Procedures"))
 tpThreads = ptabBottom->AddTab(ML("Threads"))
 tpWatches = ptabBottom->AddTab(ML("Watches"))
+tpMemory = ptabBottom->AddTab(ML("Memory"))
 tpOutput->Add @txtOutput
 tpProblems->Add @lvProblems
 tpSuggestions->Add @lvSuggestions
@@ -7806,11 +7833,12 @@ tpImmediate->Add @txtImmediate
 tpLocals->Add @lvLocals
 tpLocals->Add @tvVar
 tpGlobals->Add @lvGlobals
-'tpProcedures->Add @tvPrc
+tpProcedures->Add @tvPrc
 tpThreads->Add @lvThreads
 tpThreads->Add @tvThd
 tpWatches->Add @lvWatches
 tpWatches->Add @tvWch
+tpMemory->Add @lvMemory
 ptabBottom->OnClick = @tabBottom_Click
 ptabBottom->OnDblClick = @tabBottom_DblClick
 ptabBottom->OnSelChange = @tabBottom_SelChange
@@ -8205,7 +8233,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		windmain = frmMain.Handle
 		htab2    = ptabCode->Handle
 		tviewvar = tvVar.Handle
-		'tviewPrc = tvPrc.Handle
+		tviewPrc = tvPrc.Handle
 		tviewthd = tvThd.Handle
 		tviewwch = tvWch.Handle
 		DragAcceptFiles(frmMain.Handle, True)
@@ -8213,7 +8241,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		windmain = frmMain.Handle
 		'htab2    = ptabCode->Handle
 		tviewvar = @tvVar
-		'tviewPrc = @tvPrc
+		tviewPrc = @tvPrc
 		tviewthd = @tvThd
 		tviewwch = @tvWch
 	#endif
