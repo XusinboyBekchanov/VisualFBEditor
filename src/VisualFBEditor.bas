@@ -226,6 +226,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "GDBCommand":                          GDBCommand
 	Case "LocateProcedure":                     proc_loc
+	Case "EnableDisable":                       proc_enable
 	Case "StartWithCompile"
 		If SaveAllBeforeCompile Then
 			ChangeEnabledDebug False, True, True

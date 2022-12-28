@@ -10607,6 +10607,15 @@ End Sub
 		dsp_change(i)
 	End Sub
 #endif
+'=========================================
+'' returns true if proc running
+'=========================================
+Private Function proc_verif(p As Integer) As Boolean
+	For i As UShort =1 To procrnb
+		If procr(i).idx = p Then Return True
+	Next
+	Return False
+End Function
 
 Private Sub proc_watch(procridx As Integer) 'called with running proc index
 	Dim As Integer prcidx=procr(procridx).idx,vridx
