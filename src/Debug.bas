@@ -319,6 +319,8 @@ udt(14).nm="Fstring":udt(14).lg=Len(Integer)
 udt(15).nm="fb_Object":udt(15).lg=Len(UInteger)
 udt(16).nm="Boolean":udt(16).lg=Len(Boolean)
 
+reinit()
+
 Dim Shared exename As WString * 300
 Dim Shared mainfolder As WString * 300 'debuggee main folder
 Dim Shared exedate As Double 'serial date
