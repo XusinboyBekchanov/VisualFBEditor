@@ -225,6 +225,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "ProjectPreprocessorNumberOff":        ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
 	Case "GDBCommand":                          GDBCommand
+	Case "LocateProcedure":                     proc_loc
 	Case "StartWithCompile"
 		If SaveAllBeforeCompile Then
 			ChangeEnabledDebug False, True, True

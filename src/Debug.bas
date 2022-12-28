@@ -1541,6 +1541,32 @@ Private Sub restart(ByVal idx As Integer=0)
 	End If
 	restart_exe(idx)
 End Sub
+'============================================
+''changes the displayed source
+'============================================
+Private Sub source_change(numb As Integer)
+	Static As Integer numbold = -1
+	If numb = -1 Then
+		numbold=-1 ''reinit
+		Exit Sub
+	EndIf
+	If numb = numbold Then Exit Sub
+	numbold = numb
+	'ptrdoc=Cast(Any Ptr,send_sci(SCI_GETDOCPOINTER,0,0))
+	'send_sci(SCI_ADDREFDOCUMENT,0,ptrdoc)
+	'send_sci(SCI_SETDOCPOINTER,0,sourceptr(numb))
+	srcdisplayed = numb
+	'SetGadgetText(GSRCCURRENT,">> "+srcname(srcdisplayed))
+	'Var cpt=0
+	'Var idx=srclistfirst
+	'Do Until idx=numb+1
+	'	idx=srclist(idx).child
+	'	cpt+=1
+	'	If cpt>sourcenb Then Exit Do
+	'Loop
+	'SetItemComboBox(GFILELIST,cpt)
+	'srccombocur=cpt
+End Sub
 '=======================================================================================
 '' return line where is the cursor  scintilla first line=0 --> rline=1 so 1 is added
 '=======================================================================================
@@ -1574,6 +1600,7 @@ End Function
 '' displays line
 '==========================================================
 Private Sub line_display(pline As Integer,highlight As Integer=0)
+	SelectError source(srcdisplayed), pline
 	'send_sci(SCI_SETFIRSTVISIBLELINE, pline-1,0)
 	'If pline-send_sci(SCI_GETFIRSTVISIBLELINE,0,0)+5>send_sci(SCI_LINESONSCREEN,0,0) Then
 	'	send_sci(SCI_LINESCROLL,0,+5)
@@ -1588,7 +1615,7 @@ End Sub
 '' displays line current
 '==========================================================
 Private Sub linecur_display()
-	'source_change(srccur)
+	source_change(srccur)
 	line_display(linecur)
 End Sub
 '=========================================================
@@ -10258,6 +10285,89 @@ Private Function proc_retval(prcnb As Integer) As String
 	End If
 	Return udt(proc(prcnb).rv).nm
 End Function
+'====================================================================
+'' locates a proc in sources from selected line in current treeview
+'====================================================================
+Private Sub proc_loc()
+	Dim As Any Ptr hitem, htemp
+	Dim As Integer temp, th
+	'get current hitem in tree
+	Select Case tabBottom.SelectedTab
+		Case tpLocals
+			htemp = tvVar.SelectedNode
+			Do 'search index proc
+				hitem = htemp
+				If hitem Then htemp = Cast(TreeNode Ptr, hitem)->Parent
+			Loop While htemp
+			temp=0
+			For i As Integer =1 To procrnb
+				If procr(i).tv=hitem Then
+					temp=procr(i).idx
+				 Exit For
+				EndIf
+			Next
+			If temp=0 Then
+				MsgBox("Global variables no proc associated !!", "Locate proc")
+				Exit Sub
+			EndIf
+
+		Case tpProcedures
+			htemp = tvPrc.SelectedNode
+			hitem = htemp
+			For i As Integer =1 To procnb
+				If proc(i).tv=hitem Then
+					temp=i
+				 Exit For
+				EndIf
+			Next
+		Case Else
+			th = thread_select()
+			If th=0 Then ''main, select first line
+				temp=procr(1).idx
+			Else
+				temp=procr(proc_find(thread(th).id,KFIRST)).idx
+			EndIf
+	End Select
+
+	If proc(temp).nu=-1 Then
+		MsgBox("Not possible perhaps add by compiler (ie default constructor, let, etc)", "Locate proc")
+		Exit Sub
+	EndIf
+
+	source_change(proc(temp).sr) ''display source
+	line_display(proc(temp).nu,1)  ''Select Line
+End Sub
+'===============================================================
+'' calling line
+'===============================================================
+Private Sub proc_loccall()
+	'Dim As Integer hitem,temp
+	'temp = tvVar.SelectedNode
+'
+	'If temp=procr(1).tv Then
+	'		MsgBox("      Main so no call !!", "Locate calling line")
+	'	Exit Sub
+	'EndIf
+'
+	'Do 'search index proc
+	'	hitem=temp
+	'	temp=GetParentItemTreeView(GTVIEWVAR,hitem)
+	'Loop While temp
+'
+	'For i As Integer =1 To procrnb
+	'	If procr(i).tv=hitem Then
+	'		If procr(i).cl=-1 Then
+	'			'fb_message("Locate calling line","First proc of thread so no call !!"):Exit Sub
+	'			thread_execline(2):Exit Sub
+	'		EndIf
+	'		temp=procr(i).cl 'calling line
+	'		source_change(rline(temp).sx) ''display source
+	'		line_display(rline(temp).nu,1)'Select Line
+	'		Exit Sub
+ ' 		EndIf
+	'Next
+	'MsgBox("Impossible to find with Global shared", "Locate calling line")
+End Sub
 '=================================================================================================
 '' changes the status of the procedure enabled / disabled = doesn't be handled in running proc
 '=================================================================================================
@@ -11338,9 +11448,9 @@ End Sub
 		End If
 		
 		If proccurad=proc(procsv).db Then 'is first instruction ?
-'?11150:			If proctop Then runtype=RTSTEP:procad=0:procin=0:proctop=False:procbot=0' step call execute one step to reach first line
-'?11151:			proc_new
-'?11152:			thread_rsm:Exit Sub
+			'If proctop Then runtype=RTSTEP:procad=0:procin=0:proctop=False:procbot=0' step call execute one step to reach first line
+			'proc_new
+			'thread_rsm:Exit Sub
 				If thread(threadcur).od <>-1 Then
 					dbg_prt2 "restore CC 00 ad="; Hex(rline(thread(threadcur).od).ad)
 					WriteProcessMemory(dbghand, Cast(LPVOID, rline(thread(threadcur).od).ad), @breakcpu, 1, 0)
@@ -11350,9 +11460,9 @@ End Sub
 				prolog = 1 ''only used when multithread to avoid release next thread too quickly
 				thread_resume(threadcur)
 				Exit Sub
-End If
+		End If
 
-If thread(threadcur).sts=KTHD_INIT Then ''case create thread when RTRUNning
+	If thread(threadcur).sts = KTHD_INIT Then ''case create thread when RTRUNning
 		dbg_prt2 "rtype=";threadcur,thread(threadcur).rtype
 		thread(threadcur).rtype=RTRUN
 	EndIf

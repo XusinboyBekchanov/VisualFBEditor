@@ -7021,8 +7021,14 @@ End Sub
 
 tvVar.Visible = False
 tvVar.Align = DockStyle.alClient
+
+Sub tvPrc_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
+	proc_loc
+End Sub
+
 tvPrc.Align = DockStyle.alClient
 tvPrc.ContextMenu = @mnuProcedures
+tvPrc.OnNodeActivate = @tvPrc_NodeActivate
 tvThd.Visible = False
 tvThd.Align = DockStyle.alClient
 tvWch.ContextMenu = @mnuWatch
