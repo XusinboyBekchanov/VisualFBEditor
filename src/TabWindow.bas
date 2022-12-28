@@ -272,6 +272,7 @@ Sub ChangeMenuItemsEnabled
 	Dim bEnabled As Boolean = tvExplorer.Nodes.Count > 0
 	Dim bEnabledTab As Boolean = miWindow->Count > 3
 	Dim bEnabledProject As Boolean = ptn AndAlso (ptn->ImageKey = "Project" OrElse ptn->ImageKey = "MainProject" OrElse ptn->ImageKey = "Folder")
+	tbExplorer.Buttons.Item(3)->Enabled = Not(CBool(ptn > 0) AndAlso CBool(ptn->Tag > 0) AndAlso Cast(ProjectElement Ptr, ptn->Tag)->ProjectIsFolder)
 	miSaveProject->Enabled = bEnabledProject
 	miSaveProjectAs->Enabled = bEnabledProject
 	miCloseProject->Enabled = bEnabledProject
@@ -9387,7 +9388,7 @@ Sub RunPr(Debugger As String = "")
 			Dim As Integer pClass
 			Dim As WString Ptr Workdir, CmdL
 			Dim As ULong ExitCode
-			
+			ChDir(GetFolderName(*ExeFileName))
 			WLet(CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments)
 			If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
 			Var Pos1 = InStrRev(*ExeFileName, Slash)
