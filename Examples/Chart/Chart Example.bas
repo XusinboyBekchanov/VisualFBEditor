@@ -120,7 +120,7 @@
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
 			.ChartStyle = ChartStyles.CS_Donut
 			.LabelsPosition = LabelsPositions.LP_TwoColumns
-			.Border = false
+			.Border = False
 			.Parent = @This
 		End With
 	End Constructor
@@ -135,7 +135,7 @@
 '#End Region
 
 Private Sub Form1.Chart1_Create_(ByRef Sender As Control)
-	*Cast(Form1 Ptr, Sender.Designer).Chart1_Create(Sender)
+	(*Cast(Form1 Ptr, Sender.Designer)).Chart1_Create(Sender)
 End Sub
 Private Sub Form1.Chart1_Create(ByRef Sender As Control)
 	'Chart1.LabelsPosition = LabelsPositions.LP_Outside
