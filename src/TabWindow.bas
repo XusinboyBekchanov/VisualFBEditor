@@ -272,6 +272,7 @@ Sub ChangeMenuItemsEnabled
 	Dim bEnabled As Boolean = tvExplorer.Nodes.Count > 0
 	Dim bEnabledTab As Boolean = miWindow->Count > 3
 	Dim bEnabledProject As Boolean = ptn AndAlso (ptn->ImageKey = "Project" OrElse ptn->ImageKey = "MainProject" OrElse ptn->ImageKey = "Folder")
+	tbExplorer.Buttons.Item(3)->Enabled = Not(CBool(ptn > 0) AndAlso CBool(ptn->Tag > 0) AndAlso Cast(ProjectElement Ptr, ptn->Tag)->ProjectIsFolder)
 	miSaveProject->Enabled = bEnabledProject
 	miSaveProjectAs->Enabled = bEnabledProject
 	miCloseProject->Enabled = bEnabledProject

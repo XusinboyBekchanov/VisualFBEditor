@@ -3022,7 +3022,7 @@ End Sub
 Sub WithFolder
 	Dim As TreeNode Ptr tn, tnF, tnI, tnS, tnR, tnO
 	For i As Integer = 0 To tvExplorer.Nodes.Count - 1
-		If tvExplorer.Nodes.Item(i)->ImageKey = "Project" Then
+		If tvExplorer.Nodes.Item(i)->ImageKey = "Project" AndAlso Not Cast(ProjectElement Ptr, tvExplorer.Nodes.Item(i)->Tag)->ProjectIsFolder Then 
 			tn = tvExplorer.Nodes.Item(i)
 			If tbExplorer.Buttons.Item(3)->Checked Then
 				tnI = tn->Nodes.Add(ML("Includes"), "Includes", , "Opened", "Opened")
