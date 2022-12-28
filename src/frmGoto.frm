@@ -62,7 +62,7 @@ pfGoto = @fGoto
 	End Constructor
 	
 	Destructor frmGoto
-		
+	
 	End Destructor
 '#End Region
 
