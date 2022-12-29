@@ -3052,7 +3052,7 @@ Sub WithFolder
 					'                        If tn->Expanded Then
 					'
 					'                        End If
-					tn1->Expand
+					'tn1->Expand
 					tn->Nodes.Remove j
 				End If
 			Else
