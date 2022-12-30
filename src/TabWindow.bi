@@ -48,6 +48,7 @@ Type ProjectElement Extends ExplorerElement
 	BatchCompilationFileNameWindows As WString Ptr
 	BatchCompilationFileNameLinux As WString Ptr
 	ProjectType As Integer
+	ProjectFolderChecked As Boolean = True
 	Subsystem As Integer
 	ProjectName As WString Ptr
 	HelpFileName As WString Ptr
