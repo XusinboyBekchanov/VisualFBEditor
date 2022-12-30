@@ -3015,53 +3015,57 @@ Sub ChangeTabsTn(TnPrev As TreeNode Ptr, Tn As TreeNode Ptr)
 End Sub
 
 Sub WithFolder
-	Dim As TreeNode Ptr tn, tnF, tnI, tnS, tnR, tnO
-	For i As Integer = 0 To tvExplorer.Nodes.Count - 1
-		If tvExplorer.Nodes.Item(i)->ImageKey = "Project" AndAlso Not Cast(ProjectElement Ptr, tvExplorer.Nodes.Item(i)->Tag)->ProjectIsFolder Then 
-			tn = tvExplorer.Nodes.Item(i)
-			If tbExplorer.Buttons.Item(3)->Checked Then
-				tnI = tn->Nodes.Add(ML("Includes"), "Includes", , "Opened", "Opened")
-				tnF = tn->Nodes.Add(ML("Forms"), "Forms", , "Opened", "Opened")
-				tnS = tn->Nodes.Add(ML("Modules"), "Modules",, "Opened", "Opened") ' "Modules" is better than "Sources"
-				tnR = tn->Nodes.Add(ML("Resources"), "Resources", , "Opened", "Opened")
-				tnO = tn->Nodes.Add(ML("Others"), "Others", , "Opened", "Opened")
-			End If
-			Dim As TreeNode Ptr tn1, tn2
-			For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
-				If tbExplorer.Buttons.Item(3)->Checked Then
-					If tn->Nodes.Item(j)->Tag <> 0 Then
-						If EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bi") Then '
-							tn1 = tnI
-						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bas") Then  '
-							tn1 = tnS
-						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".frm") Then  '
-							tn1 = tnF
-						ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".rc") Then '
-							tn1 = tnR
-						Else
-							tn1 = tnO
-						End If
-						tn2 = tn1->Nodes.Add(tn->Nodes.Item(j)->Text, , , tn->Nodes.Item(j)->ImageKey, tn->Nodes.Item(j)->ImageKey, True)
-						tn2->Tag = tn->Nodes.Item(j)->Tag
-						ChangeTabsTn tn->Nodes.Item(j), tn2
-						'                        If tn->Expanded Then
-						'
-						'                        End If
-						tn1->Expand
-						tn->Nodes.Remove j
+	Dim As TreeNode Ptr tn = tvExplorer.SelectedNode
+	If tn = 0 Then Exit Sub
+	tn = GetParentNode(tn)
+	If tn = 0 OrElse tn->Tag = 0 Then Exit Sub
+	Dim As ProjectElement Ptr ppe= Cast(ProjectElement Ptr, tn->Tag)
+	If ppe->ProjectIsFolder Then  Exit Sub
+	If tn->ImageKey = "Project" AndAlso tbExplorer.Buttons.Item(3)->Checked <> ppe->ProjectFolderChecked Then
+		ppe->ProjectFolderChecked = tbExplorer.Buttons.Item(3)->Checked
+		Dim As TreeNode Ptr tnF, tnI, tnS, tnR, tnO
+		If ppe->ProjectFolderChecked Then
+			tnI = tn->Nodes.Add(ML("Includes"), "Includes", , "Opened", "Opened")
+			tnF = tn->Nodes.Add(ML("Forms"), "Forms", , "Opened", "Opened")
+			tnS = tn->Nodes.Add(ML("Modules"), "Modules",, "Opened", "Opened") ' "Modules" is better than "Sources"
+			tnR = tn->Nodes.Add(ML("Resources"), "Resources", , "Opened", "Opened")
+			tnO = tn->Nodes.Add(ML("Others"), "Others", , "Opened", "Opened")
+		End If
+		Dim As TreeNode Ptr tn1, tn2
+		For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
+			If ppe->ProjectFolderChecked Then
+				If tn->Nodes.Item(j)->Tag <> 0 Then
+					If EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bi") Then '
+						tn1 = tnI
+					ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bas") Then  '
+						tn1 = tnS
+					ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".frm") Then  '
+						tn1 = tnF
+					ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".rc") Then '
+						tn1 = tnR
+					Else
+						tn1 = tnO
 					End If
-				Else
-					For k As Integer = 0 To tn->Nodes.Item(j)->Nodes.Count - 1
-						tn2 = tn->Nodes.Add(tn->Nodes.Item(j)->Nodes.Item(k)->Text, , , tn->Nodes.Item(j)->Nodes.Item(k)->ImageKey, tn->Nodes.Item(j)->Nodes.Item(k)->ImageKey)
-						'?k, tn->Text, tn->Nodes.Item(j)->Text, tn->Nodes.Item(j)->Nodes.Item(k)->Text
-						tn2->Tag = tn->Nodes.Item(j)->Nodes.Item(k)->Tag
-						ChangeTabsTn tn->Nodes.Item(j)->Nodes.Item(k), tn2
-					Next k
+					tn2 = tn1->Nodes.Add(tn->Nodes.Item(j)->Text, , , tn->Nodes.Item(j)->ImageKey, tn->Nodes.Item(j)->ImageKey, True)
+					tn2->Tag = tn->Nodes.Item(j)->Tag
+					ChangeTabsTn tn->Nodes.Item(j), tn2
+					'                        If tn->Expanded Then
+					'
+					'                        End If
+					tn1->Expand
 					tn->Nodes.Remove j
 				End If
-			Next
-		End If
-	Next
+			Else
+				For k As Integer = 0 To tn->Nodes.Item(j)->Nodes.Count - 1
+					tn2 = tn->Nodes.Add(tn->Nodes.Item(j)->Nodes.Item(k)->Text, , , tn->Nodes.Item(j)->Nodes.Item(k)->ImageKey, tn->Nodes.Item(j)->Nodes.Item(k)->ImageKey)
+					'?k, tn->Text, tn->Nodes.Item(j)->Text, tn->Nodes.Item(j)->Nodes.Item(k)->Text
+					tn2->Tag = tn->Nodes.Item(j)->Nodes.Item(k)->Tag
+					ChangeTabsTn tn->Nodes.Item(j)->Nodes.Item(k), tn2
+				Next k
+				tn->Nodes.Remove j
+			End If
+		Next
+	End If
 End Sub
 
 Sub CompileProgram(Param As Any Ptr)
@@ -6224,6 +6228,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		'lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 		mLoadLog = False
 		mLoadToDo = False
+		If ptn->Tag > 0 Then tbExplorer.Buttons.Item(3)->Checked = Cast(ProjectElement Ptr, ptn->Tag)->ProjectFolderChecked
 		ChangeMenuItemsEnabled
 		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" AndAlso ptn->ImageKey <> "Folder" Then  'David Change For compile Single .bas file Then
 			'miSaveProject->Enabled = False
