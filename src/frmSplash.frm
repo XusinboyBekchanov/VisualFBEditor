@@ -17,6 +17,7 @@ Using My.Sys.Forms
 		#else
 			This.Icon.LoadFromResourceID(1)
 		#endif
+		This.Cursor = crWait
 		This.BackColor = 0
 		This.SetBounds 0, 0, 412, 396
 		This.BorderStyle = 0
