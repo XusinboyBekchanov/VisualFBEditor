@@ -118,7 +118,7 @@
 			.ExtraMargins.Left = 5
 			.ExtraMargins.Right = 5
 			.ExtraMargins.Top = 5
-			.SetBounds 5, 5, 434, 336
+			.SetBounds 3, 13, 285, 213
 			.Designer = @This
 			.Parent = @This
 		End With

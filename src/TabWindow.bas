@@ -73,7 +73,7 @@ Public Sub TabCtl.MoveCloseButtons(ptabCode As TabControl Ptr)
 		#ifndef __USE_GTK__
 			SendMessage(ptabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
 			bVisible = True
-			If ptabCode->UpDownControl.Handle AndAlso CInt(ptabCode->UpDownControl.Visible) AndAlso RR.Right - ScaleX(18) + ScaleX(14) > ptabCode->UpDownControl.Left Then bVisible = False
+			If ptabCode->UpDownControl.Handle AndAlso CInt(ptabCode->UpDownControl.Visible) AndAlso RR.Right - ScaleX(18) + ScaleX(14) > ScaleX(ptabCode->UpDownControl.Left) Then bVisible = False
 			tb->btnClose.Visible = bVisible
 			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
 			'If g_darkModeSupported AndAlso g_darkModeEnabled Then
@@ -267,19 +267,38 @@ Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
 	Return 0
 End Function
 
+Function ProjectNameSameWithFolder(ptn As TreeNode Ptr) As Boolean
+	If ptn AndAlso ptn->Tag Then
+		Dim As WString Ptr FileName = Cast(ExplorerElement Ptr, ptn->Tag)->FileName
+		If EndsWith(LCase(*FileName), ".vfp") Then
+			If LCase(GetFileName(*FileName)) = LCase(GetFileName(GetFolderName(*FileName, False)) & ".vfp") Then
+				Return True
+			ElseIf FileExists(*FileName & "/" & GetFileName(*FileName) & ".vfp") Then
+				Return True
+			End If
+		End If
+	End If
+	Return False
+End Function
+
 Sub ChangeMenuItemsEnabled
 	Dim As TreeNode Ptr ptn = GetParentNode(tvExplorer.SelectedNode)
 	Dim bEnabled As Boolean = tvExplorer.Nodes.Count > 0
 	Dim bEnabledTab As Boolean = miWindow->Count > 3
-	Dim bEnabledProject As Boolean = ptn AndAlso (ptn->ImageKey = "Project" OrElse ptn->ImageKey = "MainProject" OrElse ptn->ImageKey = "Folder")
-	tbExplorer.Buttons.Item(3)->Enabled = Not(CBool(ptn > 0) AndAlso CBool(ptn->Tag > 0) AndAlso Cast(ProjectElement Ptr, ptn->Tag)->ProjectIsFolder)
-	miSaveProject->Enabled = bEnabledProject
-	miSaveProjectAs->Enabled = bEnabledProject
-	miCloseProject->Enabled = bEnabledProject
-	miCloseFolder->Enabled = bEnabledProject
-	miExplorerCloseProject->Enabled = bEnabledProject
-	miProjectProperties->Enabled = bEnabledProject
-	miExplorerProjectProperties->Enabled = bEnabledProject
+	Dim bEnabledProject As Boolean = ptn AndAlso (ptn->ImageKey = "Project" OrElse ptn->ImageKey = "MainProject")
+	Dim bEnabledFolderProject As Boolean = ptn AndAlso ((ptn->ImageKey = "Project") OrElse (ptn->ImageKey = "MainProject")) AndAlso CInt(ProjectNameSameWithFolder(ptn))
+	Dim bEnabledProjectAndFolder As Boolean = ptn AndAlso ((ptn->ImageKey = "Project") OrElse (ptn->ImageKey = "MainProject") OrElse (ptn->ImageKey = "Opened"))
+	'tbExplorer.Buttons.Item(3)->Enabled = Not(CBool(ptn > 0) AndAlso CBool(ptn->Tag > 0) AndAlso Cast(ProjectElement Ptr, ptn->Tag)->ProjectIsFolder)
+	miShowWithFolders->Enabled = bEnabledProject
+	miShowWithoutFolders->Enabled = bEnabledProject
+	miShowAsFolder->Enabled = bEnabledFolderProject
+	miSaveProject->Enabled = bEnabledProjectAndFolder
+	miSaveProjectAs->Enabled = bEnabledProjectAndFolder
+	miCloseProject->Enabled = bEnabledProjectAndFolder
+	miCloseFolder->Enabled = bEnabledProjectAndFolder
+	miExplorerCloseProject->Enabled = bEnabledProjectAndFolder
+	miProjectProperties->Enabled = bEnabledProjectAndFolder
+	miExplorerProjectProperties->Enabled = bEnabledProjectAndFolder
 	mnuWindowSeparator->Visible = bEnabledTab
 	miCode->Enabled = bEnabledTab
 	miGoto->Enabled = bEnabledTab
@@ -7809,6 +7828,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 			tn = ptvExplorer->Nodes.Add(This.Caption, , , "File", "File")
 		End If
 	End If
+	ptn = GetParentNode(tn)
 	mi = miWindow->Add(This.Caption, "", , @mClickWindow, True)
 	mi->Tag = @This
 End Constructor
@@ -8577,7 +8597,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 		End If
 	Else
 		tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If tb = 0 OrElse tb->tn = 0 Then
+		If tb = 0 Then
 			Dim As TreeNode Ptr tn
 			If tvExplorer.SelectedNode = 0 Then
 				If tvExplorer.Nodes.Count > 0 Then
@@ -8600,7 +8620,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 			If bSaveTab Then
 				If tb->Modified Then tb->Save
 			End If
-			Var tn = GetParentNode(tb->tn)
+			Var tn = tb->ptn
 			If tn->ImageKey = "Project" OrElse tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement Then
 				ProjectNode = tn
 				Dim As ExplorerElement Ptr ee = tn->Tag

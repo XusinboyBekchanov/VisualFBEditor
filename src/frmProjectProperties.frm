@@ -1256,7 +1256,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 		If ptn->ImageKey = "Project" OrElse ee AndAlso *ee Is ProjectElement Then
 			.ProjectTreeNode = ptn
 			ppe = Cast(ProjectElement Ptr, ee)
-			If ptn->ImageKey = "Project" AndAlso Not ppe->ProjectIsFolder Then
+			If ptn->ImageKey = "Project" AndAlso Not ppe->ProjectFolderType = ProjectFolderTypes.ShowAsFolder Then
 				For i As Integer = 0 To ptn->Nodes.Count - 1
 					tn1 = ptn->Nodes.Item(i)
 					If tn1->Tag <> 0 Then

@@ -70,6 +70,7 @@ Dim Shared As MenuItem Ptr miUndo, miRedo, miCutCurrentLine, miCut, miCopy, miPa
 Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miProcedureNumbering, miProcedureMacroNumbering, miRemoveProcedureNumbering, miProjectMacroNumbering, miProjectMacroNumberingStartsOfProcedures, miRemoveProjectNumbering, miPreprocessorNumbering, miRemovePreprocessorNumbering, miProjectPreprocessorNumbering, miRemoveProjectPreprocessorNumbering, miOnErrorResumeNext, miOnErrorGoto, miOnErrorGotoResumeNext, miOnLocalErrorGoto, miOnLocalErrorGotoResumeNext, miRemoveErrorHandling
 Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiProjectMacroNumbering, dmiProjectMacroNumberingStartsOfProcedures, dmiRemoveProjectNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiProjectPreprocessorNumbering, dmiRemoveProjectPreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiOnLocalErrorGoto, dmiOnLocalErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
 Dim Shared As MenuItem Ptr miCode, miForm, miCodeAndForm, miCollapseCurrent, miCollapseAllProcedures, miCollapseAll, miUnCollapseCurrent, miUnCollapseAllProcedures, miUnCollapseAll, miImageManager, miAddProcedure, miFind, miReplace, miFindNext, miFindPrevious, miGoto, miDefine, miToggleBookmark, miNextBookmark, miPreviousBookmark, miClearAllBookmarks, miSyntaxCheck, miCompile, miCompileAll, miBuildBundle, miBuildAPK, miGenerateSignedBundle, miGenerateSignedAPK, miMake, miMakeClean
+Dim Shared As MenuItem Ptr miShowWithFolders, miShowWithoutFolders, miShowAsFolder
 Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar MainReBar
@@ -1232,7 +1233,7 @@ Sub txtOutput_DblClick(ByRef Sender As Control)
 End Sub
 
 Function GetTreeNodeChild(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
-	If tbExplorer.Buttons.Item(3)->Checked Then
+	If tn->Tag AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement AndAlso Cast(ProjectElement Ptr, tn->Tag)->ProjectFolderType = ProjectFolderTypes.ShowWithFolders Then
 		If EndsWith(FileName, ".bi") Then
 			Return tn->Nodes.Item(0)
 		ElseIf EndsWith(FileName, ".frm") Then
@@ -1251,8 +1252,20 @@ End Function
 
 Sub ClearTreeNode(ByRef tn As TreeNode Ptr)
 	If tn = 0 Then Exit Sub
+	Dim As TabWindow Ptr tb
 	For i As Integer = 0 To tn->Nodes.Count - 1
-		Delete_( Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag))
+		ClearTreeNode(tn->Nodes.Item(i))
+		For jj As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+			For j As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(j))
+				If tb->tn = tn->Nodes.Item(i) Then
+					tb->tn = 0
+					Exit For
+				End If
+			Next j
+		Next jj
+		If tn->Nodes.Item(i)->Tag <> 0 Then Delete_( Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag)): tn->Nodes.Item(i)->Tag = 0
 	Next
 	tn->Nodes.Clear
 End Sub
@@ -1330,10 +1343,32 @@ Sub ExpandFolder(ByRef tn As TreeNode Ptr)
 		ee1 = New_( ExplorerElement)
 		WLet(ee1->FileName, Files.Item(i))
 		tn1->Tag = ee1
+		Dim As TabWindow Ptr tb
+		For jj As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+			For j As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(j))
+				If tb->FileName = Files.Item(i) Then
+					tb->tn = tn1
+					Exit For
+				End If
+			Next j
+		Next jj
 	Next i
 End Sub
 
 Sub CloseFolder(ByRef tn As TreeNode Ptr)
+	Dim As TabWindow Ptr tb
+	For jj As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			If tb->ptn = tn Then
+				If Not CloseTab(tb, True) Then Return
+				Exit For
+			End If
+		Next i
+	Next jj
 	ClearTreeNode tn
 	'miSaveProject->Enabled = False
 	'miSaveProjectAs->Enabled = False
@@ -1442,7 +1477,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 			tn = tvExplorer.Nodes.Add(NewName & "*", , , "Project", "Project")
 		End If
 		'If tn <> 0 Then
-		If tbExplorer.Buttons.Item(3)->Checked Then
+		If ShowProjectFolders Then
 			tn->Nodes.Add ML("Includes"), "Includes", , "Opened", "Opened"
 			tn->Nodes.Add ML("Forms"), "Forms", , "Opened", "Opened"
 			tn->Nodes.Add ML("Modules"), "Modules", , "Opened", "Opened"  '.  Using "Modules" is better than "Sources"
@@ -1450,7 +1485,6 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 			tn->Nodes.Add ML("Others"), "Others", , "Opened", "Opened"
 			'End if
 		End If
-		tn->SelectItem
 	End If
 	If FileName <> "" Then
 		Dim As TreeNode Ptr tn1, tn2
@@ -1467,7 +1501,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		Else
 			WLet(ppe->FileName, FileName)
 		End If
-		ppe->ProjectIsFolder = inFolder
+		If inFolder Then ppe->ProjectFolderType = ProjectFolderTypes.ShowAsFolder Else ppe->ProjectFolderType = IIf(ShowProjectFolders, 0, 1)
 		tn->Tag = ppe
 		If pFilesList = 0 Then pFiles = @Files Else pFiles = pFilesList
 		Dim As String Parameter
@@ -1681,6 +1715,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		tn->Expand
 	End If
 	'pfProjectProperties->RefreshProperties
+	tn->SelectItem
 	Return tn
 End Function
 
@@ -2209,7 +2244,7 @@ Function SaveAllBeforeCompile() As Boolean
 				For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 					If tb->Modified Then
-						tnP = GetParentNode(tb->tn)
+						tnP = tb->ptn
 						Index = .lstFiles.IndexOfData(tnP)
 						If Index <> -1 Then
 							.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
@@ -2304,7 +2339,7 @@ Function CloseSession() As Boolean
 			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 				If tb->Modified Then
-					tnP = GetParentNode(tb->tn)
+					tnP = tb->ptn
 					Index = .lstFiles.IndexOfData(tnP)
 					If Index <> -1 Then
 						.lstFiles.InsertItem Index + 1, WSpace(2) & tb->Caption, tb
@@ -2555,7 +2590,7 @@ Sub RemoveFileFromProject
 		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-			If tb->tn = tn Then
+			If tb->ptn = ptn Then
 				If Not CloseTab(tb) Then Exit Sub
 				Exit For
 			End If
@@ -2651,7 +2686,7 @@ Sub SetAsMain(IsTab As Boolean)
 				ptn->Tag = ppe
 				ptn->ImageKey = "Project"
 				ptn->SelectedImageKey = "Project"
-				ppe->ProjectIsFolder = True
+				ppe->ProjectFolderType = ProjectFolderTypes.ShowAsFolder
 				ChangeMenuItemsEnabled
 			End If
 			If ee <> 0 AndAlso ppe <> 0 Then
@@ -2762,7 +2797,7 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 				For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 					If tb->Modified Then
-						tnP = GetParentNode(tb->tn)
+						tnP = tb->ptn
 						If tnP = tn Then
 							.lstFiles.AddItem IIf(bProjectModified, WSpace(2), "") & tb->Caption, tb
 						End If
@@ -2787,31 +2822,41 @@ Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As 
 			End If
 		End With
 	End If
+	For jj As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			If tb->ptn = tn Then
+				If Not CloseTab(tb, True) Then Return False
+				Exit For
+			End If
+		Next i
+	Next jj
 	For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
 		If tn->Nodes.Item(j)->Nodes.Count = 0 Then
-			For jj As Integer = 0 To TabPanels.Count - 1
-				Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
-				For i As Integer = 0 To ptabCode->TabCount - 1
-					tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-					If tn->Nodes.Item(j) = tb->tn Then
-						If Not CloseTab(tb, True) Then Return False
-						Exit For
-					End If
-				Next i
-			Next jj
+			'For jj As Integer = 0 To TabPanels.Count - 1
+			'	Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+			'	For i As Integer = 0 To ptabCode->TabCount - 1
+			'		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			'		If tn->Nodes.Item(j) = tb->tn Then
+			'			If Not CloseTab(tb, True) Then Return False
+			'			Exit For
+			'		End If
+			'	Next i
+			'Next jj
 			If tn->Nodes.Item(j)->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Tag))
 		Else
 			For k As Integer = tn->Nodes.Item(j)->Nodes.Count - 1 To 0 Step - 1 '
-				For jj As Integer = 0 To TabPanels.Count - 1
-					Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
-					For i As Integer = 0 To ptabCode->TabCount - 1
-						tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-						If tn->Nodes.Item(j)->Nodes.Item(k) = tb->tn Then
-							If Not CloseTab(tb, True) Then Return False
-							Exit For
-						End If
-					Next i
-				Next jj
+				'For jj As Integer = 0 To TabPanels.Count - 1
+				'	Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+				'	For i As Integer = 0 To ptabCode->TabCount - 1
+				'		tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+				'		If tn->Nodes.Item(j)->Nodes.Item(k) = tb->tn Then
+				'			If Not CloseTab(tb, True) Then Return False
+				'			Exit For
+				'		End If
+				'	Next i
+				'Next jj
 				If tn->Nodes.Item(j)->Nodes.Item(k)->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Nodes.Item(k)->Tag))
 			Next k
 		End If
@@ -3014,58 +3059,123 @@ Sub ChangeTabsTn(TnPrev As TreeNode Ptr, Tn As TreeNode Ptr)
 	Next
 End Sub
 
-Sub WithFolder
+Declare Sub tvExplorer_NodeExpanding(ByRef Sender As Control, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+
+Dim Shared bNotExpand As Boolean
+Sub ChangeFolderType(Value As ProjectFolderTypes)
 	Dim As TreeNode Ptr tn = tvExplorer.SelectedNode
+	Select Case Value
+	Case ProjectFolderTypes.ShowWithFolders: miShowWithFolders->RadioItem = True: ShowProjectFolders = True
+	Case ProjectFolderTypes.ShowWithoutFolders: miShowWithoutFolders->RadioItem = True: ShowProjectFolders = False
+	Case ProjectFolderTypes.ShowAsFolder: miShowAsFolder->RadioItem = True
+	End Select
 	If tn = 0 Then Exit Sub
 	tn = GetParentNode(tn)
 	If tn = 0 OrElse tn->Tag = 0 Then Exit Sub
-	Dim As ProjectElement Ptr ppe= Cast(ProjectElement Ptr, tn->Tag)
-	If ppe->ProjectIsFolder Then  Exit Sub
-	If tn->ImageKey = "Project" AndAlso tbExplorer.Buttons.Item(3)->Checked <> ppe->ProjectFolderChecked Then
-		ppe->ProjectFolderChecked = tbExplorer.Buttons.Item(3)->Checked
+	If tn->ImageKey <> "Project" Then Exit Sub
+	Dim As ProjectElement Ptr ppe = Cast(ProjectElement Ptr, tn->Tag)
+	Dim As ExplorerElement Ptr ee
+	If ppe->ProjectFolderType <> Value Then
+		If ppe->ProjectFolderType = ProjectFolderTypes.ShowAsFolder Then
+			bNotExpand = True
+			ClearTreeNode tn
+			bNotExpand = False
+		End If
 		Dim As TreeNode Ptr tnF, tnI, tnS, tnR, tnO
-		If ppe->ProjectFolderChecked Then
+		Dim As TreeNode Ptr tn1, tn2
+		If Value = ProjectFolderTypes.ShowWithFolders Then
 			tnI = tn->Nodes.Add(ML("Includes"), "Includes", , "Opened", "Opened")
 			tnF = tn->Nodes.Add(ML("Forms"), "Forms", , "Opened", "Opened")
 			tnS = tn->Nodes.Add(ML("Modules"), "Modules",, "Opened", "Opened") ' "Modules" is better than "Sources"
 			tnR = tn->Nodes.Add(ML("Resources"), "Resources", , "Opened", "Opened")
 			tnO = tn->Nodes.Add(ML("Others"), "Others", , "Opened", "Opened")
 		End If
-		Dim As TreeNode Ptr tn1, tn2
-		For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
-			If ppe->ProjectFolderChecked Then
-				If tn->Nodes.Item(j)->Tag <> 0 Then
-					If EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bi") Then '
+		If ppe->ProjectFolderType = ProjectFolderTypes.ShowAsFolder Then
+			tn->Text = tn->Text & ".vfp"
+			WLet(ppe->FileName, *ppe->FileName & Slash & GetFileName(*ppe->FileName) & ".vfp")
+			Dim As String IconName
+			For j As Integer = 0 To ppe->Files.Count - 1
+				ee = New_(ExplorerElement)
+				WLet(ee->FileName, ppe->Files.Item(j))
+				IconName = GetIconName(*ee->FileName, ppe)
+				If Value = ProjectFolderTypes.ShowWithFolders Then
+					If EndsWith(LCase(*ee->FileName), ".bi") Then
 						tn1 = tnI
-					ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bas") Then  '
+					ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
 						tn1 = tnS
-					ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".frm") Then  '
+					ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
 						tn1 = tnF
-					ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".rc") Then '
+					ElseIf EndsWith(LCase(*ee->FileName), ".rc") Then
 						tn1 = tnR
 					Else
 						tn1 = tnO
 					End If
-					tn2 = tn1->Nodes.Add(tn->Nodes.Item(j)->Text, , , tn->Nodes.Item(j)->ImageKey, tn->Nodes.Item(j)->ImageKey, True)
-					tn2->Tag = tn->Nodes.Item(j)->Tag
-					ChangeTabsTn tn->Nodes.Item(j), tn2
-					'                        If tn->Expanded Then
-					'
-					'                        End If
-					'tn1->Expand
-					tn->Nodes.Remove j
+					tn2 = tn1->Nodes.Add(GetFileName(*ee->FileName), , , IconName, IconName, True)
+					tn2->Tag = ee
+				ElseIf Value = ProjectFolderTypes.ShowWithoutFolders Then
+					tn2 = tn->Nodes.Add(GetFileName(*ee->FileName), , , IconName, IconName, True)
+					tn2->Tag = ee
 				End If
-			Else
-				For k As Integer = 0 To tn->Nodes.Item(j)->Nodes.Count - 1
-					tn2 = tn->Nodes.Add(tn->Nodes.Item(j)->Nodes.Item(k)->Text, , , tn->Nodes.Item(j)->Nodes.Item(k)->ImageKey, tn->Nodes.Item(j)->Nodes.Item(k)->ImageKey)
-					'?k, tn->Text, tn->Nodes.Item(j)->Text, tn->Nodes.Item(j)->Nodes.Item(k)->Text
-					tn2->Tag = tn->Nodes.Item(j)->Nodes.Item(k)->Tag
-					ChangeTabsTn tn->Nodes.Item(j)->Nodes.Item(k), tn2
-				Next k
-				tn->Nodes.Remove j
+			Next
+			ppe->Files.Clear
+		Else
+			For j As Integer = tn->Nodes.Count - 1 To 0 Step -1
+				If ppe->ProjectFolderType = ProjectFolderTypes.ShowWithoutFolders Then
+					If tn->Nodes.Item(j)->Tag <> 0 Then
+						If Value = ProjectFolderTypes.ShowWithFolders Then
+							If EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bi") Then
+								tn1 = tnI
+							ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".bas") Then
+								tn1 = tnS
+							ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".frm") Then
+								tn1 = tnF
+							ElseIf EndsWith(LCase(tn->Nodes.Item(j)->Text), ".rc") Then
+								tn1 = tnR
+							Else
+								tn1 = tnO
+							End If
+							tn2 = tn1->Nodes.Add(tn->Nodes.Item(j)->Text, , , tn->Nodes.Item(j)->ImageKey, tn->Nodes.Item(j)->ImageKey, True)
+							tn2->Tag = tn->Nodes.Item(j)->Tag
+							ChangeTabsTn tn->Nodes.Item(j), tn2
+							'                        If tn->Expanded Then
+							'
+							'                        End If
+							'tn1->Expand
+							tn->Nodes.Remove j
+						ElseIf Value = ProjectFolderTypes.ShowAsFolder Then
+							ppe->Files.Add *Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Tag)->FileName
+						End If
+					End If
+				ElseIf ppe->ProjectFolderType = ProjectFolderTypes.ShowWithFolders Then
+					For k As Integer = 0 To tn->Nodes.Item(j)->Nodes.Count - 1
+						If Value = ProjectFolderTypes.ShowWithoutFolders Then
+							Dim iIndex As Integer = -1
+							For i As Integer = j + 1 To tn->Nodes.Count - 1
+								If LCase(tn->Nodes.Item(i)->Text) > LCase(tn->Nodes.Item(j)->Nodes.Item(k)->Text) Then
+									iIndex = i
+									Exit For
+								End If
+							Next
+							tn2 = tn->Nodes.Insert(iIndex, tn->Nodes.Item(j)->Nodes.Item(k)->Text, , , tn->Nodes.Item(j)->Nodes.Item(k)->ImageKey, tn->Nodes.Item(j)->Nodes.Item(k)->ImageKey)
+							tn2->Tag = tn->Nodes.Item(j)->Nodes.Item(k)->Tag
+							ChangeTabsTn tn->Nodes.Item(j)->Nodes.Item(k), tn2
+						ElseIf Value = ProjectFolderTypes.ShowAsFolder Then
+							ppe->Files.Add *Cast(ExplorerElement Ptr, tn->Nodes.Item(j)->Nodes.Item(k)->Tag)->FileName
+						End If
+					Next k
+					If Value = ProjectFolderTypes.ShowWithoutFolders Then
+						tn->Nodes.Remove j
+					End If
+				End If
+			Next
+			If Value = ProjectFolderTypes.ShowAsFolder Then
+				tn->Text = GetFileName(GetFolderName(*ppe->FileName, False))
+				WLet(ppe->FileName, GetFolderName(*ppe->FileName, False))
+				tvExplorer_NodeExpanding(tvExplorer, *tn, False)
 			End If
-		Next
+		End If
 	End If
+	ppe->ProjectFolderType = Value
 End Sub
 
 Sub CompileProgram(Param As Any Ptr)
@@ -5912,7 +6022,10 @@ tbExplorer.Align = DockStyle.alTop
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
 tbtRemoveFileFromProject = tbExplorer.Buttons.Add(, "Remove", , @mClick, "RemoveFileFromProject", , ML("&Remove"), True, 0)
 tbExplorer.Buttons.Add tbsSeparator
-tbExplorer.Buttons.Add tbsCheck, "Folder", , @mClick, "Folder", , ML("Show Folders"), True
+Var tbFolder = tbExplorer.Buttons.Add(tbsWholeDropdown, "Folder", , @mClick, "Folder", , ML("Show Folders"), True)
+miShowWithFolders = tbFolder->DropDownMenu.Add(ML("Show With Folders"), "", "ShowWithFolders", @mClick, , , True)
+miShowWithoutFolders = tbFolder->DropDownMenu.Add(ML("Show Without Folders"), "", "ShowWithoutFolders", @mClick, , , True)
+miShowAsFolder = tbFolder->DropDownMenu.Add(ML("Show As Folder"), "", "ShowAsFolder", @mClick, , , False)
 
 Sub tbFormClick(ByRef Sender As My.Sys.Object)
 	Var bFlag = Cast(ToolButton Ptr, @Sender)->Checked
@@ -6171,8 +6284,12 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 End Sub
 
 Sub tvExplorer_NodeExpanding(ByRef Sender As Control, ByRef Item As TreeNode, ByRef Cancel As Boolean)
-	If Item.ImageKey <> "Opened" Then Exit Sub
+	Dim As ExplorerElement Ptr ee = Item.Tag
+	If ee = 0 OrElse Not FolderExists(*ee->FileName) Then Exit Sub
+	If bNotExpand Then Exit Sub
+	bNotExpand = True
 	ExpandFolder @Item
+	bNotExpand = False
 End Sub
 
 Sub tvExplorer_DblClick(ByRef Sender As Control)
@@ -6228,9 +6345,15 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		'lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 		mLoadLog = False
 		mLoadToDo = False
-		If ptn->Tag > 0 Then tbExplorer.Buttons.Item(3)->Checked = Cast(ProjectElement Ptr, ptn->Tag)->ProjectFolderChecked
+		If ptn->Tag > 0 Then
+			Select Case Cast(ProjectElement Ptr, ptn->Tag)->ProjectFolderType
+			Case ProjectFolderTypes.ShowWithFolders: miShowWithFolders->RadioItem = True
+			Case ProjectFolderTypes.ShowWithoutFolders: miShowWithoutFolders->RadioItem = True
+			Case ProjectFolderTypes.ShowAsFolder: miShowAsFolder->RadioItem = True
+			End Select
+		End If
 		ChangeMenuItemsEnabled
-		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" AndAlso ptn->ImageKey <> "Folder" Then  'David Change For compile Single .bas file Then
+		If ptn->ImageKey <> "Project" AndAlso ptn->ImageKey <> "MainProject" AndAlso ptn->ImageKey <> "Opened" Then  'David Change For compile Single .bas file Then
 			'miSaveProject->Enabled = False
 			'miSaveProjectAs->Enabled = False
 			'miCloseProject->Enabled = False
@@ -7302,7 +7425,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 '	pLocalFunctions = @tb->Functions
 '	pLocalFunctionsOthers = @tb->FunctionsOthers
 '	pLocalArgs = @tb->Args
-	tb->tn->SelectItem
+	If tb->tn Then tb->tn->SelectItem
 	For i As Integer = 3 To miWindow->Count - 1
 		miWindow->Item(i)->Checked = miWindow->Item(i) = tb->mi
 	Next
@@ -8204,7 +8327,12 @@ Sub frmMain_Create(ByRef Sender As Control)
 	SetRightClosedStyle iniSettings.ReadBool("MainWindow", "RightClosed", True)
 	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", tabBottomHeight)
 	SetBottomClosedStyle iniSettings.ReadBool("MainWindow", "BottomClosed", True)
-	tbExplorer.Buttons.Item(3)->Checked = iniSettings.ReadBool("MainWindow", "ProjectFolders", True)
+	ShowProjectFolders = iniSettings.ReadBool("MainWindow", "ProjectFolders", True)
+	If ShowProjectFolders Then
+		miShowWithFolders->RadioItem = True
+	Else
+		miShowWithoutFolders->RadioItem = True
+	End If
 	tbForm.Buttons.Item(0)->Checked = iniSettings.ReadBool("MainWindow", "ToolLabels", True)
 	ChangeUseDebugger iniSettings.ReadBool("MainWindow", "UseDebugger", True)
 	WLet(RecentFiles, iniSettings.ReadString("MainWindow", "RecentFiles", ""))
@@ -8239,7 +8367,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		windmain = frmMain.Handle
 		htab2    = ptabCode->Handle
 		tviewvar = tvVar.Handle
-		tviewPrc = tvPrc.Handle
+		tviewprc = tvPrc.Handle
 		tviewthd = tvThd.Handle
 		tviewwch = tvWch.Handle
 		DragAcceptFiles(frmMain.Handle, True)
@@ -8247,7 +8375,7 @@ Sub frmMain_Create(ByRef Sender As Control)
 		windmain = frmMain.Handle
 		'htab2    = ptabCode->Handle
 		tviewvar = @tvVar
-		tviewPrc = @tvPrc
+		tviewprc = @tvPrc
 		tviewthd = @tvThd
 		tviewwch = @tvWch
 	#endif
@@ -8521,7 +8649,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteInteger("MainWindow", "RightWidth", tabRightWidth)
 	iniSettings.WriteBool("MainWindow", "BottomClosed", GetBottomClosedStyle)
 	iniSettings.WriteInteger("MainWindow", "BottomHeight", tabBottomHeight)
-	iniSettings.WriteBool("MainWindow", "ProjectFolders", tbExplorer.Buttons.Item(3)->Checked)
+	iniSettings.WriteBool("MainWindow", "ProjectFolders", ShowProjectFolders)
 	iniSettings.WriteBool("MainWindow", "ToolLabels", tbForm.Buttons.Item(0)->Checked)
 	iniSettings.WriteBool("MainWindow", "UseDebugger", UseDebugger)
 	iniSettings.WriteInteger("MainWindow", "Subsystem", IIf(tbtConsole->Checked, 1, IIf(tbtGUI->Checked, 2, 0)))

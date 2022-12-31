@@ -48,14 +48,13 @@ Type ProjectElement Extends ExplorerElement
 	BatchCompilationFileNameWindows As WString Ptr
 	BatchCompilationFileNameLinux As WString Ptr
 	ProjectType As Integer
-	ProjectFolderChecked As Boolean = True
 	Subsystem As Integer
 	ProjectName As WString Ptr
 	HelpFileName As WString Ptr
 	ProjectDescription As WString Ptr
 	PassAllModuleFilesToCompiler As Boolean
 	OpenProjectAsFolder As Boolean
-	ProjectIsFolder As Boolean
+	ProjectFolderType As ProjectFolderTypes
 	MajorVersion As Integer
 	MinorVersion As Integer
 	RevisionVersion As Integer
@@ -177,6 +176,7 @@ Public:
 	Dim bNotDesign As Boolean
 	Dim bExternalIncludesLoaded As Boolean
 	Dim As Integer ConstructorStart, ConstructorEnd, lvPropertyWidth, FindFormPosiLeft, FindFormPosiTop, RightSelectedIndex
+	ptn As TreeNode Ptr
 	tn As TreeNode Ptr
 	mi As MenuItem Ptr
 	bQuitThread As Boolean
