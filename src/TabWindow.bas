@@ -270,12 +270,10 @@ End Function
 Function ProjectNameSameWithFolder(ptn As TreeNode Ptr) As Boolean
 	If ptn AndAlso ptn->Tag Then
 		Dim As WString Ptr FileName = Cast(ExplorerElement Ptr, ptn->Tag)->FileName
-		If EndsWith(LCase(*FileName), ".vfp") Then
-			If LCase(GetFileName(*FileName)) = LCase(GetFileName(GetFolderName(*FileName, False)) & ".vfp") Then
-				Return True
-			ElseIf FileExists(*FileName & "/" & GetFileName(*FileName) & ".vfp") Then
-				Return True
-			End If
+		If LCase(GetFileName(*FileName)) = LCase(GetFileName(GetFolderName(*FileName, False)) & ".vfp") Then
+			Return True
+		ElseIf FileExists(*FileName & "/" & GetFileName(*FileName) & ".vfp") Then
+			Return True
 		End If
 	End If
 	Return False
