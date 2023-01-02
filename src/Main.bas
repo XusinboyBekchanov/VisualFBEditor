@@ -6348,11 +6348,11 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		If ptn->Tag > 0 Then
 			tbExplorer.Buttons.Item(3)->Enabled = Not (Cast(ProjectElement Ptr, ptn->Tag)->OpenProjectAsFolder)
 			If Not (Cast(ProjectElement Ptr, ptn->Tag)->OpenProjectAsFolder) Then
-				miShowWithFolders->Enabled = True : miShowAsFolder->Enabled = True : miShowAsFolder->Enabled = True:
+				miShowWithFolders->Enabled = True : miShowAsFolder->Enabled = True : miShowAsFolder->Enabled = True
 			End If
 			Select Case Cast(ProjectElement Ptr, ptn->Tag)->ProjectFolderType
 			Case ProjectFolderTypes.ShowWithFolders: miShowWithFolders->RadioItem = True
-			Case ProjectFolderTypes.ShowWithoutFolders: miShowAsFolder->RadioItem = True
+			Case ProjectFolderTypes.ShowWithoutFolders: miShowWithoutFolders->RadioItem = True
 			Case ProjectFolderTypes.ShowAsFolder: miShowAsFolder->RadioItem = True
 			End Select
 		End If
