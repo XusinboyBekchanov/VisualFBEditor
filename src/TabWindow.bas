@@ -9405,9 +9405,8 @@ Sub RunPr(Debugger As String = "")
 		#else
 			Dim As Integer pClass
 			Dim As WString Ptr Workdir, CmdL
-			Dim As ULong ExitCode
-			ChDir(GetFolderName(*ExeFileName))
-			WLet(CmdL, """" & GetFileName(*ExeFileName) & """ " & *RunArguments)
+			Dim As ULong ExitCode 
+			WLet(CmdL, """" & *ExeFileName & """ " & *RunArguments)
 			If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
 			Var Pos1 = InStrRev(*ExeFileName, Slash)
 			If Pos1 = 0 Then Pos1 = Len(*ExeFileName)

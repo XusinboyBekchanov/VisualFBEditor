@@ -437,8 +437,8 @@ Function GetBakFileName(ByRef FileName As WString) As UString
 End Function
 
 Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As UString
-	Dim As UString CompileWith = " " & LTrim(sLine)
-	Dim As UString pFileName = FileName
+	Dim As UString CompileWith = " " & Replace(LTrim(sLine), BackSlash, Slash)
+	Dim As UString pFileName = Replace(FileName, BackSlash, Slash)
 	Dim As UString ExeFileName
 	Dim As String SearchChar
 	Dim As Long Pos1, Pos2
@@ -452,7 +452,7 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 		Pos2 = InStr(Pos1 + 5, CompileWith, SearchChar)
 		If Pos2 > 0 Then
 			ExeFileName = Mid(CompileWith, Pos1 + 5, Pos2 - Pos1 - 5)
-			If CInt(InStr(ExeFileName, ":") = 0) AndAlso CInt(Not StartsWith(ExeFileName, "/")) Then
+			If CInt(InStr(ExeFileName, ":") = 0) AndAlso CInt(Not StartsWith(ExeFileName, Slash)) Then
 				Return GetFolderName(pFileName) + ExeFileName
 			Else
 				Return ExeFileName
@@ -463,7 +463,7 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	If Pos1 = 0 Then Pos1 = Len(pFileName) + 1
 	If Pos1 > 0 Then
 		#ifdef __USE_GTK__
-			Pos2 = InStrRev(pFileName, "/")
+			Pos2 = InStrRev(pFileName, Slash)
 			If Pos2 > 0 AndAlso InStr(CompileWith, "-dll") > 0 Then
 				Return Left(pFileName, Pos2) & "lib" & Mid(pFileName, Pos2 + 1, Pos1 - Pos2 - 1) & ".so"
 			Else
@@ -471,7 +471,7 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 			End If
 		#else
 			If InStr(CompileWith, "-target ") Then
-				Pos2 = InStrRev(pFileName, "\")
+				Pos2 = InStrRev(pFileName, Slash)
 				If Pos2 > 0 AndAlso InStr(CompileWith, "-dll") > 0 Then
 					Return Left(pFileName, Pos2) & "lib" & Mid(pFileName, Pos2 + 1, Pos1 - Pos2 - 1) & ".so"
 				Else
@@ -6346,9 +6346,13 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		mLoadLog = False
 		mLoadToDo = False
 		If ptn->Tag > 0 Then
+			tbExplorer.Buttons.Item(3)->Enabled = Not (Cast(ProjectElement Ptr, ptn->Tag)->OpenProjectAsFolder)
+			If Not (Cast(ProjectElement Ptr, ptn->Tag)->OpenProjectAsFolder) Then
+				miShowWithFolders->Enabled = True : miShowAsFolder->Enabled = True : miShowAsFolder->Enabled = True:
+			End If
 			Select Case Cast(ProjectElement Ptr, ptn->Tag)->ProjectFolderType
 			Case ProjectFolderTypes.ShowWithFolders: miShowWithFolders->RadioItem = True
-			Case ProjectFolderTypes.ShowWithoutFolders: miShowWithoutFolders->RadioItem = True
+			Case ProjectFolderTypes.ShowWithoutFolders: miShowAsFolder->RadioItem = True
 			Case ProjectFolderTypes.ShowAsFolder: miShowAsFolder->RadioItem = True
 			End Select
 		End If
