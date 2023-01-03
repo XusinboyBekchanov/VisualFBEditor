@@ -238,10 +238,11 @@ Declare Sub ChangeFileEncoding(FileEncoding As FileEncodings)
 Declare Sub ChangeNewLineType(NewLineType As NewLineTypes)
 #ifdef __USE_GTK__
 	Common Shared As Long CurrentTimer, CurrentTimerData
+	Declare Sub TimerProc()
 #else
 	Common Shared As UINT_PTR CurrentTimer, CurrentTimerData
+	Declare Sub TimerProc(hwnd As hwnd, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 #endif
-Declare Sub TimerProc()
 Declare Function WithoutPointers(ByRef e As String) As String
 Declare Function WithoutQuotes(ByRef e As UString) As UString
 Declare Sub ChangeFolderType(Value As ProjectFolderTypes)

@@ -2990,7 +2990,11 @@ Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	miShowNextStatement->Enabled = bEnd
 End Sub
 
+#ifdef __FB_WIN32__
+Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+#else
 Sub TimerProc()
+#endif
 	If fntab < 0 Or fcurlig < 1 Then Exit Sub
 	If source(fntab) = "" Then Exit Sub
 	shwtab = fntab
