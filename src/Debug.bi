@@ -204,7 +204,7 @@ Declare Sub DeleteDebugCursor
 	Declare Function WriteProcessMemory(child As Long, addrdbge As Any Ptr, addrdbgr As Any Ptr, lg As Long, rd As Any Ptr = 0) As Integer
 	Declare Sub thread_rsm()
 	Declare Function elf_extract(As String)As Integer
-	Declare Function pthread_kill Alias "pthread_kill"(As Long,As Long) As Long
+	Declare Function pthread_kill Alias "pthread_kill" (As Long, As Long) As Long
 	'Declare Function linux_kill Alias "kill"(As Long,As Long) As Long
 	Declare Function kill_ Alias "kill" ( pid As pid_t, sig As Integer) As Integer
 	#define linux_kill kill_
@@ -847,6 +847,7 @@ Enum
 	GCCHAIN=1400
 '' timer
 	GTIMER001
+	
 '' attaching
 	GATTCHEDIT
 	GATTCHTXT

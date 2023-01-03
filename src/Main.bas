@@ -788,7 +788,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							ThreadsLeave()
 						End If
 					Else
-						nPos = InStr(Buff, ":")
+						Dim As String TmpStr
+						Var nPos = InStr(Buff, ":")
 						If nPos < 1 Then nPos = InStr(Buff, " ")
 						If nPos < 1 Then
 							nPos = Len(Buff) + 1
@@ -2989,26 +2990,26 @@ Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	miShowNextStatement->Enabled = bEnd
 End Sub
 
-#ifndef __USE_GTK__
-	Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
-		If fntab < 0 Or fcurlig < 1 Then Exit Sub
-		If source(fntab) = "" Then Exit Sub
-		shwtab = fntab
-		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If tb = 0 OrElse Not EqualPaths(tb->FileName, source(fntab)) Then
-			tb = AddTab(LCase(source(fntab)))
-		End If
-		If tb = 0 Then Exit Sub
-		ChangeEnabledDebug True, False, True
-		CurEC = @tb->txtCode
-		tb->txtCode.CurExecutedLine = fcurlig - 1
-		tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
-		tb->txtCode.PaintControl
+Sub TimerProc()
+	If fntab < 0 Or fcurlig < 1 Then Exit Sub
+	If source(fntab) = "" Then Exit Sub
+	shwtab = fntab
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 OrElse Not EqualPaths(tb->FileName, source(fntab)) Then
+		tb = AddTab(LCase(source(fntab)))
+	End If
+	If tb = 0 Then Exit Sub
+	ChangeEnabledDebug True, False, True
+	CurEC = @tb->txtCode
+	tb->txtCode.CurExecutedLine = fcurlig - 1
+	tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
+	tb->txtCode.PaintControl
+	#ifndef __USE_GTK__
 		SetForegroundWindow frmMain.Handle
-		fntab = 0
-		fcurlig = -1
-	End Sub
-#endif
+	#endif
+	fntab = 0
+	fcurlig = -1
+End Sub
 
 #if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 	Function TimerProcGDB() As Integer

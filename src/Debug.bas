@@ -1368,7 +1368,7 @@ Private Function debug_event() As Integer
 				TerminateProcess(dbghand,89)
 			End If
 		#else
-			If elf_extract(exename)=0 Then
+			If elf_extract(exename) = -1 Then
 				MsgBox("Loading error","Killing process")
 				exec_order(KPT_KILL)
 			End If
@@ -6216,11 +6216,13 @@ Private Function Tree_AddItem(hParent As Any Ptr, ByRef Text As WString, hInsAft
 		' SendMessage(htv,TVM_EXPAND,TVE_EXPAND,hparent)
 	#else
 		Dim hItem As TreeNode Ptr
+		ThreadsEnter
 		If hParent = 0 Then
 			hItem = Cast(TreeView Ptr, hTV)->Nodes.Add(Text)
 		Else
 			hItem = Cast(TreeNode Ptr, hParent)->Nodes.Add(Text)
 		End If
+		ThreadsLeave
 		hItem->Tag = Cast(Any Ptr, Param)
 	#endif
 	Return hItem
@@ -6349,7 +6351,7 @@ Private Sub var_iniudt(Vrbe As UInteger, adr As UInteger, tv As TreeNode Ptr, vo
 						vrr(vrrnb).ini=vrr(vrrnb).ad
 						'dbg_prt2("reset for dyn arr cudt="+Str(vrr(vrrnb).ini+4))
 						If mem<>4 Then
-							writeprocessmemory(dbghand,Cast(LPVOID,vrr(vrrnb).ini+SizeOf(Integer)),@ad,SizeOf(Integer),0) 'reset area ptr 25/07/2015 64bit
+							WriteProcessMemory(dbghand,Cast(LPVOID,vrr(vrrnb).ini+SizeOf(Integer)),@ad,SizeOf(Integer),0) 'reset area ptr 25/07/2015 64bit
 						End If
 					End If
 					vrr(vrrnb).ad=0
@@ -6382,7 +6384,7 @@ Private Sub var_ini(j As UInteger ,bg As Integer ,ed As Integer) 'store informat
 				'dynamic array not yet known so initialise address with null
 				If Cast(Integer,.arr)=-1 Then
 					vrr(vrrnb).ad=0
-					If .mem <>4 Then adr=0:writeprocessmemory(dbghand,Cast(LPVOID,vrr(vrrnb).ini+SizeOf(Integer)),@adr,SizeOf(Integer),0) '05/05/2014 25/07/2015 64bit
+					If .mem <>4 Then adr=0:WriteProcessMemory(dbghand,Cast(LPVOID,vrr(vrrnb).ini+SizeOf(Integer)),@adr,SizeOf(Integer),0) '05/05/2014 25/07/2015 64bit
 				Else
 					For k As Integer =0 To 4 'clear index puting lbound
 						vrr(vrrnb).ix(k)=.arr->nlu(k).lb
@@ -7020,7 +7022,9 @@ Private Function Tree_upditem(hitem As Any Ptr, ByRef text As WString, hTV As An
 		tvI.hItem=hitem
 		Tree_upditem = SendMessage(hTV, TVM_SETITEM, 0, Cast(LPARAM, @tvI)) 'Returns true if successful or false otherwise
 	#else
-		Cast(TreeNode Ptr, hitem)->Text = text
+		ThreadsEnter
+		If hitem <> 0 Then Cast(TreeNode Ptr, hitem)->Text = text
+		ThreadsLeave
 		Tree_upditem = 0
 	#endif
 End Function
@@ -7338,7 +7342,7 @@ Private Sub globals_load(d As Integer = 0) 'load shared and common variables, in
 	Dim temp As Any Ptr
 	Dim As Integer vb,ve 'begin/end index global vars
 	Dim As Integer vridx
-	If vrbgblprev<>vrbgbl Then 'need to do ?
+	If vrbgblprev <> vrbgbl Then 'need to do ?
 		If vrbgblprev=0 Then
 			procr(procrnb).tv = Tree_AddItem(NULL, "Globals (shared/common) in : main ", 0, tviewvar, 0) 'only first time
 			var_ini(procrnb,1,vrbgbl)'add vrbgblprev instead 1
@@ -7372,7 +7376,7 @@ Private Sub globals_load(d As Integer = 0) 'load shared and common variables, in
 				vb=dlldata(d).gblb
 				ve=dlldata(d).gblb+dlldata(d).gbln-1
 			End If
-			procr(procrnb).tv= Tree_AddItem(NULL,"Globals in : "+dll_name(dlldata(d).hdl,2),temp, tviewvar, 0)
+			procr(procrnb).tv = Tree_AddItem(NULL, "Globals in : " + dll_name(dlldata(d).hdl, 2), temp, tviewvar, 0)
 			procr(procrnb).sk=dlldata(d).bse
 			dlldata(d).tv=procr(procrnb).tv
 			var_ini(procrnb,vb,ve)
@@ -8649,7 +8653,7 @@ End Sub
 Private Function elf_extract(filename As String) As Integer
 	Dim lgf As Integer,ulgt As Integer,ulg As ULong,usht As UShort,ofset As ULongInt,ubyt As UByte
 	Dim As Integer start_section,str_section,sect_num,walk_section,dbg_dat_of,dbg_dat_size,dbg_str_of
-	Dim As String sect_name=Space(40)
+	Dim As String sect_name= Space(40)
 	
 	Open filename For binary As #1
 	lgf=LOF(1)
@@ -11620,33 +11624,35 @@ dbg_prt2 "rLine(thread(threadcur).sv).nu=";rline(thread(threadcur).sv).nu
 		'End If
 		
 	End Sub
+#endif
 	
-	Sub fastrun() 'running until cursor or breakpoint !!! Be carefull
-		Dim As Integer ad = rline(thread(threadcur).sv).ad
-		Dim As Boolean bInBreakPoint
-		For j As Integer = 0 To brknb 'breakpoint
-			If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then
-				bInBreakPoint = True
-				Exit For
-			End If
-		Next
-		DeleteDebugCursor
-		If bInBreakPoint Then
-			FastRunning = True
-		Else
-			Dim i As Integer, b As Integer
-			For j As Integer = 0 To linenb 'restore all instructions
-				WriteProcessMemory(dbghand,Cast(LPVOID,rline(j).ad),@rline(j).sv,1,0)
-			Next
-			For j As Integer = 0 To brknb 'breakpoint
-				If brkol(j).typ<3 Then WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0) 'only enabled
-			Next
+Sub fastrun() 'running until cursor or breakpoint !!! Be carefull
+	Dim As Integer ad = rline(thread(threadcur).sv).ad
+	Dim As Boolean bInBreakPoint
+	For j As Integer = 0 To brknb 'breakpoint
+		If brkol(j).typ<3 AndAlso brkol(j).ad = ad Then
+			bInBreakPoint = True
+			Exit For
 		End If
-		runtype=RTFRUN
-		fasttimer=Timer
-		thread_rsm()
-	End Sub
-	
+	Next
+	DeleteDebugCursor
+	If bInBreakPoint Then
+		FastRunning = True
+	Else
+		Dim i As Integer, b As Integer
+		For j As Integer = 0 To linenb 'restore all instructions
+			WriteProcessMemory(dbghand,Cast(LPVOID,rline(j).ad),@rline(j).sv,1,0)
+		Next
+		For j As Integer = 0 To brknb 'breakpoint
+			If brkol(j).typ<3 Then WriteProcessMemory(dbghand,Cast(LPVOID,brkol(j).ad),@breakcpu,1,0) 'only enabled
+		Next
+	End If
+	runtype=RTFRUN
+	fasttimer=Timer
+	thread_rsm()
+End Sub
+
+#ifdef __FB_WIN32__
 	Private Sub debugstring_read(debugev As debug_event)
 		Dim As WString *400 wstrg
 		Dim As ZString *400 sstrg
@@ -12096,9 +12102,9 @@ dbg_prt2 "rLine(thread(threadcur).sv).nu=";rline(thread(threadcur).sv).nu
 		brknb=0 'no break on line
 		brkol(0).ad=0   'no break on cursor
 		
-		SendMessage(tviewvar,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'procs/vars
-		'SendMessage(tviewprc,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'procs
-		SendMessage(tviewthd,TVM_DELETEITEM,0,Cast(LPARAM,TVI_ROOT)) 'threads
+		SendMessage(tviewvar, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'procs/vars
+		SendMessage(tviewprc, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'procs
+		SendMessage(tviewthd, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'threads
 		
 		'ShowWindow(tviewcur,SW_HIDE):tviewcur=tviewvar:ShowWindow(tviewcur,SW_SHOW)
 		'SendMessage(htab2,TCM_SETCURSEL,0,0)
@@ -12349,7 +12355,7 @@ End Function
 	Dim Shared As Long iCounterUpdateVariables, iFlagStartDebug, iStateMenu = 1
 	
 	#ifdef __USE_GTK__
-		Dim Shared As guint w9T(50)
+		Dim Shared As guint w9T(50000)
 		
 		Sub KillTimer(hwnd As Any Ptr = 0, idTimer As Long)
 			
@@ -14806,11 +14812,11 @@ Sub RunWithDebug(Param As Any Ptr)
 	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 		WatchIndex = -1
 	#endif
-	#ifdef __USE_GTK__
-		If WGet(DebuggerPath) = "" AndAlso *CurrentDebugger <> ML("Integrated GDB Debugger") OrElse InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
-	#else
+	'#ifdef __USE_GTK__
+	'	If WGet(DebuggerPath) = "" AndAlso *CurrentDebugger <> ML("Integrated GDB Debugger") OrElse InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
+	'#else
 		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP AndAlso InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
-	#endif
+	'#endif
 		Dim As Integer Fn = FreeFile_
 		Open ExePath & "/Temp/GDBCommands.txt" For Output As #Fn
 		Print #Fn, "file """ & Replace(exename, "\", "/") & """"
@@ -14837,7 +14843,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		If Project Then WLetEx(CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True)
 	End If
 	#ifndef __USE_GTK__
-		exename = Replace(exename, "/", "\")
+		exename = Replace(exename, BackSlash, Slash)
 		re_ini
 	#endif
 	ThreadsEnter()
@@ -14913,16 +14919,34 @@ Sub RunWithDebug(Param As Any Ptr)
 					iFlagStartDebug = 1
 					run_debug(1)
 				#endif
-			Else
 				ThreadsEnter()
-				ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+				ChangeEnabledDebug True, False, False
 				ThreadsLeave()
-				Result = Shell(CommandLine)
+			Else
+				If check_bitness(exename) = 0 Then Exit Sub ''bitness of debuggee and Integrated IDE Debugger not corresponding
+				If kill_process(ML("Trying to launch but debuggee still running")) = False Then Exit Sub
+				flagrestart = -1
+				ThreadsEnter()
+				lvLocals.Visible = False
+				tvVar.Visible = True
+				lvThreads.Visible = False
+				tvThd.Visible = True
+				lvWatches.Visible = False
+				tvWch.Visible = True
+				InDebug = True
+				tpLocals->SelectTab
+				ThreadsLeave()
+				
+				If ThreadCreate(@start_pgm) = 0 Then
+					KillTimer(0, GTIMER001)
+					MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee")
+				EndIf
+				'ThreadsEnter()
+				'ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
+				'ThreadsLeave()
+				'Result = Shell(CommandLine)
 			End If
-			ThreadsEnter()
-			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-			ChangeEnabledDebug True, False, False
-			ThreadsLeave()
 		End If
 		WDeAllocate Arguments
 		'Shell "gdb " & CmdL
