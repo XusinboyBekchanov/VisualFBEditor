@@ -12,15 +12,12 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
-		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
-		Declare Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As ReBar ReBar1
 		Dim As ToolBar ToolBar1, ToolBar2
 		Dim As ToolButton ToolButton1
 		Dim As RadioButton RadioButton1
-		Dim As CommandButton CommandButton1
 	End Type
 	
 	Constructor Form1Type
@@ -67,22 +64,7 @@
 			.SetBounds 0, 10, 30, 30
 			.Parent = @ReBar1
 		End With
-		' CommandButton1
-		With CommandButton1
-			.Name = "CommandButton1"
-			.Text = "CommandButton1"
-			.TabIndex = 1
-			.SetBounds 50, 70, 100, 30
-			.Designer = @This
-			.OnClick = @CommandButton1_Click_
-			.Parent = @This
-		End With
 	End Constructor
-	
-Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)
-	*Cast(Form1Type Ptr, Sender.Designer).CommandButton1_Click(Sender)
-End Sub
-
 	
 	Dim Shared Form1 As Form1Type
 	
@@ -94,7 +76,3 @@ End Sub
 		App.Run
 	#endif
 '#End Region
-
-Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
-DebugPrint(__FILE__ & " Line " & __LINE__ & "Debug logging testing.", True, False) : 
-End Sub
