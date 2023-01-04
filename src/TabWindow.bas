@@ -5118,6 +5118,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		#else
 			If tb->txtCode.cboIntellisense.ItemCount = 0 Then OldWord = sTemp: Exit Sub
 		#endif
+		If OldWord <> "" Then OldWord = ""
 		FindComboIndex tb, *sLine, tb->txtCode.DropDownChar
 		#ifdef __USE_GTK__
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
@@ -6021,7 +6022,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As Integer IncludesCount
 	Dim As Boolean IncludesChanged
 	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
-		If bExternalIncludesLoaded Then
+		If bExternalIncludesLoaded OrElse LoadFunctionsCount > 0 Then
 			For i As Integer = 0 To txtCode.LinesCount - 1
 				b = txtCode.Lines(i)
 				If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then
