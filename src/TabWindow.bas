@@ -5079,12 +5079,17 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			ParameterInfo Key
 		End If
 	ElseIf tb->txtCode.DropDownShowed Then
-		If Key <> 8 AndAlso Key <> 127 Then
-			#ifdef __USE_GTK__
-				If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
-			#else
-				If tb->txtCode.cboIntellisense.ItemCount = 0 Then Exit Sub
-			#endif
+		Dim As Boolean bExternalIncludesLoaded = tb->bExternalIncludesLoaded
+		If (bExternalIncludesLoaded = False) OrElse (LoadFunctionsCount > 0) Then
+			tb->GetIncludeFiles
+		Else
+			If Key <> 8 AndAlso Key <> 127 Then
+				#ifdef __USE_GTK__
+					If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
+				#else
+					If tb->txtCode.cboIntellisense.ItemCount = 0 Then Exit Sub
+				#endif
+			End If
 		End If
 		#ifdef __USE_GTK__
 			If Key = GDK_KEY_Home OrElse Key = GDK_KEY_End OrElse Key = GDK_KEY_Left OrElse Key = GDK_KEY_Right OrElse _
@@ -5099,10 +5104,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		Dim sTemp As WString * 1024
 		sTemp = Mid(*sLine, tb->txtCode.DropDownChar + 1, iSelEndChar + 1 - (tb->txtCode.DropDownChar + 1))
 		Static OldWord As WString * 200
-		If LoadFunctionsCount > 0 Then
-			tb->GetIncludeFiles
-		End If
-		If OldWord <> "" AndAlso StartsWith(sTemp, OldWord) AndAlso LoadFunctionsCount = 0 Then Exit Sub
+		If CBool(OldWord <> "") AndAlso StartsWith(sTemp, OldWord) AndAlso bExternalIncludesLoaded AndAlso CBool(LoadFunctionsCount = 0) Then Exit Sub
 		If EndsWith(RTrim(..Left(LCase(*sLine), tb->txtCode.DropDownChar)), " as") Then
 			FillTypeIntellisenses sTemp
 		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), ".") Then
