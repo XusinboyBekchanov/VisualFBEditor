@@ -5099,7 +5099,10 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		Dim sTemp As WString * 1024
 		sTemp = Mid(*sLine, tb->txtCode.DropDownChar + 1, iSelEndChar + 1 - (tb->txtCode.DropDownChar + 1))
 		Static OldWord As WString * 200
-		If OldWord <> "" AndAlso StartsWith(sTemp, OldWord) Then Exit Sub
+		If LoadFunctionsCount > 0 Then
+			tb->GetIncludeFiles
+		End If
+		If OldWord <> "" AndAlso StartsWith(sTemp, OldWord) AndAlso LoadFunctionsCount = 0 Then Exit Sub
 		If EndsWith(RTrim(..Left(LCase(*sLine), tb->txtCode.DropDownChar)), " as") Then
 			FillTypeIntellisenses sTemp
 		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), ".") Then
@@ -5856,6 +5859,69 @@ Sub TabWindow.SetLastThread(ThreadID As Any Ptr)
 	End If
 End Sub
 
+Sub TabWindow.GetIncludeFiles
+	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
+		Dim As EditControlLine Ptr ECLine
+		Dim As TreeNode Ptr ProjectNode
+		Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
+		CheckedFiles.Clear
+		txtCode.ExternalFiles.Clear
+		txtCode.ExternalFileLines.Clear
+		txtCode.ExternalIncludes.Clear
+		txtCode.ExternalFiles.Add FileName
+		txtCode.ExternalFileLines.Add 0
+		AddExternalIncludes @This, 0, MainFile, FileName
+		bExternalIncludesLoaded = True
+		For i As Integer = txtCode.FileLists.Count - 1 To 0 Step -1
+			Delete_( Cast(WStringList Ptr, txtCode.FileLists.Item(i)))
+		Next
+		For i As Integer = txtCode.FileListsLines.Count - 1 To 0 Step -1
+			Delete_( Cast(IntegerList Ptr, txtCode.FileListsLines.Item(i)))
+		Next
+		txtCode.FileLists.Clear
+		txtCode.FileListsLines.Clear
+		Dim As WStringList Ptr LastFileList
+		Dim As IntegerList Ptr LastFileListLines
+		Dim As Integer OldIncludeLine = -1
+		For i As Integer = 0 To txtCode.LinesCount - 1
+			ECLine = txtCode.FLines.Items[i]
+			If OldIncludeLine = i - 1 Then
+				Dim As WStringList Ptr FileList
+				Dim As IntegerList Ptr FileListLines
+				FileList = New_(WStringList)
+				FileListLines = New_(IntegerList)
+				txtCode.FileLists.Add FileList
+				txtCode.FileListsLines.Add FileListLines
+				FileList->Sorted = True
+				If LastFileList = 0 Then
+					UpdateIncludedFilesList @This, *FileList, *FileListLines, i
+				Else
+					For j As Integer = 0 To LastFileList->Count - 1
+						FileList->Add LastFileList->Item(j)
+						FileListLines->Add LastFileListLines->Item(j)
+					Next
+					For j As Integer = 0 To txtCode.IncludeLines.Count - 1
+						If txtCode.IncludeLines.Item(j) = OldIncludeLine Then
+							AddAllIncludedFiles *FileList, *FileListLines, txtCode.Includes.Item(j)
+							Exit For
+						End If
+					Next j
+				End If
+				LastFileList = FileList
+				LastFileListLines = FileListLines
+			End If
+			ECLine->FileList = LastFileList
+			ECLine->FileListLines = LastFileListLines
+			For j As Integer = 0 To txtCode.IncludeLines.Count - 1
+				If txtCode.IncludeLines.Item(j) = i Then
+					OldIncludeLine = i
+					Exit For
+				End If
+			Next j
+		Next
+	End If
+End Sub
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	If bNotDesign OrElse FormClosing Then Exit Sub
@@ -5936,8 +6002,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		cboClass.Items.Add "(" & ML("General") & ")" & Chr(0), , "DropDown", "DropDown"
 		cboClass.ItemIndex = 0
 	End If
-	txtCode.Types.Clear
 	Dim As TypeElement Ptr te, te1, func
+	txtCode.Types.Clear
 	For i As Integer = txtCode.Functions.Count - 1 To 0 Step -1
 		te = txtCode.Functions.Object(i)
 		'If NotForms Then
@@ -6022,7 +6088,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As Integer IncludesCount
 	Dim As Boolean IncludesChanged
 	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
-		If bExternalIncludesLoaded OrElse LoadFunctionsCount > 0 Then
+		If bExternalIncludesLoaded Then
 			For i As Integer = 0 To txtCode.LinesCount - 1
 				b = txtCode.Lines(i)
 				If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then

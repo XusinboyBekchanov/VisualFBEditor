@@ -248,6 +248,7 @@ Public:
 	Declare Sub Indent
 	Declare Sub Outdent
 	Declare Sub Define
+	Declare Sub GetIncludeFiles
 	Declare Sub FormDesign(NotForms As Boolean = False)
 	Declare Sub QuitThread
 	Declare Sub SetLastThread(ThreadID As Any Ptr)
