@@ -4365,9 +4365,17 @@ tlockToDo = MutexCreate()
 tlockGDB = MutexCreate()
 tlockSuggestions = MutexCreate()
 
+Sub StartOfLoadFunctions
+	LoadFunctionsCount += 1
+	If LoadFunctionsCount = 1 Then
+		stBar.Panels[2]->Caption = ""
+	End If
+End Sub
+
 Sub EndOfLoadFunctions
 	LoadFunctionsCount -= 1
-	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
+	If LoadFunctionsCount = 0 Then
+		stBar.Panels[2]->Caption = ML("IntelliSense fully loaded")
 		Dim As TabWindow Ptr tb
 		For j As Integer = TabPanels.Count - 1 To 0 Step -1
 			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
@@ -4375,9 +4383,11 @@ Sub EndOfLoadFunctions
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 				If tb Then
 					tb->bExternalIncludesLoaded = False
-					#ifndef __USE_GTK__
-						'PostMessage tb->Handle, EM_SETMODIFY, 0, 0
-					#endif
+					If AutoSuggestions Then
+						#ifndef __USE_GTK__
+							'PostMessage tb->Handle, EM_SETMODIFY, 0, 0
+						#endif
+					End If
 				End If
 			Next i
 		Next j
@@ -4385,7 +4395,7 @@ Sub EndOfLoadFunctions
 End Sub
 
 Sub LoadFunctionsSub(Param As Any Ptr)
-	LoadFunctionsCount += 1
+	StartOfLoadFunctions
 	MutexLock tlock
 	If Not FormClosing Then
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
@@ -4395,7 +4405,7 @@ Sub LoadFunctionsSub(Param As Any Ptr)
 End Sub
 
 Sub LoadOnlyFilePath(Param As Any Ptr)
-	LoadFunctionsCount += 1
+	StartOfLoadFunctions
 	MutexLock tlock
 	If Not FormClosing Then
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
@@ -4405,7 +4415,7 @@ Sub LoadOnlyFilePath(Param As Any Ptr)
 End Sub
 
 Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
-	LoadFunctionsCount += 1
+	StartOfLoadFunctions
 	MutexLock tlock
 	If Not FormClosing Then
 		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
@@ -4415,7 +4425,7 @@ Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 End Sub
 
 Sub LoadOnlyIncludeFiles(Param As Any Ptr)
-	LoadFunctionsCount += 1
+	StartOfLoadFunctions
 	MutexLock tlock
 	If Not FormClosing Then
 		LoadFunctions QWString(Param), LoadParam.OnlyIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
@@ -5290,7 +5300,7 @@ stBar.Add ML("Press F1 for get more information")
 stBar.Panels[0]->Width = frmMain.ClientWidth - 600
 stBar.Add "" 'Space(20)
 stBar.Panels[1]->Width = 240
-stBar.Add "" 'Space(20)
+stBar.Add ML("IntelliSense fully loaded")
 stBar.Panels[2]->Width = 160
 stBar.Add "UTF-8 (BOM)"
 stBar.Panels[3]->Width = 80
