@@ -1197,6 +1197,7 @@ End Function
 Function IsBase(ByRef TypeName As String, ByRef BaseName As String, tb As TabWindow Ptr = 0) As Boolean
 	Dim iIndex As Integer
 	Dim tbi As TypeElement Ptr
+	Dim As WStringListItem Ptr ListItem
 	Dim TypeN As String = WithoutPointers(TypeName)
 	If TypeName = BaseName Then Return True
 	If InStr(TypeN, ".") AndAlso TypeN <> "My.Sys.Object" Then TypeN = Mid(TypeN, InStrRev(TypeN, ".") + 1)
@@ -1221,20 +1222,20 @@ Function IsBase(ByRef TypeName As String, ByRef BaseName As String, tb As TabWin
 					Return True
 				ElseIf tbi->TypeName = "My.Sys.Object" AndAlso BaseName = "Object" Then
 					Return True
-				ElseIf tbi->TypeName <> "" Then
+				ElseIf tbi->TypeName <> "" AndAlso (InStr(tbi->TypeName, ".") = 0 OrElse TypeN <> Mid(tbi->TypeName, InStrRev(tbi->TypeName, ".") + 1)) Then
 					Return IsBase(tbi->TypeName, BaseName, tb)
 				Else
 					Return False
 				End If
 			End If
-		ElseIf pGlobalTypes->Contains(TypeN, , , , iIndex) Then
+		ElseIf pGlobalTypes->Contains(TypeN, , , , iIndex, ListItem) Then
 			tbi = pGlobalTypes->Object(iIndex)
 			If tbi Then
 				If tbi->TypeName = BaseName Then
 					Return True
 				ElseIf tbi->TypeName = "My.Sys.Object" AndAlso BaseName = "Object" Then
 					Return True
-				ElseIf tbi->TypeName <> "" Then
+				ElseIf tbi->TypeName <> "" AndAlso (InStr(tbi->TypeName, ".") = 0 OrElse TypeN <> Mid(tbi->TypeName, InStrRev(tbi->TypeName, ".") + 1)) Then
 					Return IsBase(tbi->TypeName, BaseName, tb)
 				Else
 					Return False
@@ -4024,7 +4025,7 @@ Sub CompleteWord
 			Exit For
 		ElseIf s = "." Then
 			b = True
-			TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, i - 1, te, teOld)
+			TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, i - 1, te, teOld, OldTypeName)
 			SelCharPos = i
 			Exit For
 		ElseIf s = ">" Then
@@ -4481,9 +4482,9 @@ Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEn
 		End If
 	End If
 	Dim As TypeElement Ptr te, teOld
-	Dim As String TypeName
+	Dim As String TypeName, OldTypeName
 	If sWord = "" Then Exit Sub
-	TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld)
+	TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld, OldTypeName)
 	Dim Parameters As UString = GetParameters(sWord, te, teOld)
 	If Parameters <> "" Then
 		tb->txtCode.HintWord = sWord
@@ -4968,7 +4969,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		End If
 		Dim As Boolean Types
 		Dim As TypeElement Ptr te
-		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, iSelEndChar - k, te, , , Types) 'GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
+		Dim As String OldTypeName
+		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, iSelEndChar - k, te, , OldTypeName, Types) 'GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
 		If Trim(TypeName) = "" Then Exit Sub
 		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName, , , , , Types
 		#ifdef __USE_GTK__
@@ -5000,7 +5002,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			If Not (posL  > 0 AndAlso (posL < k AndAlso posR > k)) Then Exit Sub
 		End If
 		Dim As TypeElement Ptr teEnum
-		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum)
+		Dim As String OldTypeName
+		Dim As String TypeName = tb->txtCode.GetLeftArgTypeName(iSelEndLine, Len(RTrim(..Left(*sLine, iSelEndChar - 1))), teEnum, , OldTypeName)
 		#ifdef __USE_GTK__
 			tb->txtCode.lvIntellisense.ListItems.Clear
 		#else
