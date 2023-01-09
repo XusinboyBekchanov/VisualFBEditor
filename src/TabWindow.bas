@@ -289,7 +289,7 @@ Sub ChangeMenuItemsEnabled
 	'tbExplorer.Buttons.Item(3)->Enabled = Not(CBool(ptn > 0) AndAlso CBool(ptn->Tag > 0) AndAlso Cast(ProjectElement Ptr, ptn->Tag)->ProjectIsFolder)
 	miShowWithFolders->Enabled = bEnabledProject
 	miShowWithoutFolders->Enabled = bEnabledProject
-	miShowAsFolder->Enabled = bEnabledFolderProject
+	miShowAsFolder->Enabled = bEnabledProject
 	miSaveProject->Enabled = bEnabledProjectAndFolder
 	miSaveProjectAs->Enabled = bEnabledProjectAndFolder
 	miCloseProject->Enabled = bEnabledProjectAndFolder
@@ -6846,10 +6846,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								Pos1 = InStr(LCase(res1(n)), " as ")
 								If Pos1 > 0 AndAlso Not bOldAs Then
-									CurType = Trim(Mid(res1(n), Pos1 + 4))
+									CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
 									CurType = Replace(CurType, "`", "=")
-									'							Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
-									'							If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2, Pos2 - Pos1 - Len("As") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
+									If Not (CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")) Then Pos2 = InStr(CurType, " ") 
+									'If Pos2 < 1 Then Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
+									If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								Pos1 = InStr(res1(n), ":")
