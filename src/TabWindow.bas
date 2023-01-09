@@ -289,7 +289,7 @@ Sub ChangeMenuItemsEnabled
 	'tbExplorer.Buttons.Item(3)->Enabled = Not(CBool(ptn > 0) AndAlso CBool(ptn->Tag > 0) AndAlso Cast(ProjectElement Ptr, ptn->Tag)->ProjectIsFolder)
 	miShowWithFolders->Enabled = bEnabledProject
 	miShowWithoutFolders->Enabled = bEnabledProject
-	miShowAsFolder->Enabled = bEnabledProject
+	miShowAsFolder->Enabled = bEnabledFolderProject
 	miSaveProject->Enabled = bEnabledProjectAndFolder
 	miSaveProjectAs->Enabled = bEnabledProjectAndFolder
 	miCloseProject->Enabled = bEnabledProjectAndFolder
