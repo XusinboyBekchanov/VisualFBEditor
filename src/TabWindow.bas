@@ -6853,6 +6853,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
+								If CBool(n = 0) AndAlso bOldAs Then
+									CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+								End If
 								Pos1 = InStr(res1(n), ":")
 								If Pos1 > 0 Then
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
@@ -6872,9 +6875,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Pos1 = InStrRev(res1(n), " ")
 								If Pos1 > 0 Then
 									res1(n) = Trim(Mid(res1(n), Pos1 + 1))
-								End If
-								If CBool(n = 0) AndAlso bOldAs Then
-									CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
 								End If
 								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
 									Pos1 = InStrRev(CurType, ".")
