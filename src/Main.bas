@@ -4389,7 +4389,7 @@ Sub EndOfLoadFunctions
 					tb->bExternalIncludesLoaded = False
 					If AutoSuggestions Then
 						#ifndef __USE_GTK__
-							'PostMessage tb->Handle, EM_SETMODIFY, 0, 0
+							PostMessage tb->Handle, EM_SETMODIFY, 0, 0
 						#endif
 					End If
 				End If
@@ -4884,6 +4884,7 @@ Sub LoadSettings
 	'gLocalToolBox = iniSettings.ReadBool("Options", "ShowToolBoxLocal", False)
 	gLocalProperties = iniSettings.ReadBool("Options", "PropertiesLocal", False)
 	'gLocalKeyWords = iniSettings.ReadBool("Options", "KeyWordsLocal", False)
+	AutoSuggestions = False
 
 	#ifdef __USE_WINAPI__
 		If DarkMode Then

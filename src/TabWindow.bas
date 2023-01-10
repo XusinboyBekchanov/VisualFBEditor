@@ -7360,7 +7360,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	pfrmMain->UpdateUnLock
 	bQuitThread = False
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
-		'SetLastThread ThreadCreate(@AnalyzeTab, @This)
+		SetLastThread ThreadCreate(@AnalyzeTab, @This)
 	End If
 	Exit Sub
 	ErrorHandler:
