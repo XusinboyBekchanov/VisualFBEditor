@@ -4367,6 +4367,7 @@ tlockSuggestions = MutexCreate()
 
 Sub StartOfLoadFunctions
 	LoadFunctionsCount += 1
+	MutexLock tlock
 	If LoadFunctionsCount = 1 Then
 		stBar.Panels[2]->Caption = ""
 	End If
@@ -4392,45 +4393,38 @@ Sub EndOfLoadFunctions
 			Next i
 		Next j
 	End If
+	MutexUnlock tlock
 End Sub
 
 Sub LoadFunctionsSub(Param As Any Ptr)
 	StartOfLoadFunctions
-	MutexLock tlock
 	If Not FormClosing Then
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
-	MutexUnlock tlock
 	EndOfLoadFunctions
 End Sub
 
 Sub LoadOnlyFilePath(Param As Any Ptr)
 	StartOfLoadFunctions
-	MutexLock tlock
 	If Not FormClosing Then
 		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
-	MutexUnlock tlock
 	EndOfLoadFunctions
 End Sub
 
 Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 	StartOfLoadFunctions
-	MutexLock tlock
 	If Not FormClosing Then
 		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
-	MutexUnlock tlock
 	EndOfLoadFunctions
 End Sub
 
 Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 	StartOfLoadFunctions
-	MutexLock tlock
 	If Not FormClosing Then
 		LoadFunctions QWString(Param), LoadParam.OnlyIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
-	MutexUnlock tlock
 	EndOfLoadFunctions
 End Sub
 
