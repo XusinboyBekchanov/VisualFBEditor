@@ -3532,8 +3532,14 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							t = Trim(Mid(bTrim, Pos1 + Pos5, Pos2 - Pos1 - Pos5))
 							e = Trim(Mid(bTrim, Pos2 + 9))
 						ElseIf Pos3 > 0 Then
+							If Trim(Left(LCase(bTrim), Pos3)) = "type" Then  'Like "Type As    Short gint16, gshort, gunichar2"
+								b = Trim(Mid(bTrim, Pos3 + 3)) : Pos5 = InStr(b, " ")
+								t = Trim(Left(b, Pos5))
+								e = ""
+							Else
 							t = Trim(Mid(bTrim, Pos1 + Pos5, Pos3 - Pos1 - Pos5))
 							e = Trim(Mid(bTrim, Pos3 + 4))
+							End If 
 						Else
 							Pos2 = InStr(Pos1 + Pos5, bTrim, " ")
 							If Pos2 > 0 Then
@@ -3841,10 +3847,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							If Pos1 > 0 Then
 								Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
-'								Pos2 = InStr(CurType, "*")  'David Change. Like Wstring * 200
-'								If Pos2 > 1 Then Pos1 = Pos2
-'								If Pos1 > 1 Then CurType = Left(CurType, Pos1 - 1)
-								If UBound(res1) > -1 Then 
+								If UBound(res1) > -1 Then
 									CurType = ..Left(CurType, Pos1 + Len(res1(0)))
 								End If
 							End If
@@ -3852,7 +3855,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							Split GetChangedCommas(b2), ",", res1()
 						End If
 						For n As Integer = 0 To UBound(res1)
-							res1(n) = Replace(res1(n), ";", ",")
+							res1(n) = Trim(Replace(res1(n), ";", ","))
 							ElementValue = ""
 							If InStr(b2.ToLower, " sub(") = 0 Then
 								Pos1 = InStr(res1(n), "=")
@@ -3868,6 +3871,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 '								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
+							If CBool(n = 0) AndAlso bOldAs Then
+								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+								CurType = Replace(CurType, "`", "=")
+							End If
 							Pos1 = InStr(res1(n), ":")
 							If Pos1 > 0 Then
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
@@ -3882,10 +3889,6 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							res1(n) = res1(n).TrimAll
 							Pos1 = InStrRev(res1(n), " ")
 							If Pos1 > 0 Then res1(n) = Trim(Mid(res1(n), Pos1 + 1))
-							If CBool(n = 0) AndAlso bOldAs Then
-								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
-								CurType = Replace(CurType, "`", "=")
-							End If
 							If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
 								Pos1 = InStrRev(CurType, ".")
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
@@ -4266,14 +4269,14 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Pos1 > 0 Then
 								Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
 								If UBound(res1) > -1 Then 
-									CurType = ..Left(CurType, Pos1 + Len(res1(0)))
+									CurType = Trim(..Left(CurType, Pos1 + Len(res1(0))))
 								End If
 							End If
 						Else
 							Split GetChangedCommas(b2), ",", res1()
 						End If
 						For n As Integer = 0 To UBound(res1)
-							res1(n) = Replace(res1(n), ";", ",")
+							res1(n) = Trim(Replace(res1(n), ";", ","))
 							Pos1 = InStr(res1(n), "=")
 							If Pos1 > 0 Then
 								ElementValue = Trim(Mid(res1(n), Pos1 + 1))
