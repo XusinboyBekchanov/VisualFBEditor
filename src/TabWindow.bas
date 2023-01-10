@@ -6553,7 +6553,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Dim As UString CurType, res1(Any), ElementValue
 							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
 							For n As Integer = 0 To UBound(res1)
-								res1(n) = Replace(res1(n), ";", ",")
+								res1(n) = Trim(Replace(res1(n), ";", ","))
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then
 									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
@@ -6590,8 +6590,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->DisplayName = res1(n)
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-								te->TypeName = CurType
-								te->TypeName = WithoutPointers(te->TypeName)
+								te->TypeName = WithoutPointers(CurType)
 								te->Value = ElementValue
 								te->Locals = 0
 								te->StartLine = i
@@ -6701,7 +6700,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Else
 								te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
 							End If
-							Pos4 = InStr(te->TypeName, "'")
+							Pos4 = InStr(te->TypeName, " ")
+							If Pos4 < 1 Then Pos4 = InStr(te->TypeName, "'")
 							If Pos4 > 0 Then
 								te->TypeName = Trim(..Left(te->TypeName, Pos4 - 1))
 							End If
@@ -6725,7 +6725,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Dim As UString CurType, res1(Any), ElementValue
 							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
 							For n As Integer = 0 To UBound(res1)
-								res1(n) = Replace(res1(n), ";", ",")
+								res1(n) = Trim(Replace(res1(n), ";", ","))
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then
 									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
@@ -6762,8 +6762,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->DisplayName = res1(n)
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-								te->TypeName = CurType
-								te->TypeName = WithoutPointers(te->TypeName)
+								te->TypeName = WithoutPointers(CurType)
 								te->Value = ElementValue
 								te->Locals = 0
 								te->StartLine = i
@@ -6848,9 +6847,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Pos1 > 0 AndAlso Not bOldAs Then
 									CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
 									CurType = Replace(CurType, "`", "=")
-									If Not (CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")) Then Pos2 = InStr(CurType, " ") 
-									'If Pos2 < 1 Then Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
-									If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If CBool(n = 0) AndAlso bOldAs Then
@@ -6925,7 +6921,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										Dim As UString CurType, res1(Any), ElementValue
 										Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
 										For n As Integer = 0 To UBound(res1)
-											res1(n) = Replace(res1(n), ";", ",")
+											res1(n) = Trim(Replace(res1(n), ";", ","))
 											Pos1 = InStr(res1(n), "=")
 											If Pos1 > 0 Then
 												ElementValue = Trim(Mid(res1(n), Pos1 + 1))
@@ -6962,8 +6958,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 											te->DisplayName = res1(n)
 											te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 											'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-											te->TypeName = CurType
-											te->TypeName = WithoutPointers(te->TypeName)
+											te->TypeName = WithoutPointers(CurType)
 											te->Value = ElementValue
 											te->Locals = 0
 											te->StartLine = i
