@@ -342,7 +342,7 @@ End Function
 Private Sub frmComponentsType.Form_Create(ByRef Sender As Control)
 	Dim As UInteger Attr
 	Dim f As WString * 1024
-	Dim LibKey As String = GetLibKey
+	LibKey = GetLibKey
 	chlControls.Clear
 	Paths.Clear
 	f = Dir(ExePath & Slash & "Controls" & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)

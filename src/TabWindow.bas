@@ -5367,7 +5367,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 									If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
 										If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
 											OneDot = True
-											tb->txtCode.GetLeftArgTypeName(z, j, te, , , , bWithoutWith)
+											tb->txtCode.GetLeftArgTypeName(z, j, te, , tb->OldTypeName, , bWithoutWith)
 											If te = 0 Then
 												'?Matn
 											End If
