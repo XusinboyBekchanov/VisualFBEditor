@@ -40,7 +40,7 @@ Using My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		
-		Dim As CheckBox chkMatchCase, chkSearchInSub, chkUsePatternMatching
+		Dim As CheckBox chkMatchCase, chkSearchInSub, chkUsePatternMatching, chkWholeWordsOnly
 		Dim As Label lblFind, lblReplace
 		Dim As TextBox txtFind, txtReplace, txtPath
 		Dim As Label lblPath

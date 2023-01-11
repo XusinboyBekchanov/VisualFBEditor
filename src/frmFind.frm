@@ -169,6 +169,7 @@ pfFind = @fFind
 			.AddItem ML("Procedure")
 			.AddItem ML("Module")
 			.AddItem ML("Project")
+			.AddItem ML("Selected")
 			.TabIndex = 3
 			.Hint = ML("Find Range")
 			.SetBounds 252, 4, 66, 21
@@ -622,6 +623,11 @@ Private Sub frmFind.btnFindPrev_Click(ByRef Sender As Control)
 		This.Caption=ML("Find")+": " + WStr(gSearchItemIndex+1) + " of " + WStr(plvSearch->ListItems.Count)
 	End If
 End Sub
+
+Function IsNotAlpha(Symbol As String) As Boolean
+	Return Symbol < "A" OrElse Symbol > "z"
+End Function
+
 Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTab As TabPage Ptr = tpFind, ByRef tSearch As WString = "", bNotShowResults As Boolean = False) As Integer
 	If mTabSelChangeByError Then Return -1
 	If Len(tSearch)>0 Then
@@ -638,9 +644,11 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTab As T
 	End If
 	tTab->SelectTab
 	Dim As TreeNode Ptr tn = MainNode
-	Dim bMatchCase As Boolean = chkMatchCase.Checked
+	Dim As Boolean bMatchCase = chkMatchCase.Checked
+	Dim As Boolean bMatchWholeWords = chkMatchWholeWords.Checked
+	Dim As Boolean bUsePatternMatching = chkUsePatternMatching.Checked
 	Dim As WString Ptr buff
-	Dim As Integer Pos1=0
+	Dim As Integer Pos1 = 0
 	If cboFindRange.ItemIndex = 2 Then
 		If tn > 0 Then
 			Dim As ExplorerElement Ptr ee = tn->Tag
@@ -655,21 +663,35 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTab As T
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Return -1
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		If cboFindRange.ItemIndex = 0 Then
-			tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, True
+		If cboFindRange.ItemIndex = 1 Then
+			iSelStartLine = 0: iSelEndLine = tb->txtCode.LinesCount - 1: iSelStartChar = 0: iSelEndChar = Len(tb->txtCode.Lines(iSelEndLine))
 		Else
-			iSelStartLine = 0 : iSelEndLine = tb->txtCode.LinesCount - 1
+			tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, cboFindRange.ItemIndex = 0
 		End If
 		lvSearchResult->ListItems.Clear
 		gSearchItemIndex = 0
 		WLet(gSearchSave, *Search)
+		Pos1 = iSelStartChar
 		For i As Integer = iSelStartLine To iSelEndLine
 			buff = @tb->txtCode.Lines(i)
-			If bMatchCase Then
-				Pos1 = InStr(*buff, *Search)
-			Else
-				Pos1 = InStr(LCase(*buff), LCase(*Search))
-			End If
+			Do
+				If bUsePatternMatching Then
+					If bMatchCase Then
+						Pos1 = InStrMatch(IIf(i = iSelEndLine, .Left(*buff, iSelEndChar + 1), *buff), *Search, Pos1 + 1)
+					Else
+						Pos1 = InStrMatch(LCase(IIf(i = iSelEndLine, .Left(*buff, iSelEndChar + 1), *buff)), LCase(*Search), Pos1 + 1)
+					End If
+				ElseIf bMatchCase Then
+					Pos1 = InStr(Pos1 + 1, IIf(i = iSelEndLine, .Left(*buff, iSelEndChar + 1), *buff), *Search)
+				Else
+					Pos1 = InStr(Pos1 + 1, LCase(IIf(i = iSelEndLine, .Left(*buff, iSelEndChar + 1), *buff)), LCase(*Search))
+				End If
+				If bMatchWholeWords AndAlso Pos1 > 0 Then
+					If IsNotAlpha(Mid(*buff, Pos1 - 1, 1)) AndAlso IsNotAlpha(Mid(*buff, Pos1 + Len(*Search), 1)) Then Exit Do
+				Else
+					Exit Do
+				End If
+			Loop
 			While Pos1 > 0
 				If Not bNotShowResults Then
 					lvSearchResult->ListItems.Add *buff
@@ -679,12 +701,27 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTab As T
 					lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Tag = tb
 				End If
 				If i < iSelStartLine Then gSearchItemIndex = lvSearchResult->ListItems.Count - 1
-				If bMatchCase Then
-					Pos1 = InStr(Pos1 + Len(*Search), *buff, *Search)
-				Else
-					Pos1 = InStr(Pos1 + Len(*Search), LCase(*buff), LCase(*Search))
-				End If
+				Pos1 = Pos1 + Len(*Search) - 1
+				Do
+					If bUsePatternMatching Then
+						If bMatchCase Then
+							Pos1 = InStrMatch(IIf(i = iSelEndLine, .Left(*buff, iSelEndChar + 1), *buff), *Search, Pos1 + 1)
+						Else
+							Pos1 = InStrMatch(LCase(IIf(i = iSelEndLine, .Left(*buff, iSelEndChar + 1), *buff)), LCase(*Search), Pos1 + 1)
+						End If
+					ElseIf bMatchCase Then
+						Pos1 = InStr(Pos1 + 1, IIf(i = iSelEndLine, .Left(*buff, iSelEndChar + 1), *buff), *Search)
+					Else
+						Pos1 = InStr(Pos1 + 1, LCase(IIf(i = iSelEndLine, .Left(*buff, iSelEndChar + 1), *buff)), LCase(*Search))
+					End If
+					If bMatchWholeWords AndAlso Pos1 > 0 Then
+						If IsNotAlpha(Mid(*buff, Pos1 - 1, 1)) AndAlso IsNotAlpha(Mid(*buff, Pos1 + Len(*Search), 1)) Then Exit Do
+					Else
+						Exit Do
+					End If
+				Loop
 			Wend
+			Pos1 = 0
 		Next
 	End If
 	

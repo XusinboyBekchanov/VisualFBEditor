@@ -91,12 +91,12 @@ pfFindFile = @fFindFile
 		chkMatchCase.Name = "chkMatchCase"
 		chkMatchCase.Caption = ML("Match Case")
 		chkMatchCase.TabIndex = 7
-		chkMatchCase.SetBounds 92, 38, 148, 22
+		chkMatchCase.SetBounds 92, 38, 150, 22
 		chkMatchCase.Parent =  @Panel1
 		chkSearchInSub.Name = "chkSearchInSub"
 		chkSearchInSub.Caption = ML("Search Subfolders")
 		chkSearchInSub.TabIndex = 9
-		chkSearchInSub.SetBounds 92, 63, 200, 22
+		chkSearchInSub.SetBounds 92, 63, 150, 22
 		chkSearchInSub.Checked = True
 		chkSearchInSub.Parent =  @Panel1
 		'btnFind
@@ -159,14 +159,13 @@ pfFindFile = @fFindFile
 			.Anchor.Right = asAnchor
 			.Parent = @This
 		End With
-		
 		' chkUsePatternMatching
 		With chkUsePatternMatching
 			.Name = "chkUsePatternMatching"
 			.Text = ML("Use Pattern Matching")
 			.TabIndex = 8
 			.Caption = ML("Use Pattern Matching")
-			.SetBounds 222, 38, 188, 22
+			.SetBounds 252, 63, 150, 22
 			.Parent = @Panel1
 		End With
 		' FolderDialog
@@ -175,6 +174,17 @@ pfFindFile = @fFindFile
 			.SetBounds 0, 0, 16, 16
 			.Designer = @This
 			.Parent = @This
+		End With
+		' chkWholeWordsOnly
+		With chkWholeWordsOnly
+			.Name = "chkWholeWordsOnly"
+			.Text = ML("Find Whole Words Only")
+			.TabIndex = 14
+			.ControlIndex = 3
+			.Caption = ML("Find Whole Words Only")
+			.SetBounds 252, 38, 150, 22
+			.Designer = @This
+			.Parent = @Panel1
 		End With
 	End Constructor
 	
@@ -197,6 +207,7 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 	ThreadsEnter
 	Dim As Boolean SearchInSub = chkSearchInSub.Checked
 	Dim As Boolean MatchCase = chkMatchCase.Checked
+	Dim As Boolean MatchWholeWords = chkWholeWordsOnly.Checked
 	Dim As Boolean UsePatternMatching = chkUsePatternMatching.Checked
 	ThreadsLeave
 	Dim As WStringList Folders
@@ -226,18 +237,25 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 				Do Until EOF(Fn)
 					Line Input #Fn, Buff
 					iLine += 1
-					If UsePatternMatching Then
-						If MatchCase Then
-							Pos1 = InStrMatch(Buff, tSearch)
+					Pos1 = 0
+					Do
+						If UsePatternMatching Then
+							If MatchCase Then
+								Pos1 = InStrMatch(Buff, tSearch, Pos1 + 1)
+							Else
+								Pos1 = InStrMatch(LCase(Buff), LCase(tSearch), Pos1 + 1)
+							End If
+						ElseIf MatchCase Then
+							Pos1 = InStr(Pos1 + 1, Buff, tSearch)
 						Else
-							Pos1 = InStrMatch(LCase(Buff), LCase(tSearch))
+							Pos1 = InStr(Pos1 + 1, LCase(Buff), LCase(tSearch))
 						End If
-					ElseIf MatchCase Then
-						Pos1 = InStr(Buff, tSearch)
-					Else
-						Pos1 = InStr(LCase(Buff), LCase(tSearch))
-					End If
-					
+						If MatchWholeWords AndAlso Pos1 > 0 Then
+							If IsNotAlpha(Mid(Buff, Pos1 - 1, 1)) AndAlso IsNotAlpha(Mid(Buff, Pos1 + Len(tSearch), 1)) Then Exit Do
+						Else
+							Exit Do
+						End If
+					Loop
 					While Pos1 > 0
 						ThreadsEnter
 						lvSearchResult->ListItems.Add Buff
@@ -246,17 +264,25 @@ Sub frmFindInFiles.Find(ByRef lvSearchResult As ListView Ptr, ByRef Path As WStr
 						lvSearchResult->ListItems.Item(lvSearchResult->ListItems.Count - 1)->Text(3) = Path & IIf(EndsWith(Path, Slash), "", Slash) & f
 						pfrmMain->Update
 						ThreadsLeave
-						If UsePatternMatching Then
-							If MatchCase Then
-								Pos1 = InStrMatch(Buff, tSearch, Pos1 + Len(tSearch))
+						Pos1 = Pos1 + Len(tSearch) - 1
+						Do
+							If UsePatternMatching Then
+								If MatchCase Then
+									Pos1 = InStrMatch(Buff, tSearch, Pos1 + 1)
+								Else
+									Pos1 = InStrMatch(LCase(Buff), LCase(tSearch), Pos1 + 1)
+								End If
+							ElseIf MatchCase Then
+								Pos1 = InStr(Pos1 + 1, Buff, tSearch)
 							Else
-								Pos1 = InStrMatch(LCase(Buff), LCase(tSearch), Pos1 + Len(tSearch))
+								Pos1 = InStr(Pos1 + 1, LCase(Buff), LCase(tSearch))
 							End If
-						ElseIf MatchCase Then
-							Pos1 = InStr(Pos1 + Len(tSearch), Buff, tSearch)
-						Else
-							Pos1 = InStr(Pos1 + Len(tSearch), LCase(Buff), LCase(tSearch))
-						End If
+							If MatchWholeWords AndAlso Pos1 > 0 Then
+								If IsNotAlpha(Mid(Buff, Pos1 - 1, 1)) AndAlso IsNotAlpha(Mid(Buff, Pos1 + Len(tSearch), 1)) Then Exit Do
+							Else
+								Exit Do
+							End If
+						Loop
 					Wend
 				Loop
 			Else
