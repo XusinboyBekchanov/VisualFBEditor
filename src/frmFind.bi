@@ -51,7 +51,7 @@ Using My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 
-		Dim As CheckBox chkMatchCase
+		Dim As CheckBox chkMatchCase, chkMatchWholeWords, chkUsePatternMatching
 		Dim As Label lblFind, lblTrack, lblReplace
 		Dim As ComboBoxEdit txtFind, txtReplace, cboFindRange
 		Dim As CommandButton btnCancel, btnFind, btnFindPrev, btnReplaceAll, btnReplace, btnReplaceShow, btnFindAll
