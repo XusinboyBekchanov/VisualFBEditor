@@ -6241,6 +6241,7 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 			End If
 		End If
 	#endif
+	RestoreStatusText
 	If Item.ImageKey = "Opened" Then Exit Sub
 	If Item.ImageKey = "Project" AndAlso Item.ParentNode = 0 Then Exit Sub
 	Dim As ExplorerElement Ptr ee = Item.Tag
@@ -6287,13 +6288,11 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	Next j
 	If Not t Then
 		If ee <> 0 Then
-			frmMain.Cursor = crWait
 			If InStr(WGet(ee->FileName), "\") = 0 AndAlso InStr(WGet(ee->FileName), "/") = 0 AndAlso WGet(ee->TemplateFileName) <> "" Then
 				AddTab WGet(ee->TemplateFileName), True, @Item
 			Else
 				AddTab WGet(ee->FileName), , @Item
 			End If
-			frmMain.Cursor = 0
 		End If
 	End If
 End Sub

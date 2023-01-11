@@ -363,7 +363,10 @@ Sub ChangeMenuItemsEnabled
 End Sub
 
 Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
+	Static As Boolean TabAdding
+	If TabAdding Then Return 0
 	On Error Goto ErrorHandler
+	TabAdding = True
 	MouseHoverTimerVal = Timer
 	Dim bFind As Boolean
 	Dim As UString FileNameNew
@@ -379,6 +382,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 					bFind = True
 					tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 					If Not bNoActivate Then tb->SelectTab
+					TabAdding = False
 					Return tb
 				End If
 			Next i
@@ -399,9 +403,11 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 		tb = New_( TabWindow(FileNameNew, bNew, TreeN))
 		If tb = 0 Then
 			MsgBox ML("Memory was not allocated")
+			TabAdding = False
 			Return 0
 		End If
 		With *tb
+			frmMain.Cursor = crWait
 			If FileName <> "" Then
 				#ifndef __USE_GTK__
 					.DateFileTime = GetFileLastWriteTime(FileNameNew)
@@ -435,9 +441,8 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 						NewFormName = ..Left(TreeN->Text, Len(TreeN->Text) - 5)
 					End If
 					For i As Integer = 0 To .txtCode.LinesCount - 1
-						Dim ByRef As WString FLine = .txtCode.Lines(i)
-						LeftSpace = Left(FLine, Len(FLine) - Len(Trim(FLine, Any !"\t ")))
-						LineTrim = Trim(FLine, Any !"\t ")
+						LeftSpace = Left(.txtCode.Lines(i), Len(.txtCode.Lines(i)) - Len(Trim(.txtCode.Lines(i), Any !"\t ")))
+						LineTrim = Trim(.txtCode.Lines(i), Any !"\t ")
 						bChanged = False
 						If CreateFormTypesWithoutTypeWord Then
 							If LineTrim = "Type Form1Type Extends Form" Then
@@ -513,6 +518,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			End If
 			.txtCode.ScrollToCaret
 			ChangeMenuItemsEnabled
+			frmMain.Cursor = 0
 		End With
 		If tb->cboClass.Items.Count < 2 Then
 			miForm->Enabled = False
@@ -534,6 +540,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	tb->txtCode.SetFocus
 	ptabCode->UpdateUnLock
 	ptabCode->Update
+	TabAdding = False
 	Return tb
 	Exit Function
 	ErrorHandler:
