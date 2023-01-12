@@ -3649,7 +3649,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
 	Pos1 = InStr(tb->cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(tb->cboFunction.Text, Pos1 - 1)): TypeName = FuncName
 	Pos1 = InStr(FuncName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(FuncName, Pos1 - 1))
-	If TypeName <> "" Then FillIntellisenseByName "", TypeName, Starts, True, True, True
+	If TypeName <> "" Then FillIntellisenseByName "", TypeName, Starts, , True, True
 	If te1 <> 0 Then
 		For i As Integer = 0 To te1->Elements.Count - 1
 			te = te1->Elements.Object(i)
