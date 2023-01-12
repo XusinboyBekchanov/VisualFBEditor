@@ -3754,7 +3754,7 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, ByRef FromClassN
 			te = tbi->Elements.Object(i)
 			If te Then
 				With *te
-					If (bLocal OrElse CBool(.Locals = 0) OrElse CBool(FromClassName = ClassName) OrElse CBool(.Locals = 1 AndAlso IsBase(FromClassName, ClassName))) AndAlso _
+					If (bLocal OrElse CBool(.Locals = 0) OrElse CBool(FromClassName = ClassName) OrElse CBool(.Locals = 1 AndAlso IsBase(FromClassName, ClassName, tb))) AndAlso _
 						((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
 						If bAll OrElse Not FListItems.Contains(.Name) Then
 							FListItems.Add tbi->Elements.Item(i), te
@@ -6718,6 +6718,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->ElementType = Trim(Mid(bTrim, iStart))
 						Else
 							te->ElementType = Trim(Mid(bTrim, iStart, Pos1 - iStart))
+						End If
+						If inFunc Then
+							te->Locals = inPubProPri
 						End If
 						If inFunc AndAlso func <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
 							te->Name = func->Name
