@@ -3743,7 +3743,7 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 	Next
 End Sub
 
-Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False) As Boolean
+Function TabWindow.FillIntellisense(ByRef ClassName As WString, ByRef FromClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, tb As TabWindow Ptr = 0) As Boolean
 	If ClassName = "" Then Return False
 	Var Index = pList->IndexOf(ClassName)
 	If Index = -1 Then Return False
@@ -3754,7 +3754,7 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 			te = tbi->Elements.Object(i)
 			If te Then
 				With *te
-					If (bLocal OrElse CBool(.Locals = 0)) AndAlso _
+					If (bLocal OrElse CBool(.Locals = 0) OrElse CBool(FromClassName = ClassName) OrElse CBool(.Locals = 1 AndAlso IsBase(FromClassName, ClassName))) AndAlso _
 						((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
 						If bAll OrElse Not FListItems.Contains(.Name) Then
 							FListItems.Add tbi->Elements.Item(i), te
@@ -3764,14 +3764,14 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, pList As WString
 			End If
 			i += 1
 		Loop
-		If FillIntellisense(tbi->TypeName, pList, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, @txtCode.Types, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, @txtCode.Enums, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, @txtCode.Namespaces, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, pComps, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, pGlobalTypes, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, pGlobalEnums, bLocal, bAll, TypesOnly) Then
-		ElseIf FillIntellisense(tbi->TypeName, pGlobalNamespaces, bLocal, bAll, TypesOnly) Then
+		If FillIntellisense(tbi->TypeName, FromClassName, pList, bLocal, bAll, TypesOnly, tb) Then
+		ElseIf FillIntellisense(tbi->TypeName, FromClassName, @txtCode.Types, bLocal, bAll, TypesOnly, tb) Then
+		ElseIf FillIntellisense(tbi->TypeName, FromClassName, @txtCode.Enums, bLocal, bAll, TypesOnly, tb) Then
+		ElseIf FillIntellisense(tbi->TypeName, FromClassName, @txtCode.Namespaces, bLocal, bAll, TypesOnly, tb) Then
+		ElseIf FillIntellisense(tbi->TypeName, FromClassName, pComps, bLocal, bAll, TypesOnly, tb) Then
+		ElseIf FillIntellisense(tbi->TypeName, FromClassName, pGlobalTypes, bLocal, bAll, TypesOnly, tb) Then
+		ElseIf FillIntellisense(tbi->TypeName, FromClassName, pGlobalEnums, bLocal, bAll, TypesOnly, tb) Then
+		ElseIf FillIntellisense(tbi->TypeName, FromClassName, pGlobalNamespaces, bLocal, bAll, TypesOnly, tb) Then
 		End If
 	End If
 	Return True
@@ -3838,9 +3838,23 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 	Dim As EditControlLine Ptr ECLine = tb->txtCode.FLines.Item(iSelStartLine)
 	Dim As WStringList Ptr pFiles
 	Dim As IntegerList Ptr pFileLines
+	Dim As String FromClassName
 	If ECLine Then
 		pFiles = ECLine->FileList
 		pFileLines = ECLine->FileListLines
+		If ECLine->InConstruction > 0 Then
+			FromClassName = Cast(TypeElement Ptr, ECLine->InConstruction)->DisplayName
+			Var Pos1 = InStr(FromClassName, ".")
+			If (CBool(Pos1 > 0) OrElse EndsWith(FromClassName, "[Constructor]") OrElse EndsWith(FromClassName, "[Destructor]")) Then
+				If Pos1 > 0 Then
+					FromClassName = ..Left(FromClassName, Pos1 - 1)
+				Else
+					FromClassName = Cast(TypeElement Ptr, ECLine->InConstruction)->Name
+				End If
+			Else
+				FromClassName = ""
+			End If
+		End If
 	End If
 	Dim As String sTemp2 = TypeName
 	If tb->Des Then
@@ -3903,28 +3917,29 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 	If TypeName <> "" AndAlso LCase(Value) = "base" Then
 		FListItems.Add "Base"
 	End If
+	
 	Var Idx = -1
 	If TypesOnly Then
 		If tb->txtCode.Namespaces.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Namespaces.Object(Idx))->StartLine <= iSelStartLine Then
-			tb->FillIntellisense sTemp2, @tb->txtCode.Namespaces, bLocal, bAll, TypesOnly
+			tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Namespaces, bLocal, bAll, TypesOnly, tb
 		ElseIf tb->txtCode.ContainsInListFiles(pGlobalNamespaces, sTemp2, Idx, pFiles, pFileLines) Then
-			tb->FillIntellisense sTemp2, pGlobalNamespaces, bLocal, bAll, TypesOnly
+			tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, TypesOnly, tb
 		End If
 	ElseIf tb->txtCode.Types.Contains(sTemp2, , , , Idx) AndAlso CBool(Cast(TypeElement Ptr, tb->txtCode.Types.Object(Idx))->StartLine <= iSelStartLine) AndAlso Not TypesOnly Then
-		tb->FillIntellisense sTemp2, @tb->txtCode.Types, bLocal, bAll
+		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Types, bLocal, bAll, , tb
 	ElseIf tb->txtCode.Enums.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Enums.Object(Idx))->StartLine <= iSelStartLine Then
-		tb->FillIntellisense sTemp2, @tb->txtCode.Enums, bLocal, bAll
+		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Enums, bLocal, bAll, , tb
 	ElseIf tb->txtCode.Namespaces.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Namespaces.Object(Idx))->StartLine <= iSelStartLine Then
-		tb->FillIntellisense sTemp2, @tb->txtCode.Namespaces, bLocal, bAll
-		tb->FillIntellisense sTemp2, pGlobalNamespaces, bLocal, bAll
+		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Namespaces, bLocal, bAll, , tb
+		tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, , tb
 	ElseIf tb->txtCode.ContainsInListFiles(pComps, sTemp2, Idx, pFiles, pFileLines) Then
-		tb->FillIntellisense sTemp2, pComps, bLocal, bAll
+		tb->FillIntellisense sTemp2, FromClassName, pComps, bLocal, bAll, , tb
 	ElseIf tb->txtCode.ContainsInListFiles(pGlobalTypes, sTemp2, Idx, pFiles, pFileLines) Then
-		tb->FillIntellisense sTemp2, pGlobalTypes, bLocal, bAll
+		tb->FillIntellisense sTemp2, FromClassName, pGlobalTypes, bLocal, bAll, , tb
 	ElseIf tb->txtCode.ContainsInListFiles(pGlobalEnums, sTemp2, Idx, pFiles, pFileLines) Then
-		tb->FillIntellisense sTemp2, pGlobalEnums, bLocal, bAll
+		tb->FillIntellisense sTemp2, FromClassName, pGlobalEnums, bLocal, bAll, , tb
 	ElseIf tb->txtCode.ContainsInListFiles(pGlobalNamespaces, sTemp2, Idx, pFiles, pFileLines) Then
-		tb->FillIntellisense sTemp2, pGlobalNamespaces, bLocal, bAll
+		tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, , tb
 	Else
 		Exit Sub
 	End If
@@ -4174,11 +4189,30 @@ End Function
 Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElement Ptr) As UString
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Return ""
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	Dim As EditControlLine Ptr ECLine = tb->txtCode.FLines.Item(iSelStartLine)
+	Dim As String FromClassName
 	Dim As Integer Index, iPos
 	Dim As WStringList ParametersList
 	Dim As String Symb, FuncName, Parameters, Parameter
 	Dim As UString Comments, Link1
 	Dim As String TypeName
+	If ECLine Then
+		If ECLine->InConstruction > 0 Then
+			FromClassName = Cast(TypeElement Ptr, ECLine->InConstruction)->DisplayName
+			Var Pos1 = InStr(FromClassName, ".")
+			If (CBool(Pos1 > 0) OrElse EndsWith(FromClassName, "[Constructor]") OrElse EndsWith(FromClassName, "[Destructor]")) Then
+				If Pos1 > 0 Then
+					FromClassName = ..Left(FromClassName, Pos1 - 1)
+				Else
+					FromClassName = Cast(TypeElement Ptr, ECLine->InConstruction)->Name
+				End If
+			Else
+				FromClassName = ""
+			End If
+		End If
+	End If
 	If teOld <> 0 Then
 		Index = teOld->Elements.IndexOf(sWord)
 		If Index > -1 Then
@@ -4203,15 +4237,15 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		If TypeName <> "" Then
 			FListItems.Clear
 			If tb->txtCode.Types.Contains(TypeName) Then
-				tb->FillIntellisense TypeName, @tb->txtCode.Types, True, True
+				tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Types, True, True
 			ElseIf tb->txtCode.Enums.Contains(TypeName) Then
-				tb->FillIntellisense TypeName, @tb->txtCode.Enums, True, True
+				tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Enums, True, True
 			ElseIf pComps->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pComps, True, True
+				tb->FillIntellisense TypeName, FromClassName, pComps, True, True
 			ElseIf pGlobalTypes->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pGlobalTypes, True, True
+				tb->FillIntellisense TypeName, FromClassName, pGlobalTypes, True, True
 			ElseIf pGlobalEnums->Contains(TypeName) Then
-				tb->FillIntellisense TypeName, pGlobalEnums, True, True
+				tb->FillIntellisense TypeName, FromClassName, pGlobalEnums, True, True
 			End If
 			Index = FListItems.IndexOf(sWord)
 			If Index > -1 Then
@@ -4290,15 +4324,15 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 				End If
 				If TypeName <> "" Then
 					If tb->txtCode.Types.Contains(TypeName) Then
-						tb->FillIntellisense TypeName, @tb->txtCode.Types, True
+						tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Types, True
 					ElseIf tb->txtCode.Enums.Contains(TypeName) Then
-						tb->FillIntellisense TypeName, @tb->txtCode.Enums, True
+						tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Enums, True
 					ElseIf pComps->Contains(TypeName) Then
-						tb->FillIntellisense TypeName, pComps, True
+						tb->FillIntellisense TypeName, FromClassName, pComps, True
 					ElseIf pGlobalTypes->Contains(TypeName) Then
-						tb->FillIntellisense TypeName, pGlobalTypes, True
+						tb->FillIntellisense TypeName, FromClassName, pGlobalTypes, True
 					ElseIf pGlobalEnums->Contains(TypeName) Then
-						tb->FillIntellisense TypeName, pGlobalEnums, True
+						tb->FillIntellisense TypeName, FromClassName, pGlobalEnums, True
 					End If
 					If FListItems.Contains(sWord) Then
 						For i As Integer = 0 To FListItems.Count - 1
@@ -10094,10 +10128,27 @@ End Sub
 Sub TabWindow.Define
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, Pos1
 	txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	Dim As EditControlLine Ptr ECLine = txtCode.FLines.Item(iSelStartLine)
+	Dim As String FromClassName
 	Dim sLine As WString Ptr = @txtCode.Lines(iSelEndLine)
 	Dim As String FuncName, TypeName, OldTypeName, Parameters, sWord = txtCode.GetWordAt(iSelEndLine, iSelEndChar)
 	Dim As TypeElement Ptr te, te1, te2, teOld
 	If sWord = "" Then Exit Sub
+	If ECLine Then
+		If ECLine->InConstruction > 0 Then
+			FromClassName = Cast(TypeElement Ptr, ECLine->InConstruction)->DisplayName
+			Var Pos1 = InStr(FromClassName, ".")
+			If (CBool(Pos1 > 0) OrElse EndsWith(FromClassName, "[Constructor]") OrElse EndsWith(FromClassName, "[Destructor]")) Then
+				If Pos1 > 0 Then
+					FromClassName = ..Left(FromClassName, Pos1 - 1)
+				Else
+					FromClassName = Cast(TypeElement Ptr, ECLine->InConstruction)->Name
+				End If
+			Else
+				FromClassName = ""
+			End If
+		End If
+	End If
 	With pfTrek->lvTrek.ListItems
 		.Clear
 		txtCode.GetLeftArgTypeName(iSelEndLine, GetNextCharIndex(*sLine, iSelEndChar), te2, teOld, OldTypeName)
@@ -10128,15 +10179,15 @@ Sub TabWindow.Define
 			End If
 			FListItems.Clear
 			If txtCode.Types.Contains(TypeName) Then
-				FillIntellisense TypeName, @txtCode.Types, True, True
+				FillIntellisense TypeName, FromClassName, @txtCode.Types, True, True
 			ElseIf txtCode.Enums.Contains(TypeName) Then
-				FillIntellisense TypeName, @txtCode.Enums, True, True
+				FillIntellisense TypeName, FromClassName, @txtCode.Enums, True, True
 			ElseIf pComps->Contains(TypeName) Then
-				FillIntellisense TypeName, pComps, True, True
+				FillIntellisense TypeName, FromClassName, pComps, True, True
 			ElseIf pGlobalTypes->Contains(TypeName) Then
-				FillIntellisense TypeName, pGlobalTypes, True, True
+				FillIntellisense TypeName, FromClassName, pGlobalTypes, True, True
 			ElseIf pGlobalEnums->Contains(TypeName) Then
-				FillIntellisense TypeName, pGlobalEnums, True, True
+				FillIntellisense TypeName, FromClassName, pGlobalEnums, True, True
 			End If
 			For i As Integer = 0 To FListItems.Count - 1
 				te = FListItems.Object(i)
@@ -10209,15 +10260,15 @@ Sub TabWindow.Define
 			End If
 			If TypeName <> "" Then
 				If txtCode.Types.Contains(TypeName) Then
-					FillIntellisense TypeName, @txtCode.Types, True
+					FillIntellisense TypeName, FromClassName, @txtCode.Types, True
 				ElseIf txtCode.Enums.Contains(TypeName) Then
-					FillIntellisense TypeName, @txtCode.Enums, True
+					FillIntellisense TypeName, FromClassName, @txtCode.Enums, True
 				ElseIf pComps->Contains(TypeName) Then
-					FillIntellisense TypeName, pComps, True
+					FillIntellisense TypeName, FromClassName, pComps, True
 				ElseIf pGlobalTypes->Contains(TypeName) Then
-					FillIntellisense TypeName, pGlobalTypes, True
+					FillIntellisense TypeName, FromClassName, pGlobalTypes, True
 				ElseIf pGlobalEnums->Contains(TypeName) Then
-					FillIntellisense TypeName, pGlobalEnums, True
+					FillIntellisense TypeName, FromClassName, pGlobalEnums, True
 				End If
 				If FListItems.Contains(sWord) Then
 					For i As Integer = 0 To FListItems.Count - 1
