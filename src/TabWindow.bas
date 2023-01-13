@@ -6474,6 +6474,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									ECLine->InConstruction = 0
 								End If
 							End If
+						ElseIf ECLine->ConstructionPart = 1 AndAlso (ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class) Then
+							If StartsWith(bTrimLCase & " ", "public: ") Then
+								inPubProPri = 0
+							ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
+								inPubProPri = 1
+							ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
+								inPubProPri = 2
+							End If
 						End If
 					ElseIf ECLine->ConstructionIndex = C_Namespace Then
 						If ECLine->ConstructionPart = 0 Then
@@ -6518,12 +6526,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Next ii
 							End If
 						End If
-					ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
-						inPubProPri = 0
-					ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
-						inPubProPri = 1
-					ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
-						inPubProPri = 2
+					'ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
+					'	inPubProPri = 0
+					'ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
+					'	inPubProPri = 1
+					'ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
+					'	inPubProPri = 2
 					ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
 						Pos1 = InStr(9, bTrim, " ")
 						Pos2 = InStr(9, bTrim, "(")
