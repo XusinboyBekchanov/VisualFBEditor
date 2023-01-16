@@ -560,6 +560,7 @@ Sub OnChangeEdit(ByRef Sender As Control)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	tb->Modified = True
+	WLet(gSearchSave, "")
 	TextChanged = True
 	'    'Exit Sub
 	'    With tb->txtCode

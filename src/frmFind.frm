@@ -13,7 +13,7 @@ pfFind = @fFind
 	
 	Constructor frmFind
 		This.Name = "frmFind"
-		This.SetBounds 0, 0, 486, 95
+		This.SetBounds 0, 0, 487, 95
 		This.Opacity = 210
 		This.Caption = ML("Find")
 		This.DefaultButton = @btnFind
@@ -36,7 +36,7 @@ pfFind = @fFind
 		lblFind.Name = "lblFind"
 		lblFind.TabIndex = 1
 		lblFind.ID = 1049
-		lblFind.SetBounds 27, 8, 34, 16
+		lblFind.SetBounds 27, 8, 44, 16
 		lblFind.Text = ML("Find") & ":"
 		lblFind.Parent = @This
 		
@@ -44,7 +44,7 @@ pfFind = @fFind
 		txtFind.Name = "txtFind"
 		txtFind.Style = cbDropDown
 		txtFind.TabIndex = 2
-		txtFind.SetBounds 66, 4, 162, 16
+		txtFind.SetBounds 76, 4, 150, 21
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Text = ""
 		txtFind.Parent = @This
@@ -54,14 +54,14 @@ pfFind = @fFind
 		txtReplace.Style = cbDropDown
 		txtReplace.Text = ""
 		txtReplace.TabIndex = 11
-		txtReplace.SetBounds 66, 35, 162, 16
+		txtReplace.SetBounds 76, 35, 150, 21
 		txtReplace.Anchor.Left = asAnchor
 		txtReplace.Parent = @This
 		
 		chkMatchCase.Name = "chkMatchCase"
 		chkMatchCase.TabIndex = 4
 		chkMatchCase.Hint = ML("Match Case")
-		chkMatchCase.SetBounds 327, 4, 30, 16
+		chkMatchCase.SetBounds 304, 4, 30, 21
 		chkMatchCase.Text = "Aa"
 		chkMatchCase.Parent = @This
 		
@@ -71,7 +71,7 @@ pfFind = @fFind
 		btnFind.Default = True
 		btnFind.TabIndex = 6
 		btnFind.Hint = ML("Find Next") & " (F3)"
-		btnFind.SetBounds 450, 3, 25, 23
+		btnFind.SetBounds 424, 3, 25, 23
 		btnFind.Parent = @This
 		
 		' btnFindPrev
@@ -79,7 +79,7 @@ pfFind = @fFind
 		btnFindPrev.Text = "<"
 		btnFindPrev.TabIndex = 5
 		btnFindPrev.Hint = ML("Find Previous") & " (Shift + F3)"
-		btnFindPrev.SetBounds 420, 3, 25, 23
+		btnFindPrev.SetBounds 395, 3, 25, 23
 		btnFindPrev.Parent = @This
 		
 		' btnCancel
@@ -102,19 +102,19 @@ pfFind = @fFind
 		lblTrack.Alignment = AlignmentConstants.taCenter
 		lblTrack.ID = 1015
 		lblTrack.Hint = ML("Find Form Opacity")
-		lblTrack.SetBounds 305, 5, 16, 17
+		lblTrack.SetBounds 458, 3, 16, 11
 		lblTrack.Parent = @This
 		
 		' TrackBar1
 		TrackBar1.Name = "TrackBar1"
 		TrackBar1.Text = "TrackBar1"
 		TrackBar1.OnChange = @TrackBar1_Change_
-		TrackBar1.MinValue = 20
+		TrackBar1.MinValue = 100
 		TrackBar1.MaxValue = 255
 		TrackBar1.TabIndex = 8
 		TrackBar1.Style = TrackBarOrientation.tbHorizontal
 		TrackBar1.Hint = ML("Find Form Opacity")
-		TrackBar1.SetBounds 232, 40, 66, 12
+		TrackBar1.SetBounds 452, 14, 27, 10
 		TrackBar1.Position = 210 ' This.Opacity
 		TrackBar1.Parent = @This
 		lblTrack.Text = WStr(CUInt(TrackBar1.Position/2.55))
@@ -123,7 +123,7 @@ pfFind = @fFind
 		lblReplace.Text = ML("Replace") & ":"
 		lblReplace.TabIndex = 10
 		lblReplace.ID = 1050
-		lblReplace.SetBounds 27, 35, 36, 17
+		lblReplace.SetBounds 27, 38, 46, 17
 		lblReplace.Parent = @This
 		
 		' btnReplace
@@ -131,7 +131,7 @@ pfFind = @fFind
 		btnReplace.Text = ML("&Replace")
 		btnReplace.TabIndex = 12
 		btnReplace.Hint = ML("Replace")
-		btnReplace.SetBounds 311, 34, 80, 23
+		btnReplace.SetBounds 232, 34, 120, 23
 		btnReplace.Parent = @This
 		
 		' btnReplaceAll
@@ -139,7 +139,7 @@ pfFind = @fFind
 		btnReplaceAll.Text = ML("Replace &All")
 		btnReplaceAll.TabIndex = 13
 		btnReplaceAll.Hint = ML("Replace All")
-		btnReplaceAll.SetBounds 396, 34, 80, 23
+		btnReplaceAll.SetBounds 356, 34, 120, 23
 		btnReplaceAll.Parent = @This
 		
 		' btnReplaceShow
@@ -175,7 +175,7 @@ pfFind = @fFind
 			.AddItem ML("Selected")
 			.TabIndex = 3
 			.Hint = ML("Find Range")
-			.SetBounds 232, 4, 66, 16
+			.SetBounds 233, 4, 66, 21
 			.OnSelected = @cboFindRange_Selected_
 			.Parent = @This
 		End With
@@ -188,7 +188,7 @@ pfFind = @fFind
 			.ControlIndex = 3
 			.Hint = ML("Match Whole Words")
 			.Caption = "W"
-			.SetBounds 359, 4, 30, 16
+			.SetBounds 336, 4, 30, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -200,7 +200,7 @@ pfFind = @fFind
 			.ControlIndex = 3
 			.Hint = ML("Use Pattern Matching")
 			.Caption = ".*"
-			.SetBounds 388, 4, 30, 16
+			.SetBounds 365, 4, 30, 21
 			.Designer = @This
 			.Parent = @This
 		End With
