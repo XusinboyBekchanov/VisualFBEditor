@@ -823,6 +823,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 			Wend
 		Next i
 		tb->txtCode.Changed "ReplaceAll"
+		tb->txtCode.PaintControl(True)
 		If plvSearch->ListItems.Count=0 Then
 			This.Caption=ML("Find: No Results")
 		Else
