@@ -5345,7 +5345,19 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		#ifdef __USE_GTK__
 			If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then OldWord = sTemp: Exit Sub
 		#else
-			If tb->txtCode.cboIntellisense.ItemCount = 0 Then OldWord = sTemp: Exit Sub
+			If tb->txtCode.cboIntellisense.ItemCount = 0 Then 
+				OldWord = sTemp: Exit Sub
+			Else
+				Dim As HWND h = Cast(HWND, SendMessage(tb->txtCode.cboIntellisense.Handle, CBEM_GETCOMBOCONTROL, 0, 0))
+				Dim As COMBOBOXINFO cbINFO
+				cbINFO.cbSize = SizeOf(COMBOBOXINFO)
+				GetComboBoxInfo(h, @cbINFO)
+				If cbINFO.hwndList Then
+					Dim As Rect rc
+					GetWindowRect cbINFO.hwndList, @rc
+					MoveWindow cbINFO.hwndList, rc.Left, rc.Top, rc.Right - rc.Left, Max(1, Min(tb->txtCode.cboIntellisense.ItemCount, 7)) * tb->txtCode.cboIntellisense.ItemHeight + 2, True
+				End If
+			End If
 		#endif
 		If OldWord <> "" Then OldWord = ""
 		FindComboIndex tb, *sLine, tb->txtCode.DropDownChar
