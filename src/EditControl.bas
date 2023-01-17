@@ -1727,7 +1727,7 @@ Namespace My.Sys.Forms
 		nCaretPosY = GetCaretPosY(FSelEndLine)
 		FCurLineCharIdx = FSelEndChar
 		nCaretPosX = TextWidth(GetTabbedText(.Left(Lines(FSelEndLine), FCurLineCharIdx)))
-		If CInt(DropDownShowed) AndAlso CInt(CInt(FSelEndChar < DropDownChar) OrElse CInt(FSelEndChar > GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar))) Then
+		If CInt(DropDownShowed) AndAlso CInt(CInt(FSelEndChar < DropDownChar) OrElse CInt(FSelEndChar > GetNextCharIndex(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, DropDownChar) AndAlso Not FileDropDown)) Then
 			CloseDropDown()
 		End If
 		If CInt(ToolTipShowed) AndAlso CInt(CInt(FSelEndChar < ToolTipChar) OrElse CInt(Mid(*Cast(EditControlLine Ptr, FLines.Items[FSelEndLine])->Text, FSelEndChar + 1, 1) = ":") OrElse CInt(GetWordAt(FSelEndLine, ToolTipChar) <> HintWord AndAlso Mid(Lines(FSelEndLine), ToolTipChar + 1, 1) <> "?")) Then
@@ -4321,6 +4321,7 @@ Namespace My.Sys.Forms
 		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
 		Var HCaretPos = LeftMargin + nCaretPosX - IIf(bDividedX AndAlso ActiveCodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso ActiveCodePane = 1, iDividedX + 7, 0)
 		Var VCaretPos = (nCaretPosY - IIf(ActiveCodePane = 0, VScrollPosTop, VScrollPosBottom) + 1) * dwCharY + IIf(bDividedY AndAlso ActiveCodePane = 1, iDividedY + 7, 0)
+		If DropDownShowed Then CloseDropDown
 		DropDownChar = iSelEndChar
 		DropDownShowed = True
 		#ifdef __USE_GTK__
@@ -4335,6 +4336,7 @@ Namespace My.Sys.Forms
 			If LastItemIndex = -1 Then cboIntellisense.ItemIndex = -1
 			ShowDropDownToolTipAt HCaretPos + 250, VCaretPos
 		#endif
+		If OnShowDropDown Then OnShowDropDown(This)
 	End Sub
 	
 	#ifdef __USE_WINAPI__
@@ -4511,6 +4513,7 @@ Namespace My.Sys.Forms
 			cboIntellisense.ShowDropDown False
 		#endif
 		CloseDropDownToolTip
+		If OnDropDownCloseUp Then OnDropDownCloseUp(This)
 	End Sub
 	
 	Sub EditControl.CloseDropDownToolTip()
@@ -6423,6 +6426,7 @@ Namespace My.Sys.Forms
 		WDeAllocate(FLineSpace)
 		WDeAllocate(FHintWord)
 		WDeAllocate(CurrentFontName)
+		WDeAllocate(DropDownPath)
 	End Destructor
 	
 	Destructor TypeElement

@@ -349,6 +349,7 @@ Declare Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 Declare Sub DesignerClickProperties(ByRef Sender As Designer, Ctrl As Any Ptr)
 
 Common Shared As Integer SelLinePos, SelCharPos
+
 #ifdef __USE_GTK__
 	Declare Sub lvIntellisense_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 #else

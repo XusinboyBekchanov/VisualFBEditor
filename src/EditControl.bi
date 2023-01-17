@@ -384,6 +384,7 @@ Namespace My.Sys.Forms
 		Dim As Integer dwClientY, OlddwClientY    ' Высота клиентской области
 		Modified As Boolean
 		WithHistory As Boolean
+		FileDropDown As Boolean
 		FLines As List
 		'VisibleLines As List
 		CurExecutedLine As Integer = -1
@@ -409,6 +410,7 @@ Namespace My.Sys.Forms
 			pnlIntellisense As Panel
 		#endif
 		ChangingStarted As Boolean
+		DropDownPath As WString Ptr
 		DropDownShowed As Boolean
 		DropDownChar As Integer
 		DropDownToolTipShowed As Boolean
@@ -502,6 +504,8 @@ Namespace My.Sys.Forms
 		Declare Destructor
 		OnChange As Sub(ByRef Sender As EditControl)
 		OnAutoComplete As Sub(ByRef Sender As EditControl)
+		OnShowDropDown As Sub(ByRef Sender As EditControl)
+		OnDropDownCloseUp As Sub(ByRef Sender As EditControl)
 		OnValidate As Sub(ByRef Sender As EditControl)
 		OnSelChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
 		OnLineChange As Sub(ByRef Sender As EditControl, ByVal CurrentLine As Integer, ByVal OldLine As Integer)

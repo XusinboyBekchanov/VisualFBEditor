@@ -3413,7 +3413,14 @@ End Sub
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
-		Dim i As Integer = GetNextCharIndex(*sLine, SelCharPos)
+		Dim i As Integer
+		If tb->txtCode.FileDropDown Then
+			Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			i = iSelEndChar
+		Else
+			i = GetNextCharIndex(*sLine, SelCharPos)
+		End If
 		With tb->txtCode.cboIntellisense
 			tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .Items.Item(ItemIndex)->Text & Mid(*sLine, i + 1)
 			i = SelCharPos + Len(.Items.Item(ItemIndex)->Text)
@@ -3431,7 +3438,7 @@ Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
 			CompleteWord
 		End If
 	#endif
-	If Key = 32 AndAlso tb->txtCode.DropDownShowed Then tb->txtCode.CloseDropDown
+	If CBool(Key = 32) AndAlso tb->txtCode.DropDownShowed AndAlso Not tb->txtCode.FileDropDown Then tb->txtCode.CloseDropDown
 	'    If Key = 13 Then
 	'        If tb->txtCode.DropDownShowed Then
 	'            tb->txtCode.cboIntellisense.ShowDropDown False
@@ -3744,6 +3751,98 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 	Next
 End Sub
 
+Function AddFileSorted(tb As TabWindow Ptr, ByRef Text As WString, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "") As Boolean
+	On Error Goto ErrorHandler
+	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
+	c += 1
+	If c > IntellisenseLimit Then Return False
+	Dim As String imgKeyNew = imgKey
+	If imgKeyNew = "" Then imgKeyNew = GetIconName(Text)
+	#ifdef __USE_GTK__
+		Dim iIndex As Integer = -1
+		With tb->txtCode.lvIntellisense.ListItems
+			For i As Integer = 0 To .Count - 1
+				If LCase(.Item(i)->Text(0)) = LCase(Text) Then
+					Return True
+				ElseIf LCase(.Item(i)->Text(0)) > LCase(Text) Then
+					iIndex = i: Exit For
+				End If
+			Next i
+			Var item = .Add(Text, imgKeyNew, , , iIndex)
+		End With
+	#else
+		Dim iIndex As Integer = -1
+		With tb->txtCode.cboIntellisense.Items
+			For i As Integer = 0 To .Count - 1
+				If LCase(.Item(i)->Text) = LCase(Text) Then
+					Return True
+				ElseIf LCase(.Item(i)->Text) > LCase(Text) Then
+					iIndex = i: Exit For
+				End If
+			Next i
+			.Add Text, 0, imgKeyNew, imgKeyNew, , , iIndex
+		End With
+	#endif
+	Return True
+	Exit Function
+	ErrorHandler:
+	MsgBox Text & " " & ErrDescription(Err) & " (" & Err & ") " & _
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+End Function
+
+Function AddPaths(tb As TabWindow Ptr, ByRef Path As WString, ByRef Starts As WString = "", ByRef c As Integer = 0) As Boolean
+	Dim As WString * 1024 f
+	Dim As UInteger Attr
+	f = Dir(Path & Slash & "*", fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive, Attr)
+	While f <> ""
+		If (Attr And fbDirectory) <> 0 Then
+			If Not AddFileSorted(tb, f, Starts, c, "Folder") Then Return False
+		ElseIf EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".inc") OrElse EndsWith(LCase(f), ".frm") Then
+			If Not AddFileSorted(tb, f, Starts, c) Then Return False
+		End If
+		f = Dir(Attr)
+	Wend
+	Return True
+End Function
+
+Sub FillFileIntellisenses(ByRef Path As WString = "", ByRef Starts As WString = "")
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	#ifdef __USE_GTK__
+		tb->txtCode.lvIntellisense.ListItems.Clear
+	#else
+		tb->txtCode.cboIntellisense.Items.Clear
+	#endif
+	Dim c As Integer
+	If Path <> "" Then
+		If Not AddPaths(tb, Path, Starts, c) Then Exit Sub
+	Else
+		Dim As WString * 1024 f
+		Dim As UInteger Attr
+		If Not tb->IsNew Then
+			If Not AddPaths(tb, GetFolderName(tb->FileName), Starts, c) Then Exit Sub
+		End If
+		Dim As Library Ptr CtlLibrary
+		For i As Integer = 0 To ControlLibraries.Count - 1
+			CtlLibrary = ControlLibraries.Item(i)
+			If Not CtlLibrary->Enabled Then Continue For
+			If Not AddPaths(tb, GetOSPath(GetFullPath(GetFullPath(CtlLibrary->IncludeFolder, CtlLibrary->Path))), Starts, c) Then Exit Sub
+		Next
+		#ifndef __FB_WIN32__
+			If Not AddPaths(tb, GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic"), Starts, c) Then Exit Sub
+			If Not AddPaths(tb, GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic"), Starts, c) Then Exit Sub
+		#else
+			If Not AddPaths(tb, GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc"), Starts, c) Then Exit Sub
+			If Not AddPaths(tb, GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc"), Starts, c) Then Exit Sub
+		#endif
+		For i As Integer = 0 To pIncludePaths->Count - 1
+			If Not AddPaths(tb, GetOSPath(pIncludePaths->Item(i)), Starts, c) Then Exit Sub
+		Next
+	End If
+End Sub
+
 Function TabWindow.FillIntellisense(ByRef ClassName As WString, ByRef FromClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, tb As TabWindow Ptr = 0) As Boolean
 	If ClassName = "" Then Return False
 	Var Index = pList->IndexOf(ClassName)
@@ -3983,17 +4082,25 @@ Sub SetParametersFromDropDown()
 		Index = tb->txtCode.lvIntellisense.SelectedItemIndex
 		If Index = -1 Then Exit Sub
 		With *tb->txtCode.lvIntellisense.ListItems.Item(Index)
-			tb->txtCode.HintDropDown = GetParameters(.Text(0), .Tag, tb->txtCode.DropDownTypeElement)
-			If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text(0)
+			If tb->txtCode.FileDropdown Then
+				tb->txtCode.HintDropDown = .Text(0)
+			Else
+				tb->txtCode.HintDropDown = GetParameters(.Text(0), .Tag, tb->txtCode.DropDownTypeElement)
+				If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text(0)
+			End If
 		End With
 	#else
 		Index = tb->txtCode.cboIntellisense.ItemIndex
 		If Index = -1 Then Exit Sub
 		With tb->txtCode.cboIntellisense
-			Dim As String sWord = .Item(Index)
-			Dim As TypeElement Ptr te = .ItemData(Index)
-			tb->txtCode.HintDropDown = GetParameters(sWord, te, tb->txtCode.DropDownTypeElement)
-			If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text
+			If tb->txtCode.FileDropDown Then
+				tb->txtCode.HintDropDown = .Text
+			Else
+				Dim As String sWord = .Item(Index)
+				Dim As TypeElement Ptr te = .ItemData(Index)
+				tb->txtCode.HintDropDown = GetParameters(sWord, te, tb->txtCode.DropDownTypeElement)
+				If tb->txtCode.HintDropDown = "" Then tb->txtCode.HintDropDown = .Text
+			End If
 		End With
 	#endif
 	tb->txtCode.UpdateDropDownToolTip
@@ -4113,6 +4220,7 @@ Sub CompleteWord
 			Exit Sub
 		End If
 		tb->txtCode.DropDownTypeElement = 0
+		tb->txtCode.FileDropDown = False
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 	End With
@@ -4984,11 +5092,15 @@ End Function
 '	Return sTemp
 'End Function
 
+Sub OnDropDownCloseUp(ByRef Sender As EditControl)
+	'Sender.FileDropDown = False
+End Sub
+
 Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	MouseHoverTimerVal = Timer
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
-	If CInt(Key = Asc(".")) OrElse CInt(Key = Asc(">")) Then
+	If (CInt(Key = Asc(".")) OrElse CInt(Key = Asc(">"))) AndAlso CInt(Not tb->txtCode.DropDownShowed) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
@@ -5024,13 +5136,14 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		SelCharPos = iSelEndChar
 		FindComboIndex tb, *sLine, iSelEndChar
 		tb->txtCode.DropDownTypeElement = te
+		tb->txtCode.FileDropDown = False
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
-	ElseIf CInt(Key = Asc("=")) Then
+	ElseIf CInt(Key = Asc("=")) AndAlso CInt(Not tb->txtCode.DropDownShowed) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iIndex
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		If iSelEndLine <= 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+		If iSelEndLine <= 0 Then Exit Sub
 		Dim As Integer posL, posR = 0: k = 0
 		Do
 			posR = InStr(posR + 1, *sLine, """")
@@ -5089,9 +5202,10 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 		#endif
 		tb->txtCode.DropDownTypeElement = 0
+		tb->txtCode.FileDropDown = False
 		SetParametersFromDropDown
 		tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
-	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) OrElse CInt(Key = Asc("?")) OrElse CInt(Key = 5)  Then
+	ElseIf CInt(Key = Asc(" ")) OrElse CInt(Key = Asc("(")) OrElse CInt(Key = Asc(",")) OrElse CInt(Key = Asc("?")) OrElse CInt(Key = 5) AndAlso CInt(Not tb->txtCode.DropDownShowed) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
@@ -5118,14 +5232,40 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 				If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
 			#endif
 			tb->txtCode.DropDownTypeElement = 0
+			tb->txtCode.FileDropDown = False
 			SetParametersFromDropDown
 			tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
 		Else
 			ParameterInfo Key
 		End If
+	ElseIf CInt(Key = Asc("""")) OrElse CInt(Key = Asc(Slash)) OrElse CInt(Key = Asc(BackSlash)) Then
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+		If StartsWith(LCase(Trim(*sLine, Any !"\t ")), "#include") Then
+			Var Pos1 = InStr(Left(*sLine, iSelEndChar - 1), """")
+			If Key = Asc("""") Then
+				If Pos1 > 0 Then tb->txtCode.CloseDropDown: Exit Sub
+				WLet(tb->txtCode.DropDownPath, "")
+			Else
+				If Pos1 = 0 Then Exit Sub
+				WLet(tb->txtCode.DropDownPath, GetRelativePath(Mid(*sLine, Pos1 + 1, iSelEndChar - Pos1 - 1)))
+			End If
+			FillFileIntellisenses *tb->txtCode.DropDownPath
+			SelLinePos = iSelEndLine
+			SelCharPos = iSelEndChar
+			FindComboIndex tb, *sLine, iSelEndChar
+			#ifdef __USE_GTK__
+				If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
+			#endif
+			tb->txtCode.DropDownTypeElement = 0
+			tb->txtCode.FileDropDown = True
+			SetParametersFromDropDown
+			tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
+		End If
 	ElseIf tb->txtCode.DropDownShowed Then
 		Dim As Boolean bExternalIncludesLoaded = tb->bExternalIncludesLoaded
-		If (bExternalIncludesLoaded = False) OrElse (LoadFunctionsCount > 0) Then
+		If (CInt(bExternalIncludesLoaded = False) OrElse CInt(LoadFunctionsCount > 0)) AndAlso CInt(Not tb->txtCode.FileDropDown) Then
 			tb->GetIncludeFiles
 		Else
 			If Key <> 8 AndAlso Key <> 127 Then
@@ -5149,18 +5289,22 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 		Dim sTemp As WString * 1024
 		sTemp = Mid(*sLine, tb->txtCode.DropDownChar + 1, iSelEndChar + 1 - (tb->txtCode.DropDownChar + 1))
 		Static OldWord As WString * 200
-		If CBool(OldWord <> "") AndAlso StartsWith(sTemp, OldWord) AndAlso bExternalIncludesLoaded AndAlso CBool(LoadFunctionsCount = 0) Then Exit Sub
-		If EndsWith(RTrim(..Left(LCase(*sLine), tb->txtCode.DropDownChar)), " as") Then
-			FillTypeIntellisenses sTemp
-		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), ".") Then
-			'FillIntellisenseByName GetLeftArg(tb, iSelEndLine, tb->txtCode.DropDownChar - 1)
-		ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), "->") Then
-			'FillIntellisenseByName GetLeftArg(tb, iSelEndLine, tb->txtCode.DropDownChar - 2)
+		If tb->txtCode.FileDropDown Then
+			FillFileIntellisenses *tb->txtCode.DropDownPath, sTemp
 		Else
-			If Trim(Mid(*sLine, tb->txtCode.DropDownChar + 1)) = "" Then
-				tb->txtCode.CloseDropDown
+			If CBool(OldWord <> "") AndAlso StartsWith(sTemp, OldWord) AndAlso bExternalIncludesLoaded AndAlso CBool(LoadFunctionsCount = 0) Then Exit Sub
+			If EndsWith(RTrim(..Left(LCase(*sLine), tb->txtCode.DropDownChar)), " as") Then
+				FillTypeIntellisenses sTemp
+			ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), ".") Then
+				'FillIntellisenseByName GetLeftArg(tb, iSelEndLine, tb->txtCode.DropDownChar - 1)
+			ElseIf EndsWith(..Left(*sLine, tb->txtCode.DropDownChar), "->") Then
+				'FillIntellisenseByName GetLeftArg(tb, iSelEndLine, tb->txtCode.DropDownChar - 2)
 			Else
-				FillAllIntellisenses sTemp
+				If Trim(Mid(*sLine, tb->txtCode.DropDownChar + 1)) = "" Then
+					tb->txtCode.CloseDropDown
+				Else
+					FillAllIntellisenses sTemp
+				End If
 			End If
 		End If
 		#ifdef __USE_GTK__
@@ -7750,6 +7894,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnUndo = @OnUndoEdit
 	txtCode.OnRedoing = @OnRedoingEdit
 	txtCode.OnRedo = @OnRedoEdit
+	txtCode.OnDropDownCloseUp = @OnDropDownCloseUp
 	txtCode.OnSplitHorizontallyChange = @OnSplitHorizontallyChangeEdit
 	txtCode.OnSplitVerticallyChange = @OnSplitVerticallyChangeEdit
 	txtCode.Tag = @This
