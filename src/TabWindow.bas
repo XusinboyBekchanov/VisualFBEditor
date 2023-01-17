@@ -3430,24 +3430,6 @@ End Sub
 	End Sub
 #endif
 
-Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
-	Var tb = Cast(TabWindow Ptr, Sender.Tag)
-	If tb = 0 Then Exit Sub
-	#ifdef __USE_GTK__
-		If Key = GDK_KEY_SPACE AndAlso (Shift And GDK_CONTROL_MASK) Then
-			CompleteWord
-		End If
-	#endif
-	If CBool(Key = 32) AndAlso tb->txtCode.DropDownShowed AndAlso Not tb->txtCode.FileDropDown Then tb->txtCode.CloseDropDown
-	'    If Key = 13 Then
-	'        If tb->txtCode.DropDownShowed Then
-	'            tb->txtCode.cboIntellisense.ShowDropDown False
-	'            cboIntellisense_Selected tb->txtCode.cboIntellisense
-	'            Key = 0
-	'        End If
-	'    End If
-End Sub
-
 Declare Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 
 Sub OnGotFocusEdit(ByRef Sender As Control)
@@ -5094,6 +5076,59 @@ End Function
 
 Sub OnDropDownCloseUp(ByRef Sender As EditControl)
 	'Sender.FileDropDown = False
+End Sub
+
+Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0 Then Exit Sub
+	#ifdef __USE_GTK__
+		If Key = GDK_KEY_SPACE AndAlso (Shift And GDK_CONTROL_MASK) Then
+			CompleteWord
+		End If
+	#endif
+	If CBool(Key = 32) AndAlso tb->txtCode.DropDownShowed AndAlso Not tb->txtCode.FileDropDown Then 
+		tb->txtCode.CloseDropDown
+	ElseIf CBool(Key = 8) AndAlso tb->txtCode.DropDownShowed AndAlso tb->txtCode.FileDropDown Then
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
+		Select Case Mid(*sLine, iSelEndChar, 1)
+		Case Slash, BackSlash
+			If StartsWith(LCase(Trim(*sLine, Any !"\t ")), "#include") Then
+				Dim sTemp As WString * 1024
+				Var Pos1 = InStr(Left(*sLine, iSelEndChar - 1), """")
+				If Pos1 = 0 Then Exit Sub
+				sTemp = Mid(*sLine, Pos1 + 1, iSelEndChar - Pos1 - 1)
+				Var Pos2 = InStrRev(sTemp, Slash)
+				Var Pos3 = InStrRev(sTemp, BackSlash)
+				If Pos3 > Pos2 Then Pos2 = Pos3
+				If Pos2 = 0 Then
+					WLet(tb->txtCode.DropDownPath, "")
+				Else
+					WLet(tb->txtCode.DropDownPath, GetRelativePath(Left(sTemp, Pos2 - 1)))
+				End If
+				Pos1 = Pos1 + Pos2
+				FillFileIntellisenses *tb->txtCode.DropDownPath, IIf(Pos2 = 0, sTemp, Mid(sTemp, Pos2 + 1))
+				SelLinePos = iSelEndLine
+				SelCharPos = Pos1
+				FindComboIndex tb, *sLine, iSelEndChar - 1
+				#ifdef __USE_GTK__
+					If tb->txtCode.LastItemIndex = -1 Then tb->txtCode.lvIntellisense.SelectedItemIndex = -1
+				#endif
+				tb->txtCode.DropDownTypeElement = 0
+				tb->txtCode.FileDropDown = True
+				SetParametersFromDropDown
+				tb->txtCode.ShowDropDownAt SelLinePos, SelCharPos
+			End If
+		End Select
+	End If
+	'    If Key = 13 Then
+	'        If tb->txtCode.DropDownShowed Then
+	'            tb->txtCode.cboIntellisense.ShowDropDown False
+	'            cboIntellisense_Selected tb->txtCode.cboIntellisense
+	'            Key = 0
+	'        End If
+	'    End If
 End Sub
 
 Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
