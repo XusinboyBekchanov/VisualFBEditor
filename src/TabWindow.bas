@@ -3388,16 +3388,25 @@ End Sub
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
-		Dim i As Integer = GetNextCharIndex(*sLine, SelCharPos)
 		'    Dim sTempRight As WString Ptr
 		'    WLet sTempRight, Mid(*sLine, SelCharPos + 1, i - SelCharPos)
 		'    ?"""" & *sTempRight & """"
+		Dim i As Integer
+		Dim As String Symbol
 		With tb->txtCode.lvIntellisense
+			If tb->txtCode.FileDropDown Then
+				Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+				tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+				i = iSelEndChar
+				If .ListItems.Item(ItemIndex)->ImageKey <> "Folder" Then Symbol = """"
+			Else
+				i = GetNextCharIndex(*sLine, SelCharPos)
+			End If
 			'        If CInt(*sTempRight = "") OrElse CInt(Not StartsWith(LCase(.Items.Item(.ItemIndex)->Text), LCase(*sTempRight))) Then
 			'        Else
 			If .ListItems.Item(ItemIndex) Then
-				tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Mid(*sLine, i + 1)
-				i = SelCharPos + Len(.ListItems.Item(ItemIndex)->Text(0))
+				tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Symbol & Mid(*sLine, i + 1)
+				i = SelCharPos + Len(.ListItems.Item(ItemIndex)->Text(0) & Symbol)
 				tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
 			End If
 			tb->txtCode.SetFocus
@@ -3414,16 +3423,18 @@ End Sub
 		If tb = 0 Then Exit Sub
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
 		Dim i As Integer
-		If tb->txtCode.FileDropDown Then
-			Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-			tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-			i = iSelEndChar
-		Else
-			i = GetNextCharIndex(*sLine, SelCharPos)
-		End If
+		Dim As String Symbol
 		With tb->txtCode.cboIntellisense
-			tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .Items.Item(ItemIndex)->Text & Mid(*sLine, i + 1)
-			i = SelCharPos + Len(.Items.Item(ItemIndex)->Text)
+			If tb->txtCode.FileDropDown Then
+				Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+				tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+				i = iSelEndChar
+				If .Items.Item(ItemIndex)->ImageKey <> "Folder" Then Symbol = """"
+			Else
+				i = GetNextCharIndex(*sLine, SelCharPos)
+			End If
+			tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .Items.Item(ItemIndex)->Text & Symbol & Mid(*sLine, i + 1)
+			i = SelCharPos + Len(.Items.Item(ItemIndex)->Text & Symbol)
 			tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
 			tb->txtCode.SetFocus
 		End With
@@ -4064,7 +4075,7 @@ Sub SetParametersFromDropDown()
 		Index = tb->txtCode.lvIntellisense.SelectedItemIndex
 		If Index = -1 Then Exit Sub
 		With *tb->txtCode.lvIntellisense.ListItems.Item(Index)
-			If tb->txtCode.FileDropdown Then
+			If tb->txtCode.FileDropDown Then
 				tb->txtCode.HintDropDown = .Text(0)
 			Else
 				tb->txtCode.HintDropDown = GetParameters(.Text(0), .Tag, tb->txtCode.DropDownTypeElement)
