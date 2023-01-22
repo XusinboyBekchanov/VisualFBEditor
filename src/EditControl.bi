@@ -33,7 +33,7 @@ Common Shared As Boolean SyntaxHighlightingIdentifiers
 Common Shared As Boolean ChangeIdentifiersCase
 Common Shared As Boolean ChangeKeyWordsCase
 Common Shared As Boolean AddSpacesToOperators
-Common Shared As WStringList Ptr pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
+Common Shared As WStringOrStringList Ptr pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
 
 Type ECColorScheme
 	As Long ForegroundOption, BackgroundOption, FrameOption, IndicatorOption
@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 		ControlType As Integer
 		Find As Boolean
 		Tag As Any Ptr
-		Elements As WStringList
+		Elements As WStringOrStringList
 		Declare Destructor
 	End Type
 	
@@ -273,7 +273,7 @@ Namespace My.Sys.Forms
 		Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol
 		Dim As Boolean WithOldSymbol
 		Dim As Integer OldPos, OldLinesCount
-		Dim pkeywords As WStringList Ptr
+		Dim pkeywords As WStringOrStringList Ptr
 		Dim LinePrinted As Boolean
 		'Dim As Boolean ChangeCase
 		Dim CollapseIndex As Integer
@@ -324,20 +324,20 @@ Namespace My.Sys.Forms
 		IncludeLines As IntegerList
 		ExternalFiles As WStringList
 		ExternalFileLines As IntegerList
-		ExternalIncludes As WStringList
-		Namespaces As WStringList
-		Types As WStringList
-		Enums As WStringList
-		Functions As WStringList
-		Procedures As WStringList
-		FunctionsOthers As WStringList
-		Args As WStringList
-		LineLabels As WStringList
+		ExternalIncludes As WStringOrStringList
+		Namespaces As WStringOrStringList
+		Types As WStringOrStringList
+		Enums As WStringOrStringList
+		Functions As WStringOrStringList
+		Procedures As WStringOrStringList
+		FunctionsOthers As WStringOrStringList
+		Args As WStringOrStringList
+		LineLabels As WStringOrStringList
 		Dim As Boolean bInIncludeFileRect
 		Declare Function CharType(ByRef ch As WString) As Integer
-		Declare Function ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean
-		Declare Function IndexOfInListFiles(pList As WStringList Ptr, ByRef Matn As String, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Integer
-		Declare Function ContainsInListFiles(pList As WStringList Ptr, ByRef Matn As String, ByRef Index As Integer, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Boolean
+		Declare Function ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringOrStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean
+		Declare Function IndexOfInListFiles(pList As WStringOrStringList Ptr, ByRef Matn As String, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Integer
+		Declare Function ContainsInListFiles(pList As WStringOrStringList Ptr, ByRef Matn As String, ByRef Index As Integer, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Boolean
 		#ifdef __USE_GTK__
 			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As cairo_t Ptr cr
@@ -546,7 +546,7 @@ Namespace My.Sys.Forms
 		Declare Sub cairo_rectangle_(cr As cairo_t Ptr, x As Double, y As Double, x1 As Double, y1 As Double, z As Boolean)
 	#endif
 	
-	Declare Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringList Ptr = 0, OriginalCaseWord As String = "") As String
+	Declare Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringOrStringList Ptr = 0, OriginalCaseWord As String = "") As String
 	
 	Declare Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True, WithoutBracket As Boolean = False) As String
 	

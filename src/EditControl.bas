@@ -2318,7 +2318,7 @@ Namespace My.Sys.Forms
 		dwClientY = ClientHeight
 	End Sub
 	
-	Function EditControl.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean
+	Function EditControl.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringOrStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean
 		If ClassName = "" OrElse pList = 0 Then Return False
 		Var Index = -1
 		If pList = @Types OrElse pList = @Enums OrElse pList = @Namespaces Then
@@ -2706,7 +2706,7 @@ Namespace My.Sys.Forms
 		Return sTemp
 	End Function
 	
-	Function EditControl.IndexOfInListFiles(pList As WStringList Ptr, ByRef Matn As String, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Integer
+	Function EditControl.IndexOfInListFiles(pList As WStringOrStringList Ptr, ByRef Matn As String, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Integer
 		If pList = 0 OrElse Files = 0 OrElse FileLines = 0 Then Return -1
 		Dim As Integer tIndex = pList->IndexOf(Matn)
 		Var Idx = -1, iLine = -1
@@ -2725,7 +2725,7 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 	
-	Function EditControl.ContainsInListFiles(pList As WStringList Ptr, ByRef Matn As String, ByRef Index As Integer, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Boolean
+	Function EditControl.ContainsInListFiles(pList As WStringOrStringList Ptr, ByRef Matn As String, ByRef Index As Integer, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Boolean
 		Index = IndexOfInListFiles(pList, Matn, Files, FileLines)
 		Return Index <> -1
 	End Function
@@ -4548,7 +4548,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringList Ptr = 0, OriginalCaseWord As String = "") As String
+	Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringOrStringList Ptr = 0, OriginalCaseWord As String = "") As String
 		If ChangeKeyWordsCase Then
 			Select Case ChoosedKeyWordsCase
 			Case KeyWordsCase.OriginalCase
@@ -6437,13 +6437,13 @@ End Namespace
 Sub LoadKeyWords
 	Dim b As String
 	Dim As UString file
-	Dim As WStringList Ptr keywordlist
+	Dim As WStringOrStringList Ptr keywordlist
 	Dim As Integer k = -1
 	file = Dir(ExePath & "/Settings/Keywords/*")
 	Do Until file = ""
 		k += 1
 		ReDim Preserve Keywords(k)
-		keywordlist = New_(WStringList)
+		keywordlist = New_(WStringOrStringList)
 		keywordlist->Sorted = True
 		KeywordLists.Add file, keywordlist
 		If Trim(file) = "Asm" Then

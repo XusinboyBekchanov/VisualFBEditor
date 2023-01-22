@@ -1205,7 +1205,7 @@ End Function
 Function IsBase(ByRef TypeName As String, ByRef BaseName As String, tb As TabWindow Ptr = 0) As Boolean
 	Dim iIndex As Integer
 	Dim tbi As TypeElement Ptr
-	Dim As WStringListItem Ptr ListItem
+	Dim As WStringOrStringListItem Ptr ListItem
 	Dim TypeN As String = WithoutPointers(TypeName)
 	If TypeName = BaseName Then Return True
 	If InStr(TypeN, ".") AndAlso TypeN <> "My.Sys.Object" Then TypeN = Mid(TypeN, InStrRev(TypeN, ".") + 1)
@@ -3836,7 +3836,7 @@ Sub FillFileIntellisenses(ByRef Path As WString = "", ByRef Starts As WString = 
 	End If
 End Sub
 
-Function TabWindow.FillIntellisense(ByRef ClassName As WString, ByRef FromClassName As WString, pList As WStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, tb As TabWindow Ptr = 0) As Boolean
+Function TabWindow.FillIntellisense(ByRef ClassName As WString, ByRef FromClassName As WString, pList As WStringOrStringList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, tb As TabWindow Ptr = 0) As Boolean
 	If ClassName = "" Then Return False
 	Var Index = pList->IndexOf(ClassName)
 	If Index = -1 Then Return False
@@ -5514,7 +5514,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	Dim As ListViewItem Ptr LastItem
 	Dim As ECColorScheme Ptr sc
 	Dim As TypeElement Ptr te, Oldte
-	Dim As WStringList Ptr pkeywords
+	Dim As WStringOrStringList Ptr pkeywords
 	CStyle = tb->txtCode.CStyle
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	For z As Integer = 0 To tb->txtCode.FLines.Count - 1

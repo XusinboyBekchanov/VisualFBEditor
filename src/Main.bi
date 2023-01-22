@@ -56,6 +56,14 @@
 	#define MAX_PATH 260
 #endif
 
+#if 0
+	Type WStringOrStringList As StringList
+	Type WStringOrStringListItem As StringListItem
+#else
+	Type WStringOrStringList As WStringList
+	Type WStringOrStringListItem As WStringListItem
+#EndIf
+
 Extern "rtlib"
 	Declare Function LineInputWstr Alias "fb_FileLineInputWstr"(ByVal filenumber As Long, ByVal dst As WString Ptr, ByVal maxchars As Integer) As Long
 End Extern
@@ -184,7 +192,8 @@ Type FileType
 End Type
 
 Common Shared As List Ptr pTools, pControlLibraries
-Common Shared As WStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalTypeProcedures, pGlobalArgs, pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
+Common Shared As WStringOrStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalTypeProcedures, pGlobalArgs
+Common Shared As WStringList Ptr pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
 'Common Shared As WStringList Ptr pLocalTypes, pLocalEnums, pLocalProcedures, pLocalFunctions, pLocalFunctionsOthers, pLocalArgs,
 Common Shared As Dictionary Ptr pHelps, pCompilers, pMakeTools, pDebuggers, pTerminals, pOtherEditors
 
@@ -280,7 +289,7 @@ Declare Function GetXY(XorY As Integer) As Integer
 #endif
 Declare Function FolderExists(ByRef FolderName As WString) As Boolean
 Declare Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
-Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef Args As WStringList, ByRef TypeProcedures As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As FileType Ptr = 0)
+Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef Args As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As FileType Ptr = 0)
 Declare Sub LoadFunctionsSub(Param As Any Ptr)
 Declare Sub LoadOnlyFilePath(Param As Any Ptr)
 Declare Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)

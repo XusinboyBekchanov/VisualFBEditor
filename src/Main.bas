@@ -82,7 +82,8 @@ Dim Shared As ReBar MainReBar
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As WStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs, AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
+Dim Shared As WStringOrStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs
+Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
@@ -3396,7 +3397,7 @@ Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As US
 	End If
 End Function
 
-Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringList, ByRef Enums As WStringList, ByRef Functions As WStringList, ByRef TypeProcedures As WStringList, ByRef Args As WStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As FileType Ptr = 0)
+Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ByRef Args As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As FileType Ptr = 0)
 	If FormClosing Then Exit Sub
 	Dim As FileType Ptr File
 	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
@@ -4443,7 +4444,7 @@ Sub LoadHelp
 		parDifferencesFromQB
 		parSeeAlso
 	End Enum
-	Dim As WStringList Ptr pFunctions = @GlobalFunctions
+	Dim As WStringOrStringList Ptr pFunctions = @GlobalFunctions
 	Dim As Boolean InEnglish
 	Dim As Integer Fn = FreeFile_, tEncode
 	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt") = "" Then
