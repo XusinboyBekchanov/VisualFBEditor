@@ -1199,6 +1199,10 @@ Namespace My.Sys.Forms
 		Var InAsm = False
 		'check the Newlinetype again for missing Cr in AsicII file
 		Fn = FreeFile_
+		If Not FileExists(FileName) Then
+			MsgBox ML("File not found") & ": " & FileName
+			Exit Sub
+		End If
 		If Open(FileName For Binary Access Read As #Fn) = 0 Then
 			FileSize = LOF(Fn) + 1
 			Buff = String(4, 0)
