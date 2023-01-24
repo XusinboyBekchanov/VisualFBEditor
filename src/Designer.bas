@@ -1628,7 +1628,7 @@ Namespace My.Sys.Forms
 					Return OldSymbols
 				Else
 					Dim As Library Ptr CtlLib = te->Tag
-					Var st = New SymbolsType
+					Var st = New_(SymbolsType)
 					st->Handle = DyLibLoad(GetFullPath(CtlLib->Path))
 					st->Path = GetFullPath(CtlLib->Path)
 					st->CreateControlFunc = DyLibSymbol(st->Handle, "CreateControl")

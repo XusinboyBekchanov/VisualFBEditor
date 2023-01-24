@@ -1235,6 +1235,7 @@ Namespace My.Sys.Forms
 				Dim As .HANDLE hFile
 				Dim As DWORD dwBytesToRead, dwBytesRead
 				Dim As String sFileContents
+				Dim As WString Ptr wsFileContents
 				hFile = CreateFile(@FileName, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 				If hFile = INVALID_HANDLE_VALUE Then
 					MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
@@ -1271,11 +1272,17 @@ Namespace My.Sys.Forms
 					FLines.Clear
 					i = 0
 					OldFileEncoding = FileEncoding
+					If FileEncoding = FileEncodings.PlainText Then
+						WLet(wsFileContents, sFileContents)
+					Else
+						WReAllocate(wsFileContents, dwBytesRead * 2)
+						MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, StrPtr(sFileContents), dwBytesRead, wsFileContents, dwBytesRead * 2)
+					End If 
 					Dim As WString Ptr FText
 					WLet(FText, "")
-					For j As Integer = 0 To Len(sFileContents)
-						WAdd FText, WChr(sFileContents[j])
-						If sFileContents[j] = 10 Or sFileContents[j] = 0 Then
+					For j As Integer = 0 To Len(*wsFileContents)
+						WAdd FText, WChr((*wsFileContents)[j])
+						If (*wsFileContents)[j] = 10 Or (*wsFileContents)[j] = 0 Then
 							FECLine = New_(EditControlLine)
 							OlddwClientX = 0
 							If FECLine = 0 Then

@@ -8844,7 +8844,7 @@ Sub OnProgramQuit() Destructor
 		Tool = pOtherEditors->Item(i)->Object
 		Delete_(Tool)
 	Next i
-	Dim As WStringList Ptr keywordlist
+	Dim As WStringOrStringList Ptr keywordlist
 	For i As Integer = 0 To KeywordLists.Count - 1
 		keywordlist = KeywordLists.Object(i)
 		Delete_(keywordlist)
