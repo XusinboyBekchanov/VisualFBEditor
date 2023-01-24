@@ -1275,21 +1275,21 @@ Namespace My.Sys.Forms
 					If FileEncoding = FileEncodings.PlainText Then
 						WLet(wsFileContents, sFileContents)
 					Else
-						WReAllocate(wsFileContents, dwBytesRead * 2)
-						MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, StrPtr(sFileContents), dwBytesRead, wsFileContents, dwBytesRead * 2)
-					End If 
+						WReAllocate(wsFileContents, dwBytesRead)
+						MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, StrPtr(sFileContents), dwBytesRead, wsFileContents, dwBytesRead)
+					End If
 					Dim As WString Ptr FText
 					WLet(FText, "")
 					For j As Integer = 0 To Len(*wsFileContents)
 						WAdd FText, WChr((*wsFileContents)[j])
-						If (*wsFileContents)[j] = 10 Or (*wsFileContents)[j] = 0 Then
+						If (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
 							FECLine = New_(EditControlLine)
 							OlddwClientX = 0
 							If FECLine = 0 Then
 								Return
 							End If
 							pBuff = 0
-							WLet(pBuff, Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13)))
+							WLet(pBuff, Trim(Trim(Mid(*FText, 1, Len(*FText)), Any WChr(10)), Any WChr(13)))
 							FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
 							iC = FindCommentIndex(*pBuff, OldiC)
 							FECLine->CommentIndex = iC
@@ -1446,15 +1446,15 @@ Namespace My.Sys.Forms
 				Else
 					If FileEncoding = FileEncodings.Utf8 Then
 						For i As Integer = 0 To FLines.Count - 1
-							sFileContents &= ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine
+							sFileContents &= ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & IIf(i = FLines.Count - 1, "", WStr(NewLine))
 						Next
 					ElseIf FileEncoding = FileEncodings.PlainText  Then
 						For i As Integer = 0 To FLines.Count - 1
-							sFileContents &= *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine
+							sFileContents &= *Cast(EditControlLine Ptr, FLines.Item(i))->Text & IIf(i = FLines.Count - 1, "", WStr(NewLine))
 						Next
 					Else
 						For i As Integer = 0 To FLines.Count - 1
-							sFileContents &= *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine
+							sFileContents &= *Cast(EditControlLine Ptr, FLines.Item(i))->Text & IIf(i = FLines.Count - 1, "", WStr(NewLine))
 						Next
 					End If
 					dwBytesToWrite = Len(sFileContents)
