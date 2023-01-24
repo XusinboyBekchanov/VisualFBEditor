@@ -1143,11 +1143,32 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Property EditControl.Text ByRef As WString
-		Return WStr("")
+		WLet(FText.vptr, "")
+		For i As Integer = 0 To FLines.Count - 1
+			If i <> FLines.Count - 1 Then
+				WAdd FText.vptr, Lines(i) + Chr(13) + Chr(10)
+			Else
+				WAdd FText.vptr, Lines(i)
+			End If
+		Next i
+		Return *FText.vptr
 	End Property
 	
-	Property EditControl.Text(ByRef Value As WString) '...'
-		'ChangeText Value, "Matn almashtirildi"
+	Property EditControl.Text(ByRef Value As WString)
+		WLet(FText.vptr, "")
+		For i As Integer = FLines.Count - 1 To 0 Step -1
+			Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
+		Next i
+		FLines.Clear
+		Dim j As Integer
+		For i As Integer = 0 To Len(Value)
+			WAdd FText.vptr, WChr(Value[i])
+			If Value[i] = 10 Or Value[i] = 0 Then
+				InsertLine(j, Trim(Mid(*FText.vptr, 1, Len(*FText.vptr) - 1), Any WChr(13)))
+				j = j + 1
+				WLet(FText.vptr, "")
+			End If
+		Next i
 	End Property
 	
 	Property EditControl.HintDropDown ByRef As WString
@@ -1189,6 +1210,10 @@ Namespace My.Sys.Forms
 		ChangeText Value, 0, "Matn qo`shildi"
 	End Property
 	
+	Sub EditControl.CalculateLeftMargin
+		LeftMargin = Len(Str(LinesCount)) * dwCharX + dwCharY + 30 '5 * dwCharX
+	End Sub
+	
 	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes, WithoutScroll As Boolean = False)
 		Dim As WString Ptr pBuff
 		Dim As String Buff, EncodingStr, NewLineStr
@@ -1196,118 +1221,192 @@ Namespace My.Sys.Forms
 		Dim As Integer Result = -1, Fn, FileSize
 		Dim As FileEncodings OldFileEncoding
 		Dim As Integer iC = 0, OldiC = 0, i = 0
-		Var InAsm = False
+		Dim As Boolean InAsm = False, FileLoaded
 		'check the Newlinetype again for missing Cr in AsicII file
 		Fn = FreeFile_
 		If Not FileExists(FileName) Then
 			MsgBox ML("File not found") & ": " & FileName
 			Exit Sub
 		End If
-		If Open(FileName For Binary Access Read As #Fn) = 0 Then
-			FileSize = LOF(Fn) + 1
-			Buff = String(4, 0)
-			Get #Fn, , Buff
-			If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
-				FileEncoding = FileEncodings.Utf32BOM
-				EncodingStr = "utf-32"
-				Buff = String(1024, 0)
-				Get #Fn, 0, Buff
-				'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
-			ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
-				FileEncoding = FileEncodings.Utf16BOM
-				EncodingStr = "utf-16"
-				Buff = String(1024, 0)
-				Get #Fn, 0, Buff
-			ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
-				FileEncoding = FileEncodings.Utf8BOM
-				EncodingStr = "utf-8"
-				Buff = String(1024, 0)
-				Get #Fn, , Buff
-			Else
-				Buff = String(FileSize, 0)
-				Get #Fn, 0, Buff
-				If (CheckUTF8NoBOM(Buff)) Then
-					FileEncoding = FileEncodings.Utf8
-					EncodingStr = "ascii"
+		#ifdef __USE_WINAPI__
+			Buff = FileName
+			If Buff <> FileName Then
+				FileLoaded = True
+				Dim As .HANDLE hFile
+				Dim As DWORD dwBytesToRead, dwBytesRead
+				Dim As String sFileContents
+				hFile = CreateFile(@FileName, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+				If hFile = INVALID_HANDLE_VALUE Then
+					MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
 				Else
-					FileEncoding = FileEncodings.PlainText
-					EncodingStr = "ascii"
+					dwBytesToRead = GetFileSize(hFile, 0)
+					If dwBytesToRead <> 0 Then
+						sFileContents = Space(dwBytesToRead)
+						ReadFile(hFile, @sFileContents[0], dwBytesToRead, @dwBytesRead, 0)
+						Buff = .Left(sFileContents, 4)
+						If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
+							FileEncoding = FileEncodings.Utf32BOM
+							EncodingStr = "utf-32"
+							'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
+						ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
+							FileEncoding = FileEncodings.Utf16BOM
+							EncodingStr = "utf-16"
+						ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
+							FileEncoding = FileEncodings.Utf8BOM
+							EncodingStr = "utf-8"
+						Else
+							If (CheckUTF8NoBOM(sFileContents)) Then
+								FileEncoding = FileEncodings.Utf8
+								EncodingStr = "ascii"
+							Else
+								FileEncoding = FileEncodings.PlainText
+								EncodingStr = "ascii"
+							End If
+						End If
+					End If
+					CloseHandle(hFile)
+					For i As Integer = FLines.Count - 1 To 0 Step -1
+						Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
+					Next i
+					FLines.Clear
+					i = 0
+					OldFileEncoding = FileEncoding
+					Dim As WString Ptr FText
+					WLet(FText, "")
+					For j As Integer = 0 To Len(sFileContents)
+						WAdd FText, WChr(sFileContents[j])
+						If sFileContents[j] = 10 Or sFileContents[j] = 0 Then
+							FECLine = New_(EditControlLine)
+							OlddwClientX = 0
+							If FECLine = 0 Then
+								Return
+							End If
+							pBuff = 0
+							WLet(pBuff, Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13)))
+							FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
+							iC = FindCommentIndex(*pBuff, OldiC)
+							FECLine->CommentIndex = iC
+							FECLine->InAsm = InAsm
+							FLines.Add(FECLine)
+							ChangeCollapsibility i
+							If FECLine->ConstructionIndex = C_Asm Then
+								InAsm = FECLine->ConstructionPart = 0
+							End If
+							FECLine->InAsm = InAsm
+							OldiC = iC
+							i += 1
+							WLet(FText, "")
+						End If
+					Next
+					CalculateLeftMargin
+					If Not WithoutScroll Then ScrollToCaret
 				End If
 			End If
-			If InStr(Buff, Chr(13, 10)) Then
-				NewLineType= NewLineTypes.WindowsCRLF
-				NewLineStr = Chr(10)
-			ElseIf InStr(Buff, Chr(10)) Then
-				NewLineType= NewLineTypes.LinuxLF
-				NewLineStr = Chr(10)
-			ElseIf InStr(Buff, Chr(13)) Then
-				NewLineType= NewLineTypes.MacOSCR
-				NewLineStr = Chr(13)
+		#EndIf
+		If Not FileLoaded Then
+			If Open(FileName For Binary Access Read As #Fn) = 0 Then
+				FileSize = LOF(Fn) + 1
+				Buff = String(4, 0)
+				Get #Fn, , Buff
+				If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
+					FileEncoding = FileEncodings.Utf32BOM
+					EncodingStr = "utf-32"
+					Buff = String(1024, 0)
+					Get #Fn, 0, Buff
+					'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
+				ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
+					FileEncoding = FileEncodings.Utf16BOM
+					EncodingStr = "utf-16"
+					Buff = String(1024, 0)
+					Get #Fn, 0, Buff
+				ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
+					FileEncoding = FileEncodings.Utf8BOM
+					EncodingStr = "utf-8"
+					Buff = String(1024, 0)
+					Get #Fn, , Buff
+				Else
+					Buff = String(FileSize, 0)
+					Get #Fn, 0, Buff
+					If (CheckUTF8NoBOM(Buff)) Then
+						FileEncoding = FileEncodings.Utf8
+						EncodingStr = "ascii"
+					Else
+						FileEncoding = FileEncodings.PlainText
+						EncodingStr = "ascii"
+					End If
+				End If
+				If InStr(Buff, Chr(13, 10)) Then
+					NewLineType= NewLineTypes.WindowsCRLF
+					NewLineStr = Chr(10)
+				ElseIf InStr(Buff, Chr(10)) Then
+					NewLineType= NewLineTypes.LinuxLF
+					NewLineStr = Chr(10)
+				ElseIf InStr(Buff, Chr(13)) Then
+					NewLineType= NewLineTypes.MacOSCR
+					NewLineStr = Chr(13)
+				Else
+					NewLineType= NewLineTypes.WindowsCRLF
+					NewLineStr = Chr(10)
+				End If
 			Else
-				NewLineType= NewLineTypes.WindowsCRLF
-				NewLineStr = Chr(10)
+				MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
+				CloseFile_(Fn)
+				Exit Sub
 			End If
+			CloseFile_(Fn)
 			For i As Integer = FLines.Count - 1 To 0 Step -1
 				Delete_( Cast(EditControlLine Ptr, FLines.Items[i]))
 			Next i
 			FLines.Clear
 			'VisibleLines.Clear
 			i = 0
-		Else
-			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
+			Fn = FreeFile_
+			Result = Open(FileName For Input Encoding EncodingStr As #Fn)
+			If Result = 0 Then
+				OldFileEncoding = FileEncoding
+				Dim As Integer MaxChars = LOF(Fn)
+				WReAllocate(BuffRead, MaxChars)
+				Do Until EOF(Fn)
+					FECLine = New_( EditControlLine)
+					OlddwClientX = 0
+					If FECLine = 0 Then
+						CloseFile_(Fn)
+						Return
+					End If
+					pBuff = 0
+					If OldFileEncoding = FileEncodings.Utf8 Then
+						Line Input #Fn, Buff
+						WLet(pBuff, FromUtf8(StrPtr(Buff)))
+					Else
+						LineInputWstr Fn, BuffRead, MaxChars
+						WLet(pBuff, *BuffRead)
+					End If
+					FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
+					iC = FindCommentIndex(*pBuff, OldiC)
+					FECLine->CommentIndex = iC
+					FECLine->InAsm = InAsm
+					FLines.Add(FECLine)
+					ChangeCollapsibility i
+					If FECLine->ConstructionIndex = C_Asm Then
+						InAsm = FECLine->ConstructionPart = 0
+					End If
+					FECLine->InAsm = InAsm
+					OldiC = iC
+					i += 1
+				Loop
+				CalculateLeftMargin
+				If Not WithoutScroll Then ScrollToCaret
+			End If
+			WDeAllocate(BuffRead)
 			CloseFile_(Fn)
-			Exit Sub
 		End If
-		CloseFile_(Fn)
-		Fn = FreeFile_
-		Result = Open(FileName For Input Encoding EncodingStr As #Fn)
-		If Result = 0 Then
-			OldFileEncoding = FileEncoding
-			Dim As Integer MaxChars = LOF(Fn)
-			WReAllocate(BuffRead, MaxChars)
-			Do Until EOF(Fn)
-				FECLine = New_( EditControlLine)
-				OlddwClientX = 0
-				If FECLine = 0 Then
-					CloseFile_(Fn)
-					Return
-				End If
-				pBuff = 0
-				If OldFileEncoding = FileEncodings.Utf8 Then
-					Line Input #Fn, Buff
-					WLet(pBuff, FromUtf8(StrPtr(Buff)))
-				Else
-					LineInputWstr Fn, BuffRead, MaxChars
-					WLet(pBuff, *BuffRead)
-				End If
-				FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
-				iC = FindCommentIndex(*pBuff, OldiC)
-				FECLine->CommentIndex = iC
-				FECLine->InAsm = InAsm
-				FLines.Add(FECLine)
-				ChangeCollapsibility i
-				If FECLine->ConstructionIndex = C_Asm Then
-					InAsm = FECLine->ConstructionPart = 0
-				End If
-				FECLine->InAsm = InAsm
-				OldiC = iC
-				i += 1
-			Loop
-			CalculateLeftMargin
-			If Not WithoutScroll Then ScrollToCaret
-		End If
-		WDeAllocate(BuffRead)
-		CloseFile_(Fn)
-	End Sub
-	
-	Sub EditControl.CalculateLeftMargin
-		LeftMargin = Len(Str(LinesCount)) * dwCharX + dwCharY + 30 '5 * dwCharX
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef FileName As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
 		Dim As Integer Fn = FreeFile_
 		Dim As Integer Result
 		Dim As String FileEncodingText, NewLine
+		Dim As Boolean FileSaved
 		If FileEncoding = FileEncodings.Utf8 Then
 			FileEncodingText = "ascii"
 		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
@@ -1326,31 +1425,64 @@ Namespace My.Sys.Forms
 		Else
 			NewLine = Chr(13, 10)
 		End If
-		If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
-			If FileEncoding = FileEncodings.Utf8 Then
-				For i As Integer = 0 To FLines.Count - 1
-					Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine;
-				Next
-			ElseIf FileEncoding = FileEncodings.PlainText  Then
-				For i As Integer = 0 To FLines.Count - 1
-					Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
-				Next
-			Else
-				For i As Integer = 0 To FLines.Count - 1
-					Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
-				Next
+		#ifdef __USE_WINAPI__
+			Dim Buff As String
+			Buff = FileName
+			If Buff <> FileName Then
+				FileSaved = True
+				Dim As .HANDLE hFile
+				Dim As DWORD dwBytesToWrite, dwBytesWrite
+				Dim As String sFileContents
+				hFile = CreateFile(@FileName, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+				If hFile = INVALID_HANDLE_VALUE Then
+					MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
+				Else
+					If FileEncoding = FileEncodings.Utf8 Then
+						For i As Integer = 0 To FLines.Count - 1
+							sFileContents &= ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine
+						Next
+					ElseIf FileEncoding = FileEncodings.PlainText  Then
+						For i As Integer = 0 To FLines.Count - 1
+							sFileContents &= *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine
+						Next
+					Else
+						For i As Integer = 0 To FLines.Count - 1
+							sFileContents &= *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine
+						Next
+					End If
+					dwBytesToWrite = Len(sFileContents)
+					WriteFile(hFile, @sFileContents[0], dwBytesToWrite, @dwBytesWrite, NULL)
+  					CloseHandle(hFile)
+				End If
 			End If
-		Else
-			MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
+		#endif
+		If Not FileSaved Then
+			If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
+				If FileEncoding = FileEncodings.Utf8 Then
+					For i As Integer = 0 To FLines.Count - 1
+						Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & NewLine;
+					Next
+				ElseIf FileEncoding = FileEncodings.PlainText  Then
+					For i As Integer = 0 To FLines.Count - 1
+						Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
+					Next
+				Else
+					For i As Integer = 0 To FLines.Count - 1
+						Print #Fn, *Cast(EditControlLine Ptr, FLines.Item(i))->Text & NewLine;
+					Next
+				End If
+			Else
+				MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
+			End If
+			CloseFile_(Fn)
 		End If
-		CloseFile_(Fn)
 	End Sub
 	
 	Sub EditControl.Clear
 		ChangeText "", 0, "Matn tozalandi"
 	End Sub
 	
-	Function EditControl.LinesCount As Integer '...'
+	Function EditControl.LinesCount As Integer
 		Return FLines.Count
 	End Function
 	
@@ -2245,7 +2377,7 @@ Namespace My.Sys.Forms
 				cairo_fill (cr)
 			End If
 			cairo_move_to(cr, LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0) + extend.Width - 0.5, _
-			 (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
+			(iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
 			'GetColor TextColor, iRed, iGreen, iBlue
 			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
@@ -3056,59 +3188,59 @@ Namespace My.Sys.Forms
 								OldJ = FECLine->Ends.Item(j)
 							Next
 						Else
-						'					Canvas.Font.Bold = False
-						'					Canvas.Font.Italic = False
-						'					Canvas.Font.Underline = False
-						'#ifndef __USE_GTK__
-						'SelectObject(bufDC, This.Canvas.Font.Handle)
-						'#endif
-						IzohBoshi = 1
-						Do While j <= l
-							'If LeftMargin + (-HScrollPos + j) * dwCharX > dwClientX AndAlso Mid(*s, j, 1) = " " Then
-							'	If iC = 0 AndAlso FECLine->CommentIndex > 0 Then IzohBoshi = j + 1
-							'	OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Exit Do
-							'End If
-							If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
-								bQ = Not bQ
-								If bQ Then
-									QavsBoshi = j
-								Else
-									'								If StringsBold Then Canvas.Font.Bold = True
-									'								If StringsItalic Then Canvas.Font.Italic = True
-									'								If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
-									PaintText zz, i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, CBool(Strings.Underline) Or CBool(bInIncludeFileRect) And CBool(iCursorLine = z)
-									'txtCode.SetSel ss + QavsBoshi - 1, ss + j
-									'txtCode.SelColor = clMaroon
-								End If
-							ElseIf Not bQ Then
-								If Mid(*s, j, 2) = IIf(CStyle, "/*", "/'") Then
-									iC = iC + 1
-									If iC = 1 Then
-										IzohBoshi = j
+							'					Canvas.Font.Bold = False
+							'					Canvas.Font.Italic = False
+							'					Canvas.Font.Underline = False
+							'#ifndef __USE_GTK__
+							'SelectObject(bufDC, This.Canvas.Font.Handle)
+							'#endif
+							IzohBoshi = 1
+							Do While j <= l
+								'If LeftMargin + (-HScrollPos + j) * dwCharX > dwClientX AndAlso Mid(*s, j, 1) = " " Then
+								'	If iC = 0 AndAlso FECLine->CommentIndex > 0 Then IzohBoshi = j + 1
+								'	OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Exit Do
+								'End If
+								If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
+									bQ = Not bQ
+									If bQ Then
+										QavsBoshi = j
+									Else
+										'								If StringsBold Then Canvas.Font.Bold = True
+										'								If StringsItalic Then Canvas.Font.Italic = True
+										'								If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
+										PaintText zz, i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, CBool(Strings.Underline) Or CBool(bInIncludeFileRect) And CBool(iCursorLine = z)
+										'txtCode.SetSel ss + QavsBoshi - 1, ss + j
+										'txtCode.SelColor = clMaroon
 									End If
-									j = j + 1
-								ElseIf iC > 0 AndAlso Mid(*s, j, 2) = IIf(CStyle, "*/", "'/") Then
-									iC = iC - 1
-									j = j + 1
-									If iC = 0 Then
-										PaintText zz, i, *s, IzohBoshi - 1, j, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
-									End If
-								ElseIf iC = 0 Then
-									t = Asc(Mid(*s, j, 1))
-									u = Asc(Mid(*s, j + 1, 1))
-									If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
-										If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) AndAlso pkeywords2 <> 0 Then
-											If Not CStyle Then
-												KeyWord = GetKeyWordCase("rem", pkeywords2)
-												If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = KeyWord
-											End If
+								ElseIf Not bQ Then
+									If Mid(*s, j, 2) = IIf(CStyle, "/*", "/'") Then
+										iC = iC + 1
+										If iC = 1 Then
+											IzohBoshi = j
 										End If
-										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
-										Exit Do
-									ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") Then
-										If MatnBoshi = 0 Then MatnBoshi = j
-										If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
-											'If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
+										j = j + 1
+									ElseIf iC > 0 AndAlso Mid(*s, j, 2) = IIf(CStyle, "*/", "'/") Then
+										iC = iC - 1
+										j = j + 1
+										If iC = 0 Then
+											PaintText zz, i, *s, IzohBoshi - 1, j, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+										End If
+									ElseIf iC = 0 Then
+										t = Asc(Mid(*s, j, 1))
+										u = Asc(Mid(*s, j + 1, 1))
+										If LCase(Mid(" " & *s & " ", j, 5)) = " rem " OrElse LCase(Mid(" " & *s & " ", j, 6)) = " @rem " OrElse LCase(Mid(" " & *s & " ", j, 5)) = !"\trem " Then
+											If CInt(ChangeKeyWordsCase) AndAlso CInt(FSelEndLine <> z) AndAlso pkeywords2 <> 0 Then
+												If Not CStyle Then
+													KeyWord = GetKeyWordCase("rem", pkeywords2)
+													If KeyWord <> Mid(*s, j, 3) Then Mid(*s, j, 3) = KeyWord
+												End If
+											End If
+											PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+											Exit Do
+										ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") Then
+											If MatnBoshi = 0 Then MatnBoshi = j
+											If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
+												'If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 												MatnLCase = LCase(Matn)
 												If InStr("#$", .Left(Matn, 1)) Then
@@ -3285,7 +3417,7 @@ Namespace My.Sys.Forms
 																End If
 															End If
 														End If
-															
+														
 														If Not OneDot Then
 															' Keywords
 															If tIndex = -1 Then
@@ -3530,35 +3662,35 @@ Namespace My.Sys.Forms
 												Else
 													PaintText zz, i, *s, MatnBoshi - 1, j, *sc
 												End If
-											'End If
-											MatnBoshi = 0
+												'End If
+												MatnBoshi = 0
+											End If
+										ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", IIf(FECLine->InAsm, Chr(t) = "#", Chr(t) = "'")) Then
+											PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+											'txtCode.SetSel ss + j - 1, ss + l
+											'txtCode.SelColor = clGreen
+											Exit Do
+										ElseIf CharType(Mid(*s, j, 1)) = 2 Then
+											PaintText zz, i, *s, j - 1, j, ColorOperators
+										ElseIf Chr(t) <> " " Then
+											PaintText zz, i, *s, j - 1, j, NormalText
 										End If
-									ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", IIf(FECLine->InAsm, Chr(t) = "#", Chr(t) = "'")) Then
-										PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
-										'txtCode.SetSel ss + j - 1, ss + l
-										'txtCode.SelColor = clGreen
-										Exit Do
-									ElseIf CharType(Mid(*s, j, 1)) = 2 Then
-										PaintText zz, i, *s, j - 1, j, ColorOperators
-									ElseIf Chr(t) <> " " Then
-										PaintText zz, i, *s, j - 1, j, NormalText
 									End If
 								End If
+								j = j + 1
+							Loop
+							If iC > 0 Then
+								PaintText zz, i, *s, Max(0, IzohBoshi - 1), l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
+								'txtCode.SetSel IzohBoshi - 1, ss + l
+								'txtCode.SelColor = clGreen
+								'If i = EndLine Then k = txtCode.LinesCount
+							ElseIf bQ Then
+								'						If StringsBold Then Canvas.Font.Bold = True
+								'						If StringsItalic Then Canvas.Font.Italic = True
+								'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
+								PaintText zz, i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, Strings.Underline Or bInIncludeFileRect And CBool(iCursorLine = z)
 							End If
-							j = j + 1
-						Loop
-						If iC > 0 Then
-							PaintText zz, i, *s, Max(0, IzohBoshi - 1), l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
-							'txtCode.SetSel IzohBoshi - 1, ss + l
-							'txtCode.SelColor = clGreen
-							'If i = EndLine Then k = txtCode.LinesCount
-						ElseIf bQ Then
-							'						If StringsBold Then Canvas.Font.Bold = True
-							'						If StringsItalic Then Canvas.Font.Italic = True
-							'						If StringsUnderline OrElse bInIncludeFileRect AndAlso iCursorLine = z Then Canvas.Font.Underline = True: SelectObject(bufDC, This.Canvas.Font.Handle)
-							PaintText zz, i, *s, QavsBoshi - 1, j, Strings, , Strings.Bold, Strings.Italic, Strings.Underline Or bInIncludeFileRect And CBool(iCursorLine = z)
-						End If
-						If CurExecutedLine <> i AndAlso OldExecutedLine <> i Then FECLine->EndsCompleted = True
+							If CurExecutedLine <> i AndAlso OldExecutedLine <> i Then FECLine->EndsCompleted = True
 						End If
 					End If
 					If zz = ActiveCodePane AndAlso CInt(HighlightCurrentLine) AndAlso CInt(CInt(z = FSelEndLine + 1) OrElse CInt(z = FSelEndLine)) Then ' AndAlso z = FLines.Count - 1
@@ -4652,9 +4784,9 @@ Namespace My.Sys.Forms
 			Dim As Integer VScrollMax
 			Dim As Integer Ptr pVScrollPos, pHScrollPos
 			#ifdef __USE_WINAPI__
-			Dim As HWND sbScrollBarV, sbScrollBarH
+				Dim As HWND sbScrollBarV, sbScrollBarH
 			#else
-			Dim As GtkAdjustment Ptr adjustmentv, adjustmenth
+				Dim As GtkAdjustment Ptr adjustmentv, adjustmenth
 			#endif
 			If bShifted Then
 				VScrollMax = IIf(ActiveCodePane = 0, HScrollMaxLeft, HScrollMaxRight)
@@ -5721,7 +5853,7 @@ Namespace My.Sys.Forms
 			End Select
 			#ifdef __USE_GTK__
 			End Select
-			Case GDK_KEY_RELEASE
+		Case GDK_KEY_RELEASE
 			bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
 			bShifted = msg.Event->key.state And GDK_SHIFT_MASK
 			#else
