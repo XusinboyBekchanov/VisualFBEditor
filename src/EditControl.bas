@@ -1236,6 +1236,7 @@ Namespace My.Sys.Forms
 				Dim As DWORD dwBytesToRead, dwBytesRead
 				Dim As String sFileContents
 				Dim As WString Ptr wsFileContents
+				Dim As Integer BOMSymbolsCount
 				hFile = CreateFile(@FileName, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 				If hFile = INVALID_HANDLE_VALUE Then
 					MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
@@ -1247,21 +1248,26 @@ Namespace My.Sys.Forms
 						Buff = .Left(sFileContents, 4)
 						If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
 							FileEncoding = FileEncodings.Utf32BOM
-							EncodingStr = "utf-32"
-							'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
+							BOMSymbolsCount = 4
+						ElseIf Buff[0] = 0 AndAlso Buff[1] = 0 AndAlso Buff[2] = &HFE AndAlso Buff[3] = &HFF Then 'Big Endian
+							FileEncoding = FileEncodings.Utf32BOM
+							BOMSymbolsCount = 4
 						ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
 							FileEncoding = FileEncodings.Utf16BOM
-							EncodingStr = "utf-16"
+							BOMSymbolsCount = 2
+						ElseIf Buff[0] = &HFE AndAlso Buff[1] = &HFF Then 'Big Endian
+							FileEncoding = FileEncodings.Utf16BOM
+							BOMSymbolsCount = 2
 						ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
 							FileEncoding = FileEncodings.Utf8BOM
-							EncodingStr = "utf-8"
+							BOMSymbolsCount = 3
 						Else
 							If (CheckUTF8NoBOM(sFileContents)) Then
 								FileEncoding = FileEncodings.Utf8
-								EncodingStr = "ascii"
+								BOMSymbolsCount = 0
 							Else
 								FileEncoding = FileEncodings.PlainText
-								EncodingStr = "ascii"
+								BOMSymbolsCount = 0
 							End If
 						End If
 					End If
@@ -1275,6 +1281,9 @@ Namespace My.Sys.Forms
 					If FileEncoding = FileEncodings.PlainText Then
 						WLet(wsFileContents, sFileContents)
 					Else
+						If BOMSymbolsCount Then
+							sFileContents = Mid(sFileContents, BOMSymbolsCount + 1)
+						End If
 						WReAllocate(wsFileContents, dwBytesRead)
 						MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, StrPtr(sFileContents), dwBytesRead, wsFileContents, dwBytesRead)
 					End If
@@ -1412,18 +1421,23 @@ Namespace My.Sys.Forms
 	Sub EditControl.SaveToFile(ByRef FileName As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
 		Dim As Integer Fn = FreeFile_
 		Dim As Integer Result
-		Dim As String FileEncodingText, NewLine
+		Dim As String FileEncodingText, NewLine, FileEncodingSymbols
 		Dim As Boolean FileSaved
 		If FileEncoding = FileEncodings.Utf8 Then
 			FileEncodingText = "ascii"
+			FileEncodingSymbols = ""
 		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
 			FileEncodingText = "utf-8"
+			FileEncodingSymbols = Chr(&HEF, &HBB, &HBF)
 		ElseIf FileEncoding = FileEncodings.Utf16BOM Then
 			FileEncodingText = "utf-16"
+			FileEncodingSymbols = Chr(&HFF, &HFE)
 		ElseIf FileEncoding = FileEncodings.Utf32BOM Then
 			FileEncodingText = "utf-32"
+			FileEncodingSymbols = Chr(&HFF, &HFE, 0, 0)
 		Else
 			FileEncodingText = "ascii"
+			FileEncodingSymbols = ""
 		End If
 		If NewLineType = NewLineTypes.LinuxLF Then
 			NewLine = Chr(10)
@@ -1439,7 +1453,7 @@ Namespace My.Sys.Forms
 				FileSaved = True
 				Dim As .HANDLE hFile
 				Dim As DWORD dwBytesToWrite, dwBytesWrite
-				Dim As String sFileContents
+				Dim As String sFileContents = FileEncodingSymbols
 				hFile = CreateFile(@FileName, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
 				If hFile = INVALID_HANDLE_VALUE Then
 					MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
@@ -5995,19 +6009,21 @@ Namespace My.Sys.Forms
 				End If
 				PaintControl
 			End If
-			DownButton = -1
-			If bInIncludeFileRect Then
-				FECLine = FLines.Items[FSelEndLine]
-				Var Pos1 = InStr(*FECLine->Text, """")
-				If Pos1 > 0 Then
-					Var Pos2 = InStr(Pos1 + 1, *FECLine->Text, """")
-					If Pos2 > 0 Then
-						If OnLinkClicked Then OnLinkClicked(This, Mid(*FECLine->Text, Pos1 + 1, Pos2 - Pos1 - 1))
+			If DownButton <> -1 Then
+				If bInIncludeFileRect Then
+					FECLine = FLines.Items[FSelEndLine]
+					Var Pos1 = InStr(*FECLine->Text, """")
+					If Pos1 > 0 Then
+						Var Pos2 = InStr(Pos1 + 1, *FECLine->Text, """")
+						If Pos2 > 0 Then
+							If OnLinkClicked Then OnLinkClicked(This, Mid(*FECLine->Text, Pos1 + 1, Pos2 - Pos1 - 1))
+						End If
 					End If
+				ElseIf InStartOfLine(FSelEndLine, X, y) AndAlso FSelEndLine = FSelStartLine Then
+					Breakpoint
 				End If
-			ElseIf InStartOfLine(FSelEndLine, X, y) AndAlso FSelEndLine = FSelStartLine Then
-				Breakpoint
 			End If
+			DownButton = -1
 			#ifdef __USE_GTK__
 			Case GDK_BUTTON_PRESS
 				'				gtk_widget_grab_focus(widget)
