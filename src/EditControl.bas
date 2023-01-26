@@ -1458,17 +1458,13 @@ Namespace My.Sys.Forms
 				If hFile = INVALID_HANDLE_VALUE Then
 					MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
 				Else
-					If FileEncoding = FileEncodings.Utf8 Then
-						For i As Integer = 0 To FLines.Count - 1
-							sFileContents &= ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & IIf(i = FLines.Count - 1, "", WStr(NewLine))
-						Next
-					ElseIf FileEncoding = FileEncodings.PlainText  Then
+					If FileEncoding = FileEncodings.PlainText  Then
 						For i As Integer = 0 To FLines.Count - 1
 							sFileContents &= *Cast(EditControlLine Ptr, FLines.Item(i))->Text & IIf(i = FLines.Count - 1, "", WStr(NewLine))
 						Next
 					Else
 						For i As Integer = 0 To FLines.Count - 1
-							sFileContents &= *Cast(EditControlLine Ptr, FLines.Item(i))->Text & IIf(i = FLines.Count - 1, "", WStr(NewLine))
+							sFileContents &= ToUtf8(*Cast(EditControlLine Ptr, FLines.Item(i))->Text) & IIf(i = FLines.Count - 1, "", WStr(NewLine))
 						Next
 					End If
 					dwBytesToWrite = Len(sFileContents)
