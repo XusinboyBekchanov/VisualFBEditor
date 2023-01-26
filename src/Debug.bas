@@ -5956,8 +5956,12 @@ End Sub
 '' --------------------------------------------------------
 Private Sub dbg_include(strg As String)
 	Dim As Integer temp
-	If InStr(strg,Any "/\")=0 Then ''just the name no path
-		strg=Left(source(0),InStrRev(source(0),Any "/\"))+strg ''adding path
+	If InStr(strg, Any "/\") = 0 Then ''just the name no path Then
+		Dim As ProjectElement Ptr Project
+		Dim As TreeNode Ptr ProjectNode
+		Dim As UString MainFile = GetMainFile(False, Project, ProjectNode)
+		strg = Left(MainFile, InStrRev(MainFile, Any "/\")) + strg ''adding path
+		'strg=Left(source(0),InStrRev(source(0),Any "/\"))+strg ''adding path
 	End If
 	#ifdef __FB_WIN32__
 		strg=LCase(strg) ''only WDS file names are sensitive on LNX
