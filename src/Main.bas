@@ -1574,9 +1574,12 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					End If
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
 						pFiles->Add *ee->FileName
+						Var ecc = New_(EditControlContent)
+						ecc->FileName = *ee->FileName
+						ecc->Tag = ppe
 						RemoveGlobalTypeElements *ee->FileName
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
-						ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
+						ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
 					End If
 					If inFolder Then
 						ppe->Files.Add *ee->FileName
@@ -3398,9 +3401,9 @@ Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As US
 	End If
 End Function
 
-Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ByRef Args As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFileItem As Any Ptr = 0)
+Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ByRef Args As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, CurFileItem As Any Ptr = 0, OldFileItem As Any Ptr = 0)
 	If FormClosing Then Exit Sub
-	Dim As EditControlContent Ptr File, OldFile = OldFileItem
+	Dim As EditControlContent Ptr File = CurFileItem, OldFile = OldFileItem
 	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwriteWithContent Then
 		If ec = 0 Then
@@ -3408,8 +3411,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				MutexUnlock tlockSave
 				Exit Sub
 			Else
-				File = New_(EditControlContent)
-				File->FileName = Path
+				If File = 0 Then
+					File = New_(EditControlContent)
+					File->FileName = Path
+				End If
 				IncludeFiles.Add Path, File
 			End If
 		End If
@@ -3420,8 +3425,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			#endif
 		End If
 	End If
+	Var Idx = -1
 	If File = 0 Then
-		Var Idx = -1
 		If IncludeFiles.Contains(Path, , , , Idx) Then
 			File = IncludeFiles.Object(Idx)
 			If File = 0 Then
@@ -3434,8 +3439,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			File->FileName = Path
 			IncludeFiles.Add Path, File
 		End If
+	ElseIf CurFileItem <> 0 AndAlso IncludeFiles.Contains(Path, , , , Idx) Then
+		IncludeFiles.Object(Idx) = CurFileItem
 	End If
-	Var Idx = -1
 	If OldFile <> 0 AndAlso OldFile->Includes.Contains(Path, , , , Idx) Then
 		OldFile->Includes.Object(Idx) = File
 	End If
@@ -3472,29 +3478,34 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			inType = False
 			Do Until EOF(ff)
 				Line Input #ff, b
-				Lines.Add b
-				'If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
-				'	FECLine = New_( EditControlLine)
-				'	WLet(FECLine->Text, b)
-				'	iC = FindCommentIndex(b, OldiC)
-				'	FECLine->CommentIndex = iC
-				'	FECLine->InAsm = InAsm
-				'	File->Lines.Add(FECLine)
-				'	i = File->GetConstruction(*FECLine->Text, j, , InAsm)
-				'	FECLine->ConstructionIndex = i
-				'	FECLine->ConstructionPart = j
-				'	If FECLine->ConstructionIndex = C_Asm Then
-				'		InAsm = FECLine->ConstructionPart = 0
-				'	End If
-				'	FECLine->InAsm = InAsm
-				'	OldiC = iC
-				'	i += 1
-				'End If
+				If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
+					FECLine = New_( EditControlLine)
+					WLet(FECLine->Text, b)
+					iC = FindCommentIndex(b, OldiC)
+					FECLine->CommentIndex = iC
+					FECLine->InAsm = InAsm
+					i = File->GetConstruction(*FECLine->Text, j, , InAsm)
+					FECLine->ConstructionIndex = i
+					FECLine->ConstructionPart = j
+					If FECLine->ConstructionIndex = C_Asm Then
+						InAsm = FECLine->ConstructionPart = 0
+					End If
+					FECLine->InAsm = InAsm
+					OldiC = iC
+					i += 1
+					File->Lines.Add(FECLine)
+				Else
+					Lines.Add b
+				End If
 			Loop
 		End If
 		CloseFile_(ff)
 	End If
-	
+	If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
+		'LoadFunctionsWithContent Path, File->Tag, *File
+		'MutexUnlock tlockSave
+		'Exit Sub
+	End If
 	For i As Integer = 0 To Lines.Count - 1
 		b1 = Replace(Lines.Item(i), !"\t", " ")
 		If StartsWith(Trim(b1), "'") Then
@@ -4447,7 +4458,7 @@ End Sub
 Sub LoadOnlyFilePathOverwriteWithContent(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwriteWithContent, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
+		LoadFunctions Cast(EditControlContent Ptr, Param)->FileName, LoadParam.OnlyFilePathOverwriteWithContent, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	EndOfLoadFunctions
 End Sub

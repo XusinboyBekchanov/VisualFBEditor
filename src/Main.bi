@@ -291,7 +291,7 @@ Declare Function GetXY(XorY As Integer) As Integer
 #endif
 Declare Function FolderExists(ByRef FolderName As WString) As Boolean
 Declare Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
-Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef Args As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As Any Ptr = 0)
+Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef Args As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, CurFile As Any Ptr = 0, OldFile As Any Ptr = 0)
 Declare Sub LoadFunctionsSub(Param As Any Ptr)
 Declare Sub LoadOnlyFilePath(Param As Any Ptr)
 Declare Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)

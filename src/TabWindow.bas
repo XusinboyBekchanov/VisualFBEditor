@@ -975,13 +975,20 @@ Function TabWindow.SaveTab As Boolean
 	#ifndef __USE_GTK__
 		DateFileTime = GetFileLastWriteTime(*FFileName)
 	#endif
-	If IncludeFiles.Contains(FileName) Then
+	Var Idx = -1
+	If IncludeFiles.Contains(FileName, , , , Idx) Then
 		RemoveGlobalTypeElements FileName
 		If Not pLoadPaths->Contains(FileName) Then
 			pLoadPaths->Add FileName
 		End If
 		If Project Then
-			ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
+			Dim As EditControlContent Ptr ecc = IncludeFiles.Object(Idx)
+			If ecc = 0 Then
+				ecc = New_(EditControlContent)
+				ecc->FileName = *FFileName
+			End If
+			ecc->Tag = Project
+			ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
 		Else
 			ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
 		End If
@@ -6181,970 +6188,970 @@ Sub TabWindow.GetIncludeFiles
 	End If
 End Sub
 
-'Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ByRef Content As EditControlContent)
-'	Dim As TypeElement Ptr te, te1, tbi, func
-'	Content.Types.Clear
-'	For i As Integer = Content.Functions.Count - 1 To 0 Step -1
-'		te = Content.Functions.Object(i)
-'		'If NotForms Then
-'		'	If te->ElementType = "Type" AndAlso te->FileName <> FileName Then
-'		'		txtCode.Types.Add te->Name, te
-'		'		Continue For
-'		'	End If
-'		'End If
-'		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'			te1 = te->Elements.Object(j)
-'			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-'				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-'			Next
-'			te1->Elements.Clear
-'			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
-'		Next
-'		te->Elements.Clear
-'		Delete_( Cast(TypeElement Ptr, Content.Functions.Object(i)))
-'		'Functions.Remove i
-'	Next
-'	For i As Integer = Content.Namespaces.Count - 1 To 0 Step -1
-'		Delete_( Cast(TypeElement Ptr, Content.Namespaces.Object(i)))
-'	Next
-'	For i As Integer = Content.FunctionsOthers.Count - 1 To 0 Step -1
-'		te = Content.FunctionsOthers.Object(i)
-'		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
-'		Next
-'		te->Elements.Clear
-'		Delete_( Cast(TypeElement Ptr, Content.FunctionsOthers.Object(i)))
-'		'FunctionsOthers.Remove i
-'	Next
-'	For i As Integer = Content.LineLabels.Count - 1 To 0 Step -1
-'		Delete_( Cast(TypeElement Ptr, Content.LineLabels.Object(i)))
-'	Next
-'	For i As Integer = Content.Args.Count - 1 To 0 Step -1
-'		te = Content.Args.Object(i)
-'		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-'			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
-'		Next
-'		Delete_( Cast(TypeElement Ptr, Content.Args.Object(i)))
-'		'Args.Remove i
-'	Next
-'	Content.Functions.Clear
-'	Content.FunctionsOthers.Clear
-'	Content.Namespaces.Clear
-'	Content.Enums.Clear
-'	Content.Procedures.Clear
-'	Content.LineLabels.Clear
-'	Content.Args.Clear
-'	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, iStart, iEnd, l, nc
-'	Dim As Integer OldIncludeLine = -1, LastIndexFunctions, inPubProPri
-'	Dim As WStringList Ptr LastFileList
-'	Dim As IntegerList Ptr LastFileListLines
-'	Dim As UString sFileName = FileName
-'	Dim As TabWindow Ptr tb
-'	Dim As EditControlLine Ptr ECLine
-'	Dim As UString Comments, b, b0, b1, b2, bTrim, bTrimLCase, b0Trim, b0TrimLCase
-'	Dim As WStringList WithArgs, Namespaces, Includes
-'	Dim As Integer WithConstructionLine = -1, OldWithConstructionLine = -1
-'	Dim As WString Ptr FPath, FLine1, FLine2
-'	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc, bFind, bCurrentFile
-'	Dim As Integer IncludesCount
-'	Dim As Boolean IncludesChanged
-'	Dim As List Constructs
-'	If IsBas Then
-'		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
-'		WLetEx FLine2, GetFileName(*FLine1), True
-'	Else
-'		WLet(FLine1, "")
-'		WLet(FLine2, "")
-'	End If
-'	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
-'		If Content.ExternalIncludesLoaded Then
-'			For i As Integer = 0 To Content.Lines.Count - 1
-'				b = *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text
-'				If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then
-'					Pos1 = InStr(b, """")
-'					If Pos1 > 0 Then
-'						Pos2 = InStr(Pos1 + 1, b, """")
-'						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
-'						IncludesCount += 1
-'						If IncludesCount > Content.OldIncludes.Count OrElse *FPath <> Content.OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
-'							IncludesChanged = True
-'							Exit For
-'						End If
-'					End If
-'				End If
-'			Next
-'			If IncludesCount <> Content.OldIncludes.Count Then
-'				IncludesChanged = True
-'			End If
-'		Else
-'			Dim As TreeNode Ptr ProjectNode
-'			Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
-'			Content.CheckedFiles.Clear
-'			Content.ExternalFiles.Clear
-'			Content.ExternalFileLines.Clear
-'			Content.ExternalIncludes.Clear
-'			Content.ExternalFiles.Add sFileName
-'			Content.ExternalFileLines.Add 0
-'			AddExternalIncludes Content, 0, MainFile, sFileName
-'			Content.ExternalIncludesLoaded = True
-'			IncludesChanged = True
-'		End If
-'		If IncludesChanged Then
-'			For i As Integer = Content.FileLists.Count - 1 To 0 Step -1
-'				Delete_( Cast(WStringList Ptr, Content.FileLists.Item(i)))
-'			Next
-'			For i As Integer = Content.FileListsLines.Count - 1 To 0 Step -1
-'				Delete_( Cast(IntegerList Ptr, Content.FileListsLines.Item(i)))
-'			Next
-'			Content.FileLists.Clear
-'			Content.FileListsLines.Clear
-'			Content.Includes.Clear
-'			Content.IncludeLines.Clear
-'			Content.OldIncludes.Clear
-'			Content.OldIncludeLines.Clear
-'		End If
-'	End If
-'	IncludesCount = 0
-'	For j As Integer = 0 To Content.Lines.Count - 1
-'		If (Not bFind) AndAlso IsBas AndAlso StartsWith(LTrim(LCase(*Cast(EditControlLine Ptr, Content.Lines.Item(j))->Text), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
-'			sFileName = *FLine1
-'			If IncludesChanged Then
-'				Content.Includes.Add sFileName
-'				Content.IncludeLines.Add j
-'				Includes.Add sFileName
-'			End If
-'			OldIncludeLine = j
-'			bFind = True
-'			iStart = 0
-'			iEnd = Content.Lines.Count - 1
-'			bCurrentFile = False
-'		Else
-'			sFileName = FileName
-'			iStart = j
-'			iEnd = j
-'			bCurrentFile = True
-'		End If
-'		For i As Integer = iStart To iEnd
-'			ECLine = Content.Lines.Items[i]
-'			'If i >= iSelStartLine Then
-'			ECLine->Args.Clear
-'			ECLine->Ends.Clear
-'			ECLine->EndsCompleted = False
-'			'End If
-'			If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
-'				If bCurrentFile Then
-'					If OldIncludeLine = i - 1 Then
-'						Dim As WStringList Ptr FileList
-'						Dim As IntegerList Ptr FileListLines
-'						IncludesCount += 1
-'						If IncludesChanged Then
-'							FileList = New_(WStringList)
-'							FileListLines = New_(IntegerList)
-'							Content.FileLists.Add FileList
-'							Content.FileListsLines.Add FileListLines
-'							FileList->Sorted = True
-'							If LastFileList = 0 Then
-'								UpdateIncludedFilesList Content, *FileList, *FileListLines, j
-'							Else
-'								For i As Integer = 0 To LastFileList->Count - 1
-'									FileList->Add LastFileList->Item(i)
-'									FileListLines->Add LastFileListLines->Item(i)
-'								Next
-'								For i As Integer = 0 To Includes.Count - 1
-'									AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
-'									Content.OldIncludes.Add Includes.Item(i)
-'									Content.OldIncludeLines.Add OldIncludeLine
-'								Next i
-'							End If
-'							Includes.Clear
-'						Else
-'							FileList = Content.FileLists.Item(IncludesCount - 1)
-'							FileListLines = Content.FileListsLines.Item(IncludesCount - 1)
-'						End If
-'						LastFileList = FileList
-'						LastFileListLines = FileListLines
-'						ECLine->FileList = LastFileList
-'						ECLine->FileListLines = LastFileListLines
-'					End If
-'				End If
-'			End If
-'			ECLine->FileList = LastFileList
-'			ECLine->FileListLines = LastFileListLines
-'			ECLine->InConstruction = 0
-'			If inFunc Then ECLine->InConstruction = func
-'			b1 = Replace(*ECLine->Text, !"\t", " ")
-'			If StartsWith(Trim(b1), "'") Then
-'				Comments &= Mid(Trim(b1), 2) & Chr(13) & Chr(10)
-'				Continue For
-'			ElseIf Trim(b1) = "" Then
-'				Comments = ""
-'				Continue For
-'			End If
-'			Dim As UString res(Any)
-'			Split(b1, """", res())
-'			b2 = ""
-'			For j As Integer = 0 To UBound(res)
-'				If j = 0 Then
-'					b2 = res(0)
-'				ElseIf j Mod 2 = 0 Then
-'					b2 &= """" & res(j)
-'				Else
-'					b2 &= """" & WSpace(Len(res(j)))
-'				End If
-'			Next
-'			Pos1 = InStr(b2, "/'")
-'			Pos2 = InStr(b2, "'")
-'			If Pos1 = 0 OrElse (Pos2 <> 0 AndAlso Pos2 < Pos1) Then Pos1 = Pos2
-'			If Pos1 > 0 Then
-'				b2 = ..Left(b2, Pos1 - 1)
-'			End If
-'			If inFunc AndAlso func <> 0 AndAlso (func->ElementType = "Type" OrElse func->ElementType = "Union") Then
-'				b2 = Replace(b2, ":", "%")
-'			End If
-'			Split(b2, ":", res())
-'			Dim k As Integer = 1
-'			For jj As Integer = 0 To UBound(res)
-'				l = Len(res(jj))
-'				b = Mid(b1, k, l)
-'				b0 = Mid(b2, k, l)
-'				bTrim = Trim(b, Any !"\t ")
-'				bTrimLCase = LCase(bTrim)
-'				b0TrimLCase = LCase(Trim(b0, Any !"\t "))
-'				k = k + Len(res(jj)) + 1
-'				'			ECLine->InConstructionIndex = ConstructionIndex
-'				'			ECLine->InConstructionPart = ConstructionPart
-'				'			If ECLine->ConstructionIndex > 0 AndAlso ECLine->ConstructionIndex <> 1 AndAlso ECLine->ConstructionIndex <> 2 AndAlso ECLine->ConstructionIndex <> 3 Then
-'				'				If ECLine->ConstructionPart = 0 Then
-'				'					ConstructionIndex = ECLine->ConstructionIndex
-'				'					ConstructionBlocks.Add ECLine
-'				'				ElseIf ECLine->ConstructionPart = 1 Then
-'				'					ConstructionPart = ECLine->ConstructionPart
-'				'				ElseIf ECLine->ConstructionPart = 2 Then
-'				'					If ConstructionBlocks.Count > 0 Then
-'				'						ECLIne2 = ConstructionBlocks.Items[ConstructionBlocks.Count - 1]
-'				'						If ECLine2->ConstructionIndex <> ECLine->ConstructionIndex AndAlso ECLine2->ConstructionIndex <> 3 AndAlso ECLine2->ConstructionIndex <> 2 Then
-'				'							' Does not match construction blocks
-'				'						Else
-'				'							ConstructionBlocks.Remove ConstructionBlocks.Count - 1
-'				'							If ConstructionBlocks.Count > 0 Then
-'				'								ECLIne2 = ConstructionBlocks.Items[ConstructionBlocks.Count - 1]
-'				'								ConstructionIndex = ECLIne2->ConstructionIndex
-'				'								ConstructionPart = 0
-'				'							Else
-'				'								ConstructionIndex = -1
-'				'								ConstructionPart = 0
-'				'							End If
-'				'						End If
-'				'					Else
-'				'						' Do not found construction index
-'				'					End If
-'				'				End If
-'				'			End If
-'				ECLine->InWithConstruction = WithConstructionLine
-'				If ECLine->ConstructionIndex = C_With Then
-'					If ECLine->ConstructionPart = 0 Then
-'						OldWithConstructionLine = WithConstructionLine
-'						WithConstructionLine = i
-'					Else
-'						WithConstructionLine = OldWithConstructionLine
-'					End If
-'				End If
-'				If StartsWith(bTrimLCase, "#include ") Then
-'					#ifndef __USE_GTK__
-'						Pos1 = InStr(b, """")
-'						If Pos1 > 0 Then
-'							Pos2 = InStr(Pos1 + 1, b, """")
-'							WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
-'							If bCurrentFile Then
-'								If IncludesChanged Then
-'									Content.Includes.Add *FPath
-'									Content.IncludeLines.Add j
-'									Includes.Add *FPath
-'								End If
-'								OldIncludeLine = j
-'							End If
-'							If Not pLoadPaths->Contains(*FPath) Then
-'								Var AddedIndex = pLoadPaths->Add(*FPath)
-'								ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
-'							End If
-'						End If
-'					#endif
-'				Else
-'					If ECLine->ConstructionIndex >= 0 AndAlso Constructions(ECLine->ConstructionIndex).Accessible Then
-'						If ECLine->ConstructionPart = 0 Then
-'							Pos1 = 0
-'							Pos2 = 0
-'							l = 0
-'							inPubProPri = 0
-'							inFunc = True
-'							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
-'							If Pos1 > 0 Then
-'								l = Len(Trim(Constructions(ECLine->ConstructionIndex).Name0)) + 1
-'								Pos4 = Pos1 + l
-'								Pos2 = InStr(Pos1 + l, bTrim, "(")
-'								Pos5 = Pos2
-'								Pos3 = InStr(Pos1 + l, bTrim, " ")
-'								If Pos3 > 0 AndAlso (Pos2 = 0 OrElse Pos3 < Pos2) Then Pos2 = Pos3
-'								te = New_( TypeElement)
-'								If Pos2 > 0 Then
-'									te->Name = Trim(Mid(bTrim, Pos1 + l, Pos2 - Pos1 - l))
-'								Else
-'									te->Name = Trim(Mid(bTrim, Pos1 + l))
-'								End If
-'								If ECLine->ConstructionIndex = C_Property Then
-'									If EndsWith(bTrim, ")") Then
-'										te->DisplayName = te->Name & " [Let]"
-'									Else
-'										te->DisplayName = te->Name & " [Get]"
-'									End If
-'								ElseIf CInt(ECLine->ConstructionIndex >= C_Enum AndAlso ECLine->ConstructionIndex <= C_Union) OrElse CInt(ECLine->ConstructionIndex >= C_Operator AndAlso ECLine->ConstructionIndex <= C_Destructor) Then
-'									te->DisplayName = te->Name & " [" & Trim(Constructions(ECLine->ConstructionIndex).Name0) & "]"
-'								Else
-'									te->DisplayName = te->Name
-'								End If
-'								Pos1 = InStr(te->Name, ".")
-'								Dim As Boolean TypeProcedure
-'								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True
-'								Pos2 = InStr(bTrim, ")")
-'								If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
-'									te->TypeName = te->Name
-'									te->Parameters = te->Name & IIf(Pos5 > 0, Mid(bTrim, Pos5), "()")
-'								Else
-'									te->Parameters = Mid(bTrim, Pos4 + Pos1)
-'									Pos3 = InStr(Pos2, bTrimLCase, ")as ")
-'									If Pos3 = 0 Then Pos3 = InStr(Pos2 + 1, bTrimLCase, " as ")
-'									If Pos3 = 0 Then Pos3 = InStr(Pos2 + 1, bTrimLCase, " extends "): If Pos3 > 0 Then Pos3 += 5
-'									If Pos3 = 0 Then Pos3 = Len(b)
-'									te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
-'									If te->Name = "Object" And te->TypeName = "Object" Then
-'										te->Name = "My.Sys.Object"
-'										te->TypeName = ""
-'									End If
-'									Pos4 = InStr(te->TypeName, "'")
-'									If Pos4 > 0 Then
-'										te->TypeName = Trim(..Left(te->TypeName, Pos4 - 1))
-'									End If
-'									te->TypeName = WithoutPointers(te->TypeName)
-'								End If
-'								If ECLine->ConstructionIndex = C_Class Then
-'									te->ElementType = "Type"
-'								Else
-'									te->ElementType = Trim(Constructions(ECLine->ConstructionIndex).Name0)
-'								End If
-'								If ECLine->ConstructionIndex = C_P_Macro Then te->ElementType = Mid(te->ElementType, 2)
-'								te->StartLine = i
-'								te->EndLine = i + 1
-'								te->FileName = sFileName
-'								te->Tag = tb
-'								ECLine->InConstruction = te
-'								Constructs.Add te
-'								If Comments <> "" Then te->Comment = Comments: Comments = ""
-'								LastIndexFunctions = Content.Functions.Add(te->DisplayName, te)
-'								If ECLine->ConstructionIndex = C_Enum Then
-'									Content.Enums.Add te->Name, te
-'								ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
-'									Content.Types.Add te->Name, te
-'								ElseIf Not TypeProcedure Then
-'									Content.Procedures.Add te->Name, te
-'								End If
-'								If Not TypeProcedure Then
-'									If Namespaces.Count > 0 Then
-'										Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-'										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
-'									End If
-'								End If
-'								func = te
-'								If Pos2 > 0 AndAlso Pos5 > 0 Then
-'									Dim As UString CurType, res1(Any), ElementValue
-'									Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-'									For n As Integer = 0 To UBound(res1)
-'										res1(n) = Replace(res1(n), ";", ",")
-'										Pos1 = InStr(res1(n), "=")
-'										If Pos1 > 0 Then
-'											ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-'										Else
-'											ElementValue = ""
-'										End If
-'										If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'										Pos1 = InStr(LCase(res1(n)), " as ")
-'										If Pos1 > 0 Then
-'											CurType = Trim(Mid(res1(n), Pos1 + 4))
-'											CurType = Replace(CurType, "`", "=")
-'											Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
-'											If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
-'											If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'										End If
-'										Var te = New_( TypeElement)
-'										If res1(n).ToLower.StartsWith("byref") Then
-'											res1(n) = Trim(Mid(res1(n), 6))
-'											te->ElementType = "ByRefParameter"
-'										ElseIf res1(n).ToLower.StartsWith("byval") Then
-'											res1(n) = Trim(Mid(res1(n), 6))
-'											te->ElementType = "ByValParameter"
-'										Else
-'											te->ElementType = "ByValParameter"
-'										End If
-'										Pos1 = InStr(res1(n), "(")
-'										If Pos1 > 0 Then
-'											res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'										End If
-'										res1(n) = res1(n).TrimAll
-'										If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-'											Pos1 = InStrRev(CurType, ".")
-'											If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-'										End If
-'										te->Name = res1(n)
-'										te->DisplayName = res1(n)
-'										te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-'										'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-'										te->TypeName = CurType
-'										te->TypeName = WithoutPointers(te->TypeName)
-'										te->Value = ElementValue
-'										te->Locals = 0
-'										te->StartLine = i
-'										te->EndLine = i
-'										te->Parameters = res1(n) & " As " & CurType
-'										te->FileName = sFileName
-'										te->Tag = tb
-'										func->Elements.Add te->Name, te
-'									Next
-'								End If
-'							End If
-'						ElseIf ECLine->ConstructionPart = 2 Then
-'							If func <> 0 Then
-'								func->EndLine = i: inFunc = False
-'								LastIndexFunctions = -1
-'								If Constructs.Count > 0 Then Constructs.Remove Constructs.Count - 1
-'								If Constructs.Count > 0 Then
-'									ECLine->InConstruction = Constructs.Item(Constructs.Count - 1)
-'									func = ECLine->InConstruction
-'									inFunc = True
-'								Else
-'									ECLine->InConstruction = 0
-'								End If
-'							End If
-'						ElseIf ECLine->ConstructionPart = 1 AndAlso (ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class) Then
-'							If StartsWith(bTrimLCase & " ", "public: ") Then
-'								inPubProPri = 0
-'							ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
-'								inPubProPri = 1
-'							ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
-'								inPubProPri = 2
-'							End If
-'						End If
-'					ElseIf ECLine->ConstructionIndex = C_Namespace Then
-'						If ECLine->ConstructionPart = 0 Then
-'							Pos1 = InStr(11, bTrim, " ")
-'							Dim As String Names
-'							Dim As UString res1(Any)
-'							If Pos1 = 0 Then
-'								Names = Trim(Mid(bTrim, 11))
-'							Else
-'								Names = Trim(Mid(bTrim, 11, Pos1 - 11))
-'							End If
-'							Split(Names, ".", res1())
-'							nc = UBound(res1)
-'							For n As Integer = 0 To nc
-'								te = New_( TypeElement)
-'								te->Name = Trim(res1(n))
-'								te->DisplayName = te->Name
-'								te->ElementType = "Namespace"
-'								te->Parameters = bTrim
-'								Pos4 = InStr(te->Parameters, "'")
-'								If Pos4 > 0 Then
-'									te->Parameters = Trim(.Left(te->Parameters, Pos4 - 1))
-'								End If
-'								te->StartLine = i
-'								te->EndLine = i
-'								te->ControlType = nc
-'								If Comments <> "" Then te->Comment = Comments: Comments = ""
-'								te->FileName = sFileName
-'								te->Tag = tb
-'								Content.Namespaces.Add te->Name, te
-'								If Namespaces.Count > 0 Then
-'									Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-'									If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
-'								End If
-'								Namespaces.Add te->Name, te
-'							Next
-'						ElseIf ECLine->ConstructionPart = 2 Then
-'							If Namespaces.Count > 0 Then
-'								nc = Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->ControlType
-'								For ii As Integer = 0 To nc
-'									If Namespaces.Count > 0 Then Namespaces.Remove Namespaces.Count - 1
-'								Next ii
-'							End If
-'						End If
-'					'ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
-'					'	inPubProPri = 0
-'					'ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
-'					'	inPubProPri = 1
-'					'ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
-'					'	inPubProPri = 2
-'					ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
-'						Pos1 = InStr(9, bTrim, " ")
-'						Pos2 = InStr(9, bTrim, "(")
-'						Pos5 = Pos2
-'						If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
-'						te = New_( TypeElement)
-'						If Pos1 = 0 Then
-'							te->Name = Trim(Mid(bTrim, 9))
-'						Else
-'							te->Name = Trim(Mid(bTrim, 9, Pos1 - 9))
-'						End If
-'						te->DisplayName = te->Name
-'						te->ElementType = "Define"
-'						te->Parameters = bTrim
-'						Pos4 = InStr(te->Parameters, "'")
-'						If Pos4 > 0 Then
-'							te->Parameters = Trim(..Left(te->Parameters, Pos4 - 1))
-'						End If
-'						te->StartLine = i
-'						te->EndLine = i
-'						If Comments <> "" Then te->Comment = Comments: Comments = ""
-'						te->FileName = sFileName
-'						te->Tag = tb
-'						Content.FunctionsOthers.Add te->DisplayName, te
-'						Content.Procedures.Add te->Name, te
-'						If Namespaces.Count > 0 Then
-'							Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-'							If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
-'						End If
-'						Pos2 = InStr(bTrim, ")")
-'						If Pos2 > 0 AndAlso Pos5 > 0 Then
-'							ECLine->Args.Add te
-'							Var teDeclare = te
-'							Dim As UString CurType, res1(Any), ElementValue
-'							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-'							For n As Integer = 0 To UBound(res1)
-'								res1(n) = Trim(Replace(res1(n), ";", ","))
-'								Pos1 = InStr(res1(n), "=")
-'								If Pos1 > 0 Then
-'									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-'								Else
-'									ElementValue = ""
-'								End If
-'								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								Pos1 = InStr(LCase(res1(n)), " as ")
-'								If Pos1 > 0 Then
-'									CurType = Trim(Mid(res1(n), Pos1 + 4))
-'									CurType = Replace(CurType, "`", "=")
-'									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								End If
-'								Var te = New_(TypeElement)
-'								If res1(n).ToLower.StartsWith("byref") Then
-'									res1(n) = Trim(Mid(res1(n), 6))
-'									te->ElementType = "ByRefParameter"
-'								ElseIf res1(n).ToLower.StartsWith("byval") Then
-'									res1(n) = Trim(Mid(res1(n), 6))
-'									te->ElementType = "ByValParameter"
-'								Else
-'									te->ElementType = "ByValParameter"
-'								End If
-'								Pos1 = InStr(res1(n), "(")
-'								If Pos1 > 0 Then
-'									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								End If
-'								res1(n) = res1(n).TrimAll
-'								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-'									Pos1 = InStrRev(CurType, ".")
-'									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-'								End If
-'								te->Name = res1(n)
-'								te->DisplayName = res1(n)
-'								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-'								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-'								te->TypeName = WithoutPointers(CurType)
-'								te->Value = ElementValue
-'								te->Locals = 0
-'								te->StartLine = i
-'								te->EndLine = i
-'								te->Parameters = res1(n) & " As " & CurType
-'								te->FileName = sFileName
-'								te->Tag = tb
-'								teDeclare->Elements.Add te->Name, te
-'							Next
-'						End If
-'					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
-'						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
-'						Dim As String t
-'						Dim As UString b2 = b, res1(), ElementValue
-'						Pos2 = InStr(b2, "'")
-'						If Pos2 > 0 Then b2 = Trim(.Left(b2, Pos2 - 1))
-'						Split b2, ",", res1()
-'						For n As Integer = 0 To UBound(res1)
-'							Pos3 = InStr(res1(n), "=")
-'							If Pos3 > 0 Then
-'								ElementValue = Trim(Mid(res1(n), Pos3 + 1))
-'							Else
-'								ElementValue = ""
-'							End If
-'							Var te = New_( TypeElement)
-'							If Pos3 > 0 Then
-'								t = Trim(.Left(res1(n), Pos3 - 1))
-'							Else
-'								t = Trim(res1(n))
-'							End If
-'							te->Name = t
-'							If func->Name <> "" Then
-'								te->DisplayName = func->Name & "." & te->Name
-'							Else
-'								te->DisplayName = te->Name
-'							End If
-'							te->ElementType = "EnumItem"
-'							te->Value = ElementValue
-'							te->StartLine = i
-'							te->EndLine = i
-'							te->Parameters = Trim(res1(n))
-'							te->FileName = sFileName
-'							If func Then func->Elements.Add te->Name, te
-'							te = New_( TypeElement)
-'							te->Name = t
-'							If tbi AndAlso tbi->Name <> "" Then
-'								te->DisplayName = tbi->Name & "." & te->Name
-'							Else
-'								te->DisplayName = te->Name
-'							End If
-'							te->ElementType = "EnumItem"
-'							te->Value = ElementValue
-'							te->StartLine = i
-'							te->Parameters = Trim(res1(n))
-'							te->FileName = sFileName
-'							Content.Args.Add te->Name, te
-'						Next n
-'					ElseIf StartsWith(bTrimLCase, "declare ") Then
-'						iStart = 9
-'						Pos1 = InStr(9, bTrim, " ")
-'						Pos2 = InStrRev(bTrim, ")")
-'						Pos3 = InStr(9, bTrim, "(")
-'						Pos5 = Pos3
-'						'n = Len(Trim(*FLine)) - Len(Trim(Mid(Trim(*FLine), Pos1)))
-'						If StartsWith(Trim(Mid(bTrimLCase, 9)), "static ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "virtual ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "abstract ") Then
-'							iStart = Pos1
-'							Pos1 = InStr(Pos1 + 1, bTrim, " ")
-'						End If
-'						Pos4 = InStr(Pos1 + 1, bTrim, " ")
-'						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
-'						Pos4 = InStr(bTrim, "(")
-'						If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
-'						te = New_( TypeElement)
-'						te->Declaration = True
-'						If Pos1 = 0 Then
-'							te->ElementType = Trim(Mid(bTrim, iStart))
-'						Else
-'							te->ElementType = Trim(Mid(bTrim, iStart, Pos1 - iStart))
-'						End If
-'						If inFunc Then
-'							te->Locals = inPubProPri
-'						End If
-'						If inFunc AndAlso func <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
-'							te->Name = func->Name
-'							te->DisplayName = func->Name & " [" & te->ElementType & "] [Declare]"
-'							te->TypeName = func->Name
-'							te->Parameters = te->Name & IIf(Pos4 > 0, Mid(bTrim, Pos4), "()")
-'						Else
-'							If Pos3 = 0 Then
-'								te->Name = Trim(Mid(bTrim, Pos1))
-'							Else
-'								te->Name = Trim(Mid(bTrim, Pos1, Pos3 - Pos1))
-'							End If
-'							If LCase(te->ElementType) = "property" Then
-'								If EndsWith(bTrim, ")") Then
-'									te->DisplayName = te->Name & " [Let] [Declare]"
-'								Else
-'									te->DisplayName = te->Name & " [Get] [Declare]"
-'								End If
-'							Else
-'								te->DisplayName = te->Name & " [Declare]"
-'							End If
-'							te->Parameters = Trim(Mid(bTrim, Pos1))
-'							If inFunc AndAlso func <> 0 Then te->DisplayName = func->Name & "." & te->DisplayName
-'							Pos2 = InStr(bTrim, ")")
-'							Pos3 = InStr(Pos2, bTrimLCase, ")as ")
-'							If Pos3 = 0 Then Pos3 = InStr(Pos2 + 1, bTrimLCase, " as ")
-'							If Pos3 = 0 Then
-'								te->TypeName = ""
-'							Else
-'								te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
-'							End If
-'							Pos4 = InStr(te->TypeName, " ")
-'							If Pos4 < 1 Then Pos4 = InStr(te->TypeName, "'")
-'							If Pos4 > 0 Then
-'								te->TypeName = Trim(..Left(te->TypeName, Pos4 - 1))
-'							End If
-'							te->TypeName = WithoutPointers(te->TypeName)
-'						End If
-'						te->StartLine = i
-'						te->EndLine = i
-'						te->FileName = sFileName
-'						te->Tag = tb
-'						'ECLine->InConstruction = te
-'						If Comments <> "" Then te->Comment = Comments: Comments = ""
-'						If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
-'							func->Elements.Add te->Name, te
-'						Else
-'							Content.FunctionsOthers.Add te->DisplayName, te
-'							Content.Procedures.Add te->Name, te
-'						End If
-'						If Pos2 > 0 AndAlso Pos5 > 0 Then
-'							ECLine->Args.Add te
-'							Var teDeclare = te
-'							Dim As UString CurType, res1(Any), ElementValue
-'							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-'							For n As Integer = 0 To UBound(res1)
-'								res1(n) = Trim(Replace(res1(n), ";", ","))
-'								Pos1 = InStr(res1(n), "=")
-'								If Pos1 > 0 Then
-'									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-'								Else
-'									ElementValue = ""
-'								End If
-'								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								Pos1 = InStr(LCase(res1(n)), " as ")
-'								If Pos1 > 0 Then
-'									CurType = Trim(Mid(res1(n), Pos1 + 4))
-'									CurType = Replace(CurType, "`", "=")
-'									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								End If
-'								Var te = New_( TypeElement)
-'								If res1(n).ToLower.StartsWith("byref") Then
-'									res1(n) = Trim(Mid(res1(n), 6))
-'									te->ElementType = "ByRefParameter"
-'								ElseIf res1(n).ToLower.StartsWith("byval") Then
-'									res1(n) = Trim(Mid(res1(n), 6))
-'									te->ElementType = "ByValParameter"
-'								Else
-'									te->ElementType = "ByValParameter"
-'								End If
-'								Pos1 = InStr(res1(n), "(")
-'								If Pos1 > 0 Then
-'									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								End If
-'								res1(n) = res1(n).TrimAll
-'								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-'									Pos1 = InStrRev(CurType, ".")
-'									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-'								End If
-'								te->Name = res1(n)
-'								te->DisplayName = res1(n)
-'								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-'								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-'								te->TypeName = WithoutPointers(CurType)
-'								te->Value = ElementValue
-'								te->Locals = 0
-'								te->StartLine = i
-'								te->EndLine = i
-'								te->Parameters = res1(n) & " As " & CurType
-'								te->FileName = sFileName
-'								te->Tag = tb
-'								teDeclare->Elements.Add te->Name, te
-'							Next
-'						End If
-'					ElseIf EndsWith(Trim(b1), ":") AndAlso IsArg2(bTrim) AndAlso Not Content.Functions.Contains(bTrim) Then
-'						Var te = New_(TypeElement)
-'						te->Name = bTrim
-'						te->DisplayName = Trim(b1)
-'						te->ElementType = "LineLabel"
-'						te->TypeName = ""
-'						te->Locals = 0
-'						te->StartLine = i
-'						te->EndLine = i
-'						te->Parameters = te->DisplayName
-'						te->FileName = sFileName
-'						te->Tag = tb
-'						If inFunc AndAlso func <> 0 Then
-'							func->Elements.Add te->Name, te
-'						Else
-'							Content.LineLabels.Add te->Name, te
-'						End If
-'					Else
-'						If CInt(StartsWith(bTrimLCase, "as ")) OrElse _
-'							CInt(InStr(b0TrimLCase, " as ")) OrElse _
-'							CInt(StartsWith(bTrimLCase, "const ")) OrElse _
-'							CInt(StartsWith(bTrimLCase, "common ")) OrElse _
-'							CInt(StartsWith(bTrimLCase, "var ")) Then
-'							Dim As UString b2 = bTrim
-'							If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") OrElse b2.ToLower.StartsWith("for ") Then
-'								b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
-'							End If
-'							Dim As UString CurType, ElementValue
-'							Dim As UString res1(Any)
-'							Dim As Boolean bShared, bOldAs
-'							Pos1 = InStr(b2, "'")
-'							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
-'							If b2.ToLower.StartsWith("shared ") Then bShared = True: b2 = Trim(Mid(b2, 7))
-'							If b2.ToLower.StartsWith("import ") Then b2 = Trim(Mid(b2, 7))
-'							If b2.ToLower.StartsWith("as ") Then
-'								bOldAs = True
-'								CurType = Trim(Mid(b2, 4))
-'								Pos1 = InStr(CurType, " ")
-'								Pos2 = InStr(CurType, " Ptr ")
-'								Pos3 = InStr(CurType, " Pointer ")
-'								If Pos2 > 0 Then
-'									Pos1 = Pos2 + 4
-'								ElseIf Pos3 > 0 Then
-'									Pos1 = Pos2 + 8
-'								End If
-'								If Pos1 > 0 Then
-'									Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
-'									'							Pos2 = InStr(CurType, "*")   'David Change,  As WString *2 a,b,c,
-'									'							If Pos2 > 1 Then Pos1 = Pos2
-'									'							If Pos1 > 1 Then CurType = Trim(..Left(CurType, Pos1 - 1))
-'									If UBound(res1) > -1 Then
-'										CurType = ..Left(CurType, Pos1 + Len(res1(0)))
-'									End If
-'								End If
-'							Else
-'								Split GetChangedCommas(b2), ",", res1()
-'							End If
-'							For n As Integer = 0 To UBound(res1)
-'								res1(n) = Replace(res1(n), ";", ",")
-'								Pos1 = InStr(res1(n), "=")
-'								If Pos1 > 0 Then
-'									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-'									If CBool(n = 0) AndAlso bOldAs Then
-'										CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
-'										CurType = Replace(CurType, "`", "=")
-'									End If
-'								Else
-'									ElementValue = ""
-'								End If
-'								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								Pos1 = InStr(LCase(res1(n)), " as ")
-'								If Pos1 > 0 AndAlso Not bOldAs Then
-'									CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
-'									CurType = Replace(CurType, "`", "=")
-'									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								End If
-'								If CBool(n = 0) AndAlso bOldAs Then
-'									CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
-'								End If
-'								Pos1 = InStr(res1(n), ":")
-'								If Pos1 > 0 Then
-'									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								End If
-'								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
-'									res1(n) = Trim(Mid(res1(n), 6))
-'								End If
-'								Pos1 = InStr(res1(n), "(")
-'								If Pos1 > 0 Then
-'									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								End If
-'								Pos1 = InStr(LCase(res1(n)), " alias ")
-'								If Pos1 > 0 Then
-'									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'								End If
-'								res1(n) = res1(n).TrimAll
-'								Pos1 = InStrRev(res1(n), " ")
-'								If Pos1 > 0 Then
-'									res1(n) = Trim(Mid(res1(n), Pos1 + 1))
-'								End If
-'								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-'									Pos1 = InStrRev(CurType, ".")
-'									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-'								End If
-'								Var te = New_( TypeElement)
-'								te->Name = res1(n)
-'								te->DisplayName = res1(n)
-'								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-'								te->TypeName = CurType
-'								te->TypeName = WithoutPointers(te->TypeName)
-'								If StartsWith(bTrimLCase, "common ") Then
-'									te->ElementType = "CommonVariable"
-'								ElseIf StartsWith(bTrimLCase, "const ") Then
-'									te->ElementType = "Constant"
-'								ElseIf bShared Then
-'									te->ElementType = "SharedVariable"
-'								Else
-'									te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), "Event", IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
-'								End If
-'								te->Value = ElementValue
-'								If inFunc Then
-'									te->Locals = inPubProPri
-'								Else
-'									te->Locals = 0 'IIf(bShared, 0, 2)
-'								End If
-'								te->StartLine = i
-'								te->EndLine = i
-'								te->Parameters = res1(n) & " As " & CurType
-'								te->FileName = sFileName
-'								te->Tag = tb
-'								If inFunc AndAlso func <> 0 Then
-'									func->Elements.Add te->Name, te
-'								Else
-'									Content.Args.Add te->Name, te
-'									If Namespaces.Count > 0 Then
-'										Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-'										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
-'									End If
-'								End If
-'								If te->ElementType = "Event" Then
-'									Dim As UString bTrim = CurType
-'									Pos2 = InStrRev(bTrim, ")")
-'									Pos5 = InStr(bTrim, "(")
-'									If Pos2 > 0 AndAlso Pos5 > 0 Then
-'										ECLine->Args.Add te
-'										Var teDeclare = te
-'										Dim As UString CurType, res1(Any), ElementValue
-'										Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-'										For n As Integer = 0 To UBound(res1)
-'											res1(n) = Trim(Replace(res1(n), ";", ","))
-'											Pos1 = InStr(res1(n), "=")
-'											If Pos1 > 0 Then
-'												ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-'											Else
-'												ElementValue = ""
-'											End If
-'											If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'											Pos1 = InStr(LCase(res1(n)), " as ")
-'											If Pos1 > 0 Then
-'												CurType = Trim(Mid(res1(n), Pos1 + 4))
-'												CurType = Replace(CurType, "`", "=")
-'												res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'											End If
-'											Var te = New_( TypeElement)
-'											If res1(n).ToLower.StartsWith("byref") Then
-'												res1(n) = Trim(Mid(res1(n), 6))
-'												te->ElementType = "ByRefParameter"
-'											ElseIf res1(n).ToLower.StartsWith("byval") Then
-'												res1(n) = Trim(Mid(res1(n), 6))
-'												te->ElementType = "ByValParameter"
-'											Else
-'												te->ElementType = "ByValParameter"
-'											End If
-'											Pos1 = InStr(res1(n), "(")
-'											If Pos1 > 0 Then
-'												res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-'											End If
-'											res1(n) = res1(n).TrimAll
-'											If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-'												Pos1 = InStrRev(CurType, ".")
-'												If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-'											End If
-'											te->Name = res1(n)
-'											te->DisplayName = res1(n)
-'											te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-'											'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-'											te->TypeName = WithoutPointers(CurType)
-'											te->Value = ElementValue
-'											te->Locals = 0
-'											te->StartLine = i
-'											te->EndLine = i
-'											te->Parameters = res1(n) & " As " & CurType
-'											te->FileName = sFileName
-'											te->Tag = tb
-'											teDeclare->Elements.Add te->Name, te
-'										Next
-'									End If
-'								End If
-'							Next
-'						End If
-'					End If
-'				End If
-'			Next jj
-'		Next
-'	Next
-'End Sub
+Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ByRef Content As EditControlContent)
+	Dim As TypeElement Ptr te, te1, tbi, func
+	Content.Types.Clear
+	For i As Integer = Content.Functions.Count - 1 To 0 Step -1
+		te = Content.Functions.Object(i)
+		'If NotForms Then
+		'	If te->ElementType = "Type" AndAlso te->FileName <> FileName Then
+		'		txtCode.Types.Add te->Name, te
+		'		Continue For
+		'	End If
+		'End If
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			te1 = te->Elements.Object(j)
+			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+			Next
+			te1->Elements.Clear
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		Next
+		te->Elements.Clear
+		Delete_( Cast(TypeElement Ptr, Content.Functions.Object(i)))
+		'Functions.Remove i
+	Next
+	For i As Integer = Content.Namespaces.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, Content.Namespaces.Object(i)))
+	Next
+	For i As Integer = Content.FunctionsOthers.Count - 1 To 0 Step -1
+		te = Content.FunctionsOthers.Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		Next
+		te->Elements.Clear
+		Delete_( Cast(TypeElement Ptr, Content.FunctionsOthers.Object(i)))
+		'FunctionsOthers.Remove i
+	Next
+	For i As Integer = Content.LineLabels.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, Content.LineLabels.Object(i)))
+	Next
+	For i As Integer = Content.Args.Count - 1 To 0 Step -1
+		te = Content.Args.Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+		Next
+		Delete_( Cast(TypeElement Ptr, Content.Args.Object(i)))
+		'Args.Remove i
+	Next
+	Content.Functions.Clear
+	Content.FunctionsOthers.Clear
+	Content.Namespaces.Clear
+	Content.Enums.Clear
+	Content.Procedures.Clear
+	Content.LineLabels.Clear
+	Content.Args.Clear
+	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, iStart, iEnd, l, nc
+	Dim As Integer OldIncludeLine = -1, LastIndexFunctions, inPubProPri
+	Dim As WStringList Ptr LastFileList
+	Dim As IntegerList Ptr LastFileListLines
+	Dim As UString sFileName = FileName
+	Dim As TabWindow Ptr tb
+	Dim As EditControlLine Ptr ECLine
+	Dim As UString Comments, b, b0, b1, b2, bTrim, bTrimLCase, b0Trim, b0TrimLCase
+	Dim As WStringList WithArgs, Namespaces, Includes
+	Dim As Integer WithConstructionLine = -1, OldWithConstructionLine = -1
+	Dim As WString Ptr FPath, FLine1, FLine2
+	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc, bFind, bCurrentFile
+	Dim As Integer IncludesCount
+	Dim As Boolean IncludesChanged
+	Dim As List Constructs
+	If IsBas Then
+		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
+		WLetEx FLine2, GetFileName(*FLine1), True
+	Else
+		WLet(FLine1, "")
+		WLet(FLine2, "")
+	End If
+	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
+		If Content.ExternalIncludesLoaded Then
+			For i As Integer = 0 To Content.Lines.Count - 1
+				b = *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text
+				If StartsWith(LCase(Trim(b, Any !"\t ")), "#include ") Then
+					Pos1 = InStr(b, """")
+					If Pos1 > 0 Then
+						Pos2 = InStr(Pos1 + 1, b, """")
+						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+						IncludesCount += 1
+						If IncludesCount > Content.OldIncludes.Count OrElse *FPath <> Content.OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
+							IncludesChanged = True
+							Exit For
+						End If
+					End If
+				End If
+			Next
+			If IncludesCount <> Content.OldIncludes.Count Then
+				IncludesChanged = True
+			End If
+		Else
+			Dim As TreeNode Ptr ProjectNode
+			Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
+			Content.CheckedFiles.Clear
+			Content.ExternalFiles.Clear
+			Content.ExternalFileLines.Clear
+			Content.ExternalIncludes.Clear
+			Content.ExternalFiles.Add sFileName
+			Content.ExternalFileLines.Add 0
+			AddExternalIncludes Content, 0, MainFile, sFileName
+			Content.ExternalIncludesLoaded = True
+			IncludesChanged = True
+		End If
+		If IncludesChanged Then
+			For i As Integer = Content.FileLists.Count - 1 To 0 Step -1
+				Delete_( Cast(WStringList Ptr, Content.FileLists.Item(i)))
+			Next
+			For i As Integer = Content.FileListsLines.Count - 1 To 0 Step -1
+				Delete_( Cast(IntegerList Ptr, Content.FileListsLines.Item(i)))
+			Next
+			Content.FileLists.Clear
+			Content.FileListsLines.Clear
+			Content.Includes.Clear
+			Content.IncludeLines.Clear
+			Content.OldIncludes.Clear
+			Content.OldIncludeLines.Clear
+		End If
+	End If
+	IncludesCount = 0
+	For j As Integer = 0 To Content.Lines.Count - 1
+		If (Not bFind) AndAlso IsBas AndAlso StartsWith(LTrim(LCase(*Cast(EditControlLine Ptr, Content.Lines.Item(j))->Text), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
+			sFileName = *FLine1
+			If IncludesChanged Then
+				Content.Includes.Add sFileName
+				Content.IncludeLines.Add j
+				Includes.Add sFileName
+			End If
+			OldIncludeLine = j
+			bFind = True
+			iStart = 0
+			iEnd = Content.Lines.Count - 1
+			bCurrentFile = False
+		Else
+			sFileName = FileName
+			iStart = j
+			iEnd = j
+			bCurrentFile = True
+		End If
+		For i As Integer = iStart To iEnd
+			ECLine = Content.Lines.Items[i]
+			'If i >= iSelStartLine Then
+			ECLine->Args.Clear
+			ECLine->Ends.Clear
+			ECLine->EndsCompleted = False
+			'End If
+			If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
+				If bCurrentFile Then
+					If OldIncludeLine = i - 1 Then
+						Dim As WStringList Ptr FileList
+						Dim As IntegerList Ptr FileListLines
+						IncludesCount += 1
+						If IncludesChanged Then
+							FileList = New_(WStringList)
+							FileListLines = New_(IntegerList)
+							Content.FileLists.Add FileList
+							Content.FileListsLines.Add FileListLines
+							FileList->Sorted = True
+							If LastFileList = 0 Then
+								UpdateIncludedFilesList Content, *FileList, *FileListLines, j
+							Else
+								For i As Integer = 0 To LastFileList->Count - 1
+									FileList->Add LastFileList->Item(i)
+									FileListLines->Add LastFileListLines->Item(i)
+								Next
+								For i As Integer = 0 To Includes.Count - 1
+									AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
+									Content.OldIncludes.Add Includes.Item(i)
+									Content.OldIncludeLines.Add OldIncludeLine
+								Next i
+							End If
+							Includes.Clear
+						Else
+							FileList = Content.FileLists.Item(IncludesCount - 1)
+							FileListLines = Content.FileListsLines.Item(IncludesCount - 1)
+						End If
+						LastFileList = FileList
+						LastFileListLines = FileListLines
+						ECLine->FileList = LastFileList
+						ECLine->FileListLines = LastFileListLines
+					End If
+				End If
+			End If
+			ECLine->FileList = LastFileList
+			ECLine->FileListLines = LastFileListLines
+			ECLine->InConstruction = 0
+			If inFunc Then ECLine->InConstruction = func
+			b1 = Replace(*ECLine->Text, !"\t", " ")
+			If StartsWith(Trim(b1), "'") Then
+				Comments &= Mid(Trim(b1), 2) & Chr(13) & Chr(10)
+				Continue For
+			ElseIf Trim(b1) = "" Then
+				Comments = ""
+				Continue For
+			End If
+			Dim As UString res(Any)
+			Split(b1, """", res())
+			b2 = ""
+			For j As Integer = 0 To UBound(res)
+				If j = 0 Then
+					b2 = res(0)
+				ElseIf j Mod 2 = 0 Then
+					b2 &= """" & res(j)
+				Else
+					b2 &= """" & WSpace(Len(res(j)))
+				End If
+			Next
+			Pos1 = InStr(b2, "/'")
+			Pos2 = InStr(b2, "'")
+			If Pos1 = 0 OrElse (Pos2 <> 0 AndAlso Pos2 < Pos1) Then Pos1 = Pos2
+			If Pos1 > 0 Then
+				b2 = ..Left(b2, Pos1 - 1)
+			End If
+			If inFunc AndAlso func <> 0 AndAlso (func->ElementType = "Type" OrElse func->ElementType = "Union") Then
+				b2 = Replace(b2, ":", "%")
+			End If
+			Split(b2, ":", res())
+			Dim k As Integer = 1
+			For jj As Integer = 0 To UBound(res)
+				l = Len(res(jj))
+				b = Mid(b1, k, l)
+				b0 = Mid(b2, k, l)
+				bTrim = Trim(b, Any !"\t ")
+				bTrimLCase = LCase(bTrim)
+				b0TrimLCase = LCase(Trim(b0, Any !"\t "))
+				k = k + Len(res(jj)) + 1
+				'			ECLine->InConstructionIndex = ConstructionIndex
+				'			ECLine->InConstructionPart = ConstructionPart
+				'			If ECLine->ConstructionIndex > 0 AndAlso ECLine->ConstructionIndex <> 1 AndAlso ECLine->ConstructionIndex <> 2 AndAlso ECLine->ConstructionIndex <> 3 Then
+				'				If ECLine->ConstructionPart = 0 Then
+				'					ConstructionIndex = ECLine->ConstructionIndex
+				'					ConstructionBlocks.Add ECLine
+				'				ElseIf ECLine->ConstructionPart = 1 Then
+				'					ConstructionPart = ECLine->ConstructionPart
+				'				ElseIf ECLine->ConstructionPart = 2 Then
+				'					If ConstructionBlocks.Count > 0 Then
+				'						ECLIne2 = ConstructionBlocks.Items[ConstructionBlocks.Count - 1]
+				'						If ECLine2->ConstructionIndex <> ECLine->ConstructionIndex AndAlso ECLine2->ConstructionIndex <> 3 AndAlso ECLine2->ConstructionIndex <> 2 Then
+				'							' Does not match construction blocks
+				'						Else
+				'							ConstructionBlocks.Remove ConstructionBlocks.Count - 1
+				'							If ConstructionBlocks.Count > 0 Then
+				'								ECLIne2 = ConstructionBlocks.Items[ConstructionBlocks.Count - 1]
+				'								ConstructionIndex = ECLIne2->ConstructionIndex
+				'								ConstructionPart = 0
+				'							Else
+				'								ConstructionIndex = -1
+				'								ConstructionPart = 0
+				'							End If
+				'						End If
+				'					Else
+				'						' Do not found construction index
+				'					End If
+				'				End If
+				'			End If
+				ECLine->InWithConstruction = WithConstructionLine
+				If ECLine->ConstructionIndex = C_With Then
+					If ECLine->ConstructionPart = 0 Then
+						OldWithConstructionLine = WithConstructionLine
+						WithConstructionLine = i
+					Else
+						WithConstructionLine = OldWithConstructionLine
+					End If
+				End If
+				If StartsWith(bTrimLCase, "#include ") Then
+					#ifndef __USE_GTK__
+						Pos1 = InStr(b, """")
+						If Pos1 > 0 Then
+							Pos2 = InStr(Pos1 + 1, b, """")
+							WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+							If bCurrentFile Then
+								If IncludesChanged Then
+									Content.Includes.Add *FPath
+									Content.IncludeLines.Add j
+									Includes.Add *FPath
+								End If
+								OldIncludeLine = j
+							End If
+							If Not pLoadPaths->Contains(*FPath) Then
+								Var AddedIndex = pLoadPaths->Add(*FPath)
+								ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
+							End If
+						End If
+					#endif
+				Else
+					If ECLine->ConstructionIndex >= 0 AndAlso Constructions(ECLine->ConstructionIndex).Accessible Then
+						If ECLine->ConstructionPart = 0 Then
+							Pos1 = 0
+							Pos2 = 0
+							l = 0
+							inPubProPri = 0
+							inFunc = True
+							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
+							If Pos1 > 0 Then
+								l = Len(Trim(Constructions(ECLine->ConstructionIndex).Name0)) + 1
+								Pos4 = Pos1 + l
+								Pos2 = InStr(Pos1 + l, bTrim, "(")
+								Pos5 = Pos2
+								Pos3 = InStr(Pos1 + l, bTrim, " ")
+								If Pos3 > 0 AndAlso (Pos2 = 0 OrElse Pos3 < Pos2) Then Pos2 = Pos3
+								te = New_( TypeElement)
+								If Pos2 > 0 Then
+									te->Name = Trim(Mid(bTrim, Pos1 + l, Pos2 - Pos1 - l))
+								Else
+									te->Name = Trim(Mid(bTrim, Pos1 + l))
+								End If
+								If ECLine->ConstructionIndex = C_Property Then
+									If EndsWith(bTrim, ")") Then
+										te->DisplayName = te->Name & " [Let]"
+									Else
+										te->DisplayName = te->Name & " [Get]"
+									End If
+								ElseIf CInt(ECLine->ConstructionIndex >= C_Enum AndAlso ECLine->ConstructionIndex <= C_Union) OrElse CInt(ECLine->ConstructionIndex >= C_Operator AndAlso ECLine->ConstructionIndex <= C_Destructor) Then
+									te->DisplayName = te->Name & " [" & Trim(Constructions(ECLine->ConstructionIndex).Name0) & "]"
+								Else
+									te->DisplayName = te->Name
+								End If
+								Pos1 = InStr(te->Name, ".")
+								Dim As Boolean TypeProcedure
+								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True
+								Pos2 = InStr(bTrim, ")")
+								If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
+									te->TypeName = te->Name
+									te->Parameters = te->Name & IIf(Pos5 > 0, Mid(bTrim, Pos5), "()")
+								Else
+									te->Parameters = Mid(bTrim, Pos4 + Pos1)
+									Pos3 = InStr(Pos2, bTrimLCase, ")as ")
+									If Pos3 = 0 Then Pos3 = InStr(Pos2 + 1, bTrimLCase, " as ")
+									If Pos3 = 0 Then Pos3 = InStr(Pos2 + 1, bTrimLCase, " extends "): If Pos3 > 0 Then Pos3 += 5
+									If Pos3 = 0 Then Pos3 = Len(b)
+									te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
+									If te->Name = "Object" And te->TypeName = "Object" Then
+										te->Name = "My.Sys.Object"
+										te->TypeName = ""
+									End If
+									Pos4 = InStr(te->TypeName, "'")
+									If Pos4 > 0 Then
+										te->TypeName = Trim(..Left(te->TypeName, Pos4 - 1))
+									End If
+									te->TypeName = WithoutPointers(te->TypeName)
+								End If
+								If ECLine->ConstructionIndex = C_Class Then
+									te->ElementType = "Type"
+								Else
+									te->ElementType = Trim(Constructions(ECLine->ConstructionIndex).Name0)
+								End If
+								If ECLine->ConstructionIndex = C_P_Macro Then te->ElementType = Mid(te->ElementType, 2)
+								te->StartLine = i
+								te->EndLine = i + 1
+								te->FileName = sFileName
+								te->Tag = tb
+								ECLine->InConstruction = te
+								Constructs.Add te
+								If Comments <> "" Then te->Comment = Comments: Comments = ""
+								LastIndexFunctions = Content.Functions.Add(te->DisplayName, te)
+								If ECLine->ConstructionIndex = C_Enum Then
+									Content.Enums.Add te->Name, te
+								ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
+									Content.Types.Add te->Name, te
+								ElseIf Not TypeProcedure Then
+									Content.Procedures.Add te->Name, te
+								End If
+								If Not TypeProcedure Then
+									If Namespaces.Count > 0 Then
+										Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+									End If
+								End If
+								func = te
+								If Pos2 > 0 AndAlso Pos5 > 0 Then
+									Dim As UString CurType, res1(Any), ElementValue
+									Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+									For n As Integer = 0 To UBound(res1)
+										res1(n) = Replace(res1(n), ";", ",")
+										Pos1 = InStr(res1(n), "=")
+										If Pos1 > 0 Then
+											ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+										Else
+											ElementValue = ""
+										End If
+										If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										Pos1 = InStr(LCase(res1(n)), " as ")
+										If Pos1 > 0 Then
+											CurType = Trim(Mid(res1(n), Pos1 + 4))
+											CurType = Replace(CurType, "`", "=")
+											Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
+											If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
+											If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										End If
+										Var te = New_( TypeElement)
+										If res1(n).ToLower.StartsWith("byref") Then
+											res1(n) = Trim(Mid(res1(n), 6))
+											te->ElementType = "ByRefParameter"
+										ElseIf res1(n).ToLower.StartsWith("byval") Then
+											res1(n) = Trim(Mid(res1(n), 6))
+											te->ElementType = "ByValParameter"
+										Else
+											te->ElementType = "ByValParameter"
+										End If
+										Pos1 = InStr(res1(n), "(")
+										If Pos1 > 0 Then
+											res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										End If
+										res1(n) = res1(n).TrimAll
+										If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+											Pos1 = InStrRev(CurType, ".")
+											If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+										End If
+										te->Name = res1(n)
+										te->DisplayName = res1(n)
+										te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+										'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+										te->TypeName = CurType
+										te->TypeName = WithoutPointers(te->TypeName)
+										te->Value = ElementValue
+										te->Locals = 0
+										te->StartLine = i
+										te->EndLine = i
+										te->Parameters = res1(n) & " As " & CurType
+										te->FileName = sFileName
+										te->Tag = tb
+										func->Elements.Add te->Name, te
+									Next
+								End If
+							End If
+						ElseIf ECLine->ConstructionPart = 2 Then
+							If func <> 0 Then
+								func->EndLine = i: inFunc = False
+								LastIndexFunctions = -1
+								If Constructs.Count > 0 Then Constructs.Remove Constructs.Count - 1
+								If Constructs.Count > 0 Then
+									ECLine->InConstruction = Constructs.Item(Constructs.Count - 1)
+									func = ECLine->InConstruction
+									inFunc = True
+								Else
+									ECLine->InConstruction = 0
+								End If
+							End If
+						ElseIf ECLine->ConstructionPart = 1 AndAlso (ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class) Then
+							If StartsWith(bTrimLCase & " ", "public: ") Then
+								inPubProPri = 0
+							ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
+								inPubProPri = 1
+							ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
+								inPubProPri = 2
+							End If
+						End If
+					ElseIf ECLine->ConstructionIndex = C_Namespace Then
+						If ECLine->ConstructionPart = 0 Then
+							Pos1 = InStr(11, bTrim, " ")
+							Dim As String Names
+							Dim As UString res1(Any)
+							If Pos1 = 0 Then
+								Names = Trim(Mid(bTrim, 11))
+							Else
+								Names = Trim(Mid(bTrim, 11, Pos1 - 11))
+							End If
+							Split(Names, ".", res1())
+							nc = UBound(res1)
+							For n As Integer = 0 To nc
+								te = New_( TypeElement)
+								te->Name = Trim(res1(n))
+								te->DisplayName = te->Name
+								te->ElementType = "Namespace"
+								te->Parameters = bTrim
+								Pos4 = InStr(te->Parameters, "'")
+								If Pos4 > 0 Then
+									te->Parameters = Trim(.Left(te->Parameters, Pos4 - 1))
+								End If
+								te->StartLine = i
+								te->EndLine = i
+								te->ControlType = nc
+								If Comments <> "" Then te->Comment = Comments: Comments = ""
+								te->FileName = sFileName
+								te->Tag = tb
+								Content.Namespaces.Add te->Name, te
+								If Namespaces.Count > 0 Then
+									Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+									If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+								End If
+								Namespaces.Add te->Name, te
+							Next
+						ElseIf ECLine->ConstructionPart = 2 Then
+							If Namespaces.Count > 0 Then
+								nc = Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->ControlType
+								For ii As Integer = 0 To nc
+									If Namespaces.Count > 0 Then Namespaces.Remove Namespaces.Count - 1
+								Next ii
+							End If
+						End If
+					'ElseIf StartsWith(bTrimLCase & " ", "public: ") Then
+					'	inPubProPri = 0
+					'ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
+					'	inPubProPri = 1
+					'ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
+					'	inPubProPri = 2
+					ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
+						Pos1 = InStr(9, bTrim, " ")
+						Pos2 = InStr(9, bTrim, "(")
+						Pos5 = Pos2
+						If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
+						te = New_( TypeElement)
+						If Pos1 = 0 Then
+							te->Name = Trim(Mid(bTrim, 9))
+						Else
+							te->Name = Trim(Mid(bTrim, 9, Pos1 - 9))
+						End If
+						te->DisplayName = te->Name
+						te->ElementType = "Define"
+						te->Parameters = bTrim
+						Pos4 = InStr(te->Parameters, "'")
+						If Pos4 > 0 Then
+							te->Parameters = Trim(..Left(te->Parameters, Pos4 - 1))
+						End If
+						te->StartLine = i
+						te->EndLine = i
+						If Comments <> "" Then te->Comment = Comments: Comments = ""
+						te->FileName = sFileName
+						te->Tag = tb
+						Content.FunctionsOthers.Add te->DisplayName, te
+						Content.Procedures.Add te->Name, te
+						If Namespaces.Count > 0 Then
+							Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+						End If
+						Pos2 = InStr(bTrim, ")")
+						If Pos2 > 0 AndAlso Pos5 > 0 Then
+							ECLine->Args.Add te
+							Var teDeclare = te
+							Dim As UString CurType, res1(Any), ElementValue
+							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+							For n As Integer = 0 To UBound(res1)
+								res1(n) = Trim(Replace(res1(n), ";", ","))
+								Pos1 = InStr(res1(n), "=")
+								If Pos1 > 0 Then
+									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+								Else
+									ElementValue = ""
+								End If
+								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								Pos1 = InStr(LCase(res1(n)), " as ")
+								If Pos1 > 0 Then
+									CurType = Trim(Mid(res1(n), Pos1 + 4))
+									CurType = Replace(CurType, "`", "=")
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								Var te = New_(TypeElement)
+								If res1(n).ToLower.StartsWith("byref") Then
+									res1(n) = Trim(Mid(res1(n), 6))
+									te->ElementType = "ByRefParameter"
+								ElseIf res1(n).ToLower.StartsWith("byval") Then
+									res1(n) = Trim(Mid(res1(n), 6))
+									te->ElementType = "ByValParameter"
+								Else
+									te->ElementType = "ByValParameter"
+								End If
+								Pos1 = InStr(res1(n), "(")
+								If Pos1 > 0 Then
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								res1(n) = res1(n).TrimAll
+								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+									Pos1 = InStrRev(CurType, ".")
+									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+								End If
+								te->Name = res1(n)
+								te->DisplayName = res1(n)
+								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+								te->TypeName = WithoutPointers(CurType)
+								te->Value = ElementValue
+								te->Locals = 0
+								te->StartLine = i
+								te->EndLine = i
+								te->Parameters = res1(n) & " As " & CurType
+								te->FileName = sFileName
+								te->Tag = tb
+								teDeclare->Elements.Add te->Name, te
+							Next
+						End If
+					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
+						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
+						Dim As String t
+						Dim As UString b2 = b, res1(), ElementValue
+						Pos2 = InStr(b2, "'")
+						If Pos2 > 0 Then b2 = Trim(.Left(b2, Pos2 - 1))
+						Split b2, ",", res1()
+						For n As Integer = 0 To UBound(res1)
+							Pos3 = InStr(res1(n), "=")
+							If Pos3 > 0 Then
+								ElementValue = Trim(Mid(res1(n), Pos3 + 1))
+							Else
+								ElementValue = ""
+							End If
+							Var te = New_( TypeElement)
+							If Pos3 > 0 Then
+								t = Trim(.Left(res1(n), Pos3 - 1))
+							Else
+								t = Trim(res1(n))
+							End If
+							te->Name = t
+							If func->Name <> "" Then
+								te->DisplayName = func->Name & "." & te->Name
+							Else
+								te->DisplayName = te->Name
+							End If
+							te->ElementType = "EnumItem"
+							te->Value = ElementValue
+							te->StartLine = i
+							te->EndLine = i
+							te->Parameters = Trim(res1(n))
+							te->FileName = sFileName
+							If func Then func->Elements.Add te->Name, te
+							te = New_( TypeElement)
+							te->Name = t
+							If tbi AndAlso tbi->Name <> "" Then
+								te->DisplayName = tbi->Name & "." & te->Name
+							Else
+								te->DisplayName = te->Name
+							End If
+							te->ElementType = "EnumItem"
+							te->Value = ElementValue
+							te->StartLine = i
+							te->Parameters = Trim(res1(n))
+							te->FileName = sFileName
+							Content.Args.Add te->Name, te
+						Next n
+					ElseIf StartsWith(bTrimLCase, "declare ") Then
+						iStart = 9
+						Pos1 = InStr(9, bTrim, " ")
+						Pos2 = InStrRev(bTrim, ")")
+						Pos3 = InStr(9, bTrim, "(")
+						Pos5 = Pos3
+						'n = Len(Trim(*FLine)) - Len(Trim(Mid(Trim(*FLine), Pos1)))
+						If StartsWith(Trim(Mid(bTrimLCase, 9)), "static ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "virtual ") OrElse StartsWith(Trim(Mid(bTrimLCase, 9)), "abstract ") Then
+							iStart = Pos1
+							Pos1 = InStr(Pos1 + 1, bTrim, " ")
+						End If
+						Pos4 = InStr(Pos1 + 1, bTrim, " ")
+						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
+						Pos4 = InStr(bTrim, "(")
+						If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
+						te = New_( TypeElement)
+						te->Declaration = True
+						If Pos1 = 0 Then
+							te->ElementType = Trim(Mid(bTrim, iStart))
+						Else
+							te->ElementType = Trim(Mid(bTrim, iStart, Pos1 - iStart))
+						End If
+						If inFunc Then
+							te->Locals = inPubProPri
+						End If
+						If inFunc AndAlso func <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
+							te->Name = func->Name
+							te->DisplayName = func->Name & " [" & te->ElementType & "] [Declare]"
+							te->TypeName = func->Name
+							te->Parameters = te->Name & IIf(Pos4 > 0, Mid(bTrim, Pos4), "()")
+						Else
+							If Pos3 = 0 Then
+								te->Name = Trim(Mid(bTrim, Pos1))
+							Else
+								te->Name = Trim(Mid(bTrim, Pos1, Pos3 - Pos1))
+							End If
+							If LCase(te->ElementType) = "property" Then
+								If EndsWith(bTrim, ")") Then
+									te->DisplayName = te->Name & " [Let] [Declare]"
+								Else
+									te->DisplayName = te->Name & " [Get] [Declare]"
+								End If
+							Else
+								te->DisplayName = te->Name & " [Declare]"
+							End If
+							te->Parameters = Trim(Mid(bTrim, Pos1))
+							If inFunc AndAlso func <> 0 Then te->DisplayName = func->Name & "." & te->DisplayName
+							Pos2 = InStr(bTrim, ")")
+							Pos3 = InStr(Pos2, bTrimLCase, ")as ")
+							If Pos3 = 0 Then Pos3 = InStr(Pos2 + 1, bTrimLCase, " as ")
+							If Pos3 = 0 Then
+								te->TypeName = ""
+							Else
+								te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
+							End If
+							Pos4 = InStr(te->TypeName, " ")
+							If Pos4 < 1 Then Pos4 = InStr(te->TypeName, "'")
+							If Pos4 > 0 Then
+								te->TypeName = Trim(..Left(te->TypeName, Pos4 - 1))
+							End If
+							te->TypeName = WithoutPointers(te->TypeName)
+						End If
+						te->StartLine = i
+						te->EndLine = i
+						te->FileName = sFileName
+						te->Tag = tb
+						'ECLine->InConstruction = te
+						If Comments <> "" Then te->Comment = Comments: Comments = ""
+						If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
+							func->Elements.Add te->Name, te
+						Else
+							Content.FunctionsOthers.Add te->DisplayName, te
+							Content.Procedures.Add te->Name, te
+						End If
+						If Pos2 > 0 AndAlso Pos5 > 0 Then
+							ECLine->Args.Add te
+							Var teDeclare = te
+							Dim As UString CurType, res1(Any), ElementValue
+							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+							For n As Integer = 0 To UBound(res1)
+								res1(n) = Trim(Replace(res1(n), ";", ","))
+								Pos1 = InStr(res1(n), "=")
+								If Pos1 > 0 Then
+									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+								Else
+									ElementValue = ""
+								End If
+								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								Pos1 = InStr(LCase(res1(n)), " as ")
+								If Pos1 > 0 Then
+									CurType = Trim(Mid(res1(n), Pos1 + 4))
+									CurType = Replace(CurType, "`", "=")
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								Var te = New_( TypeElement)
+								If res1(n).ToLower.StartsWith("byref") Then
+									res1(n) = Trim(Mid(res1(n), 6))
+									te->ElementType = "ByRefParameter"
+								ElseIf res1(n).ToLower.StartsWith("byval") Then
+									res1(n) = Trim(Mid(res1(n), 6))
+									te->ElementType = "ByValParameter"
+								Else
+									te->ElementType = "ByValParameter"
+								End If
+								Pos1 = InStr(res1(n), "(")
+								If Pos1 > 0 Then
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								res1(n) = res1(n).TrimAll
+								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+									Pos1 = InStrRev(CurType, ".")
+									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+								End If
+								te->Name = res1(n)
+								te->DisplayName = res1(n)
+								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+								te->TypeName = WithoutPointers(CurType)
+								te->Value = ElementValue
+								te->Locals = 0
+								te->StartLine = i
+								te->EndLine = i
+								te->Parameters = res1(n) & " As " & CurType
+								te->FileName = sFileName
+								te->Tag = tb
+								teDeclare->Elements.Add te->Name, te
+							Next
+						End If
+					ElseIf EndsWith(Trim(b1), ":") AndAlso IsArg2(bTrim) AndAlso Not Content.Functions.Contains(bTrim) Then
+						Var te = New_(TypeElement)
+						te->Name = bTrim
+						te->DisplayName = Trim(b1)
+						te->ElementType = "LineLabel"
+						te->TypeName = ""
+						te->Locals = 0
+						te->StartLine = i
+						te->EndLine = i
+						te->Parameters = te->DisplayName
+						te->FileName = sFileName
+						te->Tag = tb
+						If inFunc AndAlso func <> 0 Then
+							func->Elements.Add te->Name, te
+						Else
+							Content.LineLabels.Add te->Name, te
+						End If
+					Else
+						If CInt(StartsWith(bTrimLCase, "as ")) OrElse _
+							CInt(InStr(b0TrimLCase, " as ")) OrElse _
+							CInt(StartsWith(bTrimLCase, "const ")) OrElse _
+							CInt(StartsWith(bTrimLCase, "common ")) OrElse _
+							CInt(StartsWith(bTrimLCase, "var ")) Then
+							Dim As UString b2 = bTrim
+							If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") OrElse b2.ToLower.StartsWith("for ") Then
+								b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
+							End If
+							Dim As UString CurType, ElementValue
+							Dim As UString res1(Any)
+							Dim As Boolean bShared, bOldAs
+							Pos1 = InStr(b2, "'")
+							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
+							If b2.ToLower.StartsWith("shared ") Then bShared = True: b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("import ") Then b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("as ") Then
+								bOldAs = True
+								CurType = Trim(Mid(b2, 4))
+								Pos1 = InStr(CurType, " ")
+								Pos2 = InStr(CurType, " Ptr ")
+								Pos3 = InStr(CurType, " Pointer ")
+								If Pos2 > 0 Then
+									Pos1 = Pos2 + 4
+								ElseIf Pos3 > 0 Then
+									Pos1 = Pos2 + 8
+								End If
+								If Pos1 > 0 Then
+									Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
+									'							Pos2 = InStr(CurType, "*")   'David Change,  As WString *2 a,b,c,
+									'							If Pos2 > 1 Then Pos1 = Pos2
+									'							If Pos1 > 1 Then CurType = Trim(..Left(CurType, Pos1 - 1))
+									If UBound(res1) > -1 Then
+										CurType = ..Left(CurType, Pos1 + Len(res1(0)))
+									End If
+								End If
+							Else
+								Split GetChangedCommas(b2), ",", res1()
+							End If
+							For n As Integer = 0 To UBound(res1)
+								res1(n) = Replace(res1(n), ";", ",")
+								Pos1 = InStr(res1(n), "=")
+								If Pos1 > 0 Then
+									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+									If CBool(n = 0) AndAlso bOldAs Then
+										CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
+										CurType = Replace(CurType, "`", "=")
+									End If
+								Else
+									ElementValue = ""
+								End If
+								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								Pos1 = InStr(LCase(res1(n)), " as ")
+								If Pos1 > 0 AndAlso Not bOldAs Then
+									CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
+									CurType = Replace(CurType, "`", "=")
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								If CBool(n = 0) AndAlso bOldAs Then
+									CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+								End If
+								Pos1 = InStr(res1(n), ":")
+								If Pos1 > 0 Then
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+									res1(n) = Trim(Mid(res1(n), 6))
+								End If
+								Pos1 = InStr(res1(n), "(")
+								If Pos1 > 0 Then
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								Pos1 = InStr(LCase(res1(n)), " alias ")
+								If Pos1 > 0 Then
+									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+								End If
+								res1(n) = res1(n).TrimAll
+								Pos1 = InStrRev(res1(n), " ")
+								If Pos1 > 0 Then
+									res1(n) = Trim(Mid(res1(n), Pos1 + 1))
+								End If
+								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+									Pos1 = InStrRev(CurType, ".")
+									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+								End If
+								Var te = New_( TypeElement)
+								te->Name = res1(n)
+								te->DisplayName = res1(n)
+								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+								te->TypeName = CurType
+								te->TypeName = WithoutPointers(te->TypeName)
+								If StartsWith(bTrimLCase, "common ") Then
+									te->ElementType = "CommonVariable"
+								ElseIf StartsWith(bTrimLCase, "const ") Then
+									te->ElementType = "Constant"
+								ElseIf bShared Then
+									te->ElementType = "SharedVariable"
+								Else
+									te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), "Event", IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
+								End If
+								te->Value = ElementValue
+								If inFunc Then
+									te->Locals = inPubProPri
+								Else
+									te->Locals = 0 'IIf(bShared, 0, 2)
+								End If
+								te->StartLine = i
+								te->EndLine = i
+								te->Parameters = res1(n) & " As " & CurType
+								te->FileName = sFileName
+								te->Tag = tb
+								If inFunc AndAlso func <> 0 Then
+									func->Elements.Add te->Name, te
+								Else
+									Content.Args.Add te->Name, te
+									If Namespaces.Count > 0 Then
+										Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+									End If
+								End If
+								If te->ElementType = "Event" Then
+									Dim As UString bTrim = CurType
+									Pos2 = InStrRev(bTrim, ")")
+									Pos5 = InStr(bTrim, "(")
+									If Pos2 > 0 AndAlso Pos5 > 0 Then
+										ECLine->Args.Add te
+										Var teDeclare = te
+										Dim As UString CurType, res1(Any), ElementValue
+										Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+										For n As Integer = 0 To UBound(res1)
+											res1(n) = Trim(Replace(res1(n), ";", ","))
+											Pos1 = InStr(res1(n), "=")
+											If Pos1 > 0 Then
+												ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+											Else
+												ElementValue = ""
+											End If
+											If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+											Pos1 = InStr(LCase(res1(n)), " as ")
+											If Pos1 > 0 Then
+												CurType = Trim(Mid(res1(n), Pos1 + 4))
+												CurType = Replace(CurType, "`", "=")
+												res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+											End If
+											Var te = New_( TypeElement)
+											If res1(n).ToLower.StartsWith("byref") Then
+												res1(n) = Trim(Mid(res1(n), 6))
+												te->ElementType = "ByRefParameter"
+											ElseIf res1(n).ToLower.StartsWith("byval") Then
+												res1(n) = Trim(Mid(res1(n), 6))
+												te->ElementType = "ByValParameter"
+											Else
+												te->ElementType = "ByValParameter"
+											End If
+											Pos1 = InStr(res1(n), "(")
+											If Pos1 > 0 Then
+												res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+											End If
+											res1(n) = res1(n).TrimAll
+											If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+												Pos1 = InStrRev(CurType, ".")
+												If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+											End If
+											te->Name = res1(n)
+											te->DisplayName = res1(n)
+											te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+											'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+											te->TypeName = WithoutPointers(CurType)
+											te->Value = ElementValue
+											te->Locals = 0
+											te->StartLine = i
+											te->EndLine = i
+											te->Parameters = res1(n) & " As " & CurType
+											te->FileName = sFileName
+											te->Tag = tb
+											teDeclare->Elements.Add te->Name, te
+										Next
+									End If
+								End If
+							Next
+						End If
+					End If
+				End If
+			Next jj
+		Next
+	Next
+End Sub
 
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
