@@ -6549,10 +6549,15 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								LastIndexFunctions = Content.Functions.Add(te->DisplayName, te)
 								If ECLine->ConstructionIndex = C_Enum Then
 									Content.Enums.Add te->Name, te
+									pGlobalEnums->Add te->Name, te
 								ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
 									Content.Types.Add te->Name, te
+									pGlobalTypes->Add te->Name, te
 								ElseIf Not TypeProcedure Then
 									Content.Procedures.Add te->Name, te
+									pGlobalFunctions->Add te->Name, te
+								Else
+									pGlobalTypeProcedures->Add te->Name, te
 								End If
 								If Not TypeProcedure Then
 									If Namespaces.Count > 0 Then
@@ -6668,6 +6673,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te->FileName = sFileName
 								te->Tag = tb
 								Content.Namespaces.Add te->Name, te
+								pGlobalNamespaces->Add te->Name, te
 								If Namespaces.Count > 0 Then
 									Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 									If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
@@ -6713,6 +6719,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						te->Tag = tb
 						Content.FunctionsOthers.Add te->DisplayName, te
 						Content.Procedures.Add te->Name, te
+						pGlobalFunctions->Add te->Name, te
 						If Namespaces.Count > 0 Then
 							Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
@@ -6818,6 +6825,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							te->Parameters = Trim(res1(n))
 							te->FileName = sFileName
 							Content.Args.Add te->Name, te
+							pGlobalArgs->Add te->Name, te
 						Next n
 					ElseIf StartsWith(bTrimLCase, "declare ") Then
 						iStart = 9
@@ -6892,6 +6900,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						Else
 							Content.FunctionsOthers.Add te->DisplayName, te
 							Content.Procedures.Add te->Name, te
+							pGlobalFunctions->Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
 							ECLine->Args.Add te
@@ -7080,6 +7089,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									func->Elements.Add te->Name, te
 								Else
 									Content.Args.Add te->Name, te
+									pGlobalArgs->Add te->Name, te
 									If Namespaces.Count > 0 Then
 										Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
