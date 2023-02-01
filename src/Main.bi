@@ -177,19 +177,20 @@ Type ToolType
 	Declare Function GetCommand(ByRef FileName As WString = "", WithoutProgram As Boolean = False) As UString
 End Type
 
-Type FileType
-	FileName As UString
-	DateChanged As Double
-	Includes As WStringList
-	IncludeLines As IntegerList
-	Namespaces As WStringList
-	Types As WStringList
-	Enums As WStringList
-	Procedures As WStringList
-	Args As WStringList
-	LinesCount As Integer
-	InProcess As Boolean
-End Type
+'Type FileType
+'	FileName As UString
+'	DateChanged As Double
+'	Includes As WStringList
+'	IncludeLines As IntegerList
+'	Namespaces As WStringOrStringList
+'	Types As WStringOrStringList
+'	Enums As WStringOrStringList
+'	Procedures As WStringOrStringList
+'	Args As WStringOrStringList
+'	LineLabels As WStringOrStringList
+'	Lines As List
+'	InProcess As Boolean
+'End Type
 
 Common Shared As List Ptr pTools, pControlLibraries
 Common Shared As WStringOrStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalFunctions, pGlobalTypeProcedures, pGlobalArgs
@@ -200,6 +201,7 @@ Common Shared As Dictionary Ptr pHelps, pCompilers, pMakeTools, pDebuggers, pTer
 Enum LoadParam
 	OnlyFilePath
 	OnlyFilePathOverwrite
+	OnlyFilePathOverwriteWithContent
 	OnlyIncludeFiles
 	FilePathAndIncludeFiles
 End Enum
@@ -289,10 +291,11 @@ Declare Function GetXY(XorY As Integer) As Integer
 #endif
 Declare Function FolderExists(ByRef FolderName As WString) As Boolean
 Declare Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
-Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef Args As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As FileType Ptr = 0)
+Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef Args As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As Any Ptr = 0)
 Declare Sub LoadFunctionsSub(Param As Any Ptr)
 Declare Sub LoadOnlyFilePath(Param As Any Ptr)
 Declare Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
+Declare Sub LoadOnlyFilePathOverwriteWithContent(Param As Any Ptr)
 Declare Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 Declare Sub LoadFromTabWindow(Param As Any Ptr)
 Declare Sub LoadToolBox(ForLibrary As Library Ptr = 0)

@@ -174,7 +174,7 @@ Public:
 	Declare Sub SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeName As String, ByRef ResName As WString)
 	Dim IsNew As Boolean
 	Dim bNotDesign As Boolean
-	Dim bExternalIncludesLoaded As Boolean
+	'Dim bExternalIncludesLoaded As Boolean
 	Dim As Integer ConstructorStart, ConstructorEnd, lvPropertyWidth, FindFormPosiLeft, FindFormPosiTop, RightSelectedIndex
 	ptn As TreeNode Ptr
 	tn As TreeNode Ptr
@@ -182,9 +182,9 @@ Public:
 	bQuitThread As Boolean
 	LastThread As Any Ptr
 	Project As ProjectElement Ptr
-	CheckedFiles As WStringList
-	OldIncludes As WStringList
-	OldIncludeLines As IntegerList
+	'CheckedFiles As WStringList
+	'OldIncludes As WStringList
+	'OldIncludeLines As IntegerList
 	DownLine As Integer
 	DownLineSelStart As Integer
 	DownLineSelEnd As Integer

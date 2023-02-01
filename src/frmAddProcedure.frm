@@ -862,8 +862,8 @@ Private Sub frmAddProcedureType.Form_Create(ByRef Sender As Control)
 	txtParameters.Text = ""
 	cboType.Clear
 	cboType.AddItem "(not selected)"
-	For i As Integer = 0 To tb->txtCode.Types.Count - 1
-		cboType.AddItem tb->txtCode.Types.Item(i)
+	For i As Integer = 0 To tb->txtCode.Content.Types.Count - 1
+		cboType.AddItem tb->txtCode.Content.Types.Item(i)
 	Next
 	cboType.ItemIndex = 0
 	optPublicAccess.Checked = True

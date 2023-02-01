@@ -1574,8 +1574,9 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					End If
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
 						pFiles->Add *ee->FileName
+						RemoveGlobalTypeElements *ee->FileName
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
-						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
+						ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
 					End If
 					If inFolder Then
 						ppe->Files.Add *ee->FileName
@@ -2903,9 +2904,9 @@ Sub NextBookmark(iTo As Integer = 1)
 			txt = @Cast(TabWindow Ptr, ptabCode->Tabs[j])->txtCode
 			If iTo = 1 Then
 				iStartLine = 0
-				iEndLine = txt->FLines.Count - 1
+				iEndLine = txt->Content.Lines.Count - 1
 			Else
-				iStartLine = txt->FLines.Count - 1
+				iStartLine = txt->Content.Lines.Count - 1
 				iEndLine = 0
 			End If
 			If k = 1 AndAlso j = CurTabIndex Then
@@ -2915,7 +2916,7 @@ Sub NextBookmark(iTo As Integer = 1)
 				n = iStartLine
 			End If
 			For i = n To iEndLine Step iTo
-				FECLine = txt->FLines.Items[i]
+				FECLine = txt->Content.Lines.Items[i]
 				If FECLine->Bookmark Then
 					ptabCode->Tabs[j]->SelectTab
 					txt->SetSelection i, i, 0, 0
@@ -3397,17 +3398,17 @@ Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As US
 	End If
 End Function
 
-Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ByRef Args As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFile As FileType Ptr = 0)
+Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ByRef Args As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, OldFileItem As Any Ptr = 0)
 	If FormClosing Then Exit Sub
-	Dim As FileType Ptr File
+	Dim As EditControlContent Ptr File, OldFile = OldFileItem
 	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
-	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
+	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwriteWithContent Then
 		If ec = 0 Then
 			If IncludeFiles.Contains(Path) Then
 				MutexUnlock tlockSave
 				Exit Sub
 			Else
-				File = New_(FileType)
+				File = New_(EditControlContent)
 				File->FileName = Path
 				IncludeFiles.Add Path, File
 			End If
@@ -3424,12 +3425,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		If IncludeFiles.Contains(Path, , , , Idx) Then
 			File = IncludeFiles.Object(Idx)
 			If File = 0 Then
-				File = New_(FileType)
+				File = New_(EditControlContent)
 				File->FileName = Path
 				IncludeFiles.Object(Idx) = File
 			End If
 		Else
-			File = New_(FileType)
+			File = New_(EditControlContent)
 			File->FileName = Path
 			IncludeFiles.Add Path, File
 		End If
@@ -3443,14 +3444,15 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	'	#endif
 	Dim As UString b1, Comment, PathFunction, LoadFunctionPath
 	Dim As String t, e, tOrig, bt
-	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, Index, iStart
+	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, Index, iStart, i, j, iC, OldiC
 	Dim As TypeElement Ptr te, tbi, typ, lastfunctionte
-	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace
+	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace, InAsm
 	Dim As Boolean bTypeIsPointer
 	Dim As Integer inPubProPri = 0
 	Dim As Integer Result
 	Dim As WString * 2048 bTrim, bTrimLCase
 	Dim b As WString * 2048 ' for V1.07 Line Input not working fine
+	Dim As EditControlLine Ptr FECLine
 	Dim As Integer LastIndexFunction
 	Dim As WStringList Lines, Namespaces
 	PathFunction = Path
@@ -3471,10 +3473,28 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			Do Until EOF(ff)
 				Line Input #ff, b
 				Lines.Add b
+				'If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
+				'	FECLine = New_( EditControlLine)
+				'	WLet(FECLine->Text, b)
+				'	iC = FindCommentIndex(b, OldiC)
+				'	FECLine->CommentIndex = iC
+				'	FECLine->InAsm = InAsm
+				'	File->Lines.Add(FECLine)
+				'	i = File->GetConstruction(*FECLine->Text, j, , InAsm)
+				'	FECLine->ConstructionIndex = i
+				'	FECLine->ConstructionPart = j
+				'	If FECLine->ConstructionIndex = C_Asm Then
+				'		InAsm = FECLine->ConstructionPart = 0
+				'	End If
+				'	FECLine->InAsm = InAsm
+				'	OldiC = iC
+				'	i += 1
+				'End If
 			Loop
 		End If
 		CloseFile_(ff)
 	End If
+	
 	For i As Integer = 0 To Lines.Count - 1
 		b1 = Replace(Lines.Item(i), !"\t", " ")
 		If StartsWith(Trim(b1), "'") Then
@@ -4355,7 +4375,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Next
 	Lines.Clear
 	MutexUnlock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
-	If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) Then
+	If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwriteWithContent) Then
 		For i As Integer = 0 To File->Includes.Count - 1
 			LoadFunctions File->Includes.Item(i), , Types, Enums, Functions, TypeProcedures, Args
 			If FormClosing Then Exit Sub
@@ -4387,7 +4407,7 @@ Sub EndOfLoadFunctions
 			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 				If tb Then
-					tb->bExternalIncludesLoaded = False
+					tb->txtCode.Content.ExternalIncludesLoaded = False
 					If AutoSuggestions Then
 						#ifndef __USE_GTK__
 							PostMessage tb->Handle, EM_SETMODIFY, 0, 0
@@ -4420,6 +4440,14 @@ Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
 		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
+	End If
+	EndOfLoadFunctions
+End Sub
+
+Sub LoadOnlyFilePathOverwriteWithContent(Param As Any Ptr)
+	StartOfLoadFunctions
+	If Not FormClosing Then
+		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwriteWithContent, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -8854,7 +8882,7 @@ Sub OnProgramQuit() Destructor
 		tp = TabPanels.Item(i)
 		Delete_(tp)
 	Next i
-	Dim As FileType Ptr File
+	Dim As EditControlContent Ptr File
 	For i As Integer = IncludeFiles.Count - 1 To 0 Step -1
 		File = IncludeFiles.Object(i)
 		If File Then Delete_(File)

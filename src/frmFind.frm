@@ -799,7 +799,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 		gSearchItemIndex = 0
 		For i As Integer = 0 To tb->txtCode.LinesCount - 1
 			buff = @tb->txtCode.Lines(i)
-			ECLine = tb->txtCode.FLines.Items[i]
+			ECLine = tb->txtCode.Content.Lines.Items[i]
 			If bMatchCase Then
 				Pos1 = InStr(*buff, *Search)
 			Else

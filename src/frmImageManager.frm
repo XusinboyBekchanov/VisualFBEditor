@@ -327,8 +327,8 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 			Dim As UString b, bOrig
 			Dim As IntegerList iList
 			tb->txtCode.Changing("ImageList")
-			For i As Integer = 0 To tb->txtCode.FLines.Count - 1
-				ECLine = tb->txtCode.FLines.Items[i]
+			For i As Integer = 0 To tb->txtCode.Content.Lines.Count - 1
+				ECLine = tb->txtCode.Content.Lines.Items[i]
 				b = LTrim(LCase(*ECLine->Text), Any !"\t ")
 				bOrig = LTrim(*ECLine->Text, Any !"\t ")
 				If StartsWith(b, LCase("Constructor " & DesignControlName)) Then
@@ -789,8 +789,8 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 				If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then DesignControlName = QWString(stDesignControl->ReadPropertyFunc(Des->DesignControl, "Name"))
 				Dim As UString ImageListName = QWString(st->ReadPropertyFunc(CurrentImageList, "Name"))
 				Dim As UString b, bOrig
-				For i As Integer = 0 To tb->txtCode.FLines.Count - 1
-					ECLine = tb->txtCode.FLines.Items[i]
+				For i As Integer = 0 To tb->txtCode.Content.Lines.Count - 1
+					ECLine = tb->txtCode.Content.Lines.Items[i]
 					b = LTrim(LCase(*ECLine->Text), Any !"\t ")
 					bOrig = LTrim(*ECLine->Text, Any !"\t ")
 					If StartsWith(b, LCase("Constructor " & DesignControlName)) Then
