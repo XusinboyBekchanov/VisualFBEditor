@@ -1574,10 +1574,10 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					End If
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
 						pFiles->Add *ee->FileName
-						Var ecc = New_(EditControlContent)
-						ecc->FileName = *ee->FileName
-						ecc->Tag = ppe
-						RemoveGlobalTypeElements *ee->FileName
+						'Var ecc = New_(EditControlContent)
+						'ecc->FileName = *ee->FileName
+						'ecc->Tag = ppe
+						'RemoveGlobalTypeElements *ee->FileName
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
 						'ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
 						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
