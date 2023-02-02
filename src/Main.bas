@@ -1579,7 +1579,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						ecc->Tag = ppe
 						RemoveGlobalTypeElements *ee->FileName
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
-						ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
+						'ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
+						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
 					End If
 					If inFolder Then
 						ppe->Files.Add *ee->FileName

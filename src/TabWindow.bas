@@ -981,17 +981,17 @@ Function TabWindow.SaveTab As Boolean
 		If Not pLoadPaths->Contains(FileName) Then
 			pLoadPaths->Add FileName
 		End If
-		If Project Then
-			Dim As EditControlContent Ptr ecc = IncludeFiles.Object(Idx)
-			If ecc = 0 Then
-				ecc = New_(EditControlContent)
-				ecc->FileName = *FFileName
-			End If
-			ecc->Tag = Project
-			ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
-		Else
+		'If Project Then
+		'	Dim As EditControlContent Ptr ecc = IncludeFiles.Object(Idx)
+		'	If ecc = 0 Then
+		'		ecc = New_(EditControlContent)
+		'		ecc->FileName = *FFileName
+		'	End If
+		'	ecc->Tag = Project
+		'	ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
+		'Else
 			ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
-		End If
+		'End If
 	End If
 	Return True
 End Function
