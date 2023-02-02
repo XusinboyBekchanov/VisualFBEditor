@@ -473,7 +473,7 @@ Private Sub frmHashType.HashFile()
 	
 	j = lvFiles.ListItems.Count - 1
 	ReDim a(j) As WString Ptr 'for filename
-	ReDim b(j) As WString Ptr
+	ReDim b(j + 1) As WString Ptr
 	For i = 0 To j
 		WStr2Ptr(lvFiles.ListItems.Item(i)->Text(0), a(i))
 	Next
@@ -483,38 +483,45 @@ Private Sub frmHashType.HashFile()
 	Next
 	ReDim d(chkc + 1)
 	
-	Dim ta As Double= 0
+	Dim ta As Double
 	Dim ts As Double
+	Dim te As Double
+	
+	ta = timr.Passed
+	ts = ta
 	For i = 0 To j
 		k = 0
 		If PathFileExists(a(i)) Then
 			s = GetFileData(*a(i), m)
-			ts = timr.Passed
-			WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - ta, "#,#0.000") & " sec.", d(k))
-			ta = ts
+			te = timr.Passed
+			WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - te, "#,#0.000") & " sec.", d(k))
+			ts = te
 			Dim l As Long
 			For l = 0 To 5
 				If chk(l) Then
 					k += 1
 					WStr2Ptr(GetHash(m, s, l), c)
-					ts = timr.Passed
-					WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - ta, "#,#0.000") & " sec.", d(k))
-					ta = ts
+					te = timr.Passed
+					WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - te, "#,#0.000") & " sec.", d(k))
+					ts = te
 				End If
 			Next
 			JoinWStr(d(), vbCrLf, b(i))
 		End If
 		App.DoEvents()
 	Next i
-	If m Then Deallocate(m)
+
+	WStr2Ptr("Total Take=" & Format(ta - te, "#,#0.000") & " sec.", b(j + 1))
 	JoinWStr(b(), vbCrLf, c)
 	i = txtHash.SelStart
 	txtHash.SelText = *c
 	txtHash.SelStart = i
 	txtHash.SelLength = Len(*c)
+	
 	ArrayDeallocate(b())
 	ArrayDeallocate(a())
 	ArrayDeallocate(d())
+	If m Then Deallocate(m)
 	If c Then Deallocate(c)
 End Sub
 
@@ -545,41 +552,48 @@ Private Sub frmHashType.HashText()
 		ReDim a(j)
 		WStr2Ptr(txtText.Text, a(0))
 	End If
-	ReDim b(j)
+	ReDim b(j + 1)
 	
 	For i = 0 To 5
 		If chk(i) Then chkc += 1
 	Next
 	ReDim d(chkc + 1)
 	
-	Dim ta As Double= 0
+	Dim ta As Double
 	Dim ts As Double
+	Dim te As Double
+
+	ta = timr.Passed
+	ts = ta
 	For i = 0 To j
 		k = 0
 		Dim tmp As String = TextUnicode2Ansi(*a(i))
 		m = StrPtr(tmp)
 		s = Len(tmp)
-		ts = timr.Passed
-		WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - ta, "#,#0.000") & " sec.", d(k))
-		ta = ts
+		te = timr.Passed
+		WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - te, "#,#0.000") & " sec.", d(k))
+		ts = te
 		Dim l As Long
 		For l = 0 To 5
 			If chk(l) Then
 				k += 1
 				WStr2Ptr(GetHash(m, s, l), c)
-				ts = timr.Passed
-				WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - ta, "#,#0.000") & " sec.", d(k))
-				ta = ts
+				te = timr.Passed
+				WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - te, "#,#0.000") & " sec.", d(k))
+				ts = te
 			End If
 		Next
 		JoinWStr(d(), vbCrLf, b(i))
 		App.DoEvents()
 	Next i
+
+	WStr2Ptr("Total Take=" & Format(ta - te, "#,#0.000") & " sec.", b(j + 1))
 	JoinWStr(b(), vbCrLf, c)
 	i = txtHash.SelStart
 	txtHash.SelText = *c
 	txtHash.SelStart = i
 	txtHash.SelLength = Len(*c)
+
 	ArrayDeallocate(b())
 	ArrayDeallocate(a())
 	ArrayDeallocate(d())
