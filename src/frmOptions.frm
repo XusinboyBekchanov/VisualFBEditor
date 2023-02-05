@@ -3294,7 +3294,6 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoIndentation = .chkAutoIndentation.Checked
 		AutoComplete = .chkEnableAutoComplete.Checked
 		AutoSuggestions = .chkEnableAutoSuggestions.Checked
-		AutoSuggestions = False
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		AddRelativePathsToRecent = .chkAddRelativePathsToRecent.Checked

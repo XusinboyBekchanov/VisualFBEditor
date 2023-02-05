@@ -5702,7 +5702,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 													OneDot = False
 												ElseIf te > 0 Then
 													tIndex = 0
-													te->Used = True
+													te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
 													tb->OriginalCaseWord = te->Name
 													If SyntaxHighlightingIdentifiers Then
 														Select Case LCase(te->ElementType)
@@ -5770,7 +5770,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 															tb->OriginalCaseWord = pkeywords->Item(tIndex)
 															te = pkeywords->Object(tIndex)
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																te->Used = True
+																te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
 																Select Case LCase(te->ElementType)
 																Case "sub"
 																	sc = @ColorSubs
@@ -5810,7 +5810,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 																ElseIf ecc->ContainsIn(tb->TypeName1, tb->MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
 																End If
 																If te > 0 Then
-																	te->Used = True
+																	te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
 																	tb->OriginalCaseWord = te->Name
 																	tIndex = 0
 																	If SyntaxHighlightingIdentifiers Then
@@ -5868,7 +5868,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 															pkeywords = @ecc->Args
 															te = Cast(TypeElement Ptr, ecc->Args.Object(tIndex))
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																te->Used = True
+																te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
 																Select Case te->ElementType
 																Case "EnumItem"
 																	sc = @ColorEnumMembers
@@ -5896,7 +5896,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 															pkeywords = @ecc->Procedures
 															te = Cast(TypeElement Ptr, ecc->Procedures.Object(tIndex))
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																te->Used = True
+																te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
 																Select Case LCase(te->ElementType)
 																Case "constructor", "destructor"
 																	sc = @ColorGlobalTypes
@@ -5923,7 +5923,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														If te->StartLine > z Then
 															tIndex = -1
 														Else
-															te->Used = True
+															te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
 															If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
 															'tb->OriginalCaseWord = tb->txtCode.Types.Item(tIndex)
 															pkeywords = @ecc->Types
@@ -5938,7 +5938,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														If te->StartLine > z Then
 															tIndex = -1
 														Else
-															te->Used = True
+															te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
 															If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
 															'tb->OriginalCaseWord = tb->txtCode.Enums.Item(tIndex)
 															pkeywords = @ecc->Enums
@@ -5953,7 +5953,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														If te->StartLine > z Then
 															tIndex = -1
 														Else
-															te->Used = True
+															te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
 															If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
 															'tb->OriginalCaseWord = tb->txtCode.Namespaces.Item(tIndex)
 															pkeywords = @ecc->Namespaces
@@ -6314,8 +6314,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 	MutexLock tlockSuggestions
 	For i As Integer = 0 To NotUsedIdentifiers.Count - 1
 		te = NotUsedIdentifiers.Item(i)
-		Dim As Integer ii = 0, AddIndex = -1, MatnBoshi = 0, z = te->StartLine
-		Dim As UString ErrorText = ML("Warning: Identifier not used") & ", " & te->Name & ". " & ML("Delete it")
+		Dim As Integer ii = 0, AddIndex = -1, MatnBoshi = te->StartChar, z = te->StartLine
+		Dim As UString ErrorText = ML("Warning: Identifier not used") & ", " & te->Name & ", " & ML("delete it if not needed")
 		Dim As UString FileName_ = te->FileName
 		Dim As UString ProjectFileName_
 		If tb->Project Then ProjectFileName_ = *tb->Project->FileName
@@ -7774,7 +7774,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				b2 = Replace(b2, ":", "%")
 			End If
 			Split(b2, ":", res())
-			Dim k As Integer = 1
+			Dim As Integer k = 1, u
 			For jj As Integer = 0 To UBound(res)
 				l = Len(res(jj))
 				b = Mid(b1, k, l)
@@ -7782,7 +7782,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				bTrim = Trim(b, Any !"\t ")
 				bTrimLCase = LCase(bTrim)
 				b0TrimLCase = LCase(Trim(b0, Any !"\t "))
+				u = k
 				k = k + Len(res(jj)) + 1
+				u = u + Len(b) - Len(LTrim(b, Any !"\t "))
 				''			ECLine->InConstructionIndex = ConstructionIndex
 				''			ECLine->InConstructionPart = ConstructionPart
 				''			If ECLine->ConstructionIndex > 0 AndAlso ECLine->ConstructionIndex <> 1 AndAlso ECLine->ConstructionIndex <> 2 AndAlso ECLine->ConstructionIndex <> 3 Then
@@ -7863,6 +7865,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Else
 									te->Name = Trim(Mid(bTrim, Pos1 + l))
 								End If
+								te->StartChar = u + Pos1 + l
+								te->EndChar = te->StartChar + Len(te->Name)
 								If ECLine->ConstructionIndex = C_Property Then
 									If EndsWith(bTrim, ")") Then
 										te->DisplayName = te->Name & " [Let]"
@@ -7876,7 +7880,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								Pos1 = InStr(te->Name, ".")
 								Dim As Boolean TypeProcedure
-								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True
+								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True: te->StartChar = te->StartChar + Pos1 + l
 								Pos2 = InStr(bTrim, ")")
 								If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
 									te->TypeName = te->Name
@@ -8338,17 +8342,19 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Dim As UString b2 = bTrim
 							If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") OrElse b2.ToLower.StartsWith("for ") Then
 								b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
+								u += Len(bTrim) - Len(b2)
 							End If
 							Dim As UString CurType, ElementValue
 							Dim As UString res1(Any)
 							Dim As Boolean bShared, bOldAs
 							Pos1 = InStr(b2, "'")
 							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
-							If b2.ToLower.StartsWith("shared ") Then bShared = True: b2 = Trim(Mid(b2, 7))
-							If b2.ToLower.StartsWith("import ") Then b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("as ") Then
 								bOldAs = True
 								CurType = Trim(Mid(b2, 4))
+								u += Len(b2) - Len(CurType)
 								Pos1 = InStr(CurType, " ")
 								Pos2 = InStr(CurType, " Ptr ")
 								Pos3 = InStr(CurType, " Pointer ")
@@ -8358,6 +8364,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Pos1 = Pos2 + 8
 								End If
 								If Pos1 > 0 Then
+									u += Pos1 + 1
 									Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
 									'							Pos2 = InStr(CurType, "*")   'David Change,  As WString *2 a,b,c,
 									'							If Pos2 > 1 Then Pos1 = Pos2
@@ -8396,6 +8403,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+									u += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
 								Pos1 = InStr(res1(n), "(")
@@ -8409,6 +8417,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								res1(n) = res1(n).TrimAll
 								Pos1 = InStrRev(res1(n), " ")
 								If Pos1 > 0 Then
+									u += Len(res1(n)) - Len(Trim(Mid(res1(n), Pos1 + 1)))
 									res1(n) = Trim(Mid(res1(n), Pos1 + 1))
 								End If
 								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
@@ -8417,6 +8426,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								Var te = New_( TypeElement)
 								te->Name = res1(n)
+								te->StartChar = u
+								te->EndChar = te->StartChar + Len(te->Name)
 								te->DisplayName = res1(n)
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 								te->TypeName = CurType
@@ -8899,7 +8910,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	pfrmMain->UpdateUnLock
 	bQuitThread = False
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
-		SetLastThread ThreadCreate(@AnalyzeTab, @This)
+		If (Project = 0) OrElse ProjectAutoSuggestions Then
+			SetLastThread ThreadCreate(@AnalyzeTab, @This)
+		End If
 	End If
 	Exit Sub
 	ErrorHandler:
@@ -11662,8 +11675,9 @@ Sub TabWindow.Define
 						.Add te->DisplayName
 						.Item(.Count - 1)->Text(1) = te->Parameters
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-						.Item(.Count - 1)->Text(3) = te->FileName
-						.Item(.Count - 1)->Text(4) = te->Comment
+						.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+						.Item(.Count - 1)->Text(4) = te->FileName
+						.Item(.Count - 1)->Text(5) = te->Comment
 						.Item(.Count - 1)->Tag = te->Tag
 					End If
 				Next
@@ -11687,8 +11701,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
@@ -11701,8 +11716,9 @@ Sub TabWindow.Define
 						.Add te->DisplayName
 						.Item(.Count - 1)->Text(1) = te->Parameters
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-						.Item(.Count - 1)->Text(3) = te->FileName
-						.Item(.Count - 1)->Text(4) = te->Comment
+						.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+						.Item(.Count - 1)->Text(4) = te->FileName
+						.Item(.Count - 1)->Text(5) = te->Comment
 						.Item(.Count - 1)->Tag = te->Tag
 					End If
 				End If
@@ -11716,8 +11732,9 @@ Sub TabWindow.Define
 						.Add te->DisplayName
 						.Item(.Count - 1)->Text(1) = te->Parameters
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-						.Item(.Count - 1)->Text(3) = te->FileName
-						.Item(.Count - 1)->Text(4) = te->Comment
+						.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+						.Item(.Count - 1)->Text(4) = te->FileName
+						.Item(.Count - 1)->Text(5) = te->Comment
 						.Item(.Count - 1)->Tag = te->Tag
 					End If
 				End If
@@ -11727,8 +11744,9 @@ Sub TabWindow.Define
 				.Add te2->DisplayName
 				.Item(.Count - 1)->Text(1) = te2->Parameters
 				.Item(.Count - 1)->Text(2) = WStr(te2->StartLine + 1)
-				.Item(.Count - 1)->Text(3) = te2->FileName
-				.Item(.Count - 1)->Text(4) = te2->Comment
+				.Item(.Count - 1)->Text(3) = WStr(te2->StartChar)
+				.Item(.Count - 1)->Text(4) = te2->FileName
+				.Item(.Count - 1)->Text(5) = te2->Comment
 				.Item(.Count - 1)->Tag = te2->Tag
 			End If
 			If cboFunction.ItemIndex > -1 Then te1 = cboFunction.Items.Item(cboFunction.ItemIndex)->Object
@@ -11743,8 +11761,9 @@ Sub TabWindow.Define
 						.Add te->DisplayName
 						.Item(.Count - 1)->Text(1) = te->Parameters
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-						.Item(.Count - 1)->Text(3) = te->FileName
-						.Item(.Count - 1)->Text(4) = te->Comment
+						.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+						.Item(.Count - 1)->Text(4) = te->FileName
+						.Item(.Count - 1)->Text(5) = te->Comment
 						.Item(.Count - 1)->Tag = te->Tag
 					End If
 				Next
@@ -11770,8 +11789,9 @@ Sub TabWindow.Define
 							.Add te->DisplayName
 							.Item(.Count - 1)->Text(1) = te->Parameters
 							.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-							.Item(.Count - 1)->Text(3) = te->FileName
-							.Item(.Count - 1)->Text(4) = te->Comment
+							.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+							.Item(.Count - 1)->Text(4) = te->FileName
+							.Item(.Count - 1)->Text(5) = te->Comment
 							.Item(.Count - 1)->Tag = te->Tag
 						End If
 					Next
@@ -11786,8 +11806,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
@@ -11799,8 +11820,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
@@ -11812,8 +11834,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
@@ -11825,8 +11848,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
@@ -11838,8 +11862,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
@@ -11851,8 +11876,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
@@ -11863,8 +11889,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
@@ -11875,8 +11902,9 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 					For j As Integer = 0 To te->Elements.Count - 1
 						te1 = te->Elements.Object(j)
@@ -11885,8 +11913,9 @@ Sub TabWindow.Define
 							.Add te1->DisplayName
 							.Item(.Count - 1)->Text(1) = te1->Parameters
 							.Item(.Count - 1)->Text(2) = WStr(te1->StartLine + 1)
-							.Item(.Count - 1)->Text(3) = te1->FileName
-							.Item(.Count - 1)->Text(4) = te1->Comment
+							.Item(.Count - 1)->Text(3) = WStr(te1->StartChar)
+							.Item(.Count - 1)->Text(4) = te1->FileName
+							.Item(.Count - 1)->Text(5) = te1->Comment
 							.Item(.Count - 1)->Tag = te1->Tag
 						End If
 					Next
@@ -11899,20 +11928,21 @@ Sub TabWindow.Define
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
 					.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
-					.Item(.Count - 1)->Text(3) = te->FileName
-					.Item(.Count - 1)->Text(4) = te->Comment
+					.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+					.Item(.Count - 1)->Text(4) = te->FileName
+					.Item(.Count - 1)->Text(5) = te->Comment
 					.Item(.Count - 1)->Tag = te->Tag
 				End If
 			Next
 		End If
 		If .Count = 0 Then
 		ElseIf .Count = 1 Then
-			SelectSearchResult .Item(0)->Text(3), Val(.Item(0)->Text(2)), , , .Item(0)->Tag, sWord
+			SelectSearchResult .Item(0)->Text(3), Val(.Item(0)->Text(2)), IIf(.Item(0)->Text(3) = "0", -1, Val(.Item(0)->Text(3))), , .Item(0)->Tag, sWord
 		Else
 			If pfTrek->ShowModal = ModalResults.OK Then
 				Var item = pfTrek->SelectedItem
 				If item <> 0 Then
-					SelectSearchResult item->Text(3), Val(item->Text(2)), , , item->Tag, sWord
+					SelectSearchResult item->Text(3), Val(item->Text(2)), IIf(item->Text(3) = "0", -1, Val(item->Text(3))), , item->Tag, sWord
 				End If
 			End If
 		End If

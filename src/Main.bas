@@ -1712,7 +1712,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 			For i As Integer = 0 To pFiles->Count - 1
 				ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i)))))
 			Next
-			If AutoSuggestions Then
+			If ProjectAutoSuggestions Then
 				For i As Integer = 0 To pFiles->Count - 1
 					Var ecc = New_(EditControlContent)
 					ecc->FileName = pFiles->Item(i)
@@ -1819,7 +1819,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		For i As Integer = 0 To Files.Count - 1
 			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
 		Next
-		If AutoSuggestions Then
+		If ProjectAutoSuggestions Then
 			For i As Integer = 0 To Files.Count - 1
 				Var ecc = New_(EditControlContent)
 				ecc->FileName = Files.Item(i)
@@ -4943,7 +4943,7 @@ Sub LoadSettings
 	'gLocalToolBox = iniSettings.ReadBool("Options", "ShowToolBoxLocal", False)
 	gLocalProperties = iniSettings.ReadBool("Options", "PropertiesLocal", False)
 	'gLocalKeyWords = iniSettings.ReadBool("Options", "KeyWordsLocal", False)
-	AutoSuggestions = False
+	ProjectAutoSuggestions = False
 
 	#ifdef __USE_WINAPI__
 		If DarkMode Then

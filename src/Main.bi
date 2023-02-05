@@ -120,7 +120,7 @@ Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf8BOM, miUtf16BOM, miUtf3
 
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
-Common Shared As Boolean AutoSuggestions
+Common Shared As Boolean AutoSuggestions, ProjectAutoSuggestions
 Common Shared As Boolean AutoCreateRC
 Common Shared As Boolean AutoCreateBakFiles, gLocalProperties
 Common Shared As Boolean AddRelativePathsToRecent

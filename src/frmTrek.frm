@@ -30,6 +30,7 @@
 			.Columns.Add ML("Name"), , 150, cfLeft
 			.Columns.Add ML("Parameters"), , 150, cfLeft
 			.Columns.Add ML("Line"), , 50, cfRight
+			.Columns.Add ML("Column"), , 50, cfRight
 			.Columns.Add ML("File"), , 400, cfLeft
 			.Columns.Add ML("Comment"), , 0, cfLeft
 			.OnItemActivate = @lvTrek_ItemActivate
