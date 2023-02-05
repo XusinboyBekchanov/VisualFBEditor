@@ -150,6 +150,7 @@ IncludePaths.Sorted = True
 GlobalNamespaces.Sorted = True
 Comps.Sorted = True
 GlobalTypes.Sorted = True
+GlobalTypeProcedures.Sorted = True
 GlobalEnums.Sorted = True
 GlobalFunctions.Sorted = True
 GlobalFunctionsHelp.Sorted = True
@@ -1573,13 +1574,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						End If
 					End If
 					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
-						pFiles->Add *ee->FileName
-						'Var ecc = New_(EditControlContent)
-						'ecc->FileName = *ee->FileName
-						'ecc->Tag = ppe
-						'RemoveGlobalTypeElements *ee->FileName
+						pFiles->Add *ee->FileName, ppe
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
-						'ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
 						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
 					End If
 					If inFolder Then
@@ -1716,6 +1712,17 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 			For i As Integer = 0 To pFiles->Count - 1
 				ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i)))))
 			Next
+			If AutoSuggestions Then
+				For i As Integer = 0 To pFiles->Count - 1
+					Var ecc = New_(EditControlContent)
+					ecc->FileName = pFiles->Item(i)
+					ecc->Globals = @Cast(ProjectElement Ptr, pFiles->Object(i))->Globals
+					ecc->Tag = pFiles->Object(i)
+					Cast(ProjectElement Ptr, pFiles->Object(i))->Contents.Add ecc
+					If Not LoadPaths.Contains(pFiles->Item(i)) Then LoadPaths.Add pFiles->Item(i)
+					ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
+				Next
+			End If
 		End If
 	End If
 	If Not inFolder Then
@@ -1812,6 +1819,17 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		For i As Integer = 0 To Files.Count - 1
 			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
 		Next
+		If AutoSuggestions Then
+			For i As Integer = 0 To Files.Count - 1
+				Var ecc = New_(EditControlContent)
+				ecc->FileName = Files.Item(i)
+				ecc->Globals = @Cast(ProjectElement Ptr, Files.Object(i))->Globals
+				ecc->Tag = Files.Object(i)
+				Cast(ProjectElement Ptr, Files.Object(i))->Contents.Add ecc
+				If Not LoadPaths.Contains(Files.Item(i)) Then LoadPaths.Add Files.Item(i)
+				ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
+			Next
+		End If
 		CloseFile_(Fn)
 		Return True
 	End If
@@ -3479,33 +3497,33 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			inType = False
 			Do Until EOF(ff)
 				Line Input #ff, b
-				'If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
-				'	FECLine = New_( EditControlLine)
-				'	WLet(FECLine->Text, b)
-				'	iC = FindCommentIndex(b, OldiC)
-				'	FECLine->CommentIndex = iC
-				'	FECLine->InAsm = InAsm
-				'	i = File->GetConstruction(*FECLine->Text, j, , InAsm)
-				'	FECLine->ConstructionIndex = i
-				'	FECLine->ConstructionPart = j
-				'	If FECLine->ConstructionIndex = C_Asm Then
-				'		InAsm = FECLine->ConstructionPart = 0
-				'	End If
-				'	FECLine->InAsm = InAsm
-				'	OldiC = iC
-				'	i += 1
-				'	File->Lines.Add(FECLine)
-				'Else
+				If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
+					FECLine = New_( EditControlLine)
+					WLet(FECLine->Text, b)
+					iC = FindCommentIndex(b, OldiC)
+					FECLine->CommentIndex = iC
+					FECLine->InAsm = InAsm
+					i = File->GetConstruction(*FECLine->Text, j, , InAsm)
+					FECLine->ConstructionIndex = i
+					FECLine->ConstructionPart = j
+					If FECLine->ConstructionIndex = C_Asm Then
+						InAsm = FECLine->ConstructionPart = 0
+					End If
+					FECLine->InAsm = InAsm
+					OldiC = iC
+					i += 1
+					File->Lines.Add(FECLine)
+				Else
 					Lines.Add b
-				'End If
+				End If
 			Loop
 		End If
 		CloseFile_(ff)
 	End If
 	If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
-		'LoadFunctionsWithContent Path, File->Tag, *File
-		'MutexUnlock tlockSave
-		'Exit Sub
+		LoadFunctionsWithContent Path, File->Tag, *File
+		MutexUnlock tlockSave
+		Exit Sub
 	End If
 	For i As Integer = 0 To Lines.Count - 1
 		b1 = Replace(Lines.Item(i), !"\t", " ")
@@ -4459,7 +4477,7 @@ End Sub
 Sub LoadOnlyFilePathOverwriteWithContent(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		LoadFunctions Cast(EditControlContent Ptr, Param)->FileName, LoadParam.OnlyFilePathOverwriteWithContent, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
+		LoadFunctions Cast(EditControlContent Ptr, Param)->FileName, LoadParam.OnlyFilePathOverwriteWithContent, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs, , , Param
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -7789,7 +7807,8 @@ lvSuggestions.Align = DockStyle.alClient
 lvSuggestions.Columns.Add ML("Content"), , 500, cfLeft
 lvSuggestions.Columns.Add ML("Line"), , 50, cfRight
 lvSuggestions.Columns.Add ML("Column"), , 50, cfRight
-lvSuggestions.Columns.Add ML("File"), , 700, cfLeft
+lvSuggestions.Columns.Add ML("File"), , 500, cfLeft
+lvSuggestions.Columns.Add ML("Project"), , 500, cfLeft
 lvSuggestions.OnItemActivate = @lvSuggestions_ItemActivate
 
 Sub lvSearch_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)

@@ -102,6 +102,7 @@ Namespace My.Sys.Forms
 		EndLine As Integer
 		ControlType As Integer
 		Find As Boolean
+		Used As Boolean
 		Tag As Any Ptr
 		Elements As WStringOrStringList
 		Declare Destructor
@@ -132,7 +133,16 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 	End Type
-
+	
+	Type GlobalTypeElements
+		Namespaces As WStringOrStringList
+		Types As WStringOrStringList
+		Enums As WStringOrStringList
+		Functions As WStringOrStringList
+		TypeProcedures As WStringOrStringList
+		Args As WStringOrStringList
+	End Type
+	
 	Type EditControlContent
 		Dim WithOldI As Integer = -1
 		Dim WithOldTypeName As String
@@ -160,6 +170,7 @@ Namespace My.Sys.Forms
 		FunctionsOthers As WStringOrStringList
 		Args As WStringOrStringList
 		LineLabels As WStringOrStringList
+		Globals As GlobalTypeElements Ptr
 		Lines As List
 		Tag As Any Ptr
 		Declare Function ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringOrStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean

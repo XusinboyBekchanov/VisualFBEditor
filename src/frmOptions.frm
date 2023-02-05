@@ -705,7 +705,7 @@ pfOptions = @fOptions
 		chkAutoIndentation.Align = DockStyle.alTop
 		chkAutoIndentation.TabIndex = 111
 		chkAutoIndentation.Constraints.Height = 21
-		chkAutoIndentation.AutoSize = true
+		chkAutoIndentation.AutoSize = True
 		chkAutoIndentation.SetBounds 0, 2, 137, 21
 		chkAutoIndentation.Parent = @vbxCodeEditor
 		' chkEnableAutoComplete
@@ -715,7 +715,7 @@ pfOptions = @fOptions
 		chkEnableAutoComplete.Align = DockStyle.alTop
 		chkEnableAutoComplete.TabIndex = 112
 		chkEnableAutoComplete.Constraints.Height = 21
-		chkEnableAutoComplete.AutoSize = true
+		chkEnableAutoComplete.AutoSize = True
 		chkEnableAutoComplete.SetBounds 0, 23, 161, 21
 		chkEnableAutoComplete.Parent = @vbxCodeEditor
 		' chkEnableAutoSuggestions
@@ -727,7 +727,7 @@ pfOptions = @fOptions
 		.ControlIndex = 1
 		.Caption = ML("Enable Auto Suggestions")
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 44, 174, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
@@ -739,7 +739,7 @@ pfOptions = @fOptions
 		chkShowSpaces.ExtraMargins.Top = 0
 		chkShowSpaces.TabIndex = 113
 		chkShowSpaces.Constraints.Height = 21
-		chkShowSpaces.AutoSize = true
+		chkShowSpaces.AutoSize = True
 		chkShowSpaces.SetBounds 0, 65, 118, 21
 		chkShowSpaces.Parent = @vbxCodeEditor
 		' chkShowKeywordsTooltip
@@ -3294,6 +3294,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AutoIndentation = .chkAutoIndentation.Checked
 		AutoComplete = .chkEnableAutoComplete.Checked
 		AutoSuggestions = .chkEnableAutoSuggestions.Checked
+		AutoSuggestions = False
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
 		AddRelativePathsToRecent = .chkAddRelativePathsToRecent.Checked
