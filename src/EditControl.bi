@@ -100,6 +100,8 @@ Namespace My.Sys.Forms
 		Locals As Integer
 		StartLine As Integer
 		EndLine As Integer
+		StartChar As Integer
+		EndChar As Integer
 		ControlType As Integer
 		Find As Boolean
 		Used As Boolean

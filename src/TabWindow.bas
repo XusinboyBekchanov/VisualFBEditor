@@ -5389,7 +5389,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 				If cbINFO.hwndList Then
 					Dim As Rect rc
 					GetWindowRect cbINFO.hwndList, @rc
-					MoveWindow cbINFO.hwndList, rc.Left, rc.Top, rc.Right - rc.Left, Max(1, Min(tb->txtCode.cboIntellisense.ItemCount, 7)) * tb->txtCode.cboIntellisense.ItemHeight + 2, True
+					MoveWindow cbINFO.hwndList, rc.Left, rc.Top, rc.Right - rc.Left, Max(1, Min(tb->txtCode.cboIntellisense.ItemCount, 7)) * ScaleY(tb->txtCode.cboIntellisense.ItemHeight) + 2, True
 				End If
 			End If
 		#endif
