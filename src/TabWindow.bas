@@ -861,6 +861,7 @@ End Property
 
 Property TabWindow.FileName(ByRef Value As WString)
 	WLet(FFileName,  Value)
+	txtCode.Content.FileName = Value
 End Property
 
 Operator TabWindow.Cast As TabPage Ptr
@@ -1016,6 +1017,7 @@ Function TabWindow.SaveAs As Boolean
 		tn->Text = Caption
 		mi->Caption = Caption
 		WLet(FFileName, pSaveD->FileName)
+		txtCode.Content.FileName = *FFileName
 		CheckExtension *FFileName
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
@@ -6194,6 +6196,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														'If Not .Text(0) = ErrorText Then
 														'	?WStr(z + 1), ii, .Text(0), ErrorText, GetCurrentThreadId
 														'End If
+														.ImageKey = "Error"
 														.Text(0) = ErrorText
 														.Text(1) = WStr(z + 1)
 														.Text(2) = WStr(MatnBoshi)
@@ -6256,17 +6259,17 @@ Sub AnalyzeTab(Param As Any Ptr)
 	Dim As List NotUsedIdentifiers
 	For kk As Integer = 0 To Contents.Count - 1
 		ecc = Contents.Item(kk)
-		For i As Integer = ecc->Functions.Count - 1 To 0 Step -1
+		For i As Integer = 0 To ecc->Functions.Count - 1
 			te = ecc->Functions.Object(i)
 			If te->Used = False Then
 				NotUsedIdentifiers.Add te
 			End If
-			For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			For j As Integer = 0 To te->Elements.Count - 1
 				te1 = te->Elements.Object(j)
 				If te1->Used = False Then
 					NotUsedIdentifiers.Add te1
 				End If
-				For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+				For k As Integer = 0 To te1->Elements.Count - 1
 					te2 = Cast(TypeElement Ptr, te1->Elements.Object(k))
 					If te2->Used = False Then
 						NotUsedIdentifiers.Add te2
@@ -6274,36 +6277,36 @@ Sub AnalyzeTab(Param As Any Ptr)
 				Next
 			Next
 		Next
-		For i As Integer = ecc->Namespaces.Count - 1 To 0 Step -1
+		For i As Integer = 0 To ecc->Namespaces.Count - 1
 			te = ecc->Namespaces.Object(i)
 			If te->Used = False Then
 				NotUsedIdentifiers.Add te
 			End If
 		Next
-		For i As Integer = ecc->FunctionsOthers.Count - 1 To 0 Step -1
+		For i As Integer = 0 To ecc->FunctionsOthers.Count - 1
 			te = ecc->FunctionsOthers.Object(i)
 			If te->Used = False Then
 				NotUsedIdentifiers.Add te
 			End If
-			For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			For j As Integer = 0 To te->Elements.Count - 1
 				te1 = te->Elements.Object(j)
 				If te1->Used = False Then
 					NotUsedIdentifiers.Add te1
 				End If
 			Next
 		Next
-		For i As Integer = ecc->LineLabels.Count - 1 To 0 Step -1
+		For i As Integer = 0 To ecc->LineLabels.Count - 1
 			te = ecc->LineLabels.Object(i)
 			If te->Used = False Then
 				NotUsedIdentifiers.Add te
 			End If
 		Next
-		For i As Integer = ecc->Args.Count - 1 To 0 Step -1
+		For i As Integer = 0 To ecc->Args.Count - 1
 			te = ecc->Args.Object(i)
 			If te->Used = False Then
 				NotUsedIdentifiers.Add te
 			End If
-			For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			For j As Integer = 0 To te->Elements.Count - 1
 				te1 = te->Elements.Object(j)
 				If te1->Used = False Then
 					NotUsedIdentifiers.Add te1
@@ -6339,6 +6342,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 				'If Not .Text(0) = ErrorText Then
 				'	?WStr(z + 1), ii, .Text(0), ErrorText, GetCurrentThreadId
 				'End If
+				.ImageKey = "Warning"
 				.Text(0) = ErrorText
 				.Text(1) = WStr(z + 1)
 				.Text(2) = WStr(MatnBoshi)
@@ -9259,6 +9263,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	txtCode.OnDropDownCloseUp = @OnDropDownCloseUp
 	txtCode.OnSplitHorizontallyChange = @OnSplitHorizontallyChangeEdit
 	txtCode.OnSplitVerticallyChange = @OnSplitVerticallyChangeEdit
+	txtCode.Content.FileName = ML("Untitled")
 	txtCode.Tag = @This
 	txtCode.ShowHint = False
 	'CheckedFiles.Sorted = True
