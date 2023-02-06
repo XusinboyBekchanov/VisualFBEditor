@@ -6314,7 +6314,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	MutexLock tlockSuggestions
 	For i As Integer = 0 To NotUsedIdentifiers.Count - 1
 		te = NotUsedIdentifiers.Item(i)
-		If LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor" Then Continue For
+		If CBool(LCase(te->ElementType) = "constructor") OrElse CBool(LCase(te->ElementType) = "destructor") OrElse te->TypeProcedure Then Continue For
 		Dim As Integer ii = 0, AddIndex = -1, MatnBoshi = te->StartChar, z = te->StartLine
 		Dim As UString ErrorText = ML("Warning: Identifier not used") & ", " & te->Name & ", " & ML("delete it if not needed")
 		Dim As UString FileName_ = te->FileName
@@ -6804,6 +6804,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								Pos1 = InStr(te->Name, ".")
 								Dim As Boolean TypeProcedure
 								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True
+								te->TypeProcedure = TypeProcedure
 								Pos2 = InStr(bTrim, ")")
 								If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
 									te->TypeName = te->Name
@@ -7882,6 +7883,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Pos1 = InStr(te->Name, ".")
 								Dim As Boolean TypeProcedure
 								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True: te->StartChar = te->StartChar + Pos1 + l
+								te->TypeProcedure = TypeProcedure 
 								Pos2 = InStr(bTrim, ")")
 								If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
 									te->TypeName = te->Name
@@ -8341,6 +8343,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 							CInt(StartsWith(bTrimLCase, "var ")) Then
 							Dim As UString b2 = bTrim
+							Dim As Integer uu
 							If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") OrElse b2.ToLower.StartsWith("for ") Then
 								b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 								u += Len(bTrim) - Len(b2)
@@ -8377,7 +8380,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Else
 								Split GetChangedCommas(b2), ",", res1()
 							End If
+							uu = u
 							For n As Integer = 0 To UBound(res1)
+								u = uu
+								uu += Len(res1(n)) + 1
 								res1(n) = Replace(res1(n), ";", ",")
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then

@@ -96,6 +96,7 @@ Namespace My.Sys.Forms
 		FileName As UString
 		IncludeFile As UString
 		TypeIsPointer As Boolean
+		TypeProcedure As Boolean
 		Declaration As Boolean
 		Locals As Integer
 		StartLine As Integer
@@ -168,6 +169,7 @@ Namespace My.Sys.Forms
 		Types As WStringOrStringList
 		Enums As WStringOrStringList
 		Functions As WStringOrStringList
+		TypeProcedures As WStringOrStringList
 		Procedures As WStringOrStringList
 		FunctionsOthers As WStringOrStringList
 		Args As WStringOrStringList

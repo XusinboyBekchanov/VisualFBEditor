@@ -2890,6 +2890,7 @@ Namespace My.Sys.Forms
 		Procedures.Sorted = True
 		Functions.Sorted = True
 		FunctionsOthers.Sorted = True
+		TypeProcedures.Sorted = True
 		Args.Sorted = True
 		CheckedFiles.Sorted = True
 	End Constructor
