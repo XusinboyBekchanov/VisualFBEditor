@@ -5886,7 +5886,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 													End If
 												End If
 												
-												If tIndex = -1 Then
+												If tIndex = -1 AndAlso (tb->OldMatnLCase <> "as") Then
 													tIndex = ecc->Procedures.IndexOf(tb->MatnLCase)
 													If tIndex <> -1 Then
 														If Cast(TypeElement Ptr, ecc->Procedures.Object(tIndex))->StartLine > z Then
@@ -6314,6 +6314,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	MutexLock tlockSuggestions
 	For i As Integer = 0 To NotUsedIdentifiers.Count - 1
 		te = NotUsedIdentifiers.Item(i)
+		If LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor" Then Continue For
 		Dim As Integer ii = 0, AddIndex = -1, MatnBoshi = te->StartChar, z = te->StartLine
 		Dim As UString ErrorText = ML("Warning: Identifier not used") & ", " & te->Name & ", " & ML("delete it if not needed")
 		Dim As UString FileName_ = te->FileName
