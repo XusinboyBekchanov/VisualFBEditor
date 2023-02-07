@@ -2614,8 +2614,8 @@ Namespace My.Sys.Forms
 		Dim As Boolean b, OneDot, TwoDots
 		For j = iSelEndLine To 0 Step -1
 			sLine = Cast(EditControlLine Ptr, Lines.Item(j))->Text
-			If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine), " _") Then Exit For
-			For i As Integer = IIf(j = iSelEndLine, iSelEndChar, Len(*sLine)) To 1 Step -1
+			If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine, Any !"\t "), " _") Then Exit For
+			For i As Integer = IIf(j = iSelEndLine, Min(Len(RTrim(*sLine, Any !"\t ")), iSelEndChar), Len(RTrim(*sLine, Any !"\t "))) To 1 Step -1
 				ch = Chr((*sLine)[i - 1])
 				If ch = ")" OrElse ch = "]" Then
 					iCount += 1
