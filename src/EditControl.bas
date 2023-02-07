@@ -3349,7 +3349,7 @@ Namespace My.Sys.Forms
 															End If
 															
 															If Not OneDot Then
-																If tIndex = -1 Then
+																If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
 																	For i As Integer = 0 To FECLine->Args.Count - 1
 																		tIndex = Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements.IndexOf(MatnLCase)
 																		If tIndex <> -1 Then

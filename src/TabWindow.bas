@@ -5736,7 +5736,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											End If
 											
 											If Not OneDot Then
-												If tIndex = -1 Then
+												If tIndex = -1 AndAlso tb->OldMatnLCase <> "as" Then
 													For i As Integer = 0 To FECLine->Args.Count - 1
 														tIndex = Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements.IndexOf(tb->MatnLCase)
 														If tIndex <> -1 Then
@@ -7281,7 +7281,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 							CInt(StartsWith(bTrimLCase, "var ")) Then
 							Dim As UString b2 = bTrim
-							Dim As Integer uu
+							Dim As Integer uu, ct
 							If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") OrElse b2.ToLower.StartsWith("for ") Then
 								b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 								u += Len(bTrim) - Len(b2)
@@ -7326,6 +7326,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								res1(n) = Replace(res1(n), ";", ",")
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then
+									ct = Len(res1(n)) - Pos1 + 1
 									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
 									If CBool(n = 0) AndAlso bOldAs Then
 										CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
@@ -7341,15 +7342,14 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									CurType = Replace(CurType, "`", "=")
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
-								If CBool(n = 0) AndAlso bOldAs Then
-									CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
-								End If
 								Pos1 = InStr(res1(n), ":")
 								If Pos1 > 0 Then
+									ct = Len(res1(n)) - Pos1 + 1
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
-									u += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
+									ct = Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
+									u += ct
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
 								Pos1 = InStr(res1(n), "(")
@@ -7359,12 +7359,17 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								Pos1 = InStr(LCase(res1(n)), " alias ")
 								If Pos1 > 0 Then
+									ct += Len(res1(n)) - Pos1 + 1
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
+								ct += Len(res1(n)) - Len(res1(n).TrimAll)
 								res1(n) = res1(n).TrimAll
 								Pos1 = InStrRev(res1(n), " ")
 								If Pos1 > 0 Then
 									res1(n) = Trim(Mid(res1(n), Pos1 + 1))
+								End If
+								If CBool(n = 0) AndAlso bOldAs Then
+									CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) - ct))
 								End If
 								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
 									Pos1 = InStrRev(CurType, ".")
@@ -8363,7 +8368,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 							CInt(StartsWith(bTrimLCase, "var ")) Then
 							Dim As UString b2 = bTrim
-							Dim As Integer uu
+							Dim As Integer uu, ct
 							If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") OrElse b2.ToLower.StartsWith("for ") Then
 								b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 								u += Len(bTrim) - Len(b2)
@@ -8408,6 +8413,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								res1(n) = Replace(res1(n), ";", ",")
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then
+									ct = Len(res1(n)) - Pos1 + 1
 									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
 									If CBool(n = 0) AndAlso bOldAs Then
 										CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
@@ -8423,30 +8429,35 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									CurType = Replace(CurType, "`", "=")
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
-								If CBool(n = 0) AndAlso bOldAs Then
-									CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
-								End If
 								Pos1 = InStr(res1(n), ":")
 								If Pos1 > 0 Then
+									ct = Len(res1(n)) - Pos1 + 1
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
-									u += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
+									ct = Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
+									u += ct
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
 								Pos1 = InStr(res1(n), "(")
 								If Pos1 > 0 Then
+									ct += Len(res1(n)) - Pos1 + 1
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								Pos1 = InStr(LCase(res1(n)), " alias ")
 								If Pos1 > 0 Then
+									ct += Len(res1(n)) - Pos1 + 1
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
+								ct += Len(res1(n)) - Len(res1(n).TrimAll)
 								res1(n) = res1(n).TrimAll
 								Pos1 = InStrRev(res1(n), " ")
 								If Pos1 > 0 Then
 									u += Len(res1(n)) - Len(Trim(Mid(res1(n), Pos1 + 1)))
 									res1(n) = Trim(Mid(res1(n), Pos1 + 1))
+								End If
+								If CBool(n = 0) AndAlso bOldAs Then
+									CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) - ct))
 								End If
 								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
 									Pos1 = InStrRev(CurType, ".")
