@@ -6438,7 +6438,7 @@ Sub TabWindow.GetIncludeFiles
 			Delete_( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
 		Next
 		For i As Integer = txtCode.Content.FileListsLines.Count - 1 To 0 Step -1
-			Delete_( Cast(IntegerList Ptr, txtCode.Content.FileLists.Item(i)))
+			Delete_( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
 		Next
 		txtCode.Content.FileLists.Clear
 		txtCode.Content.FileListsLines.Clear
@@ -6705,7 +6705,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 				b2 = Replace(b2, ":", "%")
 			End If
 			Split(b2, ":", res())
-			Dim k As Integer = 1
+			Dim As Integer k = 1, u
 			For jj As Integer = 0 To UBound(res)
 				l = Len(res(jj))
 				b = Mid(b1, k, l)
@@ -6713,7 +6713,9 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 				bTrim = Trim(b, Any !"\t ")
 				bTrimLCase = LCase(bTrim)
 				b0TrimLCase = LCase(Trim(b0, Any !"\t "))
+				u = k
 				k = k + Len(res(jj)) + 1
+				u = u + Len(b) - Len(LTrim(b, Any !"\t "))
 				'			ECLine->InConstructionIndex = ConstructionIndex
 				'			ECLine->InConstructionPart = ConstructionPart
 				'			If ECLine->ConstructionIndex > 0 AndAlso ECLine->ConstructionIndex <> 1 AndAlso ECLine->ConstructionIndex <> 2 AndAlso ECLine->ConstructionIndex <> 3 Then
@@ -6794,6 +6796,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								Else
 									te->Name = Trim(Mid(bTrim, Pos1 + l))
 								End If
+								te->StartChar = u + Pos1 + l
+								te->EndChar = te->StartChar + Len(te->Name)
 								If ECLine->ConstructionIndex = C_Property Then
 									If EndsWith(bTrim, ")") Then
 										te->DisplayName = te->Name & " [Let]"
@@ -6807,7 +6811,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								Pos1 = InStr(te->Name, ".")
 								Dim As Boolean TypeProcedure
-								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True
+								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True: te->StartChar = te->StartChar + Pos1 + l
 								te->TypeProcedure = TypeProcedure
 								Pos2 = InStr(bTrim, ")")
 								If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
@@ -7277,19 +7281,23 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 							CInt(StartsWith(bTrimLCase, "var ")) Then
 							Dim As UString b2 = bTrim
+							Dim As Integer uu
 							If b2.ToLower.StartsWith("dim ") OrElse b2.ToLower.StartsWith("redim ") OrElse b2.ToLower.StartsWith("static ") OrElse b2.ToLower.StartsWith("var ") OrElse b2.ToLower.StartsWith("const ") OrElse b2.ToLower.StartsWith("common ") OrElse b2.ToLower.StartsWith("for ") Then
 								b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
+								u += Len(bTrim) - Len(b2)
 							End If
 							Dim As UString CurType, ElementValue
 							Dim As UString res1(Any)
 							Dim As Boolean bShared, bOldAs
 							Pos1 = InStr(b2, "'")
 							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
-							If b2.ToLower.StartsWith("shared ") Then bShared = True: b2 = Trim(Mid(b2, 7))
-							If b2.ToLower.StartsWith("import ") Then b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
 							If b2.ToLower.StartsWith("as ") Then
 								bOldAs = True
 								CurType = Trim(Mid(b2, 4))
+								u += Len(b2) - Len(CurType)
 								Pos1 = InStr(CurType, " ")
 								Pos2 = InStr(CurType, " Ptr ")
 								Pos3 = InStr(CurType, " Pointer ")
@@ -7299,6 +7307,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									Pos1 = Pos2 + 8
 								End If
 								If Pos1 > 0 Then
+									u += Pos1 + 1
 									Split GetChangedCommas(Mid(CurType, Pos1 + 1)), ",", res1()
 									'							Pos2 = InStr(CurType, "*")   'David Change,  As WString *2 a,b,c,
 									'							If Pos2 > 1 Then Pos1 = Pos2
@@ -7310,7 +7319,10 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Else
 								Split GetChangedCommas(b2), ",", res1()
 							End If
+							uu = u
 							For n As Integer = 0 To UBound(res1)
+								u = uu
+								uu += Len(res1(n)) + 1
 								res1(n) = Replace(res1(n), ";", ",")
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then
@@ -7337,10 +7349,12 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+									u += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
 								Pos1 = InStr(res1(n), "(")
 								If Pos1 > 0 Then
+									u += Len(res1(n)) - Len(Trim(Mid(res1(n), Pos1 + 1)))
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								Pos1 = InStr(LCase(res1(n)), " alias ")
@@ -7358,6 +7372,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								Var te = New_( TypeElement)
 								te->Name = res1(n)
+								te->StartChar = u
+								te->EndChar = te->StartChar + Len(te->Name)
 								te->DisplayName = res1(n)
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 								te->TypeName = CurType
@@ -7887,7 +7903,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Pos1 = InStr(te->Name, ".")
 								Dim As Boolean TypeProcedure
 								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True: te->StartChar = te->StartChar + Pos1 + l
-								te->TypeProcedure = TypeProcedure 
+								te->TypeProcedure = TypeProcedure
 								Pos2 = InStr(bTrim, ")")
 								If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
 									te->TypeName = te->Name
@@ -8359,6 +8375,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
 							If b2.ToLower.StartsWith("shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
+							If b2.ToLower.StartsWith("byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
 							If b2.ToLower.StartsWith("as ") Then
 								bOldAs = True
 								CurType = Trim(Mid(b2, 4))
@@ -9536,7 +9553,7 @@ Destructor TabWindow
 		Delete_( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
 	Next
 	For i As Integer = txtCode.Content.FileListsLines.Count - 1 To 0 Step -1
-		Delete_( Cast(IntegerList Ptr, txtCode.Content.FileLists.Item(i)))
+		Delete_( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
 	Next
 	txtCode.Content.Functions.Clear
 	txtCode.Content.FunctionsOthers.Clear
