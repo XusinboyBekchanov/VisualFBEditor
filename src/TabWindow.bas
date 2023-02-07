@@ -11966,12 +11966,12 @@ Sub TabWindow.Define
 		End If
 		If .Count = 0 Then
 		ElseIf .Count = 1 Then
-			SelectSearchResult .Item(0)->Text(3), Val(.Item(0)->Text(2)), IIf(.Item(0)->Text(3) = "0", -1, Val(.Item(0)->Text(3))), , .Item(0)->Tag, sWord
+			SelectSearchResult .Item(0)->Text(4), Val(.Item(0)->Text(2)), IIf(.Item(0)->Text(3) = "0", -1, Val(.Item(0)->Text(3))), , .Item(0)->Tag, sWord
 		Else
 			If pfTrek->ShowModal = ModalResults.OK Then
 				Var item = pfTrek->SelectedItem
 				If item <> 0 Then
-					SelectSearchResult item->Text(3), Val(item->Text(2)), IIf(item->Text(3) = "0", -1, Val(item->Text(3))), , item->Tag, sWord
+					SelectSearchResult item->Text(4), Val(item->Text(2)), IIf(item->Text(3) = "0", -1, Val(item->Text(3))), , item->Tag, sWord
 				End If
 			End If
 		End If
