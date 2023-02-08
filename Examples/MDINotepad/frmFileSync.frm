@@ -508,10 +508,10 @@
 			.Name = "cmdBPath"
 			.Text = "B"
 			.TabIndex = 28
-			.ControlIndex = 2
-			.SetBounds 10, 50, 30, 22
+			.ControlIndex = 10
+			.SetBounds 0, 40, 30, 22
 			.Designer = @This
-			.Parent = @This
+			.Parent = @Panel2
 		End With
 	End Constructor
 	
