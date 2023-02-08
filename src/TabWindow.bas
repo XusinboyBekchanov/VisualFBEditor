@@ -1019,6 +1019,13 @@ Function TabWindow.SaveAs As Boolean
 		WLet(FFileName, pSaveD->FileName)
 		txtCode.Content.FileName = *FFileName
 		CheckExtension *FFileName
+		MutexLock tlockSuggestions
+		For i As Integer = 0 To lvSuggestions.ListItems.Count - 1
+			If lvSuggestions.ListItems.Item(i)->Tag = @This Then
+				lvSuggestions.ListItems.Item(i)->Text(3) = *FFileName
+			End If
+		Next
+		MutexUnlock tlockSuggestions
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
 		If ee = 0 Then
@@ -1130,7 +1137,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		End Select
 	End If
 	QuitThread
-	If IsNew Then
+	If Project = 0 Then
 		MutexLock tlockSuggestions
 		For i As Integer = lvSuggestions.ListItems.Count - 1 To 0 Step -1
 			If lvSuggestions.ListItems.Item(i)->Tag = @This Then
@@ -6484,6 +6491,70 @@ Sub TabWindow.GetIncludeFiles
 	End If
 End Sub
 
+Sub SplitParameters(ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, tb As TabWindow Ptr = 0)
+	If Parameters <> "" Then
+		If ECLine Then ECLine->Args.Add func
+		Dim As UString CurType, res1(Any), ElementValue
+		Dim As Integer Pos1, Pos2
+		Split GetChangedCommas(Parameters), ",", res1()
+		For n As Integer = 0 To UBound(res1)
+			res1(n) = Replace(res1(n), ";", ",")
+			Pos1 = InStr(res1(n), "=")
+			If Pos1 > 0 Then
+				ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+				res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+			Else
+				ElementValue = ""
+			End If
+			Pos1 = InStr(LCase(res1(n)), " as ")
+			If Pos1 > 0 Then
+				CurType = Trim(Mid(res1(n), Pos1 + 4))
+				CurType = Replace(CurType, "`", "=")
+				'Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
+				'If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
+				'If Pos1 > 0 Then 
+					res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+				'End If
+				?CurType
+			End If
+			Var te = New_( TypeElement)
+			If res1(n).ToLower.StartsWith("byref") Then
+				res1(n) = Trim(Mid(res1(n), 6))
+				te->ElementType = "ByRefParameter"
+			ElseIf res1(n).ToLower.StartsWith("byval") Then
+				res1(n) = Trim(Mid(res1(n), 6))
+				te->ElementType = "ByValParameter"
+			Else
+				te->ElementType = "ByValParameter"
+			End If
+			Pos1 = InStr(res1(n), "(")
+			If Pos1 > 0 Then
+				res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+			End If
+			res1(n) = res1(n).TrimAll
+			If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+				Pos1 = InStrRev(CurType, ".")
+				If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+			End If
+			te->Name = res1(n)
+			te->DisplayName = res1(n)
+			te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+			'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+			te->TypeName = CurType
+			te->TypeName = WithoutPointers(te->TypeName)
+			te->Value = ElementValue
+			te->Locals = 0
+			te->StartLine = LineIndex
+			te->EndLine = LineIndex
+			te->Parameters = res1(n) & " As " & CurType
+			te->FileName = FileName
+			te->Tag = tb
+			func->Elements.Add te->Name, te
+			?CurType
+		Next
+	End If
+End Sub
+
 Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ByRef Content As EditControlContent)
 	Dim As TypeElement Ptr te, te1, tbi, func
 	Content.Types.Clear
@@ -6868,59 +6939,61 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								func = te
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									Dim As UString CurType, res1(Any), ElementValue
-									Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-									For n As Integer = 0 To UBound(res1)
-										res1(n) = Replace(res1(n), ";", ",")
-										Pos1 = InStr(res1(n), "=")
-										If Pos1 > 0 Then
-											ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-										Else
-											ElementValue = ""
-										End If
-										If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-										Pos1 = InStr(LCase(res1(n)), " as ")
-										If Pos1 > 0 Then
-											CurType = Trim(Mid(res1(n), Pos1 + 4))
-											CurType = Replace(CurType, "`", "=")
-											Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
-											If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
-											If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-										End If
-										Var te = New_( TypeElement)
-										If res1(n).ToLower.StartsWith("byref") Then
-											res1(n) = Trim(Mid(res1(n), 6))
-											te->ElementType = "ByRefParameter"
-										ElseIf res1(n).ToLower.StartsWith("byval") Then
-											res1(n) = Trim(Mid(res1(n), 6))
-											te->ElementType = "ByValParameter"
-										Else
-											te->ElementType = "ByValParameter"
-										End If
-										Pos1 = InStr(res1(n), "(")
-										If Pos1 > 0 Then
-											res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-										End If
-										res1(n) = res1(n).TrimAll
-										If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-											Pos1 = InStrRev(CurType, ".")
-											If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-										End If
-										te->Name = res1(n)
-										te->DisplayName = res1(n)
-										te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-										'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-										te->TypeName = CurType
-										te->TypeName = WithoutPointers(te->TypeName)
-										te->Value = ElementValue
-										te->Locals = 0
-										te->StartLine = i
-										te->EndLine = i
-										te->Parameters = res1(n) & " As " & CurType
-										te->FileName = sFileName
-										te->Tag = tb
-										func->Elements.Add te->Name, te
-									Next
+									SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, tb
+									'Dim As UString CurType, res1(Any), ElementValue
+									'Split GetChangedCommas(Parameters), ",", res1()
+									'For n As Integer = 0 To UBound(res1)
+									'	If Trim(res1(n)) = "" Then Continue For
+									'	res1(n) = Replace(res1(n), ";", ",")
+									'	Pos1 = InStr(res1(n), "=")
+									'	If Pos1 > 0 Then
+									'		ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+									'	Else
+									'		ElementValue = ""
+									'	End If
+									'	If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									'	Pos1 = InStr(LCase(res1(n)), " as ")
+									'	If Pos1 > 0 Then
+									'		CurType = Trim(Mid(res1(n), Pos1 + 4))
+									'		CurType = Replace(CurType, "`", "=")
+									'		Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
+									'		If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
+									'		If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									'	End If
+									'	Var te = New_( TypeElement)
+									'	If res1(n).ToLower.StartsWith("byref") Then
+									'		res1(n) = Trim(Mid(res1(n), 6))
+									'		te->ElementType = "ByRefParameter"
+									'	ElseIf res1(n).ToLower.StartsWith("byval") Then
+									'		res1(n) = Trim(Mid(res1(n), 6))
+									'		te->ElementType = "ByValParameter"
+									'	Else
+									'		te->ElementType = "ByValParameter"
+									'	End If
+									'	Pos1 = InStr(res1(n), "(")
+									'	If Pos1 > 0 Then
+									'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									'	End If
+									'	res1(n) = res1(n).TrimAll
+									'	If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+									'		Pos1 = InStrRev(CurType, ".")
+									'		If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+									'	End If
+									'	te->Name = res1(n)
+									'	te->DisplayName = res1(n)
+									'	te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+									'	'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+									'	te->TypeName = CurType
+									'	te->TypeName = WithoutPointers(te->TypeName)
+									'	te->Value = ElementValue
+									'	te->Locals = 0
+									'	te->StartLine = i
+									'	te->EndLine = i
+									'	te->Parameters = res1(n) & " As " & CurType
+									'	te->FileName = sFileName
+									'	te->Tag = tb
+									'	func->Elements.Add te->Name, te
+									'Next
 								End If
 							End If
 						ElseIf ECLine->ConstructionPart = 2 Then
@@ -7027,58 +7100,59 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						End If
 						Pos2 = InStr(bTrim, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							ECLine->Args.Add te
-							Var teDeclare = te
-							Dim As UString CurType, res1(Any), ElementValue
-							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-							For n As Integer = 0 To UBound(res1)
-								res1(n) = Trim(Replace(res1(n), ";", ","))
-								Pos1 = InStr(res1(n), "=")
-								If Pos1 > 0 Then
-									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-								Else
-									ElementValue = ""
-								End If
-								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								Pos1 = InStr(LCase(res1(n)), " as ")
-								If Pos1 > 0 Then
-									CurType = Trim(Mid(res1(n), Pos1 + 4))
-									CurType = Replace(CurType, "`", "=")
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								End If
-								Var te = New_(TypeElement)
-								If res1(n).ToLower.StartsWith("byref") Then
-									res1(n) = Trim(Mid(res1(n), 6))
-									te->ElementType = "ByRefParameter"
-								ElseIf res1(n).ToLower.StartsWith("byval") Then
-									res1(n) = Trim(Mid(res1(n), 6))
-									te->ElementType = "ByValParameter"
-								Else
-									te->ElementType = "ByValParameter"
-								End If
-								Pos1 = InStr(res1(n), "(")
-								If Pos1 > 0 Then
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								End If
-								res1(n) = res1(n).TrimAll
-								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-									Pos1 = InStrRev(CurType, ".")
-									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-								End If
-								te->Name = res1(n)
-								te->DisplayName = res1(n)
-								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-								te->TypeName = WithoutPointers(CurType)
-								te->Value = ElementValue
-								te->Locals = 0
-								te->StartLine = i
-								te->EndLine = i
-								te->Parameters = res1(n) & " As " & CurType
-								te->FileName = sFileName
-								te->Tag = tb
-								teDeclare->Elements.Add te->Name, te
-							Next
+							SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							'Var teDeclare = te
+							'Dim As UString CurType, res1(Any), ElementValue
+							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+							'For n As Integer = 0 To UBound(res1)
+							'	If Trim(res1(n)) = "" Then Continue For
+							'	res1(n) = Trim(Replace(res1(n), ";", ","))
+							'	Pos1 = InStr(res1(n), "=")
+							'	If Pos1 > 0 Then
+							'		ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+							'	Else
+							'		ElementValue = ""
+							'	End If
+							'	If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	Pos1 = InStr(LCase(res1(n)), " as ")
+							'	If Pos1 > 0 Then
+							'		CurType = Trim(Mid(res1(n), Pos1 + 4))
+							'		CurType = Replace(CurType, "`", "=")
+							'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	End If
+							'	Var te = New_(TypeElement)
+							'	If res1(n).ToLower.StartsWith("byref") Then
+							'		res1(n) = Trim(Mid(res1(n), 6))
+							'		te->ElementType = "ByRefParameter"
+							'	ElseIf res1(n).ToLower.StartsWith("byval") Then
+							'		res1(n) = Trim(Mid(res1(n), 6))
+							'		te->ElementType = "ByValParameter"
+							'	Else
+							'		te->ElementType = "ByValParameter"
+							'	End If
+							'	Pos1 = InStr(res1(n), "(")
+							'	If Pos1 > 0 Then
+							'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	End If
+							'	res1(n) = res1(n).TrimAll
+							'	If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+							'		Pos1 = InStrRev(CurType, ".")
+							'		If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+							'	End If
+							'	te->Name = res1(n)
+							'	te->DisplayName = res1(n)
+							'	te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+							'	'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							'	te->TypeName = WithoutPointers(CurType)
+							'	te->Value = ElementValue
+							'	te->Locals = 0
+							'	te->StartLine = i
+							'	te->EndLine = i
+							'	te->Parameters = res1(n) & " As " & CurType
+							'	te->FileName = sFileName
+							'	te->Tag = tb
+							'	teDeclare->Elements.Add te->Name, te
+							'Next
 						End If
 					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
 						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
@@ -7204,58 +7278,59 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Project->Globals.Functions.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							ECLine->Args.Add te
-							Var teDeclare = te
-							Dim As UString CurType, res1(Any), ElementValue
-							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-							For n As Integer = 0 To UBound(res1)
-								res1(n) = Trim(Replace(res1(n), ";", ","))
-								Pos1 = InStr(res1(n), "=")
-								If Pos1 > 0 Then
-									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-								Else
-									ElementValue = ""
-								End If
-								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								Pos1 = InStr(LCase(res1(n)), " as ")
-								If Pos1 > 0 Then
-									CurType = Trim(Mid(res1(n), Pos1 + 4))
-									CurType = Replace(CurType, "`", "=")
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								End If
-								Var te = New_( TypeElement)
-								If res1(n).ToLower.StartsWith("byref") Then
-									res1(n) = Trim(Mid(res1(n), 6))
-									te->ElementType = "ByRefParameter"
-								ElseIf res1(n).ToLower.StartsWith("byval") Then
-									res1(n) = Trim(Mid(res1(n), 6))
-									te->ElementType = "ByValParameter"
-								Else
-									te->ElementType = "ByValParameter"
-								End If
-								Pos1 = InStr(res1(n), "(")
-								If Pos1 > 0 Then
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								End If
-								res1(n) = res1(n).TrimAll
-								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-									Pos1 = InStrRev(CurType, ".")
-									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-								End If
-								te->Name = res1(n)
-								te->DisplayName = res1(n)
-								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-								te->TypeName = WithoutPointers(CurType)
-								te->Value = ElementValue
-								te->Locals = 0
-								te->StartLine = i
-								te->EndLine = i
-								te->Parameters = res1(n) & " As " & CurType
-								te->FileName = sFileName
-								te->Tag = tb
-								teDeclare->Elements.Add te->Name, te
-							Next
+							SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							'Var teDeclare = te
+							'Dim As UString CurType, res1(Any), ElementValue
+							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+							'For n As Integer = 0 To UBound(res1)
+							'	If Trim(res1(n)) = "" Then Continue For
+							'	res1(n) = Trim(Replace(res1(n), ";", ","))
+							'	Pos1 = InStr(res1(n), "=")
+							'	If Pos1 > 0 Then
+							'		ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+							'	Else
+							'		ElementValue = ""
+							'	End If
+							'	If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	Pos1 = InStr(LCase(res1(n)), " as ")
+							'	If Pos1 > 0 Then
+							'		CurType = Trim(Mid(res1(n), Pos1 + 4))
+							'		CurType = Replace(CurType, "`", "=")
+							'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	End If
+							'	Var te = New_( TypeElement)
+							'	If res1(n).ToLower.StartsWith("byref") Then
+							'		res1(n) = Trim(Mid(res1(n), 6))
+							'		te->ElementType = "ByRefParameter"
+							'	ElseIf res1(n).ToLower.StartsWith("byval") Then
+							'		res1(n) = Trim(Mid(res1(n), 6))
+							'		te->ElementType = "ByValParameter"
+							'	Else
+							'		te->ElementType = "ByValParameter"
+							'	End If
+							'	Pos1 = InStr(res1(n), "(")
+							'	If Pos1 > 0 Then
+							'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	End If
+							'	res1(n) = res1(n).TrimAll
+							'	If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+							'		Pos1 = InStrRev(CurType, ".")
+							'		If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+							'	End If
+							'	te->Name = res1(n)
+							'	te->DisplayName = res1(n)
+							'	te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+							'	'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							'	te->TypeName = WithoutPointers(CurType)
+							'	te->Value = ElementValue
+							'	te->Locals = 0
+							'	te->StartLine = i
+							'	te->EndLine = i
+							'	te->Parameters = res1(n) & " As " & CurType
+							'	te->FileName = sFileName
+							'	te->Tag = tb
+							'	teDeclare->Elements.Add te->Name, te
+							'Next
 						End If
 					ElseIf EndsWith(Trim(b1), ":") AndAlso IsArg2(bTrim) AndAlso Not Content.Functions.Contains(bTrim) Then
 						Var te = New_(TypeElement)
@@ -7418,58 +7493,59 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
-										ECLine->Args.Add te
-										Var teDeclare = te
-										Dim As UString CurType, res1(Any), ElementValue
-										Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-										For n As Integer = 0 To UBound(res1)
-											res1(n) = Trim(Replace(res1(n), ";", ","))
-											Pos1 = InStr(res1(n), "=")
-											If Pos1 > 0 Then
-												ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-											Else
-												ElementValue = ""
-											End If
-											If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-											Pos1 = InStr(LCase(res1(n)), " as ")
-											If Pos1 > 0 Then
-												CurType = Trim(Mid(res1(n), Pos1 + 4))
-												CurType = Replace(CurType, "`", "=")
-												res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-											End If
-											Var te = New_( TypeElement)
-											If res1(n).ToLower.StartsWith("byref") Then
-												res1(n) = Trim(Mid(res1(n), 6))
-												te->ElementType = "ByRefParameter"
-											ElseIf res1(n).ToLower.StartsWith("byval") Then
-												res1(n) = Trim(Mid(res1(n), 6))
-												te->ElementType = "ByValParameter"
-											Else
-												te->ElementType = "ByValParameter"
-											End If
-											Pos1 = InStr(res1(n), "(")
-											If Pos1 > 0 Then
-												res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-											End If
-											res1(n) = res1(n).TrimAll
-											If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-												Pos1 = InStrRev(CurType, ".")
-												If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-											End If
-											te->Name = res1(n)
-											te->DisplayName = res1(n)
-											te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-											'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-											te->TypeName = WithoutPointers(CurType)
-											te->Value = ElementValue
-											te->Locals = 0
-											te->StartLine = i
-											te->EndLine = i
-											te->Parameters = res1(n) & " As " & CurType
-											te->FileName = sFileName
-											te->Tag = tb
-											teDeclare->Elements.Add te->Name, te
-										Next
+										SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+										'Var teDeclare = te
+										'Dim As UString CurType, res1(Any), ElementValue
+										'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+										'For n As Integer = 0 To UBound(res1)
+										'	If Trim(res1(n)) = "" Then Continue For
+										'	res1(n) = Trim(Replace(res1(n), ";", ","))
+										'	Pos1 = InStr(res1(n), "=")
+										'	If Pos1 > 0 Then
+										'		ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+										'	Else
+										'		ElementValue = ""
+										'	End If
+										'	If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										'	Pos1 = InStr(LCase(res1(n)), " as ")
+										'	If Pos1 > 0 Then
+										'		CurType = Trim(Mid(res1(n), Pos1 + 4))
+										'		CurType = Replace(CurType, "`", "=")
+										'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										'	End If
+										'	Var te = New_( TypeElement)
+										'	If res1(n).ToLower.StartsWith("byref") Then
+										'		res1(n) = Trim(Mid(res1(n), 6))
+										'		te->ElementType = "ByRefParameter"
+										'	ElseIf res1(n).ToLower.StartsWith("byval") Then
+										'		res1(n) = Trim(Mid(res1(n), 6))
+										'		te->ElementType = "ByValParameter"
+										'	Else
+										'		te->ElementType = "ByValParameter"
+										'	End If
+										'	Pos1 = InStr(res1(n), "(")
+										'	If Pos1 > 0 Then
+										'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										'	End If
+										'	res1(n) = res1(n).TrimAll
+										'	If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+										'		Pos1 = InStrRev(CurType, ".")
+										'		If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+										'	End If
+										'	te->Name = res1(n)
+										'	te->DisplayName = res1(n)
+										'	te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+										'	'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+										'	te->TypeName = WithoutPointers(CurType)
+										'	te->Value = ElementValue
+										'	te->Locals = 0
+										'	te->StartLine = i
+										'	te->EndLine = i
+										'	te->Parameters = res1(n) & " As " & CurType
+										'	te->FileName = sFileName
+										'	te->Tag = tb
+										'	teDeclare->Elements.Add te->Name, te
+										'Next
 									End If
 								End If
 							Next
@@ -7959,59 +8035,61 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								func = te
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									Dim As UString CurType, res1(Any), ElementValue
-									Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-									For n As Integer = 0 To UBound(res1)
-										res1(n) = Replace(res1(n), ";", ",")
-										Pos1 = InStr(res1(n), "=")
-										If Pos1 > 0 Then
-											ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-										Else
-											ElementValue = ""
-										End If
-										If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-										Pos1 = InStr(LCase(res1(n)), " as ")
-										If Pos1 > 0 Then
-											CurType = Trim(Mid(res1(n), Pos1 + 4))
-											CurType = Replace(CurType, "`", "=")
-											Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
-											If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
-											If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-										End If
-										Var te = New_( TypeElement)
-										If res1(n).ToLower.StartsWith("byref") Then
-											res1(n) = Trim(Mid(res1(n), 6))
-											te->ElementType = "ByRefParameter"
-										ElseIf res1(n).ToLower.StartsWith("byval") Then
-											res1(n) = Trim(Mid(res1(n), 6))
-											te->ElementType = "ByValParameter"
-										Else
-											te->ElementType = "ByValParameter"
-										End If
-										Pos1 = InStr(res1(n), "(")
-										If Pos1 > 0 Then
-											res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-										End If
-										res1(n) = res1(n).TrimAll
-										If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-											Pos1 = InStrRev(CurType, ".")
-											If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-										End If
-										te->Name = res1(n)
-										te->DisplayName = res1(n)
-										te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-										'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-										te->TypeName = CurType
-										te->TypeName = WithoutPointers(te->TypeName)
-										te->Value = ElementValue
-										te->Locals = 0
-										te->StartLine = i
-										te->EndLine = i
-										te->Parameters = res1(n) & " As " & CurType
-										te->FileName = sFileName
-										te->Tag = tb
-										func->Elements.Add te->Name, te
-									Next
+									SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, tb
+									'Dim As UString CurType, res1(Any), ElementValue
+									'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+									'For n As Integer = 0 To UBound(res1)
+									'	If Trim(res1(n)) = "" Then Continue For
+									'	res1(n) = Replace(res1(n), ";", ",")
+									'	Pos1 = InStr(res1(n), "=")
+									'	If Pos1 > 0 Then
+									'		ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+									'	Else
+									'		ElementValue = ""
+									'	End If
+									'	If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									'	Pos1 = InStr(LCase(res1(n)), " as ")
+									'	If Pos1 > 0 Then
+									'		CurType = Trim(Mid(res1(n), Pos1 + 4))
+									'		CurType = Replace(CurType, "`", "=")
+									'		Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
+									'		If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
+									'		If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									'	End If
+									'	Var te = New_( TypeElement)
+									'	If res1(n).ToLower.StartsWith("byref") Then
+									'		res1(n) = Trim(Mid(res1(n), 6))
+									'		te->ElementType = "ByRefParameter"
+									'	ElseIf res1(n).ToLower.StartsWith("byval") Then
+									'		res1(n) = Trim(Mid(res1(n), 6))
+									'		te->ElementType = "ByValParameter"
+									'	Else
+									'		te->ElementType = "ByValParameter"
+									'	End If
+									'	Pos1 = InStr(res1(n), "(")
+									'	If Pos1 > 0 Then
+									'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+									'	End If
+									'	res1(n) = res1(n).TrimAll
+									'	If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+									'		Pos1 = InStrRev(CurType, ".")
+									'		If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+									'	End If
+									'	te->Name = res1(n)
+									'	te->DisplayName = res1(n)
+									'	te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+									'	'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+									'	te->TypeName = CurType
+									'	te->TypeName = WithoutPointers(te->TypeName)
+									'	te->Value = ElementValue
+									'	te->Locals = 0
+									'	te->StartLine = i
+									'	te->EndLine = i
+									'	te->Parameters = res1(n) & " As " & CurType
+									'	te->FileName = sFileName
+									'	te->Tag = tb
+									'	func->Elements.Add te->Name, te
+									'Next
 								End If
 							End If
 						ElseIf ECLine->ConstructionPart = 2 Then
@@ -8116,58 +8194,59 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						Pos2 = InStr(bTrim, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							ECLine->Args.Add te
-							Var teDeclare = te
-							Dim As UString CurType, res1(Any), ElementValue
-							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-							For n As Integer = 0 To UBound(res1)
-								res1(n) = Trim(Replace(res1(n), ";", ","))
-								Pos1 = InStr(res1(n), "=")
-								If Pos1 > 0 Then
-									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-								Else
-									ElementValue = ""
-								End If
-								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								Pos1 = InStr(LCase(res1(n)), " as ")
-								If Pos1 > 0 Then
-									CurType = Trim(Mid(res1(n), Pos1 + 4))
-									CurType = Replace(CurType, "`", "=")
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								End If
-								Var te = New_(TypeElement)
-								If res1(n).ToLower.StartsWith("byref") Then
-									res1(n) = Trim(Mid(res1(n), 6))
-									te->ElementType = "ByRefParameter"
-								ElseIf res1(n).ToLower.StartsWith("byval") Then
-									res1(n) = Trim(Mid(res1(n), 6))
-									te->ElementType = "ByValParameter"
-								Else
-									te->ElementType = "ByValParameter"
-								End If
-								Pos1 = InStr(res1(n), "(")
-								If Pos1 > 0 Then
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								End If
-								res1(n) = res1(n).TrimAll
-								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-									Pos1 = InStrRev(CurType, ".")
-									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-								End If
-								te->Name = res1(n)
-								te->DisplayName = res1(n)
-								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-								te->TypeName = WithoutPointers(CurType)
-								te->Value = ElementValue
-								te->Locals = 0
-								te->StartLine = i
-								te->EndLine = i
-								te->Parameters = res1(n) & " As " & CurType
-								te->FileName = sFileName
-								te->Tag = tb
-								teDeclare->Elements.Add te->Name, te
-							Next
+							SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							'Var teDeclare = te
+							'Dim As UString CurType, res1(Any), ElementValue
+							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+							'For n As Integer = 0 To UBound(res1)
+							'	If Trim(res1(n)) = "" Then Continue For
+							'	res1(n) = Trim(Replace(res1(n), ";", ","))
+							'	Pos1 = InStr(res1(n), "=")
+							'	If Pos1 > 0 Then
+							'		ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+							'	Else
+							'		ElementValue = ""
+							'	End If
+							'	If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	Pos1 = InStr(LCase(res1(n)), " as ")
+							'	If Pos1 > 0 Then
+							'		CurType = Trim(Mid(res1(n), Pos1 + 4))
+							'		CurType = Replace(CurType, "`", "=")
+							'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	End If
+							'	Var te = New_(TypeElement)
+							'	If res1(n).ToLower.StartsWith("byref") Then
+							'		res1(n) = Trim(Mid(res1(n), 6))
+							'		te->ElementType = "ByRefParameter"
+							'	ElseIf res1(n).ToLower.StartsWith("byval") Then
+							'		res1(n) = Trim(Mid(res1(n), 6))
+							'		te->ElementType = "ByValParameter"
+							'	Else
+							'		te->ElementType = "ByValParameter"
+							'	End If
+							'	Pos1 = InStr(res1(n), "(")
+							'	If Pos1 > 0 Then
+							'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	End If
+							'	res1(n) = res1(n).TrimAll
+							'	If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+							'		Pos1 = InStrRev(CurType, ".")
+							'		If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+							'	End If
+							'	te->Name = res1(n)
+							'	te->DisplayName = res1(n)
+							'	te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+							'	'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							'	te->TypeName = WithoutPointers(CurType)
+							'	te->Value = ElementValue
+							'	te->Locals = 0
+							'	te->StartLine = i
+							'	te->EndLine = i
+							'	te->Parameters = res1(n) & " As " & CurType
+							'	te->FileName = sFileName
+							'	te->Tag = tb
+							'	teDeclare->Elements.Add te->Name, te
+							'Next
 						End If
 					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
 						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
@@ -8291,58 +8370,59 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							txtCode.Content.Procedures.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							ECLine->Args.Add te
-							Var teDeclare = te
-							Dim As UString CurType, res1(Any), ElementValue
-							Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-							For n As Integer = 0 To UBound(res1)
-								res1(n) = Trim(Replace(res1(n), ";", ","))
-								Pos1 = InStr(res1(n), "=")
-								If Pos1 > 0 Then
-									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-								Else
-									ElementValue = ""
-								End If
-								If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								Pos1 = InStr(LCase(res1(n)), " as ")
-								If Pos1 > 0 Then
-									CurType = Trim(Mid(res1(n), Pos1 + 4))
-									CurType = Replace(CurType, "`", "=")
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								End If
-								Var te = New_( TypeElement)
-								If res1(n).ToLower.StartsWith("byref") Then
-									res1(n) = Trim(Mid(res1(n), 6))
-									te->ElementType = "ByRefParameter"
-								ElseIf res1(n).ToLower.StartsWith("byval") Then
-									res1(n) = Trim(Mid(res1(n), 6))
-									te->ElementType = "ByValParameter"
-								Else
-									te->ElementType = "ByValParameter"
-								End If
-								Pos1 = InStr(res1(n), "(")
-								If Pos1 > 0 Then
-									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-								End If
-								res1(n) = res1(n).TrimAll
-								If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-									Pos1 = InStrRev(CurType, ".")
-									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-								End If
-								te->Name = res1(n)
-								te->DisplayName = res1(n)
-								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-								'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-								te->TypeName = WithoutPointers(CurType)
-								te->Value = ElementValue
-								te->Locals = 0
-								te->StartLine = i
-								te->EndLine = i
-								te->Parameters = res1(n) & " As " & CurType
-								te->FileName = sFileName
-								te->Tag = tb
-								teDeclare->Elements.Add te->Name, te
-							Next
+							SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							'Var teDeclare = te
+							'Dim As UString CurType, res1(Any), ElementValue
+							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+							'For n As Integer = 0 To UBound(res1)
+							'	If Trim(res1(n)) = "" Then Continue For
+							'	res1(n) = Trim(Replace(res1(n), ";", ","))
+							'	Pos1 = InStr(res1(n), "=")
+							'	If Pos1 > 0 Then
+							'		ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+							'	Else
+							'		ElementValue = ""
+							'	End If
+							'	If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	Pos1 = InStr(LCase(res1(n)), " as ")
+							'	If Pos1 > 0 Then
+							'		CurType = Trim(Mid(res1(n), Pos1 + 4))
+							'		CurType = Replace(CurType, "`", "=")
+							'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	End If
+							'	Var te = New_( TypeElement)
+							'	If res1(n).ToLower.StartsWith("byref") Then
+							'		res1(n) = Trim(Mid(res1(n), 6))
+							'		te->ElementType = "ByRefParameter"
+							'	ElseIf res1(n).ToLower.StartsWith("byval") Then
+							'		res1(n) = Trim(Mid(res1(n), 6))
+							'		te->ElementType = "ByValParameter"
+							'	Else
+							'		te->ElementType = "ByValParameter"
+							'	End If
+							'	Pos1 = InStr(res1(n), "(")
+							'	If Pos1 > 0 Then
+							'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							'	End If
+							'	res1(n) = res1(n).TrimAll
+							'	If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+							'		Pos1 = InStrRev(CurType, ".")
+							'		If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+							'	End If
+							'	te->Name = res1(n)
+							'	te->DisplayName = res1(n)
+							'	te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+							'	'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+							'	te->TypeName = WithoutPointers(CurType)
+							'	te->Value = ElementValue
+							'	te->Locals = 0
+							'	te->StartLine = i
+							'	te->EndLine = i
+							'	te->Parameters = res1(n) & " As " & CurType
+							'	te->FileName = sFileName
+							'	te->Tag = tb
+							'	teDeclare->Elements.Add te->Name, te
+							'Next
 						End If
 					ElseIf EndsWith(Trim(b1), ":") AndAlso IsArg2(bTrim) AndAlso Not txtCode.Content.Functions.Contains(bTrim) Then
 						Var te = New_(TypeElement)
@@ -8505,58 +8585,59 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
-										ECLine->Args.Add te
-										Var teDeclare = te
-										Dim As UString CurType, res1(Any), ElementValue
-										Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
-										For n As Integer = 0 To UBound(res1)
-											res1(n) = Trim(Replace(res1(n), ";", ","))
-											Pos1 = InStr(res1(n), "=")
-											If Pos1 > 0 Then
-												ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-											Else
-												ElementValue = ""
-											End If
-											If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-											Pos1 = InStr(LCase(res1(n)), " as ")
-											If Pos1 > 0 Then
-												CurType = Trim(Mid(res1(n), Pos1 + 4))
-												CurType = Replace(CurType, "`", "=")
-												res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-											End If
-											Var te = New_( TypeElement)
-											If res1(n).ToLower.StartsWith("byref") Then
-												res1(n) = Trim(Mid(res1(n), 6))
-												te->ElementType = "ByRefParameter"
-											ElseIf res1(n).ToLower.StartsWith("byval") Then
-												res1(n) = Trim(Mid(res1(n), 6))
-												te->ElementType = "ByValParameter"
-											Else
-												te->ElementType = "ByValParameter"
-											End If
-											Pos1 = InStr(res1(n), "(")
-											If Pos1 > 0 Then
-												res1(n) = Trim(..Left(res1(n), Pos1 - 1))
-											End If
-											res1(n) = res1(n).TrimAll
-											If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
-												Pos1 = InStrRev(CurType, ".")
-												If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
-											End If
-											te->Name = res1(n)
-											te->DisplayName = res1(n)
-											te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
-											'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
-											te->TypeName = WithoutPointers(CurType)
-											te->Value = ElementValue
-											te->Locals = 0
-											te->StartLine = i
-											te->EndLine = i
-											te->Parameters = res1(n) & " As " & CurType
-											te->FileName = sFileName
-											te->Tag = tb
-											teDeclare->Elements.Add te->Name, te
-										Next
+										SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+										'Var teDeclare = te
+										'Dim As UString CurType, res1(Any), ElementValue
+										'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
+										'For n As Integer = 0 To UBound(res1)
+										'	If Trim(res1(n)) = "" Then Continue For
+										'	res1(n) = Trim(Replace(res1(n), ";", ","))
+										'	Pos1 = InStr(res1(n), "=")
+										'	If Pos1 > 0 Then
+										'		ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+										'	Else
+										'		ElementValue = ""
+										'	End If
+										'	If Pos1 > 0 Then res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										'	Pos1 = InStr(LCase(res1(n)), " as ")
+										'	If Pos1 > 0 Then
+										'		CurType = Trim(Mid(res1(n), Pos1 + 4))
+										'		CurType = Replace(CurType, "`", "=")
+										'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										'	End If
+										'	Var te = New_( TypeElement)
+										'	If res1(n).ToLower.StartsWith("byref") Then
+										'		res1(n) = Trim(Mid(res1(n), 6))
+										'		te->ElementType = "ByRefParameter"
+										'	ElseIf res1(n).ToLower.StartsWith("byval") Then
+										'		res1(n) = Trim(Mid(res1(n), 6))
+										'		te->ElementType = "ByValParameter"
+										'	Else
+										'		te->ElementType = "ByValParameter"
+										'	End If
+										'	Pos1 = InStr(res1(n), "(")
+										'	If Pos1 > 0 Then
+										'		res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+										'	End If
+										'	res1(n) = res1(n).TrimAll
+										'	If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+										'		Pos1 = InStrRev(CurType, ".")
+										'		If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
+										'	End If
+										'	te->Name = res1(n)
+										'	te->DisplayName = res1(n)
+										'	te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+										'	'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
+										'	te->TypeName = WithoutPointers(CurType)
+										'	te->Value = ElementValue
+										'	te->Locals = 0
+										'	te->StartLine = i
+										'	te->EndLine = i
+										'	te->Parameters = res1(n) & " As " & CurType
+										'	te->FileName = sFileName
+										'	te->Tag = tb
+										'	teDeclare->Elements.Add te->Name, te
+										'Next
 									End If
 								End If
 							Next
