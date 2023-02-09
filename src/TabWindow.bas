@@ -6176,7 +6176,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											End If
 										Else
 											sc = @Identifiers
-											If (Not CStyle) AndAlso tb->Matn <> "_" AndAlso tb->OldMatnLCase <> "defined" AndAlso tb->OldMatnLCase <> "ifdef" AndAlso tb->OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") Then
+											If (Not CStyle) AndAlso tb->Matn <> "_" AndAlso tb->OldMatnLCase <> "defined" AndAlso tb->OldMatnLCase <> "ifdef" AndAlso tb->OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") AndAlso Not StartsWith(Trim(LCase(*s), Any "!\t "), "#define") Then
 												If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
 												MutexLock tlockSuggestions
 												Dim As Integer ii = 0, AddIndex = -1
@@ -6515,7 +6515,6 @@ Sub SplitParameters(ByRef Parameters As WString, ByRef FileName As WString, func
 				'If Pos1 > 0 Then 
 					res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 				'End If
-				?CurType
 			End If
 			Var te = New_( TypeElement)
 			If res1(n).ToLower.StartsWith("byref") Then
@@ -6550,7 +6549,6 @@ Sub SplitParameters(ByRef Parameters As WString, ByRef FileName As WString, func
 			te->FileName = FileName
 			te->Tag = tb
 			func->Elements.Add te->Name, te
-			?CurType
 		Next
 	End If
 End Sub
