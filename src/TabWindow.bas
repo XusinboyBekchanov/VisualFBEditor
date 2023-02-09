@@ -5537,7 +5537,7 @@ End Sub
 Sub AnalyzeTab(Param As Any Ptr)
 	Dim As TabWindow Ptr tb1, tb = Param
 	If tb = 0 Then Exit Sub
-	If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
+	If tb->GetQuitThread Then tb->SetLastThread 0: Exit Sub
 	Dim As EditControlLine Ptr FECLine
 	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1
 	Dim As WString Ptr s
@@ -5609,7 +5609,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	For kk As Integer = 0 To Contents.Count - 1
 		ecc = Contents.Item(kk)
 		For z As Integer = 0 To ecc->Lines.Count - 1
-			If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
+			If tb->GetQuitThread Then tb->SetLastThread 0: Exit Sub
 			FECLine = ecc->Lines.Items[z]
 			Dim As WStringList Ptr pFiles = FECLine->FileList
 			Dim As IntegerList Ptr pFileLines = FECLine->FileListLines
@@ -5624,7 +5624,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 			MatnBoshi = 0
 			IzohBoshi = 1
 			Do While j <= l
-				If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
+				If tb->GetQuitThread Then tb->SetLastThread 0: Exit Sub
 				If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
 					bQ = Not bQ
 					If bQ Then
@@ -6176,8 +6176,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 											End If
 										Else
 											sc = @Identifiers
-											If (Not CStyle) AndAlso tb->Matn <> "_" AndAlso tb->OldMatnLCase <> "defined" AndAlso tb->OldMatnLCase <> "ifdef" AndAlso tb->OldMatnLCase <> "ifndef" AndAlso r <> Asc("&") AndAlso Not StartsWith(Trim(LCase(*s), Any "!\t "), "#define") Then
-												If tb->bQuitThread Then tb->SetLastThread 0: Exit Sub
+											If (Not CStyle) AndAlso CBool(tb->Matn <> "_") AndAlso CBool(tb->OldMatnLCase <> "defined") AndAlso CBool(tb->OldMatnLCase <> "ifdef") AndAlso CBool(tb->OldMatnLCase <> "ifndef") AndAlso CBool(r <> Asc("&")) AndAlso Not StartsWith(Trim(LCase(*s), Any "!\t "), "#define") Then
+												If tb->GetQuitThread Then tb->SetLastThread 0: Exit Sub
 												MutexLock tlockSuggestions
 												Dim As Integer ii = 0, AddIndex = -1
 												Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & tb->Matn & ". " & ML("Declare it")
@@ -6187,7 +6187,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 												If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 												ContinueFromNext = False
 												Do While ii < lvSuggestions.ListItems.Count
-													If tb->bQuitThread Then MutexUnlock tlockSuggestions: tb->SetLastThread 0: Exit Sub
+													If tb->GetQuitThread Then MutexUnlock tlockSuggestions: tb->SetLastThread 0: Exit Sub
 													LastItem = lvSuggestions.ListItems.Item(ii)
 													With *LastItem
 														If tb->Project Then
@@ -6333,7 +6333,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 		If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 		ContinueFromNext = False
 		Do While ii < lvSuggestions.ListItems.Count
-			If tb->bQuitThread Then MutexUnlock tlockSuggestions: tb->SetLastThread 0: Exit Sub
+			If tb->GetQuitThread Then MutexUnlock tlockSuggestions: tb->SetLastThread 0: Exit Sub
 			LastItem = lvSuggestions.ListItems.Item(ii)
 			With *LastItem
 				If tb->Project Then
@@ -6397,7 +6397,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 End Sub
 
 Sub TabWindow.QuitThread()
-	bQuitThread = True
+	SetQuitThread True
 	If GetLastThread <> 0 Then
 		#ifndef __USE_GTK__
 			Dim As MSG M
@@ -6409,6 +6409,22 @@ Sub TabWindow.QuitThread()
 				End If
 			Wend
 		#endif
+	End If
+End Sub
+
+Function TabWindow.GetQuitThread() As Boolean
+	If Project Then
+		Return Project->bQuitThread
+	Else
+		Return bQuitThread
+	End If
+End Function
+
+Sub TabWindow.SetQuitThread(Value As Boolean)
+	If Project Then
+		Project->bQuitThread = Value
+	Else
+		bQuitThread = Value
 	End If
 End Sub
 
@@ -9026,7 +9042,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	SelControlNames.Clear
 	bNotDesign = False
 	pfrmMain->UpdateUnLock
-	bQuitThread = False
+	SetQuitThread False
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
 		If (Project = 0) OrElse ProjectAutoSuggestions Then
 			SetLastThread ThreadCreate(@AnalyzeTab, @This)

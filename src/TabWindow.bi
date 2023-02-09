@@ -90,6 +90,7 @@ Type ProjectElement Extends ExplorerElement
 	AndroidSDKLocation As WString Ptr
 	AndroidNDKLocation As WString Ptr
 	JDKLocation As WString Ptr
+	bQuitThread As Boolean
 	LastThread As Any Ptr
 	Files As WStringList
 	Contents As List
@@ -254,7 +255,9 @@ Public:
 	Declare Sub FormDesign(NotForms As Boolean = False)
 	Declare Sub QuitThread
 	Declare Sub SetLastThread(ThreadID As Any Ptr)
+	Declare Sub SetQuitThread(Value As Boolean)
 	Declare Function GetLastThread As Any Ptr
+	Declare Function GetQuitThread As Boolean
 	Declare Constructor(ByRef wFileName As WString = "", bNewForm As Boolean = False, TreeN As TreeNode Ptr = 0)
 	Declare Destructor
 End Type
