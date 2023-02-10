@@ -8709,9 +8709,8 @@ End Sub
 
 Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
-	FormClosing = True
 	If Not CloseSession Then Action = 0: Return
-	
+	FormClosing = True
 	If frmMain.WindowState <> WindowStates.wsMaximized Then
 		iniSettings.WriteInteger("MainWindow", "Width", frmMain.Width)
 		iniSettings.WriteInteger("MainWindow", "Height", frmMain.Height)
