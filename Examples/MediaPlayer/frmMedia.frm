@@ -1,12 +1,12 @@
 ﻿' MediaPlayer 媒体播放器
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__ __FILE__
 		#ifdef __FB_WIN32__
-			#cmdline "Form1.rc"
+			#cmdline "frmMedia.rc"
 		#endif
 	#endif
 	#include once "mff/Form.bi"
@@ -125,7 +125,7 @@
 		pIEnumFilters As IEnumFilters Ptr
 		
 		Declare Sub DSCtrl(Index As DS_Status)
-		Declare Function DSCreate(hWnd As hWnd, wszFileName As WString) As Long
+		Declare Function DSCreate(hWnd As HWND, wszFileName As WString) As Long
 		Declare Sub DSUnload()
 		Declare Static Sub _TextBox1_DblClick(ByRef Sender As Control)
 		Declare Sub TextBox1_DblClick(ByRef Sender As Control)
@@ -178,10 +178,8 @@
 			.Name = "frmMedia"
 			.Text = "VFBE Media Player"
 			#ifdef __FB_64BIT__
-				'...instructions for 64bit OSes...
 				.Caption = "VFBE Media Player64"
 			#else
-				'...instructions for other OSes
 				.Caption = "VFBE Media Player32"
 			#endif
 			.Designer = @This
@@ -731,14 +729,14 @@ Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As 
 	
 	If pIGraphBuilder = NULL Then Exit Function
 	
-	hr = IGraphBuilder_QueryInterface(pIGraphBuilder, @IID_IMediaControl, @pIMediaControl)
-	hr = IGraphBuilder_QueryInterface(pIGraphBuilder, @IID_IBasicAudio, @pIBasicAudio)
-	hr = IGraphBuilder_QueryInterface(pIGraphBuilder, @IID_IBasicVideo, @pIBasicVideo)
-	hr = IGraphBuilder_QueryInterface(pIGraphBuilder, @IID_IMediaEvent, @pIMediaEvent)
-	hr = IGraphBuilder_QueryInterface(pIGraphBuilder, @IID_IMediaEventEx, @pIMediaEventEx)
-	hr = IGraphBuilder_QueryInterface(pIGraphBuilder, @IID_IVideoWindow, @pIVideoWindow)
-	hr = IGraphBuilder_QueryInterface(pIGraphBuilder, @IID_IMediaPosition, @pIMediaPosition)
-	hr = IGraphBuilder_QueryInterface(pIGraphBuilder, @IID_IFilterInfo, @pIEnumFilters)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IMediaControl, @pIMediaControl)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IBasicAudio, @pIBasicAudio)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IBasicVideo, @pIBasicVideo)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IMediaEvent, @pIMediaEvent)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IMediaEventEx, @pIMediaEventEx)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IVideoWindow, @pIVideoWindow)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IMediaPosition, @pIMediaPosition)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IFilterInfo, @pIEnumFilters)
 	
 	'Render the file
 	hr = pIMediaControl->lpVtbl->RenderFile(pIMediaControl, StrPtr(wszFileName))
@@ -763,15 +761,15 @@ End Function
 Private Sub frmMediaType.DSUnload()
 	If pIVideoWindow Then pIVideoWindow->lpVtbl->put_Visible(pIVideoWindow, OAFALSE)
 	
-	If pIMediaControl Then IMediaControl_Release(pIMediaControl)
-	If pIBasicAudio Then IBasicAudio_Release(pIBasicAudio)
-	If pIBasicVideo Then IBasicVideo_Release(pIBasicVideo)
-	If pIMediaEvent Then IMediaEvent_Release(pIMediaEvent)
-	If pIMediaEventEx Then IMediaEventEx_Release(pIMediaEventEx)
-	If pIVideoWindow Then IVideoWindow_Release(pIVideoWindow)
-	If pIMediaPosition Then IMediaPosition_Release(pIMediaPosition)
-	If pIGraphBuilder Then IGraphBuilder_Release(pIGraphBuilder)
-	If pIEnumFilters Then IGraphBuilder_Release(pIEnumFilters)
+	If pIMediaControl Then pIMediaControl->lpVtbl->Release(pIMediaControl)
+	If pIBasicAudio Then pIBasicAudio->lpVtbl->Release(pIBasicAudio)
+	If pIBasicVideo Then pIBasicVideo->lpVtbl->Release(pIBasicVideo)
+	If pIMediaEvent Then pIMediaEvent->lpVtbl->Release(pIMediaEvent)
+	If pIMediaEventEx Then pIMediaEventEx->lpVtbl->Release(pIMediaEventEx)
+	If pIVideoWindow Then pIVideoWindow->lpVtbl->Release(pIVideoWindow)
+	If pIMediaPosition Then pIMediaPosition->lpVtbl->Release(pIMediaPosition)
+	If pIGraphBuilder Then pIGraphBuilder->lpVtbl->Release(pIGraphBuilder)
+	If pIEnumFilters Then pIEnumFilters->lpVtbl->Release(pIEnumFilters)
 	
 	pIMediaControl = NULL
 	pIBasicAudio = NULL
