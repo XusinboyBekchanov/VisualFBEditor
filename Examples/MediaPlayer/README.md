@@ -2,8 +2,9 @@ MediaPlayer
 
 Network radio
 
-![image](https://user-images.githubusercontent.com/35757455/207788977-94dab4c3-11fa-403e-b7a7-7739f7886f07.png)
+![image](https://user-images.githubusercontent.com/35757455/218031156-bbd2af9b-9285-40da-9f5d-d7ed38d7f54a.png)
 
 Local movie
 
-![image](https://user-images.githubusercontent.com/35757455/207789027-dd7a0a33-9d9f-4b06-99ab-da54578d3558.png)
+![image](https://user-images.githubusercontent.com/35757455/218031055-61623d77-daba-4a0b-8007-01616b684960.png)
+

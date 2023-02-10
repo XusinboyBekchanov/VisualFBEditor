@@ -29,6 +29,9 @@
 	
 	Using My.Sys.Forms
 	
+	#define JIF(x) If (FAILED(hr = (x))) \ {MSG(TEXT("FAILED(hr=0x%x) in ") TEXT(#x) TEXT("\n"), hr); Return hr; }
+	#define LIF(x) If (FAILED(hr = (x))) \ {MSG(TEXT("FAILED(hr=0x%x) in ") TEXT(#x) TEXT("\n"), hr); }
+	
 	Public Enum DS_Status
 		DS_Open
 		DS_Close
@@ -160,7 +163,7 @@
 		Declare Constructor
 		
 		Dim As Panel Panel1, Panel2, Panel3, Panel4, Panel5, Panel6
-		Dim As CommandButton cmdOpen, cmdPlay, cmdClose
+		Dim As CommandButton cmdOpen, cmdPlay, cmdClose, cmdFull
 		Dim As TextBox TextBox1
 		Dim As TrackBar tbVolume, tbBalance, tbPosition
 		Dim As Label lblVolume, lblBalance, lblPosition, lblLength
@@ -261,7 +264,7 @@
 			.TabIndex = 7
 			.Caption = "Play"
 			.Enabled = False
-			.SetBounds 80, 10, 60, 22
+			.SetBounds 70, 10, 60, 22
 			.Designer = @This
 			.OnClick = @_cmdBtn_Click
 			.Parent = @Panel3
@@ -274,7 +277,20 @@
 			.ControlIndex = 4
 			.Caption = "Close"
 			.Enabled = False
-			.SetBounds 150, 10, 60, 22
+			.SetBounds 130, 10, 60, 22
+			.Designer = @This
+			.OnClick = @_cmdBtn_Click
+			.Parent = @Panel3
+		End With
+		' cmdFull
+		With cmdFull
+			.Name = "cmdFull"
+			.Text = "Full"
+			.TabIndex = 10
+			.Size = Type<My.Sys.Drawing.Size>(60, 22)
+			.Caption = "Full"
+			.Enabled = False
+			.SetBounds 190, 10, 60, 22
 			.Designer = @This
 			.OnClick = @_cmdBtn_Click
 			.Parent = @Panel3
@@ -283,10 +299,10 @@
 		With ComboBoxEx1
 			.Name = "ComboBoxEx1"
 			.Text = "ComboBoxEx1"
-			.TabIndex = 10
+			.TabIndex = 11
 			.ImagesList = @ImageList1
 			.DropDownCount = 28
-			.SetBounds 220, 10, 200, 22
+			.SetBounds 260, 10, 160, 22
 			.Designer = @This
 			.OnSelected = @_ComboBoxEx1_Selected
 			.Parent = @Panel3
@@ -295,7 +311,7 @@
 		With TextBox1
 			.Name = "TextBox1"
 			.Text = "F:\OfficePC_Update\!Media\632734Y0314.mp4"
-			.TabIndex = 11
+			.TabIndex = 12
 			.Align = DockStyle.alClient
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
@@ -310,7 +326,7 @@
 		With Picture1
 			.Name = "Picture1"
 			.Text = "Picture1"
-			.TabIndex = 12
+			.TabIndex = 13
 			.BorderStyle = BorderStyles.bsClient
 			.Align = DockStyle.alClient
 			.ExtraMargins.Right = 10
@@ -318,7 +334,8 @@
 			.SubClass = False
 			.ShowHint = True
 			.BackColor = 0
-			.SetBounds 10, 40, 734, 341
+			.Visible = true
+			.SetBounds 10, 40, 664, 341
 			.Designer = @This
 			.OnMessage = @_Picture1_Message
 			.Parent = @This
@@ -327,7 +344,7 @@
 		With lblVolume
 			.Name = "lblVolume"
 			.Text = "Volume: "
-			.TabIndex = 13
+			.TabIndex = 14
 			.Alignment = AlignmentConstants.taLeft
 			.Align = DockStyle.alNone
 			.ID = 1004
@@ -340,7 +357,7 @@
 		With tbVolume
 			.Name = "tbVolume"
 			.Text = "tbVolume"
-			.TabIndex = 14
+			.TabIndex = 15
 			.ExtraMargins.Left = 2
 			.MaxValue = 0
 			.MinValue = -10000
@@ -362,7 +379,7 @@
 		With lblBalance
 			.Name = "lblBalance"
 			.Text = "Balance: "
-			.TabIndex = 15
+			.TabIndex = 16
 			.Alignment = AlignmentConstants.taLeft
 			.Caption = "Balance: "
 			.Enabled = False
@@ -395,6 +412,7 @@
 			.Name = "lblPosition"
 			.Text = "Position: "
 			.TabIndex = 17
+			.Enabled = False
 			.SetBounds 10, 5, 180, 16
 			.Parent = @Panel6
 		End With
@@ -407,6 +425,7 @@
 			.ExtraMargins.Top = 5
 			.ExtraMargins.Right = 10
 			.Alignment = AlignmentConstants.taRight
+			.Enabled = False
 			.SetBounds 284, 5, 160, 15
 			.Parent = @Panel6
 		End With
@@ -462,6 +481,7 @@
 			.TabIndex = 19
 			.Caption = "Loop"
 			.Checked = True
+			.Enabled = False
 			.SetBounds 210, 5, 60, 16
 			.Designer = @This
 			.Parent = @Panel6
@@ -682,10 +702,12 @@ Private Sub frmMediaType.DSCtrl(Index As DS_Status)
 				tbPosition.Frequency = CInt(d / 10)
 				lblLength.Text = "Length: " & Format(d, "#,#0.000")
 				lblLength.Enabled = True
+				chkLoop.Enabled = True
 			Else
 				tbPosition.Enabled = False
 				lblLength.Text = "Length: NA"
 				lblLength.Enabled = False
+				chkLoop.Enabled = False
 			End If
 			tbVolume.Position = tbVolume.Position
 			tbBalance.Position = tbBalance.Position
@@ -695,8 +717,12 @@ Private Sub frmMediaType.DSCtrl(Index As DS_Status)
 			b = True
 		End If
 	Case DS_Status.DS_Close
+		lblLength.Enabled = False
+		chkLoop.Enabled = False
 		TimerComponent1.Enabled = False
 		tbPosition.Position = 0
+		Picture1.Visible= False
+		cmdFull.Enabled = False 
 		DSUnload
 	Case DS_Status.DS_Play
 		cmdPlay.Text = "Pause"
@@ -749,11 +775,24 @@ Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As 
 	'Have the graph signal event via window callbacks for performance
 	hr = pIMediaEventEx->lpVtbl->SetNotifyWindow(pIMediaEventEx, Cast(OAHWND, hWnd), WM_GRAPHNOTIFY, 0)
 	
-	'Set the window position
-	Form_Resize(Me, 0, 0)
+	Dim As Long lVisible
+	hr = pIVideoWindow->lpVtbl->get_Visible(pIVideoWindow, @lVisible)
 	
-	'Make the window visible
-	hr = pIVideoWindow->lpVtbl->put_Visible(pIVideoWindow, OATRUE)
+	Debug.Print "lVisible = " & lVisible
+	Debug.Print "hr = " & hr
+	If (FAILED(hr)) Then
+		Debug.Print "audio only"
+		Picture1.Visible = False
+	Else
+		Debug.Print "with vedio"
+		Picture1.Visible = True
+		'Set the window position
+		Form_Resize(Me, 0, 0)
+		
+		'Make the window visible
+		hr = pIVideoWindow->lpVtbl->put_Visible(pIVideoWindow, OATRUE)
+		cmdFull.Enabled = True
+	End If
 	
 	Function = True
 End Function
@@ -812,6 +851,7 @@ Private Sub frmMediaType.Form_Close(ByRef Sender As Form, ByRef Action As Intege
 End Sub
 
 Private Sub frmMediaType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	If Picture1.Visible= False Then Exit Sub 
 	Dim rc As Rect
 	GetClientRect(Picture1.Handle, @rc)
 	If pIVideoWindow Then
@@ -835,6 +875,16 @@ Private Sub frmMediaType.cmdBtn_Click(ByRef Sender As Control)
 		DSCtrl(DS_Status.DS_Stop)
 	Case "cmdClose"
 		DSCtrl(DS_Status.DS_Close)
+	Case "cmdFull"
+		If pIVideoWindow = NULL Then Exit Sub
+		Dim lMode As Long
+		pIVideoWindow->lpVtbl->get_FullScreenMode(pIVideoWindow, @lMode)
+		If lMode = OAFALSE Then
+			lMode = OATRUE
+		Else
+			lMode = OAFALSE
+		End If
+		pIVideoWindow->lpVtbl->put_FullScreenMode(pIVideoWindow, lMode)
 	End Select
 End Sub
 
