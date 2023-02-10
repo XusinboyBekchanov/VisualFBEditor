@@ -214,6 +214,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "MakeClean":                           If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@MakeClean))
 	Case "BuildBundle":                         If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileBundle))
 	Case "BuildAPK":                            If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileAPK))
+	Case "Suggestions":                         Suggestions
 	Case "CreateKeyStore":                      CreateKeyStore
 	Case "GenerateSignedBundle":                GenerateSignedBundleAPK("bundle")
 	Case "GenerateSignedAPK":                   GenerateSignedBundleAPK("apk")

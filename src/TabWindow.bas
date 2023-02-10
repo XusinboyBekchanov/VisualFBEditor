@@ -341,6 +341,7 @@ Sub ChangeMenuItemsEnabled
 	tbtStartWithCompile->Enabled = bEnabled
 	miSyntaxCheck->Enabled = bEnabled
 	tbtSyntaxCheck->Enabled = bEnabled
+	tbtSuggestions->Enabled = bEnabled
 	miCompile->Enabled = bEnabled
 	tbtCompile->Enabled = bEnabled
 	miCompileAll->Enabled = bEnabled
@@ -6394,6 +6395,18 @@ Sub AnalyzeTab(Param As Any Ptr)
 	End If
 	MutexUnlock tlockSuggestions
 	tb->SetLastThread 0
+End Sub
+
+Sub Suggestions
+	If LoadFunctionsCount > 0 Then
+		MsgBox ML("IntelliSense not fully loaded!")
+		Exit Sub
+	End If
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	tb->QuitThread
+	tb->SetQuitThread False
+	tb->SetLastThread ThreadCreate(@AnalyzeTab, tb)
 End Sub
 
 Sub TabWindow.QuitThread()

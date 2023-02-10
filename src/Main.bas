@@ -71,7 +71,7 @@ Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miP
 Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiProjectMacroNumbering, dmiProjectMacroNumberingStartsOfProcedures, dmiRemoveProjectNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiProjectPreprocessorNumbering, dmiRemoveProjectPreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiOnLocalErrorGoto, dmiOnLocalErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
 Dim Shared As MenuItem Ptr miCode, miForm, miCodeAndForm, miCollapseCurrent, miCollapseAllProcedures, miCollapseAll, miUnCollapseCurrent, miUnCollapseAllProcedures, miUnCollapseAll, miImageManager, miAddProcedure, miFind, miReplace, miFindNext, miFindPrevious, miGoto, miDefine, miToggleBookmark, miNextBookmark, miPreviousBookmark, miClearAllBookmarks, miSyntaxCheck, miCompile, miCompileAll, miBuildBundle, miBuildAPK, miGenerateSignedBundle, miGenerateSignedAPK, miMake, miMakeClean
 Dim Shared As MenuItem Ptr miShowWithFolders, miShowWithoutFolders, miShowAsFolder
-Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
+Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtSuggestions, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar MainReBar
 #ifndef __USE_GTK__
@@ -5488,6 +5488,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Update", "Update"
 	imgList.Add "Forum", "Forum"
 	imgList.Add "Fixme", "Fixme"
+	imgList.Add "Suggestions", "Suggestions"
 	'imgListD.Add "StartWithCompileD", "StartWithCompile"
 	'imgListD.Add "StartD", "Start"
 	'imgListD.Add "BreakD", "Break"
@@ -5970,6 +5971,7 @@ Sub CreateMenusAndToolBars
 	tbtParameterInfo = tbEdit.Buttons.Add(, "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & " (Ctrl+J)", True)
 	tbEdit.Buttons.Add tbsSeparator
 	tbtSyntaxCheck = tbEdit.Buttons.Add(, "SyntaxCheck", , @mClick, "SyntaxCheck", , ML("Syntax Check"), True, 0)
+	tbtSuggestions = tbEdit.Buttons.Add(, "Suggestions", , @mClick, "Suggestions", , ML("Suggestions"), True, 0)
 	Var tbButton = tbEdit.Buttons.Add(tbsWholeDropdown, "List", , @mClick, "Try", ML("Error Handling"), ML("Error Handling"), True)
 	'tbButton->DropDownMenu.ImagesList = @imgList
 	dmiNumbering = tbButton->DropDownMenu.Add(ML("Numbering"), "Numbering", "NumberOn", @mClick, , , False)
