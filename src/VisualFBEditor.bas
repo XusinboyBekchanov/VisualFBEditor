@@ -176,7 +176,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "AddFilesToProject":                   AddFilesToProject
 	Case "RemoveFileFromProject":               RemoveFileFromProject
 	Case "OpenProjectFolder":                   OpenProjectFolder
-	Case "ProjectProperties":                   pfProjectProperties->ShowModal *pfrmMain
+	Case "ProjectProperties":                   pfProjectProperties->ShowModal *pfrmMain : pfProjectProperties->CenterToParent
 	Case "SetAsMain":                           SetAsMain @Sender = miTabSetAsMain
 	Case "ReloadHistoryCode":                   ReloadHistoryCode 
 	Case "ProjectExplorer":                     tpProject->SelectTab
@@ -195,7 +195,7 @@ Sub mClick(Sender As My.Sys.Object)
 	'Case "ProceduresWindow":                    tpProcedures->SelectTab
 	Case "ThreadsWindow":                       tpThreads->SelectTab
 	Case "WatchWindow":                         tpWatches->SelectTab
-	Case "ImageManager":                        pfImageManager->Show *pfrmMain
+	Case "ImageManager":                        pfImageManager->Show *pfrmMain : pfImageManager->CenterToParent
 	Case "Toolbars":                            'ShowMainToolbar = Not ShowMainToolbar: ReBar1.Visible = ShowMainToolbar: pfrmMain->RequestAlign
 	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: MainReBar.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolBar: pfrmMain->RequestAlign
 	Case "Edit":                                ShowEditToolBar = Not ShowEditToolBar: MainReBar.Bands.Item(1)->Visible = ShowEditToolBar: mnuEditToolBar->Checked = ShowEditToolBar: pfrmMain->RequestAlign
@@ -226,7 +226,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "ProjectNumberOff":                    ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "ProjectPreprocessorNumberOn":         ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
 	Case "ProjectPreprocessorNumberOff":        ThreadCounter(ThreadCreate_(@NumberingProject, @Sender))
-	Case "Parameters":                          pfParameters->ShowModal *pfrmMain
+	Case "Parameters":                          pfParameters->ShowModal *pfrmMain : pfParameters->CenterToParent
 	Case "GDBCommand":                          GDBCommand
 	Case "LocateProcedure":                     proc_loc
 	Case "EnableDisable":                       proc_enable
@@ -329,7 +329,7 @@ Sub mClick(Sender As My.Sys.Object)
 				Next
 			Else
 				runtype=RTSTEP:procad=0:procin=0:proctop=False:procbot=0
-			EndIf
+			End If
 			stopcode=CSHALTBU
 			'SetFocus(richeditcur)
 		#endif
@@ -594,7 +594,7 @@ Sub mClick(Sender As My.Sys.Object)
 			'#endif
 		Case "FindNext":                    pfFind->Find(True)
 		Case "FindPrev":                    pfFind->Find(False)
-		Case "Goto":                        pfGoto->Show *pfrmMain
+		Case "Goto":                        pfGoto->Show *pfrmMain : pfGoto->CenterToParent
 		Case "NextBookmark":                NextBookmark 1
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
@@ -609,8 +609,8 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "CloseAllWithoutCurrent":          CloseAllTabs(True)
 	Case "Exit":                            pfrmMain->CloseForm
 	Case "Find":                            mFormFind = True: pfFind->Show *pfrmMain
-	Case "FindInFiles":                     mFormFindInFile = True:  pfFindFile->Show *pfrmMain
-	Case "ReplaceInFiles":                  mFormFindInFile = False:  pfFindFile->Show *pfrmMain
+	Case "FindInFiles":                     mFormFindInFile = True:  pfFindFile->Show *pfrmMain : pfFindFile->CenterToParent
+	Case "ReplaceInFiles":                  mFormFindInFile = False:  pfFindFile->Show *pfrmMain : pfFindFile->CenterToParent
 	Case "Replace":                         mFormFind = False: pfFind->Show *pfrmMain
 	Case "PinLeft":                         SetLeftClosedStyle Not tbLeft.Buttons.Item("PinLeft")->Checked, False
 	Case "PinRight":                        SetRightClosedStyle Not tbRight.Buttons.Item("PinRight")->Checked, False
@@ -667,7 +667,7 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "Undo", "Redo", "CutCurrentLine", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", "CollapseAllProcedures", "UnCollapseAllProcedures", _
-		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorGoto", "OnErrorGotoResumeNext", "OnLocalErrorGoto", "OnLocalErrorGotoResumeNext", "RemoveErrorHandling", "Define" '"OnErrorResumeNext", 
+		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorGoto", "OnErrorGotoResumeNext", "OnLocalErrorGoto", "OnLocalErrorGotoResumeNext", "RemoveErrorHandling", "Define"
 		Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
 		If ActiveForm = 0 OrElse ActiveForm->ActiveControl = 0 Then Exit Sub
 		If ActiveForm->ActiveControl->ClassName <> "EditControl" AndAlso ActiveForm->ActiveControl->ClassName <> "TextBox" AndAlso ActiveForm->ActiveControl->ClassName <> "Panel" AndAlso ActiveForm->ActiveControl->ClassName <> "ComboBoxEdit" AndAlso ActiveForm->ActiveControl->ClassName <> "ComboBoxEx" Then Exit Sub
@@ -762,9 +762,9 @@ Sub mClick(Sender As My.Sys.Object)
 				End Select
 			End If
 		End If
-	Case "Options":                         pfOptions->Show *pfrmMain
-	Case "AddIns":                          pfAddIns->Show *pfrmMain
-	Case "Tools":                           pfTools->Show *pfrmMain
+	Case "Options":                         pfOptions->Show *pfrmMain : pfOptions->CenterToParent
+	Case "AddIns":                          pfAddIns->Show *pfrmMain : pfAddIns->CenterToParent
+	Case "Tools":                           pfTools->Show *pfrmMain : pfTools->CenterToParent
 	Case "Content":                         ThreadCounter(ThreadCreate_(@RunHelp))
 	Case "FreeBasicForums":                 OpenUrl "https://www.freebasic.net/forum/index.php"
 	Case "FreeBasicWiKi":                   OpenUrl "https://www.freebasic.net/wiki/wikka.php?wakka=PageIndex"
@@ -776,8 +776,8 @@ Sub mClick(Sender As My.Sys.Object)
 	Case "MyFbFrameworkRepository":         OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework"
 	Case "MyFbFrameworkWiKi":               OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework/wiki"
 	Case "MyFbFrameworkDiscussions":        OpenUrl "https://github.com/XusinboyBekchanov/MyFbFramework/discussions"
-	Case "About":                           pfAbout->Show *pfrmMain
-	Case "TipoftheDay":                     pfTipOfDay->ShowModal *pfrmMain
+	Case "About":                           pfAbout->Show *pfrmMain : pfAbout->CenterToParent
+	Case "TipoftheDay":                     pfTipOfDay->ShowModal *pfrmMain : pfTipOfDay->CenterToParent
 	End Select
 End Sub
 
