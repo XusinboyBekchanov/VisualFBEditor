@@ -546,7 +546,7 @@ pfProjectProperties = @fProjectProperties
 			.Text = "..."
 			.TabIndex = 35
 			.SetBounds 114, 36, 20, 20
-			.Caption = "..."
+			'.Caption = "..."
 			.Designer = @This
 			.OnClick = @CommandButton1_Click_
 			.Parent = @picApplication
@@ -590,7 +590,7 @@ pfProjectProperties = @fProjectProperties
 			.Text = ML("Android Settings")
 			.TabIndex = 74
 			.UseVisualStyleBackColor = True
-			.Caption = ML("Android Settings")
+			'.Caption = ML("Android Settings")
 			.SetBounds 2, 22, 487, 316
 			.Parent = @tabProperties
 		End With
@@ -618,7 +618,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "lblAndroidSDKLocation"
 			.Text = ML("Android SDK location")
 			.TabIndex = 75
-			.Caption = ML("Android SDK location")
+			'.Caption = ML("Android SDK location")
 			.SetBounds 12, 12, 260, 20
 			.Parent = @tpAndroidSettings
 		End With
@@ -627,7 +627,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "lblAndroidNDKLocation"
 			.Text = ML("Android NDK location")
 			.TabIndex = 78
-			.Caption = ML("Android NDK location")
+			'.Caption = ML("Android NDK location")
 			.SetBounds 12, 72, 260, 20
 			.Parent = @tpAndroidSettings
 		End With
@@ -654,7 +654,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "lblJDKLocation"
 			.Text = ML("JDK location")
 			.TabIndex = 81
-			.Caption = ML("JDK location")
+			'.Caption = ML("JDK location")
 			.SetBounds 12, 132, 260, 20
 			.Parent = @tpAndroidSettings
 		End With
@@ -693,7 +693,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "lblCompiler"
 			.Text = ML("Compiler") & ":"
 			.TabIndex = 66
-			.Caption = ML("Compiler") & ":"
+			'.Caption = ML("Compiler") & ":"
 			.SetBounds 29, 288, 90, 20
 			.Parent = @tpCompile
 		End With
@@ -732,7 +732,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "chkManifest"
 			.Text = ML("Manifest")
 			.TabIndex = 36
-			.Caption = ML("Manifest")
+			'.Caption = ML("Manifest")
 			.SetBounds 4, 59, 130, 20
 			.Designer = @This
 			.OnClick = @chkManifest_Click_
@@ -743,7 +743,7 @@ pfProjectProperties = @fProjectProperties
 			.Name = "chkRunAsAdministrator"
 			.Text = ML("Run as administrator")
 			.TabIndex = 37
-			.Caption = ML("Run as administrator")
+			'.Caption = ML("Run as administrator")
 			.SetBounds 30, 80, 170, 20
 			.Designer = @This
 			.Parent = @picApplication
@@ -754,7 +754,7 @@ pfProjectProperties = @fProjectProperties
 			.Text = ML("Open Project As Folder")
 			.TabIndex = 90
 			.ControlIndex = 14
-			.Caption = ML("Open Project As Folder")
+			'.Caption = ML("Open Project As Folder")
 			.SetBounds 11, 147, 192, 22
 			.Designer = @This
 			.Parent = @tpGeneral
@@ -765,7 +765,7 @@ pfProjectProperties = @fProjectProperties
 			.Text = ML("Batch Compilation File") & " (" & ML("For Windows") & "):"
 			.TabIndex = 91
 			.ControlIndex = 9
-			.Caption = ML("Batch Compilation File") & " (" & ML("For Windows") & "):"
+			'.Caption = ML("Batch Compilation File") & " (" & ML("For Windows") & "):"
 			.SetBounds 224, 182, 262, 18
 			.Designer = @This
 			.Parent = @tpGeneral

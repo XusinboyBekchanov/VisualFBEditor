@@ -588,7 +588,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 100
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 5, 223, 21
 			.ID = 1009
 			.Parent = @vbxGeneral
@@ -600,7 +600,7 @@ pfOptions = @fOptions
 		chkAutoCreateRC.Align = DockStyle.alTop
 		chkAutoCreateRC.TabIndex = 101
 		chkAutoCreateRC.Constraints.Height = 21
-		chkAutoCreateRC.AutoSize = true
+		chkAutoCreateRC.AutoSize = True
 		chkAutoCreateRC.SetBounds 0, 28, 295, 21
 		chkAutoCreateRC.Parent = @vbxGeneral
 		' CheckBox1
@@ -610,7 +610,7 @@ pfOptions = @fOptions
 		CheckBox1.ExtraMargins.Top = 5
 		CheckBox1.TabIndex = 102
 		CheckBox1.Constraints.Height = 21
-		CheckBox1.AutoSize = true
+		CheckBox1.AutoSize = True
 		CheckBox1.SetBounds 0, 51, 166, 21
 		CheckBox1.Parent = @vbxGeneral
 		' chkAddRelativePathsToRecent
@@ -621,7 +621,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 5
 			.Align = DockStyle.alTop
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 74, 190, 21
 			.Parent = @vbxGeneral
 		End With
@@ -723,9 +723,9 @@ pfOptions = @fOptions
 			.Name = "chkEnableAutoSuggestions"
 			.Text = ML("Enable Auto Suggestions")
 			.TabIndex = 228
-		.Align = DockStyle.alTop
-		.ControlIndex = 1
-		.Caption = ML("Enable Auto Suggestions")
+			.Align = DockStyle.alTop
+			.ControlIndex = 1
+			'.Caption = ML("Enable Auto Suggestions")
 			.Constraints.Height = 21
 			.AutoSize = True
 			.SetBounds 0, 44, 174, 21
@@ -750,7 +750,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 86, 166, 21
 			'.Caption = ML("Show Keywords Tooltip")
 			.Parent = @vbxCodeEditor
@@ -763,7 +763,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 107, 174, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
@@ -775,9 +775,9 @@ pfOptions = @fOptions
 			.TabIndex = 230
 			.Align = DockStyle.alTop
 			.ControlIndex = 6
-			.Caption = ML("Show Horizontal Separator Lines")
+			'.Caption = ML("Show Horizontal Separator Lines")
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 128, 210, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
@@ -790,7 +790,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 116
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 149, 165, 21
 			.Parent = @vbxCodeEditor
 		End With
@@ -802,7 +802,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 117
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 170, 158, 21
 			.Parent = @vbxCodeEditor
 		End With
@@ -814,7 +814,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 118
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 191, 140, 21
 			.Parent = @vbxCodeEditor
 		End With
@@ -826,7 +826,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 212, 178, 21
 			'.Caption = ML("Add Spaces To Operators")
 			.Parent = @vbxCodeEditor
@@ -839,7 +839,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			'.Caption = ML("Syntax Highlighting Identifiers")
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 233, 199, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
@@ -853,7 +853,7 @@ pfOptions = @fOptions
 			.Caption = ML("Change Identifiers Case")
 			.ExtraMargins.Top = 0
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 254, 171, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
@@ -866,7 +866,7 @@ pfOptions = @fOptions
 		chkChangeKeywordsCase.ExtraMargins.Right = 0
 		chkChangeKeywordsCase.TabIndex = 31
 		chkChangeKeywordsCase.Constraints.Height = 21
-		chkChangeKeywordsCase.AutoSize = true
+		chkChangeKeywordsCase.AutoSize = True
 		chkChangeKeywordsCase.SetBounds 0, 0, 202, 21
 		chkChangeKeywordsCase.Parent = @pnlChangeKeywordsCase
 		' cboCase
@@ -886,10 +886,10 @@ pfOptions = @fOptions
 		chkTabAsSpaces.ExtraMargins.Top = 0
 		chkTabAsSpaces.Align = DockStyle.alLeft
 		chkTabAsSpaces.ExtraMargins.Right = 0
-		chkTabAsSpaces.Caption = ML("Treat Tab as Spaces") & ":"
+		'chkTabAsSpaces.Caption = ML("Treat Tab as Spaces") & ":"
 		chkTabAsSpaces.TabIndex = 33
 		chkTabAsSpaces.Constraints.Height = 21
-		chkTabAsSpaces.AutoSize = true
+		chkTabAsSpaces.AutoSize = True
 		chkTabAsSpaces.SetBounds 0, 0, 171, 21
 		chkTabAsSpaces.Parent = @pnlTreatTabAsSpaces
 		' cboTabStyle
@@ -1046,7 +1046,7 @@ pfOptions = @fOptions
 		grbFont.Text = ML("Font (applies to all styles)")
 		grbFont.Align = DockStyle.alBottom
 		grbFont.ExtraMargins.Top = 5
-		grbFont.AutoSize = true
+		grbFont.AutoSize = True
 		grbFont.TabIndex = 133
 		grbFont.SetBounds 10, 354, 417, 46
 		grbFont.Parent = @pnlColorsAndFonts
@@ -1236,7 +1236,7 @@ pfOptions = @fOptions
 		lblFont.ExtraMargins.Left = 10
 		lblFont.ExtraMargins.Top = 20
 		lblFont.ExtraMargins.Bottom = 10
-		lblFont.CenterImage = true
+		lblFont.CenterImage = True
 		lblFont.TabIndex = 139
 		lblFont.SetBounds 10, 20, 373, 16
 		lblFont.Parent = @grbFont
@@ -1434,7 +1434,7 @@ pfOptions = @fOptions
 		chkUseMakeOnStartWithCompile.ExtraMargins.Left = 15
 		chkUseMakeOnStartWithCompile.TabIndex = 140
 		chkUseMakeOnStartWithCompile.Constraints.Height = 21
-		chkUseMakeOnStartWithCompile.AutoSize = true
+		chkUseMakeOnStartWithCompile.AutoSize = True
 		chkUseMakeOnStartWithCompile.SetBounds 25, 66, 293, 21
 		'chkUseMakeOnStartWithCompile.Caption = ML("Use make on start with compile (if exists makefile)")
 		chkUseMakeOnStartWithCompile.Parent = @pnlMake
@@ -1602,7 +1602,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 151
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 60, 177, 21
 			.Parent = @grbThemes
 		End With
@@ -1635,7 +1635,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 154
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 122, 290, 21
 			.Parent = @grbThemes
 		End With
@@ -1825,7 +1825,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 161
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 159, 179, 21
 			.Parent = @pnlDebugger
 		End With
@@ -1866,7 +1866,7 @@ pfOptions = @fOptions
 		' grbOtherEditors
 		With grbOtherEditors
 			.Name = "grbOtherEditors"
-			.Text = "Other Editors"
+			.Text = ML("Other Editors")
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 0
 			.ExtraMargins.Left = 10
@@ -1887,7 +1887,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Left = 0
 			.Align = DockStyle.alClient
 			.ExtraMargins.Bottom = 15
-		lvOtherEditors.TabIndex = 167
+			.TabIndex = 167
 			.SetBounds 15, 21, 387, 325
 			.Designer = @This
 			.OnItemActivate = @lvOtherEditors_ItemActivate_
@@ -1959,7 +1959,7 @@ pfOptions = @fOptions
 			.Text = ML("When Visual FB Editor starts") & ":"
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 5
-			.Caption = ML("When Visual FB Editor starts") & ":"
+			'.Caption = ML("When Visual FB Editor starts") & ":"
 			.TabIndex = 168
 			.SetBounds 0, 97, 417, 120
 			.Parent = @vbxGeneral
@@ -2202,7 +2202,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.ExtraMargins.Right = 170
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 180, 219, 21
 			.Parent = @pnlDebugger
 		End With
@@ -2258,10 +2258,10 @@ pfOptions = @fOptions
 			.Text = ML("Dark Mode (available for Linux, Windows 10 and above)")
 			.TabIndex = 195
 			'.Caption = ML("Dark Mode")
-			.Caption = ML("Dark Mode (available for Linux, Windows 10 and above)")
+			'.Caption = ML("Dark Mode (available for Linux, Windows 10 and above)")
 			.Align = DockStyle.alTop
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 142, 323, 21
 			.Parent = @grbThemes
 		End With
@@ -2389,7 +2389,7 @@ pfOptions = @fOptions
 			.Text = "Panel1"
 			.TabIndex = 206
 			.Align = DockStyle.alTop
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 233, 417, 23
 			.Designer = @This
 			.Parent = @vbxCodeEditor
@@ -2404,7 +2404,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Left = 40
 			.Align = DockStyle.alClient
 			.ControlIndex = 0
-			.Caption = ML("History file saving days") & ":"
+			'.Caption = ML("History file saving days") & ":"
 			.SetBounds 40, 2, 175, 18
 			.Designer = @This
 			.Parent = @pnlHistoryFileSavingDays
@@ -2448,7 +2448,7 @@ pfOptions = @fOptions
 			.Text = "Panel1"
 			.TabIndex = 215
 			.Align = DockStyle.alTop
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 319, 417, 20
 			.Designer = @This
 			.Parent = @vbxCodeEditor
@@ -2758,7 +2758,7 @@ Sub frmOptions.LoadSettings()
 		Wend
 		HotKeysChanged = False
 		'On Error Goto 0
-		'WDeallocate s '
+		'WDeAllocate(s) '
 		newIndex = Languages.IndexOf(CurLanguage)
 		.cboLanguage.ItemIndex = newIndex
 		oldIndex = newIndex
@@ -3510,7 +3510,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "DisplayMenuIcons", DisplayMenuIcons
 		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolBar
 		piniSettings->WriteBool "Options", "DarkMode", DarkMode
-		'piniSettings->WriteBool "Options", "ShowToolBoxLocal",gLocalToolBox
+		'piniSettings->WriteBool "Options", "ShowToolBoxLocal", gLocalToolBox
 		piniSettings->WriteBool("Options", "PropertiesLocal", gLocalProperties) 'David Change
 		pfrmMain->Menu->ImagesList = IIf(DisplayMenuIcons, pimgList, 0)
 		MainReBar.Visible = ShowMainToolBar

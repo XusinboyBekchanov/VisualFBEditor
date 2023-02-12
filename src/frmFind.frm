@@ -187,7 +187,7 @@ pfFind = @fFind
 			.TabIndex = 15
 			.ControlIndex = 3
 			.Hint = ML("Match Whole Words")
-			.Caption = "W"
+			'.Caption = "W"
 			.SetBounds 336, 4, 30, 21
 			.Designer = @This
 			.Parent = @This
