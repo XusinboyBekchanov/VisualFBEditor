@@ -19,7 +19,7 @@
 			.DefaultButton = @cmdYes
 			.CancelButton = @cmdCancel
 			.ModalResult = ModalResults.Cancel
-			.StartPosition = FormStartPosition.CenterScreen
+			.StartPosition = FormStartPosition.CenterParent
 			.Designer = @This
 			.OnShow = @Form_Show_
 			.OnCreate = @Form_Create_

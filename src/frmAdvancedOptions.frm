@@ -7,7 +7,7 @@
 			.Name = "frmAdvancedOptions"
 			.Text = ML("Advanced Options")
 			.Name = "frmAdvancedOptions"
-			.StartPosition = FormStartPosition.CenterScreen
+			.StartPosition = FormStartPosition.CenterParent
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.DefaultButton = @cmdOK
 			.CancelButton = @cmdCancel
