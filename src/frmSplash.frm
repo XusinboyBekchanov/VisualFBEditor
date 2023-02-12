@@ -21,7 +21,7 @@ Using My.Sys.Forms
 		This.BackColor = 0
 		This.SetBounds 0, 0, 412, 396
 		This.BorderStyle = 0
-		This.StartPosition = FormStartPosition.CenterScreen
+		This.StartPosition = FormStartPosition.CenterParent
 		' lblImage
 		lblImage.Name = "lblImage"
 		'lblImage.Graphic.Bitmap.LoadFromResourceName("Logo")
