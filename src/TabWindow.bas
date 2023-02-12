@@ -28,12 +28,6 @@ Constructor ProjectElement
 	WLet(FileDescription, "{ProjectDescription}")
 	WLet(ProductName, "{ProjectName}")
 	Manifest = True
-	Globals.Args.Sorted = True
-	Globals.Enums.Sorted = True
-	Globals.Functions.Sorted = True
-	Globals.Namespaces.Sorted = True
-	Globals.TypeProcedures.Sorted = True
-	Globals.Types.Sorted = True
 End Constructor
 
 Destructor ProjectElement
@@ -1137,7 +1131,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		Case mrCancel: Return False
 		End Select
 	End If
-	QuitThread
+	QuitThread Project, @This
 	If Project = 0 Then
 		MutexLock tlockSuggestions
 		For i As Integer = lvSuggestions.ListItems.Count - 1 To 0 Step -1
@@ -2931,7 +2925,7 @@ End Function
 Sub OnUndoingEdit(ByRef Sender As Control)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
-	tb->QuitThread
+	QuitThread tb->Project, tb
 End Sub
 
 Sub OnUndoEdit(ByRef Sender As Control)
@@ -2943,7 +2937,7 @@ End Sub
 Sub OnRedoingEdit(ByRef Sender As Control)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
-	tb->QuitThread
+	QuitThread tb->Project, tb
 End Sub
 
 Sub OnRedoEdit(ByRef Sender As Control)
@@ -2955,13 +2949,13 @@ End Sub
 Sub OnLineAddingEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
-	tb->QuitThread
+	QuitThread tb->Project, tb
 End Sub
 
 Sub OnLineRemovingEdit(ByRef Sender As Control, ByVal CurrentLine As Integer)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
-	tb->QuitThread
+	QuitThread tb->Project, tb
 End Sub
 
 Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
@@ -4784,22 +4778,26 @@ End Sub
 
 Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As String
 	Dim As String ch, Text
-	Dim As Boolean b
+	Dim As Boolean b, bQ
 	Dim As Integer iCount = IIf(FromSecond, -1, 0)
 	For i As Integer = 1 To Len(Value)
 		ch = Mid(Value, i, 1)
-		If ch = "(" Then
-			iCount += 1
-			If iCount = 1 Then b = True
-		ElseIf b AndAlso ch = ")" Then
-			iCount -= 1
-			If iCount = 0 Then b = False
-		ElseIf b AndAlso ch = "," Then
-			Text &= ";"
-			Continue For
-		ElseIf b AndAlso ch = "=" Then
-			Text &= "`"
-			Continue For
+		If ch = """" Then
+			bQ = Not bQ
+		ElseIf Not bQ Then
+			If ch = "(" Then
+				iCount += 1
+				If iCount = 1 Then b = True
+			ElseIf b AndAlso ch = ")" Then
+				iCount -= 1
+				If iCount = 0 Then b = False
+			ElseIf b AndAlso ch = "," Then
+				Text &= ";"
+				Continue For
+			ElseIf b AndAlso ch = "=" Then
+				Text &= "`"
+				Continue For
+			End If
 		End If
 		Text &= ch
 	Next
@@ -5536,20 +5534,26 @@ Sub TabWindowFormDesign
 End Sub
 
 Sub AnalyzeTab(Param As Any Ptr)
-	Dim As TabWindow Ptr tb1, tb = Param
-	If tb = 0 Then Exit Sub
-	If tb->GetQuitThread Then tb->SetLastThread 0: Exit Sub
+	Dim As Object Ptr tbOrProject = Param
+	Dim As TabWindow Ptr tb1, tb
+	Dim As ProjectElement Ptr Project
+	If *tbOrProject Is TabWindow Then
+		tb = Cast(TabWindow Ptr, tbOrProject)
+	Else
+		Project = Cast(ProjectElement Ptr, tbOrProject)
+	End If
+	If GetQuitThread(Project, tb) Then SetLastThread Project, tb, 0: Exit Sub
 	Dim As EditControlLine Ptr FECLine
 	Dim As Integer i, j, l, IzohBoshi, QavsBoshi, MatnBoshi, iC, t, u, tIndex, r, q, Pos1
 	Dim As WString Ptr s
-	Dim As Boolean bQ, LinePrinted, WithOldSymbol, bKeyWord, TwoDots, OneDot, bWithoutWith, CStyle, ContinueFromNext
+	Dim As Boolean bQ, LinePrinted, WithOldSymbol, bKeyWord, TwoDots, OneDot, bWithoutWith, CStyle, ContinueFromNext, bTypeAs
+	Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol, OriginalCaseWord, TypeName1, OldTypeName
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim As ListViewItem Ptr LastItem
 	Dim As ECColorScheme Ptr sc
 	Dim As TypeElement Ptr te, te1, te2, Oldte
 	Dim As WStringOrStringList Ptr pkeywords
 	Dim As EditControlContent Ptr ecc
-	Dim As ProjectElement Ptr Project = tb->Project
 	Dim As List Contents
 	Dim As List TabWindows
 	If Project Then
@@ -5566,8 +5570,10 @@ Sub AnalyzeTab(Param As Any Ptr)
 		Contents.Add @tb->txtCode.Content
 		TabWindows.Add tb
 	End If
-	CStyle = tb->txtCode.Content.CStyle
-	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	If tb Then
+		CStyle = tb->txtCode.Content.CStyle
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	End If
 	For kk As Integer = 0 To Contents.Count - 1
 		ecc = Contents.Item(kk)
 		For i As Integer = ecc->Functions.Count - 1 To 0 Step -1
@@ -5610,7 +5616,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	For kk As Integer = 0 To Contents.Count - 1
 		ecc = Contents.Item(kk)
 		For z As Integer = 0 To ecc->Lines.Count - 1
-			If tb->GetQuitThread Then tb->SetLastThread 0: Exit Sub
+			If GetQuitThread(Project, tb) Then SetLastThread Project, tb, 0: Exit Sub
 			FECLine = ecc->Lines.Items[z]
 			Dim As WStringList Ptr pFiles = FECLine->FileList
 			Dim As IntegerList Ptr pFileLines = FECLine->FileListLines
@@ -5625,7 +5631,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 			MatnBoshi = 0
 			IzohBoshi = 1
 			Do While j <= l
-				If tb->GetQuitThread Then tb->SetLastThread 0: Exit Sub
+				If GetQuitThread(Project, tb) Then SetLastThread Project, tb, 0: Exit Sub
 				If iC = 0 AndAlso Mid(*s, j, 1) = """" Then
 					bQ = Not bQ
 					If bQ Then
@@ -5661,24 +5667,25 @@ Sub AnalyzeTab(Param As Any Ptr)
 						ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") Then
 							If MatnBoshi = 0 Then MatnBoshi = j
 							If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
-								tb->Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
-								tb->MatnLCase = LCase(tb->Matn)
-								If InStr("#$", .Left(tb->Matn, 1)) Then
-									tb->MatnLCaseWithoutOldSymbol = Mid(tb->MatnLCase, 2)
-									tb->MatnWithoutOldSymbol = Mid(tb->Matn, 2)
+								Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
+								MatnLCase = LCase(Matn)
+								If InStr("#$", .Left(Matn, 1)) Then
+									MatnLCaseWithoutOldSymbol = Mid(MatnLCase, 2)
+									MatnWithoutOldSymbol = Mid(Matn, 2)
 									WithOldSymbol = True
 								Else
-									tb->MatnLCaseWithoutOldSymbol = tb->MatnLCase
-									tb->MatnWithoutOldSymbol = tb->Matn
+									MatnLCaseWithoutOldSymbol = MatnLCase
+									MatnWithoutOldSymbol = Matn
 									WithOldSymbol = False
 								End If
+								bTypeAs = StartsWith(LCase(Trim(*s, Any !"\t ")), "type ") AndAlso OldMatnLCase = "as"
 								sc = @Identifiers
-								tb->OriginalCaseWord = "":   tb->TypeName1 = "" : te = 0
+								OriginalCaseWord = "":   TypeName1 = "" : te = 0
 								If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
 								If MatnBoshi > 1 Then q = Asc(Mid(*s, MatnBoshi - 2, 1)) Else q = 0
 								pkeywords = 0
 								If CStyle Then
-									If tb->MatnLCase = "#define" OrElse tb->MatnLCase = "#include" OrElse tb->MatnLCase = "#macro" Then
+									If MatnLCase = "#define" OrElse MatnLCase = "#include" OrElse MatnLCase = "#macro" Then
 										If pkeywords0 <> 0 Then
 											sc = @Keywords(KeywordLists.IndexOfObject(pkeywords0)) '@Preprocessors
 										End If
@@ -5686,12 +5693,12 @@ Sub AnalyzeTab(Param As Any Ptr)
 								Else
 									bKeyWord = False
 									tIndex = -1
-									tb->OriginalCaseWord = ""
-									If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(tb->MatnLCase <> "asm") Then
-										tIndex = pkeywordsAsm->IndexOf(tb->MatnLCase)
+									OriginalCaseWord = ""
+									If (FECLine->InAsm OrElse StartsWith(LCase(Trim(*s, Any !"\t ")), "asm")) AndAlso CBool(MatnLCase <> "asm") Then
+										tIndex = pkeywordsAsm->IndexOf(MatnLCase)
 										If tIndex > -1 Then
 											sc = @Keywords(KeywordLists.IndexOfObject(pkeywordsAsm)) '@Asm
-											tb->OriginalCaseWord = pkeywordsAsm->Item(tIndex)
+											OriginalCaseWord = pkeywordsAsm->Item(tIndex)
 											bKeyWord = True
 										End If
 									Else
@@ -5703,7 +5710,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 										If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
 											If CBool(tIndex = -1) AndAlso (Not TwoDots) AndAlso (CBool(r = 46) OrElse CBool(q = 45 AndAlso r = 62)) Then
 												OneDot = True
-												ecc->GetLeftArgTypeName(z, j, te, , tb->OldTypeName, , bWithoutWith)
+												ecc->GetLeftArgTypeName(z, j, te, , OldTypeName, , bWithoutWith)
 												If te = 0 Then
 													'?Matn
 												End If
@@ -5713,7 +5720,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 												ElseIf te > 0 Then
 													tIndex = 0
 													te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
-													tb->OriginalCaseWord = te->Name
+													OriginalCaseWord = te->Name
 													If SyntaxHighlightingIdentifiers Then
 														Select Case LCase(te->ElementType)
 														Case "enumitem"
@@ -5744,12 +5751,12 @@ Sub AnalyzeTab(Param As Any Ptr)
 											End If
 											
 											If Not OneDot Then
-												If tIndex = -1 AndAlso tb->OldMatnLCase <> "as" Then
+												If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
 													For i As Integer = 0 To FECLine->Args.Count - 1
-														tIndex = Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements.IndexOf(tb->MatnLCase)
+														tIndex = Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements.IndexOf(MatnLCase)
 														If tIndex <> -1 Then
 															pkeywords = @Cast(TypeElement Ptr, FECLine->Args.Item(i))->Elements
-															tb->OriginalCaseWord = pkeywords->Item(tIndex)
+															OriginalCaseWord = pkeywords->Item(tIndex)
 															te = pkeywords->Object(tIndex)
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																te->Used = True
@@ -5770,14 +5777,14 @@ Sub AnalyzeTab(Param As Any Ptr)
 												End If
 												
 												'Procedure
-												If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso tb->OldMatnLCase <> "as" Then
-													tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(tb->MatnLCaseWithoutOldSymbol)
+												If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+													tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
 													If tIndex <> -1 Then
 														If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
 															tIndex = -1
 														Else
 															pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-															tb->OriginalCaseWord = pkeywords->Item(tIndex)
+															OriginalCaseWord = pkeywords->Item(tIndex)
 															te = pkeywords->Object(tIndex)
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
@@ -5805,23 +5812,23 @@ Sub AnalyzeTab(Param As Any Ptr)
 														End If
 													Else
 														If tIndex = -1 Then
-															tb->TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
-															Pos1 = InStr(tb->TypeName1, ".")
-															If (CBool(Pos1 > 0) OrElse EndsWith(tb->TypeName1, "[Constructor]") OrElse EndsWith(tb->TypeName1, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+															TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+															Pos1 = InStr(TypeName1, ".")
+															If (CBool(Pos1 > 0) OrElse EndsWith(TypeName1, "[Constructor]") OrElse EndsWith(TypeName1, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
 																If Pos1 > 0 Then
-																	tb->TypeName1 = ..Left(tb->TypeName1, Pos1 - 1)
+																	TypeName1 = ..Left(TypeName1, Pos1 - 1)
 																Else
-																	tb->TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+																	TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
 																End If
-																If ecc->ContainsIn(tb->TypeName1, tb->MatnLCaseWithoutOldSymbol, @ecc->Types, pFiles, pFileLines, True, , , te, z) Then
-																ElseIf ecc->ContainsIn(tb->TypeName1, tb->MatnLCaseWithoutOldSymbol, @ecc->Enums, pFiles, pFileLines, True, , , te, z) Then
-																ElseIf ecc->ContainsIn(tb->TypeName1, tb->MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
-																ElseIf ecc->ContainsIn(tb->TypeName1, tb->MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
-																ElseIf ecc->ContainsIn(tb->TypeName1, tb->MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
+																If ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Types, pFiles, pFileLines, True, , , te, z) Then
+																ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Enums, pFiles, pFileLines, True, , , te, z) Then
+																ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
+																ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
+																ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
 																End If
 																If te > 0 Then
 																	te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
-																	tb->OriginalCaseWord = te->Name
+																	OriginalCaseWord = te->Name
 																	tIndex = 0
 																	If SyntaxHighlightingIdentifiers Then
 																		Select Case LCase(te->ElementType)
@@ -5850,9 +5857,9 @@ Sub AnalyzeTab(Param As Any Ptr)
 											If tIndex = -1 Then
 												For k As Integer = 1 To KeywordLists.Count - 1
 													pkeywords = KeywordLists.Object(k)
-													tIndex = pkeywords->IndexOf(tb->MatnLCase)
+													tIndex = pkeywords->IndexOf(MatnLCase)
 													If tIndex > -1 Then
-														tb->OriginalCaseWord = pkeywords->Item(tIndex)
+														OriginalCaseWord = pkeywords->Item(tIndex)
 														sc = @Keywords(k)
 														bKeyWord = True
 														Exit For
@@ -5863,13 +5870,13 @@ Sub AnalyzeTab(Param As Any Ptr)
 											End If
 										End If
 										
-										If WithOldSymbol Then tb->MatnLCase = tb->MatnLCaseWithoutOldSymbol
+										If WithOldSymbol Then MatnLCase = MatnLCaseWithoutOldSymbol
 										
 										If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
 											If Not OneDot Then
 												'Module
-												If (tIndex = -1) AndAlso (tb->OldMatnLCase <> "as") Then
-													tIndex = ecc->Args.IndexOf(tb->MatnLCase)
+												If (tIndex = -1) AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+													tIndex = ecc->Args.IndexOf(MatnLCase)
 													If tIndex <> -1 Then
 														If Cast(TypeElement Ptr, ecc->Args.Object(tIndex))->StartLine > z Then
 															tIndex = -1
@@ -5896,8 +5903,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 													End If
 												End If
 												
-												If tIndex = -1 AndAlso (tb->OldMatnLCase <> "as") Then
-													tIndex = ecc->Procedures.IndexOf(tb->MatnLCase)
+												If tIndex = -1 AndAlso (OldMatnLCase <> "as") Then
+													tIndex = ecc->Procedures.IndexOf(MatnLCase)
 													If tIndex <> -1 Then
 														If Cast(TypeElement Ptr, ecc->Procedures.Object(tIndex))->StartLine > z Then
 															tIndex = -1
@@ -5927,10 +5934,10 @@ Sub AnalyzeTab(Param As Any Ptr)
 												End If
 												
 												If tIndex = -1 Then
-													tIndex = ecc->Types.IndexOf(tb->MatnLCase)
+													tIndex = ecc->Types.IndexOf(MatnLCase)
 													If tIndex <> -1 Then
 														te = Cast(TypeElement Ptr, ecc->Types.Object(tIndex))
-														If te->StartLine > z Then
+														If (Not bTypeAs) AndAlso te->StartLine > z Then
 															tIndex = -1
 														Else
 															te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
@@ -5942,10 +5949,10 @@ Sub AnalyzeTab(Param As Any Ptr)
 												End If
 												
 												If tIndex = -1 Then
-													tIndex = ecc->Enums.IndexOf(tb->MatnLCase)
+													tIndex = ecc->Enums.IndexOf(MatnLCase)
 													If tIndex <> -1 Then
 														te = Cast(TypeElement Ptr, ecc->Enums.Object(tIndex))
-														If te->StartLine > z Then
+														If (Not bTypeAs) AndAlso te->StartLine > z Then
 															tIndex = -1
 														Else
 															te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
@@ -5957,7 +5964,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 												End If
 												
 												If tIndex = -1 Then
-													tIndex = ecc->Namespaces.IndexOf(tb->MatnLCase)
+													tIndex = ecc->Namespaces.IndexOf(MatnLCase)
 													If tIndex <> -1 Then
 														te = Cast(TypeElement Ptr, ecc->Namespaces.Object(tIndex))
 														If te->StartLine > z Then
@@ -5974,33 +5981,46 @@ Sub AnalyzeTab(Param As Any Ptr)
 												'Project
 												If ecc->Globals > 0 Then
 													If tIndex = -1 Then
-														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Types, tb->MatnLCase, pFiles, pFileLines)
+														If bTypeAs Then
+															tIndex = ecc->Globals->Types.IndexOf(MatnLCase)
+														Else
+															tIndex = ecc->IndexOfInListFiles(ecc->Globals->Types, MatnLCase, pFiles, pFileLines)
+														End If
 														If tIndex <> -1 Then
 															te = Cast(TypeElement Ptr, ecc->Globals->Types.Object(tIndex))
 															te->Used = True
 															If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
-															tb->OriginalCaseWord = ecc->Globals->Types.Item(tIndex)
+															OriginalCaseWord = ecc->Globals->Types.Item(tIndex)
 															pkeywords = @ecc->Globals->Types
 														End If
 													End If
 													
 													If tIndex = -1 Then
-														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Enums, tb->MatnLCase, pFiles, pFileLines)
+														If bTypeAs Then
+															tIndex = ecc->Globals->Types.IndexOf(MatnLCase)
+														Else
+															tIndex = ecc->IndexOfInListFiles(ecc->Globals->Enums, MatnLCase, pFiles, pFileLines)
+														End If
+														'If MatnLCase = "wstringorstringlist" Then
+														'	For i As Integer = 0 To pFiles->Count - 1
+														'		?pFiles->Item(i)
+														'	Next
+														'End If
 														If tIndex <> -1 Then
 															te = Cast(TypeElement Ptr, ecc->Globals->Enums.Object(tIndex))
 															te->Used = True
 															If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
-															tb->OriginalCaseWord = ecc->Globals->Enums.Item(tIndex)
+															OriginalCaseWord = ecc->Globals->Enums.Item(tIndex)
 															pkeywords = @ecc->Globals->Enums
 														End If
 													End If
 													
-													If tIndex = -1 AndAlso tb->OldMatnLCase <> "as" Then
-														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Args, tb->MatnLCase, pFiles, pFileLines)
+													If tIndex = -1 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Args, MatnLCase, pFiles, pFileLines)
 														If tIndex <> -1 Then
 															te = ecc->Globals->Args.Object(tIndex)
 															te->Used = True
-															tb->OriginalCaseWord = ecc->Globals->Args.Item(tIndex)
+															OriginalCaseWord = ecc->Globals->Args.Item(tIndex)
 															pkeywords = @ecc->Globals->Args
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																Select Case te->ElementType
@@ -6020,11 +6040,11 @@ Sub AnalyzeTab(Param As Any Ptr)
 													End If
 													
 													If tIndex = -1 Then
-														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Functions, tb->MatnLCase, pFiles, pFileLines)
+														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Functions, MatnLCase, pFiles, pFileLines)
 														If tIndex <> -1 Then
 															te = ecc->Globals->Functions.Object(tIndex)
 															te->Used = True
-															tb->OriginalCaseWord = ecc->Globals->Functions.Item(tIndex)
+															OriginalCaseWord = ecc->Globals->Functions.Item(tIndex)
 															pkeywords = @ecc->Globals->Functions
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																Select Case LCase(te->ElementType)
@@ -6048,12 +6068,12 @@ Sub AnalyzeTab(Param As Any Ptr)
 													End If
 													
 													If tIndex = -1 Then
-														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Namespaces, tb->MatnLCase, pFiles, pFileLines)
+														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Namespaces, MatnLCase, pFiles, pFileLines)
 														If tIndex <> -1 Then
 															te = ecc->Globals->Namespaces.Object(tIndex)
 															te->Used = True
 															If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
-															tb->OriginalCaseWord = ecc->Globals->Namespaces.Item(tIndex)
+															OriginalCaseWord = ecc->Globals->Namespaces.Item(tIndex)
 															pkeywords = @ecc->Globals->Namespaces
 														End If
 													End If
@@ -6061,37 +6081,49 @@ Sub AnalyzeTab(Param As Any Ptr)
 												
 												'Global
 												If tIndex = -1 Then
-													tIndex = ecc->IndexOfInListFiles(pComps, tb->MatnLCase, pFiles, pFileLines)
+													If bTypeAs Then
+														tIndex = pComps->IndexOf(MatnLCase)
+													Else
+														tIndex = ecc->IndexOfInListFiles(pComps, MatnLCase, pFiles, pFileLines)
+													End If
 													If tIndex <> -1 Then
 														If SyntaxHighlightingIdentifiers Then sc = @ColorComps
-														tb->OriginalCaseWord = pComps->Item(tIndex)
+														OriginalCaseWord = pComps->Item(tIndex)
 														pkeywords = pComps
 													End If
 												End If
 												
 												If tIndex = -1 Then
-													tIndex = ecc->IndexOfInListFiles(pGlobalTypes, tb->MatnLCase, pFiles, pFileLines)
+													If bTypeAs Then
+														tIndex = pGlobalTypes->IndexOf(MatnLCase)
+													Else
+														tIndex = ecc->IndexOfInListFiles(pGlobalTypes, MatnLCase, pFiles, pFileLines)
+													End If
 													If tIndex <> -1 Then
 														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
-														tb->OriginalCaseWord = pGlobalTypes->Item(tIndex)
+														OriginalCaseWord = pGlobalTypes->Item(tIndex)
 														pkeywords = pGlobalTypes
 													End If
 												End If
 												
 												If tIndex = -1 Then
-													tIndex = ecc->IndexOfInListFiles(pGlobalEnums, tb->MatnLCase, pFiles, pFileLines)
+													If bTypeAs Then
+														tIndex = pGlobalEnums->IndexOf(MatnLCase)
+													Else
+														tIndex = ecc->IndexOfInListFiles(pGlobalEnums, MatnLCase, pFiles, pFileLines)
+													End If
 													If tIndex <> -1 Then
 														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
-														tb->OriginalCaseWord = pGlobalEnums->Item(tIndex)
+														OriginalCaseWord = pGlobalEnums->Item(tIndex)
 														pkeywords = pGlobalEnums
 													End If
 												End If
 												
-												If tIndex = -1 AndAlso tb->OldMatnLCase <> "as" Then
-													tIndex = ecc->IndexOfInListFiles(pGlobalArgs, tb->MatnLCase, pFiles, pFileLines)
+												If tIndex = -1 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+													tIndex = ecc->IndexOfInListFiles(pGlobalArgs, MatnLCase, pFiles, pFileLines)
 													If tIndex <> -1 Then
 														te = pGlobalArgs->Object(tIndex)
-														tb->OriginalCaseWord = pGlobalArgs->Item(tIndex)
+														OriginalCaseWord = pGlobalArgs->Item(tIndex)
 														pkeywords = pGlobalArgs
 														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 															Select Case te->ElementType
@@ -6111,10 +6143,10 @@ Sub AnalyzeTab(Param As Any Ptr)
 												End If
 												
 												If tIndex = -1 Then
-													tIndex = ecc->IndexOfInListFiles(pGlobalFunctions, tb->MatnLCase, pFiles, pFileLines)
+													tIndex = ecc->IndexOfInListFiles(pGlobalFunctions, MatnLCase, pFiles, pFileLines)
 													If tIndex <> -1 Then
 														te = pGlobalFunctions->Object(tIndex)
-														tb->OriginalCaseWord = pGlobalFunctions->Item(tIndex)
+														OriginalCaseWord = pGlobalFunctions->Item(tIndex)
 														pkeywords = pGlobalFunctions
 														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 															Select Case LCase(te->ElementType)
@@ -6138,60 +6170,60 @@ Sub AnalyzeTab(Param As Any Ptr)
 												End If
 												
 												If tIndex = -1 Then
-													tIndex = ecc->IndexOfInListFiles(pGlobalNamespaces, tb->MatnLCase, pFiles, pFileLines)
+													tIndex = ecc->IndexOfInListFiles(pGlobalNamespaces, MatnLCase, pFiles, pFileLines)
 													If tIndex <> -1 Then
 														If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalNamespaces
-														tb->OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
+														OriginalCaseWord = pGlobalNamespaces->Item(tIndex)
 														pkeywords = pGlobalNamespaces
 													End If
 												End If
 												
 												If tIndex = -1 Then
-													tIndex = ecc->LineLabels.IndexOf(tb->MatnLCase)
+													tIndex = ecc->LineLabels.IndexOf(MatnLCase)
 													If tIndex <> -1 Then
 														te = ecc->LineLabels.Object(tIndex)
 														te->Used = True
 														If SyntaxHighlightingIdentifiers Then sc = @ColorLineLabels
-														tb->OriginalCaseWord = ecc->LineLabels.Item(tIndex)
+														OriginalCaseWord = ecc->LineLabels.Item(tIndex)
 														pkeywords = @ecc->LineLabels
 													End If
 												End If
 											End If
 										End If
 									End If
-									If bKeyWord AndAlso ChangeKeyWordsCase AndAlso tb->MatnLCase = LCase(tb->OriginalCaseWord) AndAlso iSelEndLine <> z Then
+									If bKeyWord AndAlso ChangeKeyWordsCase AndAlso MatnLCase = LCase(OriginalCaseWord) AndAlso iSelEndLine <> z Then
 										'KeyWord = GetKeyWordCase(Matn, 0, OriginalCaseWord)
 										'If KeyWord <> Matn Then
 										'	Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 										'End If
-									ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso tb->MatnLCase = LCase(tb->OriginalCaseWord) AndAlso tIndex <> -1 AndAlso iSelEndLine <> z Then
-										If tb->MatnWithoutOldSymbol <> tb->OriginalCaseWord Then
+									ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso MatnLCase = LCase(OriginalCaseWord) AndAlso tIndex <> -1 AndAlso iSelEndLine <> z Then
+										If MatnWithoutOldSymbol <> OriginalCaseWord Then
 											'Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
 										End If
 									ElseIf tIndex = -1 Then
-										If isNumeric(tb->Matn) Then
-											If InStr(tb->Matn, ".") Then
+										If isNumeric(Matn) Then
+											If InStr(Matn, ".") Then
 												sc = @RealNumbers
 											Else
 												sc = @Numbers
 											End If
 										Else
 											sc = @Identifiers
-											If (Not CStyle) AndAlso CBool(tb->Matn <> "_") AndAlso CBool(tb->OldMatnLCase <> "defined") AndAlso CBool(tb->OldMatnLCase <> "ifdef") AndAlso CBool(tb->OldMatnLCase <> "ifndef") AndAlso CBool(r <> Asc("&")) AndAlso Not StartsWith(Trim(LCase(*s), Any "!\t "), "#define") Then
-												If tb->GetQuitThread Then tb->SetLastThread 0: Exit Sub
+											If (Not CStyle) AndAlso CBool(Matn <> "_") AndAlso CBool(OldMatnLCase <> "defined") AndAlso CBool(OldMatnLCase <> "ifdef") AndAlso CBool(OldMatnLCase <> "ifndef") AndAlso CBool(r <> Asc("&")) AndAlso Not StartsWith(Trim(LCase(*s), Any !"\t "), "#define") Then
+												If GetQuitThread(Project, tb) Then SetLastThread Project, tb, 0: Exit Sub
 												MutexLock tlockSuggestions
 												Dim As Integer ii = 0, AddIndex = -1
-												Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & tb->Matn & ". " & ML("Declare it")
+												Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & Matn & ". " & ML("Declare it")
 												Dim As UString FileName_ = ecc->FileName
 												Dim As UString ProjectFileName_
-												If tb->Project Then ProjectFileName_ = *tb->Project->FileName
+												If Project Then ProjectFileName_ = *Project->FileName
 												If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 												ContinueFromNext = False
 												Do While ii < lvSuggestions.ListItems.Count
-													If tb->GetQuitThread Then MutexUnlock tlockSuggestions: tb->SetLastThread 0: Exit Sub
+													If GetQuitThread(Project, tb) Then MutexUnlock tlockSuggestions: SetLastThread Project, tb, 0: Exit Sub
 													LastItem = lvSuggestions.ListItems.Item(ii)
 													With *LastItem
-														If tb->Project Then
+														If Project Then
 															If .Text(4) < ProjectFileName_ Then ii += 1: Continue Do
 															If .Text(4) > ProjectFileName_ Then AddIndex = ii: Exit Do
 														Else
@@ -6234,7 +6266,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 										End If
 									End If
 								End If
-								tb->OldMatnLCase = tb->MatnLCase: Oldte = te
+								OldMatnLCase = MatnLCase: Oldte = te
 								If (Not bKeyWord) AndAlso WithOldSymbol Then
 									'FECLine->Ends.Add MatnBoshi, @NormalText
 									'FECLine->Ends.Add j, sc
@@ -6247,8 +6279,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 						ElseIf IIf(CStyle, Mid(*s, j, 2) = "//", IIf(FECLine->InAsm, Chr(t) = "#", Chr(t) = "'")) Then
 							'FECLine->Ends.Add l, @Comments
 							Exit Do
-						ElseIf tb->txtCode.CharType(Mid(*s, j, 1)) = 2 Then
-							'FECLine->Ends.Add j, @ColorOperators
+						'ElseIf tb->txtCode.CharType(Mid(*s, j, 1)) = 2 Then
+						'	'FECLine->Ends.Add j, @ColorOperators
 						ElseIf Chr(t) <> " " Then
 							'FECLine->Ends.Add j, @NormalText
 						End If
@@ -6330,14 +6362,14 @@ Sub AnalyzeTab(Param As Any Ptr)
 		Dim As UString ErrorText = ML("Warning: Identifier not used") & ", " & te->Name & ", " & ML("delete it if not needed")
 		Dim As UString FileName_ = te->FileName
 		Dim As UString ProjectFileName_
-		If tb->Project Then ProjectFileName_ = *tb->Project->FileName
+		If Project Then ProjectFileName_ = *Project->FileName
 		If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 		ContinueFromNext = False
 		Do While ii < lvSuggestions.ListItems.Count
-			If tb->GetQuitThread Then MutexUnlock tlockSuggestions: tb->SetLastThread 0: Exit Sub
+			If GetQuitThread(Project, tb) Then MutexUnlock tlockSuggestions: SetLastThread Project, tb, 0: Exit Sub
 			LastItem = lvSuggestions.ListItems.Item(ii)
 			With *LastItem
-				If tb->Project Then
+				If Project Then
 					If .Text(4) < ProjectFileName_ Then ii += 1: Continue Do
 					If .Text(4) > ProjectFileName_ Then AddIndex = ii: Exit Do
 				Else
@@ -6379,9 +6411,9 @@ Sub AnalyzeTab(Param As Any Ptr)
 	Dim As Integer ii = 0
 	If LastItem Then ii = LastItem->Index + IIf(ContinueFromNext, 1, 0)
 	Do While ii < lvSuggestions.ListItems.Count
-		If tb->Project Then
-			If lvSuggestions.ListItems.Item(ii)->Text(4) < *tb->Project->FileName Then ii += 1: Continue Do
-			If lvSuggestions.ListItems.Item(ii)->Text(4) > *tb->Project->FileName Then Exit Do
+		If Project Then
+			If lvSuggestions.ListItems.Item(ii)->Text(4) < *Project->FileName Then ii += 1: Continue Do
+			If lvSuggestions.ListItems.Item(ii)->Text(4) > *Project->FileName Then Exit Do
 		Else
 			If lvSuggestions.ListItems.Item(ii)->Text(3) < tb->FileName Then ii += 1: Continue Do
 			If lvSuggestions.ListItems.Item(ii)->Text(3) > tb->FileName Then Exit Do
@@ -6394,113 +6426,101 @@ Sub AnalyzeTab(Param As Any Ptr)
 		tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "")
 	End If
 	MutexUnlock tlockSuggestions
-	tb->SetLastThread 0
+	SetLastThread Project, tb, 0
 End Sub
 
-Sub Suggestions
-	If LoadFunctionsCount > 0 Then
-		MsgBox ML("IntelliSense not fully loaded!")
-		Exit Sub
-	End If
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If tb = 0 Then Exit Sub
-	tb->QuitThread
-	tb->SetQuitThread False
-	tb->SetLastThread ThreadCreate(@AnalyzeTab, tb)
-End Sub
-
-Sub TabWindow.QuitThread()
-	SetQuitThread True
-	If GetLastThread <> 0 Then
+Sub QuitThread(Project As ProjectElement Ptr, tb As TabWindow Ptr)
+	SetQuitThread Project, tb, True
+	If GetLastThread(Project, tb) <> 0 Then
 		#ifndef __USE_GTK__
-			Dim As MSG M
-			While GetMessage(@M, NULL, 0, 0)
-				If GetLastThread = 0 Then Exit While
-				If M.hwnd = lvSuggestions.Handle Then
-					TranslateMessage @M
-					DispatchMessage @M
+			Dim As MSG msg
+			While GetMessage(@msg, NULL, 0, 0)
+				If GetLastThread(Project, tb) = 0 Then Exit While
+				If msg.hwnd = lvSuggestions.Handle Then
+					TranslateMessage @msg
+					DispatchMessage @msg
 				End If
 			Wend
 		#endif
 	End If
 End Sub
 
-Function TabWindow.GetQuitThread() As Boolean
+Function GetQuitThread(Project As ProjectElement Ptr, tb As TabWindow Ptr) As Boolean
 	If Project Then
 		Return Project->bQuitThread
 	Else
-		Return bQuitThread
+		Return tb->bQuitThread
 	End If
 End Function
 
-Sub TabWindow.SetQuitThread(Value As Boolean)
+Sub SetQuitThread(Project As ProjectElement Ptr, tb As TabWindow Ptr, Value As Boolean)
 	If Project Then
 		Project->bQuitThread = Value
 	Else
-		bQuitThread = Value
+		tb->bQuitThread = Value
 	End If
 End Sub
 
-Function TabWindow.GetLastThread() As Any Ptr
+Function GetLastThread(Project As ProjectElement Ptr, tb As TabWindow Ptr) As Any Ptr
 	If Project Then
 		Return Project->LastThread
 	Else
-		Return LastThread
+		Return tb->LastThread
 	End If
 End Function
 
-Sub TabWindow.SetLastThread(ThreadID As Any Ptr)
+Sub SetLastThread(Project As ProjectElement Ptr, tb As TabWindow Ptr, ThreadID As Any Ptr)
 	If Project Then
 		Project->LastThread = ThreadID
 	Else
-		LastThread = ThreadID
+		tb->LastThread = ThreadID
 	End If
 End Sub
 
-Sub TabWindow.GetIncludeFiles
+Sub GetIncludeFiles(ByRef Content As EditControlContent, Project As ProjectElement Ptr)
 	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
 		Dim As EditControlLine Ptr ECLine
 		Dim As TreeNode Ptr ProjectNode
-		Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
-		txtCode.Content.CheckedFiles.Clear
-		txtCode.Content.ExternalFiles.Clear
-		txtCode.Content.ExternalFileLines.Clear
-		txtCode.Content.ExternalIncludes.Clear
-		txtCode.Content.ExternalFiles.Add FileName
-		txtCode.Content.ExternalFileLines.Add 0
-		AddExternalIncludes txtCode.Content, 0, MainFile, FileName
-		txtCode.Content.ExternalIncludesLoaded = True
-		For i As Integer = txtCode.Content.FileLists.Count - 1 To 0 Step -1
-			Delete_( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
+		Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True, True)
+		Content.CheckedFiles.Clear
+		Content.ExternalFiles.Clear
+		Content.ExternalFileLines.Clear
+		Content.ExternalIncludes.Clear
+		Content.ExternalFiles.Add Content.FileName
+		Content.ExternalFileLines.Add 0
+		AddExternalIncludes Content, 0, MainFile, Content.FileName
+		Content.ExternalIncludesLoaded = True
+		For i As Integer = Content.FileLists.Count - 1 To 0 Step -1
+			Delete_( Cast(WStringList Ptr, Content.FileLists.Item(i)))
 		Next
-		For i As Integer = txtCode.Content.FileListsLines.Count - 1 To 0 Step -1
-			Delete_( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
+		For i As Integer = Content.FileListsLines.Count - 1 To 0 Step -1
+			Delete_( Cast(IntegerList Ptr, Content.FileListsLines.Item(i)))
 		Next
-		txtCode.Content.FileLists.Clear
-		txtCode.Content.FileListsLines.Clear
+		Content.FileLists.Clear
+		Content.FileListsLines.Clear
 		Dim As WStringList Ptr LastFileList
 		Dim As IntegerList Ptr LastFileListLines
 		Dim As Integer OldIncludeLine = -1
-		For i As Integer = 0 To txtCode.LinesCount - 1
-			ECLine = txtCode.Content.Lines.Items[i]
+		For i As Integer = 0 To Content.Lines.Count - 1
+			ECLine = Content.Lines.Items[i]
 			If OldIncludeLine = i - 1 Then
 				Dim As WStringList Ptr FileList
 				Dim As IntegerList Ptr FileListLines
 				FileList = New_(WStringList)
 				FileListLines = New_(IntegerList)
-				txtCode.Content.FileLists.Add FileList
-				txtCode.Content.FileListsLines.Add FileListLines
+				Content.FileLists.Add FileList
+				Content.FileListsLines.Add FileListLines
 				FileList->Sorted = True
 				If LastFileList = 0 Then
-					UpdateIncludedFilesList txtCode.Content, *FileList, *FileListLines, i
+					UpdateIncludedFilesList Content, *FileList, *FileListLines, i
 				Else
 					For j As Integer = 0 To LastFileList->Count - 1
 						FileList->Add LastFileList->Item(j)
 						FileListLines->Add LastFileListLines->Item(j)
 					Next
-					For j As Integer = 0 To txtCode.Content.IncludeLines.Count - 1
-						If txtCode.Content.IncludeLines.Item(j) = OldIncludeLine Then
-							AddAllIncludedFiles *FileList, *FileListLines, txtCode.Content.Includes.Item(j)
+					For j As Integer = 0 To Content.IncludeLines.Count - 1
+						If Content.IncludeLines.Item(j) = OldIncludeLine Then
+							AddAllIncludedFiles *FileList, *FileListLines, Content.Includes.Item(j)
 							Exit For
 						End If
 					Next j
@@ -6510,8 +6530,8 @@ Sub TabWindow.GetIncludeFiles
 			End If
 			ECLine->FileList = LastFileList
 			ECLine->FileListLines = LastFileListLines
-			For j As Integer = 0 To txtCode.Content.IncludeLines.Count - 1
-				If txtCode.Content.IncludeLines.Item(j) = i Then
+			For j As Integer = 0 To Content.IncludeLines.Count - 1
+				If Content.IncludeLines.Item(j) = i Then
 					OldIncludeLine = i
 					Exit For
 				End If
@@ -6520,12 +6540,24 @@ Sub TabWindow.GetIncludeFiles
 	End If
 End Sub
 
-Sub SplitParameters(ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, tb As TabWindow Ptr = 0)
+Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, tb As TabWindow Ptr = 0)
 	If Parameters <> "" Then
 		If ECLine Then ECLine->Args.Add func
 		Dim As UString CurType, res1(Any), ElementValue
-		Dim As Integer Pos1, Pos2
-		Split GetChangedCommas(Parameters), ",", res1()
+		Dim As Integer Pos1, Pos2, l, c
+		For i As Integer = Pos5 To Len(bTrim) - 1
+			l += 1
+			If bTrim[i] = Asc("(") Then
+				c += 1
+			ElseIf bTrim[i] = Asc(")") Then
+				c -= 1
+				If c = -1 Then
+					l -= 1
+					Exit For
+				End If
+			End If
+		Next
+		Split GetChangedCommas(Mid(bTrim, Pos5 + 1, l)), ",", res1()
 		For n As Integer = 0 To UBound(res1)
 			res1(n) = Replace(res1(n), ";", ",")
 			Pos1 = InStr(res1(n), "=")
@@ -6679,7 +6711,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 			End If
 		Else
 			Dim As TreeNode Ptr ProjectNode
-			Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
+			Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True, True)
 			Content.CheckedFiles.Clear
 			Content.ExternalFiles.Clear
 			Content.ExternalFileLines.Clear
@@ -6966,7 +6998,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								func = te
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, tb
+									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, tb
 									'Dim As UString CurType, res1(Any), ElementValue
 									'Split GetChangedCommas(Parameters), ",", res1()
 									'For n As Integer = 0 To UBound(res1)
@@ -7127,7 +7159,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						End If
 						Pos2 = InStr(bTrim, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -7305,7 +7337,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Project->Globals.Functions.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -7396,6 +7428,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							If b2.ToLower.StartsWith("shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
+							If b2.ToLower.StartsWith("type ") Then u += Len(b2) - Len(Trim(Mid(b2, 5))): b2 = Trim(Mid(b2, 5))
 							If b2.ToLower.StartsWith("as ") Then
 								bOldAs = True
 								CurType = Trim(Mid(b2, 4))
@@ -7403,6 +7436,9 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								Pos1 = InStr(CurType, " ")
 								Pos2 = InStr(CurType, " Ptr ")
 								Pos3 = InStr(CurType, " Pointer ")
+								If StartsWith(CurType, "tbrkol") Then
+									bOldAs = True
+								End If
 								If Pos2 > 0 Then
 									Pos1 = Pos2 + 4
 								ElseIf Pos3 > 0 Then
@@ -7428,7 +7464,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								res1(n) = Replace(res1(n), ";", ",")
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then
-									ct = Len(res1(n)) - Pos1 + 1
+									'ct += Len(res1(n)) - Pos1 + 1
 									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
 									If CBool(n = 0) AndAlso bOldAs Then
 										CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
@@ -7446,17 +7482,17 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								Pos1 = InStr(res1(n), ":")
 								If Pos1 > 0 Then
-									ct = Len(res1(n)) - Pos1 + 1
+									ct += Len(res1(n)) - Pos1 + 1
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
-									ct = Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
-									u += ct
+									ct += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
+									u += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
 								Pos1 = InStr(res1(n), "(")
 								If Pos1 > 0 Then
-									u += Len(res1(n)) - Len(Trim(Mid(res1(n), Pos1 + 1)))
+									ct += Len(res1(n)) - Pos1 + 1
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								Pos1 = InStr(LCase(res1(n)), " alias ")
@@ -7468,6 +7504,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								res1(n) = res1(n).TrimAll
 								Pos1 = InStrRev(res1(n), " ")
 								If Pos1 > 0 Then
+									u += Len(res1(n)) - Len(Trim(Mid(res1(n), Pos1 + 1)))
 									res1(n) = Trim(Mid(res1(n), Pos1 + 1))
 								End If
 								If CBool(n = 0) AndAlso bOldAs Then
@@ -7485,7 +7522,9 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 								te->TypeName = CurType
 								te->TypeName = WithoutPointers(te->TypeName)
-								If StartsWith(bTrimLCase, "common ") Then
+								If StartsWith(bTrimLCase, "type ") Then
+									te->ElementType = "Type"
+								ElseIf StartsWith(bTrimLCase, "common ") Then
 									te->ElementType = "CommonVariable"
 								ElseIf StartsWith(bTrimLCase, "const ") Then
 									te->ElementType = "Constant"
@@ -7507,6 +7546,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te->Tag = tb
 								If inFunc AndAlso func <> 0 Then
 									func->Elements.Add te->Name, te
+								ElseIf StartsWith(bTrimLCase, "type ") Then
+									Content.Types.Add te->Name, te
 								Else
 									Content.Args.Add te->Name, te
 									Project->Globals.Args.Add te->Name, te
@@ -7520,7 +7561,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
-										SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
 										'Var teDeclare = te
 										'Dim As UString CurType, res1(Any), ElementValue
 										'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -7584,12 +7625,62 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	Next
 End Sub
 
+Sub Suggestions
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	Dim As ProjectElement Ptr Project
+	Dim As EditControlContent Ptr ecc
+	Dim As TreeNode Ptr ProjectNode
+	Dim As UString MainFile
+	Dim As Object Ptr tbOrProject = tb
+	MainFile = GetMainFile(, Project, ProjectNode)
+	If (tb = 0) AndAlso (Project = 0) Then Exit Sub
+	If Project Then
+		tbOrProject = Project
+		If Project->Contents.Count = 0 Then
+			pstBar->Panels[0]->Caption = ML("Loading project contents ...")
+			For i As Integer = 0 To Project->Files_.Count - 1
+				If EndsWith(Project->Files_.Item(i), ".bas") OrElse EndsWith(Project->Files_.Item(i), ".frm") OrElse EndsWith(Project->Files_.Item(i), ".bi") OrElse EndsWith(Project->Files_.Item(i), ".inc") Then
+					ecc = New_(EditControlContent)
+					ecc->FileName = Project->Files_.Item(i)
+					ecc->Globals = @Project->Globals
+					ecc->Tag = Project
+					Project->Contents.Add ecc
+					LoadFunctions ecc->FileName, LoadParam.OnlyFilePathOverwriteWithContent, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs, , , ecc
+					ecc->ExternalIncludesLoaded = LoadFunctionsCount = 0
+					'LoadFunctionsWithContent Project->Files_.Item(i), Project, *ecc
+				End If
+			Next
+			RestoreStatusText
+			If LoadFunctionsCount > 0 Then
+				MsgBox ML("Project content loaded. IntelliSense is not fully loaded yet.")
+				Exit Sub
+			End If
+		End If
+		If LoadFunctionsCount = 0 Then
+			For i As Integer = 0 To Project->Contents.Count - 1
+				ecc = Project->Contents.Item(i)
+				If Not ecc->ExternalIncludesLoaded Then
+					GetIncludeFiles *ecc, Project
+				End If
+			Next
+		End If
+	End If
+	If LoadFunctionsCount > 0 Then
+		MsgBox ML("IntelliSense is not fully loaded yet!")
+		Exit Sub
+	End If
+	tpSuggestions->SelectTab
+	QuitThread Project, tb
+	SetQuitThread Project, tb, False
+	SetLastThread Project, tb, ThreadCreate(@AnalyzeTab, tbOrProject)
+End Sub
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	If bNotDesign OrElse FormClosing Then Exit Sub
 	pfrmMain->UpdateLock
 	bNotDesign = True
-	QuitThread
+	QuitThread Project, @This
 	Dim CtrlName As String
 	Dim SelControlName As String
 	Dim CurrentMenuName As String
@@ -8062,7 +8153,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								func = te
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, tb
+									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, tb
 									'Dim As UString CurType, res1(Any), ElementValue
 									'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
 									'For n As Integer = 0 To UBound(res1)
@@ -8221,7 +8312,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						Pos2 = InStr(bTrim, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -8397,7 +8488,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							txtCode.Content.Procedures.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -8488,6 +8579,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							If b2.ToLower.StartsWith("shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
+							If b2.ToLower.StartsWith("type ") Then u += Len(b2) - Len(Trim(Mid(b2, 5))): b2 = Trim(Mid(b2, 5))
 							If b2.ToLower.StartsWith("as ") Then
 								bOldAs = True
 								CurType = Trim(Mid(b2, 4))
@@ -8520,7 +8612,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								res1(n) = Replace(res1(n), ";", ",")
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then
-									ct = Len(res1(n)) - Pos1 + 1
+									'ct += Len(res1(n)) - Pos1 + 1
 									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
 									If CBool(n = 0) AndAlso bOldAs Then
 										CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
@@ -8538,12 +8630,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								Pos1 = InStr(res1(n), ":")
 								If Pos1 > 0 Then
-									ct = Len(res1(n)) - Pos1 + 1
+									ct += Len(res1(n)) - Pos1 + 1
 									res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 								End If
 								If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
-									ct = Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
-									u += ct
+									ct += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
+									u += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
 									res1(n) = Trim(Mid(res1(n), 6))
 								End If
 								Pos1 = InStr(res1(n), "(")
@@ -8578,7 +8670,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 								te->TypeName = CurType
 								te->TypeName = WithoutPointers(te->TypeName)
-								If StartsWith(bTrimLCase, "common ") Then
+								If StartsWith(bTrimLCase, "type ") Then
+									te->ElementType = "Type"
+								ElseIf StartsWith(bTrimLCase, "common ") Then
 									te->ElementType = "CommonVariable"
 								ElseIf StartsWith(bTrimLCase, "const ") Then
 									te->ElementType = "Constant"
@@ -8600,6 +8694,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->Tag = tb
 								If inFunc AndAlso func <> 0 Then
 									func->Elements.Add te->Name, te
+								ElseIf StartsWith(bTrimLCase, "type ") Then
+									txtCode.Content.Types.Add te->Name, te
 								Else
 									txtCode.Content.Args.Add te->Name, te
 									If Namespaces.Count > 0 Then
@@ -8612,7 +8708,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
-										SplitParameters Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
 										'Var teDeclare = te
 										'Dim As UString CurType, res1(Any), ElementValue
 										'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -9055,10 +9151,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	SelControlNames.Clear
 	bNotDesign = False
 	pfrmMain->UpdateUnLock
-	SetQuitThread False
+	SetQuitThread Project, @This, False
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
 		If (Project = 0) OrElse ProjectAutoSuggestions Then
-			SetLastThread ThreadCreate(@AnalyzeTab, @This)
+			SetLastThread Project, @This, ThreadCreate(@AnalyzeTab, @This)
 		End If
 	End If
 	Exit Sub
@@ -10331,9 +10427,10 @@ End Sub
 'End Function
 '#EndIf
 
-Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False) As UString
+Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False, FromProject As Boolean = False) As UString
 	Dim As TabWindow Ptr tb
 	Dim As TreeNode Ptr Node = ProjectNode
+	If FromProject AndAlso Project <> 0 Then Return *Project->MainFileName
 	If Node = 0 Then Node = MainNode
 	If Node <> 0 AndAlso Not WithoutMainNode Then
 		Dim ee As ExplorerElement Ptr
@@ -11292,7 +11389,7 @@ Sub RunPr(Debugger As String = "")
 			End If
 			ChangeEnabledDebug True, False, False
 			'End If
-			pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
+			RestoreStatusText
 			If Workdir Then Deallocate Workdir
 			If CmdL Then Deallocate CmdL
 		#endif

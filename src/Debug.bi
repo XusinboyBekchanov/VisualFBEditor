@@ -320,7 +320,14 @@ Declare Sub DeleteDebugCursor
 
 Declare Sub string_sh(tv As Any Ptr)
 Declare Sub shwexp_new(tview As Any Ptr)
-#ifndef __USE_GTK__
+#ifdef __USE_GTK__
+	Common Shared windmain As Any Ptr
+	Common Shared tviewcur As TreeView Ptr  'TV1 ou TV2 ou TV3
+	Common Shared tviewvar As TreeView Ptr 'running proc/var
+	Common Shared tviewprc As TreeView Ptr 'all proc
+	Common Shared tviewthd As TreeView Ptr 'all threads
+	Common Shared tviewwch As TreeView Ptr 'watched variables
+#else
 	Declare Sub fastrun()
 	Declare Sub thread_rsm()
 	Declare Sub exe_mod()
@@ -341,13 +348,6 @@ Declare Sub shwexp_new(tview As Any Ptr)
 	'Common Shared rline() As tline
 	'Common Shared source() As String    'source names
 	Common Shared As HWND htab1, htab2
-#else
-	Common Shared windmain As Any Ptr
-	Common Shared tviewcur As TreeView Ptr  'TV1 ou TV2 ou TV3
-	Common Shared tviewvar As TreeView Ptr 'running proc/var
-	Common Shared tviewprc As TreeView Ptr 'all proc
-	Common Shared tviewthd As TreeView Ptr 'all threads
-	Common Shared tviewwch As TreeView Ptr 'watched variables
 #endif
 Common Shared As Integer rlineold 'numbers of lines, index of previous executed line (rline)
 Common Shared As Integer fntab
@@ -491,7 +491,7 @@ Union pointeurs
 End Union
 
 '================ Lines ==============================================
-Const LINEMAX=100000
+Const LINEMAX=200000
 Type tline
 	ad As UInteger ''offset relative to proc address
 	nu As Integer  ''number in file
@@ -550,7 +550,7 @@ Type tarr 'five dimensions max
 End Type
 
 ''====================== Variables gloables/common/locales/parameters ============================
-Const VARMAX=20000 'CAUTION 3000 elements taken for globals
+Const VARMAX = 50000 'CAUTION 3000 elements taken for globals
 Const VGBLMAX=3000 'max globals
 
 Type tvrb
@@ -563,7 +563,7 @@ Type tvrb
 End Type
 
 ''========================== Running variables ============================
-Const VRRMAX=200000
+Const VRRMAX = 400000
 Type tvrr
 	ad    As UInteger 'address
 	tv    As Any Ptr  'tview handle

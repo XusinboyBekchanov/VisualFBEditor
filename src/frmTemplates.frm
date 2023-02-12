@@ -317,7 +317,7 @@
 	pfTemplates = @fTemplates
 	
 	#ifndef _NOT_AUTORUN_FORMS_
-		fForm1.Show
+		fTemplates.Show
 		
 		App.Run
 	#endif

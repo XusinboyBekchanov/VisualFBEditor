@@ -47,7 +47,7 @@
 	pfTheme = @fTheme
 	
 	#ifndef _NOT_AUTORUN_FORMS_
-		fForm1.Show
+		fTheme.Show
 		
 		App.Run
 	#endif

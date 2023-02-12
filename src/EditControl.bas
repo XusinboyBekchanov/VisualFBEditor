@@ -2895,6 +2895,15 @@ Namespace My.Sys.Forms
 		CheckedFiles.Sorted = True
 	End Constructor
 	
+	Constructor GlobalTypeElements
+		Namespaces.Sorted = True
+		Types.Sorted = True
+		Enums.Sorted = True
+		Functions.Sorted = True
+		TypeProcedures.Sorted = True
+		Args.Sorted = True
+	End Constructor
+	
 	Sub EditControl.PaintControlPriv(Full As Boolean = False)
 		'	On Error Goto ErrHandler
 		Dim As Boolean bFull = Full
@@ -3281,6 +3290,7 @@ Namespace My.Sys.Forms
 													MatnWithoutOldSymbol = Matn
 													WithOldSymbol = False
 												End If
+												bTypeAs = StartsWith(LCase(Trim(*s, Any !"\t ")), "type ") AndAlso OldMatnLCase = "as"
 												sc = @Identifiers
 												OriginalCaseWord = "":   TypeName = "" : te = 0
 												If MatnBoshi > 0 Then r = Asc(Mid(*s, MatnBoshi - 1, 1)) Else r = 0 '  ' "->"=45-62
@@ -3374,7 +3384,7 @@ Namespace My.Sys.Forms
 																End If
 																
 																'Procedure
-																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso OldMatnLCase <> "as" Then
+																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
 																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
 																	If tIndex <> -1 Then
 																		If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
@@ -3470,7 +3480,7 @@ Namespace My.Sys.Forms
 														If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
 															If Not OneDot Then
 																'Module
-																If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
+																If tIndex = -1 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
 																	tIndex = Content.Args.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
 																		If Cast(TypeElement Ptr, Content.Args.Object(tIndex))->StartLine > z Then
@@ -3529,7 +3539,7 @@ Namespace My.Sys.Forms
 																If tIndex = -1 Then
 																	tIndex = Content.Types.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
-																		If Cast(TypeElement Ptr, Content.Types.Object(tIndex))->StartLine > z Then
+																		If (Not bTypeAs) AndAlso Cast(TypeElement Ptr, Content.Types.Object(tIndex))->StartLine > z Then
 																			tIndex = -1
 																		Else
 																			If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
@@ -3542,7 +3552,7 @@ Namespace My.Sys.Forms
 																If tIndex = -1 Then
 																	tIndex = Content.Enums.IndexOf(MatnLCase)
 																	If tIndex <> -1 Then
-																		If Cast(TypeElement Ptr, Content.Enums.Object(tIndex))->StartLine > z Then
+																		If (Not bTypeAs) AndAlso Cast(TypeElement Ptr, Content.Enums.Object(tIndex))->StartLine > z Then
 																			tIndex = -1
 																		Else
 																			If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
@@ -3567,7 +3577,11 @@ Namespace My.Sys.Forms
 																
 																'Global
 																If tIndex = -1 Then
-																	tIndex = Content.IndexOfInListFiles(pComps, MatnLCase, pFiles, pFileLines)
+																	If bTypeAs Then
+																		tIndex = pComps->IndexOf(MatnLCase)
+																	Else
+																		tIndex = Content.IndexOfInListFiles(pComps, MatnLCase, pFiles, pFileLines)
+																	End If
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorComps
 																		OriginalCaseWord = pComps->Item(tIndex)
@@ -3576,7 +3590,11 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = Content.IndexOfInListFiles(pGlobalTypes, MatnLCase, pFiles, pFileLines)
+																	If bTypeAs Then
+																		tIndex = pGlobalTypes->IndexOf(MatnLCase)
+																	Else
+																		tIndex = Content.IndexOfInListFiles(pGlobalTypes, MatnLCase, pFiles, pFileLines)
+																	End If
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalTypes
 																		OriginalCaseWord = pGlobalTypes->Item(tIndex)
@@ -3585,7 +3603,11 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	tIndex = Content.IndexOfInListFiles(pGlobalEnums, MatnLCase, pFiles, pFileLines)
+																	If bTypeAs Then
+																		tIndex = pGlobalEnums->IndexOf(MatnLCase)
+																	Else
+																		tIndex = Content.IndexOfInListFiles(pGlobalEnums, MatnLCase, pFiles, pFileLines)
+																	End If
 																	If tIndex <> -1 Then
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
 																		OriginalCaseWord = pGlobalEnums->Item(tIndex)

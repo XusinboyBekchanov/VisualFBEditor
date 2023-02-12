@@ -1578,6 +1578,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
 						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
 					End If
+					ppe->Files_.Add *ee->FileName
 					If inFolder Then
 						ppe->Files.Add *ee->FileName
 						Delete_( ee)
@@ -3458,8 +3459,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			File->FileName = Path
 			IncludeFiles.Add Path, File
 		End If
-	ElseIf CurFileItem <> 0 AndAlso IncludeFiles.Contains(Path, , , , Idx) Then
-		IncludeFiles.Object(Idx) = CurFileItem
+	'ElseIf CurFileItem <> 0 AndAlso IncludeFiles.Contains(Path, , , , Idx) Then
+	'	IncludeFiles.Object(Idx) = CurFileItem
 	End If
 	If OldFile <> 0 AndAlso OldFile->Includes.Contains(Path, , , , Idx) Then
 		OldFile->Includes.Object(Idx) = File

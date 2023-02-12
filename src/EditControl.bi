@@ -144,6 +144,7 @@ Namespace My.Sys.Forms
 		Functions As WStringOrStringList
 		TypeProcedures As WStringOrStringList
 		Args As WStringOrStringList
+		Declare Constructor
 	End Type
 	
 	Type EditControlContent
@@ -324,7 +325,7 @@ Namespace My.Sys.Forms
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol
-		Dim As Boolean WithOldSymbol
+		Dim As Boolean WithOldSymbol, bTypeAs
 		Dim As Integer OldPos, OldLinesCount
 		Dim pkeywords As WStringOrStringList Ptr
 		Dim LinePrinted As Boolean

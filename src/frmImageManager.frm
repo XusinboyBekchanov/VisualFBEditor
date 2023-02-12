@@ -35,7 +35,7 @@
 			.Buttons.Add , "Add", , , "Add"
 			Var AddButton = .Buttons.Add(tbsWholeDropdown, "Add", , , "AddDropdown")
 			Var AddFromResource = AddButton->DropdownMenu.Add(ML("Add From Resource"), "Add", "AddFromResource", @MenuItemClick_)
-			Var AddFromFile = AddButton->DropdownMenu.Add(ML("Add From File"), "Add", "AddFromFile", @MenuItemClick_)
+			Var AddFromFile = AddButton->DropDownMenu.Add(ML("Add From File"), "Add", "AddFromFile", @MenuItemClick_)
 			AddFromResource->Designer = @This
 			AddFromFile->Designer = @This
 			.Buttons.Add , "Project", , , "Change"

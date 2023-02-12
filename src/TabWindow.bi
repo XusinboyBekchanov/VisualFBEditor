@@ -93,6 +93,7 @@ Type ProjectElement Extends ExplorerElement
 	bQuitThread As Boolean
 	LastThread As Any Ptr
 	Files As WStringList
+	Files_ As WStringList
 	Contents As List
 	Components As WStringList
 	IncludePaths As WStringList
@@ -166,7 +167,6 @@ Private:
 	Declare Function SaveTab As Boolean
 	Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 Public:
-	Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol, OriginalCaseWord, TypeName1, OldTypeName
 	Declare Sub ProcessMessage(ByRef msg As Message)
 	AnyTexts As WStringList
 	Events As Dictionary
@@ -251,16 +251,16 @@ Public:
 	Declare Sub Indent
 	Declare Sub Outdent
 	Declare Sub Define
-	Declare Sub GetIncludeFiles
 	Declare Sub FormDesign(NotForms As Boolean = False)
-	Declare Sub QuitThread
-	Declare Sub SetLastThread(ThreadID As Any Ptr)
-	Declare Sub SetQuitThread(Value As Boolean)
-	Declare Function GetLastThread As Any Ptr
-	Declare Function GetQuitThread As Boolean
 	Declare Constructor(ByRef wFileName As WString = "", bNewForm As Boolean = False, TreeN As TreeNode Ptr = 0)
 	Declare Destructor
 End Type
+
+Declare Sub QuitThread(Project As ProjectElement Ptr, tb As TabWindow Ptr)
+Declare Sub SetLastThread(Project As ProjectElement Ptr, tb As TabWindow Ptr, ThreadID As Any Ptr)
+Declare Sub SetQuitThread(Project As ProjectElement Ptr, tb As TabWindow Ptr, Value As Boolean)
+Declare Function GetLastThread(Project As ProjectElement Ptr, tb As TabWindow Ptr) As Any Ptr
+Declare Function GetQuitThread(Project As ProjectElement Ptr, tb As TabWindow Ptr) As Boolean
 
 Common Shared As PopupMenu Ptr pmnuCode
 
@@ -406,7 +406,7 @@ Declare Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As
 
 Declare Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
 
-Declare Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False) As UString
+Declare Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False, FromProject As Boolean = False) As UString
 
 Declare Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "") As UString
 
