@@ -23,11 +23,11 @@ pfProjectProperties = @fProjectProperties
 		This.BorderStyle = FormBorderStyle.Fixed3D
 		This.MaximizeBox = False
 		This.MinimizeBox = False
-		This.StartPosition = FormStartPosition.CenterScreen
 		This.OnShow       = @Form_Show
 		This.DefaultButton = @cmdOK
 		This.CancelButton = @cmdCancel
 		This.SetBounds 0, 0, 510, 458
+		This.StartPosition = FormStartPosition.CenterParent
 		#ifdef __USE_GTK__
 			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 		#else

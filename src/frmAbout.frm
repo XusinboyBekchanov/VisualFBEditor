@@ -16,7 +16,7 @@
 		This.BorderStyle = FormBorderStyle.FixedDialog
 		This.MaximizeBox = False
 		This.MinimizeBox = False
-		This.StartPosition = FormStartPosition.CenterScreen
+		This.StartPosition = FormStartPosition.CenterParent
 		#ifndef __USE_GTK__
 			This.DefaultButton = @CommandButton1
 			This.Designer = @This

@@ -16,13 +16,13 @@
 			#else
 				.Icon.LoadFromResourceID(1)
 			#endif
-			.StartPosition = FormStartPosition.CenterParent
 			.Designer = @This
 			.BorderStyle = FormBorderStyle.Sizable
 			.OnShow = @Form_Show_
 			.OnClose = @Form_Close_
 			.OnCreate = @_Form_Create
 			.SetBounds 0, 0, 657, 440
+			.StartPosition = FormStartPosition.CenterParent
 		End With
 		' TabControl1
 		With TabControl1
