@@ -6,6 +6,7 @@
 			#cmdline "FileSync.rc"
 		#endif
 	#endif
+	#include once "mff/Form.bi"
 	#include once "mff/TextBox.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Panel.bi"
@@ -20,7 +21,6 @@
 	#include once "mff/Chart.bi"
 	#include once "mff/GroupBox.bi"
 	#include once "mff/Dialogs.bi"
-	#include once "mff/Form.bi"
 	
 	#include once "ITL3.bi"
 	#include once "TimeMeter.bi"
