@@ -2502,7 +2502,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControlContent.GetTypeFromValue(ByRef Value As String, iSelEndLine As Integer) As String
-		If Value= "" Then Return ""
+		If Value = "" Then Return ""
 		Dim As String sTemp
 		If (StartsWith(LCase(Value), "cast(") OrElse StartsWith(LCase(Value), "@cast(") OrElse StartsWith(LCase(Value), "*cast(") OrElse StartsWith(LCase(Value), "(*cast(")) AndAlso EndsWith(LCase(Value), ")") Then
 			Var Pos1 = InStr(2, Value, "(")
@@ -2534,7 +2534,9 @@ Namespace My.Sys.Forms
 						sTemp = ch & sTemp
 					ElseIf sTemp <> "" Then
 						If ch = "." Then
+							'Dim As String OldTypeName
 							TypeName = GetTypeFromValue(..Left(Value, i - 1), iSelEndLine)
+							'TypeName = GetLeftArgTypeName(iSelEndLine, i, , , OldTypeName, , )
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(Value, i - 1, 1) = "-" Then
 							TypeName = GetTypeFromValue(..Left(Value, i - 2), iSelEndLine)
 						End If

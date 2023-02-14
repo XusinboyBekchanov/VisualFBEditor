@@ -7128,15 +7128,17 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 					'ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
 					'	inPubProPri = 2
 					ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
-						Pos1 = InStr(9, bTrim, " ")
-						Pos2 = InStr(9, bTrim, "(")
+						Dim As UString b2 = Trim(Mid(bTrim, 9))
+						Pos1 = InStr(b2, " ")
+						Pos2 = InStr(b2, "(")
+						Pos3 = InStr(b2, ")")
 						Pos5 = Pos2
 						If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
 						te = New_( TypeElement)
 						If Pos1 = 0 Then
-							te->Name = Trim(Mid(bTrim, 9))
+							te->Name = Trim(b2)
 						Else
-							te->Name = Trim(Mid(bTrim, 9, Pos1 - 9))
+							te->Name = Trim(Left(b2, Pos1 - 1))
 						End If
 						te->DisplayName = te->Name
 						te->ElementType = "Define"
@@ -7144,6 +7146,9 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						Pos4 = InStr(te->Parameters, "'")
 						If Pos4 > 0 Then
 							te->Parameters = Trim(..Left(te->Parameters, Pos4 - 1))
+						End If
+						If Pos1 > 0 Then
+							te->Value = Trim(Mid(bTrim, Pos1))
 						End If
 						te->StartLine = i
 						te->EndLine = i
@@ -8282,15 +8287,17 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					'ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
 					'	inPubProPri = 2
 					ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
-						Pos1 = InStr(9, bTrim, " ")
-						Pos2 = InStr(9, bTrim, "(")
+						Dim As UString b2 = Trim(Mid(bTrim, 9))
+						Pos1 = InStr(b2, " ")
+						Pos2 = InStr(b2, "(")
+						Pos3 = InStr(b2, ")")
 						Pos5 = Pos2
 						If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
 						te = New_( TypeElement)
 						If Pos1 = 0 Then
-							te->Name = Trim(Mid(bTrim, 9))
+							te->Name = Trim(b2)
 						Else
-							te->Name = Trim(Mid(bTrim, 9, Pos1 - 9))
+							te->Name = Trim(..Left(b2, Pos1 - 1))
 						End If
 						te->DisplayName = te->Name
 						te->ElementType = "Define"
@@ -8298,6 +8305,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos4 = InStr(te->Parameters, "'")
 						If Pos4 > 0 Then
 							te->Parameters = Trim(..Left(te->Parameters, Pos4 - 1))
+						End If
+						If Pos1 > 0 Then
+							te->Value = Trim(Mid(bTrim, Pos1))
 						End If
 						te->StartLine = i
 						te->EndLine = i
