@@ -790,7 +790,8 @@ Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As 
 	
 	'Render the file
 	hr = pIMediaControl->lpVtbl->RenderFile(pIMediaControl, StrPtr(wszFileName))
-	If hr < 0 Then This.Caption = Mid(This.Caption, 1, Len(" VFBE Media Player64"))  & " -Error - Can't Render File!" : Return False
+	'Need Install decoding package like lav
+	If hr < 0 Then This.Caption = Mid(This.Caption, 1, Len(" VFBE Media Player64"))  & " -Error - Can't Render File! Install LAV from https://github.com/Nevcairiel/LAVFilters/releases" : Return False
 	'Set the window owner and style
 	hr = pIVideoWindow->lpVtbl->put_Visible(pIVideoWindow, OAFALSE)
 	hr = pIVideoWindow->lpVtbl->put_Owner(pIVideoWindow, Cast(OAHWND, hWnd))
