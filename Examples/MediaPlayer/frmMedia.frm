@@ -128,7 +128,7 @@
 		pIEnumFilters As IEnumFilters Ptr
 		
 		Declare Sub DSCtrl(Index As DS_Status)
-		Declare Function DSCreate(hWnd As HWND, wszFileName As WString) As Long
+		Declare Function DSCreate(hWnd As HWND, wszFileName As WString) As Boolean
 		Declare Sub DSUnload()
 		Declare Static Sub _TextBox1_DblClick(ByRef Sender As Control)
 		Declare Sub TextBox1_DblClick(ByRef Sender As Control)
@@ -160,10 +160,12 @@
 		Declare Sub Picture1_Message(ByRef Sender As Control, ByRef msg As Message)
 		Declare Static Sub _ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		Declare Static Sub _cmdBrowse_Click(ByRef Sender As Control)
+		Declare Sub cmdBrowse_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As Panel Panel1, Panel2, Panel3, Panel4, Panel5, Panel6
-		Dim As CommandButton cmdOpen, cmdPlay, cmdClose, cmdFull
+		Dim As CommandButton cmdOpen, cmdPlay, cmdClose, cmdFull, cmdBrowse
 		Dim As TextBox TextBox1
 		Dim As TrackBar tbVolume, tbBalance, tbPosition
 		Dim As Label lblVolume, lblBalance, lblPosition, lblLength
@@ -302,7 +304,7 @@
 			.TabIndex = 11
 			.ImagesList = @ImageList1
 			.DropDownCount = 28
-			.SetBounds 260, 10, 160, 22
+			.SetBounds 250, 10, 160, 19
 			.Designer = @This
 			.OnSelected = @_ComboBoxEx1_Selected
 			.Parent = @Panel3
@@ -311,13 +313,17 @@
 		With TextBox1
 			.Name = "TextBox1"
 			.Text = "F:\OfficePC_Update\!Media\632734Y0314.mp4"
+			.Hint = "Double click to select a file from local disk."
 			.TabIndex = 12
-			.Align = DockStyle.alClient
+			.Align = DockStyle.alNone
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 430, 10, 314, 22
+			.Size = Type<My.Sys.Drawing.Size>(239, 20)
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asAnchor
+			.SetBounds 410, 10, 239, 20
 			.Designer = @This
 			.OnDblClick = @_TextBox1_DblClick
 			.Parent = @Panel1
@@ -334,7 +340,7 @@
 			.SubClass = False
 			.ShowHint = True
 			.BackColor = 0
-			.Visible = true
+			.Visible = True
 			.SetBounds 10, 40, 664, 341
 			.Designer = @This
 			.OnMessage = @_Picture1_Message
@@ -361,7 +367,7 @@
 			.ExtraMargins.Left = 2
 			.MaxValue = 0
 			.MinValue = -10000
-			.Position = -1000
+			.Position = 0
 			.Enabled = False
 			.ThumbLength = 20
 			.TickStyle = TickStyles.tsAuto
@@ -486,7 +492,27 @@
 			.Designer = @This
 			.Parent = @Panel6
 		End With
+		' cmdBrowse
+		With cmdBrowse
+			.Name = "cmdBrowse"
+			.Text = "..."
+			.TabIndex = 22
+			.ControlIndex = 0
+			.Location = Type<My.Sys.Drawing.Point>(650, 10)
+			.Align = DockStyle.alNone
+			.Size = Type<My.Sys.Drawing.Size>(29, 20)
+			.Caption = "..."
+			.Anchor.Right = AnchorStyle.asAnchor
+			.SetBounds 650, 10, 29, 20
+			.Designer = @This
+			.OnClick = @_cmdBrowse_Click
+			.Parent = @Panel1
+		End With
 	End Constructor
+	
+	Private Sub frmMediaType._cmdBrowse_Click(ByRef Sender As Control)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).cmdBrowse_Click(Sender)
+	End Sub
 	
 	Private Sub frmMediaType._ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		*Cast(frmMediaType Ptr, Sender.Designer).ComboBoxEx1_Selected(Sender, ItemIndex)
@@ -721,7 +747,6 @@ Private Sub frmMediaType.DSCtrl(Index As DS_Status)
 		chkLoop.Enabled = False
 		TimerComponent1.Enabled = False
 		tbPosition.Position = 0
-		Picture1.Visible= False
 		cmdFull.Enabled = False 
 		DSUnload
 	Case DS_Status.DS_Play
@@ -749,11 +774,10 @@ Private Sub frmMediaType.DSCtrl(Index As DS_Status)
 	cmdClose.Enabled = b
 End Sub
 
-Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As Long
+Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As Boolean
 	Dim hr As HRESULT
 	hr = CoCreateInstance(@CLSID_FilterGraph, NULL, CLSCTX_ALL, @IID_IGraphBuilder, @pIGraphBuilder)
-	
-	If pIGraphBuilder = NULL Then Exit Function
+	If pIGraphBuilder = NULL Then This.Caption = Mid(This.Caption, 1, Len(" VFBE Media Player64"))  & " -Error - Can't create Filter Graph！" : Return False
 	
 	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IMediaControl, @pIMediaControl)
 	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IBasicAudio, @pIBasicAudio)
@@ -766,7 +790,7 @@ Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As 
 	
 	'Render the file
 	hr = pIMediaControl->lpVtbl->RenderFile(pIMediaControl, StrPtr(wszFileName))
-	
+	If hr < 0 Then This.Caption = Mid(This.Caption, 1, Len(" VFBE Media Player64"))  & " -Error - Can't Render File!" : Return False
 	'Set the window owner and style
 	hr = pIVideoWindow->lpVtbl->put_Visible(pIVideoWindow, OAFALSE)
 	hr = pIVideoWindow->lpVtbl->put_Owner(pIVideoWindow, Cast(OAHWND, hWnd))
@@ -793,8 +817,7 @@ Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As 
 		hr = pIVideoWindow->lpVtbl->put_Visible(pIVideoWindow, OATRUE)
 		cmdFull.Enabled = True
 	End If
-	
-	Function = True
+	Return True
 End Function
 
 Private Sub frmMediaType.DSUnload()
@@ -823,6 +846,7 @@ End Sub
 Private Sub frmMediaType.TextBox1_DblClick(ByRef Sender As Control)
 	If OpenFileDialog1.Execute() Then
 		TextBox1.Text = OpenFileDialog1.FileName
+		cmdPlay.SetFocus
 	End If
 End Sub
 
@@ -841,7 +865,7 @@ Private Sub frmMediaType.Form_Create(ByRef Sender As Control)
 	
 	Dim i As Integer
 	For i = 0 To 35
-		ComboBoxEx1.Items.Add(urlsa(0, i), icons(i), icons(i), icons(i), icons(i))
+		ComboBoxEx1.Items.Add(urlsa(0, i), @icons(i), icons(i), icons(i), icons(i))
 	Next
 End Sub
 
@@ -851,7 +875,7 @@ Private Sub frmMediaType.Form_Close(ByRef Sender As Form, ByRef Action As Intege
 End Sub
 
 Private Sub frmMediaType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	If Picture1.Visible= False Then Exit Sub 
+	'If Picture1.Visible= False Then Exit Sub 
 	Dim rc As Rect
 	GetClientRect(Picture1.Handle, @rc)
 	If pIVideoWindow Then
@@ -987,5 +1011,14 @@ End Sub
 
 Private Sub frmMediaType.ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	TextBox1.Text = urlsa(1, ItemIndex)
+	This.Caption = Mid(This.Caption, 1, Len(" VFBE Media Player64"))
 End Sub
 
+
+Private Sub frmMediaType.cmdBrowse_Click(ByRef Sender As Control)
+	If OpenFileDialog1.Execute() Then
+		TextBox1.Text = OpenFileDialog1.FileName
+		This.Caption = Mid(This.Caption, 1, Len(" VFBE Media Player64"))
+		cmdPlay.SetFocus
+	End If
+End Sub
