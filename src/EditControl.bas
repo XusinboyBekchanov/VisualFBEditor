@@ -716,11 +716,18 @@ Namespace My.Sys.Forms
 		Dim As Integer i, j, k, Idx
 		Dim OldCollapsed As Boolean, OldConstructionIndex As Integer = -1, OldConstructionPart As Integer = 0, OldLineIndex As Integer = LineIndex - 1
 		If LineIndex < 0 OrElse LineIndex > Content.Lines.Count - 1 Then Exit Sub
-		Dim ecl As EditControlLine Ptr = Content.Lines.Items[LineIndex]
+		Dim As EditControlLine Ptr ecl = Content.Lines.Items[LineIndex], eclOld
+		If OldLineIndex > -1 Then
+			eclOld = Content.Lines.Items[OldLineIndex]
+		End If
 		If ecl = 0 OrElse ecl->Text = 0 Then Exit Sub
 		OldConstructionIndex = ecl->ConstructionIndex
 		OldConstructionPart = ecl->ConstructionPart
-		i = Content.GetConstruction(*ecl->Text, j, , ecl->InAsm)
+		If eclOld Then
+			i = Content.GetConstruction(*ecl->Text, j, eclOld->CommentIndex, ecl->InAsm)
+		Else
+			i = Content.GetConstruction(*ecl->Text, j, , ecl->InAsm)
+		End If
 		ecl->ConstructionIndex = i
 		ecl->ConstructionPart = j
 		ecl->Ends.Clear
@@ -745,7 +752,7 @@ Namespace My.Sys.Forms
 			ChangeInConstruction LineIndex, OldConstructionIndex, OldConstructionPart
 		End If
 		If OldLineIndex > -1 Then
-			Dim As EditControlLine Ptr FECLine2, eclOld = Content.Lines.Items[OldLineIndex]
+			Dim As EditControlLine Ptr FECLine2
 			If Not eclOld->Visible Then
 				k = GetLineIndex(OldLineIndex, 0)
 				Dim FECLine As EditControlLine Ptr = Content.Lines.Items[k]
@@ -1629,7 +1636,7 @@ Namespace My.Sys.Forms
 					iPos = InStr(*FLine, "'") - 1
 					If iPos = -1 Then iPos = Len(*FLine)
 					Split(.Left(*FLine, iPos), ":", LineParts())
-					ConstructionIndex = Content.GetConstruction(LineParts(0), ConstructionPart, , FECLine->InAsm)
+					ConstructionIndex = Content.GetConstruction(LineParts(0), ConstructionPart, 0, FECLine->InAsm)
 					If ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 						iIndents = Max(0, iIndents - 1)
 					End If
@@ -1669,7 +1676,7 @@ Namespace My.Sys.Forms
 			If iComment = 0 Then
 				If FECLine->Multiline Then
 					For k As Integer = 0 To UBound(LineParts)
-						ConstructionIndex = Content.GetConstruction(LineParts(k), ConstructionPart, , FECLine->InAsm)
+						ConstructionIndex = Content.GetConstruction(LineParts(k), ConstructionPart, 0, FECLine->InAsm)
 						If k > 0 AndAlso ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 							iIndents = Max(0, iIndents - 1)
 						End If
@@ -5736,7 +5743,7 @@ Namespace My.Sys.Forms
 				WLet(FLineRight, "")
 				WLet(FLineTemp, "")
 				Dim j As Integer = 0
-				Dim i As Integer = Content.GetConstruction(RTrim(*FLine, Any !"\t "), j, , Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->InAsm)
+				Dim i As Integer = Content.GetConstruction(RTrim(*FLine, Any !"\t "), j, IIf(FSelEndLine <= 0, 0, Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine - 1])->CommentIndex), Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->InAsm)
 				Var d = Len(*FLine) - Len(LTrim(*FLine, Any !"\t "))
 				WLet(FLineSpace, ..Left(*FLine, d))
 				Var k = 0
@@ -5779,7 +5786,7 @@ Namespace My.Sys.Forms
 						If j = 0 Then
 							If FSelEndLine < Content.Lines.Count - 1 Then WLetEx(FLineTemp, GetTabbedText(*Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine + 1])->Text), True)
 							Dim n As Integer
-							Dim m As Integer = Content.GetConstruction(*FLineTemp, n, , Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->InAsm)
+							Dim m As Integer = Content.GetConstruction(*FLineTemp, n, IIf(FSelEndLine <= 0, 0, Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine - 1])->CommentIndex), Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->InAsm)
 							Var e = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
 							WLetEx(FLineTemp, GetTabbedText(*FLine), True)
 							Var r = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
