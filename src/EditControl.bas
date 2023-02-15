@@ -2534,9 +2534,12 @@ Namespace My.Sys.Forms
 						sTemp = ch & sTemp
 					ElseIf sTemp <> "" Then
 						If ch = "." Then
-							'Dim As String OldTypeName
-							TypeName = GetTypeFromValue(..Left(Value, i - 1), iSelEndLine)
-							'TypeName = GetLeftArgTypeName(iSelEndLine, i, , , OldTypeName, , )
+							If Trim(..Left(Value, i - 1)) = "" Then
+								Dim As String OldTypeName
+								TypeName = GetLeftArgTypeName(iSelEndLine, 0, , , OldTypeName, , )
+							Else
+								TypeName = GetTypeFromValue(..Left(Value, i - 1), iSelEndLine)
+							End If
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(Value, i - 1, 1) = "-" Then
 							TypeName = GetTypeFromValue(..Left(Value, i - 2), iSelEndLine)
 						End If
