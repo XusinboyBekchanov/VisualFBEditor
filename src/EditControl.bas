@@ -2582,6 +2582,8 @@ Namespace My.Sys.Forms
 			If TypeName <> "" Then
 				If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 				ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
+				ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te) Then
+				ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
@@ -2595,6 +2597,10 @@ Namespace My.Sys.Forms
 					te = Procedures.Object(Idx)
 				ElseIf Args.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Args.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Args.Object(Idx)
+				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Functions, sTemp, Idx, pFiles, pFileLines) Then
+					te = Globals->Functions.Object(Idx)
+				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Args, sTemp, Idx, pFiles, pFileLines) Then
+					te = Globals->Args.Object(Idx)
 				ElseIf ContainsInListFiles(pGlobalFunctions, sTemp, Idx, pFiles, pFileLines) Then
 					te = pGlobalFunctions->Object(Idx)
 				ElseIf ContainsInListFiles(pGlobalArgs, sTemp, Idx, pFiles, pFileLines) Then
@@ -2602,6 +2608,8 @@ Namespace My.Sys.Forms
 				ElseIf TypeName <> "" Then
 					If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 					ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
+					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te) Then
+					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
@@ -2736,6 +2744,9 @@ Namespace My.Sys.Forms
 				If Types.Contains(TypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 					te2 = Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, TypeName, Idx, pFiles, pFileLines) Then
+					te2 = Globals->Types.Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf ContainsInListFiles(pComps, TypeName, Idx, pFiles, pFileLines) Then
 					te2 = pComps->Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
@@ -2746,6 +2757,8 @@ Namespace My.Sys.Forms
 				If BaseTypeName <> "" Then
 					If Types.Contains(BaseTypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 						teEnum = Types.Object(Idx)
+					ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, BaseTypeName, Idx, pFiles, pFileLines) Then
+						teEnum = Globals->Types.Object(Idx)
 					ElseIf ContainsInListFiles(pComps, BaseTypeName, Idx, pFiles, pFileLines) Then
 						teEnum = pComps->Object(Idx)
 					ElseIf ContainsInListFiles(pGlobalTypes, BaseTypeName, Idx, pFiles, pFileLines) Then
@@ -2759,6 +2772,9 @@ Namespace My.Sys.Forms
 			If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 			ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 			ElseIf ContainsIn(TypeName, sTemp, @Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine) Then
+			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
+			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
+			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 			ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
 			ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
@@ -2776,6 +2792,9 @@ Namespace My.Sys.Forms
 				If Types.Contains(TypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 					te2 = Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, TypeName, Idx, pFiles, pFileLines) Then
+					te2 = Globals->Types.Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf ContainsInListFiles(pComps, TypeName, Idx, pFiles, pFileLines) Then
 					te2 = pComps->Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
@@ -2786,6 +2805,8 @@ Namespace My.Sys.Forms
 				If BaseTypeName <> "" Then
 					If Types.Contains(BaseTypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 						teEnum = Types.Object(Idx)
+					ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, BaseTypeName, Idx, pFiles, pFileLines) Then
+						teEnum = Globals->Types.Object(Idx)
 					ElseIf ContainsInListFiles(pComps, BaseTypeName, Idx, pFiles, pFileLines) Then
 						teEnum = pComps->Object(Idx)
 					ElseIf ContainsInListFiles(pGlobalTypes, BaseTypeName, Idx, pFiles, pFileLines) Then
@@ -2820,6 +2841,8 @@ Namespace My.Sys.Forms
 						End If
 						If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 						ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
+						ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te) Then
+						ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te) Then
 						ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te) Then
 						ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
 						ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
@@ -2843,6 +2866,14 @@ Namespace My.Sys.Forms
 					te = Args.Object(Idx)
 				ElseIf Namespaces.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Namespaces.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Namespaces.Object(Idx)
+				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Functions, sTemp, Idx, pFiles, pFileLines) Then
+					te = Globals->Functions.Object(Idx)
+				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Args, sTemp, Idx, pFiles, pFileLines) Then
+					te = Globals->Args.Object(Idx)
+				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, sTemp, Idx, pFiles, pFileLines) Then
+					te = Globals->Types.Object(Idx)
+				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Namespaces, sTemp, Idx, pFiles, pFileLines) Then
+					te = Globals->Namespaces.Object(Idx)
 				ElseIf ContainsInListFiles(pGlobalFunctions, sTemp, Idx, pFiles, pFileLines) Then
 					te = pGlobalFunctions->Object(Idx)
 				ElseIf ContainsInListFiles(pGlobalArgs, sTemp, Idx, pFiles, pFileLines) Then
@@ -2855,6 +2886,9 @@ Namespace My.Sys.Forms
 					If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 					ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 					ElseIf ContainsIn(TypeName, sTemp, @Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine) Then
+					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te) Then
+					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te) Then
+					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Namespaces, pFiles, pFileLines, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
 					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then

@@ -7869,6 +7869,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Else
 			Dim As TreeNode Ptr ProjectNode
 			Dim As UString MainFile = GetMainFile(, Project, ProjectNode, True)
+			If Project Then txtCode.Content.Globals = @Project->Globals
 			txtCode.Content.CheckedFiles.Clear
 			txtCode.Content.ExternalFiles.Clear
 			txtCode.Content.ExternalFileLines.Clear
