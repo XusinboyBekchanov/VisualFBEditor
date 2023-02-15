@@ -7,7 +7,7 @@
 		#endif
 	#endif
 	
-	#include once "string.bi"
+	#include once "mff/Form.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Dialogs.bi"
 	#include once "mff/Label.bi"
@@ -16,7 +16,6 @@
 	#include once "mff/CheckBox.bi"
 	#include once "mff/TimerComponent.bi"
 	#include once "mff/GroupBox.bi"
-	#include once "mff/Form.bi"
 	#include once "mff/TextBox.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/ComboBoxEdit.bi"
