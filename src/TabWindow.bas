@@ -7148,7 +7148,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							te->Parameters = Trim(..Left(te->Parameters, Pos4 - 1))
 						End If
 						If Pos1 > 0 Then
-							te->Value = Trim(Mid(bTrim, Pos1))
+							te->Value = Trim(Mid(b2, Pos1))
 						End If
 						te->StartLine = i
 						te->EndLine = i
@@ -8307,7 +8307,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->Parameters = Trim(..Left(te->Parameters, Pos4 - 1))
 						End If
 						If Pos1 > 0 Then
-							te->Value = Trim(Mid(bTrim, Pos1))
+							te->Value = Trim(Mid(b2, Pos1))
 						End If
 						te->StartLine = i
 						te->EndLine = i
