@@ -1,9 +1,11 @@
-﻿#ifdef __FB_WIN32__
-
-#endif
-
-'#Region "Form"
-	
+﻿'#Region "Form"
+	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
+		#define __MAIN_FILE__
+		Const _MAIN_FILE_ = __FILE__
+		#ifdef __FB_WIN32__
+			#cmdline "frmBass.rc"
+		#endif
+	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/GroupBox.bi"
 	#include once "mff/CommandButton.bi"
@@ -21,10 +23,8 @@
 	#include once "mff/TabControl.bi"
 	#include once "mff/Dialogs.bi"
 	#include once "mff/Animate.bi"
-	
 	#include once "vbcompat.bi"
 	#include once "bass.bi"
-	
 	#include once "BassBase.bi"
 	#include once "BassSpectrum.bi"
 	#include once "BassRecord.bi"
@@ -4078,7 +4078,7 @@ End Sub
 
 Private Sub frmBassType.ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	OutputDevice = ItemIndex
-	Bass_Free
+	BASS_Free
 	If BASS_Init(OutputDevice, 44100, 0, This.Handle, 0) Then
 		BASS_ChannelSetDevice(bPlayback.Stream, OutputDevice)
 		BASS_ChannelSetDevice(bRaido.Stream, OutputDevice)
@@ -4754,7 +4754,7 @@ Private Sub frmBassType.FxPara2Ctl(fxIdx As Integer)
 				s = bfdREV.fHighFreqRTRatio
 			End Select
 		End Select
-		fxCtlTrack(fxIdx, i)->Position = s * CInt(fxCtlTrack(fxIdx, i)->text)
+		fxCtlTrack(fxIdx, i)->Position = s * CInt(fxCtlTrack(fxIdx, i)->Text)
 	Next
 End Sub
 
@@ -4982,10 +4982,10 @@ Private Sub frmBassType.EqEnabled(st As Boolean, ch As HSTREAM)
 	GroupBox8.Enabled = st
 	ComboBoxEdit6.Enabled = st
 	Dim i As Integer
-	For i = 0 To cntEq
-		fxTrackEq(i)->Enabled = st
-		fxLabelEq(i)->Enabled = st
-		fxLabelEqB(i)->Enabled = st
+	For i = 0 To cntEQ
+		fxTrackEQ(i)->Enabled = st
+		fxLabelEQ(i)->Enabled = st
+		fxLabelEQB(i)->Enabled = st
 		If st Then
 			fxEQHdl(i) = BASS_ChannelSetFX(ch, fxTyp(8), i + 20)
 			BASS_FXGetParameters(fxEQHdl(i), @bfdEQ(i))
@@ -5055,81 +5055,81 @@ Private Sub frmBassType.ComboBoxEdit6_Selected(ByRef Sender As ComboBoxEdit, Ite
 	Select Case ComboBoxEdit6.ItemIndex
 	Case 0 'zero
 		fxTrackEq(0)->Position = 0
-		fxTrackEq(1)->Position = 0
-		fxTrackEq(2)->Position = 0
-		fxTrackEq(3)->Position = 0
-		fxTrackEq(4)->Position = 0
-		fxTrackEq(5)->Position = 0
-		fxTrackEq(6)->Position = 0
-		fxTrackEq(7)->Position = 0
-		fxTrackEq(8)->Position = 0
-		fxTrackEq(9)->Position = 0
+		fxTrackEQ(1)->Position = 0
+		fxTrackEQ(2)->Position = 0
+		fxTrackEQ(3)->Position = 0
+		fxTrackEQ(4)->Position = 0
+		fxTrackEQ(5)->Position = 0
+		fxTrackEQ(6)->Position = 0
+		fxTrackEQ(7)->Position = 0
+		fxTrackEQ(8)->Position = 0
+		fxTrackEQ(9)->Position = 0
 	Case 1 'bass
-		fxTrackEq(0)->Position = -2
-		fxTrackEq(1)->Position = -2
-		fxTrackEq(2)->Position = -1
-		fxTrackEq(3)->Position = -1
-		fxTrackEq(4)->Position = 0
-		fxTrackEq(5)->Position = 0
-		fxTrackEq(6)->Position = 0
-		fxTrackEq(7)->Position = 0
-		fxTrackEq(8)->Position = 0
-		fxTrackEq(9)->Position = 0
+		fxTrackEQ(0)->Position = -2
+		fxTrackEQ(1)->Position = -2
+		fxTrackEQ(2)->Position = -1
+		fxTrackEQ(3)->Position = -1
+		fxTrackEQ(4)->Position = 0
+		fxTrackEQ(5)->Position = 0
+		fxTrackEQ(6)->Position = 0
+		fxTrackEQ(7)->Position = 0
+		fxTrackEQ(8)->Position = 0
+		fxTrackEQ(9)->Position = 0
 	Case 2 'treble
-		fxTrackEq(0)->Position = 0
-		fxTrackEq(1)->Position = 0
-		fxTrackEq(2)->Position = 0
-		fxTrackEq(3)->Position = 0
-		fxTrackEq(4)->Position = 0
-		fxTrackEq(5)->Position = 0
-		fxTrackEq(6)->Position = -1
-		fxTrackEq(7)->Position = -1
-		fxTrackEq(8)->Position = -2
-		fxTrackEq(9)->Position = -3
+		fxTrackEQ(0)->Position = 0
+		fxTrackEQ(1)->Position = 0
+		fxTrackEQ(2)->Position = 0
+		fxTrackEQ(3)->Position = 0
+		fxTrackEQ(4)->Position = 0
+		fxTrackEQ(5)->Position = 0
+		fxTrackEQ(6)->Position = -1
+		fxTrackEQ(7)->Position = -1
+		fxTrackEQ(8)->Position = -2
+		fxTrackEQ(9)->Position = -3
 	Case 3 'rock
-		fxTrackEq(0)->Position = -3
-		fxTrackEq(1)->Position = -2
-		fxTrackEq(2)->Position = -2
-		fxTrackEq(3)->Position = -1
-		fxTrackEq(4)->Position = 0
-		fxTrackEq(5)->Position = 0
-		fxTrackEq(6)->Position = -1
-		fxTrackEq(7)->Position = -2
-		fxTrackEq(8)->Position = -2
-		fxTrackEq(9)->Position = -3
+		fxTrackEQ(0)->Position = -3
+		fxTrackEQ(1)->Position = -2
+		fxTrackEQ(2)->Position = -2
+		fxTrackEQ(3)->Position = -1
+		fxTrackEQ(4)->Position = 0
+		fxTrackEQ(5)->Position = 0
+		fxTrackEQ(6)->Position = -1
+		fxTrackEQ(7)->Position = -2
+		fxTrackEQ(8)->Position = -2
+		fxTrackEQ(9)->Position = -3
 	Case 4 'modern
-		fxTrackEq(0)->Position = -2
-		fxTrackEq(1)->Position = -2
-		fxTrackEq(2)->Position = -1
-		fxTrackEq(3)->Position = -1
-		fxTrackEq(4)->Position = 0
-		fxTrackEq(5)->Position = 0
-		fxTrackEq(6)->Position = -1
-		fxTrackEq(7)->Position = -1
-		fxTrackEq(8)->Position = -2
-		fxTrackEq(9)->Position = -2
+		fxTrackEQ(0)->Position = -2
+		fxTrackEQ(1)->Position = -2
+		fxTrackEQ(2)->Position = -1
+		fxTrackEQ(3)->Position = -1
+		fxTrackEQ(4)->Position = 0
+		fxTrackEQ(5)->Position = 0
+		fxTrackEQ(6)->Position = -1
+		fxTrackEQ(7)->Position = -1
+		fxTrackEQ(8)->Position = -2
+		fxTrackEQ(9)->Position = -2
 	Case 5 'classical
-		fxTrackEq(0)->Position = 0
-		fxTrackEq(1)->Position = 0
-		fxTrackEq(2)->Position = 0
-		fxTrackEq(3)->Position = -1
-		fxTrackEq(4)->Position = -2
-		fxTrackEq(5)->Position = -2
-		fxTrackEq(6)->Position = -1
-		fxTrackEq(7)->Position = 0
-		fxTrackEq(8)->Position = 0
-		fxTrackEq(9)->Position = 0
+		fxTrackEQ(0)->Position = 0
+		fxTrackEQ(1)->Position = 0
+		fxTrackEQ(2)->Position = 0
+		fxTrackEQ(3)->Position = -1
+		fxTrackEQ(4)->Position = -2
+		fxTrackEQ(5)->Position = -2
+		fxTrackEQ(6)->Position = -1
+		fxTrackEQ(7)->Position = 0
+		fxTrackEQ(8)->Position = 0
+		fxTrackEQ(9)->Position = 0
 	Case 6 'customnization
-		fxTrackEq(0)->Position = 0
-		fxTrackEq(1)->Position = 0
-		fxTrackEq(2)->Position = 0
-		fxTrackEq(3)->Position = 0
-		fxTrackEq(4)->Position = 0
-		fxTrackEq(5)->Position = 0
-		fxTrackEq(6)->Position = 0
-		fxTrackEq(7)->Position = 0
-		fxTrackEq(8)->Position = 0
-		fxTrackEq(9)->Position = 0
+		fxTrackEQ(0)->Position = 0
+		fxTrackEQ(1)->Position = 0
+		fxTrackEQ(2)->Position = 0
+		fxTrackEQ(3)->Position = 0
+		fxTrackEQ(4)->Position = 0
+		fxTrackEQ(5)->Position = 0
+		fxTrackEQ(6)->Position = 0
+		fxTrackEQ(7)->Position = 0
+		fxTrackEQ(8)->Position = 0
+		fxTrackEQ(9)->Position = 0
 	End Select
 End Sub
 
