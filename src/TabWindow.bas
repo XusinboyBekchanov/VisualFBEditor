@@ -6201,7 +6201,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											'Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
 										End If
 									ElseIf tIndex = -1 Then
-										If isNumeric(Matn) Then
+										If isNumeric(Matn) OrElse isNumeric(MatnWithoutOldSymbol) Then
 											If InStr(Matn, ".") Then
 												sc = @RealNumbers
 											Else
@@ -6209,7 +6209,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											End If
 										Else
 											sc = @Identifiers
-											If (Not CStyle) AndAlso CBool(Matn <> "_") AndAlso CBool(OldMatnLCase <> "defined") AndAlso CBool(OldMatnLCase <> "ifdef") AndAlso CBool(OldMatnLCase <> "ifndef") AndAlso CBool(r <> Asc("&")) AndAlso Not StartsWith(Trim(LCase(*s), Any !"\t "), "#define") Then
+											If (Not CStyle) AndAlso CBool(Matn <> "_") AndAlso CBool(OldMatnLCase <> "defined") AndAlso CBool(OldMatnLCase <> "ifdef") AndAlso CBool(OldMatnLCase <> "ifndef") AndAlso CBool(r <> Asc("&")) AndAlso (Not StartsWith(Trim(LCase(*s), Any !"\t "), "#define")) AndAlso (Not StartsWith(Trim(LCase(*s), Any !"\t "), "#undef")) Then
 												If GetQuitThread(Project, tb) Then SetLastThread Project, tb, 0: Exit Sub
 												MutexLock tlockSuggestions
 												Dim As Integer ii = 0, AddIndex = -1
@@ -6592,7 +6592,7 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 				res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 			End If
 			res1(n) = res1(n).TrimAll
-			If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
+			If (Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function"))) AndAlso LCase(CurType) <> "my.sys.object" Then
 				Pos1 = InStrRev(CurType, ".")
 				If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 			End If

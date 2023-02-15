@@ -2623,7 +2623,7 @@ Namespace My.Sys.Forms
 		Dim sLine As WString Ptr
 		Dim As Integer j, iCount, Pos1
 		Dim As String ch
-		Dim As Boolean b, OneDot, TwoDots
+		Dim As Boolean b, OneDot, TwoDots, bArg, bArgEnded
 		For j = iSelEndLine To 0 Step -1
 			sLine = Cast(EditControlLine Ptr, Lines.Item(j))->Text
 			If j < iSelEndLine AndAlso Not EndsWith(RTrim(*sLine, Any !"\t "), " _") Then Exit For
@@ -2636,8 +2636,12 @@ Namespace My.Sys.Forms
 					iCount -= 1
 					If iCount = 0 Then b = False
 				ElseIf Not b Then
-					If IsArg(Asc(ch)) Then
+					If IsArg(Asc(ch)) Then 'AndAlso Not bArgEnded Then
 						sTemp = ch & sTemp
+						bArg = True
+					'ElseIf (ch = " " OrElse ch = !"\t") Then
+					'	If bArg Then bArgEnded = True
+					'	Continue For
 					ElseIf sTemp <> "" Then
 						If ch = "." Then
 							If i > 0 AndAlso Mid(*sLine, i - 1, 1) = "." Then
@@ -2686,7 +2690,13 @@ Namespace My.Sys.Forms
 							bWithoutWith = True
 							Return ""
 						ElseIf WithCount = 0 Then
-							TypeName = GetLeftArgTypeName(i, Len(*ECLine->Text), teEnumOld, , sOldTypeName, bTypes)
+							Pos1 = InStr(*ECLine->Text, "'")
+							If Pos1 Then
+								Pos1 -= Len(Left(*ECLine->Text, Pos1 - 1)) - Len(RTrim(Left(*ECLine->Text, Pos1 - 1), Any !"\t "))
+							Else
+								Pos1 = Len(*ECLine->Text) + 1
+							End If
+							TypeName = GetLeftArgTypeName(i, Pos1 - 1, teEnumOld, , sOldTypeName, bTypes)
 							WithOldI = i
 							WithOldTypeName = TypeName
 							WithTeEnumOld = teEnumOld
@@ -3707,7 +3717,7 @@ Namespace My.Sys.Forms
 															Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
 														End If
 													ElseIf tIndex = -1 Then
-														If isNumeric(Matn) Then
+														If isNumeric(Matn) OrElse isNumeric(MatnWithoutOldSymbol) Then
 															If InStr(Matn, ".") Then
 																sc = @RealNumbers
 															Else

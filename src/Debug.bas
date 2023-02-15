@@ -6817,7 +6817,7 @@ End Function
 Private Function var_sh2(t As Integer,pany As UInteger,p As UByte = 0,sOffset As String = "") As String
 	Dim adr As UInteger,varlib As String
 	Union pointers
-		#if __FB64BIT__ '25/07/2015
+		#if __FB_64BIT__ '25/07/2015
 			pinteger As Long Ptr
 			puinteger As ULong Ptr
 		#else
