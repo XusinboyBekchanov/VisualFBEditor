@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿' Radar 窗口探测
+' Copyright (c) 2023 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		Const _MAIN_FILE_ = __FILE__
@@ -16,8 +20,8 @@
 	Using My.Sys.Forms
 	
 	Type frmRadarType Extends Form
-		mhWnd As HWND = 0
-		phWnd As HWND = 0
+		mhWnd As HWND = 0 '当前控件句柄
+		phWnd As HWND = 0 '前一控件句柄
 		
 		Declare Sub HighlighthWnd(hWnd As HWND)
 		
@@ -29,7 +33,7 @@
 		Declare Sub ImageBox1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Constructor
 		
-		Dim As ImageBox ImageBox1
+		Dim As ImageBox ImageBox1, ImageBox2
 		Dim As TextBox TextBox1, TextBox2, TextBox3, TextBox4, TextBox5
 	End Type
 	
@@ -37,12 +41,20 @@
 		'Form1
 		With This
 			.Name = "frmRadar"
-			.Text = "Radar"
+			.Text = "Radar32"
 			.Designer = @This
 			.StartPosition = FormStartPosition.CenterScreen
-			.Caption = "Radar"
+			#ifdef __FB_64BIT__
+				.Caption = "Radar64"
+			#else
+				.Caption = "Radar32"
+			#endif
 			.Size = Type<My.Sys.Drawing.Size>(340, 170)
-			.SetBounds 0, 0, 360, 180
+			.BorderStyle = FormBorderStyle.FixedDialog
+			.MaximizeBox = False
+			.MinimizeBox = True
+			.Location = Type<My.Sys.Drawing.Point>(0, 0)
+			.SetBounds 0, 0, 350, 370
 		End With
 		'ImageBox1
 		With ImageBox1
@@ -111,6 +123,15 @@
 			.Designer = @This
 			.Parent = @This
 		End With
+		' ImageBox2
+		With ImageBox2
+			.Name = "ImageBox2"
+			.Text = "ImageBox2"
+			.BackColor = 12632256
+			.SetBounds 10, 140, 320, 190
+			.Designer = @This
+			.Parent = @This
+		End With
 	End Constructor
 	
 	Private Sub frmRadarType._ImageBox1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -134,105 +155,123 @@
 	#endif
 '#End Region
 
-Private Function GetRectStr(hWnd As HWND) As String
-    Dim lu_RECT         As Rect
-    GetWindowRect(hWnd, @lu_RECT)
-    Return lu_RECT.Left & ", " & lu_RECT.Right & ", " & lu_RECT.Top & ", " & lu_RECT.Bottom
+'获取控件位置大小
+Private Function ObjectRect2Str(hWnd As HWND) As String
+	Dim lRT As Rect
+	GetWindowRect(hWnd, @lRT)
+	Return lRT.Left & ", " & lRT.Right & ", " & lRT.Top & ", " & lRT.Bottom
 End Function
 
-'高亮窗口
-Private Sub HighlightWindow(hWnd As HWND, C As Long)
-	Dim ll_hDC          As HDC
-	Dim ll_Pen          As HPEN
-	Dim lu_RECT         As Rect
+'控件截图
+Private Sub ObjectScreenShot(hWndObj As HWND, hWndImg As HWND)
+	Dim hDC As HDC
+	hDC = GetWindowDC(hWndImg)
+	PrintWindow(hWndObj, hDC, PW_CLIENTONLY)
+	ReleaseDC(hWndImg, hDC)
+End Sub
+
+'控件高亮
+Private Sub ObjectHighlight(hWnd As HWND, mColor As Long)
+	Dim lhDC As HDC
+	Dim lPen As HPEN
+	Dim lRT As Rect
 	
-	'给出窗口矩形
-	GetWindowRect(hWnd, @lu_RECT)
-	'给出窗口的设备名 DC
-	ll_hDC = GetWindowDC(hWnd)
+	'获取控件矩形
+	GetWindowRect(hWnd, @lRT)
+	'获取控件DC
+	lhDC = GetWindowDC(hWnd)
 	
-	SetROP2 ll_hDC, R2_NOT                             '设置DC的颜色，备以后移去时使用
+	SetROP2 lhDC, R2_NOT                             '设置DC的颜色，备以后移去时使用
 	
 	'建立画笔
-	ll_Pen = CreatePen(0, 5 * GetSystemMetrics(SM_CXBORDER), &HFF000000 + C)
+	lPen = CreatePen(0, 5 * GetSystemMetrics(SM_CXBORDER), &Hff000000 + mColor)
 	
-	'开始增亮窗口边框
-	SaveDC(ll_hDC)                                     '保存画笔和刷子
-	SelectObject(ll_hDC, ll_Pen)                       '设置新笔
-	SelectObject(ll_hDC, GetStockObject(NULL_BRUSH))   '设备空刷子，背景不能修改
+	'增亮控件边框
+	SaveDC(lhDC)                                     '保存画笔和刷子
+	SelectObject(lhDC, lPen)                         '设置新笔
+	SelectObject(lhDC, GetStockObject(NULL_BRUSH))   '设备空刷子，背景不能修改
 	
-	'画窗口边框
-	Rectangle ll_hDC, 0, 0, lu_RECT.Right - lu_RECT.Left, lu_RECT.Bottom - lu_RECT.Top
+	'画控件边框
+	Rectangle lhDC, 0, 0, lRT.Right - lRT.Left, lRT.Bottom - lRT.Top
 	
-	'恢复DC设备
-	RestoreDC(ll_hDC, -1)                              '-1时恢复以前的内容
+	'恢复DC
+	RestoreDC(lhDC, -1)                              '-1时恢复以前的内容
 	
 	'释放
-	ReleaseDC hWnd, ll_hDC
-	DeleteObject ll_Pen
+	ReleaseDC hWnd, lhDC
+	DeleteObject lPen
 End Sub
 
 Private Sub frmRadarType.HighlighthWnd(hWnd As HWND)
-	If hWnd Then
-		'高亮当前窗口
-		HighlightWindow hWnd, 0
+	If phWnd <> 0 Then
+		'恢复上一个控件
+		ObjectHighlight(phWnd, RGB(&h80, &h80, &h80))
 	End If
-	If phWnd Then
-		'不高亮最后一个窗口
-		HighlightWindow phWnd, 0
+	If hWnd <> 0 Then
+		'高亮当前控件
+		ObjectHighlight(hWnd, RGB(&h80, &h80, &h80))
 	End If
-	phWnd = hWnd
+	
+	'If phWnd = hWnd Then
+	'	phWnd = 0
+	'Else
+		phWnd = hWnd
+	'End If
 End Sub
 
 Private Sub frmRadarType.ImageBox1_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-	ImageBox1.BackColor = &h0000ff
-	phWnd = 0
-	mhWnd = 0
 	SetCapture(ImageBox1.Handle)
+	ImageBox1.BackColor = &h0000ff
+	ImageBox1_MouseMove(Sender, MouseButton, x, y, Shift)
 End Sub
 
 Private Sub frmRadarType.ImageBox1_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If GetCapture() = 0 Then Exit Sub
 	Dim hWnd As HWND = 0
-	If GetCapture() Then
-		Dim p As tagPOINT
-		GetCursorPos(@p)
-		hWnd = WindowFromPoint(p)
-		
-		If hWnd = mhWnd Then Exit Sub
-		
-		TextBox1.Text = hWnd & " (&H" &  Hex(hWnd) & ")"
-		TextBox2.Text = p.x & ", " & p.y
-		
-		TextBox3.Text = GetRectStr(hWnd)
-		
-		Dim s As WString Ptr
-		Dim l As Long = 255
-		
-		s = CAllocate(l * 2 + 2)
-		
-		GetClassName(hWnd, s, l)
-		TextBox4.Text = *s
-		
-		l = GetWindowTextLength(hWnd) + 1
-		
-		s = Reallocate(s, l * 2 + 2)
-		GetWindowText(hWnd, s, l)
-		TextBox5.Text = *s
-		
-		Dim hDC As HDC
-		hDC = GetWindowDC(This.Handle)
-		PrintWindow (mhWnd, hDC, PW_CLIENTONLY)
-		ReleaseDC(This.Handle, hDC)
-		
-		HighlighthWnd(hWnd)
-		
-		Deallocate(s)
-		mhWnd = hWnd
-	End If
+	Dim p As tagPOINT
+	Dim s As WString Ptr
+	Dim l As Long = 255
+	
+	'取得鼠标坐标
+	GetCursorPos(@p)
+	TextBox2.Text = p.x & ", " & p.y
+	
+	'取得坐标控件句柄
+	hWnd = WindowFromPoint(p)
+	
+	'如果控件未变退出处理
+	If hWnd = mhWnd Or hWnd = 0 Then Exit Sub
+	
+	'高亮显示控件
+	HighlighthWnd(hWnd)
+	
+	'显示控件句柄
+	TextBox1.Text = hWnd & " (&H" &  Hex(hWnd) & ")"
+	'显示控件位置大小
+	TextBox3.Text = ObjectRect2Str(hWnd)
+	
+	'显示控件类型
+	s = CAllocate(l * 2 + 2)
+	GetClassName(hWnd, s, l)
+	TextBox4.Text = *s
+	
+	'显示控件文字
+	l = GetWindowTextLength(hWnd) + 1
+	s = Reallocate(s, l * 2 + 2)
+	GetWindowText(hWnd, s, l)
+	TextBox5.Text = *s
+	Deallocate(s)
+	
+	'显示控件截图
+	ObjectScreenShot(hWnd, ImageBox2.Handle)
+	
+	mhWnd = hWnd
 End Sub
 
 Private Sub frmRadarType.ImageBox1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-	ReleaseCapture()
+	If GetCapture() = 0 Then Exit Sub
+	HighlighthWnd(0)
 	ImageBox1.BackColor = &h808080
-	InvalidateRect(0, 0, True)
+	ReleaseCapture()
+	'InvalidateRect(0, 0, True)
 End Sub
