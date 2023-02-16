@@ -5343,7 +5343,7 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	ElseIf tb->txtCode.DropDownShowed Then
 		Dim As Boolean bExternalIncludesLoaded = tb->txtCode.Content.ExternalIncludesLoaded
 		If (CInt(bExternalIncludesLoaded = False) OrElse CInt(LoadFunctionsCount > 0)) AndAlso CInt(Not tb->txtCode.FileDropDown) Then
-			'tb->GetIncludeFiles
+			If tb->IsNew Then GetIncludeFiles tb->txtCode.Content, 0
 		Else
 			If Key <> 8 AndAlso Key <> 127 Then
 				#ifdef __USE_GTK__
