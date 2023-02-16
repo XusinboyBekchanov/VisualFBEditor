@@ -9165,7 +9165,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	SetQuitThread Project, @This, False
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
 		If (Project = 0) OrElse ProjectAutoSuggestions Then
-			SetLastThread Project, @This, ThreadCreate(@AnalyzeTab, @This)
+			If IsNew Then
+				SetLastThread Project, @This, ThreadCreate(@AnalyzeTab, @This)
+			End If
 		End If
 	End If
 	Exit Sub
