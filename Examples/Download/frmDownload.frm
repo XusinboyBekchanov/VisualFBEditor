@@ -423,7 +423,7 @@ End Sub
 Private Sub frmDownloadType.Form_Create(ByRef Sender As Control)
 	Dim hr As HRESULT = CoInitialize(0)
 	Dim i As Integer = InStrRev(App.FileName, "\")
-	txtTargetPath.Text = Mid(App.FileName, 1, i) & "Download"
+	txtTargetPath.Text = Mid(App.FileName, 1, i - 1) ' & "Download"
 	Dim t As WString Ptr
 	Dim s As WString Ptr
 	Dim ss(Any) As WString Ptr
