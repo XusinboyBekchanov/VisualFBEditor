@@ -29,6 +29,8 @@
 	
 	Using My.Sys.Forms
 	
+	InitDarkMode()
+	
 	#define JIF(x) If (FAILED(hr = (x))) \ {MSG(TEXT("FAILED(hr=0x%x) in ") TEXT(#x) TEXT("\n"), hr); Return hr; }
 	#define LIF(x) If (FAILED(hr = (x))) \ {MSG(TEXT("FAILED(hr=0x%x) in ") TEXT(#x) TEXT("\n"), hr); }
 	
@@ -127,6 +129,10 @@
 		pIGraphBuilder As IGraphBuilder Ptr     'GraphBuilder Object
 		pIEnumFilters As IEnumFilters Ptr
 		
+		aHeight As Long
+		aWidth As Long
+		hwScale As Double
+		
 		Declare Sub DSCtrl(Index As DS_Status)
 		Declare Function DSCreate(hWnd As HWND, wszFileName As WString) As Boolean
 		Declare Sub DSUnload()
@@ -160,12 +166,12 @@
 		Declare Sub Picture1_Message(ByRef Sender As Control, ByRef msg As Message)
 		Declare Static Sub _ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _cmdBrowse_Click(ByRef Sender As Control)
-		Declare Sub cmdBrowse_Click(ByRef Sender As Control)
+		Declare Static Sub _chkDark_Click(ByRef Sender As CheckBox)
+		Declare Sub chkDark_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
 		Dim As Panel Panel1, Panel2, Panel3, Panel4, Panel5, Panel6
-		Dim As CommandButton cmdOpen, cmdPlay, cmdClose, cmdFull, cmdBrowse
+		Dim As CommandButton cmdOpen, cmdPlay, cmdClose, cmdFull, cmdBrowse, cmdScaleH, cmdScaleO
 		Dim As TextBox TextBox1
 		Dim As TrackBar tbVolume, tbBalance, tbPosition
 		Dim As Label lblVolume, lblBalance, lblPosition, lblLength
@@ -174,7 +180,7 @@
 		Dim As TimerComponent TimerComponent1
 		Dim As ImageList ImageList1
 		Dim As ComboBoxEx ComboBoxEx1
-		Dim As CheckBox chkLoop
+		Dim As CheckBox chkLoop, chkDark
 	End Type
 	
 	Constructor frmMediaType
@@ -182,6 +188,11 @@
 		With This
 			.Name = "frmMedia"
 			.Text = "VFBE Media Player"
+			#ifdef __USE_GTK__
+				This.Icon.LoadFromFile(ExePath & ".\res\MediaPlayer.ico")
+			#else
+				This.Icon.LoadFromResourceID(1)
+			#endif
 			#ifdef __FB_64BIT__
 				.Caption = "VFBE Media Player64"
 			#else
@@ -192,7 +203,7 @@
 			.OnClose = @_Form_Close
 			.OnResize = @_Form_Resize
 			.StartPosition = FormStartPosition.CenterScreen
-			.SetBounds 0, 0, 700, 480
+			.SetBounds 0, 0, 700, 520
 		End With
 		' Panel1
 		With Panel1
@@ -218,7 +229,7 @@
 			.Text = "Panel3"
 			.TabIndex = 2
 			.Align = DockStyle.alLeft
-			.SetBounds 0, 0, 420, 40
+			.SetBounds 0, 0, 470, 40
 			.Parent = @Panel1
 		End With
 		' Panel4
@@ -227,7 +238,7 @@
 			.Text = "Panel4"
 			.TabIndex = 3
 			.Align = DockStyle.alLeft
-			.SetBounds 0, 0, 230, 60
+			.SetBounds 0, 0, 220, 60
 			.Parent = @Panel2
 		End With
 		' Panel5
@@ -254,7 +265,7 @@
 			.Text = "Open"
 			.TabIndex = 6
 			.Caption = "Open"
-			.SetBounds 10, 10, 60, 22
+			.SetBounds 10, 10, 50, 22
 			.Designer = @This
 			.OnClick = @_cmdBtn_Click
 			.Parent = @Panel3
@@ -266,7 +277,7 @@
 			.TabIndex = 7
 			.Caption = "Play"
 			.Enabled = False
-			.SetBounds 70, 10, 60, 22
+			.SetBounds 60, 10, 50, 22
 			.Designer = @This
 			.OnClick = @_cmdBtn_Click
 			.Parent = @Panel3
@@ -275,11 +286,11 @@
 		With cmdClose
 			.Name = "cmdClose"
 			.Text = "CommandButton4"
-			.TabIndex = 9
+			.TabIndex = 8
 			.ControlIndex = 4
 			.Caption = "Close"
 			.Enabled = False
-			.SetBounds 130, 10, 60, 22
+			.SetBounds 110, 10, 50, 22
 			.Designer = @This
 			.OnClick = @_cmdBtn_Click
 			.Parent = @Panel3
@@ -287,24 +298,70 @@
 		' cmdFull
 		With cmdFull
 			.Name = "cmdFull"
-			.Text = "Full"
-			.TabIndex = 10
-			.Size = Type<My.Sys.Drawing.Size>(60, 22)
-			.Caption = "Full"
+			.Text = "F"
+			.TabIndex = 9
+			.Size = Type<My.Sys.Drawing.Size>(30, 22)
+			.Caption = "F"
 			.Enabled = False
-			.SetBounds 190, 10, 60, 22
+			.Hint = "Full screen of vedio"
+			.SetBounds 170, 10, 30, 22
 			.Designer = @This
 			.OnClick = @_cmdBtn_Click
+			.Parent = @Panel3
+		End With
+		' cmdScaleH
+		With cmdScaleH
+			.Name = "cmdScaleH"
+			.Text = "1/2"
+			.TabIndex = 10
+			.Caption = "1/2"
+			.Enabled = False
+			.Hint = "1/2 of the original size of vedio"
+			.SetBounds 200, 10, 30, 22
+			.Designer = @This
+			.OnClick = @_cmdBtn_Click
+			.Parent = @Panel3
+		End With
+		' cmdScaleO
+		With cmdScaleO
+			.Name = "cmdScaleO"
+			.Text = "1"
+			.TabIndex = 11
+			.Caption = "1"
+			.Enabled = False
+			.Hint = "Original size of vedio"
+			.SetBounds 230, 10, 30, 22
+			.Designer = @This
+			.OnClick = @_cmdBtn_Click
+			.Parent = @Panel3
+		End With
+		' cmdBrowse
+		With cmdBrowse
+			.Name = "cmdBrowse"
+			.Text = "..."
+			.TabIndex = 13
+			.ControlIndex = 5
+			.Location = Type<My.Sys.Drawing.Point>(250, 10)
+			.Align = DockStyle.alNone
+			.Size = Type<My.Sys.Drawing.Size>(30, 22)
+			.Caption = "..."
+			.Anchor.Right = AnchorStyle.asAnchor
+			.SetBounds 440, 10, 30, 22
+			.Designer = @This
+			.OnClick = @_TextBox1_DblClick
 			.Parent = @Panel3
 		End With
 		' ComboBoxEx1
 		With ComboBoxEx1
 			.Name = "ComboBoxEx1"
-			.Text = "ComboBoxEx1"
-			.TabIndex = 11
+			.Text = "Net Radio List"
+			.TabIndex = 12
 			.ImagesList = @ImageList1
 			.DropDownCount = 28
-			.SetBounds 250, 10, 160, 19
+			.Style = ComboBoxEditStyle.cbDropDown
+			.Location = Type<My.Sys.Drawing.Point>(290, 10)
+			.Size = Type<My.Sys.Drawing.Size>(160, 22)
+			.SetBounds 270, 10, 160, 22
 			.Designer = @This
 			.OnSelected = @_ComboBoxEx1_Selected
 			.Parent = @Panel3
@@ -314,16 +371,17 @@
 			.Name = "TextBox1"
 			.Text = "F:\OfficePC_Update\!Media\632734Y0314.mp4"
 			.Hint = "Double click to select a file from local disk."
-			.TabIndex = 12
-			.Align = DockStyle.alNone
+			.TabIndex = 14
+			.Align = DockStyle.alClient
 			.ExtraMargins.Right = 10
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Left = 0
 			.ExtraMargins.Top = 10
-			.ExtraMargins.Bottom = 10
-			.Size = Type<My.Sys.Drawing.Size>(239, 20)
+			.ExtraMargins.Bottom = 9
+			.Size = Type<My.Sys.Drawing.Size>(204, 22)
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Right = AnchorStyle.asAnchor
-			.SetBounds 410, 10, 239, 20
+			.Location = Type<My.Sys.Drawing.Point>(430, 10)
+			.SetBounds 470, 9, 204, 22
 			.Designer = @This
 			.OnDblClick = @_TextBox1_DblClick
 			.Parent = @Panel1
@@ -332,16 +390,17 @@
 		With Picture1
 			.Name = "Picture1"
 			.Text = "Picture1"
-			.TabIndex = 13
-			.BorderStyle = BorderStyles.bsClient
+			.TabIndex = 15
+			.BorderStyle = BorderStyles.bsNone
 			.Align = DockStyle.alClient
-			.ExtraMargins.Right = 10
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
 			.SubClass = False
 			.ShowHint = True
-			.BackColor = 0
+			.BackColor = 8421504
 			.Visible = True
-			.SetBounds 10, 40, 664, 341
+			.ForeColor = 8421504
+			.SetBounds 0, 40, 684, 341
 			.Designer = @This
 			.OnMessage = @_Picture1_Message
 			.Parent = @This
@@ -350,7 +409,7 @@
 		With lblVolume
 			.Name = "lblVolume"
 			.Text = "Volume: "
-			.TabIndex = 14
+			.TabIndex = 16
 			.Alignment = AlignmentConstants.taLeft
 			.Align = DockStyle.alNone
 			.ID = 1004
@@ -363,7 +422,7 @@
 		With tbVolume
 			.Name = "tbVolume"
 			.Text = "tbVolume"
-			.TabIndex = 15
+			.TabIndex = 17
 			.ExtraMargins.Left = 2
 			.MaxValue = 0
 			.MinValue = -10000
@@ -385,7 +444,7 @@
 		With lblBalance
 			.Name = "lblBalance"
 			.Text = "Balance: "
-			.TabIndex = 16
+			.TabIndex = 18
 			.Alignment = AlignmentConstants.taLeft
 			.Caption = "Balance: "
 			.Enabled = False
@@ -396,7 +455,7 @@
 		With tbBalance
 			.Name = "tbBalance"
 			.Text = "tbBalance"
-			.TabIndex = 16
+			.TabIndex = 19
 			.MaxValue = 5000
 			.MinValue = -5000
 			.Enabled = False
@@ -417,16 +476,17 @@
 		With lblPosition
 			.Name = "lblPosition"
 			.Text = "Position: "
-			.TabIndex = 17
+			.TabIndex = 20
 			.Enabled = False
-			.SetBounds 10, 5, 180, 16
+			.Size = Type<My.Sys.Drawing.Size>(160, 16)
+			.SetBounds 10, 5, 160, 16
 			.Parent = @Panel6
 		End With
 		' lblLength
 		With lblLength
 			.Name = "lblLength"
 			.Text = "Length: "
-			.TabIndex = 18
+			.TabIndex = 21
 			.Align = DockStyle.alRight
 			.ExtraMargins.Top = 5
 			.ExtraMargins.Right = 10
@@ -439,9 +499,9 @@
 		With tbPosition
 			.Name = "tbPosition"
 			.Text = "tbPosition"
-			.TabIndex = 19
+			.TabIndex = 22
 			.Align = DockStyle.alClient
-			.PageSize = 10
+			.PageSize = 20
 			.MaxValue = 100
 			.TickMark = TickMarks.tmBoth
 			.TickStyle = TickStyles.tsAuto
@@ -457,6 +517,32 @@
 			.OnMouseDown = @_tbPosition_MouseDown
 			.OnMouseUp = @_tbPosition_MouseUp
 			.Parent = @Panel5
+		End With
+		' chkLoop
+		With chkLoop
+			.Name = "chkLoop"
+			.Text = "Loop"
+			.TabIndex = 23
+			.Caption = "Loop"
+			.Checked = True
+			.Enabled = False
+			.Size = Type<My.Sys.Drawing.Size>(50, 16)
+			.SetBounds 180, 5, 50, 16
+			.Designer = @This
+			.Parent = @Panel6
+		End With
+		' chkDark
+		With chkDark
+			.Name = "chkDark"
+			.Text = "Dark"
+			.TabIndex = 24
+			.Caption = "Dark"
+			.Location = Type<My.Sys.Drawing.Point>(280, 5)
+			.Size = Type<My.Sys.Drawing.Size>(50, 16)
+			.SetBounds 240, 5, 50, 16
+			.Designer = @This
+			.OnClick = @_chkDark_Click
+			.Parent = @Panel6
 		End With
 		' OpenFileDialog1
 		With OpenFileDialog1
@@ -480,38 +566,10 @@
 			.Designer = @This
 			.Parent = @Panel3
 		End With
-		' chkLoop
-		With chkLoop
-			.Name = "chkLoop"
-			.Text = "Loop"
-			.TabIndex = 19
-			.Caption = "Loop"
-			.Checked = True
-			.Enabled = False
-			.SetBounds 210, 5, 60, 16
-			.Designer = @This
-			.Parent = @Panel6
-		End With
-		' cmdBrowse
-		With cmdBrowse
-			.Name = "cmdBrowse"
-			.Text = "..."
-			.TabIndex = 22
-			.ControlIndex = 0
-			.Location = Type<My.Sys.Drawing.Point>(650, 10)
-			.Align = DockStyle.alNone
-			.Size = Type<My.Sys.Drawing.Size>(29, 20)
-			.Caption = "..."
-			.Anchor.Right = AnchorStyle.asAnchor
-			.SetBounds 650, 10, 29, 20
-			.Designer = @This
-			.OnClick = @_cmdBrowse_Click
-			.Parent = @Panel1
-		End With
 	End Constructor
 	
-	Private Sub frmMediaType._cmdBrowse_Click(ByRef Sender As Control)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).cmdBrowse_Click(Sender)
+	Private Sub frmMediaType._chkDark_Click(ByRef Sender As CheckBox)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).chkDark_Click(Sender)
 	End Sub
 	
 	Private Sub frmMediaType._ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
@@ -747,7 +805,7 @@ Private Sub frmMediaType.DSCtrl(Index As DS_Status)
 		chkLoop.Enabled = False
 		TimerComponent1.Enabled = False
 		tbPosition.Position = 0
-		cmdFull.Enabled = False 
+		cmdFull.Enabled = False
 		DSUnload
 	Case DS_Status.DS_Play
 		cmdPlay.Text = "Pause"
@@ -807,17 +865,22 @@ Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As 
 	Debug.Print "hr = " & hr
 	If (FAILED(hr)) Then
 		Debug.Print "audio only"
-		Picture1.Visible = False
+		This.Height = aHeight
 	Else
 		Debug.Print "with vedio"
-		Picture1.Visible = True
-		'Set the window position
+		Dim vWidth As Long
+		Dim vHeight As Long
+		pIBasicVideo->lpVtbl->get_VideoWidth(pIBasicVideo, @vWidth)
+		pIBasicVideo->lpVtbl->get_VideoHeight(pIBasicVideo, @vHeight)
+		hwScale= vHeight / vWidth
+		This.Height = Picture1.Width*hwScale+ aHeight
 		Form_Resize(Me, 0, 0)
-		
-		'Make the window visible
+		'Make the videowindow visible
 		hr = pIVideoWindow->lpVtbl->put_Visible(pIVideoWindow, OATRUE)
 		cmdFull.Enabled = True
 	End If
+	cmdScaleH.Enabled = cmdFull.Enabled 
+	cmdScaleO.Enabled = cmdFull.Enabled 
 	Return True
 End Function
 
@@ -853,6 +916,8 @@ End Sub
 
 Private Sub frmMediaType.Form_Create(ByRef Sender As Control)
 	Dim hr As HRESULT = CoInitialize(0)
+	aHeight = This.Height - Picture1.Height
+	aWidth = This.Width - Picture1.Width
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)
 	
 	ImageList1.Add "CHN"
@@ -876,16 +941,19 @@ Private Sub frmMediaType.Form_Close(ByRef Sender As Form, ByRef Action As Intege
 End Sub
 
 Private Sub frmMediaType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	'If Picture1.Visible= False Then Exit Sub 
+	'If Picture1.Visible= False Then Exit Sub
 	Dim rc As Rect
 	GetClientRect(Picture1.Handle, @rc)
 	If pIVideoWindow Then
 		pIVideoWindow->lpVtbl->SetWindowPosition(pIVideoWindow, rc.Left, rc.Top, rc.Right, rc.Bottom)
 		RedrawWindow Picture1.Handle, @rc, 0, RDW_INVALIDATE Or RDW_UPDATENOW
 	End If
+	If This.Height < aHeight Then This.Height = aHeight
 End Sub
 
 Private Sub frmMediaType.cmdBtn_Click(ByRef Sender As Control)
+	Dim vWidth As Long
+	Dim vHeight As Long
 	Select Case Sender.Name
 	Case "cmdOpen"
 		DSCtrl(DS_Status.DS_Open)
@@ -910,6 +978,16 @@ Private Sub frmMediaType.cmdBtn_Click(ByRef Sender As Control)
 			lMode = OAFALSE
 		End If
 		pIVideoWindow->lpVtbl->put_FullScreenMode(pIVideoWindow, lMode)
+	Case "cmdScaleH"
+		pIBasicVideo->lpVtbl->get_VideoWidth(pIBasicVideo, @vWidth)
+		pIBasicVideo->lpVtbl->get_VideoHeight(pIBasicVideo, @vHeight)
+		This.Width = vWidth / 2 + aWidth
+		This.Height = vHeight / 2 + aHeight
+	Case "cmdScaleO"
+		pIBasicVideo->lpVtbl->get_VideoWidth(pIBasicVideo, @vWidth)
+		pIBasicVideo->lpVtbl->get_VideoHeight(pIBasicVideo, @vHeight)
+		This.Width = vWidth + aWidth
+		This.Height = vHeight + aHeight
 	End Select
 End Sub
 
@@ -1015,11 +1093,7 @@ Private Sub frmMediaType.ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, Item
 	This.Caption = Mid(This.Caption, 1, Len(" VFBE Media Player64"))
 End Sub
 
-
-Private Sub frmMediaType.cmdBrowse_Click(ByRef Sender As Control)
-	If OpenFileDialog1.Execute() Then
-		TextBox1.Text = OpenFileDialog1.FileName
-		This.Caption = Mid(This.Caption, 1, Len(" VFBE Media Player64"))
-		cmdPlay.SetFocus
-	End If
+Private Sub frmMediaType.chkDark_Click(ByRef Sender As CheckBox)
+	SetDarkMode(chkDark.Checked, chkDark.Checked)
+	InvalidateRect(0, 0, True)
 End Sub
