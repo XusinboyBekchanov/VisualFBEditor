@@ -1774,6 +1774,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function IsArg2(ByRef sLine As WString) As Boolean
+		If sLine = "" Then Return False
 		For i As Integer = 1 To Len(sLine)
 			If Not IsArg(Asc(Mid(sLine, i, 1))) Then Return False
 		Next
@@ -3500,39 +3501,39 @@ Namespace My.Sys.Forms
 																				End Select
 																			End If
 																		End If
-																	Else
-																		If tIndex = -1 Then
-																			TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
-																			Pos1 = InStr(TypeName, ".")
-																			If (CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
-																				If Pos1 > 0 Then
-																					TypeName = ..Left(TypeName, Pos1 - 1)
-																				Else
-																					TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
-																				End If
-																				If Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Content.Types, pFiles, pFileLines, True, , , te, z) Then
-																				ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Content.Enums, pFiles, pFileLines, True, , , te, z) Then
-																				ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
-																				ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
-																				ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
-																				End If
-																				If te > 0 Then
-																					OriginalCaseWord = te->Name
-																					tIndex = 0
-																					If SyntaxHighlightingIdentifiers Then
-																						Select Case LCase(te->ElementType)
-																						Case "sub"
-																							sc = @ColorSubs
-																						Case "function"
-																							sc = @ColorGlobalFunctions
-																						Case "property"
-																							sc = @ColorProperties
-																						Case "field", "event"
-																							sc = @ColorFields
-																						Case Else
-																							sc = @ColorLocalVariables
-																						End Select
-																					End If
+																	End If
+																	
+																	If tIndex = -1 Then
+																		TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+																		Pos1 = InStr(TypeName, ".")
+																		If (CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+																			If Pos1 > 0 Then
+																				TypeName = ..Left(TypeName, Pos1 - 1)
+																			Else
+																				TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+																			End If
+																			If Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Content.Types, pFiles, pFileLines, True, , , te, z) Then
+																			ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Content.Enums, pFiles, pFileLines, True, , , te, z) Then
+																			ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
+																			ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
+																			ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
+																			End If
+																			If te > 0 Then
+																				OriginalCaseWord = te->Name
+																				tIndex = 0
+																				If SyntaxHighlightingIdentifiers Then
+																					Select Case LCase(te->ElementType)
+																					Case "sub"
+																						sc = @ColorSubs
+																					Case "function"
+																						sc = @ColorGlobalFunctions
+																					Case "property"
+																						sc = @ColorProperties
+																					Case "field", "event"
+																						sc = @ColorFields
+																					Case Else
+																						sc = @ColorLocalVariables
+																					End Select
 																				End If
 																			End If
 																		End If

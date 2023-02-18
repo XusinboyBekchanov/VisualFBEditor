@@ -4785,10 +4785,10 @@ Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As Str
 		If ch = """" Then
 			bQ = Not bQ
 		ElseIf Not bQ Then
-			If ch = "(" Then
+			If ch = "(" OrElse ch = "{" Then
 				iCount += 1
 				If iCount = 1 Then b = True
-			ElseIf b AndAlso ch = ")" Then
+			ElseIf b AndAlso (CBool(ch = ")") OrElse CBool(ch = "}")) Then
 				iCount -= 1
 				If iCount = 0 Then b = False
 			ElseIf b AndAlso ch = "," Then
@@ -4798,6 +4798,12 @@ Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As Str
 				Text &= "`"
 				Continue For
 			End If
+		ElseIf ch = "," Then
+			Text &= ";"
+			Continue For
+		ElseIf ch = "=" Then
+			Text &= "`"
+			Continue For
 		End If
 		Text &= ch
 	Next
@@ -5838,40 +5844,40 @@ Sub AnalyzeTab(Param As Any Ptr)
 																End Select
 															End If
 														End If
-													Else
-														If tIndex = -1 Then
-															TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
-															Pos1 = InStr(TypeName1, ".")
-															If (CBool(Pos1 > 0) OrElse EndsWith(TypeName1, "[Constructor]") OrElse EndsWith(TypeName1, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
-																If Pos1 > 0 Then
-																	TypeName1 = ..Left(TypeName1, Pos1 - 1)
-																Else
-																	TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
-																End If
-																If ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Types, pFiles, pFileLines, True, , , te, z) Then
-																ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Enums, pFiles, pFileLines, True, , , te, z) Then
-																ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
-																ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
-																ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
-																End If
-																If te > 0 Then
-																	te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
-																	OriginalCaseWord = te->Name
-																	tIndex = 0
-																	If SyntaxHighlightingIdentifiers Then
-																		Select Case LCase(te->ElementType)
-																		Case "sub"
-																			sc = @ColorSubs
-																		Case "function"
-																			sc = @ColorGlobalFunctions
-																		Case "property"
-																			sc = @ColorProperties
-																		Case "field", "event"
-																			sc = @ColorFields
-																		Case Else
-																			sc = @ColorLocalVariables
-																		End Select
-																	End If
+													End If
+													
+													If tIndex = -1 Then
+														TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+														Pos1 = InStr(TypeName1, ".")
+														If (CBool(Pos1 > 0) OrElse EndsWith(TypeName1, "[Constructor]") OrElse EndsWith(TypeName1, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+															If Pos1 > 0 Then
+																TypeName1 = ..Left(TypeName1, Pos1 - 1)
+															Else
+																TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+															End If
+															If ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Types, pFiles, pFileLines, True, , , te, z) Then
+															ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Enums, pFiles, pFileLines, True, , , te, z) Then
+															ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
+															ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
+															ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
+															End If
+															If te > 0 Then
+																te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
+																OriginalCaseWord = te->Name
+																tIndex = 0
+																If SyntaxHighlightingIdentifiers Then
+																	Select Case LCase(te->ElementType)
+																	Case "sub"
+																		sc = @ColorSubs
+																	Case "function"
+																		sc = @ColorGlobalFunctions
+																	Case "property"
+																		sc = @ColorProperties
+																	Case "field", "event"
+																		sc = @ColorFields
+																	Case Else
+																		sc = @ColorLocalVariables
+																	End Select
 																End If
 															End If
 														End If
@@ -6386,6 +6392,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	For i As Integer = 0 To NotUsedIdentifiers.Count - 1
 		te = NotUsedIdentifiers.Item(i)
 		If CBool(LCase(te->ElementType) = "constructor") OrElse CBool(LCase(te->ElementType) = "destructor") OrElse te->TypeProcedure Then Continue For
+		If (LCase(te->ElementType) = "enum" OrElse LCase(te->ElementType) = "type" OrElse LCase(te->ElementType) = "union") AndAlso te->Name = "" Then Continue For
 		Dim As Integer ii = 0, AddIndex = -1, MatnBoshi = te->StartChar, z = te->StartLine
 		Dim As UString ErrorText = ML("Warning: Identifier not used") & ", " & te->Name & ", " & ML("delete it if not needed")
 		Dim As UString FileName_ = te->FileName
@@ -7440,6 +7447,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						te->Locals = 0
 						te->StartLine = i
 						te->EndLine = i
+						te->StartChar = u
+						te->EndChar = u + Len(bTrim)
 						te->Parameters = te->DisplayName
 						te->FileName = sFileName
 						te->Tag = tb
@@ -8604,6 +8613,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->Locals = 0
 						te->StartLine = i
 						te->EndLine = i
+						te->StartChar = u
+						te->EndChar = u + Len(bTrim)
 						te->Parameters = te->DisplayName
 						te->FileName = sFileName
 						te->Tag = tb

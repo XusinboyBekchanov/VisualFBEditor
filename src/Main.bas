@@ -3609,31 +3609,33 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						bTypeIsPointer = EndsWith(LCase(e), " ptr") OrElse EndsWith(LCase(e), " pointer")
 						e = WithoutPointers(e)
-						If Not Types.Contains(t) Then
-							tOrig = t
-							If t = "Object" And e = "Object" Then
-								t = "My.Sys.Object"
-								e = ""
-							End If
-							inType = Pos3 = 0
-							inPubProPri = 0
+						tOrig = t
+						If t = "Object" And e = "Object" Then
+							t = "My.Sys.Object"
+							e = ""
+						End If
+						inType = Pos3 = 0
+						inPubProPri = 0
+						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction Then
+							tbi = Types.Object(Idx)
+						Else
 							tbi = New_( TypeElement)
-							tbi->Name = t
-							tbi->DisplayName = t & IIf(Pos5 = 5, " [Type]", " [Class]")
-							tbi->TypeIsPointer = bTypeIsPointer
-							tbi->TypeName = e
-							tbi->ElementType = IIf(Pos3 > 0, "TypeCopy", "Type")
-							tbi->StartLine = i
-							tbi->FileName = PathFunction
-							If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
-							tbi->Parameters = Trim(Mid(bTrim, Pos1 + Pos5))
-							tbi->Tag = CtlLibrary
-							Types.Add t, tbi
-							typ = tbi
-							If Namespaces.Count > 0 Then
-								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tOrig, tbi
-							End If
+						End If
+						tbi->Name = t
+						tbi->DisplayName = t & IIf(Pos5 = 5, " [Type]", " [Class]")
+						tbi->TypeIsPointer = bTypeIsPointer
+						tbi->TypeName = e
+						tbi->ElementType = IIf(Pos3 > 0, "TypeCopy", "Type")
+						tbi->StartLine = i
+						tbi->FileName = PathFunction
+						If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
+						tbi->Parameters = Trim(Mid(bTrim, Pos1 + Pos5))
+						tbi->Tag = CtlLibrary
+						Types.Add t, tbi
+						typ = tbi
+						If Namespaces.Count > 0 Then
+							Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tOrig, tbi
 						End If
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "end type ") OrElse StartsWith(bTrimLCase & " ", "end class ") OrElse StartsWith(bTrimLCase & " ", "__startofclassbody__ ") Then
