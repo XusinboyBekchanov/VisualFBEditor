@@ -3678,7 +3678,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
 					End If
 					If Pos1 > 0 Then
-						te->Value = Trim(Mid(b2, Pos1))
+						te->Value = Trim(Mid(b2, IIf(Pos3, Pos3, Pos1) + 1))
 					End If
 					te->StartLine = i
 					te->EndLine = i

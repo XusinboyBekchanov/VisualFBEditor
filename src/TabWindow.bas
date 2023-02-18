@@ -7162,9 +7162,9 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
 						End If
-						Pos2 = InStr(bTrim, ")")
+						Pos2 = InStr(b2, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -8308,7 +8308,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->Parameters = Trim(..Left(te->Parameters, Pos4 - 1))
 						End If
 						If Pos1 > 0 Then
-							te->Value = Trim(Mid(b2, Pos1))
+							te->Value = Trim(Mid(b2, IIf(Pos3, Pos3, Pos1) + 1))
 						End If
 						te->StartLine = i
 						te->EndLine = i
@@ -8321,9 +8321,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Var Index = txtCode.Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te
 						End If
-						Pos2 = InStr(bTrim, ")")
+						Pos2 = InStr(b2, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
+							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
