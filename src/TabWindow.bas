@@ -5748,6 +5748,34 @@ Sub AnalyzeTab(Param As Any Ptr)
 														End Select
 													End If
 												End If
+												
+												If tIndex = -1 Then
+													tIndex = ecc->Defines.IndexOf(MatnLCase)
+													If tIndex <> -1 Then
+														If Cast(TypeElement Ptr, ecc->Defines.Object(tIndex))->StartLine > z Then
+															tIndex = -1
+														Else
+															OriginalCaseWord = ecc->Defines.Item(tIndex)
+															pkeywords = @ecc->Defines
+															te = ecc->Defines.Object(tIndex)
+															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																sc = @ColorDefines
+															End If
+														End If
+													End If
+												End If
+												
+												If tIndex = -1 Then
+													tIndex = ecc->IndexOfInListFiles(pGlobalDefines, MatnLCase, pFiles, pFileLines)
+													If tIndex <> -1 Then
+														te = pGlobalDefines->Object(tIndex)
+														OriginalCaseWord = pGlobalDefines->Item(tIndex)
+														pkeywords = pGlobalDefines
+														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+															sc = @ColorDefines
+														End If
+													End If
+												End If
 											End If
 											
 											If Not OneDot Then
@@ -6660,6 +6688,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		Delete_( Cast(TypeElement Ptr, Content.Args.Object(i)))
 		'Args.Remove i
 	Next
+	Content.Defines.Clear
 	Content.Functions.Clear
 	Content.FunctionsOthers.Clear
 	Content.Namespaces.Clear
@@ -6912,7 +6941,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							l = 0
 							inPubProPri = 0
 							inFunc = True
-							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
+							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum OrElse ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Union, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
 							If Pos1 > 0 Then
 								l = Len(Trim(Constructions(ECLine->ConstructionIndex).Name0)) + 1
 								Pos4 = Pos1 + l
@@ -6975,7 +7004,12 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te->FileName = sFileName
 								te->Tag = tb
 								ECLine->InConstruction = te
-								Constructs.Add te
+								If (te->Name = "") AndAlso Constructs.Count > 0 Then
+									func = Constructs.Item(Constructs.Count - 1)
+								Else
+									func = te
+								End If
+								Constructs.Add func
 								If Comments <> "" Then te->Comment = Comments: Comments = ""
 								LastIndexFunctions = Content.Functions.Add(te->DisplayName, te)
 								If ECLine->ConstructionIndex = C_Enum Then
@@ -6987,6 +7021,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								ElseIf Not TypeProcedure Then
 									Content.Procedures.Add te->Name, te
 									Project->Globals.Functions.Add te->Name, te
+									If ECLine->ConstructionIndex = C_P_Macro Then Content.Defines.Add te->Name, te
 								Else
 									Project->Globals.TypeProcedures.Add te->Name, te
 								End If
@@ -6996,7 +7031,6 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
 									End If
 								End If
-								func = te
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
 									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, tb
 									'Dim As UString CurType, res1(Any), ElementValue
@@ -7157,6 +7191,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						te->Tag = tb
 						Content.FunctionsOthers.Add te->DisplayName, te
 						Content.Procedures.Add te->Name, te
+						Content.Defines.Add te->Name, te
 						Project->Globals.Functions.Add te->Name, te
 						If Namespaces.Count > 0 Then
 							Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
@@ -7809,6 +7844,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
+	txtCode.Content.Defines.Clear
 	txtCode.Content.Functions.Clear
 	txtCode.Content.FunctionsOthers.Clear
 	txtCode.Content.Namespaces.Clear
@@ -8078,7 +8114,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							l = 0
 							inPubProPri = 0
 							inFunc = True
-							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
+							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum OrElse ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Union, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
 							If Pos1 > 0 Then
 								l = Len(Trim(Constructions(ECLine->ConstructionIndex).Name0)) + 1
 								Pos4 = Pos1 + l
@@ -8141,6 +8177,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->FileName = sFileName
 								te->Tag = tb
 								ECLine->InConstruction = te
+								If (te->Name = "") AndAlso Constructs.Count > 0 Then
+									func = Constructs.Item(Constructs.Count - 1)
+								Else
+									func = te
+								End If
 								Constructs.Add te
 								If Comments <> "" Then te->Comment = Comments: Comments = ""
 								LastIndexFunctions = txtCode.Content.Functions.Add(te->DisplayName, te)
@@ -8150,6 +8191,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									txtCode.Content.Types.Add te->Name, te
 								ElseIf Not TypeProcedure Then
 									txtCode.Content.Procedures.Add te->Name, te
+									If ECLine->ConstructionIndex = C_P_Macro Then txtCode.Content.Defines.Add te->Name, te
 								End If
 								If Not TypeProcedure Then
 									If Namespaces.Count > 0 Then
@@ -8157,7 +8199,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te
 									End If
 								End If
-								func = te
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
 									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, tb
 									'Dim As UString CurType, res1(Any), ElementValue
@@ -8317,6 +8358,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->Tag = tb
 						txtCode.Content.FunctionsOthers.Add te->DisplayName, te
 						txtCode.Content.Procedures.Add te->Name, te
+						txtCode.Content.Defines.Add te->Name, te
 						If Namespaces.Count > 0 Then
 							Var Index = txtCode.Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te

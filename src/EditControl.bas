@@ -3412,6 +3412,34 @@ Namespace My.Sys.Forms
 																		End Select
 																	End If
 																End If
+																
+																If tIndex = -1 Then
+																	tIndex = Content.Defines.IndexOf(MatnLCase)
+																	If tIndex <> -1 Then
+																		If Cast(TypeElement Ptr, Content.Defines.Object(tIndex))->StartLine > z Then
+																			tIndex = -1
+																		Else
+																			OriginalCaseWord = Content.Defines.Item(tIndex)
+																			pkeywords = @Content.Defines
+																			te = Content.Defines.Object(tIndex)
+																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																				sc = @ColorDefines
+																			End If
+																		End If
+																	End If
+																End If
+																
+																If tIndex = -1 Then
+																	tIndex = Content.IndexOfInListFiles(pGlobalDefines, MatnLCase, pFiles, pFileLines)
+																	If tIndex <> -1 Then
+																		te = pGlobalDefines->Object(tIndex)
+																		OriginalCaseWord = pGlobalDefines->Item(tIndex)
+																		pkeywords = pGlobalDefines
+																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																			sc = @ColorDefines
+																		End If
+																	End If
+																End If
 															End If
 															
 															If Not OneDot Then

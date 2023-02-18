@@ -82,7 +82,7 @@ Dim Shared As ReBar MainReBar
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As WStringOrStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs
+Dim Shared As WStringOrStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
@@ -114,6 +114,7 @@ pComps = @Comps
 pGlobalNamespaces = @GlobalNamespaces
 pGlobalTypes = @GlobalTypes
 pGlobalEnums = @GlobalEnums
+pGlobalDefines = @GlobalDefines
 pGlobalFunctions = @GlobalFunctions
 pGlobalTypeProcedures = @GlobalTypeProcedures
 pGlobalArgs = @GlobalArgs
@@ -152,6 +153,7 @@ Comps.Sorted = True
 GlobalTypes.Sorted = True
 GlobalTypeProcedures.Sorted = True
 GlobalEnums.Sorted = True
+GlobalDefines.Sorted = True
 GlobalFunctions.Sorted = True
 GlobalFunctionsHelp.Sorted = True
 GlobalArgs.Sorted = True
@@ -3636,7 +3638,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "end type ") OrElse StartsWith(bTrimLCase & " ", "end class ") OrElse StartsWith(bTrimLCase & " ", "__startofclassbody__ ") Then
 					inType = False
-				ElseIf CInt(StartsWith(bTrimLCase, "union ")) Then
+				ElseIf StartsWith(bTrimLCase, "union ") Then
 					inUnion = True
 					t = Trim(Mid(bTrim, 7))
 					Pos2 = InStr(t, "'")
@@ -3685,6 +3687,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					LastIndexFunction = Functions.Add(te->Name, te)
+					GlobalDefines.Add te->Name, te
 					lastfunctionte = te
 					If Namespaces.Count > 0 Then
 						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
@@ -3716,6 +3719,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					LastIndexFunction = Functions.Add(te->Name, te)
+					GlobalDefines.Add te->Name, te
 					lastfunctionte = te
 					If Namespaces.Count > 0 Then
 						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)

@@ -141,11 +141,14 @@ Namespace My.Sys.Forms
 		Namespaces As WStringOrStringList
 		Types As WStringOrStringList
 		Enums As WStringOrStringList
+		Defines As WStringOrStringList
 		Functions As WStringOrStringList
 		TypeProcedures As WStringOrStringList
 		Args As WStringOrStringList
 		Declare Constructor
 	End Type
+	
+	Dim Shared Globals As GlobalTypeElements
 	
 	Type EditControlContent
 		Dim WithOldI As Integer = -1
@@ -169,6 +172,7 @@ Namespace My.Sys.Forms
 		Namespaces As WStringOrStringList
 		Types As WStringOrStringList
 		Enums As WStringOrStringList
+		Defines As WStringOrStringList
 		Functions As WStringOrStringList
 		TypeProcedures As WStringOrStringList
 		Procedures As WStringOrStringList
