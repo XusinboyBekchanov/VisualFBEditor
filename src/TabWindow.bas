@@ -7472,8 +7472,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Dim As UString CurType, ElementValue
 							Dim As UString res1(Any)
 							Dim As Boolean bShared, bOldAs
-							Pos1 = InStr(b2, "'")
-							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
+							'Pos1 = InStr(b2, "'")
+							'If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
 							If b2.ToLower.StartsWith("shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
@@ -7593,7 +7593,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te->Parameters = res1(n) & " As " & CurType
 								te->FileName = sFileName
 								te->Tag = tb
-								If inFunc AndAlso func <> 0 Then
+								If inFunc AndAlso CBool(func <> 0) AndAlso Not bShared Then
 									func->Elements.Add te->Name, te
 								ElseIf StartsWith(bTrimLCase, "type ") Then
 									Content.Types.Add te->Name, te
@@ -8638,8 +8638,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Dim As UString CurType, ElementValue
 							Dim As UString res1(Any)
 							Dim As Boolean bShared, bOldAs
-							Pos1 = InStr(b2, "'")
-							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
+							'Pos1 = InStr(b2, "'")
+							'If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
 							If b2.ToLower.StartsWith("shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If b2.ToLower.StartsWith("byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
@@ -8756,7 +8756,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->Parameters = res1(n) & " As " & CurType
 								te->FileName = sFileName
 								te->Tag = tb
-								If inFunc AndAlso func <> 0 Then
+								If inFunc AndAlso CBool(func <> 0) AndAlso Not bShared Then
 									func->Elements.Add te->Name, te
 								ElseIf StartsWith(bTrimLCase, "type ") Then
 									txtCode.Content.Types.Add te->Name, te
