@@ -60,7 +60,7 @@
 		Dim As Panel Panel1, Panel3, Panel5, Panel2, Panel4
 		Dim As CommandButton cmdSearch, cmdFileOpen, cmdFileFolder, cmdFileNotepad, cmdFileDelete
 		#ifdef __MDI__
-			Dim As CommandButton cmdFileNew, cmdFileInstAll, cmdFileInstSel
+			Dim As CommandButton cmdFileNew, cmdFileInstAll, cmdFileInstSel, cmdFileInstrCur
 		#endif
 		Dim As ComboBoxEx cmbexPath, cmbexExt
 		Dim As TextBox txtFile, txtSelect, txtSearch
@@ -296,7 +296,7 @@
 				.TabIndex = 14
 				.Caption = "New Open"
 				.Enabled = True
-				.SetBounds 0, 110, 100, 20
+				.SetBounds 0, 100, 100, 20
 				.Designer = @This
 				.OnClick = @_cmdFile_Click
 				.Parent = @Panel5
@@ -307,7 +307,8 @@
 				.Text = "Insert All"
 				.TabIndex = 15
 				.Caption = "Insert All"
-				.SetBounds 0, 149, 100, 20
+				.Location = Type<My.Sys.Drawing.Point>(0, 130)
+				.SetBounds 0, 130, 100, 20
 				.Designer = @This
 				.OnClick = @_cmdFile_Click
 				.Parent = @Panel5
@@ -318,7 +319,20 @@
 				.Text = "Insert Select"
 				.TabIndex = 16
 				.Caption = "Insert Select"
-				.SetBounds 0, 169, 100, 20
+				.Location = Type<My.Sys.Drawing.Point>(0, 150)
+				.SetBounds 0, 150, 100, 20
+				.Designer = @This
+				.OnClick = @_cmdFile_Click
+				.Parent = @Panel5
+			End With
+			' cmdFileInstrCur
+			With cmdFileInstrCur
+				.Name = "cmdFileInstrCur"
+				.Text = "Insert Current"
+				.TabIndex = 18
+				.Location = Type<My.Sys.Drawing.Point>(0, 170)
+				.Caption = "Insert Current"
+				.SetBounds 0, 170, 100, 20
 				.Designer = @This
 				.OnClick = @_cmdFile_Click
 				.Parent = @Panel5
@@ -595,16 +609,23 @@ Private Sub frmFileSearchType.cmdFile_Click(ByRef Sender As Control)
 				st = "New not found: " & txtSelect.Lines(sy)
 			End If
 		Case "cmdFileInstAll"
-			If MDIMain.ActMdiChild Then
-				st = "Insert all count: " & txtSelect.LinesCount
-				MDIMain.MDIChildInsertText(MDIMain.ActMdiChild, txtSelect.Text)
+			If MDIMain.actMdiChild Then
+				st = "Insert all count: " & txtFile.LinesCount
+				MDIMain.MDIChildInsertText(MDIMain.actMdiChild, txtFile.Text)
 			Else
 				st = "Insert all: NA"
 			End If
 		Case "cmdFileInstSel"
-			If MDIMain.ActMdiChild Then
+			If MDIMain.actMdiChild Then
+				st = "Insert all count: " & txtSelect.LinesCount
+				MDIMain.MDIChildInsertText(MDIMain.actMdiChild, txtSelect.Text)
+			Else
+				st = "Insert all: NA"
+			End If
+		Case "cmdFileInstrCur"
+			If MDIMain.actMdiChild Then
 				st = "Insert Select: " & txtSelect.Lines(sy)
-				MDIMain.MDIChildInsertText(MDIMain.ActMdiChild, txtSelect.Lines(sy))
+				MDIMain.MDIChildInsertText(MDIMain.actMdiChild, txtSelect.Lines(sy))
 			Else
 				st = "Insert Select: NA"
 			End If

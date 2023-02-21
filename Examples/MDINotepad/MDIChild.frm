@@ -50,10 +50,10 @@
 		'MDIChild
 		With This
 			.Name = "MDIChild"
-			.Text = "MDIChild"
+			.Text = "Initial..."
 			.Designer = @This
 			.FormStyle = FormStyles.fsMDIChild
-			.Caption = "MDIChild"
+			.Caption = "Initial..."
 			.OnDestroy = @_Form_Destroy
 			.OnActivate = @_Form_Activate
 			.AllowDrop = True
