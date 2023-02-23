@@ -5507,7 +5507,9 @@ Sub CreateMenusAndToolBars
 	LoadHotKeys
 	
 	Var miFile = mnuMain.Add(ML("&File"), "", "File")
-	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "NewProject", @mClick)
+	miFile->Add(ML("&New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mClick)
+	miFile->Add("-")
+	miFile->Add(ML("&New") & HK("New", "Ctrl+N"), "New", "New", @mClick)
 	miFile->Add(ML("&Open") & "..." & HK("Open", "Ctrl+O"), "Open", "Open", @mClick)
 	'miFile->Add(ML("New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mClick)
 	'miFile->Add(ML("Open Project") & HK("OpenProject", "Ctrl+Shift+O"), "", "OpenProject", @mClick)
