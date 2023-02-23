@@ -45,21 +45,21 @@
 		Declare Static Sub StatusProc(ByVal buffer As Const Any Ptr, ByVal length As DWORD, ByVal user As Any Ptr)
 		Declare Function OpenURL(ByVal url As String) As DWORD
 		
-		Declare Static Sub Form_Create_(ByRef Sender As Control)
+		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
+		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub CommandButton6_Click_(ByRef Sender As Control)
+		Declare Static Sub _CommandButton6_Click(ByRef Sender As Control)
 		Declare Sub CommandButton6_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub TimerComponent1_Timer_(ByRef Sender As TimerComponent)
+		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub CommandButton11_Click_(ByRef Sender As Control)
+		Declare Static Sub _CommandButton11_Click(ByRef Sender As Control)
 		Declare Sub CommandButton11_Click(ByRef Sender As Control)
-		Declare Static Sub CheckBox1_Click_(ByRef Sender As CheckBox)
+		Declare Static Sub _CheckBox1_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox1_Click(ByRef Sender As CheckBox)
-		Declare Static Sub TextBox1_Change_(ByRef Sender As TextBox)
+		Declare Static Sub _TextBox1_Change(ByRef Sender As TextBox)
 		Declare Sub TextBox1_Change(ByRef Sender As TextBox)
 		Declare Constructor
 		
@@ -83,8 +83,8 @@
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterScreen
 			.Designer = @This
-			.OnCreate = @Form_Create_
-			.OnClose = @Form_Close_
+			.OnCreate = @_Form_Create
+			.OnClose = @_Form_Close
 			.SetBounds 0, 0, 350, 400
 		End With
 		' GroupBox1
@@ -122,7 +122,7 @@
 			.Caption = "1"
 			.SetBounds 120, 20, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton1_Click_
+			.OnClick = @_CommandButton1_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton2
@@ -133,7 +133,7 @@
 			.Caption = "2"
 			.SetBounds 160, 20, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton1_Click_
+			.OnClick = @_CommandButton1_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton3
@@ -144,7 +144,7 @@
 			.Caption = "3"
 			.SetBounds 200, 20, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton1_Click_
+			.OnClick = @_CommandButton1_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton4
@@ -155,7 +155,7 @@
 			.Caption = "4"
 			.SetBounds 240, 20, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton1_Click_
+			.OnClick = @_CommandButton1_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton5
@@ -166,7 +166,7 @@
 			.Caption = "5"
 			.SetBounds 280, 20, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton1_Click_
+			.OnClick = @_CommandButton1_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton6
@@ -177,7 +177,7 @@
 			.Caption = "1"
 			.SetBounds 120, 50, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton6_Click_
+			.OnClick = @_CommandButton6_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton7
@@ -188,7 +188,7 @@
 			.Caption = "2"
 			.SetBounds 160, 50, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton6_Click_
+			.OnClick = @_CommandButton6_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton8
@@ -199,7 +199,7 @@
 			.Caption = "3"
 			.SetBounds 200, 50, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton6_Click_
+			.OnClick = @_CommandButton6_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton9
@@ -210,7 +210,7 @@
 			.Caption = "4"
 			.SetBounds 240, 50, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton6_Click_
+			.OnClick = @_CommandButton6_Click
 			.Parent = @GroupBox1
 		End With
 		' CommandButton10
@@ -221,7 +221,7 @@
 			.Caption = "5"
 			.SetBounds 280, 50, 30, 20
 			.Designer = @This
-			.OnClick = @CommandButton6_Click_
+			.OnClick = @_CommandButton6_Click
 			.Parent = @GroupBox1
 		End With
 		' GroupBox2
@@ -250,7 +250,7 @@
 			.Caption = "Open"
 			.SetBounds 240, 20, 70, 20
 			.Designer = @This
-			.OnClick = @CommandButton11_Click_
+			.OnClick = @_CommandButton11_Click
 			.Parent = @GroupBox2
 		End With
 		' GroupBox3
@@ -309,7 +309,7 @@
 			.Enabled = False
 			.SetBounds 10, 20, 300, 20
 			.Designer = @This
-			.OnChange = @TextBox1_Change_
+			.OnChange = @_TextBox1_Change
 			.Parent = @GroupBox4
 		End With
 		' CheckBox1
@@ -321,7 +321,7 @@
 			.Checked = True
 			.SetBounds 10, 40, 140, 20
 			.Designer = @This
-			.OnClick = @CheckBox1_Click_
+			.OnClick = @_CheckBox1_Click
 			.Parent = @GroupBox4
 		End With
 		' TimerComponent1
@@ -329,40 +329,40 @@
 			.Name = "TimerComponent1"
 			.SetBounds 290, 0, 16, 16
 			.Designer = @This
-			.OnTimer = @TimerComponent1_Timer_
+			.OnTimer = @_TimerComponent1_Timer
 			.Parent = @GroupBox3
 		End With
 	End Constructor
 	
-	Private Sub frmRadioType.TextBox1_Change_(ByRef Sender As TextBox)
+	Private Sub frmRadioType._TextBox1_Change(ByRef Sender As TextBox)
 		*Cast(frmRadioType Ptr, Sender.Designer).TextBox1_Change(Sender)
 	End Sub
 	
-	Private Sub frmRadioType.CheckBox1_Click_(ByRef Sender As CheckBox)
+	Private Sub frmRadioType._CheckBox1_Click(ByRef Sender As CheckBox)
 		*Cast(frmRadioType Ptr, Sender.Designer).CheckBox1_Click(Sender)
 	End Sub
 	
-	Private Sub frmRadioType.CommandButton11_Click_(ByRef Sender As Control)
+	Private Sub frmRadioType._CommandButton11_Click(ByRef Sender As Control)
 		*Cast(frmRadioType Ptr, Sender.Designer).CommandButton11_Click(Sender)
 	End Sub
 	
-	Private Sub frmRadioType.TimerComponent1_Timer_(ByRef Sender As TimerComponent)
+	Private Sub frmRadioType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		*Cast(frmRadioType Ptr, Sender.Designer).TimerComponent1_Timer(Sender)
 	End Sub
 	
-	Private Sub frmRadioType.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+	Private Sub frmRadioType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		*Cast(frmRadioType Ptr, Sender.Designer).Form_Close(Sender, Action)
 	End Sub
 	
-	Private Sub frmRadioType.CommandButton6_Click_(ByRef Sender As Control)
+	Private Sub frmRadioType._CommandButton6_Click(ByRef Sender As Control)
 		*Cast(frmRadioType Ptr, Sender.Designer).CommandButton6_Click(Sender)
 	End Sub
 	
-	Private Sub frmRadioType.CommandButton1_Click_(ByRef Sender As Control)
+	Private Sub frmRadioType._CommandButton1_Click(ByRef Sender As Control)
 		*Cast(frmRadioType Ptr, Sender.Designer).CommandButton1_Click(Sender)
 	End Sub
 	
-	Private Sub frmRadioType.Form_Create_(ByRef Sender As Control)
+	Private Sub frmRadioType._Form_Create(ByRef Sender As Control)
 		*Cast(frmRadioType Ptr, Sender.Designer).Form_Create(Sender)
 	End Sub
 	
@@ -379,7 +379,7 @@
 
 ' display cError messages
 Private Sub frmRadioType.ShowError(es As String)
-	MessageBox(0, es & vbcrlf & "Error code: " & BASS_ErrorGetCode(), 0, 0)
+	MessageBox(0, es & vbCrLf & "Error code: " & BASS_ErrorGetCode(), 0, 0)
 End Sub
 
 ' update stream title from metacdata
