@@ -541,6 +541,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	tb->txtCode.SetFocus
 	ptabCode->UpdateUnLock
 	ptabCode->Update
+	TextChanged = False
 	TabAdding = False
 	Return tb
 	Exit Function
@@ -6018,7 +6019,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														If bTypeAs Then
 															tIndex = ecc->Globals->Types.IndexOf(MatnLCase)
 														Else
-															tIndex = ecc->IndexOfInListFiles(ecc->Globals->Types, MatnLCase, pFiles, pFileLines)
+															tIndex = ecc->IndexOfInListFiles(@ecc->Globals->Types, MatnLCase, pFiles, pFileLines)
 														End If
 														If tIndex <> -1 Then
 															te = Cast(TypeElement Ptr, ecc->Globals->Types.Object(tIndex))
@@ -6033,7 +6034,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 														If bTypeAs Then
 															tIndex = ecc->Globals->Types.IndexOf(MatnLCase)
 														Else
-															tIndex = ecc->IndexOfInListFiles(ecc->Globals->Enums, MatnLCase, pFiles, pFileLines)
+															tIndex = ecc->IndexOfInListFiles(@ecc->Globals->Enums, MatnLCase, pFiles, pFileLines)
 														End If
 														'If MatnLCase = "wstringorstringlist" Then
 														'	For i As Integer = 0 To pFiles->Count - 1
@@ -6050,7 +6051,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 													End If
 													
 													If tIndex = -1 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
-														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Args, MatnLCase, pFiles, pFileLines)
+														tIndex = ecc->IndexOfInListFiles(@ecc->Globals->Args, MatnLCase, pFiles, pFileLines)
 														If tIndex <> -1 Then
 															te = ecc->Globals->Args.Object(tIndex)
 															te->Used = True
@@ -6074,7 +6075,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 													End If
 													
 													If tIndex = -1 Then
-														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Functions, MatnLCase, pFiles, pFileLines)
+														tIndex = ecc->IndexOfInListFiles(@ecc->Globals->Functions, MatnLCase, pFiles, pFileLines)
 														If tIndex <> -1 Then
 															te = ecc->Globals->Functions.Object(tIndex)
 															te->Used = True
@@ -6102,7 +6103,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 													End If
 													
 													If tIndex = -1 Then
-														tIndex = ecc->IndexOfInListFiles(ecc->Globals->Namespaces, MatnLCase, pFiles, pFileLines)
+														tIndex = ecc->IndexOfInListFiles(@ecc->Globals->Namespaces, MatnLCase, pFiles, pFileLines)
 														If tIndex <> -1 Then
 															te = ecc->Globals->Namespaces.Object(tIndex)
 															te->Used = True
