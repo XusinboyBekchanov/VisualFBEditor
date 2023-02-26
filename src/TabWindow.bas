@@ -7806,7 +7806,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		cboClass.ItemIndex = 0
 	End If
 	'LoadFunctionsWithContent FileName, Project, txtCode.Content
-	Dim As TypeElement Ptr te, te1, func
+	Dim As TypeElement Ptr te, te1, func, block
 	txtCode.Content.Types.Clear
 	For i As Integer = txtCode.Content.Functions.Count - 1 To 0 Step -1
 		te = txtCode.Content.Functions.Object(i)
@@ -8280,14 +8280,25 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									ECLine->InConstruction = 0
 								End If
 							End If
-						ElseIf ECLine->ConstructionPart = 1 AndAlso (ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class) Then
-							If StartsWith(bTrimLCase & " ", "public: ") Then
-								inPubProPri = 0
-							ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
-								inPubProPri = 1
-							ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
-								inPubProPri = 2
+						ElseIf ECLine->ConstructionPart = 1 Then
+							If (ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class) Then
+								If StartsWith(bTrimLCase & " ", "public: ") Then
+									inPubProPri = 0
+								ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
+									inPubProPri = 1
+								ElseIf StartsWith(bTrimLCase & " ", "private: ") Then
+									inPubProPri = 2
+								End If
 							End If
+							'Var te = New_(TypeElement)
+							'te->StartLine = i
+							'te->EndLine = i
+							'te->FileName = sFileName
+							'If inFunc Then
+							'	te->Parent = func
+							'End If
+							'te->Tag = tb
+							'txtCode.Content.ConstructionBlocks.Add te
 						End If
 					ElseIf ECLine->ConstructionIndex = C_Namespace Then
 						If ECLine->ConstructionPart = 0 Then

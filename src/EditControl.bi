@@ -106,6 +106,7 @@ Namespace My.Sys.Forms
 		ControlType As Integer
 		Find As Boolean
 		Used As Boolean
+		Parent As TypeElement Ptr
 		Tag As Any Ptr
 		Elements As WStringOrStringList
 		Declare Destructor
@@ -122,6 +123,7 @@ Namespace My.Sys.Forms
 		InAsm As Boolean
 		InCollapse As Boolean
 		InConstruction As TypeElement Ptr
+		InConstructionBlock As TypeElement Ptr
 		InConstructionIndex As Integer
 		InConstructionPart As Integer
 		InWithConstruction As Integer
@@ -163,6 +165,7 @@ Namespace My.Sys.Forms
 		Includes As WStringList
 		IncludeLines As IntegerList
 		CheckedFiles As WStringList
+		ConstructionBlocks As List
 		ExternalFiles As WStringList
 		ExternalFileLines As IntegerList
 		ExternalIncludes As WStringList
