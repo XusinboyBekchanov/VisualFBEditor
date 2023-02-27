@@ -155,11 +155,11 @@
 	End Constructor
 	
 	Private Sub frmFindReplaceType._chkFindReplace_Click(ByRef Sender As CheckBox)
-		*Cast(frmFindReplaceType Ptr, Sender.Designer).chkFindReplace_Click(Sender)
+		(*Cast(frmFindReplaceType Ptr, Sender.Designer)).chkFindReplace_Click(Sender)
 	End Sub
 	
 	Private Sub frmFindReplaceType._cmdFindReplace_Click(ByRef Sender As Control)
-		*Cast(frmFindReplaceType Ptr, Sender.Designer).cmdFindReplace_Click(Sender)
+		(*Cast(frmFindReplaceType Ptr, Sender.Designer)).cmdFindReplace_Click(Sender)
 	End Sub
 	
 	Dim Shared frmFindReplace As frmFindReplaceType
