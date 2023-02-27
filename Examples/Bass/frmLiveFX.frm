@@ -296,47 +296,47 @@
 	End Constructor
 	
 	Private Sub frmLiveFXType._ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).ComboBoxEdit3_Selected(Sender, ItemIndex)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).ComboBoxEdit3_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmLiveFXType._TrackBar3_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).TrackBar3_Change(Sender, Position)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).TrackBar3_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmLiveFXType._TrackBar2_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).TrackBar2_Change(Sender, Position)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).TrackBar2_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmLiveFXType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).TimerComponent1_Timer(Sender)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
 	End Sub
 	
 	Private Sub frmLiveFXType._TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).TrackBar1_Change(Sender, Position)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).TrackBar1_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmLiveFXType._CheckBox2_Click(ByRef Sender As CheckBox)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).CheckBox2_Click(Sender)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).CheckBox2_Click(Sender)
 	End Sub
 	
 	Private Sub frmLiveFXType._CheckBox1_Click(ByRef Sender As CheckBox)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).CheckBox1_Click(Sender)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).CheckBox1_Click(Sender)
 	End Sub
 	
 	Private Sub frmLiveFXType._ComboBoxEdit2_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).ComboBoxEdit2_Selected(Sender, ItemIndex)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).ComboBoxEdit2_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmLiveFXType._ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).ComboBoxEdit1_Selected(Sender, ItemIndex)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).ComboBoxEdit1_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmLiveFXType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub frmLiveFXType._Form_Create(ByRef Sender As Control)
-		*Cast(frmLiveFXType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmLiveFXType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Dim Shared frmLiveFX As frmLiveFXType
@@ -356,7 +356,7 @@ Private Sub frmLiveFXType.ShowError(es As String)
 End Sub
 
 Private Function frmLiveFXType.StreamCallback(ByVal handle As HSTREAM, ByVal buffer As Any Ptr, ByVal length As DWORD, ByVal user As Any Ptr) As DWORD
-	Return *Cast(frmLiveFXType Ptr, user).StreamProc(handle, buffer, length, user)
+	Return (*Cast(frmLiveFXType Ptr, user)).StreamProc(handle, buffer, length, user)
 End Function
 
 Private Function frmLiveFXType.StreamProc(ByVal handle As HSTREAM, ByVal buffer As Any Ptr, ByVal length As DWORD, ByVal user As Any Ptr) As DWORD

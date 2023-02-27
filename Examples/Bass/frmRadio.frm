@@ -335,35 +335,35 @@
 	End Constructor
 	
 	Private Sub frmRadioType._TextBox1_Change(ByRef Sender As TextBox)
-		*Cast(frmRadioType Ptr, Sender.Designer).TextBox1_Change(Sender)
+		(*Cast(frmRadioType Ptr, Sender.Designer)).TextBox1_Change(Sender)
 	End Sub
 	
 	Private Sub frmRadioType._CheckBox1_Click(ByRef Sender As CheckBox)
-		*Cast(frmRadioType Ptr, Sender.Designer).CheckBox1_Click(Sender)
+		(*Cast(frmRadioType Ptr, Sender.Designer)).CheckBox1_Click(Sender)
 	End Sub
 	
 	Private Sub frmRadioType._CommandButton11_Click(ByRef Sender As Control)
-		*Cast(frmRadioType Ptr, Sender.Designer).CommandButton11_Click(Sender)
+		(*Cast(frmRadioType Ptr, Sender.Designer)).CommandButton11_Click(Sender)
 	End Sub
 	
 	Private Sub frmRadioType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmRadioType Ptr, Sender.Designer).TimerComponent1_Timer(Sender)
+		(*Cast(frmRadioType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
 	End Sub
 	
 	Private Sub frmRadioType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(frmRadioType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(frmRadioType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub frmRadioType._CommandButton6_Click(ByRef Sender As Control)
-		*Cast(frmRadioType Ptr, Sender.Designer).CommandButton6_Click(Sender)
+		(*Cast(frmRadioType Ptr, Sender.Designer)).CommandButton6_Click(Sender)
 	End Sub
 	
 	Private Sub frmRadioType._CommandButton1_Click(ByRef Sender As Control)
-		*Cast(frmRadioType Ptr, Sender.Designer).CommandButton1_Click(Sender)
+		(*Cast(frmRadioType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 	End Sub
 	
 	Private Sub frmRadioType._Form_Create(ByRef Sender As Control)
-		*Cast(frmRadioType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmRadioType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Dim Shared frmRadio As frmRadioType
@@ -397,27 +397,27 @@ Private Sub frmRadioType.DoMeta()
 End Sub
 
 Private Sub frmRadioType.MetaSync(ByVal chandle As HSYNC, ByVal channel As DWORD, ByVal cData As DWORD, ByVal user As Any Ptr)
-	*Cast(frmRadioType Ptr, user).DoMeta()
+	(*Cast(frmRadioType Ptr, user)).DoMeta()
 End Sub
 
 Private Sub frmRadioType.StallSync(ByVal chandle As HSYNC, ByVal channel As DWORD, ByVal cData As DWORD, ByVal user As Any Ptr)
 	If (cData = 0) Then ' stalled
-		*Cast(frmRadioType Ptr, user).TimerComponent1.Enabled = True ' start buffer monitoring
+		(*Cast(frmRadioType Ptr, user)).TimerComponent1.Enabled = True ' start buffer monitoring
 	End If
 End Sub
 
 Private Sub frmRadioType.FreeSync(ByVal chandle As HSYNC, ByVal channel As DWORD, ByVal cData As DWORD, ByVal user As Any Ptr)
-	*Cast(frmRadioType Ptr, user).chan = 0
-	*Cast(frmRadioType Ptr, user).Label4.Text =  "not playing"
-	*Cast(frmRadioType Ptr, user).Label3.Text =  ""
-	*Cast(frmRadioType Ptr, user).Label5.Text =  ""
+	(*Cast(frmRadioType Ptr, user)).chan = 0
+	(*Cast(frmRadioType Ptr, user)).Label4.Text =  "not playing"
+	(*Cast(frmRadioType Ptr, user)).Label3.Text =  ""
+	(*Cast(frmRadioType Ptr, user)).Label5.Text =  ""
 End Sub
 
 Private Sub frmRadioType.StatusProc(ByVal buffer As Const Any Ptr, ByVal length As DWORD, ByVal user As Any Ptr)
 	'(buffer As Any Ptr, length As DWORD, user As Any Ptr)
 	If buffer <> 0 And length = 0 Then ' got HTTP/ICY tags, And This Is still the current request Then
 		Dim As ZString Ptr proc = Cast(ZString Ptr, buffer)
-		If InStr(*Cast(frmRadioType Ptr, user).Label5.Text, *proc) = 0 Then *Cast(frmRadioType Ptr, user).Label5.Text = *proc ' display status
+		If InStr((*Cast(frmRadioType Ptr, user)).Label5.Text, *proc) = 0 Then (*Cast(frmRadioType Ptr, user)).Label5.Text = *proc ' display status
 	End If
 End Sub
 

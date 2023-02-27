@@ -11,7 +11,7 @@ Private Destructor BassRecord
 End Destructor
 
 Private Function BassRecord.RecCallBack(ByVal handle As HRECORD, ByVal recbuffer As Const Any Ptr, ByVal reclength As DWORD, ByVal user As Any Ptr) As BOOL
-	Return *Cast(BassRecord Ptr, user).RecProcess (HANDLE, recbuffer, reclength, user)
+	Return (*Cast(BassRecord Ptr, user)).RecProcess (handle, recbuffer, reclength, user)
 End Function
 
 Private Function BassRecord.RecProcess(ByVal handle As HRECORD, ByVal recbuffer As Const Any Ptr, ByVal reclength As DWORD, ByVal user As Any Ptr) As BOOL
