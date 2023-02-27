@@ -1691,77 +1691,77 @@
 	End Constructor
 	
 	Private Sub MDIMainType._mnuEncoding_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuEncoding_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEncoding_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuEOLConvert_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuEOLConvert_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEOLConvert_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuCodePage_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuCodePage_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuCodePage_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuCharSet_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuCharSet_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuCharSet_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		*Cast(MDIMainType Ptr, Sender.Designer).Form_Resize(Sender, NewWidth, NewHeight)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
 	End Sub
 	
 	Private Sub MDIMainType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(MDIMainType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub MDIMainType._Form_Create(ByRef Sender As Control)
-		*Cast(MDIMainType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		*Cast(MDIMainType Ptr, Sender.Designer).Form_DropFile(Sender, Filename)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_DropFile(Sender, Filename)
 	End Sub
 	
 	Private Sub MDIMainType._mnuConvert_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuConvert_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuConvert_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._ToolBar1_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
-		*Cast(MDIMainType Ptr, Sender.Designer).ToolBar1_ButtonClick(Sender, Button)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).ToolBar1_ButtonClick(Sender, Button)
 	End Sub
 	
 	Private Sub MDIMainType._mnuFile_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuFile_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuFile_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuEdit_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuEdit_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEdit_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuView_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuView_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuView_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuTools_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuTools_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuTools_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuWindow_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuWindow_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuWindow_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuHelp_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuHelp_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuHelp_Click(Sender)
 	End Sub
 	
 	Dim Shared MDIMain As MDIMainType
-
+	
 	#if _MAIN_FILE_ = __FILE__
 		MDIMain.MainForm = True
 		MDIMain.Show
 		App.Run
 	#endif
-
+	
 '#End Region
 
 #include once "MDIChild.frm"
@@ -1946,7 +1946,7 @@ Private Sub MDIMainType.ControlEnabled(Enabled As Boolean)
 	tbWindowIcon.Enabled = Enabled
 	tbWindowClose.Enabled = Enabled
 	tbWindowCloseAll.Enabled = Enabled
-
+	
 	If Enabled = False Then
 		If frmFindReplace.Handle Then frmFindReplace.CloseForm
 		If frmGoto.Handle Then frmGoto.CloseForm
@@ -2189,7 +2189,7 @@ Private Sub MDIMainType.Find(ByRef FindStr As Const WString, ByVal MatchCase As 
 	a->Sci.SelStart = a->Sci.FindPoses(a->Sci.FindIndex)
 	a->Sci.SelLength = a->Sci.FindLength
 	'SendMessage(a->Sci.Handle, SCI_SCROLLCARET, 0, 0)
-
+	
 	spSpeed.Caption = "Find " & Format(timr.Passed, "#,#0.000") & " sec."
 End Sub
 
@@ -2460,6 +2460,7 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 			a->Sci.Underline(STYLE_DEFAULT) = FontDialog1.Font.Underline
 			a->Sci.ForeColor(STYLE_DEFAULT) = FontDialog1.Font.Color
 		End If
+		a->Sci.DarkMode = mnuViewDarkMode.Checked
 	Case "mnuViewBackColor"
 		Dim a As MDIChildType Ptr = ActMdiChild
 		ColorDialog1.Color = a->Sci.BackColor(STYLE_DEFAULT)

@@ -304,31 +304,31 @@
 	End Constructor
 	
 	Private Sub frmDownloadType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmDownloadType Ptr, Sender.Designer).TimerComponent1_Timer(Sender)
+		(*Cast(frmDownloadType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
 	End Sub
 	
 	Private Sub frmDownloadType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(frmDownloadType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(frmDownloadType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub frmDownloadType._Form_Create(ByRef Sender As Control)
-		*Cast(frmDownloadType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmDownloadType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmDownloadType._cmbSourceURL_Change(ByRef Sender As ComboBoxEdit)
-		*Cast(frmDownloadType Ptr, Sender.Designer).cmbSourceURL_Change(Sender)
+		(*Cast(frmDownloadType Ptr, Sender.Designer)).cmbSourceURL_Change(Sender)
 	End Sub
 	
 	Private Sub frmDownloadType._Form_Show(ByRef Sender As Form)
-		*Cast(frmDownloadType Ptr, Sender.Designer).Form_Show(Sender)
+		(*Cast(frmDownloadType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
 	Private Sub frmDownloadType._cmbSourceURL_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmDownloadType Ptr, Sender.Designer).cmbSourceURL_Selected(Sender, ItemIndex)
+		(*Cast(frmDownloadType Ptr, Sender.Designer)).cmbSourceURL_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmDownloadType._cmdButton_Click(ByRef Sender As Control)
-		*Cast(frmDownloadType Ptr, Sender.Designer).cmdButton_Click(Sender)
+		(*Cast(frmDownloadType Ptr, Sender.Designer)).cmdButton_Click(Sender)
 	End Sub
 	
 	Dim Shared frmDownload As frmDownloadType

@@ -373,19 +373,19 @@
 	End Constructor
 	
 	Private Sub frmHashType._Form_Create(ByRef Sender As Control)
-		*Cast(frmHashType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmHashType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmHashType._lvFiles_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		*Cast(frmHashType Ptr, Sender.Designer).lvFiles_DropFile(Sender, Filename)
+		(*Cast(frmHashType Ptr, Sender.Designer)).lvFiles_DropFile(Sender, Filename)
 	End Sub
 	
 	Private Sub frmHashType._cmdHash_Click(ByRef Sender As Control)
-		*Cast(frmHashType Ptr, Sender.Designer).cmdHash_Click(Sender)
+		(*Cast(frmHashType Ptr, Sender.Designer)).cmdHash_Click(Sender)
 	End Sub
 	
 	Private Sub frmHashType._cmdFile_Click(ByRef Sender As Control)
-		*Cast(frmHashType Ptr, Sender.Designer).cmdFile_Click(Sender)
+		(*Cast(frmHashType Ptr, Sender.Designer)).cmdFile_Click(Sender)
 	End Sub
 	
 	Dim Shared frmHash As frmHashType

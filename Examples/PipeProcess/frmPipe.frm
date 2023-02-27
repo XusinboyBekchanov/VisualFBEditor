@@ -170,22 +170,22 @@
 	End Constructor
 	
 	Private Sub frmPipeType._Form_Create(ByRef Sender As Control)
-		*Cast(frmPipeType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmPipeType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	Private Sub frmPipeType._CommandButton1_Click(ByRef Sender As Control)
-		*Cast(frmPipeType Ptr, Sender.Designer).CommandButton1_Click(Sender)
+		(*Cast(frmPipeType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 	End Sub
 	Private Sub frmPipeType._CommandButton2_Click(ByRef Sender As Control)
-		*Cast(frmPipeType Ptr, Sender.Designer).CommandButton2_Click(Sender)
+		(*Cast(frmPipeType Ptr, Sender.Designer)).CommandButton2_Click(Sender)
 	End Sub
 	Private Sub frmPipeType._CommandButton3_Click(ByRef Sender As Control)
-		*Cast(frmPipeType Ptr, Sender.Designer).CommandButton3_Click(Sender)
+		(*Cast(frmPipeType Ptr, Sender.Designer)).CommandButton3_Click(Sender)
 	End Sub
 	Private Sub frmPipeType._ComboBoxEdit2_KeyUp(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-		*Cast(frmPipeType Ptr, Sender.Designer).ComboBoxEdit2_KeyUp(Sender, Key, Shift)
+		(*Cast(frmPipeType Ptr, Sender.Designer)).ComboBoxEdit2_KeyUp(Sender, Key, Shift)
 	End Sub
 	Private Sub frmPipeType._ComboBoxEdit1_KeyUp(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-		*Cast(frmPipeType Ptr, Sender.Designer).ComboBoxEdit1_KeyUp(Sender, Key, Shift)
+		(*Cast(frmPipeType Ptr, Sender.Designer)).ComboBoxEdit1_KeyUp(Sender, Key, Shift)
 	End Sub
 	
 	Dim Shared frmPipe As frmPipeType

@@ -28,25 +28,25 @@ Private Sub BassRaido.DoMeta()
 End Sub
 
 Private Sub BassRaido.MetaSync(ByVal chandle As HSYNC, ByVal channel As DWORD, ByVal cData As DWORD, ByVal user As Any Ptr)
-	*Cast(BassRaido Ptr, user).DoMeta()
+	(*Cast(BassRaido Ptr, user)).DoMeta()
 End Sub
 
 Private Sub BassRaido.StallSync(ByVal chandle As HSYNC, ByVal channel As DWORD, ByVal cData As DWORD, ByVal user As Any Ptr)
 	If (cData = 0) Then '  stalled
-		If *Cast(BassRaido Ptr, user).OnStall Then *Cast(BassRaido Ptr, user).OnStall(*Cast(BassRaido Ptr, user).mOwner)
+		If (*Cast(BassRaido Ptr, user)).OnStall Then (*Cast(BassRaido Ptr, user)).OnStall((*Cast(BassRaido Ptr, user)).mOwner)
 	End If
 End Sub
 
 Private Sub BassRaido.FreeSync(ByVal chandle As HSYNC, ByVal channel As DWORD, ByVal cData As DWORD, ByVal user As Any Ptr)
-	If *Cast(BassRaido Ptr, user).OnFree Then *Cast(BassRaido Ptr, user).OnFree(*Cast(BassRaido Ptr, user).mOwner)
+	If (*Cast(BassRaido Ptr, user)).OnFree Then (*Cast(BassRaido Ptr, user)).OnFree((*Cast(BassRaido Ptr, user)).mOwner)
 End Sub
 
 Private Sub BassRaido.StatusProc(ByVal buffer As Const Any Ptr, ByVal length As DWORD, ByVal user As Any Ptr)
 	'(buffer As Any Ptr, length As DWORD, user As Any Ptr)
 	If buffer <> 0 And length = 0 Then '  got HTTP/ICY tags, And This Is still the current request Then
-		If *Cast(BassRaido Ptr, user).OnStatus Then
+		If (*Cast(BassRaido Ptr, user)).OnStatus Then
 			Dim As ZString Ptr proc = Cast(ZString Ptr, buffer)
-			*Cast(BassRaido Ptr, user).OnStatus(*Cast(BassRaido Ptr, user).mOwner, proc)
+			(*Cast(BassRaido Ptr, user)).OnStatus((*Cast(BassRaido Ptr, user)).mOwner, proc)
 		End If
 '		If InStr(*Cast(frmBassType Ptr, user).Label6.Text, *proc) = 0 Then *Cast(frmBassType Ptr, user).Label6.Text = *proc '  display status
 	End If

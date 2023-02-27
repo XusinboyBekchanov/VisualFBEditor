@@ -82,35 +82,35 @@
 	End Constructor
 	
 	Private Sub MDIChildType._Sci_DblClick(ByRef Sender As ScintillaControl)
-		*Cast(MDIChildType Ptr, Sender.Designer).Sci_DblClick(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Sci_DblClick(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Sci_Update(ByRef Sender As ScintillaControl)
-		*Cast(MDIChildType Ptr, Sender.Designer).Sci_Update(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Sci_Update(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Sci_Modify(ByRef Sender As ScintillaControl)
-		*Cast(MDIChildType Ptr, Sender.Designer).Sci_Modify(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Sci_Modify(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Create(ByRef Sender As Control)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub MDIChildType._Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_DropFile(Sender, Filename)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_DropFile(Sender, Filename)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Activate(ByRef Sender As Form)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Activate(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Activate(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Destroy(ByRef Sender As Control)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Destroy(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Destroy(Sender)
 	End Sub
 	
 	Dim Shared MDIChild As MDIChildType

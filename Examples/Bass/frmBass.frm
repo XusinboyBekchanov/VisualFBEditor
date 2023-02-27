@@ -3360,155 +3360,155 @@
 	End Constructor
 	
 	Private Sub frmBassType._CheckBox15_Click(ByRef Sender As CheckBox)
-		*Cast(frmBassType Ptr, Sender.Designer).CheckBox15_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox15_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._ComboBoxEdit6_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).ComboBoxEdit6_Selected(Sender, ItemIndex)
+		(*Cast(frmBassType Ptr, Sender.Designer)).ComboBoxEdit6_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmBassType._tbEQ00_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).tbEQ00_Change(Sender, Position)
+		(*Cast(frmBassType Ptr, Sender.Designer)).tbEQ00_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmBassType._TextBox2_DblClick(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).TextBox2_DblClick(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TextBox2_DblClick(Sender)
 	End Sub
 	
 	Private Sub frmBassType._TextBox1_DblClick(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).TextBox1_DblClick(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TextBox1_DblClick(Sender)
 	End Sub
 	
 	Private Sub frmBassType._tbSet_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).tbSet_Change(Sender, Position)
+		(*Cast(frmBassType Ptr, Sender.Designer)).tbSet_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmBassType._CheckBox5_Click(ByRef Sender As CheckBox)
-		*Cast(frmBassType Ptr, Sender.Designer).CheckBox5_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox5_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._RadioButton1_Click(ByRef Sender As RadioButton)
-		*Cast(frmBassType Ptr, Sender.Designer).RadioButton1_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).RadioButton1_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._TrackBar4_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).TrackBar4_Change(Sender, Position)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar4_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton24_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton24_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton24_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._TimerComponent4_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmBassType Ptr, Sender.Designer).TimerComponent4_Timer(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TimerComponent4_Timer(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton23_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton23_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton23_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CheckBox4_Click(ByRef Sender As CheckBox)
-		*Cast(frmBassType Ptr, Sender.Designer).CheckBox4_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox4_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton10_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton10_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton10_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton9_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton9_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton9_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CheckBox3_Click(ByRef Sender As CheckBox)
-		*Cast(frmBassType Ptr, Sender.Designer).CheckBox3_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox3_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._TimerComponent3_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmBassType Ptr, Sender.Designer).TimerComponent3_Timer(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TimerComponent3_Timer(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton12_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton12_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton12_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton8_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton8_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton8_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._TrackBar3_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).TrackBar3_Change(Sender, Position)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar3_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmBassType._ComboBoxEdit2_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).ComboBoxEdit2_Selected(Sender, ItemIndex)
+		(*Cast(frmBassType Ptr, Sender.Designer)).ComboBoxEdit2_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmBassType._ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).ComboBoxEdit4_Selected(Sender, ItemIndex)
+		(*Cast(frmBassType Ptr, Sender.Designer)).ComboBoxEdit4_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmBassType._Picture1_Click(ByRef Sender As Picture)
-		*Cast(frmBassType Ptr, Sender.Designer).Picture1_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).Picture1_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._TimerComponent2_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmBassType Ptr, Sender.Designer).TimerComponent2_Timer(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TimerComponent2_Timer(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CheckBox1_Click(ByRef Sender As CheckBox)
-		*Cast(frmBassType Ptr, Sender.Designer).CheckBox1_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox1_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._TrackBar2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).TrackBar2_MouseUp(Sender, MouseButton, x, y, Shift)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar2_MouseUp(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
 	Private Sub frmBassType._TrackBar2_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).TrackBar2_MouseDown(Sender, MouseButton, x, y, Shift)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar2_MouseDown(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
 	Private Sub frmBassType._TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).TrackBar1_Change(Sender, Position)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar1_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmBassType._TrackBar2_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).TrackBar2_Change(Sender, Position)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar2_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmBassType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmBassType Ptr, Sender.Designer).TimerComponent1_Timer(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
 	End Sub
 	
 	Private Sub frmBassType._ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).ComboBoxEdit1_Selected(Sender, ItemIndex)
+		(*Cast(frmBassType Ptr, Sender.Designer)).ComboBoxEdit1_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton5_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton5_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton5_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton4_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton4_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton4_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton3_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton3_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton3_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton6_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton6_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton6_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._CommandButton1_Click(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).CommandButton1_Click(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 	End Sub
 	
 	Private Sub frmBassType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(frmBassType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(frmBassType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub frmBassType._Form_Create(ByRef Sender As Control)
-		*Cast(frmBassType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmBassType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 
 	InitDarkMode()
@@ -3551,21 +3551,21 @@ End Function
 
 ' update stream title from metacdata
 Private Sub frmBassType.OnRaidoMeta(Owner As Any Ptr, Meta As ZString Ptr)
-	*Cast(frmBassType Ptr, Owner).TextBox5.Text = *Meta
+	(*Cast(frmBassType Ptr, Owner)).TextBox5.Text = *Meta
 End Sub
 
 Private Sub frmBassType.OnRaidoStall(Owner As Any Ptr)
-	*Cast(frmBassType Ptr, Owner).TimerComponent4.Enabled = True ' start buffer monitoring
+	(*Cast(frmBassType Ptr, Owner)).TimerComponent4.Enabled = True ' start buffer monitoring
 End Sub
 
 Private Sub frmBassType.OnRaidoFree(Owner As Any Ptr)
-	*Cast(frmBassType Ptr, Owner).Label5.Text = "not playing"
-	*Cast(frmBassType Ptr, Owner).Label6.Text = ""
-	*Cast(frmBassType Ptr, Owner).TextBox5.Text = ""
+	(*Cast(frmBassType Ptr, Owner)).Label5.Text = "not playing"
+	(*Cast(frmBassType Ptr, Owner)).Label6.Text = ""
+	(*Cast(frmBassType Ptr, Owner)).TextBox5.Text = ""
 End Sub
 
 Private Sub frmBassType.OnRaidoStatus(Owner As Any Ptr, Status As ZString Ptr)
-	*Cast(frmBassType Ptr, Owner).Label6.Text = *Status
+	(*Cast(frmBassType Ptr, Owner)).Label6.Text = *Status
 End Sub
 
 Private Sub frmBassType.Form_Create(ByRef Sender As Control)

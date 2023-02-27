@@ -121,6 +121,7 @@
 		
 		pIBasicAudio  As IBasicAudio Ptr        'Basic Audio Object
 		pIBasicVideo As IBasicVideo Ptr         'Basic Video Object
+		pIBasicVideo2 As IBasicVideo2 Ptr       'Basic Video Object
 		pIMediaEvent As IMediaEvent Ptr         'MediaEvent Object
 		pIMediaEventEx As IMediaEventEx Ptr     'MediaEventEx Object
 		pIVideoWindow As IVideoWindow Ptr       'VideoWindow Object
@@ -573,55 +574,55 @@
 	End Sub
 	
 	Private Sub frmMediaType._ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmMediaType Ptr, Sender.Designer).ComboBoxEx1_Selected(Sender, ItemIndex)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).ComboBoxEx1_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmMediaType._Picture1_Message(ByRef Sender As Control, ByRef msg As Message)
-		*Cast(frmMediaType Ptr, Sender.Designer).Picture1_Message(Sender, msg)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).Picture1_Message(Sender, msg)
 	End Sub
 	
 	Private Sub frmMediaType._tbPosition_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		*Cast(frmMediaType Ptr, Sender.Designer).tbPosition_MouseUp(Sender, MouseButton, x, y, Shift)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).tbPosition_MouseUp(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
 	Private Sub frmMediaType._tbPosition_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		*Cast(frmMediaType Ptr, Sender.Designer).tbPosition_MouseDown(Sender, MouseButton, x, y, Shift)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).tbPosition_MouseDown(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
 	Private Sub frmMediaType._tbPosition_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmMediaType Ptr, Sender.Designer).tbPosition_Change(Sender, Position)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).tbPosition_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmMediaType._tbAudio_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		*Cast(frmMediaType Ptr, Sender.Designer).tbAudio_MouseUp(Sender, MouseButton, x, y, Shift)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).tbAudio_MouseUp(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
 	Private Sub frmMediaType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmMediaType Ptr, Sender.Designer).TimerComponent1_Timer(Sender)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
 	End Sub
 	
 	Private Sub frmMediaType._tbAudio_Change(ByRef Sender As TrackBar, Position As Integer)
-		*Cast(frmMediaType Ptr, Sender.Designer).tbAudio_Change(Sender, Position)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).tbAudio_Change(Sender, Position)
 	End Sub
 	
 	Private Sub frmMediaType._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		*Cast(frmMediaType Ptr, Sender.Designer).Form_Resize(Sender, NewWidth, NewHeight)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
 	End Sub
 	
 	Private Sub frmMediaType._cmdBtn_Click(ByRef Sender As Control)
-		*Cast(frmMediaType Ptr, Sender.Designer).cmdBtn_Click(Sender)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).cmdBtn_Click(Sender)
 	End Sub
 	
 	Private Sub frmMediaType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(frmMediaType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub frmMediaType._Form_Create(ByRef Sender As Control)
-		*Cast(frmMediaType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmMediaType._TextBox1_DblClick(ByRef Sender As Control)
-		*Cast(frmMediaType Ptr, Sender.Designer).TextBox1_DblClick(Sender)
+		(*Cast(frmMediaType Ptr, Sender.Designer)).TextBox1_DblClick(Sender)
 	End Sub
 	
 	Dim Shared frmMedia As frmMediaType
@@ -840,6 +841,7 @@ Private Function frmMediaType.DSCreate(hWnd As HWND, wszFileName As WString) As 
 	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IMediaControl, @pIMediaControl)
 	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IBasicAudio, @pIBasicAudio)
 	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IBasicVideo, @pIBasicVideo)
+	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IBasicVideo2, @pIBasicVideo2)
 	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IMediaEvent, @pIMediaEvent)
 	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IMediaEventEx, @pIMediaEventEx)
 	hr = pIGraphBuilder->lpVtbl->QueryInterface(pIGraphBuilder, @IID_IVideoWindow, @pIVideoWindow)
@@ -890,6 +892,7 @@ Private Sub frmMediaType.DSUnload()
 	If pIMediaControl Then pIMediaControl->lpVtbl->Release(pIMediaControl)
 	If pIBasicAudio Then pIBasicAudio->lpVtbl->Release(pIBasicAudio)
 	If pIBasicVideo Then pIBasicVideo->lpVtbl->Release(pIBasicVideo)
+	If pIBasicVideo2 Then pIBasicVideo2->lpVtbl->Release(pIBasicVideo2)
 	If pIMediaEvent Then pIMediaEvent->lpVtbl->Release(pIMediaEvent)
 	If pIMediaEventEx Then pIMediaEventEx->lpVtbl->Release(pIMediaEventEx)
 	If pIVideoWindow Then pIVideoWindow->lpVtbl->Release(pIVideoWindow)
@@ -900,6 +903,7 @@ Private Sub frmMediaType.DSUnload()
 	pIMediaControl = NULL
 	pIBasicAudio = NULL
 	pIBasicVideo = NULL
+	pIBasicVideo2 = NULL
 	pIMediaEvent = NULL
 	pIMediaEventEx = NULL
 	pIVideoWindow = NULL

@@ -68,31 +68,31 @@
 	End Constructor
 	
 	Private Sub MDIChildType._Form_Message(ByRef Sender As Control, ByRef MSG As Message)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Message(Sender, MSG)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Message(Sender, MSG)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Resize(Sender, NewWidth, NewHeight)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Create(ByRef Sender As Control)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub MDIChildType._Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_DropFile(Sender, Filename)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_DropFile(Sender, Filename)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Activate(ByRef Sender As Form)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Activate(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Activate(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Destroy(ByRef Sender As Control)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Destroy(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Destroy(Sender)
 	End Sub
 	
 	Dim Shared MDIChild As MDIChildType
