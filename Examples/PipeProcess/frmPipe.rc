@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "PipeProcess\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,226
-#define VER_FILEVERSION_STR         "0.0.0.226\0"
+#define VER_FILEVERSION             0,0,0,230
+#define VER_FILEVERSION_STR         "0.0.0.230\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
