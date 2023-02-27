@@ -469,27 +469,27 @@
 	End Constructor
 	
 	Private Sub MDIMainType._ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
-		*Cast(MDIMainType Ptr, Sender.Designer).ToolBar1_ButtonClick(Sender, Button)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).ToolBar1_ButtonClick(Sender, Button)
 	End Sub
 	
 	Private Sub MDIMainType._mnuFile_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuFile_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuFile_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuEdit_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuEdit_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEdit_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuView_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuView_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuView_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuWindow_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuWindow_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuWindow_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuHelp_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuHelp_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuHelp_Click(Sender)
 	End Sub
 	
 	Dim Shared MDIMain As MDIMainType
