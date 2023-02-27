@@ -497,27 +497,27 @@
 	End Constructor
 	
 	Private Sub frmCodePageType._chkPreview_Click(ByRef Sender As CheckBox)
-		*Cast(frmCodePageType Ptr, Sender.Designer).chkPreview_Click(Sender)
+		(*Cast(frmCodePageType Ptr, Sender.Designer)).chkPreview_Click(Sender)
 	End Sub
 	
 	Private Sub frmCodePageType._Form_Show(ByRef Sender As Form)
-		*Cast(frmCodePageType Ptr, Sender.Designer).Form_Show(Sender)
+		(*Cast(frmCodePageType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
 	Private Sub frmCodePageType._chkSystemCP_Click(ByRef Sender As CheckBox)
-		*Cast(frmCodePageType Ptr, Sender.Designer).chkSystemCP_Click(Sender)
+		(*Cast(frmCodePageType Ptr, Sender.Designer)).chkSystemCP_Click(Sender)
 	End Sub
 	
 	Private Sub frmCodePageType._cobEncod_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmCodePageType Ptr, Sender.Designer).cobEncod_Selected(Sender, ItemIndex)
+		(*Cast(frmCodePageType Ptr, Sender.Designer)).cobEncod_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmCodePageType._lstCodePage_Click(ByRef Sender As Control)
-		*Cast(frmCodePageType Ptr, Sender.Designer).lstCodePage_Click(Sender)
+		(*Cast(frmCodePageType Ptr, Sender.Designer)).lstCodePage_Click(Sender)
 	End Sub
 	
 	Private Sub frmCodePageType._cmdOK_Click(ByRef Sender As Control)
-		*Cast(frmCodePageType Ptr, Sender.Designer).cmdOK_Click(Sender)
+		(*Cast(frmCodePageType Ptr, Sender.Designer)).cmdOK_Click(Sender)
 	End Sub
 	
 	Dim Shared frmCodePage As frmCodePageType

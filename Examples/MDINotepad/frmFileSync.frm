@@ -516,43 +516,43 @@
 	End Constructor
 	
 	Private Sub frmFileSyncType._cmbexProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).cmbexProfile_Selected(Sender, ItemIndex)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmbexProfile_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmFileSyncType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub frmFileSyncType._cmbexAPath_DblClick(ByRef Sender As Control)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).cmbexAPath_DblClick(Sender)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmbexAPath_DblClick(Sender)
 	End Sub
 	
 	Private Sub frmFileSyncType._rbtnLogFile_Click(ByRef Sender As RadioButton)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).rbtnLogFile_Click(Sender)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).rbtnLogFile_Click(Sender)
 	End Sub
 	
 	Private Sub frmFileSyncType._cmbexCompareData_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).cmbexCompareData_Selected(Sender, ItemIndex)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmbexCompareData_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmFileSyncType._cmbexSetProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).cmbexSetProfile_Selected(Sender, ItemIndex)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmbexSetProfile_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmFileSyncType._ListView1_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).ListView1_ItemClick(Sender, ItemIndex)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).ListView1_ItemClick(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmFileSyncType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).TimerComponent1_Timer(Sender)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
 	End Sub
 	
 	Private Sub frmFileSyncType._Form_Create(ByRef Sender As Control)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmFileSyncType._cmdButton_Click(ByRef Sender As Control)
-		*Cast(frmFileSyncType Ptr, Sender.Designer).cmdButton_Click(Sender)
+		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmdButton_Click(Sender)
 	End Sub
 	
 	Dim Shared frmFileSync As frmFileSyncType

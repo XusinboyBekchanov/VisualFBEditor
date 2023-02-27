@@ -1283,55 +1283,55 @@
 	End Constructor
 	
 	Private Sub MDIMainType._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		*Cast(MDIMainType Ptr, Sender.Designer).Form_Resize(Sender, NewWidth, NewHeight)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
 	End Sub
 	
 	Private Sub MDIMainType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(MDIMainType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub MDIMainType._Form_Create(ByRef Sender As Control)
-		*Cast(MDIMainType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		*Cast(MDIMainType Ptr, Sender.Designer).Form_DropFile(Sender, Filename)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_DropFile(Sender, Filename)
 	End Sub
 	
 	Private Sub MDIMainType._mnuConvert_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuConvert_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuConvert_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._ToolBar1_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
-		*Cast(MDIMainType Ptr, Sender.Designer).ToolBar1_ButtonClick(Sender, Button)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).ToolBar1_ButtonClick(Sender, Button)
 	End Sub
 	
 	Private Sub MDIMainType._mnuEncoding_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuEncoding_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEncoding_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuFile_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuFile_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuFile_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuEdit_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuEdit_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEdit_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuView_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuView_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuView_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuTools_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuTools_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuTools_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuWindow_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuWindow_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuWindow_Click(Sender)
 	End Sub
 	
 	Private Sub MDIMainType._mnuHelp_Click(ByRef Sender As MenuItem)
-		*Cast(MDIMainType Ptr, Sender.Designer).mnuHelp_Click(Sender)
+		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuHelp_Click(Sender)
 	End Sub
 	
 	Dim Shared MDIMain As MDIMainType

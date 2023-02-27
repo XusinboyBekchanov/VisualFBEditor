@@ -71,7 +71,7 @@
 	End Constructor
 	
 	Private Sub frmGotoType._btnGoto_Click(ByRef Sender As Control)
-		*Cast(frmGotoType Ptr, Sender.Designer).btnGoto_Click(Sender)
+		(*Cast(frmGotoType Ptr, Sender.Designer)).btnGoto_Click(Sender)
 	End Sub
 	
 	Dim Shared frmGoto As frmGotoType

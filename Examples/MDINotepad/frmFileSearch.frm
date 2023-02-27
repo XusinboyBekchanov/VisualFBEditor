@@ -390,47 +390,47 @@
 	End Constructor
 	
 	Private Sub frmFileSearchType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub frmFileSearchType._txtFile_DblClick(ByRef Sender As Control)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).txtFile_DblClick(Sender)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtFile_DblClick(Sender)
 	End Sub
 	
 	Private Sub frmFileSearchType._txtFile_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).txtFile_DropFile(Sender, Filename)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtFile_DropFile(Sender, Filename)
 	End Sub
 	
 	Private Sub frmFileSearchType._txtSearch_Change(ByRef Sender As TextBox)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).txtSearch_Change(Sender)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtSearch_Change(Sender)
 	End Sub
 	
 	Private Sub frmFileSearchType._txtFile_Click(ByRef Sender As Control)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).txtFile_Click(Sender)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtFile_Click(Sender)
 	End Sub
 	
 	Private Sub frmFileSearchType._txtFile_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).txtFile_KeyUp(Sender, Key, Shift)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtFile_KeyUp(Sender, Key, Shift)
 	End Sub
 	
 	Private Sub frmFileSearchType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).TimerComponent1_Timer(Sender)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
 	End Sub
 	
 	Private Sub frmFileSearchType._cmdFile_Click(ByRef Sender As Control)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).cmdFile_Click(Sender)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).cmdFile_Click(Sender)
 	End Sub
 	
 	Private Sub frmFileSearchType._cmdSearch_Click(ByRef Sender As Control)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).cmdSearch_Click(Sender)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).cmdSearch_Click(Sender)
 	End Sub
 	
 	Private Sub frmFileSearchType._cmbexPath_DblClick(ByRef Sender As Control)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).cmbexPath_DblClick(Sender)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).cmbexPath_DblClick(Sender)
 	End Sub
 	
 	Private Sub frmFileSearchType._Form_Create(ByRef Sender As Control)
-		*Cast(frmFileSearchType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmFileSearchType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Dim Shared frmFileSearch As frmFileSearchType

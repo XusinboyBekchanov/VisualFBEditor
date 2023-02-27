@@ -83,35 +83,35 @@
 	End Constructor
 	
 	Private Sub MDIChildType._TextBox1_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-		*Cast(MDIChildType Ptr, Sender.Designer).TextBox1_KeyUp(Sender, Key, Shift)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).TextBox1_KeyUp(Sender, Key, Shift)
 	End Sub
 	
 	Private Sub MDIChildType._TextBox1_KeyPress(ByRef Sender As Control, Key As Integer)
-		*Cast(MDIChildType Ptr, Sender.Designer).TextBox1_KeyPress(Sender, Key)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).TextBox1_KeyPress(Sender, Key)
 	End Sub
 	
 	Private Sub MDIChildType._TextBox1_Click(ByRef Sender As Control)
-		*Cast(MDIChildType Ptr, Sender.Designer).TextBox1_Click(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).TextBox1_Click(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Close(Sender, Action)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
 	Private Sub MDIChildType._TextBox1_Change(ByRef Sender As TextBox)
-		*Cast(MDIChildType Ptr, Sender.Designer).TextBox1_Change(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).TextBox1_Change(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_DropFile(Sender, Filename)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_DropFile(Sender, Filename)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Activate(ByRef Sender As Form)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Activate(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Activate(Sender)
 	End Sub
 	
 	Private Sub MDIChildType._Form_Destroy(ByRef Sender As Control)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Destroy(Sender)
+		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Destroy(Sender)
 	End Sub
 	
 	Dim Shared MDIChild As MDIChildType

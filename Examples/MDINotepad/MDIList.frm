@@ -54,11 +54,11 @@
 	End Constructor
 	
 	Private Sub MDIListType._ListControl1_DblClick(ByRef Sender As Control)
-		*Cast(MDIListType Ptr, Sender.Designer).ListControl1_DblClick(Sender)
+		(*Cast(MDIListType Ptr, Sender.Designer)).ListControl1_DblClick(Sender)
 	End Sub
 	
 	Private Sub MDIListType._Form_Create(ByRef Sender As Control)
-		*Cast(MDIListType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(MDIListType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Dim Shared MDIList As MDIListType
