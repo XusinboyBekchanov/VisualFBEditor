@@ -67,8 +67,8 @@ VerticalD PNG ".\Resources\VerticalD.png"
 #define APP_TITLE_STR               "MDIScintillaControl\0"
 #define VER_FILEDESCRIPTION_STR     "MDIScintillaControl\0"
 
-#define VER_FILEVERSION             0,0,0,1164
-#define VER_FILEVERSION_STR         "0.0.0.1164\0"
+#define VER_FILEVERSION             0,0,0,1176
+#define VER_FILEVERSION_STR         "0.0.0.1176\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
