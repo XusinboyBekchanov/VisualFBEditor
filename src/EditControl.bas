@@ -2627,6 +2627,18 @@ Namespace My.Sys.Forms
 		Return sTemp
 	End Function
 	
+	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer) As TypeElement Ptr
+		If cb = 0 Then Return 0
+		Var tIndex = cb->Elements.IndexOf(Text)
+		If tIndex <> -1 Then
+			Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
+			If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
+				Return cb->Elements.Object(tIndex)
+			End If
+		End If
+		Return GetFromConstructionBlock(cb->InConstructionBlock, Text, z)
+	End Function
+	
 	Function EditControlContent.GetLeftArgTypeName(iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False, ByRef bWithoutWith As Boolean = False) As String
 		Dim As String sTemp, sTemp2, TypeName, sOldTypeName, BaseTypeName
 		Dim sLine As WString Ptr
@@ -2739,6 +2751,15 @@ Namespace My.Sys.Forms
 		If ECLine Then
 			pFiles = ECLine->FileList
 			pFileLines = ECLine->FileListLines
+			If ECLine->InConstructionBlock Then
+				te = GetFromConstructionBlock(ECLine->InConstructionBlock, sTemp, iSelEndLine)
+				If te Then
+					teEnum = te
+					teEnumOld = 0
+					OldTypeName = "" 'teC->DisplayName
+					Return teEnum->TypeName
+				End If
+			End If
 		End If
 		If TypeName <> "" Then
 			If LCase(sTemp) = "base" Then
@@ -2960,18 +2981,6 @@ Namespace My.Sys.Forms
 		TypeProcedures.Sorted = True
 		Args.Sorted = True
 	End Constructor
-	
-	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer) As TypeElement Ptr
-		If cb = 0 Then Return 0
-		Var tIndex = cb->Elements.IndexOf(Text)
-		If tIndex <> -1 Then
-			Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
-			If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
-				Return cb->Elements.Object(tIndex)
-			End If
-		End If
-		Return GetFromConstructionBlock(cb->InConstructionBlock, Text, z)
-	End Function
 	
 	Sub EditControl.PaintControlPriv(Full As Boolean = False)
 		'	On Error Goto ErrHandler
