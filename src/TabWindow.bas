@@ -3617,6 +3617,27 @@ Function AddExternalIncludes(ByRef Content As EditControlContent, ItemFile As Ed
 	Return False
 End Function
 
+Sub FillFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String)
+	If cb = 0 Then Return
+	If Text = "" Then
+		Dim te As TypeElement Ptr
+		For i As Integer = 0 To cb->Elements.Count - 1
+			te = cb->Elements.Object(i)
+			FListItems.Add te->Name, te
+		Next i
+	Else
+		Var tIndex = cb->Elements.IndexOf(Text)
+		If tIndex <> -1 Then
+			Dim te As TypeElement Ptr
+			For i As Integer = 0 To cb->Elements.Count - 1
+				te = cb->Elements.Object(i)
+				If te AndAlso LCase(te->Name) = LCase(Text) Then FListItems.Add te->Name, te
+			Next i
+		End If
+	End If
+	FillFromConstructionBlock(cb->InConstructionBlock, Text)
+End Sub
+
 Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -3686,6 +3707,18 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 				If Not AddSorted(tb, te->Name, te, Starts, c) Then Exit Sub
 			End If
 		Next
+	End If
+	If ECLine Then
+		If ECLine->InConstructionBlock Then
+			FListItems.Clear
+			FillFromConstructionBlock ECLine->InConstructionBlock, ""
+			For i As Integer = 0 To FListItems.Count - 1
+				te = FListItems.Object(i)
+				If te <> 0 Then
+					If Not AddSorted(tb, te->Name, te, Starts, c) Then Exit Sub
+				End If
+			Next
+		End If
 	End If
 	'If tb->bLineChanged Then
 	'	UpdateIncludedFilesList tb, iSelStartLine
@@ -4427,12 +4460,12 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim As EditControlLine Ptr FECLine = tb->txtCode.Content.Lines.Item(iSelEndLine)
-		If FECLine > 0 AndAlso FECLine->InConstruction > 0 Then
-			Index = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(sWord))
-			If Index <> -1 Then
-				Var lst = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-				For i As Integer = Index To lst->Count - 1
-					te = lst->Object(i)
+		If FECLine > 0 Then
+			If FECLine->InConstructionBlock > 0 Then
+				FListItems.Clear
+				FillFromConstructionBlock FECLine->InConstructionBlock, sWord
+				For i As Integer = 0 To FListItems.Count - 1
+					te = FListItems.Object(i)
 					If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 						Parameter = te->Parameters
 						iPos = InStr(LCase(Parameter), LCase(sWord))
@@ -4444,71 +4477,89 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 					End If
 				Next
 			End If
-			TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
-			Var Pos1 = InStr(TypeName, ".")
-			If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
-				If Pos1 > 0 Then
-					TypeName = ..Left(TypeName, Pos1 - 1)
-				Else
-					TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+			If FECLine->InConstruction > 0 Then
+				Index = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(LCase(sWord))
+				If Index <> -1 Then
+					Var lst = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+					For i As Integer = Index To lst->Count - 1
+						te = lst->Object(i)
+						If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+							Parameter = te->Parameters
+							iPos = InStr(LCase(Parameter), LCase(sWord))
+							FuncName = Mid(Parameter, iPos, Len(sWord))
+							Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+							ParametersList.Add te->Parameters
+							Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+							If te->Comment <> "" Then Comments &= "" & te->Comment
+						End If
+					Next
 				End If
-				If TypeName <> "" Then
-					If tb->txtCode.Content.Types.Contains(TypeName) Then
-						tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Content.Types, True
-					ElseIf tb->txtCode.Content.Enums.Contains(TypeName) Then
-						tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Content.Enums, True
-					ElseIf pComps->Contains(TypeName) Then
-						tb->FillIntellisense TypeName, FromClassName, pComps, True
-					ElseIf pGlobalTypes->Contains(TypeName) Then
-						tb->FillIntellisense TypeName, FromClassName, pGlobalTypes, True
-					ElseIf pGlobalEnums->Contains(TypeName) Then
-						tb->FillIntellisense TypeName, FromClassName, pGlobalEnums, True
+				TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+				Var Pos1 = InStr(TypeName, ".")
+				If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
+					If Pos1 > 0 Then
+						TypeName = ..Left(TypeName, Pos1 - 1)
+					Else
+						TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
 					End If
-					If FListItems.Contains(sWord) Then
-						For i As Integer = 0 To FListItems.Count - 1
-							te = FListItems.Object(i)
-							If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-								Parameter = te->Parameters
-								iPos = InStr(LCase(Parameter), LCase(sWord))
-								FuncName = Mid(Parameter, iPos, Len(sWord))
-								Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
-								ParametersList.Add te->Parameters
-								Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-								If te->Comment <> "" Then Comments &= "" & te->Comment
+					If TypeName <> "" Then
+						If tb->txtCode.Content.Types.Contains(TypeName) Then
+							tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Content.Types, True
+						ElseIf tb->txtCode.Content.Enums.Contains(TypeName) Then
+							tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Content.Enums, True
+						ElseIf pComps->Contains(TypeName) Then
+							tb->FillIntellisense TypeName, FromClassName, pComps, True
+						ElseIf pGlobalTypes->Contains(TypeName) Then
+							tb->FillIntellisense TypeName, FromClassName, pGlobalTypes, True
+						ElseIf pGlobalEnums->Contains(TypeName) Then
+							tb->FillIntellisense TypeName, FromClassName, pGlobalEnums, True
+						End If
+						If FListItems.Contains(sWord) Then
+							For i As Integer = 0 To FListItems.Count - 1
+								te = FListItems.Object(i)
+								If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+									Parameter = te->Parameters
+									iPos = InStr(LCase(Parameter), LCase(sWord))
+									FuncName = Mid(Parameter, iPos, Len(sWord))
+									Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+									ParametersList.Add te->Parameters
+									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+									If te->Comment <> "" Then Comments &= "" & te->Comment
+								End If
+							Next
+						End If
+						FListItems.Clear
+						For i As Integer = 0 To tb->txtCode.Content.Functions.Count - 1
+							te = tb->txtCode.Content.Functions.Object(i)
+							If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+								Var Pos1 = InStr(te->DisplayName, ".")
+								If Pos1 > 0 AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), tb) Then
+									Parameter = te->Parameters
+									iPos = InStr(LCase(Parameter), LCase(sWord))
+									FuncName = Mid(Parameter, iPos, Len(sWord))
+									Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+									ParametersList.Add te->Parameters
+									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+									If te->Comment <> "" Then Comments &= "" & te->Comment
+								End If
+							End If
+						Next
+						For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
+							te = pGlobalTypeProcedures->Object(i)
+							If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
+								Var Pos1 = InStr(te->DisplayName, ".")
+								If CBool(Pos1 > 0) AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), tb) Then
+									Parameter = te->Parameters
+									iPos = InStr(LCase(Parameter), LCase(sWord))
+									FuncName = Mid(Parameter, iPos, Len(sWord))
+									Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+									ParametersList.Add te->Parameters
+									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
+									If te->Comment <> "" Then Comments &= "" & te->Comment
+								End If
 							End If
 						Next
 					End If
-					FListItems.Clear
-					For i As Integer = 0 To tb->txtCode.Content.Functions.Count - 1
-						te = tb->txtCode.Content.Functions.Object(i)
-						If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-							Var Pos1 = InStr(te->DisplayName, ".")
-							If Pos1 > 0 AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), tb) Then
-								Parameter = te->Parameters
-								iPos = InStr(LCase(Parameter), LCase(sWord))
-								FuncName = Mid(Parameter, iPos, Len(sWord))
-								Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
-								ParametersList.Add te->Parameters
-								Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-								If te->Comment <> "" Then Comments &= "" & te->Comment
-							End If
-						End If
-					Next
-					For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
-						te = pGlobalTypeProcedures->Object(i)
-						If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-							Var Pos1 = InStr(te->DisplayName, ".")
-							If CBool(Pos1 > 0) AndAlso IsBase(TypeName, ..Left(te->DisplayName, Pos1 - 1), tb) Then
-								Parameter = te->Parameters
-								iPos = InStr(LCase(Parameter), LCase(sWord))
-								FuncName = Mid(Parameter, iPos, Len(sWord))
-								Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
-								ParametersList.Add te->Parameters
-								Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-								If te->Comment <> "" Then Comments &= "" & te->Comment
-							End If
-						End If
-					Next
 				End If
 			End If
 		End If
@@ -12187,6 +12238,23 @@ Sub TabWindow.Define
 				.Item(.Count - 1)->Text(4) = te2->FileName
 				.Item(.Count - 1)->Text(5) = te2->Comment
 				.Item(.Count - 1)->Tag = te2->Tag
+			End If
+			If ECLine Then
+				If ECLine->InConstructionBlock > 0 Then
+					FListItems.Clear
+					FillFromConstructionBlock ECLine->InConstructionBlock, sWord
+					For i As Integer = 0 To FListItems.Count - 1
+						te = FListItems.Object(i)
+						If te->StartLine = iSelEndLine Then Continue For
+						.Add te->DisplayName
+						.Item(.Count - 1)->Text(1) = te->Parameters
+						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
+						.Item(.Count - 1)->Text(3) = WStr(te->StartChar)
+						.Item(.Count - 1)->Text(4) = te->FileName
+						.Item(.Count - 1)->Text(5) = te->Comment
+						.Item(.Count - 1)->Tag = te->Tag
+					Next
+				End If
 			End If
 			If cboFunction.ItemIndex > -1 Then te1 = cboFunction.Items.Item(cboFunction.ItemIndex)->Object
 			Pos1 = InStr(cboFunction.Text, "["): If Pos1 > 0 Then FuncName = Trim(..Left(cboFunction.Text, Pos1 - 1)): TypeName = FuncName
