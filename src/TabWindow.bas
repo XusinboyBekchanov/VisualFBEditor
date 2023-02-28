@@ -5561,6 +5561,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	Dim As TypeElement Ptr te, te1, te2, Oldte
 	Dim As WStringOrStringList Ptr pkeywords
 	Dim As EditControlContent Ptr ecc
+	Dim As ConstructionBlock Ptr cb
 	Dim As List Contents
 	Dim As List TabWindows
 	If Project Then
@@ -5605,6 +5606,13 @@ Sub AnalyzeTab(Param As Any Ptr)
 			For j As Integer = te->Elements.Count - 1 To 0 Step -1
 				te1 = te->Elements.Object(j)
 				te1->Used = False
+			Next
+		Next
+		For i As Integer = ecc->ConstructionBlocks.Count - 1 To 0 Step -1
+			cb = ecc->ConstructionBlocks.Item(i)
+			For j As Integer = cb->Elements.Count - 1 To 0 Step -1
+				te = cb->Elements.Object(j)
+				te->Used = False
 			Next
 		Next
 		For i As Integer = ecc->LineLabels.Count - 1 To 0 Step -1
@@ -5812,40 +5820,72 @@ Sub AnalyzeTab(Param As Any Ptr)
 												End If
 												
 												'Procedure
-												If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
-													tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
-													If tIndex <> -1 Then
-														If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
-															tIndex = -1
-														Else
-															pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-															OriginalCaseWord = pkeywords->Item(tIndex)
-															te = pkeywords->Object(tIndex)
-															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
-																Select Case LCase(te->ElementType)
-																Case "sub"
-																	sc = @ColorSubs
-																Case "function"
-																	sc = @ColorGlobalFunctions
-																Case "property"
-																	sc = @ColorProperties
-																Case "byrefparameter"
-																	sc = @ColorByRefParameters
-																Case "byvalparameter"
-																	sc = @ColorByValParameters
-																Case "field", "event"
-																	sc = @ColorFields
-																Case "enumitem"
-																	sc = @ColorEnumMembers
-																Case "linelabel"
-																	sc = @ColorLineLabels
-																Case Else
-																	sc = @ColorLocalVariables
-																End Select
-															End If
+												If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstructionBlock > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+													te = GetFromConstructionBlock(FECLine->InConstructionBlock, MatnLCaseWithoutOldSymbol, z)
+													If te > 0 Then
+														tIndex = 0
+														pkeywords = @Cast(ConstructionBlock Ptr, FECLine->InConstructionBlock)->Elements
+														OriginalCaseWord = te->Name
+														If SyntaxHighlightingIdentifiers Then
+															te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
+															Select Case LCase(te->ElementType)
+															Case "sub"
+																sc = @ColorSubs
+															Case "function"
+																sc = @ColorGlobalFunctions
+															Case "property"
+																sc = @ColorProperties
+															Case "byrefparameter"
+																sc = @ColorByRefParameters
+															Case "byvalparameter"
+																sc = @ColorByValParameters
+															Case "field", "event"
+																sc = @ColorFields
+															Case "enumitem"
+																sc = @ColorEnumMembers
+															Case "linelabel"
+																sc = @ColorLineLabels
+															Case Else
+																sc = @ColorLocalVariables
+															End Select
 														End If
 													End If
+												End If
+													
+												If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+													'tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
+													'If tIndex <> -1 Then
+													'	If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
+													'		tIndex = -1
+													'	Else
+													'		pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+													'		OriginalCaseWord = pkeywords->Item(tIndex)
+													'		te = pkeywords->Object(tIndex)
+													'		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+													'			te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
+													'			Select Case LCase(te->ElementType)
+													'			Case "sub"
+													'				sc = @ColorSubs
+													'			Case "function"
+													'				sc = @ColorGlobalFunctions
+													'			Case "property"
+													'				sc = @ColorProperties
+													'			Case "byrefparameter"
+													'				sc = @ColorByRefParameters
+													'			Case "byvalparameter"
+													'				sc = @ColorByValParameters
+													'			Case "field", "event"
+													'				sc = @ColorFields
+													'			Case "enumitem"
+													'				sc = @ColorEnumMembers
+													'			Case "linelabel"
+													'				sc = @ColorLineLabels
+													'			Case Else
+													'				sc = @ColorLocalVariables
+													'			End Select
+													'		End If
+													'	End If
+													'End If
 													
 													If tIndex = -1 Then
 														TypeName1 = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
@@ -6370,6 +6410,15 @@ Sub AnalyzeTab(Param As Any Ptr)
 				End If
 			Next
 		Next
+		For i As Integer = ecc->ConstructionBlocks.Count - 1 To 0 Step -1
+			cb = ecc->ConstructionBlocks.Item(i)
+			For j As Integer = cb->Elements.Count - 1 To 0 Step -1
+				te = cb->Elements.Object(j)
+				If te->Used = False Then
+					NotUsedIdentifiers.Add te
+				End If
+			Next
+		Next
 		For i As Integer = 0 To ecc->LineLabels.Count - 1
 			te = ecc->LineLabels.Object(i)
 			If te->Used = False Then
@@ -6652,6 +6701,7 @@ End Sub
 
 Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ByRef Content As EditControlContent)
 	Dim As TypeElement Ptr te, te1, tbi, func
+	Dim As ConstructionBlock Ptr cb
 	Content.Types.Clear
 	For i As Integer = Content.Functions.Count - 1 To 0 Step -1
 		te = Content.Functions.Object(i)
@@ -6685,6 +6735,14 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		Delete_( Cast(TypeElement Ptr, Content.FunctionsOthers.Object(i)))
 		'FunctionsOthers.Remove i
 	Next
+	For i As Integer = Content.ConstructionBlocks.Count - 1 To 0 Step -1
+		cb = Content.ConstructionBlocks.Item(i)
+		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
+			Delete_( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+		Next
+		cb->Elements.Clear
+		Delete_(Cast(ConstructionBlock Ptr, Content.ConstructionBlocks.Item(i)))
+	Next
 	For i As Integer = Content.LineLabels.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, Content.LineLabels.Object(i)))
 	Next
@@ -6699,6 +6757,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	Content.Defines.Clear
 	Content.Functions.Clear
 	Content.FunctionsOthers.Clear
+	Content.ConstructionBlocks.Clear
 	Content.Namespaces.Clear
 	Content.Enums.Clear
 	Content.Procedures.Clear
@@ -6711,6 +6770,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	Dim As UString sFileName = FileName
 	Dim As TabWindow Ptr tb
 	Dim As EditControlLine Ptr ECLine
+	Dim As ConstructionBlock Ptr block
 	Dim As UString Comments, b, b0, b1, b2, bTrim, bTrimLCase, b0Trim, b0TrimLCase
 	Dim As WStringList WithArgs, Namespaces, Includes
 	Dim As Integer WithConstructionLine = -1, OldWithConstructionLine = -1
@@ -6718,7 +6778,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc, bFind, bCurrentFile
 	Dim As Integer IncludesCount
 	Dim As Boolean IncludesChanged
-	Dim As List Constructs
+	Dim As List Constructs, ConstructBlocks
 	If IsBas Then
 		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
 		WLetEx FLine2, GetFileName(*FLine1), True
@@ -6942,6 +7002,24 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						End If
 					#endif
 				Else
+					If (ECLine->ConstructionIndex >= 0) AndAlso (ECLine->ConstructionIndex <> C_P_If) AndAlso (ECLine->ConstructionIndex <> C_P_Region) Then
+						If ECLine->ConstructionPart > 0 Then
+							If ConstructBlocks.Count > 0 Then ConstructBlocks.Remove ConstructBlocks.Count - 1
+							If ConstructBlocks.Count > 0 Then
+								ECLine->InConstructionBlock = ConstructBlocks.Item(ConstructBlocks.Count - 1)
+							Else
+								ECLine->InConstructionBlock = 0
+							End If
+							block  = ECLine->InConstructionBlock
+						End If
+						If ECLine->ConstructionPart < 2 Then
+							Var cb = New_(ConstructionBlock)
+							cb->InConstructionBlock = block
+							ConstructBlocks.Add cb
+							Content.ConstructionBlocks.Add cb
+							block = cb
+						End If
+					End If
 					If ECLine->ConstructionIndex >= 0 AndAlso Constructions(ECLine->ConstructionIndex).Accessible Then
 						If ECLine->ConstructionPart = 0 Then
 							Pos1 = 0
@@ -7601,6 +7679,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								Else
 									Content.Args.Add te->Name, te
 									Project->Globals.Args.Add te->Name, te
+									If block Then block->Elements.Add te->Name, te
 									If Namespaces.Count > 0 Then
 										Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
@@ -7806,7 +7885,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		cboClass.ItemIndex = 0
 	End If
 	'LoadFunctionsWithContent FileName, Project, txtCode.Content
-	Dim As TypeElement Ptr te, te1, func, block
+	Dim As TypeElement Ptr te, te1, func
+	Dim As ConstructionBlock Ptr block, cb
 	txtCode.Content.Types.Clear
 	For i As Integer = txtCode.Content.Functions.Count - 1 To 0 Step -1
 		te = txtCode.Content.Functions.Object(i)
@@ -7840,6 +7920,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.FunctionsOthers.Object(i)))
 		'FunctionsOthers.Remove i
 	Next
+	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
+		cb = txtCode.Content.ConstructionBlocks.Item(i)
+		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
+			Delete_( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+		Next
+		cb->Elements.Clear
+		Delete_(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
+	Next
 	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
 	Next
@@ -7851,12 +7939,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
 		'Args.Remove i
 	Next
+	
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
 	txtCode.Content.Defines.Clear
 	txtCode.Content.Functions.Clear
 	txtCode.Content.FunctionsOthers.Clear
+	txtCode.Content.ConstructionBlocks.Clear
 	txtCode.Content.Namespaces.Clear
 	txtCode.Content.Enums.Clear
 	txtCode.Content.Procedures.Clear
@@ -7877,7 +7967,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
 	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 	Dim As Integer WithConstructionLine = -1, OldWithConstructionLine = -1
-	Dim As List Constructs
+	Dim As List Constructs, ConstructBlocks
 	If IsBas Then
 		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
 		WLetEx FLine2, GetFileName(*FLine1), True
@@ -8015,7 +8105,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			ECLine->FileList = LastFileList
 			ECLine->FileListLines = LastFileListLines
 			ECLine->InConstruction = 0
+			ECLine->InConstructionBlock = 0
 			If inFunc Then ECLine->InConstruction = func
+			If block Then ECLine->InConstructionBlock = block
 			WLet(FLine, *ECLine->Text)
 			b1 = Replace(*ECLine->Text, !"\t", " ")
 			If StartsWith(Trim(b1), "'") Then
@@ -8117,6 +8209,25 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					#endif
 				Else
+					If (ECLine->ConstructionIndex >= 0) AndAlso (ECLine->ConstructionIndex <> C_P_If) AndAlso (ECLine->ConstructionIndex <> C_P_Region) Then
+						If ECLine->ConstructionPart > 0 Then
+							If ConstructBlocks.Count > 0 Then ConstructBlocks.Remove ConstructBlocks.Count - 1
+							If ConstructBlocks.Count > 0 Then
+								ECLine->InConstructionBlock = ConstructBlocks.Item(ConstructBlocks.Count - 1)
+							Else
+								ECLine->InConstructionBlock = 0
+							End If
+							block = ECLine->InConstructionBlock
+						End If
+						If ECLine->ConstructionPart < 2 Then
+							Var cb = New_(ConstructionBlock)
+							cb->InConstructionBlock = block
+							ConstructBlocks.Add cb
+							txtCode.Content.ConstructionBlocks.Add cb
+							block = cb
+							ECLine->InConstructionBlock = block
+						End If
+					End If
 					If ECLine->ConstructionIndex >= 0 AndAlso Constructions(ECLine->ConstructionIndex).Accessible Then
 						If ECLine->ConstructionPart = 0 Then
 							Pos1 = 0
@@ -8290,15 +8401,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									inPubProPri = 2
 								End If
 							End If
-							'Var te = New_(TypeElement)
-							'te->StartLine = i
-							'te->EndLine = i
-							'te->FileName = sFileName
-							'If inFunc Then
-							'	te->Parent = func
-							'End If
-							'te->Tag = tb
-							'txtCode.Content.ConstructionBlocks.Add te
 						End If
 					ElseIf ECLine->ConstructionIndex = C_Namespace Then
 						If ECLine->ConstructionPart = 0 Then
@@ -8773,7 +8875,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								ElseIf StartsWith(bTrimLCase, "type ") Then
 									txtCode.Content.Types.Add te->Name, te
 								Else
-									txtCode.Content.Args.Add te->Name, te
+									If block Then 
+										block->Elements.Add te->Name, te
+									Else
+										txtCode.Content.Args.Add te->Name, te
+									End If
 									If Namespaces.Count > 0 Then
 										Var Index = txtCode.Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 										If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te
@@ -9807,6 +9913,7 @@ Destructor TabWindow
 	cboClass.Items.Clear
 	cboFunction.Items.Clear
 	Dim As TypeElement Ptr te, te1
+	Dim As ConstructionBlock Ptr cb
 	For i As Integer = txtCode.Content.Functions.Count - 1 To 0 Step -1
 		te = txtCode.Content.Functions.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
@@ -9829,6 +9936,14 @@ Destructor TabWindow
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.FunctionsOthers.Object(i)))
 	Next
+	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
+		cb = txtCode.Content.ConstructionBlocks.Item(i)
+		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
+			Delete_( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+		Next
+		cb->Elements.Clear
+		Delete_(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
+	Next
 	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
 	Next
@@ -9850,6 +9965,7 @@ Destructor TabWindow
 	Next
 	txtCode.Content.Functions.Clear
 	txtCode.Content.FunctionsOthers.Clear
+	txtCode.Content.ConstructionBlocks.Clear
 	txtCode.Content.Namespaces.Clear
 	txtCode.Content.Types.Clear
 	txtCode.Content.Procedures.Clear

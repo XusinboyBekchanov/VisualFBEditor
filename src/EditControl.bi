@@ -112,6 +112,11 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	Type ConstructionBlock
+		InConstructionBlock As ConstructionBlock Ptr
+		Elements As WStringOrStringList
+	End Type
+	
 	Type EditControlLine
 		Bookmark As Boolean
 		Breakpoint As Boolean
@@ -123,7 +128,7 @@ Namespace My.Sys.Forms
 		InAsm As Boolean
 		InCollapse As Boolean
 		InConstruction As TypeElement Ptr
-		InConstructionBlock As TypeElement Ptr
+		InConstructionBlock As ConstructionBlock Ptr
 		InConstructionIndex As Integer
 		InConstructionPart As Integer
 		InWithConstruction As Integer

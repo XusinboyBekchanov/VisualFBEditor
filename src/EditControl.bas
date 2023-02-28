@@ -2961,6 +2961,18 @@ Namespace My.Sys.Forms
 		Args.Sorted = True
 	End Constructor
 	
+	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer) As TypeElement Ptr
+		If cb = 0 Then Return 0
+		Var tIndex = cb->Elements.IndexOf(Text)
+		If tIndex <> -1 Then
+			Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
+			If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
+				Return cb->Elements.Object(tIndex)
+			End If
+		End If
+		Return GetFromConstructionBlock(cb->InConstructionBlock, Text, z)
+	End Function
+	
 	Sub EditControl.PaintControlPriv(Full As Boolean = False)
 		'	On Error Goto ErrHandler
 		Dim As Boolean bFull = Full
@@ -3469,39 +3481,71 @@ Namespace My.Sys.Forms
 																End If
 																
 																'Procedure
-																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
-																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
-																	If tIndex <> -1 Then
-																		If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
-																			tIndex = -1
-																		Else
-																			pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-																			OriginalCaseWord = pkeywords->Item(tIndex)
-																			te = pkeywords->Object(tIndex)
-																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																				Select Case LCase(te->ElementType)
-																				Case "sub"
-																					sc = @ColorSubs
-																				Case "function"
-																					sc = @ColorGlobalFunctions
-																				Case "property"
-																					sc = @ColorProperties
-																				Case "byrefparameter"
-																					sc = @ColorByRefParameters
-																				Case "byvalparameter"
-																					sc = @ColorByValParameters
-																				Case "field", "event"
-																					sc = @ColorFields
-																				Case "enumitem"
-																					sc = @ColorEnumMembers
-																				Case "linelabel"
-																					sc = @ColorLineLabels
-																				Case Else
-																					sc = @ColorLocalVariables
-																				End Select
-																			End If
+																If (Not TwoDots) AndAlso (tIndex = -1) AndAlso (FECLine->InConstructionBlock > 0) AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+																	te = GetFromConstructionBlock(FECLine->InConstructionBlock, MatnLCaseWithoutOldSymbol, z)
+																	If te > 0 Then
+																		tIndex = 0
+																		pkeywords = @Cast(ConstructionBlock Ptr, FECLine->InConstructionBlock)->Elements
+																		OriginalCaseWord = te->Name
+																		If SyntaxHighlightingIdentifiers Then
+																			te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
+																			Select Case LCase(te->ElementType)
+																			Case "sub"
+																				sc = @ColorSubs
+																			Case "function"
+																				sc = @ColorGlobalFunctions
+																			Case "property"
+																				sc = @ColorProperties
+																			Case "byrefparameter"
+																				sc = @ColorByRefParameters
+																			Case "byvalparameter"
+																				sc = @ColorByValParameters
+																			Case "field", "event"
+																				sc = @ColorFields
+																			Case "enumitem"
+																				sc = @ColorEnumMembers
+																			Case "linelabel"
+																				sc = @ColorLineLabels
+																			Case Else
+																				sc = @ColorLocalVariables
+																			End Select
 																		End If
 																	End If
+																End If
+																
+																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+																	'tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
+																	'If tIndex <> -1 Then
+																	'	If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
+																	'		tIndex = -1
+																	'	Else
+																	'		pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+																	'		OriginalCaseWord = pkeywords->Item(tIndex)
+																	'		te = pkeywords->Object(tIndex)
+																	'		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																	'			Select Case LCase(te->ElementType)
+																	'			Case "sub"
+																	'				sc = @ColorSubs
+																	'			Case "function"
+																	'				sc = @ColorGlobalFunctions
+																	'			Case "property"
+																	'				sc = @ColorProperties
+																	'			Case "byrefparameter"
+																	'				sc = @ColorByRefParameters
+																	'			Case "byvalparameter"
+																	'				sc = @ColorByValParameters
+																	'			Case "field", "event"
+																	'				sc = @ColorFields
+																	'			Case "enumitem"
+																	'				sc = @ColorEnumMembers
+																	'			Case "linelabel"
+																	'				sc = @ColorLineLabels
+																	'			Case Else
+																	'				sc = @ColorLocalVariables
+																	'			End Select
+																	'		End If
+																	'	End If
+																	'End If
 																	
 																	If tIndex = -1 Then
 																		TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
