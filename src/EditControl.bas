@@ -3514,38 +3514,38 @@ Namespace My.Sys.Forms
 																End If
 																
 																If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
-																	'tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
-																	'If tIndex <> -1 Then
-																	'	If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
-																	'		tIndex = -1
-																	'	Else
-																	'		pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
-																	'		OriginalCaseWord = pkeywords->Item(tIndex)
-																	'		te = pkeywords->Object(tIndex)
-																	'		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																	'			Select Case LCase(te->ElementType)
-																	'			Case "sub"
-																	'				sc = @ColorSubs
-																	'			Case "function"
-																	'				sc = @ColorGlobalFunctions
-																	'			Case "property"
-																	'				sc = @ColorProperties
-																	'			Case "byrefparameter"
-																	'				sc = @ColorByRefParameters
-																	'			Case "byvalparameter"
-																	'				sc = @ColorByValParameters
-																	'			Case "field", "event"
-																	'				sc = @ColorFields
-																	'			Case "enumitem"
-																	'				sc = @ColorEnumMembers
-																	'			Case "linelabel"
-																	'				sc = @ColorLineLabels
-																	'			Case Else
-																	'				sc = @ColorLocalVariables
-																	'			End Select
-																	'		End If
-																	'	End If
-																	'End If
+																	tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
+																	If tIndex <> -1 Then
+																		If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
+																			tIndex = -1
+																		Else
+																			pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
+																			OriginalCaseWord = pkeywords->Item(tIndex)
+																			te = pkeywords->Object(tIndex)
+																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																				Select Case LCase(te->ElementType)
+																				Case "sub"
+																					sc = @ColorSubs
+																				Case "function"
+																					sc = @ColorGlobalFunctions
+																				Case "property"
+																					sc = @ColorProperties
+																				Case "byrefparameter"
+																					sc = @ColorByRefParameters
+																				Case "byvalparameter"
+																					sc = @ColorByValParameters
+																				Case "field", "event"
+																					sc = @ColorFields
+																				Case "enumitem"
+																					sc = @ColorEnumMembers
+																				Case "linelabel"
+																					sc = @ColorLineLabels
+																				Case Else
+																					sc = @ColorLocalVariables
+																				End Select
+																			End If
+																		End If
+																	End If
 																	
 																	If tIndex = -1 Then
 																		TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
