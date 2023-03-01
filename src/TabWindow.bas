@@ -1732,7 +1732,11 @@ Sub TabWindow.FillAllProperties()
 	ptabRight->Tag = @This
 	ptabRight->UpdateLock
 	cboFunction.Items.Clear
-	cboFunction.Items.Add "(" & ML("Events") & ")", , "Event", "Event"
+	If cboClass.ItemIndex = 0 Then
+		cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
+	Else
+		cboFunction.Items.Add "(" & ML("Events") & ")", , "Event", "Event"
+	End If
 	cboFunction.ItemIndex = 0
 	plvProperties->Nodes.Clear
 	plvEvents->Nodes.Clear
@@ -2865,7 +2869,7 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 			For i As Integer = 0 To tb->txtCode.Content.Functions.Count - 1
 				Var te = Cast(TypeElement Ptr, tb->txtCode.Content.Functions.Object(i))
 				If te->ElementType = "Property" Then imgKey = "Property" Else imgKey = "Sub"
-				.Items.Add te->DisplayName, te, imgKey, imgKey
+				If Not (CBool(InStr(te->DisplayName, "._") > 0) AndAlso CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning) Then .Items.Add te->DisplayName, te, imgKey, imgKey
 			Next
 		End With
 	Else
@@ -9367,12 +9371,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				t = False
 				For i As Integer = 1 To cboFunction.Items.Count - 1
 					If LCase(cboFunction.Items.Item(i)->Text) > LCase(te2->DisplayName) Then
-						cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey, , , i
+						If Not (CBool(InStr(te->DisplayName, "._") > 0) AndAlso CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning) Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey, , , i
 						t = True
 						Exit For
 					End If
 				Next i
-				If Not t Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey
+				If Not t AndAlso Not (CBool(InStr(te->DisplayName, "._") > 0) AndAlso CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning) Then cboFunction.Items.Add te2->DisplayName, te2, imgKey, imgKey
 			End If
 			'End If
 		Next
