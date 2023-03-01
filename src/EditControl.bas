@@ -560,10 +560,20 @@ Namespace My.Sys.Forms
 					If FECLine2->ConstructionPart = 2 Then
 						j -= 1
 						If j = -1 Then
+							If FECLine->ConstructionPart = 1 Then
+								FECLine2->Visible = True
+							End If
 							Exit For
 						End If
 					ElseIf FECLine2->ConstructionPart = 0 Then
 						j += 1
+					ElseIf FECLine2->ConstructionPart = 1 Then
+						If FECLine->ConstructionPart = 1 Then
+							If j = 0 Then
+								FECLine2->Visible = True
+								Exit For
+							End If
+						End If
 					End If
 				End If
 			Next i
@@ -734,7 +744,7 @@ Namespace My.Sys.Forms
 		ecl->EndsCompleted = False
 		ecl->Multiline = InStr(*ecl->Text, ":") > 0
 		OldCollapsed = ecl->Collapsed
-		If i > -1 And j = 0 Then
+		If i > -1 And (j = 0 OrElse j = 1) Then
 			ecl->Collapsible = Constructions(i).Collapsible
 			If EndsWith(*ecl->Text, "'...'") Then
 				ecl->Collapsed = Constructions(i).Collapsible
