@@ -556,7 +556,7 @@ Namespace My.Sys.Forms
 				FECLine2->Visible = False
 				'				Idx = VisibleLines.IndexOf(FECLine2)
 				'				If Idx > -1 Then VisibleLines.Remove Idx
-				If FECLine2->ConstructionIndex = FECLine->ConstructionIndex Then
+				If FECLine2->ConstructionIndex = FECLine->ConstructionIndex OrElse (FECLine->ConstructionPart = 1 AndAlso FECLine->ConstructionIndex = C_Class AndAlso FECLine2->ConstructionIndex = C_Type) Then
 					If FECLine2->ConstructionPart = 2 Then
 						j -= 1
 						If j = -1 Then
@@ -584,6 +584,7 @@ Namespace My.Sys.Forms
 				FECLine->EndsCompleted = False
 			End If
 			Dim As EditControlLine Ptr OldCollapsed
+			Dim As Boolean bSetVisible
 			For i As Integer = LineIndex + 1 To Content.Lines.Count - 1
 				FECLine2 = Content.Lines.Items[i]
 				If FECLine2->Visible Then Exit For
@@ -592,17 +593,28 @@ Namespace My.Sys.Forms
 					OldCollapsed = FECLine2
 					j = 0
 				ElseIf OldCollapsed <> 0 Then
-					If FECLine2->ConstructionIndex = OldCollapsed->ConstructionIndex Then
+					bSetVisible = True
+					If FECLine2->ConstructionIndex = OldCollapsed->ConstructionIndex OrElse (OldCollapsed->ConstructionPart = 1 AndAlso OldCollapsed->ConstructionIndex = C_Class AndAlso FECLine2->ConstructionIndex = C_Type) Then
 						If FECLine2->ConstructionPart = 2 Then
 							j -= 1
 							If j = -1 Then
+								If OldCollapsed->ConstructionPart = 1 Then bSetVisible = False
 								OldCollapsed = 0
 							End If
 						ElseIf FECLine2->ConstructionPart = 0 Then
 							j += 1
+						ElseIf FECLine2->ConstructionPart = 1 Then
+							If j = 0 Then
+								bSetVisible = False
+								If FECLine2->Collapsed Then
+									OldCollapsed = FECLine2
+								Else
+									OldCollapsed = 0
+								End If
+							End If
 						End If
 					End If
-					FECLine2->Visible = False
+					If bSetVisible Then FECLine2->Visible = False
 				End If
 				If FECLine2->Visible Then
 					'					Idx = VisibleLines.IndexOf(FECLine2)
@@ -4115,7 +4127,7 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
 				#endif
 				If SyntaxEdit AndAlso Not Content.CStyle Then
-					If ShowHorizontalSeparatorLines AndAlso CBool(FECLineNext <> 0) AndAlso FECLineNext->Visible AndAlso FECLineNext->Collapsible AndAlso CBool(FECLineNext->ConstructionIndex >= C_P_Region) Then
+					If ShowHorizontalSeparatorLines AndAlso CBool(FECLineNext <> 0) AndAlso FECLineNext->Visible AndAlso FECLineNext->Collapsible AndAlso CBool(FECLineNext->ConstructionIndex >= C_P_Region) AndAlso CBool(FECLineNext->ConstructionPart = 0) Then
 						#ifdef __USE_GTK__
 							cairo_move_to(cr, LeftMargin - 0.5 + CodePaneX, (i + 1 - VScrollPos) * dwCharY - 0.5 + CodePaneY)
 							cairo_line_to(cr, IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX) - 0.5, (i + 1 - VScrollPos) * dwCharY - 0.5 + CodePaneY)
@@ -4132,7 +4144,7 @@ Namespace My.Sys.Forms
 							cairo_rectangle(cr, LeftMargin - 15 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 4 - 0.5 + CodePaneY, LeftMargin - 7 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 12 - 0.5 + CodePaneY, True)
 							cairo_move_to(cr, LeftMargin - 13 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 8 - 0.5 + CodePaneY)
 							cairo_line_to(cr, LeftMargin - 9 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 8 - 0.5 + CodePaneY)
-							If ShowHorizontalSeparatorLines AndAlso FECLine->ConstructionIndex >= C_P_Region Then
+							If ShowHorizontalSeparatorLines AndAlso CBool(FECLine->ConstructionIndex >= C_P_Region) AndAlso CBool(FECLine->ConstructionPart = 0) Then
 								cairo_move_to(cr, LeftMargin - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY - 0.5 + CodePaneY)
 								cairo_line_to(cr, dwClientX - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY - 0.5 + CodePaneY)
 							End If
@@ -4145,7 +4157,7 @@ Namespace My.Sys.Forms
 							Rectangle bufDC, ScaleX(LeftMargin - 15 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY), ScaleX(LeftMargin - 6 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY)
 							MoveToEx bufDC, ScaleX(LeftMargin - 13 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY), 0
 							LineTo bufDC, ScaleX(LeftMargin - 8 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)
-							If ShowHorizontalSeparatorLines AndAlso FECLine->ConstructionIndex >= C_P_Region Then
+							If ShowHorizontalSeparatorLines AndAlso CBool(FECLine->ConstructionIndex >= C_P_Region) AndAlso CBool(FECLine->ConstructionPart = 0) Then
 								MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), 0
 								LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i - VScrollPos) * dwCharY + CodePaneY)
 							End If
