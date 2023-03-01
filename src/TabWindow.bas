@@ -5956,6 +5956,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 															End If
 															If ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Types, pFiles, pFileLines, True, , , te, z) Then
 															ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Enums, pFiles, pFileLines, True, , , te, z) Then
+															ElseIf (ecc->Globals <> 0) AndAlso ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Globals->Types, pFiles, pFileLines, True, , , te, z) Then
+															ElseIf (ecc->Globals <> 0) AndAlso ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Globals->Enums, pFiles, pFileLines, True, , , te, z) Then
 															ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then
 															ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
 															ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
@@ -6130,7 +6132,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 													
 													If tIndex = -1 Then
 														If bTypeAs Then
-															tIndex = ecc->Globals->Types.IndexOf(MatnLCase)
+															tIndex = ecc->Globals->Enums.IndexOf(MatnLCase)
 														Else
 															tIndex = ecc->IndexOfInListFiles(@ecc->Globals->Enums, MatnLCase, pFiles, pFileLines)
 														End If
@@ -6763,12 +6765,6 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	Content.Types.Clear
 	For i As Integer = Content.Functions.Count - 1 To 0 Step -1
 		te = Content.Functions.Object(i)
-		'If NotForms Then
-		'	If te->ElementType = "Type" AndAlso te->FileName <> FileName Then
-		'		txtCode.Types.Add te->Name, te
-		'		Continue For
-		'	End If
-		'End If
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
@@ -6779,7 +6775,6 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, Content.Functions.Object(i)))
-		'Functions.Remove i
 	Next
 	For i As Integer = Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, Content.Namespaces.Object(i)))
