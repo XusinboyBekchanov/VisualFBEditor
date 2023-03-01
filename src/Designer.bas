@@ -538,6 +538,7 @@ Namespace My.Sys.Forms
 					Next i
 				Next j
 			#else
+				If DotsCount = 0 Then DotsCount = -1 'For Compile with FBC 1.10
 				For j As Integer = DotsCount + 1 To SelectedControls.Count - 1
 					For i As Integer = 0 To 7
 						FDots(j, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), GetParent(FDialog), 0, Instance, 0)
