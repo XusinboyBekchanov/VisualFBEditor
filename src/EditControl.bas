@@ -2776,10 +2776,14 @@ Namespace My.Sys.Forms
 			If ECLine->InConstructionBlock Then
 				te = GetFromConstructionBlock(ECLine->InConstructionBlock, sTemp, iSelEndLine)
 				If te Then
-					teEnum = te
-					teEnumOld = 0
-					OldTypeName = "" 'teC->DisplayName
-					Return teEnum->TypeName
+					If te->TypeName = "" AndAlso te->Value <> "" Then
+						Return GetTypeFromValue(te->Value, iSelEndLine)
+					Else
+						teEnum = te
+						teEnumOld = 0
+						OldTypeName = "" 'teC->DisplayName
+						Return teEnum->TypeName
+					End If
 				End If
 			End If
 		End If
