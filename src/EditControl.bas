@@ -2531,6 +2531,18 @@ Namespace My.Sys.Forms
 		If te > 0 Then Return True Else Return False
 	End Function
 	
+	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer) As TypeElement Ptr
+		If cb = 0 Then Return 0
+		Var tIndex = cb->Elements.IndexOf(Text)
+		If tIndex <> -1 Then
+			Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
+			If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
+				Return cb->Elements.Object(tIndex)
+			End If
+		End If
+		Return GetFromConstructionBlock(cb->InConstructionBlock, Text, z)
+	End Function
+	
 	Function EditControlContent.GetTypeFromValue(ByRef Value As String, iSelEndLine As Integer) As String
 		If Value = "" Then Return ""
 		Dim As String sTemp
@@ -2612,6 +2624,16 @@ Namespace My.Sys.Forms
 				ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
 				End If
 			Else
+				If ECLine AndAlso ECLine->InConstructionBlock Then
+					te = GetFromConstructionBlock(ECLine->InConstructionBlock, sTemp, iSelEndLine)
+					If te Then
+						If te->TypeName = "" AndAlso te->Value <> "" Then
+							Return GetTypeFromValue(te->Value, iSelEndLine)
+						Else
+							Return te->TypeName
+						End If
+					End If
+				End If
 				te1 = teC
 				If teC > 0 Then TypeName = TypeNameFromLine
 				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, te1->Elements.Object(Idx))->StartLine <= iSelEndLine Then
@@ -2647,18 +2669,6 @@ Namespace My.Sys.Forms
 			End If
 		End If
 		Return sTemp
-	End Function
-	
-	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer) As TypeElement Ptr
-		If cb = 0 Then Return 0
-		Var tIndex = cb->Elements.IndexOf(Text)
-		If tIndex <> -1 Then
-			Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
-			If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
-				Return cb->Elements.Object(tIndex)
-			End If
-		End If
-		Return GetFromConstructionBlock(cb->InConstructionBlock, Text, z)
 	End Function
 	
 	Function EditControlContent.GetLeftArgTypeName(iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False, ByRef bWithoutWith As Boolean = False) As String
@@ -2773,19 +2783,6 @@ Namespace My.Sys.Forms
 		If ECLine Then
 			pFiles = ECLine->FileList
 			pFileLines = ECLine->FileListLines
-			If ECLine->InConstructionBlock Then
-				te = GetFromConstructionBlock(ECLine->InConstructionBlock, sTemp, iSelEndLine)
-				If te Then
-					If te->TypeName = "" AndAlso te->Value <> "" Then
-						Return GetTypeFromValue(te->Value, iSelEndLine)
-					Else
-						teEnum = te
-						teEnumOld = 0
-						OldTypeName = "" 'teC->DisplayName
-						Return teEnum->TypeName
-					End If
-				End If
-			End If
 		End If
 		If TypeName <> "" Then
 			If LCase(sTemp) = "base" Then
@@ -2906,6 +2903,19 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			If tIndex = -1 Then
+				If ECLine->InConstructionBlock Then
+					te = GetFromConstructionBlock(ECLine->InConstructionBlock, sTemp, iSelEndLine)
+					If te Then
+						If te->TypeName = "" AndAlso te->Value <> "" Then
+							Return GetTypeFromValue(te->Value, iSelEndLine)
+						Else
+							teEnum = te
+							teEnumOld = 0
+							OldTypeName = "" 'teC->DisplayName
+							Return teEnum->TypeName
+						End If
+					End If
+				End If
 				If te1 <> 0 AndAlso te1->Elements.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, te1->Elements.Object(Idx))->StartLine <= iSelEndLine Then
 					te = te1->Elements.Object(Idx)
 				ElseIf Procedures.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Procedures.Object(Idx))->StartLine <= iSelEndLine Then

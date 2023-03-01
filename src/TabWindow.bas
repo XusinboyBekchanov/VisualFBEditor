@@ -5875,8 +5875,11 @@ Sub AnalyzeTab(Param As Any Ptr)
 												End If
 												
 												'Procedure
-												If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstructionBlock > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
+												If (Not TwoDots) AndAlso (tIndex = -1) AndAlso (FECLine->InConstructionBlock > 0) AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
 													te = GetFromConstructionBlock(FECLine->InConstructionBlock, MatnLCaseWithoutOldSymbol, z)
+													If z = 632 Then
+														z = z
+													End If
 													If te > 0 Then
 														tIndex = 0
 														pkeywords = @Cast(ConstructionBlock Ptr, FECLine->InConstructionBlock)->Elements
@@ -7063,11 +7066,11 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						If ECLine->ConstructionPart > 0 Then
 							If ConstructBlocks.Count > 0 Then ConstructBlocks.Remove ConstructBlocks.Count - 1
 							If ConstructBlocks.Count > 0 Then
-								ECLine->InConstructionBlock = ConstructBlocks.Item(ConstructBlocks.Count - 1)
+								block = ConstructBlocks.Item(ConstructBlocks.Count - 1)
 							Else
-								ECLine->InConstructionBlock = 0
+								block = 0
 							End If
-							block  = ECLine->InConstructionBlock
+							If ECLine->ConstructionPart <> 2 Then ECLine->InConstructionBlock = block
 						End If
 						If ECLine->ConstructionPart < 2 Then
 							Var cb = New_(ConstructionBlock)
@@ -7077,6 +7080,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							ConstructBlocks.Add cb
 							Content.ConstructionBlocks.Add cb
 							block = cb
+							ECLine->InConstructionBlock = block
 						End If
 					End If
 					If ECLine->ConstructionIndex >= 0 AndAlso Constructions(ECLine->ConstructionIndex).Accessible Then
@@ -8276,11 +8280,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If ECLine->ConstructionPart > 0 Then
 							If ConstructBlocks.Count > 0 Then ConstructBlocks.Remove ConstructBlocks.Count - 1
 							If ConstructBlocks.Count > 0 Then
-								ECLine->InConstructionBlock = ConstructBlocks.Item(ConstructBlocks.Count - 1)
+								block = ConstructBlocks.Item(ConstructBlocks.Count - 1)
 							Else
-								ECLine->InConstructionBlock = 0
+								block = 0
 							End If
-							block = ECLine->InConstructionBlock
+							If ECLine->ConstructionPart <> 2 Then ECLine->InConstructionBlock = block
 						End If
 						If ECLine->ConstructionPart < 2 Then
 							Var cb = New_(ConstructionBlock)
