@@ -313,7 +313,7 @@ Namespace My.Sys.Forms
 				End Select
 				gdk_window_set_cursor(gtk_widget_get_window(FDots(0, i)), gcurs)
 			#else
-				FDots(0, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), ParentCtrl->Handle, 0, Instance, 0)
+				If ParentCtrl > 0 AndAlso ParentCtrl->Handle > 0 Then FDots(0, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), ParentCtrl->Handle, 0, Instance, 0)
 				If IsWindow(FDots(0, i)) Then
 					SetWindowLongPtr(FDots(0, i), GWLP_USERDATA, CInt(@This))
 				End If
@@ -398,10 +398,10 @@ Namespace My.Sys.Forms
 			If SelectedControls.Count = 0 Then SelectedControls.Add SelectedControl
 			'if Control <> FDialog then
 			Dim As Integer DotsCount = UBound(FDots)
-			For j As Integer = DotsCount To SelectedControls.Count Step -1
+			For j As Integer = DotsCount To SelectedControls.Count - 1 Step -1
 				For i As Integer = 7 To 0 Step -1
 					#ifdef __USE_GTK__
-						If GTK_IS_WIDGET(FDots(j, i)) Then
+						If FDots(j, i) > 0 AndAlso GTK_IS_WIDGET(FDots(j, i)) Then
 							#ifdef __USE_GTK3__
 								gtk_widget_destroy(FDots(j, i))
 							#else
@@ -409,7 +409,7 @@ Namespace My.Sys.Forms
 							#endif
 						End If
 					#else
-						DestroyWindow(FDots(j, i))
+						If FDots(j, i) > 0 Then DestroyWindow(FDots(j, i))
 					#endif
 				Next
 			Next
@@ -538,7 +538,7 @@ Namespace My.Sys.Forms
 					Next i
 				Next j
 			#else
-				For j As Integer = DotsCount + 1 To SelectedControls.Count - 1
+				For j As Integer = SelectedControls.Count - 1 To DotsCount Step - 1 'For Compile with FBC 1.10
 					For i As Integer = 0 To 7
 						FDots(j, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), GetParent(FDialog), 0, Instance, 0)
 						SetWindowLongPtr(FDots(j, i), GWLP_USERDATA, CInt(@This))
@@ -2099,6 +2099,7 @@ Namespace My.Sys.Forms
 	#else
 		Function Designer.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 	#endif
+		If FormClosing Then Return False
 		Static As My.Sys.Forms.Designer Ptr Des
 		#ifdef __USE_GTK__
 			Des = user_data
@@ -3016,7 +3017,7 @@ Namespace My.Sys.Forms
 						MoveDots(SelectedControls.Items[j], , FLeft, FTop - FrameTop, FWidth, FHeight)
 						If OnModified Then OnModified(This, SelectedControls.Items[j], , , , FLeft, FTop, FWidth, FHeight)
 					Next
-				EndIf
+				End If
 			#else
 				Dim As ..Point P
 				Dim As ..Rect R
