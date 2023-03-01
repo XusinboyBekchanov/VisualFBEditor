@@ -7738,10 +7738,16 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									End If
 								ElseIf StartsWith(bTrimLCase, "type ") Then
 									Content.Types.Add te->Name, te
-								Else
+								ElseIf bShared Then
 									Content.Args.Add te->Name, te
 									Project->Globals.Args.Add te->Name, te
-									If block Then block->Elements.Add te->Name, te
+								Else
+									If block Then 
+										block->Elements.Add te->Name, te
+									Else
+										Content.Args.Add te->Name, te
+										Project->Globals.Args.Add te->Name, te
+									End If
 									If Namespaces.Count > 0 Then
 										Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
@@ -8942,8 +8948,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								ElseIf StartsWith(bTrimLCase, "type ") Then
 									txtCode.Content.Types.Add te->Name, te
+								ElseIf bShared Then
+									txtCode.Content.Args.Add te->Name, te
 								Else
-									If block Then 
+									If block Then
 										block->Elements.Add te->Name, te
 									Else
 										txtCode.Content.Args.Add te->Name, te

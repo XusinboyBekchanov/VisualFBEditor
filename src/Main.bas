@@ -4298,7 +4298,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						LastIndexFunction = TypeProcedures.Add(te->Name, te)
 						lastfunctionte = te
-					ElseIf CInt(Not inType) AndAlso CInt(Not inEnum) AndAlso CInt(Not InFunc) AndAlso _
+					ElseIf (CInt(Not inType) AndAlso CInt(Not inEnum) AndAlso CInt(Not InFunc) OrElse InStr(bTrimLCase, " shared ") > 0) AndAlso _
 						CInt(CInt(StartsWith(bTrimLCase, "dim ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "common ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "static ")) OrElse _
