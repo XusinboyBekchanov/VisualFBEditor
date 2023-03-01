@@ -6956,6 +6956,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 			ECLine->FileList = LastFileList
 			ECLine->FileListLines = LastFileListLines
 			ECLine->InConstruction = 0
+			ECLine->InConstructionBlock = 0
+			If block Then ECLine->InConstructionBlock = block
 			If inFunc Then ECLine->InConstruction = func
 			b1 = Replace(*ECLine->Text, !"\t", " ")
 			If StartsWith(Trim(b1), "'") Then
@@ -7069,6 +7071,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						End If
 						If ECLine->ConstructionPart < 2 Then
 							Var cb = New_(ConstructionBlock)
+							cb->ConstructionIndex = ECLine->ConstructionIndex
+							cb->ConstructionPart = ECLine->ConstructionPart
 							cb->InConstructionBlock = block
 							ConstructBlocks.Add cb
 							Content.ConstructionBlocks.Add cb
@@ -7728,7 +7732,11 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te->FileName = sFileName
 								te->Tag = tb
 								If inFunc AndAlso CBool(func <> 0) AndAlso Not bShared Then
-									func->Elements.Add te->Name, te
+									If block AndAlso block->ConstructionIndex <> C_Enum AndAlso block->ConstructionIndex <> C_Type AndAlso block->ConstructionIndex <> C_Union AndAlso block->ConstructionIndex <> C_Class Then
+										block->Elements.Add te->Name, te
+									Else
+										func->Elements.Add te->Name, te
+									End If
 								ElseIf StartsWith(bTrimLCase, "type ") Then
 									Content.Types.Add te->Name, te
 								Else
@@ -8276,6 +8284,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						If ECLine->ConstructionPart < 2 Then
 							Var cb = New_(ConstructionBlock)
+							cb->ConstructionIndex = ECLine->ConstructionIndex
+							cb->ConstructionPart = ECLine->ConstructionPart
 							cb->InConstructionBlock = block
 							ConstructBlocks.Add cb
 							txtCode.Content.ConstructionBlocks.Add cb
@@ -8926,7 +8936,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->FileName = sFileName
 								te->Tag = tb
 								If inFunc AndAlso CBool(func <> 0) AndAlso Not bShared Then
-									func->Elements.Add te->Name, te
+									If block AndAlso block->ConstructionIndex <> C_Enum AndAlso block->ConstructionIndex <> C_Type AndAlso block->ConstructionIndex <> C_Union AndAlso block->ConstructionIndex <> C_Class Then
+										block->Elements.Add te->Name, te
+									Else
+										func->Elements.Add te->Name, te
+									End If
 								ElseIf StartsWith(bTrimLCase, "type ") Then
 									txtCode.Content.Types.Add te->Name, te
 								Else
