@@ -3586,13 +3586,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							t = Trim(Mid(bTrim, Pos1 + Pos5, Pos2 - Pos1 - Pos5))
 							e = Trim(Mid(bTrim, Pos2 + 9))
 						ElseIf Pos3 > 0 Then
-							If Trim(Left(LCase(bTrim), Pos3)) = "type" Then  'Like "Type As    Short gint16, gshort, gunichar2"
-								b = Trim(Mid(bTrim, Pos3 + 3)) : Pos5 = InStr(b, " ")
-								t = Trim(Left(b, Pos5))
-								e = ""
+							If Trim(Left(LCase(bTrim), Pos3)) = "type" Then  'Like "Type As    Short gint16, gshort, gunichar2" Then
+								Pos5 = InStrRev(bTrim, " ")
+								t = Trim(Mid(bTrim, Pos5 + 1))
+								e = Trim(Mid(bTrim, Pos3 + 4, Pos5 - (Pos3 + 4)))
 							Else
-							t = Trim(Mid(bTrim, Pos1 + Pos5, Pos3 - Pos1 - Pos5))
-							e = Trim(Mid(bTrim, Pos3 + 4))
+								t = Trim(Mid(bTrim, Pos1 + Pos5, Pos3 - Pos1 - Pos5))
+								e = Trim(Mid(bTrim, Pos3 + 4))
 							End If 
 						Else
 							Pos2 = InStr(Pos1 + Pos5, bTrim, " ")
@@ -3887,7 +3887,17 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							b2 = Trim(Mid(b2, 7))
 						End If
 						Pos1 = InStr(b2, "'")
-						If Pos1 > 0 Then
+						Pos2 = InStr(b2, "/'")
+						If Pos2 > 0 AndAlso Pos2 < Pos1 Then
+							Pos1 = InStr(b2, "'/")
+							If Pos1 = 0 Then
+								TypeComment = Trim(Mid(b2, Pos2 + 2))
+								b2 = Trim(Left(b2, Pos2 - 1))
+							Else
+								TypeComment = Trim(Mid(b2, Pos2 + 2, Pos1 - 1 - (Pos2 + 2)))
+								b2 = Trim(Left(b2, Pos2 - 1)) & " " & Trim(Mid(b2, Pos1 + 3))
+							End If
+						ElseIf Pos1 > 0 Then
 							TypeComment = Trim(Mid(b2, Pos1 + 1))
 							b2 = Trim(Left(b2, Pos1 - 1))
 						End If
