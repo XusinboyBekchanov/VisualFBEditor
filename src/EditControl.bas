@@ -3001,9 +3001,8 @@ Namespace My.Sys.Forms
 	Constructor EditControlContent
 		Types.Sorted = True
 		Enums.Sorted = True
-		Procedures.Sorted = True
 		Functions.Sorted = True
-		FunctionsOthers.Sorted = True
+		Procedures.Sorted = True
 		TypeProcedures.Sorted = True
 		Args.Sorted = True
 		CheckedFiles.Sorted = True

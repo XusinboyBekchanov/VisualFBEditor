@@ -5639,8 +5639,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 	End If
 	For kk As Integer = 0 To Contents.Count - 1
 		ecc = Contents.Item(kk)
-		For i As Integer = ecc->Functions.Count - 1 To 0 Step -1
-			te = ecc->Functions.Object(i)
+		For i As Integer = ecc->Types.Count - 1 To 0 Step -1
+			te = ecc->Types.Object(i)
 			te->Used = False
 			For j As Integer = te->Elements.Count - 1 To 0 Step -1
 				te1 = te->Elements.Object(j)
@@ -5651,12 +5651,16 @@ Sub AnalyzeTab(Param As Any Ptr)
 				Next
 			Next
 		Next
+		For i As Integer = ecc->Enums.Count - 1 To 0 Step -1
+			te = ecc->Enums.Object(i)
+			te->Used = False
+		Next
 		For i As Integer = ecc->Namespaces.Count - 1 To 0 Step -1
 			te = ecc->Namespaces.Object(i)
 			te->Used = False
 		Next
-		For i As Integer = ecc->FunctionsOthers.Count - 1 To 0 Step -1
-			te = ecc->FunctionsOthers.Object(i)
+		For i As Integer = ecc->Procedures.Count - 1 To 0 Step -1
+			te = ecc->Procedures.Object(i)
 			te->Used = False
 			For j As Integer = te->Elements.Count - 1 To 0 Step -1
 				te1 = te->Elements.Object(j)
@@ -6434,8 +6438,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 	Dim As List NotUsedIdentifiers
 	For kk As Integer = 0 To Contents.Count - 1
 		ecc = Contents.Item(kk)
-		For i As Integer = 0 To ecc->Functions.Count - 1
-			te = ecc->Functions.Object(i)
+		For i As Integer = 0 To ecc->Types.Count - 1
+			te = ecc->Types.Object(i)
 			If te->Used = False Then
 				NotUsedIdentifiers.Add te
 			End If
@@ -6452,14 +6456,20 @@ Sub AnalyzeTab(Param As Any Ptr)
 				Next
 			Next
 		Next
+		For i As Integer = 0 To ecc->Enums.Count - 1
+			te = ecc->Enums.Object(i)
+			If te->Used = False Then
+				NotUsedIdentifiers.Add te
+			End If
+		Next
 		For i As Integer = 0 To ecc->Namespaces.Count - 1
 			te = ecc->Namespaces.Object(i)
 			If te->Used = False Then
 				NotUsedIdentifiers.Add te
 			End If
 		Next
-		For i As Integer = 0 To ecc->FunctionsOthers.Count - 1
-			te = ecc->FunctionsOthers.Object(i)
+		For i As Integer = 0 To ecc->Procedures.Count - 1
+			te = ecc->Procedures.Object(i)
 			If te->Used = False Then
 				NotUsedIdentifiers.Add te
 			End If
@@ -6762,9 +6772,8 @@ End Sub
 Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ByRef Content As EditControlContent)
 	Dim As TypeElement Ptr te, te1, tbi, func
 	Dim As ConstructionBlock Ptr cb
-	Content.Types.Clear
-	For i As Integer = Content.Functions.Count - 1 To 0 Step -1
-		te = Content.Functions.Object(i)
+	For i As Integer = Content.Types.Count - 1 To 0 Step -1
+		te = Content.Types.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
@@ -6774,19 +6783,21 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, Content.Functions.Object(i)))
+		Delete_( Cast(TypeElement Ptr, Content.Types.Object(i)))
+	Next
+	For i As Integer = Content.Enums.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, Content.Enums.Object(i)))
 	Next
 	For i As Integer = Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, Content.Namespaces.Object(i)))
 	Next
-	For i As Integer = Content.FunctionsOthers.Count - 1 To 0 Step -1
-		te = Content.FunctionsOthers.Object(i)
+	For i As Integer = Content.Procedures.Count - 1 To 0 Step -1
+		te = Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, Content.FunctionsOthers.Object(i)))
-		'FunctionsOthers.Remove i
+		Delete_( Cast(TypeElement Ptr, Content.Procedures.Object(i)))
 	Next
 	For i As Integer = Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = Content.ConstructionBlocks.Item(i)
@@ -6807,9 +6818,9 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		Delete_( Cast(TypeElement Ptr, Content.Args.Object(i)))
 		'Args.Remove i
 	Next
+	Content.Types.Clear
 	Content.Defines.Clear
 	Content.Functions.Clear
-	Content.FunctionsOthers.Clear
 	Content.ConstructionBlocks.Clear
 	Content.Namespaces.Clear
 	Content.Enums.Clear
@@ -7333,7 +7344,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
 						te->FileName = sFileName
 						te->Tag = tb
-						Content.FunctionsOthers.Add te->DisplayName, te
+						'Content.FunctionsOthers.Add te->DisplayName, te
 						Content.Procedures.Add te->Name, te
 						Content.Defines.Add te->Name, te
 						Project->Globals.Functions.Add te->Name, te
@@ -7430,18 +7441,6 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							te->Parameters = Trim(res1(n))
 							te->FileName = sFileName
 							If func Then func->Elements.Add te->Name, te
-							te = New_( TypeElement)
-							te->Name = t
-							If tbi AndAlso tbi->Name <> "" Then
-								te->DisplayName = tbi->Name & "." & te->Name
-							Else
-								te->DisplayName = te->Name
-							End If
-							te->ElementType = "EnumItem"
-							te->Value = ElementValue
-							te->StartLine = i
-							te->Parameters = Trim(res1(n))
-							te->FileName = sFileName
 							Content.Args.Add te->Name, te
 							Project->Globals.Args.Add te->Name, te
 						Next n
@@ -7516,7 +7515,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 							func->Elements.Add te->Name, te
 						Else
-							Content.FunctionsOthers.Add te->DisplayName, te
+							'Content.FunctionsOthers.Add te->DisplayName, te
 							Content.Procedures.Add te->Name, te
 							Project->Globals.Functions.Add te->Name, te
 						End If
@@ -7955,15 +7954,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	'LoadFunctionsWithContent FileName, Project, txtCode.Content
 	Dim As TypeElement Ptr te, te1, func
 	Dim As ConstructionBlock Ptr block, cb
-	txtCode.Content.Types.Clear
-	For i As Integer = txtCode.Content.Functions.Count - 1 To 0 Step -1
-		te = txtCode.Content.Functions.Object(i)
-		'If NotForms Then
-		'	If te->ElementType = "Type" AndAlso te->FileName <> FileName Then
-		'		txtCode.Types.Add te->Name, te
-		'		Continue For
-		'	End If
-		'End If
+	For i As Integer = txtCode.Content.Types.Count - 1 To 0 Step -1
+		te = txtCode.Content.Types.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
@@ -7974,19 +7966,20 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Functions.Object(i)))
-		'Functions.Remove i
+	Next
+	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
 	Next
-	For i As Integer = txtCode.Content.FunctionsOthers.Count - 1 To 0 Step -1
-		te = txtCode.Content.FunctionsOthers.Object(i)
+	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
+		te = txtCode.Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.FunctionsOthers.Object(i)))
-		'FunctionsOthers.Remove i
+		Delete_( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
@@ -8007,13 +8000,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
 		'Args.Remove i
 	Next
-	
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
+	txtCode.Content.Types.Clear
 	txtCode.Content.Defines.Clear
 	txtCode.Content.Functions.Clear
-	txtCode.Content.FunctionsOthers.Clear
 	txtCode.Content.ConstructionBlocks.Clear
 	txtCode.Content.Namespaces.Clear
 	txtCode.Content.Enums.Clear
@@ -8549,7 +8541,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
 						te->FileName = sFileName
 						te->Tag = tb
-						txtCode.Content.FunctionsOthers.Add te->DisplayName, te
+						'txtCode.Content.FunctionsOthers.Add te->DisplayName, te
 						txtCode.Content.Procedures.Add te->Name, te
 						txtCode.Content.Defines.Add te->Name, te
 						If Namespaces.Count > 0 Then
@@ -8645,18 +8637,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->Parameters = Trim(res1(n))
 							te->FileName = sFileName
 							If func Then func->Elements.Add te->Name, te
-							te = New_( TypeElement)
-							te->Name = t
-							If tbi AndAlso tbi->Name <> "" Then
-								te->DisplayName = tbi->Name & "." & te->Name
-							Else
-								te->DisplayName = te->Name
-							End If
-							te->ElementType = "EnumItem"
-							te->Value = ElementValue
-							te->StartLine = i
-							te->Parameters = Trim(res1(n))
-							te->FileName = sFileName
 							txtCode.Content.Args.Add te->Name, te
 						Next n
 					ElseIf StartsWith(bTrimLCase, "declare ") Then
@@ -8730,7 +8710,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
 							func->Elements.Add te->Name, te
 						Else
-							txtCode.Content.FunctionsOthers.Add te->DisplayName, te
+							'txtCode.Content.FunctionsOthers.Add te->DisplayName, te
 							txtCode.Content.Procedures.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
@@ -9990,8 +9970,8 @@ Destructor TabWindow
 	cboFunction.Items.Clear
 	Dim As TypeElement Ptr te, te1
 	Dim As ConstructionBlock Ptr cb
-	For i As Integer = txtCode.Content.Functions.Count - 1 To 0 Step -1
-		te = txtCode.Content.Functions.Object(i)
+	For i As Integer = txtCode.Content.Types.Count - 1 To 0 Step -1
+		te = txtCode.Content.Types.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
@@ -9999,18 +9979,21 @@ Destructor TabWindow
 			Next
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Functions.Object(i)))
+		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
+	Next
+	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
+		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
 	Next
-	For i As Integer = txtCode.Content.FunctionsOthers.Count - 1 To 0 Step -1
-		te = txtCode.Content.FunctionsOthers.Object(i)
+	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
+		te = txtCode.Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.FunctionsOthers.Object(i)))
+		Delete_( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
@@ -10040,7 +10023,6 @@ Destructor TabWindow
 		Delete_( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
 	Next
 	txtCode.Content.Functions.Clear
-	txtCode.Content.FunctionsOthers.Clear
 	txtCode.Content.ConstructionBlocks.Clear
 	txtCode.Content.Namespaces.Clear
 	txtCode.Content.Types.Clear

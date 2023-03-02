@@ -184,9 +184,8 @@ Namespace My.Sys.Forms
 		Enums As WStringOrStringList
 		Defines As WStringOrStringList
 		Functions As WStringOrStringList
-		TypeProcedures As WStringOrStringList
 		Procedures As WStringOrStringList
-		FunctionsOthers As WStringOrStringList
+		TypeProcedures As WStringOrStringList
 		Args As WStringOrStringList
 		LineLabels As WStringOrStringList
 		Globals As GlobalTypeElements Ptr
