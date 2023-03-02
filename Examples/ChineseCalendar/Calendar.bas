@@ -1,5 +1,4 @@
 ﻿' Gregorian Calendar Lunar Calendar公历农历
-' Chinese Calendar 中国日历
 ' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
