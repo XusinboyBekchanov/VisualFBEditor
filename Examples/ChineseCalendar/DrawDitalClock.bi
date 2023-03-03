@@ -1,4 +1,4 @@
-﻿' DrawDitalClock 绘制数字时钟
+﻿' DrawDitalClock 绘制数字时钟日历
 ' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 

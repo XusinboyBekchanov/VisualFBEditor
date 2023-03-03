@@ -78,7 +78,7 @@
 		' TimerComponent1
 		With TimerComponent1
 			.Name = "TimerComponent1"
-			.Interval = 100
+			.Interval = 20
 			.Enabled = True
 			.SetBounds 10, 10, 16, 16
 			.Designer = @This
