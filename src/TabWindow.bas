@@ -6791,9 +6791,27 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	For i As Integer = Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, Content.Namespaces.Object(i)))
 	Next
+	For i As Integer = Content.TypeProcedures.Count - 1 To 0 Step -1
+		te = Content.TypeProcedures.Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			te1 = te->Elements.Object(j)
+			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+			Next
+			te1->Elements.Clear
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		Next
+		te->Elements.Clear
+		Delete_( Cast(TypeElement Ptr, Content.TypeProcedures.Object(i)))
+	Next
 	For i As Integer = Content.Procedures.Count - 1 To 0 Step -1
 		te = Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			te1 = te->Elements.Object(j)
+			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+			Next
+			te1->Elements.Clear
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
@@ -6824,6 +6842,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	Content.ConstructionBlocks.Clear
 	Content.Namespaces.Clear
 	Content.Enums.Clear
+	Content.TypeProcedures.Clear
 	Content.Procedures.Clear
 	Content.LineLabels.Clear
 	Content.Args.Clear
@@ -7173,12 +7192,13 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
 									Content.Types.Add te->Name, te
 									Project->Globals.Types.Add te->Name, te
-								ElseIf Not TypeProcedure Then
+								ElseIf TypeProcedure Then
+									Content.TypeProcedures.Add te->Name, te
+									Project->Globals.TypeProcedures.Add te->Name, te
+								Else
 									Content.Procedures.Add te->Name, te
 									Project->Globals.Functions.Add te->Name, te
 									If ECLine->ConstructionIndex = C_P_Macro Then Content.Defines.Add te->Name, te
-								Else
-									Project->Globals.TypeProcedures.Add te->Name, te
 								End If
 								If Not TypeProcedure Then
 									If Namespaces.Count > 0 Then
@@ -7973,9 +7993,27 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
 	Next
+	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
+		te = txtCode.Content.TypeProcedures.Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			te1 = te->Elements.Object(j)
+			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+			Next
+			te1->Elements.Clear
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		Next
+		te->Elements.Clear
+		Delete_( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			te1 = te->Elements.Object(j)
+			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+			Next
+			te1->Elements.Clear
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
@@ -8009,6 +8047,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	txtCode.Content.ConstructionBlocks.Clear
 	txtCode.Content.Namespaces.Clear
 	txtCode.Content.Enums.Clear
+	txtCode.Content.TypeProcedures.Clear
 	txtCode.Content.Procedures.Clear
 	txtCode.Content.LineLabels.Clear
 	txtCode.Content.Args.Clear
@@ -8372,7 +8411,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									txtCode.Content.Enums.Add te->Name, te
 								ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
 									txtCode.Content.Types.Add te->Name, te
-								ElseIf Not TypeProcedure Then
+								ElseIf TypeProcedure Then
+									txtCode.Content.TypeProcedures.Add te->Name, te
+								Else
 									txtCode.Content.Procedures.Add te->Name, te
 									If ECLine->ConstructionIndex = C_P_Macro Then txtCode.Content.Defines.Add te->Name, te
 								End If
@@ -9977,8 +10018,10 @@ Destructor TabWindow
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
 				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
+			te1->Elements.Clear
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
+		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
@@ -9987,9 +10030,27 @@ Destructor TabWindow
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
 	Next
+	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
+		te = txtCode.Content.TypeProcedures.Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			te1 = te->Elements.Object(j)
+			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+			Next
+			te1->Elements.Clear
+			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		Next
+		te->Elements.Clear
+		Delete_( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			te1 = te->Elements.Object(j)
+			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+			Next
+			te1->Elements.Clear
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
@@ -10026,6 +10087,7 @@ Destructor TabWindow
 	txtCode.Content.ConstructionBlocks.Clear
 	txtCode.Content.Namespaces.Clear
 	txtCode.Content.Types.Clear
+	txtCode.Content.TypeProcedures.Clear
 	txtCode.Content.Procedures.Clear
 	txtCode.Content.LineLabels.Clear
 	txtCode.Content.Args.Clear

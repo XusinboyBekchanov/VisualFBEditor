@@ -1172,7 +1172,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Property EditControl.Text ByRef As WString
-		WLet(FText.vptr, "")
+		FText = ""
 		For i As Integer = 0 To Content.Lines.Count - 1
 			If i <> Content.Lines.Count - 1 Then
 				WAdd FText.vptr, Lines(i) + Chr(13) + Chr(10)
@@ -1184,7 +1184,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property EditControl.Text(ByRef Value As WString)
-		WLet(FText.vptr, "")
+		FText = ""
 		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
 			Delete_( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 		Next i
@@ -1195,7 +1195,7 @@ Namespace My.Sys.Forms
 			If Value[i] = 10 Or Value[i] = 0 Then
 				InsertLine(j, Trim(Mid(*FText.vptr, 1, Len(*FText.vptr) - 1), Any WChr(13)))
 				j = j + 1
-				WLet(FText.vptr, "")
+				FText = ""
 			End If
 		Next i
 	End Property
