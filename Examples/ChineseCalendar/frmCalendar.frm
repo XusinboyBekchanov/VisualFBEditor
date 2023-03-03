@@ -200,14 +200,9 @@ Private Sub frmCalendarType.Picture1_Paint(ByRef Sender As Control, ByRef Canvas
 End Sub
 
 Private Sub frmCalendarType.Picture1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-	Dim i As Integer = DrawCl.XY2Day(x, y)
-	If i > 0 And i < 100 Then
-		ComboBoxEdit3.ItemIndex = i - 1
-	Else
-		Dim DateTime As Double = DrawCl.XY2Date(i)
-		ComboBoxEdit1.ItemIndex = Year(DateTime) - 2020
-		ComboBoxEdit2.ItemIndex = Month(DateTime) - 1
-		ComboBoxEdit3.ItemIndex = Day(DateTime) - 1
-	End If
+	Dim DateTime As Double = DrawCl.XY2Date(x, y)
+	ComboBoxEdit1.ItemIndex = Year(DateTime) - 2020
+	ComboBoxEdit2.ItemIndex = Month(DateTime) - 1
+	ComboBoxEdit3.ItemIndex = Day(DateTime) - 1
 	Picture1_Paint Sender, Picture1.Canvas
 End Sub

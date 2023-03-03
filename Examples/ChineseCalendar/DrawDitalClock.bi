@@ -35,7 +35,7 @@ Private:
 	'当月天数
 	mDayCount As Integer
 	'当天
-	mToday As Integer
+	mDay As Integer
 	'当月第一天星期几 (星期日为每周第一天)
 	mWeekStart As Integer
 	'行数
@@ -49,11 +49,12 @@ Private:
 	mHeight As Integer
 	mWidth As Integer
 	mDateTime As Double
+	mFontSize As Integer
 Public:
 	Declare Constructor
 	Declare Destructor
-	Declare Function XY2Date(dif As Integer) As Double
-	Declare Function XY2Day(x As Integer, y As Integer) As Integer
+	'Declare Function XY2Date(dif As Integer) As Double
+	Declare Function XY2Date(x As Integer, y As Integer) As Double
 	Declare Sub PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double)
 End Type
 

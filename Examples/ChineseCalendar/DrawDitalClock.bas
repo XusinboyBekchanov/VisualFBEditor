@@ -1,4 +1,4 @@
-﻿' DrawDitalClock 绘制数字时钟
+﻿' DrawDitalClock 绘制数字时钟日历
 ' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
@@ -81,7 +81,7 @@ Private Sub DrawDitalClock.PaintClock(ByRef Canvas As My.Sys.Drawing.Canvas, Dat
 	
 	If DrawCalendar Then Canvas.Line 0, 0, mW(0), mH(0), , "F"
 	
-	Canvas.Pen.Color = &hffc0c0
+	Canvas.Pen.Color = &hc0c0c0
 	Canvas.Line 0, 0, mW(0), mH(1), &hffc0c0 , "F"
 	
 	Canvas.Font.Name = "微软雅黑"
@@ -151,18 +151,20 @@ Destructor DrawCalendar
 End Destructor
 
 Constructor DrawCalendar
+	mFontSize= 10
 End Constructor
 
 Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double)
 	mDateTime = DateTime
 	mWidth = Canvas.Width
+	mFontSize= mWidth / 30
 	mHeight = Canvas.Height
 	'当月第一天
 	mDayStart = DateSerial(Year(DateTime), Month(DateTime), 1)
 	'当月天数
 	mDayCount = DateDiff("d", mDayStart, DateAdd("m", 1, mDayStart))
 	'当天
-	mToday = Day(DateTime)
+	mDay = Day(DateTime)
 	'当月第一天星期几 (星期日为每周第一天)
 	mWeekStart = Weekday(mDayStart) - 2
 	'行数
@@ -184,11 +186,12 @@ Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, Da
 	'文字颜色
 	Dim cr As Integer
 	
+	Canvas.Pen.Color = &h8080ff
+	Canvas.Line 0, 0, mWidth, mHeight, , "F"
+
 	Canvas.Font.Name= "微软雅黑"
 	Canvas.Font.Bold = True
-	Canvas.Font.Size = 10
-	
-	Canvas.Line 0, 0, mWidth, mHeight, , "F"
+	Canvas.Font.Size = mFontSize
 	
 	'绘制日历星期抬头
 	For i = 0 To 6
@@ -205,13 +208,13 @@ Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, Da
 		c = mWeekStart + i
 		x = (c Mod 7)
 		y = c \ 7+2
-		If i = mToday Then
-			Canvas.Pen.Color = &h8080ff
+		If i = mDay Then
+			Canvas.Pen.Color = &h404080
 			Canvas.Line x * mCellWidth, (y - 1) * mCellHeight, x * mCellWidth + mCellWidth, y * mCellHeight , &h8080ff , "F"
 		End If
 		dt = Format(i)
 		Canvas.Font.Name= "Arial"
-		Canvas.Font.Size = 12
+		Canvas.Font.Size = mFontSize
 		Canvas.Font.Bold = True
 		If n = DateSerial(yy, mm, i) Then m = True Else m = False
 		If m Then
@@ -226,7 +229,7 @@ Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, Da
 		If dt = "" Then dt = cal.CDayStr(cal.lDay)
 		If dt = "初一" Then dt = cal.MonName(cal.lMonth) & "月"
 		Canvas.Font.Name= "微软雅黑"
-		Canvas.Font.Size = 8
+		Canvas.Font.Size = mFontSize / 10 * 8
 		Canvas.Font.Bold = False
 		If m Then
 			cr = &hFF4040
@@ -237,24 +240,10 @@ Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, Da
 	Next
 End Sub
 
-Private Function DrawCalendar.XY2Date(dif As Integer) As Double
-	If dif < 0 Then
-		Return DateAdd("d", dif, mDayStart)
-	End If
-	If dif>100 Then
-		Return DateAdd("d", dif - 101 + mDayCount, mDayStart)
-	End If
-	Return mDateTime
-End Function
-
-Private Function DrawCalendar.XY2Day(x As Integer, y As Integer) As Integer
+Private Function DrawCalendar.XY2Date(x As Integer, y As Integer) As Double
 	Dim x1 As Integer = x \ mCellWidth
 	Dim y1 As Integer = y \ mCellHeight
 	
-	Dim r As Integer = y1 * 7 + x1 - mWeekStart - 7
-	
-	If r < 1 Then r = r - 1
-	If r > mDayCount Then r = r - mDayCount + 100
-	
-	Return r
+	Dim dif As Integer = y1 * 7 + x1 - mWeekStart - 8
+	Return DateAdd("d", dif, mDayStart)
 End Function
