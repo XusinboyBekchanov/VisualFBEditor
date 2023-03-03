@@ -20,6 +20,7 @@
 			.CancelButton = @cmdCancel
 			.Designer = @This
 			.OnCreate = @_Form_Create
+			.OnResize = @_Form_Resize
 			.SetBounds 0, 0, 840, 276
 		End With
 		' lvTrek
@@ -88,6 +89,10 @@
 		End With
 	End Constructor
 	
+	Private Sub frmTrek._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		(*Cast(frmTrek Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
+	End Sub
+	
 	Private Sub frmTrek._Form_Create(ByRef Sender As Control)
 		(*Cast(frmTrek Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
@@ -125,4 +130,16 @@ End Sub
 Private Sub frmTrek.Form_Create(ByRef Sender As Control)
 	fTrek.lvTrek.SelectedItemIndex = 0
 	fTrek.SelectedItem = 0
+End Sub
+
+Private Sub frmTrek.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	Dim i As Integer
+	Dim k As Integer
+	If fTrek.lvTrek.Width < 800 Then Exit Sub
+	
+	'Auto maximize for "File" column on listview
+	For i = 0 To fTrek.lvTrek.Columns.Count - 3
+		k = k + fTrek.lvTrek.Columns.Column(i)->Width
+	Next
+	fTrek.lvTrek.Columns.Column(fTrek.lvTrek.Columns.Count - 2)->Width = fTrek.lvTrek.Width - k - 5
 End Sub

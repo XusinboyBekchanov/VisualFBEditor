@@ -27,13 +27,13 @@
 		Declare Sub ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Sub Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Picture1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Sub Picture1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Static Sub _Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Sub Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Static Sub _Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Sub Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Constructor
 		
-		Dim As Panel Panel1, Picture1
+		Dim As Panel Panel1, Panel2
 		Dim As ComboBoxEdit ComboBoxEdit1, ComboBoxEdit2, ComboBoxEdit3
 		Dim As CommandButton CommandButton1
 	End Type
@@ -77,7 +77,7 @@
 		With ComboBoxEdit1
 			.Name = "ComboBoxEdit1"
 			.Text = "ComboBoxEdit1"
-			.TabIndex = 2
+			.TabIndex = 1
 			.Size = Type<My.Sys.Drawing.Size>(60, 21)
 			.SetBounds 10, 5, 60, 21
 			.Designer = @This
@@ -88,7 +88,7 @@
 		With ComboBoxEdit2
 			.Name = "ComboBoxEdit2"
 			.Text = "ComboBoxEdit2"
-			.TabIndex = 3
+			.TabIndex = 2
 			.Size = Type<My.Sys.Drawing.Size>(60, 21)
 			.SetBounds 80, 5, 60, 21
 			.Designer = @This
@@ -99,7 +99,7 @@
 		With ComboBoxEdit3
 			.Name = "ComboBoxEdit3"
 			.Text = "ComboBoxEdit3"
-			.TabIndex = 4
+			.TabIndex = 3
 			.ControlIndex = 2
 			.Location = Type<My.Sys.Drawing.Point>(190, 10)
 			.Size = Type<My.Sys.Drawing.Size>(60, 21)
@@ -108,41 +108,43 @@
 			.OnSelected = @_ComboBoxEdit1_Selected
 			.Parent = @Panel1
 		End With
-		' Picture1
-		With Picture1
-			.Name = "Picture1"
-			.Text = ""
-			.TabIndex = 4
-			.Align = DockStyle.alClient
-			.Location = Type<My.Sys.Drawing.Point>(0, 40)
-			.Size = Type<My.Sys.Drawing.Size>(334, 221)
-			.Font.Name = "Arial"
-			.SetBounds 0, 40, 374, 241
-			.Designer = @This
-			.OnPaint = @_Picture1_Paint
-			.OnMouseUp = @_Picture1_MouseUp
-			.Parent = @This
-		End With
 		' CommandButton1
 		With CommandButton1
 			.Name = "CommandButton1"
 			.Text = "Today"
-			.TabIndex = 5
+			.TabIndex = 4
 			.Caption = "Today"
 			.Size = Type<My.Sys.Drawing.Size>(60, 21)
-			.SetBounds 220, 5, 60, 21
+			.Location = Type<My.Sys.Drawing.Point>(235, 5)
+			.Anchor.Right = AnchorStyle.asAnchor
+			.SetBounds 235, 5, 60, 21
 			.Designer = @This
 			.OnClick = @_CommandButton1_Click
 			.Parent = @Panel1
 		End With
+		' Panel2
+		With Panel2
+			.Name = "Panel2"
+			.Text = ""
+			.TabIndex = 5
+			.Align = DockStyle.alClient
+			.Location = Type<My.Sys.Drawing.Point>(0, 40)
+			.Size = Type<My.Sys.Drawing.Size>(334, 221)
+			.Font.Name = "Arial"
+			.SetBounds 0, 30, 304, 211
+			.Designer = @This
+			.OnPaint = @_Panel2_Paint
+			.OnMouseUp = @_Panel2_MouseUp
+			.Parent = @This
+		End With
 	End Constructor
 	
-	Private Sub frmCalendarType._Picture1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmCalendarType Ptr, Sender.Designer)).Picture1_MouseUp(Sender, MouseButton, x, y, Shift)
+	Private Sub frmCalendarType._Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		(*Cast(frmCalendarType Ptr, Sender.Designer)).Panel2_MouseUp(Sender, MouseButton, x, y, Shift)
 	End Sub
 	
-	Private Sub frmCalendarType._Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(frmCalendarType Ptr, Sender.Designer)).Picture1_Paint(Sender, Canvas)
+	Private Sub frmCalendarType._Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		(*Cast(frmCalendarType Ptr, Sender.Designer)).Panel2_Paint(Sender, Canvas)
 	End Sub
 	
 	Private Sub frmCalendarType._CommandButton1_Click(ByRef Sender As Control)
@@ -183,26 +185,26 @@ Private Sub frmCalendarType.Form_Create(ByRef Sender As Control)
 End Sub
 
 Private Sub frmCalendarType.ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	Picture1_Paint Sender, Picture1.Canvas
+	Panel2_Paint Sender, Panel2.Canvas
 End Sub
 
 Private Sub frmCalendarType.CommandButton1_Click(ByRef Sender As Control)
 	ComboBoxEdit1.ItemIndex = Year(Now) - 2020
 	ComboBoxEdit2.ItemIndex = Month(Now) - 1
 	ComboBoxEdit3.ItemIndex = Day(Now) - 1
-	Picture1_Paint Sender, Picture1.Canvas
+	Panel2_Paint Sender, Panel2.Canvas
 End Sub
 
-Private Sub frmCalendarType.Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+Private Sub frmCalendarType.Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	Dim DateTime As Double = DateSerial(ComboBoxEdit1.ItemIndex + 2020, ComboBoxEdit2.ItemIndex + 1, ComboBoxEdit3.ItemIndex + 1)
 	Caption = "VFBE Calendar - " & Format(DateTime, "yyyy/mm/dd")
 	DrawCl.PaintCalendar(Canvas, DateTime)
 End Sub
 
-Private Sub frmCalendarType.Picture1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+Private Sub frmCalendarType.Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Dim DateTime As Double = DrawCl.XY2Date(x, y)
 	ComboBoxEdit1.ItemIndex = Year(DateTime) - 2020
 	ComboBoxEdit2.ItemIndex = Month(DateTime) - 1
 	ComboBoxEdit3.ItemIndex = Day(DateTime) - 1
-	Picture1_Paint Sender, Picture1.Canvas
+	Panel2_Paint Sender, Panel2.Canvas
 End Sub
