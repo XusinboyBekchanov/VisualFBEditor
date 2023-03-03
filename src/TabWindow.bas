@@ -7965,7 +7965,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Functions.Object(i)))
+		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
