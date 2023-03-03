@@ -129,7 +129,7 @@ End Sub
 
 Private Sub frmTrek.Form_Create(ByRef Sender As Control)
 	fTrek.lvTrek.SelectedItemIndex = 0
-	SelectedItem = 0
+	fTrek.SelectedItem = 0
 End Sub
 
 Private Sub frmTrek.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
