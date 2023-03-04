@@ -1001,7 +1001,7 @@ Namespace My.Sys.Forms
 		If OnChange Then OnChange(This)
 		Modified = True
 		If OldLinesCount <> LinesCount Then
-			If OnLineChange Then OnLineChange(This, FSelEndLine, -1)
+			If OnLineChange Then OnLineChange(This, FSelEndLine, IIf(Abs(LinesCount - OldLinesCount) = 1, OldLine, -1))
 		End If
 		#ifdef __USE_GTK__
 			If widget AndAlso cr Then
