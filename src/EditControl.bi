@@ -113,6 +113,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Type ConstructionBlock
+		Construction As TypeElement Ptr
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
 		InConstructionBlock As ConstructionBlock Ptr

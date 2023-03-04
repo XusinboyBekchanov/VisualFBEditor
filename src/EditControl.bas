@@ -2396,7 +2396,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend, extend2
 			Dim As Double iRED, iGREEN, iBLUE
-			extend.Width = TextWidth(*FLineLeft)
+			extend.width = TextWidth(*FLineLeft)
 			pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
 			Dim As PangoAttrList Ptr attribs = pango_attr_list_new()
 			If Underline Then
@@ -2415,7 +2415,7 @@ Namespace My.Sys.Forms
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = Trim(*FLineRight) AndAlso CurWord <> "" Then
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
-				.cairo_rectangle (cr, LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + extend.Width + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0), (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
+				.cairo_rectangle (cr, LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + extend.width + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0), (iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 				cairo_fill (cr)
 			ElseIf Colors.Background <> -1 Then
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
@@ -2537,7 +2537,15 @@ Namespace My.Sys.Forms
 		If tIndex <> -1 Then
 			Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
 			If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
-				Return cb->Elements.Object(tIndex)
+				Return te
+			End If
+		ElseIf cb->Construction Then
+			tIndex = cb->Construction->Elements.IndexOf(Text)
+			If tIndex <> -1 Then
+				Dim te As TypeElement Ptr = cb->Construction->Elements.Object(tIndex)
+				If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
+					Return te
+				End If
 			End If
 		End If
 		Return GetFromConstructionBlock(cb->InConstructionBlock, Text, z)
