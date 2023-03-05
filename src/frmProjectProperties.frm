@@ -31,10 +31,10 @@ pfProjectProperties = @fProjectProperties
 		#ifdef __USE_GTK__
 			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 		#else
-			This.Designer = @This
-			This.OnCreate = @_Form_Create
 			This.Icon.LoadFromResourceID(1)
 		#endif
+		This.Designer = @This
+		This.OnCreate = @_Form_Create
 		' tpGeneral
 		tpGeneral.Name = "tpGeneral"
 		tpGeneral.Text = ML("General")

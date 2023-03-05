@@ -336,6 +336,7 @@ Sub ChangeMenuItemsEnabled
 	miSyntaxCheck->Enabled = bEnabled
 	tbtSyntaxCheck->Enabled = bEnabled
 	tbtSuggestions->Enabled = bEnabled
+	miSuggestions->Enabled = bEnabled
 	miCompile->Enabled = bEnabled
 	tbtCompile->Enabled = bEnabled
 	miCompileAll->Enabled = bEnabled
@@ -6392,6 +6393,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											If (Not CStyle) AndAlso CBool(Matn <> "_") AndAlso CBool(OldMatnLCase <> "defined") AndAlso CBool(OldMatnLCase <> "ifdef") AndAlso CBool(OldMatnLCase <> "ifndef") AndAlso CBool(r <> Asc("&")) AndAlso (Not StartsWith(Trim(LCase(*s), Any !"\t "), "#define")) AndAlso (Not StartsWith(Trim(LCase(*s), Any !"\t "), "#undef")) Then
 												If GetQuitThread(Project, tb) Then SetLastThread Project, tb, 0: Exit Sub
 												MutexLock tlockSuggestions
+												ThreadsEnter
 												Dim As Integer ii = 0, AddIndex = -1
 												Dim As UString ErrorText = ML("Error: Identifier not declared") & ", " & Matn & ". " & ML("Declare it")
 												Dim As UString FileName_ = ecc->FileName
@@ -6441,6 +6443,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 													'	tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "")
 													'End If
 												End If
+												ThreadsLeave
 												MutexUnlock tlockSuggestions
 											End If
 										End If
@@ -6548,6 +6551,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 		Next
 	Next kk
 	MutexLock tlockSuggestions
+	ThreadsEnter
 	For i As Integer = 0 To NotUsedIdentifiers.Count - 1
 		te = NotUsedIdentifiers.Item(i)
 		If CBool(LCase(te->ElementType) = "constructor") OrElse CBool(LCase(te->ElementType) = "destructor") OrElse te->TypeProcedure Then Continue For
@@ -6619,6 +6623,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	If tpSuggestions->Caption <> ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "") Then
 		tpSuggestions->Caption = ML("Suggestions") & IIf(lvSuggestions.ListItems.Count, " (" & lvSuggestions.ListItems.Count & " " & ML("Pos") & ")", "")
 	End If
+	ThreadsLeave
 	MutexUnlock tlockSuggestions
 	SetLastThread Project, tb, 0
 End Sub
@@ -7406,12 +7411,24 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						te->FileName = sFileName
 						te->Tag = tb
 						'Content.FunctionsOthers.Add te->DisplayName, te
-						Content.Procedures.Add te->Name, te
 						Content.Defines.Add te->Name, te
-						Project->Globals.Functions.Add te->Name, te
-						If Namespaces.Count > 0 Then
-							Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-							If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+						If inFunc AndAlso CBool(func <> 0) Then
+							If block AndAlso block->ConstructionIndex <> C_Enum AndAlso block->ConstructionIndex <> C_Type AndAlso block->ConstructionIndex <> C_Union AndAlso block->ConstructionIndex <> C_Class Then
+								block->Elements.Add te->Name, te
+							Else
+								func->Elements.Add te->Name, te
+							End If
+						Else
+							If block Then 
+								block->Elements.Add te->Name, te
+							Else
+								Content.Procedures.Add te->Name, te
+								Project->Globals.Functions.Add te->Name, te
+								If Namespaces.Count > 0 Then
+									Var Index = Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+									If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+								End If
+							End If
 						End If
 						Pos2 = InStr(b2, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
@@ -8329,25 +8346,23 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					End If
 				End If
 				If StartsWith(bTrimLCase, "#include ") Then
-					#ifndef __USE_GTK__
-						Pos1 = InStr(b, """")
-						If Pos1 > 0 Then
-							Pos2 = InStr(Pos1 + 1, b, """")
-							WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
-							If ptxtCode = @txtCode Then
-								If IncludesChanged Then
-									txtCode.Content.Includes.Add *FPath
-									txtCode.Content.IncludeLines.Add j
-									Includes.Add *FPath
-								End If
-								OldIncludeLine = j
+					Pos1 = InStr(b, """")
+					If Pos1 > 0 Then
+						Pos2 = InStr(Pos1 + 1, b, """")
+						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+						If ptxtCode = @txtCode Then
+							If IncludesChanged Then
+								txtCode.Content.Includes.Add *FPath
+								txtCode.Content.IncludeLines.Add j
+								Includes.Add *FPath
 							End If
-							If Not pLoadPaths->Contains(*FPath) Then
-								Var AddedIndex = pLoadPaths->Add(*FPath)
-								ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
-							End If
+							OldIncludeLine = j
 						End If
-					#endif
+						If Not pLoadPaths->Contains(*FPath) Then
+							Var AddedIndex = pLoadPaths->Add(*FPath)
+							ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
+						End If
+					End If
 				Else
 					If (ECLine->ConstructionIndex >= 0) AndAlso (ECLine->ConstructionIndex <> C_P_If) AndAlso (ECLine->ConstructionIndex <> C_P_Region) Then
 						If ECLine->ConstructionPart > 0 Then
@@ -8625,11 +8640,23 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->FileName = sFileName
 						te->Tag = tb
 						'txtCode.Content.FunctionsOthers.Add te->DisplayName, te
-						txtCode.Content.Procedures.Add te->Name, te
 						txtCode.Content.Defines.Add te->Name, te
-						If Namespaces.Count > 0 Then
-							Var Index = txtCode.Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-							If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+						If inFunc AndAlso CBool(func <> 0) Then
+							If block AndAlso block->ConstructionIndex <> C_Enum AndAlso block->ConstructionIndex <> C_Type AndAlso block->ConstructionIndex <> C_Union AndAlso block->ConstructionIndex <> C_Class Then
+								block->Elements.Add te->Name, te
+							Else
+								func->Elements.Add te->Name, te
+							End If
+						Else
+							If block Then 
+								block->Elements.Add te->Name, te
+							Else
+								txtCode.Content.Procedures.Add te->Name, te
+								If Namespaces.Count > 0 Then
+									Var Index = txtCode.Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+									If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+								End If
+							End If
 						End If
 						Pos2 = InStr(b2, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
