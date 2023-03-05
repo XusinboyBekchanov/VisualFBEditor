@@ -1,4 +1,151 @@
-﻿Version 1.3.3 (September 23, 2022)
+﻿Version 1.3.4 (March 5, 2023)
+- Fixed: Memory leaks
+- Added: Collapsibility for ElseIf, Else, Case, ... constructions
+- Added: IntelliSense for construction blocks
+- Added: ChineseCalendar Example
+- Improved: Define, Type and Union IntelliSense
+- Changed: Auto Suggestions works only for unsaved files
+- Fixed: Folding code blocks
+- Updated: Bass Examples
+- Fixed: Member IntelliSense
+- Improved: Define IntelliSense
+- Added: Project Suggestions
+- Fixed: Showing the sub windows with the main windows in the same screen
+- Added: Suggestions button
+- Added: Radar Example
+- Fixed: Defining type of members
+- Fixed: Define
+- Fixed: Crashing IDE 64-bit on close tab
+- Fixed: Auto suggestions for unused type procedures and args
+- Fixed: Auto suggestions for unused identifiers
+- Fixed: Showing AutoComplete list on High DPI
+- Added: Content property to Edit Control
+- Fixed: Debugging Main File with Integrated IDE Debugger
+- Fixed: Saving files with Unicode filename with BOM.
+- Fixed: Loading and Saving files with Unicode file name with BOM symbols
+- Fixed: Loading Unicode texts from files with Unicode name
+- Added: Loading and Saving files with Unicode in file name
+- Added: File not found message on load not existing file
+- Added: VisualFBEditor and MyFbFramework chm files
+- Improved: On Select from Include Paths Intellisense automatic adds сlosing quote to the end of file name.
+- Fixed: Showing IntelliSense list with real height
+- Added: Include Paths IntelliSense with Backspace Slash
+- Added: Include Paths IntelliSense
+- Fixed: Re-search when changing Edit control
+- Fixed: Showing the first searching items.
+- Fixed: IntelliSense with Protected members
+- Fixed: Defining Public Protected Private properties of Type
+- Added: Selected Find Range, Whole Words and Use Pattern functions to Find Window, Added: Whole Words only function to Find In Files Window
+- Improved: Find Window
+- Fixed: Showing waiting cursor on all Add Tab action.
+- Fixed: Selected Items Only function of Components form
+- Fixed: IntelliSense bug for "Type As"
+- Fixed: Array IntelliSense
+- Fixed: IntelliSense bug for control array.
+- Added: CJSON_TYPE component
+- Added: IntelliSense fully loaded information to Status Bar
+- Added: Wait cursor when opening files
+- Added: PipeProcess Example
+- Fixed: ReBar Example
+- Fixed: Auto Complete
+- Added: Integrated IDE Debugger on Linux
+- Added: Show As Folder menu item to Explorer toolbar, Fixed: Showing Close buttons on High DPI
+- Fixed: Change the folder status for each projects
+- Added: Waiting cursor in Splash forms
+- Added: Enable/disable menu item to Procedures tab
+- Added: Locate procedure (source) menu item to Procedures tab
+- Fixed: Run the program in compiler directory after compile first
+- Added: Memory Dump
+- Fixed: -gen gas64 debugging
+- Added: Generating events compatible with fbc 1.10.0
+- Fixed: Compiling with fbc 1.10.0
+- Improved: Showing error lines from C sources after compilation
+- Fixed: Compiling with make tool
+- Added: Save back up files before numbering project
+- Fixed: Changing Font property from Properties Window
+- Added: Includes tab to Project Properties Window with Components, Other Include Paths and Library Paths list
+- Fixed: Save Project
+- Added: Batch Compilation File (For Windows) and Batch Compilation File (For *nix/*bsd) option for Project Properties Window
+- Added: MDI ScintillaControl example
+- Added: MDI Scintilla example
+- Added: Open Project As Folder option to Project Properties Window
+- Fixed: Crash on design UserControl
+- Fixed: IntelliSense for Type Fields with bits
+- Fixed: Crash on open Tools Window
+- Added: MediaPlayer Example
+- Added: MultipleDisplay Example
+- Added: SerialPort Example
+- Improved: When opening a project, if the folder name is identical to the project name, then ask to open as a folder or as a project.
+- Improved: Options form
+- Added: Show Horizontal Separator Lines option
+- Improved: Form Designer
+- Fixed: Compiling LiveFX example on 64-bit Windows
+- Added: -gen gas64 debugging
+- Added: Check bitness function for Integrated IDE Debugger
+- Fixed: Integrated IDE Debugger
+- Added: Close Session menu item
+- Removed: Caption blink while updating suggestion
+- Fixed: Auto suggestions
+- Added: Adding Breakpoint with Mouse Click
+- Fixed: File number leak
+- Added: Enable Auto Suggestions option
+- Added: Suggestions window
+- Started: Analyzing Tab
+- Improved: Syntax Highligting with real includes
+- Added: Extern Import intellisense
+- Fixed: Extern variable intellisense
+- Removed: On Error Resume Next error handling menu item, Added: On Local Error Goto ... and On Local Error Goto ... Resume Next error handling menu items
+- Improved: Includes
+- Impoved: External includes
+- Fixed: Set Error Handler, Fixed: Enum item IntelliSense in current tab, Fixed: Syntax Highlighting Identifiers with old symbol (#)
+- Fixed: IntelliSense with external includes
+- Added: IntelliSense external includes
+- Improved: IntelliSense with includes
+- Improved: Filling Auto Complete with real includes
+- Added: "File not loaded" error on load Toolbox
+- Updated: chinese.lng
+- Fixed: IntelliSense
+- Fixed: Filling Auto Complete with real includes
+- Fixed: Pass All Modules to Compiler option
+- Improved: Adding new Form from Templates
+- Changed: Errors Window to Problems Window
+- Fixed: Add Constructor to form templates.
+- Improved: Type procedures IntelliSense
+- Improved: Asm IntelliSense
+- Fixed: Deleting controls from Class form
+- Added: Class Form Example.bas
+- Added: Designing forms with Class keyword
+- Added: Class keyword Intellisense
+- Updated: Download Example
+- Fixed: Compiling on Linux
+- Fixed: Compile warning and Crashing on add new tab
+- Changed: Tab windows close buttons hiding on under TabControl's UpDown control
+- Improved: Split functionality
+- Improved: Tool windows can also be reordered.
+- Added: Search 'Fixme for ToDo window
+- Fixed: Painting Edit Control on Debug
+- Fixed: Ctrl + MouseWheel
+- Fixed: Showing Templates form
+- Fixed: Blinking on showing Form
+- Improved: Enabling and disabling menu and toolbar items
+- Added: MDIScintillaControl Example
+- Added: ScintillaControl, Fixed: Designing Controls with libraries
+- Fixed: Compiling on Android
+- Fixed: Opening files with Other Editors
+- Fixed: Enabling or Disabling menu items
+- Fixed: TabIndexes of Dialogs
+- Fixed: Crashing on Linux
+- Fixed: Opening Object.bas
+- Fixed: Set limit for smallest font size to 1pt on Ctrl+Mouse wheel in Code Editor.
+- Updated: russian.lng
+- Fixed: Showing Project Properties Window with First tab
+- Added: Checking Optimization level option when Selected from Optimization level Dropdown in Project Properties
+- Added: MDIScintilla example
+- Fixed: Disable "Form" button when edit code file
+- Fixed: Define and Macro Intellisense inside Namespace
+- Added: Hash, FileSearch & FileSync for MDINotepad Example
+- Fixed: Form template
+Version 1.3.3 (September 23, 2022)
 - Fixed: Namespace intellisense
 - Improved: Make and Make clean functions
 - Fixed: Intellisense for variables inside Namespace

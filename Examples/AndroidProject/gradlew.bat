@@ -5,8 +5,8 @@
 @rem
 @rem ##########################################################################
 
-set FBC=D:\GitHub\fbc-android9\bin\fbc.exe
-set MFF=D:\GitHub\VisualFBEditor\Controls\MyFbFramework
+set FBC=D:\FreeBasic\fbc-android\bin\fbc.exe
+set MFF=D:\GitHub\VisualFBEditor/./Controls/MyFbFramework
 set NDK=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b
 @rem make --directory ./app/src/main/bas
 "%FBC%" ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/x86/libmff-app.so" -target i686-linux-android -i "%MFF%" -v -dll -exx -sysroot "%NDK%/platforms/android-9/arch-x86" -Wl "-L %NDK%/platforms/android-9/arch-x86/usr/lib"

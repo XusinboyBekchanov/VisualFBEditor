@@ -7,7 +7,7 @@
             "label": "FreeBASIC Build",
             "type": "shell",
             "windows": {
-                "command": "D:/FreeBasic/FreeBASIC-1.07.1-win32/fbc.exe",
+                "command": "D:/FreeBasic/FreeBASIC-1.09.0-winlibs-gcc-9.3.0/fbc32.exe",
                 "args": [
                     "-g",
                     "VisualFBEditor.bas",

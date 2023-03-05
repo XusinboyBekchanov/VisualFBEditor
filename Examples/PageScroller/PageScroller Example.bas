@@ -31,7 +31,9 @@
 			.Name = "PageScroller1"
 			.Text = "PageScroller1"
 			.TabIndex = 0
-			.SetBounds 30, 50, 260, 120
+			'.Style = PageScrollerStyle.psHorizontal
+			.Align = DockStyle.alClient
+			.SetBounds 0, 0, 334, 261
 			.Designer = @This
 			.OnScroll = @PageScroller1_Scroll_
 			.Parent = @This

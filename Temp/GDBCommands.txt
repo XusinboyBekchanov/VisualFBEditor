@@ -1,2 +1,0 @@
-file "/mnt/media/GitHub/VisualFBEditor/src/../VisualFBEditor64_gtk3"
-r
