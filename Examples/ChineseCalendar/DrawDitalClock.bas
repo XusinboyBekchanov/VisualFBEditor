@@ -126,18 +126,43 @@ Private Sub DrawDitalClock.PaintClock(ByRef Canvas As My.Sys.Drawing.Canvas, Dat
 	Canvas.Font.Size = mFontSize / 4
 	mDt = MonthName(Month(DateTime))
 	Canvas.TextOut (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt ', &hffffff
-	mDt = cal.lHoliday
-	If mDt= "" Then mDt= cal.lSolarTerm
-	mDt = cal.MonName(cal.lMonth) & "月" & mDt
+	mDt = IIf(cal.IsLeap, "闰", "") & cal.MonName(cal.lMonth) & "月"
 	Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt ', &hffffff
 	'日
-	Canvas.Font.Size = mFontSize / 2 * 3
+	Dim h1 As Integer = 0
+	Dim h2 As Integer = 0
+	Dim Dt As String
 	Canvas.Font.Bold = True
 	mDt = Format(DateTime, "d")
-	Canvas.TextOut (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + mH(3) + (mH(1) - Canvas.TextHeight(mDt)) / 2, mDt
-	Canvas.Font.Size = mFontSize / 7 * 6
+	Dt = cal.sHoliday & cal.wHoliday
+	If Dt <> "" Then
+		Canvas.Font.Size = mFontSize / 4
+		h1 = Canvas.TextHeight(Dt)
+		Canvas.Font.Size = mFontSize
+		h2 = Canvas.TextHeight(mDt)
+		Canvas.TextOut (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + mH(3) + (mH(1) - (h1 + h2)) / 2, mDt
+		Canvas.Font.Size = mFontSize / 4
+		Canvas.TextOut (mW(0) / 2 - Canvas.TextWidth(Dt)) / 2, mH(1) + mH(2) + mH(3) + mH(1) - h1, Dt, &h808080
+	Else
+		Canvas.Font.Size = mFontSize / 2 * 3
+		Canvas.TextOut (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + mH(3) + (mH(1) - Canvas.TextHeight(mDt)) / 2, mDt
+	End If
+	
+	Dt = cal.lSolarTerm & cal.lHoliday
 	mDt = cal.CDayStr(cal.lDay)
-	Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + mH(3) + (mH(1) - Canvas.TextHeight(mDt)) / 2, mDt
+	If Dt <> "" Then
+		Canvas.Font.Size = mFontSize / 4
+		h1 = Canvas.TextHeight(Dt)
+		Canvas.Font.Size = mFontSize / 7 * 5
+		h2 = Canvas.TextHeight(mDt)
+		Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + mH(3) + (mH(1) - (h1 + h2)) / 2, mDt
+		Canvas.Font.Size = mFontSize / 4
+		Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + mH(3) + mH(1) - h1, Dt, &h808080
+	Else
+		Canvas.Font.Size = mFontSize / 7 * 6
+		mDt = cal.CDayStr(cal.lDay)
+		Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(1) + mH(2) + mH(3) + (mH(1) - Canvas.TextHeight(mDt)) / 2, mDt
+	End If
 	'星期
 	Canvas.Font.Bold = False
 	Canvas.Font.Size = mFontSize / 4
@@ -157,7 +182,7 @@ End Constructor
 Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double)
 	mDateTime = DateTime
 	mWidth = Canvas.Width
-	mFontSize= mWidth / 30
+	mFontSize= mWidth \ 30
 	mHeight = Canvas.Height
 	'当月第一天
 	mDayStart = DateSerial(Year(DateTime), Month(DateTime), 1)
@@ -188,7 +213,7 @@ Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, Da
 	
 	Canvas.Pen.Color = &h8080ff
 	Canvas.Line 0, 0, mWidth, mHeight, , "F"
-
+	
 	Canvas.Font.Name= "微软雅黑"
 	Canvas.Font.Bold = True
 	Canvas.Font.Size = mFontSize
@@ -209,7 +234,7 @@ Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, Da
 		x = (c Mod 7)
 		y = c \ 7+2
 		If i = mDay Then
-			Canvas.Pen.Color = &h404080
+			Canvas.Pen.Color = &h4040ff
 			Canvas.Line x * mCellWidth, (y - 1) * mCellHeight, x * mCellWidth + mCellWidth, y * mCellHeight , &h8080ff , "F"
 		End If
 		dt = Format(i)
@@ -224,10 +249,11 @@ Private Sub DrawCalendar.PaintCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, Da
 		End If
 		Canvas.TextOut(x * mCellWidth + (mCellWidth - Canvas.TextWidth(dt)) / 2, y * mCellHeight - mCellHeight / 2 - Canvas.TextHeight(dt), dt, cr)
 		cal.sInitDate(yy, mm, i)
-		dt = cal.lHoliday
-		If dt = "" Then dt = cal.lSolarTerm
+		dt = cal.lHoliday & cal.lSolarTerm
+		If cal.CDayStr(cal.lDay) = "初一" Then
+			dt = IIf(cal.IsLeap, "闰", "") & cal.MonName(cal.lMonth) & "月" & IIf(dt = "", "", "("  & dt & ")")
+		End If
 		If dt = "" Then dt = cal.CDayStr(cal.lDay)
-		If dt = "初一" Then dt = cal.MonName(cal.lMonth) & "月"
 		Canvas.Font.Name= "微软雅黑"
 		Canvas.Font.Size = mFontSize / 10 * 8
 		Canvas.Font.Bold = False
