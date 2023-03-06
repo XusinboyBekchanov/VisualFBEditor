@@ -14,9 +14,9 @@
 ## Chinese Calendar
 
 ![Untitled2](https://user-images.githubusercontent.com/35757455/223009869-b5d3afa6-c4ec-4298-9436-b41f1ba063ad.png)
-
 ![Untitled3](https://user-images.githubusercontent.com/35757455/223009891-cf9d38ae-f22c-41e5-9acc-3de7d7971589.png)
-
 ![Untitled4](https://user-images.githubusercontent.com/35757455/223009910-cfee3e61-a0c9-4ba3-8457-63b8b93e9b20.png)
+
+Chinese calendar shows the date, festival and solar term of the lunar calendar
 
 ![ChineseCalendar (2)](https://user-images.githubusercontent.com/35757455/222600721-9790e787-908b-45ba-b1fc-38c21c949f97.gif)
