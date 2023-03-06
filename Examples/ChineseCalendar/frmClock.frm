@@ -168,6 +168,7 @@ End Sub
 Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	DrawNC.Initial Canvas
 	DrawNC.FontSize = 48
+	Width = DrawNC.Width : Height = DrawNC.Height + ScaleY(10)
 	Form_MouseUp Sender, 0, 0, 0, 0
 End Sub
 
@@ -183,12 +184,12 @@ Private Sub frmClockType.Form_MouseUp(ByRef Sender As Control, MouseButton As In
 	Case 2 'middle
 	End Select
 	'获取控件矩形
-	Dim lRT As Rect
-	GetClientRect(Handle, @lRT)
+	'Dim lRT As Rect
+	'GetClientRect(Handle, @lRT)
 	'设置窗口大小
-	Height = Height - lRT.Bottom + lRT.Top + DrawNC.Height
-	Width = Width - lRT.Right + lRT.Left + DrawNC.Width
-	DrawNC.PaintClock Canvas, Now, -1, True
+	'Height = Height - lRT.Bottom + lRT.Top + DrawNC.Height
+	'Width = Width - lRT.Right + lRT.Left + DrawNC.Width
+	'DrawNC.PaintClock Canvas, Now, -1, True
 End Sub
 
 Private Sub frmClockType.Form_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -199,10 +200,11 @@ Private Sub frmClockType.Form_MouseWheel(ByRef Sender As Control, Direction As I
 		If DrawNC.FontSize < 200 Then DrawNC.FontSize = DrawNC.FontSize + 2
 	End Select
 	'获取控件矩形
-	Dim lRT As Rect
-	GetClientRect(Handle, @lRT)
+	'Dim lRT As Rect
+	'GetClientRect(Handle, @lRT)
 	'设置窗口大小
-	Height = Height - lRT.Bottom + lRT.Top + DrawNC.Height
-	Width = Width - lRT.Right + lRT.Left + DrawNC.Width
+	'Height = Height - lRT.Bottom + lRT.Top + DrawNC.Height
+	'	Width = Width - lRT.Right + lRT.Left + DrawNC.Width
 	DrawNC.PaintClock Canvas, Now, -1, True
+	Width = DrawNC.Width : Height = DrawNC.Height + ScaleY(10)
 End Sub
