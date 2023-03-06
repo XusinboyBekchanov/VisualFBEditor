@@ -339,7 +339,7 @@ Namespace My.Sys.Forms
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol
-		Dim As Boolean WithOldSymbol, bTypeAs
+		Dim As Boolean WithOldSymbol, bTypeAs, bInAsm
 		Dim As Integer OldPos, OldLinesCount
 		Dim pkeywords As WStringOrStringList Ptr
 		Dim LinePrinted As Boolean
