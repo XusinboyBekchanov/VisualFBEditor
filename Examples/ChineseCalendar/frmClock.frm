@@ -168,7 +168,8 @@ End Sub
 Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	DrawNC.Initial Canvas
 	DrawNC.FontSize = 48
-	Width = DrawNC.Width : Height = DrawNC.Height + ScaleY(10)
+	'Width = DrawNC.Width : Height = DrawNC.Height + ScaleY(10)
+	Move Left, Top, Width - ClientWidth + DrawNC.Width, Height - ClientHeight + DrawNC.Height
 	Form_MouseUp Sender, 0, 0, 0, 0
 End Sub
 
@@ -206,5 +207,6 @@ Private Sub frmClockType.Form_MouseWheel(ByRef Sender As Control, Direction As I
 	'Height = Height - lRT.Bottom + lRT.Top + DrawNC.Height
 	'	Width = Width - lRT.Right + lRT.Left + DrawNC.Width
 	DrawNC.PaintClock Canvas, Now, -1, True
-	Width = DrawNC.Width : Height = DrawNC.Height + ScaleY(10)
+	'Width = DrawNC.Width : Height = DrawNC.Height + ScaleY(10)
+	Move Left, Top, Width - ClientWidth + DrawNC.Width, Height - ClientHeight + DrawNC.Height
 End Sub
