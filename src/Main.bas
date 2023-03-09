@@ -4459,11 +4459,11 @@ Sub EndOfLoadFunctions
 				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
 				If tb Then
 					tb->txtCode.Content.ExternalIncludesLoaded = False
-					If AutoSuggestions Then
-						#ifndef __USE_GTK__
-							PostMessage tb->Handle, EM_SETMODIFY, 0, 0
-						#endif
-					End If
+					'If AutoSuggestions Then
+					'	#ifndef __USE_GTK__
+					'		PostMessage tb->Handle, EM_SETMODIFY, 0, 0
+					'	#endif
+					'End If
 				End If
 			Next i
 		Next j
