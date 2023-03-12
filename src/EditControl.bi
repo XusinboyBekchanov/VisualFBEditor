@@ -84,6 +84,32 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
+	Enum ElementTypes
+		E_ByRefParameter
+		E_ByValParameter
+		E_ExternVariable
+		E_CommonVariable
+		E_SharedVariable
+		E_LocalVariable
+		E_Constant
+		E_Field
+		E_Define
+		E_Macro
+		E_Namespace
+		E_Enum
+		E_EnumMember
+		E_LineLabel
+		E_Class
+		E_Type
+		E_Union
+		E_Sub
+		E_Function
+		E_Property
+		E_Operator
+		E_Constructor
+		E_Destructor
+	End Enum
+	
 	Type TypeElement
 		Name As String
 		DisplayName As String
