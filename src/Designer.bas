@@ -1461,14 +1461,14 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If IsWindow(Control) Then
-				SetProp(Control, "@@@Designer", This)
+				SetProp(Control, "@@@Designer", @This)
 				If GetWindowLongPtr(Control, GWLP_WNDPROC) <> @HookChildProc Then
 					SetProp(Control, "@@@Proc", Cast(WNDPROC, SetWindowLongPtr(Control, GWLP_WNDPROC, CInt(@HookChildProc))))
 				End If
 			End If
 			GetChilds(Control)
 			For i As Integer = 0 To FChilds.Count - 1
-				SetProp(FChilds.Child[i], "@@@Designer", This)
+				SetProp(FChilds.Child[i], "@@@Designer", @This)
 				'SetWindowLongPtr(FChilds.Child[i], GWLP_USERDATA, CInt(GetControl(Control)))
 				If GetProp(FChilds.Child[i], "MFFControl") = 0 Then SetProp(FChilds.Child[i], "MFFControl", GetControl(Control))
 				If GetWindowLongPtr(FChilds.Child[i], GWLP_WNDPROC) <> @HookChildProc Then
@@ -2412,7 +2412,7 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.GetPopupMenuItems
 		FPopupMenuItems.Clear
-		If Parent->ContextMenu Then
+		If Parent AndAlso Parent->ContextMenu Then
 			For i As Integer = 0 To Parent->ContextMenu->Count -1
 				EnumPopupMenuItems *Parent->ContextMenu->Item(i)
 			Next i
@@ -2428,8 +2428,8 @@ Namespace My.Sys.Forms
 		Static As Any Ptr Ctrl
 		Static As My.Sys.Forms.Designer Ptr Des
 		#ifdef __USE_GTK__
-			bShift = Event->Key.state And GDK_SHIFT_MASK
-			bCtrl = Event->Key.state And GDK_CONTROL_MASK
+			bShift = Event->key.state And GDK_SHIFT_MASK
+			bCtrl = Event->key.state And GDK_CONTROL_MASK
 			Des = user_data
 			'If ReadPropertyFunc Then Des = ReadPropertyFunc(Ctrl, "ControlDesigner")
 		#else
@@ -2440,7 +2440,7 @@ Namespace My.Sys.Forms
 		If Des Then
 			With *Des
 				#ifdef __USE_GTK__
-					Select Case Event->Type
+					Select Case Event->type
 				#else
 					Select Case uMsg
 				#endif
@@ -2471,7 +2471,7 @@ Namespace My.Sys.Forms
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
-						.DblClick(Event->Motion.x, Event->Motion.y, Event->Motion.state)
+						.DblClick(Event->motion.x, Event->motion.y, Event->motion.state)
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
@@ -2502,7 +2502,7 @@ Namespace My.Sys.Forms
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_MOTION_NOTIFY
-						.FOverControl = Widget
+						.FOverControl = widget
 						.MouseMove(Event->button.x, Event->button.y, Event->button.state)
 						Return True
 					#else
@@ -2524,7 +2524,7 @@ Namespace My.Sys.Forms
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_KEY_PRESS
-						.KeyDown(Event->Key.keyval, Event->Key.state)
+						.KeyDown(Event->key.keyval, Event->key.state)
 						Return True
 						'Select Case event->Key.keyval
 					#else
@@ -2765,7 +2765,7 @@ Namespace My.Sys.Forms
 					Dim As ..Point P
 				#endif
 				#ifdef __USE_GTK__
-					Select Case Event->Type
+					Select Case Event->type
 				#else
 					Select Case uMsg
 					Case WM_NCHITTEST
@@ -2773,7 +2773,7 @@ Namespace My.Sys.Forms
 				#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
-						.DblClick(Event->Motion.x, Event->Motion.y, Event->Motion.state)
+						.DblClick(Event->motion.x, Event->motion.y, Event->motion.state)
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
@@ -2948,11 +2948,11 @@ Namespace My.Sys.Forms
 			End If
 		#else
 			If IsWindow(FDialog) Then
-				SetProp(GetParent(FDialog), "@@@Designer", This)
+				SetProp(GetParent(FDialog), "@@@Designer", @This)
 				If GetWindowLongPtr(GetParent(FDialog), GWLP_WNDPROC) <> @HookDialogParentProc Then
 					SetProp(GetParent(FDialog), "@@@Proc", Cast(Any Ptr, SetWindowLongPtr(GetParent(FDialog), GWLP_WNDPROC, CInt(@HookDialogParentProc))))
 				End If
-				SetProp(TopMenu->Handle, "@@@Designer", This)
+				SetProp(TopMenu->Handle, "@@@Designer", @This)
 				If GetWindowLongPtr(TopMenu->Handle, GWLP_WNDPROC) <> @HookTopMenuProc Then
 					SetProp(TopMenu->Handle, "@@@Proc", Cast(Any Ptr, SetWindowLongPtr(TopMenu->Handle, GWLP_WNDPROC, CInt(@HookTopMenuProc))))
 				End If

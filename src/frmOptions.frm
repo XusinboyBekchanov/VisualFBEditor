@@ -2688,7 +2688,7 @@ End Sub
 Sub frmOptions.LoadSettings()
 	With fOptions
 		.tvOptions.SelectedNode = .tvOptions.Nodes.Item(0)
-		.TreeView1_SelChange .tvOptions, *.tvOptions.Nodes.Item(0)
+		.TreeView1_SelChange .tvOptions, * (.tvOptions.Nodes.Item(0))
 		.chkTabAsSpaces.Checked = TabAsSpaces
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
@@ -2934,7 +2934,7 @@ Sub frmOptions.LoadSettings()
 		WLet(.EditFontName, *EditorFontName)
 		.EditFontSize = EditorFontSize
 		.lblFont.Font.Name = *EditorFontName
-		.lblFont.Caption = *.EditFontName & ", " & .EditFontSize & "pt"
+		.lblFont.Caption = * (.EditFontName) & ", " & .EditFontSize & "pt"
 		WLet(.InterfFontName, *InterfaceFontName)
 		WLet(.oldInterfFontName, *InterfaceFontName)
 		.InterfFontSize = InterfaceFontSize
@@ -2942,7 +2942,7 @@ Sub frmOptions.LoadSettings()
 		.oldDisplayMenuIcons = DisplayMenuIcons
 		.oldDarkMode = DarkMode
 		.lblInterfaceFont.Font.Name = *InterfaceFontName
-		.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
+		.lblInterfaceFont.Caption = * (.InterfFontName) & ", " & .InterfFontSize & "pt"
 	End With
 End Sub
 
@@ -3367,9 +3367,9 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		ChoosedKeyWordsCase = .cboCase.ItemIndex
 		AddSpacesToOperators = .chkAddSpacesToOperators.Checked
 		WLet(CurrentTheme, .cboTheme.Text)
-		WLet(EditorFontName, *.EditFontName)
+		WLet(EditorFontName, * (.EditFontName))
 		EditorFontSize = .EditFontSize
-		WLet(InterfaceFontName, *.InterfFontName)
+		WLet(InterfaceFontName, * (.InterfFontName))
 		InterfaceFontSize = .InterfFontSize
 		DisplayMenuIcons = .chkDisplayIcons.Checked
 		ShowMainToolBar = .chkShowMainToolbar.Checked
@@ -3866,13 +3866,13 @@ End Sub
 
 Private Sub frmOptions.cmdFont_Click(ByRef Sender As Control)
 	With fOptions
-		.FontD.Font.Name = *.EditFontName
+		.FontD.Font.Name = * (.EditFontName)
 		.FontD.Font.Size = .EditFontSize
 		If .FontD.Execute Then
 			WLet(.EditFontName, .FontD.Font.Name)
 			.EditFontSize = .FontD.Font.Size
-			.lblFont.Font.Name = *.EditFontName
-			.lblFont.Caption = *.EditFontName & ", " & .EditFontSize & "pt"
+			.lblFont.Font.Name = * (.EditFontName)
+			.lblFont.Caption = * (.EditFontName) & ", " & .EditFontSize & "pt"
 		End If
 	End With
 End Sub
@@ -4610,13 +4610,13 @@ End Sub
 
 Private Sub frmOptions.cmdInterfaceFont_Click(ByRef Sender As Control)
 	With fOptions
-		.FontD.Font.Name = *.InterfFontName
+		.FontD.Font.Name = * (.InterfFontName)
 		.FontD.Font.Size = .InterfFontSize
 		If .FontD.Execute Then
 			WLet(.InterfFontName, .FontD.Font.Name)
 			.InterfFontSize = .FontD.Font.Size
-			.lblInterfaceFont.Font.Name = *.InterfFontName
-			.lblInterfaceFont.Caption = *.InterfFontName & ", " & .InterfFontSize & "pt"
+			.lblInterfaceFont.Font.Name = * (.InterfFontName)
+			.lblInterfaceFont.Caption = *(.InterfFontName) & ", " & .InterfFontSize & "pt"
 		End If
 	End With
 End Sub

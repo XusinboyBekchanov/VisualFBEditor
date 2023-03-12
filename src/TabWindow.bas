@@ -9821,7 +9821,7 @@ End Sub
 Sub tabPanel_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	With *Cast(TabPanel Ptr, @Sender)
 		For i As Integer = 0 To .ControlCount - 1
-			If *.Controls[i] Is TabPanel Then
+			If *(.Controls[i]) Is TabPanel Then
 				If .Controls[i]->Align = DockStyle.alLeft OrElse .Controls[i]->Align = DockStyle.alRight Then
 					.Controls[i]->Width = .Controls[i]->Width * NewWidth / .OldWidth
 				ElseIf .Controls[i]->Align = DockStyle.alTop OrElse .Controls[i]->Align = DockStyle.alBottom Then

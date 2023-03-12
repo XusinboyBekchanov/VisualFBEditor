@@ -385,7 +385,7 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To Content.Lines.Count - 1
 			With *Cast(EditControlLine Ptr, Content.Lines.Items[i])
 				FECLine = New_( EditControlLine)
-				WLet(FECLine->Text, *.Text)
+				WLet(FECLine->Text, * (.Text))
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
 				FECLine->CommentIndex = .CommentIndex
@@ -4526,7 +4526,7 @@ Namespace My.Sys.Forms
 			FECLine = New_( EditControlLine)
 			OlddwClientX = 0
 			With *Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
-				WLet(FECLine->Text, *.Text)
+				WLet(FECLine->Text, * (.Text))
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
 				FECLine->CommentIndex = .CommentIndex
@@ -5577,7 +5577,7 @@ Namespace My.Sys.Forms
 						With *Cast(EditControlLine Ptr, Content.Lines.Item(i - 1))
 							If .ConstructionIndex > C_Enum AndAlso .ConstructionPart = 0 Then
 								FSelEndLine = i
-								'FSelEndChar = Len(*.Text)
+								'FSelEndChar = Len(*(.Text))
 								bFind = True
 								Exit For
 							End If
@@ -5648,7 +5648,7 @@ Namespace My.Sys.Forms
 						With *Cast(EditControlLine Ptr, Content.Lines.Item(i))
 							If .ConstructionIndex > C_Enum AndAlso .ConstructionPart = 0 Then
 								FSelEndLine = i + 1
-								'FSelEndChar = Len(*.Text)
+								'FSelEndChar = Len(*(.Text))
 								bFind = True
 								Exit For
 							End If
@@ -5938,13 +5938,13 @@ Namespace My.Sys.Forms
 										y = y + 1
 									ElseIf .ConstructionPart = 0 Then
 										If y = 0 Then
-											Var ltt0 = Len(GetTabbedText(*.Text))
+											Var ltt0 = Len(GetTabbedText(* (.Text)))
 											Var ltt1 = Len(GetTabbedText(*FLine))
 											If ltt0 <> ltt1 Then
-												d = Len(*.Text) - Len(LTrim(*.Text, Any !"\t "))
+												d = Len(* (.Text)) - Len(LTrim(* (.Text), Any !"\t "))
 												FSelEndChar = FSelEndChar - (Len(*FLineSpace) - d)
 												FSelStartChar = FSelEndChar
-												WLet(FLineSpace, ..Left(*.Text, d))
+												WLet(FLineSpace, ..Left(*(.Text), d))
 												WLet(Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->Text, *FLineSpace & LTrim(*Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->Text, Any !"\t "))
 											End If
 											Exit For
