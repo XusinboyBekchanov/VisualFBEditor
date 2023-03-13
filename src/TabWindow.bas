@@ -131,6 +131,9 @@ Sub FormatProject(UnFormat As Any Ptr)
 	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 	If tn2 <> 0 Then tn2 = GetParentNode(tn2)
 	If tn2 = 0 OrElse tn2->ImageKey <> "Project" Then Exit Sub
+	ThreadsEnter()
+	pstBar->Panels[0]->Caption = IIf(UnFormat, ML("UnFormat Project"), ML("Format Project")) &"... "
+	ThreadsLeave()
 	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateLock
 	pfrmMain->Enabled = False
 	StartProgress
@@ -170,7 +173,9 @@ Sub FormatProject(UnFormat As Any Ptr)
 	StopProgress
 	pfrmMain->Enabled = True
 	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateUnLock
-	MsgBox ML("Done") & "!"
+	ThreadsEnter()
+	pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
+	ThreadsLeave()
 End Sub
 
 Sub NumberingProject(pSender As Any Ptr)
@@ -985,17 +990,7 @@ Function TabWindow.SaveTab As Boolean
 		If Not pLoadPaths->Contains(FileName) Then
 			pLoadPaths->Add FileName
 		End If
-		'If Project Then
-		'	Dim As EditControlContent Ptr ecc = IncludeFiles.Object(Idx)
-		'	If ecc = 0 Then
-		'		ecc = New_(EditControlContent)
-		'		ecc->FileName = *FFileName
-		'	End If
-		'	ecc->Tag = Project
-		'	ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
-		'Else
-			ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
-		'End If
+		ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
 	End If
 	Return True
 End Function
@@ -5240,6 +5235,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	MouseHoverTimerVal = Timer
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
+	If IsArg(Key) Then tb->AutoSaveCharCount += 1
+	If tb->AutoSaveCharCount > AutoSaveCharMax Then 
+	    tb->txtCode.SaveToFile(GetBakFileName(tb->FileName), tb->FileEncoding, tb->NewLineType)
+		tb->AutoSaveCharCount = 0
+	End If
 	If (CInt(Key = Asc(".")) OrElse CInt(Key = Asc(">"))) AndAlso CInt(Not tb->txtCode.DropDownShowed) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -5282,8 +5282,8 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 	ElseIf CInt(Key = Asc("=")) AndAlso CInt(Not tb->txtCode.DropDownShowed) Then
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, iIndex
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		If iSelEndLine <= 0 Then Exit Sub
+		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		Dim As Integer posL, posR = 0: k = 0
 		Do
 			posR = InStr(posR + 1, *sLine, """")
@@ -6772,7 +6772,7 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 		Next
 		Split GetChangedCommas(Mid(bTrim, Pos5 + 1, l)), ",", res1()
 		For n As Integer = 0 To UBound(res1)
-			res1(n) = Replace(res1(n), ";", ",")
+			res1(n) = Trim(Replace(res1(n), ";", ","))
 			Pos1 = InStr(res1(n), "=")
 			If Pos1 > 0 Then
 				ElementValue = Trim(Mid(res1(n), Pos1 + 1))
@@ -6936,7 +6936,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 					Pos1 = InStr(b, """")
 					If Pos1 > 0 Then
 						Pos2 = InStr(Pos1 + 1, b, """")
-						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+						If Pos2 - Pos1 - 1 > 0 Then WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName)) Else *FPath = ""
 						IncludesCount += 1
 						If IncludesCount > Content.OldIncludes.Count OrElse *FPath <> Content.OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
 							IncludesChanged = True
@@ -7130,18 +7130,22 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						Pos1 = InStr(b, """")
 						If Pos1 > 0 Then
 							Pos2 = InStr(Pos1 + 1, b, """")
-							WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
-							If bCurrentFile Then
-								If IncludesChanged Then
-									Content.Includes.Add *FPath
-									Content.IncludeLines.Add j
-									Includes.Add *FPath
+							If Pos2 - Pos1 - 1 > 0 Then
+								WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName))
+								If bCurrentFile Then
+									If IncludesChanged Then
+										Content.Includes.Add *FPath
+										Content.IncludeLines.Add j
+										Includes.Add *FPath
+									End If
+									OldIncludeLine = j
 								End If
-								OldIncludeLine = j
-							End If
-							If Not pLoadPaths->Contains(*FPath) Then
-								Var AddedIndex = pLoadPaths->Add(*FPath)
-								ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
+								If Not pLoadPaths->Contains(*FPath) Then
+									Var AddedIndex = pLoadPaths->Add(*FPath)
+									ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
+								End If
+							Else
+								WLet(FPath, "")
 							End If
 						End If
 					#endif
@@ -8058,12 +8062,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
+		txtCode.Content.Types.Remove i
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
+		txtCode.Content.Enums.Remove i
 	Next
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
+		txtCode.Content.Namespaces.Remove i
 	Next
 	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.TypeProcedures.Object(i)
@@ -8077,6 +8084,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+		txtCode.Content.TypeProcedures.Remove i
 	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.Procedures.Object(i)
@@ -8090,6 +8098,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
+		txtCode.Content.Procedures.Remove i
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
@@ -8098,9 +8107,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		cb->Elements.Clear
 		Delete_(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
+		txtCode.Content.ConstructionBlocks.Remove i
 	Next
 	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
+		txtCode.Content.LineLabels.Remove i
 	Next
 	For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
 		te = txtCode.Content.Args.Object(i)
@@ -8108,10 +8119,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
-		'Args.Remove i
+		txtCode.Content.Args.Remove i
 	Next
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
+		AnyTexts.Remove i
 	Next
 	txtCode.Content.Types.Clear
 	txtCode.Content.Defines.Clear
@@ -8123,6 +8135,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	txtCode.Content.Procedures.Clear
 	txtCode.Content.LineLabels.Clear
 	txtCode.Content.Args.Clear
+	AnyTexts.Clear
 	''ThreadCreate_(@LoadFromTabWindow, @This)
 	''LoadFunctions FileName, OnlyFilePath, Types, Procedures, Args, @txtCode
 	t = False
@@ -8161,7 +8174,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Pos1 = InStr(b, """")
 					If Pos1 > 0 Then
 						Pos2 = InStr(Pos1 + 1, b, """")
-						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
+						If Pos2 - Pos1 - 1 > 0 Then WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName)) Else *FPath = ""
 						IncludesCount += 1
 						If IncludesCount > txtCode.Content.OldIncludes.Count OrElse *FPath <> txtCode.Content.OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
 							IncludesChanged = True
@@ -8279,7 +8292,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			ECLine->InConstructionBlock = 0
 			If inFunc Then ECLine->InConstruction = func
 			If block Then ECLine->InConstructionBlock = block
-			WLet(FLine, *ECLine->Text)
+			FLine = ECLine->Text
 			b1 = Replace(*ECLine->Text, !"\t", " ")
 			If StartsWith(Trim(b1), "'") Then
 				Comments &= Mid(Trim(b1), 2) & Chr(13) & Chr(10)
@@ -8363,18 +8376,22 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Pos1 = InStr(b, """")
 					If Pos1 > 0 Then
 						Pos2 = InStr(Pos1 + 1, b, """")
-						WLetEx FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName), True
-						If ptxtCode = @txtCode Then
-							If IncludesChanged Then
-								txtCode.Content.Includes.Add *FPath
-								txtCode.Content.IncludeLines.Add j
-								Includes.Add *FPath
+						If Pos2 - Pos1 - 1 > 0 Then
+							WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName))
+							If ptxtCode = @txtCode Then
+								If IncludesChanged Then
+									txtCode.Content.Includes.Add *FPath
+									txtCode.Content.IncludeLines.Add j
+									Includes.Add *FPath
+								End If
+								OldIncludeLine = j
 							End If
-							OldIncludeLine = j
-						End If
-						If Not pLoadPaths->Contains(*FPath) Then
-							Var AddedIndex = pLoadPaths->Add(*FPath)
-							ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
+							If Not pLoadPaths->Contains(*FPath) Then
+								Var AddedIndex = pLoadPaths->Add(*FPath)
+								ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
+							End If
+						Else
+							WLet(FPath, "")
 						End If
 					End If
 				Else
@@ -9521,6 +9538,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			End If
 		End If
 	End If
+	FLine= 0
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
@@ -10106,12 +10124,15 @@ Destructor TabWindow
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
+		txtCode.Content.Types.Remove i
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
+		txtCode.Content.Enums.Remove i
 	Next
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
+		txtCode.Content.Namespaces.Remove i
 	Next
 	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.TypeProcedures.Object(i)
@@ -10125,6 +10146,7 @@ Destructor TabWindow
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+		txtCode.Content.TypeProcedures.Remove i
 	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.Procedures.Object(i)
@@ -10138,6 +10160,7 @@ Destructor TabWindow
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
+		txtCode.Content.Procedures.Remove i
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
@@ -10146,9 +10169,11 @@ Destructor TabWindow
 		Next
 		cb->Elements.Clear
 		Delete_(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
+		txtCode.Content.ConstructionBlocks.Remove i
 	Next
 	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
+		txtCode.Content.LineLabels.Remove i
 	Next
 	For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
 		te = txtCode.Content.Args.Object(i)
@@ -10156,15 +10181,19 @@ Destructor TabWindow
 			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
+		 txtCode.Content.Args.Remove i
 	Next
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
+		AnyTexts.Remove i
 	Next
 	For i As Integer = txtCode.Content.FileLists.Count - 1 To 0 Step -1
 		Delete_( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
+		 txtCode.Content.FileLists.Remove i
 	Next
 	For i As Integer = txtCode.Content.FileListsLines.Count - 1 To 0 Step -1
 		Delete_( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
+		 txtCode.Content.FileListsLines.Remove i
 	Next
 	txtCode.Content.Functions.Clear
 	txtCode.Content.ConstructionBlocks.Clear

@@ -114,8 +114,8 @@ Select CURSOR "../resources/Select.cur"
 #define APP_TITLE_STR               "Visual FB Editor\0"
 #define VER_FILEDESCRIPTION_STR     "Visual FB Editor\0"
 
-#define VER_FILEVERSION             1,3,4,1926
-#define VER_FILEVERSION_STR         "1.3.4.1926\0"
+#define VER_FILEVERSION             1,3,5,2
+#define VER_FILEVERSION_STR         "1.3.5.2\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
@@ -126,8 +126,8 @@ Select CURSOR "../resources/Select.cur"
 #define VER_LEGALTRADEMARKS1_STR    ""
 #define VER_LEGALTRADEMARKS2_STR    ""
 
-#define VER_PRODUCTVERSION          1,3,4,0
-#define VER_PRODUCTVERSION_STR      "1.3.4\0"
+#define VER_PRODUCTVERSION          1,3,5,0
+#define VER_PRODUCTVERSION_STR      "1.3.5\0"
 #define VER_COMPANYNAME_STR         "\0"
 
 VS_VERSION_INFO VERSIONINFO

@@ -4938,6 +4938,7 @@ Sub LoadSettings
 	TabAsSpaces = iniSettings.ReadBool("Options", "TabAsSpaces", True)
 	ChoosedTabStyle = iniSettings.ReadInteger("Options", "ChoosedTabStyle", 1)
 	TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
+	AutoSaveCharMax = iniSettings.ReadInteger("Options", "AutoSaveCharMax", 100)
 	HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
 	IntellisenseLimit = iniSettings.ReadInteger("Options", "IntellisenseLimit", 100)
 	HistoryCodeDays = iniSettings.ReadInteger("Options", "HistoryCodeDays", 100)

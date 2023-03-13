@@ -694,7 +694,7 @@ pfOptions = @fOptions
 			.Text = "HorizontalBox1"
 			.TabIndex = 110
 			.Align = DockStyle.alTop
-			.SetBounds 10, 0, 417, 359
+			.SetBounds 10, 0, 420, 387
 			.Designer = @This
 			.Parent = @pnlCodeEditor
 		End With
@@ -2585,6 +2585,42 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @hbxColors
 		End With
+		' pnlAutoSaveCharMax
+		With pnlAutoSaveCharMax
+			.Name = "pnlAutoSaveCharMax"
+			.Text = "Panel1"
+			.TabIndex = 230
+			.Align = DockStyle.alTop
+			.ControlIndex = 18
+			.SetBounds 0, 337, 420, 20
+			.Designer = @This
+			.Parent = @vbxCodeEditor
+		End With
+		' lbAutoSaveCharMax
+		With lbAutoSaveCharMax
+			.Name = "lbAutoSaveCharMax"
+			.Text = ML("Autosave after entered chars") & ": "
+			.ExtraMargins.Top = 2
+			.ExtraMargins.Left = 40
+			.ExtraMargins.Right = 0
+			.Align = DockStyle.alClient
+			.TabIndex = 231
+			.SetBounds 40, 2, 175, 18
+			.Parent = @pnlAutoSaveCharMax
+		End With
+		' txtAutoSaveCharMax
+		With txtAutoSaveCharMax
+			.Name = "txtAutoSaveCharMax"
+			.ExtraMargins.Top = 0
+			.ExtraMargins.Right = 130
+			.ExtraMargins.Left = 0
+			.Align = DockStyle.alRight
+			.ExtraMargins.Bottom = 2
+			.TabIndex = 232
+			.SetBounds 215, 0, 72, 18
+			.Text = "100"
+			.Parent = @pnlAutoSaveCharMax
+		End With
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
@@ -2668,6 +2704,7 @@ Sub frmOptions.LoadSettings()
 		.txtHistoryLimit.Text = Str(HistoryLimit)
 		.txtIntellisenseLimit.Text = Str(IntellisenseLimit)
 		.txtHistoryCodeDays.Text = Str(HistoryCodeDays)
+		.txtAutoSaveCharMax.Text = Str(AutoSaveCharMax)
 		.txtMFFpath.Text = *MFFPath
 		.chkIncludeMFFPath.Checked = IncludeMFFPath
 		.txtProjectsPath.Text = *ProjectsPath
@@ -3285,6 +3322,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		Else
 			HistoryCodeDays = Val(.txtHistoryCodeDays.Text)
 		End If
+		AutoSaveCharMax = Val(.txtAutoSaveCharMax.text)
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
 		LimitDebug = .chkLimitDebug.Checked
 		DisplayWarningsInDebug = .chkDisplayWarningsInDebug.Checked
@@ -3461,6 +3499,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteInteger "Options", "HistoryLimit", HistoryLimit
 		piniSettings->WriteInteger "Options", "IntellisenseLimit", IntellisenseLimit
 		piniSettings->WriteInteger "Options", "HistoryCodeDays", HistoryCodeDays
+		piniSettings->WriteInteger "Options", "AutoSaveCharMax", AutoSaveCharMax
 		piniSettings->WriteInteger "Options", "HistoryCodeCleanDay", HistoryCodeCleanDay
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
 		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
