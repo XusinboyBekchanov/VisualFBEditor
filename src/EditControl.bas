@@ -11,10 +11,6 @@
 #endif
 
 Dim Shared As WStringList KeywordLists 'keywords0, keywords1, keywords2, keywords3
-'pkeywords0 = @keywords0
-'pkeywords1 = @keywords1
-'pkeywords2 = @keywords2
-'pkeywords3 = @keywords3
 
 Namespace My.Sys.Forms
 	Destructor EditControlHistory
@@ -456,6 +452,7 @@ Namespace My.Sys.Forms
 	
 	Function EditControlContent.GetConstruction(ByRef wLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0, InAsm As Boolean = False) As Integer
 		On Error Goto ErrorHandler
+		If Trim(wLine, Any !"\t ") = "" Then Return -1
 		Dim As String sLine = wLine
 		If InAsm AndAlso CBool(InStr(LCase(wLine), "asm") = 0) Then Return -1
 		If CStyle Then Return -1
@@ -1816,15 +1813,18 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControl.GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0) As String
+		If LineIndex < 0 OrElse Content.Lines.Item(LineIndex) = 0 Then Return ""
 		Dim As Integer i
-		Dim As String s, sWord, sLine = Lines(LineIndex)
+		Dim As String s, sWord
+		Dim As WString Ptr sLine = Cast(EditControlLine Ptr, Content.Lines.Item(LineIndex))->Text
+		If sLine = 0 OrElse Trim(*sLine, Any !"\t ") = "" Then Return ""
 		StartChar = CharIndex
 		For i = CharIndex To 1 Step -1
-			s = Mid(sLine, i, 1)
+			s = Mid(*sLine, i, 1)
 			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) OrElse IIf(WithQuestion, s = "?", 0) Then sWord = s & sWord: StartChar = i - 1 Else Exit For
 		Next
-		For i = CharIndex + 1 To Len(sLine)
-			s = Mid(sLine, i, 1)
+		For i = CharIndex + 1 To Len(*sLine)
+			s = Mid(*sLine, i, 1)
 			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) OrElse IIf(WithQuestion, s = "?", 0) Then sWord = sWord & s Else Exit For
 		Next
 		Return sWord
@@ -1835,7 +1835,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControl.GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
-		If X <= LeftMargin Then Return ""
+		If X <= LeftMargin OrElse Content.Lines.Count < 1 Then Return ""
 		Dim As Integer LineIndex
 		If Y <= iDividedY AndAlso bDividedY Then
 			LineIndex = Fix(Y / dwCharY) + VScrollPosTop
@@ -1849,7 +1849,7 @@ Namespace My.Sys.Forms
 				If j = LineIndex Then k = j: Exit For
 			End If
 		Next
-		If k = -1 Then Return ""
+		If k = -1 OrElse Content.Lines.Item(k) = 0 Then Return ""
 		WLet(FLine, *Cast(EditControlLine Ptr, Content.Lines.Item(k))->Text)
 		Dim As Integer nCaretPosX = X - LeftMargin + IIf(X <= iDividedX AndAlso bDividedX, HScrollPosLeft, HScrollPosRight - IIf(bDividedX, iDividedX + 7, 0)) * dwCharX
 		Dim As Integer w = TextWidth(GetTabbedText(*FLine))
@@ -2530,7 +2530,7 @@ Namespace My.Sys.Forms
 		End If
 		If te > 0 Then Return True Else Return False
 	End Function
-	
+
 	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer) As TypeElement Ptr
 		If cb = 0 Then Return 0
 		Var tIndex = cb->Elements.IndexOf(Text)

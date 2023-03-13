@@ -178,7 +178,7 @@ Public:
 	Dim IsNew As Boolean
 	Dim bNotDesign As Boolean
 	'Dim bExternalIncludesLoaded As Boolean
-	Dim As Integer ConstructorStart, ConstructorEnd, lvPropertyWidth, FindFormPosiLeft, FindFormPosiTop, RightSelectedIndex
+	Dim As Integer ConstructorStart, ConstructorEnd, lvPropertyWidth, FindFormPosiLeft, FindFormPosiTop, RightSelectedIndex, AutoSaveCharCount
 	ptn As TreeNode Ptr
 	tn As TreeNode Ptr
 	mi As MenuItem Ptr
