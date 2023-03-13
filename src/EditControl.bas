@@ -4525,7 +4525,7 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To HistoryItem->Lines.Count - 1
 			FECLine = New_( EditControlLine)
 			OlddwClientX = 0
-			With *Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
+			With * (Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i)))
 				WLet(FECLine->Text, * (.Text))
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark

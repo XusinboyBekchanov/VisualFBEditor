@@ -2413,7 +2413,8 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	End If
 	WDeAllocate(FLine)
 	WDeAllocate(FLine1)
-	WDeAllocate(FLine2) '
+	WDeAllocate(FLine2)
+	WDeAllocate(FLineType)
 	Return InsLineCount
 	Exit Function
 	ErrorHandler:
@@ -6893,7 +6894,6 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		Delete_( Cast(TypeElement Ptr, Content.Args.Object(i)))
-		'Args.Remove i
 	Next
 	Content.Types.Clear
 	Content.Defines.Clear
@@ -6936,7 +6936,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 					Pos1 = InStr(b, """")
 					If Pos1 > 0 Then
 						Pos2 = InStr(Pos1 + 1, b, """")
-						If Pos2 - Pos1 - 1 > 0 Then WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName)) Else *FPath = ""
+						If Pos2 - Pos1 - 1 > 0 Then WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName)) Else WLet(FPath, "")
 						IncludesCount += 1
 						If IncludesCount > Content.OldIncludes.Count OrElse *FPath <> Content.OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
 							IncludesChanged = True
@@ -8062,15 +8062,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
-		txtCode.Content.Types.Remove i
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
-		txtCode.Content.Enums.Remove i
 	Next
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
-		txtCode.Content.Namespaces.Remove i
 	Next
 	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.TypeProcedures.Object(i)
@@ -8084,7 +8081,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
-		txtCode.Content.TypeProcedures.Remove i
 	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.Procedures.Object(i)
@@ -8098,7 +8094,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
-		txtCode.Content.Procedures.Remove i
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
@@ -8107,11 +8102,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		cb->Elements.Clear
 		Delete_(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
-		txtCode.Content.ConstructionBlocks.Remove i
 	Next
 	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
-		txtCode.Content.LineLabels.Remove i
 	Next
 	For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
 		te = txtCode.Content.Args.Object(i)
@@ -8119,11 +8112,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
-		txtCode.Content.Args.Remove i
 	Next
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
-		AnyTexts.Remove i
 	Next
 	txtCode.Content.Types.Clear
 	txtCode.Content.Defines.Clear
@@ -8292,7 +8283,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			ECLine->InConstructionBlock = 0
 			If inFunc Then ECLine->InConstruction = func
 			If block Then ECLine->InConstructionBlock = block
-			FLine = ECLine->Text
+			WLet(FLine, *ECLine->Text)
 			b1 = Replace(*ECLine->Text, !"\t", " ")
 			If StartsWith(Trim(b1), "'") Then
 				Comments &= Mid(Trim(b1), 2) & Chr(13) & Chr(10)
@@ -9538,7 +9529,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			End If
 		End If
 	End If
-	FLine= 0
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
@@ -9821,7 +9811,7 @@ End Sub
 Sub tabPanel_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	With *Cast(TabPanel Ptr, @Sender)
 		For i As Integer = 0 To .ControlCount - 1
-			If *(.Controls[i]) Is TabPanel Then
+			If * (.Controls[i]) Is TabPanel Then
 				If .Controls[i]->Align = DockStyle.alLeft OrElse .Controls[i]->Align = DockStyle.alRight Then
 					.Controls[i]->Width = .Controls[i]->Width * NewWidth / .OldWidth
 				ElseIf .Controls[i]->Align = DockStyle.alTop OrElse .Controls[i]->Align = DockStyle.alBottom Then
@@ -10124,15 +10114,12 @@ Destructor TabWindow
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
-		txtCode.Content.Types.Remove i
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
-		txtCode.Content.Enums.Remove i
 	Next
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
-		txtCode.Content.Namespaces.Remove i
 	Next
 	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.TypeProcedures.Object(i)
@@ -10146,7 +10133,6 @@ Destructor TabWindow
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
-		txtCode.Content.TypeProcedures.Remove i
 	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.Procedures.Object(i)
@@ -10160,7 +10146,6 @@ Destructor TabWindow
 		Next
 		te->Elements.Clear
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
-		txtCode.Content.Procedures.Remove i
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
@@ -10169,7 +10154,6 @@ Destructor TabWindow
 		Next
 		cb->Elements.Clear
 		Delete_(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
-		txtCode.Content.ConstructionBlocks.Remove i
 	Next
 	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
@@ -10181,19 +10165,15 @@ Destructor TabWindow
 			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		Delete_( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
-		 txtCode.Content.Args.Remove i
 	Next
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
-		AnyTexts.Remove i
 	Next
 	For i As Integer = txtCode.Content.FileLists.Count - 1 To 0 Step -1
 		Delete_( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
-		 txtCode.Content.FileLists.Remove i
 	Next
 	For i As Integer = txtCode.Content.FileListsLines.Count - 1 To 0 Step -1
 		Delete_( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
-		 txtCode.Content.FileListsLines.Remove i
 	Next
 	txtCode.Content.Functions.Clear
 	txtCode.Content.ConstructionBlocks.Clear
