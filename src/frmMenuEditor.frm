@@ -534,7 +534,6 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				End If
 			Next
 		End If
-		.TransferDoubleBuffer
 		.DeleteDoubleBuffer
 	End With
 End Sub
