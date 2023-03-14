@@ -2863,16 +2863,18 @@ Namespace My.Sys.Forms
 						If IsWindow(Cast(HWND, lParam)) Then
 						Else
 							If HiWord(wParam) = 0 Then
-								Select Case LoWord(wParam)
-								Case 10: .DeleteControl()
-								Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)
-								Case 12: .CopyControl()
-								Case 13: .CutControl()
-								Case 14: .PasteControl()
-								Case 16: .BringToFront()
-								Case 17: .SendToBack()
-								Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
-								End Select
+								Var mi = mnuDesigner.Find(LoWord(wParam))
+								If mi AndAlso mi->OnClick Then mi->OnClick(*mi): Return 0
+								'Select Case LoWord(wParam)
+								'Case 10: .DeleteControl()
+								'Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)
+								'Case 12: .CopyControl()
+								'Case 13: .CutControl()
+								'Case 14: .PasteControl()
+								'Case 16: .BringToFront()
+								'Case 17: .SendToBack()
+								'Case 19: If Des->OnClickProperties Then Des->OnClickProperties(*Des, .GetControl(.FSelControl))
+								'End Select
 							End If
 						End If '
 						
