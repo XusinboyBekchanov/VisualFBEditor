@@ -10979,6 +10979,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 			If AutoCreateRC Then
 				#ifndef __USE_GTK__
 					FileCopy ExePath & "/Templates/Files/Resource.rc", *File
+					If Project <> 0 Then wLet(Project->ResourceFileName, *File)
 				#endif
 			End If
 		End If
