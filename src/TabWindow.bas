@@ -9621,7 +9621,12 @@ mnuCode.Add(ML("Set Next Statement"), "", "SetNextStatement", @mClick)
 mnuCode.Add("-")
 mnuCode.Add(ML("Define"), "", "Define", @mClick)
 mnuCode.Add("-")
+mnuCode.Add(ML("Convert to Lowercase"), "", "ConvertToLowercase", @mClick)
+mnuCode.Add(ML("Convert to Uppercase "), "", "ConvertToUppercase", @mClick)
+mnuCode.Add("-")
 mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mClick)
+mnuCode.Add(ML("Delete extra blank Lines"), "", "DeleteBlankLines", @mClick)
+
 
 Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
@@ -12265,6 +12270,113 @@ Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 		.Changed("Sort Lines")
 		.UpdateUnLock
 		'.ShowCaretPos True
+	End With
+End Sub
+
+
+Sub TabWindow.DeleteBlankLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("DeleteBlankLines")
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If StartLine = -1 Or EndLine = -1 Then
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			iSelEndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		Else
+			iSelStartLine= StartLine :  iSelEndLine = EndLine
+		End If
+		If iSelStartLine < 0 OrElse iSelStartLine > .LinesCount - 1 OrElse iSelEndLine > .LinesCount - 1 Then Exit Sub
+		Dim As EditControlLine Ptr FECLine
+		For i As Integer = iSelEndLine To iSelStartLine Step -1
+			FECLine = .Content.Lines.Items[i]
+			If i > 0 AndAlso Trim(*FECLine->Text, Any !"\t ") = "" AndAlso Trim(* (Cast(EditControlLine Ptr, .Content.Lines.Items[i - 1])->Text), Any !"\t ") = "" Then
+				.DeleteLine i
+			End If
+		Next i
+		.Changed("DeleteBlankLines")
+		.UpdateUnLock
+	End With
+End Sub
+
+Sub TabWindow.ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("ConvertToLowercase")
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If StartLine = -1 Or EndLine = -1 Then
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			iSelEndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		Else
+			iSelStartLine = StartLine :  iSelEndLine = EndLine
+			iSelStartChar = 1 : iSelEndChar = -1
+		End If
+		If iSelStartLine < 0 OrElse iSelStartLine > .LinesCount - 1 OrElse iSelEndLine > .LinesCount - 1 Then Exit Sub
+		Dim As EditControlLine Ptr FECLine = .Content.Lines.Items[iSelStartLine]
+		Dim As WString Ptr LineStr
+		WLet(LineStr, *FECLine->Text)
+		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & LCase(Mid(*LineStr, iSelStartChar + 1)))
+			FECLine = .Content.Lines.Items[iSelEndLine]
+			WLet(LineStr, *FECLine->Text)
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, LCase(Mid(*LineStr, 1, iSelEndChar)) & Mid(*LineStr, iSelEndChar + 1))
+		Else
+			If iSelEndChar = -1 Then iSelEndChar = Len(*LineStr)
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & LCase(Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar)) & Mid(*LineStr, iSelEndChar + 1))
+		End If
+		If iSelEndLine > iSelStartLine + 1 Then
+			For i As Integer = iSelStartLine + 1 To iSelEndLine - 1
+				FECLine = .Content.Lines.Items[i]
+				WLet(LineStr, *FECLine->Text)
+				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, LCase(*LineStr))
+			Next i
+		End If
+		Deallocate_(LineStr)
+		.Changed("ConvertToLowercase")
+		.UpdateUnLock
+	End With
+End Sub
+
+Sub TabWindow.ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("ConvertToLowercase")
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If StartLine = -1 Or EndLine = -1 Then
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			iSelEndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		Else
+			iSelStartLine = StartLine :  iSelEndLine = EndLine
+			iSelStartChar = 1 : iSelEndChar = -1
+		End If
+		If iSelStartLine < 0 OrElse iSelStartLine > .LinesCount - 1 OrElse iSelEndLine > .LinesCount - 1 Then Exit Sub
+		Dim As EditControlLine Ptr FECLine = .Content.Lines.Items[iSelStartLine]
+		Dim As WString Ptr LineStr
+		WLet(LineStr, *FECLine->Text)
+		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & UCase(Mid(*LineStr, iSelStartChar + 1)))
+			FECLine = .Content.Lines.Items[iSelEndLine]
+			WLet(LineStr, *FECLine->Text)
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, UCase(Mid(*LineStr, 1, iSelEndChar)) & Mid(*LineStr, iSelEndChar + 1))
+		Else
+			If iSelEndChar = -1 Then iSelEndChar = Len(*LineStr)
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & UCase(Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar)) & Mid(*LineStr, iSelEndChar + 1))
+		End If
+		If iSelEndLine > iSelStartLine + 1 Then
+			For i As Integer = iSelStartLine + 1 To iSelEndLine - 1
+				FECLine = .Content.Lines.Items[i]
+				WLet(LineStr, *FECLine->Text)
+				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, UCase(*LineStr))
+			Next i
+		End If
+		Deallocate_(LineStr)
+		.Changed("ConvertToLowercase")
+		.UpdateUnLock
 	End With
 End Sub
 
