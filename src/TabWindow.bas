@@ -9627,7 +9627,6 @@ mnuCode.Add("-")
 mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mClick)
 mnuCode.Add(ML("Delete extra blank Lines"), "", "DeleteBlankLines", @mClick)
 
-
 Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pnl->Parent)
@@ -10974,23 +10973,21 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	WLet(File, GetResourceFile(, sFirstLine))
 	Var bFinded = False, bChanged = False
 	Dim As String NewLine = ""
-	If *File <> "" Then
-		If Not FileExists(*File) Then
-			If AutoCreateRC Then
-				#ifndef __USE_GTK__
-					FileCopy ExePath & "/Templates/Files/Resource.rc", *File
-					If Project <> 0 Then wLet(Project->ResourceFileName, *File)
-				#endif
+	#ifdef __USE_WINAPI__
+		If AutoCreateRC Then
+			If *File = "" Then WLet(File, Left(FileName, Len(FileName) - 4) & ".rc")
+			If Not FileExists(*File) Then
+				Debug.Print "*File2" & *File
+				FileCopy ExePath & "/Templates/Files/Resource.rc", *File
+				If Project <> 0 Then WLet(Project->ResourceFileName, *File)
+			End If
+			If Not FileExists(GetFolderName(FileName) & "Manifest.xml") Then
+				FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(FileName).vptr & "Manifest.xml"
+				ManifestIcoCopy = True
 			End If
 		End If
-		If Not FileExists(GetFolderName(FileName) & "Manifest.xml") Then
-			If AutoCreateRC Then
-				#ifndef __USE_GTK__
-					FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(FileName).vptr & "Manifest.xml"
-					ManifestIcoCopy = True
-				#endif
-			End If
-		End If
+	#endif
+	If *File <> "" AndAlso FileExists(*File) Then
 		Var Fn = FreeFile_
 		If Open(*File For Input Encoding "utf-8" As #Fn) = 0 Then
 			Dim As Integer iStartImages, MinResID
@@ -12273,7 +12270,6 @@ Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 		'.ShowCaretPos True
 	End With
 End Sub
-
 
 Sub TabWindow.DeleteBlankLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
