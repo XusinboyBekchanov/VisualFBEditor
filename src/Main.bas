@@ -597,6 +597,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			WLet(CompileWith, CompilerTool->GetCommand(, True))
 		End If
 		WAdd(CompileWith, " " & *FirstLine)
+		#ifdef __USE_WINAPI__
+			If InStr(LCase(*FirstLine), ".rc") < 1 AndAlso FileExists(Left(*MainFile, Len(*MainFile) - 4) & ".rc") Then WAdd(CompileWith, " " & Chr(34) & GetFileName(Left(*MainFile, Len(*MainFile) - 4) & ".rc") & Chr(34))
+		#endif
 		'If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
 		If Project Then
 			For i As Integer = 0 To Project->Components.Count - 1
