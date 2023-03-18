@@ -9625,7 +9625,6 @@ mnuCode.Add(ML("Convert to Lowercase"), "", "ConvertToLowercase", @mClick)
 mnuCode.Add(ML("Convert to Uppercase "), "", "ConvertToUppercase", @mClick)
 mnuCode.Add("-")
 mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mClick)
-mnuCode.Add(ML("Delete extra blank Lines"), "", "DeleteBlankLines", @mClick)
 
 Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
