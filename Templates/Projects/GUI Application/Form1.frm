@@ -28,12 +28,7 @@
 	Dim Shared Form1 As Form1Type
 	
 	#if _MAIN_FILE_ = __FILE__
-		#if 0
-			#ifdef __USE_WINAPI__
-				InitDarkMode
-			#endif
-			SetDarkMode(True, True)
-		#endif
+		App.DarkMode = True
 		Form1.MainForm = True
 		Form1.Show
 		App.Run
