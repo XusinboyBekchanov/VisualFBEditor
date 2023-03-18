@@ -10973,20 +10973,17 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	WLet(File, GetResourceFile(, sFirstLine))
 	Var bFinded = False, bChanged = False
 	Dim As String NewLine = ""
-	#ifdef __USE_WINAPI__
-		If AutoCreateRC Then
-			If *File = "" Then WLet(File, Left(FileName, Len(FileName) - 4) & ".rc")
+	If AutoCreateRC Then
+		If *File <> "" Then
 			If Not FileExists(*File) Then
-				Debug.Print "*File2" & *File
 				FileCopy ExePath & "/Templates/Files/Resource.rc", *File
-				If Project <> 0 Then WLet(Project->ResourceFileName, *File)
 			End If
 			If Not FileExists(GetFolderName(FileName) & "Manifest.xml") Then
 				FileCopy ExePath & "/Templates/Files/Manifest.xml", *GetFolderName(FileName).vptr & "Manifest.xml"
 				ManifestIcoCopy = True
 			End If
 		End If
-	#endif
+	End If
 	If *File <> "" AndAlso FileExists(*File) Then
 		Var Fn = FreeFile_
 		If Open(*File For Input Encoding "utf-8" As #Fn) = 0 Then
@@ -11070,7 +11067,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 					ElseIf StartsWith(LCase(sLine), "#define ver_originalfilename_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->OriginalFileName) & "\0""")
+							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->OriginalFilename) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_productname_str ") Then
