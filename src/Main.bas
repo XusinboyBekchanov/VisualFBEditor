@@ -82,7 +82,7 @@ Dim Shared As ReBar MainReBar
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As WStringOrStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalFunctionsHelp, GlobalArgs
+Dim Shared As WStringOrStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
@@ -4695,6 +4695,101 @@ Sub LoadHelp
 		Loop
 	End If
 	CloseFile_(Fn)
+	pFunctions = @GlobalAsmFunctionsHelp
+	InEnglish = False
+	Fn = FreeFile_
+	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/AsmKeywordsHelp." & CurLanguage & ".txt") = "" Then
+		InEnglish = True
+		WLet(AsmKeywordsHelpPath, ExePath & "/Settings/Others/AsmKeywordsHelp.txt")
+	Else
+		WLet(AsmKeywordsHelpPath, ExePath & "/Settings/Others/AsmKeywordsHelp." & CurLanguage & ".txt")
+	End If
+	Result = -1
+	Result = Open(*AsmKeywordsHelpPath For Input Encoding "utf-8" As #Fn)
+	If Result <> 0 Then Result = Open(*AsmKeywordsHelpPath For Input Encoding "utf-16" As #Fn)
+	If Result <> 0 Then Result = Open(*AsmKeywordsHelpPath For Input Encoding "utf-32" As #Fn)
+	If Result <> 0 Then Result = Open(*AsmKeywordsHelpPath For Input As #Fn): tEncode= 1
+	If Result = 0 Then
+		#ifdef __FB_WIN32__
+			If tEncode = 1 AndAlso Not InEnglish Then MsgBox ML("The file encoding is not UTF-8 (BOM). You should convert it to UTF-8 (BOM).") & Chr(13, 10) & *AsmKeywordsHelpPath
+		#endif
+		Dim As TypeElement Ptr te, te1
+		Dim As WString * 1024 Buff, StartBuff, bTrim
+		Dim As Boolean bAsmCommand, bExampleStarted
+		Dim As Paragraph Parag
+		Dim As List Commands
+		Dim As WString * 1024 MLSyntax = ML("Syntax"), MLExample = ML("Example"), MLMoreDetails = ML("More details ..."), MLDot = ML(".")
+		Dim As Integer Pos1, Pos2, LineNumber
+		Do Until EOF(Fn)
+			LineNumber += 1
+			Line Input #Fn, Buff
+			If Trim(Buff) = "" Then Continue Do
+			Dim As UString res(Any)
+			Pos1 = InStr(Buff, " — ")
+			bAsmCommand = False
+			If Pos1 > 0 Then
+				bAsmCommand = True
+				Split(Left(Buff, Pos1 - 1), ", ", res())
+				For i As Integer = 0 To UBound(res)
+					If InStr(Trim(res(i)), " ") Then bAsmCommand = False: Exit For
+				Next
+			End If
+			If bAsmCommand Then
+				Parag = parStart
+				Commands.Clear
+				For i As Integer = 0 To UBound(res)
+					te = New_( TypeElement)
+					te->Name = Trim(res(i))
+					te->DisplayName = Trim(res(i))
+					te->ElementType = "Keyword"
+					te->FileName = *AsmKeywordsHelpPath
+					te->Comment = "<a href=""" & *AsmKeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & te->Name & """>" & te->Name & !"</a>\r   " & Mid(Buff, Pos1 + 3) & !"\r"
+					pFunctions->Add te->Name, te
+					Commands.Add te
+				Next
+			ElseIf Buff = "Syntax" OrElse Buff = MLSyntax Then
+				Parag = parSyntax
+			ElseIf Buff = "Example" OrElse Buff = "Examples" OrElse Buff = MLExample Then
+				Parag = parExample
+				bExampleStarted = True
+			ElseIf Buff = "Arithmetic And Logic Instructions" Then
+				
+			Else
+				If Parag = parStart Then
+					For i As Integer = 0 To Commands.Count - 1
+						te = Commands.Item(i)
+						If te->Comment = "" Then
+							te->Comment = Buff
+						Else
+							te->Comment &= "   " & LTrim(Buff, !"\t")
+						End If
+					Next i
+				ElseIf Parag = parSyntax Then
+					For i As Integer = 0 To Commands.Count - 1
+						te = Commands.Item(i)
+						If te->Parameters = "" Then
+							te->Parameters = Buff
+						ElseIf EndsWith(te->Parameters, " ") Then
+							te->Parameters &= LTrim(Buff)
+						Else
+							te->Parameters &= !"\r" & Buff
+						End If
+					Next
+				ElseIf Parag = parExample Then
+					For i As Integer = 0 To Commands.Count - 1
+						te = Commands.Item(i)
+						If bExampleStarted Then
+							te->Comment &= !"\r\r" & MLExample & !"\r   " & Buff
+							bExampleStarted	= False
+						Else
+							te->Comment &= !"\r" & "   " & Trim(Buff)
+						End If
+					Next
+				End If
+			End If
+		Loop
+	End If
+	CloseFile_(Fn)
 End Sub
 
 Sub LoadToolBox(ForLibrary As Library Ptr = 0)
@@ -8886,6 +8981,7 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(DefaultHelp)
 	WDeAllocate(HelpPath)
 	WDeAllocate(KeywordsHelpPath)
+	WDeAllocate(AsmKeywordsHelpPath)
 	WDeAllocate(CurrentTheme)
 	WDeAllocate(DefaultProjectFile)
 	WDeAllocate(EditorFontName)

@@ -150,7 +150,7 @@ Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave, EnvironmentVariables
 Common Shared As WString Ptr ProjectsPath, LastOpenPath, CommandPromptFolder
-Common Shared As WString Ptr DefaultHelp, HelpPath, KeywordsHelpPath
+Common Shared As WString Ptr DefaultHelp, HelpPath, KeywordsHelpPath, AsmKeywordsHelpPath
 Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2
 Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, GDBDebugger32, GDBDebugger64, CurrentDebugger32, CurrentDebugger64, DefaultTerminal, CurrentTerminal
 Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64
