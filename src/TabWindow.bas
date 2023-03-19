@@ -7963,7 +7963,7 @@ Sub Suggestions
 					ecc->Globals = @Project->Globals
 					ecc->Tag = Project
 					Project->Contents.Add ecc
-					LoadFunctions ecc->FileName, LoadParam.OnlyFilePathOverwriteWithContent, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs, , , ecc
+					LoadFunctions ecc->FileName, LoadParam.OnlyFilePathOverwriteWithContent, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args, , , ecc
 					ecc->ExternalIncludesLoaded = LoadFunctionsCount = 0
 					'LoadFunctionsWithContent Project->Files_.Item(i), Project, *ecc
 				End If

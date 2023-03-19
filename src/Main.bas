@@ -82,7 +82,8 @@ Dim Shared As ReBar MainReBar
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As WStringOrStringList GlobalNamespaces, Comps, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, GlobalArgs
+Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp
+'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
@@ -110,14 +111,6 @@ pfrmMain = @frmMain
 pSaveD = @SaveD
 piniSettings = @iniSettings
 piniTheme = @iniTheme
-pComps = @Comps
-pGlobalNamespaces = @GlobalNamespaces
-pGlobalTypes = @GlobalTypes
-pGlobalEnums = @GlobalEnums
-pGlobalDefines = @GlobalDefines
-pGlobalFunctions = @GlobalFunctions
-pGlobalTypeProcedures = @GlobalTypeProcedures
-pGlobalArgs = @GlobalArgs
 pAddIns = @AddIns
 pTools = @Tools
 pControlLibraries = @ControlLibraries
@@ -147,16 +140,6 @@ pLoadPaths = @LoadPaths
 pIncludePaths = @IncludePaths
 pLibraryPaths = @LibraryPaths
 pfSplash->lblProcess.Text = ML("Load On Startup") & ": LoadKeyWords"
-IncludePaths.Sorted = True
-GlobalNamespaces.Sorted = True
-Comps.Sorted = True
-GlobalTypes.Sorted = True
-GlobalTypeProcedures.Sorted = True
-GlobalEnums.Sorted = True
-GlobalDefines.Sorted = True
-GlobalFunctions.Sorted = True
-GlobalFunctionsHelp.Sorted = True
-GlobalArgs.Sorted = True
 
 'LoadLanguageTexts
 LoadSettings
@@ -180,6 +163,26 @@ LoadSettings
 #include once "frmTipOfDay.frm"
 #include once "frmComponents.frm"
 #include once "Debug.bi"
+
+pComps = @Comps
+pGlobalNamespaces = @Globals.Namespaces
+pGlobalTypes = @Globals.Types
+pGlobalEnums = @Globals.Enums
+pGlobalDefines = @Globals.Defines
+pGlobalFunctions = @Globals.Functions
+pGlobalTypeProcedures = @Globals.TypeProcedures
+pGlobalArgs = @Globals.Args
+IncludePaths.Sorted = True
+Comps.Sorted = True
+Globals.Namespaces.Sorted = True
+Globals.Types.Sorted = True
+Globals.TypeProcedures.Sorted = True
+Globals.Enums.Sorted = True
+Globals.Defines.Sorted = True
+Globals.Functions.Sorted = True
+Globals.Args.Sorted = True
+GlobalAsmFunctionsHelp.Sorted = True
+GlobalFunctionsHelp.Sorted = True
 
 Namespace VisualFBEditor
 	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -3636,8 +3639,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							Types.Add t, tbi
 							If Namespaces.Count > 0 Then
-								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tOrig, tbi
+								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tOrig, tbi
 							End If
 						End If
 					End If
@@ -3659,8 +3662,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					Types.Add t, tbi
 					typ = tbi
 					If Namespaces.Count > 0 Then
-						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-						If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tbi->Name, tbi
+						Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+						If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tbi->Name, tbi
 					End If
 					'End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end union")) Then
@@ -3692,11 +3695,11 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					LastIndexFunction = Functions.Add(te->Name, te)
-					GlobalDefines.Add te->Name, te
+					Globals.Defines.Add te->Name, te
 					lastfunctionte = te
 					If Namespaces.Count > 0 Then
-						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-						If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+						Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+						If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "#macro ") Then
 					Pos1 = InStr(8, bTrim, " ")
@@ -3724,11 +3727,11 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
 					LastIndexFunction = Functions.Add(te->Name, te)
-					GlobalDefines.Add te->Name, te
+					Globals.Defines.Add te->Name, te
 					lastfunctionte = te
 					If Namespaces.Count > 0 Then
-						Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-						If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+						Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+						If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "namespace ") AndAlso Pos3 = 0 Then
 					InNamespace = True
@@ -3757,10 +3760,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->ControlType = nc
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
-						GlobalNamespaces.Add te->Name, te
+						Globals.Namespaces.Add te->Name, te
 						If Namespaces.Count > 0 Then
-							Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-							If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
 						End If
 						Namespaces.Add te->Name, te
 					Next
@@ -3860,9 +3863,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						lastfunctionte = te
 						If Not inType Then
 							If Namespaces.Count > 0 Then
-								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 								If Index <> -1 Then
-									Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+									Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
 								End If
 							End If
 						End If
@@ -4009,8 +4012,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->FileName = PathFunction
 						Enums.Add t, tbi
 						If Namespaces.Count > 0 Then
-							Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-							If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add tbi->Name, tbi
+							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tbi->Name, tbi
 						End If
 					End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end enum")) Then
@@ -4183,8 +4186,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							'LastIndexFunction = Functions.Add(te->Name, te)
 							If Namespaces.Count > 0 Then
-								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
 							End If
 							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
@@ -4251,8 +4254,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							'LastIndexFunction = Functions.Add(te->Name, te)
 							If Namespaces.Count > 0 Then
-								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
 							End If
 							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
@@ -4414,8 +4417,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Comment <> "" Then te->Comment = Comment: Comment = ""
 							Args.Add te->Name, te
 							If Namespaces.Count > 0 Then
-								Index = GlobalNamespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, GlobalNamespaces.Object(Index))->Elements.Add te->Name, te
+								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
 							End If
 						Next
 					End If
@@ -4474,7 +4477,7 @@ End Sub
 Sub LoadFunctionsSub(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
+		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -4482,7 +4485,7 @@ End Sub
 Sub LoadOnlyFilePath(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
+		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -4490,7 +4493,7 @@ End Sub
 Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
+		LoadFunctions QWString(Param), LoadParam.OnlyFilePathOverwrite, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -4498,7 +4501,7 @@ End Sub
 Sub LoadOnlyFilePathOverwriteWithContent(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		LoadFunctions Cast(EditControlContent Ptr, Param)->FileName, LoadParam.OnlyFilePathOverwriteWithContent, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs, , , Param
+		LoadFunctions Cast(EditControlContent Ptr, Param)->FileName, LoadParam.OnlyFilePathOverwriteWithContent, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args, , , Param
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -4506,7 +4509,7 @@ End Sub
 Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		LoadFunctions QWString(Param), LoadParam.OnlyIncludeFiles, GlobalTypes, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
+		LoadFunctions QWString(Param), LoadParam.OnlyIncludeFiles, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -4523,7 +4526,7 @@ Sub LoadHelp
 		parDifferencesFromQB
 		parSeeAlso
 	End Enum
-	Dim As WStringOrStringList Ptr pFunctions = @GlobalFunctions
+	Dim As WStringOrStringList Ptr pFunctions = @Globals.Functions
 	Dim As Boolean InEnglish
 	Dim As Integer Fn = FreeFile_, tEncode
 	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt") = "" Then
@@ -4874,14 +4877,14 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
 		f = Dir(IncludePath & "*.bi")
 		While f <> ""
-			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs, , CtlLibrary
+			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args, , CtlLibrary
 			f = Dir()
 		Wend
 		IncludePath = GetFullPath(GetFullPath(CtlLibrary->SourcesFolder, CtlLibrary->Path))
 		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
 		f = Dir(IncludePath & "*.bas")
 		While f <> ""
-			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, GlobalEnums, GlobalFunctions, GlobalTypeProcedures, GlobalArgs, , CtlLibrary
+			LoadFunctions GetOSPath(IncludePath & f), LoadParam.OnlyFilePath, Comps, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args, , CtlLibrary
 			f = Dir()
 		Wend
 	Next i
@@ -6914,11 +6917,11 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		cboPropertyValue.AddItem " true"
 		bNotChange = True
 		cboPropertyValue.ItemIndex = cboPropertyValue.IndexOf(" " & Trim(Item->Text(1)))
-	ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(GlobalEnums.Contains(te->EnumTypeName)) Then
+	ElseIf LCase(te->TypeName) = "integer" AndAlso CInt(te->EnumTypeName <> "") AndAlso CInt(Globals.Enums.Contains(te->EnumTypeName)) Then
 		'CtrlEdit = @pnlPropertyValue
 		cboPropertyValue.Visible = True
 		cboPropertyValue.Clear
-		Var tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->EnumTypeName)))
+		Var tbi = Cast(TypeElement Ptr, Globals.Enums.Object(Globals.Enums.IndexOf(te->EnumTypeName)))
 		If tbi Then
 			For i As Integer = 0 To tbi->Elements.Count - 1
 				cboPropertyValue.AddItem " " & i & " - " & MP(tbi->Elements.Item(i))
@@ -6954,8 +6957,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		Dim tbi As TypeElement Ptr = 0
 		If Comps.Contains(te->TypeName) Then
 			tbi = Cast(TypeElement Ptr, Comps.Object(Comps.IndexOf(te->TypeName)))
-		ElseIf GlobalEnums.Contains(te->TypeName) Then
-			tbi = Cast(TypeElement Ptr, GlobalEnums.Object(GlobalEnums.IndexOf(te->TypeName)))
+		ElseIf Globals.Enums.Contains(te->TypeName) Then
+			tbi = Cast(TypeElement Ptr, Globals.Enums.Object(Globals.Enums.IndexOf(te->TypeName)))
 		End If
 		If tbi <> 0 AndAlso tbi->ElementType = "Enum" Then
 			'CtrlEdit = @pnlPropertyValue
