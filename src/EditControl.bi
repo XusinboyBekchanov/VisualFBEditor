@@ -48,6 +48,34 @@ Common Shared As Integer EditorFontSize
 Common Shared As WString Ptr EditorFontName
 Common Shared As WString Ptr CurrentTheme
 
+Enum
+	C_If
+	C_P_If
+	C_P_Macro
+	C_Extern
+	C_Try
+	C_Asm
+	C_Select_Case
+	C_For
+	C_Do
+	C_While
+	C_With
+	C_Scope
+	C_P_Region
+	C_Namespace
+	C_Enum
+	C_Class
+	C_Type
+	C_Union
+	C_Sub
+	C_Function
+	C_Property
+	C_Operator
+	C_Constructor
+	C_Destructor
+	C_Count
+End Enum
+
 Type Construction
 	Name0 As String * 50
 	Name01 As String * 50

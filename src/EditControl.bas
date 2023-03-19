@@ -31,60 +31,32 @@ Namespace My.Sys.Forms
 	End Destructor
 End Namespace
 
-Enum
-	C_If
-	C_P_If
-	C_P_Macro
-	C_Extern
-	C_Try
-	C_Asm
-	C_Select_Case
-	C_For
-	C_Do
-	C_While
-	C_With
-	C_Scope
-	C_P_Region
-	C_Namespace
-	C_Enum
-	C_Class
-	C_Type
-	C_Union
-	C_Sub
-	C_Function
-	C_Property
-	C_Operator
-	C_Constructor
-	C_Destructor
-	C_Count
-End Enum
-
 ' Add Try End_Try
 ReDim Constructions(C_Count - 1) As Construction
-Constructions(0)  = Type<Construction>("If",            "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "ElseIf",   "Else",       "",        "End If",          "Then ", True,  False)
-Constructions(1)  = Type<Construction>("#If",           "#IfDef",             "#IfNDef",             "",                   "",                          "",                           "",                "",                       "",                        "#ElseIf",  "#Else",      "",        "#EndIf",          "",      True,  False)
-Constructions(2)  = Type<Construction>("#Macro",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "#EndMacro",       "",      True,  True)
-Constructions(3)  = Type<Construction>("Extern",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Extern",      "As ",   True,  False)
-Constructions(4)  = Type<Construction>("Try",           "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "Catch",    "Finally",    "",        "EndTry",          "",      True,  False)
-Constructions(5)  = Type<Construction>("Asm",           "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Asm",         " ",     True,  False)
-Constructions(6)  = Type<Construction>("Select Case",   "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "Case",     "",           "",        "End Select",      "",      True,  False)
-Constructions(7)  = Type<Construction>("For",           "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "Next",            "",      True,  False)
-Constructions(8)  = Type<Construction>("Do",            "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "Loop",            "",      True,  False)
-Constructions(9)  = Type<Construction>("While",         "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "Wend",            "",      True,  False)
-Constructions(10) = Type<Construction>("With",          "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End With",        "",      True,  False)
-Constructions(11) = Type<Construction>("Scope",         "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Scope",       "",      True,  False)
-Constructions(12) = Type<Construction>("'#Region",      "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "'#End Region",    "",      True,  False)
-Constructions(13) = Type<Construction>("Namespace",     "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Namespace",   "",      True,  False)
-Constructions(14) = Type<Construction>("Enum",          "Public Enum",        "Private Enum",        "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Enum",        "",      True,  True)
-Constructions(15) = Type<Construction>("Class",         "Public Class",       "Private Class",       "",                   "",                          "",                           "",                "",                       "",                        "Private:", "Protected:", "Public:", "End Class",       "As ",   True,  True)
-Constructions(16) = Type<Construction>("Type",          "Public Type",        "Private Type",        "",                   "",                          "",                           "",                "",                       "",                        "Private:", "Protected:", "Public:", "End Type",        "As ",   True,  True)
-Constructions(17) = Type<Construction>("Union",         "Public Union",       "Private Union",       "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Union",       "",      True,  True)
-Constructions(18) = Type<Construction>("Sub",           "Public Sub",         "Private Sub",         "Virtual Sub",        "Public Virtual Sub",        "Private Virtual Sub",        "Static Sub",      "Public Static Sub",      "Private Static Sub",      "",         "",           "",        "End Sub",         "",      True,  True)
-Constructions(19) = Type<Construction>("Function",      "Public Function",    "Private Function",    "Virtual Function",   "Public Virtual Function",   "Private Virtual Function",   "Static Function", "Public Static Function", "Private Static Function", "",         "",           "",        "End Function",    "",      True,  True)
-Constructions(20) = Type<Construction>("Property",      "Public Property",    "Private Property",    "Virtual Property",   "Public Virtual Property",   "Private Virtual Property",   "",                "",                       "",                        "",         "",           "",        "End Property",    "",      True,  True)
-Constructions(21) = Type<Construction>("Operator",      "Public Operator",    "Private Operator",    "Virtual Operator",   "Public Virtual Operator",   "Private Virtual Operator",   "",                "",                       "",                        "",         "",           "",        "End Operator",    "",      True,  True)
-Constructions(22) = Type<Construction>("Constructor",   "Public Constructor", "Private Constructor", "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Constructor", "",      True,  True)
-Constructions(23) = Type<Construction>("Destructor",    "Public Destructor",  "Private Destructor",  "Virtual Destructor", "Public Virtual Destructor", "Private Virtual Destructor", "",                "",                       "",                        "",         "",           "",        "End Destructor",  "",      True,  True)
+Constructions(C_If)             = Type<Construction>("If",            "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "ElseIf",   "Else",       "",        "End If",          "Then ", True,  False)
+Constructions(C_P_If)           = Type<Construction>("#If",           "#IfDef",             "#IfNDef",             "",                   "",                          "",                           "",                "",                       "",                        "#ElseIf",  "#Else",      "",        "#EndIf",          "",      True,  False)
+Constructions(C_P_Macro)        = Type<Construction>("#Macro",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "#EndMacro",       "",      True,  True)
+Constructions(C_Extern)         = Type<Construction>("Extern",        "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Extern",      "As ",   True,  False)
+Constructions(C_Try)            = Type<Construction>("Try",           "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "Catch",    "Finally",    "",        "EndTry",          "",      True,  False)
+Constructions(C_Asm)            = Type<Construction>("Asm",           "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Asm",         " ",     True,  False)
+Constructions(C_Select_Case)    = Type<Construction>("Select Case",   "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "Case",     "",           "",        "End Select",      "",      True,  False)
+Constructions(C_For)            = Type<Construction>("For",           "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "Next",            "",      True,  False)
+Constructions(C_Do)             = Type<Construction>("Do",            "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "Loop",            "",      True,  False)
+Constructions(C_While)          = Type<Construction>("While",         "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "Wend",            "",      True,  False)
+Constructions(C_With)           = Type<Construction>("With",          "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End With",        "",      True,  False)
+Constructions(C_Scope)          = Type<Construction>("Scope",         "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Scope",       "",      True,  False)
+Constructions(C_P_Region)       = Type<Construction>("'#Region",      "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "'#End Region",    "",      True,  False)
+Constructions(C_Namespace)      = Type<Construction>("Namespace",     "",                   "",                    "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Namespace",   "",      True,  False)
+Constructions(C_Enum)           = Type<Construction>("Enum",          "Public Enum",        "Private Enum",        "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Enum",        "",      True,  True)
+Constructions(C_Class)          = Type<Construction>("Class",         "Public Class",       "Private Class",       "",                   "",                          "",                           "",                "",                       "",                        "Private:", "Protected:", "Public:", "End Class",       "As ",   True,  True)
+Constructions(C_Type)           = Type<Construction>("Type",          "Public Type",        "Private Type",        "",                   "",                          "",                           "",                "",                       "",                        "Private:", "Protected:", "Public:", "End Type",        "As ",   True,  True)
+Constructions(C_Union)          = Type<Construction>("Union",         "Public Union",       "Private Union",       "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Union",       "",      True,  True)
+Constructions(C_Sub)            = Type<Construction>("Sub",           "Public Sub",         "Private Sub",         "Virtual Sub",        "Public Virtual Sub",        "Private Virtual Sub",        "Static Sub",      "Public Static Sub",      "Private Static Sub",      "",         "",           "",        "End Sub",         "",      True,  True)
+Constructions(C_Function)       = Type<Construction>("Function",      "Public Function",    "Private Function",    "Virtual Function",   "Public Virtual Function",   "Private Virtual Function",   "Static Function", "Public Static Function", "Private Static Function", "",         "",           "",        "End Function",    "",      True,  True)
+Constructions(C_Property)       = Type<Construction>("Property",      "Public Property",    "Private Property",    "Virtual Property",   "Public Virtual Property",   "Private Virtual Property",   "",                "",                       "",                        "",         "",           "",        "End Property",    "",      True,  True)
+Constructions(C_Operator)       = Type<Construction>("Operator",      "Public Operator",    "Private Operator",    "Virtual Operator",   "Public Virtual Operator",   "Private Virtual Operator",   "",                "",                       "",                        "",         "",           "",        "End Operator",    "",      True,  True)
+Constructions(C_Constructor)    = Type<Construction>("Constructor",   "Public Constructor", "Private Constructor", "",                   "",                          "",                           "",                "",                       "",                        "",         "",           "",        "End Constructor", "",      True,  True)
+Constructions(C_Destructor)     = Type<Construction>("Destructor",    "Public Destructor",  "Private Destructor",  "Virtual Destructor", "Public Virtual Destructor", "Private Virtual Destructor", "",                "",                       "",                        "",         "",           "",        "End Destructor",  "",      True,  True)
 
 Namespace My.Sys.Forms
 	Function EditControl.deltaToScrollAmount(lDelta As Integer) As Integer
