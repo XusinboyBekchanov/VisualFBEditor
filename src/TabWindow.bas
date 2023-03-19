@@ -2573,7 +2573,7 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 	If tb->Des = 0 Then Exit Sub
 	If tb->Des->SelectedControl = 0 Then Exit Sub
 	If plvProperties->SelectedItem = 0 Then Exit Sub
-	Dim As String PropertyName = GetItemText(plvProperties->SelectedItem)
+	Dim As String PropertyName = GetItemText(plvProperties->SelectedItem), PropertyName_
 	'Var te = GetPropertyType(tb->SelectedControl->ClassName, PropertyName)
 	'If te = 0 Then Exit Sub
 	Dim FLine As WString Ptr
@@ -2672,12 +2672,13 @@ Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCom
 				If SelCount = 1 Then
 					For i As Integer = 0 To plvProperties->Nodes.Count - 1
 						'If SelCount > 1 AndAlso plvProperties->Nodes.Item(i)->Text(1) = "" Then Continue For
-						PropertyName = GetItemText(plvProperties->Nodes.Item(i))
+						PropertyName_ = GetItemText(plvProperties->Nodes.Item(i))
+						If (PropertyName_ = "Location" OrElse PropertyName_ = "Size") AndAlso PropertyName <> "Location.X" AndAlso PropertyName <> "Location.Y" AndAlso PropertyName <> "Size.Width" AndAlso PropertyName <> "Size.Height" Then Continue For
 						Dim TempWS As UString
-						TempWS = tb->ReadObjProperty(pSelectedControls->Item(j), PropertyName)
+						TempWS = tb->ReadObjProperty(pSelectedControls->Item(j), PropertyName_)
 						If TempWS <> plvProperties->Nodes.Item(i)->Text(1) Then
 							plvProperties->Nodes.Item(i)->Text(1) = TempWS
-							ChangeControl(*tb->Des, pSelectedControls->Item(j), PropertyName)
+							ChangeControl(*tb->Des, pSelectedControls->Item(j), PropertyName_)
 						End If
 					Next i
 				End If
