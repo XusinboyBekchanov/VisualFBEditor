@@ -4743,7 +4743,7 @@ Sub LoadHelp
 					te->DisplayName = Trim(res(i))
 					te->ElementType = "Keyword"
 					te->FileName = *AsmKeywordsHelpPath
-					te->Comment = "<a href=""" & *AsmKeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & te->Name & """>" & te->Name & !"</a>\r   " & Mid(Buff, Pos1 + 3) & !"\r"
+					te->Comment = "<a href=""" & *AsmKeywordsHelpPath & "~" & Str(LineNumber - 1) & "~" & te->Name & "~" & te->Name & """>" & te->Name & !"</a>\r   " & Mid(Buff, Pos1 + 3) & !"\r"
 					pFunctions->Add te->Name, te
 					Commands.Add te
 				Next
