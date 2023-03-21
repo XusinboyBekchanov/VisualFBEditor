@@ -8513,7 +8513,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								Constructs.Add te
 								If Comments <> "" Then te->Comment = Comments: Comments = ""
-								LastIndexFunctions = txtCode.Content.Functions.Add(te->DisplayName, te)
+								If ptxtCode = @txtCode Then LastIndexFunctions = txtCode.Content.Functions.Add(te->DisplayName, te)
 								If ECLine->ConstructionIndex = C_Enum Then
 									txtCode.Content.Enums.Add te->Name, te
 								ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
