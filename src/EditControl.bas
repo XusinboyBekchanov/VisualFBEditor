@@ -21,6 +21,10 @@ Namespace My.Sys.Forms
 		Lines.Clear
 	End Destructor
 	
+	Destructor EditControlStatement
+		If This.Text <> 0 Then Deallocate_( This.Text)
+	End Destructor
+	
 	Constructor EditControlLine
 		'WLet(Text, "")
 		Visible = True
@@ -28,6 +32,9 @@ Namespace My.Sys.Forms
 	
 	Destructor EditControlLine
 		If This.Text <> 0 Then Deallocate_( This.Text)
+		For i As Integer = Statements.Count - 1 To 0 Step -1
+			Delete_(Cast(EditControlStatement Ptr, Statements.Item(i)))
+		Next
 	End Destructor
 End Namespace
 
@@ -351,6 +358,78 @@ Namespace My.Sys.Forms
 		PaintControl
 	End Property
 	
+	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr, bWithoutPaint As Boolean = False)
+		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
+			Delete_( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+		Next i
+		Content.Lines.Clear
+		For i As Integer = 0 To HistoryItem->Lines.Count - 1
+			FECLine = New_( EditControlLine)
+			OlddwClientX = 0
+			With *Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
+				WLet(FECLine->Text, * (.Text))
+				FECLine->Breakpoint = .Breakpoint
+				FECLine->Bookmark = .Bookmark
+				FECLine->CommentIndex = .CommentIndex
+				FECLine->ConstructionIndex = .ConstructionIndex
+				FECLine->ConstructionPart = .ConstructionPart
+				FECLine->InAsm = .InAsm
+				FECLine->InConstructionIndex = .InConstructionIndex
+				FECLine->InConstructionPart = .InConstructionPart
+				FECLine->Collapsible = .Collapsible
+				FECLine->Collapsed = .Collapsed
+				FECLine->CollapsedFully = .CollapsedFully
+				FECLine->LineContinues = .LineContinues
+				FECLine->Visible = .Visible
+				For ii As Integer = 0 To .Statements.Count - 1
+					With *Cast(EditControlStatement Ptr, .Statements.Item(ii))
+						FECStatement = New_( EditControlStatement)
+						WLet(FECStatement->Text, * (.Text))
+						FECStatement->ConstructionIndex = .ConstructionIndex
+						FECStatement->ConstructionPart = .ConstructionPart
+						FECStatement->InAsm = .InAsm
+						FECStatement->InConstructionIndex = .InConstructionIndex
+						FECStatement->InConstructionPart = .InConstructionPart
+						If Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))->MainStatement = Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))->Statements.Item(ii) Then
+							FECLine->MainStatement = FECStatement
+						End If
+						FECLine->Statements.Add FECStatement
+					End With
+				Next
+			End With
+			Content.Lines.Add FECLine
+		Next i
+		If Content.Lines.Count = 0 Then
+			FECLine = New_( EditControlLine)
+			OlddwClientX = 0
+			WLet(FECLine->Text, "")
+			Content.Lines.Add FECLine
+		End If
+		If bToBack Then
+			FSelStartLine = oldItem->OldSelStartLine
+			FSelStartChar = oldItem->OldSelStartChar
+			FSelEndLine = oldItem->OldSelEndLine
+			FSelEndChar = oldItem->OldSelEndChar
+		Else
+			FSelStartLine = HistoryItem->SelStartLine
+			FSelStartChar = HistoryItem->SelStartChar
+			FSelEndLine = HistoryItem->SelEndLine
+			FSelEndChar = HistoryItem->SelEndChar
+		End If
+		bOldCommented = True
+		#ifdef __USE_GTK__
+			If cr Then
+		#else
+			If Handle Then
+		#endif
+			If Not bWithoutPaint Then ScrollToCaret
+		End If
+		OldnCaretPosX = nCaretPosX
+		OldCharIndex = GetOldCharIndex
+		If OnChange Then OnChange(This)
+		Modified = True
+	End Sub
+	
 	Sub EditControl._FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString)
 		WLet(item->Comment, Comment)
 		Dim ecItem As EditControlLine Ptr
@@ -366,11 +445,26 @@ Namespace My.Sys.Forms
 				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
-				FECLine->Multiline = .Multiline
 				FECLine->Collapsed = .Collapsed
+				FECLine->CollapsedFully = .CollapsedFully
 				FECLine->Collapsible = .Collapsible
-				FECLine->Collapsed = .Collapsed
+				FECLine->LineContinues = .LineContinues
 				FECLine->Visible = .Visible
+				For ii As Integer = 0 To .Statements.Count - 1
+					With *Cast(EditControlStatement Ptr, .Statements.Item(ii))
+						FECStatement = New_( EditControlStatement)
+						WLet(FECStatement->Text, * (.Text))
+						FECStatement->ConstructionIndex = .ConstructionIndex
+						FECStatement->ConstructionPart = .ConstructionPart
+						FECStatement->InAsm = .InAsm
+						FECStatement->InConstructionIndex = .InConstructionIndex
+						FECStatement->InConstructionPart = .InConstructionPart
+						If Cast(EditControlLine Ptr, Content.Lines.Items[i])->MainStatement = Cast(EditControlLine Ptr, Content.Lines.Items[i])->Statements.Item(ii) Then
+							FECLine->MainStatement = FECStatement
+						End If
+						FECLine->Statements.Add FECStatement
+					End With
+				Next
 			End With
 			item->Lines.Add FECLine
 		Next i
@@ -384,7 +478,7 @@ Namespace My.Sys.Forms
 		If Index = 0 Then FHistory.Clear
 	End Sub
 	
-	Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True, WithoutBracket As Boolean = False) As String
+	Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True, WithoutBracket As Boolean = False, WithoutDoubleSpaces As Boolean = False) As String
 		Dim As String Result, ch, sLine = subject
 		Dim As Integer cc, iPos = -1
 		Dim As Boolean q, c
@@ -415,6 +509,10 @@ Namespace My.Sys.Forms
 				Result += " "
 			ElseIf WithoutBracket AndAlso ch = "(" Then
 				Result += " "
+			ElseIf ch = !"\t" Then
+				Result += " "
+			ElseIf WithoutDoubleSpaces AndAlso CBool(ch = " ") AndAlso EndsWith(Result, " ") Then
+				Result += ""
 			Else
 				Result += ch
 			End If
@@ -435,7 +533,7 @@ Namespace My.Sys.Forms
 		'		Next
 		'		If iPos = 0 Then Return -1 Else sLine = Mid(sLine, iPos + 2)
 		'		iPos = InStr(sLine, "/'")
-		sLine = TextWithoutQuotesAndComments(sLine, OldCommentIndex, False, True)
+		sLine = TextWithoutQuotesAndComments(sLine, OldCommentIndex, False, True, True)
 		iPos = InStr(sLine, "'")
 		If iPos = 0 Then iPos = Len(sLine) Else iPos -= 1
 		For i As Integer = 0 To UBound(Constructions)
@@ -512,42 +610,47 @@ Namespace My.Sys.Forms
 		Dim As Integer j, Idx
 		Dim FECLine As EditControlLine Ptr = Content.Lines.Items[LineIndex]
 		Dim As EditControlLine Ptr FECLine2
+		Dim As EditControlStatement Ptr FECStatement
 		OlddwClientX = 0
 		FECLine->Collapsed = Value
 		If FECLine->Collapsed Then
+			FECLine->CollapsedFully = True
 			If Not EndsWith(*FECLine->Text, "'...'") Then
 				WLetEx(FECLine->Text, *FECLine->Text & " '...'", True)
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
 			End If
-			For i As Integer = LineIndex + 1 To Content.Lines.Count - 1
+			For i As Integer = LineIndex To Content.Lines.Count - 1
 				FECLine2 = Content.Lines.Items[i]
-				FECLine2->Visible = False
-				'				Idx = VisibleLines.IndexOf(FECLine2)
-				'				If Idx > -1 Then VisibleLines.Remove Idx
-				If FECLine2->ConstructionIndex = FECLine->ConstructionIndex OrElse (FECLine->ConstructionPart = 1 AndAlso FECLine->ConstructionIndex = C_Class AndAlso FECLine2->ConstructionIndex = C_Type) Then
-					If FECLine2->ConstructionPart = 2 Then
-						j -= 1
-						If j = -1 Then
-							If FECLine->ConstructionPart = 1 Then
-								FECLine2->Visible = True
+				If i > LineIndex Then FECLine2->Visible = False
+				For iii As Integer = IIf(i = LineIndex, FECLine->Statements.IndexOf(FECLine->MainStatement) + 1, 0) To FECLine2->Statements.Count - 1
+					FECStatement = FECLine2->Statements.Item(iii)
+					If FECStatement->ConstructionIndex = FECLine->ConstructionIndex OrElse (FECLine->ConstructionPart = 1 AndAlso FECLine->ConstructionIndex = C_Class AndAlso FECStatement->ConstructionIndex = C_Type) Then
+						If FECStatement->ConstructionPart = 2 Then
+							j -= 1
+							If j = -1 Then
+								If (FECLine->ConstructionPart = 1) OrElse FECLine2->Collapsible Then
+									If FECLine2->Statements.IndexOf(FECLine2->MainStatement) > iii Then FECLine->CollapsedFully = False
+									FECLine2->Visible = True
+								End If
+								Exit For, For
 							End If
-							Exit For
-						End If
-					ElseIf FECLine2->ConstructionPart = 0 Then
-						j += 1
-					ElseIf FECLine2->ConstructionPart = 1 Then
-						If FECLine->ConstructionPart = 1 Then
-							If j = 0 Then
-								FECLine2->Visible = True
-								Exit For
+						ElseIf FECStatement->ConstructionPart = 0 Then
+							j += 1
+						ElseIf FECStatement->ConstructionPart = 1 Then
+							If FECLine->ConstructionPart = 1 Then
+								If j = 0 Then
+									FECLine2->Visible = True
+									Exit For, For
+								End If
 							End If
 						End If
 					End If
-				End If
+				Next iii
 			Next i
 		Else
 			If EndsWith(*FECLine->Text, "'...'") Then
+				FECLine->CollapsedFully = False
 				WLetEx(FECLine->Text, RTrim(.Left(*FECLine->Text, Len(*FECLine->Text) - 5)), True)
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
@@ -703,32 +806,135 @@ Namespace My.Sys.Forms
 		PaintControl
 	End Sub
 	
-	Sub EditControl.ChangeCollapsibility(LineIndex As Integer)
+	Sub EditControl.ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "")
 		Dim As Integer i, j, k, Idx
 		Dim OldCollapsed As Boolean, OldConstructionIndex As Integer = -1, OldConstructionPart As Integer = 0, OldLineIndex As Integer = LineIndex - 1
 		If LineIndex < 0 OrElse LineIndex > Content.Lines.Count - 1 Then Exit Sub
-		Dim As EditControlLine Ptr ecl = Content.Lines.Items[LineIndex], eclOld
+		Dim As EditControlLine Ptr ecl = Content.Lines.Items[LineIndex], eclOld, eclOld_
 		If OldLineIndex > -1 Then
 			eclOld = Content.Lines.Items[OldLineIndex]
 		End If
 		If ecl = 0 OrElse ecl->Text = 0 Then Exit Sub
 		OldConstructionIndex = ecl->ConstructionIndex
 		OldConstructionPart = ecl->ConstructionPart
-		If eclOld Then
-			i = Content.GetConstruction(*ecl->Text, j, eclOld->CommentIndex, ecl->InAsm)
-		Else
-			i = Content.GetConstruction(*ecl->Text, j, , ecl->InAsm)
-		End If
+		For ii As Integer = ecl->Statements.Count - 1 To 0 Step -1
+			Delete_(Cast(EditControlStatement Ptr, ecl->Statements.Item(ii)))
+		Next
+		ecl->Statements.Clear
+		Dim As UString LineText_
+		'If LineText <> "" Then
+		'	LineText_ = LineText
+		'Else
+			LineText_ = TextWithoutQuotesAndComments(*ecl->Text, IIf(eclOld = 0, 0, eclOld->CommentIndex))
+		'End If
+		Dim As Boolean Collapsible
+		Dim As List Statements
+		Dim As UString res()
+		Split(LineText_, ":", res())
+		Dim As EditControlStatement Ptr ecs, ecs_, ecsOld_
+		For ii As Integer = 0 To UBound(res)
+			ecs = New_(EditControlStatement)
+			WLet(ecs->Text, res(ii))
+			ecl->Statements.Add ecs
+			LineText_ = *ecs->Text
+			If ii = 0 Then
+				ecsOld_ = 0
+				If eclOld > 0 AndAlso eclOld->Statements.Count > 0 Then
+					ecsOld_ = eclOld->Statements.Item(eclOld->Statements.Count - 1)
+				End If
+				If (ecsOld_ > 0) AndAlso EndsWith(Trim(*ecsOld_->Text), " _") Then
+					Dim iii As Integer
+					For iii = LineIndex - 1 To 0 Step -1
+						eclOld_ = Content.Lines.Items[iii]
+						For iiii As Integer = eclOld_->Statements.Count - 1 To 0 Step -1
+							ecs_ = eclOld_->Statements.Items[iiii]
+							If Not EndsWith(Trim(*ecs_->Text), " _") Then
+								Exit For, For
+							End If
+							LineText_ = ..Left(Trim(*ecs_->Text), Len(Trim(*ecs_->Text)) - 1) & LineText_
+							ecsOld_ = ecs_
+						Next iiii
+					Next
+					i = Content.GetConstruction(LineText_, j, 0, ecsOld_->InAsm)
+					If ecsOld_->ConstructionIndex <> i OrElse ecsOld_->ConstructionPart <> j Then
+						ecsOld_->ConstructionIndex = i
+						ecsOld_->ConstructionPart = j
+						ChangeCollapsibility iii + 1, LineText_
+					End If
+					LineText_ = ""
+					ecs->ConstructionIndex = -1
+					ecs->ConstructionPart = -1
+					Continue For
+				End If
+			End If
+			If (LineText_ <> "") AndAlso (ii = UBound(res)) Then
+				For iii As Integer = LineIndex + 1 To Content.Lines.Count - 1
+					eclOld_ = Content.Lines.Items[iii]
+					For iiii As Integer = 0 To eclOld_->Statements.Count - 1
+						ecs_ = eclOld_->Statements.Items[iiii]
+						LineText_ = ..Left(LineText_, Len(LineText_) - 1) & Trim(*ecs_->Text)
+						If Not EndsWith(Trim(*ecs_->Text), " _") Then
+							Exit For, For
+						End If
+					Next iiii
+				Next
+			End If
+			If StartsWith(Trim(LCase(*ecl->Text), Any !"\t "), "'#region") Then
+				i = C_P_Region
+				j = 0
+			ElseIf StartsWith(Trim(LCase(*ecl->Text), Any !"\t "), "'#end region") Then
+				i = C_P_Region
+				j = 2
+			Else
+				i = Content.GetConstruction(LineText_, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
+			End If
+			ecs->ConstructionIndex = i
+			ecs->ConstructionPart = j
+			If i > -1 Then
+				If j = 0 OrElse j = 1 Then
+					Statements.Add ecs
+				Else
+					Dim bFind As Boolean
+					For iii As Integer = Statements.Count - 1 To 0 Step -1
+						ecsOld_ = Statements.Items[iii]
+						If ecsOld_->ConstructionPart = 1 Then
+							Statements.Remove iii
+						ElseIf ecsOld_->ConstructionPart = 0 Then
+							bFind = True
+							Statements.Remove iii
+							Exit For
+						End If
+					Next
+					If Not bFind Then
+						Statements.Add ecs
+					End If
+				End If
+			End If
+		Next
+		'i = Content.GetConstruction(*ecl->Text, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
+		ecl->MainStatement = 0
+		For iii As Integer = 0 To Statements.Count - 1
+			ecsOld_ = Statements.Items[iii]
+			If ecsOld_->ConstructionPart = 0 OrElse ecsOld_->ConstructionPart = 1 Then
+				ecl->MainStatement = ecsOld_
+				Exit For
+			Else
+				ecl->MainStatement = ecsOld_
+			End If
+		Next
+		If ecl->MainStatement = 0 Then ecl->MainStatement = ecl->Statements.Items[0]
+		i = ecl->MainStatement->ConstructionIndex
+		j = ecl->MainStatement->ConstructionPart
 		ecl->ConstructionIndex = i
 		ecl->ConstructionPart = j
 		ecl->Ends.Clear
 		ecl->EndsCompleted = False
-		ecl->Multiline = InStr(*ecl->Text, ":") > 0
 		OldCollapsed = ecl->Collapsed
 		If i > -1 And (j = 0 OrElse j = 1) Then
 			ecl->Collapsible = Constructions(i).Collapsible
 			If EndsWith(*ecl->Text, "'...'") Then
-				ecl->Collapsed = Constructions(i).Collapsible
+				ecl->Collapsed = ecl->Collapsible
+				ecl->CollapsedFully = ecl->Collapsible
 			Else
 				ecl->Collapsed = False
 			End If
@@ -748,20 +954,39 @@ Namespace My.Sys.Forms
 				k = GetLineIndex(OldLineIndex, 0)
 				Dim FECLine As EditControlLine Ptr = Content.Lines.Items[k]
 				j = 0
-				For k = k + 1 To OldLineIndex
+				Var OldVisibleLineIndex = k
+				For k = OldVisibleLineIndex To OldLineIndex + 1
+				'For k = k + 1 To OldLineIndex
 					FECLine2 = Content.Lines.Items[k]
-					If FECLine2->ConstructionIndex = FECLine->ConstructionIndex Then
-						If FECLine2->ConstructionPart = 2 Then
-							j -= 1
-							If j = -1 Then
-								Exit For
+					For iii As Integer = IIf(k = OldVisibleLineIndex, FECLine->Statements.IndexOf(FECLine->MainStatement) + 1, 0) To IIf(k = OldLineIndex + 1, ecl->Statements.IndexOf(ecl->MainStatement), FECLine2->Statements.Count - 1)
+						FECStatement = FECLine2->Statements.Item(iii)
+						If FECStatement->ConstructionIndex = FECLine->ConstructionIndex OrElse (FECLine->ConstructionPart = 1 AndAlso FECLine->ConstructionIndex = C_Class AndAlso FECStatement->ConstructionIndex = C_Type) Then
+							If FECStatement->ConstructionPart = 2 Then
+								j -= 1
+								If j = -1 Then
+									If (FECLine->ConstructionPart = 1) OrElse FECLine2->Collapsible Then
+										If FECLine2->Statements.IndexOf(FECLine2->MainStatement) > iii Then FECLine->CollapsedFully = False
+										j = -1
+									ElseIf (k = OldLineIndex + 1) AndAlso (iii = ecl->Statements.IndexOf(ecl->MainStatement)) Then
+										j = 0
+									End If
+									Exit For, For
+								End If
+							ElseIf FECStatement->ConstructionPart = 0 Then
+								j += 1
+							ElseIf FECStatement->ConstructionPart = 1 Then
+								If FECLine->ConstructionPart = 1 Then
+									If j = 0 Then
+										j = -1
+										Exit For, For
+									End If
+								End If
 							End If
-						ElseIf FECLine2->ConstructionPart = 0 Then
-							j += 1
 						End If
-					End If
+					Next
 				Next
 				ecl->Visible = j = -1
+				'If ecl->Visible AndAlso ecl->Collapsible AndAlso CBool(ecl = FECLine2) Then FECLine->CollapsedFully = False
 			ElseIf eclOld->Collapsed Then
 				ecl->Visible = False
 			End If
@@ -1618,7 +1843,7 @@ Namespace My.Sys.Forms
 			If .Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then WLet(FECLine->Text, "If (" & Mid(*FECLine->Text, 4))
 			If LCase(Trim(*FECLine->Text, Any !"\t ")) = "endif" Then WLet(FECLine->Text, "End If")
 			If iComment = 0 Then
-				If FECLine->Multiline Then
+				If FECLine->Statements.Count > 1 Then
 					Split(*FECLine->Text, """", LineQuotes())
 					WLet(FLine, "")
 					For k As Integer = 0 To UBound(LineQuotes) Step 2
@@ -1665,7 +1890,7 @@ Namespace My.Sys.Forms
 			End If
 			WLet(FECLine->Text, IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(CurIndents * TabWidth), WString(CurIndents, !"\t")) & LTrim(*FECLine->Text, Any !"\t "))
 			If iComment = 0 Then
-				If FECLine->Multiline Then
+				If FECLine->Statements.Count > 1 Then
 					For k As Integer = 0 To UBound(LineParts)
 						ConstructionIndex = Content.GetConstruction(LineParts(k), ConstructionPart, 0, FECLine->InAsm)
 						If k > 0 AndAlso ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
@@ -3220,13 +3445,16 @@ Namespace My.Sys.Forms
 				Else
 					FECLineNext = 0
 				End If
-				If FECLine->ConstructionIndex >= 0 AndAlso Constructions(FECLine->ConstructionIndex).Collapsible Then
-					If FECLine->ConstructionPart = 0 Then
-						CollapseIndex += 1
-					ElseIf FECLine->ConstructionPart = 2 Then
-						CollapseIndex = Max(0, CollapseIndex - 1)
+				For ii As Integer = 0 To FECLine->Statements.Count - 1
+					FECStatement = FECLine->Statements.Items[ii]
+					If FECStatement->ConstructionIndex >= 0 AndAlso Constructions(FECStatement->ConstructionIndex).Collapsible Then
+						If FECStatement->ConstructionPart = 0 Then
+							CollapseIndex += 1
+						ElseIf FECStatement->ConstructionPart = 2 Then
+							CollapseIndex = Max(0, CollapseIndex - 1)
+						End If
 					End If
-				End If
+				Next ii
 				If Not FECLine->Visible Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
 				i = i + 1
 				If i < VScrollPos Then OldCollapseIndex = CollapseIndex: iC = FECLine->CommentIndex: Continue For
@@ -4130,16 +4358,22 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
 				#endif
 				If SyntaxEdit AndAlso Not Content.CStyle Then
-					If ShowHorizontalSeparatorLines AndAlso CBool(FECLineNext <> 0) AndAlso FECLineNext->Visible AndAlso FECLineNext->Collapsible AndAlso CBool(FECLineNext->ConstructionIndex >= C_P_Region) AndAlso CBool(FECLineNext->ConstructionPart = 0) Then
-						#ifdef __USE_GTK__
-							cairo_move_to(cr, LeftMargin - 0.5 + CodePaneX, (i + 1 - VScrollPos) * dwCharY - 0.5 + CodePaneY)
-							cairo_line_to(cr, IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX) - 0.5, (i + 1 - VScrollPos) * dwCharY - 0.5 + CodePaneY)
-							cairo_stroke (cr)
-						#else
-							This.Canvas.Pen.Color = FoldLines.Foreground
-							MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i + 1 - VScrollPos) * dwCharY + CodePaneY), 0
-							LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i + 1 - VScrollPos) * dwCharY + CodePaneY)
-						#endif
+					If ShowHorizontalSeparatorLines AndAlso CBool(FECLineNext <> 0) AndAlso FECLineNext->Visible Then
+						For ii As Integer = 0 To FECLineNext->Statements.Count - 1
+							FECStatement = FECLineNext->Statements.Items[ii]
+							If (FECStatement->ConstructionIndex >= C_P_Region) AndAlso (FECStatement->ConstructionPart = 0) Then
+								#ifdef __USE_GTK__
+									cairo_move_to(cr, LeftMargin - 0.5 + CodePaneX, (i + 1 - VScrollPos) * dwCharY - 0.5 + CodePaneY)
+									cairo_line_to(cr, IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX) - 0.5, (i + 1 - VScrollPos) * dwCharY - 0.5 + CodePaneY)
+									cairo_stroke (cr)
+								#else
+									This.Canvas.Pen.Color = FoldLines.Foreground
+									MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i + 1 - VScrollPos) * dwCharY + CodePaneY), 0
+									LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i + 1 - VScrollPos) * dwCharY + CodePaneY)
+								#endif
+								Exit For
+							End If
+						Next ii
 					End If
 					If FECLine->Collapsible Then
 						#ifdef __USE_GTK__
@@ -4147,9 +4381,15 @@ Namespace My.Sys.Forms
 							cairo_rectangle(cr, LeftMargin - 15 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 4 - 0.5 + CodePaneY, LeftMargin - 7 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 12 - 0.5 + CodePaneY, True)
 							cairo_move_to(cr, LeftMargin - 13 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 8 - 0.5 + CodePaneY)
 							cairo_line_to(cr, LeftMargin - 9 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 8 - 0.5 + CodePaneY)
-							If ShowHorizontalSeparatorLines AndAlso CBool(FECLine->ConstructionIndex >= C_P_Region) AndAlso CBool(FECLine->ConstructionPart = 0) Then
-								cairo_move_to(cr, LeftMargin - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY - 0.5 + CodePaneY)
-								cairo_line_to(cr, dwClientX - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY - 0.5 + CodePaneY)
+							If ShowHorizontalSeparatorLines Then
+								For ii As Integer = 0 To FECLine->Statements.Count - 1
+									FECStatement = FECLine->Statements.Items[ii]
+									If (FECStatement->ConstructionIndex >= C_P_Region) AndAlso (FECStatement->ConstructionPart = 0) Then
+										cairo_move_to(cr, LeftMargin - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY - 0.5 + CodePaneY)
+										cairo_line_to(cr, dwClientX - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY - 0.5 + CodePaneY)
+										Exit For
+									End If
+								Next ii
 							End If
 							cairo_stroke (cr)
 						#else
@@ -4160,9 +4400,15 @@ Namespace My.Sys.Forms
 							Rectangle bufDC, ScaleX(LeftMargin - 15 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY), ScaleX(LeftMargin - 6 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY)
 							MoveToEx bufDC, ScaleX(LeftMargin - 13 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY), 0
 							LineTo bufDC, ScaleX(LeftMargin - 8 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)
-							If ShowHorizontalSeparatorLines AndAlso CBool(FECLine->ConstructionIndex >= C_P_Region) AndAlso CBool(FECLine->ConstructionPart = 0) Then
-								MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), 0
-								LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i - VScrollPos) * dwCharY + CodePaneY)
+							If ShowHorizontalSeparatorLines Then
+								For ii As Integer = 0 To FECLine->Statements.Count - 1
+									FECStatement = FECLine->Statements.Items[ii]
+									If (FECStatement->ConstructionIndex >= C_P_Region) AndAlso (FECStatement->ConstructionPart = 0) Then
+										MoveToEx bufDC, ScaleX(LeftMargin + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), 0
+										LineTo bufDC, ScaleX(IIf(bDividedX AndAlso zz = 0, iDividedX, dwClientX)), ScaleY((i - VScrollPos) * dwCharY + CodePaneY)
+										Exit For
+									End If
+								Next ii
 							End If
 						#endif
 						If OldCollapseIndex > 0 Then
@@ -4185,7 +4431,17 @@ Namespace My.Sys.Forms
 								LineTo bufDC, ScaleX(LeftMargin - 11 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 10 + CodePaneY)
 							#endif
 						End If
-						If CInt(CInt(OldCollapseIndex = 0) And CInt(Not FECLine->Collapsed)) OrElse CInt(OldCollapseIndex > 0) Then
+						For ii As Integer = 0 To FECLine->Statements.IndexOf(FECLine->MainStatement) - 1
+							FECStatement = FECLine->Statements.Items[ii]
+							If FECStatement->ConstructionIndex >= 0 AndAlso Constructions(FECStatement->ConstructionIndex).Collapsible Then
+								If FECStatement->ConstructionPart = 0 Then
+									OldCollapseIndex += 1
+								ElseIf FECStatement->ConstructionPart = 2 Then
+									OldCollapseIndex = Max(0, OldCollapseIndex - 1)
+								End If
+							End If
+						Next ii
+						If ((Not FECLine->Collapsed) AndAlso CBool(CollapseIndex > 0)) OrElse (FECLine->Collapsed AndAlso (CBool(OldCollapseIndex > 0) OrElse Not FECLine->CollapsedFully)) Then 'CBool(OldCollapseIndex = 0) AndAlso 
 							#ifdef __USE_GTK__
 								cairo_move_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + 12 - 0.5 + CodePaneY)
 								cairo_line_to(cr, LeftMargin - 11 - 0.5 + CodePaneX, (i - VScrollPos) * dwCharY + dwCharY - 0.5 + CodePaneY)
@@ -4487,62 +4743,6 @@ Namespace My.Sys.Forms
 		#else
 			PaintControlPriv(bFull)
 		#endif
-	End Sub
-	
-	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr, bWithoutPaint As Boolean = False)
-		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
-			Delete_( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
-		Next i
-		Content.Lines.Clear
-		For i As Integer = 0 To HistoryItem->Lines.Count - 1
-			FECLine = New_( EditControlLine)
-			OlddwClientX = 0
-			With * (Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i)))
-				WLet(FECLine->Text, * (.Text))
-				FECLine->Breakpoint = .Breakpoint
-				FECLine->Bookmark = .Bookmark
-				FECLine->CommentIndex = .CommentIndex
-				FECLine->ConstructionIndex = .ConstructionIndex
-				FECLine->ConstructionPart = .ConstructionPart
-				FECLine->InAsm = .InAsm
-				FECLine->InConstructionIndex = .InConstructionIndex
-				FECLine->InConstructionPart = .InConstructionPart
-				FECLine->Multiline = .Multiline
-				FECLine->Collapsible = .Collapsible
-				FECLine->Collapsed = .Collapsed
-				FECLine->Visible = .Visible
-			End With
-			Content.Lines.Add FECLine
-		Next i
-		If Content.Lines.Count = 0 Then
-			FECLine = New_( EditControlLine)
-			OlddwClientX = 0
-			WLet(FECLine->Text, "")
-			Content.Lines.Add FECLine
-		End If
-		If bToBack Then
-			FSelStartLine = oldItem->OldSelStartLine
-			FSelStartChar = oldItem->OldSelStartChar
-			FSelEndLine = oldItem->OldSelEndLine
-			FSelEndChar = oldItem->OldSelEndChar
-		Else
-			FSelStartLine = HistoryItem->SelStartLine
-			FSelStartChar = HistoryItem->SelStartChar
-			FSelEndLine = HistoryItem->SelEndLine
-			FSelEndChar = HistoryItem->SelEndChar
-		End If
-		bOldCommented = True
-		#ifdef __USE_GTK__
-			If cr Then
-		#else
-			If Handle Then
-		#endif
-			If Not bWithoutPaint Then ScrollToCaret
-		End If
-		OldnCaretPosX = nCaretPosX
-		OldCharIndex = GetOldCharIndex
-		If OnChange Then OnChange(This)
-		Modified = True
 	End Sub
 	
 	Sub EditControl.Undo

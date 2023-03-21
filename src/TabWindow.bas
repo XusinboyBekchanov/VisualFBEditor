@@ -3648,6 +3648,7 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	#else
 		tb->txtCode.cboIntellisense.Items.Clear
 	#endif
+	If Not AddSorted(tb, "_", , Starts) Then Exit Sub
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim c As Integer

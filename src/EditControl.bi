@@ -49,31 +49,31 @@ Common Shared As WString Ptr EditorFontName
 Common Shared As WString Ptr CurrentTheme
 
 Enum
-	C_If
-	C_P_If
-	C_P_Macro
-	C_Extern
-	C_Try
-	C_Asm
-	C_Select_Case
-	C_For
-	C_Do
-	C_While
-	C_With
-	C_Scope
-	C_P_Region
-	C_Namespace
-	C_Enum
-	C_Class
-	C_Type
-	C_Union
-	C_Sub
-	C_Function
-	C_Property
-	C_Operator
-	C_Constructor
-	C_Destructor
-	C_Count
+	C_If '0
+	C_P_If '1
+	C_P_Macro '2
+	C_Extern '3
+	C_Try '4
+	C_Asm '5
+	C_Select_Case '6
+	C_For '7
+	C_Do '8
+	C_While '9
+	C_With '10
+	C_Scope '11
+	C_P_Region '12
+	C_Namespace '13
+	C_Enum '14
+	C_Class '15
+	C_Type '16
+	C_Union '17
+	C_Sub '18
+	C_Function '19
+	C_Property '20
+	C_Operator '21
+	C_Constructor '22
+	C_Destructor '23
+	C_Count '24
 End Enum
 
 Type Construction
@@ -174,28 +174,43 @@ Namespace My.Sys.Forms
 		Elements As WStringOrStringList
 	End Type
 	
-	Type EditControlLine
-		Bookmark As Boolean
-		Breakpoint As Boolean
-		Collapsed As Boolean
-		Collapsible As Boolean
-		CommentIndex As Integer
+	Type EditControlStatement
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
 		InAsm As Boolean
-		InCollapse As Boolean
 		InConstruction As TypeElement Ptr
 		InConstructionBlock As ConstructionBlock Ptr
 		InConstructionIndex As Integer
 		InConstructionPart As Integer
 		InWithConstruction As Integer
-		Multiline As Boolean
+		Text As WString Ptr = 0
+		Declare Destructor
+	End Type
+	
+	Type EditControlLine
+		Bookmark As Boolean
+		Breakpoint As Boolean
+		Collapsed As Boolean
+		CollapsedFully As Boolean
+		Collapsible As Boolean
+		CommentIndex As Integer
+		ConstructionIndex As Integer
+		ConstructionPart As Integer
+		InAsm As Boolean
+		InConstruction As TypeElement Ptr
+		InConstructionBlock As ConstructionBlock Ptr
+		InConstructionIndex As Integer
+		InConstructionPart As Integer
+		InWithConstruction As Integer
 		FileList As WStringList Ptr
 		FileListLines As IntegerList Ptr
 		Text As WString Ptr = 0
 		Args As List
 		Ends As IntegerList
 		EndsCompleted As Boolean
+		Statements As List
+		MainStatement As EditControlStatement Ptr
+		LineContinues As Boolean
 		Visible As Boolean
 		Declare Constructor
 		Declare Destructor
@@ -261,6 +276,7 @@ Namespace My.Sys.Forms
 		Dim FVisibleLinesCount As Integer
 		Dim FECLine As EditControlLine Ptr
 		Dim FECLineNext As EditControlLine Ptr
+		Dim FECStatement As EditControlStatement Ptr
 		Dim bAddText As Boolean
 		Dim bOldCommented As Boolean
 		Dim curHistory As Integer
@@ -585,7 +601,7 @@ Namespace My.Sys.Forms
 		Declare Sub ChangeText(ByRef Value As WString, CharTo As Integer = 0, ByRef Comment As WString = "", SelStartLine As Integer = -1, SelStartChar As Integer = -1)
 		Declare Sub Changing(ByRef Comment As WString = "")
 		Declare Sub Changed(ByRef Comment As WString = "")
-		Declare Sub ChangeCollapsibility(LineIndex As Integer)
+		Declare Sub ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "")
 		Declare Sub ChangeCollapseState(LineIndex As Integer, Value As Boolean)
 		Declare Sub ChangeInConstruction(LineIndex As Integer, OldConstructionIndex As Integer, OldConstructionPart As Integer)
 		Declare Function GetLineIndex(Index As Integer, iTo As Integer = 0) As Integer
@@ -664,7 +680,7 @@ Namespace My.Sys.Forms
 	
 	Declare Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringOrStringList Ptr = 0, OriginalCaseWord As String = "") As String
 	
-	Declare Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True, WithoutBracket As Boolean = False) As String
+	Declare Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True, WithoutBracket As Boolean = False, WithoutDoubleSpaces As Boolean = False) As String
 	
 	#ifdef __USE_GTK__
 		Declare Function EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
