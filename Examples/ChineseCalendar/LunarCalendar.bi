@@ -9,7 +9,7 @@ Private Type HolidayStruct
 	HolidayName As WString Ptr
 End Type
 
-Type Calendar
+Type LunarCalendar
 Private:
 	'0-31
 	BitPower(31) As Long
@@ -212,7 +212,7 @@ Public:
 End Type
 
 #ifndef __USE_MAKE__
-	#include once "Calendar.bas"
+	#include once "LunarCalendar.bas"
 #endif
 
 

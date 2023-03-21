@@ -13,36 +13,34 @@
 	#include once "mff/Form.bi"
 	#include once "mff/Panel.bi"
 	#include once "mff/TimerComponent.bi"
+	#include once "mff/Picture.bi"
 	
 	#include once "string.bi"
 	#include once "vbcompat.bi"
-	#include once "Calendar.bi"
 	
-	#include once "DrawDitalClock.bi"
-	#include once "frmCalendar.frm"
+	#include once "LunarCalendar.bi"
+	#include once "DrawClockCalendar.bi"
+	
+	#include once "frmDayCalendar.frm"
+	#include once "frmMonthCalendar.frm"
 	
 	Using My.Sys.Forms
 	
 	Type frmClockType Extends Form
-		DrawNC As DrawDitalClock
+		DClock As DitalClock
 		
 		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Static Sub _TimerComponent2_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent2_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Form_DblClick(ByRef Sender As Control)
-		Declare Sub Form_DblClick(ByRef Sender As Control)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
-		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Static Sub _Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Form_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Sub Form_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Static Sub _Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Sub Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Constructor
 		
 		Dim As TimerComponent TimerComponent1, TimerComponent2
+		Dim As Panel Picture1
 	End Type
 	
 	Constructor frmClockType
@@ -56,24 +54,21 @@
 				This.Icon.LoadFromResourceID(1)
 			#endif
 			#ifdef __FB_64BIT__
-				.Caption = "VFBE Clock 64"
+				.Caption = "VFBE Clock64"
 			#else
-				.Caption = "VFBE Clock 32"
+				.Caption = "VFBE Clock32"
 			#endif
 			.Designer = @This
 			.Font.Name = "Consolas"
 			.Font.Size = 12
 			.Font.Bold = True
-			.BorderStyle = FormBorderStyle.FixedSingle
+			.BorderStyle = FormBorderStyle.Sizable
 			.MaximizeBox = False
 			.StartPosition = FormStartPosition.CenterScreen
 			.Location = Type<My.Sys.Drawing.Point>(0, 0)
-			.OnPaint = @_Form_Paint
-			.OnDblClick = @_Form_DblClick
-			.OnCreate = @_Form_Create
 			.OnMouseUp = @_Form_MouseUp
-			.OnMouseWheel = @_Form_MouseWheel
-			.SetBounds 0, 0, 350, 300
+			.Size = Type<My.Sys.Drawing.Size>(330, 130)
+			.SetBounds 0, 0, 330, 140
 		End With
 		' TimerComponent1
 		With TimerComponent1
@@ -94,26 +89,29 @@
 			.OnTimer = @_TimerComponent2_Timer
 			.Parent = @This
 		End With
+		' Picture1
+		With Picture1
+			.Name = "Picture1"
+			.Text = ""
+			.TabIndex = 0
+			.Align = DockStyle.alClient
+			.Location = Type<My.Sys.Drawing.Point>(0, 0)
+			.Size = Type<My.Sys.Drawing.Size>(324, 91)
+			.Enabled = False
+			.DoubleBuffered = True
+			.SetBounds 65250, 0, 224, 91
+			.Designer = @This
+			.OnPaint = @_Picture1_Paint
+			.Parent = @This
+		End With
 	End Constructor
 	
-	Private Sub frmClockType._Form_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmClockType Ptr, Sender.Designer)).Form_MouseWheel(Sender, Direction, x, y, Shift)
+	Private Sub frmClockType._Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		(*Cast(frmClockType Ptr, Sender.Designer)).Picture1_Paint(Sender, Canvas)
 	End Sub
 	
 	Private Sub frmClockType._Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		(*Cast(frmClockType Ptr, Sender.Designer)).Form_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmClockType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmClockType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmClockType._Form_DblClick(ByRef Sender As Control)
-		(*Cast(frmClockType Ptr, Sender.Designer)).Form_DblClick(Sender)
-	End Sub
-	
-	Private Sub frmClockType._Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(frmClockType Ptr, Sender.Designer)).Form_Paint(Sender, Canvas)
 	End Sub
 	
 	Private Sub frmClockType._TimerComponent2_Timer(ByRef Sender As TimerComponent)
@@ -135,78 +133,30 @@
 
 Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 	Static st As String
-	Static sd As String
 	Dim dnow As Double= Now()
 	Dim dt As String = Format(dnow, "hh:mm:ss")
 	If st = dt Then Exit Sub
 	st = dt
 	TimerComponent2.Enabled = False
 	TimerComponent2.Enabled = True
-	
-	Dim dd As String = Format(dnow, "yyyy/mm/dd")
-	If sd = dd Then
-		DrawNC.PaintClock Canvas, Now, 1, False
-	Else
-		DrawNC.PaintClock Canvas, Now, 1, True
-		sd = dd
-	End If
+	DClock.DrawClock Picture1.Canvas, dnow, 1
 End Sub
 
 Private Sub frmClockType.TimerComponent2_Timer(ByRef Sender As TimerComponent)
 	TimerComponent2.Enabled = False
-	DrawNC.PaintClock Canvas, Now, 0, False
-End Sub
-
-Private Sub frmClockType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	DrawNC.PaintClock Canvas, Now, -1, True
-End Sub
-
-Private Sub frmClockType.Form_DblClick(ByRef Sender As Control)
-	frmCalendar.Show(frmClock)
-End Sub
-
-Private Sub frmClockType.Form_Create(ByRef Sender As Control)
-	DrawNC.Initial Canvas
-	DrawNC.FontSize = 48
-	'Width = DrawNC.Width : Height = DrawNC.Height + ScaleY(10)
-	Move Left, Top, Width - ClientWidth + DrawNC.Width, Height - ClientHeight + DrawNC.Height
-	Form_MouseUp Sender, 0, 0, 0, 0
+	DClock.DrawClock Picture1.Canvas, Now, 0
 End Sub
 
 Private Sub frmClockType.Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	Select Case MouseButton
 	Case 0 'left
+		frmDayCalendar.Show(frmClock)
 	Case 1 'right
-		If DrawNC.ShowCalendar Then
-			DrawNC.ShowCalendar = False
-		Else
-			DrawNC.ShowCalendar = True
-		End If
+		frmMonthCalendar.Show(frmClock)
 	Case 2 'middle
 	End Select
-	'获取控件矩形
-	'Dim lRT As Rect
-	'GetClientRect(Handle, @lRT)
-	'设置窗口大小
-	'Height = Height - lRT.Bottom + lRT.Top + DrawNC.Height
-	'Width = Width - lRT.Right + lRT.Left + DrawNC.Width
-	'DrawNC.PaintClock Canvas, Now, -1, True
 End Sub
 
-Private Sub frmClockType.Form_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
-	Select Case Direction
-	Case -1
-		If DrawNC.FontSize > 40 Then DrawNC.FontSize = DrawNC.FontSize - 2
-	Case 1
-		If DrawNC.FontSize < 200 Then DrawNC.FontSize = DrawNC.FontSize + 2
-	End Select
-	'获取控件矩形
-	'Dim lRT As Rect
-	'GetClientRect(Handle, @lRT)
-	'设置窗口大小
-	'Height = Height - lRT.Bottom + lRT.Top + DrawNC.Height
-	'	Width = Width - lRT.Right + lRT.Left + DrawNC.Width
-	DrawNC.PaintClock Canvas, Now, -1, True
-	'Width = DrawNC.Width : Height = DrawNC.Height + ScaleY(10)
-	Move Left, Top, Width - ClientWidth + DrawNC.Width, Height - ClientHeight + DrawNC.Height
+Private Sub frmClockType.Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	DClock.DrawClock Canvas, Now, -1
 End Sub

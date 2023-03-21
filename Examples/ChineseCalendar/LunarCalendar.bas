@@ -2,13 +2,13 @@
 ' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
-#include once "Calendar.bi"
+#include once "LunarCalendar.bi"
 
-Destructor Calendar
+Destructor LunarCalendar
 	
 End Destructor
 
-Constructor Calendar
+Constructor LunarCalendar
 	'位操作初使化模块函数 modBit4VB中定义
 	Dim i As Integer
 	For i = 0 To 30
@@ -18,7 +18,7 @@ Constructor Calendar
 End Constructor
 
 '位测试 ,测试位为1 返回真
-Private Function Calendar.mvarBitTest32(Number As Long, bit As Long) As Boolean
+Private Function LunarCalendar.mvarBitTest32(Number As Long, bit As Long) As Boolean
 	If bit < 0 Or bit > 31 Then '不是整数位
 		Return False
 	Else
@@ -31,16 +31,7 @@ Private Function Calendar.mvarBitTest32(Number As Long, bit As Long) As Boolean
 End Function
 
 '计算农历上的节气
-Private Property Calendar.lSolarTerm() As String
-	
-	'//===== 某年的第n个节气为几日(从0小寒起算)
-	'function sTerm(y,n) {
-	'   var offDate = new Date( ( 31556925974.7*(y-1900) + sTermInfo[n]*60000  ) + Date.UTC(1900,0,6,2,5) )
-	'   return(offDate.getUTCDate())
-	
-	'//节气
-	'   tmp1 = sTerm(y, m * 2) - 1
-	
+Private Property LunarCalendar.lSolarTerm() As String
 	Dim baseDateAndTime As Double
 	Dim newdate As Double
 	Dim num As Double
@@ -65,7 +56,7 @@ Private Property Calendar.lSolarTerm() As String
 End Property
 
 '计算按第几周星期几计算的节日
-Private Property Calendar.wHoliday() As String
+Private Property LunarCalendar.wHoliday() As String
 	Dim W As Long
 	Dim i As Long
 	Dim b As Long
@@ -88,7 +79,7 @@ Private Property Calendar.wHoliday() As String
 End Property
 
 '求农历节日
-Private Property Calendar.lHoliday() As String
+Private Property LunarCalendar.lHoliday() As String
 	Dim i As Long
 	Dim b As Long
 	Dim TempStr As String
@@ -120,7 +111,7 @@ Private Property Calendar.lHoliday() As String
 End Property
 
 '求公历节日
-Private Property Calendar.sHoliday() As String
+Private Property LunarCalendar.sHoliday() As String
 	Dim i As Long
 	Dim b As Long
 	Dim TempStr As String
@@ -137,7 +128,7 @@ Private Property Calendar.sHoliday() As String
 	sHoliday = TempStr
 End Property
 
-Private Property Calendar.sHolidayRecess() As Boolean
+Private Property LunarCalendar.sHolidayRecess() As Boolean
 	Dim i As Long
 	Dim b As Long
 	Dim TempStr As Boolean
@@ -155,32 +146,32 @@ Private Property Calendar.sHolidayRecess() As Boolean
 End Property
 
 '是否是农历的闰月
-Private Property Calendar.IsLeap() As Boolean
+Private Property LunarCalendar.IsLeap() As Boolean
 	IsLeap = mvarIsLeap
 End Property
 
-Private Function Calendar.lHour(H As Double) As String
+Private Function LunarCalendar.lHour(H As Double) As String
 	lHour = HourName(Hour(H))
 End Function
 
-Private Property Calendar.lDay() As Long
+Private Property LunarCalendar.lDay() As Long
 	lDay = mvarlDay
 End Property
 
-Private Property Calendar.lMonth() As Long
+Private Property LunarCalendar.lMonth() As Long
 	lMonth = mvarlMonth
 End Property
 
-Private Property Calendar.lYear() As Long
+Private Property LunarCalendar.lYear() As Long
 	lYear = mvarlYear
 End Property
 
-Private Property Calendar.sWeekDay() As Long
+Private Property LunarCalendar.sWeekDay() As Long
 	sWeekDay = Weekday(mvarDate)
 End Property
 
 '计算星期几中文字串
-Private Property Calendar.sWeekDayStr() As String
+Private Property LunarCalendar.sWeekDayStr() As String
 	Select Case Weekday(mvarDate)
 	Case vbSunday
 		sWeekDayStr = "星期日"
@@ -199,7 +190,7 @@ Private Property Calendar.sWeekDayStr() As String
 	End Select
 End Property
 
-Private Function Calendar.Constellation2(m As Long, d As Long) As String
+Private Function LunarCalendar.Constellation2(m As Long, d As Long) As String
 	Dim tempDate As Double
 	Dim ConstellName As String
 	
@@ -238,19 +229,19 @@ Private Function Calendar.Constellation2(m As Long, d As Long) As String
 	Constellation2 = ConstellName
 End Function
 
-Private Property Calendar.sDay() As Long
+Private Property LunarCalendar.sDay() As Long
 	sDay = mvarsDay
 End Property
 
-Private Property Calendar.sMonth() As Long
+Private Property LunarCalendar.sMonth() As Long
 	sMonth = mvarsMonth
 End Property
 
-Private Property Calendar.sYear() As Long
+Private Property LunarCalendar.sYear() As Long
 	sYear = mvarsYear
 End Property
 
-Private Function Calendar.IsToday(Y As Long, m As Long, d As Long) As Boolean
+Private Function LunarCalendar.IsToday(Y As Long, m As Long, d As Long) As Boolean
 	
 	If (Year(Now()) = Y) And _
 		(Month(Now()) = m) And _
@@ -263,7 +254,7 @@ Private Function Calendar.IsToday(Y As Long, m As Long, d As Long) As Boolean
 End Function
 
 '根据年份不同计算当年属于什么朝代
-Private Function Calendar.Era(Y As Long) As String
+Private Function LunarCalendar.Era(Y As Long) As String
 	Dim TempStr As String
 	
 	If Y < 1874 Then
@@ -313,7 +304,7 @@ Private Function Calendar.Era(Y As Long) As String
 End Function
 
 ' 传入 num 传回干支, 0=甲子
-Private Function Calendar.GanZhi(num As Long) As String
+Private Function LunarCalendar.GanZhi(num As Long) As String
 	Dim TempStr As String
 	Dim i As Long
 	i = (num - 1864) Mod 60 '计算干支
@@ -322,12 +313,12 @@ Private Function Calendar.GanZhi(num As Long) As String
 End Function
 
 '计算年的属相字串
-Private Function Calendar.YearAttribute(Y As Long) As String
+Private Function LunarCalendar.YearAttribute(Y As Long) As String
 	YearAttribute = Animals((Y - 1900) Mod 12)
 End Function
 
 '将数字汉化
-Private Function Calendar.UpNumber(Dxs As String) As String
+Private Function LunarCalendar.UpNumber(Dxs As String) As String
 	
 	'检测为空时
 	If Trim(Dxs) = "" Then
@@ -420,7 +411,7 @@ Private Function Calendar.UpNumber(Dxs As String) As String
 	UpNumber = DXStr
 End Function
 
-Private Function Calendar.Converts(NumStr As String) As String
+Private Function LunarCalendar.Converts(NumStr As String) As String
 	Select Case Val(NumStr)
 	Case 0
 		Converts = "零"
@@ -446,7 +437,7 @@ Private Function Calendar.Converts(NumStr As String) As String
 End Function
 
 '中文日期
-Private Function Calendar.CDayStr(d As Long) As String
+Private Function LunarCalendar.CDayStr(d As Long) As String
 	Dim s As String
 	Select Case d
 	Case 0
@@ -465,7 +456,7 @@ Private Function Calendar.CDayStr(d As Long) As String
 End Function
 
 '计算星座归属
-Private Function Calendar.Constellation(m As Long, d As Long) As String
+Private Function LunarCalendar.Constellation(m As Long, d As Long) As String
 	Dim tempDate As Double
 	Dim ConstellName As String
 	
@@ -507,12 +498,12 @@ End Function
 '以下为类内部使用的一些函数
 
 '传回农历 y年的总天数
-Private Function Calendar.lYearDays(ByVal Y As Long) As Long
+Private Function LunarCalendar.lYearDays(ByVal Y As Long) As Long
 	lYearDays = LunarYearDays(Y - 1900)  '先计算出每年的天数,并形成数组,以减少以后的运算时间
 End Function
 
 '传回农历 y年m月的总天数
-Private Function Calendar.lMonthDays(ByVal Y As Long, ByVal m As Long) As Long
+Private Function LunarCalendar.lMonthDays(ByVal Y As Long, ByVal m As Long) As Long
 	'If (LunarInfo(y - 1900) And &H1000FFFF) And BitRight32(&H10000, m) Then
 	
 	If mvarBitTest32((LunarInfo(Y - 1900) And &H1000FFFF), 16 - m) Then
@@ -523,7 +514,7 @@ Private Function Calendar.lMonthDays(ByVal Y As Long, ByVal m As Long) As Long
 End Function
 
 '传回农历 y年闰月的天数
-Private Function Calendar.leapDays(Y As Long) As Long
+Private Function LunarCalendar.leapDays(Y As Long) As Long
 	If leapMonth(Y) Then
 		If LunarInfo(Y - 1900) And &H10000 Then
 			leapDays = 30
@@ -536,7 +527,7 @@ Private Function Calendar.leapDays(Y As Long) As Long
 End Function
 
 '传回农历 y年闰哪个月 1-12 , 没闰传回 0
-Private Function Calendar.leapMonth(Y As Long) As Long
+Private Function LunarCalendar.leapMonth(Y As Long) As Long
 	Dim i As Long
 	i = LunarInfo(Y - 1900) And &HF
 	If i > 12 Then
@@ -546,7 +537,7 @@ Private Function Calendar.leapMonth(Y As Long) As Long
 End Function
 
 '计算公历年月的天数
-Private Function Calendar.SolarDays(Y As Long, m As Long) As Long
+Private Function LunarCalendar.SolarDays(Y As Long, m As Long) As Long
 	Dim d As Long
 	
 	If (Y Mod 4) = 0 Then   '闰年
@@ -567,7 +558,7 @@ Private Function Calendar.SolarDays(Y As Long, m As Long) As Long
 End Function
 
 '主要的函数,用公历年月日对日期对象进行初使化,在此函数内部完成对私有对象属性的设置
-Private Sub Calendar.sInitDate(ByVal y As Long, ByVal m As Long, ByVal d As Long)
+Private Sub LunarCalendar.sInitDate(ByVal y As Long, ByVal m As Long, ByVal d As Long)
 	Dim i As Long
 	Dim leap As Long
 	Dim temp As Long
@@ -619,7 +610,7 @@ Private Sub Calendar.sInitDate(ByVal y As Long, ByVal m As Long, ByVal d As Long
 End Sub
 
 '主要的函数,用农历年月日对日期对象进行初使化,在此函数内部完成对私有对象属性的设置
-Private Sub Calendar.lInitDate(ByVal y As Long, ByVal m As Long, ByVal d As Long, ByVal LeapFlag As Boolean = False)
+Private Sub LunarCalendar.lInitDate(ByVal y As Long, ByVal m As Long, ByVal d As Long, ByVal LeapFlag As Boolean = False)
 	Dim i As Long
 	Dim leap As Long
 	Dim temp As Long
