@@ -872,7 +872,7 @@ Namespace My.Sys.Forms
 					eclOld_ = Content.Lines.Items[iii]
 					For iiii As Integer = 0 To eclOld_->Statements.Count - 1
 						ecs_ = eclOld_->Statements.Items[iiii]
-						LineText_ = ..Left(LineText_, Len(LineText_) - 1) & Trim(*ecs_->Text)
+						LineText_ = ..Left(LineText_, Len(LineText_) - IIf(EndsWith(Trim(*ecs_->Text), " _"), 1, 0)) & Trim(*ecs_->Text)
 						If Not EndsWith(Trim(*ecs_->Text), " _") Then
 							Exit For, For
 						End If
