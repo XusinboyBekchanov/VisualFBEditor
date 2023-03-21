@@ -6100,7 +6100,7 @@ Namespace My.Sys.Forms
 				Var k = 0
 				Var p = 0
 				Var z = 0
-				If CInt(AutoIndentation) And CInt(i > -1) Then
+				If CInt(AutoIndentation) AndAlso (InStr(*FLine, ":") = 0) AndAlso CInt(i > -1) Then
 					If j > 0 Then
 						Dim y As Integer
 						For o As Integer = FSelEndLine - 1 To 0 Step -1
