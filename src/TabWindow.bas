@@ -6782,11 +6782,11 @@ Sub GetIncludeFiles(ByRef Content As EditControlContent, Project As ProjectEleme
 	End If
 End Sub
 
-Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, Declaration As Boolean, tb As TabWindow Ptr = 0)
+Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, Declaration As Boolean, tb As TabWindow Ptr = 0, u1 As Integer = 0)
 	If Parameters <> "" Then
 		If ECLine Then ECLine->Args.Add func
 		Dim As UString CurType, res1(Any), ElementValue
-		Dim As Integer Pos1, Pos2, l, c
+		Dim As Integer Pos1, Pos2, l, c, u = u1, uu, ct
 		For i As Integer = Pos5 To Len(bTrim) - 1
 			l += 1
 			If bTrim[i] = Asc("(") Then
@@ -6799,12 +6799,18 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 				End If
 			End If
 		Next
+		u = u + Pos5
 		Split GetChangedCommas(Mid(bTrim, Pos5 + 1, l)), ",", res1()
+		uu = u
 		For n As Integer = 0 To UBound(res1)
+			u = uu
+			uu += Len(res1(n)) + 1
+			u += Len(res1(n)) - Len(LTrim(res1(n)))
 			res1(n) = Trim(Replace(res1(n), ";", ","))
 			Pos1 = InStr(res1(n), "=")
 			If Pos1 > 0 Then
 				ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+				u += Len(res1(n)) - Len(LTrim(res1(n)))
 				res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 			Else
 				ElementValue = ""
@@ -6816,14 +6822,17 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 				'Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
 				'If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
 				'If Pos1 > 0 Then 
+					u += Len(res1(n)) - Len(LTrim(res1(n)))
 					res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 				'End If
 			End If
 			Var te = New_( TypeElement)
 			If res1(n).ToLower.StartsWith("byref") Then
+				u += Len(res1(n)) - Len(LTrim(Mid(res1(n), 6)))
 				res1(n) = Trim(Mid(res1(n), 6))
 				te->ElementType = "ByRefParameter"
 			ElseIf res1(n).ToLower.StartsWith("byval") Then
+				u += Len(res1(n)) - Len(LTrim(Mid(res1(n), 6)))
 				res1(n) = Trim(Mid(res1(n), 6))
 				te->ElementType = "ByValParameter"
 			Else
@@ -6831,8 +6840,10 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 			End If
 			Pos1 = InStr(res1(n), "(")
 			If Pos1 > 0 Then
+				u += Len(res1(n)) - Len(LTrim(res1(n)))
 				res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 			End If
+			u += Len(res1(n)) - Len(LTrim(res1(n).TrimAll))
 			res1(n) = res1(n).TrimAll
 			If (Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function"))) AndAlso LCase(CurType) <> "my.sys.object" Then
 				Pos1 = InStrRev(CurType, ".")
@@ -6849,6 +6860,8 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 			te->Locals = 0
 			te->StartLine = LineIndex
 			te->EndLine = LineIndex
+			te->StartChar = u
+			te->EndChar = u + Len(res1(n))
 			te->Parameters = res1(n) & " As " & CurType
 			te->FileName = FileName
 			te->Tag = tb
@@ -8348,6 +8361,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				ECStatement = ECLine->Statements.Items[jj]
 				If OldECStatement > 0 AndAlso EndsWith(Trim(*OldECStatement->Text), " _") Then 
 					OldECStatement = ECStatement
+					k = k + Len(*ECStatement->Text) + 1
 					Continue For
 				Else
 					OldECStatement = ECStatement
@@ -8440,17 +8454,17 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					End If
 				Else
-					If (ECLine->ConstructionIndex >= 0) AndAlso (ECLine->ConstructionIndex <> C_P_If) AndAlso (ECLine->ConstructionIndex <> C_P_Region) Then
-						If ECLine->ConstructionPart > 0 Then
+					If (ECStatement->ConstructionIndex >= 0) AndAlso (ECStatement->ConstructionIndex <> C_P_If) AndAlso (ECStatement->ConstructionIndex <> C_P_Region) Then
+						If ECStatement->ConstructionPart > 0 Then
 							If ConstructBlocks.Count > 0 Then ConstructBlocks.Remove ConstructBlocks.Count - 1
 							If ConstructBlocks.Count > 0 Then
 								block = ConstructBlocks.Item(ConstructBlocks.Count - 1)
 							Else
 								block = 0
 							End If
-							If ECLine->ConstructionPart <> 2 Then ECLine->InConstructionBlock = block
+							If ECStatement->ConstructionPart <> 2 Then ECStatement->InConstructionBlock = block: ECLine->InConstructionBlock = block
 						End If
-						If ECLine->ConstructionPart < 2 Then
+						If ECStatement->ConstructionPart < 2 Then
 							Var cb = New_(ConstructionBlock)
 							cb->ConstructionIndex = ECLine->ConstructionIndex
 							cb->ConstructionPart = ECLine->ConstructionPart
@@ -8459,18 +8473,20 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							txtCode.Content.ConstructionBlocks.Add cb
 							block = cb
 							ECLine->InConstructionBlock = block
+							ECStatement->InConstructionBlock = block
 						End If
 					End If
-					If ECLine->ConstructionIndex >= 0 AndAlso Constructions(ECLine->ConstructionIndex).Accessible Then
-						If ECLine->ConstructionPart = 0 Then
+					If ECStatement->ConstructionIndex >= 0 AndAlso Constructions(ECStatement->ConstructionIndex).Accessible Then
+						If ECStatement->ConstructionPart = 0 Then
 							Pos1 = 0
 							Pos2 = 0
 							l = 0
 							inPubProPri = 0
 							inFunc = True
-							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum OrElse ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Union, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
+							Pos1 = InStr(" " & bTrimLCase & IIf(ECStatement->ConstructionIndex = C_Enum OrElse ECStatement->ConstructionIndex = C_Type OrElse ECStatement->ConstructionIndex = C_Union, " ", ""), " " & LCase(Constructions(ECStatement->ConstructionIndex).Name0) & " ")
 							If Pos1 > 0 Then
-								l = Len(Trim(Constructions(ECLine->ConstructionIndex).Name0)) + 1
+								l = Len(Trim(Constructions(ECStatement->ConstructionIndex).Name0)) + 1
+								u = u + Len(bTrim) - Len(LTrim(Mid(bTrim, Pos1 + l)))
 								bTrim = Trim(Mid(bTrim, Pos1 + l))
 								bTrimLCase = Trim(Mid(bTrimLCase, Pos1 + l))
 								l = 0
@@ -8486,16 +8502,16 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Else
 									te->Name = Trim(Mid(bTrim, Pos1 + l))
 								End If
-								te->StartChar = u + Pos1 + l
+								te->StartChar = u
 								te->EndChar = te->StartChar + Len(te->Name)
-								If ECLine->ConstructionIndex = C_Property Then
+								If ECStatement->ConstructionIndex = C_Property Then
 									If EndsWith(bTrim, ")") Then
 										te->DisplayName = te->Name & " [Let]"
 									Else
 										te->DisplayName = te->Name & " [Get]"
 									End If
-								ElseIf CInt(ECLine->ConstructionIndex >= C_Enum AndAlso ECLine->ConstructionIndex <= C_Union) OrElse CInt(ECLine->ConstructionIndex >= C_Operator AndAlso ECLine->ConstructionIndex <= C_Destructor) Then
-									te->DisplayName = te->Name & " [" & Trim(Constructions(ECLine->ConstructionIndex).Name0) & "]"
+								ElseIf CInt(ECStatement->ConstructionIndex >= C_Enum AndAlso ECStatement->ConstructionIndex <= C_Union) OrElse CInt(ECStatement->ConstructionIndex >= C_Operator AndAlso ECStatement->ConstructionIndex <= C_Destructor) Then
+									te->DisplayName = te->Name & " [" & Trim(Constructions(ECStatement->ConstructionIndex).Name0) & "]"
 								Else
 									te->DisplayName = te->Name
 								End If
@@ -8504,7 +8520,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If Pos1 > 0 Then te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True: te->StartChar = te->StartChar + Pos1 + l
 								te->TypeProcedure = TypeProcedure
 								Pos2 = InStr(bTrim, ")")
-								If ECLine->ConstructionIndex = C_Constructor OrElse ECLine->ConstructionIndex = C_Destructor Then
+								If ECStatement->ConstructionIndex = C_Constructor OrElse ECStatement->ConstructionIndex = C_Destructor Then
 									te->TypeName = te->Name
 									te->Parameters = te->Name & IIf(Pos5 > 0, Mid(bTrim, Pos5), "()")
 								Else
@@ -8524,16 +8540,17 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 									te->TypeName = WithoutPointers(te->TypeName)
 								End If
-								If ECLine->ConstructionIndex = C_Class Then
+								If ECStatement->ConstructionIndex = C_Class Then
 									te->ElementType = "Type"
 								Else
-									te->ElementType = Trim(Constructions(ECLine->ConstructionIndex).Name0)
+									te->ElementType = Trim(Constructions(ECStatement->ConstructionIndex).Name0)
 								End If
-								If ECLine->ConstructionIndex = C_P_Macro Then te->ElementType = Mid(te->ElementType, 2)
+								If ECStatement->ConstructionIndex = C_P_Macro Then te->ElementType = Mid(te->ElementType, 2)
 								te->StartLine = i
 								te->EndLine = i + 1
 								te->FileName = sFileName
 								te->Tag = tb
+								ECStatement->InConstruction = te
 								ECLine->InConstruction = te
 								If block Then block->Construction = te
 								If (te->Name = "") AndAlso Constructs.Count > 0 Then
@@ -8544,15 +8561,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Constructs.Add te
 								If Comments <> "" Then te->Comment = Comments: Comments = ""
 								If ptxtCode = @txtCode Then LastIndexFunctions = txtCode.Content.Functions.Add(te->DisplayName, te)
-								If ECLine->ConstructionIndex = C_Enum Then
+								If ECStatement->ConstructionIndex = C_Enum Then
 									txtCode.Content.Enums.Add te->Name, te
-								ElseIf ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class OrElse ECLine->ConstructionIndex = C_Union Then
+								ElseIf ECStatement->ConstructionIndex = C_Type OrElse ECStatement->ConstructionIndex = C_Class OrElse ECStatement->ConstructionIndex = C_Union Then
 									txtCode.Content.Types.Add te->Name, te
 								ElseIf TypeProcedure Then
 									txtCode.Content.TypeProcedures.Add te->Name, te
 								Else
 									txtCode.Content.Procedures.Add te->Name, te
-									If ECLine->ConstructionIndex = C_P_Macro Then txtCode.Content.Defines.Add te->Name, te
+									If ECStatement->ConstructionIndex = C_P_Macro Then txtCode.Content.Defines.Add te->Name, te
 								End If
 								If Not TypeProcedure Then
 									If Namespaces.Count > 0 Then
@@ -8561,7 +8578,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								End If
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, False, tb
+									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, False, tb, u
 									'Dim As UString CurType, res1(Any), ElementValue
 									'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
 									'For n As Integer = 0 To UBound(res1)
@@ -8618,21 +8635,23 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									'Next
 								End If
 							End If
-						ElseIf ECLine->ConstructionPart = 2 Then
+						ElseIf ECStatement->ConstructionPart = 2 Then
 							If func <> 0 Then
 								func->EndLine = i: inFunc = False
 								LastIndexFunctions = -1
 								If Constructs.Count > 0 Then Constructs.Remove Constructs.Count - 1
 								If Constructs.Count > 0 Then
 									ECLine->InConstruction = Constructs.Item(Constructs.Count - 1)
-									func = ECLine->InConstruction
+									ECStatement->InConstruction = Constructs.Item(Constructs.Count - 1)
+									func = ECStatement->InConstruction
 									inFunc = True
 								Else
 									ECLine->InConstruction = 0
+									ECStatement->InConstruction = 0
 								End If
 							End If
-						ElseIf ECLine->ConstructionPart = 1 Then
-							If (ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class) Then
+						ElseIf ECStatement->ConstructionPart = 1 Then
+							If (ECStatement->ConstructionIndex = C_Type OrElse ECStatement->ConstructionIndex = C_Class) Then
 								If StartsWith(bTrimLCase & " ", "public: ") Then
 									inPubProPri = 0
 								ElseIf StartsWith(bTrimLCase & " ", "protected: ") Then
@@ -8642,8 +8661,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 							End If
 						End If
-					ElseIf ECLine->ConstructionIndex = C_Namespace Then
-						If ECLine->ConstructionPart = 0 Then
+					ElseIf ECStatement->ConstructionIndex = C_Namespace Then
+						If ECStatement->ConstructionPart = 0 Then
 							Pos1 = InStr(11, bTrim, " ")
 							Dim As String Names
 							Dim As UString res1(Any)
@@ -8677,7 +8696,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								Namespaces.Add te->Name, te
 							Next
-						ElseIf ECLine->ConstructionPart = 2 Then
+						ElseIf ECStatement->ConstructionPart = 2 Then
 							If Namespaces.Count > 0 Then
 								nc = Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->ControlType
 								For ii As Integer = 0 To nc
@@ -9195,7 +9214,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 					End If
 				End If
-				If CInt(NotForms = False) AndAlso CInt(Not bT) AndAlso CInt((ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Class)) AndAlso _
+				If CInt(NotForms = False) AndAlso CInt(Not bT) AndAlso CInt((ECStatement->ConstructionIndex = C_Type OrElse ECStatement->ConstructionIndex = C_Class)) AndAlso _
 					CInt(EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends form") OrElse EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends form '...'") OrElse _
 					EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends usercontrol") OrElse EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends usercontrol '...'")) Then
 					If Des = 0 Then
@@ -9234,7 +9253,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					End If
 					Pos1 = InStr(Trim(LCase(*FLine), Any !"\t "), " extends ")
 					Pos5 = 6
-					If ECLine->ConstructionIndex = C_Class Then
+					If ECStatement->ConstructionIndex = C_Class Then
 						Pos5 = 7
 					End If
 					frmTypeName = Mid(Trim(*FLine, Any !"\t "), Pos5, Pos1 - Pos5)
