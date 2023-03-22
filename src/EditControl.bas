@@ -6092,6 +6092,9 @@ Namespace My.Sys.Forms
 					FSelStartChar = FSelEndChar
 				End If
 				WLet(FLine, ..Left(*Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->Text, FSelEndChar))
+				If FSelEndLine > 0 AndAlso EndsWith(RTrim(*Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine - 1])->Text), " _") Then
+					WLetEx(FLine, *Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine - 1])->Text & *FLine)
+				End If
 				WLet(FLineLeft, "")
 				WLet(FLineRight, "")
 				WLet(FLineTemp, "")
@@ -6102,12 +6105,12 @@ Namespace My.Sys.Forms
 				Var k = 0
 				Var p = 0
 				Var z = 0
-				If CInt(AutoIndentation) AndAlso (InStr(*FLine, ":") = 0) AndAlso CInt(i > -1) Then
+				If CInt(AutoIndentation) AndAlso ((InStr(*FLine, ":") = 0) OrElse (i = C_Class)) AndAlso CInt(i > -1) Then
 					If j > 0 Then
 						Dim y As Integer
 						For o As Integer = FSelEndLine - 1 To 0 Step -1
 							With *Cast(EditControlLine Ptr, Content.Lines.Items[o])
-								If .ConstructionIndex = i Then
+								If .ConstructionIndex = i OrElse (j = 1 AndAlso i = C_Class AndAlso .ConstructionIndex = C_Type) Then
 									If .ConstructionPart = 2 Then
 										y = y + 1
 									ElseIf .ConstructionPart = 0 Then
