@@ -7548,11 +7548,15 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
 						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
 						Dim As String t
-						Dim As UString b2 = b, res1(), ElementValue
+						Dim As UString b2 = bTrim, res1(), ElementValue
+						Dim As Integer uu
 						Pos2 = InStr(b2, "'")
-						If Pos2 > 0 Then b2 = Trim(.Left(b2, Pos2 - 1))
+						If Pos2 > 0 Then u = u + Len(b2) - Len(LTrim(b2)): b2 = Trim(.Left(b2, Pos2 - 1))
 						Split b2, ",", res1()
+						uu = u
 						For n As Integer = 0 To UBound(res1)
+							u = uu
+							uu += Len(res1(n)) + 1
 							Pos3 = InStr(res1(n), "=")
 							If Pos3 > 0 Then
 								ElementValue = Trim(Mid(res1(n), Pos3 + 1))
@@ -7560,6 +7564,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								ElementValue = ""
 							End If
 							Var te = New_( TypeElement)
+							u = u + Len(res1(n)) - Len(LTrim(res1(n)))
 							If Pos3 > 0 Then
 								t = Trim(.Left(res1(n), Pos3 - 1))
 							Else
@@ -7575,6 +7580,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							te->Value = ElementValue
 							te->StartLine = i
 							te->EndLine = i
+							te->StartChar = u
+							te->EndChar = u + Len(te->Name)
 							te->Parameters = Trim(res1(n))
 							te->FileName = sFileName
 							If func Then func->Elements.Add te->Name, te
@@ -8816,11 +8823,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
 						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
 						Dim As String t
-						Dim As UString b2 = b, res1(), ElementValue
+						Dim As UString b2 = bTrim, res1(), ElementValue
+						Dim As Integer uu
 						Pos2 = InStr(b2, "'")
-						If Pos2 > 0 Then b2 = Trim(.Left(b2, Pos2 - 1))
+						If Pos2 > 0 Then u = u + Len(b2) - Len(LTrim(b2)): b2 = Trim(.Left(b2, Pos2 - 1))
 						Split b2, ",", res1()
+						uu = u
 						For n As Integer = 0 To UBound(res1)
+							u = uu
+							uu += Len(res1(n)) + 1
 							Pos3 = InStr(res1(n), "=")
 							If Pos3 > 0 Then
 								ElementValue = Trim(Mid(res1(n), Pos3 + 1))
@@ -8828,6 +8839,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								ElementValue = ""
 							End If
 							Var te = New_( TypeElement)
+							u = u + Len(res1(n)) - Len(LTrim(res1(n)))
 							If Pos3 > 0 Then
 								t = Trim(.Left(res1(n), Pos3 - 1))
 							Else
@@ -8843,6 +8855,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->Value = ElementValue
 							te->StartLine = i
 							te->EndLine = i
+							te->StartChar = u
+							te->EndChar = u + Len(te->Name)
 							te->Parameters = Trim(res1(n))
 							te->FileName = sFileName
 							If func Then func->Elements.Add te->Name, te
