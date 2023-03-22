@@ -485,7 +485,7 @@ Namespace My.Sys.Forms
 		For i As Integer = 1 To OldCommentIndex
 			iPos = InStr(iPos + 1, sLine, "'/")
 		Next
-		If iPos = 0 Then Return "" Else sLine = Mid(sLine, iPos + 2)
+		If iPos = 0 Then Return Space(Len(subject)) Else sLine = Space(iPos + 1) & Mid(sLine, iPos + 2)
 		For i As Integer = 0 To Len(sLine)
 			ch = Mid(sLine, i, 1)
 			If Not c AndAlso ch = """" Then
@@ -495,18 +495,20 @@ Namespace My.Sys.Forms
 				c = True
 				cc += 1
 				Result += " "
-			ElseIf Not q AndAlso ch = "'" AndAlso Mid(sLine, i + 1, 1) = "/" Then
+			ElseIf Not q AndAlso ch = "/" AndAlso Mid(sLine, i - 1, 1) = "'" Then
 				cc -= 1
 				If cc = 0 Then
 					c = False
 				ElseIf cc < 0 Then
+					Result += Space(Len(subject) - i + 1)
 					Exit For
 				End If
 				Result += " "
-			ElseIf CInt(WithoutComments) AndAlso CInt(Not q) AndAlso CInt(ch = "'" OrElse LCase(Mid(sLine, i, 4)) = "rem ") Then
-				Exit For
 			ElseIf c OrElse q Then
 				Result += " "
+			ElseIf CInt(WithoutComments) AndAlso CInt(ch = "'" OrElse LCase(Mid(sLine, i, 4)) = "rem ") Then
+				Result += Space(Len(subject) - i + 1)
+				Exit For
 			ElseIf WithoutBracket AndAlso ch = "(" Then
 				Result += " "
 			ElseIf ch = !"\t" Then
@@ -872,7 +874,7 @@ Namespace My.Sys.Forms
 					eclOld_ = Content.Lines.Items[iii]
 					For iiii As Integer = 0 To eclOld_->Statements.Count - 1
 						ecs_ = eclOld_->Statements.Items[iiii]
-						LineText_ = ..Left(LineText_, Len(LineText_) - IIf(EndsWith(Trim(*ecs_->Text), " _"), 1, 0)) & Trim(*ecs_->Text)
+						LineText_ = ..Left(LineText_, Len(LineText_) - IIf(EndsWith(Trim(LineText_), " _"), 1, 0)) & Trim(*ecs_->Text)
 						If Not EndsWith(Trim(*ecs_->Text), " _") Then
 							Exit For, For
 						End If

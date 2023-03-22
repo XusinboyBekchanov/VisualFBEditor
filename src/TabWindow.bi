@@ -150,6 +150,7 @@ Private:
 	te As TypeElement Ptr
 	te2 As TypeElement Ptr
 	Dim As EditControlLine Ptr ECLine, ECLine2
+	Dim As EditControlStatement Ptr ECStatement, OldECStatement, ecs
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	Dim frmName As String
 	Dim frmTypeName As String

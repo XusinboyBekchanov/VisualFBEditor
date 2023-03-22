@@ -8320,38 +8320,64 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				Comments = ""
 				Continue For
 			End If
-			Dim As UString res(Any)
-			Split(b1, """", res())
-			b2 = ""
-			For j As Integer = 0 To UBound(res)
-				If j = 0 Then
-					b2 = res(0)
-				ElseIf j Mod 2 = 0 Then
-					b2 &= """" & res(j)
-				Else
-					b2 &= """" & WSpace(Len(res(j)))
-				End If
-			Next
-			Pos1 = InStr(b2, "/'")
-			Pos2 = InStr(b2, "'")
-			If Pos1 = 0 OrElse (Pos2 <> 0 AndAlso Pos2 < Pos1) Then Pos1 = Pos2
-			If Pos1 > 0 Then
-				b2 = ..Left(b2, Pos1 - 1)
-			End If
-			If inFunc AndAlso func <> 0 AndAlso (func->ElementType = "Type" OrElse func->ElementType = "Union") Then
-				b2 = Replace(b2, ":", "%")
-			End If
-			Split(b2, ":", res())
+			'Dim As UString res(Any)
+			'Split(b1, """", res())
+			'b2 = ""
+			'For j As Integer = 0 To UBound(res)
+			'	If j = 0 Then
+			'		b2 = res(0)
+			'	ElseIf j Mod 2 = 0 Then
+			'		b2 &= """" & res(j)
+			'	Else
+			'		b2 &= """" & WSpace(Len(res(j)))
+			'	End If
+			'Next
+			'Pos1 = InStr(b2, "/'")
+			'Pos2 = InStr(b2, "'")
+			'If Pos1 = 0 OrElse (Pos2 <> 0 AndAlso Pos2 < Pos1) Then Pos1 = Pos2
+			'If Pos1 > 0 Then
+			'	b2 = ..Left(b2, Pos1 - 1)
+			'End If
+			'If inFunc AndAlso func <> 0 AndAlso (func->ElementType = "Type" OrElse func->ElementType = "Union") Then
+			'	b2 = Replace(b2, ":", "%")
+			'End If
+			'Split(b2, ":", res())
 			Dim As Integer k = 1, u
-			For jj As Integer = 0 To UBound(res)
-				l = Len(res(jj))
+			'For jj As Integer = 0 To UBound(res)
+			For jj As Integer = 0 To ECLine->Statements.Count - 1
+				ECStatement = ECLine->Statements.Items[jj]
+				If OldECStatement > 0 AndAlso EndsWith(Trim(*OldECStatement->Text), " _") Then 
+					OldECStatement = ECStatement
+					Continue For
+				Else
+					OldECStatement = ECStatement
+				End If
+				b2 = *ECStatement->Text
+				If EndsWith(RTrim(b2), " _") Then
+					For iii As Integer = i To ptxtCode->Content.Lines.Count - 1
+						ECLine2 = ptxtCode->Content.Lines.Items[iii]
+						If iii > i Then
+							b1 = IIf(EndsWith(RTrim(b1), " _"), ..Left(b1, Len(RTrim(b1)) - 1) & Space(Len(b1) - Len(RTrim(b1)) + 1), b1) & Replace(*ECLine2->Text, !"\t", " ")
+						End If
+						For iiii As Integer = IIf(iii = i, jj + 1, 0) To ECLine2->Statements.Count - 1
+							ecs = ECLine2->Statements.Items[iiii]
+							b2 = ..Left(b2, Len(RTrim(b2)) - 1) & Space(Len(b2) - Len(RTrim(b2)) + 1) & *ecs->Text
+							If Not EndsWith(Trim(*ecs->Text), " _") Then
+								Exit For, For
+							End If
+						Next
+					Next
+				End If
+				'l = Len(res(jj))
+				l = Len(b2)
 				b = Mid(b1, k, l)
 				b0 = Mid(b2, k, l)
 				bTrim = Trim(b, Any !"\t ")
 				bTrimLCase = LCase(bTrim)
 				b0TrimLCase = LCase(Trim(b0, Any !"\t "))
 				u = k
-				k = k + Len(res(jj)) + 1
+				'k = k + Len(res(jj)) + 1
+				k = k + l + 1
 				u = u + Len(b) - Len(LTrim(b, Any !"\t "))
 				''			ECLine->InConstructionIndex = ConstructionIndex
 				''			ECLine->InConstructionPart = ConstructionPart
