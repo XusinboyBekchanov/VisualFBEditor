@@ -8471,6 +8471,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Pos1 = InStr(" " & bTrimLCase & IIf(ECLine->ConstructionIndex = C_Enum OrElse ECLine->ConstructionIndex = C_Type OrElse ECLine->ConstructionIndex = C_Union, " ", ""), " " & LCase(Constructions(ECLine->ConstructionIndex).Name0) & " ")
 							If Pos1 > 0 Then
 								l = Len(Trim(Constructions(ECLine->ConstructionIndex).Name0)) + 1
+								bTrim = Trim(Mid(bTrim, Pos1 + l))
+								bTrimLCase = Trim(Mid(bTrimLCase, Pos1 + l))
+								l = 0
+								Pos1 = 1
 								Pos4 = Pos1 + l
 								Pos2 = InStr(Pos1 + l, bTrim, "(")
 								Pos5 = Pos2
