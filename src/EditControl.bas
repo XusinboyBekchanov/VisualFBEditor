@@ -872,7 +872,7 @@ Namespace My.Sys.Forms
 					eclOld_ = Content.Lines.Items[iii]
 					For iiii As Integer = 0 To eclOld_->Statements.Count - 1
 						ecs_ = eclOld_->Statements.Items[iiii]
-						LineText_ = ..Left(LineText_, Len(LineText_) - 1) & Trim(*ecs_->Text)
+						LineText_ = ..Left(LineText_, Len(LineText_) - IIf(EndsWith(Trim(*ecs_->Text), " _"), 1, 0)) & Trim(*ecs_->Text)
 						If Not EndsWith(Trim(*ecs_->Text), " _") Then
 							Exit For, For
 						End If
@@ -6100,7 +6100,7 @@ Namespace My.Sys.Forms
 				Var k = 0
 				Var p = 0
 				Var z = 0
-				If CInt(AutoIndentation) And CInt(i > -1) Then
+				If CInt(AutoIndentation) AndAlso (InStr(*FLine, ":") = 0) AndAlso CInt(i > -1) Then
 					If j > 0 Then
 						Dim y As Integer
 						For o As Integer = FSelEndLine - 1 To 0 Step -1
