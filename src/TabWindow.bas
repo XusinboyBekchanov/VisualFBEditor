@@ -12204,14 +12204,14 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 		For i As Integer = StartLine To EndLine
 			FECLine = .Content.Lines.Items[i]
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-			If StartsWith(LTrim(*FECLine->Text), "?") Then
+			If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
 				If isNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 					FECLine->Ends.Clear
 					FECLine->EndsCompleted = False
 				End If
-			ElseIf StartsWith(LTrim(*FECLine->Text), "_L ") Then
+			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") Then
 				WLet(FECLine->Text, Mid(LTrim(*FECLine->Text), 4))
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
@@ -12289,6 +12289,7 @@ Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 			WLet(FECLine->Text, Lines.Item(n))
 			n = n + 1
 		Next i
+		Lines.Clear
 		.Changed("Sort Lines")
 		.UpdateUnLock
 		'.ShowCaretPos True
