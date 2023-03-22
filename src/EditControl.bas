@@ -869,7 +869,7 @@ Namespace My.Sys.Forms
 					Continue For
 				End If
 			End If
-			If (LineText_ <> "") AndAlso (ii = UBound(res)) Then
+			If (LineText_ <> "") AndAlso EndsWith(Trim(LineText_), " _") AndAlso (ii = UBound(res)) Then
 				For iii As Integer = LineIndex + 1 To Content.Lines.Count - 1
 					eclOld_ = Content.Lines.Items[iii]
 					For iiii As Integer = 0 To eclOld_->Statements.Count - 1
