@@ -6300,7 +6300,9 @@ Sub AnalyzeTab(Param As Any Ptr)
 														End If
 													End If
 												End If
-												
+											End If
+											
+											If Not bInAsm Then
 												'Global
 												If tIndex = -1 Then
 													If bTypeAs Then
