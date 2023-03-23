@@ -3501,24 +3501,23 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		If Result <> 0 Then Result = Open(PathFunction For Input As #ff)
 		If Result = 0 Then
 			inType = False
+			i = 0
 			Do Until EOF(ff)
 				Line Input #ff, b
 				If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
 					FECLine = New_( EditControlLine)
 					WLet(FECLine->Text, b)
+					File->Lines.Add(FECLine)
 					iC = FindCommentIndex(b, OldiC)
 					FECLine->CommentIndex = iC
 					FECLine->InAsm = InAsm
-					i = File->GetConstruction(*FECLine->Text, j, OldiC, InAsm)
-					FECLine->ConstructionIndex = i
-					FECLine->ConstructionPart = j
+					File->ChangeCollapsibility i
 					If FECLine->ConstructionIndex = C_Asm Then
 						InAsm = FECLine->ConstructionPart = 0
 					End If
 					FECLine->InAsm = InAsm
 					OldiC = iC
 					i += 1
-					File->Lines.Add(FECLine)
 				Else
 					Lines.Add b
 				End If

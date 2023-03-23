@@ -808,17 +808,13 @@ Namespace My.Sys.Forms
 		PaintControl
 	End Sub
 	
-	Sub EditControl.ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "")
-		Dim As Integer i, j, k, Idx
-		Dim OldCollapsed As Boolean, OldConstructionIndex As Integer = -1, OldConstructionPart As Integer = 0, OldLineIndex As Integer = LineIndex - 1
-		If LineIndex < 0 OrElse LineIndex > Content.Lines.Count - 1 Then Exit Sub
-		Dim As EditControlLine Ptr ecl = Content.Lines.Items[LineIndex], eclOld, eclOld_
+	Sub EditControlContent.ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "", EC As Any Ptr = 0)
+		Dim As EditControlLine Ptr ecl = Lines.Items[LineIndex], eclOld, eclOld_
+		Dim As Integer i, j, OldLineIndex = LineIndex - 1
 		If OldLineIndex > -1 Then
-			eclOld = Content.Lines.Items[OldLineIndex]
+			eclOld = Lines.Items[OldLineIndex]
 		End If
 		If ecl = 0 OrElse ecl->Text = 0 Then Exit Sub
-		OldConstructionIndex = ecl->ConstructionIndex
-		OldConstructionPart = ecl->ConstructionPart
 		For ii As Integer = ecl->Statements.Count - 1 To 0 Step -1
 			Delete_(Cast(EditControlStatement Ptr, ecl->Statements.Item(ii)))
 		Next
@@ -847,7 +843,7 @@ Namespace My.Sys.Forms
 				If (ecsOld_ > 0) AndAlso EndsWith(Trim(*ecsOld_->Text), " _") Then
 					Dim iii As Integer
 					For iii = LineIndex - 1 To 0 Step -1
-						eclOld_ = Content.Lines.Items[iii]
+						eclOld_ = Lines.Items[iii]
 						For iiii As Integer = eclOld_->Statements.Count - 1 To 0 Step -1
 							ecs_ = eclOld_->Statements.Items[iiii]
 							If Not EndsWith(Trim(*ecs_->Text), " _") Then
@@ -857,11 +853,15 @@ Namespace My.Sys.Forms
 							ecsOld_ = ecs_
 						Next iiii
 					Next
-					i = Content.GetConstruction(LineText_, j, 0, ecsOld_->InAsm)
+					i = GetConstruction(LineText_, j, 0, ecsOld_->InAsm)
 					If ecsOld_->ConstructionIndex <> i OrElse ecsOld_->ConstructionPart <> j Then
 						ecsOld_->ConstructionIndex = i
 						ecsOld_->ConstructionPart = j
-						ChangeCollapsibility iii + 1, LineText_
+						If EC Then
+							 Cast(EditControl Ptr, EC)->ChangeCollapsibility iii + 1, LineText_
+						Else
+							ChangeCollapsibility iii + 1, LineText_
+						End If
 					End If
 					LineText_ = ""
 					ecs->ConstructionIndex = -1
@@ -870,8 +870,8 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			If (LineText_ <> "") AndAlso EndsWith(Trim(LineText_), " _") AndAlso (ii = UBound(res)) Then
-				For iii As Integer = LineIndex + 1 To Content.Lines.Count - 1
-					eclOld_ = Content.Lines.Items[iii]
+				For iii As Integer = LineIndex + 1 To Lines.Count - 1
+					eclOld_ = Lines.Items[iii]
 					For iiii As Integer = 0 To eclOld_->Statements.Count - 1
 						ecs_ = eclOld_->Statements.Items[iiii]
 						LineText_ = ..Left(LineText_, Len(LineText_) - IIf(EndsWith(Trim(LineText_), " _"), 1, 0)) & Trim(*ecs_->Text)
@@ -888,7 +888,7 @@ Namespace My.Sys.Forms
 				i = C_P_Region
 				j = 2
 			Else
-				i = Content.GetConstruction(LineText_, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
+				i = GetConstruction(LineText_, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
 			End If
 			ecs->ConstructionIndex = i
 			ecs->ConstructionPart = j
@@ -925,6 +925,130 @@ Namespace My.Sys.Forms
 			End If
 		Next
 		If ecl->MainStatement = 0 Then ecl->MainStatement = ecl->Statements.Items[0]
+		i = ecl->MainStatement->ConstructionIndex
+		j = ecl->MainStatement->ConstructionPart
+		ecl->ConstructionIndex = i
+		ecl->ConstructionPart = j
+	End Sub
+	
+	Sub EditControl.ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "")
+		Dim As Integer i, j, k, Idx
+		Dim OldCollapsed As Boolean, OldConstructionIndex As Integer = -1, OldConstructionPart As Integer = 0, OldLineIndex As Integer = LineIndex - 1
+		If LineIndex < 0 OrElse LineIndex > Content.Lines.Count - 1 Then Exit Sub
+		Dim As EditControlLine Ptr ecl = Content.Lines.Items[LineIndex], eclOld, eclOld_
+		If OldLineIndex > -1 Then
+			eclOld = Content.Lines.Items[OldLineIndex]
+		End If
+		If ecl = 0 OrElse ecl->Text = 0 Then Exit Sub
+		OldConstructionIndex = ecl->ConstructionIndex
+		OldConstructionPart = ecl->ConstructionPart
+		'For ii As Integer = ecl->Statements.Count - 1 To 0 Step -1
+		'	Delete_(Cast(EditControlStatement Ptr, ecl->Statements.Item(ii)))
+		'Next
+		'ecl->Statements.Clear
+		'Dim As UString LineText_
+		''If LineText <> "" Then
+		''	LineText_ = LineText
+		''Else
+		'	LineText_ = TextWithoutQuotesAndComments(*ecl->Text, IIf(eclOld = 0, 0, eclOld->CommentIndex))
+		''End If
+		'Dim As Boolean Collapsible
+		'Dim As List Statements
+		'Dim As UString res()
+		'Split(LineText_, ":", res())
+		'Dim As EditControlStatement Ptr ecs, ecs_, ecsOld_
+		'For ii As Integer = 0 To UBound(res)
+		'	ecs = New_(EditControlStatement)
+		'	WLet(ecs->Text, res(ii))
+		'	ecl->Statements.Add ecs
+		'	LineText_ = *ecs->Text
+		'	If ii = 0 Then
+		'		ecsOld_ = 0
+		'		If eclOld > 0 AndAlso eclOld->Statements.Count > 0 Then
+		'			ecsOld_ = eclOld->Statements.Item(eclOld->Statements.Count - 1)
+		'		End If
+		'		If (ecsOld_ > 0) AndAlso EndsWith(Trim(*ecsOld_->Text), " _") Then
+		'			Dim iii As Integer
+		'			For iii = LineIndex - 1 To 0 Step -1
+		'				eclOld_ = Content.Lines.Items[iii]
+		'				For iiii As Integer = eclOld_->Statements.Count - 1 To 0 Step -1
+		'					ecs_ = eclOld_->Statements.Items[iiii]
+		'					If Not EndsWith(Trim(*ecs_->Text), " _") Then
+		'						Exit For, For
+		'					End If
+		'					LineText_ = ..Left(Trim(*ecs_->Text), Len(Trim(*ecs_->Text)) - 1) & LineText_
+		'					ecsOld_ = ecs_
+		'				Next iiii
+		'			Next
+		'			i = Content.GetConstruction(LineText_, j, 0, ecsOld_->InAsm)
+		'			If ecsOld_->ConstructionIndex <> i OrElse ecsOld_->ConstructionPart <> j Then
+		'				ecsOld_->ConstructionIndex = i
+		'				ecsOld_->ConstructionPart = j
+		'				ChangeCollapsibility iii + 1, LineText_
+		'			End If
+		'			LineText_ = ""
+		'			ecs->ConstructionIndex = -1
+		'			ecs->ConstructionPart = -1
+		'			Continue For
+		'		End If
+		'	End If
+		'	If (LineText_ <> "") AndAlso EndsWith(Trim(LineText_), " _") AndAlso (ii = UBound(res)) Then
+		'		For iii As Integer = LineIndex + 1 To Content.Lines.Count - 1
+		'			eclOld_ = Content.Lines.Items[iii]
+		'			For iiii As Integer = 0 To eclOld_->Statements.Count - 1
+		'				ecs_ = eclOld_->Statements.Items[iiii]
+		'				LineText_ = ..Left(LineText_, Len(LineText_) - IIf(EndsWith(Trim(LineText_), " _"), 1, 0)) & Trim(*ecs_->Text)
+		'				If Not EndsWith(Trim(*ecs_->Text), " _") Then
+		'					Exit For, For
+		'				End If
+		'			Next iiii
+		'		Next
+		'	End If
+		'	If StartsWith(Trim(LCase(*ecl->Text), Any !"\t "), "'#region") Then
+		'		i = C_P_Region
+		'		j = 0
+		'	ElseIf StartsWith(Trim(LCase(*ecl->Text), Any !"\t "), "'#end region") Then
+		'		i = C_P_Region
+		'		j = 2
+		'	Else
+		'		i = Content.GetConstruction(LineText_, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
+		'	End If
+		'	ecs->ConstructionIndex = i
+		'	ecs->ConstructionPart = j
+		'	If i > -1 Then
+		'		If j = 0 OrElse j = 1 Then
+		'			Statements.Add ecs
+		'		Else
+		'			Dim bFind As Boolean
+		'			For iii As Integer = Statements.Count - 1 To 0 Step -1
+		'				ecsOld_ = Statements.Items[iii]
+		'				If ecsOld_->ConstructionPart = 1 Then
+		'					Statements.Remove iii
+		'				ElseIf ecsOld_->ConstructionPart = 0 Then
+		'					bFind = True
+		'					Statements.Remove iii
+		'					Exit For
+		'				End If
+		'			Next
+		'			If Not bFind Then
+		'				Statements.Add ecs
+		'			End If
+		'		End If
+		'	End If
+		'Next
+		''i = Content.GetConstruction(*ecl->Text, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
+		'ecl->MainStatement = 0
+		'For iii As Integer = 0 To Statements.Count - 1
+		'	ecsOld_ = Statements.Items[iii]
+		'	If ecsOld_->ConstructionPart = 0 OrElse ecsOld_->ConstructionPart = 1 Then
+		'		ecl->MainStatement = ecsOld_
+		'		Exit For
+		'	Else
+		'		ecl->MainStatement = ecsOld_
+		'	End If
+		'Next
+		'If ecl->MainStatement = 0 Then ecl->MainStatement = ecl->Statements.Items[0]
+		Content.ChangeCollapsibility LineIndex, LineText, @This
 		i = ecl->MainStatement->ConstructionIndex
 		j = ecl->MainStatement->ConstructionPart
 		ecl->ConstructionIndex = i
