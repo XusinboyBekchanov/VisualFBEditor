@@ -12,12 +12,11 @@ On Error Goto ErrorQ
 #include once "mff/Panel.bi"
 #include once "mff/Splitter.bi"
 
-Dim Shared SQLiteDB As SQLite3 Ptr
-
-If SQLiteOpen(SQLiteDB, ExePath & "\Examples\GridData\Data\Test.db", "") Then
+Dim Shared SQLiteDB As sqlite3 Ptr
+If SQLiteOpen(SQLiteDB, ExePath & "\Data\Test.db", "") Then
 	Print "OPEN SQLiteDB Failure." + Chr(13,10)+SQLiteErrMsg(SQLiteDB)
 Else
-	Print "Opened SQLiteDB successfully.", ExePath & "\Examples\GridData\Test.db"
+	Print "Opened SQLiteDB successfully.", ExePath & "\Data\Test.db"
 End If
 #define _NOT_AUTORUN_FORMS_
 #include once "mff/Form.bi"
@@ -65,7 +64,7 @@ Using My.Sys.Forms
 		
 		'GRID DATA
 		Declare Static Sub MSHFGridCont_EndScroll(ByRef Sender As Control)
-		Declare Static Sub MSHFGridCont_Click(ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As hDc)
+		Declare Static Sub MSHFGridCont_Click(ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
 		Declare Static Sub MSHFGridCont_ItemActivate(ByRef Sender As Control, ByRef Item As GridDataItem Ptr)
 		Declare Static Sub MSHFGridCont_OnHeadClick(ByRef Sender As Control, ColIndex As Integer)
 		Declare Static Sub MSHFGridCont_OnHeadColWidthAdjust(ByRef Sender As Control, ColIndex As Integer)
