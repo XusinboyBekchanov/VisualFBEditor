@@ -3989,7 +3989,7 @@ Namespace My.Sys.Forms
 														End If
 													End If
 														
-													If WithOldSymbol Then MatnLCase = MatnLCaseWithoutOldSymbol
+													If WithOldSymbol AndAlso Not bKeyWord Then MatnLCase = MatnLCaseWithoutOldSymbol
 													
 													If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
 														If Not OneDot Then

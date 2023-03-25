@@ -9243,7 +9243,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								ElseIf bShared Then
 									te->ElementType = E_SharedVariable
 								Else
-									te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = E_Type, E_Field, E_LocalVariable))
+									te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "sub ") OrElse StartsWith(LCase(te->TypeName), "function(") OrElse StartsWith(LCase(te->TypeName), "function "), E_Event, IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = E_Type, E_Field, E_LocalVariable))
 								End If
 								te->Value = ElementValue
 								If inFunc Then
@@ -9343,8 +9343,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					End If
 				End If
 				If CInt(NotForms = False) AndAlso CInt(Not bT) AndAlso CInt((ECStatement->ConstructionIndex = C_Type OrElse ECStatement->ConstructionIndex = C_Class)) AndAlso _
-					CInt(EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends form") OrElse EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends form '...'") OrElse _
-					EndsWith(Trim(LCase(*FLine), Any !"\t "), " extends usercontrol") OrElse EndsWith(Trim(LCase(*FLine),  Any !"\t "), " extends usercontrol '...'")) Then
+					CInt(ECStatement->InConstruction > 0) AndAlso ((LCase(ECStatement->InConstruction->TypeName) = "form") OrElse (LCase(ECStatement->InConstruction->TypeName) = "usercontrol")) Then
 					If Des = 0 Then
 						This.Visible = True
 						pnlForm.Visible = True
@@ -9353,7 +9352,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						#ifndef __USE_GTK__
 							If pnlForm.Handle = 0 Then pnlForm.CreateWnd
 						#endif
-						
 						Des = New_( My.Sys.Forms.Designer(pnlForm))
 						If Des = 0 Then bNotDesign = False: pfrmMain->UpdateUnLock: Exit Sub
 						Des->Tag = @This
