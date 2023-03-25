@@ -2925,9 +2925,9 @@ Namespace My.Sys.Forms
 			Dim As String TypeNameFromLine
 			Var teC = Cast(EditControlLine Ptr, Lines.Item(iSelEndLine))->InConstruction
 			If teC > 0 Then
-				Var Pos1 = InStr(teC->DisplayName, ".")
+				Var Pos1 = InStr(teC->FullName, ".")
 				If Pos1 > 0 Then
-					TypeNameFromLine = ..Left(teC->DisplayName, Pos1 - 1)
+					TypeNameFromLine = ..Left(teC->FullName, Pos1 - 1)
 				Else
 					TypeNameFromLine = teC->Name
 				End If
@@ -3094,10 +3094,12 @@ Namespace My.Sys.Forms
 		Dim As String TypeNameFromLine
 		Dim teC As TypeElement Ptr = Cast(EditControlLine Ptr, Lines.Item(iSelEndLine))->InConstruction
 		If teC > 0 Then
-			Var Pos1 = InStr(teC->DisplayName, ".")
-			If Pos1 = 0 Then Pos1 = InStr(teC->DisplayName, "[")
+			Var Pos1 = InStr(teC->FullName, ".")
+			Var Pos2 = InStr(teC->DisplayName, "[")
 			If Pos1 > 0 Then
-				TypeNameFromLine = Trim(..Left(teC->DisplayName, Pos1 - 1), Any !"\t ")
+				TypeNameFromLine = Trim(..Left(teC->FullName, Pos1 - 1), Any !"\t ")
+			ElseIf Pos2 > 0 Then
+				TypeNameFromLine = Trim(..Left(teC->DisplayName, Pos2 - 1), Any !"\t ")
 			Else
 				TypeNameFromLine = teC->Name
 			End If
@@ -3207,9 +3209,9 @@ Namespace My.Sys.Forms
 					End If
 					Return sTemp
 				Else
-					TypeName = teC->DisplayName
+					TypeName = teC->FullName
 					Pos1 = InStr(TypeName, ".")
-					If CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]") Then
+					If CBool(Pos1 > 0) OrElse EndsWith(teC->DisplayName, "[Constructor]") OrElse EndsWith(teC->DisplayName, "[Destructor]") Then
 						If Pos1 > 0 Then
 							TypeName = ..Left(TypeName, Pos1 - 1)
 						Else
@@ -3889,6 +3891,10 @@ Namespace My.Sys.Forms
 																			sc = @ColorEnumMembers
 																		Case E_LineLabel
 																			sc = @ColorLineLabels
+																		Case E_Define, E_Macro
+																			sc = @ColorDefines
+																		Case E_Macro
+																			sc = @ColorMacros
 																		Case Else
 																			sc = @ColorLocalVariables
 																		End Select
@@ -3931,14 +3937,16 @@ Namespace My.Sys.Forms
 																End If
 																
 																If tIndex = -1 Then
-																	TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->DisplayName
+																	te = FECLine->InConstruction
+																	TypeName = te->FullName
 																	Pos1 = InStr(TypeName, ".")
-																	If (CBool(Pos1 > 0) OrElse EndsWith(TypeName, "[Constructor]") OrElse EndsWith(TypeName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+																	If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
 																		If Pos1 > 0 Then
 																			TypeName = ..Left(TypeName, Pos1 - 1)
 																		Else
-																			TypeName = Cast(TypeElement Ptr, FECLine->InConstruction)->Name
+																			TypeName = te->Name
 																		End If
+																		te = 0
 																		If Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Content.Types, pFiles, pFileLines, True, , , te, z) Then
 																		ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Content.Enums, pFiles, pFileLines, True, , , te, z) Then
 																		ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, pComps, pFiles, pFileLines, True, , , te) Then

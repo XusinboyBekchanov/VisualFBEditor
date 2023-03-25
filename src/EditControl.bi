@@ -147,6 +147,7 @@ Namespace My.Sys.Forms
 	Type TypeElement
 		Name As String
 		DisplayName As String
+		FullName As String
 		EnumTypeName As String
 		TypeName As String
 		Value As UString
@@ -202,6 +203,7 @@ Namespace My.Sys.Forms
 		CommentIndex As Integer
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
+		ConstructionPartCount As Integer
 		InAsm As Boolean
 		InConstruction As TypeElement Ptr
 		InConstructionBlock As ConstructionBlock Ptr
