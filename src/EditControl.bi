@@ -120,15 +120,21 @@ Namespace My.Sys.Forms
 		E_SharedVariable
 		E_LocalVariable
 		E_Constant
+		E_Event
 		E_Field
 		E_Define
+		E_Keyword
+		E_KeywordFunction
+		E_KeywordSub
+		E_KeywordOperator
 		E_Macro
 		E_Namespace
 		E_Enum
-		E_EnumMember
+		E_EnumItem
 		E_LineLabel
 		E_Class
 		E_Type
+		E_TypeCopy
 		E_Union
 		E_Sub
 		E_Function
@@ -144,7 +150,7 @@ Namespace My.Sys.Forms
 		EnumTypeName As String
 		TypeName As String
 		Value As UString
-		ElementType As String
+		ElementType As ElementTypes
 		Parameters As UString
 		Comment As UString
 		FileName As UString

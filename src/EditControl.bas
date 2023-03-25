@@ -2859,14 +2859,14 @@ Namespace My.Sys.Forms
 		Var tIndex = cb->Elements.IndexOf(Text)
 		If tIndex <> -1 Then
 			Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
-			If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
+			If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
 				Return te
 			End If
 		ElseIf cb->Construction Then
 			tIndex = cb->Construction->Elements.IndexOf(Text)
 			If tIndex <> -1 Then
 				Dim te As TypeElement Ptr = cb->Construction->Elements.Object(tIndex)
-				If (te->StartLine <= z) OrElse te->ElementType = "LineLabel" Then
+				If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
 					Return te
 				End If
 			End If
@@ -3291,7 +3291,7 @@ Namespace My.Sys.Forms
 		End If
 		If te <> 0 Then
 			sTemp = te->TypeName
-			If te->ElementType = "Namespace" OrElse te->ElementType = "Type" OrElse te->ElementType = "TypeCopy" OrElse te->ElementType = "Union" OrElse te->ElementType = "Enum" Then
+			If te->ElementType = E_Namespace OrElse te->ElementType = E_Type OrElse te->ElementType = E_TypeCopy OrElse te->ElementType = E_Union OrElse te->ElementType = E_Enum Then
 				sTemp = te->Name
 			Else
 				Pos1 = InStrRev(sTemp, ".")
@@ -3311,7 +3311,7 @@ Namespace My.Sys.Forms
 		Var Idx = -1, iLine = -1
 		If tIndex > -1 Then
 			Dim As TypeElement Ptr te = pList->Object(tIndex)
-			If te->ElementType = "Namespace" Then Return tIndex
+			If te->ElementType = E_Namespace Then Return tIndex
 			For i As Integer = tIndex To pList->Count - 1
 				te = pList->Object(i)
 				If LCase(te->Name) <> LCase(Matn) Then Return -1
@@ -3779,26 +3779,26 @@ Namespace My.Sys.Forms
 																	tIndex = 0
 																	OriginalCaseWord = te->Name
 																	If SyntaxHighlightingIdentifiers Then
-																		Select Case LCase(te->ElementType)
-																		Case "enumitem"
+																		Select Case te->ElementType
+																		Case E_EnumItem
 																			sc = @ColorEnumMembers
-																		Case "sub"
+																		Case E_Sub
 																			sc = @ColorSubs
-																		Case "function"
+																		Case E_Function
 																			sc = @ColorGlobalFunctions
-																		Case "property"
+																		Case E_Property
 																			sc = @ColorProperties
-																		Case "field", "event"
+																		Case E_Field, E_Event
 																			sc = @ColorFields
-																		Case "namespace"
+																		Case E_Namespace
 																			sc = @ColorGlobalNamespaces
-																		Case "type", "typecopy"
+																		Case E_Type, E_TypeCopy
 																			sc = @ColorGlobalTypes
-																		Case "enum"
+																		Case E_Enum
 																			sc = @ColorGlobalEnums
-																		Case "define"
+																		Case E_Define
 																			sc = @ColorDefines
-																		Case "macro"
+																		Case E_Macro
 																			sc = @ColorMacros
 																		Case Else
 																			sc = @ColorLocalVariables
@@ -3847,11 +3847,11 @@ Namespace My.Sys.Forms
 																			te = pkeywords->Object(tIndex)
 																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																				Select Case te->ElementType
-																				Case "ByRefParameter"
+																				Case E_ByRefParameter
 																					sc = @ColorByRefParameters
-																				Case "ByValParameter"
+																				Case E_ByValParameter
 																					sc = @ColorByValParameters
-																				Case "Field", "Event"
+																				Case E_Field, E_Event
 																					sc = @ColorFields
 																				Case Else
 																					sc = @ColorLocalVariables
@@ -3872,22 +3872,22 @@ Namespace My.Sys.Forms
 																	OriginalCaseWord = te->Name
 																	If SyntaxHighlightingIdentifiers Then
 																		te->Used = (te->StartLine < z) OrElse MatnBoshi > te->StartChar
-																		Select Case LCase(te->ElementType)
-																		Case "sub"
+																		Select Case te->ElementType
+																		Case E_Sub
 																			sc = @ColorSubs
-																		Case "function"
+																		Case E_Function
 																			sc = @ColorGlobalFunctions
-																		Case "property"
+																		Case E_Property
 																			sc = @ColorProperties
-																		Case "byrefparameter"
+																		Case E_ByRefParameter
 																			sc = @ColorByRefParameters
-																		Case "byvalparameter"
+																		Case E_ByValParameter
 																			sc = @ColorByValParameters
-																		Case "field", "event"
+																		Case E_Field, E_Event
 																			sc = @ColorFields
-																		Case "enumitem"
+																		Case E_EnumItem
 																			sc = @ColorEnumMembers
-																		Case "linelabel"
+																		Case E_LineLabel
 																			sc = @ColorLineLabels
 																		Case Else
 																			sc = @ColorLocalVariables
@@ -3899,29 +3899,29 @@ Namespace My.Sys.Forms
 															If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
 																tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
 																If tIndex <> -1 Then
-																	If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
+																	If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> E_LineLabel Then
 																		tIndex = -1
 																	Else
 																		pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
 																		OriginalCaseWord = pkeywords->Item(tIndex)
 																		te = pkeywords->Object(tIndex)
 																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																			Select Case LCase(te->ElementType)
-																			Case "sub"
+																			Select Case te->ElementType
+																			Case E_Sub
 																				sc = @ColorSubs
-																			Case "function"
+																			Case E_Function
 																				sc = @ColorGlobalFunctions
-																			Case "property"
+																			Case E_Property
 																				sc = @ColorProperties
-																			Case "byrefparameter"
+																			Case E_ByRefParameter
 																				sc = @ColorByRefParameters
-																			Case "byvalparameter"
+																			Case E_ByValParameter
 																				sc = @ColorByValParameters
-																			Case "field", "event"
+																			Case E_Field, E_Event
 																				sc = @ColorFields
-																			Case "enumitem"
+																			Case E_EnumItem
 																				sc = @ColorEnumMembers
-																			Case "linelabel"
+																			Case E_LineLabel
 																				sc = @ColorLineLabels
 																			Case Else
 																				sc = @ColorLocalVariables
@@ -3949,14 +3949,14 @@ Namespace My.Sys.Forms
 																			OriginalCaseWord = te->Name
 																			tIndex = 0
 																			If SyntaxHighlightingIdentifiers Then
-																				Select Case LCase(te->ElementType)
-																				Case "sub"
+																				Select Case te->ElementType
+																				Case E_Sub
 																					sc = @ColorSubs
-																				Case "function"
+																				Case E_Function
 																					sc = @ColorGlobalFunctions
-																				Case "property"
+																				Case E_Property
 																					sc = @ColorProperties
-																				Case "field", "event"
+																				Case E_Field, E_Event
 																					sc = @ColorFields
 																				Case Else
 																					sc = @ColorLocalVariables
@@ -4005,13 +4005,13 @@ Namespace My.Sys.Forms
 																		te = Content.Args.Object(tIndex)
 																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																			Select Case te->ElementType
-																			Case "EnumItem"
+																			Case E_EnumItem
 																				sc = @ColorEnumMembers
-																			Case "CommonVariable"
+																			Case E_CommonVariable
 																				sc = @ColorCommonVariables
-																			Case "Constant"
+																			Case E_Constant
 																				sc = @ColorConstants
-																			Case "SharedVariable"
+																			Case E_SharedVariable
 																				sc = @ColorSharedVariables
 																			Case Else
 																				sc = @ColorLocalVariables
@@ -4032,18 +4032,18 @@ Namespace My.Sys.Forms
 																			pkeywords = @Content.Procedures
 																			te = Content.Procedures.Object(tIndex)
 																			If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																				Select Case LCase(te->ElementType)
-																				Case "constructor", "destructor"
+																				Select Case te->ElementType
+																				Case E_Constructor, E_Destructor
 																					sc = @ColorGlobalTypes
-																				Case "function"
+																				Case E_Function
 																					sc = @ColorGlobalFunctions
-																				Case "sub"
+																				Case E_Sub
 																					sc = @ColorSubs
-																				Case "define"
+																				Case E_Define
 																					sc = @ColorDefines
-																				Case "macro"
+																				Case E_Macro
 																					sc = @ColorMacros
-																				Case "property"
+																				Case E_Property
 																					sc = @ColorProperties
 																				End Select
 																			End If
@@ -4139,13 +4139,13 @@ Namespace My.Sys.Forms
 																	pkeywords = pGlobalArgs
 																	If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																		Select Case te->ElementType
-																		Case "EnumItem"
+																		Case E_EnumItem
 																			sc = @ColorEnumMembers
-																		Case "CommonVariable"
+																		Case E_CommonVariable
 																			sc = @ColorCommonVariables
-																		Case "Constant"
+																		Case E_Constant
 																			sc = @ColorConstants
-																		Case "SharedVariable"
+																		Case E_SharedVariable
 																			sc = @ColorSharedVariables
 																		Case Else
 																			sc = @ColorLocalVariables
@@ -4162,20 +4162,20 @@ Namespace My.Sys.Forms
 																		OriginalCaseWord = pGlobalFunctions->Item(tIndex)
 																		pkeywords = pGlobalFunctions
 																		If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																			Select Case LCase(te->ElementType)
-																			Case "constructor", "destructor"
+																			Select Case te->ElementType
+																			Case E_Constructor, E_Destructor
 																				sc = @ColorGlobalTypes
-																			Case "keyword"
+																			Case E_Keyword
 																				sc = @ColorGlobalFunctions
-																			Case "function"
+																			Case E_Function
 																				sc = @ColorGlobalFunctions
-																			Case "sub"
+																			Case E_Sub
 																				sc = @ColorSubs
-																			Case "define"
+																			Case E_Define
 																				sc = @ColorDefines
-																			Case "macro"
+																			Case E_Macro
 																				sc = @ColorMacros
-																			Case "property"
+																			Case E_Property
 																				sc = @ColorProperties
 																			End Select
 																		End If

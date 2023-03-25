@@ -3627,7 +3627,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->DisplayName = t & IIf(Pos5 = 5, " [Type]", " [Class]")
 						tbi->TypeIsPointer = bTypeIsPointer
 						tbi->TypeName = e
-						tbi->ElementType = IIf(Pos3 > 0, "TypeCopy", "Type")
+						tbi->ElementType = IIf(Pos3 > 0, E_TypeCopy, E_Type)
 						tbi->StartLine = i
 						tbi->FileName = PathFunction
 						If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
@@ -3655,7 +3655,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					tbi->Name = t
 					tbi->DisplayName = t & " [Union]"
 					tbi->TypeName = ""
-					tbi->ElementType = "Union"
+					tbi->ElementType = E_Union
 					tbi->StartLine = i
 					tbi->FileName = PathFunction
 					Types.Add t, tbi
@@ -3680,7 +3680,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Name = Trim(Left(b2, Pos1 - 1))
 					End If
 					te->DisplayName = te->Name
-					te->ElementType = "Define"
+					te->ElementType = E_Define
 					te->Parameters = Trim(b2)
 					Pos4 = InStr(te->Parameters, "'")
 					If Pos4 > 0 Then
@@ -3712,7 +3712,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Name = Trim(Mid(bTrim, 8, Pos1 - 8))
 					End If
 					te->DisplayName = te->Name
-					te->ElementType = "Macro"
+					te->ElementType = E_Macro
 					te->Parameters = Trim(Mid(bTrim, 8))
 					Pos4 = InStr(te->Parameters, "'")
 					If Pos4 > 0 Then
@@ -3748,7 +3748,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te = New_( TypeElement)
 						te->Name = Trim(res1(n))
 						te->DisplayName = te->Name
-						te->ElementType = "Namespace"
+						te->ElementType = E_Namespace
 						te->Parameters = bTrim
 						Pos4 = InStr(te->Parameters, "'")
 						If Pos4 > 0 Then
@@ -3789,14 +3789,17 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If StartsWith(LCase(Trim(Mid(bTrim, 9))), "operator") Then Continue For
 					te = New_( TypeElement)
 					te->Declaration = True
-					If Pos1 = 0 Then
-						te->ElementType = Trim(Mid(bTrim, iStart))
-					Else
-						te->ElementType = Trim(Mid(bTrim, iStart, Pos1 - iStart))
-					End If
-					If inType AndAlso typ <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
+					Select Case LCase(IIf(Pos1 = 0, Trim(Mid(bTrim, iStart)), Trim(Mid(bTrim, iStart, Pos1 - iStart))))
+					Case "sub": te->ElementType = E_Sub
+					Case "function": te->ElementType = E_Function
+					Case "property": te->ElementType = E_Property
+					Case "operator": te->ElementType = E_Operator
+					Case "constructor": te->ElementType = E_Constructor
+					Case "destructor": te->ElementType = E_Destructor
+					End Select
+					If inType AndAlso typ <> 0 AndAlso (te->ElementType = E_Constructor OrElse te->ElementType = E_Destructor) Then
 						te->Name = typ->Name
-						te->DisplayName = typ->Name & " [" & te->ElementType & "] [Declare]"
+						te->DisplayName = typ->Name & " [" & IIf(te->ElementType = E_Constructor, "Constructor", "Destructor") & "] [Declare]"
 						te->TypeName = typ->Name
 						te->Parameters = typ->Name & IIf(Pos4 > 0, Mid(bTrim, Pos4), "()")
 					Else
@@ -3805,7 +3808,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							te->Name = Trim(Mid(bTrim, Pos1, Pos3 - Pos1))
 						End If
-						If LCase(te->ElementType) = "property" Then
+						If te->ElementType = E_Property Then
 							If EndsWith(bTrim, ")") Then
 								te->DisplayName = te->Name & " [Let] [Declare]"
 							Else
@@ -3844,7 +3847,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If inType Then
 						te->Locals = inPubProPri
 					End If
-					If LCase(te->ElementType) = "operator" Then
+					If te->ElementType = E_Operator Then
 						te->Locals = 2
 					End If
 					Pos4 = InStr(te->Parameters, "'")
@@ -3855,7 +3858,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					te->EndLine = i
 					If Comment <> "" Then te->Comment = Comment: Comment = ""
 					te->FileName = PathFunction
-					If inType AndAlso typ <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
+					If inType AndAlso typ <> 0 AndAlso te->ElementType <> E_Constructor AndAlso te->ElementType <> E_Destructor Then
 						typ->Elements.Add te->Name, te
 					Else
 						LastIndexFunction = Functions.Add(te->Name, te)
@@ -3986,7 +3989,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 							te->TypeName = WithoutPointers(te->TypeName)
 							te->Value = ElementValue
-							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), "Event", "Field")
+							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, E_Field)
 							te->Locals = inPubProPri
 							te->StartLine = i
 							te->Parameters = res1(n) & " As " & CurType
@@ -4006,7 +4009,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->Name = t
 						tbi->DisplayName = t & " [Enum]"
 						tbi->TypeName = ""
-						tbi->ElementType = "Enum"
+						tbi->ElementType = E_Enum
 						tbi->StartLine = i
 						tbi->FileName = PathFunction
 						Enums.Add t, tbi
@@ -4042,7 +4045,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							te->DisplayName = te->Name
 						End If
-						te->ElementType = "EnumItem"
+						te->ElementType = E_EnumItem
 						te->Value = ElementValue
 						te->StartLine = i
 						te->Parameters = Trim(res1(n))
@@ -4055,7 +4058,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Else
 							te->DisplayName = te->Name
 						End If
-						te->ElementType = "EnumItem"
+						te->ElementType = E_EnumItem
 						te->Value = ElementValue
 						te->StartLine = i
 						te->Parameters = Trim(res1(n))
@@ -4095,7 +4098,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						te->DisplayName = te->Name & " [Constructor]"
 						te->TypeName = te->Name
-						te->ElementType = "Constructor"
+						te->ElementType = E_Constructor
 						te->Locals = IIf(StartsWith(bTrimLCase, "private "), 1, 0)
 						te->StartLine = i
 						te->Parameters = te->Name & IIf(Pos3 > 0, Mid(bTrim, Pos3), "()")
@@ -4120,7 +4123,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						te->DisplayName = te->Name & " [Destructor]"
 						te->TypeName = te->Name
-						te->ElementType = "Destructor"
+						te->ElementType = E_Destructor
 						te->Locals = IIf(StartsWith(bTrimLCase, "private "), 1, 0)
 						te->StartLine = i
 						te->Parameters = te->Name & IIf(Pos3 > 0, Mid(bTrim, Pos3), "()")
@@ -4155,7 +4158,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->Locals = 0 'IIf(StartsWith(bTrimLCase, "private sub "), 1, 0)
 						End If
 						te->TypeName = ""
-						te->ElementType = "Sub"
+						te->ElementType = E_Sub
 						te->StartLine = i
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If EndsWith(LCase(te->Parameters), " __export__") Then
@@ -4223,7 +4226,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
 						te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 						te->TypeName = WithoutPointers(te->TypeName)
-						te->ElementType = "Function"
+						te->ElementType = E_Function
 						te->StartLine = i
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If EndsWith(LCase(te->Parameters), " __export__") Then
@@ -4294,7 +4297,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
 						te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 						te->TypeName = WithoutPointers(te->TypeName)
-						te->ElementType = "Property"
+						te->ElementType = E_Property
 						te->StartLine = i
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
@@ -4397,13 +4400,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->Name = res1(n)
 							te->DisplayName = te->Name
 							If StartsWith(bTrimLCase, "common ") Then
-								te->ElementType = "CommonVariable"
+								te->ElementType = E_CommonVariable
 							ElseIf StartsWith(bTrimLCase, "const ") Then
-								te->ElementType = "Constant"
+								te->ElementType = E_Constant
 							ElseIf bShared Then
-								te->ElementType = "SharedVariable"
+								te->ElementType = E_SharedVariable
 							Else
-								te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), "Event", "Property")
+								te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, E_Property)
 							End If
 							te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
 							te->TypeName = CurType
@@ -4597,7 +4600,7 @@ Sub LoadHelp
 					te = New_( TypeElement)
 					te->Name = bTrim
 					te->DisplayName = Trim(Buff)
-					te->ElementType = "Keyword"
+					te->ElementType = E_Keyword
 					te->FileName = *KeywordsHelpPath
 					pFunctions->Add te->Name, te
 					bStartEnd = False
@@ -4624,13 +4627,13 @@ Sub LoadHelp
 							bTrim = LTrim(Mid(LTrim(Buff), 9))
 							If StartsWith(bTrim, "Function ") Then
 								Buff = LTrim(Mid(LTrim(bTrim), 10))
-								te->ElementType = "KeywordFunction"
+								te->ElementType = E_KeywordFunction
 							ElseIf StartsWith(bTrim, "Sub ") Then
 								Buff = LTrim(Mid(LTrim(bTrim), 5))
-								te->ElementType = "KeywordSub"
+								te->ElementType = E_KeywordSub
 							ElseIf StartsWith(bTrim, "Operator ") Then
 								Buff = LTrim(Mid(LTrim(bTrim), 10))
-								te->ElementType = "KeywordOperator"
+								te->ElementType = E_KeywordOperator
 							End If
 						End If
 						If te->Parameters = "" Then
@@ -4744,7 +4747,7 @@ Sub LoadHelp
 					te = New_( TypeElement)
 					te->Name = Trim(res(i))
 					te->DisplayName = Trim(res(i))
-					te->ElementType = "Keyword"
+					te->ElementType = E_Keyword
 					te->FileName = *AsmKeywordsHelpPath
 					te->Comment = "<a href=""" & *AsmKeywordsHelpPath & "~" & Str(LineNumber - 1) & "~" & te->Name & "~" & te->Name & """>" & te->Name & !"</a>\r   " & Mid(Buff, Pos1 + 3) & !"\r"
 					pFunctions->Add te->Name, te
@@ -4894,7 +4897,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To Comps.Count - 1
 		If LCase(Comps.Item(i)) = "control" Or LCase(Comps.Item(i)) = "containercontrol" Or LCase(Comps.Item(i)) = "menu" Or LCase(Comps.Item(i)) = "component" Or LCase(Comps.Item(i)) = "dialog" Then Continue For
 		Var tbi = Cast(TypeElement Ptr, Comps.Object(i))
-		If tbi->ElementType = "TypeCopy" Then Continue For
+		If tbi->ElementType = E_TypeCopy Then Continue For
 		If ForLibrary <> 0 AndAlso tbi->Tag <> ForLibrary Then Continue For
 		iNew = GetTypeControl(Comps.Item(i))
 		tbi->ControlType = iNew
@@ -6960,7 +6963,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 		ElseIf Globals.Enums.Contains(te->TypeName) Then
 			tbi = Cast(TypeElement Ptr, Globals.Enums.Object(Globals.Enums.IndexOf(te->TypeName)))
 		End If
-		If tbi <> 0 AndAlso tbi->ElementType = "Enum" Then
+		If tbi <> 0 AndAlso tbi->ElementType = E_Enum Then
 			'CtrlEdit = @pnlPropertyValue
 			cboPropertyValue.Visible = True
 			cboPropertyValue.Clear

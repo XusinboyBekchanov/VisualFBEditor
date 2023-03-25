@@ -1299,7 +1299,7 @@ Function GetOriginalType(ByRef TypeName As String) As String
 	If pComps->Contains(TypeN, , , , iIndex) Then
 		tbi = pComps->Object(iIndex)
 		If tbi Then
-			If tbi->ElementType = "TypeCopy" Then
+			If tbi->ElementType = E_TypeCopy Then
 				Return GetOriginalType(tbi->TypeName)
 			Else
 				Return TypeName
@@ -1322,10 +1322,10 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 	Dim As Integer iIndex = -1
 	With *te
 		Select Case te->ElementType
-		Case "Event"
+		Case E_Event
 			Var Idx = Events.IndexOfKey(PropertyName, Obj)
 			If Idx <> -1 Then WLet(FLine, Events.Item(Idx)->Text)
-		Case "Property", "Field"
+		Case E_Property, E_Field
 			Var Pos1 = InStr(PropertyName, ".")
 			If Des <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
 				pTemp = st->ReadPropertyFunc(Obj, PropertyName)
@@ -1512,14 +1512,14 @@ Function TabWindow.WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As 
 			If hTemp Then hwnd1 = *Cast(HWND Ptr, hTemp)
 		#endif
 		Select Case te->ElementType
-		Case "Event"
+		Case E_Event
 			iIndex = Events.IndexOfKey(PropertyName, Obj)
 			If iIndex <> -1 Then
 				Events.Item(iIndex)->Text = Mid(Value, 2)
 			Else
 				Events.Add PropertyName, Mid(Value, 2), Obj
 			End If
-		Case "Property", "Field"
+		Case E_Property, E_Field
 			Select Case LCase(te->TypeName)
 			Case "wstring", "string", "zstring", "icon", "cursor", "bitmaptype", "graphictype", "wstringlist", "dictionary"
 				'?"VFE2:" & *FLine
@@ -1714,7 +1714,7 @@ Function GetTypeIsPointer(te As TypeElement Ptr) As Boolean
 		If pComps->Contains(TypeN, , , , iIndex) Then
 			tbi = pComps->Object(iIndex)
 			If tbi Then
-				If tbi->ElementType = "TypeCopy" Then
+				If tbi->ElementType = E_TypeCopy Then
 					Return GetTypeIsPointer(tbi)
 				End If
 			End If
@@ -1775,7 +1775,7 @@ Sub TabWindow.FillAllProperties()
 		te = FPropertyItems.Object(lvPropertyCount)
 		If te = 0 Then Continue For
 		With *te
-			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = "Property") OrElse CInt(.ElementType = "Field")) Then
+			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = E_Property) OrElse CInt(.ElementType = E_Field)) Then
 				If plvProperties->Nodes.Count <= lvPropertyCount Then
 					Dim As Boolean iBool = pComps->Contains(.TypeName)
 					Dim As Boolean TypeIsPointer = GetTypeIsPointer(te)
@@ -1787,7 +1787,7 @@ Sub TabWindow.FillAllProperties()
 					lvItem->Text(1) = ""
 				End If
 				lvItem->Text(1) = ItemText 'ReadObjProperty(Des->SelectedControl, FPropertyItems.Item(lvPropertyCount))
-			ElseIf .ElementType = "Event" Then
+			ElseIf .ElementType = E_Event Then
 				cboFunction.Items.Add .Name, , "Event", "Event"
 				lvItem = plvEvents->Nodes.Add(.Name, 3)
 				lvItem->Text(1) = ReadObjProperty(Des->SelectedControl, .Name)
@@ -2866,7 +2866,7 @@ Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 			Dim As String imgKey = "Sub"
 			For i As Integer = 0 To tb->txtCode.Content.Functions.Count - 1
 				Var te = Cast(TypeElement Ptr, tb->txtCode.Content.Functions.Object(i))
-				If te->ElementType = "Property" Then imgKey = "Property" Else imgKey = "Sub"
+				If te->ElementType = E_Property Then imgKey = "Property" Else imgKey = "Sub"
 				If Not (CBool(InStr(te->DisplayName, "._") > 0) AndAlso CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning) Then .Items.Add te->DisplayName, te, imgKey, imgKey
 			Next
 		End With
@@ -3494,23 +3494,23 @@ Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement
 	Dim As String imgKeyNew = imgKey
 	If te = 0 Then
 		imgKeyNew = "StandartTypes"
-	ElseIf te->ElementType = "Sub" Then
+	ElseIf te->ElementType = E_Sub Then
 		imgKeyNew = "Sub"
-	ElseIf te->ElementType = "Function" Then
+	ElseIf te->ElementType = E_Function Then
 		imgKeyNew = "Function"
-	ElseIf te->ElementType = "Namespace" Then
+	ElseIf te->ElementType = E_Namespace Then
 		imgKeyNew = "Sub"
-	ElseIf te->ElementType = "Enum" Then
+	ElseIf te->ElementType = E_Enum Then
 		imgKeyNew = "Enum"
-	ElseIf te->ElementType = "EnumItem" Then
+	ElseIf te->ElementType = E_EnumItem Then
 		imgKeyNew = "EnumItem"
-	ElseIf te->ElementType = "Property" Then
+	ElseIf te->ElementType = E_Property Then
 		imgKeyNew = "Property"
-	ElseIf te->ElementType = "Event" Then
+	ElseIf te->ElementType = E_Event Then
 		imgKeyNew = "Event"
-	ElseIf te->ElementType = "Type" OrElse te->ElementType = "TypeCopy" OrElse te->ElementType = "Union" Then
+	ElseIf te->ElementType = E_Type OrElse te->ElementType = E_TypeCopy OrElse te->ElementType = E_Union Then
 		imgKeyNew = "Type"
-	ElseIf StartsWith(te->ElementType, "Keyword") Then
+	ElseIf te->ElementType = E_Keyword OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordSub OrElse te->ElementType = E_KeywordOperator Then
 		imgKeyNew = "StandartTypes"
 	End If
 	#ifdef __USE_GTK__
@@ -3912,7 +3912,7 @@ Function TabWindow.FillIntellisense(ByRef ClassName As WString, ByRef FromClassN
 			If te Then
 				With *te
 					If (bLocal OrElse CBool(.Locals = 0) OrElse CBool(FromClassName = ClassName) OrElse CBool(.Locals = 1 AndAlso IsBase(FromClassName, ClassName, tb))) AndAlso _
-						((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = "Type" OrElse .ElementType = "TypeCopy" OrElse .ElementType = "Enum" OrElse .ElementType = "Namespace"))) Then
+						((Not TypesOnly) OrElse (TypesOnly AndAlso CBool(.ElementType = E_Type OrElse .ElementType = E_TypeCopy OrElse .ElementType = E_Enum OrElse .ElementType = E_Namespace))) Then
 						If bAll OrElse Not FListItems.Contains(.Name) Then
 							FListItems.Add tbi->Elements.Item(i), te
 						End If
@@ -4106,15 +4106,15 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 		te = FListItems.Object(i)
 		If te = 0 Then
 			imgKey = "StandartTypes"
-		ElseIf te->ElementType = "Property" Then
+		ElseIf te->ElementType = E_Property Then
 			imgKey = "Property"
-		ElseIf te->ElementType = "Function" Then
+		ElseIf te->ElementType = E_Function Then
 			imgKey = "Function"
-		ElseIf te->ElementType = "Event" Then
+		ElseIf te->ElementType = E_Event Then
 			imgKey = "Event"
-		ElseIf te->ElementType = "Enum" Then
+		ElseIf te->ElementType = E_Enum Then
 			imgKey = "Enum"
-		ElseIf te->ElementType = "Type" OrElse te->ElementType = "TypeCopy" OrElse te->ElementType = "Union" Then
+		ElseIf te->ElementType = E_Type OrElse te->ElementType = E_TypeCopy OrElse te->ElementType = E_Union Then
 			imgKey = "Type"
 		End If
 		If NotClear Then
@@ -4395,7 +4395,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 				End If
 			Next
 		End If
-		If teOld->ElementType = "Type" Then
+		If teOld->ElementType = E_Type Then
 			TypeName = teOld->Name
 		Else
 			TypeName = teOld->TypeName
@@ -4568,7 +4568,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 		End If
 		If te <> 0 AndAlso LCase(te->Name) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
 			If Not ShowKeywordsToolTip Then
-				If te->ElementType = "Keyword" Then Return ""
+				If te->ElementType = E_Keyword Then Return ""
 			End If
 			Dim As UString res(Any)
 			Split te->Parameters, !"\r", res()
@@ -5828,26 +5828,26 @@ Sub AnalyzeTab(Param As Any Ptr)
 													If (te->StartLine < z) OrElse MatnBoshi > te->StartChar Then te->Used = True
 													OriginalCaseWord = te->Name
 													If SyntaxHighlightingIdentifiers Then
-														Select Case LCase(te->ElementType)
-														Case "enumitem"
+														Select Case te->ElementType
+														Case E_EnumItem
 															sc = @ColorEnumMembers
-														Case "sub"
+														Case E_Sub
 															sc = @ColorSubs
-														Case "function"
+														Case E_Function
 															sc = @ColorGlobalFunctions
-														Case "property"
+														Case E_Property
 															sc = @ColorProperties
-														Case "field", "event"
+														Case E_Field, E_Event
 															sc = @ColorFields
-														Case "namespace"
+														Case E_Namespace
 															sc = @ColorGlobalNamespaces
-														Case "type", "typecopy"
+														Case E_Type, E_TypeCopy
 															sc = @ColorGlobalTypes
-														Case "enum"
+														Case E_Enum
 															sc = @ColorGlobalEnums
-														Case "define"
+														Case E_Define
 															sc = @ColorDefines
-														Case "macro"
+														Case E_Macro
 															sc = @ColorMacros
 														Case Else
 															sc = @ColorLocalVariables
@@ -5899,11 +5899,11 @@ Sub AnalyzeTab(Param As Any Ptr)
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 																te->Used = True
 																Select Case te->ElementType
-																Case "ByRefParameter"
+																Case E_ByRefParameter
 																	sc = @ColorByRefParameters
-																Case "ByValParameter"
+																Case E_ByValParameter
 																	sc = @ColorByValParameters
-																Case "Field", "Event"
+																Case E_Field, E_Event
 																	sc = @ColorFields
 																Case Else
 																	sc = @ColorLocalVariables
@@ -5924,22 +5924,22 @@ Sub AnalyzeTab(Param As Any Ptr)
 													OriginalCaseWord = te->Name
 													If SyntaxHighlightingIdentifiers Then
 														If (te->StartLine < z) OrElse MatnBoshi > te->StartChar Then te->Used = True
-														Select Case LCase(te->ElementType)
-														Case "sub"
+														Select Case te->ElementType
+														Case E_Sub
 															sc = @ColorSubs
-														Case "function"
+														Case E_Function
 															sc = @ColorGlobalFunctions
-														Case "property"
+														Case E_Property
 															sc = @ColorProperties
-														Case "byrefparameter"
+														Case E_ByRefParameter
 															sc = @ColorByRefParameters
-														Case "byvalparameter"
+														Case E_ByValParameter
 															sc = @ColorByValParameters
-														Case "field", "event"
+														Case E_Field, E_Event
 															sc = @ColorFields
-														Case "enumitem"
+														Case E_EnumItem
 															sc = @ColorEnumMembers
-														Case "linelabel"
+														Case E_LineLabel
 															sc = @ColorLineLabels
 														Case Else
 															sc = @ColorLocalVariables
@@ -5951,7 +5951,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
 												tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
 												If tIndex <> -1 Then
-													If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> "LineLabel" Then
+													If Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->StartLine > z AndAlso Cast(TypeElement Ptr, Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.Object(tIndex))->ElementType <> E_LineLabel Then
 														tIndex = -1
 													Else
 														pkeywords = @Cast(TypeElement Ptr, FECLine->InConstruction)->Elements
@@ -5959,22 +5959,22 @@ Sub AnalyzeTab(Param As Any Ptr)
 														te = pkeywords->Object(tIndex)
 														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 															If (te->StartLine < z) OrElse MatnBoshi > te->StartChar Then te->Used = True
-															Select Case LCase(te->ElementType)
-															Case "sub"
+															Select Case te->ElementType
+															Case E_Sub
 																sc = @ColorSubs
-															Case "function"
+															Case E_Function
 																sc = @ColorGlobalFunctions
-															Case "property"
+															Case E_Property
 																sc = @ColorProperties
-															Case "byrefparameter"
+															Case E_ByRefParameter
 																sc = @ColorByRefParameters
-															Case "byvalparameter"
+															Case E_ByValParameter
 																sc = @ColorByValParameters
-															Case "field", "event"
+															Case E_Field, E_Event
 																sc = @ColorFields
-															Case "enumitem"
+															Case E_EnumItem
 																sc = @ColorEnumMembers
-															Case "linelabel"
+															Case E_LineLabel
 																sc = @ColorLineLabels
 															Case Else
 																sc = @ColorLocalVariables
@@ -6005,14 +6005,14 @@ Sub AnalyzeTab(Param As Any Ptr)
 															OriginalCaseWord = te->Name
 															tIndex = 0
 															If SyntaxHighlightingIdentifiers Then
-																Select Case LCase(te->ElementType)
-																Case "sub"
+																Select Case te->ElementType
+																Case E_Sub
 																	sc = @ColorSubs
-																Case "function"
+																Case E_Function
 																	sc = @ColorGlobalFunctions
-																Case "property"
+																Case E_Property
 																	sc = @ColorProperties
-																Case "field", "event"
+																Case E_Field, E_Event
 																	sc = @ColorFields
 																Case Else
 																	sc = @ColorLocalVariables
@@ -6062,13 +6062,13 @@ Sub AnalyzeTab(Param As Any Ptr)
 														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 															If (te->StartLine < z) OrElse MatnBoshi > te->StartChar Then te->Used = True
 															Select Case te->ElementType
-															Case "EnumItem"
+															Case E_EnumItem
 																sc = @ColorEnumMembers
-															Case "CommonVariable"
+															Case E_CommonVariable
 																sc = @ColorCommonVariables
-															Case "Constant"
+															Case E_Constant
 																sc = @ColorConstants
-															Case "SharedVariable"
+															Case E_SharedVariable
 																sc = @ColorSharedVariables
 															Case Else
 																sc = @ColorLocalVariables
@@ -6120,18 +6120,18 @@ Sub AnalyzeTab(Param As Any Ptr)
 																		End If
 																	End If
 																End If
-																Select Case LCase(te->ElementType)
-																Case "constructor", "destructor"
+																Select Case te->ElementType
+																Case E_Constructor, E_Destructor
 																	sc = @ColorGlobalTypes
-																Case "function"
+																Case E_Function
 																	sc = @ColorGlobalFunctions
-																Case "sub"
+																Case E_Sub
 																	sc = @ColorSubs
-																Case "define"
+																Case E_Define
 																	sc = @ColorDefines
-																Case "macro"
+																Case E_Macro
 																	sc = @ColorMacros
-																Case "property"
+																Case E_Property
 																	sc = @ColorProperties
 																End Select
 															End If
@@ -6233,13 +6233,13 @@ Sub AnalyzeTab(Param As Any Ptr)
 														pkeywords = @ecc->Globals->Args
 														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 															Select Case te->ElementType
-															Case "EnumItem"
+															Case E_EnumItem
 																sc = @ColorEnumMembers
-															Case "CommonVariable"
+															Case E_CommonVariable
 																sc = @ColorCommonVariables
-															Case "Constant"
+															Case E_Constant
 																sc = @ColorConstants
-															Case "SharedVariable"
+															Case E_SharedVariable
 																sc = @ColorSharedVariables
 															Case Else
 																sc = @ColorLocalVariables
@@ -6269,20 +6269,20 @@ Sub AnalyzeTab(Param As Any Ptr)
 															OriginalCaseWord = ecc->Globals->Functions.Item(tIndex)
 															pkeywords = @ecc->Globals->Functions
 															If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																Select Case LCase(te->ElementType)
-																Case "constructor", "destructor"
+																Select Case te->ElementType
+																Case E_Constructor, E_Destructor
 																	sc = @ColorGlobalTypes
-																Case "keyword"
+																Case E_Keyword
 																	sc = @ColorGlobalFunctions
-																Case "function"
+																Case E_Function
 																	sc = @ColorGlobalFunctions
-																Case "sub"
+																Case E_Sub
 																	sc = @ColorSubs
-																Case "define"
+																Case E_Define
 																	sc = @ColorDefines
-																Case "macro"
+																Case E_Macro
 																	sc = @ColorMacros
-																Case "property"
+																Case E_Property
 																	sc = @ColorProperties
 																End Select
 															End If
@@ -6352,13 +6352,13 @@ Sub AnalyzeTab(Param As Any Ptr)
 													pkeywords = pGlobalArgs
 													If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
 														Select Case te->ElementType
-														Case "EnumItem"
+														Case E_EnumItem
 															sc = @ColorEnumMembers
-														Case "CommonVariable"
+														Case E_CommonVariable
 															sc = @ColorCommonVariables
-														Case "Constant"
+														Case E_Constant
 															sc = @ColorConstants
-														Case "SharedVariable"
+														Case E_SharedVariable
 															sc = @ColorSharedVariables
 														Case Else
 															sc = @ColorLocalVariables
@@ -6375,20 +6375,20 @@ Sub AnalyzeTab(Param As Any Ptr)
 														OriginalCaseWord = pGlobalFunctions->Item(tIndex)
 														pkeywords = pGlobalFunctions
 														If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-															Select Case LCase(te->ElementType)
-															Case "constructor", "destructor"
+															Select Case te->ElementType
+															Case E_Constructor, E_Destructor
 																sc = @ColorGlobalTypes
-															Case "keyword"
+															Case E_Keyword
 																sc = @ColorGlobalFunctions
-															Case "function"
+															Case E_Function
 																sc = @ColorGlobalFunctions
-															Case "sub"
+															Case E_Sub
 																sc = @ColorSubs
-															Case "define"
+															Case E_Define
 																sc = @ColorDefines
-															Case "macro"
+															Case E_Macro
 																sc = @ColorMacros
-															Case "property"
+															Case E_Property
 																sc = @ColorProperties
 															End Select
 														End If
@@ -6599,8 +6599,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 	ThreadsEnter
 	For i As Integer = 0 To NotUsedIdentifiers.Count - 1
 		te = NotUsedIdentifiers.Item(i)
-		If CBool(LCase(te->ElementType) = "constructor") OrElse CBool(LCase(te->ElementType) = "destructor") OrElse te->TypeProcedure Then Continue For
-		If (LCase(te->ElementType) = "enum" OrElse LCase(te->ElementType) = "type" OrElse LCase(te->ElementType) = "union") AndAlso te->Name = "" Then Continue For
+		If CBool(te->ElementType = E_Constructor) OrElse CBool(te->ElementType = E_Destructor) OrElse CBool(te->ElementType = E_ByValParameter) OrElse CBool(te->ElementType = E_ByRefParameter) OrElse te->TypeProcedure Then Continue For
+		If te->ElementType = E_Enum OrElse te->ElementType = E_Type OrElse te->ElementType = E_Union AndAlso te->Name = "" Then Continue For
 		Dim As Integer ii = 0, AddIndex = -1, MatnBoshi = te->StartChar, z = te->StartLine
 		Dim As UString ErrorText = ML("Warning: Identifier not used") & ", " & te->Name & ", " & ML("delete it if not needed")
 		Dim As UString FileName_ = te->FileName
@@ -6853,13 +6853,13 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 			If res1(n).ToLower.StartsWith("byref") Then
 				u += Len(res1(n)) - Len(LTrim(Mid(res1(n), 6)))
 				res1(n) = Trim(Mid(res1(n), 6))
-				te->ElementType = "ByRefParameter"
+				te->ElementType = E_ByRefParameter
 			ElseIf res1(n).ToLower.StartsWith("byval") Then
 				u += Len(res1(n)) - Len(LTrim(Mid(res1(n), 6)))
 				res1(n) = Trim(Mid(res1(n), 6))
-				te->ElementType = "ByValParameter"
+				te->ElementType = E_ByValParameter
 			Else
-				te->ElementType = "ByValParameter"
+				te->ElementType = E_ByValParameter
 			End If
 			Pos1 = InStr(res1(n), "(")
 			If Pos1 > 0 Then
@@ -7340,12 +7340,18 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									End If
 									te->TypeName = WithoutPointers(te->TypeName)
 								End If
-								If ECStatement->ConstructionIndex = C_Class Then
-									te->ElementType = "Type"
-								Else
-									te->ElementType = Trim(Constructions(ECStatement->ConstructionIndex).Name0)
-								End If
-								If ECStatement->ConstructionIndex = C_P_Macro Then te->ElementType = Mid(te->ElementType, 2)
+								Select Case ECStatement->ConstructionIndex
+								Case C_P_Macro: te->ElementType = E_Macro
+								Case C_Enum: te->ElementType = E_Enum
+								Case C_Class, C_Type: te->ElementType = E_Type
+								Case C_Union: te->ElementType = E_Union
+								Case C_Sub: te->ElementType = E_Sub
+								Case C_Function: te->ElementType = E_Function
+								Case C_Property: te->ElementType = E_Property
+								Case C_Operator: te->ElementType = E_Operator
+								Case C_Constructor: te->ElementType = E_Constructor
+								Case C_Destructor: te->ElementType = E_Destructor
+								End Select
 								te->StartLine = i
 								te->EndLine = i + 1
 								te->FileName = sFileName
@@ -7480,7 +7486,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te = New_( TypeElement)
 								te->Name = Trim(res1(n))
 								te->DisplayName = te->Name
-								te->ElementType = "Namespace"
+								te->ElementType = E_Namespace
 								te->Parameters = bTrim
 								Pos4 = InStr(te->Parameters, "'")
 								If Pos4 > 0 Then
@@ -7529,7 +7535,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							te->Name = Trim(Left(b2, Pos1 - 1))
 						End If
 						te->DisplayName = te->Name
-						te->ElementType = "Define"
+						te->ElementType = E_Define
 						te->Parameters = bTrim
 						Pos4 = InStr(te->Parameters, "'")
 						If Pos4 > 0 Then
@@ -7620,7 +7626,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							'	teDeclare->Elements.Add te->Name, te
 							'Next
 						End If
-					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
+					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = E_Enum Then
 						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
 						Dim As String t
 						Dim As UString b2 = bTrim, res1(), ElementValue
@@ -7651,7 +7657,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Else
 								te->DisplayName = te->Name
 							End If
-							te->ElementType = "EnumItem"
+							te->ElementType = E_EnumItem
 							te->Value = ElementValue
 							te->StartLine = i
 							te->EndLine = i
@@ -7680,17 +7686,20 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
 						te = New_( TypeElement)
 						te->Declaration = True
-						If Pos1 = 0 Then
-							te->ElementType = Trim(Mid(bTrim, iStart))
-						Else
-							te->ElementType = Trim(Mid(bTrim, iStart, Pos1 - iStart))
-						End If
+						Select Case LCase(IIf(Pos1 = 0, Trim(Mid(bTrim, iStart)), Trim(Mid(bTrim, iStart, Pos1 - iStart))))
+						Case "sub": te->ElementType = E_Sub
+						Case "function": te->ElementType = E_Function
+						Case "property": te->ElementType = E_Property
+						Case "operator": te->ElementType = E_Operator
+						Case "constructor": te->ElementType = E_Constructor
+						Case "destructor": te->ElementType = E_Destructor
+						End Select
 						If inFunc Then
 							te->Locals = inPubProPri
 						End If
-						If inFunc AndAlso func <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
+						If inFunc AndAlso func <> 0 AndAlso (te->ElementType = E_Constructor OrElse te->ElementType = E_Destructor) Then
 							te->Name = func->Name
-							te->DisplayName = func->Name & " [" & te->ElementType & "] [Declare]"
+							te->DisplayName = func->Name & " [" & IIf(te->ElementType = E_Constructor, "Constructor", "Destructor") & "] [Declare]"
 							te->TypeName = func->Name
 							te->Parameters = te->Name & IIf(Pos4 > 0, Mid(bTrim, Pos4), "()")
 						Else
@@ -7699,7 +7708,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Else
 								te->Name = Trim(Mid(bTrim, Pos1, Pos3 - Pos1))
 							End If
-							If LCase(te->ElementType) = "property" Then
+							If te->ElementType = E_Property Then
 								If EndsWith(bTrim, ")") Then
 									te->DisplayName = te->Name & " [Let] [Declare]"
 								Else
@@ -7732,7 +7741,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						SetLineAndCharParameters te, ECLines
 						'ECLine->InConstruction = te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
-						If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
+						If inFunc AndAlso func <> 0 AndAlso te->ElementType <> E_Constructor AndAlso te->ElementType <> E_Destructor Then
 							func->Elements.Add te->Name, te
 						Else
 							'Content.FunctionsOthers.Add te->DisplayName, te
@@ -7798,7 +7807,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						Var te = New_(TypeElement)
 						te->Name = bTrim
 						te->DisplayName = Trim(b1)
-						te->ElementType = "LineLabel"
+						te->ElementType = E_LineLabel
 						te->TypeName = ""
 						te->Locals = 0
 						te->StartLine = i
@@ -7929,15 +7938,15 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te->TypeName = CurType
 								te->TypeName = WithoutPointers(te->TypeName)
 								If StartsWith(bTrimLCase, "type ") Then
-									te->ElementType = "Type"
+									te->ElementType = E_TypeCopy
 								ElseIf StartsWith(bTrimLCase, "common ") Then
-									te->ElementType = "CommonVariable"
+									te->ElementType = E_CommonVariable
 								ElseIf StartsWith(bTrimLCase, "const ") Then
-									te->ElementType = "Constant"
+									te->ElementType = E_Constant
 								ElseIf bShared Then
-									te->ElementType = "SharedVariable"
+									te->ElementType = E_SharedVariable
 								Else
-									te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), "Event", IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
+									te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = E_Type, E_Field, E_LocalVariable))
 								End If
 								te->Value = ElementValue
 								If inFunc Then
@@ -7974,7 +7983,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 										If Index > -1 Then Cast(TypeElement Ptr, Content.Namespaces.Object(Index))->Elements.Add te->Name, te
 									End If
 								End If
-								If te->ElementType = "Event" Then
+								If te->ElementType = E_Event Then
 									Dim As UString bTrim = CurType
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
@@ -8637,12 +8646,18 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 									te->TypeName = WithoutPointers(te->TypeName)
 								End If
-								If ECStatement->ConstructionIndex = C_Class Then
-									te->ElementType = "Type"
-								Else
-									te->ElementType = Trim(Constructions(ECStatement->ConstructionIndex).Name0)
-								End If
-								If ECStatement->ConstructionIndex = C_P_Macro Then te->ElementType = Mid(te->ElementType, 2)
+								Select Case ECStatement->ConstructionIndex
+								Case C_P_Macro: te->ElementType = E_Macro
+								Case C_Enum: te->ElementType = E_Enum
+								Case C_Class, C_Type: te->ElementType = E_Type
+								Case C_Union: te->ElementType = E_Union
+								Case C_Sub: te->ElementType = E_Sub
+								Case C_Function: te->ElementType = E_Function
+								Case C_Property: te->ElementType = E_Property
+								Case C_Operator: te->ElementType = E_Operator
+								Case C_Constructor: te->ElementType = E_Constructor
+								Case C_Destructor: te->ElementType = E_Destructor
+								End Select
 								te->StartLine = i
 								te->EndLine = i + 1
 								te->FileName = sFileName
@@ -8775,7 +8790,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te = New_( TypeElement)
 								te->Name = Trim(res1(n))
 								te->DisplayName = te->Name
-								te->ElementType = "Namespace"
+								te->ElementType = E_Namespace
 								te->Parameters = bTrim
 								Pos4 = InStr(te->Parameters, "'")
 								If Pos4 > 0 Then
@@ -8823,7 +8838,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->Name = Trim(..Left(b2, Pos1 - 1))
 						End If
 						te->DisplayName = te->Name
-						te->ElementType = "Define"
+						te->ElementType = E_Define
 						te->Parameters = bTrim
 						Pos4 = InStr(te->Parameters, "'")
 						If Pos4 > 0 Then
@@ -8913,7 +8928,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							'	teDeclare->Elements.Add te->Name, te
 							'Next
 						End If
-					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = "Enum" Then
+					ElseIf inFunc AndAlso func <> 0 AndAlso func->ElementType = E_Enum Then
 						If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
 						Dim As String t
 						Dim As UString b2 = bTrim, res1(), ElementValue
@@ -8944,7 +8959,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Else
 								te->DisplayName = te->Name
 							End If
-							te->ElementType = "EnumItem"
+							te->ElementType = E_EnumItem
 							te->Value = ElementValue
 							te->StartLine = i
 							te->EndLine = i
@@ -8972,17 +8987,20 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
 						te = New_( TypeElement)
 						te->Declaration = True
-						If Pos1 = 0 Then
-							te->ElementType = Trim(Mid(bTrim, iStart))
-						Else
-							te->ElementType = Trim(Mid(bTrim, iStart, Pos1 - iStart))
-						End If
+						Select Case LCase(IIf(Pos1 = 0, Trim(Mid(bTrim, iStart)), Trim(Mid(bTrim, iStart, Pos1 - iStart))))
+						Case "sub": te->ElementType = E_Sub
+						Case "function": te->ElementType = E_Function
+						Case "property": te->ElementType = E_Property
+						Case "operator": te->ElementType = E_Operator
+						Case "constructor": te->ElementType = E_Constructor
+						Case "destructor": te->ElementType = E_Destructor
+						End Select
 						If inFunc Then
 							te->Locals = inPubProPri
 						End If
-						If inFunc AndAlso func <> 0 AndAlso (LCase(te->ElementType) = "constructor" OrElse LCase(te->ElementType) = "destructor") Then
+						If inFunc AndAlso func <> 0 AndAlso (te->ElementType = E_Constructor OrElse te->ElementType = E_Destructor) Then
 							te->Name = func->Name
-							te->DisplayName = func->Name & " [" & te->ElementType & "] [Declare]"
+							te->DisplayName = func->Name & " [" & IIf(te->ElementType = E_Constructor, "Constructor", "Destructor") & "] [Declare]"
 							te->TypeName = func->Name
 							te->Parameters = te->Name & IIf(Pos4 > 0, Mid(bTrim, Pos4), "()")
 						Else
@@ -8991,7 +9009,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Else
 								te->Name = Trim(Mid(bTrim, Pos1, Pos3 - Pos1))
 							End If
-							If LCase(te->ElementType) = "property" Then
+							If te->ElementType = E_Property Then
 								If EndsWith(bTrim, ")") Then
 									te->DisplayName = te->Name & " [Let] [Declare]"
 								Else
@@ -9024,7 +9042,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						SetLineAndCharParameters te, ECLines
 						'ECLine->InConstruction = te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
-						If inFunc AndAlso func <> 0 AndAlso LCase(te->ElementType) <> "constructor" AndAlso LCase(te->ElementType) <> "destructor" Then
+						If inFunc AndAlso func <> 0 AndAlso te->ElementType <> E_Constructor AndAlso te->ElementType <> E_Destructor Then
 							func->Elements.Add te->Name, te
 						Else
 							'txtCode.Content.FunctionsOthers.Add te->DisplayName, te
@@ -9089,7 +9107,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Var te = New_(TypeElement)
 						te->Name = bTrim
 						te->DisplayName = Trim(b1)
-						te->ElementType = "LineLabel"
+						te->ElementType = E_LineLabel
 						te->TypeName = ""
 						te->Locals = 0
 						te->StartLine = i
@@ -9217,15 +9235,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->TypeName = CurType
 								te->TypeName = WithoutPointers(te->TypeName)
 								If StartsWith(bTrimLCase, "type ") Then
-									te->ElementType = "Type"
+									te->ElementType = E_TypeCopy
 								ElseIf StartsWith(bTrimLCase, "common ") Then
-									te->ElementType = "CommonVariable"
+									te->ElementType = E_CommonVariable
 								ElseIf StartsWith(bTrimLCase, "const ") Then
-									te->ElementType = "Constant"
+									te->ElementType = E_Constant
 								ElseIf bShared Then
-									te->ElementType = "SharedVariable"
+									te->ElementType = E_SharedVariable
 								Else
-									te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), "Event", IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = "Type", "Field", "Variable"))
+									te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, IIf(inFunc AndAlso func <> 0 AndAlso func->ElementType = E_Type, E_Field, E_LocalVariable))
 								End If
 								te->Value = ElementValue
 								If inFunc Then
@@ -9260,7 +9278,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te
 									End If
 								End If
-								If te->ElementType = "Event" Then
+								If te->ElementType = E_Event Then
 									Dim As UString bTrim = CurType
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
@@ -9683,9 +9701,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			'If te2->Tag = @This Then
 			If Not te2->Find Then
 				Dim As String imgKey = "Sub"
-				If te2->ElementType = "Property" Then
+				If te2->ElementType = E_Property Then
 					imgKey = "Property"
-				ElseIf te2->ElementType = "Function" Then
+				ElseIf te2->ElementType = E_Function Then
 					imgKey = "Function"
 				End If
 				t = False
@@ -10545,7 +10563,7 @@ Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeL
 			te = FPropertyItems.Object(lvPropertyCount)
 			If te = 0 Then Continue For
 			With *te
-				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = "Property") OrElse CInt(.ElementType = "Field")) Then
+				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = E_Property) OrElse CInt(.ElementType = E_Field)) Then
 					lvItem = Item->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(pComps->Contains(.TypeName), 1, 0))
 					lvItem->Text(1) = ItemText 'tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
 					If pComps->Contains(.TypeName) Then
@@ -12603,7 +12621,7 @@ Sub TabWindow.Define
 		If teOld <> 0 OrElse OldTypeName <> "" Then
 			If OldTypeName <> "" Then
 				TypeName = OldTypeName
-			ElseIf teOld->ElementType = "Type" Then
+			ElseIf teOld->ElementType = E_Type Then
 				TypeName = teOld->Name
 			Else
 				TypeName = teOld->TypeName
