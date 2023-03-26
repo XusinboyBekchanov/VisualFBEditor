@@ -525,7 +525,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			End If
 			.txtCode.ScrollToCaret
 			ChangeMenuItemsEnabled
-			frmMain.Cursor = crArrow
+			frmMain.Cursor = 0
 		End With
 		If tb->cboClass.Items.Count < 2 Then
 			miForm->Enabled = False
