@@ -4513,18 +4513,19 @@ Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 	EndOfLoadFunctions
 End Sub
 
+Enum Paragraph
+	parStart
+	parSyntax
+	parUsage
+	parParameters
+	parReturnValue
+	parDescription
+	parExample
+	parDifferencesFromQB
+	parSeeAlso
+End Enum
+
 Sub LoadHelp
-	Enum Paragraph
-		parStart
-		parSyntax
-		parUsage
-		parParameters
-		parReturnValue
-		parDescription
-		parExample
-		parDifferencesFromQB
-		parSeeAlso
-	End Enum
 	Dim As WStringOrStringList Ptr pFunctions = @Globals.Functions
 	Dim As Boolean InEnglish
 	Dim As Integer Fn = FreeFile_, tEncode
