@@ -147,7 +147,7 @@ Namespace My.Sys.Forms
 	Type TypeElement
 		Name As String
 		DisplayName As String
-		FullName As String
+		OwnerTypeName As String
 		EnumTypeName As String
 		TypeName As String
 		Value As UString
@@ -157,7 +157,6 @@ Namespace My.Sys.Forms
 		FileName As UString
 		IncludeFile As UString
 		TypeIsPointer As Boolean
-		TypeProcedure As Boolean
 		Declaration As Boolean
 		Locals As Integer
 		StartLine As Integer
@@ -167,7 +166,6 @@ Namespace My.Sys.Forms
 		ControlType As Integer
 		Find As Boolean
 		Used As Boolean
-		Parent As TypeElement Ptr
 		Tag As Any Ptr
 		Elements As WStringOrStringList
 		Declare Destructor

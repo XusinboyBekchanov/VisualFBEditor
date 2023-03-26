@@ -3700,8 +3700,9 @@ Sub FillAllIntellisenses(ByRef Starts As WString = "")
 	Dim As TypeElement Ptr te, te1
 	If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.Items.Item(tb->cboFunction.ItemIndex)->Object
 	If te1 Then
-		Pos1 = InStr(te1->DisplayName, "["): If Pos1 > 0 Then TypeName = Trim(..Left(te1->DisplayName, Pos1 - 1))
-		Pos1 = InStr(te1->FullName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(te1->FullName, Pos1 - 1))
+		If Len(te1->OwnerTypeName) > 0 Then TypeName = te1->OwnerTypeName
+		'Pos1 = InStr(te1->DisplayName, "["): If Pos1 > 0 Then TypeName = Trim(..Left(te1->DisplayName, Pos1 - 1))
+		'Pos1 = InStr(te1->FullName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(te1->FullName, Pos1 - 1))
 	End If
 	If TypeName <> "" Then FillIntellisenseByName "", TypeName, Starts, , True, True
 	If te1 <> 0 Then
@@ -4002,17 +4003,17 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 		pFileLines = ECLine->FileListLines
 		If ECLine->InConstruction > 0 Then
 			Dim As TypeElement Ptr te = ECLine->InConstruction
-			FromClassName = te->FullName
-			Var Pos1 = InStr(FromClassName, ".")
-			If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) Then
-				If Pos1 > 0 Then
-					FromClassName = ..Left(FromClassName, Pos1 - 1)
-				Else
-					FromClassName = te->Name
-				End If
-			Else
-				FromClassName = ""
-			End If
+			FromClassName = te->OwnerTypeName
+			'Var Pos1 = InStr(FromClassName, ".")
+			'If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) Then
+			'	If Pos1 > 0 Then
+			'		FromClassName = ..Left(FromClassName, Pos1 - 1)
+			'	Else
+			'		FromClassName = te->Name
+			'	End If
+			'Else
+			'	FromClassName = ""
+			'End If
 		End If
 	End If
 	Dim As String sTemp2 = TypeName
@@ -4024,9 +4025,9 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 				If tb->cboFunction.ItemIndex > -1 Then te1 = tb->cboFunction.ItemData(tb->cboFunction.ItemIndex)
 				Dim As String frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 				If te1 Then
-					If CInt(StartsWith(te1->DisplayName, frmName & " ") OrElse StartsWith(te1->FullName, frmName & ".")) Then
+					If te1->OwnerTypeName = frmName Then
 						sTemp2 = frmName
-					ElseIf CInt(StartsWith(te1->DisplayName, frmName & "Type ") OrElse StartsWith(te1->FullName, frmName & "Type.")) Then
+					ElseIf te1->OwnerTypeName = frmName & "Type" Then
 						sTemp2 = frmName & "Type"
 					End If
 				End If
@@ -4373,17 +4374,17 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 	If ECLine Then
 		If ECLine->InConstruction > 0 Then
 			Dim te As TypeElement Ptr = ECLine->InConstruction
-			FromClassName = te->FullName
-			Var Pos1 = InStr(FromClassName, ".")
-			If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) Then
-				If Pos1 > 0 Then
-					FromClassName = ..Left(FromClassName, Pos1 - 1)
-				Else
-					FromClassName = te->Name
-				End If
-			Else
-				FromClassName = ""
-			End If
+			FromClassName = te->OwnerTypeName
+			'Var Pos1 = InStr(FromClassName, ".")
+			'If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) Then
+			'	If Pos1 > 0 Then
+			'		FromClassName = ..Left(FromClassName, Pos1 - 1)
+			'	Else
+			'		FromClassName = te->Name
+			'	End If
+			'Else
+			'	FromClassName = ""
+			'End If
 		End If
 	End If
 	If teOld <> 0 Then
@@ -4438,8 +4439,8 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			For i As Integer = 0 To tb->txtCode.Content.Functions.Count - 1
 				te = tb->txtCode.Content.Functions.Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-					Var Pos1 = InStr(te->FullName, ".")
-					If Pos1 > 0 AndAlso IsBase(TypeName, ..Left(te->FullName, Pos1 - 1), tb) Then
+					'Var Pos1 = InStr(te->FullName, ".")
+					If (Len(te->OwnerTypeName) > 0) AndAlso IsBase(TypeName, te->OwnerTypeName, tb) Then
 						Parameter = te->Parameters
 						iPos = InStr(LCase(Parameter), LCase(sWord))
 						FuncName = Mid(Parameter, iPos, Len(sWord))
@@ -4453,8 +4454,8 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
 				te = pGlobalTypeProcedures->Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-					Var Pos1 = InStr(te->FullName, ".")
-					If CBool(Pos1 > 0) AndAlso IsBase(TypeName, ..Left(te->FullName, Pos1 - 1), tb) Then
+					'Var Pos1 = InStr(te->FullName, ".")
+					If (Len(te->OwnerTypeName) > 0) AndAlso IsBase(TypeName, te->OwnerTypeName, tb) Then
 						Parameter = te->Parameters
 						iPos = InStr(LCase(Parameter), LCase(sWord))
 						FuncName = Mid(Parameter, iPos, Len(sWord))
@@ -4505,14 +4506,15 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 					Next
 				End If
 				Dim As TypeElement Ptr te = FECLine->InConstruction
-				TypeName = te->FullName
-				Var Pos1 = InStr(TypeName, ".")
-				If CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]") Then
-					If Pos1 > 0 Then
-						TypeName = ..Left(TypeName, Pos1 - 1)
-					Else
-						TypeName = te->Name
-					End If
+				TypeName = te->OwnerTypeName
+				'Var Pos1 = InStr(TypeName, ".")
+				'If CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]") Then
+				If Len(TypeName) > 0 Then
+					'If Pos1 > 0 Then
+					'	TypeName = ..Left(TypeName, Pos1 - 1)
+					'Else
+					'	TypeName = te->Name
+					'End If
 					If TypeName <> "" Then
 						If tb->txtCode.Content.Types.Contains(TypeName) Then
 							tb->FillIntellisense TypeName, FromClassName, @tb->txtCode.Content.Types, True
@@ -4543,8 +4545,8 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						For i As Integer = 0 To tb->txtCode.Content.Functions.Count - 1
 							te = tb->txtCode.Content.Functions.Object(i)
 							If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-								Var Pos1 = InStr(te->FullName, ".")
-								If Pos1 > 0 AndAlso IsBase(TypeName, ..Left(te->FullName, Pos1 - 1), tb) Then
+								'Var Pos1 = InStr(te->FullName, ".")
+								If (Len(te->OwnerTypeName) > 0) AndAlso IsBase(TypeName, te->OwnerTypeName, tb) Then
 									Parameter = te->Parameters
 									iPos = InStr(LCase(Parameter), LCase(sWord))
 									FuncName = Mid(Parameter, iPos, Len(sWord))
@@ -4558,8 +4560,8 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
 							te = pGlobalTypeProcedures->Object(i)
 							If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) AndAlso CInt(Not ParametersList.Contains(te->Parameters)) Then
-								Var Pos1 = InStr(te->FullName, ".")
-								If CBool(Pos1 > 0) AndAlso IsBase(TypeName, ..Left(te->FullName, Pos1 - 1), tb) Then
+								'Var Pos1 = InStr(te->FullName, ".")
+								If (Len(te->OwnerTypeName) > 0) AndAlso IsBase(TypeName, te->OwnerTypeName, tb) Then
 									Parameter = te->Parameters
 									iPos = InStr(LCase(Parameter), LCase(sWord))
 									FuncName = Mid(Parameter, iPos, Len(sWord))
@@ -5993,14 +5995,15 @@ Sub AnalyzeTab(Param As Any Ptr)
 												
 												If tIndex = -1 Then
 													te = FECLine->InConstruction
-													TypeName1 = te->FullName
-													Pos1 = InStr(TypeName1, ".")
-													If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
-														If Pos1 > 0 Then
-															TypeName1 = ..Left(TypeName1, Pos1 - 1)
-														Else
-															TypeName1 = te->Name
-														End If
+													TypeName1 = te->OwnerTypeName
+													'Pos1 = InStr(TypeName1, ".")
+													'If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+														If (Len(te->OwnerTypeName) > 0) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+														'If Pos1 > 0 Then
+														'	TypeName1 = ..Left(TypeName1, Pos1 - 1)
+														'Else
+														'	TypeName1 = te->Name
+														'End If
 														te = 0
 														If ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Types, pFiles, pFileLines, True, , , te, z) Then
 														ElseIf ecc->ContainsIn(TypeName1, MatnLCaseWithoutOldSymbol, @ecc->Enums, pFiles, pFileLines, True, , , te, z) Then
@@ -6609,7 +6612,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 	ThreadsEnter
 	For i As Integer = 0 To NotUsedIdentifiers.Count - 1
 		te = NotUsedIdentifiers.Item(i)
-		If CBool(te->ElementType = E_Constructor) OrElse CBool(te->ElementType = E_Destructor) OrElse CBool(te->ElementType = E_ByValParameter) OrElse CBool(te->ElementType = E_ByRefParameter) OrElse te->TypeProcedure Then Continue For
+		If CBool(te->ElementType = E_Constructor) OrElse CBool(te->ElementType = E_Destructor) OrElse CBool(te->ElementType = E_ByValParameter) OrElse CBool(te->ElementType = E_ByRefParameter) Then Continue For
 		If te->ElementType = E_Enum OrElse te->ElementType = E_Type OrElse te->ElementType = E_Union AndAlso te->Name = "" Then Continue For
 		Dim As Integer ii = 0, AddIndex = -1, MatnBoshi = te->StartChar, z = te->StartLine
 		Dim As UString ErrorText = ML("Warning: Identifier not used") & ", " & te->Name & ", " & ML("delete it if not needed")
@@ -7312,13 +7315,13 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								Else
 									te->Name = Trim(Mid(bTrim, Pos1 + l))
 								End If
-								te->FullName = te->Name
 								te->StartChar = u ' + Pos1 + l
 								te->EndChar = te->StartChar + Len(te->Name)
-								Pos1 = InStr(te->FullName, ".")
+								Pos1 = InStr(te->Name, ".")
 								Dim As Boolean TypeProcedure
 								If Pos1 > 0 Then 
 									te->DisplayName = Mid(te->Name, Pos1 + 1) & " [" & ..Left(te->Name, Pos1 - 1) & "]"
+									te->OwnerTypeName = Left(te->Name, Pos1 - 1)
 									te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True: te->StartChar = te->StartChar + Pos1 + l
 								Else
 									te->DisplayName = te->Name
@@ -7334,10 +7337,11 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								Else
 									te->DisplayName = te->DisplayName
 								End If
-								te->TypeProcedure = TypeProcedure
+								'te->TypeProcedure = TypeProcedure
 								Pos2 = InStr(bTrim, ")")
 								If ECStatement->ConstructionIndex = C_Constructor OrElse ECStatement->ConstructionIndex = C_Destructor Then
 									te->TypeName = te->Name
+									te->OwnerTypeName = te->Name
 									te->Parameters = te->Name & IIf(Pos5 > 0, Mid(bTrim, Pos5), "()")
 								Else
 									te->Parameters = Mid(bTrim, Pos4 + Pos1)
@@ -8632,13 +8636,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Else
 									te->Name = Trim(Mid(bTrim, Pos1 + l))
 								End If
-								te->FullName = te->Name
 								te->StartChar = u
 								te->EndChar = te->StartChar + Len(te->Name)
-								Pos1 = InStr(te->FullName, ".")
+								Pos1 = InStr(te->Name, ".")
 								Dim As Boolean TypeProcedure
 								If Pos1 > 0 Then 
 									te->DisplayName = Mid(te->Name, Pos1 + 1) & " [" & ..Left(te->Name, Pos1 - 1) & "]"
+									te->OwnerTypeName = .Left(te->Name, Pos1 - 1)
 									te->Name = Mid(te->Name, Pos1 + 1): TypeProcedure = True: te->StartChar = te->StartChar + Pos1 + l
 								Else
 									te->DisplayName = te->Name
@@ -8654,10 +8658,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Else
 									te->DisplayName = te->DisplayName
 								End If
-								te->TypeProcedure = TypeProcedure
+								'te->TypeProcedure = TypeProcedure
 								Pos2 = InStr(bTrim, ")")
 								If ECStatement->ConstructionIndex = C_Constructor OrElse ECStatement->ConstructionIndex = C_Destructor Then
 									te->TypeName = te->Name
+									te->OwnerTypeName = te->Name
 									te->Parameters = te->Name & IIf(Pos5 > 0, Mid(bTrim, Pos5), "()")
 								Else
 									te->Parameters = Mid(bTrim, Pos4 + Pos1)
@@ -12631,17 +12636,17 @@ Sub TabWindow.Define
 	If ECLine Then
 		If ECLine->InConstruction > 0 Then
 			te = ECLine->InConstruction
-			FromClassName = te->FullName
-			Var Pos1 = InStr(FromClassName, ".")
-			If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) Then
-				If Pos1 > 0 Then
-					FromClassName = ..Left(FromClassName, Pos1 - 1)
-				Else
-					FromClassName = te->Name
-				End If
-			Else
-				FromClassName = ""
-			End If
+			FromClassName = te->OwnerTypeName
+			'Var Pos1 = InStr(FromClassName, ".")
+			'If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) Then
+			'	If Pos1 > 0 Then
+			'		FromClassName = ..Left(FromClassName, Pos1 - 1)
+			'	Else
+			'		FromClassName = te->Name
+			'	End If
+			'Else
+			'	FromClassName = ""
+			'End If
 		End If
 	End If
 	With pfTrek->lvTrek.ListItems
@@ -12702,8 +12707,8 @@ Sub TabWindow.Define
 				te = txtCode.Content.Functions.Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->StartLine = iSelEndLine Then Continue For
-					Var Pos1 = InStr(te->FullName, ".")
-					If Pos1 > 0 AndAlso IsBase(TypeName, ..Left(te->FullName, Pos1 - 1), @This) Then
+					'Var Pos1 = InStr(te->FullName, ".")
+					If (Len(te->OwnerTypeName) > 0) AndAlso IsBase(TypeName, te->OwnerTypeName, @This) Then
 						.Add te->DisplayName
 						.Item(.Count - 1)->Text(1) = te->Parameters
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
@@ -12718,8 +12723,8 @@ Sub TabWindow.Define
 				te = pGlobalTypeProcedures->Object(i)
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->StartLine = iSelEndLine Then Continue For
-					Var Pos1 = InStr(te->FullName, ".")
-					If CBool(Pos1 > 0) AndAlso CBool(te->FileName <> FileName) AndAlso IsBase(TypeName, ..Left(te->FullName, Pos1 - 1), @This) Then
+					'Var Pos1 = InStr(te->FullName, ".")
+					If CBool(Len(te->OwnerTypeName) > 0) AndAlso CBool(te->FileName <> FileName) AndAlso IsBase(TypeName, te->OwnerTypeName, @This) Then
 						.Add te->DisplayName
 						.Item(.Count - 1)->Text(1) = te->Parameters
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
@@ -12759,8 +12764,9 @@ Sub TabWindow.Define
 			End If
 			If cboFunction.ItemIndex > -1 Then te1 = cboFunction.Items.Item(cboFunction.ItemIndex)->Object
 			If te1 Then 
-				Pos1 = InStr(te1->DisplayName, "["): If Pos1 > 0 Then TypeName = Trim(..Left(te1->DisplayName, Pos1 - 1))
-				Pos1 = InStr(te1->FullName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(te1->FullName, Pos1 - 1))
+				If Len(te->OwnerTypeName) > 0 Then TypeName = te->OwnerTypeName
+				'Pos1 = InStr(te1->DisplayName, "["): If Pos1 > 0 Then TypeName = Trim(..Left(te1->DisplayName, Pos1 - 1))
+				'Pos1 = InStr(te1->FullName, "."): If Pos1 > 0 Then TypeName = Trim(..Left(te1->FullName, Pos1 - 1))
 			End If
 			If te1 <> 0 AndAlso te1->Elements.Contains(sWord) Then
 				For i As Integer = 0 To te1->Elements.Count - 1

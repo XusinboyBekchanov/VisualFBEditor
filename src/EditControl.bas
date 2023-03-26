@@ -2925,12 +2925,13 @@ Namespace My.Sys.Forms
 			Dim As String TypeNameFromLine
 			Var teC = Cast(EditControlLine Ptr, Lines.Item(iSelEndLine))->InConstruction
 			If teC > 0 Then
-				Var Pos1 = InStr(teC->FullName, ".")
-				If Pos1 > 0 Then
-					TypeNameFromLine = ..Left(teC->FullName, Pos1 - 1)
-				Else
-					TypeNameFromLine = teC->Name
-				End If
+				TypeNameFromLine = teC->OwnerTypeName
+				'Var Pos1 = InStr(teC->FullName, ".")
+				'If Pos1 > 0 Then
+				'	TypeNameFromLine = ..Left(teC->FullName, Pos1 - 1)
+				'Else
+				'	TypeNameFromLine = teC->Name
+				'End If
 				If CInt(LCase(sTemp) = "this") Then
 					sTemp = TypeNameFromLine
 				End If
@@ -3094,15 +3095,16 @@ Namespace My.Sys.Forms
 		Dim As String TypeNameFromLine
 		Dim teC As TypeElement Ptr = Cast(EditControlLine Ptr, Lines.Item(iSelEndLine))->InConstruction
 		If teC > 0 Then
-			Var Pos1 = InStr(teC->FullName, ".")
-			Var Pos2 = InStr(teC->DisplayName, "[")
-			If Pos1 > 0 Then
-				TypeNameFromLine = Trim(..Left(teC->FullName, Pos1 - 1), Any !"\t ")
-			ElseIf Pos2 > 0 Then
-				TypeNameFromLine = Trim(..Left(teC->DisplayName, Pos2 - 1), Any !"\t ")
-			Else
-				TypeNameFromLine = teC->Name
-			End If
+			TypeNameFromLine = teC->OwnerTypeName
+			'Var Pos1 = InStr(teC->FullName, ".")
+			'Var Pos2 = InStr(teC->DisplayName, "[")
+			'If Pos1 > 0 Then
+			'	TypeNameFromLine = Trim(..Left(teC->FullName, Pos1 - 1), Any !"\t ")
+			'ElseIf Pos2 > 0 Then
+			'	TypeNameFromLine = Trim(..Left(teC->DisplayName, Pos2 - 1), Any !"\t ")
+			'Else
+			'	TypeNameFromLine = teC->Name
+			'End If
 			If CInt(LCase(sTemp) = "this") Then
 				teEnum = teC
 				Return TypeNameFromLine
@@ -3209,14 +3211,15 @@ Namespace My.Sys.Forms
 					End If
 					Return sTemp
 				Else
-					TypeName = teC->FullName
-					Pos1 = InStr(TypeName, ".")
-					If CBool(Pos1 > 0) OrElse EndsWith(teC->DisplayName, "[Constructor]") OrElse EndsWith(teC->DisplayName, "[Destructor]") Then
-						If Pos1 > 0 Then
-							TypeName = ..Left(TypeName, Pos1 - 1)
-						Else
-							TypeName = teC->Name
-						End If
+					TypeName = teC->OwnerTypeName
+					'Pos1 = InStr(TypeName, ".")
+					'If CBool(Pos1 > 0) OrElse EndsWith(teC->DisplayName, "[Constructor]") OrElse EndsWith(teC->DisplayName, "[Destructor]") Then
+					If Len(TypeName) > 0 Then
+						'If Pos1 > 0 Then
+						'	TypeName = ..Left(TypeName, Pos1 - 1)
+						'Else
+						'	TypeName = teC->Name
+						'End If
 						If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 						ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
 						ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te) Then
@@ -3938,14 +3941,15 @@ Namespace My.Sys.Forms
 																
 																If tIndex = -1 Then
 																	te = FECLine->InConstruction
-																	TypeName = te->FullName
-																	Pos1 = InStr(TypeName, ".")
-																	If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
-																		If Pos1 > 0 Then
-																			TypeName = ..Left(TypeName, Pos1 - 1)
-																		Else
-																			TypeName = te->Name
-																		End If
+																	TypeName = te->OwnerTypeName
+																	'Pos1 = InStr(TypeName, ".")
+																	'If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) AndAlso (CBool(FECLine->InConstruction->StartLine <> z) OrElse FECLine->InConstruction->Declaration) Then
+																	If Len(TypeName) > 0 Then
+																		'If Pos1 > 0 Then
+																		'	TypeName = ..Left(TypeName, Pos1 - 1)
+																		'Else
+																		'	TypeName = te->Name
+																		'End If
 																		te = 0
 																		If Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Content.Types, pFiles, pFileLines, True, , , te, z) Then
 																		ElseIf Content.ContainsIn(TypeName, MatnLCaseWithoutOldSymbol, @Content.Enums, pFiles, pFileLines, True, , , te, z) Then
