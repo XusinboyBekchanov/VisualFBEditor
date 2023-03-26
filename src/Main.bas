@@ -4149,9 +4149,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->DisplayName = te->Name
 						Pos1 = InStr(te->Name, ".")
 						If Pos1 > 0 Then
-							
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
+							te->OwnerTypeName = bt
 							te->Locals = 2
 						Else
 							bt = ""
@@ -4215,6 +4215,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Pos1 > 0 Then
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
+							te->OwnerTypeName = bt
 							te->Locals = 2
 						Else
 							bt = ""
@@ -4286,6 +4287,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Pos1 > 0 Then
 							bt = Left(te->Name, Pos1 - 1)
 							te->Name = Mid(te->Name, Pos1 + 1)
+							te->OwnerTypeName = bt
 							te->Locals = 2
 						Else
 							bt = ""
