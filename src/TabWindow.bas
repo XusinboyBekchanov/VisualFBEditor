@@ -8584,7 +8584,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					If (ECStatement->ConstructionIndex >= 0) AndAlso (ECStatement->ConstructionIndex <> C_P_Region) Then
 						If ECStatement->ConstructionIndex = C_P_If Then
 							If ECStatement->ConstructionPart < 2 Then
-								If StartsWith(LCase(Trim(*ECStatement->Text)), "#ifdef") Then
+								If StartsWith(LCase(Trim(*ECStatement->Text)), "#if ") Then
+									CurrentCondition = Trim(Mid(Trim(*ECStatement->Text), 5))
+								ElseIf StartsWith(LCase(Trim(*ECStatement->Text)), "#ifdef") Then
 									CurrentCondition = Trim(Mid(Trim(*ECStatement->Text), 7))
 								ElseIf StartsWith(LCase(Trim(*ECStatement->Text)), "#ifndef") Then
 									CurrentCondition = "Not " & Trim(Mid(Trim(*ECStatement->Text), 8))
