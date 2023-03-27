@@ -176,12 +176,14 @@ Namespace My.Sys.Forms
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
 		InConstructionBlock As ConstructionBlock Ptr
+		Condition As String
 		Elements As WStringOrStringList
 	End Type
 	
 	Type EditControlStatement
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
+		ConstructionPartCount As Integer
 		InAsm As Boolean
 		InConstruction As TypeElement Ptr
 		InConstructionBlock As ConstructionBlock Ptr

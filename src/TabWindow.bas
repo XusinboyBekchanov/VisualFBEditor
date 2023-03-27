@@ -8204,7 +8204,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	End If
 	'LoadFunctionsWithContent FileName, Project, txtCode.Content
 	Dim As TypeElement Ptr te, te1, func
-	Dim As ConstructionBlock Ptr block, cb
+	Dim As ConstructionBlock Ptr block, ifblock, cb
 	For i As Integer = txtCode.Content.Types.Count - 1 To 0 Step -1
 		te = txtCode.Content.Types.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
@@ -8291,13 +8291,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As Integer iStart, iEnd, CtrlArrayNum, Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, inPubProPri = 0, ConstructionIndex = -1, ConstructionPart, LastIndexFunctions
 	Dim ptxtCode As EditControl Ptr = 0
 	Dim As Boolean bFind, bTrue = True
+	Dim As String CurrentCondition
 	Dim As WStringList WithArgs, Namespaces, Includes
 	Dim ConstructionBlocks As List
 	Dim As UString Comments, b, b0, b1, b2, bTrim, bTrimLCase, b0Trim, b0TrimLCase
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc
 	Dim FileEncoding As FileEncodings, NewLineType As NewLineTypes
 	Dim As Integer WithConstructionLine = -1, OldWithConstructionLine = -1
-	Dim As List Constructs, ConstructBlocks
+	Dim As List Constructs, ConstructBlocks, IfConstructBlocks
 	If IsBas Then
 		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
 		WLetEx FLine2, GetFileName(*FLine1), True
@@ -8582,14 +8583,49 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				Else
 					If (ECStatement->ConstructionIndex >= 0) AndAlso (ECStatement->ConstructionIndex <> C_P_Region) Then
 						If ECStatement->ConstructionIndex = C_P_If Then
-							If ECStatement->ConstructionPart = 0 Then
-								
-							Else
-								
+							If ECStatement->ConstructionPart < 2 Then
+								If StartsWith(LCase(Trim(*ECStatement->Text)), "#ifdef") Then
+									CurrentCondition = Trim(Mid(Trim(*ECStatement->Text), 7))
+								ElseIf StartsWith(LCase(Trim(*ECStatement->Text)), "#ifndef") Then
+									CurrentCondition = "Not " & Trim(Mid(Trim(*ECStatement->Text), 8))
+								ElseIf StartsWith(LCase(Trim(*ECStatement->Text)), "#elseif") Then
+									CurrentCondition = Trim(Mid(Trim(*ECStatement->Text), 8))
+								ElseIf StartsWith(LCase(Trim(*ECStatement->Text)), "#else") Then
+									CurrentCondition = "Not " & CurrentCondition
+								End If
+							End If
+							If ECStatement->ConstructionPart > 0 Then
+								If IfConstructBlocks.Count > 0 Then IfConstructBlocks.Remove IfConstructBlocks.Count - 1
+								If IfConstructBlocks.Count > 0 Then
+									ifblock = IfConstructBlocks.Item(IfConstructBlocks.Count - 1)
+									If ECStatement->ConstructionPart = 2 Then CurrentCondition = ifblock->Condition
+								Else
+									ifblock = 0
+									If ECStatement->ConstructionPart = 2 Then CurrentCondition = ""
+								End If
+								'If ECStatement->ConstructionPart <> 2 Then ECStatement->InConstructionBlock = ifblock: ECLine->InConstructionBlock = ifblock
+							End If
+							If ECStatement->ConstructionPart < 2 Then
+								Var cb = New_(ConstructionBlock)
+								cb->ConstructionIndex = ECStatement->ConstructionIndex
+								cb->ConstructionPart = ECStatement->ConstructionPart
+								cb->InConstructionBlock = ifblock
+								cb->Condition = CurrentCondition
+								IfConstructBlocks.Add cb
+								txtCode.Content.ConstructionBlocks.Add cb
+								ifblock = cb
 							End If
 						Else
 							If ECStatement->ConstructionPart > 0 Then
-								If ConstructBlocks.Count > 0 Then ConstructBlocks.Remove ConstructBlocks.Count - 1
+								If ConstructBlocks.Count > 0 Then
+									If block AndAlso block->InConstructionBlock AndAlso block->Condition = "Not " & block->InConstructionBlock->Condition Then
+										ECStatement->ConstructionPartCount += 1
+										ConstructBlocks.Remove ConstructBlocks.Count - 1
+										If ConstructBlocks.Count > 0 Then ConstructBlocks.Remove ConstructBlocks.Count - 1
+									Else
+										ConstructBlocks.Remove ConstructBlocks.Count - 1
+									End If
+								End If
 								If ConstructBlocks.Count > 0 Then
 									block = ConstructBlocks.Item(ConstructBlocks.Count - 1)
 								Else
@@ -8599,9 +8635,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							End If
 							If ECStatement->ConstructionPart < 2 Then
 								Var cb = New_(ConstructionBlock)
-								cb->ConstructionIndex = ECLine->ConstructionIndex
-								cb->ConstructionPart = ECLine->ConstructionPart
+								cb->ConstructionIndex = ECStatement->ConstructionIndex
+								cb->ConstructionPart = ECStatement->ConstructionPart
 								cb->InConstructionBlock = block
+								cb->Condition = CurrentCondition
 								ConstructBlocks.Add cb
 								txtCode.Content.ConstructionBlocks.Add cb
 								block = cb

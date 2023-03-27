@@ -373,6 +373,7 @@ Namespace My.Sys.Forms
 				FECLine->CommentIndex = .CommentIndex
 				FECLine->ConstructionIndex = .ConstructionIndex
 				FECLine->ConstructionPart = .ConstructionPart
+				FECLine->ConstructionPartCount = .ConstructionPartCount
 				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
@@ -387,6 +388,7 @@ Namespace My.Sys.Forms
 						WLet(FECStatement->Text, * (.Text))
 						FECStatement->ConstructionIndex = .ConstructionIndex
 						FECStatement->ConstructionPart = .ConstructionPart
+						FECStatement->ConstructionPartCount = .ConstructionPartCount
 						FECStatement->InAsm = .InAsm
 						FECStatement->InConstructionIndex = .InConstructionIndex
 						FECStatement->InConstructionPart = .InConstructionPart
@@ -442,6 +444,7 @@ Namespace My.Sys.Forms
 				FECLine->CommentIndex = .CommentIndex
 				FECLine->ConstructionIndex = .ConstructionIndex
 				FECLine->ConstructionPart = .ConstructionPart
+				FECLine->ConstructionPartCount = .ConstructionPartCount
 				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
@@ -456,6 +459,7 @@ Namespace My.Sys.Forms
 						WLet(FECStatement->Text, * (.Text))
 						FECStatement->ConstructionIndex = .ConstructionIndex
 						FECStatement->ConstructionPart = .ConstructionPart
+						FECStatement->ConstructionPartCount = .ConstructionPartCount
 						FECStatement->InAsm = .InAsm
 						FECStatement->InConstructionIndex = .InConstructionIndex
 						FECStatement->InConstructionPart = .InConstructionPart
@@ -629,7 +633,7 @@ Namespace My.Sys.Forms
 					FECStatement = FECLine2->Statements.Item(iii)
 					If FECStatement->ConstructionIndex = FECLine->ConstructionIndex OrElse (FECLine->ConstructionPart = 1 AndAlso FECLine->ConstructionIndex = C_Class AndAlso FECStatement->ConstructionIndex = C_Type) Then
 						If FECStatement->ConstructionPart = 2 Then
-							j -= 1
+							j -= 1 - FECStatement->ConstructionPartCount
 							If j = -1 Then
 								If (FECLine->ConstructionPart = 1) OrElse FECLine2->Collapsible Then
 									If FECLine2->Statements.IndexOf(FECLine2->MainStatement) > iii Then FECLine->CollapsedFully = False
@@ -640,6 +644,7 @@ Namespace My.Sys.Forms
 						ElseIf FECStatement->ConstructionPart = 0 Then
 							j += 1
 						ElseIf FECStatement->ConstructionPart = 1 Then
+							j -= FECStatement->ConstructionPartCount
 							If FECLine->ConstructionPart = 1 Then
 								If j = 0 Then
 									FECLine2->Visible = True
@@ -1088,7 +1093,7 @@ Namespace My.Sys.Forms
 						FECStatement = FECLine2->Statements.Item(iii)
 						If FECStatement->ConstructionIndex = FECLine->ConstructionIndex OrElse (FECLine->ConstructionPart = 1 AndAlso FECLine->ConstructionIndex = C_Class AndAlso FECStatement->ConstructionIndex = C_Type) Then
 							If FECStatement->ConstructionPart = 2 Then
-								j -= 1
+								j -= 1 - FECStatement->ConstructionPartCount
 								If j = -1 Then
 									If (FECLine->ConstructionPart = 1) OrElse FECLine2->Collapsible Then
 										If FECLine2->Statements.IndexOf(FECLine2->MainStatement) > iii Then FECLine->CollapsedFully = False
@@ -1101,6 +1106,7 @@ Namespace My.Sys.Forms
 							ElseIf FECStatement->ConstructionPart = 0 Then
 								j += 1
 							ElseIf FECStatement->ConstructionPart = 1 Then
+								j -= FECStatement->ConstructionPartCount
 								If FECLine->ConstructionPart = 1 Then
 									If j = 0 Then
 										j = -1
@@ -3581,8 +3587,10 @@ Namespace My.Sys.Forms
 					If FECStatement->ConstructionIndex >= 0 AndAlso Constructions(FECStatement->ConstructionIndex).Collapsible Then
 						If FECStatement->ConstructionPart = 0 Then
 							CollapseIndex += 1
+						ElseIf FECStatement->ConstructionPart = 1 Then
+							CollapseIndex -= FECStatement->ConstructionPartCount
 						ElseIf FECStatement->ConstructionPart = 2 Then
-							CollapseIndex = Max(0, CollapseIndex - 1)
+							CollapseIndex = Max(0, CollapseIndex - 1 - FECStatement->ConstructionPartCount)
 						End If
 					End If
 				Next ii
@@ -4574,8 +4582,10 @@ Namespace My.Sys.Forms
 							If FECStatement->ConstructionIndex >= 0 AndAlso Constructions(FECStatement->ConstructionIndex).Collapsible Then
 								If FECStatement->ConstructionPart = 0 Then
 									OldCollapseIndex += 1
+								ElseIf FECStatement->ConstructionPart = 1 Then
+									OldCollapseIndex -= FECStatement->ConstructionPart
 								ElseIf FECStatement->ConstructionPart = 2 Then
-									OldCollapseIndex = Max(0, OldCollapseIndex - 1)
+									OldCollapseIndex = Max(0, OldCollapseIndex - 1 - FECStatement->ConstructionPart)
 								End If
 							End If
 						Next ii
