@@ -203,8 +203,11 @@ Private Sub frmMonthCalendarType.Panel2_Paint(ByRef Sender As Control, ByRef Can
 		Caption = "VFBE MonthCalendar64 - " & Format(DateTime, "yyyy/mm/dd")
 	#else
 		Caption = "VFBE MonthCalendar32 - " & Format(DateTime, "yyyy/mm/dd")
-	#EndIf
+	#endif
+	Canvas.CreateDoubleBuffer
 	DMCalendar.DrawMonthCalendar(Canvas, DateTime)
+	Canvas.TransferDoubleBuffer
+	Canvas.DeleteDoubleBuffer
 	frmDayCalendar.DCDate= DateTime
 	frmDayCalendar.Panel1_Paint Sender, frmDayCalendar.Panel1.Canvas
 End Sub
