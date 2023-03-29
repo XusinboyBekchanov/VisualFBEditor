@@ -77,7 +77,7 @@ Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime
 	
 	'时
 	mDt = Format(DateTime, "hh")
-	Canvas.TextOut mOx , mOy, mDt, mClr(1)
+	Canvas.TextOut mOx, mOy, mDt, mClr(1)
 	'分
 	mDt = Format(DateTime, "mm")
 	Canvas.TextOut mOx + mW(1) - Canvas.TextWidth(mDt), mOy, mDt, mClr(2)
@@ -187,7 +187,7 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, D
 	Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, (mH(2) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(3)
 	'月
 	Canvas.Font.Size = mFontSize / 4
-	mDt = MonthName(Month(DateTime))
+	mDt = cal.MonName(Month(DateTime))
 	Canvas.TextOut (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(5)
 	mDt = IIf(cal.IsLeap, "闰", "") & cal.MonName(cal.lMonth) & "月"
 	Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(5)
@@ -195,7 +195,7 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, D
 	'公历日
 	Dim h1 As Integer = 0
 	Dim h2 As Integer = 0
-	Dim Dt As String
+	Dim Dt As UString
 	
 	Canvas.Font.Bold = True
 	Canvas.Font.Name = FontNameC
@@ -241,7 +241,7 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, D
 	Canvas.Font.Bold = False
 	Canvas.Font.Name = FontNameC
 	Canvas.Font.Size = mFontSize / 4
-	mDt = WeekdayName(Weekday(DateTime))
+	mDt = cal.WeekName(Weekday(DateTime))
 	Canvas.TextOut (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(0) - mH(3)+ (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(9)
 	mDt = "第 " & DatePart("ww", DateTime) & " 周"
 	Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(0) - mH(3) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(9)
@@ -298,7 +298,7 @@ Private Sub MonthCalendar.DrawMonthCalendar(ByRef Canvas As My.Sys.Drawing.Canva
 	Dim m As Integer
 	Dim o As Integer = 1
 	'文字
-	Dim dt As String
+	Dim dt As UString
 	'文字颜色
 	Dim cr As ULong
 	
