@@ -4368,13 +4368,15 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 	Dim As String FromClassName
 	Dim As Integer Index, iPos
 	Dim As WStringList ParametersList
-	Dim As String Symb, FuncName, Parameters, Parameter
+	Dim As String Symb, FuncName, Parameters, Parameter, InCondition
 	Dim As UString Comments, Link1
 	Dim As String TypeName
 	If ECLine Then
+		InCondition = ECLine->InCondition
 		If ECLine->InConstruction > 0 Then
 			Dim te As TypeElement Ptr = ECLine->InConstruction
 			FromClassName = te->OwnerTypeName
+
 			'Var Pos1 = InStr(FromClassName, ".")
 			'If (CBool(Pos1 > 0) OrElse EndsWith(te->DisplayName, "[Constructor]") OrElse EndsWith(te->DisplayName, "[Destructor]")) Then
 			'	If Pos1 > 0 Then
@@ -6818,7 +6820,7 @@ Sub SetLineAndCharParameters(te As TypeElement Ptr, ByRef ECLines As List)
 	te->EndChar = u + Len(te->Name)
 End Sub
 
-Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, ByRef ECLines As List, Declaration As Boolean, tb As TabWindow Ptr = 0, u1 As Integer = 0)
+Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, ByRef ECLines As List, ByRef InCondition As String, Declaration As Boolean, tb As TabWindow Ptr = 0, u1 As Integer = 0)
 	If Parameters <> "" Then
 		If ECLine Then ECLine->Args.Add func
 		Dim As UString CurType, res1(Any), ElementValue
@@ -6886,6 +6888,7 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 				If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 			End If
 			te->Name = res1(n)
+			te->InCondition = InCondition
 			te->Declaration = Declaration
 			te->DisplayName = res1(n)
 			te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
@@ -6996,6 +6999,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	Dim As WStringList WithArgs, Namespaces, Includes
 	Dim As Integer WithConstructionLine = -1, OldWithConstructionLine = -1
 	Dim As WString Ptr FPath, FLine1, FLine2
+	Dim As String CurrentCondition
 	Dim As Boolean IsBas = EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".frm"), inFunc, bFind, bCurrentFile
 	Dim As Integer IncludesCount
 	Dim As Boolean IncludesChanged
@@ -7315,6 +7319,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								Else
 									te->Name = Trim(Mid(bTrim, Pos1 + l))
 								End If
+								te->InCondition = CurrentCondition
 								te->StartChar = u ' + Pos1 + l
 								te->EndChar = te->StartChar + Len(te->Name)
 								Pos1 = InStr(te->Name, ".")
@@ -7409,7 +7414,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									End If
 								End If
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, ECLines, False, tb, u
+									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, ECLines, CurrentCondition, False, tb, u
 									'Dim As UString CurType, res1(Any), ElementValue
 									'Split GetChangedCommas(Parameters), ",", res1()
 									'For n As Integer = 0 To UBound(res1)
@@ -7506,6 +7511,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								te = New_( TypeElement)
 								te->Name = Trim(res1(n))
 								te->DisplayName = te->Name
+								te->InCondition = CurrentCondition
 								te->ElementType = E_Namespace
 								te->Parameters = bTrim
 								Pos4 = InStr(te->Parameters, "'")
@@ -7555,6 +7561,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							te->Name = Trim(Left(b2, Pos1 - 1))
 						End If
 						te->DisplayName = te->Name
+						te->InCondition = CurrentCondition
 						te->ElementType = E_Define
 						te->Parameters = bTrim
 						Pos4 = InStr(te->Parameters, "'")
@@ -7592,7 +7599,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						End If
 						Pos2 = InStr(b2, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, False, tb
+							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, False, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -7677,6 +7684,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Else
 								te->DisplayName = te->Name
 							End If
+							te->InCondition = CurrentCondition
 							te->ElementType = E_EnumItem
 							te->Value = ElementValue
 							te->StartLine = i
@@ -7717,6 +7725,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						If inFunc Then
 							te->Locals = inPubProPri
 						End If
+						te->InCondition = CurrentCondition
 						If inFunc AndAlso func <> 0 AndAlso (te->ElementType = E_Constructor OrElse te->ElementType = E_Destructor) Then
 							te->Name = func->Name
 							te->DisplayName = func->Name & " [" & IIf(te->ElementType = E_Constructor, "Constructor", "Destructor") & "] [Declare]"
@@ -7769,7 +7778,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Project->Globals.Functions.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, True, tb
+							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -7827,6 +7836,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						Var te = New_(TypeElement)
 						te->Name = bTrim
 						te->DisplayName = Trim(b1)
+						te->InCondition = CurrentCondition
 						te->ElementType = E_LineLabel
 						te->TypeName = ""
 						te->Locals = 0
@@ -7951,6 +7961,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								Var te = New_( TypeElement)
 								te->Name = res1(n)
+								te->InCondition = CurrentCondition
 								te->StartChar = u
 								te->EndChar = te->StartChar + Len(te->Name)
 								te->DisplayName = res1(n)
@@ -8008,7 +8019,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
-										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, True, tb
+										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, tb
 										'Var teDeclare = te
 										'Dim As UString CurType, res1(Any), ElementValue
 										'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -8438,6 +8449,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			ECLine->FileListLines = LastFileListLines
 			ECLine->InConstruction = 0
 			ECLine->InConstructionBlock = 0
+			ECLine->InCondition = CurrentCondition
 			If inFunc Then ECLine->InConstruction = func
 			If block Then ECLine->InConstructionBlock = block
 			WLet(FLine, *ECLine->Text)
@@ -8595,6 +8607,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								ElseIf StartsWith(LCase(Trim(*ECStatement->Text)), "#else") Then
 									CurrentCondition = "Not " & CurrentCondition
 								End If
+								'If ifblock Then CurrentCondition = ifblock  CurrentCondition
 							End If
 							If ECStatement->ConstructionPart > 0 Then
 								If IfConstructBlocks.Count > 0 Then IfConstructBlocks.Remove IfConstructBlocks.Count - 1
@@ -8675,6 +8688,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Else
 									te->Name = Trim(Mid(bTrim, Pos1 + l))
 								End If
+								te->InCondition = CurrentCondition
 								te->StartChar = u
 								te->EndChar = te->StartChar + Len(te->Name)
 								Pos1 = InStr(te->Name, ".")
@@ -8765,7 +8779,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								End If
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, ECLines, False, tb, u
+									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, ECLines, CurrentCondition, False, tb, u
 									'Dim As UString CurType, res1(Any), ElementValue
 									'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
 									'For n As Integer = 0 To UBound(res1)
@@ -8864,6 +8878,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te = New_( TypeElement)
 								te->Name = Trim(res1(n))
 								te->DisplayName = te->Name
+								te->InCondition = CurrentCondition
 								te->ElementType = E_Namespace
 								te->Parameters = bTrim
 								Pos4 = InStr(te->Parameters, "'")
@@ -8912,6 +8927,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->Name = Trim(..Left(b2, Pos1 - 1))
 						End If
 						te->DisplayName = te->Name
+						te->InCondition = CurrentCondition
 						te->ElementType = E_Define
 						te->Parameters = bTrim
 						Pos4 = InStr(te->Parameters, "'")
@@ -8948,7 +8964,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						Pos2 = InStr(b2, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, False, tb
+							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, False, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -9033,6 +9049,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Else
 								te->DisplayName = te->Name
 							End If
+							te->InCondition = CurrentCondition
 							te->ElementType = E_EnumItem
 							te->Value = ElementValue
 							te->StartLine = i
@@ -9072,6 +9089,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If inFunc Then
 							te->Locals = inPubProPri
 						End If
+						te->InCondition = CurrentCondition
 						If inFunc AndAlso func <> 0 AndAlso (te->ElementType = E_Constructor OrElse te->ElementType = E_Destructor) Then
 							te->Name = func->Name
 							te->DisplayName = func->Name & " [" & IIf(te->ElementType = E_Constructor, "Constructor", "Destructor") & "] [Declare]"
@@ -9123,7 +9141,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							txtCode.Content.Procedures.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, True, tb
+							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -9181,6 +9199,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Var te = New_(TypeElement)
 						te->Name = bTrim
 						te->DisplayName = Trim(b1)
+						te->InCondition = CurrentCondition
 						te->ElementType = E_LineLabel
 						te->TypeName = ""
 						te->Locals = 0
@@ -9302,6 +9321,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								Var te = New_( TypeElement)
 								te->Name = res1(n)
+								te->InCondition = CurrentCondition
 								te->StartChar = u
 								te->EndChar = te->StartChar + Len(te->Name)
 								te->DisplayName = res1(n)
@@ -9357,7 +9377,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
-										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, True, tb
+										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, tb
 										'Var teDeclare = te
 										'Dim As UString CurType, res1(Any), ElementValue
 										'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()

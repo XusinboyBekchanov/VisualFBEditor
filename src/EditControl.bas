@@ -377,6 +377,7 @@ Namespace My.Sys.Forms
 				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
+				FECLine->InCondition = .InCondition
 				FECLine->Collapsible = .Collapsible
 				FECLine->Collapsed = .Collapsed
 				FECLine->CollapsedFully = .CollapsedFully
@@ -448,6 +449,7 @@ Namespace My.Sys.Forms
 				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
+				FECLine->InCondition = .InCondition
 				FECLine->Collapsed = .Collapsed
 				FECLine->CollapsedFully = .CollapsedFully
 				FECLine->Collapsible = .Collapsible
@@ -3118,12 +3120,14 @@ Namespace My.Sys.Forms
 		End If
 		Var Idx = -1
 		Dim As TypeElement Ptr te, te1, te2
+		Dim As String InCondition
 		Dim As EditControlLine Ptr ECLine = Lines.Item(iSelEndLine)
 		Dim As WStringList Ptr pFiles
 		Dim As IntegerList Ptr pFileLines
 		If ECLine Then
 			pFiles = ECLine->FileList
 			pFileLines = ECLine->FileListLines
+			InCondition = ECLine->InCondition
 		End If
 		If TypeName <> "" Then
 			If LCase(sTemp) = "base" Then
@@ -3262,7 +3266,7 @@ Namespace My.Sys.Forms
 					te = te1->Elements.Object(Idx)
 				ElseIf Procedures.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Procedures.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Procedures.Object(Idx)
-				ElseIf Args.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Args.Object(Idx))->StartLine <= iSelEndLine Then
+				ElseIf ContainsInList(Args, sTemp, iSelEndLine, InCondition, Idx) Then
 					te = Args.Object(Idx)
 				ElseIf Namespaces.Contains(sTemp, , , , Idx) AndAlso Cast(TypeElement Ptr, Namespaces.Object(Idx))->StartLine <= iSelEndLine Then
 					te = Namespaces.Object(Idx)
@@ -3314,6 +3318,28 @@ Namespace My.Sys.Forms
 		End If
 		teEnum = te
 		Return sTemp
+	End Function
+	
+	Function EditControlContent.IndexOfInList(List As WStringOrStringList, ByRef Matn As String, SelEndLine As Integer, ByRef InCondition As String) As Integer
+		Dim As Integer tIndex = List.IndexOf(Matn)
+		If tIndex > -1 Then
+			Dim As TypeElement Ptr te = List.Object(tIndex)
+			For i As Integer = tIndex To List.Count - 1
+				te = List.Object(i)
+				If te->StartLine > SelEndLine Then Return -1
+				If LCase(te->Name) <> LCase(Matn) Then Return -1
+				If InCondition <> "" Then
+					If (LCase(te->InCondition) = LCase("Not " & InCondition)) OrElse (LCase(InCondition) = LCase("Not " & te->InCondition)) Then Continue For
+				End If
+				Return i
+			Next
+		End If
+		Return -1
+	End Function
+	
+	Function EditControlContent.ContainsInList(List As WStringOrStringList, ByRef Matn As String, SelEndLine As Integer, ByRef InCondition As String, ByRef Index As Integer) As Boolean
+		Index = IndexOfInList(List, Matn, SelEndLine, InCondition)
+		Return Index <> -1
 	End Function
 	
 	Function EditControlContent.IndexOfInListFiles(pList As WStringOrStringList Ptr, ByRef Matn As String, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Integer
