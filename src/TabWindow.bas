@@ -11635,6 +11635,10 @@ Sub RunEmulator(Param As Any Ptr)
 		Dim As WString Ptr Workdir, CmdL
 		Dim As UString AvdName
 		#define BufferSize 2048
+		If Not FileExists(*SdkDir & "\emulator\emulator.exe") Then
+			ShowMessages ML("File not found") & ": " & *SdkDir & "\emulator\emulator.exe", False
+			Exit Sub
+		End If
 		For i As Integer = 0 To 1
 			Select Case i
 			Case 0: WLet(CmdL, *SdkDir & "\emulator\emulator.exe -list-avds")
@@ -11720,6 +11724,10 @@ Sub RunLogCat(Param As Any Ptr)
 		Dim As WString Ptr SdkDir = Param
 		Dim As WString Ptr Workdir, CmdL
 		#define BufferSize 2048
+		If Not FileExists(*SdkDir & "\platform-tools\adb.exe") Then
+			ShowMessages ML("File not found") & ": " & *SdkDir & "\platform-tools\adb.exe", False
+			Exit Sub
+		End If
 		For i As Integer = 0 To 1
 			Select Case i
 			Case 0: WLet(CmdL, *SdkDir & "\platform-tools\adb logcat -c")
@@ -11846,6 +11854,10 @@ Sub RunPr(Debugger As String = "")
 		WLet(CmdL, SDKDir & "\platform-tools\adb uninstall " & applicationId)
 		WLet(Workdir, SDKDir & "\platform-tools")
 		#ifdef __USE_WINAPI__
+			If Not FileExists(SDKDir & "\platform-tools\adb.exe") Then
+				ShowMessages ML("File not found") & ": " & SDKDir & "\platform-tools\adb.exe", False
+				Exit Sub
+			End If
 			For i As Integer = 0 To 2
 				#define BufferSize 2048
 				Select Case i
