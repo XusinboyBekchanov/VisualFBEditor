@@ -460,7 +460,7 @@ Private Sub frmHashType.HashFile()
 	Dim i As Integer
 	Dim j As Integer
 	Dim k As Integer
-	Dim s As Integer
+	Dim s As UInteger
 	Dim chk(5) As BOOL
 	Dim chkc As Long = 0
 	
