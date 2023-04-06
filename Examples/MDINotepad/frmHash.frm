@@ -460,7 +460,7 @@ Private Sub frmHashType.HashFile()
 	Dim i As Integer
 	Dim j As Integer
 	Dim k As Integer
-	Dim s As Integer
+	Dim s As UInteger
 	Dim chk(5) As BOOL
 	Dim chkc As Long = 0
 	
@@ -494,7 +494,7 @@ Private Sub frmHashType.HashFile()
 		If PathFileExists(a(i)) Then
 			s = GetFileData(*a(i), m)
 			te = timr.Passed
-			WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - te, "#,#0.000") & " sec.", d(k))
+			WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(te - ts, "#,#0.000") & " sec.", d(k))
 			ts = te
 			Dim l As Long
 			For l = 0 To 5
@@ -502,7 +502,7 @@ Private Sub frmHashType.HashFile()
 					k += 1
 					WStr2Ptr(GetHash(m, s, l), c)
 					te = timr.Passed
-					WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - te, "#,#0.000") & " sec.", d(k))
+					WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(te - ts, "#,#0.000") & " sec.", d(k))
 					ts = te
 				End If
 			Next
@@ -511,7 +511,7 @@ Private Sub frmHashType.HashFile()
 		App.DoEvents()
 	Next i
 
-	WStr2Ptr("Total Take=" & Format(ta - te, "#,#0.000") & " sec.", b(j + 1))
+	WStr2Ptr("Total Take=" & Format(te - ta, "#,#0.000") & " sec.", b(j + 1))
 	JoinWStr(b(), vbCrLf, c)
 	i = txtHash.SelStart
 	txtHash.SelText = *c
@@ -571,7 +571,7 @@ Private Sub frmHashType.HashText()
 		m = StrPtr(tmp)
 		s = Len(tmp)
 		te = timr.Passed
-		WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(ts - te, "#,#0.000") & " sec.", d(k))
+		WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(te - ts, "#,#0.000") & " sec.", d(k))
 		ts = te
 		Dim l As Long
 		For l = 0 To 5
@@ -579,7 +579,7 @@ Private Sub frmHashType.HashText()
 				k += 1
 				WStr2Ptr(GetHash(m, s, l), c)
 				te = timr.Passed
-				WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(ts - te, "#,#0.000") & " sec.", d(k))
+				WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(te - ts, "#,#0.000") & " sec.", d(k))
 				ts = te
 			End If
 		Next
@@ -587,7 +587,7 @@ Private Sub frmHashType.HashText()
 		App.DoEvents()
 	Next i
 
-	WStr2Ptr("Total Take=" & Format(ta - te, "#,#0.000") & " sec.", b(j + 1))
+	WStr2Ptr("Total Take=" & Format(te - ta, "#,#0.000") & " sec.", b(j + 1))
 	JoinWStr(b(), vbCrLf, c)
 	i = txtHash.SelStart
 	txtHash.SelText = *c

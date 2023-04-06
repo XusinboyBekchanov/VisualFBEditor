@@ -58,9 +58,9 @@ Private Function GetHash(src As Any Ptr, nsize As Integer, ByVal Algorithm As Lo
 	End If
 End Function
 
-Function GetFileData(ByRef FileName As Const WString, ByRef rtnData As Any Ptr) As Integer
+Function GetFileData(ByRef FileName As Const WString, ByRef rtnData As Any Ptr) As UInteger
 	Dim h As Integer = FreeFile
-	Dim fsize As Integer = 0
+	Dim fsize As UInteger = 0
 	
 	If Open(FileName For Binary Access Read As #h) <> 0 Then Return fsize
 	fsize= LOF(h)
@@ -264,23 +264,6 @@ Private Function WFDGet Overload (FileName As WString Ptr, ByRef wfd As WIN32_FI
 	FindClose(hFind)
 	Return True
 End Function
-
-'Private Function FileExist(PathStr As WString Ptr) As Long
-'	Dim wfd As WIN32_FIND_DATA
-'	Dim hFind As HANDLE = FindFirstFile(*PathStr, @wfd)
-'	If hFind = INVALID_HANDLE_VALUE Then
-'		hFind = FindFirstFile(*PathStr & "\?", @wfd)
-'		If hFind = INVALID_HANDLE_VALUE Then Return False
-'	End If
-'	FindClose(hFind)
-'	'If wfd.dwFileAttributes And FILE_ATTRIBUTE_DIRECTORY Then
-'	'	Return 2
-'	'Else
-'	'	Return 1
-'	'End If
-'	'PathFileExists
-'	Return True
-'End Function
 
 Destructor FilesFind
 	Clear(True)
