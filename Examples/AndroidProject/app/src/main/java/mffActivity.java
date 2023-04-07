@@ -28,6 +28,7 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         //Button btn = findViewById(R.id.button7);
         //btn.setText(stringFromJNI());
         Log.println(0, "log_tag", "onCreate()");
+        Log.i("TAG", "onCreate()");
     }
 
     @Override
@@ -35,6 +36,7 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         super.onStart();
 
         Log.println(0, "log_tag", "onStart()");
+        Log.i("TAG", "onStart()");
     }
 
     @Override
@@ -42,6 +44,7 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         super.onResume();
 
         Log.println(0, "log_tag", "onResume()");
+        Log.i("TAG", "onResume()");
     }
 
     @Override
@@ -49,6 +52,7 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         super.onPause();
 
         Log.println(0, "log_tag", "onPause()");
+        Log.i("TAG", "onPause()");
     }
 
     @Override
@@ -56,6 +60,7 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         super.onStop();
 
         Log.println(0, "log_tag", "onStop()");
+        Log.i("TAG", "onStop()");
     }
 
     @Override
@@ -63,13 +68,15 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         super.onRestart();
 
         Log.println(0, "log_tag", "onRestart()");
+        Log.i("TAG", "onRestart()");
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-
         Log.println(0, "log_tag", "onDestroy()");
+        Log.i("TAG", "onDestroy()");
+        onDestroy(findViewById(R.id.layout));
+        super.onDestroy();
     }
 
     /**
@@ -77,6 +84,8 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
      * which is packaged with this application.
      */
     public native void onCreate(Object layout);
+
+    public native void onDestroy(Object layout);
 
     @Override
     public native void onClick(View view);

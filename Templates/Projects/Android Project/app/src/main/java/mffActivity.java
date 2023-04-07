@@ -29,11 +29,44 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         //btn.setText(stringFromJNI());
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+    }
+
+    @Override
+    protected void onDestroy() {
+        onDestroy(findViewById(R.id.layout));
+        super.onDestroy();
+    }
+
     /**
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
     public native void onCreate(Object layout);
+
+    public native void onDestroy(Object layout);
 
     @Override
     public native void onClick(View view);
