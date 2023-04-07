@@ -9102,6 +9102,11 @@ Sub OnProgramQuit() Destructor
 		Delete_( Cast(TypeElement Ptr, GlobalFunctionsHelp.Object(i)))
 		'GlobalFunctionsHelp.Remove i
 	Next
+	For i As Integer = GlobalAsmFunctionsHelp.Count - 1 To 0 Step -1
+		te = GlobalAsmFunctionsHelp.Object(i)
+		Delete_( Cast(TypeElement Ptr, GlobalAsmFunctionsHelp.Object(i)))
+		'GlobalAsmFunctionsHelp.Remove i
+	Next
 	For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
 		te = pGlobalTypeProcedures->Object(i)
 		Delete_( Cast(TypeElement Ptr, pGlobalTypeProcedures->Object(i)))
