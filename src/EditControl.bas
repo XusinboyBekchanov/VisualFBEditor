@@ -2481,15 +2481,28 @@ Namespace My.Sys.Forms
 		ShowCaretPos True
 	End Sub
 	
-	Sub EditControl.UnComment
+    Sub EditControl.UnComment
 		UpdateLock
-		Dim As Integer n
+		Dim As Integer n, ComentFlag 
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Changing("Izohni olish")
+		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar  
+		Changing("Izohni olish") 
 		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 			FECLine = Content.Lines.Items[i]
-			If .Left(Trim(*FECLine->Text, Any !"\t "), 1) = "'" Then
+			If .Left(Trim(*FECLine->Text, Any !"\t "), 2) = "/'" Then
+				ComentFlag = 2
+				n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
+				WLet(FLineTemp, .Left(*FECLine->Text, n))
+				WLet(FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 3))
+				If i = FSelEndLine And FSelEndChar > n Then FSelEndChar -= 2
+				If i = FSelStartLine And FSelStartChar > n Then FSelStartChar -= 2
+				ChangeCollapsibility i
+			ElseIf Right(RTrim(*FECLine->Text, Any !"\t "), 2) = "'/" Then	
+				ComentFlag = 0
+				WLet(FECLine->Text, Mid(*FECLine->Text, 1, Len(*FECLine->Text) - 2))
+				ChangeCollapsibility i
+			ElseIf .Left(Trim(*FECLine->Text, Any !"\t "), 1) = "'" AndAlso ComentFlag <> 2 Then
+				ComentFlag = 1
 				n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
 				WLet(FLineTemp, .Left(*FECLine->Text, n))
 				WLet(FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 2))
