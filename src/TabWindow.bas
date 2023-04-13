@@ -916,25 +916,25 @@ Sub RemoveGlobalTypeElements(ByRef FileName As WString)
 				Next
 			End If
 		Next
-		For i As Integer = pComps->Count - 1 To 0 Step -1
-			te = pComps->Object(i)
-			If te->FileName = FileName Then
-				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
-				Next
-				te->Elements.Clear
-				Delete_(Cast(TypeElement Ptr, pComps->Object(i)))
-				pComps->Remove i
-			Else
-				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-					te1 = te->Elements.Object(j)
-					If te1->FileName = FileName Then
-						Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
-						te->Elements.Remove j
-					End If
-				Next
-			End If
-		Next
+		'For i As Integer = pComps->Count - 1 To 0 Step -1
+		'	te = pComps->Object(i)
+		'	If te->FileName = FileName Then
+		'		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'		Next
+		'		te->Elements.Clear
+		'		Delete_(Cast(TypeElement Ptr, pComps->Object(i)))
+		'		pComps->Remove i
+		'	Else
+		'		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'			te1 = te->Elements.Object(j)
+		'			If te1->FileName = FileName Then
+		'				Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'				te->Elements.Remove j
+		'			End If
+		'		Next
+		'	End If
+		'Next
 		For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
 			te = pGlobalEnums->Object(i)
 			If te->FileName = FileName Then
