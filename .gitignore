@@ -10,7 +10,6 @@ VisualFBEditor64_gtk2
 VisualFBEditor64_gtk3
 *.so
 *.o
-lib
 share
 etc
 *32.exe
