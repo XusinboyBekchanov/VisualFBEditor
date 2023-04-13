@@ -455,15 +455,18 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 			SearchChar = """"
 		Else
 			SearchChar = " "
+			Pos1 -= 1
 		End If
 		Pos2 = InStr(Pos1 + 5, CompileWith, SearchChar)
 		If Pos2 > 0 Then
 			ExeFileName = Mid(CompileWith, Pos1 + 5, Pos2 - Pos1 - 5)
-			If CInt(InStr(ExeFileName, ":") = 0) AndAlso CInt(Not StartsWith(ExeFileName, Slash)) Then
-				Return GetFolderName(pFileName) + ExeFileName
-			Else
-				Return ExeFileName
-			End If
+		Else
+			ExeFileName = Mid(CompileWith, Pos1 + 5)
+		End If
+		If CInt(InStr(ExeFileName, ":") = 0) AndAlso CInt(Not StartsWith(ExeFileName, Slash)) Then
+			Return GetFolderName(pFileName) + ExeFileName
+		Else
+			Return ExeFileName
 		End If
 	End If
 	Pos1 = InStrRev(pFileName, ".")
@@ -534,7 +537,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim FileOut As Integer
 		ThreadsEnter()
 		ThreadsLeave()
-		WLet(ExeName, GetExeFileName(*MainFile, *FirstLine))
+		WLet(ExeName, GetExeFileName(*MainFile, *FirstLine & CompileLine))
 		If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
 			WLet(FbcExe, GetFullPath(*Project->CompilerPath))
 		Else
