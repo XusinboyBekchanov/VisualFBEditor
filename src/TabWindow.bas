@@ -7163,6 +7163,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 			'For jj As Integer = 0 To UBound(res)
 			For jj As Integer = 0 To ECLine->Statements.Count - 1
 				ECStatement = ECLine->Statements.Items[jj]
+				ECStatement->InConstruction = 0
+				ECStatement->InConstructionBlock = 0
 				If OldECStatement > 0 AndAlso EndsWith(Trim(*OldECStatement->Text), " _") Then 
 					OldECStatement = ECStatement
 					k = k + Len(*ECStatement->Text) + 1
@@ -8487,6 +8489,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			'For jj As Integer = 0 To UBound(res)
 			For jj As Integer = 0 To ECLine->Statements.Count - 1
 				ECStatement = ECLine->Statements.Items[jj]
+				ECStatement->InConstruction = 0
+				ECStatement->InConstructionBlock = 0
 				If OldECStatement > 0 AndAlso EndsWith(Trim(*OldECStatement->Text), " _") Then 
 					OldECStatement = ECStatement
 					k = k + Len(*ECStatement->Text) + 1
