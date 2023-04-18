@@ -2468,6 +2468,7 @@ Namespace My.Sys.Forms
 					FECLine->CommentIndex += 1
 					If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += 2
 					If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += 2
+					If i = iSelEndLine Then WLet(FECLine->Text, *FECLine->Text & " '/") 'Support working with one line
 				ElseIf i = iSelEndLine Then
 					WLet(FECLine->Text, *FECLine->Text & "'/")
 				End If
