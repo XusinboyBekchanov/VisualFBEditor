@@ -2484,7 +2484,7 @@ Namespace My.Sys.Forms
 	
     Sub EditControl.UnComment
 		UpdateLock
-		Dim As Integer n, CommentFlag
+		Dim As Integer n, CommentFlag 
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar  
 		Changing("Izohni olish") 
@@ -2497,11 +2497,13 @@ Namespace My.Sys.Forms
 				WLet(FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 3))
 				If i = FSelEndLine And FSelEndChar > n Then FSelEndChar -= 2
 				If i = FSelStartLine And FSelStartChar > n Then FSelStartChar -= 2
-				'ChangeCollapsibility i
+				If Right(RTrim(*FECLine->Text, Any !"\t "), 2) = "'/" Then 
+					WLet(FECLine->Text, Mid(*FECLine->Text, 1, Len(*FECLine->Text) - 2))
+					CommentFlag = 0
+				End If
 			ElseIf Right(RTrim(*FECLine->Text, Any !"\t "), 2) = "'/" Then	
 				CommentFlag = 0
 				WLet(FECLine->Text, Mid(*FECLine->Text, 1, Len(*FECLine->Text) - 2))
-				'ChangeCollapsibility i
 			ElseIf .Left(Trim(*FECLine->Text, Any !"\t "), 1) = "'" AndAlso CommentFlag <> 2 Then
 				CommentFlag = 1
 				n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text, Any !"\t "))
@@ -2509,11 +2511,8 @@ Namespace My.Sys.Forms
 				WLet(FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 2))
 				If i = FSelEndLine And FSelEndChar > n Then FSelEndChar -= 1
 				If i = FSelStartLine And FSelStartChar > n Then FSelStartChar -= 1
-				'ChangeCollapsibility i
 			End If
-			If CommentFlag = 2 Then
-				FECLine->CommentIndex -= 1
-			End If
+			If CommentFlag = 2 Then FECLine->CommentIndex -= 1
 			ChangeCollapsibility i
 		Next i
 		Changed("Izohni olish")
