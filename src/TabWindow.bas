@@ -6820,9 +6820,9 @@ Sub SetLineAndCharParameters(te As TypeElement Ptr, ByRef ECLines As List)
 	te->EndChar = u + Len(te->Name)
 End Sub
 
-Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, ByRef ECLines As List, ByRef InCondition As String, Declaration As Boolean, tb As TabWindow Ptr = 0, u1 As Integer = 0)
+Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, ByRef ECLines As List, ByRef InCondition As String, Declaration As Boolean, AddArgs As Boolean, tb As TabWindow Ptr = 0, u1 As Integer = 0)
 	If Parameters <> "" Then
-		If ECLine Then ECLine->Args.Add func
+		If CBool(ECLine <> 0) AndAlso AddArgs Then ECLine->Args.Add func
 		Dim As UString CurType, res1(Any), ElementValue
 		Dim As Integer Pos1, Pos2, l, c, u = u1, uu, ct
 		For i As Integer = Pos5 To Len(bTrim) - 1
@@ -7081,13 +7081,11 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		'End If
 		For i As Integer = iStart To iEnd
 			ECLine = Content.Lines.Items[i]
-			'If i >= iSelStartLine Then
-			ECLine->Args.Clear
-			ECLine->Ends.Clear
-			ECLine->EndsCompleted = False
-			'End If
-			If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
-				If bCurrentFile Then
+			If bCurrentFile Then
+				ECLine->Args.Clear
+				ECLine->Ends.Clear
+				ECLine->EndsCompleted = False
+				If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
 					If OldIncludeLine = i - 1 Then
 						Dim As WStringList Ptr FileList
 						Dim As IntegerList Ptr FileListLines
@@ -7122,13 +7120,13 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						ECLine->FileListLines = LastFileListLines
 					End If
 				End If
+				ECLine->FileList = LastFileList
+				ECLine->FileListLines = LastFileListLines
+				ECLine->InConstruction = 0
+				ECLine->InConstructionBlock = 0
+				If block Then ECLine->InConstructionBlock = block
+				If inFunc Then ECLine->InConstruction = func
 			End If
-			ECLine->FileList = LastFileList
-			ECLine->FileListLines = LastFileListLines
-			ECLine->InConstruction = 0
-			ECLine->InConstructionBlock = 0
-			If block Then ECLine->InConstructionBlock = block
-			If inFunc Then ECLine->InConstruction = func
 			b1 = Replace(*ECLine->Text, !"\t", " ")
 			If StartsWith(Trim(b1), "'") Then
 				Comments &= Mid(Trim(b1), 2) & Chr(13) & Chr(10)
@@ -7416,7 +7414,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									End If
 								End If
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, ECLines, CurrentCondition, False, tb, u
+									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, ECLines, CurrentCondition, False, bCurrentFile, tb, u
 									'Dim As UString CurType, res1(Any), ElementValue
 									'Split GetChangedCommas(Parameters), ",", res1()
 									'For n As Integer = 0 To UBound(res1)
@@ -7601,7 +7599,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						End If
 						Pos2 = InStr(b2, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, False, tb
+							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, False, bCurrentFile, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -7780,7 +7778,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Project->Globals.Functions.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, tb
+							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, bCurrentFile, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -8021,7 +8019,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
-										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, tb
+										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, bCurrentFile, tb
 										'Var teDeclare = te
 										'Dim As UString CurType, res1(Any), ElementValue
 										'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -8405,13 +8403,11 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		End If
 		For i As Integer = iStart To iEnd
 			ECLine = ptxtCode->Content.Lines.Items[i]
-			'If i >= iSelStartLine Then
-			ECLine->Args.Clear
-			ECLine->Ends.Clear
-			ECLine->EndsCompleted = False
-			'End If
-			If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
-				If ptxtCode = @txtCode Then
+			If ptxtCode = @txtCode Then
+				ECLine->Args.Clear
+				ECLine->Ends.Clear
+				ECLine->EndsCompleted = False
+				If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
 					If OldIncludeLine = i - 1 Then
 						Dim As WStringList Ptr FileList
 						Dim As IntegerList Ptr FileListLines
@@ -8446,14 +8442,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						ECLine->FileListLines = LastFileListLines
 					End If
 				End If
+				ECLine->FileList = LastFileList
+				ECLine->FileListLines = LastFileListLines
+				ECLine->InConstruction = 0
+				ECLine->InConstructionBlock = 0
+				ECLine->InCondition = CurrentCondition
+				If inFunc Then ECLine->InConstruction = func
+				If block Then ECLine->InConstructionBlock = block
 			End If
-			ECLine->FileList = LastFileList
-			ECLine->FileListLines = LastFileListLines
-			ECLine->InConstruction = 0
-			ECLine->InConstructionBlock = 0
-			ECLine->InCondition = CurrentCondition
-			If inFunc Then ECLine->InConstruction = func
-			If block Then ECLine->InConstructionBlock = block
 			WLet(FLine, *ECLine->Text)
 			b1 = Replace(*ECLine->Text, !"\t", " ")
 			If StartsWith(Trim(b1), "'") Then
@@ -8489,16 +8485,20 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			'For jj As Integer = 0 To UBound(res)
 			For jj As Integer = 0 To ECLine->Statements.Count - 1
 				ECStatement = ECLine->Statements.Items[jj]
-				ECStatement->InConstruction = 0
-				ECStatement->InConstructionBlock = 0
+				If ptxtCode = @txtCode Then
+					ECStatement->InConstruction = 0
+					ECStatement->InConstructionBlock = 0
+				End If
 				If OldECStatement > 0 AndAlso EndsWith(Trim(*OldECStatement->Text), " _") Then 
 					OldECStatement = ECStatement
 					k = k + Len(*ECStatement->Text) + 1
 					If i > 0 Then
-						ECLine2 = ptxtCode->Content.Lines.Items[i - 1]
-						For iii As Integer = 0 To ECLine2->Args.Count - 1
-							ECLine->Args.Add ECLine2->Args.Items[iii]
-						Next
+						If ptxtCode = @txtCode Then
+							ECLine2 = ptxtCode->Content.Lines.Items[i - 1]
+							For iii As Integer = 0 To ECLine2->Args.Count - 1
+								ECLine->Args.Add ECLine2->Args.Items[iii]
+							Next
+						End If
 					End If
 					Continue For
 				Else
@@ -8512,7 +8512,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						ECLine2 = ptxtCode->Content.Lines.Items[iii]
 						If iii > i Then
 							b1 = IIf(EndsWith(RTrim(b1), " _"), ..Left(b1, Len(RTrim(b1)) - 1) & Space(Len(b1) - Len(RTrim(b1)) + 1), b1) & Replace(*ECLine2->Text, !"\t", " ")
-							ECLine2->Args.Clear
+							If ptxtCode = @txtCode Then
+								ECLine2->Args.Clear
+							End If
 							ECLines.Add ECLine2
 						End If
 						For iiii As Integer = IIf(iii = i, jj + 1, 0) To ECLine2->Statements.Count - 1
@@ -8565,7 +8567,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				''					End If
 				''				End If
 				''			End If
-				ECLine->InWithConstruction = WithConstructionLine
+				If ptxtCode = @txtCode Then
+					ECLine->InWithConstruction = WithConstructionLine
+				End If
 				If ECLine->ConstructionIndex = C_With Then
 					If ECLine->ConstructionPart = 0 Then
 						OldWithConstructionLine = WithConstructionLine
@@ -8638,7 +8642,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							If ECStatement->ConstructionPart > 0 Then
 								If ConstructBlocks.Count > 0 Then
 									If block AndAlso block->InConstructionBlock AndAlso block->Condition = "Not " & block->InConstructionBlock->Condition Then
-										ECStatement->ConstructionPartCount += 1
+										If ptxtCode = @txtCode Then
+											ECStatement->ConstructionPartCount += 1
+										End If
 										ConstructBlocks.Remove ConstructBlocks.Count - 1
 										If ConstructBlocks.Count > 0 Then ConstructBlocks.Remove ConstructBlocks.Count - 1
 									Else
@@ -8650,7 +8656,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Else
 									block = 0
 								End If
-								If ECStatement->ConstructionPart <> 2 Then ECStatement->InConstructionBlock = block: ECLine->InConstructionBlock = block
+								If ECStatement->ConstructionPart <> 2 Then 
+									If ptxtCode = @txtCode Then
+										ECStatement->InConstructionBlock = block
+										ECLine->InConstructionBlock = block
+									End If
+								End If
 							End If
 							If ECStatement->ConstructionPart < 2 Then
 								Var cb = New_(ConstructionBlock)
@@ -8661,8 +8672,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								ConstructBlocks.Add cb
 								txtCode.Content.ConstructionBlocks.Add cb
 								block = cb
-								ECLine->InConstructionBlock = block
-								ECStatement->InConstructionBlock = block
+								If ptxtCode = @txtCode Then
+									ECLine->InConstructionBlock = block
+									ECStatement->InConstructionBlock = block
+								End If
 							End If
 						End If
 					End If
@@ -8755,8 +8768,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->FileName = sFileName
 								te->Tag = tb
 								SetLineAndCharParameters te, ECLines
-								ECStatement->InConstruction = te
-								ECLine->InConstruction = te
+								If ptxtCode = @txtCode Then
+									ECStatement->InConstruction = te
+									ECLine->InConstruction = te
+								End If
 								If block Then block->Construction = te
 								If (te->Name = "") AndAlso Constructs.Count > 0 Then
 									func = Constructs.Item(Constructs.Count - 1)
@@ -8783,7 +8798,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								End If
 								If Pos2 > 0 AndAlso Pos5 > 0 Then
-									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, ECLines, CurrentCondition, False, tb, u
+									SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, 0, ECLines, CurrentCondition, False, ptxtCode = @txtCode, tb, u
 									'Dim As UString CurType, res1(Any), ElementValue
 									'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
 									'For n As Integer = 0 To UBound(res1)
@@ -8846,13 +8861,17 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								LastIndexFunctions = -1
 								If Constructs.Count > 0 Then Constructs.Remove Constructs.Count - 1
 								If Constructs.Count > 0 Then
-									ECLine->InConstruction = Constructs.Item(Constructs.Count - 1)
-									ECStatement->InConstruction = Constructs.Item(Constructs.Count - 1)
-									func = ECStatement->InConstruction
+									func = Constructs.Item(Constructs.Count - 1)
+									If ptxtCode = @txtCode Then
+										ECLine->InConstruction = func
+										ECStatement->InConstruction = func
+									End If
 									inFunc = True
 								Else
-									ECLine->InConstruction = 0
-									ECStatement->InConstruction = 0
+									If ptxtCode = @txtCode Then
+										ECLine->InConstruction = 0
+										ECStatement->InConstruction = 0
+									End If
 								End If
 							End If
 						ElseIf ECStatement->ConstructionPart = 1 Then
@@ -8968,7 +8987,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						End If
 						Pos2 = InStr(b2, ")")
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, False, tb
+							SplitParameters b2, Pos5, Mid(b2, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, False, ptxtCode = @txtCode, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -9145,7 +9164,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							txtCode.Content.Procedures.Add te->Name, te
 						End If
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
-							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, tb
+							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, ptxtCode = @txtCode, tb
 							'Var teDeclare = te
 							'Dim As UString CurType, res1(Any), ElementValue
 							'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
@@ -9381,7 +9400,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
-										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, tb
+										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, ptxtCode = @txtCode, tb
 										'Var teDeclare = te
 										'Dim As UString CurType, res1(Any), ElementValue
 										'Split GetChangedCommas(Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1)), ",", res1()
