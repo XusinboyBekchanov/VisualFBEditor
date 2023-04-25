@@ -6208,6 +6208,7 @@ Sub CreateMenusAndToolBars
 	mnuGTK->Add "-"
 	mnuGTK->Add "GTK2", "", "GTK2:__USE_GTK__ -d __USE_GTK2__", @mClickUseDefine, True
 	mnuGTK->Add "GTK3", "", "GTK3:__USE_GTK__ -d __USE_GTK3__", @mClickUseDefine, True
+	mnuGTK->Add "GTK4", "", "GTK4:__USE_GTK__ -d __USE_GTK4__", @mClickUseDefine, True
 	Var mnuJNI = tbButton->DropDownMenu.Add("JNI", "", "JNI", @mClickUseDefine)
 	mnuJNI->Add ML("Default"), "", "Default:__USE_JNI__", @mClickUseDefine, True
 	mnuJNI->Add "-"
