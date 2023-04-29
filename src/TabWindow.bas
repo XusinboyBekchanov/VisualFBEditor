@@ -8768,7 +8768,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								te->FileName = sFileName
 								te->Tag = tb
 								SetLineAndCharParameters te, ECLines
-								If ptxtCode = @txtCode Then
+								If ptxtCode = @txtCode OrElse ptxtCode = @txtCodeBi Then
 									ECStatement->InConstruction = te
 									ECLine->InConstruction = te
 								End If

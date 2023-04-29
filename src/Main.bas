@@ -480,7 +480,9 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 				Return IIf(InStr(CompileWith, "-dll"), "lib", "") & Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", "")
 			End If
 		#else
-			If InStr(CompileWith, "-target ") Then
+			If InStr(CompileWith, "-target js-asmjs") Then
+				Return Left(pFileName, Pos1 - 1) & ".html"
+			ElseIf InStr(CompileWith, "-target ") Then
 				Pos2 = InStrRev(pFileName, Slash)
 				If Pos2 > 0 AndAlso InStr(CompileWith, "-dll") > 0 Then
 					Return Left(pFileName, Pos2) & "lib" & Mid(pFileName, Pos2 + 1, Pos1 - Pos2 - 1) & ".so"
@@ -686,7 +688,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			If Project Then BatchCompilationFileName = Project->BatchCompilationFileNameWindows
 		#else
 			If Project Then BatchCompilationFileName = Project->BatchCompilationFileNameLinux
-		#EndIf
+		#endif
 		If WGet(BatchCompilationFileName) <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then 'CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
 			If EndsWith(*BatchCompilationFileName, "gradlew.bat") OrElse EndsWith(*BatchCompilationFileName, "/gradlew") Then
 				Dim As String gradlewFile, gradlewCommand
@@ -766,114 +768,71 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
 			ThreadsLeave()
 		End If
+		Dim As Dictionary CompileCommands
+		Dim As Boolean UseWasm = InStr(*PipeCommand, "__USE_WASM__") > 0
+		Dim MainFileName As UString = GetFileName(*MainFile)
+		If UseWasm Then
+			Dim FbcFolder As UString = GetFolderName(*FbcExe)
+			Var Pos1 = InStrRev(MainFileName, ".")
+			If Pos1 > 0 Then
+				MainFileName = Left(MainFileName, Pos1 - 1)
+			End If
+			CompileCommands.Add "", *PipeCommand
+			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & MainFileName & ".c"" -o """ & MainFileName & ".o"""
+			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 --post-js update.js"
+		Else
+			CompileCommands.Add "", *PipeCommand
+		End If
 		Dim As UShort bFlagErr
 		Dim As Double CompileElapsedTime = Timer
-		#ifdef __USE_GTK__
-			Dim As Integer Fn = FreeFile_
-			If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
-				While Not EOF(Fn)
-					Line Input #Fn, Buff
-					If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
-					
-					If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
-						OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
-						OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") _
-						OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:") OrElse StartsWith(Buff, "Restarting fbc") OrElse StartsWith(Buff, "archiving:") OrElse StartsWith(Buff, "creating:")) Then
-						ShowMessages(Buff, False)
-						bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
-						If bFlagErr = 2 Then
-							NumberErr += 1
-						ElseIf bFlagErr = 1 Then
-							NumberWarning += 1
-						Else
-							NumberInfo += 1
-						End If
-						If 	bFlagErr >= 0 Then
-							ThreadsEnter()
-							If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
-							lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
-							lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
-							lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
-							'ShowMessages(Buff, False)
-							ThreadsLeave()
-						End If
-					Else
-						Dim As String TmpStr
-						Var nPos = InStr(Buff, ":")
-						If nPos < 1 Then nPos = InStr(Buff, " ")
-						If nPos < 1 Then
-							nPos = Len(Buff) + 1
-							TmpStr = Trim(Buff)
-						Else
-							TmpStr = Trim(Left(Buff, nPos - 1))
-						End If
-						ThreadsEnter()
-						ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(Buff, nPos))
-						ThreadsLeave()
+		For cc As Integer = 0 To CompileCommands.Count - 1
+			WLet(PipeCommand, CompileCommands.Item(cc)->Text)
+			If cc > 0 Then
+				If UseWasm AndAlso CBool(cc = 1) Then
+					Var Fn = FreeFile_
+					If Open(MainFileName & ".c" For Input As #Fn) = 0 Then
+						Dim As String Buffer
+						Dim As WStringList Lines
+						Lines.Add "typedef void fn(void); fn *volatile fp;"
+						Do Until EOF(Fn)
+							Line Input #Fn, Buffer
+							If StartsWith(Trim(Buffer, Any !"\t "), "goto *") Then
+								Var n = Len(Buffer) - Len(Trim(Buffer, Any !"\t "))
+								Lines.Add Left(Buffer, n) & "fp = (fn*)" & Mid(Buffer, n + 7) & " fp();"
+							'ElseIf InStr(Buffer, " goto ") > 0 Then
+							'	Lines.Add Buffer
+							'ElseIf InStr(Buffer, "goto ") > 0 Then
+							'	Lines.Add Buffer
+							Else
+								Lines.Add Buffer
+							End If
+						Loop
+						Close #Fn
+						Fn = FreeFile_
+						Open MainFileName & ".c" For Output As #Fn
+						For ii As Integer = 0 To Lines.Count - 1
+							Print #Fn, Lines.Item(ii)
+						Next
+						Close #Fn
 					End If
-				Wend
+				End If
+				ThreadsEnter()
+				ShowMessages(Str(Time) + ": " + CompileCommands.Item(cc)->Key & *PipeCommand)
+				ThreadsLeave()
 			End If
-			CloseFile_(Fn)
-		#else
-			#define BufferSize 2048
-			Dim si As STARTUPINFO
-			Dim pi As PROCESS_INFORMATION
-			Dim sa As SECURITY_ATTRIBUTES
-			Dim hReadPipe As HANDLE
-			Dim hWritePipe As HANDLE
-			Dim sBuffer As ZString * BufferSize
-			Dim sOutput As UString
-			Dim bytesRead As DWORD
-			Dim result_ As Integer
-			
-			sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
-			sa.lpSecurityDescriptor = NULL
-			sa.bInheritHandle = True
-			
-			If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
-				ShowMessages(ML("Error: Couldn't Create Pipe"), False)
-				CompileResult = 0
-				Continue For
-			End If
-			
-			si.cb = Len(STARTUPINFO)
-			si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
-			si.hStdOutput = hWritePipe
-			si.hStdError = hWritePipe
-			si.wShowWindow = 0
-			
-			If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
-				ShowMessages(ML("Error: Couldn't Create Process"), False)
-				CompileResult = 0
-				Continue For
-			End If
-			
-			CloseHandle hWritePipe
-			
-			Dim As Integer Pos1, FirstErrFlag
-			Do
-				result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
-				sBuffer = Left(sBuffer, bytesRead)
-				Pos1 = InStrRev(sBuffer, Chr(10))
-				If Pos1 > 0 Then
-					Dim res() As WString Ptr
-					sOutput += Left(sBuffer, Pos1 - 1)
-					If InStr(sOutput, "GoRC.exe' terminated with exit code") > 0 Then
-						sOutput = Replace(sOutput, Chr(13, 10), " ")
-						ERRGoRc = True
-					ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
-						sOutput = Replace(sOutput, Chr(13, 10), " ")
-					End If
-					Split sOutput, Chr(10), res()
-					For i As Integer = 0 To UBound(res) 'Copyright
-						If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
-						If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
-						If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
-							OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
-							OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
-							OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse StartsWith(*res(i), "creating:") OrElse StartsWith(*res(i), "archiving:") OrElse InStr(*res(i), "ld.exe") > 0) Then
-							ShowMessages(*res(i), False)
-							bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
+			#ifdef __USE_GTK__
+				Dim As Integer Fn = FreeFile_
+				If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
+					While Not EOF(Fn)
+						Line Input #Fn, Buff
+						If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
+						
+						If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
+							OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
+							OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") _
+							OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:") OrElse StartsWith(Buff, "Restarting fbc") OrElse StartsWith(Buff, "archiving:") OrElse StartsWith(Buff, "creating:")) Then
+							ShowMessages(Buff, False)
+							bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 							If bFlagErr = 2 Then
 								NumberErr += 1
 							ElseIf bFlagErr = 1 Then
@@ -882,44 +841,138 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								NumberInfo += 1
 							End If
 							If 	bFlagErr >= 0 Then
+								ThreadsEnter()
 								If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 								lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 								lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
 								lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
+								'ShowMessages(Buff, False)
+								ThreadsLeave()
 							End If
 						Else
-							Dim As String TmpStr 
-							Dim As Integer nPos = InStr(*res(i), ":")
-							If nPos < 1 Then nPos = InStr(*res(i), " ")
+							Dim As String TmpStr
+							Var nPos = InStr(Buff, ":")
+							If nPos < 1 Then nPos = InStr(Buff, " ")
 							If nPos < 1 Then
-								nPos = Len(*res(i)) + 1
-								TmpStr = Trim(*res(i))
+								nPos = Len(Buff) + 1
+								TmpStr = Trim(Buff)
 							Else
-								TmpStr = Trim(Left(*res(i), nPos - 1))
+								TmpStr = Trim(Left(Buff, nPos - 1))
 							End If
 							ThreadsEnter()
-							ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+							ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(Buff, nPos))
 							ThreadsLeave()
 						End If
-						Deallocate res(i): res(i) = 0
-						sOutput = ""
-					Next i
-					Erase res
-					sOutput = Mid(sBuffer, Pos1 + 1)
-				Else
-					If FirstErrFlag < 1 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
-						sOutput +=  Chr(10) + sBuffer
-						FirstErrFlag +=1
-					Else
-						sOutput += sBuffer
-					End If
+					Wend
 				End If
-			Loop While result_
-			
-			CloseHandle pi.hProcess
-			CloseHandle pi.hThread
-			CloseHandle hReadPipe
-		#endif
+				CloseFile_(Fn)
+			#else
+				#define BufferSize 2048
+				Dim si As STARTUPINFO
+				Dim pi As PROCESS_INFORMATION
+				Dim sa As SECURITY_ATTRIBUTES
+				Dim hReadPipe As HANDLE
+				Dim hWritePipe As HANDLE
+				Dim sBuffer As ZString * BufferSize
+				Dim sOutput As UString
+				Dim bytesRead As DWORD
+				Dim result_ As Integer
+				
+				sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+				sa.lpSecurityDescriptor = NULL
+				sa.bInheritHandle = True
+				
+				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+					ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+					CompileResult = 0
+					Continue For
+				End If
+				
+				si.cb = Len(STARTUPINFO)
+				si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+				si.hStdOutput = hWritePipe
+				si.hStdError = hWritePipe
+				si.wShowWindow = 0
+				
+				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
+					ShowMessages(ML("Error: Couldn't Create Process"), False)
+					CompileResult = 0
+					Continue For
+				End If
+				
+				CloseHandle hWritePipe
+				
+				Dim As Integer Pos1, FirstErrFlag
+				Do
+					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+					sBuffer = Left(sBuffer, bytesRead)
+					Pos1 = InStrRev(sBuffer, Chr(10))
+					If Pos1 > 0 Then
+						Dim res() As WString Ptr
+						sOutput += Left(sBuffer, Pos1 - 1)
+						If InStr(sOutput, "GoRC.exe' terminated with exit code") > 0 Then
+							sOutput = Replace(sOutput, Chr(13, 10), " ")
+							ERRGoRc = True
+						ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
+							sOutput = Replace(sOutput, Chr(13, 10), " ")
+						End If
+						Split sOutput, Chr(10), res()
+						For i As Integer = 0 To UBound(res) 'Copyright
+							If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
+							If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
+							If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
+								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
+								OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
+								OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse StartsWith(*res(i), "creating:") OrElse StartsWith(*res(i), "archiving:") OrElse InStr(*res(i), "ld.exe") > 0) Then
+								ShowMessages(*res(i), False)
+								bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
+								If bFlagErr = 2 Then
+									NumberErr += 1
+								ElseIf bFlagErr = 1 Then
+									NumberWarning += 1
+								Else
+									NumberInfo += 1
+								End If
+								If 	bFlagErr >= 0 Then
+									If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+									lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
+									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
+									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
+								End If
+							Else
+								Dim As String TmpStr 
+								Dim As Integer nPos = InStr(*res(i), ":")
+								If nPos < 1 Then nPos = InStr(*res(i), " ")
+								If nPos < 1 Then
+									nPos = Len(*res(i)) + 1
+									TmpStr = Trim(*res(i))
+								Else
+									TmpStr = Trim(Left(*res(i), nPos - 1))
+								End If
+								ThreadsEnter()
+								ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
+								ThreadsLeave()
+							End If
+							Deallocate res(i): res(i) = 0
+							sOutput = ""
+						Next i
+						Erase res
+						sOutput = Mid(sBuffer, Pos1 + 1)
+					Else
+						If FirstErrFlag < 1 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
+							sOutput +=  Chr(10) + sBuffer
+							FirstErrFlag +=1
+						Else
+							sOutput += sBuffer
+						End If
+					End If
+				Loop While result_
+				
+				CloseHandle pi.hProcess
+				CloseHandle pi.hThread
+				CloseHandle hReadPipe
+			#endif
+		Next cc
 		#ifdef __USE_GTK__
 			Yaratilmadi = g_find_program_in_path(ToUtf8(*ExeName)) = NULL
 		#else
@@ -6213,6 +6266,7 @@ Sub CreateMenusAndToolBars
 	mnuJNI->Add "-"
 	mnuJNI->Add "Android GUI", "", "AndroidGUI:__USE_JNI__ -d __USE_ANDROIDGUI__", @mClickUseDefine, True
 	mnuJNI->Add "Native GUI", "", "NativeGUI:__USE_JNI__ -d __USE_NATIVEGUI__", @mClickUseDefine, True
+	Var mnuWASM = tbButton->DropDownMenu.Add("WASM", "", "WASM:__USE_WASM__ -target js-asmjs -r", @mClickUseDefine)
 	mnuDefault->Checked = True
 	miUseDefine = mnuDefault
 End Sub
