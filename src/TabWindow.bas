@@ -2744,6 +2744,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	If Ctrl = 0 Then Exit Sub
 	Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
 	Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
+	Dim As SymbolsType Ptr stCopied = tb->Des->Symbols(CopiedCtrl)
 	If stDesignControl = 0 OrElse stDesignControl->ReadPropertyFunc = 0 Then Exit Sub
 	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
 	Dim As UString LibraryPath = Replace(GetRelative(GetFolderName(st->Path, False), ExePath), "\", "/")
@@ -2754,9 +2755,19 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As Integer iStart, iEnd, j
 	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
+	Dim tbi As TypeElement Ptr
 	If SelectedTool <> 0 Then
+		tbi = SelectedTool->Tag
 		SelectedTool->Checked = False
-		Var tbi = Cast(TypeElement Ptr, SelectedTool->Tag)
+		SelectedClass = ""
+		SelectedTool = 0
+		SelectedType = 0
+	End If
+	Var Idx = -1
+	If CBool(tbi = 0) AndAlso CBool(CopiedCtrl <> 0) AndAlso CBool(stCopied <> 0) AndAlso CBool(stCopied->ReadPropertyFunc <> 0) AndAlso Comps.Contains(WGet(stCopied->ReadPropertyFunc(CopiedCtrl, "ClassName")), , , , Idx) Then
+		tbi = Comps.Object(Idx)
+	End If
+	If tbi <> 0 Then
 		Dim As String frmName
 		frmName = WGet(stDesignControl->ReadPropertyFunc(tb->Des->DesignControl, "Name"))
 		Var t = False, b = False
@@ -2793,7 +2804,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 		FPropertyItems.Sort
 		For i As Integer = 0 To FPropertyItems.Count - 1
 			Select Case FPropertyItems.Item(i)
-			Case "Left", "Top", "Width", "Height", "Name", "ID", "TabIndex", "ClassName", "Parent"
+			Case "Left", "Top", "Width", "Height", "Name", "ID", "TabIndex", "ClassName", "Parent", "Location", "Size"
 			Case Else
 				If Trim(tb->ReadObjProperty(Ctrl, FPropertyItems.Item(i))) <> Trim(tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i))) Then
 					tb->WriteObjProperty(Ctrl, FPropertyItems.Item(i), tb->ReadObjProperty(CopiedCtrl, FPropertyItems.Item(i)))
@@ -8200,9 +8211,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			Events.Clear
 			If .DesignControl Then
 				.Objects.Add .DesignControl
-				Dim As Any Ptr st = .CtrlSymbols.Item(0)
+				Dim As Any Ptr st = .CtrlSymbols.Object(0)
 				.CtrlSymbols.Clear
-				.CtrlSymbols.Add st
+				.CtrlSymbols.Add .DesignControl, st
 			Else
 				.CtrlSymbols.Clear
 			End If
