@@ -1327,18 +1327,18 @@ Private Sub exception_handle(adr As Integer)
 	'case error inside proc initialisation (e.g. stack over flow)
 	If adr>rline(thread(threadcur).sv).ad And _
 		adr<rline(thread(threadcur).sv+1).ad And _
-		rline(thread(threadcur).sv+1).nu=rline(thread(threadcur).sv).nu Then
-		libelexception+="ERROR AT BEGINNING OF PROC NOT REALLY ON THIS LINE"+Chr(13)+ _
-		"CHECK DIM (e.g. width array to big), Preferably don't continue"+Chr(13)+Chr(13)
+		rline(thread(threadcur).sv + 1).nu = rline(thread(threadcur).sv).nu Then
+		libelexception += ML("ERROR AT BEGINNING OF PROC NOT REALLY ON THIS LINE") + Chr(13) + _
+		"CHECK DIM (e.g. width array to big), Preferably don't continue" + Chr(13) + Chr(13)
 	Else
-		libelexception+="Possible error on this line but not SURE"+Chr(13)+Chr(13)
+		libelexception += ML("Possible error on this line but not SURE") + Chr(13) + Chr(13)
 	End If
 	
-	libelexception+="File  : "+source(rline(thread(threadcur).sv).sx)+Chr(13)+ _
-	"Proc  : "+proc(rline(thread(threadcur).sv).px).nm+Chr(13)+ _
-	"Line  : "+Str(rline(thread(threadcur).sv).nu)+" (selected and put in red)"+Chr(13)+ _
-	linetext+Chr(13)+Chr(13)+"Try To continue ? (if yes change values and/or use [M]odify execution)"
-	debugdata = MsgBox("EXCEPTION: " & libelexception)  ''used in thread2
+	libelexception += ML("File") & "  : " + source(rline(thread(threadcur).sv).sx) + Chr(13) + _
+	ML("Proc") & "  : " + proc(rline(thread(threadcur).sv).px).nm + Chr(13) + _
+	ML("Line") & "  : " + Str(rline(thread(threadcur).sv).nu) + ML("(selected and put in red)") + Chr(13) + _
+	linetext + Chr(13) + Chr(13) + ML("Try To continue? (if yes change values and/or use [M]odify execution)") + Chr(13)
+	debugdata = MsgBox(ML("EXCEPTION") & ": " & libelexception)  ''used in thread2
 End Sub
 '===================================================
 '' handles the debug events  (triggered by timer)
@@ -1748,7 +1748,7 @@ Private Sub var_tip(ope As Integer)
 	End If
 	
 	If text="" Or Left(text,1)="." Then
-		MsgBox("Selection variable error", """" + text + """ : Empty string or incomplete name (udt components)")
+		MsgBox(ML("Selection variable error"), """" + text + """ : Empty string or incomplete name (udt components)")
 		Exit Sub
 	End If
 	text=UCase(text)
@@ -7467,7 +7467,7 @@ Private Sub watch_check(wname() As String)
 				wtch(index).Var=0 'not an array
 				wtch(index).vty(vnb)=vtype
 				wtch(index).tvl=Tree_AddItem(NULL,"", 0, tviewwch, 0)
-				wtch(index).lbl=pname+"/"+vname+" <"+String(wtch(index).pnt, Str("*"))+" "+udt(tidx).nm+">=Dll not loaded"
+				wtch(index).lbl = pname+"/"+vname+" <"+String(wtch(index).pnt, Str("*"))+" "+udt(tidx).nm+ ">=DLL" + ML("not loaded")
 				wtchcpt+=1
 				index+=1
 				Continue While
