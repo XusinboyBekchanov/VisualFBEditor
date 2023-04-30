@@ -1279,7 +1279,7 @@ Namespace My.Sys.Forms
 	'	   end if
 	'	end if
 	'end sub
-	Dim Shared CopyList As List
+	Dim Shared CopyList As PointerList
 	Sub Designer.CopyControl()
 		CopyList.Clear
 		#ifdef __USE_GTK__
@@ -1289,7 +1289,8 @@ Namespace My.Sys.Forms
 		#endif
 			If FSelControl <> FDialog Then
 				For j As Integer = 0 To SelectedControls.Count - 1
-					CopyList.Add SelectedControls.Items[j]
+					Dim As SymbolsType Ptr st = Symbols(SelectedControls.Items[j])
+					CopyList.Add SelectedControls.Items[j], st
 				Next
 				#ifndef __USE_GTK__
 					'помещаем данные в буфер обмена Save data to system disk Clipboard
@@ -1331,9 +1332,8 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
-	Sub Designer.AddPasteControls(Ctrl As Any Ptr, ByVal ParentCtrl As Any Ptr, bStart As Boolean)
+	Sub Designer.AddPasteControls(Ctrl As Any Ptr, st As SymbolsType Ptr, ByVal ParentCtrl As Any Ptr, bStart As Boolean)
 		Dim As Integer iStepX, iStepY
-		Dim As SymbolsType Ptr st = Symbols(Ctrl)
 		If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
 		If bStart Then
 			iStepX = GridSize
@@ -1357,13 +1357,16 @@ Namespace My.Sys.Forms
 				LockWindowUpdate(FSelControl)
 				BringWindowToTop(FSelControl)
 			#endif
+			Dim As String AClassName = WGet(st->ReadPropertyFunc(Ctrl, "ClassName"))
+			Dim As SymbolsType Ptr st = Symbols(AClassName)
+			CtrlSymbols.Add Ctrl, st
 			If OnInsertControl Then OnInsertControl(This, WGet(st->ReadPropertyFunc(Ctrl, "ClassName")), NewCtrl, Ctrl, 0, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
 			If bStart Then SelectedControls.Add NewCtrl
 		End If
 		If Controls.Contains(Ctrl) Then
 			If st->ControlByIndexFunc Then
 				For i As Integer = 0 To iGet(st->ReadPropertyFunc(Ctrl, "ControlCount")) - 1
-					AddPasteControls st->ControlByIndexFunc(Ctrl, i), NewCtrl, False
+					AddPasteControls st->ControlByIndexFunc(Ctrl, i), st, NewCtrl, False
 				Next
 			End If
 		End If
@@ -1384,7 +1387,7 @@ Namespace My.Sys.Forms
 				If Not st->ControlIsContainerFunc(ParentCtrl) Then ParentCtrl = st->ReadPropertyFunc(ParentCtrl, "Parent")
 			End If
 			#ifdef __USE_GTK__
-				Dim As List Ptr Value = @CopyList
+				Dim As PointerList Ptr Value = @CopyList
 			#else
 				If pClipboard->HasFormat(fformat) Then
 					If ( OpenClipboard(NULL) ) Then
@@ -1398,12 +1401,12 @@ Namespace My.Sys.Forms
 						GlobalUnlock( hData )
 						
 						CloseClipboard()
-						Dim As List Ptr Value = Cast(Any Ptr, *buffer)
+						Dim As PointerList Ptr Value = Cast(Any Ptr, *buffer)
 			#endif
 					'If ReadPropertyFunc <> 0 AndAlso ComponentGetBoundsSub <> 0 Then
 						SelectedControls.Clear
 						For j As Integer = 0 To Value->Count - 1
-							AddPasteControls Value->Items[j], ParentCtrl, True
+							AddPasteControls Value->Item(j), Value->Object(j), ParentCtrl, True
 						Next
 						MoveDots(SelectedControl)
 						#ifndef __USE_GTK__
@@ -1501,7 +1504,7 @@ Namespace My.Sys.Forms
 				AParent)
 				If Ctrl Then
 					Objects.Add Ctrl
-					CtrlSymbols.Add st
+					CtrlSymbols.Add Ctrl, st
 					Controls.Add Ctrl
 					SelectedControl = Ctrl
 					If st->ReadPropertyFunc Then
@@ -1594,8 +1597,8 @@ Namespace My.Sys.Forms
 		If Ctrl = 0 Then Return 0
 		If Ctrl = OldCtrl Then Return OldCtrlSymbols
 		Var Idx = 0
-		If Objects.Contains(Ctrl, Idx) Then
-			OldCtrlSymbols = CtrlSymbols.Item(Idx)
+		If CtrlSymbols.Contains(Ctrl, Idx) Then
+			OldCtrlSymbols = CtrlSymbols.Object(Idx)
 			OldCtrl = Ctrl
 			Return OldCtrlSymbols
 		End If
@@ -1694,7 +1697,7 @@ Namespace My.Sys.Forms
 				Cpnt = st->CreateComponentFunc(AClassName, AName, x, y, AParent)
 				If Cpnt Then
 					Objects.Add Cpnt
-					CtrlSymbols.Add st
+					CtrlSymbols.Add Cpnt, st
 					SelectedControl = Cpnt
 					If st->WritePropertyFunc Then
 						Dim As Boolean bTrue = True
@@ -1781,7 +1784,7 @@ Namespace My.Sys.Forms
 				Obj = st->CreateObjectFunc(AClassName)
 				If Obj Then
 					Objects.Add Obj
-					CtrlSymbols.Add st
+					CtrlSymbols.Add Obj, st
 				End If
 			End If
 		End If

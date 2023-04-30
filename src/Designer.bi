@@ -223,7 +223,7 @@ Namespace My.Sys.Forms
 		SelectedControls As List
 		Objects As List
 		Controls As List
-		CtrlSymbols As List
+		CtrlSymbols As PointerList
 		#ifdef __USE_GTK__
 			cr As cairo_t Ptr
 			'layoutwidget As GtkWidget Ptr
@@ -259,7 +259,7 @@ Namespace My.Sys.Forms
 		Declare Sub PaintControl()
 		Declare Sub CopyControl()
 		Declare Sub CutControl()
-		Declare Sub AddPasteControls(Ctrl As Any Ptr, ParentCtrl As Any Ptr, bStart As Boolean)
+		Declare Sub AddPasteControls(Ctrl As Any Ptr, st As SymbolsType Ptr, ParentCtrl As Any Ptr, bStart As Boolean)
 		Declare Sub PasteControl()
 		Declare Sub DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
 		Declare Sub DuplicateControl()
