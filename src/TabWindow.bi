@@ -248,6 +248,7 @@ Public:
 	Declare Sub PreprocessorNumberOff
 	Declare Sub SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub DeleteBlankLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Declare Sub FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub Comment

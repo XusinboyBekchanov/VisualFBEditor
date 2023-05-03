@@ -9956,7 +9956,7 @@ mnuCode.Add(ML("Convert to Lowercase"), "", "ConvertToLowercase", @mClick)
 mnuCode.Add(ML("Convert to Uppercase "), "", "ConvertToUppercase", @mClick)
 mnuCode.Add("-")
 mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mClick)
-
+mnuCode.Add(ML("Format With Basis Word"), "", "FormatWithBasisWord", @mClick)
 Sub pnlForm_Message(ByRef Sender As Control, ByRef msg As Message)
 	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pnl->Parent)
@@ -12637,6 +12637,54 @@ Sub TabWindow.DeleteBlankLines(ByVal StartLine As Integer = -1, ByVal EndLine As
 	End With
 End Sub
 
+Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		If StartLine = -1 Or EndLine = -1 Then
+			Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			StartLine = iSelStartLine
+			EndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		End If
+		Dim As EditControlLine Ptr FECLine= .Content.Lines.Items[StartLine]
+		If FECLine->CommentIndex > 0 OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") Then Return
+		.UpdateLock
+		.Changing("FormatWithBasisWord")
+		Dim As WString * 255 BasisWord = ""
+		Dim As Integer BasisPosition, Pos1
+		ECLine = .Content.Lines.Items[StartLine]
+		Dim As Integer PosEq = InStr(LCase(*FECLine->Text), " = ")
+		Dim As Integer PosSe = InStr(LCase(*FECLine->Text), " : ")
+		Dim As Integer PosAs = InStr(LCase(*FECLine->Text), " as ")
+		If PosAs > 0 AndAlso ((PosEq < 1 AndAlso PosSe < 1) OrElse (PosSe> 0 AndAlso PosAs < PosSe) OrElse (PosEq > 0 AndAlso PosAs < PosEq)) Then BasisWord = " as "
+		If BasisWord = "" AndAlso PosSe > 0 AndAlso ((PosEq < 1 AndAlso PosAs < 1) OrElse (PosAs > 0 AndAlso PosSe < PosAs) OrElse (PosEq > 0 AndAlso PosSe < PosEq)) Then BasisWord = " : "
+		If BasisWord = "" AndAlso PosEq > 0 AndAlso ((PosAs < 1 AndAlso PosSe < 1) OrElse (PosSe> 0 AndAlso PosEq < PosSe) OrElse (PosAs > 0 AndAlso PosEq < PosAs)) Then BasisWord = " = "
+		If BasisWord <> "" Then
+			For i As Integer = StartLine To EndLine
+				FECLine = .Content.Lines.Items[i]
+				If FECLine->CommentIndex = 0 AndAlso StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") = False Then 
+					BasisPosition = Max(BasisPosition, InStr(LCase(*FECLine->Text), BasisWord))
+				End If
+			Next
+			Dim As WString Ptr LineStr
+			For i As Integer = StartLine To EndLine
+				FECLine = .Content.Lines.Items[i]
+				Pos1 = InStr(LCase(*FECLine->Text), BasisWord)
+				'Print FECLine->CommentIndex
+				If CBool(Pos1 > 0) AndAlso CBool(Pos1 <= BasisPosition) AndAlso CBool(FECLine->CommentIndex = 0) AndAlso (Not StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'")) AndAlso CBool(Right(Trim(*FECLine->Text, Any !"\t "), 2) <> "'/") Then
+					WLet(LineStr, *FECLine->Text)
+					FECLine->Ends.Clear
+					FECLine->EndsCompleted = False
+					WLet(FECLine->Text, Mid(*LineStr, 1, Pos1) & Space(BasisPosition - Pos1 + 1) & Mid(*LineStr, Pos1 + 1))
+				End If
+			Next
+		End If
+		.Changed("FormatWithBasisWord")
+		.UpdateUnLock
+	End With
+End Sub
+
 Sub TabWindow.ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -12655,6 +12703,8 @@ Sub TabWindow.ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 		Dim As EditControlLine Ptr FECLine = .Content.Lines.Items[iSelStartLine]
 		Dim As WString Ptr LineStr
 		WLet(LineStr, *FECLine->Text)
+		FECLine->Ends.Clear
+		FECLine->EndsCompleted = False
 		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
 			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & LCase(Mid(*LineStr, iSelStartChar + 1)))
 			FECLine = .Content.Lines.Items[iSelEndLine]
@@ -12668,6 +12718,8 @@ Sub TabWindow.ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 			For i As Integer = iSelStartLine + 1 To iSelEndLine - 1
 				FECLine = .Content.Lines.Items[i]
 				WLet(LineStr, *FECLine->Text)
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
 				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, LCase(*LineStr))
 			Next i
 		End If
@@ -12695,6 +12747,8 @@ Sub TabWindow.ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 		Dim As EditControlLine Ptr FECLine = .Content.Lines.Items[iSelStartLine]
 		Dim As WString Ptr LineStr
 		WLet(LineStr, *FECLine->Text)
+		FECLine->Ends.Clear
+		FECLine->EndsCompleted = False
 		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
 			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & UCase(Mid(*LineStr, iSelStartChar + 1)))
 			FECLine = .Content.Lines.Items[iSelEndLine]
@@ -12707,6 +12761,8 @@ Sub TabWindow.ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 		If iSelEndLine > iSelStartLine + 1 Then
 			For i As Integer = iSelStartLine + 1 To iSelEndLine - 1
 				FECLine = .Content.Lines.Items[i]
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
 				WLet(LineStr, *FECLine->Text)
 				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, UCase(*LineStr))
 			Next i

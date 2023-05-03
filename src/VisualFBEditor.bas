@@ -449,7 +449,7 @@ Sub mClick(Sender As My.Sys.Object)
 			End If
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "SplitHorizontally", "SplitVertically", _
-		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "DeleteBlankLines", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
+		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "DeleteBlankLines", "FormatWithBasisWord", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
 		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "AddProcedure" '
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
@@ -459,6 +459,7 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "Close":                       CloseTab(tb)
 		Case "SortLines":                   tb->SortLines
 		Case "DeleteBlankLines":            tb->DeleteBlankLines
+		Case "FormatWithBasisWord" :        tb->FormatWithBasisWord
 		Case "ConvertToLowercase":           tb->ConvertToLowercase
 		Case "ConvertToUppercase":           tb->ConvertToUppercase
 		Case "SplitHorizontally":           tb->txtCode.SplittedHorizontally = Not mnuSplitHorizontally->Checked
