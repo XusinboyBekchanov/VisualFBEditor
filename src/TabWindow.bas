@@ -12676,7 +12676,7 @@ Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine
 					WLet(LineStr, *FECLine->Text)
 					FECLine->Ends.Clear
 					FECLine->EndsCompleted = False
-					WLet(FECLine->Text, Mid(*LineStr, 1, Pos1) & Space(BasisPosition - Pos1 + 1) & Mid(*LineStr, Pos1 + 1))
+					WLet(FECLine->Text, Mid(*LineStr, 1, Pos1) & Space(BasisPosition - Pos1) & Mid(*LineStr, Pos1 + 1))
 				End If
 			Next
 		End If
