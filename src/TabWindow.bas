@@ -9953,7 +9953,7 @@ mnuCode.Add("-")
 mnuCode.Add(ML("Define"), "", "Define", @mClick)
 mnuCode.Add("-")
 mnuCode.Add(ML("Convert to Lowercase"), "", "ConvertToLowercase", @mClick)
-mnuCode.Add(ML("Convert to Uppercase "), "", "ConvertToUppercase", @mClick)
+mnuCode.Add(ML("Convert to Uppercase"), "", "ConvertToUppercase", @mClick)
 mnuCode.Add("-")
 mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mClick)
 mnuCode.Add(ML("Format With Basis Word"), "", "FormatWithBasisWord", @mClick)
@@ -12651,27 +12651,43 @@ Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine
 		If FECLine->CommentIndex > 0 OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") Then Return
 		.UpdateLock
 		.Changing("FormatWithBasisWord")
-		Dim As WString * 255 BasisWord = ""
-		Dim As Integer BasisPosition, Pos1
+		Dim As WString * 10 BasisWord = ""
+		Dim As Integer BasisPosition, PosiWord, Pos1
 		ECLine = .Content.Lines.Items[StartLine]
-		Dim As Integer PosEq = InStr(LCase(*FECLine->Text), " = ")
-		Dim As Integer PosSe = InStr(LCase(*FECLine->Text), " : ")
-		Dim As Integer PosAs = InStr(LCase(*FECLine->Text), " as ")
-		If PosAs > 0 AndAlso ((PosEq < 1 AndAlso PosSe < 1) OrElse (PosSe> 0 AndAlso PosAs < PosSe) OrElse (PosEq > 0 AndAlso PosAs < PosEq)) Then BasisWord = " as "
-		If BasisWord = "" AndAlso PosSe > 0 AndAlso ((PosEq < 1 AndAlso PosAs < 1) OrElse (PosAs > 0 AndAlso PosSe < PosAs) OrElse (PosEq > 0 AndAlso PosSe < PosEq)) Then BasisWord = " : "
-		If BasisWord = "" AndAlso PosEq > 0 AndAlso ((PosAs < 1 AndAlso PosSe < 1) OrElse (PosSe> 0 AndAlso PosEq < PosSe) OrElse (PosAs > 0 AndAlso PosEq < PosAs)) Then BasisWord = " = "
+		PosiWord = 99999
+		Pos1 = InStr(LCase(*FECLine->Text), " = ")
+		If Pos1 > 1 Then PosiWord = Pos1 : BasisWord = " = "
+		Pos1 = InStr(LCase(*FECLine->Text), " as ")
+		If Pos1 > 1 AndAlso PosiWord > Pos1 Then PosiWord = Pos1 : BasisWord = " as "
+		Pos1 = InStr(LCase(*FECLine->Text), ": ")
+		If Pos1 > 1 AndAlso PosiWord > Pos1 Then PosiWord = Pos1 : BasisWord = ": "
+		Pos1 = InStr(LCase(*FECLine->Text), ", ")
+		If Pos1 > 1 AndAlso PosiWord > Pos1 Then PosiWord = Pos1 : BasisWord = ", "
+		Pos1 = InStr(LCase(*FECLine->Text), "  ")
+		If Pos1 > 1 AndAlso BasisWord = "" Then PosiWord = Pos1 : BasisWord = "  "
+		
 		If BasisWord <> "" Then
+			Dim As WString Ptr LineStr
+			Dim j As Integer
 			For i As Integer = StartLine To EndLine
 				FECLine = .Content.Lines.Items[i]
-				If FECLine->CommentIndex = 0 AndAlso StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") = False Then 
+				If FECLine->CommentIndex = 0 AndAlso StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") = False Then
+					If BasisWord = "  " Then
+						Pos1 = InStr(*FECLine->Text, BasisWord)
+						If Pos1 > 0 Then
+							For j = Pos1 To Len(*FECLine->Text)
+								If Mid(*FECLine->Text, j, 1) <> " " Then Exit For
+							Next
+							WLet(LineStr, *FECLine->Text)
+							WLet(FECLine->Text, RTrim(Mid(*LineStr, 1, j - 1)) & "  " & LTrim(Mid(*LineStr, j)))
+						End If
+					End If
 					BasisPosition = Max(BasisPosition, InStr(LCase(*FECLine->Text), BasisWord))
 				End If
 			Next
-			Dim As WString Ptr LineStr
 			For i As Integer = StartLine To EndLine
 				FECLine = .Content.Lines.Items[i]
 				Pos1 = InStr(LCase(*FECLine->Text), BasisWord)
-				'Print FECLine->CommentIndex
 				If CBool(Pos1 > 0) AndAlso CBool(Pos1 <= BasisPosition) AndAlso CBool(FECLine->CommentIndex = 0) AndAlso (Not StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'")) AndAlso CBool(Right(Trim(*FECLine->Text, Any !"\t "), 2) <> "'/") Then
 					WLet(LineStr, *FECLine->Text)
 					FECLine->Ends.Clear
@@ -12679,6 +12695,7 @@ Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine
 					WLet(FECLine->Text, Mid(*LineStr, 1, Pos1) & Space(BasisPosition - Pos1) & Mid(*LineStr, Pos1 + 1))
 				End If
 			Next
+			Deallocate_(LineStr)
 		End If
 		.Changed("FormatWithBasisWord")
 		.UpdateUnLock
