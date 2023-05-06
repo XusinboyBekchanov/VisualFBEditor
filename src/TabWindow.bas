@@ -12665,7 +12665,6 @@ Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine
 		If Pos1 > 1 AndAlso PosiWord > Pos1 Then PosiWord = Pos1 : BasisWord = ", "
 		Pos1 = InStr(LCase(*FECLine->Text), "  ")
 		If Pos1 > 1 AndAlso BasisWord = "" Then PosiWord = Pos1 : BasisWord = "  "
-		
 		If BasisWord <> "" Then
 			Dim As WString Ptr LineStr
 			Dim j As Integer
@@ -12692,7 +12691,7 @@ Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine
 					WLet(LineStr, *FECLine->Text)
 					FECLine->Ends.Clear
 					FECLine->EndsCompleted = False
-					WLet(FECLine->Text, Mid(*LineStr, 1, Pos1) & Space(BasisPosition - Pos1) & Mid(*LineStr, Pos1 + 1))
+					WLet(FECLine->Text, Mid(*LineStr, 1, Pos1) & Space(BasisPosition - Pos1) & LTrim(Mid(*LineStr, Pos1 + 1)))
 				End If
 			Next
 			Deallocate_(LineStr)
