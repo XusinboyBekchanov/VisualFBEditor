@@ -97,6 +97,7 @@ Sub PopupClick(ByRef Sender As My.Sys.Object)
 	Case "Cut":             tb->Des->CutControl()
 	Case "Paste":           tb->Des->PasteControl()
 	Case "Delete":          tb->Des->DeleteControl()
+	Case "Duplicate":       tb->Des->DuplicateControl
 	Case "BringToFront":    DesignerBringToFront(*tb->Des, tb->Des->SelectedControl)
 	Case "SendToBack":      DesignerSendToBack(*tb->Des, tb->Des->SelectedControl)
 	Case "Properties":      If tb->Des->OnClickProperties Then tb->Des->OnClickProperties(*tb->Des, tb->Des->SelectedControl)
@@ -1900,7 +1901,6 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	If tb->Des = 0 Then Exit Sub
 	If tb->Des->DesignControl = 0 Then Exit Sub
 	If Ctrl = 0 Then Exit Sub
-	'
 	Dim FLine As WString Ptr
 	Dim frmName As WString * 100
 	Dim frmTypeName As WString * 100
@@ -1921,6 +1921,8 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	Dim As Integer iStart, iEnd, i = 0, k
 	tb->txtCode.Changing "Unsurni o`chirish"
+	tb->txtCode.SaveToFile(GetBakFileName(tb->FileName), tb->FileEncoding, tb->NewLineType)
+	tb->AutoSaveCharCount = 0
 	Do While i < tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		k = iStart
@@ -2751,6 +2753,8 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	If tb->Project <> 0 AndAlso Not tb->Project->Components.Contains(LibraryPath) Then tb->Project->Components.Add LibraryPath
 	Dim NewName As String = WGet(st->ReadPropertyFunc(Ctrl, "Name"))
 	tb->cboClass.Items.Add NewName, Ctrl, ClassName, ClassName, , 1, tb->FindControlIndex(NewName)
+	tb->txtCode.SaveToFile(GetBakFileName(tb->FileName), tb->FileEncoding, tb->NewLineType)
+	tb->AutoSaveCharCount = 0
 	Dim As EditControl txtCodeBi
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As Integer iStart, iEnd, j
