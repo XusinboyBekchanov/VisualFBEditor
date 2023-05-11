@@ -8357,7 +8357,7 @@ Sub frmMain_Resize(ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewH
 End Sub
 
 Sub frmMain_DropFile(ByRef sender As My.Sys.Object, ByRef FileName As WString)
-	AddTab FileName
+	OpenFiles FileName
 End Sub
 
 Sub ConnectAddIn(AddIn As String)
