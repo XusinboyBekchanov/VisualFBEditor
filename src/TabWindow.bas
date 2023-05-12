@@ -196,12 +196,14 @@ Sub NumberingProject(pSender As Any Ptr)
 	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateLock
 	pfrmMain->Enabled = False
 	StartProgress
-	For i As Integer = 0 To tn2->Nodes.Count - 1
-		tn = tn2->Nodes.Item(i)
+	' Now change to Numbering within module only
+	'For i As Integer = 0 To tn2->Nodes.Count - 1
+	'	tn = tn2->Nodes.Item(i)
+	tn = ptvExplorer->SelectedNode : tn1 = tn 'Now change to Numbering within module only
 		ee = tn->Tag
 		If ee = 0 Then
-			For j As Integer = 0 To tn->Nodes.Count - 1
-				tn1 = tn->Nodes.Item(j)
+			'For j As Integer = 0 To tn->Nodes.Count - 1
+			'	tn1 = tn->Nodes.Item(j)
 				If tn1 <> 0 Then
 					ee = tn1->Tag
 					If ee <> 0 AndAlso (EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".frm")) Then
@@ -223,30 +225,30 @@ Sub NumberingProject(pSender As Any Ptr)
 						End If
 					End If
 				End If
-			Next
-		ElseIf (EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".frm")) Then
-			tb = GetTab(*ee->FileName)
-			If tb = 0 Then
-				txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
-				ptxt = @txt
-			Else
-				ptxt = @tb->txtCode
-			End If
-			If bPreprocesssor Then
-				If bRemovePreprocessor Then PreprocessorNumberingOff(*ptxt, True) Else PreprocessorNumberingOn(*ptxt, *ee->FileName, True)
-			Else
-				If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
-			End If
-			If tb = 0 Then 
-				FileCopy  *ee->FileName, GetBakFileName(*ee->FileName)
-				ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
-			End If
+			'Next
+		'ElseIf (EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".frm")) Then
+		'	tb = GetTab(*ee->FileName)
+		'	If tb = 0 Then
+		'		txt.LoadFromFile(*ee->FileName, FileEncoding, NewLineType)
+		'		ptxt = @txt
+		'	Else
+		'		ptxt = @tb->txtCode
+		'	End If
+		'	If bPreprocesssor Then
+		'		If bRemovePreprocessor Then PreprocessorNumberingOff(*ptxt, True) Else PreprocessorNumberingOn(*ptxt, *ee->FileName, True)
+		'	Else
+		'		If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
+		'	End If
+		'	If tb = 0 Then
+		'		FileCopy  *ee->FileName, GetBakFileName(*ee->FileName)
+		'		ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
+		'	End If
 		End If
-	Next
+	'Next
 	StopProgress
 	pfrmMain->Enabled = True
 	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateUnLock
-	MsgBox ML("Done") & "!"
+	'MsgBox ML("Done") & "!"
 End Sub
 
 Function GetTab(ByRef FileName As WString) As TabWindow Ptr
@@ -12239,7 +12241,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			If EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") OrElse EndsWith(RTrim(*FECLine->Text, Any !"\t "), ",_") Then
 				bNotNumberNext = True
 			End If
-			If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
+			If CBool(Trim(*FECLine->Text, Any !"\t ") = "") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
 				Continue For
 			ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
 				bNotNumberNext = True
