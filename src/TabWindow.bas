@@ -179,6 +179,28 @@ Sub FormatProject(UnFormat As Any Ptr)
 	ThreadsLeave()
 End Sub
 
+Sub NumberingModule(pSender As Any Ptr)
+	Dim As Boolean bMacro = StartsWith(Cast(My.Sys.Object Ptr, pSender)->ToString, "ModuleMacroNumberOn")
+	Dim As Boolean bStartsOfProcs = EndsWith(Cast(My.Sys.Object Ptr, pSender)->ToString, "StartsOfProcs")
+	Dim As Boolean bPreprocesssor = StartsWith(Cast(My.Sys.Object Ptr, pSender)->ToString, "ModulePreprocessor")
+	Dim As Boolean bRemove = Cast(My.Sys.Object Ptr, pSender)->ToString = "ModuleNumberOff"
+	Dim As Boolean bRemovePreprocessor = Cast(My.Sys.Object Ptr, pSender)->ToString = "ModulePreprocessorNumberOff"
+	Dim As EditControl Ptr ptxt
+	Dim As TabWindow Ptr tbCurrent = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateLock Else Exit Sub
+	pfrmMain->Enabled = False
+	StartProgress
+	ptxt = @tbCurrent->txtCode
+	If bPreprocesssor Then
+		If bRemovePreprocessor Then PreprocessorNumberingOff(*ptxt, True) Else PreprocessorNumberingOn(*ptxt, tbCurrent->FileName, True)
+	Else
+		If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
+	End If
+	StopProgress
+	pfrmMain->Enabled = True
+	If tbCurrent <> 0 Then tbCurrent->txtCode.UpdateUnLock
+End Sub
+
 Sub NumberingProject(pSender As Any Ptr)
 	Dim As TreeNode Ptr tn, tn1, tn2 = ptvExplorer->SelectedNode
 	Dim As ExplorerElement Ptr ee
@@ -237,7 +259,7 @@ Sub NumberingProject(pSender As Any Ptr)
 			Else
 				If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
 			End If
-			If tb = 0 Then 
+			If tb = 0 Then
 				FileCopy  *ee->FileName, GetBakFileName(*ee->FileName)
 				ptxt->SaveToFile(*ee->FileName, FileEncoding, NewLineType)
 			End If
@@ -361,11 +383,16 @@ Sub ChangeMenuItemsEnabled
 	miRemoveProjectNumbering->Enabled = bEnabled
 	miProjectPreprocessorNumbering->Enabled = bEnabled
 	miRemoveProjectPreprocessorNumbering->Enabled = bEnabled
-	dmiProjectMacroNumbering->Enabled = bEnabled
-	dmiProjectMacroNumberingStartsOfProcedures->Enabled = bEnabled
-	dmiRemoveProjectNumbering->Enabled = bEnabled
-	dmiProjectPreprocessorNumbering->Enabled = bEnabled
-	dmiRemoveProjectPreprocessorNumbering->Enabled = bEnabled
+	miModuleMacroNumbering->Enabled = bEnabled
+	miModuleMacroNumberingStartsOfProcedures->Enabled = bEnabled
+	miRemoveModuleNumbering->Enabled = bEnabled
+	miModulePreprocessorNumbering->Enabled = bEnabled
+	miRemoveModulePreprocessorNumbering->Enabled = bEnabled
+	dmiModuleMacroNumbering->Enabled = bEnabled
+	dmiModuleMacroNumberingStartsOfProcedures->Enabled = bEnabled
+	dmiRemoveModuleNumbering->Enabled = bEnabled
+	dmiModulePreprocessorNumbering->Enabled = bEnabled
+	dmiRemoveModulePreprocessorNumbering->Enabled = bEnabled
 	miStepInto->Enabled = bEnabled
 	miStepOver->Enabled = bEnabled
 End Sub
@@ -12239,7 +12266,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			If EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") OrElse EndsWith(RTrim(*FECLine->Text, Any !"\t "), ",_") Then
 				bNotNumberNext = True
 			End If
-			If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
+			If CBool(Trim(*FECLine->Text, Any !"\t ") = "") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
 				Continue For
 			ElseIf StartsWith(LTrim(LCase(*FECLine->Text), Any !"\t "), "select case ") Then
 				bNotNumberNext = True
