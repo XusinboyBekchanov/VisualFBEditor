@@ -6,6 +6,11 @@
 			#cmdline "frmRadio.rc"
 		#endif
 	#endif
+	#ifdef __FB_64BIT__
+		#libpath "./lib/win64"
+	#else
+		#libpath "./lib/win32"
+	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/GroupBox.bi"
 	#include once "mff/Label.bi"
