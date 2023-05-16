@@ -710,7 +710,7 @@
 			.Name = "chkHexSend"
 			.Text = "Hex"
 			.TabIndex = 46
-		.Visible = false
+		.Visible = False
 			.SetBounds 0, 10, 70, 20
 			.Designer = @This
 			.Parent = @Panel7
@@ -742,27 +742,27 @@
 	End Constructor
 	
 	Private Sub frmSerialPortType._TimerComponent_Timer(ByRef Sender As TimerComponent)
-		*Cast(frmSerialPortType Ptr, Sender.Designer).TimerComponent_Timer(Sender)
+		(*Cast(frmSerialPortType Ptr, Sender.Designer)).TimerComponent_Timer(Sender)
 	End Sub
 	
 	Private Sub frmSerialPortType._TextBox_Change(ByRef Sender As TextBox)
-		*Cast(frmSerialPortType Ptr, Sender.Designer).TextBox_Change(Sender)
+		(*Cast(frmSerialPortType Ptr, Sender.Designer)).TextBox_Change(Sender)
 	End Sub
 	
 	Private Sub frmSerialPortType._CheckBox_Click(ByRef Sender As CheckBox)
-		*Cast(frmSerialPortType Ptr, Sender.Designer).CheckBox_Click(Sender)
+		(*Cast(frmSerialPortType Ptr, Sender.Designer)).CheckBox_Click(Sender)
 	End Sub
 	
 	Private Sub frmSerialPortType._Form_Create(ByRef Sender As Control)
-		*Cast(frmSerialPortType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmSerialPortType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmSerialPortType._CommandButton_Click(ByRef Sender As Control)
-		*Cast(frmSerialPortType Ptr, Sender.Designer).CommandButton_Click(Sender)
+		(*Cast(frmSerialPortType Ptr, Sender.Designer)).CommandButton_Click(Sender)
 	End Sub
 	
 	Private Sub frmSerialPortType._ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmSerialPortType Ptr, Sender.Designer).ComboBoxEdit_Selected(Sender, ItemIndex)
+		(*Cast(frmSerialPortType Ptr, Sender.Designer)).ComboBoxEdit_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Dim Shared frmSerialPort As frmSerialPortType
