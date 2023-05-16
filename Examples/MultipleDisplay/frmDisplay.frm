@@ -279,47 +279,43 @@
 	End Constructor
 	
 	Private Sub frmDisplayType._Form_Create(ByRef Sender As Control)
-		*Cast(frmDisplayType Ptr, Sender.Designer).Form_Create(Sender)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
 	Private Sub frmDisplayType._CommandButton5_Click(ByRef Sender As Control)
-		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton5_Click(Sender)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton5_Click(Sender)
 	End Sub
 	
 	Private Sub frmDisplayType._CommandButton4_Click(ByRef Sender As Control)
-		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton4_Click(Sender)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton4_Click(Sender)
 	End Sub
 	
 	Private Sub frmDisplayType._ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmDisplayType Ptr, Sender.Designer).ComboBoxEdit3_Selected(Sender, ItemIndex)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).ComboBoxEdit3_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmDisplayType._CommandButton3_Click(ByRef Sender As Control)
-		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton3_Click(Sender)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton3_Click(Sender)
 	End Sub
 	
 	Private Sub frmDisplayType._CommandButton1_Click(ByRef Sender As Control)
-		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton1_Click(Sender)
-	End Sub
-	
-	Private Sub frmDisplayType.ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		EnumDisplayMode(ComboBoxEdit3.ItemIndex, ItemIndex)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 	End Sub
 	
 	Private Sub frmDisplayType._CommandButton6_Click(ByRef Sender As Control)
-		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton6_Click(Sender)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton6_Click(Sender)
 	End Sub
 	
 	Private Sub frmDisplayType._ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		*Cast(frmDisplayType Ptr, Sender.Designer).ComboBoxEdit4_Selected(Sender, ItemIndex)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).ComboBoxEdit4_Selected(Sender, ItemIndex)
 	End Sub
 	
 	Private Sub frmDisplayType._ListControl2_Click(ByRef Sender As Control)
-		*Cast(frmDisplayType Ptr, Sender.Designer).ListControl2_Click(Sender)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).ListControl2_Click(Sender)
 	End Sub
 	
 	Private Sub frmDisplayType._CommandButton2_Click(ByRef Sender As Control)
-		*Cast(frmDisplayType Ptr, Sender.Designer).CommandButton2_Click(Sender)
+		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton2_Click(Sender)
 	End Sub
 	
 	Dim Shared frmDisplay As frmDisplayType
@@ -894,5 +890,9 @@ End Sub
 
 Private Sub frmDisplayType.ListControl2_Click(ByRef Sender As Control)
 	GetDisplayMode(ComboBoxEdit3.ItemIndex, ComboBoxEdit4.ItemIndex, ListControl2.ItemIndex)
+End Sub
+
+Private Sub frmDisplayType.ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	EnumDisplayMode(ComboBoxEdit3.ItemIndex, ItemIndex)
 End Sub
 
