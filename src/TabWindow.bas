@@ -1948,8 +1948,8 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim As Boolean bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	Dim As Integer iStart, iEnd, i = 0, k
 	tb->txtCode.Changing "Unsurni o`chirish"
-	tb->txtCode.SaveToFile(GetBakFileName(tb->FileName), tb->FileEncoding, tb->NewLineType)
-	tb->AutoSaveCharCount = 0
+	'tb->txtCode.SaveToFile(GetBakFileName(tb->FileName), tb->FileEncoding, tb->NewLineType)
+	'tb->AutoSaveCharCount = 0
 	Do While i < tb->txtCode.LinesCount - 1
 		GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 		k = iStart
@@ -2780,8 +2780,8 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	If tb->Project <> 0 AndAlso Not tb->Project->Components.Contains(LibraryPath) Then tb->Project->Components.Add LibraryPath
 	Dim NewName As String = WGet(st->ReadPropertyFunc(Ctrl, "Name"))
 	tb->cboClass.Items.Add NewName, Ctrl, ClassName, ClassName, , 1, tb->FindControlIndex(NewName)
-	tb->txtCode.SaveToFile(GetBakFileName(tb->FileName), tb->FileEncoding, tb->NewLineType)
-	tb->AutoSaveCharCount = 0
+	'tb->txtCode.SaveToFile(GetBakFileName(tb->FileName), tb->FileEncoding, tb->NewLineType)
+	'tb->AutoSaveCharCount = 0
 	Dim As EditControl txtCodeBi
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi
 	Dim As Integer iStart, iEnd, j
