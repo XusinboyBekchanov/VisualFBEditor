@@ -10,7 +10,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=115
+BuildVersion=123
 AutoIncrementVersion=true
 ApplicationTitle="MultipleDisplay"
 ApplicationIcon=""
@@ -27,8 +27,8 @@ CompileTo=0
 OptimizationLevel=0
 OptimizationFastCode=false
 OptimizationSmallCode=false
-CompilationArguments32Windows="-x "MultipleDisplay32.exe"   -d __USE_WINAPI__ -d _WIN32_WINNT=&h0601"
-CompilationArguments64Windows="-x "MultipleDisplay64.exe"   -d __USE_WINAPI__ -d _WIN32_WINNT=&h0601"
+CompilationArguments32Windows="-x "MultipleDisplay32.exe" -d __USE_WINAPI__ -d _WIN32_WINNT=&h0601"
+CompilationArguments64Windows="-x "MultipleDisplay64.exe" -gen gas64 -d __USE_WINAPI__ -d _WIN32_WINNT=&h0601"
 CompilationArguments32Linux=""
 CompilationArguments64Linux=""
 CompilerPath=""

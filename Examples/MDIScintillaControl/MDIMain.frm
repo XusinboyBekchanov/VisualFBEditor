@@ -1,11 +1,11 @@
-'#Region "Form"
+﻿'#Region "Form"
 	#define __MDI__ MDIMain
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
-		Const _MAIN_FILE_ = __FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "MDIScintillaControl.rc"
 		#endif
+		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/Menus.bi"
@@ -24,9 +24,6 @@
 	#include once "../MDINotepad/TimeMeter.bi"
 	
 	Using My.Sys.Forms
-	#ifdef __USE_WINAPI__
-		InitDarkMode
-	#endif
 	
 	Type MDIMainType Extends Form
 		Dim hSci As Any Ptr
@@ -2397,11 +2394,12 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 			Sender.Checked = True
 		End If
 		tbViewDarkMode.Checked = Sender.Checked
-		SetDarkMode(Sender.Checked, Sender.Checked)
 		For i = 0 To lstMdiChild.Count - 1
 			a = lstMdiChild.Item(i)
 			a->Sci.DarkMode = Sender.Checked
 		Next
+		App.DarkMode = Sender.Checked
+		InvalidateRect(0, 0, True)
 	Case "mnuViewWhitespace"
 		If Sender.Checked Then
 			Sender.Checked = False

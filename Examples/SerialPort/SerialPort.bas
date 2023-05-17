@@ -71,11 +71,11 @@ Private Function SerialPort.ThreadProcedure(ByVal pParam As LPVOID) As DWORD
 	
 	Dim recdata As ZString Ptr
 	Dim recComState As COMSTAT
-	Dim ErrorFlag As Integer
+	Dim ErrorFlag As DWORD
 	Dim lResult As Integer
 	Dim lngSize As Integer
 	Dim NumToRead As Integer
-	Dim NumhaveRead As Integer
+	Dim NumhaveRead As DWORD
 	
 	PurgeComm (a->mHandle, PURGE_RXCLEAR Or PURGE_TXCLEAR Or PURGE_RXABORT Or PURGE_TXABORT)
 	While(a->mHandle)
@@ -97,7 +97,7 @@ Private Function SerialPort.ThreadProcedure(ByVal pParam As LPVOID) As DWORD
 End Function
 
 Private Function SerialPort.Write(ByVal WriteData As ZString Ptr, ByVal DataLength As Integer) As Integer
-	Dim NumberWritten As Integer   '用来记录写入的字节长度
+	Dim NumberWritten As DWORD   '用来记录写入的字节长度
 	
 	If WriteFile(mHandle, WriteData, DataLength, @NumberWritten, @mOverlapped) Then
 		FlushFileBuffers(mHandle)
