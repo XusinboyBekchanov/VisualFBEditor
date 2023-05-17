@@ -1,11 +1,11 @@
-'#Region "Form"
+﻿'#Region "Form"
 	#define __MDI__ MDIMain
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
-		Const _MAIN_FILE_ = __FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "MDINotepad.rc"
 		#endif
+		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/Menus.bi"
@@ -24,9 +24,6 @@
 	#include once "TimeMeter.bi"
 	
 	Using My.Sys.Forms
-	#ifdef __USE_WINAPI__
-		InitDarkMode
-	#endif
 	
 	Type MDIMainType Extends Form
 		Dim timr As TimeMeter
@@ -1249,7 +1246,7 @@
 		With spSpeed
 			.Name = "spSpeed"
 			.Designer = @This
-			.Width = 100
+			.Width = 160
 			.Parent = @StatusBar1
 		End With
 		' spSpace
@@ -1635,7 +1632,8 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 			Sender.Checked = True
 		End If
 		tbViewDarkMode.Checked = Sender.Checked
-		SetDarkMode(Sender.Checked, Sender.Checked)
+		App.DarkMode = Sender.Checked
+		InvalidateRect(0, 0, True)
 	Case "mnuViewWordWarps"
 		Dim a As MDIChildType Ptr = actMdiChild
 		Dim p As WString Ptr

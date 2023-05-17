@@ -58,7 +58,28 @@ Private Function GetHash(src As Any Ptr, nsize As Integer, ByVal Algorithm As Lo
 	End If
 End Function
 
-Function GetFileData(ByRef FileName As Const WString, ByRef rtnData As Any Ptr) As UInteger
+
+Function GetFileData Overload (ByVal wFile As WString Ptr) As String
+	If wFile = NULL OrElse wFile[0] = 0 Then Exit Function
+	Dim h As HANDLE 'FILE_ATTRIBUTE_NORMAL=&H80 ，FILE_SHARE_READ=1
+	h = CreateFileW(wFile, GENERIC_READ, 1, NULL, OPEN_EXISTING, &H80, NULL)
+	If h = INVALID_HANDLE_VALUE Then Exit Function
+	Dim s As UByte Ptr = NULL , X As ULong = 0 , n As ULong = GetFileSize(h , @X)
+	If n > 0 And X = 0 Then s = malloc(n + 1)
+	If s AndAlso ReadFile(h, s, n, @X, NULL) AndAlso n = X Then
+		' Function = s : s = ""
+		Asm
+			mov ebx ,[s] ; mov [Function + 0], ebx
+			mov ebx ,[n] ; mov [Function + 4], ebx
+			inc ebx ; mov [Function + 8], ebx
+		End Asm : s[n] = 0 : s = NULL
+	End If : CloseHandle(h) : h = INVALID_HANDLE_VALUE
+	
+	'CreateFileMapping
+
+End Function
+
+Function GetFileData Overload (ByRef FileName As Const WString, ByRef rtnData As Any Ptr) As UInteger
 	Dim h As Integer = FreeFile
 	Dim fsize As UInteger = 0
 	
@@ -301,7 +322,7 @@ Private Sub FilesFind.ListFile(ByRef pathroot As Const WString, ByVal FilterInde
 				tIndex = mFileCount + 1
 				If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 					ReDim Preserve mFiles(mFileCount + mFileInc)
-				EndIf
+				End If
 				WStr2Ptr(pathroot & "\" & wfd.cFileName, mFiles(tIndex))
 				mFileSize += WFD2Size(@wfd)
 				mFileCount += 1
@@ -344,7 +365,7 @@ Private Sub FilesFind.ListPath(ByRef pathroot As Const WString, ByVal FilterInde
 					tIndex = mPathCount + 1
 					If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 						ReDim Preserve mPaths(mPathCount + mFileInc)
-					EndIf
+					End If
 					WStr2Ptr(pathroot & "\" & wfd.cFileName, mPaths(tIndex))
 					mPathCount += 1
 				End If
@@ -387,7 +408,7 @@ Private Sub FilesFind.ListFilePath(ByRef pathroot As Const WString, ByVal Filter
 					tIndex = mPathCount + 1
 					If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 						ReDim Preserve mPaths(mPathCount + mFileInc)
-					EndIf
+					End If
 					WStr2Ptr(pathroot & "\" & wfd.cFileName, mPaths(tIndex))
 					mPathCount += 1
 				End If
@@ -395,7 +416,7 @@ Private Sub FilesFind.ListFilePath(ByRef pathroot As Const WString, ByVal Filter
 				tIndex = mFileCount + 1
 				If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 					ReDim Preserve mFiles(mFileCount + mFileInc)
-				EndIf
+				End If
 				WStr2Ptr(pathroot & "\" & wfd.cFileName, mFiles(tIndex))
 				mFileSize += WFD2Size(@wfd)
 				mFileCount += 1
@@ -730,7 +751,7 @@ Private Sub FilesSync.ErrorInc(ErrorTitle As WString, ErrorMsg As WString Ptr)
 		tIndex = mErrorMessageCount + 1
 		If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 			ReDim Preserve mErrorMessage(mErrorMessageCount + mFileInc)
-		EndIf
+		End If
 		WStr2Ptr("Error: " & ErrorTitle & *ErrorMsg, mErrorMessage(tIndex))
 	Case 2
 		LogFile("Error: " & ErrorTitle & vbTab & *ErrorMsg)
@@ -747,49 +768,49 @@ Private Sub FilesSync.CountInc(CntIdx As PathFileCountEnum, IncMsg As WString Pt
 			tIndex = mFileCopyCount + 1
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mFileCopy(mFileCopyCount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(IncMsg, mFileCopy(tIndex))
 		Case Count_FileOverwrite
 			tIndex = mFileOverwriteCount + 1
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mFileOverwrite(mFileOverwriteCount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(IncMsg, mFileOverwrite(tIndex))
 		Case Count_FileSkip
 			tIndex = mFileSkipCount + 1
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mFileSkip(mFileSkipCount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(IncMsg, mFileSkip(tIndex))
 		Case Count_FileDelete
 			tIndex = mFileDeleteCount + 1
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mFileDelete(mFileDeleteCount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(IncMsg, mFileDelete(tIndex))
 		Case Count_PathCreate
 			tIndex = mPathCreateCount + 1
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mPathCreate(mPathCreateCount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(IncMsg, mPathCreate(tIndex))
 		Case Count_PathRemove
 			tIndex = mPathRemoveCount + 1
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mPathRemove(mPathRemoveCount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(IncMsg, mPathRemove(tIndex))
 		Case Count_PathRemoveBNotInA
 			tIndex = mPathRemoveBNotInACount + 1
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mPathRemoveBNotInA(mPathRemoveBNotInACount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(IncMsg, mPathRemoveBNotInA(tIndex))
 		Case Count_FileDeleteBNotInA
 			tIndex = mFileDeleteBNotInACount + 1
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mFileDeleteBNotInA(mFileDeleteBNotInACount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(IncMsg, mFileDeleteBNotInA(tIndex))
 		End Select
 	Case 2
@@ -1071,7 +1092,7 @@ Private Sub FilesSync.ListFileSub(PathStr As WString)
 				tIndex = mListPathCount + 1
 				If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 					ReDim Preserve mListPath(mListPathCount + mFileInc)
-				EndIf
+				End If
 				WStr2Ptr(PathStr + "\" + wfd.cFileName, mListPath(tIndex))
 				mListPathCount = tIndex
 			End If
@@ -1080,7 +1101,7 @@ Private Sub FilesSync.ListFileSub(PathStr As WString)
 			If ((tIndex Mod mFileInc) = 0) Or (tIndex = 0) Then
 				ReDim Preserve mListFile(mListFileCount + mFileInc)
 				ReDim Preserve mListWFD(mListFileCount + mFileInc)
-			EndIf
+			End If
 			WStr2Ptr(PathStr + "\" + wfd.cFileName, mListFile(tIndex))
 			memcpy(@mListWFD(tIndex), @wfd, SizeOf(wfd))
 			mListFileCount = tIndex

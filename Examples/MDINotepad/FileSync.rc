@@ -4,8 +4,8 @@
 #define APP_TITLE_STR               "FileSync\0"
 #define VER_FILEDESCRIPTION_STR     "FileSync\0"
 
-#define VER_FILEVERSION             1,0,0,10
-#define VER_FILEVERSION_STR         "1.0.0.10\0"
+#define VER_FILEVERSION             1,0,0,17
+#define VER_FILEVERSION_STR         "1.0.0.17\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

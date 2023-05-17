@@ -4,6 +4,8 @@
 
 #include once "DrawClockCalendar.bi"
 
+'DitalClock############################################################
+
 Destructor DitalClock
 	
 End Destructor
@@ -93,7 +95,7 @@ Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime
 	Canvas.TextOut mOx + mW(1) + (mW(2) - Canvas.TextWidth(mDt)) / 2 , mOy + mH(0) / 2, mDt, mClr(5)
 End Sub
 
-'############################################################
+'DayCalendar############################################################
 
 Destructor DayCalendar
 	
@@ -187,7 +189,7 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, D
 	Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, (mH(2) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(3)
 	'月
 	Canvas.Font.Size = mFontSize / 4
-	mDt = cal.MonName(Month(DateTime))
+	mDt = cal.MonName(Month(DateTime)) & "月"
 	Canvas.TextOut (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(5)
 	mDt = IIf(cal.IsLeap, "闰", "") & cal.MonName(cal.lMonth) & "月"
 	Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(5)
@@ -247,7 +249,7 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, D
 	Canvas.TextOut mW(0) / 2 + (mW(0) / 2 - Canvas.TextWidth(mDt)) / 2, mH(0) - mH(3) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(9)
 End Sub
 
-'############################################################
+'MonthCalendar############################################################
 
 Destructor MonthCalendar
 End Destructor

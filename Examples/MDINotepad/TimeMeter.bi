@@ -1,6 +1,6 @@
 ﻿#pragma once
 ' TimeMeter 计时器
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
 Type TimeMeter

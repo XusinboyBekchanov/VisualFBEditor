@@ -1,6 +1,6 @@
 ﻿#pragma once
 ' TimeMeter 计时器
-' Copyright (c) 2021 CM.Wang
+' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "TimeMeter.bi"
@@ -11,7 +11,7 @@ Constructor TimeMeter
 End Constructor
 
 Destructor TimeMeter
-	'QueryPerformanceCounter Cast(PLARGE_INTEGER ,@tStart)
+
 End Destructor
 
 Private Sub TimeMeter.Start()

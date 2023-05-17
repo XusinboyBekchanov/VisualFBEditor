@@ -23,7 +23,7 @@ Private:
 Public:
 	FontNameE As String
 	FontNameC As String
-
+	
 	Declare Constructor
 	Declare Destructor
 	Declare Property Colon() As String
@@ -42,7 +42,7 @@ Private:
 	mShowCalendar As Boolean
 	mW(0) As Integer
 	mH(3) As Integer
-
+	
 	'index            0     1     2     3     4     5     6     7     8
 	mC(8) As UByte = {&h00, &h1f, &h3f, &h5f, &h7f, &h9f, &hbf, &hdf, &hff}
 	mClr(10) As ULong
@@ -51,7 +51,7 @@ Private:
 Public:
 	FontNameE As String
 	FontNameC As String
-
+	
 	Declare Constructor
 	Declare Destructor
 	Declare Function FontSize() As Integer
