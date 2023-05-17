@@ -386,7 +386,7 @@ Private Function ScintillaControl.Find(ByRef toFind As Const ZString Ptr, ByVal 
 		IndicatorClear()
 		If Len(*toFind) = 0 Then Return -1
 		
-		Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE, SCFIND_NONE)
+		Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, SCFIND_NONE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX)
 		
 		With mStf
 			.chrg.cpMin = 0
@@ -418,9 +418,9 @@ End Function
 Private Function ScintillaControl.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal MatchCase As Boolean = False) As Integer
 	SendMessage(Handle, SCI_TARGETWHOLEDOCUMENT, 0, 0)
 	If MatchCase Then
-		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_MATCHCASE, 0)
+		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_MATCHCASE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, 0)
 	Else
-		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_NONE, 0)
+		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_NONE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, 0)
 	End If
 	Dim targetstart As Integer = 0
 	Dim targetend As Integer = Length

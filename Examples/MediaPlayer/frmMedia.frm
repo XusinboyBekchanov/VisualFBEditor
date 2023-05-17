@@ -8,6 +8,7 @@
 		#ifdef __FB_WIN32__
 			#cmdline "frmMedia.rc"
 		#endif
+		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/CommandButton.bi"
@@ -28,8 +29,6 @@
 	#include once "string.bi"
 	
 	Using My.Sys.Forms
-	
-	InitDarkMode()
 	
 	#define JIF(x) If (FAILED(hr = (x))) \ {MSG(TEXT("FAILED(hr=0x%x) in ") TEXT(#x) TEXT("\n"), hr); Return hr; }
 	#define LIF(x) If (FAILED(hr = (x))) \ {MSG(TEXT("FAILED(hr=0x%x) in ") TEXT(#x) TEXT("\n"), hr); }
@@ -1098,6 +1097,6 @@ Private Sub frmMediaType.ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, Item
 End Sub
 
 Private Sub frmMediaType.chkDark_Click(ByRef Sender As CheckBox)
-	SetDarkMode(chkDark.Checked, chkDark.Checked)
+	App.DarkMode= chkDark.Checked
 	InvalidateRect(0, 0, True)
 End Sub

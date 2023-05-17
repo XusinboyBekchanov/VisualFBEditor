@@ -3516,8 +3516,6 @@
 		(*Cast(frmBassType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 
-	InitDarkMode()
-	
 	Dim Shared frmBass As frmBassType
 	
 	#ifndef _NOT_AUTORUN_FORMS_
@@ -5139,5 +5137,5 @@ Private Sub frmBassType.ComboBoxEdit6_Selected(ByRef Sender As ComboBoxEdit, Ite
 End Sub
 
 Private Sub frmBassType.CheckBox15_Click(ByRef Sender As CheckBox)
-	SetDarkMode(CheckBox15.Checked , CheckBox15.Checked)
+	App.DarkMode = CheckBox15.Checked
 End Sub

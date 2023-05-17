@@ -1,10 +1,10 @@
-'#Region "Form"
+﻿'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
-		Const _MAIN_FILE_ = __FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "Form1.rc"
 		#endif
+		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/Menus.bi"
@@ -14,11 +14,6 @@
 	#include once "mff/ToolBar.bi"
 	
 	Using My.Sys.Forms
-	
-	Using My.Sys.Forms
-	#ifdef __USE_WINAPI__
-		InitDarkMode
-	#endif
 	
 	Type MDIMainType Extends Form
 		Dim lstMdiChild As List
@@ -545,6 +540,7 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 		Else
 			Sender.Checked = True
 		End If
+		App.DarkMode = Sender.Checked
 		SetDarkMode(Sender.Checked, Sender.Checked)
 	Case Else
 		MsgBox Sender.Name & !"\r\nThis function is under construction", "View"

@@ -28,7 +28,7 @@ Private Sub WStrTitle(ByVal iCount As Integer = 80, ByRef ch As Const WString = 
 	Dim ll As Integer = Len(LW)
 	Dim rl As Integer = Len(RW)
 	Dim ml As Integer = Len(MW)
-
+	
 	If tl < ll + ml + rl Then tl = ll + ml + rl
 	
 	If RtnPtr Then Deallocate(RtnPtr)
@@ -41,16 +41,15 @@ Private Sub WStrTitle(ByVal iCount As Integer = 80, ByRef ch As Const WString = 
 End Sub
 
 Private Function InWStr Overload (ByVal StartPos As Integer, ByRef Source As Const WString, ByRef Find As Const WString) As Integer
+	If StartPos < 1 Then Return 0
 	Dim lenSource As Integer = Len(Source)
 	Dim lenFind As Integer = Len(Find)
 	If lenSource = 0 Then Return 0
 	If lenFind = 0 Then Return 0
 	If StartPos > lenSource - lenFind Then Return 0
-	If StartPos < 1 Then Return 0
 	
 	Dim i As Integer
 	Dim j As Integer = 0
-	Dim Count As Integer = 0
 	For i = StartPos - 1 To lenSource - 1
 		If Source[i] = Find[j] Then
 			j += 1
@@ -70,11 +69,9 @@ Private Function InWStr Overload (ByRef Source As Const WString, ByRef Find As C
 	If lenSource = 0 Then Return 0
 	If lenFind = 0 Then Return 0
 	If StartPos > lenSource - lenFind Then Return 0
-	If StartPos < 1 Then Return 0
 	
 	Dim i As Integer
 	Dim j As Integer = 0
-	Dim Count As Integer = 0
 	For i = StartPos - 1 To lenSource - 1
 		If Source[i] = Find[j] Then
 			j += 1
@@ -100,7 +97,6 @@ Private Function InWStrRev(ByRef Source As Const WString, ByRef Find As Const WS
 	
 	Dim i As Integer
 	Dim j As Integer = lenFind - 1
-	Dim Count As Integer = 0
 	For i = StartPos - 1 To 0 Step -1
 		If Source[i] = Find[j] Then
 			j -= 1
@@ -130,7 +126,7 @@ Private Function FindCountWStr Overload (ByRef SourceText As Const WString, Find
 				Count += 1
 				If (Count Mod mGrowSize) = 0 Then
 					Finds = Reallocate(Finds, (Count + mGrowSize)*SizeOf(Integer))
-				EndIf
+				End If
 				* (Finds + Count) = i - lenFind + 1
 				j = 0
 			End If
@@ -202,7 +198,7 @@ Private Function FullName2File(ByRef FullName As Const WString) ByRef As WString
 	Static rtn As WString Ptr
 	Dim i As Integer = InStrRev(FullName, WStr("\"))
 	If i Then
-		Dim j As Integer = (Len(FullName) - i) 
+		Dim j As Integer = (Len(FullName) - i)
 		WStr2Ptr(Right(FullName, j), rtn)
 		Return *rtn
 	Else
@@ -223,7 +219,7 @@ End Function
 
 Private Function TextUnicode2Ansi(ByRef UnicodeStr As Const WString, ByVal nCodePage As Integer = -1) ByRef As String
 	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-
+	
 	Static ansiStr As String
 	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
 	ansiStr = String(nLength, 0)
@@ -253,7 +249,7 @@ End Function
 
 Private Function TextToAnsi(ByRef UnicodeStr As Const WString, ByVal nCodePage As Integer = -1) ByRef As String
 	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-
+	
 	Static ansiStr As String
 	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
 	ansiStr = String(nLength+1, 0)
@@ -451,7 +447,7 @@ Private Function TextFromFile(ByRef FileName As Const WString, ByRef FileEncodin
 			OsEol = NewLineTypes.MacOSCR
 		#endif
 	#endif
-
+	
 	Dim As WString Ptr pTmp
 	If NewLineType<>OsEol Then
 		pTmp = TextChangeEOL(*pBuff, NewLineType, OsEol)
@@ -467,7 +463,7 @@ Private Function TextToFile(ByRef FileName As Const WString, ByRef SourceText As
 	Dim As LongInt FileSize = Len(SourceText)
 	
 	If FileSize= 0 Then Return False
-
+	
 	Dim OsEol As NewLineTypes
 	#if defined (__FB_WIN32__)
 		OsEol = NewLineTypes.WindowsCRLF
@@ -478,14 +474,14 @@ Private Function TextToFile(ByRef FileName As Const WString, ByRef SourceText As
 			OsEol = NewLineTypes.MacOSCR
 		#endif
 	#endif
-
+	
 	Dim As WString Ptr pTmp
 	If NewLineType <> OsEol Then
 		pTmp = TextChangeEOL(SourceText, OsEol, NewLineType)
 	Else
 		pTmp = StrPtr(SourceText)
 	End If
-
+	
 	If FileEncoding < FileEncodings.Utf8BOM Then
 		Result = Open(FileName For Binary Access Write As #Fn)
 		If Result = 0 Then
@@ -567,10 +563,10 @@ End Function
 Private Function JoinWStr(Source(Any) As WString Ptr, ByRef Deli As Const WString, ByRef Target As WString Ptr, ByVal defLb As Integer = -1, ByVal defUb As Integer = -1) As Integer
 	Dim Ub As Integer = UBound(Source)
 	Dim Lb As Integer = LBound(Source)
-
-	If deflb >= Lb And deflb <= Ub Then Lb = deflb
-	If defub >= Lb And defub <= Ub Then Ub = defub
-		
+	
+	If defLb >= Lb And defLb <= Ub Then Lb = defLb
+	If defUb >= Lb And defUb <= Ub Then Ub = defUb
+	
 	If Target Then Deallocate(Target)
 	If Ub < Lb Then Return -1
 	
@@ -633,7 +629,7 @@ Function FindLinesWStr Overload (ByRef Source As Const WString, ByRef Find As Co
 	If pFindCount Then
 		pLineCount = FindCountWStr(Source, vbCrLf, Lines)
 		
-		'		第一行
+		'第一行
 		For i = 0 To pFindCount - 1
 			If * (Finds + i) <= *Lines Then
 				iSt = 0
@@ -659,7 +655,7 @@ Function FindLinesWStr Overload (ByRef Source As Const WString, ByRef Find As Co
 			End If
 		Next
 		
-		'		第一行之外
+		'第一行之外
 		For i = k To pFindCount - 1
 			Do
 				If (* (Finds + i) >= * (Lines + j)) And (* (Finds + i) <= * (Lines + j + 1 )) Then
@@ -722,7 +718,7 @@ Private Function FindLinesWStr Overload (ByRef Source As Const WString, ByRef Fi
 		Dim pTmp As WString Ptr = CAllocate(2)
 		pLineCount = FindCountWStr(Source, vbCrLf, Lines)
 		
-		'		第一行
+		'第一行
 		For i = 0 To pFindCount - 1
 			If * (Finds + i) <= *Lines Then
 				iSt = 0
@@ -748,7 +744,7 @@ Private Function FindLinesWStr Overload (ByRef Source As Const WString, ByRef Fi
 			End If
 		Next
 		
-		'		第一行之外
+		'第一行之外
 		For i = k To pFindCount - 1
 			Do
 				If (* (Finds + i) >= * (Lines + j)) And (* (Finds + i) <= * (Lines + j + 1 )) Then

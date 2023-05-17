@@ -1,10 +1,10 @@
 ﻿'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
-		Const _MAIN_FILE_ = __FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "Hash.rc"
 		#endif
+		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/Panel.bi"
@@ -25,7 +25,7 @@
 		Dim timr As TimeMeter
 		Declare Sub HashFile()
 		Declare Sub HashText()
-		
+	
 		Declare Static Sub _cmdFile_Click(ByRef Sender As Control)
 		Declare Sub cmdFile_Click(ByRef Sender As Control)
 		Declare Static Sub _cmdHash_Click(ByRef Sender As Control)
@@ -472,6 +472,7 @@ Private Sub frmHashType.HashFile()
 	chk(5) = chkHash6.Checked
 	
 	j = lvFiles.ListItems.Count - 1
+	If j < 0 Then Exit Sub
 	ReDim a(j) As WString Ptr 'for filename
 	ReDim b(j + 1) As WString Ptr
 	For i = 0 To j
