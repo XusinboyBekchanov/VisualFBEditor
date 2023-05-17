@@ -3,6 +3,7 @@
 	#include once "mff/ListControl.bi"
 	#include once "mff/Label.bi"
 	#include once "mff/CommandButton.bi"
+	#include once "mff/TimerComponent.bi"
 	
 	Using My.Sys.Forms
 	
@@ -17,12 +18,15 @@
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Static Sub Form_Create_(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
+		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
+		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Constructor
 		
 		Dim As ListControl lstFiles
 		Dim As Label lblMessage
 		Dim As CommandButton cmdYes, cmdNo, cmdCancel
 		Dim As List SelectedItems
+		Dim As TimerComponent TimerComponent1
 	End Type
 
 	Common Shared pfSave As frmSave Ptr

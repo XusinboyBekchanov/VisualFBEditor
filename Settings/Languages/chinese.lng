@@ -1637,6 +1637,7 @@ VIRTUAL used on non-member procedure = 在非成员程序上使用VIRTUAL
 WEND without WHILE = WEND没有WHILE
 Wrong number of dimensions = 数组维数错误
 [General]
+  简体中文
 &About = 关于(&A)
 &Add = 添加(&A)
 &Add Watch = 添加监视(&A)
@@ -2178,7 +2179,10 @@ Menu Editor = 菜单编辑器
 Messages = 消息
 MFF path = 框架MFF 路径
 Minor = 次要
+module preprocessor numbering = 当前模块内预处理所有行编号
 Module = 模块
+Module macro numbering = 当前模块内宏处理所有行号
+Module macro numbering: Starts of procedures = 当前模块内宏处理：过程
 Modules = 模块
 More details ... = 更多详情...
 Move &Down = 下移(&D)
@@ -2331,6 +2335,8 @@ Redo = 重复
 Remove = 删除
 Remove Error Handling = 删除错误处理
 Remove Files from Project = 从工程中删除文件
+Remove module numbering = 删除当前模块内的所有宏处理编号
+Remove module preprocessor numbering = 删除当前模块内的所有预处理编号
 Remove Numbering = 删除当前行调试编号
 Remove Preprocessor Numbering = 删除预处理编号
 Remove Procedure numbering = 删除当前过程内编号
