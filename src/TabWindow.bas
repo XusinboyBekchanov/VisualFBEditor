@@ -9511,7 +9511,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						#ifndef __USE_GTK__
 							If pnlForm.Handle = 0 Then pnlForm.CreateWnd
 						#endif
-						Des = New_( My.Sys.Forms.Designer(pnlForm))
+						Des = New_( My.Sys.Forms.Designer(@pnlForm))
 						If Des = 0 Then bNotDesign = False: pfrmMain->UpdateUnLock: Exit Sub
 						Des->Tag = @This
 						Des->OnInsertingControl = @DesignerInsertingControl
