@@ -14,12 +14,15 @@ Rename MyFbFramework-master MyFbFramework
 
 cd MyFbFramework\mff
 
-set FBC=D:\FreeBasic\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
+set FBC32=D:\FreeBasic\FreeBASIC-1.10.0-winlibs-gcc-9.3.0\fbc32.exe
+set FBC64=D:\FreeBasic\FreeBASIC-1.10.0-winlibs-gcc-9.3.0\fbc64.exe
 
-"%FBC%" -b "mff.bi" "mff.rc" -dll -x "../mff32.dll" -v
+"%FBC32%" -b "mff.bi" "mff.rc" -dll -x "../mff32.dll" -v
+"%FBC64%" -b "mff.bi" "mff.rc" -dll -gen gcc -Wc -O3 -x "../mff64.dll" -v
 
 cd ..\..\..\..\VisualFBEditor\src
 
-"%FBC%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
+"%FBC32%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
+"%FBC64%" "VisualFBEditor.bas" -s gui -gen gcc -Wc -O3 -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
 
 cd ..\..\
