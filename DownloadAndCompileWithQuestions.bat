@@ -22,7 +22,7 @@ if "%DownloadCompiler%" == "no" goto selectpath
 
 if "%DownloadCompiler%" == "downloaded" goto setpath
 
-curl -L -O https://udomain.dl.sourceforge.net/project/fbc/FreeBASIC-1.10.0/Binaries-Windows/FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z
+curl -L -O https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-Windows/FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z
 
 :setpath
 
