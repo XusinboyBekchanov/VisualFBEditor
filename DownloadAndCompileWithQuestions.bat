@@ -1,6 +1,6 @@
 @echo off
 
-set /p DownloadCompiler=Do you want to download FreeBASIC Compiler 1.09.0 (yes/no/downloaded)? 
+set /p DownloadCompiler=Do you want to download FreeBASIC Compiler 1.10.0 (yes/no/downloaded)? 
 
 set /p DownloadGDB=Do you want to download gdb 11.2.90.20220320 (yes/no)? 
 
@@ -22,13 +22,13 @@ if "%DownloadCompiler%" == "no" goto selectpath
 
 if "%DownloadCompiler%" == "downloaded" goto setpath
 
-curl -L -O https://sourceforge.net/projects/fbc/files/FreeBASIC-1.09.0/Binaries-Windows/winlibs-gcc-9.3.0/FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z
+curl -L -O https://udomain.dl.sourceforge.net/project/fbc/FreeBASIC-1.10.0/Binaries-Windows/FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z
 
 :setpath
 
-set FBC32=%~dp0VisualFBEditor\Compilers\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc32.exe
+set FBC32=%~dp0VisualFBEditor\Compilers\FreeBASIC-1.10.0-winlibs-gcc-9.3.0\fbc32.exe
 
-set FBC64=%~dp0VisualFBEditor\Compilers\FreeBASIC-1.09.0-winlibs-gcc-9.3.0\fbc64.exe
+set FBC64=%~dp0VisualFBEditor\Compilers\FreeBASIC-1.10.0-winlibs-gcc-9.3.0\fbc64.exe
 
 goto download
 
@@ -115,7 +115,7 @@ cd VisualFBEditor\Controls\MyFbFramework\mff
 
 cd ..\..\..\..\VisualFBEditor\src
 
-"%FBC64%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
+"%FBC64%" "VisualFBEditor.bas" -s gui -gen gcc -Wc -O3 x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
 
 cd ..\..\..\
 
