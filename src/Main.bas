@@ -6133,7 +6133,7 @@ Sub CreateMenusAndToolBars
 	tbStandard.Buttons.Add tbsAutosize, "New", , @mClick, "New", , ML("New") & " (Ctrl+N)", True
 	tbStandard.Buttons.Add , "Open",, @mClick, "Open", , ML("Open") & " (Ctrl+O)", True
 	tbtSave = tbStandard.Buttons.Add(, "Save", , @mClick, "Save", , ML("Save") & "..." & " (Ctrl+S)", True, 0)
-	tbtSaveAll = tbStandard.Buttons.Add(, "SaveAll", , @mClick, "SaveAll", , ML("Save &All") & " (Shift+Ctrl+S)", True, 0)
+	tbtSaveAll = tbStandard.Buttons.Add(, "SaveAll", , @mClick, "SaveAll", , ML("Save &All") & " (Ctrl+Alt+Shift+S)", True, 0)
 	tbStandard.Buttons.Add tbsSeparator
 	tbtUndo = tbStandard.Buttons.Add(, "Undo", , @mClick, "Undo", , ML("Undo") & " (Ctrl+Z)", True, 0)
 	tbtRedo = tbStandard.Buttons.Add(, "Redo", , @mClick, "Redo", , ML("Redo") & " (Ctrl+Y)", True, 0)
