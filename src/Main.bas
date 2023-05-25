@@ -5562,10 +5562,12 @@ prProgress.Marquee = True
 'stBar.Add ""
 'stBar.Panels[1]->Alignment = 1
 
-Function HK(Key As String, Default As String = "") As String
+Function HK(Key As String, Default As String = "", WithSpace As Boolean = False) As String
 	Dim As String HotKey = HotKeys.Get(Key, Default)
 	If HotKey = "" Then
 		Return ""
+	ElseIf WithSpace Then
+		Return " (" & HotKey & ")"
 	Else
 		Return !"\t" & HotKey
 	End If
@@ -6130,19 +6132,19 @@ Sub CreateMenusAndToolBars
 	'	#endif
 	tbStandard.Flat = True
 	tbStandard.List = True
-	tbStandard.Buttons.Add tbsAutosize, "New", , @mClick, "New", , ML("New") & " (Ctrl+N)", True
-	tbStandard.Buttons.Add , "Open",, @mClick, "Open", , ML("Open") & " (Ctrl+O)", True
-	tbtSave = tbStandard.Buttons.Add(, "Save", , @mClick, "Save", , ML("Save") & "..." & " (Ctrl+S)", True, 0)
-	tbtSaveAll = tbStandard.Buttons.Add(, "SaveAll", , @mClick, "SaveAll", , ML("Save &All") & " (Ctrl+Alt+Shift+S)", True, 0)
+	tbStandard.Buttons.Add tbsAutosize, "New", , @mClick, "New", , ML("New") & HK("New", "Ctrl+N", True), True
+	tbStandard.Buttons.Add , "Open", , @mClick, "Open", , ML("Open") & HK("Open", "Ctrl+O", True), True
+	tbtSave = tbStandard.Buttons.Add(, "Save", , @mClick, "Save", , ML("Save") & "..." & HK("Save", "Ctrl+S", True), True, 0)
+	tbtSaveAll = tbStandard.Buttons.Add(, "SaveAll", , @mClick, "SaveAll", , ML("Save &All") & HK("SaveAll", "Ctrl+Alt+Shift+S", True), True, 0)
 	tbStandard.Buttons.Add tbsSeparator
-	tbtUndo = tbStandard.Buttons.Add(, "Undo", , @mClick, "Undo", , ML("Undo") & " (Ctrl+Z)", True, 0)
-	tbtRedo = tbStandard.Buttons.Add(, "Redo", , @mClick, "Redo", , ML("Redo") & " (Ctrl+Y)", True, 0)
+	tbtUndo = tbStandard.Buttons.Add(, "Undo", , @mClick, "Undo", , ML("Undo") & HK("Undo", "Ctrl+Z", True), True, 0)
+	tbtRedo = tbStandard.Buttons.Add(, "Redo", , @mClick, "Redo", , ML("Redo") & HK("Redo", "Ctrl+Shift+Z", True), True, 0)
 	tbStandard.Buttons.Add tbsSeparator
-	tbtCut = tbStandard.Buttons.Add(, "Cut", , @mClick, "Cut", , ML("Cut") & " (Ctrl+X)", True, 0)
-	tbtCopy = tbStandard.Buttons.Add(, "Copy", , @mClick, "Copy", , ML("Copy") & " (Ctrl+C)", True, 0)
-	tbtPaste = tbStandard.Buttons.Add(, "Paste", , @mClick, "Paste", , ML("Paste") & " (Ctrl+V)", True, 0)
+	tbtCut = tbStandard.Buttons.Add(, "Cut", , @mClick, "Cut", , ML("Cut") & HK("Cut", "Ctrl+X", True), True, 0)
+	tbtCopy = tbStandard.Buttons.Add(, "Copy", , @mClick, "Copy", , ML("Copy") & HK("Copy", "Ctrl+C", True), True, 0)
+	tbtPaste = tbStandard.Buttons.Add(, "Paste", , @mClick, "Paste", , ML("Paste") & HK("Paste", "Ctrl+V", True), True, 0)
 	tbStandard.Buttons.Add tbsSeparator
-	tbtFind = tbStandard.Buttons.Add(, "Find", , @mClick, "Find", , ML("Find") & " (Ctrl+F)", True, 0)
+	tbtFind = tbStandard.Buttons.Add(, "Find", , @mClick, "Find", , ML("Find") & HK("Find", "Ctrl+F", True), True, 0)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbEdit.Name = "Edit"
 	tbEdit.ImagesList = @imgList
@@ -6153,14 +6155,14 @@ Sub CreateMenusAndToolBars
 	'	#endif
 	tbEdit.Flat = True
 	tbEdit.List = True
-	tbtFormat = tbEdit.Buttons.Add(, "Format", , @mClick, "Format", , ML("Format") & " (Ctrl+Tab)", True, 0)
-	tbtUnformat = tbEdit.Buttons.Add(, "Unformat", , @mClick, "Unformat", , ML("Unformat") & " (Shift+Ctrl+Tab)", True, 0)
+	tbtFormat = tbEdit.Buttons.Add(, "Format", , @mClick, "Format", , ML("Format") & HK("Format", "Ctrl+Tab", True), True, 0)
+	tbtUnformat = tbEdit.Buttons.Add(, "Unformat", , @mClick, "Unformat", , ML("Unformat") & HK("Unformat", "Shift+Ctrl+Tab", True), True, 0)
 	tbEdit.Buttons.Add tbsSeparator
-	tbtSingleComment = tbEdit.Buttons.Add(, "Comment", , @mClick, "SingleComment", , ML("Single comment") & " (Ctrl+I)", True, 0)
-	tbtUncommentBlock = tbEdit.Buttons.Add(, "UnComment", , @mClick, "UnComment", , ML("UnComment") & " (Shift+Ctrl+I)", True, 0)
+	tbtSingleComment = tbEdit.Buttons.Add(, "Comment", , @mClick, "SingleComment", , ML("Single comment") & HK("SingleComment", "Ctrl+I", True), True, 0)
+	tbtUncommentBlock = tbEdit.Buttons.Add(, "UnComment", , @mClick, "UnComment", , ML("UnComment") & HK("UnComment", "Shift+Ctrl+I", True), True, 0)
 	tbEdit.Buttons.Add tbsSeparator
-	tbtCompleteWord = tbEdit.Buttons.Add(, "CompleteWord", , @mClick, "CompleteWord", , ML("Complete Word") & " (Ctrl+Space)", True, 0)
-	tbtParameterInfo = tbEdit.Buttons.Add(, "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & " (Ctrl+J)", True)
+	tbtCompleteWord = tbEdit.Buttons.Add(, "CompleteWord", , @mClick, "CompleteWord", , ML("Complete Word") & HK("CompleteWord", "Ctrl+Space", True), True, 0)
+	tbtParameterInfo = tbEdit.Buttons.Add(, "ParameterInfo", , @mClick, "ParameterInfo", , ML("Parameter Info") & HK("ParameterInfo", "Ctrl+J", True), True)
 	tbEdit.Buttons.Add tbsSeparator
 	tbtSyntaxCheck = tbEdit.Buttons.Add(, "SyntaxCheck", , @mClick, "SyntaxCheck", , ML("Syntax Check"), True, 0)
 	tbtSuggestions = tbEdit.Buttons.Add(, "Suggestions", , @mClick, "Suggestions", , ML("Suggestions"), True, 0)
@@ -6201,7 +6203,7 @@ Sub CreateMenusAndToolBars
 	tbBuild.Flat = True
 	tbBuild.List = True
 	tbtUseDebugger = tbBuild.Buttons.Add(tbsCheck Or tbsAutosize, "UseDebugger", , @mClick, "TBUseDebugger", , ML("Use Debugger"), True)
-	tbtCompile = tbBuild.Buttons.Add(, "Compile", , @mClick, "Compile", , ML("Compile") & " (Ctrl+F9)", True, 0)
+	tbtCompile = tbBuild.Buttons.Add(, "Compile", , @mClick, "Compile", , ML("Compile") & HK("Compile", "Ctrl+F9", True), True, 0)
 	Var tbMake = tbBuild.Buttons.Add(tbsAutosize Or tbsWholeDropdown, "Make", , @mClick, "Make", , ML("Make"), True)
 	dmiMake = tbMake->DropDownMenu.Add("Make", "", "Make", @mClick, , , False)
 	dmiMakeClean = tbMake->DropDownMenu.Add("Make clean", "", "MakeClean", @mClick, , , False)
@@ -6216,9 +6218,9 @@ Sub CreateMenusAndToolBars
 	'	#endif
 	tbRun.Flat = True
 	tbRun.List = True
-	tbtStartWithCompile = tbRun.Buttons.Add( , "StartWithCompile", , @mClick, "StartWithCompile", , ML("Start With Compile") & " (F5)", True, 0)
-	tbtStart = tbRun.Buttons.Add( , "Start", , @mClick, "Start", , ML("Start") & " (Ctrl+F5)", True, 0)
-	tbtBreak = tbRun.Buttons.Add( , "Break", , @mClick, "Break", , ML("Break") & " (Ctrl+Pause)", True, 0)
+	tbtStartWithCompile = tbRun.Buttons.Add( , "StartWithCompile", , @mClick, "StartWithCompile", , ML("Start With Compile") & HK("StartWithCompile", "F5", True), True, 0)
+	tbtStart = tbRun.Buttons.Add( , "Start", , @mClick, "Start", , ML("Start") & HK("Start", "Ctrl+F5", True), True, 0)
+	tbtBreak = tbRun.Buttons.Add( , "Break", , @mClick, "Break", , ML("Break") & HK("Break", "Ctrl+Pause", True), True, 0)
 	tbtEnd = tbRun.Buttons.Add( , "EndProgram", , @mClick, "End", , ML("End"), True, 0)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbProject.Name = "Run"
