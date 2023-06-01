@@ -12709,7 +12709,7 @@ Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine
 								If Mid(*FECLine->Text, j, 1) <> " " Then Exit For
 							Next
 							WLet(LineStr, *FECLine->Text)
-							WLet(FECLine->Text, RTrim(Mid(*LineStr, 1, j - 1)) & "  " & LTrim(Mid(*LineStr, j)))
+							WLet(FECLine->Text, RTrim(Mid(*LineStr, 1, j - 1) , Any !"\t ") & "  " & LTrim(Mid(*LineStr, j)))
 						End If
 					End If
 					BasisPosition = Max(BasisPosition, InStr(LCase(*FECLine->Text), BasisWord))
@@ -12722,7 +12722,7 @@ Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine
 					WLet(LineStr, *FECLine->Text)
 					FECLine->Ends.Clear
 					FECLine->EndsCompleted = False
-					WLet(FECLine->Text, Mid(*LineStr, 1, Pos1) & Space(BasisPosition - Pos1) & LTrim(Mid(*LineStr, Pos1 + 1)))
+					WLet(FECLine->Text, RTrim(Mid(*LineStr, 1, Pos1), Any !"\t ") & Space(BasisPosition - Len(RTrim(Mid(*LineStr, 1, Pos1), Any !"\t "))) & LTrim(Mid(*LineStr, Pos1 + 1)))
 				End If
 			Next
 			Deallocate_(LineStr)
