@@ -1559,6 +1559,11 @@ Namespace My.Sys.Forms
 					'AName = iif(AName="", AName = AClassName & ...)
 					'SetProp(Control, "Name", ...)
 					'possibly using in propertylist inspector
+					Select Case GetClassNameOf(FSelControl)
+					Case "ToolBar", "ToolPalette"
+						RedrawWindow FSelControl, 0, 0, RDW_INVALIDATE
+						UpdateWindow FSelControl
+					End Select
 				End If
 			End If
 		#endif
@@ -2116,7 +2121,7 @@ Namespace My.Sys.Forms
 			With *Des
 				#ifdef __USE_GTK__
 					Static LeavesCount As Integer
-					Select Case Event->Type
+					Select Case Event->type
 					Case GDK_ENTER_NOTIFY
 						If GTK_IS_EVENT_BOX(widget) Then
 							LeavesCount += 1
@@ -2147,16 +2152,17 @@ Namespace My.Sys.Forms
 						'						End If
 					#else
 					Case WM_PAINT, WM_ERASEBKGND
-						If GetClassNameOf(hDlg) = "ToolBar" Then
+						Select Case GetClassNameOf(hDlg)
+						Case "ToolBar", "ToolPalette"
 							.DrawToolBar hDlg
 							Return 1
-						End If
+						End Select
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.DblClick(Event->Motion.x + x, Event->Motion.y + y, Event->Motion.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						.DblClick(Event->motion.x + x, Event->motion.y + y, Event->motion.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
@@ -2220,7 +2226,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.FOverControl = Widget
+						.FOverControl = widget
 						.MouseMove(Event->button.x + x, Event->button.y + y, Event->button.state)
 						Return True
 					#else
