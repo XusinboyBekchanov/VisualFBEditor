@@ -157,7 +157,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 Private Sub frmTipOfDayType.cmdClose_Click(ByRef Sender As Control)
 	Cast(frmTipOfDayType Ptr, Sender.Parent)->CloseForm
 	For i As Integer = 0 To UBound(BuffTips)
-		Deallocate BuffTips(i)
+		_Deallocate(BuffTips(i))
 	Next
 	Erase BuffTips
 	ShowTipoftheDay = Not chkDoNotShow.Checked

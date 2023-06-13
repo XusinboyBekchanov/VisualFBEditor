@@ -3191,13 +3191,13 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 	Dim As ToolType Ptr Tool
 	With fOptions
 		For i As Integer = 0 To pCompilers->Count - 1
-			Delete_(Cast(ToolType Ptr, pCompilers->Item(i)->Object))
+			_Delete(Cast(ToolType Ptr, pCompilers->Item(i)->Object))
 		Next
 		pCompilers->Clear
 		Dim As UString tempStr
 		For i As Integer = 0 To .lvCompilerPaths.ListItems.Count - 1
 			tempStr = .lvCompilerPaths.ListItems.Item(i)->Text(0)
-			Tool = New_(ToolType)
+			Tool = _New(ToolType)
 			Tool->Name = tempStr
 			Tool->Path = .lvCompilerPaths.ListItems.Item(i)->Text(1)
 			Tool->Parameters = .lvCompilerPaths.ListItems.Item(i)->Text(2)
@@ -3214,12 +3214,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WLet(Compiler32Path, pCompilers->Get(*CurrentCompiler32))
 		WLet(Compiler64Path, pCompilers->Get(*CurrentCompiler64))
 		For i As Integer = 0 To pMakeTools->Count - 1
-			Delete_(Cast(ToolType Ptr, pMakeTools->Item(i)->Object))
+			_Delete(Cast(ToolType Ptr, pMakeTools->Item(i)->Object))
 		Next
 		pMakeTools->Clear
 		For i As Integer = 0 To .lvMakeToolPaths.ListItems.Count - 1
 			tempStr = .lvMakeToolPaths.ListItems.Item(i)->Text(0)
-			Tool = New_(ToolType)
+			Tool = _New(ToolType)
 			Tool->Name = tempStr
 			Tool->Path = .lvMakeToolPaths.ListItems.Item(i)->Text(1)
 			Tool->Parameters = .lvMakeToolPaths.ListItems.Item(i)->Text(2)
@@ -3233,12 +3233,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WLet(MakeToolPath1, pMakeTools->Get(*CurrentMakeTool1))
 		WLet(MakeToolPath2, pMakeTools->Get(*CurrentMakeTool2))
 		For i As Integer = 0 To pDebuggers->Count - 1
-			Delete_(Cast(ToolType Ptr, pDebuggers->Item(i)->Object))
+			_Delete(Cast(ToolType Ptr, pDebuggers->Item(i)->Object))
 		Next
 		pDebuggers->Clear
 		For i As Integer = 0 To .lvDebuggerPaths.ListItems.Count - 1
 			tempStr = .lvDebuggerPaths.ListItems.Item(i)->Text(0)
-			Tool = New_(ToolType)
+			Tool = _New(ToolType)
 			Tool->Name = tempStr
 			Tool->Path = .lvDebuggerPaths.ListItems.Item(i)->Text(1)
 			Tool->Parameters = .lvDebuggerPaths.ListItems.Item(i)->Text(2)
@@ -3259,12 +3259,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		WLet(GDBDebugger32Path, pDebuggers->Get(*GDBDebugger32))
 		WLet(GDBDebugger64Path, pDebuggers->Get(*GDBDebugger64))
 		For i As Integer = 0 To pTerminals->Count - 1
-			Delete_(Cast(ToolType Ptr, pTerminals->Item(i)->Object))
+			_Delete(Cast(ToolType Ptr, pTerminals->Item(i)->Object))
 		Next
 		pTerminals->Clear
 		For i As Integer = 0 To .lvTerminalPaths.ListItems.Count - 1
 			tempStr = .lvTerminalPaths.ListItems.Item(i)->Text(0)
-			Tool = New_(ToolType)
+			Tool = _New(ToolType)
 			Tool->Name = tempStr
 			Tool->Path = .lvTerminalPaths.ListItems.Item(i)->Text(1)
 			Tool->Parameters = .lvTerminalPaths.ListItems.Item(i)->Text(2)
@@ -3276,12 +3276,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		End If
 		WLet(TerminalPath, pTerminals->Get(*CurrentTerminal))
 		For i As Integer = 0 To pOtherEditors->Count - 1
-			Delete_(Cast(ToolType Ptr, pOtherEditors->Item(i)->Object))
+			_Delete(Cast(ToolType Ptr, pOtherEditors->Item(i)->Object))
 		Next
 		pOtherEditors->Clear
 		For i As Integer = 0 To .lvOtherEditors.ListItems.Count - 1
 			tempStr = .lvOtherEditors.ListItems.Item(i)->Text(0)
-			Tool = New_(ToolType)
+			Tool = _New(ToolType)
 			Tool->Name = tempStr
 			Tool->Extensions = .lvOtherEditors.ListItems.Item(i)->Text(1)
 			Tool->Path = .lvOtherEditors.ListItems.Item(i)->Text(2)

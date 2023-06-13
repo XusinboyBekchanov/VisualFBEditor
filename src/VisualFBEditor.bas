@@ -90,9 +90,9 @@ Sub RunCmd(Param As Any Ptr)
 			CloseHandle(PInfo.hProcess)
 			CloseHandle(PInfo.hThread)
 		End If
-		If CmdL Then Deallocate_( CmdL)
+		If CmdL Then _Deallocate( CmdL)
 	#endif
-	If Workdir Then Deallocate_( Workdir)
+	If Workdir Then _Deallocate( Workdir)
 End Sub
 
 Sub FindInFiles
@@ -474,7 +474,7 @@ Sub mClick(Sender As My.Sys.Object)
 			Var ptabCode = Cast(TabControl Ptr, mnuTabs.ParentWindow)
 			Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 			Var tp = Cast(TabPanel Ptr, tb->Parent->Parent)
-			Var ptabPanelNew = New_(TabPanel)
+			Var ptabPanelNew = _New(TabPanel)
 			Var bUpDown = False
 			Select Case Sender.ToString
 			Case "SplitUp"

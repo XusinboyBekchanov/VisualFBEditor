@@ -12598,7 +12598,7 @@ End Function
 					
 					If iTotalBytesAvail>0 Then
 						
-						pszTempBuf = CAllocate(iTotalBytesAvail+1)
+						pszTempBuf = _CAllocate(iTotalBytesAvail+1)
 						
 						read_(pIn, pszTempBuf, iTotalBytesAvail)
 						
@@ -12618,7 +12618,7 @@ End Function
 							
 						End If
 						
-						Deallocate(pszTempBuf)
+						_Deallocate((pszTempBuf))
 						
 					End If
 					
@@ -15033,8 +15033,8 @@ Sub RunWithDebug(Param As Any Ptr)
 			End If
 		End If
 	#endif
-	If Workdir <> 0 Then Deallocate_( Workdir)
-	If CmdL <> 0 Then Deallocate_( CmdL)
+	If Workdir <> 0 Then _Deallocate( Workdir)
+	If CmdL <> 0 Then _Deallocate( CmdL)
 	Exit Sub
 	ErrorHandler:
 	ThreadsEnter()

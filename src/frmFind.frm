@@ -464,7 +464,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 											WAdd BuffOut, Chr(13,10) & *SubStr(i)
 											If InStr(*SubStr(i), "&")>0 Then WAdd BuffOut, Chr(13,10) & Replace(*SubStr(i),"&","")
 										End If
-										Deallocate SubStr(i): SubStr(i)=0
+										_Deallocate(SubStr(i)): SubStr(i)=0
 									Next
 									Erase SubStr
 								Else
@@ -515,7 +515,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 		End If
 		CloseFile_(Fn)
 	End If
-	Deallocate BuffOut
+	_Deallocate(BuffOut)
 End Sub
 
 Sub FindSubProj(Param As Any Ptr)

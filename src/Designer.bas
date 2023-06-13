@@ -126,7 +126,7 @@ Namespace My.Sys.Forms
 			If lParam Then
 				With *Cast(WindowList Ptr, lParam)
 					.Count = .Count + 1
-					.Child = Reallocate_(.Child, .Count * SizeOf(HWND))
+					.Child = _Reallocate(.Child, .Count * SizeOf(HWND))
 					.Child[.Count-1] = hDlg
 				End With
 			End If
@@ -1636,7 +1636,7 @@ Namespace My.Sys.Forms
 					Return OldSymbols
 				Else
 					Dim As Library Ptr CtlLib = te->Tag
-					Var st = New_(SymbolsType)
+					Var st = _New(SymbolsType)
 					st->Handle = DyLibLoad(GetFullPath(CtlLib->Path))
 					st->Path = GetFullPath(CtlLib->Path)
 					st->CreateControlFunc = DyLibSymbol(st->Handle, "CreateControl")
@@ -3477,7 +3477,7 @@ Namespace My.Sys.Forms
 			DeleteObject(FSelDotBrush)
 			DeleteObject(FGridBrush)
 			'DestroyMenu(FPopupMenu)
-			If FChilds.Child Then Deallocate_( FChilds.Child)
+			If FChilds.Child Then _Deallocate( FChilds.Child)
 		#endif
 		DestroyDots
 		#ifndef __USE_GTK__
@@ -3488,7 +3488,7 @@ Namespace My.Sys.Forms
 			Dim As SymbolsType Ptr st = FSymbols.Item(i)
 			If st Then
 				If st->Handle Then DyLibFree(st->Handle)
-				Delete_(st)
+				_Delete(st)
 			End If
 		Next
 		FSymbols.Clear

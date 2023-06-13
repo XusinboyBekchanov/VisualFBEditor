@@ -14,15 +14,15 @@ Dim Shared As WStringList KeywordLists 'keywords0, keywords1, keywords2, keyword
 
 Namespace My.Sys.Forms
 	Destructor EditControlHistory
-		If Comment Then Deallocate_( Comment)
+		If Comment Then _Deallocate( Comment)
 		For i As Integer = Lines.Count - 1 To 0 Step -1
-			Delete_( Cast(EditControlLine Ptr, Lines.Items[i]))
+			_Delete( Cast(EditControlLine Ptr, Lines.Items[i]))
 		Next i
 		Lines.Clear
 	End Destructor
 	
 	Destructor EditControlStatement
-		If This.Text <> 0 Then Deallocate_( This.Text)
+		If This.Text <> 0 Then _Deallocate( This.Text)
 	End Destructor
 	
 	Constructor EditControlLine
@@ -31,9 +31,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor EditControlLine
-		If This.Text <> 0 Then Deallocate_( This.Text)
+		If This.Text <> 0 Then _Deallocate( This.Text)
 		For i As Integer = Statements.Count - 1 To 0 Step -1
-			Delete_(Cast(EditControlStatement Ptr, Statements.Item(i)))
+			_Delete(Cast(EditControlStatement Ptr, Statements.Item(i)))
 		Next
 	End Destructor
 End Namespace
@@ -360,11 +360,11 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr, bWithoutPaint As Boolean = False)
 		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
-			Delete_( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 		Next i
 		Content.Lines.Clear
 		For i As Integer = 0 To HistoryItem->Lines.Count - 1
-			FECLine = New_( EditControlLine)
+			FECLine = _New( EditControlLine)
 			OlddwClientX = 0
 			With *Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
 				WLet(FECLine->Text, * (.Text))
@@ -385,7 +385,7 @@ Namespace My.Sys.Forms
 				FECLine->Visible = .Visible
 				For ii As Integer = 0 To .Statements.Count - 1
 					With *Cast(EditControlStatement Ptr, .Statements.Item(ii))
-						FECStatement = New_( EditControlStatement)
+						FECStatement = _New( EditControlStatement)
 						WLet(FECStatement->Text, * (.Text))
 						FECStatement->ConstructionIndex = .ConstructionIndex
 						FECStatement->ConstructionPart = .ConstructionPart
@@ -403,7 +403,7 @@ Namespace My.Sys.Forms
 			Content.Lines.Add FECLine
 		Next i
 		If Content.Lines.Count = 0 Then
-			FECLine = New_( EditControlLine)
+			FECLine = _New( EditControlLine)
 			OlddwClientX = 0
 			WLet(FECLine->Text, "")
 			Content.Lines.Add FECLine
@@ -438,7 +438,7 @@ Namespace My.Sys.Forms
 		Dim ecItem As EditControlLine Ptr
 		For i As Integer = 0 To Content.Lines.Count - 1
 			With *Cast(EditControlLine Ptr, Content.Lines.Items[i])
-				FECLine = New_( EditControlLine)
+				FECLine = _New( EditControlLine)
 				WLet(FECLine->Text, * (.Text))
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
@@ -457,7 +457,7 @@ Namespace My.Sys.Forms
 				FECLine->Visible = .Visible
 				For ii As Integer = 0 To .Statements.Count - 1
 					With *Cast(EditControlStatement Ptr, .Statements.Item(ii))
-						FECStatement = New_( EditControlStatement)
+						FECStatement = _New( EditControlStatement)
 						WLet(FECStatement->Text, * (.Text))
 						FECStatement->ConstructionIndex = .ConstructionIndex
 						FECStatement->ConstructionPart = .ConstructionPart
@@ -478,7 +478,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl._ClearHistory(Index As Integer = 0)
 		For i As Integer = FHistory.Count - 1 To Index Step -1
-			Delete_( Cast(EditControlHistory Ptr, FHistory.Items[i]))
+			_Delete( Cast(EditControlHistory Ptr, FHistory.Items[i]))
 			FHistory.Remove i
 		Next i
 		If Index = 0 Then FHistory.Clear
@@ -823,7 +823,7 @@ Namespace My.Sys.Forms
 		End If
 		If ecl = 0 OrElse ecl->Text = 0 Then Exit Sub
 		For ii As Integer = ecl->Statements.Count - 1 To 0 Step -1
-			Delete_(Cast(EditControlStatement Ptr, ecl->Statements.Item(ii)))
+			_Delete(Cast(EditControlStatement Ptr, ecl->Statements.Item(ii)))
 		Next
 		ecl->Statements.Clear
 		Dim As UString LineText_
@@ -838,7 +838,7 @@ Namespace My.Sys.Forms
 		Split(LineText_, ":", res())
 		Dim As EditControlStatement Ptr ecs, ecs_, ecsOld_
 		For ii As Integer = 0 To UBound(res)
-			ecs = New_(EditControlStatement)
+			ecs = _New(EditControlStatement)
 			WLet(ecs->Text, res(ii))
 			ecl->Statements.Add ecs
 			LineText_ = *ecs->Text
@@ -1278,14 +1278,14 @@ Namespace My.Sys.Forms
 		If Comment = "" Then
 			If bOldCommented Then
 				_ClearHistory curHistory + 1
-				item = New_( EditControlHistory)
+				item = _New( EditControlHistory)
 				item->OldSelStartLine = FSelStartLine
 				item->OldSelEndLine = FSelEndLine
 				item->OldSelStartChar = FSelStartChar
 				item->OldSelEndChar = FSelEndChar
 				FHistory.Add item
 				If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
-					Delete_( Cast(EditControlHistory Ptr, FHistory.Items[0]))
+					_Delete( Cast(EditControlHistory Ptr, FHistory.Items[0]))
 					FHistory.Remove 0
 				End If
 				curHistory = FHistory.Count - 1
@@ -1307,7 +1307,7 @@ Namespace My.Sys.Forms
 		OldCharIndex = GetOldCharIndex
 		If WithHistory Then
 			If Comment <> "" Then
-				Var item = New_( EditControlHistory)
+				Var item = _New( EditControlHistory)
 				_FillHistory item, Comment
 				item->OldSelStartLine = FOldSelStartLine
 				item->OldSelEndLine = FOldSelEndLine
@@ -1320,7 +1320,7 @@ Namespace My.Sys.Forms
 				_ClearHistory curHistory + 1
 				FHistory.Add item
 				If HistoryLimit > -1 AndAlso FHistory.Count > HistoryLimit Then
-					Delete_( Cast(EditControlHistory Ptr, FHistory.Items[0]))
+					_Delete( Cast(EditControlHistory Ptr, FHistory.Items[0]))
 					FHistory.Remove 0
 				End If
 				curHistory = FHistory.Count - 1
@@ -1358,7 +1358,7 @@ Namespace My.Sys.Forms
 			If OnLineRemoving Then OnLineRemoving(This, i)
 			Content.Lines.Remove i
 			If OnLineRemoved Then OnLineRemoved(This, i)
-			Delete_(ecRemovingLine)
+			_Delete(ecRemovingLine)
 			OlddwClientX = 0
 		Next i
 		If iSelStartLine > 0 Then iC = Cast(EditControlLine Ptr, Content.Lines.Item(iSelStartLine - 1))->CommentIndex
@@ -1377,7 +1377,7 @@ Namespace My.Sys.Forms
 				FECLine->EndsCompleted = False
 				ChangeCollapsibility iSelStartLine
 			Else
-				FECLine = New_( EditControlLine)
+				FECLine = _New( EditControlLine)
 				WLet(FECLine->Text, Mid(Value, p, l))
 				OlddwClientX = 0
 				'ecItem->CharIndex = p - 1
@@ -1477,7 +1477,7 @@ Namespace My.Sys.Forms
 		On Error Goto A
 		For i As Integer = curHistory To 0 Step -1
 			If FHistory.Count > curHistory Then
-				Delete_( Cast(EditControlHistory Ptr, FHistory.Items[i]))
+				_Delete( Cast(EditControlHistory Ptr, FHistory.Items[i]))
 			End If
 			'FHistory.Remove i
 		Next i
@@ -1485,7 +1485,7 @@ Namespace My.Sys.Forms
 		curHistory = 0
 		'Changed "Matn almashtirildi"
 		If Content.Lines.Count = 0 Then
-			FECLine = New_( EditControlLine)
+			FECLine = _New( EditControlLine)
 			OlddwClientX = 0
 			WLet(FECLine->Text, "")
 			Content.Lines.Add(FECLine)
@@ -1514,7 +1514,7 @@ Namespace My.Sys.Forms
 	Property EditControl.Text(ByRef Value As WString)
 		FText = ""
 		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
-			Delete_( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 		Next i
 		Content.Lines.Clear
 		Dim j As Integer
@@ -1630,7 +1630,7 @@ Namespace My.Sys.Forms
 					End If
 					CloseHandle(hFile)
 					For i As Integer = Content.Lines.Count - 1 To 0 Step -1
-						Delete_( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+						_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 					Next i
 					Content.Lines.Clear
 					i = 0
@@ -1650,7 +1650,7 @@ Namespace My.Sys.Forms
 					For j As Integer = 0 To Len(*wsFileContents)
 						WAdd FText, WChr((*wsFileContents)[j])
 						If (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
-							FECLine = New_(EditControlLine)
+							FECLine = _New(EditControlLine)
 							OlddwClientX = 0
 							If FECLine = 0 Then
 								Return
@@ -1729,7 +1729,7 @@ Namespace My.Sys.Forms
 			End If
 			CloseFile_(Fn)
 			For i As Integer = Content.Lines.Count - 1 To 0 Step -1
-				Delete_( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+				_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 			Next i
 			Content.Lines.Clear
 			'VisibleLines.Clear
@@ -1741,7 +1741,7 @@ Namespace My.Sys.Forms
 				Dim As Integer MaxChars = LOF(Fn)
 				WReAllocate(BuffRead, MaxChars)
 				Do Until EOF(Fn)
-					FECLine = New_( EditControlLine)
+					FECLine = _New( EditControlLine)
 					OlddwClientX = 0
 					If FECLine = 0 Then
 						CloseFile_(Fn)
@@ -1867,7 +1867,7 @@ Namespace My.Sys.Forms
 			OldiC = Cast(EditControlLine Ptr, Content.Lines.Items[Index])->CommentIndex
 			InAsm = Cast(EditControlLine Ptr, Content.Lines.Items[Index])->InAsm
 		End If
-		FECLine = New_( EditControlLine)
+		FECLine = _New( EditControlLine)
 		WLet(FECLine->Text, sLine)
 		OlddwClientX = 0
 		iC = FindCommentIndex(sLine, OldiC)
@@ -1913,7 +1913,7 @@ Namespace My.Sys.Forms
 			OldiC = Cast(EditControlLine Ptr, Content.Lines.Items[Idx])->CommentIndex
 			InAsm = Cast(EditControlLine Ptr, Content.Lines.Items[Idx])->InAsm
 		End If
-		FECLine = New_( EditControlLine)
+		FECLine = _New( EditControlLine)
 		OlddwClientX = 0
 		WLet(FECLine->Text, *Cast(EditControlLine Ptr, Content.Lines.Items[Idx])->Text)
 		iC = FindCommentIndex(*FECLine->Text, OldiC)
@@ -1938,7 +1938,7 @@ Namespace My.Sys.Forms
 		Dim As EditControlLine Ptr ecRemovingLine = Content.Lines.Items[i]
 		Content.Lines.Remove i
 		If OnLineRemoved Then OnLineRemoved(This, i)
-		Delete_(ecRemovingLine)
+		_Delete(ecRemovingLine)
 		If Index <= FSelEndLine Then FSelEndLine -= 1
 		If Index <= FSelStartLine Then FSelStartLine -= 1
 		OlddwClientX = 0
@@ -7134,7 +7134,7 @@ Namespace My.Sys.Forms
 			pnlIntellisense.Add @cboIntellisense
 			This.Add @pnlIntellisense
 		#endif
-		Var item = New_( EditControlLine)
+		Var item = _New( EditControlLine)
 		WLet(item->Text, "")
 		Content.Lines.Add item
 		bOldCommented = True
@@ -7155,7 +7155,7 @@ Namespace My.Sys.Forms
 		_ClearHistory
 		If CurEC = @This Then CurEC = 0
 		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
-			Delete_( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 		Next i
 		#ifdef __USE_GTK__
 			lvIntellisense.ListItems.Clear
@@ -7189,7 +7189,7 @@ Sub LoadKeyWords
 	Do Until file = ""
 		k += 1
 		ReDim Preserve Keywords(k)
-		keywordlist = New_(WStringOrStringList)
+		keywordlist = _New(WStringOrStringList)
 		keywordlist->Sorted = True
 		KeywordLists.Add file, keywordlist
 		If Trim(file) = "Asm" Then

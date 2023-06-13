@@ -20,8 +20,8 @@ Dim Shared MouseHoverTimerVal As Double
 txtCodeBi.WithHistory = False
 
 Destructor ExplorerElement
-	If FileName Then Deallocate_( FileName)
-	If TemplateFileName Then Deallocate_( TemplateFileName)
+	If FileName Then _Deallocate( FileName)
+	If TemplateFileName Then _Deallocate( TemplateFileName)
 End Destructor
 
 Constructor ProjectElement
@@ -435,7 +435,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	End If
 	ptabCode->UpdateLock
 	If Not bFind Then
-		tb = New_( TabWindow(FileNameNew, bNew, TreeN))
+		tb = _New( TabWindow(FileNameNew, bNew, TreeN))
 		If tb = 0 Then
 			MsgBox ML("Memory was not allocated")
 			TabAdding = False
@@ -872,7 +872,7 @@ Property TabWindow.Caption ByRef As WString
 End Property
 
 Property TabWindow.Caption(ByRef Value As WString)
-	FCaptionNew = Reallocate_(FCaptionNew, (Len(Value) + 1) * SizeOf(WString))
+	FCaptionNew = _Reallocate(FCaptionNew, (Len(Value) + 1) * SizeOf(WString))
 	*FCaptionNew = Value
 	#ifdef __USE_GTK__
 		Base.Caption = Value
@@ -921,7 +921,7 @@ Sub RemoveGlobalTypeElements(ByRef FileName As WString)
 			te = pGlobalNamespaces->Object(i)
 			If te->FileName = FileName Then
 				te->Elements.Clear
-				Delete_(Cast(TypeElement Ptr, pGlobalNamespaces->Object(i)))
+				_Delete(Cast(TypeElement Ptr, pGlobalNamespaces->Object(i)))
 				pGlobalNamespaces->Remove i
 			End If
 		Next
@@ -929,16 +929,16 @@ Sub RemoveGlobalTypeElements(ByRef FileName As WString)
 			te = pGlobalTypes->Object(i)
 			If te->FileName = FileName Then
 				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+					_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
 				Next
 				te->Elements.Clear
-				Delete_(Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
+				_Delete(Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
 				pGlobalTypes->Remove i
 			Else
 				For j As Integer = te->Elements.Count - 1 To 0 Step -1
 					te1 = te->Elements.Object(j)
 					If te1->FileName = FileName Then
-						Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+						_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
 						te->Elements.Remove j
 					End If
 				Next
@@ -967,31 +967,31 @@ Sub RemoveGlobalTypeElements(ByRef FileName As WString)
 			te = pGlobalEnums->Object(i)
 			If te->FileName = FileName Then
 				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-					Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+					_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
 				Next
 				te->Elements.Clear
-				Delete_(Cast(TypeElement Ptr, pGlobalEnums->Object(i)))
+				_Delete(Cast(TypeElement Ptr, pGlobalEnums->Object(i)))
 				pGlobalEnums->Remove i
 			End If
 		Next
 		For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
 			te = pGlobalFunctions->Object(i)
 			If te->FileName = FileName Then
-				Delete_(Cast(TypeElement Ptr, pGlobalFunctions->Object(i)))
+				_Delete(Cast(TypeElement Ptr, pGlobalFunctions->Object(i)))
 				pGlobalFunctions->Remove i
 			End If
 		Next
 		For i As Integer = pGlobalTypeProcedures->Count - 1 To 0 Step -1
 			te = pGlobalTypeProcedures->Object(i)
 			If te->FileName = FileName Then
-				Delete_(Cast(TypeElement Ptr, pGlobalTypeProcedures->Object(i)))
+				_Delete(Cast(TypeElement Ptr, pGlobalTypeProcedures->Object(i)))
 				pGlobalTypeProcedures->Remove i
 			End If
 		Next
 		For i As Integer = pGlobalArgs->Count - 1 To 0 Step -1
 			te = pGlobalArgs->Object(i)
 			If te->FileName = FileName Then
-				Delete_(Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
+				_Delete(Cast(TypeElement Ptr, pGlobalArgs->Object(i)))
 				pGlobalArgs->Remove i
 			End If
 		Next
@@ -1049,7 +1049,7 @@ Function TabWindow.SaveAs As Boolean
 		Dim As ExplorerElement Ptr ee = tn->Tag
 		Dim As TreeNode Ptr ptn = GetParentNode(tn)
 		If ee = 0 Then
-			ee = New_( ExplorerElement)
+			ee = _New( ExplorerElement)
 			tn->Tag = ee
 		End If
 		If ptn <> 0 AndAlso ptn->ImageKey = "Project" Then
@@ -1097,7 +1097,7 @@ Sub TabWindowRemovedCheck(pParentTabCode As TabControl Ptr)
 					ptabPanelParent->Remove ptabPanelParent->Controls[Idx - 1]
 					ptabPanelParent->Remove ptabPanel
 					TabPanels.Remove TabPanels.IndexOf(ptabPanel)
-					Delete_(ptabPanel)
+					_Delete(ptabPanel)
 					ptabPanelParent->RequestAlign
 					ptabCode = @ptabPanelChild->tabCode
 					mnuTabs.ParentWindow = ptabCode
@@ -1113,14 +1113,14 @@ Sub TabWindowRemovedCheck(pParentTabCode As TabControl Ptr)
 					ptabPanelParent->Remove ptabPanelParent->Controls[Idx + 1]
 					ptabPanelParent->Remove ptabPanel
 					TabPanels.Remove TabPanels.IndexOf(ptabPanel)
-					Delete_(ptabPanel)
+					_Delete(ptabPanel)
 					ptabPanelParent->RequestAlign
 					ptabPanel = 0
 					Exit Do
 				Else
 					ptabPanelParent->Remove ptabPanel
 					TabPanels.Remove TabPanels.IndexOf(ptabPanel)
-					Delete_(ptabPanel)
+					_Delete(ptabPanel)
 					ptabPanel = ptabPanelParent
 				End If
 			Loop
@@ -1140,7 +1140,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 		ChangeMenuItemsEnabled
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
-		Delete_(tb)
+		_Delete(tb)
 		TabWindowRemovedCheck(pParentTabCode)
 		Return True
 	Else
@@ -1170,12 +1170,12 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 	Var ptabCode = Cast(TabControl Ptr, This.Parent)
 	ptabCode->Remove(@btnClose)
 	miWindow->Remove This.mi
-	Delete_(This.mi)
+	_Delete(This.mi)
 	btnClose.FreeWnd
 	ptabCode->DeleteTab(This.Index)
 	If tn <> 0 AndAlso tn->ImageKey <> "Project" Then ', Will remove all project from tree
 		If ptvExplorer->Nodes.IndexOf(tn) <> -1 Then
-			If tn->Tag <> 0 Then Delete_(Cast(ExplorerElement Ptr, tn->Tag))
+			If tn->Tag <> 0 Then _Delete(Cast(ExplorerElement Ptr, tn->Tag))
 			ptvExplorer->Nodes.Remove ptvExplorer->Nodes.IndexOf(tn)
 			If MainNode = tn Then
 				MainNode = 0
@@ -6792,10 +6792,10 @@ Sub GetIncludeFiles(ByRef Content As EditControlContent, Project As ProjectEleme
 		AddExternalIncludes Content, 0, MainFile, Content.FileName
 		Content.ExternalIncludesLoaded = True
 		For i As Integer = Content.FileLists.Count - 1 To 0 Step -1
-			Delete_( Cast(WStringList Ptr, Content.FileLists.Item(i)))
+			_Delete( Cast(WStringList Ptr, Content.FileLists.Item(i)))
 		Next
 		For i As Integer = Content.FileListsLines.Count - 1 To 0 Step -1
-			Delete_( Cast(IntegerList Ptr, Content.FileListsLines.Item(i)))
+			_Delete( Cast(IntegerList Ptr, Content.FileListsLines.Item(i)))
 		Next
 		Content.FileLists.Clear
 		Content.FileListsLines.Clear
@@ -6807,8 +6807,8 @@ Sub GetIncludeFiles(ByRef Content As EditControlContent, Project As ProjectEleme
 			If OldIncludeLine = i - 1 Then
 				Dim As WStringList Ptr FileList
 				Dim As IntegerList Ptr FileListLines
-				FileList = New_(WStringList)
-				FileListLines = New_(IntegerList)
+				FileList = _New(WStringList)
+				FileListLines = _New(IntegerList)
 				Content.FileLists.Add FileList
 				Content.FileListsLines.Add FileListLines
 				FileList->Sorted = True
@@ -6906,7 +6906,7 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 					res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 				'End If
 			End If
-			Var te = New_( TypeElement)
+			Var te = _New( TypeElement)
 			If res1(n).ToLower.StartsWith("byref") Then
 				u += Len(res1(n)) - Len(LTrim(Mid(res1(n), 6)))
 				res1(n) = Trim(Mid(res1(n), 6))
@@ -6960,63 +6960,63 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, Content.Types.Object(i)))
+		_Delete( Cast(TypeElement Ptr, Content.Types.Object(i)))
 	Next
 	For i As Integer = Content.Enums.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, Content.Enums.Object(i)))
+		_Delete( Cast(TypeElement Ptr, Content.Enums.Object(i)))
 	Next
 	For i As Integer = Content.Namespaces.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, Content.Namespaces.Object(i)))
+		_Delete( Cast(TypeElement Ptr, Content.Namespaces.Object(i)))
 	Next
 	For i As Integer = Content.TypeProcedures.Count - 1 To 0 Step -1
 		te = Content.TypeProcedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, Content.TypeProcedures.Object(i)))
+		_Delete( Cast(TypeElement Ptr, Content.TypeProcedures.Object(i)))
 	Next
 	For i As Integer = Content.Procedures.Count - 1 To 0 Step -1
 		te = Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, Content.Procedures.Object(i)))
+		_Delete( Cast(TypeElement Ptr, Content.Procedures.Object(i)))
 	Next
 	For i As Integer = Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = Content.ConstructionBlocks.Item(i)
 		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
-			Delete_( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
 		Next
 		cb->Elements.Clear
-		Delete_(Cast(ConstructionBlock Ptr, Content.ConstructionBlocks.Item(i)))
+		_Delete(Cast(ConstructionBlock Ptr, Content.ConstructionBlocks.Item(i)))
 	Next
 	For i As Integer = Content.LineLabels.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, Content.LineLabels.Object(i)))
+		_Delete( Cast(TypeElement Ptr, Content.LineLabels.Object(i)))
 	Next
 	For i As Integer = Content.Args.Count - 1 To 0 Step -1
 		te = Content.Args.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
-		Delete_( Cast(TypeElement Ptr, Content.Args.Object(i)))
+		_Delete( Cast(TypeElement Ptr, Content.Args.Object(i)))
 	Next
 	Content.Types.Clear
 	Content.Defines.Clear
@@ -7088,10 +7088,10 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		End If
 		If IncludesChanged Then
 			For i As Integer = Content.FileLists.Count - 1 To 0 Step -1
-				Delete_( Cast(WStringList Ptr, Content.FileLists.Item(i)))
+				_Delete( Cast(WStringList Ptr, Content.FileLists.Item(i)))
 			Next
 			For i As Integer = Content.FileListsLines.Count - 1 To 0 Step -1
-				Delete_( Cast(IntegerList Ptr, Content.FileListsLines.Item(i)))
+				_Delete( Cast(IntegerList Ptr, Content.FileListsLines.Item(i)))
 			Next
 			Content.FileLists.Clear
 			Content.FileListsLines.Clear
@@ -7133,8 +7133,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						Dim As IntegerList Ptr FileListLines
 						IncludesCount += 1
 						If IncludesChanged Then
-							FileList = New_(WStringList)
-							FileListLines = New_(IntegerList)
+							FileList = _New(WStringList)
+							FileListLines = _New(IntegerList)
 							Content.FileLists.Add FileList
 							Content.FileListsLines.Add FileListLines
 							FileList->Sorted = True
@@ -7324,7 +7324,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							If ECStatement->ConstructionPart <> 2 Then ECStatement->InConstructionBlock = block
 						End If
 						If ECStatement->ConstructionPart < 2 Then
-							Var cb = New_(ConstructionBlock)
+							Var cb = _New(ConstructionBlock)
 							cb->ConstructionIndex = ECStatement->ConstructionIndex
 							cb->ConstructionPart = ECStatement->ConstructionPart
 							cb->InConstructionBlock = block
@@ -7355,7 +7355,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								Pos5 = Pos2
 								Pos3 = InStr(Pos1 + l, bTrim, " ")
 								If Pos3 > 0 AndAlso (Pos2 = 0 OrElse Pos3 < Pos2) Then Pos2 = Pos3
-								te = New_( TypeElement)
+								te = _New( TypeElement)
 								If Pos2 > 0 Then
 									te->Name = Trim(Mid(bTrim, Pos1 + l, Pos2 - Pos1 - l))
 								Else
@@ -7550,7 +7550,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Split(Names, ".", res1())
 							nc = UBound(res1)
 							For n As Integer = 0 To nc
-								te = New_( TypeElement)
+								te = _New( TypeElement)
 								te->Name = Trim(res1(n))
 								te->DisplayName = te->Name
 								te->InCondition = CurrentCondition
@@ -7596,7 +7596,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						Pos3 = InStr(b2, ")")
 						Pos5 = Pos2
 						If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
-						te = New_( TypeElement)
+						te = _New( TypeElement)
 						If Pos1 = 0 Then
 							te->Name = Trim(b2)
 						Else
@@ -7713,7 +7713,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Else
 								ElementValue = ""
 							End If
-							Var te = New_( TypeElement)
+							Var te = _New( TypeElement)
 							u = u + Len(res1(n)) - Len(LTrim(res1(n)))
 							If Pos3 > 0 Then
 								t = Trim(.Left(res1(n), Pos3 - 1))
@@ -7754,7 +7754,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
 						Pos4 = InStr(bTrim, "(")
 						If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
-						te = New_( TypeElement)
+						te = _New( TypeElement)
 						te->Declaration = True
 						Select Case LCase(IIf(Pos1 = 0, Trim(Mid(bTrim, iStart)), Trim(Mid(bTrim, iStart, Pos1 - iStart))))
 						Case "sub": te->ElementType = E_Sub
@@ -7875,7 +7875,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							'Next
 						End If
 					ElseIf EndsWith(Trim(b1), ":") AndAlso IsArg2(bTrim) AndAlso Not Content.Functions.Contains(bTrim) Then
-						Var te = New_(TypeElement)
+						Var te = _New(TypeElement)
 						te->Name = bTrim
 						te->DisplayName = Trim(b1)
 						te->InCondition = CurrentCondition
@@ -8001,7 +8001,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									Pos1 = InStrRev(CurType, ".")
 									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 								End If
-								Var te = New_( TypeElement)
+								Var te = _New( TypeElement)
 								te->Name = res1(n)
 								te->InCondition = CurrentCondition
 								te->StartChar = u
@@ -8140,7 +8140,7 @@ Sub Suggestions
 			pstBar->Panels[0]->Caption = ML("Loading project contents ...")
 			For i As Integer = 0 To Project->Files_.Count - 1
 				If EndsWith(Project->Files_.Item(i), ".bas") OrElse EndsWith(Project->Files_.Item(i), ".frm") OrElse EndsWith(Project->Files_.Item(i), ".bi") OrElse EndsWith(Project->Files_.Item(i), ".inc") Then
-					ecc = New_(EditControlContent)
+					ecc = _New(EditControlContent)
 					ecc->FileName = Project->Files_.Item(i)
 					ecc->Globals = @Project->Globals
 					ecc->Tag = Project
@@ -8263,66 +8263,66 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.TypeProcedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
 		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
-			Delete_( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
 		Next
 		cb->Elements.Clear
-		Delete_(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
+		_Delete(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
 	Next
 	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
 		te = txtCode.Content.Args.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
 	Next
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
-		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
+		_Delete( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
 	txtCode.Content.Types.Clear
 	txtCode.Content.Defines.Clear
@@ -8402,10 +8402,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		End If
 		If IncludesChanged Then
 			For i As Integer = txtCode.Content.FileLists.Count - 1 To 0 Step -1
-				Delete_( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
+				_Delete( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
 			Next
 			For i As Integer = txtCode.Content.FileListsLines.Count - 1 To 0 Step -1
-				Delete_( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
+				_Delete( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
 			Next
 			txtCode.Content.FileLists.Clear
 			txtCode.Content.FileListsLines.Clear
@@ -8455,8 +8455,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Dim As IntegerList Ptr FileListLines
 						IncludesCount += 1
 						If IncludesChanged Then
-							FileList = New_(WStringList)
-							FileListLines = New_(IntegerList)
+							FileList = _New(WStringList)
+							FileListLines = _New(IntegerList)
 							txtCode.Content.FileLists.Add FileList
 							txtCode.Content.FileListsLines.Add FileListLines
 							FileList->Sorted = True
@@ -8671,7 +8671,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								'If ECStatement->ConstructionPart <> 2 Then ECStatement->InConstructionBlock = ifblock: ECLine->InConstructionBlock = ifblock
 							End If
 							If ECStatement->ConstructionPart < 2 Then
-								Var cb = New_(ConstructionBlock)
+								Var cb = _New(ConstructionBlock)
 								cb->ConstructionIndex = ECStatement->ConstructionIndex
 								cb->ConstructionPart = ECStatement->ConstructionPart
 								cb->InConstructionBlock = ifblock
@@ -8706,7 +8706,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 							End If
 							If ECStatement->ConstructionPart < 2 Then
-								Var cb = New_(ConstructionBlock)
+								Var cb = _New(ConstructionBlock)
 								cb->ConstructionIndex = ECStatement->ConstructionIndex
 								cb->ConstructionPart = ECStatement->ConstructionPart
 								cb->InConstructionBlock = block
@@ -8741,7 +8741,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Pos5 = Pos2
 								Pos3 = InStr(Pos1 + l, bTrim, " ")
 								If Pos3 > 0 AndAlso (Pos2 = 0 OrElse Pos3 < Pos2) Then Pos2 = Pos3
-								te = New_( TypeElement)
+								te = _New( TypeElement)
 								If Pos2 > 0 Then
 									te->Name = Trim(Mid(bTrim, Pos1 + l, Pos2 - Pos1 - l))
 								Else
@@ -8940,7 +8940,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Split(Names, ".", res1())
 							nc = UBound(res1)
 							For n As Integer = 0 To nc
-								te = New_( TypeElement)
+								te = _New( TypeElement)
 								te->Name = Trim(res1(n))
 								te->DisplayName = te->Name
 								te->InCondition = CurrentCondition
@@ -8985,7 +8985,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos3 = InStr(b2, ")")
 						Pos5 = Pos2
 						If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
-						te = New_( TypeElement)
+						te = _New( TypeElement)
 						If Pos1 = 0 Then
 							te->Name = Trim(b2)
 						Else
@@ -9101,7 +9101,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Else
 								ElementValue = ""
 							End If
-							Var te = New_( TypeElement)
+							Var te = _New( TypeElement)
 							u = u + Len(res1(n)) - Len(LTrim(res1(n)))
 							If Pos3 > 0 Then
 								t = Trim(.Left(res1(n), Pos3 - 1))
@@ -9141,7 +9141,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
 						Pos4 = InStr(bTrim, "(")
 						If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
-						te = New_( TypeElement)
+						te = _New( TypeElement)
 						te->Declaration = True
 						Select Case LCase(IIf(Pos1 = 0, Trim(Mid(bTrim, iStart)), Trim(Mid(bTrim, iStart, Pos1 - iStart))))
 						Case "sub": te->ElementType = E_Sub
@@ -9261,7 +9261,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							'Next
 						End If
 					ElseIf EndsWith(Trim(b1), ":") AndAlso IsArg2(bTrim) AndAlso Not txtCode.Content.Functions.Contains(bTrim) Then
-						Var te = New_(TypeElement)
+						Var te = _New(TypeElement)
 						te->Name = bTrim
 						te->DisplayName = Trim(b1)
 						te->InCondition = CurrentCondition
@@ -9384,7 +9384,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Pos1 = InStrRev(CurType, ".")
 									If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 								End If
-								Var te = New_( TypeElement)
+								Var te = _New( TypeElement)
 								te->Name = res1(n)
 								te->InCondition = CurrentCondition
 								te->StartChar = u
@@ -9511,7 +9511,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						#ifndef __USE_GTK__
 							If pnlForm.Handle = 0 Then pnlForm.CreateWnd
 						#endif
-						Des = New_( My.Sys.Forms.Designer(@pnlForm))
+						Des = _New( My.Sys.Forms.Designer(@pnlForm))
 						If Des = 0 Then bNotDesign = False: pfrmMain->UpdateUnLock: Exit Sub
 						Des->Tag = @This
 						Des->OnInsertingControl = @DesignerInsertingControl
@@ -10434,14 +10434,14 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 End Constructor
 
 Destructor TabWindow
-	If FCaptionNew Then Deallocate_( FCaptionNew)
-	If FFileName Then Deallocate_( FFileName)
-	If FLine Then Deallocate_( FLine)
-	If FLine1 Then Deallocate_( FLine1)
-	If FLine2 Then Deallocate_( FLine2)
-	If FLine3 Then Deallocate_( FLine3)
-	If FLine4 Then Deallocate_( FLine4)
-	If FPath Then Deallocate_( FPath)
+	If FCaptionNew Then _Deallocate( FCaptionNew)
+	If FFileName Then _Deallocate( FFileName)
+	If FLine Then _Deallocate( FLine)
+	If FLine1 Then _Deallocate( FLine1)
+	If FLine2 Then _Deallocate( FLine2)
+	If FLine3 Then _Deallocate( FLine3)
+	If FLine4 Then _Deallocate( FLine4)
+	If FPath Then _Deallocate( FPath)
 	'	If pLocalTypes = @Types Then pLocalTypes = 0
 	'	If pLocalEnums = @Enums Then pLocalEnums = 0
 	'	If pLocalProcedures = @Procedures Then pLocalProcedures = 0
@@ -10461,7 +10461,7 @@ Destructor TabWindow
 				#endif
 			End If
 		Next i
-		Delete_( Des)
+		_Delete( Des)
 	End If
 	cboClass.Items.Clear
 	cboFunction.Items.Clear
@@ -10472,73 +10472,73 @@ Destructor TabWindow
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.TypeProcedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
 		te = txtCode.Content.Procedures.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			te1 = te->Elements.Object(j)
 			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				Delete_(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
 			Next
 			te1->Elements.Clear
-			Delete_( Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
 		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
-			Delete_( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+			_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
 		Next
 		cb->Elements.Clear
-		Delete_(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
+		_Delete(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
 	Next
 	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
 		txtCode.Content.LineLabels.Remove i
 	Next
 	For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
 		te = txtCode.Content.Args.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			Delete_(Cast(TypeElement Ptr, te->Elements.Object(j)))
+			_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
-		Delete_( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
+		_Delete( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
 	Next
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
-		Delete_( Cast(WString Ptr, AnyTexts.Object(i)))
+		_Delete( Cast(WString Ptr, AnyTexts.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.FileLists.Count - 1 To 0 Step -1
-		Delete_( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
+		_Delete( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
 	Next
 	For i As Integer = txtCode.Content.FileListsLines.Count - 1 To 0 Step -1
-		Delete_( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
+		_Delete( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
 	Next
 	txtCode.Content.Functions.Clear
 	txtCode.Content.ConstructionBlocks.Clear
@@ -11537,9 +11537,9 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 		End If
 	End If
 	CloseFile_(Fn)
-	If Buff Then Deallocate_( Buff)
-	If File Then Deallocate_( File)
-	If sLines Then Deallocate_( sLines)
+	If Buff Then _Deallocate( Buff)
+	If File Then _Deallocate( File)
+	If sLines Then _Deallocate( sLines)
 	'End If
 End Sub
 
@@ -11991,8 +11991,8 @@ Sub RunPr(Debugger As String = "")
 				CloseHandle hReadPipe
 			Next
 		#endif
-		If Workdir Then Deallocate_( Workdir)
-		If CmdL Then Deallocate_(CmdL)
+		If Workdir Then _Deallocate( Workdir)
+		If CmdL Then _Deallocate(CmdL)
 	Else
 		WLet(ExeFileName, (GetExeFileName(MainFile, FirstLine & CompileLine)))
 		#ifdef __USE_GTK__
@@ -12088,8 +12088,8 @@ Sub RunPr(Debugger As String = "")
 				
 				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Pipe"), False)
-					If Workdir Then Deallocate Workdir
-					If CmdL Then Deallocate CmdL
+					If Workdir Then _Deallocate(Workdir)
+					If CmdL Then _Deallocate(CmdL)
 					ChangeEnabledDebug True, False, False
 					Exit Sub
 				End If
@@ -12103,8 +12103,8 @@ Sub RunPr(Debugger As String = "")
 				ChDir(GetFolderName(*ExeFileName))
 				If CreateProcess(0, *CmdL, @sa, @sa, 1, pClass, 0, 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process"), False)
-					If Workdir Then Deallocate Workdir
-					If CmdL Then Deallocate CmdL
+					If Workdir Then _Deallocate(Workdir)
+					If CmdL Then _Deallocate(CmdL)
 					ChangeEnabledDebug True, False, False
 					Exit Sub
 				End If
@@ -12122,7 +12122,7 @@ Sub RunPr(Debugger As String = "")
 							If Len(*res(i)) <= 1 Then Continue For
 							If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
 							'ShowMessages Str(Time) & ": " & ML("DebugPrint") & ": " & *res(i)
-							Deallocate res(i): res(i) = 0
+							_Deallocate(res(i)): res(i) = 0
 						Next i
 						Erase res
 						sOutput = ""
@@ -12169,11 +12169,11 @@ Sub RunPr(Debugger As String = "")
 			ChangeEnabledDebug True, False, False
 			'End If
 			RestoreStatusText
-			If Workdir Then Deallocate Workdir
-			If CmdL Then Deallocate CmdL
+			If Workdir Then _Deallocate(Workdir)
+			If CmdL Then _Deallocate(CmdL)
 		#endif
 	End If
-	If ExeFileName Then Deallocate_( ExeFileName)
+	If ExeFileName Then _Deallocate( ExeFileName)
 	Exit Sub
 	ErrorHandler:
 	ThreadsEnter()
@@ -12725,7 +12725,7 @@ Sub TabWindow.FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine
 					WLet(FECLine->Text, RTrim(Mid(*LineStr, 1, Pos1), Any !"\t ") & Space(BasisPosition - Len(RTrim(Mid(*LineStr, 1, Pos1), Any !"\t "))) & LTrim(Mid(*LineStr, Pos1 + 1)))
 				End If
 			Next
-			Deallocate_(LineStr)
+			_Deallocate(LineStr)
 		End If
 		.Changed("FormatWithBasisWord")
 		.UpdateUnLock
@@ -12770,7 +12770,7 @@ Sub TabWindow.ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, LCase(*LineStr))
 			Next i
 		End If
-		Deallocate_(LineStr)
+		_Deallocate(LineStr)
 		.Changed("ConvertToLowercase")
 		.UpdateUnLock
 	End With
@@ -12814,7 +12814,7 @@ Sub TabWindow.ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, UCase(*LineStr))
 			Next i
 		End If
-		Deallocate_(LineStr)
+		_Deallocate(LineStr)
 		.Changed("ConvertToLowercase")
 		.UpdateUnLock
 	End With

@@ -288,7 +288,7 @@ Private Sub frmComponentsType.cmdApply_Click(ByRef Sender As Control)
 			If chlControls.Checked(i) Then
 				Dim As IniFile ini
 				ini.Load GetFolderName(Paths.Item(i)) & "Settings.ini"
-				Var CtlLibrary = New_(Library)
+				Var CtlLibrary = _New(Library)
 				CtlLibrary->Name = ini.ReadString("Setup", "Name")
 				CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
 				CtlLibrary->Path = Paths.Item(i)

@@ -1035,7 +1035,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 		If .ProjectTreeNode = 0 Then Exit Sub
 		Dim As ProjectElement Ptr ppe = .ProjectTreeNode->Tag
 		If ppe = 0 Then
-			ppe = New_( ProjectElement)
+			ppe = _New( ProjectElement)
 			WLet(ppe->FileName, "")
 		End If
 		WLet(ppe->MainFileName, .MainFiles.Get(.cboMainFile.Text))
