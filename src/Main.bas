@@ -3394,7 +3394,11 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 	If CInt(InStr(Path, ":") > 0) OrElse CInt(StartsWith(Path, "/")) OrElse CInt(StartsWith(Path, "\")) Then
 		Return GetOSPath(Path)
 	ElseIf StartsWith(Path, "./") OrElse StartsWith(Path, ".\") Then
-		Return GetOSPath(GetFolderName(FromFile) & Mid(Path, 3))
+		If FromFile = "" Then
+			Return GetOSPath(ExePath & "\" & Mid(Path, 3))
+		Else
+			Return GetOSPath(GetFolderName(FromFile) & Mid(Path, 3))
+		End If
 	ElseIf StartsWith(Path, "../") OrElse StartsWith(Path, "..\") Then
 		Return GetOSPath(GetFolderName(GetFolderName(FromFile)) & Mid(Path, 4))
 	End If
