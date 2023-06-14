@@ -3360,7 +3360,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControlContent.IndexOfInListFiles(pList As WStringOrStringList Ptr, ByRef Matn As String, Files As WStringList Ptr, FileLines As IntegerList Ptr) As Integer
-		If pList = 0 OrElse Files = 0 OrElse FileLines = 0 Then Return -1
+		If pList = 0 OrElse Files = 0 OrElse FileLines = 0 OrElse Trim(Matn, Any !"\t ") = "" Then Return -1
 		Dim As Integer tIndex = pList->IndexOf(Matn)
 		Var Idx = -1, iLine = -1
 		If tIndex > -1 Then
