@@ -356,7 +356,7 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 				f = *Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag)->FileName
 				If EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") OrElse EndsWith(LCase(f), ".inc") _
 					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".html") _
-					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".htm") OrElse EndsWith(LCase(f), ".xml") _
+					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".htm") OrElse EndsWith(LCase(f), ".xml") OrElse EndsWith(LCase(f), ".cs") OrElse EndsWith(LCase(f), ".vb")  _
 					OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".cpp") OrElse EndsWith(LCase(f), ".java") Then
 					Result = -1: Fn = FreeFile_
 					Result = Open(f For Input Encoding "utf-8" As #Fn)
@@ -427,7 +427,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 				f = *Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag)->FileName
 				If EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") OrElse EndsWith(LCase(f), ".inc") _
 					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".html") _
-					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".htm") OrElse EndsWith(LCase(f), ".xml") _
+					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".htm") OrElse EndsWith(LCase(f), ".xml") OrElse EndsWith(LCase(f), ".cs") OrElse EndsWith(LCase(f), ".vb") _
 					OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".cpp") OrElse EndsWith(LCase(f), ".java") Then
 					If LCase(tML) <> LCase(tReplace) Then
 						FNameOpen = GetBakFileName(f)
@@ -464,7 +464,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 											WAdd BuffOut, Chr(13,10) & *SubStr(i)
 											If InStr(*SubStr(i), "&")>0 Then WAdd BuffOut, Chr(13,10) & Replace(*SubStr(i),"&","")
 										End If
-										_Deallocate(SubStr(i)): SubStr(i)=0
+										Deallocate SubStr(i): SubStr(i)=0
 									Next
 									Erase SubStr
 								Else
@@ -515,7 +515,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 		End If
 		CloseFile_(Fn)
 	End If
-	_Deallocate(BuffOut)
+	Deallocate BuffOut
 End Sub
 
 Sub FindSubProj(Param As Any Ptr)
@@ -765,7 +765,9 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 		ActionReplace += 1
 		txt->SelText = txtReplace.Text
 		This.btnFind_Click(Sender)
-		If txtReplace.Contains(txtReplace.Text)=False Then txtReplace.AddItem txtReplace.Text
+		If txtFind.Contains(txtFind.Text) = False Then txtFind.AddItem txtFind.Text
+		If txtReplace.Contains(txtReplace.Text) = False Then txtReplace.AddItem txtReplace.Text
+		
 	Else
 		This.btnFind_Click(Sender)
 	End If
@@ -827,6 +829,8 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 		If plvSearch->ListItems.Count=0 Then
 			This.Caption=ML("Find: No Results")
 		Else
+		If Not txtFind.Contains(*Search) Then txtFind.AddItem *Search
+		If Len(*tReplace) > 0 AndAlso (Not txtReplace.Contains(*tReplace)) Then txtReplace.AddItem *tReplace
 			This.Caption=ML("Replace") + ": 1 of " + WStr(plvSearch->ListItems.Count)
 		End If
 	End If
