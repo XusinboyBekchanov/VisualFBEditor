@@ -2908,7 +2908,7 @@ Namespace My.Sys.Forms
 			If Pos2 > 0 Then
 				sTemp = WithoutPointers(Trim(Mid(Value, Pos1 + 1, Pos2 - Pos1 - 1)))
 			End If
-		ElseIf StartsWith(LCase(Value), "new_(") Then
+		ElseIf StartsWith(LCase(Value), "new_(") OrElse StartsWith(LCase(Value), "_new(") Then
 			Var Pos1 = InStr(Value, "(")
 			Var Pos2 = InStr(Value, ")")
 			If Pos2 > 0 Then
