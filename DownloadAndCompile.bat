@@ -23,6 +23,6 @@ set FBC64=D:\FreeBasic\FreeBASIC-1.10.0-winlibs-gcc-9.3.0\fbc64.exe
 cd ..\..\..\..\VisualFBEditor\src
 
 "%FBC32%" "VisualFBEditor.bas" -s gui -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
-"%FBC64%" "VisualFBEditor.bas" -s gui -gen gcc -Wc -O3 -x "../VisualFBEditor32.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
+"%FBC64%" "VisualFBEditor.bas" -s gui -gen gcc -Wc -O3 -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
 
 cd ..\..\
