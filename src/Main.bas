@@ -981,7 +981,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		'Delete the default ManifestFile And IcoFile
 		'If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
 		#ifdef __USE_GTK__
-			Fn = FreeFile_
+			Dim Fn As Integer = FreeFile_
 			Result = -1
 			Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
 			If Result <> 0 Then Result = Open(*LogFileName2 For Input Encoding "utf-16" As #Fn)
