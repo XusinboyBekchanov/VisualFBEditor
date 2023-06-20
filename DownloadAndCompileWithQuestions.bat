@@ -115,7 +115,7 @@ cd VisualFBEditor\Controls\MyFbFramework\mff
 
 cd ..\..\..\..\VisualFBEditor\src
 
-"%FBC64%" "VisualFBEditor.bas" -s gui -gen gcc -Wc -O3 x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
+"%FBC64%" "VisualFBEditor.bas" -s gui -gen gcc -Wc -O3 -x "../VisualFBEditor64.exe" "VisualFBEditor.rc" -i "..\Controls\MyFbFramework" -v
 
 cd ..\..\..\
 
