@@ -839,7 +839,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 End Sub
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 	'Sender.Center
-	If pClipboard > 0 AndAlso Len(*gSearchSave) > 0 Then pClipboard->SetAsText *gSearchSave
+	If Len(*gSearchSave) > 0 Then Clipboard.SetAsText *gSearchSave
 	mFormFind = Not mFormFind
 	If mFormFind = True Then
 		'SetBounds Left, Top, Width,65
@@ -952,7 +952,7 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 		End If
 	End If
 	If SelText = "" Then
-		SelText = pClipboard->GetAsText
+		SelText = Clipboard.GetAsText
 	End If
 	If SelText = "" Then
 		cboFindRange.ItemIndex = 1

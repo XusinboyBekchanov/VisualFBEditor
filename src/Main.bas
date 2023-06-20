@@ -7940,7 +7940,7 @@ Sub txtChangeLog_DblClick(ByRef Sender As Control)
 		If iPos > 0 Then
 			Dim As Integer iLine = Val(Mid(CodeFileName, iPos + 3))
 			Dim As Integer iPos1 = InStr(iPos + 3, CodeFileName, Any !" }")
-			'pClipboard->SetAsText Mid(CodeFileName,iPos+1,iPos1-ipos-1)
+			'Clipboard.SetAsText Mid(CodeFileName,iPos+1,iPos1-ipos-1)
 			'' Will Search With find Function
 			'pfFind->txtFind.Text = Mid(CodeFileName,iPos+1,iPos1-ipos-1)
 			Dim As Integer iPos2 = InStr(CodeFileName, "|")

@@ -1389,7 +1389,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Dim As PointerList Ptr Value = @CopyList
 			#else
-				If pClipboard->HasFormat(fformat) Then
+				If Clipboard.HasFormat(fformat) Then
 					If ( OpenClipboard(NULL) ) Then
 						
 						'извлекаем данные из буфера 'Extract data from buffer

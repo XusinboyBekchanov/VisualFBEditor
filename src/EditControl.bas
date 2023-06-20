@@ -1455,16 +1455,16 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.CopyCurrentLineToClipboard
-		pClipboard->SetAsText Lines(FSelEndLine) & Chr(13, 10)
+		Clipboard.SetAsText Lines(FSelEndLine) & Chr(13, 10)
 	End Sub
 	
 	Sub EditControl.CopyToClipboard
-		pClipboard->SetAsText SelText
+		Clipboard.SetAsText SelText
 	End Sub
 	
 	Sub EditControl.PasteFromClipboard
 		Dim Value As WString Ptr
-		WLet(Value, pClipboard->GetAsText)
+		WLet(Value, Clipboard.GetAsText)
 		If Value Then
 			WLetEx Value, Replace(*Value, Chr(13) & Chr(10), Chr(13)), True
 			WLetEx Value, Replace(*Value, Chr(10), Chr(13)), True
