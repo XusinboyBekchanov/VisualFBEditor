@@ -12210,9 +12210,10 @@ Private Sub reinit()
 	flagattach=False
 	flagkill=False
 	shwexp.free=True
-	For ith As Integer =0 To threadnb
-		thread(ith).plt=0
-		thread(ith).pe=False
+	For ith As Integer = 0 To threadnb
+		thread(ith).plt = 0
+		thread(ith).pe = False
+		thread(ith).stack = 0
 	Next
 	threadnb=-1
 	dumpadr=0
