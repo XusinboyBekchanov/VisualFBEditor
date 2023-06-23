@@ -104,8 +104,9 @@ End Sub
 
 Sub mClickUseDefine(Sender As My.Sys.Object)
 	Dim As String MenuName = Sender.ToString
-	If miUseDefine <> 0 Then miUseDefine->Checked = False
 	Dim As Integer Pos1 = InStr(MenuName, ":")
+	If Pos1 = 0 Then Exit Sub
+	If miUseDefine <> 0 Then miUseDefine->Checked = False
 	If Pos1 = 0 Then Pos1 = Len(MenuName)
 	UseDefine = Mid(MenuName, Pos1 + 1)
 	miUseDefine = Cast(MenuItem Ptr, @Sender)
