@@ -1676,7 +1676,7 @@ Namespace My.Sys.Forms
 					If Not WithoutScroll Then ScrollToCaret
 				End If
 			End If
-		#EndIf
+		#endif
 		If Not FileLoaded Then
 			If Open(FileName For Binary Access Read As #Fn) = 0 Then
 				FileSize = LOF(Fn) + 1
@@ -1773,6 +1773,12 @@ Namespace My.Sys.Forms
 			End If
 			WDeAllocate(BuffRead)
 			CloseFile_(Fn)
+		End If
+		If Content.Lines.Count = 0 Then
+			FECLine = _New( EditControlLine)
+			OlddwClientX = 0
+			WLet(FECLine->Text, "")
+			Content.Lines.Add(FECLine)
 		End If
 	End Sub
 	

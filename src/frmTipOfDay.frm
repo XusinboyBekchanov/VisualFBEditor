@@ -30,6 +30,8 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		Declare Sub cmdNextTip_Click(ByRef Sender As Control)
 		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
+		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As CommandButton cmdPreviousTip, cmdNextTip, cmdClose
@@ -58,6 +60,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 			#endif
 			.OnShow = @Form_Show_
 			.OnCreate = @_Form_Create
+			.OnClose = @_Form_Close
 			.SetBounds 0, 0, 540, 350
 		End With
 		' cmdPreviousTip
@@ -120,6 +123,10 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		End With
 	End Constructor
 	
+	Private Sub frmTipOfDayType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).Form_Close(Sender, Action)
+	End Sub
+	
 	Private Sub frmTipOfDayType._Form_Create(ByRef Sender As Control)
 		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
@@ -155,12 +162,7 @@ Dim Shared  As WString Ptr BuffTips(Any)
 
 
 Private Sub frmTipOfDayType.cmdClose_Click(ByRef Sender As Control)
-	Cast(frmTipOfDayType Ptr, Sender.Parent)->CloseForm
-	For i As Integer = 0 To UBound(BuffTips)
-		_Deallocate(BuffTips(i))
-	Next
-	Erase BuffTips
-	ShowTipoftheDay = Not chkDoNotShow.Checked
+	This.CloseForm
 End Sub
 
 Private Sub frmTipOfDayType.Form_Show(ByRef Sender As Form)
@@ -213,4 +215,13 @@ Private Sub frmTipOfDayType.Form_Create(ByRef Sender As Control)
 	End If
 	CloseFile_(Fn)
 	chkDoNotShow.Checked = Not ShowTipoftheDay 
+End Sub
+
+Private Sub frmTipOfDayType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	For i As Integer = 0 To UBound(BuffTips)
+		_Deallocate(BuffTips(i))
+	Next
+	Erase BuffTips
+	ShowTipoftheDay = Not chkDoNotShow.Checked
+	iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
 End Sub
