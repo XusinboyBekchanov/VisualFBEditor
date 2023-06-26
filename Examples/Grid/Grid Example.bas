@@ -38,7 +38,7 @@
 			Grid1[0][1].Text = "Row 1 Column 2"
 			Grid1[1][1].Text = "Row 2 Column 2"
 			.Rows[2][1].Text = "Row 3 Column 2"
-			.Cell(3, 1)->Text = "Row 4 Column 2"
+			.Cells(3, 1)->Text = "Row 4 Column 2"
 			.Rows[3].Tag = @"1"
 		End With
 	End Constructor
