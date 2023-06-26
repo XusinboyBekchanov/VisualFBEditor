@@ -4858,12 +4858,16 @@ Sub FindProcessStartStop()
 End Sub
 
 Sub FindCompilersSub(Param As Any Ptr)
-	Dim As String disk0 = CurDir
-	For i As Integer = 65 To 90
-		If FormClosing OrElse bStop Then Exit For
-		If ChDir(Chr(i) & ":") = 0 Then FindCompilers Chr(i) & ":"
-	Next
-	ChDir(disk0)
+	#ifdef __FB_WIN32__
+		Dim As String disk0 = CurDir
+		For i As Integer = 65 To 90
+			If FormClosing OrElse bStop Then Exit For
+			If ChDir(Chr(i) & ":") = 0 Then FindCompilers Chr(i) & ":"
+		Next
+		ChDir(disk0)
+	#else
+		FindCompilers ""
+	#endif
 	ThreadsEnter
 	bStop = True: FindProcessStartStop
 	If FindedCompilersCount = 0 Then

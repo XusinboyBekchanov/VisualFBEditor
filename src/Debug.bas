@@ -1338,7 +1338,9 @@ Private Sub exception_handle(adr As Integer)
 	ML("Proc") & "  : " + proc(rline(thread(threadcur).sv).px).nm + Chr(13) + _
 	ML("Line") & "  : " + Str(rline(thread(threadcur).sv).nu) + ML("(selected and put in red)") + Chr(13) + _
 	linetext + Chr(13) + Chr(13) + ML("Try To continue? (if yes change values and/or use [M]odify execution)") + Chr(13)
+	ThreadsEnter
 	debugdata = MsgBox(ML("EXCEPTION") & ": " & libelexception)  ''used in thread2
+	ThreadsLeave
 End Sub
 '===================================================
 '' handles the debug events  (triggered by timer)
@@ -1350,7 +1352,7 @@ Private Function debug_event() As Integer
 	If dbgevent = KDBGNOTHING And multiaction = KMULTINOTHING Then Return True
 	'dbg_prt2 "************ debug_event ";time;" ";dbgevent;" ";hex(debugdata);" stopcode=";stoplibel(stopcode)
 	Select case As Const dbgevent
-	case KDBGRKPOINT
+	Case KDBGRKPOINT
 		
 		'dbg_prt2 "KDBGRKPOINT=";stopcode,"csline=";CSLINE,hex(debugdata)
 		If stopcode=CSSTEP OrElse stopcode=CSMEM OrElse stopcode=CSVAR OrElse stopcode=CSUSER OrElse stopcode=CSNEWTHRD Then
@@ -1359,9 +1361,9 @@ Private Function debug_event() As Integer
 			gest_brk(brkol(debugdata).ad,brkol(debugdata).index) ''address and line index
 		End If
 		
-	case KDBGCREATEPROCESS
+	Case KDBGCREATEPROCESS
 		srcstart=sourcenb+1
-		#Ifdef __FB_WIN32__
+		#ifdef __FB_WIN32__
 			If debug_extract(debugdata,exename)=0 Then ''otherwise there is a problem (no debug data or when reading debuggee memory)
 				init_debuggee(srcstart)
 			Else
@@ -1369,7 +1371,9 @@ Private Function debug_event() As Integer
 			End If
 		#else
 			If elf_extract(exename) = -1 Then
-				MsgBox("Loading error","Killing process")
+				ThreadsEnter
+				MsgBox("Loading error", "Killing process")
+				ThreadsLeave
 				exec_order(KPT_KILL)
 			End If
 			
@@ -1379,11 +1383,13 @@ Private Function debug_event() As Integer
 			MutexUnlock blocker
 		#endif
 		
-	case KDBGCREATETHREAD
-		#Ifdef __FB_LINUX__
+	Case KDBGCREATETHREAD
+		#ifdef __FB_LINUX__
 			''Linux creation fo a new thread
+			ThreadsEnter
 			Var ret = MsgBox("New Thread", "Thread created = " + Str(thread(threadnb).id) + " / current = " + Str(thread(threadcur).id) _
 			+ Chr(10) + Chr(13) + " Continue with new one or with current ?" , btYesNo)
+			ThreadsLeave
 			If ret = mrYes Then
 				msgdata=1
 				'thread_change(threadnb)
@@ -1398,12 +1404,12 @@ Private Function debug_event() As Integer
 			MutexUnlock blocker
 		#endif
 		
-	case KDBGEXITPROCESS
+	Case KDBGEXITPROCESS
 		process_terminated()
 		
-	case KDBGEXITTHREAD
+	Case KDBGEXITTHREAD
 		thread_del(debugdata)
-		#Ifdef __FB_LINUX__
+		#ifdef __FB_LINUX__
 			msgcmd=0 ''no action
 			MutexLock blocker
 			bool2=True
@@ -1411,16 +1417,18 @@ Private Function debug_event() As Integer
 			MutexUnlock blocker
 		#endif
 		
-	case KDBGDLL
-		#Ifdef __FB_WIN32__
+	Case KDBGDLL
+		#ifdef __FB_WIN32__
 			dll_load()
 		#else
+			ThreadsEnter
 			MsgBox("Linux dll", "nedd to be coded")
+			ThreadsLeave
 		#endif
-	case KDBGDLLUNLOAD
+	Case KDBGDLLUNLOAD
 		dll_unload(debugdata)
 		
-	case KDBGEXCEPT
+	Case KDBGEXCEPT
 		exception_handle(debugdata)
 		
 		''Case KDBGSTRING not used
@@ -1428,7 +1436,7 @@ Private Function debug_event() As Integer
 		'Case else
 		'messbox("Handling debug event","Debug event unkown, not handled ="+str(debugevent))
 	End Select
-	#Ifdef __FB_WIN32__
+	#ifdef __FB_WIN32__
 		'dbg_prt2 "MutexunLock DBGEVENT"
 		MutexUnlock blocker ''release second thread
 		'dbg_prt2 "MutexLock DBGEVENT"
@@ -1473,8 +1481,10 @@ Private Sub external_launch()
 	If debuggee="" Then Exit Sub ''no debuggee
 	
 	If InStr(debuggee,Slash)=0 Then debuggee=ExePath+Slash+debuggee ''debugge without path so exepath added
-	If Dir(debuggee)="" Then
+	If Dir(debuggee) = "" Then
+		ThreadsEnter
 		MsgBox("File as parameter", "File =" + debuggee+ " doesn't exist")
+		ThreadsLeave
 		Exit Sub
 	End If
 	
@@ -1485,8 +1495,10 @@ Private Sub external_launch()
 	SetTimer(hmain,GTIMER001,100,Cast(Any Ptr,@debug_event))
 	
 	If ThreadCreate(@start_pgm)=0 Then
-		KillTimer(hmain,GTIMER001)
+		KillTimer(hmain, GTIMER001)
+		ThreadsEnter
 		MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee")
+		ThreadsLeave
 	End If
 End Sub
 '===================================================================================
@@ -1518,8 +1530,10 @@ Private Sub restart_exe(ByVal idx As Integer)
 	SetTimer(hmain,GTIMER001,100,Cast(Any Ptr,@debug_event))
 	
 	If ThreadCreate(@start_pgm)=0 Then
-		KillTimer(hmain,GTIMER001)
+		KillTimer(hmain, GTIMER001)
+		ThreadsEnter
 		MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee")
+		ThreadsLeave
 	End If
 	
 End Sub
@@ -1528,9 +1542,9 @@ End Sub
 '==================================================================================
 Private Sub restart(ByVal idx As Integer=0)
 	If prun Then
-		#Ifndef __FB_WIN32__
+		#ifndef __FB_WIN32__
 			afterkilled = KRESTART + idx
-		#EndIf
+		#endif
 		If kill_process("Trying to launch but debuggee still running")=False Then
 			dbg_prt2 "in restart false ?????"
 			Exit Sub
@@ -1574,7 +1588,9 @@ Private Function line_cursor() As Integer
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	Dim As Integer FSelStartLine, FSelEndLine, FSelStartChar, FSelEndChar
 	If tb <> 0 Then
+		ThreadsEnter
 		tb->txtCode.GetSelection FSelStartLine, FSelEndLine, FSelStartChar, FSelEndChar
+		ThreadsLeave
 	End If
 	Return FSelEndLine
 End Function
@@ -1585,15 +1601,19 @@ Private Function line_exec(pline As Integer,msg As String)As Integer
 	For iline As Integer =1 To linenb
 		If rline(iline).nu=pline AndAlso rline(iline).sx=srcdisplayed Then
 			For jproc As Integer =1 To procnb
-				If rline(iline).ad=proc(jproc).db Then
+				If rline(iline).ad = proc(jproc).db Then
+					ThreadsEnter
 					MsgBox(msg, "Line not executable")
+					ThreadsLeave
 					Return -1
 				End If
 			Next
 			Return iline
 		End If
 	Next
+	ThreadsEnter
 	MsgBox(msg, "Line not executable")
+	ThreadsLeave
 	Return -1
 End Function
 '==========================================================
@@ -1657,7 +1677,7 @@ End Sub
 '' changes address of execution (forward or backward) only in the same procedure
 '==================================================================================
 Private Sub exec_mod() 'execution from cursor
-	#Ifdef __FB_WIN32__
+	#ifdef __FB_WIN32__
 		Dim As Integer dummy ''used to align vcontext on 16 bytes
 		Dim vcontext As CONTEXT
 		vcontext.ContextFlags=CONTEXT_CONTROL
@@ -1680,8 +1700,10 @@ Private Sub exec_mod() 'execution from cursor
 	'End If
 	
 	'check inside same proc if not msg
-	If rline(rln).ad>proc(procsv).fn Or rline(rln).ad<=proc(procsv).db Then
+	If rline(rln).ad > proc(procsv).fn Or rline(rln).ad <= proc(procsv).db Then
+		ThreadsEnter
 		MsgBox("Changing next executed line", "Not possible : only inside the current procedure")
+		ThreadsLeave
 		Exit Sub
 	End If
 	If rline(rln).ad=proc(procsv).fn Then
@@ -1691,7 +1713,7 @@ Private Sub exec_mod() 'execution from cursor
 	'WriteProcessMemory(dbghand,Cast(LPVOID,rLine(i).ad),@rLine(i).sv,1,0) 'restore old value for execution
 	thread(threadcur).od=thread(threadcur).sv:thread(threadcur).sv=rln
 	'get and update registers
-	#Ifdef __FB_WIN32__
+	#ifdef __FB_WIN32__
 		GetThreadContext(threadhs,@vcontext)
 		vcontext.regip=rline(rln).ad
 		SetThreadContext(threadhs,@vcontext)
@@ -1747,8 +1769,10 @@ Private Sub var_tip(ope As Integer)
 		text=Mid(text,i,j-i+1) 'extract from text
 	End If
 	
-	If text="" Or Left(text,1)="." Then
+	If text = "" Or Left(text, 1) = "." Then
+		ThreadsEnter
 		MsgBox(ML("Selection variable error"), """" + text + """ : Empty string or incomplete name (udt components)")
+		ThreadsLeave
 		Exit Sub
 	End If
 	text=UCase(text)
@@ -1805,8 +1829,10 @@ Private Sub var_tip(ope As Integer)
 				Next
 				idx=var_search(1,vname(),vnb,varray)
 			End If
-			If idx=-1 Then
+			If idx = -1 Then
+				ThreadsEnter
 				MsgBox("Selection variable error", """" + Left(text, Len(text) - 1) + """ is not a running variable")
+				ThreadsLeave
 				Exit Sub
 			End If
 		End If
@@ -1818,9 +1844,9 @@ Private Sub var_tip(ope As Integer)
 End Sub
 
 #ifndef __FB_WIN32__
-	#INCLUDE once "crt.bi"
-	#INCLUDE once "crt/linux/unistd.bi"
-	#INCLUDE once "crt/linux/fcntl.bi"
+	#include once "crt.bi"
+	#include once "crt/linux/unistd.bi"
+	#include once "crt/linux/fcntl.bi"
 	
 	#define SIGINT 2
 	#define SIGILL 4
@@ -2344,7 +2370,7 @@ End Sub
 			reg_values(8)="Esp="+fmt(Str(regs.xsp),11)+"/ "+Hex(regs.xsp)
 			
 			For i As Long =0 To 8
-		#EndIf
+		#endif
 			text+=Chr(13)+reg_values(i)
 		Next
 		text+=Chr(13)+Chr(13)
@@ -2909,7 +2935,7 @@ End Sub
 								End If
 								bptyp=brkol(bpidx).typ
 								If bptyp=2 Or bptyp=3 Then  ''BP conditional
-									If brk_test(brkol(bpidx).adrvar1,brkol(bpidx).adrvar2,brkol(bpidx).datatype,brkol(bpidx).val,brkol(bpidx).ttb) Then
+									If brk_test(brkol(bpidx).adrvar1,brkol(bpidx).adrvar2,brkol(bpidx).datatype,brkol(bpidx).Val,brkol(bpidx).ttb) Then
 										brp_stop(threadcur,CSCOND,bpidx)
 									Else
 										singlestep_on(thread(threadcur).id,brkol(bpidx).index)
@@ -3088,7 +3114,9 @@ End Sub
 	'' lists all the processes
 	'==================================
 	Private Sub process_list()
+		ThreadsEnter
 		MsgBox("For Linux process list not yet implemented")
+		ThreadsLeave
 	End Sub
 	'=======================================================
 	'' displays the input box and check value
@@ -3098,7 +3126,9 @@ End Sub
 		Dim As Double vald
 		Dim As String inputval
 		Do
-			inputval=InputBox(title,text1,text2)
+			ThreadsEnter
+			inputval = InputBox(title, text1, text2)
+			ThreadsLeave
 			If inputtyp=99 Then
 				vald=Val(inputval)
 				Select Case inputtyp
@@ -3123,8 +3153,10 @@ End Sub
 	'' shows value in dec/hex/bin
 	'===============================
 	Private Sub dechexbin()
-		Var inputval=input_bx("Display value in dec/hex/bin","Input value HEX("+KAMPERSAND+"h) or DEC",,99)
+		Var inputval = input_bx("Display value in dec/hex/bin", "Input value HEX(" + KAMPERSAND + "h) or DEC", , 99)
+		ThreadsEnter
 		MsgBox("Value in dec, hex and bin", "Dec= " + Str(Val(inputval)) + Chr(10) + "Hex=" + Hex(Val(inputval)) + Chr(10) + "Bin=" + Bin(Val(inputval)))
+		ThreadsLeave
 	End Sub
 	'======================================
 	'' translates code error to the text
@@ -3132,10 +3164,14 @@ End Sub
 	Private Sub linmsg()
 		Dim As Integer code
 		code=ValInt(input_bx("Linux error text","Enter the code",,5))
-		If code<>0 And code<=UBound(errorlibel) Then
+		If code<> 0 And code<= UBound(errorlibel) Then
+			ThreadsEnter
 			MsgBox("Linux message: Code :" + Str(code) + Chr(10) + "Text : " + errorlibel(code))
+			ThreadsLeave
 		Else
+			ThreadsEnter
 			MsgBox("Linux error code: Sorry unkown in debugger list")
+			ThreadsLeave
 		End If
 	End Sub
 	'==================================
@@ -3244,7 +3280,9 @@ End Sub
 					procsk=regs.xsp
 					thread(threadcur).nk=procsk
 				Else
+					ThreadsEnter
 					MsgBox("Main procedure problem", "No standard prologue --> random behaviour")
+					ThreadsLeave
 					procsk=regs.xsp-SizeOf(Integer)
 				End If
 			End If
@@ -3624,9 +3662,9 @@ runtype = RTOFF
 			cmdl = """" + exename+ """ " '+cmdexe(0)
 		End If
 		
-		#Ifdef fulldbg_prt
+		#ifdef fulldbg_prt
 			dbg_prt (Date+" "+Time+"Start Debug with "+cmdl)
-		#EndIf
+		#endif
 		sinfo.cb = Len(sinfo)
 		'Set the flags
 		sinfo.dwFlags = STARTF_USESHOWWINDOW
@@ -3643,17 +3681,19 @@ runtype = RTOFF
 			dbgthreadID=pinfo.dwThreadId
 			dbghand=pinfo.hProcess
 			dbghthread=pinfo.hThread
-			#Ifdef fulldbg_prt
+			#ifdef fulldbg_prt
 				dbg_prt ("Create process")
 				dbg_prt ("pinfo.hThread "+Str(pinfo.hThread))
 				dbg_prt ("pinfo.dwThreadId "+Str(pinfo.dwThreadId))
 				dbg_prt ("hand "+Str(dbghand)+" Pid "+Str(dbgprocid))
-			#EndIf
+			#endif
 			prun=True
 			'runtype=RTSTEP
 			wait_debug()
 		Else
+			ThreadsEnter
 			MsgBox("PROBLEM", "no debugged pgm -->" + exename+ Chr(10) + "error :" + Str(GetLastError()), MB_SYSTEMMODAL)
+			ThreadsLeave
 		End If
 	End Sub
 	'===================================================
@@ -4537,8 +4577,8 @@ Private Sub parse_enum(readl As String)
 	If InStr(readl,";")=0 Then
 		cudtnb+=1
 		cudt(cudtnb).nm="DUMMY"
-		cudt(cudtnb).Val=0
-		MsgBox("Storing ENUM=" + tnm & ": Data not correctly formated "): Exit Sub
+		cudt(cudtnb).Val = 0
+		ThreadsEnter: MsgBox("Storing ENUM=" + tnm & ": Data not correctly formated "): ThreadsLeave: Exit Sub
 	Else
 		While readl[p-1]<>Asc(";")
 			q=InStr(p,readl,":") 'text
@@ -5200,7 +5240,9 @@ End Function
 	Private Function cutup_array(gv As String,d As Integer,f As Byte) As Integer
 		Dim As Integer p=d,q,c
 		
-		If arrnb > ARRMAX Then MsgBox(ML("Max array reached: can't store")): Exit Function
+		ThreadsEnter
+		If arrnb > ARRMAX Then ThreadsEnter: MsgBox(ML("Max array reached: can't store")): ThreadsLeave: Exit Function
+		ThreadsLeave
 		arrnb+=1
 		
 		'While gv[p-1]=Asc("a")
@@ -5353,7 +5395,7 @@ End Function
 		udtidx=Val(Mid(readl,p,q-p))
 		If tnm="OBJECT" OrElse tnm="$fb_Object" Then udt(15).index=udtidx:Exit Sub
 		udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
-		If udtmax > TYPEMAX-1 Then MsgBox(ML("Storing UDT: Max limit reached")+" "+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX - 1 Then ThreadsEnter: MsgBox(ML("Storing UDT: Max limit reached") + " " + Str(TYPEMAX)): ThreadsLeave: Exit Sub
 		udt(udtidx).nm=tnm
 		If Left(tnm,4)="TMP$" Then Exit Sub 'gcc redim
 		p=q+2
@@ -5367,7 +5409,7 @@ End Function
 		udt(udtidx).lb=cudtnb+1
 		While readl[p-1]<>Asc(";")
 			'dbg_prt("STORING CUDT "+readl)
-			If cudtnb = CTYPEMAX Then MsgBox (ML("Storing CUDT: Max limit reached")+" "+Str(CTYPEMAX)):Exit Sub
+			If cudtnb = CTYPEMAX Then ThreadsEnter: MsgBox (ML("Storing CUDT: Max limit reached") + " " + Str(CTYPEMAX)): ThreadsLeave: Exit Sub
 			cudtnb+=1
 			
 			
@@ -5422,7 +5464,7 @@ End Function
 		Select Case gv
 		Case Asc("S"),Asc("G")     'shared/common
 			If gv=Asc("G") Then If Common_exist(ad) Then Return 0 'to indicate that no needed to continue
-			If vrbgbl=VGBLMAX Then MsgBox (ML("Init Globals: Reached limit")+" "+Str(VGBLMAX)):Exit Function
+			If vrbgbl = VGBLMAX Then ThreadsEnter: MsgBox (ML("Init Globals: Reached limit") + " " + Str(VGBLMAX)): ThreadsLeave: Exit Function
 			vrbgbl+=1
 			vrb(vrbgbl).adr=ad
 			vrbptr=@vrbgbl
@@ -5435,7 +5477,7 @@ End Function
 			End Select
 			Return 2
 		Case Else
-			If vrbloc=VARMAX Then MsgBox(ML("Init locals: Reached limit")+" "+Str(VARMAX-3000)):Exit Function
+			If vrbloc = VARMAX Then ThreadsEnter: MsgBox(ML("Init locals: Reached limit") + " " + Str(VARMAX - 3000)): ThreadsLeave: Exit Function
 			vrbloc+=1
 			vrb(vrbloc).adr=ad
 			vrbptr=@vrbloc
@@ -5524,7 +5566,7 @@ End Function
 		q=InStr(readl,"=")
 		udtidx=Val(Mid(readl,p,q-p))
 		udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
-		If udtmax > TYPEMAX Then MsgBox(ML("Storing ENUM") & "="+tnm & ": " & ML("Max limit reached")+" "+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX Then ThreadsEnter: MsgBox(ML("Storing ENUM") & "=" + tnm & ": " & ML("Max limit reached") + " " + Str(TYPEMAX)): ThreadsLeave: Exit Sub
 		udt(udtidx).nm=tnm 'enum name
 		
 		udt(udtidx).en=udtidx 'flag enum, in case of already treated use same previous cudt
@@ -5537,11 +5579,11 @@ End Function
 			cudtnb+=1
 			cudt(cudtnb).nm="DUMMY"
 			cudt(cudtnb).Val=0
-			MsgBox(ML("Storing ENUM") & "="+tnm &": " & ML("Data not correctly formated")):Exit Sub '28/04/2014
+			ThreadsEnter: MsgBox(ML("Storing ENUM") & "=" + tnm & ": " & ML("Data not correctly formated")): ThreadsLeave: Exit Sub '28/04/2014
 		Else
 			While readl[p-1]<>Asc(";")
 				q=InStr(p,readl,":") 'text
-				If cudtnb>=CTYPEMAX Then MsgBox(ML("Storing ENUM") & "="+tnm & ": " & ML("Max limit reached")+" "+Str(CTYPEMAX)):Exit Sub '28/04/2014
+				If cudtnb >= CTYPEMAX Then ThreadsEnter: MsgBox(ML("Storing ENUM") & "=" + tnm & ": " & ML("Max limit reached") + " " + Str(CTYPEMAX)): ThreadsLeave: Exit Sub '28/04/2014
 				cudtnb+=1
 				cudt(cudtnb).nm=Mid(readl,p,q-p)
 				
@@ -6329,7 +6371,7 @@ Private Sub var_iniudt(Vrbe As UInteger, adr As UInteger, tv As TreeNode Ptr, vo
 		With cudt(i)
 			'dbg_prt2("var ini="+.nm+" "+Str(.ofs)+" "+Str(voffset)+" "+Str(adr))
 			vrrnb+=1
-			If vrrnb > VRRMAX Then MsgBox ML("Max number of vars reached"): vrrnb = VRRMAX: Exit Sub
+			If vrrnb > VRRMAX Then ThreadsEnter: MsgBox ML("Max number of vars reached"): vrrnb = VRRMAX: ThreadsLeave: Exit Sub
 			vrr(vrrnb).vr=-i
 			ad=.ofs+voffset 'offset of current element + offset all levels above
 			vrr(vrrnb).gofs=ad 'however keep (global) offset
@@ -6380,7 +6422,7 @@ Private Sub var_ini(j As UInteger ,bg As Integer ,ed As Integer) 'store informat
 				adr=.adr
 			End If
 			vrrnb+=1
-			If vrrnb >= VRRMAX Then MsgBox(ML("Too many variables: --> lost")):Exit Sub
+			If vrrnb >= VRRMAX Then ThreadsEnter:MsgBox(ML("Too many variables: --> lost")):ThreadsLeave:Exit Sub
 			vrr(vrrnb).vr=i
 			vrr(vrrnb).ad=adr
 			If .arr Then
@@ -6510,7 +6552,7 @@ Private Sub var_dump(tv As Any Ptr, ptd As Long = 0)
 	dumpadr=varfind.ad
 
 	If ptd Then 'dumping pointed data
-		If varfind.pt = 0 Then MsgBox("Dumping pointed data", "The selected variable is not a pointer"): Exit Sub
+		If varfind.pt = 0 Then ThreadsEnter: MsgBox("Dumping pointed data", "The selected variable is not a pointer"): ThreadsLeave: Exit Sub
 		ReadProcessMemory(dbghand,Cast(LPCVOID,dumpadr),@dumpadr,SizeOf(Integer),0)
 	EndIf
 
@@ -6627,12 +6669,12 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 		#endif
 		For i As Integer = 1 To vrrnb 'search index variable
 			If vrr(i).tv=hitem Then
-				If vrr(i).ad=0 Then MsgBox(ML("Variable selection error: Dynamic array not yet sized!")):Return -1
+				If vrr(i).ad = 0 Then ThreadsEnter: MsgBox(ML("Variable selection error: Dynamic array not yet sized!")): ThreadsLeave: Return -1
 				var_fill(i)
 				Return i
 			End If
 		Next
-		MsgBox(ML("Variable selection error2: Select only a variable"))
+		ThreadsEnter: MsgBox(ML("Variable selection error2: Select only a variable")): ThreadsLeave
 		Return -1
 	ElseIf tv=tviewwch Then
 		idx=watch_find()
@@ -6682,7 +6724,7 @@ End Function
 		If var_find2(tv)=-1 Then Exit Sub 'search index variable under cursor
 		
 		If varfind.ty<>4 And varfind.ty<>13 And varfind.ty<>14 And varfind.ty <>6 Then 'or ty<>15
-			MsgBox("Show string error: Select only a string variable")
+			ThreadsEnter: MsgBox("Show string error: Select only a string variable"): ThreadsLeave
 			Exit Sub
 		End If
 		stringadr=varfind.ad
@@ -6754,7 +6796,7 @@ End Function
 			#ifdef dbg_prt2
 				dbg_prt2("show ret="+proc(temp).nm+" "+Str(typ)+" "+Str(pt))
 			#endif
-			If typ=7 AndAlso pt=0 Then MsgBox(ML("Return value: Select a function not a sub!")):Exit Sub
+			If typ = 7 AndAlso pt = 0 Then ThreadsEnter: MsgBox(ML("Return value: Select a function not a sub!")): ThreadsLeave: Exit Sub
 			If rvadr<>0 Then 'gcc/dwarf 19/08/2015
 				'addr+=rvadr
 				#ifdef dbg_prt2
@@ -6801,7 +6843,7 @@ End Function
 			'fb_Dialog(@shwexp_box,"Show/expand : "+varfind.nm,windmain,283,25,350,200)
 		Else
 			'no free slot
-			MsgBox(ML("Show/Expand variable or memory: Max number of windows reached") & " ("+Str(SHWEXPMAX)+Chr(13)+ML("Close one window and try again"))
+			ThreadsEnter: MsgBox(ML("Show/Expand variable or memory: Max number of windows reached") & " (" + Str(SHWEXPMAX) + Chr(13) + ML("Close one window and try again")): ThreadsLeave
 		End If
 	End Sub
 #endif
@@ -7200,7 +7242,7 @@ End Sub
 			ShowWindow(tviewcur,SW_SHOW)
 			SetFocus(tviewcur)
 			SendMessage(htab2,TCM_SETCURSEL,3,0)
-			MsgBox(ML("Add watched variable: No free slot, delete one"))
+			ThreadsEnter: MsgBox(ML("Add watched variable: No free slot, delete one")): ThreadsLeave
 			Exit Sub
 		End If
 		'Already set ?
@@ -7353,7 +7395,7 @@ Private Sub globals_load(d As Integer = 0) 'load shared and common variables, in
 			'dbg_prt2("procrnb="+Str(procrnb))
 			procr(procrnb+1).vr=vrrnb+1 'to avoid removal of global vars when the first executed proc is not the main one reactivate line 08/06/2014
 		Else
-			If procrnb = PROCRMAX Then MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): Exit Sub
+			If procrnb = PROCRMAX Then ThreadsEnter: MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): ThreadsLeave: Exit Sub
 			procrnb+=1
 			#ifdef __FB_WIN32__
 				temp = Cast(HTREEITEM, SendMessage(tviewvar, TVM_GETNEXTITEM, TVGN_PREVIOUS, Cast(LPARAM, procr(1).tv)))
@@ -7397,7 +7439,7 @@ Private Sub globals_load(d As Integer = 0) 'load shared and common variables, in
 					ElseIf wtch(i).psk=-4 Then 'session watch
 						If wtch(i).idx=0 Then 'shared dll
 							vridx=var_search(procrnb,wtch(i).vnm(),wtch(i).vnb,wtch(i).Var,wtch(i).pnt)
-							If vridx=-1 Then MsgBox(ML("Proc watch: Running var not found")):Continue For
+							If vridx = -1 Then ThreadsEnter: MsgBox(ML("Proc watch: Running var not found")): ThreadsLeave: Continue For
 							var_fill(vridx)
 							watch_add(wtch(i).tad,i)
 						End If
@@ -7437,7 +7479,7 @@ Private Sub watch_check(wname() As String)
 		vtype=Mid(wname(index),q,p-q)
 		
 		If pidx=-1 Then
-			MsgBox(ML("Watched variables") & ": Proc <" + pname+ "> for <" + vname+ "> " & ML("removed, canceled")) ',, MB_SYSTEMMODAL)
+			ThreadsEnter: MsgBox(ML("Watched variables") & ": Proc <" + pname+ "> for <" + vname+ "> " & ML("removed, canceled")): ThreadsLeave ',, MB_SYSTEMMODAL)
 			index+=1
 			Continue While 'proc has been removed
 		End If
@@ -7486,7 +7528,7 @@ Private Sub watch_check(wname() As String)
 		End If
 		If vidx=-1 Then
 			'var has been removed
-			MsgBox(ML("Applying watched variables") & ": <" + vname+ "> " & ML("removed, canceled")) ',, MB_SYSTEMMODAL)
+			ThreadsEnter: MsgBox(ML("Applying watched variables") & ": <" + vname+ "> " & ML("removed, canceled")):ThreadsLeave ',, MB_SYSTEMMODAL)
 			index+=1
 			Continue While
 		End If
@@ -7515,7 +7557,7 @@ Private Sub watch_check(wname() As String)
 			Next
 			If vidx=-1 Then
 				'udt has been removed
-				MsgBox(ML("Applying watched variables") & ": udt <"+vname+"> " & ML("removed, canceled"))
+				ThreadsEnter: MsgBox(ML("Applying watched variables") & ": udt <" + vname+ "> " & ML("removed, canceled")): ThreadsLeave
 				index+=1
 				Continue While,While
 			End If
@@ -7530,7 +7572,7 @@ Private Sub watch_check(wname() As String)
 		q+=2
 		If ispnt<>ValInt(Mid(wname(index),q,1)) Then 'pnt
 			'pointer doesn't match
-			MsgBox(ML("Applying watched variables") & ": " & Left(wname(index),Len(wname(index))-2)+" " & ML("not a pointer or pointer, canceled"))
+			ThreadsEnter: MsgBox(ML("Applying watched variables") & ": " & Left(wname(index), Len(wname(index)) - 2) + " " & ML("not a pointer or pointer, canceled")): ThreadsLeave
 			index+=1
 			Continue While
 		End If
@@ -7573,7 +7615,7 @@ Sub brk_apply
 									brknumber = 0
 									RunningToCursor = False
 								Else
-									If brknb = BRKMAX Then MsgBox ML("Max number of breakpoints reached"): Exit Sub
+									If brknb = BRKMAX Then ThreadsEnter: MsgBox ML("Max number of breakpoints reached"): ThreadsLeave: Exit Sub
 									brknb += 1
 									brknumber = brknb
 								End If
@@ -7712,7 +7754,7 @@ End Sub
 	'   <2845>   DW_AT_decl_line   : 91
 	'   <2846>   DW_AT_sibling     : <0x2874>
 	Private Sub dw_type_parse 'DW_TAG_structure_type '09/01/2014
-		If udtmax > TYPEMAX-1 Then MsgBox(ML("Storing UDT: Max limit reached ")+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX - 1 Then ThreadsEnter: MsgBox(ML("Storing UDT: Max limit reached ") + Str(TYPEMAX)): ThreadsLeave: Exit Sub
 		udtmax+=1
 		udt(udtmax).what=1
 		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
@@ -7763,7 +7805,7 @@ End Sub
 	
 	Private Sub dw_member_parse 'structure or union
 		Dim As Long p
-		If cudtnb = CTYPEMAX Then MsgBox(ML("Storing CUDT: Max limit reached") & " "+Str(CTYPEMAX)):Exit Sub
+		If cudtnb = CTYPEMAX Then ThreadsEnter: MsgBox(ML("Storing CUDT: Max limit reached") & " " + Str(CTYPEMAX)): ThreadsLeave: Exit Sub
 		cudtnb+=1
 		Line Input #dwff, dwln
 		p=InStr(dwln,"):") 'case indirect string
@@ -7827,7 +7869,7 @@ End Sub
 		Case "signed char","unsigned char","short unsigned int","unsigned int","int","long unsigned int","long long int","long long unsigned int","float","short int"
 			Exit Sub
 		Case Else
-			If udtmax > TYPEMAX-1 Then MsgBox(ML("Storing UDT basictype: Max limit reached") & " "+Str(TYPEMAX)):Exit Sub
+			If udtmax > TYPEMAX - 1 Then ThreadsEnter: MsgBox(ML("Storing UDT basictype: Max limit reached") & " " + Str(TYPEMAX)): ThreadsLeave: Exit Sub
 			udtmax+=1
 			udt(udtmax).what=5 'typedef
 			udt(udtmax).nm=nm
@@ -7871,7 +7913,7 @@ End Sub
 	'   <2787>   DW_AT_byte_size   : 4
 	'   <2788>   DW_AT_type        : <0x26dc>   NOT ALWAYS : inexisting if void
 	Private Function dw_pointer_parse() As Long
-		If udtmax > TYPEMAX-1 Then MsgBox(ML("Storing UDT pointer: Max limit reached") & " "+Str(TYPEMAX)):Exit Function
+		If udtmax > TYPEMAX - 1 Then ThreadsEnter: MsgBox(ML("Storing UDT pointer: Max limit reached") & " " + Str(TYPEMAX)): ThreadsLeave: Exit Function
 		udtmax+=1
 		udt(udtmax).what=2
 		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
@@ -7888,7 +7930,7 @@ End Sub
 	'   <28c>   DW_AT_type        : <0x1a6>
 	'   <290>   DW_AT_sibling     : <0x29b>
 	Private Sub dw_array_parse
-		If udtmax > TYPEMAX-1 Then MsgBox(ML("Storing UDT array: Max limit reached ")+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX - 1 Then ThreadsEnter: MsgBox(ML("Storing UDT array: Max limit reached ") + Str(TYPEMAX)): ThreadsLeave: Exit Sub
 		udtmax+=1
 		udt(udtmax).what=3
 		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
@@ -7902,7 +7944,7 @@ End Sub
 	Private Sub dw_bound_parse
 		Line Input #dwff, dwln 'skip type uinteger
 		Line Input #dwff, dwln
-		If udt(udtmax).dimnb=5 Then MsgBox(ML("Dwarf Parsing: Number of dim reached (5) for") & " "+udt(udtmax).nm):Exit Sub
+		If udt(udtmax).dimnb = 5 Then ThreadsEnter: MsgBox(ML("Dwarf Parsing: Number of dim reached (5) for") & " " + udt(udtmax).nm): ThreadsLeave: Exit Sub
 		udt(udtmax).dimnb+=1
 		udt(udtmax).bounds(udt(udtmax).dimnb)=ValInt( Mid(dwln,InStr(dwln,":")+2) )
 	End Sub
@@ -7971,14 +8013,14 @@ End Sub
 				vrb(vrbloc).typ=vrtyp
 			Else
 				
-				If vrbloc=VARMAX Then MsgBox(ML("Init locals: Reached limit") & " "+Str(VARMAX-3000)):Exit Sub
+				If vrbloc = VARMAX Then ThreadsEnter: MsgBox(ML("Init locals: Reached limit") & " " + Str(VARMAX - 3000)): ThreadsLeave: Exit Sub
 				vrbloc+=1
 				proc(procnb+1).vr=vrbloc+1 'just to have the next beginning
 				vrb(vrbloc).nm=vrnm:vrb(vrbloc).typ=vrtyp:vrb(vrbloc).adr=vradr:vrb(vrbloc).mem=vrmem
 				local_exist ''2016/08/12
 			End If
 		Else
-			If vrbgbl=VGBLMAX Then MsgBox(ML("Init Globals: Reached limit") & " "+Str(VGBLMAX)):Exit Sub
+			If vrbgbl = VGBLMAX Then ThreadsEnter: MsgBox(ML("Init Globals: Reached limit") & " " + Str(VGBLMAX)): ThreadsLeave: Exit Sub
 			vrbgbl+=1
 			vrb(vrbgbl).nm=vrnm:vrb(vrbgbl).typ=vrtyp:vrb(vrbgbl).adr=vradr:vrb(vrbgbl).mem=vrmem
 		End If
@@ -8028,7 +8070,7 @@ End Sub
 				Line Input #dwff, dwln
 			Loop Until InStr(dwln,"<1>")
 			If excldnb=EXCLDMAX Then
-				MsgBox(ML("Excluding lines (Dll case): Limit reached") & " EXCLDMAX="+Str(EXCLDMAX)+Chr(10)+ML("No problem to continue but the error message below could be displayed several times") & "."+Chr(10)+"""" & ML("Line adr doesn't match proc") & """")
+				ThreadsEnter: MsgBox(ML("Excluding lines (Dll case): Limit reached") & " EXCLDMAX=" + Str(EXCLDMAX) + Chr(10) + ML("No problem to continue but the error message below could be displayed several times") & "." + Chr(10) + """" & ML("Line adr doesn't match proc") & """"): ThreadsLeave
 			Else
 				excldnb+=1
 				excldlines(excldnb).db=proc(procnb).db
@@ -8050,7 +8092,7 @@ End Sub
 	'   <2c7>   DW_AT_location    : 2 byte block: 91 5c         (DW_OP_fbreg: -36)
 	Private Sub dw_prm_parse
 		Dim As Long p
-		If vrbloc=VARMAX Then MsgBox(ML("Init locals: Reached limit") & " "+Str(VARMAX-3000)):Exit Sub
+		If vrbloc = VARMAX Then ThreadsEnter: MsgBox(ML("Init locals: Reached limit") & " " + Str(VARMAX - 3000)): ThreadsLeave: Exit Sub
 		vrbloc+=1
 		proc(procnb+1).vr=vrbloc+1 'just to have the next beginning
 		Line Input #dwff, dwln
@@ -8199,7 +8241,7 @@ End Sub
 			rline(linenb).nu=linenu:rline(linenb).px=linepr:dwlastlnb=linenb:rline(linenb).sx=sourceidx
 			If lastline=0 Then dwlastprc=linepr:flagprc=1
 			lastline=linenu
-			writeprocessmemory(dbghand,Cast(LPVOID,rline(linenb).ad),@breakcpu,1,0)
+			WriteProcessMemory(dbghand,Cast(LPVOID,rline(linenb).ad),@breakcpu,1,0)
 			
 			#ifdef fulldbg_prt
 				dbg_prt("Line / adr : "+Str(rline(linenb).nu)+" "+Hex(rline(linenb).ad)+" >> "+proc(linepr).nm+" >> "+source(proc(linepr).sr))
@@ -8212,13 +8254,13 @@ End Sub
 				rline(linenb).ad=rline(linenb-1).ad+1 '1= to skip some code in the prologue
 				rline(linenb).px=linepr
 				ReadProcessMemory(dbghand,Cast(LPCVOID,rline(linenb).ad),@rline(linenb).sv,1,0) 'sav 1 byte before writing &CC
-				writeprocessmemory(dbghand,Cast(LPVOID,rline(linenb).ad),@breakcpu,1,0)
+				WriteProcessMemory(dbghand,Cast(LPVOID,rline(linenb).ad),@breakcpu,1,0)
 			End If
 		End If
 	End Sub
 	'<1><4796>: Abbrev Number: 34 (DW_TAG_const_type)
 	Private Sub dw_const_parse
-		If udtmax > TYPEMAX-1 Then MsgBox(ML("Storing UDT const: Max limit reached") & " "+Str(TYPEMAX)):Exit Sub
+		If udtmax > TYPEMAX - 1 Then ThreadsEnter: MsgBox(ML("Storing UDT const: Max limit reached") & " " + Str(TYPEMAX)): ThreadsLeave: Exit Sub
 		udtmax+=1
 		udt(udtmax).what=5
 		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
@@ -8229,7 +8271,7 @@ End Sub
 	'   <2890>   DW_AT_prototyped  : 1
 	'   <2891>   DW_AT_type        : <0x2720>            warning NOT ALWAYS
 	Private Function dw_prctyp_parse() As Long 'sub or function return datatype void or type
-		If udtmax > TYPEMAX-1 Then MsgBox(ML("Storing UDT prctype: Max limit reached") & " "+Str(TYPEMAX)):Exit Function
+		If udtmax > TYPEMAX - 1 Then ThreadsEnter: MsgBox(ML("Storing UDT prctype: Max limit reached") & " " + Str(TYPEMAX)): ThreadsLeave: Exit Function
 		udtmax+=1
 		udt(udtmax).what=4
 		udt(udtmax).index=ValInt("&h"+Mid(dwln,6))
@@ -8514,7 +8556,7 @@ End Sub
 			If InStr(dwln,"(DW_TAG_form") Then dw_prm_parse:Continue Do     '(DW_TAG_formal_parameter)
 			If InStr(dwln,"(DW_TAG_cons") Then dw_const_parse:Continue Do
 			If InStr(dwln,": Abbrev Number: 0") Then Continue Do 'I don't what that is
-			If InStr(dwln,"><") Then MsgBox(ML("Dwarf parsing: Not managed") & " "+dwln+Chr(10)+Chr(13)+ML("Please report"))
+			If InStr(dwln, "><") Then ThreadsEnter: MsgBox(ML("Dwarf parsing: Not managed") & " " + dwln + Chr(10) + Chr(13) + ML("Please report")): ThreadsLeave
 		Loop
 		CloseFile_(dwff)
 		'lines
@@ -8728,7 +8770,7 @@ Private Function elf_extract(filename As String) As Integer
 		ofset=walk_section+of_size_infile
 		Get #1,ofset+1,ulgt
 		'dbg_prt2 "size= ";hex(ulgt);" ";ulgt
-		#Ifdef __FB_64BIT__
+		#ifdef __FB_64BIT__
 			If sect_name=".dbgdat" Then
 		#else
 			If sect_name=".stab" Then
@@ -8739,7 +8781,7 @@ Private Function elf_extract(filename As String) As Integer
 		walk_section+=sect_size
 	Next
 	If dbg_dat_of=0 Then
-		MsgBox(ML("Loading error: Debug data not found, compile with -gen gas/gas64 and -g"))
+		ThreadsEnter: MsgBox(ML("Loading error: Debug data not found, compile with -gen gas/gas64 and -g")): ThreadsLeave
 		Close #1
 		Return -1
 	Else
@@ -8824,7 +8866,7 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 		If flagdwarf = 0 OrElse flagdwarf = -1 Then
 			If flagdll=NODLL Then
 				If flagattach = False Then
-					MsgBox (ML("No information for Debugging. Compile with -gen gas/gas64 and -g. Killing the debuggee"), "VisualFBEditor") ', MB_TOPMOST) ' + Chr(13) + Chr(10) + ML("and -gen gas/gas64 or '-Wc -gstabs+' or '-Wc -gdwarf-2'"
+					ThreadsEnter: MsgBox (ML("No information for Debugging. Compile with -gen gas/gas64 and -g. Killing the debuggee"), "VisualFBEditor"): ThreadsLeave ', MB_TOPMOST) ' + Chr(13) + Chr(10) + ML("and -gen gas/gas64 or '-Wc -gstabs+' or '-Wc -gdwarf-2'"
 				Else
 					hard_closing("Attaching running program" + Chr(10) + "No information for Debugging")
 				End If
@@ -8845,9 +8887,9 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 						dbg_prt ("error reading memory " + GetErrorString(GetLastError))
 					#else
 						dbg_prt ("error reading memory")
-					#EndIf
+					#endif
 				#endif
-				MsgBox (ML("Loading stabs: ERROR When reading memory"), "VisualFBEditor"): Return -1
+				ThreadsEnter: MsgBox (ML("Loading stabs: ERROR When reading memory"), "VisualFBEditor"): ThreadsLeave: Return -1
 			End If
 			
 			#ifdef fulldbg_prt
@@ -8864,14 +8906,14 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 				End If
 				
 				If ReadProcessMemory(dbghand,Cast(LPCVOID,recupstab.stabs+basestabs),@recup,sizemax,0)=0 Then
-					#Ifdef fulldbg_prt
+					#ifdef fulldbg_prt
 						#ifdef __FB_WIN32__
 							dbg_prt ("error reading memory "+Str(GetLastError))
 						#else
 							dbg_prt ("error reading memory")
-						#EndIf
-					#EndIf
-					MsgBox (ML("Loading stabs: ERROR When reading memory") + Chr(10) + ML("Exit loading"), "VisualFBEditor"): Return -1
+						#endif
+					#endif
+					ThreadsEnter: MsgBox (ML("Loading stabs: ERROR When reading memory") + Chr(10) + ML("Exit loading"), "VisualFBEditor"): ThreadsLeave: Return -1
 				End If
 				
 				'?recup
@@ -9322,7 +9364,7 @@ Private Sub thread_block()
 	ElseIf thread(th).sts=KTHD_STOP Then
 		thread(th).sts=KTHD_BLKD
 	Else
-		MsgBox("Trying to block thread", "Only if stopped")
+		ThreadsEnter: MsgBox("Trying to block thread", "Only if stopped"): ThreadsLeave
 	End If
 	thread_text(th)
 	thread_status()
@@ -9371,7 +9413,7 @@ Private Sub thread_idle()
 	Dim t As Integer
 	t=thread_select()
 	If thread(t).sts<>KTHD_RUN Then
-		MsgBox("Marking Thread Idle", "Only thread running can be marked idle")
+		ThreadsEnter: MsgBox("Marking Thread Idle", "Only thread running can be marked idle"): ThreadsLeave
 	End If
 	thread(t).sts=KTHD_IDLE
 	If threadlistidx=-1 Then
@@ -9418,7 +9460,7 @@ Private Sub process_terminated()
 	Dim As Unsigned Long ExitCode
 	#ifdef __FB_WIN32__
 		GetExitCodeProcess(pinfo.hProcess, @ExitCode)
-	#Endif
+	#endif
 	Var Result = ExitCode
 	ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 	ChangeEnabledDebug True, False, False
@@ -9431,20 +9473,20 @@ Private Sub process_terminated()
 	'shortcut_enable()
 	
 	#ifdef __FB_WIN32__
-		MsgBox(ML("END OF DEBUGGED PROCESS"), App.Title)
+		ThreadsEnter: MsgBox(ML("END OF DEBUGGED PROCESS"), App.Title): ThreadsLeave
 		MutexUnlock blocker
 		MutexLock blocker
 	#else
-		MsgBox(ML("END OF DEBUGGED PROCESS") + " " + ML("afterkilled code=") + Str(afterkilled), App.Title)
+		ThreadsEnter: MsgBox(ML("END OF DEBUGGED PROCESS") + " " + ML("afterkilled code=") + Str(afterkilled), App.Title): ThreadsLeave
 		Select case As Const afterkilled
-		case KDONOTHING
+		Case KDONOTHING
 			Exit Sub
-		case KENDALL
+		Case KENDALL
 			close_all()
-		case KRESTART To KRESTART9
+		Case KRESTART To KRESTART9
 			restart_exe(afterkilled-KRESTART)
-		case Else
-			MsgBox("", "Afterkilled not handled")
+		Case Else
+			ThreadsEnter: MsgBox("", "Afterkilled not handled"): ThreadsLeave
 		End Select
 		afterkilled=KDONOTHING
 	#endif
@@ -9452,11 +9494,11 @@ End Sub
 
 Private Function kill_process(text As String) As Integer
 	Dim As Long retcode,lasterr
-	If prun Then ''debuggee waiting or running
-		If MsgBox(ML("Kill current running Program?") & text + Chr(10)+Chr(10) + _
+	If prun Then ''debuggee waiting or running Then
+		If MsgBox(ML("Kill current running Program?") & text + Chr(10) + Chr(10) + _
 			ML("USE CARREFULLY SYSTEM CAN BECOME UNSTABLE, LOSS OF DATA, MEMORY LEAK")+Chr(10)+ _
 			ML("Try to close your program first"), , mtWarning, btYesNo) = mrYes Then
-			flagkill=True
+			flagkill = True
 			#ifdef __FB_WIN32__
 				retcode=TerminateProcess(dbghand,999)
 				lasterr=GetLastError
@@ -9581,7 +9623,7 @@ Private Sub brkv_set(a As Integer) 'breakon variable
 		#endif
 		'If p Then t=8
 		If t>8 AndAlso p=0 AndAlso t<>4 AndAlso t<>13 AndAlso t<>14 Then
-			MsgBox(ML("Break on var selection error: Only [unsigned] Byte, Short, integer or z/f/string"))
+			ThreadsEnter: MsgBox(ML("Break on var selection error: Only [unsigned] Byte, Short, integer or z/f/string")): ThreadsLeave
 			Exit Sub
 		End If
 		
@@ -9691,7 +9733,7 @@ Private Function thread_select(id As Integer =0) As Integer 'find thread index b
 				temp = tvVar.SelectedNode
 				text = Cast(TreeNode Ptr, temp)->Text
 				If Left(text,5)<>"ThID=" Then
-					MsgBox("Thread selection", "Select a line with the thread ID")
+					ThreadsEnter: MsgBox("Thread selection", "Select a line with the thread ID"): ThreadsLeave
 					Return -1
 				Else
 					thid=ValInt(Mid(text,6,5))
@@ -9712,9 +9754,10 @@ Private Sub proc_del(j As Integer,t As Integer=1)
 	' delete procr in treeview
 	#ifdef __FB_WIN32__
 		If SendMessage(tviewvar,TVM_DELETEITEM,0,Cast(LPARAM,procr(j).tv))=0 Then
-			MsgBox(ML("DELETE TREEVIEW ITEM") & ": " & ML("Not ok (not blocking) for proc") & " "+proc(procr(j).idx).nm)
+			MsgBox(ML("DELETE TREEVIEW ITEM") & ": " & ML("Not ok (not blocking) for proc") & " " + proc(procr(j).idx).nm)
 		End If
 	#else
+		ThreadsEnter
 		With *Cast(TreeNode Ptr, procr(j).tv)
 			If .ParentNode = 0 Then
 				tviewvar->Nodes.Remove .Index
@@ -9722,6 +9765,7 @@ Private Sub proc_del(j As Integer,t As Integer=1)
 				.ParentNode->Nodes.Remove .Index
 			End If
 		End With
+		ThreadsLeave
 	#endif
 	
 	'delete watch
@@ -9763,6 +9807,7 @@ Private Sub proc_del(j As Integer,t As Integer=1)
 			parent = Cast(HTREEITEM, SendMessage(tviewthd, TVM_GETNEXTITEM, TVGN_PARENT, Cast(LPARAM, thread(th).ptv))) 'find parent of last proc item
 			SendMessage(tviewthd,TVM_DELETEITEM,0,Cast(LPARAM,thread(th).ptv)) 'delete item
 		#else
+			ThreadsEnter
 			parent = Cast(TreeNode Ptr, thread(th).ptv)->ParentNode 'find parent of last proc item
 			With *Cast(TreeNode Ptr, thread(th).ptv)
 				If .ParentNode = 0 Then
@@ -9771,6 +9816,7 @@ Private Sub proc_del(j As Integer,t As Integer=1)
 					.ParentNode->Nodes.Remove .Index
 				End If
 			End With
+			ThreadsLeave
 		#endif
 		thread(th).ptv = parent 'parent becomes the last
 		thread_text(th) 'update thread text
@@ -10552,7 +10598,9 @@ Private Sub dsp_change(index As Integer)
 		'but_enable()
 		
 		If tviewcur = tviewprc Then
+			ThreadsEnter
 			proc_sh
+			ThreadsLeave
 		'ElseIf tviewcur = tviewthd Then '25/01/2015
 		'	thread_text
 		End If
@@ -10652,7 +10700,7 @@ End Sub
 Private Sub proc_new()
 	Dim libel As String
 	Dim tv As Any Ptr
-	If procrnb = PROCRMAX Then MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): Exit Sub 'DestroyWindow (windmain):
+	If procrnb = PROCRMAX Then ThreadsEnter: MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): ThreadsLeave: Exit Sub 'DestroyWindow (windmain):
 	procrnb+=1'new proc ADD A POSSIBILITY TO INCREASE THIS ARRAY
 	procr(procrnb).sk=procsk
 	procr(procrnb).thid=thread(threadcur).id
@@ -10989,7 +11037,7 @@ Private Sub thread_change(th As Integer =-1)
 	
 	If thread(t).sts=KTHD_RUN Then
 		'messbox("Changing thread","Not possible as current thread is running"+chr(10)+"If the thread is waiting (sleep, input, etc) try to quit this state")
-		MsgBox("Changing thread", "Caution : current thread is running")
+		ThreadsEnter: MsgBox("Changing thread", "Caution : current thread is running"): ThreadsLeave
 		'exit sub
 	End If
 	
@@ -11218,7 +11266,7 @@ End Function
 			Wend
 			'create new procrs
 			For k As Integer =j To 1 Step -1
-				If procrnb=PROCRMAX Then MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): DestroyWindow (windmain):Exit Sub
+				If procrnb = PROCRMAX Then ThreadsEnter: MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): DestroyWindow (windmain): ThreadsLeave: Exit Sub
 				If proc(pridx(k)).st=2 Then Continue For 'proc state don't follow
 				procrnb+=1
 				procr(procrnb).sk=regbpp(k)
@@ -11967,7 +12015,7 @@ End Sub
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 			Case CREATE_PROCESS_DEBUG_EVENT
 				With DebugEv.u.CreateProcessInfo
-					dbghfile=.HFILE' to close the handle and liberate the file .exe
+					dbghfile=.hFile' to close the handle and liberate the file .exe
 					threadnb = 0:
 					thread(0).hd = .hThread
 					thread(0).id = DebugEv.dwThreadId
@@ -12245,10 +12293,10 @@ End Sub
 '' check if exe bitness if not wrong 32bit<>64bit windows only
 '================================================================
 Private Function check_bitness(ByRef fullname As WString) As Integer
-	#Ifdef __FB_WIN32__
+	#ifdef __FB_WIN32__
 		Dim As Long bintype
 		GetBinaryType(@fullname, @bintype) ''a control to prevent 32bit<>64bit
-		#Ifdef __FB_64BIT__
+		#ifdef __FB_64BIT__
 			If bintype=SCS_32BIT_BINARY Then
 				MsgBox(ML("Can not be used for debugging 32bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
 				Return 0
@@ -12261,18 +12309,18 @@ Private Function check_bitness(ByRef fullname As WString) As Integer
 		#endif
 	#else
 		Dim As UByte ubyt
-		Open fullname For binary As #1
+		Open fullname For Binary As #1
 		Get #1,5,ubyt ''offset=4 32bit or 64bit
 		Close #1
-		#Ifdef __FB_64BIT__
-			If ubyt<>2 Then
-				MsgBox(ML("Can not be used for debugging 32bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
+		#ifdef __FB_64BIT__
+			If ubyt <> 2 Then
+				ThreadsEnter: MsgBox(ML("Can not be used for debugging 32bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger")): ThreadsLeave
 				'close #1
 				Return 0
 			End If
 		#else
 			If ubyt<>1 Then
-				MsgBox(ML("Can not be used for debugging 64bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
+				ThreadsEnter: MsgBox(ML("Can not be used for debugging 64bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger")): ThreadsLeave
 				'close #1
 				Return 0
 			End If
@@ -12693,7 +12741,7 @@ End Function
 		
 		'killtimer(0, TimerID)
 		
-		Writepipe(s, iTime)
+		writepipe(s, iTime)
 		
 		'TimerID = settimer(0, 0, 20, Cast(Any Ptr, @timer_data))
 		
@@ -14044,7 +14092,7 @@ End Function
 		
 		'Updateinfoxserver(30)
 		
-		Writepipe(!"set confirm off\n" , 100)
+		writepipe(!"set confirm off\n" , 100)
 		
 		'Updateinfoxserver(10)
 		
@@ -14772,7 +14820,9 @@ End Function
 #endif
 
 Private Sub hard_closing(errormsg As String)
+	ThreadsEnter
 	MsgBox("Sorry an unrecoverable problem occurs :" + Chr(13) + errormsg + Chr(13) + Chr(13) + "Report to dev please")
+	ThreadsLeave
 End Sub
 
 Sub RunWithDebug(Param As Any Ptr)
@@ -14928,9 +14978,9 @@ Sub RunWithDebug(Param As Any Ptr)
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 				ChangeEnabledDebug True, False, False
 				ThreadsLeave()
-			Else
+			ElseIf *CurrentDebugger = "" Then
 				If check_bitness(exename) = 0 Then Exit Sub ''bitness of debuggee and Integrated IDE Debugger not corresponding
-				If kill_process(ML("Trying to launch but debuggee still running")) = False Then Exit Sub
+				ThreadsEnter: If kill_process(ML("Trying to launch but debuggee still running")) = False Then ThreadsLeave: Exit Sub Else ThreadsLeave
 				flagrestart = -1
 				ThreadsEnter()
 				lvLocals.Visible = False
@@ -14945,12 +14995,17 @@ Sub RunWithDebug(Param As Any Ptr)
 				
 				If ThreadCreate(@start_pgm) = 0 Then
 					KillTimer(0, GTIMER001)
-					MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee")
+					ThreadsEnter: MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee"): ThreadsLeave
 				EndIf
-				'ThreadsEnter()
-				'ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
-				'ThreadsLeave()
-				'Result = Shell(CommandLine)
+			Else
+				ThreadsEnter()
+				ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
+				ThreadsLeave()
+				Result = Shell(CommandLine)
+				ThreadsEnter()
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+				ChangeEnabledDebug True, False, False
+				ThreadsLeave()
 			End If
 		End If
 		WDeAllocate Arguments
