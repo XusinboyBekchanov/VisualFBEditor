@@ -4783,17 +4783,19 @@ Sub FindCompilers(ByRef Path As WString)
 	Dim As WString * 1024 f, f1, f2, f3
 	Dim As UInteger Attr, NameCount
 	Dim As WStringList Folders
+	#ifdef __FB_WIN32__
 	If Path = "" Then Exit Sub
+	#endif
 	If FormClosing OrElse bStop Then Exit Sub
 	If EndsWith(Path, "\Windows") Then Exit Sub
 	ThreadsEnter
 	'fOptions.lblFindCompilersFromComputer.Text = Path
 	pstBar->Panels[0]->Caption = Path
 	ThreadsLeave
-	f = Dir(Path & Slash & "*", fbDirectory, Attr)
+	f = Dir(Path & Slash & "*", fbDirectory Or fbHidden Or fbSystem Or fbArchive Or fbReadOnly, Attr)
 	While f <> ""
 		If FormClosing OrElse bStop Then Exit Sub
-		If f <> "." AndAlso f <> ".." Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
+		If f <> "." AndAlso f <> ".." AndAlso (Attr And fbDirectory) Then Folders.Add Path & IIf(EndsWith(Path, Slash), "", Slash) & f
 		f = Dir(Attr)
 	Wend
 	f = Dir(Path & Slash & "fbc*", fbReadOnly Or fbHidden Or fbSystem Or fbArchive, Attr)

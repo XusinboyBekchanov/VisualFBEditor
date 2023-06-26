@@ -537,8 +537,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		WLet(FirstLine, GetFirstCompileLine(*MainFile, Project, CompileLine))
 		Versioning *MainFile, *FirstLine & CompileLine, Project, ProjectNode
 		Dim FileOut As Integer
-		ThreadsEnter()
-		ThreadsLeave()
 		WLet(ExeName, GetExeFileName(*MainFile, *FirstLine & CompileLine))
 		If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
 			WLet(FbcExe, GetFullPath(*Project->CompilerPath))
@@ -831,7 +829,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
 							OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") _
 							OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:") OrElse StartsWith(Buff, "Restarting fbc") OrElse StartsWith(Buff, "archiving:") OrElse StartsWith(Buff, "creating:")) Then
+								ThreadsEnter()
 							ShowMessages(Buff, False)
+								ThreadsLeave()
 							bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 							If bFlagErr = 2 Then
 								NumberErr += 1
