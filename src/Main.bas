@@ -9112,21 +9112,25 @@ Sub OnProgramQuit() Destructor
 		_Delete(keywordlist)
 	Next i
 	Dim As TabPanel Ptr tp
-	For i As Integer = 0 To TabPanels.Count - 1
-		tp = TabPanels.Item(i)
-		_Delete(tp)
-	Next i
+	#ifndef __USE_GTK__
+		For i As Integer = 0 To TabPanels.Count - 1
+			tp = TabPanels.Item(i)
+			_Delete(tp)
+		Next i
+	#endif
 	Dim As EditControlContent Ptr File
 	For i As Integer = IncludeFiles.Count - 1 To 0 Step -1
 		File = IncludeFiles.Object(i)
 		If File Then _Delete(File)
 	Next
 	IncludeFiles.Clear
-	Dim As Library Ptr CtlLibrary
-	For i As Integer = 0 To ControlLibraries.Count - 1
-		CtlLibrary = ControlLibraries.Item(i)
-		_Delete(CtlLibrary)
-	Next
+	#ifndef __USE_GTK__
+		Dim As Library Ptr CtlLibrary
+		For i As Integer = 0 To ControlLibraries.Count - 1
+			CtlLibrary = ControlLibraries.Item(i)
+			_Delete(CtlLibrary)
+		Next
+	#endif
 	Dim As TypeElement Ptr te, te1
 	For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 		te = pGlobalNamespaces->Object(i)
