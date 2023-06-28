@@ -14978,7 +14978,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 				ChangeEnabledDebug True, False, False
 				ThreadsLeave()
-			ElseIf *CurrentDebugger = "" Then
+			ElseIf *CurrentDebugger = "" OrElse *CurrentDebugger = ML("Integrated IDE Debugger") Then
 				If check_bitness(exename) = 0 Then Exit Sub ''bitness of debuggee and Integrated IDE Debugger not corresponding
 				ThreadsEnter: If kill_process(ML("Trying to launch but debuggee still running")) = False Then ThreadsLeave: Exit Sub Else ThreadsLeave
 				flagrestart = -1
