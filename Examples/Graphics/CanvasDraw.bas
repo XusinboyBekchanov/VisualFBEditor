@@ -1,7 +1,7 @@
 ﻿'################################################################################
-'#  AnimatePlayer.frm                                                           #
-'#  This file is an examples of MyFBFramework.                                   #
-'#  Authors: Xusinboy Bekchanov Liu XiaLin                                      #
+'#  CanvasDraw.bas                                                              #
+'#  This file is an examples of MyFBFramework.                                  #
+'#  Authors: Xusinboy Bekchanov, Liu XiaLin                                     #
 '################################################################################
 
 #ifdef __FB_WIN32__
@@ -12,7 +12,7 @@
 	#include once "mff/Label.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Picture.bi"
-	#include once "mff/Textbox.bi"
+	#include once "mff/TextBox.bi"
 	#include once "mff/Pen.bi"
 	#include once "mff/ListControl.bi"
 	Using My.Sys.Forms
@@ -223,7 +223,7 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	' Coordination  坐标系统
 	CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
 	'Picture1.Visible = False
-	Picture1.Style = 16
+	'Picture1.Style = 16
 	With Picture1.Canvas
 		.CreateDoubleBuffer
 		.Cls
@@ -286,7 +286,7 @@ Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, 
 End Sub
 
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
-	Picture1.Style = 16
+	'Picture1.Style = 16
 	With Picture1.Canvas
 		.CreateDoubleBuffer
 		.Cls
@@ -336,20 +336,20 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Chord(10, 60, 40, 80, 40, 60, 10, 70)
 		.Pie(20, 70, 40, 50, 60, 80, 40, 60)
 		
-		Dim As Point pt(4) = {(-60, + 20), (-90, + 110), (-10, 0), (-30, 70)}
+		Dim As My.Sys.Drawing.Point pt(4) = {(-60, + 20), (-90, + 110), (-10, 0), (-30, 70)}
 		'{{90, 130}, {60, 40}, {140, 150}, {160, 80}}
 		'//绘制椭圆、矩形
-		.Ellipse(pt(0).x, pt(0).y, pt(1).x, pt(0).y)
-		.Rectangle(pt(2).x, pt(2).y, pt(3).x, pt(3).y)
+		.Ellipse(pt(0).X, pt(0).Y, pt(1).X, pt(0).Y)
+		.Rectangle(pt(2).X, pt(2).Y, pt(3).X, pt(3).Y)
 		
 		'绘制贝塞尔曲线
 		.Pen.Color = clRed
 		.DrawWidth = 2  'DrawWidth
 		'.PolyBeizer(pt(), 4)
 		'标出贝塞尔曲线的四个锚点
-		.Circle(pt(0).x, pt(0).y, 4)
-		.Circle(pt(1).x, pt(1).y, 4)
-		.Circle(pt(2).x, pt(2).y, 4)
+		.Circle(pt(0).X, pt(0).Y, 4)
+		.Circle(pt(1).X, pt(1).Y, 4)
+		.Circle(pt(2).X, pt(2).Y, 4)
 		.Circle(pt(3).x, pt(3).y, 4)
 		
 		'绘制圆
