@@ -1,23 +1,23 @@
 ﻿'################################################################################
-'#  CanvasDraw.bas                                                              #
+'#  CanvasDraw.frm                                                              #
 '#  This file is an examples of MyFBFramework.                                  #
 '#  Authors: Xusinboy Bekchanov, Liu XiaLin                                     #
 '################################################################################
 
 #ifdef __FB_WIN32__
-	''#Compile "Form1.rc"
+	#cmdline "CanvasDraw.rc"
 #endif
 '#Region "Form"
 	#include once "mff/Form.bi"
 	#include once "mff/Label.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Picture.bi"
-	#include once "mff/TextBox.bi"
+	#include once "mff/Textbox.bi"
 	#include once "mff/Pen.bi"
 	#include once "mff/ListControl.bi"
 	Using My.Sys.Forms
 	Using My.Sys.Drawing
-
+	
 	Type Form1Type Extends Form
 		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
@@ -33,6 +33,8 @@
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
 		Declare Static Sub _cmdGDIDraw1_Click(ByRef Sender As Control)
 		Declare Sub cmdGDIDraw1_Click(ByRef Sender As Control)
+		Declare Static Sub _Form_Click(ByRef Sender As Control)
+		Declare Sub Form_Click(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As CommandButton CommandButton1, cmdGDIDraw, cmdGDICls
@@ -47,7 +49,8 @@
 			.Text = "Form1"
 			.Designer = @This
 			.OnResize = @_Form_Resize
-			.SetBounds 0, 0, 350, 300
+			.OnClick = @_Form_Click
+			.SetBounds 0, 0, 370, 300
 		End With
 		' CommandButton1
 		With CommandButton1
@@ -73,7 +76,10 @@
 			.Anchor.Left = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.BackColor = 8388736
-			.SetBounds 12, 56, 310, 160
+			.CenterImage = True
+			.StretchImage= StretchMode.smStretchProportional
+			.Graphic.Bitmap.LoadFromFile(ExePath & "/wheel.png")
+			.SetBounds 22, 56, 300, 160
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -186,6 +192,10 @@
 		End With
 	End Constructor
 	
+	Private Sub Form1Type._Form_Click(ByRef Sender As Control)
+		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Click(Sender)
+	End Sub
+	
 	Private Sub Form1Type._CommandButton2_Click(ByRef Sender As Control)
 		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton2_Click(Sender)
 	End Sub
@@ -209,10 +219,9 @@
 	Dim Shared Form1 As Form1Type
 	
 	#ifndef _NOT_AUTORUN_FORMS_
+		App.DarkMode= True 
 		#define _NOT_AUTORUN_FORMS_
-		
 		Form1.Show
-		
 		App.Run
 	#endif
 '#End Region
@@ -223,10 +232,9 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	' Coordination  坐标系统
 	CommandButton1.Caption = "Waiting......Drawing"  '"稍等，正在绘画"     '"Waiting......Drawing" '
 	'Picture1.Visible = False
-	'Picture1.Style = 16
 	With Picture1.Canvas
 		.CreateDoubleBuffer
-		.Cls
+		'.Cls
 		.Scale(-10, -10, 10, 10)
 		.Pen.Color = clGreen
 		.Pen.Size = 2
@@ -276,20 +284,31 @@ Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub Form1Type.Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	
+	'cmdGDIDraw_Click(Sender)
+	CommandButton1_Click(Sender)
 End Sub
 
 Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	'CommandButton1_Click(Sender)
 	'Debug.Print "NewWidth=" & NewWidth & " NewHeight=" & NewHeight
-	
+End Sub
+
+Sub Taijitu(x As Integer, y As Integer, r As Integer)
+	'With Picture1.Canvas
+	'	.Circle x, y, 2 * r, 0, , , , F
+	'	.Line x, y - 2 * r, x, y + 2 * r, 7, B
+	'	.Paint x - r, y, 15, 7
+	'	.Circle x, y - r, r - 1, 15, , , , F
+	'	.Circle x, y + r, r - 1,  0, , , , F
+	'	.Circle x, y - r, r / 3,  0, , , , F
+	'	.Circle x, y + r, r / 3, 15, , , , F
+	'End With
 End Sub
 
 Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
-	'Picture1.Style = 16
 	With Picture1.Canvas
 		.CreateDoubleBuffer
-		.Cls
+		'.Cls
 		.Scale(-100, 100, 100, -100)
 		.Pen.Color = clGreen
 		.Pen.Size = 1
@@ -350,7 +369,7 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		.Circle(pt(0).X, pt(0).Y, 4)
 		.Circle(pt(1).X, pt(1).Y, 4)
 		.Circle(pt(2).X, pt(2).Y, 4)
-		.Circle(pt(3).x, pt(3).y, 4)
+		.Circle(pt(3).X, pt(3).Y, 4)
 		
 		'绘制圆
 		.Circle(50, 40, 30, clYellow)
@@ -378,6 +397,8 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		
 		'Draw Image   绘制位图
 		'StretchDraw(10, 140, 180, 100, TEXT("chenggong.bmp"))
+		’Taijitu(110, 110, 45)
+		‘Taijitu(500, 300, 138)
 		
 		'绘制文本
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);
@@ -393,3 +414,7 @@ Private Sub Form1Type.cmdGDICls_Click(ByRef Sender As Control)
 	End With
 End Sub
 
+
+Private Sub Form1Type.Form_Click(ByRef Sender As Control)
+	
+End Sub
