@@ -8634,12 +8634,13 @@ Sub frmMain_Create(ByRef Sender As Control)
 	mnuProjectToolBar->Checked = ShowProjectToolBar
 	mnuBuildToolBar->Checked = ShowBuildToolBar
 	mnuRunToolBar->Checked = ShowRunToolBar
-	Dim As Integer Subsystem = iniSettings.ReadInteger("MainWindow", "Subsystem", 0)
-	Select Case Subsystem
-	Case 0: tbtNotSetted->Checked = True
-	Case 1: tbtConsole->Checked = True
-	Case 2: tbtGUI->Checked = True
-	End Select
+	'Dim As Integer Subsystem = iniSettings.ReadInteger("MainWindow", "Subsystem", 0)
+	tbtNotSetted->Checked = True
+	'Select Case Subsystem
+	'Case 0: tbtNotSetted->Checked = True
+	'Case 1: tbtConsole->Checked = True
+	'Case 2: tbtGUI->Checked = True
+	'End Select
 	#ifndef __USE_GTK__
 		windmain = frmMain.Handle
 		htab2    = ptabCode->Handle
@@ -8928,7 +8929,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	iniSettings.WriteBool("MainWindow", "ProjectFolders", ShowProjectFolders)
 	iniSettings.WriteBool("MainWindow", "ToolLabels", tbForm.Buttons.Item(0)->Checked)
 	iniSettings.WriteBool("MainWindow", "UseDebugger", UseDebugger)
-	iniSettings.WriteInteger("MainWindow", "Subsystem", IIf(tbtConsole->Checked, 1, IIf(tbtGUI->Checked, 2, 0)))
+	'iniSettings.WriteInteger("MainWindow", "Subsystem", IIf(tbtConsole->Checked, 1, IIf(tbtGUI->Checked, 2, 0)))
 	iniSettings.WriteBool("MainWindow", "ShowMainToolBar", ShowMainToolBar)
 	iniSettings.WriteBool("MainWindow", "ShowStandardToolBar", ShowStandardToolBar)
 	iniSettings.WriteBool("MainWindow", "ShowEditToolBar", ShowEditToolBar)
