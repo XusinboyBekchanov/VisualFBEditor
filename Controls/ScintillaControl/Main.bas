@@ -17,7 +17,7 @@
 	Function CreateControl Alias "CreateControl" (ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Control Ptr) As Control Ptr Export
 		Ctrl = 0
 		Select Case LCase(ClassName)
-		Case "scintillacontrol": Ctrl = New_(ScintillaControl)
+		Case "scintillacontrol": Ctrl = _New(ScintillaControl)
 		End Select
 		If Ctrl Then
 			Ctrl->Name = sName
