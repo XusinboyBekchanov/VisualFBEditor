@@ -1592,9 +1592,10 @@ Function TabWindow.WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As 
 				Else
 					WLet(FLine5, *FLine3)
 				End If
-				If AnyTexts.ContainsObject(FLine5) Then AnyTexts.Item(AnyTexts.IndexOfObject(FLine5)) = *FLine5 Else AnyTexts.Add *FLine5, FLine5
+				Dim As Boolean bContains
+				If AnyTexts.ContainsObject(FLine5) Then AnyTexts.Item(AnyTexts.IndexOfObject(FLine5)) = *FLine5: bContains = True Else AnyTexts.Add *FLine5, FLine5
 				If st <> 0 AndAlso st->WritePropertyFunc <> 0 Then Result = st->WritePropertyFunc(Obj, PropertyName, Cast(Any Ptr, FLine5))
-				WDeAllocate(FLine5)
+				If bContains Then WDeAllocate(FLine5)
 			Case "integer", "long", "ulong", "single", "double"
 				iTemp = Val(*FLine3)
 				If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName, , , , iIndex)) Then
