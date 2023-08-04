@@ -51,14 +51,15 @@
 		
 		Declare Sub ControlEnabled(Enabled As Boolean)
 		
-		Declare Sub Find(ByRef FindStr As Const WString, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal FindForce As Boolean = False)
+		Declare Sub Find(ByRef FindStr As Const WString, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal FindForce As Boolean = False)
 		Declare Sub GotoLineNo(ByVal LineNumber As Integer)
-		Declare Sub Replace(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True)
-		Declare Function ReplaceAll(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal MatchCase As Boolean = False) As Integer
+		Declare Sub Replace(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True)
+		Declare Function ReplaceAll(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
 		
 		Dim fFindBack As Boolean = False
 		Dim fMatchCase As Boolean = False
 		Dim fFindWarp As Boolean = True
+		Dim fRegExp As Boolean = True
 		
 		'mdichild menu
 		Dim mnuWindowCount As Integer = -1
@@ -1028,7 +1029,6 @@
 			.OnClick = @_mnuCodePage_Click
 			.Parent = @mnuCodePage
 		End With
-		' mnuCodePage05
 		With mnuCodePage05
 			.Name = "mnuCodePage05"
 			.Designer = @This
@@ -2013,7 +2013,7 @@ End Sub
 Private Sub MDIMainType.MDIChildDoubleClick(Child As Any Ptr)
 	Dim a As MDIChildType Ptr = Child
 	frmFindReplace.txtFind.Text = a->Sci.SelText
-	a->Sci.Find(a->Sci.SelTxtData, fMatchCase, fFindWarp, fFindBack)
+	a->Sci.Find(a->Sci.SelTxtData, fRegExp, fMatchCase, fFindWarp, fFindBack)
 	If frmFindReplace.Handle Then
 		frmFindReplace.lblMsg.Text = "Found " & a->Sci.FindIndex + 1 & " of " & a->Sci.FindCount + 1
 	Else
@@ -2171,7 +2171,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	End If
 End Sub
 
-Private Sub MDIMainType.Find(ByRef FindStr As Const WString, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal FindForce As Boolean = False)
+Private Sub MDIMainType.Find(ByRef FindStr As Const WString, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal FindForce As Boolean = False)
 	If FindStr = "" Then Exit Sub
 	
 	timr.Start
@@ -2179,7 +2179,12 @@ Private Sub MDIMainType.Find(ByRef FindStr As Const WString, ByVal MatchCase As 
 	Dim p As Integer
 	Dim t As ZString Ptr = StrPtr(TextToSciData(FindStr, a->Sci.CodePage))
 	
-	a->Sci.Find(t, MatchCase, FindWarp , FindBack, True, FindForce)
+	fRegExp = RegularExp
+	fMatchCase= MatchCase
+	fFindWarp = FindWarp
+	fFindBack = FindBack 
+	
+	a->Sci.Find(t, fRegExp, fMatchCase, fFindWarp, fFindBack, True, FindForce)
 	If a->Sci.FindCount < 0 Then Exit Sub
 	
 	SendMessage(a->Sci.Handle, SCI_GOTOPOS, a->Sci.FindPoses(a->Sci.FindIndex), 0)
@@ -2190,7 +2195,7 @@ Private Sub MDIMainType.Find(ByRef FindStr As Const WString, ByVal MatchCase As 
 	spSpeed.Caption = "Find " & Format(timr.Passed, "#,#0.000") & " sec."
 End Sub
 
-Private Sub MDIMainType.Replace(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True)
+Private Sub MDIMainType.Replace(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True)
 	Dim t As TimeMeter
 	t.Start
 	Dim a As MDIChildType Ptr = ActMdiChild
@@ -2198,12 +2203,15 @@ Private Sub MDIMainType.Replace(ByRef FindStr As Const WString, ByRef ReplaceStr
 		a->Sci.SelText = ReplaceStr
 		a->Changed = True
 	End If
-	Find(FindStr, fMatchCase, FindWarp, fFindBack, True)
+	fRegExp = RegularExp
+	fMatchCase= MatchCase
+	fFindWarp = FindWarp
+	Find(FindStr, fRegExp, fMatchCase, fFindWarp, fFindBack, True)
 	MDIChildClick(a)
 	spSpeed.Caption = "Replace " & Format(t.Passed, "#,#0.000") & " sec."
 End Sub
 
-Private Function MDIMainType.ReplaceAll(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal MatchCase As Boolean = False) As Integer
+Private Function MDIMainType.ReplaceAll(ByRef FindStr As Const WString, ByRef ReplaceStr As Const WString, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
 	timr.Start
 	Dim a As MDIChildType Ptr = ActMdiChild
 	Dim f As String = TextToSciData(FindStr, a->Sci.CodePage)
@@ -2323,10 +2331,10 @@ Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
 		MDIChildClick(a)
 	Case "mnuEditFindNext"
 		If frmFindReplace.Handle= NULL AndAlso frmFindReplace.txtFind.Text = "" Then mnuEdit_Click(mnuEditFind)
-		Find(frmFindReplace.txtFind.Text, frmFindReplace.chkCase.Checked, frmFindReplace.chkWarp.Checked, False)
+		Find(frmFindReplace.txtFind.Text, frmFindReplace.chkRegExp.Checked, frmFindReplace.chkCase.Checked, frmFindReplace.chkWarp.Checked, False)
 	Case "mnuEditFindBack"
 		If frmFindReplace.Handle= NULL AndAlso frmFindReplace.txtFind.Text = "" Then mnuEdit_Click(mnuEditFind)
-		Find(frmFindReplace.txtFind.Text, frmFindReplace.chkCase.Checked, frmFindReplace.chkWarp.Checked, True)
+		Find(frmFindReplace.txtFind.Text, frmFindReplace.chkRegExp.Checked, frmFindReplace.chkCase.Checked, frmFindReplace.chkWarp.Checked, True)
 	Case "mnuEditReplace"
 		Dim i As Integer = a->Sci.SelLength
 		frmFindReplace.txtReplace.Visible = False
