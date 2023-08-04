@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 ' SciLexer
 ' https://www.scintilla.org/
 ' Copyright (c) 2022 CM.Wang
