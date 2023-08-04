@@ -1,7 +1,7 @@
 #pragma once
 ' Scintilla
 ' https://www.scintilla.org/
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
 ' Scintilla source code edit Control
@@ -31,12 +31,12 @@
 '}
 '#endif
 '
-'// Include Header that defines basic numeric types.
+' Include Header that defines basic numeric types.
 '#include <stdint.h>
 '
-'// Define uptr_t, an Unsigned Integer Type large enough To hold a Pointer.
+' Define uptr_t, an Unsigned Integer Type large enough To hold a Pointer.
 'typedef uintptr_t uptr_t
-'// Define sptr_t, a signed Integer large enough To hold a Pointer.
+' Define sptr_t, a signed Integer large enough To hold a Pointer.
 'typedef intptr_t sptr_t
 '
 '#include "Sci_Position.h"

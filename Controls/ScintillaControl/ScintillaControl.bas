@@ -1,7 +1,7 @@
 ﻿#pragma once
 ' ScintillaControl
 ' https://www.ScintillaControl.org/
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "ScintillaControl.bi"
@@ -356,7 +356,7 @@ Private Sub App_DoEvents
 	#endif
 End Sub
 
-Private Function ScintillaControl.Find(ByRef toFind As Const ZString Ptr, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
+Private Function ScintillaControl.Find(ByRef toFind As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
 	Dim FindAct As Boolean = False
 	If Len(*toFind) > 0 Then
 		If FindData Then
@@ -386,7 +386,8 @@ Private Function ScintillaControl.Find(ByRef toFind As Const ZString Ptr, ByVal 
 		IndicatorClear()
 		If Len(*toFind) = 0 Then Return -1
 		
-		Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, SCFIND_NONE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX)
+		Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE, SCFIND_NONE)
+		mc = IIf(RegularExp, mc Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, mc )
 		
 		With mStf
 			.chrg.cpMin = 0
@@ -415,13 +416,13 @@ Private Function ScintillaControl.Find(ByRef toFind As Const ZString Ptr, ByVal 
 	Return FindCount
 End Function
 
-Private Function ScintillaControl.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal MatchCase As Boolean = False) As Integer
+Private Function ScintillaControl.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
 	SendMessage(Handle, SCI_TARGETWHOLEDOCUMENT, 0, 0)
-	If MatchCase Then
-		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_MATCHCASE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, 0)
-	Else
-		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_NONE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, 0)
-	End If
+	
+	Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE, SCFIND_NONE)
+	mc = IIf(RegularExp, mc Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, mc )
+	SendMessage(Handle, SCI_SETSEARCHFLAGS, mc, 0)
+
 	Dim targetstart As Integer = 0
 	Dim targetend As Integer = Length
 	Dim lenSearch As Integer = Len(*FindData)

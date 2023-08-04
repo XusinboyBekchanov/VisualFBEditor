@@ -1,7 +1,7 @@
 #pragma once
 ' ScintillaControl
 ' https://www.ScintillaControl.org/
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "mff/Control.bi"
@@ -19,7 +19,7 @@ Private:
 	Dim As Any Ptr pLibLexilla
 	Dim As Any Ptr pLibScintilla
 	#ifndef __USE_GTK__
-		Declare Static Sub WndProc(ByRef message As message)
+		Declare Static Sub WndProc(ByRef message As Message)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 	#endif
 Protected:
@@ -53,8 +53,8 @@ Public:
 	Dim FindIndex As Integer = -1
 	
 	Declare Function IndexFind(ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False) As Integer
-	Declare Function Find(ByRef FindData As Const ZString Ptr, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
-	Declare Function ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal MatchCase As Boolean = False) As Integer
+	Declare Function Find(ByRef FindData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
+	Declare Function ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
 	
 	'Indicator
 	Declare Sub IndicatorClear()
