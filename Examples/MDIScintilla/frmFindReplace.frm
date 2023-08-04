@@ -6,6 +6,7 @@
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
+	
 	#include once "mff/Form.bi"
 	#include once "mff/TextBox.bi"
 	#include once "mff/CommandButton.bi"
@@ -23,7 +24,7 @@
 		
 		Dim As TextBox txtFind, txtReplace
 		Dim As CommandButton cmdFindNext, cmdFindBack, cmdShowHide, cmdReplace, cmdReplaceAll
-		Dim As CheckBox chkCase, chkWarp
+		Dim As CheckBox chkCase, chkWarp, chkRegExp
 		Dim As Label lblMsg
 	End Type
 	
@@ -38,7 +39,7 @@
 			.MaximizeBox = False
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterParent
-			.SetBounds 0, 0, 386, 220
+			.SetBounds 0, 0, 396, 220
 		End With
 		' lblMsg
 		With lblMsg
@@ -46,7 +47,7 @@
 			.Text = ""
 			.TabIndex = 0
 			.Caption = ""
-			.SetBounds 10, 10, 360, 20
+			.SetBounds 10, 10, 370, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -58,7 +59,7 @@
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Both
 			.HideSelection = True
-			.SetBounds 10, 30, 260, 60
+			.SetBounds 10, 30, 270, 60
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -80,7 +81,19 @@
 			.TabIndex = 3
 			.Caption = "Wrap around"
 			.Checked = True
-			.SetBounds 110, 90, 90, 20
+			.SetBounds 100, 90, 90, 20
+			.Designer = @This
+			.OnClick = @_chkFindReplace_Click
+			.Parent = @This
+		End With
+		' chkRegExp
+		With chkRegExp
+			.Name = "chkRegExp"
+			.Text = "Regular Exp."
+			.TabIndex = 3
+			.Caption = "Regular Exp."
+			.Checked = True
+			.SetBounds 190, 90, 90, 20
 			.Designer = @This
 			.OnClick = @_chkFindReplace_Click
 			.Parent = @This
@@ -93,7 +106,7 @@
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Both
 			.HideSelection = True
-			.SetBounds 10, 120, 260, 60
+			.SetBounds 10, 120, 270, 60
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -103,7 +116,7 @@
 			.Text = "Find Next"
 			.TabIndex = 5
 			.Caption = "Find Next"
-			.SetBounds 280, 30, 90, 20
+			.SetBounds 290, 30, 90, 20
 			.Designer = @This
 			.OnClick = @_cmdFindReplace_Click
 			.Parent = @This
@@ -114,7 +127,7 @@
 			.Text = "Find Back"
 			.TabIndex = 6
 			.Caption = "Find Back"
-			.SetBounds 280, 50, 90, 20
+			.SetBounds 290, 50, 90, 20
 			.Designer = @This
 			.OnClick = @_cmdFindReplace_Click
 			.Parent = @This
@@ -125,7 +138,7 @@
 			.Text = "Hide Replace"
 			.TabIndex = 7
 			.Caption = "Hide Replace"
-			.SetBounds 280, 90, 90, 20
+			.SetBounds 290, 90, 90, 20
 			.Designer = @This
 			.OnClick = @_cmdFindReplace_Click
 			.Parent = @This
@@ -136,7 +149,7 @@
 			.Text = "Replace"
 			.TabIndex = 8
 			.Caption = "Replace"
-			.SetBounds 280, 140, 90, 20
+			.SetBounds 290, 140, 90, 20
 			.Designer = @This
 			.OnClick = @_cmdFindReplace_Click
 			.Parent = @This
@@ -147,7 +160,7 @@
 			.Text = "Replace All"
 			.TabIndex = 9
 			.Caption = "Replace All"
-			.SetBounds 280, 160, 90, 20
+			.SetBounds 290, 160, 90, 20
 			.Designer = @This
 			.OnClick = @_cmdFindReplace_Click
 			.Parent = @This
@@ -175,10 +188,10 @@ Private Sub frmFindReplaceType.cmdFindReplace_Click(ByRef Sender As Control)
 	Select Case Sender.Name
 	Case "cmdFindNext"
 		MDIMain.fFindBack = False
-		MDIMain.Find(txtFind.Text, chkCase.Checked, chkWarp.Checked, False)
+		MDIMain.Find(txtFind.Text, chkRegExp.Checked, chkCase.Checked, chkWarp.Checked, False, True)
 	Case "cmdFindBack"
 		MDIMain.fFindBack = True
-		MDIMain.Find(txtFind.Text, chkCase.Checked, chkWarp.Checked, True)
+		MDIMain.Find(txtFind.Text, chkRegExp.Checked, chkCase.Checked, chkWarp.Checked, True, True)
 	Case "cmdShowHide"
 		If txtReplace.Visible= True Then
 			Sender.Text = "Show Replace"
@@ -194,10 +207,10 @@ Private Sub frmFindReplaceType.cmdFindReplace_Click(ByRef Sender As Control)
 			cmdReplaceAll.Visible= True
 		End If
 	Case "cmdReplace"
-		MDIMain.Replace(txtFind.Text, txtReplace.Text, chkCase.Checked, chkWarp.Checked)
+		MDIMain.Replace(txtFind.Text, txtReplace.Text, chkRegExp.Checked, chkCase.Checked, chkWarp.Checked)
 	Case "cmdReplaceAll"
-		Dim i As Integer = MDIMain.ReplaceAll(txtFind.Text, txtReplace.Text, chkCase.Checked)
-		If i >-1 Then MDIMain.Find(txtFind.Text, chkCase.Checked, chkWarp.Checked, False, True)
+		Dim i As Integer = MDIMain.ReplaceAll(txtFind.Text, txtReplace.Text, chkRegExp.Checked, chkCase.Checked)
+		If i >-1 Then MDIMain.Find(txtFind.Text, chkRegExp.Checked, chkCase.Checked, chkWarp.Checked, False, True)
 		lblMsg.Text = "Replace count: " & i + 1
 		Exit Sub
 	End Select
@@ -214,9 +227,11 @@ End Sub
 Private Sub frmFindReplaceType.chkFindReplace_Click(ByRef Sender As CheckBox)
 	Select Case Sender.Name
 	Case "chkCase"
-		MDIMain.fMatchCase= chkCase.Checked 
+		MDIMain.fMatchCase = Sender.Checked 
 	Case "chkWarp"
-		MDIMain.fFindWarp = chkWarp.Checked 
+		MDIMain.fFindWarp = Sender.Checked 
+	Case "chkRegExp"
+		MDIMain.fRegExp = Sender.Checked 
 	End Select
 End Sub
 

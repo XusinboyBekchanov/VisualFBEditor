@@ -48,8 +48,8 @@ Type Scintilla
 	Dim FindIndex As Integer = -1
 	
 	Declare Function IndexFind(ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False) As Integer
-	Declare Function Find(ByRef FindData As Const ZString Ptr, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
-	Declare Function ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal MatchCase As Boolean = False) As Integer
+	Declare Function Find(ByRef FindData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
+	Declare Function ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
 	
 	'Indicator
 	Declare Sub IndicatorClear()
@@ -276,7 +276,7 @@ Private Function Scintilla.IndexFind(ByVal FindWarp As Boolean = True, ByVal Fin
 	Return FindIndex
 End Function
 
-Private Function Scintilla.Find(ByRef toFind As Const ZString Ptr, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
+Private Function Scintilla.Find(ByRef toFind As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
 	Dim FindAct As Boolean = False
 	If Len(*toFind) > 0 Then
 		If FindData Then
@@ -306,7 +306,8 @@ Private Function Scintilla.Find(ByRef toFind As Const ZString Ptr, ByVal MatchCa
 		IndicatorClear()
 		If Len(*toFind) = 0 Then Return -1
 		
-		Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, SCFIND_NONE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX)
+		Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE, SCFIND_NONE)
+		mc = IIf(RegularExp, mc Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, mc )
 		
 		With mStf
 			.chrg.cpMin = 0
@@ -335,13 +336,13 @@ Private Function Scintilla.Find(ByRef toFind As Const ZString Ptr, ByVal MatchCa
 	Return FindCount
 End Function
 
-Private Function Scintilla.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal MatchCase As Boolean = False) As Integer
+Private Function Scintilla.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
 	SendMessage(Handle, SCI_TARGETWHOLEDOCUMENT, 0, 0)
-	If MatchCase Then
-		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_MATCHCASE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, 0)
-	Else
-		SendMessage(Handle, SCI_SETSEARCHFLAGS, SCFIND_NONE Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, 0)
-	End If
+	
+	Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE, SCFIND_NONE)
+	mc = IIf(RegularExp, mc Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, mc )
+	SendMessage(Handle, SCI_SETSEARCHFLAGS, mc, 0)
+	
 	Dim targetstart As Integer = 0
 	Dim targetend As Integer = Length
 	Dim lenSearch As Integer = Len(*FindData)

@@ -1,7 +1,7 @@
 #pragma once
 ' SciLexer
 ' https://www.scintilla.org/
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
 /' Scintilla source code edit Control '/
@@ -15,14 +15,14 @@
  * File which Contains Any comments about the definitions. HFacer.py does the generation. '/
 
 
-'// Define the default Lexilla shared library name for each platform
+' Define the default Lexilla shared library name for each platform
 #define LEXILLA_LIB "lexilla"
 #define LEXILLA_EXTENSION ".dll"
 
-'// On Win32 use the stdcall calling convention otherwise use the standard calling convention
+' On Win32 use the stdcall calling convention otherwise use the standard calling convention
 #define LEXILLA_CALL __stdcall
 
-'// MSVC __declspec(deprecated) has different positioning rules to GCC so define to nothing
+' MSVC __declspec(deprecated) has different positioning rules to GCC so define to nothing
 #define DEPRECATE_DEFINITION
 
 Type ILexer5 As Any
