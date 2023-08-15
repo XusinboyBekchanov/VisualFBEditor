@@ -98,14 +98,14 @@
 '#End Region
 
 Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)
-	*Cast(Form1Type Ptr, Sender.Designer).CommandButton1_Click(Sender)
+	(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 End Sub
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	Me.Text = Form1.Width & ", " & Form1.Height & ", " & CommandButton1.Width & ", " & CommandButton1.Height
 End Sub
 
 Private Sub Form1Type.TextBox1_Change_(ByRef Sender As TextBox)
-	*Cast(Form1Type Ptr, Sender.Designer).TextBox1_Change(Sender)
+	(*Cast(Form1Type Ptr, Sender.Designer)).TextBox1_Change(Sender)
 End Sub
 Private Sub Form1Type.TextBox1_Change(ByRef Sender As TextBox)
 	Me.Text = Sender.Text
