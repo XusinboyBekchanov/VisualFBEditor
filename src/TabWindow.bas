@@ -6953,21 +6953,32 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 	End If
 End Sub
 
+Sub DeleteFromTypeElement(te As TypeElement Ptr)
+	For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		DeleteFromTypeElement(te->Elements.Object(j))
+	Next
+	te->Types.Clear
+	te->Enums.Clear
+	te->Elements.Clear
+	_Delete(Cast(TypeElement Ptr, te))
+End Sub
+
 Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ByRef Content As EditControlContent)
 	Dim As TypeElement Ptr te, te1, tbi, func
 	Dim As ConstructionBlock Ptr cb
 	For i As Integer = Content.Types.Count - 1 To 0 Step -1
-		te = Content.Types.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, Content.Types.Object(i)))
+		DeleteFromTypeElement(Content.Types.Object(i))
+		'te = Content.Types.Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	te1 = te->Elements.Object(j)
+		'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+		'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+		'	Next
+		'	te1->Elements.Clear
+		'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'te->Elements.Clear
+		'_Delete( Cast(TypeElement Ptr, Content.Types.Object(i)))
 	Next
 	For i As Integer = Content.Enums.Count - 1 To 0 Step -1
 		_Delete( Cast(TypeElement Ptr, Content.Enums.Object(i)))
@@ -6976,36 +6987,41 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		_Delete( Cast(TypeElement Ptr, Content.Namespaces.Object(i)))
 	Next
 	For i As Integer = Content.TypeProcedures.Count - 1 To 0 Step -1
-		te = Content.TypeProcedures.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, Content.TypeProcedures.Object(i)))
+		DeleteFromTypeElement(Content.TypeProcedures.Object(i))
+		'te = Content.TypeProcedures.Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	te1 = te->Elements.Object(j)
+		'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+		'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+		'	Next
+		'	te1->Elements.Clear
+		'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'te->Elements.Clear
+		'_Delete( Cast(TypeElement Ptr, Content.TypeProcedures.Object(i)))
 	Next
 	For i As Integer = Content.Procedures.Count - 1 To 0 Step -1
-		te = Content.Procedures.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, Content.Procedures.Object(i)))
+		DeleteFromTypeElement(Content.Procedures.Object(i))
+		'te = Content.Procedures.Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	te1 = te->Elements.Object(j)
+		'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+		'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+		'	Next
+		'	te1->Elements.Clear
+		'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'te->Elements.Clear
+		'_Delete( Cast(TypeElement Ptr, Content.Procedures.Object(i)))
 	Next
 	For i As Integer = Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = Content.ConstructionBlocks.Item(i)
 		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
-			_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+			DeleteFromTypeElement(cb->Elements.Object(j))
+			'_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
 		Next
+		cb->Types.Clear
+		cb->Enums.Clear
 		cb->Elements.Clear
 		_Delete(Cast(ConstructionBlock Ptr, Content.ConstructionBlocks.Item(i)))
 	Next
@@ -7013,11 +7029,12 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 		_Delete( Cast(TypeElement Ptr, Content.LineLabels.Object(i)))
 	Next
 	For i As Integer = Content.Args.Count - 1 To 0 Step -1
-		te = Content.Args.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		_Delete( Cast(TypeElement Ptr, Content.Args.Object(i)))
+		DeleteFromTypeElement(Content.Args.Object(i))
+		'te = Content.Args.Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'_Delete( Cast(TypeElement Ptr, Content.Args.Object(i)))
 	Next
 	Content.Types.Clear
 	Content.Defines.Clear
@@ -8260,17 +8277,18 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As TypeElement Ptr te, te1, func
 	Dim As ConstructionBlock Ptr block, ifblock, cb
 	For i As Integer = txtCode.Content.Types.Count - 1 To 0 Step -1
-		te = txtCode.Content.Types.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
+		DeleteFromTypeElement(txtCode.Content.Types.Object(i))
+		'te = txtCode.Content.Types.Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	te1 = te->Elements.Object(j)
+		'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+		'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+		'	Next
+		'	te1->Elements.Clear
+		'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'te->Elements.Clear
+		'_Delete( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
 		_Delete( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
@@ -8279,36 +8297,41 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		_Delete( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
-		te = txtCode.Content.TypeProcedures.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+		DeleteFromTypeElement(txtCode.Content.TypeProcedures.Object(i))
+		'te = txtCode.Content.TypeProcedures.Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	te1 = te->Elements.Object(j)
+		'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+		'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+		'	Next
+		'	te1->Elements.Clear
+		'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'te->Elements.Clear
+		'_Delete( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
-		te = txtCode.Content.Procedures.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
+		DeleteFromTypeElement(txtCode.Content.Procedures.Object(i))
+		'te = txtCode.Content.Procedures.Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	te1 = te->Elements.Object(j)
+		'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+		'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+		'	Next
+		'	te1->Elements.Clear
+		'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'te->Elements.Clear
+		'_Delete( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
 		cb = txtCode.Content.ConstructionBlocks.Item(i)
 		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
-			_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+			DeleteFromTypeElement(cb->Elements.Object(j))
+			'_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
 		Next
+		cb->Types.Clear
+		cb->Enums.Clear
 		cb->Elements.Clear
 		_Delete(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
 	Next
@@ -8316,11 +8339,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		_Delete( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
 	Next
 	For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
-		te = txtCode.Content.Args.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
+		DeleteFromTypeElement(txtCode.Content.Args.Object(i))
+		'te = txtCode.Content.Args.Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'_Delete( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
 	Next
 	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
 		_Delete( Cast(WString Ptr, AnyTexts.Object(i)))
@@ -8824,6 +8848,23 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Constructs.Add te
 								If Comments <> "" Then te->Comment = Comments: Comments = ""
 								If ptxtCode = @txtCode Then LastIndexFunctions = txtCode.Content.Functions.Add(te->DisplayName, te)
+								'If inFunc AndAlso CBool(func <> 0) Then
+								'	If block AndAlso block->ConstructionIndex <> C_Enum AndAlso block->ConstructionIndex <> C_Type AndAlso block->ConstructionIndex <> C_Union AndAlso block->ConstructionIndex <> C_Class Then
+								'		block->Elements.Add te->Name, te
+								'	Else
+								'		func->Elements.Add te->Name, te
+								'	End If
+								'Else
+								'	If block Then 
+								'		block->Elements.Add te->Name, te
+								'	Else
+								'		txtCode.Content.Procedures.Add te->Name, te
+								'		If Namespaces.Count > 0 Then
+								'			Var Index = txtCode.Content.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								'			If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te
+								'		End If
+								'	End If
+								'End If
 								If ECStatement->ConstructionIndex = C_Enum Then
 									txtCode.Content.Enums.Add te->Name, te
 								ElseIf ECStatement->ConstructionIndex = C_Type OrElse ECStatement->ConstructionIndex = C_Class OrElse ECStatement->ConstructionIndex = C_Union Then

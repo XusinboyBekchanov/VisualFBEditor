@@ -168,11 +168,15 @@ Namespace My.Sys.Forms
 		Find As Boolean
 		Used As Boolean
 		Tag As Any Ptr
+		Types As WStringOrStringList
+		Enums As WStringOrStringList
 		Elements As WStringOrStringList
 		Declare Destructor
 	End Type
 	
 	Type ConstructionBlock
+		Types As WStringOrStringList
+		Enums As WStringOrStringList
 		Construction As TypeElement Ptr
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
