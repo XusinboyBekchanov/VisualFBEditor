@@ -2876,10 +2876,10 @@ Namespace My.Sys.Forms
 		dwClientY = ClientHeight
 	End Sub
 	
-	Function EditControlContent.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringOrStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1) As Boolean
+	Function EditControlContent.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringOrStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1, pList2 As WStringOrStringList Ptr = 0, ByRef teOld As TypeElement Ptr = 0) As Boolean
 		If ClassName = "" OrElse pList = 0 Then Return False
 		Var Index = -1
-		If pList = @Types OrElse pList = @Enums OrElse pList = @Namespaces Then
+		If pList = @Types OrElse pList = @Enums OrElse pList = @Namespaces OrElse pList = pList2 Then
 			Index = pList->IndexOf(ClassName)
 		Else
 			Index = IndexOfInListFiles(pList, ClassName, pFiles, pFileLines)
@@ -2891,6 +2891,7 @@ Namespace My.Sys.Forms
 			If LineIndex <>-1 AndAlso tbi->StartLine > LineIndex Then Return False
 			Index = -1
 			If tbi->Elements.Contains(ItemText, , , , Index) Then
+				teOld = tbi
 				te = tbi->Elements.Object(Index)
 				'ElseIf ContainsIn(tbi->TypeName, ItemText, pList, bLocal, bAll, TypesOnly, te) Then
 			ElseIf ContainsIn(tbi->TypeName, ItemText, @Types, pFiles, pFileLines, bLocal, bAll, TypesOnly, te, LineIndex) Then
@@ -2905,24 +2906,54 @@ Namespace My.Sys.Forms
 		If te > 0 Then Return True Else Return False
 	End Function
 
-	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer) As TypeElement Ptr
+	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer, TypesOnly As Boolean = False) As TypeElement Ptr
 		If cb = 0 Then Return 0
-		Var tIndex = cb->Elements.IndexOf(Text)
-		If tIndex <> -1 Then
-			Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
-			If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
-				Return te
-			End If
-		ElseIf cb->Construction Then
-			tIndex = cb->Construction->Elements.IndexOf(Text)
-			If tIndex <> -1 Then
-				Dim te As TypeElement Ptr = cb->Construction->Elements.Object(tIndex)
+		If TypesOnly Then
+			Var tIndexT = cb->Types.IndexOf(Text)
+			Var tIndexE = cb->Enums.IndexOf(Text)
+			If tIndexT <> -1 Then
+				Dim te As TypeElement Ptr = cb->Types.Object(tIndexT)
 				If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
 					Return te
 				End If
+			ElseIf tIndexE <> -1 Then
+				Dim te As TypeElement Ptr = cb->Enums.Object(tIndexE)
+				If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
+					Return te
+				End If
+			ElseIf cb->Construction Then
+				tIndexT = cb->Construction->Types.IndexOf(Text)
+				tIndexE = cb->Construction->Enums.IndexOf(Text)
+				If tIndexT <> -1 Then
+					Dim te As TypeElement Ptr = cb->Construction->Types.Object(tIndexT)
+					If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
+						Return te
+					End If
+				ElseIf tIndexE <> -1 Then
+					Dim te As TypeElement Ptr = cb->Construction->Enums.Object(tIndexE)
+					If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
+						Return te
+					End If
+				End If
+			End If
+		Else
+			Var tIndex = cb->Elements.IndexOf(Text)
+			If tIndex <> -1 Then
+				Dim te As TypeElement Ptr = cb->Elements.Object(tIndex)
+				If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
+					Return te
+				End If
+			ElseIf cb->Construction Then
+				tIndex = cb->Construction->Elements.IndexOf(Text)
+				If tIndex <> -1 Then
+					Dim te As TypeElement Ptr = cb->Construction->Elements.Object(tIndex)
+					If (te->StartLine <= z) OrElse te->ElementType = E_LineLabel Then
+						Return te
+					End If
+				End If
 			End If
 		End If
-		Return GetFromConstructionBlock(cb->InConstructionBlock, Text, z)
+		Return GetFromConstructionBlock(cb->InConstructionBlock, Text, z, TypesOnly)
 	End Function
 	
 	Function EditControlContent.GetTypeFromValue(ByRef Value As String, iSelEndLine As Integer) As String
@@ -3057,6 +3088,7 @@ Namespace My.Sys.Forms
 	Function EditControlContent.GetLeftArgTypeName(iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False, ByRef bWithoutWith As Boolean = False) As String
 		Dim As String sTemp, sTemp2, TypeName, sOldTypeName, BaseTypeName
 		Dim sLine As WString Ptr
+		Dim As TypeElement Ptr Oldte
 		Dim As Integer j, iCount, Pos1
 		Dim As String ch
 		Dim As Boolean b, OneDot, TwoDots, bArg, bArgEnded
@@ -3084,11 +3116,11 @@ Namespace My.Sys.Forms
 								TwoDots = True
 							Else
 								OneDot = True
-								TypeName = GetLeftArgTypeName(j, i - 1, teEnumOld, , sOldTypeName, bTypes, bWithoutWith)
+								TypeName = GetLeftArgTypeName(j, i - 1, teEnumOld, Oldte, sOldTypeName, bTypes, bWithoutWith)
 							End If
 						ElseIf ch = ">" AndAlso i > 0 AndAlso Mid(*sLine, i - 1, 1) = "-" Then
 							OneDot = True
-							TypeName = GetLeftArgTypeName(j, i - 2, teEnumOld, , sOldTypeName, bTypes)
+							TypeName = GetLeftArgTypeName(j, i - 2, teEnumOld, Oldte, sOldTypeName, bTypes)
 						ElseIf CBool(CBool(ch = " ") OrElse CBool(ch = !"\t")) AndAlso CBool(i > 0) AndAlso EndsWith(RTrim(LCase(..Left(*sLine, i - 1)), Any "\t "), " as") Then
 							bTypes = True
 						End If
@@ -3177,6 +3209,15 @@ Namespace My.Sys.Forms
 				If Types.Contains(TypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 					te2 = Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf CBool(ECLine <> 0) AndAlso CBool(ECLine->InConstructionBlock <> 0) AndAlso ECLine->InConstructionBlock->Types.Contains(TypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, ECLine->InConstructionBlock->Types.Object(Idx))->StartLine <= iSelEndLine Then
+					te2 = ECLine->InConstructionBlock->Types.Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf CBool(ECLine <> 0) AndAlso CBool(ECLine->InConstructionBlock <> 0) AndAlso CBool(ECLine->InConstructionBlock->Construction <> 0) AndAlso ECLine->InConstructionBlock->Construction->Types.Contains(TypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, ECLine->InConstructionBlock->Construction->Types.Object(Idx))->StartLine <= iSelEndLine Then
+					te2 = ECLine->InConstructionBlock->Construction->Types.Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf (Oldte <> 0) AndAlso Oldte->Types.Contains(TypeName, , , , Idx) Then
+					te2 = Oldte->Types.Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, TypeName, Idx, pFiles, pFileLines) Then
 					te2 = Globals->Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
@@ -3190,6 +3231,9 @@ Namespace My.Sys.Forms
 				If BaseTypeName <> "" Then
 					If Types.Contains(BaseTypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 						teEnum = Types.Object(Idx)
+					ElseIf (Oldte <> 0) AndAlso Oldte->Types.Contains(BaseTypeName, , , , Idx) Then
+						te2 = Oldte->Types.Object(Idx)
+						If te2 <> 0 Then BaseTypeName = te2->TypeName
 					ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, BaseTypeName, Idx, pFiles, pFileLines) Then
 						teEnum = Globals->Types.Object(Idx)
 					ElseIf ContainsInListFiles(pComps, BaseTypeName, Idx, pFiles, pFileLines) Then
@@ -3202,16 +3246,18 @@ Namespace My.Sys.Forms
 					Return BaseTypeName
 				End If
 			End If
-			If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-			ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-			ElseIf ContainsIn(TypeName, sTemp, @Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-			ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te) Then
-			ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
-			ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
-			ElseIf ContainsIn(TypeName, sTemp, pGlobalNamespaces, pFiles, pFileLines, True, , , te) Then
+			If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+			ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+			ElseIf ContainsIn(TypeName, sTemp, @Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+			ElseIf (Oldte <> 0) AndAlso ContainsIn(TypeName, sTemp, @Oldte->Types, pFiles, pFileLines, True, , , te, iSelEndLine, @Oldte->Types, teEnumOld) Then
+			ElseIf (Oldte <> 0) AndAlso ContainsIn(TypeName, sTemp, @Oldte->Enums, pFiles, pFileLines, True, , , te, iSelEndLine, @Oldte->Enums, teEnumOld) Then
+			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+			ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+			ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+			ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+			ElseIf ContainsIn(TypeName, sTemp, pGlobalNamespaces, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
 			End If
 			If te Then
 				OldTypeName = TypeName
@@ -3225,6 +3271,9 @@ Namespace My.Sys.Forms
 				If Types.Contains(TypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 					te2 = Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
+				ElseIf (Oldte <> 0) AndAlso Oldte->Types.Contains(TypeName, , , , Idx) Then
+					te2 = Oldte->Types.Object(Idx)
+					If te2 <> 0 Then BaseTypeName = te2->TypeName
 				ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, TypeName, Idx, pFiles, pFileLines) Then
 					te2 = Globals->Types.Object(Idx)
 					If te2 <> 0 Then BaseTypeName = te2->TypeName
@@ -3238,6 +3287,8 @@ Namespace My.Sys.Forms
 				If BaseTypeName <> "" Then
 					If Types.Contains(BaseTypeName, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->StartLine <= iSelEndLine Then
 						teEnum = Types.Object(Idx)
+					ElseIf (Oldte <> 0) AndAlso Oldte->Types.Contains(BaseTypeName, , , , Idx) Then
+						teEnum = Oldte->Types.Object(Idx)
 					ElseIf (Globals <> 0) AndAlso ContainsInListFiles(@Globals->Types, BaseTypeName, Idx, pFiles, pFileLines) Then
 						teEnum = Globals->Types.Object(Idx)
 					ElseIf ContainsInListFiles(pComps, BaseTypeName, Idx, pFiles, pFileLines) Then
@@ -3273,13 +3324,15 @@ Namespace My.Sys.Forms
 						'Else
 						'	TypeName = teC->Name
 						'End If
-						If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-						ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-						ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te) Then
-						ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te) Then
-						ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te) Then
-						ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
-						ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
+						If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+						ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+						ElseIf (Oldte <> 0) AndAlso ContainsIn(TypeName, sTemp, @Oldte->Types, pFiles, pFileLines, True, , , te, , @Oldte->Types, teEnumOld) Then
+						ElseIf (Oldte <> 0) AndAlso ContainsIn(TypeName, sTemp, @Oldte->Enums, pFiles, pFileLines, True, , , te, , @Oldte->Enums, teEnumOld) Then
+						ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+						ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+						ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+						ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+						ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
 						End If
 						If te > 0 Then
 							tIndex = 0
@@ -3330,16 +3383,18 @@ Namespace My.Sys.Forms
 				ElseIf ContainsInListFiles(pGlobalNamespaces, sTemp, Idx, pFiles, pFileLines) Then
 					te = pGlobalNamespaces->Object(Idx)
 				ElseIf TypeName <> "" Then
-					If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-					ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-					ElseIf ContainsIn(TypeName, sTemp, @Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine) Then
-					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te) Then
-					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te) Then
-					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Namespaces, pFiles, pFileLines, True, , , te) Then
-					ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te) Then
-					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te) Then
-					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te) Then
-					ElseIf ContainsIn(TypeName, sTemp, pGlobalNamespaces, pFiles, pFileLines, True, , , te) Then
+					If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+					ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+					ElseIf ContainsIn(TypeName, sTemp, @Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+					ElseIf (Oldte <> 0) AndAlso ContainsIn(TypeName, sTemp, @Oldte->Types, pFiles, pFileLines, True, , , te, , @Oldte->Types, teEnumOld) Then
+					ElseIf (Oldte <> 0) AndAlso ContainsIn(TypeName, sTemp, @Oldte->Enums, pFiles, pFileLines, True, , , te, , @Oldte->Enums, teEnumOld) Then
+					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Enums, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+					ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Namespaces, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+					ElseIf ContainsIn(TypeName, sTemp, pComps, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+					ElseIf ContainsIn(TypeName, sTemp, pGlobalTypes, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+					ElseIf ContainsIn(TypeName, sTemp, pGlobalEnums, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
+					ElseIf ContainsIn(TypeName, sTemp, pGlobalNamespaces, pFiles, pFileLines, True, , , te, , , teEnumOld) Then
 					End If
 					If te Then
 						OldTypeName = TypeName
@@ -3951,8 +4006,8 @@ Namespace My.Sys.Forms
 															End If
 																
 															'Procedure
-															If (Not TwoDots) AndAlso (tIndex = -1) AndAlso (FECLine->InConstructionBlock > 0) AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
-																te = GetFromConstructionBlock(FECLine->InConstructionBlock, MatnLCaseWithoutOldSymbol, z)
+															If (Not TwoDots) AndAlso (tIndex = -1) AndAlso (FECLine->InConstructionBlock > 0) Then 'AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol)
+																te = GetFromConstructionBlock(FECLine->InConstructionBlock, MatnLCaseWithoutOldSymbol, z, (OldMatnLCase = "as") AndAlso Not WithOldSymbol)
 																If te > 0 Then
 																	tIndex = 0
 																	pkeywords = @Cast(ConstructionBlock Ptr, FECLine->InConstructionBlock)->Elements

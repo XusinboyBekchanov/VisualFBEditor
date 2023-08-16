@@ -4052,7 +4052,7 @@ Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Inte
 	WDeAllocate(sTempRight)
 End Sub
 
-Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False)
+Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False, Oldte As TypeElement Ptr = 0)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -4146,27 +4146,38 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 	End If
 	
 	Var Idx = -1
-	If TypesOnly Then
-		If tb->txtCode.Content.Namespaces.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Content.Namespaces.Object(Idx))->StartLine <= iSelStartLine Then
-			tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Content.Namespaces, bLocal, bAll, TypesOnly, tb
-		ElseIf tb->txtCode.Content.ContainsInListFiles(pGlobalNamespaces, sTemp2, Idx, pFiles, pFileLines) Then
-			tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, TypesOnly, tb
-		End If
-	ElseIf tb->txtCode.Content.Types.Contains(sTemp2, , , , Idx) AndAlso CBool(Cast(TypeElement Ptr, tb->txtCode.Content.Types.Object(Idx))->StartLine <= iSelStartLine) AndAlso Not TypesOnly Then
-		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Content.Types, bLocal, bAll, , tb
+	'If TypesOnly Then
+	'	If tb->txtCode.Content.Namespaces.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Content.Namespaces.Object(Idx))->StartLine <= iSelStartLine Then
+	'		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Content.Namespaces, bLocal, bAll, TypesOnly, tb
+	'	ElseIf tb->txtCode.Content.ContainsInListFiles(pGlobalNamespaces, sTemp2, Idx, pFiles, pFileLines) Then
+	'		tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, TypesOnly, tb
+	'	End If
+	'Else
+	If CBool(ECLine <> 0) AndAlso CBool(ECLine->InConstructionBlock <> 0) AndAlso ECLine->InConstructionBlock->Types.Contains(sTemp2, , , , Idx) AndAlso CBool(Cast(TypeElement Ptr, ECLine->InConstructionBlock->Types.Object(Idx))->StartLine <= iSelStartLine) Then
+		tb->FillIntellisense sTemp2, FromClassName, @ECLine->InConstructionBlock->Types, bLocal, bAll, TypesOnly, tb
+	ElseIf CBool(ECLine <> 0) AndAlso CBool(ECLine->InConstructionBlock <> 0) AndAlso ECLine->InConstructionBlock->Enums.Contains(sTemp2, , , , Idx) AndAlso CBool(Cast(TypeElement Ptr, ECLine->InConstructionBlock->Enums.Object(Idx))->StartLine <= iSelStartLine) Then
+		tb->FillIntellisense sTemp2, FromClassName, @ECLine->InConstructionBlock->Enums, bLocal, bAll, TypesOnly, tb
+	ElseIf CBool(ECLine <> 0) AndAlso CBool(ECLine->InConstructionBlock <> 0) AndAlso CBool(ECLine->InConstructionBlock->Construction <> 0) AndAlso ECLine->InConstructionBlock->Construction->Types.Contains(sTemp2, , , , Idx) AndAlso CBool(Cast(TypeElement Ptr, ECLine->InConstructionBlock->Construction->Types.Object(Idx))->StartLine <= iSelStartLine) Then
+		tb->FillIntellisense sTemp2, FromClassName, @ECLine->InConstructionBlock->Construction->Types, bLocal, bAll, TypesOnly, tb
+	ElseIf CBool(ECLine <> 0) AndAlso CBool(ECLine->InConstructionBlock <> 0) AndAlso CBool(ECLine->InConstructionBlock->Construction <> 0) AndAlso ECLine->InConstructionBlock->Construction->Enums.Contains(sTemp2, , , , Idx) AndAlso CBool(Cast(TypeElement Ptr, ECLine->InConstructionBlock->Construction->Enums.Object(Idx))->StartLine <= iSelStartLine) Then
+		tb->FillIntellisense sTemp2, FromClassName, @ECLine->InConstructionBlock->Construction->Enums, bLocal, bAll, TypesOnly, tb
+	ElseIf CBool(Oldte <> 0) AndAlso Oldte->Elements.Contains(sTemp2, , , , Idx) Then
+		tb->FillIntellisense sTemp2, FromClassName, @Oldte->Elements, bLocal, bAll, TypesOnly, tb
+	ElseIf tb->txtCode.Content.Types.Contains(sTemp2, , , , Idx) AndAlso CBool(Cast(TypeElement Ptr, tb->txtCode.Content.Types.Object(Idx))->StartLine <= iSelStartLine) Then
+		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Content.Types, bLocal, bAll, TypesOnly, tb
 	ElseIf tb->txtCode.Content.Enums.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Content.Enums.Object(Idx))->StartLine <= iSelStartLine Then
-		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Content.Enums, bLocal, bAll, , tb
+		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Content.Enums, bLocal, bAll, TypesOnly, tb
 	ElseIf tb->txtCode.Content.Namespaces.Contains(sTemp2, , , , Idx) AndAlso Cast(TypeElement Ptr, tb->txtCode.Content.Namespaces.Object(Idx))->StartLine <= iSelStartLine Then
-		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Content.Namespaces, bLocal, bAll, , tb
-		tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, , tb
+		tb->FillIntellisense sTemp2, FromClassName, @tb->txtCode.Content.Namespaces, bLocal, bAll, TypesOnly, tb
+		tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, TypesOnly, tb
 	ElseIf tb->txtCode.Content.ContainsInListFiles(pComps, sTemp2, Idx, pFiles, pFileLines) Then
-		tb->FillIntellisense sTemp2, FromClassName, pComps, bLocal, bAll, , tb
+		tb->FillIntellisense sTemp2, FromClassName, pComps, bLocal, bAll, TypesOnly, tb
 	ElseIf tb->txtCode.Content.ContainsInListFiles(pGlobalTypes, sTemp2, Idx, pFiles, pFileLines) Then
-		tb->FillIntellisense sTemp2, FromClassName, pGlobalTypes, bLocal, bAll, , tb
+		tb->FillIntellisense sTemp2, FromClassName, pGlobalTypes, bLocal, bAll, TypesOnly, tb
 	ElseIf tb->txtCode.Content.ContainsInListFiles(pGlobalEnums, sTemp2, Idx, pFiles, pFileLines) Then
-		tb->FillIntellisense sTemp2, FromClassName, pGlobalEnums, bLocal, bAll, , tb
+		tb->FillIntellisense sTemp2, FromClassName, pGlobalEnums, bLocal, bAll, TypesOnly, tb
 	ElseIf tb->txtCode.Content.ContainsInListFiles(pGlobalNamespaces, sTemp2, Idx, pFiles, pFileLines) Then
-		tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, , tb
+		tb->FillIntellisense sTemp2, FromClassName, pGlobalNamespaces, bLocal, bAll, TypesOnly, tb
 	Else
 		Exit Sub
 	End If
@@ -5366,11 +5377,11 @@ Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
 			k = 2
 		End If
 		Dim As Boolean Types
-		Dim As TypeElement Ptr te
+		Dim As TypeElement Ptr te, Oldte
 		Dim As String OldTypeName
-		Dim As String TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndChar - k, te, , OldTypeName, Types) 'GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
+		Dim As String TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndChar - k, te, Oldte, OldTypeName, Types) 'GetLeftArgTypeName(tb, iSelEndLine, iSelEndChar - k, te, , , Types)
 		If Trim(TypeName) = "" Then Exit Sub
-		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName, , , , , Types
+		FillIntellisenseByName tb->txtCode.GetWordAt(iSelEndLine, iSelEndChar - k), TypeName, , , , , Types, Oldte
 		#ifdef __USE_GTK__
 			If tb->txtCode.lvIntellisense.ListItems.Count = 0 Then Exit Sub
 		#else
@@ -5991,8 +6002,8 @@ Sub AnalyzeTab(Param As Any Ptr)
 											End If
 												
 											'Procedure
-											If (Not TwoDots) AndAlso (tIndex = -1) AndAlso (FECLine->InConstructionBlock > 0) AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
-												te = GetFromConstructionBlock(FECLine->InConstructionBlock, MatnLCaseWithoutOldSymbol, z)
+											If (Not TwoDots) AndAlso (tIndex = -1) AndAlso (FECLine->InConstructionBlock > 0) Then
+												te = GetFromConstructionBlock(FECLine->InConstructionBlock, MatnLCaseWithoutOldSymbol, z, (OldMatnLCase = "as") AndAlso Not WithOldSymbol)
 												If te > 0 Then
 													tIndex = 0
 													pkeywords = @Cast(ConstructionBlock Ptr, FECLine->InConstructionBlock)->Elements
