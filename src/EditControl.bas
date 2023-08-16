@@ -3879,7 +3879,7 @@ Namespace My.Sys.Forms
 																			sc = @ColorFields
 																		Case E_Namespace
 																			sc = @ColorGlobalNamespaces
-																		Case E_Type, E_TypeCopy
+																		Case E_Type, E_TypeCopy, E_Union, E_Class
 																			sc = @ColorGlobalTypes
 																		Case E_Enum
 																			sc = @ColorGlobalEnums
@@ -3980,6 +3980,10 @@ Namespace My.Sys.Forms
 																			sc = @ColorDefines
 																		Case E_Macro
 																			sc = @ColorMacros
+																		Case E_Type, E_TypeCopy, E_Union, E_Class
+																			sc = @ColorGlobalTypes
+																		Case E_Enum
+																			sc = @ColorGlobalEnums
 																		Case Else
 																			sc = @ColorLocalVariables
 																		End Select
@@ -4014,6 +4018,10 @@ Namespace My.Sys.Forms
 																				sc = @ColorEnumMembers
 																			Case E_LineLabel
 																				sc = @ColorLineLabels
+																			Case E_Type, E_TypeCopy, E_Union, E_Class
+																				sc = @ColorGlobalTypes
+																			Case E_Enum
+																				sc = @ColorGlobalEnums
 																			Case Else
 																				sc = @ColorLocalVariables
 																			End Select
@@ -4052,6 +4060,10 @@ Namespace My.Sys.Forms
 																					sc = @ColorProperties
 																				Case E_Field, E_Event
 																					sc = @ColorFields
+																				Case E_Type, E_TypeCopy, E_Union, E_Class
+																					sc = @ColorGlobalTypes
+																				Case E_Enum
+																					sc = @ColorGlobalEnums
 																				Case Else
 																					sc = @ColorLocalVariables
 																				End Select
