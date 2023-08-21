@@ -54,7 +54,7 @@
 '#End Region
 
 
-Private Sub frmTheme.cmdOK_Click(ByRef Sender As Control)
+Private Sub frmTheme.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If fTheme.txtThemeName.Text = "" Then
 		MsgBox "Theme name is empty"
 		Exit Sub
@@ -63,7 +63,7 @@ Private Sub frmTheme.cmdOK_Click(ByRef Sender As Control)
 	fTheme.CloseForm
 End Sub
 
-Private Sub frmTheme.cmdCancel_Click(ByRef Sender As Control)
+Private Sub frmTheme.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fTheme.ModalResult = ModalResults.Cancel
 	fTheme.CloseForm
 End Sub

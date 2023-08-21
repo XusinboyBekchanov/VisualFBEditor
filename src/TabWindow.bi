@@ -288,15 +288,15 @@ Declare Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 Declare Sub m(ByRef msg As WString, Debug As Boolean = False)
 
 Common Shared As Boolean TextChanged
-Declare Sub OnChangeEdit(ByRef Sender As Control)
+Declare Sub OnChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 
 Declare Function IsLabel(ByRef LeftA As WString) As Boolean
 
-Declare Sub CloseButton_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+Declare Sub CloseButton_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 
-Declare Sub CloseButton_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+Declare Sub CloseButton_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 
-Declare Sub CloseButton_MouseLeave(ByRef Sender As Control)
+Declare Sub CloseButton_MouseLeave(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 
 Declare Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) As Boolean
 
@@ -327,13 +327,13 @@ Declare Function GetItemText(ByRef Item As TreeListViewItem Ptr) As String
 
 Declare Sub PropertyChanged(ByRef Sender As Control, ByRef Sender_Text As WString, IsCombo As Boolean)
 
-Declare Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
+Declare Sub lvProperties_CellEditing(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
 
-Declare Sub lvProperties_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
+Declare Sub lvProperties_CellEdited(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
 
-Declare Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
+Declare Sub txtPropertyValue_LostFocus(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 
-Declare Sub cboPropertyValue_Change(ByRef Sender As Control)
+Declare Sub cboPropertyValue_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 
 Declare Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As String = "", BeforeCtrl As Any Ptr = 0, AfterCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1)
 
@@ -345,14 +345,14 @@ Declare Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As
 
 Declare Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String, ByRef AName As String)
 
-Declare Sub cboClass_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+Declare Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 
 Common Shared bNotDesignForms As Boolean
-Declare Sub OnLineChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
+Declare Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 
 Declare Sub FindEvent(tb As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 
-Declare Sub cboFunction_Change(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+Declare Sub cboFunction_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 
 Declare Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 
@@ -363,10 +363,10 @@ Common Shared As Integer SelLinePos, SelCharPos
 #ifdef __USE_GTK__
 	Declare Sub lvIntellisense_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 #else
-	Declare Sub cboIntellisense_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	Declare Sub cboIntellisense_Selected(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 #endif
 
-Declare Sub OnKeyDownEdit(ByRef Sender As Control, Key As Integer, Shift As Integer)
+Declare Sub OnKeyDownEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 
 Declare Sub FillAllIntellisenses(ByRef Starts As WString = "")
 
@@ -378,23 +378,23 @@ Declare Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar
 
 Declare Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False, Oldte As TypeElement Ptr = 0)
 
-Declare Sub OnKeyPressEdit(ByRef Sender As Control, Key As Integer)
+Declare Sub OnKeyPressEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 
-Declare Sub OnSelChangeEdit(ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
+Declare Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal CurrentCharIndex As Integer)
 
-Declare Sub tbrTop_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
+Declare Sub tbrTop_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar, ByRef Button As ToolButton)
 
-Declare Sub cboIntellisense_DropDown(ByRef Sender As ComboBoxEdit)
+Declare Sub cboIntellisense_DropDown(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
 
-Declare Sub cboIntellisense_CloseUp(ByRef Sender As ComboBoxEdit)
+Declare Sub cboIntellisense_CloseUp(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
 
 'Declare Function GetLeftArgTypeName(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef Types As Boolean = False) As String
 
 'Declare Function GetTypeFromValue(tb As TabWindow Ptr, Value As String) As String
 
-Declare Sub TabWindow_Destroy(ByRef Sender As Control)
+Declare Sub TabWindow_Destroy(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 
-Declare Sub lvProperties_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+Declare Sub lvProperties_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 
 Declare Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer) As UShort
 Declare Sub SelectError(ByRef FileName As WString, iLine As Integer, tabw As TabWindow Ptr = 0)

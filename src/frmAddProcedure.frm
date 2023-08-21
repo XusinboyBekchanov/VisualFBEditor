@@ -12,43 +12,43 @@
 	Using My.Sys.Forms
 	
 	Type frmAddProcedureType Extends Form
-		Declare Static Sub cmdCancel_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdCancel_Click(ByRef Sender As Control)
-		Declare Static Sub cmdOK_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Show_(ByRef Sender As Form)
+		Declare Static Sub Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub cboType_Change_(ByRef Sender As ComboBoxEdit)
+		Declare Static Sub cboType_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
 		Declare Sub cboType_Change(ByRef Sender As ComboBoxEdit)
-		Declare Static Sub optConstructor_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optConstructor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optConstructor_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optSub_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optSub_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optSub_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optFunction_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optFunction_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optFunction_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optProperty_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optProperty_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optProperty_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optOperator_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optOperator_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optOperator_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optDestructor_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optDestructor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optDestructor_Click(ByRef Sender As RadioButton)
-		Declare Static Sub txtParameters_Change_(ByRef Sender As TextBox)
+		Declare Static Sub txtParameters_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 		Declare Sub txtParameters_Change(ByRef Sender As TextBox)
-		Declare Static Sub optPublicScope_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optPublicScope_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optPublicScope_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optPrivateScope_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optPrivateScope_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optPrivateScope_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optDefaultScope_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optDefaultScope_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optDefaultScope_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optStaticMember_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optStaticMember_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optStaticMember_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optNormalMember_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optNormalMember_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optNormalMember_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optAbstractMember_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optAbstractMember_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optAbstractMember_Click(ByRef Sender As RadioButton)
-		Declare Static Sub optVirtualMember_Click_(ByRef Sender As RadioButton)
+		Declare Static Sub optVirtualMember_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optVirtualMember_Click(ByRef Sender As RadioButton)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
+		Declare Static Sub _Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -503,79 +503,79 @@
 		End With
 	End Constructor
 	
-	Private Sub frmAddProcedureType._Form_Create(ByRef Sender As Control)
+	Private Sub frmAddProcedureType._Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optVirtualMember_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optVirtualMember_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optVirtualMember_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optAbstractMember_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optAbstractMember_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optAbstractMember_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optNormalMember_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optNormalMember_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optNormalMember_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optStaticMember_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optStaticMember_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optStaticMember_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optDefaultScope_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optDefaultScope_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optDefaultScope_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optPrivateScope_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optPrivateScope_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optPrivateScope_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optPublicScope_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optPublicScope_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optPublicScope_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.txtParameters_Change_(ByRef Sender As TextBox)
+	Private Sub frmAddProcedureType.txtParameters_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).txtParameters_Change(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optDestructor_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optDestructor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optDestructor_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optOperator_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optOperator_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optOperator_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optProperty_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optProperty_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optProperty_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optFunction_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optFunction_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optFunction_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optSub_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optSub_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optSub_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.optConstructor_Click_(ByRef Sender As RadioButton)
+	Private Sub frmAddProcedureType.optConstructor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optConstructor_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.cboType_Change_(ByRef Sender As ComboBoxEdit)
+	Private Sub frmAddProcedureType.cboType_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).cboType_Change(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.Form_Show_(ByRef Sender As Form)
+	Private Sub frmAddProcedureType.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.cmdOK_Click_(ByRef Sender As Control)
+	Private Sub frmAddProcedureType.cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).cmdOK_Click(Sender)
 	End Sub
 	
-	Private Sub frmAddProcedureType.cmdCancel_Click_(ByRef Sender As Control)
+	Private Sub frmAddProcedureType.cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 	End Sub
 	

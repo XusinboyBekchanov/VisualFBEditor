@@ -2634,27 +2634,27 @@ pfOptions = @fOptions
 		End With
 	End Constructor
 	
-	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
+	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 		(*Cast(frmOptions Ptr, Sender.Designer)).txtColorIndicator_KeyPress(Sender, Key)
 	End Sub
 	
-	Private Sub frmOptions._txtColorFrame_KeyPress(ByRef Sender As Control, Key As Integer)
+	Private Sub frmOptions._txtColorFrame_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 		(*Cast(frmOptions Ptr, Sender.Designer)).txtColorFrame_KeyPress(Sender, Key)
 	End Sub
 	
-	Private Sub frmOptions._txtColorBackground_KeyPress(ByRef Sender As Control, Key As Integer)
+	Private Sub frmOptions._txtColorBackground_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 		(*Cast(frmOptions Ptr, Sender.Designer)).txtColorBackground_KeyPress(Sender, Key)
 	End Sub
 	
-	Private Sub frmOptions._txtColorForeground_KeyPress(ByRef Sender As Control, Key As Integer)
+	Private Sub frmOptions._txtColorForeground_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 		(*Cast(frmOptions Ptr, Sender.Designer)).txtColorForeground_KeyPress(Sender, Key)
 	End Sub
 	
-	Private Sub frmOptions.cmdUpdateLng_Click_(ByRef Sender As Control)
+	Private Sub frmOptions.cmdUpdateLng_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmOptions Ptr, Sender.Designer)).cmdUpdateLng_Click(Sender)
 	End Sub
 	
-	Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click_(ByRef Sender As CheckBox)
+	Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 		(*Cast(frmOptions Ptr, Sender.Designer)).chkCreateNonStaticEventHandlers_Click(Sender)
 	End Sub
 	
@@ -2672,14 +2672,14 @@ pfOptions = @fOptions
 	#endif
 '#End Region
 
-Private Sub frmOptions.cmdOK_Click(ByRef Sender As Control)
-	cmdApply_Click(Sender)
+Private Sub frmOptions.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	cmdApply_Click(Designer, Sender)
 	fOptions.CloseForm
 End Sub
 
-Private Sub frmOptions.cmdCancel_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fOptions.cboTheme.ItemIndex = fOptions.cboTheme.IndexOf(*CurrentTheme)
-	fOptions.cboTheme_Change(Sender)
+	fOptions.cboTheme_Change(Designer, Sender)
 	fOptions.CloseForm
 End Sub
 
@@ -2699,7 +2699,7 @@ End Sub
 Sub frmOptions.LoadSettings()
 	With fOptions
 		.tvOptions.SelectedNode = .tvOptions.Nodes.Item(0)
-		.TreeView1_SelChange .tvOptions, * (.tvOptions.Nodes.Item(0))
+		.TreeView1_SelChange *.tvOptions.Designer, .tvOptions, * (.tvOptions.Nodes.Item(0))
 		.chkTabAsSpaces.Checked = TabAsSpaces
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
@@ -2942,7 +2942,7 @@ Sub frmOptions.LoadSettings()
 		AddColors Strings, , , , False
 		
 		.lstColorKeys.ItemIndex = 0
-		.lstColorKeys_Change(.lstColorKeys)
+		.lstColorKeys_Change(*.lstColorKeys.Designer, .lstColorKeys)
 		WLet(.EditFontName, *EditorFontName)
 		.EditFontSize = EditorFontSize
 		.lblFont.Font.Name = *EditorFontName
@@ -3058,7 +3058,7 @@ Sub AddShortcuts(item As MenuItem Ptr, ByRef Prefix As WString = "")
 	End With
 End Sub
 
-Private Sub frmOptions.Form_Create(ByRef Sender As Control)
+Private Sub frmOptions.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.tvOptions.Nodes.Clear
 		Var tnGeneral = .tvOptions.Nodes.Add(ML("General"), "General")
@@ -3198,7 +3198,7 @@ Sub SetColors
 	End With
 End Sub
 
-Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	On Error Goto ErrorHandler
 	Dim As ToolType Ptr Tool
 	With fOptions
@@ -3832,7 +3832,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 	"in module " & ZGet(Ermn())
 End Sub
 
-Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+Private Sub frmOptions.Form_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	If newIndex <> oldIndex Then MsgBox ML("Localization changes will be applied the next time the application is run.")
 	If *InterfaceFontName <> *fOptions.oldInterfFontName OrElse InterfaceFontSize <> fOptions.oldInterfFontSize Then MsgBox ML("Interface font changes will be applied the next time the application is run.")
 	If DisplayMenuIcons <> fOptions.oldDisplayMenuIcons Then MsgBox ML("Display icons in the menu changes will be applied the next time the application is run.")
@@ -3840,11 +3840,11 @@ Private Sub frmOptions.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	'If fOptions.HotKeysChanged Then MsgBox ML("Hotkey changes will be applied the next time the application is run.")
 End Sub
 
-Private Sub frmOptions.Form_Show(ByRef Sender As Form)
+Private Sub frmOptions.Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	
 End Sub
 
-Private Sub frmOptions.TreeView1_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
+Private Sub frmOptions.TreeView1_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
 	With fOptions
 		If .FDisposing Then Exit Sub
 		Dim Key As String = Item.Name
@@ -3865,11 +3865,11 @@ Private Sub frmOptions.TreeView1_SelChange(ByRef Sender As TreeView, ByRef Item 
 	End With
 End Sub
 
-Private Sub frmOptions.pnlIncludes_ActiveControlChange(ByRef Sender As Control)
+Private Sub frmOptions.pnlIncludes_ActiveControlChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	
 End Sub
 
-Private Sub frmOptions.cmdMFFPath_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdMFFPath_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.BrowsD.InitialDir = GetFullPath(.txtMFFpath.Text)
 		If .BrowsD.Execute Then
@@ -3878,7 +3878,7 @@ Private Sub frmOptions.cmdMFFPath_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdFont_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdFont_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.FontD.Font.Name = * (.EditFontName)
 		.FontD.Font.Size = .EditFontSize
@@ -3891,7 +3891,7 @@ Private Sub frmOptions.cmdFont_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
+Private Sub frmOptions.lstColorKeys_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -3938,7 +3938,7 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdForeground_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdForeground_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions.ColorD
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -3952,7 +3952,7 @@ Private Sub frmOptions.cmdForeground_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdBackground_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdBackground_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions.ColorD
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -3966,7 +3966,7 @@ Private Sub frmOptions.cmdBackground_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdFrame_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdFrame_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions.ColorD
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -3980,7 +3980,7 @@ Private Sub frmOptions.cmdFrame_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdIndicator_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdIndicator_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions.ColorD
 		Var i = fOptions.lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -3994,7 +3994,7 @@ Private Sub frmOptions.cmdIndicator_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
+Private Sub frmOptions.cboTheme_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If UBound(.Colors) = -1 Then Exit Sub
 		piniTheme->Load ExePath & "/Settings/Themes/" & fOptions.cboTheme.Text & ".ini"
@@ -4230,7 +4230,7 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 		.Colors(36 + k, 4) = piniTheme->ReadInteger("FontStyles", "StringsBold", 0)
 		.Colors(36 + k, 5) = piniTheme->ReadInteger("FontStyles", "StringsItalic", 0)
 		.Colors(36 + k, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
-		.lstColorKeys_Change(.lstColorKeys)
+		.lstColorKeys_Change(*.lstColorKeys.Designer, .lstColorKeys)
 		SetColors
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb <> 0 Then
@@ -4244,7 +4244,7 @@ Private Sub frmOptions.cboTheme_Change(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.chkForeground_Click(ByRef Sender As CheckBox)
+Private Sub frmOptions.chkForeground_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4252,7 +4252,7 @@ Private Sub frmOptions.chkForeground_Click(ByRef Sender As CheckBox)
 	End With
 End Sub
 
-Private Sub frmOptions.chkBackground_Click(ByRef Sender As CheckBox)
+Private Sub frmOptions.chkBackground_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4260,7 +4260,7 @@ Private Sub frmOptions.chkBackground_Click(ByRef Sender As CheckBox)
 	End With
 End Sub
 
-Private Sub frmOptions.chkFrame_Click(ByRef Sender As CheckBox)
+Private Sub frmOptions.chkFrame_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4268,7 +4268,7 @@ Private Sub frmOptions.chkFrame_Click(ByRef Sender As CheckBox)
 	End With
 End Sub
 
-Private Sub frmOptions.chkIndicator_Click(ByRef Sender As CheckBox)
+Private Sub frmOptions.chkIndicator_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4276,7 +4276,7 @@ Private Sub frmOptions.chkIndicator_Click(ByRef Sender As CheckBox)
 	End With
 End Sub
 
-Private Sub frmOptions.chkBold_Click(ByRef Sender As CheckBox)
+Private Sub frmOptions.chkBold_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4284,7 +4284,7 @@ Private Sub frmOptions.chkBold_Click(ByRef Sender As CheckBox)
 	End With
 End Sub
 
-Private Sub frmOptions.chkItalic_Click(ByRef Sender As CheckBox)
+Private Sub frmOptions.chkItalic_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4292,7 +4292,7 @@ Private Sub frmOptions.chkItalic_Click(ByRef Sender As CheckBox)
 	End With
 End Sub
 
-Private Sub frmOptions.chkUnderline_Click(ByRef Sender As CheckBox)
+Private Sub frmOptions.chkUnderline_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	With fOptions
 		Var i = .lstColorKeys.ItemIndex
 		If i = -1 Then Exit Sub
@@ -4300,26 +4300,26 @@ Private Sub frmOptions.chkUnderline_Click(ByRef Sender As CheckBox)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdAdd_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdAdd_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If pfTheme->ShowModal() = ModalResults.OK Then
 		With fOptions
 			.cboTheme.AddItem pfTheme->txtThemeName.Text
 			.cboTheme.ItemIndex = .cboTheme.IndexOf(pfTheme->txtThemeName.Text)
-			.cboTheme_Change(Sender)
+			.cboTheme_Change(Designer, Sender)
 		End With
 	End If
 End Sub
 
-Private Sub frmOptions.cmdRemove_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemove_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		Kill ExePath & "/Settings/Themes/" & .cboTheme.Text & ".ini"
 		.cboTheme.RemoveItem .cboTheme.ItemIndex
 		.cboTheme.ItemIndex = 0
-		.cboTheme_Change(Sender)
+		.cboTheme_Change(Designer, Sender)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdAddCompiler_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdAddCompiler_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
@@ -4338,7 +4338,7 @@ Private Sub frmOptions.cmdAddCompiler_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvCompilerPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvCompilerPaths.SelectedItem->Text(0)
@@ -4361,7 +4361,7 @@ Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdRemoveCompiler_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemoveCompiler_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvCompilerPaths.SelectedItem = 0 Then Exit Sub
 		Var iIndex = .cboCompiler32.IndexOf(.lvCompilerPaths.SelectedItem->Text(0))
@@ -4374,7 +4374,7 @@ Private Sub frmOptions.cmdRemoveCompiler_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdClearCompilers_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdClearCompilers_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.lvCompilerPaths.ListItems.Clear
 		.cboCompiler32.Clear
@@ -4386,7 +4386,7 @@ Private Sub frmOptions.cmdClearCompilers_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdAddMakeTool_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdAddMakeTool_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
@@ -4404,7 +4404,7 @@ Private Sub frmOptions.cmdAddMakeTool_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmOptions.cmdChangeMakeTool_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdChangeMakeTool_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvMakeToolPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvMakeToolPaths.SelectedItem->Text(0)
@@ -4424,7 +4424,7 @@ Private Sub frmOptions.cmdChangeMakeTool_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdRemoveMakeTool_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemoveMakeTool_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvMakeToolPaths.SelectedItem = 0 Then Exit Sub
 		Var iIndex = .cboMakeTool.IndexOf(.lvMakeToolPaths.SelectedItem->Text(0))
@@ -4434,7 +4434,7 @@ Private Sub frmOptions.cmdRemoveMakeTool_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdClearMakeTools_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdClearMakeTools_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.lvMakeToolPaths.ListItems.Clear
 		.cboMakeTool.Clear
@@ -4443,7 +4443,7 @@ Private Sub frmOptions.cmdClearMakeTools_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdAddDebugger_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdAddDebugger_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
@@ -4462,7 +4462,7 @@ Private Sub frmOptions.cmdAddDebugger_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvDebuggerPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvDebuggerPaths.SelectedItem->Text(0)
@@ -4483,7 +4483,7 @@ Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdRemoveDebugger_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemoveDebugger_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvDebuggerPaths.SelectedItem = 0 Then Exit Sub
 		Var iIndex = .cboDebugger32.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
@@ -4494,7 +4494,7 @@ Private Sub frmOptions.cmdRemoveDebugger_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdClearDebuggers_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdClearDebuggers_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.lvDebuggerPaths.ListItems.Clear
 		.cboDebugger32.Clear
@@ -4510,7 +4510,7 @@ Private Sub frmOptions.cmdClearDebuggers_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdAddTerminal_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdAddTerminal_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
@@ -4528,7 +4528,7 @@ Private Sub frmOptions.cmdAddTerminal_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmOptions.cmdChangeTerminal_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdChangeTerminal_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvTerminalPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvTerminalPaths.SelectedItem->Text(0)
@@ -4548,7 +4548,7 @@ Private Sub frmOptions.cmdChangeTerminal_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdRemoveTerminal_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemoveTerminal_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvTerminalPaths.SelectedItem = 0 Then Exit Sub
 		Var iIndex = .cboTerminal.IndexOf(.lvTerminalPaths.SelectedItem->Text(0))
@@ -4558,7 +4558,7 @@ Private Sub frmOptions.cmdRemoveTerminal_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdClearTerminals_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdClearTerminals_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.lvTerminalPaths.ListItems.Clear
 		.cboTerminal.Clear
@@ -4567,7 +4567,7 @@ Private Sub frmOptions.cmdClearTerminals_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdAddHelp_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdAddHelp_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->WithoutCommandLine = True
@@ -4584,7 +4584,7 @@ Private Sub frmOptions.cmdAddHelp_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmOptions.cmdChangeHelp_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdChangeHelp_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvHelpPaths.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvHelpPaths.SelectedItem->Text(0)
@@ -4603,7 +4603,7 @@ Private Sub frmOptions.cmdChangeHelp_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdRemoveHelp_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemoveHelp_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If .lvHelpPaths.SelectedItem = 0 Then Exit Sub
 		Var iIndex = .cboHelp.IndexOf(.lvHelpPaths.SelectedItem->Text(0))
@@ -4613,7 +4613,7 @@ Private Sub frmOptions.cmdRemoveHelp_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdClearHelps_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdClearHelps_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.lvHelpPaths.ListItems.Clear
 		.cboHelp.Clear
@@ -4622,7 +4622,7 @@ Private Sub frmOptions.cmdClearHelps_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdInterfaceFont_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdInterfaceFont_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.FontD.Font.Name = * (.InterfFontName)
 		.FontD.Font.Size = .InterfFontSize
@@ -4635,7 +4635,7 @@ Private Sub frmOptions.cmdInterfaceFont_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdAddInclude_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdAddInclude_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
 	If pfPath->ShowModal() = ModalResults.OK Then
@@ -4650,7 +4650,7 @@ Private Sub frmOptions.cmdAddInclude_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmOptions.cmdAddLibrary_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdAddLibrary_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
 	If pfPath->ShowModal() = ModalResults.OK Then
@@ -4665,17 +4665,17 @@ Private Sub frmOptions.cmdAddLibrary_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmOptions.cmdRemoveInclude_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemoveInclude_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Var Index = fOptions.lstIncludePaths.ItemIndex
 	If Index <> -1 Then fOptions.lstIncludePaths.RemoveItem Index
 End Sub
 
-Private Sub frmOptions.cmdRemoveLibrary_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemoveLibrary_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Var Index = fOptions.lstLibraryPaths.ItemIndex
 	If Index <> -1 Then fOptions.lstLibraryPaths.RemoveItem Index
 End Sub
 
-Private Sub frmOptions.cmdProjectsPath_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdProjectsPath_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		.BrowsD.InitialDir = GetFullPath(.txtProjectsPath.Text)
 		If .BrowsD.Execute Then
@@ -4684,7 +4684,7 @@ Private Sub frmOptions.cmdProjectsPath_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.lvShortcuts_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmOptions.lvShortcuts_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	With fOptions
 		Var Index = .lvShortcuts.SelectedItemIndex
 		If Index > -1 Then
@@ -4693,7 +4693,7 @@ Private Sub frmOptions.lvShortcuts_SelectedItemChanged(ByRef Sender As ListView,
 	End With
 End Sub
 
-Private Sub frmOptions.cmdSetShortcut_Click(ByRef Sender As Control)
+Private Sub frmOptions.cmdSetShortcut_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		Var Index = .lvShortcuts.SelectedItemIndex
 		If Index > -1 Then
@@ -4703,7 +4703,7 @@ Private Sub frmOptions.cmdSetShortcut_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdAddEditor_Click_(ByRef Sender As Control)
+Private Sub frmOptions.cmdAddEditor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmOptions Ptr, Sender.Designer)).cmdAddEditor_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdAddEditor_Click(ByRef Sender As Control)
@@ -4727,7 +4727,7 @@ Private Sub frmOptions.cmdAddEditor_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmOptions.cmdChangeEditor_Click_(ByRef Sender As Control)
+Private Sub frmOptions.cmdChangeEditor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmOptions Ptr, Sender.Designer)).cmdChangeEditor_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdChangeEditor_Click(ByRef Sender As Control)
@@ -4752,7 +4752,7 @@ Private Sub frmOptions.cmdChangeEditor_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdRemoveEditor_Click_(ByRef Sender As Control)
+Private Sub frmOptions.cmdRemoveEditor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmOptions Ptr, Sender.Designer)).cmdRemoveEditor_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdRemoveEditor_Click(ByRef Sender As Control)
@@ -4762,7 +4762,7 @@ Private Sub frmOptions.cmdRemoveEditor_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmOptions.cmdClearEditor_Click_(ByRef Sender As Control)
+Private Sub frmOptions.cmdClearEditor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmOptions Ptr, Sender.Designer)).cmdClearEditor_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdClearEditor_Click(ByRef Sender As Control)
@@ -4774,19 +4774,19 @@ Sub cboDefaultProjectFileCheckEnable
 	fOptions.cboOpenedFile.Enabled = fOptions.optOpenLastSession.Checked
 End Sub
 
-Private Sub frmOptions.optPromptForProjectAndFiles_Click(ByRef Sender As RadioButton)
+Private Sub frmOptions.optPromptForProjectAndFiles_Click(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	cboDefaultProjectFileCheckEnable
 End Sub
 
-Private Sub frmOptions.optCreateProjectFile_Click(ByRef Sender As RadioButton)
+Private Sub frmOptions.optCreateProjectFile_Click(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	cboDefaultProjectFileCheckEnable
 End Sub
 
-Private Sub frmOptions.optOpenLastSession_Click(ByRef Sender As RadioButton)
+Private Sub frmOptions.optOpenLastSession_Click(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	cboDefaultProjectFileCheckEnable
 End Sub
 
-Private Sub frmOptions.optDoNotNothing_Click(ByRef Sender As RadioButton)
+Private Sub frmOptions.optDoNotNothing_Click(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	cboDefaultProjectFileCheckEnable
 End Sub
 
@@ -4914,7 +4914,7 @@ Sub HistoryCodeClean(ByRef Path As WString)
 	HistoryCodeCleanDay = DateValue(Format(Now, "yyyy/mm/dd"))
 End Sub
 
-Private Sub frmOptions.cmdFindCompilers_Click_(ByRef Sender As Control)
+Private Sub frmOptions.cmdFindCompilers_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmOptions Ptr, Sender.Designer)).cmdFindCompilers_Click(Sender)
 End Sub
 
@@ -4923,49 +4923,49 @@ Private Sub frmOptions.cmdFindCompilers_Click(ByRef Sender As Control)
 	FindProcessStartStop()
 End Sub
 
-Private Sub frmOptions.lvOtherEditors_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmOptions.lvOtherEditors_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmOptions Ptr, Sender.Designer)).lvOtherEditors_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvOtherEditors_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeEditor_Click cmdChangeEditor
 End Sub
 
-Private Sub frmOptions.lvTerminalPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmOptions.lvTerminalPaths_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmOptions Ptr, Sender.Designer)).lvTerminalPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvTerminalPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	cmdChangeTerminal_Click cmdChangeTerminal
+	cmdChangeTerminal_Click *cmdChangeTerminal.Designer, cmdChangeTerminal
 End Sub
 
-Private Sub frmOptions.lvDebuggerPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmOptions.lvDebuggerPaths_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmOptions Ptr, Sender.Designer)).lvDebuggerPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvDebuggerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	cmdChangeDebugger_Click cmdChangeDebugger
+	cmdChangeDebugger_Click *cmdChangeDebugger.Designer, cmdChangeDebugger
 End Sub
 
-Private Sub frmOptions.lvHelpPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmOptions.lvHelpPaths_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmOptions Ptr, Sender.Designer)).lvHelpPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvHelpPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	cmdChangeHelp_Click cmdChangeHelp
+	cmdChangeHelp_Click *cmdChangeHelp.Designer, cmdChangeHelp
 End Sub
 
-Private Sub frmOptions.lvMakeToolPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmOptions.lvMakeToolPaths_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmOptions Ptr, Sender.Designer)).lvMakeToolPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvMakeToolPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	cmdChangeMakeTool_Click cmdChangeMakeTool
+	cmdChangeMakeTool_Click *cmdChangeMakeTool.Designer, cmdChangeMakeTool
 End Sub
 
-Private Sub frmOptions.lvCompilerPaths_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmOptions.lvCompilerPaths_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmOptions Ptr, Sender.Designer)).lvCompilerPaths_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmOptions.lvCompilerPaths_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	cmdChangeCompiler_Click cmdChangeCompiler
+	cmdChangeCompiler_Click *cmdChangeCompiler.Designer, cmdChangeCompiler
 End Sub
 
-Private Sub frmOptions.cmdInFolder_Click_(ByRef Sender As Control)
+Private Sub frmOptions.cmdInFolder_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmOptions Ptr, Sender.Designer)).cmdInFolder_Click(Sender)
 End Sub
 Private Sub frmOptions.cmdInFolder_Click(ByRef Sender As Control)

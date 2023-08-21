@@ -111,7 +111,7 @@
 	#endif
 '#End Region
 
-Private Sub frmAdvancedOptions.cmdOK_Click_(ByRef Sender As Control)
+Private Sub frmAdvancedOptions.cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmAdvancedOptions Ptr, Sender.Designer)).cmdOK_Click(Sender)
 End Sub
 Private Sub frmAdvancedOptions.cmdOK_Click(ByRef Sender As Control)
@@ -131,7 +131,7 @@ Private Sub frmAdvancedOptions.cmdOK_Click(ByRef Sender As Control)
 	Me.CloseForm
 End Sub
 
-Private Sub frmAdvancedOptions.cmdCancel_Click_(ByRef Sender As Control)
+Private Sub frmAdvancedOptions.cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmAdvancedOptions Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmAdvancedOptions.cmdCancel_Click(ByRef Sender As Control)

@@ -16,11 +16,11 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmParameters Extends Form
-		Declare Static Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Static Sub cmdCancel_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Create(ByRef Sender As Control)
+		Declare Static Sub cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub LoadSettings()
-		Declare Static Sub Form_Show(ByRef Sender As Form)
+		Declare Static Sub Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		Declare Constructor
 		
 		Dim As GroupBox grbCompile, grbMake, grbRun, grbDebug

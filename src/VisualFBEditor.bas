@@ -102,7 +102,7 @@ Sub ReplaceInFiles
 	ThreadCounter(ThreadCreate_(@ReplaceSub))
 End Sub
 
-Sub mClickUseDefine(Sender As My.Sys.Object)
+Sub mClickUseDefine(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	Dim As String MenuName = Sender.ToString
 	Dim As Integer Pos1 = InStr(MenuName, ":")
 	If Pos1 = 0 Then Exit Sub
@@ -113,7 +113,7 @@ Sub mClickUseDefine(Sender As My.Sys.Object)
 	miUseDefine->Checked = True
 End Sub
 
-Sub mClickMRU(Sender As My.Sys.Object)
+Sub mClickMRU(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	If Sender.ToString = "ClearFiles" Then
 		miRecentFiles->Clear
 		miRecentFiles->Enabled = False
@@ -135,27 +135,27 @@ Sub mClickMRU(Sender As My.Sys.Object)
 	End If
 End Sub
 
-Sub mClickHelp(ByRef Sender As My.Sys.Object)
+Sub mClickHelp(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	HelpOption.CurrentPath = Cast(MenuItem Ptr, @Sender)->ImageKey
 	HelpOption.CurrentWord = ""
 	ThreadCounter(ThreadCreate_(@RunHelp, @HelpOption))
 End Sub
 
-Sub mClickTool(ByRef Sender As My.Sys.Object)
+Sub mClickTool(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Dim As MenuItem Ptr mi = Cast(MenuItem Ptr, @Sender)
 	If mi = 0 Then Exit Sub
 	Dim As UserToolType Ptr tt = mi->Tag
 	If tt <> 0 Then tt->Execute
 End Sub
 
-Sub mClickWindow(ByRef Sender As My.Sys.Object)
+Sub mClickWindow(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Dim As MenuItem Ptr mi = Cast(MenuItem Ptr, @Sender)
 	If mi = 0 Then Exit Sub
 	Dim As TabWindow Ptr tb = mi->Tag
 	If tb <> 0 Then tb->SelectTab
 End Sub
 
-Sub mClick(Sender As My.Sys.Object)
+Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Select Case Sender.ToString
 	Case "NewProject":                          NewProject
 	Case "OpenProject":                         OpenProject
@@ -609,9 +609,9 @@ Sub mClick(Sender As My.Sys.Object)
 		Case "NextBookmark":                NextBookmark 1
 		Case "PreviousBookmark":            NextBookmark -1
 		Case "ClearAllBookmarks":           ClearAllBookmarks
-		Case "Code":                        tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-		Case "Form":                        tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
-		Case "CodeAndForm":                 tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
+		Case "Code":                        tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+		Case "Form":                        tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
+		Case "CodeAndForm":                 tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
 		Case "AddProcedure":                frmAddProcedure.ShowModal frmMain
 		End Select
 	Case "SaveAll":                         SaveAll

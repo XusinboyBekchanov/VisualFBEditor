@@ -12,10 +12,10 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmSplash Extends Form
-		Declare Static Sub lblImage_Click_(ByRef Sender As Control)
+		Declare Static Sub lblImage_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub lblImage_Click(ByRef Sender As Control)
-		declare static sub lblProcess_Click_(ByRef Sender As Label)
-		declare sub lblProcess_Click(ByRef Sender As Label)
+		Declare Static Sub lblProcess_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Label)
+		Declare Sub lblProcess_Click(ByRef Sender As Label)
 		Declare Constructor
 		Dim As ImageBox lblImage
 		Dim As Label lblSplash, lblInfo, lblProcess, lblSplash1

@@ -274,14 +274,14 @@
 	pfImageListEditor = @fImageListEditor
 '#End Region
 
-Private Sub frmImageManager.Form_Show_(ByRef Sender As Form)
+Private Sub frmImageManager.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).Form_Show(Sender)
 End Sub
 Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
 	
 End Sub
 
-Private Sub frmImageManager.cmdCancel_Click_(ByRef Sender As Control)
+Private Sub frmImageManager.cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmImageManager.cmdCancel_Click(ByRef Sender As Control)
@@ -289,7 +289,7 @@ Private Sub frmImageManager.cmdCancel_Click(ByRef Sender As Control)
 	Me.CloseForm
 End Sub
 
-Private Sub frmImageManager.cmdOK_Click_(ByRef Sender As Control)
+Private Sub frmImageManager.cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).cmdOK_Click(Sender)
 End Sub
 Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
@@ -457,7 +457,7 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 	Me.CloseForm
 End Sub
 
-Private Sub frmImageManager.lvImages_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmImageManager.lvImages_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).lvImages_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
@@ -496,7 +496,7 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 	End If
 End Sub
 
-Private Sub frmImageManager.lvImages_SelectedItemChanged_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmImageManager.lvImages_SelectedItemChanged_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).lvImages_SelectedItemChanged(Sender, ItemIndex)
 End Sub
 Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
@@ -512,7 +512,7 @@ Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListVie
 	End If
 End Sub
 
-Private Sub frmImageManager.MenuItemClick_(ByRef Sender As My.Sys.Object)
+Private Sub frmImageManager.MenuItemClick_(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).MenuItemClick(Sender)
 End Sub
 Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
@@ -573,7 +573,7 @@ Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
 	End Select
 End Sub
 
-Private Sub frmImageManager.tbToolbar_ButtonClick_(ByRef Sender As ToolBar,ByRef Button As ToolButton)
+Private Sub frmImageManager.tbToolbar_ButtonClick_(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar, ByRef Button As ToolButton)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).tbToolbar_ButtonClick(Sender, Button)
 End Sub
 Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
@@ -679,7 +679,7 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 	End Select
 End Sub
 
-Private Sub frmImageManager.Form_Create_(ByRef Sender As Control)
+Private Sub frmImageManager.Form_Create_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).Form_Create(Sender)
 End Sub
 Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
@@ -833,7 +833,7 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmImageManager.optCustom_Click_(ByRef Sender As RadioButton)
+Private Sub frmImageManager.optCustom_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).optCustom_Click(Sender)
 End Sub
 Private Sub frmImageManager.optCustom_Click(ByRef Sender As RadioButton)
@@ -843,7 +843,7 @@ Private Sub frmImageManager.optCustom_Click(ByRef Sender As RadioButton)
 	lblHeight.Enabled = optCustom.Checked
 End Sub
 
-Private Sub frmImageManager.opt16x16_Click_(ByRef Sender As RadioButton)
+Private Sub frmImageManager.opt16x16_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).opt16x16_Click(Sender)
 End Sub
 Private Sub frmImageManager.opt16x16_Click(ByRef Sender As RadioButton)
@@ -852,7 +852,7 @@ Private Sub frmImageManager.opt16x16_Click(ByRef Sender As RadioButton)
 	optCustom_Click(Sender)
 End Sub
 
-Private Sub frmImageManager.opt32x32_Click_(ByRef Sender As RadioButton)
+Private Sub frmImageManager.opt32x32_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).opt32x32_Click(Sender)
 End Sub
 Private Sub frmImageManager.opt32x32_Click(ByRef Sender As RadioButton)
@@ -861,7 +861,7 @@ Private Sub frmImageManager.opt32x32_Click(ByRef Sender As RadioButton)
 	optCustom_Click(Sender)
 End Sub
 
-Private Sub frmImageManager.opt48x48_Click_(ByRef Sender As RadioButton)
+Private Sub frmImageManager.opt48x48_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).opt48x48_Click(Sender)
 End Sub
 Private Sub frmImageManager.opt48x48_Click(ByRef Sender As RadioButton)

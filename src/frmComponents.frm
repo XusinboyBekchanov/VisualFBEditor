@@ -12,21 +12,21 @@
 	Using My.Sys.Forms
 	
 	Type frmComponentsType Extends Form
-		Declare Static Sub cmdApply_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdApply_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdApply_Click(ByRef Sender As Control)
-		Declare Static Sub cmdOK_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Static Sub cmdCancel_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdCancel_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Create_(ByRef Sender As Control)
+		Declare Static Sub Form_Create_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub chlControls_Change_(ByRef Sender As ListControl)
+		Declare Static Sub chlControls_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl)
 		Declare Sub chlControls_Change(ByRef Sender As ListControl)
-		Declare Static Sub cmdBrowse_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdBrowse_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdBrowse_Click(ByRef Sender As Control)
-		Declare Static Sub chkSelectedItemsOnly_Click_(ByRef Sender As CheckBox)
+		Declare Static Sub chkSelectedItemsOnly_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 		Declare Sub chkSelectedItemsOnly_Click(ByRef Sender As CheckBox)
-		Declare Static Sub Form_Show_(ByRef Sender As Form)
+		Declare Static Sub Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Constructor
 		
@@ -214,35 +214,35 @@
 		End With
 	End Constructor
 	
-	Private Sub frmComponentsType.Form_Show_(ByRef Sender As Form)
+	Private Sub frmComponentsType.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		(*Cast(frmComponentsType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
-	Private Sub frmComponentsType.chkSelectedItemsOnly_Click_(ByRef Sender As CheckBox)
+	Private Sub frmComponentsType.chkSelectedItemsOnly_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 		(*Cast(frmComponentsType Ptr, Sender.Designer)).chkSelectedItemsOnly_Click(Sender)
 	End Sub
 	
-	Private Sub frmComponentsType.cmdBrowse_Click_(ByRef Sender As Control)
+	Private Sub frmComponentsType.cmdBrowse_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmComponentsType Ptr, Sender.Designer)).cmdBrowse_Click(Sender)
 	End Sub
 	
-	Private Sub frmComponentsType.chlControls_Change_(ByRef Sender As ListControl)
+	Private Sub frmComponentsType.chlControls_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl)
 		(*Cast(frmComponentsType Ptr, Sender.Designer)).chlControls_Change(Sender)
 	End Sub
 	
-	Private Sub frmComponentsType.Form_Create_(ByRef Sender As Control)
+	Private Sub frmComponentsType.Form_Create_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmComponentsType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
-	Private Sub frmComponentsType.cmdCancel_Click_(ByRef Sender As Control)
+	Private Sub frmComponentsType.cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmComponentsType Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 	End Sub
 	
-	Private Sub frmComponentsType.cmdOK_Click_(ByRef Sender As Control)
+	Private Sub frmComponentsType.cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmComponentsType Ptr, Sender.Designer)).cmdOK_Click(Sender)
 	End Sub
 	
-	Private Sub frmComponentsType.cmdApply_Click_(ByRef Sender As Control)
+	Private Sub frmComponentsType.cmdApply_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmComponentsType Ptr, Sender.Designer)).cmdApply_Click(Sender)
 	End Sub
 	
@@ -304,7 +304,7 @@ Private Sub frmComponentsType.cmdApply_Click(ByRef Sender As Control)
 		iniSettings.WriteBool("ControlLibraries", "Enabled_" & Str(i), chlControls.Checked(i))
 	Next
 	pnlToolBox.RequestAlign
-	pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
+	pnlToolBox_Resize *pnlToolBox.Designer, pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
 	pnlToolBox.RequestAlign
 End Sub
 

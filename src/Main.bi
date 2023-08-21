@@ -91,13 +91,13 @@ Declare Function ML(ByRef msg As WString) ByRef As WString
 Declare Function MP(ByRef V As WString) ByRef As WString
 Declare Function MLCompilerFun(ByRef V As WString) ByRef As WString
 Declare Function MC(ByRef V As WString) ByRef As WString
-Declare Sub PopupClick(ByRef Sender As My.Sys.Object)
-Declare Sub mClick(Sender As My.Sys.Object)
-Declare Sub mClickMRU(Sender As My.Sys.Object)
-Declare Sub mClickHelp(Sender As My.Sys.Object)
-Declare Sub mClickTool(Sender As My.Sys.Object)
-Declare Sub mClickWindow(Sender As My.Sys.Object)
-Declare Sub mClickUseDefine(Sender As My.Sys.Object)
+Declare Sub PopupClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
+Declare Sub mClick(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+Declare Sub mClickMRU(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+Declare Sub mClickHelp(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+Declare Sub mClickTool(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+Declare Sub mClickWindow(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+Declare Sub mClickUseDefine(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub LoadSettings
 Declare Sub LoadLanguageTexts
 
@@ -306,7 +306,7 @@ Common Shared As Integer tabLeftWidth, tabRightWidth, tabBottomHeight
 Declare Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
-Declare Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Declare Sub pnlToolBox_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 
 Dim Shared symbols(0 To 15) As UByte
 Const plus  As UByte = 43

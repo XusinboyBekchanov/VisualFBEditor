@@ -89,11 +89,11 @@
 		End With
 	End Constructor
 	
-	Private Sub frmTrek._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	Private Sub frmTrek._Form_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		(*Cast(frmTrek Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
 	End Sub
 	
-	Private Sub frmTrek._Form_Create(ByRef Sender As Control)
+	Private Sub frmTrek._Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTrek Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
@@ -102,28 +102,28 @@
 '#End Region
 
 
-Private Sub frmTrek.cmdOK_Click(ByRef Sender As Control)
+Private Sub frmTrek.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fTrek.SelectedItem = fTrek.lvTrek.SelectedItem
 	fTrek.ModalResult = ModalResults.OK
 	fTrek.CloseForm
 End Sub
 
-Private Sub frmTrek.cmdCancel_Click(ByRef Sender As Control)
+Private Sub frmTrek.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fTrek.ModalResult = ModalResults.Cancel
 	fTrek.CloseForm
 End Sub
 
-Private Sub frmTrek.lvTrek_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmTrek.lvTrek_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	fTrek.SelectedItem = fTrek.lvTrek.SelectedItem
 	fTrek.ModalResult = ModalResults.OK
 	fTrek.CloseForm
 End Sub
 
-Private Sub frmTrek.Form_Show(ByRef Sender As Form)
+Private Sub frmTrek.Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	fTrek.lvTrek.SetFocus
 End Sub
 
-Private Sub frmTrek.lvTrek_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmTrek.lvTrek_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	If ItemIndex <> -1 Then fTrek.lblComment.Caption = fTrek.lvTrek.ListItems.Item(ItemIndex)->Text(4) Else fTrek.lblComment.Caption = ""
 End Sub
 

@@ -144,7 +144,7 @@
 		End With
 	End Constructor
 	
-	Private Sub frmPath._Form_Create(ByRef Sender As Control)
+	Private Sub frmPath._Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmPath Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
@@ -154,7 +154,7 @@
 	pfPathImageList = @frPathImageList
 '#End Region
 
-Private Sub frmPath.cmdOK_Click_(ByRef Sender As Control)
+Private Sub frmPath.cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmPath Ptr, Sender.Designer)).cmdOK_Click(Sender)
 End Sub
 Private Sub frmPath.cmdOK_Click(ByRef Sender As Control)
@@ -174,7 +174,7 @@ Private Sub frmPath.cmdOK_Click(ByRef Sender As Control)
 	This.CloseForm
 End Sub
 
-Private Sub frmPath.cmdCancel_Click_(ByRef Sender As Control)
+Private Sub frmPath.cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmPath Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmPath.cmdCancel_Click(ByRef Sender As Control)
@@ -182,7 +182,7 @@ Private Sub frmPath.cmdCancel_Click(ByRef Sender As Control)
 	This.CloseForm
 End Sub
 
-Private Sub frmPath.cmdPath_Click_(ByRef Sender As Control)
+Private Sub frmPath.cmdPath_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmPath Ptr, Sender.Designer)).cmdPath_Click(Sender)
 End Sub
 Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
@@ -246,14 +246,14 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmPath.Form_Show_(ByRef Sender As Form)
+Private Sub frmPath.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	(*Cast(frmPath Ptr, Sender.Designer)).Form_Show(Sender)
 End Sub
 Private Sub frmPath.Form_Show(ByRef Sender As Form)
 	
 End Sub
 
-Private Sub frmPath.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+Private Sub frmPath.Form_Close_(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	(*Cast(frmPath Ptr, Sender.Designer)).Form_Close(Sender, Action)
 End Sub
 Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)

@@ -19,8 +19,8 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmAbout Extends Form
-		Declare Static Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub lblImage_Click(ByRef Sender As ImageBox)
+		Declare Static Sub CommandButton1_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub lblImage_Click(ByRef Designer As My.Sys.Object, ByRef Sender As ImageBox)
 		Declare Constructor
 
 		Dim As Label Label1, lblInfo, Label11

@@ -86,7 +86,7 @@
 		End With
 	End Constructor
 	
-	Private Sub frmSave._TimerComponent1_Timer(ByRef Sender As TimerComponent)
+	Private Sub frmSave._TimerComponent1_Timer(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent)
 		(*Cast(frmSave Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
 	End Sub
 	
@@ -94,7 +94,7 @@
 	pfSave = @fSave
 '#End Region
 
-Private Sub frmSave.cmdYes_Click_(ByRef Sender As Control)
+Private Sub frmSave.cmdYes_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmSave Ptr, Sender.Designer)).cmdYes_Click(Sender)
 End Sub
 Private Sub frmSave.cmdYes_Click(ByRef Sender As Control)
@@ -108,7 +108,7 @@ Private Sub frmSave.cmdYes_Click(ByRef Sender As Control)
 	Me.CloseForm
 End Sub
 
-Private Sub frmSave.cmdNo_Click_(ByRef Sender As Control)
+Private Sub frmSave.cmdNo_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmSave Ptr, Sender.Designer)).cmdNo_Click(Sender)
 End Sub
 Private Sub frmSave.cmdNo_Click(ByRef Sender As Control)
@@ -116,7 +116,7 @@ Private Sub frmSave.cmdNo_Click(ByRef Sender As Control)
 	Me.CloseForm
 End Sub
 
-Private Sub frmSave.cmdCancel_Click_(ByRef Sender As Control)
+Private Sub frmSave.cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmSave Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmSave.cmdCancel_Click(ByRef Sender As Control)
@@ -124,14 +124,14 @@ Private Sub frmSave.cmdCancel_Click(ByRef Sender As Control)
 	Me.CloseForm
 End Sub
 
-Private Sub frmSave.Form_Show_(ByRef Sender As Form)
+Private Sub frmSave.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	(*Cast(frmSave Ptr, Sender.Designer)).Form_Show(Sender)
 End Sub
 Private Sub frmSave.Form_Show(ByRef Sender As Form)
 	SaveTime = Timer
 End Sub
 
-Private Sub frmSave.Form_Create_(ByRef Sender As Control)
+Private Sub frmSave.Form_Create_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmSave Ptr, Sender.Designer)).Form_Create(Sender)
 End Sub
 Private Sub frmSave.Form_Create(ByRef Sender As Control)

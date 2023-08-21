@@ -10,17 +10,17 @@ Dim Shared As frmGoto fGoto
 pfGoto = @fGoto
 
 '#Region "Form"
-	Private Sub frmGoto._btnFind_Click_(ByRef Sender As Control)
+	Private Sub frmGoto._btnFind_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		With Me3
 			.btnFind_Click(Sender)
 		End With
 	End Sub
 	
-	Private Sub frmGoto._btnCancel_Click_(ByRef Sender As Control)
+	Private Sub frmGoto._btnCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Me3.btnCancel_Click(Sender)
 	End Sub
 	
-	Private Sub frmGoto._Form_Show_(ByRef Sender As Form)
+	Private Sub frmGoto._Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		Me3.Form_Show(Sender)
 	End Sub
 	

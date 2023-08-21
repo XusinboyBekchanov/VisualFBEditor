@@ -106,7 +106,7 @@ Using My.Sys.Forms
 	pApp->Run
 #endif
 
-Private Sub frmSplash.lblImage_Click_(ByRef Sender As Control)
+Private Sub frmSplash.lblImage_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmSplash Ptr, Sender.Designer)).lblImage_Click(Sender)
 End Sub
 Private Sub frmSplash.lblImage_Click(ByRef Sender As Control)

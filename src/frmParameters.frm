@@ -290,17 +290,17 @@ Sub frmParameters.LoadSettings()
 	End With
 End Sub
 
-Private Sub frmParameters.Form_Create(ByRef Sender As Control)
+Private Sub frmParameters.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fParameters
 		.LoadSettings
 	End With
 End Sub
 
-Private Sub frmParameters.Form_Show(ByRef Sender As Form)
+Private Sub frmParameters.Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	
 End Sub
 
-Private Sub frmParameters.cmdOK_Click(ByRef Sender As Control)
+Private Sub frmParameters.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fParameters
 		WLet(Compiler32Arguments, .txtfbc32.Text)
 		WLet(Compiler64Arguments, .txtfbc64.Text)
@@ -332,7 +332,7 @@ Private Sub frmParameters.cmdOK_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmParameters.cmdCancel_Click(ByRef Sender As Control)
+Private Sub frmParameters.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fParameters.CloseForm
 End Sub
 

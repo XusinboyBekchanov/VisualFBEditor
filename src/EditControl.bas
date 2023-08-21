@@ -275,7 +275,7 @@ Namespace My.Sys.Forms
 				gtk_widget_show(scrollbarhLeft)
 			#endif
 		End If
-		If OnSplitVerticallyChange Then OnSplitVerticallyChange(This, Value)
+		If OnSplitVerticallyChange Then OnSplitVerticallyChange(*Designer, This, Value)
 	End Property
 	
 	Private Property EditControl.SplittedHorizontally As Boolean
@@ -320,7 +320,7 @@ Namespace My.Sys.Forms
 				gtk_widget_set_size_request(scrollbarvBottom, verticalScrollBarWidth, dwClientY - iDivideY - 7 - horizontalScrollBarHeight)
 			#endif
 		End If
-		If OnSplitHorizontallyChange Then OnSplitHorizontallyChange(This, Value)
+		If OnSplitHorizontallyChange Then OnSplitHorizontallyChange(*Designer, This, Value)
 	End Property
 	
 	Property EditControl.TopLine As Integer
@@ -429,7 +429,7 @@ Namespace My.Sys.Forms
 		End If
 		OldnCaretPosX = nCaretPosX
 		OldCharIndex = GetOldCharIndex
-		If OnChange Then OnChange(This)
+		If OnChange Then OnChange(*Designer, This)
 		Modified = True
 	End Sub
 	
@@ -1326,10 +1326,10 @@ Namespace My.Sys.Forms
 				curHistory = FHistory.Count - 1
 			End If
 		End If
-		If OnChange Then OnChange(This)
+		If OnChange Then OnChange(*Designer, This)
 		Modified = True
 		If OldLinesCount <> LinesCount Then
-			If OnLineChange Then OnLineChange(This, FSelEndLine, IIf(Abs(LinesCount - OldLinesCount) = 1, OldLine, -1))
+			If OnLineChange Then OnLineChange(*Designer, This, FSelEndLine, IIf(Abs(LinesCount - OldLinesCount) = 1, OldLine, -1))
 		End If
 		#ifdef __USE_GTK__
 			If widget AndAlso cr Then
@@ -1355,9 +1355,9 @@ Namespace My.Sys.Forms
 		If iSelEndLine > 0 Then ecOldLine = Content.Lines.Item(iSelEndLine - 1): PreviC = ecOldLine->CommentIndex: OldPreviC = PreviC: InAsm = ecOldLine->InAsm
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
 			ecRemovingLine = Content.Lines.Items[i]
-			If OnLineRemoving Then OnLineRemoving(This, i)
+			If OnLineRemoving Then OnLineRemoving(*Designer, This, i)
 			Content.Lines.Remove i
-			If OnLineRemoved Then OnLineRemoved(This, i)
+			If OnLineRemoved Then OnLineRemoved(*Designer, This, i)
 			_Delete(ecRemovingLine)
 			OlddwClientX = 0
 		Next i
@@ -1388,9 +1388,9 @@ Namespace My.Sys.Forms
 			FECLine->CommentIndex = iC
 			FECLine->InAsm = InAsm
 			If c > 1 Then
-				If OnLineAdding Then OnLineAdding(This, iSelStartLine + c - 1)
+				If OnLineAdding Then OnLineAdding(*Designer, This, iSelStartLine + c - 1)
 				Content.Lines.Insert iSelStartLine + c - 1, FECLine
-				If OnLineAdded Then OnLineAdded(This, iSelStartLine + c - 1)
+				If OnLineAdded Then OnLineAdded(*Designer, This, iSelStartLine + c - 1)
 				ChangeCollapsibility iSelStartLine + c - 1
 			End If
 			If FECLine->ConstructionIndex = C_Asm Then
@@ -1879,7 +1879,7 @@ Namespace My.Sys.Forms
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
 		FECLine->InAsm = InAsm
-		If OnLineAdding Then OnLineAdding(This, Index)
+		If OnLineAdding Then OnLineAdding(*Designer, This, Index)
 		Content.Lines.Insert Index, FECLine
 		ChangeCollapsibility Index
 		If FECLine->ConstructionIndex = C_Asm Then
@@ -1888,7 +1888,7 @@ Namespace My.Sys.Forms
 		FECLine->InAsm = InAsm
 		If Index <= FSelEndLine Then FSelEndLine += 1
 		If Index <= FSelStartLine Then FSelStartLine += 1
-		If OnLineAdded Then OnLineAdded(This, Index)
+		If OnLineAdded Then OnLineAdded(*Designer, This, Index)
 	End Sub
 	
 	Sub EditControl.ReplaceLine(Index As Integer, ByRef sLine As WString)
@@ -1925,7 +1925,7 @@ Namespace My.Sys.Forms
 		iC = FindCommentIndex(*FECLine->Text, OldiC)
 		FECLine->CommentIndex = iC
 		FECLine->InAsm = InAsm
-		If OnLineAdding Then OnLineAdding(This, Idx + 1)
+		If OnLineAdding Then OnLineAdding(*Designer, This, Idx + 1)
 		Content.Lines.Insert Idx + 1, FECLine
 		ChangeCollapsibility Idx + 1
 		If FECLine->ConstructionIndex = C_Asm Then
@@ -1934,16 +1934,16 @@ Namespace My.Sys.Forms
 		FECLine->InAsm = InAsm
 		If FSelStartLine = FSelEndLine Then FSelStartLine += 1
 		FSelEndLine += 1
-		If OnLineAdded Then OnLineAdded(This, Idx + 1)
+		If OnLineAdded Then OnLineAdded(*Designer, This, Idx + 1)
 		Changed "Duplicate line"
 	End Sub
 	
 	Sub EditControl.DeleteLine(Index As Integer = -1)
 		Dim As Integer i = IIf(Index = -1, FSelEndLine, Index)
-		If OnLineRemoving Then OnLineRemoving(This, i)
+		If OnLineRemoving Then OnLineRemoving(*Designer, This, i)
 		Dim As EditControlLine Ptr ecRemovingLine = Content.Lines.Items[i]
 		Content.Lines.Remove i
-		If OnLineRemoved Then OnLineRemoved(This, i)
+		If OnLineRemoved Then OnLineRemoved(*Designer, This, i)
 		_Delete(ecRemovingLine)
 		If Index <= FSelEndLine Then FSelEndLine -= 1
 		If Index <= FSelStartLine Then FSelStartLine -= 1
@@ -2255,12 +2255,12 @@ Namespace My.Sys.Forms
 			CloseToolTip()
 		End If
 		If OldLine <> FSelEndLine OrElse OldChar <> FSelEndChar Then
-			If This.OnSelChange Then This.OnSelChange(This, FSelEndLine, FSelEndChar)
+			If This.OnSelChange Then This.OnSelChange(*Designer, This, FSelEndLine, FSelEndChar)
 		End If
 		If OldLine <> FSelEndLine Then
 			If ToolTipShowed Then CloseToolTip()
 			If Not bOldCommented Then Changing "Matn kiritildi"
-			If This.OnLineChange Then This.OnLineChange(This, FSelEndLine, OldLine)
+			If This.OnLineChange Then This.OnLineChange(*Designer, This, FSelEndLine, OldLine)
 		End If
 		
 		If CInt(FSelStartLine > -1) AndAlso CInt(FSelStartLine < Content.Lines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, Content.Lines.Items[FSelStartLine])->Visible) Then
@@ -5068,19 +5068,19 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.Undo
 		If curHistory <= 0 Then Exit Sub
-		If OnUndoing Then OnUndoing(This)
+		If OnUndoing Then OnUndoing(*Designer, This)
 		curHistory = curHistory - 1
 		_LoadFromHistory FHistory.Items[curHistory], True, FHistory.Items[curHistory + 1], True
-		If OnUndo Then OnUndo(This)
+		If OnUndo Then OnUndo(*Designer, This)
 		ScrollToCaret
 	End Sub
 	
 	Sub EditControl.Redo
 		If curHistory >= FHistory.Count - 1 Then Exit Sub
-		If OnRedoing Then OnRedoing(This)
+		If OnRedoing Then OnRedoing(*Designer, This)
 		curHistory = curHistory + 1
 		_LoadFromHistory FHistory.Item(curHistory), False, FHistory.Item(curHistory - 1), True
-		If OnRedo Then OnRedo(This)
+		If OnRedo Then OnRedo(*Designer, This)
 		ScrollToCaret
 	End Sub
 	
@@ -5207,7 +5207,7 @@ Namespace My.Sys.Forms
 			If LastItemIndex = -1 Then cboIntellisense.ItemIndex = -1
 			ShowDropDownToolTipAt HCaretPos + 250, VCaretPos
 		#endif
-		If OnShowDropDown Then OnShowDropDown(This)
+		If OnShowDropDown Then OnShowDropDown(*Designer, This)
 	End Sub
 	
 	#ifdef __USE_WINAPI__
@@ -5384,7 +5384,7 @@ Namespace My.Sys.Forms
 			cboIntellisense.ShowDropDown False
 		#endif
 		CloseDropDownToolTip
-		If OnDropDownCloseUp Then OnDropDownCloseUp(This)
+		If OnDropDownCloseUp Then OnDropDownCloseUp(*Designer, This)
 	End Sub
 	
 	Sub EditControl.CloseDropDownToolTip()
@@ -5703,7 +5703,7 @@ Namespace My.Sys.Forms
 				Case TTN_LINKCLICK
 					Dim As PNMLINK pNMLink1 = Cast(PNMLINK, msg.lParam)
 					Dim As LITEM item = pNMLink1->item
-					If OnToolTipLinkClicked Then OnToolTipLinkClicked(This, item.szUrl)
+					If OnToolTipLinkClicked Then OnToolTipLinkClicked(*Designer, This, item.szUrl)
 				End Select
 			#endif
 			#ifndef __USE_GTK__
@@ -6368,9 +6368,9 @@ Namespace My.Sys.Forms
 				If DropDownShowed Then
 					CloseDropDown()
 					#ifdef __USE_GTK__
-						If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
+						If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(*lvIntellisense.Designer, lvIntellisense, LastItemIndex)
 					#else
-						If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
+						If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(*cboIntellisense.Designer, cboIntellisense, LastItemIndex)
 					#endif
 				End If
 				'If TabAsSpaces Then
@@ -6397,9 +6397,9 @@ Namespace My.Sys.Forms
 				If DropDownShowed Then
 					CloseDropDown()
 					#ifdef __USE_GTK__
-						If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
+						If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(*lvIntellisense.Designer, lvIntellisense, LastItemIndex)
 					#else
-						If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
+						If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(*cboIntellisense.Designer, cboIntellisense, LastItemIndex)
 					#endif
 					Exit Sub
 				End If
@@ -6733,7 +6733,7 @@ Namespace My.Sys.Forms
 					If Pos1 > 0 Then
 						Var Pos2 = InStr(Pos1 + 1, *FECLine->Text, """")
 						If Pos2 > 0 Then
-							If OnLinkClicked Then OnLinkClicked(This, Mid(*FECLine->Text, Pos1 + 1, Pos2 - Pos1 - 1))
+							If OnLinkClicked Then OnLinkClicked(*Designer, This, Mid(*FECLine->Text, Pos1 + 1, Pos2 - Pos1 - 1))
 						End If
 					End If
 				ElseIf InStartOfLine(FSelEndLine, X, y) AndAlso FSelEndLine = FSelStartLine Then

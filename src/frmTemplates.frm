@@ -289,27 +289,27 @@
 		End With
 	End Constructor
 	
-	Private Sub frmTemplates._Form_Create(ByRef Sender As Control)
+	Private Sub frmTemplates._Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTemplates Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
-	Private Sub frmTemplates.cmdAdd_Click_(ByRef Sender As Control)
+	Private Sub frmTemplates.cmdAdd_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTemplates Ptr, Sender.Designer)).cmdAdd_Click(Sender)
 	End Sub
 	
-	Private Sub frmTemplates.cmdChange_Click_(ByRef Sender As Control)
+	Private Sub frmTemplates.cmdChange_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTemplates Ptr, Sender.Designer)).cmdChange_Click(Sender)
 	End Sub
 	
-	Private Sub frmTemplates.cmdRemove_Click_(ByRef Sender As Control)
+	Private Sub frmTemplates.cmdRemove_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTemplates Ptr, Sender.Designer)).cmdRemove_Click(Sender)
 	End Sub
 	
-	Private Sub frmTemplates.cmdClear_Click_(ByRef Sender As Control)
+	Private Sub frmTemplates.cmdClear_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTemplates Ptr, Sender.Designer)).cmdClear_Click(Sender)
 	End Sub
 	
-	Private Sub frmTemplates.TabControl1_SelChange_(ByRef Sender As TabControl, NewIndex As Integer)
+	Private Sub frmTemplates.TabControl1_SelChange_(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, NewIndex As Integer)
 		(*Cast(frmTemplates Ptr, Sender.Designer)).TabControl1_SelChange(Sender, NewIndex)
 	End Sub
 
@@ -323,7 +323,7 @@
 	#endif
 '#End Region
 
-Private Sub frmTemplates.cmdCancel_Click_(ByRef Sender As Control)
+Private Sub frmTemplates.cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).cmdCancel_Click(Sender)
 End Sub
 Private Sub frmTemplates.cmdCancel_Click(ByRef Sender As Control)
@@ -331,7 +331,7 @@ Private Sub frmTemplates.cmdCancel_Click(ByRef Sender As Control)
 	Me.CloseForm
 End Sub
 
-Private Sub frmTemplates.cmdOK_Click_(ByRef Sender As Control)
+Private Sub frmTemplates.cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).cmdOK_Click(Sender)
 End Sub
 Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
@@ -396,7 +396,7 @@ Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmTemplates.tvTemplates_SelChanged_(ByRef Sender As TreeView, ByRef Item As TreeNode)
+Private Sub frmTemplates.tvTemplates_SelChanged_(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).tvTemplates_SelChanged(Sender, Item)
 End Sub
 Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef Item As TreeNode)
@@ -439,28 +439,28 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 	End If
 End Sub
 
-Private Sub frmTemplates.lvTemplates_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmTemplates.lvTemplates_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).lvTemplates_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmTemplates.lvTemplates_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdOK_Click cmdOK
 End Sub
 
-Private Sub frmTemplates.Form_Show_(ByRef Sender As Form)
+Private Sub frmTemplates.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).Form_Show(Sender)
 End Sub
 Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
 	
 End Sub
 
-Private Sub frmTemplates.Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+Private Sub frmTemplates.Form_Close_(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).Form_Close(Sender, Action)
 End Sub
 Private Sub frmTemplates.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	OnlyFiles = False
 End Sub
 
-Private Sub frmTemplates.tvRecent_SelChanged_(ByRef Sender As TreeView, ByRef Item As TreeNode)
+Private Sub frmTemplates.tvRecent_SelChanged_(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).tvRecent_SelChanged(Sender, Item)
 End Sub
 Private Sub frmTemplates.tvRecent_SelChanged(ByRef Sender As TreeView, ByRef Item As TreeNode)
@@ -482,14 +482,14 @@ Private Sub frmTemplates.tvRecent_SelChanged(ByRef Sender As TreeView, ByRef Ite
 	Next
 End Sub
 
-Private Sub frmTemplates.lvRecent_ItemActivate_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmTemplates.lvRecent_ItemActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).lvRecent_ItemActivate(Sender, ItemIndex)
 End Sub
 Private Sub frmTemplates.lvRecent_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdOK_Click cmdOK
 End Sub
 
-Private Sub frmTemplates.OpenFileControl1_FileActivate_(ByRef Sender As OpenFileControl)
+Private Sub frmTemplates.OpenFileControl1_FileActivate_(ByRef Designer As My.Sys.Object, ByRef Sender As OpenFileControl)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).OpenFileControl1_FileActivate(Sender)
 End Sub
 Private Sub frmTemplates.OpenFileControl1_FileActivate(ByRef Sender As OpenFileControl)
@@ -505,7 +505,7 @@ Private Sub frmTemplates.TabControl1_SelChange(ByRef Sender As TabControl, NewIn
 	pnlRecent.Visible = TabControl1.SelectedTabIndex = 2
 End Sub
 
-Private Sub frmTemplates.cmdSaveLocation_Click_(ByRef Sender As Control)
+Private Sub frmTemplates.cmdSaveLocation_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).cmdSaveLocation_Click(Sender)
 End Sub
 Private Sub frmTemplates.cmdSaveLocation_Click(ByRef Sender As Control)
@@ -516,7 +516,7 @@ Private Sub frmTemplates.cmdSaveLocation_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Private Sub frmTemplates.lvTemplates_SelectedItemChanged_(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+Private Sub frmTemplates.lvTemplates_SelectedItemChanged_(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	(*Cast(frmTemplates Ptr, Sender.Designer)).lvTemplates_SelectedItemChanged(Sender, ItemIndex)
 End Sub
 Private Sub frmTemplates.lvTemplates_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)

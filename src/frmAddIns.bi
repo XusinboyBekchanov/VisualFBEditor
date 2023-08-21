@@ -18,16 +18,16 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmAddIns Extends Form
-		Declare Static Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Static Sub cmdCancel_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub chkLoaded_Click(ByRef Sender As CheckBox)
-		Declare Static Sub chkLoadOnStartup_Click(ByRef Sender As CheckBox)
-		Declare Static Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub lvAddIns_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
-		Declare Static Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub lvAddIns_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub Form_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub chkLoaded_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
+		Declare Static Sub chkLoadOnStartup_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
+		Declare Static Sub Form_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
+		Declare Static Sub lvAddIns_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ItemIndex As Integer)
+		Declare Static Sub Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
+		Declare Static Sub lvAddIns_ItemClick(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Constructor
 		Declare Destructor
 		

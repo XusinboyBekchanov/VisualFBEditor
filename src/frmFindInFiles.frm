@@ -11,21 +11,21 @@ Dim Shared As frmFindInFiles fFindFile
 pfFindFile = @fFindFile
 
 '#Region "Form"
-	Private Sub frmFindInFiles._btnFind_Click_(ByRef Sender As Control)
+	Private Sub frmFindInFiles._btnFind_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		With fFindFile
 			.btnFind_Click(Sender)
 		End With
 	End Sub
 	
-	Private Sub frmFindInFiles._btnCancel_Click_(ByRef Sender As Control)
+	Private Sub frmFindInFiles._btnCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		fFindFile.btnCancel_Click(Sender)
 	End Sub
 	
-	Private Sub frmFindInFiles._Form_Show_(ByRef Sender As Form)
+	Private Sub frmFindInFiles._Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		fFindFile.Form_Show(Sender)
 	End Sub
 	
-	Private Sub frmFindInFiles._Form_Close_(ByRef Sender As Form, ByRef Action As Integer)
+	Private Sub frmFindInFiles._Form_Close_(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 		fFindFile.Form_Close(Sender, Action)
 	End Sub
 	
@@ -188,7 +188,7 @@ pfFindFile = @fFindFile
 		End With
 	End Constructor
 	
-	Private Sub frmFindInFiles._Form_Create(ByRef Sender As Control)
+	Private Sub frmFindInFiles._Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmFindInFiles Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
@@ -347,7 +347,7 @@ Private Sub frmFindInFiles.btnCancel_Click(ByRef Sender As Control)
 	This.CloseForm
 End Sub
 
-Private Sub frmFindInFiles.btnBrowse_Click(ByRef Sender As Control)
+Private Sub frmFindInFiles.btnBrowse_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fFindFile.FolderDialog.InitialDir = GetFullPath(fFindFile.txtPath.Text)
 	If fFindFile.FolderDialog.Execute Then
 		fFindFile.txtPath.Text = fFindFile.FolderDialog.Directory
@@ -364,7 +364,7 @@ Private Sub frmFindInFiles.Form_Close(ByRef Sender As Form, ByRef Action As Inte
 		
 	End If
 End Sub
-Private Sub frmFindInFiles.btnReplace_Click(ByRef Sender As Control)
+Private Sub frmFindInFiles.btnReplace_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	ReplaceInFiles
 End Sub
 Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearch As WString="", ByRef tReplace As WString="")
@@ -492,7 +492,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 	WDeAllocate(Temp)
 End Sub
 
-Private Sub frmFindInFiles.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+Private Sub frmFindInFiles.Form_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	fFindFile.Panel1.Height =NewHeight - 30
 	fFindFile.Panel1.Width = NewWidth - 25
 End Sub

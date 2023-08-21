@@ -20,21 +20,21 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmTools Extends Form
-		Declare Static Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Static Sub cmdCancel_Click(ByRef Sender As Control)
-		Declare Static Sub lvTools_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
-		Declare Static Sub lvTools_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		Declare Static Sub cmdAdd_Click(ByRef Sender As Control)
-		Declare Static Sub cmdChange_Click(ByRef Sender As Control)
-		Declare Static Sub cmdRemove_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub txtParameters_Change(ByRef Sender As TextBox)
-		Declare Static Sub txtWorkingFolder_Change(ByRef Sender As TextBox)
-		Declare Static Sub cboEvent_Change(ByRef Sender As Control)
-		Declare Static Sub hkShortcut_Change(ByRef Sender As Control)
-		Declare Static Sub chkWaitComplete_Click(ByRef Sender As CheckBox)
-		Declare Static Sub cmdMoveUp_Click(ByRef Sender As Control)
-		Declare Static Sub cmdMoveDown_Click(ByRef Sender As Control)
+		Declare Static Sub cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub lvTools_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ItemIndex As Integer)
+		Declare Static Sub lvTools_ItemClick(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
+		Declare Static Sub cmdAdd_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub cmdChange_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub cmdRemove_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub txtParameters_Change(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		Declare Static Sub txtWorkingFolder_Change(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+		Declare Static Sub cboEvent_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub hkShortcut_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub chkWaitComplete_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
+		Declare Static Sub cmdMoveUp_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub cmdMoveDown_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Constructor
 		Declare Destructor
 		

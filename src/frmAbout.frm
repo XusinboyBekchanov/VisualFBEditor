@@ -107,11 +107,11 @@
 	#endif
 '#End Region
 
-Private Sub frmAbout.CommandButton1_Click(ByRef Sender As Control)
+Private Sub frmAbout.CommandButton1_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Cast(frmAbout Ptr, Sender.Parent)->CloseForm
 End Sub
 
-Private Sub frmAbout.lblImage_Click(ByRef Sender As ImageBox)
+Private Sub frmAbout.lblImage_Click(ByRef Designer As My.Sys.Object, ByRef Sender As ImageBox)
 
 End Sub
  

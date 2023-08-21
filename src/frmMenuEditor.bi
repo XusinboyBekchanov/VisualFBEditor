@@ -10,34 +10,34 @@
 	Using My.Sys.Forms
 	
 	Type frmMenuEditor Extends Form
-		Declare Static Sub Form_Paint_(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Static Sub Form_Paint_(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub Form_MouseDown_(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Static Sub Form_MouseDown_(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub txtActive_Change_(ByRef Sender As TextBox)
+		Declare Static Sub txtActive_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 		Declare Sub txtActive_Change(ByRef Sender As TextBox)
 		Declare Sub GetDropdowns(mi As Any Ptr)
 		Declare Sub SelectRect(Index As Integer)
 		Declare Sub EditRect(i As Integer, NewObject As Boolean = False)
-		Declare Static Sub Form_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
+		Declare Static Sub Form_KeyDown_(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Sub Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
-		Declare Static Sub Form_KeyPress_(ByRef Sender As Control, Key As Integer)
+		Declare Static Sub Form_KeyPress_(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 		Declare Sub Form_KeyPress(ByRef Sender As Control, Key As Integer)
-		Declare Static Sub txtActive_KeyDown_(ByRef Sender As Control, Key As Integer, Shift As Integer)
+		Declare Static Sub txtActive_KeyDown_(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Sub txtActive_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
-		Declare Static Sub _Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Static Sub _Form_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _mnuDelete_Click(ByRef Sender As MenuItem)
+		Declare Static Sub _mnuDelete_Click(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem)
 		Declare Sub mnuDelete_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuInsert_Click(ByRef Sender As MenuItem)
+		Declare Static Sub _mnuInsert_Click(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem)
 		Declare Sub mnuInsert_Click(ByRef Sender As MenuItem)
 		Declare Sub InsertNewMenuItem
 		Declare Sub DeleteMenuItem
 		Declare Sub MoveUpMenuItem
 		Declare Sub MoveDownMenuItem
-		Declare Static Sub mnuMoveUp_Click_(ByRef Sender As MenuItem)
+		Declare Static Sub mnuMoveUp_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem)
 		Declare Sub mnuMoveUp_Click(ByRef Sender As MenuItem)
-		Declare Static Sub mnuMoveDown_Click_(ByRef Sender As MenuItem)
+		Declare Static Sub mnuMoveDown_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem)
 		Declare Sub mnuMoveDown_Click(ByRef Sender As MenuItem)
 		Declare Constructor
 		

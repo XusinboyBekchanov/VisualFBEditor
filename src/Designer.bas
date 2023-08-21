@@ -2255,7 +2255,7 @@ Namespace My.Sys.Forms
 					Case WM_KEYDOWN
 					#endif
 					#ifdef __USE_GTK__
-						.KeyDown(Event->Key.keyval, Event->Key.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						.KeyDown(Event->key.keyval, Event->key.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 					#else
 						.KeyDown(wParam, 0)
 					#endif
@@ -2268,7 +2268,7 @@ Namespace My.Sys.Forms
 							For i As Integer = 0 To .FPopupMenuItems.Count -1
 								mi = .FPopupMenuItems.Items[i]
 								If mi->Command = LoWord(wParam) Then
-									If mi->OnClick Then mi->OnClick(*mi)
+									If mi->OnClick Then mi->OnClick(*mi->Designer, *mi)
 									Exit For
 								End If
 							Next i
@@ -2588,7 +2588,7 @@ Namespace My.Sys.Forms
 							For i As Integer = 0 To .FPopupMenuItems.Count -1
 								mi = .FPopupMenuItems.Items[i]
 								If mi->Command = LoWord(wParam) Then
-									If mi->OnClick Then mi->OnClick(*mi)
+									If mi->OnClick Then mi->OnClick(*mi->Designer, *mi)
 									Exit For
 								End If
 							Next i
@@ -2848,7 +2848,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient(.layoutwidget, widget, @x, @y)
-						.MouseMove(Event->Motion.x - x, Event->Motion.y - y, Event->Motion.state)
+						.MouseMove(Event->motion.x - x, Event->motion.y - y, Event->motion.state)
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
@@ -2863,7 +2863,7 @@ Namespace My.Sys.Forms
 					Case WM_KEYDOWN
 					#endif
 					#ifdef __USE_GTK__
-						.KeyDown(Event->Key.keyval, Event->Key.state)
+						.KeyDown(Event->key.keyval, Event->key.state)
 					#else
 						.KeyDown(wParam, 0)
 					#endif
@@ -2873,7 +2873,7 @@ Namespace My.Sys.Forms
 						Else
 							If HiWord(wParam) = 0 Then
 								Var mi = mnuDesigner.Find(LoWord(wParam))
-								If mi AndAlso mi->OnClick Then mi->OnClick(*mi): Return 0
+								If mi AndAlso mi->OnClick Then mi->OnClick(*mi->Designer, *mi): Return 0
 								'Select Case LoWord(wParam)
 								'Case 10: .DeleteControl()
 								'Case 11: 'MessageBox(.FDialog, "Not implemented yet.","Designer", 0)

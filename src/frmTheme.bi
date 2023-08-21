@@ -14,8 +14,8 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmTheme Extends Form
-		Declare Static Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Static Sub cmdCancel_Click(ByRef Sender As Control)
+		Declare Static Sub cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As Label lblThemeName

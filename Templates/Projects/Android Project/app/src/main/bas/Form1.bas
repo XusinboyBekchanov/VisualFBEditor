@@ -18,9 +18,9 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
-		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
+		Declare Static Sub CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub TextBox1_Change_(ByRef Sender As TextBox)
+		Declare Static Sub TextBox1_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 		Declare Sub TextBox1_Change(ByRef Sender As TextBox)
 		Declare Constructor
 		
@@ -97,14 +97,14 @@
 	#endif
 '#End Region
 
-Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)
+Private Sub Form1Type.CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 End Sub
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	Me.Text = Form1.Width & ", " & Form1.Height & ", " & CommandButton1.Width & ", " & CommandButton1.Height
 End Sub
 
-Private Sub Form1Type.TextBox1_Change_(ByRef Sender As TextBox)
+Private Sub Form1Type.TextBox1_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	(*Cast(Form1Type Ptr, Sender.Designer)).TextBox1_Change(Sender)
 End Sub
 Private Sub Form1Type.TextBox1_Change(ByRef Sender As TextBox)

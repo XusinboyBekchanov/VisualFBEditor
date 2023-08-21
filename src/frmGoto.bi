@@ -16,9 +16,9 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmGoto Extends Form
-		Declare Static Sub _Form_Show_(ByRef Sender As Form)
-		Declare Static Sub _btnFind_Click_(ByRef Sender As Control)
-		Declare Static Sub _btnCancel_Click_(ByRef Sender As Control)
+		Declare Static Sub _Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
+		Declare Static Sub _btnFind_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Declare Static Sub _btnCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Sub btnFind_Click(ByRef Sender As Control)

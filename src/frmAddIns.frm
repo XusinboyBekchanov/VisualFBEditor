@@ -120,7 +120,7 @@ Destructor frmAddIns
 '	AvailableAddIns.Clear
 End Destructor
 
-Private Sub frmAddIns.cmdOK_Click(ByRef Sender As Control)
+Private Sub frmAddIns.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim As AddInType Ptr Add_In
 	Dim As String AddIn
 	For i As Integer = 0 To AvailableAddIns.Count - 1
@@ -142,7 +142,7 @@ Private Sub frmAddIns.cmdOK_Click(ByRef Sender As Control)
 	fAddIns.CloseForm
 End Sub
 
-Private Sub frmAddIns.cmdCancel_Click(ByRef Sender As Control)
+Private Sub frmAddIns.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fAddIns.CloseForm
 End Sub
 
@@ -159,7 +159,7 @@ Sub ChangeItem(ItemIndex As Integer)
 	End If
 End Sub
 
-Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
+Private Sub frmAddIns.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fAddIns
 		With .lvAddIns
 			Dim As AddInType Ptr Add_In
@@ -214,7 +214,7 @@ Private Sub frmAddIns.Form_Create(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmAddIns.chkLoaded_Click(ByRef Sender As CheckBox)
+Private Sub frmAddIns.chkLoaded_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	Dim i As Integer = fAddIns.lvAddIns.SelectedItemIndex
 	If i < 0 Then Exit Sub
 	Dim Add_In As AddInType Ptr = AvailableAddIns.Item(i)
@@ -222,7 +222,7 @@ Private Sub frmAddIns.chkLoaded_Click(ByRef Sender As CheckBox)
 	ChangeItem i
 End Sub
 
-Private Sub frmAddIns.chkLoadOnStartup_Click(ByRef Sender As CheckBox)
+Private Sub frmAddIns.chkLoadOnStartup_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	Dim i As Integer = fAddIns.lvAddIns.SelectedItemIndex
 	If i < 0 Then Exit Sub
 	Dim Add_In As AddInType Ptr = AvailableAddIns.Item(i)
@@ -230,11 +230,11 @@ Private Sub frmAddIns.chkLoadOnStartup_Click(ByRef Sender As CheckBox)
 	ChangeItem fAddIns.lvAddIns.SelectedItemIndex
 End Sub
 
-Private Sub frmAddIns.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+Private Sub frmAddIns.Form_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	
 End Sub
 
-Private Sub frmAddIns.lvAddIns_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
+Private Sub frmAddIns.lvAddIns_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ItemIndex As Integer)
 	Dim i As Integer = ItemIndex
 	If i < 0 Then
 		fAddIns.chkLoaded.Checked = False
@@ -252,10 +252,10 @@ Private Sub frmAddIns.lvAddIns_SelectedItemChanged(ByRef Sender As ListView, Ite
 	End If
 End Sub
 
-Private Sub frmAddIns.Form_Show(ByRef Sender As Form)
+Private Sub frmAddIns.Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	
 End Sub
 
-Private Sub frmAddIns.lvAddIns_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	fAddIns.lvAddIns_SelectedItemChanged Sender, ItemIndex
+Private Sub frmAddIns.lvAddIns_ItemClick(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	fAddIns.lvAddIns_SelectedItemChanged Designer, Sender, ItemIndex
 End Sub

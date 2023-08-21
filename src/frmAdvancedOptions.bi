@@ -7,9 +7,9 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmAdvancedOptions Extends Form
-		Declare Static Sub cmdOK_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Static Sub cmdCancel_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdCancel_Click(ByRef Sender As Control)
 		Declare Constructor
 		

@@ -974,51 +974,51 @@ pfProjectProperties = @fProjectProperties
 		End With
 	End Constructor
 	
-	Private Sub frmProjectProperties._cmdRemoveLibrary_Click(ByRef Sender As Control)
+	Private Sub frmProjectProperties._cmdRemoveLibrary_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdRemoveLibrary_Click(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties._cmdAddLibrary_Click(ByRef Sender As Control)
+	Private Sub frmProjectProperties._cmdAddLibrary_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAddLibrary_Click(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties._cmdRemoveOtherInclude_Click(ByRef Sender As Control)
+	Private Sub frmProjectProperties._cmdRemoveOtherInclude_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdRemoveOtherInclude_Click(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties._cmdAddOtherInclude_Click(ByRef Sender As Control)
+	Private Sub frmProjectProperties._cmdAddOtherInclude_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAddOtherInclude_Click(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties._cmdRemoveComponent_Click(ByRef Sender As Control)
+	Private Sub frmProjectProperties._cmdRemoveComponent_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdRemoveComponent_Click(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties._cmdAddComponent_Click(ByRef Sender As Control)
+	Private Sub frmProjectProperties._cmdAddComponent_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAddComponent_Click(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties._Form_Create(ByRef Sender As Control)
+	Private Sub frmProjectProperties._Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties._cboOptimizationLevel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	Private Sub frmProjectProperties._cboOptimizationLevel_Selected(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cboOptimizationLevel_Selected(Sender, ItemIndex)
 	End Sub
 	
-	Private Sub frmProjectProperties.chkManifest_Click_(ByRef Sender As CheckBox)
+	Private Sub frmProjectProperties.chkManifest_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).chkManifest_Click(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties.cboCompiler_Selected_(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	Private Sub frmProjectProperties.cboCompiler_Selected_(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cboCompiler_Selected(Sender, ItemIndex)
 	End Sub
 
-	Private Sub frmProjectProperties.txtCompilerPath_Change_(ByRef Sender As TextBox)
+	Private Sub frmProjectProperties.txtCompilerPath_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).txtCompilerPath_Change(Sender)
 	End Sub
 	
-	Private Sub frmProjectProperties.cmdCompiler_Click_(ByRef Sender As Control)
+	Private Sub frmProjectProperties.cmdCompiler_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdCompiler_Click(Sender)
 	End Sub
 
@@ -1030,7 +1030,7 @@ pfProjectProperties = @fProjectProperties
 '#End Region
 
 
-Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
+Private Sub frmProjectProperties.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fProjectProperties
 		If .ProjectTreeNode = 0 Then Exit Sub
 		Dim As ProjectElement Ptr ppe = .ProjectTreeNode->Tag
@@ -1168,7 +1168,7 @@ Private Sub frmProjectProperties.cmdOK_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmProjectProperties.cmdCancel_Click(ByRef Sender As Control)
+Private Sub frmProjectProperties.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fProjectProperties.CloseForm
 End Sub
 
@@ -1321,7 +1321,7 @@ Public Sub frmProjectProperties.RefreshProperties()
 				Case ToLLVM: .optCompileToLLVM.Checked = True
 				Case ToGCC: .optCompileToGcc.Checked = True
 				End Select
-				.optCompileToGas_Click(.optCompileToGas)
+				.optCompileToGas_Click(*.optCompileToGas.Designer, .optCompileToGas)
 				.optNoOptimization.Checked = ppe->OptimizationLevel = 0
 				.optOptimizationLevel.Checked = ppe->OptimizationLevel > 0
 				.cboOptimizationLevel.ItemIndex = ppe->OptimizationLevel
@@ -1425,23 +1425,23 @@ Public Sub frmProjectProperties.RefreshProperties()
 	End With
 End Sub
 
-Private Sub frmProjectProperties.tpCompile_Click(ByRef Sender As Control)
+Private Sub frmProjectProperties.tpCompile_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	
 End Sub
 
-Private Sub frmProjectProperties.lstType_Change(ByRef Sender As ListControl)
+Private Sub frmProjectProperties.lstType_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ListControl)
 	With fProjectProperties
 		.txtValue.Text = .Types.Get(.lstType.Text)
 	End With
 End Sub
 
-Private Sub frmProjectProperties.txtValue_LostFocus(ByRef Sender As TextBox)
+Private Sub frmProjectProperties.txtValue_LostFocus(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	With fProjectProperties
 		.Types.Set .lstType.Text, .txtValue.Text
 	End With
 End Sub
 
-Private Sub frmProjectProperties.cmdAdvancedOptions_Click(ByRef Sender As Control)
+Private Sub frmProjectProperties.cmdAdvancedOptions_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With *pfAdvancedOptions
 		.ProjectTreeNode = fProjectProperties.ProjectTreeNode
 		.chkShowUnusedLabelWarnings.Checked = False
@@ -1463,11 +1463,11 @@ Private Sub frmProjectProperties.cmdAdvancedOptions_Click(ByRef Sender As Contro
 	End With
 End Sub
 
-Private Sub frmProjectProperties.Form_Show(ByRef Sender As Form)
+Private Sub frmProjectProperties.Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	
 End Sub
 
-Private Sub frmProjectProperties.optCompileToGas_Click(ByRef Sender As RadioButton)
+Private Sub frmProjectProperties.optCompileToGas_Click(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	With fProjectProperties
 		.grbCompileToGCC.Enabled = .optCompileToGcc.Checked
 		.optOptimizationLevel.Enabled = .optCompileToGcc.Checked
@@ -1479,25 +1479,25 @@ Private Sub frmProjectProperties.optCompileToGas_Click(ByRef Sender As RadioButt
 	End With
 End Sub
 
-Private Sub frmProjectProperties.optCompileToGcc_Click(ByRef Sender As RadioButton)
-	frmProjectProperties.optCompileToGas_Click Sender
+Private Sub frmProjectProperties.optCompileToGcc_Click(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
+	frmProjectProperties.optCompileToGas_Click Designer, Sender
 End Sub
 
-Private Sub frmProjectProperties.optCompileByDefault_Click_(ByRef Sender As RadioButton)
+Private Sub frmProjectProperties.optCompileByDefault_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	(*Cast(frmProjectProperties Ptr, Sender.Designer)).optCompileByDefault_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.optCompileByDefault_Click(ByRef Sender As RadioButton)
-	frmProjectProperties.optCompileToGas_Click Sender
+	frmProjectProperties.optCompileToGas_Click *Sender.Designer, Sender
 End Sub
 
-Private Sub frmProjectProperties.optCompileToLLVM_Click_(ByRef Sender As RadioButton)
+Private Sub frmProjectProperties.optCompileToLLVM_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 	(*Cast(frmProjectProperties Ptr, Sender.Designer)).optCompileToLLVM_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.optCompileToLLVM_Click(ByRef Sender As RadioButton)
-	frmProjectProperties.optCompileToGas_Click Sender
+	frmProjectProperties.optCompileToGas_Click *Sender.Designer, Sender
 End Sub
 
-Private Sub frmProjectProperties.CommandButton1_Click_(ByRef Sender As Control)
+Private Sub frmProjectProperties.CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmProjectProperties Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
@@ -1516,14 +1516,14 @@ Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
 	pfImageManager->WithoutMainNode = False
 End Sub
 
-Private Sub frmProjectProperties.tpDebugging_Click_(ByRef Sender As Control)
+Private Sub frmProjectProperties.tpDebugging_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmProjectProperties Ptr, Sender.Designer)).tpDebugging_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.tpDebugging_Click(ByRef Sender As Control)
 	
 End Sub
 
-Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click_(ByRef Sender As Control)
+Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAndroidSDKLocation_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click(ByRef Sender As Control)
@@ -1533,7 +1533,7 @@ Private Sub frmProjectProperties.cmdAndroidSDKLocation_Click(ByRef Sender As Con
 	End If
 End Sub
 
-Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click_(ByRef Sender As Control)
+Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdAndroidNDKLocation_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click(ByRef Sender As Control)
@@ -1543,7 +1543,7 @@ Private Sub frmProjectProperties.cmdAndroidNDKLocation_Click(ByRef Sender As Con
 	End If
 End Sub
 
-Private Sub frmProjectProperties.cmdJDKLocation_Click_(ByRef Sender As Control)
+Private Sub frmProjectProperties.cmdJDKLocation_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmProjectProperties Ptr, Sender.Designer)).cmdJDKLocation_Click(Sender)
 End Sub
 Private Sub frmProjectProperties.cmdJDKLocation_Click(ByRef Sender As Control)

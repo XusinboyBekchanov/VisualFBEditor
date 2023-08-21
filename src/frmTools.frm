@@ -212,7 +212,7 @@ Destructor frmTools
 	
 End Destructor
 
-Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
+Private Sub frmTools.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Var Fn = FreeFile_
 	Dim As UserToolType Ptr Tool, tt
 	Dim As MenuItem Ptr mi
@@ -273,11 +273,11 @@ Private Sub frmTools.cmdOK_Click(ByRef Sender As Control)
 	pfrmMain->Menu->ParentWindow = pfrmMain
 End Sub
 
-Private Sub frmTools.cmdCancel_Click(ByRef Sender As Control)
+Private Sub frmTools.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	fTools.CloseForm
 End Sub
 
-Private Sub frmTools.cmdAdd_Click(ByRef Sender As Control)
+Private Sub frmTools.cmdAdd_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->lblVersion.Caption = ML("Tool Name")
@@ -295,7 +295,7 @@ Private Sub frmTools.cmdAdd_Click(ByRef Sender As Control)
 	pfPath->SetFileNameToVersion = False
 End Sub
 
-Private Sub frmTools.cmdChange_Click(ByRef Sender As Control)
+Private Sub frmTools.cmdChange_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fTools
 		If .lvTools.SelectedItem = 0 Then Exit Sub
 		pfPath->txtVersion.Text = .lvTools.SelectedItem->Text(0)
@@ -315,7 +315,7 @@ Private Sub frmTools.cmdChange_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmTools.cmdRemove_Click(ByRef Sender As Control)
+Private Sub frmTools.cmdRemove_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fTools
 		If .lvTools.SelectedItem = 0 Then Exit Sub
 		_Delete( Cast(UserToolType Ptr, .lvTools.SelectedItem->Tag))
@@ -323,7 +323,7 @@ Private Sub frmTools.cmdRemove_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmTools.lvTools_SelectedItemChanged(ByRef Sender As ListView, ItemIndex As Integer)
+Private Sub frmTools.lvTools_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ItemIndex As Integer)
 	Dim i As Integer = ItemIndex
 	With fTools
 		If i < 0 Then
@@ -357,8 +357,8 @@ Private Sub frmTools.lvTools_SelectedItemChanged(ByRef Sender As ListView, ItemI
 	End With
 End Sub
 
-Private Sub frmTools.lvTools_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	fTools.lvTools_SelectedItemChanged Sender, ItemIndex
+Private Sub frmTools.lvTools_ItemClick(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	fTools.lvTools_SelectedItemChanged Designer, Sender, ItemIndex
 End Sub
 
 Sub ExecuteTool(Param As Any Ptr)
@@ -383,7 +383,7 @@ Sub UserToolType.Execute()
 End Sub
 
 
-Private Sub frmTools.Form_Create(ByRef Sender As Control)
+Private Sub frmTools.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fTools
 		With .lvTools
 			Dim As UserToolType Ptr Tool, tt
@@ -407,46 +407,46 @@ Private Sub frmTools.Form_Create(ByRef Sender As Control)
 				Item->Tag = tt
 			Next
 		End With
-		.lvTools_SelectedItemChanged .lvTools, -1
+		.lvTools_SelectedItemChanged Designer, .lvTools, -1
 	End With
 End Sub
 
-Private Sub frmTools.txtParameters_Change(ByRef Sender As TextBox)
+Private Sub frmTools.txtParameters_Change(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
 	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->Parameters = Sender.Text
 End Sub
 
-Private Sub frmTools.txtWorkingFolder_Change(ByRef Sender As TextBox)
+Private Sub frmTools.txtWorkingFolder_Change(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
 	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->WorkingFolder = Sender.Text
 End Sub
 
-Private Sub frmTools.cboEvent_Change(ByRef Sender As Control)
+Private Sub frmTools.cboEvent_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
 	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->LoadType = fTools.cboEvent.ItemIndex
 End Sub
 
-Private Sub frmTools.hkShortcut_Change(ByRef Sender As Control)
+Private Sub frmTools.hkShortcut_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
 	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->Accelerator = fTools.hkShortcut.Text
 End Sub
 
-Private Sub frmTools.chkWaitComplete_Click(ByRef Sender As CheckBox)
+Private Sub frmTools.chkWaitComplete_Click(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 	Dim Item As ListViewItem Ptr = fTools.lvTools.SelectedItem
 	If Item = 0 Then Exit Sub
 	Dim Tool As UserToolType Ptr = Item->Tag
 	Tool->WaitComplete = Sender.Checked
 End Sub
 
-Private Sub frmTools.cmdMoveUp_Click(ByRef Sender As Control)
+Private Sub frmTools.cmdMoveUp_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fTools.lvTools
 		Dim i As Integer = .SelectedItemIndex
 		If i < 1 Then Exit Sub
@@ -462,7 +462,7 @@ Private Sub frmTools.cmdMoveUp_Click(ByRef Sender As Control)
 	End With
 End Sub
 
-Private Sub frmTools.cmdMoveDown_Click(ByRef Sender As Control)
+Private Sub frmTools.cmdMoveDown_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fTools.lvTools
 		Dim i As Integer = .SelectedItemIndex
 		If i < 0 OrElse i >= .ListItems.Count - 1 Then Exit Sub

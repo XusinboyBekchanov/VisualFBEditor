@@ -18,19 +18,19 @@ Dim Shared  As WString Ptr BuffTips(Any)
 	Using My.Sys.Forms
 	
 	Type frmTipOfDayType Extends Form
-		Declare Static Sub cmdClose_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdClose_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdClose_Click(ByRef Sender As Control)
-		Declare Static Sub Form_Show_(ByRef Sender As Form)
+		Declare Static Sub Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub cmdPreviousTip_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdPreviousTip_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdPreviousTip_Click(ByRef Sender As Control)
-		Declare Static Sub chkDoNotShow_Click_(ByRef Sender As CheckBox)
+		Declare Static Sub chkDoNotShow_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 		Declare Sub chkDoNotShow_Click(ByRef Sender As CheckBox)
-		Declare Static Sub cmdNextTip_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdNextTip_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdNextTip_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
+		Declare Static Sub _Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Static Sub _Form_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
@@ -123,31 +123,31 @@ Dim Shared  As WString Ptr BuffTips(Any)
 		End With
 	End Constructor
 	
-	Private Sub frmTipOfDayType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	Private Sub frmTipOfDayType._Form_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).Form_Close(Sender, Action)
 	End Sub
 	
-	Private Sub frmTipOfDayType._Form_Create(ByRef Sender As Control)
+	Private Sub frmTipOfDayType._Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).Form_Create(Sender)
 	End Sub
 	
-	Private Sub frmTipOfDayType.cmdNextTip_Click_(ByRef Sender As Control)
+	Private Sub frmTipOfDayType.cmdNextTip_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).cmdNextTip_Click(Sender)
 	End Sub
 	
-	Private Sub frmTipOfDayType.chkDoNotShow_Click_(ByRef Sender As CheckBox)
+	Private Sub frmTipOfDayType.chkDoNotShow_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).chkDoNotShow_Click(Sender)
 	End Sub
 	
-	Private Sub frmTipOfDayType.cmdPreviousTip_Click_(ByRef Sender As Control)
+	Private Sub frmTipOfDayType.cmdPreviousTip_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).cmdPreviousTip_Click(Sender)
 	End Sub
 	
-	Private Sub frmTipOfDayType.Form_Show_(ByRef Sender As Form)
+	Private Sub frmTipOfDayType.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).Form_Show(Sender)
 	End Sub
 	
-	Private Sub frmTipOfDayType.cmdClose_Click_(ByRef Sender As Control)
+	Private Sub frmTipOfDayType.cmdClose_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(frmTipOfDayType Ptr, Sender.Designer)).cmdClose_Click(Sender)
 	End Sub
 	

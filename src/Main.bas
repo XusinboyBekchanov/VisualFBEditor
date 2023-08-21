@@ -303,7 +303,7 @@ Sub ClearMessages()
 End Sub
 
 Sub SetCodeVisible(tb As TabWindow Ptr)
-	If tb->tbrTop.Buttons.Item("Form")->Checked = True Then tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+	If tb->tbrTop.Buttons.Item("Form")->Checked = True Then tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 End Sub
 
 Sub SelectError(ByRef FileName As WString, iLine As Integer, tabw As TabWindow Ptr = 0)
@@ -319,20 +319,20 @@ Sub SelectError(ByRef FileName As WString, iLine As Integer, tabw As TabWindow P
 	SetCodeVisible tb
 End Sub
 
-Sub lvProperties_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
+Sub lvProperties_CellEditing(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
 	'CellEditor = @cboPropertyValue
 End Sub
 
-Sub lvProperties_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
+Sub lvProperties_CellEdited(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
 	PropertyChanged Sender, NewText, False
 End Sub
 
-Sub txtPropertyValue_LostFocus(ByRef Sender As Control)
+Sub txtPropertyValue_LostFocus(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	PropertyChanged Sender, txtPropertyValue.Text, False
 End Sub
 
 Dim Shared bNotChange As Boolean
-Sub cboPropertyValue_Change(ByRef Sender As Control)
+Sub cboPropertyValue_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If Trim(cboPropertyValue.Text) = "" Then
 		Exit Sub
 	End If
@@ -1280,7 +1280,7 @@ Sub SelectSearchResult(ByRef FileName As WString, iLine As Integer, ByVal iSelSt
 	tb->txtCode.SetSelection iLine - 1, iLine - 1, iSelStart - 1, iSelStart + iSelLength - 1
 End Sub
 
-Sub txtOutput_DblClick(ByRef Sender As Control)
+Sub txtOutput_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim Buff As WString Ptr = @txtOutput.Lines(txtOutput.GetLineFromCharIndex)
 	If Buff > 0 AndAlso InStr(LCase(*Buff), ML("debugprint")) > 1 Then Exit Sub
 	Dim As WString Ptr ErrFileName, ErrTitle
@@ -1763,7 +1763,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					End If
 					If bChanged Then
 						pnlToolBox.RequestAlign
-						pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
+						pnlToolBox_Resize *pnlToolBox.Designer, pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
 						pnlToolBox.RequestAlign
 					End If
 				End If
@@ -3150,7 +3150,7 @@ Sub ChangeTabsTn(TnPrev As TreeNode Ptr, Tn As TreeNode Ptr)
 	Next
 End Sub
 
-Declare Sub tvExplorer_NodeExpanding(ByRef Sender As Control, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+Declare Sub tvExplorer_NodeExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As TreeNode, ByRef Cancel As Boolean)
 
 Dim Shared bNotExpand As Boolean
 Sub ChangeFolderType(Value As ProjectFolderTypes)
@@ -3262,7 +3262,7 @@ Sub ChangeFolderType(Value As ProjectFolderTypes)
 			If Value = ProjectFolderTypes.ShowAsFolder Then
 				tn->Text = GetFileName(GetFolderName(*ppe->FileName, False))
 				WLet(ppe->FileName, GetFolderName(*ppe->FileName, False))
-				tvExplorer_NodeExpanding(tvExplorer, *tn, False)
+				tvExplorer_NodeExpanding(*tvExplorer.Designer, tvExplorer, *tn, False)
 			End If
 		End If
 	End If
@@ -3306,7 +3306,7 @@ Sub SyntaxCheck(Param As Any Ptr)
 	Compile("Check")
 End Sub
 
-Sub ToolBoxClick(ByRef Sender As My.Sys.Object)
+Sub ToolBoxClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	With *Cast(ToolButton Ptr, @Sender)
 		If .Style = tbsCheck Then
 			Var flag = .Checked
@@ -3356,7 +3356,7 @@ Function GetTypeControl(ControlType As String) As Integer
 	End If
 End Function
 
-Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Sub pnlToolBox_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifdef __USE_GTK__
 		tbToolBox.SetBounds 0, 0, NewWidth, NewHeight
 	#else
@@ -3367,11 +3367,11 @@ Sub pnlToolBox_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeig
 End Sub
 
 #ifndef __USE_GTK__
-	Sub tbToolBox_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
+	Sub tbToolBox_MouseWheel(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
 		scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
 	End Sub
 	
-	Sub scrTool_MouseWheel(ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
+	Sub scrTool_MouseWheel(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
 		scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
 	End Sub
 #endif
@@ -6302,7 +6302,7 @@ miShowWithFolders = tbFolder->DropDownMenu.Add(ML("Show With Folders"), "", "Sho
 miShowWithoutFolders = tbFolder->DropDownMenu.Add(ML("Show Without Folders"), "", "ShowWithoutFolders", @mClick, , , True)
 miShowAsFolder = tbFolder->DropDownMenu.Add(ML("Show As Folder"), "", "ShowAsFolder", @mClick, , , False)
 
-Sub tbFormClick(ByRef Sender As My.Sys.Object)
+Sub tbFormClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var bFlag = Cast(ToolButton Ptr, @Sender)->Checked
 	Select Case Sender.ToString
 	Case "Text"
@@ -6315,7 +6315,7 @@ Sub tbFormClick(ByRef Sender As My.Sys.Object)
 	Case "Components"
 		frmComponents.Show frmMain
 	End Select
-	pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
+	pnlToolBox_Resize *pnlToolBox.Designer, pnlToolBox, pnlToolBox.Width, pnlToolBox.Height
 End Sub
 
 tbForm.ImagesList = @imgList
@@ -6433,12 +6433,12 @@ Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 	bClosing = False
 End Sub
 
-Sub tabLeft_DblClick(ByRef Sender As Control)
+Sub tabLeft_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	SetLeftClosedStyle Not GetLeftClosedStyle
 End Sub
 
 #ifndef __USE_GTK__
-	Sub scrTool_Scroll(ByRef Sender As Control, ByRef NewPos As Integer)
+	Sub scrTool_Scroll(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef NewPos As Integer)
 		tbToolBox.Top = -NewPos
 	End Sub
 	
@@ -6493,7 +6493,7 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 	Return Params
 End Function
 
-Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
+Sub tvExplorer_NodeActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As TreeNode)
 	#ifdef __USE_GTK__
 		If Item.Nodes.Count > 0 Then
 			If Item.IsExpanded Then
@@ -6540,7 +6540,7 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 				ptabCode->SelectedTabIndex = ptabCode->Tabs[i]->Index
 				If tb->Des <> 0 AndAlso tb->tbrTop.Buttons.Item("Code")->Checked Then
 					tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True
-					tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
+					tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
 				End If
 				tb->txtCode.SetFocus
 				t = True
@@ -6559,7 +6559,7 @@ Sub tvExplorer_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
 	End If
 End Sub
 
-Sub tvExplorer_NodeExpanding(ByRef Sender As Control, ByRef Item As TreeNode, ByRef Cancel As Boolean)
+Sub tvExplorer_NodeExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As TreeNode, ByRef Cancel As Boolean)
 	Dim As ExplorerElement Ptr ee = Item.Tag
 	If ee = 0 OrElse Not FolderExists(*ee->FileName) Then Exit Sub
 	If bNotExpand Then Exit Sub
@@ -6568,10 +6568,10 @@ Sub tvExplorer_NodeExpanding(ByRef Sender As Control, ByRef Item As TreeNode, By
 	bNotExpand = False
 End Sub
 
-Sub tvExplorer_DblClick(ByRef Sender As Control)
+Sub tvExplorer_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
 	If tn = 0 Then Exit Sub
-	tvExplorer_NodeActivate Sender, *tn
+	tvExplorer_NodeActivate Designer, Sender, *tn
 	'	If tn->ImageKey = "Project" Then Exit Sub
 	'	Dim t As Boolean
 	'	For i As Integer = 0 To ptabCode->TabCount - 1
@@ -6588,14 +6588,14 @@ Sub tvExplorer_DblClick(ByRef Sender As Control)
 	'	tvExplorer.SelectedNode = tn
 End Sub
 
-Sub tvExplorer_KeyDown(ByRef Sender As Control, Key As Integer,Shift As Integer)
+Sub tvExplorer_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 	#ifdef __USE_GTK__
 		Select Case Key
 		Case GDK_KEY_Left
 			
 		End Select
 	#else
-		If Key = VK_RETURN Then tvExplorer_DblClick Sender
+		If Key = VK_RETURN Then tvExplorer_DblClick Designer, Sender
 	#endif
 End Sub
 
@@ -6609,7 +6609,7 @@ Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
 	End If
 End Function
 
-Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
+Sub tvExplorer_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
 	Static OldParentNode As TreeNode Ptr
 	Dim As TreeNode Ptr ptn = tvExplorer.SelectedNode
 	If ptn = 0 Then Exit Sub 'David Change For Safty
@@ -6677,7 +6677,7 @@ Sub tvExplorer_SelChange(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	End If
 End Sub
 
-Sub tvExplorer_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+Sub tvExplorer_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 1 Then Exit Sub
 	Dim tn As TreeNode Ptr = tvExplorer.DraggedNode
 	If tn = 0 Then
@@ -6717,7 +6717,7 @@ tvExplorer.OnKeyDown = @tvExplorer_KeyDown
 tvExplorer.OnSelChanged = @tvExplorer_SelChange
 tvExplorer.ContextMenu = @mnuExplorer
 
-Sub tabLeft_SelChange(ByRef Sender As Control, NewIndex As Integer)
+Sub tabLeft_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewIndex As Integer)
 	#ifdef __USE_GTK__
 		If tabLeft.TabPosition = tpLeft And pnlLeft.Width = 30 Then
 	#else
@@ -6735,7 +6735,7 @@ Sub tabLeft_SelChange(ByRef Sender As Control, NewIndex As Integer)
 	End If
 End Sub
 
-Sub tabLeft_Click(ByRef Sender As Control)
+Sub tabLeft_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If tabLeft.TabPosition = tpLeft And pnlLeft.Width = 30 Then
 		ShowLeft
 		'		tabLeft.SetFocus
@@ -6747,7 +6747,7 @@ Sub tabLeft_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Sub pnlLeft_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Sub pnlLeft_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifdef __USE_GTK__
 		If pnlLeft.Width <> 30 Then tabLeftWidth = NewWidth ': tabLeft.Width = pnlLeft.Width
 	#else
@@ -6839,7 +6839,7 @@ tpToolbox->Add @tbForm
 'pnlLeft.Align = 1
 'pnlLeft.AddRange 1, @tabLeft
 
-Sub tbProperties_ButtonClick(Sender As My.Sys.Object)
+Sub tbProperties_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Select Case Sender.ToString
@@ -6865,11 +6865,11 @@ tbEvents.Buttons.Add tbsSeparator
 tbEvents.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
 tbEvents.Flat = True
 
-Sub txtPropertyValue_Activate(ByRef Sender As Control)
+Sub txtPropertyValue_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	lvProperties.SetFocus
 End Sub
 
-Sub btnPropertyValue_Click(ByRef Sender As Control)
+Sub btnPropertyValue_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim As TypeElement Ptr te = Sender.Tag
 	Select Case LCase(te->TypeName)
 	Case "icon", "cursor", "bitmaptype", "graphictype"
@@ -6944,7 +6944,7 @@ cboPropertyValue.OnChange = @cboPropertyValue_Change
 cboPropertyValue.Left = -1
 cboPropertyValue.Top = -2
 
-Sub pnlColor_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+Sub pnlColor_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	Canvas.Brush.Color = Val(txtPropertyValue.Text)
 	'	SelectObject(Canvas.Handle, Canvas.Brush.Handle)
 	'	Rectangle Canvas.Handle, 0, 0, 12, 12
@@ -6960,7 +6960,7 @@ pnlPropertyValue.Add @cboPropertyValue
 
 'Dim Shared CtrlEdit As Control Ptr
 Dim Shared Cpnt As Component Ptr
-Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
 	Dim As SymbolsType Ptr st = tb->Des->Symbols(tb->Des->SelectedControl)
@@ -7087,7 +7087,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As
 	'End If
 End Sub
 
-Sub lvEvents_SelectedItemChanged(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+Sub lvEvents_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
 	Dim As SymbolsType Ptr st = tb->Des->Symbols(tb->Des->SelectedControl)
@@ -7105,13 +7105,13 @@ End Sub
 '    If Item <> 0 Then ClickProperty Item->Index
 'End Sub
 
-Sub lvEvents_ItemDblClick(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+Sub lvEvents_ItemDblClick(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Dim As TabWindow Ptr tb = tabRight.Tag
 	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
 	If Item <> 0 Then FindEvent tb, tb->Des->SelectedControl, Item->Text(0)
 End Sub
 
-Sub lvProperties_EndScroll(ByRef Sender As TreeListView)
+Sub lvProperties_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView)
 	'If CtrlEdit = 0 Then Exit Sub
 	If lvProperties.SelectedItem = 0 Then
 		'CtrlEdit->Visible = False
@@ -7148,17 +7148,17 @@ End Sub
 
 Dim Shared lvWidth As Integer
 
-Sub lvProperties_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Sub lvProperties_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	lvWidth = lvProperties.Width - 22
 	lvProperties.Columns.Column(1)->Width = (lvWidth - 32) / 2
 	lvProperties.Columns.Column(0)->Width = lvWidth - (lvWidth - 32) / 2
 	txtPropertyValue.Width = (lvWidth - 32) / 2
 	pnlPropertyValue.Width = (lvWidth - 32) / 2
 	cboPropertyValue.Width = (lvWidth - 32) / 2 + 2
-	lvProperties_EndScroll(*Cast(TreeListView Ptr, @Sender))
+	lvProperties_EndScroll(*Sender.Designer, *Cast(TreeListView Ptr, @Sender))
 End Sub
 
-Sub lvEvents_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Sub lvEvents_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	lvWidth = lvEvents.Width - 22
 	lvEvents.Columns.Column(0)->Width = lvWidth / 2
 	lvEvents.Columns.Column(1)->Width = lvWidth / 2
@@ -7221,18 +7221,18 @@ End Sub
 '  End If   ' (iItem <> LVI_NOITEM)
 'End Sub
 
-Sub lvEvents_KeyDown(ByRef Sender As Control, ByRef Item As TreeListViewItem Ptr)
+Sub lvEvents_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As TreeListViewItem Ptr)
 	
 End Sub
 
-Sub lvProperties_KeyPress(ByRef Sender As Control, Key As Integer)
+Sub lvProperties_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 	txtPropertyValue.Text = WChr(Key)
 	txtPropertyValue.SetFocus
 	txtPropertyValue.SetSel 1, 1
 	Key = 0
 End Sub
 
-Sub lvProperties_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
+Sub lvProperties_KeyUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 	#ifndef __USE_GTK__
 		Select Case Key
 		Case VK_RETURN: txtPropertyValue.SetFocus
@@ -7242,7 +7242,7 @@ Sub lvProperties_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer
 	'Key = 0
 End Sub
 
-Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
+Sub lvProperties_DrawItem(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
 	#ifndef __USE_GTK__
 		If Item = 0 Then Exit Sub
 		Dim As ..Rect rc = *Cast(..Rect Ptr, @R)
@@ -7254,7 +7254,7 @@ Sub lvProperties_DrawItem(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 			If Sender.SelectedItem = Item AndAlso Sender.Focused Then
 				DrawFocusRect Canvas.Handle, @rc  'draw focus rectangle
 			End If
-			lvProperties_EndScroll(Sender)
+			lvProperties_EndScroll(Designer, Sender)
 		Else
 			If g_darkModeSupported AndAlso g_darkModeEnabled Then
 				FillRect Canvas.Handle, @rc, hbrBkgnd
@@ -7404,11 +7404,11 @@ Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 	bClosing = False
 End Sub
 
-Sub tabRight_DblClick(ByRef Sender As Control)
+Sub tabRight_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	SetRightClosedStyle Not GetRightClosedStyle
 End Sub
 
-Sub tabRight_SelChange(ByRef Sender As Control, NewIndex As Integer)
+Sub tabRight_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewIndex As Integer)
 	#ifdef __USE_GTK__
 		If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
 	#else
@@ -7426,7 +7426,7 @@ End Sub
 tvVar.Visible = False
 tvVar.Align = DockStyle.alClient
 
-Sub tvPrc_NodeActivate(ByRef Sender As Control, ByRef Item As TreeNode)
+Sub tvPrc_NodeActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As TreeNode)
 	proc_loc
 End Sub
 
@@ -7441,7 +7441,7 @@ tvWch.Align = DockStyle.alClient
 tvWch.EditLabels = True
 tvWch.Nodes.Add
 
-Sub lvThreads_ItemActivate(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+Sub lvThreads_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	If Val(Item->Text(1)) = 0 Then Exit Sub
 	SelectSearchResult(Item->Text(2), Val(Item->Text(1)))
 End Sub
@@ -7454,7 +7454,7 @@ lvThreads.StateImages = @imgListStates
 lvThreads.Images = @imgListStates
 lvThreads.OnItemActivate = @lvThreads_ItemActivate
 
-Sub tvVar_Message(ByRef Sender As Control, ByRef message As Message)
+Sub tvVar_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef message As Message)
 	#ifndef __USE_GTK__
 		Select Case message.Msg
 		Case CM_NOTIFY
@@ -7471,7 +7471,7 @@ End Sub
 tvVar.ContextMenu = @mnuVars
 tvVar.OnMessage = @tvVar_Message
 
-Sub lvVar_ItemExpanding(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+Sub lvVar_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	If Item AndAlso Item->Nodes.Count > 0 AndAlso Item->Nodes.Item(0)->Text(0) = "" Then
 		ptabBottom->UpdateLock
 		Dim lvItem As TreeListViewItem Ptr
@@ -7537,7 +7537,7 @@ lvGlobals.StateImages = @imgListStates
 lvGlobals.Images = @imgListStates
 lvGlobals.OnItemExpanding = @lvVar_ItemExpanding
 
-Sub lvWatches_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
+Sub lvWatches_CellEditing(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, CellEditor As Control Ptr, ByRef Cancel As Boolean)
 	If Item = 0 Then Exit Sub
 	If SubItemIndex > 0 Then Exit Sub
 	If Item->ParentItem > 0 Then
@@ -7545,7 +7545,7 @@ Sub lvWatches_CellEditing(ByRef Sender As TreeListView, ByRef Item As TreeListVi
 	End If
 End Sub
 
-Sub lvWatches_CellEdited(ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
+Sub lvWatches_CellEdited(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr, ByVal SubItemIndex As Integer, ByRef NewText As WString, ByRef Cancel As Boolean)
 	If Item = 0 Then Exit Sub
 	If SubItemIndex > 0 Then Exit Sub
 	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
@@ -7592,7 +7592,7 @@ lvMemory.StateImages = @imgListStates
 lvMemory.Images = @imgListStates
 
 
-Sub tabRight_Click(ByRef Sender As Control)
+Sub tabRight_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
 		ShowRight
 		'		tabRight.SetFocus
@@ -7603,7 +7603,7 @@ Sub tabRight_Click(ByRef Sender As Control)
 	End If
 End Sub
 
-Sub pnlRight_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Sub pnlRight_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifdef __USE_GTK__
 		If pnlRight.Width <> 30 Then tabRightWidth = NewWidth: tabRight.SetBounds(0, 0, tabRightWidth, NewHeight)
 	#else
@@ -7660,7 +7660,7 @@ tbRight.Parent = @pnlRightPin
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
 			allocation->x = x - tbRight.Width - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.Width - x1 + 1, 0)
 			allocation->y = y
-			allocation->Width = tbRight.Width
+			allocation->width = tbRight.Width
 			allocation->height = tbRight.Height
 			Return True
 		End Function
@@ -7689,7 +7689,7 @@ pnlRightPin.Parent = @pnlRight
 
 'ptabCode->Images.AddIcon bmp
 
-Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
+Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, newIndex As Integer)
 	Static tbOld As TabWindow Ptr
 	If newIndex = -1 Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(newIndex))
@@ -7744,7 +7744,7 @@ Sub tabCode_SelChange(ByRef Sender As TabControl, newIndex As Integer)
 		miCodeAndForm->Enabled = False
 		tb->tbrTop.Buttons.Item("Form")->Enabled = False 
 		tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
-		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 		SetRightClosedStyle True, True
 	End If
 	If tb->FileName = "" Then
@@ -7768,7 +7768,7 @@ txtOutput.Multiline = True
 txtOutput.ScrollBars = ScrollBarsType.Both
 txtOutput.OnDblClick = @txtOutput_DblClick
 
-Sub txtImmediate_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
+Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Dim As Integer iLine = txtImmediate.GetLineFromCharIndex(txtImmediate.SelStart)
 	Dim As WString Ptr sLine ' = @txtImmediate.Lines(iLine) '  for got wrong value
 	Dim bCtrl As Boolean
@@ -7890,7 +7890,7 @@ txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + Slash + "Controls" + Slash + "MyFbFramework"+ Slash + "mff" + Slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
 txtImmediate.SetSel txtImmediate.GetTextLength, txtImmediate.GetTextLength
 
-Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
+Sub txtChangeLog_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Dim bCtrl As Boolean
 	#ifdef __USE_GTK__
 		bCtrl = Shift And GDK_CONTROL_MASK
@@ -7926,7 +7926,7 @@ Sub txtChangeLog_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integ
 		End If
 	End If
 End Sub
-Sub txtChangeLog_DblClick(ByRef Sender As Control)
+Sub txtChangeLog_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim As WString Ptr txtChangeLogText =@txtChangeLog.Text
 	Dim As Integer LStart = txtChangeLog.SelStart
 	Dim As Integer LEnd = InStr(LStart,*txtChangeLogText,"}")
@@ -7959,7 +7959,7 @@ txtChangeLog.ScrollBars = ScrollBarsType.Both
 txtChangeLog.OnKeyDown = @txtChangeLog_KeyDown
 txtChangeLog.OnDblClick = @txtChangeLog_DblClick
 
-Sub lvToDo_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
+Sub lvToDo_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvToDo.ListItems.Item(itemIndex)
 	SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(lvToDo.Text), Item->Tag)
 End Sub
@@ -7974,7 +7974,7 @@ lvToDo.Columns.Add ML("Column"), , 50, cfRight
 lvToDo.Columns.Add ML("File"), , 700, cfLeft
 lvToDo.OnItemActivate = @lvToDo_ItemActivate
 
-Sub lvProblems_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
+Sub lvProblems_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvProblems.ListItems.Item(itemIndex)
 	SelectError(GetFullPath(Item->Text(2)), Val(Item->Text(1)), Item->Tag)
 End Sub
@@ -7998,7 +7998,7 @@ lvProblems.Columns.Add ML("File"), , 700, cfLeft
 lvProblems.OnItemActivate = @lvProblems_ItemActivate
 'lvProblems.OnKeyDown = @lvErrors_KeyDown
 
-Sub lvSuggestions_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
+Sub lvSuggestions_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSuggestions.ListItems.Item(itemIndex)
 	SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(lvSuggestions.Text), Item->Tag)
 End Sub
@@ -8014,7 +8014,7 @@ lvSuggestions.Columns.Add ML("File"), , 500, cfLeft
 lvSuggestions.Columns.Add ML("Project"), , 500, cfLeft
 lvSuggestions.OnItemActivate = @lvSuggestions_ItemActivate
 
-Sub lvSearch_ItemActivate(ByRef Sender As Control, ByVal itemIndex As Integer)
+Sub lvSearch_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSearch.ListItems.Item(itemIndex)
     gSearchItemIndex = itemIndex
 	SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(lvSearch.Text), Item->Tag)
@@ -8084,11 +8084,11 @@ Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
 	bClosing = False
 End Sub
 
-Sub tabBottom_DblClick(ByRef Sender As Control)
+Sub tabBottom_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	SetBottomClosedStyle Not GetBottomClosedStyle
 End Sub
 
-Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
+Sub tabBottom_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control, newIndex As Integer)
 	#ifdef __USE_GTK__
 		If ptabBottom->TabPosition = tpBottom And pnlBottom.Height = 25 Then
 	#else
@@ -8136,7 +8136,7 @@ Sub tabBottom_SelChange(ByRef Sender As Control, newIndex As Integer)
 	End If
 End Sub
 
-Sub tabBottom_Click(ByRef Sender As Control) '<...>
+Sub tabBottom_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control) '<...>
 	#ifdef __USE_GTK__
 		If ptabBottom->TabPosition = tpBottom And pnlBottom.Height = 25 Then
 	#else
@@ -8153,7 +8153,7 @@ End Sub
 
 Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 	If ChangeTab Then
-		tabBottom_SelChange(*ptabBottom, 0)
+		tabBottom_SelChange(*ptabBottom->Designer, *ptabBottom, 0)
 		tpOutput->SelectTab
 	End If
 	txtOutput.SetSel txtOutput.GetTextLength, txtOutput.GetTextLength
@@ -8169,7 +8169,7 @@ Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 	'    txtOutput.ScrollToCaret
 End Sub
 
-Sub pnlBottom_Resize(ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Sub pnlBottom_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifdef __USE_GTK__
 		If pnlBottom.Height <> 25 Then tabBottomHeight = NewHeight: ptabBottom->SetBounds 0, 0, NewWidth, tabBottomHeight
 	#else
@@ -8262,7 +8262,7 @@ pnlBottomPin.Parent = @pnlBottom
 
 'pnlBottom.Add ptabBottom
 
-Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
+Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object)
 	If frmMain.ActiveControl = 0 Then Exit Sub
 	If tabLeft.TabPosition = tpLeft And tabLeft.SelectedTabIndex <> -1 Then
 		If frmMain.ActiveControl->Parent <> tabLeft.SelectedTab AndAlso frmMain.ActiveControl <> @tabLeft Then
@@ -8363,14 +8363,14 @@ Sub frmMain_ActiveControlChanged(ByRef sender As My.Sys.Object)
 	miToggleBreakpoint->Enabled = bEnabledEditControl
 End Sub
 
-Sub frmMain_Resize(ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
+Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifndef __USE_GTK__
 		stBar.Panels[0]->Width = NewWidth / 2
 		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width + 3
 	#endif
 End Sub
 
-Sub frmMain_DropFile(ByRef sender As My.Sys.Object, ByRef FileName As WString)
+Sub frmMain_DropFile(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, ByRef FileName As WString)
 	OpenFiles FileName
 End Sub
 
@@ -8573,14 +8573,14 @@ End Function
 pfTemplates->Visible = False: pfTemplates->CreateWnd
 
 Dim Shared As Boolean bSharedFind
-Sub frmMain_Create(ByRef Sender As Control)
+Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#ifdef __USE_GTK__
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), "VisualFBEditor1")
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
 	#else
 		tabItemHeight = tabLeft.ItemHeight(0) + 4
 		pnlPropertyValue.SendToBack
-		pnlToolBox_Resize pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
+		pnlToolBox_Resize *pnlToolBox.Designer, pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
 	#endif
 	
 	LoadToolBox
@@ -8781,7 +8781,7 @@ Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 	Function = *ms.p
 End Function
 
-Sub frmMain_Show(ByRef Sender As Control)
+Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#ifdef __USE_GTK__
 		tabItemHeight = tabLeft.ItemHeight(0) + 4 + 5
 		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabItemHeight
@@ -8854,7 +8854,7 @@ End Sub
 	End Function
 #endif
 
-Sub frmMain_ActivateApp(ByRef Sender As Form)
+Sub frmMain_ActivateApp(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	#ifndef __USE_GTK__
 		Static bInActivateApp As Boolean
 		If bInActivateApp Then Exit Sub
@@ -8912,7 +8912,7 @@ Sub SaveMRU
 	Next
 End Sub
 
-Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
+Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
 	If Not CloseSession Then Action = 0: Return
 	FormClosing = True
@@ -8959,7 +8959,7 @@ Sub frmMain_Close(ByRef Sender As Form, ByRef Action As Integer)
 	"in module " & ZGet(Ermn())
 End Sub
 
-Sub ToolBar_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+Sub ToolBar_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 1 Then Exit Sub
 	Sender.ContextMenu = miToolBars->SubMenu
 End Sub
