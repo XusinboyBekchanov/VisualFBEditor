@@ -90,7 +90,7 @@ pfOptions = @fOptions
 		pnlDesigner.Align = DockStyle.alClient
 		pnlDesigner.Margins.Left = 10
 		pnlDesigner.TabIndex = 71
-		pnlDesigner.SetBounds 188, 4, 427, 400
+		pnlDesigner.SetBounds -162, 4, 427, 400
 		pnlDesigner.Parent = @This
 		' pnlLocalization
 		pnlLocalization.Name = "pnlLocalization"
@@ -2621,6 +2621,17 @@ pfOptions = @fOptions
 			.Text = "100"
 			.Parent = @pnlAutoSaveCharMax
 		End With
+		' chkCreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt
+		With chkCreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt
+			.Name = "chkCreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt"
+			.Text = ML("Create event handlers without static event handler if event allows it")
+			.TabIndex = 233
+			.ControlIndex = 4
+			.Caption = ML("Create event handlers without static event handler if event allows it")
+			.SetBounds 32, 219, 380, 24
+			.Designer = @This
+			.Parent = @pnlDesigner
+		End With
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Sender As Control, Key As Integer)
@@ -2718,6 +2729,7 @@ Sub frmOptions.LoadSettings()
 		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
 		.chkPlaceStaticEventHandlersAfterTheConstructor.Checked = PlaceStaticEventHandlersAfterTheConstructor
 		.chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Checked = CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning
+		.chkCreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt.Checked = CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt
 		.chkCreateFormTypesWithoutTypeWord.Checked = CreateFormTypesWithoutTypeWord
 		.chkCreateNonStaticEventHandlers_Click(.chkCreateNonStaticEventHandlers)
 		.optMainFileFolder.Checked = OpenCommandPromptInMainFileFolder
@@ -3322,7 +3334,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		Else
 			HistoryCodeDays = Val(.txtHistoryCodeDays.Text)
 		End If
-		AutoSaveCharMax = Val(.txtAutoSaveCharMax.text)
+		AutoSaveCharMax = Val(.txtAutoSaveCharMax.Text)
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
 		LimitDebug = .chkLimitDebug.Checked
 		DisplayWarningsInDebug = .chkDisplayWarningsInDebug.Checked
@@ -3337,6 +3349,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		AddRelativePathsToRecent = .chkAddRelativePathsToRecent.Checked
 		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
 		PlaceStaticEventHandlersAfterTheConstructor = .chkPlaceStaticEventHandlersAfterTheConstructor.Checked
+		CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt = .chkCreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt.Checked
 		CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning = .chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Checked
 		CreateFormTypesWithoutTypeWord = .chkCreateFormTypesWithoutTypeWord.Checked
 		OpenCommandPromptInMainFileFolder = .optMainFileFolder.Checked
@@ -3531,6 +3544,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Sender As Control)
 		piniSettings->WriteBool "Options", "CreateNonStaticEventHandlers", CreateNonStaticEventHandlers
 		piniSettings->WriteBool "Options", "PlaceStaticEventHandlersAfterTheConstructor", PlaceStaticEventHandlersAfterTheConstructor
 		piniSettings->WriteBool "Options", "CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning", CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning
+		piniSettings->WriteBool "Options", "CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt", CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt
 		piniSettings->WriteBool "Options", "CreateFormTypesWithoutTypeWord", CreateFormTypesWithoutTypeWord
 		piniSettings->WriteBool "Options", "OpenCommandPromptInMainFileFolder", OpenCommandPromptInMainFileFolder
 		piniSettings->WriteString "Options", "CommandPromptFolder", *CommandPromptFolder
@@ -4964,6 +4978,7 @@ End Sub
 Private Sub frmOptions.chkCreateNonStaticEventHandlers_Click(ByRef Sender As CheckBox)
 	chkPlaceStaticEventHandlersAfterTheConstructor.Enabled = chkCreateNonStaticEventHandlers.Checked
 	chkCreateStaticEventHandlersWithAnUnderscoreAtTheBeginning.Enabled = chkCreateNonStaticEventHandlers.Checked
+	chkCreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt.Enabled = chkCreateNonStaticEventHandlers.Checked
 End Sub
 
 Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
