@@ -38,7 +38,7 @@ Declare Sub DeleteDebugCursor
 #endif
 
 '#define fulldbg_prt 'uncomment to get more information
-#Define dbg_prt2 Rem ' dbg_prt 'used temporary for debugging, change rem by print 
+#define dbg_prt2 Rem ' dbg_prt 'used temporary for debugging, change rem by print 
 
 #define fmt(t, l) Left(t, l) + Space(l - Len(t)) + "  "
 #define fmt2(t, l) Left(t, l) + Space(l - Len(t))
@@ -981,10 +981,10 @@ Declare Sub thread_status()
 Declare Function thread_select(id As Integer = 0) As Integer
 Declare Function var_search(pproc As Integer, text() As String, vnb As Integer, varr As Integer, vpnt As Integer = 0) As Integer
 Declare Sub RunWithDebug(Param As Any Ptr)
-#ifdef __USE_GTK__
+#ifndef __FB_WIN32__
 	Declare Function SetTimer(hwnd As Any Ptr = 0, ByRef idTimer As Long, iElapse As Long, pTimerProc As Any Ptr) As Long
 	Declare Sub KillTimer(hwnd As Any Ptr = 0, idTimer As Long)
-#EndIf
+#endif
 
 #ifndef __USE_MAKE__
 	#include once "Debug.bas"

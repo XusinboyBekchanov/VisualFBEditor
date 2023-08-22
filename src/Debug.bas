@@ -381,7 +381,7 @@ Private Function brk_comp(tst As Integer) As WString Ptr
 	End Select
 End Function
 
-#ifdef __USE_GTK__
+#ifndef __FB_WIN32__
 	Sub SetWindowText Overload(Wind As Any Ptr, ByRef text As WString)
 		
 	End Sub
@@ -6586,7 +6586,7 @@ Private Function var_parent(child As Any Ptr) As Integer 'find var master parent
 	Do
 		hitemp=temp2
 		temp2=temp
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			temp = Cast(HTREEITEM, SendMessage(tviewvar, TVM_GETNEXTITEM, TVGN_PARENT, Cast(LPARAM, temp)))
 		#else
 			temp = Cast(TreeNode Ptr, temp)->ParentNode
@@ -6648,7 +6648,7 @@ Dim Shared As tvrp vrp1(SHWEXPMAX, VRPMAX)
 Private Function watch_find() As Integer
 	Dim hitem As Any Ptr
 	'get current hitem in tree
-	#ifdef __FB_WIN32__
+	#ifdef __USE_WINAPI__
 		hitem = Cast(HTREEITEM, SendMessage(tviewwch, TVM_GETNEXTITEM, TVGN_CARET, 0))
 	#else
 		hitem = tviewwch->SelectedNode
@@ -6662,7 +6662,7 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 	Dim hitem As Any Ptr, idx As Integer
 	If tv=tviewvar Then
 		'get current hitem in tree
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			hitem=Cast(HTREEITEM,SendMessage(tviewvar,TVM_GETNEXTITEM,TVGN_CARET,0))
 		#else
 			hitem = tviewvar->SelectedNode
@@ -6701,7 +6701,7 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 			If vrp1(idx, i).tl = hitem Then
 				varfind.nm = vrp1(idx, i).nm
 				If varfind.nm="" Then varfind.nm="<Memory>"
-				varfind.ty = vrp1(idx, i).Ty
+				varfind.ty = vrp1(idx, i).ty
 				varfind.pt = vrp1(idx, i).pt
 				varfind.ad = vrp1(idx, i).ad
 				varfind.tv=tv 'handle treeview
@@ -6713,7 +6713,7 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 	End If
 End Function
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	Dim Shared frm As Form, txt As TextBox
 	frm.SetBounds 2,2,400,260
 	txt.Align = DockStyle.alClient
@@ -7175,7 +7175,7 @@ Private Sub watch_add(f As Integer, r As Integer = -1) 'if r<>-1 session watched
 			Next
 		End If
 		'temps=var_sh1(varfind.iv) replaced by lines below 08/05/2014
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			Dim tvi As TVITEM
 			tvi.mask       = TVIF_TEXT
 			tvi.hItem      = vrr(varfind.iv).tv
@@ -7215,7 +7215,7 @@ Private Sub watch_add(f As Integer, r As Integer = -1) 'if r<>-1 session watched
 				wtch(t).vty(c)=udt(cudt(Abs(vrr(iparent).vr)).typ).nm
 				If cudt(Abs(vrr(iparent).vr)).arr Then wtch(t).Var=1:Exit Do Else wtch(t).Var=0
 			End If
-			#ifdef __FB_WIN32__
+			#ifdef __USE_WINAPI__
 				temp=Cast(HTREEITEM,SendMessage(tviewvar,TVM_GETNEXTITEM,TVGN_PARENT,Cast(LPARAM,vrr(iparent).tv)))
 			#else
 				temp = Cast(TreeNode Ptr, vrr(iparent).tv)->ParentNode
@@ -7233,7 +7233,7 @@ Private Sub watch_add(f As Integer, r As Integer = -1) 'if r<>-1 session watched
 	wtchnew=t
 End Sub
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	Private Sub watch_set()
 		If wtchcpt>WTCHMAX Then ' free slot not found
 			' change focus
@@ -7397,7 +7397,7 @@ Private Sub globals_load(d As Integer = 0) 'load shared and common variables, in
 		Else
 			If procrnb = PROCRMAX Then ThreadsEnter: MsgBox(ML("CLOSING DEBUGGER: Max number of sub/func reached")): ThreadsLeave: Exit Sub
 			procrnb+=1
-			#ifdef __FB_WIN32__
+			#ifdef __USE_WINAPI__
 				temp = Cast(HTREEITEM, SendMessage(tviewvar, TVM_GETNEXTITEM, TVGN_PREVIOUS, Cast(LPARAM, procr(1).tv)))
 			#else
 				Var Idx = Cast(TreeNode Ptr, procr(1).tv)->Index
@@ -7639,7 +7639,7 @@ Sub brk_apply
 	Next
 End Sub
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	'=== FOR DWARF ===
 	Private Function remove_gcc(vname As String) As Long 'return 1 if don't keep and clean '$x' 09/01/2014 a utiliser aussi avec gen gas
 		Dim As Long p
@@ -9647,7 +9647,7 @@ Private Sub brkv_set(a As Integer) 'breakon variable
 				If varfind.iv>=procr(j).vr And varfind.iv<procr(j+1).vr Then brkv2.psk=procr(j).sk:Exit For
 			Next
 		End If
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			Dim tvi As TVITEM
 			tvi.mask       = TVIF_TEXT
 			tvi.pszText    = @(ztxt)
@@ -9703,7 +9703,7 @@ Private Function thread_select(id As Integer =0) As Integer 'find thread index b
 	
 	If id =0 Then  'take on cursor
 		'get current hitem in tree
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			temp = Cast(HWND, SendMessage(tviewthd, TVM_GETNEXTITEM, TVGN_CARET, 0))
 			
 			Do 'search thread item
@@ -9752,7 +9752,7 @@ Private Sub proc_del(j As Integer,t As Integer=1)
 	Dim parent As Any Ptr
 	Dim As String text
 	' delete procr in treeview
-	#ifdef __FB_WIN32__
+	#ifdef __USE_WINAPI__
 		If SendMessage(tviewvar,TVM_DELETEITEM,0,Cast(LPARAM,procr(j).tv))=0 Then
 			MsgBox(ML("DELETE TREEVIEW ITEM") & ": " & ML("Not ok (not blocking) for proc") & " " + proc(procr(j).idx).nm)
 		End If
@@ -9803,7 +9803,7 @@ Private Sub proc_del(j As Integer,t As Integer=1)
 	
 	If t=1 Then 'not dll
 		th=thread_select(procr(j).thid) 'find thread index
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			parent = Cast(HTREEITEM, SendMessage(tviewthd, TVM_GETNEXTITEM, TVGN_PARENT, Cast(LPARAM, thread(th).ptv))) 'find parent of last proc item
 			SendMessage(tviewthd,TVM_DELETEITEM,0,Cast(LPARAM,thread(th).ptv)) 'delete item
 		#else
@@ -9896,7 +9896,7 @@ Private Sub watch_del(i As Integer=WTCHALL)
 		wtch(j).tad=0
 		wtchcpt-=1
 		'If wtchcpt=0 Then menu_enable
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			If j <= WTCHMAIN Then SetWindowText(wtch(j).hnd, "Watch " + Str(j + 1))
 			SendMessage(tviewwch, TVM_DELETEITEM, 0, Cast(LPARAM, wtch(j).tvl))
 		#else
@@ -9932,7 +9932,7 @@ Private Sub update_address(midx As Long) ''to propagate address dynamaic array o
 	Dim As Any Ptr child
 	Dim As Integer arradr=vrr(midx).ad
 	
-	#ifdef __FB_WIN32__
+	#ifdef __USE_WINAPI__
 		child = Cast(HTREEITEM, SendMessage(tviewvar, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, vrr(midx).tv))) 'first child (at least one as it's an udt)
 	#else
 		If Cast(TreeNode Ptr, vrr(midx).tv)->Nodes.Count Then
@@ -9953,7 +9953,7 @@ Private Sub update_address(midx As Long) ''to propagate address dynamaic array o
 					''vrr(i).ad=0
 				End If
 			End If
-			#ifdef __FB_WIN32__
+			#ifdef __USE_WINAPI__
 				child = Cast(HTREEITEM, SendMessage(tviewvar, TVM_GETNEXTITEM, TVGN_NEXT, Cast(LPARAM, child)))
 			#else
 				child = 0
@@ -10124,7 +10124,7 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 	End If
 End Function
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	Function get_var_value(VarName As String, LineIndex As Integer) As String
 		Dim As Integer nline, lclproc, lclprocr, p, n, i, j, d, l, idx = -1
 		Dim text As ZString * 200
@@ -10203,7 +10203,7 @@ End Function
 #endif
 
 Private Sub var_sh() 'show master var
-	#ifdef __FB_WIN32__
+	#ifdef __USE_WINAPI__
 		UpdateItems(TreeView_GetNextItem(tviewvar, NULL, TVGN_ROOT))
 	#else
 		For i As Integer = 1 To vrrnb
@@ -10930,7 +10930,7 @@ Private Sub brk_del(n As Integer) 'delete one breakpoint
 	End If
 End Sub
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	Sub brk_set(t As Integer)
 		Dim l As Integer,i As Integer,range As CHARRANGE,b As Integer,ln As Integer
 		range.cpMin=-1 :range.cpMax=0
@@ -11069,7 +11069,7 @@ Private Sub thread_del(thid As UInteger)
 			If thread(i).sv<>-1 Then
 				'delete thread item and child
 				
-				#ifdef __FB_WIN32__
+				#ifdef __USE_WINAPI__
 					SendMessage(tviewthd, TVM_DELETEITEM, 0, Cast(LPARAM, thread(i).tv))
 				#else
 					With *Cast(TreeNode Ptr, thread(i).tv)
@@ -11224,7 +11224,7 @@ Private Function line_call(regip As UInteger) As Integer 'find the calling line 
 	Return linenb
 End Function
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	Private Sub proc_newfast()
 		Dim vcontext As CONTEXT
 		Dim libel As String
@@ -11704,7 +11704,7 @@ Sub fastrun() 'running until cursor or breakpoint !!! Be carefull
 	thread_rsm()
 End Sub
 
-#ifdef __FB_WIN32__
+#ifdef __USE_WINAPI__
 	Private Sub debugstring_read(debugev As debug_event)
 		Dim As WString *400 wstrg
 		Dim As ZString *400 sstrg

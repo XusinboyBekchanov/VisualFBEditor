@@ -5443,7 +5443,7 @@ Namespace My.Sys.Forms
 		Function EditControl.ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As EditControl Ptr ec = user_data
 			If ec <> 0 Then
-				If ec->OnToolTipLinkClicked Then ec->OnToolTipLinkClicked(*ec, *uri)
+				If ec->OnToolTipLinkClicked Then ec->OnToolTipLinkClicked(*ec->Designer, *ec, *uri)
 			End If
 			Return True
 		End Function
@@ -6296,7 +6296,7 @@ Namespace My.Sys.Forms
 					If DropDownShowed Then
 						CloseDropDown()
 						#ifdef __USE_GTK__
-							If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(lvIntellisense, LastItemIndex)
+							If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(*lvIntellisense.Designer, lvIntellisense, LastItemIndex)
 						#else
 							If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
 						#endif
