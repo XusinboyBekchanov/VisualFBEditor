@@ -7024,9 +7024,11 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 End Sub
 
 Sub DeleteFromTypeElement(te As TypeElement Ptr)
-	For j As Integer = te->Elements.Count - 1 To 0 Step -1
-		DeleteFromTypeElement(te->Elements.Object(j))
-	Next
+	If te->ElementType <> E_Enum Then
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			DeleteFromTypeElement(te->Elements.Object(j))
+		Next
+	End If
 	te->Types.Clear
 	te->Enums.Clear
 	te->Elements.Clear
