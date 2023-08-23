@@ -168,9 +168,9 @@ Public:
 	Declare Property PosY As Integer
 	Declare Property PosY(ByVal val As Integer)
 	
-	OnUpdate As Sub(ByRef Sender As ScintillaControl)
-	OnModify As Sub(ByRef Sender As ScintillaControl)
-	OnDblClick As Sub(ByRef Sender As ScintillaControl)
+	OnUpdate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ScintillaControl)
+	OnModify As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ScintillaControl)
+	OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ScintillaControl)
 	
 	Declare Constructor
 	Declare Destructor

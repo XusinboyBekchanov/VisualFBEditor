@@ -45,12 +45,12 @@ Private Sub ScintillaControl.ProcessMessage(ByRef msg As Message)
 					'Debug.Print "SCN_MODIFIED"
 					'Debug.Print "modificationType=" & scMsg.modificationType
 					'Changed = True
-					If OnModify Then OnModify(This)
+					If OnModify Then OnModify(*Designer, This)
 				Case SCN_HOTSPOTCLICK
 					'Debug.Print "SCN_HOTSPOTCLICK"
 				Case SCN_DOUBLECLICK
 					'Debug.Print "SCN_DOUBLECLICK"
-					If OnDblClick Then OnDblClick(This)
+					If OnDblClick Then OnDblClick(*Designer, This)
 					
 				Case SCN_UPDATEUI
 					'Debug.Print "SCN_UPDATEUI"
@@ -58,10 +58,10 @@ Private Sub ScintillaControl.ProcessMessage(ByRef msg As Message)
 					Select Case scMsg.updated
 					Case SC_UPDATE_NONE
 					Case SC_UPDATE_CONTENT
-						If OnUpdate Then OnUpdate(This)
+						If OnUpdate Then OnUpdate(*Designer, This)
 						
 					Case SC_UPDATE_SELECTION
-						If OnUpdate Then OnUpdate(This)
+						If OnUpdate Then OnUpdate(*Designer, This)
 						
 					Case SC_UPDATE_V_SCROLL
 						'line number margin auto width
