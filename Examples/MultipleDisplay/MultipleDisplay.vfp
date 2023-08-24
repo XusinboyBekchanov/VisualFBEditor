@@ -1,5 +1,4 @@
 ﻿*File=frmDisplay.frm
-*File=frmDisplay.rc
 ProjectType=0
 Subsystem=0
 ProjectName="Display"
@@ -10,7 +9,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=123
+BuildVersion=154
 AutoIncrementVersion=true
 ApplicationTitle="MultipleDisplay"
 ApplicationIcon=""

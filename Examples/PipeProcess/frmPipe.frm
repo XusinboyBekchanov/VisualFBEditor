@@ -26,17 +26,11 @@
 		Declare Sub PipeReady(b As Boolean)
 		Declare Sub PipeClear()
 		
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton2_Click(ByRef Sender As Control)
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton3_Click(ByRef Sender As Control)
 		Declare Sub CommandButton3_Click(ByRef Sender As Control)
-		Declare Static Sub _ComboBoxEdit2_KeyUp(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		Declare Sub ComboBoxEdit2_KeyUp(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-		Declare Static Sub _ComboBoxEdit1_KeyUp(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		Declare Sub ComboBoxEdit1_KeyUp(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
 		Declare Constructor
 		
@@ -52,7 +46,7 @@
 			.Name = "frmPipe"
 			.Text = "PipeProcess"
 			.Designer = @This
-			.OnCreate = @_Form_Create
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.StartPosition = FormStartPosition.CenterScreen
 			#ifdef __FB_64BIT__
 				'...instructions for 64bit OSes...
@@ -83,7 +77,7 @@
 			.Style = ComboBoxEditStyle.cbDropDown
 			.SetBounds 0, 0, 240, 21
 			.Designer = @This
-			.OnKeyUp = @_ComboBoxEdit1_KeyUp
+			.OnKeyUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer), @ComboBoxEdit1_KeyUp)
 			.Parent = @Panel1
 		End With
 		' CommandButton1
@@ -93,7 +87,7 @@
 			.TabIndex = 2
 			.SetBounds 250, 0, 90, 20
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @Panel1
 		End With
 		' ComboBoxEdit2
@@ -104,7 +98,7 @@
 			.Style = ComboBoxEditStyle.cbDropDown
 			.SetBounds 350, 0, 240, 21
 			.Designer = @This
-			.OnKeyUp = @_ComboBoxEdit2_KeyUp
+			.OnKeyUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer), @ComboBoxEdit2_KeyUp)
 			.Parent = @Panel1
 		End With
 		' CommandButton2
@@ -114,7 +108,7 @@
 			.TabIndex = 4
 			.SetBounds 600, 0, 90, 20
 			.Designer = @This
-			.OnClick = @_CommandButton2_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton2_Click)
 			.Parent = @Panel1
 		End With
 		' CommandButton3
@@ -124,7 +118,7 @@
 			.TabIndex = 5
 			.SetBounds 700, 0, 90, 20
 			.Designer = @This
-			.OnClick = @_CommandButton3_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton3_Click)
 			.Parent = @Panel1
 		End With
 		' TextBox3
@@ -136,6 +130,7 @@
 			.ID = 1007
 			.ScrollBars = ScrollBarsType.Both
 			.Font.Name = "Consolas"
+			.ReadOnly = True
 			.SetBounds 0, 30, 340, 110
 			.Parent = @Panel1
 		End With
@@ -147,6 +142,7 @@
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Both
 			.Font.Name = "Consolas"
+			.ReadOnly = True
 			.SetBounds 350, 30, 440, 110
 			.Parent = @Panel1
 		End With
@@ -169,25 +165,6 @@
 		End With
 	End Constructor
 	
-	Private Sub frmPipeType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmPipeType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	Private Sub frmPipeType._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(frmPipeType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
-	Private Sub frmPipeType._CommandButton2_Click(ByRef Sender As Control)
-		(*Cast(frmPipeType Ptr, Sender.Designer)).CommandButton2_Click(Sender)
-	End Sub
-	Private Sub frmPipeType._CommandButton3_Click(ByRef Sender As Control)
-		(*Cast(frmPipeType Ptr, Sender.Designer)).CommandButton3_Click(Sender)
-	End Sub
-	Private Sub frmPipeType._ComboBoxEdit2_KeyUp(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-		(*Cast(frmPipeType Ptr, Sender.Designer)).ComboBoxEdit2_KeyUp(Sender, Key, Shift)
-	End Sub
-	Private Sub frmPipeType._ComboBoxEdit1_KeyUp(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
-		(*Cast(frmPipeType Ptr, Sender.Designer)).ComboBoxEdit1_KeyUp(Sender, Key, Shift)
-	End Sub
-	
 	Dim Shared frmPipe As frmPipeType
 	
 	#if _MAIN_FILE_ = __FILE__
@@ -198,9 +175,13 @@
 '#End Region
 
 Private Sub frmPipeType.OnPipeRead(o As Any Ptr, DataRead As ZString, Length As Long)
-	Cast(frmPipeType Ptr, o)->TextBox5.Text = Cast(frmPipeType Ptr, o)->TextBox5.Text + DataRead
-	Cast(frmPipeType Ptr, o)->TextBox5.SelStart = Cast(frmPipeType Ptr, o)->TextBox5.GetTextLength
-	SendMessage(Cast(frmPipeType Ptr, o)->TextBox5.Handle, EM_SCROLLCARET, 0, 0)
+	Dim i As Integer
+	i = Cast(frmPipeType Ptr, o)->TextBox5.GetTextLength
+	Cast(frmPipeType Ptr, o)->TextBox5.SetSel(i, i)
+	Cast(frmPipeType Ptr, o)->TextBox5.SelText = DataRead
+	i = Cast(frmPipeType Ptr, o)->TextBox5.GetTextLength
+	Cast(frmPipeType Ptr, o)->TextBox5.SetSel(i, i)
+	Cast(frmPipeType Ptr, o)->TextBox5.ScrollToCaret
 End Sub
 
 Private Sub frmPipeType.OnPipeClosed(o As Any Ptr,ErrorLevel As Long)

@@ -10,14 +10,6 @@ Type WAVEHEADER_RIFF ' == 12 bytes ==
 	riffBlockType As Long ' "WAVE" = &H45564157
 End Type
 
-'Type waveformat_tag Field = 1
-'	wFormatTag As WORD
-'	nChannels As WORD
-'	nSamplesPerSec As DWORD
-'	nAvgBytesPerSec As DWORD
-'	nBlockAlign As WORD
-'End Type
-
 Type WAVEFORMATCM ' == 24 bytes ==
 	wfBlockType As Long ' "fmt " = &H20746D66
 	wfBlockSize As DWORD ' == block size begins from here = 16 bytes

@@ -1,7 +1,6 @@
 ﻿File=SerialPort.bi
 *File=frmSerialPort.frm
 File=SerialPort.bas
-*File=SerialPort.rc
 ProjectType=0
 Subsystem=2
 ProjectName=""
@@ -12,7 +11,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=255
+BuildVersion=283
 AutoIncrementVersion=false
 ApplicationTitle="SerialPort"
 ApplicationIcon=""

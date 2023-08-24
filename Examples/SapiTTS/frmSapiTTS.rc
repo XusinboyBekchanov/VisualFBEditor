@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "SapiTTS\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,35
-#define VER_FILEVERSION_STR         "0.0.0.35\0"
+#define VER_FILEVERSION             0,0,0,53
+#define VER_FILEVERSION_STR         "0.0.0.53\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

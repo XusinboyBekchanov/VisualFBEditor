@@ -14,7 +14,6 @@
 	Using My.Sys.Forms
 	
 	Type frmGotoType Extends Form
-		Declare Static Sub _btnGoto_Click(ByRef Sender As Control)
 		Declare Sub btnGoto_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -65,14 +64,10 @@
 			.Caption = "Goto"
 			.SetBounds 120, 60, 90, 20
 			.Designer = @This
-			.OnClick = @_btnGoto_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnGoto_Click)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub frmGotoType._btnGoto_Click(ByRef Sender As Control)
-		(*Cast(frmGotoType Ptr, Sender.Designer)).btnGoto_Click(Sender)
-	End Sub
 	
 	Dim Shared frmGoto As frmGotoType
 	

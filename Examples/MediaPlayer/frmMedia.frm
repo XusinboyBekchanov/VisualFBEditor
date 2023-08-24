@@ -136,37 +136,20 @@
 		Declare Sub DSCtrl(Index As DS_Status)
 		Declare Function DSCreate(hWnd As HWND, wszFileName As WString) As Boolean
 		Declare Sub DSUnload()
-		Declare Static Sub _TextBox1_DblClick(ByRef Sender As Control)
-		Declare Sub TextBox1_DblClick(ByRef Sender As Control)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _cmdBtn_Click(ByRef Sender As Control)
 		Declare Sub cmdBtn_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _tbAudio_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbAudio_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _tbAudio_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub tbAudio_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _tbBalance_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbBalance_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _tbBalance_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub tbBalance_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _tbPosition_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbPosition_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _tbPosition_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub tbPosition_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _tbPosition_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub tbPosition_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _Picture1_Message(ByRef Sender As Control, ByRef msg As Message)
 		Declare Sub Picture1_Message(ByRef Sender As Control, ByRef msg As Message)
-		Declare Static Sub _ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _chkDark_Click(ByRef Sender As CheckBox)
 		Declare Sub chkDark_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
@@ -199,9 +182,9 @@
 				.Caption = "VFBE Media Player32"
 			#endif
 			.Designer = @This
-			.OnCreate = @_Form_Create
-			.OnClose = @_Form_Close
-			.OnResize = @_Form_Resize
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.StartPosition = FormStartPosition.CenterScreen
 			.SetBounds 0, 0, 700, 520
 		End With
@@ -267,7 +250,7 @@
 			.Caption = "Open"
 			.SetBounds 10, 10, 50, 22
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @Panel3
 		End With
 		' cmdPlay
@@ -279,7 +262,7 @@
 			.Enabled = False
 			.SetBounds 60, 10, 50, 22
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @Panel3
 		End With
 		' cmdClose
@@ -292,7 +275,7 @@
 			.Enabled = False
 			.SetBounds 110, 10, 50, 22
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @Panel3
 		End With
 		' cmdFull
@@ -306,7 +289,7 @@
 			.Hint = "Full screen of vedio"
 			.SetBounds 170, 10, 30, 22
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @Panel3
 		End With
 		' cmdScaleH
@@ -319,7 +302,7 @@
 			.Hint = "1/2 of the original size of vedio"
 			.SetBounds 200, 10, 30, 22
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @Panel3
 		End With
 		' cmdScaleO
@@ -332,7 +315,7 @@
 			.Hint = "Original size of vedio"
 			.SetBounds 230, 10, 30, 22
 			.Designer = @This
-			.OnClick = @_cmdBtn_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @Panel3
 		End With
 		' cmdBrowse
@@ -348,7 +331,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 440, 10, 30, 22
 			.Designer = @This
-			.OnClick = @_TextBox1_DblClick
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @Panel3
 		End With
 		' ComboBoxEx1
@@ -363,14 +346,13 @@
 			.Size = Type<My.Sys.Drawing.Size>(160, 22)
 			.SetBounds 270, 10, 160, 22
 			.Designer = @This
-			.OnSelected = @_ComboBoxEx1_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEx1_Selected)
 			.Parent = @Panel3
 		End With
 		' TextBox1
 		With TextBox1
 			.Name = "TextBox1"
 			.Text = "F:\OfficePC_Update\!Media\632734Y0314.mp4"
-			.Hint = "Double click to select a file from local disk."
 			.TabIndex = 14
 			.Align = DockStyle.alClient
 			.ExtraMargins.Right = 10
@@ -383,7 +365,6 @@
 			.Location = Type<My.Sys.Drawing.Point>(430, 10)
 			.SetBounds 470, 9, 204, 22
 			.Designer = @This
-			.OnDblClick = @_TextBox1_DblClick
 			.Parent = @Panel1
 		End With
 		' Picture1
@@ -402,7 +383,7 @@
 			.ForeColor = 8421504
 			.SetBounds 0, 40, 684, 341
 			.Designer = @This
-			.OnMessage = @_Picture1_Message
+			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message), @Picture1_Message)
 			.Parent = @This
 		End With
 		' lblVolume
@@ -436,8 +417,8 @@
 			.PageSize = 1000
 			.SetBounds 0, 24, 110, 30
 			.Designer = @This
-			.OnChange = @_tbAudio_Change
-			.OnMouseUp = @_tbAudio_MouseUp
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbAudio_Change)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @tbAudio_MouseUp)
 			.Parent = @Panel4
 		End With
 		' lblBalance
@@ -468,8 +449,8 @@
 			.PageSize = 1000
 			.SetBounds 110, 24, 110, 30
 			.Designer = @This
-			.OnChange = @_tbAudio_Change
-			.OnMouseUp = @_tbAudio_MouseUp
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbAudio_Change)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @tbAudio_MouseUp)
 			.Parent = @Panel4
 		End With
 		' lblPosition
@@ -513,9 +494,9 @@
 			.Enabled = False
 			.SetBounds 0, 20, 454, 40
 			.Designer = @This
-			.OnChange = @_tbPosition_Change
-			.OnMouseDown = @_tbPosition_MouseDown
-			.OnMouseUp = @_tbPosition_MouseUp
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbPosition_Change)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @tbPosition_MouseDown)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @tbPosition_MouseUp)
 			.Parent = @Panel5
 		End With
 		' chkLoop
@@ -541,7 +522,7 @@
 			.Size = Type<My.Sys.Drawing.Size>(50, 16)
 			.SetBounds 240, 5, 50, 16
 			.Designer = @This
-			.OnClick = @_chkDark_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkDark_Click)
 			.Parent = @Panel6
 		End With
 		' OpenFileDialog1
@@ -556,7 +537,7 @@
 			.Interval = 200
 			.SetBounds 20, 0, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @Panel3
 		End With
 		' ImageList1
@@ -567,62 +548,6 @@
 			.Parent = @Panel3
 		End With
 	End Constructor
-	
-	Private Sub frmMediaType._chkDark_Click(ByRef Sender As CheckBox)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).chkDark_Click(Sender)
-	End Sub
-	
-	Private Sub frmMediaType._ComboBoxEx1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).ComboBoxEx1_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmMediaType._Picture1_Message(ByRef Sender As Control, ByRef msg As Message)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).Picture1_Message(Sender, msg)
-	End Sub
-	
-	Private Sub frmMediaType._tbPosition_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).tbPosition_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmMediaType._tbPosition_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).tbPosition_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmMediaType._tbPosition_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).tbPosition_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmMediaType._tbAudio_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).tbAudio_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmMediaType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
-	End Sub
-	
-	Private Sub frmMediaType._tbAudio_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).tbAudio_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmMediaType._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
-	End Sub
-	
-	Private Sub frmMediaType._cmdBtn_Click(ByRef Sender As Control)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).cmdBtn_Click(Sender)
-	End Sub
-	
-	Private Sub frmMediaType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub frmMediaType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmMediaType._TextBox1_DblClick(ByRef Sender As Control)
-		(*Cast(frmMediaType Ptr, Sender.Designer)).TextBox1_DblClick(Sender)
-	End Sub
 	
 	Dim Shared frmMedia As frmMediaType
 	
@@ -910,13 +835,6 @@ Private Sub frmMediaType.DSUnload()
 	pIGraphBuilder = NULL
 End Sub
 
-Private Sub frmMediaType.TextBox1_DblClick(ByRef Sender As Control)
-	If OpenFileDialog1.Execute() Then
-		TextBox1.Text = OpenFileDialog1.FileName
-		cmdPlay.SetFocus
-	End If
-End Sub
-
 Private Sub frmMediaType.Form_Create(ByRef Sender As Control)
 	Dim hr As HRESULT = CoInitialize(0)
 	aHeight = This.Height - Picture1.Height
@@ -991,6 +909,11 @@ Private Sub frmMediaType.cmdBtn_Click(ByRef Sender As Control)
 		pIBasicVideo->lpVtbl->get_VideoHeight(pIBasicVideo, @vHeight)
 		This.Width = vWidth + aWidth
 		This.Height = vHeight + aHeight
+	Case "cmdBrowse"
+		OpenFileDialog1.FileName = TextBox1.Text
+		If OpenFileDialog1.Execute() Then
+			TextBox1.Text = OpenFileDialog1.FileName
+		End If
 	End Select
 End Sub
 

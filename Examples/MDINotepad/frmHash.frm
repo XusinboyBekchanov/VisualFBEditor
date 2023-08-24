@@ -26,13 +26,9 @@
 		Declare Sub HashFile()
 		Declare Sub HashText()
 	
-		Declare Static Sub _cmdFile_Click(ByRef Sender As Control)
 		Declare Sub cmdFile_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdHash_Click(ByRef Sender As Control)
 		Declare Sub cmdHash_Click(ByRef Sender As Control)
-		Declare Static Sub _lvFiles_DropFile(ByRef Sender As Control, ByRef FileName As WString)
 		Declare Sub lvFiles_DropFile(ByRef Sender As Control, ByRef FileName As WString)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -72,7 +68,7 @@
 			.BorderStyle = FormBorderStyle.Sizable
 			.MaximizeBox = True
 			.MinimizeBox = False
-			.OnCreate = @_Form_Create
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.SetBounds 0, 0, 640, 480
 		End With
 		' TabControl1
@@ -127,7 +123,7 @@
 			.Caption = "Add"
 			.SetBounds 10, 10, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 			.Parent = @Panel1
 		End With
 		' cmdFileDelete
@@ -138,7 +134,7 @@
 			.Caption = "Delete"
 			.SetBounds 120, 10, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 			.Parent = @Panel1
 		End With
 		' cmdFileClear
@@ -149,7 +145,7 @@
 			.Caption = "Clear"
 			.SetBounds 230, 10, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 			.Parent = @Panel1
 		End With
 		' lvFiles
@@ -164,7 +160,7 @@
 			.SmallImages = @ImageList1
 			.SetBounds 0, 40, 602, 126
 			.Designer = @This
-			.OnDropFile = @_lvFiles_DropFile
+			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @lvFiles_DropFile)
 			.Parent = @tabFile
 			.Columns.Add("Filename",,570)
 		End With
@@ -329,7 +325,7 @@
 				.Caption = "Insert"
 				.SetBounds 10, 10, 100, 20
 				.Designer = @This
-				.OnClick = @_cmdHash_Click
+				.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdHash_Click)
 				.Parent = @Panel6
 			End With
 		#endif
@@ -341,7 +337,7 @@
 			.Caption = "Clear"
 			.SetBounds 120, 10, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdHash_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdHash_Click)
 			.Parent = @Panel6
 		End With
 		' cmdHashAct
@@ -352,7 +348,7 @@
 			.Caption = "Hash"
 			.SetBounds 230, 10, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdHash_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdHash_Click)
 			.Parent = @Panel6
 		End With
 		' ImageList1
@@ -371,22 +367,6 @@
 			.Parent = @Panel1
 		End With
 	End Constructor
-	
-	Private Sub frmHashType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmHashType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmHashType._lvFiles_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		(*Cast(frmHashType Ptr, Sender.Designer)).lvFiles_DropFile(Sender, Filename)
-	End Sub
-	
-	Private Sub frmHashType._cmdHash_Click(ByRef Sender As Control)
-		(*Cast(frmHashType Ptr, Sender.Designer)).cmdHash_Click(Sender)
-	End Sub
-	
-	Private Sub frmHashType._cmdFile_Click(ByRef Sender As Control)
-		(*Cast(frmHashType Ptr, Sender.Designer)).cmdFile_Click(Sender)
-	End Sub
 	
 	Dim Shared frmHash As frmHashType
 	
@@ -438,8 +418,8 @@ Private Sub frmHashType.cmdHash_Click(ByRef Sender As Control)
 		txtHash.Clear
 	Case "cmdHashInsert"
 		#ifdef __MDI__
-			If MDIMain.ActMdiChild Then
-				MDIMain.MDIChildInsertText(MDIMain.ActMdiChild, txtHash.Text)
+			If MDIMain.actMdiChild Then
+				MDIMain.MDIChildInsertText(MDIMain.actMdiChild, txtHash.Text)
 			End If
 		#endif
 	End Select

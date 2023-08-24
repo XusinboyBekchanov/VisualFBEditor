@@ -1,7 +1,6 @@
 ﻿File=PipeProcess.bi
 *File=frmPipe.frm
 File=PipeProcess.bas
-*File=frmPipe.rc
 ProjectType=0
 Subsystem=2
 ProjectName="PipeProcess"
@@ -12,7 +11,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=237
+BuildVersion=267
 AutoIncrementVersion=false
 ApplicationTitle="PipeProcess"
 ApplicationIcon=""

@@ -1,7 +1,6 @@
 ﻿File=MDIChild.frm
 File=MDIList.frm
 *File=MDIMain.frm
-*File=Form1.rc
 ProjectType=0
 Subsystem=2
 ProjectName=""
@@ -12,7 +11,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=347
+BuildVersion=379
 AutoIncrementVersion=false
 ApplicationTitle="MDIForm"
 ApplicationIcon=""

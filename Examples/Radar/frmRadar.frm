@@ -25,11 +25,8 @@
 		
 		Declare Sub HighlighthWnd(hWnd As HWND)
 		
-		Declare Static Sub _ImageBox1_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub ImageBox1_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _ImageBox1_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub ImageBox1_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _ImageBox1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub ImageBox1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Constructor
 		
@@ -65,9 +62,9 @@
 			.BackColor = 8421504
 			.SetBounds 10, 10, 40, 40
 			.Designer = @This
-			.OnMouseDown = @_ImageBox1_MouseDown
-			.OnMouseMove= @_ImageBox1_MouseMove
-			.OnMouseUp = @_ImageBox1_MouseUp
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @ImageBox1_MouseDown)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @ImageBox1_MouseMove)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @ImageBox1_MouseUp)
 			.Parent = @This
 		End With
 		'TextBox1
@@ -133,18 +130,6 @@
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub frmRadarType._ImageBox1_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmRadarType Ptr, Sender.Designer)).ImageBox1_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmRadarType._ImageBox1_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmRadarType Ptr, Sender.Designer)).ImageBox1_MouseMove(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmRadarType._ImageBox1_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmRadarType Ptr, Sender.Designer)).ImageBox1_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
 	
 	Dim Shared frmRadar As frmRadarType
 	

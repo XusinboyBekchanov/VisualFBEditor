@@ -14,10 +14,10 @@
 	#include once "mff/TextBox.bi"
 	#include once "mff/TimerComponent.bi"
 	#include once "mff/Label.bi"
-
+	
 	#include once "SerialPort.bi"
 	#include once "../MDINotepad/Text.bi"
-
+	
 	Using My.Sys.Forms
 	
 	Type frmSerialPortType Extends Form
@@ -30,17 +30,11 @@
 		Declare Sub SetComState()
 		Declare Static Sub DataArrive(Owner As Any Ptr, ArriveData As ZString Ptr, DataLength As Integer)
 		
-		Declare Static Sub _ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _CommandButton_Click(ByRef Sender As Control)
 		Declare Sub CommandButton_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _CheckBox_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _TextBox_Change(ByRef Sender As TextBox)
 		Declare Sub TextBox_Change(ByRef Sender As TextBox)
-		Declare Static Sub _TimerComponent_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent_Timer(ByRef Sender As TimerComponent)
 		Declare Constructor
 		
@@ -67,7 +61,7 @@
 				'...instructions for other OSes
 				.Caption = "VFBE SerialPort32"
 			#endif
-			.OnCreate = @_Form_Create
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.StartPosition = FormStartPosition.CenterScreen
 			.SetBounds 0, 0, 820, 680
 		End With
@@ -99,7 +93,7 @@
 			.Caption = "Refresh"
 			.SetBounds 10, 10, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
 		End With
 		' CommandButton2
@@ -111,7 +105,7 @@
 			.Enabled = False
 			.SetBounds 90, 10, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
 		End With
 		' cbePortName
@@ -163,7 +157,7 @@
 			.ItemData(11) = Cast(Any Ptr, CBR_115200)
 			.ItemData(12) = Cast(Any Ptr, CBR_128000)
 			.ItemData(13) = Cast(Any Ptr, CBR_256000)
-			.OnSelected = @_ComboBoxEdit_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 		End With
 		' cbeByteSize
 		With cbeByteSize
@@ -183,7 +177,7 @@
 			.ItemData(1) = Cast(Any Ptr, 1)
 			.ItemData(2) = Cast(Any Ptr, 2)
 			.ItemData(3) = Cast(Any Ptr, 3)
-			.OnSelected = @_ComboBoxEdit_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 		End With
 		' cbeStopBits
 		With cbeStopBits
@@ -201,7 +195,7 @@
 			.ItemData(0) = Cast(Any Ptr, &h1)
 			.ItemData(1) = Cast(Any Ptr, &h2)
 			.ItemData(2) = Cast(Any Ptr, &h4)
-			.OnSelected = @_ComboBoxEdit_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 		End With
 		' cbeParity
 		With cbeParity
@@ -223,7 +217,7 @@
 			.ItemData(2) = Cast(Any Ptr, &h400)
 			.ItemData(3) = Cast(Any Ptr, &h800)
 			.ItemData(4) = Cast(Any Ptr, &h1000)
-			.OnSelected = @_ComboBoxEdit_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 		End With
 		' lblRTS
 		With lblRTS
@@ -263,7 +257,7 @@
 			.AddItem("Enable")
 			.AddItem("Hand Shake")
 			.AddItem("Unuse")
-			.OnSelected = @_ComboBoxEdit_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 		End With
 		' cbefRtsControl
 		With cbefRtsControl
@@ -280,7 +274,7 @@
 			.AddItem("Enable")
 			.AddItem("Hand Shake")
 			.AddItem("Toggle")
-			.OnSelected = @_ComboBoxEdit_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 		End With
 		' chkfBinary
 		With chkfBinary
@@ -291,7 +285,7 @@
 			.Caption = "fBinary"
 			.SetBounds 10, 150, 150, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfParity
@@ -303,7 +297,7 @@
 			.Hint = "If this member is TRUE, parity checking is performed and errors are reported."
 			.SetBounds 10, 170, 150, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfOutxCtsFlow
@@ -316,7 +310,7 @@
 			.ForeColor = 0
 			.SetBounds 10, 190, 150, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfOutxDsrFlow
@@ -329,7 +323,7 @@
 			.ForeColor = 0
 			.SetBounds 10, 210, 150, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfDsrSensitivity
@@ -341,7 +335,7 @@
 			.Hint = "If this member is TRUE, the communications driver is sensitive to the state of the DSR signal. The driver ignores any bytes received, unless the DSR modem input line is high."
 			.SetBounds 10, 260, 150, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfTXContinueOnXoff
@@ -353,7 +347,7 @@
 			.Hint = "If this member is TRUE, transmission continues after the input buffer has come within XoffLim bytes of being full and the driver has transmitted the XoffChar character to stop receiving bytes. If this member is FALSE, transmission does not continue until the input buffer is within XonLim bytes of being empty and the driver has transmitted the XonChar character to resume reception."
 			.SetBounds 10, 280, 150, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfOutX
@@ -365,7 +359,7 @@
 			.Hint = "Indicates whether XON/XOFF flow control is used during transmission. If this member is TRUE, transmission stops when the XoffChar character is received and starts again when the XonChar character is received."
 			.SetBounds 10, 300, 150, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfInX
@@ -377,7 +371,7 @@
 			.Hint = "Indicates whether XON/XOFF flow control is used during reception. If this member is TRUE, the XoffChar character is sent when the input buffer comes within XoffLim bytes of being full, and the XonChar character is sent when the input buffer comes within XonLim bytes of being empty."
 			.SetBounds 10, 320, 150, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfErrorChar
@@ -389,7 +383,7 @@
 			.Hint = "Indicates whether bytes received with parity errors are replaced with the character specified by the ErrorChar member. If this member is TRUE and the fParity member is TRUE, replacement occurs."
 			.SetBounds 10, 340, 140, 16
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfNull
@@ -401,7 +395,7 @@
 			.Hint = "If this member is TRUE, null bytes are discarded when received."
 			.SetBounds 10, 360, 150, 20
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' chkfAbortOnError
@@ -413,7 +407,7 @@
 			.Hint = "If this member is TRUE, the driver terminates all read and write operations with an error status if an error occurs. The driver will not accept any further communications operations until the application has acknowledged the error by calling the ClearCommError function."
 			.SetBounds 10, 410, 150, 20
 			.Designer = @This
-			.OnClick = @_CheckBox_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
 		End With
 		' txtfDummy2
@@ -424,7 +418,7 @@
 			.Hint = "fDummy2: Reserved; do not use."
 			.SetBounds 10, 440, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtwReserved
@@ -435,7 +429,7 @@
 			.Hint = "wReserved: Reserved; must be zero."
 			.SetBounds 90, 440, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtXonLim
@@ -446,7 +440,7 @@
 			.Hint = "XonLim: The minimum number of bytes in use allowed in the input buffer before flow control is activated to allow transmission by the sender. This assumes that either XON/XOFF, RTS, or DTR input flow control is specified in the fInX, fRtsControl, or fDtrControl members."
 			.SetBounds 10, 460, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtXoffLim
@@ -457,7 +451,7 @@
 			.Hint = "XoffLim: The minimum number of free bytes allowed in the input buffer before flow control is activated to inhibit the sender. Note that the sender may transmit characters after the flow control signal has been activated, so this value should never be zero. This assumes that either XON/XOFF, RTS, or DTR input flow control is specified in the fInX, fRtsControl, or fDtrControl members. The maximum number of bytes in use allowed is calculated by subtracting this value from the size, in bytes, of the input buffer."
 			.SetBounds 90, 460, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtXonChar
@@ -468,7 +462,7 @@
 			.Hint = "XonChar: The value of the XON character for both transmission and reception."
 			.SetBounds 10, 480, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtXoffChar
@@ -479,7 +473,7 @@
 			.Hint = "XoffChar: The value of the XOFF character for both transmission and reception."
 			.SetBounds 90, 480, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtErrorChar
@@ -490,7 +484,7 @@
 			.Hint = "ErrorChar: The value of the character used to replace bytes received with a parity error."
 			.SetBounds 10, 500, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtEofChar
@@ -501,7 +495,7 @@
 			.Hint = "EofChar: The value of the character used to signal the end of data."
 			.SetBounds 90, 500, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtEvtChar
@@ -512,7 +506,7 @@
 			.Hint = "EvtChar: The value of the character used to signal an event."
 			.SetBounds 10, 520, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' txtwReserved1
@@ -523,7 +517,7 @@
 			.Hint = "wReserved1: Reserved; do not use."
 			.SetBounds 90, 520, 70, 20
 			.Designer = @This
-			.OnChange = @_TextBox_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
 		' Panel3
@@ -591,7 +585,7 @@
 			.Interval = 1000
 			.SetBounds 90, 160, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent_Timer)
 			.Parent = @Panel1
 		End With
 		' tmrSetStatus
@@ -600,7 +594,7 @@
 			.Interval = 100
 			.SetBounds 110, 160, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent_Timer)
 			.Parent = @Panel1
 		End With
 		' Panel4
@@ -663,7 +657,7 @@
 			.Align = DockStyle.alClient
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Both
-		.HideSelection = False
+			.HideSelection = False
 			.SetBounds 0, 40, 624, 451
 			.Designer = @This
 			.Parent = @Panel4
@@ -678,7 +672,7 @@
 			.Multiline = True
 			.ID = 1002
 			.ScrollBars = ScrollBarsType.Both
-		.HideSelection = False
+			.HideSelection = False
 			.SetBounds 0, 40, 624, 100
 			.Designer = @This
 			.Parent = @Panel6
@@ -689,7 +683,7 @@
 			.Text = "Hex"
 			.TabIndex = 45
 			.Caption = "Hex"
-		.Visible = False
+			.Visible = False
 			.SetBounds 0, 10, 70, 20
 			.Designer = @This
 			.Parent = @Panel5
@@ -709,7 +703,7 @@
 			.Name = "chkHexSend"
 			.Text = "Hex"
 			.TabIndex = 46
-		.Visible = False
+			.Visible = False
 			.SetBounds 0, 10, 70, 20
 			.Designer = @This
 			.Parent = @Panel7
@@ -723,7 +717,7 @@
 			.ControlIndex = 0
 			.SetBounds 20, 9, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel9
 		End With
 		' cmdClearRec
@@ -735,34 +729,10 @@
 			.ControlIndex = 0
 			.SetBounds 20, 9, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel8
 		End With
 	End Constructor
-	
-	Private Sub frmSerialPortType._TimerComponent_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmSerialPortType Ptr, Sender.Designer)).TimerComponent_Timer(Sender)
-	End Sub
-	
-	Private Sub frmSerialPortType._TextBox_Change(ByRef Sender As TextBox)
-		(*Cast(frmSerialPortType Ptr, Sender.Designer)).TextBox_Change(Sender)
-	End Sub
-	
-	Private Sub frmSerialPortType._CheckBox_Click(ByRef Sender As CheckBox)
-		(*Cast(frmSerialPortType Ptr, Sender.Designer)).CheckBox_Click(Sender)
-	End Sub
-	
-	Private Sub frmSerialPortType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmSerialPortType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmSerialPortType._CommandButton_Click(ByRef Sender As Control)
-		(*Cast(frmSerialPortType Ptr, Sender.Designer)).CommandButton_Click(Sender)
-	End Sub
-	
-	Private Sub frmSerialPortType._ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmSerialPortType Ptr, Sender.Designer)).ComboBoxEdit_Selected(Sender, ItemIndex)
-	End Sub
 	
 	Dim Shared frmSerialPort As frmSerialPortType
 	

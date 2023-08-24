@@ -38,19 +38,12 @@
 		
 		Declare Sub CtlEnabled(e As Boolean)
 		
-		Declare Static Sub _cmdButton_Click(ByRef Sender As Control)
 		Declare Sub cmdButton_Click(ByRef Sender As Control)
-		Declare Static Sub _cmbSourceURL_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub cmbSourceURL_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _Form_Show(ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub _cmbSourceURL_Change(ByRef Sender As ComboBoxEdit)
 		Declare Sub cmbSourceURL_Change(ByRef Sender As ComboBoxEdit)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Constructor
 		
@@ -84,9 +77,9 @@
 				'...instructions for other OSes
 				.Caption = "VFBE URLDownloadToFile32"
 			#endif
-			.OnShow = @_Form_Show
-			.OnCreate = @_Form_Create
-			.OnClose = @_Form_Close
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show)
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.BorderStyle = FormBorderStyle.FixedSingle
 			.MinimizeBox = True
 			.MaximizeBox = False
@@ -132,8 +125,8 @@
 			.SetBounds 10, 30, 480, 21
 			.Designer = @This
 			.Parent = @GroupBox1
-			.OnSelected = @_cmbSourceURL_Selected
-			.OnChange = @_cmbSourceURL_Change
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cmbSourceURL_Selected)
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit), @cmbSourceURL_Change)
 			.AddItem "https://github.com/XusinboyBekchanov/VisualFBEditor/archive/refs/heads/master.zip"
 			.AddItem "https://github.com/XusinboyBekchanov/MyFbFramework/archive/refs/heads/master.zip"
 			.AddItem "https://github.com/PaulSquires/WinFBE/archive/refs/heads/master.zip"
@@ -167,7 +160,7 @@
 			.Caption = "Select"
 			.SetBounds 400, 20, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @GroupBox2
 		End With
 		' txtTargetFile
@@ -187,7 +180,7 @@
 			.Caption = "Browse"
 			.SetBounds 400, 50, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @GroupBox2
 		End With
 		' lblSourceSize
@@ -271,7 +264,7 @@
 			.Enabled = False
 			.SetBounds 320, 420, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @This
 		End With
 		' cmdDownload
@@ -282,7 +275,7 @@
 			.Caption = "Download"
 			.SetBounds 420, 420, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @This
 		End With
 		' FolderBrowserDialog1
@@ -298,38 +291,10 @@
 			.Interval = 100
 			.SetBounds 10, 10, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @GroupBox3
 		End With
 	End Constructor
-	
-	Private Sub frmDownloadType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmDownloadType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
-	End Sub
-	
-	Private Sub frmDownloadType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(frmDownloadType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub frmDownloadType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmDownloadType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmDownloadType._cmbSourceURL_Change(ByRef Sender As ComboBoxEdit)
-		(*Cast(frmDownloadType Ptr, Sender.Designer)).cmbSourceURL_Change(Sender)
-	End Sub
-	
-	Private Sub frmDownloadType._Form_Show(ByRef Sender As Form)
-		(*Cast(frmDownloadType Ptr, Sender.Designer)).Form_Show(Sender)
-	End Sub
-	
-	Private Sub frmDownloadType._cmbSourceURL_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmDownloadType Ptr, Sender.Designer)).cmbSourceURL_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmDownloadType._cmdButton_Click(ByRef Sender As Control)
-		(*Cast(frmDownloadType Ptr, Sender.Designer)).cmdButton_Click(Sender)
-	End Sub
 	
 	Dim Shared frmDownload As frmDownloadType
 	

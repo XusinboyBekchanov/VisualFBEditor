@@ -1,6 +1,5 @@
 ﻿File=MDIChild.frm
 *File=MDIMain.frm
-*File=MDIScintillaControl.rc
 ProjectType=0
 Subsystem=2
 ProjectName="MDIScintillaControl"
@@ -11,7 +10,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=1211
+BuildVersion=1233
 AutoIncrementVersion=false
 ApplicationTitle="MDIScintillaControl"
 ApplicationIcon=""

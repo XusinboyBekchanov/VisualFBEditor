@@ -15,9 +15,7 @@
 	Using My.Sys.Forms
 	
 	Type MDIListType Extends Form
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _ListControl1_DblClick(ByRef Sender As Control)
 		Declare Sub ListControl1_DblClick(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -32,7 +30,7 @@
 			.Designer = @This
 			.Caption = "Select Window"
 			.StartPosition = FormStartPosition.CenterParent
-			.OnCreate = @_Form_Create
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.BorderStyle = FormBorderStyle.Sizable
 			.SetBounds 0, 0, 350, 300
 		End With
@@ -48,18 +46,10 @@
 			.ExtraMargins.Bottom = 10
 			.SetBounds 10, 10, 314, 238
 			.Designer = @This
-			.OnDblClick = @_ListControl1_DblClick
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @ListControl1_DblClick)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub MDIListType._ListControl1_DblClick(ByRef Sender As Control)
-		(*Cast(MDIListType Ptr, Sender.Designer)).ListControl1_DblClick(Sender)
-	End Sub
-	
-	Private Sub MDIListType._Form_Create(ByRef Sender As Control)
-		(*Cast(MDIListType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
 	
 	Dim Shared MDIList As MDIListType
 	

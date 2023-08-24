@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "LiveFX\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,118
-#define VER_FILEVERSION_STR         "0.0.0.118\0"
+#define VER_FILEVERSION             0,0,0,155
+#define VER_FILEVERSION_STR         "0.0.0.155\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

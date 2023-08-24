@@ -1,10 +1,10 @@
 ﻿'#Region "Form"
 	#define __MDI__ MDIMain
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
-		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "MDIScintillaControl.rc"
 		#endif
+		#define __MAIN_FILE__
 		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
@@ -137,37 +137,21 @@
 		"Korean Johab" _
 		}
 		
-		Declare Static Sub _mnuFile_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuFile_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuEdit_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuEdit_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 		Declare Sub ToolBar1_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
-		Declare Static Sub _mnuConvert_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuConvert_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuView_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuView_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuTools_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuTools_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuWindow_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuWindow_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuHelp_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuHelp_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _mnuCharSet_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuCharSet_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuCodePage_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuCodePage_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuEOLConvert_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuEOLConvert_Click(ByRef Sender As MenuItem)
-		Declare Static Sub _mnuEncoding_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuEncoding_Click(ByRef Sender As MenuItem)
 		Declare Constructor
 		
@@ -224,10 +208,10 @@
 			#endif
 			.StartPosition = FormStartPosition.CenterScreen
 			.AllowDrop = True
-			.OnDropFile = @_Form_DropFile
-			.OnCreate = @_Form_Create
-			.OnClose = @_Form_Close
-			.OnResize = @_Form_Resize
+			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @Form_DropFile)
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.SetBounds 0, 0, 1024, 720
 		End With
 		' ImageList1
@@ -388,7 +372,7 @@
 			.BorderStyle = BorderStyles.bsNone
 			.SetBounds 0, 0, 1008, 26
 			.Designer = @This
-			.OnButtonClick = @_ToolBar1_ButtonClick
+			.OnButtonClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar, ByRef Button As ToolButton), @ToolBar1_ButtonClick)
 			.Parent = @This
 		End With
 		' StatusBar1
@@ -420,7 +404,7 @@
 			.Designer = @This
 			.Caption = !"&New\tCtrl+N"
 			.ImageKey = "New"
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileOpen
@@ -429,7 +413,7 @@
 			.Designer = @This
 			.Caption = !"&Open\tCtrl+O"
 			.ImageKey = "Open"
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar1
@@ -445,7 +429,7 @@
 			.Designer = @This
 			.Caption = !"Save\tCtrl+S"
 			.ImageKey = "Save"
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileSaveAs
@@ -454,7 +438,7 @@
 			.Designer = @This
 			.Caption = "Save &As..."
 			.ImageKey = "SaveAs"
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileSaveAll
@@ -463,7 +447,7 @@
 			.Designer = @This
 			.Caption = "Save A&ll"
 			.ImageKey = "SaveAll"
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar2
@@ -478,7 +462,7 @@
 			.Name = "mnuEncoding"
 			.Designer = @This
 			.Caption = "Encoding"
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuEncodingPlainText
@@ -487,7 +471,7 @@
 			.Designer = @This
 			.Caption = "Plain Text"
 			.RadioItem = True
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuEncoding
 		End With
 		' mnuEncodingUtf8
@@ -495,7 +479,7 @@
 			.Name = "mnuEncodingUtf8"
 			.Designer = @This
 			.Caption = "UTF-8"
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuEncoding
 		End With
 		' mnuEncodingUtf8BOM
@@ -503,7 +487,7 @@
 			.Name = "mnuEncodingUtf8BOM"
 			.Designer = @This
 			.Caption = "UTF-8 (BOM)"
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuEncoding
 		End With
 		' mnuEncodingUtf16BOM
@@ -511,7 +495,7 @@
 			.Name = "mnuEncodingUtf16BOM"
 			.Designer = @This
 			.Caption = "UTF-16 (BOM)"
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuEncoding
 		End With
 		' mnuEncodingUtf32BOM
@@ -519,7 +503,7 @@
 			.Name = "mnuEncodingUtf32BOM"
 			.Designer = @This
 			.Caption = "UTF-32 (BOM)"
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuEncoding
 		End With
 		' mnuEncodingBar1
@@ -534,7 +518,7 @@
 			.Name = "mnuEncodingCRLF"
 			.Designer = @This
 			.Caption = "Windows CRLF"
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuEncoding
 		End With
 		' mnuEncodingLF
@@ -542,7 +526,7 @@
 			.Name = "mnuEncodingLF"
 			.Designer = @This
 			.Caption = "Linux LF"
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuEncoding
 		End With
 		' mnuEncodingCR
@@ -550,7 +534,7 @@
 			.Name = "mnuEncodingCR"
 			.Designer = @This
 			.Caption = "MacOS CR"
-			.OnClick = @_mnuEncoding_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEncoding_Click)
 			.Parent = @mnuEncoding
 		End With
 		' mnuFileBrowse
@@ -558,7 +542,7 @@
 			.Name = "mnuFileBrowse"
 			.Designer = @This
 			.Caption = "Browse"
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.ImageKey = "Browse"
 			.Parent = @mnuFile
 		End With
@@ -574,7 +558,7 @@
 			.Name = "mnuFilePageSetup"
 			.Designer = @This
 			.Caption = "Print Set&up..."
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.ImageKey = "PrintSetup"
 			.Parent = @mnuFile
 		End With
@@ -584,7 +568,7 @@
 			.Designer = @This
 			.Caption = "Print Pre&view"
 			.MenuIndex = 11
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.ImageKey = "PrintPreview"
 			.Parent = @mnuFile
 		End With
@@ -593,7 +577,7 @@
 			.Name = "mnuFilePrint"
 			.Designer = @This
 			.Caption = !"&Print...\tCtrl+P"
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.ImageKey = "Print"
 			.Parent = @mnuFile
 		End With
@@ -610,7 +594,7 @@
 			.Designer = @This
 			.Caption = "E&xit"
 			.ImageKey = "Exit"
-			.OnClick = @_mnuFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
 		' mnuEdit
@@ -626,7 +610,7 @@
 			.Name = "mnuEditUndo"
 			.Designer = @This
 			.Caption = !"&Undo\tCtrl+Z"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "Undo"
 			.Parent = @mnuEdit
 		End With
@@ -635,7 +619,7 @@
 			.Name = "mnuEditRedo"
 			.Designer = @This
 			.Caption = "&Redo"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "Redo"
 			.Parent = @mnuEdit
 		End With
@@ -652,7 +636,7 @@
 			.Designer = @This
 			.Caption = !"Cu&t\tCtrl+X"
 			.ImageKey = "Cut"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent =  @mnuEdit
 		End With
 		' mnuEditCopy
@@ -661,7 +645,7 @@
 			.Designer = @This
 			.Caption = !"&Copy\tCtrl+C"
 			.ImageKey = "Copy"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditPaste
@@ -670,7 +654,7 @@
 			.Designer = @This
 			.Caption = !"&Paste\tCtrl+V"
 			.ImageKey = "Paste"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditDelete
@@ -678,7 +662,7 @@
 			.Name = "mnuEditDelete"
 			.Designer = @This
 			.Caption = !"Delete\tDel"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "Delete"
 			.Parent = @mnuEdit
 		End With
@@ -687,7 +671,7 @@
 			.Name = "mnuEditDSelectAll"
 			.Designer = @This
 			.Caption = !"Select &All\tCtrl+A"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditBar2
@@ -702,7 +686,7 @@
 			.Name = "mnuEditDateTime"
 			.Designer = @This
 			.Caption = !"Date Time\tF5"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
 		' mnuEditFileInsert
@@ -710,7 +694,7 @@
 			.Name = "mnuEditFileInsert"
 			.Designer = @This
 			.Caption = "File Insert..."
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "Add"
 			.Parent = @mnuEdit
 		End With
@@ -726,7 +710,7 @@
 			.Name = "mnuEditFind"
 			.Designer = @This
 			.Caption = !"Find...\tCtrl+F"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "Find"
 			.Parent = @mnuEdit
 		End With
@@ -735,7 +719,7 @@
 			.Name = "mnuEditFindNext"
 			.Designer = @This
 			.Caption = !"Find Next\tF3"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "FindNext"
 			.Parent = @mnuEdit
 		End With
@@ -744,7 +728,7 @@
 			.Name = "mnuEditFindBack"
 			.Designer = @This
 			.Caption = !"Find Back\tShift+F3"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "FindBack"
 			.Parent = @mnuEdit
 		End With
@@ -753,7 +737,7 @@
 			.Name = "mnuEditReplace"
 			.Designer = @This
 			.Caption = !"Replace...\tCtrl+H"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "Replace"
 			.Parent = @mnuEdit
 		End With
@@ -762,7 +746,7 @@
 			.Name = "mnuEditGoto"
 			.Designer = @This
 			.Caption = !"Goto...\tCtrl+G"
-			.OnClick = @_mnuEdit_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.ImageKey = "Goto"
 			.Parent = @mnuEdit
 		End With
@@ -773,6 +757,7 @@
 			.Caption = "Scintilla"
 			.Parent = @MainMenu1
 		End With
+		'mnuCharSet
 		With mnuCharSet
 			.Name = "mnuCharSet"
 			.Designer = @This
@@ -785,7 +770,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 00)
 			.Caption = "ANSI"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet01
@@ -794,7 +779,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 01)
 			.Caption = "DEFAULT"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet02
@@ -803,7 +788,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 02)
 			.Caption = "BALTIC"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet03
@@ -812,7 +797,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 03)
 			.Caption = "CHINESEBIG5"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet04
@@ -821,7 +806,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 04)
 			.Caption = "EASTEUROPE"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet05
@@ -830,7 +815,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 05)
 			.Caption = "GB2312"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet06
@@ -839,7 +824,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 06)
 			.Caption = "GREEK"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet07
@@ -848,7 +833,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 07)
 			.Caption = "HANGUL"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet08
@@ -857,7 +842,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 08)
 			.Caption = "MAC"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet09
@@ -866,7 +851,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 09)
 			.Caption = "OEM"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet10
@@ -875,7 +860,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 10)
 			.Caption = "RUSSIAN"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet11
@@ -884,7 +869,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 11)
 			.Caption = "OEM866"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet12
@@ -893,7 +878,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 12)
 			.Caption = "CYRILLIC"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet13
@@ -902,7 +887,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 13)
 			.Caption = "SHIFTJIS"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet14
@@ -911,7 +896,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 14)
 			.Caption = "SYMBOL"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet15
@@ -920,7 +905,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 15)
 			.Caption = "TURKISH"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet16
@@ -929,7 +914,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 16)
 			.Caption = "JOHAB"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet17
@@ -938,7 +923,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 17)
 			.Caption = "HEBREW"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet18
@@ -947,7 +932,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 18)
 			.Caption = "ARABIC"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet19
@@ -956,7 +941,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 19)
 			.Caption = "VIETNAMESE"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet20
@@ -965,7 +950,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 20)
 			.Caption = "THAI"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCharSet21
@@ -974,7 +959,7 @@
 			.Designer = @This
 			.Tag = Cast(Any Ptr, 21)
 			.Caption = "8859_15"
-			.OnClick = @_mnuCharSet_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCharSet_Click)
 			.Parent = @mnuCharSet
 		End With
 		' mnuCodePage
@@ -990,7 +975,7 @@
 			.Designer = @This
 			.Caption = "Default"
 			.Tag = Cast(Any Ptr, 00)
-			.OnClick = @_mnuCodePage_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCodePage_Click)
 			.Parent = @mnuCodePage
 		End With
 		' mnuCodePage01
@@ -999,7 +984,7 @@
 			.Designer = @This
 			.Caption = "UTF-8"
 			.Tag = Cast(Any Ptr, 01)
-			.OnClick = @_mnuCodePage_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCodePage_Click)
 			.Parent = @mnuCodePage
 		End With
 		' mnuCodePage02
@@ -1008,7 +993,7 @@
 			.Designer = @This
 			.Caption = "Japanese Shift-JIS"
 			.Tag = Cast(Any Ptr, 02)
-			.OnClick = @_mnuCodePage_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCodePage_Click)
 			.Parent = @mnuCodePage
 		End With
 		' mnuCodePage03
@@ -1017,7 +1002,7 @@
 			.Designer = @This
 			.Caption = "Simplified Chinese GBK"
 			.Tag = Cast(Any Ptr, 03)
-			.OnClick = @_mnuCodePage_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCodePage_Click)
 			.Parent = @mnuCodePage
 		End With
 		' mnuCodePage04
@@ -1026,15 +1011,16 @@
 			.Designer = @This
 			.Caption = "Korean Unified Hangul Code"
 			.Tag = Cast(Any Ptr, 04)
-			.OnClick = @_mnuCodePage_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCodePage_Click)
 			.Parent = @mnuCodePage
 		End With
+		' mnuCodePage05
 		With mnuCodePage05
 			.Name = "mnuCodePage05"
 			.Designer = @This
 			.Caption = "Traditional Chinese Big5"
 			.Tag = Cast(Any Ptr, 05)
-			.OnClick = @_mnuCodePage_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCodePage_Click)
 			.Parent = @mnuCodePage
 		End With
 		' mnuCodePage06
@@ -1043,7 +1029,7 @@
 			.Designer = @This
 			.Caption = "Korean Johab"
 			.Tag = Cast(Any Ptr, 06)
-			.OnClick = @_mnuCodePage_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuCodePage_Click)
 			.Parent = @mnuCodePage
 		End With
 		' mnuView
@@ -1058,7 +1044,7 @@
 			.Name = "mnuViewToolbar"
 			.Caption = "&Toolbar"
 			.Designer = @This
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Checked = True
 			.ImageKey = "ToolBar"
 			.Parent = @mnuView
@@ -1068,7 +1054,7 @@
 			.Name = "mnuViewStatusBar"
 			.Caption = "Status &Bar"
 			.Designer = @This
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Checked = True
 			.ImageKey = "StatusBar"
 			.Parent = @mnuView
@@ -1086,7 +1072,7 @@
 			.Designer = @This
 			.Caption = "Dark Mode"
 			.Checked = False
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.ImageKey = "DarkMode"
 			.Parent = @mnuView
 		End With
@@ -1101,7 +1087,7 @@
 		With mnuViewWhitespace
 			.Name = "mnuViewWhitespace"
 			.Designer = @This
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Caption = "White space"
 			.Parent = @mnuView
 		End With
@@ -1109,7 +1095,7 @@
 		With mnuViewEOL
 			.Name = "mnuViewEOL"
 			.Designer = @This
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Caption = "End of line"
 			.Parent = @mnuView
 		End With
@@ -1117,7 +1103,7 @@
 		With mnuViewLN
 			.Name = "mnuViewLN"
 			.Designer = @This
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Caption = "Line number"
 			.Parent = @mnuView
 		End With
@@ -1125,7 +1111,7 @@
 		With mnuViewCaretLine
 			.Name = "mnuViewCaretLine"
 			.Designer = @This
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Caption = "Caret line"
 			.Parent = @mnuView
 		End With
@@ -1133,7 +1119,7 @@
 		With mnuViewFold
 			.Name = "mnuViewFold"
 			.Designer = @This
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Caption = "Fold"
 			.Checked = True
 			.Parent = @mnuView
@@ -1150,7 +1136,7 @@
 			.Name = "mnuViewWordWarps"
 			.Designer = @This
 			.Caption = "Word Warps"
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.ImageKey = "WorkWarps"
 			.Parent = @mnuView
 		End With
@@ -1159,7 +1145,7 @@
 			.Name = "mnuViewFont"
 			.Caption = "Font..."
 			.Designer = @This
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.ImageKey = "Fonts"
 			.Parent = @mnuView
 		End With
@@ -1168,7 +1154,7 @@
 			.Name = "mnuViewBackColor"
 			.Designer = @This
 			.Caption = "Back Color..."
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.ImageKey = "Color"
 			.Parent = @mnuView
 		End With
@@ -1177,7 +1163,7 @@
 			.Name = "mnuViewAllFont"
 			.Designer = @This
 			.Caption = "All Font..."
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Parent = @mnuView
 		End With
 		' mnuViewAllBackColor
@@ -1185,7 +1171,7 @@
 			.Name = "mnuViewAllBackColor"
 			.Designer = @This
 			.Caption = "All Back Color..."
-			.OnClick = @_mnuView_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Parent = @mnuView
 		End With
 		' mnuConvert
@@ -1201,7 +1187,7 @@
 			.Name = "mnuConvertTraditional"
 			.Designer = @This
 			.Caption = "Traditional"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuConvertSimplified
@@ -1209,7 +1195,7 @@
 			.Name = "mnuConvertSimplified"
 			.Designer = @This
 			.Caption = "Simplified"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuConvertBar1
@@ -1224,7 +1210,7 @@
 			.Name = "mnuConvertFullWidth"
 			.Designer = @This
 			.Caption = "Full Width"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuConvertHalfWidth
@@ -1232,7 +1218,7 @@
 			.Name = "mnuConvertHalfWidth"
 			.Designer = @This
 			.Caption = "Half Width"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuConvertLowerCase
@@ -1240,7 +1226,7 @@
 			.Name = "mnuConvertLowerCase"
 			.Designer = @This
 			.Caption = "Lower Case"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuConvertUpperCase
@@ -1248,7 +1234,7 @@
 			.Name = "mnuConvertUpperCase"
 			.Designer = @This
 			.Caption = "Upper Case"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuConvertTitleCase
@@ -1256,7 +1242,7 @@
 			.Name = "mnuConvertTitleCase"
 			.Designer = @This
 			.Caption = "Title Case"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuConvertBar2
@@ -1271,7 +1257,7 @@
 			.Name = "mnuConvertBIG5ToGB"
 			.Designer = @This
 			.Caption = "BIG5 to GB"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuConvertGBToBIG5
@@ -1279,7 +1265,7 @@
 			.Name = "mnuConvertGBToBIG5"
 			.Designer = @This
 			.Caption = "GB to BIG5"
-			.OnClick = @_mnuConvert_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuConvert_Click)
 			.Parent = @mnuConvert
 		End With
 		' mnuTools
@@ -1295,7 +1281,7 @@
 			.Name = "mnuToolsFileSearch"
 			.Caption = "File Search"
 			.Designer = @This
-			.OnClick = @_mnuTools_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuTools_Click)
 			.ImageKey = "FileSearch"
 			.Parent = @mnuTools
 		End With
@@ -1304,7 +1290,7 @@
 			.Name = "mnuToolsFileSync"
 			.Caption = "File Sync"
 			.Designer = @This
-			.OnClick = @_mnuTools_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuTools_Click)
 			.ImageKey = "FileSync"
 			.Parent = @mnuTools
 		End With
@@ -1313,7 +1299,7 @@
 			.Name = "mnuToolsHash"
 			.Caption = "Hash"
 			.Designer = @This
-			.OnClick = @_mnuTools_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuTools_Click)
 			.ImageKey = "Hash"
 			.Parent = @mnuTools
 		End With
@@ -1330,7 +1316,7 @@
 			.Name = "mnuWindowTileHorizontal"
 			.Caption = "Tile &Horizontal"
 			.Designer = @This
-			.OnClick = @_mnuWindow_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.ImageKey = "Horizontal"
 			.Parent = @mnuWindow
 		End With
@@ -1339,7 +1325,7 @@
 			.Name = "mnuWindowTileVertical"
 			.Caption = "Tile &Vertical"
 			.Designer = @This
-			.OnClick = @_mnuWindow_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.ImageKey = "Vertical"
 			.Parent = @mnuWindow
 		End With
@@ -1348,7 +1334,7 @@
 			.Name = "mnuWindowCascade"
 			.Caption = "&Cascade"
 			.Designer = @This
-			.OnClick = @_mnuWindow_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.ImageKey = "Cascade"
 			.Parent = @mnuWindow
 		End With
@@ -1357,7 +1343,7 @@
 			.Name= "mnuWindowArrangeIcons"
 			.Caption = "&Arrange Icons"
 			.Designer = @This
-			.OnClick = @_mnuWindow_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.ImageKey = "Icons"
 			.Parent = @mnuWindow
 		End With
@@ -1373,7 +1359,7 @@
 			.Name = "mnuWindowClose"
 			.Designer = @This
 			.Caption = "Close"
-			.OnClick = @_mnuWindow_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.ImageKey = "Close"
 			.Parent = @mnuWindow
 		End With
@@ -1382,7 +1368,7 @@
 			.Name = "mnuWindowCloseAll"
 			.Designer = @This
 			.Caption = "Close All"
-			.OnClick = @_mnuWindow_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.ImageKey = "CloseAll"
 			.Parent = @mnuWindow
 		End With
@@ -1398,7 +1384,7 @@
 			.Designer = @This
 			.Caption = "About"
 			.ImageKey = "About"
-			.OnClick = @_mnuHelp_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuHelp_Click)
 			.Parent = @mnuHelp
 		End With
 		' tbFileNew
@@ -1686,71 +1672,7 @@
 			.Parent = @StatusBar1
 		End With
 	End Constructor
-	
-	Private Sub MDIMainType._mnuEncoding_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEncoding_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._mnuEOLConvert_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEOLConvert_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._mnuCodePage_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuCodePage_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._mnuCharSet_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuCharSet_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
-	End Sub
-	
-	Private Sub MDIMainType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub MDIMainType._Form_Create(ByRef Sender As Control)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).Form_DropFile(Sender, Filename)
-	End Sub
-	
-	Private Sub MDIMainType._mnuConvert_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuConvert_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._ToolBar1_ButtonClick(ByRef Sender As ToolBar,ByRef Button As ToolButton)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).ToolBar1_ButtonClick(Sender, Button)
-	End Sub
-	
-	Private Sub MDIMainType._mnuFile_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuFile_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._mnuEdit_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuEdit_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._mnuView_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuView_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._mnuTools_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuTools_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._mnuWindow_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuWindow_Click(Sender)
-	End Sub
-	
-	Private Sub MDIMainType._mnuHelp_Click(ByRef Sender As MenuItem)
-		(*Cast(MDIMainType Ptr, Sender.Designer)).mnuHelp_Click(Sender)
-	End Sub
-	
+
 	Dim Shared MDIMain As MDIMainType
 	
 	#if _MAIN_FILE_ = __FILE__
@@ -2155,7 +2077,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 		mnuWindows(i) = New MenuItem
 		mnuWindows(i)->Tag = lstMdiChild.Item(i - 1)
 		mnuWindows(i)->Caption = Cast(MDIChildType Ptr, lstMdiChild.Item(i - 1))->Text
-		mnuWindows(i)->OnClick = @_mnuWindow_Click
+		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 		If lstMdiChild.Item(i - 1) = ActMdiChild Then mnuWindows(i)->Checked = True
 		mnuWindow.Add mnuWindows(i)
 	Next
@@ -2166,7 +2088,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 		mnuWindows(i) = New MenuItem
 		mnuWindows(i)->Name= "mnuWindowMore"
 		mnuWindows(i)->Caption = "More Windows..."
-		mnuWindows(i)->OnClick = @_mnuWindow_Click
+		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 		mnuWindow.Add mnuWindows(i)
 	End If
 End Sub
@@ -2216,7 +2138,9 @@ Private Function MDIMainType.ReplaceAll(ByRef FindStr As Const WString, ByRef Re
 	Dim a As MDIChildType Ptr = ActMdiChild
 	Dim f As String = TextToSciData(FindStr, a->Sci.CodePage)
 	Dim r As String = TextToSciData(ReplaceStr, a->Sci.CodePage)
-	Dim i As Integer = a->Sci.ReplaceAll(Cast(ZString Ptr, StrPtr(f)), Cast(ZString Ptr, StrPtr(r)), MatchCase)
+	fRegExp = RegularExp
+	fMatchCase= MatchCase
+	Dim i As Integer = a->Sci.ReplaceAll(Cast(ZString Ptr, StrPtr(f)), Cast(ZString Ptr, StrPtr(r)), fRegExp, fMatchCase)
 	MDIChildClick(a)
 	spSpeed.Caption = "Replace All " & Format(timr.Passed, "#,#0.000") & " sec."
 	Return i
@@ -2669,8 +2593,17 @@ Private Sub MDIMainType.Form_Create(ByRef Sender As Control)
 	CodePageMnu(04) = @mnuCodePage04
 	CodePageMnu(05) = @mnuCodePage05
 	CodePageMnu(06) = @mnuCodePage06
-	
+
+	Caption = Caption & fbcVer
 	ControlEnabled(False)
+
+	'Command line 命令行
+	Dim As Integer i = 1
+	Do
+		If Len(Command(i)) = 0 Then Exit Do
+		FileOpen(Command(i))
+		i += 1
+	Loop
 End Sub
 
 Private Sub MDIMainType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)

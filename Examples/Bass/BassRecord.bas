@@ -15,7 +15,7 @@ Private Function BassRecord.RecCallBack(ByVal handle As HRECORD, ByVal recbuffer
 End Function
 
 Private Function BassRecord.RecProcess(ByVal handle As HRECORD, ByVal recbuffer As Const Any Ptr, ByVal reclength As DWORD, ByVal user As Any Ptr) As BOOL
-	' increase buffer size If needed
+	'increase buffer size If needed
 	If ((RecLen Mod BUFSTEP) + reclength >= BUFSTEP) Then
 		Dim As Byte Ptr newbuf = realloc(RecBuf, ((RecLen + reclength) / BUFSTEP + 1) * BUFSTEP)
 		If (newbuf = 0) Then
@@ -23,24 +23,24 @@ Private Function BassRecord.RecProcess(ByVal handle As HRECORD, ByVal recbuffer 
 			free(RecBuf)
 			RecBuf = NULL
 			'Out of memory!
-			Return False ' Stop recording
+			Return False 'Stop recording
 		End If
 		RecBuf = newbuf
 	End If
-	' buffer the Data
+	'buffer the Data
 	memcpy(RecBuf + RecLen, recbuffer, reclength)
 	RecLen += reclength
-	Return True ' Continue recording
+	Return True 'Continue recording
 End Function
 
 Private Function BassRecord.Restart() As Boolean
-	If Buffer Then ' Continue recording On the New device... Then
+	If Buffer Then 'Continue recording On the New device... Then
 		Dim As DWORD newRecStream
 		If RecMonitoring Then
 			newRecStream = BASS_RecordStart(RecFreq, RecChans, 0, NULL, NULL)
 			RecStatus = BassStatus.BassMonitor
 		Else
-			newRecStream = BASS_RecordStart(RecFreq, RecChans, 0, @RecCallback, @This)
+			newRecStream = BASS_RecordStart(RecFreq, RecChans, 0, @RecCallBack, @This)
 			RecStatus = BassStatus.BassPlay
 		End If
 		If newRecStream Then
@@ -53,11 +53,11 @@ End Function
 Private Function BassRecord.Start(Sample As Integer) As Boolean
 	This.Release()
 	
-	' Allocate initial buffer And make Space For WAVE header
+	'Allocate initial buffer And make Space For WAVE header
 	RecBuf = malloc(BUFSTEP)
 	RecLen = 44
 	
-	' Get selected sample Format
+	'Get selected sample Format
 	Select Case Sample
 	Case 0, 1
 		RecFreq = 48000
@@ -69,8 +69,8 @@ Private Function BassRecord.Start(Sample As Integer) As Boolean
 	RecChans = 1 + (Sample Mod 1)
 	
 	RecMonitoring = False
-	' start recording
-	RecStream = BASS_RecordStart(RecFreq, RecChans, 0, @RecCallback, @This)
+	'start recording
+	RecStream = BASS_RecordStart(RecFreq, RecChans, 0, @RecCallBack, @This)
 	If RecStream = 0 Then
 		free(RecBuf)
 		RecBuf = 0
@@ -85,7 +85,7 @@ End Function
 Private Function BassRecord.Monitor(Sample As Integer) As Boolean
 	This.Release()
 	
-	' Get selected sample Format
+	'Get selected sample Format
 	Select Case Sample
 	Case 0, 1
 		RecFreq = 48000
@@ -96,7 +96,7 @@ Private Function BassRecord.Monitor(Sample As Integer) As Boolean
 	End Select
 	RecChans = 1 + (Sample Mod 1)
 	
-	' start monitoring
+	'start monitoring
 	RecStream = BASS_RecordStart(RecFreq, RecChans, 0, NULL, NULL)
 	If RecStream = 0 Then
 		RecMonitoring = False
@@ -121,14 +121,14 @@ End Sub
 
 Private Sub BassRecord.Pause()
 	If (RecStream) Then
-		Bass_ChannelPause(RecStream)
+		BASS_ChannelPause(RecStream)
 		RecStatus = BassStatus.BassPause
 	End If
 End Sub
 
 Private Sub BassRecord.Resume()
 	If (RecStream) Then
-		Bass_ChannelPlay(RecStream, 0)
+		BASS_ChannelPlay(RecStream, 0)
 		RecStatus = BassStatus.BassPlay
 	End If
 End Sub
@@ -139,18 +139,18 @@ Private Sub BassRecord.Stop()
 		RecStream = NULL
 		RecStatus = BassStatus.BassStop
 		If RecMonitoring = False Then
-			' fill the WAVE header
+			'fill the WAVE header
 			wr = Cast(WAVEHEADER_RIFF Ptr, RecBuf)
 			wf = Cast(WAVEFORMATCM Ptr, RecBuf + 12)
 			wd = Cast(WAVEHEADER_DATA Ptr, RecBuf + 36)
 			
-			' Set WAV "RIFF" header
-			wr->RIFF          = &H46464952 ' "RIFF"
-			'	wr->riffBlockSize = 0      ' after recording
-			wr->riffBlockType = &H45564157 ' "WAVE"
+			'Set WAV "RIFF" header
+			wr->RIFF          = &H46464952  '"RIFF"
+			'wr->riffBlockSize = 0          'after recording
+			wr->riffBlockType = &H45564157  '"WAVE"
 			
-			' Set WAV "fmt " header
-			wf->wfBlockType = &H20746D66 ' "fmt "
+			'Set WAV "fmt " header
+			wf->wfBlockType = &H20746D66    '"fmt "
 			wf->wfBlockSize = 16
 			wf->wFormatTag  = 1
 			
@@ -160,8 +160,8 @@ Private Sub BassRecord.Stop()
 			wf->nBlockAlign     = wf->nChannels      * wf->wBitsPerSample / 8
 			wf->nAvgBytesPerSec = wf->nSamplesPerSec * wf->nBlockAlign
 			
-			' set WAV "data" header
-			wd->dataBlockType = &H61746164 ' "data"
+			'set WAV "data" header
+			wd->dataBlockType = &H61746164  '"data"
 			
 			wr->riffBlockSize = RecLen - 8
 			wd->dataBlockSize = RecLen - 44

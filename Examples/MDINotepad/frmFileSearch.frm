@@ -33,28 +33,19 @@
 		Declare Function zFile2ComboEx Overload (ByRef Sender As ComboBoxEx, Path As Const WString) As Integer
 		Declare Static Sub zOnFindDone(Owner As Any Ptr, ByRef PathCount As Integer, ByRef FileCount As Integer, ByRef FileSize As LongInt)
 		
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _cmbexPath_DblClick(ByRef Sender As Control)
 		Declare Sub cmbexPath_DblClick(ByRef Sender As Control)
-		Declare Static Sub _cmdSearch_Click(ByRef Sender As Control)
 		Declare Sub cmdSearch_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdFile_Click(ByRef Sender As Control)
 		Declare Sub cmdFile_Click(ByRef Sender As Control)
-		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _txtFile_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Sub txtFile_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-		Declare Static Sub _txtFile_Click(ByRef Sender As Control)
 		Declare Sub txtFile_Click(ByRef Sender As Control)
-		Declare Static Sub _txtSearch_Change(ByRef Sender As TextBox)
 		Declare Sub txtSearch_Change(ByRef Sender As TextBox)
-		Declare Static Sub _txtFile_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Sub txtFile_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		Declare Static Sub _txtFile_DblClick(ByRef Sender As Control)
 		Declare Sub txtFile_DblClick(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Sub Form_Destroy(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As Panel Panel1, Panel3, Panel5, Panel2, Panel4
@@ -64,10 +55,11 @@
 		#endif
 		Dim As ComboBoxEx cmbexPath, cmbexExt
 		Dim As TextBox txtFile, txtSelect, txtSearch
+		Dim As StatusBar StatusBar1
+		Dim As StatusPanel StatusPanel1
 		Dim As FolderBrowserDialog FolderBrowserDialog1
 		Dim As ImageList ImageList1
 		Dim As TimerComponent TimerComponent1, TimerComponent2
-		Dim As StatusBar StatusBar1
 		Dim As OpenFileDialog OpenFileDialog1
 	End Type
 	
@@ -89,10 +81,10 @@
 				'...instructions for other OSes
 				.Caption = "VFBE File Search32"
 			#endif
-			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterParent
-			.OnCreate = @_Form_Create
-			.OnClose = @_Form_Close
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 640, 480
 		End With
 		' Panel1
@@ -117,7 +109,7 @@
 			.Caption = "Search"
 			.SetBounds 0, 0, 100, 22
 			.Designer = @This
-			.OnClick = @_cmdSearch_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdSearch_Click)
 			.Parent = @Panel1
 		End With
 		' cmbexPath
@@ -132,7 +124,7 @@
 			.ImagesList = @ImageList1
 			.SetBounds 110, 0, 244, 22
 			.Designer = @This
-			.OnDblClick = @_cmbexPath_DblClick
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmbexPath_DblClick)
 			.Parent = @Panel1
 		End With
 		' cmbexExt
@@ -174,10 +166,10 @@
 			.AllowDrop = True
 			.SetBounds 0, 0, 604, 169
 			.Designer = @This
-			.OnKeyUp = @_txtFile_KeyUp
-			.OnClick = @_txtFile_Click
-			.OnDropFile = @_txtFile_DropFile
-			.OnDblClick = @_txtFile_DblClick
+			.OnKeyUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer), @txtFile_KeyUp)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @txtFile_Click)
+			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @txtFile_DropFile)
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @txtFile_DblClick)
 			.Parent = @Panel2
 		End With
 		' Panel3
@@ -209,9 +201,10 @@
 			.Align = DockStyle.alTop
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
-			.SetBounds 10, 0, 500, 20
+			.Hint = "Search"
+			.SetBounds 10, 0, 494, 20
 			.Designer = @This
-			.OnChange = @_txtSearch_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @txtSearch_Change)
 			.Parent = @Panel4
 		End With
 		' txtSelect
@@ -252,7 +245,7 @@
 			.Caption = "Open"
 			.SetBounds 0, -1, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 			.Parent = @Panel5
 		End With
 		' cmdFileFolder
@@ -263,7 +256,7 @@
 			.Caption = "Folder"
 			.SetBounds 0, 19, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 			.Parent = @Panel5
 		End With
 		' cmdFileNotepad
@@ -274,7 +267,7 @@
 			.Caption = "Notepad"
 			.SetBounds 0, 39, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 			.Parent = @Panel5
 		End With
 		' cmdFileDelete
@@ -285,7 +278,7 @@
 			.Caption = "Delete"
 			.SetBounds 0, 59, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 			.Parent = @Panel5
 		End With
 		#ifdef __MDI__
@@ -298,7 +291,7 @@
 				.Enabled = True
 				.SetBounds 0, 100, 100, 20
 				.Designer = @This
-				.OnClick = @_cmdFile_Click
+				.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 				.Parent = @Panel5
 			End With
 			' cmdFileInstAll
@@ -310,7 +303,7 @@
 				.Location = Type<My.Sys.Drawing.Point>(0, 130)
 				.SetBounds 0, 130, 100, 20
 				.Designer = @This
-				.OnClick = @_cmdFile_Click
+				.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 				.Parent = @Panel5
 			End With
 			' cmdFileInstSel
@@ -322,7 +315,7 @@
 				.Location = Type<My.Sys.Drawing.Point>(0, 150)
 				.SetBounds 0, 150, 100, 20
 				.Designer = @This
-				.OnClick = @_cmdFile_Click
+				.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 				.Parent = @Panel5
 			End With
 			' cmdFileInstrCur
@@ -334,7 +327,7 @@
 				.Caption = "Insert Current"
 				.SetBounds 0, 170, 100, 20
 				.Designer = @This
-				.OnClick = @_cmdFile_Click
+				.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFile_Click)
 				.Parent = @Panel5
 			End With
 		#endif
@@ -346,6 +339,13 @@
 			.SetBounds 0, 158, 624, 22
 			.Designer = @This
 			.Parent = @Panel3
+		End With
+		' StatusPanel1
+		With StatusPanel1
+			.Name = "StatusPanel1"
+			.Designer = @This
+			.Caption = "Status"
+			.Parent = @StatusBar1
 		End With
 		' FolderBrowserDialog1
 		With FolderBrowserDialog1
@@ -367,7 +367,7 @@
 			.Interval = 1000
 			.SetBounds 0, 0, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @Panel1
 		End With
 		' TimerComponent2
@@ -376,7 +376,7 @@
 			.Interval = 999
 			.SetBounds 20, 9, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @Panel4
 		End With
 		' OpenFileDialog1
@@ -388,50 +388,6 @@
 			.Parent = @Panel1
 		End With
 	End Constructor
-	
-	Private Sub frmFileSearchType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub frmFileSearchType._txtFile_DblClick(ByRef Sender As Control)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtFile_DblClick(Sender)
-	End Sub
-	
-	Private Sub frmFileSearchType._txtFile_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtFile_DropFile(Sender, Filename)
-	End Sub
-	
-	Private Sub frmFileSearchType._txtSearch_Change(ByRef Sender As TextBox)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtSearch_Change(Sender)
-	End Sub
-	
-	Private Sub frmFileSearchType._txtFile_Click(ByRef Sender As Control)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtFile_Click(Sender)
-	End Sub
-	
-	Private Sub frmFileSearchType._txtFile_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).txtFile_KeyUp(Sender, Key, Shift)
-	End Sub
-	
-	Private Sub frmFileSearchType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
-	End Sub
-	
-	Private Sub frmFileSearchType._cmdFile_Click(ByRef Sender As Control)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).cmdFile_Click(Sender)
-	End Sub
-	
-	Private Sub frmFileSearchType._cmdSearch_Click(ByRef Sender As Control)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).cmdSearch_Click(Sender)
-	End Sub
-	
-	Private Sub frmFileSearchType._cmbexPath_DblClick(ByRef Sender As Control)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).cmbexPath_DblClick(Sender)
-	End Sub
-	
-	Private Sub frmFileSearchType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmFileSearchType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
 	
 	Dim Shared frmFileSearch As frmFileSearchType
 	
@@ -526,7 +482,7 @@ Private Sub frmFileSearchType.Form_Create(ByRef Sender As Control)
 	Next
 	cmbexExt.ItemIndex = j
 	ArrayDeallocate(aa())
-	StatusBar1.Text = Format(Now(), "yyyy/mm/dd hh:mm:ss")
+	StatusPanel1.Caption = Format(Now(), "yyyy/mm/dd hh:mm:ss")
 End Sub
 
 Private Sub frmFileSearchType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
@@ -546,7 +502,7 @@ Private Sub frmFileSearchType.TimerComponent1_Timer(ByRef Sender As TimerCompone
 			st = "[" & txtSearch.Text & "] Not found."
 		End If
 	End Select
-	StatusBar1.Text = st
+	StatusPanel1.Caption = st
 End Sub
 
 Private Sub frmFileSearchType.cmdSearch_Click(ByRef Sender As Control)
@@ -631,7 +587,7 @@ Private Sub frmFileSearchType.cmdFile_Click(ByRef Sender As Control)
 			End If
 		#endif
 	End Select
-	StatusBar1.Text = st
+	StatusPanel1.Caption = st
 End Sub
 
 Private Sub frmFileSearchType.txtFile_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -660,7 +616,7 @@ Private Sub frmFileSearchType.txtFile_KeyUp(ByRef Sender As Control, Key As Inte
 		txtSelect.Text = txtFile.Lines(sy)
 		st = "File: " & txtFile.Lines(sy)
 	End If
-	StatusBar1.Text = st
+	StatusPanel1.Caption = st
 End Sub
 
 Private Sub frmFileSearchType.txtFile_Click(ByRef Sender As Control)
@@ -676,7 +632,7 @@ End Sub
 Private Sub frmFileSearchType.txtFile_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 	Dim As Integer fe= -1, nl = -1, cp = -1
 	txtFile.Text = TextFromFile(Filename, fe, nl, cp)
-	StatusBar1.Text = Filename & ", Encode: " & fe & ", EOL: " & nl & ", CP: " & cp
+	StatusPanel1.Caption = Filename & ", Encode: " & fe & ", EOL: " & nl & ", CP: " & cp
 End Sub
 
 Private Sub frmFileSearchType.txtFile_DblClick(ByRef Sender As Control)
@@ -685,8 +641,11 @@ Private Sub frmFileSearchType.txtFile_DblClick(ByRef Sender As Control)
 	End If
 End Sub
 
+Private Sub frmFileSearchType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	StatusPanel1.Width = ClientWidth
+End Sub
+
 Private Sub frmFileSearchType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	txtFile.Text = ""
 	txtSelect.Text = ""
 End Sub
-

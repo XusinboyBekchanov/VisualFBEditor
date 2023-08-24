@@ -29,21 +29,13 @@
 		Declare Property NewLine As NewLineTypes
 		Declare Property NewLine(val As NewLineTypes)
 		
-		Declare Static Sub _Form_Destroy(ByRef Sender As Control)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
-		Declare Static Sub _Form_Activate(ByRef Sender As Form)
 		Declare Sub Form_Activate(ByRef Sender As Form)
-		Declare Static Sub _Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _Sci_Modify(ByRef Sender As ScintillaControl)
 		Declare Sub Sci_Modify(ByRef Sender As ScintillaControl)
-		Declare Static Sub _Sci_Update(ByRef Sender As ScintillaControl)
 		Declare Sub Sci_Update(ByRef Sender As ScintillaControl)
-		Declare Static Sub _Sci_DblClick(ByRef Sender As ScintillaControl)
 		Declare Sub Sci_DblClick(ByRef Sender As ScintillaControl)
 		Declare Constructor
 		
@@ -58,13 +50,12 @@
 			.Designer = @This
 			.FormStyle = FormStyles.fsMDIChild
 			.Caption = "Initial..."
-			.OnDestroy = @_Form_Destroy
-			.OnActivate = @_Form_Activate
 			.AllowDrop = True
-			.OnDropFile = @_Form_DropFile
-			.OnClose = @_Form_Close
-			.OnCreate = @_Form_Create
-			.SubClass = False
+			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
+			.OnActivate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Activate)
+			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @Form_DropFile)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.SetBounds 0, 0, 640, 480
 		End With
 		' Sci
@@ -74,44 +65,12 @@
 			.Align = DockStyle.alClient
 			.SetBounds 0, 0, 624, 441
 			.Designer = @This
-			.OnModify = @_Sci_Modify
-			.OnUpdate = @_Sci_Update
-			.OnDblClick = @_Sci_DblClick
+			.OnModify = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Sci_Modify)
+			.OnUpdate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Sci_Update)
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Sci_DblClick)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub MDIChildType._Sci_DblClick(ByRef Sender As ScintillaControl)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Sci_DblClick(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Sci_Update(ByRef Sender As ScintillaControl)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Sci_Update(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Sci_Modify(ByRef Sender As ScintillaControl)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Sci_Modify(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Form_Create(ByRef Sender As Control)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub MDIChildType._Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_DropFile(Sender, Filename)
-	End Sub
-	
-	Private Sub MDIChildType._Form_Activate(ByRef Sender As Form)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Activate(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Form_Destroy(ByRef Sender As Control)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Destroy(Sender)
-	End Sub
 	
 	Dim Shared MDIChild As MDIChildType
 	

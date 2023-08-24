@@ -19,8 +19,8 @@
 		DDCalendar As DayCalendar
 		DCDate As Double
 		
-		Declare Static Sub _Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As Panel Panel1
@@ -30,13 +30,20 @@
 		' frmDayCalendar
 		With This
 			.Name = "frmDayCalendar"
-			.Designer = @This
+			#ifdef __USE_GTK__
+				This.Icon.LoadFromFile(ExePath & ".\day.ico")
+			#else
+				This.Icon.LoadFromResourceID(2)
+			#endif
 			#ifdef __FB_64BIT__
 				.Caption = "VFBE DayCalendar64"
 			#else
 				.Caption = "VFBE DayCalendar32"
-			#EndIf
+			#endif
+			.Designer = @This
 			.Size = Type<My.Sys.Drawing.Size>(330, 250)
+			.Opacity = 250
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 330, 250
 		End With
 		' Panel1
@@ -49,14 +56,10 @@
 			.Size = Type<My.Sys.Drawing.Size>(334, 261)
 			.SetBounds 0, 0, 304, 211
 			.Designer = @This
-			.OnPaint = @_Panel1_Paint
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Paint)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub frmDayCalendarType._Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(frmDayCalendarType Ptr, Sender.Designer)).Panel1_Paint(Sender, Canvas)
-	End Sub
 	
 	Dim Shared frmDayCalendar As frmDayCalendarType
 	
@@ -75,5 +78,9 @@ Private Sub frmDayCalendarType.Panel1_Paint(ByRef Sender As Control, ByRef Canva
 		Caption = "VFBE DayCalendar64 " & Format(DCDate, "yyyy/mm/dd")
 	#else
 		Caption = "VFBE DayCalendar32 " & Format(DCDate, "yyyy/mm/dd")
-	#EndIf
+	#endif
+End Sub
+
+Private Sub frmDayCalendarType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	frmClock.mnuDayCalendar.Checked = False 
 End Sub

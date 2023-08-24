@@ -6,7 +6,7 @@
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
-			#cmdline "Clock.rc"
+			#cmdline "Form1.rc"
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -21,16 +21,12 @@
 	Type frmMonthCalendarType Extends Form
 		DMCalendar As MonthCalendar
 		
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As Panel Panel1, Panel2
@@ -43,9 +39,9 @@
 		With This
 			.Name = "frmMonthCalendar"
 			#ifdef __USE_GTK__
-				This.Icon.LoadFromFile(ExePath & ".\calendar.ico")
+				This.Icon.LoadFromFile(ExePath & ".\month.ico")
 			#else
-				This.Icon.LoadFromResourceID(2)
+				This.Icon.LoadFromResourceID(3)
 			#endif
 			#ifdef __FB_64BIT__
 				.Caption = "VFBE MonthCalendar 64"
@@ -53,10 +49,12 @@
 				.Caption = "VFBE MonthCalendar 32"
 			#endif
 			.Designer = @This
-			.OnCreate = @_Form_Create
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.Location = Type<My.Sys.Drawing.Point>(0, 0)
 			.StartPosition = FormStartPosition.DefaultLocation
 			.Size = Type<My.Sys.Drawing.Size>(330, 250)
+			.Opacity = 250
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 330, 250
 		End With
 		' Panel1
@@ -81,7 +79,7 @@
 			.Size = Type<My.Sys.Drawing.Size>(60, 21)
 			.SetBounds 10, 1, 60, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit1_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
 			.Parent = @Panel1
 		End With
 		' ComboBoxEdit2
@@ -92,7 +90,7 @@
 			.Size = Type<My.Sys.Drawing.Size>(60, 21)
 			.SetBounds 80, 1, 60, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit1_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
 			.Parent = @Panel1
 		End With
 		' ComboBoxEdit3
@@ -105,7 +103,7 @@
 			.Size = Type<My.Sys.Drawing.Size>(60, 21)
 			.SetBounds 150, 1, 60, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit1_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
 			.Parent = @Panel1
 		End With
 		' CommandButton1
@@ -119,7 +117,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 245, 1, 60, 21
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @Panel1
 		End With
 		' Panel2
@@ -130,35 +128,13 @@
 			.Align = DockStyle.alClient
 			.Location = Type<My.Sys.Drawing.Point>(0, 40)
 			.Size = Type<My.Sys.Drawing.Size>(334, 221)
-			.Font.Name = "Arial"
-			.Visible = True
-			.SetBounds 0, 30, 314, 231
+			.SetBounds 65180, 23, 314, 188
 			.Designer = @This
-			.OnPaint = @_Panel2_Paint
-			.OnMouseUp = @_Panel2_MouseUp
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel2_Paint)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel2_MouseUp)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub frmMonthCalendarType._Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmMonthCalendarType Ptr, Sender.Designer)).Panel2_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmMonthCalendarType._Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		(*Cast(frmMonthCalendarType Ptr, Sender.Designer)).Panel2_Paint(Sender, Canvas)
-	End Sub
-	
-	Private Sub frmMonthCalendarType._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(frmMonthCalendarType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
-	
-	Private Sub frmMonthCalendarType._ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmMonthCalendarType Ptr, Sender.Designer)).ComboBoxEdit1_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmMonthCalendarType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmMonthCalendarType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
 	
 	Dim Shared frmMonthCalendar As frmMonthCalendarType
 	
@@ -204,10 +180,7 @@ Private Sub frmMonthCalendarType.Panel2_Paint(ByRef Sender As Control, ByRef Can
 	#else
 		Caption = "VFBE MonthCalendar32 - " & Format(DateTime, "yyyy/mm/dd")
 	#endif
-	Canvas.CreateDoubleBuffer
 	DMCalendar.DrawMonthCalendar(Canvas, DateTime)
-	Canvas.TransferDoubleBuffer
-	Canvas.DeleteDoubleBuffer
 	frmDayCalendar.DCDate= DateTime
 	frmDayCalendar.Panel1_Paint Sender, frmDayCalendar.Panel1.Canvas
 End Sub
@@ -220,3 +193,6 @@ Private Sub frmMonthCalendarType.Panel2_MouseUp(ByRef Sender As Control, MouseBu
 	Panel2_Paint Sender, Panel2.Canvas
 End Sub
 
+Private Sub frmMonthCalendarType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	frmClock.mnuMonthCalendar.Checked = False 
+End Sub

@@ -53,27 +53,16 @@
 		Declare Sub ShowError(es As String)
 		Declare Function InitDevice(RecDevice As Integer, OutDevice As Integer) As Boolean
 		
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _ComboBoxEdit2_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit2_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _CheckBox1_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox1_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _CheckBox2_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox2_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _TrackBar2_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub TrackBar2_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _TrackBar3_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub TrackBar3_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Constructor
 		
@@ -91,14 +80,13 @@
 		With This
 			.Name = "frmLiveFX"
 			.Text = "BASS full-duplex example"
-			.Caption = "BASS full-duplex example"
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.MinimizeBox = False
 			.MaximizeBox = False
 			.StartPosition = FormStartPosition.CenterScreen
 			.Designer = @This
-			.OnCreate = @_Form_Create
-			.OnClose = @_Form_Close
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 260, 440
 		End With
 		' GroupBox1
@@ -135,7 +123,7 @@
 			.TabIndex = 0
 			.SetBounds 10, 20, 210, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit1_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
 			.Parent = @GroupBox1
 		End With
 		' ComboBoxEdit2
@@ -145,7 +133,7 @@
 			.TabIndex = 1
 			.SetBounds 10, 50, 210, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit2_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit2_Selected)
 			.Parent = @GroupBox1
 		End With
 		' CheckBox1
@@ -160,7 +148,7 @@
 			.DoubleBuffered = False
 			.SetBounds 10, 80, 110, 20
 			.Designer = @This
-			.OnClick = @_CheckBox1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox1_Click)
 			.Parent = @GroupBox3
 		End With
 		' Label1
@@ -186,7 +174,7 @@
 			.MaxValue = 100
 			.SetBounds 10, 50, 210, 20
 			.Designer = @This
-			.OnChange = @_TrackBar1_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox2
@@ -197,7 +185,7 @@
 			.Caption = "Reverb"
 			.SetBounds 10, 110, 110, 20
 			.Designer = @This
-			.OnClick = @_CheckBox2_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox2_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox3
@@ -208,7 +196,7 @@
 			.Caption = "Gargle"
 			.SetBounds 120, 110, 100, 20
 			.Designer = @This
-			.OnClick = @_CheckBox2_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox2_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox4
@@ -219,7 +207,7 @@
 			.Caption = "Flanger"
 			.SetBounds 10, 130, 100, 20
 			.Designer = @This
-			.OnClick = @_CheckBox2_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox2_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox5
@@ -230,7 +218,7 @@
 			.Caption = "Chorus"
 			.SetBounds 120, 130, 100, 20
 			.Designer = @This
-			.OnClick = @_CheckBox2_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox2_Click)
 			.Parent = @GroupBox3
 		End With
 		' TimerComponent1
@@ -240,7 +228,7 @@
 			.Interval = 1000
 			.SetBounds 0, 0, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @This
 		End With
 		' Label2
@@ -264,7 +252,7 @@
 			.MaxValue = 100
 			.SetBounds 10, 100, 210, 20
 			.Designer = @This
-			.OnChange = @_TrackBar2_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar2_Change)
 			.Parent = @GroupBox1
 		End With
 		' ComboBoxEdit3
@@ -274,7 +262,7 @@
 			.TabIndex = 11
 			.SetBounds 10, 20, 210, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit3_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit3_Selected)
 			.Parent = @GroupBox2
 		End With
 		' TrackBar3
@@ -288,7 +276,7 @@
 			.MaxValue = 100
 			.SetBounds 10, 50, 210, 20
 			.Designer = @This
-			.OnChange = @_TrackBar3_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar3_Change)
 			.Parent = @GroupBox2
 		End With
 		' ProgressBar1
@@ -299,50 +287,6 @@
 			.Parent = @GroupBox3
 		End With
 	End Constructor
-	
-	Private Sub frmLiveFXType._ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).ComboBoxEdit3_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmLiveFXType._TrackBar3_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).TrackBar3_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmLiveFXType._TrackBar2_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).TrackBar2_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmLiveFXType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
-	End Sub
-	
-	Private Sub frmLiveFXType._TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).TrackBar1_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmLiveFXType._CheckBox2_Click(ByRef Sender As CheckBox)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).CheckBox2_Click(Sender)
-	End Sub
-	
-	Private Sub frmLiveFXType._CheckBox1_Click(ByRef Sender As CheckBox)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).CheckBox1_Click(Sender)
-	End Sub
-	
-	Private Sub frmLiveFXType._ComboBoxEdit2_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).ComboBoxEdit2_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmLiveFXType._ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).ComboBoxEdit1_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmLiveFXType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub frmLiveFXType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmLiveFXType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
 	
 	Dim Shared frmLiveFX As frmLiveFXType
 	
@@ -502,13 +446,13 @@ Private Sub frmLiveFXType.Form_Create(ByRef Sender As Control)
 	
 	' check the correct BASS was loaded
 	If (HiWord(BASS_GetVersion()) <> BASSVERSION) Then
-		MessageBox(This.handle, "An incorrect version of BASS.DLL was loaded", 0, MB_ICONERROR)
+		MessageBox(This.Handle, "An incorrect version of BASS.DLL was loaded", 0, MB_ICONERROR)
 	End If
 	
-	MessageBox(This.handle, "Setting the input to the output loopback (or 'Stereo Mix' or similar on the same soundcard) with the level set high is likely to result in nasty feedback.", "Feedback warning", MB_ICONWARNING)
+	MessageBox(This.Handle, "Setting the input to the output loopback (or 'Stereo Mix' or similar on the same soundcard) with the level set high is likely to result in nasty feedback.", "Feedback warning", MB_ICONWARNING)
 	
-	InputDeviceList(@ComboboxEdit1)
-	OutputDeviceList(@ComboboxEdit3)
+	InputDeviceList(@ComboBoxEdit1)
+	OutputDeviceList(@ComboBoxEdit3)
 	InitDevice(ComboBoxEdit1.ItemIndex, ComboBoxEdit3.ItemIndex)
 	TimerComponent1.Enabled = True
 End Sub

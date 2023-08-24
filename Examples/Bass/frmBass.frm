@@ -108,81 +108,43 @@
 		Declare Sub FxEnabled(fxName As WString, st As Boolean, ch As HSTREAM)
 		Declare Sub EqEnabled(st As Boolean, ch As HSTREAM)
 		
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton6_Click(ByRef Sender As Control)
 		Declare Sub CommandButton6_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton3_Click(ByRef Sender As Control)
 		Declare Sub CommandButton3_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton4_Click(ByRef Sender As Control)
 		Declare Sub CommandButton4_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton5_Click(ByRef Sender As Control)
 		Declare Sub CommandButton5_Click(ByRef Sender As Control)
-		Declare Static Sub _ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _TrackBar2_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub TrackBar2_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _TrackBar2_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub TrackBar2_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _TrackBar2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub TrackBar2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		Declare Static Sub _CheckBox1_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox1_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _TimerComponent2_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent2_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _Picture1_Click(ByRef Sender As Picture)
 		Declare Sub Picture1_Click(ByRef Sender As Picture)
-		Declare Static Sub _ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _ComboBoxEdit2_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit2_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _TrackBar3_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub TrackBar3_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _CommandButton8_Click(ByRef Sender As Control)
 		Declare Sub CommandButton8_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton12_Click(ByRef Sender As Control)
 		Declare Sub CommandButton12_Click(ByRef Sender As Control)
-		Declare Static Sub _TimerComponent3_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent3_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _CheckBox3_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox3_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _CommandButton9_Click(ByRef Sender As Control)
 		Declare Sub CommandButton9_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton10_Click(ByRef Sender As Control)
 		Declare Sub CommandButton10_Click(ByRef Sender As Control)
-		Declare Static Sub _CheckBox4_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox4_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _CommandButton23_Click(ByRef Sender As Control)
 		Declare Sub CommandButton23_Click(ByRef Sender As Control)
-		Declare Static Sub _TimerComponent4_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent4_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _CommandButton24_Click(ByRef Sender As Control)
 		Declare Sub CommandButton24_Click(ByRef Sender As Control)
-		Declare Static Sub _TrackBar4_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub TrackBar4_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _RadioButton1_Click(ByRef Sender As RadioButton)
 		Declare Sub RadioButton1_Click(ByRef Sender As RadioButton)
-		Declare Static Sub _CheckBox5_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox5_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _tbSet_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbSet_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _TextBox1_DblClick(ByRef Sender As Control)
 		Declare Sub TextBox1_DblClick(ByRef Sender As Control)
-		Declare Static Sub _TextBox2_DblClick(ByRef Sender As Control)
 		Declare Sub TextBox2_DblClick(ByRef Sender As Control)
-		Declare Static Sub _tbEQ00_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbEQ00_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _ComboBoxEdit6_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit6_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _CheckBox15_Click(ByRef Sender As CheckBox)
 		Declare Sub CheckBox15_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
@@ -210,8 +172,8 @@
 			.Caption = "Bass Audio"
 			.StartPosition = FormStartPosition.CenterScreen
 			.Designer = @This
-			.OnCreate = @_Form_Create
-			.OnClose = @_Form_Close
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 880, 720
 		End With
 		' GroupBox1
@@ -298,7 +260,7 @@
 			.Hint = ""
 			.SetBounds 10, 20, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @GroupBox6
 		End With
 		' ComboBoxEdit1
@@ -308,7 +270,7 @@
 			.TabIndex = 5
 			.SetBounds 90, 20, 310, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit1_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
 			.Parent = @GroupBox6
 		End With
 		' CommandButton3
@@ -319,7 +281,7 @@
 			.Caption = "Open"
 			.SetBounds 10, 50, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton3_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton3_Click)
 			.Parent = @GroupBox1
 		End With
 		' CommandButton4
@@ -331,7 +293,7 @@
 			.Enabled = False
 			.SetBounds 90, 50, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton4_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton4_Click)
 			.Parent = @GroupBox1
 		End With
 		' TextBox1
@@ -341,7 +303,7 @@
 			.TabIndex = 9
 			.SetBounds 10, 20, 390, 20
 			.Designer = @This
-			.OnDblClick = @_TextBox1_DblClick
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox1_DblClick)
 			.Parent = @GroupBox1
 		End With
 		' CommandButton5
@@ -353,7 +315,7 @@
 			.Enabled = False
 			.SetBounds 170, 50, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton5_Click)
 			.Parent = @GroupBox1
 		End With
 		' CommandButton6
@@ -364,7 +326,7 @@
 			.Caption = "Input"
 			.SetBounds 10, 80, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton6_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton6_Click)
 			.Parent = @GroupBox6
 		End With
 		' CommandButton8
@@ -376,7 +338,7 @@
 			.Enabled = True
 			.SetBounds 10, 50, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton8_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton8_Click)
 			.Parent = @GroupBox2
 		End With
 		' CommandButton9
@@ -388,7 +350,7 @@
 			.Enabled = False
 			.SetBounds 90, 50, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton9_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton9_Click)
 			.Parent = @GroupBox2
 		End With
 		' CommandButton10
@@ -400,7 +362,7 @@
 			.Enabled = True
 			.SetBounds 10, 20, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton10_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton10_Click)
 			.Parent = @GroupBox2
 		End With
 		' ComboBoxEdit2
@@ -410,7 +372,7 @@
 			.TabIndex = 16
 			.SetBounds 90, 80, 310, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit2_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit2_Selected)
 			.Parent = @GroupBox6
 		End With
 		' TextBox2
@@ -421,7 +383,7 @@
 			.Enabled = True
 			.SetBounds 10, 80, 390, 20
 			.Designer = @This
-			.OnDblClick = @_TextBox2_DblClick
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox2_DblClick)
 			.Parent = @GroupBox2
 		End With
 		' CommandButton12
@@ -433,7 +395,7 @@
 			.Enabled = False
 			.SetBounds 170, 50, 70, 20
 			.Designer = @This
-			.OnClick = @_CommandButton12_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton12_Click)
 			.Parent = @GroupBox2
 		End With
 		' TrackBar1
@@ -451,7 +413,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 90, 50, 310, 20
 			.Designer = @This
-			.OnChange = @_TrackBar1_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
 			.Parent = @GroupBox6
 		End With
 		' TrackBar2
@@ -466,9 +428,9 @@
 			.ThumbLength = 15
 			.SetBounds 10, 80, 390, 20
 			.Designer = @This
-			.OnChange = @_TrackBar2_Change
-			.OnMouseDown = @_TrackBar2_MouseDown
-			.OnMouseUp = @_TrackBar2_MouseUp
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar2_Change)
+			.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @TrackBar2_MouseDown)
+			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @TrackBar2_MouseUp)
 			.Parent = @GroupBox1
 		End With
 		' TrackBar3
@@ -484,7 +446,7 @@
 			.MaxValue = 10000
 			.SetBounds 90, 140, 310, 20
 			.Designer = @This
-			.OnChange = @_TrackBar3_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar3_Change)
 			.Parent = @GroupBox6
 		End With
 		' TimerComponent1
@@ -493,7 +455,7 @@
 			.Interval = 100
 			.SetBounds 0, 40, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @GroupBox1
 		End With
 		' Label1
@@ -527,7 +489,7 @@
 			.BackColor = 12632256
 			.SetBounds 50, 20, 368, 127
 			.Designer = @This
-			.OnClick = @_Picture1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture1_Click)
 			.Parent = @GroupBox4
 		End With
 		' CheckBox1
@@ -539,7 +501,7 @@
 			.Caption = ""
 			.SetBounds 10, 20, 20, 20
 			.Designer = @This
-			.OnClick = @_CheckBox1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox1_Click)
 			.Parent = @GroupBox4
 		End With
 		' TextBox3
@@ -555,7 +517,7 @@
 			.Name = "TimerComponent2"
 			.SetBounds 30, 40, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent2_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent2_Timer)
 			.Parent = @GroupBox4
 		End With
 		' RadioButton1
@@ -567,7 +529,7 @@
 			.Caption = "Playback"
 			.SetBounds 10, 20, 110, 20
 			.Designer = @This
-			.OnClick = @_RadioButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @RadioButton1_Click)
 			.Parent = @GroupBox5
 		End With
 		' RadioButton2
@@ -579,7 +541,7 @@
 			.Caption = "Record"
 			.SetBounds 90, 20, 110, 20
 			.Designer = @This
-			.OnClick = @_RadioButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @RadioButton1_Click)
 			.Parent = @GroupBox5
 		End With
 		' RadioButton3
@@ -590,7 +552,7 @@
 			.Caption = "Raido"
 			.SetBounds 160, 20, 110, 20
 			.Designer = @This
-			.OnClick = @_RadioButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @RadioButton1_Click)
 			.Parent = @GroupBox5
 		End With
 		' ComboBoxEdit3
@@ -609,7 +571,7 @@
 			.TabIndex = 32
 			.SetBounds 90, 110, 150, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit4_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit4_Selected)
 			.Parent = @GroupBox6
 		End With
 		' CheckBox2
@@ -639,7 +601,7 @@
 			.Enabled = False
 			.SetBounds 350, 50, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent3_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent3_Timer)
 			.Parent = @GroupBox2
 		End With
 		' CheckBox3
@@ -651,7 +613,7 @@
 			.Enabled = False
 			.SetBounds 250, 50, 60, 20
 			.Designer = @This
-			.OnClick = @_CheckBox3_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox3_Click)
 			.Parent = @GroupBox1
 		End With
 		' Label4
@@ -705,7 +667,7 @@
 			.Checked = True
 			.SetBounds 10, 170, 110, 20
 			.Designer = @This
-			.OnClick = @_CheckBox4_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox4_Click)
 			.Parent = @GroupBox7
 		End With
 		' TextBox4
@@ -725,7 +687,7 @@
 			.Caption = "Open"
 			.SetBounds 280, 20, 60, 20
 			.Designer = @This
-			.OnClick = @_CommandButton23_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton23_Click)
 			.Parent = @GroupBox7
 		End With
 		' CommandButton24
@@ -736,7 +698,7 @@
 			.Caption = "Close"
 			.SetBounds 340, 20, 60, 20
 			.Designer = @This
-			.OnClick = @_CommandButton24_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton24_Click)
 			.Parent = @GroupBox7
 		End With
 		' TimerComponent4
@@ -744,7 +706,7 @@
 			.Name = "TimerComponent4"
 			.SetBounds 10, 60, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent4_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent4_Timer)
 			.Parent = @GroupBox7
 		End With
 		' Label8
@@ -778,7 +740,7 @@
 			.MaxValue = 100
 			.SetBounds 220, 20, 180, 20
 			.Designer = @This
-			.OnChange = @_TrackBar4_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar4_Change)
 			.Parent = @GroupBox5
 		End With
 		' TabControl1
@@ -888,7 +850,7 @@
 			.Caption = "Chorus"
 			.SetBounds 10, 20, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox6
@@ -899,7 +861,7 @@
 			.Caption = "Compression"
 			.SetBounds 10, 40, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox7
@@ -910,7 +872,7 @@
 			.Caption = "Distortion"
 			.SetBounds 10, 60, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox8
@@ -921,7 +883,7 @@
 			.Caption = "Echo"
 			.SetBounds 10, 80, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox9
@@ -932,7 +894,7 @@
 			.Caption = "Flanger"
 			.SetBounds 10, 100, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox10
@@ -943,7 +905,7 @@
 			.Caption = "Gargle"
 			.SetBounds 10, 120, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox11
@@ -954,7 +916,7 @@
 			.Caption = "3D"
 			.SetBounds 10, 140, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox12
@@ -965,7 +927,7 @@
 			.Caption = "Equalizer"
 			.SetBounds 10, 160, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox13
@@ -976,7 +938,7 @@
 			.Caption = "Reverb"
 			.SetBounds 10, 180, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' CheckBox14
@@ -987,7 +949,7 @@
 			.Caption = "Volume"
 			.SetBounds 10, 200, 90, 20
 			.Designer = @This
-			.OnClick = @_CheckBox5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox5_Click)
 			.Parent = @GroupBox3
 		End With
 		' lblFXMSG0900
@@ -1045,7 +1007,7 @@
 			.MaxValue = 0
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage9
 		End With
 		' tbSet0901
@@ -1061,7 +1023,7 @@
 			.MinValue = -96
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage9
 		End With
 		' tbSet0902
@@ -1078,7 +1040,7 @@
 			.Position = 1000000
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage9
 		End With
 		' tbSet0903
@@ -1093,7 +1055,7 @@
 			.MinValue = 1
 			.SetBounds 118, 68, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage9
 		End With
 		' lblFXShw0900
@@ -1152,7 +1114,7 @@
 			.Position = 50
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage1
 		End With
 		' tbSet0101
@@ -1166,7 +1128,7 @@
 			.Position = 10
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage1
 		End With
 		' tbSet0102
@@ -1181,7 +1143,7 @@
 			.Position = 25
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage1
 		End With
 		' tbSet0103
@@ -1195,7 +1157,7 @@
 			.Position = 1100
 			.SetBounds 118, 68, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage1
 		End With
 		' tbSet0104
@@ -1209,7 +1171,7 @@
 			.Position = 1
 			.SetBounds 118, 88, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage1
 		End With
 		' tbSet0105
@@ -1223,7 +1185,7 @@
 			.Position = 16
 			.SetBounds 118, 108, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage1
 		End With
 		' tbSet0106
@@ -1237,7 +1199,7 @@
 			.Position = 3
 			.SetBounds 118, 128, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage1
 		End With
 		' tbSet0200
@@ -1251,7 +1213,7 @@
 			.MinValue = -60
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage2
 		End With
 		' tbSet0201
@@ -1266,7 +1228,7 @@
 			.Position = 10000
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage2
 		End With
 		' tbSet0202
@@ -1281,7 +1243,7 @@
 			.Position = 200
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage2
 		End With
 		' tbSet0203
@@ -1296,7 +1258,7 @@
 			.Position = -20
 			.SetBounds 118, 68, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage2
 		End With
 		' tbSet0204
@@ -1310,7 +1272,7 @@
 			.Position = 3
 			.SetBounds 118, 88, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage2
 		End With
 		' tbSet0205
@@ -1324,7 +1286,7 @@
 			.Position = 4
 			.SetBounds 118, 108, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage2
 		End With
 		' tbSet0300
@@ -1339,7 +1301,7 @@
 			.Position = -18
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage3
 		End With
 		' tbSet0301
@@ -1353,7 +1315,7 @@
 			.Position = 15
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage3
 		End With
 		' tbSet0302
@@ -1368,7 +1330,7 @@
 			.Position = 2400
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage3
 		End With
 		' tbSet0303
@@ -1383,7 +1345,7 @@
 			.Position = 2400
 			.SetBounds 118, 68, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage3
 		End With
 		' tbSet0304
@@ -1398,7 +1360,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 88, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage3
 		End With
 		' tbSet0400
@@ -1413,7 +1375,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage4
 		End With
 		' tbSet0401
@@ -1427,7 +1389,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage4
 		End With
 		' tbSet0402
@@ -1442,7 +1404,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage4
 		End With
 		' tbSet0403
@@ -1457,7 +1419,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 68, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage4
 		End With
 		' tbSet0404
@@ -1470,7 +1432,7 @@
 			.MaxValue = 1
 			.SetBounds 118, 88, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage4
 		End With
 		' tbSet0500
@@ -1484,7 +1446,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage5
 		End With
 		' tbSet0501
@@ -1498,7 +1460,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage5
 		End With
 		' tbSet0502
@@ -1513,7 +1475,7 @@
 			.Position = -50
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage5
 		End With
 		' tbSet0503
@@ -1527,7 +1489,7 @@
 			.Position = 250
 			.SetBounds 118, 68, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage5
 		End With
 		' tbSet0504
@@ -1541,7 +1503,7 @@
 			.Position = 1
 			.SetBounds 118, 88, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage5
 		End With
 		' tbSet0505
@@ -1555,7 +1517,7 @@
 			.Position = 2000
 			.SetBounds 118, 108, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage5
 		End With
 		' tbSet0506
@@ -1569,7 +1531,7 @@
 			.Position = 2
 			.SetBounds 118, 128, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage5
 		End With
 		' tbSet0600
@@ -1584,7 +1546,7 @@
 			.Position = 20
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage6
 		End With
 		' tbSet0601
@@ -1597,7 +1559,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage6
 		End With
 		' tbSet0700
@@ -1612,7 +1574,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0701
@@ -1627,7 +1589,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0702
@@ -1639,7 +1601,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0703
@@ -1654,7 +1616,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 68, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0704
@@ -1669,7 +1631,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 88, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0705
@@ -1684,7 +1646,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 108, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0706
@@ -1698,7 +1660,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 128, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0707
@@ -1713,7 +1675,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 148, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0708
@@ -1727,7 +1689,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 168, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0709
@@ -1741,7 +1703,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 188, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0710
@@ -1755,7 +1717,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 208, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0711
@@ -1770,7 +1732,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 228, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage7
 		End With
 		' tbSet0800
@@ -1785,7 +1747,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage8
 		End With
 		' tbSet0801
@@ -1800,7 +1762,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage8
 		End With
 		' tbSet0802
@@ -1814,7 +1776,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage8
 		End With
 		' tbSet1000
@@ -1828,7 +1790,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 8, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage10
 		End With
 		' tbSet1001
@@ -1843,7 +1805,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 28, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage10
 		End With
 		' tbSet1002
@@ -1856,7 +1818,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 48, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage10
 		End With
 		' tbSet1003
@@ -1869,7 +1831,7 @@
 			.TickMark = TickMarks.tmBoth
 			.SetBounds 118, 68, 100, 10
 			.Designer = @This
-			.OnChange = @_tbSet_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbSet_Change)
 			.Parent = @TabPage10
 		End With
 		' lblFXMSG0100
@@ -2969,7 +2931,7 @@
 			.ThumbLength = 15
 			.SetBounds 110, 30, 20, 90
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.Parent = @GroupBox8
 		End With
 		' tbEQ01
@@ -2985,7 +2947,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 140, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3002,7 +2964,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 170, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3019,7 +2981,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 200, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3036,7 +2998,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 230, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3053,7 +3015,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 260, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3070,7 +3032,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 290, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3087,7 +3049,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 320, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3104,7 +3066,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 350, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3121,7 +3083,7 @@
 			.TickMark = TickMarks.tmBoth
 			.ThumbLength = 15
 			.Designer = @This
-			.OnChange = @_tbEQ00_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbEQ00_Change)
 			.SetBounds 380, 30, 20, 90
 			.Parent = @GroupBox8
 		End With
@@ -3231,7 +3193,7 @@
 			.TabIndex = 257
 			.SetBounds 10, 50, 90, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit6_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit6_Selected)
 			.Parent = @GroupBox8
 		End With
 		' lblEQB00
@@ -3359,162 +3321,10 @@
 			.Caption = "Dark Mode"
 			.SetBounds 10, 260, 80, 20
 			.Designer = @This
-			.OnClick = @_CheckBox15_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox15_Click)
 			.Parent = @GroupBox3
 		End With
 	End Constructor
-	
-	Private Sub frmBassType._CheckBox15_Click(ByRef Sender As CheckBox)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox15_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._ComboBoxEdit6_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).ComboBoxEdit6_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmBassType._tbEQ00_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).tbEQ00_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmBassType._TextBox2_DblClick(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TextBox2_DblClick(Sender)
-	End Sub
-	
-	Private Sub frmBassType._TextBox1_DblClick(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TextBox1_DblClick(Sender)
-	End Sub
-	
-	Private Sub frmBassType._tbSet_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).tbSet_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmBassType._CheckBox5_Click(ByRef Sender As CheckBox)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox5_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._RadioButton1_Click(ByRef Sender As RadioButton)
-		(*Cast(frmBassType Ptr, Sender.Designer)).RadioButton1_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._TrackBar4_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar4_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton24_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton24_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._TimerComponent4_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TimerComponent4_Timer(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton23_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton23_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CheckBox4_Click(ByRef Sender As CheckBox)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox4_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton10_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton10_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton9_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton9_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CheckBox3_Click(ByRef Sender As CheckBox)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox3_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._TimerComponent3_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TimerComponent3_Timer(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton12_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton12_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton8_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton8_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._TrackBar3_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar3_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmBassType._ComboBoxEdit2_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).ComboBoxEdit2_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmBassType._ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).ComboBoxEdit4_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmBassType._Picture1_Click(ByRef Sender As Picture)
-		(*Cast(frmBassType Ptr, Sender.Designer)).Picture1_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._TimerComponent2_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TimerComponent2_Timer(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CheckBox1_Click(ByRef Sender As CheckBox)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CheckBox1_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._TrackBar2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar2_MouseUp(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmBassType._TrackBar2_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar2_MouseDown(Sender, MouseButton, x, y, Shift)
-	End Sub
-	
-	Private Sub frmBassType._TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar1_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmBassType._TrackBar2_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TrackBar2_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmBassType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmBassType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
-	End Sub
-	
-	Private Sub frmBassType._ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).ComboBoxEdit1_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton5_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton5_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton4_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton4_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton3_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton3_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton6_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton6_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
-	
-	Private Sub frmBassType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(frmBassType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub frmBassType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmBassType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
 
 	Dim Shared frmBass As frmBassType
 	

@@ -9,7 +9,6 @@
 	#include once "mff/Form.bi"
 	#include once "mff/TextBox.bi"
 	#include once "mff/CommandButton.bi"
-	#include once "mff/Panel.bi"
 	#include once "mff/ComboBoxEdit.bi"
 	#include once "mff/TrackBar.bi"
 	#include once "mff/VScrollBar.bi"
@@ -26,26 +25,18 @@
 	Const MSG_SAPI_EVENT = WM_USER + 1024   ' --> change me
 	
 	Type frmSapiTTSType Extends Form
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Message(ByRef Sender As Control, ByRef MSG As Message)
 		Declare Sub Form_Message(ByRef Sender As Control, ByRef MSG As Message)
-		Declare Static Sub _Form_Destroy(ByRef Sender As Control)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
-		Declare Static Sub _ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Constructor
 		
 		pSpVoice As Afx_ISpVoice Ptr
 		
 		Dim As TextBox TextBox1, TextBox2
-		Dim As Panel Panel1
 		Dim As GroupBox GroupBox1, GroupBox2
 		Dim As ComboBoxEdit ComboBoxEdit1, ComboBoxEdit2, ComboBoxEdit3
 		Dim As CommandButton CommandButton1, CommandButton2, CommandButton3, CommandButton4
@@ -59,12 +50,12 @@
 		With This
 			.Name = "frmSapiTTS"
 			.Text = "SAPI Text-to-Speech"
-			.Designer = @This
-			.OnCreate = @_Form_Create
-			.OnMessage = @_Form_Message
 			.Caption = "SAPI Text-to-Speech"
 			.StartPosition = FormStartPosition.CenterScreen
-			.OnDestroy = @_Form_Destroy
+			.Designer = @This
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message), @Form_Message)
+			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.SetBounds 0, 0, 346, 380
 		End With
@@ -77,25 +68,11 @@
 			"and text-to-speech, making speech technology more accessible and robust " & _
 			"for a wide range of applications."
 			.TabIndex = 0
-			.Align = DockStyle.alClient
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Vertical
 			.WordWraps = True
 			.HideSelection = False
-			.ExtraMargins.Right = 10
-			.ExtraMargins.Left = 10
-			.ExtraMargins.Top = 10
-			.SetBounds 10, 0, 320, 91
-			.Designer = @This
-			.Parent = @This
-		End With
-		' Panel1
-		With Panel1
-			.Name = "Panel1"
-			.Text = "Panel1"
-			.TabIndex = 1
-			.Align = DockStyle.alBottom
-			.SetBounds 0, 91, 340, 260
+			.SetBounds 10, 10, 320, 81
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -105,31 +82,32 @@
 			.Text = "Speach to Audio"
 			.TabIndex = 2
 			.Caption = "Speach to Audio"
-			.SetBounds 10, 10, 320, 130
+			.SetBounds 10, 130, 320, 100
 			.Designer = @This
-			.Parent = @Panel1
-		End With
-		' GroupBox2
-		With GroupBox2
-			.Name = "GroupBox2"
-			.Text = "Speach to File"
-			.TabIndex = 3
-			.Caption = "Speach to File"
-			.SetBounds 10, 150, 320, 100
-			.Designer = @This
-			.Parent = @Panel1
+			.Parent = @This
 		End With
 		' ComboBoxEdit1
 		With ComboBoxEdit1
 			.Name = "ComboBoxEdit1"
 			.Text = "ComboBoxEdit1"
-			.TabIndex = 4
+			.TabIndex = 3
 			.Style = ComboBoxEditStyle.cbDropDown
 			.Hint = "Voice"
-			.SetBounds 10, 20, 300, 21
+			.ControlIndex = 2
+			.SetBounds 10, 100, 320, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit1_Selected
-			.Parent = @GroupBox1
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
+			.Parent = @This
+		End With
+		' GroupBox2
+		With GroupBox2
+			.Name = "GroupBox2"
+			.Text = "Speach to File"
+			.TabIndex = 4
+			.Caption = "Speach to File"
+			.SetBounds 10, 240, 320, 100
+			.Designer = @This
+			.Parent = @This
 		End With
 		' ComboBoxEdit2
 		With ComboBoxEdit2
@@ -138,9 +116,9 @@
 			.TabIndex = 5
 			.Style = ComboBoxEditStyle.cbDropDown
 			.Hint = "Output"
-			.SetBounds 10, 50, 300, 21
+			.SetBounds 10, 20, 300, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit1_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
 			.Parent = @GroupBox1
 		End With
 		' TrackBar1
@@ -150,9 +128,9 @@
 			.TabIndex = 6
 			.MinValue = -10
 			.Hint = "Rate"
-			.SetBounds 10, 85, 200, 10
+			.SetBounds 10, 55, 200, 10
 			.Designer = @This
-			.OnChange = @_TrackBar1_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
 			.Parent = @GroupBox1
 		End With
 		' TrackBar2
@@ -162,9 +140,9 @@
 			.TabIndex = 7
 			.MaxValue = 100
 			.Hint = "Volume"
-			.SetBounds 10, 105, 200, 10
+			.SetBounds 10, 75, 200, 10
 			.Designer = @This
-			.OnChange = @_TrackBar1_Change
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
 			.Parent = @GroupBox1
 		End With
 		' CommandButton1
@@ -175,9 +153,9 @@
 			.Caption = "Speach"
 			.Align = DockStyle.alNone
 			.Anchor.Right = AnchorStyle.asNone
-			.SetBounds 220, 80, 90, 20
+			.SetBounds 220, 50, 90, 20
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @GroupBox1
 		End With
 		' CommandButton2
@@ -189,9 +167,9 @@
 			.Align = DockStyle.alNone
 			.Anchor.Right = AnchorStyle.asNone
 			.Enabled = False
-			.SetBounds 220, 100, 90, 20
+			.SetBounds 220, 70, 90, 20
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @GroupBox1
 		End With
 		' TextBox2
@@ -211,7 +189,7 @@
 			.Hint = "Audio Format"
 			.SetBounds 10, 55, 200, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit1_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
 			.AddItem "8kHz 8Bit Mono"
 			.AddItem "8kHz 8Bit Stereo"
 			.AddItem "8kHz 16Bit Mono"
@@ -259,7 +237,7 @@
 			.Caption = "Select"
 			.SetBounds 220, 49, 90, 20
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @GroupBox2
 		End With
 		' CommandButton4
@@ -270,60 +248,32 @@
 			.Caption = "Speach to file"
 			.SetBounds 220, 69, 90, 20
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @GroupBox2
 		End With
 		' SaveFileDialog1
 		With SaveFileDialog1
 			.Name = "SaveFileDialog1"
 			.Filter = "Wave file|*.wav"
-			.SetBounds 190, 139, 16, 16
+			.SetBounds 10, -1, 16, 16
 			.Designer = @This
-			.Parent = @Panel1
+			.Parent = @This
 		End With
 		' TimerComponent1
 		With TimerComponent1
 			.Name = "TimerComponent1"
 			.Interval = 100
-			.SetBounds 220, 139, 16, 16
+			.SetBounds 40, -1, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
-			.Parent = @Panel1
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
+			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub frmSapiTTSType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmSapiTTSType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
-	End Sub
-	
-	Private Sub frmSapiTTSType._TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		(*Cast(frmSapiTTSType Ptr, Sender.Designer)).TrackBar1_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmSapiTTSType._ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmSapiTTSType Ptr, Sender.Designer)).ComboBoxEdit1_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmSapiTTSType._Form_Destroy(ByRef Sender As Control)
-		(*Cast(frmSapiTTSType Ptr, Sender.Designer)).Form_Destroy(Sender)
-	End Sub
-	
-	Private Sub frmSapiTTSType._Form_Message(ByRef Sender As Control, ByRef MSG As Message)
-		(*Cast(frmSapiTTSType Ptr, Sender.Designer)).Form_Message(Sender, MSG)
-	End Sub
-	
-	Private Sub frmSapiTTSType._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(frmSapiTTSType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
-	
-	Private Sub frmSapiTTSType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmSapiTTSType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
 	
 	Dim Shared frmSapiTTS As frmSapiTTSType
 
 	#if _MAIN_FILE_ = __FILE__
-		App.DarkMode= True
+		'App.DarkMode= True
 		frmSapiTTS.MainForm = True
 		frmSapiTTS.Show
 		App.Run
@@ -335,8 +285,8 @@ Private Sub frmSapiTTSType.Form_Create(ByRef Sender As Control)
 	' // Create an instance of the SpVoice object
 	
 	Dim classID As IID, riid As IID
-	CLSIDFromString(AFX_CLSID_SpVoice, @classID)
-	IIDFromString(AFX_IID_ISpVoice, @riid)
+	CLSIDFromString(Afx_CLSID_SpVoice, @classID)
+	IIDFromString(Afx_IID_ISpVoice, @riid)
 	CoCreateInstance(@classID, NULL, CLSCTX_ALL, @riid, @pSpVoice)
 	
 	If pSpVoice Then
@@ -429,7 +379,7 @@ Private Sub frmSapiTTSType.CommandButton1_Click(ByRef Sender As Control)
 	Case "speach to file"
 		
 		If PathFileExists(@TextBox2.Text) Then
-			If MsgBox( !"Overwrite exist file?\r\n" & TextBox2.Text, "File overwrite confirm", mtWarning, btYesNo) <> MessageResult.mrYes Then Exit Sub
+			If MsgBox( !"Overwrite exist file?\r\n" & TextBox2.Text, "File overwrite confirmation.", mtWarning, btYesNo) <> MessageResult.mrYes Then Exit Sub
 		End If
 		
 		ComboBoxEdit1.Enabled = False

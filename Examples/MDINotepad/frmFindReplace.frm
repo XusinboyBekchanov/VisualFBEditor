@@ -14,9 +14,7 @@
 	Using My.Sys.Forms
 	
 	Type frmFindReplaceType Extends Form
-		Declare Static Sub _btnFindReplace_Click(ByRef Sender As Control)
 		Declare Sub btnFindReplace_Click(ByRef Sender As Control)
-		Declare Static Sub _chkFindReplace_Click(ByRef Sender As CheckBox)
 		Declare Sub chkFindReplace_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
@@ -59,7 +57,7 @@
 			.Caption = "Case sensitive"
 			.SetBounds 10, 70, 90, 20
 			.Designer = @This
-			.OnClick = @_chkFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkFindReplace_Click)
 			.Parent = @This
 		End With
 		' chkWarp
@@ -68,10 +66,10 @@
 			.Text = "Wrap around"
 			.TabIndex = 2
 			.Caption = "Wrap around"
-			.Checked = true
+			.Checked = True
 			.SetBounds 110, 70, 90, 20
 			.Designer = @This
-			.OnClick = @_chkFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkFindReplace_Click)
 			.Parent = @This
 		End With
 		' txtReplace
@@ -95,7 +93,7 @@
 			.Caption = "Find Next"
 			.SetBounds 280, 10, 90, 20
 			.Designer = @This
-			.OnClick = @_btnFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
 			.Parent = @This
 		End With
 		' btnFindBack
@@ -106,7 +104,7 @@
 			.Caption = "Find Back"
 			.SetBounds 280, 30, 90, 20
 			.Designer = @This
-			.OnClick = @_btnFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
 			.Parent = @This
 		End With
 		' btnShowHide
@@ -117,7 +115,7 @@
 			.Caption = "Hide Replace"
 			.SetBounds 280, 70, 90, 20
 			.Designer = @This
-			.OnClick = @_btnFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
 			.Parent = @This
 		End With
 		' btnReplace
@@ -128,7 +126,7 @@
 			.Caption = "Replace"
 			.SetBounds 280, 120, 90, 20
 			.Designer = @This
-			.OnClick = @_btnFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
 			.Parent = @This
 		End With
 		' btnReplaceAll
@@ -139,18 +137,10 @@
 			.Caption = "Replace All"
 			.SetBounds 280, 140, 90, 20
 			.Designer = @This
-			.OnClick = @_btnFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub frmFindReplaceType._chkFindReplace_Click(ByRef Sender As CheckBox)
-		(*Cast(frmFindReplaceType Ptr, Sender.Designer)).chkFindReplace_Click(Sender)
-	End Sub
-	
-	Private Sub frmFindReplaceType._btnFindReplace_Click(ByRef Sender As Control)
-		(*Cast(frmFindReplaceType Ptr, Sender.Designer)).btnFindReplace_Click(Sender)
-	End Sub
 	
 	Dim Shared frmFindReplace As frmFindReplaceType
 	

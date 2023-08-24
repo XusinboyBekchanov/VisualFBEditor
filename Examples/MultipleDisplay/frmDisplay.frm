@@ -50,25 +50,15 @@
 		Declare Sub GetDisplayMode(ByVal NameIndex As Integer, ByVal FlagIndex As Integer, ByVal Index As Integer)
 		Declare Static Function MonitorEnumProc(ByVal hMtr As HMONITOR , ByVal hDCMonitor As HDC , ByVal lprcMonitor As LPRECT , ByVal dwData As LPARAM) As WINBOOL
 		
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _CommandButton2_Click(ByRef Sender As Control)
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton5_Click(ByRef Sender As Control)
 		Declare Sub CommandButton5_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton4_Click(ByRef Sender As Control)
 		Declare Sub CommandButton4_Click(ByRef Sender As Control)
-		Declare Static Sub _ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _CommandButton3_Click(ByRef Sender As Control)
 		Declare Sub CommandButton3_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton6_Click(ByRef Sender As Control)
 		Declare Sub CommandButton6_Click(ByRef Sender As Control)
-		Declare Static Sub _ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _ListControl2_Click(ByRef Sender As Control)
 		Declare Sub ListControl2_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -86,7 +76,7 @@
 			.Text = "VFBE Multiple Display"
 			.StartPosition = FormStartPosition.CenterScreen
 			.Designer = @This
-			.OnCreate = @_Form_Create
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			#ifdef __FB_64BIT__
 				'...instructions for 64bit OSes...
 				.Caption = "VFBE Multiple Display64"
@@ -150,7 +140,7 @@
 			.TabIndex = 16
 			.SetBounds 0, 120, 230, 20
 			.Designer = @This
-			.OnClick = @_CommandButton1_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
 			.Parent = @Panel3
 		End With
 		' ComboBoxEdit1
@@ -168,7 +158,7 @@
 			.TabIndex = 18
 			.SetBounds 120, 150, 110, 20
 			.Designer = @This
-			.OnClick = @_CommandButton2_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton2_Click)
 			.Parent = @Panel3
 		End With
 		' ComboBoxEdit2
@@ -186,7 +176,7 @@
 			.TabIndex = 20
 			.SetBounds 0, 190, 230, 20
 			.Designer = @This
-			.OnClick = @_CommandButton3_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton3_Click)
 			.Parent = @Panel3
 		End With
 		' CommandButton4
@@ -196,7 +186,7 @@
 			.TabIndex = 23
 			.SetBounds 0, 220, 230, 20
 			.Designer = @This
-			.OnClick = @_CommandButton4_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton4_Click)
 			.Parent = @Panel3
 		End With
 		' CommandButton5
@@ -206,7 +196,7 @@
 			.TabIndex = 24
 			.SetBounds 0, 270, 230, 20
 			.Designer = @This
-			.OnClick = @_CommandButton5_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton5_Click)
 			.Parent = @Panel3
 		End With
 		' ComboBoxEdit3
@@ -216,7 +206,7 @@
 			.TabIndex = 26
 			.SetBounds 0, 240, 230, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit3_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit3_Selected)
 			.Parent = @Panel3
 		End With
 		' Panel4
@@ -235,7 +225,7 @@
 			.TabIndex = 28
 			.SetBounds 0, 30, 230, 20
 			.Designer = @This
-			.OnClick = @_CommandButton6_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton6_Click)
 			.Parent = @Panel4
 		End With
 		' ComboBoxEdit5
@@ -262,7 +252,7 @@
 			.TabIndex = 20
 			.SetBounds 0, 290, 230, 21
 			.Designer = @This
-			.OnSelected = @_ComboBoxEdit4_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit4_Selected)
 			.Parent = @Panel3
 		End With
 		' ListControl2
@@ -273,51 +263,11 @@
 			.Align = DockStyle.alClient
 			.SetBounds 0, 320, 230, 173
 			.Designer = @This
-			.OnClick = @_ListControl2_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @ListControl2_Click)
 			.Parent = @Panel1
 		End With
 	End Constructor
-	
-	Private Sub frmDisplayType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmDisplayType._CommandButton5_Click(ByRef Sender As Control)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton5_Click(Sender)
-	End Sub
-	
-	Private Sub frmDisplayType._CommandButton4_Click(ByRef Sender As Control)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton4_Click(Sender)
-	End Sub
-	
-	Private Sub frmDisplayType._ComboBoxEdit3_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).ComboBoxEdit3_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmDisplayType._CommandButton3_Click(ByRef Sender As Control)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton3_Click(Sender)
-	End Sub
-	
-	Private Sub frmDisplayType._CommandButton1_Click(ByRef Sender As Control)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton1_Click(Sender)
-	End Sub
-	
-	Private Sub frmDisplayType._CommandButton6_Click(ByRef Sender As Control)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton6_Click(Sender)
-	End Sub
-	
-	Private Sub frmDisplayType._ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).ComboBoxEdit4_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmDisplayType._ListControl2_Click(ByRef Sender As Control)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).ListControl2_Click(Sender)
-	End Sub
-	
-	Private Sub frmDisplayType._CommandButton2_Click(ByRef Sender As Control)
-		(*Cast(frmDisplayType Ptr, Sender.Designer)).CommandButton2_Click(Sender)
-	End Sub
-	
+
 	Dim Shared frmDisplay As frmDisplayType
 	
 	#if _MAIN_FILE_ = __FILE__

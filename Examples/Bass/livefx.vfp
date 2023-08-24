@@ -1,7 +1,6 @@
 ﻿File=BassBase.bi
 *File=frmLiveFX.frm
 File=BassBase.bas
-*File=frmLiveFX.rc
 ProjectType=0
 Subsystem=2
 ProjectName="LiveFX"
@@ -12,7 +11,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=120
+BuildVersion=155
 AutoIncrementVersion=false
 ApplicationTitle="LiveFX"
 ApplicationIcon=""

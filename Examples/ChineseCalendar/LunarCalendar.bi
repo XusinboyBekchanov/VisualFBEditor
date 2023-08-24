@@ -26,13 +26,13 @@ Private:
 	
 	'定义类内部用公用变量
 	SolarMonth(11) As Long = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-	Gan(10) As UString = {"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
-	Zhi(11) As UString = {"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
-	Animals(11) As UString = {"鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"}
-	SolarTerm(23) As UString = {"小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", "夏至", "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"}
+	Gan(10) As String = {"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
+	Zhi(11) As String = {"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
+	Animals(11) As String = {"鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"}
+	SolarTerm(23) As String = {"小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", "夏至", "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"}
 	sTermInfo(23) As Long = {0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693, 263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532, 504758}
-	nStr1(11) As UString = {"日", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"}
-	nStr2(4) As UString = {"初", "十", "廿", "卅", "　"}
+	nStr1(11) As String = {"日", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"}
+	nStr2(4) As String = {"初", "十", "廿", "卅", "　"}
 	
 	'根据VB的位计算特点,故扩充原有的数据位,将其变成32位
 	LunarInfo(150) As Long = { _
@@ -168,40 +168,40 @@ Public:
 	MonthNameS(11) As String = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"}
 	MonthName(11) As String = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"}
 	'时辰———十二地支纪一昼24小时为十二时辰
-	HourName(23) As UString = {"子正", "丑初", "丑正", "寅初", "寅正", "卯初", "卯正", "辰初", "辰正", "巳初", "巳正", "午初", "午正", "未初", "未正", "申初", "申正", "酉初", "酉正", "戌初", "戌正", "亥初", "亥正", "子初"}
+	HourName(23) As String = {"子正", "丑初", "丑正", "寅初", "寅正", "卯初", "卯正", "辰初", "辰正", "巳初", "巳正", "午初", "午正", "未初", "未正", "申初", "申正", "酉初", "酉正", "戌初", "戌正", "亥初", "亥正", "子初"}
 	'农历月份名
-	MonName(12) As UString = {"*", "正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "腊"}
+	MonName(12) As String = {"*", "正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "腊"}
 	'星期名称
-	WeekName(7) As UString = {" * ", "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"}
-	WeekNameS(7) As UString = {" * ", "日", "一", "二", "三", "四", "五", "六"}
+	WeekName(7) As String = {" * ", "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"}
+	WeekNameS(7) As String = {" * ", "日", "一", "二", "三", "四", "五", "六"}
 	
 	Declare Constructor
 	Declare Destructor
 	Declare Function mvarBitTest32(Number As Long, Bit As Long) As Boolean
-	Declare Property lSolarTerm() As UString
-	Declare Property wHoliday() As UString
-	Declare Property lHoliday() As UString
-	Declare Property sHoliday() As UString
+	Declare Property lSolarTerm() As String
+	Declare Property wHoliday() As String
+	Declare Property lHoliday() As String
+	Declare Property sHoliday() As String
 	Declare Property sHolidayRecess() As Boolean
 	Declare Property IsLeap() As Boolean
-	Declare Function lHour(H As Double) As UString
+	Declare Function lHour(H As Double) As String
 	Declare Property lDay() As Long
 	Declare Property lMonth() As Long
 	Declare Property lYear() As Long
 	Declare Property sWeekDay() As Long
-	Declare Property sWeekDayStr() As UString
-	Declare Function Constellation2(m As Long, d As Long) As UString
+	Declare Property sWeekDayStr() As String
+	Declare Function Constellation2(m As Long, d As Long) As String
 	Declare Property sDay() As Long
 	Declare Property sMonth() As Long
 	Declare Property sYear() As Long
 	Declare Function IsToday(Y As Long, m As Long, d As Long) As Boolean
-	Declare Function Era(Y As Long) As UString
-	Declare Function GanZhi(num As Long) As UString
-	Declare Function YearAttribute(Y As Long) As UString
-	Declare Function UpNumber(Dxs As UString) As UString
-	Declare Function Converts(NumStr As String) As UString
-	Declare Function CDayStr(d As Long) As UString
-	Declare Function Constellation(m As Long, d As Long) As UString
+	Declare Function Era(Y As Long) As String
+	Declare Function GanZhi(num As Long) As String
+	Declare Function YearAttribute(Y As Long) As String
+	Declare Function UpNumber(Dxs As String) As String
+	Declare Function Converts(NumStr As String) As String
+	Declare Function CDayStr(d As Long) As String
+	Declare Function Constellation(m As Long, d As Long) As String
 	Declare Function lYearDays(ByVal Y As Long) As Long
 	Declare Function lMonthDays(ByVal Y As Long, ByVal m As Long) As Long
 	Declare Function leapDays(Y As Long) As Long

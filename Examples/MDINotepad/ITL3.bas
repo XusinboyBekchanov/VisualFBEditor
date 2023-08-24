@@ -1,6 +1,6 @@
 ﻿#pragma once
 ' ITL3 ITaskbarList3
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2023 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "ITL3.bi"
@@ -22,7 +22,7 @@ Property ITL3.WndForm(ByVal nVal As HWND)
 End Property
 
 Sub ITL3.Initial(ByVal nVal As HWND)
-	CoCreateInstance(@CLSID_TaskBarList,NULL,CLSCTX_INPROC_SERVER,@IID_ITaskBarList3,@tl3)
+	CoCreateInstance(@CLSID_TaskbarList,NULL,CLSCTX_INPROC_SERVER,@IID_ITaskbarList3,@tl3)
 	tl3->lpVtbl->HrInit(tl3)
 	WndForm = nVal
 	mInit=True

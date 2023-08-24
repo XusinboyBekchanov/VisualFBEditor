@@ -41,36 +41,27 @@
 		Declare Sub zSettingSave(ByRef FileName As Const WString)
 		Declare Sub zSettingLoad(ByRef FileName As Const WString)
 		
-		Declare Static Sub _cmdButton_Click(ByRef Sender As Control)
 		Declare Sub cmdButton_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Static Sub _TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		Declare Static Sub _ListView1_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 		Declare Sub ListView1_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		Declare Static Sub _cmbexSetProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub cmbexSetProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _cmbexCompareData_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub cmbexCompareData_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _rbtnLogFile_Click(ByRef Sender As RadioButton)
 		Declare Sub rbtnLogFile_Click(ByRef Sender As RadioButton)
-		Declare Static Sub _cmbexAPath_DblClick(ByRef Sender As Control)
 		Declare Sub cmbexAPath_DblClick(ByRef Sender As Control)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _cmbexProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub cmbexProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		Declare Sub Form_Destroy(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As TextBox txtLogFile, txtLogText
 		Dim As CommandButton cmdAPath, cmdBPath, cmdPathBRemove, cmdPathBCreate, cmdPathBWFD, cmdCancel, cmdStart, cmdProfileSave, cmdProfileDel, cmdProfileFresh
 		Dim As Panel Panel1, Panel2, Panel4, Panel3, Panel5
-		Dim As CheckBox CheckBox1
+		Dim As CheckBox chkCpyEmptyPath
 		Dim As RadioButton rbtnIncrement, rbtnDuplication, rbtnSynchronization, rbtnLogNothing, rbtnLogMemory, rbtnLogFile
 		Dim As ListView ListView1
 		Dim As ProgressBar ProgressBar1
-		Dim As ComboBoxEx cmbexAPath, cmbexBPath, cmbexCompareData, cmbexCompareMode, cmbexSetProfile, cmbexProfile
+		Dim As ComboBoxEx cmbexAPath, cmbexBPath, cmbexCompareData, cmbexCompareMode, cmbexSetProfile, cmbexProfile, cmbexDone
 		Dim As GroupBox GroupBox1
 		Dim As FolderBrowserDialog FolderBrowserDialog1
 		Dim As TimerComponent TimerComponent1
@@ -96,8 +87,8 @@
 				'...instructions for other OSes
 				.Caption = "VFBE File Sync32"
 			#endif
-			.OnCreate = @_Form_Create
-			.OnClose = @_Form_Close
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 1000, 630
 		End With
 		' Panel1
@@ -120,7 +111,7 @@
 			.Text = "Panel2"
 			.TabIndex = 1
 			.Align = DockStyle.alTop
-			.SetBounds 0, 0, 440, 211
+			.SetBounds 0, 0, 440, 231
 			.Designer = @This
 			.Parent = @Panel1
 		End With
@@ -140,7 +131,7 @@
 			.Text = "Panel3"
 			.TabIndex = 3
 			.Align = DockStyle.alNone
-			.SetBounds 150, 110, 140, 90
+			.SetBounds 150, 110, 140, 80
 			.Designer = @This
 			.Parent = @Panel2
 		End With
@@ -150,7 +141,7 @@
 			.Text = "Panel5"
 			.TabIndex = 4
 			.Align = DockStyle.alNone
-			.SetBounds 300, 110, 140, 90
+			.SetBounds 300, 110, 140, 80
 			.Designer = @This
 			.Parent = @Panel2
 		End With
@@ -160,7 +151,7 @@
 			.Text = "Overwirte"
 			.TabIndex = 5
 			.Caption = "Overwirte"
-			.SetBounds 0, 110, 140, 90
+			.SetBounds 0, 110, 140, 110
 			.Designer = @This
 			.Parent = @Panel2
 		End With
@@ -172,7 +163,7 @@
 			.Caption = "A"
 			.SetBounds 0, 0, 30, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel2
 		End With
 		' cmbexAPath
@@ -187,7 +178,7 @@
 			.ItemHeight = 18
 			.SetBounds 30, 0, 410, 22
 			.Designer = @This
-			.OnDblClick = @_cmbexAPath_DblClick
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmbexAPath_DblClick)
 			.Parent = @Panel2
 		End With
 		' ProgressBar1
@@ -211,7 +202,7 @@
 			.ItemHeight = 18
 			.SetBounds 30, 40, 410, 22
 			.Designer = @This
-			.OnDblClick = @_cmbexAPath_DblClick
+			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmbexAPath_DblClick)
 			.Parent = @Panel2
 		End With
 		' cmdPathBRemove
@@ -222,7 +213,7 @@
 			.Caption = "Path B Remove"
 			.SetBounds 0, 70, 140, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel2
 		End With
 		' cmdPathBCreate
@@ -233,7 +224,7 @@
 			.Caption = "Path B Create"
 			.SetBounds 150, 70, 140, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel2
 		End With
 		' cmdPathBWFD
@@ -244,7 +235,7 @@
 			.Caption = "Get WFD"
 			.SetBounds 300, 70, 140, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel2
 		End With
 		' cmbexCompareData
@@ -255,9 +246,9 @@
 			.ImagesList = @ImageList1
 			.IntegralHeight = False
 			.ItemHeight = 13
-			.SetBounds 10, 20, 120, 22
+			.SetBounds 10, 30, 120, 22
 			.Designer = @This
-			.OnSelected = @_cmbexCompareData_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cmbexCompareData_Selected)
 			.Parent = @GroupBox1
 		End With
 		' cmbexCompareMode
@@ -268,7 +259,7 @@
 			.ImagesList = @ImageList1
 			.IntegralHeight = False
 			.ItemHeight = 18
-			.SetBounds 10, 60, 120, 22
+			.SetBounds 10, 70, 120, 22
 			.Designer = @This
 			.Parent = @GroupBox1
 		End With
@@ -303,15 +294,15 @@
 			.Designer = @This
 			.Parent = @Panel4
 		End With
-		' CheckBox1
-		With CheckBox1
-			.Name = "CheckBox1"
+		' chkCpyEmptyPath
+		With chkCpyEmptyPath
+			.Name = "chkCpyEmptyPath"
 			.Text = "Copy empty path"
 			.TabIndex = 18
 			.Caption = "Copy empty path"
 			.Checked = True
 			.Align = DockStyle.alBottom
-			.SetBounds 65150, 70, 140, 20
+			.SetBounds 0, 60, 140, 20
 			.Designer = @This
 			.Parent = @Panel4
 		End With
@@ -324,7 +315,7 @@
 			.Checked = True
 			.SetBounds 0, 0, 120, 20
 			.Designer = @This
-			.OnClick = @_rbtnLogFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @rbtnLogFile_Click)
 			.Parent = @Panel5
 		End With
 		' rbtnLogMemory
@@ -336,7 +327,7 @@
 			.Checked = False
 			.SetBounds 0, 20, 120, 20
 			.Designer = @This
-			.OnClick = @_rbtnLogFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @rbtnLogFile_Click)
 			.Parent = @Panel5
 		End With
 		' rbtnLogFile
@@ -345,10 +336,10 @@
 			.Text = "Log file"
 			.TabIndex = 21
 			.Caption = "Log file"
-			.Enabled = true
+			.Enabled = True
 			.SetBounds 0, 40, 120, 20
 			.Designer = @This
-			.OnClick = @_rbtnLogFile_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @rbtnLogFile_Click)
 			.Parent = @Panel5
 		End With
 		' txtLogFile
@@ -378,7 +369,7 @@
 			.SmallImages = @ImageList1
 			.SetBounds 0, 211, 440, 270
 			.Designer = @This
-			.OnItemClick = @_ListView1_ItemClick
+			.OnItemClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer), @ListView1_ItemClick)
 			.Parent = @Panel1
 		End With
 		' cmbexProfile
@@ -390,7 +381,7 @@
 			.Style = ComboBoxEditStyle.cbDropDown
 			.SetBounds 0, 20, 290, 22
 			.Designer = @This
-			.OnSelected = @_cmbexProfile_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cmbexProfile_Selected)
 			.Parent = @Panel3
 		End With
 		' cmdProfileSave
@@ -401,7 +392,7 @@
 			.Caption = "Save"
 			.SetBounds 300, 20, 40, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel3
 		End With
 		' cmdProfileDel
@@ -412,7 +403,7 @@
 			.Caption = "Del"
 			.SetBounds 350, 20, 40, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel3
 		End With
 		' cmdProfileFresh
@@ -423,7 +414,7 @@
 			.Caption = "Fresh"
 			.SetBounds 400, 20, 40, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel3
 		End With
 		' cmbexSetProfile
@@ -436,7 +427,7 @@
 			.ItemHeight = 18
 			.SetBounds 0, 68, 140, 22
 			.Designer = @This
-			.OnSelected = @_cmbexSetProfile_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cmbexSetProfile_Selected)
 			.Parent = @Panel3
 		End With
 		' cmdCancel
@@ -448,7 +439,7 @@
 			.Enabled = False
 			.SetBounds 150, 68, 140, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel3
 		End With
 		' cmdStart
@@ -460,7 +451,7 @@
 			.Enabled = True
 			.SetBounds 300, 68, 140, 22
 			.Designer = @This
-			.OnClick = @_cmdButton_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdButton_Click)
 			.Parent = @Panel3
 		End With
 		' txtLogText
@@ -480,13 +471,24 @@
 			.Designer = @This
 			.Parent = @This
 		End With
+		' cmbexDone
+		With cmbexDone
+			.Name = "cmbexDone"
+			.Text = "cmbexDone"
+			.TabIndex = 32
+			.Hint = "Action after done"
+			.ImagesList = @ImageList1
+			.SetBounds 150, 200, 290, 22
+			.Designer = @This
+			.Parent = @Panel2
+		End With
 		' TimerComponent1
 		With TimerComponent1
 			.Name = "TimerComponent1"
 			.Interval = 500
 			.SetBounds 330, 22, 16, 16
 			.Designer = @This
-			.OnTimer = @_TimerComponent1_Timer
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @Panel2
 		End With
 		' ImageList1
@@ -514,46 +516,6 @@
 			.Parent = @Panel2
 		End With
 	End Constructor
-	
-	Private Sub frmFileSyncType._cmbexProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmbexProfile_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmFileSyncType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub frmFileSyncType._cmbexAPath_DblClick(ByRef Sender As Control)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmbexAPath_DblClick(Sender)
-	End Sub
-	
-	Private Sub frmFileSyncType._rbtnLogFile_Click(ByRef Sender As RadioButton)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).rbtnLogFile_Click(Sender)
-	End Sub
-	
-	Private Sub frmFileSyncType._cmbexCompareData_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmbexCompareData_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmFileSyncType._cmbexSetProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmbexSetProfile_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmFileSyncType._ListView1_ItemClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).ListView1_ItemClick(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmFileSyncType._TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).TimerComponent1_Timer(Sender)
-	End Sub
-	
-	Private Sub frmFileSyncType._Form_Create(ByRef Sender As Control)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmFileSyncType._cmdButton_Click(ByRef Sender As Control)
-		(*Cast(frmFileSyncType Ptr, Sender.Designer)).cmdButton_Click(Sender)
-	End Sub
 	
 	Dim Shared frmFileSync As frmFileSyncType
 	
@@ -701,7 +663,7 @@ Private Sub frmFileSyncType.zControlEnabled(Enabled As Boolean, SetProfile As Lo
 	cmdCancel.Enabled = nb
 	cmdAPath.Enabled = Enabled
 	cmdBPath.Enabled = Enabled
-	CheckBox1.Enabled = bb
+	chkCpyEmptyPath.Enabled = bb
 	rbtnIncrement.Enabled = bb
 	rbtnDuplication.Enabled = bb
 	rbtnSynchronization.Enabled = bb
@@ -713,8 +675,9 @@ Private Sub frmFileSyncType.zControlEnabled(Enabled As Boolean, SetProfile As Lo
 	cmbexProfile.Enabled = Enabled
 	cmdProfileSave.Enabled = Enabled
 	cmdProfileDel.Enabled = Enabled
+	cmbexDone.Enabled = Enabled
 	cmdProfileFresh.Enabled = Enabled
-	 
+	
 	If Enabled Then TimerComponent1_Timer(TimerComponent1)
 End Sub
 
@@ -736,7 +699,40 @@ End Sub
 
 Private Sub frmFileSyncType.zOnFPSyncDone(Owner As Any Ptr)
 	Dim a As frmFileSyncType Ptr = Cast(frmFileSyncType Ptr, Owner)
-	a->zControlEnabled(True,a->cmbexSetProfile.ItemIndex)
+	a->zControlEnabled(True, a->cmbexSetProfile.ItemIndex)
+	If a->fpsync.Cancel Then Exit Sub
+	Debug.Print "Action after down: " & a->cmbexDone.ItemIndex
+	
+	Dim hPorc As Any Ptr
+	Dim hToken As Any Ptr
+	Dim mLUID As LUID
+	Dim mPriv As TOKEN_PRIVILEGES
+	Dim mNewPriv As TOKEN_PRIVILEGES
+
+	Select Case a->cmbexDone.ItemIndex
+	Case 2, 3, 4
+		hPorc = GetCurrentProcess()
+		If OpenProcessToken(hPorc, TOKEN_ADJUST_PRIVILEGES Or TOKEN_QUERY, @hToken) Then
+			If LookupPrivilegeValue(NULL, @"SeShutdownPrivilege", @mLUID) Then
+				mPriv.PrivilegeCount = 1
+				mPriv.Privileges(0).Attributes = SE_PRIVILEGE_ENABLED
+				mPriv.Privileges(0).Luid = mLUID
+				AdjustTokenPrivileges(hToken, False, @mPriv, SizeOf(mPriv), NULL, NULL)
+				CloseHandle(hToken)
+			End If
+		End If
+	End Select
+	
+	Select Case a->cmbexDone.ItemIndex
+	Case 1 'exit
+		a->CloseForm
+	Case 2 'logoff
+		ExitWindowsEx EWX_LOGOFF Or EWX_FORCE , 0
+	Case 3 'reboot
+		ExitWindowsEx(EWX_REBOOT Or EWX_FORCE, SHTDN_REASON_MAJOR_APPLICATION Or SHTDN_REASON_MINOR_MAINTENANCE Or SHTDN_REASON_FLAG_PLANNED)
+	Case 4 'shutdown
+		ExitWindowsEx(EWX_SHUTDOWN Or EWX_FORCE, SHTDN_REASON_MAJOR_APPLICATION Or SHTDN_REASON_MINOR_MAINTENANCE Or SHTDN_REASON_FLAG_PLANNED)
+	End Select
 End Sub
 
 Private Sub frmFileSyncType.Form_Create(ByRef Sender As Control)
@@ -778,6 +774,7 @@ Private Sub frmFileSyncType.Form_Create(ByRef Sender As Control)
 	cmbexSetProfile.Items.Add("Duplication", , 3, 3, 3)
 	cmbexSetProfile.Items.Add("Synchronization", , 238, 238, 238)
 	cmbexSetProfile.Items.Add("Customization", , 110, 110, 110)
+	cmbexSetProfile.ItemIndex = 1
 	
 	cmbexCompareData.Items.Clear
 	cmbexCompareData.Items.Add("Size", , 1, 1, 1)
@@ -787,7 +784,13 @@ Private Sub frmFileSyncType.Form_Create(ByRef Sender As Control)
 	cmbexCompareData.ItemIndex = 1
 	cmbexCompareData_Selected(cmbexCompareData, 1)
 	
-	cmbexSetProfile.ItemIndex = 1
+	cmbexDone.Items.Clear
+	cmbexDone.Items.Add("Do nothing", , 0, 0, 0)
+	cmbexDone.Items.Add("Exit", , 112, 112, 112)
+	cmbexDone.Items.Add("Logoff", , 160, 160, 160)
+	cmbexDone.Items.Add("Reboot", , 151, 151, 151)
+	cmbexDone.Items.Add("Shutdown", , 122, 122, 122)
+	cmbexDone.ItemIndex = 0
 	
 	#ifdef __FB_64BIT__
 		rbtnLogNothing.Checked = False
@@ -803,6 +806,21 @@ Private Sub frmFileSyncType.Form_Create(ByRef Sender As Control)
 	cmdButton_Click(cmdProfileFresh)
 	
 	zInitial()
+	
+	#ifdef __MDI__
+		Exit Sub
+	#endif
+	
+	If Len(Command(1)) = 0 Then Exit Sub
+	
+	i = cmbexProfile.Items.IndexOf(Command(1))
+	If i < 0 Then Exit Sub
+	
+	'command line is profile, then autorun profile
+	cmbexProfile.ItemIndex = i
+	cmbexProfile_Selected cmbexProfile, i
+	
+	cmdButton_Click cmdStart
 End Sub
 
 Private Sub frmFileSyncType.cmdButton_Click(ByRef Sender As Control)
@@ -843,7 +861,7 @@ Private Sub frmFileSyncType.cmdButton_Click(ByRef Sender As Control)
 		Case "cmdCancel"
 			.Cancel = True
 		Case "cmdStart"
-			.mCopyEmptyPath = CheckBox1.Checked
+			.mCopyEmptyPath = chkCpyEmptyPath.Checked
 			.mDuplicat = rbtnDuplication.Checked
 			.mSyncMode = rbtnSynchronization.Checked
 			.mCompareData = cmbexCompareData.ItemIndex
@@ -868,7 +886,7 @@ Private Sub frmFileSyncType.cmdButton_Click(ByRef Sender As Control)
 				Dim f As String = FullName2Path(App.FileName) & "\" & s & ".profile"
 				Dim ss() As WString Ptr
 				Dim t As WString Ptr
-				ReDim ss(12)
+				ReDim ss(13)
 				
 				WStr2Ptr("Set Profile=" & cmbexSetProfile.ItemIndex, ss(0))
 				WStr2Ptr("A Path=" & cmbexAPath.Text, ss(1))
@@ -878,11 +896,12 @@ Private Sub frmFileSyncType.cmdButton_Click(ByRef Sender As Control)
 				WStr2Ptr("Increment=" & rbtnIncrement.Checked, ss(5))
 				WStr2Ptr("Duplication=" & rbtnDuplication.Checked, ss(6))
 				WStr2Ptr("Synchronization=" & rbtnSynchronization.Checked, ss(7))
-				WStr2Ptr("Copy Empty Path=" & CheckBox1.Checked, ss(8))
+				WStr2Ptr("Copy Empty Path=" & chkCpyEmptyPath.Checked, ss(8))
 				WStr2Ptr("Log Nothing=" & rbtnLogNothing.Checked, ss(9))
 				WStr2Ptr("Log Memory=" & rbtnLogMemory.Checked, ss(10))
 				WStr2Ptr("Log File=" & rbtnLogFile.Checked, ss(11))
 				WStr2Ptr("Log FileName=" & txtLogFile.Text, ss(12))
+				WStr2Ptr("Action after Done=" & cmbexDone.ItemIndex, ss(13))
 				
 				JoinWStr(ss(), vbCrLf, t)
 				
@@ -989,7 +1008,7 @@ Private Sub frmFileSyncType.cmbexSetProfile_Selected(ByRef Sender As ComboBoxEdi
 		cmbexCompareData.ItemIndex = 1
 		cmbexCompareData_Selected(cmbexCompareData, cmbexCompareData.ItemIndex)
 		cmbexCompareMode.ItemIndex = 0
-		CheckBox1.Checked = True
+		chkCpyEmptyPath.Checked = True
 		rbtnIncrement.Checked = True
 		rbtnDuplication.Checked = False
 		rbtnSynchronization.Checked = False
@@ -998,7 +1017,7 @@ Private Sub frmFileSyncType.cmbexSetProfile_Selected(ByRef Sender As ComboBoxEdi
 		cmbexCompareData.ItemIndex = 1
 		cmbexCompareData_Selected(cmbexCompareData, cmbexCompareData.ItemIndex)
 		cmbexCompareMode.ItemIndex = 2
-		CheckBox1.Checked = True
+		chkCpyEmptyPath.Checked = True
 		rbtnIncrement.Checked = False
 		rbtnDuplication.Checked = True
 		rbtnSynchronization.Checked = False
@@ -1007,7 +1026,7 @@ Private Sub frmFileSyncType.cmbexSetProfile_Selected(ByRef Sender As ComboBoxEdi
 		cmbexCompareData.ItemIndex = 1
 		cmbexCompareData_Selected(cmbexCompareData, cmbexCompareData.ItemIndex)
 		cmbexCompareMode.ItemIndex = 0
-		CheckBox1.Checked = True
+		chkCpyEmptyPath.Checked = True
 		rbtnIncrement.Checked = False
 		rbtnDuplication.Checked = False
 		rbtnSynchronization.Checked = True
@@ -1016,7 +1035,7 @@ Private Sub frmFileSyncType.cmbexSetProfile_Selected(ByRef Sender As ComboBoxEdi
 		cmbexCompareData.ItemIndex = 1
 		cmbexCompareData_Selected(cmbexCompareData, cmbexCompareData.ItemIndex)
 		cmbexCompareMode.ItemIndex = 0
-		CheckBox1.Checked = False
+		chkCpyEmptyPath.Checked = False
 		rbtnIncrement.Checked = True
 		rbtnDuplication.Checked = False
 		rbtnSynchronization.Checked = False
@@ -1055,13 +1074,9 @@ Private Sub frmFileSyncType.cmbexAPath_DblClick(ByRef Sender As Control)
 	zPathSelect(*Cast(ComboBoxEx Ptr, @Sender))
 End Sub
 
-Private Sub frmFileSyncType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	'txtLogText.Text = ""
-	zSettingSave(FullName2Path(App.FileName) & "\FileSync.Path")
-End Sub
-
 Private Sub frmFileSyncType.cmbexProfile_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	Dim s As String = cmbexProfile.Items.Item(ItemIndex)->Text
+	
 	If s <> "" Then
 		Dim f As String = FullName2Path(App.FileName) & "\" & s & ".profile"
 		Dim cp As Integer = -1
@@ -1107,7 +1122,7 @@ Private Sub frmFileSyncType.cmbexProfile_Selected(ByRef Sender As ComboBoxEdit, 
 			If k Then rbtnSynchronization.Checked = IIf(Mid(*ss(i), m + 1, l - m) = "true", True, False)
 			m = Len("Copy Empty Path=")
 			k = InStr(*ss(i), "Copy Empty Path=")
-			If k Then CheckBox1.Checked = IIf(Mid(*ss(i), m + 1, l - m) = "true", True, False)
+			If k Then chkCpyEmptyPath.Checked = IIf(Mid(*ss(i), m + 1, l - m) = "true", True, False)
 			m = Len("Log Nothing=")
 			k = InStr(*ss(i), "Log Nothing=")
 			If k Then rbtnLogNothing.Checked = IIf(Mid(*ss(i), m + 1, l - m) = "true", True, False)
@@ -1120,6 +1135,9 @@ Private Sub frmFileSyncType.cmbexProfile_Selected(ByRef Sender As ComboBoxEdit, 
 			m = Len("Log FileName=")
 			k = InStr(*ss(i), "Log FileName=")
 			If k Then txtLogFile.Text = Mid(*ss(i), m + 1, l - m)
+			m = Len("Action after Done=")
+			k = InStr(*ss(i), "Action after Done=")
+			If k Then cmbexDone.ItemIndex = CLng(Mid(*ss(i), m + 1, l - m))
 		Next
 		cmbexSetProfile_Selected(cmbexSetProfile, cmbexSetProfile.ItemIndex)
 		cmbexCompareData_Selected(cmbexCompareData, cmbexCompareData.ItemIndex)
@@ -1127,4 +1145,8 @@ Private Sub frmFileSyncType.cmbexProfile_Selected(ByRef Sender As ComboBoxEdit, 
 		ArrayDeallocate(ss())
 		If t Then Deallocate(t)
 	End If
+End Sub
+
+Private Sub frmFileSyncType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	zSettingSave(FullName2Path(App.FileName) & "\FileSync.Path")
 End Sub

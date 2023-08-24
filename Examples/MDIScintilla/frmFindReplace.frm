@@ -16,9 +16,7 @@
 	Using My.Sys.Forms
 	
 	Type frmFindReplaceType Extends Form
-		Declare Static Sub _cmdFindReplace_Click(ByRef Sender As Control)
 		Declare Sub cmdFindReplace_Click(ByRef Sender As Control)
-		Declare Static Sub _chkFindReplace_Click(ByRef Sender As CheckBox)
 		Declare Sub chkFindReplace_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
@@ -71,7 +69,7 @@
 			.Caption = "Case sensitive"
 			.SetBounds 10, 90, 90, 20
 			.Designer = @This
-			.OnClick = @_chkFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkFindReplace_Click)
 			.Parent = @This
 		End With
 		' chkWarp
@@ -83,7 +81,7 @@
 			.Checked = True
 			.SetBounds 100, 90, 90, 20
 			.Designer = @This
-			.OnClick = @_chkFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkFindReplace_Click)
 			.Parent = @This
 		End With
 		' chkRegExp
@@ -95,7 +93,7 @@
 			.Checked = True
 			.SetBounds 190, 90, 90, 20
 			.Designer = @This
-			.OnClick = @_chkFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkFindReplace_Click)
 			.Parent = @This
 		End With
 		' txtReplace
@@ -118,7 +116,7 @@
 			.Caption = "Find Next"
 			.SetBounds 290, 30, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFindReplace_Click)
 			.Parent = @This
 		End With
 		' cmdFindBack
@@ -129,7 +127,7 @@
 			.Caption = "Find Back"
 			.SetBounds 290, 50, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFindReplace_Click)
 			.Parent = @This
 		End With
 		' cmdShowHide
@@ -140,7 +138,7 @@
 			.Caption = "Hide Replace"
 			.SetBounds 290, 90, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFindReplace_Click)
 			.Parent = @This
 		End With
 		' cmdReplace
@@ -151,7 +149,7 @@
 			.Caption = "Replace"
 			.SetBounds 290, 140, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFindReplace_Click)
 			.Parent = @This
 		End With
 		' cmdReplaceAll
@@ -162,18 +160,10 @@
 			.Caption = "Replace All"
 			.SetBounds 290, 160, 90, 20
 			.Designer = @This
-			.OnClick = @_cmdFindReplace_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFindReplace_Click)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub frmFindReplaceType._chkFindReplace_Click(ByRef Sender As CheckBox)
-		(*Cast(frmFindReplaceType Ptr, Sender.Designer)).chkFindReplace_Click(Sender)
-	End Sub
-	
-	Private Sub frmFindReplaceType._cmdFindReplace_Click(ByRef Sender As Control)
-		(*Cast(frmFindReplaceType Ptr, Sender.Designer)).cmdFindReplace_Click(Sender)
-	End Sub
 	
 	Dim Shared frmFindReplace As frmFindReplaceType
 	
@@ -227,11 +217,11 @@ End Sub
 Private Sub frmFindReplaceType.chkFindReplace_Click(ByRef Sender As CheckBox)
 	Select Case Sender.Name
 	Case "chkCase"
-		MDIMain.fMatchCase = Sender.Checked 
+		MDIMain.fMatchCase = Sender.Checked
 	Case "chkWarp"
-		MDIMain.fFindWarp = Sender.Checked 
+		MDIMain.fFindWarp = Sender.Checked
 	Case "chkRegExp"
-		MDIMain.fRegExp = Sender.Checked 
+		MDIMain.fRegExp = Sender.Checked
 	End Select
 End Sub
 

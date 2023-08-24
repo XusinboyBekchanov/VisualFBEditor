@@ -25,22 +25,14 @@
 		Declare Property File ByRef As WString
 		Declare Property Title(ByRef TitleName As Const WString)
 		
-		Declare Static Sub _Form_Destroy(ByRef Sender As Control)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
-		Declare Static Sub _Form_Activate(ByRef Sender As Form)
 		Declare Sub Form_Activate(ByRef Sender As Form)
-		Declare Static Sub _Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		Declare Static Sub _TextBox1_Change(ByRef Sender As TextBox)
 		Declare Sub TextBox1_Change(ByRef Sender As TextBox)
-		Declare Static Sub _Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Static Sub _TextBox1_Click(ByRef Sender As Control)
 		Declare Sub TextBox1_Click(ByRef Sender As Control)
-		Declare Static Sub _TextBox1_KeyPress(ByRef Sender As Control, Key As Integer)
 		Declare Sub TextBox1_KeyPress(ByRef Sender As Control, Key As Integer)
-		Declare Static Sub _TextBox1_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Sub TextBox1_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As TextBox TextBox1
@@ -54,11 +46,11 @@
 			.Designer = @This
 			.FormStyle = FormStyles.fsMDIChild
 			.Caption = "Initial..."
-			.OnDestroy = @_Form_Destroy
-			.OnActivate = @_Form_Activate
+			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
+			.OnActivate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Activate)
 			.AllowDrop = True
-			.OnDropFile = @_Form_DropFile
-			.OnClose = @_Form_Close
+			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @Form_DropFile)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 640, 480
 		End With
 		' TextBox1
@@ -74,45 +66,13 @@
 			.WantTab = True
 			.SetBounds 0, 0, 624, 441
 			.Designer = @This
-			.OnChange = @_TextBox1_Change
-			.OnClick = @_TextBox1_Click
-			.OnKeyPress = @_TextBox1_KeyPress
-			.OnKeyUp = @_TextBox1_KeyUp
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox1_Change)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox1_Click)
+			.OnKeyPress = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer), @TextBox1_KeyPress)
+			.OnKeyUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer), @TextBox1_KeyUp)
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub MDIChildType._TextBox1_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).TextBox1_KeyUp(Sender, Key, Shift)
-	End Sub
-	
-	Private Sub MDIChildType._TextBox1_KeyPress(ByRef Sender As Control, Key As Integer)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).TextBox1_KeyPress(Sender, Key)
-	End Sub
-	
-	Private Sub MDIChildType._TextBox1_Click(ByRef Sender As Control)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).TextBox1_Click(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub MDIChildType._TextBox1_Change(ByRef Sender As TextBox)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).TextBox1_Change(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_DropFile(Sender, Filename)
-	End Sub
-	
-	Private Sub MDIChildType._Form_Activate(ByRef Sender As Form)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Activate(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Form_Destroy(ByRef Sender As Control)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Destroy(Sender)
-	End Sub
 	
 	Dim Shared MDIChild As MDIChildType
 	
@@ -180,14 +140,6 @@ Private Sub MDIChildType.TextBox1_Change(ByRef Sender As TextBox)
 	Changed = True
 End Sub
 
-Private Sub MDIChildType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	If MDIMain.MDIChildClose(@This) = MessageResult.mrCancel Then
-		Action = False
-	Else
-		If mFile Then Deallocate mFile
-	End If
-End Sub
-
 Private Sub MDIChildType.TextBox1_Click(ByRef Sender As Control)
 	MDIMain.MDIChildClick(@This)
 End Sub
@@ -198,4 +150,12 @@ End Sub
 
 Private Sub MDIChildType.TextBox1_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	TextBox1_Click(Sender)
+End Sub
+
+Private Sub MDIChildType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	If MDIMain.MDIChildClose(@This) = MessageResult.mrCancel Then
+		Action = False
+	Else
+		If mFile Then Deallocate mFile
+	End If
 End Sub

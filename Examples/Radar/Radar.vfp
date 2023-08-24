@@ -1,5 +1,4 @@
 ﻿*File=frmRadar.frm
-File=frmRadar.rc
 ProjectType=0
 Subsystem=2
 ProjectName="Radar"
@@ -10,7 +9,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=209
+BuildVersion=236
 AutoIncrementVersion=false
 ApplicationTitle="Radar"
 ApplicationIcon=""

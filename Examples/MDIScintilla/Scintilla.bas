@@ -216,7 +216,7 @@ Private Sub Scintilla.Create(ParentHandle As Any Ptr)
 	'set an event mask that determines which document change events are notified to the container with SCN_MODIFIED and SCEN_CHANGE
 	SendMessage(Handle, SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT Or SC_MOD_DELETETEXT, 0)
 	
-	DarkMode = False 
+	DarkMode = False
 End Sub
 
 Private Function Scintilla.IndexFind(ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False) As Integer
@@ -650,7 +650,7 @@ Private Property Scintilla.DarkMode (ByVal bVal As Boolean)
 		
 		ForeColor(STYLE_DEFAULT) = RGB(&ha0, &ha0, &ha0)
 		BackColor(STYLE_DEFAULT) = RGB(0, 0, 0)
-
+		
 		'ForeColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h40, &h40, &h40)
 		'BackColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h10, &h10, &h10)
 		
@@ -694,6 +694,9 @@ End Property
 Private Property Scintilla.ViewCaretLine(ByVal bVal As Boolean)
 	SendMessage(Handle, SCI_SETCARETLINEVISIBLEALWAYS, bVal, 0)
 	SendMessage(Handle, SCI_SETCARETLINEVISIBLE, bVal, 0)
+	If bVal = False Then Exit Property 
+	CaretLineBackAlpha = &H40
+	CaretLineBackColor = RGB(&h80, &h80, &h80)
 End Property
 
 Private Property Scintilla.ViewLineNo As Integer

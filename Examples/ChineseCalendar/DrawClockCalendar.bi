@@ -37,7 +37,7 @@ End Type
 Type DayCalendar
 Private:
 	mFontSize As Integer
-	mDt As UString
+	mDt As String
 	mColon As String
 	mShowCalendar As Boolean
 	mW(0) As Integer

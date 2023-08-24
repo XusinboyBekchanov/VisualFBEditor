@@ -22,17 +22,11 @@
 		Declare Sub SetMode(ModeNo As Integer)
 		Declare Sub SetCodePage(CP As Integer)
 		
-		Declare Static Sub _cmdOK_Click(ByRef Sender As Control)
 		Declare Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Static Sub _lstCodePage_Click(ByRef Sender As Control)
 		Declare Sub lstCodePage_Click(ByRef Sender As Control)
-		Declare Static Sub _cobEncod_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub cobEncod_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Static Sub _chkSystemCP_Click(ByRef Sender As CheckBox)
 		Declare Sub chkSystemCP_Click(ByRef Sender As CheckBox)
-		Declare Static Sub _Form_Show(ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub _chkPreview_Click(ByRef Sender As CheckBox)
 		Declare Sub chkPreview_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
@@ -368,7 +362,7 @@
 			.MaximizeBox = False
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterParent
-			.OnShow = @_Form_Show
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show)
 			.SetBounds 0, 0, 660, 460
 		End With
 		' cobEncod
@@ -378,7 +372,7 @@
 			.TabIndex = 0
 			.SetBounds 10, 10, 160, 21
 			.Designer = @This
-			.OnSelected = @_cobEncod_Selected
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cobEncod_Selected)
 			.Parent = @This
 			.AddItem("Plain Text")
 			.AddItem("Utf8")
@@ -397,7 +391,7 @@
 			.Checked = True
 			.SetBounds 184, 10, 110, 20
 			.Designer = @This
-			.OnClick = @_chkSystemCP_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkSystemCP_Click)
 			.Parent = @This
 		End With
 		' lstCodePage
@@ -411,7 +405,7 @@
 			.ExtraMargins.Bottom = 10
 			.SetBounds 10, 40, 634, 160
 			.Designer = @This
-			.OnClick = @_lstCodePage_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lstCodePage_Click)
 			.Parent = @This
 			Dim i As Integer
 			For i = 0 To CodePageCount
@@ -432,7 +426,7 @@
 			.Checked = True
 			.SetBounds 14, 200, 70, 20
 			.Designer = @This
-			.OnClick = @_chkPreview_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkPreview_Click)
 			.Parent = @This
 		End With
 		' lblFile
@@ -491,34 +485,10 @@
 			.Caption = "OK"
 			.SetBounds 314, 0, 100, 20
 			.Designer = @This
-			.OnClick = @_cmdOK_Click
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOK_Click)
 			.Parent = @Panel2
 		End With
 	End Constructor
-	
-	Private Sub frmCodePageType._chkPreview_Click(ByRef Sender As CheckBox)
-		(*Cast(frmCodePageType Ptr, Sender.Designer)).chkPreview_Click(Sender)
-	End Sub
-	
-	Private Sub frmCodePageType._Form_Show(ByRef Sender As Form)
-		(*Cast(frmCodePageType Ptr, Sender.Designer)).Form_Show(Sender)
-	End Sub
-	
-	Private Sub frmCodePageType._chkSystemCP_Click(ByRef Sender As CheckBox)
-		(*Cast(frmCodePageType Ptr, Sender.Designer)).chkSystemCP_Click(Sender)
-	End Sub
-	
-	Private Sub frmCodePageType._cobEncod_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmCodePageType Ptr, Sender.Designer)).cobEncod_Selected(Sender, ItemIndex)
-	End Sub
-	
-	Private Sub frmCodePageType._lstCodePage_Click(ByRef Sender As Control)
-		(*Cast(frmCodePageType Ptr, Sender.Designer)).lstCodePage_Click(Sender)
-	End Sub
-	
-	Private Sub frmCodePageType._cmdOK_Click(ByRef Sender As Control)
-		(*Cast(frmCodePageType Ptr, Sender.Designer)).cmdOK_Click(Sender)
-	End Sub
 	
 	Dim Shared frmCodePage As frmCodePageType
 	

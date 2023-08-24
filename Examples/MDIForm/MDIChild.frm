@@ -12,9 +12,7 @@
 	Using My.Sys.Forms
 	
 	Type MDIChildType Extends Form
-		Declare Static Sub _Form_Destroy(ByRef Sender As Control)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
-		Declare Static Sub _Form_Activate(ByRef Sender As Form)
 		Declare Sub Form_Activate(ByRef Sender As Form)
 		Declare Constructor
 		
@@ -29,8 +27,8 @@
 			.Designer = @This
 			.FormStyle = FormStyles.fsMDIChild
 			.Caption = "Initial..."
-			.OnDestroy = @_Form_Destroy
-			.OnActivate = @_Form_Activate
+			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
+			.OnActivate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Activate)
 			.SetBounds 0, 0, 260, 190
 		End With
 		' TextBox1
@@ -46,14 +44,6 @@
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub MDIChildType._Form_Activate(ByRef Sender As Form)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Activate(Sender)
-	End Sub
-	
-	Private Sub MDIChildType._Form_Destroy(ByRef Sender As Control)
-		(*Cast(MDIChildType Ptr, Sender.Designer)).Form_Destroy(Sender)
-	End Sub
 	
 	Dim Shared MDIChild As MDIChildType
 	

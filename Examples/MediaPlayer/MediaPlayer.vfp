@@ -1,5 +1,4 @@
 ﻿*File=frmMedia.frm
-*File=frmMedia.rc
 ProjectType=0
 Subsystem=2
 ProjectName="MediaPlayer"
@@ -10,7 +9,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=248
+BuildVersion=281
 AutoIncrementVersion=true
 ApplicationTitle="MediaPlayer"
 ApplicationIcon=""

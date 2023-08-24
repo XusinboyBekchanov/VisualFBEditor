@@ -1,16 +1,16 @@
 From: <Saved by Blink>
 Snapshot-Content-Location: https://www.scintilla.org/ScintillaDoc.html
 Subject: Scintilla Documentation
-Date: Tue, 20 Sep 2022 03:40:13 -0000
+Date: Thu, 10 Aug 2023 23:58:16 -0000
 MIME-Version: 1.0
 Content-Type: multipart/related;
 	type="text/html";
-	boundary="----MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----"
+	boundary="----MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----"
 
 
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
 Content-Type: text/html
-Content-ID: <frame-893725227A1D139BDB842E9D1FE01021@mhtml.blink>
+Content-ID: <frame-6818C1034562C931B8C85FD3814D7558@mhtml.blink>
 Content-Transfer-Encoding: quoted-printable
 Content-Location: https://www.scintilla.org/ScintillaDoc.html
 
@@ -18,7 +18,7 @@ Content-Location: https://www.scintilla.org/ScintillaDoc.html
 ansitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><=
 html xmlns=3D"http://www.w3.org/1999/xhtml"><head><meta http-equiv=3D"Conte=
 nt-Type" content=3D"text/html; charset=3Dwindows-1252"><link rel=3D"stylesh=
-eet" type=3D"text/css" href=3D"cid:css-5c040d02-2e8e-420d-a9de-2aaab957b5ca=
+eet" type=3D"text/css" href=3D"cid:css-668bd013-2055-4c7c-8f17-61aefa1c1cd1=
 @mhtml.blink" />
     <meta name=3D"generator" content=3D"HTML Tidy for Windows (vers 1st Aug=
 ust 2002), see www.w3.org">
@@ -44,7 +44,7 @@ ust 2002), see www.w3.org">
 
     <h1>Scintilla Documentation</h1>
 
-    <p>Last edited 26 August 2022 NH</p>
+    <p>Last edited 14 January 2023 NH</p>
 
     <p style=3D"background:#90F0C0">Scintilla 5 has moved the lexers from S=
 cintilla into a new
@@ -75,12 +75,6 @@ a><br>
      <a class=3D"jump" href=3D"https://www.scintilla.org/Lexer.txt">A detai=
 led description of how to write a lexer, including a
     discussion of folding</a>.<br>
-     <a class=3D"jump" href=3D"http://sphere.sourceforge.net/flik/docs/scin=
-tilla-container_lexer.html">
-     How to implement a lexer in the container</a>.<br>
-     <a class=3D"jump" href=3D"http://sphere.sourceforge.net/flik/docs/scin=
-tilla-folding.html">
-     How to implement folding</a>.<br>
      <a class=3D"jump" href=3D"https://github.com/geany/geany/files/5204338=
 /Scintilla-var.aq-Tutorial.pdf">
      Beginner's Guide to lexing and folding</a>.<br>
@@ -251,7 +245,7 @@ a).
           This is similar to <a class=3D"seealso" href=3D"https://www.scint=
 illa.org/ScintillaDoc.html#colour">colour</a> but with a byte
           of <a class=3D"seealso" href=3D"https://www.scintilla.org/Scintil=
-laDoc.html#colour">alpha</a> added. They are combined as:
+laDoc.html#alpha">alpha</a> added. They are combined as:
           red | (green &lt;&lt; 8) | (blue &lt;&lt; 16) | (alpha &lt;&lt; 2=
 4).
           Fully opaque uses an alpha of 255.
@@ -639,6 +633,9 @@ r>
 ml#SCI_GETSTYLEDTEXT">SCI_GETSTYLEDTEXT(&lt;unused&gt;, Sci_TextRange *tr) =
 &#8594; position</a><br>
      <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
+ml#SCI_GETSTYLEDTEXTFULL">SCI_GETSTYLEDTEXTFULL(&lt;unused&gt;, Sci_TextRan=
+geFull *tr) &#8594; position</a><br>
+     <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
 ml#SCI_RELEASEALLEXTENDEDSTYLES">SCI_RELEASEALLEXTENDEDSTYLES</a><br>
      <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
 ml#SCI_ALLOCATEEXTENDEDSTYLES">SCI_ALLOCATEEXTENDEDSTYLES(int numberStyles)=
@@ -789,17 +786,21 @@ l#SCI_GETSTYLEDTEXT">SCI_GETSTYLEDTEXT</a>,
     <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
 l#SCI_GETTEXT">SCI_GETTEXT</a></code></p>
 
-    <p><b id=3D"SCI_GETSTYLEDTEXT">SCI_GETSTYLEDTEXT(&lt;unused&gt;, <a cla=
-ss=3D"jump" href=3D"https://www.scintilla.org/ScintillaDoc.html#Sci_TextRan=
-ge">Sci_TextRange</a> *tr) &#8594; position</b><br>
+    <p>
+    <b id=3D"SCI_GETSTYLEDTEXT">SCI_GETSTYLEDTEXT(&lt;unused&gt;, <a class=
+=3D"jump" href=3D"https://www.scintilla.org/ScintillaDoc.html#Sci_TextRange=
+">Sci_TextRange</a> *tr) &#8594; position</b><br>
+    <b id=3D"SCI_GETSTYLEDTEXTFULL">SCI_GETSTYLEDTEXTFULL(&lt;unused&gt;, <=
+a class=3D"jump" href=3D"https://www.scintilla.org/ScintillaDoc.html#Sci_Te=
+xtRangeFull">Sci_TextRangeFull</a> *tr) &#8594; position</b><br>
      This collects styled text into a buffer using two bytes for each cell,=
  with the character at
     the lower address of each pair and the style byte at the upper address.=
  Characters between the
     positions <code>cpMin</code> and <code>cpMax</code> are copied to <code=
 >lpstrText</code> (see
-    <code>struct Sci_TextRange</code> in <code>Scintilla.h</code>). Two 0 b=
-ytes are added to the end of
+    <code>struct Sci_TextRange</code> and <code>struct Sci_TextRangeFull</c=
+ode> in <code>Scintilla.h</code>). Two 0 bytes are added to the end of
     the text, so the buffer that <code>lpstrText</code> points at must be a=
 t least
     <code>2*(cpMax-cpMin)+2</code> bytes long. No check is made for sensibl=
@@ -807,6 +808,10 @@ e values of
     <code>cpMin</code> or <code>cpMax</code>. Positions outside the documen=
 t return character codes
     and style bytes of 0.</p>
+    <p><code>SCI_GETSTYLEDTEXTFULL</code> uses 64-bit positions on all plat=
+forms so is safe for documents larger than 2GB.
+    It should always be used in preference to <code>SCI_GETSTYLEDTEXT</code=
+> which will be deprecated in a future release.</p>
 
     <p>See also: <code><a class=3D"seealso" href=3D"https://www.scintilla.o=
 rg/ScintillaDoc.html#SCI_GETSELTEXT">SCI_GETSELTEXT</a>,
@@ -942,8 +947,8 @@ Range">Sci_CharacterRange</b><br>
     work.</p>
     <p>In a future release, these types will be deprecated.
     <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
-l#SCI_MARGINSETSTYLEOFFSET">SCI_GETTEXTRANGEFULL</a>, <code>Sci_TextRangeFu=
-ll</code>
+l#SCI_GETTEXTRANGEFULL">SCI_GETTEXTRANGEFULL</a>, <code>Sci_TextRangeFull</=
+code>
     and <code>Sci_CharacterRangeFull</code> should be used instead.</p>
 <pre>typedef long Sci_PositionCR;
 
@@ -1092,6 +1097,9 @@ ml#SCI_GETTARGETTEXT">SCI_GETTARGETTEXT(&lt;unused&gt;, char *text) &#8594;=
 ml#SCI_REPLACETARGET">SCI_REPLACETARGET(position length, const char *text) =
 &#8594; position</a><br>
      <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
+ml#SCI_REPLACETARGETMINIMAL">SCI_REPLACETARGETMINIMAL(position length, cons=
+t char *text) &#8594; position</a><br>
+     <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
 ml#SCI_REPLACETARGETRE">SCI_REPLACETARGETRE(position length, const char *te=
 xt) &#8594; position</a><br>
      <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
@@ -1172,10 +1180,27 @@ text) &#8594; position</b><br>
 eter">text</code> is a zero terminated string, otherwise
     <code class=3D"parameter">length</code> sets the number of character to=
  replace the target with.
-           After replacement, the target range refers to the replacement te=
-xt.
-           The return value
-    is the length of the replacement string.<br>
+    After replacement, the target range refers to the replacement text.
+    The return value is the length of the replacement string.<br>
+    Note that the recommended way to delete text in the document is to set =
+the target to the text to be removed,
+    and to perform a replace target with an empty string.</p>
+
+    <p><b id=3D"SCI_REPLACETARGETMINIMAL">SCI_REPLACETARGETMINIMAL(position=
+ length, const char *text) &#8594; position</b><br>
+    This is similar to <a class=3D"message" href=3D"https://www.scintilla.o=
+rg/ScintillaDoc.html#SCI_REPLACETARGET"><code>SCI_REPLACETARGET</code></a>
+    but tries to minimize change history when the current target text share=
+s a common prefix or suffix with the replacement.
+    Only the text that is actually different is marked as changed.
+    This might be used when automatically reformatting some text
+    so that the whole area formatted doesn't show change marks.
+     If <code class=3D"parameter">length</code> is -1, <code class=3D"param=
+eter">text</code> is a zero terminated string, otherwise
+    <code class=3D"parameter">length</code> sets the number of character to=
+ replace the target with.
+    After replacement, the target range refers to the replacement text.
+    The return value is the length of the replacement string.<br>
     Note that the recommended way to delete text in the document is to set =
 the target to the text to be removed,
     and to perform a replace target with an empty string.</p>
@@ -1192,9 +1217,8 @@ g with any sequences of
  the most recent regular
     expression search. <code>\0</code> is replaced with all the matched tex=
 t from the most recent search.
-           After replacement, the target range refers to the replacement te=
-xt.
-           The return value is the length of the replacement string.</p>
+    After replacement, the target range refers to the replacement text.
+    The return value is the length of the replacement string.</p>
 
     <p><b id=3D"SCI_GETTAG">SCI_GETTAG(int tagNumber, char *tagValue NUL-te=
 rminated) &#8594; int</b><br>
@@ -1835,7 +1859,7 @@ compound action, otherwise
      look like typing or deletions that look like multiple uses of the Back=
 space or Delete keys.
      </p>
-    =20
+
     <h2 id=3D"ChangeHistory">Change history</h2>
 
     <p>Scintilla can display document changes (modified, saved, ...) in the=
@@ -2434,14 +2458,16 @@ he position within the
 d
     to store the entire current line is returned.</p>
 
-    <p>See also: <code><a class=3D"seealso" href=3D"https://www.scintilla.o=
-rg/ScintillaDoc.html#SCI_GETSELTEXT">SCI_GETSELTEXT</a>, <a class=3D"seeals=
-o" href=3D"https://www.scintilla.org/ScintillaDoc.html#SCI_GETLINE">SCI_GET=
-LINE</a>, <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaD=
-oc.html#SCI_GETTEXT">SCI_GETTEXT</a>, <a class=3D"seealso" href=3D"https://=
-www.scintilla.org/ScintillaDoc.html#SCI_GETSTYLEDTEXT">SCI_GETSTYLEDTEXT</a=
->, <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.html=
-#SCI_GETTEXTRANGE">SCI_GETTEXTRANGE</a></code></p>
+    <p>See also: <code <a=3D"" class=3D"seealso" href=3D"#SCI_GETSELTEXT">S=
+CI_GETSELTEXT,
+    <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
+l#SCI_GETLINE">SCI_GETLINE</a>,
+    <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
+l#SCI_GETTEXT">SCI_GETTEXT</a>,
+    <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
+l#SCI_GETSTYLEDTEXT">SCI_GETSTYLEDTEXT</a>,
+    <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
+l#SCI_GETTEXTRANGE">SCI_GETTEXTRANGE</a></code></p>
 
     <p><b id=3D"SCI_SELECTIONISRECTANGLE">SCI_SELECTIONISRECTANGLE &#8594; =
 bool</b><br>
@@ -4707,6 +4733,12 @@ ml#SCI_STYLESETCHECKMONOSPACED">SCI_STYLESETCHECKMONOSPACED(int style, bool
 l#SCI_STYLEGETCHECKMONOSPACED">SCI_STYLEGETCHECKMONOSPACED(int style) &#859=
 4; bool</a><br>
     <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
+l#SCI_STYLESETINVISIBLEREPRESENTATION">SCI_STYLESETINVISIBLEREPRESENTATION(=
+int style, const char *representation)</a><br>
+    <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
+l#SCI_STYLEGETINVISIBLEREPRESENTATION">SCI_STYLEGETINVISIBLEREPRESENTATION(=
+int style, char *representation NUL-terminated) &#8594; int</a><br>
+    <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
 l#SCI_SETFONTLOCALE">SCI_SETFONTLOCALE(&lt;unused&gt;, const char *localeNa=
 me)</a><br>
     <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
@@ -5063,6 +5095,25 @@ ing control characters) and many documents contain
     Applications may apply the 'check monospaced' attribute just to fonts k=
 nown to be monospaced or on all fonts, leaving it to Scintilla to
     reject fonts that are proportional.</p>
+
+    <p><b id=3D"SCI_STYLESETINVISIBLEREPRESENTATION">SCI_STYLESETINVISIBLER=
+EPRESENTATION(int style, const char *representation)</b><br>
+    <b id=3D"SCI_STYLEGETINVISIBLEREPRESENTATION">SCI_STYLEGETINVISIBLEREPR=
+ESENTATION(int style, char *representation NUL-terminated) &#8594; int</b><=
+br>
+     When a style is made invisible with <a class=3D"seealso" href=3D"https=
+://www.scintilla.org/ScintillaDoc.html#SCI_STYLESETVISIBLE">SCI_STYLESETVIS=
+IBLE</a>, text is difficult to edit as
+     the cursor can be at both sides of the invisible text segment. With th=
+ese messages invisible text segements can be made visible with a single
+     UTF8 characater giving the user an indication if the cursor is left or=
+ right of the invisible text. The character is displayed using the current =
+style.</p>
+
+    <p>The <code>representation</code> parameter is a zero terminated strin=
+g holding the one character used to represent the invisible text segment. O=
+nly the first character
+    is used, the character is decoded as UTF-8.</p>
 
     <p><b id=3D"SCI_SETFONTLOCALE">SCI_SETFONTLOCALE(&lt;unused&gt;, const =
 char *localeName)</b><br>
@@ -7070,7 +7121,75 @@ s.
      behaviour to the IME in other applications.
      An inline IME <code>SC_IME_INLINE</code> (1) may work better with some=
  Scintilla features such as
-     rectangular and multiple selection.</p>
+     rectangular and multiple selection, with IME interactions such as retr=
+ieve-surrounding or reconversion feature.</p>
+
+    <table class=3D"standard" summary=3D"IME input method">
+      <caption>IME input method support</caption>
+      <thead align=3D"left">
+        <tr>
+          <th>IME input method</th>
+          <th>Windows</th>
+          <th>GTK</th>
+          <th>Qt</th>
+          <th>macOS</th>
+        </tr>
+      </thead>
+      <tbody valign=3D"top">
+        <tr>
+          <th align=3D"left"><code>SC_IME_WINDOWED</code></th>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <th align=3D"left"><code>SC_IME_INLINE</code></th>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+       </tr>
+      </tbody>
+    </table>
+    <p></p>
+
+    <table class=3D"standard" summary=3D"IME interaction">
+      <caption>IME interaction support</caption>
+      <thead align=3D"left">
+        <tr>
+          <th>IME interaction</th>
+          <th>Windows</th>
+          <th>GTK</th>
+          <th>Qt</th>
+          <th>macOS</th>
+        </tr>
+      </thead>
+      <tbody valign=3D"top">
+        <tr>
+          <th align=3D"left">Retrieve Surrounding</th>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <th align=3D"left">Reconversion</th>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+        <tr>
+          <th align=3D"left">Delete Surrounding</th>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+          <td>&#10003;</td>
+        </tr>
+      </tbody>
+    </table>
+
      <p>The windowed behaviour can be chosen with <code>SCI_SETIMEINTERACTI=
 ON(SC_IME_WINDOWED)</code>
      and the inline behaviour with <code>SCI_SETIMEINTERACTION(SC_IME_INLIN=
@@ -7124,10 +7243,11 @@ _TECHNOLOGY_DIRECTWRITE</code>,
      <code>SC_BIDIRECTIONAL_DISABLED</code> (0) is returned.
      </p>
      <p>Opaque selection drawing (<a class=3D"seealso" href=3D"https://www.=
-scintilla.org/ScintillaDoc.html#SCI_SETSELECTIONLAYER">SC_LAYER_BASE</a>)
+scintilla.org/ScintillaDoc.html#SCI_SETSELECTIONLAYER">SCI_SETSELECTIONLAYE=
+R(SC_LAYER_BASE)</a>)
      is not supported in bidirectional mode.
      Use <code>SC_LAYER_UNDER_TEXT</code> or <code>SC_LAYER_OVER_TEXT</code=
-> instead.=20
+> instead.
      </p>
 </div>
 
@@ -7566,10 +7686,14 @@ markers are set to
     <code>SC_MARK_CIRCLE</code> with a black foreground and a white backgro=
 und.</p>
 
-    <p>The markers are drawn in the order of their numbers, so higher numbe=
-red markers appear on
-    top of lower numbered ones. Markers try to move with their text by trac=
-king where the start of
+    <p>The markers are drawn in the order of their numbers (except for <cod=
+e>SC_MARK_BAR</code>), so higher
+    numbered markers appear on top of lower numbered ones.
+    <code>SC_MARK_BAR</code> markers are drawn first so they are underneath=
+ as they often cover
+    multiple lines for change history and other markers mark individual lin=
+es.
+    Markers try to move with their text by tracking where the start of
     their line moves. When a line is deleted, its markers are combined, by =
 an <code>OR</code>
     operation, with the markers of the next line.</p>
@@ -7991,13 +8115,14 @@ d>
 </code> to a line. The message returns -1 if
     this fails (illegal line number, out of memory) or it returns a marker =
 handle number that
-    identifies the added marker. You can use this returned handle with <a c=
-lass=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.html#SCI_MA=
-RKERLINEFROMHANDLE"><code>SCI_MARKERLINEFROMHANDLE</code></a> to find where=
- a
-    marker is after moving or combining lines and with <a class=3D"message"=
- href=3D"https://www.scintilla.org/ScintillaDoc.html#SCI_MARKERDELETEHANDLE=
-"><code>SCI_MARKERDELETEHANDLE</code></a> to delete the marker
+    identifies the added marker. You can use this returned handle with
+    <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
+l#SCI_MARKERLINEFROMHANDLE"><code>SCI_MARKERLINEFROMHANDLE</code></a> to fi=
+nd where a
+    marker is after moving or combining lines and with
+    <a class=3D"message" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
+l#SCI_MARKERDELETEHANDLE"><code>SCI_MARKERDELETEHANDLE</code></a> to delete=
+ the marker
     based on its handle. The message does not check the value of markerNumb=
 er, nor does it
     check if the line already contains the marker.</p>
@@ -8326,8 +8451,8 @@ ucent drawing with the
 e
               <a class=3D"seealso" href=3D"https://www.scintilla.org/Scinti=
 llaDoc.html#SCI_INDICSETALPHA">SCI_INDICSETALPHA</a> and
-			  <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
-ml#SCI_INDICSETOUTLINEALPHA">SCI_INDICSETOUTLINEALPHA</a>
+              <a class=3D"seealso" href=3D"https://www.scintilla.org/Scinti=
+llaDoc.html#SCI_INDICSETOUTLINEALPHA">SCI_INDICSETOUTLINEALPHA</a>
               to control the alpha transparency values. The default alpha v=
 alues are 30 for fill colour and 50 for outline colour.</td>
         </tr>
@@ -8343,8 +8468,8 @@ e
 e
               <a class=3D"seealso" href=3D"https://www.scintilla.org/Scinti=
 llaDoc.html#SCI_INDICSETALPHA">SCI_INDICSETALPHA</a> and
-			  <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
-ml#SCI_INDICSETOUTLINEALPHA">SCI_INDICSETOUTLINEALPHA</a>
+              <a class=3D"seealso" href=3D"https://www.scintilla.org/Scinti=
+llaDoc.html#SCI_INDICSETOUTLINEALPHA">SCI_INDICSETOUTLINEALPHA</a>
               to control the alpha transparency values. The default alpha v=
 alues are 30 for fill colour and 50 for outline colour.
               This indicator does not colour the top pixel of the line so t=
@@ -8554,7 +8679,8 @@ t allows drawing very thin lines on systems with multiple physical pixels
      Half (logical) pixel lines are available on macOS with 'retina' displa=
 ys,
      see <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDo=
-c.html#SCI_SUPPORTSFEATURE">SC_SUPPORTS_PIXEL_DIVISIONS</a>.</p>
+c.html#SCI_SUPPORTSFEATURE">SCI_SUPPORTSFEATURE(SC_SUPPORTS_PIXEL_DIVISIONS=
+)</a>.</p>
 
     <p><b id=3D"SCI_INDICSETALPHA">SCI_INDICSETALPHA(int indicator, <a clas=
 s=3D"jump" href=3D"https://www.scintilla.org/ScintillaDoc.html#alpha">alpha=
@@ -9077,8 +9203,9 @@ user has typed
     characters that no longer match a list entry). If you want to keep disp=
 laying the original
     list, set <code class=3D"parameter">autoHide</code> to <code>false</cod=
-e>. This also effects <a class=3D"seealso" href=3D"https://www.scintilla.or=
-g/ScintillaDoc.html#SCI_AUTOCSELECT"><code>SCI_AUTOCSELECT</code></a>.</p>
+e>. This also effects
+     <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
+ml#SCI_AUTOCSELECT"><code>SCI_AUTOCSELECT</code></a>.</p>
 
     <p><b id=3D"SCI_AUTOCSETDROPRESTOFWORD">SCI_AUTOCSETDROPRESTOFWORD(bool=
  dropRestOfWord)</b><br>
@@ -9930,9 +10057,10 @@ ml#SCI_STOPRECORD">SCI_STOPRECORD</a><br>
 play surface
     which can include a printer display surface. Printed output shows text =
 styling as on the
-    screen, but it hides all margins except a line number margin. All speci=
-al marker effects are
-    removed and the selection and caret are hidden.</p>
+    screen, but it hides all margins except a line number margin.
+    Markers do not appear in a margin but will change line background colou=
+r.
+    The selection and caret are hidden.</p>
 
     <p>Different platforms use different display surface ID types to print =
 on. On Windows, these are
@@ -10422,8 +10550,8 @@ luggish so
     <code>SC_DOCUMENTOPTION_STYLES_NONE</code>
     and the null lexer <code>"null"</code> can be used. Another approach is=
  to turn on idle styling with
-    <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
-l#SCI_SETIDLESTYLING"><code>SCI_SETIDLESTYLING</code></a>.
+    <code><a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaD=
+oc.html#SCI_SETIDLESTYLING">SCI_SETIDLESTYLING</a></code>.
     </p>
 
     <table class=3D"standard" summary=3D"Document options">
@@ -11498,11 +11626,12 @@ NCACHE</code>.</p>
 <br>
      <b id=3D"SCI_GETLAYOUTTHREADS">SCI_GETLAYOUTTHREADS &#8594; int</b><br=
 >
-     The time taken to measure text runs on wide lines can be improved by p=
-erforming the task
+     The time taken to measure text runs on wide lines or when wrapping can=
+ be improved by performing the task
      concurrently on multiple threads when
      <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
-ml#SCI_SUPPORTSFEATURE">SC_SUPPORTS_THREAD_SAFE_MEASURE_WIDTHS</a>
+ml#SCI_SUPPORTSFEATURE">SCI_SUPPORTSFEATURE(SC_SUPPORTS_THREAD_SAFE_MEASURE=
+_WIDTHS)</a>
      is available.
      This can be a dramatic improvement - a 4 core processor is often able =
 to reduce text layout time to just over one
@@ -11888,7 +12017,8 @@ h as Lexilla.</p>
 
     <p>To test if your lexer assignment worked, use <a class=3D"seealso" hr=
 ef=3D"https://www.scintilla.org/ScintillaDoc.html#SCI_GETLEXER"><code>SCI_G=
-ETLEXER</code></a> before and after setting the new lexer to
+ETLEXER</code></a>
+    before and after setting the new lexer to
     see if the lexer number changed.</p>
 
     <p><code>SCI_GETLEXERLANGUAGE</code> retrieves the name of the lexer.</=
@@ -13442,9 +13572,9 @@ HECK</code></td>
 
           <td>Text is about to be inserted. The handler may change the text=
  being inserted by calling
-	  <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.html=
-#SCI_CHANGEINSERTION">SCI_CHANGEINSERTION</a>.
-	  No other modifications may be made in this handler.</td>
+            <a class=3D"seealso" href=3D"https://www.scintilla.org/Scintill=
+aDoc.html#SCI_CHANGEINSERTION">SCI_CHANGEINSERTION</a>.
+            No other modifications may be made in this handler.</td>
 
           <td><code>position, length, text</code></td>
         </tr>
@@ -13996,6 +14126,19 @@ ml#SCI_AUTOCSELECT">SCI_AUTOCSELECT</a></code> message
           triggered the completion. ch is 0.</td>
 
         </tr>
+        <tr>
+          <td align=3D"left"><code>SC_AC_SINGLE_CHOICE</code></td>
+
+          <td align=3D"center">6</td>
+
+          <td>There was only a single choice in the list and 'choose single=
+' mode was active as set by
+    <code>
+     <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.ht=
+ml#SCI_AUTOCSETCHOOSESINGLE">SCI_AUTOCSETCHOOSESINGLE</a></code>. ch is 0.<=
+/td>
+
+        </tr>
       </tbody>
     </table>
 
@@ -14500,10 +14643,10 @@ ntation by defining
 
 
 </body></html>
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
 Content-Type: text/css
 Content-Transfer-Encoding: quoted-printable
-Content-Location: cid:css-5c040d02-2e8e-420d-a9de-2aaab957b5ca@mhtml.blink
+Content-Location: cid:css-668bd013-2055-4c7c-8f17-61aefa1c1cd1@mhtml.blink
 
 @charset "windows-1252";
 
@@ -14583,7 +14726,7 @@ a.discouraged { text-decoration: line-through rgb(255, 176, 0); }
 .discouraged { text-decoration: line-through rgb(255, 176, 0); }
 
 .parameter { font-style: italic; }
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: https://www.scintilla.org/SciTEIco.png
@@ -14760,7 +14903,7 @@ no0H/AWDKR2DBb3CoobBY/FEAonyt5CjHxhGDBTj5z++/SeGb/817Af+i9j/wPVv3qPGQZsi0/gK
 PJtseJ+dRKYCJXB4IugvTDXowywcEUCi9UOigmd/+v33z9/iTUYxMP4AwzB+Szas/4HhT0is/wt9
 ihARJbO1TwAAAABJRU5ErkJggg==
 
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: https://www.scintilla.org/ChangeHistory.png
@@ -15301,7 +15444,7 @@ MAzj6qTevHkTPH36NPy5GPfv3w+XDMOYBvxb4ReNRlupBZcRyD7jOoBRG65BnzLtYcmHv3p0khjD
 MAzj5rDWFmTDuInADQSetLDgzzpMnnF10BOiMxhGx6C+Lti5o3MR9miNJokxDMMwbhYmkA3jmmHv
 nHBGt5s+QsW6AHGMDz5JIn9S1wb92PVTCXTDMAxjFpz7/wGpxshQ9ynjFAAAAABJRU5ErkJggg==
 
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: https://www.scintilla.org/styledmargin.png
@@ -15554,7 +15697,456 @@ kJF/IvgPDLZfWrcjpEHm+37+WuLfBFlNWQkdO1bwwkf+ieC/rZ3sqVffDVkE7JnVm6FI4gFaZDVl
 JXTs+MCDHGRkZJFbEHiMRCJVTEbwyMjIKmoa8MjIyGIwCTwyMrLYzAGPjIwsZvv/uZ0uz4f+YekA
 AAAASUVORK5CYII=
 
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: https://www.scintilla.org/annotations.png
+
+iVBORw0KGgoAAAANSUhEUgAAA0cAAAGOCAIAAADToO+BAAAABGdBTUEAALGPC/xhBQAAIABJREFU
+eJztvX20HFWd99trPbPWXXeYP+5SxwzjgI4QBAmEFwnyFglH8AiCgEg0MAgaQEIaEQ9vgiZORNFR
+g0e9545PvI6Kil4nLY9Zj44zzkHn4OMdUcGMztHlTCSCyCRCZCEO6p26u973e1V1V3dX1/l81ncl
+3bt37b1rV3Xv7/ntXVWdQOW5LzgBIYQQQgg1X5qL62h+7oMf/AhCCCGEEGq+NG/XySzdeeuuFB/P
+vO1dV77lVoQQQggh1GQJzyacm/BvmbHryJZu/ZtvQQghhBBCkyLZ2IWuTry55sbNl15zE0IIIYQQ
+miwJFye8XOjqnn3AEW+55Z0XXzXj0vWn/sW6deumpqbOihAvLr/88u5rTvdsghBCCCGERibh5YSj
+y1zdDaZWrly5Zs2al770pRdccMF5550XW7qXv/zlL3vZy06POOqoo6wbIoQQQgi1QBdcsuHstZef
+PHVBoV569sXnX3zVIFu99vJrX3Hh+hNPO79Q0+dfeuEbrpHbqbi6dVe+RZNwbMLAnXHGGa95zWuu
+uOKKU0899ZJLLonDdWeeeaawdMLtCc+3YsUKc1uEEEIIoRZImLOXvGzttTdtKtR5a9cLizbIVsLS
+rT7jwi+++yOPzG569I63/fKDtz629ZZ9W28SeuL9Nz75/ht//b7rn3rfzJe3fPBlZ60Vxk5up+Tq
+bn3n2euukrVy5Uph6VavXn3RRRe/+c1vufTSSy+77LILL7zw6quvnpqaOv/881/xilecdNJJL37x
+i0844YTDDz9c2xwhhBBCqAU6eeqCq95081XXvfWyq6+X9YbujdkLIZFBZBOZB9nqxNPO773r//zu
+u2/4xi1X/fNN6x+YueTHb77o3970mn+/9jW7r3n1Lzac+9hVZz955ct/dfMlf/+O94vMcjuFl8td
+3Vlrr5T12te+9pxzznnJS15y8803v/3tm84999x3vvOdsbFbv369cHXT09Onnnrqcccdd+yxxwrz
+p21+1tq/+bZ8U7xHvnqtnJ6/9eu23iNK5mt3/CL47t9kGT74XVHW9z8ovShR5mh181cfznuhVAvF
+vjy847bxtxwhhBBCa68UluuKa2563VUzhRLZROZBthJG7aGtt/5q/RlCe64487tvvvhfrnnNjzZe
++G/dCx686ryfX3m2SIw//dV7rhOZ5Xbmrm7mbbcdu+b8TPtffdOll1562mmnveENb3j7299+yy23
+vPnNb77mmmve+c53XXbZ64W3E4ZP+LyXvvSlRx11lDB2J5988gtefYZcwrFrPvJNYWO+/sU//JMt
++y374j2hp9m5JUt/8N4zn3f1kUr+XLf9v0Hw8P+4NHp96ReErdv7sQvizNd/Vlik3d8489A35FUs
+fHG/ZW95h9gk+NENy95yqKPM8eiq//GzIPjZ529/1rKoE8Re+1sY5RfsvvOjz1p50fjbjxBCCC15
+xf7sosuvLVTsz8ytAhvWrYRR+8Vf3bDvsqlfXXpqnO1HbzzvwSvO+dn6s+K3+y47TXwkMuy7/c0i
+s9xO4eXyWN2xa87LdNFFF5111lmrV6++7bbb3hLxiU98Qji8W2/ddPvt733Vq1513nnnXXDBBWvW
+rDnmmGPieVjxQi7h2DUfjl3dfoe+Pnz7vvvFu3veKjzNhyVXd96xFkUZdqcZrrp7dxD89OMffv5J
+6UeJyRNl3ifefOOtW+IqDj1UOCdRvrXMMSlq4T1v3fKsleuilNc/x7nX4Z7+LD3SP/34R9NNEEII
+ITROCct1effG165/U6x166/NXmsS2SJ/pm9ldXXWrUJXd/t1j12y+smLT85yPnDVednr3a8/Q3wk
+Mjz2rjdFri5vZx6ru+Ht7zpm9blHr35lrFNOOWXVqlXr168Xfm7Tpk033XST+LfX601PTws/Nzc3
+d9lll5144knx9bDHRKxYsSLbPNKH7o1d3SGXhW/fe19sVvY/JkoXru7ADYevPue2b2Xt/Plnrjzn
+6NXXfeYhaY+/9aEk5etffNaK18aFROV86HknxNv+4IZlW275Zpx8322rz4nrvfdb96nFvtImqa6H
+vnhJ0pg0f1TXzz5/nTXRUaChK78YGbUf3XLMOf6qk8z/65PPOvfen8auTuxvyVoQQgghNDQJy3XZ
+hpnzL9ng1tXxC5FNZDa3EqO9tkmUYtlKGLW9f7nxlxce99T5Rz/ympM0I/ivl5wuEsVHIsNjW8JF
+eFkjhYsTXk52da9cefLZsQ477LCXvexlH/7why+66KL3vOc9d95556tf/eqLL774e9/7nvj35JNP
+vuWWt994481r1qw56KCDVq9evXbt2j/+4z/ONo80m7i65ZeGb9+bRq1WzKWu7qrDopzLl2/5wz/Z
+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
+
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: https://www.scintilla.org/StadiumVariants.png
@@ -15980,7 +16572,7 @@ HfHUjG5FSj9IRUXEgZwYhmEkulb0VKgiihQLFMMwsRIvoQorUixQDMP0lHgIVViRiqddYxjm5CQe
 ZidiuMdCxTBMrMQrGus2cc5CxTBMtMRLoAT8ZzEMw3zl8J/FMAyTtLBIMQzjalikGIZxNXHLSTEM
 w8RKt++TUmUMwzAuA/j/AZ4cxU+5TwR6AAAAAElFTkSuQmCC
 
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: https://www.scintilla.org/Markers.png
@@ -16421,7 +17013,7 @@ bd+cnBzL9SLm3hwcWSAiNkE/UQhyOnjcDfPGKoCUww3JqCBNKJ7vHymLLB9QQJK1voFi8ieluPn6
 15PZkOsFAUM6OT/4FIZeEAgh86TUcG+VoT8pQlYb9qQIIVGT25MqEihCCJk3az/cI4SsNhQpQkjU
 UKQIIVFDkSKERA1FihASMcb8/906718NwQl4AAAAAElFTkSuQmCC
 
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG----
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE----
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: https://www.scintilla.org/Indicators.png
@@ -16781,4 +17373,4 @@ M9na7SaLUsvk+pTNN2fA82TwKhn2450DKFsZNlWDSOXQlRlVPmF8qdAGDwwfFLPBSynzPXsbP7y8
 w/6NxoR1GQXgndQAvJnCW/FE61hB/jF+TvkJlsF4gyXEQ5aPCIKDqgyraon9y7Dt6t1MVv/C7nJR
 PZRQW6TnEAQHDddzCEKtEOUQBAeiHILgQJRDEByIcghCKET/D5cm7VqQFttOAAAAAElFTkSuQmCC
 
-------MultipartBoundary--gYD3AljcVOWostTV0DROBSgq2uxJN6RlbHd6whOFFG------
+------MultipartBoundary--EyHC8aK9Vyo0ZHJEqw5Vh53PM2FDv7EluJ7zi1aHoE------

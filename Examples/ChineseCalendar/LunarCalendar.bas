@@ -31,12 +31,12 @@ Private Function LunarCalendar.mvarBitTest32(Number As Long, bit As Long) As Boo
 End Function
 
 '计算农历上的节气
-Private Property LunarCalendar.lSolarTerm() As UString
+Private Property LunarCalendar.lSolarTerm() As String
 	Dim baseDateAndTime As Double
 	Dim newdate As Double
 	Dim num As Double
 	Dim Y As Long
-	Dim TempStr As UString
+	Dim TempStr As String
 	
 	baseDateAndTime = DateValue("1900/1/6") + TimeValue("2:05:00")
 	Y = mvarsYear
@@ -56,12 +56,12 @@ Private Property LunarCalendar.lSolarTerm() As UString
 End Property
 
 '计算按第几周星期几计算的节日
-Private Property LunarCalendar.wHoliday() As UString
+Private Property LunarCalendar.wHoliday() As String
 	Dim W As Long
 	Dim i As Long
 	Dim b As Long
 	Dim FirstDay As Double
-	Dim TempStr As UString
+	Dim TempStr As String
 	TempStr = ""
 	b = UBound(wHolidayInfo)
 	For i = 0 To b
@@ -79,10 +79,10 @@ Private Property LunarCalendar.wHoliday() As UString
 End Property
 
 '求农历节日
-Private Property LunarCalendar.lHoliday() As UString
+Private Property LunarCalendar.lHoliday() As String
 	Dim i As Long
 	Dim b As Long
-	Dim TempStr As UString
+	Dim TempStr As String
 	Dim oy As Long
 	Dim odate As Double
 	Dim ndate As Double
@@ -111,10 +111,10 @@ Private Property LunarCalendar.lHoliday() As UString
 End Property
 
 '求公历节日
-Private Property LunarCalendar.sHoliday() As UString
+Private Property LunarCalendar.sHoliday() As String
 	Dim i As Long
 	Dim b As Long
-	Dim TempStr As UString
+	Dim TempStr As String
 	
 	TempStr = ""
 	b = UBound(sHolidayInfo)
@@ -150,7 +150,7 @@ Private Property LunarCalendar.IsLeap() As Boolean
 	IsLeap = mvarIsLeap
 End Property
 
-Private Function LunarCalendar.lHour(H As Double) As UString
+Private Function LunarCalendar.lHour(H As Double) As String
 	lHour = HourName(Hour(H))
 End Function
 
@@ -171,7 +171,7 @@ Private Property LunarCalendar.sWeekDay() As Long
 End Property
 
 '计算星期几中文字串
-Private Property LunarCalendar.sWeekDayStr() As UString
+Private Property LunarCalendar.sWeekDayStr() As String
 	Select Case Weekday(mvarDate)
 	Case vbSunday
 		sWeekDayStr = "星期日"
@@ -190,9 +190,9 @@ Private Property LunarCalendar.sWeekDayStr() As UString
 	End Select
 End Property
 
-Private Function LunarCalendar.Constellation2(m As Long, d As Long) As UString
+Private Function LunarCalendar.Constellation2(m As Long, d As Long) As String
 	Dim tempDate As Double
-	Dim ConstellName As UString
+	Dim ConstellName As String
 	
 	tempDate = DateValue("2000/" & m & "/" & d)
 	
@@ -254,7 +254,7 @@ Private Function LunarCalendar.IsToday(Y As Long, m As Long, d As Long) As Boole
 End Function
 
 '根据年份不同计算当年属于什么朝代
-Private Function LunarCalendar.Era(Y As Long) As UString
+Private Function LunarCalendar.Era(Y As Long) As String
 	Dim TempStr As String
 	
 	If Y < 1874 Then
@@ -304,8 +304,8 @@ Private Function LunarCalendar.Era(Y As Long) As UString
 End Function
 
 ' 传入 num 传回干支, 0=甲子
-Private Function LunarCalendar.GanZhi(num As Long) As UString
-	Dim TempStr As UString
+Private Function LunarCalendar.GanZhi(num As Long) As String
+	Dim TempStr As String
 	Dim i As Long
 	i = (num - 1864) Mod 60 '计算干支
 	TempStr = Gan(i Mod 10) & Zhi(i Mod 12)
@@ -313,12 +313,12 @@ Private Function LunarCalendar.GanZhi(num As Long) As UString
 End Function
 
 '计算年的属相字串
-Private Function LunarCalendar.YearAttribute(Y As Long) As UString
+Private Function LunarCalendar.YearAttribute(Y As Long) As String
 	YearAttribute = Animals((Y - 1900) Mod 12)
 End Function
 
 '将数字汉化
-Private Function LunarCalendar.UpNumber(Dxs As UString) As UString
+Private Function LunarCalendar.UpNumber(Dxs As String) As String
 	
 	'检测为空时
 	If Trim(Dxs) = "" Then
@@ -326,7 +326,7 @@ Private Function LunarCalendar.UpNumber(Dxs As UString) As UString
 		Exit Function
 	End If
 	
-	Dim Sw As Integer, SzUp As Integer, TempStr As UString, DXStr As UString
+	Dim Sw As Integer, SzUp As Integer, TempStr As String, DXStr As String
 	Sw = Len(Trim(Dxs))
 	
 	Dim i As Integer
@@ -411,7 +411,7 @@ Private Function LunarCalendar.UpNumber(Dxs As UString) As UString
 	UpNumber = DXStr
 End Function
 
-Private Function LunarCalendar.Converts(NumStr As String) As UString
+Private Function LunarCalendar.Converts(NumStr As String) As String
 	Select Case Val(NumStr)
 	Case 0
 		Converts = "零"
@@ -437,8 +437,8 @@ Private Function LunarCalendar.Converts(NumStr As String) As UString
 End Function
 
 '中文日期
-Private Function LunarCalendar.CDayStr(d As Long) As UString
-	Dim s As UString
+Private Function LunarCalendar.CDayStr(d As Long) As String
+	Dim s As String
 	Select Case d
 	Case 0
 		s = ""
@@ -456,7 +456,7 @@ Private Function LunarCalendar.CDayStr(d As Long) As UString
 End Function
 
 '计算星座归属
-Private Function LunarCalendar.Constellation(m As Long, d As Long) As UString
+Private Function LunarCalendar.Constellation(m As Long, d As Long) As String
 	Dim tempDate As Double
 	Dim ConstellName As String
 	

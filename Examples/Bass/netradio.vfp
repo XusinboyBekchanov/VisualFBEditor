@@ -1,5 +1,4 @@
 ﻿*File=frmRadio.frm
-*File=frmRadio.rc
 ProjectType=0
 Subsystem=2
 ProjectName="NetRadio"
@@ -10,7 +9,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=51
+BuildVersion=82
 AutoIncrementVersion=false
 ApplicationTitle="NetRadio"
 ApplicationIcon=""

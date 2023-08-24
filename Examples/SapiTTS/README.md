@@ -1,3 +1,3 @@
 SAPI Text to Speech
 
-![image](https://github.com/chunmingwang/VisualFBEditor/assets/35757455/75b73533-81eb-4038-833b-f4a15c898404)
+![image](https://github.com/chunmingwang/SapiTTS/assets/35757455/41358938-307a-42a1-bd34-13fc5efcc800)
