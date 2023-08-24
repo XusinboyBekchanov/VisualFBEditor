@@ -1,7 +1,7 @@
-# MDIScintilla
+# MDIScintillaControl
 Example for VisualFBEditor
 
-MDIScintilla like text editor based on the Scintilla project.
+MDIScintillaControl like text editor based on the Scintilla project.
 
 This project needs to rely on MDINotepad and MDIScintilla
 
