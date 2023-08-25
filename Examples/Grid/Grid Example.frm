@@ -107,11 +107,11 @@
 			.Rows[3][5].Text = "Row4Col5 AllowEdit"
 			.Rows[3].Tag = @"3"
 			.SelectedRowIndex = 0
-			.OnGetDispInfo = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Grid1_GetDispInfo)
-			.OnCacheHint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Grid1_CacheHint)
-			.OnCellEdited = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Grid1_CellEdited)
+			.OnGetDispInfo = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT), @Grid1_GetDispInfo)
+			.OnCacheHint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer), @Grid1_CacheHint)
+			.OnCellEdited = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString), @Grid1_CellEdited)
 			.Designer = @This
-			.OnColumnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @Grid1_ColumnClick)
+			.OnColumnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal ColIndex As Integer), @Grid1_ColumnClick)
 			.Parent = @This
 		End With
 		' cmdRowInsert
@@ -121,7 +121,7 @@
 			.TabIndex = 0
 			.SetBounds 10, 4, 85, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRowInsert_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRowInsert_Click)
 			.Parent = @This
 		End With
 		' cmdColInsert
@@ -132,7 +132,7 @@
 			.ControlIndex = 1
 			.SetBounds 250, 4, 85, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdColInsert_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdColInsert_Click)
 			.Parent = @This
 		End With
 		' cmdRowDele
@@ -143,7 +143,7 @@
 			.ControlIndex = 2
 			.SetBounds 180, 4, 65, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRowDele_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRowDele_Click)
 			.Parent = @This
 		End With
 		' cmdColDele
@@ -154,7 +154,7 @@
 			.ControlIndex = 2
 			.SetBounds 420, 4, 65, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdColDele_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdColDele_Click)
 			.Parent = @This
 		End With
 		' Label1
@@ -176,7 +176,7 @@
 			.TabIndex = 7
 			.SetBounds 340, 4, 75, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdColInsertAf_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdColInsertAf_Click)
 			.Parent = @This
 		End With
 		' ="cmdRowInsertAfter
@@ -186,7 +186,7 @@
 			.TabIndex = 8
 			.SetBounds 100, 4, 75, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdRowInsertAfter_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRowInsertAfter_Click)
 			.Parent = @This
 		End With
 		' cmdBigData
@@ -196,7 +196,7 @@
 			.TabIndex = 9
 			.SetBounds 490, 0, 40, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdBigData_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBigData_Click)
 			.Parent = @This
 		End With
 		' cmdSaveToFile
@@ -206,7 +206,7 @@
 			.TabIndex = 10
 			.SetBounds 400, 27, 80, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdSaveToFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdSaveToFile_Click)
 			.Parent = @This
 		End With
 		' cmdLoadFromFile
@@ -217,7 +217,7 @@
 			.ControlIndex = 9
 			.SetBounds 480, 27, 70, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @cmdLoadFromFile_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdLoadFromFile_Click)
 			.Parent = @This
 		End With
 		' chkOwnerData
@@ -228,7 +228,7 @@
 			.Caption = "OwnerData"
 			.SetBounds 10, 30, 70, 10
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @chkOwnerData_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkOwnerData_Click)
 			.Parent = @This
 		End With
 		' chkDarkMode
@@ -241,7 +241,7 @@
 			.Caption = "DarkMode"
 			.SetBounds 90, 30, 60, 10
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @chkDarkMode_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkDarkMode_Click)
 			.Parent = @This
 		End With
 	End Constructor
