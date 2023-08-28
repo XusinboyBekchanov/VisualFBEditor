@@ -8951,11 +8951,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If blockprev Then
 									Select Case blockprev->ConstructionIndex
 									Case C_Enum, C_Type, C_Union, C_Class
-										blockprev->Construction->Elements.Add te->Name, te
-										If ECStatement->ConstructionIndex = C_Enum Then
-											blockprev->Construction->Enums.Add te->Name, te
-										ElseIf ECStatement->ConstructionIndex = C_Type OrElse ECStatement->ConstructionIndex = C_Class OrElse ECStatement->ConstructionIndex = C_Union Then
-											blockprev->Construction->Types.Add te->Name, te
+										If blockprev->Construction Then
+											blockprev->Construction->Elements.Add te->Name, te
+											If ECStatement->ConstructionIndex = C_Enum Then
+												blockprev->Construction->Enums.Add te->Name, te
+											ElseIf ECStatement->ConstructionIndex = C_Type OrElse ECStatement->ConstructionIndex = C_Class OrElse ECStatement->ConstructionIndex = C_Union Then
+												blockprev->Construction->Types.Add te->Name, te
+											End If
 										End If
 									Case Else
 										blockprev->Elements.Add te->Name, te
