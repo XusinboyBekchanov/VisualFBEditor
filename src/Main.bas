@@ -604,6 +604,10 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		End If
 		WAdd(CompileWith, " " & *FirstLine)
 		'If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
+		Dim As Boolean UseWasm = InStr(*FirstLine & CompileLine, "__USE_WASM__") > 0
+		'If UseWasm Then
+		'	WAdd CompileWith, " -Wl ""--post-js " & *MFFPathC & "\mff\Web\mff.js"""
+		'End If
 		If Project Then
 			For i As Integer = 0 To Project->Components.Count - 1
 				If EndsWith(Project->Components.Item(i), Slash) Then
@@ -767,7 +771,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ThreadsLeave()
 		End If
 		Dim As Dictionary CompileCommands
-		Dim As Boolean UseWasm = InStr(*PipeCommand, "__USE_WASM__") > 0
 		Dim MainFileName As UString = GetFileName(*MainFile)
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
@@ -777,7 +780,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			End If
 			CompileCommands.Add "", *PipeCommand
 			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & MainFileName & ".c"" -o """ & MainFileName & ".o"""
-			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 --post-js update.js"
+			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 --post-js " & *MFFPathC & "\mff\Web\mff.js"
 		Else
 			CompileCommands.Add "", *PipeCommand
 		End If
@@ -787,32 +790,32 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			WLet(PipeCommand, CompileCommands.Item(cc)->Text)
 			If cc > 0 Then
 				If UseWasm AndAlso CBool(cc = 1) Then
-					Var Fn = FreeFile_
-					If Open(MainFileName & ".c" For Input As #Fn) = 0 Then
-						Dim As String Buffer
-						Dim As WStringList Lines
-						Lines.Add "typedef void fn(void); fn *volatile fp;"
-						Do Until EOF(Fn)
-							Line Input #Fn, Buffer
-							If StartsWith(Trim(Buffer, Any !"\t "), "goto *") Then
-								Var n = Len(Buffer) - Len(Trim(Buffer, Any !"\t "))
-								Lines.Add Left(Buffer, n) & "fp = (fn*)" & Mid(Buffer, n + 7) & " fp();"
-							'ElseIf InStr(Buffer, " goto ") > 0 Then
-							'	Lines.Add Buffer
-							'ElseIf InStr(Buffer, "goto ") > 0 Then
-							'	Lines.Add Buffer
-							Else
-								Lines.Add Buffer
-							End If
-						Loop
-						Close #Fn
-						Fn = FreeFile_
-						Open MainFileName & ".c" For Output As #Fn
-						For ii As Integer = 0 To Lines.Count - 1
-							Print #Fn, Lines.Item(ii)
-						Next
-						Close #Fn
-					End If
+					'Var Fn = FreeFile_
+					'If Open(MainFileName & ".c" For Input As #Fn) = 0 Then
+					'	Dim As String Buffer
+					'	Dim As WStringList Lines
+					'	Lines.Add "typedef void fn(void); fn *volatile fp;"
+					'	Do Until EOF(Fn)
+					'		Line Input #Fn, Buffer
+					'		If StartsWith(Trim(Buffer, Any !"\t "), "goto *") Then
+					'			Var n = Len(Buffer) - Len(Trim(Buffer, Any !"\t "))
+					'			Lines.Add Left(Buffer, n) & "fp = (fn*)" & Mid(Buffer, n + 7) & " fp();"
+					'		'ElseIf InStr(Buffer, " goto ") > 0 Then
+					'		'	Lines.Add Buffer
+					'		'ElseIf InStr(Buffer, "goto ") > 0 Then
+					'		'	Lines.Add Buffer
+					'		Else
+					'			Lines.Add Buffer
+					'		End If
+					'	Loop
+					'	Close #Fn
+					'	Fn = FreeFile_
+					'	Open MainFileName & ".c" For Output As #Fn
+					'	For ii As Integer = 0 To Lines.Count - 1
+					'		Print #Fn, Lines.Item(ii)
+					'	Next
+					'	Close #Fn
+					'End If
 				End If
 				ThreadsEnter()
 				ShowMessages(Str(Time) + ": " + CompileCommands.Item(cc)->Key & *PipeCommand)
@@ -1173,7 +1176,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 		Dim pBuff As WString Ptr
 		Dim As Integer FileSize
 		FileSize = LOF(Fn)
-		WReallocate(pBuff, FileSize)
+		WReAllocate(pBuff, FileSize)
 		Do Until EOF(Fn)
 			LineInputWstr Fn, pBuff, FileSize
 			If StartsWith(*pBuff, "sdk.dir=") Then

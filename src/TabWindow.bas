@@ -11974,16 +11974,20 @@ Sub RunPr(Debugger As String = "")
 			Else
 				ChDir(GetFolderName(*ExeFileName))
 				Dim As UString CommandLine
-				Dim As ToolType Ptr Tool
-				Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
-				If Idx <> - 1 Then
-					Tool = pTerminals->Item(Idx)->Object
-					CommandLine = Tool->GetCommand(Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)))
-					#ifndef __FB_WIN32__
-						If Tool->Parameters = "" Then CommandLine &= " --wait -- "
-					#endif
+				If EndsWith(*ExeFileName, ".html") Then
+					CommandLine = "http://localhost:8000/" & GetFileName(*ExeFileName)
 				Else
-					CommandLine &= """" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
+					Dim As ToolType Ptr Tool
+					Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
+					If Idx <> - 1 Then
+						Tool = pTerminals->Item(Idx)->Object
+						CommandLine = Tool->GetCommand(Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)))
+						#ifndef __FB_WIN32__
+							If Tool->Parameters = "" Then CommandLine &= " --wait -- "
+						#endif
+					Else
+						CommandLine &= """" & Trim(Replace(*ExeFileName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
+					End If
 				End If
 				ThreadsEnter()
 				ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
@@ -12002,24 +12006,28 @@ Sub RunPr(Debugger As String = "")
 			Dim As Integer pClass
 			Dim As WString Ptr Workdir, CmdL
 			Dim As ULong ExitCode 
-			WLet(CmdL, """" & *ExeFileName & """ " & *RunArguments)
-			If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
-			Var Pos1 = InStrRev(*ExeFileName, Slash)
-			If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
-			WLet(Workdir, Left(*ExeFileName, Pos1))
-			'			If WGet(TerminalPath) <> "" Then
-			'				WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """"
-			'				wLet ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash)
-			'			End If
-			If WGet(TerminalPath) <> "" Then
-				Dim As ToolType Ptr Tool
-				Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
-				If Idx <> - 1 Then
-					Tool = pTerminals->Item(Idx)->Object
-					WLet(CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments)
+			If EndsWith(*ExeFileName, ".html") Then
+				WLet(*CmdL, "explorer http://localhost:8000/" & GetFileName(*ExeFileName))
+			Else
+				WLet(CmdL, """" & *ExeFileName & """ " & *RunArguments)
+				If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
+				Var Pos1 = InStrRev(*ExeFileName, Slash)
+				If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
+				WLet(Workdir, Left(*ExeFileName, Pos1))
+				'			If WGet(TerminalPath) <> "" Then
+				'				WLet CmdL, """" & WGet(TerminalPath) & """ /K ""cd /D """ & *Workdir & """ & " & *CmdL & """"
+				'				wLet ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash)
+				'			End If
+				If WGet(TerminalPath) <> "" Then
+					Dim As ToolType Ptr Tool
+					Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
+					If Idx <> - 1 Then
+						Tool = pTerminals->Item(Idx)->Object
+						WLet(CmdL, Tool->GetCommand(*ExeFileName) & " " & *RunArguments)
+					End If
+					'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
+					WLet(ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash))
 				End If
-				'WLetEx CmdL, " /K ""cd /D """ & *Workdir & """ & " & *CmdL & """", True
-				WLet(ExeFileName, Replace(WGet(TerminalPath), BackSlash, Slash))
 			End If
 			ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
 			If InStr(FirstLine & CompileLine, "-s gui") Then
@@ -12063,7 +12071,7 @@ Sub RunPr(Debugger As String = "")
 				Do
 					result1 = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
 					sBuffer = Left(sBuffer, bytesRead)
-					Pos1 = InStrRev(sBuffer, Chr(10))
+					Var Pos1 = InStrRev(sBuffer, Chr(10))
 					If Pos1 > 0 Then
 						Dim res() As WString Ptr
 						sOutput += Left(sBuffer, Pos1 - 1)
