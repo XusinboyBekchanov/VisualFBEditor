@@ -1184,7 +1184,7 @@ Namespace My.Sys.Forms
 		If iCurrProcedure  Then ' For get the top line and bottom line of tne current procedure
 			Dim As Integer lLineCount
 			iSelStartLine = 0
-			For lLineCount = FSelStartLine To 1 Step -1
+			For lLineCount = FSelStartLine To 0 Step -1
 				FECLine = Content.Lines.Items[lLineCount]
 				If FECLine->ConstructionIndex >= C_Sub Then
 					If FECLine->ConstructionPart = 0 Then
@@ -1198,7 +1198,7 @@ Namespace My.Sys.Forms
 			For lLineCount = FSelStartLine To Content.Lines.Count - 1
 				FECLine = Content.Lines.Items[lLineCount]
 				If FECLine->ConstructionIndex >= C_Sub Then
-					If FECLine->ConstructionPart = 0 Then
+					If FECLine->ConstructionPart = 2 Then
 						iSelEndLine = lLineCount
 						Exit For
 					End If

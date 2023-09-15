@@ -799,7 +799,13 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 		tb->txtCode.Changing "ReplaceAll"
 		plvSearch->ListItems.Clear
 		gSearchItemIndex = 0
-		For i As Integer = 0 To tb->txtCode.LinesCount - 1
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If cboFindRange.ItemIndex = 1 Then
+			iSelStartLine = 0: iSelEndLine = tb->txtCode.LinesCount - 1: iSelStartChar = 0: iSelEndChar = Len(tb->txtCode.Lines(iSelEndLine))
+		Else
+			tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, cboFindRange.ItemIndex = 0
+		End If
+		For i As Integer = iSelStartLine To iSelEndLine
 			buff = @tb->txtCode.Lines(i)
 			ECLine = tb->txtCode.Content.Lines.Items[i]
 			If bMatchCase Then
