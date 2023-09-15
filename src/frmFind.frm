@@ -275,6 +275,12 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 	Dim iStartChar As Integer, iStartLine As Integer
 	Dim i As Integer
 	If CInt(*gSearchSave <> txtFind.Text) Then FindAll plvSearch, tpFind, , True
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	If cboFindRange.ItemIndex = 1 Then
+		iSelStartLine = 0: iSelEndLine = tb->txtCode.LinesCount - 1: iSelStartChar = 0: iSelEndChar = Len(tb->txtCode.Lines(iSelEndLine))
+	Else
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, cboFindRange.ItemIndex = 0
+	End If
 	If Down Then
 		If bNotShowResults Then
 			iStartChar = 1
@@ -285,7 +291,7 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 			iStartChar = iSelEndChar + 1
 			iStartLine = iSelEndLine
 		End If
-		For i = iStartLine To txt->LinesCount - 1
+		For i = iStartLine To iSelEndLine
 			buff = @txt->Lines(i)
 			If bMatchCase Then
 				Result = InStr(iStartChar, *buff, *gSearchSave)
@@ -305,7 +311,7 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 			iStartLine = iSelStartLine
 			iStartChar = iSelStartChar
 		End If
-		For i = iStartLine To 0 Step -1
+		For i = iStartLine To iSelStartLine Step -1
 			buff = @txt->Lines(i)
 			If i <> iStartLine Then iStartChar = Len(*buff)
 			If bMatchCase Then
@@ -764,12 +770,13 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	If LCase(txt->SelText) = LCase(txtFind.Text) Then
 		ActionReplace += 1
 		txt->SelText = txtReplace.Text
-		This.btnFind_Click(Sender)
+		Find True
+		'This.btnFind_Click(Sender)
 		If txtFind.Contains(txtFind.Text) = False Then txtFind.AddItem txtFind.Text
 		If txtReplace.Contains(txtReplace.Text) = False Then txtReplace.AddItem txtReplace.Text
-		
 	Else
-		This.btnFind_Click(Sender)
+		Find True
+		'This.btnFind_Click(Sender)
 	End If
 	This.Caption=Replace(This.Caption,ML("Find"),ML("Replace"))
 	btnFind.SetFocus  'David Change
