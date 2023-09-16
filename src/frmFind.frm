@@ -586,6 +586,13 @@ Sub ReplaceSubProj(Param As Any Ptr)
 	StopProgress
 	WLet(gSearchSave, fFind.txtFind.Text)
 	tpFind->Caption = ML("Replace") & " (" & plvSearch->ListItems.Count & " " & ML("Pos") & ")"
+	If plvSearch->ListItems.Count = 0 Then
+		fFind.Caption = ML("Find: No Results")
+	Else
+		If Not fFind.txtFind.Contains(fFind.txtFind.Text) Then fFind.txtFind.AddItem fFind.txtFind.Text
+		If Len(fFind.txtReplace.Text) > 0 AndAlso (Not fFind.txtReplace.Contains(fFind.txtReplace.Text)) Then fFind.txtReplace.AddItem fFind.txtReplace.Text
+		fFind.Caption = ML("Replace") + WStr(plvSearch->ListItems.Count) + " of " + WStr(plvSearch->ListItems.Count)
+	End If
 	ThreadsLeave
 	MutexUnlock tlockToDo
 End Sub
@@ -795,6 +802,10 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 		If Tn > 0 Then
 			Dim As ExplorerElement Ptr ee = Tn->Tag
 			If ee > 0 AndAlso *ee->FileName <> "" Then
+				Select Case MsgBox(ML("Are you sure you want to replace in the project?") + WChr(13, 10) + *Search + WChr(13, 10) + "  " + ML("To") &  ":" + WChr(13, 10) + *tReplace, "Visual FB Editor", mtWarning, btYesNo)
+				Case mrYes:
+				Case mrNo: Return
+				End Select
 				ThreadCreate_(@ReplaceSubProj,Tn)
 			End If
 		End If
@@ -839,11 +850,11 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 		Next i
 		tb->txtCode.Changed "ReplaceAll"
 		tb->txtCode.PaintControl(True)
-		If plvSearch->ListItems.Count=0 Then
+		If plvSearch->ListItems.Count = 0 Then
 			This.Caption=ML("Find: No Results")
 		Else
-		If Not txtFind.Contains(*Search) Then txtFind.AddItem *Search
-		If Len(*tReplace) > 0 AndAlso (Not txtReplace.Contains(*tReplace)) Then txtReplace.AddItem *tReplace
+			If Not txtFind.Contains(*Search) Then txtFind.AddItem *Search
+			If Len(*tReplace) > 0 AndAlso (Not txtReplace.Contains(*tReplace)) Then txtReplace.AddItem *tReplace
 			This.Caption=ML("Replace") + ": 1 of " + WStr(plvSearch->ListItems.Count)
 		End If
 	End If
