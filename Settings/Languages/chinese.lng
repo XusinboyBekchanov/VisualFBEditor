@@ -1766,6 +1766,7 @@ Apply = 应用
 Applying watched variables = 应用监视变量
 Are you sure you want to overwrite the project = 是否确实要覆盖工程
 Are you sure you want to overwrite the session = 是否确实要覆盖工程组
+Are you sure you want to replace in the project? = 是否确实要替换工程中的所有内容？
 Args = 参数
 Asm = 汇编关键字
 assembling = 正在汇编文件
