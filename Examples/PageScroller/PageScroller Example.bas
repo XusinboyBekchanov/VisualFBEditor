@@ -9,9 +9,9 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
-		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
+		Declare Static Sub CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub PageScroller1_Scroll_(ByRef Sender As PageScroller, ByRef NewPos As Integer)
+		Declare Static Sub PageScroller1_Scroll_(ByRef Designer As My.Sys.Object, ByRef Sender As PageScroller, ByRef NewPos As Integer)
 		Declare Sub PageScroller1_Scroll(ByRef Sender As PageScroller, ByRef NewPos As Integer)
 		Declare Constructor
 		
@@ -61,15 +61,15 @@
 	#endif
 '#End Region
 
-Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)
-	*Cast(Form1Type Ptr, Sender.Designer).CommandButton1_Click(Sender)
+Private Sub Form1Type.CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 End Sub
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	?1
 End Sub
 
-Private Sub Form1Type.PageScroller1_Scroll_(ByRef Sender As PageScroller, ByRef NewPos As Integer)
-	*Cast(Form1Type Ptr, Sender.Designer).PageScroller1_Scroll(Sender, NewPos)
+Private Sub Form1Type.PageScroller1_Scroll_(ByRef Designer As My.Sys.Object, ByRef Sender As PageScroller, ByRef NewPos As Integer)
+	(*Cast(Form1Type Ptr, Sender.Designer)).PageScroller1_Scroll(Sender, NewPos)
 End Sub
 Private Sub Form1Type.PageScroller1_Scroll(ByRef Sender As PageScroller, ByRef NewPos As Integer)
 	?NewPos

@@ -3,6 +3,7 @@
 #endif
 '#Region "Form"
 	#define __USE_GTK3__
+	#define GIFPlayOn
 	#include once "mff/Form.bi"
 	#include once "mff/Animate.bi"
 	#include once "mff/CommandButton.bi"
@@ -10,11 +11,11 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
-		Declare Static Sub Form_Show_(ByRef Sender As Form)
+		Declare Static Sub Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
+		Declare Static Sub CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub CommandButton2_Click_(ByRef Sender As Control)
+		Declare Static Sub CommandButton2_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -85,24 +86,24 @@
 	#endif
 '#End Region
 
-Private Sub Form1Type.Form_Show_(ByRef Sender As Form)
-	*Cast(Form1Type Ptr, Sender.Designer).Form_Show(Sender)
+Private Sub Form1Type.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
+	(*Cast(Form1Type Ptr, Sender.Designer)).Form_Show(Sender)
 End Sub
 Private Sub Form1Type.Form_Show(ByRef Sender As Form)
-	Animate1.Open
+	Animate1.OpenFile
 	Animate1.Play
 	'Animate1.Close
 End Sub
 
-Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)
-	*Cast(Form1Type Ptr, Sender.Designer).CommandButton1_Click(Sender)
+Private Sub Form1Type.CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 End Sub
 Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)
 	Animate1.Play
 End Sub
 
-Private Sub Form1Type.CommandButton2_Click_(ByRef Sender As Control)
-	*Cast(Form1Type Ptr, Sender.Designer).CommandButton2_Click(Sender)
+Private Sub Form1Type.CommandButton2_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton2_Click(Sender)
 End Sub
 Private Sub Form1Type.CommandButton2_Click(ByRef Sender As Control)
 	Animate1.Stop

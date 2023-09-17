@@ -23,7 +23,7 @@
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form
-		Declare Static Sub CommandButton1_Click_(ByRef Sender As Control)
+		Declare Static Sub CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Static Sub SQLite3Component1_ErrorOut_(ByRef Sender As SQLite3Component, ErrorTxt As String)
 		Declare Sub SQLite3Component1_ErrorOut(ByRef Sender As SQLite3Component, ErrorTxt As String)
@@ -82,7 +82,7 @@
 		(*Cast(Form1Type Ptr, Sender.Designer)).SQLite3Component1_ErrorOut(Sender, ErrorTxt)
 	End Sub
 	
-	Private Sub Form1Type.CommandButton1_Click_(ByRef Sender As Control)
+	Private Sub Form1Type.CommandButton1_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 	End Sub
 	

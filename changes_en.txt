@@ -1,4 +1,61 @@
-﻿Version 1.3.4 (March 5, 2023)
+﻿Version 1.3.5 (September 17, 2023)
+- Added: Use WASM menu item
+- Fixed: Find and Replace
+- Added: Confirm first before Replace All in Project
+- Fixed: Replacing in procedure
+- Added: ByRef Designer As My.Sys.Object parameter to all events
+- Added: "Create event handlers without static event handler if event allows it" option
+- Added: IntelliSense for Types and Enums in blocks
+- Fixed: Compiling Android Project with fbc 1.10.0
+- Fixed: Crash IDE on close tab
+- Added: SapiTTS Example
+- Fixed: Compiling CanvasDraw Example in Linux
+- Improved: Edit Control caret in Linux
+- Added: Edit Control Font changing in Linux
+- Added: Find Compilers in Linux
+- Fixed: Compiling crash in Linux
+- Fixed: Debugging with other debuggers in Linux
+- Fixed: Opening empty files in Linux.
+- Added: Saving the "Show tip of the day" setting when closing the Tip of the day, previously it was saved only when closing the IDE.
+- Fixed: Changing Control bounds with mouse in Designer (Linux)
+- Fixed: Checking Use Defines on Linux
+- Fixed: Crashing IDE on Linux
+- Fixed: Updating ToolBar and ToolPalette controls on Designer.
+- Fixed: Application titles of Project templates
+- Fixed: Compiling ScintillaControl with fbc 1.10.0
+- Added: Module Numbering and Macro Numbering
+- Fixed: Drop files with extensions .vfp, .vfs to IDE
+- Added: Format With Basis Word menu item
+- Fixed: Copy and Paste controls in Designer
+- Fixed: Copy controls from other Form
+- Improved: UnComment block
+- Added: SQLite3 example
+- Updated: app-release.apk
+- Added: onDestroy event to Android activity
+- Added: File not found messages when run Android applications
+- Fixed: Showing Chinese characters in Chinese calendar example
+- Improved: Collapsing and Uncollapsing constructions inside #if, #ifdef, #elseif and #else in Edit Control
+- Changed: Showing Type procedures in Function List
+- Fixed: Change Keywords Case with Old Symbol
+- Improved: IntelliSense
+- Removed: ByRef and ByVal parameters from unused identifier suggestions.
+- Fixed: Compiling Bass Example
+- Improved: Suggestions
+- Fixed: Suggestions for not used Enum items
+- Added: IntelliSense for Line Continuation
+- Improved: Collapse of Lines with Line Continuation and Line Separator in Edit Control
+- Fixed: Changing Location, Size Properties
+- Added: Asm Keywords Help
+- Added: Delete blank lines menu item
+- Added: Convert selection code to Lowercase & Uppercase menu items
+- Added: Canvas Draw Example
+- Fixed: Crash IDE
+- Fixed: Compiling with fbc 1.10.0
+- Added: AutoSave after entered chars option.
+- Fixed: Auto suggestions for Asm
+- Improved: Asm IntelliSense
+- Improved: ChineseCalendar Example
+Version 1.3.4 (March 5, 2023)
 - Fixed: Memory leaks
 - Added: Collapsibility for ElseIf, Else, Case, ... constructions
 - Added: IntelliSense for construction blocks

@@ -8,7 +8,7 @@ git clone https://github.com/XusinboyBekchanov/MyFbFramework
 cd ..
 mkdir Compilers
 cd Compilers
-wget -O FreeBASIC-1.10.0-linux-x86_64.tar.xz https://versaweb.dl.sourceforge.net/project/fbc/FreeBASIC-1.10.0/Binaries-Linux/FreeBASIC-1.10.0-linux-x86_64.tar.xz
+wget -O FreeBASIC-1.10.0-linux-x86_64.tar.xz https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-Linux/FreeBASIC-1.10.0-linux-x86_64.tar.xz
 tar xf FreeBASIC-1.10.0-linux-x86_64.tar.xz
 cd ..
 cd src
