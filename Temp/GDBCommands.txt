@@ -1,0 +1,2 @@
+file "D:/GitHub/VisualFBEditor/src/../VisualFBEditor32.exe"
+r

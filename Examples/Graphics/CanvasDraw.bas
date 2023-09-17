@@ -19,21 +19,21 @@
 	Using My.Sys.Drawing
 	
 	Type Form1Type Extends Form
-		Declare Static Sub _CommandButton1_Click(ByRef Sender As Control)
+		Declare Static Sub _CommandButton1_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
-		Declare Static Sub _Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Static Sub _Picture1_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Static Sub _Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Static Sub _Form_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Static Sub _cmdGDIDraw_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdGDIDraw_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdGDIDraw_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdGDICls_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdGDICls_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdGDICls_Click(ByRef Sender As Control)
-		Declare Static Sub _CommandButton2_Click(ByRef Sender As Control)
+		Declare Static Sub _CommandButton2_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
-		Declare Static Sub _cmdGDIDraw1_Click(ByRef Sender As Control)
+		Declare Static Sub _cmdGDIDraw1_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdGDIDraw1_Click(ByRef Sender As Control)
-		Declare Static Sub _Form_Click(ByRef Sender As Control)
+		Declare Static Sub _Form_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub Form_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -192,27 +192,27 @@
 		End With
 	End Constructor
 	
-	Private Sub Form1Type._Form_Click(ByRef Sender As Control)
+	Private Sub Form1Type._Form_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Click(Sender)
 	End Sub
 	
-	Private Sub Form1Type._CommandButton2_Click(ByRef Sender As Control)
+	Private Sub Form1Type._CommandButton2_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton2_Click(Sender)
 	End Sub
 	
-	Private Sub Form1Type._cmdGDICls_Click(ByRef Sender As Control)
+	Private Sub Form1Type._cmdGDICls_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(Form1Type Ptr, Sender.Designer)).cmdGDICls_Click(Sender)
 	End Sub
 	
-	Private Sub Form1Type._cmdGDIDraw_Click(ByRef Sender As Control)
+	Private Sub Form1Type._cmdGDIDraw_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(Form1Type Ptr, Sender.Designer)).cmdGDIDraw_Click(Sender)
 	End Sub
 	
-	Private Sub Form1Type._Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	Private Sub Form1Type._Form_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		(*Cast(Form1Type Ptr, Sender.Designer)).Form_Resize(Sender, NewWidth, NewHeight)
 	End Sub
 	
-	Private Sub Form1Type._CommandButton1_Click(ByRef Sender As Control)
+	Private Sub Form1Type._CommandButton1_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		(*Cast(Form1Type Ptr, Sender.Designer)).CommandButton1_Click(Sender)
 	End Sub
 	
@@ -397,8 +397,8 @@ Private Sub Form1Type.cmdGDIDraw_Click(ByRef Sender As Control)
 		
 		'Draw Image   绘制位图
 		'StretchDraw(10, 140, 180, 100, TEXT("chenggong.bmp"))
-		’Taijitu(110, 110, 45)
-		‘Taijitu(500, 300, 138)
+		'Taijitu(110, 110, 45)
+		'Taijitu(500, 300, 138)
 		
 		'绘制文本
 		'TextOut(20, 220, TEXT("GDI画图输出测试程序"), 11);

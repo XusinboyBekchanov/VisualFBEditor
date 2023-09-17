@@ -24,7 +24,9 @@
 		Declare Sub cmdColInsertAf_Click(ByRef Sender As Control)
 		Declare Sub cmdRowInsertAfter_Click(ByRef Sender As Control)
 		Declare Sub cmdBigData_Click(ByRef Sender As Control)
-		Declare Sub Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
+		#ifdef __USE_WINAPI__
+			Declare Sub Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
+		#endif
 		Declare Sub Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 		Declare Sub Grid1_CellEdited(ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString)
 		Declare Sub cmdSaveToFile_Click(ByRef Sender As Control)
@@ -107,7 +109,9 @@
 			.Rows[3][5].Text = "Row4Col5 AllowEdit"
 			.Rows[3].Tag = @"3"
 			.SelectedRowIndex = 0
-			.OnGetDispInfo = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT), @Grid1_GetDispInfo)
+			#ifdef __USE_WINAPI__
+				.OnGetDispInfo = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT), @Grid1_GetDispInfo)
+			#endif
 			.OnCacheHint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer), @Grid1_CacheHint)
 			.OnCellEdited = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, ByRef NewText As WString), @Grid1_CellEdited)
 			.Designer = @This
@@ -320,21 +324,23 @@ Private Sub Form1Type.cmdBigData_Click(ByRef Sender As Control)
 	'MsgBox " Elasped time: " & Str(Int((Timer - StartShow) * 1000 + 0.5) / 1000)  & "s. with Data " & (Grid1.Rows.Count - 1) * (Grid1.Columns.Count - 1)
 End Sub
 
-Private Sub Form1Type.Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
-	'This sub send the data to control and overwrite the data in grid 将覆盖表格中原来的数据
-	Select Case iMask
-	Case LVIF_TEXT
-		'NewText = IIf(ColumnIndex = 0, WStr(RowIndex), "行" + Str(RowIndex) + "列" + Str(ColumnIndex))
-		'Print "NewText GetDispInfo " = NewText
-	Case LVIF_IMAGE
-		NewText = "1"
-	Case LVIF_INDENT
-		NewText = WStr(ColumnIndex)
-	Case LVIF_PARAM
-	Case LVIF_STATE
-	End Select
-	
-End Sub
+#ifdef __USE_WINAPI__
+	Private Sub Form1Type.Grid1_GetDispInfo(ByRef Sender As Grid, ByRef NewText As WString, ByVal RowIndex As Integer, ByVal ColumnIndex As Integer, iMask As UINT)
+		'This sub send the data to control and overwrite the data in grid 将覆盖表格中原来的数据
+		Select Case iMask
+		Case LVIF_TEXT
+			'NewText = IIf(ColumnIndex = 0, WStr(RowIndex), "行" + Str(RowIndex) + "列" + Str(ColumnIndex))
+			'Print "NewText GetDispInfo " = NewText
+		Case LVIF_IMAGE
+			NewText = "1"
+		Case LVIF_INDENT
+			NewText = WStr(ColumnIndex)
+		Case LVIF_PARAM
+		Case LVIF_STATE
+		End Select
+		
+	End Sub
+#endif
 
 Private Sub Form1Type.Grid1_CacheHint(ByRef Sender As Grid, ByVal iFrom As Integer, ByVal iTo As Integer)
 	'upload the data to grid here also

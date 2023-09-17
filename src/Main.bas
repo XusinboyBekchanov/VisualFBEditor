@@ -780,7 +780,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			End If
 			CompileCommands.Add "", *PipeCommand
 			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & MainFileName & ".c"" -o """ & MainFileName & ".o"""
-			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 --post-js " & *MFFPathC & "\mff\Web\mff.js"
+			'CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
+			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
 		Else
 			CompileCommands.Add "", *PipeCommand
 		End If
@@ -975,6 +976,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				CloseHandle pi.hThread
 				CloseHandle hReadPipe
 			#endif
+			If NumberErr > 0 Then Exit For
 		Next cc
 		#ifdef __USE_GTK__
 			Yaratilmadi = g_find_program_in_path(ToUtf8(*ExeName)) = NULL

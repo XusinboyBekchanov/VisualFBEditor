@@ -13,11 +13,11 @@
 	Using My.Sys.Forms
 	
 	Type Form1 Extends Form
-		Declare Static Sub cmdPrev_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdPrev_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdPrev_Click(ByRef Sender As Control)
-		Declare Static Sub cmdNext_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdNext_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdNext_Click(ByRef Sender As Control)
-		Declare Static Sub cmdGo_Click_(ByRef Sender As Control)
+		Declare Static Sub cmdGo_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdGo_Click(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -103,22 +103,22 @@
 	#endif
 '#End Region
 
-Private Sub Form1.cmdPrev_Click_(ByRef Sender As Control)
-	*Cast(Form1 Ptr, Sender.Designer).cmdPrev_Click(Sender)
+Private Sub Form1.cmdPrev_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	(*Cast(Form1 Ptr, Sender.Designer)).cmdPrev_Click(Sender)
 End Sub
 Private Sub Form1.cmdPrev_Click(ByRef Sender As Control)
 	WebBrowser1.GoBack
 End Sub
 
-Private Sub Form1.cmdNext_Click_(ByRef Sender As Control)
-	*Cast(Form1 Ptr, Sender.Designer).cmdNext_Click(Sender)
+Private Sub Form1.cmdNext_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	(*Cast(Form1 Ptr, Sender.Designer)).cmdNext_Click(Sender)
 End Sub
 Private Sub Form1.cmdNext_Click(ByRef Sender As Control)
 	WebBrowser1.GoForward
 End Sub
 
-Private Sub Form1.cmdGo_Click_(ByRef Sender As Control)
-	*Cast(Form1 Ptr, Sender.Designer).cmdGo_Click(Sender)
+Private Sub Form1.cmdGo_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	(*Cast(Form1 Ptr, Sender.Designer)).cmdGo_Click(Sender)
 End Sub
 Private Sub Form1.cmdGo_Click(ByRef Sender As Control)
 	WebBrowser1.Navigate txtAddress.Text

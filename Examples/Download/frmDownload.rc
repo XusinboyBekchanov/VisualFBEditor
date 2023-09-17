@@ -4,8 +4,8 @@
 #define APP_TITLE_STR               "Download\0"
 #define VER_FILEDESCRIPTION_STR     "Download\0"
 
-#define VER_FILEVERSION             0,0,0,480
-#define VER_FILEVERSION_STR         "0.0.0.480\0"
+#define VER_FILEVERSION             0,0,0,485
+#define VER_FILEVERSION_STR         "0.0.0.485\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

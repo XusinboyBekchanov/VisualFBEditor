@@ -2,8 +2,8 @@
 
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,68
-#define VER_FILEVERSION_STR         "0.0.0.68\0"
+#define VER_FILEVERSION             0,0,0,94
+#define VER_FILEVERSION_STR         "0.0.0.94\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

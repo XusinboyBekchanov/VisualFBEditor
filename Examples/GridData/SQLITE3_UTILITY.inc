@@ -14,15 +14,15 @@ Function SQLiteErrMsg( ByVal hDB As  sqlite3 Ptr  ) As String
  Return  *sqlite3_errmsg(hDB )
 End Function
 
-Function SQLiteExec(ByVal db As SQLite3 Ptr ,ByVal sSql As String ) As Integer 'ЦґРРSQL 
+Function SQLiteExec(ByVal db As sqlite3 Ptr ,ByVal sSql As String ) As Integer 'ЦґРРSQL 
     Dim aa As Integer
     sSql=ToUtf8(sSql) & Chr(0)
-    Return sqlite3_exec(DB,ByVal StrPtr(sSQL),0,0,0)
+    Return sqlite3_exec(db,ByVal StrPtr(sSql),0,0,0)
 '¶ФУЪёьРВЎўЙѕіэЎўІеИлµИІ»РиТЄ»ШµчєЇКэµДІЩЧчЈ¬sqlite3_execµДµЪИэЎўµЪЛДёцІОКэїЙТФґ«Ил0»тХЯNullЎЈ
 'НЁіЈЗйїцПВsqlite3_exec·µ»ШSQLITE_OK=0µДЅб№ыЈ¬·З0Ѕб№ыїЙТФНЁ№эerrmsgАґ»сИЎ¶ФУ¦µДґнОуГиКцЎЈ
 End Function
 
-Function SQLiteOpen(ByRef DB As SQLite3 Ptr ,ByVal sFileSpec As String,ByVal Password As String="" ) As Integer
+Function SQLiteOpen(ByRef DB As sqlite3 Ptr ,ByVal sFileSpec As String,ByVal Password As String="" ) As Integer
 'ґтїЄКэѕЭївЈ¬їЙТФУРГЬВл
     Dim szFileSpec As ZString  * 500
     Dim r As Long 
@@ -30,22 +30,22 @@ Function SQLiteOpen(ByRef DB As SQLite3 Ptr ,ByVal sFileSpec As String,ByVal Pas
     r = sqlite3_open( @szFileSpec, @DB )
 
     If r Then 'іцґн
-'        ErrStr = *sqlite3_errmsg(DB)
+        Print *sqlite3_errmsg(DB)
         sqlite3_close(DB ) 
         Return r
     End If
     If Len(Password) Then 'УРГЬВл 
         If sqlite3_key(DB,ByVal StrPtr(Password),Len(Password)) Then
-             Print "Open DB Failure " +SQLiteErrMsg(db)
+             Print "Open DB Failure " +SQLiteErrMsg(DB)
         End If
-        If sqlite3_key(db,ByVal StrPtr(Password),Len(Password)) Then
-          print SQLiteErrMsg(db)
+        If sqlite3_key(DB,ByVal StrPtr(Password),Len(Password)) Then
+          Print SQLiteErrMsg(DB)
         End If
     End If
 
 End Function
 
-Function SQLiteReKey(ByVal db as  SQLite3 Ptr ,ByVal newkey as String ) as Integer 'ЙиЦГГЬВлЈ¬Из№ыОЄїХЈ¬ИЎПыГЬВл
+Function SQLiteReKey(ByVal db As  sqlite3 Ptr ,ByVal newkey As String ) As Integer 'ЙиЦГГЬВлЈ¬Из№ыОЄїХЈ¬ИЎПыГЬВл
    ' Dim aa as Integer 
     RETURN sqlite3_rekey(DB,ByVal StrPtr(newkey),Len(newkey))
  

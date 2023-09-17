@@ -10,7 +10,7 @@
 	Using My.Sys.Forms
 	
 	Type Form1 Extends Form
-		Declare Static Sub Chart1_Create_(ByRef Sender As Control)
+		Declare Static Sub Chart1_Create_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub Chart1_Create(ByRef Sender As Control)
 		Declare Constructor
 		
@@ -70,7 +70,7 @@
 			.Anchor.Right = AnchorStyle.asAnchorProportional
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
-			.Border = false
+			.Border = False
 			.Parent = @This
 		End With
 		' Chart4
@@ -134,7 +134,7 @@
 	#endif
 '#End Region
 
-Private Sub Form1.Chart1_Create_(ByRef Sender As Control)
+Private Sub Form1.Chart1_Create_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(Form1 Ptr, Sender.Designer)).Chart1_Create(Sender)
 End Sub
 Private Sub Form1.Chart1_Create(ByRef Sender As Control)
