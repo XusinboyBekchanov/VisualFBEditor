@@ -4986,180 +4986,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Next i
 End Sub
 
-Sub LoadSettings
-	Dim As UString Temp
-	Dim As ToolType Ptr Tool
-	Dim i As Integer = 0
-	Do Until iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
-		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
-		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("OtherEditors", "Version_" & WStr(i)) + _
-		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -8
-		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Tool = _New(ToolType)
-			Tool->Name = Temp
-			Tool->Path = iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
-			Tool->Parameters = iniSettings.ReadString("Compilers", "Command_" & WStr(i), "")
-			Compilers.Add Temp, Tool->Path, Tool
-		End If
-		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Tool = _New(ToolType)
-			Tool->Name = Temp
-			Tool->Path = iniSettings.ReadString("MakeTools", "Path_" & WStr(i), "")
-			Tool->Parameters = iniSettings.ReadString("MakeTools", "Command_" & WStr(i), "")
-			MakeTools.Add Temp, Tool->Path, Tool
-		End If
-		Temp = iniSettings.ReadString("Debuggers", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Tool = _New(ToolType)
-			Tool->Name = Temp
-			Tool->Path = iniSettings.ReadString("Debuggers", "Path_" & WStr(i), "")
-			Tool->Parameters = iniSettings.ReadString("Debuggers", "Command_" & WStr(i), "")
-			Debuggers.Add Temp, Tool->Path, Tool
-		End If
-		Temp = iniSettings.ReadString("Terminals", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Tool = _New(ToolType)
-			Tool->Name = Temp
-			Tool->Path = iniSettings.ReadString("Terminals", "Path_" & WStr(i), "")
-			Tool->Parameters = iniSettings.ReadString("Terminals", "Command_" & WStr(i), "")
-			Terminals.Add Temp, Tool->Path, Tool
-		End If
-		Temp = iniSettings.ReadString("OtherEditors", "Version_" & WStr(i), "")
-		If Temp <> "" Then
-			Tool = _New(ToolType)
-			Tool->Name = Temp
-			Tool->Path = iniSettings.ReadString("OtherEditors", "Path_" & WStr(i), "")
-			Tool->Parameters = iniSettings.ReadString("OtherEditors", "Command_" & WStr(i), "")
-			Tool->Extensions = iniSettings.ReadString("OtherEditors", "Extensions_" & WStr(i), "")
-			OtherEditors.Add Temp, Tool->Path, Tool
-		End If
-		Temp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
-		If Temp <> "" Then Helps.Add Temp, iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
-		Temp = iniSettings.ReadString("IncludePaths", "Path_" & WStr(i), "")
-		If Temp <> "" Then IncludePaths.Add Temp
-		Temp = iniSettings.ReadString("LibraryPaths", "Path_" & WStr(i), "")
-		If Temp <> "" Then LibraryPaths.Add Temp
-		i += 1
-	Loop
-	
-	WLet(DefaultCompiler32, iniSettings.ReadString("Compilers", "DefaultCompiler32", ""))
-	WLet(CurrentCompiler32, *DefaultCompiler32)
-	WLet(DefaultCompiler64, iniSettings.ReadString("Compilers", "DefaultCompiler64", ""))
-	WLet(CurrentCompiler64, *DefaultCompiler64)
-	WLet(Compiler32Path, Compilers.Get(*CurrentCompiler32, "fbc"))
-	WLet(Compiler64Path, Compilers.Get(*CurrentCompiler64, "fbc"))
-	WLet(DefaultMakeTool, iniSettings.ReadString("MakeTools", "DefaultMakeTool", "make"))
-	WLet(CurrentMakeTool1, *DefaultMakeTool)
-	WLet(MakeToolPath1, MakeTools.Get(*CurrentMakeTool1, "make"))
-	WLet(CurrentMakeTool2, *DefaultMakeTool)
-	WLet(MakeToolPath2, MakeTools.Get(*CurrentMakeTool2, "make"))
-	WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", ""))
-	WLet(CurrentDebugger32, *DefaultDebugger32)
-	WLet(Debugger32Path, Debuggers.Get(*CurrentDebugger32, ""))
-	WLet(GDBDebugger32, iniSettings.ReadString("Debuggers", "GDBDebugger32", ""))
-	WLet(GDBDebugger32Path, Debuggers.Get(*GDBDebugger32, ""))
-	WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", ""))
-	WLet(CurrentDebugger64, *DefaultDebugger64)
-	WLet(Debugger64Path, Debuggers.Get(*CurrentDebugger64, ""))
-	WLet(GDBDebugger64, iniSettings.ReadString("Debuggers", "GDBDebugger64", ""))
-	WLet(GDBDebugger64Path, Debuggers.Get(*GDBDebugger64, ""))
-	WLet(DefaultTerminal, iniSettings.ReadString("Terminals", "DefaultTerminal", ""))
-	WLet(CurrentTerminal, *DefaultTerminal)
-	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
-	WLet(DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", ""))
-	WLet(HelpPath, Helps.Get(*DefaultHelp, ""))
-	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
-	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
-	PlaceStaticEventHandlersAfterTheConstructor = iniSettings.ReadBool("Options", "PlaceStaticEventHandlersAfterTheConstructor", True)
-	CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning = iniSettings.ReadBool("Options", "CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning", False)
-	CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt = iniSettings.ReadBool("Options", "CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt", True)
-	CreateFormTypesWithoutTypeWord = iniSettings.ReadBool("Options", "CreateFormTypesWithoutTypeWord", False)
-	OpenCommandPromptInMainFileFolder = iniSettings.ReadBool("Options", "OpenCommandPromptInMainFileFolder", True)
-	WLet(CommandPromptFolder, iniSettings.ReadString("Options", "CommandPromptFolder", "./Projects"))
-	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
-	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
-	TurnOnEnvironmentVariables = iniSettings.ReadBool("Options", "TurnOnEnvironmentVariables", True)
-	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
-	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects"))
-	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
-	ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", True)
-	SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", True)
-	AutoIncrement = iniSettings.ReadBool("Options", "AutoIncrement", True)
-	AutoCreateRC = iniSettings.ReadBool("Options", "AutoCreateRC", True)
-	AutoSaveBeforeCompiling = iniSettings.ReadInteger("Options", "AutoSaveBeforeCompiling", 1)
-	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
-	AddRelativePathsToRecent = iniSettings.ReadBool("Options", "AddRelativePathsToRecent", True)
-	WhenVisualFBEditorStarts = iniSettings.ReadInteger("Options", "WhenVisualFBEditorStarts", 2)
-	WLet(DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm"))
-	LastOpenedFileType = iniSettings.ReadInteger("Options", "LastOpenedFileType", 0)
-	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
-	AutoSuggestions = iniSettings.ReadBool("Options", "AutoSuggestions", True)
-	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
-	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
-	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "ShowKeywordsTooltip", True)
-	ShowTooltipsAtTheTop = iniSettings.ReadBool("Options", "ShowTooltipsAtTheTop", False)
-	ShowHorizontalSeparatorLines = iniSettings.ReadBool("Options", "ShowHorizontalSeparatorLines", True)
-	HighlightBrackets = iniSettings.ReadBool("Options", "HighlightBrackets", True)
-	HighlightCurrentLine = iniSettings.ReadBool("Options", "HighlightCurrentLine", True)
-	HighlightCurrentWord = iniSettings.ReadBool("Options", "HighlightCurrentWord", True)
-	TabAsSpaces = iniSettings.ReadBool("Options", "TabAsSpaces", True)
-	ChoosedTabStyle = iniSettings.ReadInteger("Options", "ChoosedTabStyle", 1)
-	TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
-	AutoSaveCharMax = iniSettings.ReadInteger("Options", "AutoSaveCharMax", 100)
-	HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
-	IntellisenseLimit = iniSettings.ReadInteger("Options", "IntellisenseLimit", 100)
-	HistoryCodeDays = iniSettings.ReadInteger("Options", "HistoryCodeDays", 100)
-	HistoryCodeCleanDay = iniSettings.ReadInteger("Options", "HistoryCodeCleanDay", DateValue(Format(Now, "yyyy/mm/dd")))
-	If HistoryCodeCleanDay <> DateValue(Format(Now, "yyyy/mm/dd")) Then HistoryCodeClean(ExePath & "/Temp")
-	SyntaxHighlightingIdentifiers = iniSettings.ReadBool("Options", "SyntaxHighlightingIdentifiers", True)
-	ChangeIdentifiersCase = iniSettings.ReadBool("Options", "ChangeIdentifiersCase", True)
-	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
-	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
-	AddSpacesToOperators = iniSettings.ReadBool("Options", "AddSpacesToOperators", True)
-	WLet(CurrentTheme, iniSettings.ReadString("Options", "CurrentTheme", "Default Theme"))
-	WLet(EditorFontName, iniSettings.ReadString("Options", "EditorFontName", "Courier New"))
-	EditorFontSize = iniSettings.ReadInteger("Options", "EditorFontSize", 10)
-	#ifdef __USE_GTK__
-		WLet(InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Ubuntu"))
-		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 11)
-	#else
-		WLet(InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Tahoma"))
-		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 8)
-	#endif
-	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
-	ShowMainToolBar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
-	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
-	'gLocalToolBox = iniSettings.ReadBool("Options", "ShowToolBoxLocal", False)
-	gLocalProperties = iniSettings.ReadBool("Options", "PropertiesLocal", False)
-	'gLocalKeyWords = iniSettings.ReadBool("Options", "KeyWordsLocal", False)
-	ProjectAutoSuggestions = False
-
-	#ifdef __USE_WINAPI__
-		If DarkMode Then
-			txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
-			txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
-			fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)
-		End If
-	#endif
-	pDefaultFont->Name = WGet(InterfaceFontName)
-	pDefaultFont->Size  = InterfaceFontSize
-	
-	mnuMain.DisplayIcons = DisplayMenuIcons
-	mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
-	MainReBar.Visible = ShowMainToolBar
-	SetDarkMode DarkMode, False
-	
-	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-b {S} -exx"))
-	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-b {S} -exx"))
-	WLet(Make1Arguments, iniSettings.ReadString("Parameters", "Make1Arguments", ""))
-	WLet(Make2Arguments, iniSettings.ReadString("Parameters", "Make2Arguments", "clean"))
-	WLet(RunArguments, iniSettings.ReadString("Parameters", "RunArguments", ""))
-	WLet(Debug32Arguments, iniSettings.ReadString("Parameters", "Debug32Arguments", ""))
-	WLet(Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", ""))
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")	
-	LoadKeyWords
+Sub LoadTheme
 	iniTheme.Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
 	#ifdef __USE_GTK__
 		NormalText.ForegroundOption = iniTheme.ReadInteger("Colors", "NormalTextForeground", clBlack)
@@ -5389,6 +5216,183 @@ Sub LoadSettings
 	ColorGlobalTypes.Underline = iniTheme.ReadInteger("FontStyles", "GlobalTypesUnderline", 0)
 	
 	SetAutoColors
+End Sub
+
+Sub LoadSettings
+	Dim As UString Temp
+	Dim As ToolType Ptr Tool
+	Dim i As Integer = 0
+	Do Until iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
+		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
+		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("OtherEditors", "Version_" & WStr(i)) + _
+		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -8
+		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = _New(ToolType)
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("Compilers", "Command_" & WStr(i), "")
+			Compilers.Add Temp, Tool->Path, Tool
+		End If
+		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = _New(ToolType)
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("MakeTools", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("MakeTools", "Command_" & WStr(i), "")
+			MakeTools.Add Temp, Tool->Path, Tool
+		End If
+		Temp = iniSettings.ReadString("Debuggers", "Version_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = _New(ToolType)
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("Debuggers", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("Debuggers", "Command_" & WStr(i), "")
+			Debuggers.Add Temp, Tool->Path, Tool
+		End If
+		Temp = iniSettings.ReadString("Terminals", "Version_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = _New(ToolType)
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("Terminals", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("Terminals", "Command_" & WStr(i), "")
+			Terminals.Add Temp, Tool->Path, Tool
+		End If
+		Temp = iniSettings.ReadString("OtherEditors", "Version_" & WStr(i), "")
+		If Temp <> "" Then
+			Tool = _New(ToolType)
+			Tool->Name = Temp
+			Tool->Path = iniSettings.ReadString("OtherEditors", "Path_" & WStr(i), "")
+			Tool->Parameters = iniSettings.ReadString("OtherEditors", "Command_" & WStr(i), "")
+			Tool->Extensions = iniSettings.ReadString("OtherEditors", "Extensions_" & WStr(i), "")
+			OtherEditors.Add Temp, Tool->Path, Tool
+		End If
+		Temp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
+		If Temp <> "" Then Helps.Add Temp, iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
+		Temp = iniSettings.ReadString("IncludePaths", "Path_" & WStr(i), "")
+		If Temp <> "" Then IncludePaths.Add Temp
+		Temp = iniSettings.ReadString("LibraryPaths", "Path_" & WStr(i), "")
+		If Temp <> "" Then LibraryPaths.Add Temp
+		i += 1
+	Loop
+	
+	WLet(DefaultCompiler32, iniSettings.ReadString("Compilers", "DefaultCompiler32", ""))
+	WLet(CurrentCompiler32, *DefaultCompiler32)
+	WLet(DefaultCompiler64, iniSettings.ReadString("Compilers", "DefaultCompiler64", ""))
+	WLet(CurrentCompiler64, *DefaultCompiler64)
+	WLet(Compiler32Path, Compilers.Get(*CurrentCompiler32, "fbc"))
+	WLet(Compiler64Path, Compilers.Get(*CurrentCompiler64, "fbc"))
+	WLet(DefaultMakeTool, iniSettings.ReadString("MakeTools", "DefaultMakeTool", "make"))
+	WLet(CurrentMakeTool1, *DefaultMakeTool)
+	WLet(MakeToolPath1, MakeTools.Get(*CurrentMakeTool1, "make"))
+	WLet(CurrentMakeTool2, *DefaultMakeTool)
+	WLet(MakeToolPath2, MakeTools.Get(*CurrentMakeTool2, "make"))
+	WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", ""))
+	WLet(CurrentDebugger32, *DefaultDebugger32)
+	WLet(Debugger32Path, Debuggers.Get(*CurrentDebugger32, ""))
+	WLet(GDBDebugger32, iniSettings.ReadString("Debuggers", "GDBDebugger32", ""))
+	WLet(GDBDebugger32Path, Debuggers.Get(*GDBDebugger32, ""))
+	WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", ""))
+	WLet(CurrentDebugger64, *DefaultDebugger64)
+	WLet(Debugger64Path, Debuggers.Get(*CurrentDebugger64, ""))
+	WLet(GDBDebugger64, iniSettings.ReadString("Debuggers", "GDBDebugger64", ""))
+	WLet(GDBDebugger64Path, Debuggers.Get(*GDBDebugger64, ""))
+	WLet(DefaultTerminal, iniSettings.ReadString("Terminals", "DefaultTerminal", ""))
+	WLet(CurrentTerminal, *DefaultTerminal)
+	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
+	WLet(DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", ""))
+	WLet(HelpPath, Helps.Get(*DefaultHelp, ""))
+	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
+	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
+	PlaceStaticEventHandlersAfterTheConstructor = iniSettings.ReadBool("Options", "PlaceStaticEventHandlersAfterTheConstructor", True)
+	CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning = iniSettings.ReadBool("Options", "CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning", False)
+	CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt = iniSettings.ReadBool("Options", "CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt", True)
+	CreateFormTypesWithoutTypeWord = iniSettings.ReadBool("Options", "CreateFormTypesWithoutTypeWord", False)
+	OpenCommandPromptInMainFileFolder = iniSettings.ReadBool("Options", "OpenCommandPromptInMainFileFolder", True)
+	WLet(CommandPromptFolder, iniSettings.ReadString("Options", "CommandPromptFolder", "./Projects"))
+	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
+	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
+	TurnOnEnvironmentVariables = iniSettings.ReadBool("Options", "TurnOnEnvironmentVariables", True)
+	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
+	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects"))
+	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
+	ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", True)
+	SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", True)
+	AutoIncrement = iniSettings.ReadBool("Options", "AutoIncrement", True)
+	AutoCreateRC = iniSettings.ReadBool("Options", "AutoCreateRC", True)
+	AutoSaveBeforeCompiling = iniSettings.ReadInteger("Options", "AutoSaveBeforeCompiling", 1)
+	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
+	AddRelativePathsToRecent = iniSettings.ReadBool("Options", "AddRelativePathsToRecent", True)
+	WhenVisualFBEditorStarts = iniSettings.ReadInteger("Options", "WhenVisualFBEditorStarts", 2)
+	WLet(DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm"))
+	LastOpenedFileType = iniSettings.ReadInteger("Options", "LastOpenedFileType", 0)
+	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
+	AutoSuggestions = iniSettings.ReadBool("Options", "AutoSuggestions", True)
+	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
+	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
+	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "ShowKeywordsTooltip", True)
+	ShowTooltipsAtTheTop = iniSettings.ReadBool("Options", "ShowTooltipsAtTheTop", False)
+	ShowHorizontalSeparatorLines = iniSettings.ReadBool("Options", "ShowHorizontalSeparatorLines", True)
+	HighlightBrackets = iniSettings.ReadBool("Options", "HighlightBrackets", True)
+	HighlightCurrentLine = iniSettings.ReadBool("Options", "HighlightCurrentLine", True)
+	HighlightCurrentWord = iniSettings.ReadBool("Options", "HighlightCurrentWord", True)
+	TabAsSpaces = iniSettings.ReadBool("Options", "TabAsSpaces", True)
+	ChoosedTabStyle = iniSettings.ReadInteger("Options", "ChoosedTabStyle", 1)
+	TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
+	AutoSaveCharMax = iniSettings.ReadInteger("Options", "AutoSaveCharMax", 100)
+	HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
+	IntellisenseLimit = iniSettings.ReadInteger("Options", "IntellisenseLimit", 100)
+	HistoryCodeDays = iniSettings.ReadInteger("Options", "HistoryCodeDays", 100)
+	HistoryCodeCleanDay = iniSettings.ReadInteger("Options", "HistoryCodeCleanDay", DateValue(Format(Now, "yyyy/mm/dd")))
+	If HistoryCodeCleanDay <> DateValue(Format(Now, "yyyy/mm/dd")) Then HistoryCodeClean(ExePath & "/Temp")
+	SyntaxHighlightingIdentifiers = iniSettings.ReadBool("Options", "SyntaxHighlightingIdentifiers", True)
+	ChangeIdentifiersCase = iniSettings.ReadBool("Options", "ChangeIdentifiersCase", True)
+	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
+	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
+	AddSpacesToOperators = iniSettings.ReadBool("Options", "AddSpacesToOperators", True)
+	WLet(CurrentTheme, iniSettings.ReadString("Options", "CurrentTheme", "Default Theme"))
+	WLet(EditorFontName, iniSettings.ReadString("Options", "EditorFontName", "Courier New"))
+	EditorFontSize = iniSettings.ReadInteger("Options", "EditorFontSize", 10)
+	#ifdef __USE_GTK__
+		WLet(InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Ubuntu"))
+		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 11)
+	#else
+		WLet(InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Tahoma"))
+		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 8)
+	#endif
+	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
+	ShowMainToolBar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
+	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
+	'gLocalToolBox = iniSettings.ReadBool("Options", "ShowToolBoxLocal", False)
+	gLocalProperties = iniSettings.ReadBool("Options", "PropertiesLocal", False)
+	'gLocalKeyWords = iniSettings.ReadBool("Options", "KeyWordsLocal", False)
+	ProjectAutoSuggestions = False
+
+	#ifdef __USE_WINAPI__
+		If DarkMode Then
+			txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
+			txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
+			fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)
+		End If
+	#endif
+	pDefaultFont->Name = WGet(InterfaceFontName)
+	pDefaultFont->Size  = InterfaceFontSize
+	
+	mnuMain.DisplayIcons = DisplayMenuIcons
+	mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
+	MainReBar.Visible = ShowMainToolBar
+	SetDarkMode DarkMode, False
+	
+	WLet(Compiler32Arguments, iniSettings.ReadString("Parameters", "Compiler32Arguments", "-b {S} -exx"))
+	WLet(Compiler64Arguments, iniSettings.ReadString("Parameters", "Compiler64Arguments", "-b {S} -exx"))
+	WLet(Make1Arguments, iniSettings.ReadString("Parameters", "Make1Arguments", ""))
+	WLet(Make2Arguments, iniSettings.ReadString("Parameters", "Make2Arguments", "clean"))
+	WLet(RunArguments, iniSettings.ReadString("Parameters", "RunArguments", ""))
+	WLet(Debug32Arguments, iniSettings.ReadString("Parameters", "Debug32Arguments", ""))
+	WLet(Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", ""))
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")	
+	LoadKeyWords
+	LoadTheme
 	
 End Sub
 
