@@ -5682,6 +5682,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Forum", "Forum"
 	imgList.Add "Fixme", "Fixme"
 	imgList.Add "Suggestions", "Suggestions"
+	imgList.Add "DarkMode", "DarkMode"
 	'imgListD.Add "StartWithCompileD", "StartWithCompile"
 	'imgListD.Add "StartD", "Start"
 	'imgListD.Add "BreakD", "Break"
@@ -5886,6 +5887,8 @@ Sub CreateMenusAndToolBars
 	miUnCollapseCurrent = miUnCollapse->Add(ML("Current") & HK("UnCollapseCurrent"), "", "UnCollapseCurrent", @mClick, , , False)
 	miUnCollapseAllProcedures = miUnCollapse->Add(ML("All procedures") & HK("UnCollapseAllProcedures"), "", "UnCollapseAllProcedures", @mClick, , , False)
 	miUnCollapseAll = miUnCollapse->Add(ML("All") & HK("UnCollapseAll"), "", "UnCollapseAll", @mClick, , , False)
+	miView->Add("-")
+	miView->Add(ML("Dark Mode") & HK("DarkMode"), "DarkMode", "DarkMode", @mClick)
 	miView->Add("-")
 	miView->Add(ML("Project Explorer") & HK("ProjectExplorer", "Ctrl+R"), "Project", "ProjectExplorer", @mClick)
 	miView->Add(ML("Properties Window") & HK("PropertiesWindow", "F4"), "Property", "PropertiesWindow", @mClick)
@@ -6155,6 +6158,8 @@ Sub CreateMenusAndToolBars
 	tbtPaste = tbStandard.Buttons.Add(, "Paste", , @mClick, "Paste", , ML("Paste") & HK("Paste", "Ctrl+V", True), True, 0)
 	tbStandard.Buttons.Add tbsSeparator
 	tbtFind = tbStandard.Buttons.Add(, "Find", , @mClick, "Find", , ML("Find") & HK("Find", "Ctrl+F", True), True, 0)
+	tbStandard.Buttons.Add tbsSeparator
+	tbStandard.Buttons.Add(, "DarkMode", , @mClick, "DarkMode", , ML("Dark Mode") & HK("DarkMode"), True)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbEdit.Name = "Edit"
 	tbEdit.ImagesList = @imgList

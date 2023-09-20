@@ -180,6 +180,29 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "ProjectProperties":                   pfProjectProperties->ShowModal *pfrmMain : pfProjectProperties->CenterToParent
 	Case "SetAsMain":                           SetAsMain @Sender = miTabSetAsMain
 	Case "ReloadHistoryCode":                   ReloadHistoryCode 
+	Case "DarkMode":
+		SetDarkMode Not DarkMode, False
+		DarkMode = Not DarkMode
+		#ifdef __USE_WINAPI__
+			If DarkMode Then
+				txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
+				txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
+				fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)
+			Else
+				txtLabelProperty.BackColor = clBtnFace
+				txtLabelEvent.BackColor = clBtnFace
+				fAddIns.txtDescription.BackColor = clBtnFace
+			End If
+			For i As Integer = 0 To pApp->FormCount - 1
+				If pApp->Forms[i]->Handle Then
+					AllowDarkModeForWindow pApp->Forms[i]->Handle, DarkMode
+					RefreshTitleBarThemeColor(pApp->Forms[i]->Handle)
+					RedrawWindow pApp->Forms[i]->Handle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+					DrawMenuBar pApp->Forms[i]->Handle
+				End If
+			Next i
+			MainReBar.Repaint
+		#endif
 	Case "ProjectExplorer":                     tpProject->SelectTab
 	Case "PropertiesWindow":                    tpProperties->SelectTab
 	Case "EventsWindow":                        tpEvents->SelectTab
