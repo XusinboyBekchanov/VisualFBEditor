@@ -5226,6 +5226,7 @@ Namespace My.Sys.Forms
 				SetWindowTheme(sbScrollBarhLeft, NULL, NULL)
 				SetWindowTheme(sbScrollBarhRight, NULL, NULL)
 			End If
+			cboIntellisense.SetDark Value
 			'SendMessage FHandle, WM_THEMECHANGED, 0, 0
 		End Sub
 	#endif

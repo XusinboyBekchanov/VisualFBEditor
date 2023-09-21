@@ -181,8 +181,21 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "SetAsMain":                           SetAsMain @Sender = miTabSetAsMain
 	Case "ReloadHistoryCode":                   ReloadHistoryCode 
 	Case "DarkMode":
-		SetDarkMode Not DarkMode, False
 		DarkMode = Not DarkMode
+		App.DarkMode = DarkMode
+		If (*CurrentTheme = "Default Theme" AndAlso DarkMode) OrElse (*CurrentTheme = "Dark (Visual Studio)" AndAlso Not DarkMode) Then
+			*CurrentTheme = IIf(DarkMode, "Dark (Visual Studio)", "Default Theme")
+			LoadTheme
+			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+			If tb <> 0 Then
+				#ifdef __USE_GTK__
+					tb->txtCode.Update
+				#else
+					tb->txtCode.PaintControl True
+					'RedrawWindow tb->txtCode.Handle, NULL, NULL, RDW_INVALIDATE
+				#endif
+			End If
+		End If
 		#ifdef __USE_WINAPI__
 			If DarkMode Then
 				txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
@@ -201,7 +214,6 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					DrawMenuBar pApp->Forms[i]->Handle
 				End If
 			Next i
-			MainReBar.Repaint
 		#endif
 	Case "ProjectExplorer":                     tpProject->SelectTab
 	Case "PropertiesWindow":                    tpProperties->SelectTab
