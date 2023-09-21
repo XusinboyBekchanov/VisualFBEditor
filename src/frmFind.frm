@@ -36,7 +36,7 @@ pfFind = @fFind
 		lblFind.Name = "lblFind"
 		lblFind.TabIndex = 1
 		lblFind.ID = 1049
-		lblFind.SetBounds 27, 4, 34, 16
+		lblFind.SetBounds 27, 3, 34, 16
 		lblFind.Text = ML("Find") & ":"
 		lblFind.Parent = @This
 		
@@ -44,7 +44,7 @@ pfFind = @fFind
 		txtFind.Name = "txtFind"
 		txtFind.Style = cbDropDown
 		txtFind.TabIndex = 2
-		txtFind.SetBounds 66, 4, 140, 16
+		txtFind.SetBounds 66, 2, 140, 16
 		txtFind.Anchor.Left = asAnchor
 		txtFind.Text = ""
 		txtFind.Parent = @This
@@ -54,7 +54,7 @@ pfFind = @fFind
 		txtReplace.Style = cbDropDown
 		txtReplace.Text = ""
 		txtReplace.TabIndex = 11
-		txtReplace.SetBounds 66, 30, 140, 16
+		txtReplace.SetBounds 66, 32, 140, 16
 		txtReplace.Anchor.Left = asAnchor
 		txtReplace.Parent = @This
 		
@@ -147,7 +147,7 @@ pfFind = @fFind
 		btnReplaceShow.Text = ">"
 		btnReplaceShow.TabIndex = 0
 		btnReplaceShow.Hint = ML("Toogle Replace mode")
-		btnReplaceShow.SetBounds 3, 3, 16, 20
+		btnReplaceShow.SetBounds 3, 2, 16, 20
 		btnReplaceShow.Parent = @This
 		
 		btnReplace.Anchor.Left = AnchorStyle.asAnchor
@@ -175,7 +175,7 @@ pfFind = @fFind
 			.AddItem ML("Selected")
 			.TabIndex = 3
 			.Hint = ML("Find Range")
-			.SetBounds 213, 4, 66, 16
+			.SetBounds 213, 2, 66, 16
 			.OnSelected = @cboFindRange_Selected_
 			.Parent = @This
 		End With
@@ -346,6 +346,7 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 				If Val(plvSearch->ListItems.Item(jj)->Text(1)) = i + 1 AndAlso Val(plvSearch->ListItems.Item(jj)->Text(2)) = Result Then
 					plvSearch->SelectedItemIndex = jj
 					This.Caption = ML("Find") + ": " + Str(jj + 1) + " of " + WStr(plvSearch->ListItems.Count)
+					ListView_EnsureVisible(plvSearch->Handle, jj, True)
 					'If Down Then btnFind.SetFocus Else btnFindPrev.SetFocus
 					Exit For
 				End If
@@ -767,7 +768,7 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 		ActionReplace += 1
 		txt->SelText = txtReplace.Text
 		Find True
-		This.btnFind_Click(Sender)
+		'This.btnFind_Click(Sender)
 		If txtFind.Contains(txtFind.Text) = False Then txtFind.AddItem txtFind.Text
 		If txtReplace.Contains(txtReplace.Text) = False Then txtReplace.AddItem txtReplace.Text
 	Else
@@ -859,14 +860,14 @@ Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 	If mFormFind = True Then
 		'SetBounds Left, Top, Width,65
 		#ifdef __USE_GTK__
-			Height = 49
+			Height = 51
 		#else
-			Height = 50
+			Height = 52
 		#endif
 		btnReplace.Enabled = False
 		btnReplaceAll.Enabled = False
 	Else
-		Height = 75
+		Height = 82
 		btnReplace.Enabled = True
 		btnReplaceAll.Enabled = True
 	End If
@@ -935,13 +936,13 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 		'#ifdef __USE_GTK__
 		'	This.Height = 50
 		'#else
-			This.Height = 50
+			This.Height = 52
 		'#endif
 		btnReplace.Enabled = False
 		btnReplaceAll.Enabled = False
 	Else
 		This.Caption = ML("Replace")
-		This.Height = 75
+		This.Height = 82
 		btnReplace.Enabled = True
 		btnReplaceAll.Enabled = True
 	End If
