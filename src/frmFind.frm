@@ -765,15 +765,12 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	If tb = 0 Then Exit Sub
 	Dim txt As EditControl Ptr = @tb->txtCode
 	If LCase(txt->SelText) = LCase(txtFind.Text) Then
-		ActionReplace += 1
 		txt->SelText = txtReplace.Text
 		Find True
-		'This.btnFind_Click(Sender)
 		If txtFind.Contains(txtFind.Text) = False Then txtFind.AddItem txtFind.Text
 		If txtReplace.Contains(txtReplace.Text) = False Then txtReplace.AddItem txtReplace.Text
 	Else
 		Find True
-		This.btnFind_Click(Sender)
 	End If
 	This.Caption = Replace(This.Caption, ML("Find"), ML("Replace"))
 	btnFind.SetFocus
@@ -983,9 +980,10 @@ End Sub
 
 Private Sub frmFind.cboFindRange_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	Static As Integer ItemIndexSave
-	If ItemIndexSave <> ItemIndex Then
+	If ItemIndexSave <> ItemIndex + 1 Then
 		WLet(gSearchSave, "")
-		ItemIndexSave = ItemIndex
+		plvSearch->ListItems.Clear
+		ItemIndexSave = ItemIndex + 1
 	End If
 End Sub
 
