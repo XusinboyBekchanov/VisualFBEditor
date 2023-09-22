@@ -346,8 +346,6 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 				If Val(plvSearch->ListItems.Item(jj)->Text(1)) = i + 1 AndAlso Val(plvSearch->ListItems.Item(jj)->Text(2)) = Result Then
 					plvSearch->SelectedItemIndex = jj
 					This.Caption = ML("Find") + ": " + Str(jj + 1) + " of " + WStr(plvSearch->ListItems.Count)
-					ListView_EnsureVisible(plvSearch->Handle, jj, True)
-					'If Down Then btnFind.SetFocus Else btnFindPrev.SetFocus
 					Exit For
 				End If
 			Next
