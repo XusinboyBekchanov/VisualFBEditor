@@ -625,7 +625,7 @@ Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
 		txtFind.AddItem txtFind.Text
 	End If
 	Find True
-
+	
 End Sub
 Private Sub frmFind.btnFindPrev_Click(ByRef Sender As Control)
 	If Trim(txtFind.Text) = "" Then Exit Sub
@@ -633,7 +633,7 @@ Private Sub frmFind.btnFindPrev_Click(ByRef Sender As Control)
 		txtFind.AddItem txtFind.Text
 	End If
 	Find False
-
+	
 End Sub
 
 Function IsNotAlpha(Symbol As String) As Boolean
@@ -766,8 +766,21 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	If plvSearch->ListItems.Count > 0 Then WLet(gSearchSave, txtFind.Text) Else WLet(gSearchSave, "")
 	If bMatch Then
 		txt->SelText = txtReplace.Text
-		'plvSearch->ListItems.Remove plvSearch->SelectedItemIndex
-		Find True
+		Dim As Integer ItemIndex = plvSearch->SelectedItemIndex
+		If plvSearch->ListItems.Count = 1 Then
+			This.Caption = ML("Find: No Results")
+			plvSearch->ListItems.Remove ItemIndex
+			Exit Sub
+		End If
+		plvSearch->ListItems.Remove ItemIndex
+		If plvSearch->ListItems.Count > 0 AndAlso ItemIndex = plvSearch->ListItems.Count Then
+			plvSearch->SelectedItemIndex = 0
+			txt->SelText = txtReplace.Text
+			Dim Item As ListViewItem Ptr = plvSearch->ListItems.Item(0)
+			SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(*gSearchSave), Item->Tag)
+		Else
+			Find True
+		End If
 		This.Caption = ML("Replace") + ": " + Str(plvSearch->SelectedItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
 		If txtFind.Contains(txtFind.Text) = False Then txtFind.AddItem txtFind.Text
 		If txtReplace.Contains(txtReplace.Text) = False Then txtReplace.AddItem txtReplace.Text
@@ -848,8 +861,8 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 			This.Caption = ML("Replace") + ": " + WStr(plvSearch->ListItems.Count) + " of " + WStr(plvSearch->ListItems.Count)
 		End If
 	End If
-	WLet(gSearchSave, *Search)
-	btnFind.SetFocus  'David Change
+	WLet(gSearchSave, "")
+	btnFind.SetFocus
 End Sub
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 	'Sender.Center
@@ -934,7 +947,7 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 		'#ifdef __USE_GTK__
 		'	This.Height = 50
 		'#else
-			This.Height = 52
+		This.Height = 52
 		'#endif
 		btnReplace.Enabled = False
 		btnReplaceAll.Enabled = False
