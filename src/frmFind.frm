@@ -762,15 +762,18 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	Dim txt As EditControl Ptr = @tb->txtCode
-	If LCase(txt->SelText) = LCase(txtFind.Text) Then
+	Dim As Boolean bMatch = IIf(chkMatchCase.Checked, txt->SelText = txtFind.Text, LCase(txt->SelText) = LCase(txtFind.Text))
+	If plvSearch->ListItems.Count > 0 Then WLet(gSearchSave, txtFind.Text) Else WLet(gSearchSave, "")
+	If bMatch Then
 		txt->SelText = txtReplace.Text
+		plvSearch->ListItems.Remove plvSearch->SelectedItemIndex
 		Find True
+		This.Caption = ML("Replace") + ": " + Str(plvSearch->SelectedItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
 		If txtFind.Contains(txtFind.Text) = False Then txtFind.AddItem txtFind.Text
 		If txtReplace.Contains(txtReplace.Text) = False Then txtReplace.AddItem txtReplace.Text
 	Else
 		Find True
 	End If
-	This.Caption = Replace(This.Caption, ML("Find"), ML("Replace"))
 	btnFind.SetFocus
 End Sub
 
