@@ -766,7 +766,7 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	If plvSearch->ListItems.Count > 0 Then WLet(gSearchSave, txtFind.Text) Else WLet(gSearchSave, "")
 	If bMatch Then
 		txt->SelText = txtReplace.Text
-		plvSearch->ListItems.Remove plvSearch->SelectedItemIndex
+		'plvSearch->ListItems.Remove plvSearch->SelectedItemIndex
 		Find True
 		This.Caption = ML("Replace") + ": " + Str(plvSearch->SelectedItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
 		If txtFind.Contains(txtFind.Text) = False Then txtFind.AddItem txtFind.Text
