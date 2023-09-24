@@ -1140,7 +1140,9 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 		ChangeMenuItemsEnabled
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
-		_Delete(tb)
+		#ifndef __USE_GTK__
+			_Delete(tb)
+		#endif
 		TabWindowRemovedCheck(pParentTabCode)
 		Return True
 	Else
