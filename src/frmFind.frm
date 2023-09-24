@@ -287,7 +287,7 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 			iStartLine = 0
 		Else
 			If plvSearch->ListItems.Count > 0 AndAlso plvSearch->SelectedItemIndex = plvSearch->ListItems.Count - 1 Then
-				iStartLine = Val(plvSearch->ListItems.Item(0)->Text(1))
+				iStartLine = Val(plvSearch->ListItems.Item(0)->Text(1)) - 1
 				iStartChar = Val(plvSearch->ListItems.Item(0)->Text(2)) - 1
 				txt->TopLine = iStartLine - txt->VisibleLinesCount / 2
 				txt->SetSelection iStartLine - 1, iStartLine - 1, iStartChar - 1, iStartChar + 1
