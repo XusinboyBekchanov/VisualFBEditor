@@ -66,11 +66,15 @@ Using My.Sys.Forms
 		
 		'GRID DATA
 		Declare Static Sub MSHFGridCont_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		Declare Static Sub MSHFGridCont_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		#ifdef __USE_WINAPI__
+			Declare Static Sub MSHFGridCont_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		#endif
 		Declare Static Sub MSHFGridCont_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As GridDataItem Ptr)
 		Declare Static Sub MSHFGridCont_OnHeadClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ColIndex As Integer)
 		Declare Static Sub MSHFGridCont_OnHeadColWidthAdjust(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ColIndex As Integer)
-		Declare Static Sub MSHFGridCont_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+		#ifdef __USE_WINAPI__
+			Declare Static Sub MSHFGridCont_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+		#endif
 		Declare Static Sub MSHFGridCont_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer,Shift As Integer)
 		Declare Static Sub MSHFGridCont_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Byte)
 		Declare Static Sub MSHFGridCont_KeyUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -78,11 +82,15 @@ Using My.Sys.Forms
 		
 		'GRID DATA
 		Declare Static Sub MSHFGrid_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		Declare Static Sub MSHFGrid_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		#ifdef __USE_WINAPI__
+			Declare Static Sub MSHFGrid_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		#endif
 		Declare Static Sub MSHFGrid_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As GridDataItem Ptr)
 		Declare Static Sub MSHFGrid_OnHeadClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ColIndex As Integer)
 		Declare Static Sub MSHFGrid_OnHeadColWidthAdjust(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ColIndex As Integer)
-		Declare Static Sub MSHFGrid_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		#ifdef __USE_WINAPI__
+			Declare Static Sub MSHFGrid_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		#endif
 		Declare Static Sub MSHFGrid_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 		Declare Static Sub MSHFGrid_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Byte)
 		Declare Static Sub MSHFGrid_KeyUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -358,7 +366,7 @@ Using My.Sys.Forms
 		MSHFGridCont.OnEndScroll = @MSHFGridCont_EndScroll
 		MSHFGridCont.OnResize = @MSHFGridCont_Resize
 		MSHFGridCont.OnKeyDown = @MSHFGridCont_KeyDown
-		#ifdef __FB_WIN32__
+		#ifdef __USE_WINAPI__
 			MSHFGridCont.OnItemClick=@MSHFGridCont_Click
 			MSHFGridCont.OnItemDblClick = @MSHFGridCont_DblClick
 		#endif
@@ -368,8 +376,10 @@ Using My.Sys.Forms
 		MSHFGrid.OnEndScroll = @MSHFGrid_EndScroll
 		MSHFGrid.OnResize = @MSHFGrid_Resize
 		MSHFGrid.OnKeyDown = @MSHFGridCont_KeyDown
-		MSHFGrid.OnItemClick=@MSHFGrid_Click
-		'MSHFGrid.OnItemDblClick=@MSHFGrid_DblClick
+		#ifdef __USE_WINAPI__
+			MSHFGrid.OnItemClick = @MSHFGrid_Click
+			'MSHFGrid.OnItemDblClick=@MSHFGrid_DblClick
+		#endif
 		MSHFGrid.OnHeadClick=@MSHFGrid_OnHeadClick
 		MSHFGrid.OnHeadColWidthAdjust=@MSHFGrid_OnHeadColWidthAdjust
 		
@@ -614,23 +624,25 @@ End Sub
 '#EndIf
 Sub frmGridDataTest.MSHFGridCont_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	'print "MSHFGridCont_EndScroll"
-	Dim As Rect lpRect
+	Dim As My.Sys.Drawing.Rect lpRect
 End Sub
 
-Sub frmGridDataTest.MSHFGridCont_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
-	If ColIndex<=0 Then
-	End If
-	
-	'print "tb ",tb
-	Dim As Rect lpRect
-	'Dim As GridDataItem Ptr Item = MSHFGridCont.ListItems.Item(RowIndex)
-	
-	#ifndef __USE_GTK__
-		' ListView_GetSubItemRect(Sender.Handle, RowIndex, ColIndex, LVIR_BOUNDS, @lpRect) 'reutrn Rect of fullRow when click on the first col
-		'print "lpRect.Left,Top,Right,Bottom ",lpRect.Left, lpRect.Top,lpRect.Right,lpRect.Bottom
-	#endif
-	
-End Sub
+#ifdef __USE_WINAPI__
+	Sub frmGridDataTest.MSHFGridCont_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		If ColIndex<=0 Then
+		End If
+		
+		'print "tb ",tb
+		Dim As Rect lpRect
+		'Dim As GridDataItem Ptr Item = MSHFGridCont.ListItems.Item(RowIndex)
+		
+		#ifndef __USE_GTK__
+			' ListView_GetSubItemRect(Sender.Handle, RowIndex, ColIndex, LVIR_BOUNDS, @lpRect) 'reutrn Rect of fullRow when click on the first col
+			'print "lpRect.Left,Top,Right,Bottom ",lpRect.Left, lpRect.Top,lpRect.Right,lpRect.Bottom
+		#endif
+		
+	End Sub
+#endif
 
 Sub frmGridDataTest.MSHFGridCont_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As GridDataItem Ptr)
 	'Dim Item As GridDataItem Ptr = MSHFGridCont.ListItems.Item(itemIndex)
@@ -644,8 +656,8 @@ End Sub
 
 Sub frmGridDataTest.MSHFGridCont_OnHeadColWidthAdjust(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ColIndex As Integer)
 	'print "OnHeadColWidthAdjust ColIndex ",ColIndex
-	Dim As Rect lpRect
 	#ifndef __USE_GTK__
+		Dim As Rect lpRect
 		'If GridCtrlEdit > 0 Then
 		'ListView_GetSubItemRect(MSHFGridCont.Handle, GridRow1, GridCol1, LVIR_BOUNDS, @lpRect) 'reutrn Rect of fullRow when click on the first col
 		'GridCtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left, lpRect.Bottom - lpRect.Top - 1
@@ -653,19 +665,21 @@ Sub frmGridDataTest.MSHFGridCont_OnHeadColWidthAdjust(ByRef Designer As My.Sys.O
 	#endif
 End Sub
 
-Sub frmGridDataTest.MSHFGridCont_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
-	'Dim Item As GridDataItem Ptr = MSHFGridCont.ListItems.Item(itemIndex)
-	'print "Item->Text(2)" + Item->Text(2)
-	' dim as SCROLLINFO si
-	'  si.cbSize = sizeof (SCROLLINFO)
-	'  'si.cbMask =SIF_ALL' SIF_RANGE OR SIF_PAGE
-	'  si.nMin = 0
-	'  si.nMax = 10
-	'  si.nPage = 4
-	'SetScrollInfo(MSHFGridCont.Handle, SB_HORZ, &si, TRUE) 'SB_HORZ  SB_VERT
-	
-	' SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(MSHFGridCont.Text), Item->Tag)
-End Sub
+#ifdef __USE_WINAPI__
+	Sub frmGridDataTest.MSHFGridCont_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As GridData, RowIndex As Integer, ColIndex As Integer, tGridDCC As HDC)
+		'Dim Item As GridDataItem Ptr = MSHFGridCont.ListItems.Item(itemIndex)
+		'print "Item->Text(2)" + Item->Text(2)
+		' dim as SCROLLINFO si
+		'  si.cbSize = sizeof (SCROLLINFO)
+		'  'si.cbMask =SIF_ALL' SIF_RANGE OR SIF_PAGE
+		'  si.nMin = 0
+		'  si.nMax = 10
+		'  si.nPage = 4
+		'SetScrollInfo(MSHFGridCont.Handle, SB_HORZ, &si, TRUE) 'SB_HORZ  SB_VERT
+		
+		' SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(MSHFGridCont.Text), Item->Tag)
+	End Sub
+#endif
 
 Sub frmGridDataTest.MSHFGridCont_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 	' Dim Item As GridDataItem Ptr = MSHFGridCont.SelectedItem
@@ -730,9 +744,11 @@ Sub frmGridDataTest.MSHFGrid_EndScroll(ByRef Designer As My.Sys.Object, ByRef Se
 	
 End Sub
 
-Sub frmGridDataTest.MSHFGrid_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
-	
-End Sub
+#ifdef __USE_WINAPI__
+	Sub frmGridDataTest.MSHFGrid_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		
+	End Sub
+#endif
 
 Sub frmGridDataTest.MSHFGrid_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Item As GridDataItem Ptr)
 	'Dim Item As GridDataItem Ptr = fGridDataTest.MSHFGrid.ListItems.Item(itemIndex)
@@ -746,8 +762,8 @@ End Sub
 
 Sub frmGridDataTest.MSHFGrid_OnHeadColWidthAdjust(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ColIndex As Integer)
 	'print "OnHeadColWidthAdjust ColIndex ",ColIndex
-	Dim As Rect lpRect
 	#ifndef __USE_GTK__
+		Dim As Rect lpRect
 		'If GridCtrlEdit > 0 Then
 		'ListView_GetSubItemRect(MSHFGrid.Handle, GridRow1, GridCol1, LVIR_BOUNDS, @lpRect) 'reutrn Rect of fullRow when click on the first col
 		'GridCtrlEdit->SetBounds lpRect.Left, lpRect.Top, lpRect.Right - lpRect.Left, lpRect.Bottom - lpRect.Top - 1
@@ -755,41 +771,43 @@ Sub frmGridDataTest.MSHFGrid_OnHeadColWidthAdjust(ByRef Designer As My.Sys.Objec
 	#endif
 End Sub
 
-Sub frmGridDataTest.MSHFGrid_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
-	'Dim Item As GridDataItem Ptr = fGridDataTest.MSHFGrid.ListItems.Item(itemIndex)
-	'  print "ItemDblClick Reading data Starting " '+ Item->Text(1),TImer
-	' dim as SCROLLINFO si
-	'  si.cbSize = sizeof (SCROLLINFO)
-	'  'si.cbMask =SIF_ALL' SIF_RANGE OR SIF_PAGE
-	'  si.nMin = 0
-	'  si.nMax = 10
-	'  si.nPage = 4
-	'SetScrollInfo(MSHFGrid.Handle, SB_HORZ, &si, TRUE) 'SB_HORZ  SB_VERT
-	' SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(MSHFGrid.Text), Item->Tag)
-	Static As Boolean DataReading
-	If ColIndex<=0 Or RowIndex<0  Then Exit Sub
-	If DataReading=True Then Exit Sub
-	DataReading=True
-	'print "tb ",tb
-	Dim As Rect lpRect
-	Dim As GridDataItem Ptr Item = fGridDataTest.MSHFGrid.ListItems.Item(RowIndex)
-	'print "MSHFGrid_Click,Start Time:",Time, Item->Text(ColIndex)
-	fGridDataTest.MSHFGridCont.Init
-	Dim As String sSql="SELECT * FROM "+Item->Text(ColIndex)+";"
-	'print "sSql",sSql
-	Dim As Long ItemRows '=fGridDataTest.MSHFGridCont.DataBinding(SQLiteDB,strptr(sSql),TRUE)
-	If ItemRows<=0 Then
-		Print "OPEN DataBase Records Failure."+ Chr(13,10)+ sSql
-	Else
-		'  print "Reading data ending " ,TIme,ItemRows
-		'fGridDataTest.MSHFGridCont.Refresh
-	End If
-	DataReading=False
-	#ifndef __USE_GTK__
-		' ListView_GetSubItemRect(Sender.Handle, RowIndex, ColIndex, LVIR_BOUNDS, @lpRect) 'reutrn Rect of fullRow when click on the first col
-		'print "lpRect.Left,Top,Right,Bottom ",lpRect.Left, lpRect.Top,lpRect.Right,lpRect.Bottom
-	#endif
-End Sub
+#ifdef __USE_WINAPI__
+	Sub frmGridDataTest.MSHFGrid_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control, RowIndex As Integer, ColIndex As Integer, nmcdhDC As HDC)
+		'Dim Item As GridDataItem Ptr = fGridDataTest.MSHFGrid.ListItems.Item(itemIndex)
+		'  print "ItemDblClick Reading data Starting " '+ Item->Text(1),TImer
+		' dim as SCROLLINFO si
+		'  si.cbSize = sizeof (SCROLLINFO)
+		'  'si.cbMask =SIF_ALL' SIF_RANGE OR SIF_PAGE
+		'  si.nMin = 0
+		'  si.nMax = 10
+		'  si.nPage = 4
+		'SetScrollInfo(MSHFGrid.Handle, SB_HORZ, &si, TRUE) 'SB_HORZ  SB_VERT
+		' SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(MSHFGrid.Text), Item->Tag)
+		Static As Boolean DataReading
+		If ColIndex<=0 Or RowIndex<0  Then Exit Sub
+		If DataReading=True Then Exit Sub
+		DataReading=True
+		'print "tb ",tb
+		Dim As Rect lpRect
+		Dim As GridDataItem Ptr Item = fGridDataTest.MSHFGrid.ListItems.Item(RowIndex)
+		'print "MSHFGrid_Click,Start Time:",Time, Item->Text(ColIndex)
+		fGridDataTest.MSHFGridCont.Init
+		Dim As String sSql="SELECT * FROM "+Item->Text(ColIndex)+";"
+		'print "sSql",sSql
+		Dim As Long ItemRows '=fGridDataTest.MSHFGridCont.DataBinding(SQLiteDB,strptr(sSql),TRUE)
+		If ItemRows<=0 Then
+			Print "OPEN DataBase Records Failure."+ Chr(13,10)+ sSql
+		Else
+			'  print "Reading data ending " ,TIme,ItemRows
+			'fGridDataTest.MSHFGridCont.Refresh
+		End If
+		DataReading=False
+		#ifndef __USE_GTK__
+			' ListView_GetSubItemRect(Sender.Handle, RowIndex, ColIndex, LVIR_BOUNDS, @lpRect) 'reutrn Rect of fullRow when click on the first col
+			'print "lpRect.Left,Top,Right,Bottom ",lpRect.Left, lpRect.Top,lpRect.Right,lpRect.Bottom
+		#endif
+	End Sub
+#endif
 
 Sub frmGridDataTest.MSHFGrid_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
 	' Dim Item As GridDataItem Ptr = MSHFGrid.SelectedItem
@@ -829,7 +847,7 @@ End Sub
 'GRID DATA CODE
 '########################################################################################
 
-Function frmGridDataTest.DataBindingCombo(ByRef tControl As ComboBoxEdit, db As SQLite3 Ptr,sSql As ZString Ptr,AddHeader As Boolean=True) As Integer
+Function frmGridDataTest.DataBindingCombo(ByRef tControl As ComboBoxEdit, db As sqlite3 Ptr,sSql As ZString Ptr,AddHeader As Boolean=True) As Integer
 'https://www.cnblogs.com/hbtmwangjin/p/7941403.html
     Dim As Integer i,j
     Dim lpTable    As ZString Ptr Ptr ' 返回给定表的数组指针（从列名称）
@@ -842,8 +860,10 @@ Function frmGridDataTest.DataBindingCombo(ByRef tControl As ComboBoxEdit, db As 
     Dim iCol       As Long=0
     Dim iResult    As Long         ' 行或错误的数量由我函数返回
 
-    Dim As HCURSOR hCurSave = GetCursor()
-    SetCursor(LoadCursor(0, IDC_WAIT))
+	#ifdef __USE_WINAPI__
+	    Dim As HCURSOR hCurSave = GetCursor()
+	    SetCursor(LoadCursor(0, IDC_WAIT))
+	#endif
     If sqlite3_get_table(db, sSql, @lpTable, @nRows, @nColumns, @lpErrorSz) = 0 Then '成功
         'Print "BindData Reading Data ",nRows, nColumns
         If nRows = 0 OrElse nColumns<1  Then
@@ -886,7 +906,10 @@ Function frmGridDataTest.DataBindingGrid(ByRef tControl As GridData, db As sqlit
     '执行查询的结果在 saRecSetZ（ 行, 列）下标为零
     ' 结果第一行0为列名称,字段名字
     ' 数据从1开始连续
-    Dim As Integer i,j, CountPerPage =ListView_GetCountPerPage(tControl.Handle)
+    Dim As Integer i, j, CountPerPage
+    #ifdef __USE_WINAPI__
+    	CountPerPage = ListView_GetCountPerPage(tControl.Handle)
+    #endif
     Dim lpTable    As ZString Ptr Ptr ' 返回给定表的数组指针（从列名称）
     Dim nRows      As Long=0         ' 返回的记录集的行数
     Dim nColumns   As Long=0         ' 返回的记录集的列数
@@ -897,8 +920,10 @@ Function frmGridDataTest.DataBindingGrid(ByRef tControl As GridData, db As sqlit
     Dim iCol       As Long=0
     Dim iResult    As Long         ' 行或错误的数量由我函数返回
 
-    Dim As HCURSOR hCurSave = GetCursor()
-    SetCursor(LoadCursor(0, IDC_WAIT))
+	#ifdef __USE_WINAPI__
+	    Dim As HCURSOR hCurSave = GetCursor()
+	    SetCursor(LoadCursor(0, IDC_WAIT))
+	#endif
     If sqlite3_get_table(db, sSql, @lpTable, @nRows, @nColumns, @lpErrorSz) = 0 Then '成功
         'Print "BindData Reading Data ",nRows, nColumns
         If nRows = 0 OrElse nColumns<1  Then
