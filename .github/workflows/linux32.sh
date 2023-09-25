@@ -1,7 +1,8 @@
 cd ..
 cd ..
 cd ..
-apt install libgtk-3-dev libncurses5
+apt install libgtk-3-dev
+sudo apt install libncurses5-dev
 wget -O FreeBASIC-1.10.0-linux-x86.tar.xz https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-Linux/FreeBASIC-1.10.0-linux-x86.tar.xz
 tar xf FreeBASIC-1.10.0-linux-x86.tar.xz
 cd FreeBASIC-1.10.0-linux-x86
