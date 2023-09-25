@@ -2,7 +2,7 @@ cd ..
 cd ..
 cd ..
 apt install libgtk-3-dev
-sudo apt install libncurses5-dev
+sudo apt install -y gcc-multilib g++-multilib lib32ncurses5-dev libx11-dev:i386 libxext-dev:i386 libxrender-dev:i386 libxrandr-dev:i386 libxpm-dev:i386 libtinfo5
 wget -O FreeBASIC-1.10.0-linux-x86.tar.xz https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-Linux/FreeBASIC-1.10.0-linux-x86.tar.xz
 tar xf FreeBASIC-1.10.0-linux-x86.tar.xz
 cd FreeBASIC-1.10.0-linux-x86
