@@ -11,4 +11,4 @@ jobs:
 
     - name: Build
       working-directory: .github/workflows
-      run: windows.bat
+      run: explorer windows.bat

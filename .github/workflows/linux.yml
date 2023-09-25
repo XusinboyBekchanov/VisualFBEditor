@@ -11,8 +11,8 @@ jobs:
 
     - name: Grant permission 
       working-directory: .github/workflows
-      run: sudo chmod +x linux32.sh
+      run: sudo chmod +x linux.sh
       
     - name: Build
       working-directory: .github/workflows
-      run: sudo bash linux32.sh
+      run: sudo bash linux.sh
