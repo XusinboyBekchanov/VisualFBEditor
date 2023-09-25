@@ -14,8 +14,20 @@ fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "../MyFbFramework" -d 
 cd ..
 which VisualFBEditor32_gtk3 >/dev/null 2>&1 || die "ERROR"
 
+if [ ! -f VisualFBEditor32_gtk3 ]
+then
+    echo "VisualFBEditor32_gtk3 does not exist"
+    exit 1
+fi
+
 cd MyFbFramework/mff
 fbc -b "mff.bi" -dll -x "../../libmff32_gtk3.so" -d __USE_GTK3__
+
+if [ ! -f ../../libmff32_gtk3.so ]
+then
+    echo "libmff32_gtk3.so does not exist"
+    exit 1
+fi
 
 cd ..
 cd ..
