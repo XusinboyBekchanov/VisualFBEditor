@@ -4,9 +4,9 @@ cd ..
 apt install libgtk-3-dev
 sudo apt-get install gcc g++ libncurses5-dev libx11-dev libxext-dev libxpm-dev libxrandr-dev libxrender-dev
 
-wget -O FreeBASIC-1.10.0-linux-x86.tar.xz https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-Linux/FreeBASIC-1.10.0-linux-x86.tar.xz
-tar xf FreeBASIC-1.10.0-linux-x86.tar.xz
-cd FreeBASIC-1.10.0-linux-x86
+wget -O FreeBASIC-1.10.0-ubuntu-22.04-x86_64.tar.xz https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-Linux/FreeBASIC-1.10.0-ubuntu-22.04-x86_64.tar.xz
+tar xf FreeBASIC-1.10.0-ubuntu-22.04-x86_64.tar.xz
+cd FreeBASIC-1.10.0-ubuntu-22.04-x86_64
 ./install.sh -i
 cd ..
 cd VisualFBEditor
