@@ -1,7 +1,7 @@
 cd ..
 cd ..
 cd ..
-apt install libgtk-3-dev
+apt install libgtk-3-dev libtinfo5
 wget -O FreeBASIC-1.10.0-linux-x86.tar.xz https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-Linux/FreeBASIC-1.10.0-linux-x86.tar.xz
 tar xf FreeBASIC-1.10.0-linux-x86.tar.xz
 cd FreeBASIC-1.10.0-linux-x86
