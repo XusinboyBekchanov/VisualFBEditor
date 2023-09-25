@@ -1,0 +1,14 @@
+name: windows
+
+on:
+  [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build
+      working-directory: .github/workflows
+      run: windows.bat
