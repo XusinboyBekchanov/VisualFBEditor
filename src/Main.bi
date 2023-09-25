@@ -62,7 +62,7 @@
 #else
 	Type WStringOrStringList As WStringList
 	Type WStringOrStringListItem As WStringListItem
-#EndIf
+#endif
 
 Extern "rtlib"
 	Declare Function LineInputWstr Alias "fb_FileLineInputWstr"(ByVal filenumber As Long, ByVal dst As WString Ptr, ByVal maxchars As Integer) As Long
@@ -88,6 +88,7 @@ End Type
 Common Shared As HelpOptions HelpOption
 
 Declare Function ML(ByRef msg As WString) ByRef As WString
+Declare Function HK(Key As String, Default As String = "", WithSpace As Boolean = False) As String
 Declare Function MP(ByRef V As WString) ByRef As WString
 Declare Function MLCompilerFun(ByRef V As WString) ByRef As WString
 Declare Function MC(ByRef V As WString) ByRef As WString

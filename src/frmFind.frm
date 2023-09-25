@@ -12,160 +12,58 @@ pfFind = @fFind
 '#Region "Form"
 	
 	Constructor frmFind
-		This.Name = "frmFind"
-		This.SetBounds 0, 0, 433, 75
-		This.Opacity = 210
-		This.Caption = ML("Find")
-		This.DefaultButton = @btnFind
-		#ifdef __USE_GTK__
-			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
-		#else
-			This.BorderStyle = FormBorderStyle.FixedDialog
-			This.Icon.LoadFromResourceID(1)
-		#endif
-		This.MinimizeBox = False
-		This.MaximizeBox = False
-		This.OnCreate = @Form_Create_
-		This.CancelButton = @btnCancel
-		This.OnShow = @Form_Show_
-		This.Designer = @This
-		'This.OnActivate = @Form_Activate_
-		This.OnClose = @Form_Close_
-		
-		' lblFind
-		lblFind.Name = "lblFind"
-		lblFind.TabIndex = 1
-		lblFind.ID = 1049
-		lblFind.SetBounds 27, 3, 34, 16
-		lblFind.Text = ML("Find") & ":"
-		lblFind.Parent = @This
-		
-		' txtFind
-		txtFind.Name = "txtFind"
-		txtFind.Style = cbDropDown
-		txtFind.TabIndex = 2
-		txtFind.SetBounds 66, 2, 140, 16
-		txtFind.Anchor.Left = asAnchor
-		txtFind.Text = ""
-		txtFind.Parent = @This
-		
-		' txtReplace
-		txtReplace.Name = "txtReplace"
-		txtReplace.Style = cbDropDown
-		txtReplace.Text = ""
-		txtReplace.TabIndex = 11
-		txtReplace.SetBounds 66, 32, 140, 16
-		txtReplace.Anchor.Left = asAnchor
-		txtReplace.Parent = @This
-		
-		chkMatchCase.Name = "chkMatchCase"
-		chkMatchCase.TabIndex = 4
-		chkMatchCase.Hint = ML("Match Case")
-		chkMatchCase.SetBounds 284, 4, 30, 21
-		chkMatchCase.Text = "Aa"
-		chkMatchCase.Parent = @This
-		
-		' btnFind
-		btnFind.Name = "btnFind"
-		btnFind.Text = ">"
-		btnFind.Default = True
-		btnFind.TabIndex = 6
-		btnFind.Hint = ML("Find Next") & " (F3)"
-		btnFind.SetBounds 403, 3, 25, 21
-		btnFind.Parent = @This
-		
-		' btnFindPrev
-		btnFindPrev.Name = "btnFindPrev"
-		btnFindPrev.Text = "<"
-		btnFindPrev.TabIndex = 5
-		btnFindPrev.Hint = ML("Find Previous") & " (Shift + F3)"
-		btnFindPrev.SetBounds 376, 3, 25, 21
-		btnFindPrev.Parent = @This
-		
-		' btnCancel
-		btnCancel.Name = "btnCancel"
-		btnCancel.Text = ML("&Cancel")
-		btnCancel.Anchor.Right = asAnchor
-		btnCancel.TabIndex = 14
-		btnCancel.SetBounds 250, 500, 100, 30
-		btnCancel.Parent = @This
-		btnFind.OnClick = @btnFind_Click_
-		btnFindPrev.SubClass = False
-		btnFindPrev.TabStop = True
-		btnFindPrev.Grouped = False
-		btnFindPrev.OnClick = @btnFindPrev_Click_
-		btnCancel.OnClick = @btnCancel_Click_
-		
-		' lblTrack
-		lblTrack.Name = "lblTrack"
-		lblTrack.TabIndex = 9
-		lblTrack.Alignment = AlignmentConstants.taCenter
-		lblTrack.ID = 1015
-		lblTrack.Hint = ML("Find Form Opacity")
-		lblTrack.SetBounds 6, 30, 16, 11
-		lblTrack.Parent = @This
-		
-		' TrackBar1
-		TrackBar1.Name = "TrackBar1"
-		TrackBar1.Text = "TrackBar1"
-		TrackBar1.OnChange = @TrackBar1_Change_
-		TrackBar1.MinValue = 100
-		TrackBar1.MaxValue = 255
-		TrackBar1.TabIndex = 8
-		TrackBar1.Style = TrackBarOrientation.tbHorizontal
-		TrackBar1.Hint = ML("Find Form Opacity")
-		TrackBar1.SetBounds 0, 42, 27, 10
-		TrackBar1.Position = 210 ' This.Opacity
-		TrackBar1.Parent = @This
-		lblTrack.Text = WStr(CUInt(TrackBar1.Position/2.55))
-		' lblReplace
-		lblReplace.Name = "lblReplace"
-		lblReplace.Text = ML("Replace") & ":"
-		lblReplace.TabIndex = 10
-		lblReplace.ID = 1050
-		lblReplace.SetBounds 27, 30, 36, 17
-		lblReplace.Parent = @This
-		
-		' btnReplace
-		btnReplace.Name = "btnReplace"
-		btnReplace.Text = ML("&Replace")
-		btnReplace.TabIndex = 12
-		btnReplace.Hint = ML("Replace")
-		btnReplace.SetBounds 212, 30, 110, 23
-		btnReplace.Parent = @This
-		
-		' btnReplaceAll
-		btnReplaceAll.Name = "btnReplaceAll"
-		btnReplaceAll.Text = ML("Replace &All")
-		btnReplaceAll.TabIndex = 13
-		btnReplaceAll.Hint = ML("Replace All")
-		btnReplaceAll.SetBounds 326, 30, 100, 23
-		btnReplaceAll.Parent = @This
-		
-		' btnReplaceShow
-		btnReplaceShow.Name = "btnReplaceShow"
-		btnReplaceShow.Text = ">"
-		btnReplaceShow.TabIndex = 0
-		btnReplaceShow.Hint = ML("Toogle Replace mode")
-		btnReplaceShow.SetBounds 3, 2, 16, 20
-		btnReplaceShow.Parent = @This
-		
-		btnReplace.Anchor.Left = AnchorStyle.asAnchor
-		btnReplace.OnClick = @btnReplace_Click_
-		btnReplaceAll.OnClick = @btnReplaceAll_Click_
-		btnReplaceShow.OnClick = @btnReplaceShow_Click_
-		
-		' btnFindAll
-		btnFindAll.Name = "btnFindAll"
-		btnFindAll.Text = ML("All")
-		btnFindAll.TabIndex = 7
-		btnFindAll.Hint = ML("Find All")
-		btnFindAll.Visible = False
-		btnFindAll.SetBounds 480, 3, 25, 23
-		btnFindAll.OnClick = @btnFindAll_Click_
-		btnFindAll.Parent = @This
-		
-		' cboFindRange
+		'frmFind
+		With This
+			.Name = "frmFind"
+			.Opacity = 210
+			.Caption = ML("Find")
+			#ifdef __USE_GTK__
+				.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+			#else
+				.BorderStyle = FormBorderStyle.FixedDialog
+				.Icon.LoadFromResourceID(1)
+			#endif
+			.MinimizeBox = False
+			.MaximizeBox = False
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
+			.DefaultButton = @btnFind
+			.CancelButton = @btnCancel
+			.Designer = @This
+			.SetBounds 0, 0, 433, 85
+		End With
+		'btnReplaceShow
+		With btnReplaceShow
+			.Name = "btnReplaceShow"
+			.Text = ">"
+			.TabIndex = 0
+			.Hint = ML("Toogle Replace mode")
+			.SetBounds 3, 2, 16, 21
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplaceShow_Click)
+			.Designer = @This
+			.Parent = @This
+		End With
+		'lblFind
+		With lblFind
+			.Name = "lblFind"
+			.TabIndex = 1
+			.SetBounds 23, 4, 41, 16
+			.Text = ML("Find") & ":"
+			.Designer = @This
+			.Parent = @This
+		End With
+		'txtFind
+		With txtFind
+			.Name = "txtFind"
+			.Style = cbDropDown
+			.TabIndex = 2
+			.SetBounds 66, 1, 140, 21
+			.Text = ""
+			.Designer = @This
+			.Parent = @This
+		End With
+		'cboFindRange
 		With cboFindRange
 			.Name = "cboFindRange"
 			.Text = "cboFindRange"
@@ -175,84 +73,155 @@ pfFind = @fFind
 			.AddItem ML("Selected")
 			.TabIndex = 3
 			.Hint = ML("Find Range")
-			.SetBounds 213, 2, 66, 16
-			.OnSelected = @cboFindRange_Selected_
-			.Parent = @This
-		End With
-		
-		' chkMatchWholeWords
-		With chkMatchWholeWords
-			.Name = "chkMatchWholeWords"
-			.Text = "W"
-			.TabIndex = 15
-			.ControlIndex = 3
-			.Hint = ML("Match Whole Words")
-			'.Caption = "W"
-			.SetBounds 316, 4, 30, 21
+			.SetBounds 213, 1, 66, 21
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cboFindRange_Selected)
 			.Designer = @This
 			.Parent = @This
 		End With
-		' chkUsePatternMatching
+		'chkMatchCase
+		With chkMatchCase
+			.Name = "chkMatchCase"
+			.TabIndex = 4
+			.Hint = ML("Match Case")
+			.SetBounds 284, 1, 30, 21
+			.Text = "Aa"
+			.Designer = @This
+			.Parent = @This
+		End With
+		'chkMatchWholeWords
+		With chkMatchWholeWords
+			.Name = "chkMatchWholeWords"
+			.Text = "W"
+			.TabIndex = 5
+			.Hint = ML("Match Whole Words")
+			.SetBounds 316, 1, 30, 21
+			.Designer = @This
+			.Parent = @This
+		End With
+		'chkUsePatternMatching
 		With chkUsePatternMatching
 			.Name = "chkUsePatternMatching"
 			.Text = ".*"
-			.TabIndex = 16
-			.ControlIndex = 3
+			.TabIndex = 6
 			.Hint = ML("Use Pattern Matching")
 			.Caption = ".*"
-			.SetBounds 345, 4, 30, 21
+			.SetBounds 345, 1, 30, 21
+			.Designer = @This
+			.Parent = @This
+		End With
+		'btnFindPrev
+		With btnFindPrev
+			.Name = "btnFindPrev"
+			.Text = "<"
+			.TabIndex = 7
+			.Hint = ML("Find Previous") & " (" & HK("Find Previous", "Shift + F3") & ")"
+			.SetBounds 376, 2, 25, 21
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindPrev_Click)
+			.Designer = @This
+			.Parent = @This
+		End With
+		'btnFind
+		With btnFind
+			.Name = "btnFind"
+			.Text = ">"
+			.Default = True
+			.TabIndex = 8
+			.Hint = ML("Find Next") & " (" & HK("Find Next", "F3") & ")"
+			.SetBounds 403, 2, 25, 21
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFind_Click)
+			.Designer = @This
+			.Parent = @This
+		End With
+		'lblTrack
+		With lblTrack
+			.Name = "lblTrack"
+			.TabIndex = 9
+			.Alignment = AlignmentConstants.taCenter
+			.Hint = ML("Find Form Opacity")
+			.SetBounds 4, 30, 16, 11
+			.Designer = @This
+			.Parent = @This
+		End With
+		'TrackBar1
+		With TrackBar1
+			.Name = "TrackBar1"
+			.Text = "TrackBar1"
+			.MinValue = 100
+			.MaxValue = 255
+			.TabIndex = 10
+			.Style = TrackBarOrientation.tbHorizontal
+			.Hint = ML("Find Form Opacity")
+			.SetBounds -2, 42, 27, 10
+			.Position = 210 'This.Opacity
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
+			.Designer = @This
+			.Parent = @This
+		End With
+		'lblReplace
+		With lblReplace
+			.Name = "lblReplace"
+			.Text = ML("Replace") & ":"
+			.TabIndex = 11
+			.SetBounds 23, 35, 41, 16
+			.Designer = @This
+			.Parent = @This
+		End With
+		'txtReplace
+		With txtReplace
+			.Name = "txtReplace"
+			.Style = cbDropDown
+			.Text = ""
+			.TabIndex = 12
+			.SetBounds 66, 32, 140, 16
+			.Designer = @This
+			.Parent = @This
+		End With
+		'btnReplace
+		With btnReplace
+			.Name = "btnReplace"
+			.Text = ML("&Replace")
+			.TabIndex = 13
+			.Hint = ML("Replace")
+			.SetBounds 212, 33, 110, 21
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplace_Click)
+			.Designer = @This
+			.Parent = @This
+		End With
+		'btnReplaceAll
+		With btnReplaceAll
+			.Name = "btnReplaceAll"
+			.Text = ML("Replace &All")
+			.TabIndex = 14
+			.Hint = ML("Replace All")
+			.SetBounds 326, 33, 102, 21
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplaceAll_Click)
+			.Designer = @This
+			.Parent = @This
+		End With
+		
+		'btnFindAll
+		With btnFindAll
+			.Name = "btnFindAll"
+			.Text = ML("All")
+			.TabIndex = 15
+			.Hint = ML("Find All")
+			.Visible = False
+			.SetBounds 480, 3, 25, 23
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindAll_Click)
+			.Designer = @This
+			.Parent = @This
+		End With
+		'btnCancel
+		With btnCancel
+			.Name = "btnCancel"
+			.Text = ML("&Cancel")
+			.TabIndex = 16
+			.SetBounds 250, 500, 100, 30
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnCancel_Click)
 			.Designer = @This
 			.Parent = @This
 		End With
 	End Constructor
-	
-	Private Sub frmFind.TrackBar1_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer)
-		fFind.TrackBar1_Change(Sender, Position)
-	End Sub
-	
-	Private Sub frmFind.btnFind_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		fFind.btnFind_Click(Sender)
-	End Sub
-	
-	Private Sub frmFind.btnFindAll_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		fFind.btnFindAll_Click(Sender)
-	End Sub
-	
-	Private Sub frmFind.btnFindPrev_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		fFind.btnFindPrev_Click(Sender)
-	End Sub
-	
-	Private Sub frmFind.btnReplace_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		fFind.btnReplace_Click(Sender)
-	End Sub
-	
-	Private Sub frmFind.btnReplaceAll_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		fFind.btnReplaceAll_Click(Sender)
-	End Sub
-	
-	Private Sub frmFind.btnReplaceShow_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		fFind.btnReplaceShow_Click(Sender)
-	End Sub
-	
-	Private Sub frmFind.btnCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		fFind.btnCancel_Click(Sender)
-	End Sub
-	
-	Private Sub frmFind.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
-		fFind.Form_Show(Sender)
-	End Sub
-	
-	Private Sub frmFind.Form_Close_(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Action As Integer)
-		fFind.Form_Close(Sender, Action)
-	End Sub
-	
-	Private Sub frmFind.Form_Create_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-		fFind.Form_Create(Sender)
-	End Sub
-	
-	Private Sub frmFind.cboFindRange_Selected_(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		(*Cast(frmFind Ptr, Sender.Designer)).cboFindRange_Selected(Sender, ItemIndex)
-	End Sub
 	
 	Destructor frmFind
 		
@@ -355,16 +324,11 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 	ElseIf bNotShowResults Then
 		Return Result
 	Else
-		'If MessageBox(btnFind.Handle, @WStr("Izlash oxiriga yetdi, qaytadan izlashni xohlaysi"), @WStr("Izlash"), MB_YESNO) = IDYES Then
-		'If MsgBox("Izlash oxiriga yetdi, qaytadan izlashni xohlaysi", "Izlash", MB_YESNO) = IDYES Then
 		Result = Find(Down, True)
 		If Result = 0 Then
-			'ShowMessage("Izlanayotgan matn topilmadi!")
 			This.Caption=ML("Find: No Results")
 		End If
-		'End If
 	End If
-	'txtFind.SetFocus 'David Change
 	Return Result
 End Function
 
@@ -625,15 +589,14 @@ Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
 		txtFind.AddItem txtFind.Text
 	End If
 	Find True
-	
 End Sub
+
 Private Sub frmFind.btnFindPrev_Click(ByRef Sender As Control)
 	If Trim(txtFind.Text) = "" Then Exit Sub
 	If Not txtFind.Contains(txtFind.Text) Then
 		txtFind.AddItem txtFind.Text
 	End If
 	Find False
-	
 End Sub
 
 Function IsNotAlpha(Symbol As String) As Boolean
@@ -864,17 +827,11 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 	WLet(gSearchSave, "")
 	btnFind.SetFocus
 End Sub
+
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
-	'Sender.Center
 	If Len(*gSearchSave) > 0 Then Clipboard.SetAsText *gSearchSave
-	mFormFind = Not mFormFind
 	If mFormFind = True Then
-		'SetBounds Left, Top, Width,65
-		#ifdef __USE_GTK__
-			Height = 51
-		#else
-			Height = 52
-		#endif
+		Height = 52
 		btnReplace.Enabled = False
 		btnReplaceAll.Enabled = False
 	Else
@@ -882,8 +839,10 @@ Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 		btnReplace.Enabled = True
 		btnReplaceAll.Enabled = True
 	End If
+	This.Caption = IIf(mFormFind, ML("Find"), ML("Replace"))
 	btnReplaceShow.Caption = IIf(mFormFind, ">", "<")
 	btnFind.SetFocus  'David Change
+	mFormFind = Not mFormFind
 End Sub
 
 Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
@@ -891,11 +850,7 @@ Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
 	This.CloseForm
 End Sub
 
-Private Sub frmFind.Form_Show(ByRef Sender As Form)
-	txtFind.SetFocus
-End Sub
-
-Private Sub frmFind.Form_Close(ByRef Sender As Control, ByRef Action As Integer)
+Private Sub frmFind.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	Dim iCount As Integer=-1
 	If txtFind.ItemCount>0 Then
 		For i As Integer =txtFind.ItemCount-1 To 0 Step -1
@@ -915,19 +870,6 @@ Private Sub frmFind.Form_Close(ByRef Sender As Control, ByRef Action As Integer)
 	btnFind.SetFocus  'David Change
 End Sub
 
-Private Sub frmFind.TrackBar1_Change(ByRef Sender As TrackBar,Position As Integer)
-	If Sender.Position < 20 Then Sender.Position = 20
-	Opacity = Sender.Position
-	lblTrack.Text = WStr(CUInt(Sender.Position/2.55))
-End Sub
-
-Private Sub frmFind.btnFindAll_Click(ByRef Sender As Control)
-	If Not txtFind.Contains(txtFind.Text) Then
-		txtFind.AddItem txtFind.Text
-	End If
-	FindAll plvSearch, tpFind, , False
-End Sub
-
 Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	Dim tmpStr As WString Ptr
 	txtFind.Clear
@@ -942,23 +884,8 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	Next
 	cboFindRange.ItemIndex = 1
 	WDeAllocate(tmpStr)
-	If mFormFind = True Then
-		This.Caption = ML("Find")
-		'#ifdef __USE_GTK__
-		'	This.Height = 50
-		'#else
-		This.Height = 52
-		'#endif
-		btnReplace.Enabled = False
-		btnReplaceAll.Enabled = False
-	Else
-		This.Caption = ML("Replace")
-		This.Height = 82
-		btnReplace.Enabled = True
-		btnReplaceAll.Enabled = True
-	End If
+	
 	SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, This.Height
-	'TODO David Change For couldn't minimize Width of the Command buttom
 	#ifdef __USE_GTK__
 		btnReplaceShow.Visible = False
 		TrackBar1.Visible = False
@@ -966,11 +893,14 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	#else
 		btnReplaceShow.Width=18
 	#endif
-	'btnFindAll.Visible = False
 	Opacity = 230
 	TrackBar1.Position = 230
 	lblTrack.Text = WStr(CUInt(TrackBar1.Position / 2.55))
 	
+	TrackBar1_Change(TrackBar1, TrackBar1.Position)
+End Sub
+
+Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	Dim As UString SelText
 	If ptabCode Then
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -984,12 +914,26 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	If SelText = "" Then
 		cboFindRange.ItemIndex = 1
 	Else
-		'David Change For limited the Muilti Line
 		Var Posi = InStr(SelText, Chr(13)) - 1
 		If Posi < 1 Then Posi = InStr(SelText, Chr(10)) - 1
 		If Posi < 1 Then Posi = Len(SelText)
 		txtFind.Text = ..Left(SelText, Posi)
 	End If
+	btnReplaceShow_Click(btnReplaceShow)
+	txtFind.SetFocus
+End Sub
+
+Private Sub frmFind.TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
+	If Sender.Position < 20 Then Sender.Position = 20
+	Opacity = Sender.Position
+	lblTrack.Text = WStr(CUInt(Sender.Position/2.55))
+End Sub
+
+Private Sub frmFind.btnFindAll_Click(ByRef Sender As Control)
+	If Not txtFind.Contains(txtFind.Text) Then
+		txtFind.AddItem txtFind.Text
+	End If
+	FindAll plvSearch, tpFind, , False
 End Sub
 
 Private Sub frmFind.cboFindRange_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
