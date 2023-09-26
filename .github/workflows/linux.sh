@@ -11,7 +11,7 @@ cd ..
 cd VisualFBEditor
 git clone https://github.com/XusinboyBekchanov/MyFbFramework
 cd src
-fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "../MyFbFramework" -d __USE_GTK3__
+fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "../MyFbFramework" -d __USE_GTK3__ -v
 cd ..
 
 if [ ! -f VisualFBEditor64_gtk3 ]
@@ -21,7 +21,7 @@ then
 fi
 
 cd MyFbFramework/mff
-fbc -b "mff.bi" -dll -x "../../libmff64_gtk3.so" -d __USE_GTK3__
+fbc -b "mff.bi" -dll -x "../../libmff64_gtk3.so" -d __USE_GTK3__ -v
 
 if [ ! -f ../../libmff64_gtk3.so ]
 then
