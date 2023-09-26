@@ -239,16 +239,16 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 	If tb = 0 Then Exit Function
 	Dim txt As EditControl Ptr = @tb->txtCode
 	Dim Result As Integer
-	Dim bMatchCase As Boolean = chkMatchCase.Checked
+	Dim As Boolean bMatchCase = chkMatchCase.Checked, bFindRange
 	Dim buff As WString Ptr
-	Dim iStartChar As Integer, iStartLine As Integer
-	Dim i As Integer
+	Dim As Integer iStartChar, iStartLine, i
+	bFindRange = (cboFindRange.ItemIndex = 0 OrElse cboFindRange.ItemIndex = 3)
 	If CInt(*gSearchSave <> txtFind.Text) Then FindAll plvSearch, tpFind, , False : WLet(gSearchSave, txtFind.Text)
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	If cboFindRange.ItemIndex = 1 Then
 		iSelStartLine = 0: iSelEndLine = tb->txtCode.LinesCount - 1: iSelStartChar = 0: iSelEndChar = Len(tb->txtCode.Lines(iSelEndLine))
 	Else
-		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, cboFindRange.ItemIndex = 0
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, bFindRange
 	End If
 	If Down Then
 		If bNotShowResults Then
@@ -310,14 +310,53 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 		txt->SetSelection i, i, Result - 1, Result + Len(*gSearchSave) - 1
 		If txtFind.Contains(*gSearchSave)=False Then txtFind.AddItem *gSearchSave
 		If plvSearch->ListItems.Count > 0 Then
-			Dim jj As Integer
+			gSearchItemIndex = Max(plvSearch->SelectedItemIndex, 0)
+			Dim As Integer jj, iPos
+			iPos = IIf(mFormFind, -1, 0) 'No updating flag if find action
 			For jj = 0 To plvSearch->ListItems.Count - 1
-				If Val(plvSearch->ListItems.Item(jj)->Text(1)) = i + 1 AndAlso Val(plvSearch->ListItems.Item(jj)->Text(2)) = Result Then
-					plvSearch->SelectedItemIndex = jj
-					This.Caption = ML("Find") + ": " + Str(jj + 1) + " of " + WStr(plvSearch->ListItems.Count)
-					Exit For
+				If mFormFind Then
+					If Val(plvSearch->ListItems.Item(jj)->Text(1)) = i + 1 AndAlso Val(plvSearch->ListItems.Item(jj)->Text(2)) =Result Then Exit For
+				Else
+					If Val(plvSearch->ListItems.Item(jj)->Text(1)) >= i + 1 Then Exit For
 				End If
 			Next
+			If jj > plvSearch->ListItems.Count - 1 Then
+				gSearchItemIndex = plvSearch->ListItems.Count - 1 : iPos = -1
+				i = Val(plvSearch->ListItems.Item(gSearchItemIndex)->Text(1)) - 1
+				Result = Val(plvSearch->ListItems.Item(gSearchItemIndex)->Text(2))
+				txt->SetSelection i, i, Result - 1, Result + Len(*gSearchSave) - 1
+			Else
+				gSearchItemIndex = jj
+			End If
+			'Update the value of Row and Col in plvSearch except the first and the last one
+			'Continue find in the same line
+			Do While iPos >= 0
+				If bMatchCase Then
+					iPos = InStr(iPos + 1, txt->Lines(i), *gSearchSave)
+				Else
+					iPos = InStr(iPos + 1, LCase(txt->Lines(i)), LCase(*gSearchSave))
+				End If
+				If iPos > 0 Then
+					If iPos = Result Then gSearchItemIndex = jj
+					If Val(plvSearch->ListItems.Item(jj)->Text(1)) = i + 1 Then
+						plvSearch->ListItems.Item(jj)->Text(2) = Str(iPos)
+						If jj < plvSearch->ListItems.Count - 1 AndAlso jj > 0 Then jj += 1 Else Exit Do
+					Else
+						plvSearch->ListItems.Insert(jj, txt->Lines(i)) 'Add the new finding
+						plvSearch->ListItems.Item(jj)->Text(1) = Str(i + 1)
+						plvSearch->ListItems.Item(jj)->Text(2) = Str(iPos)
+						plvSearch->ListItems.Item(jj)->Text(3) = tb->FileName
+					End If
+				Else
+					'Remove the extra line if insert some line after searching
+					For ii As Integer  = jj + 1 To plvSearch->ListItems.Count - 1
+						If Val(plvSearch->ListItems.Item(ii)->Text(1)) = i + 1 Then plvSearch->ListItems.Remove ii Else Exit For
+					Next
+					Exit Do
+				End If
+			Loop
+			plvSearch->SelectedItemIndex = gSearchItemIndex
+			This.Caption = ML("Find") + ": " + Str(gSearchItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
 		Else
 			This.Caption=ML("Find")
 		End If
@@ -588,6 +627,7 @@ Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
 	If Not txtFind.Contains(txtFind.Text) Then
 		txtFind.AddItem txtFind.Text
 	End If
+	mFormFind = True
 	Find True
 End Sub
 
@@ -596,6 +636,7 @@ Private Sub frmFind.btnFindPrev_Click(ByRef Sender As Control)
 	If Not txtFind.Contains(txtFind.Text) Then
 		txtFind.AddItem txtFind.Text
 	End If
+	mFormFind = True
 	Find False
 End Sub
 
@@ -727,24 +768,26 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 	Dim txt As EditControl Ptr = @tb->txtCode
 	Dim As Boolean bMatch = IIf(chkMatchCase.Checked, txt->SelText = txtFind.Text, LCase(txt->SelText) = LCase(txtFind.Text))
 	If plvSearch->ListItems.Count > 0 Then WLet(gSearchSave, txtFind.Text) Else WLet(gSearchSave, "")
+	mFormFind = False
 	If bMatch Then
 		txt->SelText = txtReplace.Text
 		Dim As Integer ItemIndex = plvSearch->SelectedItemIndex
-		If plvSearch->ListItems.Count = 1 Then
+		If plvSearch->ListItems.Count < 1 Then
 			This.Caption = ML("Find: No Results")
 			plvSearch->ListItems.Remove ItemIndex
 			Exit Sub
 		End If
 		plvSearch->ListItems.Remove ItemIndex
-		If plvSearch->ListItems.Count > 0 AndAlso ItemIndex = plvSearch->ListItems.Count Then
+		If plvSearch->ListItems.Count > 0 AndAlso (ItemIndex = plvSearch->ListItems.Count OrElse ItemIndex = -1) Then
 			plvSearch->SelectedItemIndex = 0
+			ItemIndex = 0
 			txt->SelText = txtReplace.Text
 			Dim Item As ListViewItem Ptr = plvSearch->ListItems.Item(0)
 			SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(*gSearchSave), Item->Tag)
 		Else
 			Find True
 		End If
-		This.Caption = ML("Replace") + ": " + Str(plvSearch->SelectedItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
+		This.Caption = ML("Replace") + ": " + Str(ItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
 		If txtFind.Contains(txtFind.Text) = False Then txtFind.AddItem txtFind.Text
 		If txtReplace.Contains(txtReplace.Text) = False Then txtReplace.AddItem txtReplace.Text
 	Else
@@ -883,15 +926,16 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 		If CInt(Trim(*tmpStr)<>"") Then txtReplace.AddItem *tmpStr
 	Next
 	cboFindRange.ItemIndex = 1
+	btnReplace.Enabled = False
+	btnReplaceAll.Enabled = False
 	WDeAllocate(tmpStr)
-	
 	SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, This.Height
 	#ifdef __USE_GTK__
 		btnReplaceShow.Visible = False
 		TrackBar1.Visible = False
 		lblTrack.Visible = False
 	#else
-		btnReplaceShow.Width=18
+		btnReplaceShow.Width = 18
 	#endif
 	Opacity = 230
 	TrackBar1.Position = 230
