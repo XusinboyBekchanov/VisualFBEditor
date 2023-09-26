@@ -12,22 +12,21 @@ cd ..
 cd VisualFBEditor
 git clone https://github.com/XusinboyBekchanov/MyFbFramework
 cd src
-fbc "VisualFBEditor.bas" -x "../VisualFBEditor32_gtk3" -i "../MyFbFramework" -d __USE_GTK3__
+fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk3" -i "../MyFbFramework" -d __USE_GTK3__
 cd ..
-which VisualFBEditor32_gtk3 >/dev/null 2>&1 || die "ERROR"
 
-if [ ! -f VisualFBEditor32_gtk3 ]
+if [ ! -f VisualFBEditor64_gtk3 ]
 then
-    echo "VisualFBEditor32_gtk3 does not exist"
+    echo "VisualFBEditor64_gtk3 does not exist"
     exit 1
 fi
 
 cd MyFbFramework/mff
-fbc -b "mff.bi" -dll -x "../../libmff32_gtk3.so" -d __USE_GTK3__
+fbc -b "mff.bi" -dll -x "../../libmff64_gtk3.so" -d __USE_GTK3__
 
-if [ ! -f ../../libmff32_gtk3.so ]
+if [ ! -f ../../libmff64_gtk3.so ]
 then
-    echo "libmff32_gtk3.so does not exist"
+    echo "libmff64_gtk3.so does not exist"
     exit 1
 fi
 

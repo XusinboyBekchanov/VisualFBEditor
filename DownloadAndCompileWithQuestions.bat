@@ -75,7 +75,7 @@ PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEd
 
 if "%DownloadCompiler%" == "no" goto label7z
 
-"%e7Zip%" x "FreeBASIC-1.09.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor\Compilers
+"%e7Zip%" x "FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor\Compilers
 
 :label7z
 
