@@ -23,7 +23,7 @@ curl -L -O https://github.com/XusinboyBekchanov/MyFbFramework/archive/master.zip
 
 PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "Controls" -Force
 
-"%e7Zip%" x "FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z" -o%~dp0Compilers
+"%e7Zip%" x "FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z" -o%~dp0..\..\Compilers
 
 :start
 
