@@ -321,7 +321,7 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 				End If
 			Next
 			If jj > plvSearch->ListItems.Count - 1 Then
-				gSearchItemIndex = plvSearch->ListItems.Count - 1 : iPos = -1
+				gSearchItemIndex = 0 : iPos = -1
 				i = Val(plvSearch->ListItems.Item(gSearchItemIndex)->Text(1)) - 1
 				Result = Val(plvSearch->ListItems.Item(gSearchItemIndex)->Text(2))
 				txt->SetSelection i, i, Result - 1, Result + Len(*gSearchSave) - 1
@@ -778,10 +778,9 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 			Exit Sub
 		End If
 		plvSearch->ListItems.Remove ItemIndex
-		If plvSearch->ListItems.Count > 0 AndAlso (ItemIndex = plvSearch->ListItems.Count OrElse ItemIndex = -1) Then
+		If plvSearch->ListItems.Count > 0 AndAlso ItemIndex = -1 Then
 			plvSearch->SelectedItemIndex = 0
 			ItemIndex = 0
-			txt->SelText = txtReplace.Text
 			Dim Item As ListViewItem Ptr = plvSearch->ListItems.Item(0)
 			SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(*gSearchSave), Item->Tag)
 		Else
