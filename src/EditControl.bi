@@ -142,6 +142,7 @@ Namespace My.Sys.Forms
 		E_Operator
 		E_Constructor
 		E_Destructor
+		E_Snippet
 	End Enum
 	
 	Type TypeElement
@@ -472,6 +473,7 @@ Namespace My.Sys.Forms
 		Declare Sub MiddleScroll
 	Public:
 		Content As EditControlContent
+		Carets As List
 		'FileLists As List
 		'FileListsLines As List
 		'Includes As WStringList

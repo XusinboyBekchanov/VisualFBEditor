@@ -82,7 +82,7 @@ Dim Shared As ReBar MainReBar
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp
+Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, Snippets
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
@@ -4865,6 +4865,84 @@ Sub LoadHelp
 	CloseFile_(Fn)
 End Sub
 
+Sub LoadSnippets
+	Dim As UString f
+	f = Dir("./Settings/Snippets/*.ini")
+	While f <> ""
+		Dim As Integer i, Pos1, Pos2, Pos3
+		Dim As Integer Fn = FreeFile_, Result
+		Dim As WString * 2048 Buff, Parameters, NewParameters
+		Dim As TypeElement Ptr te, teParam
+		Dim As UString FileName = ExePath & "/Settings/Snippets/" & f
+		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
+		If Result = 0 Then
+			Do Until EOF(Fn)
+				Line Input #Fn, Buff
+				Pos1 = InStr(Buff, "=")
+				If (Len(Trim(Buff, Any !"\t ")) > 0) AndAlso (Pos1 > 0) AndAlso Trim(Mid(Buff, Pos1 + 1), Any !"\t ") <> "" Then
+					te = _New( TypeElement)
+					te->Name = Trim(Mid(Buff, 1, Pos1 - 1), Any !"\t ")
+					te->DisplayName = te->Name
+					te->ElementType = E_Snippet
+					Parameters = Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+					Parameters = Replace(Parameters, "\r", !"\r")
+					Parameters = Replace(Parameters, "\t", !"\t")
+					te->Comment = te->Name
+					Snippets.Add te->Name, te
+					Dim As Integer s = 1, idx
+					Dim As String ch, Number
+					Pos1 = InStr(Parameters, "$")
+					NewParameters = ""
+					Do While Pos1 > 0
+						NewParameters &= Mid(Parameters, s, Pos1 - s)
+						Number = ""
+						teParam = _New(TypeElement)
+						teParam->ElementType = E_Snippet
+						For i As Integer = Pos1 + 1 To Len(Parameters) + 1
+							ch = Chr(Parameters[i - 1])
+							If ch = "{" Then
+								Pos2 = InStr(i + 1, Parameters, ":")
+								Pos3 = InStr(i + 1, Parameters, "}")
+								Number = Mid(Parameters, i + 1, Pos2 - (i + 1))
+								teParam->DisplayName = Mid(Parameters, Pos2 + 1, Pos3 - Pos2 - 1)
+								NewParameters &= teParam->DisplayName
+								s = Pos3 + 1
+								Exit For
+							ElseIf ch >= "0" AndAlso ch <= "9" Then
+								Number &= ch
+							Else
+								If Number <> "" AndAlso te->Elements.Contains(Number, , , , idx) Then
+									teParam->DisplayName = Cast(TypeElement Ptr, te->Elements.Object(idx))->DisplayName
+									NewParameters &= teParam->DisplayName
+								End If
+								s = i
+								Exit For
+							End If
+						Next
+						Pos2 = InStrRev(Parameters, !"\r", Pos1)
+						teParam->Name = Number
+						teParam->StartLine = InStrCount(Left(Parameters, Pos1), !"\r")
+						teParam->EndLine = teParam->StartLine
+						teParam->StartChar = Pos1 - Pos2 - 1
+						teParam->EndChar = teParam->StartChar + Len(teParam->DisplayName)
+						te->Elements.Add teParam->Name, teParam
+						Pos1 = InStr(s, Parameters, "$")
+					Loop
+					NewParameters &= Mid(Parameters, s)
+					te->Parameters = NewParameters
+					te->Elements.Sort
+				End If
+			Loop
+			Snippets.Sort
+		End If
+		CloseFile_(Fn)
+		f = Dir()
+	Wend
+End Sub
+
 Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Dim As String f
 	Dim As Integer i, j
@@ -8546,6 +8624,7 @@ tbToolBox.ImagesList = @imgListTools
 tbToolBox.HotImagesList = @imgListTools
 
 LoadHelp
+LoadSnippets
 
 Dim As String it = "Cursor"
 tbToolBox.Groups.Add ML("Controls")

@@ -44,7 +44,9 @@
 		!"Xusinboy Bekchanov\r" & _
 		!"e-mail: <a href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</a>\r" & _
 		!"Liu XiaLin\r" & _
-		!"e-mail: <a href=""mailto:liuziqi.hk@hotmail.com"">liuziqi.hk@hotmail.com</a>\r\r" & _
+		!"e-mail: <a href=""mailto:liuziqi.hk@hotmail.com"">liuziqi.hk@hotmail.com</a>\r" & _
+		!"Cm Wang\r" & _
+		!"e-mail: <a href=""mailto:cm.wang@126.com"">cm.wang@126.com</a>\r\r" & _
 		!"QQ Forums 1032313876 78458582 \r\r" & _
 		ML("For donation") & !":\r Patreon: <a href=""https://www.patreon.com/xusinboy"">patreon.com/xusinboy</a>,\r WebMoney: <a href=""https://www.webmoney.ru""> WMZ: Z884195021874</a>\r\r\r\r" & _
 		ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit and Simple Designer\r" & _

@@ -1894,21 +1894,58 @@ Namespace My.Sys.Forms
 	Sub EditControl.ReplaceLine(Index As Integer, ByRef sLine As WString)
 		Var iC = 0, OldiC = 0, InAsm = False
 		If Index > 0 AndAlso Index < Content.Lines.Count - 1 Then
-			OldiC = Cast(EditControlLine Ptr, Content.Lines.Items[Index])->CommentIndex
-			InAsm = Cast(EditControlLine Ptr, Content.Lines.Items[Index])->InAsm
+			OldiC = Cast(EditControlLine Ptr, Content.Lines.Items[Index - 1])->CommentIndex
+			InAsm = Cast(EditControlLine Ptr, Content.Lines.Items[Index - 1])->InAsm
 		End If
 		FECLine = Content.Lines.Items[Index]
-		WLet(FECLine->Text, sLine)
-		FECLine->Ends.Clear
-		FECLine->EndsCompleted = False
-		iC = FindCommentIndex(sLine, OldiC)
-		FECLine->CommentIndex = iC
-		FECLine->InAsm = InAsm
-		ChangeCollapsibility Index
-		If FECLine->ConstructionIndex = C_Asm Then
-			InAsm = FECLine->ConstructionPart = 0
-		End If
-		FECLine->InAsm = InAsm
+		Dim As Integer Pos1, p = 1, c
+		Do
+			Pos1 = InStr(p, sLine, Chr(13))
+			c = c + 1
+			If Pos1 = 0 Then
+				l = Len(sLine) - p + 1
+			Else
+				l = Pos1 - p
+			End If
+			FECLine->InAsm = InAsm
+			If c = 1 Then
+				WLet(FECLine->Text, Mid(sLine, p, l))
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
+				ChangeCollapsibility Index
+			Else
+				FECLine = _New( EditControlLine)
+				WLet(FECLine->Text, Mid(sLine, p, l))
+				OlddwClientX = 0
+			End If
+			iC = FindCommentIndex(*FECLine->Text, OldiC)
+			FECLine->CommentIndex = iC
+			FECLine->InAsm = InAsm
+			If c > 1 Then
+				If OnLineAdding Then OnLineAdding(*Designer, This, Index + c - 1)
+				Content.Lines.Insert Index + c - 1, FECLine
+				If OnLineAdded Then OnLineAdded(*Designer, This, Index + c - 1)
+				ChangeCollapsibility Index + c - 1
+			End If
+			If FECLine->ConstructionIndex = C_Asm Then
+				InAsm = FECLine->ConstructionPart = 0
+			End If
+			FECLine->InAsm = InAsm
+			p = Pos1 + 1
+			OldiC = iC
+		Loop While Pos1 > 0
+		'WLet(Cast(EditControlLine Ptr, Content.Lines.Item(FSelStartLine))->Text, *FECLine->Text & *FLine)
+		'WLet(FECLine->Text, sLine)
+		'FECLine->Ends.Clear
+		'FECLine->EndsCompleted = False
+		'iC = FindCommentIndex(sLine, OldiC)
+		'FECLine->CommentIndex = iC
+		'FECLine->InAsm = InAsm
+		'ChangeCollapsibility Index
+		'If FECLine->ConstructionIndex = C_Asm Then
+		'	InAsm = FECLine->ConstructionPart = 0
+		'End If
+		'FECLine->InAsm = InAsm
 	End Sub
 	
 	Sub EditControl.DuplicateLine(Index As Integer = -1)
