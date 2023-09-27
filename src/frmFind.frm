@@ -31,15 +31,17 @@ pfFind = @fFind
 			.DefaultButton = @btnFind
 			.CancelButton = @btnCancel
 			.Designer = @This
-			.SetBounds 0, 0, 433, 85
+			.SetBounds -85, 0, 436, 85
 		End With
 		'btnReplaceShow
 		With btnReplaceShow
 			.Name = "btnReplaceShow"
-			.Text = ">"
+			.Text = "6"
 			.TabIndex = 0
-			.Hint = ML("Toogle Replace mode")
-			.SetBounds 3, 2, 16, 21
+			.Hint = ML("Expand to Replace Mode")
+			.Caption = "6"
+			.Font.Name = "Webdings"
+			.SetBounds 3, 1, 16, 22
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplaceShow_Click)
 			.Designer = @This
 			.Parent = @This
@@ -48,7 +50,8 @@ pfFind = @fFind
 		With lblFind
 			.Name = "lblFind"
 			.TabIndex = 1
-			.SetBounds 23, 4, 41, 16
+			.Alignment = AlignmentConstants.taRight
+			.SetBounds 22, 4, 45, 16
 			.Text = ML("Find") & ":"
 			.Designer = @This
 			.Parent = @This
@@ -58,7 +61,7 @@ pfFind = @fFind
 			.Name = "txtFind"
 			.Style = cbDropDown
 			.TabIndex = 2
-			.SetBounds 66, 1, 140, 21
+			.SetBounds 69, 1, 140, 21
 			.Text = ""
 			.Designer = @This
 			.Parent = @This
@@ -86,6 +89,7 @@ pfFind = @fFind
 			.SetBounds 284, 1, 30, 21
 			.Text = "Aa"
 			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkBox_Click)
 			.Parent = @This
 		End With
 		'chkMatchWholeWords
@@ -96,6 +100,7 @@ pfFind = @fFind
 			.Hint = ML("Match Whole Words")
 			.SetBounds 316, 1, 30, 21
 			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkBox_Click)
 			.Parent = @This
 		End With
 		'chkUsePatternMatching
@@ -107,15 +112,18 @@ pfFind = @fFind
 			.Caption = ".*"
 			.SetBounds 345, 1, 30, 21
 			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkBox_Click)
 			.Parent = @This
 		End With
 		'btnFindPrev
 		With btnFindPrev
 			.Name = "btnFindPrev"
-			.Text = "<"
+			.Text = "3"
 			.TabIndex = 7
 			.Hint = ML("Find Previous") & " (" & HK("Find Previous", "Shift + F3") & ")"
-			.SetBounds 376, 2, 25, 21
+			.Caption = "3"
+			.Font.Name = "Webdings"
+			.SetBounds 376, 1, 25, 22
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindPrev_Click)
 			.Designer = @This
 			.Parent = @This
@@ -123,11 +131,13 @@ pfFind = @fFind
 		'btnFind
 		With btnFind
 			.Name = "btnFind"
-			.Text = ">"
+			.Text = "4"
 			.Default = True
 			.TabIndex = 8
 			.Hint = ML("Find Next") & " (" & HK("Find Next", "F3") & ")"
-			.SetBounds 403, 2, 25, 21
+			.Caption = "4"
+			.Font.Name = "Webdings"
+			.SetBounds 403, 1, 25, 21
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFind_Click)
 			.Designer = @This
 			.Parent = @This
@@ -143,6 +153,7 @@ pfFind = @fFind
 			.Parent = @This
 		End With
 		'TrackBar1
+		
 		With TrackBar1
 			.Name = "TrackBar1"
 			.Text = "TrackBar1"
@@ -162,7 +173,8 @@ pfFind = @fFind
 			.Name = "lblReplace"
 			.Text = ML("Replace") & ":"
 			.TabIndex = 11
-			.SetBounds 23, 35, 41, 16
+			.Alignment = AlignmentConstants.taRight
+			.SetBounds 22, 35, 45, 16
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -172,7 +184,7 @@ pfFind = @fFind
 			.Style = cbDropDown
 			.Text = ""
 			.TabIndex = 12
-			.SetBounds 66, 32, 140, 16
+			.SetBounds 69, 32, 140, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -182,7 +194,7 @@ pfFind = @fFind
 			.Text = ML("&Replace")
 			.TabIndex = 13
 			.Hint = ML("Replace")
-			.SetBounds 212, 33, 110, 21
+			.SetBounds 212, 32, 110, 22
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplace_Click)
 			.Designer = @This
 			.Parent = @This
@@ -193,7 +205,7 @@ pfFind = @fFind
 			.Text = ML("Replace &All")
 			.TabIndex = 14
 			.Hint = ML("Replace All")
-			.SetBounds 326, 33, 102, 21
+			.SetBounds 326, 32, 102, 22
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplaceAll_Click)
 			.Designer = @This
 			.Parent = @This
@@ -871,20 +883,20 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
-	If Len(*gSearchSave) > 0 Then Clipboard.SetAsText *gSearchSave
-	If mFormFind = True Then
-		Height = 52
-		btnReplace.Enabled = False
-		btnReplaceAll.Enabled = False
+	If btnReplaceShow.Caption = "5" Then
+		'show find
+		mFormFind = True
 	Else
-		Height = 82
-		btnReplace.Enabled = True
-		btnReplaceAll.Enabled = True
+		'show replace
+		mFormFind = False
 	End If
 	This.Caption = IIf(mFormFind, ML("Find"), ML("Replace"))
-	btnReplaceShow.Caption = IIf(mFormFind, ">", "<")
-	btnFind.SetFocus  'David Change
-	mFormFind = Not mFormFind
+	btnReplaceShow.Caption = IIf(mFormFind, "6", "5")
+	btnReplaceShow.Hint = IIf(mFormFind, ML("Expand to Replace Mode"), ML("Narrowdown to Find mode"))
+	btnReplace.Enabled = IIf(mFormFind, False, True)
+	btnReplaceAll.Enabled = IIf(mFormFind, False, True)
+	Height = IIf(mFormFind, 52, 82)
+	btnFind.SetFocus
 End Sub
 
 Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
@@ -909,7 +921,7 @@ Private Sub frmFind.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 			If iCount>=9 Then Exit For
 		Next
 	End If
-	btnFind.SetFocus  'David Change
+	btnFind.SetFocus
 End Sub
 
 Private Sub frmFind.Form_Create(ByRef Sender As Control)
@@ -928,7 +940,7 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	btnReplace.Enabled = False
 	btnReplaceAll.Enabled = False
 	WDeAllocate(tmpStr)
-	SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 5, pfrmMain->Top + 20, This.Width, This.Height
+	SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 10, pfrmMain->Top + 20, This.Width, This.Height
 	#ifdef __USE_GTK__
 		btnReplaceShow.Visible = False
 		TrackBar1.Visible = False
@@ -982,9 +994,11 @@ End Sub
 Private Sub frmFind.cboFindRange_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	Static As Integer ItemIndexSave
 	If ItemIndexSave <> ItemIndex + 1 Then
-		WLet(gSearchSave, "")
-		plvSearch->ListItems.Clear
 		ItemIndexSave = ItemIndex + 1
+		WLet(gSearchSave, "")
 	End If
 End Sub
 
+Private Sub frmFind.chkBox_Click(ByRef Sender As CheckBox)
+	WLet(gSearchSave, "")
+End Sub

@@ -20,6 +20,8 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmFind Extends Form
+		mFormFind As Boolean = True
+		
 		Declare Function Find(Down As Boolean, bNotShowResults As Boolean = False) As Integer
 		Declare Function FindAll(ByRef lvSearchResult As ListView Ptr, tTab As TabPage Ptr = tpFind, ByRef tSearch As WString = "", bNotShowResults As Boolean = False) As Integer
 		Declare Sub btnCancel_Click(ByRef Sender As Control)
@@ -30,6 +32,7 @@ Using My.Sys.Forms
 		Declare Sub btnReplaceAll_Click(ByRef Sender As Control)
 		Declare Sub btnReplaceShow_Click(ByRef Sender As Control)
 		Declare Sub cboFindRange_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		Declare Sub chkBox_Click(ByRef Sender As CheckBox)
 		Declare Sub FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WString="", ByRef tn As TreeNode Ptr)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_Create(ByRef Sender As Control)
