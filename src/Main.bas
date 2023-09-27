@@ -8384,6 +8384,19 @@ Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Objec
 	#endif
 End Sub
 
+Sub frmMain_KeyDown(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, Key As Integer, Shift As Integer)
+	#ifndef __USE_GTK__
+		Select Case Key
+		Case VK_TAB
+			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+			If tb > 0 AndAlso tb->txtCode.DropDownShowed Then
+				tb->txtCode.CloseDropDown
+				If tb->txtCode.LastItemIndex <> -1 AndAlso tb->txtCode.cboIntellisense.OnSelected Then tb->txtCode.cboIntellisense.OnSelected(*tb->txtCode.cboIntellisense.Designer, tb->txtCode.cboIntellisense, tb->txtCode.LastItemIndex)
+			End If
+		End Select
+	#endif
+End Sub
+
 Sub frmMain_DropFile(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, ByRef FileName As WString)
 	OpenFiles FileName
 End Sub
@@ -8988,6 +9001,7 @@ MainReBar.Name = "MainReBar"
 MainReBar.Align = DockStyle.alTop
 
 frmMain.Name = "frmMain"
+frmMain.KeyPreview = True
 #ifdef __USE_GTK__
 	frmMain.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
 #else
@@ -9002,6 +9016,7 @@ frmMain.MainForm = True
 #endif
 frmMain.OnActiveControlChange = @frmMain_ActiveControlChanged
 frmMain.OnActivateApp = @frmMain_ActivateApp
+frmMain.OnKeyDown = @frmMain_KeyDown
 frmMain.OnResize = @frmMain_Resize
 frmMain.OnCreate = @frmMain_Create
 frmMain.OnShow = @frmMain_Show
