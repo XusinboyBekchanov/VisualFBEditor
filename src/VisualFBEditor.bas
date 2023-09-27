@@ -404,7 +404,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
-				command_debug("5")
+				command_debug("r")
 			#endif
 		Else
 			'#ifndef __USE_GTK__
