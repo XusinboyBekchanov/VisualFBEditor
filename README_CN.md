@@ -9,7 +9,7 @@ MyFbFramework框架地址： <a href="https://github.com/XusinboyBekchanov/MyFbF
 
 #### 运行要求:
 
-需要另外下载FreeBASIC编译器，FreeBASIC编译器官方地址:  <a href="http://www.freebasic.net">http://www.freebasic.net</a>.
+需要另外下载FreeBASIC编译器（至少需要1.10.0版本），FreeBASIC编译器官方地址:  <a href="http://www.freebasic.net">http://www.freebasic.net</a>.
 FreeBASIC编译器其他下载地址1：<a href="http://users.freebasic-portal.de/stw/builds/">http://users.freebasic-portal.de/stw/builds/</a>.
 
 #### 屏幕截图
