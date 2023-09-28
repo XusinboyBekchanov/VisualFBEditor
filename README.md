@@ -7,7 +7,7 @@ VisualFBEditor is the IDE for FreeBasic with visual designer, debugger, project 
 
 #### Requirements:
 
-* FreeBASIC Compiler: http://www.freebasic.net/
+* FreeBASIC Compiler V 1.10.0 or above: http://www.freebasic.net/
 
 #### Screenshots
 ![VisualFBEditor-1](https://user-images.githubusercontent.com/35757455/197079538-16cc5d7d-150e-46f1-b673-f9fe7352ad17.png)
