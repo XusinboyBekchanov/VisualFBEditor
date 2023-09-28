@@ -31,16 +31,14 @@ pfFind = @fFind
 			.DefaultButton = @btnFind
 			.CancelButton = @btnCancel
 			.Designer = @This
-			.SetBounds -85, 0, 436, 85
+			.SetBounds 0, 0, 436, 85
 		End With
 		'btnReplaceShow
 		With btnReplaceShow
 			.Name = "btnReplaceShow"
-			.Text = "6"
+			.Text = ">"
 			.TabIndex = 0
 			.Hint = ML("Expand to Replace Mode")
-			.Caption = "6"
-			.Font.Name = "Webdings"
 			.SetBounds 3, 1, 16, 22
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplaceShow_Click)
 			.Designer = @This
@@ -118,12 +116,10 @@ pfFind = @fFind
 		'btnFindPrev
 		With btnFindPrev
 			.Name = "btnFindPrev"
-			.Text = "3"
+			.Text = "<"
 			.TabIndex = 7
 			.Hint = ML("Find Previous") & " (" & HK("Find Previous", "Shift + F3") & ")"
-			.Caption = "3"
-			.Font.Name = "Webdings"
-			.SetBounds 376, 1, 25, 22
+			.SetBounds 376, 1, 25, 21
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindPrev_Click)
 			.Designer = @This
 			.Parent = @This
@@ -131,12 +127,10 @@ pfFind = @fFind
 		'btnFind
 		With btnFind
 			.Name = "btnFind"
-			.Text = "4"
+			.Text = ">"
 			.Default = True
 			.TabIndex = 8
 			.Hint = ML("Find Next") & " (" & HK("Find Next", "F3") & ")"
-			.Caption = "4"
-			.Font.Name = "Webdings"
 			.SetBounds 403, 1, 25, 21
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFind_Click)
 			.Designer = @This
@@ -148,7 +142,7 @@ pfFind = @fFind
 			.TabIndex = 9
 			.Alignment = AlignmentConstants.taCenter
 			.Hint = ML("Find Form Opacity")
-			.SetBounds 4, 30, 16, 11
+			.SetBounds 4, 29, 16, 11
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -162,7 +156,7 @@ pfFind = @fFind
 			.TabIndex = 10
 			.Style = TrackBarOrientation.tbHorizontal
 			.Hint = ML("Find Form Opacity")
-			.SetBounds -2, 42, 27, 10
+			.SetBounds -2, 41, 27, 10
 			.Position = 210 'This.Opacity
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
 			.Designer = @This
@@ -174,7 +168,7 @@ pfFind = @fFind
 			.Text = ML("Replace") & ":"
 			.TabIndex = 11
 			.Alignment = AlignmentConstants.taRight
-			.SetBounds 22, 35, 45, 16
+			.SetBounds 22, 33, 45, 16
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -184,7 +178,7 @@ pfFind = @fFind
 			.Style = cbDropDown
 			.Text = ""
 			.TabIndex = 12
-			.SetBounds 69, 32, 140, 21
+			.SetBounds 69, 30, 140, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -194,7 +188,7 @@ pfFind = @fFind
 			.Text = ML("&Replace")
 			.TabIndex = 13
 			.Hint = ML("Replace")
-			.SetBounds 212, 32, 110, 22
+			.SetBounds 212, 30, 110, 22
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplace_Click)
 			.Designer = @This
 			.Parent = @This
@@ -205,7 +199,7 @@ pfFind = @fFind
 			.Text = ML("Replace &All")
 			.TabIndex = 14
 			.Hint = ML("Replace All")
-			.SetBounds 326, 32, 102, 22
+			.SetBounds 326, 30, 102, 22
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnReplaceAll_Click)
 			.Designer = @This
 			.Parent = @This
@@ -883,7 +877,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
-	If btnReplaceShow.Caption = "5" Then
+	If btnReplaceShow.Caption = "˅" Then
 		'show find
 		mFormFind = True
 	Else
@@ -891,7 +885,7 @@ Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 		mFormFind = False
 	End If
 	This.Caption = IIf(mFormFind, ML("Find"), ML("Replace"))
-	btnReplaceShow.Caption = IIf(mFormFind, "6", "5")
+	btnReplaceShow.Caption = IIf(mFormFind, ">", "˅")
 	btnReplaceShow.Hint = IIf(mFormFind, ML("Expand to Replace Mode"), ML("Narrowdown to Find mode"))
 	btnReplace.Enabled = IIf(mFormFind, False, True)
 	btnReplaceAll.Enabled = IIf(mFormFind, False, True)
@@ -942,7 +936,7 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	WDeAllocate(tmpStr)
 	SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 10, pfrmMain->Top + 20, This.Width, This.Height
 	#ifdef __USE_GTK__
-		btnReplaceShow.Visible = False
+		'btnReplaceShow.Visible = False
 		TrackBar1.Visible = False
 		lblTrack.Visible = False
 	#else
