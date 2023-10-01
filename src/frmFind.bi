@@ -20,8 +20,6 @@ Using My.Sys.Forms
 
 '#Region "Form"
 	Type frmFind Extends Form
-		mFormFind As Boolean = True
-		
 		Declare Function Find(Down As Boolean, bNotShowResults As Boolean = False) As Integer
 		Declare Function FindAll(ByRef lvSearchResult As ListView Ptr, tTab As TabPage Ptr = tpFind, ByRef tSearch As WString = "", bNotShowResults As Boolean = False) As Integer
 		Declare Sub btnCancel_Click(ByRef Sender As Control)
@@ -45,9 +43,10 @@ Using My.Sys.Forms
 		Dim As CheckBox chkMatchCase, chkMatchWholeWords, chkUsePatternMatching
 		Dim As Label lblFind, lblTrack, lblReplace
 		Dim As ComboBoxEdit txtFind, txtReplace, cboFindRange
-		Dim As CommandButton btnReplaceShow
-		Dim As CommandButton btnCancel, btnFind, btnFindPrev, btnReplaceAll, btnReplace, btnFindAll
+		Dim As CommandButton btnCancel, btnFind, btnFindPrev, btnReplaceAll, btnReplace, btnReplaceShow, btnFindAll
 		Dim As TrackBar TrackBar1
+		As Boolean mFormFind = True
+		As WString * MAX_PATH FFileName
 	End Type
 	Common Shared As frmFind Ptr pfFind
 '#End Region

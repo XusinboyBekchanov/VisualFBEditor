@@ -430,6 +430,7 @@ Namespace My.Sys.Forms
 		OldnCaretPosX = nCaretPosX
 		OldCharIndex = GetOldCharIndex
 		If OnChange Then OnChange(*Designer, This)
+		ModifiedLine = True
 		Modified = True
 	End Sub
 	
@@ -1430,6 +1431,7 @@ Namespace My.Sys.Forms
 		If SelStartChar <> -1 Then FSelStartChar = SelStartChar
 		FSelEndLine = FSelStartLine
 		FSelEndChar = FSelStartChar
+		ModifiedLine = True
 		Changed Comment
 	End Sub
 	
@@ -1446,6 +1448,7 @@ Namespace My.Sys.Forms
 		CopyCurrentLineToClipboard
 		Changing "Current line was cut"
 		If FSelEndLine = Content.Lines.Count - 1 Then ReplaceLine FSelEndLine, "" Else DeleteLine
+		ModifiedLine = True
 		Changed "Current line was cut"
 	End Sub
 	
@@ -1490,6 +1493,7 @@ Namespace My.Sys.Forms
 			WLet(FECLine->Text, "")
 			Content.Lines.Add(FECLine)
 		End If
+		ModifiedLine = True
 		ChangeText "", 0, "Matn almashtirildi"
 		Exit Sub
 		A:
@@ -1585,6 +1589,7 @@ Namespace My.Sys.Forms
 			MsgBox ML("File not found") & ": " & FileName
 			Exit Sub
 		End If
+		ModifiedLine = False
 		#ifdef __USE_WINAPI__
 			Buff = FileName
 			If Buff <> FileName Then
@@ -1882,6 +1887,7 @@ Namespace My.Sys.Forms
 		If OnLineAdding Then OnLineAdding(*Designer, This, Index)
 		Content.Lines.Insert Index, FECLine
 		ChangeCollapsibility Index
+		ModifiedLine = True
 		If FECLine->ConstructionIndex = C_Asm Then
 			InAsm = FECLine->ConstructionPart = 0
 		End If
@@ -1934,6 +1940,7 @@ Namespace My.Sys.Forms
 			p = Pos1 + 1
 			OldiC = iC
 		Loop While Pos1 > 0
+		ModifiedLine = True
 		'WLet(Cast(EditControlLine Ptr, Content.Lines.Item(FSelStartLine))->Text, *FECLine->Text & *FLine)
 		'WLet(FECLine->Text, sLine)
 		'FECLine->Ends.Clear
@@ -1968,6 +1975,7 @@ Namespace My.Sys.Forms
 		If FECLine->ConstructionIndex = C_Asm Then
 			InAsm = FECLine->ConstructionPart = 0
 		End If
+		ModifiedLine = True
 		FECLine->InAsm = InAsm
 		If FSelStartLine = FSelEndLine Then FSelStartLine += 1
 		FSelEndLine += 1
@@ -1985,6 +1993,8 @@ Namespace My.Sys.Forms
 		If Index <= FSelEndLine Then FSelEndLine -= 1
 		If Index <= FSelStartLine Then FSelStartLine -= 1
 		OlddwClientX = 0
+		Modified = True
+		ModifiedLine = True
 	End Sub
 	
 	Sub EditControl.UnformatCode(WithoutUpdate As Boolean = False)
@@ -6911,6 +6921,7 @@ Namespace My.Sys.Forms
 			ShowCaretPos False
 		Case Else
 		End Select
+		LineIndex = FSelStartLine
 		Base.ProcessMessage(msg)
 	End Sub
 	
@@ -7308,6 +7319,7 @@ Namespace My.Sys.Forms
 		bOldCommented = True
 		ChangeText "", 0, "Bo`sh"
 		ShowHint = False
+		ModifiedLine = False
 		WithHistory = True
 		VScrollMaxTop = -1
 		VScrollMaxBottom = -1
