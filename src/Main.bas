@@ -7823,7 +7823,7 @@ Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabContro
 		Next
 	#endif
 	MouseHoverTimerVal = Timer
-	If pfFind->cboFindRange.ItemIndex < 2 Then
+	If pfFind->cboFindRange.ItemIndex <> 2 Then
 		WLet(gSearchSave, "")
 	End If
 	If frmMain.ActiveControl <> tb And frmMain.ActiveControl <> @tb->txtCode Then tb->txtCode.SetFocus

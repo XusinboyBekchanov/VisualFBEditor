@@ -489,7 +489,8 @@ Namespace My.Sys.Forms
 		'FunctionsOthers As WStringOrStringList
 		'Args As WStringOrStringList
 		'LineLabels As WStringOrStringList
-		Dim As Boolean bInIncludeFileRect
+		Dim As Boolean bInIncludeFileRect, ModifiedLine
+		Dim As Integer LineIndex
 		Declare Function CharType(ByRef ch As WString) As Integer
 		#ifdef __USE_GTK__
 			Declare Static Function ActivateLink(Label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean

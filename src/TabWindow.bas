@@ -597,7 +597,6 @@ Sub OnChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If tb = 0 Then Exit Sub
 	tb->Modified = True
 	TextChanged = True
-	WLet(gSearchSave, "")
 	'    'Exit Sub
 	'    With tb->txtCode
 	'        If Not .Focused Then Exit Sub
