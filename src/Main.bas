@@ -4892,7 +4892,7 @@ Sub LoadSnippets
 					Parameters = Replace(Parameters, "\t", !"\t")
 					te->Comment = te->Name
 					Snippets.Add te->Name, te
-					Dim As Integer s = 1, idx
+					Dim As Integer s = 1, idx, j, k
 					Dim As String ch, Number
 					Pos1 = InStr(Parameters, "$")
 					NewParameters = ""
@@ -4909,14 +4909,21 @@ Sub LoadSnippets
 								Number = Mid(Parameters, i + 1, Pos2 - (i + 1))
 								teParam->DisplayName = Mid(Parameters, Pos2 + 1, Pos3 - Pos2 - 1)
 								NewParameters &= teParam->DisplayName
+								j = j + Len(Number) + 4
 								s = Pos3 + 1
 								Exit For
 							ElseIf ch >= "0" AndAlso ch <= "9" Then
 								Number &= ch
+								j = j + 1
 							Else
 								If Number <> "" AndAlso te->Elements.Contains(Number, , , , idx) Then
 									teParam->DisplayName = Cast(TypeElement Ptr, te->Elements.Object(idx))->DisplayName
 									NewParameters &= teParam->DisplayName
+									j = j - Len(Number) + 1
+								End If
+								If ch >= !"\r" Then
+									j = 0
+									k = 0
 								End If
 								s = i
 								Exit For
@@ -4926,10 +4933,11 @@ Sub LoadSnippets
 						teParam->Name = Number
 						teParam->StartLine = InStrCount(Left(Parameters, Pos1), !"\r")
 						teParam->EndLine = teParam->StartLine
-						teParam->StartChar = Pos1 - Pos2 - 1
+						teParam->StartChar = Pos1 - Pos2 - 1 - k
 						teParam->EndChar = teParam->StartChar + Len(teParam->DisplayName)
 						te->Elements.Add teParam->Name, teParam
 						Pos1 = InStr(s, Parameters, "$")
+						k = j
 					Loop
 					NewParameters &= Mid(Parameters, s)
 					te->Parameters = NewParameters

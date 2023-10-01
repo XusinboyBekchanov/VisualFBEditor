@@ -4543,6 +4543,25 @@ Namespace My.Sys.Forms
 							'TextOut(bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(iStart = 0, 0, Sz.cx), (i - VScrollPos - 1) * dwCharY, h, Len(*h))
 						End If
 					End If
+					#ifdef __USE_WINAPI__
+						'If Carets.Count > 0 Then
+						'	For pp As Integer = 0 To Carets.Count - 1
+						'		te = Carets.Item(pp)
+						'		If z >= te->StartLine And z <= te->EndLine Then
+						'			iPPos = 0
+						'			Var iStart = IIf(te->StartLine = z, te->StartChar, 0), iEnd = IIf(te->EndLine = z, te->EndChar, Len(*s))
+						'			WLet(FLineLeft, GetTabbedText(..Left(*s, iStart), iPPos))
+						'			WLet(FLineRight, GetTabbedText(Mid(*s, iStart + 1, iEnd - iStart) & IIf(z <> te->EndLine, " ", ""), iPPos))
+						'			GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @sz)
+						'			Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso zz = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, sz.cx)
+						'			Var y = ScaleY((i - IIf(zz = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso zz = 1, iDividedY + 7, 0))
+						'			Dim As ..Rect rec = Type(x, y, x + dwCharX * Len(te->DisplayName), y + dwCharY)
+						'			This.Canvas.Brush.Color = FoldLines.Foreground
+						'			FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+						'		End If
+						'	Next
+						'End If
+					#endif
 					If HighlightBrackets Then
 						If z = BracketsStartLine AndAlso BracketsStart > -1 Then
 							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + dwCharX + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))

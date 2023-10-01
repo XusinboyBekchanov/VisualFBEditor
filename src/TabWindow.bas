@@ -3508,7 +3508,7 @@ End Sub
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(SelLinePos)
 	Dim As Integer i, Pos1, Pos2, Pos3, xStartPlus, xEndPlus, yStartPlus, yEndPlus
 	Dim As String Symbol
-	Dim As TypeElement Ptr te, teElem
+	Dim As TypeElement Ptr te, teParam, teParamNew
 	#ifdef __USE_GTK__
 	With tb->txtCode.lvIntellisense
 	#else
@@ -3538,11 +3538,11 @@ End Sub
 				Var n = Len(*sLine) - Len(LTrim(*sLine, Any !"\t "))
 				Parameters = Replace(Parameters, !"\r", !"\r" & Left(*sLine, n))
 				If te->Elements.Count > 0 AndAlso te->Elements.Object(0) > 0 Then
-					teElem = te->Elements.Object(0)
-					xStartPlus = teElem->StartChar
-					xEndPlus = teElem->EndChar
-					yStartPlus = teElem->StartLine
-					yEndPlus = teElem->EndLine
+					teParam = te->Elements.Object(0)
+					xStartPlus = teParam->StartChar
+					xEndPlus = teParam->EndChar
+					yStartPlus = teParam->StartLine
+					yEndPlus = teParam->EndLine
 				Else
 					Pos2 = InStrRev(Parameters, !"\r")
 					xStartPlus = Len(Parameters) - Pos2
@@ -3550,6 +3550,17 @@ End Sub
 					yStartPlus = InStrCount(Parameters, !"\r")
 					yEndPlus = yStartPlus
 				End If
+				'For j As Integer = 0 To te->Elements.Count - 1
+				'	teParam = te->Elements.Object(j)
+				'	teParamNew = New TypeElement
+				'	teParamNew->Name = teParam->Name
+				'	teParamNew->DisplayName = teParam->DisplayName
+				'	teParamNew->StartChar = teParam->StartChar
+				'	teParamNew->StartLine = teParam->StartLine
+				'	teParamNew->EndChar = teParam->EndChar
+				'	teParamNew->EndLine = teParam->EndLine
+				'	tb->txtCode.Carets.Add teParamNew
+				'Next
 				tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & Parameters & Symbol & Mid(*sLine, i + 1)
 				tb->txtCode.SetSelection SelLinePos + yStartPlus, SelLinePos + yEndPlus, n + xStartPlus, n + xEndPlus
 			Else
