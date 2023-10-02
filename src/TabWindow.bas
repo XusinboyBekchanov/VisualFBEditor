@@ -3533,6 +3533,7 @@ End Sub
 			te = .ItemData(ItemIndex)
 		#endif
 			If te <> 0 AndAlso te->ElementType = E_Snippet Then
+				tb->txtCode.ClearCarets
 				Dim As UString Parameters = te->Parameters
 				Var n = Len(*sLine) - Len(LTrim(*sLine, Any !"\t "))
 				Parameters = Replace(Parameters, !"\r", !"\r" & Left(*sLine, n))
@@ -3549,17 +3550,18 @@ End Sub
 					yStartPlus = InStrCount(Parameters, !"\r")
 					yEndPlus = yStartPlus
 				End If
-				'For j As Integer = 0 To te->Elements.Count - 1
-				'	teParam = te->Elements.Object(j)
-				'	teParamNew = New TypeElement
-				'	teParamNew->Name = teParam->Name
-				'	teParamNew->DisplayName = teParam->DisplayName
-				'	teParamNew->StartChar = teParam->StartChar
-				'	teParamNew->StartLine = teParam->StartLine
-				'	teParamNew->EndChar = teParam->EndChar
-				'	teParamNew->EndLine = teParam->EndLine
-				'	tb->txtCode.Carets.Add teParamNew
-				'Next
+				For j As Integer = 0 To te->Elements.Count - 1
+					teParam = te->Elements.Object(j)
+					teParamNew = New TypeElement
+					teParamNew->Name = teParam->Name
+					teParamNew->DisplayName = teParam->DisplayName
+					teParamNew->StartChar = teParam->StartChar + n
+					teParamNew->StartLine = teParam->StartLine + SelLinePos
+					teParamNew->EndChar = teParam->EndChar + n
+					teParamNew->EndLine = teParam->EndLine + SelLinePos
+					tb->txtCode.Carets.Add Val(teParam->Name), teParamNew
+				Next
+				tb->txtCode.CurrentCaret = 1
 				tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & Parameters & Symbol & Mid(*sLine, i + 1)
 				tb->txtCode.SetSelection SelLinePos + yStartPlus, SelLinePos + yEndPlus, n + xStartPlus, n + xEndPlus
 			Else

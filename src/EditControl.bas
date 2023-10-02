@@ -1342,14 +1342,67 @@ Namespace My.Sys.Forms
 		ChangingStarted = False
 	End Sub
 	
-	Sub EditControl.ChangeText(ByRef Value As WString, CharTo As Integer = 0, ByRef Comment As WString = "", SelStartLine As Integer = -1, SelStartChar As Integer = -1)
-		Changing Comment
+	Sub EditControl.ChangeText(ByRef Value As WString, CharTo As Integer = 0, ByRef Comment As WString = "", SelStartLine As Integer = -1, SelStartChar As Integer = -1, WithoutShow As Boolean = False)
+		If Not WithoutShow Then Changing Comment
 		ChangePos CharTo
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		'If iSelStartLine <> iSelEndLine Or iSelStartChar <> iSelEndChar Then AddHistory
+		If Carets.Count > 0 Then
+			Dim As TypeElement Ptr teCurrent, te
+			Dim bFind As Boolean
+			For i As Integer = 0 To Carets.Count - 1
+				teCurrent = Carets.Object(i)
+				If iSelStartLine >= teCurrent->StartLine AndAlso iSelStartLine <= teCurrent->EndLine AndAlso iSelEndLine >= teCurrent->StartLine AndAlso iSelEndLine <= teCurrent->EndLine AndAlso _
+					iSelStartChar >= teCurrent->StartChar AndAlso iSelStartChar <= teCurrent->EndChar AndAlso iSelEndChar >= teCurrent->StartChar AndAlso iSelEndChar <= teCurrent->EndChar Then
+					Var OldStartChar = teCurrent->StartChar
+					Var OldStartLine = teCurrent->StartLine
+					Var OldEndChar = teCurrent->EndChar
+					Var OldEndLine = teCurrent->EndLine
+					Var c = InStrCount(Value, !"\r")
+					teCurrent->EndLine += c
+					If c = 0 Then
+						teCurrent->EndChar += Len(Value) - (iSelEndChar - iSelStartChar)
+					Else
+						Var Pos1 = InStrRev(Value, !"\r")
+						teCurrent->EndChar = Len(Value) - Pos1 + teCurrent->EndChar - iSelEndChar
+					End If
+					bFind = True
+					For j As Integer = 0 To Carets.Count - 1
+						te = Carets.Object(j)
+						If te->StartLine > OldStartLine OrElse (te->StartLine = OldStartLine AndAlso te->StartChar > OldStartChar) Then
+							If te->Name = teCurrent->Name Then
+								Var OldFSelStartChar = FSelStartChar
+								Var OldFSelStartLine = FSelStartLine
+								Var OldFSelEndChar = FSelEndChar
+								Var OldFSelEndLine = FSelEndLine
+								FSelStartChar = FSelStartChar + (te->StartChar - OldStartChar)
+								FSelStartLine = FSelStartLine + (te->StartLine - OldStartLine)
+								FSelEndChar = FSelEndChar + (te->EndChar - OldEndChar)
+								FSelEndLine = FSelEndLine + (te->EndLine - OldEndLine)
+								ChangeText Value, , , , , True
+								FSelStartChar = OldFSelStartChar
+								FSelStartLine = OldFSelStartLine
+								FSelEndChar = OldFSelEndChar
+								FSelEndLine = OldFSelEndLine
+							End If
+							If te->StartLine = OldStartLine AndAlso te->StartChar > OldStartChar Then
+								te->StartChar += teCurrent->EndChar - OldEndChar
+								te->StartLine += c
+								If te->EndLine = OldStartLine Then te->EndChar += teCurrent->EndChar - OldEndChar
+								te->EndLine += c
+							ElseIf te->StartLine > OldStartLine Then
+								te->StartLine += c
+								te->EndLine += c
+							End If
+						End If
+					Next
+				End If
+			Next
+			If Not bFind Then ClearCarets
+		End If
 		Dim As EditControlLine Ptr ecStartLine = Content.Lines.Item(iSelStartLine), ecEndLine = Content.Lines.Item(iSelEndLine), ecOldLine, ecRemovingLine
 		FECLine = ecStartLine
-		'If iSelStartLine <> iSelEndLine Or iSelStartChar <> iSelEndChar Then AddHistory
 		WLet(FLine, Mid(*ecEndLine->Text, iSelEndChar + 1))
 		WLet(FECLine->Text, .Left(*ecStartLine->Text, iSelStartChar))
 		Var iC = 0, OldiC = ecEndLine->CommentIndex, OldPreviC = 0, PreviC = 0, InAsm = False, OldInAsm = ecEndLine->InAsm, Pos1 = 0, p = 1, c = 0, l = 0
@@ -1432,7 +1485,7 @@ Namespace My.Sys.Forms
 		FSelEndLine = FSelStartLine
 		FSelEndChar = FSelStartChar
 		ModifiedLine = True
-		Changed Comment
+		If Not WithoutShow Then Changed Comment
 	End Sub
 	
 	Sub EditControl.SelectAll
@@ -2426,60 +2479,96 @@ Namespace My.Sys.Forms
 		
 	End Sub
 	
+	Sub EditControl.ClearCarets
+		Dim te As TypeElement Ptr
+		For i As Integer = Carets.Count - 1 To 0 Step -1
+			te = Carets.Object(i)
+			_Delete(te)
+		Next
+		Carets.Clear
+		CurrentCaret = 0
+	End Sub
+	
 	Sub EditControl.Indent
 		Dim n As Integer
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		If FSelStartLine = FSelEndLine Then
-			n = Len(GetTabbedText(.Left(Lines(FSelStartLine), Min(FSelStartChar, FSelEndChar))))
-			If TabAsSpaces AndAlso (ChoosedTabStyle = 0 OrElse Trim(.Left(Lines(iSelStartLine), iSelStartChar), Any !"\t ") <> "") Then
-				SelText = Space(TabWidth - (n Mod TabWidth))
+		If Carets.Count > 0 Then
+			Dim te As TypeElement Ptr
+			CurrentCaret += 1
+			Var Idx = Carets.IndexOf(CurrentCaret)
+			If Idx > -1 Then
+				te = Carets.Object(Idx)
+				SetSelection te->StartLine, te->EndLine, te->StartChar, te->EndChar
 			Else
-				SelText = !"\t"
+				ClearCarets
+				PaintControl True
 			End If
 		Else
-			UpdateLock
-			Changing("Oldga surish")
-			For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
-				FECLine = Content.Lines.Items[i]
-				If TabAsSpaces AndAlso ChoosedTabStyle = 0 Then
-					n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-					n = TabWidth - (n Mod TabWidth)
-					WLet(FECLine->Text, Space(n) & *FECLine->Text)
+			If FSelStartLine = FSelEndLine Then
+				n = Len(GetTabbedText(.Left(Lines(FSelStartLine), Min(FSelStartChar, FSelEndChar))))
+				If TabAsSpaces AndAlso (ChoosedTabStyle = 0 OrElse Trim(.Left(Lines(iSelStartLine), iSelStartChar), Any !"\t ") <> "") Then
+					SelText = Space(TabWidth - (n Mod TabWidth))
 				Else
-					n = 1
-					WLet(FECLine->Text, !"\t" & *FECLine->Text)
+					SelText = !"\t"
 				End If
-				If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += n
-				If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += n
-				FECLine->Ends.Clear
-				FECLine->EndsCompleted = False
-			Next i
-			Changed("Oldga surish")
-			UpdateUnLock
+			Else
+				UpdateLock
+				Changing("Oldga surish")
+				For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+					FECLine = Content.Lines.Items[i]
+					If TabAsSpaces AndAlso ChoosedTabStyle = 0 Then
+						n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
+						n = TabWidth - (n Mod TabWidth)
+						WLet(FECLine->Text, Space(n) & *FECLine->Text)
+					Else
+						n = 1
+						WLet(FECLine->Text, !"\t" & *FECLine->Text)
+					End If
+					If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar += n
+					If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar += n
+					FECLine->Ends.Clear
+					FECLine->EndsCompleted = False
+				Next i
+				Changed("Oldga surish")
+				UpdateUnLock
+			End If
 		End If
 		ShowCaretPos True
 	End Sub
 	
 	Sub EditControl.Outdent
-		UpdateLock
-		Dim n As Integer
-		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Changing("Ortga surish")
-		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
-			FECLine = Content.Lines.Items[i]
-			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
-			n = Min(n, TabWidth - (n Mod TabWidth))
-			If n = 0 AndAlso .Left(*FECLine->Text, 1) = !"\t" Then n = 1
-			WLet(FECLine->Text, Mid(*FECLine->Text, n + 1))
-			If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar -= n
-			If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar -= n
-			FECLine->Ends.Clear
-			FECLine->EndsCompleted = False
-		Next i
-		Changed("Ortga surish")
-		UpdateUnLock
+		If Carets.Count > 0 Then
+			Dim te As TypeElement Ptr
+			CurrentCaret -= 1
+			Var Idx = Carets.IndexOf(CurrentCaret)
+			If Idx > -1 Then
+				te = Carets.Object(Idx)
+				SetSelection te->StartLine, te->EndLine, te->StartChar, te->EndChar
+			Else
+				ClearCarets
+				PaintControl True
+			End If
+		Else
+			UpdateLock
+			Dim n As Integer
+			Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			Changing("Ortga surish")
+			For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+				FECLine = Content.Lines.Items[i]
+				n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
+				n = Min(n, TabWidth - (n Mod TabWidth))
+				If n = 0 AndAlso .Left(*FECLine->Text, 1) = !"\t" Then n = 1
+				WLet(FECLine->Text, Mid(*FECLine->Text, n + 1))
+				If i = FSelEndLine And FSelEndChar <> 0 Then FSelEndChar -= n
+				If i = FSelStartLine And FSelStartChar <> 0 Then FSelStartChar -= n
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
+			Next i
+			Changed("Ortga surish")
+			UpdateUnLock
+		End If
 		ShowCaretPos True
 	End Sub
 	
@@ -4554,23 +4643,23 @@ Namespace My.Sys.Forms
 						End If
 					End If
 					#ifdef __USE_WINAPI__
-						'If Carets.Count > 0 Then
-						'	For pp As Integer = 0 To Carets.Count - 1
-						'		te = Carets.Item(pp)
-						'		If z >= te->StartLine And z <= te->EndLine Then
-						'			iPPos = 0
-						'			Var iStart = IIf(te->StartLine = z, te->StartChar, 0), iEnd = IIf(te->EndLine = z, te->EndChar, Len(*s))
-						'			WLet(FLineLeft, GetTabbedText(..Left(*s, iStart), iPPos))
-						'			WLet(FLineRight, GetTabbedText(Mid(*s, iStart + 1, iEnd - iStart) & IIf(z <> te->EndLine, " ", ""), iPPos))
-						'			GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @sz)
-						'			Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso zz = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, sz.cx)
-						'			Var y = ScaleY((i - IIf(zz = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso zz = 1, iDividedY + 7, 0))
-						'			Dim As ..Rect rec = Type(x, y, x + dwCharX * Len(te->DisplayName), y + dwCharY)
-						'			This.Canvas.Brush.Color = FoldLines.Foreground
-						'			FrameRect bufDC, @rec, This.Canvas.Brush.Handle
-						'		End If
-						'	Next
-						'End If
+						If Carets.Count > 0 Then
+							For pp As Integer = 0 To Carets.Count - 1
+								te = Carets.Object(pp)
+								If z >= te->StartLine And z <= te->EndLine Then
+									iPPos = 0
+									Var iStart = IIf(te->StartLine = z, te->StartChar, 0), iEnd = IIf(te->EndLine = z, te->EndChar, Len(*s))
+									WLet(FLineLeft, GetTabbedText(..Left(*s, iStart), iPPos))
+									WLet(FLineRight, GetTabbedText(Mid(*s, iStart + 1, iEnd - iStart) & IIf(z <> te->EndLine, " ", ""), iPPos))
+									GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @sz)
+									Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso zz = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, sz.cx)
+									Var y = ScaleY((i - IIf(zz = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso zz = 1, iDividedY + 7, 0))
+									Dim As ..Rect rec = Type(x, y, x + dwCharX * Len(*FLineRight), y + dwCharY)
+									This.Canvas.Brush.Color = FoldLines.Foreground
+									FrameRect bufDC, @rec, This.Canvas.Brush.Handle
+								End If
+							Next
+						End If
 					#endif
 					If HighlightBrackets Then
 						If z = BracketsStartLine AndAlso BracketsStart > -1 Then

@@ -8477,7 +8477,15 @@ Sub frmMain_KeyDown(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Obje
 			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 			If tb > 0 AndAlso tb->txtCode.DropDownShowed Then
 				tb->txtCode.CloseDropDown
-				If tb->txtCode.LastItemIndex <> -1 AndAlso tb->txtCode.cboIntellisense.OnSelected Then tb->txtCode.cboIntellisense.OnSelected(*tb->txtCode.cboIntellisense.Designer, tb->txtCode.cboIntellisense, tb->txtCode.LastItemIndex)
+				If tb->txtCode.Carets.Count > 0 Then
+					If Shift And ShiftMask Then
+						tb->txtCode.Outdent
+					Else
+						tb->txtCode.Indent
+					End If
+				Else
+					If tb->txtCode.LastItemIndex <> -1 AndAlso tb->txtCode.cboIntellisense.OnSelected Then tb->txtCode.cboIntellisense.OnSelected(*tb->txtCode.cboIntellisense.Designer, tb->txtCode.cboIntellisense, tb->txtCode.LastItemIndex)
+				End If
 			End If
 		End Select
 	#endif
