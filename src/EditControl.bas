@@ -1359,7 +1359,7 @@ Namespace My.Sys.Forms
 					Var OldStartLine = teCurrent->StartLine
 					Var OldEndChar = teCurrent->EndChar
 					Var OldEndLine = teCurrent->EndLine
-					Var c = InStrCount(Value, !"\r")
+					Var c = InStrCount(Value, !"\r") - (iSelEndLine - iSelStartLine)
 					teCurrent->EndLine += c
 					If c = 0 Then
 						teCurrent->EndChar += Len(Value) - (iSelEndChar - iSelStartChar)
@@ -4642,25 +4642,39 @@ Namespace My.Sys.Forms
 							'TextOut(bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(iStart = 0, 0, Sz.cx), (i - VScrollPos - 1) * dwCharY, h, Len(*h))
 						End If
 					End If
-					#ifdef __USE_WINAPI__
-						If Carets.Count > 0 Then
-							For pp As Integer = 0 To Carets.Count - 1
-								te = Carets.Object(pp)
-								If z >= te->StartLine And z <= te->EndLine Then
-									iPPos = 0
-									Var iStart = IIf(te->StartLine = z, te->StartChar, 0), iEnd = IIf(te->EndLine = z, te->EndChar, Len(*s))
-									WLet(FLineLeft, GetTabbedText(..Left(*s, iStart), iPPos))
-									WLet(FLineRight, GetTabbedText(Mid(*s, iStart + 1, iEnd - iStart) & IIf(z <> te->EndLine, " ", ""), iPPos))
+					If Carets.Count > 0 Then
+						For pp As Integer = 0 To Carets.Count - 1
+							te = Carets.Object(pp)
+							If z >= te->StartLine And z <= te->EndLine Then
+								iPPos = 0
+								Var iStart = IIf(te->StartLine = z, te->StartChar, 0), iEnd = IIf(te->EndLine = z, te->EndChar, Len(*s))
+								WLet(FLineLeft, GetTabbedText(..Left(*s, iStart), iPPos))
+								WLet(FLineRight, GetTabbedText(Mid(*s, iStart + 1, iEnd - iStart) & IIf(z <> te->EndLine, " ", ""), iPPos))
+								#ifdef __USE_GTK__
+									Dim As PangoRectangle extend, extend2
+									extend.width = TextWidth(*FLineLeft)
+									pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
+									pango_cairo_update_layout(cr, layout)
+									#ifdef pango_version
+										Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
+									#else
+										Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
+									#endif
+									pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
+									cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
+									.cairo_rectangle (cr, LeftMargin - IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + extend.width + IIf(bDividedX AndAlso zz = 1, iDividedX + 7, 0), (i - IIf(zz = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso zz = 1, iDividedY + 7, 0), extend2.width, dwCharY)
+									cairo_stroke(cr)
+								#else
 									GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @sz)
 									Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso zz = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, sz.cx)
 									Var y = ScaleY((i - IIf(zz = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso zz = 1, iDividedY + 7, 0))
 									Dim As ..Rect rec = Type(x, y, x + dwCharX * Len(*FLineRight), y + dwCharY)
 									This.Canvas.Brush.Color = FoldLines.Foreground
 									FrameRect bufDC, @rec, This.Canvas.Brush.Handle
-								End If
-							Next
-						End If
-					#endif
+								#endif
+							End If
+						Next
+					End If
 					If HighlightBrackets Then
 						If z = BracketsStartLine AndAlso BracketsStart > -1 Then
 							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + dwCharX + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
@@ -6449,30 +6463,39 @@ Namespace My.Sys.Forms
 				Bookmark
 				#ifdef __USE_GTK__
 				Case GDK_KEY_Tab
-					If DropDownShowed Then
-						CloseDropDown()
-						#ifdef __USE_GTK__
-							If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(*lvIntellisense.Designer, lvIntellisense, LastItemIndex)
-						#else
-							If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
-						#endif
-					End If
-					'If TabAsSpaces Then
-					'                                Var d = 4 - (FSelEndChar Mod 4)
-					'                                for i As Integer = 0 to d - 1
-					'                                    SendMessage(FHandle, WM_CHAR, 32, 0)
-					'                                Next i
-					'                                Return
-					'Else
-					bAddText = True
-					If FSelStartLine <> FSelEndLine Then
-						Indent
+					If Carets.Count > 0 Then
+						If DropDownShowed Then CloseDropDown()
+						If bShifted Then
+							Outdent
+						Else
+							Indent
+						End If
 					Else
-						#ifdef __USE_GTK__
-							ChangeText !"\t" '*e->Key.string
-						#else
-							ChangeText WChr(msg.wParam)
-						#endif
+						If DropDownShowed Then
+							CloseDropDown()
+							#ifdef __USE_GTK__
+								If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(*lvIntellisense.Designer, lvIntellisense, LastItemIndex)
+							#else
+								If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(cboIntellisense, LastItemIndex)
+							#endif
+						End If
+						'If TabAsSpaces Then
+						'                                Var d = 4 - (FSelEndChar Mod 4)
+						'                                for i As Integer = 0 to d - 1
+						'                                    SendMessage(FHandle, WM_CHAR, 32, 0)
+						'                                Next i
+						'                                Return
+						'Else
+						bAddText = True
+						If FSelStartLine <> FSelEndLine Then
+							Indent
+						Else
+							#ifdef __USE_GTK__
+								ChangeText !"\t" '*e->Key.string
+							#else
+								ChangeText WChr(msg.wParam)
+							#endif
+						End If
 					End If
 					'End If
 					msg.Result = True
@@ -6521,30 +6544,39 @@ Namespace My.Sys.Forms
 				#endif
 				msg.Result = 0
 			Case 9:  ' tab
-				If DropDownShowed Then
-					CloseDropDown()
-					#ifdef __USE_GTK__
-						If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(*lvIntellisense.Designer, lvIntellisense, LastItemIndex)
-					#else
-						If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(*cboIntellisense.Designer, cboIntellisense, LastItemIndex)
-					#endif
-				End If
-				'If TabAsSpaces Then
-				'                                Var d = 4 - (FSelEndChar Mod 4)
-				'                                for i As Integer = 0 to d - 1
-				'                                    SendMessage(FHandle, WM_CHAR, 32, 0)
-				'                                Next i
-				'                                Return
-				'Else
-				bAddText = True
-				If FSelStartLine <> FSelEndLine Then
-					Indent
+				If Carets.Count > 0 Then
+					If DropDownShowed Then CloseDropDown()
+					If bShifted Then
+						Outdent
+					Else
+						Indent
+					End If
 				Else
-					#ifdef __USE_GTK__
-						ChangeText *e->key.string
-					#else
-						ChangeText WChr(msg.wParam)
-					#endif
+					If DropDownShowed Then
+						CloseDropDown()
+						#ifdef __USE_GTK__
+							If LastItemIndex <> -1 AndAlso lvIntellisense.OnItemActivate Then lvIntellisense.OnItemActivate(*lvIntellisense.Designer, lvIntellisense, LastItemIndex)
+						#else
+							If LastItemIndex <> -1 AndAlso cboIntellisense.OnSelected Then cboIntellisense.OnSelected(*cboIntellisense.Designer, cboIntellisense, LastItemIndex)
+						#endif
+					End If
+					'If TabAsSpaces Then
+					'                                Var d = 4 - (FSelEndChar Mod 4)
+					'                                for i As Integer = 0 to d - 1
+					'                                    SendMessage(FHandle, WM_CHAR, 32, 0)
+					'                                Next i
+					'                                Return
+					'Else
+					bAddText = True
+					If FSelStartLine <> FSelEndLine Then
+						Indent
+					Else
+						#ifdef __USE_GTK__
+							ChangeText *e->key.string
+						#else
+							ChangeText WChr(msg.wParam)
+						#endif
+					End If
 				End If
 				'End If
 				msg.Result = True
