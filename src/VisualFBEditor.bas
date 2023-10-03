@@ -654,10 +654,10 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "CloseSession":                    CloseSession
 	Case "CloseAllWithoutCurrent":          CloseAllTabs(True)
 	Case "Exit":                            pfrmMain->CloseForm
-	Case "Find":                            pfFind->btnReplaceShow.Caption = "5": pfFind->Show *pfrmMain
+	Case "Find":                            pfFind->mFormFind = True: pfFind->Show *pfrmMain
 	Case "FindInFiles":                     mFormFindInFile = True:  pfFindFile->Show *pfrmMain : pfFindFile->CenterToParent
 	Case "ReplaceInFiles":                  mFormFindInFile = False:  pfFindFile->Show *pfrmMain : pfFindFile->CenterToParent
-	Case "Replace":                         pfFind->btnReplaceShow.Caption = "6": pfFind->Show *pfrmMain
+	Case "Replace":                         pfFind->mFormFind = False: pfFind->Show *pfrmMain
 	Case "PinLeft":                         SetLeftClosedStyle Not tbLeft.Buttons.Item("PinLeft")->Checked, False
 	Case "PinRight":                        SetRightClosedStyle Not tbRight.Buttons.Item("PinRight")->Checked, False
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False

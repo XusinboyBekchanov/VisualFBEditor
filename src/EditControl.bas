@@ -1484,7 +1484,6 @@ Namespace My.Sys.Forms
 		If SelStartChar <> -1 Then FSelStartChar = SelStartChar
 		FSelEndLine = FSelStartLine
 		FSelEndChar = FSelStartChar
-		ModifiedLine = True
 		If Not WithoutShow Then Changed Comment
 	End Sub
 	
@@ -1546,7 +1545,6 @@ Namespace My.Sys.Forms
 			WLet(FECLine->Text, "")
 			Content.Lines.Add(FECLine)
 		End If
-		ModifiedLine = True
 		ChangeText "", 0, "Matn almashtirildi"
 		Exit Sub
 		A:
@@ -1993,6 +1991,7 @@ Namespace My.Sys.Forms
 			p = Pos1 + 1
 			OldiC = iC
 		Loop While Pos1 > 0
+		Modified = True
 		ModifiedLine = True
 		'WLet(Cast(EditControlLine Ptr, Content.Lines.Item(FSelStartLine))->Text, *FECLine->Text & *FLine)
 		'WLet(FECLine->Text, sLine)
@@ -2028,6 +2027,7 @@ Namespace My.Sys.Forms
 		If FECLine->ConstructionIndex = C_Asm Then
 			InAsm = FECLine->ConstructionPart = 0
 		End If
+		Modified = True
 		ModifiedLine = True
 		FECLine->InAsm = InAsm
 		If FSelStartLine = FSelEndLine Then FSelStartLine += 1
