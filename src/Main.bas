@@ -4920,8 +4920,10 @@ Sub LoadSnippets
 									teParam->DisplayName = Cast(TypeElement Ptr, te->Elements.Object(idx))->DisplayName
 									NewParameters &= teParam->DisplayName
 									j = j - Len(Number) + 1
+								Else
+									j = j + 1
 								End If
-								If ch >= !"\r" Then
+								If ch = !"\r" Then
 									j = 0
 									k = 0
 								End If
