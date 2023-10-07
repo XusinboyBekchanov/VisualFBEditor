@@ -1938,6 +1938,7 @@ Namespace My.Sys.Forms
 		If OnLineAdding Then OnLineAdding(*Designer, This, Index)
 		Content.Lines.Insert Index, FECLine
 		ChangeCollapsibility Index
+		Modified = True
 		ModifiedLine = True
 		If FECLine->ConstructionIndex = C_Asm Then
 			InAsm = FECLine->ConstructionPart = 0
@@ -6673,6 +6674,7 @@ Namespace My.Sys.Forms
 				Else
 					WAdd FLineSpace, !"\t"
 				End If
+				ModifiedLine = True 
 				ChangeText *FLineLeft & WChr(13) & *FLineSpace & *FLineRight, p, "Enter bosildi", Min(FSelStartLine, FSelEndLine) + 1, d + k
 				'Var n = Min(FSelStart, FSelEnd)
 				'Var x = Max(FSelStart, FSelEnd)
