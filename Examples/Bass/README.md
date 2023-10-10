@@ -1,9 +1,4 @@
-# Bass
-Example for VisualFBEditor
-
-BassAudio
-
-Function: 
+# BassAudio
 
 #### Playback 
 
