@@ -5,17 +5,17 @@ BassAudio
 
 Function: 
 
-# Playback 
+#### Playback 
 
 Support audio format mp3, wav, flac, ape...
 
-# Recorder
+#### Recorder
 
 Record live audio, Record computer playback, Record netradio...
 
-# NetRadio
+#### NetRadio
 
-# Device Select, Spectrum, Ex, Equalizer
+#### Device Select, Spectrum, Ex, Equalizer
 
 ![image](https://github.com/chunmingwang/Bass/assets/35757455/005e490c-2412-4a6d-8b33-4f636a61b916)
 
